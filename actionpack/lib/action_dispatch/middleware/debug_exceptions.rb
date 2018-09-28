@@ -23,7 +23,7 @@ module ActionDispatch
         if clean_params.empty?
           "None"
         else
-          PP.pp(clean_params, "".dup, 200)
+          PP.pp(clean_params, +"", 200)
         end
       end
 

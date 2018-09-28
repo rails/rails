@@ -22,6 +22,14 @@ module ActiveRecord
       end
     end
 
+    class InvertibleTransactionMigration < InvertibleMigration
+      def change
+        transaction do
+          super
+        end
+      end
+    end
+
     class InvertibleRevertMigration < SilentMigration
       def change
         revert do
@@ -269,6 +277,14 @@ module ActiveRecord
       assert revert.connection.table_exists?("horses")
       revert.migrate :up
       assert_not revert.connection.table_exists?("horses")
+    end
+
+    def test_migrate_revert_transaction
+      migration = InvertibleTransactionMigration.new
+      migration.migrate :up
+      assert migration.connection.table_exists?("horses")
+      migration.migrate :down
+      assert_not migration.connection.table_exists?("horses")
     end
 
     def test_migrate_revert_change_column_default

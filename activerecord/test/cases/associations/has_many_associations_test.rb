@@ -1197,6 +1197,38 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 2, topic.reload.replies.size
   end
 
+  def test_counter_cache_updates_in_memory_after_update_with_inverse_of_disabled
+    topic = Topic.create!(title: "Zoom-zoom-zoom")
+
+    assert_equal 0, topic.replies_count
+
+    reply1 = Reply.create!(title: "re: zoom", content: "speedy quick!")
+    reply2 = Reply.create!(title: "re: zoom 2", content: "OMG lol!")
+
+    assert_queries(4) do
+      topic.replies << [reply1, reply2]
+    end
+
+    assert_equal 2, topic.replies_count
+    assert_equal 2, topic.reload.replies_count
+  end
+
+  def test_counter_cache_updates_in_memory_after_update_with_inverse_of_enabled
+    category = Category.create!(name: "Counter Cache")
+
+    assert_nil category.categorizations_count
+
+    categorization1 = Categorization.create!
+    categorization2 = Categorization.create!
+
+    assert_queries(4) do
+      category.categorizations << [categorization1, categorization2]
+    end
+
+    assert_equal 2, category.categorizations_count
+    assert_equal 2, category.reload.categorizations_count
+  end
+
   def test_pushing_association_updates_counter_cache
     topic = Topic.order("id ASC").first
     reply = Reply.create!

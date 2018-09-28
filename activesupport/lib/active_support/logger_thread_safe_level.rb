@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "active_support/concern"
+require "concurrent"
 
 module ActiveSupport
   module LoggerThreadSafeLevel # :nodoc:

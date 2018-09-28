@@ -227,7 +227,7 @@ module ActiveRecord
         post = Post.create!(title: "foo", body: "bar")
         expected = @connection.select_all("SELECT * FROM posts WHERE id = #{post.id}")
         result = @connection.select_all("SELECT * FROM posts WHERE id = #{Arel::Nodes::BindParam.new(nil).to_sql}", nil, [[nil, post.id]])
-        assert_equal expected.to_hash, result.to_hash
+        assert_equal expected.to_a, result.to_a
       end
 
       def test_insert_update_delete_with_legacy_binds
@@ -290,7 +290,7 @@ module ActiveRecord
       def test_log_invalid_encoding
         error = assert_raises RuntimeError do
           @connection.send :log, "SELECT 'ы' FROM DUAL" do
-            raise "ы".dup.force_encoding(Encoding::ASCII_8BIT)
+            raise (+"ы").force_encoding(Encoding::ASCII_8BIT)
           end
         end
 

@@ -39,7 +39,7 @@ module ActiveSupport
       end
 
       def start_element(name, attrs = [])
-        new_hash = { CONTENT_KEY => "".dup }.merge!(Hash[attrs])
+        new_hash = { CONTENT_KEY => +"" }.merge!(Hash[attrs])
         new_hash[HASH_SIZE_KEY] = new_hash.size + 1
 
         case current_hash[name]

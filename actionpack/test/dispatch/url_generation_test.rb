@@ -4,22 +4,23 @@ require "abstract_unit"
 
 module TestUrlGeneration
   class WithMountPoint < ActionDispatch::IntegrationTest
-    Routes = ActionDispatch::Routing::RouteSet.new
-    include Routes.url_helpers
-
     class ::MyRouteGeneratingController < ActionController::Base
-      include Routes.url_helpers
       def index
         render plain: foo_path
       end
     end
 
+    Routes = ActionDispatch::Routing::RouteSet.new
     Routes.draw do
       get "/foo", to: "my_route_generating#index", as: :foo
 
       resources :bars
 
       mount MyRouteGeneratingController.action(:index), at: "/bar"
+    end
+
+    class ::MyRouteGeneratingController
+      include Routes.url_helpers
     end
 
     APP = build_app Routes

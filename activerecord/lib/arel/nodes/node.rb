@@ -8,16 +8,6 @@ module Arel # :nodoc: all
       include Arel::FactoryMethods
       include Enumerable
 
-      if $DEBUG
-        def _caller
-          @caller
-        end
-
-        def initialize
-          @caller = caller.dup
-        end
-      end
-
       ###
       # Factory method to create a Nodes::Not node that has the recipient of
       # the caller as a child.

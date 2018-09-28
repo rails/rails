@@ -14,6 +14,7 @@ module ActiveRecord
       class_option :parent, type: :string, desc: "The parent class for the generated model"
       class_option :indexes, type: :boolean, default: true, desc: "Add indexes for references and belongs_to columns"
       class_option :primary_key_type, type: :string, desc: "The type for primary key"
+      class_option :migrations_paths, type: :string, desc: "The migration path for your generated migrations. If this is not set it will default to db/migrate"
 
       # creates the migration file for the model.
       def create_migration_file

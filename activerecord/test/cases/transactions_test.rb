@@ -930,7 +930,7 @@ class TransactionTest < ActiveRecord::TestCase
 
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = "transaction_without_primary_keys"
-      after_commit {} # necessary to trigger the has_transactional_callbacks branch
+      after_commit { } # necessary to trigger the has_transactional_callbacks branch
     end
 
     assert_no_difference(-> { klass.count }) do
@@ -945,7 +945,7 @@ class TransactionTest < ActiveRecord::TestCase
 
   def test_empty_transaction_is_not_materialized
     assert_no_queries do
-      Topic.transaction {}
+      Topic.transaction { }
     end
   end
 
@@ -968,7 +968,7 @@ class TransactionTest < ActiveRecord::TestCase
   def test_savepoint_does_not_materialize_transaction
     assert_no_queries do
       Topic.transaction do
-        Topic.transaction(requires_new: true) {}
+        Topic.transaction(requires_new: true) { }
       end
     end
   end
@@ -991,7 +991,7 @@ class TransactionTest < ActiveRecord::TestCase
     Topic.connection.raw_connection
 
     assert_sql(/BEGIN/i, /COMMIT/i) do
-      Topic.transaction {}
+      Topic.transaction { }
     end
   end
 
@@ -1001,7 +1001,7 @@ class TransactionTest < ActiveRecord::TestCase
     Topic.connection_pool.checkin connection
 
     assert_no_queries do
-      connection.transaction {}
+      connection.transaction { }
     end
   end
 

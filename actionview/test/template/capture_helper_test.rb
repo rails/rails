@@ -40,7 +40,7 @@ class CaptureHelperTest < ActionView::TestCase
     assert_equal "&lt;em&gt;bar&lt;/em&gt;", string
   end
 
-  def test_capture_used_for_read
+  def test_content_for_used_for_read
     content_for :foo, "foo"
     assert_equal "foo", content_for(:foo)
 
@@ -219,7 +219,7 @@ class CaptureHelperTest < ActionView::TestCase
 
   def test_with_output_buffer_does_not_assume_there_is_an_output_buffer
     assert_nil @av.output_buffer
-    assert_equal "", @av.with_output_buffer {}
+    assert_equal "", @av.with_output_buffer { }
   end
 
   def alt_encoding(output_buffer)

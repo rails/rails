@@ -43,9 +43,11 @@ module ActiveRecord
       }
 
       class StatementPool < ConnectionAdapters::StatementPool # :nodoc:
-        private def dealloc(stmt)
-          stmt.close
-        end
+        private
+
+          def dealloc(stmt)
+            stmt.close
+          end
       end
 
       def initialize(connection, logger, connection_options, config)
@@ -135,7 +137,7 @@ module ActiveRecord
       end
 
       def index_algorithms
-        { default: "ALGORITHM = DEFAULT".dup, copy: "ALGORITHM = COPY".dup, inplace: "ALGORITHM = INPLACE".dup }
+        { default: +"ALGORITHM = DEFAULT", copy: +"ALGORITHM = COPY", inplace: +"ALGORITHM = INPLACE" }
       end
 
       # HELPER METHODS ===========================================
@@ -390,7 +392,7 @@ module ActiveRecord
 
       def add_index(table_name, column_name, options = {}) #:nodoc:
         index_name, index_type, index_columns, _, index_algorithm, index_using, comment = add_index_options(table_name, column_name, options)
-        sql = "CREATE #{index_type} INDEX #{quote_column_name(index_name)} #{index_using} ON #{quote_table_name(table_name)} (#{index_columns}) #{index_algorithm}".dup
+        sql = +"CREATE #{index_type} INDEX #{quote_column_name(index_name)} #{index_using} ON #{quote_table_name(table_name)} (#{index_columns}) #{index_algorithm}"
         execute add_sql_comment!(sql, comment)
       end
 
@@ -783,7 +785,7 @@ module ActiveRecord
           # https://dev.mysql.com/doc/refman/5.7/en/set-names.html
           # (trailing comma because variable_assignments will always have content)
           if @config[:encoding]
-            encoding = "NAMES #{@config[:encoding]}".dup
+            encoding = +"NAMES #{@config[:encoding]}"
             encoding << " COLLATE #{@config[:collation]}" if @config[:collation]
             encoding << ", "
           end

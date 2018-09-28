@@ -17,11 +17,11 @@ module ActionDispatch
         def self.normalize_path(path)
           path ||= ""
           encoding = path.encoding
-          path = "/#{path}".dup
+          path = +"/#{path}"
           path.squeeze!("/".freeze)
           path.sub!(%r{/+\Z}, "".freeze)
           path.gsub!(/(%[a-f0-9]{2})/) { $1.upcase }
-          path = "/".dup if path == "".freeze
+          path = +"/" if path == "".freeze
           path.force_encoding(encoding)
           path
         end
@@ -32,7 +32,7 @@ module ActionDispatch
           ENCODE   = "%%%02X".freeze
           US_ASCII = Encoding::US_ASCII
           UTF_8    = Encoding::UTF_8
-          EMPTY    = "".dup.force_encoding(US_ASCII).freeze
+          EMPTY    = (+"").force_encoding(US_ASCII).freeze
           DEC2HEX  = (0..255).to_a.map { |i| ENCODE % i }.map { |s| s.force_encoding(US_ASCII) }
 
           ALPHA = "a-zA-Z".freeze

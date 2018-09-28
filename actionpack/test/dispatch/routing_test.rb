@@ -115,6 +115,21 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal 301, status
   end
 
+  def test_accepts_a_constraint_object_responding_to_call
+    constraint = Class.new do
+      def call(*); true; end
+      def matches?(*); false; end
+    end
+
+    draw do
+      get "/", to: "home#show", constraints: constraint.new
+    end
+
+    assert_nothing_raised do
+      get "/"
+    end
+  end
+
   def test_namespace_with_controller_segment
     assert_raise(ArgumentError) do
       draw do
@@ -1364,6 +1379,22 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal "/en", projects_path(locale: "en")
     assert_equal "/", projects_path
     get "/en"
+    assert_equal "projects#index", @response.body
+  end
+
+  def test_optionally_scoped_root_unscoped_access
+    draw do
+      scope "(:locale)" do
+        scope "(:platform)" do
+          scope "(:browser)" do
+            root to: "projects#index"
+          end
+        end
+      end
+    end
+
+    assert_equal "/", root_path
+    get "/"
     assert_equal "projects#index", @response.body
   end
 

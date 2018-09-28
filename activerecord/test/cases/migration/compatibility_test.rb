@@ -127,6 +127,20 @@ module ActiveRecord
         assert_match(/LegacyMigration < ActiveRecord::Migration\[4\.2\]/, e.message)
       end
 
+      def test_legacy_migrations_not_raise_exception_on_reverting_transaction
+        migration = Class.new(ActiveRecord::Migration[5.2]) {
+          def change
+            transaction do
+              execute "select 1"
+            end
+          end
+        }.new
+
+        assert_nothing_raised do
+          migration.migrate(:down)
+        end
+      end
+
       if current_adapter?(:PostgreSQLAdapter)
         class Testing < ActiveRecord::Base
         end

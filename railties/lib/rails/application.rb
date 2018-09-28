@@ -438,8 +438,12 @@ module Rails
     # Decrypts the credentials hash as kept in +config/credentials.yml.enc+. This file is encrypted with
     # the Rails master key, which is either taken from <tt>ENV["RAILS_MASTER_KEY"]</tt> or from loading
     # +config/master.key+.
+    # If specific credentials file exists for current environment, it takes precedence, thus for +production+
+    # environment look first for +config/credentials/production.yml.enc+ with master key taken
+    # from <tt>ENV["RAILS_MASTER_KEY"]</tt> or from loading +config/credentials/production.key+.
+    # Default behavior can be overwritten by setting +config.credentials.content_path+ and +config.credentials.key_path+.
     def credentials
-      @credentials ||= encrypted("config/credentials.yml.enc")
+      @credentials ||= encrypted(config.credentials.content_path, key_path: config.credentials.key_path)
     end
 
     # Shorthand to decrypt any encrypted configurations or files.

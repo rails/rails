@@ -237,8 +237,6 @@ module Arel # :nodoc: all
         def visit_Arel_Nodes_SelectCore(o, collector)
           collector << "SELECT"
 
-          collector = maybe_visit o.top, collector
-
           collector = maybe_visit o.set_quantifier, collector
 
           collect_nodes_for o.projections, collector, SPACE
@@ -403,11 +401,6 @@ module Arel # :nodoc: all
         def visit_Arel_Nodes_Limit(o, collector)
           collector << "LIMIT "
           visit o.expr, collector
-        end
-
-        # FIXME: this does nothing on most databases, but does on MSSQL
-        def visit_Arel_Nodes_Top(o, collector)
-          collector
         end
 
         def visit_Arel_Nodes_Lock(o, collector)
@@ -644,7 +637,7 @@ module Arel # :nodoc: all
 
         def visit_Arel_Nodes_Assignment(o, collector)
           case o.right
-          when Arel::Nodes::UnqualifiedColumn, Arel::Attributes::Attribute, Arel::Nodes::BindParam
+          when Arel::Nodes::Node, Arel::Attributes::Attribute
             collector = visit o.left, collector
             collector << " = "
             visit o.right, collector
@@ -739,8 +732,6 @@ module Arel # :nodoc: all
         end
 
         alias :visit_Arel_Nodes_SqlLiteral :literal
-        alias :visit_Bignum                :literal
-        alias :visit_Fixnum                :literal
         alias :visit_Integer               :literal
 
         def quoted(o, a)

@@ -75,7 +75,7 @@ module ActiveJob
     #     assert_enqueued_jobs 2
     #   end
     #
-    # If a block is passed, that block will cause the specified number of
+    # If a block is passed, asserts that the block will cause the specified number of
     # jobs to be enqueued.
     #
     #   def test_jobs_again
@@ -89,7 +89,7 @@ module ActiveJob
     #     end
     #   end
     #
-    # The number of times a specific job was enqueued can be asserted.
+    # Asserts the number of times a specific job was enqueued by passing +:only+ option.
     #
     #   def test_logging_job
     #     assert_enqueued_jobs 1, only: LoggingJob do
@@ -98,7 +98,7 @@ module ActiveJob
     #     end
     #   end
     #
-    # The number of times a job except specific class was enqueued can be asserted.
+    # Asserts the number of times a job except specific class was enqueued by passing +:except+ option.
     #
     #   def test_logging_job
     #     assert_enqueued_jobs 1, except: HelloJob do
@@ -107,7 +107,7 @@ module ActiveJob
     #     end
     #   end
     #
-    # The number of times a job is enqueued to a specific queue can also be asserted.
+    # Asserts the number of times a job is enqueued to a specific queue by passing +:queue+ option.
     #
     #   def test_logging_job
     #     assert_enqueued_jobs 2, queue: 'default' do
@@ -139,7 +139,7 @@ module ActiveJob
     #     assert_enqueued_jobs 1
     #   end
     #
-    # If a block is passed, that block should not cause any job to be enqueued.
+    # If a block is passed, asserts that the block will not cause any job to be enqueued.
     #
     #   def test_jobs_again
     #     assert_no_enqueued_jobs do
@@ -147,7 +147,7 @@ module ActiveJob
     #     end
     #   end
     #
-    # It can be asserted that no jobs of a specific kind are enqueued:
+    # Asserts that no jobs of a specific kind are enqueued by passing +:only+ option.
     #
     #   def test_no_logging
     #     assert_no_enqueued_jobs only: LoggingJob do
@@ -155,7 +155,7 @@ module ActiveJob
     #     end
     #   end
     #
-    # It can be asserted that no jobs except specific class are enqueued:
+    # Asserts that no jobs except specific class are enqueued by passing +:except+ option.
     #
     #   def test_no_logging
     #     assert_no_enqueued_jobs except: HelloJob do
@@ -163,7 +163,7 @@ module ActiveJob
     #     end
     #   end
     #
-    # It can be asserted that no jobs are enqueued to a specific queue:
+    # Asserts that no jobs are enqueued to a specific queue by passing +:queue+ option
     #
     #   def test_no_logging
     #     assert_no_enqueued_jobs queue: 'default' do
@@ -331,6 +331,22 @@ module ActiveJob
     #     assert_enqueued_with(job: MyJob, at: Date.tomorrow.noon)
     #   end
     #
+    #
+    # The +args+ argument also accepts a proc which will get passed the actual
+    # job's arguments. Your proc needs to returns a boolean value determining if
+    # the job's arguments matches your expectation. This is useful to check only
+    # for a subset of arguments.
+    #
+    #   def test_assert_enqueued_with
+    #     expected_args = ->(job_args) do
+    #       assert job_args.first.key?(:foo)
+    #     end
+    #
+    #     MyJob.perform_later(foo: 'bar', other_arg: 'No need to check in the test')
+    #     assert_enqueued_with(job: MyJob, args: expected_args, queue: 'low')
+    #   end
+    #
+    #
     # If a block is passed, that block should cause the job to be
     # enqueued with the given arguments.
     #
@@ -345,7 +361,7 @@ module ActiveJob
     #   end
     def assert_enqueued_with(job: nil, args: nil, at: nil, queue: nil)
       expected = { job: job, args: args, at: at, queue: queue }.compact
-      serialized_args = serialize_args_for_assertion(expected)
+      expected_args = prepare_args_for_assertion(expected)
 
       if block_given?
         original_enqueued_jobs_count = enqueued_jobs.count
@@ -358,7 +374,15 @@ module ActiveJob
       end
 
       matching_job = jobs.find do |enqueued_job|
-        serialized_args.all? { |key, value| value == enqueued_job[key] }
+        deserialized_job = deserialize_args_for_assertion(enqueued_job)
+
+        expected_args.all? do |key, value|
+          if value.respond_to?(:call)
+            value.call(deserialized_job[key])
+          else
+            value == deserialized_job[key]
+          end
+        end
       end
 
       assert matching_job, "No enqueued job found with #{expected}"
@@ -381,6 +405,22 @@ module ActiveJob
     #     assert_performed_with(job: MyJob, at: Date.tomorrow.noon)
     #   end
     #
+    # The +args+ argument also accepts a proc which will get passed the actual
+    # job's arguments. Your proc needs to returns a boolean value determining if
+    # the job's arguments matches your expectation. This is useful to check only
+    # for a subset of arguments.
+    #
+    #   def test_assert_performed_with
+    #     expected_args = ->(job_args) do
+    #       assert job_args.first.key?(:foo)
+    #     end
+    #     MyJob.perform_later(foo: 'bar', other_arg: 'No need to check in the test')
+    #
+    #     perform_enqueued_jobs
+    #
+    #     assert_performed_with(job: MyJob, args: expected_args, queue: 'high')
+    #   end
+    #
     # If a block is passed, that block performs all of the jobs that were
     # enqueued throughout the duration of the block and asserts that
     # the job has been performed with the given arguments in the block.
@@ -396,7 +436,7 @@ module ActiveJob
     #   end
     def assert_performed_with(job: nil, args: nil, at: nil, queue: nil, &block)
       expected = { job: job, args: args, at: at, queue: queue }.compact
-      serialized_args = serialize_args_for_assertion(expected)
+      expected_args = prepare_args_for_assertion(expected)
 
       if block_given?
         original_performed_jobs_count = performed_jobs.count
@@ -408,8 +448,16 @@ module ActiveJob
         jobs = performed_jobs
       end
 
-      matching_job = jobs.find do |performed_job|
-        serialized_args.all? { |key, value| value == performed_job[key] }
+      matching_job = jobs.find do |enqueued_job|
+        deserialized_job = deserialize_args_for_assertion(enqueued_job)
+
+        expected_args.all? do |key, value|
+          if value.respond_to?(:call)
+            value.call(deserialized_job[key])
+          else
+            value == deserialized_job[key]
+          end
+        end
       end
 
       assert matching_job, "No performed job found with #{expected}"
@@ -552,10 +600,15 @@ module ActiveJob
         end
       end
 
-      def serialize_args_for_assertion(args)
-        args.dup.tap do |serialized_args|
-          serialized_args[:args] = ActiveJob::Arguments.serialize(serialized_args[:args]) if serialized_args[:args]
-          serialized_args[:at]   = serialized_args[:at].to_f if serialized_args[:at]
+      def prepare_args_for_assertion(args)
+        args.dup.tap do |arguments|
+          arguments[:at] = arguments[:at].to_f if arguments[:at]
+        end
+      end
+
+      def deserialize_args_for_assertion(job)
+        job.dup.tap do |new_job|
+          new_job[:args] = ActiveJob::Arguments.deserialize(new_job[:args]) if new_job[:args]
         end
       end
 

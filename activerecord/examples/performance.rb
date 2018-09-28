@@ -176,7 +176,7 @@ Benchmark.ips(TIME) do |x|
   end
 
   x.report "Model.log" do
-    Exhibit.connection.send(:log, "hello", "world") {}
+    Exhibit.connection.send(:log, "hello", "world") { }
   end
 
   x.report "AR.execute(query)" do

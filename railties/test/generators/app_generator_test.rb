@@ -931,7 +931,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_after_bundle_callback
     path = "http://example.org/rails_template"
-    template = %{ after_bundle { run 'echo ran after_bundle' } }.dup
+    template = +%{ after_bundle { run 'echo ran after_bundle' } }
     template.instance_eval "def read; self; end" # Make the string respond to read
 
     check_open = -> *args do

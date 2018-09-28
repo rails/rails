@@ -8,6 +8,7 @@ require "jobs/logging_job"
 require "jobs/nested_job"
 require "jobs/rescue_job"
 require "jobs/inherited_job"
+require "jobs/multiple_kwargs_job"
 require "models/person"
 
 class EnqueuedJobsTest < ActiveJob::TestCase
@@ -503,7 +504,7 @@ class EnqueuedJobsTest < ActiveJob::TestCase
 
     assert_raise ActiveSupport::TestCase::Assertion do
       LoggingJob.perform_later
-      assert_enqueued_with(job: LoggingJob) {}
+      assert_enqueued_with(job: LoggingJob) { }
     end
 
     error = assert_raise ActiveSupport::TestCase::Assertion do
@@ -537,6 +538,29 @@ class EnqueuedJobsTest < ActiveJob::TestCase
     end
   end
 
+  def test_assert_enqueued_with_selective_args
+    args = ->(job_args) do
+      assert_equal 1, job_args.first[:argument1]
+      assert job_args.first[:argument2].key?(:b)
+    end
+
+    assert_enqueued_with(job: MultipleKwargsJob, args: args) do
+      MultipleKwargsJob.perform_later(argument2: { b: 2, a: 1 }, argument1: 1)
+    end
+  end
+
+  def test_assert_enqueued_with_selective_args_fails
+    args = ->(job_args) do
+      false
+    end
+
+    assert_raise ActiveSupport::TestCase::Assertion do
+      assert_enqueued_with(job: MultipleKwargsJob, args: args) do
+        MultipleKwargsJob.perform_later(argument2: { b: 2, a: 1 }, argument1: 1)
+      end
+    end
+  end
+
   def test_assert_enqueued_with_with_no_block_args
     assert_raise ArgumentError do
       NestedJob.set(wait_until: Date.tomorrow.noon).perform_later
@@ -553,6 +577,12 @@ class EnqueuedJobsTest < ActiveJob::TestCase
   def test_assert_enqueued_with_with_no_block_with_at_option
     HelloJob.set(wait_until: Date.tomorrow.noon).perform_later
     assert_enqueued_with(job: HelloJob, at: Date.tomorrow.noon)
+  end
+
+  def test_assert_enqueued_with_with_hash_arg
+    assert_enqueued_with(job: MultipleKwargsJob, args: [{ argument1: 1, argument2: { a: 1, b: 2 } }]) do
+      MultipleKwargsJob.perform_later(argument2: { b: 2, a: 1 }, argument1: 1)
+    end
   end
 
   def test_assert_enqueued_with_with_global_id_args
@@ -1563,6 +1593,35 @@ class PerformedJobsTest < ActiveJob::TestCase
 
     assert_raise ActiveSupport::TestCase::Assertion do
       assert_performed_with(job: HelloJob, at: Date.today.noon)
+    end
+  end
+
+  def test_assert_performed_with_with_hash_arg
+    assert_performed_with(job: MultipleKwargsJob, args: [{ argument1: 1, argument2: { a: 1, b: 2 } }]) do
+      MultipleKwargsJob.perform_later(argument2: { b: 2, a: 1 }, argument1: 1)
+    end
+  end
+
+  def test_assert_performed_with_selective_args
+    args = ->(job_args) do
+      assert_equal 1, job_args.first[:argument1]
+      assert job_args.first[:argument2].key?(:b)
+    end
+
+    assert_performed_with(job: MultipleKwargsJob, args: args) do
+      MultipleKwargsJob.perform_later(argument2: { b: 2, a: 1 }, argument1: 1)
+    end
+  end
+
+  def test_assert_performed_with_selective_args_fails
+    args = ->(job_args) do
+      false
+    end
+
+    assert_raise ActiveSupport::TestCase::Assertion do
+      assert_performed_with(job: MultipleKwargsJob, args: args) do
+        MultipleKwargsJob.perform_later(argument2: { b: 2, a: 1 }, argument1: 1)
+      end
     end
   end
 

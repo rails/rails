@@ -279,6 +279,8 @@ module ActiveSupport
       super(convert_key(key))
     end
 
+    alias_method :without, :except
+
     def stringify_keys!; self end
     def deep_stringify_keys!; self end
     def stringify_keys; dup end

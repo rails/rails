@@ -71,7 +71,7 @@ module TestHelpers
     end
 
     def extract_body(response)
-      "".dup.tap do |body|
+      (+"").tap do |body|
         response[2].each { |chunk| body << chunk }
       end
     end

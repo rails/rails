@@ -146,9 +146,9 @@ GEM
       faraday (~> 0.9)
       faraday_middleware (~> 0.10)
       nokogiri (~> 1.6, >= 1.6.8)
-    backburner (1.4.1)
+    backburner (1.5.0)
       beaneater (~> 1.0)
-      concurrent-ruby (~> 1.0.1)
+      concurrent-ruby (~> 1.0, >= 1.0.1)
       dante (> 0.1.5)
     bcrypt (3.1.12)
     bcrypt (3.1.12-java)
@@ -319,7 +319,7 @@ GEM
       mime-types-data (~> 3.2015)
     mime-types-data (3.2018.0812)
     mimemagic (0.3.2)
-    mini_magick (4.8.0)
+    mini_magick (4.9.2)
     mini_mime (1.0.1)
     mini_portile2 (2.3.0)
     minitest (5.11.3)
@@ -580,4 +580,4 @@ DEPENDENCIES
   websocket-client-simple!
 
 BUNDLED WITH
-   1.16.4
+   1.16.5

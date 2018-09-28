@@ -100,7 +100,10 @@ end
 
 class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
   def self.build_app(routes = nil)
-    RoutedRackApp.new(routes || ActionDispatch::Routing::RouteSet.new) do |middleware|
+    routes ||= ActionDispatch::Routing::RouteSet.new.tap { |rs|
+      rs.draw { }
+    }
+    RoutedRackApp.new(routes) do |middleware|
       middleware.use ActionDispatch::ShowExceptions, ActionDispatch::PublicExceptions.new("#{FIXTURE_LOAD_PATH}/public")
       middleware.use ActionDispatch::DebugExceptions
       middleware.use ActionDispatch::Callbacks
@@ -232,6 +235,7 @@ module ActionController
       routes = ActionDispatch::Routing::RouteSet.new
       routes.draw(&block)
       include routes.url_helpers
+      routes
     end
   end
 
@@ -430,14 +434,16 @@ end
 class ActiveSupport::TestCase
   include ActiveSupport::Testing::MethodCallAssertions
 
-  # Skips the current run on Rubinius using Minitest::Assertions#skip
-  private def rubinius_skip(message = "")
-    skip message if RUBY_ENGINE == "rbx"
-  end
-  # Skips the current run on JRuby using Minitest::Assertions#skip
-  private def jruby_skip(message = "")
-    skip message if defined?(JRUBY_VERSION)
-  end
+  private
+    # Skips the current run on Rubinius using Minitest::Assertions#skip
+    def rubinius_skip(message = "")
+      skip message if RUBY_ENGINE == "rbx"
+    end
+
+    # Skips the current run on JRuby using Minitest::Assertions#skip
+    def jruby_skip(message = "")
+      skip message if defined?(JRUBY_VERSION)
+    end
 end
 
 class DrivenByRackTest < ActionDispatch::SystemTestCase

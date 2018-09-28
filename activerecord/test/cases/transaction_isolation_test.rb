@@ -90,7 +90,7 @@ else
     test "setting isolation when joining a transaction raises an error" do
       Tag.transaction do
         assert_raises(ActiveRecord::TransactionIsolationError) do
-          Tag.transaction(isolation: :serializable) {}
+          Tag.transaction(isolation: :serializable) { }
         end
       end
     end
@@ -98,7 +98,7 @@ else
     test "setting isolation when starting a nested transaction raises error" do
       Tag.transaction do
         assert_raises(ActiveRecord::TransactionIsolationError) do
-          Tag.transaction(requires_new: true, isolation: :serializable) {}
+          Tag.transaction(requires_new: true, isolation: :serializable) { }
         end
       end
     end

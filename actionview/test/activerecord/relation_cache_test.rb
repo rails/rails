@@ -6,6 +6,7 @@ class RelationCacheTest < ActionView::TestCase
   tests ActionView::Helpers::CacheHelper
 
   def setup
+    super
     view_paths     = ActionController::Base.view_paths
     lookup_context = ActionView::LookupContext.new(view_paths, {}, ["test"])
     @view_renderer = ActionView::Renderer.new(lookup_context)

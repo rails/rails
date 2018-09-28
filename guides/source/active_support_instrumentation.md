@@ -467,6 +467,7 @@ Active Job
 | `:job`       | Job object                             |
 | `:adapter`   | QueueAdapter object processing the job |
 | `:error`     | The error that caused the retry        |
+| `:wait`      | The delay of the retry                 |
 
 ### perform_start.active_job
 

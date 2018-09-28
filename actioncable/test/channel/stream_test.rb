@@ -26,16 +26,17 @@ module ActionCable::StreamTests
       transmit_subscription_confirmation
     end
 
-    private def pick_coder(coder)
-      case coder
-      when nil, "json"
-        ActiveSupport::JSON
-      when "custom"
-        DummyEncoder
-      when "none"
-        nil
+    private
+      def pick_coder(coder)
+        case coder
+        when nil, "json"
+          ActiveSupport::JSON
+        when "custom"
+          DummyEncoder
+        when "none"
+          nil
+        end
       end
-    end
   end
 
   module DummyEncoder

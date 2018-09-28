@@ -135,7 +135,7 @@ learn about Ruby on Rails, and the API, which serves as a reference.
 You can help improve the Rails guides by making them more coherent, consistent, or readable, adding missing information, correcting factual errors, fixing typos, or bringing them up to date with the latest edge Rails.
 
 To do so, make changes to Rails guides source files (located [here](https://github.com/rails/rails/tree/master/guides/source) on GitHub). Then open a pull request to apply your
-changes to master branch.
+changes to the master branch.
 
 When working with documentation, please take into account the [API Documentation Guidelines](api_documentation_guidelines.html) and the [Ruby on Rails Guides Guidelines](ruby_on_rails_guides_guidelines.html).
 
@@ -488,18 +488,10 @@ Navigate to the Rails [GitHub repository](https://github.com/rails/rails) and pr
 Add the new remote to your local repository on your local machine:
 
 ```bash
-$ git remote add mine https://github.com/<your user name>/rails.git
+$ git remote add fork https://github.com/<your user name>/rails.git
 ```
 
-Push to your remote:
-
-```bash
-$ git push mine my_new_branch
-```
-
-You might have cloned your forked repository into your machine and might want to add the original Rails repository as a remote instead, if that's the case here's what you have to do.
-
-In the directory you cloned your fork:
+You may have cloned your local repository from rails/rails or you may have cloned from your forked repository. To avoid ambiguity the following git commands assume that you have made a "rails" remote that points to rails/rails.
 
 ```bash
 $ git remote add rails https://github.com/rails/rails.git
@@ -516,22 +508,16 @@ Merge the new content:
 ```bash
 $ git checkout master
 $ git rebase rails/master
+$ git checkout my_new_branch
+$ git rebase rails/master
 ```
 
 Update your fork:
 
 ```bash
-$ git push origin master
+$ git push fork master
+$ git push fork my_new_branch
 ```
-
-If you want to update another branch:
-
-```bash
-$ git checkout branch_name
-$ git rebase rails/branch_name
-$ git push origin branch_name
-```
-
 
 ### Issue a Pull Request
 
@@ -582,29 +568,15 @@ branches, squashing makes it easier to revert bad commits, and the git history
 can be a bit easier to follow. Rails is a large project, and a bunch of
 extraneous commits can add a lot of noise.
 
-In order to do this, you'll need to have a git remote that points at the main
-Rails repository. This is useful anyway, but just in case you don't have it set
-up, make sure that you do this first:
-
 ```bash
-$ git remote add upstream https://github.com/rails/rails.git
-```
-
-You can call this remote whatever you'd like, but if you don't use `upstream`,
-then change the name to your own in the instructions below.
-
-Given that your remote branch is called `my_pull_request`, then you can do the
-following:
-
-```bash
-$ git fetch upstream
-$ git checkout my_pull_request
-$ git rebase -i upstream/master
+$ git fetch rails
+$ git checkout my_new_branch
+$ git rebase -i rails/master
 
 < Choose 'squash' for all of your commits except the first one. >
 < Edit the commit message to make sense, and describe all your changes. >
 
-$ git push origin my_pull_request -f
+$ git push fork my_new_branch -f
 ```
 
 You should be able to refresh the pull request on GitHub and see that it has
@@ -620,7 +592,7 @@ you can force push to your branch on GitHub as described earlier in
 squashing commits section:
 
 ```bash
-$ git push origin my_pull_request -f
+$ git push fork my_new_branch -f
 ```
 
 This will update the branch and pull request on GitHub with your new code. Do
@@ -632,7 +604,7 @@ note that using force push may result in commits being lost on the remote branch
 If you want to add a fix to older versions of Ruby on Rails, you'll need to set up and switch to your own local tracking branch. Here is an example to switch to the 4-0-stable branch:
 
 ```bash
-$ git branch --track 4-0-stable origin/4-0-stable
+$ git branch --track 4-0-stable rails/4-0-stable
 $ git checkout 4-0-stable
 ```
 

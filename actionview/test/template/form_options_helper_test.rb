@@ -668,7 +668,7 @@ class FormOptionsHelperTest < ActionView::TestCase
     @post = Post.new
 
     output_buffer = fields_for :post, @post do |f|
-      concat(f.select(:category) {})
+      concat(f.select(:category) { })
     end
 
     assert_dom_equal(

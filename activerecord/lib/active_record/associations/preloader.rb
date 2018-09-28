@@ -98,12 +98,11 @@ module ActiveRecord
 
         # Loads all the given data into +records+ for the +association+.
         def preloaders_on(association, records, scope, polymorphic_parent = false)
-          case association
-          when Hash
+          if association.respond_to?(:to_hash)
             preloaders_for_hash(association, records, scope, polymorphic_parent)
-          when Symbol
+          elsif association.is_a?(Symbol)
             preloaders_for_one(association, records, scope, polymorphic_parent)
-          when String
+          elsif association.respond_to?(:to_str)
             preloaders_for_one(association.to_sym, records, scope, polymorphic_parent)
           else
             raise ArgumentError, "#{association.inspect} was not recognized for preload"
