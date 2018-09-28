@@ -39,7 +39,13 @@ module ActiveSupport
       end
 
       def deserialize(config)
-        YAML.load(config, fallback: YAML.parse("{}"))
+        return {} if config.blank?
+
+        if Gem::Version.new(Psych::VERSION) >= Gem::Version.new("3.0.1")
+          YAML.load(config, fallback: YAML.parse("{}"))
+        else
+          YAML.load(config, nil, YAML.parse("{}"))
+        end
       end
   end
 end
