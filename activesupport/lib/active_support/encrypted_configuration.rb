@@ -39,7 +39,7 @@ module ActiveSupport
       end
 
       def deserialize(config)
-        YAML.load(config, fallback: YAML.parse('{}'))
+        YAML.load(config, fallback: YAML.parse("{}"))
       end
   end
 end
