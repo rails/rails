@@ -13,19 +13,23 @@ class ActionMailroom::InboundEmail < ActiveRecord::Base
       create! raw_email: raw_email, message_id: extract_message_id(raw_email), **options
     end
     
-    def mail_from_raw_content(raw_email_content)
-      Mail.new(Mail::Utilities.binary_unsafe_to_crlf(raw_email_content.to_s))
+    def mail_from_source(source)
+      Mail.new(Mail::Utilities.binary_unsafe_to_crlf(source.to_s))
     end
 
     private
       def extract_message_id(raw_email)
-        mail_from_raw_content(raw_email.read).message_id
+        mail_from_source(raw_email.read).message_id
       rescue => e
         # TODO: Assign message id if it can't be extracted?
       end
   end
 
   def mail
-    @mail ||= self.class.mail_from_raw_content(raw_email.download)
+    @mail ||= self.class.mail_from_source(source)
+  end
+
+  def source
+    @source ||= raw_email.download
   end
 end
