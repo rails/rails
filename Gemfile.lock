@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    actionmailroom (0.1.0)
+    actionmailbox (0.1.0)
       rails (>= 5.2.0)
 
 GEM
@@ -121,7 +121,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  actionmailroom!
+  actionmailbox!
   bundler (~> 1.15)
   byebug
   sqlite3

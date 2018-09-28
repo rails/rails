@@ -1,16 +1,16 @@
 require_relative '../../test_helper'
 
-class ApplicationMailbox < ActionMailroom::Mailbox
+class ApplicationMailbox < ActionMailbox::Base
   routing "replies@example.com" => :replies
 end
 
-class RepliesMailbox < ActionMailroom::Mailbox
+class RepliesMailbox < ActionMailbox::Base
   def process
     $processed = mail.subject
   end
 end
 
-class ActionMailroom::Mailbox::RoutingTest < ActiveSupport::TestCase
+class ActionMailbox::Base::RoutingTest < ActiveSupport::TestCase
   setup do
     $processed = false
     @inbound_email = create_inbound_email_from_fixture("welcome.eml")
@@ -22,7 +22,7 @@ class ActionMailroom::Mailbox::RoutingTest < ActiveSupport::TestCase
   end
 
   test "delayed routing" do
-    perform_enqueued_jobs only: ActionMailroom::RoutingJob do
+    perform_enqueued_jobs only: ActionMailbox::RoutingJob do
       another_inbound_email = create_inbound_email_from_fixture("welcome.eml", status: :pending)
       assert_equal "Discussion: Let's debate these attachments", $processed
     end

@@ -1,6 +1,6 @@
 require_relative '../test_helper'
 
-module ActionMailroom
+module ActionMailbox
   class InboundEmailTest < ActiveSupport::TestCase
     test "mail provides the parsed source" do
       assert_equal "Discussion: Let's debate these attachments", create_inbound_email_from_fixture("welcome.eml").mail.subject

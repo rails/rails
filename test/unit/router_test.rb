@@ -1,6 +1,6 @@
 require_relative '../test_helper'
 
-class RootMailbox < ActionMailroom::Mailbox
+class RootMailbox < ActionMailbox::Base
   def process
     $processed_by   = self.class.to_s
     $processed_mail = mail
@@ -19,10 +19,10 @@ class FirstMailboxAddress
   end
 end
 
-module ActionMailroom
+module ActionMailbox
   class RouterTest < ActiveSupport::TestCase
     setup do
-      @router = ActionMailroom::Router.new
+      @router = ActionMailbox::Router.new
       $processed_by = $processed_mail = nil
     end
 
@@ -82,7 +82,7 @@ module ActionMailroom
     end
 
     test "missing route" do
-      assert_raises(ActionMailroom::Router::RoutingError) do
+      assert_raises(ActionMailbox::Router::RoutingError) do
         inbound_email = create_inbound_email_from_mail(to: "going-nowhere@example.com", subject: "This is a reply")
         @router.route inbound_email
         assert inbound_email.bounced?
@@ -90,7 +90,7 @@ module ActionMailroom
     end
 
     test "invalid address" do
-      assert_raises(ActionMailroom::Router::Route::InvalidAddressError) do
+      assert_raises(ActionMailbox::Router::Route::InvalidAddressError) do
         @router.add_route Array.new, to: :first
         @router.route create_inbound_email_from_mail(to: "replies-nowhere@example.com", subject: "This is a reply")
       end

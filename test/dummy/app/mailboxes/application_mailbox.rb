@@ -1,2 +1,2 @@
-class ApplicationMailbox < ActionMailroom::Mailbox
+class ApplicationMailbox < ActionMailbox::Base
 end

@@ -3,7 +3,7 @@ require_relative 'boot'
 require 'rails/all'
 
 Bundler.require(*Rails.groups)
-require "action_mailroom"
+require "action_mailbox"
 
 module Dummy
   class Application < Rails::Application

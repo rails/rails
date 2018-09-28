@@ -1,6 +1,6 @@
 require_relative '../../test_helper'
 
-class CallbackMailbox < ActionMailroom::Mailbox
+class CallbackMailbox < ActionMailbox::Base
   before_processing { $before_processing = "Ran that!" }
   after_processing  { $after_processing = "Ran that too!" }
   around_processing ->(r, block) { block.call; $around_processing = "Ran that as well!" }
@@ -10,7 +10,7 @@ class CallbackMailbox < ActionMailroom::Mailbox
   end
 end
 
-class ActionMailroom::Mailbox::CallbacksTest < ActiveSupport::TestCase
+class ActionMailbox::Base::CallbacksTest < ActiveSupport::TestCase
   setup do
     $before_processing = $after_processing = $around_processing = $processed = false
     @inbound_email = create_inbound_email_from_fixture("welcome.eml")

@@ -22,10 +22,10 @@ if ActiveSupport::TestCase.respond_to?(:fixture_path=)
   ActiveSupport::TestCase.fixtures :all
 end
 
-require "action_mailroom/test_helper"
+require "action_mailbox/test_helper"
 
 class ActiveSupport::TestCase
-  include ActionMailroom::TestHelper, ActiveJob::TestHelper
+  include ActionMailbox::TestHelper, ActiveJob::TestHelper
 end
 
 if ARGV.include?("-v")
