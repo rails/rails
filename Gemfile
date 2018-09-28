@@ -80,7 +80,7 @@ group :cable do
   gem "blade", require: false, platforms: [:ruby]
   gem "blade-sauce_labs_plugin", require: false, platforms: [:ruby]
   gem "sprockets-export", require: false
-  
+
   platforms :mri do
     gem "iodine", require: false
   end
