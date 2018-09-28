@@ -1,3 +1,3 @@
-# Action Mailroom
+# Action Mailbox
 
 📬
