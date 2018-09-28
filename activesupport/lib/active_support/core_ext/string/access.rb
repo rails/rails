@@ -67,7 +67,7 @@ class String
   # Returns the first character. If a limit is supplied, returns a substring
   # from the beginning of the string until it reaches the limit value. If the
   # given limit is greater than or equal to the string length, returns a copy of self.
-  # Returns a blank string when the given limit is negative.
+  # Raises an ArgumentError when the given limit is negative.
   #
   #   str = "hello"
   #   str.first    # => "h"
@@ -75,9 +75,11 @@ class String
   #   str.first(2) # => "he"
   #   str.first(0) # => ""
   #   str.first(6) # => "hello"
-  #   str.first(-1) # => ""
+  #   str.first(-1) # => ArgumentError: invalid limit value
   def first(limit = 1)
-    if limit <= 0
+    if limit < 0
+      raise ArgumentError, "invalid limit value"
+    elsif limit == 0
       ""
     elsif limit >= size
       dup
@@ -89,7 +91,7 @@ class String
   # Returns the last character of the string. If a limit is supplied, returns a substring
   # from the end of the string until it reaches the limit value (counting backwards). If
   # the given limit is greater than or equal to the string length, returns a copy of self.
-  # Returns a blank string when the given limit is negative.
+  # Raises an ArgumentError when the given limit is negative.
   #
   #   str = "hello"
   #   str.last    # => "o"
@@ -97,9 +99,11 @@ class String
   #   str.last(2) # => "lo"
   #   str.last(0) # => ""
   #   str.last(6) # => "hello"
-  #   str.last(-1) # => ""
+  #   str.last(-1) # => ArgumentError: invalid limit value
   def last(limit = 1)
-    if limit <= 0
+    if limit < 0
+      raise ArgumentError, "invalid limit value"
+    elsif limit == 0
       ""
     elsif limit >= size
       dup
