@@ -5,8 +5,7 @@ module ActionMailroom::InboundEmail::Routable
     after_create_commit :route_later, if: ->(inbound_email) { inbound_email.pending? }
   end
 
-  private
-    def route_later
-      ActionMailroom::RoutingJob.perform_later self
-    end
+  def route_later
+    ActionMailroom::RoutingJob.perform_later self
+  end
 end
