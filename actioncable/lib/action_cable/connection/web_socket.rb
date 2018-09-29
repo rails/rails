@@ -7,7 +7,7 @@ module ActionCable
     # Wrap the real socket to minimize the externally-presented API
     class WebSocket # :nodoc:
       def initialize(env, event_target, event_loop, protocols: ActionCable::INTERNAL[:protocols])
-        @websocket = self.class.create_driver(env, event_target, event_loop, protocols)
+        @websocket = self.class.establish_connection(env, event_target, event_loop, protocols)
       end
 
       def possible?
@@ -34,28 +34,26 @@ module ActionCable
         websocket.rack_response
       end
 
+      def self.establish_connection(env, event_target, event_loop, protocols)
+        case driver_selector
+        when :rack
+          return RackClientSocket.attempt(env, event_target, event_loop, protocols)
+        when :driver
+          return ::WebSocket::Driver.websocket?(env) && ClientSocket.new(env, event_target, event_loop, protocols)
+        end
+        record_drive_selector(env) && establish_connection(env, event_target, event_loop, protocols)
+      end
+
       private
 
         attr_reader :websocket
-
-        @driver_selector = nil
-
-        def self.create_driver(env, event_target, event_loop, protocols)
-          case @driver_selector
-          when :rack
-            return WebSocketRack.attempt(env, event_target, event_loop, protocols)
-          when :driver
-            return ::WebSocket::Driver.websocket?(env) && ClientSocket.new(env, event_target, event_loop, protocols)
-          end
-          return nil unless ::WebSocket::Driver.websocket?(env)
-          ret = WebSocketRack.attempt(env, event_target, event_loop, protocols)
-          if (ret)
-            @driver_selector = :rack
-            return ret
-          end
-          @driver_selector = :driver
-          ClientSocket.new(env, event_target, event_loop, protocols)
+        attr_accessor :driver_selector
+        def self.record_drive_selector(env)
+          return (driver_selector = :rack) if (RackClientSocket.websocket?(env))
+          return (driver_selector = :driver) if ::WebSocket::Driver.websocket?(env)
+          nil
         end
+
     end
   end
 end

@@ -6,25 +6,20 @@ module ActionCable
       # Wrap the `rack.upgrade?` API as an alternative to using `websocket/driver` and `nio4r`
       #
       # The `rack.upgrade?` approach detailed here: https://github.com/rack/rack/pull/1272
-      class WebSocketRack # :nodoc:
-        UPGRADE_EXISTS = "rack.upgrade?"
-        UPGRADE = "rack.upgrade"
-        PROTOCOL_NAME_IN = "HTTP_SEC_WEBSOCKET_PROTOCOL"
-        PROTOCOL_NAME_OUT = "Sec-Websocket-Protocol"
-        CLOSE_REASON = ""
-
+      class RackClientSocket # :nodoc:
         attr_reader :protocol
 
         def initialize(env, event_target, event_loop, protocols)
-          env[UPGRADE] = self
+          env["rack.upgrade"] = self
           @event_target = event_target
           @protocol = nil
           @websocket = nil
-          request_protocols = env[PROTOCOL_NAME_IN]
-          return if request_protocols.nil?
-          request_protocols = request_protocols.split(/,\s?/) if request_protocols.is_a?(String)
-          request_protocols.each do |request_protocol|
-            break(@protocol = request_protocol) if protocols.include?(request_protocol)
+          request_protocols = env["HTTP_SEC_WEBSOCKET_PROTOCOL"]
+          unless request_protocols.nil?
+            request_protocols = request_protocols.split(/,\s?/) if request_protocols.is_a?(String)
+            request_protocols.each do |request_protocol|
+              break(@protocol = request_protocol) if protocols.include?(request_protocol)
+            end
           end
         end
 
@@ -47,8 +42,11 @@ module ActionCable
         end
 
         def rack_response
-          return [101, { PROTOCOL_NAME_OUT => protocol }, []] if protocol
-          [101, {}, []]
+          if protocol
+            [101, { "Sec-Websocket-Protocol" => protocol }, []]
+          else
+            [101, {}, []]
+          end
         end
 
         def on_open(client)
@@ -57,15 +55,19 @@ module ActionCable
         end
 
         def on_close(client)
-          @event_target.on_close(1000, CLOSE_REASON)
+          @event_target.on_close(1000, "")
         end
 
         def on_message(client, data)
           @event_target.on_message(data)
         end
 
+        def self.websocket?(env)
+          env["rack.upgrade?"] == :websocket
+        end
+
         def self.attempt(env, event_target, event_loop, protocols)
-          env[UPGRADE_EXISTS] == :websocket && self.new(env, event_target, event_loop, protocols)
+          env["rack.upgrade?"] == :websocket && self.new(env, event_target, event_loop, protocols)
         end
 
         private

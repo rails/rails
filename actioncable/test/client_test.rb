@@ -10,8 +10,8 @@ require "active_support/hash_with_indifferent_access"
 
 # test with iodine if platform allows
 begin
-  require "iodine" rescue nil
-rescue Exception => e
+  require "iodine"
+rescue LoadError
   nil
 end
 
@@ -105,26 +105,36 @@ class ClientTest < ActionCable::TestCase
       end
     end
   end
+
   if defined?(::Iodine)
     def with_iodine_server(rack_app = ActionCable.server, port = 3099, block)
-      ::Iodine.listen2http(app: rack_app, port: port.to_s, address: "127.0.0.1")
-      ::Iodine.workers = 1 # don't cluster the test
-      ::Iodine.threads = 1 # one for the server another for the task
-      t = Thread.new { ::Iodine.start }
-      block.call(port)
-      ::Iodine.stop
-      t.join
+      begin
+        ::Iodine.listen2http(app: rack_app, port: port.to_s, address: "127.0.0.1")
+        ::Iodine.workers = 1 # don't cluster the test
+        ::Iodine.threads = 1 # one for the server another for the task
+        t = Thread.new { ::Iodine.start }
+        block.call(port)
+      rescue
+        nil
+      ensure
+        ::Iodine.stop
+        t.join
+      end
     end
   else
     def with_iodine_server(rack_app = ActionCable.server, port = 3099, block)
+      skip "Iodine testing skipped, unsupported?."
       puts "Iodine testing skipped, unsupported?."
     end
   end
 
   def with_cable_server(rack_app = ActionCable.server, port = 3099, &block)
+    puts "Testing with Puma"
     with_puma_server(rack_app, port, block)
+    puts "Testing with Iodine"
     with_iodine_server(rack_app, port, block)
   end
+
   class SyncClient
     attr_reader :pings
 
