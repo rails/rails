@@ -35,7 +35,7 @@ module ActionCable
       end
 
       def self.establish_connection(env, event_target, event_loop, protocols)
-        case driver_selector
+        case @driver_selector
         when :rack
           return RackClientSocket.attempt(env, event_target, event_loop, protocols)
         when :driver
@@ -47,10 +47,10 @@ module ActionCable
       private
 
         attr_reader :websocket
-        attr_accessor :driver_selector
+
         def self.record_drive_selector(env)
-          return (driver_selector = :rack) if (RackClientSocket.websocket?(env))
-          return (driver_selector = :driver) if ::WebSocket::Driver.websocket?(env)
+          return (@driver_selector = :rack) if (RackClientSocket.websocket?(env))
+          return (@driver_selector = :driver) if ::WebSocket::Driver.websocket?(env)
           nil
         end
     end
