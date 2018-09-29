@@ -53,7 +53,6 @@ module ActionCable
           return (driver_selector = :driver) if ::WebSocket::Driver.websocket?(env)
           nil
         end
-
     end
   end
 end
