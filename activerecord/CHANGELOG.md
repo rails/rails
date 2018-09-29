@@ -1,3 +1,9 @@
+*   Write timestamp attributes when creating a record unless they were already changed.
+
+    Fixes #33443
+
+    *Robertas Godelis*
+
 *   Fix `transaction` reverting for migrations.
 
     Before: Commands inside a `transaction` in a reverted migration ran uninverted.

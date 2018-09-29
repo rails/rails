@@ -456,6 +456,17 @@ class TimestampTest < ActiveRecord::TestCase
     toy = Toy.first
     assert_equal ["created_at", "updated_at"], toy.send(:all_timestamp_attributes_in_model)
   end
+
+  def test_creating_a_record_after_a_failed_transaction
+    toy = Toy.new
+
+    Toy.transaction do
+      toy.save!
+      raise ActiveRecord::Rollback
+    end
+
+    assert_nothing_raised { toy.save! }
+  end
 end
 
 class TimestampsWithoutTransactionTest < ActiveRecord::TestCase

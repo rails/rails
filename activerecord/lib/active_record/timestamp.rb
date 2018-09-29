@@ -92,9 +92,8 @@ module ActiveRecord
         current_time = current_time_from_proper_timezone
 
         all_timestamp_attributes_in_model.each do |column|
-          if !attribute_present?(column)
-            _write_attribute(column, current_time)
-          end
+          next if will_save_change_to_attribute?(column)
+          _write_attribute(column, current_time)
         end
       end
 
