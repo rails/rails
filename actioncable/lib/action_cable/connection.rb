@@ -7,7 +7,8 @@ module ActionCable
     eager_autoload do
       autoload :Authorization
       autoload :Base
-      autoload :ClientSocket
+      autoload :ClientFayeSocket
+      autoload :ClientRackSocket
       autoload :Identification
       autoload :InternalChannel
       autoload :MessageBuffer
@@ -16,7 +17,6 @@ module ActionCable
       autoload :Subscriptions
       autoload :TaggedLoggerProxy
       autoload :WebSocket
-      autoload :RackClientSocket
     end
   end
 end

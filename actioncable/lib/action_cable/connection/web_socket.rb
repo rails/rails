@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "websocket/driver"
-
 module ActionCable
   module Connection
     # Wrap the real socket to minimize the externally-presented API
@@ -34,23 +32,20 @@ module ActionCable
         websocket.rack_response
       end
 
+      # by order of preference, the first supported client will be chosen
+      CLIENT_SOCKET_CANDIDATES = [ClientRackSocket, ClientFayeSocket]
+
       def self.establish_connection(env, event_target, event_loop, protocols)
-        case @driver_selector
-        when :rack
-          return RackClientSocket.attempt(env, event_target, event_loop, protocols)
-        when :driver
-          return ::WebSocket::Driver.websocket?(env) && ClientSocket.new(env, event_target, event_loop, protocols)
-        end
-        record_drive_selector(env) && establish_connection(env, event_target, event_loop, protocols)
+        @client_socket_klass ||= client_socket_selector(env)
+        @client_socket_klass&.attempt(env, event_target, event_loop, protocols)
       end
 
       private
 
         attr_reader :websocket
 
-        def self.record_drive_selector(env)
-          return (@driver_selector = :rack) if (RackClientSocket.websocket?(env))
-          return (@driver_selector = :driver) if ::WebSocket::Driver.websocket?(env)
+        def self.client_socket_selector(env)
+          CLIENT_SOCKET_CANDIDATES.each {|klass| return klass if klass.accept?(env) }
           nil
         end
     end
