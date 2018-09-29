@@ -6,7 +6,6 @@ module ActionCable
     #
     # The `rack.upgrade?` approach detailed here: https://github.com/rack/rack/pull/1272
     class ClientRackSocket # :nodoc:
-
       def self.accept?(env)
         env["rack.upgrade?"] == :websocket
       end

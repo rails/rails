@@ -41,11 +41,10 @@ module ActionCable
       end
 
       private
-
         attr_reader :websocket
 
         def self.client_socket_selector(env)
-          CLIENT_SOCKET_CANDIDATES.each {|klass| return klass if klass.accept?(env) }
+          CLIENT_SOCKET_CANDIDATES.each { |klass| return klass if klass.accept?(env) }
           nil
         end
     end
