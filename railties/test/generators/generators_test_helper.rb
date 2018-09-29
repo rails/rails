@@ -43,6 +43,7 @@ module GeneratorsTestHelper
   end
 
   def with_secondary_database_configuration
+    original_configurations = ActiveRecord::Base.configurations
     ActiveRecord::Base.configurations = {
       test: {
         secondary: {
@@ -53,7 +54,7 @@ module GeneratorsTestHelper
     }
     yield
   ensure
-    ActiveRecord::Base.configurations = {}
+    ActiveRecord::Base.configurations = original_configurations
   end
 
   def copy_routes
