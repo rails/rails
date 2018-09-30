@@ -490,7 +490,25 @@ directly from the client to the cloud.
     ```erb
     <%= form.file_field :attachments, multiple: true, direct_upload: true %>
     ```
-3. That's it! Uploads begin upon form submission.
+3. Enable Cross-Origin Resource Sharing (CORS): You need to allow direct upload from browser to your cloud storage by enabling CORS. Without this, It will not pass the browser's preflight check. you will see HTTP 403 error when trying to upload. Below are instructions for Amazon S3. if you do not use S3, then please look at the provider specified documentation on how to enable CORS.
+
+    Amazon S3: Goto AWS Management Console -> S3 Bucket -> Permissions -> CORS Configuration and add CORS policy. A sample policy for non-production use is given below.
+
+  ```xml
+    <?xml version="1.0" encoding="UTF-8"?>
+    <CORSConfiguration xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
+    <CORSRule>
+        <AllowedOrigin>http://localhost:3000</AllowedOrigin>
+        <AllowedMethod>PUT</AllowedMethod>
+        <MaxAgeSeconds>3000</MaxAgeSeconds>
+        <AllowedHeader>Content-Type</AllowedHeader>
+        <AllowedHeader>Content-MD5</AllowedHeader>
+    </CORSRule>
+    </CORSConfiguration>
+  ```
+  For more details, please see [https://docs.aws.amazon.com/AmazonS3/latest/dev/cors.html](Amazon's Official Documentation)
+
+4. That's it! Uploads begin upon form submission.
 
 ### Direct upload JavaScript events
 
