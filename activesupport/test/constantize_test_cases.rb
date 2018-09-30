@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "dependencies_test_helpers"
+require_relative "dependencies_test_helpers"
 
 module Ace
   module Base

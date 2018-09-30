@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "abstract_unit"
 require "active_support/actionable_error"
 
 class ActionableErrorTest < ActiveSupport::TestCase

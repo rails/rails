@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
 require "date"
-require "abstract_unit"
+require_relative "../abstract_unit"
 require "timeout"
-require "inflector_test_cases"
-require "constantize_test_cases"
+require_relative "../inflector_test_cases"
+require_relative "../constantize_test_cases"
 
 require "active_support/inflector"
 require "active_support/core_ext/string"
@@ -12,7 +12,7 @@ require "active_support/time"
 require "active_support/core_ext/string/output_safety"
 require "active_support/core_ext/string/indent"
 require "active_support/core_ext/string/strip"
-require "time_zone_test_helpers"
+require_relative "../time_zone_test_helpers"
 require "yaml"
 
 class StringInflectionsTest < ActiveSupport::TestCase
