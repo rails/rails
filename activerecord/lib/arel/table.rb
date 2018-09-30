@@ -104,8 +104,7 @@ module Arel # :nodoc: all
       !type_caster.nil?
     end
 
-    protected
-
+    private
       attr_reader :type_caster
   end
 end
