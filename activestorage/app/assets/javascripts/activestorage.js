@@ -655,6 +655,7 @@
         if (status >= 200 && status < 300) {
           this.callback(null, response);
         } else {
+          console.error(`Error Storing ${this.file.name}, Error Message: ${this.xhr.response}`)
           this.requestDidError(event);
         }
       }
