@@ -484,9 +484,12 @@ module ActiveRecord
       stmt = Arel::DeleteManager.new
       stmt.from(table)
 
-      if has_join_values? || has_limit_or_offset?
+      if has_join_values? || offset_value
         @klass.connection.join_to_delete(stmt, arel, arel_attribute(primary_key))
       else
+        stmt.key = arel_attribute(primary_key)
+        stmt.take(arel.limit)
+        stmt.order(*arel.orders)
         stmt.wheres = arel.constraints
       end
 
