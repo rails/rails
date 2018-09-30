@@ -56,18 +56,6 @@ module Arel # :nodoc: all
           super
         end
 
-        def visit_Arel_Nodes_UpdateStatement(o, collector)
-          collector << "UPDATE "
-          collector = visit o.relation, collector
-
-          unless o.values.empty?
-            collector << " SET "
-            collector = inject_join o.values, collector, ", "
-          end
-
-          collect_where_for(o, collector)
-        end
-
         def visit_Arel_Nodes_Concat(o, collector)
           collector << " CONCAT("
           visit o.left, collector
@@ -77,7 +65,23 @@ module Arel # :nodoc: all
           collector
         end
 
+        def build_subselect(key, o)
+          subselect = super
+
+          # Materialize subquery by adding distinct
+          # to work with MySQL 5.7.6 which sets optimizer_switch='derived_merge=on'
+          subselect.distinct unless subselect.limit || subselect.offset || subselect.orders.any?
+
+          Nodes::SelectStatement.new.tap do |stmt|
+            core = stmt.cores.last
+            core.froms = Nodes::Grouping.new(subselect).as("__active_record_temp")
+            core.projections = [Arel.sql(quote_column_name(key.name))]
+          end
+        end
+
         def collect_where_for(o, collector)
+          return super if o.offset
+
           unless o.wheres.empty?
             collector << " WHERE "
             collector = inject_join o.wheres, collector, " AND "

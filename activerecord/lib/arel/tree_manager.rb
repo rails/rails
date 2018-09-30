@@ -10,6 +10,11 @@ module Arel # :nodoc: all
         self
       end
 
+      def offset(offset)
+        @ast.offset = Nodes::Offset.new(Nodes.build_quoted(offset)) if offset
+        self
+      end
+
       def order(*expr)
         @ast.orders = expr
         self

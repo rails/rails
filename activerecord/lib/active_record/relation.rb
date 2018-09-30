@@ -356,11 +356,12 @@ module ActiveRecord
         stmt.set Arel.sql(klass.sanitize_sql_for_assignment(updates, table.name))
       end
 
-      if has_join_values? || offset_value
+      if has_join_values?
         @klass.connection.join_to_update(stmt, arel, arel_attribute(primary_key))
       else
         stmt.key = arel_attribute(primary_key)
         stmt.take(arel.limit)
+        stmt.offset(arel.offset)
         stmt.order(*arel.orders)
         stmt.wheres = arel.constraints
       end
@@ -484,11 +485,12 @@ module ActiveRecord
       stmt = Arel::DeleteManager.new
       stmt.from(table)
 
-      if has_join_values? || offset_value
+      if has_join_values?
         @klass.connection.join_to_delete(stmt, arel, arel_attribute(primary_key))
       else
         stmt.key = arel_attribute(primary_key)
         stmt.take(arel.limit)
+        stmt.offset(arel.offset)
         stmt.order(*arel.orders)
         stmt.wheres = arel.constraints
       end

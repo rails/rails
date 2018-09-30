@@ -88,6 +88,7 @@ module Arel # :nodoc: all
           core.wheres      = o.wheres
           core.projections = [key]
           stmt.limit       = o.limit
+          stmt.offset      = o.offset
           stmt.orders      = o.orders
           stmt
         end
@@ -800,7 +801,7 @@ module Arel # :nodoc: all
         end
 
         def collect_where_for(o, collector)
-          if o.orders.empty? && o.limit.nil?
+          if o.orders.empty? && o.limit.nil? && o.offset.nil?
             wheres = o.wheres
           else
             wheres = [Nodes::In.new(o.key, [build_subselect(o.key, o)])]
