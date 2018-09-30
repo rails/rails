@@ -506,7 +506,7 @@ directly from the client to the cloud.
     </CORSRule>
     </CORSConfiguration>
   ```
-  For more details, please see [https://docs.aws.amazon.com/AmazonS3/latest/dev/cors.html](Amazon's Official Documentation)
+  For more details, please see [Amazon CORS Documentation](https://docs.aws.amazon.com/AmazonS3/latest/dev/cors.html)
 
 4. That's it! Uploads begin upon form submission.
 
