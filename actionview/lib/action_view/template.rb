@@ -235,6 +235,15 @@ module ActionView
       end
     end
 
+    def marshal_dump
+      [ @source, @identifier, @handler, @compiled, @original_encoding, @locals, @virtual_path, @updated_at, @formats, @variants ]
+    end
+
+    def marshal_load(array)
+      @source, @identifier, @handler, @compiled, @original_encoding, @locals, @virtual_path, @updated_at, @formats, @variants = *array
+      @compile_mutex = Mutex.new
+    end
+
     private
 
       # Compile a template. This method ensures a template is compiled
