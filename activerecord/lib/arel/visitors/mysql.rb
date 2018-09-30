@@ -65,6 +65,19 @@ module Arel # :nodoc: all
             collector = inject_join o.values, collector, ", "
           end
 
+          collect_where_for(o, collector)
+        end
+
+        def visit_Arel_Nodes_Concat(o, collector)
+          collector << " CONCAT("
+          visit o.left, collector
+          collector << ", "
+          visit o.right, collector
+          collector << ") "
+          collector
+        end
+
+        def collect_where_for(o, collector)
           unless o.wheres.empty?
             collector << " WHERE "
             collector = inject_join o.wheres, collector, " AND "
@@ -76,15 +89,6 @@ module Arel # :nodoc: all
           end
 
           maybe_visit o.limit, collector
-        end
-
-        def visit_Arel_Nodes_Concat(o, collector)
-          collector << " CONCAT("
-          visit o.left, collector
-          collector << ", "
-          visit o.right, collector
-          collector << ") "
-          collector
         end
     end
   end

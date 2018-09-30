@@ -3,8 +3,7 @@
 module Arel # :nodoc: all
   module Nodes
     class UpdateStatement < Arel::Nodes::Node
-      attr_accessor :relation, :wheres, :values, :orders, :limit
-      attr_accessor :key
+      attr_accessor :relation, :wheres, :values, :orders, :limit, :key
 
       def initialize
         @relation = nil

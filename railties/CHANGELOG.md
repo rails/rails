@@ -1,3 +1,18 @@
+*   Refactors `migrations_paths` command option in generators
+    to `database` (aliased as `db`). Now, the migrations paths
+    will be read from the specified database configuration in the
+    current environment.
+
+    ```
+    bin/rails g model Chair brand:string --database=kingston
+          invoke  active_record
+          create    db/kingston_migrate/20180830151055_create_chairs.rb
+    ```
+
+    `--database` can be used with the migration, model, and scaffold generators.
+
+    *Gannon McGibbon*
+
 *   Adds an option to the model generator to allow setting the
     migrations paths for that migration. This is useful for
     applications that use multiple databases and put migrations

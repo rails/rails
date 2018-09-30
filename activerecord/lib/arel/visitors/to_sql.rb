@@ -67,8 +67,8 @@ module Arel # :nodoc: all
         @connection = connection
       end
 
-      def compile(node, collector = Arel::Collectors::SQLString.new, &block)
-        accept(node, collector, &block).value
+      def compile(node, collector = Arel::Collectors::SQLString.new)
+        accept(node, collector).value
       end
 
       private
@@ -76,12 +76,8 @@ module Arel # :nodoc: all
         def visit_Arel_Nodes_DeleteStatement(o, collector)
           collector << "DELETE FROM "
           collector = visit o.relation, collector
-          if o.wheres.any?
-            collector << WHERE
-            collector = inject_join o.wheres, collector, AND
-          end
 
-          maybe_visit o.limit, collector
+          collect_where_for(o, collector)
         end
 
         # FIXME: we should probably have a 2-pass visitor for this
@@ -97,12 +93,6 @@ module Arel # :nodoc: all
         end
 
         def visit_Arel_Nodes_UpdateStatement(o, collector)
-          if o.orders.empty? && o.limit.nil?
-            wheres = o.wheres
-          else
-            wheres = [Nodes::In.new(o.key, [build_subselect(o.key, o)])]
-          end
-
           collector << "UPDATE "
           collector = visit o.relation, collector
           unless o.values.empty?
@@ -110,12 +100,7 @@ module Arel # :nodoc: all
             collector = inject_join o.values, collector, ", "
           end
 
-          unless wheres.empty?
-            collector << " WHERE "
-            collector = inject_join wheres, collector, " AND "
-          end
-
-          collector
+          collect_where_for(o, collector)
         end
 
         def visit_Arel_Nodes_InsertStatement(o, collector)
@@ -812,6 +797,21 @@ module Arel # :nodoc: all
               visit(x, c) << join_str
             end
           }
+        end
+
+        def collect_where_for(o, collector)
+          if o.orders.empty? && o.limit.nil?
+            wheres = o.wheres
+          else
+            wheres = [Nodes::In.new(o.key, [build_subselect(o.key, o)])]
+          end
+
+          unless wheres.empty?
+            collector << " WHERE "
+            collector = inject_join wheres, collector, " AND "
+          end
+
+          collector
         end
 
         def infix_value(o, collector, value)
