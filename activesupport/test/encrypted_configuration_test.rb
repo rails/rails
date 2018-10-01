@@ -43,11 +43,10 @@ class EncryptedConfigurationTest < ActiveSupport::TestCase
   end
 
   test "reading example configuration" do
-    require "rails/generators"
-    require "rails/generators/rails/encrypted_file/encrypted_file_generator"
-
-    encrypted_file_generator = Rails::Generators::EncryptedFileGenerator.new
-    encrypted_file_generator.add_encrypted_file_silently(@credentials_config_path, @credentials_key_path)
+    ActiveSupport::EncryptedFile.new(
+      content_path: @credentials_config_path, key_path: @credentials_key_path,
+      env_key: "RAILS_MASTER_KEY", raise_if_missing_key: true
+    ).write("# comment")
 
     assert_equal @credentials.config, {}
   end
