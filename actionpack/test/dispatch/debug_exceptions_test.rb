@@ -26,6 +26,18 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
       raise StandardError.new "error in framework"
     end
 
+    def raise_nested_exceptions
+      begin
+        raise "First error"
+      rescue
+        begin
+          raise "Second error"
+        rescue
+          raise "Third error"
+        end
+      end
+    end
+
     def call(env)
       env["action_dispatch.show_detailed_exceptions"] = @detailed
       req = ActionDispatch::Request.new(env)
@@ -74,6 +86,8 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
         end
       when %r{/framework_raises}
         method_that_raises
+      when %r{/nested_exceptions}
+        raise_nested_exceptions
       else
         raise "puke!"
       end
@@ -354,7 +368,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     })
     assert_response 500
 
-    assert_includes(body, CGI.escapeHTML(PP.pp(params, "".dup, 200)))
+    assert_includes(body, CGI.escapeHTML(PP.pp(params, +"", 200)))
   end
 
   test "sets the HTTP charset parameter" do
@@ -440,8 +454,8 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     get "/original_syntax_error", headers: { "action_dispatch.backtrace_cleaner" => ActiveSupport::BacktraceCleaner.new }
 
     assert_response 500
-    assert_select "#Application-Trace" do
-      assert_select "pre code", /syntax error, unexpected/
+    assert_select "#Application-Trace-0" do
+      assert_select "code", /syntax error, unexpected/
     end
   end
 
@@ -454,9 +468,9 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
 
     assert_select "#container h2", /^Missing template/
 
-    assert_select "#Application-Trace"
-    assert_select "#Framework-Trace"
-    assert_select "#Full-Trace"
+    assert_select "#Application-Trace-0"
+    assert_select "#Framework-Trace-0"
+    assert_select "#Full-Trace-0"
 
     assert_select "h2", /Request/
   end
@@ -467,8 +481,8 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     get "/syntax_error_into_view", headers: { "action_dispatch.backtrace_cleaner" => ActiveSupport::BacktraceCleaner.new }
 
     assert_response 500
-    assert_select "#Application-Trace" do
-      assert_select "pre code", /syntax error, unexpected/
+    assert_select "#Application-Trace-0" do
+      assert_select "code", /syntax error, unexpected/
     end
   end
 
@@ -497,13 +511,13 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
       end
 
       # assert application trace refers to line that calls method_that_raises is first
-      assert_select "#Application-Trace" do
-        assert_select "pre code a:first", %r{test/dispatch/debug_exceptions_test\.rb:\d+:in `call}
+      assert_select "#Application-Trace-0" do
+        assert_select "code a:first", %r{test/dispatch/debug_exceptions_test\.rb:\d+:in `call}
       end
 
       # assert framework trace that threw the error is first
-      assert_select "#Framework-Trace" do
-        assert_select "pre code a:first", /method_that_raises/
+      assert_select "#Framework-Trace-0" do
+        assert_select "code a:first", /method_that_raises/
       end
     end
   end
@@ -522,5 +536,40 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
 
     assert_response 500
     assert_match(/puke/, body)
+  end
+
+  test "debug exceptions app shows all the nested exceptions in source view" do
+    @app = DevelopmentApp
+    Rails.stub :root, Pathname.new(".") do
+      cleaner = ActiveSupport::BacktraceCleaner.new.tap do |bc|
+        bc.add_silencer { |line| line !~ %r{test/dispatch/debug_exceptions_test.rb} }
+      end
+
+      get "/nested_exceptions", headers: { "action_dispatch.backtrace_cleaner" => cleaner }
+
+      # Assert correct error
+      assert_response 500
+      assert_select "h2", /Third error/
+
+      # assert source view line shows the last error
+      assert_select "div.source:not(.hidden)" do
+        assert_select "pre .line.active", /raise "Third error"/
+      end
+
+      # assert application trace refers to line that raises the last exception
+      assert_select "#Application-Trace-0" do
+        assert_select "code a:first", %r{in `rescue in rescue in raise_nested_exceptions'}
+      end
+
+      # assert the second application trace refers to the line that raises the second exception
+      assert_select "#Application-Trace-1" do
+        assert_select "code a:first", %r{in `rescue in raise_nested_exceptions'}
+      end
+
+      # assert the third application trace refers to the line that raises the first exception
+      assert_select "#Application-Trace-2" do
+        assert_select "code a:first", %r{in `raise_nested_exceptions'}
+      end
+    end
   end
 end

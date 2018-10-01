@@ -14,6 +14,7 @@ require "models/line_item"
 require "models/order"
 require "models/parrot"
 require "models/pirate"
+require "models/project"
 require "models/ship"
 require "models/ship_part"
 require "models/tag"
@@ -27,6 +28,7 @@ require "models/member_detail"
 require "models/organization"
 require "models/guitar"
 require "models/tuning_peg"
+require "models/reply"
 
 class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
   def test_autosave_validation
@@ -517,6 +519,18 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
     assert_not_predicate new_firm, :persisted?
   end
 
+  def test_adding_unsavable_association
+    new_firm = Firm.new("name" => "A New Firm, Inc")
+    client = new_firm.clients.new("name" => "Apple")
+    client.throw_on_save = true
+
+    assert_predicate client, :valid?
+    assert_predicate new_firm, :valid?
+    assert_not new_firm.save
+    assert_not_predicate new_firm, :persisted?
+    assert_not_predicate client, :persisted?
+  end
+
   def test_invalid_adding_with_validate_false
     firm = Firm.first
     client = Client.new
@@ -543,6 +557,34 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
     assert firm.save
     assert_predicate client, :persisted?
     assert_equal no_of_clients + 1, Client.count
+  end
+
+  def test_parent_should_save_children_record_with_foreign_key_validation_set_in_before_save_callback
+    company = NewlyContractedCompany.new(name: "test")
+
+    assert company.save
+    assert_not_empty company.reload.new_contracts
+  end
+
+  def test_parent_should_not_get_saved_with_duplicate_children_records
+    assert_no_difference "Reply.count" do
+      assert_no_difference "SillyUniqueReply.count" do
+        reply = Reply.new
+        reply.silly_unique_replies.build([
+          { content: "Best content" },
+          { content: "Best content" }
+        ])
+
+        assert_not reply.save
+        assert_equal ["is invalid"], reply.errors[:silly_unique_replies]
+        assert_empty reply.silly_unique_replies.first.errors
+
+        assert_equal(
+          ["has already been taken"],
+          reply.silly_unique_replies.last.errors[:content]
+        )
+      end
+    end
   end
 
   def test_invalid_build
@@ -1744,5 +1786,23 @@ class TestAutosaveAssociationOnAHasManyAssociationWithInverse < ActiveRecord::Te
 
     assert_equal 1, post.comments.count
     assert_equal 1, comment.post_comments_count
+  end
+end
+
+class TestAutosaveAssociationOnAHasManyAssociationDefinedInSubclassWithAcceptsNestedAttributes < ActiveRecord::TestCase
+  def test_should_update_children_when_asssociation_redefined_in_subclass
+    agency = Agency.create!(name: "Agency")
+    valid_project = Project.create!(firm: agency, name: "Initial")
+    agency.update!(
+      "projects_attributes" => {
+        "0" => {
+          "name" => "Updated",
+          "id" => valid_project.id
+        }
+      }
+    )
+    valid_project.reload
+
+    assert_equal "Updated", valid_project.name
   end
 end

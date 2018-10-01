@@ -26,25 +26,21 @@ module ActiveSupport
         def pop; @queue.pop; end
       end
 
-      @after_fork_hooks = []
+      @@after_fork_hooks = []
 
       def self.after_fork_hook(&blk)
-        @after_fork_hooks << blk
+        @@after_fork_hooks << blk
       end
 
-      def self.after_fork_hooks
-        @after_fork_hooks
-      end
+      cattr_reader :after_fork_hooks
 
-      @run_cleanup_hooks = []
+      @@run_cleanup_hooks = []
 
       def self.run_cleanup_hook(&blk)
-        @run_cleanup_hooks << blk
+        @@run_cleanup_hooks << blk
       end
 
-      def self.run_cleanup_hooks
-        @run_cleanup_hooks
-      end
+      cattr_reader :run_cleanup_hooks
 
       def initialize(queue_size)
         @queue_size = queue_size
@@ -69,22 +65,24 @@ module ActiveSupport
       def start
         @pool = @queue_size.times.map do |worker|
           fork do
-            DRb.stop_service
+            begin
+              DRb.stop_service
 
-            after_fork(worker)
+              after_fork(worker)
 
-            queue = DRbObject.new_with_uri(@url)
+              queue = DRbObject.new_with_uri(@url)
 
-            while job = queue.pop
-              klass    = job[0]
-              method   = job[1]
-              reporter = job[2]
-              result   = Minitest.run_one_method(klass, method)
+              while job = queue.pop
+                klass    = job[0]
+                method   = job[1]
+                reporter = job[2]
+                result   = Minitest.run_one_method(klass, method)
 
-              queue.record(reporter, result)
+                queue.record(reporter, result)
+              end
+            ensure
+              run_cleanup(worker)
             end
-
-            run_cleanup(worker)
           end
         end
       end

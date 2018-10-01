@@ -349,6 +349,16 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
     end
   end
 
+  def test_redirect_with_arguments
+    with_test_route_set do
+      get "/redirect"
+      follow_redirect! params: { foo: :bar }
+
+      assert_response :ok
+      assert_equal "bar", request.parameters["foo"]
+    end
+  end
+
   def test_xml_http_request_get
     with_test_route_set do
       get "/get", xhr: true
@@ -532,9 +542,6 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
     def with_test_route_set
       with_routing do |set|
         controller = ::IntegrationProcessTest::IntegrationController.clone
-        controller.class_eval do
-          include set.url_helpers
-        end
 
         set.draw do
           get "moved" => redirect("/method")
@@ -543,6 +550,10 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
             match ":action", to: controller, via: [:get, :post], as: :action
             get "get/:action", to: controller, as: :get_action
           end
+        end
+
+        controller.class_eval do
+          include set.url_helpers
         end
 
         singleton_class.include(set.url_helpers)
@@ -1066,6 +1077,20 @@ class IntegrationRequestEncodersTest < ActionDispatch::IntegrationTest
       assert_equal "POST", request.method
       assert_equal "GET", request.headers["X-Http-Method-Override"]
       assert_equal({ "foo" => "heyo" }, response.parsed_body)
+    end
+  end
+
+  def test_get_request_with_json_excludes_null_query_string
+    with_routing do |routes|
+      routes.draw do
+        ActiveSupport::Deprecation.silence do
+          get ":action" => FooController
+        end
+      end
+
+      get "/foos_json", as: :json
+
+      assert_equal "http://www.example.com/foos_json", request.url
     end
   end
 

@@ -7,21 +7,15 @@ require "active_support/testing/method_call_assertions"
 class ActiveStorage::BlobTest < ActiveSupport::TestCase
   include ActiveSupport::Testing::MethodCallAssertions
 
-  test ".unattached scope returns not attached blobs" do
-    class UserWithHasOneAttachedDependentFalse < User
-      has_one_attached :avatar, dependent: false
+  test "unattached scope" do
+    [ create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg") ].tap do |blobs|
+      User.create! name: "DHH", avatar: blobs.first
+      assert_includes ActiveStorage::Blob.unattached, blobs.second
+      assert_not_includes ActiveStorage::Blob.unattached, blobs.first
+
+      User.create! name: "Jason", avatar: blobs.second
+      assert_not_includes ActiveStorage::Blob.unattached, blobs.second
     end
-
-    ActiveStorage::Blob.delete_all
-    blob_1 = create_blob filename: "funky.jpg"
-    blob_2 = create_blob filename: "town.jpg"
-
-    user = UserWithHasOneAttachedDependentFalse.create!
-    user.avatar.attach blob_1
-
-    assert_equal [blob_2], ActiveStorage::Blob.unattached
-    user.destroy
-    assert_equal [blob_1, blob_2].map(&:id).sort, ActiveStorage::Blob.unattached.pluck(:id).sort
   end
 
   test "create after upload sets byte size and checksum" do
@@ -41,6 +35,16 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
   test "create after upload extracts content type from filename" do
     blob = create_blob content_type: "application/octet-stream"
     assert_equal "text/plain", blob.content_type
+  end
+
+  test "create after upload extracts content_type from io when no content_type given and identify: false" do
+    blob = create_blob content_type: nil, identify: false
+    assert_equal "text/plain", blob.content_type
+  end
+
+  test "create after upload uses content_type when identify: false" do
+    blob = create_blob data: "Article,dates,analysis\n1, 2, 3", filename: "table.csv", content_type: "text/csv", identify: false
+    assert_equal "text/csv", blob.content_type
   end
 
   test "image?" do
@@ -72,6 +76,40 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     assert_equal 2, chunks.size
     assert_equal "a" * 5.megabytes, chunks.first
     assert_equal "a" * 64.kilobytes, chunks.second
+  end
+
+  test "open with integrity" do
+    create_file_blob(filename: "racecar.jpg").tap do |blob|
+      blob.open do |file|
+        assert file.binmode?
+        assert_equal 0, file.pos
+        assert File.basename(file.path).starts_with?("ActiveStorage-#{blob.id}-")
+        assert file.path.ends_with?(".jpg")
+        assert_equal file_fixture("racecar.jpg").binread, file.read, "Expected downloaded file to match fixture file"
+      end
+    end
+  end
+
+  test "open without integrity" do
+    create_blob(data: "Hello, world!").tap do |blob|
+      blob.update! checksum: Digest::MD5.base64digest("Goodbye, world!")
+
+      assert_raises ActiveStorage::IntegrityError do
+        blob.open { |file| flunk "Expected integrity check to fail" }
+      end
+    end
+  end
+
+  test "open in a custom tempdir" do
+    tempdir = Dir.mktmpdir
+
+    create_file_blob(filename: "racecar.jpg").open(tempdir: tempdir) do |file|
+      assert file.binmode?
+      assert_equal 0, file.pos
+      assert_match(/\.jpg\z/, file.path)
+      assert file.path.starts_with?(tempdir)
+      assert_equal file_fixture("racecar.jpg").binread, file.read, "Expected downloaded file to match fixture file"
+    end
   end
 
   test "urls expiring in 5 minutes" do
@@ -107,16 +145,16 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
   test "urls allow for custom options" do
     blob = create_blob(filename: "original.txt")
 
-    options = [
+    arguments = [
       blob.key,
-      expires_in: blob.service.url_expires_in,
+      expires_in: ActiveStorage.service_urls_expire_in,
       disposition: :inline,
       content_type: blob.content_type,
       filename: blob.filename,
       thumb_size: "300x300",
       thumb_mode: "crop"
     ]
-    assert_called_with(blob.service, :url, options) do
+    assert_called_with(blob.service, :url, arguments) do
       blob.service_url(thumb_size: "300x300", thumb_mode: "crop")
     end
   end
@@ -136,10 +174,18 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     assert_not ActiveStorage::Blob.service.exist?(variant.key)
   end
 
+  test "purge does nothing when attachments exist" do
+    create_blob.tap do |blob|
+      User.create! name: "DHH", avatar: blob
+      assert_no_difference(-> { ActiveStorage::Blob.count }) { blob.purge }
+      assert ActiveStorage::Blob.service.exist?(blob.key)
+    end
+  end
+
   private
     def expected_url_for(blob, disposition: :inline, filename: nil)
       filename ||= blob.filename
-      query_string = { content_type: blob.content_type, disposition: "#{disposition}; #{filename.parameters}" }.to_param
+      query_string = { content_type: blob.content_type, disposition: ActionDispatch::Http::ContentDisposition.format(disposition: disposition, filename: filename.sanitized) }.to_param
       "https://example.com/rails/active_storage/disk/#{ActiveStorage.verifier.generate(blob.key, expires_in: 5.minutes, purpose: :blob_key)}/#{filename}?#{query_string}"
     end
 end

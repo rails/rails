@@ -21,6 +21,11 @@ class BaseMailer < ActionMailer::Base
     mail(template_name: "welcome", template_path: path)
   end
 
+  def welcome_without_deliveries
+    mail(template_name: "welcome")
+    mail.perform_deliveries = false
+  end
+
   def html_only(hash = {})
     mail(hash)
   end

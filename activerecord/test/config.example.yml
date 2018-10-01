@@ -54,11 +54,11 @@ connections:
   mysql2:
     arunit:
       username: rails
-      encoding: utf8
-      collation: utf8_unicode_ci
+      encoding: utf8mb4
+      collation: utf8mb4_unicode_ci
     arunit2:
       username: rails
-      encoding: utf8
+      encoding: utf8mb4
 
   oracle:
      arunit:

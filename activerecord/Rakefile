@@ -94,8 +94,8 @@ namespace :db do
     desc "Build the MySQL test databases"
     task :build do
       config = ARTest.config["connections"]["mysql2"]
-      %x( mysql --user=#{config["arunit"]["username"]} --password=#{config["arunit"]["password"]} -e "create DATABASE #{config["arunit"]["database"]} DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_unicode_ci ")
-      %x( mysql --user=#{config["arunit2"]["username"]} --password=#{config["arunit2"]["password"]} -e "create DATABASE #{config["arunit2"]["database"]} DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_unicode_ci ")
+      %x( mysql --user=#{config["arunit"]["username"]} --password=#{config["arunit"]["password"]} -e "create DATABASE #{config["arunit"]["database"]} DEFAULT CHARACTER SET utf8mb4" )
+      %x( mysql --user=#{config["arunit2"]["username"]} --password=#{config["arunit2"]["password"]} -e "create DATABASE #{config["arunit2"]["database"]} DEFAULT CHARACTER SET utf8mb4" )
     end
 
     desc "Drop the MySQL test databases"

@@ -355,6 +355,12 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_find_on_relation_with_large_number
+    assert_raises(ActiveRecord::RecordNotFound) do
+      Topic.where("1=1").find(9999999999999999999999999999999)
+    end
+  end
+
+  def test_find_by_on_relation_with_large_number
     assert_nil Topic.where("1=1").find_by(id: 9999999999999999999999999999999)
   end
 
@@ -365,7 +371,10 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_find_an_empty_array
-    assert_equal [], Topic.find([])
+    empty_array = []
+    result = Topic.find(empty_array)
+    assert_equal [], result
+    assert_not_same empty_array, result
   end
 
   def test_find_doesnt_have_implicit_ordering
@@ -414,7 +423,7 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_take
-    assert_equal topics(:first), Topic.take
+    assert_equal topics(:first), Topic.where("title = 'The First Topic'").take
   end
 
   def test_take_failing
@@ -457,6 +466,7 @@ class FinderTest < ActiveRecord::TestCase
     expected = topics(:first)
     expected.touch # PostgreSQL changes the default order if no order clause is used
     assert_equal expected, Topic.first
+    assert_equal expected, Topic.limit(5).first
   end
 
   def test_model_class_responds_to_first_bang
@@ -479,6 +489,7 @@ class FinderTest < ActiveRecord::TestCase
     expected = topics(:second)
     expected.touch # PostgreSQL changes the default order if no order clause is used
     assert_equal expected, Topic.second
+    assert_equal expected, Topic.limit(5).second
   end
 
   def test_model_class_responds_to_second_bang
@@ -501,6 +512,7 @@ class FinderTest < ActiveRecord::TestCase
     expected = topics(:third)
     expected.touch # PostgreSQL changes the default order if no order clause is used
     assert_equal expected, Topic.third
+    assert_equal expected, Topic.limit(5).third
   end
 
   def test_model_class_responds_to_third_bang
@@ -523,6 +535,7 @@ class FinderTest < ActiveRecord::TestCase
     expected = topics(:fourth)
     expected.touch # PostgreSQL changes the default order if no order clause is used
     assert_equal expected, Topic.fourth
+    assert_equal expected, Topic.limit(5).fourth
   end
 
   def test_model_class_responds_to_fourth_bang
@@ -545,6 +558,7 @@ class FinderTest < ActiveRecord::TestCase
     expected = topics(:fifth)
     expected.touch # PostgreSQL changes the default order if no order clause is used
     assert_equal expected, Topic.fifth
+    assert_equal expected, Topic.limit(5).fifth
   end
 
   def test_model_class_responds_to_fifth_bang
@@ -705,6 +719,14 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal comments.limit(2).to_a.first, comments.limit(2).first
     assert_equal comments.limit(2).to_a.first(2), comments.limit(2).first(2)
     assert_equal comments.limit(2).to_a.first(3), comments.limit(2).first(3)
+  end
+
+  def test_first_have_determined_order_by_default
+    expected = [companies(:second_client), companies(:another_client)]
+    clients = Client.where(name: expected.map(&:name))
+
+    assert_equal expected, clients.first(2)
+    assert_equal expected, clients.limit(5).first(2)
   end
 
   def test_take_and_first_and_last_with_integer_should_return_an_array

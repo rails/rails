@@ -29,13 +29,18 @@ HTML
         # Always increase the heading level by 1, so we can use h1, h2 heading in the document
         header_level += 1
 
-        %(<h#{header_level}>#{text}</h#{header_level}>)
+        header_with_id = text.scan(/(.*){#(.*)}/)
+        unless header_with_id.empty?
+          %(<h#{header_level} id=#{header_with_id[0][1].strip}>#{header_with_id[0][0].strip}</h#{header_level}>)
+        else
+          %(<h#{header_level}>#{text}</h#{header_level}>)
+        end
       end
 
       def paragraph(text)
         if text =~ %r{^NOTE:\s+Defined\s+in\s+<code>(.*?)</code>\.?$}
           %(<div class="note"><p>Defined in <code><a href="#{github_file_url($1)}">#{$1}</a></code>.</p></div>)
-        elsif text =~ /^(TIP|IMPORTANT|CAUTION|WARNING|NOTE|INFO|TODO)[.:]/
+        elsif /^(TIP|IMPORTANT|CAUTION|WARNING|NOTE|INFO|TODO)[.:]/.match?(text)
           convert_notes(text)
         elsif text.include?("DO NOT READ THIS FILE ON GITHUB")
         elsif text =~ /^\[<sup>(\d+)\]:<\/sup> (.+)$/
@@ -110,7 +115,7 @@ HTML
         end
 
         def api_link(url)
-          if url =~ %r{http://api\.rubyonrails\.org/v\d+\.}
+          if %r{http://api\.rubyonrails\.org/v\d+\.}.match?(url)
             url
           elsif edge
             url.sub("api", "edgeapi")

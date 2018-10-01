@@ -16,9 +16,6 @@ module ActiveRecord
 
         class_attribute :partial_writes, instance_writer: false, default: true
 
-        after_create { changes_applied }
-        after_update { changes_applied }
-
         # Attribute methods for "changed in last call to save?"
         attribute_method_affix(prefix: "saved_change_to_", suffix: "?")
         attribute_method_prefix("saved_change_to_")
@@ -39,11 +36,12 @@ module ActiveRecord
         end
       end
 
-      # Did this attribute change when we last saved? This method can be invoked
-      # as +saved_change_to_name?+ instead of <tt>saved_change_to_attribute?("name")</tt>.
-      # Behaves similarly to +attribute_changed?+. This method is useful in
-      # after callbacks to determine if the call to save changed a certain
-      # attribute.
+      # Did this attribute change when we last saved?
+      #
+      # This method is useful in after callbacks to determine if an attribute
+      # was changed during the save that triggered the callbacks to run. It can
+      # be invoked as +saved_change_to_name?+ instead of
+      # <tt>saved_change_to_attribute?("name")</tt>.
       #
       # ==== Options
       #
@@ -60,19 +58,20 @@ module ActiveRecord
       # attribute was changed, the result will be an array containing the
       # original value and the saved value.
       #
-      # Behaves similarly to +attribute_change+. This method is useful in after
-      # callbacks, to see the change in an attribute that just occurred
-      #
-      # This method can be invoked as +saved_change_to_name+ in instead of
-      # <tt>saved_change_to_attribute("name")</tt>
+      # This method is useful in after callbacks, to see the change in an
+      # attribute during the save that triggered the callbacks to run. It can be
+      # invoked as +saved_change_to_name+ instead of
+      # <tt>saved_change_to_attribute("name")</tt>.
       def saved_change_to_attribute(attr_name)
         mutations_before_last_save.change_to_attribute(attr_name)
       end
 
       # Returns the original value of an attribute before the last save.
-      # Behaves similarly to +attribute_was+. This method is useful in after
-      # callbacks to get the original value of an attribute before the save that
-      # just occurred
+      #
+      # This method is useful in after callbacks to get the original value of an
+      # attribute before the save that triggered the callbacks to run. It can be
+      # invoked as +name_before_last_save+ instead of
+      # <tt>attribute_before_last_save("name")</tt>.
       def attribute_before_last_save(attr_name)
         mutations_before_last_save.original_value(attr_name)
       end
@@ -87,39 +86,75 @@ module ActiveRecord
         mutations_before_last_save.changes
       end
 
-      # Alias for +attribute_changed?+
+      # Will this attribute change the next time we save?
+      #
+      # This method is useful in validations and before callbacks to determine
+      # if the next call to +save+ will change a particular attribute. It can be
+      # invoked as +will_save_change_to_name?+ instead of
+      # <tt>will_save_change_to_attribute("name")</tt>.
+      #
+      # ==== Options
+      #
+      # +from+ When passed, this method will return false unless the original
+      # value is equal to the given option
+      #
+      # +to+ When passed, this method will return false unless the value will be
+      # changed to the given value
       def will_save_change_to_attribute?(attr_name, **options)
         mutations_from_database.changed?(attr_name, **options)
       end
 
-      # Alias for +attribute_change+
+      # Returns the change to an attribute that will be persisted during the
+      # next save.
+      #
+      # This method is useful in validations and before callbacks, to see the
+      # change to an attribute that will occur when the record is saved. It can
+      # be invoked as +name_change_to_be_saved+ instead of
+      # <tt>attribute_change_to_be_saved("name")</tt>.
+      #
+      # If the attribute will change, the result will be an array containing the
+      # original value and the new value about to be saved.
       def attribute_change_to_be_saved(attr_name)
         mutations_from_database.change_to_attribute(attr_name)
       end
 
-      # Alias for +attribute_was+
+      # Returns the value of an attribute in the database, as opposed to the
+      # in-memory value that will be persisted the next time the record is
+      # saved.
+      #
+      # This method is useful in validations and before callbacks, to see the
+      # original value of an attribute prior to any changes about to be
+      # saved. It can be invoked as +name_in_database+ instead of
+      # <tt>attribute_in_database("name")</tt>.
       def attribute_in_database(attr_name)
         mutations_from_database.original_value(attr_name)
       end
 
-      # Alias for +changed?+
+      # Will the next call to +save+ have any changes to persist?
       def has_changes_to_save?
         mutations_from_database.any_changes?
       end
 
-      # Alias for +changes+
+      # Returns a hash containing all the changes that will be persisted during
+      # the next save.
       def changes_to_save
         mutations_from_database.changes
       end
 
-      # Alias for +changed+
+      # Returns an array of the names of any attributes that will change when
+      # the record is next saved.
       def changed_attribute_names_to_save
         mutations_from_database.changed_attribute_names
       end
 
-      # Alias for +changed_attributes+
+      # Returns a hash of the attributes that will change when the record is
+      # next saved.
+      #
+      # The hash keys are the attribute names, and the hash values are the
+      # original attribute values in the database (as opposed to the in-memory
+      # values about to be saved).
       def attributes_in_database
-        changes_to_save.transform_values(&:first)
+        mutations_from_database.changed_values
       end
 
       private
@@ -129,16 +164,20 @@ module ActiveRecord
           result
         end
 
-        def _update_record(*)
-          partial_writes? ? super(keys_for_partial_write) : super
+        def _update_record(attribute_names = attribute_names_for_partial_writes)
+          affected_rows = super
+          changes_applied
+          affected_rows
         end
 
-        def _create_record(*)
-          partial_writes? ? super(keys_for_partial_write) : super
+        def _create_record(attribute_names = attribute_names_for_partial_writes)
+          id = super
+          changes_applied
+          id
         end
 
-        def keys_for_partial_write
-          changed_attribute_names_to_save & self.class.column_names
+        def attribute_names_for_partial_writes
+          partial_writes? ? changed_attribute_names_to_save : attribute_names
         end
     end
   end

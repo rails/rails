@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
 Active Record and PostgreSQL
 ============================
@@ -276,7 +276,7 @@ end
 
 NOTE: ENUM values can't be dropped currently. You can read why [here](https://www.postgresql.org/message-id/29F36C7C98AB09499B1A209D48EAA615B7653DBC8A@mail2a.alliedtesting.com).
 
-Hint: to show all the values of the all enums you have, you should call this query in `bin/rails db` or `psql` console:
+Hint: to show all the values of the all enums you have, you should call this query in `rails db` or `psql` console:
 
 ```sql
 SELECT n.nspname AS enum_schema,
@@ -349,7 +349,7 @@ create_table :users, force: true do |t|
   t.column :settings, "bit(8)"
 end
 
-# app/models/device.rb
+# app/models/user.rb
 class User < ApplicationRecord
 end
 

@@ -661,6 +661,8 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     self.table_name = "books"
     belongs_to :author, class_name: "SpecialAuthor"
     has_one :subscription, class_name: "SpecialSupscription", foreign_key: "subscriber_id"
+
+    enum status: [:proposed, :written, :published]
   end
 
   class SpecialAuthor < ActiveRecord::Base
@@ -678,6 +680,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     book = SpecialBook.create!(status: "published")
     author.book = book
 
+    assert_equal "published", book.status
     assert_not_equal 0, SpecialAuthor.joins(:book).where(books: { status: "published" }).count
   end
 

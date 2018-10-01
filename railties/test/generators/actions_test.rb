@@ -125,7 +125,7 @@ class ActionsTest < Rails::Generators::TestCase
   def test_gem_works_even_if_frozen_string_is_passed_as_argument
     run_generator
 
-    action :gem, "frozen_gem".freeze, "1.0.0".freeze
+    action :gem, -"frozen_gem", -"1.0.0"
 
     assert_file "Gemfile", /^gem 'frozen_gem', '1.0.0'$/
   end
@@ -142,6 +142,44 @@ class ActionsTest < Rails::Generators::TestCase
     end
 
     assert_file "Gemfile", /\ngroup :development, :test do\n  gem 'rspec-rails'\nend\n\ngroup :test do\n  gem 'fakeweb'\nend/
+  end
+
+  def test_github_should_create_an_indented_block
+    run_generator
+
+    action :github, "user/repo" do
+      gem "foo"
+      gem "bar"
+      gem "baz"
+    end
+
+    assert_file "Gemfile", /\ngithub 'user\/repo' do\n  gem 'foo'\n  gem 'bar'\n  gem 'baz'\nend/
+  end
+
+  def test_github_should_create_an_indented_block_with_options
+    run_generator
+
+    action :github, "user/repo", a: "correct", other: true do
+      gem "foo"
+      gem "bar"
+      gem "baz"
+    end
+
+    assert_file "Gemfile", /\ngithub 'user\/repo', a: 'correct', other: true do\n  gem 'foo'\n  gem 'bar'\n  gem 'baz'\nend/
+  end
+
+  def test_github_should_create_an_indented_block_within_a_group
+    run_generator
+
+    action :gem_group, :magic do
+      github "user/repo", a: "correct", other: true do
+        gem "foo"
+        gem "bar"
+        gem "baz"
+      end
+    end
+
+    assert_file "Gemfile", /\ngroup :magic do\n  github 'user\/repo', a: 'correct', other: true do\n    gem 'foo'\n    gem 'bar'\n    gem 'baz'\n  end\nend\n/
   end
 
   def test_environment_should_include_data_in_environment_initializer_block
@@ -403,7 +441,7 @@ class ActionsTest < Rails::Generators::TestCase
     content.gsub!(/^  \#.*\n/, "")
     content.gsub!(/^\n/, "")
 
-    File.open(route_path, "wb") { |file| file.write(content) }
+    File.write(route_path, content)
 
     routes = <<-F
 Rails.application.routes.draw do

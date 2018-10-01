@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
 Active Record Basics
 ====================
@@ -13,7 +13,7 @@ After reading this guide, you will know:
 * How to use Active Record models to manipulate data stored in a relational
   database.
 * Active Record schema naming conventions.
-* The concepts of database migrations, validations and callbacks.
+* The concepts of database migrations, validations, and callbacks.
 
 --------------------------------------------------------------------------------
 
@@ -115,7 +115,7 @@ to Active Record instances:
 * `created_at` - Automatically gets set to the current date and time when the
   record is first created.
 * `updated_at` - Automatically gets set to the current date and time whenever
-  the record is updated.
+  the record is created or updated.
 * `lock_version` - Adds [optimistic
   locking](http://api.rubyonrails.org/classes/ActiveRecord/Locking.html) to
   a model.
@@ -211,7 +211,7 @@ to allow an application to read and manipulate data stored within its tables.
 
 ### Create
 
-Active Record objects can be created from a hash, a block or have their
+Active Record objects can be created from a hash, a block, or have their
 attributes manually set after creation. The `new` method will return a new
 object while `create` will return the object and save it to the database.
 
@@ -324,7 +324,7 @@ Validations
 Active Record allows you to validate the state of a model before it gets written
 into the database. There are several methods that you can use to check your
 models and validate that an attribute value is not empty, is unique and not
-already in the database, follows a specific format and many more.
+already in the database, follows a specific format, and many more.
 
 Validation is a very important issue to consider when persisting to the database, so
 the methods `save` and `update` take it into account when
@@ -353,7 +353,7 @@ Callbacks
 Active Record callbacks allow you to attach code to certain events in the
 life-cycle of your models. This enables you to add behavior to your models by
 transparently executing code when those events occur, like when you create a new
-record, update it, destroy it and so on. You can learn more about callbacks in
+record, update it, destroy it, and so on. You can learn more about callbacks in
 the [Active Record Callbacks guide](active_record_callbacks.html).
 
 Migrations
@@ -387,5 +387,5 @@ provides rollback features. To actually create the table, you'd run `rails db:mi
 and to roll it back, `rails db:rollback`.
 
 Note that the above code is database-agnostic: it will run in MySQL,
-PostgreSQL, Oracle and others. You can learn more about migrations in the
+PostgreSQL, Oracle, and others. You can learn more about migrations in the
 [Active Record Migrations guide](active_record_migrations.html).

@@ -1,3 +1,122 @@
+*   Use Webpacker by default to manage app-level JavaScript through the new app/javascript directory.
+    Sprockets is now solely in charge, by default, of compiling CSS and other static assets.
+    Action Cable channel generators will create ES6 stubs rather than use CoffeeScript.
+    Active Storage, Action Cable, Turbolinks, and Rails-UJS are loaded by a new application.js pack.
+    Generators no longer generate JavaScript stubs.
+
+    *DHH*, *Lachlan Sylvester*
+
+*   Refactors `migrations_paths` command option in generators
+    to `database` (aliased as `db`). Now, the migrations paths
+    will be read from the specified database configuration in the
+    current environment.
+
+    ```
+    bin/rails g model Chair brand:string --database=kingston
+          invoke  active_record
+          create    db/kingston_migrate/20180830151055_create_chairs.rb
+    ```
+
+    `--database` can be used with the migration, model, and scaffold generators.
+
+    *Gannon McGibbon*
+
+*   Adds an option to the model generator to allow setting the
+    migrations paths for that migration. This is useful for
+    applications that use multiple databases and put migrations
+    per database in their own directories.
+
+    ```
+    bin/rails g model Room capacity:integer --migrations-paths=db/kingston_migrate
+          invoke  active_record
+          create    db/kingston_migrate/20180830151055_create_rooms.rb
+    ```
+
+    Because rails scaffolding uses the model generator, you can
+    also specify migrations paths with the scaffold generator.
+
+    *Gannon McGibbon*
+
+*   Raise an error when "recyclable cache keys" are being used by a cache store
+    that does not explicitly support it. Custom cache keys that do support this feature
+    can bypass this error by implementing the `supports_cache_versioning?` method on their
+    class and returning a truthy value.
+
+    *Richard Schneeman*
+
+*   Support environment specific credentials file.
+
+    For `production` environment look first for `config/credentials/production.yml.enc` file that can be decrypted by
+    `ENV["RAILS_MASTER_KEY"]` or `config/credentials/production.key` master key.
+    Edit given environment credentials file by command `rails credentials:edit --environment production`.
+    Default paths can be overwritten by setting `config.credentials.content_path` and `config.credentials.key_path`.
+
+    *Wojciech Wnętrzak*
+
+*   Make `ActiveSupport::Cache::NullStore` the default cache store in the test environment.
+
+    *Michael C. Nelson*
+
+*   Emit warning for unknown inflection rule when generating model.
+
+    *Yoshiyuki Kinjo*
+
+*   Add `--migrations_paths` option to migration generator.
+
+    If you're using multiple databases and have a folder for each database
+    for migrations (ex db/migrate and db/new_db_migrate) you can now pass the
+    `--migrations_paths` option to the generator to make sure the the migration
+    is inserted into the correct folder.
+
+    ```
+    rails g migration CreateHouses --migrations_paths=db/kingston_migrate
+      invoke  active_record
+      create    db/kingston_migrate/20180830151055_create_houses.rb
+    ```
+
+    *Eileen M. Uchitelle*
+
+*   Deprecate `rake routes` in favor of `rails routes`.
+
+    *Yuji Yaginuma*
+
+*   Deprecate `rake initializers` in favor of `rails initializers`.
+
+    *Annie-Claude Côté*
+
+*   Deprecate `rake dev:cache` in favor of `rails dev:cache`.
+
+    *Annie-Claude Côté*
+
+*   Deprecate `rails notes` subcommands in favor of passing an `annotations` argument to `rails notes`.
+
+    The following subcommands are replaced by passing `--annotations` or `-a` to `rails notes`:
+    - `rails notes:custom ANNOTATION=custom` is deprecated in favor of using `rails notes -a custom`.
+    - `rails notes:optimize` is deprecated in favor of using `rails notes -a OPTIMIZE`.
+    - `rails notes:todo` is deprecated in favor of  using`rails notes -a TODO`.
+    - `rails notes:fixme` is deprecated in favor of using `rails notes -a FIXME`.
+
+    *Annie-Claude Côté*
+
+*   Deprecate `SOURCE_ANNOTATION_DIRECTORIES` environment variable used by `rails notes`
+    through `Rails::SourceAnnotationExtractor::Annotation` in favor of using `config.annotations.register_directories`.
+
+    *Annie-Claude Côté*
+
+*   Deprecate `rake notes` in favor of `rails notes`.
+
+    *Annie-Claude Côté*
+
+*   Don't generate unused files in `app:update` task.
+
+    Skip the assets' initializer when sprockets isn't loaded.
+
+    Skip `config/spring.rb` when spring isn't loaded.
+
+    Skip yarn's contents when yarn integration isn't used.
+
+    *Tsukuru Tanimichi*
+
 *   Make the master.key file read-only for the owner upon generation on
     POSIX-compliant systems.
 

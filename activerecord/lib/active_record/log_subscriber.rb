@@ -4,6 +4,8 @@ module ActiveRecord
   class LogSubscriber < ActiveSupport::LogSubscriber
     IGNORE_PAYLOAD_NAMES = ["SCHEMA", "EXPLAIN"]
 
+    class_attribute :backtrace_cleaner, default: ActiveSupport::BacktraceCleaner.new
+
     def self.runtime=(value)
       ActiveRecord::RuntimeRegistry.sql_runtime = value
     end
@@ -100,36 +102,15 @@ module ActiveRecord
       end
 
       def log_query_source
-        source_line, line_number = extract_callstack(caller_locations)
+        source = extract_query_source_location(caller)
 
-        if source_line
-          if defined?(::Rails.root)
-            app_root = "#{::Rails.root.to_s}/".freeze
-            source_line = source_line.sub(app_root, "")
-          end
-
-          logger.debug("  ↳ #{ source_line }:#{ line_number }")
+        if source
+          logger.debug("  ↳ #{source}")
         end
       end
 
-      def extract_callstack(callstack)
-        line = callstack.find do |frame|
-          frame.absolute_path && !ignored_callstack(frame.absolute_path)
-        end
-
-        offending_line = line || callstack.first
-
-        [
-          offending_line.path,
-          offending_line.lineno
-        ]
-      end
-
-      RAILS_GEM_ROOT = File.expand_path("../../..", __dir__) + "/"
-
-      def ignored_callstack(path)
-        path.start_with?(RAILS_GEM_ROOT) ||
-        path.start_with?(RbConfig::CONFIG["rubylibdir"])
+      def extract_query_source_location(locations)
+        backtrace_cleaner.clean(locations).first
       end
   end
 end

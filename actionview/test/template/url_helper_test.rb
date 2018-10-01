@@ -77,8 +77,15 @@ class UrlHelperTest < ActiveSupport::TestCase
 
   def test_to_form_params_with_hash
     assert_equal(
-      [{ name: :name, value: "David" }, { name: :nationality, value: "Danish" }],
+      [{ name: "name", value: "David" }, { name: "nationality", value: "Danish" }],
       to_form_params(name: "David", nationality: "Danish")
+    )
+  end
+
+  def test_to_form_params_with_hash_having_symbol_and_string_keys
+    assert_equal(
+      [{ name: "name", value: "David" }, { name: "nationality", value: "Danish" }],
+      to_form_params("name" => "David", :nationality => "Danish")
     )
   end
 
@@ -541,7 +548,7 @@ class UrlHelperTest < ActiveSupport::TestCase
 
   def test_current_page_with_escaped_params_with_different_encoding
     @request = request_for_url("/")
-    @request.stub(:path, "/category/administra%c3%a7%c3%a3o".dup.force_encoding(Encoding::ASCII_8BIT)) do
+    @request.stub(:path, (+"/category/administra%c3%a7%c3%a3o").force_encoding(Encoding::ASCII_8BIT)) do
       assert current_page?(controller: "foo", action: "category", category: "administração")
       assert current_page?("http://www.example.com/category/administra%c3%a7%c3%a3o")
     end
@@ -697,7 +704,7 @@ end
 
 class UrlHelperControllerTest < ActionController::TestCase
   class UrlHelperController < ActionController::Base
-    test_routes do
+    ROUTES = test_routes do
       get "url_helper_controller_test/url_helper/show/:id",
         to: "url_helper_controller_test/url_helper#show",
         as: :show
@@ -761,6 +768,11 @@ class UrlHelperControllerTest < ActionController::TestCase
     helper_method :override_url_helper_path
   end
 
+  def setup
+    super
+    @routes = UrlHelperController::ROUTES
+  end
+
   tests UrlHelperController
 
   def test_url_for_shows_only_path
@@ -821,7 +833,7 @@ class UrlHelperControllerTest < ActionController::TestCase
 end
 
 class TasksController < ActionController::Base
-  test_routes do
+  ROUTES = test_routes do
     resources :tasks
   end
 
@@ -842,6 +854,11 @@ end
 
 class LinkToUnlessCurrentWithControllerTest < ActionController::TestCase
   tests TasksController
+
+  def setup
+    super
+    @routes = TasksController::ROUTES
+  end
 
   def test_link_to_unless_current_to_current
     get :index
@@ -875,7 +892,7 @@ class Session
 end
 
 class WorkshopsController < ActionController::Base
-  test_routes do
+  ROUTES = test_routes do
     resources :workshops do
       resources :sessions
     end
@@ -898,7 +915,7 @@ class WorkshopsController < ActionController::Base
 end
 
 class SessionsController < ActionController::Base
-  test_routes do
+  ROUTES = test_routes do
     resources :workshops do
       resources :sessions
     end
@@ -925,6 +942,11 @@ class SessionsController < ActionController::Base
 end
 
 class PolymorphicControllerTest < ActionController::TestCase
+  def setup
+    super
+    @routes = WorkshopsController::ROUTES
+  end
+
   def test_new_resource
     @controller = WorkshopsController.new
 
@@ -937,6 +959,20 @@ class PolymorphicControllerTest < ActionController::TestCase
 
     get :show, params: { id: 1 }
     assert_equal %{/workshops/1\n<a href="/workshops/1">Workshop</a>}, @response.body
+  end
+
+  def test_current_page_when_options_does_not_respond_to_to_hash
+    @controller = WorkshopsController.new
+
+    get :edit, params: { id: 1 }
+    assert_equal "false", @response.body
+  end
+end
+
+class PolymorphicSessionsControllerTest < ActionController::TestCase
+  def setup
+    super
+    @routes = SessionsController::ROUTES
   end
 
   def test_new_nested_resource
@@ -958,12 +994,5 @@ class PolymorphicControllerTest < ActionController::TestCase
 
     get :edit, params: { workshop_id: 1, id: 1, format: "json"  }
     assert_equal %{/workshops/1/sessions/1.json\n<a href="/workshops/1/sessions/1.json">Session</a>}, @response.body
-  end
-
-  def test_current_page_when_options_does_not_respond_to_to_hash
-    @controller = WorkshopsController.new
-
-    get :edit, params: { id: 1 }
-    assert_equal "false", @response.body
   end
 end

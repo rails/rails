@@ -31,6 +31,9 @@ module ActiveSupport
   class BacktraceCleaner
     def initialize
       @filters, @silencers = [], []
+      add_gem_filter
+      add_gem_silencer
+      add_stdlib_silencer
     end
 
     # Returns the backtrace after all filters and silencers have been run
@@ -82,6 +85,26 @@ module ActiveSupport
     end
 
     private
+
+      FORMATTED_GEMS_PATTERN = /\A[^\/]+ \([\w.]+\) /
+
+      def add_gem_filter
+        gems_paths = (Gem.path | [Gem.default_dir]).map { |p| Regexp.escape(p) }
+        return if gems_paths.empty?
+
+        gems_regexp = %r{(#{gems_paths.join('|')})/(bundler/)?gems/([^/]+)-([\w.]+)/(.*)}
+        gems_result = '\3 (\4) \5'
+        add_filter { |line| line.sub(gems_regexp, gems_result) }
+      end
+
+      def add_gem_silencer
+        add_silencer { |line| FORMATTED_GEMS_PATTERN.match?(line) }
+      end
+
+      def add_stdlib_silencer
+        add_silencer { |line| line.start_with?(RbConfig::CONFIG["rubylibdir"]) }
+      end
+
       def filter_backtrace(backtrace)
         @filters.each do |f|
           backtrace = backtrace.map { |line| f.call(line) }

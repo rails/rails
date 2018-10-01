@@ -375,7 +375,7 @@ module ActiveRecord
       # default values when instantiating the Active Record object for this table.
       def column_defaults
         load_schema
-        @column_defaults ||= _default_attributes.to_hash
+        @column_defaults ||= _default_attributes.deep_dup.to_hash
       end
 
       def _default_attributes # :nodoc:

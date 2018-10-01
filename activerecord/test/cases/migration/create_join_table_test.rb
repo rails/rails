@@ -139,7 +139,7 @@ module ActiveRecord
           assert connection.table_exists?("audio_artists_musics")
 
           connection.drop_join_table "audio_artists", "audio_musics"
-          assert !connection.table_exists?("audio_artists_musics"), "Should have dropped join table, but didn't"
+          assert_not connection.table_exists?("audio_artists_musics"), "Should have dropped join table, but didn't"
         end
       end
 

@@ -47,7 +47,7 @@ class TransactionTest < ActiveRecord::TestCase
     end
 
     assert Topic.find(1).approved?, "First should have been approved"
-    assert !Topic.find(2).approved?, "Second should have been unapproved"
+    assert_not Topic.find(2).approved?, "Second should have been unapproved"
   end
 
   def transaction_with_return
@@ -80,7 +80,7 @@ class TransactionTest < ActiveRecord::TestCase
     assert committed
 
     assert Topic.find(1).approved?, "First should have been approved"
-    assert !Topic.find(2).approved?, "Second should have been unapproved"
+    assert_not Topic.find(2).approved?, "Second should have been unapproved"
   ensure
     Topic.connection.class_eval do
       remove_method :commit_db_transaction
@@ -121,7 +121,7 @@ class TransactionTest < ActiveRecord::TestCase
     end
 
     assert Topic.find(1).approved?, "First should have been approved"
-    assert !Topic.find(2).approved?, "Second should have been unapproved"
+    assert_not Topic.find(2).approved?, "Second should have been unapproved"
   end
 
   def test_failing_on_exception
@@ -138,9 +138,9 @@ class TransactionTest < ActiveRecord::TestCase
     end
 
     assert @first.approved?, "First should still be changed in the objects"
-    assert !@second.approved?, "Second should still be changed in the objects"
+    assert_not @second.approved?, "Second should still be changed in the objects"
 
-    assert !Topic.find(1).approved?, "First shouldn't have been approved"
+    assert_not Topic.find(1).approved?, "First shouldn't have been approved"
     assert Topic.find(2).approved?, "Second should still be approved"
   end
 
@@ -165,7 +165,7 @@ class TransactionTest < ActiveRecord::TestCase
       @first.approved = true
       @first.save!
     end
-    assert !Topic.find(@first.id).approved?, "Should not commit the approved flag"
+    assert_not Topic.find(@first.id).approved?, "Should not commit the approved flag"
   end
 
   def test_raising_exception_in_nested_transaction_restore_state_in_save
@@ -288,7 +288,19 @@ class TransactionTest < ActiveRecord::TestCase
     }
 
     new_topic = topic.create(title: "A new topic")
-    assert !new_topic.persisted?, "The topic should not be persisted"
+    assert_not new_topic.persisted?, "The topic should not be persisted"
+    assert_nil new_topic.id, "The topic should not have an ID"
+  end
+
+  def test_callback_rollback_in_create_with_rollback_exception
+    topic = Class.new(Topic) {
+      def after_create_for_transaction
+        raise ActiveRecord::Rollback
+      end
+    }
+
+    new_topic = topic.create(title: "A new topic")
+    assert_not new_topic.persisted?, "The topic should not be persisted"
     assert_nil new_topic.id, "The topic should not have an ID"
   end
 
@@ -303,7 +315,7 @@ class TransactionTest < ActiveRecord::TestCase
     end
 
     assert Topic.find(1).approved?, "First should have been approved"
-    assert !Topic.find(2).approved?, "Second should have been unapproved"
+    assert_not Topic.find(2).approved?, "Second should have been unapproved"
   end
 
   def test_nested_transaction_with_new_transaction_applies_parent_state_on_rollback
@@ -387,9 +399,9 @@ class TransactionTest < ActiveRecord::TestCase
     end
 
     assert @first.approved?, "First should still be changed in the objects"
-    assert !@second.approved?, "Second should still be changed in the objects"
+    assert_not @second.approved?, "Second should still be changed in the objects"
 
-    assert !Topic.find(1).approved?, "First shouldn't have been approved"
+    assert_not Topic.find(1).approved?, "First shouldn't have been approved"
     assert Topic.find(2).approved?, "Second should still be approved"
   end
 
@@ -561,10 +573,9 @@ class TransactionTest < ActiveRecord::TestCase
     assert_called(Topic.connection, :begin_db_transaction) do
       Topic.connection.stub(:commit_db_transaction, -> { raise("OH NOES") }) do
         assert_called(Topic.connection, :rollback_db_transaction) do
-
           e = assert_raise RuntimeError do
             Topic.transaction do
-              # do nothing
+              Topic.connection.materialize_transactions
             end
           end
           assert_equal "OH NOES", e.message
@@ -581,7 +592,7 @@ class TransactionTest < ActiveRecord::TestCase
     # about it since there is no specific error
     # for frozen objects.
     assert_match(/frozen/i, e.message)
-    assert !topic.persisted?, "not persisted"
+    assert_not topic.persisted?, "not persisted"
     assert_nil topic.id
     assert topic.frozen?, "not frozen"
   end
@@ -608,9 +619,9 @@ class TransactionTest < ActiveRecord::TestCase
     thread.join
 
     assert @first.approved?, "First should still be changed in the objects"
-    assert !@second.approved?, "Second should still be changed in the objects"
+    assert_not @second.approved?, "Second should still be changed in the objects"
 
-    assert !Topic.find(1).approved?, "First shouldn't have been approved"
+    assert_not Topic.find(1).approved?, "First shouldn't have been approved"
     assert Topic.find(2).approved?, "Second should still be approved"
   end
 
@@ -641,15 +652,15 @@ class TransactionTest < ActiveRecord::TestCase
       raise ActiveRecord::Rollback
     end
 
-    assert !topic_1.persisted?, "not persisted"
+    assert_not topic_1.persisted?, "not persisted"
     assert_nil topic_1.id
-    assert !topic_2.persisted?, "not persisted"
+    assert_not topic_2.persisted?, "not persisted"
     assert_nil topic_2.id
-    assert !topic_3.persisted?, "not persisted"
+    assert_not topic_3.persisted?, "not persisted"
     assert_nil topic_3.id
     assert @first.persisted?, "persisted"
     assert_not_nil @first.id
-    assert !@second.destroyed?, "not destroyed"
+    assert_not @second.destroyed?, "not destroyed"
   end
 
   def test_restore_frozen_state_after_double_destroy
@@ -665,6 +676,36 @@ class TransactionTest < ActiveRecord::TestCase
 
     assert_not_predicate reply, :frozen?
     assert_not_predicate topic, :frozen?
+  end
+
+  def test_restore_new_record_after_double_save
+    topic = Topic.new
+
+    Topic.transaction do
+      topic.save!
+      topic.save!
+      raise ActiveRecord::Rollback
+    end
+
+    assert_nil topic.id
+    assert_predicate topic, :new_record?
+  end
+
+  def test_dont_restore_new_record_in_subsequent_transaction
+    topic = Topic.new
+
+    Topic.transaction do
+      topic.save!
+      topic.save!
+    end
+
+    Topic.transaction do
+      topic.save!
+      raise ActiveRecord::Rollback
+    end
+
+    assert_predicate topic, :persisted?
+    assert_not_predicate topic, :new_record?
   end
 
   def test_restore_id_after_rollback
@@ -889,7 +930,7 @@ class TransactionTest < ActiveRecord::TestCase
 
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = "transaction_without_primary_keys"
-      after_commit {} # necessary to trigger the has_transactional_callbacks branch
+      after_commit { } # necessary to trigger the has_transactional_callbacks branch
     end
 
     assert_no_difference(-> { klass.count }) do
@@ -900,6 +941,76 @@ class TransactionTest < ActiveRecord::TestCase
     end
   ensure
     connection.drop_table "transaction_without_primary_keys", if_exists: true
+  end
+
+  def test_empty_transaction_is_not_materialized
+    assert_no_queries do
+      Topic.transaction { }
+    end
+  end
+
+  def test_unprepared_statement_materializes_transaction
+    assert_sql(/BEGIN/i, /COMMIT/i) do
+      Topic.transaction { Topic.where("1=1").first }
+    end
+  end
+
+  if ActiveRecord::Base.connection.prepared_statements
+    def test_prepared_statement_materializes_transaction
+      Topic.first
+
+      assert_sql(/BEGIN/i, /COMMIT/i) do
+        Topic.transaction { Topic.first }
+      end
+    end
+  end
+
+  def test_savepoint_does_not_materialize_transaction
+    assert_no_queries do
+      Topic.transaction do
+        Topic.transaction(requires_new: true) { }
+      end
+    end
+  end
+
+  def test_raising_does_not_materialize_transaction
+    assert_raise(RuntimeError) do
+      assert_no_queries do
+        Topic.transaction { raise }
+      end
+    end
+  end
+
+  def test_accessing_raw_connection_materializes_transaction
+    assert_sql(/BEGIN/i, /COMMIT/i) do
+      Topic.transaction { Topic.connection.raw_connection }
+    end
+  end
+
+  def test_accessing_raw_connection_disables_lazy_transactions
+    Topic.connection.raw_connection
+
+    assert_sql(/BEGIN/i, /COMMIT/i) do
+      Topic.transaction { }
+    end
+  end
+
+  def test_checking_in_connection_reenables_lazy_transactions
+    connection = Topic.connection_pool.checkout
+    connection.raw_connection
+    Topic.connection_pool.checkin connection
+
+    assert_no_queries do
+      connection.transaction { }
+    end
+  end
+
+  def test_transactions_can_be_manually_materialized
+    assert_sql(/BEGIN/i, /COMMIT/i) do
+      Topic.transaction do
+        Topic.connection.materialize_transactions
+      end
+    end
   end
 
   private

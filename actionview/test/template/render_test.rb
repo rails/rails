@@ -10,7 +10,7 @@ module RenderTestCases
   def setup_view(paths)
     @assigns = { secret: "in the sauce" }
     @view = Class.new(ActionView::Base) do
-      def view_cache_dependencies; end
+      def view_cache_dependencies; []; end
 
       def combined_fragment_cache_key(key)
         [ :views, key ]
@@ -585,7 +585,7 @@ module RenderTestCases
 
   def test_render_with_passing_couple_extensions_to_one_register_template_handler_function_call
     ActionView::Template.register_template_handler :foo1, :foo2, CustomHandler
-    assert_equal @view.render(inline: "Hello, World!".dup, type: :foo1), @view.render(inline: "Hello, World!".dup, type: :foo2)
+    assert_equal @view.render(inline: +"Hello, World!", type: :foo1), @view.render(inline: +"Hello, World!", type: :foo2)
   ensure
     ActionView::Template.unregister_template_handler :foo1, :foo2
   end

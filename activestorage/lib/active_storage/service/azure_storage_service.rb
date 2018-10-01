@@ -19,10 +19,8 @@ module ActiveStorage
 
     def upload(key, io, checksum: nil)
       instrument :upload, key: key, checksum: checksum do
-        begin
-          blobs.create_block_blob(container, key, io, content_md5: checksum)
-        rescue Azure::Core::Http::HTTPError
-          raise ActiveStorage::IntegrityError
+        handle_errors do
+          blobs.create_block_blob(container, key, IO.try_convert(io) || io, content_md5: checksum)
         end
       end
     end
@@ -34,16 +32,20 @@ module ActiveStorage
         end
       else
         instrument :download, key: key do
-          _, io = blobs.get_blob(container, key)
-          io.force_encoding(Encoding::BINARY)
+          handle_errors do
+            _, io = blobs.get_blob(container, key)
+            io.force_encoding(Encoding::BINARY)
+          end
         end
       end
     end
 
     def download_chunk(key, range)
       instrument :download_chunk, key: key, range: range do
-        _, io = blobs.get_blob(container, key, start_range: range.begin, end_range: range.exclude_end? ? range.end - 1 : range.end)
-        io.force_encoding(Encoding::BINARY)
+        handle_errors do
+          _, io = blobs.get_blob(container, key, start_range: range.begin, end_range: range.exclude_end? ? range.end - 1 : range.end)
+          io.force_encoding(Encoding::BINARY)
+        end
       end
     end
 
@@ -51,7 +53,8 @@ module ActiveStorage
       instrument :delete, key: key do
         begin
           blobs.delete_blob(container, key)
-        rescue Azure::Core::Http::HTTPError
+        rescue Azure::Core::Http::HTTPError => e
+          raise unless e.type == "BlobNotFound"
           # Ignore files already deleted
         end
       end
@@ -139,10 +142,25 @@ module ActiveStorage
         chunk_size = 5.megabytes
         offset = 0
 
+        raise ActiveStorage::FileNotFoundError unless blob.present?
+
         while offset < blob.properties[:content_length]
           _, chunk = blobs.get_blob(container, key, start_range: offset, end_range: offset + chunk_size - 1)
           yield chunk.force_encoding(Encoding::BINARY)
           offset += chunk_size
+        end
+      end
+
+      def handle_errors
+        yield
+      rescue Azure::Core::Http::HTTPError => e
+        case e.type
+        when "BlobNotFound"
+          raise ActiveStorage::FileNotFoundError
+        when "Md5Mismatch"
+          raise ActiveStorage::IntegrityError
+        else
+          raise
         end
       end
   end

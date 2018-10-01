@@ -3,10 +3,13 @@
 require "active_support/core_ext/hash/indifferent_access"
 require "active_support/core_ext/string/filters"
 require "concurrent/map"
+require "set"
 
 module ActiveRecord
   module Core
     extend ActiveSupport::Concern
+
+    FILTERED = "[FILTERED]" # :nodoc:
 
     included do
       ##
@@ -26,7 +29,7 @@ module ActiveRecord
 
       ##
       # Contains the database configuration - as is typically stored in config/database.yml -
-      # as a Hash.
+      # as an ActiveRecord::DatabaseConfigurations object.
       #
       # For example, the following database.yml...
       #
@@ -40,22 +43,18 @@ module ActiveRecord
       #
       # ...would result in ActiveRecord::Base.configurations to look like this:
       #
-      #   {
-      #      'development' => {
-      #         'adapter'  => 'sqlite3',
-      #         'database' => 'db/development.sqlite3'
-      #      },
-      #      'production' => {
-      #         'adapter'  => 'sqlite3',
-      #         'database' => 'db/production.sqlite3'
-      #      }
-      #   }
+      #   #<ActiveRecord::DatabaseConfigurations:0x00007fd1acbdf800 @configurations=[
+      #     #<ActiveRecord::DatabaseConfigurations::HashConfig:0x00007fd1acbded10 @env_name="development",
+      #       @spec_name="primary", @config={"adapter"=>"sqlite3", "database"=>"db/development.sqlite3"}>,
+      #     #<ActiveRecord::DatabaseConfigurations::HashConfig:0x00007fd1acbdea90 @env_name="production",
+      #       @spec_name="primary", @config={"adapter"=>"mysql2", "database"=>"db/production.sqlite3"}>
+      #   ]>
       def self.configurations=(config)
-        @@configurations = ActiveRecord::ConnectionHandling::MergeAndResolveDefaultUrlConfig.new(config).resolve
+        @@configurations = ActiveRecord::DatabaseConfigurations.new(config)
       end
       self.configurations = {}
 
-      # Returns fully resolved configurations hash
+      # Returns fully resolved ActiveRecord::DatabaseConfigurations object
       def self.configurations
         @@configurations
       end
@@ -99,7 +98,7 @@ module ActiveRecord
       ##
       # :singleton-method:
       # Specify whether schema dump should happen at the end of the
-      # db:migrate rake task. This is true by default, which is useful for the
+      # db:migrate rails command. This is true by default, which is useful for the
       # development environment. This should ideally be false in the production
       # environment where dumping schema is rarely needed.
       mattr_accessor :dump_schema_after_migration, instance_writer: false, default: true
@@ -127,6 +126,8 @@ module ActiveRecord
 
       class_attribute :default_connection_handler, instance_writer: false
 
+      self.filter_attributes = []
+
       def self.connection_handler
         ActiveRecord::RuntimeRegistry.connection_handler || default_connection_handler
       end
@@ -138,12 +139,7 @@ module ActiveRecord
       self.default_connection_handler = ConnectionAdapters::ConnectionHandler.new
     end
 
-    module ClassMethods # :nodoc:
-      def allocate
-        define_attribute_methods
-        super
-      end
-
+    module ClassMethods
       def initialize_find_by_cache # :nodoc:
         @find_by_statement_cache = { true => Concurrent::Map.new, false => Concurrent::Map.new }
       end
@@ -220,7 +216,7 @@ module ActiveRecord
         generated_association_methods
       end
 
-      def generated_association_methods
+      def generated_association_methods # :nodoc:
         @generated_association_methods ||= begin
           mod = const_set(:GeneratedAssociationMethods, Module.new)
           private_constant :GeneratedAssociationMethods
@@ -230,8 +226,22 @@ module ActiveRecord
         end
       end
 
+      # Returns columns which shouldn't be exposed while calling +#inspect+.
+      def filter_attributes
+        if defined?(@filter_attributes)
+          @filter_attributes
+        else
+          superclass.filter_attributes
+        end
+      end
+
+      # Specifies columns which shouldn't be exposed while calling +#inspect+.
+      def filter_attributes=(attributes_names)
+        @filter_attributes = attributes_names.map(&:to_s).to_set
+      end
+
       # Returns a string like 'Post(id:integer, title:string, body:text)'
-      def inspect
+      def inspect # :nodoc:
         if self == Base
           super
         elsif abstract_class?
@@ -247,7 +257,7 @@ module ActiveRecord
       end
 
       # Overwrite the default class equality method to provide support for decorated models.
-      def ===(object)
+      def ===(object) # :nodoc:
         object.is_a?(self)
       end
 
@@ -338,6 +348,28 @@ module ActiveRecord
       init_internals
 
       @new_record = coder["new_record"]
+
+      self.class.define_attribute_methods
+
+      yield self if block_given?
+
+      _run_find_callbacks
+      _run_initialize_callbacks
+
+      self
+    end
+
+    ##
+    # Initializer used for instantiating objects that have been read from the
+    # database.  +attributes+ should be an attributes object, and unlike the
+    # `initialize` method, no assignment calls are made per attribute.
+    #
+    # :nodoc:
+    def init_from_db(attributes)
+      init_internals
+
+      @new_record = false
+      @attributes = attributes
 
       self.class.define_attribute_methods
 
@@ -479,7 +511,11 @@ module ActiveRecord
       inspection = if defined?(@attributes) && @attributes
         self.class.attribute_names.collect do |name|
           if has_attribute?(name)
-            "#{name}: #{attribute_for_inspect(name)}"
+            if filter_attribute?(name)
+              "#{name}: #{ActiveRecord::Core::FILTERED}"
+            else
+              "#{name}: #{attribute_for_inspect(name)}"
+            end
           end
         end.compact.join(", ")
       else
@@ -497,13 +533,16 @@ module ActiveRecord
         if defined?(@attributes) && @attributes
           column_names = self.class.column_names.select { |name| has_attribute?(name) || new_record? }
           pp.seplist(column_names, proc { pp.text "," }) do |column_name|
-            column_value = read_attribute(column_name)
             pp.breakable " "
             pp.group(1) do
               pp.text column_name
               pp.text ":"
               pp.breakable
-              pp.pp column_value
+              if filter_attribute?(column_name)
+                pp.text ActiveRecord::Core::FILTERED
+              else
+                pp.pp read_attribute(column_name)
+              end
             end
           end
         else
@@ -553,6 +592,10 @@ module ActiveRecord
 
       def custom_inspect_method_defined?
         self.class.instance_method(:inspect).owner != ActiveRecord::Base.instance_method(:inspect).owner
+      end
+
+      def filter_attribute?(attribute_name)
+        self.class.filter_attributes.include?(attribute_name) && !read_attribute(attribute_name).nil?
       end
   end
 end

@@ -43,6 +43,12 @@ module ActiveRecord
       klass.arel_attribute(name, table)
     end
 
+    def bind_attribute(name, value) # :nodoc:
+      attr = arel_attribute(name)
+      bind = predicate_builder.build_bind_attribute(attr.name, value)
+      yield attr, bind
+    end
+
     # Initializes new record from relation while maintaining the current
     # scope.
     #
@@ -56,7 +62,7 @@ module ActiveRecord
     #   user = users.new { |user| user.name = 'Oscar' }
     #   user.name # => Oscar
     def new(attributes = nil, &block)
-      scoping { klass.new(scope_for_create(attributes), &block) }
+      scoping { klass.new(attributes, &block) }
     end
 
     alias build new
@@ -81,11 +87,7 @@ module ActiveRecord
     #   users.create(name: nil) # validation on name
     #   # => #<User id: nil, name: nil, ...>
     def create(attributes = nil, &block)
-      if attributes.is_a?(Array)
-        attributes.collect { |attr| create(attr, &block) }
-      else
-        scoping { klass.create(scope_for_create(attributes), &block) }
-      end
+      scoping { klass.create(attributes, &block) }
     end
 
     # Similar to #create, but calls
@@ -95,11 +97,7 @@ module ActiveRecord
     # Expects arguments in the same format as
     # {ActiveRecord::Base.create!}[rdoc-ref:Persistence::ClassMethods#create!].
     def create!(attributes = nil, &block)
-      if attributes.is_a?(Array)
-        attributes.collect { |attr| create!(attr, &block) }
-      else
-        scoping { klass.create!(scope_for_create(attributes), &block) }
-      end
+      scoping { klass.create!(attributes, &block) }
     end
 
     def first_or_create(attributes = nil, &block) # :nodoc:
@@ -217,7 +215,7 @@ module ActiveRecord
     # are needed by the next ones when eager loading is going on.
     #
     # Please see further details in the
-    # {Active Record Query Interface guide}[http://guides.rubyonrails.org/active_record_querying.html#running-explain].
+    # {Active Record Query Interface guide}[https://guides.rubyonrails.org/active_record_querying.html#running-explain].
     def explain
       exec_explain(collecting_queries_for_explain { exec_queries })
     end
@@ -309,10 +307,7 @@ module ActiveRecord
     # Please check unscoped if you want to remove all previous scopes (including
     # the default_scope) during the execution of a block.
     def scoping
-      previous, klass.current_scope = klass.current_scope(true), self
-      yield
-    ensure
-      klass.current_scope = previous
+      @delegate_to_klass ? yield : klass._scoping(self) { yield }
     end
 
     def _exec_scope(*args, &block) # :nodoc:
@@ -353,20 +348,54 @@ module ActiveRecord
       end
 
       stmt = Arel::UpdateManager.new
-
-      stmt.set Arel.sql(@klass.sanitize_sql_for_assignment(updates))
       stmt.table(table)
 
-      if has_join_values? || offset_value
+      if updates.is_a?(Hash)
+        stmt.set _substitute_values(updates)
+      else
+        stmt.set Arel.sql(klass.sanitize_sql_for_assignment(updates, table.name))
+      end
+
+      if has_join_values?
         @klass.connection.join_to_update(stmt, arel, arel_attribute(primary_key))
       else
         stmt.key = arel_attribute(primary_key)
         stmt.take(arel.limit)
+        stmt.offset(arel.offset)
         stmt.order(*arel.orders)
         stmt.wheres = arel.constraints
       end
 
       @klass.connection.update stmt, "#{@klass} Update All"
+    end
+
+    def update(id = :all, attributes) # :nodoc:
+      if id == :all
+        each { |record| record.update(attributes) }
+      else
+        klass.update(id, attributes)
+      end
+    end
+
+    def update_counters(counters) # :nodoc:
+      touch = counters.delete(:touch)
+
+      updates = {}
+      counters.each do |counter_name, value|
+        attr = arel_attribute(counter_name)
+        bind = predicate_builder.build_bind_attribute(attr.name, value.abs)
+        expr = table.coalesce(Arel::Nodes::UnqualifiedColumn.new(attr), 0)
+        expr = value < 0 ? expr - bind : expr + bind
+        updates[counter_name] = expr.expr
+      end
+
+      if touch
+        names = touch if touch != true
+        touch_updates = klass.touch_attributes_with_time(*names)
+        updates.merge!(touch_updates) unless touch_updates.empty?
+      end
+
+      update_all updates
     end
 
     # Touches all records in the current relation without instantiating records first with the updated_at/on attributes
@@ -393,17 +422,12 @@ module ActiveRecord
     #   Person.where(name: 'David').touch_all
     #   # => "UPDATE \"people\" SET \"updated_at\" = '2018-01-04 22:55:23.132670' WHERE \"people\".\"name\" = 'David'"
     def touch_all(*names, time: nil)
-      attributes = Array(names) + klass.timestamp_attributes_for_update_in_model
-      time ||= klass.current_time_from_proper_timezone
-      updates = {}
-      attributes.each { |column| updates[column] = time }
-
       if klass.locking_enabled?
-        quoted_locking_column = connection.quote_column_name(klass.locking_column)
-        updates = sanitize_sql_for_assignment(updates) + ", #{quoted_locking_column} = COALESCE(#{quoted_locking_column}, 0) + 1"
+        names << { time: time }
+        update_counters(klass.locking_column => 1, touch: names)
+      else
+        update_all klass.touch_attributes_with_time(*names, time: time)
       end
-
-      update_all(updates)
     end
 
     # Destroys the records by instantiating each
@@ -461,9 +485,13 @@ module ActiveRecord
       stmt = Arel::DeleteManager.new
       stmt.from(table)
 
-      if has_join_values? || has_limit_or_offset?
+      if has_join_values?
         @klass.connection.join_to_delete(stmt, arel, arel_attribute(primary_key))
       else
+        stmt.key = arel_attribute(primary_key)
+        stmt.take(arel.limit)
+        stmt.offset(arel.offset)
+        stmt.order(*arel.orders)
         stmt.wheres = arel.constraints
       end
 
@@ -505,17 +533,16 @@ module ActiveRecord
     #   # => SELECT "users".* FROM "users"  WHERE "users"."name" = 'Oscar'
     def to_sql
       @to_sql ||= begin
-                    relation = self
-
-                    if eager_loading?
-                      apply_join_dependency { |rel, _| relation = rel }
-                    end
-
-                    conn = klass.connection
-                    conn.unprepared_statement {
-                      conn.to_sql(relation.arel)
-                    }
-                  end
+        if eager_loading?
+          apply_join_dependency do |relation, join_dependency|
+            relation = join_dependency.apply_column_aliases(relation)
+            relation.to_sql
+          end
+        else
+          conn = klass.connection
+          conn.unprepared_statement { conn.to_sql(arel) }
+        end
+      end
     end
 
     # Returns a hash of where conditions.
@@ -526,10 +553,8 @@ module ActiveRecord
       where_clause.to_h(relation_table_name)
     end
 
-    def scope_for_create(attributes = nil)
-      scope = where_values_hash.merge!(create_with_value.stringify_keys)
-      scope.merge!(attributes) if attributes
-      scope
+    def scope_for_create
+      where_values_hash.merge!(create_with_value.stringify_keys)
     end
 
     # Returns true if relation needs eager loading.
@@ -612,6 +637,16 @@ module ActiveRecord
       end
 
     private
+      def _substitute_values(values)
+        values.map do |name, value|
+          attr = arel_attribute(name)
+          unless Arel.arel_node?(value)
+            type = klass.type_for_attribute(attr.name)
+            value = predicate_builder.build_bind_attribute(attr.name, type.cast(value))
+          end
+          [attr, value]
+        end
+      end
 
       def has_join_values?
         joins_values.any? || left_outer_joins_values.any?
@@ -625,6 +660,7 @@ module ActiveRecord
                 if ActiveRecord::NullRelation === relation
                   []
                 else
+                  relation = join_dependency.apply_column_aliases(relation)
                   rows = connection.select_all(relation.arel, "SQL")
                   join_dependency.instantiate(rows, &block)
                 end.freeze

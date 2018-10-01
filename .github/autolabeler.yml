@@ -1,0 +1,46 @@
+actioncable:
+  - "actioncable/**/*"
+actionmailer:
+  - "actionmailer/**/*"
+actionpack:
+  - "actionpack/**/*"
+routing:
+  - "actionpack/**/*routing*"
+actionview:
+  - "actionview/**/*"
+activejob:
+  - "activejob/**/*"
+activemodel:
+  - "activemodel/**/*"
+activerecord:
+  - "activerecord/**/*"
+MySQL:
+  - "activerecord/**/*mysql*"
+PostgreSQL:
+  - "activerecord/**/*postgresql*"
+enum:
+  - "activerecord/**/*enum*"
+activestorage:
+  - "activestorage/**/*"
+activesupport:
+  - "activesupport/**/*"
+rails-ujs:
+  - "actionview/app/assets/javascripts/rails-ujs*/*"
+railties:
+  - "railties/**/*"
+engines:
+  - "railties/lib/rails/engine/**/*"
+  - "railties/test/railties/**/*engine*"
+docs:
+  - "guides/**/*"
+asset pipeline:
+  - "guides/source/asset_pipeline.md"
+ci issues:
+  - "ci/**/*"
+security:
+  - "**/*security*"
+  - "**/*secure*"
+  - "**/*sanitize*"
+  - "**/*sanitization*"
+i18n:
+  - "**/*i18n*"

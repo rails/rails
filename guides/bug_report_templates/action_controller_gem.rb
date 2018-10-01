@@ -42,7 +42,7 @@ end
 
 require "minitest/autorun"
 
-# Ensure backward compatibility with Minitest 4
+# Ensure backward compatibility with minitest 4.
 Minitest::Test = MiniTest::Unit::TestCase unless defined?(Minitest::Test)
 
 class BugTest < Minitest::Test

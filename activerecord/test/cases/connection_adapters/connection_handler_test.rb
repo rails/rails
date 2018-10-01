@@ -28,13 +28,16 @@ module ActiveRecord
       end
 
       def test_establish_connection_uses_spec_name
+        old_config = ActiveRecord::Base.configurations
         config = { "readonly" => { "adapter" => "sqlite3" } }
-        resolver = ConnectionAdapters::ConnectionSpecification::Resolver.new(config)
+        ActiveRecord::Base.configurations = config
+        resolver = ConnectionAdapters::ConnectionSpecification::Resolver.new(ActiveRecord::Base.configurations)
         spec =   resolver.spec(:readonly)
         @handler.establish_connection(spec.to_hash)
 
         assert_not_nil @handler.retrieve_connection_pool("readonly")
       ensure
+        ActiveRecord::Base.configurations = old_config
         @handler.remove_connection("readonly")
       end
 
@@ -144,6 +147,30 @@ module ActiveRecord
 
         assert_not_nil pool = @handler.retrieve_connection_pool("development_readonly")
         assert_equal "db/readonly.sqlite3", pool.spec.config[:database]
+      ensure
+        ActiveRecord::Base.configurations = @prev_configs
+      end
+
+      def test_symbolized_configurations_assignment
+        @prev_configs = ActiveRecord::Base.configurations
+        config = {
+          development: {
+            primary: {
+              adapter: "sqlite3",
+              database: "db/development.sqlite3",
+            },
+          },
+          test: {
+            primary: {
+              adapter: "sqlite3",
+              database: "db/test.sqlite3",
+            },
+          },
+        }
+        ActiveRecord::Base.configurations = config
+        ActiveRecord::Base.configurations.configs_for.each do |db_config|
+          assert_instance_of ActiveRecord::DatabaseConfigurations::HashConfig, db_config
+        end
       ensure
         ActiveRecord::Base.configurations = @prev_configs
       end

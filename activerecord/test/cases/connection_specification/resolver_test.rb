@@ -7,11 +7,15 @@ module ActiveRecord
     class ConnectionSpecification
       class ResolverTest < ActiveRecord::TestCase
         def resolve(spec, config = {})
-          Resolver.new(config).resolve(spec)
+          configs = ActiveRecord::DatabaseConfigurations.new(config)
+          resolver = ConnectionAdapters::ConnectionSpecification::Resolver.new(configs)
+          resolver.resolve(spec, spec)
         end
 
         def spec(spec, config = {})
-          Resolver.new(config).spec(spec)
+          configs = ActiveRecord::DatabaseConfigurations.new(config)
+          resolver = ConnectionAdapters::ConnectionSpecification::Resolver.new(configs)
+          resolver.spec(spec)
         end
 
         def test_url_invalid_adapter

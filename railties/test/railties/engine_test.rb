@@ -570,7 +570,6 @@ YAML
 
       get("/arunagw")
       assert_equal "arunagw", last_response.body
-
     end
 
     test "it provides routes as default endpoint" do

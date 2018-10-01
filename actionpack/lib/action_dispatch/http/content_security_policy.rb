@@ -5,9 +5,9 @@ require "active_support/core_ext/object/deep_dup"
 module ActionDispatch #:nodoc:
   class ContentSecurityPolicy
     class Middleware
-      CONTENT_TYPE = "Content-Type".freeze
-      POLICY = "Content-Security-Policy".freeze
-      POLICY_REPORT_ONLY = "Content-Security-Policy-Report-Only".freeze
+      CONTENT_TYPE = "Content-Type"
+      POLICY = "Content-Security-Policy"
+      POLICY_REPORT_ONLY = "Content-Security-Policy-Report-Only"
 
       def initialize(app)
         @app = app
@@ -50,10 +50,10 @@ module ActionDispatch #:nodoc:
     end
 
     module Request
-      POLICY = "action_dispatch.content_security_policy".freeze
-      POLICY_REPORT_ONLY = "action_dispatch.content_security_policy_report_only".freeze
-      NONCE_GENERATOR = "action_dispatch.content_security_policy_nonce_generator".freeze
-      NONCE = "action_dispatch.content_security_policy_nonce".freeze
+      POLICY = "action_dispatch.content_security_policy"
+      POLICY_REPORT_ONLY = "action_dispatch.content_security_policy_report_only"
+      NONCE_GENERATOR = "action_dispatch.content_security_policy_nonce_generator"
+      NONCE = "action_dispatch.content_security_policy_nonce"
 
       def content_security_policy
         get_header(POLICY)
@@ -126,12 +126,13 @@ module ActionDispatch #:nodoc:
       manifest_src:    "manifest-src",
       media_src:       "media-src",
       object_src:      "object-src",
+      prefetch_src:    "prefetch-src",
       script_src:      "script-src",
       style_src:       "style-src",
       worker_src:      "worker-src"
     }.freeze
 
-    NONCE_DIRECTIVES = %w[script-src].freeze
+    NONCE_DIRECTIVES = %w[script-src style-src].freeze
 
     private_constant :MAPPINGS, :DIRECTIVES, :NONCE_DIRECTIVES
 

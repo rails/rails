@@ -66,6 +66,11 @@ module ActiveSupport
       SCAN_BATCH_SIZE = 1000
       private_constant :SCAN_BATCH_SIZE
 
+      # Advertise cache versioning support.
+      def self.supports_cache_versioning?
+        true
+      end
+
       # Support raw values in the local cache strategy.
       module LocalCacheWithRaw # :nodoc:
         private
@@ -258,7 +263,14 @@ module ActiveSupport
       def increment(name, amount = 1, options = nil)
         instrument :increment, name, amount: amount do
           failsafe :increment do
-            redis.with { |c| c.incrby normalize_key(name, options), amount }
+            options = merged_options(options)
+            key = normalize_key(name, options)
+
+            redis.with do |c|
+              c.incrby(key, amount).tap do
+                write_key_expiry(c, key, options)
+              end
+            end
           end
         end
       end
@@ -274,7 +286,14 @@ module ActiveSupport
       def decrement(name, amount = 1, options = nil)
         instrument :decrement, name, amount: amount do
           failsafe :decrement do
-            redis.with { |c| c.decrby normalize_key(name, options), amount }
+            options = merged_options(options)
+            key = normalize_key(name, options)
+
+            redis.with do |c|
+              c.decrby(key, amount).tap do
+                write_key_expiry(c, key, options)
+              end
+            end
           end
         end
       end
@@ -382,6 +401,12 @@ module ActiveSupport
             else
               redis.with { |c| c.set key, serialized_entry }
             end
+          end
+        end
+
+        def write_key_expiry(client, key, options)
+          if options[:expires_in] && client.ttl(key).negative?
+            client.expire key, options[:expires_in].to_i
           end
         end
 

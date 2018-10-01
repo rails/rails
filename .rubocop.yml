@@ -1,5 +1,3 @@
-require: './ci/custom_cops/lib/custom_cops'
-
 AllCops:
   TargetRubyVersion: 2.4
   # RuboCop has a bunch of cops enabled by default. This setting tells RuboCop
@@ -11,13 +9,20 @@ AllCops:
     - 'actionpack/lib/action_dispatch/journey/parser.rb'
     - 'railties/test/fixtures/tmp/**/*'
 
-# Prefer assert_not_x over refute_x
-CustomCops/RefuteNot:
+Performance:
+  Exclude:
+    - '**/test/**/*'
+
+Rails:
+  Enabled: true
+
+# Prefer assert_not over assert !
+Rails/AssertNot:
   Include:
     - '**/test/**/*'
 
-# Prefer assert_not over assert !
-CustomCops/AssertNot:
+# Prefer assert_not_x over refute_x
+Rails/RefuteMethods:
   Include:
     - '**/test/**/*'
 
@@ -50,6 +55,9 @@ Layout/EndAlignment:
   AutoCorrect: true
 
 Layout/EmptyLineAfterMagicComment:
+  Enabled: true
+
+Layout/EmptyLinesAroundBlockBody:
   Enabled: true
 
 # In a regular class definition, no empty lines around the body.
@@ -122,6 +130,12 @@ Style/FrozenStringLiteralComment:
     - 'actionpack/test/**/*.ruby'
     - 'activestorage/db/migrate/**/*.rb'
 
+Style/RedundantFreeze:
+  Enabled: true
+  Exclude:
+    - 'actionpack/lib/action_dispatch/journey/router/utils.rb'
+    - 'activerecord/lib/active_record/connection_adapters/sqlite3_adapter.rb'
+
 # Use `foo {}` not `foo{}`.
 Layout/SpaceBeforeBlockBraces:
   Enabled: true
@@ -129,6 +143,7 @@ Layout/SpaceBeforeBlockBraces:
 # Use `foo { bar }` not `foo {bar}`.
 Layout/SpaceInsideBlockBraces:
   Enabled: true
+  EnforcedStyleForEmptyBraces: space
 
 # Use `{ a: 1 }` not `{a:1}`.
 Layout/SpaceInsideHashLiteralBraces:
@@ -162,6 +177,15 @@ Style/UnneededPercentQ:
 Lint/RequireParentheses:
   Enabled: true
 
+Lint/StringConversionInInterpolation:
+  Enabled: true
+
+Lint/UriEscapeUnescape:
+  Enabled: true
+
+Style/ParenthesesAroundCondition:
+  Enabled: true
+
 Style/RedundantReturn:
   Enabled: true
   AllowMultipleReturnValues: true
@@ -172,4 +196,25 @@ Style/Semicolon:
 
 # Prefer Foo.method over Foo::method
 Style/ColonMethodCall:
+  Enabled: true
+
+Style/TrivialAccessors:
+  Enabled: true
+
+Performance/FlatMap:
+  Enabled: true
+
+Performance/RedundantMerge:
+  Enabled: true
+
+Performance/StartWith:
+  Enabled: true
+
+Performance/EndWith:
+  Enabled: true
+
+Performance/RegexpMatch:
+  Enabled: true
+
+Performance/UnfreezeString:
   Enabled: true

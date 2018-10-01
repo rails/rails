@@ -3,11 +3,8 @@
 require "test_helper"
 require "stubs/test_server"
 require "active_support/core_ext/object/json"
-require "active_support/testing/method_call_assertions"
 
 class ActionCable::Connection::BaseTest < ActionCable::TestCase
-  include ActiveSupport::Testing::MethodCallAssertions
-
   class Connection < ActionCable::Connection::Base
     attr_reader :websocket, :subscriptions, :message_buffer, :connected
 
@@ -80,7 +77,6 @@ class ActionCable::Connection::BaseTest < ActionCable::TestCase
       connection.process
 
       # Setup the connection
-      connection.server.stubs(:timer).returns(true)
       connection.send :handle_open
       assert connection.connected
 

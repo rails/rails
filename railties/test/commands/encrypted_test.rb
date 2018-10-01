@@ -14,7 +14,7 @@ class Rails::Command::EncryptedCommandTest < ActiveSupport::TestCase
   test "edit without editor gives hint" do
     run_edit_command("config/tokens.yml.enc", editor: "").tap do |output|
       assert_match "No $EDITOR to open file in", output
-      assert_match "bin/rails encrypted:edit", output
+      assert_match "rails encrypted:edit", output
     end
   end
 

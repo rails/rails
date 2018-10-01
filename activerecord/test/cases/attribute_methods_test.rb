@@ -163,19 +163,6 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_equal "10", keyboard.read_attribute_before_type_cast(:key_number)
   end
 
-  # Syck calls respond_to? before actually calling initialize.
-  test "respond_to? with an allocated object" do
-    klass = Class.new(ActiveRecord::Base) do
-      self.table_name = "topics"
-    end
-
-    topic = klass.allocate
-    assert_not_respond_to topic, "nothingness"
-    assert_not_respond_to topic, :nothingness
-    assert_respond_to topic, "title"
-    assert_respond_to topic, :title
-  end
-
   # IRB inspects the return value of MyModel.allocate.
   test "allocated objects can be inspected" do
     topic = Topic.allocate
@@ -354,9 +341,9 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   test "read_attribute when false" do
     topic = topics(:first)
     topic.approved = false
-    assert !topic.approved?, "approved should be false"
+    assert_not topic.approved?, "approved should be false"
     topic.approved = "false"
-    assert !topic.approved?, "approved should be false"
+    assert_not topic.approved?, "approved should be false"
   end
 
   test "read_attribute when true" do
@@ -370,10 +357,10 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   test "boolean attributes writing and reading" do
     topic = Topic.new
     topic.approved = "false"
-    assert !topic.approved?, "approved should be false"
+    assert_not topic.approved?, "approved should be false"
 
     topic.approved = "false"
-    assert !topic.approved?, "approved should be false"
+    assert_not topic.approved?, "approved should be false"
 
     topic.approved = "true"
     assert topic.approved?, "approved should be true"
@@ -733,6 +720,16 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
       assert_equal time_before_save, record.bonus_time
       assert_equal ActiveSupport::TimeZone["Pacific Time (US & Canada)"], record.bonus_time.time_zone
+    end
+  end
+
+  test "setting invalid string to a zone-aware time attribute" do
+    in_time_zone "Pacific Time (US & Canada)" do
+      record = @target.new
+      time_string = "ABC"
+
+      record.bonus_time = time_string
+      assert_nil record.bonus_time
     end
   end
 

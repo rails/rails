@@ -179,8 +179,8 @@ module ActiveRecord
   #     end
   #   end
   #
-  # If you preload your test database with all fixture data (probably in the rake task) and use
-  # transactional tests, then you may omit all fixtures declarations in your test cases since
+  # If you preload your test database with all fixture data (probably by running `rails db:fixtures:load`)
+  # and use transactional tests, then you may omit all fixtures declarations in your test cases since
   # all the data's already there and every case rolls back its changes.
   #
   # In order to use instantiated fixtures with preloaded data, set +self.pre_loaded_fixtures+ to
@@ -892,6 +892,7 @@ module ActiveRecord
 
       def fixtures(*fixture_set_names)
         if fixture_set_names.first == :all
+          raise StandardError, "No fixture path found. Please set `#{self}.fixture_path`." if fixture_path.blank?
           fixture_set_names = Dir["#{fixture_path}/{**,*}/*.{yml}"].uniq
           fixture_set_names.map! { |f| f[(fixture_path.to_s.size + 1)..-5] }
         else

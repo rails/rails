@@ -182,6 +182,14 @@ class DeprecationTest < ActiveSupport::TestCase
     end
   end
 
+  def test_default_invalid_behavior
+    e = assert_raises(ArgumentError) do
+      ActiveSupport::Deprecation.behavior = :invalid
+    end
+
+    assert_equal ":invalid is not a valid deprecation behavior.", e.message
+  end
+
   def test_deprecated_instance_variable_proxy
     assert_not_deprecated { @dtc.request.size }
 

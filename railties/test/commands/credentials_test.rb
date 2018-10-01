@@ -15,7 +15,7 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
   test "edit without editor gives hint" do
     run_edit_command(editor: "").tap do |output|
       assert_match "No $EDITOR to open file in", output
-      assert_match "bin/rails credentials:edit", output
+      assert_match "rails credentials:edit", output
     end
   end
 
@@ -49,9 +49,17 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
       FileUtils.rm("config/master.key")
 
       switch_env("RAILS_MASTER_KEY", key) do
-        run_edit_command
+        assert_match(/access_key_id: 123/, run_edit_command)
         assert_not File.exist?("config/master.key")
       end
+    end
+  end
+
+  test "edit command modifies file specified by environment option" do
+    assert_match(/access_key_id: 123/, run_edit_command(environment: "production"))
+    Dir.chdir(app_path) do
+      assert File.exist?("config/credentials/production.key")
+      assert File.exist?("config/credentials/production.yml.enc")
     end
   end
 
@@ -70,17 +78,25 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
     remove_file "config/master.key"
     add_to_config "config.require_master_key = false"
 
-    assert_match(/Missing master key to decrypt credentials/, run_show_command)
+    assert_match(/Missing 'config\/master\.key' to decrypt credentials/, run_show_command)
+  end
+
+  test "show command displays content specified by environment option" do
+    run_edit_command(environment: "production")
+
+    assert_match(/access_key_id: 123/, run_show_command(environment: "production"))
   end
 
   private
-    def run_edit_command(editor: "cat")
+    def run_edit_command(editor: "cat", environment: nil, **options)
       switch_env("EDITOR", editor) do
-        rails "credentials:edit"
+        args = environment ? ["--environment", environment] : []
+        rails "credentials:edit", args, **options
       end
     end
 
-    def run_show_command(**options)
-      rails "credentials:show", **options
+    def run_show_command(environment: nil, **options)
+      args = environment ? ["--environment", environment] : []
+      rails "credentials:show", args, **options
     end
 end

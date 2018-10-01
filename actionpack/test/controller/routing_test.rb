@@ -25,8 +25,8 @@ class UriReservedCharactersRoutingTest < ActiveSupport::TestCase
     safe, unsafe = %w(: @ & = + $ , ;), %w(^ ? # [ ])
     hex = unsafe.map { |char| "%" + char.unpack1("H2").upcase }
 
-    @segment = "#{safe.join}#{unsafe.join}".freeze
-    @escaped = "#{safe.join}#{hex.join}".freeze
+    @segment = "#{safe.join}#{unsafe.join}"
+    @escaped = "#{safe.join}#{hex.join}"
   end
 
   def test_route_generation_escapes_unsafe_path_characters
@@ -309,7 +309,7 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
 
   def test_specific_controller_action_failure
     rs.draw do
-      mount lambda {} => "/foo"
+      mount lambda { } => "/foo"
     end
 
     assert_raises(ActionController::UrlGenerationError) do
@@ -674,7 +674,7 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
     assert_equal "/page/foo", url_for(rs, controller: "content", action: "show_page", id: "foo")
     assert_equal({ controller: "content", action: "show_page", id: "foo" }, rs.recognize_path("/page/foo"))
 
-    token = "\321\202\320\265\320\272\321\201\321\202".dup # 'text' in Russian
+    token = +"\321\202\320\265\320\272\321\201\321\202" # 'text' in Russian
     token.force_encoding(Encoding::BINARY)
     escaped_token = CGI.escape(token)
 
@@ -937,7 +937,6 @@ class RouteSetTest < ActiveSupport::TestCase
     @default_route_set ||= begin
       set = ActionDispatch::Routing::RouteSet.new
       set.draw do
-
         ActiveSupport::Deprecation.silence do
           get "/:controller(/:action(/:id))"
         end
@@ -1288,14 +1287,14 @@ class RouteSetTest < ActiveSupport::TestCase
   end
 
   def test_routing_traversal_does_not_load_extra_classes
-    assert !Object.const_defined?("Profiler__"), "Profiler should not be loaded"
+    assert_not Object.const_defined?("Profiler__"), "Profiler should not be loaded"
     set.draw do
       get "/profile" => "profile#index"
     end
 
     request_path_params("/profile") rescue nil
 
-    assert !Object.const_defined?("Profiler__"), "Profiler should not be loaded"
+    assert_not Object.const_defined?("Profiler__"), "Profiler should not be loaded"
   end
 
   def test_recognize_with_conditions_and_format
@@ -1342,11 +1341,9 @@ class RouteSetTest < ActiveSupport::TestCase
 
   def test_namespace
     set.draw do
-
       namespace "api" do
         get "inventory" => "products#inventory"
       end
-
     end
 
     params = request_path_params("/api/inventory", method: :get)

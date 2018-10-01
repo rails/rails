@@ -103,9 +103,7 @@ module ActiveSupport::Cache::RedisCacheStoreTests
 
     private
       def build(**kwargs)
-        ActiveSupport::Cache::RedisCacheStore.new(driver: DRIVER, **kwargs).tap do |cache|
-          cache.redis
-        end
+        ActiveSupport::Cache::RedisCacheStore.new(driver: DRIVER, **kwargs).tap(&:redis)
       end
   end
 
@@ -139,6 +137,46 @@ module ActiveSupport::Cache::RedisCacheStoreTests
         @cache.fetch_multi("a", "b", "c") do |key|
           key * 2
         end
+      end
+    end
+
+    def test_increment_expires_in
+      assert_called_with @cache.redis, :incrby, [ "#{@namespace}:foo", 1 ] do
+        assert_called_with @cache.redis, :expire, [ "#{@namespace}:foo", 60 ] do
+          @cache.increment "foo", 1, expires_in: 60
+        end
+      end
+
+      # key and ttl exist
+      @cache.redis.setex "#{@namespace}:bar", 120, 1
+      assert_not_called @cache.redis, :expire do
+        @cache.increment "bar", 1, expires_in: 2.minutes
+      end
+
+      # key exist but not have expire
+      @cache.redis.set "#{@namespace}:dar", 10
+      assert_called_with @cache.redis, :expire, [ "#{@namespace}:dar", 60 ] do
+        @cache.increment "dar", 1, expires_in: 60
+      end
+    end
+
+    def test_decrement_expires_in
+      assert_called_with @cache.redis, :decrby, [ "#{@namespace}:foo", 1 ] do
+        assert_called_with @cache.redis, :expire, [ "#{@namespace}:foo", 60 ] do
+          @cache.decrement "foo", 1, expires_in: 60
+        end
+      end
+
+      # key and ttl exist
+      @cache.redis.setex "#{@namespace}:bar", 120, 1
+      assert_not_called @cache.redis, :expire do
+        @cache.decrement "bar", 1, expires_in: 2.minutes
+      end
+
+      # key exist but not have expire
+      @cache.redis.set "#{@namespace}:dar", 10
+      assert_called_with @cache.redis, :expire, [ "#{@namespace}:dar", 60 ] do
+        @cache.decrement "dar", 1, expires_in: 60
       end
     end
   end

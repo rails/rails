@@ -33,6 +33,13 @@ pre, code {
   overflow: auto;
   color: #222;
 }
+
+p code {
+  background: #eee;
+  border-radius: 2px;
+  padding: 1px 3px;
+}
+
 pre, tt, code {
  white-space: pre-wrap;       /* css-3 */
  white-space: -moz-pre-wrap !important;  /* Mozilla, since 1999 */
@@ -276,8 +283,12 @@ body {
 #header .wrapper, #topNav .wrapper, #feature .wrapper {padding-left: 1em; max-width: 960px;}
 #feature .wrapper {max-width: 640px; padding-right: 23em; position: relative; z-index: 0;}
 
+@media screen and (max-width: 960px) {
+  #container .wrapper { padding-right: 23em; }
+}
+
 @media screen and (max-width: 800px) {
-  #feature .wrapper { padding-right: 0; }
+  #feature .wrapper, #container .wrapper { padding-right: 0; }
 }
 
 /* Links
@@ -632,7 +643,9 @@ div.code_container {
   margin: 0.25em 0 1.5em 0;
 }
 
-.note code, .info code, .todo code {border:none; background: none; padding: 0;}
+.note code, .info code, .todo code {
+  background: #fff;
+}
 
 #mainCol ul li {
   list-style:none;

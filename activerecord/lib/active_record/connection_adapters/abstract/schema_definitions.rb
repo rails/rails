@@ -356,8 +356,12 @@ module ActiveRecord
         type = type.to_sym if type
         options = options.dup
 
-        if @columns_hash[name] && @columns_hash[name].primary_key?
-          raise ArgumentError, "you can't redefine the primary key column '#{name}'. To define a custom primary key, pass { id: false } to create_table."
+        if @columns_hash[name]
+          if @columns_hash[name].primary_key?
+            raise ArgumentError, "you can't redefine the primary key column '#{name}'. To define a custom primary key, pass { id: false } to create_table."
+          else
+            raise ArgumentError, "you can't define an already defined column '#{name}'."
+          end
         end
 
         index_options = options.delete(:index)
@@ -497,6 +501,9 @@ module ActiveRecord
     #     t.date
     #     t.binary
     #     t.boolean
+    #     t.foreign_key
+    #     t.json
+    #     t.virtual
     #     t.remove
     #     t.remove_references
     #     t.remove_belongs_to
@@ -520,7 +527,9 @@ module ActiveRecord
       #
       # See TableDefinition#column for details of the options you can use.
       def column(column_name, type, options = {})
+        index_options = options.delete(:index)
         @base.add_column(name, column_name, type, options)
+        index(column_name, index_options.is_a?(Hash) ? index_options : {}) if index_options
       end
 
       # Checks to see if a column exists.
@@ -661,19 +670,19 @@ module ActiveRecord
 
       # Adds a foreign key.
       #
-      # t.foreign_key(:authors)
+      #  t.foreign_key(:authors)
       #
       # See {connection.add_foreign_key}[rdoc-ref:SchemaStatements#add_foreign_key]
-      def foreign_key(*args) # :nodoc:
+      def foreign_key(*args)
         @base.add_foreign_key(name, *args)
       end
 
       # Checks to see if a foreign key exists.
       #
-      # t.foreign_key(:authors) unless t.foreign_key_exists?(:authors)
+      #  t.foreign_key(:authors) unless t.foreign_key_exists?(:authors)
       #
       # See {connection.foreign_key_exists?}[rdoc-ref:SchemaStatements#foreign_key_exists?]
-      def foreign_key_exists?(*args) # :nodoc:
+      def foreign_key_exists?(*args)
         @base.foreign_key_exists?(name, *args)
       end
     end

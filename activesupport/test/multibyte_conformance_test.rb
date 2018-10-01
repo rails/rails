@@ -3,15 +3,10 @@
 require "abstract_unit"
 require "multibyte_test_helpers"
 
-require "fileutils"
-require "open-uri"
-require "tmpdir"
-
 class MultibyteConformanceTest < ActiveSupport::TestCase
   include MultibyteTestHelpers
 
   UNIDATA_FILE = "/NormalizationTest.txt"
-  FileUtils.mkdir_p(CACHE_DIR)
   RUN_P = begin
             Downloader.download(UNIDATA_URL + UNIDATA_FILE, CACHE_DIR + UNIDATA_FILE)
           rescue

@@ -25,8 +25,6 @@ module ActionDispatch
           state = tt.eclosure(0)
           until input.eos?
             sym   = input.scan(%r([/.?]|[^/.?]+))
-
-            # FIXME: tt.eclosure is not needed for the GTG
             state = tt.eclosure(tt.move(state, sym))
           end
 

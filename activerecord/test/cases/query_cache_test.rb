@@ -13,12 +13,13 @@ class QueryCacheTest < ActiveRecord::TestCase
   fixtures :tasks, :topics, :categories, :posts, :categories_posts
 
   class ShouldNotHaveExceptionsLogger < ActiveRecord::LogSubscriber
-    attr_reader :logger
+    attr_reader :logger, :events
 
     def initialize
       super
       @logger = ::Logger.new File::NULL
       @exception = false
+      @events = []
     end
 
     def exception?
@@ -26,6 +27,7 @@ class QueryCacheTest < ActiveRecord::TestCase
     end
 
     def sql(event)
+      @events << event
       super
     rescue
       @exception = true
@@ -51,16 +53,6 @@ class QueryCacheTest < ActiveRecord::TestCase
     assert_raises(RuntimeError) { mw.call({}) }
 
     assert_cache :off
-  end
-
-  private def with_temporary_connection_pool
-    old_pool = ActiveRecord::Base.connection_handler.retrieve_connection_pool(ActiveRecord::Base.connection_specification_name)
-    new_pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new ActiveRecord::Base.connection_pool.spec
-    ActiveRecord::Base.connection_handler.send(:owner_to_pool)["primary"] = new_pool
-
-    yield
-  ensure
-    ActiveRecord::Base.connection_handler.send(:owner_to_pool)["primary"] = old_pool
   end
 
   def test_query_cache_across_threads
@@ -265,6 +257,26 @@ class QueryCacheTest < ActiveRecord::TestCase
     end
   end
 
+  def test_cache_notifications_can_be_overridden
+    logger = ShouldNotHaveExceptionsLogger.new
+    subscriber = ActiveSupport::Notifications.subscribe "sql.active_record", logger
+
+    connection = ActiveRecord::Base.connection.dup
+
+    def connection.cache_notification_info(sql, name, binds)
+      super.merge(neat: true)
+    end
+
+    connection.cache do
+      connection.select_all "select 1"
+      connection.select_all "select 1"
+    end
+
+    assert_equal true, logger.events.last.payload[:neat]
+  ensure
+    ActiveSupport::Notifications.unsubscribe subscriber
+  end
+
   def test_cache_does_not_raise_exceptions
     logger = ShouldNotHaveExceptionsLogger.new
     subscriber = ActiveSupport::Notifications.subscribe "sql.active_record", logger
@@ -460,7 +472,6 @@ class QueryCacheTest < ActiveRecord::TestCase
           assert_not ActiveRecord::Base.connection.query_cache_enabled
         }.join
       }.call({})
-
     end
   end
 
@@ -474,6 +485,17 @@ class QueryCacheTest < ActiveRecord::TestCase
   end
 
   private
+
+    def with_temporary_connection_pool
+      old_pool = ActiveRecord::Base.connection_handler.retrieve_connection_pool(ActiveRecord::Base.connection_specification_name)
+      new_pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new ActiveRecord::Base.connection_pool.spec
+      ActiveRecord::Base.connection_handler.send(:owner_to_pool)["primary"] = new_pool
+
+      yield
+    ensure
+      ActiveRecord::Base.connection_handler.send(:owner_to_pool)["primary"] = old_pool
+    end
+
     def middleware(&app)
       executor = Class.new(ActiveSupport::Executor)
       ActiveRecord::QueryCache.install_executor_hooks executor
@@ -483,14 +505,14 @@ class QueryCacheTest < ActiveRecord::TestCase
     def assert_cache(state, connection = ActiveRecord::Base.connection)
       case state
       when :off
-        assert !connection.query_cache_enabled, "cache should be off"
+        assert_not connection.query_cache_enabled, "cache should be off"
         assert connection.query_cache.empty?, "cache should be empty"
       when :clean
         assert connection.query_cache_enabled, "cache should be on"
         assert connection.query_cache.empty?, "cache should be empty"
       when :dirty
         assert connection.query_cache_enabled, "cache should be on"
-        assert !connection.query_cache.empty?, "cache should be dirty"
+        assert_not connection.query_cache.empty?, "cache should be dirty"
       else
         raise "unknown state"
       end

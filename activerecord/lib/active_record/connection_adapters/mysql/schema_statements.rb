@@ -36,7 +36,7 @@ module ActiveRecord
               end
 
               indexes.last[-2] << row[:Column_name]
-              indexes.last[-1][:lengths].merge!(row[:Column_name] => row[:Sub_part].to_i) if row[:Sub_part]
+              indexes.last[-1][:lengths][row[:Column_name]] = row[:Sub_part].to_i if row[:Sub_part]
               indexes.last[-1][:orders].merge!(row[:Column_name] => :desc) if row[:Collation] == "D"
             end
           end
@@ -80,8 +80,8 @@ module ActiveRecord
 
           def new_column_from_field(table_name, field)
             type_metadata = fetch_type_metadata(field[:Type], field[:Extra])
-            if type_metadata.type == :datetime && /\ACURRENT_TIMESTAMP(?:\(\))?\z/i.match?(field[:Default])
-              default, default_function = nil, "CURRENT_TIMESTAMP"
+            if type_metadata.type == :datetime && /\ACURRENT_TIMESTAMP(?:\([0-6]?\))?\z/i.match?(field[:Default])
+              default, default_function = nil, field[:Default]
             else
               default, default_function = field[:Default], nil
             end
@@ -121,7 +121,7 @@ module ActiveRecord
           def data_source_sql(name = nil, type: nil)
             scope = quoted_scope(name, type: type)
 
-            sql = "SELECT table_name FROM information_schema.tables".dup
+            sql = +"SELECT table_name FROM information_schema.tables"
             sql << " WHERE table_schema = #{scope[:schema]}"
             sql << " AND table_name = #{scope[:name]}" if scope[:name]
             sql << " AND table_type = #{scope[:type]}" if scope[:type]

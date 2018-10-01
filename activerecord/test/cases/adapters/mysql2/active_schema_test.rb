@@ -106,7 +106,7 @@ class Mysql2ActiveSchemaTest < ActiveRecord::Mysql2TestCase
   end
 
   def test_create_mysql_database_with_encoding
-    assert_equal "CREATE DATABASE `matt` DEFAULT CHARACTER SET `utf8`", create_database(:matt)
+    assert_equal "CREATE DATABASE `matt` DEFAULT CHARACTER SET `utf8mb4`", create_database(:matt)
     assert_equal "CREATE DATABASE `aimonetti` DEFAULT CHARACTER SET `latin1`", create_database(:aimonetti, charset: "latin1")
     assert_equal "CREATE DATABASE `matt_aimonetti` DEFAULT COLLATE `utf8mb4_bin`", create_database(:matt_aimonetti, collation: "utf8mb4_bin")
   end
@@ -157,15 +157,19 @@ class Mysql2ActiveSchemaTest < ActiveRecord::Mysql2TestCase
   end
 
   def test_indexes_in_create
-    ActiveRecord::Base.connection.stubs(:data_source_exists?).with(:temp).returns(false)
-    ActiveRecord::Base.connection.stubs(:index_name_exists?).with(:index_temp_on_zip).returns(false)
+    assert_called_with(
+      ActiveRecord::Base.connection,
+      :data_source_exists?,
+      [:temp],
+      returns: false
+    ) do
+      expected = "CREATE TEMPORARY TABLE `temp` ( INDEX `index_temp_on_zip`  (`zip`)) AS SELECT id, name, zip FROM a_really_complicated_query"
+      actual = ActiveRecord::Base.connection.create_table(:temp, temporary: true, as: "SELECT id, name, zip FROM a_really_complicated_query") do |t|
+        t.index :zip
+      end
 
-    expected = "CREATE TEMPORARY TABLE `temp` ( INDEX `index_temp_on_zip`  (`zip`)) AS SELECT id, name, zip FROM a_really_complicated_query"
-    actual = ActiveRecord::Base.connection.create_table(:temp, temporary: true, as: "SELECT id, name, zip FROM a_really_complicated_query") do |t|
-      t.index :zip
+      assert_equal expected, actual
     end
-
-    assert_equal expected, actual
   end
 
   private

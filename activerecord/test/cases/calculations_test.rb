@@ -642,6 +642,18 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal [ topic.written_on ], relation.pluck(:written_on)
   end
 
+  def test_pluck_with_type_cast_does_not_corrupt_the_query_cache
+    topic = topics(:first)
+    relation = Topic.where(id: topic.id)
+    assert_queries 1 do
+      Topic.cache do
+        kind = relation.select(:written_on).load.first.read_attribute_before_type_cast(:written_on).class
+        relation.pluck(:written_on)
+        assert_kind_of kind, relation.select(:written_on).load.first.read_attribute_before_type_cast(:written_on)
+      end
+    end
+  end
+
   def test_pluck_and_distinct
     assert_equal [50, 53, 55, 60], Account.order(:credit_limit).distinct.pluck(:credit_limit)
   end
@@ -703,6 +715,24 @@ class CalculationsTest < ActiveRecord::TestCase
   def test_pluck_with_includes_offset
     assert_equal [5], Topic.includes(:replies).order(:id).offset(4).pluck(:id)
     assert_equal [], Topic.includes(:replies).order(:id).offset(5).pluck(:id)
+  end
+
+  def test_group_by_with_limit
+    expected = { "Post" => 8, "SpecialPost" => 1 }
+    actual = Post.includes(:comments).group(:type).order(:type).limit(2).count("comments.id")
+    assert_equal expected, actual
+  end
+
+  def test_group_by_with_offset
+    expected = { "SpecialPost" => 1, "StiPost" => 2 }
+    actual = Post.includes(:comments).group(:type).order(:type).offset(1).count("comments.id")
+    assert_equal expected, actual
+  end
+
+  def test_group_by_with_limit_and_offset
+    expected = { "SpecialPost" => 1 }
+    actual = Post.includes(:comments).group(:type).order(:type).offset(1).limit(1).count("comments.id")
+    assert_equal expected, actual
   end
 
   def test_pluck_not_auto_table_name_prefix_if_column_included

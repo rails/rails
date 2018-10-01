@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
 Action Controller Overview
 ==========================
@@ -23,7 +23,7 @@ What Does a Controller Do?
 
 Action Controller is the C in [MVC](https://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93controller). After the router has determined which controller to use for a request, the controller is responsible for making sense of the request, and producing the appropriate output. Luckily, Action Controller does most of the groundwork for you and uses smart conventions to make this as straightforward as possible.
 
-For most conventional [RESTful](https://en.wikipedia.org/wiki/Representational_state_transfer) applications, the controller will receive the request (this is invisible to you as the developer), fetch or save data from a model and use a view to create HTML output. If your controller needs to do things a little differently, that's not a problem, this is just the most common way for a controller to work.
+For most conventional [RESTful](https://en.wikipedia.org/wiki/Representational_state_transfer) applications, the controller will receive the request (this is invisible to you as the developer), fetch or save data from a model, and use a view to create HTML output. If your controller needs to do things a little differently, that's not a problem, this is just the most common way for a controller to work.
 
 A controller can thus be thought of as a middleman between models and views. It makes the model data available to the view so it can display that data to the user, and it saves or updates user data to the model.
 
@@ -193,8 +193,8 @@ In a given request, the method is not actually called for every single generated
 
 With strong parameters, Action Controller parameters are forbidden to
 be used in Active Model mass assignments until they have been
-whitelisted. This means that you'll have to make a conscious decision about
-which attributes to allow for mass update. This is a better security
+permitted. This means that you'll have to make a conscious decision about
+which attributes to permit for mass update. This is a better security
 practice to help prevent accidentally allowing users to update sensitive
 model attributes.
 
@@ -241,7 +241,7 @@ Given
 params.permit(:id)
 ```
 
-the key `:id` will pass the whitelisting if it appears in `params` and
+the key `:id` will be permitted for inclusion if it appears in `params` and
 it has a permitted scalar value associated. Otherwise, the key is going
 to be filtered out, so arrays, hashes, or any other objects cannot be
 injected.
@@ -269,7 +269,7 @@ but be careful because this opens the door to arbitrary input. In this
 case, `permit` ensures values in the returned structure are permitted
 scalars and filters out anything else.
 
-To whitelist an entire hash of parameters, the `permit!` method can be
+To permit an entire hash of parameters, the `permit!` method can be
 used:
 
 ```ruby
@@ -291,7 +291,7 @@ params.permit(:name, { emails: [] },
                          { family: [ :name ], hobbies: [] }])
 ```
 
-This declaration whitelists the `name`, `emails`, and `friends`
+This declaration permits the `name`, `emails`, and `friends`
 attributes. It is expected that `emails` will be an array of permitted
 scalar values, and that `friends` will be an array of resources with
 specific attributes: they should have a `name` attribute (any
@@ -326,7 +326,7 @@ parameters when you use `accepts_nested_attributes_for` in combination
 with a `has_many` association:
 
 ```ruby
-# To whitelist the following data:
+# To permit the following data:
 # {"book" => {"title" => "Some Book",
 #             "chapters_attributes" => { "1" => {"title" => "First Chapter"},
 #                                        "2" => {"title" => "Second Chapter"}}}}
@@ -334,25 +334,23 @@ with a `has_many` association:
 params.require(:book).permit(:title, chapters_attributes: [:title])
 ```
 
+Imagine a scenario where you have parameters representing a product
+name and a hash of arbitrary data associated with that product, and
+you want to permit the product name attribute and also the whole
+data hash:
+
+```ruby
+def product_params
+  params.require(:product).permit(:name, data: {})
+end
+```
+
 #### Outside the Scope of Strong Parameters
 
 The strong parameter API was designed with the most common use cases
 in mind. It is not meant as a silver bullet to handle all of your
-whitelisting problems. However, you can easily mix the API with your
+parameter filtering problems. However, you can easily mix the API with your
 own code to adapt to your situation.
-
-Imagine a scenario where you have parameters representing a product
-name and a hash of arbitrary data associated with that product, and
-you want to whitelist the product name attribute and also the whole
-data hash. The strong parameters API doesn't let you directly
-whitelist the whole of a nested hash with any keys, but you can use
-the keys of your nested hash to declare what to whitelist:
-
-```ruby
-def product_params
-  params.require(:product).permit(:name, data: params[:product][:data].try(:keys))
-end
-```
 
 Session
 -------
@@ -397,7 +395,7 @@ You can also pass a `:domain` key and specify the domain name for the cookie:
 Rails.application.config.session_store :cookie_store, key: '_your_app_session', domain: ".example.com"
 ```
 
-Rails sets up (for the CookieStore) a secret key used for signing the session data in `config/credentials.yml.enc`. This can be changed with `bin/rails credentials:edit`.
+Rails sets up (for the CookieStore) a secret key used for signing the session data in `config/credentials.yml.enc`. This can be changed with `rails credentials:edit`.
 
 ```ruby
 # aws:
@@ -777,9 +775,9 @@ Again, this is not an ideal example for this filter, because it's not run in the
 Request Forgery Protection
 --------------------------
 
-Cross-site request forgery is a type of attack in which a site tricks a user into making requests on another site, possibly adding, modifying or deleting data on that site without the user's knowledge or permission.
+Cross-site request forgery is a type of attack in which a site tricks a user into making requests on another site, possibly adding, modifying, or deleting data on that site without the user's knowledge or permission.
 
-The first step to avoid this is to make sure all "destructive" actions (create, update and destroy) can only be accessed with non-GET requests. If you're following RESTful conventions you're already doing this. However, a malicious site can still send a non-GET request to your site quite easily, and that's where the request forgery protection comes in. As the name says, it protects from forged requests.
+The first step to avoid this is to make sure all "destructive" actions (create, update, and destroy) can only be accessed with non-GET requests. If you're following RESTful conventions you're already doing this. However, a malicious site can still send a non-GET request to your site quite easily, and that's where the request forgery protection comes in. As the name says, it protects from forged requests.
 
 The way this is done is to add a non-guessable token which is only known to your server to each request. This way, if a request comes in without the proper token, it will be denied access.
 

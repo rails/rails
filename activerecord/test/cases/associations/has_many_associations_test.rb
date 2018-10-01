@@ -27,7 +27,6 @@ require "models/categorization"
 require "models/minivan"
 require "models/speedometer"
 require "models/reference"
-require "models/job"
 require "models/college"
 require "models/student"
 require "models/pirate"
@@ -114,7 +113,7 @@ end
 class HasManyAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :categories, :companies, :developers, :projects,
            :developers_projects, :topics, :authors, :author_addresses, :comments,
-           :posts, :readers, :taggings, :cars, :jobs, :tags,
+           :posts, :readers, :taggings, :cars, :tags,
            :categorizations, :zines, :interests
 
   def setup
@@ -375,6 +374,27 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     line_item = invoice.line_items.create invoice_id: invoice.id + 1
     assert_equal invoice.id, line_item.invoice_id
+  end
+
+  class SpecialAuthor < ActiveRecord::Base
+    self.table_name = "authors"
+    has_many :books, class_name: "SpecialBook", foreign_key: :author_id
+  end
+
+  class SpecialBook < ActiveRecord::Base
+    self.table_name = "books"
+
+    belongs_to :author
+    enum read_status: { unread: 0, reading: 2, read: 3, forgotten: nil }
+  end
+
+  def test_association_enum_works_properly
+    author = SpecialAuthor.create!(name: "Test")
+    book = SpecialBook.create!(read_status: "reading")
+    author.books << book
+
+    assert_equal "reading", book.read_status
+    assert_not_equal 0, SpecialAuthor.joins(:books).where(books: { read_status: "reading" }).count
   end
 
   # When creating objects on the association, we must not do it within a scope (even though it
@@ -1177,6 +1197,38 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 2, topic.reload.replies.size
   end
 
+  def test_counter_cache_updates_in_memory_after_update_with_inverse_of_disabled
+    topic = Topic.create!(title: "Zoom-zoom-zoom")
+
+    assert_equal 0, topic.replies_count
+
+    reply1 = Reply.create!(title: "re: zoom", content: "speedy quick!")
+    reply2 = Reply.create!(title: "re: zoom 2", content: "OMG lol!")
+
+    assert_queries(4) do
+      topic.replies << [reply1, reply2]
+    end
+
+    assert_equal 2, topic.replies_count
+    assert_equal 2, topic.reload.replies_count
+  end
+
+  def test_counter_cache_updates_in_memory_after_update_with_inverse_of_enabled
+    category = Category.create!(name: "Counter Cache")
+
+    assert_nil category.categorizations_count
+
+    categorization1 = Categorization.create!
+    categorization2 = Categorization.create!
+
+    assert_queries(4) do
+      category.categorizations << [categorization1, categorization2]
+    end
+
+    assert_equal 2, category.categorizations_count
+    assert_equal 2, category.reload.categorizations_count
+  end
+
   def test_pushing_association_updates_counter_cache
     topic = Topic.order("id ASC").first
     reply = Reply.create!
@@ -1574,7 +1626,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_predicate companies(:first_firm).clients_of_firm, :loaded?
 
     clients = companies(:first_firm).clients_of_firm.to_a
-    assert !clients.empty?, "37signals has clients after load"
+    assert_not clients.empty?, "37signals has clients after load"
     destroyed = companies(:first_firm).clients_of_firm.destroy_all
     assert_equal clients.sort_by(&:id), destroyed.sort_by(&:id)
     assert destroyed.all?(&:frozen?), "destroyed clients should be frozen"
@@ -2134,21 +2186,29 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_defining_has_many_association_with_delete_all_dependency_lazily_evaluates_target_class
-    ActiveRecord::Reflection::AssociationReflection.any_instance.expects(:class_name).never
-    class_eval(<<-EOF, __FILE__, __LINE__ + 1)
-      class DeleteAllModel < ActiveRecord::Base
-        has_many :nonentities, :dependent => :delete_all
-      end
-    EOF
+    assert_not_called_on_instance_of(
+      ActiveRecord::Reflection::AssociationReflection,
+      :class_name,
+    ) do
+      class_eval(<<-EOF, __FILE__, __LINE__ + 1)
+        class DeleteAllModel < ActiveRecord::Base
+          has_many :nonentities, :dependent => :delete_all
+        end
+      EOF
+    end
   end
 
   def test_defining_has_many_association_with_nullify_dependency_lazily_evaluates_target_class
-    ActiveRecord::Reflection::AssociationReflection.any_instance.expects(:class_name).never
-    class_eval(<<-EOF, __FILE__, __LINE__ + 1)
-      class NullifyModel < ActiveRecord::Base
-        has_many :nonentities, :dependent => :nullify
-      end
-    EOF
+    assert_not_called_on_instance_of(
+      ActiveRecord::Reflection::AssociationReflection,
+      :class_name,
+    ) do
+      class_eval(<<-EOF, __FILE__, __LINE__ + 1)
+        class NullifyModel < ActiveRecord::Base
+          has_many :nonentities, :dependent => :nullify
+        end
+      EOF
+    end
   end
 
   def test_attributes_are_being_set_when_initialized_from_has_many_association_with_where_clause
@@ -2702,6 +2762,17 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
       bulb = car.bulbs.create!
 
       assert_equal [bulb], car.bulbs
+    end
+  end
+
+  def test_create_children_could_be_rolled_back_by_after_save
+    firm = Firm.create!(name: "A New Firm, Inc")
+    assert_no_difference "Client.count" do
+      client = firm.clients.create(name: "New Client") do |cli|
+        cli.rollback_on_save = true
+        assert_not cli.rollback_on_create_called
+      end
+      assert client.rollback_on_create_called
     end
   end
 
