@@ -31,6 +31,7 @@ module ActiveSupport
     inflect.plural(/^(ox)$/i, '\1en')
     inflect.plural(/^(oxen)$/i, '\1')
     inflect.plural(/(quiz)$/i, '\1zes')
+    inflect.plural(/(canva)s$/i, '\1ses')
 
     inflect.singular(/s$/i, "")
     inflect.singular(/(ss)$/i, '\1')
@@ -59,6 +60,7 @@ module ActiveSupport
     inflect.singular(/(matr)ices$/i, '\1ix')
     inflect.singular(/(quiz)zes$/i, '\1')
     inflect.singular(/(database)s$/i, '\1')
+    inflect.singular(/(canvas)(es)?$/i, '\1')
 
     inflect.irregular("person", "people")
     inflect.irregular("man", "men")
