@@ -10,6 +10,8 @@ class ActionMailbox::Base
   attr_reader :inbound_email
   delegate :mail, :bounced!, to: :inbound_email
 
+  delegate :logger, to: ActionMailbox
+
   def self.receive(inbound_email)
     new(inbound_email).perform_processing
   end
@@ -32,7 +34,7 @@ class ActionMailbox::Base
   def process
     # Overwrite in subclasses
   end
-  
+
   private
     def track_status_of_inbound_email
       inbound_email.processing!

@@ -7,4 +7,6 @@ module ActionMailbox
   autoload :Router
   autoload :Callbacks
   autoload :Routing
+
+  mattr_accessor :logger
 end
