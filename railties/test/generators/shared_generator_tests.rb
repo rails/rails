@@ -27,7 +27,7 @@ module SharedGeneratorTests
   end
 
   def test_skeleton_is_created
-    run_generator
+    run_generator [destination_root, "--no-skip-javascript"]
 
     default_files.each { |path| assert_file path }
   end
@@ -196,10 +196,12 @@ module SharedGeneratorTests
   end
 
   def test_generator_for_active_storage
-    run_generator
+    run_generator [destination_root, "--no-skip-javascript"]
 
-    assert_file "#{application_path}/app/assets/javascripts/application.js" do |content|
-      assert_match(/^\/\/= require activestorage/, content)
+    unless generator_class.name == "Rails::Generators::PluginGenerator"
+      assert_file "#{application_path}/app/javascript/packs/application.js" do |content|
+        assert_match(/^import \* as ActiveStorage from "activestorage"\nActiveStorage.start\(\)/, content)
+      end
     end
 
     assert_file "#{application_path}/config/environments/development.rb" do |content|
@@ -224,11 +226,11 @@ module SharedGeneratorTests
   end
 
   def test_generator_if_skip_active_storage_is_given
-    run_generator [destination_root, "--skip-active-storage"]
+    run_generator [destination_root, "--skip-active-storage", "--no-skip-javascript"]
 
     assert_file "#{application_path}/config/application.rb", /#\s+require\s+["']active_storage\/engine["']/
 
-    assert_file "#{application_path}/app/assets/javascripts/application.js" do |content|
+    assert_file "#{application_path}/app/javascript/packs/application.js" do |content|
       assert_no_match(/^\/\/= require activestorage/, content)
     end
 
@@ -254,12 +256,12 @@ module SharedGeneratorTests
   end
 
   def test_generator_does_not_generate_active_storage_contents_if_skip_active_record_is_given
-    run_generator [destination_root, "--skip-active-record"]
+    run_generator [destination_root, "--skip-active-record", "--no-skip-javascript"]
 
     assert_file "#{application_path}/config/application.rb", /#\s+require\s+["']active_storage\/engine["']/
 
-    assert_file "#{application_path}/app/assets/javascripts/application.js" do |content|
-      assert_no_match(/^\/\/= require activestorage/, content)
+    assert_file "#{application_path}/app/javascript/packs/application.js" do |content|
+      assert_no_match(/^import * as ActiveStorage from "activestorage"\nActiveStorage.start()/, content)
     end
 
     assert_file "#{application_path}/config/environments/development.rb" do |content|
@@ -320,8 +322,6 @@ module SharedGeneratorTests
 
     assert_file "Gemfile" do |content|
       assert_no_match(/sass-rails/, content)
-      assert_no_match(/uglifier/, content)
-      assert_no_match(/coffee-rails/, content)
     end
 
     assert_file "#{application_path}/config/environments/development.rb" do |content|
@@ -330,7 +330,6 @@ module SharedGeneratorTests
 
     assert_file "#{application_path}/config/environments/production.rb" do |content|
       assert_no_match(/config\.assets\.digest/, content)
-      assert_no_match(/config\.assets\.js_compressor/, content)
       assert_no_match(/config\.assets\.css_compressor/, content)
       assert_no_match(/config\.assets\.compile/, content)
     end

@@ -15,7 +15,7 @@ gem "rack-cache", "~> 1.2"
 gem "coffee-rails"
 gem "sass-rails"
 gem "turbolinks", "~> 5"
-
+gem "webpacker", github: "rails/webpacker", require: ENV["SKIP_REQUIRE_WEBPACKER"] != "true"
 # require: false so bcrypt is loaded only when has_secure_password is used.
 # This is to avoid Active Model (and by extension the entire framework)
 # being dependent on a binary library.

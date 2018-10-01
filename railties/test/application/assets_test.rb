@@ -68,20 +68,6 @@ module ApplicationTests
       assert_equal 'a = "/assets/rails.png";', last_response.body.strip
     end
 
-    test "assets do not require compressors until it is used" do
-      app_file "app/assets/javascripts/demo.js.erb", "<%= :alert %>();"
-      add_to_env_config "production", "config.assets.compile = true"
-      add_to_env_config "production", "config.assets.precompile = []"
-
-      # Load app env
-      app "production"
-
-      assert_not defined?(Uglifier)
-      get "/assets/demo.js"
-      assert_match "alert()", last_response.body
-      assert defined?(Uglifier)
-    end
-
     test "precompile creates the file, gives it the original asset's content and run in production as default" do
       app_file "app/assets/config/manifest.js", "//= link_tree ../javascripts"
       app_file "app/assets/javascripts/application.js", "alert();"
@@ -443,13 +429,13 @@ module ApplicationTests
     end
 
     test "digested assets are not mistakenly removed" do
-      app_file "app/assets/application.js", "alert();"
+      app_file "app/assets/application.css", "div { font-weight: bold }"
       add_to_config "config.assets.compile = true"
 
       precompile!
 
-      files = Dir["#{app_path}/public/assets/application-*.js"]
-      assert_equal 1, files.length, "Expected digested application.js asset to be generated, but none found"
+      files = Dir["#{app_path}/public/assets/application-*.css"]
+      assert_equal 1, files.length, "Expected digested application.css asset to be generated, but none found"
     end
 
     test "digested assets are removed from configured path" do
