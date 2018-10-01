@@ -13,8 +13,8 @@ module ActiveSupport
       class ParsingError < ::ArgumentError; end
 
       PERIOD_OR_COMMA = /\.|,/
-      PERIOD = ".".freeze
-      COMMA = ",".freeze
+      PERIOD = "."
+      COMMA = ","
 
       SIGN_MARKER = /\A\-|\+|/
       DATE_MARKER = /P/

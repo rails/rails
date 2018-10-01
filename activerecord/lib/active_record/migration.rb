@@ -140,8 +140,8 @@ module ActiveRecord
   end
 
   class ConcurrentMigrationError < MigrationError #:nodoc:
-    DEFAULT_MESSAGE = "Cannot run migrations because another migration process is currently running.".freeze
-    RELEASE_LOCK_FAILED_MESSAGE = "Failed to release advisory lock".freeze
+    DEFAULT_MESSAGE = "Cannot run migrations because another migration process is currently running."
+    RELEASE_LOCK_FAILED_MESSAGE = "Failed to release advisory lock"
 
     def initialize(message = DEFAULT_MESSAGE)
       super

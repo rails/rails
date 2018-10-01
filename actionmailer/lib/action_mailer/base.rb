@@ -1008,7 +1008,7 @@ module ActionMailer
       end
 
       def instrument_name
-        "action_mailer".freeze
+        "action_mailer"
       end
 
       ActiveSupport.run_load_hooks(:action_mailer, self)

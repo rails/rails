@@ -23,7 +23,7 @@ class ObjectInstanceVariableTest < ActiveSupport::TestCase
   end
 
   def test_instance_exec_with_frozen_obj
-    assert_equal %w(olleh goodbye), "hello".freeze.instance_exec("goodbye") { |v| [reverse, v] }
+    assert_equal %w(olleh goodbye), "hello".instance_exec("goodbye") { |v| [reverse, v] }
   end
 
   def test_instance_exec_nested

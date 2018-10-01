@@ -109,7 +109,7 @@ module Rails
       RACK_SERVERS = %w(cgi fastcgi webrick lsws scgi thin puma unicorn)
 
       DEFAULT_PORT = 3000
-      DEFAULT_PID_PATH = "tmp/pids/server.pid".freeze
+      DEFAULT_PID_PATH = "tmp/pids/server.pid"
 
       argument :using, optional: true
 

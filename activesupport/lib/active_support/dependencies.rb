@@ -144,7 +144,7 @@ module ActiveSupport #:nodoc:
 
           # Normalize the list of new constants, and add them to the list we will return
           new_constants.each do |suffix|
-            constants << ([namespace, suffix] - ["Object"]).join("::".freeze)
+            constants << ([namespace, suffix] - ["Object"]).join("::")
           end
         end
         constants
@@ -410,7 +410,7 @@ module ActiveSupport #:nodoc:
         next unless expanded_path.start_with?(expanded_root)
 
         root_size = expanded_root.size
-        next if expanded_path[root_size] != ?/.freeze
+        next if expanded_path[root_size] != ?/
 
         nesting = expanded_path[(root_size + 1)..-1]
         paths << nesting.camelize unless nesting.blank?
@@ -505,7 +505,7 @@ module ActiveSupport #:nodoc:
 
       if file_path
         expanded = File.expand_path(file_path)
-        expanded.sub!(/\.rb\z/, "".freeze)
+        expanded.sub!(/\.rb\z/, "")
 
         if loading.include?(expanded)
           raise "Circular dependency detected while autoloading constant #{qualified_name}"
