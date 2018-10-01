@@ -2,10 +2,10 @@
   "name": "<%= app_name %>",
   "private": true,
   "dependencies": {
-    "rails-ujs": "6.0.0-alpha"<% unless options[:skip_turbolinks] %>,
-    "turbolinks": "5.1.1"<% end -%><% unless skip_active_storage? %>,
-    "activestorage": "6.0.0-alpha"<% end -%><% unless options[:skip_action_cable] %>,
-    "actioncable": "6.0.0-alpha"<% end -%>
+    "rails-ujs": "~<%= npm_package_version %>"<% unless options[:skip_turbolinks] %>,
+    "turbolinks": "~5.1.1"<% end -%><% unless skip_active_storage? %>,
+    "activestorage": "~<%= npm_package_version %>"<% end -%><% unless options[:skip_action_cable] %>,
+    "actioncable": "~<%= npm_package_version %>"<% end -%>
   },
   "version": "0.1.0"
 }

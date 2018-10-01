@@ -232,6 +232,10 @@ module Rails
         options[:skip_active_storage] || options[:skip_active_record]
       end
 
+      def npm_package_version
+        Rails::VERSION::STRING.gsub(/\./).with_index { |s, i| i >= 2 ? "-" : s }
+      end
+
       class GemfileEntry < Struct.new(:name, :version, :comment, :options, :commented_out)
         def initialize(name, version, comment, options = {}, commented_out = false)
           super
