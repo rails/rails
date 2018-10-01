@@ -527,7 +527,9 @@ module ActiveRecord
       #
       # See TableDefinition#column for details of the options you can use.
       def column(column_name, type, options = {})
+        index_options = options.delete(:index)
         @base.add_column(name, column_name, type, options)
+        index(column_name, index_options.is_a?(Hash) ? index_options : {}) if index_options
       end
 
       # Checks to see if a column exists.

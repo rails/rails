@@ -1,3 +1,15 @@
+*   Added `index` option for `change_table` migration helpers.
+    With this change you can create indexes while adding new
+    columns into the existing tables.
+
+    Example:
+
+        change_table(:languages) do |t|
+          t.string :country_code, index: true
+        end
+
+    *Mehmet Emin İNAÇ*
+
 *   Fix `transaction` reverting for migrations.
 
     Before: Commands inside a `transaction` in a reverted migration ran uninverted.
