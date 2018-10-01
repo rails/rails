@@ -1,3 +1,7 @@
+*   Remove undocumented `params` option from `url_for` helper.
+
+    *Ilkka Oksanen*
+
 *   Encode Content-Disposition filenames on `send_data` and `send_file`.
     Previously, `send_data 'data', filename: "\u{3042}.txt"` sends
     `"filename=\"\u{3042}.txt\""` as Content-Disposition and it can be

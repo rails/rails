@@ -193,7 +193,7 @@ class UrlOptionsTest < ActionController::TestCase
       action: "home",
       controller: "pages",
       only_path: true,
-      params: { "token" => "secret" }
+      token: "secret"
     }
 
     assert_equal "/home?token=secret", rs.url_for(options)
