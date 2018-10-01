@@ -131,6 +131,7 @@ class ClientTest < ActionCable::TestCase
     ActionCable::Connection::WebSocket.instance_exec { @client_socket_klass = nil } # clear selection cache
     puts "Testing with Iodine"
     with_iodine_server(rack_app, port, &block)
+    ActionCable::Connection::WebSocket.instance_exec { @client_socket_klass = nil } # clear selection cache for future tests
   end
 
   class SyncClient
