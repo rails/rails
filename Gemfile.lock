@@ -193,9 +193,6 @@ GEM
     chromedriver-helper (2.0.0)
       archive-zip (~> 0.10)
       nokogiri (~> 1.8)
-    coffee-rails (4.2.2)
-      coffee-script (>= 2.2.0)
-      railties (>= 4.0.0)
     coffee-script (2.4.1)
       coffee-script-source
       execjs
@@ -529,7 +526,6 @@ DEPENDENCIES
   byebug
   capybara (>= 2.15)
   chromedriver-helper
-  coffee-rails
   connection_pool
   dalli
   delayed_job
