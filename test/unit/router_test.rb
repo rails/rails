@@ -13,6 +13,11 @@ end
 class SecondMailbox < RootMailbox
 end
 
+module Nested
+  class FirstMailbox < RootMailbox
+  end
+end
+
 class FirstMailboxAddress
   def match?(inbound_email)
     inbound_email.mail.to.include?("replies-class@example.com")
@@ -57,7 +62,7 @@ module ActionMailbox
       assert_equal "SecondMailbox", $processed_by
       assert_equal inbound_email.mail, $processed_mail
     end
-    
+
     test "single regexp route" do
       @router.add_routes(/replies-\w+@example.com/ => :first, "replies-nowhere@example.com" => :second)
 
@@ -79,6 +84,14 @@ module ActionMailbox
       @router.add_route FirstMailboxAddress.new, to: :first
       @router.route create_inbound_email_from_mail(to: "replies-class@example.com", subject: "This is a reply")
       assert_equal "FirstMailbox", $processed_by
+    end
+
+    test "string route to nested mailbox" do
+      @router.add_route "first@example.com", to: "nested/first"
+
+      inbound_email = create_inbound_email_from_mail(to: "first@example.com", subject: "This is a reply")
+      @router.route inbound_email
+      assert_equal "Nested::FirstMailbox", $processed_by
     end
 
     test "missing route" do

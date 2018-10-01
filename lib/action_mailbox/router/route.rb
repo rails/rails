@@ -21,7 +21,7 @@ class ActionMailbox::Router::Route
   end
 
   def mailbox_class
-    "#{mailbox_name.to_s.capitalize}Mailbox".constantize
+    "#{mailbox_name.to_s.camelize}Mailbox".constantize
   end
 
   private
