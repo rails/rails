@@ -12,7 +12,6 @@ gem "rake", ">= 11.1"
 gem "capybara", ">= 2.15"
 
 gem "rack-cache", "~> 1.2"
-gem "coffee-rails"
 gem "sass-rails"
 gem "turbolinks", "~> 5"
 gem "webpacker", github: "rails/webpacker", require: ENV["SKIP_REQUIRE_WEBPACKER"] != "true"
