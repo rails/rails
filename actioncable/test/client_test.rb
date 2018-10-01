@@ -12,7 +12,6 @@ require "active_support/hash_with_indifferent_access"
 begin
   require "iodine"
 rescue LoadError
-  nil
 end
 
 ####
@@ -71,7 +70,7 @@ class ClientTest < ActionCable::TestCase
     server.config.disable_request_forgery_protection = true
   end
 
-  def with_puma_server(rack_app = ActionCable.server, port = 3099, block)
+  def with_puma_server(rack_app = ActionCable.server, port = 3099)
     server = ::Puma::Server.new(rack_app, ::Puma::Events.strings)
     server.add_tcp_listener "127.0.0.1", port
     server.min_threads = 1
@@ -80,7 +79,7 @@ class ClientTest < ActionCable::TestCase
     thread = server.run
 
     begin
-      block.call(port)
+      yield(port)
 
     ensure
       server.stop
@@ -107,32 +106,31 @@ class ClientTest < ActionCable::TestCase
   end
 
   if defined?(::Iodine)
-    def with_iodine_server(rack_app = ActionCable.server, port = 3099, block)
+    def with_iodine_server(rack_app = ActionCable.server, port = 3099)
+      ::Iodine.listen2http(app: rack_app, port: port.to_s, address: "127.0.0.1")
+      ::Iodine.workers = 1 # don't cluster the test
+      ::Iodine.threads = 1 # one for the server another for the task
+      t = Thread.new { ::Iodine.start }
       begin
-        ::Iodine.listen2http(app: rack_app, port: port.to_s, address: "127.0.0.1")
-        ::Iodine.workers = 1 # don't cluster the test
-        ::Iodine.threads = 1 # one for the server another for the task
-        t = Thread.new { ::Iodine.start }
-        block.call(port)
-      rescue
-        nil
+        yield(port)
       ensure
         ::Iodine.stop
         t.join
       end
     end
   else
-    def with_iodine_server(rack_app = ActionCable.server, port = 3099, block)
-      skip "Iodine testing skipped, unsupported?."
-      puts "Iodine testing skipped, unsupported?."
+    def with_iodine_server(rack_app = ActionCable.server, port = 3099)
+      nil
     end
   end
 
   def with_cable_server(rack_app = ActionCable.server, port = 3099, &block)
+    ActionCable::Connection::WebSocket.instance_exec { @client_socket_klass = nil } # clear selection cache
     puts "Testing with Puma"
-    with_puma_server(rack_app, port, block)
+    with_puma_server(rack_app, port, &block)
+    ActionCable::Connection::WebSocket.instance_exec { @client_socket_klass = nil } # clear selection cache
     puts "Testing with Iodine"
-    with_iodine_server(rack_app, port, block)
+    with_iodine_server(rack_app, port, &block)
   end
 
   class SyncClient
