@@ -23,6 +23,9 @@ module ActiveSupport
   # +ClassMethods.set_callback+), and run the installed callbacks at the
   # appropriate times (via +run_callbacks+).
   #
+  # By default callbacks are halted by throwing +:abort+.
+  # See +ClassMethods.define_callbacks+ for details.
+  #
   # Three kinds of callbacks are supported: before callbacks, run before a
   # certain event; after callbacks, run after the event; and around callbacks,
   # blocks that surround the event, triggering it when they yield. Callback code
