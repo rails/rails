@@ -79,7 +79,7 @@ module InflectorTestCases
     "information" => "information",
     "equipment"   => "equipment",
     "bus"         => "buses",
-    "canvas"         => "canvases",
+    "canvas"      => "canvases",
     "status"      => "statuses",
     "status_code" => "status_codes",
     "mouse"       => "mice",
