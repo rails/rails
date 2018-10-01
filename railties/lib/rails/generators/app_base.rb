@@ -329,8 +329,8 @@ module Rails
 
       def webpacker_gemfile_entry
         return [] if options[:skip_javascript]
-        
-        if options.dev?
+
+        if options.dev? || options.edge?
           GemfileEntry.github "webpacker", "rails/webpacker", nil, "Use development version of Webpacker"
         else
           GemfileEntry.new "webpacker", nil, "Transpile app-like JavaScript. Read more: https://github.com/rails/webpacker"
