@@ -75,6 +75,11 @@ module ActiveRecord
             # For polymorphic relationships, find the foreign key and type:
             # PriceEstimate.where(estimate_of: treasure)
             associated_table = table.associated_table(key)
+
+            if associated_table.association_through_reflection?
+              next associated_predicate_builder(associated_table.table_name).expand_from_hash(associated_table.primary_key => value)
+            end
+
             if associated_table.polymorphic_association?
               case value.is_a?(Array) ? value.first : value
               when Base, Relation

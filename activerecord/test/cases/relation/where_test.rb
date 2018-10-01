@@ -14,10 +14,11 @@ require "models/price_estimate"
 require "models/topic"
 require "models/treasure"
 require "models/vertex"
+require "models/owner"
 
 module ActiveRecord
   class WhereTest < ActiveRecord::TestCase
-    fixtures :posts, :edges, :authors, :author_addresses, :binaries, :essays, :cars, :treasures, :price_estimates, :topics
+    fixtures :posts, :edges, :authors, :author_addresses, :binaries, :essays, :cars, :treasures, :price_estimates, :topics, :owners, :comments
 
     def test_where_copies_bind_params
       author = authors(:david)
@@ -325,6 +326,17 @@ module ActiveRecord
       author = authors(:david)
       author_address = AuthorAddress.where(author: Author.where(id: author.id)).first
       assert_equal author_addresses(:david_address), author_address
+    end
+
+    def test_where_with_relation_on_has_many_through_association
+      actual = Author.distinct.joins(:comments).where(comments: comments(:greetings, :eager_other_comment1))
+      expected = Author.where(name: %w[David Mary])
+      assert_equal expected.to_a, actual.to_a
+    end
+
+    def test_where_with_relation_on_has_one_through_association
+      author = Author.joins(:essay_owner).where(essay_owner: owners(:blackbeard)).first
+      assert_equal authors(:david), author
     end
 
 
