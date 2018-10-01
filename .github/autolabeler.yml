@@ -38,9 +38,19 @@ asset pipeline:
 ci issues:
   - "ci/**/*"
 security:
-  - "**/*security*"
-  - "**/*secure*"
-  - "**/*sanitize*"
-  - "**/*sanitization*"
+  - "**/*/cross_site*"
+  - "**/*/csrf*"
+  - "**/*/cookies*"
+  - "**/*/content_security_policy*"
+  - "guides/**/*/security*"
+  - "activesupport/**/*/message_verifier*"
+  - "activesupport/**/*/security_utils*"
+  - "actionpack/**/*/request_forgery*"
+  - "actionpack/**/*/cookie_store*"
+  - "actionview/**/*/sanitize_helper*"
+  - "activemodel/**/*/secure_password*"
+  - "activerecord/**/*/secure_token*"
+  - "activerecord/**/*/sanitize_test*"
+  - "activerecord/**/*/sanitization*"
 i18n:
   - "**/*i18n*"
