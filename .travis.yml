@@ -42,9 +42,6 @@ before_install:
   - "[[ $GEM != 'av:ujs' ]] || nvm install node"
   - "[[ $GEM != 'av:ujs' ]] || node --version"
   - "[[ $GEM != 'av:ujs' ]] || (cd actionview && npm install)"
-  - "[[ $GEM != 'ar:mysql2' ]] || [[ $MYSQL == 'mariadb' ]] || sudo mysql -e \"use mysql; update user set authentication_string='' where User='root'; update user set plugin='mysql_native_password';FLUSH PRIVILEGES;\""
-  - "[[ $GEM != 'ar:mysql2' ]] || [[ $MYSQL == 'mariadb' ]] || sudo mysql_upgrade"
-  - "[[ $GEM != 'ar:mysql2' ]] || [[ $MYSQL == 'mariadb' ]] || sudo service mysql restart"
   - "[[ $GEM != 'railties' ]] || (curl -o- -L https://yarnpkg.com/install.sh | bash)"
   - "[[ $GEM != 'railties' ]] || export PATH=$HOME/.yarn/bin:$PATH"
 
