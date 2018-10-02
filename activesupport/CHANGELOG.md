@@ -1,3 +1,8 @@
+*   Rename `Module#parent`, `Module#parents`, and `Module#parent_name` to
+    `module_parent`, `module_parents`, and `module_parent_name`.
+
+    *Gannon McGibbon*
+
 *   Deprecate the use of `LoggerSilence` in favor of `ActiveSupport::LoggerSilence`
 
     *Edouard Chin*
