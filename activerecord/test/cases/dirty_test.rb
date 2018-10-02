@@ -567,8 +567,6 @@ class DirtyTest < ActiveRecord::TestCase
     assert_not_nil pirate.previous_changes["updated_on"][1]
     assert_not pirate.previous_changes.key?("parrot_id")
     assert_not pirate.previous_changes.key?("created_on")
-  ensure
-    travel_back
   end
 
   class Testings < ActiveRecord::Base; end
@@ -879,6 +877,26 @@ class DirtyTest < ActiveRecord::TestCase
         raise "changed? should be false" if changed?
         raise "has_changes_to_save? should be false" if has_changes_to_save?
         raise "saved_changes? should be true" unless saved_changes?
+        raise "id_in_database should not be nil" if id_in_database.nil?
+      end
+    end
+
+    person = klass.create!(first_name: "Sean")
+    assert_not_predicate person, :changed?
+  end
+
+  test "changed? in around callbacks after yield returns false" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "people"
+
+      around_create :check_around
+
+      def check_around
+        yield
+        raise "changed? should be false" if changed?
+        raise "has_changes_to_save? should be false" if has_changes_to_save?
+        raise "saved_changes? should be true" unless saved_changes?
+        raise "id_in_database should not be nil" if id_in_database.nil?
       end
     end
 

@@ -12,7 +12,7 @@ unless current_adapter?(:DB2Adapter)
     FIXTURES = %w(flowers.jpg example.log test.txt)
 
     def test_mixed_encoding
-      str = "\x80".dup
+      str = +"\x80"
       str.force_encoding("ASCII-8BIT")
 
       binary = Binary.new name: "いただきます！", data: str

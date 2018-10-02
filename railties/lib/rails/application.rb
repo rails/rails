@@ -232,7 +232,10 @@ module Rails
 
       if yaml.exist?
         require "erb"
-        (YAML.load(ERB.new(yaml.read).result) || {})[env] || {}
+        require "active_support/ordered_options"
+
+        config = (YAML.load(ERB.new(yaml.read).result) || {})[env] || {}
+        ActiveSupport::InheritableOptions.new(config.deep_symbolize_keys)
       else
         raise "Could not load configuration. No such file - #{yaml}"
       end
@@ -267,6 +270,7 @@ module Rails
           "action_dispatch.cookies_serializer" => config.action_dispatch.cookies_serializer,
           "action_dispatch.cookies_digest" => config.action_dispatch.cookies_digest,
           "action_dispatch.cookies_rotations" => config.action_dispatch.cookies_rotations,
+          "action_dispatch.use_cookies_with_metadata" => config.action_dispatch.use_cookies_with_metadata,
           "action_dispatch.content_security_policy" => config.content_security_policy,
           "action_dispatch.content_security_policy_report_only" => config.content_security_policy_report_only,
           "action_dispatch.content_security_policy_nonce_generator" => config.content_security_policy_nonce_generator
@@ -434,8 +438,12 @@ module Rails
     # Decrypts the credentials hash as kept in +config/credentials.yml.enc+. This file is encrypted with
     # the Rails master key, which is either taken from <tt>ENV["RAILS_MASTER_KEY"]</tt> or from loading
     # +config/master.key+.
+    # If specific credentials file exists for current environment, it takes precedence, thus for +production+
+    # environment look first for +config/credentials/production.yml.enc+ with master key taken
+    # from <tt>ENV["RAILS_MASTER_KEY"]</tt> or from loading +config/credentials/production.key+.
+    # Default behavior can be overwritten by setting +config.credentials.content_path+ and +config.credentials.key_path+.
     def credentials
-      @credentials ||= encrypted("config/credentials.yml.enc")
+      @credentials ||= encrypted(config.credentials.content_path, key_path: config.credentials.key_path)
     end
 
     # Shorthand to decrypt any encrypted configurations or files.

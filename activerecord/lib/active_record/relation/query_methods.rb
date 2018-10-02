@@ -953,7 +953,7 @@ module ActiveRecord
         arel.having(having_clause.ast) unless having_clause.empty?
         if limit_value
           limit_attribute = ActiveModel::Attribute.with_cast_value(
-            "LIMIT".freeze,
+            "LIMIT",
             connection.sanitize_limit(limit_value),
             Type.default_value,
           )
@@ -961,7 +961,7 @@ module ActiveRecord
         end
         if offset_value
           offset_attribute = ActiveModel::Attribute.with_cast_value(
-            "OFFSET".freeze,
+            "OFFSET",
             offset_value.to_i,
             Type.default_value,
           )
@@ -1147,9 +1147,9 @@ module ActiveRecord
         end
         order_args.flatten!
 
-        @klass.enforce_raw_sql_whitelist(
+        @klass.disallow_raw_sql!(
           order_args.flat_map { |a| a.is_a?(Hash) ? a.keys : a },
-          whitelist: AttributeMethods::ClassMethods::COLUMN_NAME_ORDER_WHITELIST
+          permit: AttributeMethods::ClassMethods::COLUMN_NAME_WITH_ORDER
         )
 
         validate_order_args(order_args)

@@ -3,6 +3,7 @@
 require "isolation/abstract_unit"
 require "rack/test"
 require "env_helpers"
+require "set"
 
 class ::MyMailInterceptor
   def self.delivering_email(email); email; end
@@ -121,6 +122,18 @@ module ApplicationTests
       app "development"
 
       assert_equal "MyLogger", Rails.application.config.logger.class.name
+    end
+
+    test "raises an error if cache does not support recyclable cache keys" do
+      build_app(initializers: true)
+      add_to_env_config "production", "config.cache_store = Class.new {}.new"
+      add_to_env_config "production", "config.active_record.cache_versioning = true"
+
+      error = assert_raise(RuntimeError) do
+        app "production"
+      end
+
+      assert_match(/You're using a cache/, error.message)
     end
 
     test "a renders exception on pending migration" do
@@ -295,6 +308,53 @@ module ApplicationTests
       app "production"
 
       assert_equal %w(noop_email).to_set, PostsMailer.instance_variable_get(:@action_methods)
+    end
+
+    test "does not eager load attribute methods in development" do
+      app_file "app/models/post.rb", <<-RUBY
+        class Post < ActiveRecord::Base
+        end
+      RUBY
+
+      app_file "config/initializers/active_record.rb", <<-RUBY
+        ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
+        ActiveRecord::Migration.verbose = false
+        ActiveRecord::Schema.define(version: 1) do
+          create_table :posts do |t|
+            t.string :title
+          end
+        end
+      RUBY
+
+      app "development"
+
+      assert_not_includes Post.instance_methods, :title
+    end
+
+    test "eager loads attribute methods in production" do
+      app_file "app/models/post.rb", <<-RUBY
+        class Post < ActiveRecord::Base
+        end
+      RUBY
+
+      app_file "config/initializers/active_record.rb", <<-RUBY
+        ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
+        ActiveRecord::Migration.verbose = false
+        ActiveRecord::Schema.define(version: 1) do
+          create_table :posts do |t|
+            t.string :title
+          end
+        end
+      RUBY
+
+      add_to_config <<-RUBY
+        config.eager_load = true
+        config.cache_classes = true
+      RUBY
+
+      app "production"
+
+      assert_includes Post.instance_methods, :title
     end
 
     test "initialize an eager loaded, cache classes app" do
@@ -1671,7 +1731,7 @@ module ApplicationTests
     test "config_for loads custom configuration from yaml files" do
       app_file "config/custom.yml", <<-RUBY
       development:
-        key: 'custom key'
+        foo: 'bar'
       RUBY
 
       add_to_config <<-RUBY
@@ -1680,7 +1740,54 @@ module ApplicationTests
 
       app "development"
 
-      assert_equal "custom key", Rails.application.config.my_custom_config["key"]
+      assert_equal "bar", Rails.application.config.my_custom_config["foo"]
+    end
+
+    test "config_for loads custom configuration from yaml accessible as symbol" do
+      app_file "config/custom.yml", <<-RUBY
+      development:
+        foo: 'bar'
+      RUBY
+
+      add_to_config <<-RUBY
+        config.my_custom_config = config_for('custom')
+      RUBY
+
+      app "development"
+
+      assert_equal "bar", Rails.application.config.my_custom_config[:foo]
+    end
+
+    test "config_for loads custom configuration from yaml accessible as method" do
+      app_file "config/custom.yml", <<-RUBY
+      development:
+        foo: 'bar'
+      RUBY
+
+      add_to_config <<-RUBY
+        config.my_custom_config = config_for('custom')
+      RUBY
+
+      app "development"
+
+      assert_equal "bar", Rails.application.config.my_custom_config.foo
+    end
+
+    test "config_for loads nested custom configuration from yaml as symbol keys" do
+      app_file "config/custom.yml", <<-RUBY
+      development:
+        foo:
+          bar:
+            baz: 1
+      RUBY
+
+      add_to_config <<-RUBY
+        config.my_custom_config = config_for('custom')
+      RUBY
+
+      app "development"
+
+      assert_equal 1, Rails.application.config.my_custom_config.foo[:bar][:baz]
     end
 
     test "config_for uses the Pathname object if it is provided" do
@@ -1994,6 +2101,33 @@ module ApplicationTests
       app "test"
 
       assert_equal false, ActionView::Template.finalize_compiled_template_methods
+    end
+
+    test "ActiveRecord::Base.filter_attributes should equal to filter_parameters" do
+      app_file "config/initializers/filter_parameters_logging.rb", <<-RUBY
+        Rails.application.config.filter_parameters += [ :password, :credit_card_number ]
+      RUBY
+      app "development"
+      assert_equal [ :password, :credit_card_number ], Rails.application.config.filter_parameters
+      assert_equal [ "password", "credit_card_number" ].to_set, ActiveRecord::Base.filter_attributes
+    end
+
+    test "ActiveStorage.routes_prefix can be configured via config.active_storage.routes_prefix" do
+      app_file "config/environments/development.rb", <<-RUBY
+        Rails.application.configure do
+          config.active_storage.routes_prefix = '/files'
+        end
+      RUBY
+
+      output = rails("routes", "-g", "active_storage")
+      assert_equal <<~MESSAGE, output
+                           Prefix Verb URI Pattern                                                               Controller#Action
+               rails_service_blob GET  /files/blobs/:signed_id/*filename(.:format)                               active_storage/blobs#show
+        rails_blob_representation GET  /files/representations/:signed_blob_id/:variation_key/*filename(.:format) active_storage/representations#show
+               rails_disk_service GET  /files/disk/:encoded_key/*filename(.:format)                              active_storage/disk#show
+        update_rails_disk_service PUT  /files/disk/:encoded_token(.:format)                                      active_storage/disk#update
+             rails_direct_uploads POST /files/direct_uploads(.:format)                                           active_storage/direct_uploads#create
+      MESSAGE
     end
 
     private

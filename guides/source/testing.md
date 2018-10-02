@@ -1028,8 +1028,8 @@ You should test for things such as:
 * was the web request successful?
 * was the user redirected to the right page?
 * was the user successfully authenticated?
-* was the correct object stored in the response template?
 * was the appropriate message displayed to the user in the view?
+* was the correct information displayed in the response?
 
 The easiest way to see functional tests in action is to generate a controller using the scaffold generator:
 
@@ -1113,11 +1113,10 @@ end
 
 Now you can try running all the tests and they should pass.
 
-NOTE: If you followed the steps in the Basic Authentication section, you'll need to add the following to the `setup` block to get all the tests passing:
+NOTE: If you followed the steps in the Basic Authentication section, you'll need to add authorization to every request header to get all the tests passing:
 
 ```ruby
-request.headers['Authorization'] = ActionController::HttpAuthentication::Basic.
-  encode_credentials('dhh', 'secret')
+post articles_url, params: { article: { body: 'Rails is awesome!', title: 'Hello Rails' } }, headers: { Authorization: ActionController::HttpAuthentication::Basic.encode_credentials('dhh', 'secret') }
 ```
 
 ### Available Request Types for Functional Tests

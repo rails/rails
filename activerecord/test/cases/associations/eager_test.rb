@@ -18,6 +18,7 @@ require "models/job"
 require "models/subscriber"
 require "models/subscription"
 require "models/book"
+require "models/citation"
 require "models/developer"
 require "models/computer"
 require "models/project"
@@ -28,6 +29,18 @@ require "models/categorization"
 require "models/sponsor"
 require "models/mentor"
 require "models/contract"
+
+class EagerLoadingTooManyIdsTest < ActiveRecord::TestCase
+  fixtures :citations
+
+  def test_preloading_too_many_ids
+    assert_equal Citation.count, Citation.preload(:citations).to_a.size
+  end
+
+  def test_eager_loading_too_may_ids
+    assert_equal Citation.count, Citation.eager_load(:citations).offset(0).size
+  end
+end
 
 class EagerAssociationTest < ActiveRecord::TestCase
   fixtures :posts, :comments, :authors, :essays, :author_addresses, :categories, :categories_posts,
@@ -1571,8 +1584,9 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
   # CollectionProxy#reader is expensive, so the preloader avoids calling it.
   test "preloading has_many_through association avoids calling association.reader" do
-    ActiveRecord::Associations::HasManyAssociation.any_instance.expects(:reader).never
-    Author.preload(:readonly_comments).first!
+    assert_not_called_on_instance_of(ActiveRecord::Associations::HasManyAssociation, :reader) do
+      Author.preload(:readonly_comments).first!
+    end
   end
 
   test "preloading through a polymorphic association doesn't require the association to exist" do
@@ -1602,6 +1616,32 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_raises(ActiveRecord::AssociationNotFoundError) do
       Sponsor.where(sponsorable_id: 1).preload(sponsorable: [{ post: :fist_comment }, :membership]).to_a
     end
+  end
+
+  # Associations::Preloader#preloaders_on works with hash-like objects
+  test "preloading works with an object that responds to :to_hash" do
+    CustomHash = Class.new(Hash)
+
+    assert_nothing_raised do
+      Post.preload(CustomHash.new(comments: [{ author: :essays }])).first
+    end
+  end
+
+  # Associations::Preloader#preloaders_on works with string-like objects
+  test "preloading works with an object that responds to :to_str" do
+    CustomString = Class.new(String)
+
+    assert_nothing_raised do
+      Post.preload(CustomString.new("comments")).first
+    end
+  end
+
+  # Associations::Preloader#preloaders_on does not work with ranges
+  test "preloading fails when Range is passed" do
+    exception = assert_raises(ArgumentError) do
+      Post.preload(1..10).first
+    end
+    assert_equal("1..10 was not recognized for preload", exception.message)
   end
 
   private

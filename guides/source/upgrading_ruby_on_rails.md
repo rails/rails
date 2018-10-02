@@ -41,7 +41,7 @@ Rails generally stays close to the latest released Ruby version when it's releas
 * Rails 3.2.x is the last branch to support Ruby 1.8.7.
 * Rails 3 and above require Ruby 1.8.7 or higher. Support for all of the previous Ruby versions has been dropped officially. You should upgrade as early as possible.
 
-TIP: Ruby 1.8.7 p248 and p249 have marshaling bugs that crash Rails. Ruby Enterprise Edition has these fixed since the release of 1.8.7-2010.02. On the 1.9 front, Ruby 1.9.1 is not usable because it outright segfaults, so if you want to use 1.9.x, jump straight to 1.9.3 for smooth sailing.
+TIP: Ruby 1.8.7 p248 and p249 have marshalling bugs that crash Rails. Ruby Enterprise Edition has these fixed since the release of 1.8.7-2010.02. On the 1.9 front, Ruby 1.9.1 is not usable because it outright segfaults, so if you want to use 1.9.x, jump straight to 1.9.3 for smooth sailing.
 
 ### The Update Task
 
@@ -66,8 +66,17 @@ Overwrite /myapp/config/application.rb? (enter "h" for help) [Ynaqdh]
 
 Don't forget to review the difference, to see if there were any unexpected changes.
 
+### Configure Framework Defaults
+
+The new Rails version might have different configuration defaults than the previous version. However, after following the steps described above, your application would still run with configuration defaults from the *previous* Rails version. That's because the value for `config.load_defaults` in `config/application.rb` has not been changed yet.
+
+To allow you to upgrade to new defaults one by one, the update task has created a file `config/initializers/new_framework_defaults.rb`. Once your application is ready to run with new defaults, you can remove this file and flip the `config.load_defaults` value.
+
+
 Upgrading from Rails 5.2 to Rails 6.0
 -------------------------------------
+
+For more information on changes made to Rails 6.0 please see the [release notes](6_0_release_notes.html).
 
 ### Force SSL
 
@@ -76,6 +85,17 @@ Rails 6.1. You are encouraged to enable `config.force_ssl` to enforce HTTPS
 connections throughout your application. If you need to exempt certain endpoints
 from redirection, you can use `config.ssl_options` to configure that behavior.
 
+### Purpose in signed or encrypted cookie is now embedded in the cookies values
+
+To improve security, Rails now embeds the purpose information in encrypted or signed cookies value.
+Rails can now thwart attacks that attempt to copy signed/encrypted value
+of a cookie and use it as the value of another cookie.
+
+This new embed information make those cookies incompatible with versions of Rails older than 6.0.
+
+If you require your cookies to be read by 5.2 and older, or you are still validating your 6.0 deploy and want
+to allow you to rollback set
+`Rails.application.config.action_dispatch.use_cookies_with_metadata` to `false`.
 
 Upgrading from Rails 5.1 to Rails 5.2
 -------------------------------------

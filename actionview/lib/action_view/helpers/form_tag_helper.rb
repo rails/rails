@@ -146,15 +146,15 @@ module ActionView
           end
 
           if include_blank
-            option_tags = content_tag("option".freeze, include_blank, options_for_blank_options_tag).safe_concat(option_tags)
+            option_tags = content_tag("option", include_blank, options_for_blank_options_tag).safe_concat(option_tags)
           end
         end
 
         if prompt = options.delete(:prompt)
-          option_tags = content_tag("option".freeze, prompt, value: "").safe_concat(option_tags)
+          option_tags = content_tag("option", prompt, value: "").safe_concat(option_tags)
         end
 
-        content_tag "select".freeze, option_tags, { "name" => html_name, "id" => sanitize_to_id(name) }.update(options.stringify_keys)
+        content_tag "select", option_tags, { "name" => html_name, "id" => sanitize_to_id(name) }.update(options.stringify_keys)
       end
 
       # Creates a standard text field; use these text fields to input smaller chunks of text like a username
@@ -577,7 +577,7 @@ module ActionView
       #   # => <fieldset class="format"><p><input id="name" name="name" type="text" /></p></fieldset>
       def field_set_tag(legend = nil, options = nil, &block)
         output = tag(:fieldset, options, true)
-        output.safe_concat(content_tag("legend".freeze, legend)) unless legend.blank?
+        output.safe_concat(content_tag("legend", legend)) unless legend.blank?
         output.concat(capture(&block)) if block_given?
         output.safe_concat("</fieldset>")
       end

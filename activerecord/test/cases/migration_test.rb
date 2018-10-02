@@ -87,7 +87,6 @@ class MigrationTest < ActiveRecord::TestCase
 
   def test_migrator_versions
     migrations_path = MIGRATIONS_ROOT + "/valid"
-    old_path = ActiveRecord::Migrator.migrations_paths
     migrator = ActiveRecord::MigrationContext.new(migrations_path)
 
     migrator.up
@@ -100,24 +99,18 @@ class MigrationTest < ActiveRecord::TestCase
 
     ActiveRecord::SchemaMigration.create!(version: 3)
     assert_equal true, migrator.needs_migration?
-  ensure
-    ActiveRecord::MigrationContext.new(old_path)
   end
 
   def test_migration_detection_without_schema_migration_table
     ActiveRecord::Base.connection.drop_table "schema_migrations", if_exists: true
 
     migrations_path = MIGRATIONS_ROOT + "/valid"
-    old_path = ActiveRecord::Migrator.migrations_paths
     migrator = ActiveRecord::MigrationContext.new(migrations_path)
 
     assert_equal true, migrator.needs_migration?
-  ensure
-    ActiveRecord::MigrationContext.new(old_path)
   end
 
   def test_any_migrations
-    old_path = ActiveRecord::Migrator.migrations_paths
     migrator = ActiveRecord::MigrationContext.new(MIGRATIONS_ROOT + "/valid")
 
     assert_predicate migrator, :any_migrations?
@@ -125,8 +118,6 @@ class MigrationTest < ActiveRecord::TestCase
     migrator_empty = ActiveRecord::MigrationContext.new(MIGRATIONS_ROOT + "/empty")
 
     assert_not_predicate migrator_empty, :any_migrations?
-  ensure
-    ActiveRecord::MigrationContext.new(old_path)
   end
 
   def test_migration_version
@@ -393,7 +384,6 @@ class MigrationTest < ActiveRecord::TestCase
   def test_internal_metadata_stores_environment
     current_env     = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
     migrations_path = MIGRATIONS_ROOT + "/valid"
-    old_path        = ActiveRecord::Migrator.migrations_paths
     migrator = ActiveRecord::MigrationContext.new(migrations_path)
 
     migrator.up
@@ -410,7 +400,6 @@ class MigrationTest < ActiveRecord::TestCase
     migrator.up
     assert_equal new_env, ActiveRecord::InternalMetadata[:environment]
   ensure
-    migrator = ActiveRecord::MigrationContext.new(old_path)
     ENV["RAILS_ENV"] = original_rails_env
     ENV["RACK_ENV"]  = original_rack_env
     migrator.up
@@ -422,16 +411,12 @@ class MigrationTest < ActiveRecord::TestCase
 
     current_env     = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
     migrations_path = MIGRATIONS_ROOT + "/valid"
-    old_path        = ActiveRecord::Migrator.migrations_paths
 
     current_env = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
     migrator = ActiveRecord::MigrationContext.new(migrations_path)
     migrator.up
     assert_equal current_env, ActiveRecord::InternalMetadata[:environment]
     assert_equal "bar", ActiveRecord::InternalMetadata[:foo]
-  ensure
-    migrator = ActiveRecord::MigrationContext.new(old_path)
-    migrator.up
   end
 
   def test_proper_table_name_on_migration
@@ -793,12 +778,20 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
     end
 
     def test_adding_multiple_columns
-      assert_queries(1) do
+      classname = ActiveRecord::Base.connection.class.name[/[^:]*$/]
+      expected_query_count = {
+        "Mysql2Adapter"     => 1,
+        "PostgreSQLAdapter" => 2, # one for bulk change, one for comment
+      }.fetch(classname) {
+        raise "need an expected query count for #{classname}"
+      }
+
+      assert_queries(expected_query_count) do
         with_bulk_change_table do |t|
           t.column :name, :string
           t.string :qualification, :experience
           t.integer :age, default: 0
-          t.date :birthdate
+          t.date :birthdate, comment: "This is a comment"
           t.timestamps null: true
         end
       end
@@ -806,6 +799,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
       assert_equal 8, columns.size
       [:name, :qualification, :experience].each { |s| assert_equal :string, column(s).type }
       assert_equal "0", column(:age).default
+      assert_equal "This is a comment", column(:birthdate).comment
     end
 
     def test_removing_columns
@@ -1150,7 +1144,7 @@ class CopyMigrationsTest < ActiveRecord::TestCase
   def test_check_pending_with_stdlib_logger
     old, ActiveRecord::Base.logger = ActiveRecord::Base.logger, ::Logger.new($stdout)
     quietly do
-      assert_nothing_raised { ActiveRecord::Migration::CheckPending.new(Proc.new {}).call({}) }
+      assert_nothing_raised { ActiveRecord::Migration::CheckPending.new(Proc.new { }).call({}) }
     end
   ensure
     ActiveRecord::Base.logger = old

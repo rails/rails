@@ -34,6 +34,12 @@ if ActiveRecord::Base.connection.prepared_statements
         ActiveSupport::Notifications.unsubscribe(@subscription)
       end
 
+      def test_too_many_binds
+        bind_params_length = @connection.send(:bind_params_length)
+        topics = Topic.where(id: (1 .. bind_params_length + 1).to_a)
+        assert_equal Topic.count, topics.count
+      end
+
       def test_bind_from_join_in_subquery
         subquery = Author.joins(:thinking_posts).where(name: "David")
         scope = Author.from(subquery, "authors").where(id: 1)

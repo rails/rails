@@ -17,7 +17,7 @@ module ActiveSupport
             })
             _, _, body = middleware.call({})
             assert LocalCacheRegistry.cache_for(key), "should still have a cache"
-            body.each {}
+            body.each { }
             assert LocalCacheRegistry.cache_for(key), "should still have a cache"
             body.close
             assert_nil LocalCacheRegistry.cache_for(key)

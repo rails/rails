@@ -81,7 +81,6 @@ module Arel # :nodoc: all
         alias :visit_Arel_Nodes_Not               :unary
         alias :visit_Arel_Nodes_Offset            :unary
         alias :visit_Arel_Nodes_On                :unary
-        alias :visit_Arel_Nodes_Top               :unary
         alias :visit_Arel_Nodes_UnqualifiedColumn :unary
         alias :visit_Arel_Nodes_Preceding         :unary
         alias :visit_Arel_Nodes_Following         :unary
@@ -212,7 +211,6 @@ module Arel # :nodoc: all
         alias :visit_TrueClass :visit_String
         alias :visit_FalseClass :visit_String
         alias :visit_Integer :visit_String
-        alias :visit_Fixnum :visit_String
         alias :visit_BigDecimal :visit_String
         alias :visit_Float :visit_String
         alias :visit_Symbol :visit_String

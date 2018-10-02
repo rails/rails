@@ -58,6 +58,8 @@ amazon:
   service: S3
   access_key_id: ""
   secret_access_key: ""
+  bucket: ""
+  region: "" # e.g. 'us-east-1'
 ```
 
 Tell Active Storage which service to use by setting
@@ -174,7 +176,7 @@ google:
 Add the [`google-cloud-storage`](https://github.com/GoogleCloudPlatform/google-cloud-ruby/tree/master/google-cloud-storage) gem to your `Gemfile`:
 
 ```ruby
-gem "google-cloud-storage", "~> 1.8", require: false
+gem "google-cloud-storage", "~> 1.11", require: false
 ```
 
 ### Mirror Service

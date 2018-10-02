@@ -81,7 +81,7 @@ class Author < ActiveRecord::Base
            after_add: [:log_after_adding,  Proc.new { |o, r| o.post_log << "after_adding_proc#{r.id || '<new>'}" }]
   has_many :unchangeable_posts, class_name: "Post", before_add: :raise_exception, after_add: :log_after_adding
 
-  has_many :categorizations, -> {}
+  has_many :categorizations, -> { }
   has_many :categories, through: :categorizations
   has_many :named_categories, through: :categorizations
 

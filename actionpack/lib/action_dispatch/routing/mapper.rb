@@ -50,7 +50,19 @@ module ActionDispatch
 
         private
           def constraint_args(constraint, request)
-            constraint.arity == 1 ? [request] : [request.path_parameters, request]
+            arity = if constraint.respond_to?(:arity)
+              constraint.arity
+            else
+              constraint.method(:call).arity
+            end
+
+            if arity < 1
+              []
+            elsif arity == 1
+              [request]
+            else
+              [request.path_parameters, request]
+            end
           end
       end
 
@@ -308,7 +320,7 @@ module ActionDispatch
           def check_controller_and_action(path_params, controller, action)
             hash = check_part(:controller, controller, path_params, {}) do |part|
               translate_controller(part) {
-                message = "'#{part}' is not a supported controller name. This can lead to potential routing problems.".dup
+                message = +"'#{part}' is not a supported controller name. This can lead to potential routing problems."
                 message << " See https://guides.rubyonrails.org/routing.html#specifying-a-controller-to-use"
 
                 raise ArgumentError, message
@@ -390,7 +402,7 @@ module ActionDispatch
       # for root cases, where the latter is the correct one.
       def self.normalize_path(path)
         path = Journey::Router::Utils.normalize_path(path)
-        path.gsub!(%r{/(\(+)/?}, '\1/') unless path =~ %r{^/\(+[^)]+\)$}
+        path.gsub!(%r{/(\(+)/?}, '\1/') unless path =~ %r{^/(\(+[^)]+\)){1,}$}
         path
       end
 
@@ -553,10 +565,10 @@ module ActionDispatch
         #
         #     match 'json_only', constraints: { format: 'json' }, via: :get
         #
-        #     class Whitelist
+        #     class PermitList
         #       def matches?(request) request.remote_ip == '1.2.3.4' end
         #     end
-        #     match 'path', to: 'c#a', constraints: Whitelist.new, via: :get
+        #     match 'path', to: 'c#a', constraints: PermitList.new, via: :get
         #
         #   See <tt>Scoping#constraints</tt> for more examples with its scope
         #   equivalent.
@@ -664,11 +676,10 @@ module ActionDispatch
           def define_generate_prefix(app, name)
             _route = @set.named_routes.get name
             _routes = @set
-            _url_helpers = @set.url_helpers
 
             script_namer = ->(options) do
               prefix_options = options.slice(*_route.segment_keys)
-              prefix_options[:relative_url_root] = "".freeze
+              prefix_options[:relative_url_root] = ""
 
               if options[:_recall]
                 prefix_options.reverse_merge!(options[:_recall].slice(*_route.segment_keys))
@@ -676,7 +687,7 @@ module ActionDispatch
 
               # We must actually delete prefix segment keys to avoid passing them to next url_for.
               _route.segment_keys.each { |k| options.delete(k) }
-              _url_helpers.send("#{name}_path", prefix_options)
+              @set.url_helpers.send("#{name}_path", prefix_options)
             end
 
             app.routes.define_mounted_helper(name, script_namer)

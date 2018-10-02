@@ -3,7 +3,7 @@
 require "active_record/connection_adapters/abstract_mysql_adapter"
 require "active_record/connection_adapters/mysql/database_statements"
 
-gem "mysql2", ">= 0.4.4", "< 0.6.0"
+gem "mysql2", ">= 0.4.4"
 require "mysql2"
 
 module ActiveRecord
@@ -14,7 +14,7 @@ module ActiveRecord
       config[:flags] ||= 0
 
       if config[:flags].kind_of? Array
-        config[:flags].push "FOUND_ROWS".freeze
+        config[:flags].push "FOUND_ROWS"
       else
         config[:flags] |= Mysql2::Client::FOUND_ROWS
       end
@@ -32,7 +32,7 @@ module ActiveRecord
 
   module ConnectionAdapters
     class Mysql2Adapter < AbstractMysqlAdapter
-      ADAPTER_NAME = "Mysql2".freeze
+      ADAPTER_NAME = "Mysql2"
 
       include MySQL::DatabaseStatements
 
@@ -55,6 +55,10 @@ module ActiveRecord
       end
 
       def supports_savepoints?
+        true
+      end
+
+      def supports_lazy_transactions?
         true
       end
 

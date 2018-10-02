@@ -1261,7 +1261,7 @@ articles, all the articles would still be loaded. By using `joins` (an INNER
 JOIN), the join conditions **must** match, otherwise no records will be
 returned.
 
-NOTE: If an association is eager loaded as part of a join, any fields from a custom select clause will not present be on the loaded models.
+NOTE: If an association is eager loaded as part of a join, any fields from a custom select clause will not be present on the loaded models.
 This is because it is ambiguous whether they should appear on the parent record, or the child.
 
 Scopes
@@ -1274,16 +1274,6 @@ To define a simple scope, we use the `scope` method inside the class, passing th
 ```ruby
 class Article < ApplicationRecord
   scope :published, -> { where(published: true) }
-end
-```
-
-This is exactly the same as defining a class method, and which you use is a matter of personal preference:
-
-```ruby
-class Article < ApplicationRecord
-  def self.published
-    where(published: true)
-  end
 end
 ```
 

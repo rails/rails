@@ -34,12 +34,26 @@ module ActiveRecord
         @updated
       end
 
-      def decrement_counters # :nodoc:
+      def decrement_counters
         update_counters(-1)
       end
 
-      def increment_counters # :nodoc:
+      def increment_counters
         update_counters(1)
+      end
+
+      def decrement_counters_before_last_save
+        if reflection.polymorphic?
+          model_was = owner.attribute_before_last_save(reflection.foreign_type).try(:constantize)
+        else
+          model_was = klass
+        end
+
+        foreign_key_was = owner.attribute_before_last_save(reflection.foreign_key)
+
+        if foreign_key_was && model_was < ActiveRecord::Base
+          update_counters_via_scope(model_was, foreign_key_was, -1)
+        end
       end
 
       def target_changed?
@@ -50,11 +64,8 @@ module ActiveRecord
         def replace(record)
           if record
             raise_on_type_mismatch!(record)
-            update_counters_on_replace(record)
             set_inverse_instance(record)
             @updated = true
-          else
-            decrement_counters
           end
 
           replace_keys(record)
@@ -67,9 +78,14 @@ module ActiveRecord
             if target && !stale_target?
               target.increment!(reflection.counter_cache_column, by, touch: reflection.options[:touch])
             else
-              counter_cache_target.update_counters(reflection.counter_cache_column => by, touch: reflection.options[:touch])
+              update_counters_via_scope(klass, owner._read_attribute(reflection.foreign_key), by)
             end
           end
+        end
+
+        def update_counters_via_scope(klass, foreign_key, by)
+          scope = klass.unscoped.where!(primary_key(klass) => foreign_key)
+          scope.update_counters(reflection.counter_cache_column => by, touch: reflection.options[:touch])
         end
 
         def find_target?
@@ -80,25 +96,12 @@ module ActiveRecord
           reflection.counter_cache_column && owner.persisted?
         end
 
-        def update_counters_on_replace(record)
-          if require_counter_update? && different_target?(record)
-            owner.instance_variable_set :@_after_replace_counter_called, true
-            record.increment!(reflection.counter_cache_column, touch: reflection.options[:touch])
-            decrement_counters
-          end
-        end
-
-        # Checks whether record is different to the current target, without loading it
-        def different_target?(record)
-          record._read_attribute(primary_key(record)) != owner._read_attribute(reflection.foreign_key)
-        end
-
         def replace_keys(record)
-          owner[reflection.foreign_key] = record ? record._read_attribute(primary_key(record)) : nil
+          owner[reflection.foreign_key] = record ? record._read_attribute(primary_key(record.class)) : nil
         end
 
-        def primary_key(record)
-          reflection.association_primary_key(record.class)
+        def primary_key(klass)
+          reflection.association_primary_key(klass)
         end
 
         def foreign_key_present?
@@ -110,11 +113,6 @@ module ActiveRecord
         def invertible_for?(record)
           inverse = inverse_reflection_for(record)
           inverse && inverse.has_one?
-        end
-
-        def counter_cache_target
-          primary_key = reflection.association_primary_key(klass)
-          klass.unscoped.where!(primary_key => owner._read_attribute(reflection.foreign_key))
         end
 
         def stale_state

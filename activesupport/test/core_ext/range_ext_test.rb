@@ -108,14 +108,14 @@ class RangeTest < ActiveSupport::TestCase
   def test_each_on_time_with_zone
     twz = ActiveSupport::TimeWithZone.new(nil, ActiveSupport::TimeZone["Eastern Time (US & Canada)"], Time.utc(2006, 11, 28, 10, 30))
     assert_raises TypeError do
-      ((twz - 1.hour)..twz).each {}
+      ((twz - 1.hour)..twz).each { }
     end
   end
 
   def test_step_on_time_with_zone
     twz = ActiveSupport::TimeWithZone.new(nil, ActiveSupport::TimeZone["Eastern Time (US & Canada)"], Time.utc(2006, 11, 28, 10, 30))
     assert_raises TypeError do
-      ((twz - 1.hour)..twz).step(1) {}
+      ((twz - 1.hour)..twz).step(1) { }
     end
   end
 
@@ -131,11 +131,11 @@ class RangeTest < ActiveSupport::TestCase
 
   def test_date_time_with_each
     datetime = DateTime.now
-    assert(((datetime - 1.hour)..datetime).each {})
+    assert(((datetime - 1.hour)..datetime).each { })
   end
 
   def test_date_time_with_step
     datetime = DateTime.now
-    assert(((datetime - 1.hour)..datetime).step(1) {})
+    assert(((datetime - 1.hour)..datetime).step(1) { })
   end
 end

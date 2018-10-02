@@ -1,3 +1,55 @@
+*   Deprecate using negative limits in `String#first` and `String#last`.
+
+    *Gannon McGibbon*, *Eric Turner*
+
+*   Fix bug where `#without` for `ActiveSupport::HashWithIndifferentAccess` would fail
+    with symbol arguments
+
+    *Abraham Chan*
+
+*   Treat `#delete_prefix`, `#delete_suffix` and `#unicode_normalize` results as non-`html_safe`.
+    Ensure safety of arguments for `#insert`, `#[]=` and `#replace` calls on `html_safe` Strings.
+
+    *Janosch Müller*
+
+*   Changed `ActiveSupport::TaggedLogging.new` to return a new logger instance instead
+    of mutating the one received as parameter.
+
+    *Thierry Joyal*
+
+*   Define `unfreeze_time` as an alias of `travel_back` in `ActiveSupport::Testing::TimeHelpers`.
+
+    The alias is provided for symmetry with `freeze_time`.
+
+    *Ryan Davidson*
+
+*   Add support for tracing constant autoloads. Just throw
+
+        ActiveSupport::Dependencies.logger = Rails.logger
+        ActiveSupport::Dependencies.verbose = true
+
+    in an initializer.
+
+    *Xavier Noria*
+
+*   Maintain `html_safe?` on html_safe strings when sliced.
+
+        string = "<div>test</div>".html_safe
+        string[-1..1].html_safe? # => true
+
+    *Elom Gomez*, *Yumin Wong*
+
+*   Add `Array#extract!`.
+
+    The method removes and returns the elements for which the block returns a true value.
+    If no block is given, an Enumerator is returned instead.
+
+        numbers = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+        odd_numbers = numbers.extract! { |number| number.odd? } # => [1, 3, 5, 7, 9]
+        numbers # => [0, 2, 4, 6, 8]
+
+    *bogdanvlviv*
+
 *   Support not to cache `nil` for `ActiveSupport::Cache#fetch`.
 
         cache.fetch('bar', skip_nil: true) { nil }
@@ -39,7 +91,7 @@
 
     *Aaron "t.lo" Patterson*
 
-*   Add cpu_time, idle_time, and allocations to Event
+*   Add cpu_time, idle_time, and allocations to Event.
 
     *Eileen M. Uchitelle*, *Aaron Patterson*
 
@@ -53,7 +105,7 @@
 
     *Jason Lee*
 
-*   Allow Range#=== and Range#cover? on Range
+*   Allow `Range#===` and `Range#cover?` on Range.
 
     `Range#cover?` can now accept a range argument like `Range#include?` and
     `Range#===`. `Range#===` works correctly on Ruby 2.6. `Range#include?` is moved
@@ -96,7 +148,7 @@
 
     *Godfrey Chan*
 
-*   Fix bug where `URI.unscape` would fail with mixed Unicode/escaped character input:
+*   Fix bug where `URI.unescape` would fail with mixed Unicode/escaped character input:
 
         URI.unescape("\xe3\x83\x90")  # => "バ"
         URI.unescape("%E3%83%90")  # => "バ"

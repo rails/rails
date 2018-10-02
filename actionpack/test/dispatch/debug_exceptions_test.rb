@@ -368,7 +368,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     })
     assert_response 500
 
-    assert_includes(body, CGI.escapeHTML(PP.pp(params, "".dup, 200)))
+    assert_includes(body, CGI.escapeHTML(PP.pp(params, +"", 200)))
   end
 
   test "sets the HTTP charset parameter" do

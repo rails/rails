@@ -338,14 +338,14 @@ module ActiveRecord
       name = @klass.name
 
       if ids.nil?
-        error = "Couldn't find #{name}".dup
+        error = +"Couldn't find #{name}"
         error << " with#{conditions}" if conditions
         raise RecordNotFound.new(error, name, key)
       elsif Array(ids).size == 1
         error = "Couldn't find #{name} with '#{key}'=#{ids}#{conditions}"
         raise RecordNotFound.new(error, name, key, ids)
       else
-        error = "Couldn't find all #{name.pluralize} with '#{key}': ".dup
+        error = +"Couldn't find all #{name.pluralize} with '#{key}': "
         error << "(#{ids.join(", ")})#{conditions} (found #{result_size} results, but was looking for #{expected_size})."
         error << " Couldn't find #{name.pluralize(not_found_ids.size)} with #{key.to_s.pluralize(not_found_ids.size)} #{not_found_ids.join(', ')}." if not_found_ids
         raise RecordNotFound.new(error, name, key, ids)
@@ -398,7 +398,7 @@ module ActiveRecord
 
       def limited_ids_for(relation)
         values = @klass.connection.columns_for_distinct(
-          connection.column_name_from_arel_node(arel_attribute(primary_key)),
+          connection.visitor.compile(arel_attribute(primary_key)),
           relation.order_values
         )
 
@@ -416,7 +416,7 @@ module ActiveRecord
         raise UnknownPrimaryKey.new(@klass) if primary_key.nil?
 
         expects_array = ids.first.kind_of?(Array)
-        return ids.first if expects_array && ids.first.empty?
+        return [] if expects_array && ids.first.empty?
 
         ids = ids.flatten.compact.uniq
 

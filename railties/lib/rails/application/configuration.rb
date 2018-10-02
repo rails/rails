@@ -17,7 +17,7 @@ module Rails
                     :session_options, :time_zone, :reload_classes_only_on_change,
                     :beginning_of_week, :filter_redirect, :x, :enable_dependency_loading,
                     :read_encrypted_secrets, :log_level, :content_security_policy_report_only,
-                    :content_security_policy_nonce_generator, :require_master_key
+                    :content_security_policy_nonce_generator, :require_master_key, :credentials
 
       attr_reader :encoding, :api_only, :loaded_config_version
 
@@ -60,6 +60,9 @@ module Rails
         @content_security_policy_nonce_generator = nil
         @require_master_key                      = false
         @loaded_config_version                   = nil
+        @credentials                             = ActiveSupport::OrderedOptions.new
+        @credentials.content_path                = default_credentials_content_path
+        @credentials.key_path                    = default_credentials_key_path
       end
 
       def load_defaults(target_version)
@@ -120,6 +123,10 @@ module Rails
           if respond_to?(:action_view)
             action_view.default_enforce_utf8 = false
           end
+
+          if respond_to?(:action_dispatch)
+            action_dispatch.use_cookies_with_metadata = true
+          end
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end
@@ -162,18 +169,6 @@ module Rails
           paths.add "tmp"
           paths
         end
-      end
-
-      # Loads the database YAML without evaluating ERB.  People seem to
-      # write ERB that makes the database configuration depend on
-      # Rails configuration.  But we want Rails configuration (specifically
-      # `rake` and `rails` tasks) to be generated based on information in
-      # the database yaml, so we need a method that loads the database
-      # yaml *without* the context of the Rails application.
-      def load_database_yaml # :nodoc:
-        path = paths["config/database"].existent.first
-        return {} unless path
-        YAML.load_file(path.to_s)
       end
 
       # Loads and returns the entire raw configuration of database from
@@ -281,6 +276,27 @@ module Rails
           true
         end
       end
+
+      private
+        def credentials_available_for_current_env?
+          File.exist?("#{root}/config/credentials/#{Rails.env}.yml.enc")
+        end
+
+        def default_credentials_content_path
+          if credentials_available_for_current_env?
+            File.join(root, "config", "credentials", "#{Rails.env}.yml.enc")
+          else
+            File.join(root, "config", "credentials.yml.enc")
+          end
+        end
+
+        def default_credentials_key_path
+          if credentials_available_for_current_env?
+            File.join(root, "config", "credentials", "#{Rails.env}.key")
+          else
+            File.join(root, "config", "master.key")
+          end
+        end
     end
   end
 end

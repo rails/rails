@@ -159,14 +159,11 @@ module ActiveRecord
     end
 
     private
-
-      def _create_record(*)
+      def _create_record(attribute_names = self.attribute_names)
         id = super
 
         each_counter_cached_associations do |association|
-          if send(association.reflection.name)
-            association.increment_counters
-          end
+          association.increment_counters
         end
 
         id
@@ -179,9 +176,7 @@ module ActiveRecord
           each_counter_cached_associations do |association|
             foreign_key = association.reflection.foreign_key.to_sym
             unless destroyed_by_association && destroyed_by_association.foreign_key.to_sym == foreign_key
-              if send(association.reflection.name)
-                association.decrement_counters
-              end
+              association.decrement_counters
             end
           end
         end

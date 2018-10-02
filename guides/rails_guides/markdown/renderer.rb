@@ -29,7 +29,12 @@ HTML
         # Always increase the heading level by 1, so we can use h1, h2 heading in the document
         header_level += 1
 
-        %(<h#{header_level}>#{text}</h#{header_level}>)
+        header_with_id = text.scan(/(.*){#(.*)}/)
+        unless header_with_id.empty?
+          %(<h#{header_level} id=#{header_with_id[0][1].strip}>#{header_with_id[0][0].strip}</h#{header_level}>)
+        else
+          %(<h#{header_level}>#{text}</h#{header_level}>)
+        end
       end
 
       def paragraph(text)

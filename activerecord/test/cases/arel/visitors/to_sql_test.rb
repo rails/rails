@@ -221,7 +221,7 @@ module Arel
         sql.must_be_like "foo AS bar"
       end
 
-      it "should visit_Bignum" do
+      it "should visit_Integer" do
         compile 8787878092
       end
 

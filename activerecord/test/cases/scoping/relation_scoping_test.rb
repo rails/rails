@@ -236,8 +236,8 @@ class RelationScopingTest < ActiveRecord::TestCase
       SpecialComment.unscoped.created
     end
 
-    assert_nil Comment.current_scope
-    assert_nil SpecialComment.current_scope
+    assert_nil Comment.send(:current_scope)
+    assert_nil SpecialComment.send(:current_scope)
   end
 
   def test_scoping_respects_current_class

@@ -21,7 +21,7 @@ require "active_record"
 require "minitest/autorun"
 require "logger"
 
-# Ensure backward compatibility with Minitest 4
+# Ensure backward compatibility with minitest 4.
 Minitest::Test = MiniTest::Unit::TestCase unless defined?(Minitest::Test)
 
 # This connection will do for database-independent bug reports.

@@ -950,39 +950,39 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
 end
 
 class TimeExtMarshalingTest < ActiveSupport::TestCase
-  def test_marshaling_with_utc_instance
+  def test_marshalling_with_utc_instance
     t = Time.utc(2000)
-    unmarshaled = Marshal.load(Marshal.dump(t))
-    assert_equal "UTC", unmarshaled.zone
-    assert_equal t, unmarshaled
+    unmarshalled = Marshal.load(Marshal.dump(t))
+    assert_equal "UTC", unmarshalled.zone
+    assert_equal t, unmarshalled
   end
 
-  def test_marshaling_with_local_instance
+  def test_marshalling_with_local_instance
     t = Time.local(2000)
-    unmarshaled = Marshal.load(Marshal.dump(t))
-    assert_equal t.zone, unmarshaled.zone
-    assert_equal t, unmarshaled
+    unmarshalled = Marshal.load(Marshal.dump(t))
+    assert_equal t.zone, unmarshalled.zone
+    assert_equal t, unmarshalled
   end
 
-  def test_marshaling_with_frozen_utc_instance
+  def test_marshalling_with_frozen_utc_instance
     t = Time.utc(2000).freeze
-    unmarshaled = Marshal.load(Marshal.dump(t))
-    assert_equal "UTC", unmarshaled.zone
-    assert_equal t, unmarshaled
+    unmarshalled = Marshal.load(Marshal.dump(t))
+    assert_equal "UTC", unmarshalled.zone
+    assert_equal t, unmarshalled
   end
 
-  def test_marshaling_with_frozen_local_instance
+  def test_marshalling_with_frozen_local_instance
     t = Time.local(2000).freeze
-    unmarshaled = Marshal.load(Marshal.dump(t))
-    assert_equal t.zone, unmarshaled.zone
-    assert_equal t, unmarshaled
+    unmarshalled = Marshal.load(Marshal.dump(t))
+    assert_equal t.zone, unmarshalled.zone
+    assert_equal t, unmarshalled
   end
 
   def test_marshalling_preserves_fractional_seconds
     t = Time.parse("00:00:00.500")
-    unmarshaled = Marshal.load(Marshal.dump(t))
-    assert_equal t.to_f, unmarshaled.to_f
-    assert_equal t, unmarshaled
+    unmarshalled = Marshal.load(Marshal.dump(t))
+    assert_equal t.to_f, unmarshalled.to_f
+    assert_equal t, unmarshalled
   end
 
   def test_last_quarter_on_31st

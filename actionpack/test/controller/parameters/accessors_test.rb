@@ -75,6 +75,24 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
     end
   end
 
+  test "each_value carries permitted status" do
+    @params.permit!
+    @params["person"].each_value { |value| assert(value.permitted?) if value == 32 }
+  end
+
+  test "each_value carries unpermitted status" do
+    @params["person"].each_value { |value| assert_not(value.permitted?) if value == 32 }
+  end
+
+  test "each_key converts to hash for permitted" do
+    @params.permit!
+    @params.each_key { |key| assert_kind_of(String, key) if key == "person" }
+  end
+
+  test "each_key converts to hash for unpermitted" do
+    @params.each_key { |key| assert_kind_of(String, key) if key == "person" }
+  end
+
   test "empty? returns true when params contains no key/value pairs" do
     params = ActionController::Parameters.new
     assert_empty params

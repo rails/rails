@@ -44,7 +44,7 @@ module ActiveRecord
       def initialize(values)
         @values = values
         @indexes = values.each_with_index.find_all { |thing, i|
-          Arel::Nodes::BindParam === thing
+          Substitute === thing
         }.map(&:last)
       end
 
@@ -56,12 +56,38 @@ module ActiveRecord
       end
     end
 
+    class PartialQueryCollector
+      def initialize
+        @parts = []
+        @binds = []
+      end
+
+      def <<(str)
+        @parts << str
+        self
+      end
+
+      def add_bind(obj)
+        @binds << obj
+        @parts << Substitute.new
+        self
+      end
+
+      def value
+        [@parts, @binds]
+      end
+    end
+
     def self.query(sql)
       Query.new(sql)
     end
 
     def self.partial_query(values)
       PartialQuery.new(values)
+    end
+
+    def self.partial_query_collector
+      PartialQueryCollector.new
     end
 
     class Params # :nodoc:

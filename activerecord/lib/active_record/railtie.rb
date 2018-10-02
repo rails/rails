@@ -77,10 +77,39 @@ module ActiveRecord
       ActiveSupport.on_load(:active_record) { self.logger ||= ::Rails.logger }
     end
 
+    initializer "active_record.backtrace_cleaner" do
+      ActiveSupport.on_load(:active_record) { LogSubscriber.backtrace_cleaner = ::Rails.backtrace_cleaner }
+    end
+
     initializer "active_record.migration_error" do
       if config.active_record.delete(:migration_error) == :page_load
         config.app_middleware.insert_after ::ActionDispatch::Callbacks,
           ActiveRecord::Migration::CheckPending
+      end
+    end
+
+    initializer "Check for cache versioning support" do
+      config.after_initialize do |app|
+        ActiveSupport.on_load(:active_record) do
+          if app.config.active_record.cache_versioning && Rails.cache
+            unless Rails.cache.class.try(:supports_cache_versioning?)
+              raise <<-end_error
+
+You're using a cache store that doesn't support native cache versioning.
+Your best option is to upgrade to a newer version of #{Rails.cache.class}
+that supports cache versioning (#{Rails.cache.class}.supports_cache_versioning? #=> true).
+
+Next best, switch to a different cache store that does support cache versioning:
+https://guides.rubyonrails.org/caching_with_rails.html#cache-stores.
+
+To keep using the current cache store, you can turn off cache versioning entirely:
+
+    config.active_record.cache_versioning = false
+
+end_error
+            end
+          end
+        end
       end
     end
 
@@ -104,6 +133,14 @@ module ActiveRecord
               end
             end
           end
+        end
+      end
+    end
+
+    initializer "active_record.define_attribute_methods" do |app|
+      config.after_initialize do
+        ActiveSupport.on_load(:active_record) do
+          descendants.each(&:define_attribute_methods) if app.config.eager_load
         end
       end
     end
@@ -176,9 +213,7 @@ end_warning
     end
 
     initializer "active_record.set_executor_hooks" do
-      ActiveSupport.on_load(:active_record) do
-        ActiveRecord::QueryCache.install_executor_hooks
-      end
+      ActiveRecord::QueryCache.install_executor_hooks
     end
 
     initializer "active_record.add_watchable_files" do |app|
@@ -229,6 +264,12 @@ true by adding the following to your application.rb file:
 MSG
           end
         end
+      end
+    end
+
+    initializer "active_record.set_filter_attributes" do
+      ActiveSupport.on_load(:active_record) do
+        self.filter_attributes += Rails.application.config.filter_parameters
       end
     end
   end

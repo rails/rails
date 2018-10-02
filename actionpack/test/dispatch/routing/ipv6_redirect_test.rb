@@ -4,6 +4,11 @@ require "abstract_unit"
 
 class IPv6IntegrationTest < ActionDispatch::IntegrationTest
   Routes = ActionDispatch::Routing::RouteSet.new
+  Routes.draw do
+    get "/",    to: "bad_route_request#index", as: :index
+    get "/foo", to: "bad_route_request#foo", as: :foo
+  end
+
   include Routes.url_helpers
 
   class ::BadRouteRequestController < ActionController::Base
@@ -15,11 +20,6 @@ class IPv6IntegrationTest < ActionDispatch::IntegrationTest
     def foo
       redirect_to action: :index
     end
-  end
-
-  Routes.draw do
-    get "/",    to: "bad_route_request#index", as: :index
-    get "/foo", to: "bad_route_request#foo", as: :foo
   end
 
   def _routes

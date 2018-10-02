@@ -160,6 +160,7 @@ ActiveRecord::Schema.define do
   create_table :citations, force: true do |t|
     t.column :book1_id, :integer
     t.column :book2_id, :integer
+    t.references :citation
   end
 
   create_table :clubs, force: true do |t|
@@ -946,7 +947,7 @@ ActiveRecord::Schema.define do
   end
 
   [:circles, :squares, :triangles, :non_poly_ones, :non_poly_twos].each do |t|
-    create_table(t, force: true) {}
+    create_table(t, force: true) { }
   end
 
   create_table :men, force: true do |t|

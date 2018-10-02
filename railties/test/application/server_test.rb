@@ -40,17 +40,17 @@ module ApplicationTests
         f.puts "require 'bundler/setup'"
       end
 
-      master, slave = PTY.open
+      primary, replica = PTY.open
       pid = nil
 
       begin
-        pid = Process.spawn("#{app_path}/bin/rails server -P tmp/dummy.pid", in: slave, out: slave, err: slave)
-        assert_output("Listening", master)
+        pid = Process.spawn("#{app_path}/bin/rails server -P tmp/dummy.pid", in: replica, out: replica, err: replica)
+        assert_output("Listening", primary)
 
         rails("restart")
 
-        assert_output("Restarting", master)
-        assert_output("Inherited", master)
+        assert_output("Restarting", primary)
+        assert_output("Inherited", primary)
       ensure
         kill(pid) if pid
       end

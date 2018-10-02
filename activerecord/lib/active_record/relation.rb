@@ -62,7 +62,7 @@ module ActiveRecord
     #   user = users.new { |user| user.name = 'Oscar' }
     #   user.name # => Oscar
     def new(attributes = nil, &block)
-      scoping { klass.new(scope_for_create(attributes), &block) }
+      scoping { klass.new(attributes, &block) }
     end
 
     alias build new
@@ -87,11 +87,7 @@ module ActiveRecord
     #   users.create(name: nil) # validation on name
     #   # => #<User id: nil, name: nil, ...>
     def create(attributes = nil, &block)
-      if attributes.is_a?(Array)
-        attributes.collect { |attr| create(attr, &block) }
-      else
-        scoping { klass.create(scope_for_create(attributes), &block) }
-      end
+      scoping { klass.create(attributes, &block) }
     end
 
     # Similar to #create, but calls
@@ -101,11 +97,7 @@ module ActiveRecord
     # Expects arguments in the same format as
     # {ActiveRecord::Base.create!}[rdoc-ref:Persistence::ClassMethods#create!].
     def create!(attributes = nil, &block)
-      if attributes.is_a?(Array)
-        attributes.collect { |attr| create!(attr, &block) }
-      else
-        scoping { klass.create!(scope_for_create(attributes), &block) }
-      end
+      scoping { klass.create!(attributes, &block) }
     end
 
     def first_or_create(attributes = nil, &block) # :nodoc:
@@ -315,10 +307,7 @@ module ActiveRecord
     # Please check unscoped if you want to remove all previous scopes (including
     # the default_scope) during the execution of a block.
     def scoping
-      previous, klass.current_scope = klass.current_scope(true), self unless @delegate_to_klass
-      yield
-    ensure
-      klass.current_scope = previous unless @delegate_to_klass
+      @delegate_to_klass ? yield : klass._scoping(self) { yield }
     end
 
     def _exec_scope(*args, &block) # :nodoc:
@@ -359,15 +348,20 @@ module ActiveRecord
       end
 
       stmt = Arel::UpdateManager.new
-
-      stmt.set Arel.sql(@klass.sanitize_sql_for_assignment(updates))
       stmt.table(table)
 
-      if has_join_values? || offset_value
+      if updates.is_a?(Hash)
+        stmt.set _substitute_values(updates)
+      else
+        stmt.set Arel.sql(klass.sanitize_sql_for_assignment(updates, table.name))
+      end
+
+      if has_join_values?
         @klass.connection.join_to_update(stmt, arel, arel_attribute(primary_key))
       else
         stmt.key = arel_attribute(primary_key)
         stmt.take(arel.limit)
+        stmt.offset(arel.offset)
         stmt.order(*arel.orders)
         stmt.wheres = arel.constraints
       end
@@ -375,26 +369,33 @@ module ActiveRecord
       @klass.connection.update stmt, "#{@klass} Update All"
     end
 
-    def update(attributes) # :nodoc:
-      each { |record| record.update(attributes) }
+    def update(id = :all, attributes) # :nodoc:
+      if id == :all
+        each { |record| record.update(attributes) }
+      else
+        klass.update(id, attributes)
+      end
     end
 
     def update_counters(counters) # :nodoc:
       touch = counters.delete(:touch)
 
-      updates = counters.map do |counter_name, value|
-        operator = value < 0 ? "-" : "+"
-        quoted_column = connection.quote_column_name(counter_name)
-        "#{quoted_column} = COALESCE(#{quoted_column}, 0) #{operator} #{value.abs}"
+      updates = {}
+      counters.each do |counter_name, value|
+        attr = arel_attribute(counter_name)
+        bind = predicate_builder.build_bind_attribute(attr.name, value.abs)
+        expr = table.coalesce(Arel::Nodes::UnqualifiedColumn.new(attr), 0)
+        expr = value < 0 ? expr - bind : expr + bind
+        updates[counter_name] = expr.expr
       end
 
       if touch
         names = touch if touch != true
         touch_updates = klass.touch_attributes_with_time(*names)
-        updates << klass.sanitize_sql_for_assignment(touch_updates) unless touch_updates.empty?
+        updates.merge!(touch_updates) unless touch_updates.empty?
       end
 
-      update_all updates.join(", ")
+      update_all updates
     end
 
     # Touches all records in the current relation without instantiating records first with the updated_at/on attributes
@@ -421,14 +422,12 @@ module ActiveRecord
     #   Person.where(name: 'David').touch_all
     #   # => "UPDATE \"people\" SET \"updated_at\" = '2018-01-04 22:55:23.132670' WHERE \"people\".\"name\" = 'David'"
     def touch_all(*names, time: nil)
-      updates = touch_attributes_with_time(*names, time: time)
-
       if klass.locking_enabled?
-        quoted_locking_column = connection.quote_column_name(klass.locking_column)
-        updates = sanitize_sql_for_assignment(updates) + ", #{quoted_locking_column} = COALESCE(#{quoted_locking_column}, 0) + 1"
+        names << { time: time }
+        update_counters(klass.locking_column => 1, touch: names)
+      else
+        update_all klass.touch_attributes_with_time(*names, time: time)
       end
-
-      update_all(updates)
     end
 
     # Destroys the records by instantiating each
@@ -486,9 +485,13 @@ module ActiveRecord
       stmt = Arel::DeleteManager.new
       stmt.from(table)
 
-      if has_join_values? || has_limit_or_offset?
+      if has_join_values?
         @klass.connection.join_to_delete(stmt, arel, arel_attribute(primary_key))
       else
+        stmt.key = arel_attribute(primary_key)
+        stmt.take(arel.limit)
+        stmt.offset(arel.offset)
+        stmt.order(*arel.orders)
         stmt.wheres = arel.constraints
       end
 
@@ -550,10 +553,8 @@ module ActiveRecord
       where_clause.to_h(relation_table_name)
     end
 
-    def scope_for_create(attributes = nil)
-      scope = where_values_hash.merge!(create_with_value.stringify_keys)
-      scope.merge!(attributes) if attributes
-      scope
+    def scope_for_create
+      where_values_hash.merge!(create_with_value.stringify_keys)
     end
 
     # Returns true if relation needs eager loading.
@@ -636,6 +637,16 @@ module ActiveRecord
       end
 
     private
+      def _substitute_values(values)
+        values.map do |name, value|
+          attr = arel_attribute(name)
+          unless Arel.arel_node?(value)
+            type = klass.type_for_attribute(attr.name)
+            value = predicate_builder.build_bind_attribute(attr.name, type.cast(value))
+          end
+          [attr, value]
+        end
+      end
 
       def has_join_values?
         joins_values.any? || left_outer_joins_values.any?

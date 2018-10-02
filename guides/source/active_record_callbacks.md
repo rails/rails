@@ -319,6 +319,14 @@ class Order < ApplicationRecord
 end
 ```
 
+As the proc is evaluated in the context of the object, it is also possible to write this as:
+
+```ruby
+class Order < ApplicationRecord
+  before_save :normalize_card_number, if: Proc.new { paid_with_card? }
+end
+```
+
 ### Multiple Conditions for Callbacks
 
 When writing conditional callbacks, it is possible to mix both `:if` and `:unless` in the same callback declaration:
@@ -427,7 +435,9 @@ class PictureFile < ApplicationRecord
 end
 ```
 
-WARNING. The `after_commit` and `after_rollback` callbacks are called for all models created, updated, or destroyed within a transaction block. However, if an exception is raised within one of these callbacks, the exception will bubble up and any remaining `after_commit` or `after_rollback` methods will _not_ be executed. As such, if your callback code could raise an exception, you'll need to rescue it and handle it within the callback in order to allow other callbacks to run.
+WARNING. When a transaction completes, the `after_commit` or `after_rollback` callbacks are called for all models created, updated, or destroyed within that transaction. However, if an exception is raised within one of these callbacks, the exception will bubble up and any remaining `after_commit` or `after_rollback` methods will _not_ be executed. As such, if your callback code could raise an exception, you'll need to rescue it and handle it within the callback in order to allow other callbacks to run.
+
+WARNING. The code executed within `after_commit` or `after_rollback` callbacks is itself not enclosed within a transaction.
 
 WARNING. Using both `after_create_commit` and `after_update_commit` in the same model will only allow the last callback defined to take effect, and will override all others.
 

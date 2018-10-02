@@ -34,7 +34,6 @@ module Arel # :nodoc: all
         alias :visit_Arel_Nodes_Ordering          :unary
         alias :visit_Arel_Nodes_Ascending         :unary
         alias :visit_Arel_Nodes_Descending        :unary
-        alias :visit_Arel_Nodes_Top               :unary
         alias :visit_Arel_Nodes_UnqualifiedColumn :unary
 
         def function(o)
@@ -136,12 +135,10 @@ module Arel # :nodoc: all
         alias :visit_Arel_Nodes_True               :terminal
         alias :visit_Arel_Nodes_False              :terminal
         alias :visit_BigDecimal                    :terminal
-        alias :visit_Bignum                        :terminal
         alias :visit_Class                         :terminal
         alias :visit_Date                          :terminal
         alias :visit_DateTime                      :terminal
         alias :visit_FalseClass                    :terminal
-        alias :visit_Fixnum                        :terminal
         alias :visit_Float                         :terminal
         alias :visit_Integer                       :terminal
         alias :visit_NilClass                      :terminal

@@ -22,7 +22,7 @@ module ActionView #:nodoc:
     private
 
       def query(path, exts, _, _)
-        query = "".dup
+        query = +""
         EXTENSIONS.each_key do |ext|
           query << "(" << exts[ext].map { |e| e && Regexp.escape(".#{e}") }.join("|") << "|)"
         end

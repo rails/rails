@@ -1,22 +1,42 @@
+*   Allow `assert_enqueued_with`/`assert_performed_with` methods to accept
+    a proc for the `args` argument. This is useful to check if only a subset of arguments
+    matches your expectations.
+
+    *Edouard Chin*
+
+*   `ActionDispatch::IntegrationTest` includes `ActiveJob::TestHelper` module by default.
+
+    *Ricardo Díaz*
+
+*   Added `enqueue_retry.active_job`, `retry_stopped.active_job`, and `discard.active_job` hooks.
+
+    *steves*
+
+*   Allow `assert_performed_with` to be called without a block.
+
+    *bogdanvlviv*
+
+*   Execution of `assert_performed_jobs`, and `assert_no_performed_jobs`
+    without a block should respect passed `:except`, `:only`, and `:queue` options.
+
+    *bogdanvlviv*
+
+*   Allow `:queue` option to job assertions and helpers.
+
+    *bogdanvlviv*
+
+*   Allow `perform_enqueued_jobs` to be called without a block.
+
+    Performs all of the jobs that have been enqueued up to this point in the test.
+
+    *Kevin Deisz*
+
 *   Move `enqueue`/`enqueue_at` notifications to an around callback.
 
     Improves timing accuracy over the old after callback by including
     time spent writing to the adapter's IO implementation.
 
     *Zach Kemp*
-
-*   Allow `queue` option to `assert_no_enqueued_jobs`.
-
-    Example:
-    ```
-    def test_no_logging
-      assert_no_enqueued_jobs queue: 'default' do
-        LoggingJob.set(queue: :some_queue).perform_later
-      end
-    end
-    ```
-
-    *bogdanvlviv*
 
 *   Allow call `assert_enqueued_with` with no block.
 

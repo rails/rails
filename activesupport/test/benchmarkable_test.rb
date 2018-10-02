@@ -59,13 +59,13 @@ class BenchmarkableTest < ActiveSupport::TestCase
 
   def test_within_level
     logger.level = ActiveSupport::Logger::DEBUG
-    benchmark("included_debug_run", level: :debug) {}
+    benchmark("included_debug_run", level: :debug) { }
     assert_last_logged "included_debug_run"
   end
 
   def test_outside_level
     logger.level = ActiveSupport::Logger::ERROR
-    benchmark("skipped_debug_run", level: :debug) {}
+    benchmark("skipped_debug_run", level: :debug) { }
     assert_no_match(/skipped_debug_run/, buffer.last)
   ensure
     logger.level = ActiveSupport::Logger::DEBUG

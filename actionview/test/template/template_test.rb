@@ -196,6 +196,13 @@ class TestERBTemplate < ActiveSupport::TestCase
     assert_match(Regexp.new("\xFC"), e.message)
   end
 
+  def test_template_is_marshalable
+    template = new_template
+    serialized = Marshal.load(Marshal.dump(template))
+    assert_equal template.identifier, serialized.identifier
+    assert_equal template.source, serialized.source
+  end
+
   def with_external_encoding(encoding)
     old = Encoding.default_external
     Encoding::Converter.new old, encoding if old != encoding

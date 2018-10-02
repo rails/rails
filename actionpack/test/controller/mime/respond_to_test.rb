@@ -78,7 +78,7 @@ class RespondToController < ActionController::Base
   def missing_templates
     respond_to do |type|
       # This test requires a block that is empty
-      type.json {}
+      type.json { }
       type.xml
     end
   end
