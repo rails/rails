@@ -1,3 +1,8 @@
+*   Rename `Module#parent`, `Module#parents`, and `Module#parent_name` to
+    `module_parent`, `module_parents`, and `module_parent_name`.
+
+    *Gannon McGibbon*
+
 *   Deprecate using negative limits in `String#first` and `String#last`.
 
     *Gannon McGibbon*, *Eric Turner*
