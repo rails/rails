@@ -42,7 +42,7 @@ class EncryptedConfigurationTest < ActiveSupport::TestCase
     assert @credentials.something[:good]
   end
 
-  test "reading example configuration" do
+  test "reading comment-only configuration" do
     ActiveSupport::EncryptedFile.new(
       content_path: @credentials_config_path, key_path: @credentials_key_path,
       env_key: "RAILS_MASTER_KEY", raise_if_missing_key: true
