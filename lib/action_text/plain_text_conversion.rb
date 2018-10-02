@@ -29,7 +29,7 @@ module ActionText
         "#{remove_trailing_newlines(plain_text_for_node_children(node))}\n\n"
       end
 
-      %i[ p ul ol ].each do |element|
+      %i[ h1 p ul ol ].each do |element|
         alias_method :"plain_text_for_#{element}_node", :plain_text_for_block
       end
 
