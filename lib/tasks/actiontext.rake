@@ -5,14 +5,12 @@ namespace :action_text do
   Rake::Task["install:migrations"].clear_comments
 
   desc "Copy over the migration, stylesheet, and JavaScript files"
-  task install: %w( environment copy_migration copy_stylesheet copy_fixtures active_storage:install )
+  task install: %w( environment copy_migrations copy_stylesheet copy_fixtures )
 
-  task :copy_migration do
-    if Rake::Task.task_defined?("action_text:install:migrations")
-      Rake::Task["action_text:install:migrations"].invoke
-    else
-      Rake::Task["app:action_text:install:migrations"].invoke
-    end
+  task :copy_migrations do
+    Rake::Task["active_storage:install:migrations"].invoke
+    Rake::Task["railties:install:migrations"].reenable # Otherwise you can't run 2 migration copy tasks in one invocation
+    Rake::Task["action_text:install:migrations"].invoke
   end
 
   STYLESHEET_TEMPLATE_PATH = File.expand_path("../templates/actiontext.css", __dir__)
