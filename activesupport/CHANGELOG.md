@@ -1,3 +1,7 @@
+*   Deprecate using negative limits in `String#first` and `String#last`.
+
+    *Gannon McGibbon*, *Eric Turner*
+
 *   Fix bug where `#without` for `ActiveSupport::HashWithIndifferentAccess` would fail
     with symbol arguments
 
