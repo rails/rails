@@ -1,3 +1,7 @@
+*   Add `reselect` method. This is short-hand for `unscope(:select).select(fields)`.
+
+    *Willian Gustavo Veiga*
+
 *   Added `index` option for `change_table` migration helpers.
     With this change you can create indexes while adding new
     columns into the existing tables.
