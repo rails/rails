@@ -17,9 +17,7 @@ namespace :action_text do
   STYLESHEET_APP_PATH      = Rails.root.join("app/assets/stylesheets/actiontext.css")
 
   task :copy_stylesheet do
-    if File.exist?(STYLESHEET_APP_PATH)
-      puts "Won't copy Action Text stylesheet as it already exists"
-    else
+    unless File.exist?(STYLESHEET_APP_PATH)
       FileUtils.cp STYLESHEET_TEMPLATE_PATH, STYLESHEET_APP_PATH
     end
   end
@@ -29,9 +27,7 @@ namespace :action_text do
   FIXTURE_APP_PATH      = FIXTURE_APP_DIR_PATH.join("rich_texts.yml")
 
   task :copy_fixtures do
-    if File.exist?(FIXTURE_APP_PATH)
-      puts "Won't copy Action Text fixtures as it already exists"
-    else
+    unless File.exist?(FIXTURE_APP_PATH)
       FileUtils.mkdir FIXTURE_APP_DIR_PATH
       FileUtils.cp FIXTURE_TEMPLATE_PATH, FIXTURE_APP_PATH
     end
