@@ -3,7 +3,7 @@
   "private": true,
   "dependencies": {
     "@rails/webpacker": "^3.2.2",
-    "activetext": "file:../.."
+    "actiontext": "file:../.."
   },
   "devDependencies": {
     "webpack-dev-server": "^2.11.1"

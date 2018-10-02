@@ -2,7 +2,7 @@ module ActionText
   class Attachment
     include Attachments::TrixConversion, Attachments::Minification, Attachments::Caching
 
-    TAG_NAME = "active-text-attachment"
+    TAG_NAME = "action-text-attachment"
     SELECTOR = TAG_NAME
     ATTRIBUTES = %w( sgid content-type url href filename filesize width height previewable caption )
 

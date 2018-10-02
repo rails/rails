@@ -60,7 +60,7 @@ acorn@^5.0.0:
   version "5.2.0-rc1"
   resolved "https://registry.yarnpkg.com/activestorage/-/activestorage-5.2.0-rc1.tgz#79898996eceb0f13575eff41fb109051fbfa49b0"
 
-"activetext@file:../..":
+"actiontext@file:../..":
   version "0.1"
   dependencies:
     activestorage ">= 5.2.0-rc1"
