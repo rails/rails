@@ -236,9 +236,9 @@ module ActionView
     end
 
     
-    # Exceptions are marshaled when using the parallel test runner with DRb, so we need
-    # to ensure that references to the template object can be marshaled as well. This means forgoing
-    # the marshalling of the compiler mutex and instantiating that again on unmarshaling.
+    # Exceptions are marshalled when using the parallel test runner with DRb, so we need
+    # to ensure that references to the template object can be marshalled as well. This means forgoing
+    # the marshalling of the compiler mutex and instantiating that again on unmarshalling.
     def marshal_dump # :nodoc:
       [ @source, @identifier, @handler, @compiled, @original_encoding, @locals, @virtual_path, @updated_at, @formats, @variants ]
     end
