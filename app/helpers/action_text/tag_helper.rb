@@ -15,7 +15,7 @@ module ActionText
       editor_tag = content_tag("trix-editor", "", options)
       input_tag = hidden_field_tag(name, value, id: options[:input])
 
-      editor_tag + input_tag
+      input_tag + editor_tag
     end
   end
 end
