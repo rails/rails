@@ -13,6 +13,8 @@ Someone = Struct.new(:name, :place) do
   delegate :upcase, to: "place.city"
   delegate :table_name, to: :class
   delegate :table_name, to: :class, prefix: true
+  delegate :street, to: :place, as: :home_street
+  delegate :city, to: :place, as: :home_city
 
   def self.table_name
     "some_table"
@@ -181,6 +183,29 @@ class ModuleTest < ActiveSupport::TestCase
   def test_delegation_to_class_method
     assert_equal "some_table", @david.table_name
     assert_equal "some_table", @david.class_table_name
+  end
+
+  def test_delegation_to_methods_with_renaming
+    assert_equal "Paulina", @david.home_street
+    assert_equal "Chicago", @david.home_city
+  end
+
+  def test_valid_as_passed
+    assert_raise(ArgumentError) do
+      Name.send :delegate, :upcase, as: "1change", to: :@full_name
+    end
+  end
+
+  def test_multiple_methods_passed_with_as
+    assert_raise(ArgumentError) do
+      Name.send :delegate, :upcase, :downcase, as: :change, to: :@full_name
+    end
+  end
+
+  def test_both_prefix_and_as_specified
+    assert_raise(ArgumentError) do
+      Name.send :delegate, :upcase, prefix: :str, as: :change, to: :@full_name
+    end
   end
 
   def test_missing_delegation_target
