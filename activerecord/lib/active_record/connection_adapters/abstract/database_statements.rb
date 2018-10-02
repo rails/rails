@@ -410,16 +410,6 @@ module ActiveRecord
         end
       end
 
-      # The default strategy for an UPDATE with joins is to use a subquery. This doesn't work
-      # on MySQL (even when aliasing the tables), but MySQL allows using JOIN directly in
-      # an UPDATE statement, so in the MySQL adapters we redefine this to do that.
-      def join_to_update(update, select, key) # :nodoc:
-        subselect = subquery_for(key, select)
-
-        update.where key.in(subselect)
-      end
-      alias join_to_delete join_to_update
-
       private
         def default_insert_value(column)
           Arel.sql("DEFAULT")
@@ -458,13 +448,6 @@ module ActiveRecord
 
         def combine_multi_statements(total_sql)
           total_sql.join(";\n")
-        end
-
-        # Returns a subquery for the given key using the join information.
-        def subquery_for(key, select)
-          subselect = select.clone
-          subselect.projections = [key]
-          subselect
         end
 
         # Returns an ActiveRecord::Result instance.
