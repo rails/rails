@@ -19,6 +19,10 @@ module ActionMailbox
         status: status
     end
 
+    def receive_inbound_email_from_fixture(*args)
+      create_inbound_email_from_fixture(*args).tap(&:route)
+    end
+
     def receive_inbound_email_from_mail(**kwargs)
       create_inbound_email_from_mail(**kwargs).tap(&:route)
     end
