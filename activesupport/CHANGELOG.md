@@ -1,3 +1,7 @@
+*   Deprecate the use of `LoggerSilence` in favor of `ActiveSupport::LoggerSilence`
+
+    *Edouard Chin*
+
 *   Deprecate using negative limits in `String#first` and `String#last`.
 
     *Gannon McGibbon*, *Eric Turner*

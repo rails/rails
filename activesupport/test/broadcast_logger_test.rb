@@ -114,6 +114,14 @@ module ActiveSupport
       assert_equal [[::Logger::FATAL, "seen", nil]], log2.adds
     end
 
+    test "Including top constant LoggerSilence is deprecated" do
+      assert_deprecated("Please use `ActiveSupport::LoggerSilence`") do
+        logger = Class.new(CustomLogger) do
+          include ::LoggerSilence
+        end
+      end
+    end
+
     class CustomLogger
       attr_reader :adds, :closed, :chevrons
       attr_accessor :level, :progname, :formatter, :local_level
@@ -166,7 +174,7 @@ module ActiveSupport
     end
 
     class FakeLogger < CustomLogger
-      include LoggerSilence
+      include ActiveSupport::LoggerSilence
     end
   end
 end
