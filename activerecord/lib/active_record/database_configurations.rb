@@ -51,6 +51,32 @@ module ActiveRecord
       end
     end
 
+    # Returns a config for a replica database.
+    #
+    # If a +spec_name+ is provided, will return the config that
+    # corresponds with that environment and specification.
+    #
+    # If a spec name is not provided the first replica config for the
+    # provided environment will be returned.
+    #
+    # Options:
+    #
+    # <tt>env_name:</tt> The environment name. Defaults to nil which will collect
+    # configs for all environments.
+    # <tt>spec_name:</tt> The specification name (ie primary, animals, etc.). Defaults
+    # to +nil+.
+    def replica_configs_for(env_name: nil, spec_name: nil)
+      configs = configs_for(env_name: env_name, spec_name: spec_name, include_replicas: true)
+
+      if configs.is_a?(Array)
+        configs.find do |config|
+          config.replica?
+        end
+      else
+        configs if configs.replica?
+      end
+    end
+
     # Returns the config hash that corresponds with the environment
     #
     # If the application has multiple databases `default_hash` will

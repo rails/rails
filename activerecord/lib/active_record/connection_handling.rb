@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_record/connection_handling/registration"
+
 module ActiveRecord
   module ConnectionHandling
     RAILS_ENV   = -> { (Rails.env if defined?(Rails.env)) || ENV["RAILS_ENV"].presence || ENV["RACK_ENV"].presence }
@@ -46,7 +48,49 @@ module ActiveRecord
     #
     # The exceptions AdapterNotSpecified, AdapterNotFound and +ArgumentError+
     # may be returned on an error.
-    def establish_connection(config_or_env = nil)
+    #
+    # Takes a second optional argument for +handler_key+. This identifies
+    # which handler should be used for the connection and is useful for
+    # applications with multiple databases.
+    #
+    #   AcitveRecord::Base.establish_connection :production_replica, :readonly
+    #
+    # The above will establish a connection to the +production_replica+
+    # database using the +readonly+ handler. This tells ActiveRecord
+    # which handler to use and will swap the connection accordingly.
+    def establish_connection(config_or_env = nil, handler_key = nil)
+      config_hash = resolve_config_for_connection(config_or_env)
+      handler = connection_handlers[handler_key]
+
+      case handler_key
+      when :default
+        use_default_connection do
+          handler.establish_connection(config_hash)
+        end
+      when :readonly
+        use_readonly_connection do
+          handler.establish_connection(config_hash)
+        end
+      else
+        connection_handler.establish_connection(config_hash)
+      end
+    end
+
+    # Uses the default connection handler when called. In a multi-db
+    # application, the +default+ handler corresponds to the write
+    # connections which connect to the primary databases.
+    def use_default_connection(&blk)
+      use_connection(:default, &blk)
+    end
+
+    # Uses the +readonly+ connection handler when called. In a multi-db
+    # application, the +readonly+ connection handler corresponds to the
+    # readonly connections which connect to the replica databases.
+    def use_readonly_connection(&blk)
+      use_connection(:readonly, &blk)
+    end
+
+    def resolve_config_for_connection(config_or_env) # :nodoc:
       raise "Anonymous class is not allowed." unless name
 
       config_or_env ||= DEFAULT_ENV.call.to_sym
@@ -57,7 +101,7 @@ module ActiveRecord
       config_hash = resolver.resolve(config_or_env, pool_name).symbolize_keys
       config_hash[:name] = pool_name
 
-      connection_handler.establish_connection(config_hash)
+      config_hash
     end
 
     # Returns the connection currently associated with the class. This can
@@ -118,5 +162,19 @@ module ActiveRecord
 
     delegate :clear_active_connections!, :clear_reloadable_connections!,
       :clear_all_connections!, :flush_idle_connections!, to: :connection_handler
+
+    private
+      def use_connection(key, &blk) # :nodoc:
+        handler = connection_handlers[key]
+        swap_connection_handler(handler, &blk)
+      end
+
+      def swap_connection_handler(handler, &blk) # :nodoc:
+        raise ArgumentError, "connection handler cannot be nil" unless handler
+        old_handler, ActiveRecord::Base.connection_handler = ActiveRecord::Base.connection_handler, handler
+        yield
+      ensure
+        ActiveRecord::Base.connection_handler = old_handler
+      end
   end
 end
