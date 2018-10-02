@@ -14,18 +14,7 @@ Assumes a Rails 5.2+ application with Active Storage and Webpacker installed.
     gem "image_processing", "~> 1.2" # for Active Storage variants
     ```
    
-1. Install the npm package (with a local reference to this checked out repository):
-
-    ```sh
-    $ yarn add file:../actiontext
-    ```
-    
-    ```js
-    // app/javascript/packs/application.js
-    import "actiontext"
-    ```
-
-1. Migrate the database
+1. Install assets, npm dependency, and migrations
 
    ```
    ./bin/rails action_text:install
