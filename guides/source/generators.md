@@ -203,8 +203,6 @@ $ rails generate scaffold User name:string
       create    test/application_system_test_case.rb
       create    test/system/users_test.rb
       invoke  assets
-      invoke    coffee
-      create      app/assets/javascripts/users.coffee
       invoke    scss
       create      app/assets/stylesheets/users.scss
       invoke  scss
@@ -426,9 +424,8 @@ $ rails generate scaffold Comment body:text
       create    test/application_system_test_case.rb
       create    test/system/comments_test.rb
       invoke  assets
-      invoke    coffee
-      create      app/assets/javascripts/comments.coffee
       invoke    scss
+      create    app/assets/stylesheets/scaffolds.scss
 ```
 
 Fallbacks allow your generators to have a single responsibility, increasing code reuse and reducing the amount of duplication.
