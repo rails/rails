@@ -5,7 +5,7 @@ namespace :action_text do
   Rake::Task["install:migrations"].clear_comments
 
   desc "Copy over the migration, stylesheet, and JavaScript files"
-  task install: %w( environment copy_migrations copy_stylesheet copy_fixtures )
+  task install: %w( environment copy_migrations copy_stylesheet copy_fixtures yarn_add )
 
   task :copy_migrations do
     Rake::Task["active_storage:install:migrations"].invoke
@@ -31,5 +31,10 @@ namespace :action_text do
       FileUtils.mkdir FIXTURE_APP_DIR_PATH
       FileUtils.cp FIXTURE_TEMPLATE_PATH, FIXTURE_APP_PATH
     end
+  end
+
+  task :yarn_add do
+    # FIXME: Replace with release version on release
+    system "yarn add https://github.com/basecamp/actiontext"
   end
 end
