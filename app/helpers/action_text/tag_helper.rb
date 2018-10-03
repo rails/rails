@@ -2,6 +2,17 @@ module ActionText
   module TagHelper
     cattr_accessor(:id, instance_accessor: false) { 0 }
 
+    # Returns a `trix-editor` tag that instantiates the Trix JavaScript editor as well as a hidden field
+    # that Trix will write to on changes, so the content will be sent on form submissions.
+    #
+    # ==== Options
+    # * <tt>:class</tt> - Defaults to "trix-content" which ensures default styling is applied.
+    #
+    # ==== Example
+    #
+    #   rich_text_area_tag "content", message.content
+    #   # <input type="hidden" name="content" id="trix_input_post_1">
+    #   # <trix-editor id="content" input="trix_input_post_1" class="trix-content" ...></trix-editor>
     def rich_text_area_tag(name, value = nil, options = {})
       options = options.symbolize_keys
 
@@ -37,6 +48,18 @@ module ActionView::Helpers
   end
 
   module FormHelper
+    # Returns a `trix-editor` tag that instantiates the Trix JavaScript editor as well as a hidden field
+    # that Trix will write to on changes, so the content will be sent on form submissions.
+    #
+    # ==== Options
+    # * <tt>:class</tt> - Defaults to "trix-content" which ensures default styling is applied.
+    #
+    # ==== Example
+    #   form_with(model: @message) do |form|
+    #     form.rich_text_area :content
+    #   end
+    #   # <input type="hidden" name="message[content]" id="message_content_trix_input_message_1">
+    #   # <trix-editor id="content" input="message_content_trix_input_message_1" class="trix-content" ...></trix-editor>
     def rich_text_area(object_name, method, options = {})
       Tags::ActionText.new(object_name, method, self, options).render
     end
