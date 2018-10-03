@@ -17,7 +17,7 @@ module ActionMailbox
     end
 
     included do
-      define_callbacks :process, terminator: TERMINATOR
+      define_callbacks :process, terminator: TERMINATOR, skip_after_callbacks_if_terminated: true
     end
 
     module ClassMethods

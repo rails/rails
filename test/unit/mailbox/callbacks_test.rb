@@ -20,8 +20,10 @@ class BouncingCallbackMailbox < ActionMailbox::Base
 
   before_processing { $before_processing << "Post-bounce" }
 
+  after_processing { $after_processing = true }
+
   def process
-    $processed = mail.subject
+    $processed = true
   end
 end
 
@@ -43,5 +45,6 @@ class ActionMailbox::Base::CallbacksTest < ActiveSupport::TestCase
     assert @inbound_email.bounced?
     assert_equal [ "Pre-bounce", "Bounce" ], $before_processing
     assert_not $processed
+    assert_not $after_processing
   end
 end
