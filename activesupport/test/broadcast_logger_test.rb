@@ -123,6 +123,8 @@ module ActiveSupport
     end
 
     class CustomLogger
+      include ActiveSupport::LoggerSilence
+
       attr_reader :adds, :closed, :chevrons
       attr_accessor :level, :progname, :formatter, :local_level
 
@@ -174,7 +176,6 @@ module ActiveSupport
     end
 
     class FakeLogger < CustomLogger
-      include ActiveSupport::LoggerSilence
     end
   end
 end
