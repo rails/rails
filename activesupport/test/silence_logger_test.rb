@@ -6,7 +6,7 @@ require "logger"
 
 class LoggerSilenceTest < ActiveSupport::TestCase
   class MyLogger < ::Logger
-    include LoggerSilence
+    include ActiveSupport::LoggerSilence
   end
 
   setup do
