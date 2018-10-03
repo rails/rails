@@ -88,6 +88,7 @@ class Post < ActiveRecord::Base
   has_one :very_special_comment_with_post_with_joins, -> { joins(:post).order("posts.id") }, class_name: "VerySpecialComment"
   has_many :special_comments
   has_many :nonexistent_comments, -> { where "comments.id < 0" }, class_name: "Comment"
+  has_many :latest_comments, -> { order(id: :desc).limit(2) }, class_name: "Comment"
 
   has_many :special_comments_ratings, through: :special_comments, source: :ratings
   has_many :special_comments_ratings_taggings, through: :special_comments_ratings, source: :taggings

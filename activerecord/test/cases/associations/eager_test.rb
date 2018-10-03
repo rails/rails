@@ -1203,6 +1203,12 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_equal 2, post_with_readers.lazy_readers_skimmers_or_not.to_a.size
   end
 
+  def test_preload_has_many_with_limit_scope
+    Post.preload(:latest_comments).each do |post|
+      assert_equal post.latest_comments.length, [2, post.comments.length].min
+    end
+  end
+
   def test_eager_loading_with_conditions_on_string_joined_table_preloads
     posts = assert_queries(2) do
       Post.all.merge!(select: "distinct posts.*", includes: :author, joins: "INNER JOIN comments on comments.post_id = posts.id", where: "comments.body like 'Thank you%'", order: "posts.id").to_a
