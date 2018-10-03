@@ -3,7 +3,8 @@ module ActionText
     TAG_NAME = "figure"
     SELECTOR = "[data-trix-attachment]"
 
-    ATTRIBUTES = %w( sgid contentType url href filename filesize width height previewable content caption )
+    COMPOSED_ATTRIBUTES = %w( caption presentation )
+    ATTRIBUTES = %w( sgid contentType url href filename filesize width height previewable content ) + COMPOSED_ATTRIBUTES
     ATTRIBUTE_TYPES = {
       "previewable" => ->(value) { value.to_s == "true" },
       "filesize"    => ->(value) { Integer(value.to_s) rescue value },
@@ -16,8 +17,8 @@ module ActionText
       def from_attributes(attributes)
         attributes = process_attributes(attributes)
 
-        trix_attachment_attributes = attributes.except("caption")
-        trix_attributes = attributes.slice("caption")
+        trix_attachment_attributes = attributes.except(*COMPOSED_ATTRIBUTES)
+        trix_attributes = attributes.slice(*COMPOSED_ATTRIBUTES)
 
         node = ActionText::HtmlConversion.create_element(TAG_NAME)
         node["data-trix-attachment"] = JSON.generate(trix_attachment_attributes)

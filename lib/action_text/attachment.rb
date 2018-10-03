@@ -4,7 +4,7 @@ module ActionText
 
     TAG_NAME = "action-text-attachment"
     SELECTOR = TAG_NAME
-    ATTRIBUTES = %w( sgid content-type url href filename filesize width height previewable caption )
+    ATTRIBUTES = %w( sgid content-type url href filename filesize width height previewable presentation caption )
 
     class << self
       def fragment_by_canonicalizing_attachments(content)
