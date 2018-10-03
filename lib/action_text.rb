@@ -8,6 +8,7 @@ module ActionText
   mattr_accessor(:renderer)
 
   autoload :Attachable
+  autoload :AttachmentGallery
   autoload :Attachment
   autoload :Attribute
   autoload :Content

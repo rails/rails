@@ -6,8 +6,22 @@ module ActionText
 
     delegate :blank?, :empty?, :html_safe, :present?, to: :to_html # Delegating to to_html to avoid including the layout
 
-    def initialize(content = nil)
-      @fragment = ActionText::Attachment.fragment_by_canonicalizing_attachments(content)
+    class << self
+      def fragment_by_canonicalizing_content(content)
+        fragment = ActionText::Attachment.fragment_by_canonicalizing_attachments(content)
+        fragment = ActionText::AttachmentGallery.fragment_by_canonicalizing_attachment_galleries(fragment)
+        fragment
+      end
+    end
+
+    def initialize(content = nil, options = {})
+      options.with_defaults! canonicalize: true
+
+      if options[:canonicalize]
+        @fragment = self.class.fragment_by_canonicalizing_content(content)
+      else
+        @fragment = ActionText::Fragment.wrap(content)
+      end
     end
 
     def links
@@ -18,6 +32,16 @@ module ActionText
       @attachments ||= attachment_nodes.map do |node|
         attachment_for_node(node)
       end
+    end
+
+    def attachment_galleries
+      @attachment_galleries ||= attachment_gallery_nodes.map do |node|
+        attachment_gallery_for_node(node)
+      end
+    end
+
+    def gallery_attachments
+      @gallery_attachments ||= attachment_galleries.flat_map(&:attachments)
     end
 
     def attachables
@@ -32,13 +56,21 @@ module ActionText
     end
 
     def render_attachments(**options, &block)
-      fragment.replace(ActionText::Attachment::SELECTOR) do |node|
+      content = fragment.replace(ActionText::Attachment::SELECTOR) do |node|
         block.call(attachment_for_node(node, **options))
       end
+      self.class.new(content, canonicalize: false)
+    end
+
+    def render_attachment_galleries(**options, &block)
+      content = ActionText::AttachmentGallery.fragment_by_replacing_attachment_gallery_nodes(fragment) do |node|
+        block.call(attachment_gallery_for_node(node, **options))
+      end
+      self.class.new(content, canonicalize: false)
     end
 
     def to_plain_text
-      render_attachments(with_full_attributes: false, &:to_plain_text).to_plain_text
+      render_attachments(with_full_attributes: false, &:to_plain_text).fragment.to_plain_text
     end
 
     def to_trix_html
@@ -46,19 +78,30 @@ module ActionText
     end
 
     def to_html
+      fragment.to_html
+    end
+
+    def to_rendered_html
       render_attachments do |attachment|
         attachment.node.tap do |node|
           node.inner_html = ActionText.renderer.render(attachment)
         end
+      end.render_attachment_galleries do |attachment_gallery|
+        ActionText.renderer.render(layout: attachment_gallery, object: attachment_gallery, formats: "html") do
+          attachment_gallery.attachments.map do |attachment|
+            attachment.node.inner_html = ActionText.renderer.render(attachment)
+            attachment.to_html
+          end.join("").html_safe
+        end
       end.to_html
     end
 
-    def to_html_with_layout
-      ActionText.renderer.render(partial: "action_text/content/layout", locals: { document: to_html })
+    def to_rendered_html_with_layout
+      ActionText.renderer.render(partial: "action_text/content/layout", locals: { document: to_rendered_html })
     end
 
     def to_s
-      to_html_with_layout
+      to_rendered_html_with_layout
     end
 
     def as_json(*)
@@ -80,9 +123,17 @@ module ActionText
         @attachment_nodes ||= fragment.find_all(ActionText::Attachment::SELECTOR)
       end
 
+      def attachment_gallery_nodes
+        @attachment_gallery_nodes ||= ActionText::AttachmentGallery.find_attachment_gallery_nodes(fragment)
+      end
+
       def attachment_for_node(node, with_full_attributes: true)
         attachment = ActionText::Attachment.from_node(node)
         with_full_attributes ? attachment.with_full_attributes : attachment
+      end
+
+      def attachment_gallery_for_node(node, **options)
+        ActionText::AttachmentGallery.from_node(node)
       end
   end
 end
