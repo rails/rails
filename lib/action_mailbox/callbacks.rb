@@ -5,8 +5,19 @@ module ActionMailbox
     extend  ActiveSupport::Concern
     include ActiveSupport::Callbacks
 
+    TERMINATOR = ->(target, chain) do
+      terminate = true
+
+      catch(:abort) do
+        chain.call
+        terminate = target.inbound_email.bounced?
+      end
+
+      terminate
+    end
+
     included do
-      define_callbacks :process
+      define_callbacks :process, terminator: TERMINATOR
     end
 
     module ClassMethods
