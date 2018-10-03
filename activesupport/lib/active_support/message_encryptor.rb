@@ -182,7 +182,12 @@ module ActiveSupport
 
       def _decrypt(encrypted_message, purpose)
         cipher = new_cipher
-        encrypted_data, iv, auth_tag = encrypted_message.split("--").map { |v| ::Base64.strict_decode64(v) }
+        begin
+          encrypted_data, iv, auth_tag = encrypted_message.gsub("\n", '').split("--".freeze).map { |v| ::Base64.strict_decode64(v) }
+        rescue
+          raise InvalidMessage, "Given encrypted message cannot be parsed by Base64. " \
+            "Please check your credentials is correct: \n\n#{encrypted_message}"
+        end
 
         # Currently the OpenSSL bindings do not raise an error if auth_tag is
         # truncated, which would allow an attacker to easily forge it. See
