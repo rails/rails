@@ -10,7 +10,7 @@ copy_file "#{__dir__}/../../app/views/active_storage/blobs/_blob.html.erb",
 
 # FIXME: Replace with release version on release
 say "Installing JavaScript dependency"
-run "yarn add https://github.com/basecamp/actiontext"
+run "yarn add https://github.com/rails/actiontext"
 
 APPLICATION_PATH_PATH = "app/javascript/packs/application.js"
 

@@ -6,7 +6,7 @@
   "files": [
     "app/javascript/actiontext/*.js"
   ],
-  "repository": "https://github.com/basecamp/actiontext",
+  "repository": "https://github.com/rails/actiontext",
   "author": "Basecamp, LLC",
   "contributors": [
     "Javan Makhmali <javan@javan.us>",

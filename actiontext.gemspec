@@ -10,7 +10,7 @@ Gem::Specification.new do |s|
   s.authors  = ["Javan Makhmali", "Sam Stephenson", "David Heinemeier Hansson"]
   s.email    = ["javan@javan.us", "sstephenson@gmail.com", "david@loudthinking.com"]
   s.summary  = "Edit and display rich text in Rails applications"
-  s.homepage = "https://github.com/basecamp/actiontext"
+  s.homepage = "https://github.com/rails/actiontext"
   s.license  = "MIT"
 
   s.required_ruby_version = ">= 2.2.2"
