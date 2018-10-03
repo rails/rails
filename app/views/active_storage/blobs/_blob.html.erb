@@ -1,8 +1,9 @@
+<% transformations = { resize: local_assigns[:in_gallery] ? "800x600>" : "1024x768>" } %>
 <figure class="attachment attachment--<%= blob.representable? ? "preview" : "file" %> attachment--<%= blob.filename.extension %>">
   <% if blob.variable? %>
-    <%= image_tag blob.variant(resize: "1024x768>") %>
+    <%= image_tag blob.variant(transformations) %>
   <% elsif blob.previewable? %>
-    <%= image_tag blob.preview(resize: "1024x768>") %>
+    <%= image_tag blob.preview(transformations) %>
   <% end %>
 
   <figcaption class="attachment__caption">

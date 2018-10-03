@@ -81,23 +81,8 @@ module ActionText
       fragment.to_html
     end
 
-    def to_rendered_html
-      render_attachments do |attachment|
-        attachment.node.tap do |node|
-          node.inner_html = ActionText.renderer.render(attachment)
-        end
-      end.render_attachment_galleries do |attachment_gallery|
-        ActionText.renderer.render(layout: attachment_gallery, object: attachment_gallery, formats: "html") do
-          attachment_gallery.attachments.map do |attachment|
-            attachment.node.inner_html = ActionText.renderer.render(attachment)
-            attachment.to_html
-          end.join("").html_safe
-        end
-      end.to_html
-    end
-
     def to_rendered_html_with_layout
-      ActionText.renderer.render(partial: "action_text/content/layout", locals: { document: to_rendered_html })
+      ActionText.renderer.render(partial: "action_text/content/layout", locals: { content: self })
     end
 
     def to_s

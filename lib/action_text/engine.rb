@@ -25,7 +25,7 @@ module ActionText
 
     initializer "action_text.helper" do
       ActiveSupport.on_load(:action_controller_base) do
-        helper ActionText::TagHelper
+        helper ActionText::Engine.helpers
       end
     end
 
@@ -33,7 +33,7 @@ module ActionText
       config.after_initialize do |app|
         ActionText.renderer ||= ApplicationController.renderer
 
-        # FIXME: ApplicationController should have a per-request specific renderer 
+        # FIXME: ApplicationController should have a per-request specific renderer
         # that's been set with the request.env env, and ActionText should just piggyback off
         # that by default rather than doing this work directly.
         ApplicationController.before_action do
