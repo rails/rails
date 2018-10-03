@@ -45,6 +45,18 @@ module ActionText
       try(:content_type) || "application/octet-stream"
     end
 
+    def attachable_filename
+      filename.to_s if respond_to?(:filename)
+    end
+
+    def attachable_filesize
+      try(:byte_size) || try(:filesize)
+    end
+
+    def attachable_metadata
+      try(:metadata) || {}
+    end
+
     def previewable_attachable?
       false
     end
@@ -58,7 +70,11 @@ module ActionText
         attributes[:sgid] = attachable_sgid
         attributes[:content_type] = attachable_content_type
         attributes[:previewable] = true if previewable_attachable?
-      end
+        attributes[:filename] = attachable_filename
+        attributes[:filesize] = attachable_filesize
+        attributes[:width] = attachable_metadata[:width]
+        attributes[:height] = attachable_metadata[:height]
+      end.compact
     end
   end
 end
