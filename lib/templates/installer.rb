@@ -1,11 +1,11 @@
-say "Copying actiontext.css to app/assets/stylesheets"
-copy_file "#{__dir__}/actiontext.css", "app/assets/stylesheets/actiontext.css"
+say "Copying actiontext.scss to app/assets/stylesheets"
+copy_file "#{__dir__}/actiontext.scss", "app/assets/stylesheets/actiontext.scss"
 
 say "Copying fixtures to test/fixtures/action_text/rich_texts.yml"
 copy_file "#{__dir__}/fixtures.yml", "test/fixtures/action_text/rich_texts.yml"
 
 say "Copying blob rendering partial to app/views/active_storage/blobs/_blob.html.erb"
-copy_file "#{__dir__}/../../app/views/active_storage/blobs/_blob.html.erb", 
+copy_file "#{__dir__}/../../app/views/active_storage/blobs/_blob.html.erb",
   "app/views/active_storage/blobs/_blob.html.erb"
 
 # FIXME: Replace with release version on release
