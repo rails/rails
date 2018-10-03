@@ -34,6 +34,7 @@ class ActionText::AttachmentTest < ActiveSupport::TestCase
   end
 
   test "converts to TrixAttachment with content" do
+    attachable = Person.create! name: "Javan"
     attachment = attachment_from_html(%Q(<action-text-attachment sgid="#{attachable.attachable_sgid}"></action-text-attachment>))
 
     trix_attachment = attachment.to_trix_attachment
