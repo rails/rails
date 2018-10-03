@@ -116,7 +116,7 @@ module ActiveSupport
 
     test "Including top constant LoggerSilence is deprecated" do
       assert_deprecated("Please use `ActiveSupport::LoggerSilence`") do
-        logger = Class.new(CustomLogger) do
+        Class.new(CustomLogger) do
           include ::LoggerSilence
         end
       end
