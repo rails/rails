@@ -32,3 +32,11 @@ if ARGV.include?("-v")
   ActiveRecord::Base.logger = Logger.new(STDOUT)
   ActiveJob::Base.logger    = Logger.new(STDOUT)
 end
+
+class BounceMailer < ActionMailer::Base
+  def bounce(to:)
+    mail from: "receiver@example.com", to: to, subject: "Your email was not delivered" do |format|
+      format.html { render plain: "Sorry!" }
+    end
+  end
+end

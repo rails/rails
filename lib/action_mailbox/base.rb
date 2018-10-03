@@ -35,6 +35,11 @@ class ActionMailbox::Base
     # Overwrite in subclasses
   end
 
+  def bounce_with(message)
+    inbound_email.bounced!
+    message.deliver_later
+  end
+
   private
     def track_status_of_inbound_email
       inbound_email.processing!
