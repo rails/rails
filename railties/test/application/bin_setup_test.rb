@@ -42,20 +42,14 @@ module ApplicationTests
         output = `bin/setup 2>&1`
 
         # Ignore line that's only output by Bundler < 1.14
-        output.sub!(/^Resolving dependencies\.\.\.\n/, "")
-
-        assert_equal(<<-OUTPUT, output)
-== Installing dependencies ==
-The Gemfile's dependencies are satisfied
-
-== Preparing database ==
-Created database 'db/development.sqlite3'
-Created database 'db/test.sqlite3'
-
-== Removing old logs and tempfiles ==
-
-== Restarting application server ==
-        OUTPUT
+        assert_match("== Installing dependencies ==", output)
+        assert_match("The Gemfile's dependencies are satisfied", output)
+        assert_match("== Preparing database ==", output)
+        assert_match("Created database 'db/development.sqlite3'", output)
+        assert_match("Created database 'db/test.sqlite3'", output)
+        assert_match("== Preparing database ==", output)
+        assert_match("== Removing old logs and tempfiles ==", output)
+        assert_match("== Restarting application server ==", output)
       end
     end
   end
