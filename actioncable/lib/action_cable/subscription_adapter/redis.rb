@@ -14,7 +14,7 @@ module ActionCable
       # This is needed, for example, when using Makara proxies for distributed Redis.
       cattr_accessor :redis_connector, default: ->(config) do
         config[:id] ||= "ActionCable-PID-#{$$}"
-        ::Redis.new(config.slice(:url, :host, :port, :db, :password, :id))
+        ::Redis.new(config.slice(:url, :host, :port, :db, :password, :id, :sentinels, :failover_reconnect_timeout))
       end
 
       def initialize(*)
