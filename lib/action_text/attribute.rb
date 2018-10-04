@@ -12,7 +12,7 @@ module ActionText
       #
       #   message = Message.create!(content: "<h1>Funny times!</h1>")
       #   message.content.to_s # => "<h1>Funny times!</h1>"
-      #   message.content.body.to_plain_text # => "Funny times!"
+      #   message.content.to_plain_text # => "Funny times!"
       #
       # The dependent RichText model will also automatically process attachments links as sent via the Trix-powered editor.
       # These attachments are associated with the RichText model using Active Storage.
