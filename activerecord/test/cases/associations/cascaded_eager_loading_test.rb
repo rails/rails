@@ -160,6 +160,11 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
     end
   end
 
+  def test_eager_association_loading_with_missing_first_record
+    posts = Post.where(id: 3).preload(author: { comments: :post }).to_a
+    assert_equal 1, posts.size
+  end
+
   def test_eager_association_loading_with_recursive_cascading_four_levels_has_many_through
     source = Vertex.all.merge!(includes: { sinks: { sinks: { sinks: :sinks } } }, order: "vertices.id").first
     assert_equal vertices(:vertex_4), assert_no_queries { source.sinks.first.sinks.first.sinks.first }

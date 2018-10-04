@@ -115,12 +115,16 @@ module ActiveRecord
 
             recs = loaders.flat_map(&:preloaded_records).uniq
 
-            reflection = records.first.class._reflect_on_association(parent)
-            polymorphic_parent = reflection && reflection.options[:polymorphic]
+            if recs.any?
+              a_record = records.find(&:itself)
+              reflection = a_record.class._reflect_on_association(parent)
+              polymorphic_parent = reflection && reflection.options[:polymorphic]
 
-            loaders.concat Array.wrap(child).flat_map { |assoc|
-              preloaders_on assoc, recs, scope, polymorphic_parent
-            }
+              loaders.concat Array.wrap(child).flat_map { |assoc|
+                preloaders_on assoc, recs, scope, polymorphic_parent
+              }
+            end
+
             loaders
           }
         end
