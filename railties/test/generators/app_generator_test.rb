@@ -825,6 +825,20 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_gem "webpacker"
   end
 
+  def test_skip_webpack_install
+    command_check = -> command do
+      if command == "webpacker:install"
+        assert false, "webpacker:install expected not to be called."
+      end
+    end
+
+    generator([destination_root], skip_webpack_install: true).stub(:rails_command, command_check) do
+      quietly { generator.invoke_all }
+    end
+
+    assert_gem "webpacker"
+  end
+
   def test_generator_if_skip_turbolinks_is_given
     run_generator [destination_root, "--skip-turbolinks", "--no-skip-javascript"]
 
