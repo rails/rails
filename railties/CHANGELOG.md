@@ -1,3 +1,8 @@
+*   Adds support for multiple databases to `rails db:rollback`.
+    Subtasks are also added to rollback individual databases (eg. `rails db:rollback:animals`).
+
+    *Gannon McGibbon*
+
 *   Use Webpacker by default to manage app-level JavaScript through the new app/javascript directory.
     Sprockets is now solely in charge, by default, of compiling CSS and other static assets.
     Action Cable channel generators will create ES6 stubs rather than use CoffeeScript.
