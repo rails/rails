@@ -12,9 +12,7 @@ module ActionText
     end
 
     initializer "action_text.active_storage_extension" do
-      require "active_storage/blob"
-
-      class ActiveStorage::Blob
+      ActiveSupport.on_load(:active_storage_blob) do
         include ActionText::Attachable
 
         def previewable_attachable?
