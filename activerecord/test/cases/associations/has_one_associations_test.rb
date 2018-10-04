@@ -231,7 +231,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_build_association_dont_create_transaction
-    assert_no_queries(ignore_none: false) {
+    assert_no_queries {
       Firm.new.build_account
     }
   end

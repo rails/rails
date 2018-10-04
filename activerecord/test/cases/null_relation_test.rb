@@ -10,26 +10,26 @@ class NullRelationTest < ActiveRecord::TestCase
   fixtures :posts, :comments
 
   def test_none
-    assert_no_queries(ignore_none: false) do
+    assert_no_queries do
       assert_equal [], Developer.none
       assert_equal [], Developer.all.none
     end
   end
 
   def test_none_chainable
-    assert_no_queries(ignore_none: false) do
+    assert_no_queries do
       assert_equal [], Developer.none.where(name: "David")
     end
   end
 
   def test_none_chainable_to_existing_scope_extension_method
-    assert_no_queries(ignore_none: false) do
+    assert_no_queries do
       assert_equal 1, Topic.anonymous_extension.none.one
     end
   end
 
   def test_none_chained_to_methods_firing_queries_straight_to_db
-    assert_no_queries(ignore_none: false) do
+    assert_no_queries do
       assert_equal [],    Developer.none.pluck(:id, :name)
       assert_equal 0,     Developer.none.delete_all
       assert_equal 0,     Developer.none.update_all(name: "David")
@@ -39,7 +39,7 @@ class NullRelationTest < ActiveRecord::TestCase
   end
 
   def test_null_relation_content_size_methods
-    assert_no_queries(ignore_none: false) do
+    assert_no_queries do
       assert_equal 0,     Developer.none.size
       assert_equal 0,     Developer.none.count
       assert_equal true,  Developer.none.empty?
@@ -61,7 +61,7 @@ class NullRelationTest < ActiveRecord::TestCase
 
   [:count, :sum].each do |method|
     define_method "test_null_relation_#{method}" do
-      assert_no_queries(ignore_none: false) do
+      assert_no_queries do
         assert_equal 0, Comment.none.public_send(method, :id)
         assert_equal Hash.new, Comment.none.group(:post_id).public_send(method, :id)
       end
@@ -70,7 +70,7 @@ class NullRelationTest < ActiveRecord::TestCase
 
   [:average, :minimum, :maximum].each do |method|
     define_method "test_null_relation_#{method}" do
-      assert_no_queries(ignore_none: false) do
+      assert_no_queries do
         assert_nil Comment.none.public_send(method, :id)
         assert_equal Hash.new, Comment.none.group(:post_id).public_send(method, :id)
       end
