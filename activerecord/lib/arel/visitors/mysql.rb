@@ -69,13 +69,7 @@ module Arel # :nodoc: all
         # query. However, this does not allow for LIMIT, OFFSET and ORDER. To support
         # these, we must use a subquery.
         def prepare_update_statement(o)
-          if has_join_sources?(o)
-            if has_limit_or_offset_or_orders?(o)
-              super
-            else
-              o
-            end
-          elsif o.offset
+          if o.offset || has_join_sources?(o) && has_limit_or_offset_or_orders?(o)
             super
           else
             o
@@ -83,7 +77,7 @@ module Arel # :nodoc: all
         end
 
         def prepare_delete_statement(o)
-          if has_join_sources?(o) || o.offset
+          if o.offset || has_join_sources?(o)
             super
           else
             o
