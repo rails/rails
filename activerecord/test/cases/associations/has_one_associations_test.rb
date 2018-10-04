@@ -37,10 +37,10 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
   def test_has_one_cache_nils
     firm = companies(:another_firm)
     assert_queries(1) { assert_nil firm.account }
-    assert_queries(0) { assert_nil firm.account }
+    assert_no_queries { assert_nil firm.account }
 
-    firms = Firm.all.merge!(includes: :account).to_a
-    assert_queries(0) { firms.each(&:account) }
+    firms = Firm.includes(:account).to_a
+    assert_no_queries { firms.each(&:account) }
   end
 
   def test_with_select

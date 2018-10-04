@@ -1266,7 +1266,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_calling_empty_with_counter_cache
     post = posts(:welcome)
-    assert_queries(0) do
+    assert_no_queries do
       assert_not_empty post.comments
     end
   end
@@ -1800,7 +1800,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     firm.clients = []
     firm.save
 
-    assert_queries(0, ignore_none: true) do
+    assert_no_queries do
       firm.clients = []
     end
 
@@ -1835,7 +1835,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_get_ids_for_loaded_associations
     company = companies(:first_firm)
     company.clients.reload
-    assert_queries(0) do
+    assert_no_queries do
       company.client_ids
       company.client_ids
     end
@@ -1862,11 +1862,11 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_get_ids_for_association_on_new_record_does_not_try_to_find_records
-    Company.columns  # Load schema information so we don't query below
-    Contract.columns # if running just this test.
+    # Load schema information so we don't query below if running just this test.
+    companies(:first_client).contract_ids
 
     company = Company.new
-    assert_queries(0) do
+    assert_no_queries do
       company.contract_ids
     end
 

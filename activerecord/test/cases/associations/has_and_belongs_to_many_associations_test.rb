@@ -741,7 +741,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   def test_get_ids_for_loaded_associations
     developer = developers(:david)
     developer.projects.reload
-    assert_queries(0) do
+    assert_no_queries do
       developer.project_ids
       developer.project_ids
     end
