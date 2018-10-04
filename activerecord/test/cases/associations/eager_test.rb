@@ -1233,6 +1233,17 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_equal author_addresses(:david_address), authors[0].author_address
   end
 
+  def test_eager_loading_with_custom_select
+    posts = Post.eager_load(:author).select("1 as test_val")
+    assert_equal posts.first.test_val, 1
+  end
+
+  def test_eager_loading_with_custom_select_reserved_alias_name_raise_error
+    assert_raise(ActiveRecord::ConfigurationError) do
+      Post.eager_load(:author).select("1 as t0_r0").to_a
+    end
+  end
+
   def test_preload_belongs_to_uses_exclusive_scope
     people = Person.males.merge(includes: :primary_contact).to_a
     assert_not_equal people.length, 0

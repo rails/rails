@@ -102,6 +102,13 @@ module ActiveRecord
         parents = model_cache[join_root]
         column_aliases = aliases.column_aliases join_root
 
+        # add custom select columns
+        alias_keys = aliases.columns.map(&:right)
+        result_set.columns[0...result_set.columns.length - alias_keys.length].each do |col|
+          raise(ConfigurationError, "Can't use select alias '#{col}. Please use other alias name.") if alias_keys.include?(col)
+          column_aliases << Aliases::Column.new(col, col)
+        end
+
         message_bus = ActiveSupport::Notifications.instrumenter
 
         payload = {
