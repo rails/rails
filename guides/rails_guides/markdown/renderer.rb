@@ -31,7 +31,7 @@ HTML
 
         header_with_id = text.scan(/(.*){#(.*)}/)
         unless header_with_id.empty?
-          %(<h#{header_level} id=#{header_with_id[0][1].strip}>#{header_with_id[0][0].strip}</h#{header_level}>)
+          %(<h#{header_level} id="#{header_with_id[0][1].strip}">#{header_with_id[0][0].strip}</h#{header_level}>)
         else
           %(<h#{header_level}>#{text}</h#{header_level}>)
         end
