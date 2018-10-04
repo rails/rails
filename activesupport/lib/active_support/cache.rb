@@ -653,7 +653,7 @@ module ActiveSupport
         end
 
         def normalize_version(key, options = nil)
-          (options && options[:version].try(:to_param)) || expanded_version(key)
+          (options && options[:version]&.try(:to_param)) || expanded_version(key)
         end
 
         def expanded_version(key)
