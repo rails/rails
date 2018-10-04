@@ -117,9 +117,8 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
   end
 
   def test_eager_association_loading_with_has_many_sti_and_subclasses
-    silly = SillyReply.new(title: "gaga", content: "boo-boo", parent_id: 1)
-    silly.parent_id = 1
-    assert silly.save
+    reply = Reply.new(title: "gaga", content: "boo-boo", parent_id: 1)
+    assert reply.save
 
     topics = Topic.all.merge!(includes: :replies, order: ["topics.id", "replies_topics.id"]).to_a
     assert_no_queries do
@@ -159,6 +158,16 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
     assert_no_queries do
       authors[2].post_about_thinking.comments.first
     end
+  end
+
+  def test_preload_through_missing_records
+    post = Post.where.not(author_id: Author.select(:id)).preload(author: { comments: :post }).first!
+    assert_no_queries { assert_nil post.author }
+  end
+
+  def test_eager_association_loading_with_missing_first_record
+    posts = Post.where(id: 3).preload(author: { comments: :post }).to_a
+    assert_equal posts.size, 1
   end
 
   def test_eager_association_loading_with_recursive_cascading_four_levels_has_many_through

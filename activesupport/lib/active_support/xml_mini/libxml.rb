@@ -34,7 +34,7 @@ module LibXML #:nodoc:
     end
 
     module Node #:nodoc:
-      CONTENT_ROOT = "__content__".freeze
+      CONTENT_ROOT = "__content__"
 
       # Convert XML document to hash.
       #
@@ -55,7 +55,7 @@ module LibXML #:nodoc:
           if c.element?
             c.to_hash(node_hash)
           elsif c.text? || c.cdata?
-            node_hash[CONTENT_ROOT] ||= "".dup
+            node_hash[CONTENT_ROOT] ||= +""
             node_hash[CONTENT_ROOT] << c.content
           end
         end

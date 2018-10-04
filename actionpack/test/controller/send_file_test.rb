@@ -144,7 +144,7 @@ class SendFileTest < ActionController::TestCase
       get :test_send_file_headers_bang
 
       assert_equal "image/png", response.content_type
-      assert_equal 'disposition; filename="filename"', response.get_header("Content-Disposition")
+      assert_equal %(disposition; filename="filename"; filename*=UTF-8''filename), response.get_header("Content-Disposition")
       assert_equal "binary", response.get_header("Content-Transfer-Encoding")
       assert_equal "private", response.get_header("Cache-Control")
     end
@@ -153,7 +153,7 @@ class SendFileTest < ActionController::TestCase
   def test_send_file_headers_with_disposition_as_a_symbol
     get :test_send_file_headers_with_disposition_as_a_symbol
 
-    assert_equal 'disposition; filename="filename"', response.get_header("Content-Disposition")
+    assert_equal %(disposition; filename="filename"; filename*=UTF-8''filename), response.get_header("Content-Disposition")
   end
 
   def test_send_file_headers_with_mime_lookup_with_symbol

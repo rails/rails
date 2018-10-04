@@ -9,7 +9,7 @@ require "rack/utils"
 module ActionDispatch
   class Request
     def cookie_jar
-      fetch_header("action_dispatch.cookies".freeze) do
+      fetch_header("action_dispatch.cookies") do
         self.cookie_jar = Cookies::CookieJar.build(self, cookies)
       end
     end
@@ -22,11 +22,11 @@ module ActionDispatch
     }
 
     def have_cookie_jar?
-      has_header? "action_dispatch.cookies".freeze
+      has_header? "action_dispatch.cookies"
     end
 
     def cookie_jar=(jar)
-      set_header "action_dispatch.cookies".freeze, jar
+      set_header "action_dispatch.cookies", jar
     end
 
     def key_generator
@@ -79,6 +79,10 @@ module ActionDispatch
 
     def cookies_rotations
       get_header Cookies::COOKIES_ROTATIONS
+    end
+
+    def use_cookies_with_metadata
+      get_header Cookies::USE_COOKIES_WITH_METADATA
     end
 
     # :startdoc:
@@ -168,20 +172,21 @@ module ActionDispatch
   # * <tt>:httponly</tt> - Whether this cookie is accessible via scripting or
   #   only HTTP. Defaults to +false+.
   class Cookies
-    HTTP_HEADER   = "Set-Cookie".freeze
-    GENERATOR_KEY = "action_dispatch.key_generator".freeze
-    SIGNED_COOKIE_SALT = "action_dispatch.signed_cookie_salt".freeze
-    ENCRYPTED_COOKIE_SALT = "action_dispatch.encrypted_cookie_salt".freeze
-    ENCRYPTED_SIGNED_COOKIE_SALT = "action_dispatch.encrypted_signed_cookie_salt".freeze
-    AUTHENTICATED_ENCRYPTED_COOKIE_SALT = "action_dispatch.authenticated_encrypted_cookie_salt".freeze
-    USE_AUTHENTICATED_COOKIE_ENCRYPTION = "action_dispatch.use_authenticated_cookie_encryption".freeze
-    ENCRYPTED_COOKIE_CIPHER = "action_dispatch.encrypted_cookie_cipher".freeze
-    SIGNED_COOKIE_DIGEST = "action_dispatch.signed_cookie_digest".freeze
-    SECRET_TOKEN = "action_dispatch.secret_token".freeze
-    SECRET_KEY_BASE = "action_dispatch.secret_key_base".freeze
-    COOKIES_SERIALIZER = "action_dispatch.cookies_serializer".freeze
-    COOKIES_DIGEST = "action_dispatch.cookies_digest".freeze
-    COOKIES_ROTATIONS = "action_dispatch.cookies_rotations".freeze
+    HTTP_HEADER   = "Set-Cookie"
+    GENERATOR_KEY = "action_dispatch.key_generator"
+    SIGNED_COOKIE_SALT = "action_dispatch.signed_cookie_salt"
+    ENCRYPTED_COOKIE_SALT = "action_dispatch.encrypted_cookie_salt"
+    ENCRYPTED_SIGNED_COOKIE_SALT = "action_dispatch.encrypted_signed_cookie_salt"
+    AUTHENTICATED_ENCRYPTED_COOKIE_SALT = "action_dispatch.authenticated_encrypted_cookie_salt"
+    USE_AUTHENTICATED_COOKIE_ENCRYPTION = "action_dispatch.use_authenticated_cookie_encryption"
+    ENCRYPTED_COOKIE_CIPHER = "action_dispatch.encrypted_cookie_cipher"
+    SIGNED_COOKIE_DIGEST = "action_dispatch.signed_cookie_digest"
+    SECRET_TOKEN = "action_dispatch.secret_token"
+    SECRET_KEY_BASE = "action_dispatch.secret_key_base"
+    COOKIES_SERIALIZER = "action_dispatch.cookies_serializer"
+    COOKIES_DIGEST = "action_dispatch.cookies_digest"
+    COOKIES_ROTATIONS = "action_dispatch.cookies_rotations"
+    USE_COOKIES_WITH_METADATA = "action_dispatch.use_cookies_with_metadata"
 
     # Cookies can typically store 4096 bytes.
     MAX_COOKIE_SIZE = 4096
@@ -470,7 +475,7 @@ module ActionDispatch
 
       def [](name)
         if data = @parent_jar[name.to_s]
-          parse name, data
+          parse(name, data, purpose: "cookie.#{name}") || parse(name, data)
         end
       end
 
@@ -481,7 +486,7 @@ module ActionDispatch
           options = { value: options }
         end
 
-        commit(options)
+        commit(name, options)
         @parent_jar[name] = options
       end
 
@@ -497,13 +502,24 @@ module ActionDispatch
           end
         end
 
-        def parse(name, data); data; end
-        def commit(options); end
+        def cookie_metadata(name, options)
+          if request.use_cookies_with_metadata
+            metadata = expiry_options(options)
+            metadata[:purpose] = "cookie.#{name}"
+
+            metadata
+          else
+            {}
+          end
+        end
+
+        def parse(name, data, purpose: nil); data; end
+        def commit(name, options); end
     end
 
     class PermanentCookieJar < AbstractCookieJar # :nodoc:
       private
-        def commit(options)
+        def commit(name, options)
           options[:expires] = 20.years.from_now
         end
     end
@@ -519,7 +535,7 @@ module ActionDispatch
     end
 
     module SerializedCookieJars # :nodoc:
-      MARSHAL_SIGNATURE = "\x04\x08".freeze
+      MARSHAL_SIGNATURE = "\x04\x08"
       SERIALIZER = ActiveSupport::MessageEncryptor::NullSerializer
 
       protected
@@ -583,14 +599,14 @@ module ActionDispatch
       end
 
       private
-        def parse(name, signed_message)
+        def parse(name, signed_message, purpose: nil)
           deserialize(name) do |rotate|
-            @verifier.verified(signed_message, on_rotation: rotate)
+            @verifier.verified(signed_message, on_rotation: rotate, purpose: purpose)
           end
         end
 
-        def commit(options)
-          options[:value] = @verifier.generate(serialize(options[:value]), expiry_options(options))
+        def commit(name, options)
+          options[:value] = @verifier.generate(serialize(options[:value]), cookie_metadata(name, options))
 
           raise CookieOverflow if options[:value].bytesize > MAX_COOKIE_SIZE
         end
@@ -631,16 +647,16 @@ module ActionDispatch
       end
 
       private
-        def parse(name, encrypted_message)
+        def parse(name, encrypted_message, purpose: nil)
           deserialize(name) do |rotate|
-            @encryptor.decrypt_and_verify(encrypted_message, on_rotation: rotate)
+            @encryptor.decrypt_and_verify(encrypted_message, on_rotation: rotate, purpose: purpose)
           end
         rescue ActiveSupport::MessageEncryptor::InvalidMessage, ActiveSupport::MessageVerifier::InvalidSignature
           parse_legacy_signed_message(name, encrypted_message)
         end
 
-        def commit(options)
-          options[:value] = @encryptor.encrypt_and_sign(serialize(options[:value]), expiry_options(options))
+        def commit(name, options)
+          options[:value] = @encryptor.encrypt_and_sign(serialize(options[:value]), cookie_metadata(name, options))
 
           raise CookieOverflow if options[:value].bytesize > MAX_COOKIE_SIZE
         end

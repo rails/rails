@@ -305,6 +305,7 @@ class PrimaryKeyAnyTypeTest < ActiveRecord::TestCase
   test "schema dump primary key includes type and options" do
     schema = dump_table_schema "barcodes"
     assert_match %r{create_table "barcodes", primary_key: "code", id: :string, limit: 42}, schema
+    assert_no_match %r{t\.index \["code"\]}, schema
   end
 
   if current_adapter?(:Mysql2Adapter) && subsecond_precision_supported?

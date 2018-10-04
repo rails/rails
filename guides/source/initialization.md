@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
 The Rails Initialization Process
 ================================
@@ -45,7 +45,7 @@ load Gem.bin_path('railties', 'rails', version)
 ```
 
 If you try out this command in a Rails console, you would see that this loads
-`railties/exe/rails`. A part of the file `railties/exe/rails.rb` has the
+`railties/exe/rails`. A part of the file `railties/exe/rails` has the
 following code:
 
 ```ruby

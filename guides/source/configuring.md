@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
 Configuring Rails Applications
 ==============================
@@ -69,7 +69,7 @@ These configuration methods are to be called on a `Rails::Railtie` object, such 
 * `config.beginning_of_week` sets the default beginning of week for the
 application. Accepts a valid week day symbol (e.g. `:monday`).
 
-* `config.cache_store` configures which cache store to use for Rails caching. Options include one of the symbols `:memory_store`, `:file_store`, `:mem_cache_store`, `:null_store`, or an object that implements the cache API. Defaults to `:file_store`.
+* `config.cache_store` configures which cache store to use for Rails caching. Options include one of the symbols `:memory_store`, `:file_store`, `:mem_cache_store`, `:null_store`, `:redis_cache_store`, or an object that implements the cache API. Defaults to `:file_store`.
 
 * `config.colorize_logging` specifies whether or not to use ANSI color codes when logging information. Defaults to `true`.
 
@@ -104,7 +104,7 @@ application. Accepts a valid week day symbol (e.g. `:monday`).
 
 * `config.filter_parameters` used for filtering out the parameters that
 you don't want shown in the logs, such as passwords or credit card
-numbers. By default, Rails filters out passwords by adding `Rails.application.config.filter_parameters += [:password]` in `config/initializers/filter_parameter_logging.rb`. Parameters filter works by partial matching regular expression.
+numbers. It also filters out sensitive values of database columns when call `#inspect` on an Active Record object. By default, Rails filters out passwords by adding `Rails.application.config.filter_parameters += [:password]` in `config/initializers/filter_parameter_logging.rb`. Parameters filter works by partial matching regular expression.
 
 * `config.force_ssl` forces all requests to be served over HTTPS by using the `ActionDispatch::SSL` middleware, and sets `config.action_mailer.default_url_options` to be `{ protocol: 'https' }`. This can be configured by setting `config.ssl_options` - see the [ActionDispatch::SSL documentation](http://api.rubyonrails.org/classes/ActionDispatch/SSL.html) for details.
 
@@ -119,12 +119,11 @@ defaults to `:debug` for all environments. The available log levels are: `:debug
 * `config.logger` is the logger that will be used for `Rails.logger` and any related Rails logging such as `ActiveRecord::Base.logger`. It defaults to an instance of `ActiveSupport::TaggedLogging` that wraps an instance of `ActiveSupport::Logger` which outputs a log to the `log/` directory. You can supply a custom logger, to get full compatibility you must follow these guidelines:
   * To support a formatter, you must manually assign a formatter from the `config.log_formatter` value to the logger.
   * To support tagged logs, the log instance must be wrapped with `ActiveSupport::TaggedLogging`.
-  * To support silencing, the logger must include `LoggerSilence` and `ActiveSupport::LoggerThreadSafeLevel` modules. The `ActiveSupport::Logger` class already includes these modules.
+  * To support silencing, the logger must include `ActiveSupport::LoggerSilence`  module. The `ActiveSupport::Logger` class already includes these modules.
 
     ```ruby
     class MyLogger < ::Logger
-      include ActiveSupport::LoggerThreadSafeLevel
-      include LoggerSilence
+      include ActiveSupport::LoggerSilence
     end
 
     mylogger           = MyLogger.new(STDOUT)
@@ -165,7 +164,7 @@ pipeline is enabled. It is set to `true` by default.
 
 * `config.assets.precompile` allows you to specify additional assets (other than `application.css` and `application.js`) which are to be precompiled when `rake assets:precompile` is run.
 
-* `config.assets.unknown_asset_fallback` allows you to modify the behavior of the asset pipeline when an asset is not in the pipeline, if you use sprockets-rails 3.2.0 or newer. Defaults to `true`.
+* `config.assets.unknown_asset_fallback` allows you to modify the behavior of the asset pipeline when an asset is not in the pipeline, if you use sprockets-rails 3.2.0 or newer. Defaults to `false`.
 
 * `config.assets.prefix` defines the prefix where assets are served from. Defaults to `/assets`.
 
@@ -211,7 +210,7 @@ The full set of methods that can be used in this block are as follows:
 * `stylesheets` turns on the hook for stylesheets in generators. Used in Rails for when the `scaffold` generator is run, but this hook can be used in other generates as well. Defaults to `true`.
 * `stylesheet_engine` configures the stylesheet engine (for eg. sass) to be used when generating assets. Defaults to `:css`.
 * `scaffold_stylesheet` creates `scaffold.css` when generating a scaffolded resource. Defaults to `true`.
-* `test_framework` defines which test framework to use. Defaults to `false` and will use Minitest by default.
+* `test_framework` defines which test framework to use. Defaults to `false` and will use minitest by default.
 * `template_engine` defines which template engine to use, such as ERB or Haml. Defaults to `:erb`.
 
 ### Configuring Middleware
@@ -275,7 +274,7 @@ config.middleware.delete Rack::MethodOverride
 
 All these configuration options are delegated to the `I18n` library.
 
-* `config.i18n.available_locales` whitelists the available locales for the app. Defaults to all locale keys found in locale files, usually only `:en` on a new application.
+* `config.i18n.available_locales` defines the permitted available locales for the app. Defaults to all locale keys found in locale files, usually only `:en` on a new application.
 
 * `config.i18n.default_locale` sets the default locale of an application used for i18n. Defaults to `:en`.
 
@@ -304,6 +303,10 @@ All these configuration options are delegated to the `I18n` library.
     #or
     config.i18n.fallbacks.map = { az: :tr, da: [:de, :en] }
     ```
+
+### Configuring Active Model
+
+* `config.active_model.i18n_full_message` is a boolean value which controls whether the `full_message` error format can be overridden at the attribute or model level in the locale files. This is `false` by default.
 
 ### Configuring Active Record
 
@@ -370,7 +373,7 @@ All these configuration options are delegated to the `I18n` library.
   Defaults to `false`.
 
 * `config.active_record.use_schema_cache_dump` enables users to get schema cache information
-  from `db/schema_cache.yml` (generated by `bin/rails db:schema:cache:dump`), instead of
+  from `db/schema_cache.yml` (generated by `rails db:schema:cache:dump`), instead of
   having to send a query to the database to get this information.
   Defaults to `true`.
 
@@ -440,7 +443,7 @@ The schema dumper adds two additional configuration options:
 
 * `config.action_controller.action_on_unpermitted_parameters` enables logging or raising an exception if parameters that are not explicitly permitted are found. Set to `:log` or `:raise` to enable. The default value is `:log` in development and test environments, and `false` in all other environments.
 
-* `config.action_controller.always_permitted_parameters` sets a list of whitelisted parameters that are permitted by default. The default values are `['controller', 'action']`.
+* `config.action_controller.always_permitted_parameters` sets a list of permitted parameters that are permitted by default. The default values are `['controller', 'action']`.
 
 * `config.action_controller.enable_fragment_cache_logging` determines whether to log fragment cache reads and writes in verbose format as follows:
 
@@ -511,6 +514,9 @@ Defaults to `'signed cookie'`.
 * `config.action_dispatch.use_authenticated_cookie_encryption` controls whether
   signed and encrypted cookies use the AES-256-GCM cipher or
   the older AES-256-CBC cipher. It defaults to `true`.
+
+* `config.action_dispatch.use_cookies_with_metadata` enables writing
+  cookies with the purpose and expiry metadata embedded. It defaults to `true`.
 
 * `config.action_dispatch.perform_deep_munge` configures whether `deep_munge`
   method should be performed on the parameters. See [Security Guide](security.html#unsafe-query-generation)
@@ -663,6 +669,12 @@ There are a number of settings available on `config.action_mailer`:
     config.action_mailer.interceptors = ["MailInterceptor"]
     ```
 
+* `config.action_mailer.preview_interceptors` registers interceptors which will be called before mail is previewed.
+
+    ```ruby
+    config.action_mailer.preview_interceptors = ["MyPreviewMailInterceptor"]
+    ```
+
 * `config.action_mailer.preview_path` specifies the location of mailer previews.
 
     ```ruby
@@ -696,6 +708,8 @@ There are a few configuration options available in Active Support:
 * `config.active_support.time_precision` sets the precision of JSON encoded time values. Defaults to `3`.
 
 * `config.active_support.use_sha1_digests` specifies whether to use SHA-1 instead of MD5 to generate non-sensitive digests, such as the ETag header. Defaults to false.
+
+* `config.active_support.use_authenticated_message_encryption` specifies whether to use AES-256-GCM authenticated encryption as the default cipher for encrypting messages instead of AES-256-CBC. This is false by default, but enabled when loading defaults for Rails 5.2.
 
 * `ActiveSupport::Logger.silencer` is set to `false` to disable the ability to silence logging in a block. The default is `true`.
 
@@ -793,7 +807,7 @@ normal Rails server.
    config.active_storage.paths[:ffprobe] = '/usr/local/bin/ffprobe'
    ```
 
-* `config.active_storage.variable_content_types` accepts an array of strings indicating the content types that Active Storage can transform through ImageMagick. The default is `%w(image/png image/gif image/jpg image/jpeg image/vnd.adobe.photoshop)`.
+* `config.active_storage.variable_content_types` accepts an array of strings indicating the content types that Active Storage can transform through ImageMagick. The default is `%w(image/png image/gif image/jpg image/jpeg image/vnd.adobe.photoshop image/vnd.microsoft.icon)`.
 
 * `config.active_storage.content_types_to_serve_as_binary` accepts an array of strings indicating the content types that Active Storage will always serve as an attachment, rather than inline. The default is `%w(text/html
 text/javascript image/svg+xml application/postscript application/x-shockwave-flash text/xml application/xml application/xhtml+xml)`.
@@ -801,14 +815,29 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 * `config.active_storage.queue` can be used to set the name of the Active Job queue used to perform jobs like analyzing the content of a blob or purging a blog.
 
   ```ruby
-  config.active_job.queue = :low_priority
+  config.active_storage.queue = :low_priority
   ```
 
 * `config.active_storage.logger` can be used to set the logger used by Active Storage. Accepts a logger conforming to the interface of Log4r or the default Ruby Logger class.
 
   ```ruby
-  config.active_job.logger = ActiveSupport::Logger.new(STDOUT)
+  config.active_storage.logger = ActiveSupport::Logger.new(STDOUT)
   ```
+
+* `config.active_storage.service_urls_expire_in` determines the default expiry of URLs generated by:
+  * `ActiveStorage::Blob#service_url`
+  * `ActiveStorage::Blob#service_url_for_direct_upload`
+  * `ActiveStorage::Variant#service_url`
+
+  The default is 5 minutes.
+
+* `config.active_storage.routes_prefix` can be used to set the route prefix for the routes served by Active Storage. Accepts a string that will be prepended to the generated routes.
+
+  ```ruby
+  config.active_storage.routes_prefix = '/files'
+  ```
+
+  The default is `/rails/active_storage`
 
 ### Configuring a Database
 
@@ -888,8 +917,16 @@ development:
 $ echo $DATABASE_URL
 postgresql://localhost/my_database
 
-$ bin/rails runner 'puts ActiveRecord::Base.configurations'
-{"development"=>{"adapter"=>"postgresql", "host"=>"localhost", "database"=>"my_database"}}
+$ rails runner 'puts ActiveRecord::Base.configurations'
+#<ActiveRecord::DatabaseConfigurations:0x00007fd50e209a28>
+
+$ rails runner 'puts ActiveRecord::Base.configurations.inspect'
+#<ActiveRecord::DatabaseConfigurations:0x00007fc8eab02880 @configurations=[
+  #<ActiveRecord::DatabaseConfigurations::UrlConfig:0x00007fc8eab020b0
+    @env_name="development", @spec_name="primary",
+    @config={"adapter"=>"postgresql", "database"=>"my_database", "host"=>"localhost"}
+    @url="postgresql://localhost/my_database">
+  ]
 ```
 
 Here the adapter, host, and database match the information in `ENV['DATABASE_URL']`.
@@ -905,8 +942,16 @@ development:
 $ echo $DATABASE_URL
 postgresql://localhost/my_database
 
-$ bin/rails runner 'puts ActiveRecord::Base.configurations'
-{"development"=>{"adapter"=>"postgresql", "host"=>"localhost", "database"=>"my_database", "pool"=>5}}
+$ rails runner 'puts ActiveRecord::Base.configurations'
+#<ActiveRecord::DatabaseConfigurations:0x00007fd50e209a28>
+
+$ rails runner 'puts ActiveRecord::Base.configurations.inspect'
+#<ActiveRecord::DatabaseConfigurations:0x00007fc8eab02880 @configurations=[
+  #<ActiveRecord::DatabaseConfigurations::UrlConfig:0x00007fc8eab020b0
+    @env_name="development", @spec_name="primary",
+    @config={"adapter"=>"postgresql", "database"=>"my_database", "host"=>"localhost", "pool"=>5}
+    @url="postgresql://localhost/my_database">
+  ]
 ```
 
 Since pool is not in the `ENV['DATABASE_URL']` provided connection information its information is merged in. Since `adapter` is duplicate, the `ENV['DATABASE_URL']` connection information wins.
@@ -921,8 +966,16 @@ development:
 $ echo $DATABASE_URL
 postgresql://localhost/my_database
 
-$ bin/rails runner 'puts ActiveRecord::Base.configurations'
-{"development"=>{"adapter"=>"sqlite3", "database"=>"NOT_my_database"}}
+$ rails runner 'puts ActiveRecord::Base.configurations'
+#<ActiveRecord::DatabaseConfigurations:0x00007fd50e209a28>
+
+$ rails runner 'puts ActiveRecord::Base.configurations.inspect'
+#<ActiveRecord::DatabaseConfigurations:0x00007fc8eab02880 @configurations=[
+  #<ActiveRecord::DatabaseConfigurations::UrlConfig:0x00007fc8eab020b0
+    @env_name="development", @spec_name="primary",
+    @config={"adapter"=>"sqlite3", "database"=>"NOT_my_database"}
+    @url="sqlite3:NOT_my_database">
+  ]
 ```
 
 Here the connection information in `ENV['DATABASE_URL']` is ignored, note the different adapter and database name.
@@ -960,7 +1013,6 @@ If you choose to use MySQL or MariaDB instead of the shipped SQLite3 database, y
 ```yaml
 development:
   adapter: mysql2
-  encoding: utf8
   database: blog_development
   pool: 5
   username: root
@@ -969,6 +1021,16 @@ development:
 ```
 
 If your development database has a root user with an empty password, this configuration should work for you. Otherwise, change the username and password in the `development` section as appropriate.
+
+NOTE: If your MySQL version is 5.5 or 5.6 and want to use the `utf8mb4` character set by default, please configure your MySQL server to support the longer key prefix by enabling `innodb_large_prefix` system variable.
+
+Advisory Locks are enabled by default on MySQL and are used to make database migrations concurrent safe. You can disable advisory locks by setting `advisory_locks` to `false`:
+
+```yaml
+production:
+  adapter: mysql2
+  advisory_locks: false
+```
 
 #### Configuring a PostgreSQL Database
 
@@ -982,12 +1044,13 @@ development:
   pool: 5
 ```
 
-Prepared Statements are enabled by default on PostgreSQL. You can disable prepared statements by setting `prepared_statements` to `false`:
+By default Active Record uses database features like prepared statements and advisory locks. You might need to disable those features if you're using an external connection pooler like PgBouncer:
 
 ```yaml
 production:
   adapter: postgresql
   prepared_statements: false
+  advisory_locks: false
 ```
 
 If enabled, Active Record will create up to `1000` prepared statements per database connection by default. To modify this behavior you can set `statement_limit` to a different value:

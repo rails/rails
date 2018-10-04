@@ -71,6 +71,15 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
                  club1.members.sort_by(&:id)
   end
 
+  def test_preload_multiple_instances_of_the_same_record
+    club = Club.create!(name: "Aaron cool banana club")
+    Membership.create! club: club, member: Member.create!(name: "Aaron")
+    Membership.create! club: club, member: Member.create!(name: "Bob")
+
+    preloaded_clubs = Club.joins(:memberships).preload(:membership).to_a
+    assert_no_queries { preloaded_clubs.each(&:membership) }
+  end
+
   def test_ordered_has_many_through
     person_prime = Class.new(ActiveRecord::Base) do
       def self.name; "Person"; end
@@ -265,7 +274,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_queries(1) { posts(:thinking) }
     new_person = nil # so block binding catches it
 
-    assert_queries(0) do
+    assert_no_queries do
       new_person = Person.new first_name: "bob"
     end
 
@@ -285,7 +294,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   def test_associate_new_by_building
     assert_queries(1) { posts(:thinking) }
 
-    assert_queries(0) do
+    assert_no_queries do
       posts(:thinking).people.build(first_name: "Bob")
       posts(:thinking).people.new(first_name: "Ted")
     end
@@ -562,10 +571,10 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
       posts(:welcome).people = [people(:david)]
     end
 
-    assert_queries(0) {
+    assert_no_queries do
       assert_includes posts(:welcome).people, people(:david)
       assert_not_includes posts(:welcome).people, people(:michael)
-    }
+    end
 
     assert_includes posts(:welcome).reload.people.reload, people(:david)
     assert_not_includes posts(:welcome).reload.people.reload, people(:michael)
@@ -689,7 +698,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
       posts(:welcome).people.clear
     end
 
-    assert_queries(0) do
+    assert_no_queries do
       assert_empty posts(:welcome).people
     end
 
@@ -737,6 +746,18 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
       [:added, :before, "Roger"],
       [:added, :after, "Roger"]
     ], log.last(4)
+
+    post.people_with_callbacks.build { |person| person.first_name = "Ted" }
+    assert_equal [
+      [:added, :before, "Ted"],
+      [:added, :after, "Ted"]
+    ], log.last(2)
+
+    post.people_with_callbacks.create { |person| person.first_name = "Sam" }
+    assert_equal [
+      [:added, :before, "Sam"],
+      [:added, :after, "Sam"]
+    ], log.last(2)
   end
 
   def test_dynamic_find_should_respect_association_include
@@ -767,7 +788,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   def test_get_ids_for_loaded_associations
     person = people(:michael)
     person.posts.reload
-    assert_queries(0) do
+    assert_no_queries do
       person.post_ids
       person.post_ids
     end
@@ -1177,7 +1198,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   def test_has_many_through_associations_on_new_records_use_null_relations
     person = Person.new
 
-    assert_no_queries(ignore_none: false) do
+    assert_no_queries do
       assert_equal [], person.posts
       assert_equal [], person.posts.where(body: "omg")
       assert_equal [], person.posts.pluck(:body)
@@ -1275,6 +1296,10 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_has_many_through_with_scope_that_has_joined_same_table_with_parent_relation
     assert_equal authors(:david), Author.joins(:comments_for_first_author).take
+  end
+
+  def test_has_many_through_with_left_joined_same_table_with_through_table
+    assert_equal [comments(:eager_other_comment1)], authors(:mary).comments.left_joins(:post)
   end
 
   def test_has_many_through_with_unscope_should_affect_to_through_scope

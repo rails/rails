@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
 Testing Rails Applications
 ==========================
@@ -70,7 +70,7 @@ If you remember, we used the `rails generate model` command in the
 model, and among other things it created test stubs in the `test` directory:
 
 ```bash
-$ bin/rails generate model article title:string body:text
+$ rails generate model article title:string body:text
 ...
 create  app/models/article.rb
 create  test/models/article_test.rb
@@ -105,7 +105,7 @@ class ArticleTest < ActiveSupport::TestCase
 The `ArticleTest` class defines a _test case_ because it inherits from `ActiveSupport::TestCase`. `ArticleTest` thus has all the methods available from `ActiveSupport::TestCase`. Later in this guide, we'll see some of the methods it gives us.
 
 Any method defined within a class inherited from `Minitest::Test`
-(which is the superclass of `ActiveSupport::TestCase`) that begins with `test_` (case sensitive) is simply called a test. So, methods defined as `test_password` and `test_valid_password` are legal test names and are run automatically when the test case is run.
+(which is the superclass of `ActiveSupport::TestCase`) that begins with `test_` is simply called a test. So, methods defined as `test_password` and `test_valid_password` are legal test names and are run automatically when the test case is run.
 
 Rails also adds a `test` method that takes a test name and a block. It generates a normal `Minitest::Unit` test with method names prefixed with `test_`. So you don't have to worry about naming the methods, and you can write something like:
 
@@ -156,7 +156,7 @@ end
 Let us run this newly added test (where `6` is the number of line where the test is defined).
 
 ```bash
-$ bin/rails test test/models/article_test.rb:6
+$ rails test test/models/article_test.rb:6
 Run options: --seed 44656
 
 # Running:
@@ -168,7 +168,7 @@ ArticleTest#test_should_not_save_article_without_title [/path/to/blog/test/model
 Expected true to be nil or false
 
 
-bin/rails test test/models/article_test.rb:6
+rails test test/models/article_test.rb:6
 
 
 
@@ -206,7 +206,7 @@ end
 Now the test should pass. Let us verify by running the test again:
 
 ```bash
-$ bin/rails test test/models/article_test.rb:6
+$ rails test test/models/article_test.rb:6
 Run options: --seed 31252
 
 # Running:
@@ -239,7 +239,7 @@ end
 Now you can see even more output in the console from running the tests:
 
 ```bash
-$ bin/rails test test/models/article_test.rb
+$ rails test test/models/article_test.rb
 Run options: --seed 1808
 
 # Running:
@@ -252,7 +252,7 @@ NameError: undefined local variable or method 'some_undefined_variable' for #<Ar
     test/models/article_test.rb:11:in 'block in <class:ArticleTest>'
 
 
-bin/rails test test/models/article_test.rb:9
+rails test test/models/article_test.rb:9
 
 
 
@@ -276,7 +276,7 @@ code. However there are situations when you want to see the full
 backtrace. Set the `-b` (or `--backtrace`) argument to enable this behavior:
 
 ```bash
-$ bin/rails test -b test/models/article_test.rb
+$ rails test -b test/models/article_test.rb
 ```
 
 If we want this test to pass we can modify it to use `assert_raises` like so:
@@ -381,12 +381,12 @@ documentation](http://docs.seattlerb.org/minitest).
 
 ### The Rails Test Runner
 
-We can run all of our tests at once by using the `bin/rails test` command.
+We can run all of our tests at once by using the `rails test` command.
 
-Or we can run a single test file by passing the `bin/rails test` command the filename containing the test cases.
+Or we can run a single test file by passing the `rails test` command the filename containing the test cases.
 
 ```bash
-$ bin/rails test test/models/article_test.rb
+$ rails test test/models/article_test.rb
 Run options: --seed 1559
 
 # Running:
@@ -404,7 +404,7 @@ You can also run a particular test method from the test case by providing the
 `-n` or `--name` flag and the test's method name.
 
 ```bash
-$ bin/rails test test/models/article_test.rb -n test_the_truth
+$ rails test test/models/article_test.rb -n test_the_truth
 Run options: -n test_the_truth --seed 43583
 
 # Running:
@@ -419,29 +419,29 @@ Finished tests in 0.009064s, 110.3266 tests/s, 110.3266 assertions/s.
 You can also run a test at a specific line by providing the line number.
 
 ```bash
-$ bin/rails test test/models/article_test.rb:6 # run specific test and line
+$ rails test test/models/article_test.rb:6 # run specific test and line
 ```
 
 You can also run an entire directory of tests by providing the path to the directory.
 
 ```bash
-$ bin/rails test test/controllers # run all tests from specific directory
+$ rails test test/controllers # run all tests from specific directory
 ```
 
 The test runner also provides a lot of other features like failing fast, deferring test output
 at the end of test run and so on. Check the documentation of the test runner as follows:
 
 ```bash
-$ bin/rails test -h
-Usage: bin/rails test [options] [files or directories]
+$ rails test -h
+Usage: rails test [options] [files or directories]
 
 You can run a single test by appending a line number to a filename:
 
-    bin/rails test test/models/user_test.rb:27
+    rails test test/models/user_test.rb:27
 
 You can run multiple files and directories at the same time:
 
-    bin/rails test test/controllers test/integration/login_test.rb
+    rails test test/controllers test/integration/login_test.rb
 
 By default test failures and errors are reported inline during a run.
 
@@ -490,7 +490,7 @@ parallelize your local test suite differently from your CI, so an environment va
 to be able to easily change the number of workers a test run should use:
 
 ```
-PARALLEL_WORKERS=15 bin/rails test
+PARALLEL_WORKERS=15 rails test
 ```
 
 When parallelizing tests, Active Record automatically handles creating and migrating a database for each
@@ -543,7 +543,7 @@ want to parallelize your local test suite differently from your CI, so an enviro
 to be able to easily change the number of workers a test run should use:
 
 ```
-PARALLEL_WORKERS=15 bin/rails test
+PARALLEL_WORKERS=15 rails test
 ```
 
 The Test Database
@@ -563,11 +563,11 @@ structure. The test helper checks whether your test database has any pending
 migrations. It will try to load your `db/schema.rb` or `db/structure.sql`
 into the test database. If migrations are still pending, an error will be
 raised. Usually this indicates that your schema is not fully migrated. Running
-the migrations against the development database (`bin/rails db:migrate`) will
+the migrations against the development database (`rails db:migrate`) will
 bring the schema up to date.
 
 NOTE: If there were modifications to existing migrations, the test database needs to
-be rebuilt. This can be done by executing `bin/rails db:test:prepare`.
+be rebuilt. This can be done by executing `rails db:test:prepare`.
 
 ### The Low-Down on Fixtures
 
@@ -680,7 +680,7 @@ Rails model tests are stored under the `test/models` directory. Rails provides
 a generator to create a model test skeleton for you.
 
 ```bash
-$ bin/rails generate test_unit:model article title:string body:text
+$ rails generate test_unit:model article title:string body:text
 create  test/models/article_test.rb
 create  test/fixtures/articles.yml
 ```
@@ -697,7 +697,7 @@ For creating Rails system tests, you use the `test/system` directory in your
 application. Rails provides a generator to create a system test skeleton for you.
 
 ```bash
-$ bin/rails generate system_test users
+$ rails generate system_test users
       invoke test_unit
       create test/system/users_test.rb
 ```
@@ -798,7 +798,7 @@ created for you. If you didn't use the scaffold generator, start by creating a
 system test skeleton.
 
 ```bash
-$ bin/rails generate system_test articles
+$ rails generate system_test articles
 ```
 
 It should have created a test file placeholder for us. With the output of the
@@ -827,11 +827,11 @@ The test should see that there is an `h1` on the articles index page and pass.
 Run the system tests.
 
 ```bash
-bin/rails test:system
+rails test:system
 ```
 
-NOTE: By default, running `bin/rails test` won't run your system tests.
-Make sure to run `bin/rails test:system` to actually run them.
+NOTE: By default, running `rails test` won't run your system tests.
+Make sure to run `rails test:system` to actually run them.
 
 #### Creating articles system test
 
@@ -910,7 +910,7 @@ Integration tests are used to test how various parts of your application interac
 For creating Rails integration tests, we use the `test/integration` directory for our application. Rails provides a generator to create an integration test skeleton for us.
 
 ```bash
-$ bin/rails generate integration_test user_flows
+$ rails generate integration_test user_flows
       exists  test/integration/
       create  test/integration/user_flows_test.rb
 ```
@@ -946,7 +946,7 @@ Let's add an integration test to our blog application. We'll start with a basic 
 We'll start by generating our integration test skeleton:
 
 ```bash
-$ bin/rails generate integration_test blog_flow
+$ rails generate integration_test blog_flow
 ```
 
 It should have created a test file placeholder for us. With the output of the
@@ -1028,13 +1028,13 @@ You should test for things such as:
 * was the web request successful?
 * was the user redirected to the right page?
 * was the user successfully authenticated?
-* was the correct object stored in the response template?
 * was the appropriate message displayed to the user in the view?
+* was the correct information displayed in the response?
 
 The easiest way to see functional tests in action is to generate a controller using the scaffold generator:
 
 ```bash
-$ bin/rails generate scaffold_controller article title:string body:text
+$ rails generate scaffold_controller article title:string body:text
 ...
 create  app/controllers/articles_controller.rb
 ...
@@ -1050,7 +1050,7 @@ If you already have a controller and just want to generate the test scaffold cod
 each of the seven default actions, you can use the following command:
 
 ```bash
-$ bin/rails generate test_unit:scaffold article
+$ rails generate test_unit:scaffold article
 ...
 invoke  test_unit
 create    test/controllers/articles_controller_test.rb
@@ -1113,11 +1113,10 @@ end
 
 Now you can try running all the tests and they should pass.
 
-NOTE: If you followed the steps in the Basic Authentication section, you'll need to add the following to the `setup` block to get all the tests passing:
+NOTE: If you followed the steps in the Basic Authentication section, you'll need to add authorization to every request header to get all the tests passing:
 
 ```ruby
-request.headers['Authorization'] = ActionController::HttpAuthentication::Basic.
-  encode_credentials('dhh', 'secret')
+post articles_url, params: { article: { body: 'Rails is awesome!', title: 'Hello Rails' } }, headers: { Authorization: ActionController::HttpAuthentication::Basic.encode_credentials('dhh', 'secret') }
 ```
 
 ### Available Request Types for Functional Tests
@@ -1225,7 +1224,7 @@ end
 If we run our test now, we should see a failure:
 
 ```bash
-$ bin/rails test test/controllers/articles_controller_test.rb -n test_should_create_article
+$ rails test test/controllers/articles_controller_test.rb -n test_should_create_article
 Run options: -n test_should_create_article --seed 32266
 
 # Running:
@@ -1263,7 +1262,7 @@ end
 Now if we run our tests, we should see it pass:
 
 ```bash
-$ bin/rails test test/controllers/articles_controller_test.rb -n test_should_create_article
+$ rails test test/controllers/articles_controller_test.rb -n test_should_create_article
 Run options: -n test_should_create_article --seed 18981
 
 # Running:
@@ -1476,7 +1475,7 @@ Testing Helpers
 ---------------
 
 A helper is just a simple module where you can define methods which are
-available into your views.
+available in your views.
 
 In order to test helpers, all you need to do is check that the output of the
 helper method matches what you'd expect. Tests related to the helpers are

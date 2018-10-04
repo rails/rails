@@ -497,9 +497,7 @@ module ActiveSupport
           arg.halted || !@user_conditions.all? { |c| c.call(arg.target, arg.value) }
         end
 
-        def nested
-          @nested
-        end
+        attr_reader :nested
 
         def final?
           !@call_template
@@ -578,7 +576,7 @@ module ActiveSupport
         end
 
         protected
-          def chain; @chain; end
+          attr_reader :chain
 
         private
 
@@ -659,9 +657,17 @@ module ActiveSupport
         # * <tt>:if</tt> - A symbol or an array of symbols, each naming an instance
         #   method or a proc; the callback will be called only when they all return
         #   a true value.
+        #
+        #   If a proc is given, its body is evaluated in the context of the
+        #   current object. It can also optionally accept the current object as
+        #   an argument.
         # * <tt>:unless</tt> - A symbol or an array of symbols, each naming an
         #   instance method or a proc; the callback will be called only when they
         #   all return a false value.
+        #
+        #   If a proc is given, its body is evaluated in the context of the
+        #   current object. It can also optionally accept the current object as
+        #   an argument.
         # * <tt>:prepend</tt> - If +true+, the callback will be prepended to the
         #   existing chain rather than appended.
         def set_callback(name, *filter_list, &block)

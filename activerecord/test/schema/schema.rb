@@ -23,6 +23,7 @@ ActiveRecord::Schema.define do
     t.string :settings, null: true, limit: 1024
     t.string :parent, null: true, limit: 1024
     t.string :spouse, null: true, limit: 1024
+    t.string :configs, null: true, limit: 1024
     # MySQL does not allow default values for blobs. Fake it out with a
     # big varchar below.
     t.string :preferences, null: true, default: "", limit: 1024
@@ -35,6 +36,7 @@ ActiveRecord::Schema.define do
   create_table :aircraft, force: true do |t|
     t.string :name
     t.integer :wheels_count, default: 0, null: false
+    t.datetime :wheels_owned_at
   end
 
   create_table :articles, force: true do |t|
@@ -125,7 +127,8 @@ ActiveRecord::Schema.define do
   create_table :cars, force: true do |t|
     t.string  :name
     t.integer :engines_count
-    t.integer :wheels_count, default: 0
+    t.integer :wheels_count, default: 0, null: false
+    t.datetime :wheels_owned_at
     t.column :lock_version, :integer, null: false, default: 0
     t.timestamps null: false
   end
@@ -157,6 +160,7 @@ ActiveRecord::Schema.define do
   create_table :citations, force: true do |t|
     t.column :book1_id, :integer
     t.column :book2_id, :integer
+    t.references :citation
   end
 
   create_table :clubs, force: true do |t|
@@ -943,7 +947,7 @@ ActiveRecord::Schema.define do
   end
 
   [:circles, :squares, :triangles, :non_poly_ones, :non_poly_twos].each do |t|
-    create_table(t, force: true) {}
+    create_table(t, force: true) { }
   end
 
   create_table :men, force: true do |t|

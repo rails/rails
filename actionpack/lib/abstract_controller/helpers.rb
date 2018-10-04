@@ -17,7 +17,7 @@ module AbstractController
         @path  = "helpers/#{path}.rb"
         set_backtrace error.backtrace
 
-        if error.path =~ /^#{path}(\.rb)?$/
+        if /^#{path}(\.rb)?$/.match?(error.path)
           super("Missing helper file helpers/%s.rb" % path)
         else
           raise error
@@ -181,7 +181,7 @@ module AbstractController
         end
 
         def default_helper_module!
-          module_name = name.sub(/Controller$/, "".freeze)
+          module_name = name.sub(/Controller$/, "")
           module_path = module_name.underscore
           helper module_path
         rescue LoadError => e

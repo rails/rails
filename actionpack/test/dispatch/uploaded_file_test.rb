@@ -103,6 +103,12 @@ module ActionDispatch
       assert_predicate uf, :eof?
     end
 
+    def test_delegate_to_path_to_tempfile
+      tf = Class.new { def to_path; "/any/file/path" end; }
+      uf = Http::UploadedFile.new(tempfile: tf.new)
+      assert_equal "/any/file/path", uf.to_path
+    end
+
     def test_respond_to?
       tf = Class.new { def read; yield end }
       uf = Http::UploadedFile.new(tempfile: tf.new)

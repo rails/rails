@@ -16,9 +16,6 @@ module ActiveRecord
 
         class_attribute :partial_writes, instance_writer: false, default: true
 
-        after_create { changes_applied }
-        after_update { changes_applied }
-
         # Attribute methods for "changed in last call to save?"
         attribute_method_affix(prefix: "saved_change_to_", suffix: "?")
         attribute_method_prefix("saved_change_to_")
@@ -167,16 +164,20 @@ module ActiveRecord
           result
         end
 
-        def _update_record(*)
-          partial_writes? ? super(keys_for_partial_write) : super
+        def _update_record(attribute_names = attribute_names_for_partial_writes)
+          affected_rows = super
+          changes_applied
+          affected_rows
         end
 
-        def _create_record(*)
-          partial_writes? ? super(keys_for_partial_write) : super
+        def _create_record(attribute_names = attribute_names_for_partial_writes)
+          id = super
+          changes_applied
+          id
         end
 
-        def keys_for_partial_write
-          changed_attribute_names_to_save & self.class.column_names
+        def attribute_names_for_partial_writes
+          partial_writes? ? changed_attribute_names_to_save : attribute_names
         end
     end
   end

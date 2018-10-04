@@ -13,90 +13,15 @@ require "models/developer"
 require "models/computer"
 require "models/project"
 require "models/minimalistic"
-require "models/warehouse_thing"
 require "models/parrot"
 require "models/minivan"
-require "models/owner"
 require "models/person"
-require "models/pet"
 require "models/ship"
-require "models/toy"
 require "models/admin"
 require "models/admin/user"
-require "rexml/document"
 
 class PersistenceTest < ActiveRecord::TestCase
-  fixtures :topics, :companies, :developers, :projects, :computers, :accounts, :minimalistics, "warehouse-things", :authors, :author_addresses, :categorizations, :categories, :posts, :minivans, :pets, :toys
-
-  # Oracle UPDATE does not support ORDER BY
-  unless current_adapter?(:OracleAdapter)
-    def test_update_all_ignores_order_without_limit_from_association
-      author = authors(:david)
-      assert_nothing_raised do
-        assert_equal author.posts_with_comments_and_categories.length, author.posts_with_comments_and_categories.update_all([ "body = ?", "bulk update!" ])
-      end
-    end
-
-    def test_update_all_doesnt_ignore_order
-      assert_equal authors(:david).id + 1, authors(:mary).id # make sure there is going to be a duplicate PK error
-      test_update_with_order_succeeds = lambda do |order|
-        begin
-          Author.order(order).update_all("id = id + 1")
-        rescue ActiveRecord::ActiveRecordError
-          false
-        end
-      end
-
-      if test_update_with_order_succeeds.call("id DESC")
-        assert_not test_update_with_order_succeeds.call("id ASC") # test that this wasn't a fluke and using an incorrect order results in an exception
-      else
-        # test that we're failing because the current Arel's engine doesn't support UPDATE ORDER BY queries is using subselects instead
-        assert_sql(/\AUPDATE .+ \(SELECT .* ORDER BY id DESC\)\z/i) do
-          test_update_with_order_succeeds.call("id DESC")
-        end
-      end
-    end
-
-    def test_update_all_with_order_and_limit_updates_subset_only
-      author = authors(:david)
-      limited_posts = author.posts_sorted_by_id_limited
-      assert_equal 1, limited_posts.size
-      assert_equal 2, limited_posts.limit(2).size
-      assert_equal 1, limited_posts.update_all([ "body = ?", "bulk update!" ])
-      assert_equal "bulk update!", posts(:welcome).body
-      assert_not_equal "bulk update!", posts(:thinking).body
-    end
-
-    def test_update_all_with_order_and_limit_and_offset_updates_subset_only
-      author = authors(:david)
-      limited_posts = author.posts_sorted_by_id_limited.offset(1)
-      assert_equal 1, limited_posts.size
-      assert_equal 2, limited_posts.limit(2).size
-      assert_equal 1, limited_posts.update_all([ "body = ?", "bulk update!" ])
-      assert_equal "bulk update!", posts(:thinking).body
-      assert_not_equal "bulk update!", posts(:welcome).body
-    end
-
-    def test_delete_all_with_order_and_limit_deletes_subset_only
-      author = authors(:david)
-      limited_posts = Post.where(author: author).order(:id).limit(1)
-      assert_equal 1, limited_posts.size
-      assert_equal 2, limited_posts.limit(2).size
-      assert_equal 1, limited_posts.delete_all
-      assert_raise(ActiveRecord::RecordNotFound) { posts(:welcome) }
-      assert posts(:thinking)
-    end
-
-    def test_delete_all_with_order_and_limit_and_offset_deletes_subset_only
-      author = authors(:david)
-      limited_posts = Post.where(author: author).order(:id).limit(1).offset(1)
-      assert_equal 1, limited_posts.size
-      assert_equal 2, limited_posts.limit(2).size
-      assert_equal 1, limited_posts.delete_all
-      assert_raise(ActiveRecord::RecordNotFound) { posts(:thinking) }
-      assert posts(:welcome)
-    end
-  end
+  fixtures :topics, :companies, :developers, :accounts, :minimalistics, :authors, :author_addresses, :posts, :minivans
 
   def test_update_many
     topic_data = { 1 => { "content" => "1 updated" }, 2 => { "content" => "2 updated" } }
@@ -145,34 +70,6 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_equal Topic.count, Topic.delete_all
   end
 
-  def test_delete_all_with_joins_and_where_part_is_hash
-    pets = Pet.joins(:toys).where(toys: { name: "Bone" })
-
-    assert_equal true, pets.exists?
-    assert_equal pets.count, pets.delete_all
-  end
-
-  def test_delete_all_with_joins_and_where_part_is_not_hash
-    pets = Pet.joins(:toys).where("toys.name = ?", "Bone")
-
-    assert_equal true, pets.exists?
-    assert_equal pets.count, pets.delete_all
-  end
-
-  def test_delete_all_with_left_joins
-    pets = Pet.left_joins(:toys).where(toys: { name: "Bone" })
-
-    assert_equal true, pets.exists?
-    assert_equal pets.count, pets.delete_all
-  end
-
-  def test_delete_all_with_includes
-    pets = Pet.includes(:toys).where(toys: { name: "Bone" })
-
-    assert_equal true, pets.exists?
-    assert_equal pets.count, pets.delete_all
-  end
-
   def test_increment_attribute
     assert_equal 50, accounts(:signals37).credit_limit
     accounts(:signals37).increment! :credit_limit
@@ -206,24 +103,33 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_equal initial_credit + 2, a1.reload.credit_limit
   end
 
-  def test_increment_updates_timestamps
+  def test_increment_with_touch_updates_timestamps
     topic = topics(:first)
-    topic.update_columns(updated_at: 5.minutes.ago)
-    previous_updated_at = topic.updated_at
-    topic.increment!(:replies_count, touch: true)
-    assert_operator previous_updated_at, :<, topic.reload.updated_at
+    assert_equal 1, topic.replies_count
+    previously_updated_at = topic.updated_at
+    travel(1.second) do
+      topic.increment!(:replies_count, touch: true)
+    end
+    assert_equal 2, topic.reload.replies_count
+    assert_operator previously_updated_at, :<, topic.updated_at
   end
 
-  def test_destroy_all
-    conditions = "author_name = 'Mary'"
-    topics_by_mary = Topic.all.merge!(where: conditions, order: "id").to_a
-    assert_not_empty topics_by_mary
-
-    assert_difference("Topic.count", -topics_by_mary.size) do
-      destroyed = Topic.where(conditions).destroy_all.sort_by(&:id)
-      assert_equal topics_by_mary, destroyed
-      assert destroyed.all?(&:frozen?), "destroyed topics should be frozen"
+  def test_increment_with_touch_an_attribute_updates_timestamps
+    topic = topics(:first)
+    assert_equal 1, topic.replies_count
+    previously_updated_at = topic.updated_at
+    previously_written_on = topic.written_on
+    travel(1.second) do
+      topic.increment!(:replies_count, touch: :written_on)
     end
+    assert_equal 2, topic.reload.replies_count
+    assert_operator previously_updated_at, :<, topic.updated_at
+    assert_operator previously_written_on, :<, topic.written_on
+  end
+
+  def test_increment_with_no_arg
+    topic = topics(:first)
+    assert_raises(ArgumentError) { topic.increment! }
   end
 
   def test_destroy_many
@@ -333,12 +239,28 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_equal 41, accounts(:signals37, :reload).credit_limit
   end
 
-  def test_decrement_updates_timestamps
+  def test_decrement_with_touch_updates_timestamps
     topic = topics(:first)
-    topic.update_columns(updated_at: 5.minutes.ago)
-    previous_updated_at = topic.updated_at
-    topic.decrement!(:replies_count, touch: true)
-    assert_operator previous_updated_at, :<, topic.reload.updated_at
+    assert_equal 1, topic.replies_count
+    previously_updated_at = topic.updated_at
+    travel(1.second) do
+      topic.decrement!(:replies_count, touch: true)
+    end
+    assert_equal 0, topic.reload.replies_count
+    assert_operator previously_updated_at, :<, topic.updated_at
+  end
+
+  def test_decrement_with_touch_an_attribute_updates_timestamps
+    topic = topics(:first)
+    assert_equal 1, topic.replies_count
+    previously_updated_at = topic.updated_at
+    previously_written_on = topic.written_on
+    travel(1.second) do
+      topic.decrement!(:replies_count, touch: :written_on)
+    end
+    assert_equal 0, topic.reload.replies_count
+    assert_operator previously_updated_at, :<, topic.updated_at
+    assert_operator previously_written_on, :<, topic.written_on
   end
 
   def test_create
@@ -524,19 +446,17 @@ class PersistenceTest < ActiveRecord::TestCase
   end
 
   def test_update_attribute_does_not_run_sql_if_attribute_is_not_changed
-    klass = Class.new(Topic) do
-      def self.name; "Topic"; end
-    end
-    topic = klass.create(title: "Another New Topic")
-    assert_queries(0) do
+    topic = Topic.create(title: "Another New Topic")
+    assert_no_queries do
       assert topic.update_attribute(:title, "Another New Topic")
     end
   end
 
   def test_update_does_not_run_sql_if_record_has_not_changed
     topic = Topic.create(title: "Another New Topic")
-    assert_queries(0) { assert topic.update(title: "Another New Topic") }
-    assert_queries(0) { assert topic.update(title: "Another New Topic") }
+    assert_no_queries do
+      assert topic.update(title: "Another New Topic")
+    end
   end
 
   def test_delete
@@ -617,32 +537,6 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_equal "bulk updated with hash!", Topic.find(2).content
     assert_nil Topic.find(1).last_read
     assert_nil Topic.find(2).last_read
-  end
-
-  def test_update_all_with_joins
-    pets = Pet.joins(:toys).where(toys: { name: "Bone" })
-
-    assert_equal true, pets.exists?
-    assert_equal pets.count, pets.update_all(name: "Bob")
-  end
-
-  def test_update_all_with_left_joins
-    pets = Pet.left_joins(:toys).where(toys: { name: "Bone" })
-
-    assert_equal true, pets.exists?
-    assert_equal pets.count, pets.update_all(name: "Bob")
-  end
-
-  def test_update_all_with_includes
-    pets = Pet.includes(:toys).where(toys: { name: "Bone" })
-
-    assert_equal true, pets.exists?
-    assert_equal pets.count, pets.update_all(name: "Bob")
-  end
-
-  def test_update_all_with_non_standard_table_name
-    assert_equal 1, WarehouseThing.where(id: 1).update_all(["value = ?", 0])
-    assert_equal 0, WarehouseThing.find(1).value
   end
 
   def test_delete_new_record
@@ -1166,21 +1060,19 @@ class PersistenceTest < ActiveRecord::TestCase
     ActiveRecord::Base.connection.disable_query_cache!
   end
 
-  class SaveTest < ActiveRecord::TestCase
-    def test_save_touch_false
-      pet = Pet.create!(
-        name: "Bob",
-        created_at: 1.day.ago,
-        updated_at: 1.day.ago)
+  def test_save_touch_false
+    parrot = Parrot.create!(
+      name: "Bob",
+      created_at: 1.day.ago,
+      updated_at: 1.day.ago)
 
-      created_at = pet.created_at
-      updated_at = pet.updated_at
+    created_at = parrot.created_at
+    updated_at = parrot.updated_at
 
-      pet.name = "Barb"
-      pet.save!(touch: false)
-      assert_equal pet.created_at, created_at
-      assert_equal pet.updated_at, updated_at
-    end
+    parrot.name = "Barb"
+    parrot.save!(touch: false)
+    assert_equal parrot.created_at, created_at
+    assert_equal parrot.updated_at, updated_at
   end
 
   def test_reset_column_information_resets_children

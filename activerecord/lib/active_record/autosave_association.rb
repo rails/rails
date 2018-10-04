@@ -149,7 +149,7 @@ module ActiveRecord
       private
 
         def define_non_cyclic_method(name, &block)
-          return if method_defined?(name)
+          return if instance_methods(false).include?(name)
           define_method(name) do |*args|
             result = true; @_already_called ||= {}
             # Loop prevention for validation of associations
@@ -400,8 +400,13 @@ module ActiveRecord
               if autosave != false && (@new_record_before_save || record.new_record?)
                 if autosave
                   saved = association.insert_record(record, false)
-                else
-                  association.insert_record(record) unless reflection.nested?
+                elsif !reflection.nested?
+                  association_saved = association.insert_record(record)
+
+                  if reflection.validate?
+                    errors.add(reflection.name) unless association_saved
+                    saved = association_saved
+                  end
                 end
               elsif autosave
                 saved = record.save(validate: false)

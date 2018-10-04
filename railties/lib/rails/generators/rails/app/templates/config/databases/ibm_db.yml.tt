@@ -65,7 +65,7 @@ test:
 # ever seen by anyone, they now have access to your database.
 #
 # Instead, provide the password as a unix environment variable when you boot
-# the app. Read http://guides.rubyonrails.org/configuring.html#configuring-a-database
+# the app. Read https://guides.rubyonrails.org/configuring.html#configuring-a-database
 # for a full rundown on how to provide these environment variables in a
 # production deployment.
 #

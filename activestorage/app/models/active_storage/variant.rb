@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "ostruct"
+
 # Image blobs can have variants that are the result of a set of transformations applied to the original.
 # These variants are used to create thumbnails, fixed-size avatars, or any other derivative image from the
 # original.
@@ -51,7 +53,7 @@
 # * {ImageProcessing::Vips}[https://github.com/janko-m/image_processing/blob/master/doc/vips.md#methods]
 # * {ruby-vips reference}[http://www.rubydoc.info/gems/ruby-vips/Vips/Image]
 class ActiveStorage::Variant
-  WEB_IMAGE_CONTENT_TYPES = %w( image/png image/jpeg image/jpg image/gif )
+  WEB_IMAGE_CONTENT_TYPES = %w[ image/png image/jpeg image/jpg image/gif ]
 
   attr_reader :blob, :variation
   delegate :service, to: :blob
@@ -79,7 +81,7 @@ class ActiveStorage::Variant
   # Use <tt>url_for(variant)</tt> (or the implied form, like +link_to variant+ or +redirect_to variant+) to get the stable URL
   # for a variant that points to the ActiveStorage::RepresentationsController, which in turn will use this +service_call+ method
   # for its redirection.
-  def service_url(expires_in: service.url_expires_in, disposition: :inline)
+  def service_url(expires_in: ActiveStorage.service_urls_expire_in, disposition: :inline)
     service.url key, expires_in: expires_in, disposition: disposition, filename: filename, content_type: content_type
   end
 
@@ -95,37 +97,35 @@ class ActiveStorage::Variant
 
     def process
       blob.open do |image|
-        transform image do |output|
-          upload output
-        end
+        transform(image) { |output| upload(output) }
       end
     end
 
-
-    def filename
-      if WEB_IMAGE_CONTENT_TYPES.include?(blob.content_type)
-        blob.filename
-      else
-        ActiveStorage::Filename.new("#{blob.filename.base}.png")
-      end
-    end
-
-    def content_type
-      blob.content_type.presence_in(WEB_IMAGE_CONTENT_TYPES) || "image/png"
-    end
-
-    def transform(image)
-      format = "png" unless WEB_IMAGE_CONTENT_TYPES.include?(blob.content_type)
-      result = variation.transform(image, format: format)
-
-      begin
-        yield result
-      ensure
-        result.close!
-      end
+    def transform(image, &block)
+      variation.transform(image, format: format, &block)
     end
 
     def upload(file)
       service.upload(key, file)
     end
+
+
+    def specification
+      @specification ||=
+        if WEB_IMAGE_CONTENT_TYPES.include?(blob.content_type)
+          Specification.new \
+            filename: blob.filename,
+            content_type: blob.content_type,
+            format: nil
+        else
+          Specification.new \
+            filename: ActiveStorage::Filename.new("#{blob.filename.base}.png"),
+            content_type: "image/png",
+            format: "png"
+        end
+    end
+
+    delegate :filename, :content_type, :format, to: :specification
+
+    class Specification < OpenStruct; end
 end

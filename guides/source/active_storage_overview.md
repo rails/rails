@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
 Active Storage Overview
 =======================
@@ -36,10 +36,10 @@ files.
 ## Setup
 
 Active Storage uses two tables in your application’s database named
-`active_storage_blobs` and `active_storage_attachments`. After upgrading your
-application to Rails 5.2, run `rails active_storage:install` to generate a
-migration that creates these tables. Use `rails db:migrate` to run the
-migration.
+`active_storage_blobs` and `active_storage_attachments`. After creating a new
+application (or upgrading your application to Rails 5.2), run
+`rails active_storage:install` to generate a migration that creates these
+tables. Use `rails db:migrate` to run the migration.
 
 Declare Active Storage services in `config/storage.yml`. For each service your
 application uses, provide a name and the requisite configuration. The example
@@ -58,6 +58,8 @@ amazon:
   service: S3
   access_key_id: ""
   secret_access_key: ""
+  bucket: ""
+  region: "" # e.g. 'us-east-1'
 ```
 
 Tell Active Storage which service to use by setting
@@ -160,7 +162,7 @@ google:
     type: "service_account"
     project_id: ""
     private_key_id: <%= Rails.application.credentials.dig(:gcs, :private_key_id) %>
-    private_key: <%= Rails.application.credentials.dig(:gcs, :private_key) %>
+    private_key: <%= Rails.application.credentials.dig(:gcs, :private_key).dump %>
     client_email: ""
     client_id: ""
     auth_uri: "https://accounts.google.com/o/oauth2/auth"
@@ -174,7 +176,7 @@ google:
 Add the [`google-cloud-storage`](https://github.com/GoogleCloudPlatform/google-cloud-ruby/tree/master/google-cloud-storage) gem to your `Gemfile`:
 
 ```ruby
-gem "google-cloud-storage", "~> 1.8", require: false
+gem "google-cloud-storage", "~> 1.11", require: false
 ```
 
 ### Mirror Service
@@ -211,6 +213,8 @@ production:
 
 NOTE: Files are served from the primary service.
 
+NOTE: This is not compatible with the [direct uploads](#direct-uploads) feature.
+
 Attaching Files to Records
 --------------------------
 
@@ -230,6 +234,10 @@ end
 
 You can create a user with an avatar:
 
+```erb
+<%= form.file_field :avatar %>
+```
+
 ```ruby
 class SignupController < ApplicationController
   def create
@@ -248,13 +256,13 @@ end
 Call `avatar.attach` to attach an avatar to an existing user:
 
 ```ruby
-Current.user.avatar.attach(params[:avatar])
+user.avatar.attach(params[:avatar])
 ```
 
 Call `avatar.attached?` to determine whether a particular user has an avatar:
 
 ```ruby
-Current.user.avatar.attached?
+user.avatar.attached?
 ```
 
 ### `has_many_attached`
@@ -326,7 +334,7 @@ You can bypass the content type inference from the data by passing in
 @message.image.attach(
   io: File.open('/path/to/file'),
   filename: 'file.pdf',
-  content_type: 'application/pdf'
+  content_type: 'application/pdf',
   identify: false
 )
 ```
@@ -392,7 +400,7 @@ You might want to download a blob to a file on disk so an external program (e.g.
 a virus scanner or media transcoder) can operate on it. Use
 `ActiveStorage::Blob#open` to download a blob to a tempfile on disk:
 
-````ruby
+```ruby
 message.video.open do |file|
   system '/path/to/virus/scanner', file.path
   # ...
@@ -446,11 +454,12 @@ the box, Active Storage supports previewing videos and PDF documents.
 </ul>
 ```
 
-WARNING: Extracting previews requires third-party applications, `ffmpeg` for
-video and `mutool` for PDFs. These libraries are not provided by Rails. You must
-install them yourself to use the built-in previewers. Before you install and use
-third-party software, make sure you understand the licensing implications of
-doing so.
+WARNING: Extracting previews requires third-party applications, FFmpeg for
+video and muPDF for PDFs, and on macOS also XQuartz and Poppler.
+These libraries are not provided by Rails. You must install them yourself to
+use the built-in previewers. Before you install and use third-party software,
+make sure you understand the licensing implications of doing so.
+
 
 Direct Uploads
 --------------
@@ -478,7 +487,7 @@ directly from the client to the cloud.
 
 2. Annotate file inputs with the direct upload URL.
 
-    ```ruby
+    ```erb
     <%= form.file_field :attachments, multiple: true, direct_upload: true %>
     ```
 3. That's it! Uploads begin upon form submission.

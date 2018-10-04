@@ -573,10 +573,9 @@ class TransactionTest < ActiveRecord::TestCase
     assert_called(Topic.connection, :begin_db_transaction) do
       Topic.connection.stub(:commit_db_transaction, -> { raise("OH NOES") }) do
         assert_called(Topic.connection, :rollback_db_transaction) do
-
           e = assert_raise RuntimeError do
             Topic.transaction do
-              # do nothing
+              Topic.connection.materialize_transactions
             end
           end
           assert_equal "OH NOES", e.message
@@ -677,6 +676,36 @@ class TransactionTest < ActiveRecord::TestCase
 
     assert_not_predicate reply, :frozen?
     assert_not_predicate topic, :frozen?
+  end
+
+  def test_restore_new_record_after_double_save
+    topic = Topic.new
+
+    Topic.transaction do
+      topic.save!
+      topic.save!
+      raise ActiveRecord::Rollback
+    end
+
+    assert_nil topic.id
+    assert_predicate topic, :new_record?
+  end
+
+  def test_dont_restore_new_record_in_subsequent_transaction
+    topic = Topic.new
+
+    Topic.transaction do
+      topic.save!
+      topic.save!
+    end
+
+    Topic.transaction do
+      topic.save!
+      raise ActiveRecord::Rollback
+    end
+
+    assert_predicate topic, :persisted?
+    assert_not_predicate topic, :new_record?
   end
 
   def test_restore_id_after_rollback
@@ -901,7 +930,7 @@ class TransactionTest < ActiveRecord::TestCase
 
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = "transaction_without_primary_keys"
-      after_commit {} # necessary to trigger the has_transactional_callbacks branch
+      after_commit { } # necessary to trigger the has_transactional_callbacks branch
     end
 
     assert_no_difference(-> { klass.count }) do
@@ -912,6 +941,76 @@ class TransactionTest < ActiveRecord::TestCase
     end
   ensure
     connection.drop_table "transaction_without_primary_keys", if_exists: true
+  end
+
+  def test_empty_transaction_is_not_materialized
+    assert_no_queries do
+      Topic.transaction { }
+    end
+  end
+
+  def test_unprepared_statement_materializes_transaction
+    assert_sql(/BEGIN/i, /COMMIT/i) do
+      Topic.transaction { Topic.where("1=1").first }
+    end
+  end
+
+  if ActiveRecord::Base.connection.prepared_statements
+    def test_prepared_statement_materializes_transaction
+      Topic.first
+
+      assert_sql(/BEGIN/i, /COMMIT/i) do
+        Topic.transaction { Topic.first }
+      end
+    end
+  end
+
+  def test_savepoint_does_not_materialize_transaction
+    assert_no_queries do
+      Topic.transaction do
+        Topic.transaction(requires_new: true) { }
+      end
+    end
+  end
+
+  def test_raising_does_not_materialize_transaction
+    assert_raise(RuntimeError) do
+      assert_no_queries do
+        Topic.transaction { raise }
+      end
+    end
+  end
+
+  def test_accessing_raw_connection_materializes_transaction
+    assert_sql(/BEGIN/i, /COMMIT/i) do
+      Topic.transaction { Topic.connection.raw_connection }
+    end
+  end
+
+  def test_accessing_raw_connection_disables_lazy_transactions
+    Topic.connection.raw_connection
+
+    assert_sql(/BEGIN/i, /COMMIT/i) do
+      Topic.transaction { }
+    end
+  end
+
+  def test_checking_in_connection_reenables_lazy_transactions
+    connection = Topic.connection_pool.checkout
+    connection.raw_connection
+    Topic.connection_pool.checkin connection
+
+    assert_no_queries do
+      connection.transaction { }
+    end
+  end
+
+  def test_transactions_can_be_manually_materialized
+    assert_sql(/BEGIN/i, /COMMIT/i) do
+      Topic.transaction do
+        Topic.connection.materialize_transactions
+      end
+    end
   end
 
   private

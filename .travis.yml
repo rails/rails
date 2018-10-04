@@ -14,17 +14,22 @@ services:
   - redis-server
 
 addons:
-  postgresql: "9.6"
+  postgresql: 10
   chrome: stable
   apt:
     sources:
       - sourceline: "ppa:mc3man/trusty-media"
       - sourceline: "ppa:ubuntuhandbook1/apps"
+      - mysql-5.7-trusty
     packages:
       - ffmpeg
       - mupdf
       - mupdf-tools
       - poppler-utils
+      - mysql-server
+      - mysql-client
+      - postgresql-10
+      - postgresql-client-10
 
 bundler_args: --without test --jobs 3 --retry 3
 before_install:
@@ -37,6 +42,8 @@ before_install:
   - "[[ $GEM != 'av:ujs' ]] || nvm install node"
   - "[[ $GEM != 'av:ujs' ]] || node --version"
   - "[[ $GEM != 'av:ujs' ]] || (cd actionview && npm install)"
+  - "[[ $GEM != 'railties' ]] || (curl -o- -L https://yarnpkg.com/install.sh | bash)"
+  - "[[ $GEM != 'railties' ]] || export PATH=$HOME/.yarn/bin:$PATH"
 
 before_script:
   # Set Sauce Labs username and access key. Obfuscated, purposefully not encrypted.
@@ -50,13 +57,10 @@ env:
   global:
     - "JRUBY_OPTS='--dev -J-Xmx1024M'"
   matrix:
-    - "GEM=railties"
     - "GEM=ap,ac"
     - "GEM=am,amo,as,av,aj,ast"
     - "GEM=as PRESERVE_TIMEZONES=1"
-    - "GEM=ar:mysql2"
     - "GEM=ar:sqlite3"
-    - "GEM=ar:postgresql"
     - "GEM=guides"
     - "GEM=ac:integration"
 
@@ -67,6 +71,33 @@ rvm:
 
 matrix:
   include:
+    - rvm: 2.4.4
+      env: "GEM=railties"
+      sudo: required
+      before_install:
+        - "rm ${BUNDLE_GEMFILE}.lock"
+        - "travis_retry gem update --system"
+        - "travis_retry gem install bundler"
+        - "sudo sed -i 's/port = 5433/port = 5432/' /etc/postgresql/10/main/postgresql.conf"
+        - "sudo service postgresql restart 10"
+    - rvm: 2.5.1
+      env: "GEM=railties"
+      sudo: required
+      before_install:
+        - "rm ${BUNDLE_GEMFILE}.lock"
+        - "travis_retry gem update --system"
+        - "travis_retry gem install bundler"
+        - "sudo sed -i 's/port = 5433/port = 5432/' /etc/postgresql/10/main/postgresql.conf"
+        - "sudo service postgresql restart 10"
+    - rvm: ruby-head
+      env: "GEM=railties"
+      sudo: required
+      before_install:
+        - "rm ${BUNDLE_GEMFILE}.lock"
+        - "travis_retry gem update --system"
+        - "travis_retry gem install bundler"
+        - "sudo sed -i 's/port = 5433/port = 5432/' /etc/postgresql/10/main/postgresql.conf"
+        - "sudo service postgresql restart 10"
     - rvm: 2.5.1
       env: "GEM=av:ujs"
     - rvm: 2.4.4
@@ -87,14 +118,53 @@ matrix:
         - memcached
         - redis-server
         - rabbitmq
+    - rvm: 2.4.4
+      env: "GEM=ar:mysql2"
+      sudo: required
+      before_install:
+        - "sudo mysql -e \"use mysql; update user set authentication_string='' where User='root'; update user set plugin='mysql_native_password';FLUSH PRIVILEGES;\""
+        - "sudo mysql_upgrade"
+        - "sudo service mysql restart"
+    - rvm: 2.5.1
+      env: "GEM=ar:mysql2"
+      sudo: required
+      before_install:
+        - "sudo mysql -e \"use mysql; update user set authentication_string='' where User='root'; update user set plugin='mysql_native_password';FLUSH PRIVILEGES;\""
+        - "sudo mysql_upgrade"
+        - "sudo service mysql restart"
+    - rvm: ruby-head
+      env: "GEM=ar:mysql2"
+      sudo: required
+      before_install:
+        - "sudo mysql -e \"use mysql; update user set authentication_string='' where User='root'; update user set plugin='mysql_native_password';FLUSH PRIVILEGES;\""
+        - "sudo mysql_upgrade"
+        - "sudo service mysql restart"
     - rvm: 2.5.1
       env:
         - "GEM=ar:mysql2 MYSQL=mariadb"
       addons:
-        mariadb: 10.2
+        mariadb: 10.3
     - rvm: 2.5.1
       env:
         - "GEM=ar:sqlite3_mem"
+    - rvm: 2.4.4
+      env: "GEM=ar:postgresql"
+      sudo: required
+      before_install:
+        - "sudo sed -i 's/port = 5433/port = 5432/' /etc/postgresql/10/main/postgresql.conf"
+        - "sudo service postgresql restart 10"
+    - rvm: 2.5.1
+      env: "GEM=ar:postgresql"
+      sudo: required
+      before_install:
+        - "sudo sed -i 's/port = 5433/port = 5432/' /etc/postgresql/10/main/postgresql.conf"
+        - "sudo service postgresql restart 10"
+    - rvm: ruby-head
+      env: "GEM=ar:postgresql"
+      sudo: required
+      before_install:
+        - "sudo sed -i 's/port = 5433/port = 5432/' /etc/postgresql/10/main/postgresql.conf"
+        - "sudo service postgresql restart 10"
     - rvm: 2.5.1
       env:
         - "GEM=ar:postgresql POSTGRES=9.2"

@@ -186,4 +186,8 @@ class TimeTravelTest < ActiveSupport::TestCase
 
     assert_operator expected_time.to_s(:db), :<, Time.now.to_s(:db)
   end
+
+  def test_time_helper_unfreeze_time
+    assert_equal method(:travel_back), method(:unfreeze_time)
+  end
 end

@@ -16,7 +16,7 @@ module ActiveStorage
   #
   # When a video's angle is 90 or 270 degrees, its width and height are automatically swapped for convenience.
   #
-  # This analyzer requires the {ffmpeg}[https://www.ffmpeg.org] system library, which is not provided by Rails.
+  # This analyzer requires the {FFmpeg}[https://www.ffmpeg.org] system library, which is not provided by Rails.
   class Analyzer::VideoAnalyzer < Analyzer
     def self.accept?(blob)
       blob.video?
@@ -107,7 +107,7 @@ module ActiveStorage
           JSON.parse(output.read)
         end
       rescue Errno::ENOENT
-        logger.info "Skipping video analysis because ffmpeg isn't installed"
+        logger.info "Skipping video analysis because FFmpeg isn't installed"
         {}
       end
 

@@ -1232,9 +1232,9 @@ module ActiveRecord
         # * <tt>Firm#clients.size</tt> (similar to <tt>Client.count "firm_id = #{id}"</tt>)
         # * <tt>Firm#clients.find</tt> (similar to <tt>Client.where(firm_id: id).find(id)</tt>)
         # * <tt>Firm#clients.exists?(name: 'ACME')</tt> (similar to <tt>Client.exists?(name: 'ACME', firm_id: firm.id)</tt>)
-        # * <tt>Firm#clients.build</tt> (similar to <tt>Client.new("firm_id" => id)</tt>)
-        # * <tt>Firm#clients.create</tt> (similar to <tt>c = Client.new("firm_id" => id); c.save; c</tt>)
-        # * <tt>Firm#clients.create!</tt> (similar to <tt>c = Client.new("firm_id" => id); c.save!</tt>)
+        # * <tt>Firm#clients.build</tt> (similar to <tt>Client.new(firm_id: id)</tt>)
+        # * <tt>Firm#clients.create</tt> (similar to <tt>c = Client.new(firm_id: id); c.save; c</tt>)
+        # * <tt>Firm#clients.create!</tt> (similar to <tt>c = Client.new(firm_id: id); c.save!</tt>)
         # * <tt>Firm#clients.reload</tt>
         # The declaration can also include an +options+ hash to specialize the behavior of the association.
         #
@@ -1405,9 +1405,9 @@ module ActiveRecord
         # An Account class declares <tt>has_one :beneficiary</tt>, which will add:
         # * <tt>Account#beneficiary</tt> (similar to <tt>Beneficiary.where(account_id: id).first</tt>)
         # * <tt>Account#beneficiary=(beneficiary)</tt> (similar to <tt>beneficiary.account_id = account.id; beneficiary.save</tt>)
-        # * <tt>Account#build_beneficiary</tt> (similar to <tt>Beneficiary.new("account_id" => id)</tt>)
-        # * <tt>Account#create_beneficiary</tt> (similar to <tt>b = Beneficiary.new("account_id" => id); b.save; b</tt>)
-        # * <tt>Account#create_beneficiary!</tt> (similar to <tt>b = Beneficiary.new("account_id" => id); b.save!; b</tt>)
+        # * <tt>Account#build_beneficiary</tt> (similar to <tt>Beneficiary.new(account_id: id)</tt>)
+        # * <tt>Account#create_beneficiary</tt> (similar to <tt>b = Beneficiary.new(account_id: id); b.save; b</tt>)
+        # * <tt>Account#create_beneficiary!</tt> (similar to <tt>b = Beneficiary.new(account_id: id); b.save!; b</tt>)
         # * <tt>Account#reload_beneficiary</tt>
         #
         # === Scopes
@@ -1524,6 +1524,7 @@ module ActiveRecord
         #   Returns the associated object. +nil+ is returned if none is found.
         # [association=(associate)]
         #   Assigns the associate object, extracts the primary key, and sets it as the foreign key.
+        #   No modification or deletion of existing records takes place.
         # [build_association(attributes = {})]
         #   Returns a new object of the associated type that has been instantiated
         #   with +attributes+ and linked to this object through a foreign key, but has not yet been saved.
@@ -1581,7 +1582,7 @@ module ActiveRecord
         #   association will use "taggable_type" as the default <tt>:foreign_type</tt>.
         # [:primary_key]
         #   Specify the method that returns the primary key of associated object used for the association.
-        #   By default this is id.
+        #   By default this is +id+.
         # [:dependent]
         #   If set to <tt>:destroy</tt>, the associated object is destroyed when this object is. If set to
         #   <tt>:delete</tt>, the associated object is deleted *without* calling its destroy method.
@@ -1746,8 +1747,8 @@ module ActiveRecord
         # * <tt>Developer#projects.size</tt>
         # * <tt>Developer#projects.find(id)</tt>
         # * <tt>Developer#projects.exists?(...)</tt>
-        # * <tt>Developer#projects.build</tt> (similar to <tt>Project.new("developer_id" => id)</tt>)
-        # * <tt>Developer#projects.create</tt> (similar to <tt>c = Project.new("developer_id" => id); c.save; c</tt>)
+        # * <tt>Developer#projects.build</tt> (similar to <tt>Project.new(developer_id: id)</tt>)
+        # * <tt>Developer#projects.create</tt> (similar to <tt>c = Project.new(developer_id: id); c.save; c</tt>)
         # * <tt>Developer#projects.reload</tt>
         # The declaration may include an +options+ hash to specialize the behavior of the association.
         #
@@ -1761,6 +1762,7 @@ module ActiveRecord
         #   has_and_belongs_to_many :projects, -> { includes(:milestones, :manager) }
         #   has_and_belongs_to_many :categories, ->(post) {
         #     where("default_category = ?", post.default_category)
+        #   }
         #
         # === Extensions
         #

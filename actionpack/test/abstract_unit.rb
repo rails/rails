@@ -232,6 +232,7 @@ module ActionController
       routes = ActionDispatch::Routing::RouteSet.new
       routes.draw(&block)
       include routes.url_helpers
+      routes
     end
   end
 
@@ -430,14 +431,16 @@ end
 class ActiveSupport::TestCase
   include ActiveSupport::Testing::MethodCallAssertions
 
-  # Skips the current run on Rubinius using Minitest::Assertions#skip
-  private def rubinius_skip(message = "")
-    skip message if RUBY_ENGINE == "rbx"
-  end
-  # Skips the current run on JRuby using Minitest::Assertions#skip
-  private def jruby_skip(message = "")
-    skip message if defined?(JRUBY_VERSION)
-  end
+  private
+    # Skips the current run on Rubinius using Minitest::Assertions#skip
+    def rubinius_skip(message = "")
+      skip message if RUBY_ENGINE == "rbx"
+    end
+
+    # Skips the current run on JRuby using Minitest::Assertions#skip
+    def jruby_skip(message = "")
+      skip message if defined?(JRUBY_VERSION)
+    end
 end
 
 class DrivenByRackTest < ActionDispatch::SystemTestCase

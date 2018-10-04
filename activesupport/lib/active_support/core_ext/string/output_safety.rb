@@ -134,8 +134,9 @@ end
 module ActiveSupport #:nodoc:
   class SafeBuffer < String
     UNSAFE_STRING_METHODS = %w(
-      capitalize chomp chop delete downcase gsub lstrip next reverse rstrip
-      slice squeeze strip sub succ swapcase tr tr_s upcase
+      capitalize chomp chop delete delete_prefix delete_suffix
+      downcase gsub lstrip next reverse rstrip slice squeeze strip
+      sub succ swapcase tr tr_s unicode_normalize upcase
     )
 
     alias_method :original_concat, :concat
@@ -149,9 +150,7 @@ module ActiveSupport #:nodoc:
     end
 
     def [](*args)
-      if args.size < 2
-        super
-      elsif html_safe?
+      if html_safe?
         new_safe_buffer = super
 
         if new_safe_buffer
@@ -188,8 +187,20 @@ module ActiveSupport #:nodoc:
     end
     alias << concat
 
+    def insert(index, value)
+      super(index, html_escape_interpolated_argument(value))
+    end
+
     def prepend(value)
       super(html_escape_interpolated_argument(value))
+    end
+
+    def replace(value)
+      super(html_escape_interpolated_argument(value))
+    end
+
+    def []=(index, value)
+      super(index, html_escape_interpolated_argument(value))
     end
 
     def +(other)

@@ -10,6 +10,8 @@ require "active_storage/previewer/video_previewer"
 require "active_storage/analyzer/image_analyzer"
 require "active_storage/analyzer/video_analyzer"
 
+require "active_storage/reflection"
+
 module ActiveStorage
   class Engine < Rails::Engine # :nodoc:
     isolate_namespace ActiveStorage
@@ -49,9 +51,11 @@ module ActiveStorage
         ActiveStorage.previewers        = app.config.active_storage.previewers || []
         ActiveStorage.analyzers         = app.config.active_storage.analyzers || []
         ActiveStorage.paths             = app.config.active_storage.paths || {}
+        ActiveStorage.routes_prefix     = app.config.active_storage.routes_prefix || "/rails/active_storage"
 
         ActiveStorage.variable_content_types = app.config.active_storage.variable_content_types || []
         ActiveStorage.content_types_to_serve_as_binary = app.config.active_storage.content_types_to_serve_as_binary || []
+        ActiveStorage.service_urls_expire_in = app.config.active_storage.service_urls_expire_in || 5.minutes
       end
     end
 
@@ -59,7 +63,7 @@ module ActiveStorage
       require "active_storage/attached"
 
       ActiveSupport.on_load(:active_record) do
-        extend ActiveStorage::Attached::Macros
+        include ActiveStorage::Attached::Model
       end
     end
 
@@ -93,6 +97,13 @@ module ActiveStorage
               raise e, "Cannot load `Rails.config.active_storage.service`:\n#{e.message}", e.backtrace
             end
         end
+      end
+    end
+
+    initializer "active_storage.reflection" do
+      ActiveSupport.on_load(:active_record) do
+        include Reflection::ActiveRecordExtensions
+        ActiveRecord::Reflection.singleton_class.prepend(Reflection::ReflectionExtension)
       end
     end
   end

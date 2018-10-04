@@ -7,15 +7,11 @@ if current_adapter?(:Mysql2Adapter)
   module ActiveRecord
     class MysqlDBCreateTest < ActiveRecord::TestCase
       def setup
-        @connection    = stub(create_database: true)
+        @connection    = Class.new { def create_database(*); end }.new
         @configuration = {
           "adapter"  => "mysql2",
           "database" => "my-app-db"
         }
-
-        ActiveRecord::Base.stubs(:connection).returns(@connection)
-        ActiveRecord::Base.stubs(:establish_connection).returns(true)
-
         $stdout, @original_stdout = StringIO.new, $stdout
         $stderr, @original_stderr = StringIO.new, $stderr
       end
@@ -25,59 +21,97 @@ if current_adapter?(:Mysql2Adapter)
       end
 
       def test_establishes_connection_without_database
-        ActiveRecord::Base.expects(:establish_connection).
-          with("adapter" => "mysql2", "database" => nil)
-
-        ActiveRecord::Tasks::DatabaseTasks.create @configuration
+        ActiveRecord::Base.stub(:connection, @connection) do
+          assert_called_with(
+            ActiveRecord::Base,
+            :establish_connection,
+            [
+              [ "adapter" => "mysql2", "database" => nil ],
+              [ "adapter" => "mysql2", "database" => "my-app-db" ],
+            ]
+          ) do
+            ActiveRecord::Tasks::DatabaseTasks.create @configuration
+          end
+        end
       end
 
       def test_creates_database_with_no_default_options
-        @connection.expects(:create_database).
-          with("my-app-db", {})
-
-        ActiveRecord::Tasks::DatabaseTasks.create @configuration
+        with_stubbed_connection_establish_connection do
+          assert_called_with(@connection, :create_database, ["my-app-db", {}]) do
+            ActiveRecord::Tasks::DatabaseTasks.create @configuration
+          end
+        end
       end
 
       def test_creates_database_with_given_encoding
-        @connection.expects(:create_database).
-          with("my-app-db", charset: "latin1")
-
-        ActiveRecord::Tasks::DatabaseTasks.create @configuration.merge("encoding" => "latin1")
+        with_stubbed_connection_establish_connection do
+          assert_called_with(@connection, :create_database, ["my-app-db", charset: "latin1"]) do
+            ActiveRecord::Tasks::DatabaseTasks.create @configuration.merge("encoding" => "latin1")
+          end
+        end
       end
 
       def test_creates_database_with_given_collation
-        @connection.expects(:create_database).
-          with("my-app-db", collation: "latin1_swedish_ci")
-
-        ActiveRecord::Tasks::DatabaseTasks.create @configuration.merge("collation" => "latin1_swedish_ci")
+        with_stubbed_connection_establish_connection do
+          assert_called_with(
+            @connection,
+            :create_database,
+            ["my-app-db", collation: "latin1_swedish_ci"]
+          ) do
+            ActiveRecord::Tasks::DatabaseTasks.create @configuration.merge("collation" => "latin1_swedish_ci")
+          end
+        end
       end
 
       def test_establishes_connection_to_database
-        ActiveRecord::Base.expects(:establish_connection).with(@configuration)
-
-        ActiveRecord::Tasks::DatabaseTasks.create @configuration
+        ActiveRecord::Base.stub(:connection, @connection) do
+          assert_called_with(
+            ActiveRecord::Base,
+            :establish_connection,
+            [
+              ["adapter" => "mysql2", "database" => nil],
+              [@configuration]
+            ]
+          ) do
+            ActiveRecord::Tasks::DatabaseTasks.create @configuration
+          end
+        end
       end
 
       def test_when_database_created_successfully_outputs_info_to_stdout
-        ActiveRecord::Tasks::DatabaseTasks.create @configuration
+        with_stubbed_connection_establish_connection do
+          ActiveRecord::Tasks::DatabaseTasks.create @configuration
 
-        assert_equal "Created database 'my-app-db'\n", $stdout.string
+          assert_equal "Created database 'my-app-db'\n", $stdout.string
+        end
       end
 
       def test_create_when_database_exists_outputs_info_to_stderr
-        ActiveRecord::Base.connection.stubs(:create_database).raises(
-          ActiveRecord::Tasks::DatabaseAlreadyExists
-        )
+        with_stubbed_connection_establish_connection do
+          ActiveRecord::Base.connection.stub(
+            :create_database,
+            proc { raise ActiveRecord::Tasks::DatabaseAlreadyExists }
+          ) do
+            ActiveRecord::Tasks::DatabaseTasks.create @configuration
 
-        ActiveRecord::Tasks::DatabaseTasks.create @configuration
-
-        assert_equal "Database 'my-app-db' already exists\n", $stderr.string
+            assert_equal "Database 'my-app-db' already exists\n", $stderr.string
+          end
+        end
       end
+
+      private
+
+        def with_stubbed_connection_establish_connection
+          ActiveRecord::Base.stub(:establish_connection, nil) do
+            ActiveRecord::Base.stub(:connection, @connection) do
+              yield
+            end
+          end
+        end
     end
 
     class MysqlDBCreateWithInvalidPermissionsTest < ActiveRecord::TestCase
       def setup
-        @connection    = stub("Connection", create_database: true)
         @error         = Mysql2::Error.new("Invalid permissions")
         @configuration = {
           "adapter"  => "mysql2",
@@ -85,10 +119,6 @@ if current_adapter?(:Mysql2Adapter)
           "username" => "pat",
           "password" => "wossname"
         }
-
-        ActiveRecord::Base.stubs(:connection).returns(@connection)
-        ActiveRecord::Base.stubs(:establish_connection).raises(@error)
-
         $stdout, @original_stdout = StringIO.new, $stdout
         $stderr, @original_stderr = StringIO.new, $stderr
       end
@@ -98,23 +128,21 @@ if current_adapter?(:Mysql2Adapter)
       end
 
       def test_raises_error
-        assert_raises(Mysql2::Error) do
-          ActiveRecord::Tasks::DatabaseTasks.create @configuration
+        ActiveRecord::Base.stub(:establish_connection, -> * { raise @error }) do
+          assert_raises(Mysql2::Error, "Invalid permissions") do
+            ActiveRecord::Tasks::DatabaseTasks.create @configuration
+          end
         end
       end
     end
 
     class MySQLDBDropTest < ActiveRecord::TestCase
       def setup
-        @connection    = stub(drop_database: true)
+        @connection    = Class.new { def drop_database(name); end }.new
         @configuration = {
           "adapter"  => "mysql2",
           "database" => "my-app-db"
         }
-
-        ActiveRecord::Base.stubs(:connection).returns(@connection)
-        ActiveRecord::Base.stubs(:establish_connection).returns(true)
-
         $stdout, @original_stdout = StringIO.new, $stdout
         $stderr, @original_stderr = StringIO.new, $stderr
       end
@@ -124,91 +152,130 @@ if current_adapter?(:Mysql2Adapter)
       end
 
       def test_establishes_connection_to_mysql_database
-        ActiveRecord::Base.expects(:establish_connection).with @configuration
-
-        ActiveRecord::Tasks::DatabaseTasks.drop @configuration
+        ActiveRecord::Base.stub(:connection, @connection) do
+          assert_called_with(
+            ActiveRecord::Base,
+            :establish_connection,
+            [@configuration]
+          ) do
+            ActiveRecord::Tasks::DatabaseTasks.drop @configuration
+          end
+        end
       end
 
       def test_drops_database
-        @connection.expects(:drop_database).with("my-app-db")
-
-        ActiveRecord::Tasks::DatabaseTasks.drop @configuration
+        with_stubbed_connection_establish_connection do
+          assert_called_with(@connection, :drop_database, ["my-app-db"]) do
+            ActiveRecord::Tasks::DatabaseTasks.drop @configuration
+          end
+        end
       end
 
       def test_when_database_dropped_successfully_outputs_info_to_stdout
-        ActiveRecord::Tasks::DatabaseTasks.drop @configuration
+        with_stubbed_connection_establish_connection do
+          ActiveRecord::Tasks::DatabaseTasks.drop @configuration
 
-        assert_equal "Dropped database 'my-app-db'\n", $stdout.string
+          assert_equal "Dropped database 'my-app-db'\n", $stdout.string
+        end
       end
+
+      private
+
+        def with_stubbed_connection_establish_connection
+          ActiveRecord::Base.stub(:establish_connection, nil) do
+            ActiveRecord::Base.stub(:connection, @connection) do
+              yield
+            end
+          end
+        end
     end
 
     class MySQLPurgeTest < ActiveRecord::TestCase
       def setup
-        @connection    = stub(recreate_database: true)
+        @connection    = Class.new { def recreate_database(*); end }.new
         @configuration = {
           "adapter"  => "mysql2",
           "database" => "test-db"
         }
-
-        ActiveRecord::Base.stubs(:connection).returns(@connection)
-        ActiveRecord::Base.stubs(:establish_connection).returns(true)
       end
 
       def test_establishes_connection_to_the_appropriate_database
-        ActiveRecord::Base.expects(:establish_connection).with(@configuration)
-
-        ActiveRecord::Tasks::DatabaseTasks.purge @configuration
+        ActiveRecord::Base.stub(:connection, @connection) do
+          assert_called_with(
+            ActiveRecord::Base,
+            :establish_connection,
+            [@configuration]
+          ) do
+            ActiveRecord::Tasks::DatabaseTasks.purge @configuration
+          end
+        end
       end
 
       def test_recreates_database_with_no_default_options
-        @connection.expects(:recreate_database).
-          with("test-db", {})
-
-        ActiveRecord::Tasks::DatabaseTasks.purge @configuration
+        with_stubbed_connection_establish_connection do
+          assert_called_with(@connection, :recreate_database, ["test-db", {}]) do
+            ActiveRecord::Tasks::DatabaseTasks.purge @configuration
+          end
+        end
       end
 
       def test_recreates_database_with_the_given_options
-        @connection.expects(:recreate_database).
-          with("test-db", charset: "latin", collation: "latin1_swedish_ci")
-
-        ActiveRecord::Tasks::DatabaseTasks.purge @configuration.merge(
-          "encoding" => "latin", "collation" => "latin1_swedish_ci")
+        with_stubbed_connection_establish_connection do
+          assert_called_with(
+            @connection,
+            :recreate_database,
+            ["test-db", charset: "latin", collation: "latin1_swedish_ci"]
+          ) do
+            ActiveRecord::Tasks::DatabaseTasks.purge @configuration.merge(
+              "encoding" => "latin", "collation" => "latin1_swedish_ci")
+          end
+        end
       end
+
+      private
+
+        def with_stubbed_connection_establish_connection
+          ActiveRecord::Base.stub(:establish_connection, nil) do
+            ActiveRecord::Base.stub(:connection, @connection) do
+              yield
+            end
+          end
+        end
     end
 
     class MysqlDBCharsetTest < ActiveRecord::TestCase
       def setup
-        @connection    = stub(create_database: true)
+        @connection    = Class.new { def charset; end }.new
         @configuration = {
           "adapter"  => "mysql2",
           "database" => "my-app-db"
         }
-
-        ActiveRecord::Base.stubs(:connection).returns(@connection)
-        ActiveRecord::Base.stubs(:establish_connection).returns(true)
       end
 
       def test_db_retrieves_charset
-        @connection.expects(:charset)
-        ActiveRecord::Tasks::DatabaseTasks.charset @configuration
+        ActiveRecord::Base.stub(:connection, @connection) do
+          assert_called(@connection, :charset) do
+            ActiveRecord::Tasks::DatabaseTasks.charset @configuration
+          end
+        end
       end
     end
 
     class MysqlDBCollationTest < ActiveRecord::TestCase
       def setup
-        @connection    = stub(create_database: true)
+        @connection    = Class.new { def collation; end }.new
         @configuration = {
           "adapter"  => "mysql2",
           "database" => "my-app-db"
         }
-
-        ActiveRecord::Base.stubs(:connection).returns(@connection)
-        ActiveRecord::Base.stubs(:establish_connection).returns(true)
       end
 
       def test_db_retrieves_collation
-        @connection.expects(:collation)
-        ActiveRecord::Tasks::DatabaseTasks.collation @configuration
+        ActiveRecord::Base.stub(:connection, @connection) do
+          assert_called_with(@connection, :collation) do
+            ActiveRecord::Tasks::DatabaseTasks.collation @configuration
+          end
+        end
       end
     end
 
@@ -245,15 +312,15 @@ if current_adapter?(:Mysql2Adapter)
 
       def test_structure_dump_with_ignore_tables
         filename = "awesome-file.sql"
-        ActiveRecord::SchemaDumper.expects(:ignore_tables).returns(["foo", "bar"])
-
-        assert_called_with(
-          Kernel,
-          :system,
-          ["mysqldump", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "--ignore-table=test-db.foo", "--ignore-table=test-db.bar", "test-db"],
-          returns: true
-        ) do
-          ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename)
+        ActiveRecord::SchemaDumper.stub(:ignore_tables, ["foo", "bar"]) do
+          assert_called_with(
+            Kernel,
+            :system,
+            ["mysqldump", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "--ignore-table=test-db.foo", "--ignore-table=test-db.bar", "test-db"],
+            returns: true
+          ) do
+            ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename)
+          end
         end
       end
 

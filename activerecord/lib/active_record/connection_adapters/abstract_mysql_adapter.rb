@@ -43,9 +43,11 @@ module ActiveRecord
       }
 
       class StatementPool < ConnectionAdapters::StatementPool # :nodoc:
-        private def dealloc(stmt)
-          stmt.close
-        end
+        private
+
+          def dealloc(stmt)
+            stmt.close
+          end
       end
 
       def initialize(connection, logger, connection_options, config)
@@ -53,8 +55,8 @@ module ActiveRecord
 
         @statements = StatementPool.new(self.class.type_cast_config_to_integer(config[:statement_limit]))
 
-        if version < "5.1.10"
-          raise "Your version of MySQL (#{version_string}) is too old. Active Record supports MySQL >= 5.1.10."
+        if version < "5.5.8"
+          raise "Your version of MySQL (#{version_string}) is too old. Active Record supports MySQL >= 5.5.8."
         end
       end
 
@@ -114,6 +116,14 @@ module ActiveRecord
         true
       end
 
+      def supports_longer_index_key_prefix?
+        if mariadb?
+          version >= "10.2.2"
+        else
+          version >= "5.7.9"
+        end
+      end
+
       def get_advisory_lock(lock_name, timeout = 0) # :nodoc:
         query_value("SELECT GET_LOCK(#{quote(lock_name.to_s)}, #{timeout})") == 1
       end
@@ -127,7 +137,7 @@ module ActiveRecord
       end
 
       def index_algorithms
-        { default: "ALGORITHM = DEFAULT".dup, copy: "ALGORITHM = COPY".dup, inplace: "ALGORITHM = INPLACE".dup }
+        { default: +"ALGORITHM = DEFAULT", copy: +"ALGORITHM = COPY", inplace: +"ALGORITHM = INPLACE" }
       end
 
       # HELPER METHODS ===========================================
@@ -180,6 +190,8 @@ module ActiveRecord
 
       # Executes the SQL statement in the context of this connection.
       def execute(sql, name = nil)
+        materialize_transactions
+
         log(sql, name) do
           ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
             @connection.query(sql)
@@ -211,18 +223,6 @@ module ActiveRecord
         execute "ROLLBACK"
       end
 
-      # In the simple case, MySQL allows us to place JOINs directly into the UPDATE
-      # query. However, this does not allow for LIMIT, OFFSET and ORDER. To support
-      # these, we must use a subquery.
-      def join_to_update(update, select, key) # :nodoc:
-        if select.limit || select.offset || select.orders.any?
-          super
-        else
-          update.table select.source
-          update.wheres = select.constraints
-        end
-      end
-
       def empty_insert_statement_value(primary_key = nil)
         "VALUES ()"
       end
@@ -239,7 +239,7 @@ module ActiveRecord
       end
 
       # Create a new MySQL database with optional <tt>:charset</tt> and <tt>:collation</tt>.
-      # Charset defaults to utf8.
+      # Charset defaults to utf8mb4.
       #
       # Example:
       #   create_database 'charset_test', charset: 'latin1', collation: 'latin1_bin'
@@ -248,8 +248,12 @@ module ActiveRecord
       def create_database(name, options = {})
         if options[:collation]
           execute "CREATE DATABASE #{quote_table_name(name)} DEFAULT COLLATE #{quote_table_name(options[:collation])}"
+        elsif options[:charset]
+          execute "CREATE DATABASE #{quote_table_name(name)} DEFAULT CHARACTER SET #{quote_table_name(options[:charset])}"
+        elsif supports_longer_index_key_prefix?
+          execute "CREATE DATABASE #{quote_table_name(name)} DEFAULT CHARACTER SET `utf8mb4`"
         else
-          execute "CREATE DATABASE #{quote_table_name(name)} DEFAULT CHARACTER SET #{quote_table_name(options[:charset] || 'utf8')}"
+          raise "Configure a supported :charset and ensure innodb_large_prefix is enabled to support indexes on varchar(255) string columns."
         end
       end
 
@@ -376,7 +380,7 @@ module ActiveRecord
 
       def add_index(table_name, column_name, options = {}) #:nodoc:
         index_name, index_type, index_columns, _, index_algorithm, index_using, comment = add_index_options(table_name, column_name, options)
-        sql = "CREATE #{index_type} INDEX #{quote_column_name(index_name)} #{index_using} ON #{quote_table_name(table_name)} (#{index_columns}) #{index_algorithm}".dup
+        sql = +"CREATE #{index_type} INDEX #{quote_column_name(index_name)} #{index_using} ON #{quote_table_name(table_name)} (#{index_columns}) #{index_algorithm}"
         execute add_sql_comment!(sql, comment)
       end
 
@@ -558,17 +562,6 @@ module ActiveRecord
           @max_allowed_packet ||= (show_variable("max_allowed_packet") - bytes_margin)
         end
 
-        def with_multi_statements
-          previous_flags = @config[:flags]
-          @config[:flags] = Mysql2::Client::MULTI_STATEMENTS
-          reconnect!
-
-          yield
-        ensure
-          @config[:flags] = previous_flags
-          reconnect!
-        end
-
         def initialize_type_map(m = type_map)
           super
 
@@ -630,6 +623,7 @@ module ActiveRecord
         ER_DUP_ENTRY            = 1062
         ER_NOT_NULL_VIOLATION   = 1048
         ER_DO_NOT_HAVE_DEFAULT  = 1364
+        ER_ROW_IS_REFERENCED_2  = 1451
         ER_NO_REFERENCED_ROW_2  = 1452
         ER_DATA_TOO_LONG        = 1406
         ER_OUT_OF_RANGE         = 1264
@@ -644,7 +638,7 @@ module ActiveRecord
           case error_number(exception)
           when ER_DUP_ENTRY
             RecordNotUnique.new(message)
-          when ER_NO_REFERENCED_ROW_2
+          when ER_ROW_IS_REFERENCED_2, ER_NO_REFERENCED_ROW_2
             InvalidForeignKey.new(message)
           when ER_CANNOT_ADD_FOREIGN
             mismatched_foreign_key(message)
@@ -727,20 +721,6 @@ module ActiveRecord
           [remove_column_for_alter(table_name, :updated_at), remove_column_for_alter(table_name, :created_at)]
         end
 
-        # MySQL is too stupid to create a temporary table for use subquery, so we have
-        # to give it some prompting in the form of a subsubquery. Ugh!
-        def subquery_for(key, select)
-          subselect = select.clone
-          subselect.projections = [key]
-
-          # Materialize subquery by adding distinct
-          # to work with MySQL 5.7.6 which sets optimizer_switch='derived_merge=on'
-          subselect.distinct unless select.limit || select.offset || select.orders.any?
-
-          key_name = quote_column_name(key.name)
-          Arel::SelectManager.new(subselect.as("__active_record_temp")).project(Arel.sql(key_name))
-        end
-
         def supports_rename_index?
           mariadb? ? false : version >= "5.7.6"
         end
@@ -779,7 +759,7 @@ module ActiveRecord
           # https://dev.mysql.com/doc/refman/5.7/en/set-names.html
           # (trailing comma because variable_assignments will always have content)
           if @config[:encoding]
-            encoding = "NAMES #{@config[:encoding]}".dup
+            encoding = +"NAMES #{@config[:encoding]}"
             encoding << " COLLATE #{@config[:collation]}" if @config[:collation]
             encoding << ", "
           end

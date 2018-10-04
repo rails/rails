@@ -1,23 +1,25 @@
 # frozen_string_literal: true
 
 module ActiveStorage
-  class Downloader
-    def initialize(blob)
-      @blob = blob
+  class Downloader #:nodoc:
+    def initialize(blob, tempdir: nil)
+      @blob    = blob
+      @tempdir = tempdir
     end
 
     def download_blob_to_tempfile
       open_tempfile do |file|
         download_blob_to file
+        verify_integrity_of file
         yield file
       end
     end
 
     private
-      attr_reader :blob
+      attr_reader :blob, :tempdir
 
       def open_tempfile
-        file = Tempfile.open([ "ActiveStorage", tempfile_extension_with_delimiter ])
+        file = Tempfile.open([ "ActiveStorage-#{blob.id}-", blob.filename.extension_with_delimiter ], tempdir)
 
         begin
           yield file
@@ -33,8 +35,10 @@ module ActiveStorage
         file.rewind
       end
 
-      def tempfile_extension_with_delimiter
-        blob.filename.extension_with_delimiter
+      def verify_integrity_of(file)
+        unless Digest::MD5.file(file).base64digest == blob.checksum
+          raise ActiveStorage::IntegrityError
+        end
       end
   end
 end

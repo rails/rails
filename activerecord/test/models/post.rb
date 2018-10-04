@@ -253,6 +253,7 @@ class SpecialPostWithDefaultScope < ActiveRecord::Base
   self.inheritance_column = :disabled
   self.table_name = "posts"
   default_scope { where(id: [1, 5, 6]) }
+  scope :unscoped_all, -> { unscoped { all } }
 end
 
 class PostThatLoadsCommentsInAnAfterSaveHook < ActiveRecord::Base
@@ -323,7 +324,7 @@ class FakeKlass
       table[name]
     end
 
-    def enforce_raw_sql_whitelist(*args)
+    def disallow_raw_sql!(*args)
       # noop
     end
 

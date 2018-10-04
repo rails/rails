@@ -87,7 +87,7 @@ module ActiveRecord
 
       def test_connection_no_db
         assert_raises(ArgumentError) do
-          Base.sqlite3_connection {}
+          Base.sqlite3_connection { }
         end
       end
 
@@ -167,7 +167,7 @@ module ActiveRecord
             data binary
           )
         eosql
-        str = "\x80".dup.force_encoding("ASCII-8BIT")
+        str = (+"\x80").force_encoding("ASCII-8BIT")
         binary = DualEncoding.new name: "いただきます！", data: str
         binary.save!
         assert_equal str, binary.data
@@ -176,7 +176,7 @@ module ActiveRecord
       end
 
       def test_type_cast_should_not_mutate_encoding
-        name = "hello".dup.force_encoding(Encoding::ASCII_8BIT)
+        name = (+"hello").force_encoding(Encoding::ASCII_8BIT)
         Owner.create(name: name)
         assert_equal Encoding::ASCII_8BIT, name.encoding
       ensure
@@ -345,6 +345,42 @@ module ActiveRecord
         end
       end
 
+      if ActiveRecord::Base.connection.supports_expression_index?
+        def test_expression_index
+          with_example_table do
+            @conn.add_index "ex", "max(id, number)", name: "expression"
+            index = @conn.indexes("ex").find { |idx| idx.name == "expression" }
+            assert_equal "max(id, number)", index.columns
+          end
+        end
+
+        def test_expression_index_with_where
+          with_example_table do
+            @conn.add_index "ex", "id % 10, max(id, number)", name: "expression", where: "id > 1000"
+            index = @conn.indexes("ex").find { |idx| idx.name == "expression" }
+            assert_equal "id % 10, max(id, number)", index.columns
+            assert_equal "id > 1000", index.where
+          end
+        end
+
+        def test_complicated_expression
+          with_example_table do
+            @conn.execute "CREATE INDEX expression ON ex (id % 10, (CASE WHEN number > 0 THEN max(id, number) END))WHERE(id > 1000)"
+            index = @conn.indexes("ex").find { |idx| idx.name == "expression" }
+            assert_equal "id % 10, (CASE WHEN number > 0 THEN max(id, number) END)", index.columns
+            assert_equal "(id > 1000)", index.where
+          end
+        end
+
+        def test_not_everything_an_expression
+          with_example_table do
+            @conn.add_index "ex", "id, max(id, number)", name: "expression"
+            index = @conn.indexes("ex").find { |idx| idx.name == "expression" }
+            assert_equal "id, max(id, number)", index.columns
+          end
+        end
+      end
+
       def test_primary_key
         with_example_table do
           assert_equal "id", @conn.primary_key("ex")
@@ -502,6 +538,39 @@ module ActiveRecord
 
       def test_deprecate_valid_alter_table_type
         assert_deprecated { @conn.valid_alter_table_type?(:string) }
+      end
+
+      def test_db_is_not_readonly_when_readonly_option_is_false
+        conn = Base.sqlite3_connection database: ":memory:",
+                                       adapter: "sqlite3",
+                                       readonly: false
+
+        assert_not_predicate conn.raw_connection, :readonly?
+      end
+
+      def test_db_is_not_readonly_when_readonly_option_is_unspecified
+        conn = Base.sqlite3_connection database: ":memory:",
+                                       adapter: "sqlite3"
+
+        assert_not_predicate conn.raw_connection, :readonly?
+      end
+
+      def test_db_is_readonly_when_readonly_option_is_true
+        conn = Base.sqlite3_connection database: ":memory:",
+                                       adapter: "sqlite3",
+                                       readonly: true
+
+        assert_predicate conn.raw_connection, :readonly?
+      end
+
+      def test_writes_are_not_permitted_to_readonly_databases
+        conn = Base.sqlite3_connection database: ":memory:",
+                                       adapter: "sqlite3",
+                                       readonly: true
+
+        assert_raises(ActiveRecord::StatementInvalid, /SQLite3::ReadOnlyException/) do
+          conn.execute("CREATE TABLE test(id integer)")
+        end
       end
 
       private

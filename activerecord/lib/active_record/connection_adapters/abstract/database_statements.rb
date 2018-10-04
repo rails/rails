@@ -20,7 +20,7 @@ module ActiveRecord
             raise "Passing bind parameters with an arel AST is forbidden. " \
               "The values must be stored on the AST directly"
           end
-          sql, binds = visitor.accept(arel_or_sql_string.ast, collector).value
+          sql, binds = visitor.compile(arel_or_sql_string.ast, collector)
           [sql.freeze, binds || []]
         else
           [arel_or_sql_string.dup.freeze, binds]
@@ -32,11 +32,11 @@ module ActiveRecord
       # can be used to query the database repeatedly.
       def cacheable_query(klass, arel) # :nodoc:
         if prepared_statements
-          sql, binds = visitor.accept(arel.ast, collector).value
+          sql, binds = visitor.compile(arel.ast, collector)
           query = klass.query(sql)
         else
-          collector = PartialQueryCollector.new
-          parts, binds = visitor.accept(arel.ast, collector).value
+          collector = klass.partial_query_collector
+          parts, binds = visitor.compile(arel.ast, collector)
           query = klass.partial_query(parts)
         end
         [query, binds]
@@ -46,11 +46,16 @@ module ActiveRecord
       def select_all(arel, name = nil, binds = [], preparable: nil)
         arel = arel_from_relation(arel)
         sql, binds = to_sql_and_binds(arel, binds)
+
         if !prepared_statements || (arel.is_a?(String) && preparable.nil?)
+          preparable = false
+        elsif binds.length > bind_params_length
+          sql, binds = unprepared_statement { to_sql_and_binds(arel) }
           preparable = false
         else
           preparable = visitor.preparable
         end
+
         if prepared_statements && preparable
           select_prepared(sql, name, binds)
         else
@@ -259,7 +264,9 @@ module ActiveRecord
 
       attr_reader :transaction_manager #:nodoc:
 
-      delegate :within_new_transaction, :open_transactions, :current_transaction, :begin_transaction, :commit_transaction, :rollback_transaction, to: :transaction_manager
+      delegate :within_new_transaction, :open_transactions, :current_transaction, :begin_transaction,
+               :commit_transaction, :rollback_transaction, :materialize_transactions,
+               :disable_lazy_transactions!, :enable_lazy_transactions!, to: :transaction_manager
 
       def transaction_open?
         current_transaction.open?
@@ -372,7 +379,7 @@ module ActiveRecord
           build_fixture_sql(fixtures, table_name)
         end.compact
 
-        table_deletes = tables_to_delete.map { |table| "DELETE FROM #{quote_table_name table}".dup }
+        table_deletes = tables_to_delete.map { |table| +"DELETE FROM #{quote_table_name table}" }
         total_sql = Array.wrap(combine_multi_statements(table_deletes + fixture_inserts))
 
         disable_referential_integrity do
@@ -402,16 +409,6 @@ module ActiveRecord
           Integer(limit)
         end
       end
-
-      # The default strategy for an UPDATE with joins is to use a subquery. This doesn't work
-      # on MySQL (even when aliasing the tables), but MySQL allows using JOIN directly in
-      # an UPDATE statement, so in the MySQL adapters we redefine this to do that.
-      def join_to_update(update, select, key) # :nodoc:
-        subselect = subquery_for(key, select)
-
-        update.where key.in(subselect)
-      end
-      alias join_to_delete join_to_update
 
       private
         def default_insert_value(column)
@@ -453,13 +450,6 @@ module ActiveRecord
           total_sql.join(";\n")
         end
 
-        # Returns a subquery for the given key using the join information.
-        def subquery_for(key, select)
-          subselect = select.clone
-          subselect.projections = [key]
-          subselect
-        end
-
         # Returns an ActiveRecord::Result instance.
         def select(sql, name = nil, binds = [])
           exec_query(sql, name, binds, prepare: false)
@@ -498,28 +488,6 @@ module ActiveRecord
             YAML.dump(value)
           else
             value
-          end
-        end
-
-        class PartialQueryCollector
-          def initialize
-            @parts = []
-            @binds = []
-          end
-
-          def <<(str)
-            @parts << str
-            self
-          end
-
-          def add_bind(obj)
-            @binds << obj
-            @parts << Arel::Nodes::BindParam.new(1)
-            self
-          end
-
-          def value
-            [@parts, @binds]
           end
         end
     end

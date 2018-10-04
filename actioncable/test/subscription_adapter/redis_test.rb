@@ -4,7 +4,6 @@ require "test_helper"
 require_relative "common"
 require_relative "channel_prefix"
 
-require "active_support/testing/method_call_assertions"
 require "action_cable/subscription_adapter/redis"
 
 class RedisAdapterTest < ActionCable::TestCase
@@ -30,14 +29,20 @@ class RedisAdapterTest::AlternateConfiguration < RedisAdapterTest
   end
 end
 
-class RedisAdapterTest::Connector < ActiveSupport::TestCase
-  include ActiveSupport::Testing::MethodCallAssertions
-
-  test "slices url, host, port, db, and password from config" do
-    config = { url: 1, host: 2, port: 3, db: 4, password: 5 }
+class RedisAdapterTest::Connector < ActionCable::TestCase
+  test "slices url, host, port, db, password and id from config" do
+    config = { url: 1, host: 2, port: 3, db: 4, password: 5, id: "Some custom ID" }
 
     assert_called_with ::Redis, :new, [ config ] do
       connect config.merge(other: "unrelated", stuff: "here")
+    end
+  end
+
+  test "adds default id if it is not specified" do
+    config = { url: 1, host: 2, port: 3, db: 4, password: 5, id: "ActionCable-PID-#{$$}" }
+
+    assert_called_with ::Redis, :new, [ config ] do
+      connect config.except(:id)
     end
   end
 

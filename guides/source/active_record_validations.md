@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
 Active Record Validations
 =========================
@@ -87,7 +87,7 @@ end
 We can see how it works by looking at some `rails console` output:
 
 ```ruby
-$ bin/rails console
+$ rails console
 >> p = Person.new(name: "John Doe")
 => #<Person id: nil, name: "John Doe", created_at: nil, updated_at: nil>
 >> p.new_record?
@@ -844,9 +844,9 @@ class Person < ApplicationRecord
 end
 ```
 
-You can also use `on:` to define custom context.
-Custom contexts need to be triggered explicitly
-by passing name of the context to `valid?`, `invalid?` or `save`.
+You can also use `on:` to define custom contexts. Custom contexts need to be
+triggered explicitly by passing the name of the context to `valid?`,
+`invalid?`, or `save`.
 
 ```ruby
 class Person < ApplicationRecord
@@ -854,14 +854,32 @@ class Person < ApplicationRecord
   validates :age, numericality: true, on: :account_setup
 end
 
-person = Person.new
+person = Person.new(age: 'thirty-three')
+person.valid? # => true
+person.valid?(:account_setup) # => false
+person.errors.messages
+ # => {:email=>["has already been taken"], :age=>["is not a number"]}
 ```
 
-`person.valid?(:account_setup)` executes both the validations
-without saving the model. And `person.save(context: :account_setup)`
-validates `person` in `account_setup` context before saving.
-On explicit triggers, model is validated by
-validations of only that context and validations without context.
+`person.valid?(:account_setup)` executes both the validations without saving
+the model. `person.save(context: :account_setup)` validates `person` in the
+`account_setup` context before saving.
+
+When triggered by an explicit context, validations are run for that context,
+as well as any validations _without_ a context.
+
+```ruby
+class Person < ApplicationRecord
+  validates :email, uniqueness: true, on: :account_setup
+  validates :age, numericality: true, on: :account_setup
+  validates :name, presence: true
+end
+
+person = Person.new
+person.valid?(:account_setup) # => false
+person.errors.messages
+ # => {:email=>["has already been taken"], :age=>["is not a number"], :name=>["can't be blank"]}
+```
 
 Strict Validations
 ------------------
@@ -925,6 +943,13 @@ class Account < ApplicationRecord
   validates :password, confirmation: true,
     unless: Proc.new { |a| a.password.blank? }
 end
+```
+
+As `Lambdas` are a type of `Proc`, they can also be used to write inline
+conditions in a shorter way.
+
+```ruby
+validates :password, confirmation: true, unless: -> { password.blank? }
 ```
 
 ### Grouping Conditional validations
@@ -1131,24 +1156,6 @@ person.errors[:name]
 
 person.errors.full_messages
  # => ["Name cannot contain the characters !@#%*()_-+="]
-```
-
-An equivalent to `errors#add` is to use `<<` to append a message to the `errors.messages` array for an attribute:
-
-```ruby
-  class Person < ApplicationRecord
-    def a_method_used_for_validation_purposes
-      errors.messages[:name] << "cannot contain the characters !@#%*()_-+="
-    end
-  end
-
-  person = Person.create(name: "!@#")
-
-  person.errors[:name]
-   # => ["cannot contain the characters !@#%*()_-+="]
-
-  person.errors.to_a
-   # => ["Name cannot contain the characters !@#%*()_-+="]
 ```
 
 ### `errors.details`

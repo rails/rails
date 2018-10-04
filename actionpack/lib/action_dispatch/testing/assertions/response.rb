@@ -79,9 +79,8 @@ module ActionDispatch
         end
 
         def generate_response_message(expected, actual = @response.response_code)
-          "Expected response to be a <#{code_with_name(expected)}>,"\
-          " but was a <#{code_with_name(actual)}>"
-            .dup.concat(location_if_redirected).concat(response_body_if_short)
+          (+"Expected response to be a <#{code_with_name(expected)}>,"\
+          " but was a <#{code_with_name(actual)}>").concat(location_if_redirected).concat(response_body_if_short)
         end
 
         def response_body_if_short

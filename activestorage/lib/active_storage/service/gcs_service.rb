@@ -1,12 +1,7 @@
 # frozen_string_literal: true
 
 gem "google-cloud-storage", "~> 1.11"
-
 require "google/cloud/storage"
-require "net/http"
-
-require "active_support/core_ext/object/to_query"
-require "active_storage/filename"
 
 module ActiveStorage
   # Wraps the Google Cloud Storage as an Active Storage service. See ActiveStorage::Service for the generic API
@@ -39,14 +34,22 @@ module ActiveStorage
         end
       else
         instrument :download, key: key do
-          file_for(key).download.string
+          begin
+            file_for(key).download.string
+          rescue Google::Cloud::NotFoundError
+            raise ActiveStorage::FileNotFoundError
+          end
         end
       end
     end
 
     def download_chunk(key, range)
       instrument :download_chunk, key: key, range: range do
-        file_for(key).download(range: range).string
+        begin
+          file_for(key).download(range: range).string
+        rescue Google::Cloud::NotFoundError
+          raise ActiveStorage::FileNotFoundError
+        end
       end
     end
 
@@ -62,7 +65,13 @@ module ActiveStorage
 
     def delete_prefixed(prefix)
       instrument :delete_prefixed, prefix: prefix do
-        bucket.files(prefix: prefix).all(&:delete)
+        bucket.files(prefix: prefix).all do |file|
+          begin
+            file.delete
+          rescue Google::Cloud::NotFoundError
+            # Ignore concurrently-deleted files
+          end
+        end
       end
     end
 
@@ -114,6 +123,8 @@ module ActiveStorage
 
         chunk_size = 5.megabytes
         offset = 0
+
+        raise ActiveStorage::FileNotFoundError unless file.present?
 
         while offset < file.size
           yield file.download(range: offset..(offset + chunk_size - 1)).string

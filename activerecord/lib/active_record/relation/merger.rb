@@ -117,14 +117,10 @@ module ActiveRecord
           if other.klass == relation.klass
             relation.joins!(*other.joins_values)
           else
-            alias_tracker = nil
             joins_dependency = other.joins_values.map do |join|
               case join
               when Hash, Symbol, Array
-                alias_tracker ||= other.alias_tracker
-                ActiveRecord::Associations::JoinDependency.new(
-                  other.klass, other.table, join, alias_tracker
-                )
+                other.send(:construct_join_dependency, join)
               else
                 join
               end
@@ -140,14 +136,10 @@ module ActiveRecord
           if other.klass == relation.klass
             relation.left_outer_joins!(*other.left_outer_joins_values)
           else
-            alias_tracker = nil
             joins_dependency = other.left_outer_joins_values.map do |join|
               case join
               when Hash, Symbol, Array
-                alias_tracker ||= other.alias_tracker
-                ActiveRecord::Associations::JoinDependency.new(
-                  other.klass, other.table, join, alias_tracker
-                )
+                other.send(:construct_join_dependency, join)
               else
                 join
               end
@@ -160,10 +152,10 @@ module ActiveRecord
         def merge_multi_values
           if other.reordering_value
             # override any order specified in the original relation
-            relation.reorder! other.order_values
+            relation.reorder!(*other.order_values)
           elsif other.order_values.any?
             # merge in order_values from relation
-            relation.order! other.order_values
+            relation.order!(*other.order_values)
           end
 
           extensions = other.extensions - relation.extensions
@@ -179,15 +171,18 @@ module ActiveRecord
         end
 
         def merge_clauses
-          if relation.from_clause.empty? && !other.from_clause.empty?
-            relation.from_clause = other.from_clause
-          end
+          relation.from_clause = other.from_clause if replace_from_clause?
 
           where_clause = relation.where_clause.merge(other.where_clause)
           relation.where_clause = where_clause unless where_clause.empty?
 
           having_clause = relation.having_clause.merge(other.having_clause)
           relation.having_clause = having_clause unless having_clause.empty?
+        end
+
+        def replace_from_clause?
+          relation.from_clause.empty? && !other.from_clause.empty? &&
+            relation.klass.base_class == other.klass.base_class
         end
     end
   end

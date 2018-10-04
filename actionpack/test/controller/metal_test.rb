@@ -20,7 +20,7 @@ class MetalControllerInstanceTests < ActiveSupport::TestCase
 
     response_headers = SimpleController.action("hello").call(
       "REQUEST_METHOD" => "GET",
-      "rack.input" => -> {}
+      "rack.input" => -> { }
     )[1]
 
     assert_not response_headers.key?("X-Frame-Options")

@@ -37,10 +37,10 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
   def test_has_one_cache_nils
     firm = companies(:another_firm)
     assert_queries(1) { assert_nil firm.account }
-    assert_queries(0) { assert_nil firm.account }
+    assert_no_queries { assert_nil firm.account }
 
-    firms = Firm.all.merge!(includes: :account).to_a
-    assert_queries(0) { firms.each(&:account) }
+    firms = Firm.includes(:account).to_a
+    assert_no_queries { firms.each(&:account) }
   end
 
   def test_with_select
@@ -231,7 +231,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_build_association_dont_create_transaction
-    assert_no_queries(ignore_none: false) {
+    assert_no_queries {
       Firm.new.build_account
     }
   end
@@ -661,6 +661,8 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     self.table_name = "books"
     belongs_to :author, class_name: "SpecialAuthor"
     has_one :subscription, class_name: "SpecialSupscription", foreign_key: "subscriber_id"
+
+    enum status: [:proposed, :written, :published]
   end
 
   class SpecialAuthor < ActiveRecord::Base
@@ -678,6 +680,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     book = SpecialBook.create!(status: "published")
     author.book = book
 
+    assert_equal "published", book.status
     assert_not_equal 0, SpecialAuthor.joins(:book).where(books: { status: "published" }).count
   end
 

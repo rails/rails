@@ -18,8 +18,7 @@ require "active_job"
 ActiveJob::Base.queue_adapter = :test
 ActiveJob::Base.logger = ActiveSupport::Logger.new(nil)
 
-# Filter out Minitest backtrace while allowing backtrace from other libraries
-# to be shown.
+# Filter out the backtrace from minitest while preserving the one from other libraries.
 Minitest.backtrace_filter = Minitest::BacktraceFilter.new
 
 require "yaml"
@@ -79,6 +78,10 @@ class ActiveSupport::TestCase
     def extract_metadata_from(blob)
       blob.tap(&:analyze).metadata
     end
+
+    def fixture_file_upload(filename)
+      Rack::Test::UploadedFile.new file_fixture(filename).to_s
+    end
 end
 
 require "global_id"
@@ -86,9 +89,15 @@ GlobalID.app = "ActiveStorageExampleApp"
 ActiveRecord::Base.send :include, GlobalID::Identification
 
 class User < ActiveRecord::Base
+  validates :name, presence: true
+
   has_one_attached :avatar
   has_one_attached :cover_photo, dependent: false
 
   has_many_attached :highlights
   has_many_attached :vlogs, dependent: false
+end
+
+class Group < ActiveRecord::Base
+  has_one_attached :avatar
 end

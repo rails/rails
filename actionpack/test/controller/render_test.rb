@@ -141,6 +141,16 @@ class TestController < ActionController::Base
     render action: "hello_world"
   end
 
+  def conditional_hello_with_expires_in_with_stale_while_revalidate
+    expires_in 1.minute, public: true, stale_while_revalidate: 5.minutes
+    render action: "hello_world"
+  end
+
+  def conditional_hello_with_expires_in_with_stale_if_error
+    expires_in 1.minute, public: true, stale_if_error: 5.minutes
+    render action: "hello_world"
+  end
+
   def conditional_hello_with_expires_in_with_public_with_more_keys
     expires_in 1.minute, :public => true, "s-maxage" => 5.hours
     render action: "hello_world"
@@ -238,6 +248,15 @@ class TestController < ActionController::Base
     response.headers["Content-Length"] = 42
 
     head 204
+  end
+
+  def head_default_content_type
+    # simulating path like "/1.foobar"
+    request.formats = []
+
+    respond_to do |format|
+      format.any { head 200 }
+    end
   end
 
   private
@@ -356,6 +375,16 @@ class ExpiresInRenderTest < ActionController::TestCase
   def test_expires_in_header_with_public_and_must_revalidate
     get :conditional_hello_with_expires_in_with_public_and_must_revalidate
     assert_equal "max-age=60, public, must-revalidate", @response.headers["Cache-Control"]
+  end
+
+  def test_expires_in_header_with_stale_while_revalidate
+    get :conditional_hello_with_expires_in_with_stale_while_revalidate
+    assert_equal "max-age=60, public, stale-while-revalidate=300", @response.headers["Cache-Control"]
+  end
+
+  def test_expires_in_header_with_stale_if_error
+    get :conditional_hello_with_expires_in_with_stale_if_error
+    assert_equal "max-age=60, public, stale-if-error=300", @response.headers["Cache-Control"]
   end
 
   def test_expires_in_header_with_additional_headers
@@ -793,6 +822,11 @@ class HeadRenderTest < ActionController::TestCase
     assert_nothing_raised do
       get :head_and_return
     end
+  end
+
+  def test_head_default_content_type
+    post :head_default_content_type
+    assert_equal "text/html", @response.header["Content-Type"]
   end
 end
 

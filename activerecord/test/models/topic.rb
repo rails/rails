@@ -24,7 +24,7 @@ class Topic < ActiveRecord::Base
   end
 
   scope "approved_as_string", -> { where(approved: true) }
-  scope :anonymous_extension, -> {} do
+  scope :anonymous_extension, -> { } do
     def one
       1
     end
@@ -79,6 +79,16 @@ class Topic < ActiveRecord::Base
   class_attribute :after_initialize_called
   after_initialize do
     self.class.after_initialize_called = true
+  end
+
+  attr_accessor :after_touch_called
+
+  after_initialize do
+    self.after_touch_called = 0
+  end
+
+  after_touch do
+    self.after_touch_called += 1
   end
 
   def approved=(val)

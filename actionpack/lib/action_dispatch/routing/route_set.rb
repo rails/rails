@@ -245,7 +245,7 @@ module ActionDispatch
                   missing_keys << missing_key
                 }
                 constraints = Hash[@route.requirements.merge(params).sort_by { |k, v| k.to_s }]
-                message = "No route matches #{constraints.inspect}".dup
+                message = +"No route matches #{constraints.inspect}"
                 message << ", missing required keys: #{missing_keys.sort.inspect}"
 
                 raise ActionController::UrlGenerationError, message
@@ -377,7 +377,9 @@ module ActionDispatch
         @prepend                    = []
         @disable_clear_and_finalize = false
         @finalized                  = false
-        @env_key                    = "ROUTES_#{object_id}_SCRIPT_NAME".freeze
+        @env_key                    = "ROUTES_#{object_id}_SCRIPT_NAME"
+        @url_helpers                = nil
+        @deferred_classes           = []
 
         @set    = Journey::Routes.new
         @router = Journey::Router.new @set
@@ -432,6 +434,25 @@ module ActionDispatch
         end
       end
       private :eval_block
+
+      def include_helpers(klass, include_path_helpers)
+        if @finalized
+          include_helpers_now klass, include_path_helpers
+        else
+          @deferred_classes << [klass, include_path_helpers]
+        end
+      end
+
+      def include_helpers_now(klass, include_path_helpers)
+        namespace = klass.module_parents.detect { |m| m.respond_to?(:railtie_include_helpers) }
+
+        if namespace && namespace.railtie_namespace.routes != self
+          namespace.railtie_include_helpers(klass, include_path_helpers)
+        else
+          klass.include(url_helpers(include_path_helpers))
+        end
+      end
+      private :include_helpers_now
 
       def finalize!
         return if @finalized
@@ -584,7 +605,7 @@ module ActionDispatch
             "You may have defined two routes with the same name using the `:as` option, or " \
             "you may be overriding a route already defined by a resource with the same naming. " \
             "For the latter, you can restrict the routes created with `resources` as explained here: \n" \
-            "http://guides.rubyonrails.org/routing.html#restricting-the-routes-created"
+            "https://guides.rubyonrails.org/routing.html#restricting-the-routes-created"
         end
 
         route = @set.add_route(name, mapping)
@@ -729,7 +750,7 @@ module ActionDispatch
         # Remove leading slashes from controllers
         def normalize_controller!
           if controller
-            if controller.start_with?("/".freeze)
+            if controller.start_with?("/")
               @options[:controller] = controller[1..-1]
             else
               @options[:controller] = controller
@@ -819,10 +840,6 @@ module ActionDispatch
         RESERVED_OPTIONS.each { |ro| path_options.delete ro }
 
         path, params = generate(route_name, path_options, recall)
-
-        if options.key? :params
-          params.merge! options[:params]
-        end
 
         options[:path]        = path
         options[:script_name] = script_name

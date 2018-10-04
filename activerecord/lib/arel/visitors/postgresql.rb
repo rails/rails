@@ -5,7 +5,7 @@ module Arel # :nodoc: all
     class PostgreSQL < Arel::Visitors::ToSql
       CUBE = "CUBE"
       ROLLUP = "ROLLUP"
-      GROUPING_SET = "GROUPING SET"
+      GROUPING_SETS = "GROUPING SETS"
       LATERAL = "LATERAL"
 
       private
@@ -67,7 +67,7 @@ module Arel # :nodoc: all
         end
 
         def visit_Arel_Nodes_GroupingSet(o, collector)
-          collector << GROUPING_SET
+          collector << GROUPING_SETS
           grouping_array_or_grouping_element o, collector
         end
 

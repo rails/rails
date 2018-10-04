@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
 Active Record Query Interface
 =============================
@@ -368,7 +368,7 @@ end
 
 **`:start`**
 
-By default, records are fetched in ascending order of the primary key, which must be an integer. The `:start` option allows you to configure the first ID of the sequence whenever the lowest ID is not the one you need. This would be useful, for example, if you wanted to resume an interrupted batch process, provided you saved the last processed ID as a checkpoint.
+By default, records are fetched in ascending order of the primary key. The `:start` option allows you to configure the first ID of the sequence whenever the lowest ID is not the one you need. This would be useful, for example, if you wanted to resume an interrupted batch process, provided you saved the last processed ID as a checkpoint.
 
 For example, to send newsletters only to users with the primary key starting from 2000:
 
@@ -1261,7 +1261,7 @@ articles, all the articles would still be loaded. By using `joins` (an INNER
 JOIN), the join conditions **must** match, otherwise no records will be
 returned.
 
-NOTE: If an association is eager loaded as part of a join, any fields from a custom select clause will not present be on the loaded models.
+NOTE: If an association is eager loaded as part of a join, any fields from a custom select clause will not be present on the loaded models.
 This is because it is ambiguous whether they should appear on the parent record, or the child.
 
 Scopes
@@ -1274,16 +1274,6 @@ To define a simple scope, we use the `scope` method inside the class, passing th
 ```ruby
 class Article < ApplicationRecord
   scope :published, -> { where(published: true) }
-end
-```
-
-This is exactly the same as defining a class method, and which you use is a matter of personal preference:
-
-```ruby
-class Article < ApplicationRecord
-  def self.published
-    where(published: true)
-  end
 end
 ```
 
@@ -1775,6 +1765,12 @@ Client.select(:name).map &:name
 
 Client.pluck(:name)
 # => ["David", "Jeremy", "Jose"]
+```
+
+You are not limited to querying fields from a single table, you can query multiple tables as well.
+
+```
+Client.joins(:comments, :categories).pluck("clients.email, comments.title, categories.name")
 ```
 
 Furthermore, unlike `select` and other `Relation` scopes, `pluck` triggers an immediate

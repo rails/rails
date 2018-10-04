@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
 Action Mailer Basics
 ====================
@@ -44,7 +44,7 @@ views.
 #### Create the Mailer
 
 ```bash
-$ bin/rails generate mailer UserMailer
+$ rails generate mailer UserMailer
 create  app/mailers/user_mailer.rb
 create  app/mailers/application_mailer.rb
 invoke  erb
@@ -173,8 +173,8 @@ Setting this up is painfully simple.
 First, let's create a simple `User` scaffold:
 
 ```bash
-$ bin/rails generate scaffold user name email login
-$ bin/rails db:migrate
+$ rails generate scaffold user name email login
+$ rails db:migrate
 ```
 
 Now that we have a user model to play with, we will just edit the
@@ -216,6 +216,8 @@ any external infrastructure, but it's a poor fit for production since it drops
 pending jobs on restart.
 If you need a persistent backend, you will need to use an Active Job adapter
 that has a persistent backend (Sidekiq, Resque, etc).
+
+NOTE: When calling `deliver_later` the job will be placed under `mailers` queue. Make sure Active Job adapter support it otherwise the job may be silently ignored preventing email delivery. You can change that by specifying `config.action_mailer.deliver_later_queue_name` option.
 
 If you want to send emails right away (from a cronjob for example) just call
 `deliver_now`:
@@ -419,6 +421,21 @@ This will render the template 'another_template.html.erb' for the HTML part and
 use the rendered text for the text part. The render command is the same one used
 inside of Action Controller, so you can use all the same options, such as
 `:text`, `:inline` etc.
+
+If you would like to render a template located outside of the default `app/views/mailer_name/` directory, you can apply the `prepend_view_path`, like so:
+
+```ruby
+class UserMailer < ApplicationMailer
+  prepend_view_path "custom/path/to/mailer/view"
+  
+  # This will try to load "custom/path/to/mailer/view/welcome_email" template
+  def welcome_email
+    # ...
+  end
+end
+```
+
+You can also consider using the [append_view_path](https://guides.rubyonrails.org/action_view_overview.html#view-paths) method.
 
 #### Caching mailer view
 
@@ -770,7 +787,7 @@ files (environment.rb, production.rb, etc...)
 |`sendmail_settings`|Allows you to override options for the `:sendmail` delivery method.<ul><li>`:location` - The location of the sendmail executable. Defaults to `/usr/sbin/sendmail`.</li><li>`:arguments` - The command line arguments to be passed to sendmail. Defaults to `-i`.</li></ul>|
 |`raise_delivery_errors`|Whether or not errors should be raised if the email fails to be delivered. This only works if the external email server is configured for immediate delivery.|
 |`delivery_method`|Defines a delivery method. Possible values are:<ul><li>`:smtp` (default), can be configured by using `config.action_mailer.smtp_settings`.</li><li>`:sendmail`, can be configured by using `config.action_mailer.sendmail_settings`.</li><li>`:file`: save emails to files; can be configured by using `config.action_mailer.file_settings`.</li><li>`:test`: save emails to `ActionMailer::Base.deliveries` array.</li></ul>See [API docs](http://api.rubyonrails.org/classes/ActionMailer/Base.html) for more info.|
-|`perform_deliveries`|Determines whether deliveries are actually carried out when the `deliver` method is invoked on the Mail message. By default they are, but this can be turned off to help functional testing.|
+|`perform_deliveries`|Determines whether deliveries are actually carried out when the `deliver` method is invoked on the Mail message. By default they are, but this can be turned off to help functional testing. If this value is `false`, `deliveries` array will not be populated even if `delivery_method` is `:test`.|
 |`deliveries`|Keeps an array of all the emails sent out through the Action Mailer with delivery_method :test. Most useful for unit and functional testing.|
 |`default_options`|Allows you to set default values for the `mail` method options (`:from`, `:reply_to`, etc.).|
 

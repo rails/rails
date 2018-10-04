@@ -5,7 +5,7 @@ module ActiveRecord
     module MySQL
       module Quoting # :nodoc:
         def quote_column_name(name)
-          @quoted_column_names[name] ||= "`#{super.gsub('`', '``')}`".freeze
+          @quoted_column_names[name] ||= "`#{super.gsub('`', '``')}`"
         end
 
         def quote_table_name(name)

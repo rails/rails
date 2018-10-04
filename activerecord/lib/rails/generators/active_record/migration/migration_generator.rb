@@ -8,6 +8,7 @@ module ActiveRecord
       argument :attributes, type: :array, default: [], banner: "field[:type][:index] field[:type][:index]"
 
       class_option :primary_key_type, type: :string, desc: "The type for primary key"
+      class_option :database, type: :string, aliases: %i(db), desc: "The database for your migration. By default, the current environment's primary database is used."
 
       def create_migration_file
         set_local_assigns!

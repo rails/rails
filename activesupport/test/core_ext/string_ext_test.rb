@@ -25,7 +25,7 @@ class StringInflectionsTest < ActiveSupport::TestCase
   end
 
   def test_strip_heredoc_on_a_frozen_string
-    assert "".freeze.strip_heredoc.frozen?
+    assert "".strip_heredoc.frozen?
   end
 
   def test_strip_heredoc_on_a_string_with_no_lines
@@ -245,8 +245,8 @@ class StringInflectionsTest < ActiveSupport::TestCase
   end
 
   def test_string_squish
-    original = %{\u205f\u3000 A string surrounded by various unicode spaces,
-      with tabs(\t\t), newlines(\n\n), unicode nextlines(\u0085\u0085) and many spaces(  ). \u00a0\u2007}.dup
+    original = +%{\u205f\u3000 A string surrounded by various unicode spaces,
+      with tabs(\t\t), newlines(\n\n), unicode nextlines(\u0085\u0085) and many spaces(  ). \u00a0\u2007}
 
     expected = "A string surrounded by various unicode spaces, " \
       "with tabs( ), newlines( ), unicode nextlines( ) and many spaces( )."
@@ -378,8 +378,8 @@ class StringInflectionsTest < ActiveSupport::TestCase
   end
 
   def test_truncate_multibyte
-    assert_equal "\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254 ...".dup.force_encoding(Encoding::UTF_8),
-      "\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254 \354\225\204\353\235\274\353\246\254\354\230\244".dup.force_encoding(Encoding::UTF_8).truncate(10)
+    assert_equal (+"\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254 ...").force_encoding(Encoding::UTF_8),
+      (+"\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254 \354\225\204\353\235\274\353\246\254\354\230\244").force_encoding(Encoding::UTF_8).truncate(10)
   end
 
   def test_truncate_should_not_be_html_safe
@@ -400,7 +400,7 @@ class StringInflectionsTest < ActiveSupport::TestCase
   end
 
   def test_remove!
-    original = "This is a very good day to die".dup
+    original = +"This is a very good day to die"
     assert_equal "This is a good day to die", original.remove!(" very")
     assert_equal "This is a good day to die", original
     assert_equal "This is a good day", original.remove!(" to ", /die/)
@@ -469,6 +469,15 @@ class StringAccessTest < ActiveSupport::TestCase
     assert_not_same different_string, string
   end
 
+  test "#first with negative Integer is deprecated" do
+    string = "hello"
+    message = "Calling String#first with a negative integer limit " \
+              "will raise an ArgumentError in Rails 6.1."
+    assert_deprecated(message) do
+      string.first(-1)
+    end
+  end
+
   test "#last returns the last character" do
     assert_equal "o", "hello".last
     assert_equal "x", "x".last
@@ -485,6 +494,15 @@ class StringAccessTest < ActiveSupport::TestCase
     string = "hello"
     different_string = string.last(5)
     assert_not_same different_string, string
+  end
+
+  test "#last with negative Integer is deprecated" do
+    string = "hello"
+    message = "Calling String#last with a negative integer limit " \
+              "will raise an ArgumentError in Rails 6.1."
+    assert_deprecated(message) do
+      string.last(-1)
+    end
   end
 
   test "access returns a real string" do
@@ -733,7 +751,7 @@ end
 
 class OutputSafetyTest < ActiveSupport::TestCase
   def setup
-    @string = "hello".dup
+    @string = +"hello"
     @object = Class.new(Object) do
       def to_s
         "other"
@@ -809,7 +827,7 @@ class OutputSafetyTest < ActiveSupport::TestCase
   end
 
   test "Concatting safe onto unsafe yields unsafe" do
-    @other_string = "other".dup
+    @other_string = +"other"
 
     string = @string.html_safe
     @other_string.concat(string)
@@ -832,7 +850,7 @@ class OutputSafetyTest < ActiveSupport::TestCase
   end
 
   test "Concatting safe onto unsafe with << yields unsafe" do
-    @other_string = "other".dup
+    @other_string = +"other"
     string = @string.html_safe
 
     @other_string << string
@@ -888,7 +906,55 @@ class OutputSafetyTest < ActiveSupport::TestCase
   test "Concatting an integer to safe always yields safe" do
     string = @string.html_safe
     string = string.concat(13)
-    assert_equal "hello".dup.concat(13), string
+    assert_equal (+"hello").concat(13), string
+    assert_predicate string, :html_safe?
+  end
+
+  test "Inserting safe into safe yields safe" do
+    string = "foo".html_safe
+    string.insert(0, "<b>".html_safe)
+
+    assert_equal "<b>foo", string
+    assert_predicate string, :html_safe?
+  end
+
+  test "Inserting unsafe into safe yields escaped safe" do
+    string = "foo".html_safe
+    string.insert(0, "<b>")
+
+    assert_equal "&lt;b&gt;foo", string
+    assert_predicate string, :html_safe?
+  end
+
+  test "Replacing safe with safe yields safe" do
+    string = "foo".html_safe
+    string.replace("<b>".html_safe)
+
+    assert_equal "<b>", string
+    assert_predicate string, :html_safe?
+  end
+
+  test "Replacing safe with unsafe yields escaped safe" do
+    string = "foo".html_safe
+    string.replace("<b>")
+
+    assert_equal "&lt;b&gt;", string
+    assert_predicate string, :html_safe?
+  end
+
+  test "Replacing index of safe with safe yields safe" do
+    string = "foo".html_safe
+    string[0] = "<b>".html_safe
+
+    assert_equal "<b>oo", string
+    assert_predicate string, :html_safe?
+  end
+
+  test "Replacing index of safe with unsafe yields escaped safe" do
+    string = "foo".html_safe
+    string[0] = "<b>"
+
+    assert_equal "&lt;b&gt;oo", string
     assert_predicate string, :html_safe?
   end
 

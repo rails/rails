@@ -52,6 +52,13 @@ module CacheStoreBehavior
     end
   end
 
+  def test_fetch_cache_miss_with_skip_nil
+    assert_not_called(@cache, :write) do
+      assert_nil @cache.fetch("foo", skip_nil: true) { nil }
+      assert_equal false, @cache.exist?("foo")
+    end
+  end
+
   def test_fetch_with_forced_cache_miss_with_block
     @cache.write("foo", "bar")
     assert_equal "foo_bar", @cache.fetch("foo", force: true) { "foo_bar" }
@@ -141,7 +148,7 @@ module CacheStoreBehavior
     end
   end
 
-  # Use strings that are guarenteed to compress well, so we can easily tell if
+  # Use strings that are guaranteed to compress well, so we can easily tell if
   # the compression kicked in or not.
   SMALL_STRING = "0" * 100
   LARGE_STRING = "0" * 2.kilobytes
@@ -312,7 +319,7 @@ module CacheStoreBehavior
   end
 
   def test_original_store_objects_should_not_be_immutable
-    bar = "bar".dup
+    bar = +"bar"
     @cache.write("foo", bar)
     assert_nothing_raised { bar.gsub!(/.*/, "baz") }
   end
@@ -417,7 +424,7 @@ module CacheStoreBehavior
       @events << ActiveSupport::Notifications::Event.new(*args)
     end
     assert @cache.write(key, "1", raw: true)
-    assert @cache.fetch(key) {}
+    assert @cache.fetch(key) { }
     assert_equal 1, @events.length
     assert_equal "cache_read.active_support", @events[0].name
     assert_equal :fetch, @events[0].payload[:super_operation]
@@ -431,7 +438,7 @@ module CacheStoreBehavior
     ActiveSupport::Notifications.subscribe(/^cache_(.*)\.active_support$/) do |*args|
       @events << ActiveSupport::Notifications::Event.new(*args)
     end
-    assert_not @cache.fetch("bad_key") {}
+    assert_not @cache.fetch("bad_key") { }
     assert_equal 3, @events.length
     assert_equal "cache_read.active_support", @events[0].name
     assert_equal "cache_generate.active_support", @events[1].name

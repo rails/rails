@@ -5,6 +5,7 @@ require "multibyte_test_helpers"
 require "stringio"
 require "fileutils"
 require "tempfile"
+require "tmpdir"
 require "concurrent/atomics"
 
 class LoggerTest < ActiveSupport::TestCase
@@ -39,7 +40,7 @@ class LoggerTest < ActiveSupport::TestCase
     logger = Logger.new f
     logger.level = Logger::DEBUG
 
-    str = "\x80".dup
+    str = +"\x80"
     str.force_encoding("ASCII-8BIT")
 
     logger.add Logger::DEBUG, str
@@ -57,7 +58,7 @@ class LoggerTest < ActiveSupport::TestCase
     logger = Logger.new f
     logger.level = Logger::DEBUG
 
-    str = "\x80".dup
+    str = +"\x80"
     str.force_encoding("ASCII-8BIT")
 
     logger.add Logger::DEBUG, str

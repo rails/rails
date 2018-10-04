@@ -26,6 +26,42 @@ module Notifications
     end
   end
 
+  class SubscribeEventObjects < TestCase
+    def test_subscribe_events
+      events = []
+      @notifier.subscribe do |event|
+        events << event
+      end
+
+      ActiveSupport::Notifications.instrument("foo")
+      event = events.first
+      assert event, "should have an event"
+      assert_operator event.allocations, :>, 0
+      assert_operator event.cpu_time, :>, 0
+      assert_operator event.idle_time, :>, 0
+      assert_operator event.duration, :>, 0
+    end
+
+    def test_subscribe_via_top_level_api
+      old_notifier = ActiveSupport::Notifications.notifier
+      ActiveSupport::Notifications.notifier = ActiveSupport::Notifications::Fanout.new
+
+      event = nil
+      ActiveSupport::Notifications.subscribe("foo") do |e|
+        event = e
+      end
+
+      ActiveSupport::Notifications.instrument("foo") do
+        100.times { Object.new } # allocate at least 100 objects
+      end
+
+      assert event
+      assert_operator event.allocations, :>=, 100
+    ensure
+      ActiveSupport::Notifications.notifier = old_notifier
+    end
+  end
+
   class SubscribedTest < TestCase
     def test_subscribed
       name     = "foo"
@@ -54,7 +90,7 @@ module Notifications
       ActiveSupport::Notifications.subscribe("foo", TestSubscriber.new)
 
       ActiveSupport::Notifications.instrument("foo") do
-        ActiveSupport::Notifications.subscribe("foo") {}
+        ActiveSupport::Notifications.subscribe("foo") { }
       end
     ensure
       ActiveSupport::Notifications.notifier = old_notifier

@@ -39,13 +39,11 @@ class ControllerGeneratorTest < Rails::Generators::TestCase
 
   def test_invokes_assets
     run_generator
-    assert_file "app/assets/javascripts/account.js"
     assert_file "app/assets/stylesheets/account.css"
   end
 
   def test_does_not_invoke_assets_if_required
     run_generator ["account", "--skip-assets"]
-    assert_no_file "app/assets/javascripts/account.js"
     assert_no_file "app/assets/stylesheets/account.css"
   end
 
@@ -133,7 +131,6 @@ class ControllerGeneratorTest < Rails::Generators::TestCase
     assert_file "app/helpers/account_helper.rb"
 
     assert_no_file "app/assets/javascripts/account_controller.js"
-    assert_file "app/assets/javascripts/account.js"
 
     assert_no_file "app/assets/stylesheets/account_controller.css"
     assert_file "app/assets/stylesheets/account.css"

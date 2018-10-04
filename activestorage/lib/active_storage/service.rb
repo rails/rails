@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
 require "active_storage/log_subscriber"
+require "action_dispatch"
+require "action_dispatch/http/content_disposition"
 
 module ActiveStorage
-  class IntegrityError < StandardError; end
-
   # Abstract class serving as an interface for concrete services.
   #
   # The available services are:
@@ -40,8 +40,6 @@ module ActiveStorage
   class Service
     extend ActiveSupport::Autoload
     autoload :Configurator
-
-    class_attribute :url_expires_in, default: 5.minutes
 
     class << self
       # Configure an Active Storage service by name from a set of configurations,
@@ -94,7 +92,7 @@ module ActiveStorage
     end
 
     # Returns a signed, temporary URL for the file at the +key+. The URL will be valid for the amount
-    # of seconds specified in +expires_in+. You most also provide the +disposition+ (+:inline+ or +:attachment+),
+    # of seconds specified in +expires_in+. You must also provide the +disposition+ (+:inline+ or +:attachment+),
     # +filename+, and +content_type+ that you wish the file to be served with on request.
     def url(key, expires_in:, disposition:, filename:, content_type:)
       raise NotImplementedError
@@ -126,7 +124,8 @@ module ActiveStorage
       end
 
       def content_disposition_with(type: "inline", filename:)
-        (type.to_s.presence_in(%w( attachment inline )) || "inline") + "; #{filename.parameters}"
+        disposition = (type.to_s.presence_in(%w( attachment inline )) || "inline")
+        ActionDispatch::Http::ContentDisposition.format(disposition: disposition, filename: filename.sanitized)
       end
   end
 end

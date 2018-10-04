@@ -280,38 +280,38 @@ class CounterCacheTest < ActiveRecord::TestCase
   end
 
   test "update counters with touch: :written_on" do
-    assert_touching @topic, :written_on do
+    assert_touching @topic, :updated_at, :written_on do
       Topic.update_counters(@topic.id, replies_count: -1, touch: :written_on)
     end
   end
 
   test "update multiple counters with touch: :written_on" do
-    assert_touching @topic, :written_on do
+    assert_touching @topic, :updated_at, :written_on do
       Topic.update_counters(@topic.id, replies_count: 2, unique_replies_count: 2, touch: :written_on)
     end
   end
 
   test "reset counters with touch: :written_on" do
-    assert_touching @topic, :written_on do
+    assert_touching @topic, :updated_at, :written_on do
       Topic.reset_counters(@topic.id, :replies, touch: :written_on)
     end
   end
 
   test "reset multiple counters with touch: :written_on" do
-    assert_touching @topic, :written_on do
+    assert_touching @topic, :updated_at, :written_on do
       Topic.update_counters(@topic.id, replies_count: 1, unique_replies_count: 1)
       Topic.reset_counters(@topic.id, :replies, :unique_replies, touch: :written_on)
     end
   end
 
   test "increment counters with touch: :written_on" do
-    assert_touching @topic, :written_on do
+    assert_touching @topic, :updated_at, :written_on do
       Topic.increment_counter(:replies_count, @topic.id, touch: :written_on)
     end
   end
 
   test "decrement counters with touch: :written_on" do
-    assert_touching @topic, :written_on do
+    assert_touching @topic, :updated_at, :written_on do
       Topic.decrement_counter(:replies_count, @topic.id, touch: :written_on)
     end
   end
