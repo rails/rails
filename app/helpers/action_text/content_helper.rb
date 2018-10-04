@@ -1,4 +1,8 @@
 module ActionText
+  SANITIZER          = Rails::Html::Sanitizer.white_list_sanitizer
+  ALLOWED_TAGS       = SANITIZER.allowed_tags + [ ActionText::Attachment::TAG_NAME, "figure", "figcaption" ]
+  ALLOWED_ATTRIBUTES = SANITIZER.allowed_attributes + ActionText::Attachment::ATTRIBUTES
+
   module ContentHelper
     def render_action_text_content(content)
       content = content.render_attachments do |attachment|
@@ -21,8 +25,4 @@ module ActionText
       sanitize content.to_html, tags: ActionText::ALLOWED_TAGS, attributes: ActionText::ALLOWED_ATTRIBUTES
     end
   end
-
-  SANITIZER = Rails::Html::Sanitizer.white_list_sanitizer
-  ALLOWED_TAGS = SANITIZER.allowed_tags + [ ActionText::Attachment::TAG_NAME, "figure", "figcaption" ]
-  ALLOWED_ATTRIBUTES = SANITIZER.allowed_attributes + ActionText::Attachment::ATTRIBUTES
 end
