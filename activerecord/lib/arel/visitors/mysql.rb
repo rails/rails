@@ -65,34 +65,48 @@ module Arel # :nodoc: all
           collector
         end
 
+        # In the simple case, MySQL allows us to place JOINs directly into the UPDATE
+        # query. However, this does not allow for LIMIT, OFFSET and ORDER. To support
+        # these, we must use a subquery.
+        def prepare_update_statement(o)
+          if has_join_sources?(o)
+            if has_limit_or_offset_or_orders?(o)
+              super
+            else
+              o
+            end
+          elsif o.offset
+            super
+          else
+            o
+          end
+        end
+
+        def prepare_delete_statement(o)
+          if has_join_sources?(o) || o.offset
+            super
+          else
+            o
+          end
+        end
+
+        # MySQL is too stupid to create a temporary table for use subquery, so we have
+        # to give it some prompting in the form of a subsubquery.
         def build_subselect(key, o)
           subselect = super
 
           # Materialize subquery by adding distinct
           # to work with MySQL 5.7.6 which sets optimizer_switch='derived_merge=on'
-          subselect.distinct unless subselect.limit || subselect.offset || subselect.orders.any?
+          unless has_limit_or_offset_or_orders?(subselect)
+            core = subselect.cores.last
+            core.set_quantifier = Arel::Nodes::Distinct.new
+          end
 
           Nodes::SelectStatement.new.tap do |stmt|
             core = stmt.cores.last
             core.froms = Nodes::Grouping.new(subselect).as("__active_record_temp")
             core.projections = [Arel.sql(quote_column_name(key.name))]
           end
-        end
-
-        def collect_where_for(o, collector)
-          return super if o.offset
-
-          unless o.wheres.empty?
-            collector << " WHERE "
-            collector = inject_join o.wheres, collector, " AND "
-          end
-
-          unless o.orders.empty?
-            collector << " ORDER BY "
-            collector = inject_join o.orders, collector, ", "
-          end
-
-          maybe_visit o.limit, collector
         end
     end
   end

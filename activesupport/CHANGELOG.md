@@ -1,3 +1,16 @@
+*   Rename `Module#parent`, `Module#parents`, and `Module#parent_name` to
+    `module_parent`, `module_parents`, and `module_parent_name`.
+
+    *Gannon McGibbon*
+
+*   Deprecate the use of `LoggerSilence` in favor of `ActiveSupport::LoggerSilence`
+
+    *Edouard Chin*
+
+*   Deprecate using negative limits in `String#first` and `String#last`.
+
+    *Gannon McGibbon*, *Eric Turner*
+
 *   Fix bug where `#without` for `ActiveSupport::HashWithIndifferentAccess` would fail
     with symbol arguments
 

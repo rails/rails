@@ -30,11 +30,11 @@ require "rails/secrets"
 module TestHelpers
   module Paths
     def app_template_path
-      File.join Dir.tmpdir, "app_template"
+      File.join RAILS_FRAMEWORK_ROOT, "tmp/templates/app_template"
     end
 
     def tmp_path(*args)
-      @tmp_path ||= File.realpath(Dir.mktmpdir)
+      @tmp_path ||= File.realpath(Dir.mktmpdir(nil, File.join(RAILS_FRAMEWORK_ROOT, "tmp")))
       File.join(@tmp_path, *args)
     end
 
@@ -469,17 +469,28 @@ Module.new do
 
   # Build a rails app
   FileUtils.rm_rf(app_template_path)
-  FileUtils.mkdir(app_template_path)
+  FileUtils.mkdir_p(app_template_path)
+
+  Dir.chdir "#{RAILS_FRAMEWORK_ROOT}/actionview" do
+    `yarn build`
+  end
 
   `#{Gem.ruby} #{RAILS_FRAMEWORK_ROOT}/railties/exe/rails new #{app_template_path} --skip-gemfile --skip-listen --no-rc`
   File.open("#{app_template_path}/config/boot.rb", "w") do |f|
     f.puts "require 'rails/all'"
   end
 
+  Dir.chdir(app_template_path) { `yarn add https://github.com/rails/webpacker.git` } # Use the latest version.
+
+  # Manually install `webpack` as bin symlinks are not created for subdependencies
+  # in workspaces. See https://github.com/yarnpkg/yarn/issues/4964
+  Dir.chdir(app_template_path) { `yarn add webpack@4.17.1 --tilde` }
+  Dir.chdir(app_template_path) { `yarn add webpack-cli` }
+
   # Fake 'Bundler.require' -- we run using the repo's Gemfile, not an
   # app-specific one: we don't want to require every gem that lists.
   contents = File.read("#{app_template_path}/config/application.rb")
-  contents.sub!(/^Bundler\.require.*/, "%w(turbolinks).each { |r| require r }")
+  contents.sub!(/^Bundler\.require.*/, "%w(turbolinks webpacker).each { |r| require r }")
   File.write("#{app_template_path}/config/application.rb", contents)
 
   require "rails"

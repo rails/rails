@@ -217,7 +217,7 @@ module ActiveModel
       assert_equal({ foo: "1" }, attributes.to_hash)
     end
 
-    test "marshaling dump/load legacy materialized attribute hash" do
+    test "marshalling dump/load legacy materialized attribute hash" do
       builder = AttributeSet::Builder.new(foo: Type::String.new)
       attributes = builder.build_from_database(foo: "1")
 

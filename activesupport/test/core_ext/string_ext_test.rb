@@ -469,6 +469,15 @@ class StringAccessTest < ActiveSupport::TestCase
     assert_not_same different_string, string
   end
 
+  test "#first with negative Integer is deprecated" do
+    string = "hello"
+    message = "Calling String#first with a negative integer limit " \
+              "will raise an ArgumentError in Rails 6.1."
+    assert_deprecated(message) do
+      string.first(-1)
+    end
+  end
+
   test "#last returns the last character" do
     assert_equal "o", "hello".last
     assert_equal "x", "x".last
@@ -485,6 +494,15 @@ class StringAccessTest < ActiveSupport::TestCase
     string = "hello"
     different_string = string.last(5)
     assert_not_same different_string, string
+  end
+
+  test "#last with negative Integer is deprecated" do
+    string = "hello"
+    message = "Calling String#last with a negative integer limit " \
+              "will raise an ArgumentError in Rails 6.1."
+    assert_deprecated(message) do
+      string.last(-1)
+    end
   end
 
   test "access returns a real string" do

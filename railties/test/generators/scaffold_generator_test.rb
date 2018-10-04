@@ -93,7 +93,6 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
     # Assets
     assert_file "app/assets/stylesheets/scaffold.css"
-    assert_file "app/assets/javascripts/product_lines.js"
     assert_file "app/assets/stylesheets/product_lines.css"
   end
 
@@ -166,7 +165,6 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
     # Assets
     assert_no_file "app/assets/stylesheets/scaffold.css"
-    assert_no_file "app/assets/javascripts/product_lines.js"
     assert_no_file "app/assets/stylesheets/product_lines.css"
   end
 
@@ -222,7 +220,6 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
     # Assets
     assert_file "app/assets/stylesheets/scaffold.css", /:visited/
-    assert_no_file "app/assets/javascripts/product_lines.js"
     assert_no_file "app/assets/stylesheets/product_lines.css"
   end
 
@@ -299,7 +296,6 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
     # Assets
     assert_file "app/assets/stylesheets/scaffold.css", /:visited/
-    assert_file "app/assets/javascripts/admin/roles.js"
     assert_file "app/assets/stylesheets/admin/roles.css"
   end
 
@@ -335,7 +331,6 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
     # Assets
     assert_file "app/assets/stylesheets/scaffold.css"
-    assert_no_file "app/assets/javascripts/admin/roles.js"
     assert_no_file "app/assets/stylesheets/admin/roles.css"
   end
 
@@ -380,28 +375,24 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
   def test_scaffold_generator_no_assets_with_switch_no_assets
     run_generator [ "posts", "--no-assets" ]
     assert_no_file "app/assets/stylesheets/scaffold.css"
-    assert_no_file "app/assets/javascripts/posts.js"
     assert_no_file "app/assets/stylesheets/posts.css"
   end
 
   def test_scaffold_generator_no_assets_with_switch_assets_false
     run_generator [ "posts", "--assets=false" ]
     assert_no_file "app/assets/stylesheets/scaffold.css"
-    assert_no_file "app/assets/javascripts/posts.js"
     assert_no_file "app/assets/stylesheets/posts.css"
   end
 
   def test_scaffold_generator_no_scaffold_stylesheet_with_switch_no_scaffold_stylesheet
     run_generator [ "posts", "--no-scaffold-stylesheet" ]
     assert_no_file "app/assets/stylesheets/scaffold.css"
-    assert_file "app/assets/javascripts/posts.js"
     assert_file "app/assets/stylesheets/posts.css"
   end
 
   def test_scaffold_generator_no_scaffold_stylesheet_with_switch_scaffold_stylesheet_false
     run_generator [ "posts", "--scaffold-stylesheet=false" ]
     assert_no_file "app/assets/stylesheets/scaffold.css"
-    assert_file "app/assets/javascripts/posts.js"
     assert_file "app/assets/stylesheets/posts.css"
   end
 
@@ -429,15 +420,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
   def test_scaffold_generator_no_stylesheets
     run_generator [ "posts", "--no-stylesheets" ]
     assert_no_file "app/assets/stylesheets/scaffold.css"
-    assert_file "app/assets/javascripts/posts.js"
     assert_no_file "app/assets/stylesheets/posts.css"
-  end
-
-  def test_scaffold_generator_no_javascripts
-    run_generator [ "posts", "--no-javascripts" ]
-    assert_file "app/assets/stylesheets/scaffold.css"
-    assert_no_file "app/assets/javascripts/posts.js"
-    assert_file "app/assets/stylesheets/posts.css"
   end
 
   def test_scaffold_generator_outputs_error_message_on_missing_attribute_type
@@ -630,7 +613,6 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
       assert File.exist?("app/helpers/bukkits/users_helper.rb")
 
-      assert File.exist?("app/assets/javascripts/bukkits/users.js")
       assert File.exist?("app/assets/stylesheets/bukkits/users.css")
     end
   end
@@ -660,7 +642,6 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
       assert_not File.exist?("app/helpers/bukkits/users_helper.rb")
 
-      assert_not File.exist?("app/assets/javascripts/bukkits/users.js")
       assert_not File.exist?("app/assets/stylesheets/bukkits/users.css")
     end
   end

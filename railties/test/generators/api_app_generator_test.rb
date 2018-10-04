@@ -40,7 +40,6 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
     end
 
     assert_file "Gemfile" do |content|
-      assert_no_match(/gem 'coffee-rails'/, content)
       assert_no_match(/gem 'sass-rails'/, content)
       assert_no_match(/gem 'web-console'/, content)
       assert_no_match(/gem 'capybara'/, content)

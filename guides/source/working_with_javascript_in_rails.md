@@ -494,10 +494,6 @@ replace the entire `<body>` of the page with the `<body>` of the response. It
 will then use PushState to change the URL to the correct one, preserving
 refresh semantics and giving you pretty URLs.
 
-The only thing you have to do to enable Turbolinks is have it in your `Gemfile`,
-and put `//= require turbolinks` in your JavaScript manifest, which is usually
-`app/assets/javascripts/application.js`.
-
 If you want to disable Turbolinks for certain links, add a `data-turbolinks="false"`
 attribute to the tag:
 

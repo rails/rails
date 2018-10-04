@@ -1,3 +1,11 @@
+*   Use Webpacker by default to manage app-level JavaScript through the new app/javascript directory.
+    Sprockets is now solely in charge, by default, of compiling CSS and other static assets.
+    Action Cable channel generators will create ES6 stubs rather than use CoffeeScript.
+    Active Storage, Action Cable, Turbolinks, and Rails-UJS are loaded by a new application.js pack.
+    Generators no longer generate JavaScript stubs.
+
+    *DHH*, *Lachlan Sylvester*
+
 *   Refactors `migrations_paths` command option in generators
     to `database` (aliased as `db`). Now, the migrations paths
     will be read from the specified database configuration in the
