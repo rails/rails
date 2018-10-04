@@ -458,11 +458,6 @@ module ActionDispatch
         return if @finalized
         @append.each { |blk| eval_block(blk) }
         @finalized = true
-        @url_helpers = build_url_helper_module true
-        @deferred_classes.each { |klass, include_path_helpers|
-          include_helpers klass, include_path_helpers
-        }
-        @deferred_classes.clear
       end
 
       def clear!
@@ -491,10 +486,11 @@ module ActionDispatch
         return if MountedHelpers.method_defined?(name)
 
         routes = self
+        helpers = routes.url_helpers
 
         MountedHelpers.class_eval do
           define_method "_#{name}" do
-            RoutesProxy.new(routes, _routes_context, routes.url_helpers, script_namer)
+            RoutesProxy.new(routes, _routes_context, helpers, script_namer)
           end
         end
 
@@ -505,20 +501,7 @@ module ActionDispatch
         RUBY
       end
 
-      class UnfinalizedRouteSet < StandardError
-      end
-
       def url_helpers(supports_path = true)
-        raise UnfinalizedRouteSet, "routes have not been finalized. Please call `finalize!` or use `draw(&block)`" unless @finalized
-
-        if supports_path
-          @url_helpers
-        else
-          build_url_helper_module false
-        end
-      end
-
-      def build_url_helper_module(supports_path)
         routes = self
 
         Module.new do
