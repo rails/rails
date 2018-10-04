@@ -1,3 +1,12 @@
+*   `ActionController::Parameters` no longer destroys the route defaults.
+
+    Previously, `Journey::Route#defaults[:action]` object was exactly the same
+    as `params[:action]`.
+    This was a problem that the next request did not work as expected
+    if `params[:action]` was substituted in-place (like `params[:action].sub!(/foo/, "bar")`).
+
+    *Kaito Minatoya*
+
 *   Remove undocumented `params` option from `url_for` helper.
 
     *Ilkka Oksanen*
