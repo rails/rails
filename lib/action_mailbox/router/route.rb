@@ -10,9 +10,9 @@ class ActionMailbox::Router::Route
   def match?(inbound_email)
     case address
     when String
-      recipients_from(inbound_email.mail).include?(address)
+      recipients_from(inbound_email.mail).any? { |recipient| address.casecmp?(recipient) }
     when Regexp
-      recipients_from(inbound_email.mail).detect { |recipient| address.match?(recipient) }
+      recipients_from(inbound_email.mail).any? { |recipient| address.match?(recipient) }
     when Proc
       address.call(inbound_email)
     else
