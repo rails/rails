@@ -36,7 +36,7 @@ Adding a rich text field to an existing model:
 
 ```ruby
 # app/models/message.rb
-class Message < ActiveRecord::Base
+class Message < ApplicationRecord
   has_rich_text :content
 end
 ```
