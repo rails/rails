@@ -839,13 +839,14 @@ Mailer Testing
 You can find detailed instructions on how to test your mailers in the
 [testing guide](testing.html#testing-your-mailers).
 
-Intercepting Emails
+Intercepting and Observing Emails
 -------------------
 
-There are situations where you need to edit an email before it's
-delivered. Fortunately Action Mailer provides hooks to intercept every
-email. You can register an interceptor to make modifications to mail messages
-right before they are handed to the delivery agents.
+Action Mailer provides hooks into the Mail observer and interceptor methods. These allow you to register classes that are called during the mail delivery life cycle of every email sent.
+
+### Intercepting Emails
+
+Interceptors allow you to make modifications to emails before they are handed off to the delivery agents. An interceptor class must implement the `:delivering_email(message)` method which will be called before the email is sent.
 
 ```ruby
 class SandboxEmailInterceptor
@@ -869,3 +870,21 @@ NOTE: The example above uses a custom environment called "staging" for a
 production like server but for testing purposes. You can read
 [Creating Rails environments](configuring.html#creating-rails-environments)
 for more information about custom Rails environments.
+
+### Observing Emails
+
+Observers give you access to the email message after it has been sent. An observer class must implement the `:delivered_email(message)` method, which will be called after the email is sent.
+
+```ruby
+class EmailDeliveryObserver
+  def self.delivered_email(message)
+    EmailDelivery.log(message)
+  end
+end
+```
+Like interceptors, you need to register observers with the Action Mailer framework. You can do this in an initializer file 
+`config/initializers/email_delivery_observer.rb`
+
+```ruby
+ActionMailer::Base.register_observer(EmailDeliveryObserver)
+```
