@@ -22,12 +22,12 @@ Assumes a Rails 6+ application with Active Storage and Webpacker installed.
     gem "actiontext", github: "rails/actiontext", require: "action_text"
     gem "image_processing", "~> 1.2" # for Active Storage variants
     ```
-   
-1. Install assets, npm dependency, and migrations
+
+1. Install assets, npm dependency, and migrations:
 
    ```
-   ./bin/rails action_text:install
-   ./bin/rails db:migrate
+   rails action_text:install
+   rails db:migrate
    ```
 
 ## Examples
