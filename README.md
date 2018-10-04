@@ -55,7 +55,7 @@ Then refer to this field in the form for the model:
 <% end %>
 ```
 
-And finally display the rich text on a page:
+And finally display the sanitized rich text on a page:
 
 ```erb
 <%= @message.content %>
