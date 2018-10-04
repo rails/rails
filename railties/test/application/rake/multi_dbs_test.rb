@@ -55,11 +55,19 @@ module ApplicationTests
         end
       end
 
-      def db_migrate_and_schema_dump_and_load(namespace, expected_database, format)
+      def db_migrate_and_migrate_status
         Dir.chdir(app_path) do
-          rails "generate", "model", "book", "title:string"
-          rails "generate", "model", "dog", "name:string"
-          write_models_for_animals
+          generate_models_for_animals
+          rails "db:migrate"
+          output = rails "db:migrate:status"
+          assert_match(/up     \d+  Create books/, output)
+          assert_match(/up     \d+  Create dogs/, output)
+        end
+      end
+
+      def db_migrate_and_schema_dump_and_load(format)
+        Dir.chdir(app_path) do
+          generate_models_for_animals
           rails "db:migrate", "db:#{format}:dump"
 
           if format == "schema"
@@ -86,14 +94,24 @@ module ApplicationTests
 
       def db_migrate_namespaced(namespace, expected_database)
         Dir.chdir(app_path) do
-          rails "generate", "model", "book", "title:string"
-          rails "generate", "model", "dog", "name:string"
-          write_models_for_animals
+          generate_models_for_animals
           output = rails("db:migrate:#{namespace}")
           if namespace == "primary"
             assert_match(/CreateBooks: migrated/, output)
           else
             assert_match(/CreateDogs: migrated/, output)
+          end
+        end
+      end
+
+      def db_migrate_status_namespaced(namespace, expected_database)
+        Dir.chdir(app_path) do
+          generate_models_for_animals
+          output = rails("db:migrate:status:#{namespace}")
+          if namespace == "primary"
+            assert_match(/up     \d+  Create books/, output)
+          else
+            assert_match(/up     \d+  Create dogs/, output)
           end
         end
       end
@@ -117,15 +135,20 @@ module ApplicationTests
 
         # create the base model for dog to inherit from
         File.open("#{app_path}/app/models/animals_base.rb", "w") do |file|
-          file.write(<<-EOS
-class AnimalsBase < ActiveRecord::Base
-  self.abstract_class = true
+          file.write(<<~EOS)
+            class AnimalsBase < ActiveRecord::Base
+              self.abstract_class = true
 
-  establish_connection :animals
-end
-EOS
-)
+              establish_connection :animals
+            end
+          EOS
         end
+      end
+
+      def generate_models_for_animals
+        rails "generate", "model", "book", "title:string"
+        rails "generate", "model", "dog", "name:string"
+        write_models_for_animals
       end
 
       test "db:create and db:drop works on all databases for env" do
@@ -144,22 +167,31 @@ EOS
 
       test "db:migrate and db:schema:dump and db:schema:load works on all databases" do
         require "#{app_path}/config/environment"
-        ActiveRecord::Base.configurations.configs_for(env_name: Rails.env).each do |db_config|
-          db_migrate_and_schema_dump_and_load db_config.spec_name, db_config.config["database"], "schema"
-        end
+        db_migrate_and_schema_dump_and_load "schema"
       end
 
       test "db:migrate and db:structure:dump and db:structure:load works on all databases" do
         require "#{app_path}/config/environment"
-        ActiveRecord::Base.configurations.configs_for(env_name: Rails.env).each do |db_config|
-          db_migrate_and_schema_dump_and_load db_config.spec_name, db_config.config["database"], "structure"
-        end
+        db_migrate_and_schema_dump_and_load "structure"
       end
 
       test "db:migrate:namespace works" do
         require "#{app_path}/config/environment"
         ActiveRecord::Base.configurations.configs_for(env_name: Rails.env).each do |db_config|
           db_migrate_namespaced db_config.spec_name, db_config.config["database"]
+        end
+      end
+
+      test "db:migrate:status works on all databases" do
+        require "#{app_path}/config/environment"
+        db_migrate_and_migrate_status
+      end
+
+      test "db:migrate:status:namespace works" do
+        require "#{app_path}/config/environment"
+        ActiveRecord::Base.configurations.configs_for(env_name: Rails.env).each do |db_config|
+          db_migrate_namespaced db_config.spec_name, db_config.config["database"]
+          db_migrate_status_namespaced db_config.spec_name, db_config.config["database"]
         end
       end
     end
