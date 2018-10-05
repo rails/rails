@@ -8,6 +8,7 @@ require "active_support/dependencies"
 require "active_support/core_ext/digest/uuid"
 require "active_record/fixture_set/file"
 require "active_record/fixture_set/render_context"
+require "active_record/fixture_set/model_metadata"
 require "active_record/test_fixtures"
 require "active_record/errors"
 
@@ -669,7 +670,7 @@ module ActiveRecord
         if model_class
           # fill in timestamp columns if they aren't specified and the model is set to record_timestamps
           if model_class.record_timestamps
-            timestamp_column_names.each do |c_name|
+            model_metadata.timestamp_column_names.each do |c_name|
               row[c_name] = now unless row.key?(c_name)
             end
           end
@@ -680,8 +681,8 @@ module ActiveRecord
           end
 
           # generate a primary key if necessary
-          if has_primary_key_column? && !row.include?(primary_key_name)
-            row[primary_key_name] = ActiveRecord::FixtureSet.identify(label, primary_key_type)
+          if model_metadata.has_primary_key_column? && !row.include?(model_metadata.primary_key_name)
+            row[model_metadata.primary_key_name] = ActiveRecord::FixtureSet.identify(label, model_metadata.primary_key_type)
           end
 
           # Resolve enums
@@ -693,8 +694,8 @@ module ActiveRecord
 
           # If STI is used, find the correct subclass for association reflection
           reflection_class =
-            if row.include?(inheritance_column_name)
-              row[inheritance_column_name].constantize rescue model_class
+            if row.include?(model_metadata.inheritance_column_name)
+              row[model_metadata.inheritance_column_name].constantize rescue model_class
             else
               model_class
             end
@@ -760,13 +761,6 @@ module ActiveRecord
     end
 
     private
-      def primary_key_name
-        @primary_key_name ||= model_class && model_class.primary_key
-      end
-
-      def primary_key_type
-        @primary_key_type ||= model_class && model_class.type_for_attribute(model_class.primary_key).type
-      end
 
       def add_join_records(rows, row, association)
         # This is the case when the join table has no fixtures file
@@ -778,28 +772,14 @@ module ActiveRecord
 
           targets = targets.is_a?(Array) ? targets : targets.split(/\s*,\s*/)
           rows[table_name].concat targets.map { |target|
-            { lhs_key => row[primary_key_name],
+            { lhs_key => row[model_metadata.primary_key_name],
               rhs_key => ActiveRecord::FixtureSet.identify(target, column_type) }
           }
         end
       end
 
-      def has_primary_key_column?
-        @has_primary_key_column ||= primary_key_name &&
-          model_class.columns.any? { |c| c.name == primary_key_name }
-      end
-
-      def timestamp_column_names
-        @timestamp_column_names ||=
-          %w(created_at created_on updated_at updated_on) & column_names
-      end
-
-      def inheritance_column_name
-        @inheritance_column_name ||= model_class && model_class.inheritance_column
-      end
-
-      def column_names
-        @column_names ||= @connection.columns(@table_name).collect(&:name)
+      def model_metadata
+        @model_metadata ||= ModelMetadata.new(model_class, table_name)
       end
 
       def model_class=(class_name)
