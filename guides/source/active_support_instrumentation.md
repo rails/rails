@@ -623,7 +623,7 @@ The block receives the following arguments:
 * The name of the event
 * Time when it started
 * Time when it finished
-* A unique ID for this event
+* A unique ID for the instrumenter that fired the event
 * The payload (described in previous sections)
 
 ```ruby
@@ -672,7 +672,8 @@ Creating custom events
 Adding your own events is easy as well. `ActiveSupport::Notifications` will take care of
 all the heavy lifting for you. Simply call `instrument` with a `name`, `payload` and a block.
 The notification will be sent after the block returns. `ActiveSupport` will generate the start and end times
-as well as the unique ID. All data passed into the `instrument` call will make it into the payload.
+and add the instrumenter's unique ID. All data passed into the `instrument` call will make 
+it into the payload.
 
 Here's an example:
 
