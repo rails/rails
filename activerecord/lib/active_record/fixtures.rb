@@ -450,14 +450,16 @@ module ActiveRecord
         @config      = config
 
         # Remove string values that aren't constants or subclasses of AR
-        @class_names.delete_if { |klass_name, klass| !insert_class(@class_names, klass_name, klass) }
+        @class_names.delete_if do |klass_name, klass|
+          !insert_class(@class_names, klass_name, klass)
+        end
       end
 
       def [](fs_name)
-        @class_names.fetch(fs_name) {
+        @class_names.fetch(fs_name) do
           klass = default_fixture_model(fs_name, @config).safe_constantize
           insert_class(@class_names, fs_name, klass)
-        }
+        end
       end
 
       private
@@ -862,12 +864,9 @@ module ActiveRecord
     alias :to_hash :fixture
 
     def find
-      if model_class
-        model_class.unscoped do
-          model_class.find(fixture[model_class.primary_key])
-        end
-      else
-        raise FixtureClassNotFound, "No class attached to find."
+      raise FixtureClassNotFound, "No class attached to find." unless model_class
+      model_class.unscoped do
+        model_class.find(fixture[model_class.primary_key])
       end
     end
   end
