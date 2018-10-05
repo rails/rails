@@ -442,60 +442,6 @@ module ActiveRecord
 
     @@all_cached_fixtures = Hash.new { |h, k| h[k] = {} }
 
-    def self.default_fixture_model_name(fixture_set_name, config = ActiveRecord::Base) # :nodoc:
-      config.pluralize_table_names ?
-        fixture_set_name.singularize.camelize :
-        fixture_set_name.camelize
-    end
-
-    def self.default_fixture_table_name(fixture_set_name, config = ActiveRecord::Base) # :nodoc:
-      "#{ config.table_name_prefix }"\
-      "#{ fixture_set_name.tr('/', '_') }"\
-      "#{ config.table_name_suffix }".to_sym
-    end
-
-    def self.reset_cache
-      @@all_cached_fixtures.clear
-    end
-
-    def self.cache_for_connection(connection)
-      @@all_cached_fixtures[connection]
-    end
-
-    def self.fixture_is_cached?(connection, table_name)
-      cache_for_connection(connection)[table_name]
-    end
-
-    def self.cached_fixtures(connection, keys_to_fetch = nil)
-      if keys_to_fetch
-        cache_for_connection(connection).values_at(*keys_to_fetch)
-      else
-        cache_for_connection(connection).values
-      end
-    end
-
-    def self.cache_fixtures(connection, fixtures_map)
-      cache_for_connection(connection).update(fixtures_map)
-    end
-
-    def self.instantiate_fixtures(object, fixture_set, load_instances = true)
-      if load_instances
-        fixture_set.each do |fixture_name, fixture|
-          begin
-            object.instance_variable_set "@#{fixture_name}", fixture.find
-          rescue FixtureClassNotFound
-            nil
-          end
-        end
-      end
-    end
-
-    def self.instantiate_all_loaded_fixtures(object, load_instances = true)
-      all_loaded_fixtures.each_value do |fixture_set|
-        instantiate_fixtures(object, fixture_set, load_instances)
-      end
-    end
-
     cattr_accessor :all_loaded_fixtures, default: {}
 
     class ClassCache
@@ -530,71 +476,127 @@ module ActiveRecord
         end
     end
 
-    def self.create_fixtures(fixtures_directory, fixture_set_names, class_names = {}, config = ActiveRecord::Base)
-      fixture_set_names = Array(fixture_set_names).map(&:to_s)
-      class_names = ClassCache.new class_names, config
+    class << self
+      def default_fixture_model_name(fixture_set_name, config = ActiveRecord::Base) # :nodoc:
+        config.pluralize_table_names ?
+          fixture_set_name.singularize.camelize :
+          fixture_set_name.camelize
+      end
 
-      # FIXME: Apparently JK uses this.
-      connection = block_given? ? yield : ActiveRecord::Base.connection
+      def default_fixture_table_name(fixture_set_name, config = ActiveRecord::Base) # :nodoc:
+        "#{ config.table_name_prefix }"\
+        "#{ fixture_set_name.tr('/', '_') }"\
+        "#{ config.table_name_suffix }".to_sym
+      end
 
-      files_to_read = fixture_set_names.reject { |fs_name|
-        fixture_is_cached?(connection, fs_name)
-      }
+      def reset_cache
+        @@all_cached_fixtures.clear
+      end
 
-      unless files_to_read.empty?
-        fixtures_map = {}
+      def cache_for_connection(connection)
+        @@all_cached_fixtures[connection]
+      end
 
-        fixture_sets = files_to_read.map do |fs_name|
-          klass = class_names[fs_name]
-          conn = klass ? klass.connection : connection
-          fixtures_map[fs_name] = new( # ActiveRecord::FixtureSet.new
-            conn,
-            fs_name,
-            klass,
-            ::File.join(fixtures_directory, fs_name))
+      def fixture_is_cached?(connection, table_name)
+        cache_for_connection(connection)[table_name]
+      end
+
+      def cached_fixtures(connection, keys_to_fetch = nil)
+        if keys_to_fetch
+          cache_for_connection(connection).values_at(*keys_to_fetch)
+        else
+          cache_for_connection(connection).values
         end
+      end
 
-        update_all_loaded_fixtures fixtures_map
-        fixture_sets_by_connection = fixture_sets.group_by { |fs| fs.model_class ? fs.model_class.connection : connection }
+      def cache_fixtures(connection, fixtures_map)
+        cache_for_connection(connection).update(fixtures_map)
+      end
 
-        fixture_sets_by_connection.each do |conn, set|
-          table_rows_for_connection = Hash.new { |h, k| h[k] = [] }
-
-          set.each do |fs|
-            fs.table_rows.each do |table, rows|
-              table_rows_for_connection[table].unshift(*rows)
+      def instantiate_fixtures(object, fixture_set, load_instances = true)
+        if load_instances
+          fixture_set.each do |fixture_name, fixture|
+            begin
+              object.instance_variable_set "@#{fixture_name}", fixture.find
+            rescue FixtureClassNotFound
+              nil
             end
           end
-          conn.insert_fixtures_set(table_rows_for_connection, table_rows_for_connection.keys)
-
-          # Cap primary key sequences to max(pk).
-          if conn.respond_to?(:reset_pk_sequence!)
-            set.each { |fs| conn.reset_pk_sequence!(fs.table_name) }
-          end
         end
-
-        cache_fixtures(connection, fixtures_map)
       end
-      cached_fixtures(connection, fixture_set_names)
-    end
 
-    # Returns a consistent, platform-independent identifier for +label+.
-    # Integer identifiers are values less than 2^30. UUIDs are RFC 4122 version 5 SHA-1 hashes.
-    def self.identify(label, column_type = :integer)
-      if column_type == :uuid
-        Digest::UUID.uuid_v5(Digest::UUID::OID_NAMESPACE, label.to_s)
-      else
-        Zlib.crc32(label.to_s) % MAX_ID
+      def instantiate_all_loaded_fixtures(object, load_instances = true)
+        all_loaded_fixtures.each_value do |fixture_set|
+          instantiate_fixtures(object, fixture_set, load_instances)
+        end
       end
-    end
 
-    # Superclass for the evaluation contexts used by ERB fixtures.
-    def self.context_class
-      @context_class ||= Class.new
-    end
+      def create_fixtures(fixtures_directory, fixture_set_names, class_names = {}, config = ActiveRecord::Base)
+        fixture_set_names = Array(fixture_set_names).map(&:to_s)
+        class_names = ClassCache.new class_names, config
 
-    def self.update_all_loaded_fixtures(fixtures_map) # :nodoc:
-      all_loaded_fixtures.update(fixtures_map)
+        # FIXME: Apparently JK uses this.
+        connection = block_given? ? yield : ActiveRecord::Base.connection
+
+        files_to_read = fixture_set_names.reject { |fs_name|
+          fixture_is_cached?(connection, fs_name)
+        }
+
+        unless files_to_read.empty?
+          fixtures_map = {}
+
+          fixture_sets = files_to_read.map do |fs_name|
+            klass = class_names[fs_name]
+            conn = klass ? klass.connection : connection
+            fixtures_map[fs_name] = new( # ActiveRecord::FixtureSet.new
+              conn,
+              fs_name,
+              klass,
+              ::File.join(fixtures_directory, fs_name))
+          end
+
+          update_all_loaded_fixtures fixtures_map
+          fixture_sets_by_connection = fixture_sets.group_by { |fs| fs.model_class ? fs.model_class.connection : connection }
+
+          fixture_sets_by_connection.each do |conn, set|
+            table_rows_for_connection = Hash.new { |h, k| h[k] = [] }
+
+            set.each do |fs|
+              fs.table_rows.each do |table, rows|
+                table_rows_for_connection[table].unshift(*rows)
+              end
+            end
+            conn.insert_fixtures_set(table_rows_for_connection, table_rows_for_connection.keys)
+
+            # Cap primary key sequences to max(pk).
+            if conn.respond_to?(:reset_pk_sequence!)
+              set.each { |fs| conn.reset_pk_sequence!(fs.table_name) }
+            end
+          end
+
+          cache_fixtures(connection, fixtures_map)
+        end
+        cached_fixtures(connection, fixture_set_names)
+      end
+
+      # Returns a consistent, platform-independent identifier for +label+.
+      # Integer identifiers are values less than 2^30. UUIDs are RFC 4122 version 5 SHA-1 hashes.
+      def identify(label, column_type = :integer)
+        if column_type == :uuid
+          Digest::UUID.uuid_v5(Digest::UUID::OID_NAMESPACE, label.to_s)
+        else
+          Zlib.crc32(label.to_s) % MAX_ID
+        end
+      end
+
+      # Superclass for the evaluation contexts used by ERB fixtures.
+      def context_class
+        @context_class ||= Class.new
+      end
+
+      def update_all_loaded_fixtures(fixtures_map) # :nodoc:
+        all_loaded_fixtures.update(fixtures_map)
+      end
     end
 
     attr_reader :table_name, :name, :fixtures, :model_class, :config
