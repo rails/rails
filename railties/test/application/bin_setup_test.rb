@@ -43,6 +43,8 @@ module ApplicationTests
 
         # Ignore line that's only output by Bundler < 1.14
         output.sub!(/^Resolving dependencies\.\.\.\n/, "")
+        # Suppress Bundler platform warnings from output
+        output.gsub!(/^The dependency .* will be unused .*\.\n/, "")
 
         assert_equal(<<-OUTPUT, output)
 == Installing dependencies ==
