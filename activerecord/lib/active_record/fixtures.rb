@@ -8,7 +8,7 @@ require "active_support/dependencies"
 require "active_support/core_ext/digest/uuid"
 require "active_record/fixture_set/file"
 require "active_record/fixture_set/render_context"
-require "active_record/fixture_set/model_metadata"
+require "active_record/fixture_set/table_rows"
 require "active_record/test_fixtures"
 require "active_record/errors"
 
@@ -656,76 +656,15 @@ module ActiveRecord
     # Returns a hash of rows to be inserted. The key is the table, the value is
     # a list of rows to insert to that table.
     def table_rows
-      now = config.default_timezone == :utc ? Time.now.utc : Time.now
-
       # allow a standard key to be used for doing defaults in YAML
       fixtures.delete("DEFAULTS")
 
-      # track any join tables we need to insert later
-      rows = Hash.new { |h, table| h[table] = [] }
-
-      rows[table_name] = fixtures.map do |label, fixture|
-        row = fixture.to_hash
-
-        if model_class
-          # fill in timestamp columns if they aren't specified and the model is set to record_timestamps
-          if model_class.record_timestamps
-            model_metadata.timestamp_column_names.each do |c_name|
-              row[c_name] = now unless row.key?(c_name)
-            end
-          end
-
-          # interpolate the fixture label
-          row.each do |key, value|
-            row[key] = value.gsub("$LABEL", label.to_s) if value.is_a?(String)
-          end
-
-          # generate a primary key if necessary
-          if model_metadata.has_primary_key_column? && !row.include?(model_metadata.primary_key_name)
-            row[model_metadata.primary_key_name] = ActiveRecord::FixtureSet.identify(label, model_metadata.primary_key_type)
-          end
-
-          # Resolve enums
-          model_class.defined_enums.each do |name, values|
-            if row.include?(name)
-              row[name] = values.fetch(row[name], row[name])
-            end
-          end
-
-          # If STI is used, find the correct subclass for association reflection
-          reflection_class =
-            if row.include?(model_metadata.inheritance_column_name)
-              row[model_metadata.inheritance_column_name].constantize rescue model_class
-            else
-              model_class
-            end
-
-          reflection_class._reflections.each_value do |association|
-            case association.macro
-            when :belongs_to
-              # Do not replace association name with association foreign key if they are named the same
-              fk_name = (association.options[:foreign_key] || "#{association.name}_id").to_s
-
-              if association.name.to_s != fk_name && value = row.delete(association.name.to_s)
-                if association.polymorphic? && value.sub!(/\s*\(([^\)]*)\)\s*$/, "")
-                  # support polymorphic belongs_to as "label (Type)"
-                  row[association.foreign_type] = $1
-                end
-
-                fk_type = reflection_class.type_for_attribute(fk_name).type
-                row[fk_name] = ActiveRecord::FixtureSet.identify(value, fk_type)
-              end
-            when :has_many
-              if association.options[:through]
-                add_join_records(rows, row, HasManyThroughProxy.new(association))
-              end
-            end
-          end
-        end
-
-        row
-      end
-      rows
+      TableRows.new(
+        table_name,
+        model_class: model_class,
+        fixtures: fixtures,
+        config: config,
+      ).to_hash
     end
 
     class ReflectionProxy # :nodoc:
@@ -761,26 +700,6 @@ module ActiveRecord
     end
 
     private
-
-      def add_join_records(rows, row, association)
-        # This is the case when the join table has no fixtures file
-        if (targets = row.delete(association.name.to_s))
-          table_name  = association.join_table
-          column_type = association.primary_key_type
-          lhs_key     = association.lhs_key
-          rhs_key     = association.rhs_key
-
-          targets = targets.is_a?(Array) ? targets : targets.split(/\s*,\s*/)
-          rows[table_name].concat targets.map { |target|
-            { lhs_key => row[model_metadata.primary_key_name],
-              rhs_key => ActiveRecord::FixtureSet.identify(target, column_type) }
-          }
-        end
-      end
-
-      def model_metadata
-        @model_metadata ||= ModelMetadata.new(model_class, table_name)
-      end
 
       def model_class=(class_name)
         if class_name.is_a?(Class) # TODO: Should be an AR::Base type class, or any?
