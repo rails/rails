@@ -102,6 +102,11 @@ To keep using the current cache store, you can turn off cache versioning entirel
 
     config.active_record.cache_versioning = false
 
+If the current version of your cache store does support cache versioning but this
+method has not been added yet, you can temporarially add it in your code:
+
+    def #{Rails.cache.class}.supports_cache_versioning?; true; end
+
 end_error
             end
           end
