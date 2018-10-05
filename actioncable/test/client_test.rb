@@ -11,6 +11,9 @@ require "active_support/hash_with_indifferent_access"
 # test with iodine if platform allows
 begin
   require "iodine"
+  Iodine.verbosity = 2 # only print errors and fatal errors
+  Iodine.workers = 1 # single process (no cluster)
+  Iodine.threads = 1 # single threaded mode
 rescue LoadError
 end
 
@@ -108,8 +111,6 @@ class ClientTest < ActionCable::TestCase
   if defined?(::Iodine)
     def with_iodine_server(rack_app = ActionCable.server, port = 3099)
       ::Iodine.listen2http(app: rack_app, port: port.to_s, address: "127.0.0.1")
-      ::Iodine.workers = 1 # don't cluster the test
-      ::Iodine.threads = 1 # one for the server another for the task
       t = Thread.new { ::Iodine.start }
       begin
         yield(port)

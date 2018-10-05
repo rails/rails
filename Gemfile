@@ -82,7 +82,7 @@ group :cable do
   gem "sprockets-export", require: false
 
   platforms :mri do
-    gem "iodine", require: false
+    gem "iodine", ">= 0.7.3", require: false
   end
 end
 
