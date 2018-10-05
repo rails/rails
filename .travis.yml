@@ -77,7 +77,7 @@ matrix:
       before_install:
         - "rm ${BUNDLE_GEMFILE}.lock"
         - "travis_retry gem update --system"
-        - "travis_retry gem install bundler"
+        - "travis_retry gem install bundler -v 1.16.5"
         - "sudo sed -i 's/port = 5433/port = 5432/' /etc/postgresql/10/main/postgresql.conf"
         - "sudo service postgresql restart 10"
     - rvm: 2.5.1
@@ -86,7 +86,7 @@ matrix:
       before_install:
         - "rm ${BUNDLE_GEMFILE}.lock"
         - "travis_retry gem update --system"
-        - "travis_retry gem install bundler"
+        - "travis_retry gem install bundler -v 1.16.5"
         - "sudo sed -i 's/port = 5433/port = 5432/' /etc/postgresql/10/main/postgresql.conf"
         - "sudo service postgresql restart 10"
     - rvm: ruby-head
@@ -95,7 +95,7 @@ matrix:
       before_install:
         - "rm ${BUNDLE_GEMFILE}.lock"
         - "travis_retry gem update --system"
-        - "travis_retry gem install bundler"
+        - "travis_retry gem install bundler -v 1.16.5"
         - "sudo sed -i 's/port = 5433/port = 5432/' /etc/postgresql/10/main/postgresql.conf"
         - "sudo service postgresql restart 10"
     - rvm: 2.5.1
