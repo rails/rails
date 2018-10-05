@@ -805,6 +805,32 @@ SELECT * FROM articles WHERE id > 10 ORDER BY id DESC LIMIT 20
 
 ```
 
+### `reselect`
+
+The `reselect` method overrides an existing select statement. For example:
+
+```ruby
+Post.select(:title, :body).reselect(:created_at)
+```
+
+The SQL that would be executed:
+
+```sql
+SELECT `posts.created_at` FROM `posts`
+```
+
+In case the `reselect` clause is not used,
+
+```ruby
+Post.select(:title, :body)
+```
+
+the SQL executed would be:
+
+```sql
+SELECT `posts.title`, `posts.body` FROM `posts`
+```
+
 ### `reorder`
 
 The `reorder` method overrides the default scope order. For example:
