@@ -603,7 +603,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_javascript_is_skipped_if_required
     run_generator [destination_root, "--skip-javascript"]
 
-    assert_no_file "app/assets/javascripts"
+    assert_no_file "app/javascript"
 
     assert_file "app/views/layouts/application.html.erb" do |contents|
       assert_match(/stylesheet_link_tag\s+'application', media: 'all' %>/, contents)

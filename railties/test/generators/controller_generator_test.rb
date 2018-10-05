@@ -130,8 +130,6 @@ class ControllerGeneratorTest < Rails::Generators::TestCase
     assert_no_file "app/helpers/account_controller_helper.rb"
     assert_file "app/helpers/account_helper.rb"
 
-    assert_no_file "app/assets/javascripts/account_controller.js"
-
     assert_no_file "app/assets/stylesheets/account_controller.css"
     assert_file "app/assets/stylesheets/account.css"
   end
