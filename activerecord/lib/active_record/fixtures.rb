@@ -514,13 +514,12 @@ module ActiveRecord
       end
 
       def instantiate_fixtures(object, fixture_set, load_instances = true)
-        if load_instances
-          fixture_set.each do |fixture_name, fixture|
-            begin
-              object.instance_variable_set "@#{fixture_name}", fixture.find
-            rescue FixtureClassNotFound
-              nil
-            end
+        return unless load_instances
+        fixture_set.each do |fixture_name, fixture|
+          begin
+            object.instance_variable_set "@#{fixture_name}", fixture.find
+          rescue FixtureClassNotFound
+            nil
           end
         end
       end
@@ -538,42 +537,17 @@ module ActiveRecord
         # FIXME: Apparently JK uses this.
         connection = block_given? ? yield : ActiveRecord::Base.connection
 
-        files_to_read = fixture_set_names.reject { |fs_name|
+        fixture_files_to_read = fixture_set_names.reject do |fs_name|
           fixture_is_cached?(connection, fs_name)
-        }
+        end
 
-        unless files_to_read.empty?
-          fixtures_map = {}
-
-          fixture_sets = files_to_read.map do |fs_name|
-            klass = class_names[fs_name]
-            conn = klass ? klass.connection : connection
-            fixtures_map[fs_name] = new( # ActiveRecord::FixtureSet.new
-              conn,
-              fs_name,
-              klass,
-              ::File.join(fixtures_directory, fs_name))
-          end
-
-          update_all_loaded_fixtures fixtures_map
-          fixture_sets_by_connection = fixture_sets.group_by { |fs| fs.model_class ? fs.model_class.connection : connection }
-
-          fixture_sets_by_connection.each do |conn, set|
-            table_rows_for_connection = Hash.new { |h, k| h[k] = [] }
-
-            set.each do |fs|
-              fs.table_rows.each do |table, rows|
-                table_rows_for_connection[table].unshift(*rows)
-              end
-            end
-            conn.insert_fixtures_set(table_rows_for_connection, table_rows_for_connection.keys)
-
-            # Cap primary key sequences to max(pk).
-            if conn.respond_to?(:reset_pk_sequence!)
-              set.each { |fs| conn.reset_pk_sequence!(fs.table_name) }
-            end
-          end
-
+        if fixture_files_to_read.any?
+          fixtures_map = read_and_insert(
+            fixtures_directory,
+            fixture_files_to_read,
+            class_names,
+            connection,
+          )
           cache_fixtures(connection, fixtures_map)
         end
         cached_fixtures(connection, fixture_set_names)
@@ -592,6 +566,49 @@ module ActiveRecord
       # Superclass for the evaluation contexts used by ERB fixtures.
       def context_class
         @context_class ||= Class.new
+      end
+
+      private
+
+      def read_and_insert(fixtures_directory, fixture_files, class_names, connection) # :nodoc:
+        fixtures_map = {}
+        fixture_sets = fixture_files.map do |fixture_set_name|
+          klass = class_names[fixture_set_name]
+          conn = klass&.connection || connection
+          fixtures_map[fixture_set_name] = new( # ActiveRecord::FixtureSet.new
+            conn,
+            fixture_set_name,
+            klass,
+            ::File.join(fixtures_directory, fixture_set_name)
+          )
+        end
+        update_all_loaded_fixtures(fixtures_map)
+
+        insert(fixture_sets, connection)
+
+        fixtures_map
+      end
+
+      def insert(fixture_sets, connection) # :nodoc:
+        fixture_sets_by_connection = fixture_sets.group_by do |fixture_set|
+          fixture_set.model_class&.connection || connection
+        end
+
+        fixture_sets_by_connection.each do |conn, set|
+          table_rows_for_connection = Hash.new { |h, k| h[k] = [] }
+
+          set.each do |fixture_set|
+            fixture_set.table_rows.each do |table, rows|
+              table_rows_for_connection[table].unshift(*rows)
+            end
+          end
+          conn.insert_fixtures_set(table_rows_for_connection, table_rows_for_connection.keys)
+
+          # Cap primary key sequences to max(pk).
+          if conn.respond_to?(:reset_pk_sequence!)
+            set.each { |fs| conn.reset_pk_sequence!(fs.table_name) }
+          end
+        end
       end
 
       def update_all_loaded_fixtures(fixtures_map) # :nodoc:
