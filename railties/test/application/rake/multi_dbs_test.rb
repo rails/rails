@@ -65,6 +65,27 @@ module ApplicationTests
         end
       end
 
+      def db_migrate_and_schema_cache_dump
+        Dir.chdir(app_path) do
+          generate_models_for_animals
+          rails "db:migrate"
+          rails "db:schema:cache:dump"
+          assert File.exist?("db/schema_cache.yml")
+          assert File.exist?("db/animals_schema_cache.yml")
+        end
+      end
+
+      def db_migrate_and_schema_cache_dump_and_schema_cache_clear
+        Dir.chdir(app_path) do
+          generate_models_for_animals
+          rails "db:migrate"
+          rails "db:schema:cache:dump"
+          rails "db:schema:cache:clear"
+          assert_not File.exist?("db/schema_cache.yml")
+          assert_not File.exist?("db/animals_schema_cache.yml")
+        end
+      end
+
       def db_migrate_and_schema_dump_and_load(format)
         Dir.chdir(app_path) do
           generate_models_for_animals
@@ -193,6 +214,16 @@ module ApplicationTests
           db_migrate_namespaced db_config.spec_name, db_config.config["database"]
           db_migrate_status_namespaced db_config.spec_name, db_config.config["database"]
         end
+      end
+
+      test "db:schema:cache:dump works on all databases" do
+        require "#{app_path}/config/environment"
+        db_migrate_and_schema_cache_dump
+      end
+
+      test "db:schema:cache:clear works on all databases" do
+        require "#{app_path}/config/environment"
+        db_migrate_and_schema_cache_dump_and_schema_cache_clear
       end
     end
   end
