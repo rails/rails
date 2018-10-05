@@ -578,7 +578,11 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
   def test_belongs_to_counter_after_save
     topic = Topic.create!(title: "monday night")
-    topic.replies.create!(title: "re: monday night", content: "football")
+
+    assert_queries(2) do
+      topic.replies.create!(title: "re: monday night", content: "football")
+    end
+
     assert_equal 1, Topic.find(topic.id)[:replies_count]
 
     topic.save!
@@ -612,8 +616,10 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     debate.touch(time: time)
     debate2.touch(time: time)
 
-    reply.parent_title = "debate"
-    reply.save!
+    assert_queries(3) do
+      reply.parent_title = "debate"
+      reply.save!
+    end
 
     assert_operator debate.reload.updated_at, :>, time
     assert_operator debate2.reload.updated_at, :>, time
@@ -621,8 +627,10 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     debate.touch(time: time)
     debate2.touch(time: time)
 
-    reply.topic_with_primary_key = debate2
-    reply.save!
+    assert_queries(3) do
+      reply.topic_with_primary_key = debate2
+      reply.save!
+    end
 
     assert_operator debate.reload.updated_at, :>, time
     assert_operator debate2.reload.updated_at, :>, time
@@ -686,7 +694,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     line_item = LineItem.create!
     Invoice.create!(line_items: [line_item])
 
-    assert_queries(0) { line_item.save }
+    assert_no_queries { line_item.save }
   end
 
   def test_belongs_to_with_touch_option_on_destroy
@@ -781,7 +789,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
   def test_dont_find_target_when_foreign_key_is_null
     tagging = taggings(:thinking_general)
-    assert_queries(0) { tagging.super_tag }
+    assert_no_queries { tagging.super_tag }
   end
 
   def test_dont_find_target_when_saving_foreign_key_after_stale_association_loaded

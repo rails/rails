@@ -75,7 +75,7 @@ module Rails
         args += ["-P", "#{config['password']}"] if config["password"]
 
         if config["host"]
-          host_arg = "#{config['host']}".dup
+          host_arg = +"#{config['host']}"
           host_arg << ":#{config['port']}" if config["port"]
           args += ["-S", host_arg]
         end

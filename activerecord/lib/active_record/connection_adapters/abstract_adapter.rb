@@ -65,7 +65,7 @@ module ActiveRecord
     # Most of the methods in the adapter are useful during migrations. Most
     # notably, the instance methods provided by SchemaStatements are very useful.
     class AbstractAdapter
-      ADAPTER_NAME = "Abstract".freeze
+      ADAPTER_NAME = "Abstract"
       include ActiveSupport::Callbacks
       define_callbacks :checkout, :checkin
 
@@ -162,7 +162,7 @@ module ActiveRecord
       # this method must only be called while holding connection pool's mutex
       def lease
         if in_use?
-          msg = "Cannot lease connection, ".dup
+          msg = +"Cannot lease connection, "
           if @owner == Thread.current
             msg << "it is already leased by the current thread."
           else

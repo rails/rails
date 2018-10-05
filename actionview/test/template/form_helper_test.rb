@@ -140,6 +140,7 @@ class FormHelperTest < ActionView::TestCase
     @post_delegator.title = "Hello World"
 
     @car = Car.new("#000FFF")
+    @controller.singleton_class.include Routes.url_helpers
   end
 
   Routes = ActionDispatch::Routing::RouteSet.new
@@ -3487,14 +3488,14 @@ class FormHelperTest < ActionView::TestCase
 
   def test_form_for_with_existing_object_in_list
     @comment.save
-    form_for([@post, @comment]) {}
+    form_for([@post, @comment]) { }
 
     expected = whole_form(post_comment_path(@post, @comment), "edit_comment_1", "edit_comment", method: "patch")
     assert_dom_equal expected, output_buffer
   end
 
   def test_form_for_with_new_object_in_list
-    form_for([@post, @comment]) {}
+    form_for([@post, @comment]) { }
 
     expected = whole_form(post_comments_path(@post), "new_comment", "new_comment")
     assert_dom_equal expected, output_buffer
@@ -3502,14 +3503,14 @@ class FormHelperTest < ActionView::TestCase
 
   def test_form_for_with_existing_object_and_namespace_in_list
     @comment.save
-    form_for([:admin, @post, @comment]) {}
+    form_for([:admin, @post, @comment]) { }
 
     expected = whole_form(admin_post_comment_path(@post, @comment), "edit_comment_1", "edit_comment", method: "patch")
     assert_dom_equal expected, output_buffer
   end
 
   def test_form_for_with_new_object_and_namespace_in_list
-    form_for([:admin, @post, @comment]) {}
+    form_for([:admin, @post, @comment]) { }
 
     expected = whole_form(admin_post_comments_path(@post), "new_comment", "new_comment")
     assert_dom_equal expected, output_buffer
@@ -3523,13 +3524,13 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_form_for_with_default_method_as_patch
-    form_for(@post) {}
+    form_for(@post) { }
     expected = whole_form("/posts/123", "edit_post_123", "edit_post", method: "patch")
     assert_dom_equal expected, output_buffer
   end
 
   def test_form_for_with_data_attributes
-    form_for(@post, data: { behavior: "stuff" }, remote: true) {}
+    form_for(@post, data: { behavior: "stuff" }, remote: true) { }
     assert_match %r|data-behavior="stuff"|, output_buffer
     assert_match %r|data-remote="true"|, output_buffer
   end
@@ -3548,7 +3549,7 @@ class FormHelperTest < ActionView::TestCase
       end
     end
 
-    form_for(@post, builder: builder_class) {}
+    form_for(@post, builder: builder_class) { }
     assert_equal 1, initialization_count, "form builder instantiated more than once"
   end
 
@@ -3558,9 +3559,9 @@ class FormHelperTest < ActionView::TestCase
       method = options[:method]
 
       if options.fetch(:enforce_utf8, true)
-        txt = %{<input name="utf8" type="hidden" value="&#x2713;" />}.dup
+        txt = +%{<input name="utf8" type="hidden" value="&#x2713;" />}
       else
-        txt = "".dup
+        txt = +""
       end
 
       if method && !%w(get post).include?(method.to_s)
@@ -3571,7 +3572,7 @@ class FormHelperTest < ActionView::TestCase
     end
 
     def form_text(action = "/", id = nil, html_class = nil, remote = nil, multipart = nil, method = nil)
-      txt =  %{<form accept-charset="UTF-8" action="#{action}"}.dup
+      txt =  +%{<form accept-charset="UTF-8" action="#{action}"}
       txt << %{ enctype="multipart/form-data"} if multipart
       txt << %{ data-remote="true"} if remote
       txt << %{ class="#{html_class}"} if html_class

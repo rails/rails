@@ -8,6 +8,7 @@ AllCops:
     - '**/vendor/**/*'
     - 'actionpack/lib/action_dispatch/journey/parser.rb'
     - 'railties/test/fixtures/tmp/**/*'
+    - 'node_modules/**/*'
 
 Performance:
   Exclude:
@@ -130,6 +131,12 @@ Style/FrozenStringLiteralComment:
     - 'actionpack/test/**/*.ruby'
     - 'activestorage/db/migrate/**/*.rb'
 
+Style/RedundantFreeze:
+  Enabled: true
+  Exclude:
+    - 'actionpack/lib/action_dispatch/journey/router/utils.rb'
+    - 'activerecord/lib/active_record/connection_adapters/sqlite3_adapter.rb'
+
 # Use `foo {}` not `foo{}`.
 Layout/SpaceBeforeBlockBraces:
   Enabled: true
@@ -137,6 +144,7 @@ Layout/SpaceBeforeBlockBraces:
 # Use `foo { bar }` not `foo {bar}`.
 Layout/SpaceInsideBlockBraces:
   Enabled: true
+  EnforcedStyleForEmptyBraces: space
 
 # Use `{ a: 1 }` not `{a:1}`.
 Layout/SpaceInsideHashLiteralBraces:
@@ -207,4 +215,7 @@ Performance/EndWith:
   Enabled: true
 
 Performance/RegexpMatch:
+  Enabled: true
+
+Performance/UnfreezeString:
   Enabled: true

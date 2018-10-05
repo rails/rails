@@ -11,6 +11,7 @@ module ActionCable
       autoload :Naming
       autoload :PeriodicTimers
       autoload :Streams
+      autoload :TestCase
     end
   end
 end

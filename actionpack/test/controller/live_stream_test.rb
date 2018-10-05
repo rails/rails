@@ -304,7 +304,7 @@ module ActionController
       # Simulate InterlockHook
       ActiveSupport::Dependencies.interlock.start_running
       res = get :write_sleep_autoload
-      res.each {}
+      res.each { }
       ActiveSupport::Dependencies.interlock.done_running
     end
 

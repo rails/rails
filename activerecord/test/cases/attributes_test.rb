@@ -148,6 +148,20 @@ module ActiveRecord
       assert_equal 2, klass.new.counter
     end
 
+    test "procs for default values are evaluated even after column_defaults is called" do
+      klass = Class.new(OverloadedType) do
+        @@counter = 0
+        attribute :counter, :integer, default: -> { @@counter += 1 }
+      end
+
+      assert_equal 1, klass.new.counter
+
+      # column_defaults will increment the counter since the proc is called
+      klass.column_defaults
+
+      assert_equal 3, klass.new.counter
+    end
+
     test "procs are memoized before type casting" do
       klass = Class.new(OverloadedType) do
         @@counter = 0

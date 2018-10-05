@@ -661,7 +661,7 @@ module ActiveRecord
           end
 
           stuck_thread = Thread.new do
-            pool.with_connection {}
+            pool.with_connection { }
           end
 
           # wait for stuck_thread to get in queue

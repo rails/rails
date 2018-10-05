@@ -1,4 +1,5 @@
 var App = App || {}
+var Turbolinks = Turbolinks || {}
 
 App.assertCallbackInvoked = function(callbackName) {
   ok(true, callbackName + ' callback should have been invoked')
@@ -116,3 +117,6 @@ $.fn.extend({
     return this
   }
 })
+
+Turbolinks.clearCache = function() {}
+Turbolinks.visit = function() {}

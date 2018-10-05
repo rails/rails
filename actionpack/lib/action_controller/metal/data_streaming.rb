@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "action_controller/metal/exceptions"
+require "action_dispatch/http/content_disposition"
 
 module ActionController #:nodoc:
   # Methods for sending arbitrary data and for streaming files to the browser,
@@ -10,8 +11,8 @@ module ActionController #:nodoc:
 
     include ActionController::Rendering
 
-    DEFAULT_SEND_FILE_TYPE        = "application/octet-stream".freeze #:nodoc:
-    DEFAULT_SEND_FILE_DISPOSITION = "attachment".freeze #:nodoc:
+    DEFAULT_SEND_FILE_TYPE        = "application/octet-stream" #:nodoc:
+    DEFAULT_SEND_FILE_DISPOSITION = "attachment" #:nodoc:
 
     private
       # Sends the file. This uses a server-appropriate method (such as X-Sendfile)
@@ -132,10 +133,8 @@ module ActionController #:nodoc:
         end
 
         disposition = options.fetch(:disposition, DEFAULT_SEND_FILE_DISPOSITION)
-        unless disposition.nil?
-          disposition  = disposition.to_s
-          disposition += %(; filename="#{options[:filename]}") if options[:filename]
-          headers["Content-Disposition"] = disposition
+        if disposition
+          headers["Content-Disposition"] = ActionDispatch::Http::ContentDisposition.format(disposition: disposition, filename: options[:filename])
         end
 
         headers["Content-Transfer-Encoding"] = "binary"

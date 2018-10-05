@@ -1582,7 +1582,7 @@ module ActiveRecord
         #   association will use "taggable_type" as the default <tt>:foreign_type</tt>.
         # [:primary_key]
         #   Specify the method that returns the primary key of associated object used for the association.
-        #   By default this is id.
+        #   By default this is +id+.
         # [:dependent]
         #   If set to <tt>:destroy</tt>, the associated object is destroyed when this object is. If set to
         #   <tt>:delete</tt>, the associated object is deleted *without* calling its destroy method.
@@ -1762,6 +1762,7 @@ module ActiveRecord
         #   has_and_belongs_to_many :projects, -> { includes(:milestones, :manager) }
         #   has_and_belongs_to_many :categories, ->(post) {
         #     where("default_category = ?", post.default_category)
+        #   }
         #
         # === Extensions
         #

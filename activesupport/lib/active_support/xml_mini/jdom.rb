@@ -18,7 +18,7 @@ module ActiveSupport
   module XmlMini_JDOM #:nodoc:
     extend self
 
-    CONTENT_KEY = "__content__".freeze
+    CONTENT_KEY = "__content__"
 
     NODE_TYPE_NAMES = %w{ATTRIBUTE_NODE CDATA_SECTION_NODE COMMENT_NODE DOCUMENT_FRAGMENT_NODE
     DOCUMENT_NODE DOCUMENT_TYPE_NODE ELEMENT_NODE ENTITY_NODE ENTITY_REFERENCE_NODE NOTATION_NODE
@@ -169,7 +169,7 @@ module ActiveSupport
       # element::
       #   XML element to be checked.
       def empty_content?(element)
-        text = "".dup
+        text = +""
         child_nodes = element.child_nodes
         (0...child_nodes.length).each do |i|
           item = child_nodes.item(i)

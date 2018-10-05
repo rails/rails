@@ -65,7 +65,7 @@ module ActionDispatch
           end
 
           def display_image
-            message = "[Screenshot]: #{image_path}\n".dup
+            message = +"[Screenshot]: #{image_path}\n"
 
             case output_type
             when "artifact"

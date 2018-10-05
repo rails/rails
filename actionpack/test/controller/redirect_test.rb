@@ -214,6 +214,13 @@ class RedirectTest < ActionController::TestCase
     assert_equal "http://test.host/things/stuff", redirect_to_url
   end
 
+  def test_relative_url_redirect_host_with_port
+    request.host = "test.host:1234"
+    get :relative_url_redirect_with_status
+    assert_response 302
+    assert_equal "http://test.host:1234/things/stuff", redirect_to_url
+  end
+
   def test_simple_redirect_using_options
     get :host_redirect
     assert_response :redirect

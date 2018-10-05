@@ -117,7 +117,7 @@ module ActionController
             end
           end
 
-          message = json.gsub("\n".freeze, "\ndata: ".freeze)
+          message = json.gsub("\n", "\ndata: ")
           @stream.write "data: #{message}\n\n"
         end
     end
@@ -297,7 +297,7 @@ module ActionController
       return unless logger
 
       logger.fatal do
-        message = "\n#{exception.class} (#{exception.message}):\n".dup
+        message = +"\n#{exception.class} (#{exception.message}):\n"
         message << exception.annoted_source_code.to_s if exception.respond_to?(:annoted_source_code)
         message << "  " << exception.backtrace.join("\n  ")
         "#{message}\n\n"

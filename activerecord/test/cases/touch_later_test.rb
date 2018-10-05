@@ -100,7 +100,7 @@ class TouchLaterTest < ActiveRecord::TestCase
 
   def test_touch_later_dont_hit_the_db
     invoice = Invoice.create!
-    assert_queries(0) do
+    assert_no_queries do
       invoice.touch_later
     end
   end

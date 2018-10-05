@@ -108,11 +108,17 @@ module ActiveRecord
         yield delegate.update_table_definition(table_name, self)
       end
 
+      def replay(migration)
+        commands.each do |cmd, args, block|
+          migration.send(cmd, *args, &block)
+        end
+      end
+
       private
 
         module StraightReversions # :nodoc:
           private
-            { transaction:       :transaction,
+            {
               execute_block:     :execute_block,
               create_table:      :drop_table,
               create_join_table: :drop_join_table,
@@ -132,6 +138,17 @@ module ActiveRecord
         end
 
         include StraightReversions
+
+        def invert_transaction(args)
+          sub_recorder = CommandRecorder.new(delegate)
+          sub_recorder.revert { yield }
+
+          invertions_proc = proc {
+            sub_recorder.replay(self)
+          }
+
+          [:transaction, args, invertions_proc]
+        end
 
         def invert_drop_table(args, &block)
           if args.size == 1 && block == nil

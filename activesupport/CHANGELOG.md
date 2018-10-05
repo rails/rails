@@ -1,3 +1,26 @@
+*   Rename `Module#parent`, `Module#parents`, and `Module#parent_name` to
+    `module_parent`, `module_parents`, and `module_parent_name`.
+
+    *Gannon McGibbon*
+
+*   Deprecate the use of `LoggerSilence` in favor of `ActiveSupport::LoggerSilence`
+
+    *Edouard Chin*
+
+*   Deprecate using negative limits in `String#first` and `String#last`.
+
+    *Gannon McGibbon*, *Eric Turner*
+
+*   Fix bug where `#without` for `ActiveSupport::HashWithIndifferentAccess` would fail
+    with symbol arguments
+
+    *Abraham Chan*
+
+*   Treat `#delete_prefix`, `#delete_suffix` and `#unicode_normalize` results as non-`html_safe`.
+    Ensure safety of arguments for `#insert`, `#[]=` and `#replace` calls on `html_safe` Strings.
+
+    *Janosch Müller*
+
 *   Changed `ActiveSupport::TaggedLogging.new` to return a new logger instance instead
     of mutating the one received as parameter.
 

@@ -542,7 +542,7 @@ XML
   def test_params_passing_with_frozen_values
     assert_nothing_raised do
       get :test_params, params: {
-        frozen: "icy".freeze, frozens: ["icy".freeze].freeze, deepfreeze: { frozen: "icy".freeze }.freeze
+        frozen: -"icy", frozens: [-"icy"].freeze, deepfreeze: { frozen: -"icy" }.freeze
       }
     end
     parsed_params = ::JSON.parse(@response.body)

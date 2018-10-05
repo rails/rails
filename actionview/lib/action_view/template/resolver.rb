@@ -16,7 +16,7 @@ module ActionView
       alias_method :partial?, :partial
 
       def self.build(name, prefix, partial)
-        virtual = "".dup
+        virtual = +""
         virtual << "#{prefix}/" unless prefix.empty?
         virtual << (partial ? "_#{name}" : name)
         new name, prefix, partial, virtual
@@ -282,7 +282,7 @@ module ActionView
       end
 
       def escape_entry(entry)
-        entry.gsub(/[*?{}\[\]]/, '\\\\\\&'.freeze)
+        entry.gsub(/[*?{}\[\]]/, '\\\\\\&')
       end
 
       # Returns the file mtime from the filesystem.
@@ -294,7 +294,7 @@ module ActionView
       # from the path, or the handler, we should return the array of formats given
       # to the resolver.
       def extract_handler_and_format_and_variant(path)
-        pieces = File.basename(path).split(".".freeze)
+        pieces = File.basename(path).split(".")
         pieces.shift
 
         extension = pieces.pop

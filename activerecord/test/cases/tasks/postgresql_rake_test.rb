@@ -496,7 +496,7 @@ if current_adapter?(:PostgreSQLAdapter)
         assert_called_with(
           Kernel,
           :system,
-          ["psql", "-v", "ON_ERROR_STOP=1", "-q", "-f", filename, @configuration["database"]],
+          ["psql", "-v", "ON_ERROR_STOP=1", "-q", "-X", "-f", filename, @configuration["database"]],
           returns: true
         ) do
           ActiveRecord::Tasks::DatabaseTasks.structure_load(@configuration, filename)
@@ -505,7 +505,7 @@ if current_adapter?(:PostgreSQLAdapter)
 
       def test_structure_load_with_extra_flags
         filename = "awesome-file.sql"
-        expected_command = ["psql", "-v", "ON_ERROR_STOP=1", "-q", "-f", filename, "--noop", @configuration["database"]]
+        expected_command = ["psql", "-v", "ON_ERROR_STOP=1", "-q", "-X", "-f", filename, "--noop", @configuration["database"]]
 
         assert_called_with(Kernel, :system, expected_command, returns: true) do
           with_structure_load_flags(["--noop"]) do
@@ -519,7 +519,7 @@ if current_adapter?(:PostgreSQLAdapter)
         assert_called_with(
           Kernel,
           :system,
-          ["psql", "-v", "ON_ERROR_STOP=1", "-q", "-f", filename, @configuration["database"]],
+          ["psql", "-v", "ON_ERROR_STOP=1", "-q", "-X", "-f", filename, @configuration["database"]],
           returns: true
         ) do
           ActiveRecord::Tasks::DatabaseTasks.structure_load(@configuration, filename)

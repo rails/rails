@@ -2,6 +2,33 @@
 
     *Eric Hayes*
 
+*   Added `index` option for `change_table` migration helpers.
+    With this change you can create indexes while adding new
+    columns into the existing tables.
+
+    Example:
+
+        change_table(:languages) do |t|
+          t.string :country_code, index: true
+        end
+
+    *Mehmet Emin İNAÇ*
+
+*   Fix `transaction` reverting for migrations.
+
+    Before: Commands inside a `transaction` in a reverted migration ran uninverted.
+    Now: This change fixes that by reverting commands inside `transaction` block.
+
+    *fatkodima*, *David Verhasselt*
+
+*   Raise an error instead of scanning the filesystem root when `fixture_path` is blank.
+
+    *Gannon McGibbon*, *Max Albrecht*
+
+*   Allow `ActiveRecord::Base.configurations=` to be set with a symbolized hash.
+
+    *Gannon McGibbon*
+
 *   Don't update counter cache unless the record is actually saved.
 
     Fixes #31493, #33113, #33117.

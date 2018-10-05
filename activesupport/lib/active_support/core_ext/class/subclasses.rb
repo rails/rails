@@ -3,7 +3,7 @@
 class Class
   begin
     # Test if this Ruby supports each_object against singleton_class
-    ObjectSpace.each_object(Numeric.singleton_class) {}
+    ObjectSpace.each_object(Numeric.singleton_class) { }
 
     # Returns an array with all classes that are < than its receiver.
     #

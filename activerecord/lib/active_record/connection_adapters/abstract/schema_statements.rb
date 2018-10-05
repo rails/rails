@@ -211,13 +211,13 @@ module ActiveRecord
       #
       # ====== Add a backend specific option to the generated SQL (MySQL)
       #
-      #   create_table(:suppliers, options: 'ENGINE=InnoDB DEFAULT CHARSET=utf8')
+      #   create_table(:suppliers, options: 'ENGINE=InnoDB DEFAULT CHARSET=utf8mb4')
       #
       # generates:
       #
       #   CREATE TABLE suppliers (
       #     id bigint auto_increment PRIMARY KEY
-      #   ) ENGINE=InnoDB DEFAULT CHARSET=utf8
+      #   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
       #
       # ====== Rename the primary key column
       #
@@ -1380,7 +1380,7 @@ module ActiveRecord
           sm_table = quote_table_name(ActiveRecord::SchemaMigration.table_name)
 
           if versions.is_a?(Array)
-            sql = "INSERT INTO #{sm_table} (version) VALUES\n".dup
+            sql = +"INSERT INTO #{sm_table} (version) VALUES\n"
             sql << versions.map { |v| "(#{quote(v)})" }.join(",\n")
             sql << ";\n\n"
             sql

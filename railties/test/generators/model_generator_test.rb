@@ -392,6 +392,17 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_database_puts_migrations_in_configured_folder
+    with_secondary_database_configuration do
+      run_generator ["account", "--database=secondary"]
+      assert_migration "db/secondary_migrate/create_accounts.rb" do |content|
+        assert_method :change, content do |change|
+          assert_match(/create_table :accounts/, change)
+        end
+      end
+    end
+  end
+
   def test_required_belongs_to_adds_required_association
     run_generator ["account", "supplier:references{required}"]
 

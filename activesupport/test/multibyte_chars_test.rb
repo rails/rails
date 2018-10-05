@@ -53,7 +53,7 @@ class MultibyteCharsTest < ActiveSupport::TestCase
   end
 
   def test_forwarded_method_with_non_string_result_should_be_returned_verbatim
-    str = "".dup
+    str = +""
     str.singleton_class.class_eval { def __method_for_multibyte_testing_with_integer_result; 1; end }
     @chars.wrapped_string.singleton_class.class_eval { def __method_for_multibyte_testing_with_integer_result; 1; end }
 
@@ -61,14 +61,14 @@ class MultibyteCharsTest < ActiveSupport::TestCase
   end
 
   def test_should_concatenate
-    mb_a = "a".dup.mb_chars
-    mb_b = "b".dup.mb_chars
+    mb_a = (+"a").mb_chars
+    mb_b = (+"b").mb_chars
     assert_equal "ab", mb_a + "b"
     assert_equal "ab", "a" + mb_b
     assert_equal "ab", mb_a + mb_b
 
     assert_equal "ab", mb_a << "b"
-    assert_equal "ab", "a".dup << mb_b
+    assert_equal "ab", (+"a") << mb_b
     assert_equal "abb", mb_a << mb_b
   end
 
@@ -80,7 +80,7 @@ class MultibyteCharsTest < ActiveSupport::TestCase
 
   def test_concatenation_should_return_a_proxy_class_instance
     assert_equal ActiveSupport::Multibyte.proxy_class, ("a".mb_chars + "b").class
-    assert_equal ActiveSupport::Multibyte.proxy_class, ("a".dup.mb_chars << "b").class
+    assert_equal ActiveSupport::Multibyte.proxy_class, ((+"a").mb_chars << "b").class
   end
 
   def test_ascii_strings_are_treated_at_utf8_strings
@@ -90,8 +90,8 @@ class MultibyteCharsTest < ActiveSupport::TestCase
   def test_concatenate_should_return_proxy_instance
     assert(("a".mb_chars + "b").kind_of?(@proxy_class))
     assert(("a".mb_chars + "b".mb_chars).kind_of?(@proxy_class))
-    assert(("a".dup.mb_chars << "b").kind_of?(@proxy_class))
-    assert(("a".dup.mb_chars << "b".mb_chars).kind_of?(@proxy_class))
+    assert(((+"a").mb_chars << "b").kind_of?(@proxy_class))
+    assert(((+"a").mb_chars << "b".mb_chars).kind_of?(@proxy_class))
   end
 
   def test_should_return_string_as_json
@@ -135,7 +135,7 @@ class MultibyteCharsUTF8BehaviourTest < ActiveSupport::TestCase
   end
 
   def test_tidy_bytes_bang_should_change_wrapped_string
-    original = " Un bUen café \x92".dup
+    original = +" Un bUen café \x92"
     proxy = chars(original.dup)
     proxy.tidy_bytes!
     assert_not_equal original, proxy.to_s
@@ -152,7 +152,7 @@ class MultibyteCharsUTF8BehaviourTest < ActiveSupport::TestCase
   end
 
   def test_string_methods_are_chainable
-    assert chars("".dup).insert(0, "").kind_of?(ActiveSupport::Multibyte.proxy_class)
+    assert chars(+"").insert(0, "").kind_of?(ActiveSupport::Multibyte.proxy_class)
     assert chars("").rjust(1).kind_of?(ActiveSupport::Multibyte.proxy_class)
     assert chars("").ljust(1).kind_of?(ActiveSupport::Multibyte.proxy_class)
     assert chars("").center(1).kind_of?(ActiveSupport::Multibyte.proxy_class)
@@ -197,7 +197,7 @@ class MultibyteCharsUTF8BehaviourTest < ActiveSupport::TestCase
   end
 
   def test_should_use_character_offsets_for_insert_offsets
-    assert_equal "", "".dup.mb_chars.insert(0, "")
+    assert_equal "", (+"").mb_chars.insert(0, "")
     assert_equal "こわにちわ", @chars.insert(1, "わ")
     assert_equal "こわわわにちわ", @chars.insert(2, "わわ")
     assert_equal "わこわわわにちわ", @chars.insert(0, "わ")
@@ -420,13 +420,13 @@ class MultibyteCharsUTF8BehaviourTest < ActiveSupport::TestCase
   end
 
   def test_slice_bang_removes_the_slice_from_the_receiver
-    chars = "úüù".dup.mb_chars
+    chars = (+"úüù").mb_chars
     chars.slice!(0, 2)
     assert_equal "ù", chars
   end
 
   def test_slice_bang_returns_nil_and_does_not_modify_receiver_if_out_of_bounds
-    string = "úüù".dup
+    string = +"úüù"
     chars = string.mb_chars
     assert_nil chars.slice!(4, 5)
     assert_equal "úüù", chars

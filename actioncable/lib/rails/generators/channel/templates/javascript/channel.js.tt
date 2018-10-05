@@ -1,4 +1,6 @@
-App.<%= class_name.underscore %> = App.cable.subscriptions.create("<%= class_name %>Channel", {
+import consumer from "./consumer"
+
+consumer.subscriptions.create("<%= class_name %>Channel", {
   connected: function() {
     // Called when the subscription is ready for use on the server
   },

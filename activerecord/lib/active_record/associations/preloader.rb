@@ -101,10 +101,8 @@ module ActiveRecord
           case association
           when Hash
             preloaders_for_hash(association, records, scope, polymorphic_parent)
-          when Symbol
+          when Symbol, String
             preloaders_for_one(association, records, scope, polymorphic_parent)
-          when String
-            preloaders_for_one(association.to_sym, records, scope, polymorphic_parent)
           else
             raise ArgumentError, "#{association.inspect} was not recognized for preload"
           end
@@ -112,23 +110,21 @@ module ActiveRecord
 
         def preloaders_for_hash(association, records, scope, polymorphic_parent)
           association.flat_map { |parent, child|
-            loaders = preloaders_for_one parent, records, scope, polymorphic_parent
-
-            recs = loaders.flat_map(&:preloaded_records).uniq
-
-            reflection = records.first.class._reflect_on_association(parent)
-            polymorphic_parent = reflection && reflection.options[:polymorphic]
-
-            loaders.concat Array.wrap(child).flat_map { |assoc|
-              preloaders_on assoc, recs, scope, polymorphic_parent
-            }
-            loaders
+            grouped_records(parent, records, polymorphic_parent).flat_map do |reflection, reflection_records|
+              loaders = preloaders_for_reflection(reflection, reflection_records, scope)
+              recs = loaders.flat_map(&:preloaded_records)
+              child_polymorphic_parent = reflection && reflection.options[:polymorphic]
+              loaders.concat Array.wrap(child).flat_map { |assoc|
+                preloaders_on assoc, recs, scope, child_polymorphic_parent
+              }
+              loaders
+            end
           }
         end
 
         # Loads all the given data into +records+ for a singular +association+.
         #
-        # Functions by instantiating a preloader class such as Preloader::HasManyThrough and
+        # Functions by instantiating a preloader class such as Preloader::Association and
         # call the +run+ method for each passed in class in the +records+ argument.
         #
         # Not all records have the same class, so group then preload group on the reflection
@@ -139,12 +135,17 @@ module ActiveRecord
         # classes, depending on the polymorphic_type field. So we group by the classes as
         # well.
         def preloaders_for_one(association, records, scope, polymorphic_parent)
-          grouped_records(association, records, polymorphic_parent).flat_map do |reflection, klasses|
-            klasses.map do |rhs_klass, rs|
-              loader = preloader_for(reflection, rs).new(rhs_klass, rs, reflection, scope)
-              loader.run self
-              loader
+          grouped_records(association, records, polymorphic_parent)
+            .flat_map do |reflection, reflection_records|
+              preloaders_for_reflection reflection, reflection_records, scope
             end
+        end
+
+        def preloaders_for_reflection(reflection, records, scope)
+          records.group_by { |record| record.association(reflection.name).klass }.map do |rhs_klass, rs|
+            loader = preloader_for(reflection, rs).new(rhs_klass, rs, reflection, scope)
+            loader.run self
+            loader
           end
         end
 
@@ -152,11 +153,9 @@ module ActiveRecord
           h = {}
           records.each do |record|
             next unless record
-            next if polymorphic_parent && !record.class._reflect_on_association(association)
-            assoc = record.association(association)
-            next unless assoc.klass
-            klasses = h[assoc.reflection] ||= {}
-            (klasses[assoc.klass] ||= []) << record
+            reflection = record.class._reflect_on_association(association)
+            next if polymorphic_parent && !reflection || !record.association(association).klass
+            (h[reflection] ||= []) << record
           end
           h
         end

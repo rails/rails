@@ -124,6 +124,18 @@ module ApplicationTests
       assert_equal "MyLogger", Rails.application.config.logger.class.name
     end
 
+    test "raises an error if cache does not support recyclable cache keys" do
+      build_app(initializers: true)
+      add_to_env_config "production", "config.cache_store = Class.new {}.new"
+      add_to_env_config "production", "config.active_record.cache_versioning = true"
+
+      error = assert_raise(RuntimeError) do
+        app "production"
+      end
+
+      assert_match(/You're using a cache/, error.message)
+    end
+
     test "a renders exception on pending migration" do
       add_to_config <<-RUBY
         config.active_record.migration_error    = :page_load
@@ -296,6 +308,53 @@ module ApplicationTests
       app "production"
 
       assert_equal %w(noop_email).to_set, PostsMailer.instance_variable_get(:@action_methods)
+    end
+
+    test "does not eager load attribute methods in development" do
+      app_file "app/models/post.rb", <<-RUBY
+        class Post < ActiveRecord::Base
+        end
+      RUBY
+
+      app_file "config/initializers/active_record.rb", <<-RUBY
+        ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
+        ActiveRecord::Migration.verbose = false
+        ActiveRecord::Schema.define(version: 1) do
+          create_table :posts do |t|
+            t.string :title
+          end
+        end
+      RUBY
+
+      app "development"
+
+      assert_not_includes Post.instance_methods, :title
+    end
+
+    test "eager loads attribute methods in production" do
+      app_file "app/models/post.rb", <<-RUBY
+        class Post < ActiveRecord::Base
+        end
+      RUBY
+
+      app_file "config/initializers/active_record.rb", <<-RUBY
+        ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
+        ActiveRecord::Migration.verbose = false
+        ActiveRecord::Schema.define(version: 1) do
+          create_table :posts do |t|
+            t.string :title
+          end
+        end
+      RUBY
+
+      add_to_config <<-RUBY
+        config.eager_load = true
+        config.cache_classes = true
+      RUBY
+
+      app "production"
+
+      assert_includes Post.instance_methods, :title
     end
 
     test "initialize an eager loaded, cache classes app" do

@@ -24,7 +24,7 @@ class BaseRequestTest < ActiveSupport::TestCase
     def stub_request(env = {})
       ip_spoofing_check = env.key?(:ip_spoofing_check) ? env.delete(:ip_spoofing_check) : true
       @trusted_proxies ||= nil
-      ip_app = ActionDispatch::RemoteIp.new(Proc.new {}, ip_spoofing_check, @trusted_proxies)
+      ip_app = ActionDispatch::RemoteIp.new(Proc.new { }, ip_spoofing_check, @trusted_proxies)
       ActionDispatch::Http::URL.tld_length = env.delete(:tld_length) if env.key?(:tld_length)
 
       ip_app.call(env)

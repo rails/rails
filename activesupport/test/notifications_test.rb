@@ -90,7 +90,7 @@ module Notifications
       ActiveSupport::Notifications.subscribe("foo", TestSubscriber.new)
 
       ActiveSupport::Notifications.instrument("foo") do
-        ActiveSupport::Notifications.subscribe("foo") {}
+        ActiveSupport::Notifications.subscribe("foo") { }
       end
     ensure
       ActiveSupport::Notifications.notifier = old_notifier

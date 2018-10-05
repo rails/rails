@@ -140,10 +140,6 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     run_generator
 
     assert_file "test/dummy/app/assets/stylesheets/application.css"
-
-    assert_file "test/dummy/app/assets/javascripts/application.js" do |contents|
-      assert_no_match(/jquery/, contents)
-    end
   end
 
   def test_ensure_that_plugin_options_are_not_passed_to_app_generator
@@ -210,28 +206,10 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_no_file "#{destination_root}/Gemfile.lock"
   end
 
-  def test_skipping_javascripts_without_mountable_option
-    run_generator
-    assert_no_file "app/assets/javascripts/bukkits/application.js"
-  end
-
-  def test_javascripts_generation
-    run_generator [destination_root, "--mountable"]
-    assert_file "app/assets/javascripts/bukkits/application.js" do |content|
-      assert_match "//= require rails-ujs", content
-      assert_match "//= require activestorage", content
-      assert_match "//= require_tree .", content
-    end
-    assert_file "app/views/layouts/bukkits/application.html.erb" do |content|
-      assert_match "javascript_include_tag", content
-    end
-  end
-
-  def test_skip_javascripts
+  def test_skip_javascript
     run_generator [destination_root, "--skip-javascript", "--mountable"]
-    assert_no_file "app/assets/javascripts/bukkits/application.js"
     assert_file "app/views/layouts/bukkits/application.html.erb" do |content|
-      assert_no_match "javascript_include_tag", content
+      assert_no_match "javascript_pack_tag", content
     end
   end
 
@@ -264,7 +242,6 @@ class PluginGeneratorTest < Rails::Generators::TestCase
 
   def test_creating_engine_in_full_mode
     run_generator [destination_root, "--full"]
-    assert_file "app/assets/javascripts/bukkits"
     assert_file "app/assets/stylesheets/bukkits"
     assert_file "app/assets/images/bukkits"
     assert_file "app/models"
@@ -280,7 +257,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
 
   def test_creating_engine_with_hyphenated_name_in_full_mode
     run_generator [File.join(destination_root, "hyphenated-name"), "--full"]
-    assert_file "hyphenated-name/app/assets/javascripts/hyphenated/name"
+    assert_no_file "hyphenated-name/app/assets/javascripts/hyphenated/name"
     assert_file "hyphenated-name/app/assets/stylesheets/hyphenated/name"
     assert_file "hyphenated-name/app/assets/images/hyphenated/name"
     assert_file "hyphenated-name/app/models"
@@ -297,7 +274,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
 
   def test_creating_engine_with_hyphenated_and_underscored_name_in_full_mode
     run_generator [File.join(destination_root, "my_hyphenated-name"), "--full"]
-    assert_file "my_hyphenated-name/app/assets/javascripts/my_hyphenated/name"
+    assert_no_file "my_hyphenated-name/app/assets/javascripts/my_hyphenated/name"
     assert_file "my_hyphenated-name/app/assets/stylesheets/my_hyphenated/name"
     assert_file "my_hyphenated-name/app/assets/images/my_hyphenated/name"
     assert_file "my_hyphenated-name/app/models"
@@ -318,7 +295,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
 
   def test_create_mountable_application_with_mountable_option
     run_generator [destination_root, "--mountable"]
-    assert_file "app/assets/javascripts/bukkits"
+    assert_no_file "app/assets/javascripts/bukkits"
     assert_file "app/assets/stylesheets/bukkits"
     assert_file "app/assets/images/bukkits"
     assert_file "config/routes.rb", /Bukkits::Engine\.routes\.draw do/
@@ -334,7 +311,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
       assert_match "<%= csrf_meta_tags %>", contents
       assert_match "<%= csp_meta_tag %>", contents
       assert_match(/stylesheet_link_tag\s+['"]bukkits\/application['"]/, contents)
-      assert_match(/javascript_include_tag\s+['"]bukkits\/application['"]/, contents)
+      assert_no_match(/javascript_include_tag\s+['"]bukkits\/application['"]/, contents)
       assert_match "<%= yield %>", contents
     end
     assert_file "test/test_helper.rb" do |content|
@@ -348,7 +325,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
 
   def test_create_mountable_application_with_mountable_option_and_hypenated_name
     run_generator [File.join(destination_root, "hyphenated-name"), "--mountable"]
-    assert_file "hyphenated-name/app/assets/javascripts/hyphenated/name"
+    assert_no_file "hyphenated-name/app/assets/javascripts/hyphenated/name"
     assert_file "hyphenated-name/app/assets/stylesheets/hyphenated/name"
     assert_file "hyphenated-name/app/assets/images/hyphenated/name"
     assert_file "hyphenated-name/config/routes.rb",                                          /Hyphenated::Name::Engine\.routes\.draw do/
@@ -364,13 +341,13 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_file "hyphenated-name/app/views/layouts/hyphenated/name/application.html.erb" do |contents|
       assert_match "<title>Hyphenated name</title>", contents
       assert_match(/stylesheet_link_tag\s+['"]hyphenated\/name\/application['"]/, contents)
-      assert_match(/javascript_include_tag\s+['"]hyphenated\/name\/application['"]/, contents)
+      assert_no_match(/javascript_include_tag\s+['"]hyphenated\/name\/application['"]/, contents)
     end
   end
 
   def test_create_mountable_application_with_mountable_option_and_hypenated_and_underscored_name
     run_generator [File.join(destination_root, "my_hyphenated-name"), "--mountable"]
-    assert_file "my_hyphenated-name/app/assets/javascripts/my_hyphenated/name"
+    assert_no_file "my_hyphenated-name/app/assets/javascripts/my_hyphenated/name"
     assert_file "my_hyphenated-name/app/assets/stylesheets/my_hyphenated/name"
     assert_file "my_hyphenated-name/app/assets/images/my_hyphenated/name"
     assert_file "my_hyphenated-name/config/routes.rb",                                             /MyHyphenated::Name::Engine\.routes\.draw do/
@@ -386,13 +363,13 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_file "my_hyphenated-name/app/views/layouts/my_hyphenated/name/application.html.erb" do |contents|
       assert_match "<title>My hyphenated name</title>", contents
       assert_match(/stylesheet_link_tag\s+['"]my_hyphenated\/name\/application['"]/, contents)
-      assert_match(/javascript_include_tag\s+['"]my_hyphenated\/name\/application['"]/, contents)
+      assert_no_match(/javascript_include_tag\s+['"]my_hyphenated\/name\/application['"]/, contents)
     end
   end
 
   def test_create_mountable_application_with_mountable_option_and_multiple_hypenates_in_name
     run_generator [File.join(destination_root, "deep-hyphenated-name"), "--mountable"]
-    assert_file "deep-hyphenated-name/app/assets/javascripts/deep/hyphenated/name"
+    assert_no_file "deep-hyphenated-name/app/assets/javascripts/deep/hyphenated/name"
     assert_file "deep-hyphenated-name/app/assets/stylesheets/deep/hyphenated/name"
     assert_file "deep-hyphenated-name/app/assets/images/deep/hyphenated/name"
     assert_file "deep-hyphenated-name/config/routes.rb",                                               /Deep::Hyphenated::Name::Engine\.routes\.draw do/
@@ -408,7 +385,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_file "deep-hyphenated-name/app/views/layouts/deep/hyphenated/name/application.html.erb" do |contents|
       assert_match "<title>Deep hyphenated name</title>", contents
       assert_match(/stylesheet_link_tag\s+['"]deep\/hyphenated\/name\/application['"]/, contents)
-      assert_match(/javascript_include_tag\s+['"]deep\/hyphenated\/name\/application['"]/, contents)
+      assert_no_match(/javascript_include_tag\s+['"]deep\/hyphenated\/name\/application['"]/, contents)
     end
   end
 
@@ -737,7 +714,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
 
   def test_after_bundle_callback
     path = "http://example.org/rails_template"
-    template = %{ after_bundle { run "echo ran after_bundle" } }.dup
+    template = +%{ after_bundle { run "echo ran after_bundle" } }
     template.instance_eval "def read; self; end" # Make the string respond to read
 
     check_open = -> *args do

@@ -184,9 +184,8 @@ the file `scaffolds.css` (or `scaffolds.scss` if `sass-rails` is in the
 `Gemfile`.)
 
 For example, if you generate a `ProjectsController`, Rails will also add a new
-file at `app/assets/javascripts/projects.coffee` and another at
-`app/assets/stylesheets/projects.scss`. By default these files will be ready
-to use by your application immediately using the `require_tree` directive. See
+file at `app/assets/stylesheets/projects.scss`. By default these files will be
+ready to use by your application immediately using the `require_tree` directive. See
 [Manifest Files and Directives](#manifest-files-and-directives) for more details
 on require_tree.
 

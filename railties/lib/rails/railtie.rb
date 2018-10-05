@@ -224,7 +224,7 @@ module Rails
     end
 
     def railtie_namespace #:nodoc:
-      @railtie_namespace ||= self.class.parents.detect { |n| n.respond_to?(:railtie_namespace) }
+      @railtie_namespace ||= self.class.module_parents.detect { |n| n.respond_to?(:railtie_namespace) }
     end
 
     protected

@@ -43,9 +43,11 @@ module ActiveRecord
       }
 
       class StatementPool < ConnectionAdapters::StatementPool # :nodoc:
-        private def dealloc(stmt)
-          stmt.close
-        end
+        private
+
+          def dealloc(stmt)
+            stmt.close
+          end
       end
 
       def initialize(connection, logger, connection_options, config)
@@ -135,7 +137,7 @@ module ActiveRecord
       end
 
       def index_algorithms
-        { default: "ALGORITHM = DEFAULT".dup, copy: "ALGORITHM = COPY".dup, inplace: "ALGORITHM = INPLACE".dup }
+        { default: +"ALGORITHM = DEFAULT", copy: +"ALGORITHM = COPY", inplace: +"ALGORITHM = INPLACE" }
       end
 
       # HELPER METHODS ===========================================
@@ -219,18 +221,6 @@ module ActiveRecord
 
       def exec_rollback_db_transaction #:nodoc:
         execute "ROLLBACK"
-      end
-
-      # In the simple case, MySQL allows us to place JOINs directly into the UPDATE
-      # query. However, this does not allow for LIMIT, OFFSET and ORDER. To support
-      # these, we must use a subquery.
-      def join_to_update(update, select, key) # :nodoc:
-        if select.limit || select.offset || select.orders.any?
-          super
-        else
-          update.table select.source
-          update.wheres = select.constraints
-        end
       end
 
       def empty_insert_statement_value(primary_key = nil)
@@ -390,7 +380,7 @@ module ActiveRecord
 
       def add_index(table_name, column_name, options = {}) #:nodoc:
         index_name, index_type, index_columns, _, index_algorithm, index_using, comment = add_index_options(table_name, column_name, options)
-        sql = "CREATE #{index_type} INDEX #{quote_column_name(index_name)} #{index_using} ON #{quote_table_name(table_name)} (#{index_columns}) #{index_algorithm}".dup
+        sql = +"CREATE #{index_type} INDEX #{quote_column_name(index_name)} #{index_using} ON #{quote_table_name(table_name)} (#{index_columns}) #{index_algorithm}"
         execute add_sql_comment!(sql, comment)
       end
 
@@ -731,20 +721,6 @@ module ActiveRecord
           [remove_column_for_alter(table_name, :updated_at), remove_column_for_alter(table_name, :created_at)]
         end
 
-        # MySQL is too stupid to create a temporary table for use subquery, so we have
-        # to give it some prompting in the form of a subsubquery. Ugh!
-        def subquery_for(key, select)
-          subselect = select.clone
-          subselect.projections = [key]
-
-          # Materialize subquery by adding distinct
-          # to work with MySQL 5.7.6 which sets optimizer_switch='derived_merge=on'
-          subselect.distinct unless select.limit || select.offset || select.orders.any?
-
-          key_name = quote_column_name(key.name)
-          Arel::SelectManager.new(subselect.as("__active_record_temp")).project(Arel.sql(key_name))
-        end
-
         def supports_rename_index?
           mariadb? ? false : version >= "5.7.6"
         end
@@ -783,7 +759,7 @@ module ActiveRecord
           # https://dev.mysql.com/doc/refman/5.7/en/set-names.html
           # (trailing comma because variable_assignments will always have content)
           if @config[:encoding]
-            encoding = "NAMES #{@config[:encoding]}".dup
+            encoding = +"NAMES #{@config[:encoding]}"
             encoding << " COLLATE #{@config[:collation]}" if @config[:collation]
             encoding << ", "
           end

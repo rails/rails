@@ -816,7 +816,7 @@ class DependenciesTest < ActiveSupport::TestCase
   end
 
   def test_new_contants_in_without_constants
-    assert_equal [], (ActiveSupport::Dependencies.new_constants_in(Object) {})
+    assert_equal [], (ActiveSupport::Dependencies.new_constants_in(Object) { })
     assert ActiveSupport::Dependencies.constant_watch_stack.all? { |k, v| v.empty? }
   end
 
@@ -892,7 +892,7 @@ class DependenciesTest < ActiveSupport::TestCase
 
   def test_new_constants_in_with_illegal_module_name_raises_correct_error
     assert_raise(NameError) do
-      ActiveSupport::Dependencies.new_constants_in("Illegal-Name") {}
+      ActiveSupport::Dependencies.new_constants_in("Illegal-Name") { }
     end
   end
 

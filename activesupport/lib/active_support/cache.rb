@@ -596,9 +596,13 @@ module ActiveSupport
         # Merges the default options with ones specific to a method call.
         def merged_options(call_options)
           if call_options
-            options.merge(call_options)
+            if options.empty?
+              call_options
+            else
+              options.merge(call_options)
+            end
           else
-            options.dup
+            options
           end
         end
 
@@ -694,7 +698,7 @@ module ActiveSupport
         end
 
         def get_entry_value(entry, name, options)
-          instrument(:fetch_hit, name, options) {}
+          instrument(:fetch_hit, name, options) { }
           entry.value
         end
 

@@ -78,9 +78,9 @@ module ActionDispatch # :nodoc:
       x
     end
 
-    CONTENT_TYPE = "Content-Type".freeze
-    SET_COOKIE   = "Set-Cookie".freeze
-    LOCATION     = "Location".freeze
+    CONTENT_TYPE = "Content-Type"
+    SET_COOKIE   = "Set-Cookie"
+    LOCATION     = "Location"
     NO_CONTENT_CODES = [100, 101, 102, 204, 205, 304]
 
     cattr_accessor :default_charset, default: "utf-8"
@@ -105,7 +105,7 @@ module ActionDispatch # :nodoc:
 
       def body
         @str_body ||= begin
-          buf = "".dup
+          buf = +""
           each { |chunk| buf << chunk }
           buf
         end

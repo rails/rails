@@ -151,6 +151,35 @@ module ActiveRecord
         ActiveRecord::Base.configurations = @prev_configs
       end
 
+      def test_symbolized_configurations_assignment
+        @prev_configs = ActiveRecord::Base.configurations
+        config = {
+          development: {
+            primary: {
+              adapter: "sqlite3",
+              database: "db/development.sqlite3",
+            },
+          },
+          test: {
+            primary: {
+              adapter: "sqlite3",
+              database: "db/test.sqlite3",
+            },
+          },
+        }
+        ActiveRecord::Base.configurations = config
+        ActiveRecord::Base.configurations.configs_for.each do |db_config|
+          assert_instance_of ActiveRecord::DatabaseConfigurations::HashConfig, db_config
+          assert_instance_of String, db_config.env_name
+          assert_instance_of String, db_config.spec_name
+          db_config.config.keys.each do |key|
+            assert_instance_of String, key
+          end
+        end
+      ensure
+        ActiveRecord::Base.configurations = @prev_configs
+      end
+
       def test_retrieve_connection
         assert @handler.retrieve_connection(@spec_name)
       end

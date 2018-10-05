@@ -49,18 +49,12 @@ module ActiveJob
           if executions < attempts
             retry_job wait: determine_delay(wait), queue: queue, priority: priority, error: error
           else
-            payload = {
-              job: self,
-              adapter: self.class.queue_adapter,
-              error: error
-            }
-
             if block_given?
-              ActiveSupport::Notifications.instrument("retry_stopped.active_job", payload) do
+              instrument :retry_stopped, error: error do
                 yield self, error
               end
             else
-              ActiveSupport::Notifications.instrument("retry_stopped.active_job", payload)
+              instrument :retry_stopped, error: error
               raise error
             end
           end
@@ -87,16 +81,8 @@ module ActiveJob
       #  end
       def discard_on(*exceptions)
         rescue_from(*exceptions) do |error|
-          payload = {
-            job: self,
-            adapter: self.class.queue_adapter,
-            error: error
-          }
-
-          ActiveSupport::Notifications.instrument("discard.active_job", payload) do
-            if block_given?
-              yield self, error
-            end
+          instrument :discard, error: error do
+            yield self, error if block_given?
           end
         end
       end
@@ -124,14 +110,7 @@ module ActiveJob
     #    end
     #  end
     def retry_job(options = {})
-      payload = {
-        job: self,
-        adapter: self.class.queue_adapter,
-        error: options[:error],
-        wait: options[:wait]
-      }
-
-      ActiveSupport::Notifications.instrument("enqueue_retry.active_job", payload) do
+      instrument :enqueue_retry, options.slice(:error, :wait) do
         enqueue options
       end
     end
@@ -153,6 +132,12 @@ module ActiveJob
         else
           raise "Couldn't determine a delay based on #{seconds_or_duration_or_algorithm.inspect}"
         end
+      end
+
+      def instrument(name, error: nil, wait: nil, &block)
+        payload = { job: self, adapter: self.class.queue_adapter, error: error, wait: wait }
+
+        ActiveSupport::Notifications.instrument("#{name}.active_job", payload, &block)
       end
   end
 end

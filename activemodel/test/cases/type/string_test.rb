@@ -15,11 +15,11 @@ module ActiveModel
       test "cast strings are mutable" do
         type = Type::String.new
 
-        s = "foo".dup
+        s = +"foo"
         assert_equal false, type.cast(s).frozen?
         assert_equal false, s.frozen?
 
-        f = "foo".freeze
+        f = -"foo"
         assert_equal false, type.cast(f).frozen?
         assert_equal true, f.frozen?
       end

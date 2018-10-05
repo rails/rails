@@ -58,6 +58,8 @@ amazon:
   service: S3
   access_key_id: ""
   secret_access_key: ""
+  bucket: ""
+  region: "" # e.g. 'us-east-1'
 ```
 
 Tell Active Storage which service to use by setting

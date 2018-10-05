@@ -1346,7 +1346,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   def test_joins_with_includes_should_preload_via_joins
     post = assert_queries(1) { Post.includes(:comments).joins(:comments).order("posts.id desc").to_a.first }
 
-    assert_queries(0) do
+    assert_no_queries do
       assert_not_equal 0, post.comments.to_a.count
     end
   end
@@ -1616,6 +1616,32 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_raises(ActiveRecord::AssociationNotFoundError) do
       Sponsor.where(sponsorable_id: 1).preload(sponsorable: [{ post: :fist_comment }, :membership]).to_a
     end
+  end
+
+  # Associations::Preloader#preloaders_on works with hash-like objects
+  test "preloading works with an object that responds to :to_hash" do
+    CustomHash = Class.new(Hash)
+
+    assert_nothing_raised do
+      Post.preload(CustomHash.new(comments: [{ author: :essays }])).first
+    end
+  end
+
+  # Associations::Preloader#preloaders_on works with string-like objects
+  test "preloading works with an object that responds to :to_str" do
+    CustomString = Class.new(String)
+
+    assert_nothing_raised do
+      Post.preload(CustomString.new("comments")).first
+    end
+  end
+
+  # Associations::Preloader#preloaders_on does not work with ranges
+  test "preloading fails when Range is passed" do
+    exception = assert_raises(ArgumentError) do
+      Post.preload(1..10).first
+    end
+    assert_equal("1..10 was not recognized for preload", exception.message)
   end
 
   private
