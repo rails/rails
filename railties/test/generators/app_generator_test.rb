@@ -214,14 +214,14 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_new_application_load_defaults
     app_root = File.join(destination_root, "myfirstapp")
-    run_generator [app_root, "--no-skip-javascript"]
+    run_generator [app_root]
 
     output = nil
 
     assert_file "#{app_root}/config/application.rb", /\s+config\.load_defaults #{Rails::VERSION::STRING.to_f}/
 
     Dir.chdir(app_root) do
-      output = `./bin/rails r "puts Rails.application.config.assets.unknown_asset_fallback"`
+      output = `SKIP_REQUIRE_WEBPACKER=true ./bin/rails r "puts Rails.application.config.assets.unknown_asset_fallback"`
     end
 
     assert_equal "false\n", output
