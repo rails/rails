@@ -6,6 +6,38 @@ require "active_record/fixture_set/model_metadata"
 module ActiveRecord
   class FixtureSet
     class TableRows # :nodoc:
+      class ReflectionProxy # :nodoc:
+        def initialize(association)
+          @association = association
+        end
+
+        def join_table
+          @association.join_table
+        end
+
+        def name
+          @association.name
+        end
+
+        def primary_key_type
+          @association.klass.type_for_attribute(@association.klass.primary_key).type
+        end
+      end
+
+      class HasManyThroughProxy < ReflectionProxy # :nodoc:
+        def rhs_key
+          @association.foreign_key
+        end
+
+        def lhs_key
+          @association.through_reflection.foreign_key
+        end
+
+        def join_table
+          @association.through_reflection.table_name
+        end
+      end
+
       def initialize(table_name, model_class:, fixtures:, config:)
         @table_name  = table_name
         @model_class = model_class
