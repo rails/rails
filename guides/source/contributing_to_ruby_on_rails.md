@@ -336,6 +336,26 @@ $ bundle exec ruby -w -Itest test/mail_layout_test.rb -n test_explicit_class_lay
 The `-n` option allows you to run a single method instead of the whole
 file.
 
+#### Running tests with a specific seed
+
+Test execution is randomized with a randomization seed. If you are experiencing random
+test failures you can more accurately reproduce a failing test scenario by specifically
+setting the randomization seed.
+
+Running all tests for a component:
+
+```bash
+$ cd actionmailer
+$ SEED=15002 bundle exec rake test
+```
+
+Running a single test file:
+
+```bash
+$ cd actionmailer
+$ SEED=15002 bundle exec ruby -w -Itest test/mail_layout_test.rb
+```
+
 #### Testing Active Record
 
 First, create the databases you'll need. You can find a list of the required
