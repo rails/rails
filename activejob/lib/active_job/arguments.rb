@@ -72,10 +72,10 @@ module ActiveJob
           convert_to_global_id_hash(argument)
         when Array
           argument.map { |arg| serialize_argument(arg) }
+        when ActionController::Parameters
+          serialize_indifferent_hash(argument.to_h)
         when ActiveSupport::HashWithIndifferentAccess
-          result = serialize_hash(argument)
-          result[WITH_INDIFFERENT_ACCESS_KEY] = serialize_argument(true)
-          result
+          serialize_indifferent_hash(argument)
         when Hash
           symbol_keys = argument.each_key.grep(Symbol).map(&:to_s)
           result = serialize_hash(argument)
@@ -144,6 +144,12 @@ module ActiveJob
         else
           raise SerializationError.new("Only string and symbol hash keys may be serialized as job arguments, but #{key.inspect} is a #{key.class}")
         end
+      end
+
+      def serialize_indifferent_hash(indifferent_hash)
+        result = serialize_hash(indifferent_hash)
+        result[WITH_INDIFFERENT_ACCESS_KEY] = serialize_argument(true)
+        result
       end
 
       def transform_symbol_keys(hash, symbol_keys)
