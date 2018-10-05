@@ -305,8 +305,8 @@ module SharedGeneratorTests
     run_generator [destination_root, "--skip-action-cable"]
     assert_file "#{application_path}/config/application.rb", /#\s+require\s+["']action_cable\/engine["']/
     assert_no_file "#{application_path}/config/cable.yml"
-    assert_no_file "#{application_path}/app/assets/javascripts/cable.js"
-    assert_no_directory "#{application_path}/app/assets/javascripts/channels"
+    assert_no_file "#{application_path}/app/javascript/consumer.js"
+    assert_no_directory "#{application_path}/app/javascript/channels"
     assert_no_directory "#{application_path}/app/channels"
     assert_file "Gemfile" do |content|
       assert_no_match(/redis/, content)
