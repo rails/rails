@@ -1,12 +1,14 @@
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
+
 Action Cable Overview
 =====================
 
-In this guide you will learn how Action Cable works and how to use WebSockets to
+In this guide, you will learn how Action Cable works and how to use WebSockets to
 incorporate real-time features into your Rails application.
 
 After reading this guide, you will know:
 
-* What Action Cable is and its integration on backend and frontend
+* What Action Cable is and its integration backend and frontend
 * How to setup Action Cable
 * How to setup channels
 * Deployment and Architecture setup for running Action Cable
@@ -64,7 +66,7 @@ module ApplicationCable
 
     private
       def find_verified_user
-        if verified_user = User.find_by(id: cookies.signed[:user_id])
+        if verified_user = User.find_by(id: cookies.encrypted[:user_id])
           verified_user
         else
           reject_unauthorized_connection
@@ -129,7 +131,7 @@ subscriptions based on an identifier sent by the cable consumer.
 # app/channels/chat_channel.rb
 class ChatChannel < ApplicationCable::Channel
   # Called when the consumer has successfully
-  # become a subscriber of this channel.
+  # become a subscriber to this channel.
   def subscribed
   end
 end
@@ -225,7 +227,7 @@ A *broadcasting* is a pub/sub link where anything transmitted by a publisher
 is routed directly to the channel subscribers who are streaming that named
 broadcasting. Each channel can be streaming zero or more broadcastings.
 
-Broadcastings are purely an online queue and time dependent. If a consumer is
+Broadcastings are purely an online queue and time-dependent. If a consumer is
 not streaming (subscribed to a given channel), they'll not get the broadcast
 should they connect later.
 
@@ -515,8 +517,8 @@ user. For a user with an ID of 1, the broadcasting name would be
 The channel has been instructed to stream everything that arrives at
 `web_notifications:1` directly to the client by invoking the `received`
 callback. The data passed as argument is the hash sent as the second parameter
-to the server-side broadcast call, JSON encoded for the trip across the wire,
-and unpacked for the data argument arriving to `received`.
+to the server-side broadcast call, JSON encoded for the trip across the wire
+and unpacked for the data argument arriving as `received`.
 
 ### More Complete Examples
 
@@ -555,9 +557,8 @@ The async adapter is intended for development/testing and should not be used in 
 
 ##### Redis Adapter
 
-Action Cable contains two Redis adapters: "normal" Redis and Evented Redis. Both
-of the adapters require users to provide a URL pointing to the Redis server.
-Additionally, a channel_prefix may be provided to avoid channel name collisions
+The Redis adapter requires users to provide a URL pointing to the Redis server.
+Additionally, a `channel_prefix` may be provided to avoid channel name collisions
 when using the same Redis server for multiple applications. See the [Redis PubSub documentation](https://redis.io/topics/pubsub#database-amp-scoping) for more details.
 
 ##### PostgreSQL Adapter
@@ -570,7 +571,7 @@ This may change in the future. [#27214](https://github.com/rails/rails/issues/27
 
 Action Cable will only accept requests from specified origins, which are
 passed to the server config as an array. The origins can be instances of
-strings or regular expressions, against which a check for match will be performed.
+strings or regular expressions, against which a check for the match will be performed.
 
 ```ruby
 config.action_cable.allowed_request_origins = ['http://rubyonrails.com', %r{http://ruby.*}]
@@ -593,7 +594,7 @@ environment configuration files.
 
 ### Other Configurations
 
-The other common option to configure, is the log tags applied to the
+The other common option to configure is the log tags applied to the
 per-connection logger. Here's an example that uses
 the user account id if available, else "no-account" while tagging:
 
@@ -608,7 +609,7 @@ config.action_cable.log_tags = [
 For a full list of all configuration options, see the
 `ActionCable::Server::Configuration` class.
 
-Also note that your server must provide at least the same number of database
+Also, note that your server must provide at least the same number of database
 connections as you have workers. The default worker pool size is set to 4, so
 that means you have to make at least that available. You can change that in
 `config/database.yml` through the `pool` attribute.
@@ -669,8 +670,8 @@ authentication. You can see one way of doing that with Devise in this [article](
 ## Dependencies
 
 Action Cable provides a subscription adapter interface to process its
-pubsub internals. By default, asynchronous, inline, PostgreSQL, evented
-Redis, and non-evented Redis adapters are included. The default adapter
+pubsub internals. By default, asynchronous, inline, PostgreSQL, and Redis
+adapters are included. The default adapter
 in new Rails applications is the asynchronous (`async`) adapter.
 
 The Ruby side of things is built on top of [websocket-driver](https://github.com/faye/websocket-driver-ruby),

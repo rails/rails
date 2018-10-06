@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "generators/generators_test_helper"
 require "rails/generators/rails/migration/migration_generator"
 
@@ -48,6 +50,17 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_add_migration_with_table_having_from_in_title
+    migration = "add_email_address_to_excluded_from_campaign"
+    run_generator [migration, "email_address:string"]
+
+    assert_migration "db/migrate/#{migration}.rb" do |content|
+      assert_method :change, content do |change|
+        assert_match(/add_column :excluded_from_campaigns, :email_address, :string/, change)
+      end
+    end
+  end
+
   def test_remove_migration_with_indexed_attribute
     migration = "remove_title_body_from_posts"
     run_generator [migration, "title:string:index", "body:text"]
@@ -69,6 +82,17 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
       assert_method :change, content do |change|
         assert_match(/remove_column :posts, :title, :string/, change)
         assert_match(/remove_column :posts, :body, :text/, change)
+      end
+    end
+  end
+
+  def test_remove_migration_with_table_having_to_in_title
+    migration = "remove_email_address_from_sent_to_user"
+    run_generator [migration, "email_address:string"]
+
+    assert_migration "db/migrate/#{migration}.rb" do |content|
+      assert_method :change, content do |change|
+        assert_match(/remove_column :sent_to_users, :email_address, :string/, change)
       end
     end
   end
@@ -204,8 +228,8 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
     assert_migration "db/migrate/#{migration}.rb" do |content|
       assert_method :change, content do |change|
         assert_match(/create_join_table :artists, :musics/, change)
-        assert_match(/# t.index \[:artist_id, :music_id\]/, change)
-        assert_match(/  t.index \[:music_id, :artist_id\], unique: true/, change)
+        assert_match(/# t\.index \[:artist_id, :music_id\]/, change)
+        assert_match(/  t\.index \[:music_id, :artist_id\], unique: true/, change)
       end
     end
   end
@@ -226,6 +250,17 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
     assert_migration "db/migrate/create_books.rb" do |content|
       assert_method :change, content do |change|
         assert_match(/create_table :books, id: :uuid/, change)
+      end
+    end
+  end
+
+  def test_database_puts_migrations_in_configured_folder
+    with_secondary_database_configuration do
+      run_generator ["create_books", "--database=secondary"]
+      assert_migration "db/secondary_migrate/create_books.rb" do |content|
+        assert_method :change, content do |change|
+          assert_match(/create_table :books/, change)
+        end
       end
     end
   end
@@ -265,8 +300,8 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
       assert_migration "db/migrate/#{migration}.rb" do |content|
         assert_method :change, content do |change|
           assert_match(/create_join_table :artist, :music/, change)
-          assert_match(/# t.index \[:artist_id, :music_id\]/, change)
-          assert_match(/  t.index \[:music_id, :artist_id\], unique: true/, change)
+          assert_match(/# t\.index \[:artist_id, :music_id\]/, change)
+          assert_match(/  t\.index \[:music_id, :artist_id\], unique: true/, change)
         end
       end
     end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActionController
   # When our views change, they should bubble up into HTTP cache freshness
   # and bust browser caches. So the template digest for the current action
@@ -22,8 +24,7 @@ module ActionController
     include ActionController::ConditionalGet
 
     included do
-      class_attribute :etag_with_template_digest
-      self.etag_with_template_digest = true
+      class_attribute :etag_with_template_digest, default: true
 
       ActiveSupport.on_load :action_view, yield: true do
         etag do |options|

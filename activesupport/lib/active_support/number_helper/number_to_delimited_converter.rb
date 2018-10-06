@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveSupport
   module NumberHelper
     class NumberToDelimitedConverter < NumberConverter #:nodoc:
@@ -12,7 +14,7 @@ module ActiveSupport
       private
 
         def parts
-          left, right = number.to_s.split(".".freeze)
+          left, right = number.to_s.split(".")
           left.gsub!(delimiter_pattern) do |digit_to_delimit|
             "#{digit_to_delimit}#{options[:delimiter]}"
           end

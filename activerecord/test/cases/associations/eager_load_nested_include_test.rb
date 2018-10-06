@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/post"
 require "models/tag"
@@ -90,7 +92,7 @@ class EagerLoadPolyAssocsTest < ActiveRecord::TestCase
   def test_include_query
     res = ShapeExpression.all.merge!(includes: [ :shape, { paint: :non_poly } ]).to_a
     assert_equal NUM_SHAPE_EXPRESSIONS, res.size
-    assert_queries(0) do
+    assert_no_queries do
       res.each do |se|
         assert_not_nil se.paint.non_poly, "this is the association that was loading incorrectly before the change"
         assert_not_nil se.shape, "just making sure other associations still work"

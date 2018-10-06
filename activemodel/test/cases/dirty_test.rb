@@ -1,27 +1,24 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 
 class DirtyTest < ActiveModel::TestCase
   class DirtyModel
     include ActiveModel::Dirty
-    define_attribute_methods :name, :color, :size
+    define_attribute_methods :name, :color, :size, :status
 
     def initialize
       @name = nil
       @color = nil
       @size = nil
+      @status = "initialized"
     end
 
-    def name
-      @name
-    end
+    attr_reader :name, :color, :size, :status
 
     def name=(val)
       name_will_change!
       @name = val
-    end
-
-    def color
-      @color
     end
 
     def color=(val)
@@ -29,13 +26,14 @@ class DirtyTest < ActiveModel::TestCase
       @color = val
     end
 
-    def size
-      @size
-    end
-
     def size=(val)
       attribute_will_change!(:size) unless val == @size
       @size = val
+    end
+
+    def status=(val)
+      status_will_change! unless val == @status
+      @status = val
     end
 
     def save
@@ -52,11 +50,11 @@ class DirtyTest < ActiveModel::TestCase
   end
 
   test "setting attribute will result in change" do
-    assert !@model.changed?
-    assert !@model.name_changed?
+    assert_not_predicate @model, :changed?
+    assert_not_predicate @model, :name_changed?
     @model.name = "Ringo"
-    assert @model.changed?
-    assert @model.name_changed?
+    assert_predicate @model, :changed?
+    assert_predicate @model, :name_changed?
   end
 
   test "list of changed attribute keys" do
@@ -66,7 +64,7 @@ class DirtyTest < ActiveModel::TestCase
   end
 
   test "changes to attribute values" do
-    assert !@model.changes["name"]
+    assert_not @model.changes["name"]
     @model.name = "John"
     assert_equal [nil, "John"], @model.changes["name"]
   end
@@ -96,83 +94,94 @@ class DirtyTest < ActiveModel::TestCase
   end
 
   test "attribute mutation" do
-    @model.instance_variable_set("@name", "Yam")
-    assert !@model.name_changed?
+    @model.instance_variable_set("@name", +"Yam")
+    assert_not_predicate @model, :name_changed?
     @model.name.replace("Hadad")
-    assert !@model.name_changed?
+    assert_not_predicate @model, :name_changed?
     @model.name_will_change!
     @model.name.replace("Baal")
-    assert @model.name_changed?
+    assert_predicate @model, :name_changed?
   end
 
   test "resetting attribute" do
     @model.name = "Bob"
     @model.restore_name!
     assert_nil @model.name
-    assert !@model.name_changed?
+    assert_not_predicate @model, :name_changed?
   end
 
   test "setting color to same value should not result in change being recorded" do
     @model.color = "red"
-    assert @model.color_changed?
+    assert_predicate @model, :color_changed?
     @model.save
-    assert !@model.color_changed?
-    assert !@model.changed?
+    assert_not_predicate @model, :color_changed?
+    assert_not_predicate @model, :changed?
     @model.color = "red"
-    assert !@model.color_changed?
-    assert !@model.changed?
+    assert_not_predicate @model, :color_changed?
+    assert_not_predicate @model, :changed?
   end
 
   test "saving should reset model's changed status" do
     @model.name = "Alf"
-    assert @model.changed?
+    assert_predicate @model, :changed?
     @model.save
-    assert !@model.changed?
-    assert !@model.name_changed?
+    assert_not_predicate @model, :changed?
+    assert_not_predicate @model, :name_changed?
   end
 
   test "saving should preserve previous changes" do
     @model.name = "Jericho Cane"
+    @model.status = "waiting"
     @model.save
     assert_equal [nil, "Jericho Cane"], @model.previous_changes["name"]
+    assert_equal ["initialized", "waiting"], @model.previous_changes["status"]
   end
 
   test "setting new attributes should not affect previous changes" do
     @model.name = "Jericho Cane"
+    @model.status = "waiting"
     @model.save
     @model.name = "DudeFella ManGuy"
+    @model.status = "finished"
     assert_equal [nil, "Jericho Cane"], @model.name_previous_change
+    assert_equal ["initialized", "waiting"], @model.previous_changes["status"]
   end
 
   test "saving should preserve model's previous changed status" do
     @model.name = "Jericho Cane"
     @model.save
-    assert @model.name_previously_changed?
+    assert_predicate @model, :name_previously_changed?
   end
 
   test "previous value is preserved when changed after save" do
     assert_equal({}, @model.changed_attributes)
     @model.name = "Paul"
-    assert_equal({ "name" => nil }, @model.changed_attributes)
+    @model.status = "waiting"
+    assert_equal({ "name" => nil, "status" => "initialized" }, @model.changed_attributes)
 
     @model.save
 
     @model.name = "John"
-    assert_equal({ "name" => "Paul" }, @model.changed_attributes)
+    @model.status = "finished"
+    assert_equal({ "name" => "Paul", "status" => "waiting" }, @model.changed_attributes)
   end
 
   test "changing the same attribute multiple times retains the correct original value" do
     @model.name = "Otto"
+    @model.status = "waiting"
     @model.save
     @model.name = "DudeFella ManGuy"
     @model.name = "Mr. Manfredgensonton"
+    @model.status = "processing"
+    @model.status = "finished"
     assert_equal ["Otto", "Mr. Manfredgensonton"], @model.name_change
+    assert_equal ["waiting", "finished"], @model.status_change
     assert_equal @model.name_was, "Otto"
   end
 
   test "using attribute_will_change! with a symbol" do
     @model.size = 1
-    assert @model.size_changed?
+    assert_predicate @model, :size_changed?
   end
 
   test "reload should reset all changes" do
@@ -199,7 +208,7 @@ class DirtyTest < ActiveModel::TestCase
 
     @model.restore_attributes
 
-    assert_not @model.changed?
+    assert_not_predicate @model, :changed?
     assert_equal "Dmitry", @model.name
     assert_equal "Red", @model.color
   end
@@ -213,8 +222,12 @@ class DirtyTest < ActiveModel::TestCase
 
     @model.restore_attributes(["name"])
 
-    assert @model.changed?
+    assert_predicate @model, :changed?
     assert_equal "Dmitry", @model.name
     assert_equal "White", @model.color
+  end
+
+  test "model can be dup-ed without Attributes" do
+    assert @model.dup
   end
 end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "isolation/abstract_unit"
 
 module ApplicationTests
@@ -31,7 +33,7 @@ module ApplicationTests
         assert_nil x.i_do_not_exist.zomg
 
         # test that custom configuration responds to all messages
-        assert_equal true, x.respond_to?(:i_do_not_exist)
+        assert_respond_to x, :i_do_not_exist
         assert_kind_of Method, x.method(:i_do_not_exist)
         assert_kind_of ActiveSupport::OrderedOptions, x.i_do_not_exist
       end

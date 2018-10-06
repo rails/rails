@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "active_support/core_ext/date_time"
 require "active_support/core_ext/numeric/time"
@@ -96,10 +98,10 @@ class TimeTravelTest < ActiveSupport::TestCase
       travel_to outer_expected_time do
         e = assert_raises(RuntimeError) do
           travel_to(inner_expected_time) do
-            #noop
+            # noop
           end
         end
-        assert_match(/Calling `travel_to` with a block, when we have previously already made a call to `travel_to`, can lead to confusing time stubbing./, e.message)
+        assert_match(/Calling `travel_to` with a block, when we have previously already made a call to `travel_to`, can lead to confusing time stubbing\./, e.message)
       end
     end
   end
@@ -161,5 +163,31 @@ class TimeTravelTest < ActiveSupport::TestCase
       assert_equal Date.today.to_s, DateSubclass.today.to_s
       assert_equal DateTime.now.to_s, DateTimeSubclass.now.to_s
     end
+  end
+
+  def test_time_helper_freeze_time
+    expected_time = Time.now
+    freeze_time
+    sleep(1)
+
+    assert_equal expected_time.to_s(:db), Time.now.to_s(:db)
+  ensure
+    travel_back
+  end
+
+  def test_time_helper_freeze_time_with_block
+    expected_time = Time.now
+
+    freeze_time do
+      sleep(1)
+
+      assert_equal expected_time.to_s(:db), Time.now.to_s(:db)
+    end
+
+    assert_operator expected_time.to_s(:db), :<, Time.now.to_s(:db)
+  end
+
+  def test_time_helper_unfreeze_time
+    assert_equal method(:travel_back), method(:unfreeze_time)
   end
 end

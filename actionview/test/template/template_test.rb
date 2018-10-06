@@ -1,4 +1,6 @@
 # encoding: US-ASCII
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "logger"
 
@@ -53,7 +55,7 @@ class TestERBTemplate < ActiveSupport::TestCase
   end
 
   def new_template(body = "<%= hello %>", details = { format: :html })
-    ActionView::Template.new(body, "hello template", details.fetch(:handler) { ERBHandler }, { virtual_path: "hello" }.merge!(details))
+    ActionView::Template.new(body.dup, "hello template", details.fetch(:handler) { ERBHandler }, { virtual_path: "hello" }.merge!(details))
   end
 
   def render(locals = {})
@@ -192,6 +194,13 @@ class TestERBTemplate < ActiveSupport::TestCase
     # Hack: We write the regexp this way because the parser of RuboCop
     # errs with /\xFC/.
     assert_match(Regexp.new("\xFC"), e.message)
+  end
+
+  def test_template_is_marshalable
+    template = new_template
+    serialized = Marshal.load(Marshal.dump(template))
+    assert_equal template.identifier, serialized.identifier
+    assert_equal template.source, serialized.source
   end
 
   def with_external_encoding(encoding)

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_controller/collector"
 
 module ActionController #:nodoc:
@@ -9,7 +11,7 @@ module ActionController #:nodoc:
     #     @people = Person.all
     #   end
     #
-    # That action implicitly responds to all formats, but formats can also be whitelisted:
+    # That action implicitly responds to all formats, but formats can also be explicitly enumerated:
     #
     #   def index
     #     @people = Person.all
@@ -103,7 +105,7 @@ module ActionController #:nodoc:
     #
     #   Mime::Type.register "image/jpg", :jpg
     #
-    # Respond to also allows you to specify a common block for different formats by using +any+:
+    # +respond_to+ also allows you to specify a common block for different formats by using +any+:
     #
     #   def index
     #     @people = Person.all
@@ -195,6 +197,9 @@ module ActionController #:nodoc:
       yield collector if block_given?
 
       if format = collector.negotiate_format(request)
+        if content_type && content_type != format
+          raise ActionController::RespondToMismatchError
+        end
         _process_format(format)
         _set_rendered_content_type format
         response = collector.response

@@ -1,6 +1,7 @@
+# frozen_string_literal: true
+
 require "tzinfo"
 require "concurrent/map"
-require "active_support/core_ext/object/blank"
 
 module ActiveSupport
   # The TimeZone class serves as a wrapper around TZInfo::Timezone instances.
@@ -28,7 +29,7 @@ module ActiveSupport
   class TimeZone
     # Keys are Rails TimeZone names, values are TZInfo identifiers.
     MAPPING = {
-      "International Date Line West" => "Pacific/Midway",
+      "International Date Line West" => "Etc/GMT+12",
       "Midway Island"                => "Pacific/Midway",
       "American Samoa"               => "Pacific/Pago_Pago",
       "Hawaii"                       => "Pacific/Honolulu",
@@ -236,7 +237,7 @@ module ActiveSupport
         when Numeric, ActiveSupport::Duration
           arg *= 3600 if arg.abs <= 13
           all.find { |z| z.utc_offset == arg.to_i }
-          else
+        else
           raise ArgumentError, "invalid argument to TimeZone[]: #{arg.inspect}"
         end
       end
@@ -254,12 +255,22 @@ module ActiveSupport
         @country_zones[code] ||= load_country_zones(code)
       end
 
+      def clear #:nodoc:
+        @lazy_zones_map = Concurrent::Map.new
+        @country_zones  = Concurrent::Map.new
+        @zones = nil
+        @zones_map = nil
+      end
+
       private
         def load_country_zones(code)
           country = TZInfo::Country.get(code)
-          country.zone_identifiers.map do |tz_id|
+          country.zone_identifiers.flat_map do |tz_id|
             if MAPPING.value?(tz_id)
-              self[MAPPING.key(tz_id)]
+              MAPPING.inject([]) do |memo, (key, value)|
+                memo << self[key] if value == tz_id
+                memo
+              end
             else
               create(tz_id, nil, TZInfo::Timezone.new(tz_id))
             end
@@ -267,9 +278,9 @@ module ActiveSupport
         end
 
         def zones_map
-          @zones_map ||= begin
-            MAPPING.each_key { |place| self[place] } # load all the zones
-            @lazy_zones_map
+          @zones_map ||= MAPPING.each_with_object({}) do |(name, _), zones|
+            timezone = self[name]
+            zones[name] = timezone if timezone
           end
         end
     end
@@ -343,8 +354,13 @@ module ActiveSupport
     #   Time.zone = 'Hawaii'        # => "Hawaii"
     #   Time.utc(2000).to_f         # => 946684800.0
     #   Time.zone.at(946684800.0)   # => Fri, 31 Dec 1999 14:00:00 HST -10:00
-    def at(secs)
-      Time.at(secs).utc.in_time_zone(self)
+    #
+    # A second argument can be supplied to specify sub-second precision.
+    #
+    #   Time.zone = 'Hawaii'                # => "Hawaii"
+    #   Time.at(946684800, 123456.789).nsec # => 123456789
+    def at(*args)
+      Time.at(*args).utc.in_time_zone(self)
     end
 
     # Method for creating new ActiveSupport::TimeWithZone instance in time zone
@@ -359,7 +375,7 @@ module ActiveSupport
     #   Time.zone.iso8601('1999-12-31') # => Fri, 31 Dec 1999 00:00:00 HST -10:00
     #
     # If the string is invalid then an +ArgumentError+ will be raised unlike +parse+
-    # which returns +nil+ when given an invalid date string.
+    # which usually returns +nil+ when given an invalid date string.
     def iso8601(str)
       parts = Date._iso8601(str)
 
@@ -398,6 +414,8 @@ module ActiveSupport
     # components are supplied, then the day of the month defaults to 1:
     #
     #   Time.zone.parse('Mar 2000') # => Wed, 01 Mar 2000 00:00:00 HST -10:00
+    #
+    # If the string is invalid then an +ArgumentError+ could be raised.
     def parse(str, now = now())
       parts_to_time(Date._parse(str, false), now)
     end
@@ -502,7 +520,7 @@ module ActiveSupport
     # Available so that TimeZone instances respond like TZInfo::Timezone
     # instances.
     def period_for_local(time, dst = true)
-      tzinfo.period_for_local(time, dst)
+      tzinfo.period_for_local(time, dst) { |periods| periods.last }
     end
 
     def periods_for_local(time) #:nodoc:

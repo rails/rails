@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/hash/keys"
 
 module ActiveRecord
@@ -21,7 +23,11 @@ module ActiveRecord
       # build a relation to merge in rather than directly merging
       # the values.
       def other
-        other = Relation.create(relation.klass, relation.table, relation.predicate_builder)
+        other = Relation.create(
+          relation.klass,
+          table: relation.table,
+          predicate_builder: relation.predicate_builder
+        )
         hash.each { |k, v|
           if k == :joins
             if Hash === v
@@ -50,7 +56,7 @@ module ActiveRecord
 
       NORMAL_VALUES = Relation::VALUE_METHODS -
                       Relation::CLAUSE_METHODS -
-                      [:includes, :preload, :joins, :order, :reverse_order, :lock, :create_with, :reordering] # :nodoc:
+                      [:includes, :preload, :joins, :left_outer_joins, :order, :reverse_order, :lock, :create_with, :reordering] # :nodoc:
 
       def normal_values
         NORMAL_VALUES
@@ -77,6 +83,7 @@ module ActiveRecord
         merge_clauses
         merge_preloads
         merge_joins
+        merge_outer_joins
 
         relation
       end
@@ -110,41 +117,53 @@ module ActiveRecord
           if other.klass == relation.klass
             relation.joins!(*other.joins_values)
           else
-            joins_dependency, rest = other.joins_values.partition do |join|
+            joins_dependency = other.joins_values.map do |join|
               case join
               when Hash, Symbol, Array
-                true
+                other.send(:construct_join_dependency, join)
               else
-                false
+                join
               end
             end
 
-            join_dependency = ActiveRecord::Associations::JoinDependency.new(other.klass,
-                                                                             joins_dependency,
-                                                                             [])
-            relation.joins! rest
+            relation.joins!(*joins_dependency)
+          end
+        end
 
-            @relation = relation.joins join_dependency
+        def merge_outer_joins
+          return if other.left_outer_joins_values.blank?
+
+          if other.klass == relation.klass
+            relation.left_outer_joins!(*other.left_outer_joins_values)
+          else
+            joins_dependency = other.left_outer_joins_values.map do |join|
+              case join
+              when Hash, Symbol, Array
+                other.send(:construct_join_dependency, join)
+              else
+                join
+              end
+            end
+
+            relation.left_outer_joins!(*joins_dependency)
           end
         end
 
         def merge_multi_values
           if other.reordering_value
             # override any order specified in the original relation
-            relation.reorder! other.order_values
-          elsif other.order_values
+            relation.reorder!(*other.order_values)
+          elsif other.order_values.any?
             # merge in order_values from relation
-            relation.order! other.order_values
+            relation.order!(*other.order_values)
           end
 
-          relation.extend(*other.extending_values) unless other.extending_values.blank?
+          extensions = other.extensions - relation.extensions
+          relation.extending!(*extensions) if extensions.any?
         end
 
         def merge_single_values
-          if relation.from_clause.empty?
-            relation.from_clause = other.from_clause
-          end
-          relation.lock_value ||= other.lock_value
+          relation.lock_value ||= other.lock_value if other.lock_value
 
           unless other.create_with_value.blank?
             relation.create_with_value = (relation.create_with_value || {}).merge(other.create_with_value)
@@ -152,11 +171,18 @@ module ActiveRecord
         end
 
         def merge_clauses
-          CLAUSE_METHODS.each do |method|
-            clause = relation.get_value(method)
-            other_clause = other.get_value(method)
-            relation.set_value(method, clause.merge(other_clause))
-          end
+          relation.from_clause = other.from_clause if replace_from_clause?
+
+          where_clause = relation.where_clause.merge(other.where_clause)
+          relation.where_clause = where_clause unless where_clause.empty?
+
+          having_clause = relation.having_clause.merge(other.having_clause)
+          relation.having_clause = having_clause unless having_clause.empty?
+        end
+
+        def replace_from_clause?
+          relation.from_clause.empty? && !other.from_clause.empty? &&
+            relation.klass.base_class == other.klass.base_class
         end
     end
   end

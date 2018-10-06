@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/marshal"
 require "active_support/core_ext/file/atomic"
 require "active_support/core_ext/string/conversions"
@@ -24,10 +26,15 @@ module ActiveSupport
         @cache_path = cache_path.to_s
       end
 
+      # Advertise cache versioning support.
+      def self.supports_cache_versioning?
+        true
+      end
+
       # Deletes all items from the cache. In this case it deletes all the entries in the specified
       # file store directory except for .keep or .gitkeep. Be careful which directory is specified in your
       # config file when using +FileStore+ because everything in that directory will be deleted.
-      def clear
+      def clear(options = nil)
         root_dirs = exclude_from(cache_path, EXCLUDED_DIRS + GITKEEP_FILES)
         FileUtils.rm_r(root_dirs.collect { |f| File.join(cache_path, f) })
       rescue Errno::ENOENT
@@ -37,9 +44,8 @@ module ActiveSupport
       def cleanup(options = nil)
         options = merged_options(options)
         search_dir(cache_path) do |fname|
-          key = file_path_key(fname)
-          entry = read_entry(key, options)
-          delete_entry(key, options) if entry && entry.expired?
+          entry = read_entry(fname, options)
+          delete_entry(fname, options) if entry && entry.expired?
         end
       end
 
@@ -120,21 +126,25 @@ module ActiveSupport
           fname = URI.encode_www_form_component(key)
 
           if fname.size > FILEPATH_MAX_SIZE
-            fname = Digest::MD5.hexdigest(key)
+            fname = ActiveSupport::Digest.hexdigest(key)
           end
 
           hash = Zlib.adler32(fname)
           hash, dir_1 = hash.divmod(0x1000)
           dir_2 = hash.modulo(0x1000)
-          fname_paths = []
 
           # Make sure file name doesn't exceed file system limits.
-          begin
-            fname_paths << fname[0, FILENAME_MAX_SIZE]
-            fname = fname[FILENAME_MAX_SIZE..-1]
-          end until fname.blank?
+          if fname.length < FILENAME_MAX_SIZE
+            fname_paths = fname
+          else
+            fname_paths = []
+            begin
+              fname_paths << fname[0, FILENAME_MAX_SIZE]
+              fname = fname[FILENAME_MAX_SIZE..-1]
+            end until fname.blank?
+          end
 
-          File.join(cache_path, DIR_FORMATTER % dir_1, DIR_FORMATTER % dir_2, *fname_paths)
+          File.join(cache_path, DIR_FORMATTER % dir_1, DIR_FORMATTER % dir_2, fname_paths)
         end
 
         # Translate a file path into a key.

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "active_support/core_ext/object"
 
@@ -45,7 +47,7 @@ class DeepDupTest < ActiveSupport::TestCase
     object = Object.new
     dup = object.deep_dup
     dup.instance_variable_set(:@a, 1)
-    assert !object.instance_variable_defined?(:@a)
+    assert_not object.instance_variable_defined?(:@a)
     assert dup.instance_variable_defined?(:@a)
   end
 

@@ -1,4 +1,6 @@
-require "active_record/attribute/user_provided_default"
+# frozen_string_literal: true
+
+require "active_model/attribute/user_provided_default"
 
 module ActiveRecord
   # See ActiveRecord::Attributes::ClassMethods for documentation
@@ -6,8 +8,7 @@ module ActiveRecord
     extend ActiveSupport::Concern
 
     included do
-      class_attribute :attributes_to_define_after_schema_loads, instance_accessor: false # :internal:
-      self.attributes_to_define_after_schema_loads = {}
+      class_attribute :attributes_to_define_after_schema_loads, instance_accessor: false, default: {} # :internal:
     end
 
     module ClassMethods
@@ -56,7 +57,7 @@ module ActiveRecord
       #   store_listing = StoreListing.new(price_in_cents: '10.1')
       #
       #   # before
-      #   store_listing.price_in_cents # => BigDecimal.new(10.1)
+      #   store_listing.price_in_cents # => BigDecimal(10.1)
       #
       #   class StoreListing < ActiveRecord::Base
       #     attribute :price_in_cents, :integer
@@ -249,14 +250,14 @@ module ActiveRecord
           if value == NO_DEFAULT_PROVIDED
             default_attribute = _default_attributes[name].with_type(type)
           elsif from_user
-            default_attribute = Attribute::UserProvidedDefault.new(
+            default_attribute = ActiveModel::Attribute::UserProvidedDefault.new(
               name,
               value,
               type,
               _default_attributes.fetch(name.to_s) { nil },
             )
           else
-            default_attribute = Attribute.from_database(name, value, type)
+            default_attribute = ActiveModel::Attribute.from_database(name, value, type)
           end
           _default_attributes[name] = default_attribute
         end

@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
-require "active_support/key_generator"
+require "active_support/messages/rotation_configuration"
 
 class FlashTest < ActionController::TestCase
   class TestController < ActionController::Base
@@ -241,6 +243,7 @@ end
 class FlashIntegrationTest < ActionDispatch::IntegrationTest
   SessionKey = "_myapp_session"
   Generator  = ActiveSupport::LegacyKeyGenerator.new("b3c631c314c0bbca50c1b2843150fe33")
+  Rotations  = ActiveSupport::Messages::RotationConfiguration.new
 
   class TestController < ActionController::Base
     add_flash_types :bar
@@ -339,6 +342,21 @@ class FlashIntegrationTest < ActionDispatch::IntegrationTest
     end
   end
 
+  def test_flash_usable_in_metal_without_helper
+    controller_class = nil
+
+    assert_nothing_raised do
+      controller_class = Class.new(ActionController::Metal) do
+        include ActionController::Flash
+      end
+    end
+
+    controller = controller_class.new
+
+    assert_respond_to controller, :alert
+    assert_respond_to controller, :notice
+  end
+
   private
 
     # Overwrite get to send SessionSecret in env hash
@@ -346,6 +364,7 @@ class FlashIntegrationTest < ActionDispatch::IntegrationTest
       args[0] ||= {}
       args[0][:env] ||= {}
       args[0][:env]["action_dispatch.key_generator"] ||= Generator
+      args[0][:env]["action_dispatch.cookies_rotations"] = Rotations
       super(path, *args)
     end
 

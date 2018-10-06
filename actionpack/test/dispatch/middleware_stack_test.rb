@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 class MiddlewareStackTest < ActiveSupport::TestCase
@@ -40,7 +42,7 @@ class MiddlewareStackTest < ActiveSupport::TestCase
   end
 
   test "use should push middleware class with block arguments onto the stack" do
-    proc = Proc.new {}
+    proc = Proc.new { }
     assert_difference "@stack.size" do
       @stack.use(BlockMiddleware, &proc)
     end

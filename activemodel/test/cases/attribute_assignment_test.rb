@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "active_support/core_ext/hash/indifferent_access"
 require "active_support/hash_with_indifferent_access"
@@ -16,10 +18,7 @@ class AttributeAssignmentTest < ActiveModel::TestCase
       raise ErrorFromAttributeWriter
     end
 
-    # TODO Change this to private once we've dropped Ruby 2.2 support.
-    # Workaround for Ruby 2.2 "private attribute?" warning.
-    protected
-
+    private
       attr_writer :metadata
   end
 
@@ -69,6 +68,14 @@ class AttributeAssignmentTest < ActiveModel::TestCase
     assert_equal "world", model.description
   end
 
+  test "simple assignment alias" do
+    model = Model.new
+
+    model.attributes = { name: "hello", description: "world" }
+    assert_equal "hello", model.name
+    assert_equal "world", model.description
+  end
+
   test "assign non-existing attribute" do
     model = Model.new
     error = assert_raises(ActiveModel::UnknownAttributeError) do
@@ -93,9 +100,11 @@ class AttributeAssignmentTest < ActiveModel::TestCase
   end
 
   test "an ArgumentError is raised if a non-hash-like object is passed" do
-    assert_raises(ArgumentError) do
+    err = assert_raises(ArgumentError) do
       Model.new(1)
     end
+
+    assert_equal("When assigning attributes, you must pass a hash as an argument, Integer passed.", err.message)
   end
 
   test "forbidden attributes cannot be used for mass assignment" do

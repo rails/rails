@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "isolation/abstract_unit"
 require "rack/test"
 
@@ -100,7 +102,7 @@ module ApplicationTests
       end
     end
 
-    test "routing to an nonexistent controller when action_dispatch.show_exceptions and consider_all_requests_local are set shows diagnostics" do
+    test "routing to a nonexistent controller when action_dispatch.show_exceptions and consider_all_requests_local are set shows diagnostics" do
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
           resources :articles

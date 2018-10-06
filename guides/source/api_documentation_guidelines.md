@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
 API Documentation Guidelines
 ============================
@@ -16,7 +16,7 @@ RDoc
 ----
 
 The [Rails API documentation](http://api.rubyonrails.org) is generated with
-[RDoc](http://docs.seattlerb.org/rdoc/). To generate it, make sure you are
+[RDoc](https://ruby.github.io/rdoc/). To generate it, make sure you are
 in the rails root directory, run `bundle install` and execute:
 
 ```bash
@@ -26,9 +26,9 @@ in the rails root directory, run `bundle install` and execute:
 Resulting HTML files can be found in the ./doc/rdoc directory.
 
 Please consult the RDoc documentation for help with the
-[markup](http://docs.seattlerb.org/rdoc/RDoc/Markup.html),
+[markup](https://ruby.github.io/rdoc/RDoc/Markup.html),
 and also take into account these [additional
-directives](http://docs.seattlerb.org/rdoc/RDoc/Parser/Ruby.html).
+directives](https://ruby.github.io/rdoc/RDoc/Parser/Ruby.html).
 
 Wording
 -------
@@ -53,7 +53,7 @@ Documentation has to be concise but comprehensive. Explore and document edge cas
 
 The proper names of Rails components have a space in between the words, like "Active Support". `ActiveRecord` is a Ruby module, whereas Active Record is an ORM. All Rails documentation should consistently refer to Rails components by their proper name, and if in your next blog post or presentation you remember this tidbit and take it into account that'd be phenomenal.
 
-Spell names correctly: Arel, Test::Unit, RSpec, HTML, MySQL, JavaScript, ERB. When in doubt, please have a look at some authoritative source like their official documentation.
+Spell names correctly: Arel, minitest, RSpec, HTML, MySQL, JavaScript, ERB. When in doubt, please have a look at some authoritative source like their official documentation.
 
 Use the article "an" for "SQL", as in "an SQL statement". Also "an SQLite database".
 
@@ -82,12 +82,12 @@ used. Instead of:
 English
 -------
 
-Please use American English (*color*, *center*, *modularize*, etc). See [a list of American and British English spelling differences here](http://en.wikipedia.org/wiki/American_and_British_English_spelling_differences).
+Please use American English (*color*, *center*, *modularize*, etc). See [a list of American and British English spelling differences here](https://en.wikipedia.org/wiki/American_and_British_English_spelling_differences).
 
 Oxford Comma
 ------------
 
-Please use the [Oxford comma](http://en.wikipedia.org/wiki/Serial_comma)
+Please use the [Oxford comma](https://en.wikipedia.org/wiki/Serial_comma)
 ("red, white, and blue", instead of "red, white and blue").
 
 Example Code
@@ -281,7 +281,7 @@ Methods created with `(module|class)_eval(STRING)` have a comment by their side 
 
 ```ruby
 for severity in Severity.constants
-  class_eval <<-EOT, __FILE__, __LINE__
+  class_eval <<-EOT, __FILE__, __LINE__ + 1
     def #{severity.downcase}(message = nil, progname = nil, &block)  # def debug(message = nil, progname = nil, &block)
       add(#{severity}, message, progname, &block)                    #   add(DEBUG, message, progname, &block)
     end                                                              # end
@@ -350,7 +350,7 @@ into account, one such example is
 
 ```ruby
 # image_tag("icon.png")
-#   # => <img alt="Icon" src="/assets/icon.png" />
+#   # => <img src="/assets/icon.png" />
 ```
 
 Although the default behavior for `#image_tag` is to always return

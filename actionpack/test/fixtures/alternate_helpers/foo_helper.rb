@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module FooHelper
-  redefine_method(:baz) {}
+  redefine_method(:baz) { }
 end

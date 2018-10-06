@@ -1,4 +1,7 @@
+# frozen_string_literal: true
+
 require "action_controller/metal/exceptions"
+require "action_dispatch/http/content_disposition"
 
 module ActionController #:nodoc:
   # Methods for sending arbitrary data and for streaming files to the browser,
@@ -8,8 +11,8 @@ module ActionController #:nodoc:
 
     include ActionController::Rendering
 
-    DEFAULT_SEND_FILE_TYPE        = "application/octet-stream".freeze #:nodoc:
-    DEFAULT_SEND_FILE_DISPOSITION = "attachment".freeze #:nodoc:
+    DEFAULT_SEND_FILE_TYPE        = "application/octet-stream" #:nodoc:
+    DEFAULT_SEND_FILE_DISPOSITION = "attachment" #:nodoc:
 
     private
       # Sends the file. This uses a server-appropriate method (such as X-Sendfile)
@@ -54,14 +57,14 @@ module ActionController #:nodoc:
       #
       # Read about the other Content-* HTTP headers if you'd like to
       # provide the user with more information (such as Content-Description) in
-      # http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.11.
+      # https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.11.
       #
       # Also be aware that the document may be cached by proxies and browsers.
       # The Pragma and Cache-Control headers declare how the file may be cached
       # by intermediaries. They default to require clients to validate with
       # the server before releasing cached responses. See
-      # http://www.mnot.net/cache_docs/ for an overview of web caching and
-      # http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.9
+      # https://www.mnot.net/cache_docs/ for an overview of web caching and
+      # https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.9
       # for the Cache-Control header spec.
       def send_file(path, options = {}) #:doc:
         raise MissingFile, "Cannot read file #{path}" unless File.file?(path) && File.readable?(path)
@@ -111,10 +114,10 @@ module ActionController #:nodoc:
       def send_file_headers!(options)
         type_provided = options.has_key?(:type)
 
-        self.content_type = DEFAULT_SEND_FILE_TYPE
+        content_type = options.fetch(:type, DEFAULT_SEND_FILE_TYPE)
+        self.content_type = content_type
         response.sending_file = true
 
-        content_type = options.fetch(:type, DEFAULT_SEND_FILE_TYPE)
         raise ArgumentError, ":type option required" if content_type.nil?
 
         if content_type.is_a?(Symbol)
@@ -130,10 +133,8 @@ module ActionController #:nodoc:
         end
 
         disposition = options.fetch(:disposition, DEFAULT_SEND_FILE_DISPOSITION)
-        unless disposition.nil?
-          disposition  = disposition.to_s
-          disposition += %(; filename="#{options[:filename]}") if options[:filename]
-          headers["Content-Disposition"] = disposition
+        if disposition
+          headers["Content-Disposition"] = ActionDispatch::Http::ContentDisposition.format(disposition: disposition, filename: options[:filename])
         end
 
         headers["Content-Transfer-Encoding"] = "binary"

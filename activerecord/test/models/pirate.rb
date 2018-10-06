@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Pirate < ActiveRecord::Base
   belongs_to :parrot, validate: true
   belongs_to :non_validated_parrot, class_name: "Parrot"
@@ -15,7 +17,13 @@ class Pirate < ActiveRecord::Base
     after_remove: proc { |p, pa| p.ship_log << "after_removing_proc_parrot_#{pa.id}" }
   has_and_belongs_to_many :autosaved_parrots, class_name: "Parrot", autosave: true
 
-  has_many :treasures, as: :looter
+  module PostTreasuresExtension
+    def build(attributes = {})
+      super({ name: "from extension" }.merge(attributes))
+    end
+  end
+
+  has_many :treasures, as: :looter, extend: PostTreasuresExtension
   has_many :treasure_estimates, through: :treasures, source: :price_estimates
 
   has_one :ship

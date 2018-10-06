@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 namespace :guides do
   desc 'Generate guides (for authors), use ONLY=foo to process just "foo.md"'
   task generate: "generate:html"
@@ -28,7 +30,7 @@ namespace :guides do
       unless Kindlerb.kindlegen_available?
         abort "Please run `setupkindlerb` to install kindlegen"
       end
-      unless `convert` =~ /convert/
+      unless /convert/.match?(`convert`)
         abort "Please install ImageMagick"
       end
       ENV["KINDLE"] = "1"

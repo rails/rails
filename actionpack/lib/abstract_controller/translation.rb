@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module AbstractController
   module Translation
     # Delegates to <tt>I18n.translate</tt>. Also aliased as <tt>t</tt>.
@@ -13,7 +15,7 @@ module AbstractController
         path = controller_path.tr("/", ".")
         defaults = [:"#{path}#{key}"]
         defaults << options[:default] if options[:default]
-        options[:default] = defaults
+        options[:default] = defaults.flatten
         key = "#{path}.#{action_name}#{key}"
       end
       I18n.translate(key, options)

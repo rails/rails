@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "helper"
 require "jobs/logging_job"
 require "jobs/hello_job"
@@ -43,6 +45,13 @@ class QueuingTest < ActiveSupport::TestCase
     end
   end
 
+  test "should supply a wrapped class name to DelayedJob" do
+    skip unless adapter_is?(:delayed_job)
+    ::HelloJob.perform_later
+    job = Delayed::Job.first
+    assert_match(/HelloJob \[[0-9a-f-]+\] from DelayedJob\(default\) with arguments: \[\]/, job.name)
+  end
+
   test "resque JobWrapper should have instance variable queue" do
     skip unless adapter_is?(:resque)
     job = ::HelloJob.set(wait: 5.seconds).perform_later
@@ -73,7 +82,7 @@ class QueuingTest < ActiveSupport::TestCase
   end
 
   test "should supply a provider_job_id when available for immediate jobs" do
-    skip unless adapter_is?(:async, :delayed_job, :sidekiq, :qu, :que, :queue_classic)
+    skip unless adapter_is?(:async, :delayed_job, :sidekiq, :que, :queue_classic)
     test_job = TestJob.perform_later @id
     assert test_job.provider_job_id, "Provider job id should be set by provider"
   end
@@ -101,12 +110,40 @@ class QueuingTest < ActiveSupport::TestCase
     end
   end
 
+  test "current timezone is kept while running perform_later" do
+    skip if adapter_is?(:inline)
+
+    begin
+      current_zone = Time.zone
+      Time.zone = "Hawaii"
+
+      TestJob.perform_later @id
+      wait_for_jobs_to_finish_for(5.seconds)
+      assert job_executed
+      assert_equal "Hawaii", job_executed_in_timezone
+    ensure
+      Time.zone = current_zone
+    end
+  end
+
   test "should run job with higher priority first" do
     skip unless adapter_is?(:delayed_job, :que)
 
     wait_until = Time.now + 3.seconds
     TestJob.set(wait_until: wait_until, priority: 20).perform_later "#{@id}.1"
     TestJob.set(wait_until: wait_until, priority: 10).perform_later "#{@id}.2"
+    wait_for_jobs_to_finish_for(10.seconds)
+    assert job_executed "#{@id}.1"
+    assert job_executed "#{@id}.2"
+    assert job_executed_at("#{@id}.2") < job_executed_at("#{@id}.1")
+  end
+
+  test "should run job with higher priority first in Backburner" do
+    skip unless adapter_is?(:backburner)
+
+    jobs_manager.tube.pause(3)
+    TestJob.set(priority: 20).perform_later "#{@id}.1"
+    TestJob.set(priority: 10).perform_later "#{@id}.2"
     wait_for_jobs_to_finish_for(10.seconds)
     assert job_executed "#{@id}.1"
     assert job_executed "#{@id}.2"

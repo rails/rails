@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
@@ -31,7 +33,13 @@ module ActiveRecord
 
           def cast(value)
             if value.is_a?(::String)
-              value = @pg_decoder.decode(value)
+              value = begin
+                @pg_decoder.decode(value)
+              rescue TypeError
+                # malformed array string is treated as [], will raise in PG 2.0 gem
+                # this keeps a consistent implementation
+                []
+              end
             end
             type_cast_array(value, :cast)
           end
@@ -62,6 +70,10 @@ module ActiveRecord
 
           def changed_in_place?(raw_old_value, new_value)
             deserialize(raw_old_value) != new_value
+          end
+
+          def force_equality?(value)
+            value.is_a?(::Array)
           end
 
           private

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/computer"
 require "models/developer"
@@ -22,7 +24,7 @@ module ActiveRecord
 
       /\Adevelopers\/query-(\h+)-(\d+)-(\d+)\z/ =~ developers.cache_key
 
-      assert_equal Digest::MD5.hexdigest(developers.to_sql), $1
+      assert_equal ActiveSupport::Digest.hexdigest(developers.to_sql), $1
       assert_equal developers.count.to_s, $2
       assert_equal last_developer_timestamp.to_s(ActiveRecord::Base.cache_timestamp_format), $3
     end
@@ -35,7 +37,7 @@ module ActiveRecord
 
       /\Adevelopers\/query-(\h+)-(\d+)-(\d+)\z/ =~ developers.cache_key
 
-      assert_equal Digest::MD5.hexdigest(developers.to_sql), $1
+      assert_equal ActiveSupport::Digest.hexdigest(developers.to_sql), $1
       assert_equal developers.count.to_s, $2
       assert_equal last_developer_timestamp.to_s(ActiveRecord::Base.cache_timestamp_format), $3
     end
@@ -48,21 +50,53 @@ module ActiveRecord
 
       /\Adevelopers\/query-(\h+)-(\d+)-(\d+)\z/ =~ developers.cache_key
 
-      assert_equal Digest::MD5.hexdigest(developers.to_sql), $1
+      assert_equal ActiveSupport::Digest.hexdigest(developers.to_sql), $1
       assert_equal developers.count.to_s, $2
       assert_equal last_developer_timestamp.to_s(ActiveRecord::Base.cache_timestamp_format), $3
+    end
+
+    test "cache_key for relation with table alias" do
+      table_alias = Developer.arel_table.alias("omg_developers")
+      table_metadata = ActiveRecord::TableMetadata.new(Developer, table_alias)
+      predicate_builder = ActiveRecord::PredicateBuilder.new(table_metadata)
+
+      developers = ActiveRecord::Relation.create(
+        Developer,
+        table: table_alias,
+        predicate_builder: predicate_builder
+      )
+      developers = developers.where(salary: 100000).order(updated_at: :desc)
+      last_developer_timestamp = developers.first.updated_at
+
+      assert_match(/\Adevelopers\/query-(\h+)-(\d+)-(\d+)\z/, developers.cache_key)
+
+      /\Adevelopers\/query-(\h+)-(\d+)-(\d+)\z/ =~ developers.cache_key
+
+      assert_equal ActiveSupport::Digest.hexdigest(developers.to_sql), $1
+      assert_equal developers.count.to_s, $2
+      assert_equal last_developer_timestamp.to_s(ActiveRecord::Base.cache_timestamp_format), $3
+    end
+
+    test "cache_key for relation with includes" do
+      comments = Comment.includes(:post).where("posts.type": "Post")
+      assert_match(/\Acomments\/query-(\h+)-(\d+)-(\d+)\z/, comments.cache_key)
+    end
+
+    test "cache_key for loaded relation with includes" do
+      comments = Comment.includes(:post).where("posts.type": "Post").load
+      assert_match(/\Acomments\/query-(\h+)-(\d+)-(\d+)\z/, comments.cache_key)
     end
 
     test "it triggers at most one query" do
       developers = Developer.where(name: "David")
 
       assert_queries(1) { developers.cache_key }
-      assert_queries(0) { developers.cache_key }
+      assert_no_queries { developers.cache_key }
     end
 
     test "it doesn't trigger any query if the relation is already loaded" do
       developers = Developer.where(name: "David").load
-      assert_queries(0) { developers.cache_key }
+      assert_no_queries { developers.cache_key }
     end
 
     test "relation cache_key changes when the sql query changes" do
@@ -108,6 +142,18 @@ module ActiveRecord
 
     test "cache_key with a relation having selected columns" do
       developers = Developer.select(:salary)
+
+      assert_match(/\Adevelopers\/query-(\h+)-(\d+)-(\d+)\z/, developers.cache_key)
+    end
+
+    test "cache_key with a relation having distinct and order" do
+      developers = Developer.distinct.order(:salary).limit(5)
+
+      assert_match(/\Adevelopers\/query-(\h+)-(\d+)-(\d+)\z/, developers.cache_key)
+    end
+
+    test "cache_key with a relation having custom select and order" do
+      developers = Developer.select("name AS dev_name").order("dev_name DESC").limit(5)
 
       assert_match(/\Adevelopers\/query-(\h+)-(\d+)-(\d+)\z/, developers.cache_key)
     end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "active_support/core_ext/string/inflections"
 require "yaml"
@@ -37,7 +39,7 @@ class SafeBufferTest < ActiveSupport::TestCase
   end
 
   test "Should be considered safe" do
-    assert @buffer.html_safe?
+    assert_predicate @buffer, :html_safe?
   end
 
   test "Should return a safe buffer when calling to_s" do
@@ -73,16 +75,41 @@ class SafeBufferTest < ActiveSupport::TestCase
     assert_equal "my_test", str
   end
 
-  test "Should not return safe buffer from gsub" do
-    altered_buffer = @buffer.gsub("", "asdf")
-    assert_equal "asdf", altered_buffer
-    assert !altered_buffer.html_safe?
-  end
+  {
+    capitalize: nil,
+    chomp: nil,
+    chop: nil,
+    delete: "foo",
+    delete_prefix: "foo",
+    delete_suffix: "foo",
+    downcase: nil,
+    gsub: ["foo", "bar"],
+    lstrip: nil,
+    next: nil,
+    reverse: nil,
+    rstrip: nil,
+    slice: "foo",
+    squeeze: nil,
+    strip: nil,
+    sub: ["foo", "bar"],
+    succ: nil,
+    swapcase: nil,
+    tr: ["foo", "bar"],
+    tr_s: ["foo", "bar"],
+    unicode_normalize: nil,
+    upcase: nil,
+  }.each do |unsafe_method, dummy_args|
+    test "Should not return safe buffer from #{unsafe_method}" do
+      skip unless String.method_defined?(unsafe_method)
+      altered_buffer = @buffer.send(unsafe_method, *dummy_args)
+      assert_not_predicate altered_buffer, :html_safe?
+    end
 
-  test "Should not return safe buffer from gsub!" do
-    @buffer.gsub!("", "asdf")
-    assert_equal "asdf", @buffer
-    assert !@buffer.html_safe?
+    test "Should not return safe buffer from #{unsafe_method}!" do
+      skip unless String.method_defined?("#{unsafe_method}!")
+      @buffer.send("#{unsafe_method}!", *dummy_args)
+      assert_not_predicate @buffer, :html_safe?
+    end
   end
 
   test "Should escape dirty buffers on add" do
@@ -99,13 +126,13 @@ class SafeBufferTest < ActiveSupport::TestCase
 
   test "Should preserve html_safe? status on copy" do
     @buffer.gsub!("", "<>")
-    assert !@buffer.dup.html_safe?
+    assert_not_predicate @buffer.dup, :html_safe?
   end
 
   test "Should return safe buffer when added with another safe buffer" do
     clean = "<script>".html_safe
     result_buffer = @buffer + clean
-    assert result_buffer.html_safe?
+    assert_predicate result_buffer, :html_safe?
     assert_equal "<script>", result_buffer
   end
 
@@ -125,8 +152,8 @@ class SafeBufferTest < ActiveSupport::TestCase
   end
 
   test "clone_empty keeps the original dirtyness" do
-    assert @buffer.clone_empty.html_safe?
-    assert !@buffer.gsub!("", "").clone_empty.html_safe?
+    assert_predicate @buffer.clone_empty, :html_safe?
+    assert_not_predicate @buffer.gsub!("", "").clone_empty, :html_safe?
   end
 
   test "Should be safe when sliced if original value was safe" do
@@ -139,13 +166,25 @@ class SafeBufferTest < ActiveSupport::TestCase
     x = "foo".html_safe.gsub!("f", '<script>alert("lolpwnd");</script>')
 
     # calling gsub! makes the dirty flag true
-    assert !x.html_safe?, "should not be safe"
+    assert_not x.html_safe?, "should not be safe"
 
     # getting a slice of it
     y = x[0..-1]
 
     # should still be unsafe
-    assert !y.html_safe?, "should not be safe"
+    assert_not y.html_safe?, "should not be safe"
+  end
+
+  test "Should continue safe on slice" do
+    x = "<div>foo</div>".html_safe
+
+    assert_predicate x, :html_safe?
+
+    # getting a slice of it
+    y = x[0..-1]
+
+    # should still be safe
+    assert_predicate y, :html_safe?
   end
 
   test "Should work with interpolation (array argument)" do

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 module ActionDispatch
@@ -15,11 +17,11 @@ module ActionDispatch
 
       def test_clear
         mapper.get "/foo(/:id)", to: "foo#bar", as: "aaron"
-        assert_not_predicate routes, :empty?
+        assert_not_empty routes
         assert_equal 1, routes.length
 
         routes.clear
-        assert routes.empty?
+        assert_empty routes
         assert_equal 0, routes.length
       end
 
@@ -41,7 +43,7 @@ module ActionDispatch
         mapper.get "/foo(/:id)", to: "foo#bar", as: "aaron"
 
         assert_equal 1, @routes.anchored_routes.length
-        assert_predicate @routes.custom_routes, :empty?
+        assert_empty @routes.custom_routes
 
         mapper.get "/hello/:who", to: "foo#bar", as: "bar", who: /\d/
 

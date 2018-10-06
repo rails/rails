@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActionCable
   module Channel
     # Streams allow channels to route broadcastings to the subscriber. A broadcasting is, as discussed elsewhere, a pubsub queue where any data

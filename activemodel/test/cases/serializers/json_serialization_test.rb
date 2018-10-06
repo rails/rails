@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/contact"
 require "active_support/core_ext/object/instance_variables"
@@ -127,6 +129,10 @@ class JsonSerializationTest < ActiveModel::TestCase
     assert_equal :name, options[:except]
   end
 
+  test "as_json should serialize timestamps" do
+    assert_equal "2006-08-01T00:00:00.000Z", @contact.as_json["created_at"]
+  end
+
   test "as_json should return a hash if include_root_in_json is true" do
     begin
       original_include_root_in_json = Contact.include_root_in_json
@@ -136,7 +142,7 @@ class JsonSerializationTest < ActiveModel::TestCase
       assert_kind_of Hash, json
       assert_kind_of Hash, json["contact"]
       %w(name age created_at awesome preferences).each do |field|
-        assert_equal @contact.send(field), json["contact"][field]
+        assert_equal @contact.send(field).as_json, json["contact"][field]
       end
     ensure
       Contact.include_root_in_json = original_include_root_in_json

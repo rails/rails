@@ -1,3 +1,8 @@
+# frozen_string_literal: true
+
+# `counter_cache` requires association class before `attr_readonly`.
+class Post < ActiveRecord::Base; end
+
 class Comment < ActiveRecord::Base
   scope :limit_by, lambda { |l| limit(l) }
   scope :containing_the_letter_e, -> { where("comments.body LIKE '%e%'") }
@@ -9,7 +14,6 @@ class Comment < ActiveRecord::Base
   belongs_to :post, counter_cache: true
   belongs_to :author,   polymorphic: true
   belongs_to :resource, polymorphic: true
-  belongs_to :developer
 
   has_many :ratings
 
@@ -18,6 +22,18 @@ class Comment < ActiveRecord::Base
 
   has_many :children, class_name: "Comment", foreign_key: :parent_id
   belongs_to :parent, class_name: "Comment", counter_cache: :children_count
+
+  class ::OopsError < RuntimeError; end
+
+  module OopsExtension
+    def destroy_all(*)
+      raise OopsError
+    end
+  end
+
+  default_scope { extending OopsExtension }
+
+  scope :oops_comments, -> { extending OopsExtension }
 
   # Should not be called if extending modules that having the method exists on an association.
   def self.greeting
@@ -43,6 +59,11 @@ class Comment < ActiveRecord::Base
 end
 
 class SpecialComment < Comment
+  default_scope { where(deleted_at: nil) }
+
+  def self.what_are_you
+    "a special comment..."
+  end
 end
 
 class SubSpecialComment < SpecialComment
@@ -55,11 +76,17 @@ class CommentThatAutomaticallyAltersPostBody < Comment
   belongs_to :post, class_name: "PostThatLoadsCommentsInAnAfterSaveHook", foreign_key: :post_id
 
   after_save do |comment|
-    comment.post.update_attributes(body: "Automatically altered")
+    comment.post.update(body: "Automatically altered")
   end
 end
 
 class CommentWithDefaultScopeReferencesAssociation < Comment
   default_scope -> { includes(:developer).order("developers.name").references(:developer) }
   belongs_to :developer
+end
+
+class CommentWithAfterCreateUpdate < Comment
+  after_create do
+    update(body: "bar")
+  end
 end

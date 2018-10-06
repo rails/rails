@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "active_support/core_ext/array/extract_options"
 
@@ -5,7 +7,7 @@ require "active_support/core_ext/array/extract_options"
 # method has access to the view_paths array when looking for a layout to automatically assign.
 old_load_paths = ActionController::Base.view_paths
 
-ActionController::Base.view_paths = [ File.dirname(__FILE__) + "/../../fixtures/actionpack/layout_tests/" ]
+ActionController::Base.view_paths = [ File.expand_path("../../fixtures/actionpack/layout_tests", __dir__) ]
 
 class LayoutTest < ActionController::Base
   def self.controller_path; "views" end
@@ -45,6 +47,10 @@ end
 
 class LayoutAutoDiscoveryTest < ActionController::TestCase
   include TemplateHandlerHelper
+
+  with_routes do
+    get :hello, to: "views#hello"
+  end
 
   def setup
     super
@@ -96,7 +102,7 @@ class StreamingLayoutController < LayoutTest
 end
 
 class AbsolutePathLayoutController < LayoutTest
-  layout File.expand_path(File.expand_path(__FILE__) + "/../../../fixtures/actionpack/layout_tests/layouts/layout_test")
+  layout File.expand_path("../../fixtures/actionpack/layout_tests/layouts/layout_test", __dir__)
 end
 
 class HasOwnLayoutController < LayoutTest
@@ -117,7 +123,7 @@ end
 
 class PrependsViewPathController < LayoutTest
   def hello
-    prepend_view_path File.dirname(__FILE__) + "/../../fixtures/actionpack/layout_tests/alt/"
+    prepend_view_path File.expand_path("../../fixtures/actionpack/layout_tests/alt", __dir__)
     render layout: "alt"
   end
 end
@@ -145,6 +151,11 @@ end
 class LayoutSetInResponseTest < ActionController::TestCase
   include ActionView::Template::Handlers
   include TemplateHandlerHelper
+
+  with_routes do
+    get :hello, to: "views#hello"
+    get :hello, to: "views#goodbye"
+  end
 
   def test_layout_set_when_using_default_layout
     @controller = DefaultLayoutController.new
@@ -232,6 +243,10 @@ class SetsNonExistentLayoutFile < LayoutTest
 end
 
 class LayoutExceptionRaisedTest < ActionController::TestCase
+  with_routes do
+    get :hello, to: "views#hello"
+  end
+
   def test_exception_raised_when_layout_file_not_found
     @controller = SetsNonExistentLayoutFile.new
     assert_raise(ActionView::MissingTemplate) { get :hello }
@@ -245,6 +260,10 @@ class LayoutStatusIsRendered < LayoutTest
 end
 
 class LayoutStatusIsRenderedTest < ActionController::TestCase
+  with_routes do
+    get :hello, to: "views#hello"
+  end
+
   def test_layout_status_is_rendered
     @controller = LayoutStatusIsRendered.new
     get :hello
@@ -258,6 +277,10 @@ unless Gem.win_platform?
   end
 
   class LayoutSymlinkedIsRenderedTest < ActionController::TestCase
+    with_routes do
+      get :hello, to: "views#hello"
+    end
+
     def test_symlinked_layout_is_rendered
       @controller = LayoutSymlinkedTest.new
       get :hello

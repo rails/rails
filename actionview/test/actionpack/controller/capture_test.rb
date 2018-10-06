@@ -1,8 +1,10 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "active_support/logger"
 
 class CaptureController < ActionController::Base
-  self.view_paths = [ File.dirname(__FILE__) + "/../../fixtures/actionpack" ]
+  self.view_paths = [ File.expand_path("../../fixtures/actionpack", __dir__) ]
 
   def self.controller_name; "test"; end
   def self.controller_path; "test"; end
@@ -34,6 +36,15 @@ end
 
 class CaptureTest < ActionController::TestCase
   tests CaptureController
+
+  with_routes do
+    get :content_for,                to: "test#content_for"
+    get :capturing,                  to: "test#capturing"
+    get :proper_block_detection,     to: "test#proper_block_detection"
+    get :non_erb_block_content_for,  to: "test#non_erb_block_content_for"
+    get :content_for_concatenated,   to: "test#content_for_concatenated"
+    get :content_for_with_parameter, to: "test#content_for_with_parameter"
+  end
 
   def setup
     super

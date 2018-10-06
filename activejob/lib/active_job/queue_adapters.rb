@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveJob
   # == Active Job adapters
   #
@@ -5,7 +7,6 @@ module ActiveJob
   #
   # * {Backburner}[https://github.com/nesquena/backburner]
   # * {Delayed Job}[https://github.com/collectiveidea/delayed_job]
-  # * {Qu}[https://github.com/bkeepers/qu]
   # * {Que}[https://github.com/chanks/que]
   # * {queue_classic}[https://github.com/QueueClassic/queue_classic]
   # * {Resque}[https://github.com/resque/resque]
@@ -14,6 +15,7 @@ module ActiveJob
   # * {Sucker Punch}[https://github.com/brandonhilkert/sucker_punch]
   # * {Active Job Async Job}[http://api.rubyonrails.org/classes/ActiveJob/QueueAdapters/AsyncAdapter.html]
   # * {Active Job Inline}[http://api.rubyonrails.org/classes/ActiveJob/QueueAdapters/InlineAdapter.html]
+  # * Please Note: We are not accepting pull requests for new adapters. See the {README}[link:files/activejob/README_md.html] for more details.
   #
   # === Backends Features
   #
@@ -21,7 +23,6 @@ module ActiveJob
   #   |-------------------|-------|--------|------------|------------|---------|---------|
   #   | Backburner        | Yes   | Yes    | Yes        | Yes        | Job     | Global  |
   #   | Delayed Job       | Yes   | Yes    | Yes        | Job        | Global  | Global  |
-  #   | Qu                | Yes   | Yes    | No         | No         | No      | Global  |
   #   | Que               | Yes   | Yes    | Yes        | Job        | No      | Job     |
   #   | queue_classic     | Yes   | Yes    | Yes*       | No         | No      | No      |
   #   | Resque            | Yes   | Yes    | Yes (Gem)  | Queue      | Global  | Yes     |
@@ -112,7 +113,6 @@ module ActiveJob
     autoload :InlineAdapter
     autoload :BackburnerAdapter
     autoload :DelayedJobAdapter
-    autoload :QuAdapter
     autoload :QueAdapter
     autoload :QueueClassicAdapter
     autoload :ResqueAdapter
@@ -121,7 +121,7 @@ module ActiveJob
     autoload :SuckerPunchAdapter
     autoload :TestAdapter
 
-    ADAPTER = "Adapter".freeze
+    ADAPTER = "Adapter"
     private_constant :ADAPTER
 
     class << self

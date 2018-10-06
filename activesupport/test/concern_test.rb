@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "active_support/concern"
 
@@ -89,7 +91,7 @@ class ConcernTest < ActiveSupport::TestCase
       end
     end
     @klass.include test_module
-    assert_equal false, Object.respond_to?(:test)
+    assert_not_respond_to Object, :test
     Qux.class_eval do
       remove_const :ClassMethods
     end

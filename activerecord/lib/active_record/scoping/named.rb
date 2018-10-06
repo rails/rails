@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/array"
 require "active_support/core_ext/hash/except"
 require "active_support/core_ext/kernel/singleton_class"
@@ -22,20 +24,36 @@ module ActiveRecord
         # You can define a scope that applies to all finders using
         # {default_scope}[rdoc-ref:Scoping::Default::ClassMethods#default_scope].
         def all
-          if current_scope
-            current_scope.clone
+          scope = current_scope
+
+          if scope
+            if self == scope.klass
+              scope.clone
+            else
+              relation.merge!(scope)
+            end
           else
             default_scoped
           end
         end
 
-        def default_scoped # :nodoc:
-          scope = build_default_scope
-
-          if scope
-            relation.spawn.merge!(scope)
+        def scope_for_association(scope = relation) # :nodoc:
+          if current_scope&.empty_scope?
+            scope
           else
-            relation
+            default_scoped(scope)
+          end
+        end
+
+        def default_scoped(scope = relation) # :nodoc:
+          build_default_scope(scope) || scope
+        end
+
+        def default_extensions # :nodoc:
+          if scope = current_scope || build_default_scope
+            scope.extensions
+          else
+            []
           end
         end
 
@@ -151,22 +169,26 @@ module ActiveRecord
               "a class method with the same name."
           end
 
+          if method_defined_within?(name, Relation)
+            raise ArgumentError, "You tried to define a scope named \"#{name}\" " \
+              "on the model \"#{self.name}\", but ActiveRecord::Relation already defined " \
+              "an instance method with the same name."
+          end
+
           valid_scope_name?(name)
           extension = Module.new(&block) if block
 
           if body.respond_to?(:to_proc)
             singleton_class.send(:define_method, name) do |*args|
-              scope = all.scoping { instance_exec(*args, &body) }
+              scope = all._exec_scope(*args, &body)
               scope = scope.extending(extension) if extension
-
-              scope || all
+              scope
             end
           else
             singleton_class.send(:define_method, name) do |*args|
-              scope = all.scoping { body.call(*args) }
+              scope = body.call(*args) || all
               scope = scope.extending(extension) if extension
-
-              scope || all
+              scope
             end
           end
         end

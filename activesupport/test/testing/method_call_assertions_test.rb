@@ -1,9 +1,8 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
-require "active_support/testing/method_call_assertions"
 
 class MethodCallAssertionsTest < ActiveSupport::TestCase
-  include ActiveSupport::Testing::MethodCallAssertions
-
   class Level
     def increment; 1; end
     def decrement; end
@@ -37,6 +36,8 @@ class MethodCallAssertionsTest < ActiveSupport::TestCase
     assert_called(@object, :increment, returns: 10) do
       assert_equal 10, @object.increment
     end
+
+    assert_equal 1, @object.increment
   end
 
   def test_assert_called_failure
@@ -71,6 +72,14 @@ class MethodCallAssertionsTest < ActiveSupport::TestCase
     end
   end
 
+  def test_assert_called_with_arguments_and_returns
+    assert_called_with(@object, :<<, [ 2 ], returns: 10) do
+      assert_equal(10, @object << 2)
+    end
+
+    assert_nil(@object << 2)
+  end
+
   def test_assert_called_with_failure
     assert_raises(MockExpectationError) do
       assert_called_with(@object, :<<, [ 4567 ]) do
@@ -92,6 +101,65 @@ class MethodCallAssertionsTest < ActiveSupport::TestCase
     end
   end
 
+  def test_assert_called_on_instance_of_with_defaults_to_expect_once
+    assert_called_on_instance_of Level, :increment do
+      @object.increment
+    end
+  end
+
+  def test_assert_called_on_instance_of_more_than_once
+    assert_called_on_instance_of(Level, :increment, times: 2) do
+      @object.increment
+      @object.increment
+    end
+  end
+
+  def test_assert_called_on_instance_of_with_arguments
+    assert_called_on_instance_of(Level, :<<) do
+      @object << 2
+    end
+  end
+
+  def test_assert_called_on_instance_of_returns
+    assert_called_on_instance_of(Level, :increment, returns: 10) do
+      assert_equal 10, @object.increment
+    end
+
+    assert_equal 1, @object.increment
+  end
+
+  def test_assert_called_on_instance_of_failure
+    error = assert_raises(Minitest::Assertion) do
+      assert_called_on_instance_of(Level, :increment) do
+        # Call nothing...
+      end
+    end
+
+    assert_equal "Expected increment to be called 1 times, but was called 0 times.\nExpected: 1\n  Actual: 0", error.message
+  end
+
+  def test_assert_called_on_instance_of_with_message
+    error = assert_raises(Minitest::Assertion) do
+      assert_called_on_instance_of(Level, :increment, "dang it") do
+        # Call nothing...
+      end
+    end
+
+    assert_match(/dang it.\nExpected increment/, error.message)
+  end
+
+  def test_assert_called_on_instance_of_nesting
+    assert_called_on_instance_of(Level, :increment, times: 3) do
+      assert_called_on_instance_of(Level, :decrement, times: 2) do
+        @object.increment
+        @object.decrement
+        @object.increment
+        @object.decrement
+        @object.increment
+      end
+    end
+  end
+
   def test_assert_not_called
     assert_not_called(@object, :decrement) do
       @object.increment
@@ -106,6 +174,30 @@ class MethodCallAssertionsTest < ActiveSupport::TestCase
     end
 
     assert_equal "Expected increment to be called 0 times, but was called 1 times.\nExpected: 0\n  Actual: 1", error.message
+  end
+
+  def test_assert_not_called_on_instance_of
+    assert_not_called_on_instance_of(Level, :decrement) do
+      @object.increment
+    end
+  end
+
+  def test_assert_not_called_on_instance_of_failure
+    error = assert_raises(Minitest::Assertion) do
+      assert_not_called_on_instance_of(Level, :increment) do
+        @object.increment
+      end
+    end
+
+    assert_equal "Expected increment to be called 0 times, but was called 1 times.\nExpected: 0\n  Actual: 1", error.message
+  end
+
+  def test_assert_not_called_on_instance_of_nesting
+    assert_not_called_on_instance_of(Level, :increment) do
+      assert_not_called_on_instance_of(Level, :decrement) do
+        # Call nothing...
+      end
+    end
   end
 
   def test_stub_any_instance

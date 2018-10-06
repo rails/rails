@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module Associations
     class JoinDependency # :nodoc:
@@ -22,10 +24,6 @@ module ActiveRecord
           @children = children
         end
 
-        def name
-          reflection.name
-        end
-
         def match?(other)
           self.class == other.class
         end
@@ -35,13 +33,15 @@ module ActiveRecord
           children.each { |child| child.each(&block) }
         end
 
-        # An Arel::Table for the active_record
-        def table
-          raise NotImplementedError
+        def each_children(&block)
+          children.each do |child|
+            yield self, child
+            child.each_children(&block)
+          end
         end
 
-        # The alias for the active_record's table
-        def aliased_table_name
+        # An Arel::Table for the active_record
+        def table
           raise NotImplementedError
         end
 
@@ -54,8 +54,8 @@ module ActiveRecord
           length = column_names_with_alias.length
 
           while index < length
-            column_name, alias_name = column_names_with_alias[index]
-            hash[column_name] = row[alias_name]
+            column = column_names_with_alias[index]
+            hash[column.name] = row[column.alias]
             index += 1
           end
 

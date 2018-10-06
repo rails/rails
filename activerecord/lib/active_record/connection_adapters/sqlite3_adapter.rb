@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_record/connection_adapters/abstract_adapter"
 require "active_record/connection_adapters/statement_pool"
 require "active_record/connection_adapters/sqlite3/explain_pretty_printer"
@@ -13,6 +15,8 @@ require "sqlite3"
 module ActiveRecord
   module ConnectionHandling # :nodoc:
     def sqlite3_connection(config)
+      config = config.symbolize_keys
+
       # Require database.
       unless config[:database]
         raise ArgumentError, "No database file specified. Missing argument: database"
@@ -29,7 +33,7 @@ module ActiveRecord
 
       db = SQLite3::Database.new(
         config[:database].to_s,
-        results_as_hash: true
+        config.merge(results_as_hash: true)
       )
 
       db.busy_timeout(ConnectionAdapters::SQLite3Adapter.type_cast_config_to_integer(config[:timeout])) if config[:timeout]
@@ -52,14 +56,13 @@ module ActiveRecord
     #
     # * <tt>:database</tt> - Path to the database file.
     class SQLite3Adapter < AbstractAdapter
-      ADAPTER_NAME = "SQLite".freeze
+      ADAPTER_NAME = "SQLite"
 
       include SQLite3::Quoting
-      include SQLite3::ColumnDumper
       include SQLite3::SchemaStatements
 
       NATIVE_DATABASE_TYPES = {
-        primary_key:  "INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL",
+        primary_key:  "integer PRIMARY KEY AUTOINCREMENT NOT NULL",
         string:       { name: "varchar" },
         text:         { name: "text" },
         integer:      { name: "integer" },
@@ -69,26 +72,43 @@ module ActiveRecord
         time:         { name: "time" },
         date:         { name: "date" },
         binary:       { name: "blob" },
-        boolean:      { name: "boolean" }
+        boolean:      { name: "boolean" },
+        json:         { name: "json" },
       }
 
-      class StatementPool < ConnectionAdapters::StatementPool
+      ##
+      # :singleton-method:
+      # Indicates whether boolean values are stored in sqlite3 databases as 1
+      # and 0 or 't' and 'f'. Leaving <tt>ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer</tt>
+      # set to false is deprecated. SQLite databases have used 't' and 'f' to
+      # serialize boolean values and must have old data converted to 1 and 0
+      # (its native boolean serialization) before setting this flag to true.
+      # Conversion can be accomplished by setting up a rake task which runs
+      #
+      #   ExampleModel.where("boolean_column = 't'").update_all(boolean_column: 1)
+      #   ExampleModel.where("boolean_column = 'f'").update_all(boolean_column: 0)
+      # for all models and all boolean columns, after which the flag must be set
+      # to true by adding the following to your <tt>application.rb</tt> file:
+      #
+      #   Rails.application.config.active_record.sqlite3.represent_boolean_as_integer = true
+      class_attribute :represent_boolean_as_integer, default: false
+
+      class StatementPool < ConnectionAdapters::StatementPool # :nodoc:
         private
-
           def dealloc(stmt)
-            stmt[:stmt].close unless stmt[:stmt].closed?
+            stmt.close unless stmt.closed?
           end
-      end
-
-      def update_table_definition(table_name, base) # :nodoc:
-        SQLite3::Table.new(table_name, base)
       end
 
       def initialize(connection, logger, connection_options, config)
         super(connection, logger, config)
 
-        @active     = nil
+        @active     = true
         @statements = StatementPool.new(self.class.type_cast_config_to_integer(config[:statement_limit]))
+
+        if sqlite_version < "3.8.0"
+          raise "Your version of SQLite (#{sqlite_version}) is too old. Active Record supports SQLite >= 3.8."
+        end
 
         configure_connection
       end
@@ -102,7 +122,11 @@ module ActiveRecord
       end
 
       def supports_partial_index?
-        sqlite_version >= "3.8.0"
+        true
+      end
+
+      def supports_expression_index?
+        sqlite_version >= "3.9.0"
       end
 
       def requires_reloading?
@@ -110,7 +134,7 @@ module ActiveRecord
       end
 
       def supports_foreign_keys_in_create?
-        sqlite_version >= "3.6.19"
+        true
       end
 
       def supports_views?
@@ -121,12 +145,12 @@ module ActiveRecord
         true
       end
 
-      def supports_multi_insert?
-        sqlite_version >= "3.7.11"
+      def supports_json?
+        true
       end
 
       def active?
-        @active != false
+        @active
       end
 
       # Disconnects from the database if already connected. Otherwise, this
@@ -166,16 +190,23 @@ module ActiveRecord
         true
       end
 
+      def supports_lazy_transactions?
+        true
+      end
+
       # REFERENTIAL INTEGRITY ====================================
 
       def disable_referential_integrity # :nodoc:
-        old = select_value("PRAGMA foreign_keys")
+        old_foreign_keys = query_value("PRAGMA foreign_keys")
+        old_defer_foreign_keys = query_value("PRAGMA defer_foreign_keys")
 
         begin
+          execute("PRAGMA defer_foreign_keys = ON")
           execute("PRAGMA foreign_keys = OFF")
           yield
         ensure
-          execute("PRAGMA foreign_keys = #{old}")
+          execute("PRAGMA defer_foreign_keys = #{old_defer_foreign_keys}")
+          execute("PRAGMA foreign_keys = #{old_foreign_keys}")
         end
       end
 
@@ -189,6 +220,8 @@ module ActiveRecord
       end
 
       def exec_query(sql, name = nil, binds = [], prepare: false)
+        materialize_transactions
+
         type_casted_binds = type_casted_binds(binds)
 
         log(sql, name, binds, type_casted_binds) do
@@ -206,11 +239,8 @@ module ActiveRecord
                 stmt.close
               end
             else
-              cache = @statements[sql] ||= {
-                stmt: @connection.prepare(sql)
-              }
-              stmt = cache[:stmt]
-              cols = cache[:cols] ||= stmt.columns
+              stmt = @statements[sql] ||= @connection.prepare(sql)
+              cols = stmt.columns
               stmt.reset!
               stmt.bind_params(type_casted_binds)
               records = stmt.to_a
@@ -232,6 +262,8 @@ module ActiveRecord
       end
 
       def execute(sql, name = nil) #:nodoc:
+        materialize_transactions
+
         log(sql, name) do
           ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
             @connection.execute(sql)
@@ -272,19 +304,18 @@ module ActiveRecord
         rename_table_indexes(table_name, new_name)
       end
 
-      # See: http://www.sqlite.org/lang_altertable.html
-      # SQLite has an additional restriction on the ALTER TABLE statement
-      def valid_alter_table_type?(type)
-        type.to_sym != :primary_key
+      def valid_alter_table_type?(type, options = {})
+        !invalid_alter_table_type?(type, options)
       end
+      deprecate :valid_alter_table_type?
 
       def add_column(table_name, column_name, type, options = {}) #:nodoc:
-        if valid_alter_table_type?(type)
-          super(table_name, column_name, type, options)
-        else
+        if invalid_alter_table_type?(type, options)
           alter_table(table_name) do |definition|
             definition.column(column_name, type, options)
           end
+        else
+          super
         end
       end
 
@@ -337,7 +368,7 @@ module ActiveRecord
       alias :add_belongs_to :add_reference
 
       def foreign_keys(table_name)
-        fk_info = select_all("PRAGMA foreign_key_list(#{quote(table_name)})", "SCHEMA")
+        fk_info = exec_query("PRAGMA foreign_key_list(#{quote(table_name)})", "SCHEMA")
         fk_info.map do |row|
           options = {
             column: row["from"],
@@ -349,7 +380,31 @@ module ActiveRecord
         end
       end
 
+      def insert_fixtures(rows, table_name)
+        ActiveSupport::Deprecation.warn(<<-MSG.squish)
+          `insert_fixtures` is deprecated and will be removed in the next version of Rails.
+          Consider using `insert_fixtures_set` for performance improvement.
+        MSG
+        insert_fixtures_set(table_name => rows)
+      end
+
+      def insert_fixtures_set(fixture_set, tables_to_delete = [])
+        disable_referential_integrity do
+          transaction(requires_new: true) do
+            tables_to_delete.each { |table| delete "DELETE FROM #{quote_table_name(table)}", "Fixture Delete" }
+
+            fixture_set.each do |table_name, rows|
+              rows.each { |row| insert_fixture(row, table_name) }
+            end
+          end
+        end
+      end
+
       private
+        def initialize_type_map(m = type_map)
+          super
+          register_class_with_limit m, %r(int)i, SQLite3Integer
+        end
 
         def table_structure(table_name)
           structure = exec_query("PRAGMA table_info(#{quote_table_name(table_name)})", "SCHEMA")
@@ -358,14 +413,33 @@ module ActiveRecord
         end
         alias column_definitions table_structure
 
+        # See: https://www.sqlite.org/lang_altertable.html
+        # SQLite has an additional restriction on the ALTER TABLE statement
+        def invalid_alter_table_type?(type, options)
+          type.to_sym == :primary_key || options[:primary_key]
+        end
+
         def alter_table(table_name, options = {})
           altered_table_name = "a#{table_name}"
-          caller = lambda { |definition| yield definition if block_given? }
+          foreign_keys = foreign_keys(table_name)
+
+          caller = lambda do |definition|
+            rename = options[:rename] || {}
+            foreign_keys.each do |fk|
+              if column = rename[fk.options[:column]]
+                fk.options[:column] = column
+              end
+              definition.foreign_key(fk.to_table, fk.options)
+            end
+
+            yield definition if block_given?
+          end
 
           transaction do
-            move_table(table_name, altered_table_name,
-              options.merge(temporary: true))
-            move_table(altered_table_name, table_name, &caller)
+            disable_referential_integrity do
+              move_table(table_name, altered_table_name, options.merge(temporary: true))
+              move_table(altered_table_name, table_name, &caller)
+            end
           end
         end
 
@@ -379,19 +453,23 @@ module ActiveRecord
           options[:id] = false
           create_table(to, options) do |definition|
             @definition = definition
-            @definition.primary_key(from_primary_key) if from_primary_key.present?
+            if from_primary_key.is_a?(Array)
+              @definition.primary_keys from_primary_key
+            end
             columns(from).each do |column|
               column_name = options[:rename] ?
                 (options[:rename][column.name] ||
                  options[:rename][column.name.to_sym] ||
                  column.name) : column.name
-              next if column_name == from_primary_key
 
               @definition.column(column_name, column.type,
                 limit: column.limit, default: column.default,
                 precision: column.precision, scale: column.scale,
-                null: column.null, collation: column.collation)
+                null: column.null, collation: column.collation,
+                primary_key: column_name == from_primary_key
+              )
             end
+
             yield @definition if block_given?
           end
           copy_table_indexes(from, to, options[:rename] || {})
@@ -409,15 +487,19 @@ module ActiveRecord
               name = name[1..-1]
             end
 
-            to_column_names = columns(to).map(&:name)
-            columns = index.columns.map { |c| rename[c] || c }.select do |column|
-              to_column_names.include?(column)
+            columns = index.columns
+            if columns.is_a?(Array)
+              to_column_names = columns(to).map(&:name)
+              columns = columns.map { |c| rename[c] || c }.select do |column|
+                to_column_names.include?(column)
+              end
             end
 
             unless columns.empty?
               # index name can't be the same
               opts = { name: name.gsub(/(^|_)(#{from})_/, "\\1#{to}_"), internal: true }
               opts[:unique] = true if index.unique
+              opts[:where] = index.where if index.where
               add_index(to, columns, opts)
             end
           end
@@ -437,7 +519,7 @@ module ActiveRecord
         end
 
         def sqlite_version
-          @sqlite_version ||= SQLite3Adapter::Version.new(select_value("SELECT sqlite_version(*)"))
+          @sqlite_version ||= SQLite3Adapter::Version.new(query_value("SELECT sqlite_version(*)"))
         end
 
         def translate_exception(exception, message)
@@ -494,7 +576,7 @@ module ActiveRecord
               column
             end
           else
-            basic_structure.to_hash
+            basic_structure.to_a
           end
         end
 
@@ -505,6 +587,18 @@ module ActiveRecord
         def configure_connection
           execute("PRAGMA foreign_keys = ON", "SCHEMA")
         end
+
+        class SQLite3Integer < Type::Integer # :nodoc:
+          private
+            def _limit
+              # INTEGER storage class can be stored 8 bytes value.
+              # See https://www.sqlite.org/datatype3.html#storage_classes_and_datatypes
+              limit || 8
+            end
+        end
+
+        ActiveRecord::Type.register(:integer, SQLite3Integer, adapter: :sqlite3)
     end
+    ActiveSupport.run_load_hooks(:active_record_sqlite3adapter, SQLite3Adapter)
   end
 end

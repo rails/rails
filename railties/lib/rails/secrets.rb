@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "yaml"
 require "active_support/message_encryptor"
 
@@ -29,10 +31,6 @@ module Rails
         end
       end
 
-      def generate_key
-        SecureRandom.hex(OpenSSL::Cipher.new(@cipher).key_len)
-      end
-
       def key
         ENV["RAILS_MASTER_KEY"] || read_key_file || handle_missing_key
       end
@@ -54,15 +52,8 @@ module Rails
         FileUtils.mv("#{path}.tmp", path)
       end
 
-      def read_for_editing
-        tmp_path = File.join(Dir.tmpdir, File.basename(path))
-        IO.binwrite(tmp_path, read)
-
-        yield tmp_path
-
-        write(IO.binread(tmp_path))
-      ensure
-        FileUtils.rm(tmp_path) if File.exist?(tmp_path)
+      def read_for_editing(&block)
+        writing(read, &block)
       end
 
       private
@@ -90,6 +81,20 @@ module Rails
           else
             IO.read(path)
           end
+        end
+
+        def writing(contents)
+          tmp_file = "#{File.basename(path)}.#{Process.pid}"
+          tmp_path = File.join(Dir.tmpdir, tmp_file)
+          IO.binwrite(tmp_path, contents)
+
+          yield tmp_path
+
+          updated_contents = IO.binread(tmp_path)
+
+          write(updated_contents) if updated_contents != contents
+        ensure
+          FileUtils.rm(tmp_path) if File.exist?(tmp_path)
         end
 
         def encryptor

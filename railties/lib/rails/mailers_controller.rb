@@ -1,12 +1,16 @@
+# frozen_string_literal: true
+
 require "rails/application_controller"
 
 class Rails::MailersController < Rails::ApplicationController # :nodoc:
   prepend_view_path ActionDispatch::DebugExceptions::RESCUES_TEMPLATE_PATH
 
   before_action :require_local!, unless: :show_previews?
-  before_action :find_preview, only: :preview
+  before_action :find_preview, :set_locale, only: :preview
 
-  helper_method :part_query
+  helper_method :part_query, :locale_query
+
+  content_security_policy(false)
 
   def index
     @previews = ActionMailer::Preview.all
@@ -81,5 +85,13 @@ class Rails::MailersController < Rails::ApplicationController # :nodoc:
 
     def part_query(mime_type)
       request.query_parameters.merge(part: mime_type).to_query
+    end
+
+    def locale_query(locale)
+      request.query_parameters.merge(locale: locale).to_query
+    end
+
+    def set_locale
+      I18n.locale = params[:locale] || I18n.default_locale
     end
 end

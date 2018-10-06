@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 begin
   require "bundler/inline"
 rescue LoadError => e
@@ -7,14 +9,17 @@ end
 
 gemfile(true) do
   source "https://rubygems.org"
+
+  git_source(:github) { |repo| "https://github.com/#{repo}.git" }
+
   # Activate the gem you are reporting the issue against.
-  gem "activejob", "5.1.0"
+  gem "activejob", "5.2.0"
 end
 
 require "minitest/autorun"
 require "active_job"
 
-# Ensure backward compatibility with Minitest 4
+# Ensure backward compatibility with minitest 4.
 Minitest::Test = MiniTest::Unit::TestCase unless defined?(Minitest::Test)
 
 class BuggyJob < ActiveJob::Base

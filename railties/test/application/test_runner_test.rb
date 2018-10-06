@@ -1,5 +1,6 @@
+# frozen_string_literal: true
+
 require "isolation/abstract_unit"
-require "active_support/core_ext/string/strip"
 require "env_helpers"
 
 module ApplicationTests
@@ -16,13 +17,13 @@ module ApplicationTests
     end
 
     def test_run_via_backwardscompatibility
-      require "rails/test_unit/minitest_plugin"
+      require "minitest/rails_plugin"
 
       assert_nothing_raised do
         Minitest.run_via[:ruby] = true
       end
 
-      assert_predicate Minitest.run_via, :ruby?
+      assert Minitest.run_via[:ruby]
     end
 
     def test_run_single_file
@@ -31,10 +32,24 @@ module ApplicationTests
       assert_match "1 runs, 1 assertions, 0 failures", run_test_command("test/models/foo_test.rb")
     end
 
+    def test_run_single_file_with_absolute_path
+      create_test_file :models, "foo"
+      create_test_file :models, "bar"
+      assert_match "1 runs, 1 assertions, 0 failures", run_test_command("#{app_path}/test/models/foo_test.rb")
+    end
+
     def test_run_multiple_files
       create_test_file :models,  "foo"
       create_test_file :models,  "bar"
       assert_match "2 runs, 2 assertions, 0 failures", run_test_command("test/models/foo_test.rb test/models/bar_test.rb")
+    end
+
+    def test_run_multiple_files_with_absolute_paths
+      create_test_file :models,  "foo"
+      create_test_file :controllers,  "foobar_controller"
+      create_test_file :models, "bar"
+
+      assert_match "2 runs, 2 assertions, 0 failures", run_test_command("#{app_path}/test/models/foo_test.rb #{app_path}/test/controllers/foobar_controller_test.rb")
     end
 
     def test_run_file_with_syntax_error
@@ -43,7 +58,7 @@ module ApplicationTests
         def; end
       RUBY
 
-      error = capture(:stderr) { run_test_command("test/models/error_test.rb") }
+      error = capture(:stderr) { run_test_command("test/models/error_test.rb", stderr: true) }
       assert_match "syntax error", error
     end
 
@@ -75,13 +90,11 @@ module ApplicationTests
       create_test_file :unit, "baz_unit"
       create_test_file :controllers, "foobar_controller"
 
-      Dir.chdir(app_path) do
-        `bin/rails test:units`.tap do |output|
-          assert_match "FooTest", output
-          assert_match "BarHelperTest", output
-          assert_match "BazUnitTest", output
-          assert_match "3 runs, 3 assertions, 0 failures", output
-        end
+      rails("test:units").tap do |output|
+        assert_match "FooTest", output
+        assert_match "BarHelperTest", output
+        assert_match "BazUnitTest", output
+        assert_match "3 runs, 3 assertions, 0 failures", output
       end
     end
 
@@ -124,13 +137,11 @@ module ApplicationTests
       create_test_file :functional, "baz_functional"
       create_test_file :models, "foo"
 
-      Dir.chdir(app_path) do
-        `bin/rails test:functionals`.tap do |output|
-          assert_match "FooMailerTest", output
-          assert_match "BarControllerTest", output
-          assert_match "BazFunctionalTest", output
-          assert_match "3 runs, 3 assertions, 0 failures", output
-        end
+      rails("test:functionals").tap do |output|
+        assert_match "FooMailerTest", output
+        assert_match "BarControllerTest", output
+        assert_match "BazFunctionalTest", output
+        assert_match "3 runs, 3 assertions, 0 failures", output
       end
     end
 
@@ -258,6 +269,18 @@ module ApplicationTests
       create_test_file :controllers, "accounts_controller"
 
       run_test_command("test/models test/controllers").tap do |output|
+        assert_match "AccountTest", output
+        assert_match "AccountsControllerTest", output
+        assert_match "2 runs, 2 assertions, 0 failures, 0 errors, 0 skips", output
+      end
+    end
+
+    def test_run_multiple_folders_with_absolute_paths
+      create_test_file :models, "account"
+      create_test_file :controllers, "accounts_controller"
+      create_test_file :helpers, "foo_helper"
+
+      run_test_command("#{app_path}/test/models #{app_path}/test/controllers").tap do |output|
         assert_match "AccountTest", output
         assert_match "AccountsControllerTest", output
         assert_match "2 runs, 2 assertions, 0 failures, 0 errors, 0 skips", output
@@ -469,7 +492,7 @@ module ApplicationTests
     def test_run_app_without_rails_loaded
       # Simulate a real Rails app boot.
       app_file "config/boot.rb", <<-RUBY
-        ENV['BUNDLE_GEMFILE'] ||= File.expand_path('../../Gemfile', __FILE__)
+        ENV['BUNDLE_GEMFILE'] ||= File.expand_path('../Gemfile', __dir__)
 
         require 'bundler/setup' # Set up gems listed in the Gemfile.
       RUBY
@@ -478,10 +501,10 @@ module ApplicationTests
     end
 
     def test_output_inline_by_default
-      create_test_file :models, "post", pass: false
+      create_test_file :models, "post", pass: false, print: false
 
       output = run_test_command("test/models/post_test.rb")
-      expect = %r{Running:\n\nPostTest\nF\n\nFailure:\nPostTest#test_truth \[[^\]]+test/models/post_test.rb:6\]:\nwups!\n\nbin/rails test test/models/post_test.rb:4\n\n\n\n}
+      expect = %r{Running:\n\nF\n\nFailure:\nPostTest#test_truth \[[^\]]+test/models/post_test.rb:6\]:\nwups!\n\nrails test test/models/post_test.rb:4\n\n\n\n}
       assert_match expect, output
     end
 
@@ -489,18 +512,58 @@ module ApplicationTests
       create_test_file :models, "post", pass: false
 
       output = run_test_command("test/models/post_test.rb")
-      assert_match %r{Finished in.*\n\n1 runs, 1 assertions}, output
+      assert_match %r{Finished in.*\n1 runs, 1 assertions}, output
     end
 
     def test_fail_fast
       create_test_file :models, "post", pass: false
 
       assert_match(/Interrupt/,
-        capture(:stderr) { run_test_command("test/models/post_test.rb --fail-fast") })
+        capture(:stderr) { run_test_command("test/models/post_test.rb --fail-fast", stderr: true) })
+    end
+
+    def test_run_in_parallel_with_processes
+      file_name = create_parallel_processes_test_file
+
+      app_file "db/schema.rb", <<-RUBY
+        ActiveRecord::Schema.define(version: 1) do
+          create_table :users do |t|
+            t.string :name
+          end
+        end
+      RUBY
+
+      output = run_test_command(file_name)
+
+      assert_match %r{Finished in.*\n2 runs, 2 assertions}, output
+      assert_no_match "create_table(:users)", output
+    end
+
+    def test_run_in_parallel_with_threads
+      app_path("/test/test_helper.rb") do |file_name|
+        file = File.read(file_name)
+        file.sub!(/parallelize\(([^\)]*)\)/, "parallelize(\\1, with: :threads)")
+        File.write(file_name, file)
+      end
+
+      file_name = create_parallel_threads_test_file
+
+      app_file "db/schema.rb", <<-RUBY
+        ActiveRecord::Schema.define(version: 1) do
+          create_table :users do |t|
+            t.string :name
+          end
+        end
+      RUBY
+
+      output = run_test_command(file_name)
+
+      assert_match %r{Finished in.*\n2 runs, 2 assertions}, output
+      assert_no_match "create_table(:users)", output
     end
 
     def test_raise_error_when_specified_file_does_not_exist
-      error = capture(:stderr) { run_test_command("test/not_exists.rb") }
+      error = capture(:stderr) { run_test_command("test/not_exists.rb", stderr: true) }
       assert_match(%r{cannot load such file.+test/not_exists\.rb}, error)
     end
 
@@ -508,7 +571,7 @@ module ApplicationTests
       create_test_file :models, "account"
       create_test_file :models, "post", pass: false
       # This specifically verifies TEST for backwards compatibility with rake test
-      # as bin/rails test already supports running tests from a single file more cleanly.
+      # as `rails test` already supports running tests from a single file more cleanly.
       output = Dir.chdir(app_path) { `bin/rake test TEST=test/models/post_test.rb` }
 
       assert_match "PostTest", output, "passing TEST= should run selected test"
@@ -526,14 +589,16 @@ module ApplicationTests
 
     def test_rails_db_create_all_restores_db_connection
       create_test_file :models, "account"
-      output = Dir.chdir(app_path) { `bin/rails db:create:all db:migrate && echo ".tables" | rails dbconsole` }
+      rails "db:create:all", "db:migrate"
+      output = Dir.chdir(app_path) { `echo ".tables" | rails dbconsole` }
       assert_match "ar_internal_metadata", output, "tables should be dumped"
     end
 
     def test_rails_db_create_all_restores_db_connection_after_drop
       create_test_file :models, "account"
-      Dir.chdir(app_path) { `bin/rails db:create:all` } # create all to avoid warnings
-      output = Dir.chdir(app_path) { `bin/rails db:drop:all db:create:all db:migrate && echo ".tables" | rails dbconsole` }
+      rails "db:create:all" # create all to avoid warnings
+      rails "db:drop:all", "db:create:all", "db:migrate"
+      output = Dir.chdir(app_path) { `echo ".tables" | rails dbconsole` }
       assert_match "ar_internal_metadata", output, "tables should be dumped"
     end
 
@@ -541,6 +606,40 @@ module ApplicationTests
       create_test_file :models, "account"
       output = Dir.chdir(app_path) { `bin/rake test TESTOPTS=-v` }
       assert_match "AccountTest#test_truth", output, "passing TEST= should run selected test"
+    end
+
+    def test_running_with_ruby_gets_test_env_by_default
+      # Subshells inherit `ENV`, so we need to ensure `RAILS_ENV` is set to
+      # nil before we run the tests in the test app.
+      re, ENV["RAILS_ENV"] = ENV["RAILS_ENV"], nil
+
+      file = create_test_for_env("test")
+      results = Dir.chdir(app_path) {
+        `ruby -Ilib:test #{file}`.each_line.map { |line| JSON.parse line }
+      }
+      assert_equal 1, results.length
+      failures = results.first["failures"]
+      flunk(failures.first) unless failures.empty?
+
+    ensure
+      ENV["RAILS_ENV"] = re
+    end
+
+    def test_running_with_ruby_can_set_env_via_cmdline
+      # Subshells inherit `ENV`, so we need to ensure `RAILS_ENV` is set to
+      # nil before we run the tests in the test app.
+      re, ENV["RAILS_ENV"] = ENV["RAILS_ENV"], nil
+
+      file = create_test_for_env("development")
+      results = Dir.chdir(app_path) {
+        `RAILS_ENV=development ruby -Ilib:test #{file}`.each_line.map { |line| JSON.parse line }
+      }
+      assert_equal 1, results.length
+      failures = results.first["failures"]
+      flunk(failures.first) unless failures.empty?
+
+    ensure
+      ENV["RAILS_ENV"] = re
     end
 
     def test_rake_passes_multiple_TESTOPTS_to_minitest
@@ -573,7 +672,7 @@ module ApplicationTests
         end
       RUBY
       assert_match(/warning: assigned but unused variable/,
-        capture(:stderr) { run_test_command("test/models/warnings_test.rb -w") })
+        capture(:stderr) { run_test_command("test/models/warnings_test.rb -w", stderr: true) })
     end
 
     def test_reset_sessions_before_rollback_on_system_tests
@@ -651,14 +750,14 @@ module ApplicationTests
     end
 
     private
-      def run_test_command(arguments = "test/unit/test_test.rb")
-        Dir.chdir(app_path) { `bin/rails t #{arguments}` }
+      def run_test_command(arguments = "test/unit/test_test.rb", **opts)
+        rails "t", *Shellwords.split(arguments), allow_failure: true, **opts
       end
 
       def create_model_with_fixture
-        script "generate model user name:string"
+        rails "generate", "model", "user", "name:string"
 
-        app_file "test/fixtures/users.yml", <<-YAML.strip_heredoc
+        app_file "test/fixtures/users.yml", <<~YAML
           vampire:
             id: 1
             name: Koyomi Araragi
@@ -701,14 +800,104 @@ module ApplicationTests
         app_file "db/schema.rb", ""
       end
 
-      def create_test_file(path = :unit, name = "test", pass: true)
+      def create_test_for_env(env)
+        app_file "test/models/environment_test.rb", <<-RUBY
+          require 'test_helper'
+          class JSONReporter < Minitest::AbstractReporter
+            def record(result)
+              puts JSON.dump(klass: result.class.name,
+                             name: result.name,
+                             failures: result.failures,
+                             assertions: result.assertions,
+                             time: result.time)
+            end
+          end
+
+          def Minitest.plugin_json_reporter_init(opts)
+            Minitest.reporter.reporters.clear
+            Minitest.reporter.reporters << JSONReporter.new
+          end
+
+          Minitest.extensions << "rails"
+          Minitest.extensions << "json_reporter"
+
+          # Minitest uses RubyGems to find plugins, and since RubyGems
+          # doesn't know about the Rails installation we're pointing at,
+          # Minitest won't require the Rails minitest plugin when we run
+          # these integration tests.  So we have to manually require the
+          # Minitest plugin here.
+          require 'minitest/rails_plugin'
+
+          class EnvironmentTest < ActiveSupport::TestCase
+            def test_environment
+              test_db = ActiveRecord::Base.configurations[#{env.dump}]["database"]
+              db_file = ActiveRecord::Base.connection_config[:database]
+              assert_match(test_db, db_file)
+              assert_equal #{env.dump}, ENV["RAILS_ENV"]
+            end
+          end
+        RUBY
+      end
+
+      def create_test_file(path = :unit, name = "test", pass: true, print: true)
         app_file "test/#{path}/#{name}_test.rb", <<-RUBY
           require 'test_helper'
 
           class #{name.camelize}Test < ActiveSupport::TestCase
             def test_truth
-              puts "#{name.camelize}Test"
+              puts "#{name.camelize}Test" if #{print}
               assert #{pass}, 'wups!'
+            end
+          end
+        RUBY
+      end
+
+      def create_parallel_processes_test_file
+        app_file "test/models/parallel_test.rb", <<-RUBY
+          require 'test_helper'
+
+          class ParallelTest < ActiveSupport::TestCase
+            RD1, WR1 = IO.pipe
+            RD2, WR2 = IO.pipe
+
+            test "one" do
+              WR1.close
+              assert_equal "x", RD1.read(1) # blocks until two runs
+
+              RD2.close
+              WR2.write "y" # Allow two to run
+              WR2.close
+            end
+
+            test "two" do
+              RD1.close
+              WR1.write "x" # Allow one to run
+              WR1.close
+
+              WR2.close
+              assert_equal "y", RD2.read(1) # blocks until one runs
+            end
+          end
+        RUBY
+      end
+
+      def create_parallel_threads_test_file
+        app_file "test/models/parallel_test.rb", <<-RUBY
+          require 'test_helper'
+
+          class ParallelTest < ActiveSupport::TestCase
+            Q1 = Queue.new
+            Q2 = Queue.new
+            test "one" do
+              assert_equal "x", Q1.pop # blocks until two runs
+
+              Q2 << "y"
+            end
+
+            test "two" do
+              Q1 << "x"
+
+              assert_equal "y", Q2.pop # blocks until one runs
             end
           end
         RUBY
@@ -727,17 +916,17 @@ module ApplicationTests
       end
 
       def create_scaffold
-        script "generate scaffold user name:string"
-        Dir.chdir(app_path) { File.exist?("app/models/user.rb") }
+        rails "generate", "scaffold", "user", "name:string"
+        assert File.exist?("#{app_path}/app/models/user.rb")
         run_migration
       end
 
       def create_controller
-        script "generate controller admin/dashboard index"
+        rails "generate", "controller", "admin/dashboard", "index"
       end
 
       def run_migration
-        Dir.chdir(app_path) { `bin/rails db:migrate` }
+        rails "db:migrate"
       end
   end
 end

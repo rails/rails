@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
 Rails on Rack
 =============
@@ -13,12 +13,12 @@ After reading this guide, you will know:
 
 --------------------------------------------------------------------------------
 
-WARNING: This guide assumes a working knowledge of Rack protocol and Rack concepts such as middlewares, url maps and `Rack::Builder`.
+WARNING: This guide assumes a working knowledge of Rack protocol and Rack concepts such as middlewares, url maps, and `Rack::Builder`.
 
 Introduction to Rack
 --------------------
 
-Rack provides a minimal, modular and adaptable interface for developing web applications in Ruby. By wrapping HTTP requests and responses in the simplest way possible, it unifies and distills the API for web servers, web frameworks, and software in between (the so-called middleware) into a single method call.
+Rack provides a minimal, modular, and adaptable interface for developing web applications in Ruby. By wrapping HTTP requests and responses in the simplest way possible, it unifies and distills the API for web servers, web frameworks, and software in between (the so-called middleware) into a single method call.
 
 Explaining how Rack works is not really in the scope of this guide. In case you
 are not familiar with Rack's basics, you should check out the [Resources](#resources)
@@ -94,10 +94,10 @@ but is built for better flexibility and more features to meet Rails' requirement
 
 ### Inspecting Middleware Stack
 
-Rails has a handy task for inspecting the middleware stack in use:
+Rails has a handy command for inspecting the middleware stack in use:
 
 ```bash
-$ bin/rails middleware
+$ rails middleware
 ```
 
 For a freshly generated Rails application, this might produce something like:
@@ -110,28 +110,31 @@ use ActiveSupport::Cache::Strategy::LocalCache::Middleware
 use Rack::Runtime
 use Rack::MethodOverride
 use ActionDispatch::RequestId
+use ActionDispatch::RemoteIp
+use Sprockets::Rails::QuietAssets
 use Rails::Rack::Logger
 use ActionDispatch::ShowExceptions
 use WebConsole::Middleware
 use ActionDispatch::DebugExceptions
-use ActionDispatch::RemoteIp
 use ActionDispatch::Reloader
 use ActionDispatch::Callbacks
 use ActiveRecord::Migration::CheckPending
 use ActionDispatch::Cookies
 use ActionDispatch::Session::CookieStore
 use ActionDispatch::Flash
+use ActionDispatch::ContentSecurityPolicy::Middleware
 use Rack::Head
 use Rack::ConditionalGet
 use Rack::ETag
-run Rails.application.routes
+use Rack::TempfileReaper
+run MyApp::Application.routes
 ```
 
 The default middlewares shown here (and some others) are each summarized in the [Internal Middlewares](#internal-middleware-stack) section, below.
 
 ### Configuring Middleware Stack
 
-Rails provides a simple configuration interface `config.middleware` for adding, removing and modifying the middlewares in the middleware stack via `application.rb` or the environment specific configuration file `environments/<environment>.rb`.
+Rails provides a simple configuration interface `config.middleware` for adding, removing, and modifying the middlewares in the middleware stack via `application.rb` or the environment specific configuration file `environments/<environment>.rb`.
 
 #### Adding a Middleware
 
@@ -178,7 +181,7 @@ And now if you inspect the middleware stack, you'll find that `Rack::Runtime` is
 not a part of it.
 
 ```bash
-$ bin/rails middleware
+$ rails middleware
 (in /Users/lifo/Rails/blog)
 use ActionDispatch::Static
 use #<ActiveSupport::Cache::Strategy::LocalCache::Middleware:0x00000001c304c8>
@@ -238,9 +241,17 @@ Much of Action Controller's functionality is implemented as Middlewares. The fol
 
 * Makes a unique `X-Request-Id` header available to the response and enables the `ActionDispatch::Request#request_id` method.
 
+**`ActionDispatch::RemoteIp`**
+
+* Checks for IP spoofing attacks.
+
+**`Sprockets::Rails::QuietAssets`**
+
+* Suppresses logger output for asset requests.
+
 **`Rails::Rack::Logger`**
 
-* Notifies the logs that the request has began. After request is complete, flushes all the logs.
+* Notifies the logs that the request has begun. After the request is complete, flushes all the logs.
 
 **`ActionDispatch::ShowExceptions`**
 
@@ -249,10 +260,6 @@ Much of Action Controller's functionality is implemented as Middlewares. The fol
 **`ActionDispatch::DebugExceptions`**
 
 * Responsible for logging exceptions and showing a debugging page in case the request is local.
-
-**`ActionDispatch::RemoteIp`**
-
-* Checks for IP spoofing attacks.
 
 **`ActionDispatch::Reloader`**
 
@@ -278,17 +285,25 @@ Much of Action Controller's functionality is implemented as Middlewares. The fol
 
 * Sets up the flash keys. Only available if `config.action_controller.session_store` is set to a value.
 
+**`ActionDispatch::ContentSecurityPolicy::Middleware`**
+
+* Provides a DSL to configure a Content-Security-Policy header.
+
 **`Rack::Head`**
 
 * Converts HEAD requests to `GET` requests and serves them as so.
 
 **`Rack::ConditionalGet`**
 
-* Adds support for "Conditional `GET`" so that server responds with nothing if page wasn't changed.
+* Adds support for "Conditional `GET`" so that server responds with nothing if the page wasn't changed.
 
 **`Rack::ETag`**
 
 * Adds ETag header on all String bodies. ETags are used to validate cache.
+
+**`Rack::TempfileReaper`**
+
+* Cleans up tempfiles used to buffer multipart requests.
 
 TIP: It's possible to use any of the above middlewares in your custom Rack stack.
 
@@ -297,7 +312,7 @@ Resources
 
 ### Learning Rack
 
-* [Official Rack Website](http://rack.github.io)
+* [Official Rack Website](https://rack.github.io)
 * [Introducing Rack](http://chneukirchen.org/blog/archive/2007/02/introducing-rack.html)
 
 ### Understanding Middlewares

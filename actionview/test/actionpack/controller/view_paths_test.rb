@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 class ViewLoadPathsTest < ActionController::TestCase
@@ -22,11 +24,17 @@ class ViewLoadPathsTest < ActionController::TestCase
     end
   end
 
+  with_routes do
+    get :hello_world, to: "test#hello_world"
+    get :hello_world_at_request_time, to: "test#hello_world_at_request_time"
+  end
+
   def setup
     @controller = TestController.new
     @request  = ActionController::TestRequest.create(@controller.class)
     @response = ActionDispatch::TestResponse.new
     @paths = TestController.view_paths
+    super
   end
 
   def teardown
@@ -107,6 +115,10 @@ class ViewLoadPathsTest < ActionController::TestCase
 
   def test_view_paths_override_for_layouts_in_controllers_with_a_module
     @controller = Test::SubController.new
+    with_routes do
+      get :hello_world, to: "view_load_paths_test/test/sub#hello_world"
+    end
+
     Test::SubController.view_paths = [ "#{FIXTURE_LOAD_PATH}/override", FIXTURE_LOAD_PATH, "#{FIXTURE_LOAD_PATH}/override2" ]
     get :hello_world
     assert_response :success

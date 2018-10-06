@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "support/connection_helper"
 
@@ -99,7 +101,7 @@ class PostgreSQLReferentialIntegrityTest < ActiveRecord::PostgreSQLTestCase
     @connection.extend ProgrammerMistake
 
     assert_raises ArgumentError do
-      @connection.disable_referential_integrity {}
+      @connection.disable_referential_integrity { }
     end
   end
 

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   class Migration
     # <tt>ActiveRecord::Migration::CommandRecorder</tt> records commands done during
@@ -83,7 +85,7 @@ module ActiveRecord
       # invert the +command+.
       def inverse_of(command, args, &block)
         method = :"invert_#{command}"
-        raise IrreversibleMigration, <<-MSG.strip_heredoc unless respond_to?(method, true)
+        raise IrreversibleMigration, <<~MSG unless respond_to?(method, true)
           This migration uses #{command}, which is not automatically reversible.
           To make the migration reversible you can either:
           1. Define #up and #down methods in place of the #change method.
@@ -106,11 +108,17 @@ module ActiveRecord
         yield delegate.update_table_definition(table_name, self)
       end
 
+      def replay(migration)
+        commands.each do |cmd, args, block|
+          migration.send(cmd, *args, &block)
+        end
+      end
+
       private
 
-        module StraightReversions
+        module StraightReversions # :nodoc:
           private
-            { transaction:       :transaction,
+            {
               execute_block:     :execute_block,
               create_table:      :drop_table,
               create_join_table: :drop_join_table,
@@ -130,6 +138,17 @@ module ActiveRecord
         end
 
         include StraightReversions
+
+        def invert_transaction(args)
+          sub_recorder = CommandRecorder.new(delegate)
+          sub_recorder.revert { yield }
+
+          invertions_proc = proc {
+            sub_recorder.replay(self)
+          }
+
+          [:transaction, args, invertions_proc]
+        end
 
         def invert_drop_table(args, &block)
           if args.size == 1 && block == nil
@@ -159,8 +178,8 @@ module ActiveRecord
           table, columns, options = *args
           options ||= {}
 
-          index_name = options[:name]
-          options_hash = index_name ? { name: index_name } : { column: columns }
+          options_hash = options.slice(:name, :algorithm)
+          options_hash[:column] = columns if !options_hash[:name]
 
           [:remove_index, [table, options_hash]]
         end
@@ -212,11 +231,24 @@ module ActiveRecord
         end
 
         def invert_remove_foreign_key(args)
-          from_table, to_table, remove_options = args
-          raise ActiveRecord::IrreversibleMigration, "remove_foreign_key is only reversible if given a second table" if to_table.nil? || to_table.is_a?(Hash)
+          from_table, options_or_to_table, options_or_nil = args
+
+          to_table = if options_or_to_table.is_a?(Hash)
+            options_or_to_table[:to_table]
+          else
+            options_or_to_table
+          end
+
+          remove_options = if options_or_to_table.is_a?(Hash)
+            options_or_to_table.except(:to_table)
+          else
+            options_or_nil
+          end
+
+          raise ActiveRecord::IrreversibleMigration, "remove_foreign_key is only reversible if given a second table" if to_table.nil?
 
           reversed_args = [from_table, to_table]
-          reversed_args << remove_options if remove_options
+          reversed_args << remove_options if remove_options.present?
 
           [:add_foreign_key, reversed_args]
         end

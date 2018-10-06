@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 module AbstractController
@@ -286,7 +288,7 @@ module AbstractController
           kls = Class.new { include set.url_helpers }
 
           controller = kls.new
-          assert controller.respond_to?(:home_url)
+          assert_respond_to controller, :home_url
           assert_equal "http://www.basecamphq.com/home/sweet/home/again",
             controller.send(:home_url, host: "www.basecamphq.com", user: "again")
 

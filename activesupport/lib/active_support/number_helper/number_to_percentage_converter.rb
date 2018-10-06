@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveSupport
   module NumberHelper
     class NumberToPercentageConverter < NumberConverter # :nodoc:
@@ -5,7 +7,7 @@ module ActiveSupport
 
       def convert
         rounded_number = NumberToRoundedConverter.convert(number, options)
-        options[:format].gsub("%n".freeze, rounded_number)
+        options[:format].gsub("%n", rounded_number)
       end
     end
   end

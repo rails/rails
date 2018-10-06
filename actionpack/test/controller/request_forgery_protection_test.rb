@@ -1,5 +1,8 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "active_support/log_subscriber/test_helper"
+require "active_support/messages/rotation_configuration"
 
 # common controller actions
 module RequestForgeryProtectionActions
@@ -161,6 +164,13 @@ class PerFormTokensController < ActionController::Base
   def post_two
     render plain: ""
   end
+end
+
+class SkipProtectionController < ActionController::Base
+  include RequestForgeryProtectionActions
+  protect_from_forgery with: :exception
+  skip_forgery_protection if: :skip_requested
+  attr_accessor :skip_requested
 end
 
 # common test methods
@@ -436,6 +446,19 @@ module RequestForgeryProtectionTests
     end
   end
 
+  def test_should_raise_for_post_with_null_origin
+    forgery_protection_origin_check do
+      session[:_csrf_token] = @token
+      @controller.stub :form_authenticity_token, @token do
+        exception = assert_raises(ActionController::InvalidAuthenticityToken) do
+          @request.set_header "HTTP_ORIGIN", "null"
+          post :index, params: { custom_authenticity_token: @token }
+        end
+        assert_match "The browser returned a 'null' origin for a request", exception.message
+      end
+    end
+  end
+
   def test_should_block_post_with_origin_checking_and_wrong_origin
     old_logger = ActionController::Base.logger
     logger = ActiveSupport::LogSubscriber::TestHelper::MockLogger.new
@@ -495,6 +518,11 @@ module RequestForgeryProtectionTests
     assert_cross_origin_blocked { get :same_origin_js, format: "js" }
     assert_cross_origin_blocked do
       @request.accept = "text/javascript"
+      get :negotiate_same_origin
+    end
+
+    assert_cross_origin_blocked do
+      @request.accept = "application/javascript"
       get :negotiate_same_origin
     end
 
@@ -621,13 +649,14 @@ end
 
 class RequestForgeryProtectionControllerUsingNullSessionTest < ActionController::TestCase
   class NullSessionDummyKeyGenerator
-    def generate_key(secret)
+    def generate_key(secret, length = nil)
       "03312270731a2ed0d11ed091c2338a06"
     end
   end
 
   def setup
     @request.env[ActionDispatch::Cookies::GENERATOR_KEY] = NullSessionDummyKeyGenerator.new
+    @request.env[ActionDispatch::Cookies::COOKIES_ROTATIONS] = ActiveSupport::Messages::RotationConfiguration.new
   end
 
   test "should allow to set signed cookies" do
@@ -722,7 +751,7 @@ class FreeCookieControllerTest < ActionController::TestCase
   test "should not emit a csrf-token meta tag" do
     SecureRandom.stub :base64, @token do
       get :meta
-      assert @response.body.blank?
+      assert_predicate @response.body, :blank?
     end
   end
 end
@@ -963,4 +992,27 @@ class PerFormTokensControllerTest < ActionController::TestCase
       expected = @controller.send(:per_form_csrf_token, session, "/per_form_tokens/post_one", method)
       assert_equal expected, actual
     end
+end
+
+class SkipProtectionControllerTest < ActionController::TestCase
+  def test_should_not_allow_post_without_token_when_not_skipping
+    @controller.skip_requested = false
+    assert_blocked { post :index }
+  end
+
+  def test_should_allow_post_without_token_when_skipping
+    @controller.skip_requested = true
+    assert_not_blocked { post :index }
+  end
+
+  def assert_blocked
+    assert_raises(ActionController::InvalidAuthenticityToken) do
+      yield
+    end
+  end
+
+  def assert_not_blocked
+    assert_nothing_raised { yield }
+    assert_response :success
+  end
 end

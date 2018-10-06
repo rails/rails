@@ -1,6 +1,13 @@
+# frozen_string_literal: true
+
 class Topic
   include ActiveModel::Validations
   include ActiveModel::Validations::Callbacks
+  include ActiveModel::AttributeMethods
+  include ActiveSupport::NumberHelper
+
+  attribute_method_suffix "_before_type_cast"
+  define_attribute_method :price
 
   def self._validates_default_keys
     super | [ :message ]
@@ -8,6 +15,7 @@ class Topic
 
   attr_accessor :title, :author_name, :content, :approved, :created_at
   attr_accessor :after_validation_performed
+  attr_writer :price
 
   after_validation :perform_after_validation
 
@@ -21,7 +29,7 @@ class Topic
     true
   end
 
-  def condition_is_true_but_its_not
+  def condition_is_false
     false
   end
 
@@ -35,5 +43,13 @@ class Topic
 
   def my_validation_with_arg(attr)
     errors.add attr, "is missing" unless send(attr)
+  end
+
+  def price
+    number_to_currency @price
+  end
+
+  def attribute_before_type_cast(attr)
+    instance_variable_get(:"@#{attr}")
   end
 end

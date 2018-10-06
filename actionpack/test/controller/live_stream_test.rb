@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "timeout"
 require "concurrent/atomic/count_down_latch"
@@ -28,7 +30,7 @@ module ActionController
       def sse_with_retry
         sse = SSE.new(response.stream, retry: 1000)
         sse.write("{\"name\":\"John\"}")
-        sse.write({ name: "Ryan" }, retry: 1500)
+        sse.write({ name: "Ryan" }, { retry: 1500 })
       ensure
         sse.close
       end
@@ -36,7 +38,7 @@ module ActionController
       def sse_with_id
         sse = SSE.new(response.stream)
         sse.write("{\"name\":\"John\"}", id: 1)
-        sse.write({ name: "Ryan" }, id: 2)
+        sse.write({ name: "Ryan" }, { id: 2 })
       ensure
         sse.close
       end
@@ -152,7 +154,7 @@ module ActionController
       end
 
       def write_sleep_autoload
-        path = File.join(File.dirname(__FILE__), "../fixtures")
+        path = File.expand_path("../fixtures", __dir__)
         ActiveSupport::Dependencies.autoload_paths << path
 
         response.headers["Content-Type"] = "text/event-stream"
@@ -302,7 +304,7 @@ module ActionController
       # Simulate InterlockHook
       ActiveSupport::Dependencies.interlock.start_running
       res = get :write_sleep_autoload
-      res.each {}
+      res.each { }
       ActiveSupport::Dependencies.interlock.done_running
     end
 
@@ -462,7 +464,7 @@ module ActionController
     end
 
     def test_stale_with_etag
-      @request.if_none_match = %(W/"#{Digest::MD5.hexdigest('123')}")
+      @request.if_none_match = %(W/"#{ActiveSupport::Digest.hexdigest('123')}")
       get :with_stale
       assert_equal 304, response.status.to_i
     end

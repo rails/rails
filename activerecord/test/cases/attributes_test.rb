@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 
 class OverloadedType < ActiveRecord::Base
@@ -57,7 +59,7 @@ module ActiveRecord
     test "nonexistent attribute" do
       data = OverloadedType.new(non_existent_decimal: 1)
 
-      assert_equal BigDecimal.new(1), data.non_existent_decimal
+      assert_equal BigDecimal(1), data.non_existent_decimal
       assert_raise ActiveRecord::UnknownAttributeError do
         UnoverloadedType.new(non_existent_decimal: 1)
       end
@@ -106,12 +108,14 @@ module ActiveRecord
 
       assert_equal 6, klass.attribute_types.length
       assert_equal 6, klass.column_defaults.length
+      assert_equal 6, klass.attribute_names.length
       assert_not klass.attribute_types.include?("wibble")
 
       klass.attribute :wibble, Type::Value.new
 
       assert_equal 7, klass.attribute_types.length
       assert_equal 7, klass.column_defaults.length
+      assert_equal 7, klass.attribute_names.length
       assert_includes klass.attribute_types, "wibble"
     end
 
@@ -142,6 +146,20 @@ module ActiveRecord
 
       assert_equal 1, klass.new.counter
       assert_equal 2, klass.new.counter
+    end
+
+    test "procs for default values are evaluated even after column_defaults is called" do
+      klass = Class.new(OverloadedType) do
+        @@counter = 0
+        attribute :counter, :integer, default: -> { @@counter += 1 }
+      end
+
+      assert_equal 1, klass.new.counter
+
+      # column_defaults will increment the counter since the proc is called
+      klass.column_defaults
+
+      assert_equal 3, klass.new.counter
     end
 
     test "procs are memoized before type casting" do
@@ -207,7 +225,7 @@ module ActiveRecord
     end
 
     test "attributes not backed by database columns are not dirty when unchanged" do
-      refute OverloadedType.new.non_existent_decimal_changed?
+      assert_not_predicate OverloadedType.new, :non_existent_decimal_changed?
     end
 
     test "attributes not backed by database columns are always initialized" do
@@ -241,13 +259,13 @@ module ActiveRecord
 
       model.foo << "asdf"
       assert_equal "lolasdf", model.foo
-      assert model.foo_changed?
+      assert_predicate model, :foo_changed?
 
       model.reload
       assert_equal "lol", model.foo
 
       model.foo = "lol"
-      refute model.changed?
+      assert_not_predicate model, :changed?
     end
 
     test "attributes not backed by database columns appear in inspect" do

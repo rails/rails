@@ -1,5 +1,6 @@
+# frozen_string_literal: true
+
 require "concurrent/map"
-require "mutex_m"
 
 module ActiveModel
   # Raised when an attribute is not defined.
@@ -68,9 +69,8 @@ module ActiveModel
     CALL_COMPILABLE_REGEXP = /\A[a-zA-Z_]\w*[!?]?\z/
 
     included do
-      class_attribute :attribute_aliases, :attribute_method_matchers, instance_writer: false
-      self.attribute_aliases = {}
-      self.attribute_method_matchers = [ClassMethods::AttributeMethodMatcher.new]
+      class_attribute :attribute_aliases, instance_writer: false, default: {}
+      class_attribute :attribute_method_matchers, instance_writer: false, default: [ ClassMethods::AttributeMethodMatcher.new ]
     end
 
     module ClassMethods
@@ -328,13 +328,11 @@ module ActiveModel
         attribute_method_matchers_cache.clear
       end
 
-      def generated_attribute_methods #:nodoc:
-        @generated_attribute_methods ||= Module.new {
-          extend Mutex_m
-        }.tap { |mod| include mod }
-      end
-
       private
+        def generated_attribute_methods
+          @generated_attribute_methods ||= Module.new.tap { |mod| include mod }
+        end
+
         def instance_method_already_implemented?(method_name)
           generated_attribute_methods.method_defined?(method_name)
         end
@@ -371,7 +369,7 @@ module ActiveModel
             "define_method(:'#{name}') do |*args|"
           end
 
-          extra = (extra.map!(&:inspect) << "*args").join(", ".freeze)
+          extra = (extra.map!(&:inspect) << "*args").join(", ")
 
           target = if CALL_COMPILABLE_REGEXP.match?(send)
             "#{"self." unless include_private}#{send}(#{extra})"

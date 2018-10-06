@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "action_dispatch/http/request"
 require "action_dispatch/middleware/exception_wrapper"
 

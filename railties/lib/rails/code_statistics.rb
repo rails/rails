@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "rails/code_statistics_calculator"
 require "active_support/core_ext/enumerable"
 
@@ -44,7 +46,7 @@ class CodeStatistics #:nodoc:
 
         if File.directory?(path) && (/^\./ !~ file_name)
           stats.add(calculate_directory_statistics(path, pattern))
-        elsif file_name =~ pattern
+        elsif file_name&.match?(pattern)
           stats.add_by_file_path(path)
         end
       end

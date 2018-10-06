@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
 The Rails Initialization Process
 ================================
@@ -45,7 +45,7 @@ load Gem.bin_path('railties', 'rails', version)
 ```
 
 If you try out this command in a Rails console, you would see that this loads
-`railties/exe/rails`. A part of the file `railties/exe/rails.rb` has the
+`railties/exe/rails`. A part of the file `railties/exe/rails` has the
 following code:
 
 ```ruby
@@ -93,29 +93,29 @@ require 'bundler/setup' # Set up gems listed in the Gemfile.
 
 In a standard Rails application, there's a `Gemfile` which declares all
 dependencies of the application. `config/boot.rb` sets
-`ENV['BUNDLE_GEMFILE']` to the location of this file. If the Gemfile
+`ENV['BUNDLE_GEMFILE']` to the location of this file. If the `Gemfile`
 exists, then `bundler/setup` is required. The require is used by Bundler to
 configure the load path for your Gemfile's dependencies.
 
 A standard Rails application depends on several gems, specifically:
 
+* actioncable
 * actionmailer
 * actionpack
 * actionview
+* activejob
 * activemodel
 * activerecord
+* activestorage
 * activesupport
-* activejob
 * arel
 * builder
 * bundler
-* erubis
+* erubi
 * i18n
 * mail
 * mime-types
 * rack
-* rack-cache
-* rack-mount
 * rack-test
 * rails
 * railties
@@ -131,7 +131,7 @@ Once `config/boot.rb` has finished, the next file that is required is
 `ARGV` array simply contains `server` which will be passed over:
 
 ```ruby
-require "rails/command"
+require_relative "command"
 
 aliases = {
   "g"  => "generate",
@@ -155,7 +155,7 @@ defined here to find the matching command.
 ### `rails/command.rb`
 
 When one types a Rails command, `invoke` tries to lookup a command for the given
-namespace and executing the command if found.
+namespace and executes the command if found.
 
 If Rails doesn't recognize the command, it hands the reins over to Rake
 to run a task of the same name.
@@ -170,7 +170,7 @@ module Rails::Command
       namespace = namespace.to_s
       namespace = "help" if namespace.blank? || HELP_MAPPINGS.include?(namespace)
       namespace = "version" if %w( -v --version ).include? namespace
-    
+
       if command = find_by_namespace(namespace)
         command.perform(namespace, args, config)
       else
@@ -189,7 +189,7 @@ module Rails
     class ServerCommand < Base # :nodoc:
       def perform
         set_application_directory!
-  
+
         Rails::Server.new.tap do |server|
           # Require application after server sets environment to propagate
           # the --environment option.
@@ -311,7 +311,7 @@ def parse!(args)
   args, options = args.dup, {}
 
   option_parser(options).parse! args
-  
+
   options[:log_stdout] = options[:daemonize].blank? && (options[:environment] || Rails.env) == "development"
   options[:server]     = args.shift
   options
@@ -366,11 +366,11 @@ private
 
   def log_to_stdout
     wrapped_app # touch the app so the logger is set up
-  
+
     console = ActiveSupport::Logger.new(STDOUT)
     console.formatter = Rails.logger.formatter
     console.level = Rails.logger.level
-  
+
     unless ActiveSupport::Logger.logger_outputs_to?(Rails.logger, STDOUT)
       Rails.logger.extend(ActiveSupport::Logger.broadcast(console))
     end
@@ -532,6 +532,7 @@ require "rails"
 
 %w(
   active_record/railtie
+  active_storage/engine
   action_controller/railtie
   action_view/railtie
   action_mailer/railtie

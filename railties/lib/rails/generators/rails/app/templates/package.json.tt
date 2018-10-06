@@ -1,0 +1,11 @@
+{
+  "name": "<%= app_name %>",
+  "private": true,
+  "dependencies": {
+    "rails-ujs": ">=5.2.1"<% unless options[:skip_turbolinks] %>,
+    "turbolinks": "5.1.1"<% end -%><% unless skip_active_storage? %>,
+    "activestorage": ">=5.2.1"<% end -%><% unless options[:skip_action_cable] %>,
+    "actioncable": ">=5.2.1"<% end -%>
+  },
+  "version": "0.1.0"
+}

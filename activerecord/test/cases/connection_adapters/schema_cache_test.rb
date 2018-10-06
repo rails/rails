@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 
 module ActiveRecord
@@ -20,8 +22,8 @@ module ActiveRecord
 
         new_cache = YAML.load(YAML.dump(@cache))
         assert_no_queries do
-          assert_equal 11, new_cache.columns("posts").size
-          assert_equal 11, new_cache.columns_hash("posts").size
+          assert_equal 12, new_cache.columns("posts").size
+          assert_equal 12, new_cache.columns_hash("posts").size
           assert new_cache.data_sources("posts")
           assert_equal "id", new_cache.primary_keys("posts")
         end
@@ -73,8 +75,8 @@ module ActiveRecord
         @cache = Marshal.load(Marshal.dump(@cache))
 
         assert_no_queries do
-          assert_equal 11, @cache.columns("posts").size
-          assert_equal 11, @cache.columns_hash("posts").size
+          assert_equal 12, @cache.columns("posts").size
+          assert_equal 12, @cache.columns_hash("posts").size
           assert @cache.data_sources("posts")
           assert_equal "id", @cache.primary_keys("posts")
         end

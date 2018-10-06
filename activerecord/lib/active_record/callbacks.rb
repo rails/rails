@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   # = Active Record \Callbacks
   #
@@ -73,21 +75,7 @@ module ActiveRecord
   #   end
   #
   # Now, when <tt>Topic#destroy</tt> is run only +destroy_author+ is called. When <tt>Reply#destroy</tt> is
-  # run, both +destroy_author+ and +destroy_readers+ are called. Contrast this to the following situation
-  # where the +before_destroy+ method is overridden:
-  #
-  #   class Topic < ActiveRecord::Base
-  #     def before_destroy() destroy_author end
-  #   end
-  #
-  #   class Reply < Topic
-  #     def before_destroy() destroy_readers end
-  #   end
-  #
-  # In that case, <tt>Reply#destroy</tt> would only run +destroy_readers+ and _not_ +destroy_author+.
-  # So, use the callback macros when you want to ensure that a certain callback is called for the entire
-  # hierarchy, and use the regular overwritable methods when you want to leave it up to each descendant
-  # to decide whether they want to call +super+ and trigger the inherited callbacks.
+  # run, both +destroy_author+ and +destroy_readers+ are called.
   #
   # *IMPORTANT:* In order for inheritance to work for the callback queues, you must specify the
   # callbacks before specifying the associations. Otherwise, you might trigger the loading of a
@@ -96,9 +84,9 @@ module ActiveRecord
   # == Types of callbacks
   #
   # There are four types of callbacks accepted by the callback macros: Method references (symbol), callback objects,
-  # inline methods (using a proc), and inline eval methods (using a string). Method references and callback objects
+  # inline methods (using a proc). Method references and callback objects
   # are the recommended approaches, inline methods using a proc are sometimes appropriate (such as for
-  # creating mix-ins), and inline eval methods are deprecated.
+  # creating mix-ins).
   #
   # The method reference callbacks work by specifying a protected or private method available in the object, like this:
   #
@@ -140,7 +128,7 @@ module ActiveRecord
   #       end
   #   end
   #
-  # So you specify the object you want messaged on a given callback. When that callback is triggered, the object has
+  # So you specify the object you want to be messaged on a given callback. When that callback is triggered, the object has
   # a method by the name of the callback messaged. You can make these callbacks more flexible by passing in other
   # initialization data such as the name of the attribute to work with:
   #
@@ -230,7 +218,7 @@ module ActiveRecord
   #
   # For example:
   #
-  #   class Topic
+  #   class Topic < ActiveRecord::Base
   #     has_many :children
   #
   #     after_save :log_children
@@ -238,7 +226,7 @@ module ActiveRecord
   #
   #     private
   #
-  #     def log_chidren
+  #     def log_children
   #       # Child processing
   #     end
   #
@@ -255,7 +243,7 @@ module ActiveRecord
   #
   # For example:
   #
-  #   class Topic
+  #   class Topic < ActiveRecord::Base
   #     has_many :children
   #
   #     after_commit :log_children
@@ -263,7 +251,7 @@ module ActiveRecord
   #
   #     private
   #
-  #     def log_chidren
+  #     def log_children
   #       # Child processing
   #     end
   #
@@ -328,6 +316,10 @@ module ActiveRecord
 
     def touch(*) #:nodoc:
       _run_touch_callbacks { super }
+    end
+
+    def increment!(attribute, by = 1, touch: nil) # :nodoc:
+      touch ? _run_touch_callbacks { super } : super
     end
 
   private

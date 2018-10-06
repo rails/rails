@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "active_support/key_generator"
 
@@ -7,7 +9,7 @@ class HttpDigestAuthenticationTest < ActionController::TestCase
     before_action :authenticate_with_request, only: :display
 
     USERS = { "lifo" => "world", "pretty" => "please",
-              "dhh" => ::Digest::MD5::hexdigest(["dhh", "SuperSecret", "secret"].join(":")) }
+              "dhh" => ::Digest::MD5.hexdigest(["dhh", "SuperSecret", "secret"].join(":")) }
 
     def index
       render plain: "Hello Secret"
@@ -179,9 +181,10 @@ class HttpDigestAuthenticationTest < ActionController::TestCase
   end
 
   test "authentication request with password stored as ha1 digest hash" do
-    @request.env["HTTP_AUTHORIZATION"] = encode_credentials(username: "dhh",
-                                           password: ::Digest::MD5::hexdigest(["dhh", "SuperSecret", "secret"].join(":")),
-                                           password_is_ha1: true)
+    @request.env["HTTP_AUTHORIZATION"] = encode_credentials(
+      username: "dhh",
+      password: ::Digest::MD5.hexdigest(["dhh", "SuperSecret", "secret"].join(":")),
+      password_is_ha1: true)
     get :display
 
     assert_response :success
@@ -199,7 +202,7 @@ class HttpDigestAuthenticationTest < ActionController::TestCase
 
   test "validate_digest_response should fail with nil returning password_procedure" do
     @request.env["HTTP_AUTHORIZATION"] = encode_credentials(username: nil, password: nil)
-    assert !ActionController::HttpAuthentication::Digest.validate_digest_response(@request, "SuperSecret") { nil }
+    assert_not ActionController::HttpAuthentication::Digest.validate_digest_response(@request, "SuperSecret") { nil }
   end
 
   test "authentication request with request-uri ending in '/'" do
@@ -269,7 +272,7 @@ class HttpDigestAuthenticationTest < ActionController::TestCase
       credentials.merge!(options)
       path_info = @request.env["PATH_INFO"].to_s
       uri = options[:uri] || path_info
-      credentials.merge!(uri: uri)
+      credentials[:uri] = uri
       @request.env["ORIGINAL_FULLPATH"] = path_info
       ActionController::HttpAuthentication::Digest.encode_credentials(method, credentials, password, options[:password_is_ha1])
     end

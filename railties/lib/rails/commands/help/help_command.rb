@@ -1,10 +1,12 @@
+# frozen_string_literal: true
+
 module Rails
   module Command
     class HelpCommand < Base # :nodoc:
       hide_command!
 
       def help(*)
-        puts self.class.desc
+        say self.class.desc
 
         Rails::Command.print_commands
       end

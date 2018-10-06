@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_record"
 require "rails"
 require "active_model/railtie"
@@ -25,6 +27,9 @@ module ActiveRecord
 
     config.active_record.use_schema_cache_dump = true
     config.active_record.maintain_test_schema = true
+
+    config.active_record.sqlite3 = ActiveSupport::OrderedOptions.new
+    config.active_record.sqlite3.represent_boolean_as_integer = nil
 
     config.eager_load_namespaces << ActiveRecord
 
@@ -54,6 +59,7 @@ module ActiveRecord
         console = ActiveSupport::Logger.new(STDERR)
         Rails.logger.extend ActiveSupport::Logger.broadcast console
       end
+      ActiveRecord::Base.verbose_query_logs = false
     end
 
     runner do
@@ -71,10 +77,39 @@ module ActiveRecord
       ActiveSupport.on_load(:active_record) { self.logger ||= ::Rails.logger }
     end
 
+    initializer "active_record.backtrace_cleaner" do
+      ActiveSupport.on_load(:active_record) { LogSubscriber.backtrace_cleaner = ::Rails.backtrace_cleaner }
+    end
+
     initializer "active_record.migration_error" do
       if config.active_record.delete(:migration_error) == :page_load
         config.app_middleware.insert_after ::ActionDispatch::Callbacks,
           ActiveRecord::Migration::CheckPending
+      end
+    end
+
+    initializer "Check for cache versioning support" do
+      config.after_initialize do |app|
+        ActiveSupport.on_load(:active_record) do
+          if app.config.active_record.cache_versioning && Rails.cache
+            unless Rails.cache.class.try(:supports_cache_versioning?)
+              raise <<-end_error
+
+You're using a cache store that doesn't support native cache versioning.
+Your best option is to upgrade to a newer version of #{Rails.cache.class}
+that supports cache versioning (#{Rails.cache.class}.supports_cache_versioning? #=> true).
+
+Next best, switch to a different cache store that does support cache versioning:
+https://guides.rubyonrails.org/caching_with_rails.html#cache-stores.
+
+To keep using the current cache store, you can turn off cache versioning entirely:
+
+    config.active_record.cache_versioning = false
+
+end_error
+            end
+          end
+        end
       end
     end
 
@@ -85,15 +120,27 @@ module ActiveRecord
             filename = File.join(app.config.paths["db"].first, "schema_cache.yml")
 
             if File.file?(filename)
+              current_version = ActiveRecord::Migrator.current_version
+
+              next if current_version.nil?
+
               cache = YAML.load(File.read(filename))
-              if cache.version == ActiveRecord::Migrator.current_version
+              if cache.version == current_version
                 connection.schema_cache = cache
                 connection_pool.schema_cache = cache.dup
               else
-                warn "Ignoring db/schema_cache.yml because it has expired. The current schema version is #{ActiveRecord::Migrator.current_version}, but the one in the cache is #{cache.version}."
+                warn "Ignoring db/schema_cache.yml because it has expired. The current schema version is #{current_version}, but the one in the cache is #{cache.version}."
               end
             end
           end
+        end
+      end
+    end
+
+    initializer "active_record.define_attribute_methods" do |app|
+      config.after_initialize do
+        ActiveSupport.on_load(:active_record) do
+          descendants.each(&:define_attribute_methods) if app.config.eager_load
         end
       end
     end
@@ -108,7 +155,9 @@ module ActiveRecord
 
     initializer "active_record.set_configs" do |app|
       ActiveSupport.on_load(:active_record) do
-        app.config.active_record.each do |k, v|
+        configs = app.config.active_record.dup
+        configs.delete(:sqlite3)
+        configs.each do |k, v|
           send "#{k}=", v
         end
       end
@@ -119,21 +168,7 @@ module ActiveRecord
     initializer "active_record.initialize_database" do
       ActiveSupport.on_load(:active_record) do
         self.configurations = Rails.application.config.database_configuration
-
-        begin
-          establish_connection
-        rescue ActiveRecord::NoDatabaseError
-          warn <<-end_warning
-Oops - You have a database configured, but it doesn't exist yet!
-
-Here's how to get started:
-
-  1. Configure your database in config/database.yml.
-  2. Run `bin/rails db:create` to create the database.
-  3. Run `bin/rails db:setup` to load your database schema.
-end_warning
-          raise
-        end
+        establish_connection
       end
     end
 
@@ -142,6 +177,13 @@ end_warning
       require "active_record/railties/controller_runtime"
       ActiveSupport.on_load(:action_controller) do
         include ActiveRecord::Railties::ControllerRuntime
+      end
+    end
+
+    initializer "active_record.collection_cache_association_loading" do
+      require "active_record/railties/collection_cache_association_loading"
+      ActiveSupport.on_load(:action_view) do
+        ActionView::PartialRenderer.prepend(ActiveRecord::Railties::CollectionCacheAssociationLoading)
       end
     end
 
@@ -157,9 +199,7 @@ end_warning
     end
 
     initializer "active_record.set_executor_hooks" do
-      ActiveSupport.on_load(:active_record) do
-        ActiveRecord::QueryCache.install_executor_hooks
-      end
+      ActiveRecord::QueryCache.install_executor_hooks
     end
 
     initializer "active_record.add_watchable_files" do |app|
@@ -170,8 +210,52 @@ end_warning
     initializer "active_record.clear_active_connections" do
       config.after_initialize do
         ActiveSupport.on_load(:active_record) do
+          # Ideally the application doesn't connect to the database during boot,
+          # but sometimes it does. In case it did, we want to empty out the
+          # connection pools so that a non-database-using process (e.g. a master
+          # process in a forking server model) doesn't retain a needless
+          # connection. If it was needed, the incremental cost of reestablishing
+          # this connection is trivial: the rest of the pool would need to be
+          # populated anyway.
+
           clear_active_connections!
+          flush_idle_connections!
         end
+      end
+    end
+
+    initializer "active_record.check_represent_sqlite3_boolean_as_integer" do
+      config.after_initialize do
+        ActiveSupport.on_load(:active_record_sqlite3adapter) do
+          represent_boolean_as_integer = Rails.application.config.active_record.sqlite3.delete(:represent_boolean_as_integer)
+          unless represent_boolean_as_integer.nil?
+            ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer = represent_boolean_as_integer
+          end
+
+          unless ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer
+            ActiveSupport::Deprecation.warn <<-MSG
+Leaving `ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer`
+set to false is deprecated. SQLite databases have used 't' and 'f' to serialize
+boolean values and must have old data converted to 1 and 0 (its native boolean
+serialization) before setting this flag to true. Conversion can be accomplished
+by setting up a rake task which runs
+
+  ExampleModel.where("boolean_column = 't'").update_all(boolean_column: 1)
+  ExampleModel.where("boolean_column = 'f'").update_all(boolean_column: 0)
+
+for all models and all boolean columns, after which the flag must be set to
+true by adding the following to your application.rb file:
+
+  Rails.application.config.active_record.sqlite3.represent_boolean_as_integer = true
+MSG
+          end
+        end
+      end
+    end
+
+    initializer "active_record.set_filter_attributes" do
+      ActiveSupport.on_load(:active_record) do
+        self.filter_attributes += Rails.application.config.filter_parameters
       end
     end
   end

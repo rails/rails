@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 
 unless ActiveRecord::Base.connection.supports_transaction_isolation?
@@ -9,13 +11,11 @@ unless ActiveRecord::Base.connection.supports_transaction_isolation?
 
     test "setting the isolation level raises an error" do
       assert_raises(ActiveRecord::TransactionIsolationError) do
-        Tag.transaction(isolation: :serializable) {}
+        Tag.transaction(isolation: :serializable) { Tag.connection.materialize_transactions }
       end
     end
   end
-end
-
-if ActiveRecord::Base.connection.supports_transaction_isolation?
+else
   class TransactionIsolationTest < ActiveRecord::TestCase
     self.use_transactional_tests = false
 
@@ -90,7 +90,7 @@ if ActiveRecord::Base.connection.supports_transaction_isolation?
     test "setting isolation when joining a transaction raises an error" do
       Tag.transaction do
         assert_raises(ActiveRecord::TransactionIsolationError) do
-          Tag.transaction(isolation: :serializable) {}
+          Tag.transaction(isolation: :serializable) { }
         end
       end
     end
@@ -98,7 +98,7 @@ if ActiveRecord::Base.connection.supports_transaction_isolation?
     test "setting isolation when starting a nested transaction raises error" do
       Tag.transaction do
         assert_raises(ActiveRecord::TransactionIsolationError) do
-          Tag.transaction(requires_new: true, isolation: :serializable) {}
+          Tag.transaction(requires_new: true, isolation: :serializable) { }
         end
       end
     end

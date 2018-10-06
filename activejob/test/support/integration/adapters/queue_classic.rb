@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module QueueClassicJobsManager
   def setup
     ENV["QC_DATABASE_URL"] ||= "postgres:///active_jobs_qc_int_test"
@@ -15,8 +17,8 @@ module QueueClassicJobsManager
     user = uri.user || ENV["USER"]
     pass = uri.password
     db   = uri.path[1..-1]
-    %x{#{"PGPASSWORD=\"#{pass}\"" if pass} psql -c 'drop database if exists "#{db}"' -U #{user} -t template1}
-    %x{#{"PGPASSWORD=\"#{pass}\"" if pass} psql -c 'create database "#{db}"' -U #{user} -t template1}
+    %x{#{"PGPASSWORD=\"#{pass}\"" if pass} psql -X -c 'drop database if exists "#{db}"' -U #{user} -t template1}
+    %x{#{"PGPASSWORD=\"#{pass}\"" if pass} psql -X -c 'create database "#{db}"' -U #{user} -t template1}
     QC::Setup.create
 
     QC.default_conn_adapter.disconnect

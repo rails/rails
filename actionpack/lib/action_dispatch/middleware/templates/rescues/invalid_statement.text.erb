@@ -1,0 +1,13 @@
+<%= @exception.class.to_s %><%
+  if @request.parameters['controller']
+%> in <%= @request.parameters['controller'].camelize %>Controller<% if @request.parameters['action'] %>#<%= @request.parameters['action'] %><% end %>
+<% end %>
+
+<%= @exception.message %>
+<% if @exception.message.match? %r{#{ActiveStorage::Blob.table_name}|#{ActiveStorage::Attachment.table_name}} %>
+To resolve this issue run: rails active_storage:install
+<% end %>
+
+<%= render template: "rescues/_source" %>
+<%= render template: "rescues/_trace" %>
+<%= render template: "rescues/_request_and_response" %>

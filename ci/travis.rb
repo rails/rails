@@ -1,16 +1,22 @@
 #!/usr/bin/env ruby
+# frozen_string_literal: true
+
 require "fileutils"
 include FileUtils
 
 commands = [
-  'mysql -e "create database activerecord_unittest;"',
-  'mysql -e "create database activerecord_unittest2;"',
-  'psql  -c "create database activerecord_unittest;" -U postgres',
-  'psql  -c "create database activerecord_unittest2;" -U postgres'
+  'mysql -e "create user rails@localhost;"',
+  'mysql -e "grant all privileges on activerecord_unittest.* to rails@localhost;"',
+  'mysql -e "grant all privileges on activerecord_unittest2.* to rails@localhost;"',
+  'mysql -e "grant all privileges on inexistent_activerecord_unittest.* to rails@localhost;"',
+  'mysql -e "create database activerecord_unittest default character set utf8mb4;"',
+  'mysql -e "create database activerecord_unittest2 default character set utf8mb4;"',
+  'psql  -c "create database -E UTF8 -T template0 activerecord_unittest;" -U postgres',
+  'psql  -c "create database -E UTF8 -T template0 activerecord_unittest2;" -U postgres'
 ]
 
 commands.each do |command|
-  system("#{command} > /dev/null 2>&1")
+  system(command, [1, 2] => File::NULL)
 end
 
 class Build
@@ -24,6 +30,7 @@ class Build
     "av"       => "actionview",
     "aj"       => "activejob",
     "ac"       => "actioncable",
+    "ast"      => "activestorage",
     "guides"   => "guides"
   }
 
@@ -128,7 +135,7 @@ class Build
     if activesupport? && !isolated?
       # There is a known issue with the listen tests that causes files to be
       # incorrectly GC'ed even when they are still in-use. The current solution
-      # is to only run them in isolation to avoid randomly failing our test suite.
+      # is to only run them in isolation to avoid random failures of our test suite.
       { "LISTEN" => "0" }
     else
       {}
@@ -152,13 +159,14 @@ results = {}
 ENV["GEM"].split(",").each do |gem|
   [false, true].each do |isolated|
     next if ENV["TRAVIS_PULL_REQUEST"] && ENV["TRAVIS_PULL_REQUEST"] != "false" && isolated
-    next if RUBY_VERSION < "2.4" && isolated
+    next if RUBY_VERSION < "2.5" && isolated
     next if gem == "railties" && isolated
     next if gem == "ac" && isolated
     next if gem == "ac:integration" && isolated
     next if gem == "aj:integration" && isolated
     next if gem == "guides" && isolated
     next if gem == "av:ujs" && isolated
+    next if gem == "ast" && isolated
 
     build = Build.new(gem, isolated: isolated)
     results[build.key] = build.run!

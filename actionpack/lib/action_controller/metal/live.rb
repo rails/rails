@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "action_dispatch/http/response"
 require "delegate"
 require "active_support/json"
@@ -84,7 +86,7 @@ module ActionController
     # Note: SSEs are not currently supported by IE. However, they are supported
     # by Chrome, Firefox, Opera, and Safari.
     class SSE
-      WHITELISTED_OPTIONS = %w( retry event id )
+      PERMITTED_OPTIONS = %w( retry event id )
 
       def initialize(stream, options = {})
         @stream = stream
@@ -109,13 +111,13 @@ module ActionController
         def perform_write(json, options)
           current_options = @options.merge(options).stringify_keys
 
-          WHITELISTED_OPTIONS.each do |option_name|
+          PERMITTED_OPTIONS.each do |option_name|
             if (option_value = current_options[option_name])
               @stream.write "#{option_name}: #{option_value}\n"
             end
           end
 
-          message = json.gsub("\n".freeze, "\ndata: ".freeze)
+          message = json.gsub("\n", "\ndata: ")
           @stream.write "data: #{message}\n\n"
         end
     end
@@ -295,7 +297,7 @@ module ActionController
       return unless logger
 
       logger.fatal do
-        message = "\n#{exception.class} (#{exception.message}):\n"
+        message = +"\n#{exception.class} (#{exception.message}):\n"
         message << exception.annoted_source_code.to_s if exception.respond_to?(:annoted_source_code)
         message << "  " << exception.backtrace.join("\n  ")
         "#{message}\n\n"

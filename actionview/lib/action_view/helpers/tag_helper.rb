@@ -1,4 +1,4 @@
-# frozen-string-literal: true
+# frozen_string_literal: true
 
 require "active_support/core_ext/string/output_safety"
 require "set"
@@ -58,7 +58,7 @@ module ActionView
 
         def tag_options(options, escape = true)
           return if options.blank?
-          output = "".dup
+          output = +""
           sep    = " "
           options.each_pair do |key, value|
             if TAG_PREFIXES.include?(key) && value.is_a?(Hash)
@@ -86,11 +86,12 @@ module ActionView
 
         def tag_option(key, value, escape)
           if value.is_a?(Array)
-            value = escape ? safe_join(value, " ".freeze) : value.join(" ".freeze)
+            value = escape ? safe_join(value, " ") : value.join(" ")
           else
-            value = escape ? ERB::Util.unwrapped_html_escape(value) : value.to_s
+            value = escape ? ERB::Util.unwrapped_html_escape(value) : value.to_s.dup
           end
-          %(#{key}="#{value.gsub('"'.freeze, '&quot;'.freeze)}")
+          value.gsub!('"', "&quot;")
+          %(#{key}="#{value}")
         end
 
         private
@@ -166,7 +167,7 @@ module ActionView
       # This may come in handy when using jQuery's HTML5-aware <tt>.data()</tt>
       # from 1.4.3.
       #
-      #   tag.div data: { city_state: %w( Chigaco IL ) }
+      #   tag.div data: { city_state: %w( Chicago IL ) }
       #   # => <div data-city-state="[&quot;Chicago&quot;,&quot;IL&quot;]"></div>
       #
       # The generated attributes are escaped by default. This can be disabled using
@@ -227,10 +228,10 @@ module ActionView
       #   tag("img", src: "open & shut.png")
       #   # => <img src="open &amp; shut.png" />
       #
-      #   tag("img", {src: "open &amp; shut.png"}, false, false)
+      #   tag("img", { src: "open &amp; shut.png" }, false, false)
       #   # => <img src="open &amp; shut.png" />
       #
-      #   tag("div", data: {name: 'Stephen', city_state: %w(Chicago IL)})
+      #   tag("div", data: { name: 'Stephen', city_state: %w(Chicago IL) })
       #   # => <div data-name="Stephen" data-city-state="[&quot;Chicago&quot;,&quot;IL&quot;]" />
       def tag(name = nil, options = nil, open = false, escape = true)
         if name.nil?

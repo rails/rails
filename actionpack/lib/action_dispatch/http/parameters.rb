@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActionDispatch
   module Http
     module Parameters
@@ -55,7 +57,7 @@ module ActionDispatch
                    query_parameters.dup
                  end
         params.merge!(path_parameters)
-        params = set_binary_encoding(params)
+        params = set_binary_encoding(params, params[:controller], params[:action])
         set_header("action_dispatch.request.parameters", params)
         params
       end
@@ -64,6 +66,7 @@ module ActionDispatch
       def path_parameters=(parameters) #:nodoc:
         delete_header("action_dispatch.request.parameters")
 
+        parameters = set_binary_encoding(parameters, parameters[:controller], parameters[:action])
         # If any of the path parameters has an invalid encoding then
         # raise since it's likely to trigger errors further on.
         Request::Utils.check_param_encoding(parameters)
@@ -83,9 +86,10 @@ module ActionDispatch
 
       private
 
-        def set_binary_encoding(params)
-          action = params[:action]
-          if binary_params_for?(action)
+        def set_binary_encoding(params, controller, action)
+          return params unless controller && controller.valid_encoding?
+
+          if binary_params_for?(controller, action)
             ActionDispatch::Request::Utils.each_param_value(params) do |param|
               param.force_encoding ::Encoding::ASCII_8BIT
             end
@@ -93,8 +97,8 @@ module ActionDispatch
           params
         end
 
-        def binary_params_for?(action)
-          controller_class.binary_params_for?(action)
+        def binary_params_for?(controller, action)
+          controller_class_for(controller).binary_params_for?(action)
         rescue NameError
           false
         end
@@ -118,10 +122,5 @@ module ActionDispatch
           ActionDispatch::Request.parameter_parsers
         end
     end
-  end
-
-  module ParamsParser
-    include ActiveSupport::Deprecation::DeprecatedConstantAccessor
-    deprecate_constant "ParseError", "ActionDispatch::Http::Parameters::ParseError"
   end
 end

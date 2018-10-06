@@ -1,18 +1,19 @@
+# frozen_string_literal: true
+
 require "action_view/helpers/tag_helper"
 require "active_support/core_ext/string/access"
 require "i18n/exceptions"
 
 module ActionView
   # = Action View Translation Helpers
-  module Helpers
+  module Helpers #:nodoc:
     module TranslationHelper
       extend ActiveSupport::Concern
 
       include TagHelper
 
       included do
-        mattr_accessor :debug_missing_translation
-        self.debug_missing_translation = true
+        mattr_accessor :debug_missing_translation, default: true
       end
 
       # Delegates to <tt>I18n#translate</tt> but also performs three additional
@@ -58,11 +59,9 @@ module ActionView
       # they can provide HTML values for.
       def translate(key, options = {})
         options = options.dup
-        has_default = options.has_key?(:default)
-        remaining_defaults = Array(options.delete(:default)).compact
-
-        if has_default && !remaining_defaults.first.kind_of?(Symbol)
-          options[:default] = remaining_defaults
+        if options.has_key?(:default)
+          remaining_defaults = Array(options.delete(:default)).compact
+          options[:default] = remaining_defaults unless remaining_defaults.first.kind_of?(Symbol)
         end
 
         # If the user has explicitly decided to NOT raise errors, pass that option to I18n.
@@ -84,8 +83,11 @@ module ActionView
             end
           end
           translation = I18n.translate(scope_key_by_partial(key), html_safe_options.merge(raise: i18n_raise))
-
-          translation.respond_to?(:html_safe) ? translation.html_safe : translation
+          if translation.respond_to?(:map)
+            translation.map { |element| element.respond_to?(:html_safe) ? element.html_safe : element }
+          else
+            translation.respond_to?(:html_safe) ? translation.html_safe : translation
+          end
         else
           I18n.translate(scope_key_by_partial(key), options.merge(raise: i18n_raise))
         end
@@ -96,7 +98,7 @@ module ActionView
           raise e if raise_error
 
           keys = I18n.normalize_keys(e.locale, e.key, e.options[:scope])
-          title = "translation missing: #{keys.join('.')}"
+          title = +"translation missing: #{keys.join('.')}"
 
           interpolations = options.except(:default, :scope)
           if interpolations.any?
@@ -121,9 +123,12 @@ module ActionView
 
       private
         def scope_key_by_partial(key)
-          if key.to_s.first == "."
+          stringified_key = key.to_s
+          if stringified_key.first == "."
             if @virtual_path
-              @virtual_path.gsub(%r{/_?}, ".") + key.to_s
+              @_scope_key_by_partial_cache ||= {}
+              @_scope_key_by_partial_cache[@virtual_path] ||= @virtual_path.gsub(%r{/_?}, ".")
+              "#{@_scope_key_by_partial_cache[@virtual_path]}#{stringified_key}"
             else
               raise "Cannot use t(#{key.inspect}) shortcut because path is not available"
             end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module QueJobsManager
   def setup
     require "sequel"
@@ -16,8 +18,8 @@ module QueJobsManager
     user = uri.user || ENV["USER"]
     pass = uri.password
     db   = uri.path[1..-1]
-    %x{#{"PGPASSWORD=\"#{pass}\"" if pass} psql -c 'drop database if exists "#{db}"' -U #{user} -t template1}
-    %x{#{"PGPASSWORD=\"#{pass}\"" if pass} psql -c 'create database "#{db}"' -U #{user} -t template1}
+    %x{#{"PGPASSWORD=\"#{pass}\"" if pass} psql -X -c 'drop database if exists "#{db}"' -U #{user} -t template1}
+    %x{#{"PGPASSWORD=\"#{pass}\"" if pass} psql -X -c 'create database "#{db}"' -U #{user} -t template1}
     Que.connection = Sequel.connect(que_url)
     Que.migrate!
 

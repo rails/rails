@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 module ActionDispatch
@@ -8,61 +10,70 @@ module ActionDispatch
           @scanner = Scanner.new
         end
 
-        # /page/:id(/:action)(.:format)
-        def test_tokens
-          [
-            ["/",       [[:SLASH, "/"]]],
-            ["*omg",    [[:STAR, "*omg"]]],
-            ["/page",   [[:SLASH, "/"], [:LITERAL, "page"]]],
-            ["/page!",  [[:SLASH, "/"], [:LITERAL, "page!"]]],
-            ["/page$",  [[:SLASH, "/"], [:LITERAL, "page$"]]],
-            ["/page&",  [[:SLASH, "/"], [:LITERAL, "page&"]]],
-            ["/page'",  [[:SLASH, "/"], [:LITERAL, "page'"]]],
-            ["/page*",  [[:SLASH, "/"], [:LITERAL, "page*"]]],
-            ["/page+",  [[:SLASH, "/"], [:LITERAL, "page+"]]],
-            ["/page,",  [[:SLASH, "/"], [:LITERAL, "page,"]]],
-            ["/page;",  [[:SLASH, "/"], [:LITERAL, "page;"]]],
-            ["/page=",  [[:SLASH, "/"], [:LITERAL, "page="]]],
-            ["/page@",  [[:SLASH, "/"], [:LITERAL, "page@"]]],
-            ['/page\:', [[:SLASH, "/"], [:LITERAL, "page:"]]],
-            ['/page\(', [[:SLASH, "/"], [:LITERAL, "page("]]],
-            ['/page\)', [[:SLASH, "/"], [:LITERAL, "page)"]]],
-            ["/~page",  [[:SLASH, "/"], [:LITERAL, "~page"]]],
-            ["/pa-ge",  [[:SLASH, "/"], [:LITERAL, "pa-ge"]]],
-            ["/:page",  [[:SLASH, "/"], [:SYMBOL, ":page"]]],
-            ["/(:page)", [
-                          [:SLASH, "/"],
+        CASES = [
+          ["/",       [[:SLASH, "/"]]],
+          ["*omg",    [[:STAR, "*omg"]]],
+          ["/page",   [[:SLASH, "/"], [:LITERAL, "page"]]],
+          ["/page!",  [[:SLASH, "/"], [:LITERAL, "page!"]]],
+          ["/page$",  [[:SLASH, "/"], [:LITERAL, "page$"]]],
+          ["/page&",  [[:SLASH, "/"], [:LITERAL, "page&"]]],
+          ["/page'",  [[:SLASH, "/"], [:LITERAL, "page'"]]],
+          ["/page*",  [[:SLASH, "/"], [:LITERAL, "page*"]]],
+          ["/page+",  [[:SLASH, "/"], [:LITERAL, "page+"]]],
+          ["/page,",  [[:SLASH, "/"], [:LITERAL, "page,"]]],
+          ["/page;",  [[:SLASH, "/"], [:LITERAL, "page;"]]],
+          ["/page=",  [[:SLASH, "/"], [:LITERAL, "page="]]],
+          ["/page@",  [[:SLASH, "/"], [:LITERAL, "page@"]]],
+          ['/page\:', [[:SLASH, "/"], [:LITERAL, "page:"]]],
+          ['/page\(', [[:SLASH, "/"], [:LITERAL, "page("]]],
+          ['/page\)', [[:SLASH, "/"], [:LITERAL, "page)"]]],
+          ["/~page",  [[:SLASH, "/"], [:LITERAL, "~page"]]],
+          ["/pa-ge",  [[:SLASH, "/"], [:LITERAL, "pa-ge"]]],
+          ["/:page",  [[:SLASH, "/"], [:SYMBOL, ":page"]]],
+          ["/:page|*foo", [
+                            [:SLASH, "/"],
+                            [:SYMBOL, ":page"],
+                            [:OR, "|"],
+                            [:STAR, "*foo"]
+                          ]],
+          ["/(:page)", [
+                        [:SLASH, "/"],
+                        [:LPAREN, "("],
+                        [:SYMBOL, ":page"],
+                        [:RPAREN, ")"],
+                      ]],
+          ["(/:action)", [
                           [:LPAREN, "("],
-                          [:SYMBOL, ":page"],
+                          [:SLASH, "/"],
+                          [:SYMBOL, ":action"],
+                          [:RPAREN, ")"],
+                         ]],
+          ["(())", [[:LPAREN, "("],
+                   [:LPAREN, "("], [:RPAREN, ")"], [:RPAREN, ")"]]],
+          ["(.:format)", [
+                          [:LPAREN, "("],
+                          [:DOT, "."],
+                          [:SYMBOL, ":format"],
                           [:RPAREN, ")"],
                         ]],
-            ["(/:action)", [
-                            [:LPAREN, "("],
-                            [:SLASH, "/"],
-                            [:SYMBOL, ":action"],
-                            [:RPAREN, ")"],
-                           ]],
-            ["(())", [[:LPAREN, "("],
-                     [:LPAREN, "("], [:RPAREN, ")"], [:RPAREN, ")"]]],
-            ["(.:format)", [
-                            [:LPAREN, "("],
-                            [:DOT, "."],
-                            [:SYMBOL, ":format"],
-                            [:RPAREN, ")"],
-                          ]],
-          ].each do |str, expected|
-            @scanner.scan_setup str
-            assert_tokens expected, @scanner
+        ]
+
+        CASES.each do |pattern, expected_tokens|
+          test "Scanning `#{pattern}`" do
+            @scanner.scan_setup pattern
+            assert_tokens expected_tokens, @scanner, pattern
           end
         end
 
-        def assert_tokens(tokens, scanner)
-          toks = []
-          while tok = scanner.next_token
-            toks << tok
+        private
+
+          def assert_tokens(expected_tokens, scanner, pattern)
+            actual_tokens = []
+            while token = scanner.next_token
+              actual_tokens << token
+            end
+            assert_equal expected_tokens, actual_tokens, "Wrong tokens for `#{pattern}`"
           end
-          assert_equal tokens, toks
-        end
       end
     end
   end

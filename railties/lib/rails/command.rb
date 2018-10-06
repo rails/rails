@@ -1,8 +1,9 @@
+# frozen_string_literal: true
+
 require "active_support"
 require "active_support/dependencies/autoload"
 require "active_support/core_ext/enumerable"
 require "active_support/core_ext/object/blank"
-require "active_support/core_ext/hash/transform_values"
 
 require "thor"
 
@@ -10,6 +11,7 @@ module Rails
   module Command
     extend ActiveSupport::Autoload
 
+    autoload :Spellchecker
     autoload :Behavior
     autoload :Base
 
@@ -23,7 +25,7 @@ module Rails
       end
 
       def environment # :nodoc:
-        ENV["RAILS_ENV"] || ENV["RACK_ENV"] || "development"
+        ENV["RAILS_ENV"].presence || ENV["RACK_ENV"].presence || "development"
       end
 
       # Receives a namespace, arguments and the behavior to invoke the command.

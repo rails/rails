@@ -1,5 +1,6 @@
+# frozen_string_literal: true
+
 require "cases/helper"
-require "active_model/type"
 require "active_support/core_ext/numeric/time"
 
 module ActiveModel
@@ -52,9 +53,13 @@ module ActiveModel
       test "changed?" do
         type = Type::Integer.new
 
-        assert type.changed?(5, 5, "5wibble")
+        assert type.changed?(0, 0, "wibble")
+        assert type.changed?(5, 0, "wibble")
+        assert_not type.changed?(5, 5, "5wibble")
         assert_not type.changed?(5, 5, "5")
         assert_not type.changed?(5, 5, "5.0")
+        assert_not type.changed?(5, 5, "+5")
+        assert_not type.changed?(5, 5, "+5.0")
         assert_not type.changed?(-5, -5, "-5")
         assert_not type.changed?(-5, -5, "-5.0")
         assert_not type.changed?(nil, nil, nil)

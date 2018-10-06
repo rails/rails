@@ -1,5 +1,6 @@
+# frozen_string_literal: true
+
 require "cases/helper"
-require "active_model/type"
 
 module ActiveModel
   module Type
@@ -14,11 +15,11 @@ module ActiveModel
       test "cast strings are mutable" do
         type = Type::String.new
 
-        s = "foo"
+        s = +"foo"
         assert_equal false, type.cast(s).frozen?
         assert_equal false, s.frozen?
 
-        f = "foo".freeze
+        f = -"foo"
         assert_equal false, type.cast(f).frozen?
         assert_equal true, f.frozen?
       end

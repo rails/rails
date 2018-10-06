@@ -1,14 +1,24 @@
-ActiveRecord::Schema.define do
+# frozen_string_literal: true
 
-  if ActiveRecord::Base.connection.version >= "5.6.0"
+ActiveRecord::Schema.define do
+  if subsecond_precision_supported?
     create_table :datetime_defaults, force: true do |t|
       t.datetime :modified_datetime, default: -> { "CURRENT_TIMESTAMP" }
+      t.datetime :precise_datetime, precision: 6, default: -> { "CURRENT_TIMESTAMP(6)" }
+    end
+
+    create_table :timestamp_defaults, force: true do |t|
+      t.timestamp :nullable_timestamp
+      t.timestamp :modified_timestamp, default: -> { "CURRENT_TIMESTAMP" }
+      t.timestamp :precise_timestamp, precision: 6, default: -> { "CURRENT_TIMESTAMP(6)" }
     end
   end
 
-  create_table :timestamp_defaults, force: true do |t|
-    t.timestamp :nullable_timestamp
-    t.timestamp :modified_timestamp, default: -> { "CURRENT_TIMESTAMP" }
+  create_table :defaults, force: true do |t|
+    t.date :fixed_date, default: "2004-01-01"
+    t.datetime :fixed_time, default: "2004-01-01 00:00:00"
+    t.column :char1, "char(1)", default: "Y"
+    t.string :char2, limit: 50, default: "a varchar field"
   end
 
   create_table :binary_fields, force: true do |t|
@@ -26,7 +36,7 @@ ActiveRecord::Schema.define do
     t.index :var_binary
   end
 
-  create_table :key_tests, force: true, options: "ENGINE=MyISAM" do |t|
+  create_table :key_tests, force: true do |t|
     t.string :awesome
     t.string :pizza
     t.string :snacks
@@ -36,8 +46,8 @@ ActiveRecord::Schema.define do
   end
 
   create_table :collation_tests, id: false, force: true do |t|
-    t.string :string_cs_column, limit: 1, collation: "utf8_bin"
-    t.string :string_ci_column, limit: 1, collation: "utf8_general_ci"
+    t.string :string_cs_column, limit: 1, collation: "utf8mb4_bin"
+    t.string :string_ci_column, limit: 1, collation: "utf8mb4_general_ci"
     t.binary :binary_column,    limit: 1
   end
 

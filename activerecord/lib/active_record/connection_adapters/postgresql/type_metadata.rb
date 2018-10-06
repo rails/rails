@@ -1,4 +1,7 @@
+# frozen_string_literal: true
+
 module ActiveRecord
+  # :stopdoc:
   module ConnectionAdapters
     class PostgreSQLTypeMetadata < DelegateClass(SqlTypeMetadata)
       undef to_yaml if method_defined?(:to_yaml)
@@ -14,7 +17,7 @@ module ActiveRecord
       end
 
       def sql_type
-        super.gsub(/\[\]$/, "".freeze)
+        super.gsub(/\[\]$/, "")
       end
 
       def ==(other)

@@ -1,4 +1,4 @@
-require "active_support/core_ext/string/filters"
+# frozen_string_literal: true
 
 module ActionController
   module Rendering
@@ -40,7 +40,7 @@ module ActionController
     def render_to_string(*)
       result = super
       if result.respond_to?(:each)
-        string = ""
+        string = +""
         result.each { |r| string << r }
         string
       else

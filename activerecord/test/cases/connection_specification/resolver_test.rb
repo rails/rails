@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 
 module ActiveRecord
@@ -5,11 +7,15 @@ module ActiveRecord
     class ConnectionSpecification
       class ResolverTest < ActiveRecord::TestCase
         def resolve(spec, config = {})
-          Resolver.new(config).resolve(spec)
+          configs = ActiveRecord::DatabaseConfigurations.new(config)
+          resolver = ConnectionAdapters::ConnectionSpecification::Resolver.new(configs)
+          resolver.resolve(spec, spec)
         end
 
         def spec(spec, config = {})
-          Resolver.new(config).spec(spec)
+          configs = ActiveRecord::DatabaseConfigurations.new(config)
+          resolver = ConnectionAdapters::ConnectionSpecification::Resolver.new(configs)
+          resolver.spec(spec)
         end
 
         def test_url_invalid_adapter
@@ -17,7 +23,7 @@ module ActiveRecord
             spec "ridiculous://foo?encoding=utf8"
           end
 
-          assert_match "Could not load 'active_record/connection_adapters/ridiculous_adapter'", error.message
+          assert_match "Could not load the 'ridiculous' Active Record adapter. Ensure that the adapter is spelled correctly in config/database.yml and that you've added the necessary adapter gem to your Gemfile.", error.message
         end
 
         # The abstract adapter is used simply to bypass the bit of code that

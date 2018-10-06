@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 # This is testing the decoupling of view renderer and view context
@@ -30,10 +32,11 @@ module RenderContext
       "controller context!"
     end
 
-    # 3) Set view_context to self
-    private def view_context
-      self
-    end
+    private
+      # 3) Set view_context to self
+      def view_context
+        self
+      end
   end
 
   class RenderContextTest < Rack::TestCase

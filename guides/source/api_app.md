@@ -1,5 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
-
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
 Using Rails for API-only Applications
 =====================================
@@ -18,14 +17,14 @@ What is an API Application?
 
 Traditionally, when people said that they used Rails as an "API", they meant
 providing a programmatically accessible API alongside their web application.
-For example, GitHub provides [an API](http://developer.github.com) that you
+For example, GitHub provides [an API](https://developer.github.com) that you
 can use from your own custom clients.
 
 With the advent of client-side frameworks, more developers are using Rails to
 build a back-end that is shared between their web application and other native
 applications.
 
-For example, Twitter uses its [public API](https://dev.twitter.com) in its web
+For example, Twitter uses its [public API](https://developer.twitter.com/) in its web
 application, which is built as a static site that consumes JSON resources.
 
 Instead of using Rails to generate HTML that communicates with the server
@@ -66,9 +65,9 @@ Handled at the middleware layer:
   about the request environment, database queries, and basic performance
   information.
 - Security: Rails detects and thwarts [IP spoofing
-  attacks](http://en.wikipedia.org/wiki/IP_address_spoofing) and handles
+  attacks](https://en.wikipedia.org/wiki/IP_address_spoofing) and handles
   cryptographic signatures in a [timing
-  attack](http://en.wikipedia.org/wiki/Timing_attack) aware way. Don't know what
+  attack](https://en.wikipedia.org/wiki/Timing_attack) aware way. Don't know what
   an IP spoofing attack or a timing attack is? Exactly.
 - Parameter Parsing: Want to specify your parameters as JSON instead of as a
   URL-encoded String? No problem. Rails will decode the JSON for you and make
@@ -94,12 +93,12 @@ Handled at the Action Pack layer:
   means not having to spend time thinking about how to model your API in terms
   of HTTP.
 - URL Generation: The flip side of routing is URL generation. A good API based
-  on HTTP includes URLs (see [the GitHub Gist API](http://developer.github.com/v3/gists/)
+  on HTTP includes URLs (see [the GitHub Gist API](https://developer.github.com/v3/gists/)
   for an example).
 - Header and Redirection Responses: `head :no_content` and
   `redirect_to user_url(current_user)` come in handy. Sure, you could manually
   add the response headers, but why?
-- Caching: Rails provides page, action and fragment caching. Fragment caching
+- Caching: Rails provides page, action, and fragment caching. Fragment caching
   is especially helpful when building up a nested JSON object.
 - Basic, Digest, and Token Authentication: Rails comes with out-of-the-box support
   for three kinds of HTTP authentication.
@@ -107,7 +106,7 @@ Handled at the Action Pack layer:
   handlers for a variety of events, such as action processing, sending a file or
   data, redirection, and database queries. The payload of each event comes with
   relevant information (for the action processing event, the payload includes
-  the controller, action, parameters, request format, request method and the
+  the controller, action, parameters, request format, request method, and the
   request's full path).
 - Generators: It is often handy to generate a resource and get your model,
   controller, test stubs, and routes created for you in a single command for
@@ -149,7 +148,7 @@ This will do three main things for you:
   `ActionController::Base`. As with middleware, this will leave out any Action
   Controller modules that provide functionalities primarily used by browser
   applications.
-- Configure the generators to skip generating views, helpers and assets when
+- Configure the generators to skip generating views, helpers, and assets when
   you generate a new resource.
 
 ### Changing an existing application
@@ -206,10 +205,10 @@ An API application comes with the following middleware by default:
 - `ActiveSupport::Cache::Strategy::LocalCache::Middleware`
 - `Rack::Runtime`
 - `ActionDispatch::RequestId`
+- `ActionDispatch::RemoteIp`
 - `Rails::Rack::Logger`
 - `ActionDispatch::ShowExceptions`
 - `ActionDispatch::DebugExceptions`
-- `ActionDispatch::RemoteIp`
 - `ActionDispatch::Reloader`
 - `ActionDispatch::Callbacks`
 - `ActiveRecord::Migration::CheckPending`
@@ -360,7 +359,7 @@ middleware set, you can remove it with:
 config.middleware.delete ::Rack::Sendfile
 ```
 
-Keep in mind that removing these middleware will remove support for certain
+Keep in mind that removing these middlewares will remove support for certain
 features in Action Controller.
 
 Choosing Controller Modules
@@ -376,7 +375,6 @@ controller modules by default:
 - `ActionController::ConditionalGet`: Support for `stale?`.
 - `ActionController::BasicImplicitRender`: Makes sure to return an empty response, if there isn't an explicit one.
 - `ActionController::StrongParameters`: Support for parameters white-listing in combination with Active Model mass assignment.
-- `ActionController::ForceSSL`: Support for `force_ssl`.
 - `ActionController::DataStreaming`: Support for `send_file` and `send_data`.
 - `AbstractController::Callbacks`: Support for `before_action` and
   similar helpers.
@@ -385,21 +383,22 @@ controller modules by default:
   hooks defined by Action Controller (see [the instrumentation
   guide](active_support_instrumentation.html#action-controller) for
 more information regarding this).
-- `ActionController::ParamsWrapper`: Wraps the parameters hash into a nested hash, 
+- `ActionController::ParamsWrapper`: Wraps the parameters hash into a nested hash,
   so that you don't have to specify root elements sending POST requests for instance.
+- `ActionController::Head`: Support for returning a response with no content, only headers
 
 Other plugins may add additional modules. You can get a list of all modules
 included into `ActionController::API` in the rails console:
 
 ```bash
-$ bin/rails c
+$ rails c
 >> ActionController::API.ancestors - ActionController::Metal.ancestors
-=> [ActionController::API, 
-    ActiveRecord::Railties::ControllerRuntime, 
-    ActionDispatch::Routing::RouteSet::MountedHelpers, 
-    ActionController::ParamsWrapper, 
-    ... , 
-    AbstractController::Rendering, 
+=> [ActionController::API,
+    ActiveRecord::Railties::ControllerRuntime,
+    ActionDispatch::Routing::RouteSet::MountedHelpers,
+    ActionController::ParamsWrapper,
+    ... ,
+    AbstractController::Rendering,
     ActionView::ViewPaths]
 ```
 
@@ -413,8 +412,10 @@ Some common modules you might want to add:
 
 - `AbstractController::Translation`: Support for the `l` and `t` localization
   and translation methods.
-- `ActionController::HttpAuthentication::Basic` (or `Digest` or `Token`): Support
-  for basic, digest or token HTTP authentication.
+- Support for basic, digest, or token HTTP authentication:
+  * `ActionController::HttpAuthentication::Basic::ControllerMethods`,
+  * `ActionController::HttpAuthentication::Digest::ControllerMethods`,
+  * `ActionController::HttpAuthentication::Token::ControllerMethods`
 - `ActionView::Layouts`: Support for layouts when rendering.
 - `ActionController::MimeResponds`: Support for `respond_to`.
 - `ActionController::Cookies`: Support for `cookies`, which includes

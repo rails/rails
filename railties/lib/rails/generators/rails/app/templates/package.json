@@ -1,5 +1,0 @@
-{
-  "name": "<%= app_name %>",
-  "private": true,
-  "dependencies": {}
-}

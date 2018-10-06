@@ -1,4 +1,6 @@
-require "active_support/core_ext/string/strip" # for strip_heredoc
+# frozen_string_literal: true
+
+require "active_support/core_ext/module/redefine_method"
 require "active_support/core_ext/time/calculations"
 require "concurrent/map"
 
@@ -41,7 +43,7 @@ module ActiveSupport
 
         def unstub_object(stub)
           singleton_class = stub.object.singleton_class
-          singleton_class.send :undef_method, stub.method_name
+          singleton_class.send :silence_redefinition_of_method, stub.method_name
           singleton_class.send :alias_method, stub.method_name, stub.original_method
           singleton_class.send :undef_method, stub.original_method
         end
@@ -49,8 +51,14 @@ module ActiveSupport
 
     # Contains helpers that help you test passage of time.
     module TimeHelpers
+      def after_teardown
+        travel_back
+        super
+      end
+
       # Changes current time to the time in the future or in the past by a given time difference by
-      # stubbing +Time.now+, +Date.today+, and +DateTime.now+.
+      # stubbing +Time.now+, +Date.today+, and +DateTime.now+. The stubs are automatically removed
+      # at the end of the test.
       #
       #   Time.current     # => Sat, 09 Nov 2013 15:34:49 EST -05:00
       #   travel 1.day
@@ -72,6 +80,7 @@ module ActiveSupport
 
       # Changes current time to the given time by stubbing +Time.now+,
       # +Date.today+, and +DateTime.now+ to return the time or date passed into this method.
+      # The stubs are automatically removed at the end of the test.
       #
       #   Time.current     # => Sat, 09 Nov 2013 15:34:49 EST -05:00
       #   travel_to Time.zone.local(2004, 11, 24, 01, 04, 44)
@@ -102,7 +111,7 @@ module ActiveSupport
       #   Time.current # => Sat, 09 Nov 2013 15:34:49 EST -05:00
       def travel_to(date_or_time)
         if block_given? && simple_stubs.stubbing(Time, :now)
-          travel_to_nested_block_call = <<-MSG.strip_heredoc
+          travel_to_nested_block_call = <<~MSG
 
       Calling `travel_to` with a block, when we have previously already made a call to `travel_to`, can lead to confusing time stubbing.
 
@@ -149,7 +158,7 @@ module ActiveSupport
       end
 
       # Returns the current time back to its original state, by removing the stubs added by
-      # `travel` and `travel_to`.
+      # +travel+, +travel_to+, and +freeze_time+.
       #
       #   Time.current # => Sat, 09 Nov 2013 15:34:49 EST -05:00
       #   travel_to Time.zone.local(2004, 11, 24, 01, 04, 44)
@@ -158,6 +167,27 @@ module ActiveSupport
       #   Time.current # => Sat, 09 Nov 2013 15:34:49 EST -05:00
       def travel_back
         simple_stubs.unstub_all!
+      end
+      alias_method :unfreeze_time, :travel_back
+
+      # Calls +travel_to+ with +Time.now+.
+      #
+      #   Time.current # => Sun, 09 Jul 2017 15:34:49 EST -05:00
+      #   freeze_time
+      #   sleep(1)
+      #   Time.current # => Sun, 09 Jul 2017 15:34:49 EST -05:00
+      #
+      # This method also accepts a block, which will return the current time back to its original
+      # state at the end of the block:
+      #
+      #   Time.current # => Sun, 09 Jul 2017 15:34:49 EST -05:00
+      #   freeze_time do
+      #     sleep(1)
+      #     User.create.created_at # => Sun, 09 Jul 2017 15:34:49 EST -05:00
+      #   end
+      #   Time.current # => Sun, 09 Jul 2017 15:34:50 EST -05:00
+      def freeze_time(&block)
+        travel_to Time.now, &block
       end
 
       private

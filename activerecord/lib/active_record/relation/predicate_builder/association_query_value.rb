@@ -1,18 +1,20 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   class PredicateBuilder
     class AssociationQueryValue # :nodoc:
-      attr_reader :associated_table, :value
-
       def initialize(associated_table, value)
         @associated_table = associated_table
         @value = value
       end
 
       def queries
-        [associated_table.association_foreign_key.to_s => ids]
+        [associated_table.association_join_foreign_key.to_s => ids]
       end
 
       private
+        attr_reader :associated_table, :value
+
         def ids
           case value
           when Relation
@@ -25,7 +27,7 @@ module ActiveRecord
         end
 
         def primary_key
-          associated_table.association_primary_key
+          associated_table.association_join_primary_key
         end
 
         def convert_to_id(value)

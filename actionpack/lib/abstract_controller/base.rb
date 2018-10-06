@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_controller/error"
 require "active_support/configurable"
 require "active_support/descendants_tracker"
@@ -14,8 +16,16 @@ module AbstractController
   # expected to provide their own +render+ method, since rendering means
   # different things depending on the context.
   class Base
+    ##
+    # Returns the body of the HTTP response sent by the controller.
     attr_internal :response_body
+
+    ##
+    # Returns the name of the action this controller is processing.
     attr_internal :action_name
+
+    ##
+    # Returns the formats that can be processed by the controller.
     attr_internal :formats
 
     include ActiveSupport::Configurable
@@ -68,7 +78,9 @@ module AbstractController
             # Except for public instance methods of Base and its ancestors
             internal_methods +
             # Be sure to include shadowed public instance methods of this class
-            public_instance_methods(false)).uniq.map(&:to_s)
+            public_instance_methods(false))
+
+          methods.map!(&:to_s)
 
           methods.to_set
         end
@@ -92,7 +104,7 @@ module AbstractController
       # ==== Returns
       # * <tt>String</tt>
       def controller_path
-        @controller_path ||= name.sub(/Controller$/, "".freeze).underscore unless anonymous?
+        @controller_path ||= name.sub(/Controller$/, "").underscore unless anonymous?
       end
 
       # Refresh the cached action_methods when a new action_method is added.
@@ -170,8 +182,6 @@ module AbstractController
       #
       # ==== Parameters
       # * <tt>name</tt> - The name of an action to be tested
-      #
-      # :api: private
       def action_method?(name)
         self.class.action_methods.include?(name)
       end

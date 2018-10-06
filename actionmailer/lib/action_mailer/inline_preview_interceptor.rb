@@ -1,8 +1,10 @@
+# frozen_string_literal: true
+
 require "base64"
 
 module ActionMailer
   # Implements a mailer preview interceptor that converts image tag src attributes
-  # that use inline cid: style urls to data: style urls so that they are visible
+  # that use inline cid: style URLs to data: style URLs so that they are visible
   # when previewing an HTML email in a web browser.
   #
   # This interceptor is enabled by default. To disable it, delete it from the
@@ -38,9 +40,7 @@ module ActionMailer
     end
 
     private
-      def message
-        @message
-      end
+      attr_reader :message
 
       def html_part
         @html_part ||= message.html_part

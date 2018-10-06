@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveModel
   module Type
     module Helpers # :nodoc: all
@@ -27,7 +29,7 @@ module ActiveModel
             # 'wibble'.to_i will give zero, we want to make sure
             # that we aren't marking int zero to string zero as
             # changed.
-            value.to_s !~ /\A-?\d+\.?\d*\z/
+            !/\A[-+]?\d+/.match?(value.to_s)
           end
       end
     end

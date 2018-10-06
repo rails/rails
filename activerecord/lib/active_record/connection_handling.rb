@@ -1,6 +1,8 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module ConnectionHandling
-    RAILS_ENV   = -> { (Rails.env if defined?(Rails.env)) || ENV["RAILS_ENV"] || ENV["RACK_ENV"] }
+    RAILS_ENV   = -> { (Rails.env if defined?(Rails.env)) || ENV["RAILS_ENV"].presence || ENV["RACK_ENV"].presence }
     DEFAULT_ENV = -> { RAILS_ENV.call || "default_env" }
 
     # Establishes the connection to the database. Accepts a hash as input where
@@ -44,41 +46,18 @@ module ActiveRecord
     #
     # The exceptions AdapterNotSpecified, AdapterNotFound and +ArgumentError+
     # may be returned on an error.
-    def establish_connection(config = nil)
+    def establish_connection(config_or_env = nil)
       raise "Anonymous class is not allowed." unless name
 
-      config ||= DEFAULT_ENV.call.to_sym
-      spec_name = self == Base ? "primary" : name
-      self.connection_specification_name = spec_name
+      config_or_env ||= DEFAULT_ENV.call.to_sym
+      pool_name = self == Base ? "primary" : name
+      self.connection_specification_name = pool_name
 
       resolver = ConnectionAdapters::ConnectionSpecification::Resolver.new(Base.configurations)
-      spec = resolver.resolve(config).symbolize_keys
-      spec[:name] = spec_name
+      config_hash = resolver.resolve(config_or_env, pool_name).symbolize_keys
+      config_hash[:name] = pool_name
 
-      connection_handler.establish_connection(spec)
-    end
-
-    class MergeAndResolveDefaultUrlConfig # :nodoc:
-      def initialize(raw_configurations)
-        @raw_config = raw_configurations.dup
-        @env = DEFAULT_ENV.call.to_s
-      end
-
-      # Returns fully resolved connection hashes.
-      # Merges connection information from `ENV['DATABASE_URL']` if available.
-      def resolve
-        ConnectionAdapters::ConnectionSpecification::Resolver.new(config).resolve_all
-      end
-
-      private
-        def config
-          @raw_config.dup.tap do |cfg|
-            if url = ENV["DATABASE_URL"]
-              cfg[@env] ||= {}
-              cfg[@env]["url"] ||= url
-            end
-          end
-        end
+      connection_handler.establish_connection(config_hash)
     end
 
     # Returns the connection currently associated with the class. This can
@@ -138,6 +117,6 @@ module ActiveRecord
     end
 
     delegate :clear_active_connections!, :clear_reloadable_connections!,
-      :clear_all_connections!, to: :connection_handler
+      :clear_all_connections!, :flush_idle_connections!, to: :connection_handler
   end
 end

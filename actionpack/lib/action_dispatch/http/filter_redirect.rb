@@ -1,7 +1,9 @@
+# frozen_string_literal: true
+
 module ActionDispatch
   module Http
     module FilterRedirect
-      FILTERED = "[FILTERED]".freeze # :nodoc:
+      FILTERED = "[FILTERED]" # :nodoc:
 
       def filtered_location # :nodoc:
         if location_filter_match?

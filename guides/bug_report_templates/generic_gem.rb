@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 begin
   require "bundler/inline"
 rescue LoadError => e
@@ -7,14 +9,18 @@ end
 
 gemfile(true) do
   source "https://rubygems.org"
+
+  git_source(:github) { |repo| "https://github.com/#{repo}.git" }
+
   # Activate the gem you are reporting the issue against.
-  gem "activesupport", "5.1.0"
+  gem "activesupport", "5.2.0"
 end
 
+require "active_support"
 require "active_support/core_ext/object/blank"
 require "minitest/autorun"
 
-# Ensure backward compatibility with Minitest 4
+# Ensure backward compatibility with minitest 4.
 Minitest::Test = MiniTest::Unit::TestCase unless defined?(Minitest::Test)
 
 class BugTest < Minitest::Test

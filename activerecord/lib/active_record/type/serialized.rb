@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module Type
     class Serialized < DelegateClass(ActiveModel::Type::Value) # :nodoc:
@@ -47,6 +49,10 @@ module ActiveRecord
         if coder.respond_to?(:assert_valid_value)
           coder.assert_valid_value(value, action: "serialize")
         end
+      end
+
+      def force_equality?(value)
+        coder.respond_to?(:object_class) && value.is_a?(coder.object_class)
       end
 
       private

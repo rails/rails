@@ -1,3 +1,7 @@
+# frozen_string_literal: true
+
+require "concurrent/map"
+
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
     module QueryCache
@@ -90,8 +94,8 @@ module ActiveRecord
 
       def select_all(arel, name = nil, binds = [], preparable: nil)
         if @query_cache_enabled && !locked?(arel)
-          arel, binds = binds_from_relation arel, binds
-          sql = to_sql(arel, binds)
+          arel = arel_from_relation(arel)
+          sql, binds = to_sql_and_binds(arel, binds)
           cache_sql(sql, name, binds) { super(sql, name, binds, preparable: preparable) }
         else
           super
@@ -106,11 +110,7 @@ module ActiveRecord
               if @query_cache[sql].key?(binds)
                 ActiveSupport::Notifications.instrument(
                   "sql.active_record",
-                  sql: sql,
-                  binds: binds,
-                  name: name,
-                  connection_id: object_id,
-                  cached: true,
+                  cache_notification_info(sql, name, binds)
                 )
                 @query_cache[sql][binds]
               else
@@ -120,9 +120,23 @@ module ActiveRecord
           end
         end
 
+        # Database adapters can override this method to
+        # provide custom cache information.
+        def cache_notification_info(sql, name, binds)
+          {
+            sql: sql,
+            binds: binds,
+            type_casted_binds: -> { type_casted_binds(binds) },
+            name: name,
+            connection_id: object_id,
+            cached: true
+          }
+        end
+
         # If arel is locked this is a SELECT ... FOR UPDATE or somesuch. Such
         # queries should not be cached.
         def locked?(arel)
+          arel = arel.arel if arel.is_a?(Relation)
           arel.respond_to?(:locked) && arel.locked
         end
 

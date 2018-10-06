@@ -2,9 +2,13 @@
 <html>
 <head>
   <title><%= humanized %></title>
-  <%%= stylesheet_link_tag    "<%= namespaced_name %>/application", media: "all" %>
-  <%%= javascript_include_tag "<%= namespaced_name %>/application" %>
   <%%= csrf_meta_tags %>
+  <%%= csp_meta_tag %>
+
+  <%%= stylesheet_link_tag    "<%= namespaced_name %>/application", media: "all" %>
+  <%- unless options[:skip_javascript] -%>
+  <%%= javascript_include_tag "<%= namespaced_name %>/application" %>
+  <%- end -%>
 </head>
 <body>
 

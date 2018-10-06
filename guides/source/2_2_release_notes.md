@@ -1,11 +1,11 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
 Ruby on Rails 2.2 Release Notes
 ===============================
 
 Rails 2.2 delivers a number of new and improved features. This list covers the major upgrades, but doesn't include every little bug fix and change. If you want to see everything, check out the [list of commits](https://github.com/rails/rails/commits/2-2-stable) in the main Rails repository on GitHub.
 
-Along with Rails, 2.2 marks the launch of the [Ruby on Rails Guides](http://guides.rubyonrails.org/), the first results of the ongoing [Rails Guides hackfest](http://hackfest.rubyonrails.org/guide). This site will deliver high-quality documentation of the major features of Rails.
+Along with Rails, 2.2 marks the launch of the [Ruby on Rails Guides](https://guides.rubyonrails.org/), the first results of the ongoing [Rails Guides hackfest](http://hackfest.rubyonrails.org/guide). This site will deliver high-quality documentation of the major features of Rails.
 
 --------------------------------------------------------------------------------
 
@@ -31,7 +31,7 @@ Along with thread safety, a lot of work has been done to make Rails work well wi
 Documentation
 -------------
 
-The internal documentation of Rails, in the form of code comments, has been improved in numerous places. In addition, the [Ruby on Rails Guides](http://guides.rubyonrails.org/) project is the definitive source for information on major Rails components. In its first official release, the Guides page includes:
+The internal documentation of Rails, in the form of code comments, has been improved in numerous places. In addition, the [Ruby on Rails Guides](https://guides.rubyonrails.org/) project is the definitive source for information on major Rails components. In its first official release, the Guides page includes:
 
 * [Getting Started with Rails](getting_started.html)
 * [Rails Database Migrations](active_record_migrations.html)
@@ -57,11 +57,10 @@ rake doc:guides
 
 This will put the guides inside `Rails.root/doc/guides` and you may start surfing straight away by opening `Rails.root/doc/guides/index.html` in your favourite browser.
 
-* Lead Contributors: [Rails Documentation Team](credits.html)
 * Major contributions from [Xavier Noria](http://advogato.org/person/fxn/diary.html) and [Hongli Lai](http://izumi.plan99.net/blog/).
 * More information:
     * [Rails Guides hackfest](http://hackfest.rubyonrails.org/guide)
-    * [Help improve Rails documentation on Git branch](http://weblog.rubyonrails.org/2008/5/2/help-improve-rails-documentation-on-git-branch)
+    * [Help improve Rails documentation on Git branch](https://weblog.rubyonrails.org/2008/5/2/help-improve-rails-documentation-on-git-branch)
 
 Better integration with HTTP : Out of the box ETag support
 ----------------------------------------------------------
@@ -113,7 +112,7 @@ config.threadsafe!
 
 * More information :
     * [Thread safety for your Rails](http://m.onkey.org/2008/10/23/thread-safety-for-your-rails)
-    * [Thread safety project announcement](http://weblog.rubyonrails.org/2008/8/16/josh-peek-officially-joins-the-rails-core)
+    * [Thread safety project announcement](https://weblog.rubyonrails.org/2008/8/16/josh-peek-officially-joins-the-rails-core)
     * [Q/A: What Thread-safe Rails Means](http://blog.headius.com/2008/08/qa-what-thread-safe-rails-means.html)
 
 Active Record
@@ -125,7 +124,7 @@ There are two big additions to talk about here: transactional migrations and poo
 
 Historically, multiple-step Rails migrations have been a source of trouble. If something went wrong during a migration, everything before the error changed the database and everything after the error wasn't applied. Also, the migration version was stored as having been executed, which means that it couldn't be simply rerun by `rake db:migrate:redo` after you fix the problem. Transactional migrations change this by wrapping migration steps in a DDL transaction, so that if any of them fail, the entire migration is undone. In Rails 2.2, transactional migrations are supported on PostgreSQL out of the box. The code is extensible to other database types in the future - and IBM has already extended it to support the DB2 adapter.
 
-* Lead Contributor: [Adam Wiggins](http://adam.heroku.com/)
+* Lead Contributor: [Adam Wiggins](http://about.adamwiggins.com/)
 * More information:
     * [DDL Transactions](http://adam.heroku.com/past/2008/9/3/ddl_transactions/)
     * [A major milestone for DB2 on Rails](http://db2onrails.com/2008/11/08/a-major-milestone-for-db2-on-rails/)
@@ -391,7 +390,7 @@ You can unpack or install a single gem by specifying `GEM=_gem_name_` on the com
 * Lead Contributor: [Matt Jones](https://github.com/al2o3cr)
 * More information:
     * [What's New in Edge Rails: Gem Dependencies](http://archives.ryandaigle.com/articles/2008/4/1/what-s-new-in-edge-rails-gem-dependencies)
-    * [Rails 2.1.2 and 2.2RC1: Update Your RubyGems](http://afreshcup.com/2008/10/25/rails-212-and-22rc1-update-your-rubygems/)
+    * [Rails 2.1.2 and 2.2RC1: Update Your RubyGems](https://afreshcup.com/home/2008/10/25/rails-212-and-22rc1-update-your-rubygems)
     * [Detailed discussion on Lighthouse](http://rails.lighthouseapp.com/projects/8994-ruby-on-rails/tickets/1128)
 
 ### Other Railties Changes

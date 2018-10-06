@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "generators/generators_test_helper"
 require "rails/generators/rails/app/app_generator"
 require "env_helpers"
@@ -69,10 +71,17 @@ class ActionsTest < Rails::Generators::TestCase
 
   def test_gem_with_version_should_include_version_in_gemfile
     run_generator
+    action :gem, "rspec", ">= 2.0.0.a5"
+    action :gem, "RedCloth", ">= 4.1.0", "< 4.2.0"
+    action :gem, "nokogiri", version: ">= 1.4.2"
+    action :gem, "faker", version: [">= 0.1.0", "< 0.3.0"]
 
-    action :gem, "rspec", ">=2.0.0.a5"
-
-    assert_file "Gemfile", /gem 'rspec', '>=2.0.0.a5'/
+    assert_file "Gemfile" do |content|
+      assert_match(/gem 'rspec', '>= 2\.0\.0\.a5'/, content)
+      assert_match(/gem 'RedCloth', '>= 4\.1\.0', '< 4\.2\.0'/, content)
+      assert_match(/gem 'nokogiri', '>= 1\.4\.2'/, content)
+      assert_match(/gem 'faker', '>= 0\.1\.0', '< 0\.3\.0'/, content)
+    end
   end
 
   def test_gem_should_insert_on_separate_lines
@@ -116,7 +125,7 @@ class ActionsTest < Rails::Generators::TestCase
   def test_gem_works_even_if_frozen_string_is_passed_as_argument
     run_generator
 
-    action :gem, "frozen_gem".freeze, "1.0.0".freeze
+    action :gem, -"frozen_gem", -"1.0.0"
 
     assert_file "Gemfile", /^gem 'frozen_gem', '1.0.0'$/
   end
@@ -135,18 +144,56 @@ class ActionsTest < Rails::Generators::TestCase
     assert_file "Gemfile", /\ngroup :development, :test do\n  gem 'rspec-rails'\nend\n\ngroup :test do\n  gem 'fakeweb'\nend/
   end
 
+  def test_github_should_create_an_indented_block
+    run_generator
+
+    action :github, "user/repo" do
+      gem "foo"
+      gem "bar"
+      gem "baz"
+    end
+
+    assert_file "Gemfile", /\ngithub 'user\/repo' do\n  gem 'foo'\n  gem 'bar'\n  gem 'baz'\nend/
+  end
+
+  def test_github_should_create_an_indented_block_with_options
+    run_generator
+
+    action :github, "user/repo", a: "correct", other: true do
+      gem "foo"
+      gem "bar"
+      gem "baz"
+    end
+
+    assert_file "Gemfile", /\ngithub 'user\/repo', a: 'correct', other: true do\n  gem 'foo'\n  gem 'bar'\n  gem 'baz'\nend/
+  end
+
+  def test_github_should_create_an_indented_block_within_a_group
+    run_generator
+
+    action :gem_group, :magic do
+      github "user/repo", a: "correct", other: true do
+        gem "foo"
+        gem "bar"
+        gem "baz"
+      end
+    end
+
+    assert_file "Gemfile", /\ngroup :magic do\n  github 'user\/repo', a: 'correct', other: true do\n    gem 'foo'\n    gem 'bar'\n    gem 'baz'\n  end\nend\n/
+  end
+
   def test_environment_should_include_data_in_environment_initializer_block
     run_generator
     autoload_paths = 'config.autoload_paths += %w["#{Rails.root}/app/extras"]'
     action :environment, autoload_paths
-    assert_file "config/application.rb", /  class Application < Rails::Application\n    #{Regexp.escape(autoload_paths)}/
+    assert_file "config/application.rb", /  class Application < Rails::Application\n    #{Regexp.escape(autoload_paths)}\n/
   end
 
   def test_environment_should_include_data_in_environment_initializer_block_with_env_option
     run_generator
     autoload_paths = 'config.autoload_paths += %w["#{Rails.root}/app/extras"]'
     action :environment, autoload_paths, env: "development"
-    assert_file "config/environments/development.rb", /Rails\.application\.configure do\n  #{Regexp.escape(autoload_paths)}/
+    assert_file "config/environments/development.rb", /Rails\.application\.configure do\n  #{Regexp.escape(autoload_paths)}\n/
   end
 
   def test_environment_with_block_should_include_block_contents_in_environment_initializer_block
@@ -163,6 +210,26 @@ class ActionsTest < Rails::Generators::TestCase
     end
   end
 
+  def test_environment_with_block_should_include_block_contents_with_multiline_data_in_environment_initializer_block
+    run_generator
+    data = <<-RUBY
+      config.encoding = "utf-8"
+      config.time_zone = "UTC"
+    RUBY
+    action(:environment) { data }
+    assert_file "config/application.rb", /  class Application < Rails::Application\n#{Regexp.escape(data.strip_heredoc.indent(4))}/
+  end
+
+  def test_environment_should_include_block_contents_with_multiline_data_in_environment_initializer_block_with_env_option
+    run_generator
+    data = <<-RUBY
+      config.encoding = "utf-8"
+      config.time_zone = "UTC"
+    RUBY
+    action(:environment, nil, env: "development") { data }
+    assert_file "config/environments/development.rb", /Rails\.application\.configure do\n#{Regexp.escape(data.strip_heredoc.indent(2))}/
+  end
+
   def test_git_with_symbol_should_run_command_using_git_scm
     assert_called_with(generator, :run, ["git init"]) do
       action :git, :init
@@ -177,22 +244,62 @@ class ActionsTest < Rails::Generators::TestCase
 
   def test_vendor_should_write_data_to_file_in_vendor
     action :vendor, "vendor_file.rb", "# vendor data"
-    assert_file "vendor/vendor_file.rb", "# vendor data"
+    assert_file "vendor/vendor_file.rb", "# vendor data\n"
+  end
+
+  def test_vendor_should_write_data_to_file_with_block_in_vendor
+    code = <<-RUBY
+      puts "one"
+      puts "two"
+      puts "three"
+    RUBY
+    action(:vendor, "vendor_file.rb") { code }
+    assert_file "vendor/vendor_file.rb", code.strip_heredoc
   end
 
   def test_lib_should_write_data_to_file_in_lib
     action :lib, "my_library.rb", "class MyLibrary"
-    assert_file "lib/my_library.rb", "class MyLibrary"
+    assert_file "lib/my_library.rb", "class MyLibrary\n"
+  end
+
+  def test_lib_should_write_data_to_file_with_block_in_lib
+    code = <<-RUBY
+      class MyLib
+        MY_CONSTANT = 123
+      end
+    RUBY
+    action(:lib, "my_library.rb") { code }
+    assert_file "lib/my_library.rb", code.strip_heredoc
   end
 
   def test_rakefile_should_write_date_to_file_in_lib_tasks
     action :rakefile, "myapp.rake", "task run: [:environment]"
-    assert_file "lib/tasks/myapp.rake", "task run: [:environment]"
+    assert_file "lib/tasks/myapp.rake", "task run: [:environment]\n"
+  end
+
+  def test_rakefile_should_write_date_to_file_with_block_in_lib_tasks
+    code = <<-RUBY
+      task rock: :environment do
+        puts "Rockin'"
+      end
+    RUBY
+    action(:rakefile, "myapp.rake") { code }
+    assert_file "lib/tasks/myapp.rake", code.strip_heredoc
   end
 
   def test_initializer_should_write_date_to_file_in_config_initializers
     action :initializer, "constants.rb", "MY_CONSTANT = 42"
-    assert_file "config/initializers/constants.rb", "MY_CONSTANT = 42"
+    assert_file "config/initializers/constants.rb", "MY_CONSTANT = 42\n"
+  end
+
+  def test_initializer_should_write_date_to_file_with_block_in_config_initializers
+    code = <<-RUBY
+      MyLib.configure do |config|
+        config.value = 123
+      end
+    RUBY
+    action(:initializer, "constants.rb") { code }
+    assert_file "config/initializers/constants.rb", code.strip_heredoc
   end
 
   def test_generate_should_run_script_generate_with_argument_and_options
@@ -239,6 +346,14 @@ class ActionsTest < Rails::Generators::TestCase
     end
   end
 
+  test "rake command with capture option should run rake command with capture" do
+    assert_called_with(generator, :run, ["rake log:clear RAILS_ENV=development", verbose: false, capture: true]) do
+      with_rails_env nil do
+        action :rake, "log:clear", capture: true
+      end
+    end
+  end
+
   test "rails command should run rails_command with default env" do
     assert_called_with(generator, :run, ["rails log:clear RAILS_ENV=development", verbose: false]) do
       with_rails_env nil do
@@ -277,10 +392,21 @@ class ActionsTest < Rails::Generators::TestCase
     end
   end
 
-  def test_capify_should_run_the_capify_command
-    assert_called_with(generator, :run, ["capify .", verbose: false]) do
-      action :capify!
+  test "rails command with capture option should run rails_command with capture" do
+    assert_called_with(generator, :run, ["rails log:clear RAILS_ENV=development", verbose: false, capture: true]) do
+      with_rails_env nil do
+        action :rails_command, "log:clear", capture: true
+      end
     end
+  end
+
+  def test_capify_should_run_the_capify_command
+    content = capture(:stderr) do
+      assert_called_with(generator, :run, ["capify .", verbose: false]) do
+        action :capify!
+      end
+    end
+    assert_match(/DEPRECATION WARNING: `capify!` is deprecated/, content)
   end
 
   def test_route_should_add_data_to_the_routes_block_in_config_routes
@@ -315,7 +441,7 @@ class ActionsTest < Rails::Generators::TestCase
     content.gsub!(/^  \#.*\n/, "")
     content.gsub!(/^\n/, "")
 
-    File.open(route_path, "wb") { |file| file.write(content) }
+    File.write(route_path, content)
 
     routes = <<-F
 Rails.application.routes.draw do

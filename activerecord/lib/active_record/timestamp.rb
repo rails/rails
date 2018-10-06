@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 module ActiveRecord
   # = Active Record \Timestamp
   #
@@ -43,8 +44,7 @@ module ActiveRecord
     extend ActiveSupport::Concern
 
     included do
-      class_attribute :record_timestamps
-      self.record_timestamps = true
+      class_attribute :record_timestamps, default: true
     end
 
     def initialize_dup(other) # :nodoc:
@@ -52,7 +52,13 @@ module ActiveRecord
       clear_timestamp_attributes
     end
 
-    class_methods do
+    module ClassMethods # :nodoc:
+      def touch_attributes_with_time(*names, time: nil)
+        attribute_names = timestamp_attributes_for_update_in_model
+        attribute_names |= names.map(&:to_s)
+        attribute_names.index_with(time ||= current_time_from_proper_timezone)
+      end
+
       private
         def timestamp_attributes_for_create_in_model
           timestamp_attributes_for_create.select { |c| column_names.include?(c) }
@@ -87,7 +93,7 @@ module ActiveRecord
 
         all_timestamp_attributes_in_model.each do |column|
           if !attribute_present?(column)
-            write_attribute(column, current_time)
+            _write_attribute(column, current_time)
           end
         end
       end
@@ -101,7 +107,7 @@ module ActiveRecord
 
         timestamp_attributes_for_update_in_model.each do |column|
           next if will_save_change_to_attribute?(column)
-          write_attribute(column, current_time)
+          _write_attribute(column, current_time)
         end
       end
       super(*args)
@@ -127,7 +133,7 @@ module ActiveRecord
       self.class.send(:current_time_from_proper_timezone)
     end
 
-    def max_updated_column_timestamp(timestamp_names = self.class.send(:timestamp_attributes_for_update))
+    def max_updated_column_timestamp(timestamp_names = timestamp_attributes_for_update_in_model)
       timestamp_names
         .map { |attr| self[attr] }
         .compact

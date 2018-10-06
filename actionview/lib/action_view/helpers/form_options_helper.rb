@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cgi"
 require "erb"
 require "action_view/helpers/form_helper"
@@ -7,14 +9,14 @@ require "active_support/core_ext/array/wrap"
 
 module ActionView
   # = Action View Form Option Helpers
-  module Helpers
+  module Helpers #:nodoc:
     # Provides a number of methods for turning different kinds of containers into a set of option tags.
     #
     # The <tt>collection_select</tt>, <tt>select</tt> and <tt>time_zone_select</tt> methods take an <tt>options</tt> parameter, a hash:
     #
     # * <tt>:include_blank</tt> - set to true or a prompt string if the first option element of the select element is a blank. Useful if there is not a default value required for the select element.
     #
-    #     select("post", "category", Post::CATEGORIES, {include_blank: true})
+    #     select("post", "category", Post::CATEGORIES, { include_blank: true })
     #
     #   could become:
     #
@@ -28,7 +30,7 @@ module ActionView
     #
     #   Example with <tt>@post.person_id => 2</tt>:
     #
-    #     select("post", "person_id", Person.all.collect {|p| [ p.name, p.id ] }, {include_blank: 'None'})
+    #     select("post", "person_id", Person.all.collect { |p| [ p.name, p.id ] }, { include_blank: 'None' })
     #
     #   could become:
     #
@@ -41,7 +43,7 @@ module ActionView
     #
     # * <tt>:prompt</tt> - set to true or a prompt string. When the select element doesn't have a value yet, this prepends an option with a generic prompt -- "Please select" -- or the given prompt string.
     #
-    #     select("post", "person_id", Person.all.collect {|p| [ p.name, p.id ] }, {prompt: 'Select Person'})
+    #     select("post", "person_id", Person.all.collect { |p| [ p.name, p.id ] }, { prompt: 'Select Person' })
     #
     #   could become:
     #
@@ -67,7 +69,7 @@ module ActionView
     #
     # * <tt>:disabled</tt> - can be a single value or an array of values that will be disabled options in the final output.
     #
-    #     select("post", "category", Post::CATEGORIES, {disabled: 'restricted'})
+    #     select("post", "category", Post::CATEGORIES, { disabled: 'restricted' })
     #
     #   could become:
     #
@@ -80,7 +82,7 @@ module ActionView
     #
     #   When used with the <tt>collection_select</tt> helper, <tt>:disabled</tt> can also be a Proc that identifies those options that should be disabled.
     #
-    #     collection_select(:post, :category_id, Category.all, :id, :name, {disabled: -> (category) { category.archived? }})
+    #     collection_select(:post, :category_id, Category.all, :id, :name, { disabled: -> (category) { category.archived? } })
     #
     #   If the categories "2008 stuff" and "Christmas" return true when the method <tt>archived?</tt> is called, this would return:
     #     <select name="post[category_id]" id="post_category_id">
@@ -105,7 +107,7 @@ module ActionView
       #
       # For example:
       #
-      #   select("post", "person_id", Person.all.collect {|p| [ p.name, p.id ] }, { include_blank: true })
+      #   select("post", "person_id", Person.all.collect { |p| [ p.name, p.id ] }, { include_blank: true })
       #
       # would become:
       #
@@ -212,9 +214,13 @@ module ActionView
       # * +method+ - The attribute of +object+ corresponding to the select tag
       # * +collection+ - An array of objects representing the <tt><optgroup></tt> tags.
       # * +group_method+ - The name of a method which, when called on a member of +collection+, returns an
-      #   array of child objects representing the <tt><option></tt> tags.
+      #   array of child objects representing the <tt><option></tt> tags. It can also be any object that responds
+      #   to +call+, such as a +proc+, that will be called for each member of the +collection+ to retrieve the
+      #   value.
       # * +group_label_method+ - The name of a method which, when called on a member of +collection+, returns a
-      #   string to be used as the +label+ attribute for its <tt><optgroup></tt> tag.
+      #   string to be used as the +label+ attribute for its <tt><optgroup></tt> tag. It can also be any object
+      #   that responds to +call+, such as a +proc+, that will be called for each member of the +collection+ to
+      #   retrieve the label.
       # * +option_key_method+ - The name of a method which, when called on a child object of a member of
       #   +collection+, returns a value to be used as the +value+ attribute for its <tt><option></tt> tag.
       # * +option_value_method+ - The name of a method which, when called on a child object of a member of
@@ -277,17 +283,17 @@ module ActionView
       # Finally, this method supports a <tt>:default</tt> option, which selects
       # a default ActiveSupport::TimeZone if the object's time zone is +nil+.
       #
-      #   time_zone_select( "user", "time_zone", nil, include_blank: true)
+      #   time_zone_select("user", "time_zone", nil, include_blank: true)
       #
-      #   time_zone_select( "user", "time_zone", nil, default: "Pacific Time (US & Canada)" )
+      #   time_zone_select("user", "time_zone", nil, default: "Pacific Time (US & Canada)")
       #
-      #   time_zone_select( "user", 'time_zone', ActiveSupport::TimeZone.us_zones, default: "Pacific Time (US & Canada)")
+      #   time_zone_select("user", 'time_zone', ActiveSupport::TimeZone.us_zones, default: "Pacific Time (US & Canada)")
       #
-      #   time_zone_select( "user", 'time_zone', [ ActiveSupport::TimeZone['Alaska'], ActiveSupport::TimeZone['Hawaii'] ])
+      #   time_zone_select("user", 'time_zone', [ ActiveSupport::TimeZone['Alaska'], ActiveSupport::TimeZone['Hawaii'] ])
       #
-      #   time_zone_select( "user", 'time_zone', /Australia/)
+      #   time_zone_select("user", 'time_zone', /Australia/)
       #
-      #   time_zone_select( "user", "time_zone", ActiveSupport::TimeZone.all.sort, model: ActiveSupport::TimeZone)
+      #   time_zone_select("user", "time_zone", ActiveSupport::TimeZone.all.sort, model: ActiveSupport::TimeZone)
       def time_zone_select(object, method, priority_zones = nil, options = {}, html_options = {})
         Tags::TimeZoneSelect.new(object, method, self, priority_zones, options, html_options).render
       end
@@ -317,12 +323,12 @@ module ActionView
       #
       # You can optionally provide HTML attributes as the last element of the array.
       #
-      #   options_for_select([ "Denmark", ["USA", {class: 'bold'}], "Sweden" ], ["USA", "Sweden"])
+      #   options_for_select([ "Denmark", ["USA", { class: 'bold' }], "Sweden" ], ["USA", "Sweden"])
       #   # => <option value="Denmark">Denmark</option>
       #   # => <option value="USA" class="bold" selected="selected">USA</option>
       #   # => <option value="Sweden" selected="selected">Sweden</option>
       #
-      #   options_for_select([["Dollar", "$", {class: "bold"}], ["Kroner", "DKK", {onclick: "alert('HI');"}]])
+      #   options_for_select([["Dollar", "$", { class: "bold" }], ["Kroner", "DKK", { onclick: "alert('HI');" }]])
       #   # => <option value="$" class="bold">Dollar</option>
       #   # => <option value="DKK" onclick="alert('HI');">Kroner</option>
       #
@@ -455,9 +461,9 @@ module ActionView
       def option_groups_from_collection_for_select(collection, group_method, group_label_method, option_key_method, option_value_method, selected_key = nil)
         collection.map do |group|
           option_tags = options_from_collection_for_select(
-            group.send(group_method), option_key_method, option_value_method, selected_key)
+            value_for_collection(group, group_method), option_key_method, option_value_method, selected_key)
 
-          content_tag("optgroup".freeze, option_tags, label: group.send(group_label_method))
+          content_tag("optgroup", option_tags, label: value_for_collection(group, group_label_method))
         end.join.html_safe
       end
 
@@ -529,7 +535,7 @@ module ActionView
         body = "".html_safe
 
         if prompt
-          body.safe_concat content_tag("option".freeze, prompt_text(prompt), value: "")
+          body.safe_concat content_tag("option", prompt_text(prompt), value: "")
         end
 
         grouped_options.each do |container|
@@ -542,7 +548,7 @@ module ActionView
           end
 
           html_attributes = { label: label }.merge!(html_attributes)
-          body.safe_concat content_tag("optgroup".freeze, options_for_select(container, selected_key), html_attributes)
+          body.safe_concat content_tag("optgroup", options_for_select(container, selected_key), html_attributes)
         end
 
         body
@@ -578,7 +584,7 @@ module ActionView
           end
 
           zone_options.safe_concat options_for_select(convert_zones[priority_zones], selected)
-          zone_options.safe_concat content_tag("option".freeze, "-------------", value: "", disabled: true)
+          zone_options.safe_concat content_tag("option", "-------------", value: "", disabled: true)
           zone_options.safe_concat "\n"
 
           zones = zones - priority_zones
@@ -788,7 +794,7 @@ module ActionView
         def extract_values_from_collection(collection, value_method, selected)
           if selected.is_a?(Proc)
             collection.map do |element|
-              element.send(value_method) if selected.call(element)
+              public_or_deprecated_send(element, value_method) if selected.call(element)
             end.compact
           else
             selected
@@ -796,7 +802,15 @@ module ActionView
         end
 
         def value_for_collection(item, value)
-          value.respond_to?(:call) ? value.call(item) : item.send(value)
+          value.respond_to?(:call) ? value.call(item) : public_or_deprecated_send(item, value)
+        end
+
+        def public_or_deprecated_send(item, value)
+          item.public_send(value)
+        rescue NoMethodError
+          raise unless item.respond_to?(value, true) && !item.respond_to?(value)
+          ActiveSupport::Deprecation.warn "Using private methods from view helpers is deprecated (calling private #{item.class}##{value})"
+          item.send(value)
         end
 
         def prompt_text(prompt)
@@ -814,7 +828,7 @@ module ActionView
       #
       # Please refer to the documentation of the base helper for details.
       def select(method, choices = nil, options = {}, html_options = {}, &block)
-        @template.select(@object_name, method, choices, objectify_options(options), @default_options.merge(html_options), &block)
+        @template.select(@object_name, method, choices, objectify_options(options), @default_html_options.merge(html_options), &block)
       end
 
       # Wraps ActionView::Helpers::FormOptionsHelper#collection_select for form builders:
@@ -826,7 +840,7 @@ module ActionView
       #
       # Please refer to the documentation of the base helper for details.
       def collection_select(method, collection, value_method, text_method, options = {}, html_options = {})
-        @template.collection_select(@object_name, method, collection, value_method, text_method, objectify_options(options), @default_options.merge(html_options))
+        @template.collection_select(@object_name, method, collection, value_method, text_method, objectify_options(options), @default_html_options.merge(html_options))
       end
 
       # Wraps ActionView::Helpers::FormOptionsHelper#grouped_collection_select for form builders:
@@ -838,7 +852,7 @@ module ActionView
       #
       # Please refer to the documentation of the base helper for details.
       def grouped_collection_select(method, collection, group_method, group_label_method, option_key_method, option_value_method, options = {}, html_options = {})
-        @template.grouped_collection_select(@object_name, method, collection, group_method, group_label_method, option_key_method, option_value_method, objectify_options(options), @default_options.merge(html_options))
+        @template.grouped_collection_select(@object_name, method, collection, group_method, group_label_method, option_key_method, option_value_method, objectify_options(options), @default_html_options.merge(html_options))
       end
 
       # Wraps ActionView::Helpers::FormOptionsHelper#time_zone_select for form builders:
@@ -850,7 +864,7 @@ module ActionView
       #
       # Please refer to the documentation of the base helper for details.
       def time_zone_select(method, priority_zones = nil, options = {}, html_options = {})
-        @template.time_zone_select(@object_name, method, priority_zones, objectify_options(options), @default_options.merge(html_options))
+        @template.time_zone_select(@object_name, method, priority_zones, objectify_options(options), @default_html_options.merge(html_options))
       end
 
       # Wraps ActionView::Helpers::FormOptionsHelper#collection_check_boxes for form builders:
@@ -862,7 +876,7 @@ module ActionView
       #
       # Please refer to the documentation of the base helper for details.
       def collection_check_boxes(method, collection, value_method, text_method, options = {}, html_options = {}, &block)
-        @template.collection_check_boxes(@object_name, method, collection, value_method, text_method, objectify_options(options), @default_options.merge(html_options), &block)
+        @template.collection_check_boxes(@object_name, method, collection, value_method, text_method, objectify_options(options), @default_html_options.merge(html_options), &block)
       end
 
       # Wraps ActionView::Helpers::FormOptionsHelper#collection_radio_buttons for form builders:
@@ -874,7 +888,7 @@ module ActionView
       #
       # Please refer to the documentation of the base helper for details.
       def collection_radio_buttons(method, collection, value_method, text_method, options = {}, html_options = {}, &block)
-        @template.collection_radio_buttons(@object_name, method, collection, value_method, text_method, objectify_options(options), @default_options.merge(html_options), &block)
+        @template.collection_radio_buttons(@object_name, method, collection, value_method, text_method, objectify_options(options), @default_html_options.merge(html_options), &block)
       end
     end
   end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/array/wrap"
 
 module ActiveRecord
@@ -17,7 +19,6 @@ module ActiveRecord
     #         HasManyThroughAssociation + ThroughAssociation
     class Association #:nodoc:
       attr_reader :owner, :target, :reflection
-      attr_accessor :inversed
 
       delegate :options, to: :reflection
 
@@ -28,14 +29,6 @@ module ActiveRecord
 
         reset
         reset_scope
-      end
-
-      # Returns the name of the table of the associated class:
-      #
-      #   post.comments.aliased_table_name # => "comments"
-      #
-      def aliased_table_name
-        klass.table_name
       end
 
       # Resets the \loaded flag to +false+ and sets the \target to +nil+.
@@ -73,7 +66,7 @@ module ActiveRecord
       #
       # Note that if the target has not been loaded, it is not considered stale.
       def stale_target?
-        !inversed && loaded? && @stale_state != stale_state
+        !@inversed && loaded? && @stale_state != stale_state
       end
 
       # Sets the target of this association to <tt>\target</tt>, and the \loaded flag to +true+.
@@ -94,7 +87,7 @@ module ActiveRecord
       # actually gets built.
       def association_scope
         if klass
-          @association_scope ||= AssociationScope.scope(self, klass.connection)
+          @association_scope ||= AssociationScope.scope(self)
         end
       end
 
@@ -104,21 +97,22 @@ module ActiveRecord
 
       # Set the inverse association, if possible
       def set_inverse_instance(record)
-        if invertible_for?(record)
-          inverse = record.association(inverse_reflection_for(record).name)
-          inverse.target = owner
-          inverse.inversed = true
+        if inverse = inverse_association_for(record)
+          inverse.inversed_from(owner)
         end
         record
       end
 
       # Remove the inverse association, if possible
       def remove_inverse_instance(record)
-        if invertible_for?(record)
-          inverse = record.association(inverse_reflection_for(record).name)
-          inverse.target = nil
-          inverse.inversed = false
+        if inverse = inverse_association_for(record)
+          inverse.inversed_from(nil)
         end
+      end
+
+      def inversed_from(record)
+        self.target = record
+        @inversed = !!record
       end
 
       # Returns the class of the target. belongs_to polymorphic overrides this to look at the
@@ -130,7 +124,17 @@ module ActiveRecord
       # Can be overridden (i.e. in ThroughAssociation) to merge in other scopes (i.e. the
       # through association's scope)
       def target_scope
-        AssociationRelation.create(klass, klass.arel_table, klass.predicate_builder, self).merge!(klass.all)
+        AssociationRelation.create(klass, self).merge!(klass.all)
+      end
+
+      def extensions
+        extensions = klass.default_extensions | reflection.extensions
+
+        if reflection.scope
+          extensions |= reflection.scope_for(klass.unscoped, owner).extensions
+        end
+
+        extensions
       end
 
       # Loads the \target if needed and returns it.
@@ -152,17 +156,9 @@ module ActiveRecord
         reset
       end
 
-      def interpolate(sql, record = nil)
-        if sql.respond_to?(:to_proc)
-          owner.instance_exec(record, &sql)
-        else
-          sql
-        end
-      end
-
-      # We can't dump @reflection since it contains the scope proc
+      # We can't dump @reflection and @through_reflection since it contains the scope proc
       def marshal_dump
-        ivars = (instance_variables - [:@reflection]).map { |name| [name, instance_variable_get(name)] }
+        ivars = (instance_variables - [:@reflection, :@through_reflection]).map { |name| [name, instance_variable_get(name)] }
         [@reflection.name, ivars]
       end
 
@@ -177,8 +173,8 @@ module ActiveRecord
         skip_assign = [reflection.foreign_key, reflection.type].compact
         assigned_keys = record.changed_attribute_names_to_save
         assigned_keys += except_from_scope_attributes.keys.map(&:to_s)
-        attributes = create_scope.except(*(assigned_keys - skip_assign))
-        record.assign_attributes(attributes)
+        attributes = scope_for_create.except!(*(assigned_keys - skip_assign))
+        record.send(:_assign_attributes, attributes) if attributes.any?
         set_inverse_instance(record)
       end
 
@@ -191,6 +187,9 @@ module ActiveRecord
       end
 
       private
+        def scope_for_create
+          scope.scope_for_create
+        end
 
         def find_target?
           !loaded? && (!owner.new_record? || foreign_key_present?) && klass
@@ -202,8 +201,8 @@ module ActiveRecord
           if (reflection.has_one? || reflection.collection?) && !options[:through]
             attributes[reflection.foreign_key] = owner[reflection.active_record_primary_key]
 
-            if reflection.options[:as]
-              attributes[reflection.type] = owner.class.base_class.name
+            if reflection.type
+              attributes[reflection.type] = owner.class.polymorphic_name
             end
           end
 
@@ -241,6 +240,12 @@ module ActiveRecord
           end
         end
 
+        def inverse_association_for(record)
+          if invertible_for?(record)
+            record.association(inverse_reflection_for(record).name)
+          end
+        end
+
         # Can be redefined by subclasses, notably polymorphic belongs_to
         # The record parameter is necessary to support polymorphic inverses as we must check for
         # the association in the specific class of the record.
@@ -270,11 +275,12 @@ module ActiveRecord
         def build_record(attributes)
           reflection.build_association(attributes) do |record|
             initialize_attributes(record, attributes)
+            yield(record) if block_given?
           end
         end
 
         # Returns true if statement cache should be skipped on the association reader.
-        def skip_statement_cache?
+        def skip_statement_cache?(scope)
           reflection.has_scope? ||
             scope.eager_loading? ||
             klass.scope_attributes? ||

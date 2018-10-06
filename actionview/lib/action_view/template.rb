@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/object/try"
 require "active_support/core_ext/kernel/singleton_class"
 require "thread"
@@ -6,6 +8,8 @@ module ActionView
   # = Action View Template
   class Template
     extend ActiveSupport::Autoload
+
+    mattr_accessor :finalize_compiled_template_methods, default: true
 
     # === Encodings in ActionView::Template
     #
@@ -184,7 +188,7 @@ module ActionView
     end
 
     def inspect
-      @inspect ||= defined?(Rails.root) ? identifier.sub("#{Rails.root}/", "".freeze) : identifier
+      @inspect ||= defined?(Rails.root) ? identifier.sub("#{Rails.root}/", "") : identifier
     end
 
     # This method is responsible for properly setting the encoding of the
@@ -229,6 +233,19 @@ module ActionView
       else
         raise WrongEncodingError.new(source, encoding)
       end
+    end
+
+
+    # Exceptions are marshalled when using the parallel test runner with DRb, so we need
+    # to ensure that references to the template object can be marshalled as well. This means forgoing
+    # the marshalling of the compiler mutex and instantiating that again on unmarshalling.
+    def marshal_dump # :nodoc:
+      [ @source, @identifier, @handler, @compiled, @original_encoding, @locals, @virtual_path, @updated_at, @formats, @variants ]
+    end
+
+    def marshal_load(array) # :nodoc:
+      @source, @identifier, @handler, @compiled, @original_encoding, @locals, @virtual_path, @updated_at, @formats, @variants = *array
+      @compile_mutex = Mutex.new
     end
 
     private
@@ -282,7 +299,7 @@ module ActionView
 
         # Make sure that the resulting String to be eval'd is in the
         # encoding of the code
-        source = <<-end_src
+        source = +<<-end_src
           def #{method_name}(local_assigns, output_buffer)
             _old_virtual_path, @virtual_path = @virtual_path, #{@virtual_path.inspect};_old_output_buffer = @output_buffer;#{locals_code};#{code}
           ensure
@@ -305,7 +322,9 @@ module ActionView
         end
 
         mod.module_eval(source, identifier, 0)
-        ObjectSpace.define_finalizer(self, Finalizer[method_name, mod])
+        if finalize_compiled_template_methods
+          ObjectSpace.define_finalizer(self, Finalizer[method_name, mod])
+        end
       end
 
       def handle_render_error(view, e)
@@ -328,20 +347,20 @@ module ActionView
         locals = @locals - Module::RUBY_RESERVED_KEYWORDS
         locals = locals.grep(/\A@?(?![A-Z0-9])(?:[[:alnum:]_]|[^\0-\177])+\z/)
 
-        # Double assign to suppress the dreaded 'assigned but unused variable' warning
-        locals.each_with_object("") { |key, code| code << "#{key} = #{key} = local_assigns[:#{key}];" }
+        # Assign for the same variable is to suppress unused variable warning
+        locals.each_with_object(+"") { |key, code| code << "#{key} = local_assigns[:#{key}]; #{key} = #{key};" }
       end
 
       def method_name
         @method_name ||= begin
-          m = "_#{identifier_method_name}__#{@identifier.hash}_#{__id__}"
-          m.tr!("-".freeze, "_".freeze)
+          m = +"_#{identifier_method_name}__#{@identifier.hash}_#{__id__}"
+          m.tr!("-", "_")
           m
         end
       end
 
       def identifier_method_name
-        inspect.tr("^a-z_".freeze, "_".freeze)
+        inspect.tr("^a-z_", "_")
       end
 
       def instrument(action, &block) # :doc:
@@ -349,7 +368,7 @@ module ActionView
       end
 
       def instrument_render_template(&block)
-        ActiveSupport::Notifications.instrument("!render_template.action_view".freeze, instrument_payload, &block)
+        ActiveSupport::Notifications.instrument("!render_template.action_view", instrument_payload, &block)
       end
 
       def instrument_payload

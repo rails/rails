@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "strscan"
 
 module ActionDispatch
@@ -17,14 +19,6 @@ module ActionDispatch
         def initialize(transition_table)
           @tt = transition_table
         end
-
-        def simulate(string)
-          ms = memos(string) { return }
-          MatchData.new(ms)
-        end
-
-        alias :=~    :simulate
-        alias :match :simulate
 
         def memos(string)
           input = StringScanner.new(string)

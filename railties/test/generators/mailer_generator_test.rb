@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "generators/generators_test_helper"
 require "rails/generators/mailer/mailer_generator"
 
@@ -9,13 +11,13 @@ class MailerGeneratorTest < Rails::Generators::TestCase
     run_generator
     assert_file "app/mailers/notifier_mailer.rb" do |mailer|
       assert_match(/class NotifierMailer < ApplicationMailer/, mailer)
-      assert_no_match(/default from: "from@example.com"/, mailer)
+      assert_no_match(/default from: "from@example\.com"/, mailer)
       assert_no_match(/layout :mailer_notifier/, mailer)
     end
 
     assert_file "app/mailers/application_mailer.rb" do |mailer|
       assert_match(/class ApplicationMailer < ActionMailer::Base/, mailer)
-      assert_match(/default from: 'from@example.com'/, mailer)
+      assert_match(/default from: 'from@example\.com'/, mailer)
       assert_match(/layout 'mailer'/, mailer)
     end
   end
@@ -48,11 +50,11 @@ class MailerGeneratorTest < Rails::Generators::TestCase
       assert_match(/class NotifierMailerPreview < ActionMailer::Preview/, preview)
       assert_match(/\# Preview this email at http:\/\/localhost\:3000\/rails\/mailers\/notifier_mailer\/foo/, preview)
       assert_instance_method :foo, preview do |foo|
-        assert_match(/NotifierMailer.foo/, foo)
+        assert_match(/NotifierMailer\.foo/, foo)
       end
       assert_match(/\# Preview this email at http:\/\/localhost\:3000\/rails\/mailers\/notifier_mailer\/bar/, preview)
       assert_instance_method :bar, preview do |bar|
-        assert_match(/NotifierMailer.bar/, bar)
+        assert_match(/NotifierMailer\.bar/, bar)
       end
     end
   end
@@ -137,12 +139,12 @@ class MailerGeneratorTest < Rails::Generators::TestCase
 
     assert_file "app/mailers/notifier_mailer.rb" do |mailer|
       assert_instance_method :foo, mailer do |foo|
-        assert_match(/mail to: "to@example.org"/, foo)
+        assert_match(/mail to: "to@example\.org"/, foo)
         assert_match(/@greeting = "Hi"/, foo)
       end
 
       assert_instance_method :bar, mailer do |bar|
-        assert_match(/mail to: "to@example.org"/, bar)
+        assert_match(/mail to: "to@example\.org"/, bar)
         assert_match(/@greeting = "Hi"/, bar)
       end
     end

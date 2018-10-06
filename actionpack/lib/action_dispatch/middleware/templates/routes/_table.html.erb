@@ -17,6 +17,10 @@
     line-height: 15px;
   }
 
+  #route_table thead tr.bottom th input#search {
+    -webkit-appearance: textfield;
+  }
+
   #route_table tbody tr {
     border-bottom: 1px solid #ddd;
   }
@@ -193,4 +197,7 @@
 
   setupMatchPaths();
   setupRouteToggleHelperLinks();
+
+  // Focus the search input after page has loaded
+  document.getElementById('search').focus();
 </script>

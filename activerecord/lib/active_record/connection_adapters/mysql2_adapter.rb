@@ -1,9 +1,10 @@
+# frozen_string_literal: true
+
 require "active_record/connection_adapters/abstract_mysql_adapter"
 require "active_record/connection_adapters/mysql/database_statements"
 
-gem "mysql2", ">= 0.3.18", "< 0.5"
+gem "mysql2", ">= 0.4.4"
 require "mysql2"
-raise "mysql2 0.4.3 is not supported. Please upgrade to 0.4.4+" if Mysql2::VERSION == "0.4.3"
 
 module ActiveRecord
   module ConnectionHandling # :nodoc:
@@ -13,7 +14,7 @@ module ActiveRecord
       config[:flags] ||= 0
 
       if config[:flags].kind_of? Array
-        config[:flags].push "FOUND_ROWS".freeze
+        config[:flags].push "FOUND_ROWS"
       else
         config[:flags] |= Mysql2::Client::FOUND_ROWS
       end
@@ -31,7 +32,7 @@ module ActiveRecord
 
   module ConnectionAdapters
     class Mysql2Adapter < AbstractMysqlAdapter
-      ADAPTER_NAME = "Mysql2".freeze
+      ADAPTER_NAME = "Mysql2"
 
       include MySQL::DatabaseStatements
 
@@ -54,6 +55,10 @@ module ActiveRecord
       end
 
       def supports_savepoints?
+        true
+      end
+
+      def supports_lazy_transactions?
         true
       end
 
@@ -103,6 +108,11 @@ module ActiveRecord
         @connection.close
       end
 
+      def discard! # :nodoc:
+        @connection.automatic_close = false
+        @connection = nil
+      end
+
       private
 
         def connect
@@ -111,7 +121,7 @@ module ActiveRecord
         end
 
         def configure_connection
-          @connection.query_options.merge!(as: :array)
+          @connection.query_options[:as] = :array
           super
         end
 

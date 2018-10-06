@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class BaseMailer < ActionMailer::Base
   self.mailer_name = "base_mailer"
 
@@ -17,6 +19,11 @@ class BaseMailer < ActionMailer::Base
 
   def welcome_from_another_path(path)
     mail(template_name: "welcome", template_path: path)
+  end
+
+  def welcome_without_deliveries
+    mail(template_name: "welcome")
+    mail.perform_deliveries = false
   end
 
   def html_only(hash = {})

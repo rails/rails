@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "support/connection_helper"
 
@@ -13,8 +15,9 @@ module ActiveRecord
     def setup
       super
       @subscriber = SQLSubscriber.new
-      @subscription = ActiveSupport::Notifications.subscribe("sql.active_record", @subscriber)
       @connection = ActiveRecord::Base.connection
+      @connection.materialize_transactions
+      @subscription = ActiveSupport::Notifications.subscribe("sql.active_record", @subscriber)
     end
 
     def teardown
@@ -31,15 +34,21 @@ module ActiveRecord
     end
 
     def test_encoding
-      assert_not_nil @connection.encoding
+      assert_queries(1) do
+        assert_not_nil @connection.encoding
+      end
     end
 
     def test_collation
-      assert_not_nil @connection.collation
+      assert_queries(1) do
+        assert_not_nil @connection.collation
+      end
     end
 
     def test_ctype
-      assert_not_nil @connection.ctype
+      assert_queries(1) do
+        assert_not_nil @connection.ctype
+      end
     end
 
     def test_default_client_min_messages
@@ -95,7 +104,7 @@ module ActiveRecord
     end
 
     def test_indexes_logs_name
-      assert_deprecated { @connection.indexes("items", "hello") }
+      @connection.indexes("items")
       assert_equal "SCHEMA", @subscriber.logged[0][1]
     end
 
@@ -127,8 +136,8 @@ module ActiveRecord
 
     if ActiveRecord::Base.connection.prepared_statements
       def test_statement_key_is_logged
-        binds = [bind_attribute(nil, 1)]
-        @connection.exec_query("SELECT $1::integer", "SQL", binds, prepare: true)
+        bind = Relation::QueryAttribute.new(nil, 1, Type::Value.new)
+        @connection.exec_query("SELECT $1::integer", "SQL", [bind], prepare: true)
         name = @subscriber.payloads.last[:statement_name]
         assert name
         res = @connection.exec_query("EXPLAIN (FORMAT JSON) EXECUTE #{name}(1)")
@@ -143,13 +152,13 @@ module ActiveRecord
     # When prompted, restart the PostgreSQL server with the
     # "-m fast" option or kill the individual connection assuming
     # you know the incantation to do that.
-    # To restart PostgreSQL 9.1 on OS X, installed via MacPorts, ...
+    # To restart PostgreSQL 9.1 on macOS, installed via MacPorts, ...
     # sudo su postgres -c "pg_ctl restart -D /opt/local/var/db/postgresql91/defaultdb/ -m fast"
     def test_reconnection_after_actual_disconnection_with_verify
       original_connection_pid = @connection.query("select pg_backend_pid()")
 
       # Sanity check.
-      assert @connection.active?
+      assert_predicate @connection, :active?
 
       if @connection.send(:postgresql_version) >= 90200
         secondary_connection = ActiveRecord::Base.connection_pool.checkout
@@ -168,7 +177,7 @@ module ActiveRecord
 
       @connection.verify!
 
-      assert @connection.active?
+      assert_predicate @connection, :active?
 
       # If we get no exception here, then either we re-connected successfully, or
       # we never actually got disconnected.
@@ -209,6 +218,13 @@ module ActiveRecord
       run_without_connection do |orig_connection|
         # This should execute a query that does not raise an error
         ActiveRecord::Base.establish_connection(orig_connection.deep_merge(variables: { debug_print_plan: :default }))
+      end
+    end
+
+    def test_set_session_timezone
+      run_without_connection do |orig_connection|
+        ActiveRecord::Base.establish_connection(orig_connection.deep_merge(variables: { timezone: "America/New_York" }))
+        assert_equal "America/New_York", ActiveRecord::Base.connection.query_value("SHOW TIME ZONE")
       end
     end
 

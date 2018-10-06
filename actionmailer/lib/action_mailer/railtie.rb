@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_job/railtie"
 require "action_mailer"
 require "rails"
@@ -47,12 +49,21 @@ module ActionMailer
         options.each { |k, v| send("#{k}=", v) }
       end
 
-      ActiveSupport.on_load(:action_dispatch_integration_test) { include ActionMailer::TestCase::ClearTestDeliveries }
+      ActiveSupport.on_load(:action_dispatch_integration_test) do
+        include ActionMailer::TestHelper
+        include ActionMailer::TestCase::ClearTestDeliveries
+      end
     end
 
     initializer "action_mailer.compile_config_methods" do
       ActiveSupport.on_load(:action_mailer) do
         config.compile_methods! if config.respond_to?(:compile_methods!)
+      end
+    end
+
+    initializer "action_mailer.eager_load_actions" do
+      ActiveSupport.on_load(:after_initialize) do
+        ActionMailer::Base.descendants.each(&:action_methods) if config.eager_load
       end
     end
 

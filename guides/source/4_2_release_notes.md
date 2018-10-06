@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
 Ruby on Rails 4.2 Release Notes
 ===============================
@@ -44,7 +44,7 @@ to their respective adapters. Active Job comes pre-configured with an inline
 runner that executes jobs right away.
 
 Jobs often need to take Active Record objects as arguments. Active Job passes
-object references as URIs (uniform resource identifiers) instead of marshaling
+object references as URIs (uniform resource identifiers) instead of marshalling
 the object itself. The new [Global ID](https://github.com/rails/globalid)
 library builds URIs and looks up the objects they reference. Passing Active
 Record objects as job arguments just works by using Global ID internally.
@@ -179,7 +179,7 @@ change your code to use the explicit form (`render file: "foo/bar"`) instead.
 
 `respond_with` and the corresponding class-level `respond_to` have been moved
 to the [responders](https://github.com/plataformatec/responders) gem. Add
-`gem 'responders', '~> 2.0'` to your Gemfile to use it:
+`gem 'responders', '~> 2.0'` to your `Gemfile` to use it:
 
 ```ruby
 # app/controllers/users_controller.rb
@@ -368,7 +368,7 @@ Please refer to the [Changelog][railties] for detailed changes.
 
 ### Notable changes
 
-*   Introduced `web-console` in the default application Gemfile.
+*   Introduced `web-console` in the default application `Gemfile`.
     ([Pull Request](https://github.com/rails/rails/pull/11667))
 
 *   Added a `required` option to the model generator for associations.
@@ -446,7 +446,7 @@ Please refer to the [Changelog][action-pack] for detailed changes.
     moved to the `responders` gem (version 2.0). Add `gem 'responders', '~> 2.0'`
     to your `Gemfile` to continue using these features.
     ([Pull Request](https://github.com/rails/rails/pull/16526),
-     [More Details](http://guides.rubyonrails.org/upgrading_ruby_on_rails.html#responders))
+     [More Details](https://guides.rubyonrails.org/upgrading_ruby_on_rails.html#responders))
 
 *   Removed deprecated `AbstractController::Helpers::ClassMethods::MissingHelperError`
     in favor of `AbstractController::Helpers::MissingHelperError`.
@@ -545,7 +545,7 @@ Please refer to the [Changelog][action-pack] for detailed changes.
     served if the client supports it and a pre-generated gzip file (`.gz`) is on disk.
     By default the asset pipeline generates `.gz` files for all compressible assets.
     Serving gzip files minimizes data transfer and speeds up asset requests. Always
-    [use a CDN](http://guides.rubyonrails.org/asset_pipeline.html#cdns) if you are
+    [use a CDN](https://guides.rubyonrails.org/asset_pipeline.html#cdns) if you are
     serving assets from your Rails server in production.
     ([Pull Request](https://github.com/rails/rails/pull/16466))
 

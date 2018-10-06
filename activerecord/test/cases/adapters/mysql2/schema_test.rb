@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/post"
 require "models/comment"
@@ -65,7 +67,7 @@ module ActiveRecord
       end
 
       def test_data_source_exists_wrong_schema
-        assert(!@connection.data_source_exists?("#{@db_name}.zomg"), "data_source should not exist")
+        assert_not(@connection.data_source_exists?("#{@db_name}.zomg"), "data_source should not exist")
       end
 
       def test_dump_indexes

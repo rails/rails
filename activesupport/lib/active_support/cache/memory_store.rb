@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "monitor"
 
 module ActiveSupport
@@ -26,6 +28,11 @@ module ActiveSupport
         @cache_size = 0
         @monitor = Monitor.new
         @pruning = false
+      end
+
+      # Advertise cache versioning support.
+      def self.supports_cache_versioning?
+        true
       end
 
       # Delete all data stored in a given cache store.

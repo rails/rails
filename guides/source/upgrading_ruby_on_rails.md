@@ -1,7 +1,7 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
-A Guide for Upgrading Ruby on Rails
-===================================
+Upgrading Ruby on Rails
+=======================
 
 This guide provides steps to be followed when you upgrade your applications to a newer version of Ruby on Rails. These steps are also available in individual release guides.
 
@@ -27,7 +27,7 @@ The process should go as follows:
 3. Fix tests and deprecated features.
 4. Move to the latest patch version of the next minor version.
 
-Repeat this process until you reach your target Rails version. Each time you move versions, you will need to change the Rails version number in the Gemfile (and possibly other gem versions) and run `bundle update`. Then run the Update task mentioned below to update configuration files, then run your tests.
+Repeat this process until you reach your target Rails version. Each time you move versions, you will need to change the Rails version number in the `Gemfile` (and possibly other gem versions) and run `bundle update`. Then run the Update task mentioned below to update configuration files, then run your tests.
 
 You can find a list of all released Rails versions [here](https://rubygems.org/gems/rails/versions).
 
@@ -35,17 +35,18 @@ You can find a list of all released Rails versions [here](https://rubygems.org/g
 
 Rails generally stays close to the latest released Ruby version when it's released:
 
+* Rails 6 requires Ruby 2.4.1 or newer.
 * Rails 5 requires Ruby 2.2.2 or newer.
 * Rails 4 prefers Ruby 2.0 and requires 1.9.3 or newer.
 * Rails 3.2.x is the last branch to support Ruby 1.8.7.
 * Rails 3 and above require Ruby 1.8.7 or higher. Support for all of the previous Ruby versions has been dropped officially. You should upgrade as early as possible.
 
-TIP: Ruby 1.8.7 p248 and p249 have marshaling bugs that crash Rails. Ruby Enterprise Edition has these fixed since the release of 1.8.7-2010.02. On the 1.9 front, Ruby 1.9.1 is not usable because it outright segfaults, so if you want to use 1.9.x, jump straight to 1.9.3 for smooth sailing.
+TIP: Ruby 1.8.7 p248 and p249 have marshalling bugs that crash Rails. Ruby Enterprise Edition has these fixed since the release of 1.8.7-2010.02. On the 1.9 front, Ruby 1.9.1 is not usable because it outright segfaults, so if you want to use 1.9.x, jump straight to 1.9.3 for smooth sailing.
 
 ### The Update Task
 
-Rails provides the `app:update` task (`rake rails:update` on 4.2 and earlier). After updating the Rails version
-in the Gemfile, run this task.
+Rails provides the `app:update` command (`rake rails:update` on 4.2 and earlier). After updating the Rails version
+in the `Gemfile`, run this command.
 This will help you with the creation of new files and changes of old files in an
 interactive session.
 
@@ -65,6 +66,58 @@ Overwrite /myapp/config/application.rb? (enter "h" for help) [Ynaqdh]
 
 Don't forget to review the difference, to see if there were any unexpected changes.
 
+### Configure Framework Defaults
+
+The new Rails version might have different configuration defaults than the previous version. However, after following the steps described above, your application would still run with configuration defaults from the *previous* Rails version. That's because the value for `config.load_defaults` in `config/application.rb` has not been changed yet.
+
+To allow you to upgrade to new defaults one by one, the update task has created a file `config/initializers/new_framework_defaults.rb`. Once your application is ready to run with new defaults, you can remove this file and flip the `config.load_defaults` value.
+
+
+Upgrading from Rails 5.2 to Rails 6.0
+-------------------------------------
+
+For more information on changes made to Rails 6.0 please see the [release notes](6_0_release_notes.html).
+
+### Force SSL
+
+The `force_ssl` method on controllers has been deprecated and will be removed in
+Rails 6.1. You are encouraged to enable `config.force_ssl` to enforce HTTPS
+connections throughout your application. If you need to exempt certain endpoints
+from redirection, you can use `config.ssl_options` to configure that behavior.
+
+### Purpose in signed or encrypted cookie is now embedded in the cookies values
+
+To improve security, Rails now embeds the purpose information in encrypted or signed cookies value.
+Rails can now thwart attacks that attempt to copy signed/encrypted value
+of a cookie and use it as the value of another cookie.
+
+This new embed information make those cookies incompatible with versions of Rails older than 6.0.
+
+If you require your cookies to be read by 5.2 and older, or you are still validating your 6.0 deploy and want
+to allow you to rollback set
+`Rails.application.config.action_dispatch.use_cookies_with_metadata` to `false`.
+
+Upgrading from Rails 5.1 to Rails 5.2
+-------------------------------------
+
+For more information on changes made to Rails 5.2 please see the [release notes](5_2_release_notes.html).
+
+### Bootsnap
+
+Rails 5.2 adds bootsnap gem in the [newly generated app's Gemfile](https://github.com/rails/rails/pull/29313).
+The `app:update` command sets it up in `boot.rb`. If you want to use it, then add it in the Gemfile,
+otherwise change the `boot.rb` to not use bootsnap.
+
+### Expiry in signed or encrypted cookie is now embedded in the cookies values
+
+To improve security, Rails now embeds the expiry information also in encrypted or signed cookies value.
+
+This new embed information make those cookies incompatible with versions of Rails older than 5.2.
+
+If you require your cookies to be read by 5.1 and older, or you are still validating your 5.2 deploy and want
+to allow you to rollback set
+`Rails.application.config.action_dispatch.use_authenticated_cookie_encryption` to `false`.
+
 Upgrading from Rails 5.0 to Rails 5.1
 -------------------------------------
 
@@ -72,7 +125,7 @@ For more information on changes made to Rails 5.1 please see the [release notes]
 
 ### Top-level `HashWithIndifferentAccess` is soft-deprecated
 
-If your application uses the the top-level `HashWithIndifferentAccess` class, you
+If your application uses the top-level `HashWithIndifferentAccess` class, you
 should slowly move your code to instead use `ActiveSupport::HashWithIndifferentAccess`.
 
 It is only soft-deprecated, which means that your code will not break at the
@@ -179,7 +232,7 @@ See [#19034](https://github.com/rails/rails/pull/19034) for more details.
 
 `assigns` and `assert_template` have been extracted to the `rails-controller-testing` gem. To
 continue using these methods in your controller tests, add `gem 'rails-controller-testing'` to
-your Gemfile.
+your `Gemfile`.
 
 If you are using Rspec for testing, please see the extra configuration required in the gem's
 documentation.
@@ -212,7 +265,7 @@ true.
 
 `ActiveModel::Serializers::Xml` has been extracted from Rails to the `activemodel-serializers-xml`
 gem. To continue using XML serialization in your application, add `gem 'activemodel-serializers-xml'`
-to your Gemfile.
+to your `Gemfile`.
 
 ### Removed Support for Legacy `mysql` Database Adapter
 
@@ -224,21 +277,23 @@ it.
 
 `debugger` is not supported by Ruby 2.2 which is required by Rails 5. Use `byebug` instead.
 
-### Use bin/rails for running tasks and tests
+### Use `rails` for running tasks and tests
 
 Rails 5 adds the ability to run tasks and tests through `bin/rails` instead of rake. Generally
-these changes are in parallel with rake, but some were ported over altogether.
+these changes are in parallel with rake, but some were ported over altogether. As the `rails`
+command already looks for and runs `bin/rails`, we recommend you to use the shorter `rails`
+over `bin/rails.
 
-To use the new test runner simply type `bin/rails test`.
+To use the new test runner simply type `rails test`.
 
 `rake dev:cache` is now `rails dev:cache`.
 
-Run `bin/rails` to see the list of commands available.
+Run `rails` inside your application's directory to see the list of commands available.
 
 ### `ActionController::Parameters` No Longer Inherits from `HashWithIndifferentAccess`
 
 Calling `params` in your application will now return an object instead of a hash. If your
-parameters are already permitted, then you will not need to make any changes. If you are using `slice`
+parameters are already permitted, then you will not need to make any changes. If you are using `map`
 and other methods that depend on being able to read the hash regardless of `permitted?` you will
 need to upgrade your application to first permit and then convert to a hash.
 
@@ -275,6 +330,16 @@ You can now just call the dependency once with a wildcard.
 ```erb
 <% # Template Dependency: recordings/threads/events/* %>
 ```
+
+### `ActionView::Helpers::RecordTagHelper` moved to external gem (record_tag_helper)
+
+`content_tag_for` and `div_for` have been removed in favor of just using `content_tag`. To continue using the older methods, add the `record_tag_helper` gem to your `Gemfile`:
+
+```ruby
+gem 'record_tag_helper', '~> 1.0'
+```
+
+See [#18411](https://github.com/rails/rails/pull/18411) for more details.
 
 ### Removed Support for `protected_attributes` Gem
 
@@ -387,16 +452,25 @@ When using Ruby 2.4, you can preserve the timezone of the receiver when calling 
 
     ActiveSupport.to_time_preserves_timezone = false
 
+### Changes with JSON/JSONB serialization
+
+In Rails 5.0, how JSON/JSONB attributes are serialized and deserialized changed. Now, if
+you set a column equal to a `String`, Active Record will no longer turn that string
+into a `Hash`, and will instead only return the string. This is not limited to code
+interacting with models, but also affects `:default` column settings in `db/schema.rb`.
+It is recommended that you do not set columns equal to a `String`, but pass a `Hash`
+instead, which will be converted to and from a JSON string automatically.
+
 Upgrading from Rails 4.1 to Rails 4.2
 -------------------------------------
 
 ### Web Console
 
-First, add `gem 'web-console', '~> 2.0'` to the `:development` group in your Gemfile and run `bundle install` (it won't have been included when you upgraded Rails). Once it's been installed, you can simply drop a reference to the console helper (i.e., `<%= console %>`) into any view you want to enable it for. A console will also be provided on any error page you view in your development environment.
+First, add `gem 'web-console', '~> 2.0'` to the `:development` group in your `Gemfile` and run `bundle install` (it won't have been included when you upgraded Rails). Once it's been installed, you can simply drop a reference to the console helper (i.e., `<%= console %>`) into any view you want to enable it for. A console will also be provided on any error page you view in your development environment.
 
 ### Responders
 
-`respond_with` and the class-level `respond_to` methods have been extracted to the `responders` gem. To use them, simply add `gem 'responders', '~> 2.0'` to your Gemfile. Calls to `respond_with` and `respond_to` (again, at the class level) will no longer work without having included the `responders` gem in your dependencies:
+`respond_with` and the class-level `respond_to` methods have been extracted to the `responders` gem. To use them, simply add `gem 'responders', '~> 2.0'` to your `Gemfile`. Calls to `respond_with` and `respond_to` (again, at the class level) will no longer work without having included the `responders` gem in your dependencies:
 
 ```ruby
 # app/controllers/users_controller.rb
@@ -540,7 +614,7 @@ Read the [gem's readme](https://github.com/rails/rails-html-sanitizer) for more 
 The documentation for `PermitScrubber` and `TargetScrubber` explains how you
 can gain complete control over when and how elements should be stripped.
 
-If your application needs to use the old sanitizer implementation, include `rails-deprecated_sanitizer` in your Gemfile:
+If your application needs to use the old sanitizer implementation, include `rails-deprecated_sanitizer` in your `Gemfile`:
 
 ```ruby
 gem 'rails-deprecated_sanitizer'
@@ -548,7 +622,7 @@ gem 'rails-deprecated_sanitizer'
 
 ### Rails DOM Testing
 
-The [`TagAssertions` module](http://api.rubyonrails.org/classes/ActionDispatch/Assertions/TagAssertions.html) (containing methods such as `assert_tag`), [has been deprecated](https://github.com/rails/rails/blob/6061472b8c310158a2a2e8e9a6b81a1aef6b60fe/actionpack/lib/action_dispatch/testing/assertions/dom.rb) in favor of the `assert_select` methods from the `SelectorAssertions` module, which has been extracted into the [rails-dom-testing gem](https://github.com/rails/rails-dom-testing).
+The [`TagAssertions` module](http://api.rubyonrails.org/v4.1/classes/ActionDispatch/Assertions/TagAssertions.html) (containing methods such as `assert_tag`), [has been deprecated](https://github.com/rails/rails/blob/6061472b8c310158a2a2e8e9a6b81a1aef6b60fe/actionpack/lib/action_dispatch/testing/assertions/dom.rb) in favor of the `assert_select` methods from the `SelectorAssertions` module, which has been extracted into the [rails-dom-testing gem](https://github.com/rails/rails-dom-testing).
 
 
 ### Masked Authenticity Tokens
@@ -598,7 +672,7 @@ migration DSL counterpart.
 
 The migration procedure is as follows:
 
-1. remove `gem "foreigner"` from the Gemfile.
+1. remove `gem "foreigner"` from the `Gemfile`.
 2. run `bundle install`.
 3. run `bin/rake db:schema:dump`.
 4. make sure that `db/schema.rb` contains every foreign key definition with
@@ -629,7 +703,7 @@ xhr :get, :index, format: :js
 
 to explicitly test an `XmlHttpRequest`.
 
-Note: Your own `<script>` tags are treated as cross-origin and blocked by
+NOTE: Your own `<script>` tags are treated as cross-origin and blocked by
 default, too. If you really mean to load JavaScript from `<script>` tags,
 you must now explicitly skip CSRF protection on those actions.
 
@@ -750,7 +824,7 @@ and has been removed from Rails.
 
 If your application currently depends on MultiJSON directly, you have a few options:
 
-1. Add 'multi_json' to your Gemfile. Note that this might cease to work in the future
+1. Add 'multi_json' to your `Gemfile`. Note that this might cease to work in the future
 
 2. Migrate away from MultiJSON by using `obj.to_json`, and `JSON.parse(str)` instead.
 
@@ -791,7 +865,7 @@ part of the rewrite, the following features have been removed from the encoder:
 
 If your application depends on one of these features, you can get them back by
 adding the [`activesupport-json_encoder`](https://github.com/rails/activesupport-json_encoder)
-gem to your Gemfile.
+gem to your `Gemfile`.
 
 #### JSON representation of Time objects
 
@@ -1080,14 +1154,14 @@ being used, you can update your form to use the `PUT` method instead:
 <%= form_for [ :update_name, @user ], method: :put do |f| %>
 ```
 
-For more on PATCH and why this change was made, see [this post](http://weblog.rubyonrails.org/2012/2/26/edge-rails-patch-is-the-new-primary-http-method-for-updates/)
+For more on PATCH and why this change was made, see [this post](https://weblog.rubyonrails.org/2012/2/26/edge-rails-patch-is-the-new-primary-http-method-for-updates/)
 on the Rails blog.
 
 #### A note about media types
 
 The errata for the `PATCH` verb [specifies that a 'diff' media type should be
 used with `PATCH`](http://www.rfc-editor.org/errata_search.php?rfc=5789). One
-such format is [JSON Patch](http://tools.ietf.org/html/rfc6902). While Rails
+such format is [JSON Patch](https://tools.ietf.org/html/rfc6902). While Rails
 does not support JSON Patch natively, it's easy enough to add support:
 
 ```
@@ -1116,8 +1190,8 @@ full support for the last few changes in the specification.
 
 ### Gemfile
 
-Rails 4.0 removed the `assets` group from Gemfile. You'd need to remove that
-line from your Gemfile when upgrading. You should also update your application
+Rails 4.0 removed the `assets` group from `Gemfile`. You'd need to remove that
+line from your `Gemfile` when upgrading. You should also update your application
 file (in `config/application.rb`):
 
 ```ruby
@@ -1128,7 +1202,7 @@ Bundler.require(*Rails.groups)
 
 ### vendor/plugins
 
-Rails 4.0 no longer supports loading plugins from `vendor/plugins`. You must replace any plugins by extracting them to gems and adding them to your Gemfile. If you choose not to make them gems, you can move them into, say, `lib/my_plugin/*` and add an appropriate initializer in `config/initializers/my_plugin.rb`.
+Rails 4.0 no longer supports loading plugins from `vendor/plugins`. You must replace any plugins by extracting them to gems and adding them to your `Gemfile`. If you choose not to make them gems, you can move them into, say, `lib/my_plugin/*` and add an appropriate initializer in `config/initializers/my_plugin.rb`.
 
 ### Active Record
 
@@ -1195,7 +1269,7 @@ end
 
 ### Active Resource
 
-Rails 4.0 extracted Active Resource to its own gem. If you still need the feature you can add the [Active Resource gem](https://github.com/rails/activeresource) in your Gemfile.
+Rails 4.0 extracted Active Resource to its own gem. If you still need the feature you can add the [Active Resource gem](https://github.com/rails/activeresource) in your `Gemfile`.
 
 ### Active Model
 
@@ -1291,7 +1365,7 @@ get 'こんにちは', controller: 'welcome', action: 'index'
   get '/' => 'root#index'
 ```
 
-* Rails 4.0 has removed `ActionDispatch::BestStandardsSupport` middleware, `<!DOCTYPE html>` already triggers standards mode per http://msdn.microsoft.com/en-us/library/jj676915(v=vs.85).aspx and ChromeFrame header has been moved to `config.action_dispatch.default_headers`.
+* Rails 4.0 has removed `ActionDispatch::BestStandardsSupport` middleware, `<!DOCTYPE html>` already triggers standards mode per https://msdn.microsoft.com/en-us/library/jj676915(v=vs.85).aspx and ChromeFrame header has been moved to `config.action_dispatch.default_headers`.
 
 Remember you must also remove any references to the middleware from your application code, for example:
 
@@ -1301,6 +1375,17 @@ config.middleware.insert_before(Rack::Lock, ActionDispatch::BestStandardsSupport
 ```
 
 Also check your environment settings for `config.action_dispatch.best_standards_support` and remove it if present.
+
+* Rails 4.0 allows configuration of HTTP headers by setting `config.action_dispatch.default_headers`. The defaults are as follows:
+
+```ruby
+  config.action_dispatch.default_headers = {
+    'X-Frame-Options' => 'SAMEORIGIN',
+    'X-XSS-Protection' => '1; mode=block'
+  }
+```
+
+Please note that if your application is dependent on loading certain pages in a `<frame>` or `<iframe>`, then you may need to explicitly set `X-Frame-Options` to `ALLOW-FROM ...` or `ALLOWALL`.
 
 * In Rails 4.0, precompiling assets no longer automatically copies non-JS/CSS assets from `vendor/assets` and `lib/assets`. Rails application and engine developers should put these assets in `app/assets` or configure `config.assets.precompile`.
 
@@ -1325,7 +1410,7 @@ Rails 4.0 removes the `j` alias for `ERB::Util#json_escape` since `j` is already
 
 #### Cache
 
-The caching method changed between Rails 3.x and 4.0. You should [change the cache namespace](http://guides.rubyonrails.org/caching_with_rails.html#activesupport-cache-store) and roll out with a cold cache.
+The caching method changed between Rails 3.x and 4.0. You should [change the cache namespace](https://guides.rubyonrails.org/caching_with_rails.html#activesupport-cache-store) and roll out with a cold cache.
 
 ### Helpers Loading Order
 
@@ -1395,7 +1480,7 @@ config.active_record.mass_assignment_sanitizer = :strict
 
 ### vendor/plugins
 
-Rails 3.2 deprecates `vendor/plugins` and Rails 4.0 will remove them completely. While it's not strictly necessary as part of a Rails 3.2 upgrade, you can start replacing any plugins by extracting them to gems and adding them to your Gemfile. If you choose not to make them gems, you can move them into, say, `lib/my_plugin/*` and add an appropriate initializer in `config/initializers/my_plugin.rb`.
+Rails 3.2 deprecates `vendor/plugins` and Rails 4.0 will remove them completely. While it's not strictly necessary as part of a Rails 3.2 upgrade, you can start replacing any plugins by extracting them to gems and adding them to your `Gemfile`. If you choose not to make them gems, you can move them into, say, `lib/my_plugin/*` and add an appropriate initializer in `config/initializers/my_plugin.rb`.
 
 ### Active Record
 

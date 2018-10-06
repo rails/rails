@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/topic"
 require "models/reply"
@@ -157,11 +159,25 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     assert_equal(settings, Topic.find(topic.id).content)
   end
 
+  def test_where_by_serialized_attribute_with_array
+    settings = [ "color" => "green" ]
+    Topic.serialize(:content, Array)
+    topic = Topic.create!(content: settings)
+    assert_equal topic, Topic.where(content: settings).take
+  end
+
   def test_where_by_serialized_attribute_with_hash
     settings = { "color" => "green" }
     Topic.serialize(:content, Hash)
     topic = Topic.create!(content: settings)
     assert_equal topic, Topic.where(content: settings).take
+  end
+
+  def test_where_by_serialized_attribute_with_hash_in_array
+    settings = { "color" => "green" }
+    Topic.serialize(:content, Hash)
+    topic = Topic.create!(content: settings)
+    assert_equal topic, Topic.where(content: [settings]).take
   end
 
   def test_serialized_default_class
@@ -277,7 +293,7 @@ class SerializedAttributeTest < ActiveRecord::TestCase
 
     topic = Topic.new(content: nil)
 
-    assert_not topic.content_changed?
+    assert_not_predicate topic, :content_changed?
   end
 
   def test_classes_without_no_arg_constructors_are_not_supported
@@ -306,7 +322,7 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     topic = Topic.create!(content: {})
     topic2 = Topic.create!(content: nil)
 
-    assert_equal [topic, topic2], Topic.where(content: nil)
+    assert_equal [topic, topic2], Topic.where(content: nil).sort_by(&:id)
   end
 
   def test_nil_is_always_persisted_as_null
@@ -347,6 +363,34 @@ class SerializedAttributeTest < ActiveRecord::TestCase
 
     topic = model.create!(foo: "bar")
     topic.foo
-    refute topic.changed?
+    assert_not_predicate topic, :changed?
+  end
+
+  def test_serialized_attribute_works_under_concurrent_initial_access
+    model = Topic.dup
+
+    topic = model.last
+    topic.update group: "1"
+
+    model.serialize :group, JSON
+    model.reset_column_information
+
+    # This isn't strictly necessary for the test, but a little bit of
+    # knowledge of internals allows us to make failures far more likely.
+    model.define_singleton_method(:define_attribute) do |*args|
+      Thread.pass
+      super(*args)
+    end
+
+    threads = 4.times.map do
+      Thread.new do
+        topic.reload.group
+      end
+    end
+
+    # All the threads should retrieve the value knowing it is JSON, and
+    # thus decode it. If this fails, some threads will instead see the
+    # raw string ("1"), or raise an exception.
+    assert_equal [1] * threads.size, threads.map(&:value)
   end
 end

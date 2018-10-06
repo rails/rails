@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
 Contributing to Ruby on Rails
 =============================
@@ -13,7 +13,7 @@ After reading this guide, you will know:
 * How to contribute to the Ruby on Rails documentation.
 * How to contribute to the Ruby on Rails code.
 
-Ruby on Rails is not "someone else's framework." Over the years, hundreds of people have contributed to Ruby on Rails ranging from a single character to massive architectural changes or significant documentation - all with the goal of making Ruby on Rails better for everyone. Even if you don't feel up to writing code or documentation yet, there are a variety of other ways that you can contribute, from reporting issues to testing patches.
+Ruby on Rails is not "someone else's framework." Over the years, thousands of people have contributed to Ruby on Rails ranging from a single character to massive architectural changes or significant documentation - all with the goal of making Ruby on Rails better for everyone. Even if you don't feel up to writing code or documentation yet, there are a variety of other ways that you can contribute, from reporting issues to testing patches.
 
 As mentioned in [Rails'
 README](https://github.com/rails/rails/blob/master/README.md), everyone interacting in Rails and its sub-projects' codebases, issue trackers, chat rooms, and mailing lists is expected to follow the Rails [code of conduct](http://rubyonrails.org/conduct/).
@@ -23,7 +23,7 @@ README](https://github.com/rails/rails/blob/master/README.md), everyone interact
 Reporting an Issue
 ------------------
 
-Ruby on Rails uses [GitHub Issue Tracking](https://github.com/rails/rails/issues) to track issues (primarily bugs and contributions of new code). If you've found a bug in Ruby on Rails, this is the place to start. You'll need to create a (free) GitHub account in order to submit an issue, to comment on them or to create pull requests.
+Ruby on Rails uses [GitHub Issue Tracking](https://github.com/rails/rails/issues) to track issues (primarily bugs and contributions of new code). If you've found a bug in Ruby on Rails, this is the place to start. You'll need to create a (free) GitHub account in order to submit an issue, to comment on them, or to create pull requests.
 
 NOTE: Bugs in the most recent released version of Ruby on Rails are likely to get the most attention. Also, the Rails core team is always interested in feedback from those who can take the time to test _edge Rails_ (the code for the version of Rails that is currently under development). Later in this guide, you'll find out how to get edge Rails for testing.
 
@@ -37,7 +37,7 @@ Then, don't get your hopes up! Unless you have a "Code Red, Mission Critical, th
 
 ### Create an Executable Test Case
 
-Having a way to reproduce your issue will be very helpful for others to help confirm, investigate and ultimately fix your issue. You can do this by providing an executable test case. To make this process easier, we have prepared several bug report templates for you to use as a starting point:
+Having a way to reproduce your issue will be very helpful for others to help confirm, investigate, and ultimately fix your issue. You can do this by providing an executable test case. To make this process easier, we have prepared several bug report templates for you to use as a starting point:
 
 * Template for Active Record (models, database) issues: [gem](https://github.com/rails/rails/blob/master/guides/bug_report_templates/active_record_gem.rb) / [master](https://github.com/rails/rails/blob/master/guides/bug_report_templates/active_record_master.rb)
 * Template for testing Active Record (migration) issues: [gem](https://github.com/rails/rails/blob/master/guides/bug_report_templates/active_record_migrations_gem.rb) / [master](https://github.com/rails/rails/blob/master/guides/bug_report_templates/active_record_migrations_master.rb)
@@ -84,7 +84,9 @@ discussions new features require.
 Helping to Resolve Existing Issues
 ----------------------------------
 
-As a next step beyond reporting issues, you can help the core team resolve existing issues. If you check the [issues list](https://github.com/rails/rails/issues) in GitHub Issues, you'll find lots of issues already requiring attention. What can you do for these? Quite a bit, actually:
+As a next step beyond reporting issues, you can help the core team resolve existing ones by providing feedback about them. If you are new to Rails core development, that might be a great way to walk your first steps, you'll get familiar with the code base and the processes.
+
+If you check the [issues list](https://github.com/rails/rails/issues) in GitHub Issues, you'll find lots of issues already requiring attention. What can you do for these? Quite a bit, actually:
 
 ### Verifying Bug Reports
 
@@ -92,7 +94,7 @@ For starters, it helps just to verify bug reports. Can you reproduce the reporte
 
 If an issue is very vague, can you help narrow it down to something more specific? Maybe you can provide additional information to help reproduce a bug, or help by eliminating needless steps that aren't required to demonstrate the problem.
 
-If you find a bug report without a test, it's very useful to contribute a failing test. This is also a great way to get started exploring the source code: looking at the existing test files will teach you how to write more tests. New tests are best contributed in the form of a patch, as explained later on in the "Contributing to the Rails Code" section.
+If you find a bug report without a test, it's very useful to contribute a failing test. This is also a great way to get started exploring the source code: looking at the existing test files will teach you how to write more tests. New tests are best contributed in the form of a patch, as explained later on in the "[Contributing to the Rails Code](#contributing-to-the-rails-code)" section.
 
 Anything you can do to make bug reports more succinct or easier to reproduce helps folks trying to write code to fix those bugs - whether you end up writing the code yourself or not.
 
@@ -130,9 +132,10 @@ Contributing to the Rails Documentation
 Ruby on Rails has two main sets of documentation: the guides, which help you
 learn about Ruby on Rails, and the API, which serves as a reference.
 
-You can help improve the Rails guides by making them more coherent, consistent or readable, adding missing information, correcting factual errors, fixing typos, or bringing them up to date with the latest edge Rails.
+You can help improve the Rails guides by making them more coherent, consistent, or readable, adding missing information, correcting factual errors, fixing typos, or bringing them up to date with the latest edge Rails.
 
-To do so, open a pull request to [Rails](https://github.com/rails/rails) on GitHub.
+To do so, make changes to Rails guides source files (located [here](https://github.com/rails/rails/tree/master/guides/source) on GitHub). Then open a pull request to apply your
+changes to the master branch.
 
 When working with documentation, please take into account the [API Documentation Guidelines](api_documentation_guidelines.html) and the [Ruby on Rails Guides Guidelines](ruby_on_rails_guides_guidelines.html).
 
@@ -141,13 +144,14 @@ NOTE: To help our CI servers you should add [ci skip] to your documentation comm
 Translating Rails Guides
 ------------------------
 
-We are happy to have people volunteer to translate the Rails guides into their own language.
-If you want to translate the Rails guides in your own language, follows these steps:
+We are happy to have people volunteer to translate the Rails guides. Just follow these steps:
 
-* Fork the project (rails/rails).
+* Fork https://github.com/rails/rails.
 * Add a source folder for your own language, for example: *guides/source/it-IT* for Italian.
 * Copy the contents of *guides/source* into your own language directory and translate them.
 * Do NOT translate the HTML files, as they are automatically generated.
+
+Note that translations are not submitted to the Rails repository. As detailed above, your work happens in a fork. This is so because in practice documentation maintenance via patches is only sustainable in English.
 
 To generate the guides in HTML format cd into the *guides* directory then run (eg. for it-IT):
 
@@ -163,11 +167,11 @@ NOTE: The instructions are for Rails > 4. The Redcarpet Gem doesn't work with JR
 Translation efforts we know about (various versions):
 
 * **Italian**: [https://github.com/rixlabs/docrails](https://github.com/rixlabs/docrails)
-* **Spanish**: [http://wiki.github.com/gramos/docrails](http://wiki.github.com/gramos/docrails)
-* **Polish**: [https://github.com/apohllo/docrails/tree/master](https://github.com/apohllo/docrails/tree/master)
+* **Spanish**: [https://github.com/gramos/docrails/wiki](https://github.com/gramos/docrails/wiki)
+* **Polish**: [https://github.com/apohllo/docrails](https://github.com/apohllo/docrails)
 * **French** : [https://github.com/railsfrance/docrails](https://github.com/railsfrance/docrails)
 * **Czech** : [https://github.com/rubyonrails-cz/docrails/tree/czech](https://github.com/rubyonrails-cz/docrails/tree/czech)
-* **Turkish** : [https://github.com/ujk/docrails/tree/master](https://github.com/ujk/docrails/tree/master)
+* **Turkish** : [https://github.com/ujk/docrails](https://github.com/ujk/docrails)
 * **Korean** : [https://github.com/rorlakr/rails-guides](https://github.com/rorlakr/rails-guides)
 * **Simplified Chinese** : [https://github.com/ruby-china/guides](https://github.com/ruby-china/guides)
 * **Traditional Chinese** : [https://github.com/docrails-tw/guides](https://github.com/docrails-tw/guides)
@@ -183,7 +187,7 @@ To move on from submitting bugs to helping resolve existing issues or contributi
 
 #### The Easy Way
 
-The easiest and recommended way to get a development environment ready to hack is to use the [Rails development box](https://github.com/rails/rails-dev-box).
+The easiest and recommended way to get a development environment ready to hack is to use the [rails-dev-box](https://github.com/rails/rails-dev-box).
 
 #### The Hard Way
 
@@ -235,7 +239,6 @@ Now get busy and add/edit code. You're on your branch now, so you can write what
 * Include tests that fail without your code, and pass with it.
 * Update the (surrounding) documentation, examples elsewhere, and the guides: whatever is affected by your contribution.
 
-
 TIP: Changes that are cosmetic in nature and do not add anything substantial to the stability, functionality, or testability of Rails will generally not be accepted (read more about [our rationales behind this decision](https://github.com/rails/rails/pull/13771#issuecomment-32746700)).
 
 #### Follow the Coding Conventions
@@ -250,11 +253,23 @@ Rails follows a simple set of coding style conventions:
 * Prefer class << self over self.method for class methods.
 * Use `my_method(my_arg)` not `my_method( my_arg )` or `my_method my_arg`.
 * Use `a = b` and not `a=b`.
-* Use assert_not methods instead of refute.
+* Use assert\_not methods instead of refute.
 * Prefer `method { do_stuff }` instead of `method{do_stuff}` for single-line blocks.
 * Follow the conventions in the source you see used already.
 
 The above are guidelines - please use your best judgment in using them.
+
+Additionally, we have [RuboCop](https://www.rubocop.org/) rules defined to codify some of our coding conventions. You can run RuboCop locally against the file that you have modified before submitting a pull request:
+
+```bash
+$ rubocop actionpack/lib/action_controller/metal/strong_parameters.rb
+Inspecting 1 file
+.
+
+1 file inspected, no offenses detected
+```
+
+For `rails-ujs` CoffeeScript and JavaScript files, you can run `npm run lint` in `actionview` folder.
 
 ### Benchmark Your Code
 
@@ -321,9 +336,29 @@ $ bundle exec ruby -w -Itest test/mail_layout_test.rb -n test_explicit_class_lay
 The `-n` option allows you to run a single method instead of the whole
 file.
 
+#### Running tests with a specific seed
+
+Test execution is randomized with a randomization seed. If you are experiencing random
+test failures you can more accurately reproduce a failing test scenario by specifically
+setting the randomization seed.
+
+Running all tests for a component:
+
+```bash
+$ cd actionmailer
+$ SEED=15002 bundle exec rake test
+```
+
+Running a single test file:
+
+```bash
+$ cd actionmailer
+$ SEED=15002 bundle exec ruby -w -Itest test/mail_layout_test.rb
+```
+
 #### Testing Active Record
 
-First, create the databases you'll need. You can find a list of the required 
+First, create the databases you'll need. You can find a list of the required
 table names, usernames, and passwords in `activerecord/test/config.example.yml`.
 
 For MySQL and PostgreSQL, running the SQL statements `create database
@@ -370,17 +405,11 @@ You can invoke `test_jdbcmysql`, `test_jdbcsqlite3` or `test_jdbcpostgresql` als
 
 The test suite runs with warnings enabled. Ideally, Ruby on Rails should issue no warnings, but there may be a few, as well as some from third-party libraries. Please ignore (or fix!) them, if any, and submit patches that do not issue new warnings.
 
-If you are sure about what you are doing and would like to have a more clear output, there's a way to override the flag:
-
-```bash
-$ RUBYOPT=-W0 bundle exec rake test
-```
-
 ### Updating the CHANGELOG
 
 The CHANGELOG is an important part of every release. It keeps the list of changes for every Rails version.
 
-You should add an entry **to the top** of the CHANGELOG of the framework that you modified if you're adding or removing a feature, committing a bug fix or adding deprecation notices. Refactorings and documentation changes generally should not go to the CHANGELOG.
+You should add an entry **to the top** of the CHANGELOG of the framework that you modified if you're adding or removing a feature, committing a bug fix, or adding deprecation notices. Refactorings and documentation changes generally should not go to the CHANGELOG.
 
 A CHANGELOG entry should summarize what was changed and should end with the author's name. You can use multiple lines if you need more space and you can attach code examples indented with 4 spaces. If a change is related to a specific issue, you should attach the issue's number. Here is an example CHANGELOG entry:
 
@@ -394,7 +423,7 @@ A CHANGELOG entry should summarize what was changed and should end with the auth
           end
         end
 
-    You can continue after the code example and you can attach issue number. GH#1234
+    You can continue after the code example and you can attach issue number. Fixes #1234.
 
     *Your Name*
 ```
@@ -479,18 +508,10 @@ Navigate to the Rails [GitHub repository](https://github.com/rails/rails) and pr
 Add the new remote to your local repository on your local machine:
 
 ```bash
-$ git remote add mine https://github.com:<your user name>/rails.git
+$ git remote add fork https://github.com/<your user name>/rails.git
 ```
 
-Push to your remote:
-
-```bash
-$ git push mine my_new_branch
-```
-
-You might have cloned your forked repository into your machine and might want to add the original Rails repository as a remote instead, if that's the case here's what you have to do.
-
-In the directory you cloned your fork:
+You may have cloned your local repository from rails/rails or you may have cloned from your forked repository. To avoid ambiguity the following git commands assume that you have made a "rails" remote that points to rails/rails.
 
 ```bash
 $ git remote add rails https://github.com/rails/rails.git
@@ -507,22 +528,16 @@ Merge the new content:
 ```bash
 $ git checkout master
 $ git rebase rails/master
+$ git checkout my_new_branch
+$ git rebase rails/master
 ```
 
 Update your fork:
 
 ```bash
-$ git push origin master
+$ git push fork master
+$ git push fork my_new_branch
 ```
-
-If you want to update another branch:
-
-```bash
-$ git checkout branch_name
-$ git rebase rails/branch_name
-$ git push origin branch_name
-```
-
 
 ### Issue a Pull Request
 
@@ -553,7 +568,7 @@ is the open source life.
 
 If it's been over a week, and you haven't heard anything, you might want to try
 and nudge things along. You can use the [rubyonrails-core mailing
-list](http://groups.google.com/group/rubyonrails-core/) for this. You can also
+list](https://groups.google.com/forum/#!forum/rubyonrails-core) for this. You can also
 leave another comment on the pull request.
 
 While you're waiting for feedback on your pull request, open up a few other
@@ -573,29 +588,15 @@ branches, squashing makes it easier to revert bad commits, and the git history
 can be a bit easier to follow. Rails is a large project, and a bunch of
 extraneous commits can add a lot of noise.
 
-In order to do this, you'll need to have a git remote that points at the main
-Rails repository. This is useful anyway, but just in case you don't have it set
-up, make sure that you do this first:
-
 ```bash
-$ git remote add upstream https://github.com/rails/rails.git
-```
-
-You can call this remote whatever you'd like, but if you don't use `upstream`,
-then change the name to your own in the instructions below.
-
-Given that your remote branch is called `my_pull_request`, then you can do the
-following:
-
-```bash
-$ git fetch upstream
-$ git checkout my_pull_request
-$ git rebase -i upstream/master
+$ git fetch rails
+$ git checkout my_new_branch
+$ git rebase -i rails/master
 
 < Choose 'squash' for all of your commits except the first one. >
 < Edit the commit message to make sense, and describe all your changes. >
 
-$ git push origin my_pull_request -f
+$ git push fork my_new_branch -f
 ```
 
 You should be able to refresh the pull request on GitHub and see that it has
@@ -611,7 +612,7 @@ you can force push to your branch on GitHub as described earlier in
 squashing commits section:
 
 ```bash
-$ git push origin my_pull_request -f
+$ git push fork my_new_branch -f
 ```
 
 This will update the branch and pull request on GitHub with your new code. Do
@@ -623,7 +624,7 @@ note that using force push may result in commits being lost on the remote branch
 If you want to add a fix to older versions of Ruby on Rails, you'll need to set up and switch to your own local tracking branch. Here is an example to switch to the 4-0-stable branch:
 
 ```bash
-$ git branch --track 4-0-stable origin/4-0-stable
+$ git branch --track 4-0-stable rails/4-0-stable
 $ git checkout 4-0-stable
 ```
 

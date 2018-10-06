@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
 Active Model Basics
 ===================
@@ -61,7 +61,7 @@ person.age_highest?  # => false
 
 `ActiveModel::Callbacks` gives Active Record style callbacks. This provides an
 ability to define callbacks which run at appropriate times.
-After defining callbacks, you can wrap them with before, after and around
+After defining callbacks, you can wrap them with before, after, and around
 custom methods.
 
 ```ruby
@@ -459,17 +459,18 @@ features out of the box.
 `ActiveModel::SecurePassword` provides a way to securely store any
 password in an encrypted form. When you include this module, a
 `has_secure_password` class method is provided which defines
-a `password` accessor with certain validations on it.
+a `password` accessor with certain validations on it by default.
 
 #### Requirements
 
 `ActiveModel::SecurePassword` depends on [`bcrypt`](https://github.com/codahale/bcrypt-ruby 'BCrypt'),
-so include this gem in your Gemfile to use `ActiveModel::SecurePassword` correctly.
-In order to make this work, the model must have an accessor named `password_digest`.
-The `has_secure_password` will add the following validations on the `password` accessor:
+so include this gem in your `Gemfile` to use `ActiveModel::SecurePassword` correctly.
+In order to make this work, the model must have an accessor named `XXX_digest`.
+Where `XXX` is the attribute name of your desired password.
+The following validations are added automatically:
 
 1. Password should be present.
-2. Password should be equal to its confirmation (provided `password_confirmation` is passed along).
+2. Password should be equal to its confirmation (provided `XXX_confirmation` is passed along).
 3. The maximum length of a password is 72 (required by `bcrypt` on which ActiveModel::SecurePassword depends)
 
 #### Examples
@@ -478,7 +479,9 @@ The `has_secure_password` will add the following validations on the `password` a
 class Person
   include ActiveModel::SecurePassword
   has_secure_password
-  attr_accessor :password_digest
+  has_secure_password :recovery_password, validations: false
+
+  attr_accessor :password_digest, :recovery_password_digest
 end
 
 person = Person.new
@@ -502,4 +505,17 @@ person.valid? # => true
 # When all validations are passed.
 person.password = person.password_confirmation = 'aditya'
 person.valid? # => true
+
+person.recovery_password = "42password"
+
+person.authenticate('aditya') # => person
+person.authenticate('notright') # => false
+person.authenticate_password('aditya') # => person
+person.authenticate_password('notright') # => false
+
+person.authenticate_recovery_password('42password') # => person
+person.authenticate_recovery_password('notright') # => false
+
+person.password_digest # => "$2a$04$gF8RfZdoXHvyTjHhiU4ZsO.kQqV9oonYZu31PRE4hLQn3xM2qkpIy"
+person.recovery_password_digest # => "$2a$04$iOfhwahFymCs5weB3BNH/uXkTG65HR.qpW.bNhEjFP3ftli3o5DQC"
 ```

@@ -1,5 +1,5 @@
 AllCops:
-  TargetRubyVersion: 2.2
+  TargetRubyVersion: 2.4
   # RuboCop has a bunch of cops enabled by default. This setting tells RuboCop
   # to ignore them, so only the ones explicitly set in this file are enabled.
   DisabledByDefault: true
@@ -7,6 +7,25 @@ AllCops:
     - '**/templates/**/*'
     - '**/vendor/**/*'
     - 'actionpack/lib/action_dispatch/journey/parser.rb'
+    - 'railties/test/fixtures/tmp/**/*'
+    - 'node_modules/**/*'
+
+Performance:
+  Exclude:
+    - '**/test/**/*'
+
+Rails:
+  Enabled: true
+
+# Prefer assert_not over assert !
+Rails/AssertNot:
+  Include:
+    - '**/test/**/*'
+
+# Prefer assert_not_x over refute_x
+Rails/RefuteMethods:
+  Include:
+    - '**/test/**/*'
 
 # Prefer &&/|| over and/or.
 Style/AndOr:
@@ -16,29 +35,45 @@ Style/AndOr:
 # method call.
 Style/BracesAroundHashParameters:
   Enabled: true
+  EnforcedStyle: context_dependent
 
 # Align `when` with `case`.
-Style/CaseIndentation:
+Layout/CaseIndentation:
   Enabled: true
 
 # Align comments with method definitions.
-Style/CommentIndentation:
+Layout/CommentIndentation:
   Enabled: true
 
-# No extra empty lines.
-Style/EmptyLines:
+Layout/ElseAlignment:
+  Enabled: true
+
+# Align `end` with the matching keyword or starting expression except for
+# assignments, where it should be aligned with the LHS.
+Layout/EndAlignment:
+  Enabled: true
+  EnforcedStyleAlignWith: variable
+  AutoCorrect: true
+
+Layout/EmptyLineAfterMagicComment:
+  Enabled: true
+
+Layout/EmptyLinesAroundBlockBody:
   Enabled: true
 
 # In a regular class definition, no empty lines around the body.
-Style/EmptyLinesAroundClassBody:
+Layout/EmptyLinesAroundClassBody:
   Enabled: true
 
 # In a regular method definition, no empty lines around the body.
-Style/EmptyLinesAroundMethodBody:
+Layout/EmptyLinesAroundMethodBody:
   Enabled: true
 
 # In a regular module definition, no empty lines around the body.
-Style/EmptyLinesAroundModuleBody:
+Layout/EmptyLinesAroundModuleBody:
+  Enabled: true
+
+Layout/FirstParameterIndentation:
   Enabled: true
 
 # Use Ruby >= 1.9 syntax for hashes. Prefer { a: :b } over { :a => :b }.
@@ -47,49 +82,75 @@ Style/HashSyntax:
 
 # Method definitions after `private` or `protected` isolated calls need one
 # extra level of indentation.
-Style/IndentationConsistency:
+Layout/IndentationConsistency:
   Enabled: true
   EnforcedStyle: rails
 
 # Two spaces, no tabs (for indentation).
-Style/IndentationWidth:
+Layout/IndentationWidth:
   Enabled: true
 
-Style/SpaceAfterColon:
+Layout/LeadingCommentSpace:
   Enabled: true
 
-Style/SpaceAfterComma:
+Layout/SpaceAfterColon:
   Enabled: true
 
-Style/SpaceAroundEqualsInParameterDefault:
+Layout/SpaceAfterComma:
   Enabled: true
 
-Style/SpaceAroundKeyword:
+Layout/SpaceAroundEqualsInParameterDefault:
   Enabled: true
 
-Style/SpaceAroundOperators:
+Layout/SpaceAroundKeyword:
   Enabled: true
 
-Style/SpaceBeforeFirstArg:
+Layout/SpaceAroundOperators:
+  Enabled: true
+
+Layout/SpaceBeforeComma:
     Enabled: true
+
+Layout/SpaceBeforeFirstArg:
+    Enabled: true
+
+Style/DefWithParentheses:
+  Enabled: true
 
 # Defining a method with parameters needs parentheses.
 Style/MethodDefParentheses:
   Enabled: true
 
+Style/FrozenStringLiteralComment:
+  Enabled: true
+  EnforcedStyle: always
+  Exclude:
+    - 'actionview/test/**/*.builder'
+    - 'actionview/test/**/*.ruby'
+    - 'actionpack/test/**/*.builder'
+    - 'actionpack/test/**/*.ruby'
+    - 'activestorage/db/migrate/**/*.rb'
+
+Style/RedundantFreeze:
+  Enabled: true
+  Exclude:
+    - 'actionpack/lib/action_dispatch/journey/router/utils.rb'
+    - 'activerecord/lib/active_record/connection_adapters/sqlite3_adapter.rb'
+
 # Use `foo {}` not `foo{}`.
-Style/SpaceBeforeBlockBraces:
+Layout/SpaceBeforeBlockBraces:
   Enabled: true
 
 # Use `foo { bar }` not `foo {bar}`.
-Style/SpaceInsideBlockBraces:
+Layout/SpaceInsideBlockBraces:
   Enabled: true
+  EnforcedStyleForEmptyBraces: space
 
 # Use `{ a: 1 }` not `{a:1}`.
-Style/SpaceInsideHashLiteralBraces:
+Layout/SpaceInsideHashLiteralBraces:
   Enabled: true
 
-Style/SpaceInsideParens:
+Layout/SpaceInsideParens:
   Enabled: true
 
 # Check quotes usage according to lint rule below.
@@ -98,27 +159,63 @@ Style/StringLiterals:
   EnforcedStyle: double_quotes
 
 # Detect hard tabs, no hard tabs.
-Style/Tab:
+Layout/Tab:
   Enabled: true
 
 # Blank lines should not have any spaces.
-Style/TrailingBlankLines:
+Layout/TrailingBlankLines:
   Enabled: true
 
 # No trailing whitespace.
-Style/TrailingWhitespace:
+Layout/TrailingWhitespace:
   Enabled: true
 
 # Use quotes for string literals when they are enough.
 Style/UnneededPercentQ:
   Enabled: true
 
-# Align `end` with the matching keyword or starting expression except for
-# assignments, where it should be aligned with the LHS.
-Lint/EndAlignment:
-  Enabled: true
-  EnforcedStyleAlignWith: variable
-
 # Use my_method(my_arg) not my_method( my_arg ) or my_method my_arg.
 Lint/RequireParentheses:
+  Enabled: true
+
+Lint/StringConversionInInterpolation:
+  Enabled: true
+
+Lint/UriEscapeUnescape:
+  Enabled: true
+
+Style/ParenthesesAroundCondition:
+  Enabled: true
+
+Style/RedundantReturn:
+  Enabled: true
+  AllowMultipleReturnValues: true
+
+Style/Semicolon:
+  Enabled: true
+  AllowAsExpressionSeparator: true
+
+# Prefer Foo.method over Foo::method
+Style/ColonMethodCall:
+  Enabled: true
+
+Style/TrivialAccessors:
+  Enabled: true
+
+Performance/FlatMap:
+  Enabled: true
+
+Performance/RedundantMerge:
+  Enabled: true
+
+Performance/StartWith:
+  Enabled: true
+
+Performance/EndWith:
+  Enabled: true
+
+Performance/RegexpMatch:
+  Enabled: true
+
+Performance/UnfreezeString:
   Enabled: true

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "rack/test"
 require "rails/engine"
@@ -11,7 +13,7 @@ module TestGenerationPrefix
     end
 
     def self.model_name
-      klass = "Post"
+      klass = +"Post"
       def klass.name; self end
 
       ActiveModel::Name.new(klass)

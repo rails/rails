@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "active_support/core_ext/module/delegation"
 
@@ -21,6 +23,42 @@ module Notifications
 
     def event(*args)
       ActiveSupport::Notifications::Event.new(*args)
+    end
+  end
+
+  class SubscribeEventObjects < TestCase
+    def test_subscribe_events
+      events = []
+      @notifier.subscribe do |event|
+        events << event
+      end
+
+      ActiveSupport::Notifications.instrument("foo")
+      event = events.first
+      assert event, "should have an event"
+      assert_operator event.allocations, :>, 0
+      assert_operator event.cpu_time, :>, 0
+      assert_operator event.idle_time, :>, 0
+      assert_operator event.duration, :>, 0
+    end
+
+    def test_subscribe_via_top_level_api
+      old_notifier = ActiveSupport::Notifications.notifier
+      ActiveSupport::Notifications.notifier = ActiveSupport::Notifications::Fanout.new
+
+      event = nil
+      ActiveSupport::Notifications.subscribe("foo") do |e|
+        event = e
+      end
+
+      ActiveSupport::Notifications.instrument("foo") do
+        100.times { Object.new } # allocate at least 100 objects
+      end
+
+      assert event
+      assert_operator event.allocations, :>=, 100
+    ensure
+      ActiveSupport::Notifications.notifier = old_notifier
     end
   end
 
@@ -52,7 +90,7 @@ module Notifications
       ActiveSupport::Notifications.subscribe("foo", TestSubscriber.new)
 
       ActiveSupport::Notifications.instrument("foo") do
-        ActiveSupport::Notifications.subscribe("foo") {}
+        ActiveSupport::Notifications.subscribe("foo") { }
       end
     ensure
       ActiveSupport::Notifications.notifier = old_notifier
@@ -248,8 +286,8 @@ module Notifications
       time = Time.now
       event = event(:foo, time, time + 0.01, random_id, {})
 
-      assert_equal    :foo, event.name
-      assert_equal    time, event.time
+      assert_equal :foo, event.name
+      assert_equal time, event.time
       assert_in_delta 10.0, event.duration, 0.00001
     end
 
@@ -268,9 +306,9 @@ module Notifications
       parent.children << child
 
       assert parent.parent_of?(child)
-      assert !child.parent_of?(parent)
-      assert !parent.parent_of?(not_child)
-      assert !not_child.parent_of?(parent)
+      assert_not child.parent_of?(parent)
+      assert_not parent.parent_of?(not_child)
+      assert_not not_child.parent_of?(parent)
     end
 
     private

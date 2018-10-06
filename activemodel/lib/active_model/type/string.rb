@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_model/type/immutable_string"
 
 module ActiveModel
@@ -14,8 +16,8 @@ module ActiveModel
         def cast_value(value)
           case value
           when ::String then ::String.new(value)
-          when true then "t".freeze
-          when false then "f".freeze
+          when true then "t"
+          when false then "f"
           else value.to_s
           end
         end

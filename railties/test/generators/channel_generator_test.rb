@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "generators/generators_test_helper"
 require "rails/generators/channel/channel_generator"
 
@@ -24,8 +26,8 @@ class ChannelGeneratorTest < Rails::Generators::TestCase
       assert_match(/class ChatChannel < ApplicationCable::Channel/, channel)
     end
 
-    assert_file "app/assets/javascripts/channels/chat.js" do |channel|
-      assert_match(/App.chat = App.cable.subscriptions.create\("ChatChannel/, channel)
+    assert_file "app/javascript/channels/chat_channel.js" do |channel|
+      assert_match(/import consumer from "\.\/consumer"\s+consumer\.subscriptions\.create\("ChatChannel/, channel)
     end
   end
 
@@ -38,8 +40,8 @@ class ChannelGeneratorTest < Rails::Generators::TestCase
       assert_match(/def mute/, channel)
     end
 
-    assert_file "app/assets/javascripts/channels/chat.js" do |channel|
-      assert_match(/App.chat = App.cable.subscriptions.create\("ChatChannel/, channel)
+    assert_file "app/javascript/channels/chat_channel.js" do |channel|
+      assert_match(/import consumer from "\.\/consumer"\s+consumer\.subscriptions\.create\("ChatChannel/, channel)
       assert_match(/,\n\n  speak/, channel)
       assert_match(/,\n\n  mute: function\(\) \{\n    return this\.perform\('mute'\);\n  \}\n\}\);/, channel)
     end
@@ -52,15 +54,17 @@ class ChannelGeneratorTest < Rails::Generators::TestCase
       assert_match(/class ChatChannel < ApplicationCable::Channel/, channel)
     end
 
-    assert_no_file "app/assets/javascripts/channels/chat.js"
+    assert_no_file "app/javascript/channels/chat_channel.js"
   end
 
-  def test_cable_js_is_created_if_not_present_already
+  def test_consumer_js_is_created_if_not_present_already
     run_generator ["chat"]
-    FileUtils.rm("#{destination_root}/app/assets/javascripts/cable.js")
+    FileUtils.rm("#{destination_root}/app/javascript/channels/index.js")
+    FileUtils.rm("#{destination_root}/app/javascript/channels/consumer.js")
     run_generator ["camp"]
 
-    assert_file "app/assets/javascripts/cable.js"
+    assert_file "app/javascript/channels/index.js"
+    assert_file "app/javascript/channels/consumer.js"
   end
 
   def test_channel_on_revoke
@@ -68,10 +72,21 @@ class ChannelGeneratorTest < Rails::Generators::TestCase
     run_generator ["chat"], behavior: :revoke
 
     assert_no_file "app/channels/chat_channel.rb"
-    assert_no_file "app/assets/javascripts/channels/chat.js"
+    assert_no_file "app/javascript/channels/chat_channel.js"
 
     assert_file "app/channels/application_cable/channel.rb"
     assert_file "app/channels/application_cable/connection.rb"
-    assert_file "app/assets/javascripts/cable.js"
+    assert_file "app/javascript/channels/index.js"
+    assert_file "app/javascript/channels/consumer.js"
+  end
+
+  def test_channel_suffix_is_not_duplicated
+    run_generator ["chat_channel"]
+
+    assert_no_file "app/channels/chat_channel_channel.rb"
+    assert_file "app/channels/chat_channel.rb"
+
+    assert_no_file "app/javascript/channels/chat_channel_channel.js"
+    assert_file "app/javascript/channels/chat_channel.js"
   end
 end

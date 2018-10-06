@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 
 class SchemaThing < ActiveRecord::Base
@@ -68,20 +70,9 @@ class SchemaAuthorizationTest < ActiveRecord::PostgreSQLTestCase
         USERS.each do |u|
           @connection.clear_cache!
           set_session_auth u
-          assert_equal u, @connection.select_value("SELECT name FROM #{TABLE_NAME} WHERE id = $1", "SQL", [bind_attribute("id", 1)])
+          assert_equal u, @connection.select_value("SELECT name FROM #{TABLE_NAME} WHERE id = $1", "SQL", [bind_param(1)])
           set_session_auth
         end
-      end
-    end
-  end
-
-  def test_schema_uniqueness
-    assert_nothing_raised do
-      set_session_auth
-      USERS.each do |u|
-        set_session_auth u
-        assert_equal u, @connection.select_value("SELECT name FROM #{TABLE_NAME} WHERE id = 1")
-        set_session_auth
       end
     end
   end
@@ -111,5 +102,9 @@ class SchemaAuthorizationTest < ActiveRecord::PostgreSQLTestCase
   private
     def set_session_auth(auth = nil)
       @connection.session_auth = auth || "default"
+    end
+
+    def bind_param(value)
+      ActiveRecord::Relation::QueryAttribute.new(nil, value, ActiveRecord::Type::Value.new)
     end
 end

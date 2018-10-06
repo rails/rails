@@ -1,20 +1,30 @@
+# frozen_string_literal: true
+
 require "delegate"
 
 module ActiveSupport
   module Tryable #:nodoc:
-    def try(*a, &b)
-      try!(*a, &b) if a.empty? || respond_to?(a.first)
+    def try(method_name = nil, *args, &b)
+      if method_name.nil? && block_given?
+        if b.arity == 0
+          instance_eval(&b)
+        else
+          yield self
+        end
+      elsif respond_to?(method_name)
+        public_send(method_name, *args, &b)
+      end
     end
 
-    def try!(*a, &b)
-      if a.empty? && block_given?
+    def try!(method_name = nil, *args, &b)
+      if method_name.nil? && block_given?
         if b.arity == 0
           instance_eval(&b)
         else
           yield self
         end
       else
-        public_send(*a, &b)
+        public_send(method_name, *args, &b)
       end
     end
   end
@@ -133,14 +143,14 @@ class NilClass
   #
   # With +try+
   #   @person.try(:children).try(:first).try(:name)
-  def try(*args)
+  def try(method_name = nil, *args)
     nil
   end
 
   # Calling +try!+ on +nil+ always returns +nil+.
   #
   #   nil.try!(:name) # => nil
-  def try!(*args)
+  def try!(method_name = nil, *args)
     nil
   end
 end

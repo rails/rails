@@ -4,7 +4,7 @@
 /* Modified January 31, 2009
 --------------------------------------- */
 
-body, .wrapper, .note, .info, code, #topNav, .L, .R, #frame, #container, #header, #navigation, #footer, #feature, #mainCol, #subCol, #extraCol, .content {position: static; text-align: left; text-indent: 0; background: White; color: Black; border-color: Black; width: auto; height: auto; display: block; float: none; min-height: 0; margin: 0; padding: 0;}
+body, .wrapper, .note, .info, code, #topNav, .L, .R, #frame, #container, #header, #navigation, #footer, #feature, #mainCol, #subCol, .content {position: static; text-align: left; text-indent: 0; background: White; color: Black; border-color: Black; width: auto; height: auto; display: block; float: none; min-height: 0; margin: 0; padding: 0;}
 
 body {
   background: #FFF;

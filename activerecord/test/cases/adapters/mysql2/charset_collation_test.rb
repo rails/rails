@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "support/schema_dumping_helper"
 
@@ -30,25 +32,25 @@ class Mysql2CharsetCollationTest < ActiveRecord::Mysql2TestCase
   end
 
   test "add column with charset and collation" do
-    @connection.add_column :charset_collations, :title, :string, charset: "utf8", collation: "utf8_bin"
+    @connection.add_column :charset_collations, :title, :string, charset: "utf8mb4", collation: "utf8mb4_bin"
 
     column = @connection.columns(:charset_collations).find { |c| c.name == "title" }
     assert_equal :string, column.type
-    assert_equal "utf8_bin", column.collation
+    assert_equal "utf8mb4_bin", column.collation
   end
 
   test "change column with charset and collation" do
-    @connection.add_column :charset_collations, :description, :string, charset: "utf8", collation: "utf8_unicode_ci"
-    @connection.change_column :charset_collations, :description, :text, charset: "utf8", collation: "utf8_general_ci"
+    @connection.add_column :charset_collations, :description, :string, charset: "utf8mb4", collation: "utf8mb4_unicode_ci"
+    @connection.change_column :charset_collations, :description, :text, charset: "utf8mb4", collation: "utf8mb4_general_ci"
 
     column = @connection.columns(:charset_collations).find { |c| c.name == "description" }
     assert_equal :text, column.type
-    assert_equal "utf8_general_ci", column.collation
+    assert_equal "utf8mb4_general_ci", column.collation
   end
 
   test "schema dump includes collation" do
     output = dump_table_schema("charset_collations")
-    assert_match %r{t.string\s+"string_ascii_bin",\s+collation: "ascii_bin"$}, output
-    assert_match %r{t.text\s+"text_ucs2_unicode_ci",\s+collation: "ucs2_unicode_ci"$}, output
+    assert_match %r{t\.string\s+"string_ascii_bin",\s+collation: "ascii_bin"$}, output
+    assert_match %r{t\.text\s+"text_ucs2_unicode_ci",\s+collation: "ucs2_unicode_ci"$}, output
   end
 end

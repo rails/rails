@@ -1,38 +1,7 @@
+# frozen_string_literal: true
+
 module ActiveRecord::Associations::Builder # :nodoc:
   class HasAndBelongsToMany # :nodoc:
-    class JoinTableResolver # :nodoc:
-      KnownTable = Struct.new :join_table
-
-      class KnownClass # :nodoc:
-        def initialize(lhs_class, rhs_class_name)
-          @lhs_class      = lhs_class
-          @rhs_class_name = rhs_class_name
-          @join_table     = nil
-        end
-
-        def join_table
-          @join_table ||= [@lhs_class.table_name, klass.table_name].sort.join("\0").gsub(/^(.*[._])(.+)\0\1(.+)/, '\1\2_\3').tr("\0", "_")
-        end
-
-        private
-
-          def klass
-            @lhs_class.send(:compute_type, @rhs_class_name)
-          end
-      end
-
-      def self.build(lhs_class, name, options)
-        if options[:join_table]
-          KnownTable.new options[:join_table].to_s
-        else
-          class_name = options.fetch(:class_name) {
-            name.to_s.camelize.singularize
-          }
-          KnownClass.new lhs_class, class_name.to_s
-        end
-      end
-    end
-
     attr_reader :lhs_model, :association_name, :options
 
     def initialize(association_name, lhs_model, options)
@@ -42,10 +11,8 @@ module ActiveRecord::Associations::Builder # :nodoc:
     end
 
     def through_model
-      habtm = JoinTableResolver.build lhs_model, association_name, options
-
       join_model = Class.new(ActiveRecord::Base) {
-        class << self;
+        class << self
           attr_accessor :left_model
           attr_accessor :name
           attr_accessor :table_name_resolver
@@ -54,7 +21,9 @@ module ActiveRecord::Associations::Builder # :nodoc:
         end
 
         def self.table_name
-          table_name_resolver.join_table
+          # Table name needs to be resolved lazily
+          # because RHS class might not have been loaded
+          @table_name ||= table_name_resolver.call
         end
 
         def self.compute_type(class_name)
@@ -84,7 +53,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
       }
 
       join_model.name                = "HABTM_#{association_name.to_s.camelize}"
-      join_model.table_name_resolver = habtm
+      join_model.table_name_resolver = -> { table_name }
       join_model.left_model          = lhs_model
 
       join_model.add_left_association :left_side, anonymous_class: lhs_model
@@ -94,7 +63,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
 
     def middle_reflection(join_model)
       middle_name = [lhs_model.name.downcase.pluralize,
-                     association_name].join("_".freeze).gsub("::".freeze, "_".freeze).to_sym
+                     association_name].join("_").gsub("::", "_").to_sym
       middle_options = middle_options join_model
 
       HasMany.create_reflection(lhs_model,
@@ -113,6 +82,18 @@ module ActiveRecord::Associations::Builder # :nodoc:
           middle_options[:foreign_key] = options[:foreign_key]
         end
         middle_options
+      end
+
+      def table_name
+        if options[:join_table]
+          options[:join_table].to_s
+        else
+          class_name = options.fetch(:class_name) {
+            association_name.to_s.camelize.singularize
+          }
+          klass = lhs_model.send(:compute_type, class_name.to_s)
+          [lhs_model.table_name, klass.table_name].sort.join("\0").gsub(/^(.*[._])(.+)\0\1(.+)/, '\1\2_\3').tr("\0", "_")
+        end
       end
 
       def belongs_to_options(options)

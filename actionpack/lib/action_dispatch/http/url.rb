@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/module/attribute_accessors"
 
 module ActionDispatch
@@ -7,8 +9,7 @@ module ActionDispatch
       HOST_REGEXP     = /(^[^:]+:\/\/)?(\[[^\]]+\]|[^:]+)(?::(\d+$))?/
       PROTOCOL_REGEXP = /^([^:]+)(:)?(\/\/)?$/
 
-      mattr_accessor :tld_length
-      self.tld_length = 1
+      mattr_accessor :tld_length, default: 1
 
       class << self
         # Returns the domain part of a host given the domain level.
@@ -66,7 +67,7 @@ module ActionDispatch
         end
 
         def path_for(options)
-          path = options[:script_name].to_s.chomp("/".freeze)
+          path = options[:script_name].to_s.chomp("/")
           path << options[:path] if options.key?(:path)
 
           add_trailing_slash(path) if options[:trailing_slash]
@@ -156,7 +157,7 @@ module ActionDispatch
           subdomain  = options.fetch :subdomain, true
           domain     = options[:domain]
 
-          host = ""
+          host = +""
           if subdomain == true
             return _host if domain.nil?
 
@@ -230,7 +231,7 @@ module ActionDispatch
       #   req = ActionDispatch::Request.new 'HTTP_HOST' => 'example.com:8080'
       #   req.host # => "example.com"
       def host
-        raw_host_with_port.sub(/:\d+$/, "".freeze)
+        raw_host_with_port.sub(/:\d+$/, "")
       end
 
       # Returns a \host:\port string for this request, such as "example.com" or
@@ -273,7 +274,7 @@ module ActionDispatch
       def standard_port
         case protocol
         when "https://" then 443
-          else 80
+        else 80
         end
       end
 

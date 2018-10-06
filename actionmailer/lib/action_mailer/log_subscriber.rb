@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/log_subscriber"
 
 module ActionMailer
@@ -7,8 +9,13 @@ module ActionMailer
     # An email was delivered.
     def deliver(event)
       info do
+        perform_deliveries = event.payload[:perform_deliveries]
         recipients = Array(event.payload[:to]).join(", ")
-        "Sent mail to #{recipients} (#{event.duration.round(1)}ms)"
+        if perform_deliveries
+          "Sent mail to #{recipients} (#{event.duration.round(1)}ms)"
+        else
+          "Skipped sending mail to #{recipients} as `perform_deliveries` is false"
+        end
       end
 
       debug { event.payload[:mail] }

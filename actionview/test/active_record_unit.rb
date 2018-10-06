@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 # Define the essentials
@@ -13,7 +15,7 @@ end
 # Try to grab AR
 unless defined?(ActiveRecord) && defined?(FixtureSet)
   begin
-    PATH_TO_AR = "#{File.dirname(__FILE__)}/../../activerecord/lib"
+    PATH_TO_AR = File.expand_path("../../activerecord/lib", __dir__)
     raise LoadError, "#{PATH_TO_AR} doesn't exist" unless File.directory?(PATH_TO_AR)
     $LOAD_PATH.unshift PATH_TO_AR
     require "active_record"
@@ -36,7 +38,7 @@ class ActiveRecordTestConnector
       end
     rescue Exception => e  # errors from ActiveRecord setup
       $stderr.puts "\nSkipping ActiveRecord assertion tests: #{e}"
-      #$stderr.puts "  #{e.backtrace.join("\n  ")}\n"
+      # $stderr.puts "  #{e.backtrace.join("\n  ")}\n"
       self.able_to_connect = false
     end
 
@@ -58,19 +60,31 @@ class ActiveRecordTestConnector
 
       # Load actionpack sqlite3 tables
       def load_schema
-        File.read(File.dirname(__FILE__) + "/fixtures/db_definitions/sqlite.sql").split(";").each do |sql|
+        File.read(File.expand_path("fixtures/db_definitions/sqlite.sql", __dir__)).split(";").each do |sql|
           ActiveRecord::Base.connection.execute(sql) unless sql.blank?
         end
       end
 
       def require_fixture_models
-        Dir.glob(File.dirname(__FILE__) + "/fixtures/*.rb").each { |f| require f }
+        Dir.glob(File.expand_path("fixtures/*.rb", __dir__)).each { |f| require f }
       end
   end
 end
 
 class ActiveRecordTestCase < ActionController::TestCase
   include ActiveRecord::TestFixtures
+
+  def self.tests(controller)
+    super
+    if defined? controller::ROUTES
+      include Module.new {
+        define_method(:setup) do
+          super()
+          @routes = controller::ROUTES
+        end
+      }
+    end
+  end
 
   # Set our fixture path
   if ActiveRecordTestConnector.able_to_connect

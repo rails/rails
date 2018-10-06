@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/module/anonymous"
 
 module ActiveModel
@@ -82,7 +84,7 @@ module ActiveModel
   #   end
   #
   # It can be useful to access the class that is using that validator when there are prerequisites such
-  # as an +attr_accessor+ being present. This class is accessible via +options[:class]+ in the constructor.
+  # as an +attr_accessor+ being present. This class is accessible via <tt>options[:class]</tt> in the constructor.
   # To setup your validator override the constructor.
   #
   #   class MyValidator < ActiveModel::Validator

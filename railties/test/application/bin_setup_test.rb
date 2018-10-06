@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "isolation/abstract_unit"
 
 module ApplicationTests
@@ -20,7 +22,7 @@ module ApplicationTests
           end
         RUBY
 
-        list_tables = lambda { `bin/rails runner 'p ActiveRecord::Base.connection.tables'`.strip }
+        list_tables = lambda { rails("runner", "p ActiveRecord::Base.connection.tables").strip }
         File.write("log/test.log", "zomg!")
 
         assert_equal "[]", list_tables.call
@@ -41,18 +43,20 @@ module ApplicationTests
 
         # Ignore line that's only output by Bundler < 1.14
         output.sub!(/^Resolving dependencies\.\.\.\n/, "")
+        # Suppress Bundler platform warnings from output
+        output.gsub!(/^The dependency .* will be unused .*\.\n/, "")
 
-        assert_equal(<<-OUTPUT, output)
-== Installing dependencies ==
-The Gemfile's dependencies are satisfied
+        assert_equal(<<~OUTPUT, output)
+          == Installing dependencies ==
+          The Gemfile's dependencies are satisfied
 
-== Preparing database ==
-Created database 'db/development.sqlite3'
-Created database 'db/test.sqlite3'
+          == Preparing database ==
+          Created database 'db/development.sqlite3'
+          Created database 'db/test.sqlite3'
 
-== Removing old logs and tempfiles ==
+          == Removing old logs and tempfiles ==
 
-== Restarting application server ==
+          == Restarting application server ==
         OUTPUT
       end
     end

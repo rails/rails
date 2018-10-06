@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "rails/engine"
 
@@ -190,7 +192,7 @@ module ActionView
     helper HelperThatInvokesProtectAgainstForgery
 
     test "protect_from_forgery? in any helpers returns false" do
-      assert !view.help_me
+      assert_not view.help_me
     end
   end
 
@@ -215,8 +217,14 @@ module ActionView
 
     test "is able to use routes" do
       controller.request.assign_parameters(@routes, "foo", "index", {}, "/foo", [])
-      assert_equal "/foo", url_for
-      assert_equal "/bar", url_for(controller: "bar")
+      with_routing do |set|
+        set.draw {
+          get :foo, to: "foo#index"
+          get :bar, to: "bar#index"
+        }
+        assert_equal "/foo", url_for
+        assert_equal "/bar", url_for(controller: "bar")
+      end
     end
 
     test "is able to use named routes" do
@@ -234,13 +242,15 @@ module ActionView
             @routes ||= ActionDispatch::Routing::RouteSet.new
           end
 
-          routes.draw { get "bar", to: lambda {} }
+          routes.draw { get "bar", to: lambda { } }
 
           def self.call(*)
           end
         end
 
         set.draw { mount app => "/foo", :as => "foo_app" }
+
+        singleton_class.include set.mounted_helpers
 
         assert_equal "/foo/bar", foo_app.bar_path
       end
@@ -279,6 +289,14 @@ module ActionView
 
       @customers = [DeveloperStruct.new("Eloy"), DeveloperStruct.new("Manfred")]
       assert_match(/Hello: EloyHello: Manfred/, render(file: "test/list"))
+    end
+
+    test "is able to use helpers that depend on the view flow" do
+      assert_not content_for?(:foo)
+
+      content_for :foo, "bar"
+      assert content_for?(:foo)
+      assert_equal "bar", content_for(:foo)
     end
   end
 

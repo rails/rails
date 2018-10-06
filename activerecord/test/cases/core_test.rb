@@ -1,8 +1,9 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/person"
 require "models/topic"
 require "pp"
-require "active_support/core_ext/string/strip"
 
 class NonExistentTable < ActiveRecord::Base; end
 
@@ -35,28 +36,28 @@ class CoreTest < ActiveRecord::TestCase
 
   def test_pretty_print_new
     topic = Topic.new
-    actual = ""
+    actual = +""
     PP.pp(topic, StringIO.new(actual))
-    expected = <<-PRETTY.strip_heredoc
-    #<Topic:0xXXXXXX
-     id: nil,
-     title: nil,
-     author_name: nil,
-     author_email_address: "test@test.com",
-     written_on: nil,
-     bonus_time: nil,
-     last_read: nil,
-     content: nil,
-     important: nil,
-     approved: true,
-     replies_count: 0,
-     unique_replies_count: 0,
-     parent_id: nil,
-     parent_title: nil,
-     type: nil,
-     group: nil,
-     created_at: nil,
-     updated_at: nil>
+    expected = <<~PRETTY
+      #<Topic:0xXXXXXX
+       id: nil,
+       title: nil,
+       author_name: nil,
+       author_email_address: "test@test.com",
+       written_on: nil,
+       bonus_time: nil,
+       last_read: nil,
+       content: nil,
+       important: nil,
+       approved: true,
+       replies_count: 0,
+       unique_replies_count: 0,
+       parent_id: nil,
+       parent_title: nil,
+       type: nil,
+       group: nil,
+       created_at: nil,
+       updated_at: nil>
     PRETTY
     assert actual.start_with?(expected.split("XXXXXX").first)
     assert actual.end_with?(expected.split("XXXXXX").last)
@@ -64,35 +65,35 @@ class CoreTest < ActiveRecord::TestCase
 
   def test_pretty_print_persisted
     topic = topics(:first)
-    actual = ""
+    actual = +""
     PP.pp(topic, StringIO.new(actual))
-    expected = <<-PRETTY.strip_heredoc
-    #<Topic:0x\\w+
-     id: 1,
-     title: "The First Topic",
-     author_name: "David",
-     author_email_address: "david@loudthinking.com",
-     written_on: 2003-07-16 14:28:11 UTC,
-     bonus_time: 2000-01-01 14:28:00 UTC,
-     last_read: Thu, 15 Apr 2004,
-     content: "Have a nice day",
-     important: nil,
-     approved: false,
-     replies_count: 1,
-     unique_replies_count: 0,
-     parent_id: nil,
-     parent_title: nil,
-     type: nil,
-     group: nil,
-     created_at: [^,]+,
-     updated_at: [^,>]+>
+    expected = <<~PRETTY
+      #<Topic:0x\\w+
+       id: 1,
+       title: "The First Topic",
+       author_name: "David",
+       author_email_address: "david@loudthinking.com",
+       written_on: 2003-07-16 14:28:11 UTC,
+       bonus_time: 2000-01-01 14:28:00 UTC,
+       last_read: Thu, 15 Apr 2004,
+       content: "Have a nice day",
+       important: nil,
+       approved: false,
+       replies_count: 1,
+       unique_replies_count: 0,
+       parent_id: nil,
+       parent_title: nil,
+       type: nil,
+       group: nil,
+       created_at: [^,]+,
+       updated_at: [^,>]+>
     PRETTY
     assert_match(/\A#{expected}\z/, actual)
   end
 
   def test_pretty_print_uninitialized
     topic = Topic.allocate
-    actual = ""
+    actual = +""
     PP.pp(topic, StringIO.new(actual))
     expected = "#<Topic:XXXXXX not initialized>\n"
     assert actual.start_with?(expected.split("XXXXXX").first)
@@ -105,7 +106,7 @@ class CoreTest < ActiveRecord::TestCase
         "inspecting topic"
       end
     end
-    actual = ""
+    actual = +""
     PP.pp(subtopic.new, StringIO.new(actual))
     assert_equal "inspecting topic\n", actual
   end

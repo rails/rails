@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/customer"
 
@@ -25,7 +27,7 @@ class AggregationsTest < ActiveRecord::TestCase
 
   def test_immutable_value_objects
     customers(:david).balance = Money.new(100)
-    assert_raise(RuntimeError) { customers(:david).balance.instance_eval { @amount = 20 } }
+    assert_raise(frozen_error_class) { customers(:david).balance.instance_eval { @amount = 20 } }
   end
 
   def test_inferred_mapping

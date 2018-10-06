@@ -9,7 +9,8 @@
 } = Rails
 
 # For backward compatibility
-if jQuery? and not jQuery.rails
+if jQuery? and jQuery.ajax?
+  throw new Error('If you load both jquery_ujs and rails-ujs, use rails-ujs only.') if jQuery.rails
   jQuery.rails = Rails
   jQuery.ajaxPrefilter (options, originalOptions, xhr) ->
     CSRFProtection(xhr) unless options.crossDomain

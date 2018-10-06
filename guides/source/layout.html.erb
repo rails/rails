@@ -1,20 +1,19 @@
 <!DOCTYPE html>
-
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<html lang="en">
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
-
-<title><%= yield(:page_title) || 'Ruby on Rails Guides' %></title>
-<link rel="stylesheet" type="text/css" href="stylesheets/style.css" />
-<link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print" />
-
-<link rel="stylesheet" type="text/css" href="stylesheets/syntaxhighlighter/shCore.css" />
-<link rel="stylesheet" type="text/css" href="stylesheets/syntaxhighlighter/shThemeRailsGuides.css" />
-
-<link rel="stylesheet" type="text/css" href="stylesheets/fixes.css" />
-
-<link href="images/favicon.ico" rel="shortcut icon" type="image/x-icon" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><%= yield(:page_title) || 'Ruby on Rails Guides' %></title>
+  <link rel="stylesheet" type="text/css" href="stylesheets/style.css" data-turbolinks-track="reload">
+  <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
+  <link rel="stylesheet" type="text/css" href="stylesheets/syntaxhighlighter/shCore.css" data-turbolinks-track="reload">
+  <link rel="stylesheet" type="text/css" href="stylesheets/syntaxhighlighter/shThemeRailsGuides.css" data-turbolinks-track="reload">
+  <link rel="stylesheet" type="text/css" href="stylesheets/fixes.css" data-turbolinks-track="reload">
+  <link href="images/favicon.ico" rel="shortcut icon" type="image/x-icon" />
+  <script src="javascripts/syntaxhighlighter.js" data-turbolinks-track="reload"></script>
+  <script src="javascripts/turbolinks.js" data-turbolinks-track="reload"></script>
+  <script src="javascripts/guides.js" data-turbolinks-track="reload"></script>
+  <script src="javascripts/responsive-tables.js" data-turbolinks-track="reload"></script>
 </head>
 <body class="guide">
   <% if @edge %>
@@ -29,10 +28,10 @@
         More Ruby on Rails
       </span>
       <ul class="more-info-links s-hidden">
-        <li class="more-info"><a href="http://weblog.rubyonrails.org/">Blog</a></li>
-        <li class="more-info"><a href="http://guides.rubyonrails.org/">Guides</a></li>
+        <li class="more-info"><a href="https://weblog.rubyonrails.org/">Blog</a></li>
+        <li class="more-info"><a href="https://guides.rubyonrails.org/">Guides</a></li>
         <li class="more-info"><a href="http://api.rubyonrails.org/">API</a></li>
-        <li class="more-info"><a href="http://stackoverflow.com/questions/tagged/ruby-on-rails">Ask for help</a></li>
+        <li class="more-info"><a href="https://stackoverflow.com/questions/tagged/ruby-on-rails">Ask for help</a></li>
         <li class="more-info"><a href="https://github.com/rails/rails">Contribute on GitHub</a></li>
       </ul>
     </div>
@@ -59,7 +58,6 @@
           </div>
         </li>
         <li><a class="nav-item" href="contributing_to_ruby_on_rails.html">Contribute</a></li>
-        <li><a class="nav-item" href="credits.html">Credits</a></li>
         <li class="guides-index guides-index-small">
           <select class="guides-index-item nav-item">
             <option value="index.html">Guides Index</option>
@@ -96,12 +94,12 @@
         </p>
         <p>
           Please contribute if you see any typos or factual errors.
-          To get started, you can read our <%= link_to 'documentation contributions', 'http://edgeguides.rubyonrails.org/contributing_to_ruby_on_rails.html#contributing-to-the-rails-documentation' %> section.
+          To get started, you can read our <%= link_to 'documentation contributions', 'https://edgeguides.rubyonrails.org/contributing_to_ruby_on_rails.html#contributing-to-the-rails-documentation' %> section.
         </p>
         <p>
-          You may also find incomplete content, or stuff that is not up to date.
+          You may also find incomplete content or stuff that is not up to date.
           Please do add any missing documentation for master. Make sure to check
-          <%= link_to 'Edge Guides','http://edgeguides.rubyonrails.org' %> first to verify
+          <%= link_to 'Edge Guides', 'https://edgeguides.rubyonrails.org' %> first to verify
           if the issues are already fixed or not on the master branch.
           Check the <%= link_to 'Ruby on Rails Guides Guidelines', 'ruby_on_rails_guides_guidelines.html' %>
           for style and conventions.
@@ -111,7 +109,7 @@
           <%= link_to 'open an issue', 'https://github.com/rails/rails/issues' %>.
         </p>
         <p>And last but not least, any kind of discussion regarding Ruby on Rails
-          documentation is very welcome in the <%= link_to 'rubyonrails-docs mailing list', 'https://groups.google.com/forum/#!forum/rubyonrails-docs' %>.
+          documentation is very welcome on the <%= link_to 'rubyonrails-docs mailing list', 'https://groups.google.com/forum/#!forum/rubyonrails-docs' %>.
         </p>
       </div>
     </div>
@@ -123,16 +121,5 @@
       <%= render 'license' %>
     </div>
   </div>
-
-  <script type="text/javascript" src="javascripts/jquery.min.js"></script>
-  <script type="text/javascript" src="javascripts/responsive-tables.js"></script>
-  <script type="text/javascript" src="javascripts/guides.js"></script>
-  <script type="text/javascript" src="javascripts/syntaxhighlighter.js"></script>
-  <script type="text/javascript">
-    syntaxhighlighterConfig = {
-      autoLinks: false,
-    };
-    $(guidesIndex.bind);
-  </script>
 </body>
 </html>

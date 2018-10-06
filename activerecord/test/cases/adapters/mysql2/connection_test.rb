@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "support/connection_helper"
 
@@ -38,41 +40,29 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
   end
 
   def test_no_automatic_reconnection_after_timeout
-    assert @connection.active?
+    assert_predicate @connection, :active?
     @connection.update("set @@wait_timeout=1")
     sleep 2
-    assert !@connection.active?
+    assert_not_predicate @connection, :active?
   ensure
     # Repair all fixture connections so other tests won't break.
     @fixture_connections.each(&:verify!)
   end
 
   def test_successful_reconnection_after_timeout_with_manual_reconnect
-    assert @connection.active?
+    assert_predicate @connection, :active?
     @connection.update("set @@wait_timeout=1")
     sleep 2
     @connection.reconnect!
-    assert @connection.active?
+    assert_predicate @connection, :active?
   end
 
   def test_successful_reconnection_after_timeout_with_verify
-    assert @connection.active?
+    assert_predicate @connection, :active?
     @connection.update("set @@wait_timeout=1")
     sleep 2
     @connection.verify!
-    assert @connection.active?
-  end
-
-  def test_verify_with_args_is_deprecated
-    assert_deprecated do
-      @connection.verify!(option: true)
-    end
-    assert_deprecated do
-      @connection.verify!([])
-    end
-    assert_deprecated do
-      @connection.verify!({})
-    end
+    assert_predicate @connection, :active?
   end
 
   def test_execute_after_disconnect
@@ -114,8 +104,8 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
   end
 
   def test_mysql_connection_collation_is_configured
-    assert_equal "utf8_unicode_ci", @connection.show_variable("collation_connection")
-    assert_equal "utf8_general_ci", ARUnit2Model.connection.show_variable("collation_connection")
+    assert_equal "utf8mb4_unicode_ci", @connection.show_variable("collation_connection")
+    assert_equal "utf8mb4_general_ci", ARUnit2Model.connection.show_variable("collation_connection")
   end
 
   def test_mysql_default_in_strict_mode
@@ -180,14 +170,16 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
   end
 
   def test_logs_name_show_variable
+    ActiveRecord::Base.connection.materialize_transactions
+    @subscriber.logged.clear
     @connection.show_variable "foo"
     assert_equal "SCHEMA", @subscriber.logged[0][1]
   end
 
-  def test_logs_name_rename_column_sql
+  def test_logs_name_rename_column_for_alter
     @connection.execute "CREATE TABLE `bar_baz` (`foo` varchar(255))"
     @subscriber.logged.clear
-    @connection.send(:rename_column_sql, "bar_baz", "foo", "foo2")
+    @connection.send(:rename_column_for_alter, "bar_baz", "foo", "foo2")
     assert_equal "SCHEMA", @subscriber.logged[0][1]
   ensure
     @connection.execute "DROP TABLE `bar_baz`"

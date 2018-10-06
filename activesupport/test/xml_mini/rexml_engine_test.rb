@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative "xml_mini_engine_test"
 
 class REXMLEngineTest < XMLMiniEngineTest
@@ -10,7 +12,7 @@ class REXMLEngineTest < XMLMiniEngineTest
   end
 
   def test_parse_from_frozen_string
-    xml_string = "<root></root>".freeze
+    xml_string = "<root></root>"
     assert_equal({ "root" => {} }, ActiveSupport::XmlMini.parse(xml_string))
   end
 

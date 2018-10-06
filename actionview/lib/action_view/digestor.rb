@@ -1,6 +1,6 @@
-require "concurrent/map"
+# frozen_string_literal: true
+
 require "action_view/dependency_tracker"
-require "monitor"
 
 module ActionView
   class Digestor
@@ -18,9 +18,12 @@ module ActionView
       # * <tt>name</tt>   - Template name
       # * <tt>finder</tt>  - An instance of <tt>ActionView::LookupContext</tt>
       # * <tt>dependencies</tt>  - An array of dependent views
-      def digest(name:, finder:, dependencies: [])
-        dependencies ||= []
-        cache_key = [ name, finder.rendered_format, dependencies ].flatten.compact.join(".")
+      def digest(name:, finder:, dependencies: nil)
+        if dependencies.nil? || dependencies.empty?
+          cache_key = "#{name}.#{finder.rendered_format}"
+        else
+          cache_key = [ name, finder.rendered_format, dependencies ].flatten.compact.join(".")
+        end
 
         # this is a correctly done double-checked locking idiom
         # (Concurrent::Map's lookups have volatile semantics)
@@ -30,7 +33,7 @@ module ActionView
             root = tree(name, finder, partial)
             dependencies.each do |injected_dep|
               root.children << Injected.new(injected_dep, nil, nil)
-            end
+            end if dependencies
             finder.digest_cache[cache_key] = root.digest(finder)
           end
         end
@@ -44,10 +47,7 @@ module ActionView
       def tree(name, finder, partial = false, seen = {})
         logical_name = name.gsub(%r|/_|, "/")
 
-        options = {}
-        options[:formats] = [finder.rendered_format] if finder.rendered_format
-
-        if template = finder.disable_cache { finder.find_all(logical_name, [], partial, [], options).first }
+        if template = find_template(finder, logical_name, [], partial, [])
           finder.rendered_format ||= template.formats.first
 
           if node = seen[template.identifier] # handle cycles in the tree
@@ -69,6 +69,15 @@ module ActionView
           seen[name] ||= Missing.new(name, logical_name, nil)
         end
       end
+
+      private
+        def find_template(finder, name, prefixes, partial, keys)
+          finder.disable_cache do
+            format = finder.rendered_format
+            result = finder.find_all(name, prefixes, partial, keys, formats: [format]).first if format
+            result || finder.find_all(name, prefixes, partial, keys).first
+          end
+        end
     end
 
     class Node
@@ -87,7 +96,7 @@ module ActionView
       end
 
       def digest(finder, stack = [])
-        Digest::MD5.hexdigest("#{template.source}-#{dependency_digest(finder, stack)}")
+        ActiveSupport::Digest.hexdigest("#{template.source}-#{dependency_digest(finder, stack)}")
       end
 
       def dependency_digest(finder, stack)

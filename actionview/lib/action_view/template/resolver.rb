@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "pathname"
 require "active_support/core_ext/class"
 require "active_support/core_ext/module/attribute_accessors"
@@ -14,7 +16,7 @@ module ActionView
       alias_method :partial?, :partial
 
       def self.build(name, prefix, partial)
-        virtual = ""
+        virtual = +""
         virtual << "#{prefix}/" unless prefix.empty?
         virtual << (partial ? "_#{name}" : name)
         new name, prefix, partial, virtual
@@ -125,8 +127,7 @@ module ActionView
         end
     end
 
-    cattr_accessor :caching
-    self.caching = true
+    cattr_accessor :caching, default: true
 
     class << self
       alias :caching? :caching
@@ -220,9 +221,7 @@ module ActionView
       end
 
       def query(path, details, formats, outside_app_allowed)
-        query = build_query(path, details)
-
-        template_paths = find_template_paths(query)
+        template_paths = find_template_paths_from_details(path, details)
         template_paths = reject_files_external_to_app(template_paths) unless outside_app_allowed
 
         template_paths.map do |template|
@@ -240,6 +239,11 @@ module ActionView
 
       def reject_files_external_to_app(files)
         files.reject { |filename| !inside_path?(@path, filename) }
+      end
+
+      def find_template_paths_from_details(path, details)
+        query = build_query(path, details)
+        find_template_paths(query)
       end
 
       def find_template_paths(query)
@@ -278,7 +282,7 @@ module ActionView
       end
 
       def escape_entry(entry)
-        entry.gsub(/[*?{}\[\]]/, '\\\\\\&'.freeze)
+        entry.gsub(/[*?{}\[\]]/, '\\\\\\&')
       end
 
       # Returns the file mtime from the filesystem.
@@ -290,7 +294,7 @@ module ActionView
       # from the path, or the handler, we should return the array of formats given
       # to the resolver.
       def extract_handler_and_format_and_variant(path)
-        pieces = File.basename(path).split(".".freeze)
+        pieces = File.basename(path).split(".")
         pieces.shift
 
         extension = pieces.pop
@@ -309,13 +313,13 @@ module ActionView
   # ==== Examples
   #
   # Default pattern, loads views the same way as previous versions of rails, eg. when you're
-  # looking for `users/new` it will produce query glob: `users/new{.{en},}{.{html,js},}{.{erb,haml},}`
+  # looking for <tt>users/new</tt> it will produce query glob: <tt>users/new{.{en},}{.{html,js},}{.{erb,haml},}</tt>
   #
   #   FileSystemResolver.new("/path/to/views", ":prefix/:action{.:locale,}{.:formats,}{+:variants,}{.:handlers,}")
   #
   # This one allows you to keep files with different formats in separate subdirectories,
-  # eg. `users/new.html` will be loaded from `users/html/new.erb` or `users/new.html.erb`,
-  # `users/new.js` from `users/js/new.erb` or `users/new.js.erb`, etc.
+  # eg. <tt>users/new.html</tt> will be loaded from <tt>users/html/new.erb</tt> or <tt>users/new.html.erb</tt>,
+  # <tt>users/new.js</tt> from <tt>users/js/new.erb</tt> or <tt>users/new.js.erb</tt>, etc.
   #
   #   FileSystemResolver.new("/path/to/views", ":prefix/{:formats/,}:action{.:locale,}{.:formats,}{+:variants,}{.:handlers,}")
   #
@@ -361,19 +365,56 @@ module ActionView
 
   # An Optimized resolver for Rails' most common case.
   class OptimizedFileSystemResolver < FileSystemResolver #:nodoc:
-    def build_query(path, details)
-      query = escape_entry(File.join(@path, path))
+    private
 
-      exts = EXTENSIONS.map do |ext, prefix|
-        if ext == :variants && details[ext] == :any
-          "{#{prefix}*,}"
-        else
-          "{#{details[ext].compact.uniq.map { |e| "#{prefix}#{e}," }.join}}"
+      def find_template_paths_from_details(path, details)
+        # Instead of checking for every possible path, as our other globs would
+        # do, scan the directory for files with the right prefix.
+        query = "#{escape_entry(File.join(@path, path))}*"
+
+        regex = build_regex(path, details)
+
+        Dir[query].uniq.reject do |filename|
+          # This regex match does double duty of finding only files which match
+          # details (instead of just matching the prefix) and also filtering for
+          # case-insensitive file systems.
+          !filename.match(regex) ||
+            File.directory?(filename)
+        end.sort_by do |filename|
+          # Because we scanned the directory, instead of checking for files
+          # one-by-one, they will be returned in an arbitrary order.
+          # We can use the matches found by the regex and sort by their index in
+          # details.
+          match = filename.match(regex)
+          EXTENSIONS.keys.reverse.map do |ext|
+            if ext == :variants && details[ext] == :any
+              match[ext].nil? ? 0 : 1
+            elsif match[ext].nil?
+              # No match should be last
+              details[ext].length
+            else
+              found = match[ext].to_sym
+              details[ext].index(found)
+            end
+          end
         end
-      end.join
+      end
 
-      query + exts
-    end
+      def build_regex(path, details)
+        query = escape_entry(File.join(@path, path))
+        exts = EXTENSIONS.map do |ext, prefix|
+          match =
+            if ext == :variants && details[ext] == :any
+              ".*?"
+            else
+              details[ext].compact.uniq.map { |e| Regexp.escape(e) }.join("|")
+            end
+          prefix = Regexp.escape(prefix)
+          "(#{prefix}(?<#{ext}>#{match}))?"
+        end.join
+
+        %r{\A#{query}#{exts}\z}
+      end
   end
 
   # The same as FileSystemResolver but does not allow templates to store

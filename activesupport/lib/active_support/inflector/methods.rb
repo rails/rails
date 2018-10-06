@@ -1,5 +1,6 @@
+# frozen_string_literal: true
+
 require "active_support/inflections"
-require "active_support/core_ext/regexp"
 
 module ActiveSupport
   # The Inflector transforms words from singular to plural, class names to table
@@ -28,7 +29,7 @@ module ActiveSupport
     #   pluralize('CamelOctopus')     # => "CamelOctopi"
     #   pluralize('ley', :es)         # => "leyes"
     def pluralize(word, locale = :en)
-      apply_inflections(word, inflections(locale).plurals)
+      apply_inflections(word, inflections(locale).plurals, locale)
     end
 
     # The reverse of #pluralize, returns the singular form of a word in a
@@ -45,7 +46,7 @@ module ActiveSupport
     #   singularize('CamelOctopi')      # => "CamelOctopus"
     #   singularize('leyes', :es)       # => "ley"
     def singularize(word, locale = :en)
-      apply_inflections(word, inflections(locale).singulars)
+      apply_inflections(word, inflections(locale).singulars, locale)
     end
 
     # Converts strings to UpperCamelCase.
@@ -69,10 +70,10 @@ module ActiveSupport
       if uppercase_first_letter
         string = string.sub(/^[a-z\d]*/) { |match| inflections.acronyms[match] || match.capitalize }
       else
-        string = string.sub(/^(?:#{inflections.acronym_regex}(?=\b|[A-Z_])|\w)/) { |match| match.downcase }
+        string = string.sub(inflections.acronyms_camelize_regex) { |match| match.downcase }
       end
       string.gsub!(/(?:_|(\/))([a-z\d]*)/i) { "#{$1}#{inflections.acronyms[$2] || $2.capitalize}" }
-      string.gsub!("/".freeze, "::".freeze)
+      string.gsub!("/", "::")
       string
     end
 
@@ -89,11 +90,11 @@ module ActiveSupport
     #   camelize(underscore('SSLError'))  # => "SslError"
     def underscore(camel_cased_word)
       return camel_cased_word unless /[A-Z-]|::/.match?(camel_cased_word)
-      word = camel_cased_word.to_s.gsub("::".freeze, "/".freeze)
-      word.gsub!(/(?:(?<=([A-Za-z\d]))|\b)(#{inflections.acronym_regex})(?=\b|[^a-z])/) { "#{$1 && '_'.freeze }#{$2.downcase}" }
-      word.gsub!(/([A-Z\d]+)([A-Z][a-z])/, '\1_\2'.freeze)
-      word.gsub!(/([a-z\d])([A-Z])/, '\1_\2'.freeze)
-      word.tr!("-".freeze, "_".freeze)
+      word = camel_cased_word.to_s.gsub("::", "/")
+      word.gsub!(inflections.acronyms_underscore_regex) { "#{$1 && '_' }#{$2.downcase}" }
+      word.gsub!(/([A-Z\d]+)([A-Z][a-z])/, '\1_\2')
+      word.gsub!(/([a-z\d])([A-Z])/, '\1_\2')
+      word.tr!("-", "_")
       word.downcase!
       word
     end
@@ -129,14 +130,14 @@ module ActiveSupport
 
       inflections.humans.each { |(rule, replacement)| break if result.sub!(rule, replacement) }
 
-      result.sub!(/\A_+/, "".freeze)
+      result.sub!(/\A_+/, "")
       unless keep_id_suffix
-        result.sub!(/_id\z/, "".freeze)
+        result.sub!(/_id\z/, "")
       end
-      result.tr!("_".freeze, " ".freeze)
+      result.tr!("_", " ")
 
       result.gsub!(/([a-z\d]*)/i) do |match|
-        "#{inflections.acronyms[match] || match.downcase}"
+        "#{inflections.acronyms[match.downcase] || match.downcase}"
       end
 
       if capitalize
@@ -198,14 +199,14 @@ module ActiveSupport
     #   classify('calculus')     # => "Calculus"
     def classify(table_name)
       # strip out any leading schema name
-      camelize(singularize(table_name.to_s.sub(/.*\./, "".freeze)))
+      camelize(singularize(table_name.to_s.sub(/.*\./, "")))
     end
 
     # Replaces underscores with dashes in the string.
     #
     #   dasherize('puni_puni') # => "puni-puni"
     def dasherize(underscored_word)
-      underscored_word.tr("_".freeze, "-".freeze)
+      underscored_word.tr("_", "-")
     end
 
     # Removes the module part from the expression in the string.
@@ -268,7 +269,7 @@ module ActiveSupport
     # NameError is raised when the name is not in CamelCase or the constant is
     # unknown.
     def constantize(camel_cased_word)
-      names = camel_cased_word.split("::".freeze)
+      names = camel_cased_word.split("::")
 
       # Trigger a built-in NameError exception including the ill-formed constant in the message.
       Object.const_get(camel_cased_word) if names.empty?
@@ -339,18 +340,7 @@ module ActiveSupport
     #   ordinal(-11)   # => "th"
     #   ordinal(-1021) # => "st"
     def ordinal(number)
-      abs_number = number.to_i.abs
-
-      if (11..13).include?(abs_number % 100)
-        "th"
-      else
-        case abs_number % 10
-        when 1; "st"
-        when 2; "nd"
-        when 3; "rd"
-          else    "th"
-        end
-      end
+      I18n.translate("number.nth.ordinals", number: number)
     end
 
     # Turns a number into an ordinal string used to denote the position in an
@@ -363,7 +353,7 @@ module ActiveSupport
     #   ordinalize(-11)   # => "-11th"
     #   ordinalize(-1021) # => "-1021st"
     def ordinalize(number)
-      "#{number}#{ordinal(number)}"
+      I18n.translate("number.nth.ordinalized", number: number)
     end
 
     private
@@ -374,7 +364,7 @@ module ActiveSupport
       #   const_regexp("Foo::Bar::Baz") # => "Foo(::Bar(::Baz)?)?"
       #   const_regexp("::")            # => "::"
       def const_regexp(camel_cased_word)
-        parts = camel_cased_word.split("::".freeze)
+        parts = camel_cased_word.split("::")
 
         return Regexp.escape(camel_cased_word) if parts.blank?
 
@@ -387,12 +377,15 @@ module ActiveSupport
 
       # Applies inflection rules for +singularize+ and +pluralize+.
       #
-      #  apply_inflections('post', inflections.plurals)    # => "posts"
-      #  apply_inflections('posts', inflections.singulars) # => "post"
-      def apply_inflections(word, rules)
+      # If passed an optional +locale+ parameter, the uncountables will be
+      # found for that locale.
+      #
+      #  apply_inflections('post', inflections.plurals, :en)    # => "posts"
+      #  apply_inflections('posts', inflections.singulars, :en) # => "post"
+      def apply_inflections(word, rules, locale = :en)
         result = word.to_s.dup
 
-        if word.empty? || inflections.uncountables.uncountable?(result)
+        if word.empty? || inflections(locale).uncountables.uncountable?(result)
           result
         else
           rules.each { |(rule, replacement)| break if result.sub!(rule, replacement) }

@@ -1,5 +1,4 @@
-require "active_support/inflector/methods"
-require "active_support/core_ext/regexp"
+# frozen_string_literal: true
 
 module ActiveSupport
   class Deprecation
@@ -112,7 +111,7 @@ module ActiveSupport
     #
     #   PLANETS = %w(mercury venus earth mars jupiter saturn uranus neptune pluto)
     #
-    #   (In a later update, the original implementation of `PLANETS` has been removed.)
+    #   # (In a later update, the original implementation of `PLANETS` has been removed.)
     #
     #   PLANETS_POST_2006 = %w(mercury venus earth mars jupiter saturn uranus neptune)
     #   PLANETS = ActiveSupport::Deprecation::DeprecatedConstantProxy.new('PLANETS', 'PLANETS_POST_2006')
@@ -123,6 +122,8 @@ module ActiveSupport
     #        ["Mercury", "Venus", "Earth", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune"]
     class DeprecatedConstantProxy < DeprecationProxy
       def initialize(old_const, new_const, deprecator = ActiveSupport::Deprecation.instance, message: "#{old_const} is deprecated! Use #{new_const} instead.")
+        require "active_support/inflector/methods"
+
         @old_const = old_const
         @new_const = new_const
         @deprecator = deprecator
