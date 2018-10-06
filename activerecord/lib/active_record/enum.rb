@@ -224,6 +224,7 @@ module ActiveRecord
         "You tried to define an enum named \"%{enum}\" on the model \"%{klass}\", but " \
         "this will generate a %{type} method \"%{method}\", which is already defined " \
         "by %{source}."
+      private_constant :ENUM_CONFLICT_MESSAGE
 
       def detect_enum_conflict!(enum_name, method_name, klass_method = false)
         if klass_method && dangerous_class_method?(method_name)
