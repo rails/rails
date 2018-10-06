@@ -1,0 +1,11 @@
+language: ruby
+sudo: false
+
+rvm:
+  - 2.2
+
+cache:
+  bundler: true
+
+script:
+  - bundle exec rake
