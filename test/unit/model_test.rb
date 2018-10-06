@@ -29,4 +29,9 @@ class ActionText::ModelTest < ActiveSupport::TestCase
     message = Message.create!(subject: "Greetings", content: "<h1>Hello world</h1>")
     assert_equal "Hello world", message.content.to_plain_text
   end
+
+  test "save body" do
+    message = Message.create(subject: "Greetings", body: "<h1>Hello world</h1>")
+    assert_equal "Hello world", message.body.to_plain_text
+  end
 end

@@ -28,7 +28,7 @@ module ActionText
           end
 
           def #{name}=(body)
-            #{name}.body = body
+            self.#{name}.body = body
           end
         CODE
 
