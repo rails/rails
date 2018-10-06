@@ -1,3 +1,14 @@
+*   Enum raises on invalid definition values
+
+    When defining a Hash enum it can be easy to use [] instead of {}. This
+    commit checks that only valid definition values are provided, those can
+    be a Hash, an array of Symbols or an array of Strings. Otherwise it
+    raises an ArgumentError.
+
+    Fixes #33961
+
+    *Alberto Almagro*
+
 *   Reloading associations now clears the Query Cache like `Persistence#reload` does.
 
     ```

@@ -150,6 +150,7 @@ module ActiveRecord
       enum_prefix = definitions.delete(:_prefix)
       enum_suffix = definitions.delete(:_suffix)
       definitions.each do |name, values|
+        assert_valid_enum_definition_values(values)
         # statuses = { }
         enum_values = ActiveSupport::HashWithIndifferentAccess.new
         name = name.to_s
@@ -207,6 +208,15 @@ module ActiveRecord
           mod = Module.new
           include mod
           mod
+        end
+      end
+
+      def assert_valid_enum_definition_values(values)
+        unless values.is_a?(Hash) || values.all? { |v| v.is_a?(Symbol) } || values.all? { |v| v.is_a?(String) }
+          error_message = <<~MSG
+            Enum values #{values} must be either a hash, an array of symbols, or an array of strings.
+          MSG
+          raise ArgumentError, error_message
         end
       end
 
