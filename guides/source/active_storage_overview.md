@@ -82,6 +82,14 @@ To use the Amazon S3 service in production, you add the following to
 config.active_storage.service = :amazon
 ```
 
+To use the test service when testing, you add the following to
+`config/environments/test.rb`:
+
+```ruby
+# Store uploaded files on the local file system in a temporary directory.
+config.active_storage.service = :test
+```
+
 Continue reading for more information on the built-in service adapters (e.g.
 `Disk` and `S3`) and the configuration they require.
 
