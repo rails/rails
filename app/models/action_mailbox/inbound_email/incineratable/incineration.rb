@@ -13,6 +13,6 @@ class ActionMailbox::InboundEmail::Incineratable::Incineration
     end
 
     def processed?
-      @inbound_email.delivered? || @inbound_email.failed?
+      @inbound_email.delivered? || @inbound_email.bounced? || @inbound_email.failed?
     end
 end

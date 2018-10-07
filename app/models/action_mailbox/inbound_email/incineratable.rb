@@ -16,7 +16,7 @@ module ActionMailbox::InboundEmail::Incineratable
   private
     # TODO: Use enum change tracking once merged into Active Support
     def remember_to_incinerate_later
-      if status_changed? && (delivered? || failed?)
+      if status_changed? && (delivered? || bounced? || failed?)
         @incinerating_later = true
       end
     end
