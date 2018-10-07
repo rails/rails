@@ -2362,7 +2362,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal [firm.id, nil], accounts.map(&:firm_id)
   end
 
-  def test_association_with_rewhere_doesnt_inverse_instance_key
+  def test_association_with_rewhere_doesnt_set_inverse_instance_key
     firm = companies(:first_firm)
     accounts = firm.accounts.rewhere(firm_id: [firm.id, nil]).order(:id)
     assert_equal [firm.id, nil], accounts.map(&:firm_id)
