@@ -6,7 +6,7 @@ module ActionMailbox::InboundEmail::Incineratable
 
   included do
     before_update :remember_to_incinerate_later
-    after_update_commit :incinerate_later, if: :need_to_incinerate_later?
+    after_update_commit :incinerate_later, if: :incinerating_later?
   end
 
   def incinerate
@@ -17,12 +17,12 @@ module ActionMailbox::InboundEmail::Incineratable
     # TODO: Use enum change tracking once merged into Active Support
     def remember_to_incinerate_later
       if status_changed? && (delivered? || failed?)
-        @incinerate_later = true
+        @incinerating_later = true
       end
     end
 
-    def need_to_incinerate_later?
-      @incinerate_later
+    def incinerating_later?
+      @incinerating_later ||= false
     end
 
     def incinerate_later
