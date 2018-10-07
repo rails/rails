@@ -126,7 +126,7 @@ run the following:
 $ rails --version
 ```
 
-If it says something like "Rails 5.1.1", you are ready to continue.
+If it says something like "Rails 5.2.1", you are ready to continue.
 
 ### Creating the Blog Application
 
@@ -272,8 +272,6 @@ invoke  helper
 create    app/helpers/welcome_helper.rb
 invoke    test_unit
 invoke  assets
-invoke    coffee
-create      app/assets/javascripts/welcome.coffee
 invoke    scss
 create      app/assets/stylesheets/welcome.scss
 ```
@@ -1665,7 +1663,6 @@ This creates five files and one empty directory:
 | app/views/comments/                          | Views of the controller are stored here  |
 | test/controllers/comments_controller_test.rb | The test for the controller              |
 | app/helpers/comments_helper.rb               | A view helper file                       |
-| app/assets/javascripts/comments.coffee       | CoffeeScript for the controller          |
 | app/assets/stylesheets/comments.scss         | Cascading style sheet for the controller |
 
 Like with any blog, our readers will create their comments directly after

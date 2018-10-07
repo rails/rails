@@ -209,7 +209,7 @@ module ActiveModel
     private
 
       def _singularize(string)
-        ActiveSupport::Inflector.underscore(string).tr("/".freeze, "_".freeze)
+        ActiveSupport::Inflector.underscore(string).tr("/", "_")
       end
   end
 
@@ -252,7 +252,7 @@ module ActiveModel
     #   Person.model_name.plural   # => "people"
     def model_name
       @_model_name ||= begin
-        namespace = parents.detect do |n|
+        namespace = module_parents.detect do |n|
           n.respond_to?(:use_relative_model_naming?) && n.use_relative_model_naming?
         end
         ActiveModel::Name.new(self, namespace)

@@ -310,7 +310,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
 
   def test_build
     devel = Developer.find(1)
-    proj = assert_no_queries(ignore_none: false) { devel.projects.build("name" => "Projekt") }
+    proj = assert_no_queries { devel.projects.build("name" => "Projekt") }
     assert_not_predicate devel.projects, :loaded?
 
     assert_equal devel.projects.last, proj
@@ -325,7 +325,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
 
   def test_new_aliased_to_build
     devel = Developer.find(1)
-    proj = assert_no_queries(ignore_none: false) { devel.projects.new("name" => "Projekt") }
+    proj = assert_no_queries { devel.projects.new("name" => "Projekt") }
     assert_not_predicate devel.projects, :loaded?
 
     assert_equal devel.projects.last, proj
@@ -546,7 +546,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
 
     developer = project.developers.first
 
-    assert_no_queries(ignore_none: false) do
+    assert_no_queries do
       assert_predicate project.developers, :loaded?
       assert_includes project.developers, developer
     end
@@ -741,7 +741,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   def test_get_ids_for_loaded_associations
     developer = developers(:david)
     developer.projects.reload
-    assert_queries(0) do
+    assert_no_queries do
       developer.project_ids
       developer.project_ids
     end
@@ -859,7 +859,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
 
   def test_has_and_belongs_to_many_associations_on_new_records_use_null_relations
     projects = Developer.new.projects
-    assert_no_queries(ignore_none: false) do
+    assert_no_queries do
       assert_equal [], projects
       assert_equal [], projects.where(title: "omg")
       assert_equal [], projects.pluck(:title)

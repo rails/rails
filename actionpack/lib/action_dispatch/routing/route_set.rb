@@ -377,7 +377,7 @@ module ActionDispatch
         @prepend                    = []
         @disable_clear_and_finalize = false
         @finalized                  = false
-        @env_key                    = "ROUTES_#{object_id}_SCRIPT_NAME".freeze
+        @env_key                    = "ROUTES_#{object_id}_SCRIPT_NAME"
         @url_helpers                = nil
         @deferred_classes           = []
 
@@ -444,7 +444,7 @@ module ActionDispatch
       end
 
       def include_helpers_now(klass, include_path_helpers)
-        namespace = klass.parents.detect { |m| m.respond_to?(:railtie_include_helpers) }
+        namespace = klass.module_parents.detect { |m| m.respond_to?(:railtie_include_helpers) }
 
         if namespace && namespace.railtie_namespace.routes != self
           namespace.railtie_include_helpers(klass, include_path_helpers)
@@ -458,11 +458,6 @@ module ActionDispatch
         return if @finalized
         @append.each { |blk| eval_block(blk) }
         @finalized = true
-        @url_helpers = build_url_helper_module true
-        @deferred_classes.each { |klass, include_path_helpers|
-          include_helpers klass, include_path_helpers
-        }
-        @deferred_classes.clear
       end
 
       def clear!
@@ -491,10 +486,11 @@ module ActionDispatch
         return if MountedHelpers.method_defined?(name)
 
         routes = self
+        helpers = routes.url_helpers
 
         MountedHelpers.class_eval do
           define_method "_#{name}" do
-            RoutesProxy.new(routes, _routes_context, routes.url_helpers, script_namer)
+            RoutesProxy.new(routes, _routes_context, helpers, script_namer)
           end
         end
 
@@ -505,20 +501,7 @@ module ActionDispatch
         RUBY
       end
 
-      class UnfinalizedRouteSet < StandardError
-      end
-
       def url_helpers(supports_path = true)
-        raise UnfinalizedRouteSet, "routes have not been finalized. Please call `finalize!` or use `draw(&block)`" unless @finalized
-
-        if supports_path
-          @url_helpers
-        else
-          build_url_helper_module false
-        end
-      end
-
-      def build_url_helper_module(supports_path)
         routes = self
 
         Module.new do
@@ -767,7 +750,7 @@ module ActionDispatch
         # Remove leading slashes from controllers
         def normalize_controller!
           if controller
-            if controller.start_with?("/".freeze)
+            if controller.start_with?("/")
               @options[:controller] = controller[1..-1]
             else
               @options[:controller] = controller
@@ -857,10 +840,6 @@ module ActionDispatch
         RESERVED_OPTIONS.each { |ro| path_options.delete ro }
 
         path, params = generate(route_name, path_options, recall)
-
-        if options.key? :params
-          params.merge! options[:params]
-        end
 
         options[:path]        = path
         options[:script_name] = script_name

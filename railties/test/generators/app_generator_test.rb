@@ -13,10 +13,9 @@ DEFAULT_APP_FILES = %w(
   config.ru
   app/assets/config/manifest.js
   app/assets/images
-  app/assets/javascripts
-  app/assets/javascripts/application.js
-  app/assets/javascripts/cable.js
-  app/assets/javascripts/channels
+  app/javascript
+  app/javascript/channels
+  app/javascript/packs/application.js
   app/assets/stylesheets
   app/assets/stylesheets/application.css
   app/channels/application_cable/channel.rb
@@ -114,12 +113,12 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_assets
-    run_generator
+    run_generator [destination_root, "--no-skip-javascript"]
 
     assert_file("app/views/layouts/application.html.erb", /stylesheet_link_tag\s+'application', media: 'all', 'data-turbolinks-track': 'reload'/)
-    assert_file("app/views/layouts/application.html.erb", /javascript_include_tag\s+'application', 'data-turbolinks-track': 'reload'/)
+    assert_file("app/views/layouts/application.html.erb", /javascript_pack_tag\s+'application', 'data-turbolinks-track': 'reload'/)
     assert_file("app/assets/stylesheets/application.css")
-    assert_file("app/assets/javascripts/application.js")
+    assert_file("app/javascript/packs/application.js")
   end
 
   def test_application_job_file_present
@@ -216,12 +215,13 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_new_application_load_defaults
     app_root = File.join(destination_root, "myfirstapp")
     run_generator [app_root]
+
     output = nil
 
     assert_file "#{app_root}/config/application.rb", /\s+config\.load_defaults #{Rails::VERSION::STRING.to_f}/
 
     Dir.chdir(app_root) do
-      output = `./bin/rails r "puts Rails.application.config.assets.unknown_asset_fallback"`
+      output = `SKIP_REQUIRE_WEBPACKER=true ./bin/rails r "puts Rails.application.config.assets.unknown_asset_fallback"`
     end
 
     assert_equal "false\n", output
@@ -559,7 +559,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator
 
     assert_gem "sass-rails"
-    assert_gem "uglifier"
   end
 
   def test_action_cable_redis_gems
@@ -601,48 +600,14 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_inclusion_of_javascript_runtime
-    run_generator
-    if defined?(JRUBY_VERSION)
-      assert_gem "therubyrhino"
-    elsif RUBY_PLATFORM =~ /mingw|mswin/
-      assert_gem "duktape"
-    else
-      assert_file "Gemfile", /# gem 'mini_racer', platforms: :ruby/
-    end
-  end
-
-  def test_rails_ujs_is_the_default_ujs_library
-    run_generator
-    assert_file "app/assets/javascripts/application.js" do |contents|
-      assert_match %r{^//= require rails-ujs}, contents
-    end
-  end
-
   def test_javascript_is_skipped_if_required
     run_generator [destination_root, "--skip-javascript"]
 
-    assert_no_file "app/assets/javascripts"
+    assert_no_file "app/javascript"
 
     assert_file "app/views/layouts/application.html.erb" do |contents|
       assert_match(/stylesheet_link_tag\s+'application', media: 'all' %>/, contents)
       assert_no_match(/javascript_include_tag\s+'application' \%>/, contents)
-    end
-
-    assert_no_gem "coffee-rails"
-    assert_no_gem "uglifier"
-
-    assert_file "config/environments/production.rb" do |content|
-      assert_no_match(/config\.assets\.js_compressor = :uglifier/, content)
-    end
-  end
-
-  def test_coffeescript_is_skipped_if_required
-    run_generator [destination_root, "--skip-coffee"]
-
-    assert_file "Gemfile" do |content|
-      assert_no_match(/coffee-rails/, content)
-      assert_match(/uglifier/, content)
     end
   end
 
@@ -819,22 +784,22 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_gem "spring"
   end
 
-  def test_webpack_option
+  def test_skip_javascript_option
     command_check = -> command, *_ do
       @called ||= 0
       if command == "webpacker:install"
         @called += 1
-        assert_equal 1, @called, "webpacker:install expected to be called once, but was called #{@called} times."
+        assert_equal 0, @called, "webpacker:install expected not to be called once, but was called #{@called} times."
       end
     end
 
-    generator([destination_root], webpack: "webpack").stub(:rails_command, command_check) do
+    generator([destination_root], skip_javascript: true).stub(:rails_command, command_check) do
       generator.stub :bundle_command, nil do
         quietly { generator.invoke_all }
       end
     end
 
-    assert_gem "webpacker"
+    assert_no_gem "webpacker"
   end
 
   def test_webpack_option_with_js_framework
@@ -856,22 +821,24 @@ class AppGeneratorTest < Rails::Generators::TestCase
         quietly { generator.invoke_all }
       end
     end
+
+    assert_gem "webpacker"
   end
 
   def test_generator_if_skip_turbolinks_is_given
-    run_generator [destination_root, "--skip-turbolinks"]
+    run_generator [destination_root, "--skip-turbolinks", "--no-skip-javascript"]
 
     assert_no_gem "turbolinks"
     assert_file "app/views/layouts/application.html.erb" do |content|
       assert_no_match(/data-turbolinks-track/, content)
     end
-    assert_file "app/assets/javascripts/application.js" do |content|
+    assert_file "app/javascript/packs/application.js" do |content|
       assert_no_match(/turbolinks/, content)
     end
   end
 
   def test_bootsnap
-    run_generator
+    run_generator [destination_root, "--no-skip-bootsnap"]
 
     unless defined?(JRUBY_VERSION)
       assert_gem "bootsnap"
@@ -972,7 +939,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       template
     end
 
-    sequence = ["git init", "install", "binstubs bundler", "exec spring binstub --all", "echo ran after_bundle"]
+    sequence = ["git init", "install", "binstubs bundler", "exec spring binstub --all", "webpacker:install", "echo ran after_bundle"]
     @sequence_step ||= 0
     ensure_bundler_first = -> command, options = nil do
       assert_equal sequence[@sequence_step], command, "commands should be called in sequence #{sequence}"
@@ -989,7 +956,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       end
     end
 
-    assert_equal 5, @sequence_step
+    assert_equal 6, @sequence_step
   end
 
   def test_gitignore

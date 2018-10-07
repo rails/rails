@@ -223,18 +223,6 @@ module ActiveRecord
         execute "ROLLBACK"
       end
 
-      # In the simple case, MySQL allows us to place JOINs directly into the UPDATE
-      # query. However, this does not allow for LIMIT, OFFSET and ORDER. To support
-      # these, we must use a subquery.
-      def join_to_update(update, select, key) # :nodoc:
-        if select.limit || select.offset || select.orders.any?
-          super
-        else
-          update.table select.source
-          update.wheres = select.constraints
-        end
-      end
-
       def empty_insert_statement_value(primary_key = nil)
         "VALUES ()"
       end
@@ -731,20 +719,6 @@ module ActiveRecord
 
         def remove_timestamps_for_alter(table_name, options = {})
           [remove_column_for_alter(table_name, :updated_at), remove_column_for_alter(table_name, :created_at)]
-        end
-
-        # MySQL is too stupid to create a temporary table for use subquery, so we have
-        # to give it some prompting in the form of a subsubquery. Ugh!
-        def subquery_for(key, select)
-          subselect = select.clone
-          subselect.projections = [key]
-
-          # Materialize subquery by adding distinct
-          # to work with MySQL 5.7.6 which sets optimizer_switch='derived_merge=on'
-          subselect.distinct unless select.limit || select.offset || select.orders.any?
-
-          key_name = quote_column_name(key.name)
-          Arel::SelectManager.new(subselect.as("__active_record_temp")).project(Arel.sql(key_name))
         end
 
         def supports_rename_index?

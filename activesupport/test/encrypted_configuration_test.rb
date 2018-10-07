@@ -42,6 +42,12 @@ class EncryptedConfigurationTest < ActiveSupport::TestCase
     assert @credentials.something[:good]
   end
 
+  test "reading comment-only configuration" do
+    @credentials.write("# comment")
+
+    assert_equal @credentials.config, {}
+  end
+
   test "change configuration by key file" do
     @credentials.write({ something: { good: true } }.to_yaml)
     @credentials.change do |config_file|

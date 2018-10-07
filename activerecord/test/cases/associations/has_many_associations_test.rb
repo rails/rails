@@ -458,7 +458,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_finder_method_with_dirty_target
     company = companies(:first_firm)
     new_clients = []
-    assert_no_queries(ignore_none: false) do
+    assert_no_queries do
       new_clients << company.clients_of_firm.build(name: "Another Client")
       new_clients << company.clients_of_firm.build(name: "Another Client II")
       new_clients << company.clients_of_firm.build(name: "Another Client III")
@@ -478,7 +478,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_finder_bang_method_with_dirty_target
     company = companies(:first_firm)
     new_clients = []
-    assert_no_queries(ignore_none: false) do
+    assert_no_queries do
       new_clients << company.clients_of_firm.build(name: "Another Client")
       new_clients << company.clients_of_firm.build(name: "Another Client II")
       new_clients << company.clients_of_firm.build(name: "Another Client III")
@@ -955,7 +955,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_transactions_when_adding_to_new_record
-    assert_no_queries(ignore_none: false) do
+    assert_no_queries do
       firm = Firm.new
       firm.clients_of_firm.concat(Client.new("name" => "Natural Company"))
     end
@@ -970,7 +970,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_new_aliased_to_build
     company = companies(:first_firm)
-    new_client = assert_no_queries(ignore_none: false) { company.clients_of_firm.new("name" => "Another Client") }
+    new_client = assert_no_queries { company.clients_of_firm.new("name" => "Another Client") }
     assert_not_predicate company.clients_of_firm, :loaded?
 
     assert_equal "Another Client", new_client.name
@@ -980,7 +980,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_build
     company = companies(:first_firm)
-    new_client = assert_no_queries(ignore_none: false) { company.clients_of_firm.build("name" => "Another Client") }
+    new_client = assert_no_queries { company.clients_of_firm.build("name" => "Another Client") }
     assert_not_predicate company.clients_of_firm, :loaded?
 
     assert_equal "Another Client", new_client.name
@@ -1037,7 +1037,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_build_many
     company = companies(:first_firm)
-    new_clients = assert_no_queries(ignore_none: false) { company.clients_of_firm.build([{ "name" => "Another Client" }, { "name" => "Another Client II" }]) }
+    new_clients = assert_no_queries { company.clients_of_firm.build([{ "name" => "Another Client" }, { "name" => "Another Client II" }]) }
     assert_equal 2, new_clients.size
   end
 
@@ -1063,7 +1063,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_build_via_block
     company = companies(:first_firm)
-    new_client = assert_no_queries(ignore_none: false) { company.clients_of_firm.build { |client| client.name = "Another Client" } }
+    new_client = assert_no_queries { company.clients_of_firm.build { |client| client.name = "Another Client" } }
     assert_not_predicate company.clients_of_firm, :loaded?
 
     assert_equal "Another Client", new_client.name
@@ -1073,7 +1073,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_build_many_via_block
     company = companies(:first_firm)
-    new_clients = assert_no_queries(ignore_none: false) do
+    new_clients = assert_no_queries do
       company.clients_of_firm.build([{ "name" => "Another Client" }, { "name" => "Another Client II" }]) do |client|
         client.name = "changed"
       end
@@ -1266,7 +1266,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_calling_empty_with_counter_cache
     post = posts(:welcome)
-    assert_queries(0) do
+    assert_no_queries do
       assert_not_empty post.comments
     end
   end
@@ -1364,7 +1364,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_transaction_when_deleting_new_record
-    assert_no_queries(ignore_none: false) do
+    assert_no_queries do
       firm = Firm.new
       client = Client.new("name" => "New Client")
       firm.clients_of_firm << client
@@ -1800,7 +1800,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     firm.clients = []
     firm.save
 
-    assert_queries(0, ignore_none: true) do
+    assert_no_queries do
       firm.clients = []
     end
 
@@ -1822,7 +1822,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_transactions_when_replacing_on_new_record
-    assert_no_queries(ignore_none: false) do
+    assert_no_queries do
       firm = Firm.new
       firm.clients_of_firm = [Client.new("name" => "New Client")]
     end
@@ -1835,7 +1835,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_get_ids_for_loaded_associations
     company = companies(:first_firm)
     company.clients.reload
-    assert_queries(0) do
+    assert_no_queries do
       company.client_ids
       company.client_ids
     end
@@ -1862,11 +1862,11 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_get_ids_for_association_on_new_record_does_not_try_to_find_records
-    Company.columns  # Load schema information so we don't query below
-    Contract.columns # if running just this test.
+    # Load schema information so we don't query below if running just this test.
+    companies(:first_client).contract_ids
 
     company = Company.new
-    assert_queries(0) do
+    assert_no_queries do
       company.contract_ids
     end
 
@@ -1972,7 +1972,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     firm.clients.load_target
     assert_predicate firm.clients, :loaded?
 
-    assert_no_queries(ignore_none: false) do
+    assert_no_queries do
       firm.clients.first
       assert_equal 2, firm.clients.first(2).size
       firm.clients.last
@@ -2356,6 +2356,18 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal [accounts(:signals37)], firm.accounts.open
   end
 
+  def test_association_with_or_doesnt_set_inverse_instance_key
+    firm = companies(:first_firm)
+    accounts = firm.accounts.or(Account.where(firm_id: nil)).order(:id)
+    assert_equal [firm.id, nil], accounts.map(&:firm_id)
+  end
+
+  def test_association_with_rewhere_doesnt_inverse_instance_key
+    firm = companies(:first_firm)
+    accounts = firm.accounts.rewhere(firm_id: [firm.id, nil]).order(:id)
+    assert_equal [firm.id, nil], accounts.map(&:firm_id)
+  end
+
   test "first_or_initialize adds the record to the association" do
     firm = Firm.create! name: "omg"
     client = firm.clients_of_firm.first_or_initialize
@@ -2385,7 +2397,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   test "has many associations on new records use null relations" do
     post = Post.new
 
-    assert_no_queries(ignore_none: false) do
+    assert_no_queries do
       assert_equal [], post.comments
       assert_equal [], post.comments.where(body: "omg")
       assert_equal [], post.comments.pluck(:body)

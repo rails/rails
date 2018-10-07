@@ -56,7 +56,7 @@ module ActiveRecord
     #
     # * <tt>:database</tt> - Path to the database file.
     class SQLite3Adapter < AbstractAdapter
-      ADAPTER_NAME = "SQLite".freeze
+      ADAPTER_NAME = "SQLite"
 
       include SQLite3::Quoting
       include SQLite3::SchemaStatements

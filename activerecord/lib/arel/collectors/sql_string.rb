@@ -15,10 +15,6 @@ module Arel # :nodoc: all
         @bind_index += 1
         self
       end
-
-      def compile(bvs)
-        value
-      end
     end
   end
 end

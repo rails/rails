@@ -67,41 +67,23 @@ module Arel # :nodoc: all
         @connection = connection
       end
 
-      def compile(node, collector = Arel::Collectors::SQLString.new, &block)
-        accept(node, collector, &block).value
+      def compile(node, collector = Arel::Collectors::SQLString.new)
+        accept(node, collector).value
       end
 
       private
 
         def visit_Arel_Nodes_DeleteStatement(o, collector)
+          o = prepare_delete_statement(o)
+
           collector << "DELETE FROM "
           collector = visit o.relation, collector
-          if o.wheres.any?
-            collector << WHERE
-            collector = inject_join o.wheres, collector, AND
-          end
 
-          maybe_visit o.limit, collector
-        end
-
-        # FIXME: we should probably have a 2-pass visitor for this
-        def build_subselect(key, o)
-          stmt             = Nodes::SelectStatement.new
-          core             = stmt.cores.first
-          core.froms       = o.relation
-          core.wheres      = o.wheres
-          core.projections = [key]
-          stmt.limit       = o.limit
-          stmt.orders      = o.orders
-          stmt
+          collect_where_for(o, collector)
         end
 
         def visit_Arel_Nodes_UpdateStatement(o, collector)
-          if o.orders.empty? && o.limit.nil?
-            wheres = o.wheres
-          else
-            wheres = [Nodes::In.new(o.key, [build_subselect(o.key, o)])]
-          end
+          o = prepare_update_statement(o)
 
           collector << "UPDATE "
           collector = visit o.relation, collector
@@ -110,12 +92,7 @@ module Arel # :nodoc: all
             collector = inject_join o.values, collector, ", "
           end
 
-          unless wheres.empty?
-            collector << " WHERE "
-            collector = inject_join wheres, collector, " AND "
-          end
-
-          collector
+          collect_where_for(o, collector)
         end
 
         def visit_Arel_Nodes_InsertStatement(o, collector)
@@ -812,6 +789,59 @@ module Arel # :nodoc: all
               visit(x, c) << join_str
             end
           }
+        end
+
+        def has_join_sources?(o)
+          o.relation.is_a?(Nodes::JoinSource) && !o.relation.right.empty?
+        end
+
+        def has_limit_or_offset_or_orders?(o)
+          o.limit || o.offset || !o.orders.empty?
+        end
+
+        # The default strategy for an UPDATE with joins is to use a subquery. This doesn't work
+        # on MySQL (even when aliasing the tables), but MySQL allows using JOIN directly in
+        # an UPDATE statement, so in the MySQL visitor we redefine this to do that.
+        def prepare_update_statement(o)
+          if o.key && (has_limit_or_offset_or_orders?(o) || has_join_sources?(o))
+            stmt = o.clone
+            stmt.limit = nil
+            stmt.offset = nil
+            stmt.orders = []
+            stmt.wheres = [Nodes::In.new(o.key, [build_subselect(o.key, o)])]
+            stmt.relation = o.relation.left if has_join_sources?(o)
+            stmt
+          else
+            o
+          end
+        end
+        alias :prepare_delete_statement :prepare_update_statement
+
+        # FIXME: we should probably have a 2-pass visitor for this
+        def build_subselect(key, o)
+          stmt             = Nodes::SelectStatement.new
+          core             = stmt.cores.first
+          core.froms       = o.relation
+          core.wheres      = o.wheres
+          core.projections = [key]
+          stmt.limit       = o.limit
+          stmt.offset      = o.offset
+          stmt.orders      = o.orders
+          stmt
+        end
+
+        def collect_where_for(o, collector)
+          unless o.wheres.empty?
+            collector << " WHERE "
+            collector = inject_join o.wheres, collector, " AND "
+          end
+
+          unless o.orders.empty?
+            collector << " ORDER BY "
+            collector = inject_join o.orders, collector, ", "
+          end
+
+          maybe_visit o.limit, collector
         end
 
         def infix_value(o, collector, value)

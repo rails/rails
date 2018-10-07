@@ -403,12 +403,6 @@ module Rails
               define_method(:railtie_helpers_paths) { railtie.helpers_paths }
             end
 
-            unless mod.respond_to?(:railtie_include_helpers)
-              define_method(:railtie_include_helpers) { |klass, include_path_helpers|
-                railtie.routes.include_helpers(klass, include_path_helpers)
-              }
-            end
-
             unless mod.respond_to?(:railtie_routes_url_helpers)
               define_method(:railtie_routes_url_helpers) { |include_path_helpers = true| railtie.routes.url_helpers(include_path_helpers) }
             end
@@ -479,13 +473,9 @@ module Rails
     # files inside eager_load paths.
     def eager_load!
       config.eager_load_paths.each do |load_path|
-        if File.file?(load_path)
-          require_dependency load_path
-        else
-          matcher = /\A#{Regexp.escape(load_path.to_s)}\/(.*)\.rb\Z/
-          Dir.glob("#{load_path}/**/*.rb").sort.each do |file|
-            require_dependency file.sub(matcher, '\1')
-          end
+        matcher = /\A#{Regexp.escape(load_path.to_s)}\/(.*)\.rb\Z/
+        Dir.glob("#{load_path}/**/*.rb").sort.each do |file|
+          require_dependency file.sub(matcher, '\1')
         end
       end
     end

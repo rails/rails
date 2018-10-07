@@ -232,7 +232,7 @@ module ActiveRecord
       assert_equal 3, nb_inner_join, "Wrong amount of INNER JOIN in query"
 
       # using `\W` as the column separator
-      assert queries.any? { |sql| %r[INNER\s+JOIN\s+#{Author.quoted_table_name}\s+\Wauthors_categorizations\W]i.match?(sql) }, "Should be aliasing the child INNER JOINs in query"
+      assert queries.any? { |sql| %r[INNER\s+JOIN\s+#{Regexp.escape(Author.quoted_table_name)}\s+\Wauthors_categorizations\W]i.match?(sql) }, "Should be aliasing the child INNER JOINs in query"
     end
 
     def test_relation_with_merged_joins_aliased_works

@@ -113,7 +113,7 @@ task default: :test
     end
 
     def test_dummy_assets
-      template "rails/javascripts.js",    "#{dummy_path}/app/assets/javascripts/application.js", force: true
+      template "rails/javascripts.js",    "#{dummy_path}/app/javascript/packs/application.js", force: true
       template "rails/stylesheets.css",   "#{dummy_path}/app/assets/stylesheets/application.css", force: true
       template "rails/dummy_manifest.js", "#{dummy_path}/app/assets/config/manifest.js", force: true
     end

@@ -694,7 +694,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     line_item = LineItem.create!
     Invoice.create!(line_items: [line_item])
 
-    assert_queries(0) { line_item.save }
+    assert_no_queries { line_item.save }
   end
 
   def test_belongs_to_with_touch_option_on_destroy
@@ -789,7 +789,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
   def test_dont_find_target_when_foreign_key_is_null
     tagging = taggings(:thinking_general)
-    assert_queries(0) { tagging.super_tag }
+    assert_no_queries { tagging.super_tag }
   end
 
   def test_dont_find_target_when_saving_foreign_key_after_stale_association_loaded

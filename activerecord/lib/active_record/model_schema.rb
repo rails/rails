@@ -218,11 +218,11 @@ module ActiveRecord
       end
 
       def full_table_name_prefix #:nodoc:
-        (parents.detect { |p| p.respond_to?(:table_name_prefix) } || self).table_name_prefix
+        (module_parents.detect { |p| p.respond_to?(:table_name_prefix) } || self).table_name_prefix
       end
 
       def full_table_name_suffix #:nodoc:
-        (parents.detect { |p| p.respond_to?(:table_name_suffix) } || self).table_name_suffix
+        (module_parents.detect { |p| p.respond_to?(:table_name_suffix) } || self).table_name_suffix
       end
 
       # The array of names of environments where destructive actions should be prohibited. By default,
@@ -503,9 +503,9 @@ module ActiveRecord
         def compute_table_name
           if base_class?
             # Nested classes are prefixed with singular parent table name.
-            if parent < Base && !parent.abstract_class?
-              contained = parent.table_name
-              contained = contained.singularize if parent.pluralize_table_names
+            if module_parent < Base && !module_parent.abstract_class?
+              contained = module_parent.table_name
+              contained = contained.singularize if module_parent.pluralize_table_names
               contained += "_"
             end
 

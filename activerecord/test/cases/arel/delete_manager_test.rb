@@ -15,6 +15,7 @@ module Arel
       dm = Arel::DeleteManager.new
       dm.take 10
       dm.from table
+      dm.key = table[:id]
       assert_match(/LIMIT 10/, dm.to_sql)
     end
 
