@@ -9,7 +9,7 @@ class ActionMailbox::InboundEmail::Incineratable::Incineration
 
   private
     def due?
-      @inbound_email.updated_at < ActionMailbox::InboundEmail::Incineratable::INCINERATABLE_AFTER.ago.end_of_day
+      @inbound_email.updated_at < ActionMailbox.incinerate_after.ago.end_of_day
     end
 
     def processed?

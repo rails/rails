@@ -9,4 +9,5 @@ module ActionMailbox
   autoload :Routing
 
   mattr_accessor :logger
+  mattr_accessor :incinerate_after, default: 30.days
 end
