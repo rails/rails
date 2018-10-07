@@ -8,7 +8,7 @@ class ActionMailbox::Base
   include ActionMailbox::Callbacks, ActionMailbox::Routing
 
   attr_reader :inbound_email
-  delegate :mail, :bounced!, to: :inbound_email
+  delegate :mail, :delivered!, :bounced!, to: :inbound_email
 
   delegate :logger, to: ActionMailbox
 
@@ -34,6 +34,11 @@ class ActionMailbox::Base
   def process
     # Overwrite in subclasses
   end
+
+  def finished_processing?
+    inbound_email.delivered? || inbound_email.bounced?
+  end
+
 
   def bounce_with(message)
     inbound_email.bounced!

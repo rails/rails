@@ -27,6 +27,23 @@ class BouncingCallbackMailbox < ActionMailbox::Base
   end
 end
 
+class DiscardingCallbackMailbox < ActionMailbox::Base
+  before_processing { $before_processing = [ "Pre-discard" ] }
+
+  before_processing do
+    delivered!
+    $before_processing << "Discard"
+  end
+
+  before_processing { $before_processing << "Post-discard" }
+
+  after_processing { $after_processing = true }
+
+  def process
+    $processed = true
+  end
+end
+
 class ActionMailbox::Base::CallbacksTest < ActiveSupport::TestCase
   setup do
     $before_processing = $after_processing = $around_processing = $processed = false
@@ -44,6 +61,14 @@ class ActionMailbox::Base::CallbacksTest < ActiveSupport::TestCase
     BouncingCallbackMailbox.receive @inbound_email
     assert @inbound_email.bounced?
     assert_equal [ "Pre-bounce", "Bounce" ], $before_processing
+    assert_not $processed
+    assert_not $after_processing
+  end
+
+  test "marking the inbound email as delivered in a callback terminates processing" do
+    DiscardingCallbackMailbox.receive @inbound_email
+    assert @inbound_email.delivered?
+    assert_equal [ "Pre-discard", "Discard" ], $before_processing
     assert_not $processed
     assert_not $after_processing
   end

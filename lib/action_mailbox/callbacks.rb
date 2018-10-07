@@ -5,15 +5,9 @@ module ActionMailbox
     extend  ActiveSupport::Concern
     include ActiveSupport::Callbacks
 
-    TERMINATOR = ->(target, chain) do
-      terminate = true
-
-      catch(:abort) do
-        chain.call
-        terminate = target.inbound_email.bounced?
-      end
-
-      terminate
+    TERMINATOR = ->(mailbox, chain) do
+      chain.call
+      mailbox.finished_processing?
     end
 
     included do
