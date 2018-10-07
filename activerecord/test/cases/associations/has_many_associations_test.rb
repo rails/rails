@@ -2356,6 +2356,18 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal [accounts(:signals37)], firm.accounts.open
   end
 
+  def test_association_with_or_doesnt_set_inverse_instance_key
+    firm = companies(:first_firm)
+    accounts = firm.accounts.or(Account.where(firm_id: nil)).order(:id)
+    assert_equal [firm.id, nil], accounts.map(&:firm_id)
+  end
+
+  def test_association_with_rewhere_doesnt_inverse_instance_key
+    firm = companies(:first_firm)
+    accounts = firm.accounts.rewhere(firm_id: [firm.id, nil]).order(:id)
+    assert_equal [firm.id, nil], accounts.map(&:firm_id)
+  end
+
   test "first_or_initialize adds the record to the association" do
     firm = Firm.create! name: "omg"
     client = firm.clients_of_firm.first_or_initialize
