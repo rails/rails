@@ -103,6 +103,13 @@ module ActiveRecord
         record
       end
 
+      def set_inverse_instance_from_queries(record)
+        if inverse = inverse_association_for(record)
+          inverse.inversed_from_queries(owner)
+        end
+        record
+      end
+
       # Remove the inverse association, if possible
       def remove_inverse_instance(record)
         if inverse = inverse_association_for(record)
@@ -114,6 +121,7 @@ module ActiveRecord
         self.target = record
         @inversed = !!record
       end
+      alias :inversed_from_queries :inversed_from
 
       # Returns the class of the target. belongs_to polymorphic overrides this to look at the
       # polymorphic_type field on the owner.
