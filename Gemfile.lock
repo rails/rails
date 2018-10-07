@@ -71,6 +71,17 @@ PATH
 GEM
   remote: https://rubygems.org/
   specs:
+    aws-eventstream (1.0.1)
+    aws-partitions (1.105.0)
+    aws-sdk-core (3.30.0)
+      aws-eventstream (~> 1.0)
+      aws-partitions (~> 1.0)
+      aws-sigv4 (~> 1.0)
+      jmespath (~> 1.0)
+    aws-sdk-sns (1.5.0)
+      aws-sdk-core (~> 3, >= 3.26.0)
+      aws-sigv4 (~> 1.0)
+    aws-sigv4 (1.0.3)
     builder (3.2.3)
     byebug (10.0.2)
     concurrent-ruby (1.0.5)
@@ -80,6 +91,7 @@ GEM
       activesupport (>= 4.2.0)
     i18n (1.1.0)
       concurrent-ruby (~> 1.0)
+    jmespath (1.4.0)
     loofah (2.2.2)
       crass (~> 1.0.2)
       nokogiri (>= 1.5.9)
@@ -125,6 +137,7 @@ PLATFORMS
 
 DEPENDENCIES
   actionmailbox!
+  aws-sdk-sns
   bundler (~> 1.15)
   byebug
   rails!

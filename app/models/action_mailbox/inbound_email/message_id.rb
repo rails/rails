@@ -7,7 +7,14 @@ module ActionMailbox::InboundEmail::MessageId
 
   module ClassMethods
     def create_and_extract_message_id!(raw_email, **options)
-      create! raw_email: raw_email, message_id: extract_message_id(raw_email), **options
+      create! message_id: extract_message_id(raw_email), **options do |inbound_email|
+        case raw_email
+        when ActionDispatch::Http::UploadedFile
+          inbound_email.raw_email.attach raw_email
+        else
+          inbound_email.raw_email.attach io: raw_email.tap(&:rewind), filename: "message.eml", content_type: "message/rfc822"
+        end
+      end
     end
 
     private
