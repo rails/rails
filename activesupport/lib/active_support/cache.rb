@@ -12,6 +12,15 @@ require "active_support/core_ext/string/inflections"
 module ActiveSupport
   # See ActiveSupport::Cache::Store for documentation.
   module Cache
+    class InvalidCacheKeyError < StandardError
+      def initialize(key)
+        super("You are attempting to use a key: `#{key.inspect}` which is not\n" \
+          "supported because it is blank. If you are intentionally" \
+          "trying to use the cache with a blank key, please instead pass in\n" \
+          "a string such as: `'intentionally_empty'`")
+      end
+    end
+
     autoload :FileStore,        "active_support/cache/file_store"
     autoload :MemoryStore,      "active_support/cache/memory_store"
     autoload :MemCacheStore,    "active_support/cache/mem_cache_store"
@@ -622,6 +631,8 @@ module ActiveSupport
         #   namespace_key 'foo', namespace: -> { 'cache' }
         #   # => 'cache:foo'
         def namespace_key(key, options = nil)
+          raise InvalidCacheKeyError.new(key) if key.nil? || key.empty?
+
           options = merged_options(options)
           namespace = options[:namespace]
 

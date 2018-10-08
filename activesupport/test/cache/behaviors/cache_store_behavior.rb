@@ -498,8 +498,49 @@ module CacheStoreBehavior
     ActiveSupport::Notifications.unsubscribe "cache_read.active_support"
   end
 
-  private
+  def test_empty_keys_are_not_supported
+    assert_raises(ActiveSupport::Cache::InvalidCacheKeyError) do
+      @cache.write(nil, "baz")
+    end
 
+    assert_raises(ActiveSupport::Cache::InvalidCacheKeyError) do
+      @cache.read(nil)
+    end
+
+    assert_raises(ActiveSupport::Cache::InvalidCacheKeyError) do
+      @cache.write([nil], "bizz")
+    end
+
+    assert_raises(ActiveSupport::Cache::InvalidCacheKeyError) do
+      @cache.read([nil])
+    end
+
+    assert_raises(ActiveSupport::Cache::InvalidCacheKeyError) do
+      @cache.write("", "bizz")
+    end
+
+    assert_raises(ActiveSupport::Cache::InvalidCacheKeyError) do
+      @cache.read("")
+    end
+
+    assert_raises(ActiveSupport::Cache::InvalidCacheKeyError) do
+      @cache.write([""], "bizz")
+    end
+
+    assert_raises(ActiveSupport::Cache::InvalidCacheKeyError) do
+      @cache.read([""])
+    end
+
+    assert_raises(ActiveSupport::Cache::InvalidCacheKeyError) do
+      @cache.write({}, "bar")
+    end
+
+    assert_raises(ActiveSupport::Cache::InvalidCacheKeyError) do
+      @cache.read({})
+    end
+  end
+
+  private
     def assert_compressed(value, **options)
       assert_compression(true, value, **options)
     end
