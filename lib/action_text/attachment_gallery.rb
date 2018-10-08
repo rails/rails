@@ -56,9 +56,10 @@ module ActionText
       "#<#{self.class.name} size=#{size.inspect}>"
     end
 
-    private
-      TAG_NAME = "div"
-      ATTACHMENT_SELECTOR = "#{ActionText::Attachment::SELECTOR}[presentation=gallery]"
-      SELECTOR = "#{TAG_NAME}:has(#{ATTACHMENT_SELECTOR} + #{ATTACHMENT_SELECTOR})"
+    TAG_NAME = "div"
+    ATTACHMENT_SELECTOR = "#{ActionText::Attachment::SELECTOR}[presentation=gallery]"
+    SELECTOR = "#{TAG_NAME}:has(#{ATTACHMENT_SELECTOR} + #{ATTACHMENT_SELECTOR})"
+
+    private_constant :TAG_NAME, :ATTACHMENT_SELECTOR, :SELECTOR
   end
 end
