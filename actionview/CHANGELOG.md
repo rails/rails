@@ -1,3 +1,9 @@
+*   Respect the `only_path` option passed to `url_for` when the options are passed in as an array
+    
+    Fixes #33237.
+
+    *Joel Ambass*
+
 *   Deprecate calling private model methods from view helpers.
 
     For example, in methods like `options_from_collection_for_select`
