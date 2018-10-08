@@ -2391,6 +2391,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_collection_association_with_private_kernel_method
     firm = companies(:first_firm)
     assert_equal [accounts(:signals37)], firm.accounts.open
+    assert_equal [accounts(:signals37)], firm.accounts.available
   end
 
   def test_association_with_or_doesnt_set_inverse_instance_key

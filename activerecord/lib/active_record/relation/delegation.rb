@@ -17,6 +17,7 @@ module ActiveRecord
           delegate = Class.new(klass) {
             include ClassSpecificRelation
           }
+          include_relation_methods(delegate)
           mangled_name = klass.name.gsub("::", "_")
           const_set mangled_name, delegate
           private_constant mangled_name
@@ -29,6 +30,35 @@ module ActiveRecord
         child_class.initialize_relation_delegate_cache
         super
       end
+
+      protected
+        def include_relation_methods(delegate)
+          superclass.include_relation_methods(delegate) unless base_class?
+          delegate.include generated_relation_methods
+        end
+
+      private
+        def generated_relation_methods
+          @generated_relation_methods ||= Module.new.tap do |mod|
+            mod_name = "GeneratedRelationMethods"
+            const_set mod_name, mod
+            private_constant mod_name
+          end
+        end
+
+        def generate_relation_method(method)
+          if /\A[a-zA-Z_]\w*[!?]?\z/.match?(method)
+            generated_relation_methods.module_eval <<-RUBY, __FILE__, __LINE__ + 1
+              def #{method}(*args, &block)
+                scoping { klass.#{method}(*args, &block) }
+              end
+            RUBY
+          else
+            generated_relation_methods.send(:define_method, method) do |*args, &block|
+              scoping { klass.public_send(method, *args, &block) }
+            end
+          end
+        end
     end
 
     extend ActiveSupport::Concern
