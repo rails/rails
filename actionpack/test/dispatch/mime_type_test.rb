@@ -75,7 +75,7 @@ class MimeTypeTest < ActiveSupport::TestCase
   end
 
   test "parse arbitrary media type parameters" do
-    accept = 'multipart/form-data; boundary="simple boundary"'
+    accept = 'multipart/form-data; boundary="simple boundary, text/html"'
     expect = [Mime[:multipart_form]]
     assert_equal expect, Mime::Type.parse(accept)
   end

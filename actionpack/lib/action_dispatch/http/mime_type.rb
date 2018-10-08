@@ -136,6 +136,7 @@ module Mime
     class << self
       TRAILING_STAR_REGEXP = /^(text|application)\/\*/
       PARAMETER_SEPARATOR_REGEXP = /;\s*\w+="?\w+"?/
+      HEADER_SEPARATOR_REGEXP = /(?!".*),(?!.*")/
 
       def register_callback(&block)
         @register_callbacks << block
@@ -175,7 +176,7 @@ module Mime
           parse_trailing_star(accept_header) || [Mime::Type.lookup(accept_header)].compact
         else
           list, index = [], 0
-          accept_header.split(",").each do |header|
+          accept_header.split(HEADER_SEPARATOR_REGEXP).each do |header|
             params, q = header.split(PARAMETER_SEPARATOR_REGEXP)
 
             next unless params
