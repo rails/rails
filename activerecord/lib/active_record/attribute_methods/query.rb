@@ -18,8 +18,8 @@ module ActiveRecord
         else
           column = self.class.columns_hash[attr_name]
           if column.nil?
-            if Numeric === value || value !~ /[^0-9]/
-              !value.to_i.zero?
+            if Numeric === value || value =~ /\A[-+]?\d+/
+              !value.to_f.zero?
             else
               return false if ActiveModel::Type::Boolean::FALSE_VALUES.include?(value)
               !value.blank?

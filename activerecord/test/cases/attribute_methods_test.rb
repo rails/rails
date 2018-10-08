@@ -454,6 +454,17 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
     object.int_value = "0"
     assert_not_predicate object, :int_value?
+
+    [0.1, "-0.2", "+1.3"].each do |val|
+      NumericData.create!(temperature: val)
+      float_object = NumericData.find_by_sql(<<-SQL).first
+        SELECT temperature, temperature AS dummy_temp
+          FROM numeric_data
+         WHERE temperature = #{val}
+      SQL
+      assert_predicate float_object, :temperature?
+      assert_predicate float_object, :dummy_temp?
+    end
   end
 
   test "non-attribute read and write" do
