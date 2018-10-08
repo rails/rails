@@ -458,6 +458,10 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_finder_method_with_dirty_target
     company = companies(:first_firm)
     new_clients = []
+
+    # Load schema information so we don't query below if running just this test.
+    Client.define_attribute_methods
+
     assert_no_queries do
       new_clients << company.clients_of_firm.build(name: "Another Client")
       new_clients << company.clients_of_firm.build(name: "Another Client II")
@@ -478,6 +482,10 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_finder_bang_method_with_dirty_target
     company = companies(:first_firm)
     new_clients = []
+
+    # Load schema information so we don't query below if running just this test.
+    Client.define_attribute_methods
+
     assert_no_queries do
       new_clients << company.clients_of_firm.build(name: "Another Client")
       new_clients << company.clients_of_firm.build(name: "Another Client II")
@@ -955,8 +963,11 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_transactions_when_adding_to_new_record
+    # Load schema information so we don't query below if running just this test.
+    Client.define_attribute_methods
+
+    firm = Firm.new
     assert_no_queries do
-      firm = Firm.new
       firm.clients_of_firm.concat(Client.new("name" => "Natural Company"))
     end
   end
@@ -970,6 +981,10 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_new_aliased_to_build
     company = companies(:first_firm)
+
+    # Load schema information so we don't query below if running just this test.
+    Client.define_attribute_methods
+
     new_client = assert_no_queries { company.clients_of_firm.new("name" => "Another Client") }
     assert_not_predicate company.clients_of_firm, :loaded?
 
@@ -980,6 +995,10 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_build
     company = companies(:first_firm)
+
+    # Load schema information so we don't query below if running just this test.
+    Client.define_attribute_methods
+
     new_client = assert_no_queries { company.clients_of_firm.build("name" => "Another Client") }
     assert_not_predicate company.clients_of_firm, :loaded?
 
@@ -1037,6 +1056,10 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_build_many
     company = companies(:first_firm)
+
+    # Load schema information so we don't query below if running just this test.
+    Client.define_attribute_methods
+
     new_clients = assert_no_queries { company.clients_of_firm.build([{ "name" => "Another Client" }, { "name" => "Another Client II" }]) }
     assert_equal 2, new_clients.size
   end
@@ -1049,9 +1072,11 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_build_without_loading_association
     first_topic = topics(:first)
-    Reply.column_names
 
     assert_equal 1, first_topic.replies.length
+
+    # Load schema information so we don't query below if running just this test.
+    Reply.define_attribute_methods
 
     assert_no_queries do
       first_topic.replies.build(title: "Not saved", content: "Superstars")
@@ -1063,6 +1088,10 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_build_via_block
     company = companies(:first_firm)
+
+    # Load schema information so we don't query below if running just this test.
+    Client.define_attribute_methods
+
     new_client = assert_no_queries { company.clients_of_firm.build { |client| client.name = "Another Client" } }
     assert_not_predicate company.clients_of_firm, :loaded?
 
@@ -1073,6 +1102,10 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_build_many_via_block
     company = companies(:first_firm)
+
+    # Load schema information so we don't query below if running just this test.
+    Client.define_attribute_methods
+
     new_clients = assert_no_queries do
       company.clients_of_firm.build([{ "name" => "Another Client" }, { "name" => "Another Client II" }]) do |client|
         client.name = "changed"
@@ -1086,8 +1119,6 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_create_without_loading_association
     first_firm = companies(:first_firm)
-    Firm.column_names
-    Client.column_names
 
     assert_equal 2, first_firm.clients_of_firm.size
     first_firm.clients_of_firm.reset
@@ -1364,8 +1395,11 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_transaction_when_deleting_new_record
+    # Load schema information so we don't query below if running just this test.
+    Client.define_attribute_methods
+
+    firm = Firm.new
     assert_no_queries do
-      firm = Firm.new
       client = Client.new("name" => "New Client")
       firm.clients_of_firm << client
       firm.clients_of_firm.destroy(client)
@@ -1822,8 +1856,11 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_transactions_when_replacing_on_new_record
+    # Load schema information so we don't query below if running just this test.
+    Client.define_attribute_methods
+
+    firm = Firm.new
     assert_no_queries do
-      firm = Firm.new
       firm.clients_of_firm = [Client.new("name" => "New Client")]
     end
   end
