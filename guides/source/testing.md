@@ -711,7 +711,7 @@ class UsersTest < ApplicationSystemTestCase
   # test "visiting the index" do
   #   visit users_url
   #
-  #   assert_selector "h1", text: "Users"
+  #   assert_select "h1", text: "Users"
   # end
 end
 ```
@@ -817,7 +817,7 @@ require "application_system_test_case"
 class ArticlesTest < ApplicationSystemTestCase
   test "viewing the index" do
     visit articles_path
-    assert_selector "h1", text: "Articles"
+    assert_select "h1", text: "Articles"
   end
 end
 ```
@@ -888,7 +888,7 @@ class PostsTest < MobileSystemTestCase
 
   test "visiting the index" do
     visit posts_url
-    assert_selector "h1", text: "Posts"
+    assert_select "h1", text: "Posts"
   end
 end
 ```
