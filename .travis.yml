@@ -2,10 +2,17 @@ language: ruby
 sudo: false
 
 rvm:
-  - 2.2
+  - 2.4.4
+  - 2.5.1
+  - ruby-head
 
 cache:
   bundler: true
+
+matrix:
+  allow_failures:
+    - rvm: ruby-head
+  fast_finish: true
 
 script:
   - bundle exec rake
