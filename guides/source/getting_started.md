@@ -583,8 +583,8 @@ the current controller, the `ArticlesController`.
 
 With the form and its associated route defined, you will be able to fill in the
 form and then click the submit button to begin the process of creating a new
-article, so go ahead and do that. When you submit the form, you should see a
-familiar error:
+article, so go ahead and do that (make sure to **reload the page** first to
+apply changes). When you submit the form, you should see a familiar error:
 
 ![Unknown action create for ArticlesController]
 (images/getting_started/unknown_action_create_for_articles.png)
