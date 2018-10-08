@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActionText
   class TrixAttachment
     TAG_NAME = "figure"

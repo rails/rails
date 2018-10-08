@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActionText
   module Attachable
     extend ActiveSupport::Concern

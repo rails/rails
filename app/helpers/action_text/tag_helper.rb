@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActionText
   module TagHelper
     cattr_accessor(:id, instance_accessor: false) { 0 }
