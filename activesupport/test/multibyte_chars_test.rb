@@ -719,6 +719,12 @@ class MultibyteCharsExtrasTest < ActiveSupport::TestCase
     assert_equal BYTE_STRING.dup.mb_chars.class, ActiveSupport::Multibyte::Chars
   end
 
+  def test_unicode_deprecations
+    assert_deprecated { ActiveSupport::Multibyte::Unicode.downcase("") }
+    assert_deprecated { ActiveSupport::Multibyte::Unicode.upcase("") }
+    assert_deprecated { ActiveSupport::Multibyte::Unicode.swapcase("") }
+  end
+
   private
 
     def string_from_classes(classes)

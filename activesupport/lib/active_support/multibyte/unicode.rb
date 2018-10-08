@@ -115,16 +115,15 @@ module ActiveSupport
         end
       end
 
-      def downcase(string)
-        string.downcase
-      end
+      %w(downcase upcase swapcase).each do |method|
+        define_method(method) do |string|
+          ActiveSupport::Deprecation.warn(<<-MSG.squish)
+          ActiveSupport::Multibyte::Unicode##{method} is deprecated and
+          will be removed from Rails 6.1. Use String methods directly.
+          MSG
 
-      def upcase(string)
-        string.upcase
-      end
-
-      def swapcase(string)
-        string.swapcase
+          string.send(method)
+        end
       end
 
       private
