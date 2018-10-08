@@ -50,6 +50,16 @@ class ActiveStorage::DiskControllerTest < ActionDispatch::IntegrationTest
     assert_not blob.service.exist?(blob.key)
   end
 
+  test "directly uploading blob with different but equivalent content type" do
+    data = "Something else entirely!"
+    blob = create_blob_before_direct_upload(
+      byte_size: data.size, checksum: Digest::MD5.base64digest(data), content_type: "application/x-gzip")
+
+    put blob.service_url_for_direct_upload, params: data, headers: { "Content-Type" => "application/x-gzip" }
+    assert_response :no_content
+    assert_equal data, blob.download
+  end
+
   test "directly uploading blob with mismatched content length" do
     data = "Something else entirely!"
     blob = create_blob_before_direct_upload byte_size: data.size - 1, checksum: Digest::MD5.base64digest(data)
