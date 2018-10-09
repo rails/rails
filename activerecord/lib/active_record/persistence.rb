@@ -758,6 +758,8 @@ module ActiveRecord
       @_association_destroy_exception = nil
     end
 
+    # The name of the method used to touch a +belongs_to+ association when the
+    # +:touch+ option is used.
     def belongs_to_touch_method
       :touch
     end
