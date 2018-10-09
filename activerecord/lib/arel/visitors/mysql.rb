@@ -9,20 +9,20 @@ module Arel # :nodoc: all
             collector << "( "
           end
 
-          collector =   case o.left
-                        when Arel::Nodes::Union
-                          visit_Arel_Nodes_Union o.left, collector, true
-                        else
-                          visit o.left, collector
+          case o.left
+          when Arel::Nodes::Union
+            visit_Arel_Nodes_Union o.left, collector, true
+          else
+            visit o.left, collector
           end
 
           collector << " UNION "
 
-          collector =    case o.right
-                         when Arel::Nodes::Union
-                           visit_Arel_Nodes_Union o.right, collector, true
-                         else
-                           visit o.right, collector
+          case o.right
+          when Arel::Nodes::Union
+            visit_Arel_Nodes_Union o.right, collector, true
+          else
+            visit o.right, collector
           end
 
           if suppress_parens
