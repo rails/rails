@@ -78,7 +78,14 @@ module ActiveSupport
                 reporter = job[2]
                 result   = Minitest.run_one_method(klass, method)
 
-                queue.record(reporter, result)
+                begin
+                  queue.record(reporter, result)
+                rescue DRb::DRbConnError
+                  result.failures.each do |failure|
+                    failure.exception = DRb::DRbRemoteError.new(failure.exception)
+                  end
+                  queue.record(reporter, result)
+                end
               end
             ensure
               run_cleanup(worker)
