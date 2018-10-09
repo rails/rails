@@ -1,3 +1,8 @@
+*   Include deserialized arguments in job instances returned from
+    `assert_enqueued_with` and `assert_performed_with`
+
+    *Alan Wu*
+
 *   Allow `assert_enqueued_with`/`assert_performed_with` methods to accept
     a proc for the `args` argument. This is useful to check if only a subset of arguments
     matches your expectations.

@@ -594,8 +594,7 @@ module ActiveJob
 
       def flush_enqueued_jobs(only: nil, except: nil, queue: nil)
         enqueued_jobs_with(only: only, except: except, queue: queue) do |payload|
-          args = ActiveJob::Arguments.deserialize(payload[:args])
-          instantiate_job(payload.merge(args: args)).perform_now
+          instantiate_job(payload).perform_now
           queue_adapter.performed_jobs << payload
         end
       end
@@ -613,7 +612,8 @@ module ActiveJob
       end
 
       def instantiate_job(payload)
-        job = payload[:job].new(*payload[:args])
+        args = ActiveJob::Arguments.deserialize(payload[:args])
+        job = payload[:job].new(*args)
         job.scheduled_at = Time.at(payload[:at]) if payload.key?(:at)
         job.queue_name = payload[:queue]
         job
