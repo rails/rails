@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActionText
   class Attachment
     include Attachments::TrixConversion, Attachments::Minification, Attachments::Caching

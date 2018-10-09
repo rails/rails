@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_record"
 require "action_text/engine"
 require "nokogiri"

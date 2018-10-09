@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActionText
   module ContentHelper
     SANITIZER          = Rails::Html::Sanitizer.white_list_sanitizer
