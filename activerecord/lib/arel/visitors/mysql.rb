@@ -75,14 +75,7 @@ module Arel # :nodoc: all
             o
           end
         end
-
-        def prepare_delete_statement(o)
-          if o.offset || has_join_sources?(o)
-            super
-          else
-            o
-          end
-        end
+        alias :prepare_delete_statement :prepare_update_statement
 
         # MySQL is too stupid to create a temporary table for use subquery, so we have
         # to give it some prompting in the form of a subsubquery.

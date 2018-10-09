@@ -76,7 +76,13 @@ module Arel # :nodoc: all
         def visit_Arel_Nodes_DeleteStatement(o, collector)
           o = prepare_delete_statement(o)
 
-          collector << "DELETE FROM "
+          if has_join_sources?(o)
+            collector << "DELETE "
+            visit o.relation.left, collector
+            collector << " FROM "
+          else
+            collector << "DELETE FROM "
+          end
           collector = visit o.relation, collector
 
           collect_where_for(o, collector)
