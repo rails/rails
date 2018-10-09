@@ -85,7 +85,9 @@ module Arel # :nodoc: all
           end
           collector = visit o.relation, collector
 
-          collect_where_for(o, collector)
+          collect_nodes_for o.wheres, collector, " WHERE ", " AND "
+          collect_nodes_for o.orders, collector, " ORDER BY "
+          maybe_visit o.limit, collector
         end
 
         def visit_Arel_Nodes_UpdateStatement(o, collector)
@@ -93,12 +95,11 @@ module Arel # :nodoc: all
 
           collector << "UPDATE "
           collector = visit o.relation, collector
-          unless o.values.empty?
-            collector << " SET "
-            collector = inject_join o.values, collector, ", "
-          end
+          collect_nodes_for o.values, collector, " SET "
 
-          collect_where_for(o, collector)
+          collect_nodes_for o.wheres, collector, " WHERE ", " AND "
+          collect_nodes_for o.orders, collector, " ORDER BY "
+          maybe_visit o.limit, collector
         end
 
         def visit_Arel_Nodes_InsertStatement(o, collector)
@@ -231,10 +232,7 @@ module Arel # :nodoc: all
 
           collect_nodes_for o.wheres, collector, WHERE, AND
           collect_nodes_for o.groups, collector, GROUP_BY
-          unless o.havings.empty?
-            collector << " HAVING "
-            inject_join o.havings, collector, AND
-          end
+          collect_nodes_for o.havings, collector, " HAVING ", AND
           collect_nodes_for o.windows, collector, WINDOW
 
           collector
@@ -243,11 +241,7 @@ module Arel # :nodoc: all
         def collect_nodes_for(nodes, collector, spacer, connector = COMMA)
           unless nodes.empty?
             collector << spacer
-            len = nodes.length - 1
-            nodes.each_with_index do |x, i|
-              collector = visit(x, collector)
-              collector << connector unless len == i
-            end
+            inject_join nodes, collector, connector
           end
         end
 
@@ -302,10 +296,7 @@ module Arel # :nodoc: all
         def visit_Arel_Nodes_Window(o, collector)
           collector << "("
 
-          if o.partitions.any?
-            collector << "PARTITION BY "
-            collector = inject_join o.partitions, collector, ", "
-          end
+          collect_nodes_for o.partitions, collector, "PARTITION BY "
 
           if o.orders.any?
             collector << SPACE if o.partitions.any?
@@ -834,20 +825,6 @@ module Arel # :nodoc: all
           stmt.offset      = o.offset
           stmt.orders      = o.orders
           stmt
-        end
-
-        def collect_where_for(o, collector)
-          unless o.wheres.empty?
-            collector << " WHERE "
-            collector = inject_join o.wheres, collector, " AND "
-          end
-
-          unless o.orders.empty?
-            collector << " ORDER BY "
-            collector = inject_join o.orders, collector, ", "
-          end
-
-          maybe_visit o.limit, collector
         end
 
         def infix_value(o, collector, value)
