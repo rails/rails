@@ -10,6 +10,9 @@ awdr:
   illustrator_visibility: :visible
   font_size: :medium
   difficulty: :medium
+  privacy: :private
+  color: :black
+  font_weight: :light
 
 rfr:
   author_id: 1

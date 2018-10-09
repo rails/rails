@@ -94,7 +94,24 @@ module ActiveRecord
   #
   #   conversation.comments_inactive!
   #   conversation.comments_active? # => false
-
+  #
+  # When you want use some dangerly keywords as the enum value, you can use
+  # the +:_scope_prefix+ or +:_scope_suffix+ options to change the scope prefix/suffix:
+  #
+  #   class Conversation < ActiveRecord::Base
+  #     enum privacy: [:private, :public], _scope_suffix: true
+  #
+  #     # or you can custom the prefix/suffix name:
+  #     # enum private: [:private, :public], _scope_prefix: :in
+  #   end
+  #
+  # With the above example, the scope methods are now prefixed and/or suffixed accordingly:
+  #
+  #   Conversation.privacy_private.last
+  #   Conversation.privacy_public.last
+  #
+  #   # Conversation.in_private.last
+  #   # Conversation.in_public.first
   module Enum
     def self.extended(base) # :nodoc:
       base.class_attribute(:defined_enums, instance_writer: false, default: {})
@@ -149,6 +166,8 @@ module ActiveRecord
       klass = self
       enum_prefix = definitions.delete(:_prefix)
       enum_suffix = definitions.delete(:_suffix)
+      enum_scope_prefix = definitions.delete(:_scope_prefix)
+      enum_scope_suffix = definitions.delete(:_scope_suffix)
       definitions.each do |name, values|
         # statuses = { }
         enum_values = ActiveSupport::HashWithIndifferentAccess.new
@@ -170,18 +189,26 @@ module ActiveRecord
         _enum_methods_module.module_eval do
           pairs = values.respond_to?(:each_pair) ? values.each_pair : values.each_with_index
           pairs.each do |label, value|
-            if enum_prefix == true
-              prefix = "#{name}_"
-            elsif enum_prefix
-              prefix = "#{enum_prefix}_"
+            if enum_prefix
+              prefix = enum_prefix == true ? "#{name}_" : "#{enum_prefix}_"
             end
-            if enum_suffix == true
-              suffix = "_#{name}"
-            elsif enum_suffix
-              suffix = "_#{enum_suffix}"
+            if enum_suffix
+              suffix = enum_suffix == true ? "_#{name}" : "_#{enum_suffix}"
             end
-
             value_method_name = "#{prefix}#{label}#{suffix}"
+
+            if enum_scope_prefix
+              scope_prefix = enum_scope_prefix == true ? "#{name}_" : "#{enum_scope_prefix}_"
+            else
+              scope_prefix = prefix
+            end
+            if enum_scope_suffix
+              scope_suffix = enum_scope_suffix == true ? "_#{name}" : "_#{enum_scope_suffix}"
+            else
+              scope_suffix = suffix
+            end
+            scope_method_name = "#{scope_prefix}#{label}#{scope_suffix}"
+
             enum_values[label] = value
             label = label.to_s
 
@@ -194,8 +221,8 @@ module ActiveRecord
             define_method("#{value_method_name}!") { update!(attr => value) }
 
             # scope :active, -> { where(status: 0) }
-            klass.send(:detect_enum_conflict!, name, value_method_name, true)
-            klass.scope value_method_name, -> { where(attr => value) }
+            klass.send(:detect_enum_conflict!, name, scope_method_name, true)
+            klass.scope scope_method_name, -> { where(attr => value) }
           end
         end
       end

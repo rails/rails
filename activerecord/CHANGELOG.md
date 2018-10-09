@@ -1,3 +1,21 @@
+*   Added `_scope_prefix` and `_scope_suffix` options for `enum`.
+    Use for avoid the `scope` name conflicts with Ruby syntax, when using the
+    dangerous keywords like `private / public / protected` as the enum value.
+
+    Example:
+
+        class Conversation < ActiveRecord::Base
+          enum privacy: [:private, :public], _scope_prefix: :in
+        end
+
+        conversation = Conversation.last
+        conversation.private!
+        conversation.public?
+        Conversation.in_public.first
+        Conversation.in_private.any?
+
+    *Jason Lee*
+
 *   Added `index` option for `change_table` migration helpers.
     With this change you can create indexes while adding new
     columns into the existing tables.

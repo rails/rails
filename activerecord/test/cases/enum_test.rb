@@ -22,6 +22,9 @@ class EnumTest < ActiveRecord::TestCase
     assert_predicate @book, :illustrator_visibility_visible?
     assert_predicate @book, :with_medium_font_size?
     assert_predicate @book, :medium_to_read?
+    assert_predicate @book, :private?
+    assert_predicate @book, :black?
+    assert_predicate @book, :light?
   end
 
   test "query state with strings" do
@@ -31,6 +34,9 @@ class EnumTest < ActiveRecord::TestCase
     assert_equal "visible", @book.author_visibility
     assert_equal "visible", @book.illustrator_visibility
     assert_equal "medium", @book.difficulty
+    assert_equal "private", @book.privacy
+    assert_equal "black", @book.color
+    assert_equal "light", @book.font_weight
   end
 
   test "find via scope" do
@@ -42,6 +48,9 @@ class EnumTest < ActiveRecord::TestCase
     assert_equal @book, Book.medium_to_read.first
     assert_equal books(:ddd), Book.forgotten.first
     assert_equal books(:rfr), authors(:david).unpublished_books.first
+    assert_equal @book, Book.in_private.first
+    assert_equal @book, Book.black_color.first
+    assert_equal @book, Book.font_weight_light.first
   end
 
   test "find via where with values" do
@@ -96,6 +105,8 @@ class EnumTest < ActiveRecord::TestCase
     assert_predicate @book, :in_english?
     @book.author_visibility_visible!
     assert_predicate @book, :author_visibility_visible?
+    @book.public!
+    assert_predicate @book, :public?
   end
 
   test "update by setter" do

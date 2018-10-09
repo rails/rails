@@ -18,6 +18,9 @@ class Book < ActiveRecord::Base
   enum font_size: [:small, :medium, :large], _prefix: :with, _suffix: true
   enum difficulty: [:easy, :medium, :hard], _suffix: :to_read
   enum cover: { hard: "hard", soft: "soft" }
+  enum privacy: [:private, :public], _scope_prefix: :in
+  enum font_weight: [:light, :bold], _scope_prefix: true
+  enum color: [:black, :blue], _scope_suffix: true
 
   def published!
     super
