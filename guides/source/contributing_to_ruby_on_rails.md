@@ -596,13 +596,13 @@ $ git rebase -i rails/master
 < Choose 'squash' for all of your commits except the first one. >
 < Edit the commit message to make sense, and describe all your changes. >
 
-$ git push fork my_new_branch -f
+$ git push fork my_new_branch --force-with-lease
 ```
 
 You should be able to refresh the pull request on GitHub and see that it has
 been updated.
 
-#### Updating pull request
+#### Updating a pull request
 
 Sometimes you will be asked to make some changes to the code you have
 already committed. This can include amending existing commits. In this
@@ -612,12 +612,13 @@ you can force push to your branch on GitHub as described earlier in
 squashing commits section:
 
 ```bash
-$ git push fork my_new_branch -f
+$ git push fork my_new_branch --force-with-lease
 ```
 
-This will update the branch and pull request on GitHub with your new code. Do
-note that using force push may result in commits being lost on the remote branch; use it with care.
-
+This will update the branch and pull request on GitHub with your new code.
+By force pushing with `--force-with-lease`, git will more safely update
+the remote than with a typical `-f`, which can delete work from the remote
+that you don't already have.
 
 ### Older Versions of Ruby on Rails
 
