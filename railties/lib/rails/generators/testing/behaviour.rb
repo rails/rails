@@ -68,7 +68,7 @@ module Rails
           capture(:stdout) do
             args += ["--skip-bundle"] unless args.include? "--dev"
             args |= ["--skip-bootsnap"] unless args.include? "--no-skip-bootsnap"
-            args |= ["--skip-javascript"] unless args.include? "--no-skip-javascript"
+            args |= ["--skip-webpack-install"] unless args.include? "--no-skip-webpack-install"
 
             generator_class.start(args, config.reverse_merge(destination_root: destination_root))
           end
