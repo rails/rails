@@ -34,7 +34,7 @@ module ActiveSupport
   #     name    # => String, name of the event (such as 'render' from above)
   #     start   # => Time, when the instrumented block started execution
   #     finish  # => Time, when the instrumented block ended execution
-  #     id      # => String, unique ID for this notification
+  #     id      # => String, unique ID for the instrumenter that fired the event
   #     payload # => Hash, the payload
   #   end
   #
@@ -59,7 +59,7 @@ module ActiveSupport
   #   event.payload   # => { extra: :information }
   #
   # The block in the <tt>subscribe</tt> call gets the name of the event, start
-  # timestamp, end timestamp, a string with a unique identifier for that event
+  # timestamp, end timestamp, a string with a unique identifier for that event's instrumenter
   # (something like "535801666f04d0298cd6"), and a hash with the payload, in
   # that order.
   #
