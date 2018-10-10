@@ -195,6 +195,8 @@ module ActiveRecord
               scope
             end
           end
+
+          generate_relation_method(name)
         end
 
         private

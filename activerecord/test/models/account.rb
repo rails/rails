@@ -11,9 +11,8 @@ class Account < ActiveRecord::Base
   end
 
   # Test private kernel method through collection proxy using has_many.
-  def self.open
-    where("firm_name = ?", "37signals")
-  end
+  scope :open, -> { where("firm_name = ?", "37signals") }
+  scope :available, -> { open }
 
   before_destroy do |account|
     if account.firm
@@ -31,4 +30,11 @@ class Account < ActiveRecord::Base
     def private_method
       "Sir, yes sir!"
     end
+end
+
+class SubAccount < Account
+  def self.discriminate_class_for_record(record)
+    superclass
+  end
+  private_class_method :discriminate_class_for_record
 end
