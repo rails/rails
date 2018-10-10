@@ -1,3 +1,39 @@
+*   Add basic API for connection switching to support multiple databases.
+
+    1) Adds a `connects_to` method for models to connect to multiple databases. Example:
+
+    ```
+    class AnimalsModel < ApplicationRecord
+      self.abstract_class = true
+
+      connects_to database: { writing: :animals_primary, reading: :animals_replica }
+    end
+
+    class Dog < AnimalsModel
+      # connected to both the animals_primary db for writing and the animals_replica for reading
+    end
+    ```
+
+    2) Adds a `connected_to` block method for switching connection roles or connecting to
+    a database that the model didn't connect to. Connecting to the database in this block is
+    useful when you have another defined connection, for example `slow_replica` that you don't
+    want to connect to by default but need in the console, or a specific code block.
+
+    ```
+    ActiveRecord::Base.connected_to(role: :reading) do
+      Dog.first # finds dog from replica connected to AnimalsBase
+      Book.first # doesn't have a reading connection, will raise an error
+    end
+    ```
+
+    ```
+    ActiveRecord::Base.connected_to(database: :slow_replica) do
+      SlowReplicaModel.first # if the db config has a slow_replica configuration this will be used to do the lookup, otherwise this will throw an exception
+    end
+    ```
+
+    *Eileen M. Uchitelle*
+
 *   Enum raises on invalid definition values
 
     When defining a Hash enum it can be easy to use [] instead of {}. This
