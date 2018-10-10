@@ -150,6 +150,7 @@ module ActiveRecord
       enum_prefix = definitions.delete(:_prefix)
       enum_suffix = definitions.delete(:_suffix)
       definitions.each do |name, values|
+        assert_valid_enum_definition_values(values)
         # statuses = { }
         enum_values = ActiveSupport::HashWithIndifferentAccess.new
         name = name.to_s
@@ -210,10 +211,20 @@ module ActiveRecord
         end
       end
 
+      def assert_valid_enum_definition_values(values)
+        unless values.is_a?(Hash) || values.all? { |v| v.is_a?(Symbol) } || values.all? { |v| v.is_a?(String) }
+          error_message = <<~MSG
+            Enum values #{values} must be either a hash, an array of symbols, or an array of strings.
+          MSG
+          raise ArgumentError, error_message
+        end
+      end
+
       ENUM_CONFLICT_MESSAGE = \
         "You tried to define an enum named \"%{enum}\" on the model \"%{klass}\", but " \
         "this will generate a %{type} method \"%{method}\", which is already defined " \
         "by %{source}."
+      private_constant :ENUM_CONFLICT_MESSAGE
 
       def detect_enum_conflict!(enum_name, method_name, klass_method = false)
         if klass_method && dangerous_class_method?(method_name)

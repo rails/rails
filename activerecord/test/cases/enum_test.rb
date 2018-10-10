@@ -265,6 +265,17 @@ class EnumTest < ActiveRecord::TestCase
     assert_equal "published", @book.status
   end
 
+  test "invalid definition values raise an ArgumentError" do
+    e = assert_raises(ArgumentError) do
+      Class.new(ActiveRecord::Base) do
+        self.table_name = "books"
+        enum status: [proposed: 1, written: 2, published: 3]
+      end
+    end
+
+    assert_match(/must be either a hash, an array of symbols, or an array of strings./, e.message)
+  end
+
   test "reserved enum names" do
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = "books"
