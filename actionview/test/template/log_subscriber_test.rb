@@ -129,14 +129,14 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
       wait
       *, cached_inner, uncached_outer = @logger.logged(:info)
       assert_match(/Rendered test\/_cached_customer\.erb (.*) \[cache miss\]/, cached_inner)
-      assert_match(/Rendered test\/_nested_cached_customer\.erb \(.*?ms\)$/, uncached_outer)
+      assert_match(/Rendered test\/_nested_cached_customer\.erb \(Duration: .*?ms \| Allocations: .*?\)$/, uncached_outer)
 
       # Second render hits the cache for the _cached_customer partial. Outer template's log shouldn't be affected.
       @view.render(partial: "test/nested_cached_customer", locals: { cached_customer: Customer.new("Stan") })
       wait
       *, cached_inner, uncached_outer = @logger.logged(:info)
       assert_match(/Rendered test\/_cached_customer\.erb (.*) \[cache hit\]/, cached_inner)
-      assert_match(/Rendered test\/_nested_cached_customer\.erb \(.*?ms\)$/, uncached_outer)
+      assert_match(/Rendered test\/_nested_cached_customer\.erb \(Duration: .*?ms \| Allocations: .*?\)$/, uncached_outer)
     end
   end
 
