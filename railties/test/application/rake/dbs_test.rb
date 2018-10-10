@@ -267,6 +267,13 @@ module ApplicationTests
         end
       end
 
+      def db_structure_dump
+        Dir.chdir(app_path) do
+          rails "generate", "model", "book", "title:string"
+          rails "db:migrate", "db:structure:dump"
+        end
+      end
+
       test "db:structure:dump and db:structure:load without database_url" do
         require "#{app_path}/config/environment"
         db_structure_dump_and_load ActiveRecord::Base.configurations[Rails.env]["database"]
@@ -286,14 +293,32 @@ module ApplicationTests
         assert_equal "development", rails("runner", "puts ActiveRecord::InternalMetadata[:environment]").strip
       end
 
-      test "db:structure:dump does not dump schema information when no migrations are used" do
-        # create table without migrations
-        rails "runner", "ActiveRecord::Base.connection.create_table(:posts) {|t| t.string :title }"
+      test "db:structure:dump does not dump schema information" do
+        require "#{app_path}/config/environment"
+        db_structure_dump
 
-        stderr_output = capture(:stderr) { rails("db:structure:dump", stderr: true, allow_failure: true) }
-        assert_empty stderr_output
+        rails("db:structure:dump")
         structure_dump = File.read("#{app_path}/db/structure.sql")
-        assert_match(/CREATE TABLE (?:IF NOT EXISTS )?\"posts\"/, structure_dump)
+        assert_match(/CREATE TABLE (?:IF NOT EXISTS )?\"books\"/, structure_dump)
+      end
+
+      test "db:structure:dump writes version to file" do
+        require "#{app_path}/config/environment"
+        db_structure_dump
+
+        rails("db:structure:dump")
+        current_version = rails("runner", "puts ActiveRecord::Base.connection.migration_context.current_version").strip
+        structure_version = File.read("#{app_path}/db/structure.version")
+        assert_equal(current_version, structure_version)
+      end
+
+      test "db:structure:load uses version file" do
+        require "#{app_path}/config/environment"
+        db_structure_dump_and_load ActiveRecord::Base.configurations[Rails.env]["database"]
+
+        current_version = rails("runner", "puts ActiveRecord::Base.connection.migration_context.current_version").strip
+        structure_version = File.read("#{app_path}/db/structure.version")
+        assert_equal(structure_version, current_version)
       end
 
       test "db:schema:load and db:structure:load do not purge the existing database" do
@@ -314,6 +339,10 @@ module ApplicationTests
         app_file "db/structure.sql", <<-SQL
           CREATE TABLE "users" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "name" varchar(255));
         SQL
+
+        app_file "db/structure.version", <<-TEXT
+          001
+        TEXT
 
         rails "db:structure:load"
         assert_equal '["posts", "comments", "schema_migrations", "ar_internal_metadata", "users"]', list_tables[]

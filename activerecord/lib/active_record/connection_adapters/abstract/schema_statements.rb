@@ -1040,11 +1040,6 @@ module ActiveRecord
         options
       end
 
-      def dump_schema_information #:nodoc:
-        versions = ActiveRecord::SchemaMigration.all_versions
-        insert_versions_sql(versions) if versions.any?
-      end
-
       def internal_string_options_for_primary_key # :nodoc:
         { primary_key: true }
       end

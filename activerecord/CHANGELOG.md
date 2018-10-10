@@ -1,3 +1,7 @@
+*   Track structure dump versions in separate `structure.version` file.
+
+    *Gannon McGibbon*
+
 *   Fix query attribute method on user-defined attribute to be aware of typecasted value.
 
     For example, the following code no longer return false as casted non-empty string:

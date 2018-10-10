@@ -278,13 +278,17 @@ module ActiveRecord
       def structure_dump(*arguments)
         configuration = arguments.first
         filename = arguments.delete_at 1
-        class_for_adapter(configuration["adapter"]).new(*arguments).structure_dump(filename, structure_dump_flags)
+        adapter = class_for_adapter(configuration["adapter"]).new(*arguments)
+        adapter.structure_dump(filename, structure_dump_flags)
+        structure_version_dump(filename)
       end
 
       def structure_load(*arguments)
         configuration = arguments.first
         filename = arguments.delete_at 1
-        class_for_adapter(configuration["adapter"]).new(*arguments).structure_load(filename, structure_load_flags)
+        adapter = class_for_adapter(configuration["adapter"]).new(*arguments)
+        adapter.structure_load(filename, structure_load_flags)
+        structure_version_load(filename)
       end
 
       def load_schema(configuration, format = ActiveRecord::Base.schema_format, file = nil, environment = env, spec_name = "primary") # :nodoc:
@@ -342,9 +346,9 @@ module ActiveRecord
       end
 
       def load_schema_current(format = ActiveRecord::Base.schema_format, file = nil, environment = env)
-        each_current_configuration(environment) { |configuration, spec_name, env|
+        each_current_configuration(environment) do |configuration, spec_name, env|
           load_schema(configuration, format, file, env, spec_name)
-        }
+        end
         ActiveRecord::Base.establish_connection(environment.to_sym)
       end
 
@@ -415,6 +419,25 @@ module ActiveRecord
 
         def local_database?(configuration)
           configuration["host"].blank? || LOCAL_HOSTS.include?(configuration["host"])
+        end
+
+        def structure_version_dump(structure_filename)
+          return unless SchemaMigration.table_exists?
+
+          version_filename = structure_filename.sub(".sql", ".version")
+          version = Base.connection.migration_context.current_version
+          File.write(version_filename, version)
+        end
+
+        def structure_version_load(structure_filename)
+          return unless SchemaMigration.table_exists?
+
+          version_filename = structure_filename.sub(".sql", ".version")
+
+          return unless File.exists?(version_filename)
+
+          version = File.read(version_filename)
+          Base.connection.assume_migrated_upto_version(version)
         end
     end
   end

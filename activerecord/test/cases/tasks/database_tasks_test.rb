@@ -116,9 +116,19 @@ module ActiveRecord
       instance = klazz.new
 
       klazz.stub(:new, instance) do
-        assert_called_with(instance, :structure_dump, ["awesome-file.sql", nil]) do
-          ActiveRecord::Tasks::DatabaseTasks.register_task(/foo/, klazz)
-          ActiveRecord::Tasks::DatabaseTasks.structure_dump({ "adapter" => :foo }, "awesome-file.sql")
+        assert_called_with(
+          instance,
+          :structure_dump,
+          ["awesome-file.sql", nil],
+        ) do
+          assert_called_with(
+            ActiveRecord::Tasks::DatabaseTasks,
+            :structure_version_dump,
+            ["awesome-file.sql"],
+          ) do
+            ActiveRecord::Tasks::DatabaseTasks.register_task(/foo/, klazz)
+            ActiveRecord::Tasks::DatabaseTasks.structure_dump({ "adapter" => :foo }, "awesome-file.sql")
+          end
         end
       end
     end
@@ -1211,9 +1221,15 @@ module ActiveRecord
             :structure_dump,
             ["awesome-file.sql", nil],
           ) do
-            ActiveRecord::Tasks::DatabaseTasks.structure_dump(
-              { "adapter" => adapter }, "awesome-file.sql"
-            )
+            assert_called_with(
+              ActiveRecord::Tasks::DatabaseTasks,
+              :structure_version_dump,
+              ["awesome-file.sql"]
+            ) do
+              ActiveRecord::Tasks::DatabaseTasks.structure_dump(
+                { "adapter" => adapter }, "awesome-file.sql"
+              )
+            end
           end
         end
       end
@@ -1231,9 +1247,15 @@ module ActiveRecord
             :structure_load,
             ["awesome-file.sql", nil],
           ) do
-            ActiveRecord::Tasks::DatabaseTasks.structure_load(
-              { "adapter" => adapter }, "awesome-file.sql"
-            )
+            assert_called_with(
+              ActiveRecord::Tasks::DatabaseTasks,
+              :structure_version_load,
+              ["awesome-file.sql"],
+            ) do
+              ActiveRecord::Tasks::DatabaseTasks.structure_load(
+                { "adapter" => adapter }, "awesome-file.sql"
+              )
+            end
           end
         end
       end

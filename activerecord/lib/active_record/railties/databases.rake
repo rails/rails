@@ -335,12 +335,6 @@ db_namespace = namespace :db do
         ActiveRecord::Base.establish_connection(db_config.config)
         filename = ActiveRecord::Tasks::DatabaseTasks.dump_filename(db_config.spec_name, :sql)
         ActiveRecord::Tasks::DatabaseTasks.structure_dump(db_config.config, filename)
-        if ActiveRecord::SchemaMigration.table_exists?
-          File.open(filename, "a") do |f|
-            f.puts ActiveRecord::Base.connection.dump_schema_information
-            f.print "\n"
-          end
-        end
       end
 
       db_namespace["structure:dump"].reenable
