@@ -29,9 +29,9 @@ module ActiveRecord
     end
 
     def with_stubbed_new
-      ActiveRecord::Tasks::MySQLDatabaseTasks.stub(:new, @mysql_tasks) do
-        ActiveRecord::Tasks::PostgreSQLDatabaseTasks.stub(:new, @postgresql_tasks) do
-          ActiveRecord::Tasks::SQLiteDatabaseTasks.stub(:new, @sqlite_tasks) do
+      ActiveRecord::Tasks::MySQLDatabaseTasks.stub(:new, mysql_tasks) do
+        ActiveRecord::Tasks::PostgreSQLDatabaseTasks.stub(:new, postgresql_tasks) do
+          ActiveRecord::Tasks::SQLiteDatabaseTasks.stub(:new, sqlite_tasks) do
             yield
           end
         end
@@ -133,11 +133,11 @@ module ActiveRecord
   class DatabaseTasksCreateTest < ActiveRecord::TestCase
     include DatabaseTasksSetupper
 
-    ADAPTERS_TASKS.each do |k, v|
-      define_method("test_#{k}_create") do
+    ADAPTERS_TASKS.each do |adapter, adapter_tasks|
+      define_method("test_#{adapter}_create") do
         with_stubbed_new do
-          assert_called(eval("@#{v}"), :create) do
-            ActiveRecord::Tasks::DatabaseTasks.create "adapter" => k
+          assert_called(public_send(adapter_tasks), :create) do
+            ActiveRecord::Tasks::DatabaseTasks.create "adapter" => adapter
           end
         end
       end
@@ -458,11 +458,11 @@ module ActiveRecord
   class DatabaseTasksDropTest < ActiveRecord::TestCase
     include DatabaseTasksSetupper
 
-    ADAPTERS_TASKS.each do |k, v|
-      define_method("test_#{k}_drop") do
+    ADAPTERS_TASKS.each do |adapter, adapter_tasks|
+      define_method("test_#{adapter}_drop") do
         with_stubbed_new do
-          assert_called(eval("@#{v}"), :drop) do
-            ActiveRecord::Tasks::DatabaseTasks.drop "adapter" => k
+          assert_called(public_send(adapter_tasks), :drop) do
+            ActiveRecord::Tasks::DatabaseTasks.drop "adapter" => adapter
           end
         end
       end
@@ -891,11 +891,11 @@ module ActiveRecord
   class DatabaseTasksPurgeTest < ActiveRecord::TestCase
     include DatabaseTasksSetupper
 
-    ADAPTERS_TASKS.each do |k, v|
-      define_method("test_#{k}_purge") do
+    ADAPTERS_TASKS.each do |adapter, adapter_tasks|
+      define_method("test_#{adapter}_purge") do
         with_stubbed_new do
-          assert_called(eval("@#{v}"), :purge) do
-            ActiveRecord::Tasks::DatabaseTasks.purge "adapter" => k
+          assert_called(public_send(adapter_tasks), :purge) do
+            ActiveRecord::Tasks::DatabaseTasks.purge "adapter" => adapter
           end
         end
       end
@@ -1073,11 +1073,11 @@ module ActiveRecord
   class DatabaseTasksCharsetTest < ActiveRecord::TestCase
     include DatabaseTasksSetupper
 
-    ADAPTERS_TASKS.each do |k, v|
-      define_method("test_#{k}_charset") do
+    ADAPTERS_TASKS.each do |adapter, adapter_tasks|
+      define_method("test_#{adapter}_charset") do
         with_stubbed_new do
-          assert_called(eval("@#{v}"), :charset) do
-            ActiveRecord::Tasks::DatabaseTasks.charset "adapter" => k
+          assert_called(public_send(adapter_tasks), :charset) do
+            ActiveRecord::Tasks::DatabaseTasks.charset "adapter" => adapter
           end
         end
       end
@@ -1087,11 +1087,11 @@ module ActiveRecord
   class DatabaseTasksCollationTest < ActiveRecord::TestCase
     include DatabaseTasksSetupper
 
-    ADAPTERS_TASKS.each do |k, v|
-      define_method("test_#{k}_collation") do
+    ADAPTERS_TASKS.each do |adapter, adapter_tasks|
+      define_method("test_#{adapter}_collation") do
         with_stubbed_new do
-          assert_called(eval("@#{v}"), :collation) do
-            ActiveRecord::Tasks::DatabaseTasks.collation "adapter" => k
+          assert_called(public_send(adapter_tasks), :collation) do
+            ActiveRecord::Tasks::DatabaseTasks.collation "adapter" => adapter
           end
         end
       end
@@ -1203,14 +1203,17 @@ module ActiveRecord
   class DatabaseTasksStructureDumpTest < ActiveRecord::TestCase
     include DatabaseTasksSetupper
 
-    ADAPTERS_TASKS.each do |k, v|
-      define_method("test_#{k}_structure_dump") do
+    ADAPTERS_TASKS.each do |adapter, adapter_tasks|
+      define_method("test_#{adapter}_structure_dump") do
         with_stubbed_new do
           assert_called_with(
-            eval("@#{v}"), :structure_dump,
-            ["awesome-file.sql", nil]
+            public_send(adapter_tasks),
+            :structure_dump,
+            ["awesome-file.sql", nil],
           ) do
-            ActiveRecord::Tasks::DatabaseTasks.structure_dump({ "adapter" => k }, "awesome-file.sql")
+            ActiveRecord::Tasks::DatabaseTasks.structure_dump(
+              { "adapter" => adapter }, "awesome-file.sql"
+            )
           end
         end
       end
@@ -1220,15 +1223,17 @@ module ActiveRecord
   class DatabaseTasksStructureLoadTest < ActiveRecord::TestCase
     include DatabaseTasksSetupper
 
-    ADAPTERS_TASKS.each do |k, v|
-      define_method("test_#{k}_structure_load") do
+    ADAPTERS_TASKS.each do |adapter, adapter_tasks|
+      define_method("test_#{adapter}_structure_load") do
         with_stubbed_new do
           assert_called_with(
-            eval("@#{v}"),
+            public_send(adapter_tasks),
             :structure_load,
-            ["awesome-file.sql", nil]
+            ["awesome-file.sql", nil],
           ) do
-            ActiveRecord::Tasks::DatabaseTasks.structure_load({ "adapter" => k }, "awesome-file.sql")
+            ActiveRecord::Tasks::DatabaseTasks.structure_load(
+              { "adapter" => adapter }, "awesome-file.sql"
+            )
           end
         end
       end
