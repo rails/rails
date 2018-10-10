@@ -16,6 +16,9 @@ require "active_support/testing/autorun"
 require "active_support/testing/stream"
 require "active_support/testing/method_call_assertions"
 require "active_support/test_case"
+require "minitest/retry"
+
+Minitest::Retry.use!(verbose: false, retry_count: 1)
 
 RAILS_FRAMEWORK_ROOT = File.expand_path("../../..", __dir__)
 
