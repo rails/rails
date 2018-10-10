@@ -149,7 +149,21 @@ db_namespace = namespace :db do
 
     desc "Display status of migrations"
     task status: :load_config do
-      ActiveRecord::Tasks::DatabaseTasks.migrate_status
+      ActiveRecord::Base.configurations.configs_for(env_name: Rails.env).each do |db_config|
+        ActiveRecord::Base.establish_connection(db_config.config)
+        ActiveRecord::Tasks::DatabaseTasks.migrate_status
+      end
+    end
+
+    namespace :status do
+      ActiveRecord::Tasks::DatabaseTasks.for_each do |spec_name|
+        desc "Display status of migrations for #{spec_name} database"
+        task spec_name => :load_config do
+          db_config = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env, spec_name: spec_name)
+          ActiveRecord::Base.establish_connection(db_config.config)
+          ActiveRecord::Tasks::DatabaseTasks.migrate_status
+        end
+      end
     end
   end
 
