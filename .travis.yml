@@ -177,7 +177,7 @@ matrix:
     - rvm: jruby-head
       jdk: oraclejdk8
       env:
-        - "GEM=am,amo,aj"
+        - "GEM=am,amo,aj,ast AR_JDBC=1"
   allow_failures:
     - rvm: ruby-head
     - rvm: jruby-head
