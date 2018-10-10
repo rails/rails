@@ -40,7 +40,9 @@ module ActiveRecord
       end
 
       # Reloads the \target and returns +self+ on success.
-      def reload
+      # The QueryCache is cleared if +force+ is true.
+      def reload(force = false)
+        klass.connection.clear_query_cache if force && klass
         reset
         reset_scope
         load_target

@@ -1088,7 +1088,7 @@ module ActiveRecord
       #   person.pets.reload # fetches pets from the database
       #   # => [#<Pet id: 1, name: "Snoop", group: "dogs", person_id: 1>]
       def reload
-        proxy_association.reload
+        proxy_association.reload(true)
         reset_scope
       end
 

@@ -829,6 +829,48 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_not_same original_object, collection.first, "Expected #first after #reload to return a new object"
   end
 
+  def test_reload_with_query_cache
+    connection = ActiveRecord::Base.connection
+    connection.enable_query_cache!
+    connection.clear_query_cache
+
+    # Populate the cache with a query
+    firm = Firm.first
+    # Populate the cache with a second query
+    firm.clients.load
+
+    assert_equal 2, connection.query_cache.size
+
+    # Clear the cache and fetch the clients again, populating the cache with a query
+    assert_queries(1) { firm.clients.reload }
+    # This query is cached, so it shouldn't make a real SQL query
+    assert_queries(0) { firm.clients.load }
+
+    assert_equal 1, connection.query_cache.size
+  ensure
+    ActiveRecord::Base.connection.disable_query_cache!
+  end
+
+  def test_reloading_unloaded_associations_with_query_cache
+    connection = ActiveRecord::Base.connection
+    connection.enable_query_cache!
+    connection.clear_query_cache
+
+    firm = Firm.create!(name: "firm name")
+    client = firm.clients.create!(name: "client name")
+    firm.clients.to_a # add request to cache
+
+    connection.uncached do
+      client.update!(name: "new client name")
+    end
+
+    firm = Firm.find(firm.id)
+
+    assert_equal [client.name], firm.clients.reload.map(&:name)
+  ensure
+    ActiveRecord::Base.connection.disable_query_cache!
+  end
+
   def test_find_all_with_include_and_conditions
     assert_nothing_raised do
       Developer.all.merge!(joins: :audit_logs, where: { "audit_logs.message" => nil, :name => "Smith" }).to_a

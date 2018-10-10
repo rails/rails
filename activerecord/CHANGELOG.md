@@ -1,3 +1,20 @@
+*   Reloading associations now clears the Query Cache like `Persistence#reload` does.
+
+    ```
+    class Post < ActiveRecord::Base
+      has_one :category
+      belongs_to :author
+      has_many :comments
+    end
+
+    # Each of the following will now clear the query cache.
+    post.reload_category
+    post.reload_author
+    post.comments.reload
+    ```
+
+    *Christophe Maximin*
+
 *   Added `index` option for `change_table` migration helpers.
     With this change you can create indexes while adding new
     columns into the existing tables.
