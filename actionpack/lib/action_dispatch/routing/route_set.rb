@@ -378,8 +378,6 @@ module ActionDispatch
         @disable_clear_and_finalize = false
         @finalized                  = false
         @env_key                    = "ROUTES_#{object_id}_SCRIPT_NAME"
-        @url_helpers                = nil
-        @deferred_classes           = []
 
         @set    = Journey::Routes.new
         @router = Journey::Router.new @set
@@ -434,25 +432,6 @@ module ActionDispatch
         end
       end
       private :eval_block
-
-      def include_helpers(klass, include_path_helpers)
-        if @finalized
-          include_helpers_now klass, include_path_helpers
-        else
-          @deferred_classes << [klass, include_path_helpers]
-        end
-      end
-
-      def include_helpers_now(klass, include_path_helpers)
-        namespace = klass.module_parents.detect { |m| m.respond_to?(:railtie_include_helpers) }
-
-        if namespace && namespace.railtie_namespace.routes != self
-          namespace.railtie_include_helpers(klass, include_path_helpers)
-        else
-          klass.include(url_helpers(include_path_helpers))
-        end
-      end
-      private :include_helpers_now
 
       def finalize!
         return if @finalized
