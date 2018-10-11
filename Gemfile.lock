@@ -323,6 +323,8 @@ GEM
     minitest-bisect (1.4.0)
       minitest-server (~> 1.0)
       path_expander (~> 1.0)
+    minitest-retry (0.1.9)
+      minitest (>= 5.0)
     minitest-server (1.0.5)
       minitest (~> 5.0)
     mono_logger (1.1.0)
@@ -538,6 +540,7 @@ DEPENDENCIES
   libxml-ruby
   listen (>= 3.0.5, < 3.2)
   minitest-bisect
+  minitest-retry
   mysql2 (>= 0.4.10)
   nokogiri (>= 1.8.1)
   pg (>= 0.18.0)
@@ -576,4 +579,4 @@ DEPENDENCIES
   websocket-client-simple!
 
 BUNDLED WITH
-   1.16.5
+   1.16.6
