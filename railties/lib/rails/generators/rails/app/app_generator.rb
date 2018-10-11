@@ -261,6 +261,9 @@ module Rails
       class_option :webpack, type: :string, default: nil,
                              desc: "Preconfigure Webpack with a particular framework (options: #{WEBPACKS.join('/')})"
 
+      class_option :skip_webpack_install, type: :boolean, default: false,
+                                          desc: "Don't run Webpack install"
+
       def initialize(*args)
         super
 

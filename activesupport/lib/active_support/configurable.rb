@@ -105,7 +105,7 @@ module ActiveSupport
       #   end
       #
       #   User.hair_colors # => [:brown, :black, :blonde, :red]
-      def config_accessor(*names)
+      def config_accessor(*names) #:doc:
         options = names.extract_options!
 
         names.each do |name|

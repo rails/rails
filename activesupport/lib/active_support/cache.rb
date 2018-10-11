@@ -596,9 +596,13 @@ module ActiveSupport
         # Merges the default options with ones specific to a method call.
         def merged_options(call_options)
           if call_options
-            options.merge(call_options)
+            if options.empty?
+              call_options
+            else
+              options.merge(call_options)
+            end
           else
-            options.dup
+            options
           end
         end
 
@@ -643,7 +647,7 @@ module ActiveSupport
             if key.size > 1
               key = key.collect { |element| expanded_key(element) }
             else
-              key = key.first
+              key = expanded_key(key.first)
             end
           when Hash
             key = key.sort_by { |k, _| k.to_s }.collect { |k, v| "#{k}=#{v}" }

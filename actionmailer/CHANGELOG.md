@@ -1,3 +1,14 @@
+*   Allow ActionMailer classes to configure the parameterized delivery job
+    Example:
+    ```
+    class MyMailer < ApplicationMailer
+      self.parameterized_delivery_job = MyCustomDeliveryJob
+      ...
+    end
+    ```
+
+    *Luke Pearce*
+
 *   `ActionDispatch::IntegrationTest` includes `ActionMailer::TestHelper` module by default.
 
     *Ricardo Díaz*

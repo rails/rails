@@ -297,8 +297,6 @@ end
 class FakeKlass
   extend ActiveRecord::Delegation::DelegateCache
 
-  inherited self
-
   class << self
     def connection
       Post.connection
@@ -335,5 +333,11 @@ class FakeKlass
     def predicate_builder
       Post.predicate_builder
     end
+
+    def base_class?
+      true
+    end
   end
+
+  inherited self
 end

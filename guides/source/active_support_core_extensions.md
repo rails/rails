@@ -590,9 +590,9 @@ NOTE: Defined in `active_support/core_ext/module/attribute_accessors.rb`.
 
 ### Parents
 
-#### `parent`
+#### `module_parent`
 
-The `parent` method on a nested named module returns the module that contains its corresponding constant:
+The `module_parent` method on a nested named module returns the module that contains its corresponding constant:
 
 ```ruby
 module X
@@ -603,19 +603,19 @@ module X
 end
 M = X::Y::Z
 
-X::Y::Z.parent # => X::Y
-M.parent       # => X::Y
+X::Y::Z.module_parent # => X::Y
+M.module_parent       # => X::Y
 ```
 
-If the module is anonymous or belongs to the top-level, `parent` returns `Object`.
+If the module is anonymous or belongs to the top-level, `module_parent` returns `Object`.
 
-WARNING: Note that in that case `parent_name` returns `nil`.
+WARNING: Note that in that case `module_parent_name` returns `nil`.
 
 NOTE: Defined in `active_support/core_ext/module/introspection.rb`.
 
-#### `parent_name`
+#### `module_parent_name`
 
-The `parent_name` method on a nested named module returns the fully qualified name of the module that contains its corresponding constant:
+The `module_parent_name` method on a nested named module returns the fully qualified name of the module that contains its corresponding constant:
 
 ```ruby
 module X
@@ -626,19 +626,19 @@ module X
 end
 M = X::Y::Z
 
-X::Y::Z.parent_name # => "X::Y"
-M.parent_name       # => "X::Y"
+X::Y::Z.module_parent_name # => "X::Y"
+M.module_parent_name       # => "X::Y"
 ```
 
-For top-level or anonymous modules `parent_name` returns `nil`.
+For top-level or anonymous modules `module_parent_name` returns `nil`.
 
-WARNING: Note that in that case `parent` returns `Object`.
+WARNING: Note that in that case `module_parent` returns `Object`.
 
 NOTE: Defined in `active_support/core_ext/module/introspection.rb`.
 
-#### `parents`
+#### `module_parents`
 
-The method `parents` calls `parent` on the receiver and upwards until `Object` is reached. The chain is returned in an array, from bottom to top:
+The method `module_parents` calls `module_parent` on the receiver and upwards until `Object` is reached. The chain is returned in an array, from bottom to top:
 
 ```ruby
 module X
@@ -649,8 +649,8 @@ module X
 end
 M = X::Y::Z
 
-X::Y::Z.parents # => [X::Y, X, Object]
-M.parents       # => [X::Y, X, Object]
+X::Y::Z.module_parents # => [X::Y, X, Object]
+M.module_parents       # => [X::Y, X, Object]
 ```
 
 NOTE: Defined in `active_support/core_ext/module/introspection.rb`.

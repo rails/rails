@@ -91,12 +91,12 @@ module ActiveRecord
       developers = Developer.where(name: "David")
 
       assert_queries(1) { developers.cache_key }
-      assert_queries(0) { developers.cache_key }
+      assert_no_queries { developers.cache_key }
     end
 
     test "it doesn't trigger any query if the relation is already loaded" do
       developers = Developer.where(name: "David").load
-      assert_queries(0) { developers.cache_key }
+      assert_no_queries { developers.cache_key }
     end
 
     test "relation cache_key changes when the sql query changes" do

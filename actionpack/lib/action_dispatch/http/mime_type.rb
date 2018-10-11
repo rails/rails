@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# -*- frozen-string-literal: true -*-
-
 require "singleton"
 require "active_support/core_ext/string/starts_ends_with"
 

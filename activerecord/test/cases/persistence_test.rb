@@ -446,19 +446,17 @@ class PersistenceTest < ActiveRecord::TestCase
   end
 
   def test_update_attribute_does_not_run_sql_if_attribute_is_not_changed
-    klass = Class.new(Topic) do
-      def self.name; "Topic"; end
-    end
-    topic = klass.create(title: "Another New Topic")
-    assert_queries(0) do
+    topic = Topic.create(title: "Another New Topic")
+    assert_no_queries do
       assert topic.update_attribute(:title, "Another New Topic")
     end
   end
 
   def test_update_does_not_run_sql_if_record_has_not_changed
     topic = Topic.create(title: "Another New Topic")
-    assert_queries(0) { assert topic.update(title: "Another New Topic") }
-    assert_queries(0) { assert topic.update(title: "Another New Topic") }
+    assert_no_queries do
+      assert topic.update(title: "Another New Topic")
+    end
   end
 
   def test_delete

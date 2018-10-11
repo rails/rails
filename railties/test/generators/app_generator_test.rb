@@ -113,7 +113,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_assets
-    run_generator [destination_root, "--no-skip-javascript"]
+    run_generator
 
     assert_file("app/views/layouts/application.html.erb", /stylesheet_link_tag\s+'application', media: 'all', 'data-turbolinks-track': 'reload'/)
     assert_file("app/views/layouts/application.html.erb", /javascript_pack_tag\s+'application', 'data-turbolinks-track': 'reload'/)
@@ -214,14 +214,14 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_new_application_load_defaults
     app_root = File.join(destination_root, "myfirstapp")
-    run_generator [app_root, "--no-skip-javascript"]
+    run_generator [app_root]
 
     output = nil
 
     assert_file "#{app_root}/config/application.rb", /\s+config\.load_defaults #{Rails::VERSION::STRING.to_f}/
 
     Dir.chdir(app_root) do
-      output = `./bin/rails r "puts Rails.application.config.assets.unknown_asset_fallback"`
+      output = `SKIP_REQUIRE_WEBPACKER=true ./bin/rails r "puts Rails.application.config.assets.unknown_asset_fallback"`
     end
 
     assert_equal "false\n", output
@@ -603,7 +603,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_javascript_is_skipped_if_required
     run_generator [destination_root, "--skip-javascript"]
 
-    assert_no_file "app/assets/javascripts"
+    assert_no_file "app/javascript"
 
     assert_file "app/views/layouts/application.html.erb" do |contents|
       assert_match(/stylesheet_link_tag\s+'application', media: 'all' %>/, contents)
@@ -825,8 +825,22 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_gem "webpacker"
   end
 
+  def test_skip_webpack_install
+    command_check = -> command do
+      if command == "webpacker:install"
+        assert false, "webpacker:install expected not to be called."
+      end
+    end
+
+    generator([destination_root], skip_webpack_install: true).stub(:rails_command, command_check) do
+      quietly { generator.invoke_all }
+    end
+
+    assert_gem "webpacker"
+  end
+
   def test_generator_if_skip_turbolinks_is_given
-    run_generator [destination_root, "--skip-turbolinks", "--no-skip-javascript"]
+    run_generator [destination_root, "--skip-turbolinks"]
 
     assert_no_gem "turbolinks"
     assert_file "app/views/layouts/application.html.erb" do |content|

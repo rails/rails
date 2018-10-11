@@ -138,20 +138,6 @@ module ActionDispatch
         assert_generates(path.is_a?(Hash) ? path[:path] : path, generate_options, defaults, extras, message)
       end
 
-      # Provides a hook on `finalize!` so we can mutate a controller after the
-      # route set has been drawn.
-      class WithRouting < ActionDispatch::Routing::RouteSet # :nodoc:
-        def initialize(&block)
-          super()
-          @block = block
-        end
-
-        def finalize!
-          super
-          @block.call self
-        end
-      end
-
       # A helper to make it easier to test different route configurations.
       # This method temporarily replaces @routes with a new RouteSet instance.
       #
@@ -166,19 +152,16 @@ module ActionDispatch
       #   end
       #
       def with_routing
-        old_routes = @routes
-        old_controller = nil
-        @routes = WithRouting.new do |_routes|
-          if defined?(@controller) && @controller
-            old_controller, @controller = @controller, @controller.clone
-            _routes = @routes
+        old_routes, @routes = @routes, ActionDispatch::Routing::RouteSet.new
+        if defined?(@controller) && @controller
+          old_controller, @controller = @controller, @controller.clone
+          _routes = @routes
 
-            @controller.singleton_class.include(_routes.url_helpers)
+          @controller.singleton_class.include(_routes.url_helpers)
 
-            if @controller.respond_to? :view_context_class
-              @controller.view_context_class = Class.new(@controller.view_context_class) do
-                include _routes.url_helpers
-              end
+          if @controller.respond_to? :view_context_class
+            @controller.view_context_class = Class.new(@controller.view_context_class) do
+              include _routes.url_helpers
             end
           end
         end
