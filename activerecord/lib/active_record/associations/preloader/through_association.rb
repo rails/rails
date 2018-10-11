@@ -78,6 +78,8 @@ module ActiveRecord
 
               if joins = values[:joins]
                 scope.joins!(source_reflection.name => joins)
+              else
+                scope.joins!(source_reflection.name)
               end
 
               if left_outer_joins = values[:left_outer_joins]
