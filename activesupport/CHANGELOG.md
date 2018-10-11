@@ -1,3 +1,7 @@
+*   Add `ActiveSupport::ParameterFilter`.
+
+    *Yoshiyuki Kinjo*
+
 *   Rename `Module#parent`, `Module#parents`, and `Module#parent_name` to
     `module_parent`, `module_parents`, and `module_parent_name`.
 
