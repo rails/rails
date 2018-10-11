@@ -38,7 +38,7 @@ class EventedFileUpdateCheckerTest < ActiveSupport::TestCase
 
     FileUtils.touch(tmpfiles)
 
-    checker = new_checker(tmpfiles) {}
+    checker = new_checker(tmpfiles) { }
     assert_not_predicate checker, :updated?
 
     # Pipes used for flow control across fork.

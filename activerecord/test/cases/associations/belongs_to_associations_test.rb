@@ -367,6 +367,30 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal "ODEGY", odegy_account.reload_firm.name
   end
 
+  def test_reload_the_belonging_object_with_query_cache
+    odegy_account_id = accounts(:odegy_account).id
+
+    connection = ActiveRecord::Base.connection
+    connection.enable_query_cache!
+    connection.clear_query_cache
+
+    # Populate the cache with a query
+    odegy_account = Account.find(odegy_account_id)
+
+    # Populate the cache with a second query
+    odegy_account.firm
+
+    assert_equal 2, connection.query_cache.size
+
+    # Clear the cache and fetch the firm again, populating the cache with a query
+    assert_queries(1) { odegy_account.reload_firm }
+
+    # This query is not cached anymore, so it should make a real SQL query
+    assert_queries(1) { Account.find(odegy_account_id) }
+  ensure
+    ActiveRecord::Base.connection.disable_query_cache!
+  end
+
   def test_natural_assignment_to_nil
     client = Client.find(3)
     client.firm = nil
@@ -452,15 +476,39 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_belongs_to_counter_with_assigning_nil
-    post = Post.find(1)
-    comment = Comment.find(1)
+    topic = Topic.create!(title: "debate")
+    reply = Reply.create!(title: "blah!", content: "world around!", topic: topic)
 
-    assert_equal post.id, comment.post_id
-    assert_equal 2, Post.find(post.id).comments.size
+    assert_equal topic.id, reply.parent_id
+    assert_equal 1, topic.reload.replies.size
 
-    comment.post = nil
+    reply.topic = nil
+    reply.reload
 
-    assert_equal 1, Post.find(post.id).comments.size
+    assert_equal topic.id, reply.parent_id
+    assert_equal 1, topic.reload.replies.size
+
+    reply.topic = nil
+    reply.save!
+
+    assert_equal 0, topic.reload.replies.size
+  end
+
+  def test_belongs_to_counter_with_assigning_new_object
+    topic = Topic.create!(title: "debate")
+    reply = Reply.create!(title: "blah!", content: "world around!", topic: topic)
+
+    assert_equal topic.id, reply.parent_id
+    assert_equal 1, topic.reload.replies_count
+
+    topic2 = reply.build_topic(title: "debate2")
+    reply.save!
+
+    assert_not_equal topic.id, reply.parent_id
+    assert_equal topic2.id, reply.parent_id
+
+    assert_equal 0, topic.reload.replies_count
+    assert_equal 1, topic2.reload.replies_count
   end
 
   def test_belongs_to_with_primary_key_counter
@@ -485,11 +533,13 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal 0, debate2.reload.replies_count
 
     reply.topic_with_primary_key = debate2
+    reply.save!
 
     assert_equal 0, debate.reload.replies_count
     assert_equal 1, debate2.reload.replies_count
 
     reply.topic_with_primary_key = nil
+    reply.save!
 
     assert_equal 0, debate.reload.replies_count
     assert_equal 0, debate2.reload.replies_count
@@ -516,11 +566,13 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal 1, Topic.find(topic2.id).replies.size
 
     reply1.topic = nil
+    reply1.save!
 
     assert_equal 0, Topic.find(topic1.id).replies.size
     assert_equal 0, Topic.find(topic2.id).replies.size
 
     reply1.topic = topic1
+    reply1.save!
 
     assert_equal 1, Topic.find(topic1.id).replies.size
     assert_equal 0, Topic.find(topic2.id).replies.size
@@ -550,7 +602,11 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
   def test_belongs_to_counter_after_save
     topic = Topic.create!(title: "monday night")
-    topic.replies.create!(title: "re: monday night", content: "football")
+
+    assert_queries(2) do
+      topic.replies.create!(title: "re: monday night", content: "football")
+    end
+
     assert_equal 1, Topic.find(topic.id)[:replies_count]
 
     topic.save!
@@ -584,8 +640,10 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     debate.touch(time: time)
     debate2.touch(time: time)
 
-    reply.parent_title = "debate"
-    reply.save!
+    assert_queries(3) do
+      reply.parent_title = "debate"
+      reply.save!
+    end
 
     assert_operator debate.reload.updated_at, :>, time
     assert_operator debate2.reload.updated_at, :>, time
@@ -593,7 +651,10 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     debate.touch(time: time)
     debate2.touch(time: time)
 
-    reply.topic_with_primary_key = debate2
+    assert_queries(3) do
+      reply.topic_with_primary_key = debate2
+      reply.save!
+    end
 
     assert_operator debate.reload.updated_at, :>, time
     assert_operator debate2.reload.updated_at, :>, time
@@ -657,7 +718,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     line_item = LineItem.create!
     Invoice.create!(line_items: [line_item])
 
-    assert_queries(0) { line_item.save }
+    assert_no_queries { line_item.save }
   end
 
   def test_belongs_to_with_touch_option_on_destroy
@@ -752,7 +813,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
   def test_dont_find_target_when_foreign_key_is_null
     tagging = taggings(:thinking_general)
-    assert_queries(0) { tagging.super_tag }
+    assert_no_queries { tagging.super_tag }
   end
 
   def test_dont_find_target_when_saving_foreign_key_after_stale_association_loaded
@@ -772,6 +833,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
     reply = Reply.create(title: "re: zoom", content: "speedy quick!")
     reply.topic = topic
+    reply.save!
 
     assert_equal 1, topic.reload[:replies_count]
     assert_equal 1, topic.replies.size
@@ -827,6 +889,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
     silly = SillyReply.create(title: "gaga", content: "boo-boo")
     silly.reply = reply
+    silly.save!
 
     assert_equal 1, reply.reload[:replies_count]
     assert_equal 1, reply.replies.size

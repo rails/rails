@@ -226,6 +226,20 @@ class SchemaDumperTest < ActiveRecord::TestCase
     assert_match %r{t\.float\s+"temperature"$}, output
   end
 
+  if ActiveRecord::Base.connection.supports_expression_index?
+    def test_schema_dump_expression_indices
+      index_definition = dump_table_schema("companies").split(/\n/).grep(/t\.index.*company_expression_index/).first.strip
+
+      if current_adapter?(:PostgreSQLAdapter)
+        assert_match %r{CASE.+lower\(\(name\)::text\)}i, index_definition
+      elsif current_adapter?(:SQLite3Adapter)
+        assert_match %r{CASE.+lower\(name\)}i, index_definition
+      else
+        assert false
+      end
+    end
+  end
+
   if current_adapter?(:Mysql2Adapter)
     def test_schema_dump_includes_length_for_mysql_binary_fields
       output = standard_dump
@@ -276,11 +290,6 @@ class SchemaDumperTest < ActiveRecord::TestCase
     def test_schema_dump_allows_array_of_decimal_defaults
       output = dump_table_schema "bigint_array"
       assert_match %r{t\.decimal\s+"decimal_array_default",\s+default: \["1.23", "3.45"\],\s+array: true}, output
-    end
-
-    def test_schema_dump_expression_indices
-      index_definition = dump_table_schema("companies").split(/\n/).grep(/t\.index.*company_expression_index/).first.strip
-      assert_match %r{CASE.+lower\(\(name\)::text\)}i, index_definition
     end
 
     def test_schema_dump_interval_type

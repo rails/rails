@@ -80,7 +80,7 @@ class AssociationsTest < ActiveRecord::TestCase
   def test_force_reload
     firm = Firm.new("name" => "A New Firm, Inc")
     firm.save
-    firm.clients.each {} # forcing to load all clients
+    firm.clients.each { } # forcing to load all clients
     assert firm.clients.empty?, "New firm shouldn't have client objects"
     assert_equal 0, firm.clients.size, "New firm should have 0 clients"
 

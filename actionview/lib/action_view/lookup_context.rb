@@ -202,13 +202,13 @@ module ActionView
       # name instead of the prefix.
       def normalize_name(name, prefixes)
         prefixes = prefixes.presence
-        parts    = name.to_s.split("/".freeze)
+        parts    = name.to_s.split("/")
         parts.shift if parts.first.empty?
         name = parts.pop
 
         return name, prefixes || [""] if parts.empty?
 
-        parts    = parts.join("/".freeze)
+        parts    = parts.join("/")
         prefixes = prefixes ? prefixes.map { |p| "#{p}/#{parts}" } : [parts]
 
         return name, prefixes
@@ -245,7 +245,7 @@ module ActionView
     # add :html as fallback to :js.
     def formats=(values)
       if values
-        values.concat(default_formats) if values.delete "*/*".freeze
+        values.concat(default_formats) if values.delete "*/*"
         if values == [:js]
           values << :html
           @html_fallback_for_js = true

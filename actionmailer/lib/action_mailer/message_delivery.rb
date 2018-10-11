@@ -29,7 +29,7 @@ module ActionMailer
       @mail_message ||= processed_mailer.message
     end
 
-    # Unused except for delegator internals (dup, marshaling).
+    # Unused except for delegator internals (dup, marshalling).
     def __setobj__(mail_message) #:nodoc:
       @mail_message = mail_message
     end

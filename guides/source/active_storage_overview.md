@@ -58,6 +58,8 @@ amazon:
   service: S3
   access_key_id: ""
   secret_access_key: ""
+  bucket: ""
+  region: "" # e.g. 'us-east-1'
 ```
 
 Tell Active Storage which service to use by setting
@@ -78,6 +80,14 @@ To use the Amazon S3 service in production, you add the following to
 ```ruby
 # Store files on Amazon S3.
 config.active_storage.service = :amazon
+```
+
+To use the test service when testing, you add the following to
+`config/environments/test.rb`:
+
+```ruby
+# Store uploaded files on the local file system in a temporary directory.
+config.active_storage.service = :test
 ```
 
 Continue reading for more information on the built-in service adapters (e.g.
@@ -174,7 +184,7 @@ google:
 Add the [`google-cloud-storage`](https://github.com/GoogleCloudPlatform/google-cloud-ruby/tree/master/google-cloud-storage) gem to your `Gemfile`:
 
 ```ruby
-gem "google-cloud-storage", "~> 1.8", require: false
+gem "google-cloud-storage", "~> 1.11", require: false
 ```
 
 ### Mirror Service

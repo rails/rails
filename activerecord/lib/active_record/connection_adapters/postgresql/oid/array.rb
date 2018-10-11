@@ -33,7 +33,13 @@ module ActiveRecord
 
           def cast(value)
             if value.is_a?(::String)
-              value = @pg_decoder.decode(value)
+              value = begin
+                @pg_decoder.decode(value)
+              rescue TypeError
+                # malformed array string is treated as [], will raise in PG 2.0 gem
+                # this keeps a consistent implementation
+                []
+              end
             end
             type_cast_array(value, :cast)
           end

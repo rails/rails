@@ -208,27 +208,35 @@ module ActionView
       #
       # The digest will be generated using +virtual_path:+ if it is provided.
       #
-      def cache_fragment_name(name = {}, skip_digest: nil, virtual_path: nil)
+      def cache_fragment_name(name = {}, skip_digest: nil, virtual_path: nil, digest_path: nil)
         if skip_digest
           name
         else
-          fragment_name_with_digest(name, virtual_path)
+          fragment_name_with_digest(name, virtual_path, digest_path)
+        end
+      end
+
+      def digest_path_from_virtual(virtual_path) # :nodoc:
+        digest = Digestor.digest(name: virtual_path, finder: lookup_context, dependencies: view_cache_dependencies)
+
+        if digest.present?
+          "#{virtual_path}:#{digest}"
+        else
+          virtual_path
         end
       end
 
     private
 
-      def fragment_name_with_digest(name, virtual_path)
+      def fragment_name_with_digest(name, virtual_path, digest_path)
         virtual_path ||= @virtual_path
 
-        if virtual_path
+        if virtual_path || digest_path
           name = controller.url_for(name).split("://").last if name.is_a?(Hash)
 
-          if digest = Digestor.digest(name: virtual_path, finder: lookup_context, dependencies: view_cache_dependencies).presence
-            [ "#{virtual_path}:#{digest}", name ]
-          else
-            [ virtual_path, name ]
-          end
+          digest_path ||= digest_path_from_virtual(virtual_path)
+
+          [ digest_path, name ]
         else
           name
         end

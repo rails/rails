@@ -29,6 +29,8 @@ module ActiveRecord
         end
 
         def exec_query(sql, name = "SQL", binds = [], prepare: false)
+          materialize_transactions
+
           if without_prepared_statement?(binds)
             execute_and_free(sql, name) do |result|
               ActiveRecord::Result.new(result.fields, result.to_a) if result
@@ -41,6 +43,8 @@ module ActiveRecord
         end
 
         def exec_delete(sql, name = nil, binds = [])
+          materialize_transactions
+
           if without_prepared_statement?(binds)
             execute_and_free(sql, name) { @connection.affected_rows }
           else

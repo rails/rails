@@ -262,6 +262,16 @@ class NumericalityValidationTest < ActiveModel::TestCase
     Person.clear_validators!
   end
 
+  def test_validates_numericality_using_value_before_type_cast_if_possible
+    Topic.validates_numericality_of :price
+
+    topic = Topic.new(price: 50)
+
+    assert_equal "$50.00", topic.price
+    assert_equal 50, topic.price_before_type_cast
+    assert_predicate topic, :valid?
+  end
+
   def test_validates_numericality_with_exponent_number
     base = 10_000_000_000_000_000
     Topic.validates_numericality_of :approved, less_than_or_equal_to: base

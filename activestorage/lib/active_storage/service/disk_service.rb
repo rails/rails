@@ -22,27 +22,31 @@ module ActiveStorage
       end
     end
 
-    def download(key)
+    def download(key, &block)
       if block_given?
         instrument :streaming_download, key: key do
-          File.open(path_for(key), "rb") do |file|
-            while data = file.read(5.megabytes)
-              yield data
-            end
-          end
+          stream key, &block
         end
       else
         instrument :download, key: key do
-          File.binread path_for(key)
+          begin
+            File.binread path_for(key)
+          rescue Errno::ENOENT
+            raise ActiveStorage::FileNotFoundError
+          end
         end
       end
     end
 
     def download_chunk(key, range)
       instrument :download_chunk, key: key, range: range do
-        File.open(path_for(key), "rb") do |file|
-          file.seek range.begin
-          file.read range.size
+        begin
+          File.open(path_for(key), "rb") do |file|
+            file.seek range.begin
+            file.read range.size
+          end
+        rescue Errno::ENOENT
+          raise ActiveStorage::FileNotFoundError
         end
       end
     end
@@ -122,6 +126,16 @@ module ActiveStorage
     end
 
     private
+      def stream(key)
+        File.open(path_for(key), "rb") do |file|
+          while data = file.read(5.megabytes)
+            yield data
+          end
+        end
+      rescue Errno::ENOENT
+        raise ActiveStorage::FileNotFoundError
+      end
+
       def folder_for(key)
         [ key[0..1], key[2..3] ].join("/")
       end

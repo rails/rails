@@ -25,7 +25,7 @@ module ActiveRecord
           ActiveRecord::Base.connection.drop_table "schema_migrations", if_exists: true
 
           assert_raises ActiveRecord::PendingMigrationError do
-            CheckPending.new(Proc.new {}).call({})
+            CheckPending.new(Proc.new { }).call({})
           end
         end
 
@@ -34,7 +34,7 @@ module ActiveRecord
           migrator = Base.connection.migration_context
           capture(:stdout) { migrator.migrate }
 
-          assert_nil CheckPending.new(Proc.new {}).call({})
+          assert_nil CheckPending.new(Proc.new { }).call({})
         end
       end
     end

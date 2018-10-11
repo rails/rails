@@ -19,7 +19,18 @@
     return elem;
   }
 
-  document.addEventListener("DOMContentLoaded", function() {
+  // For old browsers
+  this.each = function(node, callback) {
+    var array = Array.prototype.slice.call(node);
+    for(var i = 0; i < array.length; i++) callback(array[i]);
+  }
+
+  // Viewable on local
+  if (window.location.protocol === "file:") Turbolinks.supported = false;
+
+  document.addEventListener("turbolinks:load", function() {
+    window.SyntaxHighlighter.highlight({ "auto-links": false });
+
     var guidesMenu = document.getElementById("guidesMenu");
     var guides     = document.getElementById("guides");
 
@@ -28,12 +39,22 @@
       guides.classList.toggle("visible");
     });
 
+    each(document.querySelectorAll("#guides a"), function(element) {
+      element.addEventListener("click", function(e) {
+        guides.classList.toggle("visible");
+      });
+    });
+
     var guidesIndexItem   = document.querySelector("select.guides-index-item");
     var currentGuidePath  = window.location.pathname;
     guidesIndexItem.value = currentGuidePath.substring(currentGuidePath.lastIndexOf("/") + 1);
 
     guidesIndexItem.addEventListener("change", function(e) {
-      window.location = e.target.value;
+      if (Turbolinks.supported) {
+        Turbolinks.visit(e.target.value);
+      } else {
+        window.location = e.target.value;
+      }
     });
 
     var moreInfoButton = document.querySelector(".more-info-button");

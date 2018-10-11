@@ -4,8 +4,8 @@ module ActionDispatch
   module Http
     module Cache
       module Request
-        HTTP_IF_MODIFIED_SINCE = "HTTP_IF_MODIFIED_SINCE".freeze
-        HTTP_IF_NONE_MATCH     = "HTTP_IF_NONE_MATCH".freeze
+        HTTP_IF_MODIFIED_SINCE = "HTTP_IF_MODIFIED_SINCE"
+        HTTP_IF_NONE_MATCH     = "HTTP_IF_NONE_MATCH"
 
         def if_modified_since
           if since = get_header(HTTP_IF_MODIFIED_SINCE)
@@ -124,8 +124,8 @@ module ActionDispatch
 
       private
 
-        DATE          = "Date".freeze
-        LAST_MODIFIED = "Last-Modified".freeze
+        DATE          = "Date"
+        LAST_MODIFIED = "Last-Modified"
         SPECIAL_KEYS  = Set.new(%w[extras no-cache max-age public private must-revalidate])
 
         def generate_weak_etag(validators)
@@ -166,11 +166,11 @@ module ActionDispatch
           @cache_control = cache_control_headers
         end
 
-        DEFAULT_CACHE_CONTROL = "max-age=0, private, must-revalidate".freeze
-        NO_CACHE              = "no-cache".freeze
-        PUBLIC                = "public".freeze
-        PRIVATE               = "private".freeze
-        MUST_REVALIDATE       = "must-revalidate".freeze
+        DEFAULT_CACHE_CONTROL = "max-age=0, private, must-revalidate"
+        NO_CACHE              = "no-cache"
+        PUBLIC                = "public"
+        PRIVATE               = "private"
+        MUST_REVALIDATE       = "must-revalidate"
 
         def handle_conditional_get!
           # Normally default cache control setting is handled by ETag

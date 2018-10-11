@@ -3,7 +3,7 @@
 module Arel # :nodoc: all
   module Nodes
     class BindParam < Node
-      attr_accessor :value
+      attr_reader :value
 
       def initialize(value)
         @value = value

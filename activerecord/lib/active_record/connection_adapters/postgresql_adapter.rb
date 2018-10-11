@@ -4,6 +4,14 @@
 gem "pg", ">= 0.18", "< 2.0"
 require "pg"
 
+# Use async_exec instead of exec_params on pg versions before 1.1
+class ::PG::Connection
+  unless self.public_method_defined?(:async_exec_params)
+    remove_method :exec_params
+    alias exec_params async_exec
+  end
+end
+
 require "active_record/connection_adapters/abstract_adapter"
 require "active_record/connection_adapters/statement_pool"
 require "active_record/connection_adapters/postgresql/column"
@@ -70,7 +78,7 @@ module ActiveRecord
     # In addition, default connection parameters of libpq can be set per environment variables.
     # See https://www.postgresql.org/docs/current/static/libpq-envars.html .
     class PostgreSQLAdapter < AbstractAdapter
-      ADAPTER_NAME = "PostgreSQL".freeze
+      ADAPTER_NAME = "PostgreSQL"
 
       NATIVE_DATABASE_TYPES = {
         primary_key: "bigserial primary key",
@@ -326,6 +334,10 @@ module ActiveRecord
         postgresql_version >= 90400
       end
 
+      def supports_lazy_transactions?
+        true
+      end
+
       def get_advisory_lock(lock_id) # :nodoc:
         unless lock_id.is_a?(Integer) && lock_id.bit_length <= 63
           raise(ArgumentError, "PostgreSQL requires advisory lock ids to be a signed 64 bit integer")
@@ -436,7 +448,7 @@ module ActiveRecord
           end
         end
 
-        def get_oid_type(oid, fmod, column_name, sql_type = "".freeze)
+        def get_oid_type(oid, fmod, column_name, sql_type = "")
           if !type_map.key?(oid)
             load_additional_types([oid])
           end
@@ -525,13 +537,13 @@ module ActiveRecord
             # Quoted types
           when /\A[\(B]?'(.*)'.*::"?([\w. ]+)"?(?:\[\])?\z/m
             # The default 'now'::date is CURRENT_DATE
-            if $1 == "now".freeze && $2 == "date".freeze
+            if $1 == "now" && $2 == "date"
               nil
             else
-              $1.gsub("''".freeze, "'".freeze)
+              $1.gsub("''", "'")
             end
             # Boolean types
-          when "true".freeze, "false".freeze
+          when "true", "false"
             default
             # Numeric types
           when /\A\(?(-?\d+(\.\d*)?)\)?(::bigint)?\z/
@@ -597,15 +609,19 @@ module ActiveRecord
         end
 
         def exec_no_cache(sql, name, binds)
+          materialize_transactions
+
           type_casted_binds = type_casted_binds(binds)
           log(sql, name, binds, type_casted_binds) do
             ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
-              @connection.async_exec(sql, type_casted_binds)
+              @connection.exec_params(sql, type_casted_binds)
             end
           end
         end
 
         def exec_cache(sql, name, binds)
+          materialize_transactions
+
           stmt_key = prepare_statement(sql)
           type_casted_binds = type_casted_binds(binds)
 
@@ -639,7 +655,7 @@ module ActiveRecord
         #
         # Check here for more details:
         # https://git.postgresql.org/gitweb/?p=postgresql.git;a=blob;f=src/backend/utils/cache/plancache.c#l573
-        CACHED_PLAN_HEURISTIC = "cached plan must not change result type".freeze
+        CACHED_PLAN_HEURISTIC = "cached plan must not change result type"
         def is_cached_plan_failure?(e)
           pgerror = e.cause
           code = pgerror.result.result_error_field(PG::PG_DIAG_SQLSTATE)

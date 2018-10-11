@@ -590,6 +590,9 @@ module ActionView
       #   Skipped if a <tt>:url</tt> is passed.
       # * <tt>:scope</tt> - The scope to prefix input field names with and
       #   thereby how the submitted parameters are grouped in controllers.
+      # * <tt>:namespace</tt> - A namespace for your form to ensure uniqueness of
+      #   id attributes on form elements. The namespace attribute will be prefixed
+      #   with underscore on the generated HTML id.
       # * <tt>:model</tt> - A model object to infer the <tt>:url</tt> and
       #   <tt>:scope</tt> by, plus fill out input field values.
       #   So if a +title+ attribute is set to "Ahoy!" then a +title+ input

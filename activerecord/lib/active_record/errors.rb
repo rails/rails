@@ -111,7 +111,8 @@ module ActiveRecord
   class RecordNotUnique < WrappedDatabaseException
   end
 
-  # Raised when a record cannot be inserted or updated because it references a non-existent record.
+  # Raised when a record cannot be inserted or updated because it references a non-existent record,
+  # or when a record cannot be deleted because a parent record references it.
   class InvalidForeignKey < WrappedDatabaseException
   end
 

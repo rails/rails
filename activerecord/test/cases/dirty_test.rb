@@ -336,7 +336,7 @@ class DirtyTest < ActiveRecord::TestCase
     end
 
     with_partial_writes Pirate, true do
-      assert_queries(0) { 2.times { pirate.save! } }
+      assert_no_queries { 2.times { pirate.save! } }
       assert_equal old_updated_on, pirate.reload.updated_on
 
       assert_queries(1) { pirate.catchphrase = "bar"; pirate.save! }
@@ -355,7 +355,7 @@ class DirtyTest < ActiveRecord::TestCase
     old_lock_version = person.lock_version
 
     with_partial_writes Person, true do
-      assert_queries(0) { 2.times { person.save! } }
+      assert_no_queries { 2.times { person.save! } }
       assert_equal old_lock_version, person.reload.lock_version
 
       assert_queries(1) { person.first_name = "bar"; person.save! }
@@ -567,8 +567,6 @@ class DirtyTest < ActiveRecord::TestCase
     assert_not_nil pirate.previous_changes["updated_on"][1]
     assert_not pirate.previous_changes.key?("parrot_id")
     assert_not pirate.previous_changes.key?("created_on")
-  ensure
-    travel_back
   end
 
   class Testings < ActiveRecord::Base; end
@@ -879,6 +877,26 @@ class DirtyTest < ActiveRecord::TestCase
         raise "changed? should be false" if changed?
         raise "has_changes_to_save? should be false" if has_changes_to_save?
         raise "saved_changes? should be true" unless saved_changes?
+        raise "id_in_database should not be nil" if id_in_database.nil?
+      end
+    end
+
+    person = klass.create!(first_name: "Sean")
+    assert_not_predicate person, :changed?
+  end
+
+  test "changed? in around callbacks after yield returns false" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "people"
+
+      around_create :check_around
+
+      def check_around
+        yield
+        raise "changed? should be false" if changed?
+        raise "has_changes_to_save? should be false" if has_changes_to_save?
+        raise "saved_changes? should be true" unless saved_changes?
+        raise "id_in_database should not be nil" if id_in_database.nil?
       end
     end
 

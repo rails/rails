@@ -221,7 +221,7 @@ module Arel
         sql.must_be_like "foo AS bar"
       end
 
-      it "should visit_Bignum" do
+      it "should visit_Integer" do
         compile 8787878092
       end
 
@@ -427,7 +427,7 @@ module Arel
           compile(node).must_equal %(("products"."price" - 7))
         end
 
-        it "should handle Concatination" do
+        it "should handle Concatenation" do
           table = Table.new(:users)
           node = table[:name].concat(table[:name])
           compile(node).must_equal %("users"."name" || "users"."name")

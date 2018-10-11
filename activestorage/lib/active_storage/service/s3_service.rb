@@ -33,14 +33,22 @@ module ActiveStorage
         end
       else
         instrument :download, key: key do
-          object_for(key).get.body.string.force_encoding(Encoding::BINARY)
+          begin
+            object_for(key).get.body.string.force_encoding(Encoding::BINARY)
+          rescue Aws::S3::Errors::NoSuchKey
+            raise ActiveStorage::FileNotFoundError
+          end
         end
       end
     end
 
     def download_chunk(key, range)
       instrument :download_chunk, key: key, range: range do
-        object_for(key).get(range: "bytes=#{range.begin}-#{range.exclude_end? ? range.end - 1 : range.end}").body.read.force_encoding(Encoding::BINARY)
+        begin
+          object_for(key).get(range: "bytes=#{range.begin}-#{range.exclude_end? ? range.end - 1 : range.end}").body.read.force_encoding(Encoding::BINARY)
+        rescue Aws::S3::Errors::NoSuchKey
+          raise ActiveStorage::FileNotFoundError
+        end
       end
     end
 
@@ -102,6 +110,8 @@ module ActiveStorage
 
         chunk_size = 5.megabytes
         offset = 0
+
+        raise ActiveStorage::FileNotFoundError unless object.exists?
 
         while offset < object.content_length
           yield object.get(range: "bytes=#{offset}-#{offset + chunk_size - 1}").body.read.force_encoding(Encoding::BINARY)

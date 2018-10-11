@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/array/extract"
+
 module ActiveRecord
   class PredicateBuilder
     class ArrayHandler # :nodoc:
@@ -11,18 +13,19 @@ module ActiveRecord
         return attribute.in([]) if value.empty?
 
         values = value.map { |x| x.is_a?(Base) ? x.id : x }
-        nils, values = values.partition(&:nil?)
-        ranges, values = values.partition { |v| v.is_a?(Range) }
+        nils = values.extract!(&:nil?)
+        ranges = values.extract! { |v| v.is_a?(Range) }
 
         values_predicate =
           case values.length
           when 0 then NullPredicate
           when 1 then predicate_builder.build(attribute, values.first)
           else
-            bind_values = values.map do |v|
-              predicate_builder.build_bind_attribute(attribute.name, v)
-            end
-            attribute.in(bind_values)
+            values.map! do |v|
+              bind = predicate_builder.build_bind_attribute(attribute.name, v)
+              bind if bind.value.boundable?
+            end.compact!
+            values.empty? ? NullPredicate : attribute.in(values)
           end
 
         unless nils.empty?

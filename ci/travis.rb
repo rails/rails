@@ -9,10 +9,10 @@ commands = [
   'mysql -e "grant all privileges on activerecord_unittest.* to rails@localhost;"',
   'mysql -e "grant all privileges on activerecord_unittest2.* to rails@localhost;"',
   'mysql -e "grant all privileges on inexistent_activerecord_unittest.* to rails@localhost;"',
-  'mysql -e "create database activerecord_unittest;"',
-  'mysql -e "create database activerecord_unittest2;"',
-  'psql  -c "create database activerecord_unittest;" -U postgres',
-  'psql  -c "create database activerecord_unittest2;" -U postgres'
+  'mysql -e "create database activerecord_unittest default character set utf8mb4;"',
+  'mysql -e "create database activerecord_unittest2 default character set utf8mb4;"',
+  'psql  -c "create database -E UTF8 -T template0 activerecord_unittest;" -U postgres',
+  'psql  -c "create database -E UTF8 -T template0 activerecord_unittest2;" -U postgres'
 ]
 
 commands.each do |command|

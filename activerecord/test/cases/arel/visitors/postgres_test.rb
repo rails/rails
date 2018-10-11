@@ -215,7 +215,7 @@ module Arel
           }
         end
 
-        it "should know how to generate paranthesis when supplied with many Dimensions" do
+        it "should know how to generate parenthesis when supplied with many Dimensions" do
           dim1 = Arel::Nodes::GroupingElement.new(@table[:name])
           dim2 = Arel::Nodes::GroupingElement.new([@table[:bool], @table[:created_at]])
           node = Arel::Nodes::Cube.new([dim1, dim2])
@@ -241,7 +241,7 @@ module Arel
           }
         end
 
-        it "should know how to generate paranthesis when supplied with many Dimensions" do
+        it "should know how to generate parenthesis when supplied with many Dimensions" do
           group1 = Arel::Nodes::GroupingElement.new(@table[:name])
           group2 = Arel::Nodes::GroupingElement.new([@table[:bool], @table[:created_at]])
           node = Arel::Nodes::GroupingSet.new([group1, group2])
@@ -267,7 +267,7 @@ module Arel
           }
         end
 
-        it "should know how to generate paranthesis when supplied with many Dimensions" do
+        it "should know how to generate parenthesis when supplied with many Dimensions" do
           group1 = Arel::Nodes::GroupingElement.new(@table[:name])
           group2 = Arel::Nodes::GroupingElement.new([@table[:bool], @table[:created_at]])
           node = Arel::Nodes::RollUp.new([group1, group2])

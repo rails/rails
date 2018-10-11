@@ -152,10 +152,14 @@ if current_adapter?(:Mysql2Adapter)
       end
 
       def test_establishes_connection_to_mysql_database
-        with_stubbed_connection_establish_connection do
-          ActiveRecord::Base.expects(:establish_connection).with @configuration
-
-          ActiveRecord::Tasks::DatabaseTasks.drop @configuration
+        ActiveRecord::Base.stub(:connection, @connection) do
+          assert_called_with(
+            ActiveRecord::Base,
+            :establish_connection,
+            [@configuration]
+          ) do
+            ActiveRecord::Tasks::DatabaseTasks.drop @configuration
+          end
         end
       end
 
@@ -196,10 +200,14 @@ if current_adapter?(:Mysql2Adapter)
       end
 
       def test_establishes_connection_to_the_appropriate_database
-        with_stubbed_connection_establish_connection do
-          ActiveRecord::Base.expects(:establish_connection).with(@configuration)
-
-          ActiveRecord::Tasks::DatabaseTasks.purge @configuration
+        ActiveRecord::Base.stub(:connection, @connection) do
+          assert_called_with(
+            ActiveRecord::Base,
+            :establish_connection,
+            [@configuration]
+          ) do
+            ActiveRecord::Tasks::DatabaseTasks.purge @configuration
+          end
         end
       end
 

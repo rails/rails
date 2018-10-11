@@ -12,6 +12,60 @@
 
     *Peter Hofmann*
 
+*   Deprecate `ActionDispatch::Http::ParameterFilter` in favor of `ActiveSupport::ParameterFilter`.
+
+    *Yoshiyuki Kinjo*
+
+*   Remove undocumented `params` option from `url_for` helper.
+
+    *Ilkka Oksanen*
+
+*   Encode Content-Disposition filenames on `send_data` and `send_file`.
+    Previously, `send_data 'data', filename: "\u{3042}.txt"` sends
+    `"filename=\"\u{3042}.txt\""` as Content-Disposition and it can be
+    garbled.
+    Now it follows [RFC 2231](https://tools.ietf.org/html/rfc2231) and
+    [RFC 5987](https://tools.ietf.org/html/rfc5987) and sends
+    `"filename=\"%3F.txt\"; filename*=UTF-8''%E3%81%82.txt"`.
+    Most browsers can find filename correctly and old browsers fallback to ASCII
+    converted name.
+
+    *Fumiaki Matsushima*
+
+*   Expose `ActionController::Parameters#each_key` which allows iterating over
+    keys without allocating an array.
+
+    *Richard Schneeman*
+
+*   Purpose metadata for signed/encrypted cookies.
+
+    Rails can now thwart attacks that attempt to copy signed/encrypted value
+    of a cookie and use it as the value of another cookie.
+
+    It does so by stashing the cookie-name in the purpose field which is
+    then signed/encrypted along with the cookie value. Then, on a server-side
+    read, we verify the cookie-names and discard any attacked cookies.
+
+    Enable `action_dispatch.use_cookies_with_metadata` to use this feature, which
+    writes cookies with the new purpose and expiry metadata embedded.
+
+    *Assain Jaleel*
+
+*   Raises `ActionController::RespondToMismatchError` with confliciting `respond_to` invocations.
+
+    `respond_to` can match multiple types and lead to undefined behavior when
+    multiple invocations are made and the types do not match:
+
+        respond_to do |outer_type|
+          outer_type.js do
+            respond_to do |inner_type|
+              inner_type.html { render body: "HTML" }
+            end
+          end
+        end
+
+    *Patrick Toomey*
+
 *   `ActionDispatch::Http::UploadedFile` now delegates `to_path` to its tempfile.
 
     This allows uploaded file objects to be passed directly to `File.read`
@@ -22,7 +76,7 @@
 
     *Aaron Kromer*
 
-*   Pass along arguments to underlying `get` method in `follow_redirect!`
+*   Pass along arguments to underlying `get` method in `follow_redirect!`.
 
     Now all arguments passed to `follow_redirect!` are passed to the underlying
     `get` method. This for example allows to set custom headers for the
@@ -39,7 +93,7 @@
 
     *Vinicius Stock*
 
-*   Introduce ActionDispatch::DebugExceptions.register_interceptor
+*   Introduce `ActionDispatch::DebugExceptions.register_interceptor`.
 
     Exception aware plugin authors can use the newly introduced
     `.register_interceptor` method to get the processed exception, instead of

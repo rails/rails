@@ -116,7 +116,7 @@ module ActiveModel
           key = "#{key.to_s.camelize}Validator"
 
           begin
-            validator = key.include?("::".freeze) ? key.constantize : const_get(key)
+            validator = key.include?("::") ? key.constantize : const_get(key)
           rescue NameError
             raise ArgumentError, "Unknown validator: '#{key}'"
           end

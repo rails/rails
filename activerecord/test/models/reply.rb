@@ -9,6 +9,10 @@ class Reply < Topic
   has_many :silly_unique_replies, dependent: :destroy, foreign_key: "parent_id"
 end
 
+class SillyReply < Topic
+  belongs_to :reply, foreign_key: "parent_id", counter_cache: :replies_count
+end
+
 class UniqueReply < Reply
   belongs_to :topic, foreign_key: "parent_id", counter_cache: true
   validates_uniqueness_of :content, scope: "parent_id"
@@ -52,10 +56,6 @@ class WrongReply < Reply
   def check_author_name_is_secret
     errors[:author_name] << "Invalid" unless author_name == "secret"
   end
-end
-
-class SillyReply < Reply
-  belongs_to :reply, foreign_key: "parent_id", counter_cache: :replies_count
 end
 
 module Web

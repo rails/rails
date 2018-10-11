@@ -137,4 +137,16 @@ class QueuingTest < ActiveSupport::TestCase
     assert job_executed "#{@id}.2"
     assert job_executed_at("#{@id}.2") < job_executed_at("#{@id}.1")
   end
+
+  test "should run job with higher priority first in Backburner" do
+    skip unless adapter_is?(:backburner)
+
+    jobs_manager.tube.pause(3)
+    TestJob.set(priority: 20).perform_later "#{@id}.1"
+    TestJob.set(priority: 10).perform_later "#{@id}.2"
+    wait_for_jobs_to_finish_for(10.seconds)
+    assert job_executed "#{@id}.1"
+    assert job_executed "#{@id}.2"
+    assert job_executed_at("#{@id}.2") < job_executed_at("#{@id}.1")
+  end
 end

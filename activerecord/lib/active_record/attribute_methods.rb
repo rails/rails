@@ -31,7 +31,7 @@ module ActiveRecord
       end
     }
 
-    BLACKLISTED_CLASS_METHODS = %w(private public protected allocate new name parent superclass)
+    RESTRICTED_CLASS_METHODS = %w(private public protected allocate new name parent superclass)
 
     class GeneratedAttributeMethods < Module #:nodoc:
       include Mutex_m
@@ -123,7 +123,7 @@ module ActiveRecord
       # A class method is 'dangerous' if it is already (re)defined by Active Record, but
       # not by any ancestors. (So 'puts' is not dangerous but 'new' is.)
       def dangerous_class_method?(method_name)
-        BLACKLISTED_CLASS_METHODS.include?(method_name.to_s) || class_method_defined_within?(method_name, Base)
+        RESTRICTED_CLASS_METHODS.include?(method_name.to_s) || class_method_defined_within?(method_name, Base)
       end
 
       def class_method_defined_within?(name, klass, superklass = klass.superclass) # :nodoc:
@@ -167,12 +167,14 @@ module ActiveRecord
         end
       end
 
-      # Regexp whitelist. Matches the following:
+      # Regexp for column names (with or without a table name prefix). Matches
+      # the following:
       #   "#{table_name}.#{column_name}"
       #   "#{column_name}"
-      COLUMN_NAME_WHITELIST = /\A(?:\w+\.)?\w+\z/i
+      COLUMN_NAME = /\A(?:\w+\.)?\w+\z/i
 
-      # Regexp whitelist. Matches the following:
+      # Regexp for column names with order (with or without a table name
+      # prefix, with or without various order modifiers). Matches the following:
       #   "#{table_name}.#{column_name}"
       #   "#{table_name}.#{column_name} #{direction}"
       #   "#{table_name}.#{column_name} #{direction} NULLS FIRST"
@@ -181,7 +183,7 @@ module ActiveRecord
       #   "#{column_name} #{direction}"
       #   "#{column_name} #{direction} NULLS FIRST"
       #   "#{column_name} NULLS LAST"
-      COLUMN_NAME_ORDER_WHITELIST = /
+      COLUMN_NAME_WITH_ORDER = /
         \A
         (?:\w+\.)?
         \w+
@@ -190,12 +192,10 @@ module ActiveRecord
         \z
       /ix
 
-      def enforce_raw_sql_whitelist(args, whitelist: COLUMN_NAME_WHITELIST) # :nodoc:
+      def disallow_raw_sql!(args, permit: COLUMN_NAME) # :nodoc:
         unexpected = args.reject do |arg|
-          arg.kind_of?(Arel::Node) ||
-            arg.is_a?(Arel::Nodes::SqlLiteral) ||
-            arg.is_a?(Arel::Attributes::Attribute) ||
-            arg.to_s.split(/\s*,\s*/).all? { |part| whitelist.match?(part) }
+          Arel.arel_node?(arg) ||
+            arg.to_s.split(/\s*,\s*/).all? { |part| permit.match?(part) }
         end
 
         return if unexpected.none?
@@ -272,9 +272,9 @@ module ActiveRecord
 
       case name
       when :to_partial_path
-        name = "to_partial_path".freeze
+        name = "to_partial_path"
       when :to_model
-        name = "to_model".freeze
+        name = "to_model"
       else
         name = name.to_s
       end
@@ -449,14 +449,6 @@ module ActiveRecord
         defined?(@attributes) && @attributes.key?(attr_name)
       end
 
-      def attributes_with_values_for_create(attribute_names)
-        attributes_with_values(attributes_for_create(attribute_names))
-      end
-
-      def attributes_with_values_for_update(attribute_names)
-        attributes_with_values(attributes_for_update(attribute_names))
-      end
-
       def attributes_with_values(attribute_names)
         attribute_names.each_with_object({}) do |name, attrs|
           attrs[name] = _read_attribute(name)
@@ -465,7 +457,8 @@ module ActiveRecord
 
       # Filters the primary keys and readonly attributes from the attribute names.
       def attributes_for_update(attribute_names)
-        attribute_names.reject do |name|
+        attribute_names &= self.class.column_names
+        attribute_names.delete_if do |name|
           readonly_attribute?(name)
         end
       end
@@ -473,7 +466,8 @@ module ActiveRecord
       # Filters out the primary keys, from the attribute names, when the primary
       # key is to be generated (e.g. the id attribute has no value).
       def attributes_for_create(attribute_names)
-        attribute_names.reject do |name|
+        attribute_names &= self.class.column_names
+        attribute_names.delete_if do |name|
           pk_attribute?(name) && id.nil?
         end
       end

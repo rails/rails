@@ -21,7 +21,7 @@ module ActiveRecord
   #        ]
   #
   #   # Get an array of hashes representing the result (column => value):
-  #   result.to_hash
+  #   result.to_a
   #   # => [{"id" => 1, "title" => "title_1", "body" => "body_1"},
   #         {"id" => 2, "title" => "title_2", "body" => "body_2"},
   #         ...
@@ -65,9 +65,12 @@ module ActiveRecord
       end
     end
 
-    # Returns an array of hashes representing each row record.
     def to_hash
-      hash_rows
+      ActiveSupport::Deprecation.warn(<<-MSG.squish)
+        `ActiveRecord::Result#to_hash` has been renamed to `to_a`.
+        `to_hash` is deprecated and will be removed in Rails 6.1.
+      MSG
+      to_a
     end
 
     alias :map! :map
@@ -82,6 +85,8 @@ module ActiveRecord
     def to_ary
       hash_rows
     end
+
+    alias :to_a :to_ary
 
     def [](idx)
       hash_rows[idx]
@@ -140,6 +145,8 @@ module ActiveRecord
             # We freeze the strings to prevent them getting duped when
             # used as keys in ActiveRecord::Base's @attributes hash
             columns = @columns.map(&:-@)
+            length  = columns.length
+
             @rows.map { |row|
               # In the past we used Hash[columns.zip(row)]
               #  though elegant, the verbose way is much more efficient
@@ -148,8 +155,6 @@ module ActiveRecord
               hash = {}
 
               index = 0
-              length = columns.length
-
               while index < length
                 hash[columns[index]] = row[index]
                 index += 1

@@ -24,14 +24,4 @@ class ActiveStorage::PurgeJobTest < ActiveJob::TestCase
       end
     end
   end
-
-  test "ignores attached blob" do
-    User.create! name: "DHH", avatar: @blob
-
-    perform_enqueued_jobs do
-      assert_nothing_raised do
-        ActiveStorage::PurgeJob.perform_later @blob
-      end
-    end
-  end
 end

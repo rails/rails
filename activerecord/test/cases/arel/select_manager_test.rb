@@ -131,7 +131,7 @@ module Arel
           right = table.alias
           mgr   = table.from
           mgr.join(right).on("omg")
-          mgr.to_sql.must_be_like %{ SELECT  FROM "users" INNER JOIN "users" "users_2" ON omg }
+          mgr.to_sql.must_be_like %{ SELECT FROM "users" INNER JOIN "users" "users_2" ON omg }
         end
 
         it "converts to sqlliterals with multiple items" do
@@ -139,7 +139,7 @@ module Arel
           right = table.alias
           mgr   = table.from
           mgr.join(right).on("omg", "123")
-          mgr.to_sql.must_be_like %{ SELECT  FROM "users" INNER JOIN "users" "users_2" ON omg AND 123 }
+          mgr.to_sql.must_be_like %{ SELECT FROM "users" INNER JOIN "users" "users_2" ON omg AND 123 }
         end
       end
     end
@@ -278,7 +278,7 @@ module Arel
         @m2.where(table[:age].lt(99))
       end
 
-      it "should interect two managers" do
+      it "should intersect two managers" do
         # FIXME should this intersect "managers" or "statements" ?
         # FIXME this probably shouldn't return a node
         node = @m1.intersect @m2

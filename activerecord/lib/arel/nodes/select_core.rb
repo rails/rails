@@ -3,13 +3,12 @@
 module Arel # :nodoc: all
   module Nodes
     class SelectCore < Arel::Nodes::Node
-      attr_accessor :top, :projections, :wheres, :groups, :windows
+      attr_accessor :projections, :wheres, :groups, :windows
       attr_accessor :havings, :source, :set_quantifier
 
       def initialize
         super()
         @source         = JoinSource.new nil
-        @top            = nil
 
         # https://ronsavage.github.io/SQL/sql-92.bnf.html#set%20quantifier
         @set_quantifier = nil
@@ -43,7 +42,7 @@ module Arel # :nodoc: all
 
       def hash
         [
-          @source, @top, @set_quantifier, @projections,
+          @source, @set_quantifier, @projections,
           @wheres, @groups, @havings, @windows
         ].hash
       end
@@ -51,7 +50,6 @@ module Arel # :nodoc: all
       def eql?(other)
         self.class == other.class &&
           self.source == other.source &&
-          self.top == other.top &&
           self.set_quantifier == other.set_quantifier &&
           self.projections == other.projections &&
           self.wheres == other.wheres &&

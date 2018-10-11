@@ -138,7 +138,7 @@ class ControllerInstanceTests < ActiveSupport::TestCase
 
     response_headers = SimpleController.action("hello").call(
       "REQUEST_METHOD" => "GET",
-      "rack.input" => -> {}
+      "rack.input" => -> { }
     )[1]
 
     assert response_headers.key?("X-Frame-Options")
@@ -193,7 +193,7 @@ class UrlOptionsTest < ActionController::TestCase
       action: "home",
       controller: "pages",
       only_path: true,
-      params: { "token" => "secret" }
+      token: "secret"
     }
 
     assert_equal "/home?token=secret", rs.url_for(options)

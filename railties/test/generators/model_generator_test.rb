@@ -7,6 +7,11 @@ class ModelGeneratorTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
   arguments %w(Account name:string age:integer)
 
+  def setup
+    super
+    Rails::Generators::ModelHelpers.skip_warn = false
+  end
+
   def test_help_shows_invoked_generators_options
     content = run_generator ["--help"]
     assert_match(/ActiveRecord options:/, content)
@@ -37,10 +42,22 @@ class ModelGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_plural_names_are_singularized
-    content = run_generator ["accounts".freeze]
+    content = run_generator ["accounts"]
     assert_file "app/models/account.rb", /class Account < ApplicationRecord/
     assert_file "test/models/account_test.rb", /class AccountTest/
     assert_match(/\[WARNING\] The model name 'accounts' was recognized as a plural, using the singular 'account' instead\. Override with --force-plural or setup custom inflection rules for this noun before running the generator\./, content)
+  end
+
+  def test_unknown_inflection_rule_are_warned
+    content = run_generator ["porsche"]
+    assert_match("[WARNING] Rails cannot recover singular form from its plural form 'porsches'.\nPlease setup custom inflection rules for this noun before running the generator in config/initializers/inflections.rb.", content)
+    assert_file "app/models/porsche.rb", /class Porsche < ApplicationRecord/
+
+    uncountable_content = run_generator ["sheep"]
+    assert_no_match("[WARNING] Rails cannot recover singular form from its plural form", uncountable_content)
+
+    regular_content = run_generator ["account"]
+    assert_no_match("[WARNING] Rails cannot recover singular form from its plural form", regular_content)
   end
 
   def test_model_with_underscored_parent_option
@@ -371,6 +388,17 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     assert_migration "db/migrate/create_accounts.rb" do |content|
       assert_method :change, content do |change|
         assert_match(/create_table :accounts, id: :uuid/, change)
+      end
+    end
+  end
+
+  def test_database_puts_migrations_in_configured_folder
+    with_secondary_database_configuration do
+      run_generator ["account", "--database=secondary"]
+      assert_migration "db/secondary_migrate/create_accounts.rb" do |content|
+        assert_method :change, content do |change|
+          assert_match(/create_table :accounts/, change)
+        end
       end
     end
   end

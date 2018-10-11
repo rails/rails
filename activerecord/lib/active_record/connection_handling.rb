@@ -46,45 +46,104 @@ module ActiveRecord
     #
     # The exceptions AdapterNotSpecified, AdapterNotFound and +ArgumentError+
     # may be returned on an error.
-    def establish_connection(config = nil)
-      raise "Anonymous class is not allowed." unless name
-
-      config ||= DEFAULT_ENV.call.to_sym
-      spec_name = self == Base ? "primary" : name
-      self.connection_specification_name = spec_name
-
-      resolver = ConnectionAdapters::ConnectionSpecification::Resolver.new(Base.configurations)
-      spec = resolver.resolve(config).symbolize_keys
-      spec[:name] = spec_name
-
-      # use the primary config if a config is not passed in and
-      # it's a three tier config
-      spec = spec[spec_name.to_sym] if spec[spec_name.to_sym]
-
-      connection_handler.establish_connection(spec)
+    def establish_connection(config_or_env = nil)
+      config_hash = resolve_config_for_connection(config_or_env)
+      connection_handler.establish_connection(config_hash)
     end
 
-    class MergeAndResolveDefaultUrlConfig # :nodoc:
-      def initialize(raw_configurations)
-        @raw_config = raw_configurations.dup
-        @env = DEFAULT_ENV.call.to_s
+    # Connects a model to the databases specified. The +database+ keyword
+    # takes a hash consisting of a +role+ and a +database_key+.
+    #
+    # This will create a connection handler for switching between connections,
+    # look up the config hash using the +database_key+ and finally
+    # establishes a connection to that config.
+    #
+    #   class AnimalsModel < ApplicationRecord
+    #     self.abstract_class = true
+    #
+    #     connects_to database: { writing: :primary, reading: :primary_replica }
+    #   end
+    #
+    # Returns an array of established connections.
+    def connects_to(database: {})
+      connections = []
+
+      database.each do |role, database_key|
+        config_hash = resolve_config_for_connection(database_key)
+        handler = lookup_connection_handler(role.to_sym)
+
+        connections << handler.establish_connection(config_hash)
       end
 
-      # Returns fully resolved connection hashes.
-      # Merges connection information from `ENV['DATABASE_URL']` if available.
-      def resolve
-        ConnectionAdapters::ConnectionSpecification::Resolver.new(config).resolve_all
-      end
+      connections
+    end
 
-      private
-        def config
-          @raw_config.dup.tap do |cfg|
-            if url = ENV["DATABASE_URL"]
-              cfg[@env] ||= {}
-              cfg[@env]["url"] ||= url
-            end
-          end
+    # Connects to a database or role (ex writing, reading, or another
+    # custom role) for the duration of the block.
+    #
+    # If a role is passed, Active Record will look up the connection
+    # based on the requested role:
+    #
+    #   ActiveRecord::Base.connected_to(role: :writing) do
+    #     Dog.create! # creates dog using dog connection
+    #   end
+    #
+    #   ActiveRecord::Base.connected_to(role: :reading) do
+    #     Dog.create! # throws exception because we're on a replica
+    #   end
+    #
+    #   ActiveRecord::Base.connected_to(role: :unknown_ode) do
+    #     # raises exception due to non-existent role
+    #   end
+    #
+    # For cases where you may want to connect to a database outside of the model,
+    # you can use +connected_to+ with a +database+ argument. The +database+ argument
+    # expects a symbol that corresponds to the database key in your config.
+    #
+    # This will connect to a new database for the queries inside the block.
+    #
+    #   ActiveRecord::Base.connected_to(database: :animals_slow_replica) do
+    #     Dog.run_a_long_query # runs a long query while connected to the +animals_slow_replica+
+    #   end
+    def connected_to(database: nil, role: nil, &blk)
+      if database && role
+        raise ArgumentError, "connected_to can only accept a database or role argument, but not both arguments."
+      elsif database
+        config_hash = resolve_config_for_connection(database)
+        handler = lookup_connection_handler(database.to_sym)
+
+        with_handler(database.to_sym) do
+          handler.establish_connection(config_hash)
+          return yield
         end
+      elsif role
+        with_handler(role.to_sym, &blk)
+      else
+        raise ArgumentError, "must provide a `database` or a `role`."
+      end
+    end
+
+    def lookup_connection_handler(handler_key) # :nodoc:
+      connection_handlers[handler_key] ||= ActiveRecord::ConnectionAdapters::ConnectionHandler.new
+    end
+
+    def with_handler(handler_key, &blk) # :nodoc:
+      handler = lookup_connection_handler(handler_key)
+      swap_connection_handler(handler, &blk)
+    end
+
+    def resolve_config_for_connection(config_or_env) # :nodoc:
+      raise "Anonymous class is not allowed." unless name
+
+      config_or_env ||= DEFAULT_ENV.call.to_sym
+      pool_name = self == Base ? "primary" : name
+      self.connection_specification_name = pool_name
+
+      resolver = ConnectionAdapters::ConnectionSpecification::Resolver.new(Base.configurations)
+      config_hash = resolver.resolve(config_or_env, pool_name).symbolize_keys
+      config_hash[:name] = pool_name
+
+      config_hash
     end
 
     # Returns the connection currently associated with the class. This can
@@ -145,5 +204,14 @@ module ActiveRecord
 
     delegate :clear_active_connections!, :clear_reloadable_connections!,
       :clear_all_connections!, :flush_idle_connections!, to: :connection_handler
+
+    private
+
+      def swap_connection_handler(handler, &blk) # :nodoc:
+        old_handler, ActiveRecord::Base.connection_handler = ActiveRecord::Base.connection_handler, handler
+        yield
+      ensure
+        ActiveRecord::Base.connection_handler = old_handler
+      end
   end
 end

@@ -117,13 +117,13 @@ module ActiveRecord
       end
 
       def test_invert_create_table_with_options_and_block
-        block = Proc.new {}
+        block = Proc.new { }
         drop_table = @recorder.inverse_of :create_table, [:people_reminders, id: false], &block
         assert_equal [:drop_table, [:people_reminders, id: false], block], drop_table
       end
 
       def test_invert_drop_table
-        block = Proc.new {}
+        block = Proc.new { }
         create_table = @recorder.inverse_of :drop_table, [:people_reminders, id: false], &block
         assert_equal [:create_table, [:people_reminders, id: false], block], create_table
       end
@@ -145,7 +145,7 @@ module ActiveRecord
       end
 
       def test_invert_drop_join_table
-        block = Proc.new {}
+        block = Proc.new { }
         create_join_table = @recorder.inverse_of :drop_join_table, [:musics, :artists, table_name: :catalog], &block
         assert_equal [:create_join_table, [:musics, :artists, table_name: :catalog], block], create_join_table
       end
@@ -329,9 +329,22 @@ module ActiveRecord
         assert_equal [:add_foreign_key, [:dogs, :people, primary_key: "person_id"]], enable
       end
 
+      def test_invert_remove_foreign_key_with_primary_key_and_to_table_in_options
+        enable = @recorder.inverse_of :remove_foreign_key, [:dogs, to_table: :people, primary_key: "uuid"]
+        assert_equal [:add_foreign_key, [:dogs, :people, primary_key: "uuid"]], enable
+      end
+
       def test_invert_remove_foreign_key_with_on_delete_on_update
         enable = @recorder.inverse_of :remove_foreign_key, [:dogs, :people, on_delete: :nullify, on_update: :cascade]
         assert_equal [:add_foreign_key, [:dogs, :people, on_delete: :nullify, on_update: :cascade]], enable
+      end
+
+      def test_invert_remove_foreign_key_with_to_table_in_options
+        enable = @recorder.inverse_of :remove_foreign_key, [:dogs, to_table: :people]
+        assert_equal [:add_foreign_key, [:dogs, :people]], enable
+
+        enable = @recorder.inverse_of :remove_foreign_key, [:dogs, to_table: :people, column: :owner_id]
+        assert_equal [:add_foreign_key, [:dogs, :people, column: :owner_id]], enable
       end
 
       def test_invert_remove_foreign_key_is_irreversible_without_to_table
@@ -345,6 +358,16 @@ module ActiveRecord
 
         assert_raises ActiveRecord::IrreversibleMigration do
           @recorder.inverse_of :remove_foreign_key, [:dogs]
+        end
+      end
+
+      def test_invert_transaction_with_irreversible_inside_is_irreversible
+        assert_raises(ActiveRecord::IrreversibleMigration) do
+          @recorder.revert do
+            @recorder.transaction do
+              @recorder.execute "some sql"
+            end
+          end
         end
       end
     end

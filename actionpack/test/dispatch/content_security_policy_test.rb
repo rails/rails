@@ -339,6 +339,11 @@ class ContentSecurityPolicyIntegrationTest < ActionDispatch::IntegrationTest
       p.script_src :self
     end
 
+    content_security_policy only: :style_src do |p|
+      p.default_src false
+      p.style_src :self
+    end
+
     content_security_policy(false, only: :no_policy)
 
     content_security_policy_report_only only: :report_only
@@ -363,6 +368,10 @@ class ContentSecurityPolicyIntegrationTest < ActionDispatch::IntegrationTest
       head :ok
     end
 
+    def style_src
+      head :ok
+    end
+
     def no_policy
       head :ok
     end
@@ -381,6 +390,7 @@ class ContentSecurityPolicyIntegrationTest < ActionDispatch::IntegrationTest
       get "/conditional", to: "policy#conditional"
       get "/report-only", to: "policy#report_only"
       get "/script-src", to: "policy#script_src"
+      get "/style-src", to: "policy#style_src"
       get "/no-policy", to: "policy#no_policy"
     end
   end
@@ -439,6 +449,11 @@ class ContentSecurityPolicyIntegrationTest < ActionDispatch::IntegrationTest
   def test_adds_nonce_to_script_src_content_security_policy
     get "/script-src"
     assert_policy "script-src 'self' 'nonce-iyhD0Yc0W+c='"
+  end
+
+  def test_adds_nonce_to_style_src_content_security_policy
+    get "/style-src"
+    assert_policy "style-src 'self' 'nonce-iyhD0Yc0W+c='"
   end
 
   def test_generates_no_content_security_policy

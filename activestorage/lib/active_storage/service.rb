@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 require "active_storage/log_subscriber"
+require "action_dispatch"
+require "action_dispatch/http/content_disposition"
 
 module ActiveStorage
   # Abstract class serving as an interface for concrete services.
@@ -122,7 +124,8 @@ module ActiveStorage
       end
 
       def content_disposition_with(type: "inline", filename:)
-        (type.to_s.presence_in(%w( attachment inline )) || "inline") + "; #{filename.parameters}"
+        disposition = (type.to_s.presence_in(%w( attachment inline )) || "inline")
+        ActionDispatch::Http::ContentDisposition.format(disposition: disposition, filename: filename.sanitized)
       end
   end
 end

@@ -501,7 +501,7 @@ module ActiveRecord
 
           if attributes["id"].blank?
             unless reject_new_record?(association_name, attributes)
-              association.build(attributes.except(*UNASSIGNABLE_KEYS))
+              association.reader.build(attributes.except(*UNASSIGNABLE_KEYS))
             end
           elsif existing_record = existing_records.detect { |record| record.id.to_s == attributes["id"].to_s }
             unless call_reject_if(association_name, attributes)

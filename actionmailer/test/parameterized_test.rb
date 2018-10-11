@@ -53,4 +53,17 @@ class ParameterizedTest < ActiveSupport::TestCase
       invitation = mailer.method(:anything)
     end
   end
+
+  test "should enqueue a parameterized request with the correct delivery job" do
+    old_delivery_job = ParamsMailer.parameterized_delivery_job
+    ParamsMailer.parameterized_delivery_job = ParameterizedDummyJob
+
+    assert_performed_with(job: ParameterizedDummyJob, args: ["ParamsMailer", "invitation", "deliver_now", { inviter: "david@basecamp.com", invitee: "jason@basecamp.com" } ]) do
+      @mail.deliver_later
+    end
+
+    ParamsMailer.parameterized_delivery_job = old_delivery_job
+  end
+
+  class ParameterizedDummyJob < ActionMailer::Parameterized::DeliveryJob; end
 end

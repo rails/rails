@@ -61,7 +61,7 @@ module ActiveRecord
       end
 
       private
-        def _create_record(attribute_names = self.attribute_names, *)
+        def _create_record(attribute_names = self.attribute_names)
           if locking_enabled?
             # We always want to persist the locking version, even if we don't detect
             # a change from the default, since the database might have no default
@@ -165,7 +165,7 @@ module ActiveRecord
             def inherited(subclass)
               subclass.class_eval do
                 is_lock_column = ->(name, _) { lock_optimistically && name == locking_column }
-                decorate_matching_attribute_types(is_lock_column, :_optimistic_locking) do |type|
+                decorate_matching_attribute_types(is_lock_column, "_optimistic_locking") do |type|
                   LockingType.new(type)
                 end
               end

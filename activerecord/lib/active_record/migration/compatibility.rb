@@ -16,6 +16,21 @@ module ActiveRecord
       V6_0 = Current
 
       class V5_2 < V6_0
+        module CommandRecorder
+          def invert_transaction(args, &block)
+            [:transaction, args, block]
+          end
+        end
+
+        private
+
+          def command_recorder
+            recorder = super
+            class << recorder
+              prepend CommandRecorder
+            end
+            recorder
+          end
       end
 
       class V5_1 < V5_2

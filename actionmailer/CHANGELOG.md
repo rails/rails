@@ -1,3 +1,26 @@
+*   Allow ActionMailer classes to configure the parameterized delivery job
+    Example:
+    ```
+    class MyMailer < ApplicationMailer
+      self.parameterized_delivery_job = MyCustomDeliveryJob
+      ...
+    end
+    ```
+
+    *Luke Pearce*
+
+*   `ActionDispatch::IntegrationTest` includes `ActionMailer::TestHelper` module by default.
+
+    *Ricardo Díaz*
+
+*   Add `perform_deliveries` to a payload of `deliver.action_mailer` notification.
+
+    *Yoshiyuki Kinjo*
+
+*   Change delivery logging message when `perform_deliveries` is false.
+
+    *Yoshiyuki Kinjo*
+
 *   Allow call `assert_enqueued_email_with` with no block.
 
     Example:

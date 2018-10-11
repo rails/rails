@@ -65,8 +65,8 @@ module ActiveSupport
       #
       #   parallelize(workers: 2, with: :threads)
       #
-      # The threaded parallelization uses Minitest's parallel executor directly.
-      # The processes parallelization uses a Ruby Drb server.
+      # The threaded parallelization uses minitest's parallel executor directly.
+      # The processes parallelization uses a Ruby DRb server.
       def parallelize(workers: 2, with: :processes)
         workers = ENV["PARALLEL_WORKERS"].to_i if ENV["PARALLEL_WORKERS"]
 

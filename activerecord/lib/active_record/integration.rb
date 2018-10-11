@@ -60,7 +60,7 @@ module ActiveRecord
     # the cache key will also include a version.
     #
     #   Product.cache_versioning = false
-    #   Person.find(5).cache_key  # => "people/5-20071224150000" (updated_at available)
+    #   Product.find(5).cache_key  # => "products/5-20071224150000" (updated_at available)
     def cache_key(*timestamp_names)
       if new_record?
         "#{model_name.cache_key}/new"

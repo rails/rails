@@ -30,11 +30,19 @@ class RedisAdapterTest::AlternateConfiguration < RedisAdapterTest
 end
 
 class RedisAdapterTest::Connector < ActionCable::TestCase
-  test "slices url, host, port, db, and password from config" do
-    config = { url: 1, host: 2, port: 3, db: 4, password: 5 }
+  test "slices url, host, port, db, password and id from config" do
+    config = { url: 1, host: 2, port: 3, db: 4, password: 5, id: "Some custom ID" }
 
     assert_called_with ::Redis, :new, [ config ] do
       connect config.merge(other: "unrelated", stuff: "here")
+    end
+  end
+
+  test "adds default id if it is not specified" do
+    config = { url: 1, host: 2, port: 3, db: 4, password: 5, id: "ActionCable-PID-#{$$}" }
+
+    assert_called_with ::Redis, :new, [ config ] do
+      connect config.except(:id)
     end
   end
 

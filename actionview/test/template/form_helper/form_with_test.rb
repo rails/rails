@@ -37,7 +37,7 @@ class FormWithActsLikeFormTagTest < FormWithTest
     method = options[:method]
     skip_enforcing_utf8 = options.fetch(:skip_enforcing_utf8, false)
 
-    "".dup.tap do |txt|
+    (+"").tap do |txt|
       unless skip_enforcing_utf8
         txt << %{<input name="utf8" type="hidden" value="&#x2713;" />}
       end
@@ -53,7 +53,7 @@ class FormWithActsLikeFormTagTest < FormWithTest
 
     method = method.to_s == "get" ? "get" : "post"
 
-    txt =  %{<form accept-charset="UTF-8" action="#{action}"}.dup
+    txt =  +%{<form accept-charset="UTF-8" action="#{action}"}
     txt << %{ enctype="multipart/form-data"} if enctype
     txt << %{ data-remote="true"} unless local
     txt << %{ class="#{html_class}"} if html_class
@@ -290,6 +290,7 @@ class FormWithActsLikeFormForTest < FormWithTest
     @post_delegator.title = "Hello World"
 
     @car = Car.new("#000FFF")
+    @controller.singleton_class.include Routes.url_helpers
   end
 
   Routes = ActionDispatch::Routing::RouteSet.new
@@ -306,10 +307,6 @@ class FormWithActsLikeFormForTest < FormWithTest
 
     get "/foo", to: "controller#action"
     root to: "main#index"
-  end
-
-  def _routes
-    Routes
   end
 
   include Routes.url_helpers
@@ -450,13 +447,15 @@ class FormWithActsLikeFormForTest < FormWithTest
 
   def test_form_with_doesnt_call_private_or_protected_properties_on_form_object_skipping_value
     obj = Class.new do
-      private def private_property
-        "That would be great."
-      end
+      private
+        def private_property
+          "That would be great."
+        end
 
-      protected def protected_property
-        "I believe you have my stapler."
-      end
+      protected
+        def protected_property
+          "I believe you have my stapler."
+        end
     end.new
 
     form_with(model: obj, scope: "other_name", url: "/", id: "edit-other-name") do |f|
@@ -2247,7 +2246,7 @@ class FormWithActsLikeFormForTest < FormWithTest
     post.persisted = false
     def post.to_key; nil; end
 
-    form_with(model: post) {}
+    form_with(model: post) { }
 
     expected = whole_form("/posts")
     assert_dom_equal expected, output_buffer
@@ -2255,14 +2254,14 @@ class FormWithActsLikeFormForTest < FormWithTest
 
   def test_form_with_with_existing_object_in_list
     @comment.save
-    form_with(model: [@post, @comment]) {}
+    form_with(model: [@post, @comment]) { }
 
     expected = whole_form(post_comment_path(@post, @comment), method: "patch")
     assert_dom_equal expected, output_buffer
   end
 
   def test_form_with_with_new_object_in_list
-    form_with(model: [@post, @comment]) {}
+    form_with(model: [@post, @comment]) { }
 
     expected = whole_form(post_comments_path(@post))
     assert_dom_equal expected, output_buffer
@@ -2270,14 +2269,14 @@ class FormWithActsLikeFormForTest < FormWithTest
 
   def test_form_with_with_existing_object_and_namespace_in_list
     @comment.save
-    form_with(model: [:admin, @post, @comment]) {}
+    form_with(model: [:admin, @post, @comment]) { }
 
     expected = whole_form(admin_post_comment_path(@post, @comment), method: "patch")
     assert_dom_equal expected, output_buffer
   end
 
   def test_form_with_with_new_object_and_namespace_in_list
-    form_with(model: [:admin, @post, @comment]) {}
+    form_with(model: [:admin, @post, @comment]) { }
 
     expected = whole_form(admin_post_comments_path(@post))
     assert_dom_equal expected, output_buffer
@@ -2291,13 +2290,13 @@ class FormWithActsLikeFormForTest < FormWithTest
   end
 
   def test_form_with_with_default_method_as_patch
-    form_with(model: @post) {}
+    form_with(model: @post) { }
     expected = whole_form("/posts/123", method: "patch")
     assert_dom_equal expected, output_buffer
   end
 
   def test_form_with_with_data_attributes
-    form_with(model: @post, data: { behavior: "stuff" }) {}
+    form_with(model: @post, data: { behavior: "stuff" }) { }
     assert_match %r|data-behavior="stuff"|, output_buffer
     assert_match %r|data-remote="true"|, output_buffer
   end
@@ -2316,7 +2315,7 @@ class FormWithActsLikeFormForTest < FormWithTest
       end
     end
 
-    form_with(model: @post, builder: builder_class) {}
+    form_with(model: @post, builder: builder_class) { }
     assert_equal 1, initialization_count, "form builder instantiated more than once"
   end
 
@@ -2325,9 +2324,9 @@ class FormWithActsLikeFormForTest < FormWithTest
       method = options[:method]
 
       if options.fetch(:skip_enforcing_utf8, false)
-        txt = "".dup
+        txt = +""
       else
-        txt = %{<input name="utf8" type="hidden" value="&#x2713;" />}.dup
+        txt = +%{<input name="utf8" type="hidden" value="&#x2713;" />}
       end
 
       if method && !%w(get post).include?(method.to_s)
@@ -2338,7 +2337,7 @@ class FormWithActsLikeFormForTest < FormWithTest
     end
 
     def form_text(action = "/", id = nil, html_class = nil, local = nil, multipart = nil, method = nil)
-      txt =  %{<form accept-charset="UTF-8" action="#{action}"}.dup
+      txt =  +%{<form accept-charset="UTF-8" action="#{action}"}
       txt << %{ enctype="multipart/form-data"} if multipart
       txt << %{ data-remote="true"} unless local
       txt << %{ class="#{html_class}"} if html_class

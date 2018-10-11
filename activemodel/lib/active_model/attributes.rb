@@ -29,7 +29,7 @@ module ActiveModel
       private
 
         def define_method_attribute=(name)
-          safe_name = name.unpack1("h*".freeze)
+          safe_name = name.unpack1("h*")
           ActiveModel::AttributeMethods::AttrNames.set_name_cache safe_name, name
 
           generated_attribute_methods.module_eval <<-STR, __FILE__, __LINE__ + 1

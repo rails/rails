@@ -1350,3 +1350,34 @@ With the [Spring](https://github.com/rails/spring) pre-loader (included with new
 
 Occasionally you may need to explicitly eager_load by using `Rails
 .application.eager_load!` in the setup of your tests -- this might occur if your [tests involve multithreading](https://stackoverflow.com/questions/25796409/in-rails-how-can-i-eager-load-all-code-before-a-specific-rspec-test).
+
+## Troubleshooting
+
+### Tracing Autoloads
+
+Active Support is able to report constants as they are autoloaded. To enable these traces in a Rails application, put the following two lines in some initializer:
+
+```ruby
+ActiveSupport::Dependencies.logger = Rails.logger
+ActiveSupport::Dependencies.verbose = true
+```
+
+### Where is a Given Autoload Triggered?
+
+If constant `Foo` is being autoloaded, and you'd like to know where is that autoload coming from, just throw
+
+```ruby
+puts caller
+```
+
+at the top of `foo.rb` and inspect the printed stack trace.
+
+### Which Constants Have Been Autoloaded?
+
+At any given time,
+
+```ruby
+ActiveSupport::Dependencies.autoloaded_constants
+```
+
+has the collection of constants that have been autoloaded so far.

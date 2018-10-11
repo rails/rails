@@ -122,6 +122,12 @@ class RestrictedWithErrorFirm < Company
   has_many :companies, -> { order("id") }, foreign_key: "client_of", dependent: :restrict_with_error
 end
 
+class Agency < Firm
+  has_many :projects, foreign_key: :firm_id
+
+  accepts_nested_attributes_for :projects
+end
+
 class Client < Company
   belongs_to :firm, foreign_key: "client_of"
   belongs_to :firm_with_basic_id, class_name: "Firm", foreign_key: "firm_id"
@@ -202,6 +208,14 @@ class SpecialClient < Client
 end
 
 class VerySpecialClient < SpecialClient
+end
+
+class NewlyContractedCompany < Company
+  has_many :new_contracts, foreign_key: "company_id"
+
+  before_save do
+    self.new_contracts << NewContract.new
+  end
 end
 
 require "models/account"

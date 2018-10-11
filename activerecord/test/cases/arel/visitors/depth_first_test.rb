@@ -33,7 +33,6 @@ module Arel
         Arel::Nodes::Ordering,
         Arel::Nodes::StringJoin,
         Arel::Nodes::UnqualifiedColumn,
-        Arel::Nodes::Top,
         Arel::Nodes::Limit,
         Arel::Nodes::Else,
       ].each do |klass|

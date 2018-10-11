@@ -3,6 +3,16 @@
 require "active_record_unit"
 
 class RenderPartialWithRecordIdentificationController < ActionController::Base
+  ROUTES = test_routes do
+    get :render_with_record_collection, to: "render_partial_with_record_identification#render_with_record_collection"
+    get :render_with_scope, to: "render_partial_with_record_identification#render_with_scope"
+    get :render_with_record, to: "render_partial_with_record_identification#render_with_record"
+    get :render_with_has_many_association, to: "render_partial_with_record_identification#render_with_has_many_association"
+    get :render_with_has_many_and_belongs_to_association, to: "render_partial_with_record_identification#render_with_has_many_and_belongs_to_association"
+    get :render_with_has_one_association, to: "render_partial_with_record_identification#render_with_has_one_association"
+    get :render_with_record_collection_and_spacer_template, to: "render_partial_with_record_identification#render_with_record_collection_and_spacer_template"
+  end
+
   def render_with_has_many_and_belongs_to_association
     @developer = Developer.find(1)
     render partial: @developer.projects
@@ -89,6 +99,11 @@ end
 
 module Fun
   class NestedController < ActionController::Base
+    ROUTES = test_routes do
+      get :render_with_record_in_nested_controller, to: "fun/nested#render_with_record_in_nested_controller"
+      get :render_with_record_collection_in_nested_controller, to: "fun/nested#render_with_record_collection_in_nested_controller"
+    end
+
     def render_with_record_in_nested_controller
       render partial: Game.new("Pong")
     end
@@ -100,6 +115,11 @@ module Fun
 
   module Serious
     class NestedDeeperController < ActionController::Base
+      ROUTES = test_routes do
+        get :render_with_record_in_deeper_nested_controller, to: "fun/serious/nested_deeper#render_with_record_in_deeper_nested_controller"
+        get :render_with_record_collection_in_deeper_nested_controller, to: "fun/serious/nested_deeper#render_with_record_collection_in_deeper_nested_controller"
+      end
+
       def render_with_record_in_deeper_nested_controller
         render partial: Game.new("Chess")
       end

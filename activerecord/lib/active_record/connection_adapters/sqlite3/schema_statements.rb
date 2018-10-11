@@ -21,19 +21,24 @@ module ActiveRecord
               WHERE name = #{quote(row['name'])} AND type = 'index'
             SQL
 
-            /\sWHERE\s+(?<where>.+)$/i =~ index_sql
+            /\bON\b\s*"?(\w+?)"?\s*\((?<expressions>.+?)\)(?:\s*WHERE\b\s*(?<where>.+))?\z/i =~ index_sql
 
             columns = exec_query("PRAGMA index_info(#{quote(row['name'])})", "SCHEMA").map do |col|
               col["name"]
             end
 
-            # Add info on sort order for columns (only desc order is explicitly specified, asc is
-            # the default)
             orders = {}
-            if index_sql # index_sql can be null in case of primary key indexes
-              index_sql.scan(/"(\w+)" DESC/).flatten.each { |order_column|
-                orders[order_column] = :desc
-              }
+
+            if columns.any?(&:nil?) # index created with an expression
+              columns = expressions
+            else
+              # Add info on sort order for columns (only desc order is explicitly specified,
+              # asc is the default)
+              if index_sql # index_sql can be null in case of primary key indexes
+                index_sql.scan(/"(\w+)" DESC/).flatten.each { |order_column|
+                  orders[order_column] = :desc
+                }
+              end
             end
 
             IndexDefinition.new(
@@ -81,7 +86,7 @@ module ActiveRecord
             scope = quoted_scope(name, type: type)
             scope[:type] ||= "'table','view'"
 
-            sql = "SELECT name FROM sqlite_master WHERE name <> 'sqlite_sequence'".dup
+            sql = +"SELECT name FROM sqlite_master WHERE name <> 'sqlite_sequence'"
             sql << " AND name = #{scope[:name]}" if scope[:name]
             sql << " AND type IN (#{scope[:type]})"
             sql

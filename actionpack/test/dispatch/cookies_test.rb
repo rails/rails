@@ -289,6 +289,46 @@ class CookiesTest < ActionController::TestCase
       cookies[:user_name] = { value: "assain", expires: 2.hours }
       head :ok
     end
+
+    def encrypted_discount_and_user_id_cookie
+      cookies.encrypted[:user_id] = { value: 50, expires: 1.hour }
+      cookies.encrypted[:discount_percentage] = 10
+
+      head :ok
+    end
+
+    def signed_discount_and_user_id_cookie
+      cookies.signed[:user_id] = { value: 50, expires: 1.hour }
+      cookies.signed[:discount_percentage] = 10
+
+      head :ok
+    end
+
+    def rails_5_2_stable_encrypted_cookie_with_authenticated_encryption_flag_on
+      # cookies.encrypted[:favorite] = { value: "5-2-Stable Chocolate Cookies", expires: 1000.years }
+      cookies[:favorite] = "KvH5lIHvX5vPQkLIK63r/NuIMwzWky8M0Zwk8SZ6DwUv8+srf36geR4nWq5KmhsZIYXA8NRdCZYIfxMKJsOFlz77Gf+Fq8vBBCWJTp95rx39A28TCUTJEyMhCNJO5eie7Skef76Qt5Jo/SCnIADAhzyGQkGBopKRcA==--qXZZFWGbCy6N8AGy--WswoH+xHrNh9MzSXDpB2fA=="
+
+      head :ok
+    end
+
+    def rails_5_2_stable_encrypted_cookie_with_authenticated_encryption_flag_off
+      cookies[:favorite] = "Wmg4amgvcVVvWGcwK3c4WjJEbTdRQUgrWXhBdDliUTR0cVNidXpmVTMrc2RjcitwUzVsWWEwZGtuVGtFUjJwNi0tcVhVMTFMOTQ1d0hIVE1FK0pJc05SQT09--8b2a55c375049a50f7a959b9d42b31ef0b2bb594"
+
+      head :ok
+    end
+
+    def rails_5_2_stable_signed_cookie_with_authenticated_encryption_flag_on
+      # cookies.signed[:favorite] = { value: "5-2-Stable Choco Chip Cookie", expires: 1000.years }
+      cookies[:favorite] = "eyJfcmFpbHMiOnsibWVzc2FnZSI6IkJBaEpJaUUxTFRJdFUzUmhZbXhsSUVOb2IyTnZJRU5vYVhBZ1EyOXZhMmxsQmpvR1JWUT0iLCJleHAiOiIzMDE4LTA3LTExVDE2OjExOjI2Ljc1M1oiLCJwdXIiOm51bGx9fQ==--7df5d885b78b70a501d6e82140ae91b24060ac00"
+
+      head :ok
+    end
+
+    def rails_5_2_stable_signed_cookie_with_authenticated_encryption_flag_off
+      cookies[:favorite] = "BAhJIiE1LTItU3RhYmxlIENob2NvIENoaXAgQ29va2llBjoGRVQ=--50bbdbf8d64f5a3ec3e54878f54d4f55b6cb3aff"
+
+      head :ok
+    end
   end
 
   tests TestController
@@ -1274,6 +1314,8 @@ class CookiesTest < ActionController::TestCase
   end
 
   def test_signed_cookie_with_expires_set_relatively
+    request.env["action_dispatch.use_cookies_with_metadata"] = true
+
     cookies.signed[:user_name] = { value: "assain", expires: 2.hours }
 
     travel 1.hour
@@ -1284,6 +1326,8 @@ class CookiesTest < ActionController::TestCase
   end
 
   def test_encrypted_cookie_with_expires_set_relatively
+    request.env["action_dispatch.use_cookies_with_metadata"] = true
+
     cookies.encrypted[:user_name] = { value: "assain", expires: 2.hours }
 
     travel 1.hour
@@ -1298,6 +1342,124 @@ class CookiesTest < ActionController::TestCase
       get :cookie_expires_in_two_hours
       assert_cookie_header "user_name=assain; path=/; expires=Tue, 15 Aug 2017 02:00:00 -0000"
     end
+  end
+
+  def test_purpose_metadata_for_encrypted_cookies
+    get :encrypted_discount_and_user_id_cookie
+
+    cookies[:discount_percentage] = cookies[:user_id]
+    assert_equal 50, cookies.encrypted[:discount_percentage]
+
+    request.env["action_dispatch.use_cookies_with_metadata"] = true
+
+    get :encrypted_discount_and_user_id_cookie
+
+    cookies[:discount_percentage] = cookies[:user_id]
+    assert_nil cookies.encrypted[:discount_percentage]
+  end
+
+  def test_purpose_metadata_for_signed_cookies
+    get :signed_discount_and_user_id_cookie
+
+    cookies[:discount_percentage] = cookies[:user_id]
+    assert_equal 50, cookies.signed[:discount_percentage]
+
+    request.env["action_dispatch.use_cookies_with_metadata"] = true
+
+    get :signed_discount_and_user_id_cookie
+
+    cookies[:discount_percentage] = cookies[:user_id]
+    assert_nil cookies.signed[:discount_percentage]
+  end
+
+  def test_switch_off_metadata_for_encrypted_cookies_if_config_is_false
+    request.env["action_dispatch.use_cookies_with_metadata"] = false
+
+    get :encrypted_discount_and_user_id_cookie
+
+    travel 2.hours
+    assert_equal 50, cookies.encrypted[:user_id]
+
+    cookies[:discount_percentage] = cookies[:user_id]
+    assert_not_equal 10, cookies.encrypted[:discount_percentage]
+    assert_equal 50, cookies.encrypted[:discount_percentage]
+  end
+
+  def test_switch_off_metadata_for_signed_cookies_if_config_is_false
+    request.env["action_dispatch.use_cookies_with_metadata"] = false
+
+    get :signed_discount_and_user_id_cookie
+
+    travel 2.hours
+    assert_equal 50, cookies.signed[:user_id]
+
+    cookies[:discount_percentage] = cookies[:user_id]
+    assert_not_equal 10, cookies.signed[:discount_percentage]
+    assert_equal 50, cookies.signed[:discount_percentage]
+  end
+
+  def test_read_rails_5_2_stable_encrypted_cookies_if_config_is_false
+    request.env["action_dispatch.use_cookies_with_metadata"] = false
+
+    get :rails_5_2_stable_encrypted_cookie_with_authenticated_encryption_flag_on
+
+    assert_equal "5-2-Stable Chocolate Cookies", cookies.encrypted[:favorite]
+
+    travel 1001.years do
+      assert_nil cookies.encrypted[:favorite]
+    end
+
+    get :rails_5_2_stable_encrypted_cookie_with_authenticated_encryption_flag_off
+
+    assert_equal "5-2-Stable Chocolate Cookies", cookies.encrypted[:favorite]
+  end
+
+  def test_read_rails_5_2_stable_signed_cookies_if_config_is_false
+    request.env["action_dispatch.use_cookies_with_metadata"] = false
+
+    get :rails_5_2_stable_signed_cookie_with_authenticated_encryption_flag_on
+
+    assert_equal "5-2-Stable Choco Chip Cookie", cookies.signed[:favorite]
+
+    travel 1001.years do
+      assert_nil cookies.signed[:favorite]
+    end
+
+    get :rails_5_2_stable_signed_cookie_with_authenticated_encryption_flag_off
+
+    assert_equal "5-2-Stable Choco Chip Cookie", cookies.signed[:favorite]
+  end
+
+  def test_read_rails_5_2_stable_encrypted_cookies_if_use_metadata_config_is_true
+    request.env["action_dispatch.use_cookies_with_metadata"] = true
+
+    get :rails_5_2_stable_encrypted_cookie_with_authenticated_encryption_flag_on
+
+    assert_equal "5-2-Stable Chocolate Cookies", cookies.encrypted[:favorite]
+
+    travel 1001.years do
+      assert_nil cookies.encrypted[:favorite]
+    end
+
+    get :rails_5_2_stable_encrypted_cookie_with_authenticated_encryption_flag_off
+
+    assert_equal "5-2-Stable Chocolate Cookies", cookies.encrypted[:favorite]
+  end
+
+  def test_read_rails_5_2_stable_signed_cookies_if_use_metadata_config_is_true
+    request.env["action_dispatch.use_cookies_with_metadata"] = true
+
+    get :rails_5_2_stable_signed_cookie_with_authenticated_encryption_flag_on
+
+    assert_equal "5-2-Stable Choco Chip Cookie", cookies.signed[:favorite]
+
+    travel 1001.years do
+      assert_nil cookies.signed[:favorite]
+    end
+
+    get :rails_5_2_stable_signed_cookie_with_authenticated_encryption_flag_off
+
+    assert_equal "5-2-Stable Choco Chip Cookie", cookies.signed[:favorite]
   end
 
   private

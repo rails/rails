@@ -67,55 +67,39 @@ module Arel # :nodoc: all
         @connection = connection
       end
 
-      def compile(node, &block)
-        accept(node, Arel::Collectors::SQLString.new, &block).value
+      def compile(node, collector = Arel::Collectors::SQLString.new)
+        accept(node, collector).value
       end
 
       private
 
         def visit_Arel_Nodes_DeleteStatement(o, collector)
-          collector << "DELETE FROM "
-          collector = visit o.relation, collector
-          if o.wheres.any?
-            collector << WHERE
-            collector = inject_join o.wheres, collector, AND
-          end
+          o = prepare_delete_statement(o)
 
+          if has_join_sources?(o)
+            collector << "DELETE "
+            visit o.relation.left, collector
+            collector << " FROM "
+          else
+            collector << "DELETE FROM "
+          end
+          collector = visit o.relation, collector
+
+          collect_nodes_for o.wheres, collector, " WHERE ", " AND "
+          collect_nodes_for o.orders, collector, " ORDER BY "
           maybe_visit o.limit, collector
         end
 
-        # FIXME: we should probably have a 2-pass visitor for this
-        def build_subselect(key, o)
-          stmt             = Nodes::SelectStatement.new
-          core             = stmt.cores.first
-          core.froms       = o.relation
-          core.wheres      = o.wheres
-          core.projections = [key]
-          stmt.limit       = o.limit
-          stmt.orders      = o.orders
-          stmt
-        end
-
         def visit_Arel_Nodes_UpdateStatement(o, collector)
-          if o.orders.empty? && o.limit.nil?
-            wheres = o.wheres
-          else
-            wheres = [Nodes::In.new(o.key, [build_subselect(o.key, o)])]
-          end
+          o = prepare_update_statement(o)
 
           collector << "UPDATE "
           collector = visit o.relation, collector
-          unless o.values.empty?
-            collector << " SET "
-            collector = inject_join o.values, collector, ", "
-          end
+          collect_nodes_for o.values, collector, " SET "
 
-          unless wheres.empty?
-            collector << " WHERE "
-            collector = inject_join wheres, collector, " AND "
-          end
-
-          collector
+          collect_nodes_for o.wheres, collector, " WHERE ", " AND "
+          collect_nodes_for o.orders, collector, " ORDER BY "
+          maybe_visit o.limit, collector
         end
 
         def visit_Arel_Nodes_InsertStatement(o, collector)
@@ -237,8 +221,6 @@ module Arel # :nodoc: all
         def visit_Arel_Nodes_SelectCore(o, collector)
           collector << "SELECT"
 
-          collector = maybe_visit o.top, collector
-
           collector = maybe_visit o.set_quantifier, collector
 
           collect_nodes_for o.projections, collector, SPACE
@@ -250,10 +232,7 @@ module Arel # :nodoc: all
 
           collect_nodes_for o.wheres, collector, WHERE, AND
           collect_nodes_for o.groups, collector, GROUP_BY
-          unless o.havings.empty?
-            collector << " HAVING "
-            inject_join o.havings, collector, AND
-          end
+          collect_nodes_for o.havings, collector, " HAVING ", AND
           collect_nodes_for o.windows, collector, WINDOW
 
           collector
@@ -262,11 +241,7 @@ module Arel # :nodoc: all
         def collect_nodes_for(nodes, collector, spacer, connector = COMMA)
           unless nodes.empty?
             collector << spacer
-            len = nodes.length - 1
-            nodes.each_with_index do |x, i|
-              collector = visit(x, collector)
-              collector << connector unless len == i
-            end
+            inject_join nodes, collector, connector
           end
         end
 
@@ -321,10 +296,7 @@ module Arel # :nodoc: all
         def visit_Arel_Nodes_Window(o, collector)
           collector << "("
 
-          if o.partitions.any?
-            collector << "PARTITION BY "
-            collector = inject_join o.partitions, collector, ", "
-          end
+          collect_nodes_for o.partitions, collector, "PARTITION BY "
 
           if o.orders.any?
             collector << SPACE if o.partitions.any?
@@ -403,11 +375,6 @@ module Arel # :nodoc: all
         def visit_Arel_Nodes_Limit(o, collector)
           collector << "LIMIT "
           visit o.expr, collector
-        end
-
-        # FIXME: this does nothing on most databases, but does on MSSQL
-        def visit_Arel_Nodes_Top(o, collector)
-          collector
         end
 
         def visit_Arel_Nodes_Lock(o, collector)
@@ -644,7 +611,7 @@ module Arel # :nodoc: all
 
         def visit_Arel_Nodes_Assignment(o, collector)
           case o.right
-          when Arel::Nodes::UnqualifiedColumn, Arel::Attributes::Attribute, Arel::Nodes::BindParam
+          when Arel::Nodes::Node, Arel::Attributes::Attribute
             collector = visit o.left, collector
             collector << " = "
             visit o.right, collector
@@ -739,8 +706,6 @@ module Arel # :nodoc: all
         end
 
         alias :visit_Arel_Nodes_SqlLiteral :literal
-        alias :visit_Bignum                :literal
-        alias :visit_Fixnum                :literal
         alias :visit_Integer               :literal
 
         def quoted(o, a)
@@ -821,6 +786,45 @@ module Arel # :nodoc: all
               visit(x, c) << join_str
             end
           }
+        end
+
+        def has_join_sources?(o)
+          o.relation.is_a?(Nodes::JoinSource) && !o.relation.right.empty?
+        end
+
+        def has_limit_or_offset_or_orders?(o)
+          o.limit || o.offset || !o.orders.empty?
+        end
+
+        # The default strategy for an UPDATE with joins is to use a subquery. This doesn't work
+        # on MySQL (even when aliasing the tables), but MySQL allows using JOIN directly in
+        # an UPDATE statement, so in the MySQL visitor we redefine this to do that.
+        def prepare_update_statement(o)
+          if o.key && (has_limit_or_offset_or_orders?(o) || has_join_sources?(o))
+            stmt = o.clone
+            stmt.limit = nil
+            stmt.offset = nil
+            stmt.orders = []
+            stmt.wheres = [Nodes::In.new(o.key, [build_subselect(o.key, o)])]
+            stmt.relation = o.relation.left if has_join_sources?(o)
+            stmt
+          else
+            o
+          end
+        end
+        alias :prepare_delete_statement :prepare_update_statement
+
+        # FIXME: we should probably have a 2-pass visitor for this
+        def build_subselect(key, o)
+          stmt             = Nodes::SelectStatement.new
+          core             = stmt.cores.first
+          core.froms       = o.relation
+          core.wheres      = o.wheres
+          core.projections = [key]
+          stmt.limit       = o.limit
+          stmt.offset      = o.offset
+          stmt.orders      = o.orders
+          stmt
         end
 
         def infix_value(o, collector, value)

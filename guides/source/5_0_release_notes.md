@@ -169,7 +169,7 @@ It includes some of these notable advancements:
 instead of waiting for the suite to complete.
 - Defer test output until the end of a full test run using the `-d` option.
 - Complete exception backtrace output using `-b` option.
-- Integration with `Minitest` to allow options like `-s` for test seed data,
+- Integration with minitest to allow options like `-s` for test seed data,
 `-n` for running specific test by name, `-v` for better verbose output and so forth.
 - Colored test output.
 

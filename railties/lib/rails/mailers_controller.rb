@@ -10,6 +10,8 @@ class Rails::MailersController < Rails::ApplicationController # :nodoc:
 
   helper_method :part_query, :locale_query
 
+  content_security_policy(false)
+
   def index
     @previews = ActionMailer::Preview.all
     @page_title = "Mailer Previews"

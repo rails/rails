@@ -188,7 +188,9 @@ module ActiveRecord
             t0 = Time.now
             elapsed = 0
             loop do
-              @cond.wait(timeout - elapsed)
+              ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
+                @cond.wait(timeout - elapsed)
+              end
 
               return remove if any?
 
@@ -729,7 +731,7 @@ module ActiveRecord
           # this block can't be easily moved into attempt_to_checkout_all_existing_connections's
           # rescue block, because doing so would put it outside of synchronize section, without
           # being in a critical section thread_report might become inaccurate
-          msg = "could not obtain ownership of all database connections in #{checkout_timeout} seconds".dup
+          msg = +"could not obtain ownership of all database connections in #{checkout_timeout} seconds"
 
           thread_report = []
           @connections.each do |conn|
@@ -1011,8 +1013,8 @@ module ActiveRecord
       # Returns true if a connection that's accessible to this class has
       # already been opened.
       def connected?(spec_name)
-        conn = retrieve_connection_pool(spec_name)
-        conn && conn.connected?
+        pool = retrieve_connection_pool(spec_name)
+        pool && pool.connected?
       end
 
       # Remove the connection for this class. This will close the active

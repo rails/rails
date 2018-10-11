@@ -20,6 +20,7 @@ module ActionDispatch
 
     setup do
       @cleaner = ActiveSupport::BacktraceCleaner.new
+      @cleaner.remove_filters!
       @cleaner.add_silencer { |line| line !~ /^lib/ }
     end
 

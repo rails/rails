@@ -109,7 +109,7 @@ module Rails
       RACK_SERVERS = %w(cgi fastcgi webrick lsws scgi thin puma unicorn)
 
       DEFAULT_PORT = 3000
-      DEFAULT_PID_PATH = "tmp/pids/server.pid".freeze
+      DEFAULT_PID_PATH = "tmp/pids/server.pid"
 
       argument :using, optional: true
 
@@ -286,7 +286,7 @@ module Rails
             original_options.concat [ "-u", using ]
           else
             # Use positional internally to get around Thor's immutable options.
-            # TODO: Replace `using` occurences with `options[:using]` after deprecation removal.
+            # TODO: Replace `using` occurrences with `options[:using]` after deprecation removal.
             @using = options[:using]
           end
         end

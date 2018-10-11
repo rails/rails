@@ -105,7 +105,7 @@ namespace :changelog do
       current_contents = File.read(fname)
 
       header = "## Rails #{version} (#{Date.today.strftime('%B %d, %Y')}) ##\n\n"
-      header += "*   No changes.\n\n\n" if current_contents =~ /\A##/
+      header += "*   No changes.\n\n\n" if current_contents.start_with?("##")
       contents = header + current_contents
       File.write(fname, contents)
     end

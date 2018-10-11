@@ -1,0 +1,24 @@
+actioncable:
+  - "actioncable/**/*"
+actionmailer:
+  - "actionmailer/**/*"
+actionpack:
+  - "actionpack/**/*"
+actionview:
+  - "actionview/**/*"
+activejob:
+  - "activejob/**/*"
+activemodel:
+  - "activemodel/**/*"
+activerecord:
+  - "activerecord/**/*"
+activestorage:
+  - "activestorage/**/*"
+activesupport:
+  - "activesupport/**/*"
+rails-ujs:
+  - "actionview/app/assets/javascripts/rails-ujs*/*"
+railties:
+  - "railties/**/*"
+docs:
+  - "guides/**/*"

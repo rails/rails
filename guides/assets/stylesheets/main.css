@@ -283,8 +283,12 @@ body {
 #header .wrapper, #topNav .wrapper, #feature .wrapper {padding-left: 1em; max-width: 960px;}
 #feature .wrapper {max-width: 640px; padding-right: 23em; position: relative; z-index: 0;}
 
+@media screen and (max-width: 960px) {
+  #container .wrapper { padding-right: 23em; }
+}
+
 @media screen and (max-width: 800px) {
-  #feature .wrapper { padding-right: 0; }
+  #feature .wrapper, #container .wrapper { padding-right: 0; }
 }
 
 /* Links

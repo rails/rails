@@ -974,7 +974,7 @@ class TransactionalFixturesOnConnectionNotification < ActiveRecord::TestCase
           connection_id: connection.object_id
         }
 
-        message_bus.instrument("!connection.active_record", payload) {}
+        message_bus.instrument("!connection.active_record", payload) { }
       end
     end
 end
@@ -1342,5 +1342,21 @@ class SameNameDifferentDatabaseFixturesTest < ActiveRecord::TestCase
 
     assert_kind_of Dog, dogs(:sophie)
     assert_kind_of OtherDog, other_dogs(:lassie)
+  end
+end
+
+class NilFixturePathTest < ActiveRecord::TestCase
+  test "raises an error when all fixtures loaded" do
+    error = assert_raises(StandardError) do
+      TestCase = Class.new(ActiveRecord::TestCase)
+      TestCase.class_eval do
+        self.fixture_path = nil
+        fixtures :all
+      end
+    end
+    assert_equal <<~MSG.squish, error.message
+      No fixture path found.
+      Please set `NilFixturePathTest::TestCase.fixture_path`.
+    MSG
   end
 end

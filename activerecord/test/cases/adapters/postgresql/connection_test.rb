@@ -15,8 +15,9 @@ module ActiveRecord
     def setup
       super
       @subscriber = SQLSubscriber.new
-      @subscription = ActiveSupport::Notifications.subscribe("sql.active_record", @subscriber)
       @connection = ActiveRecord::Base.connection
+      @connection.materialize_transactions
+      @subscription = ActiveSupport::Notifications.subscribe("sql.active_record", @subscriber)
     end
 
     def teardown

@@ -31,6 +31,7 @@ module ActiveRecord
     end
 
     def capture_sql
+      ActiveRecord::Base.connection.materialize_transactions
       SQLCounter.clear_log
       yield
       SQLCounter.log_all.dup
@@ -48,6 +49,7 @@ module ActiveRecord
 
     def assert_queries(num = 1, options = {})
       ignore_none = options.fetch(:ignore_none) { num == :any }
+      ActiveRecord::Base.connection.materialize_transactions
       SQLCounter.clear_log
       x = yield
       the_log = ignore_none ? SQLCounter.log_all : SQLCounter.log

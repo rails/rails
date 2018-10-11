@@ -5,8 +5,8 @@ require "active_support/core_ext/hash/slice"
 
 module ActionController
   # This module is deprecated in favor of +config.force_ssl+ in your environment
-  # config file. This will ensure all communication to non-whitelisted endpoints
-  # served by your application occurs over HTTPS.
+  # config file. This will ensure all endpoints not explicitly marked otherwise
+  # will have all communication served over HTTPS.
   module ForceSSL # :nodoc:
     extend ActiveSupport::Concern
     include AbstractController::Callbacks

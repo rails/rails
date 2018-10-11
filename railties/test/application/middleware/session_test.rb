@@ -183,7 +183,7 @@ module ApplicationTests
       encryptor = ActiveSupport::MessageEncryptor.new(secret[0, ActiveSupport::MessageEncryptor.key_len(cipher)], cipher: cipher)
 
       get "/foo/read_raw_cookie"
-      assert_equal 1, encryptor.decrypt_and_verify(last_response.body)["foo"]
+      assert_equal 1, encryptor.decrypt_and_verify(last_response.body, purpose: "cookie._myapp_session")["foo"]
     end
 
     test "session upgrading signature to encryption cookie store works the same way as encrypted cookie store" do
@@ -235,7 +235,7 @@ module ApplicationTests
       encryptor = ActiveSupport::MessageEncryptor.new(secret[0, ActiveSupport::MessageEncryptor.key_len(cipher)], cipher: cipher)
 
       get "/foo/read_raw_cookie"
-      assert_equal 1, encryptor.decrypt_and_verify(last_response.body)["foo"]
+      assert_equal 1, encryptor.decrypt_and_verify(last_response.body, purpose: "cookie._myapp_session")["foo"]
     end
 
     test "session upgrading signature to encryption cookie store upgrades session to encrypted mode" do
@@ -297,7 +297,7 @@ module ApplicationTests
       encryptor = ActiveSupport::MessageEncryptor.new(secret[0, ActiveSupport::MessageEncryptor.key_len(cipher)], cipher: cipher)
 
       get "/foo/read_raw_cookie"
-      assert_equal 2, encryptor.decrypt_and_verify(last_response.body)["foo"]
+      assert_equal 2, encryptor.decrypt_and_verify(last_response.body, purpose: "cookie._myapp_session")["foo"]
     end
 
     test "session upgrading from AES-CBC-HMAC encryption to AES-GCM encryption" do
@@ -364,7 +364,7 @@ module ApplicationTests
         encryptor = ActiveSupport::MessageEncryptor.new(secret[0, ActiveSupport::MessageEncryptor.key_len(cipher)], cipher: cipher)
 
         get "/foo/read_raw_cookie"
-        assert_equal 2, encryptor.decrypt_and_verify(last_response.body)["foo"]
+        assert_equal 2, encryptor.decrypt_and_verify(last_response.body, purpose: "cookie._myapp_session")["foo"]
       ensure
         ENV["RAILS_ENV"] = old_rails_env
       end
@@ -428,7 +428,7 @@ module ApplicationTests
         verifier = ActiveSupport::MessageVerifier.new(app.secrets.secret_token)
 
         get "/foo/read_raw_cookie"
-        assert_equal 2, verifier.verify(last_response.body)["foo"]
+        assert_equal 2, verifier.verify(last_response.body, purpose: "cookie._myapp_session")["foo"]
       ensure
         ENV["RAILS_ENV"] = old_rails_env
       end

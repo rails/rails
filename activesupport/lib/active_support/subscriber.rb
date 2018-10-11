@@ -92,7 +92,7 @@ module ActiveSupport
       event.finish!
       event.payload.merge!(payload)
 
-      method = name.split(".".freeze).first
+      method = name.split(".").first
       send(method, event)
     end
 

@@ -136,7 +136,7 @@ class Module
   # Or pass <tt>instance_accessor: false</tt>, to opt out both instance methods.
   #
   #   class Current
-  #     mattr_accessor :user, instance_accessor: false
+  #     thread_mattr_accessor :user, instance_accessor: false
   #   end
   #
   #   Current.new.user = "DHH"  # => NoMethodError

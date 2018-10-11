@@ -322,7 +322,7 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     topic = Topic.create!(content: {})
     topic2 = Topic.create!(content: nil)
 
-    assert_equal [topic, topic2], Topic.where(content: nil)
+    assert_equal [topic, topic2], Topic.where(content: nil).sort_by(&:id)
   end
 
   def test_nil_is_always_persisted_as_null

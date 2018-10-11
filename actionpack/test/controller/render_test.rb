@@ -250,6 +250,15 @@ class TestController < ActionController::Base
     head 204
   end
 
+  def head_default_content_type
+    # simulating path like "/1.foobar"
+    request.formats = []
+
+    respond_to do |format|
+      format.any { head 200 }
+    end
+  end
+
   private
 
     def set_variable_for_layout
@@ -813,6 +822,11 @@ class HeadRenderTest < ActionController::TestCase
     assert_nothing_raised do
       get :head_and_return
     end
+  end
+
+  def test_head_default_content_type
+    post :head_default_content_type
+    assert_equal "text/html", @response.header["Content-Type"]
   end
 end
 

@@ -719,7 +719,7 @@ for detailed changes.
   responsibilities within a
   class. ([Commit](https://github.com/rails/rails/commit/1eee0ca6de975b42524105a59e0521d18b38ab81))
 
-* Added `Object#presence_in` to simplify value whitelisting.
+* Added `Object#presence_in` to simplify adding values to a permitted list.
   ([Commit](https://github.com/rails/rails/commit/4edca106daacc5a159289eae255207d160f22396))
 
 

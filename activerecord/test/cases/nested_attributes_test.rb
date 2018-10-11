@@ -217,6 +217,18 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
     mean_pirate.parrot_attributes = { name: "James" }
     assert_equal "James", mean_pirate.parrot.name
   end
+
+  def test_should_not_create_duplicates_with_create_with
+    Man.accepts_nested_attributes_for(:interests)
+
+    assert_difference("Interest.count", 1) do
+      Man.create_with(
+        interests_attributes: [{ topic: "Pirate king" }]
+      ).find_or_create_by!(
+        name: "Monkey D. Luffy"
+      )
+    end
+  end
 end
 
 class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
@@ -1092,5 +1104,17 @@ class TestHasManyAutosaveAssociationWhichItselfHasAutosaveAssociations < ActiveR
 
     assert_not_predicate part, :valid?
     assert_equal ["Ship name can't be blank"], part.errors.full_messages
+  end
+end
+
+class TestNestedAttributesWithExtend < ActiveRecord::TestCase
+  setup do
+    Pirate.accepts_nested_attributes_for :treasures
+  end
+
+  def test_extend_affects_nested_attributes
+    pirate = Pirate.create!(catchphrase: "Don' botharrr talkin' like one, savvy?")
+    pirate.treasures_attributes = [{ id: nil }]
+    assert_equal "from extension", pirate.treasures[0].name
   end
 end

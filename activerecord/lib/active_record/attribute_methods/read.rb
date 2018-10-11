@@ -27,7 +27,7 @@ module ActiveRecord
           # Making it frozen means that it doesn't get duped when used to
           # key the @attributes in read_attribute.
           def define_method_attribute(name)
-            safe_name = name.unpack1("h*".freeze)
+            safe_name = name.unpack1("h*")
             temp_method = "__temp__#{safe_name}"
 
             ActiveRecord::AttributeMethods::AttrNames.set_name_cache safe_name, name
@@ -59,7 +59,7 @@ module ActiveRecord
         end
 
         primary_key = self.class.primary_key
-        name = primary_key if name == "id".freeze && primary_key
+        name = primary_key if name == "id" && primary_key
         sync_with_transaction_state if name == primary_key
         _read_attribute(name, &block)
       end
