@@ -70,10 +70,8 @@ module ActiveRecord
                 scope.includes!(source_reflection.name)
               end
 
-              if values[:references] && !values[:references].empty?
-                scope.references!(values[:references])
-              else
-                scope.references!(source_reflection.table_name)
+              if references = values[:references]
+                scope.references!(references)
               end
 
               if joins = values[:joins]
