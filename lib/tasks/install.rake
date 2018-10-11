@@ -5,7 +5,7 @@ namespace :action_mailbox do
   Rake::Task["install:migrations"].clear_comments
 
   desc "Copy over the migration"
-  task install: %w( environment install:copy_migration active_storage:install )
+  task install: %w[ environment install:copy_migration active_storage:install ]
 
   namespace :install do
     task :copy_migration do
