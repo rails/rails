@@ -1,5 +1,5 @@
 # frozen_string_literal: true
-
+require "active_support/deprecation"
 module ActionDispatch
   module Http
     # Models uploaded files.
@@ -39,6 +39,19 @@ module ActionDispatch
           end
         else
           @original_filename = nil
+        end
+
+        if hash.key?(:type)
+          ActiveSupport::Deprecation.warn(<<-MSG.squish)
+            Initialising with key `type` is deprecated and will be removed in Rails 6.0.
+            Please use key `content_type` instead.
+          MSG
+        end
+        if hash.key?(:head)
+          ActiveSupport::Deprecation.warn(<<-MSG.squish)
+            Initialising with key `head` is deprecated and will be removed in Rails 6.0.
+            Please use key `headers` instead.
+          MSG
         end
 
         @content_type = hash[:type] || hash[:content_type]

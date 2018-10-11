@@ -38,8 +38,10 @@ module ActionDispatch
     end
 
     def test_content_type_legacy
-      uf = Http::UploadedFile.new(type: "foo", tempfile: Object.new)
-      assert_equal "foo", uf.content_type
+      ActiveSupport::Deprecation.silence do
+        uf = Http::UploadedFile.new(type: "foo", tempfile: Object.new)
+        assert_equal "foo", uf.content_type
+      end
     end
 
     def test_headers
@@ -48,8 +50,10 @@ module ActionDispatch
     end
 
     def test_headers_legacy
-      uf = Http::UploadedFile.new(head: "foo", tempfile: Object.new)
-      assert_equal "foo", uf.headers
+      ActiveSupport::Deprecation.silence do
+        uf = Http::UploadedFile.new(head: "foo", tempfile: Object.new)
+        assert_equal "foo", uf.headers
+      end
     end
 
     def test_tempfile
