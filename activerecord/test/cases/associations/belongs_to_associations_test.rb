@@ -367,6 +367,30 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal "ODEGY", odegy_account.reload_firm.name
   end
 
+  def test_reload_the_belonging_object_with_query_cache
+    odegy_account_id = accounts(:odegy_account).id
+
+    connection = ActiveRecord::Base.connection
+    connection.enable_query_cache!
+    connection.clear_query_cache
+
+    # Populate the cache with a query
+    odegy_account = Account.find(odegy_account_id)
+
+    # Populate the cache with a second query
+    odegy_account.firm
+
+    assert_equal 2, connection.query_cache.size
+
+    # Clear the cache and fetch the firm again, populating the cache with a query
+    assert_queries(1) { odegy_account.reload_firm }
+
+    # This query is not cached anymore, so it should make a real SQL query
+    assert_queries(1) { Account.find(odegy_account_id) }
+  ensure
+    ActiveRecord::Base.connection.disable_query_cache!
+  end
+
   def test_natural_assignment_to_nil
     client = Client.find(3)
     client.firm = nil

@@ -1,3 +1,15 @@
+*   Add allocations to template rendering instrumentation.
+
+    Adds the allocations for template and partial rendering to the server output on render.
+
+    ```
+      Rendered posts/_form.html.erb (Duration: 7.1ms | Allocations: 6004)
+      Rendered posts/new.html.erb within layouts/application (Duration: 8.3ms | Allocations: 6654)
+    Completed 200 OK in 858ms (Views: 848.4ms | ActiveRecord: 0.4ms | Allocations: 1539564)
+    ```
+
+    *Eileen M. Uchitelle*, *Aaron Patterson*
+
 *   Respect the `only_path` option passed to `url_for` when the options are passed in as an array
     
     Fixes #33237.

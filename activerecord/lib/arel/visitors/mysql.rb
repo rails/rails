@@ -9,20 +9,20 @@ module Arel # :nodoc: all
             collector << "( "
           end
 
-          collector =   case o.left
-                        when Arel::Nodes::Union
-                          visit_Arel_Nodes_Union o.left, collector, true
-                        else
-                          visit o.left, collector
+          case o.left
+          when Arel::Nodes::Union
+            visit_Arel_Nodes_Union o.left, collector, true
+          else
+            visit o.left, collector
           end
 
           collector << " UNION "
 
-          collector =    case o.right
-                         when Arel::Nodes::Union
-                           visit_Arel_Nodes_Union o.right, collector, true
-                         else
-                           visit o.right, collector
+          case o.right
+          when Arel::Nodes::Union
+            visit_Arel_Nodes_Union o.right, collector, true
+          else
+            visit o.right, collector
           end
 
           if suppress_parens
@@ -75,14 +75,7 @@ module Arel # :nodoc: all
             o
           end
         end
-
-        def prepare_delete_statement(o)
-          if o.offset || has_join_sources?(o)
-            super
-          else
-            o
-          end
-        end
+        alias :prepare_delete_statement :prepare_update_statement
 
         # MySQL is too stupid to create a temporary table for use subquery, so we have
         # to give it some prompting in the form of a subsubquery.

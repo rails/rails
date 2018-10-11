@@ -333,6 +333,29 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_equal 80, odegy.reload_account.credit_limit
   end
 
+  def test_reload_association_with_query_cache
+    odegy_id = companies(:odegy).id
+
+    connection = ActiveRecord::Base.connection
+    connection.enable_query_cache!
+    connection.clear_query_cache
+
+    # Populate the cache with a query
+    odegy = Company.find(odegy_id)
+    # Populate the cache with a second query
+    odegy.account
+
+    assert_equal 2, connection.query_cache.size
+
+    # Clear the cache and fetch the account again, populating the cache with a query
+    assert_queries(1) { odegy.reload_account }
+
+    # This query is not cached anymore, so it should make a real SQL query
+    assert_queries(1) { Company.find(odegy_id) }
+  ensure
+    ActiveRecord::Base.connection.disable_query_cache!
+  end
+
   def test_build
     firm = Firm.new("name" => "GlobalMegaCorp")
     firm.save

@@ -399,6 +399,10 @@ module Rails
         !options[:skip_spring] && !options.dev? && Process.respond_to?(:fork) && !RUBY_PLATFORM.include?("cygwin")
       end
 
+      def webpack_install?
+        !(options[:skip_javascript] || options[:skip_webpack_install])
+      end
+
       def depends_on_system_test?
         !(options[:skip_system_test] || options[:skip_test] || options[:api])
       end
@@ -420,7 +424,7 @@ module Rails
       end
 
       def run_webpack
-        unless options[:skip_javascript]
+        if webpack_install?
           rails_command "webpacker:install"
           rails_command "webpacker:install:#{options[:webpack]}" if options[:webpack] && options[:webpack] != "webpack"
         end
