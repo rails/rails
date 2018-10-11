@@ -64,6 +64,10 @@ module ActiveRecord
               scope.where_clause = reflection_scope.where_clause
               values = reflection_scope.values
 
+              if klass.finder_needs_type_condition?
+                scope.unscope!(where: klass.inheritance_column)
+              end
+
               if includes = values[:includes]
                 scope.includes!(source_reflection.name => includes)
               else
