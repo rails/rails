@@ -57,6 +57,12 @@ class ActionCable::Connection::CrossSiteForgeryTest < ActionCable::TestCase
     assert_origin_not_allowed "http://rails.co.uk"
   end
 
+  test "origins specified dynamically with proc" do
+    @server.config.allowed_request_origins = -> { "http://rubyonrails.com" }
+    assert_origin_allowed "http://rubyonrails.com"
+    assert_origin_not_allowed "http://hax.com"
+  end
+
   test "allow same origin as host" do
     @server.config.allow_same_origin_as_host = true
     assert_origin_allowed "http://#{HOST}"
