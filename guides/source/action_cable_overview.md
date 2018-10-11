@@ -570,11 +570,19 @@ This may change in the future. [#27214](https://github.com/rails/rails/issues/27
 ### Allowed Request Origins
 
 Action Cable will only accept requests from specified origins, which are
-passed to the server config as an array. The origins can be instances of
-strings or regular expressions, against which a check for the match will be performed.
+passed to the server config as an array or a Proc for dynamic lists of origins.
+The origins can be instances of strings or regular expressions, against which a check
+for the match will be performed.
 
 ```ruby
 config.action_cable.allowed_request_origins = ['http://rubyonrails.com', %r{http://ruby.*}]
+```
+or for a dynamic list of origins
+
+```ruby
+config.action_cable.allowed_request_origins = -> {
+  AllowedSites.pluck(:domain)
+}
 ```
 
 To disable and allow requests from any origin:
