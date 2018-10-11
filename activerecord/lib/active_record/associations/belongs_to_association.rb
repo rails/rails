@@ -70,7 +70,10 @@ module ActiveRecord
 
           replace_keys(record)
 
-          self.target = record
+          if target != record
+            remove_owner_from_collection_proxy
+            self.target = record
+          end
         end
 
         def update_counters(by)
@@ -106,6 +109,14 @@ module ActiveRecord
 
         def foreign_key_present?
           owner._read_attribute(reflection.foreign_key)
+        end
+
+        def remove_owner_from_collection_proxy
+          return unless target && owner.new_record?
+          inverse = inverse_reflection_for(owner)
+          return unless inverse && inverse.collection?
+
+          target.association(inverse.name).delete(owner)
         end
 
         # NOTE - for now, we're only supporting inverse setting from belongs_to back onto

@@ -625,8 +625,40 @@ class InverseBelongsToTests < ActiveRecord::TestCase
     assert_equal f.description, m.face.description, "Description of face should be the same after changes to replaced-parent-owned instance"
   end
 
+  def test_can_set_inverse_on_new_records
+    i = Interest.new
+    m = Man.new
+    assert_nothing_raised { i.man = m }
+  end
+
   def test_trying_to_use_inverses_that_dont_exist_should_raise_an_error
     assert_raise(ActiveRecord::InverseOfAssociationNotFoundError) { Face.first.horrible_man }
+  end
+
+  def test_for_new_records_changing_parent_instance_should_change_children_count_in_original_parent
+    m = Man.create
+    i = m.interests.build
+
+    assert_difference("m.interests.size", -1) { i.man = nil }
+  end
+
+  def test_child_can_choose_parent
+    mike = Man.create!
+    bob = Man.create!
+
+    i = bob.interests.build
+    i.man = mike
+
+    bob.save!
+    assert_equal mike.id, i.man.id, "Saving the old parent shouldn't affect the child"
+  end
+
+  def test_setting_parent_to_the_same_parent_should_keep_the_inverse
+    m = Man.new
+    i = m.interests.build
+    assert i.association(:man).instance_variable_get(:@inversed)
+    i.man = m
+    assert i.association(:man).instance_variable_get(:@inversed)
   end
 end
 
