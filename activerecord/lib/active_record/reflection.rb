@@ -381,6 +381,15 @@ module ActiveRecord
       # instead. This allows plugins to hook into association object creation.
       def klass
         @klass ||= compute_class(class_name)
+
+        unless @klass.is_a?(Class)
+          raise ArgumentError, <<-MSG.squish
+            Rails could not find a valid model for #{class_name} association.
+            Please provide the :class_name option on the association declaration
+          MSG
+        end
+
+        @klass
       end
 
       def compute_class(name)
