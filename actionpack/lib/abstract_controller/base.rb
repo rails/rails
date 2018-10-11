@@ -81,7 +81,7 @@ module AbstractController
             # Be sure to include shadowed public instance methods of this class
             public_instance_methods(false) -
             # Except for flash methods added to this controller class
-            added_flash_types.to_a).map(&:to_s).uniq
+            added_flash_types.to_a).map(&:to_s)
 
           methods.to_set
         end
