@@ -1,17 +1,16 @@
 *   `ActionDispatch::Http::UploadedFile` now accepts `content_type` and `headers` when initializing
 
-    This keeps the constructor consistent with the names of the parameters. 
+    This keeps the constructor consistent with the names of the parameters.
     Also maintains the legacy parameters of `type` and `head` for backwards compatibility
 
-      ActionDispatch::Http::UploadedFile.new({
-        tempfile:     tempfile,
-        content_type: 'image/svg+xml',
-        headers:      'some_headers',
-        filename:     'filename.svg',
-      })
+        ActionDispatch::Http::UploadedFile.new(
+          tempfile:     tempfile,
+          content_type: 'image/svg+xml',
+          headers:      'some_headers',
+          filename:     'filename.svg',
+        )
 
     *Peter Hofmann*
-
 
 *   `ActionDispatch::Http::UploadedFile` now delegates `to_path` to its tempfile.
 
