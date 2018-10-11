@@ -275,6 +275,12 @@ module ActiveRecord
         name = "to_partial_path"
       when :to_model
         name = "to_model"
+      when :cache_version
+        name = "cache_version"
+      when :cache_key
+        name = "cache_key"
+      when :updated_at
+        name = "updated_at"
       else
         name = name.to_s
       end
