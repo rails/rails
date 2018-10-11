@@ -118,7 +118,7 @@ module ApplicationTests
     end
 
     def test_code_statistics_sanity
-      assert_match "Code LOC: 25     Test LOC: 0     Code to Test Ratio: 1:0.0",
+      assert_match "Code LOC: 32     Test LOC: 0     Code to Test Ratio: 1:0.0",
         rails("stats")
     end
 
@@ -190,6 +190,7 @@ module ApplicationTests
       rails "generate", "model", "Cart"
       rails "generate", "scaffold", "LineItems", "product:references", "cart:belongs_to"
       with_rails_env("test") { rails("db:migrate") }
+      rails("webpacker:compile")
       output = rails("test")
 
       assert_match(/7 runs, 9 assertions, 0 failures, 0 errors/, output)

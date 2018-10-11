@@ -24,13 +24,24 @@ module ActiveRecord
         end
 
         def db_migrate_path
-          if migrations_paths = options[:migrations_paths]
-            migrations_paths
-          elsif defined?(Rails.application) && Rails.application
-            Rails.application.config.paths["db/migrate"].to_ary.first
+          if defined?(Rails.application) && Rails.application
+            configured_migrate_path || default_migrate_path
           else
             "db/migrate"
           end
+        end
+
+        def default_migrate_path
+          Rails.application.config.paths["db/migrate"].to_ary.first
+        end
+
+        def configured_migrate_path
+          return unless database = options[:database]
+          config = ActiveRecord::Base.configurations.configs_for(
+            env_name: Rails.env,
+            spec_name: database,
+          )
+          config&.migrations_paths
         end
     end
   end

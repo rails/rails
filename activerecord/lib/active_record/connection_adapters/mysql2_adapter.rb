@@ -14,7 +14,7 @@ module ActiveRecord
       config[:flags] ||= 0
 
       if config[:flags].kind_of? Array
-        config[:flags].push "FOUND_ROWS".freeze
+        config[:flags].push "FOUND_ROWS"
       else
         config[:flags] |= Mysql2::Client::FOUND_ROWS
       end
@@ -32,7 +32,7 @@ module ActiveRecord
 
   module ConnectionAdapters
     class Mysql2Adapter < AbstractMysqlAdapter
-      ADAPTER_NAME = "Mysql2".freeze
+      ADAPTER_NAME = "Mysql2"
 
       include MySQL::DatabaseStatements
 

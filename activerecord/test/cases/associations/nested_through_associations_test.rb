@@ -137,7 +137,7 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
   def test_has_many_through_has_one_through_with_has_one_source_reflection_preload
     members = assert_queries(4) { Member.includes(:nested_sponsors).to_a }
     mustache = sponsors(:moustache_club_sponsor_for_groucho)
-    assert_no_queries(ignore_none: false) do
+    assert_no_queries do
       assert_equal [mustache], members.first.nested_sponsors
     end
   end
@@ -196,7 +196,7 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
 
     # postgresql test if randomly executed then executes "SHOW max_identifier_length". Hence
     # the need to ignore certain predefined sqls that deal with system calls.
-    assert_no_queries(ignore_none: false) do
+    assert_no_queries do
       assert_equal [groucho_details, other_details], members.first.organization_member_details_2.sort_by(&:id)
     end
   end

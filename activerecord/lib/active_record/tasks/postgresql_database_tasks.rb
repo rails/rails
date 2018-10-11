@@ -6,8 +6,8 @@ module ActiveRecord
   module Tasks # :nodoc:
     class PostgreSQLDatabaseTasks # :nodoc:
       DEFAULT_ENCODING = ENV["CHARSET"] || "utf8"
-      ON_ERROR_STOP_1 = "ON_ERROR_STOP=1".freeze
-      SQL_COMMENT_BEGIN = "--".freeze
+      ON_ERROR_STOP_1 = "ON_ERROR_STOP=1"
+      SQL_COMMENT_BEGIN = "--"
 
       delegate :connection, :establish_connection, :clear_active_connections!,
         to: ActiveRecord::Base

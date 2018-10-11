@@ -348,21 +348,17 @@ module ActiveRecord
       end
 
       stmt = Arel::UpdateManager.new
-      stmt.table(table)
+      stmt.table(arel.join_sources.empty? ? table : arel.source)
+      stmt.key = arel_attribute(primary_key)
+      stmt.take(arel.limit)
+      stmt.offset(arel.offset)
+      stmt.order(*arel.orders)
+      stmt.wheres = arel.constraints
 
       if updates.is_a?(Hash)
         stmt.set _substitute_values(updates)
       else
         stmt.set Arel.sql(klass.sanitize_sql_for_assignment(updates, table.name))
-      end
-
-      if has_join_values? || offset_value
-        @klass.connection.join_to_update(stmt, arel, arel_attribute(primary_key))
-      else
-        stmt.key = arel_attribute(primary_key)
-        stmt.take(arel.limit)
-        stmt.order(*arel.orders)
-        stmt.wheres = arel.constraints
       end
 
       @klass.connection.update stmt, "#{@klass} Update All"
@@ -482,13 +478,12 @@ module ActiveRecord
       end
 
       stmt = Arel::DeleteManager.new
-      stmt.from(table)
-
-      if has_join_values? || has_limit_or_offset?
-        @klass.connection.join_to_delete(stmt, arel, arel_attribute(primary_key))
-      else
-        stmt.wheres = arel.constraints
-      end
+      stmt.from(arel.join_sources.empty? ? table : arel.source)
+      stmt.key = arel_attribute(primary_key)
+      stmt.take(arel.limit)
+      stmt.offset(arel.offset)
+      stmt.order(*arel.orders)
+      stmt.wheres = arel.constraints
 
       affected = @klass.connection.delete(stmt, "#{@klass} Destroy")
 
@@ -641,10 +636,6 @@ module ActiveRecord
           end
           [attr, value]
         end
-      end
-
-      def has_join_values?
-        joins_values.any? || left_outer_joins_values.any?
       end
 
       def exec_queries(&block)

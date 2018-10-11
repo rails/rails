@@ -38,7 +38,7 @@ module ActionDispatch
   #
   # See docs on the FlashHash class for more details about the flash.
   class Flash
-    KEY = "action_dispatch.request.flash_hash".freeze
+    KEY = "action_dispatch.request.flash_hash"
 
     module RequestMethods
       # Access the contents of the flash. Use <tt>flash["notice"]</tt> to

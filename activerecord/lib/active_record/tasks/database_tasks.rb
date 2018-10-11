@@ -197,6 +197,21 @@ module ActiveRecord
         Migration.verbose = verbose_was
       end
 
+      def migrate_status
+        unless ActiveRecord::SchemaMigration.table_exists?
+          Kernel.abort "Schema migrations table does not exist yet."
+        end
+
+        # output
+        puts "\ndatabase: #{ActiveRecord::Base.connection_config[:database]}\n\n"
+        puts "#{'Status'.center(8)}  #{'Migration ID'.ljust(14)}  Migration Name"
+        puts "-" * 50
+        ActiveRecord::Base.connection.migration_context.migrations_status.each do |status, version, name|
+          puts "#{status.center(8)}  #{version.ljust(14)}  #{name}"
+        end
+        puts
+      end
+
       def check_target_version
         if target_version && !(Migration::MigrationFilenameRegexp.match?(ENV["VERSION"]) || /\A\d+\z/.match?(ENV["VERSION"]))
           raise "Invalid format of target version: `VERSION=#{ENV['VERSION']}`"

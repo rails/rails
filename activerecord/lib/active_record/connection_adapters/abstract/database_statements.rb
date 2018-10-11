@@ -35,7 +35,7 @@ module ActiveRecord
           sql, binds = visitor.compile(arel.ast, collector)
           query = klass.query(sql)
         else
-          collector = PartialQueryCollector.new
+          collector = klass.partial_query_collector
           parts, binds = visitor.compile(arel.ast, collector)
           query = klass.partial_query(parts)
         end
@@ -410,16 +410,6 @@ module ActiveRecord
         end
       end
 
-      # The default strategy for an UPDATE with joins is to use a subquery. This doesn't work
-      # on MySQL (even when aliasing the tables), but MySQL allows using JOIN directly in
-      # an UPDATE statement, so in the MySQL adapters we redefine this to do that.
-      def join_to_update(update, select, key) # :nodoc:
-        subselect = subquery_for(key, select)
-
-        update.where key.in(subselect)
-      end
-      alias join_to_delete join_to_update
-
       private
         def default_insert_value(column)
           Arel.sql("DEFAULT")
@@ -460,13 +450,6 @@ module ActiveRecord
           total_sql.join(";\n")
         end
 
-        # Returns a subquery for the given key using the join information.
-        def subquery_for(key, select)
-          subselect = select.clone
-          subselect.projections = [key]
-          subselect
-        end
-
         # Returns an ActiveRecord::Result instance.
         def select(sql, name = nil, binds = [])
           exec_query(sql, name, binds, prepare: false)
@@ -505,28 +488,6 @@ module ActiveRecord
             YAML.dump(value)
           else
             value
-          end
-        end
-
-        class PartialQueryCollector
-          def initialize
-            @parts = []
-            @binds = []
-          end
-
-          def <<(str)
-            @parts << str
-            self
-          end
-
-          def add_bind(obj)
-            @binds << obj
-            @parts << Arel::Nodes::BindParam.new(1)
-            self
-          end
-
-          def value
-            [@parts, @binds]
           end
         end
     end

@@ -58,7 +58,7 @@ module ActiveSupport
     #   I18n.locale = :de
     #   transliterate('Jürgen')
     #   # => "Juergen"
-    def transliterate(string, replacement = "?".freeze)
+    def transliterate(string, replacement = "?")
       raise ArgumentError, "Can only transliterate strings. Received #{string.class.name}" unless string.is_a?(String)
 
       I18n.transliterate(
@@ -97,7 +97,7 @@ module ActiveSupport
       parameterized_string.gsub!(/[^a-z0-9\-_]+/i, separator)
 
       unless separator.nil? || separator.empty?
-        if separator == "-".freeze
+        if separator == "-"
           re_duplicate_separator        = /-{2,}/
           re_leading_trailing_separator = /^-|-$/i
         else
@@ -108,7 +108,7 @@ module ActiveSupport
         # No more than one of the separator in a row.
         parameterized_string.gsub!(re_duplicate_separator, separator)
         # Remove leading/trailing separator.
-        parameterized_string.gsub!(re_leading_trailing_separator, "".freeze)
+        parameterized_string.gsub!(re_leading_trailing_separator, "")
       end
 
       parameterized_string.downcase! unless preserve_case

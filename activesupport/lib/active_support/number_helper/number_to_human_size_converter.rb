@@ -22,7 +22,7 @@ module ActiveSupport
           human_size = number / (base**exponent)
           number_to_format = NumberToRoundedConverter.convert(human_size, options)
         end
-        conversion_format.gsub("%n".freeze, number_to_format).gsub("%u".freeze, unit)
+        conversion_format.gsub("%n", number_to_format).gsub("%u", unit)
       end
 
       private

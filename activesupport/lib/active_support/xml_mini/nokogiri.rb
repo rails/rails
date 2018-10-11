@@ -38,7 +38,7 @@ module ActiveSupport
       end
 
       module Node #:nodoc:
-        CONTENT_ROOT = "__content__".freeze
+        CONTENT_ROOT = "__content__"
 
         # Convert XML document to hash.
         #

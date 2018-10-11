@@ -168,21 +168,7 @@ end_error
     initializer "active_record.initialize_database" do
       ActiveSupport.on_load(:active_record) do
         self.configurations = Rails.application.config.database_configuration
-
-        begin
-          establish_connection
-        rescue ActiveRecord::NoDatabaseError
-          warn <<-end_warning
-Oops - You have a database configured, but it doesn't exist yet!
-
-Here's how to get started:
-
-  1. Configure your database in config/database.yml.
-  2. Run `rails db:create` to create the database.
-  3. Run `rails db:setup` to load your database schema.
-end_warning
-          raise
-        end
+        establish_connection
       end
     end
 

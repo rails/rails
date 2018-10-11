@@ -78,7 +78,7 @@ module ActiveRecord
     # In addition, default connection parameters of libpq can be set per environment variables.
     # See https://www.postgresql.org/docs/current/static/libpq-envars.html .
     class PostgreSQLAdapter < AbstractAdapter
-      ADAPTER_NAME = "PostgreSQL".freeze
+      ADAPTER_NAME = "PostgreSQL"
 
       NATIVE_DATABASE_TYPES = {
         primary_key: "bigserial primary key",
@@ -448,7 +448,7 @@ module ActiveRecord
           end
         end
 
-        def get_oid_type(oid, fmod, column_name, sql_type = "".freeze)
+        def get_oid_type(oid, fmod, column_name, sql_type = "")
           if !type_map.key?(oid)
             load_additional_types([oid])
           end
@@ -537,13 +537,13 @@ module ActiveRecord
             # Quoted types
           when /\A[\(B]?'(.*)'.*::"?([\w. ]+)"?(?:\[\])?\z/m
             # The default 'now'::date is CURRENT_DATE
-            if $1 == "now".freeze && $2 == "date".freeze
+            if $1 == "now" && $2 == "date"
               nil
             else
-              $1.gsub("''".freeze, "'".freeze)
+              $1.gsub("''", "'")
             end
             # Boolean types
-          when "true".freeze, "false".freeze
+          when "true", "false"
             default
             # Numeric types
           when /\A\(?(-?\d+(\.\d*)?)\)?(::bigint)?\z/
@@ -655,7 +655,7 @@ module ActiveRecord
         #
         # Check here for more details:
         # https://git.postgresql.org/gitweb/?p=postgresql.git;a=blob;f=src/backend/utils/cache/plancache.c#l573
-        CACHED_PLAN_HEURISTIC = "cached plan must not change result type".freeze
+        CACHED_PLAN_HEURISTIC = "cached plan must not change result type"
         def is_cached_plan_failure?(e)
           pgerror = e.cause
           code = pgerror.result.result_error_field(PG::PG_DIAG_SQLSTATE)

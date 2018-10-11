@@ -8,7 +8,7 @@ module ActiveSupport
   module XmlMini_REXML #:nodoc:
     extend self
 
-    CONTENT_KEY = "__content__".freeze
+    CONTENT_KEY = "__content__"
 
     # Parse an XML Document string or IO into a simple hash.
     #

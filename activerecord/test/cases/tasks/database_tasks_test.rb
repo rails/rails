@@ -731,7 +731,7 @@ module ActiveRecord
   end
 
   if current_adapter?(:SQLite3Adapter) && !in_memory_db?
-    class DatabaseTasksMigrateTest < ActiveRecord::TestCase
+    class DatabaseTasksMigrationTestCase < ActiveRecord::TestCase
       self.use_transactional_tests = false
 
       # Use a memory db here to avoid having to rollback at the end
@@ -751,7 +751,9 @@ module ActiveRecord
         @conn.release_connection if @conn
         ActiveRecord::Base.establish_connection :arunit
       end
+    end
 
+    class DatabaseTasksMigrateTest < DatabaseTasksMigrationTestCase
       def test_migrate_set_and_unset_verbose_and_version_env_vars
         verbose, version = ENV["VERBOSE"], ENV["VERSION"]
         ENV["VERSION"] = "2"
@@ -809,6 +811,26 @@ module ActiveRecord
         def capture_migration_output
           capture(:stdout) do
             ActiveRecord::Tasks::DatabaseTasks.migrate
+          end
+        end
+    end
+
+    class DatabaseTasksMigrateStatusTest < DatabaseTasksMigrationTestCase
+      def test_migrate_status_table
+        ActiveRecord::SchemaMigration.create_table
+        output = capture_migration_status
+        assert_match(/database: :memory:/, output)
+        assert_match(/down    001             Valid people have last names/, output)
+        assert_match(/down    002             We need reminders/, output)
+        assert_match(/down    003             Innocent jointable/, output)
+        ActiveRecord::SchemaMigration.drop_table
+      end
+
+      private
+
+        def capture_migration_status
+          capture(:stdout) do
+            ActiveRecord::Tasks::DatabaseTasks.migrate_status
           end
         end
     end

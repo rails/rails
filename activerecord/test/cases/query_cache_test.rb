@@ -190,7 +190,7 @@ class QueryCacheTest < ActiveRecord::TestCase
       Task.cache do
         assert_queries(2) { Task.find(1); Task.find(2) }
       end
-      assert_queries(0) { Task.find(1); Task.find(1); Task.find(2) }
+      assert_no_queries { Task.find(1); Task.find(1); Task.find(2) }
     end
   end
 
@@ -372,7 +372,7 @@ class QueryCacheTest < ActiveRecord::TestCase
     end
 
     # Check that if the same query is run again, no queries are executed
-    assert_queries(0) do
+    assert_no_queries do
       assert_equal 0, Post.where(title: "test").to_a.count
     end
 
@@ -427,8 +427,9 @@ class QueryCacheTest < ActiveRecord::TestCase
       # Clear places where type information is cached
       Task.reset_column_information
       Task.initialize_find_by_cache
+      Task.define_attribute_methods
 
-      assert_queries(0) do
+      assert_no_queries do
         Task.find(1)
       end
     end

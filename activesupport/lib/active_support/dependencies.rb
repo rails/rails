@@ -144,7 +144,7 @@ module ActiveSupport #:nodoc:
 
           # Normalize the list of new constants, and add them to the list we will return
           new_constants.each do |suffix|
-            constants << ([namespace, suffix] - ["Object"]).join("::".freeze)
+            constants << ([namespace, suffix] - ["Object"]).join("::")
           end
         end
         constants
@@ -410,7 +410,7 @@ module ActiveSupport #:nodoc:
         next unless expanded_path.start_with?(expanded_root)
 
         root_size = expanded_root.size
-        next if expanded_path[root_size] != ?/.freeze
+        next if expanded_path[root_size] != ?/
 
         nesting = expanded_path[(root_size + 1)..-1]
         paths << nesting.camelize unless nesting.blank?
@@ -505,7 +505,7 @@ module ActiveSupport #:nodoc:
 
       if file_path
         expanded = File.expand_path(file_path)
-        expanded.sub!(/\.rb\z/, "".freeze)
+        expanded.sub!(/\.rb\z/, "")
 
         if loading.include?(expanded)
           raise "Circular dependency detected while autoloading constant #{qualified_name}"
@@ -521,8 +521,8 @@ module ActiveSupport #:nodoc:
         end
       elsif mod = autoload_module!(from_mod, const_name, qualified_name, path_suffix)
         return mod
-      elsif (parent = from_mod.parent) && parent != from_mod &&
-            ! from_mod.parents.any? { |p| p.const_defined?(const_name, false) }
+      elsif (parent = from_mod.module_parent) && parent != from_mod &&
+            ! from_mod.module_parents.any? { |p| p.const_defined?(const_name, false) }
         # If our parents do not have a constant named +const_name+ then we are free
         # to attempt to load upwards. If they do have such a constant, then this
         # const_missing must be due to from_mod::const_name, which should not

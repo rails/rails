@@ -43,8 +43,8 @@ module ActiveSupport
       "Time"
     end
 
-    PRECISIONS = Hash.new { |h, n| h[n] = "%FT%T.%#{n}N".freeze }
-    PRECISIONS[0] = "%FT%T".freeze
+    PRECISIONS = Hash.new { |h, n| h[n] = "%FT%T.%#{n}N" }
+    PRECISIONS[0] = "%FT%T"
 
     include Comparable, DateAndTime::Compatibility
     attr_reader :time_zone
@@ -147,7 +147,7 @@ module ActiveSupport
     #
     #   Time.zone.now.xmlschema  # => "2014-12-04T11:02:37-05:00"
     def xmlschema(fraction_digits = 0)
-      "#{time.strftime(PRECISIONS[fraction_digits.to_i])}#{formatted_offset(true, 'Z'.freeze)}"
+      "#{time.strftime(PRECISIONS[fraction_digits.to_i])}#{formatted_offset(true, 'Z')}"
     end
     alias_method :iso8601, :xmlschema
     alias_method :rfc3339, :xmlschema

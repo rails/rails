@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# -*- frozen-string-literal: true -*-
-
 require "singleton"
 require "active_support/core_ext/string/starts_ends_with"
 
@@ -74,7 +72,7 @@ module Mime
       def initialize(index, name, q = nil)
         @index = index
         @name = name
-        q ||= 0.0 if @name == "*/*".freeze # Default wildcard match to end of list.
+        q ||= 0.0 if @name == "*/*" # Default wildcard match to end of list.
         @q = ((q || 1.0).to_f * 100).to_i
       end
 

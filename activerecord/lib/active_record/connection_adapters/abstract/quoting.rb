@@ -60,7 +60,7 @@ module ActiveRecord
       # Quotes a string, escaping any ' (single quote) and \ (backslash)
       # characters.
       def quote_string(s)
-        s.gsub('\\'.freeze, '\&\&'.freeze).gsub("'".freeze, "''".freeze) # ' (for ruby-mode)
+        s.gsub('\\', '\&\&').gsub("'", "''") # ' (for ruby-mode)
       end
 
       # Quotes the column name. Defaults to no quoting.
@@ -95,7 +95,7 @@ module ActiveRecord
       end
 
       def quoted_true
-        "TRUE".freeze
+        "TRUE"
       end
 
       def unquoted_true
@@ -103,7 +103,7 @@ module ActiveRecord
       end
 
       def quoted_false
-        "FALSE".freeze
+        "FALSE"
       end
 
       def unquoted_false

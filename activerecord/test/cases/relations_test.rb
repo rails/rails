@@ -1812,6 +1812,16 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal "Thank you for the welcome,Thank you again for the welcome", Post.first.comments.join(",")
   end
 
+  def test_relation_with_private_kernel_method
+    accounts = Account.all
+    assert_equal [accounts(:signals37)], accounts.open
+    assert_equal [accounts(:signals37)], accounts.available
+
+    sub_accounts = SubAccount.all
+    assert_equal [accounts(:signals37)], sub_accounts.open
+    assert_equal [accounts(:signals37)], sub_accounts.available
+  end
+
   test "#skip_query_cache!" do
     Post.cache do
       assert_queries(1) do

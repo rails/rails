@@ -672,6 +672,17 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
     assert_equal "bender", slice["login"]
   end
 
+  def test_indifferent_without
+    original = { a: "x", b: "y", c: 10 }.with_indifferent_access
+    expected = { c: 10 }.with_indifferent_access
+
+    [["a", "b"], [:a, :b]].each do |keys|
+      # Should return a new hash without the given keys.
+      assert_equal expected, original.without(*keys), keys.inspect
+      assert_not_equal expected, original
+    end
+  end
+
   def test_indifferent_extract
     original = { :a => 1, "b" => 2, :c => 3, "d" => 4 }.with_indifferent_access
     expected = { a: 1, b: 2 }.with_indifferent_access

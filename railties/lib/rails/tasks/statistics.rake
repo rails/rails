@@ -11,6 +11,7 @@ STATS_DIRECTORIES = [
   %w(Mailers            app/mailers),
   %w(Channels           app/channels),
   %w(JavaScripts        app/assets/javascripts),
+  %w(JavaScript         app/javascript),
   %w(Libraries          lib/),
   %w(APIs               app/apis),
   %w(Controller\ tests  test/controllers),

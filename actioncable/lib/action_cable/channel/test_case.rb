@@ -131,7 +131,7 @@ module ActionCable
     #
     # == Specifying connection identifiers
     #
-    # You need to set up your connection manually to privide values for the identifiers.
+    # You need to set up your connection manually to provide values for the identifiers.
     # To do this just use:
     #
     #   stub_connection(user: users[:john])
@@ -212,7 +212,7 @@ module ActionCable
           @connection = ConnectionStub.new(identifiers)
         end
 
-        # Subsribe to the channel under test. Optionally pass subscription parameters as a Hash.
+        # Subscribe to the channel under test. Optionally pass subscription parameters as a Hash.
         def subscribe(params = {})
           @connection ||= stub_connection
           @subscription = self.class.channel_class.new(connection, CHANNEL_IDENTIFIER, params.with_indifferent_access)

@@ -185,7 +185,7 @@ The controller generator is expecting parameters in the form of `generate contro
 ```bash
 $ rails generate controller Greetings hello
      create  app/controllers/greetings_controller.rb
-      route  get "greetings/hello"
+      route  get 'greetings/hello'
      invoke  erb
      create    app/views/greetings
      create    app/views/greetings/hello.html.erb
@@ -193,9 +193,8 @@ $ rails generate controller Greetings hello
      create    test/controllers/greetings_controller_test.rb
      invoke  helper
      create    app/helpers/greetings_helper.rb
+     invoke    test_unit
      invoke  assets
-     invoke    coffee
-     create      app/assets/javascripts/greetings.coffee
      invoke    scss
      create      app/assets/stylesheets/greetings.scss
 ```
