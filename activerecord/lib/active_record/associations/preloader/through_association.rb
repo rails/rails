@@ -64,20 +64,24 @@ module ActiveRecord
               scope.where_clause = reflection_scope.where_clause
               values = reflection_scope.values
 
+              if klass.finder_needs_type_condition?
+                scope.unscope!(where: klass.inheritance_column)
+              end
+
               if includes = values[:includes]
                 scope.includes!(source_reflection.name => includes)
               else
                 scope.includes!(source_reflection.name)
               end
 
-              if values[:references] && !values[:references].empty?
-                scope.references!(values[:references])
-              else
-                scope.references!(source_reflection.table_name)
+              if references = values[:references]
+                scope.references!(references)
               end
 
               if joins = values[:joins]
                 scope.joins!(source_reflection.name => joins)
+              else
+                scope.joins!(source_reflection.name)
               end
 
               if left_outer_joins = values[:left_outer_joins]
