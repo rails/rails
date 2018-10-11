@@ -120,13 +120,6 @@ module ActiveSupport #:nodoc:
         slice(0...translate_offset(limit))
       end
 
-      # Converts the first character to uppercase and the remainder to lowercase.
-      #
-      #  'über'.mb_chars.capitalize.to_s # => "Über"
-      def capitalize
-        (slice(0) || chars("")).upcase + (slice(1..-1) || chars("")).downcase
-      end
-
       # Capitalizes the first letter of every word, when possible.
       #
       #   "ÉL QUE SE ENTERÓ".mb_chars.titleize.to_s    # => "Él Que Se Enteró"
@@ -184,7 +177,7 @@ module ActiveSupport #:nodoc:
         to_s.as_json(options)
       end
 
-      %w(capitalize reverse tidy_bytes).each do |method|
+      %w(reverse tidy_bytes).each do |method|
         define_method("#{method}!") do |*args|
           @wrapped_string = send(method, *args).to_s
           self
