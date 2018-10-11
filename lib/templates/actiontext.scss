@@ -5,7 +5,7 @@
 //
 //= require trix/dist/trix
 
-// We need to override trix.css’s image gallery styles to accomodate the
+// We need to override trix.css’s image gallery styles to accommodate the
 // <active-text-attachment> element we wrap around attachments. Otherwise,
 // images in galleries will be squished by the max-width: 33%; rule.
 .trix-content {
