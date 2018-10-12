@@ -1,3 +1,8 @@
+*   Deprecate `ActiveSupport::Multibyte::Unicode#normalize` and `ActiveSuppport::Multibyte::Chars#normalize`
+    in favor of `String#unicode_normalize`
+
+    *Francesco Rodríguez*
+
 *   Add `ActiveSupport::ParameterFilter`.
 
     *Yoshiyuki Kinjo*
