@@ -120,40 +120,12 @@ module ActiveSupport #:nodoc:
         slice(0...translate_offset(limit))
       end
 
-      # Converts characters in the string to uppercase.
-      #
-      #   'Laurent, où sont les tests ?'.mb_chars.upcase.to_s # => "LAURENT, OÙ SONT LES TESTS ?"
-      def upcase
-        chars Unicode.upcase(@wrapped_string)
-      end
-
-      # Converts characters in the string to lowercase.
-      #
-      #   'VĚDA A VÝZKUM'.mb_chars.downcase.to_s # => "věda a výzkum"
-      def downcase
-        chars Unicode.downcase(@wrapped_string)
-      end
-
-      # Converts characters in the string to the opposite case.
-      #
-      #    'El Cañón'.mb_chars.swapcase.to_s # => "eL cAÑÓN"
-      def swapcase
-        chars Unicode.swapcase(@wrapped_string)
-      end
-
-      # Converts the first character to uppercase and the remainder to lowercase.
-      #
-      #  'über'.mb_chars.capitalize.to_s # => "Über"
-      def capitalize
-        (slice(0) || chars("")).upcase + (slice(1..-1) || chars("")).downcase
-      end
-
       # Capitalizes the first letter of every word, when possible.
       #
       #   "ÉL QUE SE ENTERÓ".mb_chars.titleize.to_s    # => "Él Que Se Enteró"
       #   "日本語".mb_chars.titleize.to_s               # => "日本語"
       def titleize
-        chars(downcase.to_s.gsub(/\b('?\S)/u) { Unicode.upcase($1) })
+        chars(downcase.to_s.gsub(/\b('?\S)/u) { $1.upcase })
       end
       alias_method :titlecase, :titleize
 
@@ -205,7 +177,7 @@ module ActiveSupport #:nodoc:
         to_s.as_json(options)
       end
 
-      %w(capitalize downcase reverse tidy_bytes upcase).each do |method|
+      %w(reverse tidy_bytes).each do |method|
         define_method("#{method}!") do |*args|
           @wrapped_string = send(method, *args).to_s
           self

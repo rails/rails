@@ -1,3 +1,8 @@
+*   Deprecate `ActiveSupport::Multibyte::Unicode#downcase/upcase/swapcase` in favor of
+    `String#downcase/upcase/swapcase`.
+
+    *Francesco Rodríguez*
+
 *   Add `ActiveSupport::ParameterFilter`.
 
     *Yoshiyuki Kinjo*

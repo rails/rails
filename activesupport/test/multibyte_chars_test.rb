@@ -477,7 +477,7 @@ class MultibyteCharsUTF8BehaviourTest < ActiveSupport::TestCase
 
   def test_method_works_for_proxyed_methods
     assert_equal "ll", "hello".mb_chars.method(:slice).call(2..3) # Defined on Chars
-    chars = "hello".mb_chars
+    chars = +"hello".mb_chars
     assert_equal "Hello", chars.method(:capitalize!).call # Defined on Chars
     assert_equal "Hello", chars
     assert_equal "jello", "hello".mb_chars.method(:gsub).call(/h/, "j") # Defined on String
@@ -717,6 +717,12 @@ class MultibyteCharsExtrasTest < ActiveSupport::TestCase
 
   def test_class_is_not_forwarded
     assert_equal BYTE_STRING.dup.mb_chars.class, ActiveSupport::Multibyte::Chars
+  end
+
+  def test_unicode_deprecations
+    assert_deprecated { ActiveSupport::Multibyte::Unicode.downcase("") }
+    assert_deprecated { ActiveSupport::Multibyte::Unicode.upcase("") }
+    assert_deprecated { ActiveSupport::Multibyte::Unicode.swapcase("") }
   end
 
   private
