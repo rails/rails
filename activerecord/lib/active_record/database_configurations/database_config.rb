@@ -21,6 +21,10 @@ module ActiveRecord
         raise NotImplementedError
       end
 
+      def fixtures_paths
+        raise NotImplementedError
+      end
+
       def url_config?
         false
       end

@@ -1,3 +1,14 @@
+*   Adds `fixtures_paths` option to database configurations.
+
+    ```
+    test:
+      adapter: sqlite3
+      database: db/test.sqlite3
+      fixtures_paths: test/my_fixtures
+    ```
+
+    *Gannon McGibbon*
+
 *   Fix join table column quoting with SQLite.
 
     *Gannon McGibbon*

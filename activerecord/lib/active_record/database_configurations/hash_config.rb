@@ -45,6 +45,13 @@ module ActiveRecord
       def migrations_paths
         config["migrations_paths"]
       end
+
+      # The fixtures path for a database configuration. If the
+      # `fixtures_paths` key is present in the config, `fixtures_paths`
+      # will return its value.
+      def fixtures_paths
+        config["fixtures_paths"]
+      end
     end
   end
 end

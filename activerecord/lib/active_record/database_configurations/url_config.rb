@@ -55,6 +55,13 @@ module ActiveRecord
         config["migrations_paths"]
       end
 
+      # The fixtures path for a database configuration. If the
+      # `fixtures_paths` key is present in the config, `fixtures_paths`
+      # will return its value.
+      def fixtures_paths
+        config["fixtures_paths"]
+      end
+
       private
         def build_config(original_config, url)
           if /^jdbc:/.match?(url)
