@@ -165,7 +165,9 @@ class MultibyteCharsUTF8BehaviourTest < ActiveSupport::TestCase
     assert chars("").upcase.kind_of?(ActiveSupport::Multibyte.proxy_class)
     assert chars("").downcase.kind_of?(ActiveSupport::Multibyte.proxy_class)
     assert chars("").capitalize.kind_of?(ActiveSupport::Multibyte.proxy_class)
-    assert chars("").normalize.kind_of?(ActiveSupport::Multibyte.proxy_class)
+    ActiveSupport::Deprecation.silence do
+      assert chars("").normalize.kind_of?(ActiveSupport::Multibyte.proxy_class)
+    end
     assert chars("").decompose.kind_of?(ActiveSupport::Multibyte.proxy_class)
     assert chars("").compose.kind_of?(ActiveSupport::Multibyte.proxy_class)
     assert chars("").tidy_bytes.kind_of?(ActiveSupport::Multibyte.proxy_class)
@@ -383,10 +385,12 @@ class MultibyteCharsUTF8BehaviourTest < ActiveSupport::TestCase
   def test_reverse_should_work_with_normalized_strings
     str = "bös"
     reversed_str = "söb"
-    assert_equal chars(reversed_str).normalize(:kc), chars(str).normalize(:kc).reverse
-    assert_equal chars(reversed_str).normalize(:c), chars(str).normalize(:c).reverse
-    assert_equal chars(reversed_str).normalize(:d), chars(str).normalize(:d).reverse
-    assert_equal chars(reversed_str).normalize(:kd), chars(str).normalize(:kd).reverse
+    ActiveSupport::Deprecation.silence do
+      assert_equal chars(reversed_str).normalize(:kc), chars(str).normalize(:kc).reverse
+      assert_equal chars(reversed_str).normalize(:c), chars(str).normalize(:c).reverse
+      assert_equal chars(reversed_str).normalize(:d), chars(str).normalize(:d).reverse
+      assert_equal chars(reversed_str).normalize(:kd), chars(str).normalize(:kd).reverse
+    end
     assert_equal chars(reversed_str).decompose, chars(str).decompose.reverse
     assert_equal chars(reversed_str).compose, chars(str).compose.reverse
   end
@@ -568,7 +572,9 @@ class MultibyteCharsExtrasTest < ActiveSupport::TestCase
   def test_composition_exclusion_is_set_up_properly
     # Normalization of DEVANAGARI LETTER QA breaks when composition exclusion isn't used correctly
     qa = [0x915, 0x93c].pack("U*")
-    assert_equal qa, chars(qa).normalize(:c)
+    ActiveSupport::Deprecation.silence do
+      assert_equal qa, chars(qa).normalize(:c)
+    end
   end
 
   # Test for the Public Review Issue #29, bad explanation of composition might lead to a
@@ -578,17 +584,21 @@ class MultibyteCharsExtrasTest < ActiveSupport::TestCase
       [0x0B47, 0x0300, 0x0B3E],
       [0x1100, 0x0300, 0x1161]
     ].map { |c| c.pack("U*") }.each do |c|
-      assert_equal_codepoints c, chars(c).normalize(:c)
+      ActiveSupport::Deprecation.silence do
+        assert_equal_codepoints c, chars(c).normalize(:c)
+      end
     end
   end
 
   def test_normalization_shouldnt_strip_null_bytes
     null_byte_str = "Test\0test"
 
-    assert_equal null_byte_str, chars(null_byte_str).normalize(:kc)
-    assert_equal null_byte_str, chars(null_byte_str).normalize(:c)
-    assert_equal null_byte_str, chars(null_byte_str).normalize(:d)
-    assert_equal null_byte_str, chars(null_byte_str).normalize(:kd)
+    ActiveSupport::Deprecation.silence do
+      assert_equal null_byte_str, chars(null_byte_str).normalize(:kc)
+      assert_equal null_byte_str, chars(null_byte_str).normalize(:c)
+      assert_equal null_byte_str, chars(null_byte_str).normalize(:d)
+      assert_equal null_byte_str, chars(null_byte_str).normalize(:kd)
+    end
     assert_equal null_byte_str, chars(null_byte_str).decompose
     assert_equal null_byte_str, chars(null_byte_str).compose
   end
@@ -601,11 +611,13 @@ class MultibyteCharsExtrasTest < ActiveSupport::TestCase
       323 # COMBINING DOT BELOW
     ].pack("U*")
 
-    assert_equal_codepoints "", chars("").normalize
-    assert_equal_codepoints [44, 105, 106, 328, 323].pack("U*"), chars(comp_str).normalize(:kc).to_s
-    assert_equal_codepoints [44, 307, 328, 323].pack("U*"), chars(comp_str).normalize(:c).to_s
-    assert_equal_codepoints [44, 307, 110, 780, 78, 769].pack("U*"), chars(comp_str).normalize(:d).to_s
-    assert_equal_codepoints [44, 105, 106, 110, 780, 78, 769].pack("U*"), chars(comp_str).normalize(:kd).to_s
+    ActiveSupport::Deprecation.silence do
+      assert_equal_codepoints "", chars("").normalize
+      assert_equal_codepoints [44, 105, 106, 328, 323].pack("U*"), chars(comp_str).normalize(:kc).to_s
+      assert_equal_codepoints [44, 307, 328, 323].pack("U*"), chars(comp_str).normalize(:c).to_s
+      assert_equal_codepoints [44, 307, 110, 780, 78, 769].pack("U*"), chars(comp_str).normalize(:d).to_s
+      assert_equal_codepoints [44, 105, 106, 110, 780, 78, 769].pack("U*"), chars(comp_str).normalize(:kd).to_s
+    end
   end
 
   def test_should_compute_grapheme_length
@@ -717,6 +729,35 @@ class MultibyteCharsExtrasTest < ActiveSupport::TestCase
 
   def test_class_is_not_forwarded
     assert_equal BYTE_STRING.dup.mb_chars.class, ActiveSupport::Multibyte::Chars
+  end
+
+  def test_unicode_normalize_deprecation
+    # String#unicode_normalize default form is `:nfc`, and
+    # different than Multibyte::Unicode default, `:nkfc`.
+    # Deprecation should suggest the right form if no params
+    # are given and default is used.
+    assert_deprecated(/unicode_normalize\(:nfkc\)/) do
+      ActiveSupport::Multibyte::Unicode.normalize("")
+    end
+
+    assert_deprecated(/unicode_normalize\(:nfd\)/) do
+      ActiveSupport::Multibyte::Unicode.normalize("", :d)
+    end
+  end
+
+  def test_chars_normalize_deprecation
+    # String#unicode_normalize default form is `:nfc`, and
+    # different than Multibyte::Unicode default, `:nkfc`.
+    # Deprecation should suggest the right form if no params
+    # are given and default is used.
+    assert_deprecated(/unicode_normalize\(:nfkc\)/) do
+      "".mb_chars.normalize
+    end
+
+    assert_deprecated(/unicode_normalize\(:nfc\)/) { "".mb_chars.normalize(:c) }
+    assert_deprecated(/unicode_normalize\(:nfd\)/) { "".mb_chars.normalize(:d) }
+    assert_deprecated(/unicode_normalize\(:nfkc\)/) { "".mb_chars.normalize(:kc) }
+    assert_deprecated(/unicode_normalize\(:nfkd\)/) { "".mb_chars.normalize(:kd) }
   end
 
   def test_unicode_deprecations

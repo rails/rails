@@ -6,9 +6,16 @@ module ActiveSupport
       extend self
 
       # A list of all available normalization forms.
-      # See http://www.unicode.org/reports/tr15/tr15-29.html for more
+      # See https://www.unicode.org/reports/tr15/tr15-29.html for more
       # information about normalization.
       NORMALIZATION_FORMS = [:c, :kc, :d, :kd]
+
+      NORMALIZATION_FORM_ALIASES = { # :nodoc:
+        c: :nfc,
+        d: :nfd,
+        kc: :nfkc,
+        kd: :nfkd
+      }
 
       # The Unicode version that is supported by the implementation
       UNICODE_VERSION = RbConfig::CONFIG["UNICODE_VERSION"]
@@ -100,17 +107,21 @@ module ActiveSupport
       #   Default is ActiveSupport::Multibyte::Unicode.default_normalization_form.
       def normalize(string, form = nil)
         form ||= @default_normalization_form
-        # See http://www.unicode.org/reports/tr15, Table 1
-        case form
-        when :d
-          string.unicode_normalize(:nfd)
-        when :c
-          string.unicode_normalize(:nfc)
-        when :kd
-          string.unicode_normalize(:nfkd)
-        when :kc
-          string.unicode_normalize(:nfkc)
+
+        # See https://www.unicode.org/reports/tr15, Table 1
+        if alias_form = NORMALIZATION_FORM_ALIASES[form]
+          ActiveSupport::Deprecation.warn(<<-MSG.squish)
+            ActiveSupport::Multibyte::Unicode#normalize is deprecated and will be
+            removed from Rails 6.1. Use String#unicode_normalize(:#{alias_form}) instead.
+          MSG
+
+          string.unicode_normalize(alias_form)
         else
+          ActiveSupport::Deprecation.warn(<<-MSG.squish)
+            ActiveSupport::Multibyte::Unicode#normalize is deprecated and will be
+            removed from Rails 6.1. Use String#unicode_normalize instead.
+          MSG
+
           raise ArgumentError, "#{form} is not a valid normalization variant", caller
         end
       end

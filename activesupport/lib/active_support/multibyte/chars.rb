@@ -17,7 +17,7 @@ module ActiveSupport #:nodoc:
     # through the +mb_chars+ method. Methods which would normally return a
     # String object now return a Chars object so methods can be chained.
     #
-    #   'The Perfect String  '.mb_chars.downcase.strip.normalize
+    #   'The Perfect String  '.mb_chars.downcase.strip
     #   # => #<ActiveSupport::Multibyte::Chars:0x007fdc434ccc10 @wrapped_string="the perfect string">
     #
     # Chars objects are perfectly interchangeable with String objects as long as
@@ -137,7 +137,24 @@ module ActiveSupport #:nodoc:
       #   <tt>:c</tt>, <tt>:kc</tt>, <tt>:d</tt>, or <tt>:kd</tt>. Default is
       #   ActiveSupport::Multibyte::Unicode.default_normalization_form
       def normalize(form = nil)
-        chars(Unicode.normalize(@wrapped_string, form))
+        form ||= Unicode.default_normalization_form
+
+        # See https://www.unicode.org/reports/tr15, Table 1
+        if alias_form = Unicode::NORMALIZATION_FORM_ALIASES[form]
+          ActiveSupport::Deprecation.warn(<<-MSG.squish)
+            ActiveSupport::Multibyte::Chars#normalize is deprecated and will be
+            removed from Rails 6.1. Use #unicode_normalize(:#{alias_form}) instead.
+          MSG
+
+          send(:unicode_normalize, alias_form)
+        else
+          ActiveSupport::Deprecation.warn(<<-MSG.squish)
+            ActiveSupport::Multibyte::Chars#normalize is deprecated and will be
+            removed from Rails 6.1. Use #unicode_normalize instead.
+          MSG
+
+          raise ArgumentError, "#{form} is not a valid normalization variant", caller
+        end
       end
 
       # Performs canonical decomposition on all the characters.
