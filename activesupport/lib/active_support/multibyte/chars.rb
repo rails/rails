@@ -167,7 +167,7 @@ module ActiveSupport #:nodoc:
       def normalize(form = nil)
         form ||= Unicode.default_normalization_form
 
-        # See https//www.unicode.org/reports/tr15, Table 1
+        # See https://www.unicode.org/reports/tr15, Table 1
         if alias_form = Unicode::NORMALIZATION_FORM_ALIASES[form]
           ActiveSupport::Deprecation.warn(<<-MSG.squish)
             ActiveSupport::Multibyte::Chars#normalize is deprecated and will be

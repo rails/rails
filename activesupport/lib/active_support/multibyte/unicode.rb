@@ -108,7 +108,7 @@ module ActiveSupport
       def normalize(string, form = nil)
         form ||= @default_normalization_form
 
-        # See https//www.unicode.org/reports/tr15, Table 1
+        # See https://www.unicode.org/reports/tr15, Table 1
         if alias_form = NORMALIZATION_FORM_ALIASES[form]
           ActiveSupport::Deprecation.warn(<<-MSG.squish)
             ActiveSupport::Multibyte::Unicode#normalize is deprecated and will be
