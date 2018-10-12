@@ -25,6 +25,8 @@ require "models/user"
 require "models/member"
 require "models/membership"
 require "models/sponsor"
+require "models/lesson"
+require "models/student"
 require "models/country"
 require "models/treaty"
 require "models/vertex"
@@ -778,6 +780,16 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     developer.reload
     assert_equal 2, developer.projects.length
     assert_equal [projects(:active_record), projects(:action_controller)].map(&:id).sort, developer.project_ids.sort
+  end
+
+  def test_singular_ids_are_reloaded_after_collection_concat
+    student = Student.create(name: "Alberto Almagro")
+    student.lesson_ids
+
+    lesson = Lesson.create(name: "DSI")
+    student.lessons << lesson
+
+    assert_includes student.lesson_ids, lesson.id
   end
 
   def test_scoped_find_on_through_association_doesnt_return_read_only_records
