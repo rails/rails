@@ -12,11 +12,11 @@ copy_file "#{__dir__}/../../app/views/active_storage/blobs/_blob.html.erb",
 say "Installing JavaScript dependency"
 run "yarn add https://github.com/rails/actiontext"
 
-APPLICATION_PATH_PATH = "app/javascript/packs/application.js"
+APPLICATION_PACK_PATH = "app/javascript/packs/application.js"
 
-if File.exists?(APPLICATION_PATH_PATH) && File.read(APPLICATION_PATH_PATH) !~ /import "actiontext"/
+if File.exists?(APPLICATION_PACK_PATH) && File.read(APPLICATION_PACK_PATH) !~ /import "actiontext"/
   say "Adding import to default JavaScript pack"
-  append_to_file APPLICATION_PATH_PATH, <<-EOS
+  append_to_file APPLICATION_PACK_PATH, <<-EOS
 import "actiontext"
 EOS
 end
