@@ -49,11 +49,16 @@ module ActionDispatch
 
       # Follow a single redirect response. If the last response was not a
       # redirect, an exception will be raised. Otherwise, the redirect is
-      # performed on the location header. Any arguments are passed to the
-      # underlying call to `get`.
+      # performed on the location header. If the redirection is a 307 redirect,
+      # the same HTTP verb will be used when redirecting, otherwise a GET request
+      # will be performed. Any arguments are passed to the
+      # underlying request.
       def follow_redirect!(**args)
         raise "not a redirect! #{status} #{status_message}" unless redirect?
-        get(response.location, **args)
+
+        method = response.status == 307 ? request.method.downcase : :get
+        public_send(method, response.location, **args)
+
         status
       end
     end
