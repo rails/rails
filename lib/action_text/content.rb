@@ -64,9 +64,9 @@ module ActionText
       self.class.new(content, canonicalize: false)
     end
 
-    def render_attachment_galleries(**options, &block)
+    def render_attachment_galleries(&block)
       content = ActionText::AttachmentGallery.fragment_by_replacing_attachment_gallery_nodes(fragment) do |node|
-        block.call(attachment_gallery_for_node(node, **options))
+        block.call(attachment_gallery_for_node(node))
       end
       self.class.new(content, canonicalize: false)
     end
@@ -119,7 +119,7 @@ module ActionText
         with_full_attributes ? attachment.with_full_attributes : attachment
       end
 
-      def attachment_gallery_for_node(node, **options)
+      def attachment_gallery_for_node(node)
         ActionText::AttachmentGallery.from_node(node)
       end
   end
