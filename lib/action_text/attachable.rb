@@ -68,14 +68,14 @@ module ActionText
     end
 
     def to_rich_text_attributes(attributes = {})
-      attributes.dup.tap do |attributes|
-        attributes[:sgid] = attachable_sgid
-        attributes[:content_type] = attachable_content_type
-        attributes[:previewable] = true if previewable_attachable?
-        attributes[:filename] = attachable_filename
-        attributes[:filesize] = attachable_filesize
-        attributes[:width] = attachable_metadata[:width]
-        attributes[:height] = attachable_metadata[:height]
+      attributes.dup.tap do |attrs|
+        attrs[:sgid] = attachable_sgid
+        attrs[:content_type] = attachable_content_type
+        attrs[:previewable] = true if previewable_attachable?
+        attrs[:filename] = attachable_filename
+        attrs[:filesize] = attachable_filesize
+        attrs[:width] = attachable_metadata[:width]
+        attrs[:height] = attachable_metadata[:height]
       end.compact
     end
   end
