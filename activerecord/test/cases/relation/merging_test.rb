@@ -123,7 +123,10 @@ class RelationMergingTest < ActiveRecord::TestCase
   end
 
   def test_merging_with_from_clause_on_different_class
-    assert Comment.joins(:post).merge(Post.from("posts")).first
+    relation = Comment.joins(:post)
+    assert_empty relation.from_clause
+    relation = relation.merge(Post.from("posts"))
+    assert_empty relation.from_clause
   end
 
   def test_merging_with_order_with_binds
