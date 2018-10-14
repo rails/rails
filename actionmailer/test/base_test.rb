@@ -152,9 +152,9 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal(2, email.parts.length)
     assert_equal("multipart/mixed", email.mime_type)
     assert_equal("text/html", email.parts[0].mime_type)
-    assert_equal("Attachment with content", email.parts[0].body.encoded)
+    assert_equal("Attachment with content", email.parts[0].decoded)
     assert_equal("application/pdf", email.parts[1].mime_type)
-    assert_equal("VGhpcyBpcyB0ZXN0IEZpbGUgY29udGVudA==\r\n", email.parts[1].body.encoded)
+    assert_equal("This is test File content", email.parts[1].decoded)
   end
 
   test "adds the given :body as part" do
@@ -162,9 +162,9 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal(2, email.parts.length)
     assert_equal("multipart/mixed", email.mime_type)
     assert_equal("text/plain", email.parts[0].mime_type)
-    assert_equal("I'm the eggman", email.parts[0].body.encoded)
+    assert_equal("I'm the eggman", email.parts[0].decoded)
     assert_equal("application/pdf", email.parts[1].mime_type)
-    assert_equal("VGhpcyBpcyB0ZXN0IEZpbGUgY29udGVudA==\r\n", email.parts[1].body.encoded)
+    assert_equal("This is test File content", email.parts[1].decoded)
   end
 
   test "can embed an inline attachment" do
