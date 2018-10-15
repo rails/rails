@@ -90,6 +90,12 @@ db_namespace = namespace :db do
         raise "unknown schema format #{ActiveRecord::Base.schema_format}"
       end
     end
+    if ActiveRecord::Base.dump_schema_cache_after_migration
+      schema_cache_path = File.join(Rails.application.config.paths["db"].first, "schema_cache.yml")
+      if File.file?(schema_cache_path)
+        db_namespace["schema:cache:dump"].invoke
+      end
+    end
     # Allow this task to be called as many times as required. An example is the
     # migrate:redo task, which calls other two internally that depend on this one.
     db_namespace["_dump"].reenable
