@@ -39,7 +39,7 @@ module ActiveRecord
           end
 
           def visit_TableDefinition(o)
-            create_sql = +"CREATE#{' TEMPORARY' if o.temporary} TABLE "
+            create_sql = +"CREATE#{table_modifier_in_create(o)} TABLE "
             create_sql << "IF NOT EXISTS " if o.if_not_exists
             create_sql << "#{quote_table_name(o.name)} "
 
@@ -119,6 +119,11 @@ module ActiveRecord
           def to_sql(sql)
             sql = sql.to_sql if sql.respond_to?(:to_sql)
             sql
+          end
+
+          # Returns any SQL string to go between CREATE and TABLE. May be nil.
+          def table_modifier_in_create(o)
+            " TEMPORARY" if o.temporary
           end
 
           def foreign_key_in_create(from_table, to_table, options)

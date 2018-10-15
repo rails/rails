@@ -379,6 +379,14 @@ The MySQL adapter adds one additional configuration option:
 
 * `ActiveRecord::ConnectionAdapters::Mysql2Adapter.emulate_booleans` controls whether Active Record will consider all `tinyint(1)` columns as booleans. Defaults to `true`.
 
+The PostgreSQL adapter adds one additional configuration option:
+
+* `ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.create_unlogged_tables`
+  controls whether database tables created should be "unlogged," which can speed
+  up performance but adds a risk of data loss if the database crashes. It is
+  highly recommended that you do not enable this in a production environment.
+  Defaults to `false` in all environments.
+
 The SQLite3Adapter adapter adds one additional configuration option:
 
 * `ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer`
