@@ -1,3 +1,12 @@
+*   Fix duration being rounded to a full second.
+    ```
+      time = DateTime.parse("2018-1-1")
+      time += 0.51.seconds
+    ```
+    Will now correctly add 0.51 second and not 1 full second.
+
+    *Edouard Chin*
+
 *   Deprecate `ActiveSupport::Multibyte::Unicode#normalize` and `ActiveSuppport::Multibyte::Chars#normalize`
     in favor of `String#unicode_normalize`
 
