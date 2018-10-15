@@ -73,9 +73,15 @@ class MultibyteCharsTest < ActiveSupport::TestCase
   end
 
   def test_consumes_utf8_strings
-    assert @proxy_class.consumes?(UNICODE_STRING)
-    assert @proxy_class.consumes?(ASCII_STRING)
-    assert_not @proxy_class.consumes?(BYTE_STRING)
+    ActiveSupport::Deprecation.silence do
+      assert @proxy_class.consumes?(UNICODE_STRING)
+      assert @proxy_class.consumes?(ASCII_STRING)
+      assert_not @proxy_class.consumes?(BYTE_STRING)
+    end
+  end
+
+  def test_consumes_is_deprecated
+    assert_deprecated { @proxy_class.consumes?(UNICODE_STRING) }
   end
 
   def test_concatenation_should_return_a_proxy_class_instance
