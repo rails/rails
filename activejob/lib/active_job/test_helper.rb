@@ -197,7 +197,7 @@ module ActiveJob
     #     assert_performed_jobs 2
     #   end
     #
-    # If a block is passed, that block should cause the specified number of
+    # If a block is passed, asserts that the block will cause the specified number of
     # jobs to be performed.
     #
     #   def test_jobs_again
@@ -279,7 +279,7 @@ module ActiveJob
     #     end
     #   end
     #
-    # If a block is passed, that block should not cause any job to be performed.
+    # If a block is passed, asserts that the block will not cause any job to be performed.
     #
     #   def test_jobs_again
     #     assert_no_performed_jobs do
@@ -347,7 +347,7 @@ module ActiveJob
     #   end
     #
     #
-    # If a block is passed, that block should cause the job to be
+    # If a block is passed, asserts that the block will cause the job to be
     # enqueued with the given arguments.
     #
     #   def test_assert_enqueued_with
