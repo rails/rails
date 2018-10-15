@@ -76,6 +76,11 @@ module ActiveSupport #:nodoc:
       # Returns +true+ when the proxy class can handle the string. Returns
       # +false+ otherwise.
       def self.consumes?(string)
+        ActiveSupport::Deprecation.warn(<<-MSG.squish)
+          ActiveSupport::Multibyte::Chars.consumes? is deprecated and will be
+          removed from Rails 6.1. Use string.is_utf8? instead.
+        MSG
+
         string.encoding == Encoding::UTF_8
       end
 

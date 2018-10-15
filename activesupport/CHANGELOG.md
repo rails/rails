@@ -1,3 +1,7 @@
+*   Deprecate `ActiveSupport::Multibyte::Chars.consumes?` in favor of `String#is_utf8?`.
+
+    *Francesco Rodríguez*
+
 *   Fix duration being rounded to a full second.
     ```
       time = DateTime.parse("2018-1-1")
