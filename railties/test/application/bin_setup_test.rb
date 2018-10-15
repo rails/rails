@@ -44,17 +44,17 @@ module ApplicationTests
         # Suppress Bundler platform warnings from output
         output.gsub!(/^The dependency .* will be unused .*\.\n/, "")
 
-        assert_equal(<<~OUTPUT, output)
-          == Installing dependencies ==
-          The Gemfile's dependencies are satisfied
+        assert_equal(<<-OUTPUT, output)
+== Installing dependencies ==
+The Gemfile's dependencies are satisfied
 
-          == Preparing database ==
-          Created database 'db/development.sqlite3'
-          Created database 'db/test.sqlite3'
+== Preparing database ==
+Created database 'db/development.sqlite3'
+Created database 'db/test.sqlite3'
 
-          == Removing old logs and tempfiles ==
+== Removing old logs and tempfiles ==
 
-          == Restarting application server ==
+== Restarting application server ==
         OUTPUT
       end
     end
