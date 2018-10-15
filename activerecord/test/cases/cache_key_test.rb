@@ -119,5 +119,13 @@ module ActiveRecord
         record_from_db.cache_version
       end
     end
+
+    test "updated_at on class but not on instance raises an error" do
+      record = CacheMeWithVersion.create
+      record_from_db = CacheMeWithVersion.where(id: record.id).select(:id).first
+      assert_raises(ActiveModel::MissingAttributeError) do
+        record_from_db.cache_version
+      end
+    end
   end
 end
