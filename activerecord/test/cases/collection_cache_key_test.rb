@@ -42,6 +42,20 @@ module ActiveRecord
       assert_equal last_developer_timestamp.to_s(ActiveRecord::Base.cache_timestamp_format), $3
     end
 
+    test "cache_key for relation with custom select and limit" do
+      developers = Developer.where(salary: 100000).order(updated_at: :desc).limit(5)
+      developers_with_select = developers.select("developers.*")
+      last_developer_timestamp = developers.first.updated_at
+
+      assert_match(/\Adevelopers\/query-(\h+)-(\d+)-(\d+)\z/, developers_with_select.cache_key)
+
+      /\Adevelopers\/query-(\h+)-(\d+)-(\d+)\z/ =~ developers_with_select.cache_key
+
+      assert_equal ActiveSupport::Digest.hexdigest(developers_with_select.to_sql), $1
+      assert_equal developers.count.to_s, $2
+      assert_equal last_developer_timestamp.to_s(ActiveRecord::Base.cache_timestamp_format), $3
+    end
+
     test "cache_key for loaded relation" do
       developers = Developer.where(salary: 100000).order(updated_at: :desc).limit(5).load
       last_developer_timestamp = developers.first.updated_at

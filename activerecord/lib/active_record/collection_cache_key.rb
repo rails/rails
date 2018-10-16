@@ -20,9 +20,9 @@ module ActiveRecord
         select_values = "COUNT(*) AS #{connection.quote_column_name("size")}, MAX(%s) AS timestamp"
 
         if collection.has_limit_or_offset?
-          query = collection.select(column)
+          query = collection.select("#{column} AS collection_cache_key_timestamp")
           subquery_alias = "subquery_for_cache_key"
-          subquery_column = "#{subquery_alias}.#{timestamp_column}"
+          subquery_column = "#{subquery_alias}.collection_cache_key_timestamp"
           subquery = query.arel.as(subquery_alias)
           arel = Arel::SelectManager.new(subquery).project(select_values % subquery_column)
         else

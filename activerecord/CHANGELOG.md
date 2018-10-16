@@ -1,3 +1,9 @@
+*   Fix collection cache key with limit and custom select to avoid ambiguous timestamp column error.
+
+    Fixes #33056.
+
+    *Federico Martinez*
+
 *   Fix duplicated record creation when using nested attributes with `create_with`.
 
     *Darwin Wu*
