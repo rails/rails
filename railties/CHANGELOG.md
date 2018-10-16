@@ -1,3 +1,9 @@
+*   Use Ids instead of memory addresses when displaying references in scaffold views.
+
+    Fixes #29200.
+
+    *Rasesh Patel*
+
 *   Adds support for multiple databases to `rails db:migrate:status`.
     Subtasks are also added to get the status of individual databases (eg. `rails db:migrate:status:animals`).
 
