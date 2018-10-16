@@ -1663,11 +1663,18 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       namespace :account do
         root to: "account#index"
       end
+      namespace :users do
+        root "index"
+      end
     end
 
     assert_equal "/account", account_root_path
     get "/account"
     assert_equal "account/account#index", @response.body
+
+    assert_equal "/users", users_root_path
+    get "/users"
+    assert_equal "users#index", @response.body
   end
 
   def test_optional_scoped_root

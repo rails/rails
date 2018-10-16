@@ -1638,7 +1638,11 @@ module ActionDispatch
         # of most Rails applications, this is beneficial.
         def root(path, options = {})
           if path.is_a?(String)
-            options[:to] = path
+            if /#/.match?(path)
+              options[:to] = path
+            else
+              options[:action] = path
+            end
           elsif path.is_a?(Hash) && options.empty?
             options = path
           else
