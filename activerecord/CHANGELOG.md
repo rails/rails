@@ -1,3 +1,9 @@
+*   Fix collection cache key with limit and custom select to avoid ambiguous timestamp column error.
+
+    Fixes #33056.
+
+    *Federico Martinez*
+
 *   Add basic API for connection switching to support multiple databases.
 
     1) Adds a `connects_to` method for models to connect to multiple databases. Example:
