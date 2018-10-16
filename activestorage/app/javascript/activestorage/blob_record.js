@@ -14,6 +14,7 @@ export class BlobRecord {
     this.xhr = new XMLHttpRequest
     this.xhr.open("POST", url, true)
     this.xhr.responseType = "json"
+    this.xhr.withCredentials = true
     this.xhr.setRequestHeader("Content-Type", "application/json")
     this.xhr.setRequestHeader("Accept", "application/json")
     this.xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest")
