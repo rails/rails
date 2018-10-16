@@ -26,6 +26,7 @@ module ActiveRecord
       #   ActiveRecord::ConnectionAdapters::Mysql2Adapter.emulate_booleans = false
       class_attribute :emulate_booleans, default: true
 
+      SUPPORTED_VERSION = "5.5.8"
       NATIVE_DATABASE_TYPES = {
         primary_key: "bigint auto_increment PRIMARY KEY",
         string:      { name: "varchar", limit: 255 },
@@ -54,10 +55,7 @@ module ActiveRecord
         super(connection, logger, config)
 
         @statements = StatementPool.new(self.class.type_cast_config_to_integer(config[:statement_limit]))
-
-        if version < "5.5.8"
-          raise "Your version of MySQL (#{version_string}) is too old. Active Record supports MySQL >= 5.5.8."
-        end
+        check_version
       end
 
       def version #:nodoc:
@@ -533,6 +531,15 @@ module ActiveRecord
           super { discard_remaining_results }
         end
       end
+
+      protected
+
+        def check_version
+          if version < SUPPORTED_VERSION
+            raise "Your version of MySQL (#{version_string}) is too old. Active Record supports " \
+                  "MySQL >= #{SUPPORTED_VERSION}."
+          end
+        end
 
       private
         def combine_multi_statements(total_sql)
