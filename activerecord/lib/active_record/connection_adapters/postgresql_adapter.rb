@@ -43,9 +43,14 @@ module ActiveRecord
       valid_conn_param_keys = PG::Connection.conndefaults_hash.keys + [:requiressl]
       conn_params.slice!(*valid_conn_param_keys)
 
-      # The postgres drivers don't allow the creation of an unconnected PG::Connection object,
-      # so just pass a nil connection object for the time being.
-      ConnectionAdapters::PostgreSQLAdapter.new(nil, logger, conn_params, config)
+      conn = PG.connect(conn_params)
+      ConnectionAdapters::PostgreSQLAdapter.new(conn, logger, conn_params, config)
+    rescue ::PG::Error => error
+      if error.message.include?("does not exist")
+        raise ActiveRecord::NoDatabaseError
+      else
+        raise
+      end
     end
   end
 
@@ -220,14 +225,10 @@ module ActiveRecord
         @local_tz = nil
         @max_identifier_length = nil
 
-        connect
+        configure_connection
         add_pg_encoders
         @statements = StatementPool.new @connection,
                                         self.class.type_cast_config_to_integer(config[:statement_limit])
-
-        if postgresql_version < 90100
-          raise "Your version of PostgreSQL (#{postgresql_version}) is too old. Active Record supports PostgreSQL >= 9.1."
-        end
 
         add_pg_decoders
 
@@ -410,6 +411,12 @@ module ActiveRecord
       end
 
       private
+        def check_version
+          if postgresql_version < 90100
+            raise "Your version of PostgreSQL (#{postgresql_version}) is too old. Active Record supports PostgreSQL >= 9.1."
+          end
+        end
+
         # See https://www.postgresql.org/docs/current/static/errcodes-appendix.html
         VALUE_LIMIT_VIOLATION = "22001"
         NUMERIC_VALUE_OUT_OF_RANGE = "22003"
@@ -699,12 +706,6 @@ module ActiveRecord
         def connect
           @connection = PG.connect(@connection_parameters)
           configure_connection
-        rescue ::PG::Error => error
-          if error.message.include?("does not exist")
-            raise ActiveRecord::NoDatabaseError
-          else
-            raise
-          end
         end
 
         # Configures the encoding, verbosity, schema search path, and time zone of the connection.
