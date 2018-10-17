@@ -193,9 +193,8 @@ module ActiveRecord
       # to account for this we pad the output with zeros
       def raw_timestamp_to_cache_version(timestamp)
         key = timestamp.delete("- :.")
-        padding = 20 - key.length
-        if padding != 0
-          key << "0" * padding
+        if key.length < 20
+          key.ljust(20, "0")
         else
           key
         end
