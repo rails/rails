@@ -559,7 +559,8 @@ class FixturesTest < ActiveRecord::TestCase
   def test_fixtures_are_set_up_with_database_env_variable
     db_url_tmp = ENV["DATABASE_URL"]
     ENV["DATABASE_URL"] = "sqlite3::memory:"
-    ActiveRecord::Base.stub(:configurations, {}) do
+    configurations = ActiveRecord::DatabaseConfigurations.new({})
+    ActiveRecord::Base.stub(:configurations, configurations) do
       test_case = Class.new(ActiveRecord::TestCase) do
         fixtures :accounts
 
@@ -716,7 +717,7 @@ class FixturesWithoutInstantiationTest < ActiveRecord::TestCase
   def test_reloading_fixtures_through_accessor_methods
     topic = Struct.new(:title)
     assert_equal "The First Topic", topics(:first).title
-    assert_called(@loaded_fixtures["topics"]["first"], :find, returns: topic.new("Fresh Topic!")) do
+    assert_called(@loaded_fixtures["primary"]["topics"]["first"], :find, returns: topic.new("Fresh Topic!")) do
       assert_equal "Fresh Topic!", topics(:first, true).title
     end
   end
@@ -1074,6 +1075,44 @@ class LoadAllFixturesWithPathnameTest < ActiveRecord::TestCase
   end
 end
 
+class LoadAllFixturesWithMultiplePathsTest < ActiveRecord::TestCase
+  def test_all_there
+    self.class.fixtures_paths = [
+      File.join(FIXTURES_ROOT, "secondary"),
+      Pathname.new(FIXTURES_ROOT).join("admin"),
+    ]
+    self.class.fixtures :all
+    sets = %w(accounts books randomly_named_a9 randomly_named_b0 users)
+    assert_equal sets, fixture_files.values.flatten.sort
+  ensure
+    ActiveRecord::FixtureSet.reset_cache
+  end
+end
+
+class LoadAllFixturesWithConfigPathsTest < ActiveRecord::TestCase
+  setup do
+    @original_configurations = ActiveRecord::Base.configurations
+    ActiveRecord::Base.configurations = {
+      arunit: ActiveRecord::Base.connection_config.merge(
+        fixtures_paths: File.join(FIXTURES_ROOT, "secondary")
+      )
+    }
+  end
+
+  teardown do
+    ActiveRecord::Base.configurations = @original_configurations
+  end
+
+  def test_all_there
+    self.class.fixtures_paths = [FIXTURES_ROOT + "/admin"]
+    self.class.fixtures :all
+    sets = %w(accounts books randomly_named_a9 randomly_named_b0 users)
+    assert_equal sets, fixture_files.values.flatten.sort
+  ensure
+    ActiveRecord::FixtureSet.reset_cache
+  end
+end
+
 class FasterFixturesTest < ActiveRecord::TestCase
   self.use_transactional_tests = false
   fixtures :categories, :authors, :author_addresses
@@ -1081,7 +1120,7 @@ class FasterFixturesTest < ActiveRecord::TestCase
   def load_extra_fixture(name)
     fixture = create_fixtures(name).first
     assert fixture.is_a?(ActiveRecord::FixtureSet)
-    @loaded_fixtures[fixture.table_name] = fixture
+    @loaded_fixtures["primary"][fixture.table_name] = fixture
   end
 
   def test_cache
@@ -1095,7 +1134,8 @@ class FasterFixturesTest < ActiveRecord::TestCase
 
     load_extra_fixture("posts")
     assert ActiveRecord::FixtureSet.fixture_is_cached?(ActiveRecord::Base.connection, "posts")
-    self.class.setup_fixture_accessors :posts
+    db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new("arunit", "primary", {})
+    self.class.setup_fixture_accessors db_config, :posts
     assert_equal "Welcome to the weblog", posts(:welcome).title
   end
 end

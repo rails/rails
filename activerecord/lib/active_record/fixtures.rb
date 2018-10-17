@@ -495,7 +495,7 @@ module ActiveRecord
       end
 
       def instantiate_all_loaded_fixtures(object, load_instances = true)
-        all_loaded_fixtures.each_value do |fixture_set|
+        all_loaded_fixtures["primary"].each_value do |fixture_set|
           instantiate_fixtures(object, fixture_set, load_instances)
         end
       end

@@ -39,23 +39,29 @@ module ActiveRecord
       end
 
       def fixtures(*fixture_set_names)
-        if fixture_set_names.first == :all
-          raise StandardError, "No fixture paths found. Please set `#{self}.fixtures_paths`." if fixtures_paths.blank?
-          fixture_path = fixtures_paths.first
-          fixture_set_names = Dir["#{fixture_path}/{**,*}/*.{yml}"].uniq
-          fixture_set_names.map! { |f| f[(fixture_path.to_s.size + 1)..-5] }
-        else
+        env = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: env, spec_name: "primary")
+        raise StandardError, "No fixture paths found. Please set `#{self}.fixtures_paths`." if fixtures_paths.blank?
+        config_fixture_files = fixture_files_for(db_config)
+
+        unless fixture_set_names.first == :all
           fixture_set_names = fixture_set_names.flatten.map(&:to_s)
+          config_fixture_files.transform_values! do |fixture_sets|
+            fixture_sets & fixture_set_names
+          end
         end
 
         self.fixture_files = fixture_files.dup
-        fixture_files[fixtures_paths.first.to_s] ||= []
-        fixture_files[fixtures_paths.first.to_s] |= fixture_set_names
-        setup_fixture_accessors(fixture_set_names)
+        config_fixture_files.each do |fixtures_path, fixture_sets|
+          fixture_files[fixtures_path] ||= []
+          fixture_files[fixtures_path] |= fixture_sets
+          setup_fixture_accessors(db_config, fixture_sets)
+        end
       end
 
-      def setup_fixture_accessors(fixture_set_names = nil)
+      def setup_fixture_accessors(db_config, fixture_set_names = nil)
         fixture_set_names = Array(fixture_set_names || fixture_files.values.first)
+        spec_name = db_config.spec_name
         methods = Module.new do
           fixture_set_names.each do |fs_name|
             fs_name = fs_name.to_s
@@ -64,16 +70,17 @@ module ActiveRecord
             define_method(accessor_name) do |*fixture_names|
               force_reload = fixture_names.pop if fixture_names.last == true || fixture_names.last == :reload
               return_single_record = fixture_names.size == 1
-              fixture_names = @loaded_fixtures[fs_name].fixtures.keys if fixture_names.empty?
+              fixture_names = @loaded_fixtures[spec_name][fs_name].fixtures.keys if fixture_names.empty?
 
-              @fixture_cache[fs_name] ||= {}
+              @fixture_cache[spec_name] ||= {}
+              @fixture_cache[spec_name][fs_name] ||= {}
 
               instances = fixture_names.map do |f_name|
                 f_name = f_name.to_s if f_name.is_a?(Symbol)
-                @fixture_cache[fs_name].delete(f_name) if force_reload
+                @fixture_cache[spec_name][fs_name].delete(f_name) if force_reload
 
-                if @loaded_fixtures[fs_name][f_name]
-                  @fixture_cache[fs_name][f_name] ||= @loaded_fixtures[fs_name][f_name].find
+                if @loaded_fixtures[spec_name][fs_name][f_name]
+                  @fixture_cache[spec_name][fs_name][f_name] ||= @loaded_fixtures[spec_name][fs_name][f_name].find
                 else
                   raise StandardError, "No fixture named '#{f_name}' found for fixture set '#{fs_name}'"
                 end
@@ -129,6 +136,19 @@ module ActiveRecord
         @uses_transaction = [] unless defined?(@uses_transaction)
         @uses_transaction.include?(method.to_s)
       end
+
+      private
+
+        def fixture_files_for(db_config)
+          all_paths = Array(db_config.fixtures_paths)
+          all_paths += fixtures_paths if db_config.spec_name == "primary"
+          all_paths.map do |fixtures_path|
+            fixture_files = Dir["#{fixtures_path}/{**,*}/*.{yml}"].uniq.map do |fixture_file|
+              fixture_file[(fixtures_path.to_s.size + 1)..-5]
+            end
+            [fixtures_path.to_s, fixture_files]
+          end.to_h
+        end
     end
 
     def fixture_path
@@ -225,14 +245,21 @@ module ActiveRecord
     end
 
     private
+
       def load_fixtures(config)
-        fixtures = ActiveRecord::FixtureSet.create_fixtures(
-          fixtures_paths.first,
-          fixture_files[fixtures_paths.first],
-          fixture_class_names,
-          config,
-        )
-        Hash[fixtures.map { |f| [f.name, f] }]
+        env = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: env, spec_name: "primary")
+
+        fixtures = fixture_files.flat_map do |fixtures_path, fixture_sets|
+          ActiveRecord::FixtureSet.create_fixtures(
+            fixtures_path,
+            fixture_sets,
+            fixture_class_names,
+            config,
+          )
+        end
+
+        { db_config.spec_name => Hash[fixtures.map { |f| [f.name, f] }] }
       end
 
       def instantiate_fixtures
@@ -241,7 +268,7 @@ module ActiveRecord
           ActiveRecord::FixtureSet.instantiate_all_loaded_fixtures(self, load_instances?)
         else
           raise RuntimeError, "Load fixtures before instantiating them." if @loaded_fixtures.nil?
-          @loaded_fixtures.each_value do |fixture_set|
+          @loaded_fixtures["primary"].each_value do |fixture_set|
             ActiveRecord::FixtureSet.instantiate_fixtures(self, fixture_set, load_instances?)
           end
         end
