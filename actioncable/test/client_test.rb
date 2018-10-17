@@ -277,4 +277,3 @@ module ClientTest
     end
   end
 end
-

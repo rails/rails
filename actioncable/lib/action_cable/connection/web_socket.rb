@@ -38,7 +38,6 @@ module ActionCable
 
       private
         attr_reader :websocket
-
     end
   end
 end

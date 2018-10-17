@@ -59,7 +59,7 @@ module ActionCable
         @event_target.on_message(data)
       end
 
-      def select_protocol env, protocols
+      def select_protocol(env, protocols)
         request_protocols = env["HTTP_SEC_WEBSOCKET_PROTOCOL"]
         unless request_protocols.nil?
           request_protocols = request_protocols.split(/,\s?/) if request_protocols.is_a?(String)
