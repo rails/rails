@@ -8,15 +8,6 @@ require "json"
 
 require "active_support/hash_with_indifferent_access"
 
-# test with iodine if platform allows
-begin
-  require "iodine"
-  Iodine.verbosity = 2 # only print errors and fatal errors
-  Iodine.workers = 1 # single process (no cluster)
-  Iodine.threads = 1 # single threaded mode
-rescue LoadError
-end
-
 ####
 # 😷 Warning suppression 😷
 WebSocket::Frame::Handler::Handler03.prepend Module.new {
@@ -35,7 +26,7 @@ WebSocket::Frame::Data.prepend Module.new {
 #
 ####
 
-class ClientTest < ActionCable::TestCase
+module ClientTest
   WAIT_WHEN_EXPECTING_EVENT = 2
   WAIT_WHEN_NOT_EXPECTING_EVENT = 0.5
 
@@ -71,68 +62,6 @@ class ClientTest < ActionCable::TestCase
 
     # and now the "real" setup for our test:
     server.config.disable_request_forgery_protection = true
-  end
-
-  def with_puma_server(rack_app = ActionCable.server, port = 3099)
-    server = ::Puma::Server.new(rack_app, ::Puma::Events.strings)
-    server.add_tcp_listener "127.0.0.1", port
-    server.min_threads = 1
-    server.max_threads = 4
-
-    thread = server.run
-
-    begin
-      yield(port)
-
-    ensure
-      server.stop
-
-      begin
-        thread.join
-
-      rescue IOError
-        # Work around https://bugs.ruby-lang.org/issues/13405
-        #
-        # Puma's sometimes raising while shutting down, when it closes
-        # its internal pipe. We can safely ignore that, but we do need
-        # to do the step skipped by the exception:
-        server.binder.close
-
-      rescue RuntimeError => ex
-        # Work around https://bugs.ruby-lang.org/issues/13239
-        raise unless ex.message =~ /can't modify frozen IOError/
-
-        # Handle this as if it were the IOError: do the same as above.
-        server.binder.close
-      end
-    end
-  end
-
-  if defined?(::Iodine)
-    def with_iodine_server(rack_app = ActionCable.server, port = 3099)
-      ::Iodine.listen2http(app: rack_app, port: port.to_s, address: "127.0.0.1")
-      t = Thread.new { ::Iodine.start }
-      begin
-        yield(port)
-      ensure
-        ::Iodine.stop
-        t.join
-      end
-    end
-  else
-    def with_iodine_server(rack_app = ActionCable.server, port = 3099)
-      nil
-    end
-  end
-
-  def with_cable_server(rack_app = ActionCable.server, port = 3099, &block)
-    ActionCable::Connection::WebSocket.instance_exec { @client_socket_klass = nil } # clear selection cache
-    puts "Testing with Puma"
-    with_puma_server(rack_app, port, &block)
-    ActionCable::Connection::WebSocket.instance_exec { @client_socket_klass = nil } # clear selection cache
-    puts "Testing with Iodine"
-    with_iodine_server(rack_app, port, &block)
-    ActionCable::Connection::WebSocket.instance_exec { @client_socket_klass = nil } # clear selection cache for future tests
   end
 
   class SyncClient
@@ -348,3 +277,4 @@ class ClientTest < ActionCable::TestCase
     end
   end
 end
+

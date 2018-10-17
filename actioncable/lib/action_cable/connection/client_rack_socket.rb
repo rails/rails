@@ -6,12 +6,8 @@ module ActionCable
     #
     # The `rack.upgrade?` approach detailed here: https://github.com/rack/rack/pull/1272
     class ClientRackSocket # :nodoc:
-      def self.accept?(env)
-        env["rack.upgrade?"] == :websocket
-      end
-
-      def self.attempt(env, event_target, event_loop, protocols)
-        accept?(env) && new(env, event_target, event_loop, protocols)
+      def self.accept(env, event_target, event_loop, protocols)
+        new(env, event_target, event_loop, protocols) if env["rack.upgrade?"] == :websocket
       end
 
       attr_reader :protocol
@@ -19,15 +15,8 @@ module ActionCable
       def initialize(env, event_target, event_loop, protocols)
         env["rack.upgrade"] = self
         @event_target = event_target
-        @protocol = nil
+        @protocol = select_protocol(env, protocols)
         @websocket = nil
-        request_protocols = env["HTTP_SEC_WEBSOCKET_PROTOCOL"]
-        unless request_protocols.nil?
-          request_protocols = request_protocols.split(/,\s?/) if request_protocols.is_a?(String)
-          request_protocols.each do |request_protocol|
-            break(@protocol = request_protocol) if protocols.include?(request_protocol)
-          end
-        end
       end
 
       def alive?
@@ -36,6 +25,7 @@ module ActionCable
 
       def transmit(data)
         return false unless websocket
+
         case data
         when Numeric then websocket.write(data.to_s)
         when String  then websocket.write(data)
@@ -67,6 +57,14 @@ module ActionCable
 
       def on_message(client, data)
         @event_target.on_message(data)
+      end
+
+      def select_protocol env, protocols
+        request_protocols = env["HTTP_SEC_WEBSOCKET_PROTOCOL"]
+        unless request_protocols.nil?
+          request_protocols = request_protocols.split(/,\s?/) if request_protocols.is_a?(String)
+          request_protocols.detect { |request_protocol| protocols.include? request_protocol }
+        end # either `nil` or the result of `request_protocols.detect` are returned
       end
 
       private

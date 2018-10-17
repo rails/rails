@@ -5,7 +5,7 @@ module ActionCable
     # Wrap the real socket to minimize the externally-presented API
     class WebSocket # :nodoc:
       def initialize(env, event_target, event_loop, protocols: ActionCable::INTERNAL[:protocols])
-        @websocket = self.class.establish_connection(env, event_target, event_loop, protocols)
+        @websocket = self.class.new_client(env, event_target, event_loop, protocols)
       end
 
       def possible?
@@ -32,20 +32,13 @@ module ActionCable
         websocket.rack_response
       end
 
-      # by order of preference, the first supported client will be chosen
-      CLIENT_SOCKET_CANDIDATES = [ClientRackSocket, ClientFayeSocket]
-
-      def self.establish_connection(env, event_target, event_loop, protocols)
-        @client_socket_klass ||= client_socket_selector(env)
-        @client_socket_klass&.attempt(env, event_target, event_loop, protocols)
+      def self.new_client(env, event_target, event_loop, protocols)
+        ClientRackSocket.accept(env, event_target, event_loop, protocols) || ClientFayeSocket.accept(env, event_target, event_loop, protocols)
       end
 
       private
         attr_reader :websocket
 
-        def self.client_socket_selector(env)
-          CLIENT_SOCKET_CANDIDATES.detect { |klass| klass.accept?(env) }
-        end
     end
   end
 end

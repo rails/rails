@@ -24,12 +24,8 @@ module ActionCable
         false
       end
 
-      def self.accept?(env)
-        ::WebSocket::Driver.websocket?(env)
-      end
-
-      def self.attempt(env, event_target, event_loop, protocols)
-        accept?(env) && new(env, event_target, event_loop, protocols)
+      def self.accept(env, event_target, event_loop, protocols)
+        new(env, event_target, event_loop, protocols) if ::WebSocket::Driver.websocket?(env)
       end
 
       CONNECTING = 0
