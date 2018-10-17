@@ -9,7 +9,7 @@ module ActionMailbox
     end
 
     def create_inbound_email_from_mail(status: :processing, **mail_options)
-      raw_email = Tempfile.new.tap { |raw_email| raw_email.write Mail.new(mail_options).to_s }
+      raw_email = Tempfile.new.tap { |io| io.write Mail.new(mail_options).to_s }
       create_inbound_email(raw_email, status: status)
     end
 
