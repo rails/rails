@@ -261,21 +261,14 @@ module ActiveRecord
     def respond_to?(name, include_private = false)
       return false unless super
 
-      case name
-      when :to_partial_path
-        name = "to_partial_path"
-      when :to_model
-        name = "to_model"
-      else
-        name = name.to_s
-      end
-
       # If the result is true then check for the select case.
       # For queries selecting a subset of columns, return false for unselected columns.
       # We check defined?(@attributes) not to issue warnings if called on objects that
       # have been allocated but not yet initialized.
-      if defined?(@attributes) && self.class.column_names.include?(name)
-        return has_attribute?(name)
+      if defined?(@attributes)
+        if name = self.class.symbol_column_to_string(name.to_sym)
+          return has_attribute?(name)
+        end
       end
 
       true
