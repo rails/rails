@@ -209,7 +209,7 @@ module ActiveRecord
         # new instance of the class. Accepts only keys as strings.
         def instantiate_instance_of(klass, attributes, column_types = {}, &block)
           attributes = klass.attributes_builder.build_from_database(attributes, column_types)
-          klass.allocate.init_from_db(attributes, &block)
+          klass.allocate.init_with_attributes(attributes, &block)
         end
 
         # Called by +instantiate+ to decide which class to use for a new

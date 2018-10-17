@@ -1,4 +1,12 @@
-*   Add `reselect` method. This is short-hand for `unscope(:select).select(fields)`.
+*   Fix collection cache key with limit and custom select to avoid ambiguous timestamp column error.
+
+    Fixes #33056.
+
+    *Federico Martinez*
+
+*   Add `reselect` method. This is a short-hand for `unscope(:select).select(fields)`.
+
+    Fixes #27340.
 
     *Willian Gustavo Veiga*
 

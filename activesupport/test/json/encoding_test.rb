@@ -157,6 +157,16 @@ class TestJSONEncoding < ActiveSupport::TestCase
     assert_equal({ "foo" => "hello" }, JSON.parse(json))
   end
 
+  def test_struct_to_json_with_options_nested
+    klass = Struct.new(:foo, :bar)
+    struct = klass.new "hello", "world"
+    parent_struct = klass.new struct, "world"
+    json = parent_struct.to_json only: [:foo]
+
+    assert_equal({ "foo" => { "foo" => "hello" } }, JSON.parse(json))
+  end
+
+
   def test_hash_should_pass_encoding_options_to_children_in_as_json
     person = {
       name: "John",

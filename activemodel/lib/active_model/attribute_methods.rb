@@ -474,5 +474,43 @@ module ActiveModel
       def _read_attribute(attr)
         __send__(attr)
       end
+
+      module AttrNames # :nodoc:
+        DEF_SAFE_NAME = /\A[a-zA-Z_]\w*\z/
+
+        # We want to generate the methods via module_eval rather than
+        # define_method, because define_method is slower on dispatch.
+        # Evaluating many similar methods may use more memory as the instruction
+        # sequences are duplicated and cached (in MRI).  define_method may
+        # be slower on dispatch, but if you're careful about the closure
+        # created, then define_method will consume much less memory.
+        #
+        # But sometimes the database might return columns with
+        # characters that are not allowed in normal method names (like
+        # 'my_column(omg)'. So to work around this we first define with
+        # the __temp__ identifier, and then use alias method to rename
+        # it to what we want.
+        #
+        # We are also defining a constant to hold the frozen string of
+        # the attribute name. Using a constant means that we do not have
+        # to allocate an object on each call to the attribute method.
+        # Making it frozen means that it doesn't get duped when used to
+        # key the @attributes in read_attribute.
+        def self.define_attribute_accessor_method(mod, attr_name, writer: false)
+          method_name = "#{attr_name}#{'=' if writer}"
+          if attr_name.ascii_only? && DEF_SAFE_NAME.match?(attr_name)
+            yield method_name, "'#{attr_name}'.freeze"
+          else
+            safe_name = attr_name.unpack1("h*")
+            const_name = "ATTR_#{safe_name}"
+            const_set(const_name, attr_name) unless const_defined?(const_name)
+            temp_method_name = "__temp__#{safe_name}#{'=' if writer}"
+            attr_name_expr = "::ActiveModel::AttributeMethods::AttrNames::#{const_name}"
+            yield temp_method_name, attr_name_expr
+            mod.send(:alias_method, method_name, temp_method_name)
+            mod.send(:undef_method, temp_method_name)
+          end
+        end
+      end
   end
 end

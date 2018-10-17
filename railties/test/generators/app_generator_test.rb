@@ -209,6 +209,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_new_application_doesnt_need_defaults
+    run_generator
     assert_no_file "config/initializers/new_framework_defaults_6_0.rb"
   end
 
