@@ -1125,7 +1125,7 @@ module ActiveRecord
         SpawnMethods,
       ].flat_map { |klass|
         klass.public_instance_methods(false)
-      } - self.public_instance_methods(false) - [:select] + [:scoping]
+      } - self.public_instance_methods(false) - [:select] + [:scoping, :values]
 
       delegate(*delegate_methods, to: :scope)
 
