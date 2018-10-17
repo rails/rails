@@ -45,6 +45,7 @@ group :development, :test do
   gem 'byebug', platforms: [:mri, :mingw, :x64_mingw]
 end
 
+<% end -%>
 group :development do
 <%- unless options.api? -%>
   # Access an interactive console on exception pages or by calling 'console' anywhere in the code.
@@ -75,7 +76,6 @@ group :test do
   gem 'chromedriver-helper'
 end
 <%- end -%>
-<% end -%>
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
 gem 'tzinfo-data', platforms: [:mingw, :mswin, :x64_mingw, :jruby]
