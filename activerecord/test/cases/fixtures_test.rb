@@ -1046,7 +1046,7 @@ end
 
 class LoadAllFixturesTest < ActiveRecord::TestCase
   def test_all_there
-    self.class.fixture_path = FIXTURES_ROOT + "/all"
+    self.class.fixtures_paths = [FIXTURES_ROOT + "/all"]
     self.class.fixtures :all
 
     if File.symlink? FIXTURES_ROOT + "/all/admin"
@@ -1059,7 +1059,7 @@ end
 
 class LoadAllFixturesWithPathnameTest < ActiveRecord::TestCase
   def test_all_there
-    self.class.fixture_path = Pathname.new(FIXTURES_ROOT).join("all")
+    self.class.fixtures_paths = [Pathname.new(FIXTURES_ROOT).join("all")]
     self.class.fixtures :all
 
     if File.symlink? FIXTURES_ROOT + "/all/admin"
@@ -1349,18 +1349,44 @@ class SameNameDifferentDatabaseFixturesTest < ActiveRecord::TestCase
   end
 end
 
-class NilFixturePathTest < ActiveRecord::TestCase
-  test "raises an error when all fixtures loaded" do
+class BlankFixturesPathsTest < ActiveRecord::TestCase
+  TestCase = Class.new(ActiveRecord::TestCase)
+  ERROR_MESSAGE = <<~MSG.squish
+    No fixture paths found.
+    Please set `#{self}::TestCase.fixtures_paths`.
+  MSG
+
+  test "raises an error when nil and all fixtures loaded" do
     error = assert_raises(StandardError) do
-      TestCase = Class.new(ActiveRecord::TestCase)
       TestCase.class_eval do
-        self.fixture_path = nil
+        self.fixtures_paths = nil
         fixtures :all
       end
     end
-    assert_equal <<~MSG.squish, error.message
-      No fixture path found.
-      Please set `NilFixturePathTest::TestCase.fixture_path`.
-    MSG
+    assert_equal ERROR_MESSAGE, error.message
+  end
+
+  test "raises an error when empty and all fixtures loaded" do
+    error = assert_raises(StandardError) do
+      TestCase.class_eval do
+        self.fixtures_paths = []
+        fixtures :all
+      end
+    end
+    assert_equal ERROR_MESSAGE, error.message
+  end
+end
+
+class DeprecatedFixturesPathsTest < ActiveRecord::TestCase
+  setup do
+    @test_case = Class.new(ActiveRecord::TestCase)
+  end
+
+  test "TestCase.fixture_path= deprecated" do
+    assert_deprecated { @test_case.fixture_path = nil }
+  end
+
+  test "TestCase.fixture_path deprecated" do
+    assert_deprecated { @test_case.fixture_path }
   end
 end

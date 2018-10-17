@@ -15,9 +15,9 @@ module ActionDispatch
       #
       #   post :change_avatar, params: { avatar: fixture_file_upload('files/spongebob.png', 'image/png', :binary) }
       def fixture_file_upload(path, mime_type = nil, binary = false)
-        if self.class.respond_to?(:fixture_path) && self.class.fixture_path &&
+        if self.class.respond_to?(:fixtures_paths) && self.class.fixtures_paths &&
             !File.exist?(path)
-          path = File.join(self.class.fixture_path, path)
+          path = File.join(self.class.fixtures_paths.first, path)
         end
         Rack::Test::UploadedFile.new(path, mime_type, binary)
       end

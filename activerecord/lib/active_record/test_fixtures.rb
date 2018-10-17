@@ -15,7 +15,7 @@ module ActiveRecord
     end
 
     included do
-      class_attribute :fixture_path, instance_writer: false
+      class_attribute :fixtures_paths, instance_writer: false
       class_attribute :fixture_table_names, default: []
       class_attribute :fixture_class_names, default: {}
       class_attribute :use_transactional_tests, default: true
@@ -40,7 +40,8 @@ module ActiveRecord
 
       def fixtures(*fixture_set_names)
         if fixture_set_names.first == :all
-          raise StandardError, "No fixture path found. Please set `#{self}.fixture_path`." if fixture_path.blank?
+          raise StandardError, "No fixture paths found. Please set `#{self}.fixtures_paths`." if fixtures_paths.blank?
+          fixture_path = fixtures_paths.first
           fixture_set_names = Dir["#{fixture_path}/{**,*}/*.{yml}"].uniq
           fixture_set_names.map! { |f| f[(fixture_path.to_s.size + 1)..-5] }
         else
@@ -84,6 +85,22 @@ module ActiveRecord
         include methods
       end
 
+      def fixture_path=(path)
+        ActiveSupport::Deprecation.warn <<~MSG.squish
+          #{self}.fixture_path is deprecated and will be removed in Rails 6.1.
+          Please use #{self}.fixtures_paths instead.
+        MSG
+        self.fixtures_paths = Array(path).compact
+      end
+
+      def fixture_path
+        ActiveSupport::Deprecation.warn <<~MSG.squish
+          #{self}.fixture_path is deprecated and will be removed in Rails 6.1.
+          Please use #{self}.fixtures_paths instead.
+        MSG
+        fixtures_paths.first
+      end
+
       def uses_transaction(*methods)
         @uses_transaction = [] unless defined?(@uses_transaction)
         @uses_transaction.concat methods.map(&:to_s)
@@ -93,6 +110,10 @@ module ActiveRecord
         @uses_transaction = [] unless defined?(@uses_transaction)
         @uses_transaction.include?(method.to_s)
       end
+    end
+
+    def fixture_path
+      self.class.fixture_path
     end
 
     def run_in_transaction?
@@ -178,7 +199,12 @@ module ActiveRecord
 
     private
       def load_fixtures(config)
-        fixtures = ActiveRecord::FixtureSet.create_fixtures(fixture_path, fixture_table_names, fixture_class_names, config)
+        fixtures = ActiveRecord::FixtureSet.create_fixtures(
+          fixtures_paths.first,
+          fixture_table_names,
+          fixture_class_names,
+          config,
+        )
         Hash[fixtures.map { |f| [f.name, f] }]
       end
 

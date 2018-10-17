@@ -20,7 +20,7 @@ module ActiveRecord
   # \Fixtures are a way of organizing data that you want to test against; in short, sample data.
   #
   # They are stored in YAML files, one file per model, which are placed in the directory
-  # appointed by <tt>ActiveSupport::TestCase.fixture_path=(path)</tt> (this is automatically
+  # appointed by <tt>ActiveSupport::TestCase.fixtures_paths=(paths)</tt> (this is automatically
   # configured for Rails, so you can just put your files in <tt><your-rails-app>/test/fixtures/</tt>).
   # The fixture file ends with the +.yml+ file extension, for example:
   # <tt><your-rails-app>/test/fixtures/web_sites.yml</tt>).
