@@ -348,8 +348,8 @@ module ActiveRecord
       #
       #   create_table :taggings do |t|
       #     t.references :tag, index: { name: 'index_taggings_on_tag_id' }
-      #     t.references :tagger, polymorphic: true, index: true
-      #     t.references :taggable, polymorphic: { default: 'Photo' }
+      #     t.references :tagger, polymorphic: true
+      #     t.references :taggable, polymorphic: { default: 'Photo' }, index: false
       #   end
       def column(name, type, options = {})
         name = name.to_s
