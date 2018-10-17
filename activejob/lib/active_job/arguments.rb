@@ -72,10 +72,10 @@ module ActiveJob
           convert_to_global_id_hash(argument)
         when Array
           argument.map { |arg| serialize_argument(arg) }
-        when ActionController::Parameters
-          serialize_indifferent_hash(argument.to_h)
         when ActiveSupport::HashWithIndifferentAccess
           serialize_indifferent_hash(argument)
+        when defined?(ActionController) && ActionController::Parameters
+          serialize_indifferent_hash(argument.to_h)
         when Hash
           symbol_keys = argument.each_key.grep(Symbol).map(&:to_s)
           result = serialize_hash(argument)
