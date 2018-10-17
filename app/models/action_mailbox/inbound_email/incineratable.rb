@@ -2,27 +2,14 @@ module ActionMailbox::InboundEmail::Incineratable
   extend ActiveSupport::Concern
 
   included do
-    before_update :remember_to_incinerate_later
-    after_update_commit :incinerate_later, if: :incinerating_later?
+    after_update_commit :incinerate_later, if: -> { status_previously_changed? && processed? }
+  end
+
+  def incinerate_later
+    ActionMailbox::IncinerationJob.schedule self
   end
 
   def incinerate
     Incineration.new(self).run
   end
-
-  private
-    # TODO: Use enum change tracking once merged into Active Support
-    def remember_to_incinerate_later
-      if status_changed? && (delivered? || bounced? || failed?)
-        @incinerating_later = true
-      end
-    end
-
-    def incinerating_later?
-      @incinerating_later ||= false
-    end
-
-    def incinerate_later
-      ActionMailbox::InboundEmail::IncinerationJob.schedule(self)
-    end
 end

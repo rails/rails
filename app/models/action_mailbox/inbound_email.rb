@@ -19,4 +19,8 @@ class ActionMailbox::InboundEmail < ActiveRecord::Base
   def source
     @source ||= raw_email.download
   end
+
+  def processed?
+    delivered? || failed? || bounced?
+  end
 end
