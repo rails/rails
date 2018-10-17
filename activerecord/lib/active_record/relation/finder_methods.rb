@@ -552,7 +552,8 @@ module ActiveRecord
 
       def ordered_relation
         if order_values.empty? && primary_key
-          order(arel_attribute(primary_key).asc)
+          order_column = (columns_hash[primary_key]&.type == :uuid && columns_hash.key?('created_at')) ? 'created_at' : primary_key
+          order(arel_attribute(order_column).asc)
         else
           self
         end
