@@ -105,11 +105,6 @@ module ActiveRecord
 
         @active     = true
         @statements = StatementPool.new(self.class.type_cast_config_to_integer(config[:statement_limit]))
-
-        if sqlite_version < "3.8.0"
-          raise "Your version of SQLite (#{sqlite_version}) is too old. Active Record supports SQLite >= 3.8."
-        end
-
         configure_connection
       end
 
@@ -401,6 +396,12 @@ module ActiveRecord
       end
 
       private
+        def check_version
+          if sqlite_version < "3.8.0"
+            raise "Your version of SQLite (#{sqlite_version}) is too old. Active Record supports SQLite >= 3.8."
+          end
+        end
+
         def initialize_type_map(m = type_map)
           super
           register_class_with_limit m, %r(int)i, SQLite3Integer
