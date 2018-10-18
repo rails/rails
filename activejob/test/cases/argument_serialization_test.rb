@@ -5,6 +5,7 @@ require "active_job/arguments"
 require "models/person"
 require "active_support/core_ext/hash/indifferent_access"
 require "jobs/kwargs_job"
+require "action_controller/metal/strong_parameters"
 
 class ArgumentSerializationTest < ActiveSupport::TestCase
   setup do
@@ -53,6 +54,7 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
     symbol_key = { a: 1 }
     string_key = { "a" => 1 }
     indifferent_access = { a: 1 }.with_indifferent_access
+    parameters = ActionController::Parameters.new(a: 1).permit(:a)
 
     assert_equal(
       { "a" => 1, "_aj_symbol_keys" => ["a"] },
@@ -65,6 +67,10 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
     assert_equal(
       { "a" => 1, "_aj_hash_with_indifferent_access" => true },
       ActiveJob::Arguments.serialize([indifferent_access]).first
+    )
+    assert_equal(
+      { "a" => 1, "_aj_hash_with_indifferent_access" => true },
+      ActiveJob::Arguments.serialize([parameters]).first
     )
   end
 
