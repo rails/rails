@@ -2,7 +2,7 @@ module ActionMailbox::InboundEmail::Routable
   extend ActiveSupport::Concern
 
   included do
-    after_create_commit :route_later, if: ->(inbound_email) { inbound_email.pending? }
+    after_create_commit :route_later, if: :pending?
   end
 
   def route_later

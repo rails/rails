@@ -4,7 +4,7 @@ class ActionMailbox::InboundEmail::Incineratable::Incineration
   end
 
   def run
-    @inbound_email.destroy if due? && processed?
+    @inbound_email.destroy! if due? && processed?
   end
 
   private
@@ -13,6 +13,6 @@ class ActionMailbox::InboundEmail::Incineratable::Incineration
     end
 
     def processed?
-      @inbound_email.delivered? || @inbound_email.bounced? || @inbound_email.failed?
+      @inbound_email.processed?
     end
 end

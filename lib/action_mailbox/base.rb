@@ -50,7 +50,7 @@ class ActionMailbox::Base
       inbound_email.processing!
       yield
       inbound_email.delivered! unless inbound_email.bounced?
-    rescue => exception
+    rescue
       inbound_email.failed!
       raise
     end

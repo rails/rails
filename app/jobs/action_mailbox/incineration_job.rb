@@ -1,4 +1,4 @@
-class ActionMailbox::InboundEmail::IncinerationJob < ApplicationJob
+class ActionMailbox::IncinerationJob < ApplicationJob
   queue_as :action_mailbox_incineration
 
   def self.schedule(inbound_email)
