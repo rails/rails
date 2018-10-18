@@ -1195,7 +1195,7 @@ Rails.application.credentials.some_api_key! # => raises KeyError: :some_api_key 
 
 TIP: Learn more about credentials with `rails credentials:help`.
 
-WARNING: Keep master key safe. Do not commit master key.
+WARNING: Keep your master key safe. Do not commit your master key.
 WARNING: If your application's secrets have been exposed, strongly consider changing them.
 
 Additional Resources
