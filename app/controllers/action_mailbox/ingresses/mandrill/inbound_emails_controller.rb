@@ -5,7 +5,7 @@ class ActionMailbox::Ingresses::Mandrill::InboundEmailsController < ActionMailbo
     raw_emails.each { |raw_email| ActionMailbox::InboundEmail.create_and_extract_message_id! raw_email }
     head :ok
   rescue JSON::ParserError => error
-    log.error error.message
+    logger.error error.message
     head :unprocessable_entity
   end
 
