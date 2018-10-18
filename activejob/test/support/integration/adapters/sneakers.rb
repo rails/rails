@@ -1,18 +1,7 @@
 # frozen_string_literal: true
 
 require "sneakers/runner"
-require "sneakers/publisher"
 require "timeout"
-
-module Sneakers
-  class Publisher
-    def safe_ensure_connected
-      @mutex.synchronize do
-        ensure_connection! unless connected?
-      end
-    end
-  end
-end
 
 module SneakersJobsManager
   def setup
@@ -80,7 +69,7 @@ module SneakersJobsManager
     def bunny_publisher
       @bunny_publisher ||= begin
         p = ActiveJob::QueueAdapters::SneakersAdapter::JobWrapper.send(:publisher)
-        p.safe_ensure_connected
+        p.ensure_connection!
         p
       end
     end
