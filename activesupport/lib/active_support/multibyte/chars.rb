@@ -4,7 +4,6 @@ require "active_support/json"
 require "active_support/core_ext/string/access"
 require "active_support/core_ext/string/behavior"
 require "active_support/core_ext/module/delegation"
-require "active_support/core_ext/regexp"
 
 module ActiveSupport #:nodoc:
   module Multibyte #:nodoc:
@@ -18,7 +17,7 @@ module ActiveSupport #:nodoc:
     # through the +mb_chars+ method. Methods which would normally return a
     # String object now return a Chars object so methods can be chained.
     #
-    #   'The Perfect String  '.mb_chars.downcase.strip.normalize
+    #   'The Perfect String  '.mb_chars.downcase.strip
     #   # => #<ActiveSupport::Multibyte::Chars:0x007fdc434ccc10 @wrapped_string="the perfect string">
     #
     # Chars objects are perfectly interchangeable with String objects as long as
@@ -77,6 +76,11 @@ module ActiveSupport #:nodoc:
       # Returns +true+ when the proxy class can handle the string. Returns
       # +false+ otherwise.
       def self.consumes?(string)
+        ActiveSupport::Deprecation.warn(<<-MSG.squish)
+          ActiveSupport::Multibyte::Chars.consumes? is deprecated and will be
+          removed from Rails 6.1. Use string.is_utf8? instead.
+        MSG
+
         string.encoding == Encoding::UTF_8
       end
 
@@ -109,7 +113,7 @@ module ActiveSupport #:nodoc:
       #
       #   'Café'.mb_chars.reverse.to_s # => 'éfaC'
       def reverse
-        chars(Unicode.unpack_graphemes(@wrapped_string).reverse.flatten.pack("U*"))
+        chars(@wrapped_string.scan(/\X/).reverse.join)
       end
 
       # Limits the byte size of the string to a number of bytes without breaking
@@ -121,40 +125,12 @@ module ActiveSupport #:nodoc:
         slice(0...translate_offset(limit))
       end
 
-      # Converts characters in the string to uppercase.
-      #
-      #   'Laurent, où sont les tests ?'.mb_chars.upcase.to_s # => "LAURENT, OÙ SONT LES TESTS ?"
-      def upcase
-        chars Unicode.upcase(@wrapped_string)
-      end
-
-      # Converts characters in the string to lowercase.
-      #
-      #   'VĚDA A VÝZKUM'.mb_chars.downcase.to_s # => "věda a výzkum"
-      def downcase
-        chars Unicode.downcase(@wrapped_string)
-      end
-
-      # Converts characters in the string to the opposite case.
-      #
-      #    'El Cañón'.mb_chars.swapcase.to_s # => "eL cAÑÓN"
-      def swapcase
-        chars Unicode.swapcase(@wrapped_string)
-      end
-
-      # Converts the first character to uppercase and the remainder to lowercase.
-      #
-      #  'über'.mb_chars.capitalize.to_s # => "Über"
-      def capitalize
-        (slice(0) || chars("")).upcase + (slice(1..-1) || chars("")).downcase
-      end
-
       # Capitalizes the first letter of every word, when possible.
       #
       #   "ÉL QUE SE ENTERÓ".mb_chars.titleize.to_s    # => "Él Que Se Enteró"
       #   "日本語".mb_chars.titleize.to_s               # => "日本語"
       def titleize
-        chars(downcase.to_s.gsub(/\b('?\S)/u) { Unicode.upcase($1) })
+        chars(downcase.to_s.gsub(/\b('?\S)/u) { $1.upcase })
       end
       alias_method :titlecase, :titleize
 
@@ -166,7 +142,24 @@ module ActiveSupport #:nodoc:
       #   <tt>:c</tt>, <tt>:kc</tt>, <tt>:d</tt>, or <tt>:kd</tt>. Default is
       #   ActiveSupport::Multibyte::Unicode.default_normalization_form
       def normalize(form = nil)
-        chars(Unicode.normalize(@wrapped_string, form))
+        form ||= Unicode.default_normalization_form
+
+        # See https://www.unicode.org/reports/tr15, Table 1
+        if alias_form = Unicode::NORMALIZATION_FORM_ALIASES[form]
+          ActiveSupport::Deprecation.warn(<<-MSG.squish)
+            ActiveSupport::Multibyte::Chars#normalize is deprecated and will be
+            removed from Rails 6.1. Use #unicode_normalize(:#{alias_form}) instead.
+          MSG
+
+          send(:unicode_normalize, alias_form)
+        else
+          ActiveSupport::Deprecation.warn(<<-MSG.squish)
+            ActiveSupport::Multibyte::Chars#normalize is deprecated and will be
+            removed from Rails 6.1. Use #unicode_normalize instead.
+          MSG
+
+          raise ArgumentError, "#{form} is not a valid normalization variant", caller
+        end
       end
 
       # Performs canonical decomposition on all the characters.
@@ -190,7 +183,7 @@ module ActiveSupport #:nodoc:
       #   'क्षि'.mb_chars.length   # => 4
       #   'क्षि'.mb_chars.grapheme_length # => 3
       def grapheme_length
-        Unicode.unpack_graphemes(@wrapped_string).length
+        @wrapped_string.scan(/\X/).length
       end
 
       # Replaces all ISO-8859-1 or CP1252 characters by their UTF-8 equivalent
@@ -206,7 +199,7 @@ module ActiveSupport #:nodoc:
         to_s.as_json(options)
       end
 
-      %w(capitalize downcase reverse tidy_bytes upcase).each do |method|
+      %w(reverse tidy_bytes).each do |method|
         define_method("#{method}!") do |*args|
           @wrapped_string = send(method, *args).to_s
           self

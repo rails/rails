@@ -61,7 +61,7 @@ module ActiveSupport
           case message
           when Symbol then "#{warning} (use #{message} instead)"
           when String then "#{warning} (#{message})"
-            else warning
+          else warning
           end
         end
 
@@ -104,7 +104,7 @@ module ActiveSupport
           end
         end
 
-        RAILS_GEM_ROOT = File.expand_path("../../../..", __dir__)
+        RAILS_GEM_ROOT = File.expand_path("../../../..", __dir__) + "/"
 
         def ignored_callstack(path)
           path.start_with?(RAILS_GEM_ROOT) || path.start_with?(RbConfig::CONFIG["rubylibdir"])

@@ -33,6 +33,7 @@ module ActiveJob
 
   autoload :Base
   autoload :QueueAdapters
+  autoload :Serializers
   autoload :ConfiguredJob
   autoload :TestCase
   autoload :TestHelper

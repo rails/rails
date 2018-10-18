@@ -83,7 +83,7 @@ module ActionCable
         when Numeric then @driver.text(message.to_s)
         when String  then @driver.text(message)
         when Array   then @driver.binary(message)
-          else false
+        else false
         end
       end
 

@@ -306,9 +306,7 @@ module ActiveRecord
     end
 
     def save(*) #:nodoc:
-      rollback_active_record_state! do
-        with_transaction_returning_status { super }
-      end
+      with_transaction_returning_status { super }
     end
 
     def save!(*) #:nodoc:
@@ -317,17 +315,6 @@ module ActiveRecord
 
     def touch(*) #:nodoc:
       with_transaction_returning_status { super }
-    end
-
-    # Reset id and @new_record if the transaction rolls back.
-    def rollback_active_record_state!
-      remember_transaction_record_state
-      yield
-    rescue Exception
-      restore_transaction_record_state
-      raise
-    ensure
-      clear_transaction_record_state
     end
 
     def before_committed! # :nodoc:
@@ -340,11 +327,13 @@ module ActiveRecord
     # Ensure that it is not called if the object was never persisted (failed create),
     # but call it after the commit of a destroyed object.
     def committed!(should_run_callbacks: true) #:nodoc:
-      if should_run_callbacks && destroyed? || persisted?
+      if should_run_callbacks && (destroyed? || persisted?)
+        @_committed_already_called = true
         _run_commit_without_transaction_enrollment_callbacks
         _run_commit_callbacks
       end
     ensure
+      @_committed_already_called = false
       force_clear_transaction_record_state
     end
 
@@ -382,13 +371,7 @@ module ActiveRecord
       status = nil
       self.class.transaction do
         add_to_transaction
-        begin
-          status = yield
-        rescue ActiveRecord::Rollback
-          clear_transaction_record_state
-          status = nil
-        end
-
+        status = yield
         raise ActiveRecord::Rollback unless status
       end
       status
@@ -399,16 +382,26 @@ module ActiveRecord
     end
 
     private
+      attr_reader :_committed_already_called, :_trigger_update_callback, :_trigger_destroy_callback
 
       # Save the new record state and id of a record so it can be restored later if a transaction fails.
       def remember_transaction_record_state
-        @_start_transaction_state[:id] = id
         @_start_transaction_state.reverse_merge!(
+          id: id,
           new_record: @new_record,
           destroyed: @destroyed,
           frozen?: frozen?,
         )
         @_start_transaction_state[:level] = (@_start_transaction_state[:level] || 0) + 1
+        remember_new_record_before_last_commit
+      end
+
+      def remember_new_record_before_last_commit
+        if _committed_already_called
+          @_new_record_before_last_commit = false
+        else
+          @_new_record_before_last_commit = @_start_transaction_state[:new_record]
+        end
       end
 
       # Clear the new record state and id of a record.
@@ -440,22 +433,16 @@ module ActiveRecord
         end
       end
 
-      # Determine if a record was created or destroyed in a transaction. State should be one of :new_record or :destroyed.
-      def transaction_record_state(state)
-        @_start_transaction_state[state]
-      end
-
       # Determine if a transaction included an action for :create, :update, or :destroy. Used in filtering callbacks.
       def transaction_include_any_action?(actions)
         actions.any? do |action|
           case action
           when :create
-            transaction_record_state(:new_record)
-          when :destroy
-            defined?(@_trigger_destroy_callback) && @_trigger_destroy_callback
+            persisted? && @_new_record_before_last_commit
           when :update
-            !(transaction_record_state(:new_record) || destroyed?) &&
-              (defined?(@_trigger_update_callback) && @_trigger_update_callback)
+            !(@_new_record_before_last_commit || destroyed?) && _trigger_update_callback
+          when :destroy
+            _trigger_destroy_callback
           end
         end
       end
@@ -491,7 +478,8 @@ module ActiveRecord
 
       def update_attributes_from_transaction_state(transaction_state)
         if transaction_state && transaction_state.finalized?
-          restore_transaction_record_state if transaction_state.rolledback?
+          restore_transaction_record_state(transaction_state.fully_rolledback?) if transaction_state.rolledback?
+          force_clear_transaction_record_state if transaction_state.fully_committed?
           clear_transaction_record_state if transaction_state.fully_completed?
         end
       end

@@ -25,9 +25,9 @@ class ActionCable::Connection::AuthorizationTest < ActionCable::TestCase
         "HTTP_HOST" => "localhost", "HTTP_ORIGIN" => "http://rubyonrails.com"
 
       connection = Connection.new(server, env)
-      connection.websocket.expects(:close)
-
-      connection.process
+      assert_called(connection.websocket, :close) do
+        connection.process
+      end
     end
   end
 end

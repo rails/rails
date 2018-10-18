@@ -65,7 +65,7 @@ module ActiveRecord
     # Most of the methods in the adapter are useful during migrations. Most
     # notably, the instance methods provided by SchemaStatements are very useful.
     class AbstractAdapter
-      ADAPTER_NAME = "Abstract".freeze
+      ADAPTER_NAME = "Abstract"
       include ActiveSupport::Callbacks
       define_callbacks :checkout, :checkin
 
@@ -80,8 +80,12 @@ module ActiveRecord
       attr_reader :schema_cache, :owner, :logger, :prepared_statements, :lock
       alias :in_use? :owner
 
+      set_callback :checkin, :after, :enable_lazy_transactions!
+
       def self.type_cast_config_to_integer(config)
-        if config =~ SIMPLE_INT
+        if config.is_a?(Integer)
+          config
+        elsif SIMPLE_INT.match?(config)
           config.to_i
         else
           config
@@ -117,6 +121,24 @@ module ActiveRecord
         else
           @prepared_statements = false
         end
+
+        @advisory_locks_enabled = self.class.type_cast_config_to_boolean(
+          config.fetch(:advisory_locks, true)
+        )
+
+        check_version
+      end
+
+      def replica?
+        @config[:replica] || false
+      end
+
+      def migrations_paths # :nodoc:
+        @config[:migrations_paths] || Migrator.migrations_paths
+      end
+
+      def migration_context # :nodoc:
+        MigrationContext.new(migrations_paths)
       end
 
       class Version
@@ -129,6 +151,10 @@ module ActiveRecord
         def <=>(version_string)
           @version <=> version_string.split(".").map(&:to_i)
         end
+
+        def to_s
+          @version.join(".")
+        end
       end
 
       def valid_type?(type) # :nodoc:
@@ -138,7 +164,7 @@ module ActiveRecord
       # this method must only be called while holding connection pool's mutex
       def lease
         if in_use?
-          msg = "Cannot lease connection, ".dup
+          msg = +"Cannot lease connection, "
           if @owner == Thread.current
             msg << "it is already leased by the current thread."
           else
@@ -312,9 +338,19 @@ module ActiveRecord
       def supports_multi_insert?
         true
       end
+      deprecate :supports_multi_insert?
 
       # Does this adapter support virtual columns?
       def supports_virtual_columns?
+        false
+      end
+
+      # Does this adapter support foreign/external tables?
+      def supports_foreign_tables?
+        false
+      end
+
+      def supports_lazy_transactions?
         false
       end
 
@@ -324,6 +360,10 @@ module ActiveRecord
 
       # This is meant to be implemented by the adapters that support extensions
       def enable_extension(name)
+      end
+
+      def advisory_locks_enabled? # :nodoc:
+        supports_advisory_locks? && @advisory_locks_enabled
       end
 
       # This is meant to be implemented by the adapters that support advisory
@@ -429,6 +469,7 @@ module ActiveRecord
       # This is useful for when you need to call a proprietary method such as
       # PostgreSQL's lo_* methods.
       def raw_connection
+        disable_lazy_transactions!
         @connection
       end
 
@@ -455,11 +496,7 @@ module ActiveRecord
       end
 
       def column_name_for_operation(operation, node) # :nodoc:
-        column_name_from_arel_node(node)
-      end
-
-      def column_name_from_arel_node(node) # :nodoc:
-        visitor.accept(node, Arel::Collectors::SQLString.new).value
+        visitor.compile(node)
       end
 
       def default_index_type?(index) # :nodoc:
@@ -467,6 +504,9 @@ module ActiveRecord
       end
 
       private
+        def check_version
+        end
+
         def type_map
           @type_map ||= Type::TypeMap.new.tap do |mapping|
             initialize_type_map(mapping)

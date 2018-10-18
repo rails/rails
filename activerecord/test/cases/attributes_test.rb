@@ -148,6 +148,20 @@ module ActiveRecord
       assert_equal 2, klass.new.counter
     end
 
+    test "procs for default values are evaluated even after column_defaults is called" do
+      klass = Class.new(OverloadedType) do
+        @@counter = 0
+        attribute :counter, :integer, default: -> { @@counter += 1 }
+      end
+
+      assert_equal 1, klass.new.counter
+
+      # column_defaults will increment the counter since the proc is called
+      klass.column_defaults
+
+      assert_equal 3, klass.new.counter
+    end
+
     test "procs are memoized before type casting" do
       klass = Class.new(OverloadedType) do
         @@counter = 0
@@ -211,7 +225,7 @@ module ActiveRecord
     end
 
     test "attributes not backed by database columns are not dirty when unchanged" do
-      refute OverloadedType.new.non_existent_decimal_changed?
+      assert_not_predicate OverloadedType.new, :non_existent_decimal_changed?
     end
 
     test "attributes not backed by database columns are always initialized" do
@@ -245,13 +259,13 @@ module ActiveRecord
 
       model.foo << "asdf"
       assert_equal "lolasdf", model.foo
-      assert model.foo_changed?
+      assert_predicate model, :foo_changed?
 
       model.reload
       assert_equal "lol", model.foo
 
       model.foo = "lol"
-      refute model.changed?
+      assert_not_predicate model, :changed?
     end
 
     test "attributes not backed by database columns appear in inspect" do

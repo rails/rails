@@ -57,7 +57,7 @@ namespace :assets do
     end
 
     print "[verify] #{file} is a UMD module "
-    if pathname.read =~ /module\.exports.*define\.amd/m
+    if /module\.exports.*define\.amd/m.match?(pathname.read)
       puts "[OK]"
     else
       $stderr.puts "[FAIL]"

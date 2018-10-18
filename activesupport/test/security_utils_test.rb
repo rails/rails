@@ -11,7 +11,7 @@ class SecurityUtilsTest < ActiveSupport::TestCase
 
   def test_fixed_length_secure_compare_should_perform_string_comparison
     assert ActiveSupport::SecurityUtils.fixed_length_secure_compare("a", "a")
-    assert !ActiveSupport::SecurityUtils.fixed_length_secure_compare("a", "b")
+    assert_not ActiveSupport::SecurityUtils.fixed_length_secure_compare("a", "b")
   end
 
   def test_fixed_length_secure_compare_raise_on_length_mismatch

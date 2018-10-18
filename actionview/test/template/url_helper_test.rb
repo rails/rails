@@ -75,10 +75,26 @@ class UrlHelperTest < ActiveSupport::TestCase
     assert_equal "javascript:history.back()", url_for(:back)
   end
 
+  def test_url_for_with_array_defaults_to_only_path_true
+    assert_equal "/other", url_for([:other, { controller: "foo" }])
+  end
+
+  def test_url_for_with_array_and_only_path_set_to_false
+    default_url_options[:host] = "http://example.com"
+    assert_equal "http://example.com/other", url_for([:other, { controller: "foo", only_path: false }])
+  end
+
   def test_to_form_params_with_hash
     assert_equal(
-      [{ name: :name, value: "David" }, { name: :nationality, value: "Danish" }],
+      [{ name: "name", value: "David" }, { name: "nationality", value: "Danish" }],
       to_form_params(name: "David", nationality: "Danish")
+    )
+  end
+
+  def test_to_form_params_with_hash_having_symbol_and_string_keys
+    assert_equal(
+      [{ name: "name", value: "David" }, { name: "nationality", value: "Danish" }],
+      to_form_params("name" => "David", :nationality => "Danish")
     )
   end
 
@@ -508,16 +524,16 @@ class UrlHelperTest < ActiveSupport::TestCase
   def test_current_page_considering_params
     @request = request_for_url("/?order=desc&page=1")
 
-    assert !current_page?(url_hash, check_parameters: true)
-    assert !current_page?(url_hash.merge(check_parameters: true))
-    assert !current_page?(ActionController::Parameters.new(url_hash.merge(check_parameters: true)).permit!)
-    assert !current_page?("http://www.example.com/", check_parameters: true)
+    assert_not current_page?(url_hash, check_parameters: true)
+    assert_not current_page?(url_hash.merge(check_parameters: true))
+    assert_not current_page?(ActionController::Parameters.new(url_hash.merge(check_parameters: true)).permit!)
+    assert_not current_page?("http://www.example.com/", check_parameters: true)
   end
 
   def test_current_page_considering_params_when_options_does_not_respond_to_to_hash
     @request = request_for_url("/?order=desc&page=1")
 
-    assert !current_page?(:back, check_parameters: false)
+    assert_not current_page?(:back, check_parameters: false)
   end
 
   def test_current_page_with_params_that_match
@@ -541,7 +557,7 @@ class UrlHelperTest < ActiveSupport::TestCase
 
   def test_current_page_with_escaped_params_with_different_encoding
     @request = request_for_url("/")
-    @request.stub(:path, "/category/administra%c3%a7%c3%a3o".dup.force_encoding(Encoding::ASCII_8BIT)) do
+    @request.stub(:path, (+"/category/administra%c3%a7%c3%a3o").force_encoding(Encoding::ASCII_8BIT)) do
       assert current_page?(controller: "foo", action: "category", category: "administração")
       assert current_page?("http://www.example.com/category/administra%c3%a7%c3%a3o")
     end
@@ -562,7 +578,7 @@ class UrlHelperTest < ActiveSupport::TestCase
   def test_current_page_with_not_get_verb
     @request = request_for_url("/events", method: :post)
 
-    assert !current_page?("/events")
+    assert_not current_page?("/events")
   end
 
   def test_link_unless_current
@@ -663,7 +679,7 @@ class UrlHelperTest < ActiveSupport::TestCase
   end
 
   def test_mail_to_returns_html_safe_string
-    assert mail_to("david@loudthinking.com").html_safe?
+    assert_predicate mail_to("david@loudthinking.com"), :html_safe?
   end
 
   def test_mail_to_with_block
@@ -697,7 +713,7 @@ end
 
 class UrlHelperControllerTest < ActionController::TestCase
   class UrlHelperController < ActionController::Base
-    test_routes do
+    ROUTES = test_routes do
       get "url_helper_controller_test/url_helper/show/:id",
         to: "url_helper_controller_test/url_helper#show",
         as: :show
@@ -761,6 +777,11 @@ class UrlHelperControllerTest < ActionController::TestCase
     helper_method :override_url_helper_path
   end
 
+  def setup
+    super
+    @routes = UrlHelperController::ROUTES
+  end
+
   tests UrlHelperController
 
   def test_url_for_shows_only_path
@@ -821,7 +842,7 @@ class UrlHelperControllerTest < ActionController::TestCase
 end
 
 class TasksController < ActionController::Base
-  test_routes do
+  ROUTES = test_routes do
     resources :tasks
   end
 
@@ -842,6 +863,11 @@ end
 
 class LinkToUnlessCurrentWithControllerTest < ActionController::TestCase
   tests TasksController
+
+  def setup
+    super
+    @routes = TasksController::ROUTES
+  end
 
   def test_link_to_unless_current_to_current
     get :index
@@ -875,7 +901,7 @@ class Session
 end
 
 class WorkshopsController < ActionController::Base
-  test_routes do
+  ROUTES = test_routes do
     resources :workshops do
       resources :sessions
     end
@@ -898,7 +924,7 @@ class WorkshopsController < ActionController::Base
 end
 
 class SessionsController < ActionController::Base
-  test_routes do
+  ROUTES = test_routes do
     resources :workshops do
       resources :sessions
     end
@@ -925,6 +951,11 @@ class SessionsController < ActionController::Base
 end
 
 class PolymorphicControllerTest < ActionController::TestCase
+  def setup
+    super
+    @routes = WorkshopsController::ROUTES
+  end
+
   def test_new_resource
     @controller = WorkshopsController.new
 
@@ -937,6 +968,20 @@ class PolymorphicControllerTest < ActionController::TestCase
 
     get :show, params: { id: 1 }
     assert_equal %{/workshops/1\n<a href="/workshops/1">Workshop</a>}, @response.body
+  end
+
+  def test_current_page_when_options_does_not_respond_to_to_hash
+    @controller = WorkshopsController.new
+
+    get :edit, params: { id: 1 }
+    assert_equal "false", @response.body
+  end
+end
+
+class PolymorphicSessionsControllerTest < ActionController::TestCase
+  def setup
+    super
+    @routes = SessionsController::ROUTES
   end
 
   def test_new_nested_resource
@@ -958,12 +1003,5 @@ class PolymorphicControllerTest < ActionController::TestCase
 
     get :edit, params: { workshop_id: 1, id: 1, format: "json"  }
     assert_equal %{/workshops/1/sessions/1.json\n<a href="/workshops/1/sessions/1.json">Session</a>}, @response.body
-  end
-
-  def test_current_page_when_options_does_not_respond_to_to_hash
-    @controller = WorkshopsController.new
-
-    get :edit, params: { id: 1 }
-    assert_equal "false", @response.body
   end
 end

@@ -3,6 +3,7 @@
 require "openssl"
 require "base64"
 require "active_support/core_ext/array/extract_options"
+require "active_support/core_ext/module/attribute_accessors"
 require "active_support/message_verifier"
 require "active_support/messages/metadata"
 
@@ -181,7 +182,7 @@ module ActiveSupport
 
       def _decrypt(encrypted_message, purpose)
         cipher = new_cipher
-        encrypted_data, iv, auth_tag = encrypted_message.split("--".freeze).map { |v| ::Base64.strict_decode64(v) }
+        encrypted_data, iv, auth_tag = encrypted_message.split("--").map { |v| ::Base64.strict_decode64(v) }
 
         # Currently the OpenSSL bindings do not raise an error if auth_tag is
         # truncated, which would allow an attacker to easily forge it. See
@@ -209,9 +210,7 @@ module ActiveSupport
         OpenSSL::Cipher.new(@cipher)
       end
 
-      def verifier
-        @verifier
-      end
+      attr_reader :verifier
 
       def aead_mode?
         @aead_mode ||= new_cipher.authenticated?

@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "active_support/core_ext/module/redefine_method"
-require "active_support/core_ext/string/strip" # for strip_heredoc
 require "active_support/core_ext/time/calculations"
 require "concurrent/map"
 
@@ -112,7 +111,7 @@ module ActiveSupport
       #   Time.current # => Sat, 09 Nov 2013 15:34:49 EST -05:00
       def travel_to(date_or_time)
         if block_given? && simple_stubs.stubbing(Time, :now)
-          travel_to_nested_block_call = <<-MSG.strip_heredoc
+          travel_to_nested_block_call = <<~MSG
 
       Calling `travel_to` with a block, when we have previously already made a call to `travel_to`, can lead to confusing time stubbing.
 
@@ -159,7 +158,7 @@ module ActiveSupport
       end
 
       # Returns the current time back to its original state, by removing the stubs added by
-      # +travel+ and +travel_to+.
+      # +travel+, +travel_to+, and +freeze_time+.
       #
       #   Time.current # => Sat, 09 Nov 2013 15:34:49 EST -05:00
       #   travel_to Time.zone.local(2004, 11, 24, 01, 04, 44)
@@ -169,6 +168,7 @@ module ActiveSupport
       def travel_back
         simple_stubs.unstub_all!
       end
+      alias_method :unfreeze_time, :travel_back
 
       # Calls +travel_to+ with +Time.now+.
       #

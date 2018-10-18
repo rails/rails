@@ -62,4 +62,8 @@ module TestCaseHelpers
     def job_executed_in_locale(id = @id)
       job_data(id)["locale"]
     end
+
+    def job_executed_in_timezone(id = @id)
+      job_data(id)["timezone"]
+    end
 end

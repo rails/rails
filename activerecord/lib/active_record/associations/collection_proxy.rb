@@ -32,7 +32,7 @@ module ActiveRecord
     class CollectionProxy < Relation
       def initialize(klass, association) #:nodoc:
         @association = association
-        super klass, klass.arel_table, klass.predicate_builder
+        super klass
 
         extensions = association.extensions
         extend(*extensions) if extensions.any?
@@ -1088,7 +1088,7 @@ module ActiveRecord
       #   person.pets.reload # fetches pets from the database
       #   # => [#<Pet id: 1, name: "Snoop", group: "dogs", person_id: 1>]
       def reload
-        proxy_association.reload
+        proxy_association.reload(true)
         reset_scope
       end
 
@@ -1125,7 +1125,7 @@ module ActiveRecord
         SpawnMethods,
       ].flat_map { |klass|
         klass.public_instance_methods(false)
-      } - self.public_instance_methods(false) - [:select] + [:scoping]
+      } - self.public_instance_methods(false) - [:select] + [:scoping, :values]
 
       delegate(*delegate_methods, to: :scope)
 

@@ -65,7 +65,7 @@ module RailtiesTest
     test "railtie can add to_prepare callbacks" do
       $to_prepare = false
       class Foo < Rails::Railtie ; config.to_prepare { $to_prepare = true } ; end
-      assert !$to_prepare
+      assert_not $to_prepare
       require "#{app_path}/config/environment"
       require "rack/test"
       extend Rack::Test::Methods
@@ -91,7 +91,7 @@ module RailtiesTest
     test "railtie can add after_initialize callbacks" do
       $after_initialize = false
       class Foo < Rails::Railtie ; config.after_initialize { $after_initialize = true } ; end
-      assert !$after_initialize
+      assert_not $after_initialize
       require "#{app_path}/config/environment"
       assert $after_initialize
     end
@@ -107,7 +107,7 @@ module RailtiesTest
 
       require "#{app_path}/config/environment"
 
-      assert !$ran_block
+      assert_not $ran_block
       require "rake"
       require "rake/testtask"
       require "rdoc/task"
@@ -151,7 +151,7 @@ module RailtiesTest
 
       require "#{app_path}/config/environment"
 
-      assert !$ran_block
+      assert_not $ran_block
       Rails.application.load_generators
       assert $ran_block
     end
@@ -167,7 +167,7 @@ module RailtiesTest
 
       require "#{app_path}/config/environment"
 
-      assert !$ran_block
+      assert_not $ran_block
       Rails.application.load_console
       assert $ran_block
     end
@@ -183,7 +183,7 @@ module RailtiesTest
 
       require "#{app_path}/config/environment"
 
-      assert !$ran_block
+      assert_not $ran_block
       Rails.application.load_runner
       assert $ran_block
     end
@@ -197,7 +197,7 @@ module RailtiesTest
         end
       end
 
-      assert !$ran_block
+      assert_not $ran_block
       require "#{app_path}/config/environment"
       assert $ran_block
     end

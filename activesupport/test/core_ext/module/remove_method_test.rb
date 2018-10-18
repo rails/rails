@@ -32,14 +32,14 @@ class RemoveMethodTest < ActiveSupport::TestCase
     RemoveMethodTests::A.class_eval {
       remove_possible_method(:do_something)
     }
-    assert !RemoveMethodTests::A.new.respond_to?(:do_something)
+    assert_not_respond_to RemoveMethodTests::A.new, :do_something
   end
 
   def test_remove_singleton_method_from_an_object
     RemoveMethodTests::A.class_eval {
       remove_possible_singleton_method(:do_something_else)
     }
-    assert !RemoveMethodTests::A.respond_to?(:do_something_else)
+    assert_not_respond_to RemoveMethodTests::A, :do_something_else
   end
 
   def test_redefine_method_in_an_object

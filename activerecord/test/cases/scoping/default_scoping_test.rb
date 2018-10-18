@@ -4,6 +4,7 @@ require "cases/helper"
 require "models/post"
 require "models/comment"
 require "models/developer"
+require "models/project"
 require "models/computer"
 require "models/vehicle"
 require "models/cat"
@@ -193,7 +194,7 @@ class DefaultScopingTest < ActiveRecord::TestCase
 
   def test_order_to_unscope_reordering
     scope = DeveloperOrderedBySalary.order("salary DESC, name ASC").reverse_order.unscope(:order)
-    assert !/order/i.match?(scope.to_sql)
+    assert_no_match(/order/i, scope.to_sql)
   end
 
   def test_unscope_reverse_order
@@ -302,8 +303,8 @@ class DefaultScopingTest < ActiveRecord::TestCase
 
   def test_unscope_merging
     merged = Developer.where(name: "Jamis").merge(Developer.unscope(:where))
-    assert merged.where_clause.empty?
-    assert !merged.where(name: "Jon").where_clause.empty?
+    assert_empty merged.where_clause
+    assert_not_empty merged.where(name: "Jon").where_clause
   end
 
   def test_order_in_default_scope_should_not_prevail
@@ -364,6 +365,21 @@ class DefaultScopingTest < ActiveRecord::TestCase
   def test_create_with_reset
     jamis = PoorDeveloperCalledJamis.create_with(name: "Aaron").create_with(nil).new
     assert_equal "Jamis", jamis.name
+  end
+
+  def test_create_with_takes_precedence_over_where
+    developer = Developer.where(name: nil).create_with(name: "Aaron").new
+    assert_equal "Aaron", developer.name
+  end
+
+  def test_create_with_nested_attributes
+    assert_difference("Project.count", 1) do
+      Developer.create_with(
+        projects_attributes: [{ name: "p1" }]
+      ).scoping do
+        Developer.create!(name: "Aaron")
+      end
+    end
   end
 
   # FIXME: I don't know if this is *desired* behavior, but it is *today's*

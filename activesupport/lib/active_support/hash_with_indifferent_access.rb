@@ -2,6 +2,7 @@
 
 require "active_support/core_ext/hash/keys"
 require "active_support/core_ext/hash/reverse_merge"
+require "active_support/core_ext/hash/except"
 
 module ActiveSupport
   # Implements a hash where keys <tt>:foo</tt> and <tt>"foo"</tt> are considered
@@ -177,20 +178,18 @@ module ActiveSupport
       super(convert_key(key), *extras)
     end
 
-    if Hash.new.respond_to?(:dig)
-      # Same as <tt>Hash#dig</tt> where the key passed as argument can be
-      # either a string or a symbol:
-      #
-      #   counters = ActiveSupport::HashWithIndifferentAccess.new
-      #   counters[:foo] = { bar: 1 }
-      #
-      #   counters.dig('foo', 'bar')     # => 1
-      #   counters.dig(:foo, :bar)       # => 1
-      #   counters.dig(:zoo)             # => nil
-      def dig(*args)
-        args[0] = convert_key(args[0]) if args.size > 0
-        super(*args)
-      end
+    # Same as <tt>Hash#dig</tt> where the key passed as argument can be
+    # either a string or a symbol:
+    #
+    #   counters = ActiveSupport::HashWithIndifferentAccess.new
+    #   counters[:foo] = { bar: 1 }
+    #
+    #   counters.dig('foo', 'bar')     # => 1
+    #   counters.dig(:foo, :bar)       # => 1
+    #   counters.dig(:zoo)             # => nil
+    def dig(*args)
+      args[0] = convert_key(args[0]) if args.size > 0
+      super(*args)
     end
 
     # Same as <tt>Hash#default</tt> where the key passed as argument can be
@@ -228,7 +227,7 @@ module ActiveSupport
     #   hash.fetch_values('a', 'c') # => KeyError: key not found: "c"
     def fetch_values(*indices, &block)
       indices.collect { |key| fetch(key, &block) }
-    end if Hash.method_defined?(:fetch_values)
+    end
 
     # Returns a shallow copy of the hash.
     #
@@ -281,6 +280,8 @@ module ActiveSupport
       super(convert_key(key))
     end
 
+    alias_method :without, :except
+
     def stringify_keys!; self end
     def deep_stringify_keys!; self end
     def stringify_keys; dup end
@@ -309,6 +310,14 @@ module ActiveSupport
     def transform_keys(*args, &block)
       return to_enum(:transform_keys) unless block_given?
       dup.tap { |hash| hash.transform_keys!(*args, &block) }
+    end
+
+    def transform_keys!
+      return enum_for(:transform_keys!) { size } unless block_given?
+      keys.each do |key|
+        self[yield(key)] = delete(key)
+      end
+      self
     end
 
     def slice(*keys)

@@ -178,7 +178,7 @@
     if (root.IPv6 === this) {
       root.IPv6 = _IPv6;
     }
-  
+
     return this;
   }
 
@@ -461,7 +461,6 @@
 }(this, function (punycode, IPv6, SLD, root) {
   'use strict';
   /*global location, escape, unescape */
-  // FIXME: v2.0.0 renamce non-camelCase properties to uppercase
   /*jshint camelcase: false */
 
   // save current URI variable, if any

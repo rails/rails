@@ -90,7 +90,7 @@ module ActionDispatch
             return @separator_re unless @matchers.key?(node)
 
             re = @matchers[node]
-            "(#{re})"
+            "(#{Regexp.union(re)})"
           end
 
           def visit_GROUP(node)
@@ -183,7 +183,7 @@ module ActionDispatch
               node = node.to_sym
 
               if @requirements.key?(node)
-                re = /#{@requirements[node]}|/
+                re = /#{Regexp.union(@requirements[node])}|/
                 @offsets.push((re.match("").length - 1) + @offsets.last)
               else
                 @offsets << @offsets.last

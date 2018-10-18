@@ -8,9 +8,7 @@ module ActiveRecord
 
       def initialize(owner, reflection)
         super
-
-        @through_records     = {}
-        @through_association = nil
+        @through_records = {}
       end
 
       def concat(*records)
@@ -21,20 +19,6 @@ module ActiveRecord
         end
 
         super
-      end
-
-      def concat_records(records)
-        ensure_not_nested
-
-        records = super(records, true)
-
-        if owner.new_record? && records
-          records.flatten.each do |record|
-            build_through_record(record)
-          end
-        end
-
-        records
       end
 
       def insert_record(record, validate = true, raise = false)
@@ -50,9 +34,18 @@ module ActiveRecord
       end
 
       private
+        def concat_records(records)
+          ensure_not_nested
 
-        def through_association
-          @through_association ||= owner.association(through_reflection.name)
+          records = super(records, true)
+
+          if owner.new_record? && records
+            records.flatten.each do |record|
+              build_through_record(record)
+            end
+          end
+
+          records
         end
 
         # The through record (built with build_record) is temporarily cached
@@ -97,7 +90,7 @@ module ActiveRecord
         def build_record(attributes)
           ensure_not_nested
 
-          record = super(attributes)
+          record = super
 
           inverse = source_reflection.inverse_of
           if inverse
@@ -145,7 +138,7 @@ module ActiveRecord
           case method
           when :destroy
             if scope.klass.primary_key
-              count = scope.destroy_all.length
+              count = scope.destroy_all.count(&:destroyed?)
             else
               scope.each(&:_run_destroy_callbacks)
               count = scope.delete_all

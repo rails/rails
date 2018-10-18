@@ -5,7 +5,7 @@
 
 <%= @exception.message %>
 <% if @exception.message.match? %r{#{ActiveStorage::Blob.table_name}|#{ActiveStorage::Attachment.table_name}} %>
-To resolve this issue run: bin/rails active_storage:install
+To resolve this issue run: rails active_storage:install
 <% end %>
 
 <%= render template: "rescues/_source" %>

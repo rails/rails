@@ -1,79 +1,146 @@
-*   Allow the use of callable objects as group methods for grouped selects.
+*   Add allocations to template rendering instrumentation.
 
-    Until now, the `option_groups_from_collection_for_select` method was only able to
-    handle method names as `group_method` and `group_label_method` parameters,
-    it is now able to receive procs and other callable objects too.
+    Adds the allocations for template and partial rendering to the server output on render.
 
-    *Jérémie Bonal*
+    ```
+      Rendered posts/_form.html.erb (Duration: 7.1ms | Allocations: 6004)
+      Rendered posts/new.html.erb within layouts/application (Duration: 8.3ms | Allocations: 6654)
+    Completed 200 OK in 858ms (Views: 848.4ms | ActiveRecord: 0.4ms | Allocations: 1539564)
+    ```
 
-*   Add `preload_link_tag` helper
+    *Eileen M. Uchitelle*, *Aaron Patterson*
 
-    This helper that allows to the browser to initiate early fetch of resources
-    (different to the specified in `javascript_include_tag` and `stylesheet_link_tag`).
-    Additionally, this sends Early Hints if supported by browser.
+*   Respect the `only_path` option passed to `url_for` when the options are passed in as an array
+    
+    Fixes #33237.
 
-    *Guillermo Iguaran*
+    *Joel Ambass*
 
-## Rails 5.2.0.beta2 (November 28, 2017) ##
+*   Deprecate calling private model methods from view helpers.
 
-*   No changes.
+    For example, in methods like `options_from_collection_for_select`
+    and `collection_select` it is possible to call private methods from
+    the objects used.
 
+    Fixes #33546.
 
-## Rails 5.2.0.beta1 (November 27, 2017) ##
+    *Ana María Martínez Gómez*
 
-*   Change `form_with` to generates ids by default.
+*   Fix issue with `button_to`'s `to_form_params`
 
-    When `form_with` was introduced we disabled the automatic generation of ids
-    that was enabled in `form_for`. This usually is not an good idea since labels don't work
-    when the input doesn't have an id and it made harder to test with Capybara.
+    `button_to` was throwing exception when invoked with `params` hash that
+    contains symbol and string keys. The reason for the exception was that
+    `to_form_params` was comparing the given symbol and string keys.
 
-    You can still disable the automatic generation of ids setting `config.action_view.form_with_generates_ids`
-    to `false.`
+    The issue is fixed by turning all keys to strings inside
+    `to_form_params` before comparing them.
 
-    *Nick Pezza*
+    *Georgi Georgiev*
 
-*   Fix issues with `field_error_proc` wrapping `optgroup` and select divider `option`.
+*   Mark arrays of translations as trusted safe by using the `_html` suffix.
 
-    Fixes #31088
+    Example:
 
-    *Matthias Neumayr*
+        en:
+          foo_html:
+            - "One"
+            - "<strong>Two</strong>"
+            - "Three &#128075; &#128578;"
 
-*   Remove deprecated Erubis ERB handler.
+    *Juan Broullon*
 
-    *Rafael Mendonça França*
+*   Add `year_format` option to date_select tag. This option makes it possible to customize year
+    names. Lambda should be passed to use this option.
 
-*   Remove default `alt` text generation.
+    Example:
 
-    Fixes #30096
+        date_select('user_birthday', '', start_year: 1998, end_year: 2000, year_format: ->year { "Heisei #{year - 1988}" })
 
-    *Cameron Cundiff*
+    The HTML produced:
 
-*   Add `srcset` option to `image_tag` helper.
+        <select id="user_birthday__1i" name="user_birthday[(1i)]">
+        <option value="1998">Heisei 10</option>
+        <option value="1999">Heisei 11</option>
+        <option value="2000">Heisei 12</option>
+        </select>
+        /* The rest is omitted */
 
-    *Roberto Miranda*
+    *Koki Ryu*
 
-*   Fix issues with scopes and engine on `current_page?` method.
+*   Fix JavaScript views rendering does not work with Firefox when using
+    Content Security Policy.
 
-    Fixes #29401.
-
-    *Nikita Savrov*
-
-*   Generate field ids in `collection_check_boxes` and `collection_radio_buttons`.
-
-    This makes sure that the labels are linked up with the fields.
-
-    Fixes #29014.
+    Fixes #32577.
 
     *Yuji Yaginuma*
 
-*   Add `:json` type to `auto_discovery_link_tag` to support [JSON Feeds](https://jsonfeed.org/version/1)
+*   Add the `nonce: true` option for `javascript_include_tag` helper to
+    support automatic nonce generation for Content Security Policy.
+    Works the same way as `javascript_tag nonce: true` does.
 
-    *Mike Gunderloy*
+    *Yaroslav Markin*
 
-*   Update `distance_of_time_in_words` helper to display better error messages
-    for bad input.
+*   Remove `ActionView::Helpers::RecordTagHelper`.
 
-    *Jay Hayes*
+    *Yoshiyuki Hirano*
+
+*   Disable `ActionView::Template` finalizers in test environment.
+
+    Template finalization can be expensive in large view test suites.
+    Add a configuration option,
+    `action_view.finalize_compiled_template_methods`, and turn it off in
+    the test environment.
+
+    *Simon Coffey*
+
+*   Extract the `confirm` call in its own, overridable method in `rails_ujs`.
+
+    Example:
+
+        Rails.confirm = function(message, element) {
+          return (my_bootstrap_modal_confirm(message));
+        }
+
+    *Mathieu Mahé*
+
+*   Enable select tag helper to mark `prompt` option as `selected` and/or `disabled` for `required`
+    field.
+
+    Example:
+
+        select :post,
+               :category,
+               ["lifestyle", "programming", "spiritual"],
+               { selected: "", disabled: "", prompt: "Choose one" },
+               { required: true }
+
+    Placeholder option would be selected and disabled.
+
+    The HTML produced:
+
+        <select required="required" name="post[category]" id="post_category">
+        <option disabled="disabled" selected="selected" value="">Choose one</option>
+        <option value="lifestyle">lifestyle</option>
+        <option value="programming">programming</option>
+        <option value="spiritual">spiritual</option></select>
+
+    *Sergey Prikhodko*
+
+*   Don't enforce UTF-8 by default.
+
+    With the disabling of TLS 1.0 by most major websites, continuing to run
+    IE8 or lower becomes increasingly difficult so default to not enforcing
+    UTF-8 encoding as it's not relevant to other browsers.
+
+    *Andrew White*
+
+*   Change translation key of `submit_tag` from `module_name_class_name` to `module_name/class_name`.
+
+    *Rui Onodera*
+
+*   Rails 6 requires Ruby 2.4.1 or newer.
+
+    *Jeremy Daer*
 
 
-Please check [5-1-stable](https://github.com/rails/rails/blob/5-1-stable/actionview/CHANGELOG.md) for previous changes.
+Please check [5-2-stable](https://github.com/rails/rails/blob/5-2-stable/actionview/CHANGELOG.md) for previous changes.

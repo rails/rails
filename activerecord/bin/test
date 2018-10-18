@@ -1,6 +1,12 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
+adapter_index = ARGV.index("--adapter") || ARGV.index("-a")
+if adapter_index
+  ARGV.delete_at(adapter_index)
+  ENV["ARCONN"] = ARGV.delete_at(adapter_index).strip
+end
+
 COMPONENT_ROOT = File.expand_path("..", __dir__)
 require_relative "../../tools/test"
 
@@ -17,4 +23,5 @@ module Minitest
   end
 end
 
+Minitest.load_plugins
 Minitest.extensions.unshift "active_record"

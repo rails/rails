@@ -81,7 +81,7 @@ class TagHelperTest < ActionView::TestCase
 
   def test_content_tag
     assert_equal "<a href=\"create\">Create</a>", content_tag("a", "Create", "href" => "create")
-    assert content_tag("a", "Create", "href" => "create").html_safe?
+    assert_predicate content_tag("a", "Create", "href" => "create"), :html_safe?
     assert_equal content_tag("a", "Create", "href" => "create"),
                  content_tag("a", "Create", href: "create")
     assert_equal "<p>&lt;script&gt;evil_js&lt;/script&gt;</p>",
@@ -92,7 +92,7 @@ class TagHelperTest < ActionView::TestCase
 
   def test_tag_builder_with_content
     assert_equal "<div id=\"post_1\">Content</div>", tag.div("Content", id: "post_1")
-    assert tag.div("Content", id: "post_1").html_safe?
+    assert_predicate tag.div("Content", id: "post_1"), :html_safe?
     assert_equal tag.div("Content", id: "post_1"),
                  tag.div("Content", "id": "post_1")
     assert_equal "<p>&lt;script&gt;evil_js&lt;/script&gt;</p>",

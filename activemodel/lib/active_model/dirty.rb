@@ -142,7 +142,9 @@ module ActiveModel
     end
 
     def changes_applied # :nodoc:
-      @previously_changed = changes
+      unless defined?(@attributes)
+        @previously_changed = changes
+      end
       @mutations_before_last_save = mutations_from_database
       @attributes_changed_by_setter = ActiveSupport::HashWithIndifferentAccess.new
       forget_attribute_assignments
@@ -302,7 +304,7 @@ module ActiveModel
 
       # Handles <tt>*_previous_change</tt> for +method_missing+.
       def attribute_previous_change(attr)
-        previous_changes[attr] if attribute_previously_changed?(attr)
+        previous_changes[attr]
       end
 
       # Handles <tt>*_will_change!</tt> for +method_missing+.

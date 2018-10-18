@@ -482,10 +482,9 @@ module CallbacksTest
         "block in run_callbacks",
         "tweedle_dum",
         "block in run_callbacks",
-        ("call" if RUBY_VERSION < "2.3"),
         "run_callbacks",
         "save"
-      ].compact, call_stack.map(&:label)
+      ], call_stack.map(&:label)
     end
 
     def test_short_call_stack
@@ -830,7 +829,7 @@ module CallbacksTest
     def test_block_never_called_if_terminated
       obj = CallbackTerminator.new
       obj.save
-      assert !obj.saved
+      assert_not obj.saved
     end
   end
 
@@ -858,7 +857,7 @@ module CallbacksTest
     def test_block_never_called_if_abort_is_thrown
       obj = CallbackDefaultTerminator.new
       obj.save
-      assert !obj.saved
+      assert_not obj.saved
     end
   end
 
@@ -954,7 +953,7 @@ module CallbacksTest
 
     def test_proc_arity_2
       assert_raises(ArgumentError) do
-        klass = build_class(->(x, y) {})
+        klass = build_class(->(x, y) { })
         klass.new.run
       end
     end
@@ -1033,7 +1032,7 @@ module CallbacksTest
 
     def test_proc_arity2
       assert_raises(ArgumentError) do
-        object = build_class(->(a, b) {}).new
+        object = build_class(->(a, b) { }).new
         object.run
       end
     end

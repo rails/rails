@@ -13,9 +13,9 @@ module ActionView
     #
     # ==== Sanitization
     #
-    # Most text helpers by default sanitize the given content, but do not escape it.
-    # This means HTML tags will appear in the page but all malicious code will be removed.
-    # Let's look at some examples using the +simple_format+ method:
+    # Most text helpers that generate HTML output sanitize the given input by default,
+    # but do not escape it. This means HTML tags will appear in the page but all malicious
+    # code will be removed. Let's look at some examples using the +simple_format+ method:
     #
     #   simple_format('<a href="http://example.com/">Example</a>')
     #   # => "<p><a href=\"http://example.com/\">Example</a></p>"
@@ -128,7 +128,7 @@ module ActionView
       #   # => You searched for: <a href="search?q=rails">rails</a>
       #
       #   highlight('<a href="javascript:alert(\'no!\')">ruby</a> on rails', 'rails', sanitize: false)
-      #   # => "<a>ruby</a> on <mark>rails</mark>"
+      #   # => <a href="javascript:alert('no!')">ruby</a> on <mark>rails</mark>
       def highlight(text, phrases, options = {})
         text = sanitize(text) if options.fetch(:sanitize, true)
 
@@ -188,7 +188,7 @@ module ActionView
 
         unless separator.empty?
           text.split(separator).each do |value|
-            if value.match(regex)
+            if value.match?(regex)
               phrase = value
               break
             end
@@ -228,7 +228,7 @@ module ActionView
       #   pluralize(2, 'Person', locale: :de)
       #   # => 2 Personen
       def pluralize(count, singular, plural_arg = nil, plural: plural_arg, locale: I18n.locale)
-        word = if (count == 1 || count =~ /^1(\.0+)?$/)
+        word = if count == 1 || count =~ /^1(\.0+)?$/
           singular
         else
           plural || singular.pluralize(locale)

@@ -75,8 +75,11 @@ end
 
 class Symbol
   begin
-    :symbol.dup # Ruby 2.4.x.
-    "symbol_from_string".to_sym.dup # Some symbols can't `dup` in Ruby 2.4.0.
+    :symbol.dup
+
+    # Some symbols couldn't be duped in Ruby 2.4.0 only, due to a bug.
+    # This feature check catches any regression.
+    "symbol_from_string".to_sym.dup
   rescue TypeError
 
     # Symbols are not duplicable:

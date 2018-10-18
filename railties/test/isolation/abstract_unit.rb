@@ -14,7 +14,11 @@ require "bundler/setup" unless defined?(Bundler)
 require "active_support"
 require "active_support/testing/autorun"
 require "active_support/testing/stream"
+require "active_support/testing/method_call_assertions"
 require "active_support/test_case"
+require "minitest/retry"
+
+Minitest::Retry.use!(verbose: false, retry_count: 1)
 
 RAILS_FRAMEWORK_ROOT = File.expand_path("../../..", __dir__)
 
@@ -29,16 +33,21 @@ require "rails/secrets"
 module TestHelpers
   module Paths
     def app_template_path
-      File.join Dir.tmpdir, "app_template"
+      File.join RAILS_FRAMEWORK_ROOT, "tmp/templates/app_template"
     end
 
     def tmp_path(*args)
-      @tmp_path ||= File.realpath(Dir.mktmpdir)
+      @tmp_path ||= File.realpath(Dir.mktmpdir(nil, File.join(RAILS_FRAMEWORK_ROOT, "tmp")))
       File.join(@tmp_path, *args)
     end
 
     def app_path(*args)
-      tmp_path(*%w[app] + args)
+      path = tmp_path(*%w[app] + args)
+      if block_given?
+        yield path
+      else
+        path
+      end
     end
 
     def framework_path
@@ -65,7 +74,7 @@ module TestHelpers
     end
 
     def extract_body(response)
-      "".dup.tap do |body|
+      (+"").tap do |body|
         response[2].each { |chunk| body << chunk }
       end
     end
@@ -107,29 +116,90 @@ module TestHelpers
         end
       end
 
-      File.open("#{app_path}/config/database.yml", "w") do |f|
-        f.puts <<-YAML
-        default: &default
-          adapter: sqlite3
-          pool: 5
-          timeout: 5000
-        development:
-          <<: *default
-          database: db/development.sqlite3
-        test:
-          <<: *default
-          database: db/test.sqlite3
-        production:
-          <<: *default
-          database: db/production.sqlite3
-        YAML
+      if options[:multi_db]
+        File.open("#{app_path}/config/database.yml", "w") do |f|
+          f.puts <<-YAML
+          default: &default
+            adapter: sqlite3
+            pool: 5
+            timeout: 5000
+          development:
+            primary:
+              <<: *default
+              database: db/development.sqlite3
+            primary_readonly:
+              <<: *default
+              database: db/development.sqlite3
+              replica: true
+            animals:
+              <<: *default
+              database: db/development_animals.sqlite3
+              migrations_paths: db/animals_migrate
+            animals_readonly:
+              <<: *default
+              database: db/development_animals.sqlite3
+              migrations_paths: db/animals_migrate
+              replica: true
+          test:
+            primary:
+              <<: *default
+              database: db/test.sqlite3
+            primary_readonly:
+              <<: *default
+              database: db/test.sqlite3
+              replica: true
+            animals:
+              <<: *default
+              database: db/test_animals.sqlite3
+              migrations_paths: db/animals_migrate
+            animals_readonly:
+              <<: *default
+              database: db/test_animals.sqlite3
+              migrations_paths: db/animals_migrate
+              replica: true
+          production:
+            primary:
+              <<: *default
+              database: db/production.sqlite3
+            primary_readonly:
+              <<: *default
+              database: db/production.sqlite3
+              replica: true
+            animals:
+              <<: *default
+              database: db/production_animals.sqlite3
+              migrations_paths: db/animals_migrate
+            animals_readonly:
+              <<: *default
+              database: db/production_animals.sqlite3
+              migrations_paths: db/animals_migrate
+              readonly: true
+          YAML
+        end
+      else
+        File.open("#{app_path}/config/database.yml", "w") do |f|
+          f.puts <<-YAML
+          default: &default
+            adapter: sqlite3
+            pool: 5
+            timeout: 5000
+          development:
+            <<: *default
+            database: db/development.sqlite3
+          test:
+            <<: *default
+            database: db/test.sqlite3
+          production:
+            <<: *default
+            database: db/production.sqlite3
+          YAML
+        end
       end
 
       add_to_config <<-RUBY
         config.eager_load = false
         config.session_store :cookie_store, key: "_myapp_session"
         config.active_support.deprecation = :log
-        config.active_support.test_order = :random
         config.action_controller.allow_forgery_protection = false
         config.log_level = :info
       RUBY
@@ -153,7 +223,6 @@ module TestHelpers
       @app.config.eager_load = false
       @app.config.session_store :cookie_store, key: "_myapp_session"
       @app.config.active_support.deprecation = :log
-      @app.config.active_support.test_order = :random
       @app.config.log_level = :info
 
       yield @app if block_given?
@@ -390,6 +459,7 @@ class ActiveSupport::TestCase
   include TestHelpers::Rack
   include TestHelpers::Generation
   include ActiveSupport::Testing::Stream
+  include ActiveSupport::Testing::MethodCallAssertions
 
   def frozen_error_class
     Object.const_defined?(:FrozenError) ? FrozenError : RuntimeError
@@ -402,17 +472,28 @@ Module.new do
 
   # Build a rails app
   FileUtils.rm_rf(app_template_path)
-  FileUtils.mkdir(app_template_path)
+  FileUtils.mkdir_p(app_template_path)
+
+  Dir.chdir "#{RAILS_FRAMEWORK_ROOT}/actionview" do
+    `yarn build`
+  end
 
   `#{Gem.ruby} #{RAILS_FRAMEWORK_ROOT}/railties/exe/rails new #{app_template_path} --skip-gemfile --skip-listen --no-rc`
   File.open("#{app_template_path}/config/boot.rb", "w") do |f|
     f.puts "require 'rails/all'"
   end
 
+  Dir.chdir(app_template_path) { `yarn add https://github.com/rails/webpacker.git` } # Use the latest version.
+
+  # Manually install `webpack` as bin symlinks are not created for subdependencies
+  # in workspaces. See https://github.com/yarnpkg/yarn/issues/4964
+  Dir.chdir(app_template_path) { `yarn add webpack@4.17.1 --tilde` }
+  Dir.chdir(app_template_path) { `yarn add webpack-cli` }
+
   # Fake 'Bundler.require' -- we run using the repo's Gemfile, not an
   # app-specific one: we don't want to require every gem that lists.
   contents = File.read("#{app_template_path}/config/application.rb")
-  contents.sub!(/^Bundler\.require.*/, "%w(turbolinks).each { |r| require r }")
+  contents.sub!(/^Bundler\.require.*/, "%w(turbolinks webpacker).each { |r| require r }")
   File.write("#{app_template_path}/config/application.rb", contents)
 
   require "rails"

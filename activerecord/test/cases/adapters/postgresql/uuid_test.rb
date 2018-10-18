@@ -82,7 +82,7 @@ class PostgresqlUUIDTest < ActiveRecord::PostgreSQLTestCase
     UUIDType.reset_column_information
     column = UUIDType.columns_hash["thingy"]
 
-    assert column.array?
+    assert_predicate column, :array?
     assert_equal "{}", column.default
 
     schema = dump_table_schema "uuid_data_type"
@@ -93,10 +93,10 @@ class PostgresqlUUIDTest < ActiveRecord::PostgreSQLTestCase
     column = UUIDType.columns_hash["guid"]
     assert_equal :uuid, column.type
     assert_equal "uuid", column.sql_type
-    assert_not column.array?
+    assert_not_predicate column, :array?
 
     type = UUIDType.type_for_attribute("guid")
-    assert_not type.binary?
+    assert_not_predicate type, :binary?
   end
 
   def test_treat_blank_uuid_as_nil
@@ -178,7 +178,7 @@ class PostgresqlUUIDTest < ActiveRecord::PostgreSQLTestCase
     duplicate = klass.new(guid: record.guid)
 
     assert record.guid.present? # Ensure we actually are testing a UUID
-    assert_not duplicate.valid?
+    assert_not_predicate duplicate, :valid?
   end
 end
 

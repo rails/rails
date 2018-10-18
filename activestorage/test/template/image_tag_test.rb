@@ -33,7 +33,7 @@ class ActiveStorage::ImageTagTest < ActionView::TestCase
   test "error when attachment's empty" do
     @user = User.create!(name: "DHH")
 
-    assert_not @user.avatar.attached?
+    assert_not_predicate @user.avatar, :attached?
     assert_raises(ArgumentError) { image_tag(@user.avatar) }
   end
 

@@ -231,6 +231,7 @@ module ActiveRecord
     end
 
     def _select!(*fields) # :nodoc:
+      fields.reject!(&:blank?)
       fields.flatten!
       fields.map! do |field|
         klass.attribute_alias?(field) ? klass.attribute_alias(field).to_sym : field
@@ -893,8 +894,13 @@ module ActiveRecord
       self
     end
 
-    def skip_query_cache! # :nodoc:
-      self.skip_query_cache_value = true
+    def skip_query_cache!(value = true) # :nodoc:
+      self.skip_query_cache_value = value
+      self
+    end
+
+    def skip_preloading! # :nodoc:
+      self.skip_preloading_value = true
       self
     end
 
@@ -903,19 +909,17 @@ module ActiveRecord
       @arel ||= build_arel(aliases)
     end
 
-    protected
+    private
       # Returns a relation value with a given name
-      def get_value(name) # :nodoc:
+      def get_value(name)
         @values.fetch(name, DEFAULT_VALUES[name])
       end
 
       # Sets the relation value with the given name
-      def set_value(name, value) # :nodoc:
+      def set_value(name, value)
         assert_mutability!
         @values[name] = value
       end
-
-    private
 
       def assert_mutability!
         raise ImmutableRelation if @loaded
@@ -932,7 +936,7 @@ module ActiveRecord
         arel.having(having_clause.ast) unless having_clause.empty?
         if limit_value
           limit_attribute = ActiveModel::Attribute.with_cast_value(
-            "LIMIT".freeze,
+            "LIMIT",
             connection.sanitize_limit(limit_value),
             Type.default_value,
           )
@@ -940,7 +944,7 @@ module ActiveRecord
         end
         if offset_value
           offset_attribute = ActiveModel::Attribute.with_cast_value(
-            "OFFSET".freeze,
+            "OFFSET",
             offset_value.to_i,
             Type.default_value,
           )
@@ -1011,19 +1015,17 @@ module ActiveRecord
       def build_join_query(manager, buckets, join_type, aliases)
         buckets.default = []
 
-        association_joins         = buckets[:association_join]
-        stashed_association_joins = buckets[:stashed_join]
-        join_nodes                = buckets[:join_node].uniq
-        string_joins              = buckets[:string_join].map(&:strip).uniq
+        association_joins = buckets[:association_join]
+        stashed_joins     = buckets[:stashed_join]
+        join_nodes        = buckets[:join_node].uniq
+        string_joins      = buckets[:string_join].map(&:strip).uniq
 
         join_list = join_nodes + convert_join_strings_to_ast(string_joins)
         alias_tracker = alias_tracker(join_list, aliases)
 
-        join_dependency = ActiveRecord::Associations::JoinDependency.new(
-          klass, table, association_joins, alias_tracker
-        )
+        join_dependency = construct_join_dependency(association_joins)
 
-        joins = join_dependency.join_constraints(stashed_association_joins, join_type)
+        joins = join_dependency.join_constraints(stashed_joins, join_type, alias_tracker)
         joins.each { |join| manager.from(join) }
 
         manager.join_sources.concat(join_list)
@@ -1049,11 +1051,13 @@ module ActiveRecord
       end
 
       def arel_columns(columns)
-        columns.map do |field|
+        columns.flat_map do |field|
           if (Symbol === field || String === field) && (klass.has_attribute?(field) || klass.attribute_alias?(field)) && !from_clause.value
             arel_attribute(field)
           elsif Symbol === field
             connection.quote_table_name(field.to_s)
+          elsif Proc === field
+            field.call
           else
             field
           end
@@ -1126,9 +1130,9 @@ module ActiveRecord
         end
         order_args.flatten!
 
-        @klass.enforce_raw_sql_whitelist(
+        @klass.disallow_raw_sql!(
           order_args.flat_map { |a| a.is_a?(Hash) ? a.keys : a },
-          whitelist: AttributeMethods::ClassMethods::COLUMN_NAME_ORDER_WHITELIST
+          permit: AttributeMethods::ClassMethods::COLUMN_NAME_WITH_ORDER
         )
 
         validate_order_args(order_args)
@@ -1181,8 +1185,9 @@ module ActiveRecord
 
       STRUCTURAL_OR_METHODS = Relation::VALUE_METHODS - [:extending, :where, :having, :unscope, :references]
       def structurally_incompatible_values_for_or(other)
+        values = other.values
         STRUCTURAL_OR_METHODS.reject do |method|
-          get_value(method) == other.get_value(method)
+          get_value(method) == values.fetch(method, DEFAULT_VALUES[method])
         end
       end
 

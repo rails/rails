@@ -33,8 +33,6 @@ module Rails
       rails: {
         actions: "-a",
         orm: "-o",
-        javascripts: "-j",
-        javascript_engine: "-je",
         resource_controller: "-c",
         scaffold_controller: "-c",
         stylesheets: "-y",
@@ -126,7 +124,7 @@ module Rails
         )
 
         if ARGV.first == "mailer"
-          options[:rails].merge!(template_engine: :erb)
+          options[:rails][:template_engine] = :erb
         end
       end
 
@@ -218,6 +216,9 @@ module Rails
         rails.delete("app")
         rails.delete("plugin")
         rails.delete("encrypted_secrets")
+        rails.delete("encrypted_file")
+        rails.delete("encryption_key_file")
+        rails.delete("master_key")
         rails.delete("credentials")
 
         hidden_namespaces.each { |n| groups.delete(n.to_s) }
@@ -255,7 +256,6 @@ module Rails
 
         namespaces = Hash[subclasses.map { |klass| [klass.namespace, klass] }]
         lookups.each do |namespace|
-
           klass = namespaces[namespace]
           return klass if klass
         end
@@ -273,12 +273,11 @@ module Rails
           klass.start(args, config)
         else
           options     = sorted_groups.flat_map(&:last)
-          suggestions = options.sort_by { |suggested| levenshtein_distance(namespace.to_s, suggested) }.first(3)
-          suggestions.map! { |s| "'#{s}'" }
-          msg =  "Could not find generator '#{namespace}'. ".dup
-          msg << "Maybe you meant #{ suggestions[0...-1].join(', ')} or #{suggestions[-1]}\n"
-          msg << "Run `rails generate --help` for more options."
-          puts msg
+          suggestion  = Rails::Command::Spellchecker.suggest(namespace.to_s, from: options)
+          puts <<~MSG
+            Could not find generator '#{namespace}'. Maybe you meant #{suggestion.inspect}?
+            Run `rails generate --help` for more options.
+          MSG
         end
       end
 

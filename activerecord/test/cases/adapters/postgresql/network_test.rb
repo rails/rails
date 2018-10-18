@@ -24,30 +24,30 @@ class PostgresqlNetworkTest < ActiveRecord::PostgreSQLTestCase
     column = PostgresqlNetworkAddress.columns_hash["cidr_address"]
     assert_equal :cidr, column.type
     assert_equal "cidr", column.sql_type
-    assert_not column.array?
+    assert_not_predicate column, :array?
 
     type = PostgresqlNetworkAddress.type_for_attribute("cidr_address")
-    assert_not type.binary?
+    assert_not_predicate type, :binary?
   end
 
   def test_inet_column
     column = PostgresqlNetworkAddress.columns_hash["inet_address"]
     assert_equal :inet, column.type
     assert_equal "inet", column.sql_type
-    assert_not column.array?
+    assert_not_predicate column, :array?
 
     type = PostgresqlNetworkAddress.type_for_attribute("inet_address")
-    assert_not type.binary?
+    assert_not_predicate type, :binary?
   end
 
   def test_macaddr_column
     column = PostgresqlNetworkAddress.columns_hash["mac_address"]
     assert_equal :macaddr, column.type
     assert_equal "macaddr", column.sql_type
-    assert_not column.array?
+    assert_not_predicate column, :array?
 
     type = PostgresqlNetworkAddress.type_for_attribute("mac_address")
-    assert_not type.binary?
+    assert_not_predicate type, :binary?
   end
 
   def test_network_types

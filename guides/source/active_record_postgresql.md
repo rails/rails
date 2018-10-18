@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
 Active Record and PostgreSQL
 ============================
@@ -84,7 +84,7 @@ Book.where("array_length(ratings, 1) >= 3")
 ### Hstore
 
 * [type definition](https://www.postgresql.org/docs/current/static/hstore.html)
-* [functions and operators](https://www.postgresql.org/docs/current/static/hstore.html#AEN179902)
+* [functions and operators](https://www.postgresql.org/docs/current/static/hstore.html#id-1.11.7.26.5)
 
 NOTE: You need to enable the `hstore` extension to use hstore.
 
@@ -276,7 +276,7 @@ end
 
 NOTE: ENUM values can't be dropped currently. You can read why [here](https://www.postgresql.org/message-id/29F36C7C98AB09499B1A209D48EAA615B7653DBC8A@mail2a.alliedtesting.com).
 
-Hint: to show all the values of the all enums you have, you should call this query in `bin/rails db` or `psql` console:
+Hint: to show all the values of the all enums you have, you should call this query in `rails db` or `psql` console:
 
 ```sql
 SELECT n.nspname AS enum_schema,
@@ -290,7 +290,7 @@ SELECT n.nspname AS enum_schema,
 ### UUID
 
 * [type definition](https://www.postgresql.org/docs/current/static/datatype-uuid.html)
-* [pgcrypto generator function](https://www.postgresql.org/docs/current/static/pgcrypto.html#AEN182570)
+* [pgcrypto generator function](https://www.postgresql.org/docs/current/static/pgcrypto.html#id-1.11.7.35.7)
 * [uuid-ossp generator functions](https://www.postgresql.org/docs/current/static/uuid-ossp.html)
 
 NOTE: You need to enable the `pgcrypto` (only PostgreSQL >= 9.4) or `uuid-ossp`
@@ -349,7 +349,7 @@ create_table :users, force: true do |t|
   t.column :settings, "bit(8)"
 end
 
-# app/models/device.rb
+# app/models/user.rb
 class User < ApplicationRecord
 end
 

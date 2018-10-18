@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
   s.summary     = "Email composition, delivery, and receiving framework (part of Rails)."
   s.description = "Email on Rails. Compose, deliver, receive, and test emails using the familiar controller/view pattern. First-class support for multipart email and attachments."
 
-  s.required_ruby_version = ">= 2.2.2"
+  s.required_ruby_version = ">= 2.4.1"
 
   s.license = "MIT"
 

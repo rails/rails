@@ -191,7 +191,25 @@ module ActionDispatch
         end
       end
 
-      def route_for(name, *args) # :nodoc:
+      # Allows calling direct or regular named route.
+      #
+      #   resources :buckets
+      #
+      #   direct :recordable do |recording|
+      #     route_for(:bucket, recording.bucket)
+      #   end
+      #
+      #   direct :threadable do |threadable|
+      #     route_for(:recordable, threadable.parent)
+      #   end
+      #
+      # This maintains the context of the original caller on
+      # whether to return a path or full URL, e.g:
+      #
+      #   threadable_path(threadable)  # => "/buckets/1"
+      #   threadable_url(threadable)   # => "http://example.com/buckets/1"
+      #
+      def route_for(name, *args)
         public_send(:"#{name}_url", *args)
       end
 

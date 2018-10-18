@@ -54,6 +54,17 @@ module ActiveSupport
             @data[key]
           end
 
+          def read_multi_entries(keys, options)
+            values = {}
+
+            keys.each do |name|
+              entry = read_entry(name, options)
+              values[name] = entry.value if entry
+            end
+
+            values
+          end
+
           def write_entry(key, value, options)
             @data[key] = value
             true
@@ -113,6 +124,19 @@ module ActiveSupport
               cache.fetch_entry(key) { super }
             else
               super
+            end
+          end
+
+          def read_multi_entries(keys, options)
+            return super unless local_cache
+
+            local_entries = local_cache.read_multi_entries(keys, options)
+            missed_keys = keys - local_entries.keys
+
+            if missed_keys.any?
+              local_entries.merge!(super(missed_keys, options))
+            else
+              local_entries
             end
           end
 

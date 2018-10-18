@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 ActiveRecord::Schema.define do
-
   execute "drop table test_oracle_defaults" rescue nil
   execute "drop sequence test_oracle_defaults_seq" rescue nil
   execute "drop sequence companies_nonstd_seq" rescue nil
@@ -38,5 +37,4 @@ create sequence test_oracle_defaults_seq minvalue 10000
   )
   SQL
   execute "create sequence defaults_seq minvalue 10000"
-
 end

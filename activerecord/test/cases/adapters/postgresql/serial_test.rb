@@ -24,14 +24,14 @@ class PostgresqlSerialTest < ActiveRecord::PostgreSQLTestCase
     column = PostgresqlSerial.columns_hash["seq"]
     assert_equal :integer, column.type
     assert_equal "integer", column.sql_type
-    assert column.serial?
+    assert_predicate column, :serial?
   end
 
   def test_not_serial_column
     column = PostgresqlSerial.columns_hash["serials_id"]
     assert_equal :integer, column.type
     assert_equal "integer", column.sql_type
-    assert_not column.serial?
+    assert_not_predicate column, :serial?
   end
 
   def test_schema_dump_with_shorthand
@@ -66,14 +66,14 @@ class PostgresqlBigSerialTest < ActiveRecord::PostgreSQLTestCase
     column = PostgresqlBigSerial.columns_hash["seq"]
     assert_equal :integer, column.type
     assert_equal "bigint", column.sql_type
-    assert column.serial?
+    assert_predicate column, :serial?
   end
 
   def test_not_bigserial_column
     column = PostgresqlBigSerial.columns_hash["serials_id"]
     assert_equal :integer, column.type
     assert_equal "bigint", column.sql_type
-    assert_not column.serial?
+    assert_not_predicate column, :serial?
   end
 
   def test_schema_dump_with_shorthand
@@ -111,7 +111,7 @@ module SequenceNameDetectionTestCases
       columns = @connection.columns(:foo)
       columns.each do |column|
         assert_equal :integer, column.type
-        assert column.serial?
+        assert_predicate column, :serial?
       end
     end
 
@@ -142,7 +142,7 @@ module SequenceNameDetectionTestCases
       columns = @connection.columns(@table_name)
       columns.each do |column|
         assert_equal :integer, column.type
-        assert column.serial?
+        assert_predicate column, :serial?
       end
     end
 

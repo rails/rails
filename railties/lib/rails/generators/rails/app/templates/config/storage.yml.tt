@@ -24,7 +24,6 @@ local:
 # Use rails credentials:edit to set the Azure Storage secret (as azure_storage:storage_access_key)
 # microsoft:
 #   service: AzureStorage
-#   path: your_azure_storage_path
 #   storage_account_name: your_account_name
 #   storage_access_key: <%%= Rails.application.credentials.dig(:azure_storage, :storage_access_key) %>
 #   container: your_container_name

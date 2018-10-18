@@ -341,6 +341,12 @@ _SQL
       assert_equal record, PostgresqlRange.where(int4_range: range).take
     end
 
+    def test_where_by_attribute_with_range_in_array
+      range = 1..100
+      record = PostgresqlRange.create!(int4_range: range)
+      assert_equal record, PostgresqlRange.where(int4_range: [range]).take
+    end
+
     def test_update_all_with_ranges
       PostgresqlRange.create!
 

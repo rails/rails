@@ -737,7 +737,7 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
   end
 
   def test_acts_like_time
-    assert Time.new.acts_like_time?
+    assert_predicate Time.new, :acts_like_time?
   end
 
   def test_formatted_offset_with_utc
@@ -756,26 +756,26 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
   end
 
   def test_compare_with_time
-    assert_equal  1, Time.utc(2000) <=> Time.utc(1999, 12, 31, 23, 59, 59, 999)
-    assert_equal  0, Time.utc(2000) <=> Time.utc(2000, 1, 1, 0, 0, 0)
+    assert_equal 1, Time.utc(2000) <=> Time.utc(1999, 12, 31, 23, 59, 59, 999)
+    assert_equal 0, Time.utc(2000) <=> Time.utc(2000, 1, 1, 0, 0, 0)
     assert_equal(-1, Time.utc(2000) <=> Time.utc(2000, 1, 1, 0, 0, 0, 001))
   end
 
   def test_compare_with_datetime
-    assert_equal  1, Time.utc(2000) <=> DateTime.civil(1999, 12, 31, 23, 59, 59)
-    assert_equal  0, Time.utc(2000) <=> DateTime.civil(2000, 1, 1, 0, 0, 0)
+    assert_equal 1, Time.utc(2000) <=> DateTime.civil(1999, 12, 31, 23, 59, 59)
+    assert_equal 0, Time.utc(2000) <=> DateTime.civil(2000, 1, 1, 0, 0, 0)
     assert_equal(-1, Time.utc(2000) <=> DateTime.civil(2000, 1, 1, 0, 0, 1))
   end
 
   def test_compare_with_time_with_zone
-    assert_equal  1, Time.utc(2000) <=> ActiveSupport::TimeWithZone.new(Time.utc(1999, 12, 31, 23, 59, 59), ActiveSupport::TimeZone["UTC"])
-    assert_equal  0, Time.utc(2000) <=> ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1, 0, 0, 0), ActiveSupport::TimeZone["UTC"])
+    assert_equal 1, Time.utc(2000) <=> ActiveSupport::TimeWithZone.new(Time.utc(1999, 12, 31, 23, 59, 59), ActiveSupport::TimeZone["UTC"])
+    assert_equal 0, Time.utc(2000) <=> ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1, 0, 0, 0), ActiveSupport::TimeZone["UTC"])
     assert_equal(-1, Time.utc(2000) <=> ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1, 0, 0, 1), ActiveSupport::TimeZone["UTC"]))
   end
 
   def test_compare_with_string
-    assert_equal   1, Time.utc(2000) <=> Time.utc(1999, 12, 31, 23, 59, 59, 999).to_s
-    assert_equal   0, Time.utc(2000) <=> Time.utc(2000, 1, 1, 0, 0, 0).to_s
+    assert_equal 1, Time.utc(2000) <=> Time.utc(1999, 12, 31, 23, 59, 59, 999).to_s
+    assert_equal 0, Time.utc(2000) <=> Time.utc(2000, 1, 1, 0, 0, 0).to_s
     assert_equal(-1, Time.utc(2000) <=> Time.utc(2000, 1, 1, 0, 0, 1, 0).to_s)
     assert_nil Time.utc(2000) <=> "Invalid as Time"
   end
@@ -863,11 +863,11 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
   end
 
   def test_minus_with_time_with_zone
-    assert_equal  86_400.0, Time.utc(2000, 1, 2) - ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1), ActiveSupport::TimeZone["UTC"])
+    assert_equal 86_400.0, Time.utc(2000, 1, 2) - ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1), ActiveSupport::TimeZone["UTC"])
   end
 
   def test_minus_with_datetime
-    assert_equal  86_400.0, Time.utc(2000, 1, 2) - DateTime.civil(2000, 1, 1)
+    assert_equal 86_400.0, Time.utc(2000, 1, 2) - DateTime.civil(2000, 1, 1)
   end
 
   def test_time_created_with_local_constructor_cannot_represent_times_during_hour_skipped_by_dst
@@ -875,7 +875,7 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
       # On Apr 2 2006 at 2:00AM in US, clocks were moved forward to 3:00AM.
       # Therefore, 2AM EST doesn't exist for this date; Time.local fails over to 3:00AM EDT
       assert_equal Time.local(2006, 4, 2, 3), Time.local(2006, 4, 2, 2)
-      assert Time.local(2006, 4, 2, 2).dst?
+      assert_predicate Time.local(2006, 4, 2, 2), :dst?
     end
   end
 
@@ -950,39 +950,39 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
 end
 
 class TimeExtMarshalingTest < ActiveSupport::TestCase
-  def test_marshaling_with_utc_instance
+  def test_marshalling_with_utc_instance
     t = Time.utc(2000)
-    unmarshaled = Marshal.load(Marshal.dump(t))
-    assert_equal "UTC", unmarshaled.zone
-    assert_equal t, unmarshaled
+    unmarshalled = Marshal.load(Marshal.dump(t))
+    assert_equal "UTC", unmarshalled.zone
+    assert_equal t, unmarshalled
   end
 
-  def test_marshaling_with_local_instance
+  def test_marshalling_with_local_instance
     t = Time.local(2000)
-    unmarshaled = Marshal.load(Marshal.dump(t))
-    assert_equal t.zone, unmarshaled.zone
-    assert_equal t, unmarshaled
+    unmarshalled = Marshal.load(Marshal.dump(t))
+    assert_equal t.zone, unmarshalled.zone
+    assert_equal t, unmarshalled
   end
 
-  def test_marshaling_with_frozen_utc_instance
+  def test_marshalling_with_frozen_utc_instance
     t = Time.utc(2000).freeze
-    unmarshaled = Marshal.load(Marshal.dump(t))
-    assert_equal "UTC", unmarshaled.zone
-    assert_equal t, unmarshaled
+    unmarshalled = Marshal.load(Marshal.dump(t))
+    assert_equal "UTC", unmarshalled.zone
+    assert_equal t, unmarshalled
   end
 
-  def test_marshaling_with_frozen_local_instance
+  def test_marshalling_with_frozen_local_instance
     t = Time.local(2000).freeze
-    unmarshaled = Marshal.load(Marshal.dump(t))
-    assert_equal t.zone, unmarshaled.zone
-    assert_equal t, unmarshaled
+    unmarshalled = Marshal.load(Marshal.dump(t))
+    assert_equal t.zone, unmarshalled.zone
+    assert_equal t, unmarshalled
   end
 
   def test_marshalling_preserves_fractional_seconds
     t = Time.parse("00:00:00.500")
-    unmarshaled = Marshal.load(Marshal.dump(t))
-    assert_equal t.to_f, unmarshaled.to_f
-    assert_equal t, unmarshaled
+    unmarshalled = Marshal.load(Marshal.dump(t))
+    assert_equal t.to_f, unmarshalled.to_f
+    assert_equal t, unmarshalled
   end
 
   def test_last_quarter_on_31st

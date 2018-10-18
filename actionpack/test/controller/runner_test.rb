@@ -17,8 +17,8 @@ module ActionDispatch
 
     def test_respond_to?
       runner = MyRunner.new(Class.new { def x; end }.new)
-      assert runner.respond_to?(:hi)
-      assert runner.respond_to?(:x)
+      assert_respond_to runner, :hi
+      assert_respond_to runner, :x
     end
   end
 end

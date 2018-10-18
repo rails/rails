@@ -12,12 +12,9 @@ module ActiveRecord
         [associated_table.association_join_foreign_key.to_s => ids]
       end
 
-      # TODO Change this to private once we've dropped Ruby 2.2 support.
-      # Workaround for Ruby 2.2 "private attribute?" warning.
-      protected
+      private
         attr_reader :associated_table, :value
 
-      private
         def ids
           case value
           when Relation

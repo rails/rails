@@ -425,7 +425,7 @@ The above will start a cable server on port 28080.
 
 ### In app
 
-If you are using a server that supports the [Rack socket hijacking API](http://www.rubydoc.info/github/rack/rack/file/SPEC#Hijacking), Action Cable can run alongside your Rails application. For example, to listen for WebSocket requests on `/websocket`, specify that path to `config.action_cable.mount_path`:
+If you are using a server that supports the [Rack socket hijacking API](https://www.rubydoc.info/github/rack/rack/file/SPEC#label-Hijacking), Action Cable can run alongside your Rails application. For example, to listen for WebSocket requests on `/websocket`, specify that path to `config.action_cable.mount_path`:
 
 ```ruby
 # config/application.rb
@@ -442,7 +442,7 @@ Beware that currently, the cable server will _not_ auto-reload any changes in th
 
 We'll get all this abstracted properly when the framework is integrated into Rails.
 
-The WebSocket server doesn't have access to the session, but it has access to the cookies. This can be used when you need to handle authentication. You can see one way of doing that with Devise in this [article](http://www.rubytutorial.io/actioncable-devise-authentication).
+The WebSocket server doesn't have access to the session, but it has access to the cookies. This can be used when you need to handle authentication. You can see one way of doing that with Devise in this [article](https://greg.molnar.io/blog/actioncable-devise-authentication/).
 
 ## Dependencies
 
@@ -459,7 +459,7 @@ support, which means you can use all your regular Rails models with no problems
 as long as you haven't committed any thread-safety sins.
 
 The Action Cable server does _not_ need to be a multi-threaded application server.
-This is because Action Cable uses the [Rack socket hijacking API](http://www.rubydoc.info/github/rack/rack/file/SPEC#Hijacking)
+This is because Action Cable uses the [Rack socket hijacking API](https://www.rubydoc.info/github/rack/rack/file/SPEC#label-Hijacking)
 to take over control of connections from the application server. Action Cable
 then manages connections internally, in a multithreaded manner, regardless of
 whether the application server is multi-threaded or not. So Action Cable works

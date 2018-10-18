@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_record/database_configurations"
+
 module ActiveRecord
   module Tasks # :nodoc:
     class DatabaseAlreadyExists < StandardError; end # :nodoc:
@@ -8,7 +10,7 @@ module ActiveRecord
     # ActiveRecord::Tasks::DatabaseTasks is a utility class, which encapsulates
     # logic behind common tasks used to manage database and migrations.
     #
-    # The tasks defined here are used with Rake tasks provided by Active Record.
+    # The tasks defined here are used with Rails commands provided by Active Record.
     #
     # In order to use DatabaseTasks, a few config values need to be set. All the needed
     # config values are set by Rails already, so it's necessary to do it only if you
@@ -54,10 +56,10 @@ module ActiveRecord
 
       def check_protected_environments!
         unless ENV["DISABLE_DATABASE_ENVIRONMENT_CHECK"]
-          current = ActiveRecord::Migrator.current_environment
-          stored  = ActiveRecord::Migrator.last_stored_environment
+          current = ActiveRecord::Base.connection.migration_context.current_environment
+          stored  = ActiveRecord::Base.connection.migration_context.last_stored_environment
 
-          if ActiveRecord::Migrator.protected_environment?
+          if ActiveRecord::Base.connection.migration_context.protected_environment?
             raise ActiveRecord::ProtectedEnvironmentError.new(stored)
           end
 
@@ -101,28 +103,33 @@ module ActiveRecord
         @env ||= Rails.env
       end
 
+      def spec
+        @spec ||= "primary"
+      end
+
       def seed_loader
         @seed_loader ||= Rails.application
       end
 
       def current_config(options = {})
         options.reverse_merge! env: env
+        options[:spec] ||= "primary"
         if options.has_key?(:config)
           @current_config = options[:config]
         else
-          @current_config ||= ActiveRecord::Base.configurations[options[:env]]
+          @current_config ||= ActiveRecord::Base.configurations.configs_for(env_name: options[:env], spec_name: options[:spec]).config
         end
       end
 
       def create(*arguments)
         configuration = arguments.first
         class_for_adapter(configuration["adapter"]).new(*arguments).create
-        $stdout.puts "Created database '#{configuration['database']}'"
+        $stdout.puts "Created database '#{configuration['database']}'" if verbose?
       rescue DatabaseAlreadyExists
-        $stderr.puts "Database '#{configuration['database']}' already exists"
+        $stderr.puts "Database '#{configuration['database']}' already exists" if verbose?
       rescue Exception => error
         $stderr.puts error
-        $stderr.puts "Couldn't create database for #{configuration.inspect}"
+        $stderr.puts "Couldn't create '#{configuration['database']}' database. Please check your configuration."
         raise
       end
 
@@ -131,6 +138,18 @@ module ActiveRecord
         each_local_configuration { |configuration| create configuration }
         if old_pool
           ActiveRecord::Base.connection_handler.establish_connection(old_pool.spec.to_hash)
+        end
+      end
+
+      def for_each
+        databases = Rails.application.config.database_configuration
+        database_configs = ActiveRecord::DatabaseConfigurations.new(databases).configs_for(env_name: Rails.env)
+
+        # if this is a single database application we don't want tasks for each primary database
+        return if database_configs.count == 1
+
+        database_configs.each do |db_config|
+          yield db_config.spec_name
         end
       end
 
@@ -144,7 +163,7 @@ module ActiveRecord
       def drop(*arguments)
         configuration = arguments.first
         class_for_adapter(configuration["adapter"]).new(*arguments).drop
-        $stdout.puts "Dropped database '#{configuration['database']}'"
+        $stdout.puts "Dropped database '#{configuration['database']}'" if verbose?
       rescue ActiveRecord::NoDatabaseError
         $stderr.puts "Database '#{configuration['database']}' does not exist"
       rescue Exception => error
@@ -166,15 +185,31 @@ module ActiveRecord
       def migrate
         check_target_version
 
-        verbose = ENV["VERBOSE"] ? ENV["VERBOSE"] != "false" : true
         scope = ENV["SCOPE"]
-        verbose_was, Migration.verbose = Migration.verbose, verbose
-        Migrator.migrate(migrations_paths, target_version) do |migration|
+        verbose_was, Migration.verbose = Migration.verbose, verbose?
+
+        Base.connection.migration_context.migrate(target_version) do |migration|
           scope.blank? || scope == migration.scope
         end
+
         ActiveRecord::Base.clear_cache!
       ensure
         Migration.verbose = verbose_was
+      end
+
+      def migrate_status
+        unless ActiveRecord::SchemaMigration.table_exists?
+          Kernel.abort "Schema migrations table does not exist yet."
+        end
+
+        # output
+        puts "\ndatabase: #{ActiveRecord::Base.connection_config[:database]}\n\n"
+        puts "#{'Status'.center(8)}  #{'Migration ID'.ljust(14)}  Migration Name"
+        puts "-" * 50
+        ActiveRecord::Base.connection.migration_context.migrations_status.each do |status, version, name|
+          puts "#{status.center(8)}  #{version.ljust(14)}  #{name}"
+        end
+        puts
       end
 
       def check_target_version
@@ -187,8 +222,8 @@ module ActiveRecord
         ENV["VERSION"].to_i if ENV["VERSION"] && !ENV["VERSION"].empty?
       end
 
-      def charset_current(environment = env)
-        charset ActiveRecord::Base.configurations[environment]
+      def charset_current(environment = env, specification_name = spec)
+        charset ActiveRecord::Base.configurations.configs_for(env_name: environment, spec_name: specification_name).config
       end
 
       def charset(*arguments)
@@ -196,8 +231,8 @@ module ActiveRecord
         class_for_adapter(configuration["adapter"]).new(*arguments).charset
       end
 
-      def collation_current(environment = env)
-        collation ActiveRecord::Base.configurations[environment]
+      def collation_current(environment = env, specification_name = spec)
+        collation ActiveRecord::Base.configurations.configs_for(env_name: environment, spec_name: specification_name).config
       end
 
       def collation(*arguments)
@@ -234,9 +269,10 @@ module ActiveRecord
         class_for_adapter(configuration["adapter"]).new(*arguments).structure_load(filename, structure_load_flags)
       end
 
-      def load_schema(configuration, format = ActiveRecord::Base.schema_format, file = nil, environment = env) # :nodoc:
-        file ||= schema_file(format)
+      def load_schema(configuration, format = ActiveRecord::Base.schema_format, file = nil, environment = env, spec_name = "primary") # :nodoc:
+        file ||= dump_filename(spec_name, format)
 
+        verbose_was, Migration.verbose = Migration.verbose, verbose? && ENV["VERBOSE"]
         check_schema_file(file)
         ActiveRecord::Base.establish_connection(configuration)
 
@@ -250,27 +286,43 @@ module ActiveRecord
         end
         ActiveRecord::InternalMetadata.create_table
         ActiveRecord::InternalMetadata[:environment] = environment
+      ensure
+        Migration.verbose = verbose_was
       end
 
       def schema_file(format = ActiveRecord::Base.schema_format)
+        File.join(db_dir, schema_file_type(format))
+      end
+
+      def schema_file_type(format = ActiveRecord::Base.schema_format)
         case format
         when :ruby
-          File.join(db_dir, "schema.rb")
+          "schema.rb"
         when :sql
-          File.join(db_dir, "structure.sql")
+          "structure.sql"
         end
       end
 
+      def dump_filename(namespace, format = ActiveRecord::Base.schema_format)
+        filename = if namespace == "primary"
+          schema_file_type(format)
+        else
+          "#{namespace}_#{schema_file_type(format)}"
+        end
+
+        ENV["SCHEMA"] || File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, filename)
+      end
+
       def load_schema_current(format = ActiveRecord::Base.schema_format, file = nil, environment = env)
-        each_current_configuration(environment) { |configuration, configuration_environment|
-          load_schema configuration, format, file, configuration_environment
+        each_current_configuration(environment) { |configuration, spec_name, env|
+          load_schema(configuration, format, file, env, spec_name)
         }
         ActiveRecord::Base.establish_connection(environment.to_sym)
       end
 
       def check_schema_file(filename)
         unless File.exist?(filename)
-          message = %{#{filename} doesn't exist yet. Run `rails db:migrate` to create it, then try again.}.dup
+          message = +%{#{filename} doesn't exist yet. Run `rails db:migrate` to create it, then try again.}
           message << %{ If you do not intend to use a database, you should instead alter #{Rails.root}/config/application.rb to limit the frameworks that will be loaded.} if defined?(::Rails.root)
           Kernel.abort message
         end
@@ -297,6 +349,9 @@ module ActiveRecord
       end
 
       private
+        def verbose?
+          ENV["VERBOSE"] ? ENV["VERBOSE"] != "false" : true
+        end
 
         def class_for_adapter(adapter)
           _key, task = @tasks.each_pair.detect { |pattern, _task| adapter[pattern] }
@@ -310,15 +365,16 @@ module ActiveRecord
           environments = [environment]
           environments << "test" if environment == "development"
 
-          ActiveRecord::Base.configurations.slice(*environments).each do |configuration_environment, configuration|
-            next unless configuration["database"]
-
-            yield configuration, configuration_environment
+          environments.each do |env|
+            ActiveRecord::Base.configurations.configs_for(env_name: env).each do |db_config|
+              yield db_config.config, db_config.spec_name, env
+            end
           end
         end
 
         def each_local_configuration
-          ActiveRecord::Base.configurations.each_value do |configuration|
+          ActiveRecord::Base.configurations.configs_for.each do |db_config|
+            configuration = db_config.config
             next unless configuration["database"]
 
             if local_database?(configuration)

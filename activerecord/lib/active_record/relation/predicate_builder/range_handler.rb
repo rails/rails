@@ -16,15 +16,16 @@ module ActiveRecord
       def call(attribute, value)
         begin_bind = predicate_builder.build_bind_attribute(attribute.name, value.begin)
         end_bind = predicate_builder.build_bind_attribute(attribute.name, value.end)
-        if value.begin.respond_to?(:infinite?) && value.begin.infinite?
-          if value.end.respond_to?(:infinite?) && value.end.infinite?
+
+        if begin_bind.value.infinity?
+          if end_bind.value.infinity?
             attribute.not_in([])
           elsif value.exclude_end?
             attribute.lt(end_bind)
           else
             attribute.lteq(end_bind)
           end
-        elsif value.end.respond_to?(:infinite?) && value.end.infinite?
+        elsif end_bind.value.infinity?
           attribute.gteq(begin_bind)
         elsif value.exclude_end?
           attribute.gteq(begin_bind).and(attribute.lt(end_bind))
@@ -33,8 +34,7 @@ module ActiveRecord
         end
       end
 
-      protected
-
+      private
         attr_reader :predicate_builder
     end
   end

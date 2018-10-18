@@ -63,7 +63,7 @@ module ActiveModel
       # and strings in shortcut form.
       #
       #   validates :email, format: /@/
-      #   validates :gender, inclusion: %w(male female)
+      #   validates :role, inclusion: %(admin contributor)
       #   validates :password, length: 6..20
       #
       # When using shortcut form, ranges and arrays are passed to your
@@ -116,7 +116,7 @@ module ActiveModel
           key = "#{key.to_s.camelize}Validator"
 
           begin
-            validator = key.include?("::".freeze) ? key.constantize : const_get(key)
+            validator = key.include?("::") ? key.constantize : const_get(key)
           rescue NameError
             raise ArgumentError, "Unknown validator: '#{key}'"
           end

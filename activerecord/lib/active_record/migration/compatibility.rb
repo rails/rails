@@ -13,7 +13,25 @@ module ActiveRecord
         const_get(name)
       end
 
-      V5_2 = Current
+      V6_0 = Current
+
+      class V5_2 < V6_0
+        module CommandRecorder
+          def invert_transaction(args, &block)
+            [:transaction, args, block]
+          end
+        end
+
+        private
+
+          def command_recorder
+            recorder = super
+            class << recorder
+              prepend CommandRecorder
+            end
+            recorder
+          end
+      end
 
       class V5_1 < V5_2
         def change_column(table_name, column_name, type, options = {})

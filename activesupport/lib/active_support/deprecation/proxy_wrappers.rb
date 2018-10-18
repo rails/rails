@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/regexp"
-
 module ActiveSupport
   class Deprecation
     class DeprecationProxy #:nodoc:

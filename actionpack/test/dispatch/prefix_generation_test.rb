@@ -13,7 +13,7 @@ module TestGenerationPrefix
     end
 
     def self.model_name
-      klass = "Post".dup
+      klass = +"Post"
       def klass.name; self end
 
       ActiveModel::Name.new(klass)

@@ -33,8 +33,7 @@ module ActiveModel
         end
       end
 
-      protected
-
+      private
         attr_reader :default_types
     end
   end

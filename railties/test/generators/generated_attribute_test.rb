@@ -104,25 +104,25 @@ class GeneratedAttributeTest < Rails::Generators::TestCase
 
   def test_reference_is_true
     %w(references belongs_to).each do |attribute_type|
-      assert create_generated_attribute(attribute_type).reference?
+      assert_predicate create_generated_attribute(attribute_type), :reference?
     end
   end
 
   def test_reference_is_false
     %w(foo bar baz).each do |attribute_type|
-      assert !create_generated_attribute(attribute_type).reference?
+      assert_not_predicate create_generated_attribute(attribute_type), :reference?
     end
   end
 
   def test_polymorphic_reference_is_true
     %w(references belongs_to).each do |attribute_type|
-      assert create_generated_attribute("#{attribute_type}{polymorphic}").polymorphic?
+      assert_predicate create_generated_attribute("#{attribute_type}{polymorphic}"), :polymorphic?
     end
   end
 
   def test_polymorphic_reference_is_false
     %w(foo bar baz).each do |attribute_type|
-      assert !create_generated_attribute("#{attribute_type}{polymorphic}").polymorphic?
+      assert_not_predicate create_generated_attribute("#{attribute_type}{polymorphic}"), :polymorphic?
     end
   end
 
@@ -148,7 +148,7 @@ class GeneratedAttributeTest < Rails::Generators::TestCase
     att = Rails::Generators::GeneratedAttribute.parse("supplier:references{required}:index")
     assert_equal "supplier", att.name
     assert_equal :references, att.type
-    assert att.has_index?
-    assert att.required?
+    assert_predicate att, :has_index?
+    assert_predicate att, :required?
   end
 end

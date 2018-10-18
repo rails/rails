@@ -36,7 +36,7 @@ class SchemaMigrationsTest < ActiveRecord::Mysql2TestCase
       assert connection.column_exists?(table_name, :key, :string)
     end
   ensure
-    ActiveRecord::InternalMetadata[:environment] = ActiveRecord::Migrator.current_environment
+    ActiveRecord::InternalMetadata[:environment] = connection.migration_context.current_environment
   end
 
   private

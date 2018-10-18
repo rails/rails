@@ -1,9 +1,7 @@
 # frozen_string_literal: true
 
-gem "google-cloud-storage", "~> 1.8"
-
+gem "google-cloud-storage", "~> 1.11"
 require "google/cloud/storage"
-require "active_support/core_ext/object/to_query"
 
 module ActiveStorage
   # Wraps the Google Cloud Storage as an Active Storage service. See ActiveStorage::Service for the generic API
@@ -29,16 +27,28 @@ module ActiveStorage
       end
     end
 
-    # FIXME: Download in chunks when given a block.
-    def download(key)
-      instrument :download, key: key do
-        io = file_for(key).download
-        io.rewind
+    def download(key, &block)
+      if block_given?
+        instrument :streaming_download, key: key do
+          stream(key, &block)
+        end
+      else
+        instrument :download, key: key do
+          begin
+            file_for(key).download.string
+          rescue Google::Cloud::NotFoundError
+            raise ActiveStorage::FileNotFoundError
+          end
+        end
+      end
+    end
 
-        if block_given?
-          yield io.read
-        else
-          io.read
+    def download_chunk(key, range)
+      instrument :download_chunk, key: key, range: range do
+        begin
+          file_for(key).download(range: range).string
+        rescue Google::Cloud::NotFoundError
+          raise ActiveStorage::FileNotFoundError
         end
       end
     end
@@ -55,7 +65,13 @@ module ActiveStorage
 
     def delete_prefixed(prefix)
       instrument :delete_prefixed, prefix: prefix do
-        bucket.files(prefix: prefix).all(&:delete)
+        bucket.files(prefix: prefix).all do |file|
+          begin
+            file.delete
+          rescue Google::Cloud::NotFoundError
+            # Ignore concurrently-deleted files
+          end
+        end
       end
     end
 
@@ -80,10 +96,9 @@ module ActiveStorage
       end
     end
 
-    def url_for_direct_upload(key, expires_in:, content_type:, content_length:, checksum:)
+    def url_for_direct_upload(key, expires_in:, checksum:, **)
       instrument :url, key: key do |payload|
-        generated_url = bucket.signed_url key, method: "PUT", expires: expires_in,
-          content_type: content_type, content_md5: checksum
+        generated_url = bucket.signed_url key, method: "PUT", expires: expires_in, content_md5: checksum
 
         payload[:url] = generated_url
 
@@ -91,15 +106,30 @@ module ActiveStorage
       end
     end
 
-    def headers_for_direct_upload(key, content_type:, checksum:, **)
-      { "Content-Type" => content_type, "Content-MD5" => checksum }
+    def headers_for_direct_upload(key, checksum:, **)
+      { "Content-MD5" => checksum }
     end
 
     private
       attr_reader :config
 
-      def file_for(key)
-        bucket.file(key, skip_lookup: true)
+      def file_for(key, skip_lookup: true)
+        bucket.file(key, skip_lookup: skip_lookup)
+      end
+
+      # Reads the file for the given key in chunks, yielding each to the block.
+      def stream(key)
+        file = file_for(key, skip_lookup: false)
+
+        chunk_size = 5.megabytes
+        offset = 0
+
+        raise ActiveStorage::FileNotFoundError unless file.present?
+
+        while offset < file.size
+          yield file.download(range: offset..(offset + chunk_size - 1)).string
+          offset += chunk_size
+        end
       end
 
       def bucket

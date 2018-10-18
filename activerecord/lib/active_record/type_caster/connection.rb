@@ -14,14 +14,9 @@ module ActiveRecord
         connection.type_cast_from_column(column, value)
       end
 
-      # TODO Change this to private once we've dropped Ruby 2.2 support.
-      # Workaround for Ruby 2.2 "private attribute?" warning.
-      protected
-
+      private
         attr_reader :table_name
         delegate :connection, to: :@klass
-
-      private
 
         def column_for(attribute_name)
           if connection.schema_cache.data_source_exists?(table_name)

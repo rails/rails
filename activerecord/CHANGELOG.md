@@ -1,634 +1,307 @@
-*   Fix relation merger issue with `left_outer_joins`.
+*   Fix collection cache key with limit and custom select to avoid ambiguous timestamp column error.
 
-    *Mehmet Emin İNAÇ*
+    Fixes #33056.
 
-*   Don't allow destroyed object mutation after `save` or `save!` is called.
+    *Federico Martinez*
 
-    *Ryuta Kamizono*
+*   Add basic API for connection switching to support multiple databases.
 
-*   Take into account association conditions when deleting through records.
-
-    Fixes #18424.
-
-    *Piotr Jakubowski*
-
-*   Fix nested `has_many :through` associations on unpersisted parent instances.
-
-    For example, if you have
-
-        class Post < ActiveRecord::Base
-          belongs_to :author
-          has_many :books, through: :author
-          has_many :subscriptions, through: :books
-        end
-
-        class Author < ActiveRecord::Base
-          has_one :post
-          has_many :books
-          has_many :subscriptions, through: :books
-        end
-
-        class Book < ActiveRecord::Base
-          belongs_to :author
-          has_many :subscriptions
-        end
-
-        class Subscription < ActiveRecord::Base
-          belongs_to :book
-        end
-
-    Before:
-
-    If `post` is not persisted, then `post.subscriptions` will be empty.
-
-    After:
-
-    If `post` is not persisted, then `post.subscriptions` can be set and used
-    just like it would if `post` were persisted.
-
-    Fixes #16313.
-
-    *Zoltan Kiss*
-
-*   Fixed inconsistency with `first(n)` when used with `limit()`.
-    The `first(n)` finder now respects the `limit()`, making it consistent
-    with `relation.to_a.first(n)`, and also with the behavior of `last(n)`.
-
-    Fixes #23979.
-
-    *Brian Christian*
-
-*   Use `count(:all)` in `HasManyAssociation#count_records` to prevent invalid
-    SQL queries for association counting.
-
-    *Klas Eskilson*
-
-*   Fix to invoke callbacks when using `update_attribute`.
-
-    *Mike Busch*
-
-*   Fix `count(:all)` to correctly work `distinct` with custom SELECT list.
-
-    *Ryuta Kamizono*
-
-*   Using subselect for `delete_all` with `limit` or `offset`.
-
-    *Ryuta Kamizono*
-
-*   Undefine attribute methods on descendants when resetting column
-    information.
-
-    *Chris Salzberg*
-
-*   Log database query callers
-
-    Add `verbose_query_logs` configuration option to display the caller
-    of database queries in the log to facilitate N+1 query resolution
-    and other debugging.
-
-    Enabled in development only for new and upgraded applications. Not
-    recommended for use in the production environment since it relies
-    on Ruby's `Kernel#caller_locations` which is fairly slow.
-
-    *Olivier Lacan*
-
-*   Fix conflicts `counter_cache` with `touch: true` by optimistic locking.
+    1) Adds a `connects_to` method for models to connect to multiple databases. Example:
 
     ```
-    # create_table :posts do |t|
-    #   t.integer :comments_count, default: 0
-    #   t.integer :lock_version
-    #   t.timestamps
-    # end
-    class Post < ApplicationRecord
+    class AnimalsModel < ApplicationRecord
+      self.abstract_class = true
+
+      connects_to database: { writing: :animals_primary, reading: :animals_replica }
     end
 
-    # create_table :comments do |t|
-    #   t.belongs_to :post
-    # end
-    class Comment < ApplicationRecord
-      belongs_to :post, touch: true, counter_cache: true
+    class Dog < AnimalsModel
+      # connected to both the animals_primary db for writing and the animals_replica for reading
     end
     ```
 
-    Before:
+    2) Adds a `connected_to` block method for switching connection roles or connecting to
+    a database that the model didn't connect to. Connecting to the database in this block is
+    useful when you have another defined connection, for example `slow_replica` that you don't
+    want to connect to by default but need in the console, or a specific code block.
+
     ```
-    post = Post.create!
-    # => begin transaction
-         INSERT INTO "posts" ("created_at", "updated_at", "lock_version")
-         VALUES ("2017-12-11 21:27:11.387397", "2017-12-11 21:27:11.387397", 0)
-         commit transaction
-
-    comment = Comment.create!(post: post)
-    # => begin transaction
-         INSERT INTO "comments" ("post_id") VALUES (1)
-
-         UPDATE "posts" SET "comments_count" = COALESCE("comments_count", 0) + 1,
-         "lock_version" = COALESCE("lock_version", 0) + 1 WHERE "posts"."id" = 1
-
-         UPDATE "posts" SET "updated_at" = '2017-12-11 21:27:11.398330',
-         "lock_version" = 1 WHERE "posts"."id" = 1 AND "posts"."lock_version" = 0
-         rollback transaction
-    # => ActiveRecord::StaleObjectError: Attempted to touch a stale object: Post.
-
-    Comment.take.destroy!
-    # => begin transaction
-         DELETE FROM "comments" WHERE "comments"."id" = 1
-
-         UPDATE "posts" SET "comments_count" = COALESCE("comments_count", 0) - 1,
-         "lock_version" = COALESCE("lock_version", 0) + 1 WHERE "posts"."id" = 1
-
-         UPDATE "posts" SET "updated_at" = '2017-12-11 21:42:47.785901',
-         "lock_version" = 1 WHERE "posts"."id" = 1 AND "posts"."lock_version" = 0
-         rollback transaction
-    # => ActiveRecord::StaleObjectError: Attempted to touch a stale object: Post.
+    ActiveRecord::Base.connected_to(role: :reading) do
+      Dog.first # finds dog from replica connected to AnimalsBase
+      Book.first # doesn't have a reading connection, will raise an error
+    end
     ```
 
-    After:
     ```
-    post = Post.create!
-    # => begin transaction
-         INSERT INTO "posts" ("created_at", "updated_at", "lock_version")
-         VALUES ("2017-12-11 21:27:11.387397", "2017-12-11 21:27:11.387397", 0)
-         commit transaction
-
-    comment = Comment.create!(post: post)
-    # => begin transaction
-         INSERT INTO "comments" ("post_id") VALUES (1)
-
-         UPDATE "posts" SET "comments_count" = COALESCE("comments_count", 0) + 1,
-         "lock_version" = COALESCE("lock_version", 0) + 1,
-         "updated_at" = '2017-12-11 21:37:09.802642' WHERE "posts"."id" = 1
-         commit transaction
-
-    comment.destroy!
-    # => begin transaction
-         DELETE FROM "comments" WHERE "comments"."id" = 1
-
-         UPDATE "posts" SET "comments_count" = COALESCE("comments_count", 0) - 1,
-         "lock_version" = COALESCE("lock_version", 0) + 1,
-         "updated_at" = '2017-12-11 21:39:02.685520' WHERE "posts"."id" = 1
-         commit transaction
+    ActiveRecord::Base.connected_to(database: :slow_replica) do
+      SlowReplicaModel.first # if the db config has a slow_replica configuration this will be used to do the lookup, otherwise this will throw an exception
+    end
     ```
 
-    Fixes #31199.
+    *Eileen M. Uchitelle*
 
-    *bogdanvlviv*
+*   Enum raises on invalid definition values
 
-*   Add support for PostgreSQL operator classes to `add_index`.
+    When defining a Hash enum it can be easy to use [] instead of {}. This
+    commit checks that only valid definition values are provided, those can
+    be a Hash, an array of Symbols or an array of Strings. Otherwise it
+    raises an ArgumentError.
+
+    Fixes #33961
+
+    *Alberto Almagro*
+
+*   Reloading associations now clears the Query Cache like `Persistence#reload` does.
+
+    ```
+    class Post < ActiveRecord::Base
+      has_one :category
+      belongs_to :author
+      has_many :comments
+    end
+
+    # Each of the following will now clear the query cache.
+    post.reload_category
+    post.reload_author
+    post.comments.reload
+    ```
+
+    *Christophe Maximin*
+
+*   Added `index` option for `change_table` migration helpers.
+    With this change you can create indexes while adding new
+    columns into the existing tables.
 
     Example:
 
-        add_index :users, :name, using: :gist, opclass: { name: :gist_trgm_ops }
-
-    *Greg Navis*
-
-*   Don't allow scopes to be defined which conflict with instance methods on `Relation`.
-
-    Fixes #31120.
-
-    *kinnrot*
-
-
-## Rails 5.2.0.beta2 (November 28, 2017) ##
-
-*   No changes.
-
-
-## Rails 5.2.0.beta1 (November 27, 2017) ##
-
-*   Add new error class `QueryCanceled` which will be raised
-    when canceling statement due to user request.
-
-    *Ryuta Kamizono*
-
-*   Add `#up_only` to database migrations for code that is only relevant when
-    migrating up, e.g. populating a new column.
-
-    *Rich Daley*
-
-*   Require raw SQL fragments to be explicitly marked when used in
-    relation query methods.
-
-    Before:
-    ```
-    Article.order("LENGTH(title)")
-    ```
-
-    After:
-    ```
-    Article.order(Arel.sql("LENGTH(title)"))
-    ```
-
-    This prevents SQL injection if applications use the [strongly
-    discouraged] form `Article.order(params[:my_order])`, under the
-    mistaken belief that only column names will be accepted.
-
-    Raw SQL strings will now cause a deprecation warning, which will
-    become an UnknownAttributeReference error in Rails 6.0. Applications
-    can opt in to the future behavior by setting `allow_unsafe_raw_sql`
-    to `:disabled`.
-
-    Common and judged-safe string values (such as simple column
-    references) are unaffected:
-    ```
-    Article.order("title DESC")
-    ```
-
-    *Ben Toews*
-
-*   `update_all` will now pass its values to `Type#cast` before passing them to
-    `Type#serialize`. This means that `update_all(foo: 'true')` will properly
-    persist a boolean.
-
-    *Sean Griffin*
-
-*   Add new error class `StatementTimeout` which will be raised
-    when statement timeout exceeded.
-
-    *Ryuta Kamizono*
-
-*   Fix `bin/rails db:migrate` with specified `VERSION`.
-    `bin/rails db:migrate` with empty VERSION behaves as without `VERSION`.
-    Check a format of `VERSION`: Allow a migration version number
-    or name of a migration file. Raise error if format of `VERSION` is invalid.
-    Raise error if target migration doesn't exist.
-
-    *bogdanvlviv*
-
-*   Fixed a bug where column orders for an index weren't written to
-    `db/schema.rb` when using the sqlite adapter.
-
-    Fixes #30902.
-
-    *Paul Kuruvilla*
-
-*   Remove deprecated method `#sanitize_conditions`.
-
-    *Rafael Mendonça França*
-
-*   Remove deprecated method `#scope_chain`.
-
-    *Rafael Mendonça França*
-
-*   Remove deprecated configuration `.error_on_ignored_order_or_limit`.
-
-    *Rafael Mendonça França*
-
-*   Remove deprecated arguments from `#verify!`.
-
-    *Rafael Mendonça França*
-
-*   Remove deprecated argument `name` from `#indexes`.
-
-    *Rafael Mendonça França*
-
-*   Remove deprecated method `ActiveRecord::Migrator.schema_migrations_table_name`.
-
-    *Rafael Mendonça França*
-
-*   Remove deprecated method `supports_primary_key?`.
-
-    *Rafael Mendonça França*
-
-*   Remove deprecated method `supports_migrations?`.
-
-    *Rafael Mendonça França*
-
-*   Remove deprecated methods `initialize_schema_migrations_table` and `initialize_internal_metadata_table`.
-
-    *Rafael Mendonça França*
-
-*   Raises when calling `lock!` in a dirty record.
-
-    *Rafael Mendonça França*
-
-*   Remove deprecated support to passing a class to `:class_name` on associations.
-
-    *Rafael Mendonça França*
-
-*   Remove deprecated argument `default` from `index_name_exists?`.
-
-    *Rafael Mendonça França*
-
-*   Remove deprecated support to `quoted_id` when typecasting an Active Record object.
-
-    *Rafael Mendonça França*
-
-*   Fix `bin/rails db:setup` and `bin/rails db:test:prepare` create  wrong
-    ar_internal_metadata's data for a test database.
-
-    Before:
-    ```
-    $ RAILS_ENV=test rails dbconsole
-    > SELECT * FROM ar_internal_metadata;
-    key|value|created_at|updated_at
-    environment|development|2017-09-11 23:14:10.815679|2017-09-11 23:14:10.815679
-    ```
-
-    After:
-    ```
-    $ RAILS_ENV=test rails dbconsole
-    > SELECT * FROM ar_internal_metadata;
-    key|value|created_at|updated_at
-    environment|test|2017-09-11 23:14:10.815679|2017-09-11 23:14:10.815679
-    ```
-
-    Fixes #26731.
-
-    *bogdanvlviv*
-
-*   Fix longer sequence name detection for serial columns.
-
-    Fixes #28332.
-
-    *Ryuta Kamizono*
-
-*   MySQL: Don't lose `auto_increment: true` in the `db/schema.rb`.
-
-    Fixes #30894.
-
-    *Ryuta Kamizono*
-
-*   Fix `COUNT(DISTINCT ...)` for `GROUP BY` with `ORDER BY` and `LIMIT`.
-
-    Fixes #30886.
-
-    *Ryuta Kamizono*
-
-*   PostgreSQL `tsrange` now preserves subsecond precision.
-
-    PostgreSQL 9.1+ introduced range types, and Rails added support for using
-    this datatype in Active Record. However, the serialization of
-    `PostgreSQL::OID::Range` was incomplete, because it did not properly
-    cast the bounds that make up the range. This led to subseconds being
-    dropped in SQL commands:
-
-    Before:
-
-        connection.type_cast(tsrange.serialize(range_value))
-        # => "[2010-01-01 13:30:00 UTC,2011-02-02 19:30:00 UTC)"
-
-    Now:
-
-        connection.type_cast(tsrange.serialize(range_value))
-        # => "[2010-01-01 13:30:00.670277,2011-02-02 19:30:00.745125)"
-
-    *Thomas Cannon*
-
-*   Passing a `Set` to `Relation#where` now behaves the same as passing an
-    array.
-
-    *Sean Griffin*
-
-*   Use given algorithm while removing index from database.
-
-    Fixes #24190.
+        change_table(:languages) do |t|
+          t.string :country_code, index: true
+        end
 
     *Mehmet Emin İNAÇ*
 
-*   Update payload names for `sql.active_record` instrumentation to be
-    more descriptive.
+*   Fix `transaction` reverting for migrations.
 
-    Fixes #30586.
+    Before: Commands inside a `transaction` in a reverted migration ran uninverted.
+    Now: This change fixes that by reverting commands inside `transaction` block.
 
-    *Jeremy Green*
+    *fatkodima*, *David Verhasselt*
 
-*   Add new error class `LockWaitTimeout` which will be raised
-    when lock wait timeout exceeded.
+*   Raise an error instead of scanning the filesystem root when `fixture_path` is blank.
 
-    *Gabriel Courtemanche*
+    *Gannon McGibbon*, *Max Albrecht*
 
-*   Remove deprecated `#migration_keys`.
+*   Allow `ActiveRecord::Base.configurations=` to be set with a symbolized hash.
 
-    *Ryuta Kamizono*
+    *Gannon McGibbon*
 
-*   Automatically guess the inverse associations for STI.
+*   Don't update counter cache unless the record is actually saved.
 
-    *Yuichiro Kaneko*
-
-*   Ensure `sum` honors `distinct` on `has_many :through` associations
-
-    Fixes #16791.
-
-    *Aaron Wortham*
-
-*   Add `binary` fixture helper method.
-
-    *Atsushi Yoshida*
-
-*   When using `Relation#or`, extract the common conditions and put them before the OR condition.
-
-    *Maxime Handfield Lapointe*
-
-*   `Relation#or` now accepts two relations who have different values for
-    `references` only, as `references` can be implicitly called by `where`.
-
-    Fixes #29411.
-
-    *Sean Griffin*
-
-*   `ApplicationRecord` is no longer generated when generating models. If you
-    need to generate it, it can be created with `rails g application_record`.
-
-    *Lisa Ugray*
-
-*   Fix `COUNT(DISTINCT ...)` with `ORDER BY` and `LIMIT` to keep the existing select list.
+    Fixes #31493, #33113, #33117.
 
     *Ryuta Kamizono*
 
-*   When a `has_one` association is destroyed by `dependent: destroy`,
-    `destroyed_by_association` will now be set to the reflection, matching the
-    behaviour of `has_many` associations.
+*   Deprecate `ActiveRecord::Result#to_hash` in favor of `ActiveRecord::Result#to_a`.
 
-    *Lisa Ugray*
+    *Gannon McGibbon*, *Kevin Cheng*
 
-*   Fix `unscoped(where: [columns])` removing the wrong bind values
-
-    When the `where` is called on a relation after a `or`, unscoping the column of that later `where` removed
-    bind values used by the `or` instead. (possibly other cases too)
+*   SQLite3 adapter supports expression indexes.
 
     ```
-    Post.where(id: 1).or(Post.where(id: 2)).where(foo: 3).unscope(where: :foo).to_sql
-    # Currently:
-    #     SELECT "posts".* FROM "posts" WHERE ("posts"."id" = 2 OR "posts"."id" = 3)
-    # With fix:
-    #     SELECT "posts".* FROM "posts" WHERE ("posts"."id" = 1 OR "posts"."id" = 2)
+    create_table :users do |t|
+      t.string :email
+    end
+
+    add_index :users, 'lower(email)', name: 'index_users_on_email', unique: true
     ```
 
-    *Maxime Handfield Lapointe*
+    *Gray Kemmey*
 
-*   Values constructed using multi-parameter assignment will now use the
-    post-type-cast value for rendering in single-field form inputs.
+*   Allow subclasses to redefine autosave callbacks for associated records.
 
-    *Sean Griffin*
+    Fixes #33305.
 
-*   `Relation#joins` is no longer affected by the target model's
-    `current_scope`, with the exception of `unscoped`.
+    *Andrey Subbota*
 
-    Fixes #29338.
+*   Bump minimum MySQL version to 5.5.8.
 
-    *Sean Griffin*
+    *Yasuo Honda*
 
-*   Change sqlite3 boolean serialization to use 1 and 0
+*   Use MySQL utf8mb4 character set by default.
 
-    SQLite natively recognizes 1 and 0 as true and false, but does not natively
-    recognize 't' and 'f' as was previously serialized.
+    `utf8mb4` character set with 4-Byte encoding supports supplementary characters including emoji.
+    The previous default 3-Byte encoding character set `utf8` is not enough to support them.
 
-    This change in serialization requires a migration of stored boolean data
-    for SQLite databases, so it's implemented behind a configuration flag
-    whose default false value is deprecated.
+    *Yasuo Honda*
 
-    *Lisa Ugray*
+*   Fix duplicated record creation when using nested attributes with `create_with`.
 
-*   Skip query caching when working with batches of records (`find_each`, `find_in_batches`,
-    `in_batches`).
+    *Darwin Wu*
 
-    Previously, records would be fetched in batches, but all records would be retained in memory
-    until the end of the request or job.
+*   Configuration item `config.filter_parameters` could also filter out
+    sensitive values of database columns when call `#inspect`.
+    We also added `ActiveRecord::Base::filter_attributes`/`=` in order to
+    specify sensitive attributes to specific model.
 
-    *Eugene Kenny*
+    ```
+    Rails.application.config.filter_parameters += [:credit_card_number]
+    Account.last.inspect # => #<Account id: 123, name: "DHH", credit_card_number: [FILTERED] ...>
+    SecureAccount.filter_attributes += [:name]
+    SecureAccount.last.inspect # => #<SecureAccount id: 42, name: [FILTERED], credit_card_number: [FILTERED] ...>
+    ```
 
-*   Prevent errors raised by `sql.active_record` notification subscribers from being converted into
-    `ActiveRecord::StatementInvalid` exceptions.
+    *Zhang Kang*
 
-    *Dennis Taylor*
-
-*   Fix eager loading/preloading association with scope including joins.
-
-    Fixes #28324.
+*   Deprecate `column_name_length`, `table_name_length`, `columns_per_table`,
+    `indexes_per_table`, `columns_per_multicolumn_index`, `sql_query_length`,
+    and `joins_per_query` methods in `DatabaseLimits`.
 
     *Ryuta Kamizono*
 
-*   Fix transactions to apply state to child transactions
+*   `ActiveRecord::Base.configurations` now returns an object.
 
-    Previously, if you had a nested transaction and the outer transaction was rolledback, the record from the
-    inner transaction would still be marked as persisted.
+    `ActiveRecord::Base.configurations` used to return a hash, but this
+    is an inflexible data model. In order to improve multiple-database
+    handling in Rails, we've changed this to return an object. Some methods
+    are provided to make the object behave hash-like in order to ease the
+    transition process. Since most applications don't manipulate the hash
+    we've decided to add backwards-compatible functionality that will throw
+    a deprecation warning if used, however calling `ActiveRecord::Base.configurations`
+    will use the new version internally and externally.
 
-    This change fixes that by applying the state of the parent transaction to the child transaction when the
-    parent transaction is rolledback. This will correctly mark records from the inner transaction as not persisted.
+    For example, the following `database.yml`:
+
+    ```
+    development:
+      adapter: sqlite3
+      database: db/development.sqlite3
+    ```
+
+    Used to become a hash:
+
+    ```
+    { "development" => { "adapter" => "sqlite3", "database" => "db/development.sqlite3" } }
+    ```
+
+    Is now converted into the following object:
+
+    ```
+    #<ActiveRecord::DatabaseConfigurations:0x00007fd1acbdf800 @configurations=[
+      #<ActiveRecord::DatabaseConfigurations::HashConfig:0x00007fd1acbded10 @env_name="development",
+        @spec_name="primary", @config={"adapter"=>"sqlite3", "database"=>"db/development.sqlite3"}>
+      ]
+    ```
+
+    Iterating over the database configurations has also changed. Instead of
+    calling hash methods on the `configurations` hash directly, a new method `configs_for` has
+    been provided that allows you to select the correct configuration. `env_name`, and
+    `spec_name` arguments are optional. For example these return an array of
+    database config objects for the requested environment and a single database config object
+    will be returned for the requested environment and specification name respectively.
+
+    ```
+    ActiveRecord::Base.configurations.configs_for(env_name: "development")
+    ActiveRecord::Base.configurations.configs_for(env_name: "development", spec_name: "primary")
+    ```
 
     *Eileen M. Uchitelle*, *Aaron Patterson*
 
-*   Deprecate `set_state` method in `TransactionState`
-
-    Deprecated the `set_state` method in favor of setting the state via specific methods. If you need to mark the
-    state of the transaction you can now use `rollback!`, `commit!` or `nullify!` instead of
-    `set_state(:rolledback)`, `set_state(:committed)`, or `set_state(nil)`.
-
-    *Eileen M. Uchitelle*, *Aaron Patterson*
-
-*   Deprecate delegating to `arel` in `Relation`.
-
-    *Ryuta Kamizono*
-
-*   Fix eager loading to respect `store_full_sti_class` setting.
-
-    *Ryuta Kamizono*
-
-*   Query cache was unavailable when entering the `ActiveRecord::Base.cache` block
-    without being connected.
-
-    *Tsukasa Oishi*
-
-*   Previously, when building records using a `has_many :through` association,
-    if the child records were deleted before the parent was saved, they would
-    still be persisted. Now, if child records are deleted before the parent is saved
-    on a `has_many :through` association, the child records will not be persisted.
-
-    *Tobias Kraze*
-
-*   Merging two relations representing nested joins no longer transforms the joins of
-    the merged relation into LEFT OUTER JOIN. Example to clarify:
+*   Add database configuration to disable advisory locks.
 
     ```
-    Author.joins(:posts).merge(Post.joins(:comments))
-    # Before the change:
-    #=> SELECT ... FROM authors INNER JOIN posts ON ... LEFT OUTER JOIN comments ON...
-
-    # After the change:
-    #=> SELECT ... FROM authors INNER JOIN posts ON ... INNER JOIN comments ON...
+    production:
+      adapter: postgresql
+      advisory_locks: false
     ```
 
-    TODO: Add to the Rails 5.2 upgrade guide
+    *Guo Xiang*
 
-    *Maxime Handfield Lapointe*
+*   SQLite3 adapter `alter_table` method restores foreign keys.
 
-*   `ActiveRecord::Persistence#touch` does not work well when optimistic locking enabled and
-    `locking_column`, without default value, is null in the database.
+    *Yasuo Honda*
 
-    *bogdanvlviv*
+*   Allow `:to_table` option to `invert_remove_foreign_key`.
 
-*   Fix destroying existing object does not work well when optimistic locking enabled and
-    `locking_column` is null in the database.
+    Example:
 
-    *bogdanvlviv*
+       remove_foreign_key :accounts, to_table: :owners
 
-*   Use bulk INSERT to insert fixtures for better performance.
+    *Nikolay Epifanov*, *Rich Chen*
 
-    *Kir Shatrov*
+*   Add environment & load_config dependency to `bin/rake db:seed` to enable
+    seed load in environments without Rails and custom DB configuration
 
-*   Prevent creation of bind param if casted value is nil.
+    *Tobias Bielohlawek*
+
+*   Fix default value for mysql time types with specified precision.
+
+    *Nikolay Kondratyev*
+
+*   Fix `touch` option to behave consistently with `Persistence#touch` method.
 
     *Ryuta Kamizono*
 
-*   Deprecate passing arguments and block at the same time to `count` and `sum` in `ActiveRecord::Calculations`.
+*   Migrations raise when duplicate column definition.
 
-    *Ryuta Kamizono*
+    Fixes #33024.
 
-*   Loading model schema from database is now thread-safe.
+    *Federico Martinez*
 
-    Fixes #28589.
+*   Bump minimum SQLite version to 3.8
 
-    *Vikrant Chaudhary*, *David Abdemoulaie*
+    *Yasuo Honda*
 
-*   Add `ActiveRecord::Base#cache_version` to support recyclable cache keys via the new versioned entries
-    in `ActiveSupport::Cache`. This also means that `ActiveRecord::Base#cache_key` will now return a stable key
-    that does not include a timestamp any more.
+*   Fix parent record should not get saved with duplicate children records.
 
-    NOTE: This feature is turned off by default, and `#cache_key` will still return cache keys with timestamps
-    until you set `ActiveRecord::Base.cache_versioning = true`. That's the setting for all new apps on Rails 5.2+
+    Fixes #32940.
+
+    *Santosh Wadghule*
+
+*   Fix logic on disabling commit callbacks so they are not called unexpectedly when errors occur.
+
+    *Brian Durand*
+
+*   Ensure `Associations::CollectionAssociation#size` and `Associations::CollectionAssociation#empty?`
+    use loaded association ids if present.
+
+    *Graham Turner*
+
+*   Add support to preload associations of polymorphic associations when not all the records have the requested associations.
+
+    *Dana Sherson*
+
+*   Add `touch_all` method to `ActiveRecord::Relation`.
+
+    Example:
+
+        Person.where(name: "David").touch_all(time: Time.new(2020, 5, 16, 0, 0, 0))
+
+    *fatkodima*, *duggiefresh*
+
+*   Add `ActiveRecord::Base.base_class?` predicate.
+
+    *Bogdan Gusiev*
+
+*   Add custom prefix/suffix options to `ActiveRecord::Store.store_accessor`.
+
+    *Tan Huynh*, *Yukio Mizuta*
+
+*   Rails 6 requires Ruby 2.4.1 or newer.
+
+    *Jeremy Daer*
+
+*   Deprecate `update_attributes`/`!` in favor of `update`/`!`.
+
+    *Eddie Lebow*
+
+*   Add `ActiveRecord::Base.create_or_find_by`/`!` to deal with the SELECT/INSERT race condition in
+    `ActiveRecord::Base.find_or_create_by`/`!` by leaning on unique constraints in the database.
 
     *DHH*
 
-*   Respect `SchemaDumper.ignore_tables` in rake tasks for databases structure dump
+*   Add `Relation#pick` as short-hand for single-value plucks.
 
-    *Rusty Geldmacher*, *Guillermo Iguaran*
-
-*   Add type caster to `RuntimeReflection#alias_name`
-
-    Fixes #28959.
-
-    *Jon Moss*
-
-*   Deprecate `supports_statement_cache?`.
-
-    *Ryuta Kamizono*
-
-*   Raise error `UnknownMigrationVersionError` on the movement of migrations
-    when the current migration does not exist.
-
-    *bogdanvlviv*
-
-*   Fix `bin/rails db:forward` first migration.
-
-    *bogdanvlviv*
-
-*   Support Descending Indexes for MySQL.
-
-    MySQL 8.0.1 and higher supports descending indexes: `DESC` in an index definition is no longer ignored.
-    See https://dev.mysql.com/doc/refman/8.0/en/descending-indexes.html.
-
-    *Ryuta Kamizono*
-
-*   Fix inconsistency with changed attributes when overriding AR attribute reader.
-
-    *bogdanvlviv*
-
-*   When calling the dynamic fixture accessor method with no arguments, it now returns all fixtures of this type.
-    Previously this method always returned an empty array.
-
-    *Kevin McPhillips*
+    *DHH*
 
 
-Please check [5-1-stable](https://github.com/rails/rails/blob/5-1-stable/activerecord/CHANGELOG.md) for previous changes.
+Please check [5-2-stable](https://github.com/rails/rails/blob/5-2-stable/activerecord/CHANGELOG.md) for previous changes.

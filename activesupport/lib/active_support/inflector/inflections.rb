@@ -2,7 +2,6 @@
 
 require "concurrent/map"
 require "active_support/core_ext/array/prepend_and_append"
-require "active_support/core_ext/regexp"
 require "active_support/i18n"
 require "active_support/deprecation"
 
@@ -227,7 +226,7 @@ module ActiveSupport
         case scope
         when :all
           @plurals, @singulars, @uncountables, @humans = [], [], Uncountables.new, []
-          else
+        else
           instance_variable_set "@#{scope}", []
         end
       end

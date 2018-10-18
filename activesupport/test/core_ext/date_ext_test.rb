@@ -386,11 +386,11 @@ end
 
 class DateExtBehaviorTest < ActiveSupport::TestCase
   def test_date_acts_like_date
-    assert Date.new.acts_like_date?
+    assert_predicate Date.new, :acts_like_date?
   end
 
   def test_blank?
-    assert_not Date.new.blank?
+    assert_not_predicate Date.new, :blank?
   end
 
   def test_freeze_doesnt_clobber_memoized_instance_methods

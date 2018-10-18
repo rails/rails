@@ -53,6 +53,10 @@ module ActiveRecord
             ::Range.new(new_begin, new_end, value.exclude_end?)
           end
 
+          def force_equality?(value)
+            value.is_a?(::Range)
+          end
+
           private
 
             def type_cast_single(value)

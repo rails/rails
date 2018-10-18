@@ -9,18 +9,12 @@ gemspec
 # We need a newish Rake since Active Job sets its test tasks' descriptions.
 gem "rake", ">= 11.1"
 
-# This needs to be with require false to ensure correct loading order, as it has to
-# be loaded after loading the test library.
-gem "mocha", require: false
-
-gem "capybara", "~> 2.15"
+gem "capybara", ">= 2.15"
 
 gem "rack-cache", "~> 1.2"
-gem "coffee-rails"
 gem "sass-rails"
 gem "turbolinks", "~> 5"
-gem "webmock"
-
+gem "webpacker", github: "rails/webpacker", require: ENV["SKIP_REQUIRE_WEBPACKER"] != "true"
 # require: false so bcrypt is loaded only when has_secure_password is used.
 # This is to avoid Active Model (and by extension the entire framework)
 # being dependent on a binary library.
@@ -38,20 +32,18 @@ gem "rubocop", ">= 0.47", require: false
 # https://github.com/guard/rb-inotify/pull/79
 gem "rb-inotify", github: "matthewd/rb-inotify", branch: "close-handling", require: false
 
-# https://github.com/puma/puma/pull/1345
-gem "stopgap_13632", platforms: :mri if RUBY_VERSION == "2.2.8"
-
 group :doc do
-  gem "sdoc", github: "robin850/sdoc", branch: "upgrade"
+  gem "sdoc", "~> 1.0"
   gem "redcarpet", "~> 3.2.3", platforms: :ruby
   gem "w3c_validators"
   gem "kindlerb", "~> 1.2.0"
 end
 
 # Active Support.
-gem "dalli", ">= 2.2.1"
+gem "dalli"
 gem "listen", ">= 3.0.5", "< 3.2", require: false
 gem "libxml-ruby", platforms: :ruby
+gem "connection_pool", require: false
 
 # for railties app_generator_test
 gem "bootsnap", ">= 1.1.0", require: false
@@ -67,9 +59,6 @@ group :job do
   gem "sneakers", require: false
   gem "que", require: false
   gem "backburner", require: false
-  # TODO: add qu after it support Rails 5.1
-  # gem 'qu-rails', github: "bkeepers/qu", branch: "master", require: false
-  # gem "qu-redis", require: false
   gem "delayed_job_active_record", require: false
   gem "sequel", require: false
 end
@@ -93,10 +82,10 @@ end
 # Active Storage
 group :storage do
   gem "aws-sdk-s3", require: false
-  gem "google-cloud-storage", "~> 1.8", require: false
+  gem "google-cloud-storage", "~> 1.11", require: false
   gem "azure-storage", require: false
 
-  gem "mini_magick"
+  gem "image_processing", "~> 1.2"
 end
 
 group :ujs do
@@ -110,10 +99,13 @@ instance_eval File.read local_gemfile if File.exist? local_gemfile
 
 group :test do
   gem "minitest-bisect"
+  gem "minitest-retry"
 
   platforms :mri do
     gem "stackprof"
     gem "byebug"
+    # FIXME: Remove this when thor 0.21 is release
+    gem "thor", git: "https://github.com/erikhuda/thor.git", ref: "006832ea32480618791f89bb7d9e67b22fc814b9"
   end
 
   gem "benchmark-ips"
@@ -130,7 +122,7 @@ platforms :ruby, :mswin, :mswin64, :mingw, :x64_mingw do
 
   group :db do
     gem "pg", ">= 0.18.0"
-    gem "mysql2", ">= 0.4.4"
+    gem "mysql2", ">= 0.4.10"
   end
 end
 
@@ -153,7 +145,7 @@ end
 platforms :rbx do
   # The rubysl-yaml gem doesn't ship with Psych by default as it needs
   # libyaml that isn't always available.
-  gem "psych", "~> 2.0"
+  gem "psych", "~> 3.0"
 end
 
 # Gems that are necessary for Active Record tests with Oracle.

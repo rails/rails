@@ -1,23 +1,14 @@
 # frozen_string_literal: true
 
 class Module
-  if RUBY_VERSION >= "2.3"
-    # Marks the named method as intended to be redefined, if it exists.
-    # Suppresses the Ruby method redefinition warning. Prefer
-    # #redefine_method where possible.
-    def silence_redefinition_of_method(method)
-      if method_defined?(method) || private_method_defined?(method)
-        # This suppresses the "method redefined" warning; the self-alias
-        # looks odd, but means we don't need to generate a unique name
-        alias_method method, method
-      end
-    end
-  else
-    def silence_redefinition_of_method(method)
-      if method_defined?(method) || private_method_defined?(method)
-        alias_method :__rails_redefine, method
-        remove_method :__rails_redefine
-      end
+  # Marks the named method as intended to be redefined, if it exists.
+  # Suppresses the Ruby method redefinition warning. Prefer
+  # #redefine_method where possible.
+  def silence_redefinition_of_method(method)
+    if method_defined?(method) || private_method_defined?(method)
+      # This suppresses the "method redefined" warning; the self-alias
+      # looks odd, but means we don't need to generate a unique name
+      alias_method method, method
     end
   end
 

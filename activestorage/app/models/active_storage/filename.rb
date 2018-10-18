@@ -5,6 +5,14 @@
 class ActiveStorage::Filename
   include Comparable
 
+  class << self
+    # Returns a Filename instance based on the given filename. If the filename is a Filename, it is
+    # returned unmodified. If it is a String, it is passed to ActiveStorage::Filename.new.
+    def wrap(filename)
+      filename.kind_of?(self) ? filename : new(filename)
+    end
+  end
+
   def initialize(filename)
     @filename = filename
   end
@@ -48,10 +56,6 @@ class ActiveStorage::Filename
   # Characters considered unsafe for storage (e.g. \, $, and the RTL override character) are replaced with a dash.
   def sanitized
     @filename.encode(Encoding::UTF_8, invalid: :replace, undef: :replace, replace: "�").strip.tr("\u{202E}%$|:;/\t\r\n\\", "-")
-  end
-
-  def parameters #:nodoc:
-    Parameters.new self
   end
 
   # Returns the sanitized version of the filename.

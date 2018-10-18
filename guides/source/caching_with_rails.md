@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
 Caching with Rails: An Overview
 ===============================
@@ -362,7 +362,7 @@ This class provides the foundation for interacting with the cache in Rails. This
 
 The main methods to call are `read`, `write`, `delete`, `exist?`, and `fetch`. The fetch method takes a block and will either return an existing value from the cache, or evaluate the block and write the result to the cache if no value exists.
 
-There are some common options used by all cache implementations. These can be passed to the constructor or the various methods to interact with entries.
+There are some common options that can be used by all cache implementations. These can be passed to the constructor or the various methods to interact with entries.
 
 * `:namespace` - This option can be used to create a namespace within the cache store. It is especially useful if your application shares a cache with other applications.
 
@@ -370,7 +370,7 @@ There are some common options used by all cache implementations. These can be pa
 
 * `:compress_threshold` - Defaults to 1kB. Cache entries larger than this threshold, specified in bytes, are compressed.
 
-* `:expires_in` - This option sets an expiration time in seconds for the cache entry when it will be automatically removed from the cache.
+* `:expires_in` - This option sets an expiration time in seconds for the cache entry, if the cache store supports it, when it will be automatically removed from the cache.
 
 * `:race_condition_ttl` - This option is used in conjunction with the `:expires_in` option. It will prevent race conditions when cache entries expire by preventing multiple processes from simultaneously regenerating the same entry (also known as the dog pile effect). This option sets the number of seconds that an expired entry can be reused while a new value is being regenerated. It's a good practice to set this value if you use the `:expires_in` option.
 
@@ -408,7 +408,7 @@ as well as development and test environments.
 New Rails projects are configured to use this implementation in development environment by default.
 
 NOTE: Since processes will not share cache data when using `:memory_store`,
-it will not be possible to manually read, write or expire the cache via the Rails console.
+it will not be possible to manually read, write, or expire the cache via the Rails console.
 
 ### ActiveSupport::Cache::FileStore
 
@@ -446,26 +446,28 @@ config.cache_store = :mem_cache_store, "cache-1.example.com", "cache-2.example.c
 
 ### ActiveSupport::Cache::RedisCacheStore
 
-The Redis cache store takes advantage of Redis support for least-recently-used
-and least-frequently-used key eviction when it reaches max memory, allowing it
-to behave much like a Memcached cache server.
+The Redis cache store takes advantage of Redis support for automatic eviction
+when it reaches max memory, allowing it to behave much like a Memcached cache server.
 
 Deployment note: Redis doesn't expire keys by default, so take care to use a
 dedicated Redis cache server. Don't fill up your persistent-Redis server with
 volatile cache data! Read the
 [Redis cache server setup guide](https://redis.io/topics/lru-cache) in detail.
 
-For an all-cache Redis server, set `maxmemory-policy` to an `allkeys` policy.
-Redis 4+ support least-frequently-used (`allkeys-lfu`) eviction, an excellent
-default choice. Redis 3 and earlier should use `allkeys-lru` for
-least-recently-used eviction.
+For a cache-only Redis server, set `maxmemory-policy` to one of the variants of allkeys.
+Redis 4+ supports least-frequently-used eviction (`allkeys-lfu`), an excellent
+default choice. Redis 3 and earlier should use least-recently-used eviction (`allkeys-lru`).
 
 Set cache read and write timeouts relatively low. Regenerating a cached value
 is often faster than waiting more than a second to retrieve it. Both read and
 write timeouts default to 1 second, but may be set lower if your network is
-consistently low latency.
+consistently low-latency.
 
-Cache reads and writes never raise exceptions. They just return `nil` instead,
+By default, the cache store will not attempt to reconnect to Redis if the
+connection fails during a request. If you experience frequent disconnects you
+may wish to enable reconnect attempts.
+
+Cache reads and writes never raise exceptions; they just return `nil` instead,
 behaving as if there was nothing in the cache. To gauge whether your cache is
 hitting exceptions, you may provide an `error_handler` to report to an
 exception gathering service. It must accept three keyword arguments: `method`,
@@ -473,22 +475,45 @@ the cache store method that was originally called; `returning`, the value that
 was returned to the user, typically `nil`; and `exception`, the exception that
 was rescued.
 
-Putting it all together, a production Redis cache store may look something
-like this:
+To get started, add the redis gem to your Gemfile:
 
 ```ruby
-cache_servers = %w[ "redis://cache-01:6379/0", "redis://cache-02:6379/0", … ],
-config.cache_store = :redis_cache_store, url: cache_servers,
+gem 'redis'
+```
 
-  connect_timeout: 30,  # Defaults to 20 seconds
-  read_timeout:    0.2, # Defaults to 1 second
-  write_timeout:   0.2, # Defaults to 1 second
+You can enable support for the faster [hiredis](https://github.com/redis/hiredis)
+connection library by additionally adding its ruby wrapper to your Gemfile:
+
+```ruby
+gem 'hiredis'
+```
+
+Redis cache store will automatically require & use hiredis if available. No further
+configuration is needed.
+
+Finally, add the configuration in the relevant `config/environments/*.rb` file:
+
+```ruby
+config.cache_store = :redis_cache_store, { url: ENV['REDIS_URL'] }
+```
+
+A more complex, production Redis cache store may look something like this:
+
+```ruby
+cache_servers = %w(redis://cache-01:6379/0 redis://cache-02:6379/0)
+config.cache_store = :redis_cache_store, { url: cache_servers,
+
+  connect_timeout:    30,  # Defaults to 20 seconds
+  read_timeout:       0.2, # Defaults to 1 second
+  write_timeout:      0.2, # Defaults to 1 second
+  reconnect_attempts: 1,   # Defaults to 0
 
   error_handler: -> (method:, returning:, exception:) {
     # Report errors to Sentry as warnings
-    Raven.capture_exception exception, level: 'warning",
+    Raven.capture_exception exception, level: 'warning',
       tags: { method: method, returning: returning }
   }
+}
 ```
 
 ### ActiveSupport::Cache::NullStore
@@ -645,13 +670,13 @@ Caching in Development
 ----------------------
 
 It's common to want to test the caching strategy of your application
-in development mode. Rails provides the rake task `dev:cache` to
+in development mode. Rails provides the rails command `dev:cache` to
 easily toggle caching on/off.
 
 ```bash
-$ bin/rails dev:cache
+$ rails dev:cache
 Development mode is now being cached.
-$ bin/rails dev:cache
+$ rails dev:cache
 Development mode is no longer being cached.
 ```
 

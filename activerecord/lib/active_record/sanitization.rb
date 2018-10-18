@@ -61,8 +61,8 @@ module ActiveRecord
       #   # => "id ASC"
       def sanitize_sql_for_order(condition)
         if condition.is_a?(Array) && condition.first.to_s.include?("?")
-          enforce_raw_sql_whitelist([condition.first],
-            whitelist: AttributeMethods::ClassMethods::COLUMN_NAME_ORDER_WHITELIST
+          disallow_raw_sql!([condition.first],
+            permit: AttributeMethods::ClassMethods::COLUMN_NAME_WITH_ORDER
           )
 
           # Ensure we aren't dealing with a subclass of String that might
@@ -84,7 +84,7 @@ module ActiveRecord
       def sanitize_sql_hash_for_assignment(attrs, table)
         c = connection
         attrs.map do |attr, value|
-          type = type_for_attribute(attr.to_s)
+          type = type_for_attribute(attr)
           value = type.serialize(type.cast(value))
           "#{c.quote_table_name_for_assignment(table, attr)} = #{c.quote(value)}"
         end.join(", ")
@@ -155,10 +155,12 @@ module ActiveRecord
             if aggregation = reflect_on_aggregation(attr.to_sym)
               mapping = aggregation.mapping
               mapping.each do |field_attr, aggregate_attr|
-                if mapping.size == 1 && !value.respond_to?(aggregate_attr)
-                  expanded_attrs[field_attr] = value
+                expanded_attrs[field_attr] = if value.is_a?(Array)
+                  value.map { |it| it.send(aggregate_attr) }
+                elsif mapping.size == 1 && !value.respond_to?(aggregate_attr)
+                  value
                 else
-                  expanded_attrs[field_attr] = value.send(aggregate_attr)
+                  value.send(aggregate_attr)
                 end
               end
             else
@@ -167,6 +169,7 @@ module ActiveRecord
           end
           expanded_attrs
         end
+        deprecate :expand_hash_conditions_for_aggregates
 
         def replace_bind_variables(statement, values)
           raise_if_bind_arity_mismatch(statement, statement.count("?"), values.size)

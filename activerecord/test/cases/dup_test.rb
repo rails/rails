@@ -3,20 +3,21 @@
 require "cases/helper"
 require "models/reply"
 require "models/topic"
+require "models/movie"
 
 module ActiveRecord
   class DupTest < ActiveRecord::TestCase
     fixtures :topics
 
     def test_dup
-      assert !Topic.new.freeze.dup.frozen?
+      assert_not_predicate Topic.new.freeze.dup, :frozen?
     end
 
     def test_not_readonly
       topic = Topic.first
 
       duped = topic.dup
-      assert !duped.readonly?, "should not be readonly"
+      assert_not duped.readonly?, "should not be readonly"
     end
 
     def test_is_readonly
@@ -31,7 +32,7 @@ module ActiveRecord
       topic = Topic.first
       duped = topic.dup
 
-      assert !duped.persisted?, "topic not persisted"
+      assert_not duped.persisted?, "topic not persisted"
       assert duped.new_record?, "topic is new"
     end
 
@@ -40,7 +41,7 @@ module ActiveRecord
       topic.destroy
 
       duped = topic.dup
-      assert_not duped.destroyed?
+      assert_not_predicate duped, :destroyed?
     end
 
     def test_dup_has_no_id
@@ -126,12 +127,12 @@ module ActiveRecord
 
         duped = topic.dup
         duped.title = nil
-        assert duped.invalid?
+        assert_predicate duped, :invalid?
 
         topic.title = nil
         duped.title = "Mathematics"
-        assert topic.invalid?
-        assert duped.valid?
+        assert_predicate topic, :invalid?
+        assert_predicate duped, :valid?
       end
     end
 
@@ -139,7 +140,7 @@ module ActiveRecord
       prev_default_scopes = Topic.default_scopes
       Topic.default_scopes = [proc { Topic.where(approved: true) }]
       topic = Topic.new(approved: false)
-      assert !topic.dup.approved?, "should not be overridden by default scopes"
+      assert_not topic.dup.approved?, "should not be overridden by default scopes"
     ensure
       Topic.default_scopes = prev_default_scopes
     end
@@ -156,6 +157,21 @@ module ActiveRecord
       assert_nothing_raised do
         record.dup
       end
+    end
+
+    def test_dup_record_not_persisted_after_rollback_transaction
+      movie = Movie.new(name: "test")
+
+      assert_raises(ActiveRecord::RecordInvalid) do
+        Movie.transaction do
+          movie.save!
+          duped = movie.dup
+          duped.name = nil
+          duped.save!
+        end
+      end
+
+      assert_not movie.persisted?
     end
   end
 end

@@ -4,6 +4,14 @@
 gem "pg", ">= 0.18", "< 2.0"
 require "pg"
 
+# Use async_exec instead of exec_params on pg versions before 1.1
+class ::PG::Connection
+  unless self.public_method_defined?(:async_exec_params)
+    remove_method :exec_params
+    alias exec_params async_exec
+  end
+end
+
 require "active_record/connection_adapters/abstract_adapter"
 require "active_record/connection_adapters/statement_pool"
 require "active_record/connection_adapters/postgresql/column"
@@ -35,9 +43,14 @@ module ActiveRecord
       valid_conn_param_keys = PG::Connection.conndefaults_hash.keys + [:requiressl]
       conn_params.slice!(*valid_conn_param_keys)
 
-      # The postgres drivers don't allow the creation of an unconnected PG::Connection object,
-      # so just pass a nil connection object for the time being.
-      ConnectionAdapters::PostgreSQLAdapter.new(nil, logger, conn_params, config)
+      conn = PG.connect(conn_params)
+      ConnectionAdapters::PostgreSQLAdapter.new(conn, logger, conn_params, config)
+    rescue ::PG::Error => error
+      if error.message.include?("does not exist")
+        raise ActiveRecord::NoDatabaseError
+      else
+        raise
+      end
     end
   end
 
@@ -70,7 +83,7 @@ module ActiveRecord
     # In addition, default connection parameters of libpq can be set per environment variables.
     # See https://www.postgresql.org/docs/current/static/libpq-envars.html .
     class PostgreSQLAdapter < AbstractAdapter
-      ADAPTER_NAME = "PostgreSQL".freeze
+      ADAPTER_NAME = "PostgreSQL"
 
       NATIVE_DATABASE_TYPES = {
         primary_key: "bigserial primary key",
@@ -212,14 +225,10 @@ module ActiveRecord
         @local_tz = nil
         @max_identifier_length = nil
 
-        connect
+        configure_connection
         add_pg_encoders
         @statements = StatementPool.new @connection,
                                         self.class.type_cast_config_to_integer(config[:statement_limit])
-
-        if postgresql_version < 90100
-          raise "Your version of PostgreSQL (#{postgresql_version}) is too old. Active Record supports PostgreSQL >= 9.1."
-        end
 
         add_pg_decoders
 
@@ -281,7 +290,7 @@ module ActiveRecord
       end
 
       def discard! # :nodoc:
-        @connection.socket_io.reopen(IO::NULL)
+        @connection.socket_io.reopen(IO::NULL) rescue nil
         @connection = nil
       end
 
@@ -318,8 +327,16 @@ module ActiveRecord
         postgresql_version >= 90300
       end
 
+      def supports_foreign_tables?
+        postgresql_version >= 90300
+      end
+
       def supports_pgcrypto_uuid?
         postgresql_version >= 90400
+      end
+
+      def supports_lazy_transactions?
+        true
       end
 
       def get_advisory_lock(lock_id) # :nodoc:
@@ -394,6 +411,12 @@ module ActiveRecord
       end
 
       private
+        def check_version
+          if postgresql_version < 90100
+            raise "Your version of PostgreSQL (#{postgresql_version}) is too old. Active Record supports PostgreSQL >= 9.1."
+          end
+        end
+
         # See https://www.postgresql.org/docs/current/static/errcodes-appendix.html
         VALUE_LIMIT_VIOLATION = "22001"
         NUMERIC_VALUE_OUT_OF_RANGE = "22003"
@@ -432,7 +455,7 @@ module ActiveRecord
           end
         end
 
-        def get_oid_type(oid, fmod, column_name, sql_type = "".freeze)
+        def get_oid_type(oid, fmod, column_name, sql_type = "")
           if !type_map.key?(oid)
             load_additional_types([oid])
           end
@@ -461,7 +484,7 @@ module ActiveRecord
           register_class_with_limit m, "bit", OID::Bit
           register_class_with_limit m, "varbit", OID::BitVarying
           m.alias_type "timestamptz", "timestamp"
-          m.register_type "date", Type::Date.new
+          m.register_type "date", OID::Date.new
 
           m.register_type "money", OID::Money.new
           m.register_type "bytea", OID::Bytea.new
@@ -521,13 +544,13 @@ module ActiveRecord
             # Quoted types
           when /\A[\(B]?'(.*)'.*::"?([\w. ]+)"?(?:\[\])?\z/m
             # The default 'now'::date is CURRENT_DATE
-            if $1 == "now".freeze && $2 == "date".freeze
+            if $1 == "now" && $2 == "date"
               nil
             else
-              $1.gsub("''".freeze, "'".freeze)
+              $1.gsub("''", "'")
             end
             # Boolean types
-          when "true".freeze, "false".freeze
+          when "true", "false"
             default
             # Numeric types
           when /\A\(?(-?\d+(\.\d*)?)\)?(::bigint)?\z/
@@ -593,15 +616,19 @@ module ActiveRecord
         end
 
         def exec_no_cache(sql, name, binds)
+          materialize_transactions
+
           type_casted_binds = type_casted_binds(binds)
           log(sql, name, binds, type_casted_binds) do
             ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
-              @connection.async_exec(sql, type_casted_binds)
+              @connection.exec_params(sql, type_casted_binds)
             end
           end
         end
 
         def exec_cache(sql, name, binds)
+          materialize_transactions
+
           stmt_key = prepare_statement(sql)
           type_casted_binds = type_casted_binds(binds)
 
@@ -635,7 +662,7 @@ module ActiveRecord
         #
         # Check here for more details:
         # https://git.postgresql.org/gitweb/?p=postgresql.git;a=blob;f=src/backend/utils/cache/plancache.c#l573
-        CACHED_PLAN_HEURISTIC = "cached plan must not change result type".freeze
+        CACHED_PLAN_HEURISTIC = "cached plan must not change result type"
         def is_cached_plan_failure?(e)
           pgerror = e.cause
           code = pgerror.result.result_error_field(PG::PG_DIAG_SQLSTATE)
@@ -679,12 +706,6 @@ module ActiveRecord
         def connect
           @connection = PG.connect(@connection_parameters)
           configure_connection
-        rescue ::PG::Error => error
-          if error.message.include?("does not exist")
-            raise ActiveRecord::NoDatabaseError
-          else
-            raise
-          end
         end
 
         # Configures the encoding, verbosity, schema search path, and time zone of the connection.
@@ -833,6 +854,7 @@ module ActiveRecord
         ActiveRecord::Type.register(:bit_varying, OID::BitVarying, adapter: :postgresql)
         ActiveRecord::Type.register(:binary, OID::Bytea, adapter: :postgresql)
         ActiveRecord::Type.register(:cidr, OID::Cidr, adapter: :postgresql)
+        ActiveRecord::Type.register(:date, OID::Date, adapter: :postgresql)
         ActiveRecord::Type.register(:datetime, OID::DateTime, adapter: :postgresql)
         ActiveRecord::Type.register(:decimal, OID::Decimal, adapter: :postgresql)
         ActiveRecord::Type.register(:enum, OID::Enum, adapter: :postgresql)

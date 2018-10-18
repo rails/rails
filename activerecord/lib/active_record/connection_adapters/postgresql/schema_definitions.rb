@@ -13,10 +13,10 @@ module ActiveRecord
         #     t.timestamps
         #   end
         #
-        # By default, this will use the +gen_random_uuid()+ function from the
+        # By default, this will use the <tt>gen_random_uuid()</tt> function from the
         # +pgcrypto+ extension. As that extension is only available in
         # PostgreSQL 9.4+, for earlier versions an explicit default can be set
-        # to use +uuid_generate_v4()+ from the +uuid-ossp+ extension instead:
+        # to use <tt>uuid_generate_v4()</tt> from the +uuid-ossp+ extension instead:
         #
         #   create_table :stuffs, id: false do |t|
         #     t.primary_key :id, :uuid, default: "uuid_generate_v4()"

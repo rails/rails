@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
 Debugging Rails Applications
 ============================
@@ -147,7 +147,7 @@ TIP: The default Rails log level is `debug` in all environments.
 
 ### Sending Messages
 
-To write in the current log use the `logger.(debug|info|warn|error|fatal)` method from within a controller, model or mailer:
+To write in the current log use the `logger.(debug|info|warn|error|fatal)` method from within a controller, model, or mailer:
 
 ```ruby
 logger.debug "Person attributes hash: #{@person.attributes.inspect}"
@@ -485,7 +485,7 @@ stack frames.
 
 ### Threads
 
-The debugger can list, stop, resume and switch between running threads by using
+The debugger can list, stop, resume, and switch between running threads by using
 the `thread` command (or the abbreviated `th`). This command has a handful of
 options:
 
@@ -777,7 +777,7 @@ deleted when that breakpoint is reached.
 * `finish [n]`: execute until the selected stack frame returns. If no frame
 number is given, the application will run until the currently selected frame
 returns. The currently selected frame starts out the most-recent frame or 0 if
-no frame positioning (e.g up, down or frame) has been performed. If a frame
+no frame positioning (e.g up, down, or frame) has been performed. If a frame
 number is given it will run until the specified frame returns.
 
 ### Editing
@@ -875,7 +875,7 @@ location of the `console` call; it won't be rendered on the spot of its
 invocation but next to your HTML content.
 
 The console executes pure Ruby code: You can define and instantiate
-custom classes, create new models and inspect variables.
+custom classes, create new models, and inspect variables.
 
 NOTE: Only one console can be rendered per request. Otherwise `web-console`
 will raise an error on the second `console` invocation.

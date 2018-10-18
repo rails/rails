@@ -9,7 +9,7 @@ class ScreenshotHelperTest < ActiveSupport::TestCase
     new_test = DrivenBySeleniumWithChrome.new("x")
 
     Rails.stub :root, Pathname.getwd do
-      assert_equal "tmp/screenshots/x.png", new_test.send(:image_path)
+      assert_equal Rails.root.join("tmp/screenshots/x.png").to_s, new_test.send(:image_path)
     end
   end
 
@@ -18,7 +18,7 @@ class ScreenshotHelperTest < ActiveSupport::TestCase
 
     Rails.stub :root, Pathname.getwd do
       new_test.stub :passed?, false do
-        assert_equal "tmp/screenshots/failures_x.png", new_test.send(:image_path)
+        assert_equal Rails.root.join("tmp/screenshots/failures_x.png").to_s, new_test.send(:image_path)
       end
     end
   end
@@ -29,7 +29,7 @@ class ScreenshotHelperTest < ActiveSupport::TestCase
     Rails.stub :root, Pathname.getwd do
       new_test.stub :passed?, false do
         new_test.stub :skipped?, true do
-          assert_equal "tmp/screenshots/x.png", new_test.send(:image_path)
+          assert_equal Rails.root.join("tmp/screenshots/x.png").to_s, new_test.send(:image_path)
         end
       end
     end
@@ -59,11 +59,11 @@ class ScreenshotHelperTest < ActiveSupport::TestCase
     end
   end
 
-  test "image path returns the relative path from current directory" do
+  test "image path returns the absolute path from root" do
     new_test = DrivenBySeleniumWithChrome.new("x")
 
     Rails.stub :root, Pathname.getwd.join("..") do
-      assert_equal "../tmp/screenshots/x.png", new_test.send(:image_path)
+      assert_equal Rails.root.join("tmp/screenshots/x.png").to_s, new_test.send(:image_path)
     end
   end
 end

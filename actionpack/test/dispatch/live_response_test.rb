@@ -73,7 +73,7 @@ module ActionController
         }
 
         latch.wait
-        assert @response.headers.frozen?
+        assert_predicate @response.headers, :frozen?
         e = assert_raises(ActionDispatch::IllegalStateError) do
           @response.headers["Content-Length"] = "zomg"
         end

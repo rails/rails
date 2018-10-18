@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "active_support"
-require "active_support/file_update_checker"
 require "active_support/core_ext/array/wrap"
 
 # :enddoc:
@@ -88,8 +87,20 @@ module I18n
         when Hash, Array
           Array.wrap(fallbacks)
         else # TrueClass
-          []
+          [I18n.default_locale]
         end
+
+      if args.empty? || args.first.is_a?(Hash)
+        ActiveSupport::Deprecation.warn(<<-MSG.squish)
+          Using I18n fallbacks with an empty `defaults` sets the defaults to
+          include the `default_locale`. This behavior will change in Rails 6.1.
+          If you desire the default locale to be included in the defaults, please
+          explicitly configure it with `config.i18n.fallbacks.defaults =
+          [I18n.default_locale]` or `config.i18n.fallbacks = [I18n.default_locale,
+          {...}]`
+        MSG
+        args.unshift I18n.default_locale
+      end
 
       I18n.fallbacks = I18n::Locale::Fallbacks.new(*args)
     end

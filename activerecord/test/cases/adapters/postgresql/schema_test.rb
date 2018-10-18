@@ -204,12 +204,12 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
 
   def test_data_source_exists_when_not_on_schema_search_path
     with_schema_search_path("PUBLIC") do
-      assert(!@connection.data_source_exists?(TABLE_NAME), "data_source exists but should not be found")
+      assert_not(@connection.data_source_exists?(TABLE_NAME), "data_source exists but should not be found")
     end
   end
 
   def test_data_source_exists_wrong_schema
-    assert(!@connection.data_source_exists?("foo.things"), "data_source should not exist")
+    assert_not(@connection.data_source_exists?("foo.things"), "data_source should not exist")
   end
 
   def test_data_source_exists_quoted_names
@@ -529,6 +529,34 @@ class SchemaIndexOpclassTest < ActiveRecord::PostgreSQLTestCase
     output = dump_table_schema "trains"
 
     assert_match(/opclass: \{ description: :text_pattern_ops \}/, output)
+  end
+end
+
+class SchemaIndexNullsOrderTest < ActiveRecord::PostgreSQLTestCase
+  include SchemaDumpingHelper
+
+  setup do
+    @connection = ActiveRecord::Base.connection
+    @connection.create_table "trains" do |t|
+      t.string :name
+      t.text :description
+    end
+  end
+
+  teardown do
+    @connection.drop_table "trains", if_exists: true
+  end
+
+  def test_nulls_order_is_dumped
+    @connection.execute "CREATE INDEX trains_name_and_description ON trains USING btree(name NULLS FIRST, description)"
+    output = dump_table_schema "trains"
+    assert_match(/order: \{ name: "NULLS FIRST" \}/, output)
+  end
+
+  def test_non_default_order_with_nulls_is_dumped
+    @connection.execute "CREATE INDEX trains_name_and_desc ON trains USING btree(name DESC NULLS LAST, description)"
+    output = dump_table_schema "trains"
+    assert_match(/order: \{ name: "DESC NULLS LAST" \}/, output)
   end
 end
 

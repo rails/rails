@@ -16,7 +16,7 @@ module ApplicationTests
       teardown_app
     end
 
-    test "default content security policy is empty" do
+    test "default content security policy is nil" do
       controller :pages, <<-RUBY
         class PagesController < ApplicationController
           def index
@@ -34,7 +34,33 @@ module ApplicationTests
       app("development")
 
       get "/"
-      assert_equal ";", last_response.headers["Content-Security-Policy"]
+      assert_nil last_response.headers["Content-Security-Policy"]
+    end
+
+    test "empty content security policy is generated" do
+      controller :pages, <<-RUBY
+        class PagesController < ApplicationController
+          def index
+            render html: "<h1>Welcome to Rails!</h1>"
+          end
+        end
+      RUBY
+
+      app_file "config/initializers/content_security_policy.rb", <<-RUBY
+        Rails.application.config.content_security_policy do |p|
+        end
+      RUBY
+
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          root to: "pages#index"
+        end
+      RUBY
+
+      app("development")
+
+      get "/"
+      assert_policy ""
     end
 
     test "global content security policy in an initializer" do
@@ -61,7 +87,7 @@ module ApplicationTests
       app("development")
 
       get "/"
-      assert_policy "default-src 'self' https:;"
+      assert_policy "default-src 'self' https:"
     end
 
     test "global report only content security policy in an initializer" do
@@ -90,7 +116,7 @@ module ApplicationTests
       app("development")
 
       get "/"
-      assert_policy "default-src 'self' https:;", report_only: true
+      assert_policy "default-src 'self' https:", report_only: true
     end
 
     test "override content security policy in a controller" do
@@ -121,7 +147,7 @@ module ApplicationTests
       app("development")
 
       get "/"
-      assert_policy "default-src https://example.com;"
+      assert_policy "default-src https://example.com"
     end
 
     test "override content security policy to report only in a controller" do
@@ -150,7 +176,7 @@ module ApplicationTests
       app("development")
 
       get "/"
-      assert_policy "default-src 'self' https:;", report_only: true
+      assert_policy "default-src 'self' https:", report_only: true
     end
 
     test "global content security policy added to rack app" do
@@ -174,7 +200,7 @@ module ApplicationTests
       app("development")
 
       get "/"
-      assert_policy "default-src 'self' https:;"
+      assert_policy "default-src 'self' https:"
     end
 
     private

@@ -9,8 +9,8 @@ module ActiveStorage
   class Service::S3Service < Service
     attr_reader :client, :bucket, :upload_options
 
-    def initialize(access_key_id:, secret_access_key:, region:, bucket:, upload: {}, **options)
-      @client = Aws::S3::Resource.new(access_key_id: access_key_id, secret_access_key: secret_access_key, region: region, **options)
+    def initialize(bucket:, upload: {}, **options)
+      @client = Aws::S3::Resource.new(**options)
       @bucket = @client.bucket(bucket)
 
       @upload_options = upload
@@ -33,7 +33,21 @@ module ActiveStorage
         end
       else
         instrument :download, key: key do
-          object_for(key).get.body.read.force_encoding(Encoding::BINARY)
+          begin
+            object_for(key).get.body.string.force_encoding(Encoding::BINARY)
+          rescue Aws::S3::Errors::NoSuchKey
+            raise ActiveStorage::FileNotFoundError
+          end
+        end
+      end
+    end
+
+    def download_chunk(key, range)
+      instrument :download_chunk, key: key, range: range do
+        begin
+          object_for(key).get(range: "bytes=#{range.begin}-#{range.exclude_end? ? range.end - 1 : range.end}").body.read.force_encoding(Encoding::BINARY)
+        rescue Aws::S3::Errors::NoSuchKey
+          raise ActiveStorage::FileNotFoundError
         end
       end
     end
@@ -96,6 +110,8 @@ module ActiveStorage
 
         chunk_size = 5.megabytes
         offset = 0
+
+        raise ActiveStorage::FileNotFoundError unless object.exists?
 
         while offset < object.content_length
           yield object.get(range: "bytes=#{offset}-#{offset + chunk_size - 1}").body.read.force_encoding(Encoding::BINARY)

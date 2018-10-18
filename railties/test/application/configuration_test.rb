@@ -3,6 +3,7 @@
 require "isolation/abstract_unit"
 require "rack/test"
 require "env_helpers"
+require "set"
 
 class ::MyMailInterceptor
   def self.delivering_email(email); email; end
@@ -94,7 +95,7 @@ module ApplicationTests
 
       with_rails_env "development" do
         app "development"
-        assert Rails.application.config.log_tags.blank?
+        assert_predicate Rails.application.config.log_tags, :blank?
       end
     end
 
@@ -121,6 +122,18 @@ module ApplicationTests
       app "development"
 
       assert_equal "MyLogger", Rails.application.config.logger.class.name
+    end
+
+    test "raises an error if cache does not support recyclable cache keys" do
+      build_app(initializers: true)
+      add_to_env_config "production", "config.cache_store = Class.new {}.new"
+      add_to_env_config "production", "config.active_record.cache_versioning = true"
+
+      error = assert_raise(RuntimeError) do
+        app "production"
+      end
+
+      assert_match(/You're using a cache/, error.message)
     end
 
     test "a renders exception on pending migration" do
@@ -297,6 +310,53 @@ module ApplicationTests
       assert_equal %w(noop_email).to_set, PostsMailer.instance_variable_get(:@action_methods)
     end
 
+    test "does not eager load attribute methods in development" do
+      app_file "app/models/post.rb", <<-RUBY
+        class Post < ActiveRecord::Base
+        end
+      RUBY
+
+      app_file "config/initializers/active_record.rb", <<-RUBY
+        ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
+        ActiveRecord::Migration.verbose = false
+        ActiveRecord::Schema.define(version: 1) do
+          create_table :posts do |t|
+            t.string :title
+          end
+        end
+      RUBY
+
+      app "development"
+
+      assert_not_includes Post.instance_methods, :title
+    end
+
+    test "eager loads attribute methods in production" do
+      app_file "app/models/post.rb", <<-RUBY
+        class Post < ActiveRecord::Base
+        end
+      RUBY
+
+      app_file "config/initializers/active_record.rb", <<-RUBY
+        ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
+        ActiveRecord::Migration.verbose = false
+        ActiveRecord::Schema.define(version: 1) do
+          create_table :posts do |t|
+            t.string :title
+          end
+        end
+      RUBY
+
+      add_to_config <<-RUBY
+        config.eager_load = true
+        config.cache_classes = true
+      RUBY
+
+      app "production"
+
+      assert_includes Post.instance_methods, :title
+    end
+
     test "initialize an eager loaded, cache classes app" do
       add_to_config <<-RUBY
         config.eager_load = true
@@ -361,7 +421,7 @@ module ApplicationTests
         end
       RUBY
 
-      assert !$prepared
+      assert_not $prepared
 
       app "development"
 
@@ -576,6 +636,7 @@ module ApplicationTests
 
       app "development"
       assert_equal "3b7cd727ee24e8444053437c36cc66c3", app.secrets.secret_key_base
+      assert_equal "3b7cd727ee24e8444053437c36cc66c3", app.secret_key_base
     end
 
     test "secret_key_base is copied from config to secrets when not set" do
@@ -1416,14 +1477,14 @@ module ApplicationTests
       assert_equal "XML", last_response.body
     end
 
-    test "Rails.application#env_config exists and include some existing parameters" do
+    test "Rails.application#env_config exists and includes some existing parameters" do
       make_basic_app
 
-      assert_equal      app.env_config["action_dispatch.parameter_filter"],  app.config.filter_parameters
-      assert_equal      app.env_config["action_dispatch.show_exceptions"],   app.config.action_dispatch.show_exceptions
-      assert_equal      app.env_config["action_dispatch.logger"],            Rails.logger
-      assert_equal      app.env_config["action_dispatch.backtrace_cleaner"], Rails.backtrace_cleaner
-      assert_equal      app.env_config["action_dispatch.key_generator"],     Rails.application.key_generator
+      assert_equal app.env_config["action_dispatch.parameter_filter"],  app.config.filter_parameters
+      assert_equal app.env_config["action_dispatch.show_exceptions"],   app.config.action_dispatch.show_exceptions
+      assert_equal app.env_config["action_dispatch.logger"],            Rails.logger
+      assert_equal app.env_config["action_dispatch.backtrace_cleaner"], Rails.backtrace_cleaner
+      assert_equal app.env_config["action_dispatch.key_generator"],     Rails.application.key_generator
     end
 
     test "config.colorize_logging default is true" do
@@ -1478,7 +1539,7 @@ module ApplicationTests
     test "respond_to? accepts include_private" do
       make_basic_app
 
-      assert_not Rails.configuration.respond_to?(:method_missing)
+      assert_not_respond_to Rails.configuration, :method_missing
       assert Rails.configuration.respond_to?(:method_missing, true)
     end
 
@@ -1509,7 +1570,7 @@ module ApplicationTests
         end
       end
 
-      assert_not_nil SourceAnnotationExtractor::Annotation.extensions[/\.(coffee)$/]
+      assert_not_nil Rails::SourceAnnotationExtractor::Annotation.extensions[/\.(coffee)$/]
     end
 
     test "rake_tasks block works at instance level" do
@@ -1670,7 +1731,7 @@ module ApplicationTests
     test "config_for loads custom configuration from yaml files" do
       app_file "config/custom.yml", <<-RUBY
       development:
-        key: 'custom key'
+        foo: 'bar'
       RUBY
 
       add_to_config <<-RUBY
@@ -1679,7 +1740,54 @@ module ApplicationTests
 
       app "development"
 
-      assert_equal "custom key", Rails.application.config.my_custom_config["key"]
+      assert_equal "bar", Rails.application.config.my_custom_config["foo"]
+    end
+
+    test "config_for loads custom configuration from yaml accessible as symbol" do
+      app_file "config/custom.yml", <<-RUBY
+      development:
+        foo: 'bar'
+      RUBY
+
+      add_to_config <<-RUBY
+        config.my_custom_config = config_for('custom')
+      RUBY
+
+      app "development"
+
+      assert_equal "bar", Rails.application.config.my_custom_config[:foo]
+    end
+
+    test "config_for loads custom configuration from yaml accessible as method" do
+      app_file "config/custom.yml", <<-RUBY
+      development:
+        foo: 'bar'
+      RUBY
+
+      add_to_config <<-RUBY
+        config.my_custom_config = config_for('custom')
+      RUBY
+
+      app "development"
+
+      assert_equal "bar", Rails.application.config.my_custom_config.foo
+    end
+
+    test "config_for loads nested custom configuration from yaml as symbol keys" do
+      app_file "config/custom.yml", <<-RUBY
+      development:
+        foo:
+          bar:
+            baz: 1
+      RUBY
+
+      add_to_config <<-RUBY
+        config.my_custom_config = config_for('custom')
+      RUBY
+
+      app "development"
+
+      assert_equal 1, Rails.application.config.my_custom_config.foo[:bar][:baz]
     end
 
     test "config_for uses the Pathname object if it is provided" do
@@ -1766,7 +1874,7 @@ module ApplicationTests
     test "represent_boolean_as_integer should be able to set via config.active_record.sqlite3.represent_boolean_as_integer" do
       remove_from_config '.*config\.load_defaults.*\n'
 
-      app_file "config/initializers/new_framework_defaults_5_2.rb", <<-RUBY
+      app_file "config/initializers/new_framework_defaults_6_0.rb", <<-RUBY
         Rails.application.config.active_record.sqlite3.represent_boolean_as_integer = true
       RUBY
 
@@ -1831,7 +1939,7 @@ module ApplicationTests
 
     test "api_only is false by default" do
       app "development"
-      refute Rails.application.config.api_only
+      assert_not Rails.application.config.api_only
     end
 
     test "api_only generator config is set when api_only is set" do
@@ -1905,8 +2013,8 @@ module ApplicationTests
     test "ActiveSupport::MessageEncryptor.use_authenticated_message_encryption can be configured via config.active_support.use_authenticated_message_encryption" do
       remove_from_config '.*config\.load_defaults.*\n'
 
-      app_file "config/initializers/new_framework_defaults_5_2.rb", <<-RUBY
-      Rails.application.config.active_support.use_authenticated_message_encryption = true
+      app_file "config/initializers/new_framework_defaults_6_0.rb", <<-RUBY
+        Rails.application.config.active_support.use_authenticated_message_encryption = true
       RUBY
 
       app "development"
@@ -1931,13 +2039,95 @@ module ApplicationTests
     test "ActiveSupport::Digest.hash_digest_class can be configured via config.active_support.use_sha1_digests" do
       remove_from_config '.*config\.load_defaults.*\n'
 
-      app_file "config/initializers/new_framework_defaults_5_2.rb", <<-RUBY
-      Rails.application.config.active_support.use_sha1_digests = true
+      app_file "config/initializers/new_framework_defaults_6_0.rb", <<-RUBY
+        Rails.application.config.active_support.use_sha1_digests = true
       RUBY
 
       app "development"
 
       assert_equal Digest::SHA1, ActiveSupport::Digest.hash_digest_class
+    end
+
+    test "custom serializers should be able to set via config.active_job.custom_serializers in an initializer" do
+      class ::DummySerializer < ActiveJob::Serializers::ObjectSerializer; end
+
+      app_file "config/initializers/custom_serializers.rb", <<-RUBY
+      Rails.application.config.active_job.custom_serializers << DummySerializer
+      RUBY
+
+      app "development"
+
+      assert_includes ActiveJob::Serializers.serializers, DummySerializer
+    end
+
+    test "ActionView::Helpers::FormTagHelper.default_enforce_utf8 is false by default" do
+      app "development"
+      assert_equal false, ActionView::Helpers::FormTagHelper.default_enforce_utf8
+    end
+
+    test "ActionView::Helpers::FormTagHelper.default_enforce_utf8 is true in an upgraded app" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "5.2"'
+
+      app "development"
+
+      assert_equal true, ActionView::Helpers::FormTagHelper.default_enforce_utf8
+    end
+
+    test "ActionView::Helpers::FormTagHelper.default_enforce_utf8 can be configured via config.action_view.default_enforce_utf8" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app_file "config/initializers/new_framework_defaults_6_0.rb", <<-RUBY
+        Rails.application.config.action_view.default_enforce_utf8 = true
+      RUBY
+
+      app "development"
+
+      assert_equal true, ActionView::Helpers::FormTagHelper.default_enforce_utf8
+    end
+
+    test "ActionView::Template.finalize_compiled_template_methods is true by default" do
+      app "test"
+      assert_equal true, ActionView::Template.finalize_compiled_template_methods
+    end
+
+    test "ActionView::Template.finalize_compiled_template_methods can be configured via config.action_view.finalize_compiled_template_methods" do
+      app_file "config/environments/test.rb", <<-RUBY
+      Rails.application.configure do
+        config.action_view.finalize_compiled_template_methods = false
+      end
+      RUBY
+
+      app "test"
+
+      assert_equal false, ActionView::Template.finalize_compiled_template_methods
+    end
+
+    test "ActiveRecord::Base.filter_attributes should equal to filter_parameters" do
+      app_file "config/initializers/filter_parameters_logging.rb", <<-RUBY
+        Rails.application.config.filter_parameters += [ :password, :credit_card_number ]
+      RUBY
+      app "development"
+      assert_equal [ :password, :credit_card_number ], Rails.application.config.filter_parameters
+      assert_equal [ "password", "credit_card_number" ].to_set, ActiveRecord::Base.filter_attributes
+    end
+
+    test "ActiveStorage.routes_prefix can be configured via config.active_storage.routes_prefix" do
+      app_file "config/environments/development.rb", <<-RUBY
+        Rails.application.configure do
+          config.active_storage.routes_prefix = '/files'
+        end
+      RUBY
+
+      output = rails("routes", "-g", "active_storage")
+      assert_equal <<~MESSAGE, output
+                           Prefix Verb URI Pattern                                                               Controller#Action
+               rails_service_blob GET  /files/blobs/:signed_id/*filename(.:format)                               active_storage/blobs#show
+        rails_blob_representation GET  /files/representations/:signed_blob_id/:variation_key/*filename(.:format) active_storage/representations#show
+               rails_disk_service GET  /files/disk/:encoded_key/*filename(.:format)                              active_storage/disk#show
+        update_rails_disk_service PUT  /files/disk/:encoded_token(.:format)                                      active_storage/disk#update
+             rails_direct_uploads POST /files/direct_uploads(.:format)                                           active_storage/direct_uploads#create
+      MESSAGE
     end
 
     private

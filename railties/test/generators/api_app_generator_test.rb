@@ -13,7 +13,7 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
     Rails.application = TestApp::Application
     super
 
-    Kernel::silence_warnings do
+    Kernel.silence_warnings do
       Thor::Base.shell.send(:attr_accessor, :always_force)
       @shell = Thor::Base.shell.new
       @shell.send(:always_force=, true)
@@ -40,7 +40,6 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
     end
 
     assert_file "Gemfile" do |content|
-      assert_no_match(/gem 'coffee-rails'/, content)
       assert_no_match(/gem 'sass-rails'/, content)
       assert_no_match(/gem 'web-console'/, content)
       assert_no_match(/gem 'capybara'/, content)
@@ -61,6 +60,23 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
     assert_file "Gemfile" do |content|
       assert_no_match(/redis/, content)
     end
+  end
+
+  def test_generator_if_skip_action_mailer_is_given
+    run_generator [destination_root, "--api", "--skip-action-mailer"]
+    assert_file "config/application.rb", /#\s+require\s+["']action_mailer\/railtie["']/
+    assert_file "config/environments/development.rb" do |content|
+      assert_no_match(/config\.action_mailer/, content)
+    end
+    assert_file "config/environments/test.rb" do |content|
+      assert_no_match(/config\.action_mailer/, content)
+    end
+    assert_file "config/environments/production.rb" do |content|
+      assert_no_match(/config\.action_mailer/, content)
+    end
+    assert_no_directory "app/mailers"
+    assert_no_directory "test/mailers"
+    assert_no_directory "app/views"
   end
 
   def test_app_update_does_not_generate_unnecessary_config_files
@@ -101,7 +117,6 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
         app/views/layouts
         app/views/layouts/mailer.html.erb
         app/views/layouts/mailer.text.erb
-        bin/bundle
         bin/rails
         bin/rake
         bin/setup

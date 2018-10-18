@@ -20,6 +20,10 @@ module ActiveModel
         :boolean
       end
 
+      def serialize(value) # :nodoc:
+        cast(value)
+      end
+
       private
 
         def cast_value(value)

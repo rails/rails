@@ -34,7 +34,7 @@ module ActionDispatch
     end
 
     def encode_params(params)
-      @param_encoder.call(params)
+      @param_encoder.call(params) if params
     end
 
     def self.parser(content_type)

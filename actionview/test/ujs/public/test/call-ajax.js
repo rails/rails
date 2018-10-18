@@ -8,7 +8,6 @@ module('call-ajax', {
 })
 
 asyncTest('call ajax without "ajax:beforeSend"', 1, function() {
-
   var link = $('#qunit-fixture a')
   link.bindNative('click', function() {
     Rails.ajax({
@@ -21,7 +20,7 @@ asyncTest('call ajax without "ajax:beforeSend"', 1, function() {
   })
 
   link.triggerNative('click')
-  setTimeout(function() { start() }, 13)
+  setTimeout(function() { start() }, 50)
 })
 
 })()

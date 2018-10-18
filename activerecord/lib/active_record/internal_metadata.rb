@@ -17,7 +17,7 @@ module ActiveRecord
       end
 
       def []=(key, value)
-        find_or_initialize_by(key: key).update_attributes!(value: value)
+        find_or_initialize_by(key: key).update!(value: value)
       end
 
       def [](key)

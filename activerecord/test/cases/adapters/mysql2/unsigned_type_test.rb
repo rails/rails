@@ -54,7 +54,7 @@ class Mysql2UnsignedTypeTest < ActiveRecord::Mysql2TestCase
     end
 
     @connection.columns("unsigned_types").select { |c| /^unsigned_/.match?(c.name) }.each do |column|
-      assert column.unsigned?
+      assert_predicate column, :unsigned?
     end
   end
 

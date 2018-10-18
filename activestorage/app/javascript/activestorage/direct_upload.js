@@ -14,8 +14,14 @@ export class DirectUpload {
 
   create(callback) {
     FileChecksum.create(this.file, (error, checksum) => {
+      if (error) {
+        callback(error)
+        return
+      }
+
       const blob = new BlobRecord(this.file, checksum, this.url)
       notify(this.delegate, "directUploadWillCreateBlobWithXHR", blob.xhr)
+
       blob.create(error => {
         if (error) {
           callback(error)

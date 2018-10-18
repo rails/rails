@@ -225,6 +225,16 @@ class TimeZoneTest < ActiveSupport::TestCase
     assert_equal secs, twz.to_f
   end
 
+  def test_at_with_microseconds
+    zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
+    secs = 946684800.0
+    microsecs = 123456.789
+    twz = zone.at(secs, microsecs)
+    assert_equal zone, twz.time_zone
+    assert_equal secs, twz.to_i
+    assert_equal 123456789, twz.nsec
+  end
+
   def test_iso8601
     zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
     twz = zone.iso8601("1999-12-31T19:00:00")
@@ -725,6 +735,21 @@ class TimeZoneTest < ActiveSupport::TestCase
     assert_not_includes all_zones, galapagos
   end
 
+  def test_all_doesnt_raise_exception_with_missing_tzinfo_data
+    mappings = {
+      "Puerto Rico" => "America/Unknown",
+      "Pittsburgh"  => "America/New_York"
+    }
+
+    with_tz_mappings(mappings) do
+      assert_nil ActiveSupport::TimeZone["Puerto Rico"]
+      assert_nil ActiveSupport::TimeZone[-9]
+      assert_nothing_raised do
+        ActiveSupport::TimeZone.all
+      end
+    end
+  end
+
   def test_index
     assert_nil ActiveSupport::TimeZone["bogus"]
     assert_instance_of ActiveSupport::TimeZone, ActiveSupport::TimeZone["Central Time (US & Canada)"]
@@ -754,6 +779,16 @@ class TimeZoneTest < ActiveSupport::TestCase
   def test_country_zones
     assert_includes ActiveSupport::TimeZone.country_zones("ru"), ActiveSupport::TimeZone["Moscow"]
     assert_not_includes ActiveSupport::TimeZone.country_zones(:ru), ActiveSupport::TimeZone["Kuala Lumpur"]
+  end
+
+  def test_country_zones_with_and_without_mappings
+    assert_includes ActiveSupport::TimeZone.country_zones("au"), ActiveSupport::TimeZone["Adelaide"]
+    assert_includes ActiveSupport::TimeZone.country_zones("au"), ActiveSupport::TimeZone["Australia/Lord_Howe"]
+  end
+
+  def test_country_zones_with_multiple_mappings
+    assert_includes ActiveSupport::TimeZone.country_zones("gb"), ActiveSupport::TimeZone["Edinburgh"]
+    assert_includes ActiveSupport::TimeZone.country_zones("gb"), ActiveSupport::TimeZone["London"]
   end
 
   def test_country_zones_without_mappings

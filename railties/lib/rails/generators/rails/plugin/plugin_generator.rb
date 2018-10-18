@@ -98,6 +98,7 @@ task default: :test
       opts[:skip_listen] = true
       opts[:skip_git] = true
       opts[:skip_turbolinks] = true
+      opts[:skip_webpack_install] = true
       opts[:dummy_app] = true
 
       invoke Rails::Generators::AppGenerator,
@@ -113,7 +114,7 @@ task default: :test
     end
 
     def test_dummy_assets
-      template "rails/javascripts.js",    "#{dummy_path}/app/assets/javascripts/application.js", force: true
+      template "rails/javascripts.js",    "#{dummy_path}/app/javascript/packs/application.js", force: true
       template "rails/stylesheets.css",   "#{dummy_path}/app/assets/stylesheets/application.css", force: true
       template "rails/dummy_manifest.js", "#{dummy_path}/app/assets/config/manifest.js", force: true
     end
@@ -385,11 +386,11 @@ task default: :test
       end
 
       def valid_const?
-        if original_name =~ /-\d/
+        if /-\d/.match?(original_name)
           raise Error, "Invalid plugin name #{original_name}. Please give a name which does not contain a namespace starting with numeric characters."
-        elsif original_name =~ /[^\w-]+/
+        elsif /[^\w-]+/.match?(original_name)
           raise Error, "Invalid plugin name #{original_name}. Please give a name which uses only alphabetic, numeric, \"_\" or \"-\" characters."
-        elsif camelized =~ /^\d/
+        elsif /^\d/.match?(camelized)
           raise Error, "Invalid plugin name #{original_name}. Please give a name which does not start with numbers."
         elsif RESERVED_NAMES.include?(name)
           raise Error, "Invalid plugin name #{original_name}. Please give a " \

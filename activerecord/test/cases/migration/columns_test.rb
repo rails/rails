@@ -67,7 +67,7 @@ module ActiveRecord
       if current_adapter?(:Mysql2Adapter)
         def test_mysql_rename_column_preserves_auto_increment
           rename_column "test_models", "id", "id_test"
-          assert connection.columns("test_models").find { |c| c.name == "id_test" }.auto_increment?
+          assert_predicate connection.columns("test_models").find { |c| c.name == "id_test" }, :auto_increment?
           TestModel.reset_column_information
         ensure
           rename_column "test_models", "id_test", "id"
@@ -223,31 +223,31 @@ module ActiveRecord
 
       def test_change_column_with_nil_default
         add_column "test_models", "contributor", :boolean, default: true
-        assert TestModel.new.contributor?
+        assert_predicate TestModel.new, :contributor?
 
         change_column "test_models", "contributor", :boolean, default: nil
         TestModel.reset_column_information
-        assert_not TestModel.new.contributor?
+        assert_not_predicate TestModel.new, :contributor?
         assert_nil TestModel.new.contributor
       end
 
       def test_change_column_to_drop_default_with_null_false
         add_column "test_models", "contributor", :boolean, default: true, null: false
-        assert TestModel.new.contributor?
+        assert_predicate TestModel.new, :contributor?
 
         change_column "test_models", "contributor", :boolean, default: nil, null: false
         TestModel.reset_column_information
-        assert_not TestModel.new.contributor?
+        assert_not_predicate TestModel.new, :contributor?
         assert_nil TestModel.new.contributor
       end
 
       def test_change_column_with_new_default
         add_column "test_models", "administrator", :boolean, default: true
-        assert TestModel.new.administrator?
+        assert_predicate TestModel.new, :administrator?
 
         change_column "test_models", "administrator", :boolean, default: false
         TestModel.reset_column_information
-        assert_not TestModel.new.administrator?
+        assert_not_predicate TestModel.new, :administrator?
       end
 
       def test_change_column_with_custom_index_name

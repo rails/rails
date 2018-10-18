@@ -25,11 +25,11 @@ class AttributesDirtyTest < ActiveModel::TestCase
   end
 
   test "setting attribute will result in change" do
-    assert !@model.changed?
-    assert !@model.name_changed?
+    assert_not_predicate @model, :changed?
+    assert_not_predicate @model, :name_changed?
     @model.name = "Ringo"
-    assert @model.changed?
-    assert @model.name_changed?
+    assert_predicate @model, :changed?
+    assert_predicate @model, :name_changed?
   end
 
   test "list of changed attribute keys" do
@@ -39,7 +39,7 @@ class AttributesDirtyTest < ActiveModel::TestCase
   end
 
   test "changes to attribute values" do
-    assert !@model.changes["name"]
+    assert_not @model.changes["name"]
     @model.name = "John"
     assert_equal [nil, "John"], @model.changes["name"]
   end
@@ -71,35 +71,35 @@ class AttributesDirtyTest < ActiveModel::TestCase
   test "attribute mutation" do
     @model.name = "Yam"
     @model.save
-    assert !@model.name_changed?
+    assert_not_predicate @model, :name_changed?
     @model.name.replace("Hadad")
-    assert @model.name_changed?
+    assert_predicate @model, :name_changed?
   end
 
   test "resetting attribute" do
     @model.name = "Bob"
     @model.restore_name!
     assert_nil @model.name
-    assert !@model.name_changed?
+    assert_not_predicate @model, :name_changed?
   end
 
   test "setting color to same value should not result in change being recorded" do
     @model.color = "red"
-    assert @model.color_changed?
+    assert_predicate @model, :color_changed?
     @model.save
-    assert !@model.color_changed?
-    assert !@model.changed?
+    assert_not_predicate @model, :color_changed?
+    assert_not_predicate @model, :changed?
     @model.color = "red"
-    assert !@model.color_changed?
-    assert !@model.changed?
+    assert_not_predicate @model, :color_changed?
+    assert_not_predicate @model, :changed?
   end
 
   test "saving should reset model's changed status" do
     @model.name = "Alf"
-    assert @model.changed?
+    assert_predicate @model, :changed?
     @model.save
-    assert !@model.changed?
-    assert !@model.name_changed?
+    assert_not_predicate @model, :changed?
+    assert_not_predicate @model, :name_changed?
   end
 
   test "saving should preserve previous changes" do
@@ -118,7 +118,7 @@ class AttributesDirtyTest < ActiveModel::TestCase
   test "saving should preserve model's previous changed status" do
     @model.name = "Jericho Cane"
     @model.save
-    assert @model.name_previously_changed?
+    assert_predicate @model, :name_previously_changed?
   end
 
   test "previous value is preserved when changed after save" do
@@ -143,7 +143,7 @@ class AttributesDirtyTest < ActiveModel::TestCase
 
   test "using attribute_will_change! with a symbol" do
     @model.size = 1
-    assert @model.size_changed?
+    assert_predicate @model, :size_changed?
   end
 
   test "reload should reset all changes" do
@@ -170,7 +170,7 @@ class AttributesDirtyTest < ActiveModel::TestCase
 
     @model.restore_attributes
 
-    assert_not @model.changed?
+    assert_not_predicate @model, :changed?
     assert_equal "Dmitry", @model.name
     assert_equal "Red", @model.color
   end
@@ -184,7 +184,7 @@ class AttributesDirtyTest < ActiveModel::TestCase
 
     @model.restore_attributes(["name"])
 
-    assert @model.changed?
+    assert_predicate @model, :changed?
     assert_equal "Dmitry", @model.name
     assert_equal "White", @model.color
   end

@@ -19,6 +19,7 @@ module ActionDispatch
         def after_teardown
           take_failed_screenshot
           Capybara.reset_sessions!
+        ensure
           super
         end
       end

@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
 Working with JavaScript in Rails
 ================================
@@ -382,16 +382,18 @@ have been bundled into `event.detail`. For information about the previously used
 `jquery-ujs` in Rails 5 and earlier, read the [`jquery-ujs` wiki](https://github.com/rails/jquery-ujs/wiki/ajax).
 
 ### Stoppable events
-
-If you stop `ajax:before` or `ajax:beforeSend` by returning false from the
-handler method, the Ajax request will never take place. The `ajax:before` event
-can manipulate form data before serialization and the
+You can stop execution of the Ajax request by running `event.preventDefault()`
+from the handlers methods `ajax:before` or `ajax:beforeSend`.
+The `ajax:before` event can manipulate form data before serialization and the
 `ajax:beforeSend` event is useful for adding custom request headers.
 
 If you stop the `ajax:aborted:file` event, the default behavior of allowing the
 browser to submit the form via normal means (i.e. non-Ajax submission) will be
 canceled and the form will not be submitted at all. This is useful for
 implementing your own Ajax file upload workaround.
+
+Note, you should use `return false` to prevent event for `jquery-ujs` and
+`e.preventDefault()` for `rails-ujs`
 
 Server-Side Concerns
 --------------------
@@ -491,10 +493,6 @@ Turbolinks will make an Ajax request for the page, parse the response, and
 replace the entire `<body>` of the page with the `<body>` of the response. It
 will then use PushState to change the URL to the correct one, preserving
 refresh semantics and giving you pretty URLs.
-
-The only thing you have to do to enable Turbolinks is have it in your `Gemfile`,
-and put `//= require turbolinks` in your JavaScript manifest, which is usually
-`app/assets/javascripts/application.js`.
 
 If you want to disable Turbolinks for certain links, add a `data-turbolinks="false"`
 attribute to the tag:

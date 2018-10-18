@@ -126,5 +126,12 @@ module ActiveRecord
       expected = Author.find(1).posts + Post.where(title: "I don't have any comments")
       assert_equal expected.sort_by(&:id), actual.sort_by(&:id)
     end
+
+    def test_or_with_scope_on_association
+      author = Author.first
+      assert_nothing_raised do
+        author.top_posts.or(author.other_top_posts)
+      end
+    end
   end
 end

@@ -33,7 +33,7 @@ module ActionDispatch
         def headless_chrome_browser_options
           options = Selenium::WebDriver::Chrome::Options.new
           options.args << "--headless"
-          options.args << "--disable-gpu"
+          options.args << "--disable-gpu" if Gem.win_platform?
 
           options
         end

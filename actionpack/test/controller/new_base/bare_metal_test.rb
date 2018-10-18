@@ -13,7 +13,7 @@ module BareMetalTest
     test "response body is a Rack-compatible response" do
       status, headers, body = BareController.action(:index).call(Rack::MockRequest.env_for("/"))
       assert_equal 200, status
-      string = "".dup
+      string = +""
 
       body.each do |part|
         assert part.is_a?(String), "Each part of the body must be a String"

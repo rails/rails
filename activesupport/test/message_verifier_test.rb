@@ -25,12 +25,12 @@ class MessageVerifierTest < ActiveSupport::TestCase
 
   def test_valid_message
     data, hash = @verifier.generate(@data).split("--")
-    assert !@verifier.valid_message?(nil)
-    assert !@verifier.valid_message?("")
-    assert !@verifier.valid_message?("\xff") # invalid encoding
-    assert !@verifier.valid_message?("#{data.reverse}--#{hash}")
-    assert !@verifier.valid_message?("#{data}--#{hash.reverse}")
-    assert !@verifier.valid_message?("purejunk")
+    assert_not @verifier.valid_message?(nil)
+    assert_not @verifier.valid_message?("")
+    assert_not @verifier.valid_message?("\xff") # invalid encoding
+    assert_not @verifier.valid_message?("#{data.reverse}--#{hash}")
+    assert_not @verifier.valid_message?("#{data}--#{hash.reverse}")
+    assert_not @verifier.valid_message?("purejunk")
   end
 
   def test_simple_round_tripping
@@ -40,7 +40,7 @@ class MessageVerifierTest < ActiveSupport::TestCase
   end
 
   def test_verified_returns_false_on_invalid_message
-    assert !@verifier.verified("purejunk")
+    assert_not @verifier.verified("purejunk")
   end
 
   def test_verify_exception_on_invalid_message

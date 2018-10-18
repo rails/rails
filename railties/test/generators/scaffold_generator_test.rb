@@ -93,7 +93,6 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
     # Assets
     assert_file "app/assets/stylesheets/scaffold.css"
-    assert_file "app/assets/javascripts/product_lines.js"
     assert_file "app/assets/stylesheets/product_lines.css"
   end
 
@@ -166,7 +165,6 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
     # Assets
     assert_no_file "app/assets/stylesheets/scaffold.css"
-    assert_no_file "app/assets/javascripts/product_lines.js"
     assert_no_file "app/assets/stylesheets/product_lines.css"
   end
 
@@ -222,7 +220,6 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
     # Assets
     assert_file "app/assets/stylesheets/scaffold.css", /:visited/
-    assert_no_file "app/assets/javascripts/product_lines.js"
     assert_no_file "app/assets/stylesheets/product_lines.css"
   end
 
@@ -299,7 +296,6 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
     # Assets
     assert_file "app/assets/stylesheets/scaffold.css", /:visited/
-    assert_file "app/assets/javascripts/admin/roles.js"
     assert_file "app/assets/stylesheets/admin/roles.css"
   end
 
@@ -335,7 +331,6 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
     # Assets
     assert_file "app/assets/stylesheets/scaffold.css"
-    assert_no_file "app/assets/javascripts/admin/roles.js"
     assert_no_file "app/assets/stylesheets/admin/roles.css"
   end
 
@@ -347,7 +342,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     content = File.read(route_path).gsub(/\.routes\.draw do/) do |match|
       "#{match} |map|"
     end
-    File.open(route_path, "wb") { |file| file.write(content) }
+    File.write(route_path, content)
 
     run_generator ["product_line"], behavior: :revoke
 
@@ -364,7 +359,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     content.gsub!(/^  \#.*\n/, "")
     content.gsub!(/^\n/, "")
 
-    File.open(route_path, "wb") { |file| file.write(content) }
+    File.write(route_path, content)
     assert_file "config/routes.rb", /\.routes\.draw do\n  resources :product_lines\nend\n\z/
 
     run_generator ["product_line"], behavior: :revoke
@@ -380,28 +375,24 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
   def test_scaffold_generator_no_assets_with_switch_no_assets
     run_generator [ "posts", "--no-assets" ]
     assert_no_file "app/assets/stylesheets/scaffold.css"
-    assert_no_file "app/assets/javascripts/posts.js"
     assert_no_file "app/assets/stylesheets/posts.css"
   end
 
   def test_scaffold_generator_no_assets_with_switch_assets_false
     run_generator [ "posts", "--assets=false" ]
     assert_no_file "app/assets/stylesheets/scaffold.css"
-    assert_no_file "app/assets/javascripts/posts.js"
     assert_no_file "app/assets/stylesheets/posts.css"
   end
 
   def test_scaffold_generator_no_scaffold_stylesheet_with_switch_no_scaffold_stylesheet
     run_generator [ "posts", "--no-scaffold-stylesheet" ]
     assert_no_file "app/assets/stylesheets/scaffold.css"
-    assert_file "app/assets/javascripts/posts.js"
     assert_file "app/assets/stylesheets/posts.css"
   end
 
   def test_scaffold_generator_no_scaffold_stylesheet_with_switch_scaffold_stylesheet_false
     run_generator [ "posts", "--scaffold-stylesheet=false" ]
     assert_no_file "app/assets/stylesheets/scaffold.css"
-    assert_file "app/assets/javascripts/posts.js"
     assert_file "app/assets/stylesheets/posts.css"
   end
 
@@ -429,15 +420,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
   def test_scaffold_generator_no_stylesheets
     run_generator [ "posts", "--no-stylesheets" ]
     assert_no_file "app/assets/stylesheets/scaffold.css"
-    assert_file "app/assets/javascripts/posts.js"
     assert_no_file "app/assets/stylesheets/posts.css"
-  end
-
-  def test_scaffold_generator_no_javascripts
-    run_generator [ "posts", "--no-javascripts" ]
-    assert_file "app/assets/stylesheets/scaffold.css"
-    assert_no_file "app/assets/javascripts/posts.js"
-    assert_file "app/assets/stylesheets/posts.css"
   end
 
   def test_scaffold_generator_outputs_error_message_on_missing_attribute_type
@@ -452,8 +435,8 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_scaffold_generator_belongs_to
-    run_generator ["account", "name", "currency:belongs_to"]
+  def test_scaffold_generator_belongs_to_and_references
+    run_generator ["account", "name", "currency:belongs_to", "user:references"]
 
     assert_file "app/models/account.rb", /belongs_to :currency/
 
@@ -466,13 +449,31 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
     assert_file "app/controllers/accounts_controller.rb" do |content|
       assert_instance_method :account_params, content do |m|
-        assert_match(/permit\(:name, :currency_id\)/, m)
+        assert_match(/permit\(:name, :currency_id, :user_id\)/, m)
       end
     end
 
     assert_file "app/views/accounts/_form.html.erb" do |content|
       assert_match(/^\W{4}<%= form\.text_field :name %>/, content)
       assert_match(/^\W{4}<%= form\.text_field :currency_id %>/, content)
+    end
+
+    assert_file "app/views/accounts/index.html.erb" do |content|
+      assert_match(/^\W{8}<td><%= account\.name %><\/td>/, content)
+      assert_match(/^\W{8}<td><%= account\.user_id %><\/td>/, content)
+    end
+
+    assert_file "app/views/accounts/show.html.erb" do |content|
+      assert_match(/^\W{2}<%= @account\.name %>/, content)
+      assert_match(/^\W{2}<%= @account\.user_id %>/, content)
+    end
+  end
+
+  def test_scaffold_generator_database
+    with_secondary_database_configuration do
+      run_generator ["posts", "--database=secondary"]
+
+      assert_migration "db/secondary_migrate/create_posts.rb"
     end
   end
 
@@ -514,7 +515,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
     assert_file "test/system/users_test.rb" do |content|
       assert_match(/fill_in "Password", with: 'secret'/, content)
-      assert_match(/fill_in "Password Confirmation", with: 'secret'/, content)
+      assert_match(/fill_in "Password confirmation", with: 'secret'/, content)
     end
 
     assert_file "test/fixtures/users.yml" do |content|
@@ -622,7 +623,6 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
       assert File.exist?("app/helpers/bukkits/users_helper.rb")
 
-      assert File.exist?("app/assets/javascripts/bukkits/users.js")
       assert File.exist?("app/assets/stylesheets/bukkits/users.css")
     end
   end
@@ -652,7 +652,6 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
       assert_not File.exist?("app/helpers/bukkits/users_helper.rb")
 
-      assert_not File.exist?("app/assets/javascripts/bukkits/users.js")
       assert_not File.exist?("app/assets/stylesheets/bukkits/users.css")
     end
   end

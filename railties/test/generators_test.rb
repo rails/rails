@@ -33,7 +33,7 @@ class GeneratorsTest < Rails::Generators::TestCase
   def test_generator_suggestions
     name = :migrationz
     output = capture(:stdout) { Rails::Generators.invoke name }
-    assert_match "Maybe you meant 'migration'", output
+    assert_match 'Maybe you meant "migration"?', output
   end
 
   def test_generator_suggestions_except_en_locale
@@ -43,16 +43,10 @@ class GeneratorsTest < Rails::Generators::TestCase
     I18n.default_locale = :ja
     name = :tas
     output = capture(:stdout) { Rails::Generators.invoke name }
-    assert_match "Maybe you meant 'task', 'job' or", output
+    assert_match 'Maybe you meant "task"?', output
   ensure
     I18n.available_locales = orig_available_locales
     I18n.default_locale = orig_default_locale
-  end
-
-  def test_generator_multiple_suggestions
-    name = :tas
-    output = capture(:stdout) { Rails::Generators.invoke name }
-    assert_match "Maybe you meant 'task', 'job' or", output
   end
 
   def test_help_when_a_generator_with_required_arguments_is_invoked_without_arguments
@@ -64,7 +58,7 @@ class GeneratorsTest < Rails::Generators::TestCase
     assert File.exist?(File.join(@path, "generators", "model_generator.rb"))
     assert_called_with(Rails::Generators::ModelGenerator, :start, [["Account"], {}]) do
       warnings = capture(:stderr) { Rails::Generators.invoke :model, ["Account"] }
-      assert warnings.empty?
+      assert_empty warnings
     end
   end
 

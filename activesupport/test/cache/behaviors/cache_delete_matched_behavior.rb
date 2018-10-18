@@ -7,9 +7,9 @@ module CacheDeleteMatchedBehavior
     @cache.write("foo/bar", "baz")
     @cache.write("fu/baz", "bar")
     @cache.delete_matched(/oo/)
-    assert !@cache.exist?("foo")
+    assert_not @cache.exist?("foo")
     assert @cache.exist?("fu")
-    assert !@cache.exist?("foo/bar")
+    assert_not @cache.exist?("foo/bar")
     assert @cache.exist?("fu/baz")
   end
 end

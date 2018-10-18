@@ -65,6 +65,11 @@ module ActionDispatch
         @tempfile.path
       end
 
+      # Shortcut for +tempfile.to_path+.
+      def to_path
+        @tempfile.to_path
+      end
+
       # Shortcut for +tempfile.rewind+.
       def rewind
         @tempfile.rewind

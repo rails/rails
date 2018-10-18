@@ -17,19 +17,19 @@ class ObjectTests < ActiveSupport::TestCase
     dt     = DateTime.new
     duck   = DuckTime.new
 
-    assert !object.acts_like?(:time)
-    assert !object.acts_like?(:date)
+    assert_not object.acts_like?(:time)
+    assert_not object.acts_like?(:date)
 
     assert time.acts_like?(:time)
-    assert !time.acts_like?(:date)
+    assert_not time.acts_like?(:date)
 
-    assert !date.acts_like?(:time)
+    assert_not date.acts_like?(:time)
     assert date.acts_like?(:date)
 
     assert dt.acts_like?(:time)
     assert dt.acts_like?(:date)
 
     assert duck.acts_like?(:time)
-    assert !duck.acts_like?(:date)
+    assert_not duck.acts_like?(:date)
   end
 end

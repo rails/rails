@@ -51,11 +51,12 @@ module ActionDispatch
       def ast
         @ast ||= begin
           asts = anchored_routes.map(&:ast)
-          Nodes::Or.new(asts) unless asts.empty?
+          Nodes::Or.new(asts)
         end
       end
 
       def simulator
+        return if ast.nil?
         @simulator ||= begin
           gtg = GTG::Builder.new(ast).transition_table
           GTG::Simulator.new(gtg)

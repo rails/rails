@@ -20,7 +20,7 @@ module ActiveRecord
             raise "Passing bind parameters with an arel AST is forbidden. " \
               "The values must be stored on the AST directly"
           end
-          sql, binds = visitor.accept(arel_or_sql_string.ast, collector).value
+          sql, binds = visitor.compile(arel_or_sql_string.ast, collector)
           [sql.freeze, binds || []]
         else
           [arel_or_sql_string.dup.freeze, binds]
@@ -32,11 +32,11 @@ module ActiveRecord
       # can be used to query the database repeatedly.
       def cacheable_query(klass, arel) # :nodoc:
         if prepared_statements
-          sql, binds = visitor.accept(arel.ast, collector).value
+          sql, binds = visitor.compile(arel.ast, collector)
           query = klass.query(sql)
         else
-          collector = PartialQueryCollector.new
-          parts, binds = visitor.accept(arel.ast, collector).value
+          collector = klass.partial_query_collector
+          parts, binds = visitor.compile(arel.ast, collector)
           query = klass.partial_query(parts)
         end
         [query, binds]
@@ -46,11 +46,16 @@ module ActiveRecord
       def select_all(arel, name = nil, binds = [], preparable: nil)
         arel = arel_from_relation(arel)
         sql, binds = to_sql_and_binds(arel, binds)
+
         if !prepared_statements || (arel.is_a?(String) && preparable.nil?)
+          preparable = false
+        elsif binds.length > bind_params_length
+          sql, binds = unprepared_statement { to_sql_and_binds(arel) }
           preparable = false
         else
           preparable = visitor.preparable
         end
+
         if prepared_statements && preparable
           select_prepared(sql, name, binds)
         else
@@ -259,7 +264,9 @@ module ActiveRecord
 
       attr_reader :transaction_manager #:nodoc:
 
-      delegate :within_new_transaction, :open_transactions, :current_transaction, :begin_transaction, :commit_transaction, :rollback_transaction, to: :transaction_manager
+      delegate :within_new_transaction, :open_transactions, :current_transaction, :begin_transaction,
+               :commit_transaction, :rollback_transaction, :materialize_transactions,
+               :disable_lazy_transactions!, :enable_lazy_transactions!, to: :transaction_manager
 
       def transaction_open?
         current_transaction.open?
@@ -356,38 +363,36 @@ module ActiveRecord
       # Inserts a set of fixtures into the table. Overridden in adapters that require
       # something beyond a simple insert (eg. Oracle).
       def insert_fixtures(fixtures, table_name)
+        ActiveSupport::Deprecation.warn(<<-MSG.squish)
+          `insert_fixtures` is deprecated and will be removed in the next version of Rails.
+          Consider using `insert_fixtures_set` for performance improvement.
+        MSG
         return if fixtures.empty?
 
-        columns = schema_cache.columns_hash(table_name)
+        execute(build_fixture_sql(fixtures, table_name), "Fixtures Insert")
+      end
 
-        values = fixtures.map do |fixture|
-          fixture = fixture.stringify_keys
+      def insert_fixtures_set(fixture_set, tables_to_delete = [])
+        fixture_inserts = fixture_set.map do |table_name, fixtures|
+          next if fixtures.empty?
 
-          unknown_columns = fixture.keys - columns.keys
-          if unknown_columns.any?
-            raise Fixture::FixtureError, %(table "#{table_name}" has no columns named #{unknown_columns.map(&:inspect).join(', ')}.)
-          end
+          build_fixture_sql(fixtures, table_name)
+        end.compact
 
-          columns.map do |name, column|
-            if fixture.key?(name)
-              type = lookup_cast_type_from_column(column)
-              bind = Relation::QueryAttribute.new(name, fixture[name], type)
-              with_yaml_fallback(bind.value_for_database)
-            else
-              Arel.sql("DEFAULT")
+        table_deletes = tables_to_delete.map { |table| +"DELETE FROM #{quote_table_name table}" }
+        total_sql = Array.wrap(combine_multi_statements(table_deletes + fixture_inserts))
+
+        disable_referential_integrity do
+          transaction(requires_new: true) do
+            total_sql.each do |sql|
+              execute sql, "Fixtures Load"
+              yield if block_given?
             end
           end
         end
-
-        table = Arel::Table.new(table_name)
-        manager = Arel::InsertManager.new
-        manager.into(table)
-        columns.each_key { |column| manager.columns << table[column] }
-        manager.values = manager.create_values_list(values)
-        execute manager.to_sql, "Fixtures Insert"
       end
 
-      def empty_insert_statement_value
+      def empty_insert_statement_value(primary_key = nil)
         "DEFAULT VALUES"
       end
 
@@ -405,23 +410,44 @@ module ActiveRecord
         end
       end
 
-      # The default strategy for an UPDATE with joins is to use a subquery. This doesn't work
-      # on MySQL (even when aliasing the tables), but MySQL allows using JOIN directly in
-      # an UPDATE statement, so in the MySQL adapters we redefine this to do that.
-      def join_to_update(update, select, key) # :nodoc:
-        subselect = subquery_for(key, select)
-
-        update.where key.in(subselect)
-      end
-      alias join_to_delete join_to_update
-
       private
+        def default_insert_value(column)
+          Arel.sql("DEFAULT")
+        end
 
-        # Returns a subquery for the given key using the join information.
-        def subquery_for(key, select)
-          subselect = select.clone
-          subselect.projections = [key]
-          subselect
+        def build_fixture_sql(fixtures, table_name)
+          columns = schema_cache.columns_hash(table_name)
+
+          values = fixtures.map do |fixture|
+            fixture = fixture.stringify_keys
+
+            unknown_columns = fixture.keys - columns.keys
+            if unknown_columns.any?
+              raise Fixture::FixtureError, %(table "#{table_name}" has no columns named #{unknown_columns.map(&:inspect).join(', ')}.)
+            end
+
+            columns.map do |name, column|
+              if fixture.key?(name)
+                type = lookup_cast_type_from_column(column)
+                bind = Relation::QueryAttribute.new(name, fixture[name], type)
+                with_yaml_fallback(bind.value_for_database)
+              else
+                default_insert_value(column)
+              end
+            end
+          end
+
+          table = Arel::Table.new(table_name)
+          manager = Arel::InsertManager.new
+          manager.into(table)
+          columns.each_key { |column| manager.columns << table[column] }
+          manager.values = manager.create_values_list(values)
+
+          manager.to_sql
+        end
+
+        def combine_multi_statements(total_sql)
+          total_sql.join(";\n")
         end
 
         # Returns an ActiveRecord::Result instance.
@@ -462,28 +488,6 @@ module ActiveRecord
             YAML.dump(value)
           else
             value
-          end
-        end
-
-        class PartialQueryCollector
-          def initialize
-            @parts = []
-            @binds = []
-          end
-
-          def <<(str)
-            @parts << str
-            self
-          end
-
-          def add_bind(obj)
-            @binds << obj
-            @parts << Arel::Nodes::BindParam.new(1)
-            self
-          end
-
-          def value
-            [@parts, @binds]
           end
         end
     end

@@ -85,6 +85,9 @@ module ActiveSupport
     #   number given by <tt>:format</tt>).  Accepts the same fields
     #   than <tt>:format</tt>, except <tt>%n</tt> is here the
     #   absolute value of the number.
+    # * <tt>:strip_insignificant_zeros</tt> - If +true+ removes
+    #   insignificant zeros after the decimal separator (defaults to
+    #   +false+).
     #
     # ==== Examples
     #
@@ -100,6 +103,8 @@ module ActiveSupport
     #   # => "&pound;1234567890,50"
     #   number_to_currency(1234567890.50, unit: '&pound;', separator: ',', delimiter: '', format: '%n %u')
     #   # => "1234567890,50 &pound;"
+    #   number_to_currency(1234567890.50, strip_insignificant_zeros: true)
+    #   # => "$1,234,567,890.5"
     def number_to_currency(number, options = {})
       NumberToCurrencyConverter.convert(number, options)
     end

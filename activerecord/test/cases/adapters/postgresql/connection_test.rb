@@ -15,8 +15,9 @@ module ActiveRecord
     def setup
       super
       @subscriber = SQLSubscriber.new
-      @subscription = ActiveSupport::Notifications.subscribe("sql.active_record", @subscriber)
       @connection = ActiveRecord::Base.connection
+      @connection.materialize_transactions
+      @subscription = ActiveSupport::Notifications.subscribe("sql.active_record", @subscriber)
     end
 
     def teardown
@@ -151,13 +152,13 @@ module ActiveRecord
     # When prompted, restart the PostgreSQL server with the
     # "-m fast" option or kill the individual connection assuming
     # you know the incantation to do that.
-    # To restart PostgreSQL 9.1 on OS X, installed via MacPorts, ...
+    # To restart PostgreSQL 9.1 on macOS, installed via MacPorts, ...
     # sudo su postgres -c "pg_ctl restart -D /opt/local/var/db/postgresql91/defaultdb/ -m fast"
     def test_reconnection_after_actual_disconnection_with_verify
       original_connection_pid = @connection.query("select pg_backend_pid()")
 
       # Sanity check.
-      assert @connection.active?
+      assert_predicate @connection, :active?
 
       if @connection.send(:postgresql_version) >= 90200
         secondary_connection = ActiveRecord::Base.connection_pool.checkout
@@ -176,7 +177,7 @@ module ActiveRecord
 
       @connection.verify!
 
-      assert @connection.active?
+      assert_predicate @connection, :active?
 
       # If we get no exception here, then either we re-connected successfully, or
       # we never actually got disconnected.

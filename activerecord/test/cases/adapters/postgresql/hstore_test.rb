@@ -40,7 +40,7 @@ class PostgresqlHstoreTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_hstore_included_in_extensions
-    assert @connection.respond_to?(:extensions), "connection should have a list of extensions"
+    assert_respond_to @connection, :extensions
     assert_includes @connection.extensions, "hstore", "extension list should include hstore"
   end
 
@@ -58,9 +58,9 @@ class PostgresqlHstoreTest < ActiveRecord::PostgreSQLTestCase
   def test_column
     assert_equal :hstore, @column.type
     assert_equal "hstore", @column.sql_type
-    assert_not @column.array?
+    assert_not_predicate @column, :array?
 
-    assert_not @type.binary?
+    assert_not_predicate @type, :binary?
   end
 
   def test_default
@@ -165,7 +165,7 @@ class PostgresqlHstoreTest < ActiveRecord::PostgreSQLTestCase
     hstore.reload
 
     assert_equal "four", hstore.settings["three"]
-    assert_not hstore.changed?
+    assert_not_predicate hstore, :changed?
   end
 
   def test_dirty_from_user_equal
@@ -174,7 +174,7 @@ class PostgresqlHstoreTest < ActiveRecord::PostgreSQLTestCase
 
     hstore.settings = { "key" => "value", "alongkey" => "anything" }
     assert_equal settings, hstore.settings
-    refute hstore.changed?
+    assert_not_predicate hstore, :changed?
   end
 
   def test_hstore_dirty_from_database_equal
@@ -184,7 +184,7 @@ class PostgresqlHstoreTest < ActiveRecord::PostgreSQLTestCase
 
     assert_equal settings, hstore.settings
     hstore.settings = settings
-    refute hstore.changed?
+    assert_not_predicate hstore, :changed?
   end
 
   def test_gen1

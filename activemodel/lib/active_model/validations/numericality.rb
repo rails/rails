@@ -19,9 +19,20 @@ module ActiveModel
       end
 
       def validate_each(record, attr_name, value)
-        before_type_cast = :"#{attr_name}_before_type_cast"
+        came_from_user = :"#{attr_name}_came_from_user?"
 
-        raw_value = record.send(before_type_cast) if record.respond_to?(before_type_cast) && record.send(before_type_cast) != value
+        if record.respond_to?(came_from_user)
+          if record.public_send(came_from_user)
+            raw_value = record.read_attribute_before_type_cast(attr_name)
+          elsif record.respond_to?(:read_attribute)
+            raw_value = record.read_attribute(attr_name)
+          end
+        else
+          before_type_cast = :"#{attr_name}_before_type_cast"
+          if record.respond_to?(before_type_cast)
+            raw_value = record.public_send(before_type_cast)
+          end
+        end
         raw_value ||= value
 
         if record_attribute_changed_in_place?(record, attr_name)

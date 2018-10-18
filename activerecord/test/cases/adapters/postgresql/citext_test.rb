@@ -32,10 +32,10 @@ class PostgresqlCitextTest < ActiveRecord::PostgreSQLTestCase
     column = Citext.columns_hash["cival"]
     assert_equal :citext, column.type
     assert_equal "citext", column.sql_type
-    assert_not column.array?
+    assert_not_predicate column, :array?
 
     type = Citext.type_for_attribute("cival")
-    assert_not type.binary?
+    assert_not_predicate type, :binary?
   end
 
   def test_change_table_supports_json

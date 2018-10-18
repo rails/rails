@@ -19,6 +19,10 @@ module ActiveRecord
           end
         end
 
+        def through_association
+          @through_association ||= owner.association(through_reflection.name)
+        end
+
         # We merge in these scopes for two reasons:
         #
         #   1. To get the default_scope conditions for any of the other reflections in the chain
@@ -110,7 +114,7 @@ module ActiveRecord
             attributes[inverse.foreign_key] = target.id
           end
 
-          super(attributes)
+          super
         end
     end
   end

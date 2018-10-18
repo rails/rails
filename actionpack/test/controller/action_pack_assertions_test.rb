@@ -290,29 +290,29 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
 
   def test_template_objects_exist
     process :assign_this
-    assert !@controller.instance_variable_defined?(:"@hi")
+    assert_not @controller.instance_variable_defined?(:"@hi")
     assert @controller.instance_variable_get(:"@howdy")
   end
 
   def test_template_objects_missing
     process :nothing
-    assert !@controller.instance_variable_defined?(:@howdy)
+    assert_not @controller.instance_variable_defined?(:@howdy)
   end
 
   def test_empty_flash
     process :flash_me_naked
-    assert flash.empty?
+    assert_empty flash
   end
 
   def test_flash_exist
     process :flash_me
-    assert flash.any?
-    assert flash["hello"].present?
+    assert_predicate flash, :any?
+    assert_predicate flash["hello"], :present?
   end
 
   def test_flash_does_not_exist
     process :nothing
-    assert flash.empty?
+    assert_empty flash
   end
 
   def test_session_exist
@@ -322,7 +322,7 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
 
   def session_does_not_exist
     process :nothing
-    assert session.empty?
+    assert_empty session
   end
 
   def test_redirection_location
@@ -343,46 +343,46 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
 
   def test_server_error_response_code
     process :response500
-    assert @response.server_error?
+    assert_predicate @response, :server_error?
 
     process :response599
-    assert @response.server_error?
+    assert_predicate @response, :server_error?
 
     process :response404
-    assert !@response.server_error?
+    assert_not_predicate @response, :server_error?
   end
 
   def test_missing_response_code
     process :response404
-    assert @response.not_found?
+    assert_predicate @response, :not_found?
   end
 
   def test_client_error_response_code
     process :response404
-    assert @response.client_error?
+    assert_predicate @response, :client_error?
   end
 
   def test_redirect_url_match
     process :redirect_external
-    assert @response.redirect?
+    assert_predicate @response, :redirect?
     assert_match(/rubyonrails/, @response.redirect_url)
-    assert !/perloffrails/.match(@response.redirect_url)
+    assert_no_match(/perloffrails/, @response.redirect_url)
   end
 
   def test_redirection
     process :redirect_internal
-    assert @response.redirect?
+    assert_predicate @response, :redirect?
 
     process :redirect_external
-    assert @response.redirect?
+    assert_predicate @response, :redirect?
 
     process :nothing
-    assert !@response.redirect?
+    assert_not_predicate @response, :redirect?
   end
 
   def test_successful_response_code
     process :nothing
-    assert @response.successful?
+    assert_predicate @response, :successful?
   end
 
   def test_response_object

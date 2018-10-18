@@ -7,10 +7,15 @@ module ApplicationTests
     include ActiveSupport::Testing::Isolation
 
     def setup
+      @old = ENV["PARALLEL_WORKERS"]
+      ENV["PARALLEL_WORKERS"] = "0"
+
       build_app
     end
 
     def teardown
+      ENV["PARALLEL_WORKERS"] = @old
+
       teardown_app
     end
 

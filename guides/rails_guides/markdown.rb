@@ -69,7 +69,7 @@ module RailsGuides
       end
 
       def extract_raw_header_and_body
-        if @raw_body =~ /^\-{40,}$/
+        if /^\-{40,}$/.match?(@raw_body)
           @raw_header, _, @raw_body = @raw_body.partition(/^\-{40,}$/).map(&:strip)
         end
       end
@@ -89,7 +89,7 @@ module RailsGuides
             hierarchy = []
 
             doc.children.each do |node|
-              if node.name =~ /^h[3-6]$/
+              if /^h[3-6]$/.match?(node.name)
                 case node.name
                 when "h3"
                   hierarchy = [node]
@@ -103,7 +103,7 @@ module RailsGuides
                   hierarchy = hierarchy[0, 3] + [node]
                 end
 
-                node[:id] = dom_id(hierarchy)
+                node[:id] = dom_id(hierarchy) unless node[:id]
                 node.inner_html = "#{node_index(hierarchy)} #{node.inner_html}"
               end
             end

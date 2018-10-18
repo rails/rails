@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
 Rails Routing from the Outside In
 =================================
@@ -36,6 +36,8 @@ get '/patients/:id', to: 'patients#show'
 
 the request is dispatched to the `patients` controller's `show` action with `{ id: '17' }` in `params`.
 
+NOTE: Rails uses snake_case for controller names here, if you have a multiple word controller like `MonsterTrucksController`, you want to use `monster_trucks#show` for example.
+
 ### Generating Paths and URLs from Code
 
 You can also generate paths and URLs. If the route above is modified to be:
@@ -57,6 +59,26 @@ and this in the corresponding view:
 ```
 
 then the router will generate the path `/patients/17`. This reduces the brittleness of your view and makes your code easier to understand. Note that the id does not need to be specified in the route helper.
+
+### Configuring the Rails Router
+
+The routes for your application or engine live in the file `config/routes.rb` and typically looks like this:
+
+```ruby
+Rails.application.routes.draw do
+  resources :brands, only: [:index, :show] do
+    resources :products, only: [:index, :show]
+  end
+
+  resource :basket, only: [:show, :update, :destroy]
+
+  resolve("Basket") { route_for(:basket) }
+end
+```
+
+Since this is a regular Ruby source file you can use all of its features to help you define your routes but be careful with variable names as they can clash with the DSL methods of the router.
+
+NOTE: The `Rails.application.routes.draw do ... end` block that wraps your route definitions is required to establish the scope for the router DSL and must not be deleted.
 
 Resource Routing: the Rails Default
 -----------------------------------
@@ -116,7 +138,7 @@ Creating a resourceful route will also expose a number of helpers to the control
 * `edit_photo_path(:id)` returns `/photos/:id/edit` (for instance, `edit_photo_path(10)` returns `/photos/10/edit`)
 * `photo_path(:id)` returns `/photos/:id` (for instance, `photo_path(10)` returns `/photos/10`)
 
-Each of these helpers has a corresponding `_url` helper (such as `photos_url`) which returns the same path prefixed with the current host, port and path prefix.
+Each of these helpers has a corresponding `_url` helper (such as `photos_url`) which returns the same path prefixed with the current host, port, and path prefix.
 
 ### Defining Multiple Resources at the Same Time
 
@@ -174,7 +196,7 @@ A singular resourceful route generates these helpers:
 * `edit_geocoder_path` returns `/geocoder/edit`
 * `geocoder_path` returns `/geocoder`
 
-As with plural resources, the same helpers ending in `_url` will also include the host, port and path prefix.
+As with plural resources, the same helpers ending in `_url` will also include the host, port, and path prefix.
 
 ### Controller Namespaces and Routing
 
@@ -484,7 +506,7 @@ resources :photos do
 end
 ```
 
-This will recognize `/photos/1/preview` with GET, and route to the `preview` action of `PhotosController`, with the resource id value passed in `params[:id]`. It will also create the `photo_preview_url` and `photo_preview_path` helpers.
+This will recognize `/photos/1/preview` with GET, and route to the `preview` action of `PhotosController`, with the resource id value passed in `params[:id]`. It will also create the `preview_photo_url` and `preview_photo_path` helpers.
 
 Within the block of member routes, each route name specifies the HTTP verb
 will be recognized. You can use `get`, `patch`, `put`, `post`, or `delete` here
@@ -549,7 +571,7 @@ In particular, simple routing makes it very easy to map legacy URLs to new Rails
 When you set up a regular route, you supply a series of symbols that Rails maps to parts of an incoming HTTP request. For example, consider this route:
 
 ```ruby
-get 'photos(/:id)', to: :display
+get 'photos(/:id)', to: 'photos#display'
 ```
 
 If an incoming request of `/photos/1` is processed by this route (because it hasn't matched any previous route in the file), then the result will be to invoke the `display` action of the `PhotosController`, and to make the final parameter `"1"` available as `params[:id]`. This route will also route the incoming request of `/photos` to `PhotosController#display`, since `:id` is an optional parameter, denoted by parentheses.
@@ -622,7 +644,7 @@ You can also use this to override routing methods defined by resources, like thi
 get ':username', to: 'users#show', as: :user
 ```
 
-This will define a `user_path` method that will be available in controllers, helpers and views that will go to a route such as `/bob`. Inside the `show` action of `UsersController`, `params[:username]` will contain the username for the user. Change `:username` in the route definition if you do not want your parameter name to be `:username`.
+This will define a `user_path` method that will be available in controllers, helpers, and views that will go to a route such as `/bob`. Inside the `show` action of `UsersController`, `params[:username]` will contain the username for the user. Change `:username` in the route definition if you do not want your parameter name to be `:username`.
 
 ### HTTP Verb Constraints
 
@@ -697,12 +719,12 @@ NOTE: There is an exception for the `format` constraint: while it's a method on 
 
 ### Advanced Constraints
 
-If you have a more advanced constraint, you can provide an object that responds to `matches?` that Rails should use. Let's say you wanted to route all users on a blacklist to the `BlacklistController`. You could do:
+If you have a more advanced constraint, you can provide an object that responds to `matches?` that Rails should use. Let's say you wanted to route all users on a restricted list to the `RestrictedListController`. You could do:
 
 ```ruby
-class BlacklistConstraint
+class RestrictedListConstraint
   def initialize
-    @ips = Blacklist.retrieve_ips
+    @ips = RestrictedList.retrieve_ips
   end
 
   def matches?(request)
@@ -711,8 +733,8 @@ class BlacklistConstraint
 end
 
 Rails.application.routes.draw do
-  get '*path', to: 'blacklist#index',
-    constraints: BlacklistConstraint.new
+  get '*path', to: 'restricted_list#index',
+    constraints: RestrictedListConstraint.new
 end
 ```
 
@@ -720,8 +742,8 @@ You can also specify constraints as a lambda:
 
 ```ruby
 Rails.application.routes.draw do
-  get '*path', to: 'blacklist#index',
-    constraints: lambda { |request| Blacklist.retrieve_ips.include?(request.remote_ip) }
+  get '*path', to: 'restricted_list#index',
+    constraints: lambda { |request| RestrictedList.retrieve_ips.include?(request.remote_ip) }
 end
 ```
 
@@ -1039,7 +1061,7 @@ scope ':username' do
 end
 ```
 
-This will provide you with URLs such as `/bob/articles/1` and will allow you to reference the `username` part of the path as `params[:username]` in controllers, helpers and views.
+This will provide you with URLs such as `/bob/articles/1` and will allow you to reference the `username` part of the path as `params[:username]` in controllers, helpers, and views.
 
 ### Restricting the Routes Created
 
@@ -1117,10 +1139,10 @@ resources :videos, param: :identifier
 ```
 
 ```
-     videos GET  /videos(.:format)                  videos#index
-            POST /videos(.:format)                  videos#create
- new_videos GET  /videos/new(.:format)              videos#new
-edit_videos GET  /videos/:identifier/edit(.:format) videos#edit
+    videos GET  /videos(.:format)                  videos#index
+           POST /videos(.:format)                  videos#create
+ new_video GET  /videos/new(.:format)              videos#new
+edit_video GET  /videos/:identifier/edit(.:format) videos#edit
 ```
 
 ```ruby
@@ -1138,7 +1160,7 @@ class Video < ApplicationRecord
 end
 
 video = Video.find_by(identifier: "Roman-Holiday")
-edit_videos_path(video) # => "/videos/Roman-Holiday"
+edit_video_path(video) # => "/videos/Roman-Holiday/edit"
 ```
 
 Inspecting and Testing Routes
@@ -1169,21 +1191,21 @@ edit_user GET    /users/:id/edit(.:format) users#edit
 You can search through your routes with the grep option: -g. This outputs any routes that partially match the URL helper method name, the HTTP verb, or the URL path.
 
 ```
-$ bin/rails routes -g new_comment
-$ bin/rails routes -g POST
-$ bin/rails routes -g admin
+$ rails routes -g new_comment
+$ rails routes -g POST
+$ rails routes -g admin
 ```
 
 If you only want to see the routes that map to a specific controller, there's the -c option.
 
 ```
-$ bin/rails routes -c users
-$ bin/rails routes -c admin/users
-$ bin/rails routes -c Comments
-$ bin/rails routes -c Articles::CommentsController
+$ rails routes -c users
+$ rails routes -c admin/users
+$ rails routes -c Comments
+$ rails routes -c Articles::CommentsController
 ```
 
-TIP: You'll find that the output from `rails routes` is much more readable if you widen your terminal window until the output lines don't wrap.
+TIP: You'll find that the output from `rails routes` is much more readable if you widen your terminal window until the output lines don't wrap. You can also use --expanded option to turn on the expanded table formatting mode.
 
 ### Testing Routes
 

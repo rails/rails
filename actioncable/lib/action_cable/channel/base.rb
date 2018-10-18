@@ -270,7 +270,7 @@ module ActionCable
         end
 
         def action_signature(action, data)
-          "#{self.class.name}##{action}".dup.tap do |signature|
+          (+"#{self.class.name}##{action}").tap do |signature|
             if (arguments = data.except("action")).any?
               signature << "(#{arguments.inspect})"
             end

@@ -75,7 +75,7 @@ module Rails
         args += ["-P", "#{config['password']}"] if config["password"]
 
         if config["host"]
-          host_arg = "#{config['host']}".dup
+          host_arg = +"#{config['host']}"
           host_arg << ":#{config['port']}" if config["port"]
           args += ["-S", host_arg]
         end
@@ -97,7 +97,7 @@ module Rails
         elsif configurations[environment].blank? && configurations[connection].blank?
           raise ActiveRecord::AdapterNotSpecified, "'#{environment}' database is not configured. Available configuration: #{configurations.inspect}"
         else
-          configurations[environment].presence || configurations[connection]
+          configurations[connection] || configurations[environment].presence
         end
       end
     end

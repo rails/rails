@@ -50,7 +50,19 @@ module ActionDispatch
 
         private
           def constraint_args(constraint, request)
-            constraint.arity == 1 ? [request] : [request.path_parameters, request]
+            arity = if constraint.respond_to?(:arity)
+              constraint.arity
+            else
+              constraint.method(:call).arity
+            end
+
+            if arity < 1
+              []
+            elsif arity == 1
+              [request]
+            else
+              [request.path_parameters, request]
+            end
           end
       end
 
@@ -279,7 +291,7 @@ module ActionDispatch
 
           def verify_regexp_requirements(requirements)
             requirements.each do |requirement|
-              if requirement.source =~ ANCHOR_CHARACTERS_REGEX
+              if ANCHOR_CHARACTERS_REGEX.match?(requirement.source)
                 raise ArgumentError, "Regexp anchor characters are not allowed in routing requirements: #{requirement.inspect}"
               end
 
@@ -308,8 +320,8 @@ module ActionDispatch
           def check_controller_and_action(path_params, controller, action)
             hash = check_part(:controller, controller, path_params, {}) do |part|
               translate_controller(part) {
-                message = "'#{part}' is not a supported controller name. This can lead to potential routing problems.".dup
-                message << " See http://guides.rubyonrails.org/routing.html#specifying-a-controller-to-use"
+                message = +"'#{part}' is not a supported controller name. This can lead to potential routing problems."
+                message << " See https://guides.rubyonrails.org/routing.html#specifying-a-controller-to-use"
 
                 raise ArgumentError, message
               }
@@ -333,7 +345,7 @@ module ActionDispatch
           end
 
           def split_to(to)
-            if to =~ /#/
+            if /#/.match?(to)
               to.split("#")
             else
               []
@@ -342,7 +354,7 @@ module ActionDispatch
 
           def add_controller_module(controller, modyoule)
             if modyoule && !controller.is_a?(Regexp)
-              if controller =~ %r{\A/}
+              if %r{\A/}.match?(controller)
                 controller[1..-1]
               else
                 [modyoule, controller].compact.join("/")
@@ -390,7 +402,7 @@ module ActionDispatch
       # for root cases, where the latter is the correct one.
       def self.normalize_path(path)
         path = Journey::Router::Utils.normalize_path(path)
-        path.gsub!(%r{/(\(+)/?}, '\1/') unless path =~ %r{^/\(+[^)]+\)$}
+        path.gsub!(%r{/(\(+)/?}, '\1/') unless path =~ %r{^/(\(+[^)]+\)){1,}$}
         path
       end
 
@@ -553,10 +565,10 @@ module ActionDispatch
         #
         #     match 'json_only', constraints: { format: 'json' }, via: :get
         #
-        #     class Whitelist
+        #     class PermitList
         #       def matches?(request) request.remote_ip == '1.2.3.4' end
         #     end
-        #     match 'path', to: 'c#a', constraints: Whitelist.new, via: :get
+        #     match 'path', to: 'c#a', constraints: PermitList.new, via: :get
         #
         #   See <tt>Scoping#constraints</tt> for more examples with its scope
         #   equivalent.
@@ -611,7 +623,7 @@ module ActionDispatch
           end
 
           raise ArgumentError, "A rack application must be specified" unless app.respond_to?(:call)
-          raise ArgumentError, <<-MSG.strip_heredoc unless path
+          raise ArgumentError, <<~MSG unless path
             Must be called with mount point
 
               mount SomeRackApp, at: "some_route"
@@ -664,10 +676,11 @@ module ActionDispatch
           def define_generate_prefix(app, name)
             _route = @set.named_routes.get name
             _routes = @set
+            _url_helpers = @set.url_helpers
 
             script_namer = ->(options) do
               prefix_options = options.slice(*_route.segment_keys)
-              prefix_options[:relative_url_root] = "".freeze
+              prefix_options[:relative_url_root] = ""
 
               if options[:_recall]
                 prefix_options.reverse_merge!(options[:_recall].slice(*_route.segment_keys))
@@ -675,7 +688,7 @@ module ActionDispatch
 
               # We must actually delete prefix segment keys to avoid passing them to next url_for.
               _route.segment_keys.each { |k| options.delete(k) }
-              _routes.url_helpers.send("#{name}_path", prefix_options)
+              _url_helpers.send("#{name}_path", prefix_options)
             end
 
             app.routes.define_mounted_helper(name, script_namer)
@@ -1573,7 +1586,7 @@ module ActionDispatch
         # Matches a URL pattern to one or more routes.
         # For more information, see match[rdoc-ref:Base#match].
         #
-        #   match 'path' => 'controller#action', via: patch
+        #   match 'path' => 'controller#action', via: :patch
         #   match 'path', to: 'controller#action', via: :post
         #   match 'path', 'otherpath', on: :member, via: :get
         def match(path, *rest, &block)
@@ -1587,7 +1600,7 @@ module ActionDispatch
             when Symbol
               options[:action] = to
             when String
-              if to =~ /#/
+              if /#/.match?(to)
                 options[:to] = to
               else
                 options[:controller] = to
@@ -1913,7 +1926,7 @@ module ActionDispatch
 
             default_action = options.delete(:action) || @scope[:action]
 
-            if action =~ /^[\w\-\/]+$/
+            if /^[\w\-\/]+$/.match?(action)
               default_action ||= action.tr("-", "_") unless action.include?("/")
             else
               action = nil
@@ -2082,9 +2095,9 @@ module ActionDispatch
         #     [ :products, options.merge(params.permit(:page, :size).to_h.symbolize_keys) ]
         #   end
         #
-        # In this instance the +params+ object comes from the context in which the the
+        # In this instance the +params+ object comes from the context in which the
         # block is executed, e.g. generating a URL inside a controller action or a view.
-        # If the block is executed where there isn't a params object such as this:
+        # If the block is executed where there isn't a +params+ object such as this:
         #
         #   Rails.application.routes.url_helpers.browse_path
         #

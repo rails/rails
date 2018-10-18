@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/hash/compact"
-
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
     class SchemaDumper < SchemaDumper # :nodoc:

@@ -68,6 +68,9 @@ class FormHelperTest < ActionView::TestCase
           submit: "Save changes",
           another_post: {
             update: "Update your %{model}"
+          },
+          "blog/post": {
+            update: "Update your %{model}"
           }
         }
       }
@@ -137,6 +140,7 @@ class FormHelperTest < ActionView::TestCase
     @post_delegator.title = "Hello World"
 
     @car = Car.new("#000FFF")
+    @controller.singleton_class.include Routes.url_helpers
   end
 
   Routes = ActionDispatch::Routing::RouteSet.new
@@ -165,7 +169,8 @@ class FormHelperTest < ActionView::TestCase
     @url_for_options = object
 
     if object.is_a?(Hash) && object[:use_route].blank? && object[:controller].blank?
-      object.merge!(controller: "main", action: "index")
+      object[:controller] = "main"
+      object[:action] = "index"
     end
 
     super
@@ -612,7 +617,7 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_check_box_is_html_safe
-    assert check_box("post", "secret").html_safe?
+    assert_predicate check_box("post", "secret"), :html_safe?
   end
 
   def test_check_box_checked_if_object_value_is_same_that_check_value
@@ -775,7 +780,7 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_check_box_with_nil_unchecked_value_is_html_safe
-    assert check_box("post", "secret", {}, "on", nil).html_safe?
+    assert_predicate check_box("post", "secret", {}, "on", nil), :html_safe?
   end
 
   def test_check_box_with_multiple_behavior
@@ -1992,6 +1997,34 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, output_buffer
   end
 
+  def test_form_for_default_enforce_utf8_false
+    with_default_enforce_utf8 false do
+      form_for(:post) do |f|
+        concat f.text_field(:title)
+      end
+
+      expected = whole_form("/", nil, nil, enforce_utf8: false) do
+        "<input name='post[title]' type='text' id='post_title' value='Hello World' />"
+      end
+
+      assert_dom_equal expected, output_buffer
+    end
+  end
+
+  def test_form_for_default_enforce_utf8_true
+    with_default_enforce_utf8 true do
+      form_for(:post) do |f|
+        concat f.text_field(:title)
+      end
+
+      expected = whole_form("/", nil, nil, enforce_utf8: true) do
+        "<input name='post[title]' type='text' id='post_title' value='Hello World' />"
+      end
+
+      assert_dom_equal expected, output_buffer
+    end
+  end
+
   def test_form_for_with_remote_in_html
     form_for(@post, url: "/", html: { remote: true, id: "create-post", method: :patch }) do |f|
       concat f.text_field(:title)
@@ -2271,13 +2304,28 @@ class FormHelperTest < ActionView::TestCase
     end
   end
 
-  def test_submit_with_object_and_nested_lookup
+  def test_submit_with_object_which_is_overwritten_by_as_option
     with_locale :submit do
       form_for(@post, as: :another_post) do |f|
         concat f.submit
       end
 
       expected = whole_form("/posts/123", "edit_another_post", "edit_another_post", method: "patch") do
+        "<input name='commit' data-disable-with='Update your Post' type='submit' value='Update your Post' />"
+      end
+
+      assert_dom_equal expected, output_buffer
+    end
+  end
+
+  def test_submit_with_object_which_is_namespaced
+    blog_post = Blog::Post.new("And his name will be forty and four.", 44)
+    with_locale :submit do
+      form_for(blog_post) do |f|
+        concat f.submit
+      end
+
+      expected = whole_form("/posts/44", "edit_post_44", "edit_post", method: "patch") do
         "<input name='commit' data-disable-with='Update your Post' type='submit' value='Update your Post' />"
       end
 
@@ -3440,14 +3488,14 @@ class FormHelperTest < ActionView::TestCase
 
   def test_form_for_with_existing_object_in_list
     @comment.save
-    form_for([@post, @comment]) {}
+    form_for([@post, @comment]) { }
 
     expected = whole_form(post_comment_path(@post, @comment), "edit_comment_1", "edit_comment", method: "patch")
     assert_dom_equal expected, output_buffer
   end
 
   def test_form_for_with_new_object_in_list
-    form_for([@post, @comment]) {}
+    form_for([@post, @comment]) { }
 
     expected = whole_form(post_comments_path(@post), "new_comment", "new_comment")
     assert_dom_equal expected, output_buffer
@@ -3455,14 +3503,14 @@ class FormHelperTest < ActionView::TestCase
 
   def test_form_for_with_existing_object_and_namespace_in_list
     @comment.save
-    form_for([:admin, @post, @comment]) {}
+    form_for([:admin, @post, @comment]) { }
 
     expected = whole_form(admin_post_comment_path(@post, @comment), "edit_comment_1", "edit_comment", method: "patch")
     assert_dom_equal expected, output_buffer
   end
 
   def test_form_for_with_new_object_and_namespace_in_list
-    form_for([:admin, @post, @comment]) {}
+    form_for([:admin, @post, @comment]) { }
 
     expected = whole_form(admin_post_comments_path(@post), "new_comment", "new_comment")
     assert_dom_equal expected, output_buffer
@@ -3476,13 +3524,13 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_form_for_with_default_method_as_patch
-    form_for(@post) {}
+    form_for(@post) { }
     expected = whole_form("/posts/123", "edit_post_123", "edit_post", method: "patch")
     assert_dom_equal expected, output_buffer
   end
 
   def test_form_for_with_data_attributes
-    form_for(@post, data: { behavior: "stuff" }, remote: true) {}
+    form_for(@post, data: { behavior: "stuff" }, remote: true) { }
     assert_match %r|data-behavior="stuff"|, output_buffer
     assert_match %r|data-remote="true"|, output_buffer
   end
@@ -3501,7 +3549,7 @@ class FormHelperTest < ActionView::TestCase
       end
     end
 
-    form_for(@post, builder: builder_class) {}
+    form_for(@post, builder: builder_class) { }
     assert_equal 1, initialization_count, "form builder instantiated more than once"
   end
 
@@ -3511,9 +3559,9 @@ class FormHelperTest < ActionView::TestCase
       method = options[:method]
 
       if options.fetch(:enforce_utf8, true)
-        txt = %{<input name="utf8" type="hidden" value="&#x2713;" />}.dup
+        txt = +%{<input name="utf8" type="hidden" value="&#x2713;" />}
       else
-        txt = "".dup
+        txt = +""
       end
 
       if method && !%w(get post).include?(method.to_s)
@@ -3524,7 +3572,7 @@ class FormHelperTest < ActionView::TestCase
     end
 
     def form_text(action = "/", id = nil, html_class = nil, remote = nil, multipart = nil, method = nil)
-      txt =  %{<form accept-charset="UTF-8" action="#{action}"}.dup
+      txt =  +%{<form accept-charset="UTF-8" action="#{action}"}
       txt << %{ enctype="multipart/form-data"} if multipart
       txt << %{ data-remote="true"} if remote
       txt << %{ class="#{html_class}"} if html_class
@@ -3550,5 +3598,14 @@ class FormHelperTest < ActionView::TestCase
       yield
     ensure
       I18n.locale = old_locale
+    end
+
+    def with_default_enforce_utf8(value)
+      old_value = ActionView::Helpers::FormTagHelper.default_enforce_utf8
+      ActionView::Helpers::FormTagHelper.default_enforce_utf8 = value
+
+      yield
+    ensure
+      ActionView::Helpers::FormTagHelper.default_enforce_utf8 = old_value
     end
 end

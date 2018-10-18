@@ -6,15 +6,15 @@ require "active_support/core_ext/module/reachable"
 class AnonymousTest < ActiveSupport::TestCase
   test "an anonymous class or module is not reachable" do
     assert_deprecated do
-      assert !Module.new.reachable?
-      assert !Class.new.reachable?
+      assert_not_predicate Module.new, :reachable?
+      assert_not_predicate Class.new, :reachable?
     end
   end
 
   test "ordinary named classes or modules are reachable" do
     assert_deprecated do
-      assert Kernel.reachable?
-      assert Object.reachable?
+      assert_predicate Kernel, :reachable?
+      assert_predicate Object, :reachable?
     end
   end
 
@@ -26,8 +26,8 @@ class AnonymousTest < ActiveSupport::TestCase
     self.class.send(:remove_const, :M)
 
     assert_deprecated do
-      assert !c.reachable?
-      assert !m.reachable?
+      assert_not_predicate c, :reachable?
+      assert_not_predicate m, :reachable?
     end
   end
 
@@ -42,10 +42,10 @@ class AnonymousTest < ActiveSupport::TestCase
     eval "module M; end"
 
     assert_deprecated do
-      assert C.reachable?
-      assert M.reachable?
-      assert !c.reachable?
-      assert !m.reachable?
+      assert_predicate C, :reachable?
+      assert_predicate M, :reachable?
+      assert_not_predicate c, :reachable?
+      assert_not_predicate m, :reachable?
     end
   end
 end

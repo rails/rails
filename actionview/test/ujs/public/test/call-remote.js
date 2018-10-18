@@ -128,6 +128,17 @@ asyncTest('execution of JS code does not modify current DOM', 1, function() {
   })
 })
 
+asyncTest('HTML content should be plain-text', 1, function() {
+  buildForm({ method: 'post', 'data-type': 'html' })
+
+  $('form').append('<input type="text" name="content_type" value="text/html">')
+  $('form').append('<input type="text" name="content" value="<p>hello</p>">')
+
+  submit(function(e, data, status, xhr) {
+    ok(data === '<p>hello</p>', 'returned data should be a plain-text string')
+  })
+})
+
 asyncTest('XML document should be parsed', 1, function() {
   buildForm({ method: 'post', 'data-type': 'html' })
 
@@ -199,7 +210,7 @@ asyncTest('allow empty form "action"', 1, function() {
   buildForm({ action: '' })
 
   $('#qunit-fixture').find('form')
-    .bindNative('ajax:beforeSend', function(e, xhr, settings) {
+    .bindNative('ajax:beforeSend', function(evt, xhr, settings) {
       // Get current location (the same way jQuery does)
       try {
         currentLocation = location.href
@@ -218,7 +229,7 @@ asyncTest('allow empty form "action"', 1, function() {
 
       // Prevent the request from actually getting sent to the current page and
       // causing an error.
-      return false
+      evt.preventDefault()
     })
     .triggerNative('submit')
 
@@ -246,7 +257,7 @@ asyncTest('intelligently guesses crossDomain behavior when target URL has a diff
       equal(settings.crossDomain, true, 'crossDomain should be set to true')
 
       // prevent request from actually getting sent off-domain
-      return false
+      evt.preventDefault()
     })
     .triggerNative('submit')
 
@@ -265,7 +276,7 @@ asyncTest('intelligently guesses crossDomain behavior when target URL consists o
       equal(settings.crossDomain, false, 'crossDomain should be set to false')
 
       // prevent request from actually getting sent off-domain
-      return false
+      evt.preventDefault()
     })
     .triggerNative('submit')
 

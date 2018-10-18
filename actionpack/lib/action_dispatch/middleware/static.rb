@@ -16,7 +16,7 @@ module ActionDispatch
   # does not exist, a 404 "File not Found" response will be returned.
   class FileHandler
     def initialize(root, index: "index", headers: {})
-      @root          = root.chomp("/")
+      @root          = root.chomp("/").b
       @file_server   = ::Rack::File.new(@root, headers)
       @index         = index
     end
@@ -35,15 +35,14 @@ module ActionDispatch
       paths = [path, "#{path}#{ext}", "#{path}/#{@index}#{ext}"]
 
       if match = paths.detect { |p|
-        path = File.join(@root, p.dup.force_encoding(Encoding::UTF_8))
+        path = File.join(@root, p.b)
         begin
           File.file?(path) && File.readable?(path)
         rescue SystemCallError
           false
         end
-
       }
-        return ::Rack::Utils.escape_path(match)
+        return ::Rack::Utils.escape_path(match).b
       end
     end
 
@@ -69,7 +68,7 @@ module ActionDispatch
 
       headers["Vary"] = "Accept-Encoding" if gzip_path
 
-      return [status, headers, body]
+      [status, headers, body]
     ensure
       request.path_info = path
     end
@@ -80,7 +79,7 @@ module ActionDispatch
       end
 
       def content_type(path)
-        ::Rack::Mime.mime_type(::File.extname(path), "text/plain".freeze)
+        ::Rack::Mime.mime_type(::File.extname(path), "text/plain")
       end
 
       def gzip_encoding_accepted?(request)
@@ -117,7 +116,7 @@ module ActionDispatch
       req = Rack::Request.new env
 
       if req.get? || req.head?
-        path = req.path_info.chomp("/".freeze)
+        path = req.path_info.chomp("/")
         if match = @file_handler.match?(path)
           req.path_info = match
           return @file_handler.serve(req)

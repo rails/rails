@@ -11,7 +11,7 @@ module ActiveRecord
           else
             super
           end
-          @connection.next_result while @connection.more_results?
+          discard_remaining_results
           result
         end
 
@@ -29,6 +29,8 @@ module ActiveRecord
         end
 
         def exec_query(sql, name = "SQL", binds = [], prepare: false)
+          materialize_transactions
+
           if without_prepared_statement?(binds)
             execute_and_free(sql, name) do |result|
               ActiveRecord::Result.new(result.fields, result.to_a) if result
@@ -41,6 +43,8 @@ module ActiveRecord
         end
 
         def exec_delete(sql, name = nil, binds = [])
+          materialize_transactions
+
           if without_prepared_statement?(binds)
             execute_and_free(sql, name) { @connection.affected_rows }
           else
@@ -50,9 +54,52 @@ module ActiveRecord
         alias :exec_update :exec_delete
 
         private
+          def default_insert_value(column)
+            Arel.sql("DEFAULT") unless column.auto_increment?
+          end
 
           def last_inserted_id(result)
             @connection.last_id
+          end
+
+          def discard_remaining_results
+            @connection.abandon_results!
+          end
+
+          def supports_set_server_option?
+            @connection.respond_to?(:set_server_option)
+          end
+
+          def multi_statements_enabled?(flags)
+            if flags.is_a?(Array)
+              flags.include?("MULTI_STATEMENTS")
+            else
+              (flags & Mysql2::Client::MULTI_STATEMENTS) != 0
+            end
+          end
+
+          def with_multi_statements
+            previous_flags = @config[:flags]
+
+            unless multi_statements_enabled?(previous_flags)
+              if supports_set_server_option?
+                @connection.set_server_option(Mysql2::Client::OPTION_MULTI_STATEMENTS_ON)
+              else
+                @config[:flags] = Mysql2::Client::MULTI_STATEMENTS
+                reconnect!
+              end
+            end
+
+            yield
+          ensure
+            unless multi_statements_enabled?(previous_flags)
+              if supports_set_server_option?
+                @connection.set_server_option(Mysql2::Client::OPTION_MULTI_STATEMENTS_OFF)
+              else
+                @config[:flags] = previous_flags
+                reconnect!
+              end
+            end
           end
 
           def exec_stmt_and_free(sql, name, binds, cache_stmt: false)
@@ -64,10 +111,7 @@ module ActiveRecord
 
             log(sql, name, binds, type_casted_binds) do
               if cache_stmt
-                cache = @statements[sql] ||= {
-                  stmt: @connection.prepare(sql)
-                }
-                stmt = cache[:stmt]
+                stmt = @statements[sql] ||= @connection.prepare(sql)
               else
                 stmt = @connection.prepare(sql)
               end

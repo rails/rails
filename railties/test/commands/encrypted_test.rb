@@ -14,7 +14,7 @@ class Rails::Command::EncryptedCommandTest < ActiveSupport::TestCase
   test "edit without editor gives hint" do
     run_edit_command("config/tokens.yml.enc", editor: "").tap do |output|
       assert_match "No $EDITOR to open file in", output
-      assert_match "bin/rails encrypted:edit", output
+      assert_match "rails encrypted:edit", output
     end
   end
 
@@ -30,6 +30,18 @@ class Rails::Command::EncryptedCommandTest < ActiveSupport::TestCase
 
     Dir.chdir(app_path) do
       assert_match "/config/master.key", File.read(".gitignore")
+    end
+  end
+
+  test "edit command does not add master key when `RAILS_MASTER_KEY` env specified" do
+    Dir.chdir(app_path) do
+      key = IO.binread("config/master.key").strip
+      FileUtils.rm("config/master.key")
+
+      switch_env("RAILS_MASTER_KEY", key) do
+        run_edit_command("config/tokens.yml.enc")
+        assert_not File.exist?("config/master.key")
+      end
     end
   end
 

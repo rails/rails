@@ -24,3 +24,12 @@ barney:
   address_city: Peaceful Town
   address_country: Tranquil Land
   gps_location: NULL
+
+mary:
+  id: 4
+  name: Mary
+  balance: 1
+  address_street: Funny Street
+  address_city: Peaceful Town
+  address_country: Nation Land
+  gps_location: NULL

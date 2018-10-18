@@ -45,7 +45,18 @@ module ActiveStorage
   mattr_accessor :queue
   mattr_accessor :previewers, default: []
   mattr_accessor :analyzers, default: []
+  mattr_accessor :variant_processor, default: :mini_magick
   mattr_accessor :paths, default: {}
   mattr_accessor :variable_content_types, default: []
   mattr_accessor :content_types_to_serve_as_binary, default: []
+  mattr_accessor :service_urls_expire_in, default: 5.minutes
+  mattr_accessor :routes_prefix, default: "/rails/active_storage"
+
+  module Transformers
+    extend ActiveSupport::Autoload
+
+    autoload :Transformer
+    autoload :ImageProcessingTransformer
+    autoload :MiniMagickTransformer
+  end
 end

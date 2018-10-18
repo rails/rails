@@ -289,9 +289,10 @@ class ClientTest < ActionCable::TestCase
       subscriptions = app.connections.first.subscriptions.send(:subscriptions)
       assert_not_equal 0, subscriptions.size, "Missing EchoChannel subscription"
       channel = subscriptions.first[1]
-      channel.expects(:unsubscribed)
-      c.close
-      sleep 0.1 # Data takes a moment to process
+      assert_called(channel, :unsubscribed) do
+        c.close
+        sleep 0.1 # Data takes a moment to process
+      end
 
       # All data is removed: No more connection or subscription information!
       assert_equal(0, app.connections.count)
@@ -307,7 +308,7 @@ class ClientTest < ActionCable::TestCase
 
       ActionCable.server.restart
       c.wait_for_close
-      assert c.closed?
+      assert_predicate c, :closed?
     end
   end
 end

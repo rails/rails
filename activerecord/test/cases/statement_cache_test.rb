@@ -102,7 +102,7 @@ module ActiveRecord
         Book.find_by(name: "my other book")
       end
 
-      refute_equal book, other_book
+      assert_not_equal book, other_book
     end
 
     def test_find_by_does_not_use_statement_cache_if_table_name_is_changed

@@ -88,6 +88,12 @@ Active Job has built-in adapters for multiple queueing backends (Sidekiq,
 Resque, Delayed Job and others). To get an up-to-date list of the adapters
 see the API Documentation for [ActiveJob::QueueAdapters](http://api.rubyonrails.org/classes/ActiveJob/QueueAdapters.html).
 
+**Please note:** We are not accepting pull requests for new adapters. We
+encourage library authors to provide an ActiveJob adapter as part of
+their gem, or as a stand-alone gem. For discussion about this see the
+following PRs: [23311](https://github.com/rails/rails/issues/23311#issuecomment-176275718),
+[21406](https://github.com/rails/rails/pull/21406#issuecomment-138813484), and [#32285](https://github.com/rails/rails/pull/32285).
+
 ## Auxiliary gems
 
 * [activejob-stats](https://github.com/seuros/activejob-stats)

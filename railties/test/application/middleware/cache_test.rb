@@ -140,7 +140,7 @@ module ApplicationTests
       etag = last_response.headers["ETag"]
 
       get "/expires/expires_etag", { private: true }, { "HTTP_IF_NONE_MATCH" => etag }
-      assert_equal     "miss", last_response.headers["X-Rack-Cache"]
+      assert_equal "miss", last_response.headers["X-Rack-Cache"]
       assert_not_equal body,   last_response.body
     end
 
@@ -174,7 +174,7 @@ module ApplicationTests
       last = last_response.headers["Last-Modified"]
 
       get "/expires/expires_last_modified", { private: true }, { "HTTP_IF_MODIFIED_SINCE" => last }
-      assert_equal     "miss", last_response.headers["X-Rack-Cache"]
+      assert_equal "miss", last_response.headers["X-Rack-Cache"]
       assert_not_equal body,   last_response.body
     end
   end

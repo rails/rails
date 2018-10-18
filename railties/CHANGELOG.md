@@ -1,164 +1,198 @@
-## Rails 5.2.0.beta2 (November 28, 2017) ##
+*   Use Ids instead of memory addresses when displaying references in scaffold views.
 
-*   No changes.
+    Fixes #29200.
 
+    *Rasesh Patel*
 
-## Rails 5.2.0.beta1 (November 27, 2017) ##
+*   Adds support for multiple databases to `rails db:migrate:status`.
+    Subtasks are also added to get the status of individual databases (eg. `rails db:migrate:status:animals`).
 
-*   Deprecate `after_bundle` callback in Rails plugin templates.
+    *Gannon McGibbon*
 
-    *Yuji Yaginuma*
+*   Use Webpacker by default to manage app-level JavaScript through the new app/javascript directory.
+    Sprockets is now solely in charge, by default, of compiling CSS and other static assets.
+    Action Cable channel generators will create ES6 stubs rather than use CoffeeScript.
+    Active Storage, Action Cable, Turbolinks, and Rails-UJS are loaded by a new application.js pack.
+    Generators no longer generate JavaScript stubs.
 
-*   `rails new` and `rails plugin new` get `Active Storage` by default.
-     Add ability to skip `Active Storage` with `--skip-active-storage`
-     and do so automatically when `--skip-active-record` is used.
+    *DHH*, *Lachlan Sylvester*
 
-    *bogdanvlviv*
+*   Refactors `migrations_paths` command option in generators
+    to `database` (aliased as `db`). Now, the migrations paths
+    will be read from the specified database configuration in the
+    current environment.
 
-*   Gemfile for new apps: upgrade redis-rb from ~> 3.0 to 4.0.
+    ```
+    bin/rails g model Chair brand:string --database=kingston
+          invoke  active_record
+          create    db/kingston_migrate/20180830151055_create_chairs.rb
+    ```
 
-    *Jeremy Daer*
+    `--database` can be used with the migration, model, and scaffold generators.
 
-*   Add `mini_magick` to default `Gemfile` as comment.
+    *Gannon McGibbon*
 
-    *Yoshiyuki Hirano*
+*   Adds an option to the model generator to allow setting the
+    migrations paths for that migration. This is useful for
+    applications that use multiple databases and put migrations
+    per database in their own directories.
 
-*   Derive `secret_key_base` from the app name in development and test environments.
+    ```
+    bin/rails g model Room capacity:integer --migrations-paths=db/kingston_migrate
+          invoke  active_record
+          create    db/kingston_migrate/20180830151055_create_rooms.rb
+    ```
 
-    Spares away needless secret configs.
+    Because rails scaffolding uses the model generator, you can
+    also specify migrations paths with the scaffold generator.
 
-    *DHH*, *Kasper Timm Hansen*
+    *Gannon McGibbon*
 
-*   Support multiple versions arguments for `gem` method of Generators.
+*   Raise an error when "recyclable cache keys" are being used by a cache store
+    that does not explicitly support it. Custom cache keys that do support this feature
+    can bypass this error by implementing the `supports_cache_versioning?` method on their
+    class and returning a truthy value.
 
-    *Yoshiyuki Hirano*
+    *Richard Schneeman*
 
-*   Add `--skip-yarn` option to the plugin generator.
+*   Support environment specific credentials file.
 
-    *bogdanvlviv*
+    For `production` environment look first for `config/credentials/production.yml.enc` file that can be decrypted by
+    `ENV["RAILS_MASTER_KEY"]` or `config/credentials/production.key` master key.
+    Edit given environment credentials file by command `rails credentials:edit --environment production`.
+    Default paths can be overwritten by setting `config.credentials.content_path` and `config.credentials.key_path`.
 
-*   Optimize routes indentation.
+    *Wojciech Wnętrzak*
 
-    *Yoshiyuki Hirano*
+*   Make `ActiveSupport::Cache::NullStore` the default cache store in the test environment.
 
-*   Optimize indentation for generator actions.
+    *Michael C. Nelson*
 
-    *Yoshiyuki Hirano*
+*   Emit warning for unknown inflection rule when generating model.
 
-*   Skip unused components when running `bin/rails` in Rails plugin.
+    *Yoshiyuki Kinjo*
 
-    *Yoshiyuki Hirano*
+*   Add `--migrations_paths` option to migration generator.
 
-*   Add `git_source` to `Gemfile` for plugin generator.
+    If you're using multiple databases and have a folder for each database
+    for migrations (ex db/migrate and db/new_db_migrate) you can now pass the
+    `--migrations_paths` option to the generator to make sure the the migration
+    is inserted into the correct folder.
 
-    *Yoshiyuki Hirano*
+    ```
+    rails g migration CreateHouses --migrations_paths=db/kingston_migrate
+      invoke  active_record
+      create    db/kingston_migrate/20180830151055_create_houses.rb
+    ```
 
-*   Add `--skip-action-cable` option to the plugin generator.
+    *Eileen M. Uchitelle*
 
-    *bogdanvlviv*
-
-*   Deprecate support for using a `Rails::Application` subclass to start Rails server.
-
-    *Yuji Yaginuma*
-
-*   Add `ruby x.x.x` version to `Gemfile` and create `.ruby-version`
-    root file containing the current Ruby version when new Rails applications are
-    created.
-
-    *Alberto Almagro*
-
-*   Support `-` as a platform-agnostic way to run a script from stdin with
-    `rails runner`
-
-    *Cody Cutrer*
-
-*   Add `bootsnap` to default `Gemfile`.
-
-    *Burke Libbey*
-
-*   Properly expand shortcuts for environment's name running the `console`
-    and `dbconsole` commands.
-
-    *Robin Dupret*
-
-*   Passing the environment's name as a regular argument to the
-    `rails dbconsole` and `rails console` commands is deprecated.
-    The `-e` option should be used instead.
-
-    Previously:
-
-        $ bin/rails dbconsole production
-
-    Now:
-
-        $ bin/rails dbconsole -e production
-
-    *Robin Dupret*, *Kasper Timm Hansen*
-
-*   Allow passing a custom connection name to the `rails dbconsole`
-    command when using a 3-level database configuration.
-
-        $ bin/rails dbconsole -c replica
-
-    *Robin Dupret*, *Jeremy Daer*
-
-*   Skip unused components when running `bin/rails app:update`.
-
-    If the initial app generation skipped Action Cable, Active Record etc.,
-    the update task honors those skips too.
+*   Deprecate `rake routes` in favor of `rails routes`.
 
     *Yuji Yaginuma*
 
-*   Make Rails' test runner work better with minitest plugins.
+*   Deprecate `rake initializers` in favor of `rails initializers`.
 
-    By demoting the Rails test runner to just another minitest plugin —
-    and thereby not eager loading it — we can co-exist much better with
-    other minitest plugins such as pride and minitest-focus.
+    *Annie-Claude Côté*
 
-    *Kasper Timm Hansen*
+*   Deprecate `rake dev:cache` in favor of `rails dev:cache`.
 
-*   Load environment file in `dbconsole` command.
+    *Annie-Claude Côté*
 
-    Fixes #29717.
+*   Deprecate `rails notes` subcommands in favor of passing an `annotations` argument to `rails notes`.
 
-    *Yuji Yaginuma*
+    The following subcommands are replaced by passing `--annotations` or `-a` to `rails notes`:
+    - `rails notes:custom ANNOTATION=custom` is deprecated in favor of using `rails notes -a custom`.
+    - `rails notes:optimize` is deprecated in favor of using `rails notes -a OPTIMIZE`.
+    - `rails notes:todo` is deprecated in favor of  using`rails notes -a TODO`.
+    - `rails notes:fixme` is deprecated in favor of using `rails notes -a FIXME`.
 
-*   Add `rails secrets:show` command.
+    *Annie-Claude Côté*
 
-    *Yuji Yaginuma*
+*   Deprecate `SOURCE_ANNOTATION_DIRECTORIES` environment variable used by `rails notes`
+    through `Rails::SourceAnnotationExtractor::Annotation` in favor of using `config.annotations.register_directories`.
 
-*   Allow mounting the same engine several times in different locations.
+    *Annie-Claude Côté*
 
-    Fixes #20204.
+*   Deprecate `rake notes` in favor of `rails notes`.
 
-    *David Rodríguez*
+    *Annie-Claude Côté*
 
-*   Clear screenshot files in `tmp:clear` task.
+*   Don't generate unused files in `app:update` task.
 
-    *Yuji Yaginuma*
+    Skip the assets' initializer when sprockets isn't loaded.
 
-*   Add `railtie.rb` to the plugin generator
+    Skip `config/spring.rb` when spring isn't loaded.
+
+    Skip yarn's contents when yarn integration isn't used.
 
     *Tsukuru Tanimichi*
 
-*   Deprecate `capify!` method in generators and templates.
+*   Make the master.key file read-only for the owner upon generation on
+    POSIX-compliant systems.
+
+    Previously:
+
+        $ ls -l config/master.key
+        -rw-r--r--   1 owner  group      32 Jan 1 00:00 master.key
+
+    Now:
+
+        $ ls -l config/master.key
+        -rw-------   1 owner  group      32 Jan 1 00:00 master.key
+
+    Fixes #32604.
+
+    *Jose Luis Duran*
+
+*   Deprecate support for using the `HOST` environment to specify the server IP.
+
+    The `BINDING` environment should be used instead.
+
+    Fixes #29516.
 
     *Yuji Yaginuma*
 
-*   Allow irb options to be passed from `rails console` command.
+*   Deprecate passing Rack server name as a regular argument to `rails server`.
 
-    Fixes #28988.
+    Previously:
 
-    *Yuji Yaginuma*
+        $ bin/rails server thin
 
-*   Added a shared section to `config/database.yml` that will be loaded for all environments.
+    There wasn't an explicit option for the Rack server to use, now we have the
+    `--using` option with the `-u` short switch.
 
-    *Pierre Schambacher*
+    Now:
 
-*   Namespace error pages' CSS selectors to stop the styles from bleeding into other pages
-    when using Turbolinks.
+        $ bin/rails server -u thin
 
-    *Jan Krutisch*
+    This change also improves the error message if a missing or mistyped rack
+    server is given.
+
+    *Genadi Samokovarov*
+
+*   Add "rails routes --expanded" option to output routes in expanded mode like
+    "psql --expanded". Result looks like:
+
+    ```
+    $ rails routes --expanded
+    --[ Route 1 ]------------------------------------------------------------
+    Prefix            | high_scores
+    Verb              | GET
+    URI               | /high_scores(.:format)
+    Controller#Action | high_scores#index
+    --[ Route 2 ]------------------------------------------------------------
+    Prefix            | new_high_score
+    Verb              | GET
+    URI               | /high_scores/new(.:format)
+    Controller#Action | high_scores#new
+    ```
+
+    *Benoit Tigeot*
+
+*   Rails 6 requires Ruby 2.4.1 or newer.
+
+    *Jeremy Daer*
 
 
-Please check [5-1-stable](https://github.com/rails/rails/blob/5-1-stable/railties/CHANGELOG.md) for previous changes.
+Please check [5-2-stable](https://github.com/rails/rails/blob/5-2-stable/railties/CHANGELOG.md) for previous changes.

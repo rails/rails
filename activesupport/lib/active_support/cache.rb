@@ -160,6 +160,23 @@ module ActiveSupport
       attr_reader :silence, :options
       alias :silence? :silence
 
+      class << self
+        private
+          def retrieve_pool_options(options)
+            {}.tap do |pool_options|
+              pool_options[:size] = options.delete(:pool_size) if options[:pool_size]
+              pool_options[:timeout] = options.delete(:pool_timeout) if options[:pool_timeout]
+            end
+          end
+
+          def ensure_connection_pool_added!
+            require "connection_pool"
+          rescue LoadError => e
+            $stderr.puts "You don't have connection_pool installed in your application. Please add it to your Gemfile and run bundle install"
+            raise e
+          end
+      end
+
       # Creates a new cache. The options will be passed to any write method calls
       # except for <tt>:namespace</tt> which can be used to set the global
       # namespace for the cache.
@@ -211,6 +228,14 @@ module ActiveSupport
       # The +:force+ option is useful when you're calling some other method to
       # ask whether you should force a cache write. Otherwise, it's clearer to
       # just call <tt>Cache#write</tt>.
+      #
+      # Setting <tt>skip_nil: true</tt> will not cache nil result:
+      #
+      #   cache.fetch('foo') { nil }
+      #   cache.fetch('bar', skip_nil: true) { nil }
+      #   cache.exist?('foo') # => true
+      #   cache.exist?('bar') # => false
+      #
       #
       # Setting <tt>compress: false</tt> disables compression of the cache entry.
       #
@@ -316,8 +341,9 @@ module ActiveSupport
       # the cache with the given key, then that data is returned. Otherwise,
       # +nil+ is returned.
       #
-      # Note, if data was written with the <tt>:expires_in<tt> or <tt>:version</tt> options,
-      # both of these conditions are applied before the data is returned.
+      # Note, if data was written with the <tt>:expires_in</tt> or
+      # <tt>:version</tt> options, both of these conditions are applied before
+      # the data is returned.
       #
       # Options are passed to the underlying cache implementation.
       def read(name, options = nil)
@@ -385,8 +411,6 @@ module ActiveSupport
       # to the cache. If you do not want to write the cache when the cache is
       # not found, use #read_multi.
       #
-      # Options are passed to the underlying cache implementation.
-      #
       # Returns a hash with the data for each of the names. For example:
       #
       #   cache.write("bim", "bam")
@@ -396,6 +420,17 @@ module ActiveSupport
       #   # => { "bim" => "bam",
       #   #      "unknown_key" => "Fallback value for key: unknown_key" }
       #
+      # Options are passed to the underlying cache implementation. For example:
+      #
+      #   cache.fetch_multi("fizz", expires_in: 5.seconds) do |key|
+      #     "buzz"
+      #   end
+      #   # => {"fizz"=>"buzz"}
+      #   cache.read("fizz")
+      #   # => "buzz"
+      #   sleep(6)
+      #   cache.read("fizz")
+      #   # => nil
       def fetch_multi(*names)
         raise ArgumentError, "Missing block: `Cache#fetch_multi` requires a block." unless block_given?
 
@@ -570,9 +605,13 @@ module ActiveSupport
         # Merges the default options with ones specific to a method call.
         def merged_options(call_options)
           if call_options
-            options.merge(call_options)
+            if options.empty?
+              call_options
+            else
+              options.merge(call_options)
+            end
           else
-            options.dup
+            options
           end
         end
 
@@ -617,7 +656,7 @@ module ActiveSupport
             if key.size > 1
               key = key.collect { |element| expanded_key(element) }
             else
-              key = key.first
+              key = expanded_key(key.first)
             end
           when Hash
             key = key.sort_by { |k, _| k.to_s }.collect { |k, v| "#{k}=#{v}" }
@@ -668,7 +707,7 @@ module ActiveSupport
         end
 
         def get_entry_value(entry, name, options)
-          instrument(:fetch_hit, name, options) {}
+          instrument(:fetch_hit, name, options) { }
           entry.value
         end
 
@@ -677,7 +716,7 @@ module ActiveSupport
             yield(name)
           end
 
-          write(name, result, options)
+          write(name, result, options) unless result.nil? && options[:skip_nil]
           result
         end
     end
@@ -695,19 +734,14 @@ module ActiveSupport
       DEFAULT_COMPRESS_LIMIT = 1.kilobyte
 
       # Creates a new cache entry for the specified value. Options supported are
-      # +:compress+, +:compress_threshold+, and +:expires_in+.
-      def initialize(value, options = {})
-        if should_compress?(value, options)
-          @value = compress(value)
-          @compressed = true
-        else
-          @value = value
-        end
-
-        @version    = options[:version]
+      # +:compress+, +:compress_threshold+, +:version+ and +:expires_in+.
+      def initialize(value, compress: true, compress_threshold: DEFAULT_COMPRESS_LIMIT, version: nil, expires_in: nil, **)
+        @value      = value
+        @version    = version
         @created_at = Time.now.to_f
-        @expires_in = options[:expires_in]
-        @expires_in = @expires_in.to_f if @expires_in
+        @expires_in = expires_in && expires_in.to_f
+
+        compress!(compress_threshold) if compress
       end
 
       def value
@@ -739,17 +773,13 @@ module ActiveSupport
       # Returns the size of the cached value. This could be less than
       # <tt>value.size</tt> if the data is compressed.
       def size
-        if defined?(@s)
-          @s
+        case value
+        when NilClass
+          0
+        when String
+          @value.bytesize
         else
-          case value
-          when NilClass
-            0
-          when String
-            @value.bytesize
-          else
-            @s = Marshal.dump(@value).bytesize
-          end
+          @s ||= Marshal.dump(@value).bytesize
         end
       end
 
@@ -766,23 +796,30 @@ module ActiveSupport
       end
 
       private
-        def should_compress?(value, options)
-          if value && options.fetch(:compress, true)
-            compress_threshold = options.fetch(:compress_threshold, DEFAULT_COMPRESS_LIMIT)
-            serialized_value_size = (value.is_a?(String) ? value : Marshal.dump(value)).bytesize
-
-            return true if serialized_value_size >= compress_threshold
+        def compress!(compress_threshold)
+          case @value
+          when nil, true, false, Numeric
+            uncompressed_size = 0
+          when String
+            uncompressed_size = @value.bytesize
+          else
+            serialized = Marshal.dump(@value)
+            uncompressed_size = serialized.bytesize
           end
 
-          false
+          if uncompressed_size >= compress_threshold
+            serialized ||= Marshal.dump(@value)
+            compressed = Zlib::Deflate.deflate(serialized)
+
+            if compressed.bytesize < uncompressed_size
+              @value = compressed
+              @compressed = true
+            end
+          end
         end
 
         def compressed?
-          defined?(@compressed) ? @compressed : false
-        end
-
-        def compress(value)
-          Zlib::Deflate.deflate(Marshal.dump(value))
+          defined?(@compressed)
         end
 
         def uncompress(value)

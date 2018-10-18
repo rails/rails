@@ -90,6 +90,10 @@ module ActiveModel
         false
       end
 
+      def force_equality?(_value) # :nodoc:
+        false
+      end
+
       def map(value) # :nodoc:
         yield value
       end

@@ -218,11 +218,11 @@ module ActiveRecord
       end
 
       def full_table_name_prefix #:nodoc:
-        (parents.detect { |p| p.respond_to?(:table_name_prefix) } || self).table_name_prefix
+        (module_parents.detect { |p| p.respond_to?(:table_name_prefix) } || self).table_name_prefix
       end
 
       def full_table_name_suffix #:nodoc:
-        (parents.detect { |p| p.respond_to?(:table_name_suffix) } || self).table_name_suffix
+        (module_parents.detect { |p| p.respond_to?(:table_name_suffix) } || self).table_name_suffix
       end
 
       # The array of names of environments where destructive actions should be prohibited. By default,
@@ -276,7 +276,7 @@ module ActiveRecord
       end
 
       def sequence_name
-        if base_class == self
+        if base_class?
           @sequence_name ||= reset_sequence_name
         else
           (@sequence_name ||= nil) || base_class.sequence_name
@@ -361,8 +361,9 @@ module ActiveRecord
       # it).
       #
       # +attr_name+ The name of the attribute to retrieve the type for. Must be
-      # a string
+      # a string or a symbol.
       def type_for_attribute(attr_name, &block)
+        attr_name = attr_name.to_s
         if block
           attribute_types.fetch(attr_name, &block)
         else
@@ -374,16 +375,22 @@ module ActiveRecord
       # default values when instantiating the Active Record object for this table.
       def column_defaults
         load_schema
-        @column_defaults ||= _default_attributes.to_hash
+        @column_defaults ||= _default_attributes.deep_dup.to_hash
       end
 
       def _default_attributes # :nodoc:
+        load_schema
         @default_attributes ||= ActiveModel::AttributeSet.new({})
       end
 
       # Returns an array of column names as strings.
       def column_names
         @column_names ||= columns.map(&:name)
+      end
+
+      def symbol_column_to_string(name_symbol) # :nodoc:
+        @symbol_column_to_string_name_hash ||= column_names.index_by(&:to_sym)
+        @symbol_column_to_string_name_hash[name_symbol]
       end
 
       # Returns an array of column objects where the primary id, all columns ending in "_id" or "_count",
@@ -475,6 +482,7 @@ module ActiveRecord
         def reload_schema_from_cache
           @arel_table = nil
           @column_names = nil
+          @symbol_column_to_string_name_hash = nil
           @attribute_types = nil
           @content_columns = nil
           @default_attributes = nil
@@ -499,19 +507,18 @@ module ActiveRecord
 
         # Computes and returns a table name according to default conventions.
         def compute_table_name
-          base = base_class
-          if self == base
+          if base_class?
             # Nested classes are prefixed with singular parent table name.
-            if parent < Base && !parent.abstract_class?
-              contained = parent.table_name
-              contained = contained.singularize if parent.pluralize_table_names
+            if module_parent < Base && !module_parent.abstract_class?
+              contained = module_parent.table_name
+              contained = contained.singularize if module_parent.pluralize_table_names
               contained += "_"
             end
 
             "#{full_table_name_prefix}#{contained}#{undecorated_table_name(name)}#{full_table_name_suffix}"
           else
             # STI subclasses always use their superclass' table.
-            base.table_name
+            base_class.table_name
           end
         end
     end

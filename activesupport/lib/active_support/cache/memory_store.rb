@@ -30,6 +30,11 @@ module ActiveSupport
         @pruning = false
       end
 
+      # Advertise cache versioning support.
+      def self.supports_cache_versioning?
+        true
+      end
+
       # Delete all data stored in a given cache store.
       def clear(options = nil)
         synchronize do
