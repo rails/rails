@@ -36,7 +36,7 @@ This chapter describes some particular attacks related to sessions, and security
 
 ### What are Sessions?
 
-INFO: Sessions enable the application to maintain user-specific state, while users interact with the application. Once the user has been authenticated, an active session enables the user to keep using the application, without requiring authentication on each request.
+INFO: Sessions enable the application to maintain user-specific state, while users interact with the application. For example, sessions allow users to authenticate once and remain signed in for future requests.
 
 Most applications need to keep track of state for users that interact with the application. This could be the contents of a shopping basket, or the user id of the currently logged in user. This kind of user-specific state can be stored in the session.
 
