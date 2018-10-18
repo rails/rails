@@ -103,6 +103,8 @@ module ActiveSupport #:nodoc:
       # parent.rb then requires namespace/child.rb, the stack will look like
       # [[Object], [Namespace]].
 
+      attr_reader :watching
+
       def initialize
         @watching = []
         @stack = Hash.new { |h, k| h[k] = [] }
@@ -254,7 +256,9 @@ module ActiveSupport #:nodoc:
 
       def load_dependency(file)
         if Dependencies.load? && Dependencies.constant_watch_stack.watching?
-          Dependencies.new_constants_in(Object) { yield }
+          descs = Dependencies.constant_watch_stack.watching.flatten.uniq
+
+          Dependencies.new_constants_in(*descs) { yield }
         else
           yield
         end
