@@ -306,7 +306,7 @@ GEM
     loofah (2.2.2)
       crass (~> 1.0.2)
       nokogiri (>= 1.5.9)
-    mail (2.7.0)
+    mail (2.7.1)
       mini_mime (>= 0.1.1)
     marcel (0.3.3)
       mimemagic (~> 0.3.2)
@@ -323,6 +323,8 @@ GEM
     minitest-bisect (1.4.0)
       minitest-server (~> 1.0)
       path_expander (~> 1.0)
+    minitest-retry (0.1.9)
+      minitest (>= 5.0)
     minitest-server (1.0.5)
       minitest (~> 5.0)
     mono_logger (1.1.0)
@@ -339,12 +341,12 @@ GEM
     mysql2 (0.5.2-x86-mingw32)
     nio4r (2.3.1)
     nio4r (2.3.1-java)
-    nokogiri (1.8.4)
+    nokogiri (1.8.5)
       mini_portile2 (~> 2.3.0)
-    nokogiri (1.8.4-java)
-    nokogiri (1.8.4-x64-mingw32)
+    nokogiri (1.8.5-java)
+    nokogiri (1.8.5-x64-mingw32)
       mini_portile2 (~> 2.3.0)
-    nokogiri (1.8.4-x86-mingw32)
+    nokogiri (1.8.5-x86-mingw32)
       mini_portile2 (~> 2.3.0)
     os (1.0.0)
     parallel (1.12.1)
@@ -538,6 +540,7 @@ DEPENDENCIES
   libxml-ruby
   listen (>= 3.0.5, < 3.2)
   minitest-bisect
+  minitest-retry
   mysql2 (>= 0.4.10)
   nokogiri (>= 1.8.1)
   pg (>= 0.18.0)
@@ -576,4 +579,4 @@ DEPENDENCIES
   websocket-client-simple!
 
 BUNDLED WITH
-   1.16.5
+   1.16.6

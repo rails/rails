@@ -126,7 +126,7 @@ run the following:
 $ rails --version
 ```
 
-If it says something like "Rails 5.1.1", you are ready to continue.
+If it says something like "Rails 5.2.1", you are ready to continue.
 
 ### Creating the Blog Application
 

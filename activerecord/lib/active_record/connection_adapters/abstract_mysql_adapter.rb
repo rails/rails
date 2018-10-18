@@ -54,10 +54,6 @@ module ActiveRecord
         super(connection, logger, config)
 
         @statements = StatementPool.new(self.class.type_cast_config_to_integer(config[:statement_limit]))
-
-        if version < "5.5.8"
-          raise "Your version of MySQL (#{version_string}) is too old. Active Record supports MySQL >= 5.5.8."
-        end
       end
 
       def version #:nodoc:
@@ -535,6 +531,12 @@ module ActiveRecord
       end
 
       private
+        def check_version
+          if version < "5.5.8"
+            raise "Your version of MySQL (#{version_string}) is too old. Active Record supports MySQL >= 5.5.8."
+          end
+        end
+
         def combine_multi_statements(total_sql)
           total_sql.each_with_object([]) do |sql, total_sql_chunks|
             previous_packet = total_sql_chunks.last

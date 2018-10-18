@@ -62,9 +62,9 @@ module ActiveSupport
       raise ArgumentError, "Can only transliterate strings. Received #{string.class.name}" unless string.is_a?(String)
 
       I18n.transliterate(
-        ActiveSupport::Multibyte::Unicode.normalize(
-          ActiveSupport::Multibyte::Unicode.tidy_bytes(string), :c),
-        replacement: replacement)
+        ActiveSupport::Multibyte::Unicode.tidy_bytes(string).unicode_normalize(:nfc),
+        replacement: replacement
+      )
     end
 
     # Replaces special characters in a string so that it may be used as part of

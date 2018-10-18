@@ -388,6 +388,11 @@ module ActiveRecord
         @column_names ||= columns.map(&:name)
       end
 
+      def symbol_column_to_string(name_symbol) # :nodoc:
+        @symbol_column_to_string_name_hash ||= column_names.index_by(&:to_sym)
+        @symbol_column_to_string_name_hash[name_symbol]
+      end
+
       # Returns an array of column objects where the primary id, all columns ending in "_id" or "_count",
       # and columns used for single table inheritance have been removed.
       def content_columns
@@ -477,6 +482,7 @@ module ActiveRecord
         def reload_schema_from_cache
           @arel_table = nil
           @column_names = nil
+          @symbol_column_to_string_name_hash = nil
           @attribute_types = nil
           @content_columns = nil
           @default_attributes = nil

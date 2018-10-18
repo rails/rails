@@ -143,14 +143,14 @@ class NilClass
   #
   # With +try+
   #   @person.try(:children).try(:first).try(:name)
-  def try(*args)
+  def try(method_name = nil, *args)
     nil
   end
 
   # Calling +try!+ on +nil+ always returns +nil+.
   #
   #   nil.try!(:name) # => nil
-  def try!(*args)
+  def try!(method_name = nil, *args)
     nil
   end
 end

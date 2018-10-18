@@ -274,6 +274,9 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_queries(1) { posts(:thinking) }
     new_person = nil # so block binding catches it
 
+    # Load schema information so we don't query below if running just this test.
+    Person.define_attribute_methods
+
     assert_no_queries do
       new_person = Person.new first_name: "bob"
     end
@@ -293,6 +296,9 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_associate_new_by_building
     assert_queries(1) { posts(:thinking) }
+
+    # Load schema information so we don't query below if running just this test.
+    Person.define_attribute_methods
 
     assert_no_queries do
       posts(:thinking).people.build(first_name: "Bob")

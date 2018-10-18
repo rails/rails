@@ -6,35 +6,33 @@ module ActiveJob
   module Core
     extend ActiveSupport::Concern
 
-    included do
-      # Job arguments
-      attr_accessor :arguments
-      attr_writer :serialized_arguments
+    # Job arguments
+    attr_accessor :arguments
+    attr_writer :serialized_arguments
 
-      # Timestamp when the job should be performed
-      attr_accessor :scheduled_at
+    # Timestamp when the job should be performed
+    attr_accessor :scheduled_at
 
-      # Job Identifier
-      attr_accessor :job_id
+    # Job Identifier
+    attr_accessor :job_id
 
-      # Queue in which the job will reside.
-      attr_writer :queue_name
+    # Queue in which the job will reside.
+    attr_writer :queue_name
 
-      # Priority that the job will have (lower is more priority).
-      attr_writer :priority
+    # Priority that the job will have (lower is more priority).
+    attr_writer :priority
 
-      # ID optionally provided by adapter
-      attr_accessor :provider_job_id
+    # ID optionally provided by adapter
+    attr_accessor :provider_job_id
 
-      # Number of times this job has been executed (which increments on every retry, like after an exception).
-      attr_accessor :executions
+    # Number of times this job has been executed (which increments on every retry, like after an exception).
+    attr_accessor :executions
 
-      # I18n.locale to be used during the job.
-      attr_accessor :locale
+    # I18n.locale to be used during the job.
+    attr_accessor :locale
 
-      # Timezone to be used during the job.
-      attr_accessor :timezone
-    end
+    # Timezone to be used during the job.
+    attr_accessor :timezone
 
     # These methods will be included into any Active Job object, adding
     # helpers for de/serialization and creation of job instances.

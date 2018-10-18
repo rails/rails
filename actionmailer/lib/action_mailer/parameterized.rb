@@ -140,7 +140,8 @@ module ActionMailer
             super
           else
             args = @mailer_class.name, @action.to_s, delivery_method.to_s, @params, *@args
-            ActionMailer::Parameterized::DeliveryJob.set(options).perform_later(*args)
+            job = @mailer_class.parameterized_delivery_job
+            job.set(options).perform_later(*args)
           end
         end
     end

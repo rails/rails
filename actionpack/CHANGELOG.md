@@ -1,3 +1,11 @@
+*   Add `ActionController::Parameters#each_value`.
+
+    *Lukáš Zapletal*
+
+*   Deprecate `ActionDispatch::Http::ParameterFilter` in favor of `ActiveSupport::ParameterFilter`.
+
+    *Yoshiyuki Kinjo*
+
 *   Remove undocumented `params` option from `url_for` helper.
 
     *Ilkka Oksanen*

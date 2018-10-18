@@ -124,6 +124,8 @@ module ActiveRecord
 
       mattr_accessor :belongs_to_required_by_default, instance_accessor: false
 
+      mattr_accessor :connection_handlers, instance_accessor: false, default: {}
+
       class_attribute :default_connection_handler, instance_writer: false
 
       self.filter_attributes = []
@@ -137,6 +139,7 @@ module ActiveRecord
       end
 
       self.default_connection_handler = ConnectionAdapters::ConnectionHandler.new
+      self.connection_handlers = { writing: ActiveRecord::Base.default_connection_handler }
     end
 
     module ClassMethods
@@ -341,34 +344,22 @@ module ActiveRecord
     #   post = Post.allocate
     #   post.init_with(coder)
     #   post.title # => 'hello world'
-    def init_with(coder)
+    def init_with(coder, &block)
       coder = LegacyYamlAdapter.convert(self.class, coder)
-      @attributes = self.class.yaml_encoder.decode(coder)
-
-      init_internals
-
-      @new_record = coder["new_record"]
-
-      self.class.define_attribute_methods
-
-      yield self if block_given?
-
-      _run_find_callbacks
-      _run_initialize_callbacks
-
-      self
+      attributes = self.class.yaml_encoder.decode(coder)
+      init_with_attributes(attributes, coder["new_record"], &block)
     end
 
     ##
-    # Initializer used for instantiating objects that have been read from the
-    # database.  +attributes+ should be an attributes object, and unlike the
+    # Initialize an empty model object from +attributes+.
+    # +attributes+ should be an attributes object, and unlike the
     # `initialize` method, no assignment calls are made per attribute.
     #
     # :nodoc:
-    def init_from_db(attributes)
+    def init_with_attributes(attributes, new_record = false)
       init_internals
 
-      @new_record = false
+      @new_record = new_record
       @attributes = attributes
 
       self.class.define_attribute_methods

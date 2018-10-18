@@ -846,17 +846,17 @@ module ActiveRecord
       # [<tt>:null</tt>]
       #   Whether the column allows nulls. Defaults to true.
       #
-      # ====== Create a user_id bigint column
+      # ====== Create a user_id bigint column without a index
       #
-      #   add_reference(:products, :user)
+      #   add_reference(:products, :user, index: false)
       #
       # ====== Create a user_id string column
       #
       #   add_reference(:products, :user, type: :string)
       #
-      # ====== Create supplier_id, supplier_type columns and appropriate index
+      # ====== Create supplier_id, supplier_type columns
       #
-      #   add_reference(:products, :supplier, polymorphic: true, index: true)
+      #   add_reference(:products, :supplier, polymorphic: true)
       #
       # ====== Create a supplier_id column with a unique index
       #
@@ -884,7 +884,7 @@ module ActiveRecord
       #
       # ====== Remove the reference
       #
-      #   remove_reference(:products, :user, index: true)
+      #   remove_reference(:products, :user, index: false)
       #
       # ====== Remove polymorphic reference
       #
@@ -892,7 +892,7 @@ module ActiveRecord
       #
       # ====== Remove the reference with a foreign key
       #
-      #   remove_reference(:products, :user, index: true, foreign_key: true)
+      #   remove_reference(:products, :user, foreign_key: true)
       #
       def remove_reference(table_name, ref_name, foreign_key: false, polymorphic: false, **options)
         if foreign_key

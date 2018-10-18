@@ -435,8 +435,8 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_scaffold_generator_belongs_to
-    run_generator ["account", "name", "currency:belongs_to"]
+  def test_scaffold_generator_belongs_to_and_references
+    run_generator ["account", "name", "currency:belongs_to", "user:references"]
 
     assert_file "app/models/account.rb", /belongs_to :currency/
 
@@ -449,13 +449,23 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
     assert_file "app/controllers/accounts_controller.rb" do |content|
       assert_instance_method :account_params, content do |m|
-        assert_match(/permit\(:name, :currency_id\)/, m)
+        assert_match(/permit\(:name, :currency_id, :user_id\)/, m)
       end
     end
 
     assert_file "app/views/accounts/_form.html.erb" do |content|
       assert_match(/^\W{4}<%= form\.text_field :name %>/, content)
       assert_match(/^\W{4}<%= form\.text_field :currency_id %>/, content)
+    end
+
+    assert_file "app/views/accounts/index.html.erb" do |content|
+      assert_match(/^\W{8}<td><%= account\.name %><\/td>/, content)
+      assert_match(/^\W{8}<td><%= account\.user_id %><\/td>/, content)
+    end
+
+    assert_file "app/views/accounts/show.html.erb" do |content|
+      assert_match(/^\W{2}<%= @account\.name %>/, content)
+      assert_match(/^\W{2}<%= @account\.user_id %>/, content)
     end
   end
 

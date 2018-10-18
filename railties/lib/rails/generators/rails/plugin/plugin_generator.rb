@@ -98,6 +98,7 @@ task default: :test
       opts[:skip_listen] = true
       opts[:skip_git] = true
       opts[:skip_turbolinks] = true
+      opts[:skip_webpack_install] = true
       opts[:dummy_app] = true
 
       invoke Rails::Generators::AppGenerator,
