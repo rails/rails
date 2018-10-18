@@ -6,16 +6,11 @@ class ActionMailbox::Ingresses::Amazon::InboundEmailsController < ActionMailbox:
   cattr_accessor :verifier, default: Aws::SNS::MessageVerifier.new
 
   def create
-    ActionMailbox::InboundEmail.create_and_extract_message_id! raw_email
+    ActionMailbox::InboundEmail.create_and_extract_message_id! params.require(:content)
     head :no_content
   end
 
   private
-    def raw_email
-      StringIO.new params.require(:content)
-    end
-
-
     def ensure_verified
       head :unauthorized unless verified?
     end

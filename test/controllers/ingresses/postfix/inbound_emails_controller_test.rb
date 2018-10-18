@@ -5,8 +5,8 @@ ActionMailbox::Ingresses::Postfix::InboundEmailsController.password = "tbsy84uSV
 class ActionMailbox::Ingresses::Postfix::InboundEmailsControllerTest < ActionDispatch::IntegrationTest
   test "receiving an inbound email from Postfix" do
     assert_difference -> { ActionMailbox::InboundEmail.count }, +1 do
-      post rails_postfix_inbound_emails_url, headers: { authorization: credentials },
-        params: { message: fixture_file_upload("files/welcome.eml", "message/rfc822") }
+      post rails_postfix_inbound_emails_url, headers: { "Authorization" => credentials, "Content-Type" => "message/rfc822" },
+        params: file_fixture("../files/welcome.eml").read
     end
 
     assert_response :no_content
@@ -18,10 +18,20 @@ class ActionMailbox::Ingresses::Postfix::InboundEmailsControllerTest < ActionDis
 
   test "rejecting an unauthorized inbound email from Postfix" do
     assert_no_difference -> { ActionMailbox::InboundEmail.count } do
-      post rails_postfix_inbound_emails_url, params: { message: fixture_file_upload("files/welcome.eml", "message/rfc822") }
+      post rails_postfix_inbound_emails_url, headers: { "Content-Type" => "message/rfc822" },
+        params: file_fixture("../files/welcome.eml").read
     end
 
     assert_response :unauthorized
+  end
+
+  test "rejecting an inbound email of an unsupported media type from Postfix" do
+    assert_no_difference -> { ActionMailbox::InboundEmail.count } do
+      post rails_postfix_inbound_emails_url, headers: { "Authorization" => credentials, "Content-Type" => "text/plain" },
+        params: file_fixture("../files/welcome.eml").read
+    end
+
+    assert_response :unsupported_media_type
   end
 
   private

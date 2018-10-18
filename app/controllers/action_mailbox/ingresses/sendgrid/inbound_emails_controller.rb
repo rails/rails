@@ -5,12 +5,7 @@ class ActionMailbox::Ingresses::Sendgrid::InboundEmailsController < ActionMailbo
   before_action :authenticate
 
   def create
-    ActionMailbox::InboundEmail.create_and_extract_message_id! raw_email
+    ActionMailbox::InboundEmail.create_and_extract_message_id! params.require(:email)
     head :no_content
   end
-
-  private
-    def raw_email
-      StringIO.new params.require(:email)
-    end
 end

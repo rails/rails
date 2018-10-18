@@ -13,8 +13,7 @@ class ActionMailbox::Ingresses::Mandrill::InboundEmailsController < ActionMailbo
     def raw_emails
       events.lazy.
         select { |event| event["event"] == "inbound" }.
-        collect { |event| event.dig("msg", "raw_msg") }.
-        collect { |message| StringIO.new message }
+        collect { |event| event.dig("msg", "raw_msg") }
     end
 
     def events

@@ -2,16 +2,11 @@ class ActionMailbox::Ingresses::Mailgun::InboundEmailsController < ActionMailbox
   before_action :ensure_authenticated
 
   def create
-    ActionMailbox::InboundEmail.create_and_extract_message_id! raw_email
+    ActionMailbox::InboundEmail.create_and_extract_message_id! params.require("body-mime")
     head :ok
   end
 
   private
-    def raw_email
-      StringIO.new params.require("body-mime")
-    end
-
-
     def ensure_authenticated
       head :unauthorized unless authenticated?
     end
@@ -25,7 +20,6 @@ class ActionMailbox::Ingresses::Mailgun::InboundEmailsController < ActionMailbox
     def authentication_params
       params.permit(:timestamp, :token, :signature).to_h.symbolize_keys
     end
-
 
     class Authenticator
       cattr_accessor :key
