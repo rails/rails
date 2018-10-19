@@ -1,5 +1,5 @@
 import { WebSocket as MockWebSocket, Server as MockServer } from "mock-socket"
-import ActionCable from "../../../../app/javascript/action_cable/index"
+import * as ActionCable from "../../../../app/javascript/action_cable/index"
 import {defer, testURL} from "./index"
 
 export default function(name, options, callback) {
@@ -14,7 +14,7 @@ export default function(name, options, callback) {
   return QUnit.test(name, function(assert) {
     const doneAsync = assert.async()
 
-    ActionCable.WebSocket = MockWebSocket
+    ActionCable.adapters.WebSocket = MockWebSocket
     const server = new MockServer(options.url)
     const consumer = ActionCable.createConsumer(options.url)
 
