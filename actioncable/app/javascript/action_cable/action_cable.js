@@ -1,4 +1,5 @@
 import Consumer from "./consumer"
+import INTERNAL from "./internal"
 
 const ActionCable = {
   WebSocket: window.WebSocket,
@@ -7,7 +8,7 @@ const ActionCable = {
   createConsumer(url) {
     if (url == null) {
       const urlConfig = this.getConfig("url")
-      url = (urlConfig ? urlConfig : this.INTERNAL.default_mount_path)
+      url = (urlConfig ? urlConfig : INTERNAL.default_mount_path)
     }
     return new Consumer(this.createWebSocketURL(url))
   },
