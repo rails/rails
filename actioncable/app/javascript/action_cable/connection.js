@@ -1,4 +1,5 @@
 import { ActionCable } from "./action_cable"
+import adapters from "./adapters"
 import ConnectionMonitor from "./connection_monitor"
 import INTERNAL from "./internal"
 
@@ -34,7 +35,7 @@ class Connection {
     } else {
       ActionCable.log(`Opening WebSocket, current state is ${this.getState()}, subprotocols: ${protocols}`)
       if (this.webSocket) { this.uninstallEventHandlers() }
-      this.webSocket = new ActionCable.WebSocket(this.consumer.url, protocols)
+      this.webSocket = new adapters.WebSocket(this.consumer.url, protocols)
       this.installEventHandlers()
       this.monitor.start()
       return true

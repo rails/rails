@@ -28,9 +28,6 @@ export function createConsumer(url) {
 }
 
 const ActionCable = {
-  WebSocket: window.WebSocket,
-  logger: window.console,
-
   startDebugging() {
     this.debugging = true
   },
