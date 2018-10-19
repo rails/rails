@@ -710,7 +710,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_web_console_with_dev_option
-    run_generator [destination_root, "--dev"]
+    run_generator [destination_root, "--dev", "--skip-bundle"]
 
     assert_file "Gemfile" do |content|
       assert_match(/gem 'web-console',\s+github: 'rails\/web-console'/, content)
@@ -780,7 +780,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_spring_with_dev_option
-    run_generator [destination_root, "--dev"]
+    run_generator [destination_root, "--dev", "--skip-bundle"]
 
     assert_no_gem "spring"
   end
@@ -878,7 +878,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_bootsnap_with_dev_option
-    run_generator [destination_root, "--dev"]
+    run_generator [destination_root, "--dev", "--skip-bundle"]
 
     assert_no_gem "bootsnap"
     assert_file "config/boot.rb" do |content|
