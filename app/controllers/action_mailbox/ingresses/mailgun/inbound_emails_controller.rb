@@ -38,9 +38,9 @@ class ActionMailbox::Ingresses::Mailgun::InboundEmailsController < ActionMailbox
           ActiveSupport::SecurityUtils.secure_compare signature, expected_signature
         end
 
-        # Allow for 10 minutes of drift between Mailgun time and local server time.
+        # Allow for 2 minutes of drift between Mailgun time and local server time.
         def recent?
-          time >= 10.minutes.ago
+          time >= 2.minutes.ago
         end
 
         def expected_signature
