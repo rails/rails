@@ -467,20 +467,21 @@
     }
     return new Consumer(createWebSocketURL(url));
   }
-  var ActionCable = {};
-  ActionCable.createConsumer = createConsumer;
-  ActionCable.createWebSocketURL = createWebSocketURL;
-  ActionCable.Connection = Connection;
-  ActionCable.ConnectionMonitor = ConnectionMonitor;
-  ActionCable.Consumer = Consumer;
-  ActionCable.getConfig = getConfig;
-  ActionCable.INTERNAL = INTERNAL;
-  ActionCable.log = log;
-  ActionCable.startDebugging = startDebugging;
-  ActionCable.stopDebugging = stopDebugging;
-  ActionCable.Subscription = Subscription;
-  ActionCable.Subscriptions = Subscriptions;
-  Object.defineProperties(ActionCable, {
+  var ActionCable = Object.freeze({
+    getConfig: getConfig,
+    createWebSocketURL: createWebSocketURL,
+    createConsumer: createConsumer,
+    Connection: Connection,
+    ConnectionMonitor: ConnectionMonitor,
+    Consumer: Consumer,
+    INTERNAL: INTERNAL,
+    log: log,
+    startDebugging: startDebugging,
+    stopDebugging: stopDebugging,
+    Subscription: Subscription,
+    Subscriptions: Subscriptions
+  });
+  var index = Object.defineProperties(Object.create(ActionCable), {
     logger: {
       get: function get() {
         return adapters.logger;
@@ -498,5 +499,5 @@
       }
     }
   });
-  return ActionCable;
+  return index;
 });

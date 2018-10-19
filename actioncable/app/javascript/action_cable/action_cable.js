@@ -1,5 +1,10 @@
+import Connection from "./connection"
+import ConnectionMonitor from "./connection_monitor"
 import Consumer from "./consumer"
 import INTERNAL from "./internal"
+import { log, startDebugging, stopDebugging } from "./logger"
+import Subscription from "./subscription"
+import Subscriptions from "./subscriptions"
 
 export function getConfig(name) {
   const element = document.head.querySelector(`meta[name='action-cable-${name}']`)
@@ -27,7 +32,14 @@ export function createConsumer(url) {
   return new Consumer(createWebSocketURL(url))
 }
 
-const ActionCable = {
+export {
+  Connection,
+  ConnectionMonitor,
+  Consumer,
+  INTERNAL,
+  log,
+  startDebugging,
+  stopDebugging,
+  Subscription,
+  Subscriptions
 }
-
-export { ActionCable }
