@@ -3,7 +3,6 @@ class ActionMailbox::Ingresses::Mailgun::InboundEmailsController < ActionMailbox
 
   def create
     ActionMailbox::InboundEmail.create_and_extract_message_id! params.require("body-mime")
-    head :ok
   end
 
   private
