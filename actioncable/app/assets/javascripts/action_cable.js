@@ -424,30 +424,30 @@
     };
     return Consumer;
   }();
+  function getConfig(name) {
+    var element = document.head.querySelector("meta[name='action-cable-" + name + "']");
+    return element ? element.getAttribute("content") : undefined;
+  }
+  function createWebSocketURL(url) {
+    if (url && !/^wss?:/i.test(url)) {
+      var a = document.createElement("a");
+      a.href = url;
+      a.href = a.href;
+      a.protocol = a.protocol.replace("http", "ws");
+      return a.href;
+    } else {
+      return url;
+    }
+  }
   var ActionCable = {
     WebSocket: window.WebSocket,
     logger: window.console,
     createConsumer: function createConsumer(url) {
       if (url == null) {
-        var urlConfig = this.getConfig("url");
+        var urlConfig = getConfig("url");
         url = urlConfig ? urlConfig : INTERNAL.default_mount_path;
       }
-      return new Consumer(this.createWebSocketURL(url));
-    },
-    getConfig: function getConfig(name) {
-      var element = document.head.querySelector("meta[name='action-cable-" + name + "']");
-      return element ? element.getAttribute("content") : undefined;
-    },
-    createWebSocketURL: function createWebSocketURL(url) {
-      if (url && !/^wss?:/i.test(url)) {
-        var a = document.createElement("a");
-        a.href = url;
-        a.href = a.href;
-        a.protocol = a.protocol.replace("http", "ws");
-        return a.href;
-      } else {
-        return url;
-      }
+      return new Consumer(createWebSocketURL(url));
     },
     startDebugging: function startDebugging() {
       this.debugging = true;
@@ -466,9 +466,11 @@
       }
     }
   };
+  ActionCable.createWebSocketURL = createWebSocketURL;
   ActionCable.Connection = Connection;
   ActionCable.ConnectionMonitor = ConnectionMonitor;
   ActionCable.Consumer = Consumer;
+  ActionCable.getConfig = getConfig;
   ActionCable.INTERNAL = INTERNAL;
   ActionCable.Subscription = Subscription;
   ActionCable.Subscriptions = Subscriptions;
