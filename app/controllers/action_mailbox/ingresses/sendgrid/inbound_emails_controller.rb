@@ -6,6 +6,5 @@ class ActionMailbox::Ingresses::Sendgrid::InboundEmailsController < ActionMailbo
 
   def create
     ActionMailbox::InboundEmail.create_and_extract_message_id! params.require(:email)
-    head :no_content
   end
 end

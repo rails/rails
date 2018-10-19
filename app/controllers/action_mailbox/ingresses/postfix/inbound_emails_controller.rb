@@ -6,7 +6,6 @@ class ActionMailbox::Ingresses::Postfix::InboundEmailsController < ActionMailbox
 
   def create
     ActionMailbox::InboundEmail.create_and_extract_message_id! request.body.read
-    head :no_content
   end
 
   private
