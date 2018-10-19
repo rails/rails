@@ -1,4 +1,5 @@
 import ActionCable from "./index"
+import ConnectionMonitor from "./connection_monitor"
 import INTERNAL from "./internal"
 
 // Encapsulate the cable connection held by the consumer. This is an internal class not intended for direct user manipulation.
@@ -13,7 +14,7 @@ class Connection {
     this.open = this.open.bind(this)
     this.consumer = consumer
     this.subscriptions = this.consumer.subscriptions
-    this.monitor = new ActionCable.ConnectionMonitor(this)
+    this.monitor = new ConnectionMonitor(this)
     this.disconnected = true
   }
 
