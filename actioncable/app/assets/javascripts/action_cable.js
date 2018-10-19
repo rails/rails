@@ -425,12 +425,6 @@
     return Consumer;
   }();
   var ActionCable = {
-    Connection: Connection,
-    ConnectionMonitor: ConnectionMonitor,
-    Consumer: Consumer,
-    INTERNAL: INTERNAL,
-    Subscription: Subscription,
-    Subscriptions: Subscriptions,
     WebSocket: window.WebSocket,
     logger: window.console,
     createConsumer: function createConsumer(url) {
@@ -472,5 +466,11 @@
       }
     }
   };
+  ActionCable.Connection = Connection;
+  ActionCable.ConnectionMonitor = ConnectionMonitor;
+  ActionCable.Consumer = Consumer;
+  ActionCable.INTERNAL = INTERNAL;
+  ActionCable.Subscription = Subscription;
+  ActionCable.Subscriptions = Subscriptions;
   return ActionCable;
 });
