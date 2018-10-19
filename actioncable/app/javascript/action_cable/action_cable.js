@@ -19,17 +19,17 @@ export function createWebSocketURL(url) {
   }
 }
 
+export function createConsumer(url) {
+  if (url == null) {
+    const urlConfig = getConfig("url")
+    url = (urlConfig ? urlConfig : INTERNAL.default_mount_path)
+  }
+  return new Consumer(createWebSocketURL(url))
+}
+
 const ActionCable = {
   WebSocket: window.WebSocket,
   logger: window.console,
-
-  createConsumer(url) {
-    if (url == null) {
-      const urlConfig = getConfig("url")
-      url = (urlConfig ? urlConfig : INTERNAL.default_mount_path)
-    }
-    return new Consumer(createWebSocketURL(url))
-  },
 
   startDebugging() {
     this.debugging = true

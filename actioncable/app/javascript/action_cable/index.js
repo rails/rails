@@ -1,4 +1,4 @@
-import { ActionCable, createWebSocketURL, getConfig } from "./action_cable"
+import { ActionCable, createConsumer, createWebSocketURL, getConfig } from "./action_cable"
 import Connection from "./connection"
 import ConnectionMonitor from "./connection_monitor"
 import Consumer from "./consumer"
@@ -6,6 +6,7 @@ import INTERNAL from "./internal"
 import Subscription from "./subscription"
 import Subscriptions from "./subscriptions"
 
+ActionCable.createConsumer = createConsumer
 ActionCable.createWebSocketURL = createWebSocketURL
 ActionCable.Connection = Connection
 ActionCable.ConnectionMonitor = ConnectionMonitor
