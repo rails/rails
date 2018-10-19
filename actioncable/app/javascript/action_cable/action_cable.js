@@ -28,20 +28,6 @@ export function createConsumer(url) {
 }
 
 const ActionCable = {
-  startDebugging() {
-    this.debugging = true
-  },
-
-  stopDebugging() {
-    this.debugging = null
-  },
-
-  log(...messages) {
-    if (this.debugging) {
-      messages.push(Date.now())
-      this.logger.log("[ActionCable]", ...messages)
-    }
-  }
 }
 
 export { ActionCable }

@@ -4,6 +4,7 @@ import Connection from "./connection"
 import ConnectionMonitor from "./connection_monitor"
 import Consumer from "./consumer"
 import INTERNAL from "./internal"
+import { log, startDebugging, stopDebugging } from "./logger"
 import Subscription from "./subscription"
 import Subscriptions from "./subscriptions"
 
@@ -14,6 +15,9 @@ ActionCable.ConnectionMonitor = ConnectionMonitor
 ActionCable.Consumer = Consumer
 ActionCable.getConfig = getConfig
 ActionCable.INTERNAL = INTERNAL
+ActionCable.log = log
+ActionCable.startDebugging = startDebugging
+ActionCable.stopDebugging = stopDebugging
 ActionCable.Subscription = Subscription
 ActionCable.Subscriptions = Subscriptions
 
