@@ -1,3 +1,28 @@
+*   The ActionCable javascript package has been converted from CoffeeScript
+    to ES2015, and we now publish the source code in the npm distribution.
+
+    This allows ActionCable users to depend on the javascript source code
+    rather than the compiled code, which can produce smaller javascript bundles.
+
+    This change includes some breaking changes to optional parts of the
+    ActionCable javascript API:
+
+    - Configuration of the WebSocket adapter and logger adapter have been moved
+      from properties of `ActionCable` to properties of `ActionCable.adapters`.
+      If you are currently configuring these adapters you will need to make
+      these changes when upgrading:
+
+      ```diff
+      -    ActionCable.WebSocket = MyWebSocket
+      +    ActionCable.adapters.WebSocket = MyWebSocket
+      ```
+      ```diff
+      -    ActionCable.logger = myLogger
+      +    ActionCable.adapters.logger = myLogger
+      ```
+
+    *Richard Macklin*
+
 *   Add `id` option to redis adapter so now you can distinguish
     ActionCable's redis connections among others. Also, you can set
     custom id in options.
