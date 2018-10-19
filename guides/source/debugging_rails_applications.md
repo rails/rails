@@ -186,20 +186,57 @@ end
 Here's an example of the log generated when this controller action is executed:
 
 ```
-Started POST "/articles" for 127.0.0.1 at 2017-08-20 20:53:10 +0900
+Started POST "/articles" for 127.0.0.1 at 2018-10-18 20:09:23 -0400
 Processing by ArticlesController#create as HTML
-  Parameters: {"utf8"=>"✓", "authenticity_token"=>"xhuIbSBFytHCE1agHgvrlKnSVIOGD6jltW2tO+P6a/ACjQ3igjpV4OdbsZjIhC98QizWH9YdKokrqxBCJrtoqQ==", "article"=>{"title"=>"Debugging Rails", "body"=>"I'm learning how to print in logs!!!", "published"=>"0"}, "commit"=>"Create Article"}
-New article: {"id"=>nil, "title"=>"Debugging Rails", "body"=>"I'm learning how to print in logs!!!", "published"=>false, "created_at"=>nil, "updated_at"=>nil}
+  Parameters: {"utf8"=>"✓", "authenticity_token"=>"XLveDrKzF1SwaiNRPTaMtkrsTzedtebPPkmxEFIU0ordLjICSnXsSNfrdMa4ccyBjuGwnnEiQhEoMN6H1Gtz3A==", "article"=>{"title"=>"Debugging Rails", "body"=>"I'm learning how to print in logs.", "published"=>"0"}, "commit"=>"Create Article"}
+New article: {"id"=>nil, "title"=>"Debugging Rails", "body"=>"I'm learning how to print in logs.", "published"=>false, "created_at"=>nil, "updated_at"=>nil}
 Article should be valid: true
-   (0.1ms)  BEGIN
-  SQL (0.4ms)  INSERT INTO "articles" ("title", "body", "published", "created_at", "updated_at") VALUES ($1, $2, $3, $4, $5) RETURNING "id"  [["title", "Debugging Rails"], ["body", "I'm learning how to print in logs!!!"], ["published", "f"], ["created_at", "2017-08-20 11:53:10.010435"], ["updated_at", "2017-08-20 11:53:10.010435"]]
-   (0.3ms)  COMMIT
+   (0.0ms)  begin transaction
+  ↳ app/controllers/articles_controller.rb:31
+  Article Create (0.5ms)  INSERT INTO "articles" ("title", "body", "published", "created_at", "updated_at") VALUES (?, ?, ?, ?, ?)  [["title", "Debugging Rails"], ["body", "I'm learning how to print in logs."], ["published", 0], ["created_at", "2018-10-19 00:09:23.216549"], ["updated_at", "2018-10-19 00:09:23.216549"]]
+  ↳ app/controllers/articles_controller.rb:31
+   (2.3ms)  commit transaction
+  ↳ app/controllers/articles_controller.rb:31
 The article was saved and now the user is going to be redirected...
 Redirected to http://localhost:3000/articles/1
 Completed 302 Found in 4ms (ActiveRecord: 0.8ms)
 ```
 
 Adding extra logging like this makes it easy to search for unexpected or unusual behavior in your logs. If you add extra logging, be sure to make sensible use of log levels to avoid filling your production logs with useless trivia.
+
+### Verbose Query Logs
+
+When looking at database query output in logs, it may not be immediately clear why multiple database queries are triggered when a single method is called:
+
+```
+irb(main):001:0> Article.pamplemousse
+  Article Load (0.4ms)  SELECT "articles".* FROM "articles"
+  Comment Load (0.2ms)  SELECT "comments".* FROM "comments" WHERE "comments"."article_id" = ?  [["article_id", 1]]
+  Comment Load (0.1ms)  SELECT "comments".* FROM "comments" WHERE "comments"."article_id" = ?  [["article_id", 2]]
+  Comment Load (0.1ms)  SELECT "comments".* FROM "comments" WHERE "comments"."article_id" = ?  [["article_id", 3]]
+=> #<Comment id: 2, author: "1", body: "Well, actually...", article_id: 1, created_at: "2018-10-19 00:56:10", updated_at: "2018-10-19 00:56:10">
+```
+
+After running `ActiveRecord::Base.verbose_query_logs = true` in the `rails console` session to enable verbose query logs and running the method again, it becomes obvious what single line of code is generating all these discrete database calls:
+
+```
+irb(main):003:0> Article.pamplemousse
+  Article Load (0.2ms)  SELECT "articles".* FROM "articles"
+  ↳ app/models/article.rb:5
+  Comment Load (0.1ms)  SELECT "comments".* FROM "comments" WHERE "comments"."article_id" = ?  [["article_id", 1]]
+  ↳ app/models/article.rb:6
+  Comment Load (0.1ms)  SELECT "comments".* FROM "comments" WHERE "comments"."article_id" = ?  [["article_id", 2]]
+  ↳ app/models/article.rb:6
+  Comment Load (0.1ms)  SELECT "comments".* FROM "comments" WHERE "comments"."article_id" = ?  [["article_id", 3]]
+  ↳ app/models/article.rb:6
+=> #<Comment id: 2, author: "1", body: "Well, actually...", article_id: 1, created_at: "2018-10-19 00:56:10", updated_at: "2018-10-19 00:56:10">
+```
+
+Below each database statement you can see arrows pointing to the specific source filename (and line number) of the method that resulted in a database call. This can help you identity and address performance problems caused by N+1 queries: single database queries that generates multiple additional queries.
+
+Verbose query logs are enabled by default in the development environment logs after Rails 5.2.
+
+WARNING: We recommend against using this setting in production environments. It relies on Ruby's `Kernel#caller` method which tends to allocate a lot of memory in order to generate stacktraces of method calls.
 
 ### Tagged Logging
 
