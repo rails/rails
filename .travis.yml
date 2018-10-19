@@ -36,8 +36,6 @@ before_install:
   - "rm ${BUNDLE_GEMFILE}.lock"
   - "travis_retry gem update --system"
   - "travis_retry gem install bundler"
-  - "[ -f /tmp/beanstalkd-1.10/Makefile ] || (curl -L https://github.com/kr/beanstalkd/archive/v1.10.tar.gz | tar xz -C /tmp)"
-  - "pushd /tmp/beanstalkd-1.10 && make && (./beanstalkd &); popd"
   - "[[ -z $encrypted_0fb9444d0374_key && -z $encrypted_0fb9444d0374_iv ]] || openssl aes-256-cbc -K $encrypted_0fb9444d0374_key -iv $encrypted_0fb9444d0374_iv -in activestorage/test/service/configurations.yml.enc -out activestorage/test/service/configurations.yml -d"
   - "[[ $GEM != 'av:ujs' ]] || nvm install node"
   - "[[ $GEM != 'av:ujs' ]] || node --version"
@@ -101,23 +99,44 @@ matrix:
     - rvm: 2.5.1
       env: "GEM=av:ujs"
     - rvm: 2.4.4
+      sudo: required
       env: "GEM=aj:integration"
       services:
         - memcached
         - redis-server
         - rabbitmq
+      before_install:
+        - sudo sed -i -e '/local.*peer/s/postgres/all/' -e 's/peer\|md5/trust/g' /etc/postgresql/*/main/pg_hba.conf
+        - "sudo sed -i 's/port = 5433/port = 5432/' /etc/postgresql/10/main/postgresql.conf"
+        - "sudo service postgresql restart 10"
+        - "[ -f /tmp/beanstalkd-1.10/Makefile ] || (curl -L https://github.com/kr/beanstalkd/archive/v1.10.tar.gz | tar xz -C /tmp)"
+        - "pushd /tmp/beanstalkd-1.10 && make && (./beanstalkd &); popd"
     - rvm: 2.5.1
+      sudo: required
       env: "GEM=aj:integration"
       services:
         - memcached
         - redis-server
         - rabbitmq
+      before_install:
+        - sudo sed -i -e '/local.*peer/s/postgres/all/' -e 's/peer\|md5/trust/g' /etc/postgresql/*/main/pg_hba.conf
+        - "sudo sed -i 's/port = 5433/port = 5432/' /etc/postgresql/10/main/postgresql.conf"
+        - "sudo service postgresql restart 10"
+        - "[ -f /tmp/beanstalkd-1.10/Makefile ] || (curl -L https://github.com/kr/beanstalkd/archive/v1.10.tar.gz | tar xz -C /tmp)"
+        - "pushd /tmp/beanstalkd-1.10 && make && (./beanstalkd &); popd"
     - rvm: ruby-head
+      sudo: required
       env: "GEM=aj:integration"
       services:
         - memcached
         - redis-server
         - rabbitmq
+      before_install:
+        - sudo sed -i -e '/local.*peer/s/postgres/all/' -e 's/peer\|md5/trust/g' /etc/postgresql/*/main/pg_hba.conf
+        - "sudo sed -i 's/port = 5433/port = 5432/' /etc/postgresql/10/main/postgresql.conf"
+        - "sudo service postgresql restart 10"
+        - "[ -f /tmp/beanstalkd-1.10/Makefile ] || (curl -L https://github.com/kr/beanstalkd/archive/v1.10.tar.gz | tar xz -C /tmp)"
+        - "pushd /tmp/beanstalkd-1.10 && make && (./beanstalkd &); popd"
     - rvm: 2.4.4
       env: "GEM=ar:mysql2"
       sudo: required
