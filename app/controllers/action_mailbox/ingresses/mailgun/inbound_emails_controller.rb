@@ -23,7 +23,6 @@ class ActionMailbox::Ingresses::Mailgun::InboundEmailsController < ActionMailbox
 
     class Authenticator
       cattr_accessor :key
-
       attr_reader :timestamp, :token, :signature
 
       def initialize(timestamp:, token:, signature:)
