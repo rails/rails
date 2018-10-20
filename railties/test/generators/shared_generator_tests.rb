@@ -91,7 +91,7 @@ module SharedGeneratorTests
       template
     end
 
-    generator([destination_root], template: path).stub(:open, check_open, template) do
+    generator([destination_root], template: path, skip_webpack_install: true).stub(:open, check_open, template) do
       generator.stub :bundle_command, nil do
         quietly { assert_match(/It works!/, capture(:stdout) { generator.invoke_all }) }
       end
@@ -99,7 +99,7 @@ module SharedGeneratorTests
   end
 
   def test_skip_gemfile
-    assert_not_called(generator([destination_root], skip_gemfile: true), :bundle_command) do
+    assert_not_called(generator([destination_root], skip_gemfile: true, skip_webpack_install: true), :bundle_command) do
       quietly { generator.invoke_all }
       assert_no_file "Gemfile"
     end

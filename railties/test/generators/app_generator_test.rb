@@ -104,7 +104,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_skip_bundle
-    assert_not_called(generator([destination_root], skip_bundle: true), :bundle_command) do
+    assert_not_called(generator([destination_root], skip_bundle: true, skip_webpack_install: true), :bundle_command) do
       quietly { generator.invoke_all }
       # skip_bundle is only about running bundle install, ensure the Gemfile is still
       # generated.
@@ -728,13 +728,13 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_generation_runs_bundle_install
-    generator([destination_root], {})
+    generator([destination_root], skip_webpack_install: true)
 
     assert_bundler_command_called("install")
   end
 
   def test_dev_option
-    generator([destination_root], dev: true)
+    generator([destination_root], dev: true, skip_webpack_install: true)
 
     assert_bundler_command_called("install")
     rails_path = File.expand_path("../../..", Rails.root)
@@ -742,7 +742,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_edge_option
-    generator([destination_root], edge: true)
+    generator([destination_root], edge: true, skip_webpack_install: true)
 
     assert_bundler_command_called("install")
     assert_file "Gemfile", %r{^gem\s+["']rails["'],\s+github:\s+["']#{Regexp.escape("rails/rails")}["']$}
@@ -754,11 +754,15 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_bundler_binstub
+    generator([destination_root], skip_webpack_install: true)
+
     assert_bundler_command_called("binstubs bundler")
   end
 
   def test_spring_binstubs
     jruby_skip "spring doesn't run on JRuby"
+
+    generator([destination_root], skip_webpack_install: true)
 
     assert_bundler_command_called("exec spring binstub --all")
   end
