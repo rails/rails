@@ -401,14 +401,10 @@ a, a:link, a:visited {
 }
 
 #guides {
-  width: 27em;
+  width: 37em;
   display: block;
   background: #980905;
   border-radius: 1em;
-  -webkit-border-radius: 1em;
-  -moz-border-radius: 1em;
-  -webkit-box-shadow: 0.25em 0.25em 1em rgba(0,0,0,0.25);
-  -moz-box-shadow: rgba(0,0,0,0.25) 0.25em 0.25em 1em;
   color: #f1938c;
   padding: 1.5em 2em;
   position: absolute;
@@ -422,17 +418,44 @@ a, a:link, a:visited {
   display: block !important;
 }
 
-#guides dt, #guides dd {
+.guides-section dt, .guides-section dd {
   font-weight: normal;
   font-size: 0.722em;
   margin: 0;
   padding: 0;
 }
-#guides dt {padding:0; margin: 0.5em 0 0;}
-#guides a {color: #FFF; background: none !important; text-decoration: none;}
-#guides a:hover {text-decoration: underline;}
-#guides .L, #guides .R {float: left; width: 50%; margin: 0; padding: 0;}
-#guides .R {float: right;}
+.guides-section dt {
+  margin: 0.5em 0 0;
+  padding:0;
+}
+#guides a {
+  background: none !important;
+  color: #FFF;
+  text-decoration: none;
+}
+#guides a:hover {
+  text-decoration: underline;
+}
+.guides-section-container {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  width: 100%;
+  max-height: 35em;
+}
+
+.guides-section {
+  min-width: 5em;
+  margin: 0 2em 0.5em 0;
+  flex: auto;
+  max-width: 12em;
+}
+
+.guides-section dd {
+  line-height: 1.3;
+  margin-bottom: 0.5em;
+}
+
 #guides hr {
   display: block;
   border: none;
@@ -515,11 +538,24 @@ h6 {
 
 #header h1 {
   float: left;
-  background: url(../images/rails_guides_logo.gif) no-repeat;
+  background: url(../images/rails_guides_logo_1x.png) no-repeat;
   width: 297px;
   text-indent: -9999em;
   margin: 0;
   padding: 0;
+}
+
+@media
+only screen and (-webkit-min-device-pixel-ratio: 2),
+only screen and (   min--moz-device-pixel-ratio: 2),
+only screen and (     -o-min-device-pixel-ratio: 2/1),
+only screen and (        min-device-pixel-ratio: 2),
+only screen and (                min-resolution: 192dpi),
+only screen and (                min-resolution: 2dppx) {
+  #header h1 {
+    background: url(../images/rails_guides_logo_2x.png) no-repeat;
+    background-size: 160%;
+  }
 }
 
 @media screen and (max-width: 480px) {
