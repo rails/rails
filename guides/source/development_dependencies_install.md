@@ -62,6 +62,10 @@ NOTE: Redis' documentation discourage installations with package managers as tho
 
 NOTE: Active Record's test suite runs three times: once for SQLite3, once for MySQL, and once for PostgreSQL. We are going to see now how to set up the environment for them.
 
+NOTE: Extracting previews, tested in Active Storage's test suite requires third-party applications:
+ImageMagick for images, FFmpeg for video and muPDF for PDFs, and on macOS also XQuartz and Poppler.
+Without these applications installed, Active Storage tests will raise errors.
+
 WARNING: If you're working with Active Record code, you _must_ ensure that the tests pass for at least MySQL, PostgreSQL, and SQLite3. Subtle differences between the various adapters have been behind the rejection of many patches that looked OK when tested only against single adapter.
 
 Below you can find instructions on how to install all of the additional tools for different OSes.
@@ -73,7 +77,8 @@ On macOS you can use [Homebrew](https://brew.sh/) to install all of the addition
 To install all run:
 
 ```bash
-$ brew install sqlite3 mysql postgresql redis memcached yarn
+$ brew install sqlite3 mysql postgresql redis memcached yarn imagemagick ffmpeg mupdf-tools poppler
+$ brew cask install xquartz
 ```
 
 You'll also need to start each of the installed services. To list all available services run:
@@ -95,7 +100,8 @@ Replace `mysql` with the name of the service you want to start.
 To install all run:
 
 ```bash
-$ sudo apt-get install sqlite3 libsqlite3-dev mysql-server libmysqlclient-dev postgresql postgresql-client postgresql-contrib libpq-dev redis-server memcached
+$ sudo apt-get update
+$ sudo apt-get install sqlite3 libsqlite3-dev mysql-server libmysqlclient-dev postgresql postgresql-client postgresql-contrib libpq-dev redis-server memcached imagemagick ffmpeg mupdf mupdf-tools
 # install yarn
 $ curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
 $ echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
@@ -107,7 +113,7 @@ $ sudo apt-get install yarn
 To install all run:
 
 ```bash
-$ sudo yum install libsqlite3x libsqlite3x-devel mysql-server mysql-devel postgresql-server postgresql-devel redis memcached
+$ sudo yum install libsqlite3x libsqlite3x-devel mysql-server mysql-devel postgresql-server postgresql-devel redis memcached imagemagick ffmpeg mupdf
 # install yarn
 $ sudo wget https://dl.yarnpkg.com/rpm/yarn.repo -O /etc/yum.repos.d/yarn.repo
 $ sudo yum install yarn
@@ -118,7 +124,7 @@ $ sudo yum install yarn
 To install all run:
 
 ```bash
-$ sudo pacman -S sqlite mariadb libmariadbclient mariadb-clients postgresql postgresql-libs redis memcached
+$ sudo pacman -S sqlite mariadb libmariadbclient mariadb-clients postgresql postgresql-libs redis memcached imagemagick ffmpeg mupdf mupdf-tools poppler
 $ sudo systemctl start redis
 ```
 
@@ -130,7 +136,7 @@ use MariaDB instead (see [this announcement](https://www.archlinux.org/news/mari
 To install all run:
 
 ```bash
-# pkg install sqlite3 mysql56-client mysql56-server postgresql94-client postgresql94-server memcached
+# pkg install sqlite3 mysql56-client mysql56-server postgresql94-client postgresql94-server memcached imagemagick ffmpeg mupdf
 # portmaster databases/redis
 ```
 
