@@ -49,7 +49,7 @@ class ActionMailbox::Ingresses::Mandrill::InboundEmailsController < ActionMailbo
         end
 
         def message
-          [ request.original_url, request.POST.sort ].flatten.join
+          request.url + request.POST.sort.flatten.join
         end
     end
 end
