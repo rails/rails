@@ -45,7 +45,7 @@ class ActionMailbox::Ingresses::Mandrill::InboundEmailsController < ActionMailbo
         end
 
         def expected_signature
-          Base64.encode64(OpenSSL::HMAC.digest(OpenSSL::Digest::SHA1.new, key, message)).strip
+          Base64.strict_encode64 OpenSSL::HMAC.digest(OpenSSL::Digest::SHA1.new, key, message)
         end
 
         def message
