@@ -785,21 +785,3 @@ class MultibyteCharsExtrasTest < ActiveSupport::TestCase
       end.pack("U*")
     end
 end
-
-class MultibyteInternalsTest < ActiveSupport::TestCase
-  include MultibyteTestHelpers
-
-  test "Chars translates a character offset to a byte offset" do
-    example = chars("Puisque c'était son erreur, il m'a aidé")
-    [
-      [0, 0],
-      [3, 3],
-      [12, 11],
-      [14, 13],
-      [41, 39]
-    ].each do |byte_offset, character_offset|
-      assert_equal character_offset, example.send(:translate_offset, byte_offset),
-        "Expected byte offset #{byte_offset} to translate to #{character_offset}"
-    end
-  end
-end

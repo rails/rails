@@ -122,7 +122,7 @@ module ActiveSupport #:nodoc:
       #
       #   'こんにちは'.mb_chars.limit(7).to_s # => "こん"
       def limit(limit)
-        slice(0...translate_offset(limit))
+        truncate_bytes(limit, omission: nil)
       end
 
       # Capitalizes the first letter of every word, when possible.
@@ -207,18 +207,6 @@ module ActiveSupport #:nodoc:
       end
 
       private
-
-        def translate_offset(byte_offset)
-          return nil if byte_offset.nil?
-          return 0   if @wrapped_string == ""
-
-          begin
-            @wrapped_string.byteslice(0...byte_offset).unpack("U*").length
-          rescue ArgumentError
-            byte_offset -= 1
-            retry
-          end
-        end
 
         def chars(string)
           self.class.new(string)
