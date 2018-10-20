@@ -2,6 +2,7 @@
 
 require "drb"
 require "drb/unix"
+require "active_support/core_ext/module/attribute_accessors"
 
 module ActiveSupport
   module Testing
