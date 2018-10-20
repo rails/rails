@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_support/number_helper/number_converter"
+
 module ActiveSupport
   module NumberHelper
     class NumberToPhoneConverter < NumberConverter #:nodoc:
