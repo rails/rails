@@ -11,13 +11,11 @@ class ActionMailbox::Ingresses::Mailgun::InboundEmailsController < ActionMailbox
     end
 
     def authenticated?
-      Authenticator.new(authentication_params).authenticated?
-    rescue ArgumentError
-      false
-    end
-
-    def authentication_params
-      params.permit(:timestamp, :token, :signature).to_h.symbolize_keys
+      Authenticator.new(
+        timestamp: params.require(:timestamp),
+        token:     params.require(:token),
+        signature: params.require(:signature)
+      ).authenticated?
     end
 
     class Authenticator
@@ -25,7 +23,7 @@ class ActionMailbox::Ingresses::Mailgun::InboundEmailsController < ActionMailbox
       attr_reader :timestamp, :token, :signature
 
       def initialize(timestamp:, token:, signature:)
-        @timestamp, @token, @signature = timestamp, token, signature
+        @timestamp, @token, @signature = Integer(timestamp), token, signature
       end
 
       def authenticated?
@@ -39,15 +37,11 @@ class ActionMailbox::Ingresses::Mailgun::InboundEmailsController < ActionMailbox
 
         # Allow for 2 minutes of drift between Mailgun time and local server time.
         def recent?
-          time >= 2.minutes.ago
+          Time.at(timestamp) >= 2.minutes.ago
         end
 
         def expected_signature
           OpenSSL::HMAC.hexdigest OpenSSL::Digest::SHA256.new, key, "#{timestamp}#{token}"
-        end
-
-        def time
-          Time.at Integer(timestamp)
         end
     end
 end
