@@ -14,7 +14,7 @@ class ActionMailbox::Ingresses::Mailgun::InboundEmailsControllerTest < ActionDis
       }
     end
 
-    assert_response :ok
+    assert_response :no_content
 
     inbound_email = ActionMailbox::InboundEmail.last
     assert_equal file_fixture("../files/welcome.eml").read, inbound_email.raw_email.download
