@@ -29,7 +29,6 @@ class ActionMailbox::Ingresses::Mandrill::InboundEmailsController < ActionMailbo
 
     class Authenticator
       cattr_accessor :key
-
       attr_reader :request
 
       def initialize(request)
