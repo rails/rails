@@ -6,11 +6,11 @@ require "active_support/json"
 
 module ApplicationTests
   class AssetsTest < ActiveSupport::TestCase
-    include ActiveSupport::Testing::Isolation
     include Rack::Test::Methods
 
     def setup
       build_app(initializers: true)
+      replace_package_name
     end
 
     def teardown
@@ -502,6 +502,19 @@ module ApplicationTests
           get '/posts', :to => "posts#index"
         end
       RUBY
+      end
+
+      def tmp_path(*args)
+        @tmp_path ||= File.realpath(Dir.mktmpdir("assets-test", File.join(RAILS_FRAMEWORK_ROOT, "tmp")))
+        File.join(@tmp_path, *args)
+      end
+
+      def replace_package_name
+        # Rename the name to temporary directory because cannot use the same name in one workspace.
+        package_file = "#{app_path}/package.json"
+        contents = File.read(package_file)
+        contents.sub!(/"name": "app_template"/, %Q|"name": "#{File.basename(tmp_path)}"|)
+        File.write(package_file, contents)
       end
   end
 end

@@ -5,6 +5,7 @@
     "activestorage",
     "actionview",
     "tmp/templates/app_template",
+    "tmp/assets-test*/**/app",
     "railties/test/fixtures/tmp/bukkits/**/test/dummy",
     "railties/test/fixtures/tmp/bukkits/**/spec/dummy"
   ],
