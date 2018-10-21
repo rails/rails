@@ -438,7 +438,6 @@ module Rails
 
       def delete_action_cable_files_skipping_action_cable
         if options[:skip_action_cable]
-          remove_file "app/javascript/channels/consumer.js"
           remove_dir "app/javascript/channels"
           remove_dir "app/channels"
         end
