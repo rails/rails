@@ -794,7 +794,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       @called ||= 0
       if command == "webpacker:install"
         @called += 1
-        assert_equal 0, @called, "webpacker:install expected not to be called once, but was called #{@called} times."
+        assert_equal 0, @called, "webpacker:install expected not to be called, but was called #{@called} times."
       end
     end
 
