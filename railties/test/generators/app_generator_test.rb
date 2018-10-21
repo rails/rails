@@ -15,6 +15,8 @@ DEFAULT_APP_FILES = %w(
   app/assets/images
   app/javascript
   app/javascript/channels
+  app/javascript/channels/consumer.js
+  app/javascript/channels/index.js
   app/javascript/packs/application.js
   app/assets/stylesheets
   app/assets/stylesheets/application.css
@@ -608,7 +610,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     assert_file "app/views/layouts/application.html.erb" do |contents|
       assert_match(/stylesheet_link_tag\s+'application', media: 'all' %>/, contents)
-      assert_no_match(/javascript_include_tag\s+'application' \%>/, contents)
+      assert_no_match(/javascript_pack_tag\s+'application'/, contents)
     end
   end
 
@@ -794,7 +796,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       @called ||= 0
       if command == "webpacker:install"
         @called += 1
-        assert_equal 0, @called, "webpacker:install expected not to be called once, but was called #{@called} times."
+        assert_equal 0, @called, "webpacker:install expected not to be called, but was called #{@called} times."
       end
     end
 
