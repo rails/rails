@@ -15,6 +15,8 @@ DEFAULT_APP_FILES = %w(
   app/assets/images
   app/javascript
   app/javascript/channels
+  app/javascript/channels/consumer.js
+  app/javascript/channels/index.js
   app/javascript/packs/application.js
   app/assets/stylesheets
   app/assets/stylesheets/application.css
