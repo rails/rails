@@ -171,6 +171,24 @@ module ActiveSupport
         end
       end
 
+      # Subscribe to a given event name with the passed +block+.
+      #
+      # You can subscribe to events by passing a String to match exact event
+      # names, or by passing a Regexp to match all events that match a pattern.
+      #
+      #   ActiveSupport::Notifications.subscribe(/render/) do |*args|
+      #     ...
+      #   end
+      #
+      # The +block+ will receive five parameters with information about the event:
+      #
+      #   ActiveSupport::Notifications.subscribe('render') do |name, start, finish, id, payload|
+      #     name    # => String, name of the event (such as 'render' from above)
+      #     start   # => Time, when the instrumented block started execution
+      #     finish  # => Time, when the instrumented block ended execution
+      #     id      # => String, unique ID for the instrumenter that fired the event
+      #     payload # => Hash, the payload
+      #   end
       def subscribe(*args, &block)
         notifier.subscribe(*args, &block)
       end
