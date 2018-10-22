@@ -1,3 +1,10 @@
+*   If `form_with` and `form_tag` were called without a html block, 
+    those helpers displayed a html form without ending in `</form>`. 
+
+    Fixes #34282.
+
+    *Ovidiu-Alexandru Toma*
+
 *   Add allocations to template rendering instrumentation.
 
     Adds the allocations for template and partial rendering to the server output on render.

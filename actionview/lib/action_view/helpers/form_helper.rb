@@ -759,7 +759,8 @@ module ActionView
           form_tag_with_body(html_options, output)
         else
           html_options = html_options_for_form_with(url, model, options)
-          form_tag_html(html_options)
+          form_output = form_tag_html(html_options)
+          form_output.safe_concat("</form>")
         end
       end
 
