@@ -307,6 +307,7 @@ module Rails
           config = { verbose: false }
 
           config[:capture] = options[:capture] if options[:capture]
+          config[:abort_on_failure] = options[:abort_on_failure] if options[:abort_on_failure]
 
           in_root { run("#{sudo}#{extify(executor)} #{command} RAILS_ENV=#{env}", config) }
         end
