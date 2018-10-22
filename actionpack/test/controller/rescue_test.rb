@@ -70,6 +70,10 @@ class RescueController < ActionController::Base
     render plain: "io error"
   end
 
+  rescue_from ActionDispatch::Http::Parameters::ParseError do
+    render plain: "parser error"
+  end
+
   before_action(only: :before_action_raises) { raise "umm nice" }
 
   def before_action_raises
@@ -128,6 +132,10 @@ class RescueController < ActionController::Base
   end
   def resource_unavailable_raise_as_string
     raise ResourceUnavailableToRescueAsString
+  end
+
+  def arbitrary_action
+    render plain: "arbitrary action"
   end
 
   def missing_template
@@ -305,6 +313,16 @@ class RescueControllerTest < ActionController::TestCase
   test "rescue when cause has handler, but wrapper doesnt" do
     get :exception_with_no_handler_for_wrapper
     assert_response :unprocessable_entity
+  end
+
+  test "can rescue a ParserError" do
+    silence_logger
+    post :arbitrary_action, body: '{', as: :json
+    assert_response :success
+  end
+
+  def silence_logger
+    request.set_header "action_dispatch.logger", ActiveSupport::Logger.new(StringIO.new)
   end
 end
 
