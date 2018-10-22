@@ -22,7 +22,8 @@ module ActionDispatch #:nodoc:
 
         if policy = request.content_security_policy
           nonce = request.content_security_policy_nonce
-          headers[header_name(request)] = policy.build(request.controller_instance, nonce)
+          context = request.controller_instance || request
+          headers[header_name(request)] = policy.build(context, nonce)
         end
 
         response

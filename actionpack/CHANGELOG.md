@@ -1,3 +1,13 @@
+*   Use request object for context if there's no controller
+
+    There is no controller instance when using a redirect route or a
+    mounted rack application so pass the request object as the context
+    when resolving dynamic CSP sources in this scenario.
+    
+    Fixes #34200.
+    
+    *Andrew White*
+
 *   Apply mapping to symbols returned from dynamic CSP sources
 
     Previously if a dynamic source returned a symbol such as :self it
