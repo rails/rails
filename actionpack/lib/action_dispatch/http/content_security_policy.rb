@@ -256,7 +256,8 @@ module ActionDispatch #:nodoc:
           if context.nil?
             raise RuntimeError, "Missing context for the dynamic content security policy source: #{source.inspect}"
           else
-            context.instance_exec(&source)
+            resolved = context.instance_exec(&source)
+            resolved.is_a?(Symbol) ? apply_mapping(resolved) : resolved
           end
         else
           raise RuntimeError, "Unexpected content security policy source: #{source.inspect}"
