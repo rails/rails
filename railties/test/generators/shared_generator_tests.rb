@@ -339,11 +339,6 @@ module SharedGeneratorTests
     run_generator
     assert_file "#{application_path}/package.json", /dependencies/
     assert_file "#{application_path}/config/initializers/assets.rb", /node_modules/
-
-    assert_file ".gitignore" do |content|
-      assert_match(/node_modules/, content)
-      assert_match(/yarn-error\.log/, content)
-    end
   end
 
   def test_generator_for_yarn_skipped
@@ -353,11 +348,6 @@ module SharedGeneratorTests
 
     assert_file "#{application_path}/config/initializers/assets.rb" do |content|
       assert_no_match(/node_modules/, content)
-    end
-
-    assert_file ".gitignore" do |content|
-      assert_no_match(/node_modules/, content)
-      assert_no_match(/yarn-error\.log/, content)
     end
   end
 end

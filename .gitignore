@@ -15,4 +15,5 @@ node_modules/
 package-lock.json
 pkg/
 /tmp/
+/yarn-error.log
 /yarn.lock
