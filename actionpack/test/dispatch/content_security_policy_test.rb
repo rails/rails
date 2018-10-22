@@ -264,8 +264,8 @@ class DefaultContentSecurityPolicyIntegrationTest < ActionDispatch::IntegrationT
   end
 
   POLICY = ActionDispatch::ContentSecurityPolicy.new do |p|
-    p.default_src :self
-    p.script_src  :https
+    p.default_src -> { :self  }
+    p.script_src  -> { :https }
   end
 
   class PolicyConfigMiddleware
