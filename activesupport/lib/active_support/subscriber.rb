@@ -84,7 +84,7 @@ module ActiveSupport
     end
 
     def start(name, id, payload)
-      e = ActiveSupport::Notifications::Event.new(name, Time.now, nil, id, payload)
+      e = ActiveSupport::Notifications::Event.new(name, now, nil, id, payload)
       parent = event_stack.last
       parent << e if parent
 
@@ -92,7 +92,7 @@ module ActiveSupport
     end
 
     def finish(name, id, payload)
-      finished  = Time.now
+      finished  = now
       event     = event_stack.pop
       event.end = finished
       event.payload.merge!(payload)
@@ -105,6 +105,10 @@ module ActiveSupport
 
       def event_stack
         SubscriberQueueRegistry.instance.get_queue(@queue_key)
+      end
+
+      def now
+        Process.clock_gettime(Process::CLOCK_MONOTONIC)
       end
   end
 
