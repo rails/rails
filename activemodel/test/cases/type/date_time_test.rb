@@ -25,6 +25,17 @@ module ActiveModel
         end
       end
 
+      def test_hash_to_time
+        type = Type::DateTime.new
+        assert_equal ::Time.utc(2018, 10, 15, 0, 0, 0), type.cast(1 => 2018, 2 => 10, 3 => 15)
+      end
+
+      def test_hash_with_wrong_keys
+        type = Type::DateTime.new
+        error = assert_raises(ArgumentError) { type.cast(a: 1) }
+        assert_equal "Provided hash {:a=>1} doesn't contain necessary keys: [1, 2, 3]", error.message
+      end
+
       private
 
         def with_timezone_config(default:)

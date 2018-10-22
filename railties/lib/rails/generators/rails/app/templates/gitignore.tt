@@ -28,13 +28,8 @@
 !/storage/.keep
 <% end -%>
 <% end -%>
-
-<% unless options.skip_yarn? -%>
-/node_modules
-/yarn-error.log
-
-<% end -%>
 <% unless options.api? -%>
+
 /public/assets
 <% end -%>
 .byebug_history

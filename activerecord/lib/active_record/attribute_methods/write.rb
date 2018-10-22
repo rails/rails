@@ -33,10 +33,9 @@ module ActiveRecord
       # specified +value+. Empty strings for Integer and Float columns are
       # turned into +nil+.
       def write_attribute(attr_name, value)
-        name = if self.class.attribute_alias?(attr_name)
-          self.class.attribute_alias(attr_name).to_s
-        else
-          attr_name.to_s
+        name = attr_name.to_s
+        if self.class.attribute_alias?(name)
+          name = self.class.attribute_alias(name)
         end
 
         primary_key = self.class.primary_key

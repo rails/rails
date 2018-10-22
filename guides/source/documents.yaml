@@ -173,7 +173,7 @@
       description: This guide describes the considerations needed and tools available when working directly with concurrency in a Rails application.
       work_in_progress: true
 -
-  name: Contributing to Ruby on Rails
+  name: Contributions
   documents:
     -
       name: Contributing to Ruby on Rails
@@ -184,14 +184,14 @@
       url: api_documentation_guidelines.html
       description: This guide documents the Ruby on Rails API documentation guidelines.
     -
-      name: Ruby on Rails Guides Guidelines
+      name: Guides Guidelines
       url: ruby_on_rails_guides_guidelines.html
       description: This guide documents the Ruby on Rails guides guidelines.
 -
-  name: Maintenance Policy
+  name: Policies
   documents:
     -
-      name: Maintenance Policy for Ruby on Rails
+      name: Maintenance Policy
       url: maintenance_policy.html
       description: What versions of Ruby on Rails are currently supported, and when to expect new versions.
 -
@@ -202,51 +202,51 @@
       url: upgrading_ruby_on_rails.html
       description: This guide helps in upgrading applications to latest Ruby on Rails versions.
     -
-      name: Ruby on Rails 6.0 Release Notes
+      name: 6.0 Release Notes
       work_in_progress: true
       url: 6_0_release_notes.html
       description: Release notes for Rails 6.0.
     -
-      name: Ruby on Rails 5.2 Release Notes
+      name: 5.2 Release Notes
       url: 5_2_release_notes.html
       description: Release notes for Rails 5.2.
     -
-      name: Ruby on Rails 5.1 Release Notes
+      name: 5.1 Release Notes
       url: 5_1_release_notes.html
       description: Release notes for Rails 5.1.
     -
-      name: Ruby on Rails 5.0 Release Notes
+      name: 5.0 Release Notes
       url: 5_0_release_notes.html
       description: Release notes for Rails 5.0.
     -
-      name: Ruby on Rails 4.2 Release Notes
+      name: 4.2 Release Notes
       url: 4_2_release_notes.html
       description: Release notes for Rails 4.2.
     -
-      name: Ruby on Rails 4.1 Release Notes
+      name: 4.1 Release Notes
       url: 4_1_release_notes.html
       description: Release notes for Rails 4.1.
     -
-      name: Ruby on Rails 4.0 Release Notes
+      name: 4.0 Release Notes
       url: 4_0_release_notes.html
       description: Release notes for Rails 4.0.
     -
-      name: Ruby on Rails 3.2 Release Notes
+      name: 3.2 Release Notes
       url: 3_2_release_notes.html
       description: Release notes for Rails 3.2.
     -
-      name: Ruby on Rails 3.1 Release Notes
+      name: 3.1 Release Notes
       url: 3_1_release_notes.html
       description: Release notes for Rails 3.1.
     -
-      name: Ruby on Rails 3.0 Release Notes
+      name: 3.0 Release Notes
       url: 3_0_release_notes.html
       description: Release notes for Rails 3.0.
     -
-      name: Ruby on Rails 2.3 Release Notes
+      name: 2.3 Release Notes
       url: 2_3_release_notes.html
       description: Release notes for Rails 2.3.
     -
-      name: Ruby on Rails 2.2 Release Notes
+      name: 2.2 Release Notes
       url: 2_2_release_notes.html
       description: Release notes for Rails 2.2.

@@ -1562,7 +1562,7 @@ class UserMailerTest < ActionMailer::TestCase
 end
 ```
 
-In the test we send the email and store the returned object in the `email`
+In the test we create the email and store the returned object in the `email`
 variable. We then ensure that it was sent (the first assert), then, in the
 second batch of assertions, we ensure that the email does indeed contain what we
 expect. The helper `read_fixture` is used to read in the content from this file.

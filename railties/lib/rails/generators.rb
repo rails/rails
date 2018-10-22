@@ -54,8 +54,6 @@ module Rails
         force_plural: false,
         helper: true,
         integration_tool: nil,
-        javascripts: true,
-        javascript_engine: :js,
         orm: false,
         resource_controller: :controller,
         resource_route: true,

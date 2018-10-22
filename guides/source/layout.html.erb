@@ -45,16 +45,16 @@
           <a href="index.html" id="guidesMenu" class="guides-index-item nav-item">Guides Index</a>
           <div id="guides" class="clearfix" style="display: none;">
             <hr />
-            <% ['L', 'R'].each do |position| %>
-              <dl class="<%= position %>">
-              <% docs_for_menu(position).each do |section| %>
-                <dt><%= section['name'] %></dt>
-                <% finished_documents(section['documents']).each do |document| %>
-                <dd><a href="<%= document['url'] %>"><%= document['name'] %></a></dd>
-                <% end %>
+            <div class="guides-section-container">
+              <% documents_by_section.each do |section| %>
+                <div class="guides-section">
+                  <dt><%= section['name'] %></dt>
+                  <% finished_documents(section['documents']).each do |document| %>
+                  <dd><a href="<%= document['url'] %>"><%= document['name'] %></a></dd>
+                  <% end %>
+                </div>
               <% end %>
-              </dl>
-            <% end %>
+            </div>
           </div>
         </li>
         <li><a class="nav-item" href="contributing_to_ruby_on_rails.html">Contribute</a></li>
