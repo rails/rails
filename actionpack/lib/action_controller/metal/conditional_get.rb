@@ -114,6 +114,7 @@ module ActionController
           last_modified: last_modified, public: public, template: template
       end
 
+      response.cache_control.delete(:no_cache)
       response.last_modified = last_modified if last_modified
       response.cache_control[:public] = true if public
 
@@ -246,6 +247,7 @@ module ActionController
         stale_if_error: options.delete(:stale_if_error),
       )
       options.delete(:private)
+      response.cache_control.delete(:no_cache)
 
       response.cache_control[:extras] = options.map { |k, v| "#{k}=#{v}" }
       response.date = Time.now unless response.date?

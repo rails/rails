@@ -186,20 +186,22 @@ module RequestForgeryProtectionTests
   end
 
   def test_should_render_form_with_token_tag
-    @controller.stub :form_authenticity_token, @token do
+    @controller.stub :masked_authenticity_token, @token do
       assert_not_blocked do
         get :index
       end
       assert_select "form>input[name=?][value=?]", "custom_authenticity_token", @token
+      assert_no_cache
     end
   end
 
   def test_should_render_button_to_with_token_tag
-    @controller.stub :form_authenticity_token, @token do
+    @controller.stub :masked_authenticity_token, @token do
       assert_not_blocked do
         get :show_button
       end
       assert_select "form>input[name=?][value=?]", "custom_authenticity_token", @token
+      assert_no_cache
     end
   end
 
@@ -218,6 +220,7 @@ module RequestForgeryProtectionTests
         get :form_for_remote
       end
       assert_match(/authenticity_token/, response.body)
+      assert_no_cache
     ensure
       ActionView::Helpers::FormTagHelper.embed_authenticity_token_in_remote_forms = original
     end
@@ -244,20 +247,22 @@ module RequestForgeryProtectionTests
   end
 
   def test_should_render_form_with_token_tag_if_remote_and_authenticity_token_requested
-    @controller.stub :form_authenticity_token, @token do
+    @controller.stub :masked_authenticity_token, @token do
       assert_not_blocked do
         get :form_for_remote_with_token
       end
       assert_select "form>input[name=?][value=?]", "custom_authenticity_token", @token
+      assert_no_cache
     end
   end
 
   def test_should_render_form_with_token_tag_with_authenticity_token_requested
-    @controller.stub :form_authenticity_token, @token do
+    @controller.stub :masked_authenticity_token, @token do
       assert_not_blocked do
         get :form_for_with_token
       end
       assert_select "form>input[name=?][value=?]", "custom_authenticity_token", @token
+      assert_no_cache
     end
   end
 
@@ -266,6 +271,7 @@ module RequestForgeryProtectionTests
       get :form_with_remote
     end
     assert_match(/authenticity_token/, response.body)
+    assert_no_cache
   end
 
   def test_should_render_form_with_without_token_tag_if_remote_and_embedding_token_is_off
@@ -302,20 +308,22 @@ module RequestForgeryProtectionTests
   end
 
   def test_should_render_form_with_with_token_tag_if_remote_and_authenticity_token_requested
-    @controller.stub :form_authenticity_token, @token do
+    @controller.stub :masked_authenticity_token, @token do
       assert_not_blocked do
         get :form_with_remote_with_token
       end
       assert_select "form>input[name=?][value=?]", "custom_authenticity_token", @token
+      assert_no_cache
     end
   end
 
   def test_should_render_form_with_with_token_tag_with_authenticity_token_requested
-    @controller.stub :form_authenticity_token, @token do
+    @controller.stub :masked_authenticity_token, @token do
       assert_not_blocked do
         get :form_with_local_with_token
       end
       assert_select "form>input[name=?][value=?]", "custom_authenticity_token", @token
+      assert_no_cache
     end
   end
 
@@ -324,12 +332,13 @@ module RequestForgeryProtectionTests
     begin
       ActionView::Helpers::FormTagHelper.embed_authenticity_token_in_remote_forms = true
 
-      @controller.stub :form_authenticity_token, @token do
+      @controller.stub :masked_authenticity_token, @token do
         assert_not_blocked do
           get :form_with_remote
         end
       end
       assert_select "form>input[name=?][value=?]", "custom_authenticity_token", @token
+      assert_no_cache
     ensure
       ActionView::Helpers::FormTagHelper.embed_authenticity_token_in_remote_forms = original
     end
@@ -337,10 +346,12 @@ module RequestForgeryProtectionTests
 
   def test_should_allow_get
     assert_not_blocked { get :index }
+    assert_no_cache
   end
 
   def test_should_allow_head
     assert_not_blocked { head :index }
+    assert_no_cache
   end
 
   def test_should_allow_post_without_token_on_unsafe_action
@@ -616,6 +627,10 @@ module RequestForgeryProtectionTests
     end
   end
 
+  def assert_no_cache
+    assert_equal "no-cache", @response.headers["Cache-Control"]
+  end
+
   def assert_cross_origin_not_blocked
     assert_not_blocked { yield }
   end
@@ -637,12 +652,13 @@ class RequestForgeryProtectionControllerUsingResetSessionTest < ActionController
   include RequestForgeryProtectionTests
 
   test "should emit a csrf-param meta tag and a csrf-token meta tag" do
-    @controller.stub :form_authenticity_token, @token + "<=?" do
+    @controller.stub :masked_authenticity_token, @token + "<=?" do
       get :meta
       assert_select "meta[name=?][content=?]", "csrf-param", "custom_authenticity_token"
       assert_select "meta[name=?]", "csrf-token"
       regexp = "#{@token}&lt;=\?"
       assert_match(/#{regexp}/, @response.body)
+      assert_no_cache
     end
   end
 end
@@ -810,6 +826,7 @@ class PerFormTokensControllerTest < ActionController::TestCase
     expected = ActionController::RequestForgeryProtection::AUTHENTICITY_TOKEN_LENGTH
     actual = @controller.send(:per_form_csrf_token, session, "/path", "post").size
     assert_equal expected, actual
+    assert_no_cache
   end
 
   def test_accepts_token_for_correct_path_and_method
@@ -861,6 +878,7 @@ class PerFormTokensControllerTest < ActionController::TestCase
     form_token = assert_presence_and_fetch_form_csrf_token
 
     assert_matches_session_token_on_server form_token, "delete"
+    assert_no_cache
 
     # This is required because PATH_INFO isn't reset between requests.
     @request.env["PATH_INFO"] = "/per_form_tokens/post_one"
@@ -985,6 +1003,10 @@ class PerFormTokensControllerTest < ActionController::TestCase
         assert_not_nil form_csrf_token
         return form_csrf_token
       end
+    end
+
+    def assert_no_cache
+      assert_equal "no-cache", @response.headers["Cache-Control"]
     end
 
     def assert_matches_session_token_on_server(form_token, method = "post")

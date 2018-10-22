@@ -311,6 +311,7 @@ module ActionController #:nodoc:
 
       # Sets the token value for the current session.
       def form_authenticity_token(form_options: {})
+        response.cache_control[:no_cache] = true if response.cache_control.empty?
         masked_authenticity_token(session, form_options: form_options)
       end
 
