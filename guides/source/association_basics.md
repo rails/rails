@@ -868,7 +868,7 @@ While Rails uses intelligent defaults that will work well in most situations, th
 
 ```ruby
 class Book < ApplicationRecord
-  belongs_to :author, dependent: :destroy,
+  belongs_to :author, touch: :books_updated_at,
     counter_cache: true
 end
 ```
@@ -1048,8 +1048,7 @@ There may be times when you wish to customize the query used by `belongs_to`. Su
 
 ```ruby
 class Book < ApplicationRecord
-  belongs_to :author, -> { where active: true },
-                        dependent: :destroy
+  belongs_to :author, -> { where active: true }
 end
 ```
 
