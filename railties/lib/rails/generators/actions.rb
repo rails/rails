@@ -223,7 +223,7 @@ module Rails
         log :generate, what
         argument = args.flat_map(&:to_s).join(" ")
 
-        in_root { run_ruby_script("bin/rails generate #{what} #{argument}", verbose: false) }
+        in_root { run("bin/rails generate #{what} #{argument}", verbose: false) }
       end
 
       # Runs the supplied rake task (invoked with 'rake ...')

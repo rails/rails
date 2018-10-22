@@ -303,7 +303,7 @@ class ActionsTest < Rails::Generators::TestCase
   end
 
   def test_generate_should_run_script_generate_with_argument_and_options
-    assert_called_with(generator, :run_ruby_script, ["bin/rails generate model MyModel", verbose: false]) do
+    assert_called_with(generator, :run, ["bin/rails generate model MyModel", verbose: false]) do
       action :generate, "model", "MyModel"
     end
   end
