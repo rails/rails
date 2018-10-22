@@ -17,27 +17,45 @@ module ActionController
     attr_internal :view_runtime
 
     def process_action(*args)
-      raw_payload = {
-        controller: self.class.name,
-        action: action_name,
-        params: request.filtered_parameters,
-        headers: request.headers,
-        format: request.format.ref,
-        method: request.request_method,
-        path: request.fullpath
-      }
+      raw_payload = {}
 
-      ActiveSupport::Notifications.instrument("start_processing.action_controller", raw_payload.dup)
+      ActiveSupport::Notifications.instrument("start_processing.action_controller", raw_payload) do |payload|
+        begin
+          payload[:controller] = self.class.name
+          payload[:action]     = action_name
+          payload[:headers]    = request.headers
+          payload[:format]     = request.format.ref
+          payload[:method]     = request.request_method
+          payload[:path]       = request.fullpath
+          payload[:params]     = request.filtered_parameters # last b/c it can raise
+        rescue StandardError => e
+          payload[:params]         ||= {}
+          payload[:exception]        = [e.class.name, e.message]
+          payload[:exception_object] = e
+        end
+      end
 
       ActiveSupport::Notifications.instrument("process_action.action_controller", raw_payload) do |payload|
         begin
-          result = super
-          payload[:status] = response.status
-          result
+          raise payload[:exception_object] if payload[:exception_object]
+          super
+        rescue Exception => exception
+          request.env["action_dispatch.show_detailed_exceptions"] ||= show_detailed_exceptions?
+          rescue_with_handler(exception) || raise
         ensure
+          payload[:status] = response.status unless $!
           append_info_to_payload(payload)
         end
       end
+    end
+
+    # Override this method if you want to customize when detailed
+    # exceptions must be shown. This method is only called when
+    # +consider_all_requests_local+ is +false+. By default, it returns
+    # +false+, but someone may set it to <tt>request.local?</tt> so local
+    # requests in production still show the detailed exception pages.
+    def show_detailed_exceptions?
+      false
     end
 
     def render(*args)

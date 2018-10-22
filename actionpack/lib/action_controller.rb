@@ -42,7 +42,6 @@ module ActionController
     autoload :Renderers
     autoload :Rendering
     autoload :RequestForgeryProtection
-    autoload :Rescue
     autoload :Streaming
     autoload :StrongParameters
     autoload :ParameterEncoding

@@ -128,9 +128,6 @@ module ActionController
       # also include them at the bottom.
       AbstractController::Callbacks,
 
-      # Append rescue at the bottom to wrap as much as possible.
-      Rescue,
-
       # Add instrumentations hooks at the bottom, to ensure they instrument
       # all the methods properly.
       Instrumentation,
