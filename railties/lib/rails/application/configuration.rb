@@ -202,7 +202,7 @@ module Rails
               "Please note that YAML must be consistently indented using spaces. Tabs are not allowed. " \
               "Error: #{e.message}"
       rescue => e
-        raise e, "Cannot load `Rails.application.database_configuration`:\n#{e.message}", e.backtrace
+        raise e, "Cannot load database configuration:\n#{e.message}", e.backtrace
       end
 
       def colorize_logging
