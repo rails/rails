@@ -220,10 +220,10 @@ module Rails
       #
       #   generate(:authenticated, "user session")
       def generate(what, *args)
-        log :generate, what
+        options = args.extract_options!
         argument = args.flat_map(&:to_s).join(" ")
 
-        in_root { run("bin/rails generate #{what} #{argument}", verbose: false) }
+        rails_command("generate #{what} #{argument}", options)
       end
 
       # Runs the supplied rake task (invoked with 'rake ...')
