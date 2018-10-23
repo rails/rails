@@ -5,7 +5,7 @@ gem "pg", ">= 0.18", "< 2.0"
 require "pg"
 
 # Use async_exec instead of exec_params on pg versions before 1.1
-class ::PG::Connection
+class ::PG::Connection # :nodoc:
   unless self.public_method_defined?(:async_exec_params)
     remove_method :exec_params
     alias exec_params async_exec
