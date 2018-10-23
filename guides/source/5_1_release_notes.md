@@ -399,7 +399,7 @@ Please refer to the [Changelog][action-view] for detailed changes.
 
 *   Change `datetime_field` and `datetime_field_tag` to generate `datetime-local`
     fields.
-    ([Pull Request](https://github.com/rails/rails/pull/28061))
+    ([Pull Request](https://github.com/rails/rails/pull/25469))
 
 *   New Builder-style syntax for HTML tags (`tag.div`, `tag.br`, etc.)
     ([Pull Request](https://github.com/rails/rails/pull/25543))
