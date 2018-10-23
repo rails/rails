@@ -504,6 +504,9 @@ module ActiveRecord
       end
 
       private
+        # Check the version of the connected database. This method is called
+        # at the end of +initialize+; the adapter can use this to fail early if
+        # the connected database is not the correct version.
         def check_version
         end
 
