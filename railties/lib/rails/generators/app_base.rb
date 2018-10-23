@@ -31,9 +31,6 @@ module Rails
         class_option :database,            type: :string, aliases: "-d", default: "sqlite3",
                                            desc: "Preconfigure for selected database (options: #{DATABASES.join('/')})"
 
-        class_option :skip_yarn,           type: :boolean, default: false,
-                                           desc: "Don't use Yarn for managing JavaScript dependencies"
-
         class_option :skip_gemfile,        type: :boolean, default: false,
                                            desc: "Don't create a Gemfile"
 

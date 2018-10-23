@@ -95,7 +95,7 @@ module Rails
     def bin_when_updating
       bin
 
-      if options[:skip_yarn]
+      if options[:skip_javascript]
         remove_file "bin/yarn"
       end
     end
@@ -274,7 +274,7 @@ module Rails
         # Force sprockets and yarn to be skipped when generating API only apps.
         # Can't modify options hash as it's frozen by default.
         if options[:api]
-          self.options = options.merge(skip_sprockets: true, skip_javascript: true, skip_yarn: true).freeze
+          self.options = options.merge(skip_sprockets: true, skip_javascript: true).freeze
         end
       end
 
@@ -289,7 +289,7 @@ module Rails
         build(:gitignore)   unless options[:skip_git]
         build(:gemfile)     unless options[:skip_gemfile]
         build(:version_control)
-        build(:package_json) unless options[:skip_yarn]
+        build(:package_json) unless options[:skip_javascript]
       end
 
       def create_app_files
@@ -462,8 +462,8 @@ module Rails
         end
       end
 
-      def delete_bin_yarn_if_skip_yarn_option
-        remove_file "bin/yarn" if options[:skip_yarn]
+      def delete_bin_yarn
+        remove_file "bin/yarn" if options[:skip_javascript]
       end
 
       def finish_template
