@@ -624,6 +624,8 @@ module ActiveRecord
         # See https://dev.mysql.com/doc/refman/5.7/en/error-messages-server.html
         ER_DUP_ENTRY            = 1062
         ER_NOT_NULL_VIOLATION   = 1048
+        ER_NO_REFERENCED_ROW    = 1216
+        ER_ROW_IS_REFERENCED    = 1217
         ER_DO_NOT_HAVE_DEFAULT  = 1364
         ER_ROW_IS_REFERENCED_2  = 1451
         ER_NO_REFERENCED_ROW_2  = 1452
@@ -640,7 +642,7 @@ module ActiveRecord
           case error_number(exception)
           when ER_DUP_ENTRY
             RecordNotUnique.new(message)
-          when ER_ROW_IS_REFERENCED_2, ER_NO_REFERENCED_ROW_2
+          when ER_NO_REFERENCED_ROW, ER_ROW_IS_REFERENCED, ER_ROW_IS_REFERENCED_2, ER_NO_REFERENCED_ROW_2
             InvalidForeignKey.new(message)
           when ER_CANNOT_ADD_FOREIGN
             mismatched_foreign_key(message)
