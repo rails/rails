@@ -77,8 +77,7 @@ On macOS you can use [Homebrew](https://brew.sh/) to install all of the addition
 To install all run:
 
 ```bash
-$ brew install sqlite3 mysql postgresql redis memcached yarn imagemagick ffmpeg mupdf-tools poppler
-$ brew cask install xquartz
+$ brew bundle
 ```
 
 You'll also need to start each of the installed services. To list all available services run:
