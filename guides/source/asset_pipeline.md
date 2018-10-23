@@ -233,11 +233,6 @@ code for JavaScript plugins and CSS frameworks. Keep in mind that third party
 code with references to other files also processed by the asset Pipeline (images,
 stylesheets, etc.), will need to be rewritten to use helpers like `asset_path`.
 
-WARNING: If you are upgrading from Rails 3, please take into account that assets
-under `lib/assets` or `vendor/assets` are available for inclusion via the
-application manifests but no longer part of the precompile array. See
-[Precompiling Assets](#precompiling-assets) for guidance.
-
 #### Search Paths
 
 When a file is referenced from a manifest or a helper, Sprockets searches the
