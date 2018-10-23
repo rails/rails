@@ -754,7 +754,8 @@ class MultipleFixturesTest < ActiveRecord::TestCase
   fixtures :developers, :accounts
 
   def test_fixture_table_names
-    assert_equal %w(topics developers accounts), fixture_table_names
+    sets = %w(accounts developers topics)
+    assert_equal sets, fixture_files[FIXTURES_ROOT].sort
   end
 end
 
@@ -786,7 +787,8 @@ class OverlappingFixturesTest < ActiveRecord::TestCase
   fixtures :developers, :accounts
 
   def test_fixture_table_names
-    assert_equal %w(topics developers accounts), fixture_table_names
+    sets = %w(accounts developers topics)
+    assert_equal sets, fixture_files[FIXTURES_ROOT].sort
   end
 end
 
@@ -1050,7 +1052,8 @@ class LoadAllFixturesTest < ActiveRecord::TestCase
     self.class.fixtures :all
 
     if File.symlink? FIXTURES_ROOT + "/all/admin"
-      assert_equal %w(admin/accounts admin/users developers namespaced/accounts people tasks), fixture_table_names.sort
+      sets = %w(admin/accounts admin/users developers namespaced/accounts people tasks)
+      assert_equal sets, fixture_files[FIXTURES_ROOT + "/all"].sort
     end
   ensure
     ActiveRecord::FixtureSet.reset_cache
@@ -1063,7 +1066,8 @@ class LoadAllFixturesWithPathnameTest < ActiveRecord::TestCase
     self.class.fixtures :all
 
     if File.symlink? FIXTURES_ROOT + "/all/admin"
-      assert_equal %w(admin/accounts admin/users developers namespaced/accounts people tasks), fixture_table_names.sort
+      sets = %w(admin/accounts admin/users developers namespaced/accounts people tasks)
+      assert_equal sets, fixture_files[FIXTURES_ROOT + "/all"].sort
     end
   ensure
     ActiveRecord::FixtureSet.reset_cache
@@ -1388,5 +1392,19 @@ class DeprecatedFixturesPathsTest < ActiveRecord::TestCase
 
   test "TestCase.fixture_path deprecated" do
     assert_deprecated { @test_case.fixture_path }
+  end
+end
+
+class DeprecatedFixtureTableNamesTest < ActiveRecord::TestCase
+  setup do
+    @test_case = Class.new(ActiveRecord::TestCase)
+  end
+
+  test "TestCase.fixture_table_names= deprecated" do
+    assert_deprecated { @test_case.fixture_table_names = %w(accounts) }
+  end
+
+  test "TestCase.fixture_table_names deprecated" do
+    assert_deprecated { @test_case.fixture_table_names }
   end
 end

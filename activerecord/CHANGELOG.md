@@ -1,3 +1,7 @@
+*   Deprecate `ActiveRecord::TestFixtures.fixture_table_names` in favor of `ActiveRecord::TestFixtures.fixture_files`.
+
+    *Gannon McGibbon*
+
 *   Deprecate `ActiveRecord::TestFixtures.fixture_path` in favor of `ActiveRecord::TestFixtures.fixtures_paths`.
 
     *Gannon McGibbon*

@@ -16,7 +16,7 @@ module ActiveRecord
 
     included do
       class_attribute :fixtures_paths, instance_writer: false
-      class_attribute :fixture_table_names, default: []
+      class_attribute :fixture_files, default: {}
       class_attribute :fixture_class_names, default: {}
       class_attribute :use_transactional_tests, default: true
       class_attribute :use_instantiated_fixtures, default: false # true, false, or :no_instances
@@ -48,12 +48,14 @@ module ActiveRecord
           fixture_set_names = fixture_set_names.flatten.map(&:to_s)
         end
 
-        self.fixture_table_names |= fixture_set_names
+        self.fixture_files = fixture_files.dup
+        fixture_files[fixtures_paths.first.to_s] ||= []
+        fixture_files[fixtures_paths.first.to_s] |= fixture_set_names
         setup_fixture_accessors(fixture_set_names)
       end
 
       def setup_fixture_accessors(fixture_set_names = nil)
-        fixture_set_names = Array(fixture_set_names || fixture_table_names)
+        fixture_set_names = Array(fixture_set_names || fixture_files.values.first)
         methods = Module.new do
           fixture_set_names.each do |fs_name|
             fs_name = fs_name.to_s
@@ -101,6 +103,23 @@ module ActiveRecord
         fixtures_paths.first
       end
 
+      def fixture_table_names=(names)
+        ActiveSupport::Deprecation.warn <<~MSG.squish
+          #{self}.fixture_table_names is deprecated and will be removed in Rails 6.1.
+          Please use #{self}.fixture_files instead.
+        MSG
+        self.fixture_files = fixture_files.dup
+        self.fixture_files[fixtures_paths.first] = names
+      end
+
+      def fixture_table_names
+        ActiveSupport::Deprecation.warn <<~MSG.squish
+          #{self}.fixture_table_names is deprecated and will be removed in Rails 6.1.
+          Please use #{self}.fixture_files instead.
+        MSG
+        Array(fixture_files[fixtures_paths.first])
+      end
+
       def uses_transaction(*methods)
         @uses_transaction = [] unless defined?(@uses_transaction)
         @uses_transaction.concat methods.map(&:to_s)
@@ -114,6 +133,14 @@ module ActiveRecord
 
     def fixture_path
       self.class.fixture_path
+    end
+
+    def fixture_table_names=(names)
+      self.class.fixture_table_names = names
+    end
+
+    def fixture_table_names
+      self.class.fixture_table_names
     end
 
     def run_in_transaction?
@@ -201,7 +228,7 @@ module ActiveRecord
       def load_fixtures(config)
         fixtures = ActiveRecord::FixtureSet.create_fixtures(
           fixtures_paths.first,
-          fixture_table_names,
+          fixture_files[fixtures_paths.first],
           fixture_class_names,
           config,
         )
