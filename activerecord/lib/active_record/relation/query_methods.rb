@@ -250,8 +250,15 @@ module ActiveRecord
     #
     # This is short-hand for <tt>unscope(:select).select(fields)</tt>.
     # Note that we're unscoping the entire select statement.
-    def reselect(*fields)
-      unscope(:select).select(*fields)
+    def reselect(*args)
+      check_if_method_has_arguments!(:reselect, args)
+      spawn.reselect!(*args)
+    end
+
+    # Same as #reselect but operates on relation in-place instead of copying.
+    def reselect!(*args) # :nodoc:
+      self.select_values = args
+      self
     end
 
     # Allows to specify a group attribute:
