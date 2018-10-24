@@ -622,8 +622,15 @@ module ActiveRecord
 
     # Saves the record with the updated_at/on attributes set to the current time
     # or the time specified.
-    # Please note that no validation is performed and only the +after_touch+,
-    # +after_commit+ and +after_rollback+ callbacks are executed.
+    #
+    # * No validation is performed.
+    # * Only the +after_touch+, +after_commit+ and +after_rollback+ callbacks
+    #   are executed.
+    # * The dirty-tracking state is cleared for touched attributes, so
+    #   unpersisted changes are no longer tracked by methods like +changed?+,
+    #   +previous_changes+, and +changes+. Then, there is no dirty-tracking of
+    #   the +touch+ itself, so those methods will not reflect the timestamp
+    #   changes either.
     #
     # This method can be passed attribute names and an optional time argument.
     # If attribute names are passed, they are updated along with updated_at/on
