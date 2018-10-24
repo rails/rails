@@ -36,7 +36,7 @@ if ActiveRecord::Base.connection.prepared_statements
 
       def test_too_many_binds
         bind_params_length = @connection.send(:bind_params_length)
-        topics = Topic.where(id: (1 .. bind_params_length + 1).to_a)
+        topics = Topic.where(id: (1 .. bind_params_length).to_a << 2**63)
         assert_equal Topic.count, topics.count
       end
 

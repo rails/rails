@@ -93,7 +93,7 @@ ActiveRecord::Schema.define do
     t.integer :pirate_id
   end
 
-  create_table :books, force: true do |t|
+  create_table :books, id: :integer, force: true do |t|
     t.references :author
     t.string :format
     t.column :name, :string
@@ -158,8 +158,8 @@ ActiveRecord::Schema.define do
   end
 
   create_table :citations, force: true do |t|
-    t.column :book1_id, :integer
-    t.column :book2_id, :integer
+    t.references :book1
+    t.references :book2
     t.references :citation
   end
 

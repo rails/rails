@@ -34,7 +34,7 @@ class EagerLoadingTooManyIdsTest < ActiveRecord::TestCase
   fixtures :citations
 
   def test_preloading_too_many_ids
-    assert_equal Citation.count, Citation.preload(:citations).to_a.size
+    assert_equal Citation.count, Citation.preload(:reference_of).to_a.size
   end
 
   def test_eager_loading_too_may_ids
