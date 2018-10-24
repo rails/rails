@@ -757,6 +757,13 @@ class TimeZoneTest < ActiveSupport::TestCase
     assert_raise(ArgumentError) { ActiveSupport::TimeZone[false] }
   end
 
+  def test_uniform_timezone_name
+    # Tests name consistency of TimeZone.name after initialized
+    helsinki_name = ActiveSupport::TimeZone["Helsinki"]
+    helsinki_tz = ActiveSupport::TimeZone["Europe/Helsinki"]
+    assert_equal helsinki_name.name, helsinki_tz.name
+  end
+
   def test_unknown_zone_raises_exception
     assert_raise TZInfo::InvalidTimezoneIdentifier do
       ActiveSupport::TimeZone.create("bogus")

@@ -294,7 +294,7 @@ module ActiveSupport
     # (GMT). Seconds were chosen as the offset unit because that is the unit
     # that Ruby uses to represent time zone offsets (see Time#utc_offset).
     def initialize(name, utc_offset = nil, tzinfo = nil)
-      @name = name
+      @name = MAPPING.invert[name] || name
       @utc_offset = utc_offset
       @tzinfo = tzinfo || TimeZone.find_tzinfo(name)
     end
