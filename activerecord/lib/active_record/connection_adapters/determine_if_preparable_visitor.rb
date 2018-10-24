@@ -10,8 +10,17 @@ module ActiveRecord
         super
       end
 
-      def visit_Arel_Nodes_In(*)
+      def visit_Arel_Nodes_In(o, collector)
         @preparable = false
+
+        if Array === o.right && !o.right.empty?
+          o.right.delete_if do |bind|
+            if Arel::Nodes::BindParam === bind && Relation::QueryAttribute === bind.value
+              !bind.value.boundable?
+            end
+          end
+        end
+
         super
       end
 
