@@ -34,7 +34,28 @@ module ActionDispatch
       end
 
       def build(app)
-        klass.new(app, *args, &block)
+        InstrumentationProxy.new(klass.new(app, *args, &block), inspect)
+      end
+    end
+
+    # This class is used to instrument the execution of a single middleware.
+    # It proxies the `call` method transparently and instruments the method
+    # call.
+    class InstrumentationProxy
+      EVENT_NAME = "process_middleware.action_dispatch"
+
+      def initialize(middleware, class_name)
+        @middleware = middleware
+
+        @payload = {
+          middleware: class_name,
+        }
+      end
+
+      def call(env)
+        ActiveSupport::Notifications.instrument(EVENT_NAME, @payload) do
+          @middleware.call(env)
+        end
       end
     end
 
