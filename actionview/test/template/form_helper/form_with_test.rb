@@ -2319,6 +2319,11 @@ class FormWithActsLikeFormForTest < FormWithTest
     assert_equal 1, initialization_count, "form builder instantiated more than once"
   end
 
+  def test_if_form_with_displays_form_that_is_closed
+    output_buffer = render_erb("<%= form_with(url: 'http://www.example.com') %>")
+    assert_equal true, output_buffer.include?("</form>")
+  end
+
   private
     def hidden_fields(options = {})
       method = options[:method]

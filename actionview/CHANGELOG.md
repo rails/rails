@@ -1,5 +1,5 @@
-*   If `form_with` and `form_tag` were called without a html block, 
-    those helpers displayed a html form without ending in `</form>`. 
+*   If `form_with` was called without a html block, 
+    it displayed a html form without ending in `</form>`. 
 
     Fixes #34282.
 

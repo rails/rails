@@ -73,8 +73,7 @@ module ActionView
         if block_given?
           form_tag_with_body(html_options, capture(&block))
         else
-          form_output = form_tag_html(html_options)
-          form_output.safe_concat("</form>")
+          form_tag_html(html_options)
         end
       end
 
