@@ -398,16 +398,16 @@ class EnqueuedJobsTest < ActiveJob::TestCase
 
   def test_assert_enqueued_job_returns
     job = assert_enqueued_with(job: LoggingJob) do
-      LoggingJob.set(wait_until: 5.minutes.from_now).perform_later(1, 2, 3)
+      LoggingJob.set(wait_until: 5.minutes.from_now).perform_later(1, 2, 3, keyword: true)
     end
 
     assert_instance_of LoggingJob, job
     assert_in_delta 5.minutes.from_now, job.scheduled_at, 1
     assert_equal "default", job.queue_name
-    assert_equal [1, 2, 3], job.arguments
+    assert_equal [1, 2, 3, { keyword: true }], job.arguments
   end
 
-  def test_assert_enqueued_job_failure
+  def test_assert_enqueued_with_failure
     assert_raise ActiveSupport::TestCase::Assertion do
       assert_enqueued_with(job: LoggingJob, queue: "default") do
         NestedJob.perform_later
@@ -831,18 +831,18 @@ class PerformedJobsTest < ActiveJob::TestCase
     end
   end
 
-  def test_assert_performed_job_returns
-    job = assert_performed_with(job: NestedJob, queue: "default") do
-      NestedJob.perform_later
+  def test_assert_performed_with_returns
+    job = assert_performed_with(job: LoggingJob, queue: "default") do
+      LoggingJob.perform_later(keyword: true)
     end
 
-    assert_instance_of NestedJob, job
+    assert_instance_of LoggingJob, job
     assert_nil job.scheduled_at
-    assert_equal [], job.arguments
+    assert_equal [{ keyword: true }], job.arguments
     assert_equal "default", job.queue_name
   end
 
-  def test_assert_performed_job_failure
+  def test_assert_performed_with_failure
     assert_raise ActiveSupport::TestCase::Assertion do
       assert_performed_with(job: LoggingJob) do
         HelloJob.perform_later

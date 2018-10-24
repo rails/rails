@@ -1,3 +1,9 @@
+*   Include deserialized arguments in job instances returned from
+    `assert_enqueued_with` and `assert_performed_with`
+
+    *Alan Wu*
+
+
 ## Rails 5.2.1 (August 07, 2018) ##
 
 *   Pass the error instance as the second parameter of block executed by `discard_on`.

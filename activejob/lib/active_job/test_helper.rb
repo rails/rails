@@ -435,7 +435,8 @@ module ActiveJob
       end
 
       def instantiate_job(payload)
-        job = payload[:job].new(*payload[:args])
+        args = ActiveJob::Arguments.deserialize(payload[:args])
+        job = payload[:job].new(*args)
         job.scheduled_at = Time.at(payload[:at]) if payload.key?(:at)
         job.queue_name = payload[:queue]
         job
