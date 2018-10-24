@@ -229,11 +229,14 @@ class SchemaDumperTest < ActiveRecord::TestCase
   if ActiveRecord::Base.connection.supports_expression_index?
     def test_schema_dump_expression_indices
       index_definition = dump_table_schema("companies").split(/\n/).grep(/t\.index.*company_expression_index/).first.strip
+      index_definition.sub!(/, name: "company_expression_index"\z/, "")
 
       if current_adapter?(:PostgreSQLAdapter)
-        assert_match %r{CASE.+lower\(\(name\)::text\)}i, index_definition
+        assert_match %r{CASE.+lower\(\(name\)::text\).+END\) DESC"\z}i, index_definition
+      elsif current_adapter?(:Mysql2Adapter)
+        assert_match %r{CASE.+lower\(`name`\).+END\) DESC"\z}i, index_definition
       elsif current_adapter?(:SQLite3Adapter)
-        assert_match %r{CASE.+lower\(name\)}i, index_definition
+        assert_match %r{CASE.+lower\(name\).+END\) DESC"\z}i, index_definition
       else
         assert false
       end
