@@ -540,7 +540,7 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     mtime = Marshal.load(marshal_str)
     assert_equal Time.utc(2000, 1, 1, 0), mtime.utc
     assert_predicate mtime.utc, :utc?
-    assert_equal "America/New_York", mtime.time_zone.name
+    assert_equal "Eastern Time (US & Canada)", mtime.time_zone.name
     assert_equal Time.utc(1999, 12, 31, 19), mtime.time
     assert_predicate mtime.time, :utc?
     assert_equal @twz.inspect, mtime.inspect
@@ -1150,7 +1150,8 @@ class TimeWithZoneMethodsForTimeAndDateTimeTest < ActiveSupport::TestCase
     Time.zone = tzinfo
     assert_kind_of ActiveSupport::TimeZone, Time.zone
     assert_equal tzinfo, Time.zone.tzinfo
-    assert_equal "America/New_York", Time.zone.name
+    assert_equal "Eastern Time (US & Canada)", Time.zone.name
+    assert_equal "America/New_York", Time.zone.tzinfo.name
     assert_equal(-18_000, Time.zone.utc_offset)
   end
 
@@ -1158,7 +1159,7 @@ class TimeWithZoneMethodsForTimeAndDateTimeTest < ActiveSupport::TestCase
     Time.zone = "America/New_York"
     assert_kind_of ActiveSupport::TimeZone, Time.zone
     assert_equal "America/New_York", Time.zone.tzinfo.name
-    assert_equal "America/New_York", Time.zone.name
+    assert_equal "Eastern Time (US & Canada)", Time.zone.name
     assert_equal(-18_000, Time.zone.utc_offset)
   end
 
