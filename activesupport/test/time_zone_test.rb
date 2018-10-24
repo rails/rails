@@ -761,7 +761,7 @@ class TimeZoneTest < ActiveSupport::TestCase
     # Tests name consistency of TimeZone.name after initialized
     helsinki_name = ActiveSupport::TimeZone["Helsinki"]
     helsinki_tz = ActiveSupport::TimeZone["Europe/Helsinki"]
-    assert_equal "Helsinki", helsinki_tz.name 
+    assert_equal "Helsinki", helsinki_tz.name
     assert_equal helsinki_name.name, helsinki_tz.name
   end
 
