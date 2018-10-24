@@ -3,9 +3,8 @@
 require "active_support/core_ext/module/delegation"
 
 # Attachments associate records with blobs. Usually that's a one record-many blobs relationship,
-# but it is possible to associate many different records with the same blob. If you're doing that,
-# you'll want to declare with <tt>has_one/many_attached :thingy, dependent: false</tt>, so that destroying
-# any one record won't destroy the blob as well. (Then you'll need to do your own garbage collecting, though).
+# but it is possible to associate many different records with the same blob. A foreign-key constraint
+# on the attachments table prevents blobs from being purged if they’re still attached to any records.
 class ActiveStorage::Attachment < ActiveRecord::Base
   self.table_name = "active_storage_attachments"
 
