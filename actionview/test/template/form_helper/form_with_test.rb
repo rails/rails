@@ -2319,9 +2319,9 @@ class FormWithActsLikeFormForTest < FormWithTest
     assert_equal 1, initialization_count, "form builder instantiated more than once"
   end
 
-  def test_if_form_with_displays_form_that_is_closed
-    output_buffer = render_erb("<%= form_with(url: 'http://www.example.com') %>")
-    assert_equal true, output_buffer.include?("</form>")
+  def test_form_with_without_block_closes_form
+    form_with(url: "http://www.example.com")
+    assert_operator output_buffer, :end_with?, "</form>"
   end
 
   private
