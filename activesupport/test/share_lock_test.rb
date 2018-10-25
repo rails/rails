@@ -456,6 +456,26 @@ class ShareLockTest < ActiveSupport::TestCase
     assert_threads_not_stuck incompatible_thread
   end
 
+  def test_manual_yield_without_locks_does_not_wait
+    in_exclusive = Concurrent::CountDownLatch.new
+    in_yield = Concurrent::CountDownLatch.new
+
+    exclusive_thread = Thread.new do
+      @lock.exclusive(purpose: :x) do
+        in_exclusive.wait
+      end
+    end
+
+    yield_shares_thread = Thread.new do
+      @lock.yield_shares(compatible: [:x]) do
+        in_yield.wait
+      end
+    end
+
+    assert_threads_stuck_but_releasable_by_latch yield_shares_thread, in_yield
+    assert_threads_stuck_but_releasable_by_latch exclusive_thread, in_exclusive
+  end
+
   def test_in_shared_section_incompatible_non_upgrading_threads_cannot_preempt_upgrading_threads
     scratch_pad       = []
     scratch_pad_mutex = Mutex.new

@@ -1,3 +1,8 @@
+*   `ActiveSupport::Concurrency::ShareLock#yield_shares` no longer waits to
+    reacquire a share lock if it never had one.
+
+    *Tessa Bradbury*
+
 *   Fix bug where `#to_options` for `ActiveSupport::HashWithIndifferentAccess`
     would not act as alias for `#symbolize_keys`.
 

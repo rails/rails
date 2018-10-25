@@ -187,14 +187,17 @@ module ActiveSupport
           yield
         ensure
           synchronize do
-            wait_for(:yield_shares) { @exclusive_thread && @exclusive_thread != Thread.current }
+            if loose_shares
+              # Thread previously had a share lock so need to reacquire it
+              wait_for(:yield_shares) { @exclusive_thread && @exclusive_thread != Thread.current }
+              @sharing[Thread.current] = loose_shares
+            end
 
             if previous_wait
               @waiting[Thread.current] = previous_wait
             else
               @waiting.delete Thread.current
             end
-            @sharing[Thread.current] = loose_shares if loose_shares
           end
         end
       end
