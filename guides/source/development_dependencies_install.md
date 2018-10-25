@@ -51,22 +51,15 @@ Here's the list of each gems' additional dependencies:
 
 * Action Cable depends on Redis
 * Active Record depends on SQLite3, MySQL and PostgreSQL
-* Active Storage depends on Yarn (additionally Yarn depends on [Node.js](https://nodejs.org/))
+* Active Storage depends on Yarn (additionally Yarn depends on [Node.js](https://nodejs.org/)), ImageMagick, FFmpeg, muPDF, and on macOS also XQuartz and Poppler.
 * Active Support depends on memcached and Redis
 * Railties depend on a JavaScript runtime environment, such as having [Node.js](https://nodejs.org/) installed.
 
 Install all the services you need to properly test the full gem you'll be making changes to.
-For example, if you will make changes to Action Cable, you _must_ install Redis, in order to be able to run all Action Cable tests before submitting your pull request.
 
 NOTE: Redis' documentation discourage installations with package managers as those are usually outdated. Installing from source and bringing the server up is straight forward and well documented on [Redis' documentation](https://redis.io/download#installation).
 
-NOTE: Active Record's test suite runs three times: once for SQLite3, once for MySQL, and once for PostgreSQL. We are going to see now how to set up the environment for them.
-
-NOTE: Extracting previews, tested in Active Storage's test suite requires third-party applications:
-ImageMagick for images, FFmpeg for video and muPDF for PDFs, and on macOS also XQuartz and Poppler.
-Without these applications installed, Active Storage tests will raise errors.
-
-WARNING: If you're working with Active Record code, you _must_ ensure that the tests pass for at least MySQL, PostgreSQL, and SQLite3. Subtle differences between the various adapters have been behind the rejection of many patches that looked OK when tested only against single adapter.
+NOTE: Active Record tests _must_ pass for at least MySQL, PostgreSQL, and SQLite3. Subtle differences between the various adapters have been behind the rejection of many patches that looked OK when tested only against single adapter.
 
 Below you can find instructions on how to install all of the additional tools for different OSes.
 
@@ -112,7 +105,7 @@ $ sudo apt-get install yarn
 To install all run:
 
 ```bash
-$ sudo yum install libsqlite3x libsqlite3x-devel mysql-server mysql-devel postgresql-server postgresql-devel redis memcached imagemagick ffmpeg mupdf
+$ sudo yum install sqlite-devel sqlite-libs mysql-server mysql-devel postgresql-server postgresql-devel redis memcached imagemagick ffmpeg mupdf
 # install yarn
 $ sudo wget https://dl.yarnpkg.com/rpm/yarn.repo -O /etc/yum.repos.d/yarn.repo
 $ sudo yum install yarn
@@ -135,14 +128,14 @@ use MariaDB instead (see [this announcement](https://www.archlinux.org/news/mari
 To install all run:
 
 ```bash
-# pkg install sqlite3 mysql56-client mysql56-server postgresql94-client postgresql94-server memcached imagemagick ffmpeg mupdf
+# pkg install sqlite3 mysql80-client mysql80-server postgresql11-client postgresql11-server memcached imagemagick ffmpeg mupdf
 # portmaster databases/redis
 ```
 
 Or install everyting through ports (these packages are located under the `databases` folder).
 
 NOTE: If you run into troubles during the installation of MySQL, please see
-[the MySQL documentation](http://dev.mysql.com/doc/refman/5.1/en/freebsd-installation.html).
+[the MySQL documentation](https://dev.mysql.com/doc/refman/8.0/en/freebsd-installation.html).
 
 ### Database Configuration
 
