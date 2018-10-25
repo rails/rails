@@ -106,6 +106,13 @@ if current_adapter?(:Mysql2Adapter)
   class MysqlDefaultExpressionTest < ActiveRecord::TestCase
     include SchemaDumpingHelper
 
+    if supports_default_expression?
+      test "schema dump includes default expression" do
+        output = dump_table_schema("defaults")
+        assert_match %r/t\.binary\s+"uuid",\s+limit: 36,\s+default: -> { "\(uuid\(\)\)" }/i, output
+      end
+    end
+
     if subsecond_precision_supported?
       test "schema dump datetime includes default expression" do
         output = dump_table_schema("datetime_defaults")

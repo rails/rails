@@ -1,3 +1,11 @@
+*   Support default expression for MySQL.
+
+    MySQL 8.0.13 and higher supports default value to be a function or expression.
+
+    https://dev.mysql.com/doc/refman/8.0/en/create-table.html
+
+    *Ryuta Kamizono*
+
 *   Support expression indexes for MySQL.
 
     MySQL 8.0.13 and higher supports functional key parts that index

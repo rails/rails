@@ -106,10 +106,13 @@ module ActiveRecord
 
           def new_column_from_field(table_name, field)
             type_metadata = fetch_type_metadata(field[:Type], field[:Extra])
-            if type_metadata.type == :datetime && /\ACURRENT_TIMESTAMP(?:\([0-6]?\))?\z/i.match?(field[:Default])
-              default, default_function = nil, field[:Default]
-            else
-              default, default_function = field[:Default], nil
+            default, default_function = field[:Default], nil
+
+            if type_metadata.type == :datetime && /\ACURRENT_TIMESTAMP(?:\([0-6]?\))?\z/i.match?(default)
+              default, default_function = nil, default
+            elsif type_metadata.extra == "DEFAULT_GENERATED"
+              default = +"(#{default})" unless default.start_with?("(")
+              default, default_function = nil, default
             end
 
             MySQL::Column.new(
