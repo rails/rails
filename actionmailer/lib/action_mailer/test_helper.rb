@@ -8,6 +8,8 @@ module ActionMailer
   module TestHelper
     include ActiveJob::TestHelper
 
+    DEFAULT_DELIVERY_JOBS = [ActionMailer::DeliveryJob, ActionMailer::Parameterized::DeliveryJob]
+
     # Asserts that the number of emails sent matches the given number.
     #
     #   def test_emails
@@ -31,10 +33,26 @@ module ActionMailer
     #       ContactMailer.welcome.deliver_later
     #     end
     #   end
-    def assert_emails(number, &block)
+    #
+    # The +delivery_jobs+ argument needs to be passed in case your mailer defines a custom job
+    # delivery class.
+    #
+    #   class MyMailer < ApplicationMailer
+    #     self.delivery_job = MyDeliveryJob
+    #
+    #     def my_email
+    #     end
+    #   end
+    #
+    #   def test_emails_with_custom_delivery_job
+    #     assert_emails 1, delivery_jobs: MyDeliveryJob do
+    #       MyMailer.test.deliver_later
+    #     end
+    #   end
+    def assert_emails(number, delivery_jobs: [], &block)
       if block_given?
         original_count = ActionMailer::Base.deliveries.size
-        perform_enqueued_jobs(only: [ActionMailer::DeliveryJob, ActionMailer::Parameterized::DeliveryJob], &block)
+        perform_enqueued_jobs(only: DEFAULT_DELIVERY_JOBS + Array(delivery_jobs), &block)
         new_count = ActionMailer::Base.deliveries.size
         assert_equal number, new_count - original_count, "#{number} emails expected, but #{new_count - original_count} were sent"
       else
@@ -61,8 +79,24 @@ module ActionMailer
     # Note: This assertion is simply a shortcut for:
     #
     #   assert_emails 0, &block
-    def assert_no_emails(&block)
-      assert_emails 0, &block
+    #
+    # The +delivery_jobs+ argument needs to be passed in case your mailer defines a custom job
+    # delivery class.
+    #
+    #   class MyMailer < ApplicationMailer
+    #     self.delivery_job = MyDeliveryJob
+    #
+    #     def my_email
+    #     end
+    #   end
+    #
+    #   def test_no_emails_with_custom_delivery_job
+    #     assert_no_emails(delivery_jobs: MyDeliveryJob) do
+    #       # No emails should be sent through the MyDeliveryJob from this block
+    #     end
+    #   end
+    def assert_no_emails(delivery_jobs: [], &block)
+      assert_emails(0, delivery_jobs: delivery_jobs, &block)
     end
 
     # Asserts that the number of emails enqueued for later delivery matches
@@ -89,8 +123,25 @@ module ActionMailer
     #       ContactMailer.welcome.deliver_later
     #     end
     #   end
-    def assert_enqueued_emails(number, &block)
-      assert_enqueued_jobs number, only: [ ActionMailer::DeliveryJob, ActionMailer::Parameterized::DeliveryJob ], &block
+    #
+    #
+    # The +delivery_jobs+ argument needs to be passed in case your mailer defines a custom job
+    # delivery class.
+    #
+    #   class MyMailer < ApplicationMailer
+    #     self.delivery_job = MyDeliveryJob
+    #
+    #     def my_email
+    #     end
+    #   end
+    #
+    #   def test_no_emails_with_custom_delivery_job
+    #     assert_enqueued_emails(delivery_jobs: MyDeliveryJob) do
+    #       MyMailer.my_email.deliver_later
+    #     end
+    #   end
+    def assert_enqueued_emails(number, delivery_jobs: [], &block)
+      assert_enqueued_jobs(number, only: DEFAULT_DELIVERY_JOBS + Array(delivery_jobs), &block)
     end
 
     # Asserts that a specific email has been enqueued, optionally
@@ -125,10 +176,10 @@ module ActionMailer
     #   end
     def assert_enqueued_email_with(mailer, method, args: nil, queue: "mailers", &block)
       if args.is_a? Hash
-        job = ActionMailer::Parameterized::DeliveryJob
+        job = mailer.parameterized_delivery_job
         args = [mailer.to_s, method.to_s, "deliver_now", args]
       else
-        job = ActionMailer::DeliveryJob
+        job = mailer.delivery_job
         args = [mailer.to_s, method.to_s, "deliver_now", *args]
       end
 
@@ -150,8 +201,25 @@ module ActionMailer
     #       # No emails should be enqueued from this block
     #     end
     #   end
-    def assert_no_enqueued_emails(&block)
-      assert_no_enqueued_jobs only: [ ActionMailer::DeliveryJob, ActionMailer::Parameterized::DeliveryJob ], &block
+    #
+    #
+    # The +delivery_jobs+ argument needs to be passed in case your mailer defines a custom job
+    # delivery class.
+    #
+    #   class MyMailer < ApplicationMailer
+    #     self.delivery_job = MyDeliveryJob
+    #
+    #     def my_email
+    #     end
+    #   end
+    #
+    #   def test_no_emails_with_custom_delivery_job
+    #     assert_no_enqueued_emails(delivery_jobs: MyDeliveryJob) do
+    #       # No emails should be sent through the MyDeliveryJob from this block
+    #     end
+    #   end
+    def assert_no_enqueued_emails(delivery_jobs: [], &block)
+      assert_enqueued_emails(0, delivery_jobs: delivery_jobs, &block)
     end
   end
 end

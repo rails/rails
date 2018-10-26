@@ -1,3 +1,17 @@
+*   Add a new `delivery_jobs` option to all ActionMailer test_helper
+    to work correctly when a mailer defines a custom delivery_job.
+
+    ```
+    class MyMailer < ApplicationMailer
+      self.delivery_job = MyJob
+    end
+
+    assert_emails(1, delivery_jobs: MyJob) do
+      MyMailer.my_mail.deliver_later
+    end
+    ```
+
+
 *   Allow ActionMailer classes to configure the parameterized delivery job
     Example:
     ```

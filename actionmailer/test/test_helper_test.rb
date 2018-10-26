@@ -24,6 +24,14 @@ class TestHelperMailer < ActionMailer::Base
   end
 end
 
+class CustomDeliveryJob < ActionMailer::DeliveryJob
+end
+
+class CustomDeliveryMailer < TestHelperMailer
+  self.delivery_job = CustomDeliveryJob
+  self.parameterized_delivery_job = CustomDeliveryJob
+end
+
 class TestHelperMailerTest < ActionMailer::TestCase
   include ActiveSupport::Testing::Stream
 
@@ -65,6 +73,16 @@ class TestHelperMailerTest < ActionMailer::TestCase
     assert_nothing_raised do
       assert_emails 1 do
         TestHelperMailer.test.deliver_now
+      end
+    end
+  end
+
+  def test_assert_emails_with_custom_delivery_job
+    assert_nothing_raised do
+      assert_emails(1, delivery_jobs: CustomDeliveryJob) do
+        silence_stream($stdout) do
+          CustomDeliveryMailer.test.deliver_later
+        end
       end
     end
   end
@@ -111,6 +129,16 @@ class TestHelperMailerTest < ActionMailer::TestCase
     assert_nothing_raised do
       assert_no_emails do
         TestHelperMailer.test
+      end
+    end
+  end
+
+  def test_assert_no_emails_with_custom_delivery_job
+    assert_nothing_raised do
+      assert_no_emails(delivery_jobs: []) do
+        silence_stream($stdout) do
+          CustomDeliveryMailer.test.deliver_later
+        end
       end
     end
   end
@@ -179,6 +207,16 @@ class TestHelperMailerTest < ActionMailer::TestCase
     end
   end
 
+  def test_assert_enqueued_emails_with_custom_delivery_job
+    assert_nothing_raised do
+      assert_enqueued_emails(1, delivery_jobs: CustomDeliveryJob) do
+        silence_stream($stdout) do
+          CustomDeliveryMailer.test.deliver_later
+        end
+      end
+    end
+  end
+
   def test_assert_enqueued_parameterized_emails
     assert_nothing_raised do
       assert_enqueued_emails 1 do
@@ -222,6 +260,16 @@ class TestHelperMailerTest < ActionMailer::TestCase
     end
   end
 
+  def test_assert_no_enqueued_emails_with_custom_delivery_job
+    assert_nothing_raised do
+      assert_no_enqueued_emails(delivery_jobs: []) do
+        silence_stream($stdout) do
+          CustomDeliveryMailer.test.deliver_later
+        end
+      end
+    end
+  end
+
   def test_assert_no_enqueued_parameterized_emails
     assert_nothing_raised do
       assert_no_enqueued_emails do
@@ -247,6 +295,16 @@ class TestHelperMailerTest < ActionMailer::TestCase
       assert_enqueued_email_with TestHelperMailer, :test do
         silence_stream($stdout) do
           TestHelperMailer.test.deliver_later
+        end
+      end
+    end
+  end
+
+  def test_assert_enqueued_email_with_when_mailer_has_custom_delivery_job
+    assert_nothing_raised do
+      assert_enqueued_email_with CustomDeliveryMailer, :test do
+        silence_stream($stdout) do
+          CustomDeliveryMailer.test.deliver_later
         end
       end
     end
@@ -285,6 +343,16 @@ class TestHelperMailerTest < ActionMailer::TestCase
       assert_enqueued_email_with TestHelperMailer, :test_parameter_args, args: { all: "good" } do
         silence_stream($stdout) do
           TestHelperMailer.with(all: "good").test_parameter_args.deliver_later
+        end
+      end
+    end
+  end
+
+  def test_assert_enqueued_email_with_with_parameterized_args_and_custom_paramterized_delivery_job
+    assert_nothing_raised do
+      assert_enqueued_email_with CustomDeliveryMailer, :test_parameter_args, args: { all: "good" } do
+        silence_stream($stdout) do
+          CustomDeliveryMailer.with(all: "good").test_parameter_args.deliver_later
         end
       end
     end
