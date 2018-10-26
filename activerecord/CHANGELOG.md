@@ -1,3 +1,20 @@
+*   Support default expression for MySQL.
+
+    MySQL 8.0.13 and higher supports default value to be a function or expression.
+
+    https://dev.mysql.com/doc/refman/8.0/en/create-table.html
+
+    *Ryuta Kamizono*
+
+*   Support expression indexes for MySQL.
+
+    MySQL 8.0.13 and higher supports functional key parts that index
+    expression values rather than column or column prefix values.
+
+    https://dev.mysql.com/doc/refman/8.0/en/create-index.html
+
+    *Ryuta Kamizono*
+
 *   Fix collection cache key with limit and custom select to avoid ambiguous timestamp column error.
 
     Fixes #33056.
