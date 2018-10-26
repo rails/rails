@@ -161,13 +161,13 @@
     specify sensitive attributes to specific model.
 
     ```
-    Rails.application.config.filter_parameters += [:credit_card_number]
-    Account.last.inspect # => #<Account id: 123, name: "DHH", credit_card_number: [FILTERED] ...>
+    Rails.application.config.filter_parameters += [:credit_card_number, /phone/]
+    Account.last.inspect # => #<Account id: 123, name: "DHH", credit_card_number: [FILTERED], telephone_number: [FILTERED] ...>
     SecureAccount.filter_attributes += [:name]
     SecureAccount.last.inspect # => #<SecureAccount id: 42, name: [FILTERED], credit_card_number: [FILTERED] ...>
     ```
 
-    *Zhang Kang*
+    *Zhang Kang*, *Yoshiyuki Kinjo*
 
 *   Deprecate `column_name_length`, `table_name_length`, `columns_per_table`,
     `indexes_per_table`, `columns_per_multicolumn_index`, `sql_query_length`,

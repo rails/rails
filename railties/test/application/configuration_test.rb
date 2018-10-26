@@ -2109,7 +2109,7 @@ module ApplicationTests
       RUBY
       app "development"
       assert_equal [ :password, :credit_card_number ], Rails.application.config.filter_parameters
-      assert_equal [ "password", "credit_card_number" ].to_set, ActiveRecord::Base.filter_attributes
+      assert_equal [ :password, :credit_card_number ], ActiveRecord::Base.filter_attributes
     end
 
     test "ActiveStorage.routes_prefix can be configured via config.active_storage.routes_prefix" do

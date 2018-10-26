@@ -329,14 +329,7 @@ module ActiveRecord
     #   # => "[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]"
     def attribute_for_inspect(attr_name)
       value = read_attribute(attr_name)
-
-      if value.is_a?(String) && value.length > 50
-        "#{value[0, 50]}...".inspect
-      elsif value.is_a?(Date) || value.is_a?(Time)
-        %("#{value.to_s(:db)}")
-      else
-        value.inspect
-      end
+      format_for_inspect(value)
     end
 
     # Returns +true+ if the specified +attribute+ has been set by the user or by a
@@ -453,6 +446,16 @@ module ActiveRecord
         attribute_names &= self.class.column_names
         attribute_names.delete_if do |name|
           pk_attribute?(name) && id.nil?
+        end
+      end
+
+      def format_for_inspect(value)
+        if value.is_a?(String) && value.length > 50
+          "#{value[0, 50]}...".inspect
+        elsif value.is_a?(Date) || value.is_a?(Time)
+          %("#{value.to_s(:db)}")
+        else
+          value.inspect
         end
       end
 

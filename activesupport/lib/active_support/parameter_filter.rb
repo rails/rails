@@ -28,22 +28,36 @@ module ActiveSupport
   class ParameterFilter
     FILTERED = "[FILTERED]" # :nodoc:
 
-    def initialize(filters = [])
+    # Create instance with given filters. Supported type of filters are +String+, +Regexp+, and +Proc+.
+    # Other types of filters are treated as +String+ using +to_s+.
+    # For +Proc+ filters, key, value, and optional original hash is passed to block arguments.
+    #
+    # ==== Options
+    #
+    # * <tt>:mask</tt> - A replaced object when filtered. Defaults to +"[FILTERED]"+
+    def initialize(filters = [], mask: FILTERED)
       @filters = filters
+      @mask = mask
     end
 
+    # Mask value of +params+ if key matches one of filters.
     def filter(params)
       compiled_filter.call(params)
+    end
+
+    # Returns filtered value for given key. For +Proc+ filters, third block argument is not populated.
+    def filter_param(key, value)
+      @filters.empty? ? value : compiled_filter.value_for_key(key, value)
     end
 
   private
 
     def compiled_filter
-      @compiled_filter ||= CompiledFilter.compile(@filters)
+      @compiled_filter ||= CompiledFilter.compile(@filters, mask: @mask)
     end
 
     class CompiledFilter # :nodoc:
-      def self.compile(filters)
+      def self.compile(filters, mask:)
         return lambda { |params| params.dup } if filters.empty?
 
         strings, regexps, blocks = [], [], []
@@ -65,41 +79,45 @@ module ActiveSupport
         regexps << Regexp.new(strings.join("|"), true) unless strings.empty?
         deep_regexps << Regexp.new(deep_strings.join("|"), true) unless deep_strings.empty?
 
-        new regexps, deep_regexps, blocks
+        new regexps, deep_regexps, blocks, mask: mask
       end
 
       attr_reader :regexps, :deep_regexps, :blocks
 
-      def initialize(regexps, deep_regexps, blocks)
+      def initialize(regexps, deep_regexps, blocks, mask:)
         @regexps = regexps
         @deep_regexps = deep_regexps.any? ? deep_regexps : nil
         @blocks = blocks
+        @mask = mask
       end
 
       def call(params, parents = [], original_params = params)
         filtered_params = params.class.new
 
         params.each do |key, value|
-          parents.push(key) if deep_regexps
-          if regexps.any? { |r| key =~ r }
-            value = FILTERED
-          elsif deep_regexps && (joined = parents.join(".")) && deep_regexps.any? { |r| joined =~ r }
-            value = FILTERED
-          elsif value.is_a?(Hash)
-            value = call(value, parents, original_params)
-          elsif value.is_a?(Array)
-            value = value.map { |v| v.is_a?(Hash) ? call(v, parents, original_params) : v }
-          elsif blocks.any?
-            key = key.dup if key.duplicable?
-            value = value.dup if value.duplicable?
-            blocks.each { |b| b.arity == 2 ? b.call(key, value) : b.call(key, value, original_params) }
-          end
-          parents.pop if deep_regexps
-
-          filtered_params[key] = value
+          filtered_params[key] = value_for_key(key, value, parents, original_params)
         end
 
         filtered_params
+      end
+
+      def value_for_key(key, value, parents = [], original_params = nil)
+        parents.push(key) if deep_regexps
+        if regexps.any? { |r| r.match?(key) }
+          value = @mask
+        elsif deep_regexps && (joined = parents.join(".")) && deep_regexps.any? { |r| r.match?(joined) }
+          value = @mask
+        elsif value.is_a?(Hash)
+          value = call(value, parents, original_params)
+        elsif value.is_a?(Array)
+          value = value.map { |v| v.is_a?(Hash) ? call(v, parents, original_params) : v }
+        elsif blocks.any?
+          key = key.dup if key.duplicable?
+          value = value.dup if value.duplicable?
+          blocks.each { |b| b.arity == 2 ? b.call(key, value) : b.call(key, value, original_params) }
+        end
+        parents.pop if deep_regexps
+        value
       end
     end
   end

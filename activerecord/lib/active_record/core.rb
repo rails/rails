@@ -2,14 +2,12 @@
 
 require "active_support/core_ext/hash/indifferent_access"
 require "active_support/core_ext/string/filters"
+require "active_support/parameter_filter"
 require "concurrent/map"
-require "set"
 
 module ActiveRecord
   module Core
     extend ActiveSupport::Concern
-
-    FILTERED = "[FILTERED]" # :nodoc:
 
     included do
       ##
@@ -239,9 +237,7 @@ module ActiveRecord
       end
 
       # Specifies columns which shouldn't be exposed while calling +#inspect+.
-      def filter_attributes=(attributes_names)
-        @filter_attributes = attributes_names.map(&:to_s).to_set
-      end
+      attr_writer :filter_attributes
 
       # Returns a string like 'Post(id:integer, title:string, body:text)'
       def inspect # :nodoc:
@@ -502,11 +498,14 @@ module ActiveRecord
       inspection = if defined?(@attributes) && @attributes
         self.class.attribute_names.collect do |name|
           if has_attribute?(name)
-            if filter_attribute?(name)
-              "#{name}: #{ActiveRecord::Core::FILTERED}"
+            attr = read_attribute(name)
+            value = if attr.nil?
+              attr.inspect
             else
-              "#{name}: #{attribute_for_inspect(name)}"
+              attr = format_for_inspect(attr)
+              inspection_filter.filter_param(name, attr)
             end
+            "#{name}: #{value}"
           end
         end.compact.join(", ")
       else
@@ -522,18 +521,16 @@ module ActiveRecord
       return super if custom_inspect_method_defined?
       pp.object_address_group(self) do
         if defined?(@attributes) && @attributes
-          column_names = self.class.column_names.select { |name| has_attribute?(name) || new_record? }
-          pp.seplist(column_names, proc { pp.text "," }) do |column_name|
+          attr_names = self.class.attribute_names.select { |name| has_attribute?(name) }
+          pp.seplist(attr_names, proc { pp.text "," }) do |attr_name|
             pp.breakable " "
             pp.group(1) do
-              pp.text column_name
+              pp.text attr_name
               pp.text ":"
               pp.breakable
-              if filter_attribute?(column_name)
-                pp.text ActiveRecord::Core::FILTERED
-              else
-                pp.pp read_attribute(column_name)
-              end
+              value = read_attribute(attr_name)
+              value = inspection_filter.filter_param(attr_name, value) unless value.nil?
+              pp.pp value
             end
           end
         else
@@ -585,8 +582,14 @@ module ActiveRecord
         self.class.instance_method(:inspect).owner != ActiveRecord::Base.instance_method(:inspect).owner
       end
 
-      def filter_attribute?(attribute_name)
-        self.class.filter_attributes.include?(attribute_name) && !read_attribute(attribute_name).nil?
+      def inspection_filter
+        @inspection_filter ||= begin
+          mask = DelegateClass(::String).new(ActiveSupport::ParameterFilter::FILTERED)
+          def mask.pretty_print(pp)
+            pp.text __getobj__
+          end
+          ActiveSupport::ParameterFilter.new(self.class.filter_attributes, mask: mask)
+        end
       end
   end
 end
