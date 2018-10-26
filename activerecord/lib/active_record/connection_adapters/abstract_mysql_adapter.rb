@@ -626,6 +626,7 @@ module ActiveRecord
         end
 
         # See https://dev.mysql.com/doc/refman/5.7/en/error-messages-server.html
+        ER_SORT_ABORTED         = 1028
         ER_DUP_ENTRY            = 1062
         ER_NOT_NULL_VIOLATION   = 1048
         ER_NO_REFERENCED_ROW    = 1216
@@ -644,6 +645,8 @@ module ActiveRecord
 
         def translate_exception(exception, message)
           case error_number(exception)
+          when ER_SORT_ABORTED
+            SortAborted.new(message)
           when ER_DUP_ENTRY
             RecordNotUnique.new(message)
           when ER_NO_REFERENCED_ROW, ER_ROW_IS_REFERENCED, ER_ROW_IS_REFERENCED_2, ER_NO_REFERENCED_ROW_2

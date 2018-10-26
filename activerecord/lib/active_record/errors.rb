@@ -340,6 +340,10 @@ module ActiveRecord
   class LockWaitTimeout < StatementInvalid
   end
 
+  # SortAborted will be raised when sort statement has been aborted.
+  class SortAborted < StatementInvalid
+  end
+
   # StatementTimeout will be raised when statement timeout exceeded.
   class StatementTimeout < StatementInvalid
   end
