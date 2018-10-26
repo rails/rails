@@ -173,10 +173,10 @@ module ActiveRecord
         def merge_clauses
           relation.from_clause = other.from_clause if replace_from_clause?
 
-          where_clause = relation.where_clause.merge(other.where_clause)
+          where_clause = relation.where_clause + other.where_clause
           relation.where_clause = where_clause unless where_clause.empty?
 
-          having_clause = relation.having_clause.merge(other.having_clause)
+          having_clause = relation.having_clause + other.having_clause
           relation.having_clause = having_clause unless having_clause.empty?
         end
 

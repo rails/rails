@@ -29,51 +29,6 @@ class ActiveRecord::Relation
       assert_equal clause, clause + WhereClause.empty
     end
 
-    test "merge combines two where clauses" do
-      a = WhereClause.new([table["id"].eq(1)])
-      b = WhereClause.new([table["name"].eq("Sean")])
-      expected = WhereClause.new([table["id"].eq(1), table["name"].eq("Sean")])
-
-      assert_equal expected, a.merge(b)
-    end
-
-    test "merge keeps the right side, when two equality clauses reference the same column" do
-      a = WhereClause.new([table["id"].eq(1), table["name"].eq("Sean")])
-      b = WhereClause.new([table["name"].eq("Jim")])
-      expected = WhereClause.new([table["id"].eq(1), table["name"].eq("Jim")])
-
-      assert_equal expected, a.merge(b)
-    end
-
-    test "merge removes bind parameters matching overlapping equality clauses" do
-      a = WhereClause.new(
-        [table["id"].eq(bind_param(1)), table["name"].eq(bind_param("Sean"))],
-      )
-      b = WhereClause.new(
-        [table["name"].eq(bind_param("Jim"))],
-      )
-      expected = WhereClause.new(
-        [table["id"].eq(bind_param(1)), table["name"].eq(bind_param("Jim"))],
-      )
-
-      assert_equal expected, a.merge(b)
-    end
-
-    test "merge allows for columns with the same name from different tables" do
-      table2 = Arel::Table.new("table2")
-      a = WhereClause.new(
-        [table["id"].eq(bind_param(1)), table2["id"].eq(bind_param(2))],
-      )
-      b = WhereClause.new(
-        [table["id"].eq(bind_param(3))],
-      )
-      expected = WhereClause.new(
-        [table2["id"].eq(bind_param(2)), table["id"].eq(bind_param(3))],
-      )
-
-      assert_equal expected, a.merge(b)
-    end
-
     test "a clause knows if it is empty" do
       assert_empty WhereClause.empty
       assert_not_empty WhereClause.new(["anything"])
