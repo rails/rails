@@ -275,7 +275,7 @@ DEPENDENCIES
   mysql (>= 2.9.0)
   mysql2 (>= 0.4.0)
   nokogiri (>= 1.7)
-  pg (>= 0.15.0)
+  pg (>= 0.15.0, < 0.21.0)
   psych (~> 2.0)
   qu-rails!
   qu-redis

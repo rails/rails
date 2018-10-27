@@ -104,7 +104,7 @@ platforms :ruby do
   gem 'sqlite3', '~> 1.3.6'
 
   group :db do
-    gem 'pg', '>= 0.15.0'
+    gem 'pg', '>= 0.15.0', '< 0.21.0'
     gem 'mysql2', RUBY_VERSION < '2.0' ? '~> 0.4.0' : '>= 0.4.0'
   end
 end
