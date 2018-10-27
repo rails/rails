@@ -246,6 +246,10 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal true, Topic.first.replies.exists?
   end
 
+  def test_exists_with_empty_hash_arg
+    assert_equal true, Topic.exists?({})
+  end
+
   # Ensure +exists?+ runs without an error by excluding distinct value.
   # See https://github.com/rails/rails/pull/26981.
   def test_exists_with_order_and_distinct
