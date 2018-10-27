@@ -983,14 +983,16 @@ ActiveRecord::Schema.define do
     t.references :wheelable, polymorphic: true
   end
 
-  create_table :countries, force: true, id: false, primary_key: "country_id" do |t|
-    t.string :country_id
+  create_table :countries, force: true, id: false do |t|
+    t.string :country_id, primary_key: true
     t.string :name
   end
-  create_table :treaties, force: true, id: false, primary_key: "treaty_id" do |t|
-    t.string :treaty_id
+
+  create_table :treaties, force: true, id: false do |t|
+    t.string :treaty_id, primary_key: true
     t.string :name
   end
+
   create_table :countries_treaties, force: true, primary_key: [:country_id, :treaty_id] do |t|
     t.string :country_id, null: false
     t.string :treaty_id, null: false
