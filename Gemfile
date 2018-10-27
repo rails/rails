@@ -60,7 +60,7 @@ group :job do
   gem 'sidekiq', RUBY_VERSION < '2.2' ? '< 5' : nil, require: false
   gem 'sucker_punch', '< 2.0', require: false
   gem 'delayed_job', require: false
-  gem 'queue_classic', '> 0.3.2', require: false, platforms: :ruby
+  gem 'queue_classic', '>= 3.1.0', require: false, platforms: :ruby
   gem 'sneakers', '< 2.0.0', require: false
   gem 'que', require: false
   gem 'backburner', require: false
@@ -104,7 +104,7 @@ platforms :ruby do
   gem 'sqlite3', '~> 1.3.6'
 
   group :db do
-    gem 'pg', '>= 0.15.0', '< 0.21.0'
+    gem 'pg', '>= 0.15.0', '< 0.19.0'
     gem 'mysql2', RUBY_VERSION < '2.0' ? '~> 0.4.0' : '>= 0.4.0'
   end
 end

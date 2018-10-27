@@ -275,12 +275,12 @@ DEPENDENCIES
   mysql (>= 2.9.0)
   mysql2 (>= 0.4.0)
   nokogiri (>= 1.7)
-  pg (>= 0.15.0, < 0.21.0)
+  pg (>= 0.15.0, < 0.19.0)
   psych (~> 2.0)
   qu-rails!
   qu-redis
   que
-  queue_classic (> 0.3.2)
+  queue_classic (>= 3.1.0)
   racc (>= 1.4.6)
   rack-cache (~> 1.2)
   rails!
