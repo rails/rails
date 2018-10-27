@@ -362,7 +362,7 @@ DEPENDENCIES
   rake (>= 11.1)
   rb-inotify!
   redcarpet (~> 3.2.3)
-  redis
+  redis (< 4.0)
   resque (< 1.26)
   resque-scheduler
   sass-rails

@@ -67,7 +67,7 @@ group :cable do
 
   gem 'em-hiredis', require: false
   gem 'hiredis', require: false
-  gem 'redis', require: false
+  gem 'redis', '< 4.0', require: false
 
   gem 'faye-websocket', "<= 0.10.5", require: false
   gem 'blade', '~> 0.5.5', require: false, platforms: :ruby
