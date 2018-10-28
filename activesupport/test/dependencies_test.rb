@@ -282,6 +282,32 @@ class DependenciesTest < ActiveSupport::TestCase
     remove_constants(:ModuleFolder)
   end
 
+  def test_module_with_nested_class_requiring_lib_class
+    with_autoloading_fixtures do
+      ModuleFolder::NestedWithRequire
+
+      assert defined?(ModuleFolder::LibClass)
+      assert_not ActiveSupport::Dependencies.autoloaded_constants.include?("ModuleFolder::LibClass")
+      assert_not ActiveSupport::Dependencies.autoloaded_constants.include?("ConstFromLib")
+    end
+  ensure
+    remove_constants(:ModuleFolder)
+    remove_constants(:ConstFromLib)
+  end
+
+  def test_module_with_nested_class_and_parent_requiring_lib_class
+    with_autoloading_fixtures do
+      NestedWithRequireParent
+
+      assert defined?(ModuleFolder::LibClass)
+      assert_not ActiveSupport::Dependencies.autoloaded_constants.include?("ModuleFolder::LibClass")
+      assert_not ActiveSupport::Dependencies.autoloaded_constants.include?("ConstFromLib")
+    end
+  ensure
+    remove_constants(:ModuleFolder)
+    remove_constants(:ConstFromLib)
+  end
+
   def test_directories_may_manifest_as_nested_classes
     with_autoloading_fixtures do
       assert_kind_of Class, ClassFolder
