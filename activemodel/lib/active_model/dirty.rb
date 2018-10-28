@@ -151,7 +151,7 @@ module ActiveModel
       @mutations_from_database = nil
     end
 
-    # Returns +true+ if any of the attributes have unsaved changes, +false+ otherwise.
+    # Returns +true+ if any of the attributes has unsaved changes, +false+ otherwise.
     #
     #   person.changed? # => false
     #   person.name = 'bob'
