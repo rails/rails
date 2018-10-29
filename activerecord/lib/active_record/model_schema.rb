@@ -275,6 +275,19 @@ module ActiveRecord
         @ignored_columns = columns.map(&:to_s)
       end
 
+      # The list of columns that are ignored in this class and all descendants. These columns
+      # will always be omitted from SQL queries.
+      def fully_ignored_columns
+        [self, *descendants].map(&:ignored_columns).inject(&:&)
+      end
+
+      # The list of columns that are ignored in either this class or one of its descendants.
+      # These columns will not have corresponding attribute getters/setters defined on this
+      # class, but may have them defined on some descendant classes.
+      def possibly_ignored_columns
+        [self, *descendants].map(&:ignored_columns).inject(&:|)
+      end
+
       def sequence_name
         if base_class?
           @sequence_name ||= reset_sequence_name
@@ -327,7 +340,7 @@ module ActiveRecord
       def attributes_builder # :nodoc:
         unless defined?(@attributes_builder) && @attributes_builder
           defaults = _default_attributes.except(*(column_names - [primary_key]))
-          @attributes_builder = ActiveModel::AttributeSet::Builder.new(attribute_types, defaults)
+          @attributes_builder = ActiveModel::AttributeSet::Builder.new(attribute_types, defaults, ignored_columns)
         end
         @attributes_builder
       end
@@ -386,6 +399,12 @@ module ActiveRecord
       # Returns an array of column names as strings.
       def column_names
         @column_names ||= columns.map(&:name)
+      end
+
+      # Returns an array of column names as strings for all columns that are
+      # defined (not ignored) on this class or one of its descendants.
+      def possible_column_names
+        column_names + possibly_ignored_columns - fully_ignored_columns
       end
 
       def symbol_column_to_string(name_symbol) # :nodoc:
@@ -468,7 +487,7 @@ module ActiveRecord
         end
 
         def load_schema!
-          @columns_hash = connection.schema_cache.columns_hash(table_name).except(*ignored_columns)
+          @columns_hash = connection.schema_cache.columns_hash(table_name).except(*possibly_ignored_columns)
           @columns_hash.each do |name, column|
             define_attribute(
               name,

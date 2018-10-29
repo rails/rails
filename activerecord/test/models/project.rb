@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class Project < ActiveRecord::Base
+  self.ignored_columns = %w(special_project_details)
+
   belongs_to :mentor
   has_and_belongs_to_many :developers, -> { distinct.order "developers.name desc, developers.id desc" }
   has_and_belongs_to_many :readonly_developers, -> { readonly }, class_name: "Developer"
@@ -39,4 +41,5 @@ class Project < ActiveRecord::Base
 end
 
 class SpecialProject < Project
+  self.ignored_columns = []
 end

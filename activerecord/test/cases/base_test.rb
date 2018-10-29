@@ -1436,6 +1436,26 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal(%w(first_name last_name), SymbolIgnoredDeveloper.ignored_columns)
   end
 
+  test "ignored columns are respected for STI models" do
+    regular_project = Project.create!(name: 'Something boring')
+    special_project = SpecialProject.create!(name: 'Exciting new stuff', special_project_details: 'Top secret')
+
+    assert_respond_to special_project, :special_project_details
+    assert_respond_to special_project, :special_project_details=
+    assert_not_respond_to regular_project, :special_project_details
+    assert_not_respond_to regular_project, :special_project_details=
+
+    regular_project = Project.find(regular_project.id)
+    special_project = Project.find(special_project.id)
+
+    assert_respond_to special_project, :special_project_details
+    assert_respond_to special_project, :special_project_details=
+    assert_not_respond_to regular_project, :special_project_details
+    assert_not_respond_to regular_project, :special_project_details=
+
+    assert_equal 'Top secret', special_project.special_project_details
+  end
+
   test "when #reload called, ignored columns' attribute methods are not defined" do
     developer = Developer.create!(name: "Developer")
     assert_not_respond_to developer, :first_name
