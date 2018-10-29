@@ -206,6 +206,17 @@ class InheritanceTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::SubclassNotFound) { Company.find(100) }
   end
 
+  def test_default_proc_attributes_doesnt_raise_sti_model
+    attributes = Hash.new { "DefaultStringThatIsNotAType" }
+    assert_kind_of Cabbage, Cabbage.new(attributes)
+  end
+
+  def test_default_attributes_doesnt_raise_sti_model
+    attributes = Hash.new
+    attributes.default = "DefaultStringThatIsNotAType"
+    assert_kind_of Cabbage, Cabbage.new(attributes)
+  end
+
   def test_inheritance_find
     assert_kind_of Firm, Company.find(1), "37signals should be a firm"
     assert_kind_of Firm, Firm.find(1), "37signals should be a firm"
