@@ -169,6 +169,16 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
     end
   end
 
+  if ActiveRecord::Base.connection.supports_longer_index_key_prefix?
+    def test_mysql_use_utf8mb4_encoding_if_available
+      run_without_connection do |orig_connection|
+        ActiveRecord::Base.establish_connection(orig_connection.merge("encoding" => nil))
+        result = ActiveRecord::Base.connection.select_value("SELECT @@SESSION.character_set_client")
+        assert_equal "utf8mb4", result
+      end
+    end
+  end
+
   def test_logs_name_show_variable
     ActiveRecord::Base.connection.materialize_transactions
     @subscriber.logged.clear

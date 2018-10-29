@@ -766,8 +766,8 @@ module ActiveRecord
           # NAMES does not have an equals sign, see
           # https://dev.mysql.com/doc/refman/5.7/en/set-names.html
           # (trailing comma because variable_assignments will always have content)
-          if @config[:encoding]
-            encoding = +"NAMES #{@config[:encoding]}"
+          if @config[:encoding] || supports_longer_index_key_prefix?
+            encoding = +"NAMES #{@config[:encoding] || 'utf8mb4'}"
             encoding << " COLLATE #{@config[:collation]}" if @config[:collation]
             encoding << ", "
           end
