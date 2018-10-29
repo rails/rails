@@ -1294,7 +1294,7 @@ module ActiveRecord
         #   * <tt>:destroy</tt> causes all the associated objects to also be destroyed.
         #   * <tt>:delete_all</tt> causes all the associated objects to be deleted directly from the database (so callbacks will not be executed).
         #   * <tt>:nullify</tt> causes the foreign keys to be set to +NULL+. Callbacks are not executed.
-        #   * <tt>:restrict_with_exception</tt> causes an exception to be raised if there are any associated records.
+        #   * <tt>:restrict_with_exception</tt> causes an <tt>ActiveRecord::DeleteRestrictionError</tt> exception to be raised if there are any associated records.
         #   * <tt>:restrict_with_error</tt> causes an error to be added to the owner if there are any associated objects.
         #
         #   If using with the <tt>:through</tt> option, the association on the join model must be
@@ -1437,7 +1437,7 @@ module ActiveRecord
         #   * <tt>:destroy</tt> causes the associated object to also be destroyed
         #   * <tt>:delete</tt> causes the associated object to be deleted directly from the database (so callbacks will not execute)
         #   * <tt>:nullify</tt> causes the foreign key to be set to +NULL+. Callbacks are not executed.
-        #   * <tt>:restrict_with_exception</tt> causes an exception to be raised if there is an associated record
+        #   * <tt>:restrict_with_exception</tt> causes an <tt>ActiveRecord::DeleteRestrictionError</tt> exception to be raised if there is an associated record
         #   * <tt>:restrict_with_error</tt> causes an error to be added to the owner if there is an associated object
         #
         #   Note that <tt>:dependent</tt> option is ignored when using <tt>:through</tt> option.
