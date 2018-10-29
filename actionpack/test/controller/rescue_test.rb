@@ -70,6 +70,10 @@ class RescueController < ActionController::Base
     render plain: "io error"
   end
 
+  rescue_from ActionDispatch::Http::Parameters::ParseError do
+    render plain: "parse error", status: :bad_request
+  end
+
   before_action(only: :before_action_raises) { raise "umm nice" }
 
   def before_action_raises
@@ -128,6 +132,11 @@ class RescueController < ActionController::Base
   end
   def resource_unavailable_raise_as_string
     raise ResourceUnavailableToRescueAsString
+  end
+
+  def arbitrary_action
+    params
+    render plain: "arbitrary action"
   end
 
   def missing_template
@@ -306,6 +315,23 @@ class RescueControllerTest < ActionController::TestCase
     get :exception_with_no_handler_for_wrapper
     assert_response :unprocessable_entity
   end
+
+  test "can rescue a ParseError" do
+    capture_log_output do
+      post :arbitrary_action, body: "{", as: :json
+    end
+    assert_response :bad_request
+    assert_equal "parse error", response.body
+  end
+
+  private
+
+    def capture_log_output
+      output = StringIO.new
+      request.set_header "action_dispatch.logger", ActiveSupport::Logger.new(output)
+      yield
+      output.string
+    end
 end
 
 class RescueTest < ActionDispatch::IntegrationTest

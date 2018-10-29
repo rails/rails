@@ -1,3 +1,13 @@
+*   Allow rescue from parameter parse errors:
+
+    ```
+    rescue_from ActionDispatch::Http::Parameters::ParseError do
+      head :unauthorized
+    end
+    ```
+
+    *Gannon McGibbon*, *Josh Cheek*
+
 *   Reset Capybara sessions if failed system test screenshot raising an exception.
 
     Reset Capybara sessions if `take_failed_screenshot` raise exception
