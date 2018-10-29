@@ -28,4 +28,32 @@ class ActionMailbox::Ingresses::Mandrill::InboundEmailsControllerTest < ActionDi
 
     assert_response :unauthorized
   end
+
+  test "raising when Mandrill API key is nil" do
+    switch_key_to nil do
+      assert_raises ArgumentError do
+        post rails_mandrill_inbound_emails_url,
+          headers: { "X-Mandrill-Signature" => "gldscd2tAb/G+DmpiLcwukkLrC4=" }, params: { mandrill_events: @events }
+      end
+    end
+  end
+
+  test "raising when Mandrill API key is blank" do
+    switch_key_to "" do
+      assert_raises ArgumentError do
+        post rails_mandrill_inbound_emails_url,
+          headers: { "X-Mandrill-Signature" => "gldscd2tAb/G+DmpiLcwukkLrC4=" }, params: { mandrill_events: @events }
+      end
+    end
+  end
+
+  private
+    delegate :key, :key=, to: ActionMailbox::Ingresses::Mandrill::InboundEmailsController::Authenticator
+
+    def switch_key_to(new_key)
+      previous_key, self.key = key, new_key
+      yield
+    ensure
+      self.key = previous_key
+    end
 end

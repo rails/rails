@@ -34,10 +34,35 @@ class ActionMailbox::Ingresses::Postfix::InboundEmailsControllerTest < ActionDis
     assert_response :unsupported_media_type
   end
 
+  test "raising when the configured password is nil" do
+    switch_password_to nil do
+      assert_raises ArgumentError do
+        post rails_postfix_inbound_emails_url, headers: { "Authorization" => credentials, "Content-Type" => "message/rfc822" },
+          params: file_fixture("../files/welcome.eml").read
+      end
+    end
+  end
+
+  test "raising when the configured password is blank" do
+    switch_password_to "" do
+      assert_raises ArgumentError do
+        post rails_postfix_inbound_emails_url, headers: { "Authorization" => credentials, "Content-Type" => "message/rfc822" },
+          params: file_fixture("../files/welcome.eml").read
+      end
+    end
+  end
+
   private
-    delegate :username, :password, to: ActionMailbox::Ingresses::Postfix::InboundEmailsController
+    delegate :username, :password, :password=, to: ActionMailbox::Ingresses::Postfix::InboundEmailsController
 
     def credentials
       ActionController::HttpAuthentication::Basic.encode_credentials username, password
+    end
+
+    def switch_password_to(new_password)
+      previous_password, self.password = password, new_password
+      yield
+    ensure
+      self.password = previous_password
     end
 end

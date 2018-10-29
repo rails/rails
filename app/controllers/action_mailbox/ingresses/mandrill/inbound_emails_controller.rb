@@ -33,6 +33,8 @@ class ActionMailbox::Ingresses::Mandrill::InboundEmailsController < ActionMailbo
 
       def initialize(request)
         @request = request
+
+        ensure_presence_of_key
       end
 
       def authenticated?
@@ -40,6 +42,13 @@ class ActionMailbox::Ingresses::Mandrill::InboundEmailsController < ActionMailbo
       end
 
       private
+        def ensure_presence_of_key
+          unless key.present?
+            raise ArgumentError, "Missing required Mandrill API key"
+          end
+        end
+
+
         def given_signature
           request.headers["X-Mandrill-Signature"]
         end

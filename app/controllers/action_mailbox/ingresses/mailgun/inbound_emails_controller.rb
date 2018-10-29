@@ -24,6 +24,8 @@ class ActionMailbox::Ingresses::Mailgun::InboundEmailsController < ActionMailbox
 
       def initialize(timestamp:, token:, signature:)
         @timestamp, @token, @signature = Integer(timestamp), token, signature
+
+        ensure_presence_of_key
       end
 
       def authenticated?
@@ -31,6 +33,13 @@ class ActionMailbox::Ingresses::Mailgun::InboundEmailsController < ActionMailbox
       end
 
       private
+        def ensure_presence_of_key
+          unless key.present?
+            raise ArgumentError, "Missing required Mailgun API key"
+          end
+        end
+
+
         def signed?
           ActiveSupport::SecurityUtils.secure_compare signature, expected_signature
         end
