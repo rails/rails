@@ -1,3 +1,7 @@
+*   Restore HashWithIndifferentAccess support to ActiveJob::Arguments.deserialize.
+
+    *Gannon McGibbon*
+
 *   Include deserialized arguments in job instances returned from
     `assert_enqueued_with` and `assert_performed_with`
 
