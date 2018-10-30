@@ -112,9 +112,8 @@ module ActionMailbox
     end
 
     test "invalid address" do
-      assert_raises(ActionMailbox::Router::Route::InvalidAddressError) do
+      assert_raises(ArgumentError) do
         @router.add_route Array.new, to: :first
-        @router.route create_inbound_email_from_mail(to: "replies-nowhere@example.com", subject: "This is a reply")
       end
     end
   end
