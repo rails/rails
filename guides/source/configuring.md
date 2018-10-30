@@ -1011,6 +1011,7 @@ If you choose to use MySQL or MariaDB instead of the shipped SQLite3 database, y
 ```yaml
 development:
   adapter: mysql2
+  encoding: utf8mb4
   database: blog_development
   pool: 5
   username: root
