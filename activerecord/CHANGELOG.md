@@ -1,3 +1,7 @@
+*   `update_columns` now correctly raises `ActiveModel::MissingAttributeError`
+    if the attribute does not exist.
+     *Sean Griffin*
+
 *   Fix collection cache key with limit and custom select to avoid ambiguous timestamp column error.
 
     Fixes #33056.
