@@ -1,3 +1,8 @@
+*   `update_columns` now correctly raises `ActiveModel::MissingAttributeError`
+    if the attribute does not exist.
+
+    *Sean Griffin*
+
 *   Add support for hash and url configs in database hash of `ActiveRecord::Base.connected_to`.
 
     ````
