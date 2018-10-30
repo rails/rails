@@ -120,6 +120,45 @@ module ActiveRecord
           ENV["RAILS_ENV"] = previous_env
         end
 
+        def test_switching_connections_with_database_url
+          previous_env, ENV["RAILS_ENV"] = ENV["RAILS_ENV"], "default_env"
+          previous_url, ENV["DATABASE_URL"] = ENV["DATABASE_URL"], "postgres://localhost/foo"
+
+          ActiveRecord::Base.connected_to(database: { writing: "postgres://localhost/bar" }) do
+            handler = ActiveRecord::Base.connection_handler
+            assert_equal handler, ActiveRecord::Base.connection_handlers[:writing]
+          end
+        ensure
+          ActiveRecord::Base.establish_connection(:arunit)
+          ENV["RAILS_ENV"] = previous_env
+          ENV["DATABASE_URL"] = previous_url
+        end
+
+        def test_switching_connections_with_database_config_hash
+          previous_env, ENV["RAILS_ENV"] = ENV["RAILS_ENV"], "default_env"
+          config = { "adapter" => "sqlite3", "database" => "db/readonly.sqlite3" }
+
+          ActiveRecord::Base.connected_to(database: { writing: config }) do
+            handler = ActiveRecord::Base.connection_handler
+            assert_equal handler, ActiveRecord::Base.connection_handlers[:writing]
+          end
+        ensure
+          ActiveRecord::Base.establish_connection(:arunit)
+          ENV["RAILS_ENV"] = previous_env
+        end
+
+        def test_switching_connections_with_database_symbol
+          previous_env, ENV["RAILS_ENV"] = ENV["RAILS_ENV"], "default_env"
+
+          ActiveRecord::Base.connected_to(database: :arunit2) do
+            handler = ActiveRecord::Base.connection_handler
+            assert_equal handler, ActiveRecord::Base.connection_handlers[:arunit2]
+          end
+        ensure
+          ActiveRecord::Base.establish_connection(:arunit)
+          ENV["RAILS_ENV"] = previous_env
+        end
+
         def test_connects_to_with_single_configuration
           config = {
             "development" => { "adapter" => "sqlite3", "database" => "db/primary.sqlite3" },

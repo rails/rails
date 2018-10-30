@@ -1,3 +1,18 @@
+*   Add support for hash and url configs in database hash of `ActiveRecord::Base.connected_to`.
+
+    ````
+    User.connected_to(database: { writing: "postgres://foo" }) do
+      User.create!(name: "Gannon")
+    end
+
+    config = { "adapter" => "sqlite3", "database" => "db/readonly.sqlite3" }
+    User.connected_to(database: { reading: config }) do
+      User.count
+    end
+    ````
+
+    *Gannon McGibbon*
+
 *   Support default expression for MySQL.
 
     MySQL 8.0.13 and higher supports default value to be a function or expression.
