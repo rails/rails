@@ -45,6 +45,9 @@ module ActiveRecord
         # track any join tables we need to insert later
         @tables = Hash.new { |h, table| h[table] = [] }
 
+        # ensure this table is loaded before any HABTM associations
+        @tables[table_name] = nil
+
         build_table_rows_from(fixtures, config)
       end
 

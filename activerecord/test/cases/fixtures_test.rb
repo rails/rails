@@ -619,6 +619,10 @@ class HasManyThroughFixture < ActiveRecord::TestCase
     assert_equal load_has_and_belongs_to_many["parrots_treasures"], rows["parrot_treasures"]
   end
 
+  def test_has_and_belongs_to_many_order
+    assert_equal ["parrots", "parrots_treasures"], load_has_and_belongs_to_many.keys
+  end
+
   def load_has_and_belongs_to_many
     parrot = make_model "Parrot"
     parrot.has_and_belongs_to_many :treasures
