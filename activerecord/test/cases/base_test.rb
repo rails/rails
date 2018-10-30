@@ -1437,8 +1437,8 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   test "ignored columns are respected for STI models" do
-    regular_project = Project.create!(name: 'Something boring')
-    special_project = SpecialProject.create!(name: 'Exciting new stuff', special_project_details: 'Top secret')
+    regular_project = Project.create!(name: "Something boring")
+    special_project = SpecialProject.create!(name: "Exciting new stuff", special_project_details: "Top secret")
 
     assert_respond_to special_project, :special_project_details
     assert_respond_to special_project, :special_project_details=
@@ -1453,7 +1453,7 @@ class BasicsTest < ActiveRecord::TestCase
     assert_not_respond_to regular_project, :special_project_details
     assert_not_respond_to regular_project, :special_project_details=
 
-    assert_equal 'Top secret', special_project.special_project_details
+    assert_equal "Top secret", special_project.special_project_details
   end
 
   test "when #reload called, ignored columns' attribute methods are not defined" do
