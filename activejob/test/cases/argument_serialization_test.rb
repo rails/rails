@@ -73,6 +73,7 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
     string_key = { "a" => 1, "_aj_symbol_keys" => [] }
     another_string_key = { "a" => 1 }
     indifferent_access = { "a" => 1, "_aj_hash_with_indifferent_access" => true }
+    indifferent_access_symbol_key = symbol_key.with_indifferent_access
 
     assert_equal(
       { a: 1 },
@@ -89,6 +90,10 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
     assert_equal(
       { "a" => 1 },
       ActiveJob::Arguments.deserialize([indifferent_access]).first
+    )
+    assert_equal(
+      { a: 1 },
+      ActiveJob::Arguments.deserialize([indifferent_access_symbol_key]).first
     )
   end
 

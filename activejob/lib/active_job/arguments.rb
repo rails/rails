@@ -147,7 +147,10 @@ module ActiveJob
       end
 
       def transform_symbol_keys(hash, symbol_keys)
-        hash.transform_keys do |key|
+        # NOTE: HashWithIndifferentAccess#transform_keys always
+        # returns stringified keys with indifferent access
+        # so we call #to_h here to ensure keys are symbolized.
+        hash.to_h.transform_keys do |key|
           if symbol_keys.include?(key)
             key.to_sym
           else
