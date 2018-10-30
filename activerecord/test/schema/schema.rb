@@ -738,6 +738,7 @@ ActiveRecord::Schema.define do
     t.references :firm, index: false
     t.integer :mentor_id
     t.string :special_project_details
+    t.integer :special_project_status
   end
 
   create_table :randomly_named_table1, force: true do |t|

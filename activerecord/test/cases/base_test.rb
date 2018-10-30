@@ -1456,6 +1456,28 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal "Top secret", special_project.special_project_details
   end
 
+  test "enums whose columns are ignored by a parent class can be defined in subclasses" do
+    special_project = SpecialProject.create!(special_project_status: 'top_secret')
+
+    assert_respond_to special_project, :special_project_status
+    assert_respond_to special_project, :secret?
+    assert_respond_to special_project, :top_secret?
+
+    assert_equal "top_secret", special_project.special_project_status
+    assert_equal true, special_project.top_secret?
+    assert_equal false, special_project.secret?
+
+    reloaded_project = Project.find(special_project.id)
+
+    assert_respond_to reloaded_project, :special_project_status
+    assert_respond_to reloaded_project, :secret?
+    assert_respond_to reloaded_project, :top_secret?
+
+    assert_equal "top_secret", reloaded_project.special_project_status
+    assert_equal true, reloaded_project.top_secret?
+    assert_equal false, reloaded_project.secret?
+  end
+
   test "when #reload called, ignored columns' attribute methods are not defined" do
     developer = Developer.create!(name: "Developer")
     assert_not_respond_to developer, :first_name

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class Project < ActiveRecord::Base
-  self.ignored_columns = %w(special_project_details)
+  self.ignored_columns = %w(special_project_details special_project_status)
 
   belongs_to :mentor
   has_and_belongs_to_many :developers, -> { distinct.order "developers.name desc, developers.id desc" }
@@ -42,4 +42,9 @@ end
 
 class SpecialProject < Project
   self.ignored_columns = []
+
+  enum special_project_status: {
+    secret: 1,
+    top_secret: 2
+  }
 end
