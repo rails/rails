@@ -46,7 +46,9 @@ module ActiveJob
       #  end
       def retry_on(*exceptions, wait: 3.seconds, attempts: 5, queue: nil, priority: nil)
         rescue_from(*exceptions) do |error|
-          if executions < attempts
+          exception_executions[exceptions.to_s] += 1
+
+          if exception_executions[exceptions.to_s] < attempts
             retry_job wait: determine_delay(wait), queue: queue, priority: priority, error: error
           else
             if block_given?

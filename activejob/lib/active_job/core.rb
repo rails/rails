@@ -28,6 +28,12 @@ module ActiveJob
     # Number of times this job has been executed (which increments on every retry, like after an exception).
     attr_accessor :executions
 
+    # Hash that contains the number of times this job handled errors for each specific retry_on declaration.
+    # Keys are the string representation of the exceptions listed in the retry_on declaration,
+    # while its associated value holds the number of executions where the corresponding retry_on
+    # declaration handled one of its listed exceptions.
+    attr_accessor :exception_executions
+
     # I18n.locale to be used during the job.
     attr_accessor :locale
 
@@ -75,6 +81,7 @@ module ActiveJob
       @queue_name = self.class.queue_name
       @priority   = self.class.priority
       @executions = 0
+      @exception_executions = Hash.new(0)
     end
 
     # Returns a hash with the job data that can safely be passed to the
@@ -88,6 +95,7 @@ module ActiveJob
         "priority"   => priority,
         "arguments"  => serialize_arguments_if_needed(arguments),
         "executions" => executions,
+        "exception_executions" => exception_executions,
         "locale"     => I18n.locale.to_s,
         "timezone"   => Time.zone.try(:name)
       }
@@ -126,6 +134,7 @@ module ActiveJob
       self.priority             = job_data["priority"]
       self.serialized_arguments = job_data["arguments"]
       self.executions           = job_data["executions"]
+      self.exception_executions = job_data["exception_executions"]
       self.locale               = job_data["locale"] || I18n.locale.to_s
       self.timezone             = job_data["timezone"] || Time.zone.try(:name)
     end

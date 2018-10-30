@@ -1,3 +1,10 @@
+*   Keep executions for each specific declaration
+
+    Each `retry_on` declaration has now its own specific executions counter. Before it was
+    shared between all executions of a job.
+
+    *Alberto Almagro*
+
 *   Allow all assertion helpers that have a `only` and `except` keyword to accept
     Procs.
 
