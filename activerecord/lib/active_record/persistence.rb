@@ -479,6 +479,7 @@ module ActiveRecord
         verify_readonly_attribute(key.to_s)
       end
 
+      id_in_database = self.id_in_database
       attributes.each do |k, v|
         write_attribute_without_type_cast(k, v)
       end
