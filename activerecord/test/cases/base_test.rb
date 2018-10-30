@@ -1457,7 +1457,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   test "enums whose columns are ignored by a parent class can be defined in subclasses" do
-    special_project = SpecialProject.create!(special_project_status: 'top_secret')
+    special_project = SpecialProject.create!(special_project_status: "top_secret")
 
     assert_respond_to special_project, :special_project_status
     assert_respond_to special_project, :secret?
