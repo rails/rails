@@ -109,15 +109,19 @@ module ActiveRecord
       if database && role
         raise ArgumentError, "connected_to can only accept a database or role argument, but not both arguments."
       elsif database
-        database = { database => database } if database.is_a?(Symbol)
-        database.each do |role, database_key|
-          config_hash = resolve_config_for_connection(database_key)
-          handler = lookup_connection_handler(role.to_sym)
+        if database.is_a?(Hash)
+          role, database = database.first
+          role = role.to_sym
+        else
+          role = database.to_sym
+        end
 
-          with_handler(role.to_sym) do
-            handler.establish_connection(config_hash)
-            return yield
-          end
+        config_hash = resolve_config_for_connection(database)
+        handler = lookup_connection_handler(role)
+
+        with_handler(role) do
+          handler.establish_connection(config_hash)
+          yield
         end
       elsif role
         with_handler(role.to_sym, &blk)
