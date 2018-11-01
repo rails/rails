@@ -103,10 +103,12 @@ $ sudo apt-get install yarn
 To install all run:
 
 ```bash
-$ sudo yum install sqlite-devel sqlite-libs mysql-server mysql-devel postgresql-server postgresql-devel redis memcached imagemagick ffmpeg mupdf
-# install yarn
-$ sudo wget https://dl.yarnpkg.com/rpm/yarn.repo -O /etc/yum.repos.d/yarn.repo
-$ sudo yum install yarn
+$ sudo dnf install sqlite-devel sqlite-libs mysql-server mysql-devel postgresql-server postgresql-devel redis memcached imagemagick ffmpeg mupdf
+# use this command if you do not have Node.js installed
+$ curl --silent --location https://rpm.nodesource.com/setup_8.x | sudo bash -
+# if you have Node.js installed, use this command instead
+$ curl --silent --location https://dl.yarnpkg.com/rpm/yarn.repo | sudo tee /etc/yum.repos.d/yarn.repo
+$ sudo dnf install yarn
 ```
 
 #### Arch Linux
