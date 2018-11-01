@@ -1,3 +1,8 @@
+*   Fix bug where `#to_options` for `ActiveSupport::HashWithIndifferentAccess`
+    would not act as alias for `#symbolize_keys`.
+
+    *Nick Weiland*
+
 *   Improve the logic that detects non-autoloaded constants.
 
     *Jan Habermann*, *Xavier Noria*
