@@ -1,3 +1,7 @@
+*   Deliver parameterized mail with `ActionMailer::DeliveryJob` and remove `ActionMailer::Parameterized::DeliveryJob`.
+
+    *Gannon McGibbon*
+
 *   Fix ActionMailer assertions not working when a Mail defines
     a custom delivery job class
 
@@ -7,17 +11,6 @@
     a template name in options hash instead of only using the action name.
 
     *Marcus Ilgner*
-
-*   Allow ActionMailer classes to configure the parameterized delivery job
-    Example:
-    ```
-    class MyMailer < ApplicationMailer
-      self.parameterized_delivery_job = MyCustomDeliveryJob
-      ...
-    end
-    ```
-
-    *Luke Pearce*
 
 *   `ActionDispatch::IntegrationTest` includes `ActionMailer::TestHelper` module by default.
 
