@@ -324,6 +324,26 @@ $ cd actionmailer
 $ bundle exec rake test
 ```
 
+#### For a Specific Directory
+
+If you want to run the tests located in a specific directory use the `TEST_DIR`
+environment variable. For example, this will run the tests in the
+`railties/test/generators` directory only:
+
+```bash
+$ cd railties
+$ TEST_DIR=generators bundle exec rake test
+```
+
+#### For a Specific File
+
+You can run the tests for a particular file by using:
+
+```bash
+$ cd actionpack
+$ bundle exec ruby -w -Itest test/template/form_helper_test.rb
+```
+
 #### Running a Single Test
 
 You can run a single test through ruby. For instance:
@@ -333,8 +353,7 @@ $ cd actionmailer
 $ bundle exec ruby -w -Itest test/mail_layout_test.rb -n test_explicit_class_layout
 ```
 
-The `-n` option allows you to run a single method instead of the whole
-file.
+The `-n` option allows you to run a single method instead of the whole file.
 
 #### Running tests with a specific seed
 
