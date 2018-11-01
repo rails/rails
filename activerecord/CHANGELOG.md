@@ -1,4 +1,4 @@
-Adds support for multiple databases to `rails db:schema:cache:dump` and `rails db:schema:cache:clear`.
+*   Adds support for multiple databases to `rails db:schema:cache:dump` and `rails db:schema:cache:clear`.
 
     *Gannon McGibbon*
 

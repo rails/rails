@@ -11,7 +11,7 @@
     *Eileen M. Uchitelle*, *Aaron Patterson*
 
 *   Respect the `only_path` option passed to `url_for` when the options are passed in as an array
-    
+
     Fixes #33237.
 
     *Joel Ambass*
