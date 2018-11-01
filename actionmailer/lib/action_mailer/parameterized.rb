@@ -84,6 +84,14 @@ module ActionMailer
   #   end
   #
   #   InvitationsMailer.with(inviter: person_a, invitee: person_b).account_invitation.deliver_later
+  #
+  # By default, the parameterized email will be enqueued using <tt>ActionMailer::Parameterized::DeliveryJob</tt>. Each
+  # <tt>ActionMailer::Base</tt> class can specify the job to use by setting the class variable
+  # +parameterized_delivery_job+.
+  #
+  #   class InvitationsMailer < ApplicationMailer
+  #     self.parameterized_delivery_job = ParameterizedInvitationDeliveryJob
+  #   end
   module Parameterized
     extend ActiveSupport::Concern
 
