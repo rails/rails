@@ -72,6 +72,10 @@ Product = Struct.new(:name) do
   end
 end
 
+Tree = Struct.new(:place) do
+  delegate :city, to: :place, memoize: true
+end
+
 module ExtraMissing
   def method_missing(sym, *args)
     if sym == :extra_missing
@@ -151,6 +155,15 @@ class ModuleTest < ActiveSupport::TestCase
   def test_delegation_to_methods
     assert_equal "Paulina", @david.street
     assert_equal "Chicago", @david.city
+  end
+
+  def test_memoizing_delegated_method
+    seattle = Somewhere.new('Olive', 'Seattle')
+    doug = Tree.new(seattle)
+
+    assert_equal 'Seattle', doug.city
+    seattle.city = 'Boston'
+    assert_equal 'Seattle', doug.city
   end
 
   def test_delegation_to_assignment_method

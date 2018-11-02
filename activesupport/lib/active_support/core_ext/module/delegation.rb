@@ -24,6 +24,7 @@ class Module
   # * <tt>:allow_nil</tt> - If set to true, prevents a +Module::DelegationError+
   #   from being raised
   # * <tt>:private</tt> - If set to true, changes method visibility to private
+  # * <tt>:memoize</tt> - If set to true, caches the methods return value
   #
   # The macro receives one or more method names (specified as symbols or
   # strings) and the name of the target object via the <tt>:to</tt> option
@@ -168,7 +169,7 @@ class Module
   #   Foo.new("Bar").name # raises NoMethodError: undefined method `name'
   #
   # The target method must be public, otherwise it will raise +NoMethodError+.
-  def delegate(*methods, to: nil, prefix: nil, allow_nil: nil, private: nil)
+  def delegate(*methods, to: nil, prefix: nil, allow_nil: nil, private: nil, memoize: nil)
     unless to
       raise ArgumentError, "Delegation needs a target. Supply an options hash with a :to key as the last argument (e.g. delegate :hello, to: :greeter)."
     end
@@ -194,6 +195,7 @@ class Module
       # Attribute writer methods only accept one argument. Makes sure []=
       # methods still accept two arguments.
       definition = /[^\]]=$/.match?(method) ? "arg" : "*args, &block"
+      method_with_prefix = "#{method_prefix}#{method}"
 
       # The following generated method calls the target exactly once, storing
       # the returned value in a dummy variable.
@@ -204,20 +206,24 @@ class Module
       # be doing one call.
       if allow_nil
         method_def = [
-          "def #{method_prefix}#{method}(#{definition})",
-          "_ = #{to}",
-          "if !_.nil? || nil.respond_to?(:#{method})",
-          "  _.#{method}(#{definition})",
-          "end",
-        "end"
-        ].join ";"
+          "def #{method_with_prefix}(#{definition})",
+          memoize ? "@#{method_with_prefix} ||= begin" : nil,
+          "  _ = #{to}",
+          "  if !_.nil? || nil.respond_to?(:#{method})",
+          "    _.#{method}(#{definition})",
+          "  end",
+          memoize ? "end" : nil,
+          "end"
+        ].compact.join ";"
       else
         exception = %(raise DelegationError, "#{self}##{method_prefix}#{method} delegated to #{to}.#{method}, but #{to} is nil: \#{self.inspect}")
 
         method_def = [
-          "def #{method_prefix}#{method}(#{definition})",
-          " _ = #{to}",
+          "def #{method_with_prefix}(#{definition})",
+          memoize ? "@#{method_with_prefix} ||= begin" : nil,
+          "  _ = #{to}",
           "  _.#{method}(#{definition})",
+          memoize ? "end" : nil,
           "rescue NoMethodError => e",
           "  if _.nil? && e.name == :#{method}",
           "    #{exception}",
@@ -225,7 +231,7 @@ class Module
           "    raise",
           "  end",
           "end"
-        ].join ";"
+        ].compact.join ";"
       end
 
       module_eval(method_def, file, line)
