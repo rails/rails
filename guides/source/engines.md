@@ -96,7 +96,7 @@ that provides the following:
   * A `config/routes.rb` file:
 
     ```ruby
-    Rails.application.routes.draw do
+    Blorgh::Engine.routes.draw do
     end
     ```
 
