@@ -32,7 +32,7 @@ module ActionView
 
           if include_hidden
             hidden = hidden_field_for_checkbox(options)
-            hidden + checkbox
+            checkbox + hidden
           else
             checkbox
           end
