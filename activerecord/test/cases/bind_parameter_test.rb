@@ -36,8 +36,12 @@ if ActiveRecord::Base.connection.prepared_statements
 
       def test_too_many_binds
         bind_params_length = @connection.send(:bind_params_length)
+
         topics = Topic.where(id: (1 .. bind_params_length).to_a << 2**63)
         assert_equal Topic.count, topics.count
+
+        topics = Topic.where.not(id: (1 .. bind_params_length).to_a << 2**63)
+        assert_equal 0, topics.count
       end
 
       def test_bind_from_join_in_subquery
