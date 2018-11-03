@@ -577,9 +577,8 @@ module ActiveRecord
         fixtures_map = {}
         fixture_sets = fixture_files.map do |fixture_set_name|
           klass = class_names[fixture_set_name]
-          conn = klass&.connection || connection
           fixtures_map[fixture_set_name] = new( # ActiveRecord::FixtureSet.new
-            conn,
+            nil,
             fixture_set_name,
             klass,
             ::File.join(fixtures_directory, fixture_set_name)
@@ -621,7 +620,7 @@ module ActiveRecord
 
     attr_reader :table_name, :name, :fixtures, :model_class, :config
 
-    def initialize(connection, name, class_name, path, config = ActiveRecord::Base)
+    def initialize(_, name, class_name, path, config = ActiveRecord::Base)
       @name     = name
       @path     = path
       @config   = config
@@ -629,8 +628,6 @@ module ActiveRecord
       self.model_class = class_name
 
       @fixtures = read_fixture_files(path)
-
-      @connection = connection
 
       @table_name = (model_class.respond_to?(:table_name) ?
                       model_class.table_name :
