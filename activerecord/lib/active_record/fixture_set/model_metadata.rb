@@ -3,9 +3,8 @@
 module ActiveRecord
   class FixtureSet
     class ModelMetadata # :nodoc:
-      def initialize(model_class, table_name)
+      def initialize(model_class)
         @model_class = model_class
-        @table_name  = table_name
       end
 
       def primary_key_name
@@ -23,18 +22,12 @@ module ActiveRecord
 
       def timestamp_column_names
         @timestamp_column_names ||=
-          %w(created_at created_on updated_at updated_on) & column_names
+          %w(created_at created_on updated_at updated_on) & @model_class.column_names
       end
 
       def inheritance_column_name
         @inheritance_column_name ||= @model_class && @model_class.inheritance_column
       end
-
-      private
-
-        def column_names
-          @column_names ||= @model_class.connection.columns(@table_name).collect(&:name)
-        end
     end
   end
 end

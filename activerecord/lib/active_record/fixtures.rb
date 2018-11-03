@@ -629,9 +629,7 @@ module ActiveRecord
 
       @fixtures = read_fixture_files(path)
 
-      @table_name = (model_class.respond_to?(:table_name) ?
-                      model_class.table_name :
-                      self.class.default_fixture_table_name(name, config))
+      @table_name = model_class&.table_name || self.class.default_fixture_table_name(name, config)
     end
 
     def [](x)
