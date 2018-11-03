@@ -473,11 +473,11 @@ class FixturesTest < ActiveRecord::TestCase
   end
 
   def test_empty_yaml_fixture
-    assert_not_nil ActiveRecord::FixtureSet.new(Account.connection, "accounts", Account, FIXTURES_ROOT + "/naked/yml/accounts")
+    assert_not_nil ActiveRecord::FixtureSet.new(nil, "accounts", Account, FIXTURES_ROOT + "/naked/yml/accounts")
   end
 
   def test_empty_yaml_fixture_with_a_comment_in_it
-    assert_not_nil ActiveRecord::FixtureSet.new(Account.connection, "companies", Company, FIXTURES_ROOT + "/naked/yml/companies")
+    assert_not_nil ActiveRecord::FixtureSet.new(nil, "companies", Company, FIXTURES_ROOT + "/naked/yml/companies")
   end
 
   def test_nonexistent_fixture_file
@@ -487,14 +487,14 @@ class FixturesTest < ActiveRecord::TestCase
     assert_empty Dir[nonexistent_fixture_path + "*"]
 
     assert_raise(Errno::ENOENT) do
-      ActiveRecord::FixtureSet.new(Account.connection, "companies", Company, nonexistent_fixture_path)
+      ActiveRecord::FixtureSet.new(nil, "companies", Company, nonexistent_fixture_path)
     end
   end
 
   def test_dirty_dirty_yaml_file
     fixture_path = FIXTURES_ROOT + "/naked/yml/courses"
     error = assert_raise(ActiveRecord::Fixture::FormatError) do
-      ActiveRecord::FixtureSet.new(Account.connection, "courses", Course, fixture_path)
+      ActiveRecord::FixtureSet.new(nil, "courses", Course, fixture_path)
     end
     assert_equal "fixture is not a hash: #{fixture_path}.yml", error.to_s
   end
@@ -502,7 +502,7 @@ class FixturesTest < ActiveRecord::TestCase
   def test_yaml_file_with_one_invalid_fixture
     fixture_path = FIXTURES_ROOT + "/naked/yml/courses_with_invalid_key"
     error = assert_raise(ActiveRecord::Fixture::FormatError) do
-      ActiveRecord::FixtureSet.new(Account.connection, "courses", Course, fixture_path)
+      ActiveRecord::FixtureSet.new(nil, "courses", Course, fixture_path)
     end
     assert_equal "fixture key is not a hash: #{fixture_path}.yml, keys: [\"two\"]", error.to_s
   end
@@ -525,7 +525,7 @@ class FixturesTest < ActiveRecord::TestCase
 
   def test_omap_fixtures
     assert_nothing_raised do
-      fixtures = ActiveRecord::FixtureSet.new(Account.connection, "categories", Category, FIXTURES_ROOT + "/categories_ordered")
+      fixtures = ActiveRecord::FixtureSet.new(nil, "categories", Category, FIXTURES_ROOT + "/categories_ordered")
 
       fixtures.each.with_index do |(name, fixture), i|
         assert_equal "fixture_no_#{i}", name
@@ -596,7 +596,7 @@ class HasManyThroughFixture < ActiveRecord::TestCase
 
     parrots = File.join FIXTURES_ROOT, "parrots"
 
-    fs = ActiveRecord::FixtureSet.new parrot.connection, "parrots", parrot, parrots
+    fs = ActiveRecord::FixtureSet.new(nil, "parrots", parrot, parrots)
     rows = fs.table_rows
     assert_equal load_has_and_belongs_to_many["parrots_treasures"], rows["parrots_treasures"]
   end
@@ -614,7 +614,7 @@ class HasManyThroughFixture < ActiveRecord::TestCase
 
     parrots = File.join FIXTURES_ROOT, "parrots"
 
-    fs = ActiveRecord::FixtureSet.new parrot.connection, "parrots", parrot, parrots
+    fs = ActiveRecord::FixtureSet.new(nil, "parrots", parrot, parrots)
     rows = fs.table_rows
     assert_equal load_has_and_belongs_to_many["parrots_treasures"], rows["parrot_treasures"]
   end
@@ -629,7 +629,7 @@ class HasManyThroughFixture < ActiveRecord::TestCase
 
     parrots = File.join FIXTURES_ROOT, "parrots"
 
-    fs = ActiveRecord::FixtureSet.new parrot.connection, "parrots", parrot, parrots
+    fs = ActiveRecord::FixtureSet.new(nil, "parrots", parrot, parrots)
     fs.table_rows
   end
 end

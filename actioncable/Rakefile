@@ -7,7 +7,7 @@ require "action_cable"
 
 task default: :test
 
-task package: %w( assets:compile assets:verify )
+task :package
 
 Rake::TestTask.new do |t|
   t.libs << "test"
@@ -35,42 +35,13 @@ namespace :test do
 end
 
 namespace :assets do
-  desc "Compile Action Cable assets"
-  task :compile do
-    require "blade"
-    require "sprockets"
-    require "sprockets/export"
-    Blade.build
-  end
+  desc "Generate ActionCable::INTERNAL JS module"
+  task :codegen do
+    require "json"
+    require "action_cable"
 
-  desc "Verify compiled Action Cable assets"
-  task :verify do
-    file = "lib/assets/compiled/action_cable.js"
-    pathname = Pathname.new("#{__dir__}/#{file}")
-
-    print "[verify] #{file} exists "
-    if pathname.exist?
-      puts "[OK]"
-    else
-      $stderr.puts "[FAIL]"
-      fail
-    end
-
-    print "[verify] #{file} is a UMD module "
-    if /module\.exports.*define\.amd/m.match?(pathname.read)
-      puts "[OK]"
-    else
-      $stderr.puts "[FAIL]"
-      fail
-    end
-
-    print "[verify] #{__dir__} can be required as a module "
-    _, stderr, status = Open3.capture3("node", "--print", "window = {}; require('#{__dir__}');")
-    if status.success?
-      puts "[OK]"
-    else
-      $stderr.puts "[FAIL]\n#{stderr}"
-      fail
+    File.open(File.join(__dir__, "app/javascript/action_cable/internal.js").to_s, "w+") do |file|
+      file.write("export default #{JSON.generate(ActionCable::INTERNAL)}")
     end
   end
 end

@@ -579,6 +579,10 @@ module Arel # :nodoc: all
         end
 
         def visit_Arel_Nodes_In(o, collector)
+          if Array === o.right && !o.right.empty?
+            o.right.keep_if { |value| boundable?(value) }
+          end
+
           if Array === o.right && o.right.empty?
             collector << "1=0"
           else
@@ -589,6 +593,10 @@ module Arel # :nodoc: all
         end
 
         def visit_Arel_Nodes_NotIn(o, collector)
+          if Array === o.right && !o.right.empty?
+            o.right.keep_if { |value| boundable?(value) }
+          end
+
           if Array === o.right && o.right.empty?
             collector << "1=1"
           else
@@ -786,6 +794,10 @@ module Arel # :nodoc: all
               visit(x, c) << join_str
             end
           }
+        end
+
+        def boundable?(value)
+          !value.respond_to?(:boundable?) || value.boundable?
         end
 
         def has_join_sources?(o)

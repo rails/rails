@@ -58,7 +58,7 @@ module ActiveRecord
       end
 
       def model_metadata
-        @model_metadata ||= ModelMetadata.new(model_class, table_name)
+        @model_metadata ||= ModelMetadata.new(model_class)
       end
 
       def resolve_sti_reflections(row)
