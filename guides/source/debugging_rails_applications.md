@@ -232,7 +232,7 @@ irb(main):003:0> Article.pamplemousse
 => #<Comment id: 2, author: "1", body: "Well, actually...", article_id: 1, created_at: "2018-10-19 00:56:10", updated_at: "2018-10-19 00:56:10">
 ```
 
-Below each database statement you can see arrows pointing to the specific source filename (and line number) of the method that resulted in a database call. This can help you identity and address performance problems caused by N+1 queries: single database queries that generates multiple additional queries.
+Below each database statement you can see arrows pointing to the specific source filename (and line number) of the method that resulted in a database call. This can help you identify and address performance problems caused by N+1 queries: single database queries that generates multiple additional queries.
 
 Verbose query logs are enabled by default in the development environment logs after Rails 5.2.
 
