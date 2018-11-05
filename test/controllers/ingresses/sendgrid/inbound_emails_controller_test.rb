@@ -41,9 +41,4 @@ class ActionMailbox::Ingresses::Sendgrid::InboundEmailsControllerTest < ActionDi
       end
     end
   end
-
-  private
-    def credentials
-      ActionController::HttpAuthentication::Basic.encode_credentials "actionmailbox", ENV["RAILS_INBOUND_EMAIL_PASSWORD"]
-    end
 end
