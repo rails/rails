@@ -1,12 +1,12 @@
 class ActionMailbox::Ingresses::Mailgun::InboundEmailsController < ActionMailbox::BaseController
-  before_action :ensure_authenticated
+  before_action :authenticate
 
   def create
     ActionMailbox::InboundEmail.create_and_extract_message_id! params.require("body-mime")
   end
 
   private
-    def ensure_authenticated
+    def authenticate
       head :unauthorized unless authenticated?
     end
 

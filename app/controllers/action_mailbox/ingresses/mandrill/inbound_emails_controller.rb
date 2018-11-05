@@ -1,5 +1,5 @@
 class ActionMailbox::Ingresses::Mandrill::InboundEmailsController < ActionMailbox::BaseController
-  before_action :ensure_authenticated
+  before_action :authenticate
 
   def create
     raw_emails.each { |raw_email| ActionMailbox::InboundEmail.create_and_extract_message_id! raw_email }
@@ -19,7 +19,7 @@ class ActionMailbox::Ingresses::Mandrill::InboundEmailsController < ActionMailbo
     end
 
 
-    def ensure_authenticated
+    def authenticate
       head :unauthorized unless authenticated?
     end
 

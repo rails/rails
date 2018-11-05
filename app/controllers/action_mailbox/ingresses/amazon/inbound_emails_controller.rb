@@ -1,5 +1,5 @@
 class ActionMailbox::Ingresses::Amazon::InboundEmailsController < ActionMailbox::BaseController
-  before_action :ensure_verified
+  before_action :authenticate
 
   # TODO: Lazy-load the AWS SDK
   require "aws-sdk-sns/message_verifier"
@@ -10,11 +10,7 @@ class ActionMailbox::Ingresses::Amazon::InboundEmailsController < ActionMailbox:
   end
 
   private
-    def ensure_verified
-      head :unauthorized unless verified?
-    end
-
-    def verified?
-      verifier.authentic?(request.body)
+    def authenticate
+      head :unauthorized unless verifier.authentic?(request.body)
     end
 end
