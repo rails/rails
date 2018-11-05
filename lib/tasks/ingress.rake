@@ -9,31 +9,32 @@ namespace :action_mailbox do
       require "http"
 
       unless url = ENV["URL"].presence
-        abort "URL is required"
+        abort "5.3.5 URL is required"
       end
 
       unless password = ENV["INGRESS_PASSWORD"].presence
-        abort "INGRESS_PASSWORD is required"
+        abort "5.3.5 INGRESS_PASSWORD is required"
       end
 
       begin
         response = HTTP.basic_auth(user: "actionmailbox", pass: password)
           .timeout(connect: 1, write: 10, read: 10)
-          .post(url, headers: { "Content-Type" => "message/rfc822", "User-Agent" => "Postfix" }, body: STDIN)
+          .post(url, headers: { "Content-Type" => "message/rfc822", "User-Agent" => ENV.fetch("USER_AGENT", "Postfix") }, body: STDIN)
 
-        if response.status.success?
+        case
+        when response.status.success?
           puts "2.0.0 HTTP #{response.status}"
-          exit 0
+        when response.status.unauthorized?
+          abort "4.7.0 HTTP #{response.status}"
+        when response.status.unsupported_media_type?
+          abort "5.6.1 HTTP #{response.status}"
         else
-          puts "4.6.0 HTTP #{response.status}"
-          exit 1
+          abort "4.0.0 HTTP #{response.status}"
         end
       rescue HTTP::ConnectionError => error
-        puts "4.4.2 Error connecting to the Postfix ingress: #{error.message}"
-        exit 1
+        abort "4.4.2 Error connecting to the Postfix ingress: #{error.message}"
       rescue HTTP::TimeoutError
-        puts "4.4.7 Timed out piping to the Postfix ingress"
-        exit 1
+        abort "4.4.7 Timed out piping to the Postfix ingress"
       end
     end
   end
