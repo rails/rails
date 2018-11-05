@@ -1,8 +1,8 @@
 require "test_helper"
 
-ActionMailbox::Ingresses::Postfix::InboundEmailsController.password = "tbsy84uSV1Kt3ZJZELY2TmShPRs91E3yL4tzf96297vBCkDWgL"
-
 class ActionMailbox::Ingresses::Postfix::InboundEmailsControllerTest < ActionDispatch::IntegrationTest
+  setup { ActionMailbox.ingress = :postfix }
+
   test "receiving an inbound email from Postfix" do
     assert_difference -> { ActionMailbox::InboundEmail.count }, +1 do
       post rails_postfix_inbound_emails_url, headers: { "Authorization" => credentials, "Content-Type" => "message/rfc822" },
@@ -51,18 +51,4 @@ class ActionMailbox::Ingresses::Postfix::InboundEmailsControllerTest < ActionDis
       end
     end
   end
-
-  private
-    delegate :username, :password, :password=, to: ActionMailbox::Ingresses::Postfix::InboundEmailsController
-
-    def credentials
-      ActionController::HttpAuthentication::Basic.encode_credentials username, password
-    end
-
-    def switch_password_to(new_password)
-      previous_password, self.password = password, new_password
-      yield
-    ensure
-      self.password = previous_password
-    end
 end

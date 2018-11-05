@@ -4,6 +4,8 @@ ActionMailbox::Ingresses::Amazon::InboundEmailsController.verifier =
   Module.new { def self.authentic?(message); true; end }
 
 class ActionMailbox::Ingresses::Amazon::InboundEmailsControllerTest < ActionDispatch::IntegrationTest
+  setup { ActionMailbox.ingress = :amazon }
+
   test "receiving an inbound email from Amazon" do
     assert_difference -> { ActionMailbox::InboundEmail.count }, +1 do
       post rails_amazon_inbound_emails_url, params: { content: file_fixture("../files/welcome.eml").read }, as: :json

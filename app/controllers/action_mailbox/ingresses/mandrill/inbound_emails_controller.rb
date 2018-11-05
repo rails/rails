@@ -24,17 +24,25 @@ class ActionMailbox::Ingresses::Mandrill::InboundEmailsController < ActionMailbo
     end
 
     def authenticated?
-      Authenticator.new(request).authenticated?
+      if key.present?
+        Authenticator.new(request, key).authenticated?
+      else
+        raise ArgumentError, <<~MESSAGE.squish
+          Missing required Mandrill API key. Set action_mailbox.mandrill_api_key in your application's
+          encrypted credentials or provide the MANDRILL_INGRESS_API_KEY environment variable.
+        MESSAGE
+      end
+    end
+
+    def key
+      Rails.application.credentials.dig(:action_mailbox, :mandrill_api_key) || ENV["MANDRILL_INGRESS_API_KEY"]
     end
 
     class Authenticator
-      cattr_accessor :key
-      attr_reader :request
+      attr_reader :request, :key
 
-      def initialize(request)
-        @request = request
-
-        ensure_presence_of_key
+      def initialize(request, key)
+        @request, @key = request, key
       end
 
       def authenticated?
@@ -42,13 +50,6 @@ class ActionMailbox::Ingresses::Mandrill::InboundEmailsController < ActionMailbo
       end
 
       private
-        def ensure_presence_of_key
-          unless key.present?
-            raise ArgumentError, "Missing required Mandrill API key"
-          end
-        end
-
-
         def given_signature
           request.headers["X-Mandrill-Signature"]
         end

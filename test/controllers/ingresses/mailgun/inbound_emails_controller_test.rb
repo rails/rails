@@ -1,8 +1,10 @@
 require "test_helper"
 
-ActionMailbox::Ingresses::Mailgun::InboundEmailsController::Authenticator.key = "tbsy84uSV1Kt3ZJZELY2TmShPRs91E3yL4tzf96297vBCkDWgL"
+ENV["MAILGUN_INGRESS_API_KEY"] = "tbsy84uSV1Kt3ZJZELY2TmShPRs91E3yL4tzf96297vBCkDWgL"
 
 class ActionMailbox::Ingresses::Mailgun::InboundEmailsControllerTest < ActionDispatch::IntegrationTest
+  setup { ActionMailbox.ingress = :mailgun }
+
   test "receiving an inbound email from Mailgun" do
     assert_difference -> { ActionMailbox::InboundEmail.count }, +1 do
       travel_to "2018-10-09 15:15:00 EDT"
@@ -78,12 +80,10 @@ class ActionMailbox::Ingresses::Mailgun::InboundEmailsControllerTest < ActionDis
   end
 
   private
-    delegate :key, :key=, to: ActionMailbox::Ingresses::Mailgun::InboundEmailsController::Authenticator
-
     def switch_key_to(new_key)
-      previous_key, self.key = key, new_key
+      previous_key, ENV["MAILGUN_INGRESS_API_KEY"] = ENV["MAILGUN_INGRESS_API_KEY"], new_key
       yield
     ensure
-      self.key = previous_key
+      ENV["MAILGUN_INGRESS_API_KEY"] = previous_key
     end
 end

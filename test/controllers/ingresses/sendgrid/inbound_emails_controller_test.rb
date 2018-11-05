@@ -1,8 +1,8 @@
 require "test_helper"
 
-ActionMailbox::Ingresses::Sendgrid::InboundEmailsController.password = "tbsy84uSV1Kt3ZJZELY2TmShPRs91E3yL4tzf96297vBCkDWgL"
-
 class ActionMailbox::Ingresses::Sendgrid::InboundEmailsControllerTest < ActionDispatch::IntegrationTest
+  setup { ActionMailbox.ingress = :sendgrid }
+
   test "receiving an inbound email from Sendgrid" do
     assert_difference -> { ActionMailbox::InboundEmail.count }, +1 do
       post rails_sendgrid_inbound_emails_url,
@@ -43,16 +43,7 @@ class ActionMailbox::Ingresses::Sendgrid::InboundEmailsControllerTest < ActionDi
   end
 
   private
-    delegate :username, :password, :password=, to: ActionMailbox::Ingresses::Sendgrid::InboundEmailsController
-
     def credentials
-      ActionController::HttpAuthentication::Basic.encode_credentials username, password
-    end
-
-    def switch_password_to(new_password)
-      previous_password, self.password = password, new_password
-      yield
-    ensure
-      self.password = previous_password
+      ActionController::HttpAuthentication::Basic.encode_credentials "actionmailbox", ENV["RAILS_INBOUND_EMAIL_PASSWORD"]
     end
 end

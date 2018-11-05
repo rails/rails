@@ -1,8 +1,5 @@
 class ActionMailbox::Ingresses::Postfix::InboundEmailsController < ActionMailbox::BaseController
-  cattr_accessor :username, default: "actionmailbox"
-  cattr_accessor :password
-
-  before_action :authenticate, :require_valid_rfc822_message
+  before_action :authenticate_by_password, :require_valid_rfc822_message
 
   def create
     ActionMailbox::InboundEmail.create_and_extract_message_id! request.body.read

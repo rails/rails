@@ -11,21 +11,30 @@ class ActionMailbox::Ingresses::Mailgun::InboundEmailsController < ActionMailbox
     end
 
     def authenticated?
-      Authenticator.new(
-        timestamp: params.require(:timestamp),
-        token:     params.require(:token),
-        signature: params.require(:signature)
-      ).authenticated?
+      if key.present?
+        Authenticator.new(
+          key:       key,
+          timestamp: params.require(:timestamp),
+          token:     params.require(:token),
+          signature: params.require(:signature)
+        ).authenticated?
+      else
+        raise ArgumentError, <<~MESSAGE.squish
+          Missing required Mailgun API key. Set action_mailbox.mailgun_api_key in your application's
+          encrypted credentials or provide the MAILGUN_INGRESS_API_KEY environment variable.
+        MESSAGE
+      end
+    end
+
+    def key
+      Rails.application.credentials.dig(:action_mailbox, :mailgun_api_key) || ENV["MAILGUN_INGRESS_API_KEY"]
     end
 
     class Authenticator
-      cattr_accessor :key
-      attr_reader :timestamp, :token, :signature
+      attr_reader :key, :timestamp, :token, :signature
 
-      def initialize(timestamp:, token:, signature:)
-        @timestamp, @token, @signature = Integer(timestamp), token, signature
-
-        ensure_presence_of_key
+      def initialize(key:, timestamp:, token:, signature:)
+        @key, @timestamp, @token, @signature = key, Integer(timestamp), token, signature
       end
 
       def authenticated?
@@ -33,13 +42,6 @@ class ActionMailbox::Ingresses::Mailgun::InboundEmailsController < ActionMailbox
       end
 
       private
-        def ensure_presence_of_key
-          unless key.present?
-            raise ArgumentError, "Missing required Mailgun API key"
-          end
-        end
-
-
         def signed?
           ActiveSupport::SecurityUtils.secure_compare signature, expected_signature
         end

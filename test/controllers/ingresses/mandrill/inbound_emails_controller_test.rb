@@ -1,9 +1,10 @@
 require "test_helper"
 
-ActionMailbox::Ingresses::Mandrill::InboundEmailsController::Authenticator.key = "1l9Qf7lutEf7h73VXfBwhw"
+ENV["MANDRILL_INGRESS_API_KEY"] = "1l9Qf7lutEf7h73VXfBwhw"
 
 class ActionMailbox::Ingresses::Mandrill::InboundEmailsControllerTest < ActionDispatch::IntegrationTest
   setup do
+    ActionMailbox.ingress = :mandrill
     @events = JSON.generate([{ event: "inbound", msg: { raw_msg: file_fixture("../files/welcome.eml").read } }])
   end
 
@@ -48,12 +49,10 @@ class ActionMailbox::Ingresses::Mandrill::InboundEmailsControllerTest < ActionDi
   end
 
   private
-    delegate :key, :key=, to: ActionMailbox::Ingresses::Mandrill::InboundEmailsController::Authenticator
-
     def switch_key_to(new_key)
-      previous_key, self.key = key, new_key
+      previous_key, ENV["MANDRILL_INGRESS_API_KEY"] = ENV["MANDRILL_INGRESS_API_KEY"], new_key
       yield
     ensure
-      self.key = previous_key
+      ENV["MANDRILL_INGRESS_API_KEY"] = previous_key
     end
 end
