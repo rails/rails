@@ -1,6 +1,10 @@
 class ActionMailbox::BaseController < ActionController::Base
   skip_forgery_protection
 
+  def self.prepare
+    # Override in concrete controllers to run code on load.
+  end
+
   before_action :ensure_configured
 
   private
