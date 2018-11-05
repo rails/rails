@@ -22,6 +22,14 @@ module ActiveRecord
       #
       # This is +true+, by default on Rails 5.2 and above.
       class_attribute :cache_versioning, instance_writer: false, default: false
+
+      ##
+      # :singleton-method:
+      # Indicates whether to use a stable #cache_key method that is accompanied
+      # by a changing version in the #cache_version method on collections.
+      #
+      # This is +false+, by default until Rails 6.1.
+      class_attribute :collection_cache_versioning, instance_writer: false, default: false
     end
 
     # Returns a +String+, which Action Pack uses for constructing a URL to this
