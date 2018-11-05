@@ -30,10 +30,14 @@ module ActiveStorage
       #
       # If the +:dependent+ option isn't set, the attachment will be purged
       # (i.e. destroyed) whenever the record is destroyed.
-      def has_one_attached(name, dependent: :purge_later)
+      def has_one_attached(name, dependent: :purge_later, delivery_method: :default)
         generated_association_methods.class_eval <<-CODE, __FILE__, __LINE__ + 1
           def #{name}
             @active_storage_attached_#{name} ||= ActiveStorage::Attached::One.new("#{name}", self)
+          end
+
+          def delivery_method
+            :#{delivery_method}
           end
 
           def #{name}=(attachable)
