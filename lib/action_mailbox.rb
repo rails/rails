@@ -6,6 +6,7 @@ module ActionMailbox
   autoload :Base
   autoload :Router
 
+  mattr_accessor :ingress
   mattr_accessor :logger
   mattr_accessor :incinerate_after, default: 30.days
 end
