@@ -23,7 +23,7 @@ module ActiveRecord
   #         t.string :zipcode
   #       end
   #
-  #       execute <<-SQL
+  #       execute <<~SQL
   #         ALTER TABLE distributors
   #           ADD CONSTRAINT zipchk
   #             CHECK (char_length(zipcode) = 5) NO INHERIT;
@@ -41,7 +41,7 @@ module ActiveRecord
   #        t.string :zipcode
   #      end
   #
-  #      execute <<-SQL
+  #      execute <<~SQL
   #        ALTER TABLE distributors
   #          ADD CONSTRAINT zipchk
   #            CHECK (char_length(zipcode) = 5) NO INHERIT;
@@ -49,7 +49,7 @@ module ActiveRecord
   #    end
   #
   #    def down
-  #      execute <<-SQL
+  #      execute <<~SQL
   #        ALTER TABLE distributors
   #          DROP CONSTRAINT zipchk
   #      SQL
@@ -68,7 +68,7 @@ module ActiveRecord
   #
   #       reversible do |dir|
   #         dir.up do
-  #           execute <<-SQL
+  #           execute <<~SQL
   #             ALTER TABLE distributors
   #               ADD CONSTRAINT zipchk
   #                 CHECK (char_length(zipcode) = 5) NO INHERIT;
@@ -76,7 +76,7 @@ module ActiveRecord
   #         end
   #
   #         dir.down do
-  #           execute <<-SQL
+  #           execute <<~SQL
   #             ALTER TABLE distributors
   #               DROP CONSTRAINT zipchk
   #           SQL

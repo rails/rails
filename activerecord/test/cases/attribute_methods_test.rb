@@ -449,7 +449,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   end
 
   test "custom field attribute predicate" do
-    object = Company.find_by_sql(<<-SQL).first
+    object = Company.find_by_sql(<<~SQL).first
       SELECT c1.*, c2.type as string_value, c2.rating as int_value
         FROM companies c1, companies c2
        WHERE c1.firm_id = c2.id

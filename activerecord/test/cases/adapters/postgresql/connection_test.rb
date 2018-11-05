@@ -230,7 +230,7 @@ module ActiveRecord
 
     def test_get_and_release_advisory_lock
       lock_id = 5295901941911233559
-      list_advisory_locks = <<-SQL
+      list_advisory_locks = <<~SQL
         SELECT locktype,
               (classid::bigint << 32) | objid::bigint AS lock_id
         FROM pg_locks

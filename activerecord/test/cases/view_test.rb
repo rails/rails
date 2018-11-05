@@ -20,7 +20,7 @@ module ViewBehavior
   def setup
     super
     @connection = ActiveRecord::Base.connection
-    create_view "ebooks'", <<-SQL
+    create_view "ebooks'", <<~SQL
       SELECT id, name, status FROM books WHERE format = 'ebook'
     SQL
   end
@@ -106,7 +106,7 @@ if ActiveRecord::Base.connection.supports_views?
 
     setup do
       @connection = ActiveRecord::Base.connection
-      @connection.execute <<-SQL
+      @connection.execute <<~SQL
         CREATE VIEW paperbacks
           AS SELECT name, status FROM books WHERE format = 'paperback'
       SQL
@@ -169,7 +169,7 @@ if ActiveRecord::Base.connection.supports_views?
 
       setup do
         @connection = ActiveRecord::Base.connection
-        @connection.execute <<-SQL
+        @connection.execute <<~SQL
           CREATE VIEW printed_books
             AS SELECT id, name, status, format FROM books WHERE format = 'paperback'
         SQL

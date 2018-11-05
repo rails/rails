@@ -55,11 +55,11 @@ module ActiveRecord
         owner = Owner.create!(name: "hello".encode("ascii-8bit"))
         owner.reload
         select = Owner.columns.map { |c| "typeof(#{c.name})" }.join ", "
-        result = Owner.connection.exec_query <<-esql
+        result = Owner.connection.exec_query <<~SQL
           SELECT #{select}
           FROM   #{Owner.table_name}
           WHERE  #{Owner.primary_key} = #{owner.id}
-        esql
+        SQL
 
         assert_not(result.rows.first.include?("blob"), "should not store blobs")
       ensure
@@ -160,13 +160,13 @@ module ActiveRecord
       end
 
       def test_quote_binary_column_escapes_it
-        DualEncoding.connection.execute(<<-eosql)
+        DualEncoding.connection.execute(<<~SQL)
           CREATE TABLE IF NOT EXISTS dual_encodings (
             id integer PRIMARY KEY AUTOINCREMENT,
             name varchar(255),
             data binary
           )
-        eosql
+        SQL
         str = (+"\x80").force_encoding("ASCII-8BIT")
         binary = DualEncoding.new name: "いただきます！", data: str
         binary.save!
@@ -261,7 +261,7 @@ module ActiveRecord
       end
 
       def test_tables_logs_name
-        sql = <<-SQL
+        sql = <<~SQL
           SELECT name FROM sqlite_master WHERE name <> 'sqlite_sequence' AND type IN ('table')
         SQL
         assert_logged [[sql.squish, "SCHEMA", []]] do
@@ -271,7 +271,7 @@ module ActiveRecord
 
       def test_table_exists_logs_name
         with_example_table do
-          sql = <<-SQL
+          sql = <<~SQL
             SELECT name FROM sqlite_master WHERE name <> 'sqlite_sequence' AND name = 'ex' AND type IN ('table')
           SQL
           assert_logged [[sql.squish, "SCHEMA", []]] do
@@ -585,7 +585,7 @@ module ActiveRecord
         end
 
         def with_example_table(definition = nil, table_name = "ex", &block)
-          definition ||= <<-SQL
+          definition ||= <<~SQL
             id integer PRIMARY KEY AUTOINCREMENT,
             number integer
           SQL

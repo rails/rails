@@ -394,7 +394,7 @@ _SQL
       end
 
       def insert_range(values)
-        @connection.execute <<-SQL
+        @connection.execute <<~SQL
           INSERT INTO postgresql_ranges (
             id,
             date_range,

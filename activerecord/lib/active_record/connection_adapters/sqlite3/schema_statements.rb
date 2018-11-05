@@ -11,7 +11,7 @@ module ActiveRecord
             # See https://www.sqlite.org/fileformat2.html#intschema
             next if row["name"].starts_with?("sqlite_")
 
-            index_sql = query_value(<<-SQL, "SCHEMA")
+            index_sql = query_value(<<~SQL, "SCHEMA")
               SELECT sql
               FROM sqlite_master
               WHERE name = #{quote(row['name'])} AND type = 'index'

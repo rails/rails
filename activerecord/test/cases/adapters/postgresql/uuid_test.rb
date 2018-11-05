@@ -198,10 +198,10 @@ class PostgresqlUUIDGenerationTest < ActiveRecord::PostgreSQLTestCase
 
     # Create custom PostgreSQL function to generate UUIDs
     # to test dumping tables which columns have defaults with custom functions
-    connection.execute <<-SQL
-    CREATE OR REPLACE FUNCTION my_uuid_generator() RETURNS uuid
-    AS $$ SELECT * FROM #{uuid_function} $$
-    LANGUAGE SQL VOLATILE;
+    connection.execute <<~SQL
+      CREATE OR REPLACE FUNCTION my_uuid_generator() RETURNS uuid
+      AS $$ SELECT * FROM #{uuid_function} $$
+      LANGUAGE SQL VOLATILE;
     SQL
 
     # Create such a table with custom function as default value generator

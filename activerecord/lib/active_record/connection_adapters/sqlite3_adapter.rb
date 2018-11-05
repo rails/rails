@@ -550,7 +550,7 @@ module ActiveRecord
 
         def table_structure_with_collation(table_name, basic_structure)
           collation_hash = {}
-          sql = <<-SQL
+          sql = <<~SQL
             SELECT sql FROM
               (SELECT * FROM sqlite_master UNION ALL
                SELECT * FROM sqlite_temp_master)

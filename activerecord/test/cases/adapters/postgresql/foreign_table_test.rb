@@ -22,18 +22,18 @@ if ActiveRecord::Base.connection.supports_foreign_tables?
       enable_extension!("postgres_fdw", @connection)
 
       foreign_db_config = ARTest.connection_config["arunit2"]
-      @connection.execute <<-SQL
+      @connection.execute <<~SQL
         CREATE SERVER foreign_server
           FOREIGN DATA WRAPPER postgres_fdw
           OPTIONS (dbname '#{foreign_db_config["database"]}')
       SQL
 
-      @connection.execute <<-SQL
+      @connection.execute <<~SQL
         CREATE USER MAPPING FOR CURRENT_USER
           SERVER foreign_server
       SQL
 
-      @connection.execute <<-SQL
+      @connection.execute <<~SQL
         CREATE FOREIGN TABLE foreign_professors (
           id    int,
           name  character varying NOT NULL
@@ -45,7 +45,7 @@ if ActiveRecord::Base.connection.supports_foreign_tables?
 
     def teardown
       disable_extension!("postgres_fdw", @connection)
-      @connection.execute <<-SQL
+      @connection.execute <<~SQL
         DROP SERVER IF EXISTS foreign_server CASCADE
       SQL
     end

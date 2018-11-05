@@ -590,13 +590,13 @@ module ActiveRecord
           initializer = OID::TypeMapInitializer.new(type_map)
 
           if supports_ranges?
-            query = <<-SQL
+            query = <<~SQL
               SELECT t.oid, t.typname, t.typelem, t.typdelim, t.typinput, r.rngsubtype, t.typtype, t.typbasetype
               FROM pg_type as t
               LEFT JOIN pg_range as r ON oid = rngtypid
             SQL
           else
-            query = <<-SQL
+            query = <<~SQL
               SELECT t.oid, t.typname, t.typelem, t.typdelim, t.typinput, t.typtype, t.typbasetype
               FROM pg_type as t
             SQL
@@ -776,7 +776,7 @@ module ActiveRecord
         #  - format_type includes the column size constraint, e.g. varchar(50)
         #  - ::regclass is a function that gives the id for a table name
         def column_definitions(table_name)
-          query(<<-end_sql, "SCHEMA")
+          query(<<~SQL, "SCHEMA")
               SELECT a.attname, format_type(a.atttypid, a.atttypmod),
                      pg_get_expr(d.adbin, d.adrelid), a.attnotnull, a.atttypid, a.atttypmod,
                      c.collname, col_description(a.attrelid, a.attnum) AS comment
@@ -787,7 +787,7 @@ module ActiveRecord
                WHERE a.attrelid = #{quote(quote_table_name(table_name))}::regclass
                  AND a.attnum > 0 AND NOT a.attisdropped
                ORDER BY a.attnum
-          end_sql
+          SQL
         end
 
         def extract_table_ref_from_insert_sql(sql)
@@ -802,7 +802,7 @@ module ActiveRecord
         def can_perform_case_insensitive_comparison_for?(column)
           @case_insensitive_cache ||= {}
           @case_insensitive_cache[column.sql_type] ||= begin
-            sql = <<-end_sql
+            sql = <<~SQL
               SELECT exists(
                 SELECT * FROM pg_proc
                 WHERE proname = 'lower'
@@ -814,7 +814,7 @@ module ActiveRecord
                 WHERE proname = 'lower'
                   AND castsource = #{quote column.sql_type}::regtype
               )
-            end_sql
+            SQL
             execute_and_clear(sql, "SCHEMA", []) do |result|
               result.getvalue(0, 0)
             end
@@ -840,7 +840,7 @@ module ActiveRecord
             "bool" => PG::TextDecoder::Boolean,
           }
           known_coder_types = coders_by_name.keys.map { |n| quote(n) }
-          query = <<-SQL % known_coder_types.join(", ")
+          query = <<~SQL % known_coder_types.join(", ")
             SELECT t.oid, t.typname
             FROM pg_type as t
             WHERE t.typname IN (%s)

@@ -146,7 +146,7 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
   def test_habtm_table_name_with_schema
     ActiveRecord::Base.connection.drop_schema "music", if_exists: true
     ActiveRecord::Base.connection.create_schema "music"
-    ActiveRecord::Base.connection.execute <<-SQL
+    ActiveRecord::Base.connection.execute <<~SQL
       CREATE TABLE music.albums (id serial primary key);
       CREATE TABLE music.songs (id serial primary key);
       CREATE TABLE music.albums_songs (album_id integer, song_id integer);

@@ -68,7 +68,7 @@ module ActiveRecord
           table = quoted_scope(table_name)
           index = quoted_scope(index_name)
 
-          query_value(<<-SQL, "SCHEMA").to_i > 0
+          query_value(<<~SQL, "SCHEMA").to_i > 0
             SELECT COUNT(*)
             FROM pg_class t
             INNER JOIN pg_index d ON t.oid = d.indrelid
@@ -85,7 +85,7 @@ module ActiveRecord
         def indexes(table_name) # :nodoc:
           scope = quoted_scope(table_name)
 
-          result = query(<<-SQL, "SCHEMA")
+          result = query(<<~SQL, "SCHEMA")
             SELECT distinct i.relname, d.indisunique, d.indkey, pg_get_indexdef(d.indexrelid), t.oid,
                             pg_catalog.obj_description(i.oid, 'pg_class') AS comment
             FROM pg_class t
@@ -196,7 +196,7 @@ module ActiveRecord
 
         # Returns an array of schema names.
         def schema_names
-          query_values(<<-SQL, "SCHEMA")
+          query_values(<<~SQL, "SCHEMA")
             SELECT nspname
               FROM pg_namespace
              WHERE nspname !~ '^pg_.*'
@@ -302,7 +302,7 @@ module ActiveRecord
         def pk_and_sequence_for(table) #:nodoc:
           # First try looking for a sequence with a dependency on the
           # given table's primary key.
-          result = query(<<-end_sql, "SCHEMA")[0]
+          result = query(<<~SQL, "SCHEMA")[0]
             SELECT attr.attname, nsp.nspname, seq.relname
             FROM pg_class      seq,
                  pg_attribute  attr,
@@ -319,10 +319,10 @@ module ActiveRecord
               AND cons.contype      = 'p'
               AND dep.classid       = 'pg_class'::regclass
               AND dep.refobjid      = #{quote(quote_table_name(table))}::regclass
-          end_sql
+          SQL
 
           if result.nil? || result.empty?
-            result = query(<<-end_sql, "SCHEMA")[0]
+            result = query(<<~SQL, "SCHEMA")[0]
               SELECT attr.attname, nsp.nspname,
                 CASE
                   WHEN pg_get_expr(def.adbin, def.adrelid) !~* 'nextval' THEN NULL
@@ -339,7 +339,7 @@ module ActiveRecord
               WHERE t.oid = #{quote(quote_table_name(table))}::regclass
                 AND cons.contype = 'p'
                 AND pg_get_expr(def.adbin, def.adrelid) ~* 'nextval|uuid_generate'
-            end_sql
+            SQL
           end
 
           pk = result.shift
