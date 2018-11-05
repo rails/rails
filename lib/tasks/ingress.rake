@@ -8,14 +8,16 @@ namespace :action_mailbox do
       require "active_support/core_ext/object/blank"
       require "http"
 
-      url, username, password = ENV.values_at("URL", "INGRESS_USERNAME", "INGRESS_PASSWORD")
+      unless url = ENV["URL"].presence
+        abort "URL is required"
+      end
 
-      if url.blank? || username.blank? || password.blank?
-        abort "URL, INGRESS_USERNAME, and INGRESS_PASSWORD are required"
+      unless password = ENV["INGRESS_PASSWORD"].presence
+        abort "INGRESS_PASSWORD is required"
       end
 
       begin
-        response = HTTP.basic_auth(user: username, pass: password)
+        response = HTTP.basic_auth(user: "actionmailbox", pass: password)
           .timeout(connect: 1, write: 10, read: 10)
           .post(url, headers: { "Content-Type" => "message/rfc822", "User-Agent" => "Postfix" }, body: STDIN)
 
