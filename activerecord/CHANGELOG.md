@@ -1,3 +1,14 @@
+*   Add `ActiveRecord::Relation#cache_version` to support recyclable cache keys via
+    the versioned entries in `ActiveSupport::Cache`. This also means that
+    `ActiveRecord::Relation#cache_key` will now return a stable key that does not
+    include the max timestamp or count any more.
+
+    NOTE: This feature is turned off by default, and `cache_key` will still return
+    cache keys with timestamps until you set `ActiveRecord::Base.collection_cache_versioning = true`.
+    That's the setting for all new apps on Rails 6.0+
+
+    *Lachlan Sylvester*
+
 *   Fix dirty tracking for `touch` to track saved changes.
 
     Fixes #33429.
