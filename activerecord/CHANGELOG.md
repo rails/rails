@@ -1,3 +1,11 @@
+*   MySQL: `ROW_FORMAT=DYNAMIC` create table option by default.
+
+    Since MySQL 5.7.9, the `innodb_default_row_format` option defines the default row
+    format for InnoDB tables. The default setting is `DYNAMIC`.
+    The row format is required for indexing on `varchar(255)` with `utf8mb4` columns.
+
+    *Ryuta Kamizono*
+
 *   Fix join table column quoting with SQLite.
 
     *Gannon McGibbon*
