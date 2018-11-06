@@ -1035,6 +1035,30 @@ class FormOptionsHelperTest < ActionView::TestCase
     )
   end
 
+  def test_collection_select_with_blank_as_hash
+    @post = Post.new
+    @post.author_name = "Babe"
+
+    assert_dom_equal(
+      "<select id=\"post_author_name\" name=\"post[author_name]\"><option></option>\n<option value=\"&lt;Abe&gt;\">&lt;Abe&gt;</option>\n<option value=\"Babe\" selected=\"selected\">Babe</option>\n<option value=\"Cabe\">Cabe</option></select>",
+      collection_select("post", "author_name", dummy_posts, "author_name", "author_name", { include_blank: {} })
+    )
+    assert_dom_equal(
+      "<select id=\"post_author_name\" name=\"post[author_name]\"><option hidden=\"hidden\">No Selection</option>\n<option value=\"&lt;Abe&gt;\">&lt;Abe&gt;</option>\n<option value=\"Babe\" selected=\"selected\">Babe</option>\n<option value=\"Cabe\">Cabe</option></select>",
+      collection_select("post", "author_name", dummy_posts, "author_name", "author_name", { include_blank: { text: "No Selection", hidden: true } })
+    )
+  end
+
+  def test_collection_select_with_blank_as_hash_and_style
+    @post = Post.new
+    @post.author_name = "Babe"
+
+    assert_dom_equal(
+      "<select id=\"post_author_name\" name=\"post[author_name]\" style=\"width: 200px\"><option value=\"0\" hidden=\"hidden\">No Selection</option>\n<option value=\"&lt;Abe&gt;\">&lt;Abe&gt;</option>\n<option value=\"Babe\" selected=\"selected\">Babe</option>\n<option value=\"Cabe\">Cabe</option></select>",
+      collection_select("post", "author_name", dummy_posts, "author_name", "author_name", { include_blank: { text: "No Selection", value: "0", hidden: true } }, { "style" => "width: 200px" })
+    )
+  end
+
   def test_collection_select_with_multiple_option_appends_array_brackets_and_hidden_input
     @post = Post.new
     @post.author_name = "Babe"
