@@ -2,9 +2,6 @@
 
 version = File.read(File.expand_path("../RAILS_VERSION", __dir__)).strip
 
-# NOTE: There's no need to update dependencies for CVEs in minor
-# releases when users can simply run `bundle update vulnerable_gem`.
-
 Gem::Specification.new do |s|
   s.platform    = Gem::Platform::RUBY
   s.name        = "actionmailer"
@@ -28,6 +25,9 @@ Gem::Specification.new do |s|
     "source_code_uri" => "https://github.com/rails/rails/tree/v#{version}/actionmailer",
     "changelog_uri"   => "https://github.com/rails/rails/blob/v#{version}/actionmailer/CHANGELOG.md"
   }
+
+  # NOTE: Please read our dependency guidelines before updating versions:
+  # https://edgeguides.rubyonrails.org/security.html#dependency-management-and-cves
 
   s.add_dependency "actionpack", version
   s.add_dependency "actionview", version
