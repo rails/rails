@@ -56,6 +56,13 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_equal "[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]", t.attribute_for_inspect(:content)
   end
 
+  test "attribute_for_inspect with a non-primary key id attribute" do
+    t = topics(:first).becomes(TitlePrimaryKeyTopic)
+    t.title = "The First Topic Now Has A Title With\nNewlines And More Than 50 Characters"
+
+    assert_equal "1", t.attribute_for_inspect(:id)
+  end
+
   test "attribute_present" do
     t = Topic.new
     t.title = "hello there!"
