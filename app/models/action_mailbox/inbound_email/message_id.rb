@@ -14,7 +14,7 @@ module ActionMailbox::InboundEmail::MessageId
 
     private
       def extract_message_id(source)
-        mail_from_source(source).message_id
+        Mail.from_source(source).message_id
       rescue => e
         # FIXME: Add logging with "Couldn't extract Message ID, so will generating a new random ID instead"
       end

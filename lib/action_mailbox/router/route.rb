@@ -10,9 +10,9 @@ class ActionMailbox::Router::Route
   def match?(inbound_email)
     case address
     when String
-      recipients_from(inbound_email.mail).any? { |recipient| address.casecmp?(recipient) }
+      inbound_email.mail.recipients.any? { |recipient| address.casecmp?(recipient) }
     when Regexp
-      recipients_from(inbound_email.mail).any? { |recipient| address.match?(recipient) }
+      inbound_email.mail.recipients.any? { |recipient| address.match?(recipient) }
     when Proc
       address.call(inbound_email)
     else
@@ -29,9 +29,5 @@ class ActionMailbox::Router::Route
       unless [ String, Regexp, Proc ].any? { |klass| address.is_a?(klass) } || address.respond_to?(:match?)
         raise ArgumentError, "Expected a String, Regexp, Proc, or matchable, got #{address.inspect}"
       end
-    end
-
-    def recipients_from(mail)
-      Array(mail.to) + Array(mail.cc) + Array(mail.bcc)
     end
 end

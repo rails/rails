@@ -1,4 +1,5 @@
 require "action_mailbox/engine"
+require "action_mailbox/mail_ext"
 
 module ActionMailbox
   extend ActiveSupport::Autoload
