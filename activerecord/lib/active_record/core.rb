@@ -498,7 +498,7 @@ module ActiveRecord
       inspection = if defined?(@attributes) && @attributes
         self.class.attribute_names.collect do |name|
           if has_attribute?(name)
-            attr = read_attribute(name)
+            attr = _read_attribute(name)
             value = if attr.nil?
               attr.inspect
             else
@@ -528,7 +528,7 @@ module ActiveRecord
               pp.text attr_name
               pp.text ":"
               pp.breakable
-              value = read_attribute(attr_name)
+              value = _read_attribute(attr_name)
               value = inspection_filter.filter_param(attr_name, value) unless value.nil?
               pp.pp value
             end
