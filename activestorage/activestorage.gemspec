@@ -2,6 +2,9 @@
 
 version = File.read(File.expand_path("../RAILS_VERSION", __dir__)).strip
 
+# NOTE: There's no need to update dependencies for CVEs in minor
+# releases when users can simply run `bundle update vulnerable_gem`.
+
 Gem::Specification.new do |s|
   s.platform    = Gem::Platform::RUBY
   s.name        = "activestorage"

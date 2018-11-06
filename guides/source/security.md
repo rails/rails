@@ -1235,6 +1235,11 @@ version:
 Rails.application.credentials.some_api_key! # => raises KeyError: :some_api_key is blank
 ```
 
+Dependency Management and CVEs
+------------------------------
+
+Please note that we do not accept patches for CVE version bumps. This is because application owners need to manually update their gems regardless of our efforts. Use `bundle update --conservative gem_name` to safely update vulnerable dependencies.
+
 Additional Resources
 --------------------
 
