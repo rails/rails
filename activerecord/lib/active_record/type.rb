@@ -6,6 +6,7 @@ require "active_record/type/internal/timezone"
 
 require "active_record/type/date"
 require "active_record/type/date_time"
+require "active_record/type/decimal"
 require "active_record/type/decimal_without_scale"
 require "active_record/type/json"
 require "active_record/type/time"
@@ -57,7 +58,6 @@ module ActiveRecord
     BigInteger = ActiveModel::Type::BigInteger
     Binary = ActiveModel::Type::Binary
     Boolean = ActiveModel::Type::Boolean
-    Decimal = ActiveModel::Type::Decimal
     Float = ActiveModel::Type::Float
     Integer = ActiveModel::Type::Integer
     String = ActiveModel::Type::String

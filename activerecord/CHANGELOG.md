@@ -1,3 +1,7 @@
+*   Raise `ActiveModel::RangeError` when infinite decimal is being saved to decimal column.
+
+    *Gannon McGibbon*
+
 *   Add an `:if_not_exists` option to `create_table`.
 
     Example:
