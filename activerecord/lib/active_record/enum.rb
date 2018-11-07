@@ -218,6 +218,10 @@ module ActiveRecord
           MSG
           raise ArgumentError, error_message
         end
+
+        if values.is_a?(Hash) && values.keys.any?(&:blank?) || values.is_a?(Array) && values.any?(&:blank?)
+          raise ArgumentError, "Enum label name must not be blank."
+        end
       end
 
       ENUM_CONFLICT_MESSAGE = \

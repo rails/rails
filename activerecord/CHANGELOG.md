@@ -1,4 +1,8 @@
-Adds support for multiple databases to `rails db:schema:cache:dump` and `rails db:schema:cache:clear`.
+*   Defining an Enum as a Hash with blank key, or as an Array with a blank value, now raises an `ArgumentError`.
+
+    *Christophe Maximin*
+
+*   Adds support for multiple databases to `rails db:schema:cache:dump` and `rails db:schema:cache:clear`.
 
     *Gannon McGibbon*
 
