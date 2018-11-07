@@ -6,6 +6,7 @@ module ActionMailbox
 
   autoload :Base
   autoload :Router
+  autoload :TestCase
 
   mattr_accessor :ingress
   mattr_accessor :logger
