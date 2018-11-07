@@ -75,7 +75,7 @@ module ActiveRecord
         end
 
         args << configuration["database"]
-        run_cmd("pg_dump", args, "dumping")
+        run_cmd(ENV.fetch("PG_DUMP_COMMAND", "pg_dump"), args, "dumping")
         remove_sql_header_comments(filename)
         File.open(filename, "a") { |f| f << "SET search_path TO #{connection.schema_search_path};\n\n" }
       end
@@ -85,7 +85,7 @@ module ActiveRecord
         args = ["-v", ON_ERROR_STOP_1, "-q", "-X", "-f", filename]
         args.concat(Array(extra_flags)) if extra_flags
         args << configuration["database"]
-        run_cmd("psql", args, "loading")
+        run_cmd(ENV.fetch("PSQL_COMMAND", "psql"), args, "loading")
       end
 
       private
