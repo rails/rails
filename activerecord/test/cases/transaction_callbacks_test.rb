@@ -591,6 +591,17 @@ class TransactionEnrollmentCallbacksTest < ActiveRecord::TestCase
     assert_equal [:before_commit, :after_commit], @topic.history
   end
 
+  def test_commit_run_transactions_callbacks_with_nested_transactions
+    @topic.transaction do
+      @topic.transaction(requires_new: true) do
+        @topic.content = "foo"
+        @topic.save!
+        @topic.class.connection.add_transaction_record(@topic)
+      end
+    end
+    assert_equal [:before_commit, :after_commit], @topic.history
+  end
+
   def test_rollback_does_not_run_transactions_callbacks_without_enrollment
     @topic.transaction do
       @topic.content = "foo"
