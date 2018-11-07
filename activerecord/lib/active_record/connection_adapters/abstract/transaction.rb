@@ -137,7 +137,7 @@ module ActiveRecord
             record.committed!
           else
             # if not running callbacks, only adds the record to the parent transaction
-            record.add_to_transaction
+            connection.add_transaction_record(record)
           end
         end
       ensure
