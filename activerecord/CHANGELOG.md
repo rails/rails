@@ -1,3 +1,7 @@
+Adds support for multiple databases to `rails db:schema:cache:dump` and `rails db:schema:cache:clear`.
+
+    *Gannon McGibbon*
+
 *   `update_columns` now correctly raises `ActiveModel::MissingAttributeError`
     if the attribute does not exist.
 

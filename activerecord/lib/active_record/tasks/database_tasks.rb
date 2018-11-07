@@ -313,6 +313,16 @@ module ActiveRecord
         ENV["SCHEMA"] || File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, filename)
       end
 
+      def cache_dump_filename(namespace)
+        filename = if namespace == "primary"
+          "schema_cache.yml"
+        else
+          "#{namespace}_schema_cache.yml"
+        end
+
+        ENV["SCHEMA_CACHE"] || File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, filename)
+      end
+
       def load_schema_current(format = ActiveRecord::Base.schema_format, file = nil, environment = env)
         each_current_configuration(environment) { |configuration, spec_name, env|
           load_schema(configuration, format, file, env, spec_name)
