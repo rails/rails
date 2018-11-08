@@ -1,3 +1,22 @@
+*   Add an `:if_not_exists` option to `create_table`.
+
+    Example:
+
+        create_table :posts, if_not_exists: true do |t|
+          t.string :title
+        end
+
+    That would execute:
+
+        CREATE TABLE IF NOT EXISTS posts (
+          ...
+        )
+
+    If the table already exists, `if_not_exists: false` (the default) raises an
+    exception whereas `if_not_exists: true` does nothing.
+
+    *fatkodima*, *Stefan Kanev*
+
 *   Defining an Enum as a Hash with blank key, or as an Array with a blank value, now raises an `ArgumentError`.
 
     *Christophe Maximin*

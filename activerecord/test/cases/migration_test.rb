@@ -127,6 +127,36 @@ class MigrationTest < ActiveRecord::TestCase
     assert_equal 20131219224947, migrator.current_version
   end
 
+  def test_create_table_raises_if_already_exists
+    connection = Person.connection
+    connection.create_table :testings, force: true do |t|
+      t.string :foo
+    end
+
+    assert_raise(ActiveRecord::StatementInvalid) do
+      connection.create_table :testings do |t|
+        t.string :foo
+      end
+    end
+  ensure
+    connection.drop_table :testings, if_exists: true
+  end
+
+  def test_create_table_with_if_not_exists_true
+    connection = Person.connection
+    connection.create_table :testings, force: true do |t|
+      t.string :foo
+    end
+
+    assert_nothing_raised do
+      connection.create_table :testings, if_not_exists: true do |t|
+        t.string :foo
+      end
+    end
+  ensure
+    connection.drop_table :testings, if_exists: true
+  end
+
   def test_create_table_with_force_true_does_not_drop_nonexisting_table
     # using a copy as we need the drop_table method to
     # continue to work for the ensure block of the test
