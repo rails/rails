@@ -14,11 +14,14 @@ module ActiveJob
   end
 
   # Raised when an unsupported argument type is set as a job argument. We
-  # currently support NilClass, Integer, Float, String, TrueClass, FalseClass,
-  # BigDecimal, and objects that can be represented as GlobalIDs (ex: Active Record).
+  # currently support String, Integer, Float, NilClass, TrueClass, FalseClass,
+  # BigDecimal, Symbol, Date, Time, DateTime, ActiveSupport::TimeWithZone,
+  # ActiveSupport::Duration, Hash, ActiveSupport::HashWithIndifferentAccess,
+  # Array or GlobalID::Identification instances, although this can be extended
+  # by adding custom serializers.
   # Raised if you set the key for a Hash something else than a string or
   # a symbol. Also raised when trying to serialize an object which can't be
-  # identified with a Global ID - such as an unpersisted Active Record model.
+  # identified with a GlobalID - such as an unpersisted Active Record model.
   class SerializationError < ArgumentError; end
 
   module Arguments
