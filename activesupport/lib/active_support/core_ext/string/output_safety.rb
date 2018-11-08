@@ -135,9 +135,11 @@ module ActiveSupport #:nodoc:
   class SafeBuffer < String
     UNSAFE_STRING_METHODS = %w(
       capitalize chomp chop delete delete_prefix delete_suffix
-      downcase gsub lstrip next reverse rstrip slice squeeze strip
-      sub succ swapcase tr tr_s unicode_normalize upcase
+      downcase lstrip next reverse rstrip slice squeeze strip
+      succ swapcase tr tr_s unicode_normalize upcase
     )
+
+    UNSAFE_STRING_METHODS_WITH_BACKREF = %w(gsub sub)
 
     alias_method :original_concat, :concat
     private :original_concat
@@ -249,10 +251,50 @@ module ActiveSupport #:nodoc:
       end
     end
 
+    UNSAFE_STRING_METHODS_WITH_BACKREF.each do |unsafe_method|
+      if unsafe_method.respond_to?(unsafe_method)
+        class_eval <<-EOT, __FILE__, __LINE__ + 1
+          def #{unsafe_method}(*args, &block)
+            if block
+              to_str.#{unsafe_method}(*args) { |*params|
+                set_block_back_references(block, $~)
+                block.call(*params)
+              }
+            else
+              to_str.#{unsafe_method}(*args)
+            end
+          end
+
+          def #{unsafe_method}!(*args, &block)
+            @html_safe = false
+            if block
+              super(*args) { |*params|
+                set_block_back_references(block, $~)
+                block.call(*params)
+              }
+            else
+              super
+            end
+          end
+        EOT
+      end
+    end
+
     private
 
       def html_escape_interpolated_argument(arg)
         (!html_safe? || arg.html_safe?) ? arg : CGI.escapeHTML(arg.to_s)
+      end
+
+      def set_block_back_references(block, match_data)
+        Thread.current[:__active_support_safe_buffer_backref] = match_data
+        begin
+          block.binding.eval(<<-EOC)
+            $~ = Thread.current[:__active_support_safe_buffer_backref]
+          EOC
+        ensure
+          Thread.current[:__active_support_safe_buffer_backref] = nil
+        end
       end
   end
 end
