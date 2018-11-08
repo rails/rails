@@ -274,6 +274,24 @@ class EnumTest < ActiveRecord::TestCase
     end
 
     assert_match(/must be either a hash, an array of symbols, or an array of strings./, e.message)
+
+    e = assert_raises(ArgumentError) do
+      Class.new(ActiveRecord::Base) do
+        self.table_name = "books"
+        enum status: { "" => 1, "active" => 2 }
+      end
+    end
+
+    assert_match(/Enum label name must not be blank/, e.message)
+
+    e = assert_raises(ArgumentError) do
+      Class.new(ActiveRecord::Base) do
+        self.table_name = "books"
+        enum status: ["active", ""]
+      end
+    end
+
+    assert_match(/Enum label name must not be blank/, e.message)
   end
 
   test "reserved enum names" do
