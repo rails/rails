@@ -28,6 +28,10 @@ class ActiveStorage::Attachment < ActiveRecord::Base
     blob&.purge_later
   end
 
+  def variant(transformations)
+    blob.variant(transformations, self)
+  end
+
   private
     def identify_blob
       blob.identify
