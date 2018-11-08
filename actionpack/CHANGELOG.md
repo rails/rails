@@ -1,3 +1,10 @@
+*   Reset Capybara sessions if failed system test screenshot raising an exception.
+
+    Reset Capybara sessions if `take_failed_screenshot` raise exception
+    in system test `after_teardown`.
+
+    *Maxim Perepelitsa*
+
 *   Use request object for context if there's no controller
 
     There is no controller instance when using a redirect route or a
