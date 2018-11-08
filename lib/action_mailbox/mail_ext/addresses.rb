@@ -21,6 +21,6 @@ class Mail::Message
 
   private
     def convert_to_addresses(recipients)
-      recipients.collect { |recipient| Mail::Address.new recipient }
+      Array(recipients).collect { |recipient| Mail::Address.new recipient }
     end
 end
