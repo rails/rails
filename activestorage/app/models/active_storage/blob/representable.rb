@@ -53,9 +53,9 @@ module ActiveStorage::Blob::Representable
   #
   # This method raises ActiveStorage::UnpreviewableError if no previewer accepts the receiving blob. To determine
   # whether a blob is accepted by any previewer, call ActiveStorage::Blob#previewable?.
-  def preview(transformations)
+  def preview(transformations, attachment = nil)
     if previewable?
-      ActiveStorage::Preview.new(self, transformations)
+      ActiveStorage::Preview.new(self, transformations, attachment)
     else
       raise ActiveStorage::UnpreviewableError
     end

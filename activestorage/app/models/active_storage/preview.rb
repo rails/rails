@@ -32,8 +32,8 @@ class ActiveStorage::Preview
 
   attr_reader :blob, :variation
 
-  def initialize(blob, variation_or_variation_key)
-    @blob, @variation = blob, ActiveStorage::Variation.wrap(variation_or_variation_key)
+  def initialize(blob, variation_or_variation_key, attachment = nil)
+    @blob, @variation, @attachment = blob, ActiveStorage::Variation.wrap(variation_or_variation_key), attachment
   end
 
   # Processes the preview if it has not been processed yet. Returns the receiving Preview instance for convenience:
