@@ -8,12 +8,10 @@ namespace :action_mailbox do
       require "active_support/core_ext/object/blank"
       require "http"
 
-      unless url = ENV["URL"].presence
-        abort "5.3.5 URL is required"
-      end
+      url, password = ENV.values_at("URL", "INGRESS_PASSWORD")
 
-      unless password = ENV["INGRESS_PASSWORD"].presence
-        abort "5.3.5 INGRESS_PASSWORD is required"
+      if url.blank? || password.blank?
+        abort "4.3.5 URL and INGRESS_PASSWORD are required"
       end
 
       begin
