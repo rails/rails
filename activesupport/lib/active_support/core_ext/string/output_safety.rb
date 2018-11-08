@@ -256,7 +256,7 @@ module ActiveSupport #:nodoc:
         class_eval <<-EOT, __FILE__, __LINE__ + 1
           def #{unsafe_method}(*args, &block)             # def gsub(*args, &block)
             if block                                      #   if block
-              to_str.#{unsafe_method}(*args) { |*params|  #     to_str.gsub(*args) { |*params|  
+              to_str.#{unsafe_method}(*args) { |*params|  #     to_str.gsub(*args) { |*params|
                 set_block_back_references(block, $~)      #       set_block_back_references(block, $~)
                 block.call(*params)                       #       block.call(*params)
               }                                           #     }
