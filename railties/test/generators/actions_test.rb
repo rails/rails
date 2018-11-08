@@ -2,6 +2,7 @@
 
 require "generators/generators_test_helper"
 require "rails/generators/rails/app/app_generator"
+require "rails/generators/rails/model/model_generator"
 require "env_helpers"
 
 class ActionsTest < Rails::Generators::TestCase
@@ -265,9 +266,8 @@ class ActionsTest < Rails::Generators::TestCase
   end
 
   def test_generate_should_run_script_generate_with_argument_and_options
-    assert_called_with(generator, :run_ruby_script, ["bin/rails generate model MyModel", verbose: false]) do
-      action :generate, "model", "MyModel"
-    end
+    action :generate, "model", "MyModel"
+    assert_file("app/models/my_model.rb")
   end
 
   def test_rails_should_run_rake_command_with_default_env

@@ -213,9 +213,9 @@ module Rails
       #   generate(:authenticated, "user session")
       def generate(what, *args)
         log :generate, what
-        argument = args.flat_map(&:to_s).join(" ")
+        argument = args.flat_map(&:to_s)
 
-        in_root { run_ruby_script("bin/rails generate #{what} #{argument}", verbose: false) }
+        Generators.invoke(what, argument, behavior: :invoke, destination_root: destination_root)
       end
 
       # Runs the supplied rake task (invoked with 'rake ...')
