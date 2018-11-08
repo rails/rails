@@ -17,7 +17,8 @@ module Rails
                     :session_options, :time_zone, :reload_classes_only_on_change,
                     :beginning_of_week, :filter_redirect, :x, :enable_dependency_loading,
                     :read_encrypted_secrets, :log_level, :content_security_policy_report_only,
-                    :content_security_policy_nonce_generator, :require_master_key, :credentials
+                    :content_security_policy_nonce_generator, :require_master_key, :credentials,
+                    :code_statistics
 
       attr_reader :encoding, :api_only, :loaded_config_version
 
@@ -63,6 +64,9 @@ module Rails
         @credentials                             = ActiveSupport::OrderedOptions.new
         @credentials.content_path                = default_credentials_content_path
         @credentials.key_path                    = default_credentials_key_path
+        @code_statistics                         = ActiveSupport::OrderedOptions.new
+        @code_statistics.directories             = default_code_statistics_directories
+        @code_statistics.test_types              = default_code_statistics_test_types
       end
 
       def load_defaults(target_version)
@@ -296,6 +300,42 @@ module Rails
           else
             File.join(root, "config", "master.key")
           end
+        end
+
+        def default_code_statistics_directories
+          [
+            %w(Controllers        app/controllers),
+            %w(Helpers            app/helpers),
+            %w(Jobs               app/jobs),
+            %w(Models             app/models),
+            %w(Mailers            app/mailers),
+            %w(Channels           app/channels),
+            %w(JavaScripts        app/assets/javascripts),
+            %w(JavaScript         app/javascript),
+            %w(Libraries          lib/),
+            %w(APIs               app/apis),
+            %w(Controller\ tests  test/controllers),
+            %w(Helper\ tests      test/helpers),
+            %w(Model\ tests       test/models),
+            %w(Mailer\ tests      test/mailers),
+            %w(Job\ tests         test/jobs),
+            %w(Integration\ tests test/integration),
+            %w(System\ tests      test/system),
+          ].collect do |name, dir|
+            [ name, "#{root}/#{dir}" ]
+          end.select { |_, dir| File.directory?(dir) }
+        end
+
+        def default_code_statistics_test_types
+          %w(
+            Controller\ tests
+            Helper\ tests
+            Model\ tests
+            Mailer\ tests
+            Job\ tests
+            Integration\ tests
+            System\ tests
+          )
         end
     end
   end
