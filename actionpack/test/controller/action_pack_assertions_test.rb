@@ -28,13 +28,13 @@ class ActionPackAssertionsController < ActionController::Base
 
   def redirect_to_path() redirect_to "/some/path" end
 
-  def redirect_invalid_external_route() redirect_to "ht_tp://www.rubyonrails.org" end
+  def redirect_invalid_external_route() redirect_to "ht_tp://www.rubyonrails.org", allow_other_host: true end
 
   def redirect_to_named_route() redirect_to route_one_url end
 
-  def redirect_external() redirect_to "http://www.rubyonrails.org"; end
+  def redirect_external() redirect_to "http://www.rubyonrails.org", allow_other_host: true; end
 
-  def redirect_external_protocol_relative() redirect_to "//www.rubyonrails.org"; end
+  def redirect_external_protocol_relative() redirect_to "//www.rubyonrails.org", allow_other_host: true; end
 
   def response404() head "404 AWOL" end
 

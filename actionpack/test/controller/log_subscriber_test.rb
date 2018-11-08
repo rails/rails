@@ -25,11 +25,11 @@ module Another
     end
 
     def redirector
-      redirect_to "http://foo.bar/"
+      redirect_to "http://foo.bar/", allow_other_host: true
     end
 
     def filterable_redirector
-      redirect_to "http://secret.foo.bar/"
+      redirect_to "http://secret.foo.bar/", allow_other_host: true
     end
 
     def data_sender
