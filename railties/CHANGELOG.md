@@ -1,6 +1,4 @@
-*   Add JSON support to rails properties route (`/rails/info/properties`).
-
-    Now, `Rails::Info` properties may be accessed in JSON format at `/rails/info/properties.json`.
+*   Add rails stats route (`/rails/info/stats`)
 
     *Yoshiyuki Hirano*
 

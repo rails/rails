@@ -15,6 +15,7 @@ class InfoControllerTest < ActionController::TestCase
     Rails.application.routes.draw do
       get "/rails/info/properties" => "rails/info#properties"
       get "/rails/info/routes"     => "rails/info#routes"
+      get "/rails/info/stats"      => "rails/info#stats"
     end
     @routes = Rails.application.routes
 
@@ -77,7 +78,7 @@ class InfoControllerTest < ActionController::TestCase
     fuzzy_count = -> { JSON(response.body)["fuzzy"].size }
 
     get :routes, params: { path: "rails/info" }
-    assert fuzzy_count.call == 2, "should match incomplete routes"
+    assert fuzzy_count.call == 3, "should match incomplete routes"
 
     get :routes, params: { path: "rails/info/routes" }
     assert fuzzy_count.call == 1, "should match complete routes"
@@ -90,5 +91,15 @@ class InfoControllerTest < ActionController::TestCase
     get :properties
     assert_response :success
     assert_nil @controller.params[:internal]
+  end
+
+  test "info controller renders with stats" do
+    get :stats
+    assert_response :success
+  end
+
+  test "info controller renders json with stats" do
+    get :stats, format: :json
+    assert_response :success
   end
 end

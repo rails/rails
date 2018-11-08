@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "rails/application_controller"
+require "rails/code_statistics"
 require "action_dispatch/routing/inspector"
 
 class Rails::InfoController < Rails::ApplicationController # :nodoc:
@@ -22,6 +23,20 @@ class Rails::InfoController < Rails::ApplicationController # :nodoc:
 
       format.json do
         render json: Rails::Info.to_json
+      end
+    end
+  end
+
+  def stats
+    directories = Rails.application.config.code_statistics.directories
+
+    respond_to do |format|
+      format.html do
+        @code_statistics = CodeStatistics.new(*directories).to_html
+      end
+
+      format.json do
+        render json: CodeStatistics.new(*directories).to_json
       end
     end
   end

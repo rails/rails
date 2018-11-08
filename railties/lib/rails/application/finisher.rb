@@ -25,6 +25,7 @@ module Rails
         if Rails.env.development?
           app.routes.prepend do
             get "/rails/info/properties" => "rails/info#properties", internal: true
+            get "/rails/info/stats"      => "rails/info#stats", internal: true
             get "/rails/info/routes"     => "rails/info#routes", internal: true
             get "/rails/info"            => "rails/info#index", internal: true
           end
