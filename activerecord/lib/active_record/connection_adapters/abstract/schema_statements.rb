@@ -290,8 +290,8 @@ module ActiveRecord
       #     SELECT * FROM orders INNER JOIN line_items ON order_id=orders.id
       #
       # See also TableDefinition#column for details on how to create columns.
-      def create_table(table_name, comment: nil, **options)
-        td = create_table_definition table_name, options[:temporary], options[:if_not_exists], options[:options], options[:as], comment: comment
+      def create_table(table_name, **options)
+        td = create_table_definition(table_name, options)
 
         if options[:id] != false && !options[:as]
           pk = options.fetch(:primary_key) do
@@ -320,7 +320,9 @@ module ActiveRecord
         end
 
         if supports_comments? && !supports_comments_in_create?
-          change_table_comment(table_name, comment) if comment.present?
+          if table_comment = options[:comment].presence
+            change_table_comment(table_name, table_comment)
+          end
 
           td.columns.each do |column|
             change_column_comment(table_name, column.name, column.comment) if column.comment.present?
