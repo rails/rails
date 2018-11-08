@@ -158,12 +158,12 @@ class ModuleTest < ActiveSupport::TestCase
   end
 
   def test_memoizing_delegated_method
-    seattle = Somewhere.new('Olive', 'Seattle')
+    seattle = Somewhere.new("Olive", "Seattle")
     doug = Tree.new(seattle)
 
-    assert_equal 'Seattle', doug.city
-    seattle.city = 'Boston'
-    assert_equal 'Seattle', doug.city
+    assert_equal "Seattle", doug.city
+    seattle.city = "Boston"
+    assert_equal "Seattle", doug.city
   end
 
   def test_delegation_to_assignment_method
