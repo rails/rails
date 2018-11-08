@@ -32,6 +32,10 @@ class ActiveStorage::Attachment < ActiveRecord::Base
     blob.variant(transformations, self)
   end
 
+  def preview(transformations)
+    blob.preview(transformations, self)
+  end
+
   private
     def identify_blob
       blob.identify
