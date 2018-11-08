@@ -1,5 +1,19 @@
-*   Add an `:if_not_exists` option to `create_table`. It does not
-    raise an error if the table already exists.
+*   Add an `:if_not_exists` option to `create_table`.
+
+    Example:
+
+        create_table :posts, if_not_exists: true do |t|
+          t.string :title
+        end
+
+    That would execute:
+
+        CREATE TABLE IF NOT EXISTS posts (
+          ...
+        )
+
+    If the table already exists, `if_not_exists: false` (the default) raises an
+    exception whereas `if_not_exists: true` does nothing.
 
     *fatkodima*, *Stefan Kanev*, *sebcioz*
 
