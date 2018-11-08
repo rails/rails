@@ -113,7 +113,7 @@ module ApplicationTests
         end
       end
 
-      def db_migrate_namespaced(namespace, expected_database)
+      def db_migrate_namespaced(namespace)
         Dir.chdir(app_path) do
           generate_models_for_animals
           output = rails("db:migrate:#{namespace}")
@@ -125,7 +125,7 @@ module ApplicationTests
         end
       end
 
-      def db_migrate_status_namespaced(namespace, expected_database)
+      def db_migrate_status_namespaced(namespace)
         Dir.chdir(app_path) do
           generate_models_for_animals
           output = rails("db:migrate:status:#{namespace}")
@@ -199,7 +199,7 @@ module ApplicationTests
       test "db:migrate:namespace works" do
         require "#{app_path}/config/environment"
         ActiveRecord::Base.configurations.configs_for(env_name: Rails.env).each do |db_config|
-          db_migrate_namespaced db_config.spec_name, db_config.config["database"]
+          db_migrate_namespaced db_config.spec_name
         end
       end
 
@@ -211,8 +211,8 @@ module ApplicationTests
       test "db:migrate:status:namespace works" do
         require "#{app_path}/config/environment"
         ActiveRecord::Base.configurations.configs_for(env_name: Rails.env).each do |db_config|
-          db_migrate_namespaced db_config.spec_name, db_config.config["database"]
-          db_migrate_status_namespaced db_config.spec_name, db_config.config["database"]
+          db_migrate_namespaced db_config.spec_name
+          db_migrate_status_namespaced db_config.spec_name
         end
       end
 
