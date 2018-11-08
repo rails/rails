@@ -133,9 +133,6 @@ Style/FrozenStringLiteralComment:
 
 Style/RedundantFreeze:
   Enabled: true
-  Exclude:
-    - 'actionpack/lib/action_dispatch/journey/router/utils.rb'
-    - 'activerecord/lib/active_record/connection_adapters/sqlite3_adapter.rb'
 
 # Use `foo {}` not `foo{}`.
 Layout/SpaceBeforeBlockBraces:
