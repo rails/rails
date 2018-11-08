@@ -1,3 +1,7 @@
+*   Add `memoize` option to `Module#delegate`
+
+    *Bion Johnson*
+
 *   Fix bug where `#to_options` for `ActiveSupport::HashWithIndifferentAccess`
     would not act as alias for `#symbolize_keys`.
 
