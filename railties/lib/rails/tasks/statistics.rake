@@ -1,32 +1,25 @@
 # frozen_string_literal: true
 
-# While global constants are bad, many 3rd party tools depend on this one (e.g
-# rspec-rails & cucumber-rails). So a deprecation warning is needed if we want
-# to remove it.
-STATS_DIRECTORIES = [
-  %w(Controllers        app/controllers),
-  %w(Helpers            app/helpers),
-  %w(Jobs               app/jobs),
-  %w(Models             app/models),
-  %w(Mailers            app/mailers),
-  %w(Channels           app/channels),
-  %w(JavaScripts        app/assets/javascripts),
-  %w(JavaScript         app/javascript),
-  %w(Libraries          lib/),
-  %w(APIs               app/apis),
-  %w(Controller\ tests  test/controllers),
-  %w(Helper\ tests      test/helpers),
-  %w(Model\ tests       test/models),
-  %w(Mailer\ tests      test/mailers),
-  %w(Job\ tests         test/jobs),
-  %w(Integration\ tests test/integration),
-  %w(System\ tests      test/system),
-].collect do |name, dir|
-  [ name, "#{File.dirname(Rake.application.rakefile_location)}/#{dir}" ]
-end.select { |name, dir| File.directory?(dir) }
+require "active_support/deprecation"
+
+class StatsDirectories
+  attr_reader :value
+
+  def initialize
+    @value = []
+  end
+
+  def <<(dir)
+    ActiveSupport::Deprecation.warn("`STATS_DIRECTORIES` constants is deprecated and will be removed in Rails 6.1. Use `Rails.application.config.code_statistics.directories` instead.\n")
+    @value << dir
+  end
+end
+
+STATS_DIRECTORIES = StatsDirectories.new
 
 desc "Report code statistics (KLOCs, etc) from the application or engine"
-task :stats do
+task stats: :environment do
   require "rails/code_statistics"
-  CodeStatistics.new(*STATS_DIRECTORIES).to_s
+  directories = Rails.application.config.code_statistics.directories + STATS_DIRECTORIES.value
+  puts CodeStatistics.new(*directories).to_s
 end
