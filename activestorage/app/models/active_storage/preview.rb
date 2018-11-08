@@ -36,6 +36,10 @@ class ActiveStorage::Preview
     @blob, @variation, @attachment = blob, ActiveStorage::Variation.wrap(variation_or_variation_key), attachment
   end
 
+  def attachment
+    @attachment
+  end
+
   # Processes the preview if it has not been processed yet. Returns the receiving Preview instance for convenience:
   #
   #   blob.preview(resize_to_fit: [100, 100]).processed.service_url
