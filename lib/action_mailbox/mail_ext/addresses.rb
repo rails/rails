@@ -1,6 +1,6 @@
 class Mail::Message
   def from_address
-    Mail::Address.new from
+    Mail::Address.new from.first
   end
 
   def recipients_addresses
