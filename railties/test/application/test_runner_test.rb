@@ -562,6 +562,30 @@ module ApplicationTests
       assert_no_match "create_table(:users)", output
     end
 
+    def test_run_in_parallel_with_unmarshable_exception
+      file = app_file "test/fail_test.rb", <<-RUBY
+        require "test_helper"
+        class FailTest < ActiveSupport::TestCase
+          class BadError < StandardError
+            def initialize
+              super
+              @proc = ->{ }
+            end
+          end
+
+          test "fail" do
+            raise BadError
+            assert true
+          end
+        end
+      RUBY
+
+      output = run_test_command(file)
+
+      assert_match "DRb::DRbRemoteError: FailTest::BadError", output
+      assert_match "1 runs, 0 assertions, 0 failures, 1 errors", output
+    end
+
     def test_raise_error_when_specified_file_does_not_exist
       error = capture(:stderr) { run_test_command("test/not_exists.rb", stderr: true) }
       assert_match(%r{cannot load such file.+test/not_exists\.rb}, error)
