@@ -538,7 +538,8 @@ end
 
 If you want to be sure that an association is present, you'll need to test
 whether the associated object itself is present, and not the foreign key used
-to map the association.
+to map the association. This way, it is not only checked that the foreign key
+is not empty but also that the referenced object exists.
 
 ```ruby
 class LineItem < ApplicationRecord
