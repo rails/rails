@@ -8,8 +8,6 @@ This guide covers how to setup an environment for Ruby on Rails core development
 After reading this guide, you will know:
 
 * How to set up your machine for Rails development
-* How to run specific groups of unit tests from the Rails test suite
-* How the Active Record portion of the Rails test suite operates
 
 --------------------------------------------------------------------------------
 
@@ -43,195 +41,131 @@ $ git clone https://github.com/rails/rails.git
 $ cd rails
 ```
 
-### Set up and Run the Tests
+### Install Additional Tools and Services
 
-The test suite must pass with any submitted code. No matter whether you are writing a new patch, or evaluating someone else's, you need to be able to run the tests.
+Some Rails tests depend on additional tools that you need to install before running those specific tests.
 
-Install first SQLite3 and its development files for the `sqlite3` gem. On macOS
-users are done with:
+Here's the list of each gems' additional dependencies:
+
+* Action Cable depends on Redis
+* Active Record depends on SQLite3, MySQL and PostgreSQL
+* Active Storage depends on Yarn (additionally Yarn depends on
+  [Node.js](https://nodejs.org/)), ImageMagick, FFmpeg, muPDF, and on macOS
+  also XQuartz and Poppler.
+* Active Support depends on memcached and Redis
+* Railties depend on a JavaScript runtime environment, such as having
+  [Node.js](https://nodejs.org/) installed.
+
+Install all the services you need to properly test the full gem you'll be
+making changes to.
+
+NOTE: Redis' documentation discourage installations with package managers as those are usually outdated. Installing from source and bringing the server up is straight forward and well documented on [Redis' documentation](https://redis.io/download#installation).
+
+NOTE: Active Record tests _must_ pass for at least MySQL, PostgreSQL, and SQLite3. Subtle differences between the various adapters have been behind the rejection of many patches that looked OK when tested only against single adapter.
+
+Below you can find instructions on how to install all of the additional
+tools for different OSes.
+
+#### macOS
+
+On macOS you can use [Homebrew](https://brew.sh/) to install all of the
+additional tools.
+
+To install all run:
 
 ```bash
-$ brew install sqlite3
+$ brew bundle
 ```
 
-In Ubuntu you're done with just:
+You'll also need to start each of the installed services. To list all
+available services run:
 
 ```bash
+$ brew services list
+```
+
+You can then start each of the services one by one like this:
+
+```bash
+$ brew services start mysql
+```
+
+Replace `mysql` with the name of the service you want to start.
+
+#### Ubuntu
+
+To install all run:
+
+```bash
+$ sudo apt-get update
 $ sudo apt-get install sqlite3 libsqlite3-dev
+    mysql-server libmysqlclient-dev
+    postgresql postgresql-client postgresql-contrib libpq-dev
+    redis-server memcached imagemagick ffmpeg mupdf mupdf-tools
+
+# Install Yarn
+$ curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
+$ echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
+$ sudo apt-get install yarn
 ```
 
-If you are on Fedora or CentOS, you're done with
+#### Fedora or CentOS
+
+To install all run:
 
 ```bash
-$ sudo yum install libsqlite3x libsqlite3x-devel
+$ sudo dnf install sqlite-devel sqlite-libs
+    mysql-server mysql-devel
+    postgresql-server postgresql-devel
+    redis memcached imagemagick ffmpeg mupdf
+
+# Install Yarn
+# Use this command if you do not have Node.js installed
+$ curl --silent --location https://rpm.nodesource.com/setup_8.x | sudo bash -
+# If you have Node.js installed, use this command instead
+$ curl --silent --location https://dl.yarnpkg.com/rpm/yarn.repo | sudo tee /etc/yum.repos.d/yarn.repo
+$ sudo dnf install yarn
 ```
 
-If you are on Arch Linux, you will need to run:
+#### Arch Linux
+
+To install all run:
 
 ```bash
 $ sudo pacman -S sqlite
+    mariadb libmariadbclient mariadb-clients
+    postgresql postgresql-libs
+    redis memcached imagemagick ffmpeg mupdf mupdf-tools poppler
+    yarn
+$ sudo systemctl start redis
 ```
 
-For FreeBSD users, you're done with:
+NOTE: If you are running Arch Linux, MySQL isn't supported anymore so you will need to
+use MariaDB instead (see [this announcement](https://www.archlinux.org/news/mariadb-replaces-mysql-in-repositories/)).
+
+#### FreeBSD
+
+To install all run:
 
 ```bash
 # pkg install sqlite3
+    mysql80-client mysql80-server
+    postgresql11-client postgresql11-server
+    memcached imagemagick ffmpeg mupdf
+    yarn
+# portmaster databases/redis
 ```
 
-Or compile the `databases/sqlite3` port.
+Or install everyting through ports (these packages are located under the
+`databases` folder).
 
-Get a recent version of [Bundler](https://bundler.io/)
+NOTE: If you run into troubles during the installation of MySQL, please see
+[the MySQL documentation](https://dev.mysql.com/doc/refman/8.0/en/freebsd-installation.html).
 
-```bash
-$ gem install bundler
-$ gem update bundler
-```
+### Database Configuration
 
-and run:
-
-```bash
-$ bundle install --without db
-```
-
-This command will install all dependencies except the MySQL and PostgreSQL Ruby drivers. We will come back to these soon.
-
-NOTE: If you would like to run the tests that use memcached, you need to ensure that you have it installed and running.
-
-You can use [Homebrew](https://brew.sh/) to install memcached on macOS:
-
-```bash
-$ brew install memcached
-```
-
-On Ubuntu you can install it with apt-get:
-
-```bash
-$ sudo apt-get install memcached
-```
-
-Or use yum on Fedora or CentOS:
-
-```bash
-$ sudo yum install memcached
-```
-
-If you are running on Arch Linux:
-
-```bash
-$ sudo pacman -S memcached
-```
-
-For FreeBSD users, you're done with:
-
-```bash
-# pkg install memcached
-```
-
-Alternatively, you can compile the `databases/memcached` port.
-
-With the dependencies now installed, you can run the test suite with:
-
-```bash
-$ bundle exec rake test
-```
-
-You can also run tests for a specific component, like Action Pack, by going into its directory and executing the same command:
-
-```bash
-$ cd actionpack
-$ bundle exec rake test
-```
-
-If you want to run the tests located in a specific directory use the `TEST_DIR` environment variable. For example, this will run the tests in the `railties/test/generators` directory only:
-
-```bash
-$ cd railties
-$ TEST_DIR=generators bundle exec rake test
-```
-
-You can run the tests for a particular file by using:
-
-```bash
-$ cd actionpack
-$ bundle exec ruby -Itest test/template/form_helper_test.rb
-```
-
-Or, you can run a single test in a particular file:
-
-```bash
-$ cd actionpack
-$ bundle exec ruby -Itest path/to/test.rb -n test_name
-```
-
-### Railties Setup
-
-Some Railties tests depend on a JavaScript runtime environment, such as having [Node.js](https://nodejs.org/) installed.
-
-### Active Record Setup
-
-Active Record's test suite runs three times: once for SQLite3, once for MySQL, and once for PostgreSQL. We are going to see now how to set up the environment for them.
-
-WARNING: If you're working with Active Record code, you _must_ ensure that the tests pass for at least MySQL, PostgreSQL, and SQLite3. Subtle differences between the various adapters have been behind the rejection of many patches that looked OK when tested only against MySQL.
-
-#### Database Configuration
-
-The Active Record test suite requires a custom config file: `activerecord/test/config.yml`. An example is provided in `activerecord/test/config.example.yml` which can be copied and used as needed for your environment.
-
-#### MySQL and PostgreSQL
-
-To be able to run the suite for MySQL and PostgreSQL we need their gems. Install
-first the servers, their client libraries, and their development files.
-
-On macOS, you can run:
-
-```bash
-$ brew install mysql
-$ brew install postgresql
-```
-
-Follow the instructions given by Homebrew to start these.
-
-On Ubuntu, just run:
-
-```bash
-$ sudo apt-get install mysql-server libmysqlclient-dev
-$ sudo apt-get install postgresql postgresql-client postgresql-contrib libpq-dev
-```
-
-On Fedora or CentOS, just run:
-
-```bash
-$ sudo yum install mysql-server mysql-devel
-$ sudo yum install postgresql-server postgresql-devel
-```
-
-If you are running Arch Linux, MySQL isn't supported anymore so you will need to
-use MariaDB instead (see [this announcement](https://www.archlinux.org/news/mariadb-replaces-mysql-in-repositories/)):
-
-```bash
-$ sudo pacman -S mariadb libmariadbclient mariadb-clients
-$ sudo pacman -S postgresql postgresql-libs
-```
-
-FreeBSD users will have to run the following:
-
-```bash
-# pkg install mysql56-client mysql56-server
-# pkg install postgresql94-client postgresql94-server
-```
-
-Or install them through ports (they are located under the `databases` folder).
-If you run into troubles during the installation of MySQL, please see
-[the MySQL documentation](http://dev.mysql.com/doc/refman/5.1/en/freebsd-installation.html).
-
-After that, run:
-
-```bash
-$ rm .bundle/config
-$ bundle install
-```
-
-First, we need to delete `.bundle/config` because Bundler remembers in that file that we didn't want to install the "db" group (alternatively you can edit the file).
+There are couple of additional steps required to configure database engines
+required for running Active Record tests.
 
 In order to be able to run the test suite against MySQL you need to create a user named `rails` with privileges on the test databases:
 
@@ -247,13 +181,6 @@ mysql> GRANT ALL PRIVILEGES ON inexistent_activerecord_unittest.*
        to 'rails'@'localhost';
 ```
 
-and create the test databases:
-
-```bash
-$ cd activerecord
-$ bundle exec rake db:mysql:build
-```
-
 PostgreSQL's authentication works differently. To setup the development environment
 with your development account, on Linux or BSD, you just have to run:
 
@@ -267,21 +194,24 @@ and for macOS:
 $ createuser --superuser $USER
 ```
 
-Then, you need to create the test databases with:
-
-```bash
-$ cd activerecord
-$ bundle exec rake db:postgresql:build
-```
-
-It is possible to build databases for both PostgreSQL and MySQL with:
+Then, you need to create the test databases for both MySQL and PostgreSQL with:
 
 ```bash
 $ cd activerecord
 $ bundle exec rake db:create
 ```
 
-You can cleanup the databases using:
+NOTE: You'll see the following warning (or localized warning) during activating HStore extension in PostgreSQL 9.1.x or earlier: "WARNING: => is deprecated as an operator".
+
+You can also create test databases for each database engine separately:
+
+```bash
+$ cd activerecord
+$ bundle exec rake db:mysql:build
+$ bundle exec rake db:postgresql:build
+```
+
+and you can drop the databases using:
 
 ```bash
 $ cd activerecord
@@ -290,138 +220,40 @@ $ bundle exec rake db:drop
 
 NOTE: Using the Rake task to create the test databases ensures they have the correct character set and collation.
 
-NOTE: You'll see the following warning (or localized warning) during activating HStore extension in PostgreSQL 9.1.x or earlier: "WARNING: => is deprecated as an operator".
-
 If you're using another database, check the file `activerecord/test/config.yml` or `activerecord/test/config.example.yml` for default connection information. You can edit `activerecord/test/config.yml` to provide different credentials on your machine if you must, but obviously you should not push any such changes back to Rails.
 
-### Action Cable Setup
+### Install JavaScript dependencies
 
-Action Cable uses Redis as its default subscriptions adapter ([read more](action_cable_overview.html#broadcasting)). Thus, in order to have Action Cable's tests passing you need to install and have Redis running.
-
-#### Install Redis From Source
-
-Redis' documentation discourage installations with package managers as those are usually outdated. Installing from source and bringing the server up is straight forward and well documented on [Redis' documentation](https://redis.io/download#installation).
-
-#### Install Redis From Package Manager
-
-On macOS, you can run:
+If you installed Yarn, you will need to install the javascript dependencies:
 
 ```bash
-$ brew install redis
-```
-
-Follow the instructions given by Homebrew to start these.
-
-On Ubuntu, just run:
-
-```bash
-$ sudo apt-get install redis-server
-```
-
-On Fedora or CentOS (requires EPEL enabled), just run:
-
-```bash
-$ sudo yum install redis
-```
-
-If you are running Arch Linux, just run:
-
-```bash
-$ sudo pacman -S redis
-$ sudo systemctl start redis
-```
-
-FreeBSD users will have to run the following:
-
-```bash
-# portmaster databases/redis
-```
-
-### Active Storage Setup
-
-When working on Active Storage, it is important to note that you need to
-install its JavaScript dependencies while working on that section of the
-codebase. In order to install these dependencies, it is necessary to
-have Yarn, a Node.js package manager, available on your system. A
-prerequisite for installing this package manager is that
-[Node.js](https://nodejs.org) is installed.
-
-
-On macOS, you can run:
-
-```bash
-$ brew install yarn
-```
-
-On Ubuntu, you can run:
-
-```bash
-$ curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
-$ echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
-
-$ sudo apt-get update && sudo apt-get install yarn
-```
-
-On Fedora or CentOS, just run:
-
-```bash
-$ sudo wget https://dl.yarnpkg.com/rpm/yarn.repo -O /etc/yum.repos.d/yarn.repo
-
-$ sudo yum install yarn
-```
-
-Finally, after installing Yarn, you will need to run the following
-command inside of the `activestorage` directory to install the dependencies:
-
-```bash
+$ cd activestorage
 $ yarn install
 ```
 
-Extracting previews, tested in Active Storage's test suite requires third-party
-applications, ImageMagick for images, FFmpeg for video and muPDF for PDFs, and on macOS also XQuartz
-and Poppler. Without these applications installed, Active Storage tests will
-raise errors.
+### Install Bundler gem
 
-On macOS you can run:
+Get a recent version of [Bundler](https://bundler.io/)
 
 ```bash
-$ brew install ffmpeg
-$ brew install imagemagick
-$ brew cask install xquartz
-$ brew install mupdf-tools
-$ brew install poppler
+$ gem install bundler
+$ gem update bundler
 ```
 
-On Ubuntu, you can run:
+and run:
 
 ```bash
-$ sudo apt-get update
-$ sudo apt-get install ffmpeg
-$ sudo apt-get install imagemagick
-$ sudo apt-get install mupdf mupdf-tools
+$ bundle install
 ```
 
-On Fedora or CentOS, just run:
+or:
 
 ```bash
-$ sudo yum install ffmpeg
-$ sudo yum install imagemagick
-$ sudo yum install mupdf
+$ bundle install --without db
 ```
 
-FreeBSD users can just run:
+if you don't need to run Active Record tests.
 
-```bash
-# pkg install imagemagick
-# pkg install ffmpeg
-# pkg install mupdf
-```
+### Contribute to Rails
 
-On Arch Linux, you can run:
-
-```bash
-$ sudo pacman -S ffmpeg
-$ sudo pacman -S imagemagick
-$ sudo pacman -S mupdf mupdf-tools
-$ sudo pacman -S poppler
-```
+After you've setup everything, read how you can start [contributing](contributing_to_ruby_on_rails.html#running-an-application-against-your-local-branch).
