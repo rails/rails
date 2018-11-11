@@ -12,16 +12,6 @@ module ActiveRecord
   class CollectionCacheKeyTest < ActiveRecord::TestCase
     fixtures :developers, :projects, :developers_projects, :topics, :comments, :posts
 
-    # setup do
-    #   Developer.cache_versioning = false
-    #   Comment.cache_versioning = false
-    # end
-
-    # teardown do
-    #   Developer.cache_versioning = false
-    #   Comment.cache_versioning = false
-    # end
-
     test "collection_cache_key on model" do
       assert_match(/\Adevelopers\/query-(\h+)-(\d+)-(\d+)\z/, Developer.collection_cache_key)
     end
