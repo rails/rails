@@ -297,6 +297,11 @@ module ActiveRecord
       @cache_keys[timestamp_column] ||= @klass.collection_cache_key(self, timestamp_column)
     end
 
+    def cache_version(timestamp_column = :updated_at)
+      @cache_versions ||= {}
+      @cache_versions[timestamp_column] ||= @klass.collection_cache_version(self, timestamp_column)
+    end
+
     # Scope all queries to the current scope.
     #
     #   Comment.where(post_id: 1).scoping do

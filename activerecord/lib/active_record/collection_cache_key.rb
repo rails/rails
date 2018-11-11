@@ -6,6 +6,32 @@ module ActiveRecord
       query_signature = ActiveSupport::Digest.hexdigest(collection.to_sql)
       key = "#{collection.model_name.cache_key}/query-#{query_signature}"
 
+      if collection_cache_version(collection, timestamp_column)
+        key.to_s
+      else
+        size, timestamp = collection_cache_size_timestamp(collection, timestamp_column)
+        if timestamp
+          "#{key}-#{size}-#{timestamp.utc.to_s(cache_timestamp_format)}"
+        else
+          "#{key}-#{size}"
+        end
+      end
+    end
+
+    def collection_cache_version(collection = all, timestamp_column = :updated_at) # :nodoc:
+      if cache_versioning
+        size, timestamp = collection_cache_size_timestamp(collection, timestamp_column)
+        if timestamp
+          "#{size}-#{timestamp.utc.to_s(cache_timestamp_format)}"
+        else
+          size.to_s
+        end
+      end
+    end
+
+    private
+
+    def collection_cache_size_timestamp(collection, timestamp_column)
       if collection.loaded? || collection.distinct_value
         size = collection.records.size
         if size > 0
@@ -40,14 +66,8 @@ module ActiveRecord
           size = result["size"]
           timestamp = column_type.deserialize(result["timestamp"])
         end
-
       end
-
-      if timestamp
-        "#{key}-#{size}-#{timestamp.utc.to_s(cache_timestamp_format)}"
-      else
-        "#{key}-#{size}"
-      end
+      return [size, timestamp]
     end
   end
 end
