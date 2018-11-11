@@ -18,6 +18,6 @@ require "minitest/autorun"
 class BugTest < Minitest::Test
   def test_stuff
     assert "zomg".present?
-    assert_not "".present?
+    refute "".present?
   end
 end
