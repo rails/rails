@@ -24,7 +24,10 @@ class NumericDataTest < ActiveRecord::TestCase
     )
     assert m.save
 
-    m1 = NumericData.find(m.id)
+    m1 = NumericData.find_by(
+      bank_balance: 1586.43,
+      big_bank_balance: BigDecimal("1000234000567.95")
+    )
 
     assert_kind_of Integer, m1.world_population
     assert_equal 2**62, m1.world_population
@@ -48,7 +51,10 @@ class NumericDataTest < ActiveRecord::TestCase
     )
     assert m.save
 
-    m1 = NumericData.find(m.id)
+    m1 = NumericData.find_by(
+      bank_balance: 1586.43122334,
+      big_bank_balance: BigDecimal("234000567.952344")
+    )
 
     assert_kind_of Integer, m1.world_population
     assert_equal 2**62, m1.world_population
