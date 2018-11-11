@@ -30,44 +30,43 @@ module ActiveRecord
     end
 
     private
-
-    def collection_cache_size_timestamp(collection, timestamp_column)
-      if collection.loaded? || collection.distinct_value
-        size = collection.records.size
-        if size > 0
-          timestamp = collection.max_by(&timestamp_column)._read_attribute(timestamp_column)
-        end
-      else
-        if collection.eager_loading?
-          collection = collection.send(:apply_join_dependency)
-        end
-        column_type = type_for_attribute(timestamp_column)
-        column = connection.visitor.compile(collection.arel_attribute(timestamp_column))
-        select_values = "COUNT(*) AS #{connection.quote_column_name("size")}, MAX(%s) AS timestamp"
-
-        if collection.has_limit_or_offset?
-          query = collection.select("#{column} AS collection_cache_key_timestamp")
-          subquery_alias = "subquery_for_cache_key"
-          subquery_column = "#{subquery_alias}.collection_cache_key_timestamp"
-          subquery = query.arel.as(subquery_alias)
-          arel = Arel::SelectManager.new(subquery).project(select_values % subquery_column)
+      def collection_cache_size_timestamp(collection, timestamp_column)
+        if collection.loaded? || collection.distinct_value
+          size = collection.records.size
+          if size > 0
+            timestamp = collection.max_by(&timestamp_column)._read_attribute(timestamp_column)
+          end
         else
-          query = collection.unscope(:order)
-          query.select_values = [select_values % column]
-          arel = query.arel
-        end
+          if collection.eager_loading?
+            collection = collection.send(:apply_join_dependency)
+          end
+          column_type = type_for_attribute(timestamp_column)
+          column = connection.visitor.compile(collection.arel_attribute(timestamp_column))
+          select_values = "COUNT(*) AS #{connection.quote_column_name("size")}, MAX(%s) AS timestamp"
 
-        result = connection.select_one(arel, nil)
+          if collection.has_limit_or_offset?
+            query = collection.select("#{column} AS collection_cache_key_timestamp")
+            subquery_alias = "subquery_for_cache_key"
+            subquery_column = "#{subquery_alias}.collection_cache_key_timestamp"
+            subquery = query.arel.as(subquery_alias)
+            arel = Arel::SelectManager.new(subquery).project(select_values % subquery_column)
+          else
+            query = collection.unscope(:order)
+            query.select_values = [select_values % column]
+            arel = query.arel
+          end
 
-        if result.blank?
-          size = 0
-          timestamp = nil
-        else
-          size = result["size"]
-          timestamp = column_type.deserialize(result["timestamp"])
+          result = connection.select_one(arel, nil)
+
+          if result.blank?
+            size = 0
+            timestamp = nil
+          else
+            size = result["size"]
+            timestamp = column_type.deserialize(result["timestamp"])
+          end
         end
+        [size, timestamp]
       end
-      return [size, timestamp]
-    end
   end
 end
