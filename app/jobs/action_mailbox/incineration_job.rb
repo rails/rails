@@ -1,5 +1,5 @@
 class ActionMailbox::IncinerationJob < ActiveJob::Base
-  queue_as :action_mailbox_incineration
+  queue_as { ActionMailbox.queues[:incineration] }
 
   discard_on ActiveRecord::RecordNotFound
 
