@@ -12,10 +12,15 @@ module ActiveRecord
   class CollectionCacheKeyTest < ActiveRecord::TestCase
     fixtures :developers, :projects, :developers_projects, :topics, :comments, :posts
 
-    setup do
-      Developer.cache_versioning = false
-      Comment.cache_versioning = false
-    end
+    # setup do
+    #   Developer.cache_versioning = false
+    #   Comment.cache_versioning = false
+    # end
+
+    # teardown do
+    #   Developer.cache_versioning = false
+    #   Comment.cache_versioning = false
+    # end
 
     test "collection_cache_key on model" do
       assert_match(/\Adevelopers\/query-(\h+)-(\d+)-(\d+)\z/, Developer.collection_cache_key)
@@ -178,27 +183,38 @@ module ActiveRecord
     end
 
     test "with cache_versioning: cache_version and cache_key" do
-      Developer.cache_versioning = true
-      developers = Developer.select("name AS dev_name").order("dev_name DESC").limit(5)
-      assert_match(/\Adevelopers\/query-(\h+)/, developers.cache_key)
-      assert_match(/\A(\d+)-(\d+)\z/, developers.cache_version)
+      with_cache_versioning do
+        developers = Developer.select("name AS dev_name").order("dev_name DESC").limit(5)
+        assert_match(/\Adevelopers\/query-(\h+)/, developers.cache_key)
+        assert_match(/\A(\d+)-(\d+)\z/, developers.cache_version)
+      end
     end
 
     test "with cache_versioning: cache_key for loaded collection with zero size" do
-      Comment.cache_versioning = true
-      Comment.delete_all
-      posts = Post.includes(:comments)
-      empty_loaded_collection = posts.first.comments
+      with_cache_versioning do
+        Comment.delete_all
+        posts = Post.includes(:comments)
+        empty_loaded_collection = posts.first.comments
 
-      assert_match(/\Acomments\/query-(\h+)\z/, empty_loaded_collection.cache_key)
-      assert_match("0", empty_loaded_collection.cache_version)
+        assert_match(/\Acomments\/query-(\h+)\z/, empty_loaded_collection.cache_key)
+        assert_match("0", empty_loaded_collection.cache_version)
+      end
     end
 
     test "with cache_versioning: collection proxy provides a cache_key and cache_version" do
-      Developer.cache_versioning = true
-      developers = projects(:active_record).developers
-      assert_match(/\Adevelopers\/query-(\h+)\z/, developers.cache_key)
-      assert_match(/\A(\d+)-(\d+)\z/, developers.cache_version)
+      with_cache_versioning do
+        developers = projects(:active_record).developers
+        assert_match(/\Adevelopers\/query-(\h+)\z/, developers.cache_key)
+        assert_match(/\A(\d+)-(\d+)\z/, developers.cache_version)
+      end
+    end
+
+    def with_cache_versioning(value = true)
+      @old_cache_versioning = ActiveRecord::Base.cache_versioning
+      ActiveRecord::Base.cache_versioning = value
+      yield
+    ensure
+      ActiveRecord::Base.cache_versioning = @old_cache_versioning
     end
   end
 end
