@@ -44,7 +44,7 @@ class MarshalTest < ActiveSupport::TestCase
     ActiveSupport::Dependencies.clear
 
     with_autoloading_fixtures do
-      assert_raise(ArgumentError, 'instead of Errno::ESPIPE') do
+      assert_raise(ArgumentError, "instead of Errno::ESPIPE") do
         Marshal.load(r)
       end
     end
