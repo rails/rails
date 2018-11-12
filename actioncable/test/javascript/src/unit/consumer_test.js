@@ -1,14 +1,18 @@
-{module, test} = QUnit
-{consumerTest} = ActionCable.TestHelpers
+const {module, test} = QUnit
+const {consumerTest} = ActionCable.TestHelpers
 
-module "ActionCable.Consumer", ->
-  consumerTest "#connect", connect: false, ({consumer, server, assert, done}) ->
-    server.on "connection", ->
-      assert.equal consumer.connect(), false
+module("ActionCable.Consumer", function() {
+  consumerTest("#connect", {connect: false}, function({consumer, server, assert, done}) {
+    server.on("connection", function() {
+      assert.equal(consumer.connect(), false)
       done()
+    })
 
     consumer.connect()
+  })
 
-  consumerTest "#disconnect", ({consumer, client, done}) ->
+  consumerTest("#disconnect", function({consumer, client, done}) {
     client.addEventListener("close", done)
     consumer.disconnect()
+  })
+})

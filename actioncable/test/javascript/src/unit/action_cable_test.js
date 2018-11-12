@@ -1,41 +1,49 @@
-{module, test} = QUnit
-{testURL} = ActionCable.TestHelpers
+const {module, test} = QUnit
+const {testURL} = ActionCable.TestHelpers
 
-module "ActionCable", ->
-  module "Adapters", ->
-    module "WebSocket", ->
-      test "default is window.WebSocket", (assert) ->
-        assert.equal ActionCable.WebSocket, window.WebSocket
+module("ActionCable", function() {
+  module("Adapters", function() {
+    module("WebSocket", function() {
+      test("default is window.WebSocket", assert => assert.equal(ActionCable.WebSocket, window.WebSocket))
 
-      test "configurable", (assert) ->
+      test("configurable", function(assert) {
         ActionCable.WebSocket = ""
-        assert.equal ActionCable.WebSocket, ""
+        assert.equal(ActionCable.WebSocket, "")
+      })
+    })
 
-    module "logger", ->
-      test "default is window.console", (assert) ->
-        assert.equal ActionCable.logger, window.console
+    module("logger", function() {
+      test("default is window.console", assert => assert.equal(ActionCable.logger, window.console))
 
-      test "configurable", (assert) ->
+      test("configurable", function(assert) {
         ActionCable.logger = ""
-        assert.equal ActionCable.logger, ""
+        assert.equal(ActionCable.logger, "")
+      })
+    })
+  })
 
-  module "#createConsumer", ->
-    test "uses specified URL", (assert) ->
-      consumer = ActionCable.createConsumer(testURL)
-      assert.equal consumer.url, testURL
+  module("#createConsumer", function() {
+    test("uses specified URL", function(assert) {
+      const consumer = ActionCable.createConsumer(testURL)
+      assert.equal(consumer.url, testURL)
+    })
 
-    test "uses default URL", (assert) ->
-      pattern = ///#{ActionCable.INTERNAL.default_mount_path}$///
-      consumer = ActionCable.createConsumer()
-      assert.ok pattern.test(consumer.url), "Expected #{consumer.url} to match #{pattern}"
+    test("uses default URL", function(assert) {
+      const pattern = new RegExp(`${ActionCable.INTERNAL.default_mount_path}$`)
+      const consumer = ActionCable.createConsumer()
+      assert.ok(pattern.test(consumer.url), `Expected ${consumer.url} to match ${pattern}`)
+    })
 
-    test "uses URL from meta tag", (assert) ->
-      element = document.createElement("meta")
+    test("uses URL from meta tag", function(assert) {
+      const element = document.createElement("meta")
       element.setAttribute("name", "action-cable-url")
       element.setAttribute("content", testURL)
 
       document.head.appendChild(element)
-      consumer = ActionCable.createConsumer()
+      const consumer = ActionCable.createConsumer()
       document.head.removeChild(element)
 
-      assert.equal consumer.url, testURL
+      assert.equal(consumer.url, testURL)
+    })
+  })
+})
