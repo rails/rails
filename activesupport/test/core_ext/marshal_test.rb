@@ -34,6 +34,22 @@ class MarshalTest < ActiveSupport::TestCase
     assert_equal Marshal.load(dumped, example_proc), "Test"
   end
 
+  test "that Marshal#load still raises original exception when a pipe is passed" do
+    r, w = IO.pipe
+    with_autoloading_fixtures do
+      Marshal.dump(EM.new, w)
+    end
+
+    remove_constants(:EM)
+    ActiveSupport::Dependencies.clear
+
+    with_autoloading_fixtures do
+      assert_raise(ArgumentError, 'instead of Errno::ESPIPE') do
+        Marshal.load(r)
+      end
+    end
+  end
+
   test "that a missing class is autoloaded from string" do
     dumped = nil
     with_autoloading_fixtures do

@@ -12,8 +12,14 @@ module ActiveSupport
         raise unless $1 == loaded.name
 
         # if it is an IO we need to go back to read the object
-        source.rewind if source.respond_to?(:rewind)
-        retry
+        begin
+          source.rewind if source.respond_to?(:rewind)
+          retry
+        rescue
+          # Raises original error for source that cannot be rewound
+          # such as pipe passed to Marshal.load
+          raise exc
+        end
       else
         raise exc
       end
