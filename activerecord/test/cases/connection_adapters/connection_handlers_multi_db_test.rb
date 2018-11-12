@@ -127,6 +127,9 @@ module ActiveRecord
           ActiveRecord::Base.connected_to(database: { writing: "postgres://localhost/bar" }) do
             handler = ActiveRecord::Base.connection_handler
             assert_equal handler, ActiveRecord::Base.connection_handlers[:writing]
+
+            assert_not_nil pool = handler.retrieve_connection_pool("primary")
+            assert_equal({ adapter: "postgresql", database: "bar", host: "localhost" }, pool.spec.config)
           end
         ensure
           ActiveRecord::Base.establish_connection(:arunit)
@@ -136,11 +139,14 @@ module ActiveRecord
 
         def test_switching_connections_with_database_config_hash
           previous_env, ENV["RAILS_ENV"] = ENV["RAILS_ENV"], "default_env"
-          config = { "adapter" => "sqlite3", "database" => "db/readonly.sqlite3" }
+          config = { adapter: "sqlite3", database: "db/readonly.sqlite3" }
 
           ActiveRecord::Base.connected_to(database: { writing: config }) do
             handler = ActiveRecord::Base.connection_handler
             assert_equal handler, ActiveRecord::Base.connection_handlers[:writing]
+
+            assert_not_nil pool = handler.retrieve_connection_pool("primary")
+            assert_equal(config, pool.spec.config)
           end
         ensure
           ActiveRecord::Base.establish_connection(:arunit)
@@ -150,11 +156,23 @@ module ActiveRecord
         def test_switching_connections_with_database_symbol
           previous_env, ENV["RAILS_ENV"] = ENV["RAILS_ENV"], "default_env"
 
-          ActiveRecord::Base.connected_to(database: :arunit2) do
+          config = {
+            "default_env" => {
+              "readonly" => { adapter: "sqlite3", database: "db/readonly.sqlite3" },
+              "primary"  => { adapter: "sqlite3", database: "db/primary.sqlite3" }
+            }
+          }
+          @prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, config
+
+          ActiveRecord::Base.connected_to(database: :readonly) do
             handler = ActiveRecord::Base.connection_handler
-            assert_equal handler, ActiveRecord::Base.connection_handlers[:arunit2]
+            assert_equal handler, ActiveRecord::Base.connection_handlers[:readonly]
+
+            assert_not_nil pool = handler.retrieve_connection_pool("primary")
+            assert_equal(config["default_env"]["readonly"], pool.spec.config)
           end
         ensure
+          ActiveRecord::Base.configurations = @prev_configs
           ActiveRecord::Base.establish_connection(:arunit)
           ENV["RAILS_ENV"] = previous_env
         end
