@@ -9,10 +9,12 @@ module ActiveJob
 
     # Includes the +perform_later+ method for job initialization.
     module ClassMethods
-      # Push a job onto the queue. The arguments must be legal JSON types
-      # (+string+, +int+, +float+, +nil+, +true+, +false+, +hash+ or +array+) or
-      # GlobalID::Identification instances. Arbitrary Ruby objects
-      # are not supported.
+      # Push a job onto the queue. By default the arguments must be either String,
+      # Integer, Float, NilClass, TrueClass, FalseClass, BigDecimal, Symbol, Date,
+      # Time, DateTime, ActiveSupport::TimeWithZone, ActiveSupport::Duration,
+      # Hash, ActiveSupport::HashWithIndifferentAccess, Array or
+      # GlobalID::Identification instances, although this can be extended by adding
+      # custom serializers.
       #
       # Returns an instance of the job class queued with arguments available in
       # Job#arguments.
