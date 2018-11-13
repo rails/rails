@@ -1663,6 +1663,14 @@ module ApplicationTests
       assert_kind_of Hash, Rails.application.config.database_configuration
     end
 
+    test "autoload paths do not include asset paths" do
+      app "development"
+      ActiveSupport::Dependencies.autoload_paths.each do |path|
+        assert_not_operator path, :ends_with?, "app/assets"
+        assert_not_operator path, :ends_with?, "app/javascript"
+      end
+    end
+
     test "raises with proper error message if no database configuration found" do
       FileUtils.rm("#{app_path}/config/database.yml")
       err = assert_raises RuntimeError do
