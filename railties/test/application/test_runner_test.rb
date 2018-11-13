@@ -665,7 +665,7 @@ module ApplicationTests
     end
 
     def test_reset_sessions_on_failed_system_test_screenshot
-      app_file "test/system/reset_sessions_on_failed_system_test_screenshot_test.rb", <<~RUBY
+      app_file "test/system/reset_sessions_on_failed_system_test_screenshot_test.rb", <<-RUBY.strip_heredoc
         require "application_system_test_case"
 
         class ResetSessionsOnFailedSystemTestScreenshotTest < ApplicationSystemTestCase
