@@ -258,8 +258,8 @@ module Rails
       class_option :skip_bundle, type: :boolean, aliases: "-B", default: false,
                                  desc: "Don't run bundle install"
 
-      class_option :webpack, type: :string, default: nil,
-                             desc: "Preconfigure Webpack with a particular framework (options: #{WEBPACKS.join('/')})"
+      class_option :webpack, type: :string, aliases: "--webpacker", default: nil,
+                             desc: "Preconfigure Webpack with a particular framework (options: #{WEBPACKS.join(", ")})"
 
       class_option :skip_webpack_install, type: :boolean, default: false,
                                           desc: "Don't run Webpack install"
