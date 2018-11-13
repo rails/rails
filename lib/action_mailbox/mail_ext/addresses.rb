@@ -4,7 +4,7 @@ class Mail::Message
   end
 
   def recipients_addresses
-    to_addresses + cc_addresses + bcc_addresses
+    to_addresses + cc_addresses + bcc_addresses + x_original_to_addresses
   end
 
   def to_addresses
@@ -17,5 +17,9 @@ class Mail::Message
 
   def bcc_addresses
     Array(header[:bcc]&.address_list&.addresses)
+  end
+
+  def x_original_to_addresses
+    Array(header[:x_original_to]).collect { |header| Mail::Address.new header.to_s }
   end
 end
