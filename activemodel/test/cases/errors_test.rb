@@ -228,6 +228,16 @@ class ErrorsTest < ActiveModel::TestCase
     assert_not person.errors.added?(:name)
   end
 
+  test "added? returns false when checking for an error with an incorrect or missing option" do
+    person = Person.new
+    person.errors.add :name, :too_long, count: 25
+
+    assert person.errors.added? :name, :too_long, count: 25
+    assert_not person.errors.added? :name, :too_long, count: 24
+    assert_not person.errors.added? :name, :too_long
+    assert_not person.errors.added? :name, "is too long"
+  end
+
   test "added? returns false when checking for an error by symbol and a different error with same message is present" do
     I18n.backend.store_translations("en", errors: { attributes: { name: { wrong: "is wrong", used: "is wrong" } } })
     person = Person.new

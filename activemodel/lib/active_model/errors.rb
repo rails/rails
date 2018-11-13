@@ -327,11 +327,11 @@ module ActiveModel
     #  person.errors.added? :name, :too_long                                # => false
     #  person.errors.added? :name, "is too long"                            # => false
     def added?(attribute, message = :invalid, options = {})
+      message = message.call if message.respond_to?(:call)
+
       if message.is_a? Symbol
-        self.details[attribute.to_sym].map { |e| e[:error] }.include? message
+        details[attribute.to_sym].include? normalize_detail(message, options)
       else
-        message = message.call if message.respond_to?(:call)
-        message = normalize_message(attribute, message, options)
         self[attribute].include? message
       end
     end
