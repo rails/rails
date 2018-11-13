@@ -727,6 +727,31 @@ module ApplicationTests
       end
     end
 
+    def test_reset_sessions_on_failed_system_test_screenshot
+      app_file "test/system/reset_sessions_on_failed_system_test_screenshot_test.rb", <<~RUBY
+        require "application_system_test_case"
+
+        class ResetSessionsOnFailedSystemTestScreenshotTest < ApplicationSystemTestCase
+          ActionDispatch::SystemTestCase.class_eval do
+            def take_failed_screenshot
+              raise Capybara::CapybaraError
+            end
+          end
+
+          Capybara.instance_eval do
+            def reset_sessions!
+              puts "Capybara.reset_sessions! called"
+            end
+          end
+
+          test "dummy" do
+          end
+        end
+      RUBY
+      output = run_test_command("test/system/reset_sessions_on_failed_system_test_screenshot_test.rb")
+      assert_match "Capybara.reset_sessions! called", output
+    end
+
     def test_system_tests_are_not_run_with_the_default_test_command
       app_file "test/system/dummy_test.rb", <<-RUBY
         require "application_system_test_case"
