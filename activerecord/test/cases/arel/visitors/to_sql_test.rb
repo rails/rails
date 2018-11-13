@@ -480,6 +480,28 @@ module Arel
         end
       end
 
+      describe "Nodes::Union" do
+        it "squashes parenthesis on multiple unions" do
+          subnode = Nodes::Union.new Arel.sql("left"), Arel.sql("right")
+          node = Nodes::Union.new subnode, Arel.sql("topright")
+          assert_equal("( left UNION right UNION topright )", compile(node))
+          subnode = Nodes::Union.new Arel.sql("left"), Arel.sql("right")
+          node = Nodes::Union.new Arel.sql("topleft"), subnode
+          assert_equal("( topleft UNION left UNION right )", compile(node))
+        end
+      end
+
+      describe "Nodes::UnionAll" do
+        it "squashes parenthesis on multiple union alls" do
+          subnode = Nodes::UnionAll.new Arel.sql("left"), Arel.sql("right")
+          node = Nodes::UnionAll.new subnode, Arel.sql("topright")
+          assert_equal("( left UNION ALL right UNION ALL topright )", compile(node))
+          subnode = Nodes::UnionAll.new Arel.sql("left"), Arel.sql("right")
+          node = Nodes::UnionAll.new Arel.sql("topleft"), subnode
+          assert_equal("( topleft UNION ALL left UNION ALL right )", compile(node))
+        end
+      end
+
       describe "Nodes::NotIn" do
         it "should know how to visit" do
           node = @attr.not_in [1, 2, 3]
