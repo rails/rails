@@ -74,6 +74,13 @@ class LoggingTest < ActiveSupport::TestCase
     end
   end
 
+  def test_filter_parameters
+    perform_enqueued_jobs do
+      LoggingJob.perform_later("sensitive_data" => "secret")
+      assert_match(/Performing LoggingJob \(Job ID: .*?\) from .*? with arguments: {\"sensitive_data\"=>\"\[FILTERED\]\"}/, @logger.messages)
+    end
+  end
+
   def test_logs_correct_queue_name
     original_queue_name = LoggingJob.queue_name
     LoggingJob.queue_as :php_jobs

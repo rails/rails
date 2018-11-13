@@ -3,6 +3,7 @@
 require "active_support/core_ext/string/filters"
 require "active_support/tagged_logging"
 require "active_support/logger"
+require "active_support/parameter_filter"
 
 module ActiveJob
   module Logging #:nodoc:
@@ -137,7 +138,9 @@ module ActiveJob
           def format(arg)
             case arg
             when Hash
-              arg.transform_values { |value| format(value) }
+              # TODO: Read filters from config.filter_parameters
+              parameter_filter = ActiveSupport::ParameterFilter.new([:sensitive_data])
+              parameter_filter.filter arg.transform_values { |value| format(value) }
             when Array
               arg.map { |value| format(value) }
             when GlobalID::Identification
