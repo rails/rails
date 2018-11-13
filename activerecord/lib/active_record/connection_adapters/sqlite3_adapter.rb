@@ -396,6 +396,12 @@ module ActiveRecord
       end
 
       private
+        # See https://www.sqlite.org/limits.html,
+        # the default value is 999 when not configured.
+        def bind_params_length
+          999
+        end
+
         def check_version
           if sqlite_version < "3.8.0"
             raise "Your version of SQLite (#{sqlite_version}) is too old. Active Record supports SQLite >= 3.8."
