@@ -1041,11 +1041,11 @@ class FormOptionsHelperTest < ActionView::TestCase
 
     assert_dom_equal(
       "<select id=\"post_author_name\" name=\"post[author_name]\"><option></option>\n<option value=\"&lt;Abe&gt;\">&lt;Abe&gt;</option>\n<option value=\"Babe\" selected=\"selected\">Babe</option>\n<option value=\"Cabe\">Cabe</option></select>",
-      collection_select("post", "author_name", dummy_posts, "author_name", "author_name", { include_blank: {} })
+      collection_select("post", "author_name", dummy_posts, "author_name", "author_name", include_blank: {})
     )
     assert_dom_equal(
       "<select id=\"post_author_name\" name=\"post[author_name]\"><option hidden=\"hidden\">No Selection</option>\n<option value=\"&lt;Abe&gt;\">&lt;Abe&gt;</option>\n<option value=\"Babe\" selected=\"selected\">Babe</option>\n<option value=\"Cabe\">Cabe</option></select>",
-      collection_select("post", "author_name", dummy_posts, "author_name", "author_name", { include_blank: { text: "No Selection", hidden: true } })
+      collection_select("post", "author_name", dummy_posts, "author_name", "author_name", include_blank: { text: "No Selection", hidden: true })
     )
   end
 
