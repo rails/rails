@@ -1,5 +1,6 @@
-const {module, test} = QUnit
-const {consumerTest} = ActionCable.TestHelpers
+import consumerTest from "../test_helpers/consumer_test_helper"
+
+const {module} = QUnit
 
 module("ActionCable.Subscriptions", function() {
   consumerTest("create subscription with channel string", function({consumer, server, assert, done}) {

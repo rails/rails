@@ -1,15 +1,16 @@
-//= require mock-socket
+import "../../vendor/mock-socket"
 
-const {TestHelpers} = ActionCable
+import ActionCable from "../../../../app/javascript/action_cable/index"
+import {defer, testURL} from "./index"
 
-TestHelpers.consumerTest = function(name, options, callback) {
+export default function(name, options, callback) {
   if (options == null) { options = {} }
   if (callback == null) {
     callback = options
     options = {}
   }
 
-  if (options.url == null) { options.url = TestHelpers.testURL }
+  if (options.url == null) { options.url = testURL }
 
   return QUnit.test(name, function(assert) {
     const doneAsync = assert.async()
@@ -34,7 +35,7 @@ TestHelpers.consumerTest = function(name, options, callback) {
       }
 
       server.send(JSON.stringify(data))
-      TestHelpers.defer(callback)
+      defer(callback)
     }
 
     const done = function() {

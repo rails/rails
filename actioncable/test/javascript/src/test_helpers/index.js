@@ -1,12 +1,9 @@
-//= require_self
-//= require_tree .
+import ActionCable from "../../../../app/javascript/action_cable/index"
 
-ActionCable.TestHelpers = {
-  testURL: "ws://cable.example.com/",
+export const testURL = "ws://cable.example.com/"
 
-  defer(callback) {
-    setTimeout(callback, 1)
-  }
+export function defer(callback) {
+  setTimeout(callback, 1)
 }
 
 const originalWebSocket = ActionCable.WebSocket

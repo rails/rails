@@ -1,5 +1,6 @@
-const {module, test} = QUnit
-const {consumerTest} = ActionCable.TestHelpers
+import consumerTest from "../test_helpers/consumer_test_helper"
+
+const {module} = QUnit
 
 module("ActionCable.Consumer", function() {
   consumerTest("#connect", {connect: false}, function({consumer, server, assert, done}) {

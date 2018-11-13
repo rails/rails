@@ -1,5 +1,7 @@
+import ActionCable from "../../../../app/javascript/action_cable/index"
+import {testURL} from "../test_helpers/index"
+
 const {module, test} = QUnit
-const {testURL} = ActionCable.TestHelpers
 
 module("ActionCable", function() {
   module("Adapters", function() {

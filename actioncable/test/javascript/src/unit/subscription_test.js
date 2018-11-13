@@ -1,5 +1,6 @@
-const {module, test} = QUnit
-const {consumerTest} = ActionCable.TestHelpers
+import consumerTest from "../test_helpers/consumer_test_helper"
+
+const {module} = QUnit
 
 module("ActionCable.Subscription", function() {
   consumerTest("#initialized callback", ({server, consumer, assert, done}) =>
