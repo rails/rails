@@ -225,6 +225,21 @@ module ApplicationTests
         require "#{app_path}/config/environment"
         db_migrate_and_schema_cache_dump_and_schema_cache_clear
       end
+
+      test "schema cache initializer works on all databases" do
+        require "#{app_path}/config/environment"
+        db_migrate_and_schema_cache_dump
+        cache_sizes = rails("runner", <<~RUBY)
+          configs = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env)
+          cache_sizes = configs.map do |db_config|
+            ActiveRecord::Base.connected_to({ database: db_config.spec_name.to_sym }) do
+              ActiveRecord::Base.connection.schema_cache.size
+            end
+          end
+          p cache_sizes
+        RUBY
+        assert_equal [12, 12], JSON.parse(cache_sizes)
+      end
     end
   end
 end

@@ -117,19 +117,25 @@ end_error
       if config.active_record.delete(:use_schema_cache_dump)
         config.after_initialize do |app|
           ActiveSupport.on_load(:active_record) do
-            filename = File.join(app.config.paths["db"].first, "schema_cache.yml")
+            ActiveRecord::Base.configurations.configs_for(env_name: Rails.env).each do |db_config|
+              ActiveRecord::Base.connected_to(database: db_config.spec_name.to_sym) do
+                filename = ActiveRecord::Tasks::DatabaseTasks.cache_dump_filename(db_config.spec_name)
+                if File.file?(filename)
+                  current_version = ActiveRecord::Migrator.current_version
+                  next if current_version.nil?
 
-            if File.file?(filename)
-              current_version = ActiveRecord::Migrator.current_version
-
-              next if current_version.nil?
-
-              cache = YAML.load(File.read(filename))
-              if cache.version == current_version
-                connection.schema_cache = cache
-                connection_pool.schema_cache = cache.dup
-              else
-                warn "Ignoring db/schema_cache.yml because it has expired. The current schema version is #{current_version}, but the one in the cache is #{cache.version}."
+                  cache = YAML.load(File.read(filename))
+                  if cache.version == current_version
+                    connection.schema_cache = cache
+                    connection_pool.schema_cache = cache.dup
+                  else
+                    warn <<~MSG.squish
+                      Ignoring #{File.basename(filename)} because it has expired.
+                      The current schema version is #{current_version},
+                      but the one in the cache is #{cache.version}.
+                    MSG
+                  end
+                end
               end
             end
           end
