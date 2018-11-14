@@ -153,6 +153,20 @@ module ActiveRecord
           ENV["RAILS_ENV"] = previous_env
         end
 
+        def test_switching_connections_with_database_and_role_raises
+          error = assert_raises(ArgumentError) do
+            ActiveRecord::Base.connected_to(database: :readonly, role: :writing) { }
+          end
+          assert_equal "connected_to can only accept a `database` or a `role` argument, but not both arguments.", error.message
+        end
+
+        def test_switching_connections_without_database_and_role_raises
+          error = assert_raises(ArgumentError) do
+            ActiveRecord::Base.connected_to { }
+          end
+          assert_equal "must provide a `database` or a `role`.", error.message
+        end
+
         def test_switching_connections_with_database_symbol
           previous_env, ENV["RAILS_ENV"] = ENV["RAILS_ENV"], "default_env"
 
@@ -203,6 +217,27 @@ module ActiveRecord
 
           assert_not_nil pool = ActiveRecord::Base.connection_handlers[:reading].retrieve_connection_pool("primary")
           assert_equal "db/readonly.sqlite3", pool.spec.config[:database]
+        ensure
+          ActiveRecord::Base.configurations = @prev_configs
+          ActiveRecord::Base.establish_connection(:arunit)
+        end
+
+        def test_connects_to_returns_array_of_established_connections
+          config = {
+            "development" => { "adapter" => "sqlite3", "database" => "db/primary.sqlite3" },
+            "development_readonly" => { "adapter" => "sqlite3", "database" => "db/readonly.sqlite3" }
+          }
+          @prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, config
+
+          result = ActiveRecord::Base.connects_to database: { writing: :development, reading: :development_readonly }
+
+          assert_equal(
+            [
+              ActiveRecord::Base.connection_handlers[:writing].retrieve_connection_pool("primary"),
+              ActiveRecord::Base.connection_handlers[:reading].retrieve_connection_pool("primary")
+            ],
+            result
+          )
         ensure
           ActiveRecord::Base.configurations = @prev_configs
           ActiveRecord::Base.establish_connection(:arunit)
