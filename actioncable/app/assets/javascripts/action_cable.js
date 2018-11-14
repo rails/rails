@@ -238,8 +238,8 @@
       }, this.getPollInterval());
     };
     ConnectionMonitor.prototype.getPollInterval = function getPollInterval() {
-      var _constructor$pollInte = this.constructor.pollInterval, min = _constructor$pollInte.min, max = _constructor$pollInte.max;
-      var interval = 5 * Math.log(this.reconnectAttempts + 1);
+      var _constructor$pollInte = this.constructor.pollInterval, min = _constructor$pollInte.min, max = _constructor$pollInte.max, multiplier = _constructor$pollInte.multiplier;
+      var interval = multiplier * Math.log(this.reconnectAttempts + 1);
       return Math.round(clamp(interval, min, max) * 1e3);
     };
     ConnectionMonitor.prototype.reconnectIfStale = function reconnectIfStale() {
@@ -275,7 +275,8 @@
   }();
   ConnectionMonitor.pollInterval = {
     min: 3,
-    max: 30
+    max: 30,
+    multiplier: 5
   };
   ConnectionMonitor.staleThreshold = 6;
   var Consumer = function() {
