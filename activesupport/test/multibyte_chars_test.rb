@@ -772,6 +772,16 @@ class MultibyteCharsExtrasTest < ActiveSupport::TestCase
     assert_deprecated { ActiveSupport::Multibyte::Unicode.swapcase("") }
   end
 
+  def test_normalize_non_unicode_string
+    # Fullwidth Latin Capital Letter A in Windows 31J
+    str = "\u{ff21}".encode(Encoding::Windows_31J)
+    assert_raise Encoding::CompatibilityError do
+      ActiveSupport::Deprecation.silence do
+        ActiveSupport::Multibyte::Unicode.normalize(str)
+      end
+    end
+  end
+
   private
 
     def string_from_classes(classes)
