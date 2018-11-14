@@ -17,7 +17,8 @@ namespace :action_mailbox do
       begin
         response = HTTP.basic_auth(user: "actionmailbox", pass: password)
           .timeout(connect: 1, write: 10, read: 10)
-          .post(url, headers: { "Content-Type" => "message/rfc822", "User-Agent" => ENV.fetch("USER_AGENT", "Postfix") }, body: STDIN)
+          .post(url, body: STDIN.read,
+            headers: { "Content-Type" => "message/rfc822", "User-Agent" => ENV.fetch("USER_AGENT", "Postfix") })
 
         case
         when response.status.success?
