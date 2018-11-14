@@ -31,6 +31,7 @@ class ActiveStorage::Preview
   class UnprocessedError < StandardError; end
 
   attr_reader :blob, :variation
+  # delegate :service, to: :blob
 
   def initialize(blob, variation_or_variation_key, attachment = nil)
     @blob, @variation, @attachment = blob, ActiveStorage::Variation.wrap(variation_or_variation_key), attachment
@@ -67,6 +68,11 @@ class ActiveStorage::Preview
     else
       raise UnprocessedError
     end
+  end
+
+  # Returns a combination key of the blob and the variation that together identifies a specific variant.
+  def key
+    "variants/#{image.key}/#{Digest::SHA256.hexdigest(variation.key)}"
   end
 
   private
