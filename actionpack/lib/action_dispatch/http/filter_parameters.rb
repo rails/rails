@@ -41,6 +41,8 @@ module ActionDispatch
       # Returns a hash of parameters with all sensitive data replaced.
       def filtered_parameters
         @filtered_parameters ||= parameter_filter.filter(parameters)
+      rescue ActionDispatch::Http::Parameters::ParseError
+        @filtered_parameters = {}
       end
 
       # Returns a hash of request.env with all sensitive data replaced.
