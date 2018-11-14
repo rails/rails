@@ -1662,7 +1662,7 @@ Controls what happens to the associated objects when their owner is destroyed:
 * `:restrict_with_exception` causes an `ActiveRecord::DeleteRestrictionError` exception to be raised if there are any associated records
 * `:restrict_with_error` causes an error to be added to the owner if there are any associated objects
 
-The `:destroy` and `:delete_all` options also affect the samantics of the `collection.delete` and `collection=` methods by causing them to destroy associated objects when they are removed from the collection.
+The `:destroy` and `:delete_all` options also affect the semantics of the `collection.delete` and `collection=` methods by causing them to destroy associated objects when they are removed from the collection.
 
 ##### `:foreign_key`
 
