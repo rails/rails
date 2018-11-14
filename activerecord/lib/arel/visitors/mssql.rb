@@ -12,6 +12,31 @@ module Arel # :nodoc: all
 
       private
 
+        def visit_Arel_Nodes_NullSafeEquality(o, collector)
+          right = o.right
+
+          if right.nil?
+            collector = visit o.left, collector
+            collector << " IS NULL"
+          else
+            collector << "EXISTS (VALUES ("
+            collector = visit o.left, collector
+            collector << ") INTERSECT VALUES ("
+            collector = visit right, collector
+            collector << "))"
+          end
+        end
+
+        def visit_Arel_Nodes_NullSafeNotEqual(o, collector)
+          if o.right.nil?
+            collector = visit o.left, collector
+            collector << " IS NOT NULL"
+          else
+            collector << "NOT "
+            visit_Arel_Nodes_NullSafeEquality o, collector
+          end
+        end
+
         def visit_Arel_Visitors_MSSQL_RowNumber(o, collector)
           collector << "ROW_NUMBER() OVER (ORDER BY "
           inject_join(o.children, collector, ", ") << ") as _row_num"

@@ -18,6 +18,14 @@ module Arel # :nodoc: all
       Nodes::Equality.new self, quoted_node(other)
     end
 
+    def null_safe_eq(other)
+      Nodes::NullSafeEquality.new self, quoted_node(other)
+    end
+
+    def null_safe_not_eq(other)
+      Nodes::NullSafeNotEqual.new self, quoted_node(other)
+    end
+
     def eq_any(others)
       grouping_any :eq, others
     end

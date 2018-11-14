@@ -56,6 +56,12 @@ module Arel # :nodoc: all
         def visit_Arel_Nodes_BindParam(o, collector)
           collector.add_bind(o.value) { |i| ":a#{i}" }
         end
+
+        def null_safe_compare(o, collector)
+          collector << "DECODE("
+          collector = visit [o.left, o.right, 1, 0], collector
+          collector << ")"
+        end
     end
   end
 end

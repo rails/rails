@@ -10,6 +10,12 @@ module Arel # :nodoc: all
           collector = visit o.expr, collector
           collector << " ROWS ONLY"
         end
+
+        def null_safe_compare(o, collector)
+          collector << "DECODE("
+          collector = visit [o.left, o.right, 1, 0], collector
+          collector << ")"
+        end
     end
   end
 end

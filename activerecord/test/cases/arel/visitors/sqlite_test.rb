@@ -6,7 +6,11 @@ module Arel
   module Visitors
     class SqliteTest < Arel::Spec
       before do
-        @visitor = SQLite.new Table.engine.connection_pool
+        @visitor = SQLite.new Table.engine.connection
+      end
+
+      def compile(node)
+        @visitor.accept(node, Collectors::SQLString.new).value
       end
 
       it "defaults limit to -1" do
@@ -26,6 +30,45 @@ module Arel
         assert_equal "1", @visitor.accept(node, Collectors::SQLString.new).value
         node = Nodes::False.new()
         assert_equal "0", @visitor.accept(node, Collectors::SQLString.new).value
+      end
+
+      describe "Nodes::NullSafeEquality" do
+        it "should construct a valid generic SQL statement" do
+          test = Table.new(:users)[:name].null_safe_eq "Aaron Patterson"
+          compile(test).must_be_like %{
+            "users"."name" IS 'Aaron Patterson'
+          }
+        end
+
+        it "should handle column names on both sides" do
+          test = Table.new(:users)[:first_name].null_safe_eq Table.new(:users)[:last_name]
+          compile(test).must_be_like %{
+            "users"."first_name" IS "users"."last_name"
+          }
+        end
+
+        it "should handle nil" do
+          @table = Table.new(:users)
+          val = Nodes.build_quoted(nil, @table[:active])
+          sql = compile Nodes::NullSafeEquality.new(@table[:name], val)
+          sql.must_be_like %{ "users"."name" IS NULL }
+        end
+      end
+
+      describe "Nodes::NullSafeNotEqual" do
+        it "should handle column names on both sides" do
+          test = Table.new(:users)[:first_name].null_safe_not_eq Table.new(:users)[:last_name]
+          compile(test).must_be_like %{
+            "users"."first_name" IS NOT "users"."last_name"
+          }
+        end
+
+        it "should handle nil" do
+          @table = Table.new(:users)
+          val = Nodes.build_quoted(nil, @table[:active])
+          sql = compile Nodes::NullSafeNotEqual.new(@table[:name], val)
+          sql.must_be_like %{ "users"."name" IS NOT NULL }
+        end
       end
     end
   end

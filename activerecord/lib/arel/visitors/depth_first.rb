@@ -95,6 +95,8 @@ module Arel # :nodoc: all
         alias :visit_Arel_Nodes_NotEqual           :binary
         alias :visit_Arel_Nodes_NotIn              :binary
         alias :visit_Arel_Nodes_NotRegexp          :binary
+        alias :visit_Arel_Nodes_NullSafeEquality   :binary
+        alias :visit_Arel_Nodes_NullSafeNotEqual   :binary
         alias :visit_Arel_Nodes_Or                 :binary
         alias :visit_Arel_Nodes_OuterJoin          :binary
         alias :visit_Arel_Nodes_Regexp             :binary
