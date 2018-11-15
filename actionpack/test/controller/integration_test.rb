@@ -655,13 +655,32 @@ class ApplicationIntegrationTest < ActionDispatch::IntegrationTest
     @routes ||= ActionDispatch::Routing::RouteSet.new
   end
 
+  class NestedEngine < Rails::Engine
+    def self.routes
+      @routes ||= ActionDispatch::Routing::RouteSet.new
+    end
+
+    routes.draw do
+      root to: "application_integration_test/test#index"
+    end
+
+    class Controller < ActionController::Base
+      include NestedEngine.routes.url_helpers
+    end
+  end
+
   class MountedApp < Rails::Engine
     def self.routes
       @routes ||= ActionDispatch::Routing::RouteSet.new
     end
 
     routes.draw do
+      mount NestedEngine => "/nested"
       get "baz", to: "application_integration_test/test#index", as: :baz
+    end
+
+    class Controller < ActionController::Base
+      include MountedApp.routes.url_helpers
     end
 
     def self.call(*)
@@ -691,6 +710,11 @@ class ApplicationIntegrationTest < ActionDispatch::IntegrationTest
 
   test "includes mounted helpers" do
     assert_equal "/mounted/baz", mounted.baz_path
+  end
+
+  test "mounted engine helpers path outside of controller action" do
+    assert_equal "/mounted/baz", MountedApp::Controller.render(inline: "<%= baz_path %>")
+    assert_equal "/mounted/nested/", NestedEngine::Controller.render(inline: "<%= root_path %>")
   end
 
   test "path after cascade pass" do

@@ -90,7 +90,6 @@ module ActionController
       raise "missing controller" unless controller
 
       request = ActionDispatch::Request.new @env
-      request.routes = controller._routes
 
       instance = controller.new
       instance.set_request! request
