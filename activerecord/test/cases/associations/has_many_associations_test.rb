@@ -801,8 +801,8 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     original_object = collection.first
     assert_same original_object, collection.first, "Expected second call to #first to cache the same object"
 
-    # It should return a different object, since the association has been reloaded
-    assert_not_same original_object, firm.clients.first, "Expected #first to return a new object"
+    # It should return a the same object, since the association has been loaded on the model
+    assert_same original_object, firm.clients.first, "Expected #first to return same object"
   end
 
   def test_find_first_after_reset
@@ -2038,12 +2038,12 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal false, firm.clients.include?(client)
   end
 
-  def test_calling_first_nth_or_last_on_association_should_not_load_association
+  def test_calling_first_nth_or_last_on_association_should_load_association
     firm = companies(:first_firm)
     firm.clients.first
     firm.clients.second
     firm.clients.last
-    assert_not_predicate firm.clients, :loaded?
+    assert_predicate firm.clients, :loaded?
   end
 
   def test_calling_first_or_last_on_loaded_association_should_not_fetch_with_query
@@ -2073,18 +2073,18 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_predicate firm.clients, :loaded?
   end
 
-  def test_calling_first_nth_or_last_on_existing_record_with_create_should_not_load_association
+  def test_calling_first_nth_or_last_on_existing_record_with_create_should_load_association
     firm = companies(:first_firm)
     firm.clients.create(name: "Foo")
     assert_not_predicate firm.clients, :loaded?
 
-    assert_queries 3 do
+    assert_queries 1 do
       firm.clients.first
       firm.clients.second
       firm.clients.last
     end
 
-    assert_not_predicate firm.clients, :loaded?
+    assert_predicate firm.clients, :loaded?
   end
 
   def test_calling_first_nth_or_last_on_new_record_should_not_run_queries
@@ -2097,17 +2097,17 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     end
   end
 
-  def test_calling_first_or_last_with_integer_on_association_should_not_load_association
+  def test_calling_first_or_last_with_integer_on_association_should_load_association
     firm = companies(:first_firm)
     firm.clients.create(name: "Foo")
     assert_not_predicate firm.clients, :loaded?
 
-    assert_queries 2 do
+    assert_queries 1 do
       firm.clients.first(2)
       firm.clients.last(2)
     end
 
-    assert_not_predicate firm.clients, :loaded?
+    assert_predicate firm.clients, :loaded?
   end
 
   def test_calling_many_should_count_instead_of_loading_association

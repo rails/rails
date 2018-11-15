@@ -1,3 +1,7 @@
+*   Allow position finder methods invoked from collection proxies to load the association's target early.
+
+    *Gannon McGibbon*
+
 *   Add an `:if_not_exists` option to `create_table`.
 
     Example:

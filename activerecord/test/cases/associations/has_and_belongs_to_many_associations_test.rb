@@ -367,7 +367,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_not_predicate devel.projects, :loaded?
 
     assert_equal devel.projects.last, proj
-    assert_not_predicate devel.projects, :loaded?
+    assert_predicate devel.projects, :loaded?
 
     assert_predicate proj, :persisted?
     assert_equal Developer.find(1).projects.sort_by(&:id).last, proj  # prove join table is updated
