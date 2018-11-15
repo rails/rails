@@ -11,9 +11,9 @@ module Arel # :nodoc: all
           collector << " ROWS ONLY"
         end
 
-        def null_safe_compare(o, collector)
+        def is_distinct_from(o, collector)
           collector << "DECODE("
-          collector = visit [o.left, o.right, 1, 0], collector
+          collector = visit [o.left, o.right, 0, 1], collector
           collector << ")"
         end
     end

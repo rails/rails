@@ -155,39 +155,39 @@ module Arel
         end
       end
 
-      describe "Nodes::NullSafeEquality" do
+      describe "Nodes::IsNotDistinctFrom" do
         it "should construct a valid generic SQL statement" do
-          test = Table.new(:users)[:name].null_safe_eq "Aaron Patterson"
+          test = Table.new(:users)[:name].is_not_distinct_from "Aaron Patterson"
           compile(test).must_be_like %{
-            CASE WHEN "users"."name" = 'Aaron Patterson' OR ("users"."name" IS NULL AND 'Aaron Patterson' IS NULL) THEN 1 ELSE 0 END = 1
+            CASE WHEN "users"."name" = 'Aaron Patterson' OR ("users"."name" IS NULL AND 'Aaron Patterson' IS NULL) THEN 0 ELSE 1 END = 0
           }
         end
 
         it "should handle column names on both sides" do
-          test = Table.new(:users)[:first_name].null_safe_eq Table.new(:users)[:last_name]
+          test = Table.new(:users)[:first_name].is_not_distinct_from Table.new(:users)[:last_name]
           compile(test).must_be_like %{
-            CASE WHEN "users"."first_name" = "users"."last_name" OR ("users"."first_name" IS NULL AND "users"."last_name" IS NULL) THEN 1 ELSE 0 END = 1
+            CASE WHEN "users"."first_name" = "users"."last_name" OR ("users"."first_name" IS NULL AND "users"."last_name" IS NULL) THEN 0 ELSE 1 END = 0
           }
         end
 
         it "should handle nil" do
           val = Nodes.build_quoted(nil, @table[:active])
-          sql = compile Nodes::NullSafeEquality.new(@table[:name], val)
+          sql = compile Nodes::IsNotDistinctFrom.new(@table[:name], val)
           sql.must_be_like %{ "users"."name" IS NULL }
         end
       end
 
-      describe "Nodes::NullSafeNotEqual" do
+      describe "Nodes::IsDistinctFrom" do
         it "should handle column names on both sides" do
-          test = Table.new(:users)[:first_name].null_safe_not_eq Table.new(:users)[:last_name]
+          test = Table.new(:users)[:first_name].is_distinct_from Table.new(:users)[:last_name]
           compile(test).must_be_like %{
-            CASE WHEN "users"."first_name" = "users"."last_name" OR ("users"."first_name" IS NULL AND "users"."last_name" IS NULL) THEN 1 ELSE 0 END = 0
+            CASE WHEN "users"."first_name" = "users"."last_name" OR ("users"."first_name" IS NULL AND "users"."last_name" IS NULL) THEN 0 ELSE 1 END = 1
           }
         end
 
         it "should handle nil" do
           val = Nodes.build_quoted(nil, @table[:active])
-          sql = compile Nodes::NullSafeNotEqual.new(@table[:name], val)
+          sql = compile Nodes::IsDistinctFrom.new(@table[:name], val)
           sql.must_be_like %{ "users"."name" IS NOT NULL }
         end
       end

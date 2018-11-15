@@ -77,13 +77,13 @@ module Arel # :nodoc: all
           grouping_parentheses o, collector
         end
 
-        def visit_Arel_Nodes_NullSafeEquality(o, collector)
+        def visit_Arel_Nodes_IsNotDistinctFrom(o, collector)
           collector = visit o.left, collector
           collector << " IS NOT DISTINCT FROM "
           visit o.right, collector
         end
 
-        def visit_Arel_Nodes_NullSafeNotEqual(o, collector)
+        def visit_Arel_Nodes_IsDistinctFrom(o, collector)
           collector = visit o.left, collector
           collector << " IS DISTINCT FROM "
           visit o.right, collector

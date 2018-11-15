@@ -12,7 +12,7 @@ module Arel # :nodoc: all
 
       private
 
-        def visit_Arel_Nodes_NullSafeEquality(o, collector)
+        def visit_Arel_Nodes_IsNotDistinctFrom(o, collector)
           right = o.right
 
           if right.nil?
@@ -27,13 +27,13 @@ module Arel # :nodoc: all
           end
         end
 
-        def visit_Arel_Nodes_NullSafeNotEqual(o, collector)
+        def visit_Arel_Nodes_IsDistinctFrom(o, collector)
           if o.right.nil?
             collector = visit o.left, collector
             collector << " IS NOT NULL"
           else
             collector << "NOT "
-            visit_Arel_Nodes_NullSafeEquality o, collector
+            visit_Arel_Nodes_IsNotDistinctFrom o, collector
           end
         end
 

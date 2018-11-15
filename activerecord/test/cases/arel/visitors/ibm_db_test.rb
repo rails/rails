@@ -30,41 +30,41 @@ module Arel
         sql.must_be_like "UPDATE \"users\" WHERE \"users\".\"id\" IN (SELECT \"users\".\"id\" FROM \"users\" FETCH FIRST 1 ROWS ONLY)"
       end
 
-      describe "Nodes::NullSafeEquality" do
+      describe "Nodes::IsNotDistinctFrom" do
         it "should construct a valid generic SQL statement" do
-          test = Table.new(:users)[:name].null_safe_eq "Aaron Patterson"
+          test = Table.new(:users)[:name].is_not_distinct_from "Aaron Patterson"
           compile(test).must_be_like %{
-            DECODE("users"."name", 'Aaron Patterson', 1, 0) = 1
+            DECODE("users"."name", 'Aaron Patterson', 0, 1) = 0
           }
         end
 
         it "should handle column names on both sides" do
-          test = Table.new(:users)[:first_name].null_safe_eq Table.new(:users)[:last_name]
+          test = Table.new(:users)[:first_name].is_not_distinct_from Table.new(:users)[:last_name]
           compile(test).must_be_like %{
-            DECODE("users"."first_name", "users"."last_name", 1, 0) = 1
+            DECODE("users"."first_name", "users"."last_name", 0, 1) = 0
           }
         end
 
         it "should handle nil" do
           @table = Table.new(:users)
           val = Nodes.build_quoted(nil, @table[:active])
-          sql = compile Nodes::NullSafeEquality.new(@table[:name], val)
+          sql = compile Nodes::IsNotDistinctFrom.new(@table[:name], val)
           sql.must_be_like %{ "users"."name" IS NULL }
         end
       end
 
-      describe "Nodes::NullSafeNotEqual" do
+      describe "Nodes::IsDistinctFrom" do
         it "should handle column names on both sides" do
-          test = Table.new(:users)[:first_name].null_safe_not_eq Table.new(:users)[:last_name]
+          test = Table.new(:users)[:first_name].is_distinct_from Table.new(:users)[:last_name]
           compile(test).must_be_like %{
-            DECODE("users"."first_name", "users"."last_name", 1, 0) = 0
+            DECODE("users"."first_name", "users"."last_name", 0, 1) = 1
           }
         end
 
         it "should handle nil" do
           @table = Table.new(:users)
           val = Nodes.build_quoted(nil, @table[:active])
-          sql = compile Nodes::NullSafeNotEqual.new(@table[:name], val)
+          sql = compile Nodes::IsDistinctFrom.new(@table[:name], val)
           sql.must_be_like %{ "users"."name" IS NOT NULL }
         end
       end

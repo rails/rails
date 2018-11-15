@@ -23,13 +23,13 @@ module Arel # :nodoc: all
           collector << "0"
         end
 
-        def visit_Arel_Nodes_NullSafeEquality(o, collector)
+        def visit_Arel_Nodes_IsNotDistinctFrom(o, collector)
           collector = visit o.left, collector
           collector << " IS "
           visit o.right, collector
         end
 
-        def visit_Arel_Nodes_NullSafeNotEqual(o, collector)
+        def visit_Arel_Nodes_IsDistinctFrom(o, collector)
           collector = visit o.left, collector
           collector << " IS NOT "
           visit o.right, collector

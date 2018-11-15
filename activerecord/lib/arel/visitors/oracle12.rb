@@ -57,9 +57,9 @@ module Arel # :nodoc: all
           collector.add_bind(o.value) { |i| ":a#{i}" }
         end
 
-        def null_safe_compare(o, collector)
+        def is_distinct_from(o, collector)
           collector << "DECODE("
-          collector = visit [o.left, o.right, 1, 0], collector
+          collector = visit [o.left, o.right, 0, 1], collector
           collector << ")"
         end
     end

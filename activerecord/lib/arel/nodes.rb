@@ -26,8 +26,6 @@ require "arel/nodes/with"
 # binary
 require "arel/nodes/binary"
 require "arel/nodes/equality"
-require "arel/nodes/null_safe_equality"
-require "arel/nodes/null_safe_not_equal"
 require "arel/nodes/in" # Why is this subclassed from equality?
 require "arel/nodes/join_source"
 require "arel/nodes/delete_statement"

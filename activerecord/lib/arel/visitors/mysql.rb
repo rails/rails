@@ -37,15 +37,15 @@ module Arel # :nodoc: all
           collector
         end
 
-        def visit_Arel_Nodes_NullSafeEquality(o, collector)
+        def visit_Arel_Nodes_IsNotDistinctFrom(o, collector)
           collector = visit o.left, collector
           collector << " <=> "
           visit o.right, collector
         end
 
-        def visit_Arel_Nodes_NullSafeNotEqual(o, collector)
+        def visit_Arel_Nodes_IsDistinctFrom(o, collector)
           collector << "NOT "
-          visit_Arel_Nodes_NullSafeEquality o, collector
+          visit_Arel_Nodes_IsNotDistinctFrom o, collector
         end
 
         # In the simple case, MySQL allows us to place JOINs directly into the UPDATE
