@@ -1,5 +1,11 @@
 # frozen_string_literal: true
 
+def find_delivery_method(attachment)
+  return ActiveStorage.delivery_method unless attachment&.record&.delivery_method&.== :default
+
+  attachment.record.delivery_method
+end
+
 Rails.application.routes.draw do
   scope ActiveStorage.routes_prefix do
     get "/blobs/:signed_id/*filename" => "active_storage/blobs#show", as: :rails_service_blob
@@ -19,11 +25,7 @@ Rails.application.routes.draw do
     variation_key  = representation.variation.key
     filename       = representation.blob.filename
 
-    delivery_method = if representation.attachment.record.delivery_method == :default
-                        ActiveStorage.delivery_method
-                      else
-                        representation.attachment.record.delivery_method
-                      end
+    delivery_method = find_delivery_method(representation.attachment)
 
     case delivery_method
     when :redirect
@@ -43,11 +45,7 @@ Rails.application.routes.draw do
   resolve("ActiveStorage::Blob")       { |blob, options| route_for(:rails_blob, blob, options) }
 
   resolve("ActiveStorage::Attachment") do |attachment, options|
-    delivery_method = if attachment.record.delivery_method == :default
-                        ActiveStorage.delivery_method
-                      else
-                        attachment.record.delivery_method
-                      end
+    delivery_method = find_delivery_method(attachment)
 
     case delivery_method
     when :redirect
