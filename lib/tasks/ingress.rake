@@ -11,7 +11,8 @@ namespace :action_mailbox do
       url, password = ENV.values_at("URL", "INGRESS_PASSWORD")
 
       if url.blank? || password.blank?
-        abort "4.3.5 URL and INGRESS_PASSWORD are required"
+        puts "4.3.5 URL and INGRESS_PASSWORD are required"
+        exit 1
       end
 
       begin
@@ -24,16 +25,21 @@ namespace :action_mailbox do
         when response.status.success?
           puts "2.0.0 HTTP #{response.status}"
         when response.status.unauthorized?
-          abort "4.7.0 HTTP #{response.status}"
+          puts "4.7.0 HTTP #{response.status}"
+          exit 1
         when response.status.unsupported_media_type?
-          abort "5.6.1 HTTP #{response.status}"
+          puts "5.6.1 HTTP #{response.status}"
+          exit 1
         else
-          abort "4.0.0 HTTP #{response.status}"
+          puts "4.0.0 HTTP #{response.status}"
+          exit 1
         end
       rescue HTTP::ConnectionError => error
-        abort "4.4.2 Error connecting to the Postfix ingress: #{error.message}"
+        puts "4.4.2 Error connecting to the Postfix ingress: #{error.message}"
+        exit 1
       rescue HTTP::TimeoutError
-        abort "4.4.7 Timed out piping to the Postfix ingress"
+        puts "4.4.7 Timed out piping to the Postfix ingress"
+        exit 1
       end
     end
   end
