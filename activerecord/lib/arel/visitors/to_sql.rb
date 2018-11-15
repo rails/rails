@@ -641,6 +641,26 @@ module Arel # :nodoc: all
           end
         end
 
+        def visit_Arel_Nodes_IsNotDistinctFrom(o, collector)
+          if o.right.nil?
+            collector = visit o.left, collector
+            collector << " IS NULL"
+          else
+            collector = is_distinct_from(o, collector)
+            collector << " = 0"
+          end
+        end
+
+        def visit_Arel_Nodes_IsDistinctFrom(o, collector)
+          if o.right.nil?
+            collector = visit o.left, collector
+            collector << " IS NOT NULL"
+          else
+            collector = is_distinct_from(o, collector)
+            collector << " = 1"
+          end
+        end
+
         def visit_Arel_Nodes_NotEqual(o, collector)
           right = o.right
 
@@ -872,6 +892,19 @@ module Arel # :nodoc: all
           else
             collector
           end
+        end
+
+        def is_distinct_from(o, collector)
+          collector << "CASE WHEN "
+          collector = visit o.left, collector
+          collector << " = "
+          collector = visit o.right, collector
+          collector << " OR ("
+          collector = visit o.left, collector
+          collector << " IS NULL AND "
+          collector = visit o.right, collector
+          collector << " IS NULL)"
+          collector << " THEN 0 ELSE 1 END"
         end
     end
   end

@@ -37,6 +37,17 @@ module Arel # :nodoc: all
           collector
         end
 
+        def visit_Arel_Nodes_IsNotDistinctFrom(o, collector)
+          collector = visit o.left, collector
+          collector << " <=> "
+          visit o.right, collector
+        end
+
+        def visit_Arel_Nodes_IsDistinctFrom(o, collector)
+          collector << "NOT "
+          visit_Arel_Nodes_IsNotDistinctFrom o, collector
+        end
+
         # In the simple case, MySQL allows us to place JOINs directly into the UPDATE
         # query. However, this does not allow for LIMIT, OFFSET and ORDER. To support
         # these, we must use a subquery.
