@@ -20,7 +20,7 @@ module ActiveRecord
       # Indicates whether to use a stable #cache_key method that is accompanied
       # by a changing version in the #cache_version method.
       #
-      # This is +false+, by default until Rails 6.0.
+      # This is +true+, by default on Rails 5.2 and above.
       class_attribute :cache_versioning, instance_writer: false, default: false
     end
 
