@@ -15,6 +15,8 @@ module ActiveSupport
         end
 
         def record(reporter, result)
+          raise DRb::DRbConnError if result.is_a?(DRb::DRbUnknown)
+
           reporter.synchronize do
             reporter.record(result)
           end
