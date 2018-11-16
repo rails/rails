@@ -89,10 +89,11 @@ module ActiveRecord
       # :singleton-method:
       # PostgreSQL allows the creation of "unlogged" tables, which do not record
       # data in the PostgreSQL Write-Ahead Log. This can make the tables faster,
-      # bug significantly increases the risk of data loss if the database
+      # but significantly increases the risk of data loss if the database
       # crashes. As a result, this should not be used in production
-      # environments. If you would like all created tables to be unlogged you
-      # can add the following line to your test.rb file:
+      # environments. If you would like all created tables to be unlogged in
+      # the test environment you can add the following line to your test.rb
+      # file:
       #
       #   ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.create_unlogged_tables = true
       class_attribute :create_unlogged_tables, default: false
