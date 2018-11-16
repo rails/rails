@@ -1145,7 +1145,7 @@ module ActiveRecord
       def add_index_options(table_name, column_name, comment: nil, **options) # :nodoc:
         column_names = index_column_names(column_name)
 
-        options.assert_valid_keys(:unique, :order, :name, :where, :length, :internal, :using, :algorithm, :type, :opclass)
+        options.assert_valid_keys(:unique, :order, :name, :where, :length, :internal, :using, :algorithm, :type, :opclass, :with)
 
         index_type = options[:type].to_s if options.key?(:type)
         index_type ||= options[:unique] ? "UNIQUE" : ""
@@ -1160,6 +1160,12 @@ module ActiveRecord
 
         using = "USING #{options[:using]}" if options[:using].present?
 
+        with = nil
+        if options[:with].present?
+          with_items = options[:with].map {|name, value| "#{name} = #{value}"}
+          with = "WITH #{with_items.join(',')}" 
+        end
+
         if supports_partial_index?
           index_options = options[:where] ? " WHERE #{options[:where]}" : ""
         end
@@ -1171,7 +1177,7 @@ module ActiveRecord
         end
         index_columns = quoted_columns_for_index(column_names, options).join(", ")
 
-        [index_name, index_type, index_columns, index_options, algorithm, using, comment]
+        [index_name, index_type, index_columns, index_options, algorithm, using, with, comment]
       end
 
       def options_include_default?(options)
