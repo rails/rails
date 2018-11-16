@@ -21,8 +21,8 @@ class ActionMailbox::Base
   end
 
   def perform_processing
-    run_callbacks :process do
-      track_status_of_inbound_email do
+    track_status_of_inbound_email do
+      run_callbacks :process do
         process
       end
     end
