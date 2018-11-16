@@ -93,7 +93,7 @@ PATH
       activesupport (= 6.0.0.alpha)
       method_source
       rake (>= 0.8.7)
-      thor (>= 0.19.0, < 2.0)
+      thor (>= 0.20.3, < 2.0)
 
 GEM
   remote: https://rubygems.org/
@@ -304,7 +304,7 @@ GEM
     marcel (0.3.3)
       mimemagic (~> 0.3.2)
     memoist (0.16.0)
-    method_source (0.9.1)
+    method_source (0.9.2)
     mime-types (3.2.2)
       mime-types-data (~> 3.2015)
     mime-types-data (3.2018.0812)
