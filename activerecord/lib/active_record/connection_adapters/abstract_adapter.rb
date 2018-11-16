@@ -580,14 +580,12 @@ module ActiveRecord
           $1.to_i if sql_type =~ /\((.*)\)/
         end
 
-        def translate_exception_class(e, sql)
-          begin
-            message = "#{e.class.name}: #{e.message}: #{sql}"
-          rescue Encoding::CompatibilityError
-            message = "#{e.class.name}: #{e.message.force_encoding sql.encoding}: #{sql}"
-          end
+        def translate_exception_class(e, sql, binds)
+          message = "#{e.class.name}: #{e.message}"
 
-          exception = translate_exception(e, message)
+          exception = translate_exception(
+            e, message: message, sql: sql, binds: binds
+          )
           exception.set_backtrace e.backtrace
           exception
         end
@@ -606,18 +604,18 @@ module ActiveRecord
                 yield
               end
             rescue => e
-              raise translate_exception_class(e, sql)
+              raise translate_exception_class(e, sql, binds)
             end
           end
         end
 
-        def translate_exception(exception, message)
+        def translate_exception(exception, message:, sql:, binds:)
           # override in derived class
           case exception
           when RuntimeError
             exception
           else
-            ActiveRecord::StatementInvalid.new(message)
+            ActiveRecord::StatementInvalid.new(message, sql: sql, binds: binds)
           end
         end
 

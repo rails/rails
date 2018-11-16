@@ -1,3 +1,23 @@
+*   Move `ActiveRecord::StatementInvalid` SQL to error property and include binds as separate error property.
+
+    `ActiveRecord::ConnectionAdapters::AbstractAdapter#translate_exception_class` now requires `binds` to be passed as the last argument.
+
+    `ActiveRecord::ConnectionAdapters::AbstractAdapter#translate_exception` now requires `message`, `sql`, and `binds` to be passed as keyword arguments.
+
+    Subclasses of `ActiveRecord::StatementInvalid` must now provide `sql:` and `binds:` arguments to `super`.
+
+    Example:
+
+    ```
+    class MySubclassedError < ActiveRecord::StatementInvalid
+      def initialize(message, sql:, binds:)
+        super(message, sql: sql, binds: binds)
+      end
+    end
+    ```
+
+    *Gannon McGibbon*
+
 *   Add an `:if_not_exists` option to `create_table`.
 
     Example:

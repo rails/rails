@@ -286,18 +286,6 @@ module ActiveRecord
       assert_equal "special_db_type", @connection.type_to_sql(:special_db_type)
     end
 
-    unless current_adapter?(:PostgreSQLAdapter)
-      def test_log_invalid_encoding
-        error = assert_raises RuntimeError do
-          @connection.send :log, "SELECT 'ы' FROM DUAL" do
-            raise (+"ы").force_encoding(Encoding::ASCII_8BIT)
-          end
-        end
-
-        assert_equal "ы", error.message
-      end
-    end
-
     def test_supports_multi_insert_is_deprecated
       assert_deprecated { @connection.supports_multi_insert? }
     end
