@@ -302,7 +302,7 @@ class Product < ApplicationRecord
 end
 ```
 
-NOTE: Notice that in this example we used the `cache_key` method, so the resulting cache key will be something like `products/233-20140225082222765838000/competing_price`. `cache_key` generates a string based on the model's `id` and `updated_at` attributes. This is a common convention and has the benefit of invalidating the cache whenever the product is updated. In general, when you use low-level caching for instance level information, you need to generate a cache key.
+NOTE: Notice that in this example we used the `cache_key_with_version` method, so the resulting cache key will be something like `products/233-20140225082222765838000/competing_price`. `cache_key_with_version` generates a string based on the model's `id` and `updated_at` attributes. This is a common convention and has the benefit of invalidating the cache whenever the product is updated. In general, when you use low-level caching for instance level information, you need to generate a cache key.
 
 ### SQL Caching
 
@@ -563,7 +563,7 @@ class ProductsController < ApplicationController
 
     # If the request is stale according to the given timestamp and etag value
     # (i.e. it needs to be processed again) then execute this block
-    if stale?(last_modified: @product.updated_at.utc, etag: @product.cache_key)
+    if stale?(last_modified: @product.updated_at.utc, etag: @product.cache_key_with_version)
       respond_to do |wants|
         # ... normal response processing
       end
@@ -577,7 +577,7 @@ class ProductsController < ApplicationController
 end
 ```
 
-Instead of an options hash, you can also simply pass in a model. Rails will use the `updated_at` and `cache_key` methods for setting `last_modified` and `etag`:
+Instead of an options hash, you can also simply pass in a model. Rails will use the `updated_at` and `cache_key_with_version` methods for setting `last_modified` and `etag`:
 
 ```ruby
 class ProductsController < ApplicationController
