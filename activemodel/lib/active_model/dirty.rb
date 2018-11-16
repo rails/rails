@@ -141,7 +141,9 @@ module ActiveModel
       @mutations_from_database = nil
     end
 
-    def changes_applied # :nodoc:
+    # Clears dirty data and moves +changes+ to +previously_changed+ and
+    # +mutations_from_database+ to +mutations_before_last_save+ respectively.
+    def changes_applied
       unless defined?(@attributes)
         @previously_changed = changes
       end
