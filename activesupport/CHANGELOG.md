@@ -289,4 +289,10 @@
     *Eileen M. Uchitelle*, *Aaron Patterson*
 
 
+*   Adds `.to_bool` behaviour to String, Integer, Float, Array, Hash, TrueClass, FalseClass and NilClass.
+
+    Parallelize your test suite with forked processes or threads.
+
+    *André Leoni*
+
 Please check [5-2-stable](https://github.com/rails/rails/blob/5-2-stable/activesupport/CHANGELOG.md) for previous changes.

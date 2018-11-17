@@ -29,6 +29,7 @@ require "active_support/version"
 require "active_support/logger"
 require "active_support/lazy_load_hooks"
 require "active_support/core_ext/date_and_time/compatibility"
+require "active_support/core_ext/object/to_boolean"
 
 module ActiveSupport
   extend ActiveSupport::Autoload
