@@ -28,8 +28,8 @@ class ActiveStorage::Attachment < ActiveRecord::Base
     blob&.purge_later
   end
 
-  # When creating a variant or preview the attachment is passed in so the router can use its delivery_method to
-  # determine how to route the representation.
+  # When creating a variant or preview the attachment is passed in so the router can use the attachment's
+  # delivery_method to determine how to route the representation.
   def variant(transformations)
     blob.variant(transformations, self)
   end
