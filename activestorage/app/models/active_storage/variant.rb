@@ -55,15 +55,11 @@ require "ostruct"
 class ActiveStorage::Variant
   WEB_IMAGE_CONTENT_TYPES = %w[ image/png image/jpeg image/jpg image/gif ]
 
-  attr_reader :blob, :variation
+  attr_reader :blob, :variation, :attachment
   delegate :service, to: :blob
 
   def initialize(blob, variation_or_variation_key, attachment = nil)
     @blob, @variation, @attachment = blob, ActiveStorage::Variation.wrap(variation_or_variation_key), attachment
-  end
-
-  def attachment
-    @attachment
   end
 
   # Returns the variant instance itself after it's been processed or an existing processing has been found on the service.
