@@ -40,11 +40,11 @@ Rails.application.routes.draw do
   direct :rails_blob do |blob, options|
     case ActiveStorage.delivery_method
     when :redirect
-      route_for(:rails_service_blob, attachment.blob.signed_id, attachment.blob.filename, options)
+      route_for(:rails_service_blob, blob.signed_id, blob.filename, options)
     when :proxy
-      route_for(:rails_blob_proxy, attachment.blob.signed_id, attachment.blob.filename, options)
+      route_for(:rails_blob_proxy, blob.signed_id, blob.filename, options)
     when :direct
-      attachment.blob.service_url
+      blob.service_url
     end
   end
 
