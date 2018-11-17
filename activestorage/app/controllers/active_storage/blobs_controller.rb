@@ -8,15 +8,6 @@ class ActiveStorage::BlobsController < ActiveStorage::BaseController
   include ActiveStorage::SetBlob
 
   def show
-    case ActiveStorage.delivery_method
-    when :redirect
-      redirect
-    when :proxy
-      proxy
-    end
-  end
-
-  def redirect
     expires_in ActiveStorage.service_urls_expire_in
     redirect_to @blob.service_url(disposition: params[:disposition])
   end

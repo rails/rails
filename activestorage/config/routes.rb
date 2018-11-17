@@ -1,15 +1,12 @@
 # frozen_string_literal: true
 
-def find_delivery_method(attachment)
-  return ActiveStorage.delivery_method unless attachment&.record&.delivery_method&.== :default
-
-  attachment.record.delivery_method
+def resolve_delivery_method(attachment)
+  attachment&.record&.delivery_method || ActiveStorage.delivery_method
 end
 
 Rails.application.routes.draw do
   scope ActiveStorage.routes_prefix do
     get "/blobs/:signed_id/*filename" => "active_storage/blobs#show", as: :rails_service_blob
-    get "/blobs_redirect/:signed_id/*filename" => "active_storage/blobs#redirect", as: :rails_blob_redirect
     get "/blobs_proxy/:signed_id/*filename" => "active_storage/blobs#proxy", as: :rails_blob_proxy
 
     get "/representations/:signed_blob_id/:variation_key/*filename" => "active_storage/representations#show", as: :rails_blob_representation
@@ -25,13 +22,15 @@ Rails.application.routes.draw do
     variation_key  = representation.variation.key
     filename       = representation.blob.filename
 
-    delivery_method = find_delivery_method(representation.attachment)
+    delivery_method = resolve_delivery_method(representation.attachment)
 
     case delivery_method
     when :redirect
       route_for(:rails_blob_representation, signed_blob_id, variation_key, filename, options)
     when :proxy
       route_for(:rails_blob_representation_proxy, signed_blob_id, variation_key, filename, options)
+    when :direct
+      representation.blob.service_url
     end
   end
 
@@ -39,19 +38,26 @@ Rails.application.routes.draw do
   resolve("ActiveStorage::Preview") { |preview, options| route_for(:rails_representation, preview, options) }
 
   direct :rails_blob do |blob, options|
-    route_for(:rails_service_blob, blob.signed_id, blob.filename, options)
+    case ActiveStorage.delivery_method
+    when :redirect
+      route_for(:rails_service_blob, attachment.blob.signed_id, attachment.blob.filename, options)
+    when :proxy
+      route_for(:rails_blob_proxy, attachment.blob.signed_id, attachment.blob.filename, options)
+    when :direct
+      attachment.blob.service_url
+    end
   end
 
-  resolve("ActiveStorage::Blob")       { |blob, options| route_for(:rails_blob, blob, options) }
-
   resolve("ActiveStorage::Attachment") do |attachment, options|
-    delivery_method = find_delivery_method(attachment)
+    delivery_method = resolve_delivery_method(attachment)
 
     case delivery_method
     when :redirect
-      route_for(:rails_blob_redirect, attachment.blob.signed_id, attachment.blob.filename, options)
+      route_for(:rails_service_blob, attachment.blob.signed_id, attachment.blob.filename, options)
     when :proxy
       route_for(:rails_blob_proxy, attachment.blob.signed_id, attachment.blob.filename, options)
+    when :direct
+      attachment.blob.service_url
     end
   end
 end
