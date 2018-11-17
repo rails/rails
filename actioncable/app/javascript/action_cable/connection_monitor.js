@@ -75,8 +75,8 @@ class ConnectionMonitor {
   }
 
   getPollInterval() {
-    const {min, max} = this.constructor.pollInterval
-    const interval = 5 * Math.log(this.reconnectAttempts + 1)
+    const {min, max, multiplier} = this.constructor.pollInterval
+    const interval = multiplier * Math.log(this.reconnectAttempts + 1)
     return Math.round(clamp(interval, min, max) * 1000)
   }
 
@@ -117,7 +117,8 @@ class ConnectionMonitor {
 
 ConnectionMonitor.pollInterval = {
   min: 3,
-  max: 30
+  max: 30,
+  multiplier: 5
 }
 
 ConnectionMonitor.staleThreshold = 6 // Server::Connections::BEAT_INTERVAL * 2 (missed two pings)
