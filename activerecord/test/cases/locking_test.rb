@@ -660,6 +660,14 @@ unless in_memory_db?
       end
     end
 
+    def test_lock_does_not_raise_if_record_is_dirty_and_lock_false
+      person = Person.find 1
+      person.first_name = "fooman"
+      assert_nothing_raised do
+        person.lock!(false)
+      end
+    end
+
     def test_locking_in_after_save_callback
       assert_nothing_raised do
         frog = ::Frog.create(name: "Old Frog")
