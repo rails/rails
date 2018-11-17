@@ -30,7 +30,7 @@ Rails.application.routes.draw do
     when :proxy
       route_for(:rails_blob_representation_proxy, signed_blob_id, variation_key, filename, options)
     when :direct
-      representation.blob.service_url
+      representation.processed.service_url
     end
   end
 
