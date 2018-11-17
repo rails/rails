@@ -186,8 +186,7 @@ module ActionView
             when Hash
               text = options[:include_blank][:text]
               value = options[:include_blank][:value]
-              hidden = options[:include_blank][:hidden]
-              tag_builder.content_tag_string("option", text, value: value, hidden: hidden)
+              tag_builder.content_tag_string("option", text, value: value)
             else
               tag_builder.content_tag_string("option", nil, value: "")
             end

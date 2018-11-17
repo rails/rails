@@ -1044,8 +1044,12 @@ class FormOptionsHelperTest < ActionView::TestCase
       collection_select("post", "author_name", dummy_posts, "author_name", "author_name", include_blank: {})
     )
     assert_dom_equal(
-      "<select id=\"post_author_name\" name=\"post[author_name]\"><option hidden=\"hidden\">No Selection</option>\n<option value=\"&lt;Abe&gt;\">&lt;Abe&gt;</option>\n<option value=\"Babe\" selected=\"selected\">Babe</option>\n<option value=\"Cabe\">Cabe</option></select>",
-      collection_select("post", "author_name", dummy_posts, "author_name", "author_name", include_blank: { text: "No Selection", hidden: true })
+      "<select id=\"post_author_name\" name=\"post[author_name]\"><option>No Selection</option>\n<option value=\"&lt;Abe&gt;\">&lt;Abe&gt;</option>\n<option value=\"Babe\" selected=\"selected\">Babe</option>\n<option value=\"Cabe\">Cabe</option></select>",
+      collection_select("post", "author_name", dummy_posts, "author_name", "author_name", include_blank: { text: "No Selection" })
+    )
+    assert_dom_equal(
+      "<select id=\"post_author_name\" name=\"post[author_name]\"><option value=\"0\">No Selection</option>\n<option value=\"&lt;Abe&gt;\">&lt;Abe&gt;</option>\n<option value=\"Babe\" selected=\"selected\">Babe</option>\n<option value=\"Cabe\">Cabe</option></select>",
+      collection_select("post", "author_name", dummy_posts, "author_name", "author_name", include_blank: { text: "No Selection", value: "0" })
     )
   end
 
@@ -1054,8 +1058,8 @@ class FormOptionsHelperTest < ActionView::TestCase
     @post.author_name = "Babe"
 
     assert_dom_equal(
-      "<select id=\"post_author_name\" name=\"post[author_name]\" style=\"width: 200px\"><option value=\"0\" hidden=\"hidden\">No Selection</option>\n<option value=\"&lt;Abe&gt;\">&lt;Abe&gt;</option>\n<option value=\"Babe\" selected=\"selected\">Babe</option>\n<option value=\"Cabe\">Cabe</option></select>",
-      collection_select("post", "author_name", dummy_posts, "author_name", "author_name", { include_blank: { text: "No Selection", value: "0", hidden: true } }, { "style" => "width: 200px" })
+      "<select id=\"post_author_name\" name=\"post[author_name]\" style=\"width: 200px\"><option value=\"0\">No Selection</option>\n<option value=\"&lt;Abe&gt;\">&lt;Abe&gt;</option>\n<option value=\"Babe\" selected=\"selected\">Babe</option>\n<option value=\"Cabe\">Cabe</option></select>",
+      collection_select("post", "author_name", dummy_posts, "author_name", "author_name", { include_blank: { text: "No Selection", value: "0" } }, { "style" => "width: 200px" })
     )
   end
 
