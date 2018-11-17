@@ -122,6 +122,13 @@ class ActiveStorage::Blob < ActiveRecord::Base
     content_type.start_with?("text")
   end
 
+  def disposition(disposition_override = nil)
+    ActionDispatch::Http::ContentDisposition.format(
+      disposition: disposition_override || "inline",
+      filename: filename.sanitized
+    )
+  end
+
 
   # Returns the URL of the blob on the service. This URL is intended to be short-lived for security and not used directly
   # with users. Instead, the +service_url+ should only be exposed as a redirect from a stable, possibly authenticated URL.
