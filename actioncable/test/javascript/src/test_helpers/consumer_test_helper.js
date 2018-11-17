@@ -1,5 +1,4 @@
-import "../../vendor/mock-socket"
-
+import { WebSocket as MockWebSocket, Server as MockServer } from "mock-socket"
 import ActionCable from "../../../../app/javascript/action_cable/index"
 import {defer, testURL} from "./index"
 

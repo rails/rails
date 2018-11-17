@@ -2675,6 +2675,12 @@ mkdirp@^0.5.0, mkdirp@^0.5.1:
   dependencies:
     minimist "0.0.8"
 
+mock-socket@^2.0.0:
+  version "2.0.0"
+  resolved "http://registry.npmjs.org/mock-socket/-/mock-socket-2.0.0.tgz#d2f941eb8010c2beaa97983e4827fbc62111abcb"
+  dependencies:
+    urijs "~1.17.0"
+
 ms@2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/ms/-/ms-2.0.0.tgz#5608aeadfc00be6c2901df5f9861788de0d597c8"
@@ -3882,6 +3888,10 @@ unset-value@^1.0.0:
 upath@^1.0.5:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/upath/-/upath-1.1.0.tgz#35256597e46a581db4793d0ce47fa9aebfc9fabd"
+
+urijs@~1.17.0:
+  version "1.17.1"
+  resolved "https://registry.yarnpkg.com/urijs/-/urijs-1.17.1.tgz#0a28bf2e00dfc24eeb0974feb8268a238c7bac2d"
 
 urix@^0.1.0:
   version "0.1.0"
