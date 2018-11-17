@@ -48,6 +48,7 @@ Rails.application.routes.draw do
     end
   end
 
+  resolve("ActiveStorage::Blob")       { |blob, options| route_for(:rails_blob, blob, options) }
   resolve("ActiveStorage::Attachment") do |attachment, options|
     delivery_method = resolve_delivery_method(attachment)
 
