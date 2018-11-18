@@ -308,7 +308,7 @@ class ActionsTest < Rails::Generators::TestCase
     end
   end
 
-  def test_rails_should_run_rake_command_with_default_env
+  def test_rake_should_run_rake_command_with_default_env
     assert_called_with(generator, :run, ["rake log:clear RAILS_ENV=development", verbose: false]) do
       with_rails_env nil do
         action :rake, "log:clear"
@@ -316,13 +316,13 @@ class ActionsTest < Rails::Generators::TestCase
     end
   end
 
-  def test_rails_with_env_option_should_run_rake_command_in_env
+  def test_rake_with_env_option_should_run_rake_command_in_env
     assert_called_with(generator, :run, ["rake log:clear RAILS_ENV=production", verbose: false]) do
       action :rake, "log:clear", env: "production"
     end
   end
 
-  test "rails command with RAILS_ENV variable should run rake command in env" do
+  test "rake with RAILS_ENV variable should run rake command in env" do
     assert_called_with(generator, :run, ["rake log:clear RAILS_ENV=production", verbose: false]) do
       with_rails_env "production" do
         action :rake, "log:clear"
@@ -338,7 +338,7 @@ class ActionsTest < Rails::Generators::TestCase
     end
   end
 
-  test "rails command with sudo option should run rake command with sudo" do
+  test "rake with sudo option should run rake command with sudo" do
     assert_called_with(generator, :run, ["sudo rake log:clear RAILS_ENV=development", verbose: false]) do
       with_rails_env nil do
         action :rake, "log:clear", sudo: true
