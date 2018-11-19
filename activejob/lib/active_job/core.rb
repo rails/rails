@@ -78,7 +78,7 @@ module ActiveJob
     end
 
     # Returns a hash with the job data that can safely be passed to the
-    # queueing adapter.
+    # queuing adapter.
     def serialize
       {
         "job_class"  => self.class.name,
