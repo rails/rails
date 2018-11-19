@@ -107,7 +107,7 @@ module ActiveRecord
     #   end
     def connected_to(database: nil, role: nil, &blk)
       if database && role
-        raise ArgumentError, "connected_to can only accept a database or role argument, but not both arguments."
+        raise ArgumentError, "connected_to can only accept a `database` or a `role` argument, but not both arguments."
       elsif database
         if database.is_a?(Hash)
           role, database = database.first
