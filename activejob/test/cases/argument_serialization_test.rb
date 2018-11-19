@@ -5,6 +5,7 @@ require "active_job/arguments"
 require "models/person"
 require "active_support/core_ext/hash/indifferent_access"
 require "jobs/kwargs_job"
+require "support/stubs/strong_parameters"
 
 class ArgumentSerializationTest < ActiveSupport::TestCase
   setup do
@@ -47,6 +48,15 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
 
   test "should maintain string and symbol keys" do
     assert_arguments_roundtrip([a: 1, "b" => 2])
+  end
+
+  test "serialize a ActionController::Parameters" do
+    parameters = Parameters.new(a: 1)
+
+    assert_equal(
+      { "a" => 1, "_aj_hash_with_indifferent_access" => true },
+      ActiveJob::Arguments.serialize([parameters]).first
+    )
   end
 
   test "serialize a hash" do
