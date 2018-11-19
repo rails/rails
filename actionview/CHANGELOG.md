@@ -1,3 +1,21 @@
+*   Prevent `ActionView::TextHelper#word_wrap` from unexpectedly stripping white space from the _left_ side of lines.
+
+    For example, given input like this:
+
+    ```
+        This is a paragraph with an initial indent,
+    followed by additional lines that are not indented,
+    and finally terminated with a blockquote:
+      "A pithy saying"
+    ```
+
+    Calling `word_wrap` should not trim the indents on the first and last lines.
+
+    Fixes #34487
+
+    *Lyle Mullican*
+
+
 *   Add allocations to template rendering instrumentation.
 
     Adds the allocations for template and partial rendering to the server output on render.

@@ -361,6 +361,10 @@ class TextHelperTest < ActionView::TestCase
     assert_equal("my very very\nvery long\nstring\n\nwith another\nline", word_wrap("my very very very long string\n\nwith another line", line_width: 15))
   end
 
+  def test_word_wrap_with_leading_spaces
+    assert_equal("  This is a paragraph\nthat includes some\nindented lines:\n  Like this sample\n  blockquote", word_wrap("  This is a paragraph that includes some\nindented lines:\n  Like this sample\n  blockquote", line_width: 25))
+  end
+
   def test_word_wrap_does_not_modify_the_options_hash
     options = { line_width: 15 }
     passed_options = options.dup
