@@ -3,7 +3,7 @@
 module ActiveJob
   # == Active Job adapters
   #
-  # Active Job has adapters for the following queueing backends:
+  # Active Job has adapters for the following queuing backends:
   #
   # * {Backburner}[https://github.com/nesquena/backburner]
   # * {Delayed Job}[https://github.com/collectiveidea/delayed_job]
@@ -52,7 +52,7 @@ module ActiveJob
   #
   # No: The adapter will run jobs at the next opportunity and cannot use perform_later.
   #
-  # N/A: The adapter does not support queueing.
+  # N/A: The adapter does not support queuing.
   #
   # NOTE:
   # queue_classic supports job scheduling since version 3.1.
@@ -74,7 +74,7 @@ module ActiveJob
   #
   # No: Does not allow the priority of jobs to be configured.
   #
-  # N/A: The adapter does not support queueing, and therefore sorting them.
+  # N/A: The adapter does not support queuing, and therefore sorting them.
   #
   # ==== Timeout
   #
