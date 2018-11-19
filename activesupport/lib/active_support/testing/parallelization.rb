@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require "drb"
-require "drb/unix"
+require "drb/unix" unless Gem.win_platform?
 require "active_support/core_ext/module/attribute_accessors"
 
 module ActiveSupport

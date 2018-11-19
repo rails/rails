@@ -55,6 +55,11 @@ module ActiveSupport
       attr_reader :name, :time, :transaction_id, :payload, :children
       attr_accessor :end
 
+      def self.clock_gettime_supported? # :nodoc:
+        defined?(Process::CLOCK_PROCESS_CPUTIME_ID) &&
+        !Gem.win_platform?
+      end
+
       def initialize(name, start, ending, transaction_id, payload)
         @name           = name
         @payload        = payload.dup
@@ -130,7 +135,7 @@ module ActiveSupport
           Process.clock_gettime(Process::CLOCK_MONOTONIC)
         end
 
-        if defined?(Process::CLOCK_PROCESS_CPUTIME_ID)
+        if clock_gettime_supported?
           def now_cpu
             Process.clock_gettime(Process::CLOCK_PROCESS_CPUTIME_ID)
           end
