@@ -289,7 +289,7 @@ style if the code inside your block is so short that it fits in a single line.
 For example, you could send metrics for every job enqueued:
 
 ```ruby
-class ApplicationJob
+class ApplicationJob < ActiveJob::Base
   before_enqueue { |job| $statsd.increment "#{job.class.name.underscore}.enqueue" }
 end
 ```
