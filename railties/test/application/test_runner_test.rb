@@ -586,6 +586,20 @@ module ApplicationTests
       assert_match "1 runs, 0 assertions, 0 failures, 1 errors", output
     end
 
+    def test_run_in_parallel_with_unknown_object
+      create_scaffold
+      app_file "config/environments/test.rb", <<-RUBY
+        Rails.application.configure do
+          config.action_controller.allow_forgery_protection = true
+          config.action_dispatch.show_exceptions = false
+        end
+      RUBY
+
+      output = run_test_command("-n test_should_create_user")
+
+      assert_match "ActionController::InvalidAuthenticityToken", output
+    end
+
     def test_raise_error_when_specified_file_does_not_exist
       error = capture(:stderr) { run_test_command("test/not_exists.rb", stderr: true) }
       assert_match(%r{cannot load such file.+test/not_exists\.rb}, error)
