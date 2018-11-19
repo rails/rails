@@ -1,4 +1,8 @@
-*   Restore HashWithIndifferentAccess support to ActiveJob::Arguments.deserialize.
+*   Restore `ActionController::Parameters` support to `ActiveJob::Arguments.serialize`.
+
+    *Bernie Chiu*
+
+*   Restore `HashWithIndifferentAccess` support to `ActiveJob::Arguments.deserialize`.
 
     *Gannon McGibbon*
 
