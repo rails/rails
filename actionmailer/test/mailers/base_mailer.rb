@@ -111,6 +111,13 @@ class BaseMailer < ActionMailer::Base
     mail(template_name: template_name)
   end
 
+  def implicit_different_template_with_block(template_name = "")
+    mail(template_name: template_name) do |format|
+      format.text
+      format.html
+    end
+  end
+
   def explicit_different_template(template_name = "")
     mail do |format|
       format.text { render template: "#{mailer_name}/#{template_name}" }

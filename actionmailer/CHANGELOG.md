@@ -1,3 +1,8 @@
+*   Mails with multipart `format` blocks with implicit render now also check for
+    a template name in options hash instead of only using the action name.
+
+    *Marcus Ilgner*
+
 *   Allow ActionMailer classes to configure the parameterized delivery job
     Example:
     ```
