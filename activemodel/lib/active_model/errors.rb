@@ -112,6 +112,17 @@ module ActiveModel
       @details.merge!(other.details) { |_, ary1, ary2| ary1 + ary2 }
     end
 
+    # Removes all errors except the given keys. Returns a hash containing the removed errors.
+    #
+    #   person.errors.keys                  # => [:name, :age, :gender, :city]
+    #   person.errors.slice!(:age, :gender) # => { :name=>["cannot be nil"], :city=>["cannot be nil"] }
+    #   person.errors.keys                  # => [:age, :gender]
+    def slice!(*keys)
+      keys = keys.map(&:to_sym)
+      @details.slice!(*keys)
+      @messages.slice!(*keys)
+    end
+
     # Clear the error messages.
     #
     #   person.errors.full_messages # => ["name cannot be nil"]

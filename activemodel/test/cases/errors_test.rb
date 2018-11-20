@@ -411,6 +411,30 @@ class ErrorsTest < ActiveModel::TestCase
     assert_equal({ name: [{ error: :blank }, { error: :invalid }] }, person.errors.details)
   end
 
+  test "slice! removes all errors except the given keys" do
+    person = Person.new
+    person.errors.add(:name, "cannot be nil")
+    person.errors.add(:age, "cannot be nil")
+    person.errors.add(:gender, "cannot be nil")
+    person.errors.add(:city, "cannot be nil")
+
+    person.errors.slice!(:age, "gender")
+
+    assert_equal [:age, :gender], person.errors.keys
+  end
+
+  test "slice! returns the deleted errors" do
+    person = Person.new
+    person.errors.add(:name, "cannot be nil")
+    person.errors.add(:age, "cannot be nil")
+    person.errors.add(:gender, "cannot be nil")
+    person.errors.add(:city, "cannot be nil")
+
+    removed_errors = person.errors.slice!(:age, "gender")
+
+    assert_equal({ name: ["cannot be nil"], city: ["cannot be nil"] }, removed_errors)
+  end
+
   test "errors are marshalable" do
     errors = ActiveModel::Errors.new(Person.new)
     errors.add(:name, :invalid)

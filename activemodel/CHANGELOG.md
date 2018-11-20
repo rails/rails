@@ -1,3 +1,7 @@
+*   Add `#slice!` method to `ActiveModel::Errors`.
+
+    *Daniel López Prat*
+
 *   Fix numericality validator to still use value before type cast except Active Record.
 
     Fixes #33651, #33686.
