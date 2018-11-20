@@ -156,7 +156,7 @@ To install all run:
 # portmaster databases/redis
 ```
 
-Or install everyting through ports (these packages are located under the
+Or install everything through ports (these packages are located under the
 `databases` folder).
 
 NOTE: If you run into troubles during the installation of MySQL, please see
