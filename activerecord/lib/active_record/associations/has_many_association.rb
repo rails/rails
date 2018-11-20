@@ -130,6 +130,14 @@ module ActiveRecord
           end
           saved_successfully
         end
+
+        def difference(a, b)
+          a - b
+        end
+
+        def intersection(a, b)
+          a & b
+        end
     end
   end
 end
