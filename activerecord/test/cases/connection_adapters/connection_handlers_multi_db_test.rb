@@ -280,6 +280,43 @@ module ActiveRecord
         assert_nil @rw_handler.retrieve_connection_pool("foo")
         assert_nil @ro_handler.retrieve_connection_pool("foo")
       end
+
+      def test_connection_handlers_are_per_thread_and_not_per_fiber
+        original_handlers = ActiveRecord::Base.connection_handlers
+
+        ActiveRecord::Base.connection_handlers = { writing: ActiveRecord::Base.default_connection_handler, reading: ActiveRecord::ConnectionAdapters::ConnectionHandler.new }
+
+        reading_handler = ActiveRecord::Base.connection_handlers[:reading]
+
+        reading = ActiveRecord::Base.with_handler(:reading) do
+          Person.connection_handler
+        end
+
+        assert_not_equal reading, ActiveRecord::Base.connection_handler
+        assert_equal reading, reading_handler
+      ensure
+        ActiveRecord::Base.connection_handlers = original_handlers
+      end
+
+      def test_connection_handlers_swapping_connections_in_fiber
+        original_handlers = ActiveRecord::Base.connection_handlers
+
+        ActiveRecord::Base.connection_handlers = { writing: ActiveRecord::Base.default_connection_handler, reading: ActiveRecord::ConnectionAdapters::ConnectionHandler.new }
+
+        reading_handler = ActiveRecord::Base.connection_handlers[:reading]
+
+        enum = Enumerator.new do |r|
+          r << ActiveRecord::Base.connection_handler
+        end
+
+        reading = ActiveRecord::Base.with_handler(:reading) do
+          enum.next
+        end
+
+        assert_equal reading, reading_handler
+      ensure
+        ActiveRecord::Base.connection_handlers = original_handlers
+      end
     end
   end
 end
