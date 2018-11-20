@@ -1171,10 +1171,16 @@ module ActionDispatch
           end
 
           def actions
+            if @except
+              available_actions - Array(@except).map(&:to_sym)
+            else
+              available_actions
+            end
+          end
+
+          def available_actions
             if @only
               Array(@only).map(&:to_sym)
-            elsif @except
-              default_actions - Array(@except).map(&:to_sym)
             else
               default_actions
             end
