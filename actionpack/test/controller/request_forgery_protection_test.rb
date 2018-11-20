@@ -191,7 +191,7 @@ module RequestForgeryProtectionTests
         get :index
       end
       assert_select "form>input[name=?][value=?]", "custom_authenticity_token", @token
-      assert_no_cache
+      assert_equal "no-cache", @response.headers["Cache-Control"]
     end
   end
 
@@ -201,7 +201,7 @@ module RequestForgeryProtectionTests
         get :show_button
       end
       assert_select "form>input[name=?][value=?]", "custom_authenticity_token", @token
-      assert_no_cache
+      assert_equal "no-cache", @response.headers["Cache-Control"]
     end
   end
 
@@ -220,7 +220,7 @@ module RequestForgeryProtectionTests
         get :form_for_remote
       end
       assert_match(/authenticity_token/, response.body)
-      assert_no_cache
+      assert_equal "no-cache", @response.headers["Cache-Control"]
     ensure
       ActionView::Helpers::FormTagHelper.embed_authenticity_token_in_remote_forms = original
     end
@@ -252,7 +252,7 @@ module RequestForgeryProtectionTests
         get :form_for_remote_with_token
       end
       assert_select "form>input[name=?][value=?]", "custom_authenticity_token", @token
-      assert_no_cache
+      assert_equal "no-cache", @response.headers["Cache-Control"]
     end
   end
 
@@ -262,7 +262,7 @@ module RequestForgeryProtectionTests
         get :form_for_with_token
       end
       assert_select "form>input[name=?][value=?]", "custom_authenticity_token", @token
-      assert_no_cache
+      assert_equal "no-cache", @response.headers["Cache-Control"]
     end
   end
 
@@ -271,7 +271,7 @@ module RequestForgeryProtectionTests
       get :form_with_remote
     end
     assert_match(/authenticity_token/, response.body)
-    assert_no_cache
+    assert_equal "no-cache", @response.headers["Cache-Control"]
   end
 
   def test_should_render_form_with_without_token_tag_if_remote_and_embedding_token_is_off
@@ -313,7 +313,7 @@ module RequestForgeryProtectionTests
         get :form_with_remote_with_token
       end
       assert_select "form>input[name=?][value=?]", "custom_authenticity_token", @token
-      assert_no_cache
+      assert_equal "no-cache", @response.headers["Cache-Control"]
     end
   end
 
@@ -323,7 +323,7 @@ module RequestForgeryProtectionTests
         get :form_with_local_with_token
       end
       assert_select "form>input[name=?][value=?]", "custom_authenticity_token", @token
-      assert_no_cache
+      assert_equal "no-cache", @response.headers["Cache-Control"]
     end
   end
 
@@ -338,7 +338,7 @@ module RequestForgeryProtectionTests
         end
       end
       assert_select "form>input[name=?][value=?]", "custom_authenticity_token", @token
-      assert_no_cache
+      assert_equal "no-cache", @response.headers["Cache-Control"]
     ensure
       ActionView::Helpers::FormTagHelper.embed_authenticity_token_in_remote_forms = original
     end
@@ -346,12 +346,12 @@ module RequestForgeryProtectionTests
 
   def test_should_allow_get
     assert_not_blocked { get :index }
-    assert_no_cache
+    assert_equal "no-cache", @response.headers["Cache-Control"]
   end
 
   def test_should_allow_head
     assert_not_blocked { head :index }
-    assert_no_cache
+    assert_equal "no-cache", @response.headers["Cache-Control"]
   end
 
   def test_should_allow_post_without_token_on_unsafe_action
@@ -627,10 +627,6 @@ module RequestForgeryProtectionTests
     end
   end
 
-  def assert_no_cache
-    assert_equal "no-cache", @response.headers["Cache-Control"]
-  end
-
   def assert_cross_origin_not_blocked
     assert_not_blocked { yield }
   end
@@ -658,7 +654,7 @@ class RequestForgeryProtectionControllerUsingResetSessionTest < ActionController
       assert_select "meta[name=?]", "csrf-token"
       regexp = "#{@token}&lt;=\?"
       assert_match(/#{regexp}/, @response.body)
-      assert_no_cache
+      assert_equal "no-cache", @response.headers["Cache-Control"]
     end
   end
 end
@@ -826,7 +822,7 @@ class PerFormTokensControllerTest < ActionController::TestCase
     expected = ActionController::RequestForgeryProtection::AUTHENTICITY_TOKEN_LENGTH
     actual = @controller.send(:per_form_csrf_token, session, "/path", "post").size
     assert_equal expected, actual
-    assert_no_cache
+    assert_equal "no-cache", @response.headers["Cache-Control"]
   end
 
   def test_accepts_token_for_correct_path_and_method
@@ -878,7 +874,7 @@ class PerFormTokensControllerTest < ActionController::TestCase
     form_token = assert_presence_and_fetch_form_csrf_token
 
     assert_matches_session_token_on_server form_token, "delete"
-    assert_no_cache
+    assert_equal "no-cache", @response.headers["Cache-Control"]
 
     # This is required because PATH_INFO isn't reset between requests.
     @request.env["PATH_INFO"] = "/per_form_tokens/post_one"
@@ -1003,10 +999,6 @@ class PerFormTokensControllerTest < ActionController::TestCase
         assert_not_nil form_csrf_token
         return form_csrf_token
       end
-    end
-
-    def assert_no_cache
-      assert_equal "no-cache", @response.headers["Cache-Control"]
     end
 
     def assert_matches_session_token_on_server(form_token, method = "post")
