@@ -52,8 +52,7 @@ module ActiveSupport
     end
 
     class Event
-      attr_reader :name, :time, :transaction_id, :payload, :children
-      attr_accessor :end
+      attr_reader :name, :time, :end, :transaction_id, :payload, :children
 
       def self.clock_gettime_supported? # :nodoc:
         defined?(Process::CLOCK_PROCESS_CPUTIME_ID) &&
@@ -86,6 +85,11 @@ module ActiveSupport
         @cpu_time_finish = now_cpu
         @end = now
         @allocation_count_finish = now_allocations
+      end
+
+      def end=(ending)
+        ActiveSupport::Deprecation.deprecation_warning(:end=, :finish!)
+        @end = ending
       end
 
       # Returns the CPU time (in milliseconds) passed since the call to
