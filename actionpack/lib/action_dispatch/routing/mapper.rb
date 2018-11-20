@@ -656,7 +656,7 @@ module ActionDispatch
 
         # Query if the following named route was already defined.
         def has_named_route?(name)
-          @set.named_routes.key? name
+          @set.named_routes.key?(name)
         end
 
         private
@@ -1952,9 +1952,7 @@ module ActionDispatch
           end
 
           def match_root_route(options)
-            name = has_named_route?(name_for_action(:root, nil)) ? nil : :root
-            args = ["/", { as: name, via: :get }.merge!(options)]
-
+            args = ["/", { as: :root, via: :get }.merge(options)]
             match(*args)
           end
       end
