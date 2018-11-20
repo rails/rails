@@ -163,6 +163,28 @@ module ActiveRecord
           end
         end
 
+        def difference(a, b)
+          distribution = distribution(b)
+
+          a.reject { |record| mark_occurrence(distribution, record) }
+        end
+
+        def intersection(a, b)
+          distribution = distribution(b)
+
+          a.select { |record| mark_occurrence(distribution, record) }
+        end
+
+        def mark_occurrence(distribution, record)
+          distribution[record] > 0 && distribution[record] -= 1
+        end
+
+        def distribution(array)
+          array.each_with_object(Hash.new(0)) do |record, distribution|
+            distribution[record] += 1
+          end
+        end
+
         def through_records_for(record)
           attributes = construct_join_attributes(record)
           candidates = Array.wrap(through_association.target)
