@@ -28,8 +28,8 @@ class Hash
   # Returns a hash containing the removed key/value pairs.
   #
   #   hash = { a: 1, b: 2, c: 3, d: 4 }
-  #   hash.slice!(:a, :b)  # => {:c=>3, :d=>4 }
-  #   hash                 # => {:a=>1, :b=>2 }
+  #   hash.slice!(:a, :b)  # => {:c=>3, :d=>4}
+  #   hash                 # => {:a=>1, :b=>2}
   def slice!(*keys)
     omit = slice(*self.keys - keys)
     hash = slice(*keys)
