@@ -1,3 +1,7 @@
+*   Add `ActiveModel::Dirty#rewind_attribute_assignments` to reset attribute state to what it was before last save.
+
+    *Gannon McGibbon*
+
 *   Fix numericality equality validation of `BigDecimal` and `Float`
     by casting to `BigDecimal` on both ends of the validation.
 

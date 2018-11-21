@@ -147,8 +147,8 @@ module ActiveModel
       unless defined?(@attributes)
         @previously_changed = changes
       end
-      @mutations_before_last_save = mutations_from_database
       @attributes_changed_by_setter = ActiveSupport::HashWithIndifferentAccess.new
+      remember_mutations_from_database
       forget_attribute_assignments
       @mutations_from_database = nil
     end
@@ -197,6 +197,7 @@ module ActiveModel
     def clear_changes_information
       @previously_changed = ActiveSupport::HashWithIndifferentAccess.new
       @mutations_before_last_save = nil
+      @mutations_before_first_save = nil
       @attributes_changed_by_setter = ActiveSupport::HashWithIndifferentAccess.new
       forget_attribute_assignments
       @mutations_from_database = nil
@@ -252,6 +253,17 @@ module ActiveModel
       mutations_from_database.changed_in_place?(attr_name)
     end
 
+    def rewind_attribute_assignments # :nodoc
+      if defined?(@attributes) && defined?(@mutations_before_first_save) && @mutations_before_first_save
+        mutated_attributes = @mutations_before_first_save.attributes.deep_dup
+        mutated_attributes.each_value do |first_attribute|
+          attribute = @attributes[first_attribute.name]
+          mutated_attributes.write_from_user(attribute.name, attribute.value)
+        end
+        @attributes = mutated_attributes
+      end
+    end
+
     private
       def clear_attribute_change(attr_name)
         mutations_from_database.forget_change(attr_name)
@@ -270,6 +282,11 @@ module ActiveModel
 
       def forget_attribute_assignments
         @attributes = @attributes.map(&:forgetting_assignment) if defined?(@attributes)
+      end
+
+      def remember_mutations_from_database
+        @mutations_before_last_save = mutations_from_database
+        @mutations_before_first_save ||= @mutations_before_last_save
       end
 
       def mutations_before_last_save
