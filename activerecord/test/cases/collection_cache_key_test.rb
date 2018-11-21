@@ -171,5 +171,10 @@ module ActiveRecord
 
       assert_match(/\Adevelopers\/query-(\h+)-(\d+)-(\d+)\z/, developers.cache_key)
     end
+
+    test "cache_version is nil for relations" do
+      developers = Developer.select("name AS dev_name").order("dev_name DESC").limit(5)
+      assert_nil(developers.cache_version)
+    end
   end
 end

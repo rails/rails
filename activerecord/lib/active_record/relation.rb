@@ -297,6 +297,13 @@ module ActiveRecord
       @cache_keys[timestamp_column] ||= @klass.collection_cache_key(self, timestamp_column)
     end
 
+    # cache_version is not yet implemented for Active Record relations
+    # but without a (nil) cache_version, it may cause a performance hit
+    # even when cache versioning is switched off
+    def cache_version(timestamp_column = :updated_at)
+      nil
+    end
+
     # Scope all queries to the current scope.
     #
     #   Comment.where(post_id: 1).scoping do
