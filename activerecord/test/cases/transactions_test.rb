@@ -18,6 +18,55 @@ class TransactionTest < ActiveRecord::TestCase
     @first, @second = Topic.find(1, 2).sort_by(&:id)
   end
 
+  def test_rollback_dirty_reset
+    topic = topics(:fifth)
+
+    ActiveRecord::Base.transaction do
+      topic.update(title: "Ruby on Rails")
+      raise ActiveRecord::Rollback
+    end
+
+    title_change = ["The Fifth Topic of the day", "Ruby on Rails"]
+    assert_equal title_change, topic.changes["title"]
+  end
+
+  def test_rollback_dirty_reset_multiple_saves
+    topic = topics(:fifth)
+    ActiveRecord::Base.transaction do
+      topic.update(title: "Ruby on Rails")
+      topic.update(title: "Another Title")
+      topic.update(title: "Yet another Title")
+      raise ActiveRecord::Rollback
+    end
+    title_change = ["The Fifth Topic of the day", "Yet another Title"]
+    assert_equal title_change, topic.changes["title"]
+  end
+
+  def test_rollback_dirty_reset_retry_save
+    topic = topics(:fifth)
+
+    ActiveRecord::Base.transaction do
+      topic.assign_attributes(title: "Ruby on Rails")
+      topic.save
+      raise ActiveRecord::Rollback
+    end
+
+    topic.save
+
+    assert_equal topic.title, topic.reload.title
+  end
+
+  def test_rollback_dirty_reset_retry_save_on_new_record
+    topic = Topic.create!(title: "Tenth")
+    ActiveRecord::Base.transaction do
+      topic.assign_attributes(title: "Ruby on Rails")
+      topic.save
+      raise ActiveRecord::Rollback
+    end
+    topic.update!(title: "Seventeenth")
+    assert_equal topic.title, topic.reload.title
+  end
+
   def test_persisted_in_a_model_with_custom_primary_key_after_failed_save
     movie = Movie.create
     assert_not_predicate movie, :persisted?

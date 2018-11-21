@@ -409,6 +409,7 @@ module ActiveRecord
       # Force to clear the transaction record state.
       def force_clear_transaction_record_state
         @_start_transaction_state.clear
+        @mutations_before_first_save = nil
       end
 
       # Restore the new record state and id of a record that was previously saved by a call to save_record_state.

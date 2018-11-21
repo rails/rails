@@ -87,24 +87,31 @@ module ActiveRecord
       def closed?; true; end
       def open?; false; end
       def joinable?; false; end
-      def add_record(record); end
+      def add_callback_record(record); end
+      def add_saved_record(record); end
     end
 
     class Transaction #:nodoc:
-      attr_reader :connection, :state, :records, :savepoint_name, :isolation_level
+      attr_reader :connection, :state, :callback_records,
+                  :saved_records, :savepoint_name, :isolation_level
 
       def initialize(connection, options, run_commit_callbacks: false)
         @connection = connection
         @state = TransactionState.new
-        @records = []
+        @callback_records = []
+        @saved_records = []
         @isolation_level = options[:isolation]
         @materialized = false
         @joinable = options.fetch(:joinable, true)
         @run_commit_callbacks = run_commit_callbacks
       end
 
-      def add_record(record)
-        records << record
+      def add_callback_record(record)
+        callback_records << record
+      end
+
+      def add_saved_record(record)
+        saved_records << record
       end
 
       def materialize!
@@ -115,24 +122,34 @@ module ActiveRecord
         @materialized
       end
 
+      def unsave_records
+        records = saved_records.uniq
+        while record = records.shift
+          record.rewind_attribute_assignments
+        end
+      end
+
       def rollback_records
-        ite = records.uniq
-        while record = ite.shift
+        records = callback_records.uniq
+        while record = records.shift
           record.rolledback!(force_restore_state: full_rollback?)
         end
       ensure
-        ite.each do |i|
-          i.rolledback!(force_restore_state: full_rollback?, should_run_callbacks: false)
+        records.each do |record|
+          record.rolledback!(
+            force_restore_state: full_rollback?,
+            should_run_callbacks: false,
+          )
         end
       end
 
       def before_commit_records
-        records.uniq.each(&:before_committed!) if @run_commit_callbacks
+        callback_records.uniq.each(&:before_committed!) if @run_commit_callbacks
       end
 
       def commit_records
-        ite = records.uniq
-        while record = ite.shift
+        records = callback_records.uniq
+        while record = records.shift
           if @run_commit_callbacks
             record.committed!
           else
@@ -141,7 +158,9 @@ module ActiveRecord
           end
         end
       ensure
-        ite.each { |i| i.committed!(should_run_callbacks: false) }
+        records.each do |record|
+          record.committed!(should_run_callbacks: false)
+        end
       end
 
       def full_rollback?; true; end
@@ -276,6 +295,7 @@ module ActiveRecord
       def rollback_transaction(transaction = nil)
         @connection.lock.synchronize do
           transaction ||= @stack.pop
+          transaction.unsave_records
           transaction.rollback
           transaction.rollback_records
         end

@@ -30,6 +30,7 @@ module ActiveRecord
       def reload(*)
         super.tap do
           @previously_changed = ActiveSupport::HashWithIndifferentAccess.new
+          @mutations_before_first_save = nil
           @mutations_before_last_save = nil
           @attributes_changed_by_setter = ActiveSupport::HashWithIndifferentAccess.new
           @mutations_from_database = nil

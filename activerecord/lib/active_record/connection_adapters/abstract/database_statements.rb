@@ -284,7 +284,13 @@ module ActiveRecord
       # Register a record with the current transaction so that its
       # after_commit and after_rollback callbacks can be called.
       def add_transaction_callback_record(record)
-        current_transaction.add_record(record)
+        current_transaction.add_callback_record(record)
+      end
+
+      # Register a record with the current transaction so that its
+      # state can be cleaned if a rollback occurs during the transaction.
+      def add_transaction_saved_record(record)
+        current_transaction.add_saved_record(record)
       end
 
       # Register a record with the current transaction so that its

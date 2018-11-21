@@ -1,3 +1,7 @@
+*   Rewind attribute assignments for saved records when transactions are rolled back.
+
+    *Gannon McGibbon*
+
 *   Deprecate `ActiveRecord::ConnectionAdapters::DatabaseStatements#add_transaction_record` in favor of `add_transaction_callback_record`.
 
     *Gannon McGibbon*
