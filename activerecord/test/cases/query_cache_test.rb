@@ -55,6 +55,22 @@ class QueryCacheTest < ActiveRecord::TestCase
     assert_cache :off
   end
 
+  def test_query_cache_is_applied_to_connections_in_all_handlers
+    ActiveRecord::Base.connected_to(role: :reading) do
+      ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations["arunit"])
+    end
+
+    mw = middleware { |env|
+      ro_conn = ActiveRecord::Base.connection_handlers[:reading].connection_pool_list.first.connection
+      assert_predicate ActiveRecord::Base.connection, :query_cache_enabled
+      assert_predicate ro_conn, :query_cache_enabled
+    }
+
+    mw.call({})
+  ensure
+    ActiveRecord::Base.connection_handlers = { writing: ActiveRecord::Base.default_connection_handler }
+  end
+
   def test_query_cache_across_threads
     with_temporary_connection_pool do
       begin
