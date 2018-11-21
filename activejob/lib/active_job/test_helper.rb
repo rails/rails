@@ -107,6 +107,9 @@ module ActiveJob
     #     end
     #   end
     #
+    # +:only+ and +:except+ options accepts Class, Array of Class or Proc. When passed a Proc,
+    # a hash containing the job's class and it's argument are passed as argument.
+    #
     # Asserts the number of times a job is enqueued to a specific queue by passing +:queue+ option.
     #
     #   def test_logging_job
@@ -162,6 +165,9 @@ module ActiveJob
     #       HelloJob.perform_later('jeremy')
     #     end
     #   end
+    #
+    # +:only+ and +:except+ options accepts Class, Array of Class or Proc. When passed a Proc,
+    # a hash containing the job's class and it's argument are passed as argument.
     #
     # Asserts that no jobs are enqueued to a specific queue by passing +:queue+ option
     #
@@ -243,6 +249,18 @@ module ActiveJob
     #       end
     #     end
     #
+    # A proc may also be specified. When passed a Proc, the job's instance will be passed as argument.
+    #
+    #     def test_hello_and_logging_jobs
+    #       assert_nothing_raised do
+    #         assert_performed_jobs(1, only: ->(job) { job.is_a?(HelloJob) }) do
+    #           HelloJob.perform_later('jeremy')
+    #           LoggingJob.perform_later('stewie')
+    #           RescueJob.perform_later('david')
+    #         end
+    #       end
+    #     end
+    #
     # If the +:queue+ option is specified,
     # then only the job(s) enqueued to a specific queue will be performed.
     #
@@ -304,6 +322,9 @@ module ActiveJob
     #       HelloJob.perform_later('jeremy')
     #     end
     #   end
+    #
+    # +:only+ and +:except+ options accepts Class, Array of Class or Proc. When passed a Proc,
+    # an instance of the job will be passed as argument.
     #
     # If the +:queue+ option is specified,
     # then only the job(s) enqueued to a specific queue will not be performed.
@@ -505,6 +526,9 @@ module ActiveJob
     #     assert_performed_jobs 1
     #   end
     #
+    # +:only+ and +:except+ options accepts Class, Array of Class or Proc. When passed a Proc,
+    # an instance of the job will be passed as argument.
+    #
     # If the +:queue+ option is specified,
     # then only the job(s) enqueued to a specific queue will be performed.
     #
@@ -569,9 +593,9 @@ module ActiveJob
           job_class = job.fetch(:job)
 
           if only
-            next false unless Array(only).include?(job_class)
+            next false unless filter_as_proc(only).call(job)
           elsif except
-            next false if Array(except).include?(job_class)
+            next false if filter_as_proc(except).call(job)
           end
 
           if queue
@@ -582,6 +606,12 @@ module ActiveJob
 
           true
         end
+      end
+
+      def filter_as_proc(filter)
+        return filter if filter.is_a?(Proc)
+
+        ->(job) { Array(filter).include?(job.fetch(:job)) }
       end
 
       def enqueued_jobs_with(only: nil, except: nil, queue: nil, &block)
