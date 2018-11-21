@@ -67,11 +67,21 @@ module ActiveRecord
           end
         end
 
+        READ_QUERY = ActiveRecord::ConnectionAdapters::AbstractAdapter.build_read_query_regexp.call(:select, :show, :set) # :nodoc:
+
+        def write_query?(sql) # :nodoc:
+          !READ_QUERY.match?(sql)
+        end
+
         # Executes an SQL statement, returning a PG::Result object on success
         # or raising a PG::Error exception otherwise.
         # Note: the PG::Result object is manually memory managed; if you don't
         # need it specifically, you may want consider the <tt>exec_query</tt> wrapper.
         def execute(sql, name = nil)
+          if preventing_writes? && write_query?(sql)
+            raise ActiveRecord::StatementInvalid, "Write query attempted while in readonly mode: #{sql}"
+          end
+
           materialize_transactions
 
           log(sql, name) do

@@ -98,6 +98,11 @@ module ActiveRecord
         exec_query(sql, name).rows
       end
 
+      # Determines whether the SQL statement is a write query.
+      def write_query?(sql)
+        raise NotImplementedError
+      end
+
       # Executes the SQL statement in the context of this connection and returns
       # the raw result from the connection adapter.
       # Note: depending on your database connector, the result returned by this

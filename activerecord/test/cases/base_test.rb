@@ -1488,4 +1488,40 @@ class BasicsTest < ActiveRecord::TestCase
   ensure
     ActiveRecord::Base.protected_environments = previous_protected_environments
   end
+
+  test "creating a record raises if preventing writes" do
+    assert_raises ActiveRecord::StatementInvalid do
+      ActiveRecord::Base.connection.while_preventing_writes do
+        bird = Bird.create! name: "Bluejay"
+      end
+    end
+  end
+
+  test "updating a record raises if preventing writes" do
+    bird = Bird.create! name: "Bluejay"
+
+    assert_raises ActiveRecord::StatementInvalid do
+      ActiveRecord::Base.connection.while_preventing_writes do
+        bird.update! name: "Robin"
+      end
+    end
+  end
+
+  test "deleting a record raises if preventing writes" do
+    bird = Bird.create! name: "Bluejay"
+
+    assert_raises ActiveRecord::StatementInvalid do
+      ActiveRecord::Base.connection.while_preventing_writes do
+        bird.destroy!
+      end
+    end
+  end
+
+  test "selecting a record does not raise if preventing writes" do
+    bird = Bird.create! name: "Bluejay"
+
+    ActiveRecord::Base.connection.while_preventing_writes do
+      assert_equal bird, Bird.where(name: "Bluejay").first
+    end
+  end
 end

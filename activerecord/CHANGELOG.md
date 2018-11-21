@@ -1,3 +1,19 @@
+*   Add the ability to prevent writes to a database for the duration of a block.
+
+    Allows the application to prevent writes to a database. This can be useful when
+    you're building out multiple databases and want to make sure you're not sending
+    writes when you want a read.
+
+    If `while_preventing_writes` is called and the query is considered a write
+    query the database will raise an exception regardless of whether the database
+    user is able to write.
+
+    This is not meant to be a catch-all for write queries but rather a way to enforce
+    read-only queries without opening a second connection. One purpose of this is to
+    catch accidental writes, not all writes.
+
+    *Eileen M. Uchitelle*
+
 *   Allow aliased attributes to be used in `#update_columns` and `#update`.
 
     *Gannon McGibbon*
