@@ -281,10 +281,21 @@ module ActiveRecord
         @transaction_manager = ConnectionAdapters::TransactionManager.new(self)
       end
 
-      # Register a record with the current transaction so that its after_commit and after_rollback callbacks
-      # can be called.
-      def add_transaction_record(record)
+      # Register a record with the current transaction so that its
+      # after_commit and after_rollback callbacks can be called.
+      def add_transaction_callback_record(record)
         current_transaction.add_record(record)
+      end
+
+      # Register a record with the current transaction so that its
+      # after_commit and after_rollback callbacks can be called.
+      def add_transaction_record(record)
+        ActiveSupport::Deprecation.warn(<<-MSG.squish)
+          `ActiveRecord::ConnectionAdapters::DatabaseStatements#add_transaction_record`
+          has been renamed to `add_transaction_callback_record`.
+          `add_transaction_record` is deprecated and will be removed in Rails 6.1.
+        MSG
+        add_transaction_callback_record(record)
       end
 
       def transaction_state

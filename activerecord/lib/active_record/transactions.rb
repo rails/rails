@@ -353,7 +353,7 @@ module ActiveRecord
     # can be called.
     def add_to_transaction
       if has_transactional_callbacks?
-        self.class.connection.add_transaction_record(self)
+        self.class.connection.add_transaction_callback_record(self)
       else
         sync_with_transaction_state
         set_transaction_state(self.class.connection.transaction_state)

@@ -1,3 +1,7 @@
+*   Deprecate `ActiveRecord::ConnectionAdapters::DatabaseStatements#add_transaction_record` in favor of `add_transaction_callback_record`.
+
+    *Gannon McGibbon*
+
 *   Fix join table column quoting with SQLite.
 
     *Gannon McGibbon*

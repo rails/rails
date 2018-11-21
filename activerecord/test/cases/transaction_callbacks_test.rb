@@ -586,7 +586,7 @@ class TransactionEnrollmentCallbacksTest < ActiveRecord::TestCase
         @topic.content = "foo"
         @topic.save!
       end
-      @topic.class.connection.add_transaction_record(@topic)
+      @topic.class.connection.add_transaction_callback_record(@topic)
     end
     assert_equal [:before_commit, :after_commit], @topic.history
   end
@@ -596,7 +596,7 @@ class TransactionEnrollmentCallbacksTest < ActiveRecord::TestCase
       @topic.transaction(requires_new: true) do
         @topic.content = "foo"
         @topic.save!
-        @topic.class.connection.add_transaction_record(@topic)
+        @topic.class.connection.add_transaction_callback_record(@topic)
       end
     end
     assert_equal [:before_commit, :after_commit], @topic.history
@@ -617,10 +617,16 @@ class TransactionEnrollmentCallbacksTest < ActiveRecord::TestCase
         @topic.content = "foo"
         @topic.save!
       end
-      @topic.class.connection.add_transaction_record(@topic)
+      @topic.class.connection.add_transaction_callback_record(@topic)
       raise ActiveRecord::Rollback
     end
     assert_equal [:rollback], @topic.history
+  end
+
+  def test_add_transaction_record_deprecated
+    assert_deprecated do
+      @topic.class.connection.add_transaction_record(@topic)
+    end
   end
 end
 
