@@ -34,7 +34,7 @@ module ActionMailer
     def assert_emails(number, &block)
       if block_given?
         original_count = ActionMailer::Base.deliveries.size
-        perform_enqueued_jobs(only: [ActionMailer::DeliveryJob, ActionMailer::Parameterized::DeliveryJob], &block)
+        perform_enqueued_jobs(only: ->(job) { delivery_job_filter(job) }, &block)
         new_count = ActionMailer::Base.deliveries.size
         assert_equal number, new_count - original_count, "#{number} emails expected, but #{new_count - original_count} were sent"
       else
@@ -90,7 +90,7 @@ module ActionMailer
     #     end
     #   end
     def assert_enqueued_emails(number, &block)
-      assert_enqueued_jobs number, only: [ ActionMailer::DeliveryJob, ActionMailer::Parameterized::DeliveryJob ], &block
+      assert_enqueued_jobs(number, only: ->(job) { delivery_job_filter(job) }, &block)
     end
 
     # Asserts that a specific email has been enqueued, optionally
@@ -125,10 +125,10 @@ module ActionMailer
     #   end
     def assert_enqueued_email_with(mailer, method, args: nil, queue: "mailers", &block)
       if args.is_a? Hash
-        job = ActionMailer::Parameterized::DeliveryJob
+        job = mailer.parameterized_delivery_job
         args = [mailer.to_s, method.to_s, "deliver_now", args]
       else
-        job = ActionMailer::DeliveryJob
+        job = mailer.delivery_job
         args = [mailer.to_s, method.to_s, "deliver_now", *args]
       end
 
@@ -151,7 +151,16 @@ module ActionMailer
     #     end
     #   end
     def assert_no_enqueued_emails(&block)
-      assert_no_enqueued_jobs only: [ ActionMailer::DeliveryJob, ActionMailer::Parameterized::DeliveryJob ], &block
+      assert_enqueued_emails 0, &block
     end
+
+    private
+
+      def delivery_job_filter(job)
+        job_class = job.is_a?(Hash) ? job.fetch(:job) : job.class
+
+        Base.descendants.map(&:delivery_job).include?(job_class) ||
+        Base.descendants.map(&:parameterized_delivery_job).include?(job_class)
+      end
   end
 end
