@@ -507,6 +507,7 @@ class SchemaIndexOpclassTest < ActiveRecord::PostgreSQLTestCase
     @connection = ActiveRecord::Base.connection
     @connection.create_table "trains" do |t|
       t.string :name
+      t.string :position
       t.text :description
     end
   end
@@ -529,6 +530,17 @@ class SchemaIndexOpclassTest < ActiveRecord::PostgreSQLTestCase
     output = dump_table_schema "trains"
 
     assert_match(/opclass: \{ description: :text_pattern_ops \}/, output)
+  end
+
+  def test_opclass_class_parsing_on_non_reserved_and_cannot_be_function_or_type_keyword
+    @connection.enable_extension("pg_trgm")
+    @connection.execute "CREATE INDEX trains_position ON trains USING gin(position gin_trgm_ops)"
+    @connection.execute "CREATE INDEX trains_name_and_position ON trains USING btree(name, position text_pattern_ops)"
+
+    output = dump_table_schema "trains"
+
+    assert_match(/opclass: :gin_trgm_ops/, output)
+    assert_match(/opclass: \{ position: :text_pattern_ops \}/, output)
   end
 end
 
