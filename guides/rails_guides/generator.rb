@@ -17,14 +17,14 @@ module RailsGuides
   class Generator
     GUIDES_RE = /\.(?:erb|md)\z/
 
-    def initialize(edge:, version:, all:, only:, kindle:, language:, rtl: false)
-      @edge     = edge
-      @version  = version
-      @all      = all
-      @only     = only
-      @kindle   = kindle
-      @language = language
-      @rtl      = rtl
+    def initialize(edge:, version:, all:, only:, kindle:, language:, direction: :ltr)
+      @edge      = edge
+      @version   = version
+      @all       = all
+      @only      = only
+      @kindle    = kindle
+      @language  = language
+      @direction = direction
 
       if @kindle
         check_for_kindlegen
@@ -118,10 +118,13 @@ module RailsGuides
       def copy_assets
         FileUtils.cp_r(Dir.glob("#{@guides_dir}/assets/*"), @output_dir)
 
-        if @rtl
-          FileUtils.rm(Dir.glob("#{@output_dir}/stylesheets/main.css"))
-          FileUtils.mv("#{@output_dir}/stylesheets/main.rtl.css", "#{@output_dir}/stylesheets/main.css")
+        if @direction == :rtl
+          overwrite_css_with_right_to_left_direction
         end
+      end
+
+      def overwrite_css_with_right_to_left_direction
+        FileUtils.mv("#{@output_dir}/stylesheets/main.rtl.css", "#{@output_dir}/stylesheets/main.css")
       end
 
       def output_file_for(guide)
