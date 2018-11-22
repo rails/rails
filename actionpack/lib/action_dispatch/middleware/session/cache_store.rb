@@ -9,13 +9,16 @@ module ActionDispatch
     # of time.
     #
     # ==== Options
-    # * <tt>cache</tt>         - The cache to use. If it is not specified, <tt>Rails.cache</tt> will be used.
-    # * <tt>expire_after</tt>  - The length of time a session will be stored before automatically expiring.
+    # * <tt>cache</tt>            - The cache to use. If it is not specified, <tt>Rails.cache</tt> will be used.
+    # * <tt>expire_after</tt>     - The length of time a session will be stored before automatically expiring.
     #   By default, the <tt>:expires_in</tt> option of the cache is used.
+    # * <tt>cache_key_prefix</tt> - The string prepended to the session id to form the cache key.
+    #   Defaults to <tt>'_session_id:'</tt>
     class CacheStore < AbstractStore
       def initialize(app, options = {})
         @cache = options[:cache] || Rails.cache
         options[:expire_after] ||= @cache.options[:expires_in]
+        @cache_key_prefix = options[:cache_key_prefix] || "_session_id:"
         super
       end
 
@@ -47,7 +50,7 @@ module ActionDispatch
       private
         # Turn the session id into a cache key.
         def cache_key(sid)
-          "_session_id:#{sid}"
+          "#{@cache_key_prefix}#{sid}"
         end
     end
   end

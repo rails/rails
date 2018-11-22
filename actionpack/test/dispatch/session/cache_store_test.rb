@@ -162,8 +162,17 @@ class CacheStoreTest < ActionDispatch::IntegrationTest
     end
   end
 
+  def test_setting_cache_key_prefix
+    with_test_route_set("test_cache_key_prefix:") do
+      get "/set_session_value"
+
+      assert_response :success
+      assert_equal({ "foo" => "bar" }, @cache.read("test_cache_key_prefix:#{cookies['_session_id']}"))
+    end
+  end
+
   private
-    def with_test_route_set
+    def with_test_route_set(cache_key_prefix = "_session_id:")
       with_routing do |set|
         set.draw do
           ActiveSupport::Deprecation.silence do
@@ -173,7 +182,8 @@ class CacheStoreTest < ActionDispatch::IntegrationTest
 
         @app = self.class.build_app(set) do |middleware|
           @cache = ActiveSupport::Cache::MemoryStore.new
-          middleware.use ActionDispatch::Session::CacheStore, key: "_session_id", cache: @cache
+          middleware.use ActionDispatch::Session::CacheStore, key: "_session_id", cache: @cache,
+                                                              cache_key_prefix: cache_key_prefix
           middleware.delete ActionDispatch::ShowExceptions
         end
 
