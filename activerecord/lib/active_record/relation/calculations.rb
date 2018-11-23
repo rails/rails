@@ -182,8 +182,12 @@ module ActiveRecord
     # See also #ids.
     #
     def pluck(*column_names)
-      if loaded? && (column_names.map(&:to_s) - @klass.attribute_names - @klass.attribute_aliases.keys).empty?
-        return records.pluck(*column_names)
+      if loaded?
+        if column_names.length == 1 && @klass.has_attribute?(column_names.first.to_s)
+          return records.map { |r| r._read_attribute(column_names.first) }
+        elsif (column_names.map(&:to_s) - @klass.attribute_names - @klass.attribute_aliases.keys).empty?
+          return records.pluck(*column_names)
+        end
       end
 
       if has_include?(column_names.first)
