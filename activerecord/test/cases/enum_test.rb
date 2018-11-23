@@ -437,6 +437,24 @@ class EnumTest < ActiveRecord::TestCase
     book2.status = :uploaded
     assert_equal ["drafted", "uploaded"], book2.status_change
   end
+  
+  test "pluralized enum method cannot create new key" do 
+    initial = Book.statuses.dup 
+    
+    copy = Book.statuses 
+    copy['bad_enum'] = 42
+    
+    assert_equal Book.statuses, initial
+  end
+  
+  test "pluralized enum method cannot delete existing member" do 
+    initial = Book.statuses.dup 
+    
+    copy = Book.statuses 
+    copy.delete('published')
+    
+    assert_equal Book.statuses, initial
+  end
 
   test "declare multiple enums at a time" do
     klass = Class.new(ActiveRecord::Base) do

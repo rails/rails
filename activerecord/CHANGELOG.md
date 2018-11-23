@@ -1,3 +1,7 @@
+*   Pluralized enum method returns a copy of the enum_values, preventing modifications on the original.
+    
+    *Emmanuel Byrd*
+
 *   Move `ActiveRecord::StatementInvalid` SQL to error property and include binds as separate error property.
 
     `ActiveRecord::ConnectionAdapters::AbstractAdapter#translate_exception_class` now requires `binds` to be passed as the last argument.
