@@ -26,6 +26,7 @@ module ActiveStorage
       image/gif
       image/jpg
       image/jpeg
+      image/pjpeg
       image/vnd.adobe.photoshop
       image/vnd.microsoft.icon
     )

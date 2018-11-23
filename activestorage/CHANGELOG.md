@@ -1,3 +1,7 @@
+*   Add progressive JPG to default list of variable content types
+
+    *Maurice Kühlborn*
+
 *   Add `ActiveStorage.routes_prefix` for configuring generated routes.
 
     *Chris Bisnett*
