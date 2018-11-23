@@ -27,12 +27,8 @@ end
 class CustomDeliveryJob < ActionMailer::DeliveryJob
 end
 
-class CustomParameterizedDeliveryJob < ActionMailer::Parameterized::DeliveryJob
-end
-
 class CustomDeliveryMailer < TestHelperMailer
   self.delivery_job = CustomDeliveryJob
-  self.parameterized_delivery_job = CustomParameterizedDeliveryJob
 end
 
 class TestHelperMailerTest < ActionMailer::TestCase

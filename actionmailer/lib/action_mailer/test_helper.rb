@@ -124,15 +124,12 @@ module ActionMailer
     #     end
     #   end
     def assert_enqueued_email_with(mailer, method, args: nil, queue: "mailers", &block)
-      if args.is_a? Hash
-        job = mailer.parameterized_delivery_job
-        args = [mailer.to_s, method.to_s, "deliver_now", args]
+      args = if args.is_a?(Hash)
+        [mailer.to_s, method.to_s, "deliver_now", args]
       else
-        job = mailer.delivery_job
-        args = [mailer.to_s, method.to_s, "deliver_now", *args]
+        [mailer.to_s, method.to_s, "deliver_now", nil, *args]
       end
-
-      assert_enqueued_with(job: job, args: args, queue: queue, &block)
+      assert_enqueued_with(job: mailer.delivery_job, args: args, queue: queue, &block)
     end
 
     # Asserts that no emails are enqueued for later delivery.
@@ -159,8 +156,7 @@ module ActionMailer
       def delivery_job_filter(job)
         job_class = job.is_a?(Hash) ? job.fetch(:job) : job.class
 
-        Base.descendants.map(&:delivery_job).include?(job_class) ||
-        Base.descendants.map(&:parameterized_delivery_job).include?(job_class)
+        Base.descendants.map(&:delivery_job).include?(job_class)
       end
   end
 end

@@ -12,8 +12,9 @@ module ActionMailer
 
     rescue_from StandardError, with: :handle_exception_with_mailer_class
 
-    def perform(mailer, mail_method, delivery_method, *args) #:nodoc:
-      mailer.constantize.public_send(mail_method, *args).send(delivery_method)
+    def perform(mailer, mail_method, delivery_method, params, *args) #:nodoc:
+      mailer_class = params ? mailer.constantize.with(params) : mailer.constantize
+      mailer_class.public_send(mail_method, *args).send(delivery_method)
     end
 
     private

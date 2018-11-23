@@ -140,16 +140,10 @@ module ActionMailer
             super
           else
             args = @mailer_class.name, @action.to_s, delivery_method.to_s, @params, *@args
-            job = @mailer_class.parameterized_delivery_job
+            job = @mailer_class.delivery_job
             job.set(options).perform_later(*args)
           end
         end
-    end
-
-    class DeliveryJob < ActionMailer::DeliveryJob # :nodoc:
-      def perform(mailer, mail_method, delivery_method, params, *args)
-        mailer.constantize.with(params).public_send(mail_method, *args).send(delivery_method)
-      end
     end
   end
 end
