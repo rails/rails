@@ -438,6 +438,20 @@ class EnumTest < ActiveRecord::TestCase
     assert_equal ["drafted", "uploaded"], book2.status_change
   end
 
+  test "attempting to modify enum raises error" do
+    e = assert_raises(RuntimeError) do
+      Book.statuses["bad_enum"] = 40
+    end
+
+    assert_match(/can't modify frozen/, e.message)
+
+    e = assert_raises(RuntimeError) do
+      Book.statuses.delete("published")
+    end
+
+    assert_match(/can't modify frozen/, e.message)
+  end
+
   test "declare multiple enums at a time" do
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = "books"
