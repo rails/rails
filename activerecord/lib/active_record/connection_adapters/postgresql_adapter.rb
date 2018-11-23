@@ -441,28 +441,28 @@ module ActiveRecord
         LOCK_NOT_AVAILABLE    = "55P03"
         QUERY_CANCELED        = "57014"
 
-        def translate_exception(exception, message)
+        def translate_exception(exception, message:, sql:, binds:)
           return exception unless exception.respond_to?(:result)
 
           case exception.result.try(:error_field, PG::PG_DIAG_SQLSTATE)
           when UNIQUE_VIOLATION
-            RecordNotUnique.new(message)
+            RecordNotUnique.new(message, sql: sql, binds: binds)
           when FOREIGN_KEY_VIOLATION
-            InvalidForeignKey.new(message)
+            InvalidForeignKey.new(message, sql: sql, binds: binds)
           when VALUE_LIMIT_VIOLATION
-            ValueTooLong.new(message)
+            ValueTooLong.new(message, sql: sql, binds: binds)
           when NUMERIC_VALUE_OUT_OF_RANGE
-            RangeError.new(message)
+            RangeError.new(message, sql: sql, binds: binds)
           when NOT_NULL_VIOLATION
-            NotNullViolation.new(message)
+            NotNullViolation.new(message, sql: sql, binds: binds)
           when SERIALIZATION_FAILURE
-            SerializationFailure.new(message)
+            SerializationFailure.new(message, sql: sql, binds: binds)
           when DEADLOCK_DETECTED
-            Deadlocked.new(message)
+            Deadlocked.new(message, sql: sql, binds: binds)
           when LOCK_NOT_AVAILABLE
-            LockWaitTimeout.new(message)
+            LockWaitTimeout.new(message, sql: sql, binds: binds)
           when QUERY_CANCELED
-            QueryCanceled.new(message)
+            QueryCanceled.new(message, sql: sql, binds: binds)
           else
             super
           end
@@ -642,7 +642,7 @@ module ActiveRecord
         def exec_cache(sql, name, binds)
           materialize_transactions
 
-          stmt_key = prepare_statement(sql)
+          stmt_key = prepare_statement(sql, binds)
           type_casted_binds = type_casted_binds(binds)
 
           log(sql, name, binds, type_casted_binds, stmt_key) do
@@ -696,7 +696,7 @@ module ActiveRecord
 
         # Prepare the statement if it hasn't been prepared, return
         # the statement key.
-        def prepare_statement(sql)
+        def prepare_statement(sql, binds)
           @lock.synchronize do
             sql_key = sql_key(sql)
             unless @statements.key? sql_key
@@ -704,7 +704,7 @@ module ActiveRecord
               begin
                 @connection.prepare nextkey, sql
               rescue => e
-                raise translate_exception_class(e, sql)
+                raise translate_exception_class(e, sql, binds)
               end
               # Clear the queue
               @connection.get_last_result

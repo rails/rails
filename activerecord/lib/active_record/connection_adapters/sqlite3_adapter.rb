@@ -529,18 +529,18 @@ module ActiveRecord
           @sqlite_version ||= SQLite3Adapter::Version.new(query_value("SELECT sqlite_version(*)"))
         end
 
-        def translate_exception(exception, message)
+        def translate_exception(exception, message:, sql:, binds:)
           case exception.message
           # SQLite 3.8.2 returns a newly formatted error message:
           #   UNIQUE constraint failed: *table_name*.*column_name*
           # Older versions of SQLite return:
           #   column *column_name* is not unique
           when /column(s)? .* (is|are) not unique/, /UNIQUE constraint failed: .*/
-            RecordNotUnique.new(message)
+            RecordNotUnique.new(message, sql: sql, binds: binds)
           when /.* may not be NULL/, /NOT NULL constraint failed: .*/
-            NotNullViolation.new(message)
+            NotNullViolation.new(message, sql: sql, binds: binds)
           when /FOREIGN KEY constraint failed/i
-            InvalidForeignKey.new(message)
+            InvalidForeignKey.new(message, sql: sql, binds: binds)
           else
             super
           end
