@@ -902,7 +902,7 @@
     }
   }
   function submitForm(form) {
-    var button = submitButtonsByForm.get(form) || findElement(form, "input[type=submit]");
+    var button = submitButtonsByForm.get(form) || findElement(form, "input[type=submit], button[type=submit]");
     if (button) {
       var _button = button, disabled = _button.disabled;
       button.disabled = false;

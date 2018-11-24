@@ -58,7 +58,7 @@ function handleFormSubmissionEvent(event) {
 }
 
 function submitForm(form) {
-  let button = submitButtonsByForm.get(form) || findElement(form, "input[type=submit]")
+  let button = submitButtonsByForm.get(form) || findElement(form, "input[type=submit], button[type=submit]")
 
   if (button) {
     const { disabled } = button
