@@ -867,7 +867,7 @@
   }
   function didClick(event) {
     var target = event.target;
-    if (target.tagName == "INPUT" && target.type == "submit" && target.form) {
+    if ((target.tagName == "INPUT" || target.tagName == "BUTTON") && target.type == "submit" && target.form) {
       submitButtonsByForm.set(target.form, target);
     }
   }
