@@ -201,6 +201,7 @@ module ActiveRecord
             klass.scope value_method_name, -> { where(attr => value) }
           end
         end
+        enum_values.freeze
       end
     end
 

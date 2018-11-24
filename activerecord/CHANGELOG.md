@@ -1,3 +1,7 @@
+*   Values of enum are frozen, raising an error when attempting to modify them.
+
+    *Emmanuel Byrd*
+
 *   `update_columns` now correctly raises `ActiveModel::MissingAttributeError`
     if the attribute does not exist.
 
