@@ -167,7 +167,7 @@ module ActionView
 
           def add_options(option_tags, options, value = nil)
             if options[:include_blank]
-              option_tags = include_blank_option(options) + "\n" + option_tags
+              option_tags = include_blank_option(options[:include_blank]) + "\n" + option_tags
             end
             if value.blank? && options[:prompt]
               tag_options = { value: "" }.tap do |prompt_opts|
@@ -179,13 +179,13 @@ module ActionView
             option_tags
           end
 
-          def include_blank_option(options)
-            case options[:include_blank]
+          def include_blank_option(include_blank)
+            case include_blank
             when String
-              tag_builder.content_tag_string("option", options[:include_blank], value: "")
+              tag_builder.content_tag_string("option", include_blank, value: "")
             when Hash
-              text = options[:include_blank][:text]
-              value = options[:include_blank][:value]
+              text = include_blank[:text]
+              value = include_blank[:value]
               tag_builder.content_tag_string("option", text, value: value)
             else
               tag_builder.content_tag_string("option", nil, value: "")
