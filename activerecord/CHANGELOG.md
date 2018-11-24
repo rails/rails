@@ -1,3 +1,7 @@
+*   Values of enum are frozen, raising an error when attempting to modify them.
+
+    *Emmanuel Byrd*
+
 *   Move `ActiveRecord::StatementInvalid` SQL to error property and include binds as separate error property.
 
     `ActiveRecord::ConnectionAdapters::AbstractAdapter#translate_exception_class` now requires `binds` to be passed as the last argument.
