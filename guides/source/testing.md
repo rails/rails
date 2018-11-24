@@ -1602,8 +1602,6 @@ Unit testing allows us to test the email body, and recipients. In functional and
 require 'test_helper'
 
 class UsersControllerTest < ActionDispatch::IntegrationTest
-  include ActionMailer::TestHelper
-
   test "invite friend" do
     # Asserts the difference in the ActionMailer::Base.deliveries
     assert_emails 1 do
@@ -1615,10 +1613,10 @@ end
 
 ```ruby
 # System Test
-require "application_system_test_case"
+require 'test_helper'
 
-class UsersTest < ApplicationSystemTestCase
-  include ActionMailer::TestHelper
+class UsersTest < ActionDispatch::SystemTestCase
+  driven_by :selenium, using: :headless_chrome
 
   test "inviting a friend" do
     visit invite_users_url
@@ -1630,9 +1628,7 @@ class UsersTest < ApplicationSystemTestCase
 end
 ```
 
-NOTE: These examples take advantage of the `ActionMailer::TestHelper`. For emails we expect to be delivered immediately with the `deliver_now` method, we can use the `assert_emails` method. For emails we expect to be delivered as an ActiveJob with the `deliver_later` method, we can use the `assert_enqueued_emails` method. More information can be found in the  [documentation here](https://api.rubyonrails.org/classes/ActionMailer/TestHelper.html).
-
-
+NOTE: The `assert_emails` method is not tied to a particular deliver method and will work with emails delivered with either the `deliver_now` or `deliver_later` method. If we explicitly want to assert that the email has been enqueued we can use the `assert_enqueued_emails` method. More information can be found in the  [documentation here](https://api.rubyonrails.org/classes/ActionMailer/TestHelper.html).
 
 Testing Jobs
 ------------
