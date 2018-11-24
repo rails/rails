@@ -7,6 +7,12 @@ class ActionMailbox::InboundEmail::IncinerationTest < ActiveSupport::TestCase
     assert_enqueued_with job: ActionMailbox::IncinerationJob, at: 30.days.from_now do
       create_inbound_email_from_fixture("welcome.eml").delivered!
     end
+
+    travel 30.days
+
+    assert_difference -> { ActionMailbox::InboundEmail.count }, -1 do
+      perform_enqueued_jobs only: ActionMailbox::IncinerationJob
+    end
   end
 
   test "incinerating 30 days after bounce" do
@@ -15,6 +21,12 @@ class ActionMailbox::InboundEmail::IncinerationTest < ActiveSupport::TestCase
     assert_enqueued_with job: ActionMailbox::IncinerationJob, at: 30.days.from_now do
       create_inbound_email_from_fixture("welcome.eml").bounced!
     end
+
+    travel 30.days
+
+    assert_difference -> { ActionMailbox::InboundEmail.count }, -1 do
+      perform_enqueued_jobs only: ActionMailbox::IncinerationJob
+    end
   end
 
   test "incinerating 30 days after failure" do
@@ -22,6 +34,12 @@ class ActionMailbox::InboundEmail::IncinerationTest < ActiveSupport::TestCase
 
     assert_enqueued_with job: ActionMailbox::IncinerationJob, at: 30.days.from_now do
       create_inbound_email_from_fixture("welcome.eml").failed!
+    end
+
+    travel 30.days
+
+    assert_difference -> { ActionMailbox::InboundEmail.count }, -1 do
+      perform_enqueued_jobs only: ActionMailbox::IncinerationJob
     end
   end
 end
