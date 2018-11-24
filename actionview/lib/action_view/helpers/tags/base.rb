@@ -184,8 +184,7 @@ module ActionView
             when String
               tag_builder.content_tag_string("option", include_blank, value: "")
             when Hash
-              text = include_blank[:text]
-              value = include_blank[:value]
+              text, value = include_blank.first
               tag_builder.content_tag_string("option", text, value: value)
             else
               tag_builder.content_tag_string("option", nil, value: "")
