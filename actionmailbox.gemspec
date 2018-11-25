@@ -16,11 +16,11 @@ Gem::Specification.new do |s|
   s.required_ruby_version = ">= 2.5.0"
 
   s.add_dependency "rails", ">= 5.2.0"
-  s.add_dependency "http", ">= 4.0.0"
 
   s.add_development_dependency "bundler", "~> 1.15"
   s.add_development_dependency "sqlite3"
   s.add_development_dependency "byebug"
+  s.add_development_dependency "webmock"
 
   s.files      = `git ls-files`.split("\n")
   s.test_files = `git ls-files -- test/*`.split("\n")

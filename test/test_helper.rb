@@ -6,6 +6,7 @@ ActiveRecord::Migrator.migrations_paths = [File.expand_path("../test/dummy/db/mi
 require "rails/test_help"
 
 require "byebug"
+require "webmock/minitest"
 
 Minitest.backtrace_filter = Minitest::BacktraceFilter.new
 
