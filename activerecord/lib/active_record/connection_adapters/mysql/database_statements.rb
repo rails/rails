@@ -33,11 +33,19 @@ module ActiveRecord
 
           if without_prepared_statement?(binds)
             execute_and_free(sql, name) do |result|
-              ActiveRecord::Result.new(result.fields, result.to_a) if result
+              if result
+                ActiveRecord::Result.new(result.fields, result.to_a)
+              else
+                ActiveRecord::Result.new([], [])
+              end
             end
           else
             exec_stmt_and_free(sql, name, binds, cache_stmt: prepare) do |_, result|
-              ActiveRecord::Result.new(result.fields, result.to_a) if result
+              if result
+                ActiveRecord::Result.new(result.fields, result.to_a)
+              else
+                ActiveRecord::Result.new([], [])
+              end
             end
           end
         end

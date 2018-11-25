@@ -109,6 +109,11 @@ module ActiveRecord
       end
     end
 
+    def test_exec_query_returns_an_empty_result
+      result = @connection.exec_query "INSERT INTO subscribers(nick) VALUES('me')"
+      assert_instance_of(ActiveRecord::Result, result)
+    end
+
     if current_adapter?(:Mysql2Adapter)
       def test_charset
         assert_not_nil @connection.charset
