@@ -1593,26 +1593,42 @@ NOTE: The `ActionMailer::Base.deliveries` array is only reset automatically in
 If you want to have a clean slate outside these test cases, you can reset it
 manually with: `ActionMailer::Base.deliveries.clear`
 
-### Functional Testing
+### Functional and System Testing
 
-Functional testing for mailers involves more than just checking that the email body, recipients, and so forth are correct. In functional mail tests you call the mail deliver methods and check that the appropriate emails have been appended to the delivery list. It is fairly safe to assume that the deliver methods themselves do their job. You are probably more interested in whether your own business logic is sending emails when you expect them to go out. For example, you can check that the invite friend operation is sending an email appropriately:
+Unit testing allows us to test the attributes of the email while functional and system testing allows us to test whether user interactions appropriately trigger the email to be delivered. For example, you can check that the invite friend operation is sending an email appropriately:
 
 ```ruby
+# Integration Test
 require 'test_helper'
 
 class UsersControllerTest < ActionDispatch::IntegrationTest
   test "invite friend" do
-    assert_difference 'ActionMailer::Base.deliveries.size', +1 do
+    # Asserts the difference in the ActionMailer::Base.deliveries
+    assert_emails 1 do
       post invite_friend_url, params: { email: 'friend@example.com' }
     end
-    invite_email = ActionMailer::Base.deliveries.last
-
-    assert_equal "You have been invited by me@example.com", invite_email.subject
-    assert_equal 'friend@example.com', invite_email.to[0]
-    assert_match(/Hi friend@example\.com/, invite_email.body.to_s)
   end
 end
 ```
+
+```ruby
+# System Test
+require 'test_helper'
+
+class UsersTest < ActionDispatch::SystemTestCase
+  driven_by :selenium, using: :headless_chrome
+
+  test "inviting a friend" do
+    visit invite_users_url
+    fill_in 'Email', with: 'friend@example.com'
+    assert_emails 1 do
+      click_on 'Invite'
+    end
+  end
+end
+```
+
+NOTE: The `assert_emails` method is not tied to a particular deliver method and will work with emails delivered with either the `deliver_now` or `deliver_later` method. If we explicitly want to assert that the email has been enqueued we can use the `assert_enqueued_emails` method. More information can be found in the  [documentation here](https://api.rubyonrails.org/classes/ActionMailer/TestHelper.html).
 
 Testing Jobs
 ------------
