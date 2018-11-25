@@ -2,7 +2,6 @@
 
 require "net/http"
 require "uri"
-require "openssl"
 
 module ActionMailbox
   class PostfixRelayer
@@ -49,8 +48,12 @@ module ActionMailbox
 
       def client
         @client ||= Net::HTTP.new(uri.host, uri.port).tap do |connection|
-          connection.use_ssl      = uri.scheme == "https"
-          connection.verify_mode  = OpenSSL::SSL::VERIFY_PEER
+          if uri.scheme == "https"
+            require "openssl"
+
+            connection.use_ssl     = true
+            connection.verify_mode = OpenSSL::SSL::VERIFY_PEER
+          end
 
           connection.open_timeout = 1
           connection.read_timeout = 10
