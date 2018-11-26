@@ -15,10 +15,13 @@ module ActionMailbox
       end
     end
 
-    attr_reader :uri, :username, :password, :user_agent
+    CONTENT_TYPE = "message/rfc822"
+    USER_AGENT   = "Action Mailbox Postfix relayer"
 
-    def initialize(url:, username: "actionmailbox", password:, user_agent: nil)
-      @uri, @username, @password, @user_agent = URI(url), username, password, user_agent || "Postfix"
+    attr_reader :uri, :username, :password
+
+    def initialize(url:, username: "actionmailbox", password:)
+      @uri, @username, @password = URI(url), username, password
     end
 
     def relay(source)
@@ -40,9 +43,9 @@ module ActionMailbox
 
     private
       def post(source)
-        client.post uri.path, source,
-          "Content-Type"  => "message/rfc822",
-          "User-Agent"    => user_agent,
+        client.post uri, source,
+          "Content-Type"  => CONTENT_TYPE,
+          "User-Agent"    => USER_AGENT,
           "Authorization" => "Basic #{Base64.strict_encode64(username + ":" + password)}"
       end
 
