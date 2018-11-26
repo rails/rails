@@ -17,7 +17,7 @@ namespace :action_mailbox do
 
       ActionMailbox::PostfixRelayer.new(url: url, password: password).relay(STDIN.read).tap do |result|
         print result.output
-        exit result.success? ? 0 : 1
+        exit result.success?
       end
     end
   end
