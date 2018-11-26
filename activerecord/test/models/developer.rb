@@ -279,3 +279,17 @@ class DeveloperWithIncorrectlyOrderedHasManyThrough < ActiveRecord::Base
   has_many :companies, through: :contracts
   has_many :contracts, foreign_key: :developer_id
 end
+
+class DeveloperName < ActiveRecord::Type::String
+  def deserialize(value)
+    "Developer: #{value}"
+  end
+end
+
+class AttributedDeveloper < ActiveRecord::Base
+  self.table_name = "developers"
+
+  attribute :name, DeveloperName.new
+
+  self.ignored_columns += ["name"]
+end

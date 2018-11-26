@@ -1,3 +1,32 @@
+*   Cached columns_hash fields should be excluded from ResultSet#column_types
+
+    PR #34528 addresses the inconsistent behaviour when attribute is defined for an ignored column. The following test
+    was passing for SQLite and MySQL, but failed for PostgreSQL:
+
+    ```ruby
+    class DeveloperName < ActiveRecord::Type::String
+      def deserialize(value)
+        "Developer: #{value}"
+      end
+    end
+
+    class AttributedDeveloper < ActiveRecord::Base
+      self.table_name = "developers"
+
+      attribute :name, DeveloperName.new
+
+      self.ignored_columns += ["name"]
+    end
+
+    developer = AttributedDeveloper.create
+    developer.update_column :name, "name"
+
+    loaded_developer = AttributedDeveloper.where(id: developer.id).select("*").first
+    puts loaded_developer.name # should be "Developer: name" but it's just "name"
+    ```
+
+    *Dmitry Tsepelev*
+
 *   Make the implicit order column configurable.
 
     When calling ordered finder methods such as +first+ or +last+ without an
