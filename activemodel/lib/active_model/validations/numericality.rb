@@ -86,11 +86,15 @@ module ActiveModel
 
       def parse_raw_value_as_a_number(raw_value)
         return raw_value.to_i if is_integer?(raw_value)
-        Kernel.Float(raw_value) if raw_value !~ /\A0[xX]/
+        Kernel.Float(raw_value) unless is_hexadecimal_literal?(raw_value)
       end
 
       def is_integer?(raw_value)
         /\A[+-]?\d+\z/ === raw_value.to_s
+      end
+
+      def is_hexadecimal_literal?(raw_value)
+        /\A0[xX]/ === raw_value
       end
 
       def filtered_options(value)
