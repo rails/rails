@@ -25,7 +25,7 @@ namespace :test do
   end
 
   task :integration do
-    system("yarn install && yarn test") || raise("Failures")
+    system("yarn test") || raise("Failures")
   end
 end
 
