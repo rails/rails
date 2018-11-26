@@ -11,13 +11,13 @@ namespace :action_mailbox do
       url, password, user_agent = ENV.values_at("URL", "INGRESS_PASSWORD", "USER_AGENT")
 
       if url.blank? || password.blank?
-        echo "4.3.5 URL and INGRESS_PASSWORD are required"
+        print "4.3.5 URL and INGRESS_PASSWORD are required"
         exit 1
       end
 
       ActionMailbox::PostfixRelayer.new(url: url, password: password, user_agent: user_agent)
         .relay(STDIN.read).tap do |result|
-          echo result.output
+          print result.output
           exit result.success? ? 0 : 1
         end
     end
