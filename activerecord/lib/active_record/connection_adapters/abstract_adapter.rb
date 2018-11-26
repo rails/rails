@@ -314,6 +314,11 @@ module ActiveRecord
         false
       end
 
+      # Does this adapter support materialized views?
+      def supports_materialized_views?
+        false
+      end
+
       # Does this adapter support datetime with precision?
       def supports_datetime_with_precision?
         false
