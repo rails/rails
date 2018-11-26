@@ -25,12 +25,7 @@ namespace :test do
   end
 
   task :integration do
-    require "blade"
-    if ENV["CI"]
-      Blade.start(interface: :ci)
-    else
-      Blade.start(interface: :runner)
-    end
+    system("yarn test") || raise("Failures")
   end
 end
 

@@ -27,6 +27,12 @@
     "babel-preset-env": "^1.6.0",
     "eslint": "^4.3.0",
     "eslint-plugin-import": "^2.7.0",
+    "karma": "^3.1.1",
+    "karma-chrome-launcher": "^2.2.0",
+    "karma-qunit": "^2.1.0",
+    "karma-sauce-launcher": "^1.2.0",
+    "mock-socket": "^2.0.0",
+    "qunit": "^2.8.0",
     "rollup": "^0.58.2",
     "rollup-plugin-babel": "^3.0.4",
     "rollup-plugin-commonjs": "^9.1.0",
@@ -36,6 +42,8 @@
   "scripts": {
     "prebuild": "yarn lint && bundle exec rake assets:codegen",
     "build": "rollup --config rollup.config.js",
-    "lint": "eslint app/javascript"
+    "lint": "eslint app/javascript",
+    "pretest": "bundle exec rake assets:codegen && rollup --config rollup.config.test.js",
+    "test": "karma start"
   }
 }
