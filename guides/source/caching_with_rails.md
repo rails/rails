@@ -295,7 +295,7 @@ Consider the following example. An application has a `Product` model with an ins
 ```ruby
 class Product < ApplicationRecord
   def competing_price
-    Rails.cache.fetch("#{cache_key}/competing_price", expires_in: 12.hours) do
+    Rails.cache.fetch("#{cache_key_with_version}/competing_price", expires_in: 12.hours) do
       Competitor::API.find_price(id)
     end
   end
