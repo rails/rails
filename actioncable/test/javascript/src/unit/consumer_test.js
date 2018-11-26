@@ -2,9 +2,9 @@ import consumerTest from "../test_helpers/consumer_test_helper"
 
 const {module} = QUnit
 
-module("ActionCable.Consumer", function() {
-  consumerTest("#connect", {connect: false}, function({consumer, server, assert, done}) {
-    server.on("connection", function() {
+module("ActionCable.Consumer", () => {
+  consumerTest("#connect", {connect: false}, ({consumer, server, assert, done}) => {
+    server.on("connection", () => {
       assert.equal(consumer.connect(), false)
       done()
     })
@@ -12,7 +12,7 @@ module("ActionCable.Consumer", function() {
     consumer.connect()
   })
 
-  consumerTest("#disconnect", function({consumer, client, done}) {
+  consumerTest("#disconnect", ({consumer, client, done}) => {
     client.addEventListener("close", done)
     consumer.disconnect()
   })

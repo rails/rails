@@ -3,40 +3,44 @@ import {testURL} from "../test_helpers/index"
 
 const {module, test} = QUnit
 
-module("ActionCable", function() {
-  module("Adapters", function() {
-    module("WebSocket", function() {
-      test("default is window.WebSocket", assert => assert.equal(ActionCable.WebSocket, window.WebSocket))
+module("ActionCable", () => {
+  module("Adapters", () => {
+    module("WebSocket", () => {
+      test("default is window.WebSocket", assert => {
+        assert.equal(ActionCable.WebSocket, window.WebSocket)
+      })
 
-      test("configurable", function(assert) {
+      test("configurable", assert => {
         ActionCable.WebSocket = ""
         assert.equal(ActionCable.WebSocket, "")
       })
     })
 
-    module("logger", function() {
-      test("default is window.console", assert => assert.equal(ActionCable.logger, window.console))
+    module("logger", () => {
+      test("default is window.console", assert => {
+        assert.equal(ActionCable.logger, window.console)
+      })
 
-      test("configurable", function(assert) {
+      test("configurable", assert => {
         ActionCable.logger = ""
         assert.equal(ActionCable.logger, "")
       })
     })
   })
 
-  module("#createConsumer", function() {
-    test("uses specified URL", function(assert) {
+  module("#createConsumer", () => {
+    test("uses specified URL", assert => {
       const consumer = ActionCable.createConsumer(testURL)
       assert.equal(consumer.url, testURL)
     })
 
-    test("uses default URL", function(assert) {
+    test("uses default URL", assert => {
       const pattern = new RegExp(`${ActionCable.INTERNAL.default_mount_path}$`)
       const consumer = ActionCable.createConsumer()
       assert.ok(pattern.test(consumer.url), `Expected ${consumer.url} to match ${pattern}`)
     })
 
-    test("uses URL from meta tag", function(assert) {
+    test("uses URL from meta tag", assert => {
       const element = document.createElement("meta")
       element.setAttribute("name", "action-cable-url")
       element.setAttribute("content", testURL)
