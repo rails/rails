@@ -6,7 +6,7 @@ namespace :action_mailbox do
     task :postfix do
       require "active_support"
       require "active_support/core_ext/object/blank"
-      require "action_mailbox/ingresses/postfix/relayer"
+      require "action_mailbox/postfix_relayer"
 
       url, password, user_agent = ENV.values_at("URL", "INGRESS_PASSWORD", "USER_AGENT")
 
