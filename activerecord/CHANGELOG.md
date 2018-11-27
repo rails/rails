@@ -3,6 +3,11 @@
     *Matt Jones*, *Brooke Kuhlmann*
 
 
+## Rails 5.0.7.1 (November 27, 2018) ##
+
+*   No changes.
+
+
 ## Rails 5.0.7 (March 29, 2018) ##
 
 *   Apply time column precision on assignment.
