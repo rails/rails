@@ -32,9 +32,12 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
            :posts, :tags, :taggings, :comments, :sponsors, :members
 
   def test_belongs_to
-    firm = Client.find(3).firm
-    assert_not_nil firm
-    assert_equal companies(:first_firm).name, firm.name
+    client = Client.find(3)
+    assert_sql(/LIMIT|ROWNUM <=|FETCH FIRST/) do
+      firm = client.firm
+      assert_not_nil firm
+      assert_equal companies(:first_firm).name, firm.name
+    end
   end
 
   def test_assigning_belongs_to_on_destroyed_object
