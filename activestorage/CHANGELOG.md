@@ -1,3 +1,12 @@
+## Rails 5.2.1.1 (November 27, 2018) ##
+
+*   Prevent content type and disposition bypass in storage service URLs.
+
+    Fix CVE-2018-16477.
+
+    *Rosa Gutierrez*
+
+
 ## Rails 5.2.1 (August 07, 2018) ##
 
 *   Fix direct upload with zero-byte files.
