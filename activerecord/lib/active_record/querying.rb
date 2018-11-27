@@ -40,7 +40,8 @@ module ActiveRecord
     def find_by_sql(sql, binds = [], preparable: nil, &block)
       result_set = connection.select_all(sanitize_sql(sql), "#{name} Load", binds, preparable: preparable)
       column_types = result_set.column_types.dup
-      columns_hash.each_key { |k| column_types.delete k }
+      cached_columns_hash = connection.schema_cache.columns_hash(table_name)
+      cached_columns_hash.each_key { |k| column_types.delete k }
       message_bus = ActiveSupport::Notifications.instrumenter
 
       payload = {
