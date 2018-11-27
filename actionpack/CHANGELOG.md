@@ -1,3 +1,8 @@
+## Rails 4.2.11 (November 27, 2018) ##
+
+*   No changes.
+
+
 ## Rails 4.2.10 (September 27, 2017) ##
 
 *   Fix regression in behavior of `normalize_path`.
