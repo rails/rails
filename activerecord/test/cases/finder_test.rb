@@ -741,6 +741,16 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal expected, clients.limit(5).first(2)
   end
 
+  def test_implicit_order_column_is_configurable
+    old_implicit_order_column = Topic.implicit_order_column
+    Topic.implicit_order_column = "title"
+
+    assert_equal topics(:fifth), Topic.first
+    assert_equal topics(:third), Topic.last
+  ensure
+    Topic.implicit_order_column = old_implicit_order_column
+  end
+
   def test_take_and_first_and_last_with_integer_should_return_an_array
     assert_kind_of Array, Topic.take(5)
     assert_kind_of Array, Topic.first(5)

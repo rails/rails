@@ -1,3 +1,20 @@
+*   Make the implicit order column configurable.
+
+    When calling ordered finder methods such as +first+ or +last+ without an
+    explicit order clause, ActiveRecord sorts records by primary key. This can
+    result in unpredictable and surprising behaviour when the primary key is
+    not an auto-incrementing integer, for example when it's a UUID. This change
+    makes it possible to override the column used for implicit ordering such
+    that +first+ and +last+ will return more predictable results.
+
+    Example:
+
+        class Project < ActiveRecord::Base
+          self.implicit_order_column = "created_at"
+        end
+
+    *Tekin Suleyman*
+
 *   Bump minimum PostgreSQL version to 9.3.
 
     *Yasuo Honda*
