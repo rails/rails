@@ -59,6 +59,50 @@ module ActiveRecord
       assert_equal expected_where_clause, relation.where_clause
     end
 
+    def test_or_creates_compound_where_clause
+      relation = Post.where.or({ title: "hello" }, { author_id: [1, 2] }, 'body = "Greetings"')
+      expected_where_clause = Post.where(title: "hello")
+        .or(Post.where(author_id: [1, 2]))
+        .or(Post.where('body = "Greetings"'))
+        .where_clause
+
+      assert_equal expected_where_clause, relation.where_clause
+    end
+
+    def test_or_with_nil
+      assert_raise ArgumentError do
+        Post.where.or(nil)
+      end
+    end
+
+    def test_or_with_preceding_where
+      relation = Post.where(title: "hello").where.or({ body: "world" }, { author_id: [1, 2] })
+      expected_where_clause =
+        Post.where(title: "hello").where_clause +
+        Post.where.or({ body: "world" }, { author_id: [1, 2] }).where_clause
+
+      assert_equal expected_where_clause, relation.where_clause
+    end
+
+    def test_or_with_following_where
+      relation = Post.where.or({ title: "hello" }, { body: "friend" }).where(author_id: [1, 2])
+      expected_where_clause =
+        Post.where.or({ title: "hello" }, { body: "friend" }).where_clause +
+        Post.where(author_id: [1, 2]).where_clause
+
+      assert_equal expected_where_clause, relation.where_clause
+    end
+
+    def test_chaining_multiple_ors
+      relation = Post.where.or({ author_id: [1, 2] }, { title: "Hello" })
+        .where.or({ title: "ruby on rails" }, { author_id: [3, 4], body: "World" })
+      expected_where_clause =
+        Post.where.or({ author_id: [1, 2] }, { title: "Hello" }).where_clause +
+        Post.where.or({ title: "ruby on rails" }, { author_id: [3, 4], body: "World" }).where_clause
+
+      assert_equal expected_where_clause, relation.where_clause
+    end
+
     def test_rewhere_with_one_condition
       relation = Post.where(title: "hello").where(title: "world").rewhere(title: "alone")
       expected = Post.where(title: "alone")

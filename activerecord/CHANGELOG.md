@@ -1,3 +1,16 @@
+*   Add another way to combine WHERE conditions with OR operator
+
+    This makes it easier to write simple/flexible conditions with OR logic
+    without repeating the scope. This method takes a list of arguments, each one
+    of which could be used in `where`. From these, it constructs a compount WHERE
+    statement, connecting those conditions with the OR operator.
+
+    Example:
+
+        Post.where.or({ title: 'Good day' }, ["created_at < ?", Date.today], 'active = true')
+
+    *Nick Davies*
+
 *   Cached columns_hash fields should be excluded from ResultSet#column_types
 
     PR #34528 addresses the inconsistent behaviour when attribute is defined for an ignored column. The following test

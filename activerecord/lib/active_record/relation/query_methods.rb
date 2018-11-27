@@ -53,6 +53,31 @@ module ActiveRecord
         @scope.where_clause += where_clause.invert
         @scope
       end
+
+      # Returns a new relation expressing WHERE + OR conditions according to
+      # the conditions in the arguments.
+      #
+      # #or accepts a list of arguments for QueryMethods#where.
+      #
+      #    User.where.or("name = 'Admin'", { admin: true })
+      #    # SELECT * FROM users WHERE (name = 'Admin' OR admin is true)
+      def or(*where_args)
+        initial_scope = @scope.dup
+        where_clauses = []
+        where_args.each do |opts, *rest|
+          opts = sanitize_forbidden_attributes(opts)
+          where_clauses << @scope.send(:where_clause_factory).build(opts, rest)
+          @scope.references!(PredicateBuilder.references(opts)) if Hash === opts
+        end
+
+        @scope.where_clause += where_clauses.shift
+        where_clauses.each do |where_clause|
+          or_scope = initial_scope.dup
+          or_scope.where_clause += where_clause
+          @scope = @scope.or(or_scope)
+        end
+        @scope
+      end
     end
 
     FROZEN_EMPTY_ARRAY = [].freeze
