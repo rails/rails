@@ -13,6 +13,11 @@
     *Ryuta Kamizono*
 
 
+## Rails 5.1.6.1 (November 27, 2018) ##
+
+*   No changes.
+
+
 ## Rails 5.1.6 (March 29, 2018) ##
 
 *   MySQL: Support mysql2 0.5.x.
