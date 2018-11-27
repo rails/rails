@@ -33,10 +33,10 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
   def test_belongs_to
     client = Client.find(3)
+    first_firm = companies(:first_firm)
     assert_sql(/LIMIT|ROWNUM <=|FETCH FIRST/) do
-      firm = client.firm
-      assert_not_nil firm
-      assert_equal companies(:first_firm).name, firm.name
+      assert_equal first_firm, client.firm
+      assert_equal first_firm.name, client.firm.name
     end
   end
 

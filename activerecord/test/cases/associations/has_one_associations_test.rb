@@ -23,10 +23,10 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
 
   def test_has_one
     firm = companies(:first_firm)
+    first_account = Account.find(1)
     assert_sql(/LIMIT|ROWNUM <=|FETCH FIRST/) do
-      account = firm.account
-      assert_equal account, Account.find(1)
-      assert_equal Account.find(1).credit_limit, account.credit_limit
+      assert_equal first_account, firm.account
+      assert_equal first_account.credit_limit, firm.account.credit_limit
     end
   end
 
