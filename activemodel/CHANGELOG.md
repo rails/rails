@@ -1,3 +1,5 @@
+## Rails 5.2.2.rc1 (November 28, 2018) ##
+
 *   Fix numericality validator to still use value before type cast except Active Record.
 
     Fixes #33651, #33686.

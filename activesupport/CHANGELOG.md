@@ -1,3 +1,5 @@
+## Rails 5.2.2.rc1 (November 28, 2018) ##
+
 *   Fix bug where `#to_options` for `ActiveSupport::HashWithIndifferentAccess`
     would not act as alias for `#symbolize_keys`.
 

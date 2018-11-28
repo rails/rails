@@ -1,3 +1,8 @@
+## Rails 5.2.2.rc1 (November 28, 2018) ##
+
+*   No changes.
+
+
 ## Rails 5.2.1.1 (November 27, 2018) ##
 
 *   No changes.

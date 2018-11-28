@@ -1,3 +1,5 @@
+## Rails 5.2.2.rc1 (November 28, 2018) ##
+
 *   Reset Capybara sessions if failed system test screenshot raising an exception.
 
     Reset Capybara sessions if `take_failed_screenshot` raise exception
@@ -31,6 +33,14 @@
         Content-Security-Policy: default-src 'self'
 
     *Andrew White*
+
+*   Fix `rails routes -c` for controller name consists of multiple word.
+
+    *Yoshiyuki Kinjo*
+
+*   Call the `#redirect_to` block in controller context.
+
+    *Steven Peckins*
 
 
 ## Rails 5.2.1.1 (November 27, 2018) ##

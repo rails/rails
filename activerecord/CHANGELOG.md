@@ -1,6 +1,9 @@
+## Rails 5.2.2.rc1 (November 28, 2018) ##
+
 *   Allow spaces in postgres table names.
 
-    Fixes issue where "user post" is misinterpreted as "\"user\".\"post\"" when quoting table names with the postgres adapter.
+    Fixes issue where "user post" is misinterpreted as "\"user\".\"post\"" when quoting table names with the postgres
+    adapter.
 
     *Gannon McGibbon*
 
@@ -42,6 +45,14 @@
 
     *Sean Griffin*
 
+*   Do not use prepared statement in queries that have a large number of binds.
+
+    *Ryuta Kamizono*
+
+*   Fix query cache to load before first request.
+
+    *Eileen M. Uchitelle*
+
 *   Fix collection cache key with limit and custom select to avoid ambiguous timestamp column error.
 
     Fixes #33056.
@@ -51,6 +62,34 @@
 *   Fix duplicated record creation when using nested attributes with `create_with`.
 
     *Darwin Wu*
+
+*   Fix regression setting children record in parent `before_save` callback.
+
+    *Guo Xiang Tan*
+
+*   Prevent leaking of user's DB credentials on `rails db:create` failure.
+
+    *bogdanvlviv*
+
+*   Clear mutation tracker before continuing the around callbacks.
+
+    *Yuya Tanaka*
+
+*   Prevent deadlocks when waiting for connection from pool.
+
+    *Brent Wheeldon*
+
+*   Avoid extra scoping when using `Relation#update` that was causing this method to change the current scope.
+
+    *Ryuta Kamizono*
+
+*   Fix numericality validator not to be affected by custom getter.
+
+    *Ryuta Kamizono*
+
+*   Fix bulk change table ignores comment option on PostgreSQL.
+
+    *Yoshiyuki Kinjo*
 
 
 ## Rails 5.2.1.1 (November 27, 2018) ##
