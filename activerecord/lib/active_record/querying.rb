@@ -16,17 +16,17 @@ module ActiveRecord
     delegate :pluck, :pick, :ids, to: :all
 
     # Executes a custom SQL query against your database and returns all the results. The results will
-    # be returned as an array with columns requested encapsulated as attributes of the model you call
-    # this method from. If you call <tt>Product.find_by_sql</tt> then the results will be returned in
+    # be returned as an array, with the requested columns encapsulated as attributes of the model you call
+    # this method from. For example, if you call <tt>Product.find_by_sql</tt>, then the results will be returned in
     # a +Product+ object with the attributes you specified in the SQL query.
     #
-    # If you call a complicated SQL query which spans multiple tables the columns specified by the
+    # If you call a complicated SQL query which spans multiple tables, the columns specified by the
     # SELECT will be attributes of the model, whether or not they are columns of the corresponding
     # table.
     #
-    # The +sql+ parameter is a full SQL query as a string. It will be called as is, there will be
-    # no database agnostic conversions performed. This should be a last resort because using, for example,
-    # MySQL specific terms will lock you to using that particular database engine or require you to
+    # The +sql+ parameter is a full SQL query as a string. It will be called as is; there will be
+    # no database agnostic conversions performed. This should be a last resort because using
+    # database-specific terms will lock you into using that particular database engine, or require you to
     # change your call if you switch engines.
     #
     #   # A simple SQL query spanning multiple tables
@@ -61,7 +61,9 @@ module ActiveRecord
 
     # Returns the result of an SQL statement that should only include a COUNT(*) in the SELECT part.
     # The use of this method should be restricted to complicated SQL queries that can't be executed
-    # using the ActiveRecord::Calculations class methods. Look into those before using this.
+    # using the ActiveRecord::Calculations class methods. Look into those before using this method,
+    # as it could lock you into a specific database engine or require a code change to switch
+    # database engines.
     #
     #   Product.count_by_sql "SELECT COUNT(*) FROM sales s, customers c WHERE s.customer_id = c.id"
     #   # => 12
