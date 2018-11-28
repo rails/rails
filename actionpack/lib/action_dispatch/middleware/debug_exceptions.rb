@@ -180,11 +180,14 @@ module ActionDispatch
         trace = wrapper.framework_trace if trace.empty?
 
         ActiveSupport::Deprecation.silence do
-          logger.fatal "  "
-          logger.fatal "#{exception.class} (#{exception.message}):"
-          log_array logger, exception.annoted_source_code if exception.respond_to?(:annoted_source_code)
-          logger.fatal "  "
-          log_array logger, trace
+          message = []
+          message << "  "
+          message << "#{exception.class} (#{exception.message}):"
+          message.concat(exception.annoted_source_code) if exception.respond_to?(:annoted_source_code)
+          message << "  "
+          message.concat(trace)
+
+          log_array(logger, message)
         end
       end
 
