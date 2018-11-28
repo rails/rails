@@ -39,6 +39,11 @@ module ActiveRecord
           type = OID::Bit.new
           assert_nil @conn.quote(type.serialize(value))
         end
+
+        def test_quote_table_name_with_spaces
+          value = "user posts"
+          assert_equal "\"user posts\"", @conn.quote_table_name(value)
+        end
       end
     end
   end

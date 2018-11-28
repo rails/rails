@@ -1,3 +1,9 @@
+*   Allow spaces in postgres table names.
+
+    Fixes issue where "user post" is misinterpreted as "\"user\".\"post\"" when quoting table names with the postgres adapter.
+
+    *Gannon McGibbon*
+
 *   Cached columns_hash fields should be excluded from ResultSet#column_types
 
     PR #34528 addresses the inconsistent behaviour when attribute is defined for an ignored column. The following test
