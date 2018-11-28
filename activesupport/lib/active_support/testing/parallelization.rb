@@ -23,6 +23,7 @@ module ActiveSupport
         end
 
         def <<(o)
+          o[2] = DRbObject.new(o[2]) if o
           @queue << o
         end
 
