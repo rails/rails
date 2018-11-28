@@ -1,3 +1,7 @@
+*   Fix `ArgumentError` when uploading to amazon s3
+
+    *Hiroki Sanpei*
+
 ## Rails 5.2.1.1 (November 27, 2018) ##
 
 *   Prevent content type and disposition bypass in storage service URLs.
