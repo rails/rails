@@ -41,7 +41,7 @@ if SERVICE_CONFIGURATIONS[:gcs]
         url = @service.url(key, expires_in: 2.minutes, disposition: :inline, content_type: "text/html", filename: ActiveStorage::Filename.new("test.html"))
         response = Net::HTTP.get_response(URI(url))
         assert_equal "text/plain", response.content_type
-        assert_match /attachment;.*test.txt/, response["Content-Disposition"]
+        assert_match(/attachment;.*test.txt/, response["Content-Disposition"])
       ensure
         @service.delete key
       end
@@ -57,7 +57,7 @@ if SERVICE_CONFIGURATIONS[:gcs]
         url = @service.url(key, expires_in: 2.minutes, disposition: :inline, content_type: "text/html", filename: ActiveStorage::Filename.new("test.html"))
         response = Net::HTTP.get_response(URI(url))
         assert_equal "text/plain", response.content_type
-        assert_match /inline;.*test.html/, response["Content-Disposition"]
+        assert_match(/inline;.*test.html/, response["Content-Disposition"])
       ensure
         @service.delete key
       end
@@ -74,7 +74,7 @@ if SERVICE_CONFIGURATIONS[:gcs]
 
         response = Net::HTTP.get_response(URI(url))
         assert_equal "text/plain", response.content_type
-        assert_match /inline;.*test.txt/, response["Content-Disposition"]
+        assert_match(/inline;.*test.txt/, response["Content-Disposition"])
       ensure
         @service.delete key
       end
