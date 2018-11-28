@@ -1,3 +1,7 @@
+*   Fix `ArgumentError` when uploading to amazon s3
+
+    *Hiroki Sanpei*
+
 *   Add progressive JPG to default list of variable content types
 
     *Maurice Kühlborn*
