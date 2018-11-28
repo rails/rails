@@ -183,9 +183,9 @@ module ActionDispatch
           message = []
           message << "  "
           message << "#{exception.class} (#{exception.message}):"
-          message += exception.annoted_source_code if exception.respond_to?(:annoted_source_code)
+          message.concat(exception.annoted_source_code) if exception.respond_to?(:annoted_source_code)
           message << "  "
-          message += trace
+          message.concat(trace)
 
           log_array(logger, message)
         end
