@@ -196,7 +196,7 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
       filename ||= blob.filename
       content_type ||= blob.content_type
 
-      query = { disposition: disposition.to_s + "; #{filename.parameters}", content_type: content_type }
+      query = { disposition: ActionDispatch::Http::ContentDisposition.format(disposition: disposition, filename: filename.sanitized), content_type: content_type }
       key_params = { key: blob.key }.merge(query)
 
       "https://example.com/rails/active_storage/disk/#{ActiveStorage.verifier.generate(key_params, expires_in: 5.minutes, purpose: :blob_key)}/#{filename}?#{query.to_param}"
