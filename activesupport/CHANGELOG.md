@@ -1,3 +1,7 @@
+*   If the same block is `included` multiple times for a Concern, an exception is no longer raised.
+
+    *Mark J. Titorenko*, *Vlad Bokov*
+
 *   Fix bug where `#to_options` for `ActiveSupport::HashWithIndifferentAccess`
     would not act as alias for `#symbolize_keys`.
 
