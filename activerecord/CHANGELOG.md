@@ -1,5 +1,9 @@
 ## Rails 5.2.2.rc1 (November 28, 2018) ##
 
+*   Allow aliased attributes to be used in `#update_columns` and `#update`.
+
+    *Gannon McGibbon*
+
 *   Allow spaces in postgres table names.
 
     Fixes issue where "user post" is misinterpreted as "\"user\".\"post\"" when quoting table names with the postgres
