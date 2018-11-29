@@ -1397,6 +1397,56 @@ class ProfileControllerTest < ActionDispatch::IntegrationTest
 end
 ```
 
+#### Using Separate Files
+
+If you find your helpers are cluttering `test_helper.rb`, you can extract them into separate files. One good place to store them is `lib/test`.
+
+```ruby
+# lib/test/multiple_assertions.rb
+module MultipleAssertions
+  def assert_multiple_of_fourty_two(number)
+    assert (number % 42 == 0), 'expected #{number} to be a multiple of 42'
+  end
+end
+```
+
+These helpers can then be explicitly required as needed and included as needed
+
+```ruby
+require 'test_helper'
+require 'test/multiple_assertions'
+
+class NumberTest < ActiveSupport::TestCase
+  include MultipleAssertions
+
+  test '420 is a multiple of fourty two' do
+    assert_multiple_of_fourty_two 420
+  end
+end
+```
+
+or they can continue to be included directly into the relevant parent classes
+
+```ruby
+# test/test_helper.rb
+require 'test/sign_in_helper'
+
+class ActionDispatch::IntegrationTest
+  include SignInHelper
+end
+```
+
+#### Eagerly Requiring Helpers
+
+You may find it convenient to eagerly require helpers in `test_helper.rb` so your test files have implicit access to them. This can be accomplished using globbing, as follows
+
+```ruby
+# test/test_helper.rb
+Dir[Rails.root.join('lib', 'test', '**', '*.rb')].each { |file| require file }
+```
+
+This has the downside of increasing the boot-up time, as opposed to manually requiring only the necessary files in your individual tests.
+
 Testing Routes
 --------------
 
