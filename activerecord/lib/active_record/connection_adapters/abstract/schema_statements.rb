@@ -1145,7 +1145,7 @@ module ActiveRecord
       def add_index_options(table_name, column_name, comment: nil, **options) # :nodoc:
         column_names = index_column_names(column_name)
 
-        options.assert_valid_keys(:unique, :order, :name, :where, :length, :internal, :using, :algorithm, :type, :opclass)
+        options.assert_valid_keys(:unique, :order, :name, :where, :length, :internal, :using, :algorithm, :type, :opclass, :if_not_exists)
 
         index_type = options[:type].to_s if options.key?(:type)
         index_type ||= options[:unique] ? "UNIQUE" : ""
@@ -1159,6 +1159,7 @@ module ActiveRecord
         end
 
         using = "USING #{options[:using]}" if options[:using].present?
+        if_not_exists = "IF NOT EXISTS " if options[:if_not_exists].present?
 
         if supports_partial_index?
           index_options = options[:where] ? " WHERE #{options[:where]}" : ""
@@ -1166,12 +1167,12 @@ module ActiveRecord
 
         validate_index_length!(table_name, index_name, options.fetch(:internal, false))
 
-        if data_source_exists?(table_name) && index_name_exists?(table_name, index_name)
+        if data_source_exists?(table_name) && index_name_exists?(table_name, index_name) && !options[:if_not_exists].present?
           raise ArgumentError, "Index name '#{index_name}' on table '#{table_name}' already exists"
         end
         index_columns = quoted_columns_for_index(column_names, options).join(", ")
 
-        [index_name, index_type, index_columns, index_options, algorithm, using, comment]
+        [index_name, index_type, index_columns, index_options, algorithm, using, if_not_exists, comment]
       end
 
       def options_include_default?(options)

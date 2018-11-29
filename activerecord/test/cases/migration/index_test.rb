@@ -208,6 +208,12 @@ module ActiveRecord
           connection.remove_index("testings", "last_name")
           assert_not connection.index_exists?("testings", "last_name")
         end
+
+        def test_double_add_index_if_not_exists
+          connection.add_index(table_name, [:foo], name: "some_idx")
+          # should not raise error
+          connection.add_index(table_name, [:foo], name: "some_idx", if_not_exists: true)
+        end
       end
 
       private
