@@ -574,15 +574,6 @@ module Rails
       config.autoload_once_paths.freeze
     end
 
-    initializer :add_routing_paths do |app|
-      routing_paths = paths["config/routes.rb"].existent
-
-      if routes? || routing_paths.any?
-        app.routes_reloader.paths.unshift(*routing_paths)
-        app.routes_reloader.route_sets << routes
-      end
-    end
-
     # I18n load paths are a special case since the ones added
     # later have higher priority.
     initializer :add_locales do
@@ -612,6 +603,15 @@ module Rails
     initializer :load_config_initializers do
       config.paths["config/initializers"].existent.sort.each do |initializer|
         load_config_initializer(initializer)
+      end
+    end
+
+    initializer :add_routing_paths do |app|
+      routing_paths = paths["config/routes.rb"].existent
+
+      if routes? || routing_paths.any?
+        app.routes_reloader.paths.unshift(*routing_paths)
+        app.routes_reloader.route_sets << routes
       end
     end
 
