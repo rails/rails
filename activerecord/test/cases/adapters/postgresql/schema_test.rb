@@ -434,6 +434,20 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
     @connection.reset_pk_sequence! table_name
   end
 
+  def test_remove_single_field_with_if_exists_option
+    assert_no_column Thing1, :stuff
+    @connection.add_column Thing1.table_name, :stuff, :string
+    assert_column Thing1, :stuff
+
+    @connection.remove_column Thing1.table_name, :stuff
+    assert_raises(ActiveRecord::StatementInvalid) do
+      @connection.remove_column Thing1.table_name, :stuff
+    end
+
+    @connection.remove_column Thing1.table_name, :stuff, nil, if_exists: true
+    assert_no_column Thing1, :stuff
+  end
+
   private
     def columns(table_name)
       @connection.send(:column_definitions, table_name).map do |name, type, default|

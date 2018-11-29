@@ -632,6 +632,13 @@ module ActiveRecord
         end
 
         private
+
+          def remove_column_for_alter(table_name, column_name, type = nil, options = {})
+            sql = +"DROP COLUMN "
+            sql << "IF EXISTS " if options[:if_exists]
+            sql << quote_column_name(column_name)
+          end
+
           def schema_creation
             PostgreSQL::SchemaCreation.new(self)
           end
