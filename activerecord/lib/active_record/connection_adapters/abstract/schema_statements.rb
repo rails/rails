@@ -736,6 +736,16 @@ module ActiveRecord
       #
       # Note: Partial indexes are only supported for PostgreSQL and SQLite 3.8.0+.
       #
+      # ====== Creating an index if it does not exist
+      #
+      #   add_index(:accounts, :name, :if_not_exists: true)
+      #
+      # generates:
+      #
+      #   CREATE INDEX IF NOT EXISTS index_accounts_on_name ON accounts(name)
+      #
+      # Note: IF NOT EXISTS is only supported for PostgreSQL from 9.5 onward
+      #
       # ====== Creating an index with a specific method
       #
       #   add_index(:developers, :name, using: 'btree')
