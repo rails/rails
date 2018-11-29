@@ -323,6 +323,12 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_raises(ActiveModel::UnknownAttributeError) { topic.update(no_column_exists: "Hello!") }
   end
 
+  test "write_attribute allows writing to aliased attributes" do
+    topic = Topic.first
+    assert_nothing_raised { topic.update_columns(heading: "Hello!") }
+    assert_nothing_raised { topic.update(heading: "Hello!") }
+  end
+
   test "read_attribute" do
     topic = Topic.new
     topic.title = "Don't change the topic"

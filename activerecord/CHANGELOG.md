@@ -1,3 +1,7 @@
+*   Allow aliased attributes to be used in `#update_columns` and `#update`.
+
+    *Gannon McGibbon*
+
 *   Allow spaces in postgres table names.
 
     Fixes issue where "user post" is misinterpreted as "\"user\".\"post\"" when quoting table names with the postgres adapter.
