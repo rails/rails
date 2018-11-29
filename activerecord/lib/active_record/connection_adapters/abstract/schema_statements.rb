@@ -738,7 +738,7 @@ module ActiveRecord
       #
       # ====== Creating an index if it does not exist
       #
-      #   add_index(:accounts, :name, :if_not_exists: true)
+      #   add_index(:accounts, :name, if_not_exists: true)
       #
       # generates:
       #
