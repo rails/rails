@@ -71,7 +71,7 @@ try {
 } catch (e) {
   _MouseEvent = function(type, options) {
     var evt = document.createEvent('MouseEvents')
-    evt.initMouseEvent(type, options.bubbles, options.cancelable, window, options.detail, 0, 0, 80, 20, options.ctrlKey, options.altKey, options.shiftKey, options.metaKey, 0, null)
+    evt.initMouseEvent(type, options.bubbles, options.cancelable, window, options.detail, 0, 0, 80, 20, options.ctrlKey, options.altKey, options.shiftKey, options.metaKey, options.button, null)
     return evt
   }
 }
