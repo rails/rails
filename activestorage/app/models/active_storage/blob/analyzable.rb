@@ -26,7 +26,7 @@ module ActiveStorage::Blob::Analyzable
   # You won't ordinarily need to call this method from a Rails application. New blobs are automatically and asynchronously
   # analyzed via #analyze_later when they're attached for the first time.
   def analyze
-    update! metadata: metadata.merge(extract_metadata_via_analyzer)
+    update! metadata: metadata.merge(extract_metadata_via_analyzers)
   end
 
   # Enqueues an ActiveStorage::AnalyzeJob which calls #analyze.
@@ -43,15 +43,16 @@ module ActiveStorage::Blob::Analyzable
   end
 
   private
-    def extract_metadata_via_analyzer
-      analyzer.metadata.merge(analyzed: true)
+    def extract_metadata_via_analyzers
+      analyzers_metadata.reduce(&:merge!).merge!(analyzed: true)
     end
 
-    def analyzer
-      analyzer_class.new(self)
+    def analyzers_metadata
+      analyzer_classes.map { |klass| klass.new(self) }.map(&:metadata)
     end
 
-    def analyzer_class
-      ActiveStorage.analyzers.detect { |klass| klass.accept?(self) } || ActiveStorage::Analyzer::NullAnalyzer
+    def analyzer_classes
+      classes = ActiveStorage.analyzers.select { |klass| klass.accept?(self) }
+      classes.presence || [ActiveStorage::Analyzer::NullAnalyzer]
     end
 end
