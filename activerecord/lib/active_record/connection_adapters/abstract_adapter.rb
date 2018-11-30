@@ -76,7 +76,7 @@ module ActiveRecord
 
       SIMPLE_INT = /\A\d+\z/
 
-      attr_accessor :visitor, :pool
+      attr_accessor :visitor, :pool, :prevent_writes
       attr_reader :schema_cache, :owner, :logger, :prepared_statements, :lock
       alias :in_use? :owner
 
@@ -97,6 +97,13 @@ module ActiveRecord
           false
         else
           config
+        end
+      end
+
+      def self.build_read_query_regexp(*parts) # :nodoc:
+        lambda do |*parts|
+          parts = parts.map { |part| /\A\s*#{part}/i }
+          Regexp.union(*parts)
         end
       end
 
@@ -131,6 +138,27 @@ module ActiveRecord
 
       def replica?
         @config[:replica] || false
+      end
+
+      # Determines whether writes are currently being prevents.
+      #
+      # Returns true if the connection is a replica, or if +prevent_writes+
+      # is set to true.
+      def preventing_writes?
+        replica? || prevent_writes
+      end
+
+      # Prevent writing to the database  regardless of role.
+      #
+      # In some cases you may want to prevent writes to the database
+      # even if you are on a database that can write. `while_preventing_writes`
+      # will prevent writes to the database for the duration of the block.
+      def while_preventing_writes
+        original = self.prevent_writes
+        self.prevent_writes = true
+        yield
+      ensure
+        self.prevent_writes = original
       end
 
       def migrations_paths # :nodoc:

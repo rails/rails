@@ -209,6 +209,12 @@ module ActiveRecord
       # DATABASE STATEMENTS ======================================
       #++
 
+      READ_QUERY = ActiveRecord::ConnectionAdapters::AbstractAdapter.build_read_query_regexp.call(:select) # :nodoc:
+
+      def write_query?(sql) # :nodoc:
+        !READ_QUERY.match?(sql)
+      end
+
       def explain(arel, binds = [])
         sql = "EXPLAIN QUERY PLAN #{to_sql(arel, binds)}"
         SQLite3::ExplainPrettyPrinter.new.pp(exec_query(sql, "EXPLAIN", []))
@@ -257,6 +263,10 @@ module ActiveRecord
       end
 
       def execute(sql, name = nil) #:nodoc:
+        if preventing_writes? && write_query?(sql)
+          raise ActiveRecord::StatementInvalid, "Write query attempted while in readonly mode: #{sql}"
+        end
+
         materialize_transactions
 
         log(sql, name) do

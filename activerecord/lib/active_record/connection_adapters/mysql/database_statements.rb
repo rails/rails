@@ -19,8 +19,18 @@ module ActiveRecord
           execute(sql, name).to_a
         end
 
+        READ_QUERY = ActiveRecord::ConnectionAdapters::AbstractAdapter.build_read_query_regexp.call(:begin, :select, :set, :show, :release, :savepoint) # :nodoc:
+
+        def write_query?(sql) # :nodoc:
+          !READ_QUERY.match?(sql)
+        end
+
         # Executes the SQL statement in the context of this connection.
         def execute(sql, name = nil)
+          if preventing_writes? && write_query?(sql)
+            raise ActiveRecord::StatementInvalid, "Write query attempted while in readonly mode: #{sql}"
+          end
+
           # make sure we carry over any changes to ActiveRecord::Base.default_timezone that have been
           # made since we established the connection
           @connection.query_options[:database_timezone] = ActiveRecord::Base.default_timezone

@@ -69,6 +69,64 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
     @conn.exec_query("ALTER TABLE engines DROP COLUMN old_car_id")
   end
 
+  def test_errors_when_an_insert_query_is_called_while_preventing_writes
+    assert_raises(ActiveRecord::StatementInvalid) do
+      @conn.while_preventing_writes do
+        @conn.insert("INSERT INTO `engines` (`car_id`) VALUES ('138853948594')")
+      end
+    end
+  end
+
+  def test_errors_when_an_update_query_is_called_while_preventing_writes
+    @conn.insert("INSERT INTO `engines` (`car_id`) VALUES ('138853948594')")
+
+    assert_raises(ActiveRecord::StatementInvalid) do
+      @conn.while_preventing_writes do
+        @conn.update("UPDATE `engines` SET `engines`.`car_id` = '9989' WHERE `engines`.`car_id` = '138853948594'")
+      end
+    end
+  end
+
+  def test_errors_when_a_delete_query_is_called_while_preventing_writes
+    @conn.execute("INSERT INTO `engines` (`car_id`) VALUES ('138853948594')")
+
+    assert_raises(ActiveRecord::StatementInvalid) do
+      @conn.while_preventing_writes do
+        @conn.execute("DELETE FROM `engines` where `engines`.`car_id` = '138853948594'")
+      end
+    end
+  end
+
+  def test_errors_when_a_replace_query_is_called_while_preventing_writes
+    @conn.execute("INSERT INTO `engines` (`car_id`) VALUES ('138853948594')")
+
+    assert_raises(ActiveRecord::StatementInvalid) do
+      @conn.while_preventing_writes do
+        @conn.execute("REPLACE INTO `engines` SET `engines`.`car_id` = '249823948'")
+      end
+    end
+  end
+
+  def test_doesnt_error_when_a_select_query_is_called_while_preventing_writes
+    @conn.execute("INSERT INTO `engines` (`car_id`) VALUES ('138853948594')")
+
+    @conn.while_preventing_writes do
+      assert_equal 1, @conn.execute("SELECT `engines`.* FROM `engines` WHERE `engines`.`car_id` = '138853948594'").entries.count
+    end
+  end
+
+  def test_doesnt_error_when_a_show_query_is_called_while_preventing_writes
+    @conn.while_preventing_writes do
+      assert_equal 2, @conn.execute("SHOW FULL FIELDS FROM `engines`").entries.count
+    end
+  end
+
+  def test_doesnt_error_when_a_set_query_is_called_while_preventing_writes
+    @conn.while_preventing_writes do
+      assert_nil @conn.execute("SET NAMES utf8")
+    end
+  end
+
   private
 
     def with_example_table(definition = "id int auto_increment primary key, number int, data varchar(255)", &block)
