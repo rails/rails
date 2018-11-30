@@ -7,7 +7,7 @@ require "mailers/params_mailer"
 class ParameterizedTest < ActiveSupport::TestCase
   include ActiveJob::TestHelper
 
-  class DummyDeliveryJob < ActionMailer::DeliveryJob
+  class DummyDeliveryJob < ActionMailer::MailDeliveryJob
   end
 
   setup do
@@ -42,9 +42,10 @@ class ParameterizedTest < ActiveSupport::TestCase
       "ParamsMailer",
       "invitation",
       "deliver_now",
-      { inviter: "david@basecamp.com", invitee: "jason@basecamp.com" },
+      params: { inviter: "david@basecamp.com", invitee: "jason@basecamp.com" },
+      args: [],
     ]
-    assert_performed_with(job: ActionMailer::DeliveryJob, args: args) do
+    assert_performed_with(job: ActionMailer::MailDeliveryJob, args: args) do
       @mail.deliver_later
     end
   end
@@ -68,7 +69,8 @@ class ParameterizedTest < ActiveSupport::TestCase
       "ParamsMailer",
       "invitation",
       "deliver_now",
-      { inviter: "david@basecamp.com", invitee: "jason@basecamp.com" },
+      params: { inviter: "david@basecamp.com", invitee: "jason@basecamp.com" },
+      args: [],
     ]
 
     with_delivery_job DummyDeliveryJob do

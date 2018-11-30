@@ -24,7 +24,7 @@ class TestHelperMailer < ActionMailer::Base
   end
 end
 
-class CustomDeliveryJob < ActionMailer::DeliveryJob
+class CustomDeliveryJob < ActionMailer::MailDeliveryJob
 end
 
 class CustomDeliveryMailer < TestHelperMailer

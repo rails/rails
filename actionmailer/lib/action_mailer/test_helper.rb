@@ -125,9 +125,9 @@ module ActionMailer
     #   end
     def assert_enqueued_email_with(mailer, method, args: nil, queue: "mailers", &block)
       args = if args.is_a?(Hash)
-        [mailer.to_s, method.to_s, "deliver_now", args]
+        [mailer.to_s, method.to_s, "deliver_now", params: args, args: []]
       else
-        [mailer.to_s, method.to_s, "deliver_now", nil, *args]
+        [mailer.to_s, method.to_s, "deliver_now", args: Array(args)]
       end
       assert_enqueued_with(job: mailer.delivery_job, args: args, queue: queue, &block)
     end
