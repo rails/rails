@@ -5,7 +5,7 @@ import INTERNAL from "./internal"
 import Subscription from "./subscription"
 import Subscriptions from "./subscriptions"
 import adapters from "./adapters"
-import { log, startDebugging, stopDebugging } from "./logger"
+import logger from "./logger"
 
 export {
   Connection,
@@ -15,9 +15,7 @@ export {
   Subscription,
   Subscriptions,
   adapters,
-  log,
-  startDebugging,
-  stopDebugging
+  logger,
 }
 
 export function createConsumer(url) {

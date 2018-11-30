@@ -21,6 +21,20 @@
       +    ActionCable.adapters.logger = myLogger
       ```
 
+    - The `ActionCable.startDebugging()` and `ActionCable.stopDebugging()`
+      methods have been removed and replaced with the property
+      `ActionCable.logger.enabled`. If you are currently using these methods you
+      will need to make these changes when upgrading:
+
+      ```diff
+      -    ActionCable.startDebugging()
+      +    ActionCable.logger.enabled = true
+      ```
+      ```diff
+      -    ActionCable.stopDebugging()
+      +    ActionCable.logger.enabled = false
+      ```
+
     *Richard Macklin*
 
 *   Add `id` option to redis adapter so now you can distinguish

@@ -6,23 +6,18 @@
     logger: window.console,
     WebSocket: window.WebSocket
   };
-  var enabled = void 0;
-  function log() {
-    if (enabled) {
-      var _adapters$logger;
-      for (var _len = arguments.length, messages = Array(_len), _key = 0; _key < _len; _key++) {
-        messages[_key] = arguments[_key];
+  var logger = {
+    log: function log() {
+      if (this.enabled) {
+        var _adapters$logger;
+        for (var _len = arguments.length, messages = Array(_len), _key = 0; _key < _len; _key++) {
+          messages[_key] = arguments[_key];
+        }
+        messages.push(Date.now());
+        (_adapters$logger = adapters.logger).log.apply(_adapters$logger, [ "[ActionCable]" ].concat(messages));
       }
-      messages.push(Date.now());
-      (_adapters$logger = adapters.logger).log.apply(_adapters$logger, [ "[ActionCable]" ].concat(messages));
     }
-  }
-  function startDebugging() {
-    enabled = true;
-  }
-  function stopDebugging() {
-    enabled = false;
-  }
+  };
   var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function(obj) {
     return typeof obj;
   } : function(obj) {
@@ -55,7 +50,7 @@
         delete this.stoppedAt;
         this.startPolling();
         document.addEventListener("visibilitychange", this.visibilityDidChange);
-        log("ConnectionMonitor started. pollInterval = " + this.getPollInterval() + " ms");
+        logger.log("ConnectionMonitor started. pollInterval = " + this.getPollInterval() + " ms");
       }
     };
     ConnectionMonitor.prototype.stop = function stop() {
@@ -63,7 +58,7 @@
         this.stoppedAt = now();
         this.stopPolling();
         document.removeEventListener("visibilitychange", this.visibilityDidChange);
-        log("ConnectionMonitor stopped");
+        logger.log("ConnectionMonitor stopped");
       }
     };
     ConnectionMonitor.prototype.isRunning = function isRunning() {
@@ -76,11 +71,11 @@
       this.reconnectAttempts = 0;
       this.recordPing();
       delete this.disconnectedAt;
-      log("ConnectionMonitor recorded connect");
+      logger.log("ConnectionMonitor recorded connect");
     };
     ConnectionMonitor.prototype.recordDisconnect = function recordDisconnect() {
       this.disconnectedAt = now();
-      log("ConnectionMonitor recorded disconnect");
+      logger.log("ConnectionMonitor recorded disconnect");
     };
     ConnectionMonitor.prototype.startPolling = function startPolling() {
       this.stopPolling();
@@ -103,12 +98,12 @@
     };
     ConnectionMonitor.prototype.reconnectIfStale = function reconnectIfStale() {
       if (this.connectionIsStale()) {
-        log("ConnectionMonitor detected stale connection. reconnectAttempts = " + this.reconnectAttempts + ", pollInterval = " + this.getPollInterval() + " ms, time disconnected = " + secondsSince(this.disconnectedAt) + " s, stale threshold = " + this.constructor.staleThreshold + " s");
+        logger.log("ConnectionMonitor detected stale connection. reconnectAttempts = " + this.reconnectAttempts + ", pollInterval = " + this.getPollInterval() + " ms, time disconnected = " + secondsSince(this.disconnectedAt) + " s, stale threshold = " + this.constructor.staleThreshold + " s");
         this.reconnectAttempts++;
         if (this.disconnectedRecently()) {
-          log("ConnectionMonitor skipping reopening recent disconnect");
+          logger.log("ConnectionMonitor skipping reopening recent disconnect");
         } else {
-          log("ConnectionMonitor reopening");
+          logger.log("ConnectionMonitor reopening");
           this.connection.reopen();
         }
       }
@@ -124,7 +119,7 @@
       if (document.visibilityState === "visible") {
         setTimeout(function() {
           if (_this2.connectionIsStale() || !_this2.connection.isOpen()) {
-            log("ConnectionMonitor reopening stale connection on visibilitychange. visbilityState = " + document.visibilityState);
+            logger.log("ConnectionMonitor reopening stale connection on visibilitychange. visbilityState = " + document.visibilityState);
             _this2.connection.reopen();
           }
         }, 200);
@@ -170,10 +165,10 @@
     };
     Connection.prototype.open = function open() {
       if (this.isActive()) {
-        log("Attempted to open WebSocket, but existing socket is " + this.getState());
+        logger.log("Attempted to open WebSocket, but existing socket is " + this.getState());
         return false;
       } else {
-        log("Opening WebSocket, current state is " + this.getState() + ", subprotocols: " + protocols);
+        logger.log("Opening WebSocket, current state is " + this.getState() + ", subprotocols: " + protocols);
         if (this.webSocket) {
           this.uninstallEventHandlers();
         }
@@ -195,14 +190,14 @@
       }
     };
     Connection.prototype.reopen = function reopen() {
-      log("Reopening WebSocket, current state is " + this.getState());
+      logger.log("Reopening WebSocket, current state is " + this.getState());
       if (this.isActive()) {
         try {
           return this.close();
         } catch (error) {
-          log("Failed to reopen WebSocket", error);
+          logger.log("Failed to reopen WebSocket", error);
         } finally {
-          log("Reopening WebSocket in " + this.constructor.reopenDelay + "ms");
+          logger.log("Reopening WebSocket in " + this.constructor.reopenDelay + "ms");
           setTimeout(this.open, this.constructor.reopenDelay);
         }
       } else {
@@ -276,17 +271,17 @@
       }
     },
     open: function open() {
-      log("WebSocket onopen event, using '" + this.getProtocol() + "' subprotocol");
+      logger.log("WebSocket onopen event, using '" + this.getProtocol() + "' subprotocol");
       this.disconnected = false;
       if (!this.isProtocolSupported()) {
-        log("Protocol is unsupported. Stopping monitor and disconnecting.");
+        logger.log("Protocol is unsupported. Stopping monitor and disconnecting.");
         return this.close({
           allowReconnect: false
         });
       }
     },
     close: function close(event) {
-      log("WebSocket onclose event");
+      logger.log("WebSocket onclose event");
       if (this.disconnected) {
         return;
       }
@@ -297,7 +292,7 @@
       });
     },
     error: function error() {
-      log("WebSocket onerror event");
+      logger.log("WebSocket onerror event");
     }
   };
   var extend = function extend(object, properties) {
@@ -474,9 +469,7 @@
   exports.Subscription = Subscription;
   exports.Subscriptions = Subscriptions;
   exports.adapters = adapters;
-  exports.log = log;
-  exports.startDebugging = startDebugging;
-  exports.stopDebugging = stopDebugging;
+  exports.logger = logger;
   exports.createConsumer = createConsumer;
   exports.getConfig = getConfig;
   exports.createWebSocketURL = createWebSocketURL;
