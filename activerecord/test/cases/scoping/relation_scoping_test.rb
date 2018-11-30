@@ -254,9 +254,14 @@ class RelationScopingTest < ActiveRecord::TestCase
     end
   end
 
-  def test_scoping_works_in_the_scope_block
+  def test_scoping_with_klass_method_works_in_the_scope_block
     expected = SpecialPostWithDefaultScope.unscoped.to_a
     assert_equal expected, SpecialPostWithDefaultScope.unscoped_all
+  end
+
+  def test_scoping_with_query_method_works_in_the_scope_block
+    expected = SpecialPostWithDefaultScope.unscoped.where(author_id: 0).to_a
+    assert_equal expected, SpecialPostWithDefaultScope.authorless
   end
 
   def test_circular_joins_with_scoping_does_not_crash

@@ -1,8 +1,13 @@
-## Rails 5.2.2.rc1 (November 28, 2018) ##
+*   Do not ignore the scoping with query methods in the scope block.
+
+    *Ryuta Kamizono*
 
 *   Allow aliased attributes to be used in `#update_columns` and `#update`.
 
     *Gannon McGibbon*
+
+
+## Rails 5.2.2.rc1 (November 28, 2018) ##
 
 *   Allow spaces in postgres table names.
 
