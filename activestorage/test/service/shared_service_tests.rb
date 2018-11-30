@@ -46,6 +46,25 @@ module ActiveStorage::Service::SharedServiceTests
       end
     end
 
+    test "uploading with integrity and multiple keys" do
+      begin
+        key  = SecureRandom.base58(24)
+        data = "Something else entirely!"
+        @service.upload(
+          key,
+          StringIO.new(data),
+          checksum: Digest::MD5.base64digest(data),
+          filename: "racecar.jpg",
+          content_type: "image/jpg",
+          metadata: { metadata: true }
+        )
+
+        assert_equal data, @service.download(key)
+      ensure
+        @service.delete key
+      end
+    end
+
     test "downloading" do
       assert_equal FIXTURE_DATA, @service.download(@key)
     end
