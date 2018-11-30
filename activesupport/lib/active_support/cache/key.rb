@@ -121,7 +121,11 @@ module ActiveSupport
       end
 
       def cache_key_with_version
-        "#{cache_key}-#{cache_version}"
+        if cache_version.empty?
+          cache_key
+        else
+          "#{cache_key}-#{cache_version}"
+        end
       end
 
       def update(key)
@@ -160,8 +164,12 @@ module ActiveSupport
             key.sort_by! { |k, _| k.to_s }
             key.each { |k, v| update_key("#{k}=#{v}") }
           else
-            update_version(key)
-            update_key(key)
+            if key.respond_to?(:to_a) && !key.nil?
+              update(key.to_a)
+            else
+              update_version(key)
+              update_key(key)
+            end
           end
         end
 

@@ -114,6 +114,7 @@ module ActiveRecord
 
     # Returns a cache key along with the version.
     def cache_key_with_version
+      deprecate("cache_key_with_version is deprecated and will be removed")
       if version = cache_version
         "#{cache_key}-#{version}"
       else

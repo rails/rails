@@ -280,9 +280,6 @@ module CacheStoreBehavior
     def obj.cache_key
       "foo"
     end
-    def obj.cache_key_with_version
-      "foo-v1"
-    end
     @cache.write(obj, "bar")
     assert_equal "bar", @cache.read("foo")
   end

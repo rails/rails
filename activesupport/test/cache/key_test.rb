@@ -107,4 +107,9 @@ class KeyTest < ActiveSupport::TestCase
     assert_equal ActiveSupport::Cache::Key, key.class
     assert_equal "foo", key.cache_key
   end
+
+  def test_enum
+    k1 = ActiveSupport::Cache::Key.new([1, 2, 3].to_enum)
+    assert_equal "1/2/3", k1.cache_key
+  end
 end

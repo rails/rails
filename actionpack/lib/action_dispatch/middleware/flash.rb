@@ -130,6 +130,10 @@ module ActionDispatch
         end
       end
 
+      def cache_key
+        to_a
+      end
+
       # Builds a hash containing the flashes to keep for the next request.
       # If there are none to keep, returns +nil+.
       def to_session_value #:nodoc:

@@ -236,13 +236,13 @@ class IntegrationTest < ActiveRecord::TestCase
   def test_cache_key_retains_version_when_custom_timestamp_is_used
     with_cache_versioning do
       developer = Developer.first
-      first_key = developer.cache_key_with_version
+      first_key = ActiveSupport::Cache.expand_cache_key(developer)
 
       travel 10.seconds do
         developer.touch
       end
 
-      second_key = developer.cache_key_with_version
+      second_key = ActiveSupport::Cache.expand_cache_key(developer)
 
       assert_not_equal first_key, second_key
     end
