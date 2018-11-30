@@ -1,3 +1,7 @@
+*   Do not ignore the scoping with query methods in the scope block.
+
+    *Ryuta Kamizono*
+
 *   Allow aliased attributes to be used in `#update_columns` and `#update`.
 
     *Gannon McGibbon*

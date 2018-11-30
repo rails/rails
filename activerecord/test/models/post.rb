@@ -254,6 +254,7 @@ class SpecialPostWithDefaultScope < ActiveRecord::Base
   self.table_name = "posts"
   default_scope { where(id: [1, 5, 6]) }
   scope :unscoped_all, -> { unscoped { all } }
+  scope :authorless, -> { unscoped { where(author_id: 0) } }
 end
 
 class PostThatLoadsCommentsInAnAfterSaveHook < ActiveRecord::Base
