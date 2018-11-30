@@ -1736,21 +1736,6 @@ module ApplicationTests
       assert_equal true, Rails.application.config.action_mailer.show_previews
     end
 
-    test "config_for loads custom configuration from yaml files" do
-      app_file "config/custom.yml", <<-RUBY
-      development:
-        foo: 'bar'
-      RUBY
-
-      add_to_config <<-RUBY
-        config.my_custom_config = config_for('custom')
-      RUBY
-
-      app "development"
-
-      assert_equal "bar", Rails.application.config.my_custom_config["foo"]
-    end
-
     test "config_for loads custom configuration from yaml accessible as symbol" do
       app_file "config/custom.yml", <<-RUBY
       development:
@@ -1764,21 +1749,6 @@ module ApplicationTests
       app "development"
 
       assert_equal "bar", Rails.application.config.my_custom_config[:foo]
-    end
-
-    test "config_for loads custom configuration from yaml accessible as method" do
-      app_file "config/custom.yml", <<-RUBY
-      development:
-        foo: 'bar'
-      RUBY
-
-      add_to_config <<-RUBY
-        config.my_custom_config = config_for('custom')
-      RUBY
-
-      app "development"
-
-      assert_equal "bar", Rails.application.config.my_custom_config.foo
     end
 
     test "config_for loads nested custom configuration from yaml as symbol keys" do
@@ -1795,7 +1765,31 @@ module ApplicationTests
 
       app "development"
 
-      assert_equal 1, Rails.application.config.my_custom_config.foo[:bar][:baz]
+      assert_equal 1, Rails.application.config.my_custom_config[:foo][:bar][:baz]
+    end
+
+    test "config_for makes all hash methods available" do
+      app_file "config/custom.yml", <<-RUBY
+      development:
+        foo: 0
+        bar:
+          baz: 1
+      RUBY
+
+      add_to_config <<-RUBY
+        config.my_custom_config = config_for('custom')
+      RUBY
+
+      app "development"
+
+      actual = Rails.application.config.my_custom_config
+
+      assert_equal actual, foo: 0, bar: { baz: 1 }
+      assert_equal actual.keys, [ :foo, :bar ]
+      assert_equal actual.values, [ 0, baz: 1]
+      assert_equal actual.to_h, foo: 0, bar: { baz: 1 }
+      assert_equal actual[:foo], 0
+      assert_equal actual[:bar], baz: 1
     end
 
     test "config_for uses the Pathname object if it is provided" do
@@ -1810,7 +1804,7 @@ module ApplicationTests
 
       app "development"
 
-      assert_equal "custom key", Rails.application.config.my_custom_config["key"]
+      assert_equal "custom key", Rails.application.config.my_custom_config[:key]
     end
 
     test "config_for raises an exception if the file does not exist" do
@@ -1838,6 +1832,40 @@ module ApplicationTests
       app "development"
 
       assert_equal({}, Rails.application.config.my_custom_config)
+    end
+
+    test "config_for implements shared configuration as secrets case found" do
+      app_file "config/custom.yml", <<-RUBY
+      shared:
+        foo: :bar
+      test:
+        foo: :baz
+      RUBY
+
+      add_to_config <<-RUBY
+        config.my_custom_config = config_for('custom')
+      RUBY
+
+      app "test"
+
+      assert_equal(:baz, Rails.application.config.my_custom_config[:foo])
+    end
+
+    test "config_for implements shared configuration as secrets case not found" do
+      app_file "config/custom.yml", <<-RUBY
+      shared:
+        foo: :bar
+      test:
+        foo: :baz
+      RUBY
+
+      add_to_config <<-RUBY
+        config.my_custom_config = config_for('custom')
+      RUBY
+
+      app "development"
+
+      assert_equal(:bar, Rails.application.config.my_custom_config[:foo])
     end
 
     test "config_for with empty file returns an empty hash" do
@@ -1909,7 +1937,7 @@ module ApplicationTests
 
       app "development"
 
-      assert_equal "custom key", Rails.application.config.my_custom_config["key"]
+      assert_equal "custom key", Rails.application.config.my_custom_config[:key]
     end
 
     test "config_for with syntax error show a more descriptive exception" do
@@ -1942,7 +1970,7 @@ module ApplicationTests
       RUBY
       require "#{app_path}/config/environment"
 
-      assert_equal "unicorn", Rails.application.config.my_custom_config["key"]
+      assert_equal "unicorn", Rails.application.config.my_custom_config[:key]
     end
 
     test "api_only is false by default" do
