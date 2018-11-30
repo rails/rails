@@ -83,6 +83,7 @@ class ParameterizedTest < ActiveSupport::TestCase
     def with_delivery_job(job)
       old_delivery_job = ParamsMailer.delivery_job
       ParamsMailer.delivery_job = job
+      yield
     ensure
       ParamsMailer.delivery_job = old_delivery_job
     end
