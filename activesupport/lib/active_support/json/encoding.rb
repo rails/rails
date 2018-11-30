@@ -91,7 +91,7 @@ module ActiveSupport
             when String
               EscapedString.new(value)
             when Numeric, NilClass, TrueClass, FalseClass
-              value.as_json
+              value
             when Hash
               Hash[value.map { |k, v| [jsonify(k), jsonify(v)] }]
             when Array
