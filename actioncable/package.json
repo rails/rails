@@ -4,7 +4,8 @@
   "description": "WebSocket framework for Ruby on Rails.",
   "main": "app/assets/javascripts/action_cable.js",
   "files": [
-    "app/assets/javascripts/*.js"
+    "app/assets/javascripts/*.js",
+    "src/*.js"
   ],
   "repository": {
     "type": "git",
@@ -43,6 +44,7 @@
     "prebuild": "yarn lint && bundle exec rake assets:codegen",
     "build": "rollup --config rollup.config.js",
     "lint": "eslint app/javascript",
+    "prepublishOnly": "rm -rf src && cp -R app/javascript/action_cable src",
     "pretest": "bundle exec rake assets:codegen && rollup --config rollup.config.test.js",
     "test": "karma start"
   }
