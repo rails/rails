@@ -75,12 +75,12 @@ Layout/EmptyLinesAroundModuleBody:
   Enabled: true
 
 Layout/FirstParameterIndentation:
-  Description: This cop checks the indentation of the first parameter in a method call. 
+  Description: Checks the indentation of the first parameter in a method call. 
   Enabled: true
 
 # Use Ruby >= 1.9 syntax for hashes. Prefer { a: :b } over { :a => :b }.
 Style/HashSyntax:
-  Description: This cop checks hash literal syntax.
+  Description: Checks hash literal syntax.
   Enabled: true
 
 Layout/IndentationConsistency:
@@ -94,7 +94,7 @@ Layout/IndentationWidth:
   Enabled: true
 
 Layout/LeadingCommentSpace:
-  Description: This cop checks whether comments have a leading space after the `#` denoting the start of the comment. 
+  Description: Checks whether comments have a leading space after the `#` denoting the start of the comment. 
   Enabled: true
 
 Layout/SpaceAfterColon:
@@ -127,7 +127,7 @@ Layout/SpaceBeforeFirstArg:
   Enabled: true
 
 Style/DefWithParentheses:
-  Description: This cop checks for parentheses in the definition of a method, that does not take any arguments.
+  Description: Checks for parentheses in the definition of a method, that does not take any arguments.
   Enabled: true
 
 Style/MethodDefParentheses:
@@ -194,7 +194,7 @@ Lint/RequireParentheses:
   Enabled: true
 
 Lint/StringConversionInInterpolation:
-  Description: This cop checks for string conversion in string interpolation, which is redundant.
+  Description: Checks for string conversion in string interpolation, which is redundant.
   Enabled: true
 
 Lint/UriEscapeUnescape:
@@ -222,11 +222,10 @@ Style/ColonMethodCall:
   Enabled: true
 
 Style/TrivialAccessors:
-  Description: This cop looks for trivial reader/writer methods, that could have been created with the attr_* family of functions automatically.
+  Description: Looks for trivial reader/writer methods, that could have been created with the attr_* family of functions automatically.
   Enabled: true
 
 Performance/FlatMap:
-  Description: This cop is used to identify usages of
   Enabled: true
 
 Performance/RedundantMerge:
@@ -235,11 +234,11 @@ Performance/RedundantMerge:
   Enabled: true
 
 Performance/StartWith:
-  Description: This cop identifies unnecessary use of a regex where `String#start_with?` would suffice.
+  Description: Identifies unnecessary use of a regex where `String#start_with?` would suffice.
   Enabled: true
 
 Performance/EndWith:
-  Description: This cop identifies unnecessary use of a regex where `String#end_with?` would suffice.
+  Description: Identifies unnecessary use of a regex where `String#end_with?` would suffice.
   Enabled: true
 
 Performance/RegexpMatch:
