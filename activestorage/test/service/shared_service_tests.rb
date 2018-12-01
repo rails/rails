@@ -55,8 +55,7 @@ module ActiveStorage::Service::SharedServiceTests
           StringIO.new(data),
           checksum: Digest::MD5.base64digest(data),
           filename: "racecar.jpg",
-          content_type: "image/jpg",
-          metadata: { metadata: true }
+          content_type: "image/jpg"
         )
 
         assert_equal data, @service.download(key)
