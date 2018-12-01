@@ -635,7 +635,7 @@ input.addEventListener('change', (event) => {
   input.value = null
 })
 
-const uploadFile = (file) {
+const uploadFile = (file) => {
   // your form needs the file_field direct_upload: true, which
   //  provides data-direct-upload-url
   const url = input.dataset.directUploadUrl
