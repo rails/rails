@@ -17,111 +17,126 @@ Performance:
 Rails:
   Enabled: true
 
-# Prefer assert_not over assert !
 Rails/AssertNot:
+  Description: Prefer assert_not over assert !
   Include:
     - '**/test/**/*'
 
-# Prefer assert_not_x over refute_x
 Rails/RefuteMethods:
+  Description: Prefer assert_not_x over refute_x
   Include:
     - '**/test/**/*'
 
-# Prefer &&/|| over and/or.
 Style/AndOr:
+  Description: Use &&/|| instead of and/or.
   Enabled: true
 
-# Do not use braces for hash literals when they are the last argument of a
-# method call.
 Style/BracesAroundHashParameters:
+  Description: Do not use braces for hash literals when they are the last argument of a method call.
   Enabled: true
   EnforcedStyle: context_dependent
 
-# Align `when` with `case`.
 Layout/CaseIndentation:
+  Description: Align `when` with `case`
   Enabled: true
 
-# Align comments with method definitions.
 Layout/CommentIndentation:
+  Description: Align comments with method definitions.
   Enabled: true
 
 Layout/ElseAlignment:
+  Description: Align elses and elsifs correctly.
   Enabled: true
 
-# Align `end` with the matching keyword or starting expression except for
-# assignments, where it should be aligned with the LHS.
 Layout/EndAlignment:
+  Description: Align `end` with the matching keyword or starting expression except for assignments, where it should be aligned with the LHS.
   Enabled: true
   EnforcedStyleAlignWith: variable
   AutoCorrect: true
 
 Layout/EmptyLineAfterMagicComment:
+  Description: Checks for a newline after the final magic comment.
   Enabled: true
 
 Layout/EmptyLinesAroundBlockBody:
+  Description: Keeps track of empty lines around block bodies.
   Enabled: true
 
-# In a regular class definition, no empty lines around the body.
 Layout/EmptyLinesAroundClassBody:
+  Description: Keeps track of empty lines around class bodies.
   Enabled: true
 
-# In a regular method definition, no empty lines around the body.
 Layout/EmptyLinesAroundMethodBody:
+  Description: Keeps track of empty lines around method bodies.
   Enabled: true
 
-# In a regular module definition, no empty lines around the body.
 Layout/EmptyLinesAroundModuleBody:
+  Description: Keeps track of empty lines around module bodies.
   Enabled: true
 
 Layout/FirstParameterIndentation:
+  Description: This cop checks the indentation of the first parameter in a method call. 
   Enabled: true
 
 # Use Ruby >= 1.9 syntax for hashes. Prefer { a: :b } over { :a => :b }.
 Style/HashSyntax:
+  Description: This cop checks hash literal syntax.
   Enabled: true
 
-# Method definitions after `private` or `protected` isolated calls need one
-# extra level of indentation.
 Layout/IndentationConsistency:
+  Description: Method definitions after `private` or `protected` isolated calls need one extra level of indentation.
   Enabled: true
   EnforcedStyle: rails
 
-# Two spaces, no tabs (for indentation).
 Layout/IndentationWidth:
+  Description: Use 2 spaces for indentation.
+  StyleGuide: https://github.com/rubocop-hq/ruby-style-guide#spaces-indentation
   Enabled: true
 
 Layout/LeadingCommentSpace:
+  Description: This cop checks whether comments have a leading space after the `#` denoting the start of the comment. 
   Enabled: true
 
 Layout/SpaceAfterColon:
+  Description: Checks for colon (:) not followed by some kind of space.
   Enabled: true
 
 Layout/SpaceAfterComma:
+  DEscription: Checks for comma (,) not followed by some kind of space.
   Enabled: true
 
 Layout/SpaceAroundEqualsInParameterDefault:
+  Description: Checks that the equals signs in parameter default assignments have or don't have surrounding space depending on configuration.
+  StyleGuide: https://github.com/rubocop-hq/ruby-style-guide#spaces-around-equals
   Enabled: true
 
 Layout/SpaceAroundKeyword:
+  Description: Checks the spacing around the keywords.
   Enabled: true
 
 Layout/SpaceAroundOperators:
+  Description: Checks that operators have space around them, except for ** which should not have surrounding space.
   Enabled: true
 
 Layout/SpaceBeforeComma:
-    Enabled: true
-
-Layout/SpaceBeforeFirstArg:
-    Enabled: true
-
-Style/DefWithParentheses:
+  Description: Checks for comma (,) preceded by space.
   Enabled: true
 
-# Defining a method with parameters needs parentheses.
+Layout/SpaceBeforeFirstArg:
+  Description: Checks that exactly one space is used between a method name and the first argument for method calls without parentheses.
+  Enabled: true
+
+Style/DefWithParentheses:
+  Description: This cop checks for parentheses in the definition of a method, that does not take any arguments.
+  Enabled: true
+
 Style/MethodDefParentheses:
+  Description: Checks if the method definitions have or don't have parentheses.
+  StyleGuide: https://github.com/rubocop-hq/ruby-style-guide#method-parens
   Enabled: true
 
 Style/FrozenStringLiteralComment:
+  Description: Add the frozen_string_literal comment to the top of files to help transition from Ruby 2.3.0 to Ruby 3.0.
   Enabled: true
   EnforcedStyle: always
   Exclude:
@@ -132,87 +147,104 @@ Style/FrozenStringLiteralComment:
     - 'activestorage/db/migrate/**/*.rb'
 
 Style/RedundantFreeze:
+  Description: Checks usages of Object#freeze on immutable objects.
   Enabled: true
 
-# Use `foo {}` not `foo{}`.
 Layout/SpaceBeforeBlockBraces:
+  Description: Use `foo {}` not `foo{}`.
   Enabled: true
 
-# Use `foo { bar }` not `foo {bar}`.
 Layout/SpaceInsideBlockBraces:
+  Description: Use `foo { bar }` not `foo {bar}`.
   Enabled: true
   EnforcedStyleForEmptyBraces: space
 
-# Use `{ a: 1 }` not `{a:1}`.
 Layout/SpaceInsideHashLiteralBraces:
+  Description: Use spaces inside hash literal braces - or don't.
+  StyleGuide: https://github.com/rubocop-hq/ruby-style-guide#spaces-operators
   Enabled: true
 
 Layout/SpaceInsideParens:
+  Description: Checks for spaces inside ordinary round parentheses.
   Enabled: true
 
-# Check quotes usage according to lint rule below.
 Style/StringLiterals:
+  Description: Check quotes usage according to lint rule below.
   Enabled: true
   EnforcedStyle: double_quotes
 
-# Detect hard tabs, no hard tabs.
 Layout/Tab:
+  Description: Detect hard tabs, no hard tabs.
   Enabled: true
 
-# Blank lines should not have any spaces.
 Layout/TrailingBlankLines:
+  Description: Blank lines should not have any spaces.
   Enabled: true
 
-# No trailing whitespace.
 Layout/TrailingWhitespace:
+  Description: No trailing whitespace.
   Enabled: true
 
-# Use quotes for string literals when they are enough.
 Style/UnneededPercentQ:
+  Description: Use quotes for string literals when they are enough.
   Enabled: true
 
-# Use my_method(my_arg) not my_method( my_arg ) or my_method my_arg.
 Lint/RequireParentheses:
+  Description: Use my_method(my_arg) not my_method( my_arg ) or my_method my_arg.
   Enabled: true
 
 Lint/StringConversionInInterpolation:
+  Description: This cop checks for string conversion in string interpolation, which is redundant.
   Enabled: true
 
 Lint/UriEscapeUnescape:
   Enabled: true
 
 Style/ParenthesesAroundCondition:
+  Description: Don't use parentheses around the condition of an if/unless/while.
+  StyleGuide: https://github.com/rubocop-hq/ruby-style-guide#no-parens-if
   Enabled: true
 
 Style/RedundantReturn:
+  Description: Don't use return where it's not required.
+  StyleGuide: https://github.com/rubocop-hq/ruby-style-guide#no-explicit-return
   Enabled: true
   AllowMultipleReturnValues: true
 
 Style/Semicolon:
+  Description: Don't use semicolons to terminate expressions.
+  StyleGuide: https://github.com/rubocop-hq/ruby-style-guide#no-semicolon
   Enabled: true
   AllowAsExpressionSeparator: true
 
-# Prefer Foo.method over Foo::method
 Style/ColonMethodCall:
+  Description: Prefer Foo.method over Foo::method
   Enabled: true
 
 Style/TrivialAccessors:
+  Description: This cop looks for trivial reader/writer methods, that could have been created with the attr_* family of functions automatically.
   Enabled: true
 
 Performance/FlatMap:
+  Description: This cop is used to identify usages of
   Enabled: true
 
 Performance/RedundantMerge:
+  Description: Use Hash#[]=, rather than Hash#merge! with a single key-value pair.
+  Reference: https://github.com/JuanitoFatas/fast-ruby#hashmerge-vs-hash-code
   Enabled: true
 
 Performance/StartWith:
+  Description: This cop identifies unnecessary use of a regex where `String#start_with?` would suffice.
   Enabled: true
 
 Performance/EndWith:
+  Description: This cop identifies unnecessary use of a regex where `String#end_with?` would suffice.
   Enabled: true
 
 Performance/RegexpMatch:
   Enabled: true
 
 Performance/UnfreezeString:
+  Description: In Ruby 2.3 or later, use unary plus operator to unfreeze a string literal instead of `String#dup` and `String.new`.
   Enabled: true
