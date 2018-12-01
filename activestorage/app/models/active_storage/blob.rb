@@ -134,6 +134,15 @@ class ActiveStorage::Blob < ActiveRecord::Base
       disposition: forced_disposition_for_service_url || disposition, **options
   end
 
+  # Returns the URL of the blob on the service. This URL is intended to be long-lived and can be used directly
+  # with users. Use +public_service_url+ when exposing public assets and not for anything sensitive.
+  def public_service_url(disposition: :inline, filename: nil, **options)
+    filename = ActiveStorage::Filename.wrap(filename || self.filename)
+
+    service.public_url key, filename: filename, content_type: content_type_for_service_url,
+      disposition: forced_disposition_for_service_url || disposition, **options
+  end
+
   # Returns a URL that can be used to directly upload a file for this blob on the service. This URL is intended to be
   # short-lived for security and only generated on-demand by the client-side JavaScript responsible for doing the uploading.
   def service_url_for_direct_upload(expires_in: ActiveStorage.service_urls_expire_in)

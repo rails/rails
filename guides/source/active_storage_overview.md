@@ -393,6 +393,12 @@ jobs, Cronjobs, etc.), you can access the rails_blob_path like this:
 Rails.application.routes.url_helpers.rails_blob_path(user.avatar, only_path: true)
 ```
 
+You may also want to link to assets directly from a service (eg. public images hosted on Amazon S3). `ActiveStorage::Blob#public_service_url` provides an easy way to retrieve unsigned links from your service backend:
+
+```
+image_tag(user.avatar.public_service_url)
+```
+
 Downloading Files
 -----------------
 

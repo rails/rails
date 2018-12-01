@@ -116,6 +116,22 @@ module ActiveStorage
       end
     end
 
+    def public_url(key, filename:, disposition:, content_type:)
+      instrument :url, key: key do |payload|
+        generated_url = signer.signed_uri(
+          uri_for(key), false,
+          service: "b",
+          permissions: "r",
+          content_disposition: content_disposition_with(type: disposition, filename: filename),
+          content_type: content_type,
+        ).to_s
+
+        payload[:url] = generated_url
+
+        generated_url
+      end
+    end
+
     def headers_for_direct_upload(key, content_type:, checksum:, **)
       { "Content-Type" => content_type, "Content-MD5" => checksum, "x-ms-blob-type" => "BlockBlob" }
     end

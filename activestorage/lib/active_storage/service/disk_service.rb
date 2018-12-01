@@ -123,6 +123,32 @@ module ActiveStorage
       end
     end
 
+    def public_url(key, filename:, content_type:, disposition:)
+      instrument :url, key: key do |payload|
+        content_disposition = content_disposition_with(type: disposition, filename: filename)
+        verified_key = ActiveStorage.verifier.generate(
+          {
+            key: key,
+            disposition: content_disposition,
+            content_type: content_type,
+          },
+          {
+            purpose: :blob_key
+          },
+        )
+
+        generated_url = url_helpers.rails_disk_service_url(verified_key,
+          host: current_host,
+          disposition: content_disposition,
+          content_type: content_type,
+          filename: filename,
+        )
+        payload[:url] = generated_url
+
+        generated_url
+      end
+    end
+
     def headers_for_direct_upload(key, content_type:, **)
       { "Content-Type" => content_type }
     end

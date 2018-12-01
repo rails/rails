@@ -114,6 +114,16 @@ module ActiveStorage
       end
     end
 
+    def public_url(key, **)
+      instrument :url, key: key do |payload|
+        generated_url = file_for(key).public_url
+
+        payload[:url] = generated_url
+
+        generated_url
+      end
+    end
+
     def headers_for_direct_upload(key, checksum:, **)
       { "Content-MD5" => checksum }
     end

@@ -46,6 +46,13 @@ if SERVICE_CONFIGURATIONS[:s3]
       assert_match SERVICE_CONFIGURATIONS[:s3][:bucket], url
     end
 
+    test "public URL generation" do
+      url = @service.public_url(@key)
+
+      assert_match(/s3(-[-a-z0-9]+)?\.(\S+)?amazonaws.com.*\/#{@key}/, url)
+      assert_match SERVICE_CONFIGURATIONS[:s3][:bucket], url
+    end
+
     test "uploading with server-side encryption" do
       config  = SERVICE_CONFIGURATIONS.deep_merge(s3: { upload: { server_side_encryption: "AES256" } })
       service = ActiveStorage::Service.configure(:s3, config)
