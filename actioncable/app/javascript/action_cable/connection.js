@@ -88,8 +88,8 @@ class Connection {
 
   getState() {
     if (this.webSocket) {
-      for (let state in WebSocket) {
-        if (WebSocket[state] === this.webSocket.readyState) {
+      for (let state in adapters.WebSocket) {
+        if (adapters.WebSocket[state] === this.webSocket.readyState) {
           return state.toLowerCase()
         }
       }

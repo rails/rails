@@ -224,8 +224,8 @@
     };
     Connection.prototype.getState = function getState() {
       if (this.webSocket) {
-        for (var state in WebSocket) {
-          if (WebSocket[state] === this.webSocket.readyState) {
+        for (var state in adapters.WebSocket) {
+          if (adapters.WebSocket[state] === this.webSocket.readyState) {
             return state.toLowerCase();
           }
         }
