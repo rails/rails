@@ -2,6 +2,7 @@
 
 require "service/shared_service_tests"
 require "net/http"
+require "database/setup"
 
 if SERVICE_CONFIGURATIONS[:s3]
   class ActiveStorage::Service::S3ServiceTest < ActiveSupport::TestCase
