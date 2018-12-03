@@ -294,6 +294,14 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal(expected_sql, loaded_sql)
   end
 
+  def test_delete_all_on_association_clears_scope
+    author = Author.create!(name: "Gannon")
+    posts = author.posts
+    posts.create!(title: "test", body: "body")
+    posts.delete_all
+    assert_nil posts.first
+  end
+
   def test_building_the_associated_object_with_implicit_sti_base_class
     firm = DependentFirm.new
     company = firm.companies.build
@@ -1708,6 +1716,30 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert destroyed.all?(&:frozen?), "destroyed clients should be frozen"
     assert companies(:first_firm).clients_of_firm.empty?, "37signals has no clients after destroy all"
     assert companies(:first_firm).clients_of_firm.reload.empty?, "37signals has no clients after destroy all and refresh"
+  end
+
+  def test_destroy_all_on_association_clears_scope
+    author = Author.create!(name: "Gannon")
+    posts = author.posts
+    posts.create!(title: "test", body: "body")
+    posts.destroy_all
+    assert_nil posts.first
+  end
+
+  def test_destroy_on_association_clears_scope
+    author = Author.create!(name: "Gannon")
+    posts = author.posts
+    post = posts.create!(title: "test", body: "body")
+    posts.destroy(post)
+    assert_nil posts.first
+  end
+
+  def test_delete_on_association_clears_scope
+    author = Author.create!(name: "Gannon")
+    posts = author.posts
+    post = posts.create!(title: "test", body: "body")
+    posts.delete(post)
+    assert_nil posts.first
   end
 
   def test_dependence

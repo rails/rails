@@ -500,7 +500,7 @@ module ActiveRecord
       #   Pet.find(1, 2, 3)
       #   # => ActiveRecord::RecordNotFound: Couldn't find all Pets with 'id': (1, 2, 3)
       def delete_all(dependent = nil)
-        @association.delete_all(dependent)
+        @association.delete_all(dependent).tap { reset_scope }
       end
 
       # Deletes the records of the collection directly from the database
@@ -527,7 +527,7 @@ module ActiveRecord
       #
       #   Pet.find(1) # => Couldn't find Pet with id=1
       def destroy_all
-        @association.destroy_all
+        @association.destroy_all.tap { reset_scope }
       end
 
       # Deletes the +records+ supplied from the collection according to the strategy
@@ -646,7 +646,7 @@ module ActiveRecord
       #   #       #<Pet id: 3, name: "Choo-Choo", person_id: 1>
       #   #    ]
       def delete(*records)
-        @association.delete(*records)
+        @association.delete(*records).tap { reset_scope }
       end
 
       # Destroys the +records+ supplied and removes them from the collection.
@@ -718,7 +718,7 @@ module ActiveRecord
       #
       #   Pet.find(4, 5, 6) # => ActiveRecord::RecordNotFound: Couldn't find all Pets with 'id': (4, 5, 6)
       def destroy(*records)
-        @association.destroy(*records)
+        @association.destroy(*records).tap { reset_scope }
       end
 
       ##
