@@ -1,3 +1,9 @@
+*   Fix UJS permanently showing disabled text in a[data-remote][data-disable-with] elements within forms.
+    Fixes #33889
+
+    *Wolfgang Hobmaier*
+
+
 *   Prevent non-primary mouse keys from triggering Rails UJS click handlers.
     Firefox fires click events even if the click was triggered by non-primary mouse keys such as right- or scroll-wheel-clicks.
     For example, right-clicking a link such as the one described below (with an underlying ajax request registered on click) should not cause that request to occur.
