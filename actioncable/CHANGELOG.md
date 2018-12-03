@@ -2,6 +2,8 @@
     `ActionCable.adapters.WebSocket` property rather than the `WebSocket` global
     variable, matching the behavior of `ActionCable.Connection#open`.
 
+    *Richard Macklin*
+
 *   The ActionCable javascript package has been converted from CoffeeScript
     to ES2015, and we now publish the source code in the npm distribution.
 
