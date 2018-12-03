@@ -1492,7 +1492,7 @@ class BasicsTest < ActiveRecord::TestCase
   test "creating a record raises if preventing writes" do
     assert_raises ActiveRecord::StatementInvalid do
       ActiveRecord::Base.connection.while_preventing_writes do
-        bird = Bird.create! name: "Bluejay"
+        Bird.create! name: "Bluejay"
       end
     end
   end
