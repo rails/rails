@@ -629,7 +629,8 @@ module ActiveRecord
             binds:             binds,
             type_casted_binds: type_casted_binds,
             statement_name:    statement_name,
-            connection_id:     object_id) do
+            connection_id:     object_id,
+            connection:        self) do
             begin
               @lock.synchronize do
                 yield
