@@ -57,8 +57,12 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 3, value
   end
 
-  def test_should_return_nil_as_average
-    assert_nil NumericData.average(:bank_balance)
+  def test_should_return_nil_to_d_as_average
+    if nil.respond_to?(:to_d)
+      assert_equal BigDecimal(0), NumericData.average(:bank_balance)
+    else
+      assert_nil NumericData.average(:bank_balance)
+    end
   end
 
   def test_should_get_maximum_of_field
