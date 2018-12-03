@@ -209,7 +209,8 @@ module ActiveRecord
       # DATABASE STATEMENTS ======================================
       #++
 
-      READ_QUERY = ActiveRecord::ConnectionAdapters::AbstractAdapter.build_read_query_regexp.call(:select) # :nodoc:
+      READ_QUERY = ActiveRecord::ConnectionAdapters::AbstractAdapter.build_read_query_regexp(:select) # :nodoc:
+      private_constant :READ_QUERY
 
       def write_query?(sql) # :nodoc:
         !READ_QUERY.match?(sql)

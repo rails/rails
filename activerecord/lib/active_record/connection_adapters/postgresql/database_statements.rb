@@ -67,7 +67,8 @@ module ActiveRecord
           end
         end
 
-        READ_QUERY = ActiveRecord::ConnectionAdapters::AbstractAdapter.build_read_query_regexp.call(:select, :show, :set) # :nodoc:
+        READ_QUERY = ActiveRecord::ConnectionAdapters::AbstractAdapter.build_read_query_regexp(:select, :show, :set) # :nodoc:
+        private_constant :READ_QUERY
 
         def write_query?(sql) # :nodoc:
           !READ_QUERY.match?(sql)

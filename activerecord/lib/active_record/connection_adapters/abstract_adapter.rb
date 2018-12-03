@@ -101,10 +101,8 @@ module ActiveRecord
       end
 
       def self.build_read_query_regexp(*parts) # :nodoc:
-        lambda do |*parts|
-          parts = parts.map { |part| /\A\s*#{part}/i }
-          Regexp.union(*parts)
-        end
+        parts = parts.map { |part| /\A\s*#{part}/i }
+        Regexp.union(*parts)
       end
 
       def initialize(connection, logger = nil, config = {}) # :nodoc:
