@@ -2,7 +2,7 @@ ENV['RAILS_ENV'] ||= 'test'
 require_relative '../config/environment'
 require 'rails/test_help'
 
-class ActiveSupport::TestCase
+ActiveSupport.on_load(:active_support_test_case) do
   # Run tests in parallel with specified workers
 <% if defined?(JRUBY_VERSION) || Gem.win_platform? -%>
   parallelize(workers: 2, with: :threads)

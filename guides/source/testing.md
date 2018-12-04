@@ -479,7 +479,7 @@ number passed to the parallelize method.
 To enable parallelization add the following to your `test_helper.rb`:
 
 ```ruby
-class ActiveSupport::TestCase
+ActiveSupport.on_load'(:active_support_test_case) do
   parallelize(workers: 2)
 end
 ```
@@ -507,7 +507,7 @@ The `parallelize_setup` method is called right after the processes are forked. T
 is called right before the processes are closed.
 
 ```ruby
-class ActiveSupport::TestCase
+ActiveSupport.on_load(:active_support_test_case) do
   parallelize_setup do |worker|
     # setup databases
   end
@@ -530,7 +530,7 @@ parallelizer is backed by Minitest's `Parallel::Executor`.
 To change the parallelization method to use threads over forks put the following in your `test_helper.rb`
 
 ```ruby
-class ActiveSupport::TestCase
+ActiveSupport.on_load(:active_support_test_case) do
   parallelize(workers: 2, with: :threads)
 end
 ```
@@ -1377,7 +1377,7 @@ module SignInHelper
   end
 end
 
-class ActionDispatch::IntegrationTest
+ActiveSupport.on_load(:active_support_integration_test) do
   include SignInHelper
 end
 ```

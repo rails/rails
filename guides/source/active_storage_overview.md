@@ -742,16 +742,14 @@ during the test are complete and you won't receive an error from Active Storage
 saying it can't find a file.
 
 ```ruby
-module ActionDispatch
-  class IntegrationTest
-    def remove_uploaded_files
-      FileUtils.rm_rf(Rails.root.join('tmp', 'storage'))
-    end
+ActiveSupport.on_load(:action_dispatch_integration_test) do
+  def remove_uploaded_files
+    FileUtils.rm_rf(Rails.root.join('tmp', 'storage'))
+  end
 
-    def after_teardown
-      super
-      remove_uploaded_files
-    end
+  def after_teardown
+    super
+    remove_uploaded_files
   end
 end
 ```
