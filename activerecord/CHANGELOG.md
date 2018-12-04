@@ -1,3 +1,7 @@
+*   Ensure that `delete_all` on collection proxy returns affected count.
+
+    *Ryuta Kamizono*
+
 *   Add the ability to prevent writes to a database for the duration of a block.
 
     Allows the application to prevent writes to a database. This can be useful when
