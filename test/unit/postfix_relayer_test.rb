@@ -21,7 +21,7 @@ module ActionMailbox
 
       assert_requested :post, URL, body: file_fixture("welcome.eml").read,
         basic_auth: [ "actionmailbox", INGRESS_PASSWORD ],
-        headers: { "Content-Type" => "message/rfc822", "User-Agent" => "Action Mailbox Postfix relayer" }
+        headers: { "Content-Type" => "message/rfc822", "User-Agent" => /\AAction Mailbox Postfix relayer v\d+\./ }
     end
 
     test "unsuccessfully relaying with invalid credentials" do

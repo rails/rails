@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "action_mailbox/version"
 require "net/http"
 require "uri"
 
@@ -16,7 +17,7 @@ module ActionMailbox
     end
 
     CONTENT_TYPE = "message/rfc822"
-    USER_AGENT   = "Action Mailbox Postfix relayer"
+    USER_AGENT   = "Action Mailbox Postfix relayer v#{ActionMailbox::VERSION}"
 
     attr_reader :uri, :username, :password
 
