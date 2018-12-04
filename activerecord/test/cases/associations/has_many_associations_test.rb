@@ -264,7 +264,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     car = Car.create(name: "honda")
     car.funky_bulbs.create!
     assert_equal 1, car.funky_bulbs.count
-    assert_nothing_raised { car.reload.funky_bulbs.delete_all }
+    assert_equal 1, car.reload.funky_bulbs.delete_all
     assert_equal 0, car.funky_bulbs.count, "bulbs should have been deleted using :delete_all strategy"
   end
 
@@ -1413,7 +1413,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 3, clients.count
 
     assert_difference "Client.count", -(clients.count) do
-      companies(:first_firm).dependent_clients_of_firm.delete_all
+      assert_equal clients.count, companies(:first_firm).dependent_clients_of_firm.delete_all
     end
   end
 
@@ -1510,8 +1510,18 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_delete_all_with_option_delete_all
     firm = companies(:first_firm)
     client_id = firm.dependent_clients_of_firm.first.id
-    firm.dependent_clients_of_firm.delete_all(:delete_all)
+    count = firm.dependent_clients_of_firm.count
+    assert_equal count, firm.dependent_clients_of_firm.delete_all(:delete_all)
     assert_nil Client.find_by_id(client_id)
+  end
+
+  def test_delete_all_with_option_nullify
+    firm = companies(:first_firm)
+    client_id = firm.dependent_clients_of_firm.first.id
+    count = firm.dependent_clients_of_firm.count
+    assert_equal firm, Client.find(client_id).firm
+    assert_equal count, firm.dependent_clients_of_firm.delete_all(:nullify)
+    assert_nil Client.find(client_id).firm
   end
 
   def test_delete_all_accepts_limited_parameters

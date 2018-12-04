@@ -1,3 +1,7 @@
+*   Ensure that `delete_all` on collection proxy returns affected count.
+
+    *Ryuta Kamizono*
+
 *   Reset scope after delete on collection association to clear stale offsets of removed records.
 
     *Gannon McGibbon*
