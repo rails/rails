@@ -1,4 +1,4 @@
-## Rails 5.2.2.rc1 (November 28, 2018) ##
+## Rails 5.2.2 (December 04, 2018) ##
 
 *   Disable content security policy for mailer previews.
 
