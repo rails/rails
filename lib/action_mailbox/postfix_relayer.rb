@@ -11,7 +11,7 @@ module ActionMailbox
       end
 
       def failure?
-        output.match?(/\A[45]\.\d\.\d /)
+        output.match?(/\A[45]\.\d{1,3}\.\d{1,3}(\s|\z)/)
       end
     end
 
