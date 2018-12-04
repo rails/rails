@@ -161,6 +161,8 @@ module ActiveRecord
           else
             update_counter(-count)
           end
+
+          count
         end
 
         def difference(a, b)
