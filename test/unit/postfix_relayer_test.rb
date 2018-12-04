@@ -69,6 +69,15 @@ module ActionMailbox
       assert result.failure?
     end
 
+    test "unsuccessfully relaying due to client-side timeout" do
+      stub_request(:post, URL).to_timeout
+
+      result = @relayer.relay(file_fixture("welcome.eml").read)
+      assert_equal "4.4.2 Timed out relaying to Postfix ingress", result.output
+      assert_not result.success?
+      assert result.failure?
+    end
+
     test "unsuccessfully relaying due to an unhandled exception" do
       stub_request(:post, URL).to_raise StandardError.new("Something went wrong")
 
