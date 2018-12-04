@@ -13,6 +13,10 @@ class SerializedAttributeTest < ActiveRecord::TestCase
 
   MyObject = Struct.new :attribute1, :attribute2
 
+  # NOTE: Use a duplicate of Topic so attribute
+  # changes don't bleed into other tests
+  Topic = ::Topic.dup
+
   teardown do
     Topic.serialize("content")
   end
