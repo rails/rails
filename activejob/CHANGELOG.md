@@ -1,3 +1,9 @@
+## Rails 5.2.2 (December 04, 2018) ##
+
+*   Make sure `assert_enqueued_with()` & `assert_performed_with()` work reliably with hash arguments.
+
+    *Sharang Dashputre*
+
 *   Restore `ActionController::Parameters` support to `ActiveJob::Arguments.serialize`.
 
     *Bernie Chiu*
@@ -10,6 +16,13 @@
     `assert_enqueued_with` and `assert_performed_with`
 
     *Alan Wu*
+
+*   Increment execution count before deserialize arguments.
+
+    Currently, the execution count increments after deserializes arguments.
+    Therefore, if an error occurs with deserialize, it retries indefinitely.
+
+    *Yuji Yaginuma*
 
 
 ## Rails 5.2.1.1 (November 27, 2018) ##
