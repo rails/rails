@@ -53,7 +53,6 @@ module ActiveRecord
       end
     end
 
-    Helpers = ActiveModel::Type::Helpers
     BigInteger = ActiveModel::Type::BigInteger
     Binary = ActiveModel::Type::Binary
     Boolean = ActiveModel::Type::Boolean

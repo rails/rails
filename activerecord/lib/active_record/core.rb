@@ -129,11 +129,11 @@ module ActiveRecord
       self.filter_attributes = []
 
       def self.connection_handler
-        ActiveRecord::RuntimeRegistry.connection_handler || default_connection_handler
+        Thread.current.thread_variable_get("ar_connection_handler") || default_connection_handler
       end
 
       def self.connection_handler=(handler)
-        ActiveRecord::RuntimeRegistry.connection_handler = handler
+        Thread.current.thread_variable_set("ar_connection_handler", handler)
       end
 
       self.default_connection_handler = ConnectionAdapters::ConnectionHandler.new

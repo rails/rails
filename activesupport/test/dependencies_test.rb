@@ -284,7 +284,7 @@ class DependenciesTest < ActiveSupport::TestCase
 
   def test_module_with_nested_class_requiring_lib_class
     with_autoloading_fixtures do
-      ModuleFolder::NestedWithRequire
+      _ = ModuleFolder::NestedWithRequire # assignment to silence parse-time warning "possibly useless use of :: in void context"
 
       assert defined?(ModuleFolder::LibClass)
       assert_not ActiveSupport::Dependencies.autoloaded_constants.include?("ModuleFolder::LibClass")
@@ -297,7 +297,7 @@ class DependenciesTest < ActiveSupport::TestCase
 
   def test_module_with_nested_class_and_parent_requiring_lib_class
     with_autoloading_fixtures do
-      NestedWithRequireParent
+      _ = NestedWithRequireParent # assignment to silence parse-time warning "possibly useless use of a constant in void context"
 
       assert defined?(ModuleFolder::LibClass)
       assert_not ActiveSupport::Dependencies.autoloaded_constants.include?("ModuleFolder::LibClass")

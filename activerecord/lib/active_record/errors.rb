@@ -97,9 +97,13 @@ module ActiveRecord
   #
   # Wraps the underlying database error as +cause+.
   class StatementInvalid < ActiveRecordError
-    def initialize(message = nil)
+    def initialize(message = nil, sql: nil, binds: nil)
       super(message || $!.try(:message))
+      @sql = sql
+      @binds = binds
     end
+
+    attr_reader :sql, :binds
   end
 
   # Defunct wrapper class kept for compatibility.
@@ -118,7 +122,7 @@ module ActiveRecord
 
   # Raised when a foreign key constraint cannot be added because the column type does not match the referenced column type.
   class MismatchedForeignKey < StatementInvalid
-    def initialize(adapter = nil, message: nil, table: nil, foreign_key: nil, target_table: nil, primary_key: nil)
+    def initialize(adapter = nil, message: nil, sql: nil, binds: nil, table: nil, foreign_key: nil, target_table: nil, primary_key: nil)
       @adapter = adapter
       if table
         msg = +<<~EOM
@@ -135,7 +139,7 @@ module ActiveRecord
       if message
         msg << "\nOriginal message: #{message}"
       end
-      super(msg)
+      super(msg, sql: sql, binds: binds)
     end
 
     private

@@ -30,6 +30,28 @@ class ExceptionsTest < ActiveJob::TestCase
     end
   end
 
+  test "keeps the same attempts counter when several exceptions are listed in the same declaration" do
+    exceptions_to_raise = %w(FirstRetryableErrorOfTwo FirstRetryableErrorOfTwo FirstRetryableErrorOfTwo
+                             SecondRetryableErrorOfTwo SecondRetryableErrorOfTwo)
+
+    assert_raises SecondRetryableErrorOfTwo do
+      perform_enqueued_jobs do
+        ExceptionRetryJob.perform_later(exceptions_to_raise)
+      end
+    end
+  end
+
+  test "keeps a separate attempts counter for each individual declaration" do
+    exceptions_to_raise = %w(FirstRetryableErrorOfTwo FirstRetryableErrorOfTwo FirstRetryableErrorOfTwo
+                             DefaultsError DefaultsError)
+
+    assert_nothing_raised do
+      perform_enqueued_jobs do
+        ExceptionRetryJob.perform_later(exceptions_to_raise)
+      end
+    end
+  end
+
   test "failed retry job when exception kept occurring against defaults" do
     perform_enqueued_jobs do
       begin

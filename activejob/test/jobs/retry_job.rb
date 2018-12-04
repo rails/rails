@@ -39,3 +39,12 @@ class RetryJob < ActiveJob::Base
     end
   end
 end
+
+class ExceptionRetryJob < ActiveJob::Base
+  retry_on FirstRetryableErrorOfTwo, SecondRetryableErrorOfTwo, attempts: 4
+  retry_on DefaultsError
+
+  def perform(exceptions)
+    raise exceptions.shift.constantize.new unless exceptions.empty?
+  end
+end

@@ -1,7 +1,7 @@
 # Active Job -- Make work happen later
 
 Active Job is a framework for declaring jobs and making them run on a variety
-of queueing backends. These jobs can be everything from regularly scheduled
+of queuing backends. These jobs can be everything from regularly scheduled
 clean-ups, to billing charges, to mailings. Anything that can be chopped up into
 small units of work and run in parallel, really.
 
@@ -20,7 +20,7 @@ switch between them without having to rewrite your jobs.
 
 ## Usage
 
-To learn how to use your preferred queueing backend see its adapter
+To learn how to use your preferred queuing backend see its adapter
 documentation at
 [ActiveJob::QueueAdapters](http://api.rubyonrails.org/classes/ActiveJob/QueueAdapters.html).
 
@@ -39,7 +39,7 @@ end
 Enqueue a job like so:
 
 ```ruby
-MyJob.perform_later record  # Enqueue a job to be performed as soon as the queueing system is free.
+MyJob.perform_later record  # Enqueue a job to be performed as soon as the queuing system is free.
 ```
 
 ```ruby
@@ -82,9 +82,9 @@ This works with any class that mixes in GlobalID::Identification, which
 by default has been mixed into Active Record classes.
 
 
-## Supported queueing systems
+## Supported queuing systems
 
-Active Job has built-in adapters for multiple queueing backends (Sidekiq,
+Active Job has built-in adapters for multiple queuing backends (Sidekiq,
 Resque, Delayed Job and others). To get an up-to-date list of the adapters
 see the API Documentation for [ActiveJob::QueueAdapters](http://api.rubyonrails.org/classes/ActiveJob/QueueAdapters.html).
 

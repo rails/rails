@@ -9,7 +9,6 @@ module ActiveJob
 
     module ClassMethods
       # Catch the exception and reschedule job for re-execution after so many seconds, for a specific number of attempts.
-      # The number of attempts includes the total executions of a job, not just the retried executions.
       # If the exception keeps getting raised beyond the specified number of attempts, the exception is allowed to
       # bubble up to the underlying queuing system, which may have its own retry mechanism or place it in a
       # holding queue for inspection.
@@ -22,8 +21,7 @@ module ActiveJob
       #   as a computing proc that the number of executions so far as an argument, or as a symbol reference of
       #   <tt>:exponentially_longer</tt>, which applies the wait algorithm of <tt>(executions ** 4) + 2</tt>
       #   (first wait 3s, then 18s, then 83s, etc)
-      # * <tt>:attempts</tt> - Re-enqueues the job the specified number of times (default: 5 attempts),
-      #   attempts here refers to the total number of times the job is executed, not just retried executions
+      # * <tt>:attempts</tt> - Re-enqueues the job the specified number of times (default: 5 attempts)
       # * <tt>:queue</tt> - Re-enqueues the job on a different queue
       # * <tt>:priority</tt> - Re-enqueues the job with a different priority
       #
@@ -46,7 +44,9 @@ module ActiveJob
       #  end
       def retry_on(*exceptions, wait: 3.seconds, attempts: 5, queue: nil, priority: nil)
         rescue_from(*exceptions) do |error|
-          if executions < attempts
+          exception_executions[exceptions.to_s] += 1
+
+          if exception_executions[exceptions.to_s] < attempts
             retry_job wait: determine_delay(wait), queue: queue, priority: priority, error: error
           else
             if block_given?

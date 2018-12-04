@@ -1,3 +1,103 @@
+*   Add the ability to prevent writes to a database for the duration of a block.
+
+    Allows the application to prevent writes to a database. This can be useful when
+    you're building out multiple databases and want to make sure you're not sending
+    writes when you want a read.
+
+    If `while_preventing_writes` is called and the query is considered a write
+    query the database will raise an exception regardless of whether the database
+    user is able to write.
+
+    This is not meant to be a catch-all for write queries but rather a way to enforce
+    read-only queries without opening a second connection. One purpose of this is to
+    catch accidental writes, not all writes.
+
+    *Eileen M. Uchitelle*
+
+*   Allow aliased attributes to be used in `#update_columns` and `#update`.
+
+    *Gannon McGibbon*
+
+*   Allow spaces in postgres table names.
+
+    Fixes issue where "user post" is misinterpreted as "\"user\".\"post\"" when quoting table names with the postgres adapter.
+
+    *Gannon McGibbon*
+
+*   Cached columns_hash fields should be excluded from ResultSet#column_types
+
+    PR #34528 addresses the inconsistent behaviour when attribute is defined for an ignored column. The following test
+    was passing for SQLite and MySQL, but failed for PostgreSQL:
+
+    ```ruby
+    class DeveloperName < ActiveRecord::Type::String
+      def deserialize(value)
+        "Developer: #{value}"
+      end
+    end
+
+    class AttributedDeveloper < ActiveRecord::Base
+      self.table_name = "developers"
+
+      attribute :name, DeveloperName.new
+
+      self.ignored_columns += ["name"]
+    end
+
+    developer = AttributedDeveloper.create
+    developer.update_column :name, "name"
+
+    loaded_developer = AttributedDeveloper.where(id: developer.id).select("*").first
+    puts loaded_developer.name # should be "Developer: name" but it's just "name"
+    ```
+
+    *Dmitry Tsepelev*
+
+*   Make the implicit order column configurable.
+
+    When calling ordered finder methods such as +first+ or +last+ without an
+    explicit order clause, ActiveRecord sorts records by primary key. This can
+    result in unpredictable and surprising behaviour when the primary key is
+    not an auto-incrementing integer, for example when it's a UUID. This change
+    makes it possible to override the column used for implicit ordering such
+    that +first+ and +last+ will return more predictable results.
+
+    Example:
+
+        class Project < ActiveRecord::Base
+          self.implicit_order_column = "created_at"
+        end
+
+    *Tekin Suleyman*
+
+*   Bump minimum PostgreSQL version to 9.3.
+
+    *Yasuo Honda*
+
+*   Values of enum are frozen, raising an error when attempting to modify them.
+
+    *Emmanuel Byrd*
+
+*   Move `ActiveRecord::StatementInvalid` SQL to error property and include binds as separate error property.
+
+    `ActiveRecord::ConnectionAdapters::AbstractAdapter#translate_exception_class` now requires `binds` to be passed as the last argument.
+
+    `ActiveRecord::ConnectionAdapters::AbstractAdapter#translate_exception` now requires `message`, `sql`, and `binds` to be passed as keyword arguments.
+
+    Subclasses of `ActiveRecord::StatementInvalid` must now provide `sql:` and `binds:` arguments to `super`.
+
+    Example:
+
+    ```
+    class MySubclassedError < ActiveRecord::StatementInvalid
+      def initialize(message, sql:, binds:)
+        super(message, sql: sql, binds: binds)
+      end
+    end
+    ```
+
+    *Gannon McGibbon*
+
 *   Add an `:if_not_exists` option to `create_table`.
 
     Example:

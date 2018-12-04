@@ -109,6 +109,11 @@ module ActiveRecord
       end
     end
 
+    def test_exec_query_returns_an_empty_result
+      result = @connection.exec_query "INSERT INTO subscribers(nick) VALUES('me')"
+      assert_instance_of(ActiveRecord::Result, result)
+    end
+
     if current_adapter?(:Mysql2Adapter)
       def test_charset
         assert_not_nil @connection.charset
@@ -284,18 +289,6 @@ module ActiveRecord
 
     test "type_to_sql returns a String for unmapped types" do
       assert_equal "special_db_type", @connection.type_to_sql(:special_db_type)
-    end
-
-    unless current_adapter?(:PostgreSQLAdapter)
-      def test_log_invalid_encoding
-        error = assert_raises RuntimeError do
-          @connection.send :log, "SELECT 'ы' FROM DUAL" do
-            raise (+"ы").force_encoding(Encoding::ASCII_8BIT)
-          end
-        end
-
-        assert_equal "ы", error.message
-      end
     end
 
     def test_supports_multi_insert_is_deprecated

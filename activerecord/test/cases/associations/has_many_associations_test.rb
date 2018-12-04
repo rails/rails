@@ -2002,8 +2002,8 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_many_through_respects_hash_conditions
-    assert_equal authors(:david).hello_posts, authors(:david).hello_posts_with_hash_conditions
-    assert_equal authors(:david).hello_post_comments, authors(:david).hello_post_comments_with_hash_conditions
+    assert_equal authors(:david).hello_posts.sort_by(&:id), authors(:david).hello_posts_with_hash_conditions.sort_by(&:id)
+    assert_equal authors(:david).hello_post_comments.sort_by(&:id), authors(:david).hello_post_comments_with_hash_conditions.sort_by(&:id)
   end
 
   def test_include_uses_array_include_after_loaded

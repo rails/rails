@@ -323,6 +323,12 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_raises(ActiveModel::UnknownAttributeError) { topic.update(no_column_exists: "Hello!") }
   end
 
+  test "write_attribute allows writing to aliased attributes" do
+    topic = Topic.first
+    assert_nothing_raised { topic.update_columns(heading: "Hello!") }
+    assert_nothing_raised { topic.update(heading: "Hello!") }
+  end
+
   test "read_attribute" do
     topic = Topic.new
     topic.title = "Don't change the topic"
@@ -449,7 +455,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   end
 
   test "custom field attribute predicate" do
-    object = Company.find_by_sql(<<-SQL).first
+    object = Company.find_by_sql(<<~SQL).first
       SELECT c1.*, c2.type as string_value, c2.rating as int_value
         FROM companies c1, companies c2
        WHERE c1.firm_id = c2.id

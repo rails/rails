@@ -1,3 +1,4 @@
 /app/javascript/action_cable/internal.js
-/lib/assets/compiled/
+/src
+/test/javascript/compiled/
 /tmp/

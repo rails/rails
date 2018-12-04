@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require "drb"
-require "drb/unix"
+require "drb/unix" unless Gem.win_platform?
 require "active_support/core_ext/module/attribute_accessors"
 
 module ActiveSupport
@@ -15,12 +15,15 @@ module ActiveSupport
         end
 
         def record(reporter, result)
+          raise DRb::DRbConnError if result.is_a?(DRb::DRbUnknown)
+
           reporter.synchronize do
             reporter.record(result)
           end
         end
 
         def <<(o)
+          o[2] = DRbObject.new(o[2]) if o
           @queue << o
         end
 

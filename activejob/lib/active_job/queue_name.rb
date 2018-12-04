@@ -34,7 +34,7 @@ module ActiveJob
     end
 
     included do
-      class_attribute :queue_name, instance_accessor: false, default: default_queue_name
+      class_attribute :queue_name, instance_accessor: false, default: -> { self.class.default_queue_name }
       class_attribute :queue_name_delimiter, instance_accessor: false, default: "_"
     end
 

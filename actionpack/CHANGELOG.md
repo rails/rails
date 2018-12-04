@@ -1,3 +1,10 @@
+*   Raise an error on root route naming conflicts.
+
+    Raises an ArgumentError when multiple root routes are defined in the
+    same context instead of assigning nil names to subsequent roots.
+
+    *Gannon McGibbon*
+
 *   Allow rescue from parameter parse errors:
 
     ```

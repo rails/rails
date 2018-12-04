@@ -202,6 +202,8 @@ class Product < ApplicationRecord
 end
 ```
 
+NOTE: Active Record does not support using non-primary key columns named `id`.
+
 CRUD: Reading and Writing Data
 ------------------------------
 

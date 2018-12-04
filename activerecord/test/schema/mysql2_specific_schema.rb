@@ -54,33 +54,25 @@ ActiveRecord::Schema.define do
     t.binary :binary_column,    limit: 1
   end
 
-  ActiveRecord::Base.connection.execute <<-SQL
-DROP PROCEDURE IF EXISTS ten;
-SQL
+  create_table :enum_tests, id: false, force: true do |t|
+    t.column :enum_column, "ENUM('text','blob','tiny','medium','long','unsigned','bigint')"
+  end
 
-  ActiveRecord::Base.connection.execute <<-SQL
-CREATE PROCEDURE ten() SQL SECURITY INVOKER
-BEGIN
-	select 10;
-END
-SQL
+  execute "DROP PROCEDURE IF EXISTS ten"
 
-  ActiveRecord::Base.connection.execute <<-SQL
-DROP PROCEDURE IF EXISTS topics;
-SQL
+  execute <<~SQL
+    CREATE PROCEDURE ten() SQL SECURITY INVOKER
+    BEGIN
+      SELECT 10;
+    END
+  SQL
 
-  ActiveRecord::Base.connection.execute <<-SQL
-CREATE PROCEDURE topics(IN num INT) SQL SECURITY INVOKER
-BEGIN
-  select * from topics limit num;
-END
-SQL
+  execute "DROP PROCEDURE IF EXISTS topics"
 
-  ActiveRecord::Base.connection.drop_table "enum_tests", if_exists: true
-
-  ActiveRecord::Base.connection.execute <<-SQL
-CREATE TABLE enum_tests (
-  enum_column ENUM('text','blob','tiny','medium','long','unsigned','bigint')
-)
-SQL
+  execute <<~SQL
+    CREATE PROCEDURE topics(IN num INT) SQL SECURITY INVOKER
+    BEGIN
+      SELECT * FROM topics LIMIT num;
+    END
+  SQL
 end

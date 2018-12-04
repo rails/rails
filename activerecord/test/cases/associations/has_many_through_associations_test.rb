@@ -586,6 +586,16 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_not_includes posts(:welcome).reload.people.reload, people(:michael)
   end
 
+  def test_replace_association_with_duplicates
+    post   = posts(:thinking)
+    person = people(:david)
+
+    assert_difference "post.people.count", 2 do
+      post.people = [person]
+      post.people = [person, person]
+    end
+  end
+
   def test_replace_order_is_preserved
     posts(:welcome).people.clear
     posts(:welcome).people = [people(:david), people(:michael)]

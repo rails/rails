@@ -114,9 +114,29 @@ class EnqueuedJobsTest < ActiveJob::TestCase
     end
   end
 
+  def test_assert_enqueued_jobs_with_only_option_as_proc
+    assert_nothing_raised do
+      assert_enqueued_jobs(1, only: ->(job) { job.fetch(:job).name == "HelloJob" }) do
+        HelloJob.perform_later("jeremy")
+        LoggingJob.perform_later
+        LoggingJob.perform_later
+      end
+    end
+  end
+
   def test_assert_enqueued_jobs_with_except_option
     assert_nothing_raised do
       assert_enqueued_jobs 1, except: LoggingJob do
+        HelloJob.perform_later("jeremy")
+        LoggingJob.perform_later
+        LoggingJob.perform_later
+      end
+    end
+  end
+
+  def test_assert_enqueued_jobs_with_except_option_as_proc
+    assert_nothing_raised do
+      assert_enqueued_jobs(1, except: ->(job) { job.fetch(:job).name == "LoggingJob" }) do
         HelloJob.perform_later("jeremy")
         LoggingJob.perform_later
         LoggingJob.perform_later
@@ -911,6 +931,15 @@ class PerformedJobsTest < ActiveJob::TestCase
     end
   end
 
+  def test_assert_performed_jobs_with_only_option_as_proc
+    assert_nothing_raised do
+      assert_performed_jobs(1, only: ->(job) { job.is_a?(HelloJob) }) do
+        HelloJob.perform_later("jeremy")
+        LoggingJob.perform_later("bogdan")
+      end
+    end
+  end
+
   def test_assert_performed_jobs_without_block_with_only_option
     HelloJob.perform_later("jeremy")
     LoggingJob.perform_later("bogdan")
@@ -918,6 +947,15 @@ class PerformedJobsTest < ActiveJob::TestCase
     perform_enqueued_jobs
 
     assert_performed_jobs 1, only: HelloJob
+  end
+
+  def test_assert_performed_jobs_without_block_with_only_option_as_proc
+    HelloJob.perform_later("jeremy")
+    LoggingJob.perform_later("bogdan")
+
+    perform_enqueued_jobs
+
+    assert_performed_jobs(1, only: ->(job) { job.fetch(:job).name == "HelloJob" })
   end
 
   def test_assert_performed_jobs_without_block_with_only_option_failure
@@ -942,6 +980,15 @@ class PerformedJobsTest < ActiveJob::TestCase
     end
   end
 
+  def test_assert_performed_jobs_with_except_option_as_proc
+    assert_nothing_raised do
+      assert_performed_jobs(1, except: ->(job) { job.is_a?(HelloJob) }) do
+        HelloJob.perform_later("jeremy")
+        LoggingJob.perform_later("bogdan")
+      end
+    end
+  end
+
   def test_assert_performed_jobs_without_block_with_except_option
     HelloJob.perform_later("jeremy")
     LoggingJob.perform_later("bogdan")
@@ -949,6 +996,15 @@ class PerformedJobsTest < ActiveJob::TestCase
     perform_enqueued_jobs
 
     assert_performed_jobs 1, except: HelloJob
+  end
+
+  def test_assert_performed_jobs_without_block_with_except_option_as_proc
+    HelloJob.perform_later("jeremy")
+    LoggingJob.perform_later("bogdan")
+
+    perform_enqueued_jobs
+
+    assert_performed_jobs(1, except: ->(job) { job.fetch(:job).name == "HelloJob" })
   end
 
   def test_assert_performed_jobs_without_block_with_except_option_failure

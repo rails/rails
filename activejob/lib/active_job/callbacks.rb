@@ -130,7 +130,7 @@ module ActiveJob
         set_callback(:enqueue, :after, *filters, &blk)
       end
 
-      # Defines a callback that will get called around the enqueueing
+      # Defines a callback that will get called around the enqueuing
       # of the job.
       #
       #   class VideoProcessJob < ActiveJob::Base

@@ -185,7 +185,7 @@ module ActiveRecord
       end
 
       def supports_json?
-        postgresql_version >= 90200
+        true
       end
 
       def supports_comments?
@@ -332,16 +332,16 @@ module ActiveRecord
       end
 
       def supports_ranges?
-        # Range datatypes weren't introduced until PostgreSQL 9.2
-        postgresql_version >= 90200
+        true
       end
+      deprecate :supports_ranges?
 
       def supports_materialized_views?
-        postgresql_version >= 90300
+        true
       end
 
       def supports_foreign_tables?
-        postgresql_version >= 90300
+        true
       end
 
       def supports_pgcrypto_uuid?
@@ -425,8 +425,8 @@ module ActiveRecord
 
       private
         def check_version
-          if postgresql_version < 90100
-            raise "Your version of PostgreSQL (#{postgresql_version}) is too old. Active Record supports PostgreSQL >= 9.1."
+          if postgresql_version < 90300
+            raise "Your version of PostgreSQL (#{postgresql_version}) is too old. Active Record supports PostgreSQL >= 9.3."
           end
         end
 
@@ -441,28 +441,28 @@ module ActiveRecord
         LOCK_NOT_AVAILABLE    = "55P03"
         QUERY_CANCELED        = "57014"
 
-        def translate_exception(exception, message)
+        def translate_exception(exception, message:, sql:, binds:)
           return exception unless exception.respond_to?(:result)
 
           case exception.result.try(:error_field, PG::PG_DIAG_SQLSTATE)
           when UNIQUE_VIOLATION
-            RecordNotUnique.new(message)
+            RecordNotUnique.new(message, sql: sql, binds: binds)
           when FOREIGN_KEY_VIOLATION
-            InvalidForeignKey.new(message)
+            InvalidForeignKey.new(message, sql: sql, binds: binds)
           when VALUE_LIMIT_VIOLATION
-            ValueTooLong.new(message)
+            ValueTooLong.new(message, sql: sql, binds: binds)
           when NUMERIC_VALUE_OUT_OF_RANGE
-            RangeError.new(message)
+            RangeError.new(message, sql: sql, binds: binds)
           when NOT_NULL_VIOLATION
-            NotNullViolation.new(message)
+            NotNullViolation.new(message, sql: sql, binds: binds)
           when SERIALIZATION_FAILURE
-            SerializationFailure.new(message)
+            SerializationFailure.new(message, sql: sql, binds: binds)
           when DEADLOCK_DETECTED
-            Deadlocked.new(message)
+            Deadlocked.new(message, sql: sql, binds: binds)
           when LOCK_NOT_AVAILABLE
-            LockWaitTimeout.new(message)
+            LockWaitTimeout.new(message, sql: sql, binds: binds)
           when QUERY_CANCELED
-            QueryCanceled.new(message)
+            QueryCanceled.new(message, sql: sql, binds: binds)
           else
             super
           end
@@ -589,18 +589,11 @@ module ActiveRecord
         def load_additional_types(oids = nil)
           initializer = OID::TypeMapInitializer.new(type_map)
 
-          if supports_ranges?
-            query = <<-SQL
-              SELECT t.oid, t.typname, t.typelem, t.typdelim, t.typinput, r.rngsubtype, t.typtype, t.typbasetype
-              FROM pg_type as t
-              LEFT JOIN pg_range as r ON oid = rngtypid
-            SQL
-          else
-            query = <<-SQL
-              SELECT t.oid, t.typname, t.typelem, t.typdelim, t.typinput, t.typtype, t.typbasetype
-              FROM pg_type as t
-            SQL
-          end
+          query = <<~SQL
+            SELECT t.oid, t.typname, t.typelem, t.typdelim, t.typinput, r.rngsubtype, t.typtype, t.typbasetype
+            FROM pg_type as t
+            LEFT JOIN pg_range as r ON oid = rngtypid
+          SQL
 
           if oids
             query += "WHERE t.oid::integer IN (%s)" % oids.join(", ")
@@ -642,7 +635,7 @@ module ActiveRecord
         def exec_cache(sql, name, binds)
           materialize_transactions
 
-          stmt_key = prepare_statement(sql)
+          stmt_key = prepare_statement(sql, binds)
           type_casted_binds = type_casted_binds(binds)
 
           log(sql, name, binds, type_casted_binds, stmt_key) do
@@ -696,7 +689,7 @@ module ActiveRecord
 
         # Prepare the statement if it hasn't been prepared, return
         # the statement key.
-        def prepare_statement(sql)
+        def prepare_statement(sql, binds)
           @lock.synchronize do
             sql_key = sql_key(sql)
             unless @statements.key? sql_key
@@ -704,7 +697,7 @@ module ActiveRecord
               begin
                 @connection.prepare nextkey, sql
               rescue => e
-                raise translate_exception_class(e, sql)
+                raise translate_exception_class(e, sql, binds)
               end
               # Clear the queue
               @connection.get_last_result
@@ -776,7 +769,7 @@ module ActiveRecord
         #  - format_type includes the column size constraint, e.g. varchar(50)
         #  - ::regclass is a function that gives the id for a table name
         def column_definitions(table_name)
-          query(<<-end_sql, "SCHEMA")
+          query(<<~SQL, "SCHEMA")
               SELECT a.attname, format_type(a.atttypid, a.atttypmod),
                      pg_get_expr(d.adbin, d.adrelid), a.attnotnull, a.atttypid, a.atttypmod,
                      c.collname, col_description(a.attrelid, a.attnum) AS comment
@@ -787,7 +780,7 @@ module ActiveRecord
                WHERE a.attrelid = #{quote(quote_table_name(table_name))}::regclass
                  AND a.attnum > 0 AND NOT a.attisdropped
                ORDER BY a.attnum
-          end_sql
+          SQL
         end
 
         def extract_table_ref_from_insert_sql(sql)
@@ -802,7 +795,7 @@ module ActiveRecord
         def can_perform_case_insensitive_comparison_for?(column)
           @case_insensitive_cache ||= {}
           @case_insensitive_cache[column.sql_type] ||= begin
-            sql = <<-end_sql
+            sql = <<~SQL
               SELECT exists(
                 SELECT * FROM pg_proc
                 WHERE proname = 'lower'
@@ -814,7 +807,7 @@ module ActiveRecord
                 WHERE proname = 'lower'
                   AND castsource = #{quote column.sql_type}::regtype
               )
-            end_sql
+            SQL
             execute_and_clear(sql, "SCHEMA", []) do |result|
               result.getvalue(0, 0)
             end
@@ -840,7 +833,7 @@ module ActiveRecord
             "bool" => PG::TextDecoder::Boolean,
           }
           known_coder_types = coders_by_name.keys.map { |n| quote(n) }
-          query = <<-SQL % known_coder_types.join(", ")
+          query = <<~SQL % known_coder_types.join(", ")
             SELECT t.oid, t.typname
             FROM pg_type as t
             WHERE t.typname IN (%s)

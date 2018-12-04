@@ -550,8 +550,8 @@ module ActiveRecord
       end
 
       def ordered_relation
-        if order_values.empty? && primary_key
-          order(arel_attribute(primary_key).asc)
+        if order_values.empty? && (implicit_order_column || primary_key)
+          order(arel_attribute(implicit_order_column || primary_key).asc)
         else
           self
         end

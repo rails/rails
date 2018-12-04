@@ -1,4 +1,4 @@
-import ActionCable from "./index"
+import logger from "./logger"
 
 // Responsible for ensuring the cable connection is in good health by validating the heartbeat pings sent from the server, and attempting
 // revival reconnections if things go astray. Internal class, not intended for direct user manipulation.
@@ -22,7 +22,7 @@ class ConnectionMonitor {
       delete this.stoppedAt
       this.startPolling()
       document.addEventListener("visibilitychange", this.visibilityDidChange)
-      ActionCable.log(`ConnectionMonitor started. pollInterval = ${this.getPollInterval()} ms`)
+      logger.log(`ConnectionMonitor started. pollInterval = ${this.getPollInterval()} ms`)
     }
   }
 
@@ -31,7 +31,7 @@ class ConnectionMonitor {
       this.stoppedAt = now()
       this.stopPolling()
       document.removeEventListener("visibilitychange", this.visibilityDidChange)
-      ActionCable.log("ConnectionMonitor stopped")
+      logger.log("ConnectionMonitor stopped")
     }
   }
 
@@ -47,12 +47,12 @@ class ConnectionMonitor {
     this.reconnectAttempts = 0
     this.recordPing()
     delete this.disconnectedAt
-    ActionCable.log("ConnectionMonitor recorded connect")
+    logger.log("ConnectionMonitor recorded connect")
   }
 
   recordDisconnect() {
     this.disconnectedAt = now()
-    ActionCable.log("ConnectionMonitor recorded disconnect")
+    logger.log("ConnectionMonitor recorded disconnect")
   }
 
   // Private
@@ -82,12 +82,12 @@ class ConnectionMonitor {
 
   reconnectIfStale() {
     if (this.connectionIsStale()) {
-      ActionCable.log(`ConnectionMonitor detected stale connection. reconnectAttempts = ${this.reconnectAttempts}, pollInterval = ${this.getPollInterval()} ms, time disconnected = ${secondsSince(this.disconnectedAt)} s, stale threshold = ${this.constructor.staleThreshold} s`)
+      logger.log(`ConnectionMonitor detected stale connection. reconnectAttempts = ${this.reconnectAttempts}, pollInterval = ${this.getPollInterval()} ms, time disconnected = ${secondsSince(this.disconnectedAt)} s, stale threshold = ${this.constructor.staleThreshold} s`)
       this.reconnectAttempts++
       if (this.disconnectedRecently()) {
-        ActionCable.log("ConnectionMonitor skipping reopening recent disconnect")
+        logger.log("ConnectionMonitor skipping reopening recent disconnect")
       } else {
-        ActionCable.log("ConnectionMonitor reopening")
+        logger.log("ConnectionMonitor reopening")
         this.connection.reopen()
       }
     }
@@ -105,7 +105,7 @@ class ConnectionMonitor {
     if (document.visibilityState === "visible") {
       setTimeout(() => {
         if (this.connectionIsStale() || !this.connection.isOpen()) {
-          ActionCable.log(`ConnectionMonitor reopening stale connection on visibilitychange. visbilityState = ${document.visibilityState}`)
+          logger.log(`ConnectionMonitor reopening stale connection on visibilitychange. visbilityState = ${document.visibilityState}`)
           this.connection.reopen()
         }
       }

@@ -16,7 +16,7 @@ export function start() {
 
 function didClick(event) {
   const { target } = event
-  if (target.tagName == "INPUT" && target.type == "submit" && target.form) {
+  if ((target.tagName == "INPUT" || target.tagName == "BUTTON") && target.type == "submit" && target.form) {
     submitButtonsByForm.set(target.form, target)
   }
 }
@@ -58,7 +58,7 @@ function handleFormSubmissionEvent(event) {
 }
 
 function submitForm(form) {
-  let button = submitButtonsByForm.get(form) || findElement(form, "input[type=submit]")
+  let button = submitButtonsByForm.get(form) || findElement(form, "input[type=submit], button[type=submit]")
 
   if (button) {
     const { disabled } = button
