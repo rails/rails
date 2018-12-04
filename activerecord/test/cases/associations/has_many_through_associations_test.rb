@@ -227,6 +227,14 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_delete_all_on_association_clears_scope
+    post = Post.create!(title: "Rails 6", body: "")
+    people = post.people
+    people.create!(first_name: "Jeb")
+    people.delete_all
+    assert_nil people.first
+  end
+
   def test_concat
     person = people(:david)
     post   = posts(:thinking)
@@ -399,6 +407,30 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
     assert_empty posts(:welcome).reload.people
     assert_empty posts(:welcome).people.reload
+  end
+
+  def test_destroy_all_on_association_clears_scope
+    post = Post.create!(title: "Rails 6", body: "")
+    people = post.people
+    people.create!(first_name: "Jeb")
+    people.destroy_all
+    assert_nil people.first
+  end
+
+  def test_destroy_on_association_clears_scope
+    post = Post.create!(title: "Rails 6", body: "")
+    people = post.people
+    person = people.create!(first_name: "Jeb")
+    people.destroy(person)
+    assert_nil people.first
+  end
+
+  def test_delete_on_association_clears_scope
+    post = Post.create!(title: "Rails 6", body: "")
+    people = post.people
+    person = people.create!(first_name: "Jeb")
+    people.delete(person)
+    assert_nil people.first
   end
 
   def test_should_raise_exception_for_destroying_mismatching_records

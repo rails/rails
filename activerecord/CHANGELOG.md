@@ -1,3 +1,7 @@
+*   Reset scope after delete on collection association to clear stale offsets of removed records.
+
+    *Gannon McGibbon*
+
 *   Add the ability to prevent writes to a database for the duration of a block.
 
     Allows the application to prevent writes to a database. This can be useful when
