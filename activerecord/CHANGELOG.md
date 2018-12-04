@@ -1,3 +1,7 @@
+*   Reset scope after delete on collection association to clear stale offsets of removed records.
+
+    *Gannon McGibbon*
+
 *   Do not ignore the scoping with query methods in the scope block.
 
     *Ryuta Kamizono*
