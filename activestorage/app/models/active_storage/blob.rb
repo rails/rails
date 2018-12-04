@@ -98,9 +98,9 @@ class ActiveStorage::Blob < ActiveRecord::Base
   def deliver(method)
     case method
     when :redirect
-      Rails.application.routes.url_helpers.route_for(:rails_service_blob, signed_id, filename)
+      Rails.application.routes.url_helpers.route_for(:rails_service_blob, signed_id, filename, only_path: true)
     when :proxy
-      Rails.application.routes.url_helpers.route_for(:rails_blob_proxy, signed_id, filename)
+      Rails.application.routes.url_helpers.route_for(:rails_blob_proxy, signed_id, filename, only_path: true)
     when :direct
       service_url
     end
