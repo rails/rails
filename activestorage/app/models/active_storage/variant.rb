@@ -73,6 +73,10 @@ class ActiveStorage::Variant
     "variants/#{blob.key}/#{Digest::SHA256.hexdigest(variation.key)}"
   end
 
+  def deliver(method)
+    variation.deliver(method, self)
+  end
+
   # Returns the URL of the variant on the service. This URL is intended to be short-lived for security and not used directly
   # with users. Instead, the +service_url+ should only be exposed as a redirect from a stable, possibly authenticated URL.
   # Hiding the +service_url+ behind a redirect also gives you the power to change services without updating all URLs. And

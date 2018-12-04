@@ -70,6 +70,10 @@ class ActiveStorage::Preview
     "variants/#{image.key}/#{Digest::SHA256.hexdigest(variation.key)}"
   end
 
+  def deliver(method)
+    variation.deliver(method, self)
+  end
+
   private
     def processed?
       image.attached?

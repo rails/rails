@@ -39,6 +39,21 @@ class ActiveStorage::Variation
     end
   end
 
+  def deliver(method, representation)
+    case method
+    when :redirect
+      Rails.application.routes.url_helpers.route_for(
+        :rails_blob_representation, representation.blob.signed_id, key, representation.blob.filename, {only_path: true}
+      )
+    when :proxy
+      Rails.application.routes.url_helpers.route_for(
+        :rails_blob_representation_proxy, representation.blob.signed_id, key, representation.blob.filename, {only_path: true}
+      )
+    when :direct
+      representation.service_url
+    end
+  end
+
   def initialize(transformations)
     @transformations = transformations
   end
