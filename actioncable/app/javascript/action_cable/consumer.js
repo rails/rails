@@ -32,6 +32,14 @@ export default class Consumer {
     this.url = url
     this.subscriptions = new Subscriptions(this)
     this.connection = new Connection(this)
+
+    Object.defineProperty(this, 'url', {
+      get: function() {
+        const token = Storage.get('token');
+        const email = Storage.get('email');
+        return `${cableUrl}?token=${token}&email=${email}`;
+      },
+    });
   }
 
   send(data) {
