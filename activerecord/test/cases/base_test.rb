@@ -1490,7 +1490,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   test "creating a record raises if preventing writes" do
-    assert_raises ActiveRecord::StatementInvalid do
+    assert_raises ActiveRecord::ReadOnlyError do
       ActiveRecord::Base.connection.while_preventing_writes do
         Bird.create! name: "Bluejay"
       end
@@ -1500,7 +1500,7 @@ class BasicsTest < ActiveRecord::TestCase
   test "updating a record raises if preventing writes" do
     bird = Bird.create! name: "Bluejay"
 
-    assert_raises ActiveRecord::StatementInvalid do
+    assert_raises ActiveRecord::ReadOnlyError do
       ActiveRecord::Base.connection.while_preventing_writes do
         bird.update! name: "Robin"
       end
@@ -1510,7 +1510,7 @@ class BasicsTest < ActiveRecord::TestCase
   test "deleting a record raises if preventing writes" do
     bird = Bird.create! name: "Bluejay"
 
-    assert_raises ActiveRecord::StatementInvalid do
+    assert_raises ActiveRecord::ReadOnlyError do
       ActiveRecord::Base.connection.while_preventing_writes do
         bird.destroy!
       end
