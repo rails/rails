@@ -322,6 +322,25 @@ asyncTest('ctrl-clicking on a link does not disables the link', 6, function() {
   start()
 })
 
+asyncTest('right/mouse-wheel-clicking on a link does not disables the link', 10, function() {
+  var link = $('a[data-disable-with]')
+
+  App.checkEnabledState(link, 'Click me')
+
+  link.triggerNative('click', { button: 1 })
+  App.checkEnabledState(link, 'Click me')
+
+  link.triggerNative('click', { button: 1 })
+  App.checkEnabledState(link, 'Click me')
+
+  link.triggerNative('click', { button: 2 })
+  App.checkEnabledState(link, 'Click me')
+
+  link.triggerNative('click', { button: 2 })
+  App.checkEnabledState(link, 'Click me')
+  start()
+})
+
 asyncTest('button[data-remote][data-disable-with] disables and re-enables', 6, function() {
   var button = $('button[data-remote][data-disable-with]')
 
