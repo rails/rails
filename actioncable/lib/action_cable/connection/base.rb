@@ -95,7 +95,12 @@ module ActionCable
       end
 
       # Close the WebSocket connection.
-      def close
+      def close(reason: nil, reconnect: true)
+        transmit(
+          type: ActionCable::INTERNAL[:message_types][:disconnect],
+          reason: reason,
+          reconnect: reconnect
+        )
         websocket.close
       end
 
@@ -170,7 +175,7 @@ module ActionCable
           message_buffer.process!
           server.add_connection(self)
         rescue ActionCable::Connection::Authorization::UnauthorizedError
-          respond_to_invalid_request
+          close(reason: ActionCable::INTERNAL[:disconnect_reasons][:unauthorized], reconnect: false) if websocket.alive?
         end
 
         def handle_close
@@ -211,7 +216,7 @@ module ActionCable
         end
 
         def respond_to_invalid_request
-          close if websocket.alive?
+          close(reason: ActionCable::INTERNAL[:disconnect_reasons][:invalid_request]) if websocket.alive?
 
           logger.error invalid_request_message
           logger.info finished_request_message

@@ -1,3 +1,8 @@
+*   The JavaScript WebSocket client will no longer try to reconnect
+    when you call `reject_unauthorized_connection` on the connection.
+
+    *Mick Staugaard*
+
 *   `ActionCable.Connection#getState` now references the configurable
     `ActionCable.adapters.WebSocket` property rather than the `WebSocket` global
     variable, matching the behavior of `ActionCable.Connection#open`.
