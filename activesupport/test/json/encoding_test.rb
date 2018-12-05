@@ -217,7 +217,7 @@ class TestJSONEncoding < ActiveSupport::TestCase
     assert_equal(%([{"address":{"city":"London"}},{"address":{"city":"Paris"}}]), json)
   end
 
-  People = Class.new(BasicObject) do
+  People = Class.new(Object) do
     include Enumerable
     def initialize
       @people = [
@@ -301,12 +301,12 @@ class TestJSONEncoding < ActiveSupport::TestCase
 
   def test_hash_as_json_without_options
     json = { foo: OptionsTest.new }.as_json
-    assert_equal({ "foo" => :default }, json)
+    assert_equal({ "foo" => "default" }, json)
   end
 
   def test_array_as_json_without_options
     json = [ OptionsTest.new ].as_json
-    assert_equal([:default], json)
+    assert_equal(["default"], json)
   end
 
   def test_struct_encoding
