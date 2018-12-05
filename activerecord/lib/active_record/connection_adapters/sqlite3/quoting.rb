@@ -12,6 +12,10 @@ module ActiveRecord
           quote_column_name(attr)
         end
 
+        def quote_table_name(name)
+          @quoted_table_names[name] ||= super.gsub(".", "\".\"").freeze
+        end
+
         def quote_column_name(name)
           @quoted_column_names[name] ||= %Q("#{super.gsub('"', '""')}")
         end
