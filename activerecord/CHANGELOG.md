@@ -1,3 +1,7 @@
+*   Fix join table column quoting with SQLite.
+
+    *Gannon McGibbon*
+
 *   Ensure that `delete_all` on collection proxy returns affected count.
 
     *Ryuta Kamizono*
