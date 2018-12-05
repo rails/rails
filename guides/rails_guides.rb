@@ -26,5 +26,5 @@ RailsGuides::Generator.new(
   only:      env_value["ONLY"],
   kindle:    env_flag["KINDLE"],
   language:  env_value["GUIDES_LANGUAGE"],
-  direction: env_value["DIRECTION"].to_sym
+  direction: env_value["DIRECTION"]
 ).generate
