@@ -122,6 +122,10 @@ module ActiveRecord
           end
 
           def exec_stmt_and_free(sql, name, binds, cache_stmt: false)
+            if preventing_writes? && write_query?(sql)
+              raise ActiveRecord::ReadOnlyError, "Write query attempted while in readonly mode: #{sql}"
+            end
+
             # make sure we carry over any changes to ActiveRecord::Base.default_timezone that have been
             # made since we established the connection
             @connection.query_options[:database_timezone] = ActiveRecord::Base.default_timezone
