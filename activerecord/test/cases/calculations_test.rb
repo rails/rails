@@ -721,6 +721,10 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal [], Topic.includes(:replies).order(:id).offset(5).pluck(:id)
   end
 
+  def test_pluck_with_join
+    assert_equal [[2, 2], [4, 4]], Reply.includes(:topic).pluck(:id, :"topics.id")
+  end
+
   def test_group_by_with_limit
     expected = { "Post" => 8, "SpecialPost" => 1 }
     actual = Post.includes(:comments).group(:type).order(:type).limit(2).count("comments.id")
