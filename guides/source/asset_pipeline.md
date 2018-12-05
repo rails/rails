@@ -1101,7 +1101,7 @@ Windows you have a JavaScript runtime installed in your operating system.
 
 
 
-### Serving GZipped version of assets
+### GZipping your assets
 
 By default, gzipped version of compiled assets will be generated, along with
 the non-gzipped version of assets. Gzipped assets help reduce the transmission
@@ -1110,6 +1110,8 @@ of data over the wire. You can configure this by setting the `gzip` flag.
 ```ruby
 config.assets.gzip = false # disable gzipped assets generation
 ```
+
+Refer to your web server's documentation for instructions on how to serve gzipped assets.
 
 ### Using Your Own Compressor
 
