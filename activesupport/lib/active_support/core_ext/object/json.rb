@@ -47,7 +47,7 @@ module ActiveSupport
 
   module AsJSON
     def as_json(options = nil)
-      ActiveSupport::JSON::AsJSONEncoder.encode self, options
+      ActiveSupport::JSON::AsJSONEncoder.encode_next self, options
     end
   end
 end

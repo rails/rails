@@ -2,12 +2,11 @@ module ActiveSupport
   module JSON
     class AsJSONEncoder
       def self.encode(object, options)
-        if internal_as_json? object
-          new(options).encode object
-        else
-          # Someone called `super` from `as_json` in to us
-          new(options).visit object
-        end
+        new(options).encode object
+      end
+
+      def self.encode_next(object, options)
+        new(options).visit object
       end
 
       def self.internal_as_json?(object)
@@ -37,7 +36,7 @@ module ActiveSupport
         when FalseClass      then identity              object
         when TrueClass       then identity              object
         when NilClass        then identity              object
-        when String          then identity              object
+        when String          then handle_String         object
         when Numeric         then identity              object
         when Symbol          then to_string             object
         when Regexp          then to_string             object
@@ -58,7 +57,11 @@ module ActiveSupport
 
       private
 
-        def handle_default object
+        def handle_String(object)
+          object
+        end
+
+        def handle_default(object)
           if object.respond_to?(:to_hash)
             encode object.to_hash
           else
@@ -145,7 +148,53 @@ module ActiveSupport
             object
           end
 
-          Hash[subset.map { |k, v| [k.to_s, encode(v)] } ]
+          Hash[subset.map { |k, v| [encode(k), encode(v)] } ]
+        end
+    end
+
+    class EscapedAsJSONEncoder < AsJSONEncoder
+      # Rails does more escaping than the JSON gem natively does (we
+      # escape \u2028 and \u2029 and optionally >, <, & to work around
+      # certain browser problems).
+      ESCAPED_CHARS = {
+        "\u2028" => '\u2028',
+        "\u2029" => '\u2029',
+        ">"      => '\u003e',
+        "<"      => '\u003c',
+        "&"      => '\u0026',
+      }
+
+      ESCAPE_REGEX_WITH_HTML_ENTITIES = /[\u2028\u2029><&]/u
+      ESCAPE_REGEX_WITHOUT_HTML_ENTITIES = /[\u2028\u2029]/u
+
+      # This class wraps all the strings we see and does the extra escaping
+      class EscapedString < String #:nodoc:
+        def to_json(*)
+          if Encoding.escape_html_entities_in_json
+            s = super
+            s.gsub! ESCAPE_REGEX_WITH_HTML_ENTITIES, ESCAPED_CHARS
+            s
+          else
+            s = super
+            s.gsub! ESCAPE_REGEX_WITHOUT_HTML_ENTITIES, ESCAPED_CHARS
+            s
+          end
+        end
+
+        def to_s
+          self
+        end
+      end
+
+      # Mark these as private so we don't leak encoding-specific constructs
+      private_constant :ESCAPED_CHARS, :ESCAPE_REGEX_WITH_HTML_ENTITIES,
+        :ESCAPE_REGEX_WITHOUT_HTML_ENTITIES, :EscapedString
+
+
+      private
+
+        def handle_String(object)
+          EscapedString.new(object)
         end
     end
   end
