@@ -127,6 +127,10 @@ module Rails
           if respond_to?(:action_dispatch)
             action_dispatch.use_cookies_with_metadata = true
           end
+
+          if respond_to?(:active_job)
+            active_job.return_false_on_aborted_enqueue = true
+          end
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end

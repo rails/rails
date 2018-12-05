@@ -49,21 +49,29 @@ module ActiveJob
       self.queue_name   = self.class.queue_name_from_part(options[:queue]) if options[:queue]
       self.priority     = options[:priority].to_i if options[:priority]
       successfully_enqueued = false
+
       run_callbacks :enqueue do
         if scheduled_at
           self.class.queue_adapter.enqueue_at self, scheduled_at
         else
           self.class.queue_adapter.enqueue self
         end
+
         successfully_enqueued = true
       end
+
       if successfully_enqueued
         self
       else
         if self.class.return_false_on_aborted_enqueue
           false
         else
-          ActiveSupport::Deprecation.warn "this will return false, set config.active_job.return_false_on_aborted_enqueue = true to remove deprecation."
+          ActiveSupport::Deprecation.warn(
+            "Rails 6.0 will return false when the enqueing is aborted. Make sure your code doesn't depend on it" \
+            " returning the instance of the job and set `config.active_job.return_false_on_aborted_enqueue = true`" \
+            " to remove the deprecations."
+          )
+
           self
         end
       end
