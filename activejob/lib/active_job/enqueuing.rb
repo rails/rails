@@ -48,14 +48,25 @@ module ActiveJob
       self.scheduled_at = options[:wait_until].to_f if options[:wait_until]
       self.queue_name   = self.class.queue_name_from_part(options[:queue]) if options[:queue]
       self.priority     = options[:priority].to_i if options[:priority]
+      successfully_enqueued = false
       run_callbacks :enqueue do
         if scheduled_at
           self.class.queue_adapter.enqueue_at self, scheduled_at
         else
           self.class.queue_adapter.enqueue self
         end
+        successfully_enqueued = true
       end
-      self
+      if successfully_enqueued
+        self
+      else
+        if self.class.return_false_on_aborted_enqueue
+          false
+        else
+          ActiveSupport::Deprecation.warn "this will return false, set config.active_job.return_false_on_aborted_enqueue = true to remove deprecation."
+          self
+        end
+      end
     end
   end
 end
