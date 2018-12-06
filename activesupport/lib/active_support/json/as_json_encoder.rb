@@ -10,7 +10,7 @@ module ActiveSupport
       end
 
       def self.internal_as_json?(object)
-        object.respond_to?(:as_json) &&
+        !object.respond_to?(:as_json) ||
           object.method(:as_json).owner == ActiveSupport::AsJSON
       end
 
