@@ -9,6 +9,8 @@ class ActionMailbox::Router::Route
 
   def match?(inbound_email)
     case address
+    when :all
+      true
     when String
       inbound_email.mail.recipients.any? { |recipient| address.casecmp?(recipient) }
     when Regexp
@@ -26,8 +28,8 @@ class ActionMailbox::Router::Route
 
   private
     def ensure_valid_address
-      unless [ String, Regexp, Proc ].any? { |klass| address.is_a?(klass) } || address.respond_to?(:match?)
-        raise ArgumentError, "Expected a String, Regexp, Proc, or matchable, got #{address.inspect}"
+      unless [ Symbol, String, Regexp, Proc ].any? { |klass| address.is_a?(klass) } || address.respond_to?(:match?)
+        raise ArgumentError, "Expected a Symbol, String, Regexp, Proc, or matchable, got #{address.inspect}"
       end
     end
 end

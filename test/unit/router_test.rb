@@ -103,6 +103,23 @@ module ActionMailbox
       assert_equal "Nested::FirstMailbox", $processed_by
     end
 
+    test "all as the only route" do
+      @router.add_route :all, to: :first
+      @router.route create_inbound_email_from_mail(to: "replies-class@example.com", subject: "This is a reply")
+      assert_equal "FirstMailbox", $processed_by
+    end
+
+    test "all as the second route" do
+      @router.add_route FirstMailboxAddress.new, to: :first
+      @router.add_route :all, to: :second
+
+      @router.route create_inbound_email_from_mail(to: "replies-class@example.com", subject: "This is a reply")
+      assert_equal "FirstMailbox", $processed_by
+
+      @router.route create_inbound_email_from_mail(to: "elsewhere@example.com", subject: "This is a reply")
+      assert_equal "SecondMailbox", $processed_by
+    end
+
     test "missing route" do
       assert_raises(ActionMailbox::Router::RoutingError) do
         inbound_email = create_inbound_email_from_mail(to: "going-nowhere@example.com", subject: "This is a reply")
