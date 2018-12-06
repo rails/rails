@@ -23,7 +23,7 @@ module ActiveModel
       private
 
         def cast_value(value)
-          casted_value = \
+          casted_value =
             case value
             when ::Float
               convert_float_to_big_decimal(value)
@@ -31,9 +31,9 @@ module ActiveModel
               BigDecimal(value, precision || BIGDECIMAL_PRECISION)
             when ::String
               begin
-                value.to_d
+                BigDecimal(value)
               rescue ArgumentError
-                BigDecimal(0)
+                BigDecimal(value.to_f.to_s)
               end
             else
               if value.respond_to?(:to_d)
