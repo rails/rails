@@ -80,7 +80,7 @@ module ActiveRecord
         # need it specifically, you may want consider the <tt>exec_query</tt> wrapper.
         def execute(sql, name = nil)
           if preventing_writes? && write_query?(sql)
-            raise ActiveRecord::StatementInvalid, "Write query attempted while in readonly mode: #{sql}"
+            raise ActiveRecord::ReadOnlyError, "Write query attempted while in readonly mode: #{sql}"
           end
 
           materialize_transactions

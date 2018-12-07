@@ -265,7 +265,7 @@ module ActiveRecord
 
       def execute(sql, name = nil) #:nodoc:
         if preventing_writes? && write_query?(sql)
-          raise ActiveRecord::StatementInvalid, "Write query attempted while in readonly mode: #{sql}"
+          raise ActiveRecord::ReadOnlyError, "Write query attempted while in readonly mode: #{sql}"
         end
 
         materialize_transactions
