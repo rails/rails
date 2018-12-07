@@ -9,6 +9,13 @@ class MethodWrappersTest < ActiveSupport::TestCase
       def new_method; "abc" end
       alias_method :old_method, :new_method
 
+      def initialize
+        unless respond_to?(:deferred_method)
+          self.class.define_method :deferred_method do; "abc" end
+          self.class.define_method :another_deferred_method do; "abc" end
+        end
+      end
+
       protected
 
         def new_protected_method; "abc" end
@@ -89,5 +96,19 @@ class MethodWrappersTest < ActiveSupport::TestCase
     warning = /old_method is deprecated and will be removed from Rails \d.\d \(use new_method instead\)/
     assert_deprecated(warning) { assert_equal "abc", @klass.new.old_method_with_deprecation }
     assert_equal "abc", @klass.new.old_method_without_deprecation
+  end
+
+  def test_deprecated_method_defined_after_initialize
+    ActiveSupport::Deprecation.deprecate_methods(@klass, :deferred_method, :another_deferred_method)
+
+    warning = /deferred_method is deprecated and will be removed from Rails \d.\d/
+    assert_deprecated(warning) do
+      @klass.new.deferred_method
+    end
+
+    warning = /another_deferred_method is deprecated and will be removed from Rails \d.\d/
+    assert_deprecated(warning) do
+      @klass.new.another_deferred_method
+    end
   end
 end

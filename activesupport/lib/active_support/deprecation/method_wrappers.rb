@@ -54,26 +54,49 @@ module ActiveSupport
         method_names += options.keys
 
         method_names.each do |method_name|
-          aliased_method, punctuation = method_name.to_s.sub(/([?!=])$/, ""), $1
-          with_method = "#{aliased_method}_with_deprecation#{punctuation}"
-          without_method = "#{aliased_method}_without_deprecation#{punctuation}"
+          after_method_added(target_module, method_name) do |mname|
+            aliased_method, punctuation = mname.to_s.sub(/([?!=])$/, ""), $1
+            with_method = "#{aliased_method}_with_deprecation#{punctuation}"
+            without_method = "#{aliased_method}_without_deprecation#{punctuation}"
 
-          target_module.send(:define_method, with_method) do |*args, &block|
-            deprecator.deprecation_warning(method_name, options[method_name])
-            send(without_method, *args, &block)
-          end
+            target_module.send(:define_method, with_method) do |*args, &block|
+              deprecator.deprecation_warning(mname, options[mname])
+              send(without_method, *args, &block)
+            end
 
-          target_module.send(:alias_method, without_method, method_name)
-          target_module.send(:alias_method, method_name, with_method)
+            target_module.send(:alias_method, without_method, mname)
+            target_module.send(:alias_method, mname, with_method)
 
-          case
-          when target_module.protected_method_defined?(without_method)
-            target_module.send(:protected, method_name)
-          when target_module.private_method_defined?(without_method)
-            target_module.send(:private, method_name)
+            case
+            when target_module.protected_method_defined?(without_method)
+              target_module.send(:protected, mname)
+            when target_module.private_method_defined?(without_method)
+              target_module.send(:private, mname)
+            end
           end
         end
       end
+
+      private
+
+        def after_method_added(mod, method_name)
+          if mod.method_defined?(method_name) || mod.private_method_defined?(method_name)
+            yield method_name
+          else
+            unless mod.respond_to?(:_aliases_to_be_defined)
+              mod.singleton_class.attr_accessor :_aliases_to_be_defined
+              mod.singleton_class.send(:define_method, :method_added) do |added_method|
+                found = _aliases_to_be_defined.include?(added_method.to_s)
+                _aliases_to_be_defined.delete(added_method.to_s)
+                yield added_method if found
+              end
+            end
+
+            tbd = (mod._aliases_to_be_defined || [])
+            tbd.push(method_name.to_s)
+            mod._aliases_to_be_defined = tbd
+          end
+        end
     end
   end
 end
