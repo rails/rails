@@ -32,7 +32,7 @@ class Deprecatee
   deprecate :f=
 
   deprecate :g
-  def g ;end
+  def g; end
 
   module B
     C = 1
