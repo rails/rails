@@ -407,7 +407,7 @@ want to add this feature it will need to be turned on in an initializer.
 
 Rails 5 now supports per-form CSRF tokens to mitigate against code-injection attacks with forms
 created by JavaScript. With this option turned on, forms in your application will each have their
-own CSRF token that is specified to the action and method for that form.
+own CSRF token that is specific to the action and method for that form.
 
     config.action_controller.per_form_csrf_tokens = true
 
