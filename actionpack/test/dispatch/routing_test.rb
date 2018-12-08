@@ -4959,6 +4959,47 @@ class TestPartialDynamicPathSegments < ActionDispatch::IntegrationTest
     end
 end
 
+class TestOptionalScopesWithOrWithoutParams < ActionDispatch::IntegrationTest
+  Routes = ActionDispatch::Routing::RouteSet.new.tap do |app|
+    app.draw do
+      scope module: "test_optional_scopes_with_or_without_params" do
+        scope "(:locale)", locale: /en|es/ do
+          get "home", to: "home#index"
+          get "with_param/:foo", to: "home#with_param", as: "with_param"
+          get "without_param", to: "home#without_param"
+        end
+      end
+    end
+  end
+
+  class HomeController < ActionController::Base
+    include Routes.url_helpers
+
+    def index
+      render inline: "<%= with_param_path(foo: 'bar') %> | <%= without_param_path %>"
+    end
+
+    def with_param; end
+    def without_param; end
+  end
+
+  APP = build_app Routes
+
+  def app
+    APP
+  end
+
+  def test_stays_unscoped_with_or_without_params
+    get "/home"
+    assert_equal "/with_param/bar | /without_param", response.body
+  end
+
+  def test_preserves_scope_with_or_without_params
+    get "/es/home"
+    assert_equal "/es/with_param/bar | /es/without_param", response.body
+  end
+end
+
 class TestPathParameters < ActionDispatch::IntegrationTest
   Routes = ActionDispatch::Routing::RouteSet.new.tap do |app|
     app.draw do

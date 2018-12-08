@@ -70,17 +70,17 @@ module ActionDispatch
         ANCHOR_CHARACTERS_REGEX = %r{\A(\\A|\^)|(\\Z|\\z|\$)\Z}
         OPTIONAL_FORMAT_REGEX = %r{(?:\(\.:format\)+|\.:format|/)\Z}
 
-        attr_reader :requirements, :defaults
-        attr_reader :to, :default_controller, :default_action
-        attr_reader :required_defaults, :ast
+        attr_reader :requirements, :defaults, :to, :default_controller,
+                    :default_action, :required_defaults, :ast, :scope_options
 
         def self.build(scope, set, ast, controller, default_action, to, via, formatted, options_constraints, anchor, options)
           options = scope[:options].merge(options) if scope[:options]
 
           defaults = (scope[:defaults] || {}).dup
           scope_constraints = scope[:constraints] || {}
+          scope_options = scope[:options] || {}
 
-          new set, ast, defaults, controller, default_action, scope[:module], to, formatted, scope_constraints, scope[:blocks] || [], via, options_constraints, anchor, options
+          new set, ast, defaults, controller, default_action, scope[:module], to, formatted, scope_constraints, scope_options, scope[:blocks] || [], via, options_constraints, anchor, options
         end
 
         def self.check_via(via)
@@ -111,7 +111,7 @@ module ActionDispatch
           format != false && path !~ OPTIONAL_FORMAT_REGEX
         end
 
-        def initialize(set, ast, defaults, controller, default_action, modyoule, to, formatted, scope_constraints, blocks, via, options_constraints, anchor, options)
+        def initialize(set, ast, defaults, controller, default_action, modyoule, to, formatted, scope_constraints, scope_options, blocks, via, options_constraints, anchor, options)
           @defaults = defaults
           @set = set
 
@@ -122,6 +122,7 @@ module ActionDispatch
           @anchor             = anchor
           @via                = via
           @internal           = options.delete(:internal)
+          @scope_options      = scope_options
 
           path_params = ast.find_all(&:symbol?).map(&:to_sym)
 
@@ -161,7 +162,7 @@ module ActionDispatch
 
         def make_route(name, precedence)
           Journey::Route.new(name, application, path, conditions, required_defaults,
-                             defaults, request_method, precedence, @internal)
+                             defaults, request_method, precedence, scope_options, @internal)
         end
 
         def application
