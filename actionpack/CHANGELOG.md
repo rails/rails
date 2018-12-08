@@ -1,3 +1,14 @@
+*   Keep part when scope option has value
+
+    When a route was defined within an optional scope, if that route didn't
+    take parameters the scope was lost when using path helpers. This commit
+    ensures scope is kept both when the route takes parameters or when it
+    doesn't.
+
+    Fixes #33219
+
+    *Alberto Almagro*
+
 *   Change `ActionDispatch::Response#content_type` to return Content-Type header as it is.
 
     Previously, `ActionDispatch::Response#content_type` returned value does NOT
