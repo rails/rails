@@ -28,6 +28,7 @@ namespace :test do
 
   task "env:integration" do
     ENV["AJ_INTEGRATION_TESTS"] = "1"
+    ENV["SKIP_REQUIRE_WEBPACKER"] = "true"
   end
 
   ACTIVEJOB_ADAPTERS.each do |adapter|
