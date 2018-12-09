@@ -402,13 +402,19 @@ module ActiveRecord
 
       # Clear the new record state and id of a record.
       def clear_transaction_record_state
-        @_start_transaction_state[:level] = (@_start_transaction_state[:level] || 0) - 1
-        force_clear_transaction_record_state if @_start_transaction_state[:level] < 1
+        level = nil
+        @_start_transaction_state_mutex.synchronize do
+          @_start_transaction_state[:level] = (@_start_transaction_state[:level] || 0) - 1
+          level = @_start_transaction_state[:level]
+        end
+        force_clear_transaction_record_state if level < 1
       end
 
       # Force to clear the transaction record state.
       def force_clear_transaction_record_state
-        @_start_transaction_state.clear
+        @_start_transaction_state_mutex.synchronize do
+          @_start_transaction_state.clear
+        end
       end
 
       # Restore the new record state and id of a record that was previously saved by a call to save_record_state.
