@@ -1145,7 +1145,7 @@ You can also pass local variables into partials, making them even more powerful 
     <% end %>
     ```
 
-Although the same partial will be rendered into both views, Action View's submit helper will return "Create Zone" for the new action and "Update Zone" for the edit action.
+Although the same partial will be rendered into both views, Action View's submit helper will return "New zone" for the new action and "Editing zone" for the edit action.
 
 To pass a local variable to a partial in only specific cases use the `local_assigns`.
 
