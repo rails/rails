@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "concurrent/map"
+require "ostruct"
 
 class Object
   # An object is blank if it's false, empty, or a whitespace string.
@@ -128,6 +129,18 @@ class String
       rescue Encoding::CompatibilityError
         ENCODED_BLANKS[self.encoding].match?(self)
       end
+  end
+end
+
+class OpenStruct
+  # An open struct is blank if it has no keys:
+  #
+  #   OpenStruct.new.blank?                    # => true
+  #   OpenStruct.new({ key: 'value' }).blank?  # => false
+  #
+  # @return [true, false]
+  def blank?
+    each_pair.count == 0
   end
 end
 
