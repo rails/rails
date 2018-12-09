@@ -121,6 +121,12 @@ module ActionMailer
         end
     end
 
+    class DeliveryJob < ActionMailer::DeliveryJob # :nodoc:
+      def perform(mailer, mail_method, delivery_method, params, *args)
+        mailer.constantize.with(params).public_send(mail_method, *args).send(delivery_method)
+      end
+    end
+
     class MessageDelivery < ActionMailer::MessageDelivery # :nodoc:
       def initialize(mailer_class, action, params, *args)
         super(mailer_class, action, *args)
@@ -139,9 +145,17 @@ module ActionMailer
           if processed?
             super
           else
-            args = @mailer_class.name, @action.to_s, delivery_method.to_s, @params, *@args
-            job = @mailer_class.delivery_job
+            job  = @mailer_class.delivery_job
+            args = arguments_for(job, delivery_method)
             job.set(options).perform_later(*args)
+          end
+        end
+
+        def arguments_for(delivery_job, delivery_method)
+          if delivery_job <= MailDeliveryJob
+            [@mailer_class.name, @action.to_s, delivery_method.to_s, params: @params, args: @args]
+          else
+            [@mailer_class.name, @action.to_s, delivery_method.to_s, @params, *@args]
           end
         end
     end

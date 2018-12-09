@@ -1,3 +1,9 @@
+*   Add an `abort_on_failure` boolean option to the generator method that shell
+    out (`generate`, `rake`, `rails_command`) to abort the generator if the
+    command fails.
+
+    *David Rodríguez*
+
 *   Remove `app/assets` and `app/javascript` from `eager_load_paths` and `autoload_paths`.
 
     *Gannon McGibbon*

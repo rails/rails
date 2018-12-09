@@ -1,4 +1,4 @@
-*   Deliver parameterized mail with `ActionMailer::DeliveryJob` and remove `ActionMailer::Parameterized::DeliveryJob`.
+*   Add `MailDeliveryJob` for delivering both regular and parameterized mail. Deprecate using `DeliveryJob` and `Parameterized::DeliveryJob`.
 
     *Gannon McGibbon*
 

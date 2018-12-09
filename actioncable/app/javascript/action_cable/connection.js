@@ -117,11 +117,14 @@ Connection.reopenDelay = 500
 Connection.prototype.events = {
   message(event) {
     if (!this.isProtocolSupported()) { return }
-    const {identifier, message, type} = JSON.parse(event.data)
+    const {identifier, message, reason, reconnect, type} = JSON.parse(event.data)
     switch (type) {
       case message_types.welcome:
         this.monitor.recordConnect()
         return this.subscriptions.reload()
+      case message_types.disconnect:
+        logger.log(`Disconnecting. Reason: ${reason}`)
+        return this.close({allowReconnect: reconnect})
       case message_types.ping:
         return this.monitor.recordPing()
       case message_types.confirmation:

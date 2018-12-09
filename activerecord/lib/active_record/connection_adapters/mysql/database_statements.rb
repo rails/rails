@@ -29,7 +29,7 @@ module ActiveRecord
         # Executes the SQL statement in the context of this connection.
         def execute(sql, name = nil)
           if preventing_writes? && write_query?(sql)
-            raise ActiveRecord::StatementInvalid, "Write query attempted while in readonly mode: #{sql}"
+            raise ActiveRecord::ReadOnlyError, "Write query attempted while in readonly mode: #{sql}"
           end
 
           # make sure we carry over any changes to ActiveRecord::Base.default_timezone that have been

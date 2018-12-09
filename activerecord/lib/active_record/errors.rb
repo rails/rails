@@ -49,6 +49,10 @@ module ActiveRecord
   class ConnectionNotEstablished < ActiveRecordError
   end
 
+  # Raised when a write to the database is attempted on a read only connection.
+  class ReadOnlyError < ActiveRecordError
+  end
+
   # Raised when Active Record cannot find a record by given id or set of ids.
   class RecordNotFound < ActiveRecordError
     attr_reader :model, :primary_key, :id

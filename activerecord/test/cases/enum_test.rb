@@ -551,4 +551,13 @@ class EnumTest < ActiveRecord::TestCase
   test "data type of Enum type" do
     assert_equal :integer, Book.type_for_attribute("status").type
   end
+
+  test "scopes can be disabled" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+      enum status: [:proposed, :written], _scopes: false
+    end
+
+    assert_raises(NoMethodError) { klass.proposed }
+  end
 end

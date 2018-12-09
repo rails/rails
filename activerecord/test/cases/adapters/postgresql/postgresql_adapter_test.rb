@@ -378,7 +378,7 @@ module ActiveRecord
 
       def test_errors_when_an_insert_query_is_called_while_preventing_writes
         with_example_table do
-          assert_raises(ActiveRecord::StatementInvalid) do
+          assert_raises(ActiveRecord::ReadOnlyError) do
             @connection.while_preventing_writes do
               @connection.execute("INSERT INTO ex (data) VALUES ('138853948594')")
             end
@@ -390,7 +390,7 @@ module ActiveRecord
         with_example_table do
           @connection.execute("INSERT INTO ex (data) VALUES ('138853948594')")
 
-          assert_raises(ActiveRecord::StatementInvalid) do
+          assert_raises(ActiveRecord::ReadOnlyError) do
             @connection.while_preventing_writes do
               @connection.execute("UPDATE ex SET data = '9989' WHERE data = '138853948594'")
             end
@@ -402,7 +402,7 @@ module ActiveRecord
         with_example_table do
           @connection.execute("INSERT INTO ex (data) VALUES ('138853948594')")
 
-          assert_raises(ActiveRecord::StatementInvalid) do
+          assert_raises(ActiveRecord::ReadOnlyError) do
             @connection.while_preventing_writes do
               @connection.execute("DELETE FROM ex where data = '138853948594'")
             end

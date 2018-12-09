@@ -122,15 +122,20 @@ namespace :changelog do
     end
   end
 
-  task :release_summary do
-    (FRAMEWORKS + ["guides"]).each do |fw|
-      puts "## #{fw}"
+  task :release_summary, [:base_release] do |_, args|
+    release_regexp = args[:base_release] ? Regexp.escape(args[:base_release]) : /\d+\.\d+\.\d+/
+
+    FRAMEWORKS.each do |fw|
+      puts "## #{FRAMEWORK_NAMES[fw]}"
       fname    = File.join fw, "CHANGELOG.md"
       contents = File.readlines fname
       contents.shift
       changes = []
-      changes << contents.shift until contents.first =~ /^\*Rails \d+\.\d+\.\d+/
-      puts changes.reject { |change| change.strip.empty? }.join
+      until contents.first =~ /^## Rails #{release_regexp}.*$/
+        changes << contents.shift
+      end
+
+      puts changes.join
       puts
     end
   end
