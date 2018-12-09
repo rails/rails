@@ -3698,15 +3698,25 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
   end
 
-  def test_multiple_roots
-    draw do
-      namespace :foo do
+  def test_multiple_roots_raises_error
+    ex = assert_raises(ArgumentError) {
+      draw do
         root "pages#index", constraints: { host: "www.example.com" }
         root "admin/pages#index", constraints: { host: "admin.example.com" }
       end
+    }
+    assert_match(/Invalid route name, already in use: 'root'/, ex.message)
+  end
+
+  def test_multiple_named_roots
+    draw do
+      namespace :foo do
+        root "pages#index", constraints: { host: "www.example.com" }
+        root "admin/pages#index", constraints: { host: "admin.example.com" }, as: :admin_root
+      end
 
       root "pages#index", constraints: { host: "www.example.com" }
-      root "admin/pages#index", constraints: { host: "admin.example.com" }
+      root "admin/pages#index", constraints: { host: "admin.example.com" },  as: :admin_root
     end
 
     get "http://www.example.com/foo"

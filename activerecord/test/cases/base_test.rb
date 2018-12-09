@@ -1447,6 +1447,14 @@ class BasicsTest < ActiveRecord::TestCase
     assert_not_respond_to developer, :first_name=
   end
 
+  test "when ignored attribute is loaded, cast type should be preferred over DB type" do
+    developer = AttributedDeveloper.create
+    developer.update_column :name, "name"
+
+    loaded_developer = AttributedDeveloper.where(id: developer.id).select("*").first
+    assert_equal "Developer: name", loaded_developer.name
+  end
+
   test "ignored columns not included in SELECT" do
     query = Developer.all.to_sql.downcase
 
@@ -1479,5 +1487,41 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal ["staging", "production"], ActiveRecord::Base.protected_environments
   ensure
     ActiveRecord::Base.protected_environments = previous_protected_environments
+  end
+
+  test "creating a record raises if preventing writes" do
+    assert_raises ActiveRecord::ReadOnlyError do
+      ActiveRecord::Base.connection.while_preventing_writes do
+        Bird.create! name: "Bluejay"
+      end
+    end
+  end
+
+  test "updating a record raises if preventing writes" do
+    bird = Bird.create! name: "Bluejay"
+
+    assert_raises ActiveRecord::ReadOnlyError do
+      ActiveRecord::Base.connection.while_preventing_writes do
+        bird.update! name: "Robin"
+      end
+    end
+  end
+
+  test "deleting a record raises if preventing writes" do
+    bird = Bird.create! name: "Bluejay"
+
+    assert_raises ActiveRecord::ReadOnlyError do
+      ActiveRecord::Base.connection.while_preventing_writes do
+        bird.destroy!
+      end
+    end
+  end
+
+  test "selecting a record does not raise if preventing writes" do
+    bird = Bird.create! name: "Bluejay"
+
+    ActiveRecord::Base.connection.while_preventing_writes do
+      assert_equal bird, Bird.where(name: "Bluejay").first
+    end
   end
 end

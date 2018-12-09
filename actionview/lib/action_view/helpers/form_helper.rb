@@ -1130,6 +1130,9 @@ module ActionView
       #   text_field(:post, :title, class: "create_input")
       #   # => <input type="text" id="post_title" name="post[title]" value="#{@post.title}" class="create_input" />
       #
+      #   text_field(:post, :title,  maxlength: 30, class: "title_input")
+      #   # => <input type="text" id="post_title" name="post[title]" maxlength="30" size="30" value="#{@post.title}" class="title_input" />
+      #
       #   text_field(:session, :user, onchange: "if ($('#session_user').val() === 'admin') { alert('Your login cannot be admin!'); }")
       #   # => <input type="text" id="session_user" name="session[user]" value="#{@session.user}" onchange="if ($('#session_user').val() === 'admin') { alert('Your login cannot be admin!'); }"/>
       #

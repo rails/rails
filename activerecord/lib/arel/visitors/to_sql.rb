@@ -268,13 +268,11 @@ module Arel # :nodoc: all
         end
 
         def visit_Arel_Nodes_Union(o, collector)
-          collector << "( "
-          infix_value(o, collector, " UNION ") << " )"
+          infix_value_with_paren(o, collector, " UNION ")
         end
 
         def visit_Arel_Nodes_UnionAll(o, collector)
-          collector << "( "
-          infix_value(o, collector, " UNION ALL ") << " )"
+          infix_value_with_paren(o, collector, " UNION ALL ")
         end
 
         def visit_Arel_Nodes_Intersect(o, collector)
@@ -579,6 +577,10 @@ module Arel # :nodoc: all
         end
 
         def visit_Arel_Nodes_In(o, collector)
+          if Array === o.right && !o.right.empty?
+            o.right.keep_if { |value| boundable?(value) }
+          end
+
           if Array === o.right && o.right.empty?
             collector << "1=0"
           else
@@ -589,6 +591,10 @@ module Arel # :nodoc: all
         end
 
         def visit_Arel_Nodes_NotIn(o, collector)
+          if Array === o.right && !o.right.empty?
+            o.right.keep_if { |value| boundable?(value) }
+          end
+
           if Array === o.right && o.right.empty?
             collector << "1=1"
           else
@@ -632,6 +638,26 @@ module Arel # :nodoc: all
           else
             collector << " = "
             visit right, collector
+          end
+        end
+
+        def visit_Arel_Nodes_IsNotDistinctFrom(o, collector)
+          if o.right.nil?
+            collector = visit o.left, collector
+            collector << " IS NULL"
+          else
+            collector = is_distinct_from(o, collector)
+            collector << " = 0"
+          end
+        end
+
+        def visit_Arel_Nodes_IsDistinctFrom(o, collector)
+          if o.right.nil?
+            collector = visit o.left, collector
+            collector << " IS NOT NULL"
+          else
+            collector = is_distinct_from(o, collector)
+            collector << " = 1"
           end
         end
 
@@ -788,6 +814,10 @@ module Arel # :nodoc: all
           }
         end
 
+        def boundable?(value)
+          !value.respond_to?(:boundable?) || value.boundable?
+        end
+
         def has_join_sources?(o)
           o.relation.is_a?(Nodes::JoinSource) && !o.relation.right.empty?
         end
@@ -833,6 +863,23 @@ module Arel # :nodoc: all
           visit o.right, collector
         end
 
+        def infix_value_with_paren(o, collector, value, suppress_parens = false)
+          collector << "( " unless suppress_parens
+          collector = if o.left.class == o.class
+            infix_value_with_paren(o.left, collector, value, true)
+          else
+            visit o.left, collector
+          end
+          collector << value
+          collector = if o.right.class == o.class
+            infix_value_with_paren(o.right, collector, value, true)
+          else
+            visit o.right, collector
+          end
+          collector << " )" unless suppress_parens
+          collector
+        end
+
         def aggregate(name, o, collector)
           collector << "#{name}("
           if o.distinct
@@ -845,6 +892,19 @@ module Arel # :nodoc: all
           else
             collector
           end
+        end
+
+        def is_distinct_from(o, collector)
+          collector << "CASE WHEN "
+          collector = visit o.left, collector
+          collector << " = "
+          collector = visit o.right, collector
+          collector << " OR ("
+          collector = visit o.left, collector
+          collector << " IS NULL AND "
+          collector = visit o.right, collector
+          collector << " IS NULL)"
+          collector << " THEN 0 ELSE 1 END"
         end
     end
   end

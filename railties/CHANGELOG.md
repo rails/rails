@@ -1,3 +1,25 @@
+*   Add an `abort_on_failure` boolean option to the generator method that shell
+    out (`generate`, `rake`, `rails_command`) to abort the generator if the
+    command fails.
+
+    *David Rodríguez*
+
+*   Remove `app/assets` and `app/javascript` from `eager_load_paths` and `autoload_paths`.
+
+    *Gannon McGibbon*
+
+*   Add JSON support to rails properties route (`/rails/info/properties`).
+
+    Now, `Rails::Info` properties may be accessed in JSON format at `/rails/info/properties.json`.
+
+    *Yoshiyuki Hirano*
+
+*   Use Ids instead of memory addresses when displaying references in scaffold views.
+
+    Fixes #29200.
+
+    *Rasesh Patel*
+
 *   Adds support for multiple databases to `rails db:migrate:status`.
     Subtasks are also added to get the status of individual databases (eg. `rails db:migrate:status:animals`).
 
@@ -11,34 +33,18 @@
 
     *DHH*, *Lachlan Sylvester*
 
-*   Refactors `migrations_paths` command option in generators
-    to `database` (aliased as `db`). Now, the migrations paths
-    will be read from the specified database configuration in the
-    current environment.
+*   Add `database` (aliased as `db`) option to model generator to allow
+    setting the database. This is useful for applications that use
+    multiple databases and put migrations per database in their own directories.
 
     ```
-    bin/rails g model Chair brand:string --database=kingston
-          invoke  active_record
-          create    db/kingston_migrate/20180830151055_create_chairs.rb
-    ```
-
-    `--database` can be used with the migration, model, and scaffold generators.
-
-    *Gannon McGibbon*
-
-*   Adds an option to the model generator to allow setting the
-    migrations paths for that migration. This is useful for
-    applications that use multiple databases and put migrations
-    per database in their own directories.
-
-    ```
-    bin/rails g model Room capacity:integer --migrations-paths=db/kingston_migrate
+    bin/rails g model Room capacity:integer --database=kingston
           invoke  active_record
           create    db/kingston_migrate/20180830151055_create_rooms.rb
     ```
 
     Because rails scaffolding uses the model generator, you can
-    also specify migrations paths with the scaffold generator.
+    also specify a database with the scaffold generator.
 
     *Gannon McGibbon*
 
@@ -66,15 +72,15 @@
 
     *Yoshiyuki Kinjo*
 
-*   Add `--migrations_paths` option to migration generator.
+*   Add `database` (aliased as `db`) option to migration generator.
 
     If you're using multiple databases and have a folder for each database
     for migrations (ex db/migrate and db/new_db_migrate) you can now pass the
-    `--migrations_paths` option to the generator to make sure the the migration
+    `--database` option to the generator to make sure the the migration
     is inserted into the correct folder.
 
     ```
-    rails g migration CreateHouses --migrations_paths=db/kingston_migrate
+    rails g migration CreateHouses --database=kingston
       invoke  active_record
       create    db/kingston_migrate/20180830151055_create_houses.rb
     ```

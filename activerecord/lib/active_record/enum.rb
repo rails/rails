@@ -149,6 +149,7 @@ module ActiveRecord
       klass = self
       enum_prefix = definitions.delete(:_prefix)
       enum_suffix = definitions.delete(:_suffix)
+      enum_scopes = definitions.delete(:_scopes)
       definitions.each do |name, values|
         assert_valid_enum_definition_values(values)
         # statuses = { }
@@ -195,10 +196,13 @@ module ActiveRecord
             define_method("#{value_method_name}!") { update!(attr => value) }
 
             # scope :active, -> { where(status: 0) }
-            klass.send(:detect_enum_conflict!, name, value_method_name, true)
-            klass.scope value_method_name, -> { where(attr => value) }
+            if enum_scopes != false
+              klass.send(:detect_enum_conflict!, name, value_method_name, true)
+              klass.scope value_method_name, -> { where(attr => value) }
+            end
           end
         end
+        enum_values.freeze
       end
     end
 
@@ -217,6 +221,10 @@ module ActiveRecord
             Enum values #{values} must be either a hash, an array of symbols, or an array of strings.
           MSG
           raise ArgumentError, error_message
+        end
+
+        if values.is_a?(Hash) && values.keys.any?(&:blank?) || values.is_a?(Array) && values.any?(&:blank?)
+          raise ArgumentError, "Enum label name must not be blank."
         end
       end
 

@@ -34,7 +34,7 @@ class EagerLoadingTooManyIdsTest < ActiveRecord::TestCase
   fixtures :citations
 
   def test_preloading_too_many_ids
-    assert_equal Citation.count, Citation.preload(:citations).to_a.size
+    assert_equal Citation.count, Citation.preload(:reference_of).to_a.size
   end
 
   def test_eager_loading_too_may_ids
@@ -1616,32 +1616,6 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_raises(ActiveRecord::AssociationNotFoundError) do
       Sponsor.where(sponsorable_id: 1).preload(sponsorable: [{ post: :fist_comment }, :membership]).to_a
     end
-  end
-
-  # Associations::Preloader#preloaders_on works with hash-like objects
-  test "preloading works with an object that responds to :to_hash" do
-    CustomHash = Class.new(Hash)
-
-    assert_nothing_raised do
-      Post.preload(CustomHash.new(comments: [{ author: :essays }])).first
-    end
-  end
-
-  # Associations::Preloader#preloaders_on works with string-like objects
-  test "preloading works with an object that responds to :to_str" do
-    CustomString = Class.new(String)
-
-    assert_nothing_raised do
-      Post.preload(CustomString.new("comments")).first
-    end
-  end
-
-  # Associations::Preloader#preloaders_on does not work with ranges
-  test "preloading fails when Range is passed" do
-    exception = assert_raises(ArgumentError) do
-      Post.preload(1..10).first
-    end
-    assert_equal("1..10 was not recognized for preload", exception.message)
   end
 
   private

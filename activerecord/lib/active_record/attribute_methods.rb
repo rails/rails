@@ -261,21 +261,14 @@ module ActiveRecord
     def respond_to?(name, include_private = false)
       return false unless super
 
-      case name
-      when :to_partial_path
-        name = "to_partial_path"
-      when :to_model
-        name = "to_model"
-      else
-        name = name.to_s
-      end
-
       # If the result is true then check for the select case.
       # For queries selecting a subset of columns, return false for unselected columns.
       # We check defined?(@attributes) not to issue warnings if called on objects that
       # have been allocated but not yet initialized.
-      if defined?(@attributes) && self.class.column_names.include?(name)
-        return has_attribute?(name)
+      if defined?(@attributes)
+        if name = self.class.symbol_column_to_string(name.to_sym)
+          return has_attribute?(name)
+        end
       end
 
       true
@@ -335,15 +328,8 @@ module ActiveRecord
     #   person.attribute_for_inspect(:tag_ids)
     #   # => "[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]"
     def attribute_for_inspect(attr_name)
-      value = read_attribute(attr_name)
-
-      if value.is_a?(String) && value.length > 50
-        "#{value[0, 50]}...".inspect
-      elsif value.is_a?(Date) || value.is_a?(Time)
-        %("#{value.to_s(:db)}")
-      else
-        value.inspect
-      end
+      value = _read_attribute(attr_name)
+      format_for_inspect(value)
     end
 
     # Returns +true+ if the specified +attribute+ has been set by the user or by a
@@ -460,6 +446,16 @@ module ActiveRecord
         attribute_names &= self.class.column_names
         attribute_names.delete_if do |name|
           pk_attribute?(name) && id.nil?
+        end
+      end
+
+      def format_for_inspect(value)
+        if value.is_a?(String) && value.length > 50
+          "#{value[0, 50]}...".inspect
+        elsif value.is_a?(Date) || value.is_a?(Time)
+          %("#{value.to_s(:db)}")
+        else
+          value.inspect
         end
       end
 

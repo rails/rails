@@ -209,7 +209,7 @@ module ActiveRecord
         # new instance of the class. Accepts only keys as strings.
         def instantiate_instance_of(klass, attributes, column_types = {}, &block)
           attributes = klass.attributes_builder.build_from_database(attributes, column_types)
-          klass.allocate.init_from_db(attributes, &block)
+          klass.allocate.init_with_attributes(attributes, &block)
         end
 
         # Called by +instantiate+ to decide which class to use for a new
@@ -479,14 +479,15 @@ module ActiveRecord
         verify_readonly_attribute(key.to_s)
       end
 
+      id_in_database = self.id_in_database
+      attributes.each do |k, v|
+        write_attribute_without_type_cast(k, v)
+      end
+
       affected_rows = self.class._update_record(
         attributes,
         self.class.primary_key => id_in_database
       )
-
-      attributes.each do |k, v|
-        write_attribute_without_type_cast(k, v)
-      end
 
       affected_rows == 1
     end

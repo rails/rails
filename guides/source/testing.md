@@ -474,12 +474,11 @@ takes your entire test suite to run.
 
 The default parallelization method is to fork processes using Ruby's DRb system. The processes
 are forked based on the number of workers provided. The default is 2, but can be changed by the
-number passed to the parallelize method. Active Record automatically handles creating and
-migrating a new database for each worker to use.
+number passed to the parallelize method.
 
 To enable parallelization add the following to your `test_helper.rb`:
 
-```
+```ruby
 class ActiveSupport::TestCase
   parallelize(workers: 2)
 end
@@ -489,32 +488,32 @@ The number of workers passed is the number of times the process will be forked. 
 parallelize your local test suite differently from your CI, so an environment variable is provided
 to be able to easily change the number of workers a test run should use:
 
-```
+```bash
 PARALLEL_WORKERS=15 rails test
 ```
 
-When parallelizing tests, Active Record automatically handles creating and migrating a database for each
+When parallelizing tests, Active Record automatically handles creating a database and loading the schema into the database for each
 process. The databases will be suffixed with the number corresponding to the worker. For example, if you
 have 2 workers the tests will create `test-database-0` and `test-database-1` respectively.
 
 If the number of workers passed is 1 or fewer the processes will not be forked and the tests will not
 be parallelized and the tests will use the original `test-database` database.
 
-Two hooks are provided, one runs when the process is forked, and one runs before the processes are closed.
+Two hooks are provided, one runs when the process is forked, and one runs before the forked process is closed.
 These can be useful if your app uses multiple databases or perform other tasks that depend on the number of
 workers.
 
 The `parallelize_setup` method is called right after the processes are forked. The `parallelize_teardown` method
 is called right before the processes are closed.
 
-```
+```ruby
 class ActiveSupport::TestCase
   parallelize_setup do |worker|
     # setup databases
   end
 
   parallelize_teardown do |worker|
-    # cleanup database
+    # cleanup databases
   end
 
   parallelize(workers: 2)
@@ -530,7 +529,7 @@ parallelizer is backed by Minitest's `Parallel::Executor`.
 
 To change the parallelization method to use threads over forks put the following in your `test_helper.rb`
 
-```
+```ruby
 class ActiveSupport::TestCase
   parallelize(workers: 2, with: :threads)
 end
@@ -542,7 +541,7 @@ The number of workers passed to `parallelize` determines the number of threads t
 want to parallelize your local test suite differently from your CI, so an environment variable is provided
 to be able to easily change the number of workers a test run should use:
 
-```
+```bash
 PARALLEL_WORKERS=15 rails test
 ```
 
@@ -1398,6 +1397,56 @@ class ProfileControllerTest < ActionDispatch::IntegrationTest
 end
 ```
 
+#### Using Separate Files
+
+If you find your helpers are cluttering `test_helper.rb`, you can extract them into separate files. One good place to store them is `lib/test`.
+
+```ruby
+# lib/test/multiple_assertions.rb
+module MultipleAssertions
+  def assert_multiple_of_fourty_two(number)
+    assert (number % 42 == 0), 'expected #{number} to be a multiple of 42'
+  end
+end
+```
+
+These helpers can then be explicitly required as needed and included as needed
+
+```ruby
+require 'test_helper'
+require 'test/multiple_assertions'
+
+class NumberTest < ActiveSupport::TestCase
+  include MultipleAssertions
+
+  test '420 is a multiple of fourty two' do
+    assert_multiple_of_fourty_two 420
+  end
+end
+```
+
+or they can continue to be included directly into the relevant parent classes
+
+```ruby
+# test/test_helper.rb
+require 'test/sign_in_helper'
+
+class ActionDispatch::IntegrationTest
+  include SignInHelper
+end
+```
+
+#### Eagerly Requiring Helpers
+
+You may find it convenient to eagerly require helpers in `test_helper.rb` so your test files have implicit access to them. This can be accomplished using globbing, as follows
+
+```ruby
+# test/test_helper.rb
+Dir[Rails.root.join('lib', 'test', '**', '*.rb')].each { |file| require file }
+```
+
+This has the downside of increasing the boot-up time, as opposed to manually requiring only the necessary files in your individual tests.
+
 Testing Routes
 --------------
 
@@ -1562,7 +1611,7 @@ class UserMailerTest < ActionMailer::TestCase
 end
 ```
 
-In the test we send the email and store the returned object in the `email`
+In the test we create the email and store the returned object in the `email`
 variable. We then ensure that it was sent (the first assert), then, in the
 second batch of assertions, we ensure that the email does indeed contain what we
 expect. The helper `read_fixture` is used to read in the content from this file.
@@ -1593,26 +1642,42 @@ NOTE: The `ActionMailer::Base.deliveries` array is only reset automatically in
 If you want to have a clean slate outside these test cases, you can reset it
 manually with: `ActionMailer::Base.deliveries.clear`
 
-### Functional Testing
+### Functional and System Testing
 
-Functional testing for mailers involves more than just checking that the email body, recipients, and so forth are correct. In functional mail tests you call the mail deliver methods and check that the appropriate emails have been appended to the delivery list. It is fairly safe to assume that the deliver methods themselves do their job. You are probably more interested in whether your own business logic is sending emails when you expect them to go out. For example, you can check that the invite friend operation is sending an email appropriately:
+Unit testing allows us to test the attributes of the email while functional and system testing allows us to test whether user interactions appropriately trigger the email to be delivered. For example, you can check that the invite friend operation is sending an email appropriately:
 
 ```ruby
+# Integration Test
 require 'test_helper'
 
 class UsersControllerTest < ActionDispatch::IntegrationTest
   test "invite friend" do
-    assert_difference 'ActionMailer::Base.deliveries.size', +1 do
+    # Asserts the difference in the ActionMailer::Base.deliveries
+    assert_emails 1 do
       post invite_friend_url, params: { email: 'friend@example.com' }
     end
-    invite_email = ActionMailer::Base.deliveries.last
-
-    assert_equal "You have been invited by me@example.com", invite_email.subject
-    assert_equal 'friend@example.com', invite_email.to[0]
-    assert_match(/Hi friend@example\.com/, invite_email.body.to_s)
   end
 end
 ```
+
+```ruby
+# System Test
+require 'test_helper'
+
+class UsersTest < ActionDispatch::SystemTestCase
+  driven_by :selenium, using: :headless_chrome
+
+  test "inviting a friend" do
+    visit invite_users_url
+    fill_in 'Email', with: 'friend@example.com'
+    assert_emails 1 do
+      click_on 'Invite'
+    end
+  end
+end
+```
+
+NOTE: The `assert_emails` method is not tied to a particular deliver method and will work with emails delivered with either the `deliver_now` or `deliver_later` method. If we explicitly want to assert that the email has been enqueued we can use the `assert_enqueued_emails` method. More information can be found in the  [documentation here](https://api.rubyonrails.org/classes/ActionMailer/TestHelper.html).
 
 Testing Jobs
 ------------

@@ -26,7 +26,7 @@ module ActiveJob
       end
     end
 
-    # Performs the job immediately. The job is not sent to the queueing adapter
+    # Performs the job immediately. The job is not sent to the queuing adapter
     # but directly executed by blocking the execution of others until it's finished.
     #
     #   MyJob.new(*args).perform_now

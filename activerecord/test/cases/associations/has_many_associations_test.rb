@@ -264,7 +264,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     car = Car.create(name: "honda")
     car.funky_bulbs.create!
     assert_equal 1, car.funky_bulbs.count
-    assert_nothing_raised { car.reload.funky_bulbs.delete_all }
+    assert_equal 1, car.reload.funky_bulbs.delete_all
     assert_equal 0, car.funky_bulbs.count, "bulbs should have been deleted using :delete_all strategy"
   end
 
@@ -292,6 +292,14 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     author.posts.to_a
     loaded_sql = capture_sql { author.posts.delete_all }
     assert_equal(expected_sql, loaded_sql)
+  end
+
+  def test_delete_all_on_association_clears_scope
+    author = Author.create!(name: "Gannon")
+    posts = author.posts
+    posts.create!(title: "test", body: "body")
+    posts.delete_all
+    assert_nil posts.first
   end
 
   def test_building_the_associated_object_with_implicit_sti_base_class
@@ -1405,7 +1413,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 3, clients.count
 
     assert_difference "Client.count", -(clients.count) do
-      companies(:first_firm).dependent_clients_of_firm.delete_all
+      assert_equal clients.count, companies(:first_firm).dependent_clients_of_firm.delete_all
     end
   end
 
@@ -1502,8 +1510,18 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_delete_all_with_option_delete_all
     firm = companies(:first_firm)
     client_id = firm.dependent_clients_of_firm.first.id
-    firm.dependent_clients_of_firm.delete_all(:delete_all)
+    count = firm.dependent_clients_of_firm.count
+    assert_equal count, firm.dependent_clients_of_firm.delete_all(:delete_all)
     assert_nil Client.find_by_id(client_id)
+  end
+
+  def test_delete_all_with_option_nullify
+    firm = companies(:first_firm)
+    client_id = firm.dependent_clients_of_firm.first.id
+    count = firm.dependent_clients_of_firm.count
+    assert_equal firm, Client.find(client_id).firm
+    assert_equal count, firm.dependent_clients_of_firm.delete_all(:nullify)
+    assert_nil Client.find(client_id).firm
   end
 
   def test_delete_all_accepts_limited_parameters
@@ -1708,6 +1726,30 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert destroyed.all?(&:frozen?), "destroyed clients should be frozen"
     assert companies(:first_firm).clients_of_firm.empty?, "37signals has no clients after destroy all"
     assert companies(:first_firm).clients_of_firm.reload.empty?, "37signals has no clients after destroy all and refresh"
+  end
+
+  def test_destroy_all_on_association_clears_scope
+    author = Author.create!(name: "Gannon")
+    posts = author.posts
+    posts.create!(title: "test", body: "body")
+    posts.destroy_all
+    assert_nil posts.first
+  end
+
+  def test_destroy_on_association_clears_scope
+    author = Author.create!(name: "Gannon")
+    posts = author.posts
+    post = posts.create!(title: "test", body: "body")
+    posts.destroy(post)
+    assert_nil posts.first
+  end
+
+  def test_delete_on_association_clears_scope
+    author = Author.create!(name: "Gannon")
+    posts = author.posts
+    post = posts.create!(title: "test", body: "body")
+    posts.delete(post)
+    assert_nil posts.first
   end
 
   def test_dependence
@@ -2002,8 +2044,8 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_many_through_respects_hash_conditions
-    assert_equal authors(:david).hello_posts, authors(:david).hello_posts_with_hash_conditions
-    assert_equal authors(:david).hello_post_comments, authors(:david).hello_post_comments_with_hash_conditions
+    assert_equal authors(:david).hello_posts.sort_by(&:id), authors(:david).hello_posts_with_hash_conditions.sort_by(&:id)
+    assert_equal authors(:david).hello_post_comments.sort_by(&:id), authors(:david).hello_post_comments_with_hash_conditions.sort_by(&:id)
   end
 
   def test_include_uses_array_include_after_loaded

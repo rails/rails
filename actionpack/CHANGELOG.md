@@ -1,3 +1,58 @@
+*   Raise an error on root route naming conflicts.
+
+    Raises an ArgumentError when multiple root routes are defined in the
+    same context instead of assigning nil names to subsequent roots.
+
+    *Gannon McGibbon*
+
+*   Allow rescue from parameter parse errors:
+
+    ```
+    rescue_from ActionDispatch::Http::Parameters::ParseError do
+      head :unauthorized
+    end
+    ```
+
+    *Gannon McGibbon*, *Josh Cheek*
+
+*   Reset Capybara sessions if failed system test screenshot raising an exception.
+
+    Reset Capybara sessions if `take_failed_screenshot` raise exception
+    in system test `after_teardown`.
+
+    *Maxim Perepelitsa*
+
+*   Use request object for context if there's no controller
+
+    There is no controller instance when using a redirect route or a
+    mounted rack application so pass the request object as the context
+    when resolving dynamic CSP sources in this scenario.
+
+    Fixes #34200.
+
+    *Andrew White*
+
+*   Apply mapping to symbols returned from dynamic CSP sources
+
+    Previously if a dynamic source returned a symbol such as :self it
+    would be converted to a string implicity, e.g:
+
+        policy.default_src -> { :self }
+
+    would generate the header:
+
+        Content-Security-Policy: default-src self
+
+    and now it generates:
+
+        Content-Security-Policy: default-src 'self'
+
+    *Andrew White*
+
+*   Add `ActionController::Parameters#each_value`.
+
+    *Lukáš Zapletal*
+
 *   Deprecate `ActionDispatch::Http::ParameterFilter` in favor of `ActiveSupport::ParameterFilter`.
 
     *Yoshiyuki Kinjo*

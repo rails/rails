@@ -127,6 +127,10 @@ module Rails
           if respond_to?(:action_dispatch)
             action_dispatch.use_cookies_with_metadata = true
           end
+
+          if respond_to?(:active_job)
+            active_job.return_false_on_aborted_enqueue = true
+          end
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end
@@ -202,7 +206,7 @@ module Rails
               "Please note that YAML must be consistently indented using spaces. Tabs are not allowed. " \
               "Error: #{e.message}"
       rescue => e
-        raise e, "Cannot load `Rails.application.database_configuration`:\n#{e.message}", e.backtrace
+        raise e, "Cannot load database configuration:\n#{e.message}", e.backtrace
       end
 
       def colorize_logging

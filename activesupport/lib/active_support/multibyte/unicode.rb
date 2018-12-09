@@ -34,6 +34,11 @@ module ActiveSupport
       #   Unicode.unpack_graphemes('क्षि') # => [[2325, 2381], [2359], [2367]]
       #   Unicode.unpack_graphemes('Café') # => [[67], [97], [102], [233]]
       def unpack_graphemes(string)
+        ActiveSupport::Deprecation.warn(<<-MSG.squish)
+          ActiveSupport::Multibyte::Unicode#unpack_graphemes is deprecated and will be
+          removed from Rails 6.1. Use string.scan(/\X/).map(&:codepoints) instead.
+        MSG
+
         string.scan(/\X/).map(&:codepoints)
       end
 
@@ -41,6 +46,11 @@ module ActiveSupport
       #
       #   Unicode.pack_graphemes(Unicode.unpack_graphemes('क्षि')) # => 'क्षि'
       def pack_graphemes(unpacked)
+        ActiveSupport::Deprecation.warn(<<-MSG.squish)
+          ActiveSupport::Multibyte::Unicode#pack_graphemes is deprecated and will be
+          removed from Rails 6.1. Use array.flatten.pack("U*") instead.
+        MSG
+
         unpacked.flatten.pack("U*")
       end
 

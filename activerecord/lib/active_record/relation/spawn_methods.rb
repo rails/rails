@@ -8,7 +8,7 @@ module ActiveRecord
   module SpawnMethods
     # This is overridden by Associations::CollectionProxy
     def spawn #:nodoc:
-      clone
+      @delegate_to_klass ? klass.all : clone
     end
 
     # Merges in the conditions from <tt>other</tt>, if <tt>other</tt> is an ActiveRecord::Relation.

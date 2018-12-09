@@ -1,7 +1,8 @@
 # frozen_string_literal: true
 
 require "drb"
-require "drb/unix"
+require "drb/unix" unless Gem.win_platform?
+require "active_support/core_ext/module/attribute_accessors"
 
 module ActiveSupport
   module Testing
@@ -14,12 +15,15 @@ module ActiveSupport
         end
 
         def record(reporter, result)
+          raise DRb::DRbConnError if result.is_a?(DRb::DRbUnknown)
+
           reporter.synchronize do
             reporter.record(result)
           end
         end
 
         def <<(o)
+          o[2] = DRbObject.new(o[2]) if o
           @queue << o
         end
 
@@ -78,7 +82,14 @@ module ActiveSupport
                 reporter = job[2]
                 result   = Minitest.run_one_method(klass, method)
 
-                queue.record(reporter, result)
+                begin
+                  queue.record(reporter, result)
+                rescue DRb::DRbConnError
+                  result.failures.each do |failure|
+                    failure.exception = DRb::DRbRemoteError.new(failure.exception)
+                  end
+                  queue.record(reporter, result)
+                end
               end
             ensure
               run_cleanup(worker)

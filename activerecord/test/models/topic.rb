@@ -138,6 +138,10 @@ class BlankTopic < Topic
   end
 end
 
+class TitlePrimaryKeyTopic < Topic
+  self.primary_key = :title
+end
+
 module Web
   class Topic < ActiveRecord::Base
     has_many :replies, dependent: :destroy, foreign_key: "parent_id", class_name: "Web::Reply"

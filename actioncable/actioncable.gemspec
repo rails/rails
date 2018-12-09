@@ -17,13 +17,16 @@ Gem::Specification.new do |s|
   s.email    = ["pratiknaik@gmail.com", "david@loudthinking.com"]
   s.homepage = "http://rubyonrails.org"
 
-  s.files        = Dir["CHANGELOG.md", "MIT-LICENSE", "README.md", "lib/**/*"]
+  s.files        = Dir["CHANGELOG.md", "MIT-LICENSE", "README.md", "lib/**/*", "app/assets/javascripts/action_cable.js"]
   s.require_path = "lib"
 
   s.metadata = {
     "source_code_uri" => "https://github.com/rails/rails/tree/v#{version}/actioncable",
     "changelog_uri"   => "https://github.com/rails/rails/blob/v#{version}/actioncable/CHANGELOG.md"
   }
+
+  # NOTE: Please read our dependency guidelines before updating versions:
+  # https://edgeguides.rubyonrails.org/security.html#dependency-management-and-cves
 
   s.add_dependency "actionpack", version
 

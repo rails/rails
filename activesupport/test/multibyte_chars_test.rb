@@ -73,9 +73,15 @@ class MultibyteCharsTest < ActiveSupport::TestCase
   end
 
   def test_consumes_utf8_strings
-    assert @proxy_class.consumes?(UNICODE_STRING)
-    assert @proxy_class.consumes?(ASCII_STRING)
-    assert_not @proxy_class.consumes?(BYTE_STRING)
+    ActiveSupport::Deprecation.silence do
+      assert @proxy_class.consumes?(UNICODE_STRING)
+      assert @proxy_class.consumes?(ASCII_STRING)
+      assert_not @proxy_class.consumes?(BYTE_STRING)
+    end
+  end
+
+  def test_consumes_is_deprecated
+    assert_deprecated { @proxy_class.consumes?(UNICODE_STRING) }
   end
 
   def test_concatenation_should_return_a_proxy_class_instance
@@ -766,6 +772,16 @@ class MultibyteCharsExtrasTest < ActiveSupport::TestCase
     assert_deprecated { ActiveSupport::Multibyte::Unicode.swapcase("") }
   end
 
+  def test_normalize_non_unicode_string
+    # Fullwidth Latin Capital Letter A in Windows 31J
+    str = "\u{ff21}".encode(Encoding::Windows_31J)
+    assert_raise Encoding::CompatibilityError do
+      ActiveSupport::Deprecation.silence do
+        ActiveSupport::Multibyte::Unicode.normalize(str)
+      end
+    end
+  end
+
   private
 
     def string_from_classes(classes)
@@ -778,22 +794,4 @@ class MultibyteCharsExtrasTest < ActiveSupport::TestCase
         character_from_class[k.intern]
       end.pack("U*")
     end
-end
-
-class MultibyteInternalsTest < ActiveSupport::TestCase
-  include MultibyteTestHelpers
-
-  test "Chars translates a character offset to a byte offset" do
-    example = chars("Puisque c'était son erreur, il m'a aidé")
-    [
-      [0, 0],
-      [3, 3],
-      [12, 11],
-      [14, 13],
-      [41, 39]
-    ].each do |byte_offset, character_offset|
-      assert_equal character_offset, example.send(:translate_offset, byte_offset),
-        "Expected byte offset #{byte_offset} to translate to #{character_offset}"
-    end
-  end
 end

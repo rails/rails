@@ -29,7 +29,7 @@ module ActiveRecord
     # configs for all environments.
     # <tt>spec_name:</tt> The specification name (ie primary, animals, etc.). Defaults
     # to +nil+.
-    # <tt>include_replicas:</tt> Determines whether to include replicas in the
+    # <tt>include_replicas:</tt> Determines whether to include replicas in
     # the returned list. Most of the time we're only iterating over the write
     # connection (i.e. migrations don't need to run for the write and read connection).
     # Defaults to +false+.

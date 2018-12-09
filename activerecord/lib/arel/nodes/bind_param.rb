@@ -23,6 +23,10 @@ module Arel # :nodoc: all
       def nil?
         value.nil?
       end
+
+      def boundable?
+        !value.respond_to?(:boundable?) || value.boundable?
+      end
     end
   end
 end

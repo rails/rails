@@ -1663,6 +1663,14 @@ module ApplicationTests
       assert_kind_of Hash, Rails.application.config.database_configuration
     end
 
+    test "autoload paths do not include asset paths" do
+      app "development"
+      ActiveSupport::Dependencies.autoload_paths.each do |path|
+        assert_not_operator path, :ends_with?, "app/assets"
+        assert_not_operator path, :ends_with?, "app/javascript"
+      end
+    end
+
     test "raises with proper error message if no database configuration found" do
       FileUtils.rm("#{app_path}/config/database.yml")
       err = assert_raises RuntimeError do
@@ -1728,21 +1736,6 @@ module ApplicationTests
       assert_equal true, Rails.application.config.action_mailer.show_previews
     end
 
-    test "config_for loads custom configuration from yaml files" do
-      app_file "config/custom.yml", <<-RUBY
-      development:
-        foo: 'bar'
-      RUBY
-
-      add_to_config <<-RUBY
-        config.my_custom_config = config_for('custom')
-      RUBY
-
-      app "development"
-
-      assert_equal "bar", Rails.application.config.my_custom_config["foo"]
-    end
-
     test "config_for loads custom configuration from yaml accessible as symbol" do
       app_file "config/custom.yml", <<-RUBY
       development:
@@ -1756,21 +1749,6 @@ module ApplicationTests
       app "development"
 
       assert_equal "bar", Rails.application.config.my_custom_config[:foo]
-    end
-
-    test "config_for loads custom configuration from yaml accessible as method" do
-      app_file "config/custom.yml", <<-RUBY
-      development:
-        foo: 'bar'
-      RUBY
-
-      add_to_config <<-RUBY
-        config.my_custom_config = config_for('custom')
-      RUBY
-
-      app "development"
-
-      assert_equal "bar", Rails.application.config.my_custom_config.foo
     end
 
     test "config_for loads nested custom configuration from yaml as symbol keys" do
@@ -1787,7 +1765,31 @@ module ApplicationTests
 
       app "development"
 
-      assert_equal 1, Rails.application.config.my_custom_config.foo[:bar][:baz]
+      assert_equal 1, Rails.application.config.my_custom_config[:foo][:bar][:baz]
+    end
+
+    test "config_for makes all hash methods available" do
+      app_file "config/custom.yml", <<-RUBY
+      development:
+        foo: 0
+        bar:
+          baz: 1
+      RUBY
+
+      add_to_config <<-RUBY
+        config.my_custom_config = config_for('custom')
+      RUBY
+
+      app "development"
+
+      actual = Rails.application.config.my_custom_config
+
+      assert_equal actual, foo: 0, bar: { baz: 1 }
+      assert_equal actual.keys, [ :foo, :bar ]
+      assert_equal actual.values, [ 0, baz: 1]
+      assert_equal actual.to_h, foo: 0, bar: { baz: 1 }
+      assert_equal actual[:foo], 0
+      assert_equal actual[:bar], baz: 1
     end
 
     test "config_for uses the Pathname object if it is provided" do
@@ -1802,7 +1804,7 @@ module ApplicationTests
 
       app "development"
 
-      assert_equal "custom key", Rails.application.config.my_custom_config["key"]
+      assert_equal "custom key", Rails.application.config.my_custom_config[:key]
     end
 
     test "config_for raises an exception if the file does not exist" do
@@ -1830,6 +1832,40 @@ module ApplicationTests
       app "development"
 
       assert_equal({}, Rails.application.config.my_custom_config)
+    end
+
+    test "config_for implements shared configuration as secrets case found" do
+      app_file "config/custom.yml", <<-RUBY
+      shared:
+        foo: :bar
+      test:
+        foo: :baz
+      RUBY
+
+      add_to_config <<-RUBY
+        config.my_custom_config = config_for('custom')
+      RUBY
+
+      app "test"
+
+      assert_equal(:baz, Rails.application.config.my_custom_config[:foo])
+    end
+
+    test "config_for implements shared configuration as secrets case not found" do
+      app_file "config/custom.yml", <<-RUBY
+      shared:
+        foo: :bar
+      test:
+        foo: :baz
+      RUBY
+
+      add_to_config <<-RUBY
+        config.my_custom_config = config_for('custom')
+      RUBY
+
+      app "development"
+
+      assert_equal(:bar, Rails.application.config.my_custom_config[:foo])
     end
 
     test "config_for with empty file returns an empty hash" do
@@ -1901,7 +1937,7 @@ module ApplicationTests
 
       app "development"
 
-      assert_equal "custom key", Rails.application.config.my_custom_config["key"]
+      assert_equal "custom key", Rails.application.config.my_custom_config[:key]
     end
 
     test "config_for with syntax error show a more descriptive exception" do
@@ -1934,7 +1970,7 @@ module ApplicationTests
       RUBY
       require "#{app_path}/config/environment"
 
-      assert_equal "unicorn", Rails.application.config.my_custom_config["key"]
+      assert_equal "unicorn", Rails.application.config.my_custom_config[:key]
     end
 
     test "api_only is false by default" do
@@ -2103,13 +2139,40 @@ module ApplicationTests
       assert_equal false, ActionView::Template.finalize_compiled_template_methods
     end
 
+    test "ActiveJob::Base.return_false_on_aborted_enqueue is true by default" do
+      app "development"
+
+      assert_equal true, ActiveJob::Base.return_false_on_aborted_enqueue
+    end
+
+    test "ActiveJob::Base.return_false_on_aborted_enqueue is false in the 5.x defaults" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "5.2"'
+
+      app "development"
+
+      assert_equal false, ActiveJob::Base.return_false_on_aborted_enqueue
+    end
+
+    test "ActiveJob::Base.return_false_on_aborted_enqueue can be configured in the new framework defaults" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app_file "config/initializers/new_framework_defaults_6_0.rb", <<-RUBY
+        Rails.application.config.active_job.return_false_on_aborted_enqueue = true
+      RUBY
+
+      app "development"
+
+      assert_equal true, ActiveJob::Base.return_false_on_aborted_enqueue
+    end
+
     test "ActiveRecord::Base.filter_attributes should equal to filter_parameters" do
       app_file "config/initializers/filter_parameters_logging.rb", <<-RUBY
         Rails.application.config.filter_parameters += [ :password, :credit_card_number ]
       RUBY
       app "development"
       assert_equal [ :password, :credit_card_number ], Rails.application.config.filter_parameters
-      assert_equal [ "password", "credit_card_number" ].to_set, ActiveRecord::Base.filter_attributes
+      assert_equal [ :password, :credit_card_number ], ActiveRecord::Base.filter_attributes
     end
 
     test "ActiveStorage.routes_prefix can be configured via config.active_storage.routes_prefix" do

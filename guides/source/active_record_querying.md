@@ -1267,7 +1267,7 @@ This is because it is ambiguous whether they should appear on the parent record,
 Scopes
 ------
 
-Scoping allows you to specify commonly-used queries which can be referenced as method calls on the association objects or models. With these scopes, you can use every method previously covered such as `where`, `joins` and `includes`. All scope methods will return an `ActiveRecord::Relation` object which will allow for further methods (such as other scopes) to be called on it.
+Scoping allows you to specify commonly-used queries which can be referenced as method calls on the association objects or models. With these scopes, you can use every method previously covered such as `where`, `joins` and `includes`. All scope bodies should return an `ActiveRecord::Relation` or `nil` to allow for further methods (such as other scopes) to be called on it.
 
 To define a simple scope, we use the `scope` method inside the class, passing the query that we'd like to run when this scope is called:
 

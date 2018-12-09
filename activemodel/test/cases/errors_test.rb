@@ -228,6 +228,16 @@ class ErrorsTest < ActiveModel::TestCase
     assert_not person.errors.added?(:name)
   end
 
+  test "added? returns false when checking for an error with an incorrect or missing option" do
+    person = Person.new
+    person.errors.add :name, :too_long, count: 25
+
+    assert person.errors.added? :name, :too_long, count: 25
+    assert_not person.errors.added? :name, :too_long, count: 24
+    assert_not person.errors.added? :name, :too_long
+    assert_not person.errors.added? :name, "is too long"
+  end
+
   test "added? returns false when checking for an error by symbol and a different error with same message is present" do
     I18n.backend.store_translations("en", errors: { attributes: { name: { wrong: "is wrong", used: "is wrong" } } })
     person = Person.new
@@ -399,6 +409,30 @@ class ErrorsTest < ActiveModel::TestCase
 
     assert_equal({ name: ["can't be blank", "is invalid"] }, person.errors.messages)
     assert_equal({ name: [{ error: :blank }, { error: :invalid }] }, person.errors.details)
+  end
+
+  test "slice! removes all errors except the given keys" do
+    person = Person.new
+    person.errors.add(:name, "cannot be nil")
+    person.errors.add(:age, "cannot be nil")
+    person.errors.add(:gender, "cannot be nil")
+    person.errors.add(:city, "cannot be nil")
+
+    person.errors.slice!(:age, "gender")
+
+    assert_equal [:age, :gender], person.errors.keys
+  end
+
+  test "slice! returns the deleted errors" do
+    person = Person.new
+    person.errors.add(:name, "cannot be nil")
+    person.errors.add(:age, "cannot be nil")
+    person.errors.add(:gender, "cannot be nil")
+    person.errors.add(:city, "cannot be nil")
+
+    removed_errors = person.errors.slice!(:age, "gender")
+
+    assert_equal({ name: ["cannot be nil"], city: ["cannot be nil"] }, removed_errors)
   end
 
   test "errors are marshalable" do

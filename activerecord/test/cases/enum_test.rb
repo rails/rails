@@ -274,6 +274,24 @@ class EnumTest < ActiveRecord::TestCase
     end
 
     assert_match(/must be either a hash, an array of symbols, or an array of strings./, e.message)
+
+    e = assert_raises(ArgumentError) do
+      Class.new(ActiveRecord::Base) do
+        self.table_name = "books"
+        enum status: { "" => 1, "active" => 2 }
+      end
+    end
+
+    assert_match(/Enum label name must not be blank/, e.message)
+
+    e = assert_raises(ArgumentError) do
+      Class.new(ActiveRecord::Base) do
+        self.table_name = "books"
+        enum status: ["active", ""]
+      end
+    end
+
+    assert_match(/Enum label name must not be blank/, e.message)
   end
 
   test "reserved enum names" do
@@ -420,6 +438,20 @@ class EnumTest < ActiveRecord::TestCase
     assert_equal ["drafted", "uploaded"], book2.status_change
   end
 
+  test "attempting to modify enum raises error" do
+    e = assert_raises(RuntimeError) do
+      Book.statuses["bad_enum"] = 40
+    end
+
+    assert_match(/can't modify frozen/, e.message)
+
+    e = assert_raises(RuntimeError) do
+      Book.statuses.delete("published")
+    end
+
+    assert_match(/can't modify frozen/, e.message)
+  end
+
   test "declare multiple enums at a time" do
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = "books"
@@ -518,5 +550,14 @@ class EnumTest < ActiveRecord::TestCase
 
   test "data type of Enum type" do
     assert_equal :integer, Book.type_for_attribute("status").type
+  end
+
+  test "scopes can be disabled" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+      enum status: [:proposed, :written], _scopes: false
+    end
+
+    assert_raises(NoMethodError) { klass.proposed }
   end
 end

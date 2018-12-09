@@ -95,7 +95,7 @@ module Rails
     def bin_when_updating
       bin
 
-      if options[:skip_yarn]
+      if options[:skip_javascript]
         remove_file "bin/yarn"
       end
     end
@@ -258,8 +258,8 @@ module Rails
       class_option :skip_bundle, type: :boolean, aliases: "-B", default: false,
                                  desc: "Don't run bundle install"
 
-      class_option :webpack, type: :string, default: nil,
-                             desc: "Preconfigure Webpack with a particular framework (options: #{WEBPACKS.join('/')})"
+      class_option :webpack, type: :string, aliases: "--webpacker", default: nil,
+                             desc: "Preconfigure Webpack with a particular framework (options: #{WEBPACKS.join(", ")})"
 
       class_option :skip_webpack_install, type: :boolean, default: false,
                                           desc: "Don't run Webpack install"
@@ -274,7 +274,7 @@ module Rails
         # Force sprockets and yarn to be skipped when generating API only apps.
         # Can't modify options hash as it's frozen by default.
         if options[:api]
-          self.options = options.merge(skip_sprockets: true, skip_javascript: true, skip_yarn: true).freeze
+          self.options = options.merge(skip_sprockets: true, skip_javascript: true).freeze
         end
       end
 
@@ -289,7 +289,7 @@ module Rails
         build(:gitignore)   unless options[:skip_git]
         build(:gemfile)     unless options[:skip_gemfile]
         build(:version_control)
-        build(:package_json) unless options[:skip_yarn]
+        build(:package_json) unless options[:skip_javascript]
       end
 
       def create_app_files
@@ -438,7 +438,6 @@ module Rails
 
       def delete_action_cable_files_skipping_action_cable
         if options[:skip_action_cable]
-          remove_file "app/javascript/channels/consumer.js"
           remove_dir "app/javascript/channels"
           remove_dir "app/channels"
         end
@@ -463,8 +462,8 @@ module Rails
         end
       end
 
-      def delete_bin_yarn_if_skip_yarn_option
-        remove_file "bin/yarn" if options[:skip_yarn]
+      def delete_bin_yarn
+        remove_file "bin/yarn" if options[:skip_javascript]
       end
 
       def finish_template

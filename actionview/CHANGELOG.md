@@ -1,3 +1,34 @@
+*   Prevent non-primary mouse keys from triggering Rails UJS click handlers.
+    Firefox fires click events even if the click was triggered by non-primary mouse keys such as right- or scroll-wheel-clicks.
+    For example, right-clicking a link such as the one described below (with an underlying ajax request registered on click) should not cause that request to occur.
+
+    ```
+    <%= link_to 'Remote', remote_path, class: 'remote', remote: true, data: { type: :json } %>
+    ```
+
+    Fixes #34541
+
+    *Wolfgang Hobmaier*
+
+
+*   Prevent `ActionView::TextHelper#word_wrap` from unexpectedly stripping white space from the _left_ side of lines.
+
+    For example, given input like this:
+
+    ```
+        This is a paragraph with an initial indent,
+    followed by additional lines that are not indented,
+    and finally terminated with a blockquote:
+      "A pithy saying"
+    ```
+
+    Calling `word_wrap` should not trim the indents on the first and last lines.
+
+    Fixes #34487
+
+    *Lyle Mullican*
+
+
 *   Add allocations to template rendering instrumentation.
 
     Adds the allocations for template and partial rendering to the server output on render.
@@ -11,7 +42,7 @@
     *Eileen M. Uchitelle*, *Aaron Patterson*
 
 *   Respect the `only_path` option passed to `url_for` when the options are passed in as an array
-    
+
     Fixes #33237.
 
     *Joel Ambass*

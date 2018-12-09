@@ -25,6 +25,8 @@ require "models/user"
 require "models/member"
 require "models/membership"
 require "models/sponsor"
+require "models/lesson"
+require "models/student"
 require "models/country"
 require "models/treaty"
 require "models/vertex"
@@ -275,7 +277,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   def test_habtm_saving_multiple_relationships
     new_project = Project.new("name" => "Grimetime")
     amount_of_developers = 4
-    developers = (0...amount_of_developers).collect { |i| Developer.create(name: "JME #{i}") }.reverse
+    developers = (0...amount_of_developers).reverse_each.map { |i| Developer.create(name: "JME #{i}") }
 
     new_project.developer_ids = [developers[0].id, developers[1].id]
     new_project.developers_with_callback_ids = [developers[2].id, developers[3].id]
@@ -778,6 +780,16 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     developer.reload
     assert_equal 2, developer.projects.length
     assert_equal [projects(:active_record), projects(:action_controller)].map(&:id).sort, developer.project_ids.sort
+  end
+
+  def test_singular_ids_are_reloaded_after_collection_concat
+    student = Student.create(name: "Alberto Almagro")
+    student.lesson_ids
+
+    lesson = Lesson.create(name: "DSI")
+    student.lessons << lesson
+
+    assert_includes student.lesson_ids, lesson.id
   end
 
   def test_scoped_find_on_through_association_doesnt_return_read_only_records

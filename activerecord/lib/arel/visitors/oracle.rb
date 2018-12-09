@@ -148,6 +148,12 @@ module Arel # :nodoc: all
         def visit_Arel_Nodes_BindParam(o, collector)
           collector.add_bind(o.value) { |i| ":a#{i}" }
         end
+
+        def is_distinct_from(o, collector)
+          collector << "DECODE("
+          collector = visit [o.left, o.right, 0, 1], collector
+          collector << ")"
+        end
     end
   end
 end

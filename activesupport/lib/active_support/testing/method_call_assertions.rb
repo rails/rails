@@ -17,7 +17,7 @@ module ActiveSupport
           assert_equal times, times_called, error
         end
 
-        def assert_called_with(object, method_name, args = [], returns: nil)
+        def assert_called_with(object, method_name, args, returns: nil)
           mock = Minitest::Mock.new
 
           if args.all? { |arg| arg.is_a?(Array) }

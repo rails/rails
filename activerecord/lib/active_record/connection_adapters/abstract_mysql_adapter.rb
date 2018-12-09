@@ -54,10 +54,6 @@ module ActiveRecord
         super(connection, logger, config)
 
         @statements = StatementPool.new(self.class.type_cast_config_to_integer(config[:statement_limit]))
-
-        if version < "5.5.8"
-          raise "Your version of MySQL (#{version_string}) is too old. Active Record supports MySQL >= 5.5.8."
-        end
       end
 
       def version #:nodoc:
@@ -74,6 +70,10 @@ module ActiveRecord
 
       def supports_index_sort_order?
         !mariadb? && version >= "8.0.1"
+      end
+
+      def supports_expression_index?
+        !mariadb? && version >= "8.0.13"
       end
 
       def supports_transaction_isolation?
@@ -535,6 +535,12 @@ module ActiveRecord
       end
 
       private
+        def check_version
+          if version < "5.5.8"
+            raise "Your version of MySQL (#{version_string}) is too old. Active Record supports MySQL >= 5.5.8."
+          end
+        end
+
         def combine_multi_statements(total_sql)
           total_sql.each_with_object([]) do |sql, total_sql_chunks|
             previous_packet = total_sql_chunks.last
@@ -622,6 +628,8 @@ module ActiveRecord
         # See https://dev.mysql.com/doc/refman/5.7/en/error-messages-server.html
         ER_DUP_ENTRY            = 1062
         ER_NOT_NULL_VIOLATION   = 1048
+        ER_NO_REFERENCED_ROW    = 1216
+        ER_ROW_IS_REFERENCED    = 1217
         ER_DO_NOT_HAVE_DEFAULT  = 1364
         ER_ROW_IS_REFERENCED_2  = 1451
         ER_NO_REFERENCED_ROW_2  = 1452
@@ -634,34 +642,34 @@ module ActiveRecord
         ER_QUERY_INTERRUPTED    = 1317
         ER_QUERY_TIMEOUT        = 3024
 
-        def translate_exception(exception, message)
+        def translate_exception(exception, message:, sql:, binds:)
           case error_number(exception)
           when ER_DUP_ENTRY
-            RecordNotUnique.new(message)
-          when ER_ROW_IS_REFERENCED_2, ER_NO_REFERENCED_ROW_2
-            InvalidForeignKey.new(message)
+            RecordNotUnique.new(message, sql: sql, binds: binds)
+          when ER_NO_REFERENCED_ROW, ER_ROW_IS_REFERENCED, ER_ROW_IS_REFERENCED_2, ER_NO_REFERENCED_ROW_2
+            InvalidForeignKey.new(message, sql: sql, binds: binds)
           when ER_CANNOT_ADD_FOREIGN
-            mismatched_foreign_key(message)
+            mismatched_foreign_key(message, sql: sql, binds: binds)
           when ER_CANNOT_CREATE_TABLE
             if message.include?("errno: 150")
-              mismatched_foreign_key(message)
+              mismatched_foreign_key(message, sql: sql, binds: binds)
             else
               super
             end
           when ER_DATA_TOO_LONG
-            ValueTooLong.new(message)
+            ValueTooLong.new(message, sql: sql, binds: binds)
           when ER_OUT_OF_RANGE
-            RangeError.new(message)
+            RangeError.new(message, sql: sql, binds: binds)
           when ER_NOT_NULL_VIOLATION, ER_DO_NOT_HAVE_DEFAULT
-            NotNullViolation.new(message)
+            NotNullViolation.new(message, sql: sql, binds: binds)
           when ER_LOCK_DEADLOCK
-            Deadlocked.new(message)
+            Deadlocked.new(message, sql: sql, binds: binds)
           when ER_LOCK_WAIT_TIMEOUT
-            LockWaitTimeout.new(message)
+            LockWaitTimeout.new(message, sql: sql, binds: binds)
           when ER_QUERY_TIMEOUT
-            StatementTimeout.new(message)
+            StatementTimeout.new(message, sql: sql, binds: binds)
           when ER_QUERY_INTERRUPTED
-            QueryCanceled.new(message)
+            QueryCanceled.new(message, sql: sql, binds: binds)
           else
             super
           end
@@ -792,11 +800,13 @@ module ActiveRecord
           Arel::Visitors::MySQL.new(self)
         end
 
-        def mismatched_foreign_key(message)
-          parts = message.scan(/`(\w+)`[ $)]/).flatten
+        def mismatched_foreign_key(message, sql:, binds:)
+          parts = sql.scan(/`(\w+)`[ $)]/).flatten
           MismatchedForeignKey.new(
             self,
             message: message,
+            sql: sql,
+            binds: binds,
             table: parts[0],
             foreign_key: parts[1],
             target_table: parts[2],

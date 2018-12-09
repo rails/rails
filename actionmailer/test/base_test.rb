@@ -152,9 +152,9 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal(2, email.parts.length)
     assert_equal("multipart/mixed", email.mime_type)
     assert_equal("text/html", email.parts[0].mime_type)
-    assert_equal("Attachment with content", email.parts[0].body.encoded)
+    assert_equal("Attachment with content", email.parts[0].decoded)
     assert_equal("application/pdf", email.parts[1].mime_type)
-    assert_equal("VGhpcyBpcyB0ZXN0IEZpbGUgY29udGVudA==\r\n", email.parts[1].body.encoded)
+    assert_equal("This is test File content", email.parts[1].decoded)
   end
 
   test "adds the given :body as part" do
@@ -162,9 +162,9 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal(2, email.parts.length)
     assert_equal("multipart/mixed", email.mime_type)
     assert_equal("text/plain", email.parts[0].mime_type)
-    assert_equal("I'm the eggman", email.parts[0].body.encoded)
+    assert_equal("I'm the eggman", email.parts[0].decoded)
     assert_equal("application/pdf", email.parts[1].mime_type)
-    assert_equal("VGhpcyBpcyB0ZXN0IEZpbGUgY29udGVudA==\r\n", email.parts[1].body.encoded)
+    assert_equal("This is test File content", email.parts[1].decoded)
   end
 
   test "can embed an inline attachment" do
@@ -542,6 +542,12 @@ class BaseTest < ActiveSupport::TestCase
     mail = BaseMailer.implicit_different_template("implicit_multipart").deliver_now
     assert_equal("HTML Implicit Multipart", mail.html_part.body.decoded)
     assert_equal("TEXT Implicit Multipart", mail.text_part.body.decoded)
+  end
+
+  test "you can specify a different template for multipart render" do
+    mail = BaseMailer.implicit_different_template_with_block("explicit_multipart_templates").deliver
+    assert_equal("HTML Explicit Multipart Templates", mail.html_part.body.decoded)
+    assert_equal("TEXT Explicit Multipart Templates", mail.text_part.body.decoded)
   end
 
   test "should raise if missing template in implicit render" do

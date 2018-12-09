@@ -54,6 +54,45 @@ module Arel
         sql = compile(stmt)
         sql.must_be_like 'SELECT FROM "posts" INNER JOIN "comments"'
       end
+
+      describe "Nodes::IsNotDistinctFrom" do
+        it "should construct a valid generic SQL statement" do
+          test = Table.new(:users)[:name].is_not_distinct_from "Aaron Patterson"
+          compile(test).must_be_like %{
+            CASE WHEN "users"."name" = 'Aaron Patterson' OR ("users"."name" IS NULL AND 'Aaron Patterson' IS NULL) THEN 0 ELSE 1 END = 0
+          }
+        end
+
+        it "should handle column names on both sides" do
+          test = Table.new(:users)[:first_name].is_not_distinct_from Table.new(:users)[:last_name]
+          compile(test).must_be_like %{
+            CASE WHEN "users"."first_name" = "users"."last_name" OR ("users"."first_name" IS NULL AND "users"."last_name" IS NULL) THEN 0 ELSE 1 END = 0
+          }
+        end
+
+        it "should handle nil" do
+          @table = Table.new(:users)
+          val = Nodes.build_quoted(nil, @table[:active])
+          sql = compile Nodes::IsNotDistinctFrom.new(@table[:name], val)
+          sql.must_be_like %{ "users"."name" IS NULL }
+        end
+      end
+
+      describe "Nodes::IsDistinctFrom" do
+        it "should handle column names on both sides" do
+          test = Table.new(:users)[:first_name].is_distinct_from Table.new(:users)[:last_name]
+          compile(test).must_be_like %{
+            CASE WHEN "users"."first_name" = "users"."last_name" OR ("users"."first_name" IS NULL AND "users"."last_name" IS NULL) THEN 0 ELSE 1 END = 1
+          }
+        end
+
+        it "should handle nil" do
+          @table = Table.new(:users)
+          val = Nodes.build_quoted(nil, @table[:active])
+          sql = compile Nodes::IsDistinctFrom.new(@table[:name], val)
+          sql.must_be_like %{ "users"."name" IS NOT NULL }
+        end
+      end
     end
   end
 end

@@ -76,6 +76,11 @@ module ActiveSupport #:nodoc:
       # Returns +true+ when the proxy class can handle the string. Returns
       # +false+ otherwise.
       def self.consumes?(string)
+        ActiveSupport::Deprecation.warn(<<-MSG.squish)
+          ActiveSupport::Multibyte::Chars.consumes? is deprecated and will be
+          removed from Rails 6.1. Use string.is_utf8? instead.
+        MSG
+
         string.encoding == Encoding::UTF_8
       end
 
@@ -108,7 +113,7 @@ module ActiveSupport #:nodoc:
       #
       #   'Café'.mb_chars.reverse.to_s # => 'éfaC'
       def reverse
-        chars(Unicode.unpack_graphemes(@wrapped_string).reverse.flatten.pack("U*"))
+        chars(@wrapped_string.scan(/\X/).reverse.join)
       end
 
       # Limits the byte size of the string to a number of bytes without breaking
@@ -117,7 +122,7 @@ module ActiveSupport #:nodoc:
       #
       #   'こんにちは'.mb_chars.limit(7).to_s # => "こん"
       def limit(limit)
-        slice(0...translate_offset(limit))
+        truncate_bytes(limit, omission: nil)
       end
 
       # Capitalizes the first letter of every word, when possible.
@@ -178,7 +183,7 @@ module ActiveSupport #:nodoc:
       #   'क्षि'.mb_chars.length   # => 4
       #   'क्षि'.mb_chars.grapheme_length # => 3
       def grapheme_length
-        Unicode.unpack_graphemes(@wrapped_string).length
+        @wrapped_string.scan(/\X/).length
       end
 
       # Replaces all ISO-8859-1 or CP1252 characters by their UTF-8 equivalent
@@ -202,18 +207,6 @@ module ActiveSupport #:nodoc:
       end
 
       private
-
-        def translate_offset(byte_offset)
-          return nil if byte_offset.nil?
-          return 0   if @wrapped_string == ""
-
-          begin
-            @wrapped_string.byteslice(0...byte_offset).unpack("U*").length
-          rescue ArgumentError
-            byte_offset -= 1
-            retry
-          end
-        end
 
         def chars(string)
           self.class.new(string)

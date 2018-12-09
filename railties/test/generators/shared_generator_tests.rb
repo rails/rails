@@ -91,7 +91,7 @@ module SharedGeneratorTests
       template
     end
 
-    generator([destination_root], template: path).stub(:open, check_open, template) do
+    generator([destination_root], template: path, skip_webpack_install: true).stub(:open, check_open, template) do
       generator.stub :bundle_command, nil do
         quietly { assert_match(/It works!/, capture(:stdout) { generator.invoke_all }) }
       end
@@ -99,7 +99,7 @@ module SharedGeneratorTests
   end
 
   def test_skip_gemfile
-    assert_not_called(generator([destination_root], skip_gemfile: true), :bundle_command) do
+    assert_not_called(generator([destination_root], skip_gemfile: true, skip_webpack_install: true), :bundle_command) do
       quietly { generator.invoke_all }
       assert_no_file "Gemfile"
     end
@@ -231,7 +231,7 @@ module SharedGeneratorTests
     assert_file "#{application_path}/config/application.rb", /#\s+require\s+["']active_storage\/engine["']/
 
     assert_file "#{application_path}/app/javascript/packs/application.js" do |content|
-      assert_no_match(/^\/\/= require activestorage/, content)
+      assert_no_match(/activestorage/, content)
     end
 
     assert_file "#{application_path}/config/environments/development.rb" do |content|
@@ -261,7 +261,7 @@ module SharedGeneratorTests
     assert_file "#{application_path}/config/application.rb", /#\s+require\s+["']active_storage\/engine["']/
 
     assert_file "#{application_path}/app/javascript/packs/application.js" do |content|
-      assert_no_match(/^import * as ActiveStorage from "activestorage"\nActiveStorage.start()/, content)
+      assert_no_match(/^import * as ActiveStorage from "activestorage"\nActiveStorage.start\(\)/, content)
     end
 
     assert_file "#{application_path}/config/environments/development.rb" do |content|
@@ -336,28 +336,15 @@ module SharedGeneratorTests
   end
 
   def test_generator_for_yarn
+    skip "#34009 disabled JS by default for plugins" if generator_class.name == "Rails::Generators::PluginGenerator"
     run_generator
     assert_file "#{application_path}/package.json", /dependencies/
-    assert_file "#{application_path}/config/initializers/assets.rb", /node_modules/
-
-    assert_file ".gitignore" do |content|
-      assert_match(/node_modules/, content)
-      assert_match(/yarn-error\.log/, content)
-    end
+    assert_file "#{application_path}/bin/yarn"
   end
 
   def test_generator_for_yarn_skipped
-    run_generator([destination_root, "--skip-yarn"])
+    run_generator([destination_root, "--skip-javascript"])
     assert_no_file "#{application_path}/package.json"
     assert_no_file "#{application_path}/bin/yarn"
-
-    assert_file "#{application_path}/config/initializers/assets.rb" do |content|
-      assert_no_match(/node_modules/, content)
-    end
-
-    assert_file ".gitignore" do |content|
-      assert_no_match(/node_modules/, content)
-      assert_no_match(/yarn-error\.log/, content)
-    end
   end
 end

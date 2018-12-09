@@ -4,6 +4,7 @@ require "cases/helper"
 require "models/admin"
 require "models/admin/user"
 require "models/admin/account"
+require "models/user"
 require "pp"
 
 class FilterAttributesTest < ActiveRecord::TestCase
@@ -30,6 +31,32 @@ class FilterAttributesTest < ActiveRecord::TestCase
     end
   end
 
+  test "string filter_attributes perform pertial match" do
+    ActiveRecord::Base.filter_attributes = ["n"]
+    Admin::Account.all.each do |account|
+      assert_includes account.inspect, "name: [FILTERED]"
+      assert_equal 1, account.inspect.scan("[FILTERED]").length
+    end
+  end
+
+  test "regex filter_attributes are accepted" do
+    ActiveRecord::Base.filter_attributes = [/\An\z/]
+    account = Admin::Account.find_by(name: "37signals")
+    assert_includes account.inspect, 'name: "37signals"'
+    assert_equal 0, account.inspect.scan("[FILTERED]").length
+
+    ActiveRecord::Base.filter_attributes = [/\An/]
+    account = Admin::Account.find_by(name: "37signals")
+    assert_includes account.reload.inspect, "name: [FILTERED]"
+    assert_equal 1, account.inspect.scan("[FILTERED]").length
+  end
+
+  test "proc filter_attributes are accepted" do
+    ActiveRecord::Base.filter_attributes = [ lambda { |key, value| value.reverse! if key == "name" } ]
+    account = Admin::Account.find_by(name: "37signals")
+    assert_includes account.inspect, 'name: "slangis73"'
+  end
+
   test "filter_attributes could be overwritten by models" do
     Admin::Account.all.each do |account|
       assert_includes account.inspect, "name: [FILTERED]"
@@ -37,7 +64,6 @@ class FilterAttributesTest < ActiveRecord::TestCase
     end
 
     begin
-      previous_account_filter_attributes = Admin::Account.filter_attributes
       Admin::Account.filter_attributes = []
 
       # Above changes should not impact other models
@@ -51,7 +77,7 @@ class FilterAttributesTest < ActiveRecord::TestCase
         assert_equal 0, account.inspect.scan("[FILTERED]").length
       end
     ensure
-      Admin::Account.filter_attributes = previous_account_filter_attributes
+      Admin::Account.remove_instance_variable(:@filter_attributes)
     end
   end
 
@@ -61,6 +87,18 @@ class FilterAttributesTest < ActiveRecord::TestCase
     assert_includes account.inspect, "name: nil"
     assert_not_includes account.inspect, "name: [FILTERED]"
     assert_equal 0, account.inspect.scan("[FILTERED]").length
+  end
+
+  test "filter_attributes should handle [FILTERED] value properly" do
+    begin
+      User.filter_attributes = ["auth"]
+      user = User.new(token: "[FILTERED]", auth_token: "[FILTERED]")
+
+      assert_includes user.inspect, "auth_token: [FILTERED]"
+      assert_includes user.inspect, 'token: "[FILTERED]"'
+    ensure
+      User.remove_instance_variable(:@filter_attributes)
+    end
   end
 
   test "filter_attributes on pretty_print" do
@@ -80,5 +118,19 @@ class FilterAttributesTest < ActiveRecord::TestCase
     assert_includes actual, "name: nil"
     assert_not_includes actual, "name: [FILTERED]"
     assert_equal 0, actual.scan("[FILTERED]").length
+  end
+
+  test "filter_attributes on pretty_print should handle [FILTERED] value properly" do
+    begin
+      User.filter_attributes = ["auth"]
+      user = User.new(token: "[FILTERED]", auth_token: "[FILTERED]")
+      actual = "".dup
+      PP.pp(user, StringIO.new(actual))
+
+      assert_includes actual, "auth_token: [FILTERED]"
+      assert_includes actual, 'token: "[FILTERED]"'
+    ensure
+      User.remove_instance_variable(:@filter_attributes)
+    end
   end
 end

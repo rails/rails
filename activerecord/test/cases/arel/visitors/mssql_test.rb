@@ -94,6 +94,45 @@ module Arel
         sql = compile(stmt)
         sql.must_be_like "SELECT COUNT(1) as count_id FROM (SELECT _t.* FROM (SELECT ROW_NUMBER() OVER (ORDER BY ) as _row_num) as _t WHERE _row_num BETWEEN 1 AND 10) AS subquery"
       end
+
+      describe "Nodes::IsNotDistinctFrom" do
+        it "should construct a valid generic SQL statement" do
+          test = Table.new(:users)[:name].is_not_distinct_from "Aaron Patterson"
+          compile(test).must_be_like %{
+            EXISTS (VALUES ("users"."name") INTERSECT VALUES ('Aaron Patterson'))
+          }
+        end
+
+        it "should handle column names on both sides" do
+          test = Table.new(:users)[:first_name].is_not_distinct_from Table.new(:users)[:last_name]
+          compile(test).must_be_like %{
+            EXISTS (VALUES ("users"."first_name") INTERSECT VALUES ("users"."last_name"))
+          }
+        end
+
+        it "should handle nil" do
+          @table = Table.new(:users)
+          val = Nodes.build_quoted(nil, @table[:active])
+          sql = compile Nodes::IsNotDistinctFrom.new(@table[:name], val)
+          sql.must_be_like %{ "users"."name" IS NULL }
+        end
+      end
+
+      describe "Nodes::IsDistinctFrom" do
+        it "should handle column names on both sides" do
+          test = Table.new(:users)[:first_name].is_distinct_from Table.new(:users)[:last_name]
+          compile(test).must_be_like %{
+            NOT EXISTS (VALUES ("users"."first_name") INTERSECT VALUES ("users"."last_name"))
+          }
+        end
+
+        it "should handle nil" do
+          @table = Table.new(:users)
+          val = Nodes.build_quoted(nil, @table[:active])
+          sql = compile Nodes::IsDistinctFrom.new(@table[:name], val)
+          sql.must_be_like %{ "users"."name" IS NOT NULL }
+        end
+      end
     end
   end
 end

@@ -27,6 +27,9 @@ Gem::Specification.new do |s|
     "changelog_uri"   => "https://github.com/rails/rails/blob/v#{version}/activesupport/CHANGELOG.md"
   }
 
+  # NOTE: Please read our dependency guidelines before updating versions:
+  # https://edgeguides.rubyonrails.org/security.html#dependency-management-and-cves
+
   s.add_dependency "i18n",       ">= 0.7", "< 2"
   s.add_dependency "tzinfo",     "~> 1.1"
   s.add_dependency "minitest",   "~> 5.1"

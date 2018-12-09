@@ -45,6 +45,8 @@ module ApplicationTests
         output.sub!(/^Resolving dependencies\.\.\.\n/, "")
         # Suppress Bundler platform warnings from output
         output.gsub!(/^The dependency .* will be unused .*\.\n/, "")
+        # Ignore warnings such as `Psych.safe_load is deprecated`
+        output.gsub!(/^warning:\s.*\n/, "")
 
         assert_equal(<<~OUTPUT, output)
           == Installing dependencies ==

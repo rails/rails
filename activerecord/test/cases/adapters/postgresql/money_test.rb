@@ -37,7 +37,7 @@ class PostgresqlMoneyTest < ActiveRecord::PostgreSQLTestCase
   def test_default
     assert_equal BigDecimal("150.55"), PostgresqlMoney.column_defaults["depth"]
     assert_equal BigDecimal("150.55"), PostgresqlMoney.new.depth
-    assert_equal "$150.55", PostgresqlMoney.new.depth_before_type_cast
+    assert_equal "150.55", PostgresqlMoney.new.depth_before_type_cast
   end
 
   def test_money_values

@@ -18,6 +18,14 @@ module Arel # :nodoc: all
       Nodes::Equality.new self, quoted_node(other)
     end
 
+    def is_not_distinct_from(other)
+      Nodes::IsNotDistinctFrom.new self, quoted_node(other)
+    end
+
+    def is_distinct_from(other)
+      Nodes::IsDistinctFrom.new self, quoted_node(other)
+    end
+
     def eq_any(others)
       grouping_any :eq, others
     end

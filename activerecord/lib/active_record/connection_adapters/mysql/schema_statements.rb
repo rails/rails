@@ -35,13 +35,39 @@ module ActiveRecord
                 ]
               end
 
-              indexes.last[-2] << row[:Column_name]
-              indexes.last[-1][:lengths][row[:Column_name]] = row[:Sub_part].to_i if row[:Sub_part]
-              indexes.last[-1][:orders].merge!(row[:Column_name] => :desc) if row[:Collation] == "D"
+              if row[:Expression]
+                expression = row[:Expression]
+                expression = +"(#{expression})" unless expression.start_with?("(")
+                indexes.last[-2] << expression
+                indexes.last[-1][:expressions] ||= {}
+                indexes.last[-1][:expressions][expression] = expression
+                indexes.last[-1][:orders][expression] = :desc if row[:Collation] == "D"
+              else
+                indexes.last[-2] << row[:Column_name]
+                indexes.last[-1][:lengths][row[:Column_name]] = row[:Sub_part].to_i if row[:Sub_part]
+                indexes.last[-1][:orders][row[:Column_name]] = :desc if row[:Collation] == "D"
+              end
             end
           end
 
-          indexes.map { |index| IndexDefinition.new(*index) }
+          indexes.map do |index|
+            options = index.last
+
+            if expressions = options.delete(:expressions)
+              orders = options.delete(:orders)
+              lengths = options.delete(:lengths)
+
+              columns = index[-2].map { |name|
+                [ name.to_sym, expressions[name] || +quote_column_name(name) ]
+              }.to_h
+
+              index[-2] = add_options_for_index_columns(
+                columns, order: orders, length: lengths
+              ).values.join(", ")
+            end
+
+            IndexDefinition.new(*index)
+          end
         end
 
         def remove_column(table_name, column_name, type = nil, options = {})
@@ -80,10 +106,13 @@ module ActiveRecord
 
           def new_column_from_field(table_name, field)
             type_metadata = fetch_type_metadata(field[:Type], field[:Extra])
-            if type_metadata.type == :datetime && /\ACURRENT_TIMESTAMP(?:\([0-6]?\))?\z/i.match?(field[:Default])
-              default, default_function = nil, field[:Default]
-            else
-              default, default_function = field[:Default], nil
+            default, default_function = field[:Default], nil
+
+            if type_metadata.type == :datetime && /\ACURRENT_TIMESTAMP(?:\([0-6]?\))?\z/i.match?(default)
+              default, default_function = nil, default
+            elsif type_metadata.extra == "DEFAULT_GENERATED"
+              default = +"(#{default})" unless default.start_with?("(")
+              default, default_function = nil, default
             end
 
             MySQL::Column.new(

@@ -105,11 +105,6 @@ module ActiveRecord
 
         @active     = true
         @statements = StatementPool.new(self.class.type_cast_config_to_integer(config[:statement_limit]))
-
-        if sqlite_version < "3.8.0"
-          raise "Your version of SQLite (#{sqlite_version}) is too old. Active Record supports SQLite >= 3.8."
-        end
-
         configure_connection
       end
 
@@ -214,6 +209,13 @@ module ActiveRecord
       # DATABASE STATEMENTS ======================================
       #++
 
+      READ_QUERY = ActiveRecord::ConnectionAdapters::AbstractAdapter.build_read_query_regexp(:select) # :nodoc:
+      private_constant :READ_QUERY
+
+      def write_query?(sql) # :nodoc:
+        !READ_QUERY.match?(sql)
+      end
+
       def explain(arel, binds = [])
         sql = "EXPLAIN QUERY PLAN #{to_sql(arel, binds)}"
         SQLite3::ExplainPrettyPrinter.new.pp(exec_query(sql, "EXPLAIN", []))
@@ -262,6 +264,10 @@ module ActiveRecord
       end
 
       def execute(sql, name = nil) #:nodoc:
+        if preventing_writes? && write_query?(sql)
+          raise ActiveRecord::ReadOnlyError, "Write query attempted while in readonly mode: #{sql}"
+        end
+
         materialize_transactions
 
         log(sql, name) do
@@ -401,6 +407,18 @@ module ActiveRecord
       end
 
       private
+        # See https://www.sqlite.org/limits.html,
+        # the default value is 999 when not configured.
+        def bind_params_length
+          999
+        end
+
+        def check_version
+          if sqlite_version < "3.8.0"
+            raise "Your version of SQLite (#{sqlite_version}) is too old. Active Record supports SQLite >= 3.8."
+          end
+        end
+
         def initialize_type_map(m = type_map)
           super
           register_class_with_limit m, %r(int)i, SQLite3Integer
@@ -522,18 +540,18 @@ module ActiveRecord
           @sqlite_version ||= SQLite3Adapter::Version.new(query_value("SELECT sqlite_version(*)"))
         end
 
-        def translate_exception(exception, message)
+        def translate_exception(exception, message:, sql:, binds:)
           case exception.message
           # SQLite 3.8.2 returns a newly formatted error message:
           #   UNIQUE constraint failed: *table_name*.*column_name*
           # Older versions of SQLite return:
           #   column *column_name* is not unique
           when /column(s)? .* (is|are) not unique/, /UNIQUE constraint failed: .*/
-            RecordNotUnique.new(message)
+            RecordNotUnique.new(message, sql: sql, binds: binds)
           when /.* may not be NULL/, /NOT NULL constraint failed: .*/
-            NotNullViolation.new(message)
+            NotNullViolation.new(message, sql: sql, binds: binds)
           when /FOREIGN KEY constraint failed/i
-            InvalidForeignKey.new(message)
+            InvalidForeignKey.new(message, sql: sql, binds: binds)
           else
             super
           end
@@ -543,7 +561,7 @@ module ActiveRecord
 
         def table_structure_with_collation(table_name, basic_structure)
           collation_hash = {}
-          sql = <<-SQL
+          sql = <<~SQL
             SELECT sql FROM
               (SELECT * FROM sqlite_master UNION ALL
                SELECT * FROM sqlite_temp_master)

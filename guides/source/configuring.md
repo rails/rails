@@ -200,8 +200,6 @@ The full set of methods that can be used in this block are as follows:
 * `helper` defines whether or not to generate helpers. Defaults to `true`.
 * `integration_tool` defines which integration tool to use to generate integration tests. Defaults to `:test_unit`.
 * `system_tests` defines which integration tool to use to generate system tests. Defaults to `:test_unit`.
-* `javascripts` turns on the hook for JavaScript files in generators. Used in Rails for when the `scaffold` generator is run. Defaults to `true`.
-* `javascript_engine` configures the engine to be used (for eg. coffee) when generating assets. Defaults to `:js`.
 * `orm` defines which orm to use. Defaults to `false` and will use Active Record by default.
 * `resource_controller` defines which generator to use for generating a controller when using `rails generate resource`. Defaults to `:controller`.
 * `resource_route` defines whether a resource route definition should be generated
@@ -380,6 +378,14 @@ All these configuration options are delegated to the `I18n` library.
 The MySQL adapter adds one additional configuration option:
 
 * `ActiveRecord::ConnectionAdapters::Mysql2Adapter.emulate_booleans` controls whether Active Record will consider all `tinyint(1)` columns as booleans. Defaults to `true`.
+
+The PostgreSQL adapter adds one additional configuration option:
+
+* `ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.create_unlogged_tables`
+  controls whether database tables created should be "unlogged," which can speed
+  up performance but adds a risk of data loss if the database crashes. It is
+  highly recommended that you do not enable this in a production environment.
+  Defaults to `false` in all environments.
 
 The SQLite3Adapter adapter adds one additional configuration option:
 
@@ -725,7 +731,7 @@ There are a few configuration options available in Active Support:
 
 `config.active_job` provides the following configuration options:
 
-* `config.active_job.queue_adapter` sets the adapter for the queueing backend. The default adapter is `:async`. For an up-to-date list of built-in adapters see the [ActiveJob::QueueAdapters API documentation](http://api.rubyonrails.org/classes/ActiveJob/QueueAdapters.html).
+* `config.active_job.queue_adapter` sets the adapter for the queuing backend. The default adapter is `:async`. For an up-to-date list of built-in adapters see the [ActiveJob::QueueAdapters API documentation](http://api.rubyonrails.org/classes/ActiveJob/QueueAdapters.html).
 
     ```ruby
     # Be sure to have the adapter's gem in your Gemfile
@@ -776,6 +782,8 @@ There are a few configuration options available in Active Support:
 
 * `config.active_job.custom_serializers` allows to set custom argument serializers. Defaults to `[]`.
 
+* `config.active_job.return_false_on_aborted_enqueue` change the return value of `#enqueue` to false instead of the job instance when the enqueuing is aborted. Defaults to `false`.
+
 ### Configuring Action Cable
 
 * `config.action_cable.url` accepts a string for the URL for where
@@ -807,7 +815,7 @@ normal Rails server.
    config.active_storage.paths[:ffprobe] = '/usr/local/bin/ffprobe'
    ```
 
-* `config.active_storage.variable_content_types` accepts an array of strings indicating the content types that Active Storage can transform through ImageMagick. The default is `%w(image/png image/gif image/jpg image/jpeg image/vnd.adobe.photoshop image/vnd.microsoft.icon)`.
+* `config.active_storage.variable_content_types` accepts an array of strings indicating the content types that Active Storage can transform through ImageMagick. The default is `%w(image/png image/gif image/jpg image/jpeg image/pjpeg image/vnd.adobe.photoshop image/vnd.microsoft.icon)`.
 
 * `config.active_storage.content_types_to_serve_as_binary` accepts an array of strings indicating the content types that Active Storage will always serve as an attachment, rather than inline. The default is `%w(text/html
 text/javascript image/svg+xml application/postscript application/x-shockwave-flash text/xml application/xml application/xhtml+xml)`.
@@ -1013,6 +1021,7 @@ If you choose to use MySQL or MariaDB instead of the shipped SQLite3 database, y
 ```yaml
 development:
   adapter: mysql2
+  encoding: utf8mb4
   database: blog_development
   pool: 5
   username: root

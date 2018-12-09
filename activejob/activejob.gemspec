@@ -7,7 +7,7 @@ Gem::Specification.new do |s|
   s.name        = "activejob"
   s.version     = version
   s.summary     = "Job framework with pluggable queues."
-  s.description = "Declare job classes that can be run by a variety of queueing backends."
+  s.description = "Declare job classes that can be run by a variety of queuing backends."
 
   s.required_ruby_version = ">= 2.4.1"
 
@@ -24,6 +24,9 @@ Gem::Specification.new do |s|
     "source_code_uri" => "https://github.com/rails/rails/tree/v#{version}/activejob",
     "changelog_uri"   => "https://github.com/rails/rails/blob/v#{version}/activejob/CHANGELOG.md"
   }
+
+  # NOTE: Please read our dependency guidelines before updating versions:
+  # https://edgeguides.rubyonrails.org/security.html#dependency-management-and-cves
 
   s.add_dependency "activesupport", version
   s.add_dependency "globalid", ">= 0.3.6"

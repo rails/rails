@@ -867,7 +867,7 @@
   }
   function didClick(event) {
     var target = event.target;
-    if (target.tagName == "INPUT" && target.type == "submit" && target.form) {
+    if ((target.tagName == "INPUT" || target.tagName == "BUTTON") && target.type == "submit" && target.form) {
       submitButtonsByForm.set(target.form, target);
     }
   }
@@ -902,7 +902,7 @@
     }
   }
   function submitForm(form) {
-    var button = submitButtonsByForm.get(form) || findElement(form, "input[type=submit]");
+    var button = submitButtonsByForm.get(form) || findElement(form, "input[type=submit], button[type=submit]");
     if (button) {
       var _button = button, disabled = _button.disabled;
       button.disabled = false;

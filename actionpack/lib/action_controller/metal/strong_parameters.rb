@@ -352,7 +352,7 @@ module ActionController
     # the same way as <tt>Hash#each_value</tt>.
     def each_value(&block)
       @parameters.each_pair do |key, value|
-        yield [convert_hashes_to_parameters(key, value)]
+        yield convert_hashes_to_parameters(key, value)
       end
     end
 
