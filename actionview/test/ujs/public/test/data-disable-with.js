@@ -309,7 +309,7 @@ asyncTest('form[data-remote] input|button|textarea[data-disable-with] does not d
   start()
 })
 
-asyncTest('ctrl-clicking on a link does not disables the link', 6, function() {
+asyncTest('ctrl-clicking on a link does not disable the link', 6, function() {
   var link = $('a[data-disable-with]')
 
   App.checkEnabledState(link, 'Click me')
@@ -322,7 +322,7 @@ asyncTest('ctrl-clicking on a link does not disables the link', 6, function() {
   start()
 })
 
-asyncTest('right/mouse-wheel-clicking on a link does not disables the link', 10, function() {
+asyncTest('right/mouse-wheel-clicking on a link does not disable the link', 10, function() {
   var link = $('a[data-disable-with]')
 
   App.checkEnabledState(link, 'Click me')
