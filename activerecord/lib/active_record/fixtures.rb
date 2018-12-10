@@ -573,49 +573,49 @@ module ActiveRecord
 
       private
 
-      def read_and_insert(fixtures_directory, fixture_files, class_names, connection) # :nodoc:
-        fixtures_map = {}
-        fixture_sets = fixture_files.map do |fixture_set_name|
-          klass = class_names[fixture_set_name]
-          fixtures_map[fixture_set_name] = new( # ActiveRecord::FixtureSet.new
-            nil,
-            fixture_set_name,
-            klass,
-            ::File.join(fixtures_directory, fixture_set_name)
-          )
-        end
-        update_all_loaded_fixtures(fixtures_map)
+        def read_and_insert(fixtures_directory, fixture_files, class_names, connection) # :nodoc:
+          fixtures_map = {}
+          fixture_sets = fixture_files.map do |fixture_set_name|
+            klass = class_names[fixture_set_name]
+            fixtures_map[fixture_set_name] = new( # ActiveRecord::FixtureSet.new
+              nil,
+              fixture_set_name,
+              klass,
+              ::File.join(fixtures_directory, fixture_set_name)
+            )
+          end
+          update_all_loaded_fixtures(fixtures_map)
 
-        insert(fixture_sets, connection)
+          insert(fixture_sets, connection)
 
-        fixtures_map
-      end
-
-      def insert(fixture_sets, connection) # :nodoc:
-        fixture_sets_by_connection = fixture_sets.group_by do |fixture_set|
-          fixture_set.model_class&.connection || connection
+          fixtures_map
         end
 
-        fixture_sets_by_connection.each do |conn, set|
-          table_rows_for_connection = Hash.new { |h, k| h[k] = [] }
+        def insert(fixture_sets, connection) # :nodoc:
+          fixture_sets_by_connection = fixture_sets.group_by do |fixture_set|
+            fixture_set.model_class&.connection || connection
+          end
 
-          set.each do |fixture_set|
-            fixture_set.table_rows.each do |table, rows|
-              table_rows_for_connection[table].unshift(*rows)
+          fixture_sets_by_connection.each do |conn, set|
+            table_rows_for_connection = Hash.new { |h, k| h[k] = [] }
+
+            set.each do |fixture_set|
+              fixture_set.table_rows.each do |table, rows|
+                table_rows_for_connection[table].unshift(*rows)
+              end
+            end
+            conn.insert_fixtures_set(table_rows_for_connection, table_rows_for_connection.keys)
+
+            # Cap primary key sequences to max(pk).
+            if conn.respond_to?(:reset_pk_sequence!)
+              set.each { |fs| conn.reset_pk_sequence!(fs.table_name) }
             end
           end
-          conn.insert_fixtures_set(table_rows_for_connection, table_rows_for_connection.keys)
-
-          # Cap primary key sequences to max(pk).
-          if conn.respond_to?(:reset_pk_sequence!)
-            set.each { |fs| conn.reset_pk_sequence!(fs.table_name) }
-          end
         end
-      end
 
-      def update_all_loaded_fixtures(fixtures_map) # :nodoc:
-        all_loaded_fixtures.update(fixtures_map)
-      end
+        def update_all_loaded_fixtures(fixtures_map) # :nodoc:
+          all_loaded_fixtures.update(fixtures_map)
+        end
     end
 
     attr_reader :table_name, :name, :fixtures, :model_class, :config
