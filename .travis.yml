@@ -37,6 +37,7 @@ before_install:
   - "[[ $GEM != 'av:ujs' ]] || nvm install node"
   - "[[ $GEM != 'av:ujs' ]] || node --version"
   - "[[ $GEM != 'av:ujs' ]] || (cd actionview && npm install)"
+  - "[[ $GEM != 'ar:postgresql' ]] || sudo mount -o remount,size=50% /var/ramfs"
 
 before_script:
   # Set Sauce Labs username and access key. Obfuscated, purposefully not encrypted.
