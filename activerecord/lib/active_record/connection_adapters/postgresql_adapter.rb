@@ -609,6 +609,10 @@ module ActiveRecord
         FEATURE_NOT_SUPPORTED = "0A000" #:nodoc:
 
         def execute_and_clear(sql, name, binds, prepare: false)
+          if preventing_writes? && write_query?(sql)
+            raise ActiveRecord::ReadOnlyError, "Write query attempted while in readonly mode: #{sql}"
+          end
+
           if without_prepared_statement?(binds)
             result = exec_no_cache(sql, name, [])
           elsif !prepare

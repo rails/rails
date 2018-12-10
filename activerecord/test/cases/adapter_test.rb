@@ -165,6 +165,43 @@ module ActiveRecord
       end
     end
 
+    def test_errors_when_an_insert_query_is_called_while_preventing_writes
+      assert_raises(ActiveRecord::ReadOnlyError) do
+        @connection.while_preventing_writes do
+          @connection.insert("INSERT INTO subscribers(nick) VALUES ('138853948594')")
+        end
+      end
+    end
+
+    def test_errors_when_an_update_query_is_called_while_preventing_writes
+      @connection.insert("INSERT INTO subscribers(nick) VALUES ('138853948594')")
+
+      assert_raises(ActiveRecord::ReadOnlyError) do
+        @connection.while_preventing_writes do
+          @connection.update("UPDATE subscribers SET nick = '9989' WHERE nick = '138853948594'")
+        end
+      end
+    end
+
+    def test_errors_when_a_delete_query_is_called_while_preventing_writes
+      @connection.insert("INSERT INTO subscribers(nick) VALUES ('138853948594')")
+
+      assert_raises(ActiveRecord::ReadOnlyError) do
+        @connection.while_preventing_writes do
+          @connection.delete("DELETE FROM subscribers WHERE nick = '138853948594'")
+        end
+      end
+    end
+
+    def test_doesnt_error_when_a_select_query_is_called_while_preventing_writes
+      @connection.insert("INSERT INTO subscribers(nick) VALUES ('138853948594')")
+
+      @connection.while_preventing_writes do
+        result = @connection.select_all("SELECT subscribers.* FROM subscribers WHERE nick = '138853948594'")
+        assert_equal 1, result.length
+      end
+    end
+
     def test_uniqueness_violations_are_translated_to_specific_exception
       @connection.execute "INSERT INTO subscribers(nick) VALUES('me')"
       error = assert_raises(ActiveRecord::RecordNotUnique) do
