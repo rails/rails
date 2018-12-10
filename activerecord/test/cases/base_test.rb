@@ -1490,31 +1490,37 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   test "creating a record raises if preventing writes" do
-    assert_raises ActiveRecord::ReadOnlyError do
+    error = assert_raises ActiveRecord::ReadOnlyError do
       ActiveRecord::Base.connection.while_preventing_writes do
         Bird.create! name: "Bluejay"
       end
     end
+
+    assert_match %r/\AWrite query attempted while in readonly mode: INSERT /, error.message
   end
 
   test "updating a record raises if preventing writes" do
     bird = Bird.create! name: "Bluejay"
 
-    assert_raises ActiveRecord::ReadOnlyError do
+    error = assert_raises ActiveRecord::ReadOnlyError do
       ActiveRecord::Base.connection.while_preventing_writes do
         bird.update! name: "Robin"
       end
     end
+
+    assert_match %r/\AWrite query attempted while in readonly mode: UPDATE /, error.message
   end
 
   test "deleting a record raises if preventing writes" do
     bird = Bird.create! name: "Bluejay"
 
-    assert_raises ActiveRecord::ReadOnlyError do
+    error = assert_raises ActiveRecord::ReadOnlyError do
       ActiveRecord::Base.connection.while_preventing_writes do
         bird.destroy!
       end
     end
+
+    assert_match %r/\AWrite query attempted while in readonly mode: DELETE /, error.message
   end
 
   test "selecting a record does not raise if preventing writes" do
