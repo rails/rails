@@ -1530,4 +1530,12 @@ class BasicsTest < ActiveRecord::TestCase
       assert_equal bird, Bird.where(name: "Bluejay").first
     end
   end
+
+  test "an explain query does not raise if preventing writes" do
+    Bird.create!(name: "Bluejay")
+
+    ActiveRecord::Base.connection.while_preventing_writes do
+      assert_queries(2) { Bird.where(name: "Bluejay").explain }
+    end
+  end
 end
