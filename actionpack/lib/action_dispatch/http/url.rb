@@ -79,108 +79,108 @@ module ActionDispatch
 
         private
 
-        def add_params(path, params)
-          params = { params: params } unless params.is_a?(Hash)
-          params.reject! { |_, v| v.to_param.nil? }
-          query = params.to_query
-          path << "?#{query}" unless query.empty?
-        end
-
-        def add_anchor(path, anchor)
-          if anchor
-            path << "##{Journey::Router::Utils.escape_fragment(anchor.to_param)}"
-          end
-        end
-
-        def extract_domain_from(host, tld_length)
-          host.split(".").last(1 + tld_length).join(".")
-        end
-
-        def extract_subdomains_from(host, tld_length)
-          parts = host.split(".")
-          parts[0..-(tld_length + 2)]
-        end
-
-        def add_trailing_slash(path)
-          if path.include?("?")
-            path.sub!(/\?/, '/\&')
-          elsif !path.include?(".")
-            path.sub!(/[^\/]\z|\A\z/, '\&/')
-          end
-        end
-
-        def build_host_url(host, port, protocol, options, path)
-          if match = host.match(HOST_REGEXP)
-            protocol ||= match[1] unless protocol == false
-            host       = match[2]
-            port       = match[3] unless options.key? :port
+          def add_params(path, params)
+            params = { params: params } unless params.is_a?(Hash)
+            params.reject! { |_, v| v.to_param.nil? }
+            query = params.to_query
+            path << "?#{query}" unless query.empty?
           end
 
-          protocol = normalize_protocol protocol
-          host     = normalize_host(host, options)
-
-          result = protocol.dup
-
-          if options[:user] && options[:password]
-            result << "#{Rack::Utils.escape(options[:user])}:#{Rack::Utils.escape(options[:password])}@"
+          def add_anchor(path, anchor)
+            if anchor
+              path << "##{Journey::Router::Utils.escape_fragment(anchor.to_param)}"
+            end
           end
 
-          result << host
-          normalize_port(port, protocol) { |normalized_port|
-            result << ":#{normalized_port}"
-          }
-
-          result.concat path
-        end
-
-        def named_host?(host)
-          IP_HOST_REGEXP !~ host
-        end
-
-        def normalize_protocol(protocol)
-          case protocol
-          when nil
-            "http://"
-          when false, "//"
-            "//"
-          when PROTOCOL_REGEXP
-            "#{$1}://"
-          else
-            raise ArgumentError, "Invalid :protocol option: #{protocol.inspect}"
+          def extract_domain_from(host, tld_length)
+            host.split(".").last(1 + tld_length).join(".")
           end
-        end
 
-        def normalize_host(_host, options)
-          return _host unless named_host?(_host)
-
-          tld_length = options[:tld_length] || @@tld_length
-          subdomain  = options.fetch :subdomain, true
-          domain     = options[:domain]
-
-          host = +""
-          if subdomain == true
-            return _host if domain.nil?
-
-            host << extract_subdomains_from(_host, tld_length).join(".")
-          elsif subdomain
-            host << subdomain.to_param
+          def extract_subdomains_from(host, tld_length)
+            parts = host.split(".")
+            parts[0..-(tld_length + 2)]
           end
-          host << "." unless host.empty?
-          host << (domain || extract_domain_from(_host, tld_length))
-          host
-        end
 
-        def normalize_port(port, protocol)
-          return unless port
-
-          case protocol
-          when "//" then yield port
-          when "https://"
-            yield port unless port.to_i == 443
-          else
-            yield port unless port.to_i == 80
+          def add_trailing_slash(path)
+            if path.include?("?")
+              path.sub!(/\?/, '/\&')
+            elsif !path.include?(".")
+              path.sub!(/[^\/]\z|\A\z/, '\&/')
+            end
           end
-        end
+
+          def build_host_url(host, port, protocol, options, path)
+            if match = host.match(HOST_REGEXP)
+              protocol ||= match[1] unless protocol == false
+              host       = match[2]
+              port       = match[3] unless options.key? :port
+            end
+
+            protocol = normalize_protocol protocol
+            host     = normalize_host(host, options)
+
+            result = protocol.dup
+
+            if options[:user] && options[:password]
+              result << "#{Rack::Utils.escape(options[:user])}:#{Rack::Utils.escape(options[:password])}@"
+            end
+
+            result << host
+            normalize_port(port, protocol) { |normalized_port|
+              result << ":#{normalized_port}"
+            }
+
+            result.concat path
+          end
+
+          def named_host?(host)
+            IP_HOST_REGEXP !~ host
+          end
+
+          def normalize_protocol(protocol)
+            case protocol
+            when nil
+              "http://"
+            when false, "//"
+              "//"
+            when PROTOCOL_REGEXP
+              "#{$1}://"
+            else
+              raise ArgumentError, "Invalid :protocol option: #{protocol.inspect}"
+            end
+          end
+
+          def normalize_host(_host, options)
+            return _host unless named_host?(_host)
+
+            tld_length = options[:tld_length] || @@tld_length
+            subdomain  = options.fetch :subdomain, true
+            domain     = options[:domain]
+
+            host = +""
+            if subdomain == true
+              return _host if domain.nil?
+
+              host << extract_subdomains_from(_host, tld_length).join(".")
+            elsif subdomain
+              host << subdomain.to_param
+            end
+            host << "." unless host.empty?
+            host << (domain || extract_domain_from(_host, tld_length))
+            host
+          end
+
+          def normalize_port(port, protocol)
+            return unless port
+
+            case protocol
+            when "//" then yield port
+            when "https://"
+              yield port unless port.to_i == 443
+            else
+              yield port unless port.to_i == 80
+            end
+          end
       end
 
       def initialize
