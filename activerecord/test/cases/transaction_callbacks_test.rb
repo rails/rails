@@ -419,6 +419,22 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
     assert flag
   end
 
+  def test_use_runs_callbacks_accross_instances
+    klass = Pet.dup
+    klass.class_eval do
+      class_attribute :update_commit_called, default: false
+      class_attribute :destroy_commit_called, default: false
+      after_update_commit { self.class.update_commit_called = true }
+      after_destroy_commit { self.class.destroy_commit_called = true }
+    end
+    klass.transaction do
+      klass.last.update(name: "test")
+      klass.last.destroy
+    end
+    assert_predicate klass, :update_commit_called
+    assert_predicate klass, :destroy_commit_called
+  end
+
   private
 
     def add_transaction_execution_blocks(record)

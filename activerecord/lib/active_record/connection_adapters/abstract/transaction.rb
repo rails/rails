@@ -116,7 +116,7 @@ module ActiveRecord
       end
 
       def rollback_records
-        ite = records.uniq
+        ite = records.uniq(&:object_id)
         while record = ite.shift
           record.rolledback!(force_restore_state: full_rollback?)
         end
@@ -127,11 +127,11 @@ module ActiveRecord
       end
 
       def before_commit_records
-        records.uniq.each(&:before_committed!) if @run_commit_callbacks
+        records.uniq(&:object_id).each(&:before_committed!) if @run_commit_callbacks
       end
 
       def commit_records
-        ite = records.uniq
+        ite = records.uniq(&:object_id)
         while record = ite.shift
           if @run_commit_callbacks
             record.committed!

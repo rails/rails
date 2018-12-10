@@ -1,3 +1,7 @@
+*   Compare transaction records by identity when adding to callback list.
+
+    *Gannon McGibbon*
+
 *   Fix join table column quoting with SQLite.
 
     *Gannon McGibbon*
