@@ -17,15 +17,22 @@ module ActiveModel
       private
 
         def setup!(klass)
-          klass.include(LazilyDefineAttributes.new(AttributeDefinition.new(attributes)))
+          lazy_attributes = LazilyDefinedAttributes.new(attributes)
+          klass.include(lazy_attributes) unless klass.included_modules.include?(lazy_attributes)
         end
 
         def acceptable_option?(value)
           Array(options[:accept]).include?(value)
         end
 
-        class LazilyDefineAttributes < Module
-          def initialize(attribute_definition)
+        class LazilyDefinedAttributes < Module
+          attr_reader :attributes
+
+          def initialize(attributes)
+            @attributes = attributes
+
+            attribute_definition = AttributeDefinition.new(@attributes)
+
             define_method(:respond_to_missing?) do |method_name, include_private = false|
               super(method_name, include_private) || attribute_definition.matches?(method_name)
             end
@@ -38,6 +45,10 @@ module ActiveModel
                 super(method_name, *args, &block)
               end
             end
+          end
+
+          def ==(other)
+            other.class == LazilyDefinedAttributes && attributes == other.attributes
           end
         end
 

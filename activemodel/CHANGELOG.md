@@ -1,3 +1,7 @@
+*   Fix incremental inclusion using acceptance validator's lazy attributes module.
+
+    *Gannon McGibbon*
+
 *   Fix numericality equality validation of `BigDecimal` and `Float`
     by casting to `BigDecimal` on both ends of the validation.
 

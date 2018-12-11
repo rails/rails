@@ -40,6 +40,13 @@ class AcceptanceValidationTest < ActiveModel::TestCase
     assert_predicate t, :valid?
   end
 
+  def test_lazy_attribute_module_included_once_per_validation
+    assert_difference -> { Topic.ancestors.count }, 2 do
+      10.times { Topic.validates_acceptance_of(:something_to_accept) }
+      10.times { Topic.validates_acceptance_of(:something_else_to_accept) }
+    end
+  end
+
   def test_terms_of_service_agreement_with_accept_value
     Topic.validates_acceptance_of(:terms_of_service, accept: "I agree.")
 
