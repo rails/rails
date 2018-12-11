@@ -214,6 +214,13 @@ module ActiveRecord
           # should not raise error
           connection.add_index(table_name, [:foo], name: "some_idx", if_not_exists: true)
         end
+
+        def test_double_add_index_if_not_exists_false
+          connection.add_index(table_name, [:foo], name: "some_idx")
+          assert_raises(ArgumentError) {
+            connection.add_index(table_name, [:foo], name: "some_idx", if_not_exists: false)
+          }
+        end
       end
 
       private
