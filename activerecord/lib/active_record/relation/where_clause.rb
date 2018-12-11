@@ -135,14 +135,37 @@ module ActiveRecord
           except_binds = []
           binds_index = 0
 
+          node_tester = -> (node, columns) {
+            binds_contains = node.grep(Arel::Nodes::BindParam).size
+            subrelation = (node.left.kind_of?(Arel::Attributes::Attribute) ? node.left : node.right)
+            included = columns.include?(subrelation.name.to_s)
+            [included, binds_contains]
+          }
+          relevant_nodes = [Arel::Nodes::Between, Arel::Nodes::In, Arel::Nodes::NotIn, Arel::Nodes::Equality, Arel::Nodes::NotEqual, Arel::Nodes::LessThan, Arel::Nodes::LessThanOrEqual, Arel::Nodes::GreaterThan, Arel::Nodes::GreaterThanOrEqual]
+
           predicates = self.predicates.reject do |node|
             binds_contains = node.grep(Arel::Nodes::BindParam).size if node.is_a?(Arel::Nodes::Node)
 
             except = \
               case node
-              when Arel::Nodes::Between, Arel::Nodes::In, Arel::Nodes::NotIn, Arel::Nodes::Equality, Arel::Nodes::NotEqual, Arel::Nodes::LessThan, Arel::Nodes::LessThanOrEqual, Arel::Nodes::GreaterThan, Arel::Nodes::GreaterThanOrEqual
-                subrelation = (node.left.kind_of?(Arel::Attributes::Attribute) ? node.left : node.right)
-                columns.include?(subrelation.name.to_s)
+              when *relevant_nodes
+                included, binds_contains = node_tester.call(node, columns)
+                included
+
+              when Arel::Nodes::Grouping
+                included = true
+                binds_contains = 0
+                node.each do |n|
+                  case n
+                  when *relevant_nodes
+                    _included, _binds_contains = node_tester.call(n, columns)
+                    binds_contains += _binds_contains
+                    included &&= _included
+                  end
+                end
+
+                included
+
               end
 
             if except && binds_contains > 0
