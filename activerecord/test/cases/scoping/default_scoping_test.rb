@@ -422,6 +422,11 @@ class DefaultScopingTest < ActiveRecord::TestCase
                  Comment.joins(:post).to_a
   end
 
+  def test_unscoping_an_array_default_column
+    assert_equal PostWithArrayDefaultScope.unscope(where: :comments_count),
+                  Post.all
+  end
+
   def test_sti_association_with_unscoped_not_affected_by_default_scope
     post = posts(:thinking)
     comments = [comments(:does_it_hurt)]

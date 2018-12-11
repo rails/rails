@@ -135,11 +135,29 @@ module ActiveRecord
         end
 
         def except_predicates(columns)
+          relevant_nodes = [Arel::Nodes::Between, Arel::Nodes::In, Arel::Nodes::NotIn, Arel::Nodes::Equality, Arel::Nodes::NotEqual, Arel::Nodes::LessThan, Arel::Nodes::LessThanOrEqual, Arel::Nodes::GreaterThan, Arel::Nodes::GreaterThanOrEqual]
+
+          node_tester = -> (node, columns) {
+            subrelation = (node.left.kind_of?(Arel::Attributes::Attribute) ? node.left : node.right)
+            columns.include?(subrelation.name.to_s)
+          }
+
           predicates.reject do |node|
             case node
-            when Arel::Nodes::Between, Arel::Nodes::In, Arel::Nodes::NotIn, Arel::Nodes::Equality, Arel::Nodes::NotEqual, Arel::Nodes::LessThan, Arel::Nodes::LessThanOrEqual, Arel::Nodes::GreaterThan, Arel::Nodes::GreaterThanOrEqual
-              subrelation = (node.left.kind_of?(Arel::Attributes::Attribute) ? node.left : node.right)
-              columns.include?(subrelation.name.to_s)
+            when *relevant_nodes
+              node_tester.call(node, columns)
+
+            when Arel::Nodes::Grouping
+              node.each do |n|
+                included = true
+
+                case n
+                when *relevant_nodes
+                  included &&= node_tester.call(n, columns)
+                end
+
+                included
+              end
             end
           end
         end
