@@ -1538,4 +1538,14 @@ class BasicsTest < ActiveRecord::TestCase
       assert_queries(2) { Bird.where(name: "Bluejay").explain }
     end
   end
+
+  test "an empty transaction does not raise if preventing writes" do
+    ActiveRecord::Base.connection.while_preventing_writes do
+      assert_queries(2, ignore_none: true) do
+        Bird.transaction do
+          ActiveRecord::Base.connection.materialize_transactions
+        end
+      end
+    end
+  end
 end
