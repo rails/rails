@@ -1,3 +1,7 @@
+*   Remove redundant suffixes on generated system tests.
+
+    *Gannon McGibbon*
+
 *   Add an `abort_on_failure` boolean option to the generator method that shell
     out (`generate`, `rake`, `rails_command`) to abort the generator if the
     command fails.
