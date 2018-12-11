@@ -3,6 +3,12 @@
 module ActiveRecord
   class Relation
     class WhereClause # :nodoc:
+
+      NODE_TESTER = -> (node, columns) {
+        subrelation = (node.left.kind_of?(Arel::Attributes::Attribute) ? node.left : node.right)
+        columns.include?(subrelation.name.to_s)
+      }.freeze
+
       delegate :any?, :empty?, to: :predicates
 
       def initialize(predicates)
@@ -125,10 +131,6 @@ module ActiveRecord
             raise ArgumentError, "Invalid argument for .where.not(), got nil."
           when Arel::Nodes::In
             Arel::Nodes::NotIn.new(node.left, node.right)
-          when Arel::Nodes::IsNotDistinctFrom
-            Arel::Nodes::IsDistinctFrom.new(node.left, node.right)
-          when Arel::Nodes::IsDistinctFrom
-            Arel::Nodes::IsNotDistinctFrom.new(node.left, node.right)
           when Arel::Nodes::Equality
             Arel::Nodes::NotEqual.new(node.left, node.right)
           when String
@@ -139,11 +141,24 @@ module ActiveRecord
         end
 
         def except_predicates(columns)
+          relevant_nodes = [Arel::Nodes::Between, Arel::Nodes::In, Arel::Nodes::NotIn, Arel::Nodes::Equality, Arel::Nodes::NotEqual, Arel::Nodes::LessThan, Arel::Nodes::LessThanOrEqual, Arel::Nodes::GreaterThan, Arel::Nodes::GreaterThanOrEqual]
+
           predicates.reject do |node|
             case node
-            when Arel::Nodes::Between, Arel::Nodes::In, Arel::Nodes::NotIn, Arel::Nodes::Equality, Arel::Nodes::NotEqual, Arel::Nodes::LessThan, Arel::Nodes::LessThanOrEqual, Arel::Nodes::GreaterThan, Arel::Nodes::GreaterThanOrEqual
-              subrelation = (node.left.kind_of?(Arel::Attributes::Attribute) ? node.left : node.right)
-              columns.include?(subrelation.name.to_s)
+            when *relevant_nodes
+              NODE_TESTER.call(node, columns)
+
+            when Arel::Nodes::Grouping
+              node.each do |n|
+                included = true
+
+                case n
+                when *relevant_nodes
+                  included &&= NODE_TESTER.call(n, columns)
+                end
+
+                included
+              end
             end
           end
         end

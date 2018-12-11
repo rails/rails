@@ -233,6 +233,12 @@ class PostWithDefaultScope < ActiveRecord::Base
   default_scope { order(:title) }
 end
 
+class PostWithArrayDefaultScope < ActiveRecord::Base
+  self.inheritance_column = :disabled
+  self.table_name = "posts"
+  default_scope { where(comments_count: [nil, 1]) }
+end
+
 class PostWithPreloadDefaultScope < ActiveRecord::Base
   self.table_name = "posts"
 

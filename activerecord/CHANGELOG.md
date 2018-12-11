@@ -1,3 +1,7 @@
+*   Fixes unscoping the where clause when it has an array `default_scope` https://github.com/rails/rails/issues/30967
+
+    *Jeff Emminger*
+
 *   Fix join table column quoting with SQLite.
 
     *Gannon McGibbon*
