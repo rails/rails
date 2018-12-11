@@ -161,8 +161,10 @@ module ActionDispatch
         end
 
         def make_route(name, precedence)
-          Journey::Route.new(name, application, path, conditions, required_defaults,
-                             defaults, request_method, precedence, scope_options, @internal)
+          Journey::Route.new(name: name, app: application, path: path, constraints: conditions,
+                             required_defaults: required_defaults, defaults: defaults,
+                             request_method_match: request_method, precedence: precedence,
+                             scope_options: scope_options, internal: @internal)
         end
 
         def application

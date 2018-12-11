@@ -50,14 +50,15 @@ module ActionDispatch
       end
 
       def self.build(name, app, path, constraints, required_defaults, defaults)
-        request_method_match = verb_matcher(constraints.delete(:request_method))
-        new name, app, path, constraints, required_defaults, defaults, request_method_match, 0, {}
+        new name: name, app: app, path: path, constraints: constraints,
+            required_defaults: required_defaults, defaults: defaults,
+            request_method_match: verb_matcher(constraints.delete(:request_method))
       end
 
       ##
       # +path+ is a path constraint.
       # +constraints+ is a hash of constraints to be applied to this route.
-      def initialize(name, app, path, constraints, required_defaults, defaults, request_method_match, precedence, scope_options, internal = false)
+      def initialize(name:, app:, path:, constraints:, required_defaults:, defaults:, request_method_match:, precedence: 0, scope_options: {}, internal: false)
         @name        = name
         @app         = app
         @path        = path
