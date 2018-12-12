@@ -145,9 +145,17 @@ module ActionMailer
           if processed?
             super
           else
-            job  = @mailer_class.delivery_job
+            job  = delivery_job_class
             args = arguments_for(job, delivery_method)
             job.set(options).perform_later(*args)
+          end
+        end
+
+        def delivery_job_class
+          if @mailer_class.delivery_job <= MailDeliveryJob
+            @mailer_class.delivery_job
+          else
+            Parameterized::DeliveryJob
           end
         end
 
