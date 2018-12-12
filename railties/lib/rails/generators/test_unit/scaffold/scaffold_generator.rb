@@ -56,8 +56,8 @@ module TestUnit # :nodoc:
         end
 
         def boolean?(name)
-          attribute = attributes.find { |attribute| attribute.name == name }
-          attribute&.type == :boolean
+          attribute = attributes.find { |attr| attr.name == name }
+          attribute && attribute.type == :boolean
         end
     end
   end
