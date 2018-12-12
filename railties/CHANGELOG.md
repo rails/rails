@@ -1,3 +1,7 @@
+*   Fix boolean interaction in scaffold system tests.
+
+    *Gannon McGibbon*
+
 *   Remove redundant suffixes on generated system tests.
 
     *Gannon McGibbon*
