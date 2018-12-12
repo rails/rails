@@ -130,6 +130,10 @@ module Rails
             action_dispatch.use_cookies_with_metadata = true
           end
 
+          if respond_to?(:action_mailer)
+            action_mailer.delivery_job = "ActionMailer::MailDeliveryJob"
+          end
+
           if respond_to?(:active_job)
             active_job.return_false_on_aborted_enqueue = true
           end
