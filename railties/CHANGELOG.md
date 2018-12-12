@@ -1,3 +1,7 @@
+*   Remove redundant suffixes on generated helpers.
+
+    *Gannon McGibbon*
+
 *   Remove redundant suffixes on generated integration tests.
 
     *Gannon McGibbon*

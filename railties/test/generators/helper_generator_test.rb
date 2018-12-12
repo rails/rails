@@ -38,4 +38,11 @@ class HelperGeneratorTest < Rails::Generators::TestCase
       end
     end
   end
+
+  def test_helper_suffix_is_not_duplicated
+    run_generator %w(products_helper)
+
+    assert_no_file "app/helpers/products_helper_helper.rb"
+    assert_file "app/helpers/products_helper.rb"
+  end
 end
