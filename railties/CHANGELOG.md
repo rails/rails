@@ -1,3 +1,7 @@
+*   Remove redundant suffixes on generated helpers.
+
+    *Gannon McGibbon*
+
 *   Fix boolean interaction in scaffold system tests.
 
     *Gannon McGibbon*
