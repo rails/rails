@@ -7,10 +7,10 @@ require "action_mailbox/version"
 Gem::Specification.new do |s|
   s.name     = "actionmailbox"
   s.version  = ActionMailbox::VERSION
-  s.authors  = ["Jeremy Daer", "David Heinemeier Hansson"]
-  s.email    = ["jeremy@basecamp.com", "david@loudthinking.com"]
+  s.authors  = ["David Heinemeier Hansson", "George Claghorn"]
+  s.email    = ["david@loudthinking.com", "george@basecamp.com"]
   s.summary  = "Receive and process incoming emails in Rails"
-  s.homepage = "https://github.com/basecamp/actionmailbox"
+  s.homepage = "https://github.com/rails/actionmailbox"
   s.license  = "MIT"
 
   s.required_ruby_version = ">= 2.5.0"
