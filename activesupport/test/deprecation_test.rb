@@ -31,6 +31,9 @@ class Deprecatee
   def f=(v); end
   deprecate :f=
 
+  deprecate :g
+  def g ;end
+
   module B
     C = 1
   end
@@ -423,6 +426,10 @@ class DeprecationTest < ActiveSupport::TestCase
     deprecator.send(:deprecated_method_warning, :deprecated_method, "You are calling deprecated method").tap do |message|
       assert_match(/is deprecated and will be removed from Custom/, message)
     end
+  end
+
+  def test_deprecate_work_before_define_method
+    assert_deprecated { @dtc.g }
   end
 
   private
