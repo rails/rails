@@ -9,6 +9,9 @@ module ActiveModel
 
       RESERVED_OPTIONS = CHECKS.keys + [:only_integer]
 
+      INTEGER_REGEX = /\A[+-]?\d+\z/
+      DECIMAL_REGEX = /\A[+-]?\d+\.?\d*(e|e[+-])?\d+\z/
+
       def check_validity!
         keys = CHECKS.keys - [:odd, :even]
         options.slice(*keys).each do |option, value|
@@ -49,11 +52,7 @@ module ActiveModel
           return
         end
 
-        if raw_value.is_a?(Numeric)
-          value = raw_value
-        else
-          value = parse_raw_value_as_a_number(raw_value)
-        end
+        value = parse_as_number(raw_value)
 
         options.slice(*CHECKS.keys).each do |option, option_value|
           case option
@@ -69,6 +68,8 @@ module ActiveModel
               option_value = record.send(option_value)
             end
 
+            option_value = parse_as_number(option_value)
+
             unless value.send(CHECKS[option], option_value)
               record.errors.add(attr_name, option, filtered_options(value).merge!(count: option_value))
             end
@@ -79,18 +80,29 @@ module ActiveModel
     private
 
       def is_number?(raw_value)
-        !parse_raw_value_as_a_number(raw_value).nil?
+        !parse_as_number(raw_value).nil?
       rescue ArgumentError, TypeError
         false
       end
 
-      def parse_raw_value_as_a_number(raw_value)
-        return raw_value.to_i if is_integer?(raw_value)
-        Kernel.Float(raw_value) unless is_hexadecimal_literal?(raw_value)
+      def parse_as_number(raw_value)
+        if raw_value.is_a?(Float)
+          raw_value.to_d
+        elsif raw_value.is_a?(Numeric)
+          raw_value
+        elsif is_integer?(raw_value)
+          raw_value.to_i
+        elsif is_decimal?(raw_value) && !is_hexadecimal_literal?(raw_value)
+          BigDecimal(raw_value)
+        end
       end
 
       def is_integer?(raw_value)
-        /\A[+-]?\d+\z/ === raw_value.to_s
+        INTEGER_REGEX === raw_value.to_s
+      end
+
+      def is_decimal?(raw_value)
+        DECIMAL_REGEX === raw_value.to_s
       end
 
       def is_hexadecimal_literal?(raw_value)

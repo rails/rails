@@ -1,3 +1,9 @@
+*   Fix numericality equality validation of `BigDecimal` and `Float`
+    by casting to `BigDecimal` on both ends of the validation.
+
+    *Gannon McGibbon*
+
+
 ## Rails 5.2.2 (December 04, 2018) ##
 
 *   Fix numericality validator to still use value before type cast except Active Record.
