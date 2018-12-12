@@ -40,8 +40,6 @@ module ActiveRecord
         end
 
         def exec_query(sql, name = "SQL", binds = [], prepare: false)
-          materialize_transactions
-
           if without_prepared_statement?(binds)
             execute_and_free(sql, name) do |result|
               if result
@@ -62,8 +60,6 @@ module ActiveRecord
         end
 
         def exec_delete(sql, name = nil, binds = [])
-          materialize_transactions
-
           if without_prepared_statement?(binds)
             execute_and_free(sql, name) { @connection.affected_rows }
           else
@@ -125,6 +121,8 @@ module ActiveRecord
             if preventing_writes? && write_query?(sql)
               raise ActiveRecord::ReadOnlyError, "Write query attempted while in readonly mode: #{sql}"
             end
+
+            materialize_transactions
 
             # make sure we carry over any changes to ActiveRecord::Base.default_timezone that have been
             # made since we established the connection
