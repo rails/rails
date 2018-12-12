@@ -54,6 +54,11 @@ module TestUnit # :nodoc:
             end
           end.sort.to_h
         end
+
+        def boolean?(name)
+          attribute = attributes.find { |attribute| attribute.name == name }
+          attribute&.type == :boolean
+        end
     end
   end
 end
