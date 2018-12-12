@@ -8,9 +8,11 @@ The inbound emails are turned into `InboundEmail` records using Active Record an
 
 These inbound emails are routed asynchronously using Active Job to one or several dedicated mailboxes, which are capable of interacting directly with the rest of your domain model.
 
+
 ## How does this compare to Action Mailer's inbound processing?
 
 Rails has long had an anemic way of [receiving emails using Action Mailer](https://guides.rubyonrails.org/action_mailer_basics.html#receiving-emails), but it was poorly flushed out, lacked cohesion with the task of sending emails, and offered no help on integrating with popular inbound email processing platforms. Action Mailbox supersedes the receiving part of Action Mailer, which will be deprecated in due course.
+
 
 ## Installing
 
@@ -29,6 +31,10 @@ Assumes a Rails 5.2+ application:
    ./bin/rails action_mailbox:install
    ./bin/rails db:migrate
    ```
+
+## Configure ingress path and password
+
+TODO
 
 ## Examples
 
@@ -82,6 +88,11 @@ class ForwardsMailbox < ApplicationMailbox
     end
 end
 ```
+
+
+## Create incoming email through a conductor module in development
+
+It's helpful to be able to test incoming emails in development without actually sending and receiving real emails. To accomplish this, there's a conductor controller mounted at `/rails/conductor/action_mailbox/inbound_emails`, which gives you an index of all the InboundEmails in the system, their state of processing, and a form to create a new InboundEmail as well.
 
 
 ## Development road map
