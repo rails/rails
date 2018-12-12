@@ -110,7 +110,7 @@ matrix:
         - sudo sed -i -e '/local.*peer/s/postgres/all/' -e 's/peer\|md5/trust/g' /etc/postgresql/*/main/pg_hba.conf
         - "sudo sed -i 's/port = 5433/port = 5432/' /etc/postgresql/10/main/postgresql.conf"
         - "sudo service postgresql restart 10"
-        - "[ -f /tmp/beanstalkd-1.10/Makefile ] || (curl -L https://github.com/kr/beanstalkd/archive/v1.10.tar.gz | tar xz -C /tmp)"
+        - "[ -f /tmp/beanstalkd-1.10/Makefile ] || (curl -L https://github.com/beanstalkd/beanstalkd/archive/v1.10.tar.gz | tar xz -C /tmp)"
         - "pushd /tmp/beanstalkd-1.10 && make && (./beanstalkd &); popd"
     - rvm: 2.5.1
       sudo: required
@@ -123,7 +123,7 @@ matrix:
         - sudo sed -i -e '/local.*peer/s/postgres/all/' -e 's/peer\|md5/trust/g' /etc/postgresql/*/main/pg_hba.conf
         - "sudo sed -i 's/port = 5433/port = 5432/' /etc/postgresql/10/main/postgresql.conf"
         - "sudo service postgresql restart 10"
-        - "[ -f /tmp/beanstalkd-1.10/Makefile ] || (curl -L https://github.com/kr/beanstalkd/archive/v1.10.tar.gz | tar xz -C /tmp)"
+        - "[ -f /tmp/beanstalkd-1.10/Makefile ] || (curl -L https://github.com/beanstalkd/beanstalkd/archive/v1.10.tar.gz | tar xz -C /tmp)"
         - "pushd /tmp/beanstalkd-1.10 && make && (./beanstalkd &); popd"
     - rvm: ruby-head
       sudo: required
@@ -136,7 +136,7 @@ matrix:
         - sudo sed -i -e '/local.*peer/s/postgres/all/' -e 's/peer\|md5/trust/g' /etc/postgresql/*/main/pg_hba.conf
         - "sudo sed -i 's/port = 5433/port = 5432/' /etc/postgresql/10/main/postgresql.conf"
         - "sudo service postgresql restart 10"
-        - "[ -f /tmp/beanstalkd-1.10/Makefile ] || (curl -L https://github.com/kr/beanstalkd/archive/v1.10.tar.gz | tar xz -C /tmp)"
+        - "[ -f /tmp/beanstalkd-1.10/Makefile ] || (curl -L https://github.com/beanstalkd/beanstalkd/archive/v1.10.tar.gz | tar xz -C /tmp)"
         - "pushd /tmp/beanstalkd-1.10 && make && (./beanstalkd &); popd"
     - rvm: 2.4.4
       env: "GEM=ar:mysql2"
