@@ -67,7 +67,8 @@ module ActiveSupport
       def self.build_mem_cache(*addresses) # :nodoc:
         addresses = addresses.flatten
         options = addresses.extract_options!
-        addresses = ["localhost:11211"] if addresses.empty?
+        addresses = ["localhost:11211"] if addresses.empty? && ENV["MEMCACHE_SERVERS"].nil?
+        addresses = nil if addresses.empty?
         pool_options = retrieve_pool_options(options)
 
         if pool_options.empty?

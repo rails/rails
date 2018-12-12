@@ -25,8 +25,8 @@ end
 
 class MemCacheStoreTest < ActiveSupport::TestCase
   begin
-    ss = Dalli::Client.new("localhost:11211").stats
-    raise Dalli::DalliError unless ss["localhost:11211"]
+    ss = Dalli::Client.new.stats
+    raise Dalli::DalliError unless ss[ss.keys.first]
 
     MEMCACHE_UP = true
   rescue Dalli::DalliError
