@@ -64,13 +64,13 @@ env:
     - "GEM=ac:integration"
 
 rvm:
-  - 2.4.4
-  - 2.5.1
+  - 2.4.5
+  - 2.5.3
   - ruby-head
 
 matrix:
   include:
-    - rvm: 2.4.4
+    - rvm: 2.4.5
       env: "GEM=railties"
       sudo: required
       before_install:
@@ -79,7 +79,7 @@ matrix:
         - "travis_retry gem install bundler"
         - "sudo sed -i 's/port = 5433/port = 5432/' /etc/postgresql/10/main/postgresql.conf"
         - "sudo service postgresql restart 10"
-    - rvm: 2.5.1
+    - rvm: 2.5.3
       env: "GEM=railties"
       sudo: required
       before_install:
@@ -97,9 +97,9 @@ matrix:
         - "travis_retry gem install bundler"
         - "sudo sed -i 's/port = 5433/port = 5432/' /etc/postgresql/10/main/postgresql.conf"
         - "sudo service postgresql restart 10"
-    - rvm: 2.5.1
+    - rvm: 2.5.3
       env: "GEM=av:ujs"
-    - rvm: 2.4.4
+    - rvm: 2.4.5
       sudo: required
       env: "GEM=aj:integration"
       services:
@@ -112,7 +112,7 @@ matrix:
         - "sudo service postgresql restart 10"
         - "[ -f /tmp/beanstalkd-1.10/Makefile ] || (curl -L https://github.com/beanstalkd/beanstalkd/archive/v1.10.tar.gz | tar xz -C /tmp)"
         - "pushd /tmp/beanstalkd-1.10 && make && (./beanstalkd &); popd"
-    - rvm: 2.5.1
+    - rvm: 2.5.3
       sudo: required
       env: "GEM=aj:integration"
       services:
@@ -138,14 +138,14 @@ matrix:
         - "sudo service postgresql restart 10"
         - "[ -f /tmp/beanstalkd-1.10/Makefile ] || (curl -L https://github.com/beanstalkd/beanstalkd/archive/v1.10.tar.gz | tar xz -C /tmp)"
         - "pushd /tmp/beanstalkd-1.10 && make && (./beanstalkd &); popd"
-    - rvm: 2.4.4
+    - rvm: 2.4.5
       env: "GEM=ar:mysql2"
       sudo: required
       before_install:
         - "sudo mysql -e \"use mysql; update user set authentication_string='' where User='root'; update user set plugin='mysql_native_password';FLUSH PRIVILEGES;\""
         - "sudo mysql_upgrade"
         - "sudo service mysql restart"
-    - rvm: 2.5.1
+    - rvm: 2.5.3
       env: "GEM=ar:mysql2"
       sudo: required
       before_install:
@@ -159,21 +159,21 @@ matrix:
         - "sudo mysql -e \"use mysql; update user set authentication_string='' where User='root'; update user set plugin='mysql_native_password';FLUSH PRIVILEGES;\""
         - "sudo mysql_upgrade"
         - "sudo service mysql restart"
-    - rvm: 2.5.1
+    - rvm: 2.5.3
       env:
         - "GEM=ar:mysql2 MYSQL=mariadb"
       addons:
         mariadb: 10.3
-    - rvm: 2.5.1
+    - rvm: 2.5.3
       env:
         - "GEM=ar:sqlite3_mem"
-    - rvm: 2.4.4
+    - rvm: 2.4.5
       env: "GEM=ar:postgresql"
       sudo: required
       before_install:
         - "sudo sed -i 's/port = 5433/port = 5432/' /etc/postgresql/10/main/postgresql.conf"
         - "sudo service postgresql restart 10"
-    - rvm: 2.5.1
+    - rvm: 2.5.3
       env: "GEM=ar:postgresql"
       sudo: required
       before_install:
