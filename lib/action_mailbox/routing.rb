@@ -1,4 +1,5 @@
 module ActionMailbox
+  # See `ActionMailbox::Base` for how to specify routing.
   module Routing
     extend ActiveSupport::Concern
 

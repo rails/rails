@@ -1,3 +1,6 @@
+# Encapsulates a route, which can then be matched against an inbound_email and provide a lookup of the matching
+# mailbox class. See examples for the different route addresses and how to use them in the `ActionMailbox::Base`
+# documentation.
 class ActionMailbox::Router::Route
   attr_reader :address, :mailbox_name
 
