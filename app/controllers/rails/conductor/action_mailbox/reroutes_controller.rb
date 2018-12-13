@@ -1,3 +1,4 @@
+# Rerouting will run routing and processing on an email that has already been, or attempted to be, processed.
 class Rails::Conductor::ActionMailbox::ReroutesController < Rails::Conductor::BaseController
   def create
     inbound_email = ActionMailbox::InboundEmail.find(params[:inbound_email_id])

@@ -1,3 +1,6 @@
+# Ensure that the `InboundEmail` is automatically scheduled for later incineration if the status has been
+# changed to `processed`. The later incineration will be invoked at the time specified by the 
+# `ActionMailbox.incinerate_after` time using the `IncinerationJob`.
 module ActionMailbox::InboundEmail::Incineratable
   extend ActiveSupport::Concern
 
