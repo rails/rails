@@ -1,5 +1,9 @@
 class <%= migration_class_name %> < ActiveRecord::Migration[<%= ActiveRecord::Migration.current_version %>]
-<%- if migration_action == 'add' -%>
+<%- if migration_action == 'add_indexed' -%>
+  def change
+    add_index :<%= table_name %>, :<%= attribute %>
+  end
+<%- elsif migration_action == 'add' -%>
   def change
 <% attributes.each do |attribute| -%>
   <%- if attribute.reference? -%>

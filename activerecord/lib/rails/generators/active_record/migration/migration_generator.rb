@@ -17,7 +17,7 @@ module ActiveRecord
       end
 
       private
-        attr_reader :migration_action, :join_tables
+        attr_reader :migration_action, :join_tables, :attribute
 
         # Sets the default migration template that is being used for the generation of the migration.
         # Depending on command line arguments, the migration template and the table name instance
@@ -25,6 +25,10 @@ module ActiveRecord
         def set_local_assigns!
           @migration_template = "migration.rb"
           case file_name
+          when /^(add_indexed)_(.*)_to_(.*)/
+            @migration_action = $1
+            @attribute = $2
+            @table_name = $3
           when /^(add)_.*_to_(.*)/, /^(remove)_.*?_from_(.*)/
             @migration_action = $1
             @table_name       = normalize_table_name($2)
