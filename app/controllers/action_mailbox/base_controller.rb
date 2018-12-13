@@ -1,3 +1,4 @@
+# The base class for all Active Mailbox ingress controllers.
 class ActionMailbox::BaseController < ActionController::Base
   skip_forgery_protection
 
