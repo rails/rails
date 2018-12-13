@@ -129,6 +129,13 @@ All cached templates from previous renders will be fetched at once with much
 greater speed. Additionally, the templates that haven't yet been cached will be
 written to cache and multi fetched on the next render.
 
+If your collection cache depends on multiple sources, you can name all these dependencies as part of a block that returns an array:
+
+```html+erb
+<%= render partial: 'products/product', collection: @products, cached: -> (product) { [ product, current_user ] } %>
+```
+
+This will include both records as part of the cache key and updating either of them will expire the cache.
 
 ### Russian Doll Caching
 
