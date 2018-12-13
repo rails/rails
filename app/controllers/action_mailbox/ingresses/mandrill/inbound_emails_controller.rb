@@ -1,3 +1,16 @@
+# Ingests inbound emails from Mandrill.
+#
+# Requires a +mandrill_events+ parameter containing a JSON array of Mandrill inbound email event objects.
+# Each event is expected to have a +msg+ object containing a full RFC 822 message in its +raw_msg+ property.
+#
+# Returns:
+#
+# - <tt>204 No Content</tt> if an inbound email is successfully recorded and enqueued for routing to the appropriate mailbox
+# - <tt>401 Unauthorized</tt> if the request's signature could not be validated
+# - <tt>404 Not Found</tt> if Action Mailbox is not configured to accept inbound emails from Mandrill
+# - <tt>422 Unprocessable Entity</tt> if the request is missing required parameters
+# - <tt>500 Server Error</tt> if the Mandrill API key is missing, or one of the Active Record database,
+#   the Active Storage service, or the Active Job backend is misconfigured or unavailable
 class ActionMailbox::Ingresses::Mandrill::InboundEmailsController < ActionMailbox::BaseController
   before_action :authenticate
 

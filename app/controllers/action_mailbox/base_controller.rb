@@ -16,7 +16,7 @@ class ActionMailbox::BaseController < ActionController::Base
     end
 
     def ingress_name
-      self.class.name[/^ActionMailbox::Ingresses::(.*?)::/, 1].underscore.to_sym
+      self.class.name.remove(/\AActionMailbox::Ingresses::/, /::InboundEmailsController\z/).underscore.to_sym
     end
 
 
