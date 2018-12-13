@@ -89,6 +89,12 @@ class ForwardsMailbox < ApplicationMailbox
 end
 ```
 
+## Incineration of InboundEmails
+
+By default, an InboundEmail that has been marked as successfully processed will be incinerated after 30 days. This ensures you're not holding on to people's data willy-nilly after they may have canceled their accounts or deleted their content. The intention is that after you've processed an email, you should have extracted all the data you needed and turned it into domain models and content on your side of the application. The InboundEmail simply stays in the system for the extra time to provide debugging and forensics options.
+
+The actual incineration is done via the `IncinerationJob` that's scheduled to run after `config.action_mailbox.incinerate_after` time. This value is by default set to `30.days`, but you can change it in your production.rb configuration. (Note that this far-future incineration scheduling relies on your job queue being able to hold jobs for that long.)
+
 
 ## Create incoming email through a conductor module in development
 
