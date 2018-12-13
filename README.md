@@ -1,8 +1,8 @@
 # Action Mailbox
 
-Action Mailbox routes incoming emails to controller-like mailboxes for further and encapsulated processing in Rails. 
+Action Mailbox routes incoming emails to controller-like mailboxes for further and encapsulated processing in Rails.
 
-It ships with ingress handling for AWS SNS, Mailgun, Madrill, and Sendgrid. You can also handle inbound mails directly via the Postfix ingress task/controller combination.
+It ships with ingresses for Amazon SES, Mailgun, Mandrill, and SendGrid. You can also handle inbound mails directly via the built-in Postfix ingress.
 
 The inbound emails are turned into `InboundEmail` records using Active Record and feature lifecycle tracking, storage of the original email on cloud storage via Active Storage, and responsible data handling with on-by-default incineration.
 
@@ -24,7 +24,7 @@ Assumes a Rails 5.2+ application:
     # Gemfile
     gem "actionmailbox", github: "rails/actionmailbox", require: "action_mailbox"
     ```
-   
+
 1. Install migrations needed for InboundEmail (and ensure Active Storage is setup)
 
    ```
@@ -32,9 +32,150 @@ Assumes a Rails 5.2+ application:
    ./bin/rails db:migrate
    ```
 
-## Configure ingress path and password
+## Configuring
 
-TODO
+### Amazon SES
+
+1. Install the [`aws-sdk-sns`](https://rubygems.org/gems/aws-sdk-sns) gem:
+
+   ```ruby
+   # Gemfile
+   gem "aws-sdk-sns", ">= 1.9.0", require: false
+   ```
+
+2. Tell Action Mailbox to accept emails from SES:
+
+   ```ruby
+   # config/environments/production.rb
+   config.action_mailbox.ingress = :amazon
+   ```
+
+3. [Configure SES][ses-docs] to deliver emails to your application via POST requests
+   to `/rails/action_mailbox/amazon/inbound_emails`. If your application lived at `https://example.com`, you would specify
+   the fully-qualified URL `https://example.com/rails/action_mailbox/amazon/inbound_emails`.
+
+[ses-docs]: https://docs.aws.amazon.com/ses/latest/DeveloperGuide/receiving-email-notifications.html
+
+### Mailgun
+
+1. Give Action Mailbox your [Mailgun API key][mailgun-api-key] so it can authenticate requests to the Mailgun ingress.
+
+   Use `rails credentials:edit` to add your API key to your application's encrypted credentials under
+   `action_mailbox.mailgun_api_key`, where Action Mailbox will automatically find it:
+
+   ```yaml
+   action_mailbox:
+     mailgun_api_key: ...
+   ```
+
+   Alternatively, provide your API key in the `MAILGUN_INGRESS_API_KEY` environment variable.
+
+2. Tell Action Mailbox to accept emails from Mailgun:
+
+   ```ruby
+   # config/environments/production.rb
+   config.action_mailbox.ingress = :mailgun
+   ```
+
+3. [Configure Mailgun][mailgun-forwarding] to forward inbound emails to `/rails/action_mailbox/mailgun/inbound_emails/mime`.
+   If your application lived at `https://example.com`, you would specify the fully-qualified URL
+   `https://example.com/rails/action_mailbox/mailgun/inbound_emails/mime`.
+
+[mailgun-api-key]: https://help.mailgun.com/hc/en-us/articles/203380100-Where-can-I-find-my-API-key-and-SMTP-credentials-
+[mailgun-forwarding]: https://documentation.mailgun.com/en/latest/user_manual.html#receiving-forwarding-and-storing-messages
+
+### Mandrill
+
+1. Give Action Mailbox your Mandrill API key so it can authenticate requests to the Mandrill ingress.
+
+   Use `rails credentials:edit` to add your API key to your application's encrypted credentials under
+   `action_mailbox.mandrill_api_key`, where Action Mailbox will automatically find it:
+
+   ```yaml
+   action_mailbox:
+     mandrill_api_key: ...
+   ```
+
+   Alternatively, provide your API key in the `MANDRILL_INGRESS_API_KEY` environment variable.
+
+2. Tell Action Mailbox to accept emails from Mandrill:
+
+   ```ruby
+   # config/environments/production.rb
+   config.action_mailbox.ingress = :mandrill
+   ```
+
+3. [Configure Mandrill][mandrill-routing] to route inbound emails to `/rails/action_mailbox/mandrill/inbound_emails`.
+   If your application lived at `https://example.com`, you would specify the fully-qualified URL
+   `https://example.com/rails/action_mailbox/mandrill/inbound_emails`.
+
+[mandrill-routing]: https://mandrill.zendesk.com/hc/en-us/articles/205583197-Inbound-Email-Processing-Overview
+
+### Postfix
+
+1. Tell Action Mailbox to accept emails from Postfix:
+
+   ```ruby
+   # config/environments/production.rb
+   config.action_mailbox.ingress = :postfix
+   ```
+
+2. Generate a strong password that Action Mailbox can use to authenticate requests to the Postfix ingress.
+
+   Use `rails credentials:edit` to add the password to your application's encrypted credentials under
+   `action_mailbox.ingress_password`, where Action Mailbox will automatically find it:
+
+   ```yaml
+   action_mailbox:
+     ingress_password: ...
+   ```
+
+   Alternatively, provide the password in the `RAILS_INBOUND_EMAIL_PASSWORD` environment variable.
+
+3. [Configure Postfix][postfix-config] to pipe inbound emails to `bin/rails action_mailbox:ingress:postfix`, providing
+   the `URL` of the Postfix ingress and the `INGRESS_PASSWORD` you previously generated. If your application lived at
+   `https://example.com`, the full command would look like this:
+
+   ```
+   URL=https://example.com/rails/action_mailbox/postfix/inbound_emails INGRESS_PASSWORD=... bin/rails action_mailbox:ingress:postfix
+   ```
+
+[postfix-config]: https://serverfault.com/questions/258469/how-to-configure-postfix-to-pipe-all-incoming-email-to-a-script
+
+### SendGrid
+
+1. Tell Action Mailbox to accept emails from SendGrid:
+
+   ```ruby
+   # config/environments/production.rb
+   config.action_mailbox.ingress = :sendgrid
+   ```
+
+2. Generate a strong password that Action Mailbox can use to authenticate requests to the SendGrid ingress.
+
+   Use `rails credentials:edit` to add the password to your application's encrypted credentials under
+   `action_mailbox.ingress_password`, where Action Mailbox will automatically find it:
+
+   ```yaml
+   action_mailbox:
+     ingress_password: ...
+   ```
+
+   Alternatively, provide the password in the `RAILS_INBOUND_EMAIL_PASSWORD` environment variable.
+
+3. [Configure SendGrid Inbound Parse][sendgrid-config] to forward inbound emails to
+   `/rails/action_mailbox/sendgrid/inbound_emails` with the username `actionmailbox` and the password you previously
+   generated. If your application lived at `https://example.com`, you would configure SendGrid with the following URL:
+
+   ```
+   https://actionmailbox:PASSWORD@example.com/rails/action_mailbox/sendgrid/inbound_emails
+   ```
+
+   **⚠️ Note:** When configuring your SendGrid Inbound Parse webhook, be sure to check the box labeled **“Post the raw,
+   full MIME message.”** Action Mailbox needs the raw MIME message to work.
+
+[sendgrid-config]: https://sendgrid.com/docs/for-developers/parsing-email/setting-up-the-inbound-parse-webhook/
+
 
 ## Examples
 
