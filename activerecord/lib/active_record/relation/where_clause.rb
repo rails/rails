@@ -4,10 +4,7 @@ module ActiveRecord
   class Relation
     class WhereClause # :nodoc:
 
-      NODE_TESTER = -> (node, columns) {
-        subrelation = (node.left.kind_of?(Arel::Attributes::Attribute) ? node.left : node.right)
-        columns.include?(subrelation.name.to_s)
-      }.freeze
+      EXCEPT_PREDICATE_NODES = [Arel::Nodes::Between, Arel::Nodes::In, Arel::Nodes::NotIn, Arel::Nodes::Equality, Arel::Nodes::NotEqual, Arel::Nodes::LessThan, Arel::Nodes::LessThanOrEqual, Arel::Nodes::GreaterThan, Arel::Nodes::GreaterThanOrEqual].freeze
 
       delegate :any?, :empty?, to: :predicates
 
@@ -141,26 +138,20 @@ module ActiveRecord
         end
 
         def except_predicates(columns)
-          relevant_nodes = [Arel::Nodes::Between, Arel::Nodes::In, Arel::Nodes::NotIn, Arel::Nodes::Equality, Arel::Nodes::NotEqual, Arel::Nodes::LessThan, Arel::Nodes::LessThanOrEqual, Arel::Nodes::GreaterThan, Arel::Nodes::GreaterThanOrEqual]
-
           predicates.reject do |node|
             case node
-            when *relevant_nodes
-              NODE_TESTER.call(node, columns)
+            when *EXCEPT_PREDICATE_NODES
+              node_tester.call(node, columns)
 
             when Arel::Nodes::Grouping
-              node.each do |n|
-                included = true
-
-                case n
-                when *relevant_nodes
-                  included &&= NODE_TESTER.call(n, columns)
-                end
-
-                included
-              end
+              nodes.all? { |node| !node.class.in?(EXCEPT_PREDICATE_NODES) || node_tester.call(node, columns) }
             end
           end
+        end
+
+        def node_tester(node, columns)
+          subrelation = (node.left.kind_of?(Arel::Attributes::Attribute) ? node.left : node.right)
+          columns.include?(subrelation.name.to_s)
         end
 
         def predicates_with_wrapped_sql_literals
