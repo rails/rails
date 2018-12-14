@@ -230,19 +230,43 @@ end
 
 ## Incineration of InboundEmails
 
-By default, an InboundEmail that has been marked as successfully processed will be incinerated after 30 days. This ensures you're not holding on to people's data willy-nilly after they may have canceled their accounts or deleted their content. The intention is that after you've processed an email, you should have extracted all the data you needed and turned it into domain models and content on your side of the application. The InboundEmail simply stays in the system for the extra time to provide debugging and forensics options.
+By default, an InboundEmail that has been successfully processed will be incinerated after 30 days. This ensures you're not holding on to people's data willy-nilly after they may have canceled their accounts or deleted their content. The intention is that after you've processed an email, you should have extracted all the data you needed and turned it into domain models and content on your side of the application. The InboundEmail simply stays in the system for the extra time to provide debugging and forensics options.
 
 The actual incineration is done via the `IncinerationJob` that's scheduled to run after `config.action_mailbox.incinerate_after` time. This value is by default set to `30.days`, but you can change it in your production.rb configuration. (Note that this far-future incineration scheduling relies on your job queue being able to hold jobs for that long.)
 
 
-## Create incoming email through a conductor module in development
+## Working with Action Mailbox in development
 
 It's helpful to be able to test incoming emails in development without actually sending and receiving real emails. To accomplish this, there's a conductor controller mounted at `/rails/conductor/action_mailbox/inbound_emails`, which gives you an index of all the InboundEmails in the system, their state of processing, and a form to create a new InboundEmail as well.
 
 
 ## Testing mailboxes
 
-TODO
+Example:
+
+```ruby
+class ForwardsMailboxTest < ActionMailbox::TestCase
+  test "directly recording a client forward for a forwarder and forwardee corresponding to one project" do
+    assert_difference -> { people(:david).buckets.first.recordings.count } do
+      receive_inbound_email_from_mail \
+        to: 'save@example.com',
+        from: people(:david).email_address,
+        subject: "Fwd: Status update?",
+        body: <<~BODY
+          --- Begin forwarded message ---
+          From: Frank Holland <frank@microsoft.com>
+
+          What's the status?
+        BODY
+    end
+
+    recording = people(:david).buckets.first.recordings.last
+    assert_equal people(:david), recording.creator
+    assert_equal "Status update?", recording.forward.subject
+    assert_match "What's the status?", recording.forward.content.to_s
+  end
+end
+```
 
 
 ## Development road map
