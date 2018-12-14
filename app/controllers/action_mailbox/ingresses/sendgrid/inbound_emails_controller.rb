@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Ingests inbound emails from SendGrid. Requires an +email+ parameter containing a full RFC 822 message.
 #
 # Authenticates requests using HTTP basic access authentication. The username is always +actionmailbox+, and the

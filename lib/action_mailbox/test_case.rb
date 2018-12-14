@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "action_mailbox/test_helper"
 require "active_support/test_case"
 

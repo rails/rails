@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Rails::Conductor::ActionMailbox::InboundEmailsController < Rails::Conductor::BaseController
   def index
     @inbound_emails = ActionMailbox::InboundEmail.order(created_at: :desc)

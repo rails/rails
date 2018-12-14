@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # You can configure when this `IncinerationJob` will be run as a time-after-processing using the
 # `config.action_mailbox.incinerate_after` or `ActionMailbox.incinerate_after` setting.
 #

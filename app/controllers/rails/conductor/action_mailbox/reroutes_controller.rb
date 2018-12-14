@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Rerouting will run routing and processing on an email that has already been, or attempted to be, processed.
 class Rails::Conductor::ActionMailbox::ReroutesController < Rails::Conductor::BaseController
   def create

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # TODO: Move this to Rails::Conductor gem
 class Rails::Conductor::BaseController < ActionController::Base
   layout "rails/conductor"

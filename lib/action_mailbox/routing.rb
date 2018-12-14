@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActionMailbox
   # See `ActionMailbox::Base` for how to specify routing.
   module Routing
