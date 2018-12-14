@@ -5,15 +5,16 @@ namespace :action_mailbox do
   Rake::Task["install:migrations"].clear_comments
 
   desc "Copy over the migration"
-  task install: %w[ environment install:copy_migration active_storage:install ]
+  task install: %w[ environment run_installer copy_migrations ]
 
-  namespace :install do
-    task :copy_migration do
-      if Rake::Task.task_defined?("action_mailbox:install:migrations")
-        Rake::Task["action_mailbox:install:migrations"].invoke
-      else
-        Rake::Task["app:action_mailbox:install:migrations"].invoke
-      end
-    end
+  task :run_installer do
+    installer_template = File.expand_path("../templates/installer.rb", __dir__)
+    system "#{RbConfig.ruby} ./bin/rails app:template LOCATION=#{installer_template}"
+  end
+
+  task :copy_migrations do
+    Rake::Task["active_storage:install:migrations"].invoke
+    Rake::Task["railties:install:migrations"].reenable # Otherwise you can't run 2 migration copy tasks in one invocation
+    Rake::Task["action_mailbox:install:migrations"].invoke
   end
 end
