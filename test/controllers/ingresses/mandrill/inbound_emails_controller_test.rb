@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "test_helper"
 
 ENV["MANDRILL_INGRESS_API_KEY"] = "1l9Qf7lutEf7h73VXfBwhw"

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Ingests inbound emails relayed from Postfix.
 #
 # Authenticates requests using HTTP basic access authentication. The username is always +actionmailbox+, and the

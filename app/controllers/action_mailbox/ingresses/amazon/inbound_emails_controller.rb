@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Ingests inbound emails from Amazon's Simple Email Service (SES).
 #
 # Requires the full RFC 822 message in the +content+ parameter. Authenticates requests by validating their signatures.

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Ingests inbound emails from Mailgun. Requires the following parameters:
 #
 # - +body-mime+: The full RFC 822 message

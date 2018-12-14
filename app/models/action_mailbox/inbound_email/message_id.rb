@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # The `Message-ID` as specified by rfc822 is supposed to be a unique identifier for that individual email. 
 # That makes it an ideal tracking token for debugging and forensics, just like `X-Request-Id` does for 
 # web request.

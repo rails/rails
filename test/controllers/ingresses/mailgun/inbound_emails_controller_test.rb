@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "test_helper"
 
 ENV["MAILGUN_INGRESS_API_KEY"] = "tbsy84uSV1Kt3ZJZELY2TmShPRs91E3yL4tzf96297vBCkDWgL"

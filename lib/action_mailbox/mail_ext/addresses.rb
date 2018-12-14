@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Mail::Message
   def from_address
     header[:from]&.address_list&.addresses&.first

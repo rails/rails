@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Encapsulates the routes that live on the ApplicationMailbox and performs the actual routing when
 # an inbound_email is received.
 class ActionMailbox::Router

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Ingests inbound emails from Mandrill.
 #
 # Requires a +mandrill_events+ parameter containing a JSON array of Mandrill inbound email event objects.
