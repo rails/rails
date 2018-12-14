@@ -175,7 +175,7 @@ module ActionDispatch #:nodoc:
     end
 
     def report_uri(uri)
-      @directives["report-uri"] = [uri]
+      @directives["report-uri"] = [uri] if uri
     end
 
     def require_sri_for(*types)
@@ -231,10 +231,14 @@ module ActionDispatch #:nodoc:
       def build_directives(context, nonce)
         @directives.map do |directive, sources|
           if sources.is_a?(Array)
-            if nonce && nonce_directive?(directive)
-              "#{directive} #{build_directive(sources, context).join(' ')} 'nonce-#{nonce}'"
+            resolved_sources = build_directive(sources, context)
+
+            if resolved_sources.empty?
+              nil
+            elsif nonce && nonce_directive?(directive)
+              "#{directive} #{resolved_sources.join(" ")} 'nonce-#{nonce}'"
             else
-              "#{directive} #{build_directive(sources, context).join(' ')}"
+              "#{directive} #{resolved_sources.join(" ")}"
             end
           elsif sources
             directive
@@ -245,7 +249,7 @@ module ActionDispatch #:nodoc:
       end
 
       def build_directive(sources, context)
-        sources.map { |source| resolve_source(source, context) }
+        sources.map { |source| resolve_source(source, context) }.compact
       end
 
       def resolve_source(source, context)

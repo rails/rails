@@ -171,6 +171,19 @@ class ContentSecurityPolicyTest < ActiveSupport::TestCase
     assert_match %r{report-uri /violations}, @policy.build
   end
 
+  def test_reporting_directives_when_nil
+    @policy.report_uri nil
+    @policy.default_src :self
+    assert_no_match %r{report-uri}, @policy.build
+  end
+
+  def test_reporting_directives_when_argument_proc_returns_nil
+    controller = ActionController::Base.new
+    @policy.report_uri proc { nil }
+    @policy.default_src :self
+    assert_no_match %r{report-uri}, @policy.build(controller)
+  end
+
   def test_other_directives
     @policy.block_all_mixed_content
     assert_match %r{block-all-mixed-content}, @policy.build
