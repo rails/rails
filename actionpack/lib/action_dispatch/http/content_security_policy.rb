@@ -175,7 +175,7 @@ module ActionDispatch #:nodoc:
     end
 
     def report_uri(uri)
-      @directives["report-uri"] = [uri]
+      @directives["report-uri"] = [uri] if uri
     end
 
     def require_sri_for(*types)
