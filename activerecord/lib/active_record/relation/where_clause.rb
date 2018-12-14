@@ -141,15 +141,15 @@ module ActiveRecord
           predicates.reject do |node|
             case node
             when *EXCEPT_PREDICATE_NODES
-              node_tester(node, columns)
+              reject_predicate_node?(node, columns)
 
             when Arel::Nodes::Grouping
-              node.all? { |node| !EXCEPT_PREDICATE_NODES.include?(node.class) || node_tester(node, columns) }
+              node.all? { |node| !EXCEPT_PREDICATE_NODES.include?(node.class) || reject_predicate_node?(node, columns) }
             end
           end
         end
 
-        def node_tester(node, columns)
+        def reject_predicate_node?(node, columns)
           subrelation = (node.left.kind_of?(Arel::Attributes::Attribute) ? node.left : node.right)
           columns.include?(subrelation.name.to_s)
         end
