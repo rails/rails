@@ -1,3 +1,26 @@
+*   Allow passing custom configuration to `ActionCable::Server::Base`.
+
+    You can now create a standalone Action Cable server with a custom configuration
+    (e.g. to run it in isolation from the default one):
+
+    ```ruby
+    config = ActionCable::Server::Configuration.new
+    config.cable = { adapter: "redis", channel_prefix: "custom_" }
+
+    CUSTOM_CABLE = ActionCable::Server::Base.new(config: config)
+    ```
+
+    Then you can mount it in the `routes.rb` file:
+
+    ```ruby
+    Rails.application.routes.draw do
+      mount CUSTOM_CABLE => "/custom_cable"
+      # ...
+    end
+    ```
+
+    *Vladimir Dementyev*
+
 *   Add `:action_cable_connection` and `:action_cable_channel` load hooks.
 
     You can use them to extend `ActionCable::Connection::Base` and `ActionCable::Channel::Base`

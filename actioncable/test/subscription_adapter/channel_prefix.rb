@@ -2,17 +2,9 @@
 
 require "test_helper"
 
-class ActionCable::Server::WithIndependentConfig < ActionCable::Server::Base
-  # ActionCable::Server::Base defines config as a class variable.
-  # Need config to be an instance variable here as we're testing 2 separate configs
-  def config
-    @config ||= ActionCable::Server::Configuration.new
-  end
-end
-
 module ChannelPrefixTest
   def test_channel_prefix
-    server2 = ActionCable::Server::WithIndependentConfig.new
+    server2 = ActionCable::Server::Base.new(config: ActionCable::Server::Configuration.new)
     server2.config.cable = alt_cable_config
     server2.config.logger = Logger.new(StringIO.new).tap { |l| l.level = Logger::UNKNOWN }
 
