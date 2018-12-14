@@ -12,6 +12,7 @@ class PostgresqlTimestampTest < ActiveRecord::PostgreSQLTestCase
   setup do
     @connection = ActiveRecord::Base.connection
     @connection.execute("INSERT INTO postgresql_timestamp_with_zones (id, time) VALUES (1, '2010-01-01 10:00:00-1')")
+    @connection.execute("INSERT INTO postgresql_timestamp_with_zones (id, time) VALUES (2, '2010-01-01 10:00:00.123456-01')")
   end
 
   teardown do
@@ -24,6 +25,10 @@ class PostgresqlTimestampTest < ActiveRecord::PostgreSQLTestCase
 
       timestamp = PostgresqlTimestampWithZone.find(1)
       assert_equal Time.utc(2010, 1, 1, 11, 0, 0), timestamp.time
+      assert_instance_of Time, timestamp.time
+
+      timestamp = PostgresqlTimestampWithZone.find(2)
+      assert_equal Time.utc(2010, 1, 1, 11, 0, 0, 123456), timestamp.time
       assert_instance_of Time, timestamp.time
     end
   ensure
@@ -38,6 +43,10 @@ class PostgresqlTimestampTest < ActiveRecord::PostgreSQLTestCase
 
       timestamp = PostgresqlTimestampWithZone.find(1)
       assert_equal Time.utc(2010, 1, 1, 11, 0, 0), timestamp.time
+      assert_instance_of Time, timestamp.time
+
+      timestamp = PostgresqlTimestampWithZone.find(2)
+      assert_equal Time.utc(2010, 1, 1, 11, 0, 0, 123456), timestamp.time
       assert_instance_of Time, timestamp.time
     end
   ensure

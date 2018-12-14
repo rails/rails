@@ -65,19 +65,31 @@ module ActiveModel
             end
           end
 
-          ISO_DATETIME = /\A(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d):(\d\d)(\.\d+)?\z/
+          # Does not handle time zone offsets with minute offsets due to performance
+          ISO_DATETIME = /\A(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d):(\d\d)(\.\d+)?([+-]\d\d(?::?00)?)?\z/
 
-          # Doesn't handle time zones.
           def fast_string_to_time(string)
             if string =~ ISO_DATETIME
-              microsec_part = $7
-              if microsec_part && microsec_part.start_with?(".") && microsec_part.length == 7
-                microsec_part[0] = ""
-                microsec = microsec_part.to_i
-              else
-                microsec = (microsec_part.to_r * 1_000_000).to_i
-              end
-              new_time $1.to_i, $2.to_i, $3.to_i, $4.to_i, $5.to_i, $6.to_i, microsec
+              microsec = parse_microseconds($7)
+              offset = parse_offset($8)
+              new_time $1.to_i, $2.to_i, $3.to_i, $4.to_i, $5.to_i, $6.to_i, microsec, offset
+            end
+          end
+
+          def parse_microseconds(microsec_part)
+            if microsec_part && microsec_part.start_with?(".") && microsec_part.length == 7
+              microsec_part[0] = ""
+              microsec_part.to_i
+            else
+              (microsec_part.to_r * 1_000_000).to_i
+            end
+          end
+
+          def parse_offset(offset_part)
+            if offset_part
+              offset_part.to_i * 3600
+            else
+              nil
             end
           end
       end
