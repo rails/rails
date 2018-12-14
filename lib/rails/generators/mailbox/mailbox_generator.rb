@@ -20,7 +20,7 @@ module Rails
           end
         end
 
-        template "mailer_test.rb", File.join('test/mailboxes', class_path, "#{file_name}_mailbox_test.rb")
+        template "mailbox_test.rb", File.join('test/mailboxes', class_path, "#{file_name}_mailbox_test.rb")
       end
 
       hook_for :test_framework
