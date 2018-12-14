@@ -49,6 +49,8 @@ module ActiveRecord
 
           def _type_cast(value)
             case value
+            when Type::Binary::Data
+              ::SQLite3::Blob.new(value.to_s)
             when BigDecimal
               value.to_f
             when String

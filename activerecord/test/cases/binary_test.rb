@@ -42,5 +42,11 @@ unless current_adapter?(:DB2Adapter)
         assert_equal data, bin.reload.data, "Reloaded data differs from original"
       end
     end
+
+    def test_arel_find
+      binary = Binary.create!(data: "some binary data")
+
+      assert_equal [binary], Binary.where(Binary.arel_table[:data].eq(binary.data)).to_a
+    end
   end
 end

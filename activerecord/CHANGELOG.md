@@ -1,3 +1,7 @@
+*   Fix binary insert type casting with SQLite.
+
+    *Gannon McGibbon*
+
 *   Fix join table column quoting with SQLite.
 
     *Gannon McGibbon*
