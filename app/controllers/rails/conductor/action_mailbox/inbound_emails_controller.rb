@@ -24,6 +24,6 @@ class Rails::Conductor::ActionMailbox::InboundEmailsController < Rails::Conducto
 
     def create_inbound_email(mail)
       ActionMailbox::InboundEmail.create! raw_email: \
-        { io: StringIO.new(mail.to_s), filename: 'inbound.eml', content_type: 'message/rfc822', identify: false }
+        { io: StringIO.new(mail.to_s), filename: 'inbound.eml', content_type: 'message/rfc822' }
     end
 end
