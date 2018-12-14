@@ -106,7 +106,8 @@ module ActiveRecord
 
         payload = {
           record_count: result_set.length,
-          class_name: join_root.base_klass.name
+          class_name: join_root.base_klass.name,
+          result_set: result_set
         }
 
         message_bus.instrument("instantiation.active_record", payload) do
