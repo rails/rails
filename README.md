@@ -180,7 +180,7 @@ Assumes a Rails 5.2+ application:
 Configure basic routing:
 
 ```ruby
-# app/models/message.rb
+# app/mailboxes/application_mailbox.rb
 class ApplicationMailbox < ActionMailbox::Base
   routing /^save@/i     => :forwards
   routing /@replies\./i => :replies
