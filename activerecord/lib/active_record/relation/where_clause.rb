@@ -141,10 +141,10 @@ module ActiveRecord
           predicates.reject do |node|
             case node
             when *EXCEPT_PREDICATE_NODES
-              node_tester.call(node, columns)
+              node_tester(node, columns)
 
             when Arel::Nodes::Grouping
-              nodes.all? { |node| !node.class.in?(EXCEPT_PREDICATE_NODES) || node_tester.call(node, columns) }
+              node.all? { |node| !EXCEPT_PREDICATE_NODES.include?(node.class) || node_tester(node, columns) }
             end
           end
         end
