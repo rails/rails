@@ -1,5 +1,5 @@
 # frozen_string_literal: true
 
 class ApplicationMailbox < ActionMailbox::Base
-  # route /something/i => :somewhere
+  # routing /something/i => :somewhere
 end
