@@ -8,7 +8,7 @@ namespace :action_mailbox do
   task install: %w[ environment run_generator copy_migrations ]
 
   task :run_generator do
-    system "#{RbConfig.ruby} ./bin/rails generate mailbox application"
+    system "#{RbConfig.ruby} ./bin/rails generate mailbox application --no-test-framework"
   end
 
   task :copy_migrations do
