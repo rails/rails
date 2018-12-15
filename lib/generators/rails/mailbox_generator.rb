@@ -7,9 +7,7 @@ module Rails
 
       argument :actions, type: :array, default: [:process], banner: "method method"
 
-      def check_class_collision
-        class_collisions "#{class_name}Mailbox", "#{class_name}MailboxTest"
-      end
+      check_class_collision suffix: "Mailbox"
 
       def create_mailbox_file
         template "mailbox.rb", File.join("app/mailboxes", class_path, "#{file_name}_mailbox.rb")
@@ -19,8 +17,6 @@ module Rails
             template "application_mailbox.rb", application_mailbox_file_name
           end
         end
-
-        template "mailbox_test.rb", File.join('test/mailboxes', class_path, "#{file_name}_mailbox_test.rb")
       end
 
       hook_for :test_framework
