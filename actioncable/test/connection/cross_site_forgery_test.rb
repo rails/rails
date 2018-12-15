@@ -64,29 +64,39 @@ class ActionCable::Connection::CrossSiteForgeryTest < ActionCable::TestCase
     assert_origin_not_allowed "http://rails.co.uk"
   end
 
+  test "allow same origin as the first host in X-FORWARDED-HOST" do
+    @server.config.allow_same_origin_as_host = true
+    @server.config.allowed_request_origins = []
+    assert_origin_allowed "http://#{HOST}", HOST, "foo"
+    assert_origin_allowed "http://#{HOST}", HOST, "foo", "bar"
+    assert_origin_not_allowed "http://#{HOST}", "foo", "bar", "baz"
+  end
+
   private
-    def assert_origin_allowed(origin)
-      response = connect_with_origin origin
+    def assert_origin_allowed(origin, *proxy)
+      response = connect_with_origin origin, proxy
       assert_equal(-1, response[0])
     end
 
-    def assert_origin_not_allowed(origin)
-      response = connect_with_origin origin
+    def assert_origin_not_allowed(origin, *proxy)
+      response = connect_with_origin origin, proxy
       assert_equal 404, response[0]
     end
 
-    def connect_with_origin(origin)
+    def connect_with_origin(origin, proxy)
       response = nil
 
       run_in_eventmachine do
-        response = Connection.new(@server, env_for_origin(origin)).process
+        response = Connection.new(@server, env_for_origin(origin, proxy)).process
       end
 
       response
     end
 
-    def env_for_origin(origin)
+    def env_for_origin(origin, proxy)
+      host = proxy.any? ? proxy.last : HOST
+
       Rack::MockRequest.env_for "/test", "HTTP_CONNECTION" => "upgrade", "HTTP_UPGRADE" => "websocket", "SERVER_NAME" => HOST,
-        "HTTP_HOST" => HOST, "HTTP_ORIGIN" => origin
+        "HTTP_HOST" => host, "HTTP_ORIGIN" => origin, "HTTP_X_FORWARDED_HOST" => proxy.join(", ")
     end
 end
