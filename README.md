@@ -190,6 +190,11 @@ end
 Then setup a mailbox:
 
 ```ruby
+# Generate new maiblox
+bin/rails generate mailbox forwards
+```
+
+```ruby
 # app/mailboxes/forwards_mailbox.rb
 class ForwardsMailbox < ApplicationMailbox
   # Callbacks specify prerequisites to processing
