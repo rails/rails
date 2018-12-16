@@ -177,7 +177,7 @@ module ActiveSupport
       # names, or by passing a Regexp to match all events that match a pattern.
       #
       #   ActiveSupport::Notifications.subscribe(/render/) do |*args|
-      #     ...
+      #     @event = ActiveSupport::Notifications::Event.new(*args)
       #   end
       #
       # The +block+ will receive five parameters with information about the event:
@@ -188,6 +188,13 @@ module ActiveSupport
       #     finish  # => Time, when the instrumented block ended execution
       #     id      # => String, unique ID for the instrumenter that fired the event
       #     payload # => Hash, the payload
+      #   end
+      #
+      # If the block passed to the method only takes one parameter,
+      # it will yield an event object to the block:
+      #
+      #   ActiveSupport::Notifications.subscribe(/render/) do |event|
+      #     @event = event
       #   end
       def subscribe(*args, &block)
         notifier.subscribe(*args, &block)
