@@ -46,8 +46,8 @@ or to generate the body of an email. In Rails, View generation is handled by [Ac
 In addition to that, Rails also comes with [Action Mailer](actionmailer/README.rdoc), a library
 to generate and send emails; [Active Job](activejob/README.md), a
 framework for declaring jobs and making them run on a variety of queuing
-backends; [Action Cable](actioncable/README.md), a framework to
-integrate WebSockets with a Rails application; [Active Storage](activestorage/README.md), a library to attach cloud
+backend; [Action Cable](actioncable/README.md), a framework to
+integrate Web Sockets with a Rails application; [Active Storage](activestorage/README.md), a library to attach cloud
 and local files to Rails applications;
 and [Active Support](activesupport/README.rdoc), a collection
 of utility classes and standard library extensions that are useful for Rails,
