@@ -26,6 +26,9 @@ class ActionCable::Channel::BaseTest < ActionCable::TestCase
     after_subscribe :toggle_subscribed
     after_unsubscribe :toggle_subscribed
 
+    class SomeCustomError < StandardError; end
+    rescue_from SomeCustomError, with: :error_handler
+
     def initialize(*)
       @subscribed = false
       super
@@ -68,9 +71,17 @@ class ActionCable::Channel::BaseTest < ActionCable::TestCase
       @last_action = [ :receive ]
     end
 
+    def error_action
+      raise SomeCustomError
+    end
+
     private
       def rm_rf
         @last_action = [ :rm_rf ]
+      end
+
+      def error_handler
+        @last_action = [ :error_action ]
       end
   end
 
@@ -168,7 +179,7 @@ class ActionCable::Channel::BaseTest < ActionCable::TestCase
   end
 
   test "actions available on Channel" do
-    available_actions = %w(room last_action subscribed unsubscribed toggle_subscribed leave speak subscribed? get_latest receive chatters topic).to_set
+    available_actions = %w(room last_action subscribed unsubscribed toggle_subscribed leave speak subscribed? get_latest receive chatters topic error_action).to_set
     assert_equal available_actions, ChatChannel.action_methods
   end
 
@@ -254,6 +265,11 @@ class ActionCable::Channel::BaseTest < ActionCable::TestCase
     ensure
       ActiveSupport::Notifications.unsubscribe "transmit_subscription_rejection.action_cable"
     end
+  end
+
+  test "behaves like rescuable" do
+    @channel.perform_action "action" => :error_action
+    assert_equal [ :error_action ], @channel.last_action
   end
 
   private

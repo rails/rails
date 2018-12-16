@@ -19,7 +19,7 @@ module ActiveRecord
           execute(sql, name).to_a
         end
 
-        READ_QUERY = ActiveRecord::ConnectionAdapters::AbstractAdapter.build_read_query_regexp(:begin, :select, :set, :show, :release, :savepoint) # :nodoc:
+        READ_QUERY = ActiveRecord::ConnectionAdapters::AbstractAdapter.build_read_query_regexp(:begin, :commit, :explain, :select, :set, :show, :release, :savepoint, :rollback) # :nodoc:
         private_constant :READ_QUERY
 
         def write_query?(sql) # :nodoc:
@@ -40,8 +40,6 @@ module ActiveRecord
         end
 
         def exec_query(sql, name = "SQL", binds = [], prepare: false)
-          materialize_transactions
-
           if without_prepared_statement?(binds)
             execute_and_free(sql, name) do |result|
               if result
@@ -62,8 +60,6 @@ module ActiveRecord
         end
 
         def exec_delete(sql, name = nil, binds = [])
-          materialize_transactions
-
           if without_prepared_statement?(binds)
             execute_and_free(sql, name) { @connection.affected_rows }
           else
@@ -122,6 +118,12 @@ module ActiveRecord
           end
 
           def exec_stmt_and_free(sql, name, binds, cache_stmt: false)
+            if preventing_writes? && write_query?(sql)
+              raise ActiveRecord::ReadOnlyError, "Write query attempted while in readonly mode: #{sql}"
+            end
+
+            materialize_transactions
+
             # make sure we carry over any changes to ActiveRecord::Base.default_timezone that have been
             # made since we established the connection
             @connection.query_options[:database_timezone] = ActiveRecord::Base.default_timezone

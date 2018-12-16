@@ -1,3 +1,19 @@
+*   Remove redundant suffixes on generated helpers.
+
+    *Gannon McGibbon*
+
+*   Remove redundant suffixes on generated integration tests.
+
+    *Gannon McGibbon*
+
+*   Fix boolean interaction in scaffold system tests.
+
+    *Gannon McGibbon*
+
+*   Remove redundant suffixes on generated system tests.
+
+    *Gannon McGibbon*
+
 *   Add an `abort_on_failure` boolean option to the generator method that shell
     out (`generate`, `rake`, `rails_command`) to abort the generator if the
     command fails.

@@ -130,6 +130,29 @@ module ActiveRecord
       end
     end
 
+    # Returns true if role is the current connected role.
+    #
+    #   ActiveRecord::Base.connected_to(role: :writing) do
+    #     ActiveRecord::Base.connected_to?(role: :writing) #=> true
+    #     ActiveRecord::Base.connected_to?(role: :reading) #=> false
+    #   end
+    def connected_to?(role:)
+      current_role == role.to_sym
+    end
+
+    # Returns the symbol representing the current connected role.
+    #
+    #   ActiveRecord::Base.connected_to(role: :writing) do
+    #     ActiveRecord::Base.current_role #=> :writing
+    #   end
+    #
+    #   ActiveRecord::Base.connected_to(role: :reading) do
+    #     ActiveRecord::Base.current_role #=> :reading
+    #   end
+    def current_role
+      connection_handlers.key(connection_handler)
+    end
+
     def lookup_connection_handler(handler_key) # :nodoc:
       connection_handlers[handler_key] ||= ActiveRecord::ConnectionAdapters::ConnectionHandler.new
     end

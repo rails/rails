@@ -108,11 +108,15 @@ module ActiveRecord
           ActiveRecord::Base.connected_to(role: :reading) do
             @ro_handler = ActiveRecord::Base.connection_handler
             assert_equal ActiveRecord::Base.connection_handler, ActiveRecord::Base.connection_handlers[:reading]
+            assert ActiveRecord::Base.connected_to?(role: :reading)
+            assert_not ActiveRecord::Base.connected_to?(role: :writing)
           end
 
           ActiveRecord::Base.connected_to(role: :writing) do
             assert_equal ActiveRecord::Base.connection_handler, ActiveRecord::Base.connection_handlers[:writing]
             assert_not_equal @ro_handler, ActiveRecord::Base.connection_handler
+            assert ActiveRecord::Base.connected_to?(role: :writing)
+            assert_not ActiveRecord::Base.connected_to?(role: :reading)
           end
         ensure
           ActiveRecord::Base.configurations = @prev_configs
@@ -125,6 +129,8 @@ module ActiveRecord
           previous_url, ENV["DATABASE_URL"] = ENV["DATABASE_URL"], "postgres://localhost/foo"
 
           ActiveRecord::Base.connected_to(database: { writing: "postgres://localhost/bar" }) do
+            assert ActiveRecord::Base.connected_to?(role: :writing)
+
             handler = ActiveRecord::Base.connection_handler
             assert_equal handler, ActiveRecord::Base.connection_handlers[:writing]
 
@@ -142,6 +148,8 @@ module ActiveRecord
           config = { adapter: "sqlite3", database: "db/readonly.sqlite3" }
 
           ActiveRecord::Base.connected_to(database: { writing: config }) do
+            assert ActiveRecord::Base.connected_to?(role: :writing)
+
             handler = ActiveRecord::Base.connection_handler
             assert_equal handler, ActiveRecord::Base.connection_handlers[:writing]
 
@@ -179,6 +187,8 @@ module ActiveRecord
           @prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, config
 
           ActiveRecord::Base.connected_to(database: :readonly) do
+            assert ActiveRecord::Base.connected_to?(role: :readonly)
+
             handler = ActiveRecord::Base.connection_handler
             assert_equal handler, ActiveRecord::Base.connection_handlers[:readonly]
 
@@ -201,6 +211,7 @@ module ActiveRecord
 
           assert_equal 1, ActiveRecord::Base.connection_handlers.size
           assert_equal ActiveRecord::Base.connection_handler, ActiveRecord::Base.connection_handlers[:writing]
+          assert ActiveRecord::Base.connected_to?(role: :writing)
         ensure
           ActiveRecord::Base.configurations = @prev_configs
           ActiveRecord::Base.establish_connection(:arunit)

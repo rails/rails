@@ -1059,7 +1059,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
 
     def assert_bundler_command_called(target_command)
-      command_check = -> command do
+      command_check = -> (command, env = {}) do
         @command_called ||= 0
 
         case command

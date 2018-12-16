@@ -67,7 +67,7 @@ module Rails
 
     # The Ruby version and platform, e.g. "2.0.0-p247 (x86_64-darwin12.4.0)".
     property "Ruby version" do
-      "#{RUBY_VERSION}-p#{RUBY_PATCHLEVEL} (#{RUBY_PLATFORM})"
+      RUBY_DESCRIPTION
     end
 
     # The RubyGems version, if it's installed.
