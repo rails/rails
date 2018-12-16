@@ -234,5 +234,51 @@ module ActiveRecord
         validates_with UniquenessValidator, _merge_attributes(attr_names)
       end
     end
+
+  private
+
+    def handle_unique_error(exception)
+      handler = exception_handler(exception)
+      return false unless handler
+
+      attribute = handler.attributes.first
+      options = handler.options.except(:case_sensitive, :scope).merge(value: self.send(:read_attribute_for_validation, attribute))
+
+      self.errors.add(attribute, :taken, options)
+      true
+    end
+
+    def exception_handler(exception)
+      columns = exception_columns(exception)
+      return if columns.nil? || columns.empty?
+      columns.sort!
+
+      self.class.validators.find do |validator|
+        validator.kind == :uniqueness && (validator.attributes + Array.wrap(validator.options[:scope])).map(&:to_s).sort == columns
+      end
+    end
+
+    def exception_columns(exception)
+      if exception.message.match?(/SQLite3::ConstraintException/)
+        sqlite3_exception_columns(exception)
+      elsif exception.message.match?(/PG::UniqueViolation/)
+        postgresql_exception_columns(exception)
+      else
+        other_exception_columns(exception)
+      end
+    end
+
+    def postgresql_exception_columns(exception)
+      exception.message[/Key \((.+)\)=/, 1].split(", ")
+    end
+
+    def sqlite3_exception_columns(exception)
+      exception.message.scan(/#{self.class.table_name}\.([^,:]+)/).flatten
+    end
+
+    def other_exception_columns(exception)
+      indexes = self.class.connection.indexes(self.class.table_name)
+      indexes.find { |i| exception.message.include?(i.name) }.try(:columns) || []
+    end
   end
 end

@@ -44,12 +44,18 @@ module ActiveRecord
     # with this when the validations module is mixed in, which it is by default.
     def save(options = {})
       perform_validations(options) ? super : false
+    rescue ActiveRecord::RecordNotUnique => e
+      raise unless handle_unique_error(e)
+      false
     end
 
     # Attempts to save the record just like {ActiveRecord::Base#save}[rdoc-ref:Base#save] but
     # will raise an ActiveRecord::RecordInvalid exception instead of returning +false+ if the record is not valid.
     def save!(options = {})
       perform_validations(options) ? super : raise_validation_error
+    rescue ActiveRecord::RecordNotUnique => e
+      raise unless handle_unique_error(e)
+      raise ActiveRecord::RecordInvalid, self
     end
 
     # Runs all the validations within the specified context. Returns +true+ if

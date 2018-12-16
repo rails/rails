@@ -11,6 +11,7 @@ require "models/uuid_item"
 require "models/author"
 require "models/person"
 require "models/essay"
+require "models/subscriber"
 
 class Wizard < ActiveRecord::Base
   self.abstract_class = true
@@ -64,6 +65,10 @@ class TopicWithAfterCreate < Topic
   def set_author
     update!(author_name: "#{title} #{id}")
   end
+end
+
+class SubscriberWithUniqueValidation < Subscriber
+  validates :nick, uniqueness: true
 end
 
 class UniquenessValidationTest < ActiveRecord::TestCase
@@ -553,5 +558,27 @@ class UniquenessValidationTest < ActiveRecord::TestCase
     assert_not_predicate item2, :valid?
 
     assert_equal(["has already been taken"], item2.errors[:id])
+  end
+
+  def test_validate_uniqueness_rescue_record_not_unique
+    SubscriberWithUniqueValidation.create!(nick: "bob")
+
+    subscriber = SubscriberWithUniqueValidation.new(nick: "bob")
+
+    assert_nothing_raised { subscriber.save(validate: false) }
+    assert_equal(["has already been taken"], subscriber.errors[:nick])
+
+    subscriber = SubscriberWithUniqueValidation.new(nick: "bob")
+
+    assert_raises(ActiveRecord::RecordInvalid) { subscriber.save!(validate: false) }
+    assert_equal(["has already been taken"], subscriber.errors[:nick])
+  end
+
+  def test_validate_uniqueness_not_rescue_record_not_unique
+    Subscriber.create!(nick: "bob")
+
+    subscriber = Subscriber.new(nick: "bob")
+
+    assert_raises(ActiveRecord::RecordNotUnique) { subscriber.save }
   end
 end
