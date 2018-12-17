@@ -1,3 +1,28 @@
+*   When an instance of `ActiveSupport::Duration` is converted to an `iso8601` duration string, if `weeks` are mixed with `date` parts, the `week` part will be converted to days.
+    This keeps the parser and serializer on the same page.
+
+    ```ruby
+    duration = ActiveSupport::Duration.build(1000000)
+    # 1 week, 4 days, 13 hours, 46 minutes, and 40.0 seconds
+
+    duration_iso = duration.iso8601
+    # P11DT13H46M40S
+
+    ActiveSupport::Duration.parse(duration_iso)
+    # 11 days, 13 hours, 46 minutes, and 40 seconds
+
+    duration = ActiveSupport::Duration.build(604800)
+    # 1 week
+
+    duration_iso = duration.iso8601
+    # P1W
+
+    ActiveSupport::Duration.parse(duration_iso)
+    # 1 week
+    ```
+
+    *Abhishek Sarkar*
+
 *   Add block support to `ActiveSupport::Testing::TimeHelpers#travel_back`.
 
     *Tim Masliuchenko*
