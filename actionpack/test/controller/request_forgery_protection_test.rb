@@ -491,7 +491,7 @@ module RequestForgeryProtectionTests
       assert_blocked { post :index }
 
       assert_equal 1, logger.logged(:warn).size
-      assert_match(/CSRF token authenticity/, logger.logged(:warn).last)
+      assert_match(/CSRF verification failed .* was not provided/, logger.logged(:warn).last)
     ensure
       ActionController::Base.logger = old_logger
     end
