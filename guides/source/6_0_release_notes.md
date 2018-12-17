@@ -6,11 +6,23 @@ Ruby on Rails 6.0 Release Notes
 Highlights in Rails 6.0:
 
 * Parallel Testing
+* [Action Text](https://github.com/rails/actiontext)
+* [Action Mailbox](https://github.com/rails/actionmailbox)
 
 These release notes cover only the major changes. To learn about various bug
 fixes and changes, please refer to the change logs or check out the [list of
 commits](https://github.com/rails/rails/commits/6-0-stable) in the main Rails
 repository on GitHub.
+
+Timeline
+--------
+Currently Rails 6.0 is a work in progress. 
+
+The hope is to start the Rails 6.0 beta process in early 2019.
+
+The plan is tentatively to have a release candidate version ready for [RailsConf 2019](https://railsconf.com/) in Minneapolis held in 2019 on 30 April - 2 May.
+
+The release of the final Rails 6.0 should happen in 2019.
 
 --------------------------------------------------------------------------------
 
