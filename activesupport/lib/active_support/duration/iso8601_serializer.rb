@@ -19,7 +19,6 @@ module ActiveSupport
         output = +"P"
         output << "#{parts[:years]}Y"   if parts.key?(:years)
         output << "#{parts[:months]}M"  if parts.key?(:months)
-        output << "#{parts[:weeks]}W"   if parts.key?(:weeks)
         output << "#{parts[:days]}D"    if parts.key?(:days)
         time = +""
         time << "#{parts[:hours]}H"     if parts.key?(:hours)
@@ -41,6 +40,12 @@ module ActiveSupport
           parts = @duration.parts.each_with_object(Hash.new(0)) do |(k, v), p|
             p[k] += v  unless v.zero?
           end
+
+          # Convert weeks to days and remove weeks
+          days_in_week = SECONDS_PER_WEEK / SECONDS_PER_DAY
+          parts[:days] = parts[:days].to_i + ( parts[:weeks] * days_in_week ) if parts.key?(:weeks)
+          parts.delete(:weeks)
+
           # If all parts are negative - let's make a negative duration
           sign = ""
           if parts.values.all? { |v| v < 0 }
