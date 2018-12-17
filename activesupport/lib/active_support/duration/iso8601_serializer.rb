@@ -42,9 +42,11 @@ module ActiveSupport
           end
 
           # Convert weeks to days and remove weeks
-          days_in_week = SECONDS_PER_WEEK / SECONDS_PER_DAY
-          parts[:days] = parts[:days].to_i + ( parts[:weeks] * days_in_week ) if parts.key?(:weeks)
-          parts.delete(:weeks)
+          if parts.key?(:weeks)
+            days_in_week = SECONDS_PER_WEEK / SECONDS_PER_DAY
+            parts[:days] = parts[:days].to_i + ( parts[:weeks] * days_in_week )
+            parts.delete(:weeks)
+          end
 
           # If all parts are negative - let's make a negative duration
           sign = ""
