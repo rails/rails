@@ -30,25 +30,44 @@ class ExceptionsTest < ActiveJob::TestCase
     end
   end
 
-  test "keeps the same attempts counter when several exceptions are listed in the same declaration" do
+  test "keeps the same attempts counter for several exceptions listed in the same retry_on declaration" do
     exceptions_to_raise = %w(FirstRetryableErrorOfTwo FirstRetryableErrorOfTwo FirstRetryableErrorOfTwo
                              SecondRetryableErrorOfTwo SecondRetryableErrorOfTwo)
 
     assert_raises SecondRetryableErrorOfTwo do
       perform_enqueued_jobs do
-        ExceptionRetryJob.perform_later(exceptions_to_raise)
+        RetryJob.perform_later(exceptions_to_raise, 5)
       end
+
+      assert_equal [
+        "Raised FirstRetryableErrorOfTwo for the 1st time",
+        "Raised FirstRetryableErrorOfTwo for the 2nd time",
+        "Raised FirstRetryableErrorOfTwo for the 3rd time",
+        "Raised SecondRetryableErrorOfTwo for the 4th time",
+        "Raised SecondRetryableErrorOfTwo for the 5th time",
+      ], JobBuffer.values
     end
   end
 
-  test "keeps a separate attempts counter for each individual declaration" do
-    exceptions_to_raise = %w(FirstRetryableErrorOfTwo FirstRetryableErrorOfTwo FirstRetryableErrorOfTwo
-                             DefaultsError DefaultsError)
+  test "keeps a separate attempts counter for each individual retry_on declaration" do
+    exceptions_to_raise = %w(DefaultsError DefaultsError DefaultsError DefaultsError
+                             FirstRetryableErrorOfTwo FirstRetryableErrorOfTwo FirstRetryableErrorOfTwo)
 
     assert_nothing_raised do
       perform_enqueued_jobs do
-        ExceptionRetryJob.perform_later(exceptions_to_raise)
+        RetryJob.perform_later(exceptions_to_raise, 10)
       end
+
+      assert_equal [
+        "Raised DefaultsError for the 1st time",
+        "Raised DefaultsError for the 2nd time",
+        "Raised DefaultsError for the 3rd time",
+        "Raised DefaultsError for the 4th time",
+        "Raised FirstRetryableErrorOfTwo for the 5th time",
+        "Raised FirstRetryableErrorOfTwo for the 6th time",
+        "Raised FirstRetryableErrorOfTwo for the 7th time",
+        "Successfully completed job"
+      ], JobBuffer.values
     end
   end
 
