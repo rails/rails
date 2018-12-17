@@ -21,6 +21,10 @@ module ActiveRecord
         raise NotImplementedError
       end
 
+      def adapter
+        config["adapter"]
+      end
+
       def url_config?
         false
       end

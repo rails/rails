@@ -1,3 +1,12 @@
+*   Add `rails db:system` command to display an app's database for a given environment.
+
+    ```
+    bin/rails db:system -e production
+    postgresql
+    ```
+
+    *Gannon McGibbon*
+
 *   Add `rails db:system:change` command for changing databases.
 
     ```
