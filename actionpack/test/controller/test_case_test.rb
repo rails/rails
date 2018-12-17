@@ -156,6 +156,10 @@ XML
       render html: '<body class="foo"></body>'.html_safe
     end
 
+    def render_json
+      render json: request.raw_post
+    end
+
     def boom
       raise "boom!"
     end
@@ -964,6 +968,16 @@ XML
       params: { q: "test2" }
 
     assert_equal "q=test2", @response.body
+  end
+
+  def test_parsed_body_without_as_option
+    post :render_json, body: { foo: "heyo" }
+    assert_equal({ "foo" => "heyo" }, response.parsed_body)
+  end
+
+  def test_parsed_body_with_as_option
+    post :render_json, body: { foo: "heyo" }, as: :json
+    assert_equal({ "foo" => "heyo" }, response.parsed_body)
   end
 end
 

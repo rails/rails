@@ -1,3 +1,21 @@
+*   Allow using `parsed_body` in `ActionController::TestCase`.
+
+    In addition to `ActionDispatch::IntegrationTest`, allow using
+    `parsed_body` in `ActionController::TestCase`:
+
+    ```
+    class SomeControllerTest < ActionController::TestCase
+      def test_some_action
+        post :action, body: { foo: 'bar' }
+        assert_equal({ "foo" => "bar" }, response.parsed_body)
+      end
+    end
+    ```
+
+    Fixes #34676.
+
+    *Tobias Bühlmann*
+
 *   Raise an error on root route naming conflicts.
 
     Raises an ArgumentError when multiple root routes are defined in the
