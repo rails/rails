@@ -26,7 +26,7 @@ module Notifications
     end
   end
 
-  class SubscribeEventObjects < TestCase
+  class SubscribeEventObjectsTest < TestCase
     def test_subscribe_events
       events = []
       @notifier.subscribe do |event|

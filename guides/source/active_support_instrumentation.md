@@ -648,6 +648,18 @@ ActiveSupport::Notifications.subscribe "process_action.action_controller" do |*a
 end
 ```
 
+You may also pass block with only one argument, it will yield an event object to the block:
+
+```ruby
+ActiveSupport::Notifications.subscribe "process_action.action_controller" do |event|
+  event.name      # => "process_action.action_controller"
+  event.duration  # => 10 (in milliseconds)
+  event.payload   # => {:extra=>information}
+
+  Rails.logger.info "#{event} Received!"
+end
+```
+
 Most times you only care about the data itself. Here is a shortcut to just get the data.
 
 ```ruby
@@ -672,7 +684,7 @@ Creating custom events
 Adding your own events is easy as well. `ActiveSupport::Notifications` will take care of
 all the heavy lifting for you. Simply call `instrument` with a `name`, `payload` and a block.
 The notification will be sent after the block returns. `ActiveSupport` will generate the start and end times
-and add the instrumenter's unique ID. All data passed into the `instrument` call will make 
+and add the instrumenter's unique ID. All data passed into the `instrument` call will make
 it into the payload.
 
 Here's an example:
