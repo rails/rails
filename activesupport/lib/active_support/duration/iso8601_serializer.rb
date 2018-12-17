@@ -44,7 +44,7 @@ module ActiveSupport
           # Convert weeks to days and remove weeks
           if parts.key?(:weeks)
             days_in_week = SECONDS_PER_WEEK / SECONDS_PER_DAY
-            parts[:days] = parts[:days].to_i + ( parts[:weeks] * days_in_week )
+            parts[:days] = parts[:days].to_i + (parts[:weeks] * days_in_week)
             parts.delete(:weeks)
           end
 
