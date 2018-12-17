@@ -65,7 +65,7 @@ module ActionView
     #
     # The view class must have the following methods:
     #
-    # * <tt>View.new[lookup_context, assigns, controller]</tt> — Create a new
+    # * <tt>View.new(lookup_context, assigns, controller)</tt> — Create a new
     #   ActionView instance for a controller and we can also pass the arguments.
     #
     # * <tt>View#render(option)</tt> — Returns String with the rendered template.
