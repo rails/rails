@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
 require "test_helper"
-require "generators/rails/mailbox_generator"
+require "rails/generators/mailbox/mailbox_generator"
 
 class MailboxGeneratorTest < Rails::Generators::TestCase
-  destination File.expand_path("../../tmp", File.dirname(__FILE__))
+  destination File.expand_path("../../tmp", __dir__)
   setup :prepare_destination
   tests Rails::Generators::MailboxGenerator
 
