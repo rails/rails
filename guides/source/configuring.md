@@ -1404,7 +1404,7 @@ Custom configuration
 You can configure your own code through the Rails configuration object with
 custom configuration under either the `config.x` namespace, or `config` directly.
 The key difference between these two is that you should be using `config.x` if you
-are defining _nested_ configuration (ex: `config.x.nested.nested.hi`), and just
+are defining _nested_ configuration (ex: `config.x.nested.hi`), and just
 `config` for _single level_ configuration (ex: `config.hello`).
 
   ```ruby
