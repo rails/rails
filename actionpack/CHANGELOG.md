@@ -1,7 +1,3 @@
-*   Allow nil params on controller HTTP test methods
-
-    *Ryo Nakamura*
-
 *   Introduce ActionDispatch::HostAuthorization
 
     This is a new middleware that guards against DNS rebinding attacks by
