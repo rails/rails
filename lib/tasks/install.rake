@@ -5,10 +5,11 @@ namespace :action_mailbox do
   Rake::Task["install:migrations"].clear_comments
 
   desc "Copy over the migration"
-  task install: %w[ environment run_generator copy_migrations ]
+  task install: %w[ environment run_installer copy_migrations ]
 
-  task :run_generator do
-    system "#{RbConfig.ruby} ./bin/rails generate mailbox application --no-test-framework"
+  task :run_installer do
+    installer_template = File.expand_path("../rails/generators/installer.rb", __dir__)
+    system "#{RbConfig.ruby} ./bin/rails app:template LOCATION=#{installer_template}"
   end
 
   task :copy_migrations do
