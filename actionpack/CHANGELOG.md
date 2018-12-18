@@ -2,7 +2,7 @@
 
 *   Allow `nil` params for `ActionController::TestCase`.
 
-	    *Ryo Nakamura*
+    *Ryo Nakamura*
 
 *   Reset Capybara sessions if failed system test screenshot raising an exception.
 
