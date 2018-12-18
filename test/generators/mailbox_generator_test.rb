@@ -12,6 +12,7 @@ class MailboxGeneratorTest < Rails::Generators::TestCase
 
   def test_mailbox_skeleton_is_created
     run_generator
+
     assert_file "app/mailboxes/inbox_mailbox.rb" do |mailbox|
       assert_match(/class InboxMailbox < ApplicationMailbox/, mailbox)
       assert_match(/def process/, mailbox)
@@ -55,7 +56,7 @@ class MailboxGeneratorTest < Rails::Generators::TestCase
     run_generator
     run_generator ["inbox"], behavior: :revoke
 
-    assert_no_file "app/mailboxes/inbox.rb"
+    assert_no_file "app/mailboxes/inbox_mailbox.rb"
   end
 
   def test_mailbox_suffix_is_not_duplicated
