@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
 class <%= class_name %>Mailbox < ApplicationMailbox
-<% actions.each do |action| -%>
-  def <%= action %>
+  def process
   end
-<% end -%>
 end

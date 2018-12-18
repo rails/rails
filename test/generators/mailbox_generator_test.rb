@@ -57,20 +57,12 @@ class MailboxGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_invokes_default_test_framework
-    run_generator %w(inbox foo bar -t=test_unit)
+    run_generator %w(inbox -t=test_unit)
+
     assert_file "test/mailboxes/inbox_mailbox_test.rb" do |test|
       assert_match(/class InboxMailboxTest < ActionMailbox::TestCase/, test)
       assert_match(/# test "receive mail" do/, test)
       assert_match(/#     to: '"someone" <someone@example.com>,/, test)
-    end
-  end
-
-  def test_actions_are_turned_into_methods
-    run_generator %w(inbox foo bar)
-
-    assert_file "app/mailboxes/inbox_mailbox.rb" do |mailbox|
-      assert_instance_method :foo, mailbox
-      assert_instance_method :bar, mailbox
     end
   end
 

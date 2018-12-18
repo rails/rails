@@ -5,8 +5,6 @@ module Rails
     class MailboxGenerator < NamedBase
       source_root File.expand_path("templates", __dir__)
 
-      argument :actions, type: :array, default: [:process], banner: "method method"
-
       check_class_collision suffix: "Mailbox"
 
       def create_mailbox_file
