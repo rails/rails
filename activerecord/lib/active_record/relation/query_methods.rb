@@ -113,6 +113,8 @@ module ActiveRecord
     # the actual table name.
     def includes(*args)
       check_if_method_has_arguments!(:includes, args)
+
+      return self if self.includes_values == args.reject(&:blank?).flatten
       spawn.includes!(*args)
     end
 

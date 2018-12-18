@@ -1916,6 +1916,15 @@ class RelationTest < ActiveRecord::TestCase
     assert_empty authors
   end
 
+  test "#includes does not trigger more queries if the association is already included" do
+    relation = Comment.includes(:post)
+    relation.load
+
+    assert_no_queries do
+      relation.includes(:post).load
+    end
+  end
+
   private
     def custom_post_relation(alias_name = "omg_posts")
       table_alias = Post.arel_table.alias(alias_name)
