@@ -10,7 +10,8 @@
     *Genadi Samokovarov*
 
 *   Fix UJS permanently showing disabled text in a[data-remote][data-disable-with] elements within forms.
-    Fixes #33889
+
+    Fixes #33889.
 
     *Wolfgang Hobmaier*
 
@@ -22,7 +23,7 @@
     <%= link_to 'Remote', remote_path, class: 'remote', remote: true, data: { type: :json } %>
     ```
 
-    Fixes #34541
+    Fixes #34541.
 
     *Wolfgang Hobmaier*
 
@@ -39,7 +40,7 @@
 
     Calling `word_wrap` should not trim the indents on the first and last lines.
 
-    Fixes #34487
+    Fixes #34487.
 
     *Lyle Mullican*
 
