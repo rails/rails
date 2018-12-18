@@ -26,6 +26,28 @@ class MailboxGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_mailbox_skeleton_is_created_with_namespace
+    run_generator %w(inceptions/inbox -t=test_unit)
+
+    assert_file "app/mailboxes/inceptions/inbox_mailbox.rb" do |mailbox|
+      assert_match(/class Inceptions::InboxMailbox < ApplicationMailbox/, mailbox)
+      assert_match(/def process/, mailbox)
+      assert_no_match(%r{# routing /something/i => :somewhere}, mailbox)
+    end
+
+    assert_file "test/mailboxes/inceptions/inbox_mailbox_test.rb" do |mailbox|
+      assert_match(/class Inceptions::InboxMailboxTest < ActionMailbox::TestCase/, mailbox)
+      assert_match(/# test "receive mail" do/, mailbox)
+      assert_match(/#     to: '"someone" <someone@example.com>,/, mailbox)
+    end
+
+    assert_file "app/mailboxes/application_mailbox.rb" do |mailbox|
+      assert_match(/class ApplicationMailbox < ActionMailbox::Base/, mailbox)
+      assert_match(%r{# routing /something/i => :somewhere}, mailbox)
+      assert_no_match(/def process/, mailbox)
+    end
+  end
+
   def test_check_class_collision
     Object.send :const_set, :InboxMailbox, Class.new
     content = capture(:stderr) { run_generator }
