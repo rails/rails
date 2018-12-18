@@ -272,6 +272,40 @@ class ActionCable::Channel::BaseTest < ActionCable::TestCase
     assert_equal [ :error_action ], @channel.last_action
   end
 
+  test "notification for subscribe" do
+    begin
+      events = []
+      ActiveSupport::Notifications.subscribe "subscribe.action_cable" do |*args|
+        events << ActiveSupport::Notifications::Event.new(*args)
+      end
+
+      @channel.send(:subscribe_to_channel)
+
+      assert_equal 1, events.length
+      assert_equal "subscribe.action_cable", events[0].name
+      assert_equal "ActionCable::Channel::BaseTest::ChatChannel", events[0].payload[:channel_class]
+    ensure
+      ActiveSupport::Notifications.unsubscribe "subscribe.action_cable"
+    end
+  end
+
+  test "notification for unsubscribe" do
+    begin
+      events = []
+      ActiveSupport::Notifications.subscribe "unsubscribe.action_cable" do |*args|
+        events << ActiveSupport::Notifications::Event.new(*args)
+      end
+
+      @channel.send(:unsubscribe_from_channel)
+
+      assert_equal 1, events.length
+      assert_equal "unsubscribe.action_cable", events[0].name
+      assert_equal "ActionCable::Channel::BaseTest::ChatChannel", events[0].payload[:channel_class]
+    ensure
+      ActiveSupport::Notifications.unsubscribe "unsubscribe.action_cable"
+    end
+  end
+
   private
     def assert_logged(message)
       old_logger = @connection.logger

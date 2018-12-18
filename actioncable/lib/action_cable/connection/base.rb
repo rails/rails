@@ -167,26 +167,36 @@ module ActionCable
         end
 
         def handle_open
-          @protocol = websocket.protocol
-          connect if respond_to?(:connect)
-          subscribe_to_internal_channel
-          send_welcome_message
+          ActiveSupport::Notifications.instrument("connect.action_cable", notification_payload("connect")) do
+            begin
+              @protocol = websocket.protocol
+              connect if respond_to?(:connect)
+              subscribe_to_internal_channel
+              send_welcome_message
 
-          message_buffer.process!
-          server.add_connection(self)
-        rescue ActionCable::Connection::Authorization::UnauthorizedError
-          close(reason: ActionCable::INTERNAL[:disconnect_reasons][:unauthorized], reconnect: false) if websocket.alive?
+              message_buffer.process!
+              server.add_connection(self)
+            rescue ActionCable::Connection::Authorization::UnauthorizedError
+              close(reason: ActionCable::INTERNAL[:disconnect_reasons][:unauthorized], reconnect: false) if websocket.alive?
+            end
+          end
         end
 
         def handle_close
-          logger.info finished_request_message
+          ActiveSupport::Notifications.instrument("disconnect.action_cable", notification_payload("disconnect")) do
+            logger.info finished_request_message
 
-          server.remove_connection(self)
+            server.remove_connection(self)
 
-          subscriptions.unsubscribe_from_all
-          unsubscribe_from_internal_channel
+            subscriptions.unsubscribe_from_all
+            unsubscribe_from_internal_channel
 
-          disconnect if respond_to?(:disconnect)
+            disconnect if respond_to?(:disconnect)
+          end
+        end
+
+        def notification_payload(method_name)
+          { connection_class: self.class.name, action: method_name, data: request.params }
         end
 
         def send_welcome_message

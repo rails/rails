@@ -165,7 +165,7 @@ module ActionCable
         action = extract_action(data)
 
         if processable_action?(action)
-          payload = { channel_class: self.class.name, action: action, data: data }
+          payload = base_notification_payload.merge(data: data, action: action)
           ActiveSupport::Notifications.instrument("perform_action.action_cable", payload) do
             dispatch_action(action, data)
           end
@@ -177,19 +177,23 @@ module ActionCable
       # This method is called after subscription has been added to the connection
       # and confirms or rejects the subscription.
       def subscribe_to_channel
-        run_callbacks :subscribe do
-          subscribed
-        end
+        ActiveSupport::Notifications.instrument("subscribe.action_cable", base_notification_payload) do
+          run_callbacks :subscribe do
+            subscribed
+          end
 
-        reject_subscription if subscription_rejected?
-        ensure_confirmation_sent
+          reject_subscription if subscription_rejected?
+          ensure_confirmation_sent
+        end
       end
 
       # Called by the cable connection when it's cut, so the channel has a chance to cleanup with callbacks.
       # This method is not intended to be called directly by the user. Instead, overwrite the #unsubscribed callback.
       def unsubscribe_from_channel # :nodoc:
-        run_callbacks :unsubscribe do
-          unsubscribed
+        ActiveSupport::Notifications.instrument("unsubscribe.action_cable", base_notification_payload) do
+          run_callbacks :unsubscribe do
+            unsubscribed
+          end
         end
       end
 
@@ -213,7 +217,7 @@ module ActionCable
           status += " (via #{via})" if via
           logger.debug(status)
 
-          payload = { channel_class: self.class.name, data: data, via: via }
+          payload = base_notification_payload.merge(data: data, via: via)
           ActiveSupport::Notifications.instrument("transmit.action_cable", payload) do
             connection.transmit identifier: @identifier, message: data
           end
@@ -303,6 +307,10 @@ module ActionCable
           ActiveSupport::Notifications.instrument("transmit_subscription_rejection.action_cable", channel_class: self.class.name) do
             connection.transmit identifier: @identifier, type: ActionCable::INTERNAL[:message_types][:rejection]
           end
+        end
+
+        def base_notification_payload
+          @base_notification_payload ||= { channel_class: self.class.name }
         end
     end
   end

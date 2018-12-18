@@ -133,6 +133,45 @@ class ActionCable::Connection::BaseTest < ActionCable::TestCase
     end
   end
 
+  test "notification for connect" do
+    begin
+      events = []
+      ActiveSupport::Notifications.subscribe "connect.action_cable" do |*args|
+        events << ActiveSupport::Notifications::Event.new(*args)
+      end
+      run_in_eventmachine do
+        connection = open_connection
+        connection.send(:handle_open)
+      end
+
+      assert_equal 1, events.length
+      assert_equal "connect.action_cable", events[0].name
+      assert_equal "ActionCable::Connection::BaseTest::Connection", events[0].payload[:connection_class]
+    ensure
+      ActiveSupport::Notifications.unsubscribe "connect.action_cable"
+    end
+  end
+
+  test "notification for disconnect" do
+    begin
+      events = []
+      ActiveSupport::Notifications.subscribe "disconnect.action_cable" do |*args|
+        events << ActiveSupport::Notifications::Event.new(*args)
+      end
+      run_in_eventmachine do
+        connection = open_connection
+        connection.send(:handle_open)
+        connection.send(:handle_close)
+      end
+
+      assert_equal 1, events.length
+      assert_equal "disconnect.action_cable", events[0].name
+      assert_equal "ActionCable::Connection::BaseTest::Connection", events[0].payload[:connection_class]
+    ensure
+      ActiveSupport::Notifications.unsubscribe "disconnect.action_cable"
+    end
+  end
+
   private
     def open_connection
       env = Rack::MockRequest.env_for "/test", "HTTP_CONNECTION" => "upgrade", "HTTP_UPGRADE" => "websocket",
