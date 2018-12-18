@@ -1,5 +1,9 @@
 ## Rails 5.2.2 (December 04, 2018) ##
 
+*   Allow `nil` params for `ActionController::TestCase`.
+
+	    *Ryo Nakamura*
+
 *   Reset Capybara sessions if failed system test screenshot raising an exception.
 
     Reset Capybara sessions if `take_failed_screenshot` raise exception
