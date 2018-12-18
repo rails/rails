@@ -478,6 +478,18 @@ XML
     )
   end
 
+  def test_nil_params
+    get :test_params, params: nil
+    parsed_params = JSON.parse(@response.body)
+    assert_equal(
+      {
+        "action" => "test_params",
+        "controller" => "test_case_test/test"
+      },
+      parsed_params
+    )
+  end
+
   def test_query_param_named_action
     get :test_query_parameters, params: { action: "foobar" }
     parsed_params = JSON.parse(@response.body)
