@@ -190,7 +190,7 @@ end
 Then setup a mailbox:
 
 ```ruby
-# Generate new maiblox
+# Generate new mailbox
 bin/rails generate mailbox forwards
 ```
 

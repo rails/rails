@@ -11,19 +11,19 @@ require "action_mailbox/routing"
 #
 #   class ApplicationMailbox < ActionMailbox::Base
 #     # Any of the recipients of the mail (whether to, cc, bcc) are matched against the regexp.
-#     route /^replies@/i => :replies
+#     routing /^replies@/i => :replies
 #
 #     # Any of the recipients of the mail (whether to, cc, bcc) needs to be an exact match for the string.
-#     route "help@example.com" => :help
+#     routing "help@example.com" => :help
 #
 #     # Any callable (proc, lambda, etc) object is passed the inbound_email record and is a match if true.
-#     route ->(inbound_email) { inbound_email.mail.to.size > 2 } => :multiple_recipients
+#     routing ->(inbound_email) { inbound_email.mail.to.size > 2 } => :multiple_recipients
 #
 #     # Any object responding to #match? is called with the inbound_email record as an argument. Match if true.
-#     route CustomAddress.new => :custom
+#     routing CustomAddress.new => :custom
 #
 #     # Any inbound_email that has not been already matched will be sent to the BackstopMailbox.
-#     route :all => :backstop
+#     routing :all => :backstop
 #   end
 #
 # Application mailboxes need to overwrite the `#process` method, which is invoked by the framework after
@@ -31,7 +31,7 @@ require "action_mailbox/routing"
 # `around_processing`. The primary use case is ensure certain preconditions to processing are fulfilled
 # using `before_processing` callbacks.
 #
-# If a precondition fails to be met, you can halt the processing using the `#bounced!` method, 
+# If a precondition fails to be met, you can halt the processing using the `#bounced!` method,
 # which will silently prevent any further processing, but not actually send out any bounce notice. You
 # can also pair this behavior with the invocation of an Action Mailer class responsible for sending out
 # an actual bounce email. This is done using the `#bounce_with` method, which takes the mail object returned
@@ -49,7 +49,7 @@ require "action_mailbox/routing"
 #   end
 #
 # During the processing of the inbound email, the status will be tracked. Before processing begins,
-# the email will normally have the `pending` status. Once processing begins, just before callbacks 
+# the email will normally have the `pending` status. Once processing begins, just before callbacks
 # and the `#process` method is called, the status is changed to `processing`. If processing is allowed to
 # complete, the status is changed to `delivered`. If a bounce is triggered, then `bounced`. If an unhandled
 # exception is bubbled up, then `failed`.
@@ -57,7 +57,7 @@ require "action_mailbox/routing"
 # Exceptions can be handled at the class level using the familiar `Rescuable` approach:
 #
 #   class ForwardsMailbox < ApplicationMailbox
-#    rescue_from(ApplicationSpecificVerificationError) { bounced! }
+#     rescue_from(ApplicationSpecificVerificationError) { bounced! }
 #   end
 class ActionMailbox::Base
   include ActiveSupport::Rescuable
