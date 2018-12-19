@@ -1,0 +1,1 @@
+gem "mail", git: "https://github.com/mikel/mail.git"
