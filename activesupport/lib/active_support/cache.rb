@@ -407,9 +407,7 @@ module ActiveSupport
       # the cache with the given keys, then that data is returned. Otherwise,
       # the supplied block is called for each key for which there was no data,
       # and the result will be written to the cache and returned.
-      # Therefore, you need to pass a block that returns the data to be written
-      # to the cache. If you do not want to write the cache when the cache is
-      # not found, use #read_multi.
+      # If the block is ommitted, an enumerator is returned.
       #
       # Returns a hash with the data for each of the names. For example:
       #
@@ -432,7 +430,7 @@ module ActiveSupport
       #   cache.read("fizz")
       #   # => nil
       def fetch_multi(*names)
-        raise ArgumentError, "Missing block: `Cache#fetch_multi` requires a block." unless block_given?
+        return to_enum(__method__, *names) unless block_given?
 
         options = names.extract_options!
         options = merged_options(options)

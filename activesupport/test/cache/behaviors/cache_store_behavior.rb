@@ -143,9 +143,9 @@ module CacheStoreBehavior
   end
 
   def test_fetch_multi_without_block
-    assert_raises(ArgumentError) do
-      @cache.fetch_multi("foo")
-    end
+    values = @cache.fetch_multi("foo", "bar").with_index { |value, i| value + i.to_s }
+
+    assert_equal({ "foo" => "foo0", "bar" => "bar1" }, values)
   end
 
   # Use strings that are guaranteed to compress well, so we can easily tell if
