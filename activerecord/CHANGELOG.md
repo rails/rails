@@ -466,9 +466,9 @@
 
     *Tan Huynh*, *Yukio Mizuta*
 
-*   Rails 6 requires Ruby 2.4.1 or newer.
+*   Rails 6 requires Ruby 2.5.0 or newer.
 
-    *Jeremy Daer*
+    *Jeremy Daer*, *Kasper Timm Hansen*
 
 *   Deprecate `update_attributes`/`!` in favor of `update`/`!`.
 
