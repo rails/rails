@@ -7,7 +7,7 @@ class ActiveSupport::TestCase
 <% if defined?(JRUBY_VERSION) || Gem.win_platform? -%>
   parallelize(workers: :number_of_processors, with: :threads)
 <%- else -%>
-  parallelize(workers: :number_of_processors)
+  parallelize(workers: :number_of_processors, with: :processes)
 <% end -%>
 
 <% unless options[:skip_active_record] -%>
