@@ -10,11 +10,10 @@ module ActionMailer
     def deliver(event)
       info do
         perform_deliveries = event.payload[:perform_deliveries]
-        recipients = Array(event.payload[:to]).join(", ")
         if perform_deliveries
-          "Sent mail to #{recipients} (#{event.duration.round(1)}ms)"
+          "Delivered mail (#{event.duration.round(1)}ms)"
         else
-          "Skipped sending mail to #{recipients} as `perform_deliveries` is false"
+          "Skipped mail delivery as `perform_deliveries` is false"
         end
       end
 

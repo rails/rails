@@ -28,7 +28,7 @@ class AMLogSubscriberTest < ActionMailer::TestCase
     wait
 
     assert_equal(1, @logger.logged(:info).size)
-    assert_match(/Sent mail to system@test\.lindsaar\.net/, @logger.logged(:info).first)
+    assert_match(/Delivered mail/, @logger.logged(:info).first)
 
     assert_equal(2, @logger.logged(:debug).size)
     assert_match(/BaseMailer#welcome: processed outbound mail in [\d.]+ms/, @logger.logged(:debug).first)
@@ -42,7 +42,7 @@ class AMLogSubscriberTest < ActionMailer::TestCase
     wait
 
     assert_equal(1, @logger.logged(:info).size)
-    assert_match("Skipped sending mail to system@test.lindsaar.net as `perform_deliveries` is false", @logger.logged(:info).first)
+    assert_match("Skipped mail delivery as `perform_deliveries` is false", @logger.logged(:info).first)
 
     assert_equal(2, @logger.logged(:debug).size)
     assert_match(/BaseMailer#welcome_without_deliveries: processed outbound mail in [\d.]+ms/, @logger.logged(:debug).first)
