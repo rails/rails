@@ -3,6 +3,17 @@
 require "qunit/selenium/test_runner"
 require "chromedriver-helper"
 
+QUnit::Selenium::TestRun.class_eval do
+  def completed?
+    @qunit_testresult.text =~ /Tests completed/i
+  end
+
+  def duration
+    match = /Tests completed in (?<milliseconds>\d+) milliseconds/i.match @qunit_testresult.text
+    match[:milliseconds].to_i / 1000
+  end
+end
+
 driver_options = Selenium::WebDriver::Chrome::Options.new
 driver_options.add_argument("--headless")
 driver_options.add_argument("--disable-gpu")
