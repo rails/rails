@@ -25,14 +25,14 @@ module ActionMailbox::InboundEmail::MessageId
 
     private
       def extract_message_id(source)
-        Mail.from_source(source).message_id
-      rescue => e
-        # FIXME: Add logging with "Couldn't extract Message ID, so will generating a new random ID instead"
+        Mail.from_source(source).message_id rescue nil
       end
   end
 
   private
     def generate_missing_message_id
-      self.message_id ||= Mail::MessageIdField.new.message_id
+      self.message_id ||= Mail::MessageIdField.new.message_id.tap do |message_id|
+        logger.warn "Message-ID couldn't be parsed or is missing. Generated a new Message-ID: #{message_id}"
+      end
     end
 end
