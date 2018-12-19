@@ -8,6 +8,7 @@ gemspec
 
 # We need a newish Rake since Active Job sets its test tasks' descriptions.
 gem "rake", ">= 11.1"
+gem "mail", git: "https://github.com/mikel/mail.git"
 
 gem "capybara", ">= 2.15"
 
