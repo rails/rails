@@ -17,7 +17,7 @@ module ActionMailbox
       define_callbacks :process, terminator: TERMINATOR, skip_after_callbacks_if_terminated: true
     end
 
-    module ClassMethods
+    class_methods do
       def before_processing(*methods, &block)
         set_callback(:process, :before, *methods, &block)
       end
