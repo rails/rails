@@ -523,7 +523,7 @@ module ApplicationTests
     end
 
     def test_run_in_parallel_with_processes
-      substitute_arguments_of_parallelize_method("workers: 2, with: :processes")
+      exercise_parallelization_regardless_of_machine_core_count(with: :processes)
 
       file_name = create_parallel_processes_test_file
 
@@ -542,7 +542,7 @@ module ApplicationTests
     end
 
     def test_run_in_parallel_with_threads
-      substitute_arguments_of_parallelize_method("workers: 2, with: :threads")
+      exercise_parallelization_regardless_of_machine_core_count(with: :threads)
 
       file_name = create_parallel_threads_test_file
 
@@ -561,7 +561,7 @@ module ApplicationTests
     end
 
     def test_run_in_parallel_with_unmarshable_exception
-      substitute_arguments_of_parallelize_method("workers: 2, with: :processes")
+      exercise_parallelization_regardless_of_machine_core_count(with: :processes)
 
       file = app_file "test/fail_test.rb", <<-RUBY
         require "test_helper"
@@ -587,8 +587,10 @@ module ApplicationTests
     end
 
     def test_run_in_parallel_with_unknown_object
-      substitute_arguments_of_parallelize_method("workers: 2, with: :processes")
+      exercise_parallelization_regardless_of_machine_core_count(with: :processes)
+
       create_scaffold
+
       app_file "config/environments/test.rb", <<-RUBY
         Rails.application.configure do
           config.action_controller.allow_forgery_protection = true
@@ -967,10 +969,10 @@ module ApplicationTests
         RUBY
       end
 
-      def substitute_arguments_of_parallelize_method(arguments)
+      def exercise_parallelization_regardless_of_machine_core_count(with:)
         app_path("test/test_helper.rb") do |file_name|
           file = File.read(file_name)
-          file.sub!(/parallelize\(([^\)]*)\)/, "parallelize(#{arguments})")
+          file.sub!(/parallelize\(([^\)]*)\)/, "parallelize(workers: 2, with: :#{with})")
           File.write(file_name, file)
         end
       end
