@@ -90,18 +90,18 @@ class BaseTest < ActiveSupport::TestCase
 
   test "can pass random headers in as a hash to mail" do
     hash = { "X-Special-Domain-Specific-Header" => "SecretValue",
-            "In-Reply-To" => "1234@mikel.me.com" }
+            "In-Reply-To" => "<1234@mikel.me.com>" }
     mail = BaseMailer.welcome(hash)
     assert_equal("SecretValue", mail["X-Special-Domain-Specific-Header"].decoded)
-    assert_equal("1234@mikel.me.com", mail["In-Reply-To"].decoded)
+    assert_equal("<1234@mikel.me.com>", mail["In-Reply-To"].decoded)
   end
 
   test "can pass random headers in as a hash to headers" do
     hash = { "X-Special-Domain-Specific-Header" => "SecretValue",
-            "In-Reply-To" => "1234@mikel.me.com" }
+            "In-Reply-To" => "<1234@mikel.me.com>" }
     mail = BaseMailer.welcome_with_headers(hash)
     assert_equal("SecretValue", mail["X-Special-Domain-Specific-Header"].decoded)
-    assert_equal("1234@mikel.me.com", mail["In-Reply-To"].decoded)
+    assert_equal("<1234@mikel.me.com>", mail["In-Reply-To"].decoded)
   end
 
   # Attachments
