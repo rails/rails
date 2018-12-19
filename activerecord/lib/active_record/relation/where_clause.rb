@@ -3,7 +3,6 @@
 module ActiveRecord
   class Relation
     class WhereClause # :nodoc:
-
       EXCEPT_PREDICATE_NODES = [Arel::Nodes::Between, Arel::Nodes::In, Arel::Nodes::NotIn, Arel::Nodes::Equality, Arel::Nodes::NotEqual, Arel::Nodes::LessThan, Arel::Nodes::LessThanOrEqual, Arel::Nodes::GreaterThan, Arel::Nodes::GreaterThanOrEqual].freeze
 
       delegate :any?, :empty?, to: :predicates
