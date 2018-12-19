@@ -747,7 +747,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     generator([destination_root], skip_webpack_install: true)
 
     mock_original_env = -> do
-      {"BUNDLE_RUBYONRAILS__ORG" => "user:pass"}
+      { "BUNDLE_RUBYONRAILS__ORG" => "user:pass" }
     end
 
     ensure_environment_is_set = -> command, options = nil do
