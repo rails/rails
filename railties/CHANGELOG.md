@@ -1,3 +1,7 @@
+*   Use original `bundler` environment variables during the process of generating a new rails project.
+
+    *Marco Costa*
+
 *   Introduce guard against DNS rebinding attacks
 
     The `ActionDispatch::HostAuthorization` is a new middleware that prevent
