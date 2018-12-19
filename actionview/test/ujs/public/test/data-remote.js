@@ -12,8 +12,8 @@ function buildSelect(attrs) {
   )
 }
 
-module('data-remote', {
-  setup: function() {
+QUnit.module('data-remote', {
+  beforeEach: function() {
     $('#qunit-fixture')
       .append($('<a />', {
         href: '/echo',
@@ -39,12 +39,15 @@ module('data-remote', {
         disabled: 'disabled',
         text: 'Disabed link'
       }))
-      .find('form').append($('<input type="text" name="user_name" value="john">'))
+      .find('form#my-remote-form').append($('<input type="text" name="user_name" value="john">'))
 
   }
 })
 
-asyncTest('ctrl-clicking on a link does not fire ajaxyness', 0, function() {
+QUnit.test('ctrl-clicking on a link does not fire ajaxyness', function(assert) {
+  assert.expect(0)
+  var done = assert.async()
+
   var link = $('a[data-remote]')
 
   // Ideally, we'd setup an iframe to intercept normal link clicks
@@ -54,16 +57,19 @@ asyncTest('ctrl-clicking on a link does not fire ajaxyness', 0, function() {
   link
     .removeAttr('data-params')
     .bindNative('ajax:beforeSend', function() {
-      ok(false, 'ajax should not be triggered')
+      assert.ok(false, 'ajax should not be triggered')
     })
 
   link.triggerNative('click', { metaKey: true })
   link.triggerNative('click', { ctrlKey: true })
 
-  setTimeout(function() { start() }, 13)
+  setTimeout(function() { done() }, 13)
 })
 
-asyncTest('right/mouse-wheel-clicking on a link does not fire ajaxyness', 0, function() {
+QUnit.test('right/mouse-wheel-clicking on a link does not fire ajaxyness', function(assert) {
+  assert.expect(0)
+  var done = assert.async()
+
   var link = $('a[data-remote]')
 
   // Ideally, we'd setup an iframe to intercept normal link clicks
@@ -73,23 +79,26 @@ asyncTest('right/mouse-wheel-clicking on a link does not fire ajaxyness', 0, fun
   link
     .removeAttr('data-params')
     .bindNative('ajax:beforeSend', function() {
-      ok(false, 'ajax should not be triggered')
+      assert.ok(false, 'ajax should not be triggered')
     })
 
   link.triggerNative('click', { button: 1 })
   link.triggerNative('click', { button: 2 })
 
-  setTimeout(function() { start() }, 13)
+  setTimeout(function() { done() }, 13)
 })
 
-asyncTest('ctrl-clicking on a link still fires ajax for non-GET links and for links with "data-params"', 2, function() {
+QUnit.test('ctrl-clicking on a link still fires ajax for non-GET links and for links with "data-params"', function(assert) {
+  assert.expect(2)
+  var done = assert.async()
+
   var link = $('a[data-remote]')
 
   link
     .removeAttr('data-params')
     .attr('data-method', 'POST')
     .bindNative('ajax:beforeSend', function() {
-      ok(true, 'ajax should be triggered')
+      assert.ok(true, 'ajax should be triggered')
     })
     .triggerNative('click', { metaKey: true })
 
@@ -98,76 +107,94 @@ asyncTest('ctrl-clicking on a link still fires ajax for non-GET links and for li
     .attr('data-params', 'name=steve')
     .triggerNative('click', { metaKey: true })
 
-  setTimeout(function() { start() }, 13)
+  setTimeout(function() { done() }, 13)
 })
 
-asyncTest('clicking on a link with data-remote attribute', 5, function() {
+QUnit.test('clicking on a link with data-remote attribute', function(assert) {
+  assert.expect(5)
+  var done = assert.async()
+
   $('a[data-remote]')
     .bindNative('ajax:success', function(e, data, status, xhr) {
-      App.assertCallbackInvoked('ajax:success')
-      App.assertRequestPath(data, '/echo')
-      equal(data.params.data1, 'value1', 'ajax arguments should have key data1 with right value')
-      equal(data.params.data2, 'value2', 'ajax arguments should have key data2 with right value')
-      App.assertGetRequest(data)
+      App.assertCallbackInvoked(assert, 'ajax:success')
+      App.assertRequestPath(assert, data, '/echo')
+      assert.equal(data.params.data1, 'value1', 'ajax arguments should have key data1 with right value')
+      assert.equal(data.params.data2, 'value2', 'ajax arguments should have key data2 with right value')
+      App.assertGetRequest(assert, data)
     })
-    .bindNative('ajax:complete', function() { start() })
+    .bindNative('ajax:complete', function() { done() })
     .triggerNative('click')
 })
 
-asyncTest('clicking on a link with both query string in href and data-params', 4, function() {
+QUnit.test('clicking on a link with both query string in href and data-params', function(assert) {
+  assert.expect(4)
+  var done = assert.async()
+
   $('a[data-remote]')
     .attr('href', '/echo?data3=value3')
     .bindNative('ajax:success', function(e, data, status, xhr) {
-      App.assertGetRequest(data)
-      equal(data.params.data1, 'value1', 'ajax arguments should have key data1 with right value')
-      equal(data.params.data2, 'value2', 'ajax arguments should have key data2 with right value')
-      equal(data.params.data3, 'value3', 'query string in url should be passed to server with right value')
+      App.assertGetRequest(assert, data)
+      assert.equal(data.params.data1, 'value1', 'ajax arguments should have key data1 with right value')
+      assert.equal(data.params.data2, 'value2', 'ajax arguments should have key data2 with right value')
+      assert.equal(data.params.data3, 'value3', 'query string in url should be passed to server with right value')
     })
-    .bindNative('ajax:complete', function() { start() })
+    .bindNative('ajax:complete', function() { done() })
     .triggerNative('click')
 })
 
-asyncTest('clicking on a link with both query string in href and data-params with POST method', 4, function() {
+QUnit.test('clicking on a link with both query string in href and data-params with POST method', function(assert) {
+  assert.expect(4)
+  var done = assert.async()
+
   $('a[data-remote]')
     .attr('href', '/echo?data3=value3')
     .attr('data-method', 'post')
     .bindNative('ajax:success', function(e, data, status, xhr) {
-      App.assertPostRequest(data)
-      equal(data.params.data1, 'value1', 'ajax arguments should have key data1 with right value')
-      equal(data.params.data2, 'value2', 'ajax arguments should have key data2 with right value')
-      equal(data.params.data3, 'value3', 'query string in url should be passed to server with right value')
+      App.assertPostRequest(assert, data)
+      assert.equal(data.params.data1, 'value1', 'ajax arguments should have key data1 with right value')
+      assert.equal(data.params.data2, 'value2', 'ajax arguments should have key data2 with right value')
+      assert.equal(data.params.data3, 'value3', 'query string in url should be passed to server with right value')
     })
-    .bindNative('ajax:complete', function() { start() })
+    .bindNative('ajax:complete', function() { done() })
     .triggerNative('click')
 })
 
-asyncTest('clicking on a link with disabled attribute', 0, function() {
+QUnit.test('clicking on a link with disabled attribute', function(assert) {
+  assert.expect(0)
+  var done = assert.async()
+
   $('a[disabled]')
   .bindNative('ajax:before', function(e, data, status, xhr) {
-    App.assertCallbackNotInvoked('ajax:success')
+    App.assertCallbackNotInvoked(assert, 'ajax:success')
   })
-  .bindNative('ajax:complete', function() { start() })
+  .bindNative('ajax:complete', function() { done() })
   .triggerNative('click')
 
   setTimeout(function() {
-    start()
+    done()
   }, 13)
 })
 
-asyncTest('clicking on a button with data-remote attribute', 5, function() {
+QUnit.test('clicking on a button with data-remote attribute', function(assert) {
+  assert.expect(5)
+  var done = assert.async()
+
   $('button[data-remote]')
     .bindNative('ajax:success', function(e, data, status, xhr) {
-      App.assertCallbackInvoked('ajax:success')
-      App.assertRequestPath(data, '/echo')
-      equal(data.params.data1, 'value1', 'ajax arguments should have key data1 with right value')
-      equal(data.params.data2, 'value2', 'ajax arguments should have key data2 with right value')
-      App.assertGetRequest(data)
+      App.assertCallbackInvoked(assert, 'ajax:success')
+      App.assertRequestPath(assert, data, '/echo')
+      assert.equal(data.params.data1, 'value1', 'ajax arguments should have key data1 with right value')
+      assert.equal(data.params.data2, 'value2', 'ajax arguments should have key data2 with right value')
+      App.assertGetRequest(assert, data)
     })
-    .bindNative('ajax:complete', function() { start() })
+    .bindNative('ajax:complete', function() { done() })
     .triggerNative('click')
 })
 
-asyncTest('right/mouse-wheel-clicking on a button with data-remote attribute does not fire ajaxyness', 0, function() {
+QUnit.test('right/mouse-wheel-clicking on a button with data-remote attribute does not fire ajaxyness', function(assert) {
+  assert.expect(0)
+  var done = assert.async()
+
   var button = $('button[data-remote]')
 
   // Ideally, we'd setup an iframe to intercept normal link clicks
@@ -177,86 +204,101 @@ asyncTest('right/mouse-wheel-clicking on a button with data-remote attribute doe
   button
     .removeAttr('data-params')
     .bindNative('ajax:beforeSend', function() {
-      ok(false, 'ajax should not be triggered')
+      assert.ok(false, 'ajax should not be triggered')
     })
 
   button.triggerNative('click', { button: 1 })
   button.triggerNative('click', { button: 2 })
 
-  setTimeout(function() { start() }, 13)
+  setTimeout(function() { done() }, 13)
 })
 
-asyncTest('changing a select option with data-remote attribute', 5, function() {
+QUnit.test('changing a select option with data-remote attribute', function(assert) {
+  assert.expect(5)
+  var done = assert.async()
+
   buildSelect()
 
   $('select[data-remote]')
     .bindNative('ajax:success', function(e, data, status, xhr) {
-      App.assertCallbackInvoked('ajax:success')
-      App.assertRequestPath(data, '/echo')
-      equal(data.params.user_data, 'optionValue2', 'ajax arguments should have key term with right value')
-      equal(data.params.data1, 'value1', 'ajax arguments should have key data1 with right value')
-      App.assertGetRequest(data)
+      App.assertCallbackInvoked(assert, 'ajax:success')
+      App.assertRequestPath(assert, data, '/echo')
+      assert.equal(data.params.user_data, 'optionValue2', 'ajax arguments should have key term with right value')
+      assert.equal(data.params.data1, 'value1', 'ajax arguments should have key data1 with right value')
+      App.assertGetRequest(assert, data)
     })
-    .bindNative('ajax:complete', function() { start() })
+    .bindNative('ajax:complete', function() { done() })
     .val('optionValue2')
     .triggerNative('change')
 })
 
-asyncTest('submitting form with data-remote attribute', 4, function() {
-  $('form[data-remote]')
+QUnit.test('submitting form with data-remote attribute', function(assert) {
+  assert.expect(4)
+  var done = assert.async()
+
+  $('form#my-remote-form[data-remote]')
     .bindNative('ajax:success', function(e, data, status, xhr) {
-      App.assertCallbackInvoked('ajax:success')
-      App.assertRequestPath(data, '/echo')
-      equal(data.params.user_name, 'john', 'ajax arguments should have key user_name with right value')
-      App.assertPostRequest(data)
+      App.assertCallbackInvoked(assert, 'ajax:success')
+      App.assertRequestPath(assert, data, '/echo')
+      assert.equal(data.params.user_name, 'john', 'ajax arguments should have key user_name with right value')
+      App.assertPostRequest(assert, data)
     })
-    .bindNative('ajax:complete', function() { start() })
+    .bindNative('ajax:complete', function() { done() })
     .triggerNative('submit')
 })
 
-asyncTest('submitting form with data-remote attribute should include inputs in a fieldset only once', 3, function() {
-  $('form[data-remote]')
+QUnit.test('submitting form with data-remote attribute should include inputs in a fieldset only once', function(assert) {
+  assert.expect(3)
+  var done = assert.async()
+
+  $('form#my-remote-form[data-remote]')
     .append('<fieldset><input name="items[]" value="Item" /></fieldset>')
     .bindNative('ajax:success', function(e, data, status, xhr) {
-      App.assertCallbackInvoked('ajax:success')
-      equal(data.params.items.length, 1, 'ajax arguments should only have the item once')
-      App.assertPostRequest(data)
+      App.assertCallbackInvoked(assert, 'ajax:success')
+      assert.equal(data.params.items.length, 1, 'ajax arguments should only have the item once')
+      App.assertPostRequest(assert, data)
     })
     .bindNative('ajax:complete', function() {
       $('form[data-remote], fieldset').remove()
-      start()
+      done()
     })
     .triggerNative('submit')
 })
 
-asyncTest('submitting form with data-remote attribute submits input with matching [form] attribute', 6, function() {
+QUnit.test('submitting form with data-remote attribute submits input with matching [form] attribute', function(assert) {
+  assert.expect(6)
+  var done = assert.async()
+
   $('#qunit-fixture')
     .append($('<input type="text" name="user_data" value="value1" form="my-remote-form">'))
     .append($('<input type="text" name="user_email" value="from@example.com" disabled="disabled" form="my-remote-form">'))
 
-  $('form[data-remote]')
+  $('form#my-remote-form[data-remote]')
     .bindNative('ajax:success', function(e, data, status, xhr) {
-      App.assertCallbackInvoked('ajax:success')
-      App.assertRequestPath(data, '/echo')
-      equal(data.params.user_name, 'john', 'ajax arguments should have key user_name with right value')
-      equal(data.params.user_data, 'value1', 'ajax arguments should have key user_data with right value')
-      equal(data.params.user_email, undefined, 'ajax arguments should not have disabled field')
-      App.assertPostRequest(data)
+      App.assertCallbackInvoked(assert, 'ajax:success')
+      App.assertRequestPath(assert, data, '/echo')
+      assert.equal(data.params.user_name, 'john', 'ajax arguments should have key user_name with right value')
+      assert.equal(data.params.user_data, 'value1', 'ajax arguments should have key user_data with right value')
+      assert.equal(data.params.user_email, undefined, 'ajax arguments should not have disabled field')
+      App.assertPostRequest(assert, data)
     })
-    .bindNative('ajax:complete', function() { start() })
+    .bindNative('ajax:complete', function() { done() })
     .triggerNative('submit')
 })
 
-asyncTest('submitting form with data-remote attribute by clicking button with matching [form] attribute', 5, function() {
-  $('form[data-remote]')
+QUnit.test('submitting form with data-remote attribute by clicking button with matching [form] attribute', function(assert) {
+  assert.expect(5)
+  var done = assert.async()
+
+  $('form#my-remote-form[data-remote]')
     .bindNative('ajax:success', function(e, data, status, xhr) {
-      App.assertCallbackInvoked('ajax:success')
-      App.assertRequestPath(data, '/echo')
-      equal(data.params.user_name, 'john', 'ajax arguments should have key user_name with right value')
-      equal(data.params.user_data, 'value2', 'ajax arguments should have key user_data with right value')
-      App.assertPostRequest(data)
+      App.assertCallbackInvoked(assert, 'ajax:success')
+      App.assertRequestPath(assert, data, '/echo')
+      assert.equal(data.params.user_name, 'john', 'ajax arguments should have key user_name with right value')
+      assert.equal(data.params.user_data, 'value2', 'ajax arguments should have key user_data with right value')
+      App.assertPostRequest(assert, data)
     })
-    .bindNative('ajax:complete', function() { start() })
+    .bindNative('ajax:complete', function() { done() })
 
   $('<button />', {
         type: 'submit',
@@ -276,24 +318,27 @@ asyncTest('submitting form with data-remote attribute by clicking button with ma
     .triggerNative('click')
 })
 
-asyncTest('form\'s submit bindings in browsers that don\'t support submit bubbling', 5, function() {
-  var form = $('form[data-remote]'), directBindingCalled = false
+QUnit.test('form\'s submit bindings in browsers that don\'t support submit bubbling', function(assert) {
+  assert.expect(5)
+  var done = assert.async()
 
-  ok(!directBindingCalled, 'nothing is called')
+  var form = $('form#my-remote-form[data-remote]'), directBindingCalled = false
+
+  assert.ok(!directBindingCalled, 'nothing is called')
 
   form
     .append($('<input type="submit" />'))
     .bindNative('submit', function(event) {
-      ok(event.type == 'submit', 'submit event handlers are called with submit event')
-      ok(true, 'binding handler is called')
+      assert.ok(event.type == 'submit', 'submit event handlers are called with submit event')
+      assert.ok(true, 'binding handler is called')
       directBindingCalled = true
     })
     .bindNative('ajax:beforeSend', function() {
-      ok(true, 'form being submitted via ajax')
-      ok(directBindingCalled, 'binding handler already called')
+      assert.ok(true, 'form being submitted via ajax')
+      assert.ok(directBindingCalled, 'binding handler already called')
     })
     .bindNative('ajax:complete', function() {
-      start()
+      done()
     })
 
     if(!$.support.submitBubbles) {
@@ -305,18 +350,21 @@ asyncTest('form\'s submit bindings in browsers that don\'t support submit bubbli
     }
 })
 
-asyncTest('returning false in form\'s submit bindings in non-submit-bubbling browsers', 1, function() {
-  var form = $('form[data-remote]')
+QUnit.test('returning false in form\'s submit bindings in non-submit-bubbling browsers', function(assert) {
+  assert.expect(1)
+  var done = assert.async()
+
+  var form = $('form#my-remote-form[data-remote]')
 
   form
     .append($('<input type="submit" />'))
     .bindNative('submit', function(e) {
-      ok(true, 'binding handler is called')
+      assert.ok(true, 'binding handler is called')
       e.preventDefault()
       e.stopPropagation()
     })
     .bindNative('ajax:beforeSend', function() {
-      ok(false, 'form should not be submitted')
+      assert.ok(false, 'form should not be submitted')
     })
 
     if (!$.support.submitBubbles) {
@@ -326,24 +374,30 @@ asyncTest('returning false in form\'s submit bindings in non-submit-bubbling bro
       form.triggerNative('submit')
     }
 
-    setTimeout(function() { start() }, 13)
+    setTimeout(function() { done() }, 13)
 })
 
-asyncTest('clicking on a link with falsy "data-remote" attribute does not fire ajaxyness', 0, function() {
+QUnit.test('clicking on a link with falsy "data-remote" attribute does not fire ajaxyness', function(assert) {
+  assert.expect(0)
+  var done = assert.async()
+
   $('a[data-remote]')
     .attr('data-remote', 'false')
     .bindNative('ajax:beforeSend', function() {
-      ok(false, 'ajax should not be triggered')
+      assert.ok(false, 'ajax should not be triggered')
     })
     .bindNative('click', function(e) {
       e.preventDefault()
     })
     .triggerNative('click')
 
-  setTimeout(function() { start() }, 20)
+  setTimeout(function() { done() }, 20)
 })
 
-asyncTest('ctrl-clicking on a link with falsy "data-remote" attribute does not fire ajaxyness even if "data-params" present', 0, function() {
+QUnit.test('ctrl-clicking on a link with falsy "data-remote" attribute does not fire ajaxyness even if "data-params" present', function(assert) {
+  assert.expect(0)
+  var done = assert.async()
+
   var link = $('a[data-remote]')
 
   link
@@ -351,7 +405,7 @@ asyncTest('ctrl-clicking on a link with falsy "data-remote" attribute does not f
     .attr('data-remote', 'false')
     .attr('data-method', 'POST')
     .bindNative('ajax:beforeSend', function() {
-      ok(false, 'ajax should not be triggered')
+      assert.ok(false, 'ajax should not be triggered')
     })
     .bindNative('click', function(e) {
       e.preventDefault()
@@ -363,52 +417,64 @@ asyncTest('ctrl-clicking on a link with falsy "data-remote" attribute does not f
     .attr('data-params', 'name=steve')
     .triggerNative('click', { metaKey: true })
 
-  setTimeout(function() { start() }, 20)
+  setTimeout(function() { done() }, 20)
 })
 
-asyncTest('clicking on a button with falsy "data-remote" attribute', 0, function() {
+QUnit.test('clicking on a button with falsy "data-remote" attribute', function(assert) {
+  assert.expect(0)
+  var done = assert.async()
+
   $('button[data-remote]:first')
     .attr('data-remote', 'false')
     .bindNative('ajax:beforeSend', function() {
-      ok(false, 'ajax should not be triggered')
+      assert.ok(false, 'ajax should not be triggered')
     })
     .bindNative('click', function(e) {
       e.preventDefault()
     })
     .triggerNative('click')
 
-  setTimeout(function() { start() }, 20)
+  setTimeout(function() { done() }, 20)
 })
 
-asyncTest('submitting a form with falsy "data-remote" attribute', 0, function() {
+QUnit.test('submitting a form with falsy "data-remote" attribute', function(assert) {
+  assert.expect(0)
+  var done = assert.async()
+
   $('form[data-remote]:first')
     .attr('data-remote', 'false')
     .bindNative('ajax:beforeSend', function() {
-      ok(false, 'ajax should not be triggered')
+      assert.ok(false, 'ajax should not be triggered')
     })
     .bindNative('submit', function(e) {
       e.preventDefault()
     })
     .triggerNative('submit')
 
-  setTimeout(function() { start() }, 20)
+  setTimeout(function() { done() }, 20)
 })
 
-asyncTest('changing a select option with falsy "data-remote" attribute', 0, function() {
+QUnit.test('changing a select option with falsy "data-remote" attribute', function(assert) {
+  assert.expect(0)
+  var done = assert.async()
+
   buildSelect({'data-remote': 'false'})
 
   $('select[data-remote=false]:first')
     .bindNative('ajax:beforeSend', function() {
-      ok(false, 'ajax should not be triggered')
+      assert.ok(false, 'ajax should not be triggered')
     })
     .val('optionValue2')
     .triggerNative('change')
 
-  setTimeout(function() { start() }, 20)
+  setTimeout(function() { done() }, 20)
 })
 
-asyncTest('form should be serialized correctly', 6, function() {
-  $('form')
+QUnit.test('form should be serialized correctly', function(assert) {
+  assert.expect(6)
+  var done = assert.async()
+
+  $('form#my-remote-form[data-remote]')
     .append('<textarea name="textarea">textarea</textarea>')
     .append('<input type="checkbox" name="checkbox[]" value="0" />')
     .append('<input type="checkbox" checked="checked" name="checkbox[]" value="1" />')
@@ -421,35 +487,41 @@ asyncTest('form should be serialized correctly', 6, function() {
       <option selected>4</option>\
     </select>')
     .bindNative('ajax:success', function(e, data, status, xhr) {
-      equal(data.params.checkbox.length, 1)
-      equal(data.params.checkbox[0], '1')
-      equal(data.params.radio, '0')
-      equal(data.params.select.length, 3)
-      equal(data.params.select[2], '4')
-      equal(data.params.textarea, 'textarea')
+      assert.equal(data.params.checkbox.length, 1)
+      assert.equal(data.params.checkbox[0], '1')
+      assert.equal(data.params.radio, '0')
+      assert.equal(data.params.select.length, 3)
+      assert.equal(data.params.select[2], '4')
+      assert.equal(data.params.textarea, 'textarea')
 
-      start()
+      done()
     })
     .triggerNative('submit')
 })
 
-asyncTest('form buttons should only be serialized when clicked', 4, function() {
-  $('form')
+QUnit.test('form buttons should only be serialized when clicked', function(assert) {
+  assert.expect(4)
+  var done = assert.async()
+
+  $('form#my-remote-form[data-remote]')
     .append('<input type="submit" name="submit1" value="submit1" />')
     .append('<button name="submit2" value="submit2" />')
     .append('<button name="submit3" value="submit3" />')
     .bindNative('ajax:success', function(e, data, status, xhr) {
-      equal(data.params.submit1, undefined)
-      equal(data.params.submit2, 'submit2')
-      equal(data.params.submit3, undefined)
-      equal(data['rack.request.form_vars'], 'user_name=john&submit2=submit2')
+      assert.equal(data.params.submit1, undefined)
+      assert.equal(data.params.submit2, 'submit2')
+      assert.equal(data.params.submit3, undefined)
+      assert.equal(data['rack.request.form_vars'], 'user_name=john&submit2=submit2')
 
-      start()
+      done()
     })
     .find('[name=submit2]').triggerNative('click')
 })
 
-asyncTest('changing a select option without "data-url" attribute still fires ajax request to current location', 1, function() {
+QUnit.test('changing a select option without "data-url" attribute still fires ajax request to current location', function(assert) {
+  assert.expect(1)
+  var done = assert.async()
+
   var currentLocation, ajaxLocation
 
   buildSelect({'data-url': ''})
@@ -466,14 +538,14 @@ asyncTest('changing a select option without "data-url" attribute still fires aja
       }
 
       ajaxLocation = settings.url.replace(settings.data, '').replace(/&$/, '').replace(/\?$/, '')
-      equal(ajaxLocation, currentLocation, 'URL should be current page by default')
+      assert.equal(ajaxLocation, currentLocation, 'URL should be current page by default')
 
       e.preventDefault()
     })
     .val('optionValue2')
     .triggerNative('change')
 
-  setTimeout(function() { start() }, 20)
+  setTimeout(function() { done() }, 20)
 })
 
 })()

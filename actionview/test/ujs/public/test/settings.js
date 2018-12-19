@@ -1,24 +1,24 @@
 var App = App || {}
 var Turbolinks = Turbolinks || {}
 
-App.assertCallbackInvoked = function(callbackName) {
-  ok(true, callbackName + ' callback should have been invoked')
+App.assertCallbackInvoked = function(assert, callbackName) {
+  assert.ok(true, callbackName + ' callback should have been invoked')
 }
 
-App.assertCallbackNotInvoked = function(callbackName) {
-  ok(false, callbackName + ' callback should not have been invoked')
+App.assertCallbackNotInvoked = function(assert, callbackName) {
+  assert.ok(false, callbackName + ' callback should not have been invoked')
 }
 
-App.assertGetRequest = function(requestEnv) {
-  equal(requestEnv['REQUEST_METHOD'], 'GET', 'request type should be GET')
+App.assertGetRequest = function(assert, requestEnv) {
+  assert.equal(requestEnv['REQUEST_METHOD'], 'GET', 'request type should be GET')
 }
 
-App.assertPostRequest = function(requestEnv) {
-  equal(requestEnv['REQUEST_METHOD'], 'POST', 'request type should be POST')
+App.assertPostRequest = function(assert, requestEnv) {
+  assert.equal(requestEnv['REQUEST_METHOD'], 'POST', 'request type should be POST')
 }
 
-App.assertRequestPath = function(requestEnv, path) {
-  equal(requestEnv['PATH_INFO'], path, 'request should be sent to right url')
+App.assertRequestPath = function(assert, requestEnv, path) {
+  assert.equal(requestEnv['PATH_INFO'], path, 'request should be sent to right url')
 }
 
 App.getVal = function(el) {
@@ -31,14 +31,14 @@ App.disabled = function(el) {
     $.rails.getData(el[0], 'ujs:disabled')
 }
 
-App.checkEnabledState = function(el, text) {
-  ok(!App.disabled(el), el.get(0).tagName + ' should not be disabled')
-  equal(App.getVal(el), text, el.get(0).tagName + ' text should be original value')
+App.checkEnabledState = function(assert, el, text) {
+  assert.ok(!App.disabled(el), el.get(0).tagName + ' should not be disabled')
+  assert.equal(App.getVal(el), text, el.get(0).tagName + ' text should be original value')
 }
 
-App.checkDisabledState = function(el, text) {
-  ok(App.disabled(el), el.get(0).tagName + ' should be disabled')
-  equal(App.getVal(el), text, el.get(0).tagName + ' text should be disabled value')
+App.checkDisabledState = function(assert, el, text) {
+  assert.ok(App.disabled(el), el.get(0).tagName + ' should be disabled')
+  assert.equal(App.getVal(el), text, el.get(0).tagName + ' text should be disabled value')
 }
 
 // hijacks normal form submit; lets it submit to an iframe to prevent
