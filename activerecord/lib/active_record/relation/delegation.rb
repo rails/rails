@@ -54,7 +54,7 @@ module ActiveRecord
               end
             RUBY
           else
-            generated_relation_methods.send(:define_method, method) do |*args, &block|
+            generated_relation_methods.define_method(method) do |*args, &block|
               scoping { klass.public_send(method, *args, &block) }
             end
           end

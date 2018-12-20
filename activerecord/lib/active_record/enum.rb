@@ -158,7 +158,7 @@ module ActiveRecord
 
         # def self.statuses() statuses end
         detect_enum_conflict!(name, name.pluralize, true)
-        singleton_class.send(:define_method, name.pluralize) { enum_values }
+        singleton_class.define_method(name.pluralize) { enum_values }
         defined_enums[name] = enum_values
 
         detect_enum_conflict!(name, name)
