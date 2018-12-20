@@ -5,6 +5,8 @@ require "client_test"
 # test with iodine if platform allows
 begin
   require "iodine"
+rescue LoadError
+else
   Iodine.verbosity = 2 # only print errors and fatal errors
   Iodine.workers = 1 # single process (no cluster)
   Iodine.threads = 1 # single threaded mode
@@ -24,5 +26,4 @@ begin
     end
   end
 
-rescue LoadError
 end
