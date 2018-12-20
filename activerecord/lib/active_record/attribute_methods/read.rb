@@ -42,16 +42,8 @@ module ActiveRecord
 
       # This method exists to avoid the expensive primary_key check internally, without
       # breaking compatibility with the read_attribute API
-      if defined?(JRUBY_VERSION)
-        # This form is significantly faster on JRuby, and this is one of our biggest hotspots.
-        # https://github.com/jruby/jruby/pull/2562
-        def _read_attribute(attr_name, &block) # :nodoc:
-          @attributes.fetch_value(attr_name.to_s, &block)
-        end
-      else
-        def _read_attribute(attr_name) # :nodoc:
-          @attributes.fetch_value(attr_name.to_s) { |n| yield n if block_given? }
-        end
+      def _read_attribute(attr_name, &block) # :nodoc
+        @attributes.fetch_value(attr_name.to_s, &block)
       end
 
       alias :attribute :_read_attribute
