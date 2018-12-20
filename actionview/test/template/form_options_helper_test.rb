@@ -36,7 +36,7 @@ class FormOptionsHelperTest < ActionView::TestCase
   module FakeZones
     FakeZone = Struct.new(:name) do
       def to_s; name; end
-      def =~(re); re === name || re === ActiveSupport::TimeZone::MAPPING[name]; end
+      def =~(_re); end
     end
 
     module ClassMethods
