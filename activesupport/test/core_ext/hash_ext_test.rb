@@ -31,8 +31,6 @@ class HashExtTest < ActiveSupport::TestCase
 
   def test_methods
     h = {}
-    assert_respond_to h, :transform_keys
-    assert_respond_to h, :transform_keys!
     assert_respond_to h, :deep_transform_keys
     assert_respond_to h, :deep_transform_keys!
     assert_respond_to h, :symbolize_keys
@@ -49,18 +47,6 @@ class HashExtTest < ActiveSupport::TestCase
     assert_respond_to h, :except!
   end
 
-  def test_transform_keys
-    assert_equal @upcase_strings, @strings.transform_keys { |key| key.to_s.upcase }
-    assert_equal @upcase_strings, @symbols.transform_keys { |key| key.to_s.upcase }
-    assert_equal @upcase_strings, @mixed.transform_keys { |key| key.to_s.upcase }
-  end
-
-  def test_transform_keys_not_mutates
-    transformed_hash = @mixed.dup
-    transformed_hash.transform_keys { |key| key.to_s.upcase }
-    assert_equal @mixed, transformed_hash
-  end
-
   def test_deep_transform_keys
     assert_equal @nested_upcase_strings, @nested_symbols.deep_transform_keys { |key| key.to_s.upcase }
     assert_equal @nested_upcase_strings, @nested_strings.deep_transform_keys { |key| key.to_s.upcase }
@@ -74,19 +60,6 @@ class HashExtTest < ActiveSupport::TestCase
     transformed_hash = @nested_mixed.deep_dup
     transformed_hash.deep_transform_keys { |key| key.to_s.upcase }
     assert_equal @nested_mixed, transformed_hash
-  end
-
-  def test_transform_keys!
-    assert_equal @upcase_strings, @symbols.dup.transform_keys! { |key| key.to_s.upcase }
-    assert_equal @upcase_strings, @strings.dup.transform_keys! { |key| key.to_s.upcase }
-    assert_equal @upcase_strings, @mixed.dup.transform_keys! { |key| key.to_s.upcase }
-  end
-
-  def test_transform_keys_with_bang_mutates
-    transformed_hash = @mixed.dup
-    transformed_hash.transform_keys! { |key| key.to_s.upcase }
-    assert_equal @upcase_strings, transformed_hash
-    assert_equal({ :a => 1, "b" => 2 }, @mixed)
   end
 
   def test_deep_transform_keys!
