@@ -2729,26 +2729,7 @@ NOTE: Defined in `active_support/core_ext/hash/keys.rb`.
 
 ### Slicing
 
-Ruby has built-in support for taking slices out of strings and arrays. Active Support extends slicing to hashes:
-
-```ruby
-{a: 1, b: 2, c: 3}.slice(:a, :c)
-# => {:a=>1, :c=>3}
-
-{a: 1, b: 2, c: 3}.slice(:b, :X)
-# => {:b=>2} # non-existing keys are ignored
-```
-
-If the receiver responds to `convert_key` keys are normalized:
-
-```ruby
-{a: 1, b: 2}.with_indifferent_access.slice("a")
-# => {:a=>1}
-```
-
-NOTE. Slicing may come in handy for sanitizing option hashes with a white list of keys.
-
-There's also `slice!` which in addition to perform a slice in place returns what's removed:
+The method `slice!` replaces the hash with only the given keys and returns a hash containing the removed key/value pairs.
 
 ```ruby
 hash = {a: 1, b: 2}
