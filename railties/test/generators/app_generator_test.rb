@@ -750,7 +750,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       { "BUNDLE_RUBYONRAILS__ORG" => "user:pass" }
     end
 
-    ensure_environment_is_set = -> command, options = nil do
+    ensure_environment_is_set = -> *_args do
       assert_equal "user:pass", ENV["BUNDLE_RUBYONRAILS__ORG"]
     end
 
