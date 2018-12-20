@@ -132,19 +132,17 @@ module ActiveRecord
       end
 
       def test_not_specifying_database_name_for_cross_database_selects
-        begin
-          assert_nothing_raised do
-            ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations["arunit"].except(:database))
+        assert_nothing_raised do
+          ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations["arunit"].except(:database))
 
-            config = ARTest.connection_config
-            ActiveRecord::Base.connection.execute(
-              "SELECT #{config['arunit']['database']}.pirates.*, #{config['arunit2']['database']}.courses.* " \
-              "FROM #{config['arunit']['database']}.pirates, #{config['arunit2']['database']}.courses"
-            )
-          end
-        ensure
-          ActiveRecord::Base.establish_connection :arunit
+          config = ARTest.connection_config
+          ActiveRecord::Base.connection.execute(
+            "SELECT #{config['arunit']['database']}.pirates.*, #{config['arunit2']['database']}.courses.* " \
+            "FROM #{config['arunit']['database']}.pirates, #{config['arunit2']['database']}.courses"
+          )
         end
+      ensure
+        ActiveRecord::Base.establish_connection :arunit
       end
     end
 

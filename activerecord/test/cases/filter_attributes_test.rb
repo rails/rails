@@ -90,15 +90,13 @@ class FilterAttributesTest < ActiveRecord::TestCase
   end
 
   test "filter_attributes should handle [FILTERED] value properly" do
-    begin
-      User.filter_attributes = ["auth"]
-      user = User.new(token: "[FILTERED]", auth_token: "[FILTERED]")
+    User.filter_attributes = ["auth"]
+    user = User.new(token: "[FILTERED]", auth_token: "[FILTERED]")
 
-      assert_includes user.inspect, "auth_token: [FILTERED]"
-      assert_includes user.inspect, 'token: "[FILTERED]"'
-    ensure
-      User.remove_instance_variable(:@filter_attributes)
-    end
+    assert_includes user.inspect, "auth_token: [FILTERED]"
+    assert_includes user.inspect, 'token: "[FILTERED]"'
+  ensure
+    User.remove_instance_variable(:@filter_attributes)
   end
 
   test "filter_attributes on pretty_print" do
@@ -121,16 +119,14 @@ class FilterAttributesTest < ActiveRecord::TestCase
   end
 
   test "filter_attributes on pretty_print should handle [FILTERED] value properly" do
-    begin
-      User.filter_attributes = ["auth"]
-      user = User.new(token: "[FILTERED]", auth_token: "[FILTERED]")
-      actual = "".dup
-      PP.pp(user, StringIO.new(actual))
+    User.filter_attributes = ["auth"]
+    user = User.new(token: "[FILTERED]", auth_token: "[FILTERED]")
+    actual = "".dup
+    PP.pp(user, StringIO.new(actual))
 
-      assert_includes actual, "auth_token: [FILTERED]"
-      assert_includes actual, 'token: "[FILTERED]"'
-    ensure
-      User.remove_instance_variable(:@filter_attributes)
-    end
+    assert_includes actual, "auth_token: [FILTERED]"
+    assert_includes actual, 'token: "[FILTERED]"'
+  ensure
+    User.remove_instance_variable(:@filter_attributes)
   end
 end

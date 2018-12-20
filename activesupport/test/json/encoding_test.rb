@@ -21,20 +21,18 @@ class TestJSONEncoding < ActiveSupport::TestCase
 
   JSONTest::EncodingTestCases.constants.each do |class_tests|
     define_method("test_#{class_tests[0..-6].underscore}") do
-      begin
-        prev = ActiveSupport.use_standard_json_time_format
+      prev = ActiveSupport.use_standard_json_time_format
 
-        standard_class_tests = /Standard/.match?(class_tests)
+      standard_class_tests = /Standard/.match?(class_tests)
 
-        ActiveSupport.escape_html_entities_in_json  = !standard_class_tests
-        ActiveSupport.use_standard_json_time_format = standard_class_tests
-        JSONTest::EncodingTestCases.const_get(class_tests).each do |pair|
-          assert_equal pair.last, sorted_json(ActiveSupport::JSON.encode(pair.first))
-        end
-      ensure
-        ActiveSupport.escape_html_entities_in_json  = false
-        ActiveSupport.use_standard_json_time_format = prev
+      ActiveSupport.escape_html_entities_in_json  = !standard_class_tests
+      ActiveSupport.use_standard_json_time_format = standard_class_tests
+      JSONTest::EncodingTestCases.const_get(class_tests).each do |pair|
+        assert_equal pair.last, sorted_json(ActiveSupport::JSON.encode(pair.first))
       end
+    ensure
+      ActiveSupport.escape_html_entities_in_json  = false
+      ActiveSupport.use_standard_json_time_format = prev
     end
   end
 

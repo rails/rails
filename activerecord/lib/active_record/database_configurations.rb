@@ -124,15 +124,13 @@ module ActiveRecord
       end
 
       def build_db_config_from_string(env_name, spec_name, config)
-        begin
-          url = config
-          uri = URI.parse(url)
-          if uri.try(:scheme)
-            ActiveRecord::DatabaseConfigurations::UrlConfig.new(env_name, spec_name, url)
-          end
-        rescue URI::InvalidURIError
-          ActiveRecord::DatabaseConfigurations::HashConfig.new(env_name, spec_name, config)
+        url = config
+        uri = URI.parse(url)
+        if uri.try(:scheme)
+          ActiveRecord::DatabaseConfigurations::UrlConfig.new(env_name, spec_name, url)
         end
+      rescue URI::InvalidURIError
+        ActiveRecord::DatabaseConfigurations::HashConfig.new(env_name, spec_name, config)
       end
 
       def build_db_config_from_hash(env_name, spec_name, config)

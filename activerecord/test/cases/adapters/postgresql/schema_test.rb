@@ -108,23 +108,19 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_create_schema
-    begin
-      @connection.create_schema "test_schema3"
-      assert @connection.schema_names.include? "test_schema3"
-    ensure
-      @connection.drop_schema "test_schema3"
-    end
+    @connection.create_schema "test_schema3"
+    assert @connection.schema_names.include? "test_schema3"
+  ensure
+    @connection.drop_schema "test_schema3"
   end
 
   def test_raise_create_schema_with_existing_schema
-    begin
+    @connection.create_schema "test_schema3"
+    assert_raises(ActiveRecord::StatementInvalid) do
       @connection.create_schema "test_schema3"
-      assert_raises(ActiveRecord::StatementInvalid) do
-        @connection.create_schema "test_schema3"
-      end
-    ensure
-      @connection.drop_schema "test_schema3"
     end
+  ensure
+    @connection.drop_schema "test_schema3"
   end
 
   def test_drop_schema

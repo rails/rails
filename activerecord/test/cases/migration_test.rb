@@ -576,29 +576,25 @@ class MigrationTest < ActiveRecord::TestCase
       # table name is 29 chars, the standard sequence name will
       # be 33 chars and should be shortened
       assert_nothing_raised do
-        begin
-          Person.connection.create_table :table_with_name_thats_just_ok do |t|
-            t.column :foo, :string, null: false
-          end
-        ensure
-          Person.connection.drop_table :table_with_name_thats_just_ok rescue nil
+        Person.connection.create_table :table_with_name_thats_just_ok do |t|
+          t.column :foo, :string, null: false
         end
+      ensure
+        Person.connection.drop_table :table_with_name_thats_just_ok rescue nil
       end
 
       # should be all good w/ a custom sequence name
       assert_nothing_raised do
-        begin
-          Person.connection.create_table :table_with_name_thats_just_ok,
-            sequence_name: "suitably_short_seq" do |t|
-            t.column :foo, :string, null: false
-          end
-
-          Person.connection.execute("select suitably_short_seq.nextval from dual")
-
-        ensure
-          Person.connection.drop_table :table_with_name_thats_just_ok,
-            sequence_name: "suitably_short_seq" rescue nil
+        Person.connection.create_table :table_with_name_thats_just_ok,
+          sequence_name: "suitably_short_seq" do |t|
+          t.column :foo, :string, null: false
         end
+
+        Person.connection.execute("select suitably_short_seq.nextval from dual")
+
+      ensure
+        Person.connection.drop_table :table_with_name_thats_just_ok,
+          sequence_name: "suitably_short_seq" rescue nil
       end
 
       # confirm the custom sequence got dropped
@@ -742,15 +738,13 @@ class MigrationTest < ActiveRecord::TestCase
       test_terminated = Concurrent::CountDownLatch.new
 
       other_process = Thread.new do
-        begin
-          conn = ActiveRecord::Base.connection_pool.checkout
-          conn.get_advisory_lock(lock_id)
-          thread_lock.count_down
-          test_terminated.wait # hold the lock open until we tested everything
-        ensure
-          conn.release_advisory_lock(lock_id)
-          ActiveRecord::Base.connection_pool.checkin(conn)
-        end
+        conn = ActiveRecord::Base.connection_pool.checkout
+        conn.get_advisory_lock(lock_id)
+        thread_lock.count_down
+        test_terminated.wait # hold the lock open until we tested everything
+      ensure
+        conn.release_advisory_lock(lock_id)
+        ActiveRecord::Base.connection_pool.checkin(conn)
       end
 
       thread_lock.wait # wait until the 'other process' has the lock

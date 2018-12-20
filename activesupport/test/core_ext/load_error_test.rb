@@ -13,10 +13,9 @@ class TestLoadError < ActiveSupport::TestCase
   end
 
   def test_path
-    begin load "nor/this/one.rb"
-    rescue LoadError => e
-      assert_equal "nor/this/one.rb", e.path
-    end
+    load "nor/this/one.rb"
+   rescue LoadError => e
+     assert_equal "nor/this/one.rb", e.path
   end
 
   def test_is_missing_with_nil_path

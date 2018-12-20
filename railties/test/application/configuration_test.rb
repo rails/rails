@@ -1493,14 +1493,12 @@ module ApplicationTests
     end
 
     test "config.session_store with :active_record_store with activerecord-session_store gem" do
-      begin
-        make_basic_app do |application|
-          ActionDispatch::Session::ActiveRecordStore = Class.new(ActionDispatch::Session::CookieStore)
-          application.config.session_store :active_record_store
-        end
-      ensure
-        ActionDispatch::Session.send :remove_const, :ActiveRecordStore
+      make_basic_app do |application|
+        ActionDispatch::Session::ActiveRecordStore = Class.new(ActionDispatch::Session::CookieStore)
+        application.config.session_store :active_record_store
       end
+    ensure
+      ActionDispatch::Session.send :remove_const, :ActiveRecordStore
     end
 
     test "config.session_store with :active_record_store without activerecord-session_store gem" do

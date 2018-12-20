@@ -1000,16 +1000,12 @@ class YieldingAroundFiltersTest < ActionController::TestCase
   def test_nested_actions
     controller = ControllerWithNestedFilters
     assert_nothing_raised do
-      begin
-        test_process(controller, "raises_both")
-      rescue Before, After
-      end
+      test_process(controller, "raises_both")
+    rescue Before, After
     end
     assert_raise Before do
-      begin
-        test_process(controller, "raises_both")
-      rescue After
-      end
+      test_process(controller, "raises_both")
+    rescue After
     end
   end
 

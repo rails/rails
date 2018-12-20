@@ -18,11 +18,9 @@ module ActiveStorage
 
     def upload(key, io, checksum: nil, **)
       instrument :upload, key: key, checksum: checksum do
-        begin
-          object_for(key).put(upload_options.merge(body: io, content_md5: checksum))
-        rescue Aws::S3::Errors::BadDigest
-          raise ActiveStorage::IntegrityError
-        end
+        object_for(key).put(upload_options.merge(body: io, content_md5: checksum))
+      rescue Aws::S3::Errors::BadDigest
+        raise ActiveStorage::IntegrityError
       end
     end
 
@@ -33,22 +31,18 @@ module ActiveStorage
         end
       else
         instrument :download, key: key do
-          begin
-            object_for(key).get.body.string.force_encoding(Encoding::BINARY)
-          rescue Aws::S3::Errors::NoSuchKey
-            raise ActiveStorage::FileNotFoundError
-          end
+          object_for(key).get.body.string.force_encoding(Encoding::BINARY)
+        rescue Aws::S3::Errors::NoSuchKey
+          raise ActiveStorage::FileNotFoundError
         end
       end
     end
 
     def download_chunk(key, range)
       instrument :download_chunk, key: key, range: range do
-        begin
-          object_for(key).get(range: "bytes=#{range.begin}-#{range.exclude_end? ? range.end - 1 : range.end}").body.read.force_encoding(Encoding::BINARY)
-        rescue Aws::S3::Errors::NoSuchKey
-          raise ActiveStorage::FileNotFoundError
-        end
+        object_for(key).get(range: "bytes=#{range.begin}-#{range.exclude_end? ? range.end - 1 : range.end}").body.read.force_encoding(Encoding::BINARY)
+      rescue Aws::S3::Errors::NoSuchKey
+        raise ActiveStorage::FileNotFoundError
       end
     end
 

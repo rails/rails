@@ -48,11 +48,9 @@ module ActionDispatch
         wrapper = ExceptionWrapper.new(backtrace_cleaner, exception)
 
         @interceptors.each do |interceptor|
-          begin
-            interceptor.call(request, exception)
-          rescue Exception
-            log_error(request, wrapper)
-          end
+          interceptor.call(request, exception)
+        rescue Exception
+          log_error(request, wrapper)
         end
       end
 

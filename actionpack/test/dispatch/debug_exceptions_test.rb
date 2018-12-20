@@ -27,14 +27,12 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     end
 
     def raise_nested_exceptions
+      raise "First error"
+    rescue
       begin
-        raise "First error"
+        raise "Second error"
       rescue
-        begin
-          raise "Second error"
-        rescue
-          raise "Third error"
-        end
+        raise "Third error"
       end
     end
 
@@ -290,22 +288,20 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
   end
 
   test "rescue with JSON format as fallback if API request format is not supported" do
-    begin
-      Mime::Type.register "text/wibble", :wibble
+    Mime::Type.register "text/wibble", :wibble
 
-      ActionDispatch::IntegrationTest.register_encoder(:wibble,
-        param_encoder: -> params { params })
+    ActionDispatch::IntegrationTest.register_encoder(:wibble,
+      param_encoder: -> params { params })
 
-      @app = ActionDispatch::DebugExceptions.new(Boomer.new(true), RoutesApp, :api)
+    @app = ActionDispatch::DebugExceptions.new(Boomer.new(true), RoutesApp, :api)
 
-      get "/index", headers: { "action_dispatch.show_exceptions" => true }, as: :wibble
-      assert_response 500
-      assert_equal "application/json", response.content_type
-      assert_match(/RuntimeError: puke/, body)
+    get "/index", headers: { "action_dispatch.show_exceptions" => true }, as: :wibble
+    assert_response 500
+    assert_equal "application/json", response.content_type
+    assert_match(/RuntimeError: puke/, body)
 
-    ensure
-      Mime::Type.unregister :wibble
-    end
+  ensure
+    Mime::Type.unregister :wibble
   end
 
   test "does not show filtered parameters" do
