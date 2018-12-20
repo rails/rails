@@ -379,11 +379,11 @@ module Rails
 
         require "bundler"
         Bundler.with_original_env do
-          exec_bundle_command(_bundle_command, command)
+          exec_bundle_command(_bundle_command, command, env)
         end
       end
 
-      def exec_bundle_command(bundle_command, command)
+      def exec_bundle_command(bundle_command, command, env)
         full_command = %Q["#{Gem.ruby}" "#{bundle_command}" #{command}]
         if options[:quiet]
           system(env, full_command, out: File::NULL)
