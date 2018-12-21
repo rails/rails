@@ -22,7 +22,13 @@ module ActiveSupport
         if AsJSONEncoder.internal_as_json?(object)
           visit object
         else
-          encode object.as_json
+          # **ONLY** top level objects implementing as_json should
+          # get the options hash
+          if !@as_json_options.nil?
+            self.class.new(nil).encode object.as_json(@as_json_options.dup)
+          else
+            self.class.new(nil).encode object.as_json
+          end
         end
       end
 
