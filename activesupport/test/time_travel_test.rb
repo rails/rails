@@ -3,8 +3,11 @@
 require "abstract_unit"
 require "active_support/core_ext/date_time"
 require "active_support/core_ext/numeric/time"
+require "time_zone_test_helpers"
 
 class TimeTravelTest < ActiveSupport::TestCase
+  include TimeZoneTestHelpers
+
   class TimeSubclass < ::Time; end
   class DateSubclass < ::Date; end
   class DateTimeSubclass < ::DateTime; end
@@ -68,6 +71,20 @@ class TimeTravelTest < ActiveSupport::TestCase
       assert_not_equal expected_time, Time.now
       assert_not_equal Date.new(2004, 11, 24), Date.today
       assert_not_equal expected_time.to_datetime, DateTime.now
+    end
+  end
+
+  def test_time_helper_travel_to_with_time_zone
+    with_env_tz "US/Eastern" do
+      with_tz_default ActiveSupport::TimeZone["UTC"] do
+        Time.stub(:now, Time.now) do
+          expected_time = 5.minutes.ago
+
+          travel_to 5.minutes.ago do
+            assert_equal expected_time.to_s(:db), Time.zone.now.to_s(:db)
+          end
+        end
+      end
     end
   end
 
