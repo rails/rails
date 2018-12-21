@@ -45,7 +45,7 @@ QUnit.test('form method is read from submit button "formmethod" if submit is tri
   var submitButton = $('<input type="submit" formmethod="get">')
   buildForm({ method: 'post' })
 
-  $('#qunit-fixture').find('form').append(submitButton)
+  $('#qunit-fixture').find('form.rails-ujs-target').append(submitButton)
     .bindNative('ajax:success', function(e, data, status, xhr) {
       App.assertGetRequest(assert, data)
     })
@@ -94,7 +94,7 @@ QUnit.test('form url is read from submit button "formaction" if submit is trigge
   var submitButton = $('<input type="submit" formaction="/echo">')
   buildForm({ method: 'post', href: '/echo2' })
 
-  $('#qunit-fixture').find('form').append(submitButton)
+  $('#qunit-fixture').find('form.rails-ujs-target').append(submitButton)
     .bindNative('ajax:success', function(e, data, status, xhr) {
       App.assertRequestPath(assert, data, '/echo')
     })
@@ -277,7 +277,7 @@ QUnit.test('allow empty form "action"', function(assert) {
 
   buildForm({ action: '' })
 
-  $('#qunit-fixture').find('form')
+  $('#qunit-fixture').find('form.rails-ujs-target')
     .bindNative('ajax:beforeSend', function(evt, xhr, settings) {
       // Get current location (the same way jQuery does)
       try {
@@ -325,7 +325,7 @@ QUnit.test('intelligently guesses crossDomain behavior when target URL has a dif
   buildForm({ action: 'http://www.alfajango.com' })
   $('#qunit-fixture').append('<meta name="csrf-token" content="cf50faa3fe97702ca1ae" />')
 
-  $('#qunit-fixture').find('form')
+  $('#qunit-fixture').find('form.rails-ujs-target')
     .bindNative('ajax:beforeSend', function(evt, req, settings) {
 
       assert.equal(settings.crossDomain, true, 'crossDomain should be set to true')
@@ -347,7 +347,7 @@ QUnit.test('intelligently guesses crossDomain behavior when target URL consists 
   buildForm({ action: '/just/a/path' })
   $('#qunit-fixture').append('<meta name="csrf-token" content="cf50faa3fe97702ca1ae" />')
 
-  $('#qunit-fixture').find('form')
+  $('#qunit-fixture').find('form.rails-ujs-target')
     .bindNative('ajax:beforeSend', function(evt, req, settings) {
 
       assert.equal(settings.crossDomain, false, 'crossDomain should be set to false')
