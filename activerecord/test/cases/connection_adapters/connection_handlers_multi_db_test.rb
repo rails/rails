@@ -332,7 +332,7 @@ module ActiveRecord
       def test_calling_connected_to_on_a_non_existent_handler_raises
         error = assert_raises ArgumentError do
           ActiveRecord::Base.connected_to(role: :reading) do
-            yield
+            flunk "should not call this block"
           end
         end
 
