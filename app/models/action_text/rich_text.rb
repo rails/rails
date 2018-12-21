@@ -8,8 +8,12 @@ class ActionText::RichText < ActiveRecord::Base
   self.table_name = "action_text_rich_texts"
 
   serialize :body, ActionText::Content
-  delegate :to_s, :to_plain_text, :nil?, to: :body
-  delegate :blank?, :empty?, :present?, to: :to_s
+  delegate :to_s, :nil?, to: :body
+  delegate :blank?, :empty?, :present?, to: :to_plain_text
+
+  def to_plain_text
+    body&.to_plain_text.to_s
+  end
 
   belongs_to :record, polymorphic: true, touch: true
   has_many_attached :embeds
