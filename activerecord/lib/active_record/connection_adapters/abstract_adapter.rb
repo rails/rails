@@ -631,13 +631,11 @@ module ActiveRecord
             statement_name:    statement_name,
             connection_id:     object_id,
             connection:        self) do
-            begin
-              @lock.synchronize do
-                yield
-              end
-            rescue => e
-              raise translate_exception_class(e, sql, binds)
+            @lock.synchronize do
+              yield
             end
+          rescue => e
+            raise translate_exception_class(e, sql, binds)
           end
         end
 

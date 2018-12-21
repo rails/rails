@@ -54,23 +54,19 @@ class ExceptionsTest < ActiveJob::TestCase
 
   test "failed retry job when exception kept occurring against defaults" do
     perform_enqueued_jobs do
-      begin
-        RetryJob.perform_later "DefaultsError", 6
-        assert_equal "Raised DefaultsError for the 5th time", JobBuffer.last_value
-      rescue DefaultsError
-        pass
-      end
+      RetryJob.perform_later "DefaultsError", 6
+      assert_equal "Raised DefaultsError for the 5th time", JobBuffer.last_value
+    rescue DefaultsError
+      pass
     end
   end
 
   test "failed retry job when exception kept occurring against higher limit" do
     perform_enqueued_jobs do
-      begin
-        RetryJob.perform_later "ShortWaitTenAttemptsError", 11
-        assert_equal "Raised ShortWaitTenAttemptsError for the 10th time", JobBuffer.last_value
-      rescue ShortWaitTenAttemptsError
-        pass
-      end
+      RetryJob.perform_later "ShortWaitTenAttemptsError", 11
+      assert_equal "Raised ShortWaitTenAttemptsError for the 10th time", JobBuffer.last_value
+    rescue ShortWaitTenAttemptsError
+      pass
     end
   end
 

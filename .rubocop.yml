@@ -187,6 +187,9 @@ Lint/UriEscapeUnescape:
 Style/ParenthesesAroundCondition:
   Enabled: true
 
+Style/RedundantBegin:
+  Enabled: true
+
 Style/RedundantReturn:
   Enabled: true
   AllowMultipleReturnValues: true

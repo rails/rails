@@ -41,22 +41,20 @@ class ScreenshotHelperTest < ActiveSupport::TestCase
   end
 
   test "display_image return artifact format when specify RAILS_SYSTEM_TESTING_SCREENSHOT environment" do
-    begin
-      original_output_type = ENV["RAILS_SYSTEM_TESTING_SCREENSHOT"]
-      ENV["RAILS_SYSTEM_TESTING_SCREENSHOT"] = "artifact"
+    original_output_type = ENV["RAILS_SYSTEM_TESTING_SCREENSHOT"]
+    ENV["RAILS_SYSTEM_TESTING_SCREENSHOT"] = "artifact"
 
-      new_test = DrivenBySeleniumWithChrome.new("x")
+    new_test = DrivenBySeleniumWithChrome.new("x")
 
-      assert_equal "artifact", new_test.send(:output_type)
+    assert_equal "artifact", new_test.send(:output_type)
 
-      Rails.stub :root, Pathname.getwd do
-        new_test.stub :passed?, false do
-          assert_match %r|url=artifact://.+?tmp/screenshots/failures_x\.png|, new_test.send(:display_image)
-        end
+    Rails.stub :root, Pathname.getwd do
+      new_test.stub :passed?, false do
+        assert_match %r|url=artifact://.+?tmp/screenshots/failures_x\.png|, new_test.send(:display_image)
       end
-    ensure
-      ENV["RAILS_SYSTEM_TESTING_SCREENSHOT"] = original_output_type
     end
+  ensure
+    ENV["RAILS_SYSTEM_TESTING_SCREENSHOT"] = original_output_type
   end
 
   test "image path returns the absolute path from root" do

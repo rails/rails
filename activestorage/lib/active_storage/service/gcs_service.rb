@@ -13,16 +13,14 @@ module ActiveStorage
 
     def upload(key, io, checksum: nil, content_type: nil, disposition: nil, filename: nil)
       instrument :upload, key: key, checksum: checksum do
-        begin
-          # GCS's signed URLs don't include params such as response-content-type response-content_disposition
-          # in the signature, which means an attacker can modify them and bypass our effort to force these to
-          # binary and attachment when the file's content type requires it. The only way to force them is to
-          # store them as object's metadata.
-          content_disposition = content_disposition_with(type: disposition, filename: filename) if disposition && filename
-          bucket.create_file(io, key, md5: checksum, content_type: content_type, content_disposition: content_disposition)
-        rescue Google::Cloud::InvalidArgumentError
-          raise ActiveStorage::IntegrityError
-        end
+        # GCS's signed URLs don't include params such as response-content-type response-content_disposition
+        # in the signature, which means an attacker can modify them and bypass our effort to force these to
+        # binary and attachment when the file's content type requires it. The only way to force them is to
+        # store them as object's metadata.
+        content_disposition = content_disposition_with(type: disposition, filename: filename) if disposition && filename
+        bucket.create_file(io, key, md5: checksum, content_type: content_type, content_disposition: content_disposition)
+      rescue Google::Cloud::InvalidArgumentError
+        raise ActiveStorage::IntegrityError
       end
     end
 
@@ -33,11 +31,9 @@ module ActiveStorage
         end
       else
         instrument :download, key: key do
-          begin
-            file_for(key).download.string
-          rescue Google::Cloud::NotFoundError
-            raise ActiveStorage::FileNotFoundError
-          end
+          file_for(key).download.string
+        rescue Google::Cloud::NotFoundError
+          raise ActiveStorage::FileNotFoundError
         end
       end
     end
@@ -53,32 +49,26 @@ module ActiveStorage
 
     def download_chunk(key, range)
       instrument :download_chunk, key: key, range: range do
-        begin
-          file_for(key).download(range: range).string
-        rescue Google::Cloud::NotFoundError
-          raise ActiveStorage::FileNotFoundError
-        end
+        file_for(key).download(range: range).string
+      rescue Google::Cloud::NotFoundError
+        raise ActiveStorage::FileNotFoundError
       end
     end
 
     def delete(key)
       instrument :delete, key: key do
-        begin
-          file_for(key).delete
-        rescue Google::Cloud::NotFoundError
-          # Ignore files already deleted
-        end
+        file_for(key).delete
+      rescue Google::Cloud::NotFoundError
+        # Ignore files already deleted
       end
     end
 
     def delete_prefixed(prefix)
       instrument :delete_prefixed, prefix: prefix do
         bucket.files(prefix: prefix).all do |file|
-          begin
-            file.delete
-          rescue Google::Cloud::NotFoundError
-            # Ignore concurrently-deleted files
-          end
+          file.delete
+        rescue Google::Cloud::NotFoundError
+          # Ignore concurrently-deleted files
         end
       end
     end

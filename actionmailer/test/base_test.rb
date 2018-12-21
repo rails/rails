@@ -897,22 +897,20 @@ class BaseTest < ActiveSupport::TestCase
   end
 
   test "notification for process" do
-    begin
-      events = []
-      ActiveSupport::Notifications.subscribe("process.action_mailer") do |*args|
-        events << ActiveSupport::Notifications::Event.new(*args)
-      end
-
-      BaseMailer.welcome(body: "Hello there").deliver_now
-
-      assert_equal 1, events.length
-      assert_equal "process.action_mailer", events[0].name
-      assert_equal "BaseMailer", events[0].payload[:mailer]
-      assert_equal :welcome, events[0].payload[:action]
-      assert_equal [{ body: "Hello there" }], events[0].payload[:args]
-    ensure
-      ActiveSupport::Notifications.unsubscribe "process.action_mailer"
+    events = []
+    ActiveSupport::Notifications.subscribe("process.action_mailer") do |*args|
+      events << ActiveSupport::Notifications::Event.new(*args)
     end
+
+    BaseMailer.welcome(body: "Hello there").deliver_now
+
+    assert_equal 1, events.length
+    assert_equal "process.action_mailer", events[0].name
+    assert_equal "BaseMailer", events[0].payload[:mailer]
+    assert_equal :welcome, events[0].payload[:action]
+    assert_equal [{ body: "Hello there" }], events[0].payload[:args]
+  ensure
+    ActiveSupport::Notifications.unsubscribe "process.action_mailer"
   end
 
   private

@@ -130,29 +130,25 @@ class Mysql2ActiveSchemaTest < ActiveRecord::Mysql2TestCase
 
   def test_add_timestamps
     with_real_execute do
-      begin
-        ActiveRecord::Base.connection.create_table :delete_me
-        ActiveRecord::Base.connection.add_timestamps :delete_me, null: true
-        assert column_present?("delete_me", "updated_at", "datetime")
-        assert column_present?("delete_me", "created_at", "datetime")
-      ensure
-        ActiveRecord::Base.connection.drop_table :delete_me rescue nil
-      end
+      ActiveRecord::Base.connection.create_table :delete_me
+      ActiveRecord::Base.connection.add_timestamps :delete_me, null: true
+      assert column_present?("delete_me", "updated_at", "datetime")
+      assert column_present?("delete_me", "created_at", "datetime")
+    ensure
+      ActiveRecord::Base.connection.drop_table :delete_me rescue nil
     end
   end
 
   def test_remove_timestamps
     with_real_execute do
-      begin
-        ActiveRecord::Base.connection.create_table :delete_me do |t|
-          t.timestamps null: true
-        end
-        ActiveRecord::Base.connection.remove_timestamps :delete_me, null: true
-        assert_not column_present?("delete_me", "updated_at", "datetime")
-        assert_not column_present?("delete_me", "created_at", "datetime")
-      ensure
-        ActiveRecord::Base.connection.drop_table :delete_me rescue nil
+      ActiveRecord::Base.connection.create_table :delete_me do |t|
+        t.timestamps null: true
       end
+      ActiveRecord::Base.connection.remove_timestamps :delete_me, null: true
+      assert_not column_present?("delete_me", "updated_at", "datetime")
+      assert_not column_present?("delete_me", "created_at", "datetime")
+    ensure
+      ActiveRecord::Base.connection.drop_table :delete_me rescue nil
     end
   end
 

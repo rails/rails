@@ -60,11 +60,9 @@ module ActiveSupport
         # usage of attr_* macros for private attributes, but adds a lot of noise
         # to our test suite. Thus, we lazy load it and disable warnings locally.
         silence_warnings do
-          begin
-            require "listen"
-          rescue LoadError => e
-            raise LoadError, "Could not load the 'listen' gem. Add `gem 'listen'` to the development group of your Gemfile", e.backtrace
-          end
+          require "listen"
+        rescue LoadError => e
+          raise LoadError, "Could not load the 'listen' gem. Add `gem 'listen'` to the development group of your Gemfile", e.backtrace
         end
       end
       boot!

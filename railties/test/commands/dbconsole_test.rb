@@ -308,11 +308,9 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
     def capture_abort
       @aborted = false
       @output = capture(:stderr) do
-        begin
-          yield
-        rescue SystemExit
-          @aborted = true
-        end
+        yield
+      rescue SystemExit
+        @aborted = true
       end
     end
 

@@ -161,19 +161,18 @@ class Rails::Command::RoutesTest < ActiveSupport::TestCase
   end
 
   test "rails routes with expanded option" do
-    begin
-      previous_console_winsize = IO.console.winsize
-      IO.console.winsize = [0, 27]
+    previous_console_winsize = IO.console.winsize
+    IO.console.winsize = [0, 27]
 
-      app_file "config/routes.rb", <<-RUBY
+    app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
           get '/cart', to: 'cart#show'
         end
       RUBY
 
-      output = run_routes_command(["--expanded"])
+    output = run_routes_command(["--expanded"])
 
-      assert_equal <<~MESSAGE, output
+    assert_equal <<~MESSAGE, output
         --[ Route 1 ]--------------
         Prefix            | cart
         Verb              | GET
@@ -205,9 +204,8 @@ class Rails::Command::RoutesTest < ActiveSupport::TestCase
         URI               | /rails/active_storage/direct_uploads(.:format)
         Controller#Action | active_storage/direct_uploads#create
       MESSAGE
-    ensure
-      IO.console.winsize = previous_console_winsize
-    end
+  ensure
+    IO.console.winsize = previous_console_winsize
   end
 
   private
