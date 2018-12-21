@@ -32,16 +32,16 @@ $ rails app:template LOCATION=http://example.com/template.rb
 Template API
 ------------
 
-The Rails templates API is easy to understand. Here's an example of a typical Rails template:
+Here's an example of a Rails template:
 
 ```ruby
 # template.rb
 generate(:scaffold, "person name:string")
-route "root to: 'people#index'"
+route "root 'people#index'"
+rails_command("db:create")
 rails_command("db:migrate")
 
 after_bundle do
-  git :init
   git add: "."
   git commit: %Q{ -m 'Initial commit' }
 end
@@ -51,26 +51,19 @@ The following sections outline the primary methods provided by the API:
 
 ### gem(*args)
 
-Adds a `gem` entry for the supplied gem to the generated application's `Gemfile`.
+Appends a `gem` entry for the supplied gem to the end of the generated application's `Gemfile`.
 
-For example, if your application depends on the gems `bj` and `nokogiri`:
+For example, add the gem `sassc-rails`:
 
 ```ruby
-gem "bj"
-gem "nokogiri"
-```
-
-Please note that this will NOT install the gems for you and you will have to run `bundle install` to do that.
-
-```bash
-bundle install
+gem "sassc-rails"
 ```
 
 ### gem_group(*names, &block)
 
 Wraps gem entries inside a group.
 
-For example, if you want to load `rspec-rails` only in the `development` and `test` groups:
+For example, add `rspec-rails` only in the `development` and `test` groups:
 
 ```ruby
 gem_group :development, :test do
@@ -130,7 +123,7 @@ CODE
 
 Similarly, `lib()` creates a file in the `lib/` directory and `vendor()` creates a file in the `vendor/` directory.
 
-There is even `file()`, which accepts a relative path from `Rails.root` and creates all the directories/files needed:
+There is also `file()`, which accepts a relative path from `Rails.root` and creates all the directories/files needed:
 
 ```ruby
 file 'app/components/foo.rb', <<-CODE
@@ -139,7 +132,7 @@ file 'app/components/foo.rb', <<-CODE
 CODE
 ```
 
-That'll create the `app/components` directory and put `foo.rb` in there.
+That creates the `app/components` directory and puts `foo.rb` in there.
 
 ### rakefile(filename, data = nil, &block)
 
@@ -169,7 +162,7 @@ generate(:scaffold, "person", "name:string", "address:text", "age:number")
 
 ### run(command)
 
-Executes an arbitrary command. Just like the backticks. Let's say you want to remove the `README.rdoc` file:
+Executes an arbitrary command. For instance, remove the `README.rdoc` file:
 
 ```ruby
 run "rm README.rdoc"
@@ -177,25 +170,25 @@ run "rm README.rdoc"
 
 ### rails_command(command, options = {})
 
-Runs the supplied command in the Rails application. Let's say you want to migrate the database:
+To run rails commands.
 
 ```ruby
 rails_command "db:migrate"
 ```
 
-You can also run commands with a different Rails environment:
+Specify the Rails environment:
 
 ```ruby
 rails_command "db:migrate", env: 'production'
 ```
 
-You can also run commands as a super-user:
+Run commands as a super-user:
 
 ```ruby
 rails_command "log:clear", sudo: true
 ```
 
-You can also run commands that should abort application generation if they fail:
+To abort application generation if a command fails:
 
 ```ruby
 rails_command "db:migrate", abort_on_failure: true
@@ -203,15 +196,15 @@ rails_command "db:migrate", abort_on_failure: true
 
 ### route(routing_code)
 
-Adds a routing entry to the `config/routes.rb` file. In the steps above, we generated a person scaffold and also removed `README.rdoc`. Now, to make `PeopleController#index` the default page for the application:
+Adds a routing entry to the `config/routes.rb` file. To make `PeopleController#index` the root page:
 
 ```ruby
-route "root to: 'person#index'"
+route "root 'people#index'"
 ```
 
 ### inside(dir)
 
-Enables you to run a command from the given directory. For example, if you have a copy of edge rails that you wish to symlink from your new apps, you can do this:
+Runs a command from the given directory. For example, to symlink a copy of edge rails:
 
 ```ruby
 inside('vendor') do
@@ -221,7 +214,7 @@ end
 
 ### ask(question)
 
-`ask()` gives you a chance to get some feedback from the user and use it in your templates. Let's say you want your user to name the new shiny library you're adding:
+`ask()` asks for user input, for instance to set a name:
 
 ```ruby
 lib_name = ask("What do you want to call the shiny library ?")
@@ -244,12 +237,12 @@ rails_command("rails:freeze:gems") if yes?("Freeze rails gems?")
 
 ### git(:command)
 
-Rails templates let you run any git command:
+Run any git command:
 
 ```ruby
 git :init
 git add: "."
-git commit: "-a -m 'Initial commit'"
+git commit: "-am 'Initial commit'"
 ```
 
 ### after_bundle(&block)
@@ -259,9 +252,7 @@ are generated. Useful for all generated files to version control:
 
 ```ruby
 after_bundle do
-  git :init
-  git add: '.'
-  git commit: "-a -m 'Initial commit'"
+  rails_command "webpacker:install"
 end
 ```
 
