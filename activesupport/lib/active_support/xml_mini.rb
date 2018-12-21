@@ -68,11 +68,7 @@ module ActiveSupport
         "float"        => Proc.new { |float|   float.to_f },
         "decimal"      => Proc.new do |number|
           if String === number
-            begin
-              BigDecimal(number)
-            rescue ArgumentError
-              BigDecimal(number.to_f.to_s)
-            end
+            number.to_d
           else
             BigDecimal(number)
           end
