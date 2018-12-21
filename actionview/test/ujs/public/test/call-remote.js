@@ -213,7 +213,6 @@ QUnit.test('allow empty "data-remote" attribute', function(assert) {
   var done = assert.async()
 
   var form = $('#qunit-fixture').append($('<form class=\'rails-ujs-target\' action="/echo" data-remote />')).find('form.rails-ujs-target')
-  window._debug = form
 
   submit(done, function() {
     assert.ok(true, 'form with empty "data-remote" attribute is also allowed')
