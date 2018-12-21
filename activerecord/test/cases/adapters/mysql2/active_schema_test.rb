@@ -7,6 +7,7 @@ class Mysql2ActiveSchemaTest < ActiveRecord::Mysql2TestCase
   include ConnectionHelper
 
   def setup
+    ActiveRecord::Base.connection.send(:default_row_format)
     ActiveRecord::Base.connection.singleton_class.class_eval do
       alias_method :execute_without_stub, :execute
       def execute(sql, name = nil) sql end
@@ -68,18 +69,18 @@ class Mysql2ActiveSchemaTest < ActiveRecord::Mysql2TestCase
     def (ActiveRecord::Base.connection).data_source_exists?(*); false; end
 
     %w(SPATIAL FULLTEXT UNIQUE).each do |type|
-      expected = "CREATE TABLE `people` (#{type} INDEX `index_people_on_last_name`  (`last_name`))"
+      expected = /\ACREATE TABLE `people` \(#{type} INDEX `index_people_on_last_name`  \(`last_name`\)\)/
       actual = ActiveRecord::Base.connection.create_table(:people, id: false) do |t|
         t.index :last_name, type: type
       end
-      assert_equal expected, actual
+      assert_match expected, actual
     end
 
-    expected = "CREATE TABLE `people` ( INDEX `index_people_on_last_name` USING btree (`last_name`(10)))"
+    expected = /\ACREATE TABLE `people` \( INDEX `index_people_on_last_name` USING btree \(`last_name`\(10\)\)\)/
     actual = ActiveRecord::Base.connection.create_table(:people, id: false) do |t|
       t.index :last_name, length: 10, using: :btree
     end
-    assert_equal expected, actual
+    assert_match expected, actual
   end
 
   def test_index_in_bulk_change
@@ -106,7 +107,13 @@ class Mysql2ActiveSchemaTest < ActiveRecord::Mysql2TestCase
   end
 
   def test_create_mysql_database_with_encoding
-    assert_equal "CREATE DATABASE `matt` DEFAULT CHARACTER SET `utf8mb4`", create_database(:matt)
+    if row_format_dynamic_by_default?
+      assert_equal "CREATE DATABASE `matt` DEFAULT CHARACTER SET `utf8mb4`", create_database(:matt)
+    else
+      error = assert_raises(RuntimeError) { create_database(:matt) }
+      expected = "Configure a supported :charset and ensure innodb_large_prefix is enabled to support indexes on varchar(255) string columns."
+      assert_equal expected, error.message
+    end
     assert_equal "CREATE DATABASE `aimonetti` DEFAULT CHARACTER SET `latin1`", create_database(:aimonetti, charset: "latin1")
     assert_equal "CREATE DATABASE `matt_aimonetti` DEFAULT COLLATE `utf8mb4_bin`", create_database(:matt_aimonetti, collation: "utf8mb4_bin")
   end
@@ -159,12 +166,12 @@ class Mysql2ActiveSchemaTest < ActiveRecord::Mysql2TestCase
       [:temp],
       returns: false
     ) do
-      expected = "CREATE TEMPORARY TABLE `temp` ( INDEX `index_temp_on_zip`  (`zip`)) AS SELECT id, name, zip FROM a_really_complicated_query"
+      expected = /\ACREATE TEMPORARY TABLE `temp` \( INDEX `index_temp_on_zip`  \(`zip`\)\)(?: ROW_FORMAT=DYNAMIC)? AS SELECT id, name, zip FROM a_really_complicated_query/
       actual = ActiveRecord::Base.connection.create_table(:temp, temporary: true, as: "SELECT id, name, zip FROM a_really_complicated_query") do |t|
         t.index :zip
       end
 
-      assert_equal expected, actual
+      assert_match expected, actual
     end
   end
 

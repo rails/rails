@@ -77,6 +77,10 @@ module ActiveRecord
           super
         end
 
+        def create_table(table_name, options: default_row_format, **)
+          super
+        end
+
         def internal_string_options_for_primary_key
           super.tap do |options|
             if !row_format_dynamic_by_default? && CHARSETS_OF_4BYTES_MAXLEN.include?(charset)
@@ -102,6 +106,20 @@ module ActiveRecord
             else
               version >= "5.7.9"
             end
+          end
+
+          def default_row_format
+            return if row_format_dynamic_by_default?
+
+            unless defined?(@default_row_format)
+              if query_value("SELECT @@innodb_file_per_table = 1 AND @@innodb_file_format = 'Barracuda'") == 1
+                @default_row_format = "ROW_FORMAT=DYNAMIC"
+              else
+                @default_row_format = nil
+              end
+            end
+
+            @default_row_format
           end
 
           def schema_creation
