@@ -158,6 +158,10 @@ module ActiveRecord
     end
 
     def with_handler(handler_key, &blk) # :nodoc:
+      unless ActiveRecord::Base.connection_handlers.keys.include?(handler_key)
+        raise ArgumentError, "The #{handler_key} role does not exist. Add it by establishing a connection with `connects_to` or use an existing role (#{ActiveRecord::Base.connection_handlers.keys.join(", ")})."
+      end
+
       handler = lookup_connection_handler(handler_key)
       swap_connection_handler(handler, &blk)
     end

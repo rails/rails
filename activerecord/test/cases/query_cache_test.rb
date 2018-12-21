@@ -56,6 +56,11 @@ class QueryCacheTest < ActiveRecord::TestCase
   end
 
   def test_query_cache_is_applied_to_connections_in_all_handlers
+    ActiveRecord::Base.connection_handlers = {
+      writing: ActiveRecord::Base.default_connection_handler,
+      reading: ActiveRecord::ConnectionAdapters::ConnectionHandler.new
+    }
+
     ActiveRecord::Base.connected_to(role: :reading) do
       ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations["arunit"])
     end
