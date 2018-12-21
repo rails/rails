@@ -1,16 +1,16 @@
 QUnit.module('data-disable-with', {
   beforeEach: function() {
     $('#qunit-fixture').append($('<form />', {
-      class: 'rails-ujs-target',
+      class: 'qunit-target',
       action: '/echo',
       'data-remote': 'true',
       method: 'post'
     }))
-      .find('form.rails-ujs-target')
+      .find('form.qunit-target')
       .append($('<input type="text" data-disable-with="processing ..." name="user_name" value="john" />'))
 
     $('#qunit-fixture').append($('<form />', {
-      class: 'rails-ujs-target',
+      class: 'qunit-target',
       action: '/echo',
       method: 'post',
       id: 'not_remote'
@@ -49,7 +49,7 @@ QUnit.test('form input field with "data-disable-with" attribute', function(asser
   assert.expect(7)
   var done = assert.async()
 
-  var form = $('form.rails-ujs-target[data-remote]'), input = form.find('input[type=text]')
+  var form = $('form.qunit-target[data-remote]'), input = form.find('input[type=text]')
 
   App.checkEnabledState(assert, input, 'john')
 
@@ -69,7 +69,7 @@ QUnit.test('blank form input field with "data-disable-with" attribute', function
   assert.expect(7)
   var done = assert.async()
 
-  var form = $('form.rails-ujs-target[data-remote]'), input = form.find('input[type=text]')
+  var form = $('form.qunit-target[data-remote]'), input = form.find('input[type=text]')
 
   input.val('')
   App.checkEnabledState(assert, input, '')
@@ -90,7 +90,7 @@ QUnit.test('form button with "data-disable-with" attribute', function(assert) {
   assert.expect(6)
   var done = assert.async()
 
-  var form = $('form.rails-ujs-target[data-remote]'), button = $('<button data-disable-with="submitting ..." name="submit2">Submit</button>')
+  var form = $('form.qunit-target[data-remote]'), button = $('<button data-disable-with="submitting ..." name="submit2">Submit</button>')
   form.append(button)
 
   App.checkEnabledState(assert, button, 'Submit')
@@ -110,7 +110,7 @@ QUnit.test('a[data-remote][data-disable-with] within a form disables and re-enab
   assert.expect(6)
   var done = assert.async()
 
-  var form = $('form.rails-ujs-target:not([data-remote])'),
+  var form = $('form.qunit-target:not([data-remote])'),
       link = $('<a data-remote="true" data-disable-with="clicking...">Click me</a>')
   form.append(link)
 
@@ -134,7 +134,7 @@ QUnit.test('form input[type=submit][data-disable-with] disables', function(asser
   assert.expect(6)
   var done = assert.async(2)
 
-  var form = $('form.rails-ujs-target:not([data-remote])'), input = form.find('input[type=submit]')
+  var form = $('form.qunit-target:not([data-remote])'), input = form.find('input[type=submit]')
 
   App.checkEnabledState(assert, input, 'Submit')
 
@@ -153,7 +153,7 @@ QUnit.test('form input[type=submit][data-disable-with] disables', function(asser
 })
 
 QUnit.test('form input[type=submit][data-disable-with] re-enables when `pageshow` event is triggered', function(assert) {
-  var form = $('form.rails-ujs-target:not([data-remote])'), input = form.find('input[type=submit]')
+  var form = $('form.qunit-target:not([data-remote])'), input = form.find('input[type=submit]')
 
   App.checkEnabledState(assert, input, 'Submit')
 
@@ -231,7 +231,7 @@ QUnit.test('form[data-remote] textarea[data-disable-with] attribute', function(a
   assert.expect(3)
   var done = assert.async()
 
-  var form = $('form.rails-ujs-target[data-remote]'),
+  var form = $('form.qunit-target[data-remote]'),
       textarea = $('<textarea data-disable-with="processing ..." name="user_bio">born, lived, died.</textarea>').appendTo(form)
 
   form.bindNative('ajax:success', function(e, data) {
@@ -357,7 +357,7 @@ QUnit.test('form[data-remote] input|button|textarea[data-disable-with] does not 
   assert.expect(8)
   var done = assert.async()
 
-  var form = $('form.rails-ujs-target[data-remote]'),
+  var form = $('form.qunit-target[data-remote]'),
       input = form.find('input:text'),
       button = $('<button data-disable-with="submitting ..." name="submit2">Submit</button>').appendTo(form),
       textarea = $('<textarea data-disable-with="processing ..." name="user_bio">born, lived, died.</textarea>').appendTo(form),

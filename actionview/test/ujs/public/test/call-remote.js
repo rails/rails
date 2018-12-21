@@ -1,16 +1,16 @@
 (function() {
 
 function buildForm(attrs) {
-  attrs = $.extend({ action: '/echo', 'data-remote': 'true', class: 'rails-ujs-target' }, attrs)
+  attrs = $.extend({ action: '/echo', 'data-remote': 'true', class: 'qunit-target' }, attrs)
 
   $('#qunit-fixture').append($('<form />', attrs))
-    .find('form.rails-ujs-target').append($('<input type="text" name="user_name" value="john">'))
+    .find('form.qunit-target').append($('<input type="text" name="user_name" value="john">'))
 }
 
 QUnit.module('call-remote')
 
 function submit(done, fn) {
-  $('form.rails-ujs-target')
+  $('form.qunit-target')
     .bindNative('ajax:success', fn)
     .bindNative('ajax:complete', function() { done() })
     .triggerNative('submit')
@@ -45,7 +45,7 @@ QUnit.test('form method is read from submit button "formmethod" if submit is tri
   var submitButton = $('<input type="submit" formmethod="get">')
   buildForm({ method: 'post' })
 
-  $('#qunit-fixture').find('form.rails-ujs-target').append(submitButton)
+  $('#qunit-fixture').find('form.qunit-target').append(submitButton)
     .bindNative('ajax:success', function(e, data, status, xhr) {
       App.assertGetRequest(assert, data)
     })
@@ -94,7 +94,7 @@ QUnit.test('form url is read from submit button "formaction" if submit is trigge
   var submitButton = $('<input type="submit" formaction="/echo">')
   buildForm({ method: 'post', href: '/echo2' })
 
-  $('#qunit-fixture').find('form.rails-ujs-target').append(submitButton)
+  $('#qunit-fixture').find('form.qunit-target').append(submitButton)
     .bindNative('ajax:success', function(e, data, status, xhr) {
       App.assertRequestPath(assert, data, '/echo')
     })
@@ -125,8 +125,8 @@ QUnit.test('JS code should be executed', function(assert) {
     assert.ok(true, 'remote code should be run')
   }
 
-  $('form.rails-ujs-target').append('<input type="text" name="content_type" value="text/javascript">')
-  $('form.rails-ujs-target').append('<input type="text" name="content" value="window._callRemoteCallback()">')
+  $('form.qunit-target').append('<input type="text" name="content_type" value="text/javascript">')
+  $('form.qunit-target').append('<input type="text" name="content" value="window._callRemoteCallback()">')
 
   submit(done)
 })
@@ -141,8 +141,8 @@ QUnit.test('ecmascript code should be executed', function(assert) {
     assert.ok(true, 'remote code should be run')
   }
 
-  $('form.rails-ujs-target').append('<input type="text" name="content_type" value="application/ecmascript">')
-  $('form.rails-ujs-target').append('<input type="text" name="content" value="window._callRemoteCallback()">')
+  $('form.qunit-target').append('<input type="text" name="content_type" value="application/ecmascript">')
+  $('form.qunit-target').append('<input type="text" name="content" value="window._callRemoteCallback()">')
 
   submit(done)
 })
@@ -158,8 +158,8 @@ QUnit.test('execution of JS code does not modify current DOM', function(assert) 
 
   buildForm({ method: 'post', 'data-type': 'script' })
 
-  $('form.rails-ujs-target').append('<input type="text" name="content_type" value="text/javascript">')
-  $('form.rails-ujs-target').append('<input type="text" name="content" value="\'remote code should be run\'">')
+  $('form.qunit-target').append('<input type="text" name="content_type" value="text/javascript">')
+  $('form.qunit-target').append('<input type="text" name="content" value="\'remote code should be run\'">')
 
   docLength = getDocLength()
 
@@ -175,8 +175,8 @@ QUnit.test('HTML content should be plain-text', function(assert) {
 
   buildForm({ method: 'post', 'data-type': 'html' })
 
-  $('form.rails-ujs-target').append('<input type="text" name="content_type" value="text/html">')
-  $('form.rails-ujs-target').append('<input type="text" name="content" value="<p>hello</p>">')
+  $('form.qunit-target').append('<input type="text" name="content_type" value="text/html">')
+  $('form.qunit-target').append('<input type="text" name="content" value="<p>hello</p>">')
 
   submit(done, function(e, data, status, xhr) {
     assert.ok(data === '<p>hello</p>', 'returned data should be a plain-text string')
@@ -189,8 +189,8 @@ QUnit.test('XML document should be parsed', function(assert) {
 
   buildForm({ method: 'post', 'data-type': 'html' })
 
-  $('form.rails-ujs-target').append('<input type="text" name="content_type" value="application/xml">')
-  $('form.rails-ujs-target').append('<input type="text" name="content" value="<p>hello</p>">')
+  $('form.qunit-target').append('<input type="text" name="content_type" value="application/xml">')
+  $('form.qunit-target').append('<input type="text" name="content" value="<p>hello</p>">')
 
   submit(done, function(e, data, status, xhr) {
     assert.ok(data instanceof Document, 'returned data should be an XML document')
@@ -212,7 +212,7 @@ QUnit.test('allow empty "data-remote" attribute', function(assert) {
   assert.expect(1)
   var done = assert.async()
 
-  var form = $('#qunit-fixture').append($('<form class=\'rails-ujs-target\' action="/echo" data-remote />')).find('form.rails-ujs-target')
+  var form = $('#qunit-fixture').append($('<form class=\'qunit-target\' action="/echo" data-remote />')).find('form.qunit-target')
 
   submit(done, function() {
     assert.ok(true, 'form with empty "data-remote" attribute is also allowed')
@@ -277,7 +277,7 @@ QUnit.test('allow empty form "action"', function(assert) {
 
   buildForm({ action: '' })
 
-  $('#qunit-fixture').find('form.rails-ujs-target')
+  $('#qunit-fixture').find('form.qunit-target')
     .bindNative('ajax:beforeSend', function(evt, xhr, settings) {
       // Get current location (the same way jQuery does)
       try {
@@ -325,7 +325,7 @@ QUnit.test('intelligently guesses crossDomain behavior when target URL has a dif
   buildForm({ action: 'http://www.alfajango.com' })
   $('#qunit-fixture').append('<meta name="csrf-token" content="cf50faa3fe97702ca1ae" />')
 
-  $('#qunit-fixture').find('form.rails-ujs-target')
+  $('#qunit-fixture').find('form.qunit-target')
     .bindNative('ajax:beforeSend', function(evt, req, settings) {
 
       assert.equal(settings.crossDomain, true, 'crossDomain should be set to true')
@@ -347,7 +347,7 @@ QUnit.test('intelligently guesses crossDomain behavior when target URL consists 
   buildForm({ action: '/just/a/path' })
   $('#qunit-fixture').append('<meta name="csrf-token" content="cf50faa3fe97702ca1ae" />')
 
-  $('#qunit-fixture').find('form.rails-ujs-target')
+  $('#qunit-fixture').find('form.qunit-target')
     .bindNative('ajax:beforeSend', function(evt, req, settings) {
 
       assert.equal(settings.crossDomain, false, 'crossDomain should be set to false')

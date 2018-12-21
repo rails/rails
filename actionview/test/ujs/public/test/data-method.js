@@ -78,7 +78,7 @@ QUnit.test('link with "data-method" and cross origin', function(assert) {
     .append('<meta name="csrf-param" content="authenticity_token"/>')
     .append('<meta name="csrf-token" content="cf50faa3fe97702ca1ae"/>')
 
-  $(document).on('submit', 'form.rails-ujs-target', function(e) {
+  $(document).on('submit', 'form.qunit-target', function(e) {
     $(e.currentTarget).serializeArray().map(function(item) {
       data[item.name] = item.value
     })

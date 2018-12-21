@@ -1,16 +1,16 @@
 QUnit.module('data-disable', {
   beforeEach: function() {
     $('#qunit-fixture').append($('<form />', {
-      class: 'rails-ujs-target',
+      class: 'qunit-target',
       action: '/echo',
       'data-remote': 'true',
       method: 'post'
     }))
-      .find('form.rails-ujs-target')
+      .find('form.qunit-target')
       .append($('<input type="text" data-disable name="user_name" value="john" />'))
 
     $('#qunit-fixture').append($('<form  />', {
-      class: 'rails-ujs-target',
+      class: 'qunit-target',
       action: '/echo',
       method: 'post'
     }))
@@ -40,7 +40,7 @@ QUnit.test('form input field with "data-disable" attribute', function(assert) {
   assert.expect(7)
   var done = assert.async()
 
-  var form = $('form.rails-ujs-target[data-remote]'), input = form.find('input[type=text]')
+  var form = $('form.qunit-target[data-remote]'), input = form.find('input[type=text]')
 
   App.checkEnabledState(assert, input, 'john')
 
@@ -60,7 +60,7 @@ QUnit.test('form button with "data-disable" attribute', function(assert) {
   assert.expect(7)
   var done = assert.async()
 
-  var form = $('form.rails-ujs-target[data-remote]'), button = $('<button data-disable name="submit2">Submit</button>')
+  var form = $('form.qunit-target[data-remote]'), button = $('<button data-disable name="submit2">Submit</button>')
   form.append(button)
 
   App.checkEnabledState(assert, button, 'Submit')
@@ -81,7 +81,7 @@ QUnit.test('form input[type=submit][data-disable] disables', function(assert) {
   assert.expect(6)
   var done = assert.async()
 
-  var form = $('form.rails-ujs-target:not([data-remote])'), input = form.find('input[type=submit]')
+  var form = $('form.qunit-target:not([data-remote])'), input = form.find('input[type=submit]')
 
   App.checkEnabledState(assert, input, 'Submit')
 
@@ -139,7 +139,7 @@ QUnit.test('form[data-remote] textarea[data-disable] attribute', function(assert
   assert.expect(3)
   var done = assert.async()
 
-  var form = $('form.rails-ujs-target[data-remote]'),
+  var form = $('form.qunit-target[data-remote]'),
       textarea = $('<textarea data-disable name="user_bio">born, lived, died.</textarea>').appendTo(form)
 
   form.bindNative('ajax:success', function(e, data) {
@@ -254,7 +254,7 @@ QUnit.test('form[data-remote] input|button|textarea[data-disable] does not disab
   assert.expect(8)
   var done = assert.async()
 
-  var form = $('form.rails-ujs-target[data-remote]'),
+  var form = $('form.qunit-target[data-remote]'),
       input = form.find('input:text'),
       button = $('<button data-disable="submitting ..." name="submit2">Submit</button>').appendTo(form),
       textarea = $('<textarea data-disable name="user_bio">born, lived, died.</textarea>').appendTo(form),

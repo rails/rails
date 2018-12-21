@@ -3,7 +3,7 @@
 QUnit.module('call-remote-callbacks', {
   beforeEach: function() {
     $('#qunit-fixture').append($('<form />', {
-      action: '/echo', method: 'get', 'data-remote': 'true', class: 'rails-ujs-target'
+      action: '/echo', method: 'get', 'data-remote': 'true', class: 'qunit-target'
     }))
   },
   afterEach: function() {
@@ -17,7 +17,7 @@ QUnit.module('call-remote-callbacks', {
 })
 
 function submit(done, fn) {
-  var form = $('form.rails-ujs-target')
+  var form = $('form.qunit-target')
 
   if (fn) fn(form)
   form.triggerNative('submit')
@@ -28,7 +28,7 @@ function submit(done, fn) {
 QUnit.test('modifying form fields with "ajax:before" sends modified data in request', function(assert) {
   assert.expect(3)
   var done = assert.async()
-  $('form.rails-ujs-target[data-remote]')
+  $('form.qunit-target[data-remote]')
     .append($('<input type="text" name="user_name" value="john">'))
     .append($('<input type="text" name="removed_user_name" value="john">'))
     .bindNative('ajax:before', function() {
@@ -52,7 +52,7 @@ QUnit.test('modifying form fields with "ajax:before" sends modified data in requ
 QUnit.test('modifying data("type") with "ajax:before" requests new dataType in request', function(assert) {
   assert.expect(1)
   var done = assert.async()
-  $('form.rails-ujs-target[data-remote]').data('type', 'html')
+  $('form.qunit-target[data-remote]').data('type', 'html')
     .bindNative('ajax:before', function() {
       this.setAttribute('data-type', 'xml')
     })
@@ -67,7 +67,7 @@ QUnit.test('modifying data("type") with "ajax:before" requests new dataType in r
 QUnit.test('setting data("with-credentials",true) with "ajax:before" uses new setting in request', function(assert) {
   assert.expect(1)
   var done = assert.async()
-  $('form.rails-ujs-target[data-remote]').data('with-credentials', false)
+  $('form.qunit-target[data-remote]').data('with-credentials', false)
     .bindNative('ajax:before', function() {
       this.setAttribute('data-with-credentials', true)
     })
@@ -106,7 +106,7 @@ function skipIt() {
   QUnit.test('non-blank file form input field should abort remote request, but submit normally', function(assert) {
   assert.expect(5)
   var done = assert.async()
-    var form = $('form.rails-ujs-target[data-remote]')
+    var form = $('form.qunit-target[data-remote]')
           .append($('<input type="file" name="attachment" value="default.png">'))
           .bindNative('ajax:beforeSend', function() {
             assert.ok(false, 'ajax:beforeSend should not run')
@@ -131,7 +131,7 @@ function skipIt() {
   QUnit.test('file form input field should not abort remote request if file form input does not have a name attribute', function(assert) {
   assert.expect(5)
   var done = assert.async()
-    var form = $('form.rails-ujs-target[data-remote]')
+    var form = $('form.qunit-target[data-remote]')
           .append($('<input type="file" value="default.png">'))
           .bindNative('ajax:beforeSend', function() {
             assert.ok(true, 'ajax:beforeSend should run')
@@ -154,7 +154,7 @@ function skipIt() {
   QUnit.test('blank file input field should abort request entirely if handler bound to "ajax:aborted:file" event that returns false', function(assert) {
   assert.expect(1)
   var done = assert.async()
-    var form = $('form.rails-ujs-target[data-remote]')
+    var form = $('form.qunit-target[data-remote]')
           .append($('<input type="file" name="attachment" value="default.png">'))
           .bindNative('ajax:beforeSend', function() {
             assert.ok(false, 'ajax:beforeSend should not run')
@@ -253,7 +253,7 @@ QUnit.test('binding to ajax callbacks via .delegate() triggers handlers properly
     .delegate('form[data-remote]', 'ajax:complete', function() {
       assert.ok(true, 'ajax:complete handler is triggered')
     })
-  $('form.rails-ujs-target[data-remote]').triggerNative('submit')
+  $('form.qunit-target[data-remote]').triggerNative('submit')
 
   setTimeout(function() { done() }, 13)
 })
