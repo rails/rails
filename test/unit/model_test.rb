@@ -21,6 +21,14 @@ class ActionText::ModelTest < ActiveSupport::TestCase
     assert_not message.content.present?
   end
 
+  test "with blank content" do
+    message = Message.create!(subject: "Greetings", content: "")
+    assert_not message.content.nil?
+    assert message.content.blank?
+    assert message.content.empty?
+    assert_not message.content.present?
+  end
+
   test "embed extraction" do
     blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpg")
     message = Message.create!(subject: "Greetings", content: ActionText::Content.new("Hello world").append_attachables(blob))
