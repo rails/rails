@@ -9,11 +9,6 @@ class ActionText::RichText < ActiveRecord::Base
 
   serialize :body, ActionText::Content
   delegate :to_s, :nil?, to: :body
-  delegate :blank?, :empty?, :present?, to: :to_plain_text
-
-  def to_plain_text
-    body&.to_plain_text.to_s
-  end
 
   belongs_to :record, polymorphic: true, touch: true
   has_many_attached :embeds
@@ -21,4 +16,10 @@ class ActionText::RichText < ActiveRecord::Base
   before_save do
     self.embeds = body.attachments.map(&:attachable) if body.present?
   end
+
+  def to_plain_text
+    body&.to_plain_text.to_s
+  end
+
+  delegate :blank?, :empty?, :present?, to: :to_plain_text
 end
