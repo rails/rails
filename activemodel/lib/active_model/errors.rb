@@ -147,6 +147,8 @@ module ActiveModel
     #   person.errors.slice!(:age, :gender) # => { :name=>["cannot be nil"], :city=>["cannot be nil"] }
     #   person.errors.keys                  # => [:age, :gender]
     def slice!(*keys)
+      deprecation_removal_warning(:slice!)
+
       keys = keys.map(&:to_sym)
 
       results = messages.slice!(*keys)
