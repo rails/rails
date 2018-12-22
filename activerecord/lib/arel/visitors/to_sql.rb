@@ -804,14 +804,20 @@ module Arel # :nodoc: all
         end
 
         def inject_join(list, collector, join_str)
+          i = 0
           len = list.length - 1
-          list.each_with_index.inject(collector) { |c, (x, i)|
-            if i == len
-              visit x, c
-            else
-              visit(x, c) << join_str
-            end
-          }
+
+          for x in list do
+            collector = if i == len
+                          visit(x, collector)
+                        else
+                          visit(x, collector) << join_str
+                        end
+
+            i += 1
+          end
+
+          collector
         end
 
         def boundable?(value)
