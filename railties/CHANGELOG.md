@@ -1,27 +1,45 @@
-*   Add `--skip-dev-gems` option to app generator to skip adding development
+* Add `rails credentials:encrypt` command to support create credentials
+    from a cleartext YAML file.
+
+    It reads `config/credentials.yml` by default, if `--environment` given
+    it will reads `config/credentials/:environment.yml`.
+
+    You can specify other YAML file by using `--file`,
+    e.g: `rails credentials:encrypt --file config/secret.yml`.
+
+    If `credentials.yml.enc` already exists, you have to give `--force` to
+    replace it.
+
+    If `master.key` doesn't exist, it will generate one.
+
+    The cleartext YAML file will be deleted unless you give `--keep-cleartext`
+
+    *Jun Jiang*
+
+* Add `--skip-dev-gems` option to app generator to skip adding development
     gems (like `web-console`) to the Gemfile.
 
     *Brad Trick*
 
-*   Skip Active Storage and Action Mailer if Active Job is skipped.
+* Skip Active Storage and Action Mailer if Active Job is skipped.
 
     *Étienne Barrié*
 
-*   Correctly check if frameworks are disabled when running app:update.
+* Correctly check if frameworks are disabled when running app:update.
 
     *Étienne Barrié* and *Paulo Barros*
 
-*   Delegate model generator description to orm hooked generator.
+* Delegate model generator description to orm hooked generator.
 
     *Gannon McGibbon*
 
-*   Execute `rails runner` scripts inside the executor.
+* Execute `rails runner` scripts inside the executor.
 
     Enables error reporting, query cache, etc.
 
     *Jean Boussier*
 
-*   Avoid booting in development then test for test tasks.
+* Avoid booting in development then test for test tasks.
 
     Running one of the rails test subtasks (e.g. test:system, test:models) would
     go through Rake and cause the app to be booted twice. Now all the test:*
@@ -29,11 +47,11 @@
 
     *Étienne Barrié*
 
-*   Deprecate `Rails::Generators::Testing::Behaviour` in favor of `Rails::Generators::Testing::Behavior`.
+* Deprecate `Rails::Generators::Testing::Behaviour` in favor of `Rails::Generators::Testing::Behavior`.
 
     *Gannon McGibbon*
 
-*   Allow configuration of logger size for local and test environments
+* Allow configuration of logger size for local and test environments
 
     `config.log_file_size`
 
@@ -41,12 +59,12 @@
 
     *Bernie Chiu*
 
-*   Enroll new apps in decrypted diffs of credentials by default.  This behavior
+* Enroll new apps in decrypted diffs of credentials by default.  This behavior
     can be opted out of with the app generator's `--skip-decrypted-diffs` flag.
 
     *Jonathan Hefner*
 
-*   Support declarative-style test name filters with `bin/rails test`.
+* Support declarative-style test name filters with `bin/rails test`.
 
     This makes it possible to run a declarative-style test such as:
 
@@ -72,7 +90,7 @@
 
     *Jonathan Hefner*
 
-*   Add `--js` and `--skip-javascript` options to `rails new`
+* Add `--js` and `--skip-javascript` options to `rails new`
 
     `--js` alias to `rails new --javascript ...`
 
@@ -84,27 +102,27 @@
 
     *Dorian Marié*
 
-*   Allow relative paths with leading dot slash to be passed to `rails test`.
+* Allow relative paths with leading dot slash to be passed to `rails test`.
 
     Fix `rails test ./test/model/post_test.rb` to run a single test file.
 
     *Shouichi Kamiya* and *oljfte*
 
-*   Deprecate `config.enable_dependency_loading`. This flag addressed a limitation of the `classic` autoloader and has no effect nowadays. To fix this deprecation, please just delete the reference.
+* Deprecate `config.enable_dependency_loading`. This flag addressed a limitation of the `classic` autoloader and has no effect nowadays. To fix this deprecation, please just delete the reference.
 
     *Xavier Noria*
 
-*   Define `config.enable_reloading` to be `!config.cache_classes` for a more intuitive name. While `config.enable_reloading` and `config.reloading_enabled?` are preferred from now on, `config.cache_classes` is supported for backwards compatibility.
+* Define `config.enable_reloading` to be `!config.cache_classes` for a more intuitive name. While `config.enable_reloading` and `config.reloading_enabled?` are preferred from now on, `config.cache_classes` is supported for backwards compatibility.
 
     *Xavier Noria*
 
-*   Add JavaScript dependencies installation on bin/setup
+* Add JavaScript dependencies installation on bin/setup
 
     Add  `yarn install` to bin/setup when using esbuild, webpack, or rollout.
 
     *Carlos Ribeiro*
 
-*   Use `controller_class_path` in `Rails::Generators::NamedBase#route_url`
+* Use `controller_class_path` in `Rails::Generators::NamedBase#route_url`
 
     The `route_url` method now returns the correct path when generating
     a namespaced controller with a top-level model using `--model-name`.
@@ -137,7 +155,7 @@
 
     *Andrew White*
 
-*   No longer add autoloaded paths to `$LOAD_PATH`.
+* No longer add autoloaded paths to `$LOAD_PATH`.
 
     This means it won't be possible to load them with a manual `require` call, the class or module can be referenced instead.
 
@@ -146,7 +164,7 @@
 
     *Jean Boussier*
 
-*   Remove default `X-Download-Options` header
+* Remove default `X-Download-Options` header
 
     This header is currently only used by Internet Explorer which
     will be discontinued in 2022 and since Rails 7 does not fully
