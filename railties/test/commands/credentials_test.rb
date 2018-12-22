@@ -89,6 +89,47 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
     assert_match(/secret_key_base/, output)
   end
 
+  test "encrypt cleartext credentials" do
+    remove_file "config/master.key"
+    remove_file "config/credentials.yml.enc"
+
+    Dir.chdir(app_path) do
+      File.write("config/credentials.yml", "access_key_id: 456")
+    end
+
+    run_encrypt_command
+    assert_match(/access_key_id: 456/, run_show_command)
+
+    Dir.chdir(app_path) do
+      assert_equal File.exist?("config/c.yml"), false
+    end
+  end
+
+  test "encrypt cleartext credentials with --file option" do
+    remove_file "config/master.key"
+    remove_file "config/credentials.yml.enc"
+
+    Dir.chdir(app_path) do
+      File.write("config/c.yml", "access_key_id: 456")
+    end
+
+    run_encrypt_command file: "config/c.yml"
+    assert_match(/access_key_id: 456/, run_show_command)
+  end
+
+  test "encrypt cleartext credentials with --force option" do
+    assert_match(/access_key_id: 123/, run_show_command)
+
+    Dir.chdir(app_path) do
+      File.write("config/credentials.yml", "access_key_id: 456")
+    end
+
+    run_encrypt_command
+    assert_match(/access_key_id: 123/, run_show_command)
+
+    run_encrypt_command force: true
+    assert_match(/access_key_id: 456/, run_show_command)
+  end
 
   test "show credentials" do
     assert_match(/access_key_id: 123/, run_show_command)
@@ -218,6 +259,15 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
         args = environment ? ["--environment", environment] : []
         rails "credentials:edit", args, **options
       end
+    end
+
+    def run_encrypt_command(environment: nil, force: nil, file: nil, keep_cleartext: nil, **options)
+      args = []
+      args.concat(environment ? ["--environment", environment] : [])
+      args.concat(force ? ["--force"] : [])
+      args.concat(file ? ["--file", file] : [])
+      args.concat(keep_cleartext ? ["--keep-cleartext"] : [])
+      rails "credentials:encrypt", args, **options
     end
 
     def run_show_command(environment: nil, **options)

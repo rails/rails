@@ -71,6 +71,42 @@ module Rails
         say credentials.content_path.read
       end
 
+      option :force, type: :boolean,
+             desc: "Overwrite encrypted file if already existed"
+      option :file, type: :string,
+             desc: "Specify a YAML file that you want to be encrypted as credentials"
+      option :keep_cleartext, type: :boolean,
+             desc: "Don't delete the cleartext YAML file after encrypted"
+
+      def encrypt
+        require_application_and_environment!
+
+        file_path = options[:file] || cleartext_content_path
+        unless File.exist? file_path
+          say "Couldn't find #{file_path}."
+          exit
+        end
+        content = File.read file_path
+
+        if File.exist?(content_path) && !options[:force]
+          say "Encrypted file already existed: #{content_path}. Use --force to replace it."
+          exit
+        end
+
+        encrypted = credentials
+
+        ensure_encryption_key_has_been_added if credentials.key.nil?
+        ensure_credentials_have_been_added
+
+        encrypted.write content
+
+        say "File encrypted and saved."
+
+        unless options[:keep_cleartext]
+          File.delete file_path
+        end
+      end
+
       private
         def credentials
           Rails.application.encrypted(content_path, key_path: key_path)
@@ -101,6 +137,10 @@ module Rails
           else
             "File '#{content_path}' does not exist. Use `bin/rails credentials:edit` to change that."
           end
+        end
+
+        def cleartext_content_path
+          @cleartext_content_path ||= options[:environment] ? "config/credentials/#{options[:environment]}.yml" : "config/credentials.yml"
         end
 
         def content_path
