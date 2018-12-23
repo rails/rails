@@ -1,3 +1,7 @@
+*   Add `rails db:seed:replant` that truncates database tables and loads the seeds.
+
+    *bogdanvlviv*, *DHH*
+
 *   Add `ActiveRecord::Base.connection.truncate` for SQLite3 adapter.
 
     *bogdanvlviv*

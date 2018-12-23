@@ -60,6 +60,19 @@ db_namespace = namespace :db do
     ActiveRecord::Tasks::DatabaseTasks.drop_current
   end
 
+  # desc "Truncates database tables for current environment"
+  task truncate_tables: [:load_config, :check_protected_environments] do
+    table_names = ActiveRecord::Base.connection.tables
+    internal_table_names = [
+      ActiveRecord::Base.schema_migrations_table_name,
+      ActiveRecord::Base.internal_metadata_table_name
+    ]
+
+    table_names.without(*internal_table_names).each do |table_name|
+      ActiveRecord::Base.connection.truncate(table_name)
+    end
+  end
+
   namespace :purge do
     task all: [:load_config, :check_protected_environments] do
       ActiveRecord::Tasks::DatabaseTasks.purge_all
@@ -221,6 +234,11 @@ db_namespace = namespace :db do
   task seed: :load_config do
     db_namespace["abort_if_pending_migrations"].invoke
     ActiveRecord::Tasks::DatabaseTasks.load_seed
+  end
+
+  namespace :seed do
+    desc "Truncates database tables and loads the seeds"
+    task replant: [:load_config, :truncate_tables, :seed]
   end
 
   namespace :fixtures do
