@@ -255,7 +255,7 @@ module ApplicationTests
 
     test "can't change middleware after it's built" do
       boot!
-      assert_raise frozen_error_class do
+      assert_raise FrozenError do
         app.config.middleware.use Rack::Config
       end
     end

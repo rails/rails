@@ -395,7 +395,7 @@ class HashExtTest < ActiveSupport::TestCase
     original.freeze
     assert_nothing_raised { original.except(:a) }
 
-    assert_raise(frozen_error_class) { original.except!(:a) }
+    assert_raise(FrozenError) { original.except!(:a) }
   end
 
   def test_except_does_not_delete_values_in_original
