@@ -1,3 +1,7 @@
+*   Add `ActiveRecord::Base.connection.truncate` for SQLite3 adapter.
+
+    *bogdanvlviv*
+
 *   Add `reselect` method. This is a short-hand for `unscope(:select).select(fields)`.
 
     Fixes #27340.
