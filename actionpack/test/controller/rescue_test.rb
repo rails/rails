@@ -62,14 +62,6 @@ class RescueController < ActionController::Base
     render plain: exception.message
   end
 
-  rescue_from ActionView::TemplateError do
-    render plain: "action_view templater error"
-  end
-
-  rescue_from IOError do
-    render plain: "io error"
-  end
-
   rescue_from ActionDispatch::Http::Parameters::ParseError do
     render plain: "parse error", status: :bad_request
   end
@@ -77,19 +69,6 @@ class RescueController < ActionController::Base
   before_action(only: :before_action_raises) { raise "umm nice" }
 
   def before_action_raises
-  end
-
-  def raises
-    render plain: "already rendered"
-    raise "don't panic!"
-  end
-
-  def method_not_allowed
-    raise ActionController::MethodNotAllowed.new(:get, :head, :put)
-  end
-
-  def not_implemented
-    raise ActionController::NotImplemented.new(:get, :put)
   end
 
   def not_authorized
@@ -351,10 +330,6 @@ class RescueTest < ActionDispatch::IntegrationTest
       raise RecordInvalid
     end
 
-    def b00m
-      raise "b00m"
-    end
-
     private
       def show_errors(exception)
         render plain: exception.message
@@ -382,7 +357,6 @@ class RescueTest < ActionDispatch::IntegrationTest
         set.draw do
           get "foo", to: ::RescueTest::TestController.action(:foo)
           get "invalid", to: ::RescueTest::TestController.action(:invalid)
-          get "b00m", to: ::RescueTest::TestController.action(:b00m)
         end
         yield
       end
