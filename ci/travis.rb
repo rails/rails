@@ -20,20 +20,6 @@ commands.each do |command|
 end
 
 class Build
-  MAP = {
-    "railties" => "railties",
-    "ap"       => "actionpack",
-    "am"       => "actionmailer",
-    "amo"      => "activemodel",
-    "as"       => "activesupport",
-    "ar"       => "activerecord",
-    "av"       => "actionview",
-    "aj"       => "activejob",
-    "ac"       => "actioncable",
-    "ast"      => "activestorage",
-    "guides"   => "guides"
-  }
-
   attr_reader :component, :options
 
   def initialize(component, options = {})
@@ -114,7 +100,7 @@ class Build
   end
 
   def gem
-    MAP[component.split(":").first]
+    component.split(":").first
   end
   alias :dir :gem
 
@@ -149,7 +135,7 @@ class Build
   end
 end
 
-if ENV["GEM"] == "aj:integration"
+if ENV["GEM"] == "activejob:integration"
   ENV["QC_DATABASE_URL"]  = "postgres://postgres@localhost/active_jobs_qc_int_test"
   ENV["QUE_DATABASE_URL"] = "postgres://postgres@localhost/active_jobs_que_int_test"
 end
@@ -161,12 +147,13 @@ ENV["GEM"].split(",").each do |gem|
     next if ENV["TRAVIS_PULL_REQUEST"] && ENV["TRAVIS_PULL_REQUEST"] != "false" && isolated
     next if RUBY_VERSION < "2.5" && isolated
     next if gem == "railties" && isolated
-    next if gem == "ac" && isolated
-    next if gem == "ac:integration" && isolated
-    next if gem == "aj:integration" && isolated
+    next if gem == "actioncable" && isolated
+    next if gem == "actioncable:integration" && isolated
+    next if gem == "activejob:integration" && isolated
     next if gem == "guides" && isolated
-    next if gem == "av:ujs" && isolated
-    next if gem == "ast" && isolated
+    next if gem == "actionview:ujs" && isolated
+    next if gem == "activestorage" && isolated
+    next if gem == "actionmailbox" && isolated
 
     build = Build.new(gem, isolated: isolated)
     results[build.key] = build.run!
