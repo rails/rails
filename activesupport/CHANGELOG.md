@@ -4,9 +4,6 @@
     `Range#===`. `Range#===` works correctly on Ruby 2.6. `Range#include?` is moved
     into a new file, with these two methods.
 
-    *Requiring active_support/core_ext/range/include_range is now deprecated.*
-    *Use `require "active_support/core_ext/range/compare_range"` instead.*
-
     *utilum*
 
 *   If the same block is `included` multiple times for a Concern, an exception is no longer raised.
