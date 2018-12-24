@@ -25,26 +25,22 @@ class CallbacksTest < ActiveSupport::TestCase
   end
 
   test "#enqueue returns false when before_enqueue aborts callback chain and return_false_on_aborted_enqueue = true" do
-    begin
-      prev = ActiveJob::Base.return_false_on_aborted_enqueue
-      ActiveJob::Base.return_false_on_aborted_enqueue = true
-      assert_equal false, AbortBeforeEnqueueJob.new.enqueue
-    ensure
-      ActiveJob::Base.return_false_on_aborted_enqueue = prev
-    end
+    prev = ActiveJob::Base.return_false_on_aborted_enqueue
+    ActiveJob::Base.return_false_on_aborted_enqueue = true
+    assert_equal false, AbortBeforeEnqueueJob.new.enqueue
+  ensure
+    ActiveJob::Base.return_false_on_aborted_enqueue = prev
   end
 
   test "#enqueue returns self when before_enqueue aborts callback chain and return_false_on_aborted_enqueue = false" do
-    begin
-      prev = ActiveJob::Base.return_false_on_aborted_enqueue
-      ActiveJob::Base.return_false_on_aborted_enqueue = false
-      job = AbortBeforeEnqueueJob.new
-      assert_deprecated do
-        assert_equal job, job.enqueue
-      end
-    ensure
-      ActiveJob::Base.return_false_on_aborted_enqueue = prev
+    prev = ActiveJob::Base.return_false_on_aborted_enqueue
+    ActiveJob::Base.return_false_on_aborted_enqueue = false
+    job = AbortBeforeEnqueueJob.new
+    assert_deprecated do
+      assert_equal job, job.enqueue
     end
+  ensure
+    ActiveJob::Base.return_false_on_aborted_enqueue = prev
   end
 
   test "#enqueue returns self when the job was enqueued" do

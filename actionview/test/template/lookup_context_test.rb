@@ -14,14 +14,12 @@ class LookupContextTest < ActiveSupport::TestCase
   end
 
   test "allows to override default_formats with ActionView::Base.default_formats" do
-    begin
-      formats = ActionView::Base.default_formats
-      ActionView::Base.default_formats = [:foo, :bar]
+    formats = ActionView::Base.default_formats
+    ActionView::Base.default_formats = [:foo, :bar]
 
-      assert_equal [:foo, :bar], ActionView::LookupContext.new([]).default_formats
-    ensure
-      ActionView::Base.default_formats = formats
-    end
+    assert_equal [:foo, :bar], ActionView::LookupContext.new([]).default_formats
+  ensure
+    ActionView::Base.default_formats = formats
   end
 
   test "process view paths on initialization" do

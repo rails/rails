@@ -79,10 +79,6 @@ module ActiveRecord
       model.reset_column_information
       model.column_names.include?(column_name.to_s)
     end
-
-    def frozen_error_class
-      Object.const_defined?(:FrozenError) ? FrozenError : RuntimeError
-    end
   end
 
   class PostgreSQLTestCase < TestCase

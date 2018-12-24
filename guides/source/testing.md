@@ -473,8 +473,8 @@ takes your entire test suite to run.
 ### Parallel testing with processes
 
 The default parallelization method is to fork processes using Ruby's DRb system. The processes
-are forked based on the number of workers provided. The default is 2, but can be changed by the
-number passed to the parallelize method.
+are forked based on the number of workers provided. The default number is the actual core count
+on the machine you are on, but can be changed by the number passed to the parallelize method.
 
 To enable parallelization add the following to your `test_helper.rb`:
 
@@ -516,7 +516,7 @@ class ActiveSupport::TestCase
     # cleanup databases
   end
 
-  parallelize(workers: 2)
+  parallelize(workers: :number_of_processors)
 end
 ```
 
@@ -531,7 +531,7 @@ To change the parallelization method to use threads over forks put the following
 
 ```ruby
 class ActiveSupport::TestCase
-  parallelize(workers: 2, with: :threads)
+  parallelize(workers: :number_of_processors, with: :threads)
 end
 ```
 

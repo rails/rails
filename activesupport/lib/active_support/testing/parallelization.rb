@@ -69,31 +69,29 @@ module ActiveSupport
       def start
         @pool = @queue_size.times.map do |worker|
           fork do
-            begin
-              DRb.stop_service
+            DRb.stop_service
 
-              after_fork(worker)
+            after_fork(worker)
 
-              queue = DRbObject.new_with_uri(@url)
+            queue = DRbObject.new_with_uri(@url)
 
-              while job = queue.pop
-                klass    = job[0]
-                method   = job[1]
-                reporter = job[2]
-                result   = Minitest.run_one_method(klass, method)
+            while job = queue.pop
+              klass    = job[0]
+              method   = job[1]
+              reporter = job[2]
+              result   = Minitest.run_one_method(klass, method)
 
-                begin
-                  queue.record(reporter, result)
-                rescue DRb::DRbConnError
-                  result.failures.each do |failure|
-                    failure.exception = DRb::DRbRemoteError.new(failure.exception)
-                  end
-                  queue.record(reporter, result)
+              begin
+                queue.record(reporter, result)
+              rescue DRb::DRbConnError
+                result.failures.each do |failure|
+                  failure.exception = DRb::DRbRemoteError.new(failure.exception)
                 end
+                queue.record(reporter, result)
               end
-            ensure
-              run_cleanup(worker)
             end
+          ensure
+            run_cleanup(worker)
           end
         end
       end

@@ -328,6 +328,16 @@ module ActiveRecord
       ensure
         ActiveRecord::Base.connection_handlers = original_handlers
       end
+
+      def test_calling_connected_to_on_a_non_existent_handler_raises
+        error = assert_raises ArgumentError do
+          ActiveRecord::Base.connected_to(role: :reading) do
+            yield
+          end
+        end
+
+        assert_equal "The reading role does not exist. Add it by establishing a connection with `connects_to` or use an existing role (writing).", error.message
+      end
     end
   end
 end

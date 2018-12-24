@@ -19,7 +19,7 @@ class Module
   # public methods as your own.
   #
   # ==== Options
-  # * <tt>:to</tt> - Specifies the target object
+  # * <tt>:to</tt> - Specifies the target object name as a symbol or string
   # * <tt>:prefix</tt> - Prefixes the new method with the target name or a custom prefix
   # * <tt>:allow_nil</tt> - If set to true, prevents a +Module::DelegationError+
   #   from being raised

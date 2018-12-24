@@ -18,22 +18,20 @@ class ActiveStorage::Service::MirrorServiceTest < ActiveSupport::TestCase
   include ActiveStorage::Service::SharedServiceTests
 
   test "uploading to all services" do
-    begin
-      key      = SecureRandom.base58(24)
-      data     = "Something else entirely!"
-      io       = StringIO.new(data)
-      checksum = Digest::MD5.base64digest(data)
+    key      = SecureRandom.base58(24)
+    data     = "Something else entirely!"
+    io       = StringIO.new(data)
+    checksum = Digest::MD5.base64digest(data)
 
-      @service.upload key, io.tap(&:read), checksum: checksum
-      assert_predicate io, :eof?
+    @service.upload key, io.tap(&:read), checksum: checksum
+    assert_predicate io, :eof?
 
-      assert_equal data, @service.primary.download(key)
-      @service.mirrors.each do |mirror|
-        assert_equal data, mirror.download(key)
-      end
-    ensure
-      @service.delete key
+    assert_equal data, @service.primary.download(key)
+    @service.mirrors.each do |mirror|
+      assert_equal data, mirror.download(key)
     end
+  ensure
+    @service.delete key
   end
 
   test "downloading from primary service" do

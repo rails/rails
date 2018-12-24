@@ -26,16 +26,14 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
   end
 
   test "monochrome with default variant_processor" do
-    begin
-      ActiveStorage.variant_processor = nil
+    ActiveStorage.variant_processor = nil
 
-      blob = create_file_blob(filename: "racecar.jpg")
-      variant = blob.variant(monochrome: true).processed
-      image = read_image(variant)
-      assert_match(/Gray/, image.colorspace)
-    ensure
-      ActiveStorage.variant_processor = :mini_magick
-    end
+    blob = create_file_blob(filename: "racecar.jpg")
+    variant = blob.variant(monochrome: true).processed
+    image = read_image(variant)
+    assert_match(/Gray/, image.colorspace)
+  ensure
+    ActiveStorage.variant_processor = :mini_magick
   end
 
   test "disabled variation of JPEG blob" do
@@ -66,45 +64,41 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
   end
 
   test "disabled variation using :combine_options" do
-    begin
-      ActiveStorage.variant_processor = nil
-      blob = create_file_blob(filename: "racecar.jpg")
-      variant = ActiveSupport::Deprecation.silence do
-        blob.variant(combine_options: {
-          crop: "100x100+0+0",
-          monochrome: false
-        }).processed
-      end
-      assert_match(/racecar\.jpg/, variant.service_url)
-
-      image = read_image(variant)
-      assert_equal 100, image.width
-      assert_equal 100, image.height
-      assert_match(/RGB/, image.colorspace)
-    ensure
-      ActiveStorage.variant_processor = :mini_magick
+    ActiveStorage.variant_processor = nil
+    blob = create_file_blob(filename: "racecar.jpg")
+    variant = ActiveSupport::Deprecation.silence do
+      blob.variant(combine_options: {
+        crop: "100x100+0+0",
+        monochrome: false
+      }).processed
     end
+    assert_match(/racecar\.jpg/, variant.service_url)
+
+    image = read_image(variant)
+    assert_equal 100, image.width
+    assert_equal 100, image.height
+    assert_match(/RGB/, image.colorspace)
+  ensure
+    ActiveStorage.variant_processor = :mini_magick
   end
 
   test "center-weighted crop of JPEG blob using :combine_options" do
-    begin
-      ActiveStorage.variant_processor = nil
-      blob = create_file_blob(filename: "racecar.jpg")
-      variant = ActiveSupport::Deprecation.silence do
-        blob.variant(combine_options: {
-          gravity: "center",
-          resize: "100x100^",
-          crop: "100x100+0+0",
-        }).processed
-      end
-      assert_match(/racecar\.jpg/, variant.service_url)
-
-      image = read_image(variant)
-      assert_equal 100, image.width
-      assert_equal 100, image.height
-    ensure
-      ActiveStorage.variant_processor = :mini_magick
+    ActiveStorage.variant_processor = nil
+    blob = create_file_blob(filename: "racecar.jpg")
+    variant = ActiveSupport::Deprecation.silence do
+      blob.variant(combine_options: {
+        gravity: "center",
+        resize: "100x100^",
+        crop: "100x100+0+0",
+      }).processed
     end
+    assert_match(/racecar\.jpg/, variant.service_url)
+
+    image = read_image(variant)
+    assert_equal 100, image.width
+    assert_equal 100, image.height
+  ensure
+    ActiveStorage.variant_processor = :mini_magick
   end
 
   test "center-weighted crop of JPEG blob using :resize_to_fill" do
@@ -160,18 +154,16 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
   end
 
   test "works for vips processor" do
-    begin
-      ActiveStorage.variant_processor = :vips
-      blob = create_file_blob(filename: "racecar.jpg")
-      variant = blob.variant(thumbnail_image: 100).processed
+    ActiveStorage.variant_processor = :vips
+    blob = create_file_blob(filename: "racecar.jpg")
+    variant = blob.variant(thumbnail_image: 100).processed
 
-      image = read_image(variant)
-      assert_equal 100, image.width
-      assert_equal 67, image.height
-    rescue LoadError
-      # libvips not installed
-    ensure
-      ActiveStorage.variant_processor = :mini_magick
-    end
+    image = read_image(variant)
+    assert_equal 100, image.width
+    assert_equal 67, image.height
+  rescue LoadError
+    # libvips not installed
+  ensure
+    ActiveStorage.variant_processor = :mini_magick
   end
 end

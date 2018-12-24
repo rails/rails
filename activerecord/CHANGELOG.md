@@ -1,3 +1,11 @@
+*   MySQL: `ROW_FORMAT=DYNAMIC` create table option by default.
+
+    Since MySQL 5.7.9, the `innodb_default_row_format` option defines the default row
+    format for InnoDB tables. The default setting is `DYNAMIC`.
+    The row format is required for indexing on `varchar(255)` with `utf8mb4` columns.
+
+    *Ryuta Kamizono*
+
 *   Fix join table column quoting with SQLite.
 
     *Gannon McGibbon*
@@ -466,9 +474,9 @@
 
     *Tan Huynh*, *Yukio Mizuta*
 
-*   Rails 6 requires Ruby 2.4.1 or newer.
+*   Rails 6 requires Ruby 2.5.0 or newer.
 
-    *Jeremy Daer*
+    *Jeremy Daer*, *Kasper Timm Hansen*
 
 *   Deprecate `update_attributes`/`!` in favor of `update`/`!`.
 

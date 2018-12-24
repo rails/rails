@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/hash/keys"
-
 module ActionController
   # ActionController::Renderer allows you to render arbitrary templates
   # without requirement of being in controller actions.

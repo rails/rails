@@ -90,18 +90,18 @@ class BaseTest < ActiveSupport::TestCase
 
   test "can pass random headers in as a hash to mail" do
     hash = { "X-Special-Domain-Specific-Header" => "SecretValue",
-            "In-Reply-To" => "1234@mikel.me.com" }
+            "In-Reply-To" => "<1234@mikel.me.com>" }
     mail = BaseMailer.welcome(hash)
     assert_equal("SecretValue", mail["X-Special-Domain-Specific-Header"].decoded)
-    assert_equal("1234@mikel.me.com", mail["In-Reply-To"].decoded)
+    assert_equal("<1234@mikel.me.com>", mail["In-Reply-To"].decoded)
   end
 
   test "can pass random headers in as a hash to headers" do
     hash = { "X-Special-Domain-Specific-Header" => "SecretValue",
-            "In-Reply-To" => "1234@mikel.me.com" }
+            "In-Reply-To" => "<1234@mikel.me.com>" }
     mail = BaseMailer.welcome_with_headers(hash)
     assert_equal("SecretValue", mail["X-Special-Domain-Specific-Header"].decoded)
-    assert_equal("1234@mikel.me.com", mail["In-Reply-To"].decoded)
+    assert_equal("<1234@mikel.me.com>", mail["In-Reply-To"].decoded)
   end
 
   # Attachments
@@ -897,22 +897,20 @@ class BaseTest < ActiveSupport::TestCase
   end
 
   test "notification for process" do
-    begin
-      events = []
-      ActiveSupport::Notifications.subscribe("process.action_mailer") do |*args|
-        events << ActiveSupport::Notifications::Event.new(*args)
-      end
-
-      BaseMailer.welcome(body: "Hello there").deliver_now
-
-      assert_equal 1, events.length
-      assert_equal "process.action_mailer", events[0].name
-      assert_equal "BaseMailer", events[0].payload[:mailer]
-      assert_equal :welcome, events[0].payload[:action]
-      assert_equal [{ body: "Hello there" }], events[0].payload[:args]
-    ensure
-      ActiveSupport::Notifications.unsubscribe "process.action_mailer"
+    events = []
+    ActiveSupport::Notifications.subscribe("process.action_mailer") do |*args|
+      events << ActiveSupport::Notifications::Event.new(*args)
     end
+
+    BaseMailer.welcome(body: "Hello there").deliver_now
+
+    assert_equal 1, events.length
+    assert_equal "process.action_mailer", events[0].name
+    assert_equal "BaseMailer", events[0].payload[:mailer]
+    assert_equal :welcome, events[0].payload[:action]
+    assert_equal [{ body: "Hello there" }], events[0].payload[:args]
+  ensure
+    ActiveSupport::Notifications.unsubscribe "process.action_mailer"
   end
 
   private

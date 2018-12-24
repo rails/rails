@@ -3,7 +3,7 @@
 require "rails/application_controller"
 
 class Rails::MailersController < Rails::ApplicationController # :nodoc:
-  prepend_view_path ActionDispatch::DebugExceptions::RESCUES_TEMPLATE_PATH
+  prepend_view_path ActionDispatch::DebugView::RESCUES_TEMPLATE_PATH
 
   before_action :require_local!, unless: :show_previews?
   before_action :find_preview, :set_locale, only: :preview

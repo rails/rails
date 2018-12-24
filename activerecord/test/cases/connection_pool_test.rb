@@ -567,23 +567,21 @@ module ActiveRecord
 
       def test_disconnect_and_clear_reloadable_connections_attempt_to_wait_for_threads_to_return_their_conns
         [:disconnect, :disconnect!, :clear_reloadable_connections, :clear_reloadable_connections!].each do |group_action_method|
-          begin
-            thread = timed_join_result = nil
-            @pool.with_connection do |connection|
-              thread = Thread.new { @pool.send(group_action_method) }
+          thread = timed_join_result = nil
+          @pool.with_connection do |connection|
+            thread = Thread.new { @pool.send(group_action_method) }
 
-              # give the other `thread` some time to get stuck in `group_action_method`
-              timed_join_result = thread.join(0.3)
-              # thread.join # => `nil` means the other thread hasn't finished running and is still waiting for us to
-              # release our connection
-              assert_nil timed_join_result
+            # give the other `thread` some time to get stuck in `group_action_method`
+            timed_join_result = thread.join(0.3)
+            # thread.join # => `nil` means the other thread hasn't finished running and is still waiting for us to
+            # release our connection
+            assert_nil timed_join_result
 
-              # assert that since this is within default timeout our connection hasn't been forcefully taken away from us
-              assert_predicate @pool, :active_connection?
-            end
-          ensure
-            thread.join if thread && !timed_join_result # clean up the other thread
+            # assert that since this is within default timeout our connection hasn't been forcefully taken away from us
+            assert_predicate @pool, :active_connection?
           end
+        ensure
+          thread.join if thread && !timed_join_result # clean up the other thread
         end
       end
 

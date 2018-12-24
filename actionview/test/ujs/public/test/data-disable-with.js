@@ -95,6 +95,27 @@ asyncTest('form button with "data-disable-with" attribute', 6, function() {
   App.checkDisabledState(button, 'submitting ...')
 })
 
+asyncTest('a[data-remote][data-disable-with] within a form disables and re-enables', 6, function() {
+  var form = $('form:not([data-remote])'),
+      link = $('<a data-remote="true" data-disable-with="clicking...">Click me</a>')
+  form.append(link)
+
+  App.checkEnabledState(link, 'Click me')
+
+  link
+    .bindNative('ajax:beforeSend', function() {
+      App.checkDisabledState(link, 'clicking...')
+    })
+    .bindNative('ajax:complete', function() {
+      setTimeout( function() {
+        App.checkEnabledState(link, 'Click me')
+        link.remove()
+        start()
+      }, 15)
+    })
+    .triggerNative('click')
+})
+
 asyncTest('form input[type=submit][data-disable-with] disables', 6, function() {
   var form = $('form:not([data-remote])'), input = form.find('input[type=submit]')
 

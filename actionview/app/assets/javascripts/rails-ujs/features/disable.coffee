@@ -34,6 +34,7 @@ Rails.disableElement = (e) ->
 #  Replace element's html with the 'data-disable-with' after storing original html
 #  and prevent clicking on it
 disableLinkElement = (element) ->
+  return if getData(element, 'ujs:disabled')
   replacement = element.getAttribute('data-disable-with')
   if replacement?
     setData(element, 'ujs:enable-with', element.innerHTML) # store enabled state
@@ -58,6 +59,7 @@ disableFormElements = (form) ->
   formElements(form, Rails.formDisableSelector).forEach(disableFormElement)
 
 disableFormElement = (element) ->
+  return if getData(element, 'ujs:disabled')
   replacement = element.getAttribute('data-disable-with')
   if replacement?
     if matches(element, 'button')

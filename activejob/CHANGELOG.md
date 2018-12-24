@@ -107,9 +107,9 @@
 
     *Andrew White*
 
-*   Rails 6 requires Ruby 2.4.1 or newer.
+*   Rails 6 requires Ruby 2.5.0 or newer.
 
-    *Jeremy Daer*
+    *Jeremy Daer*, *Kasper Timm Hansen*
 
 *   Add support to define custom argument serializers.
 

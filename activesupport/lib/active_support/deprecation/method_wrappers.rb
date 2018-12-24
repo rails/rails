@@ -60,13 +60,13 @@ module ActiveSupport
             with_method = "#{aliased_method}_with_deprecation#{punctuation}"
             without_method = "#{aliased_method}_without_deprecation#{punctuation}"
 
-            target_module.send(:define_method, with_method) do |*args, &block|
+            target_module.define_method(with_method) do |*args, &block|
               deprecator.deprecation_warning(method_name, options[method_name])
               send(without_method, *args, &block)
             end
 
-            target_module.send(:alias_method, without_method, method_name)
-            target_module.send(:alias_method, method_name, with_method)
+            target_module.alias_method(without_method, method_name)
+            target_module.alias_method(method_name, with_method)
 
             case
             when target_module.protected_method_defined?(without_method)
@@ -75,7 +75,7 @@ module ActiveSupport
               target_module.send(:private, method_name)
             end
           else
-            mod.send(:define_method, method_name) do |*args, &block|
+            mod.define_method(method_name) do |*args, &block|
               deprecator.deprecation_warning(method_name, options[method_name])
               super(*args, &block)
             end
