@@ -251,6 +251,18 @@ logger.tagged("BCX", "Jason") { logger.info "Stuff" }                   # Logs "
 logger.tagged("BCX") { logger.tagged("Jason") { logger.info "Stuff" } } # Logs "[BCX] [Jason] Stuff"
 ```
 
+Tags are thread-safe - if you create a new thread, it will start with a clean
+set of tags. You can also add "global" tags, which are synchronized across threads.
+These are useful if you have a multi-tier architecture - you can assign
+each tier a separate logger with its own global tag:
+
+```ruby
+logger = ActiveSupport::TaggedLogging.new(Logger.new(STDOUT))
+logger.add_global_tags('Messaging')
+logger.info("Stuff")                         # Logs [Messaging] Stuff
+logger.tagged("BCX") { logger.info("Stuff")} # Logs [Messaging] [BCX] Stuff
+```
+
 ### Impact of Logs on Performance
 Logging will always have a small impact on the performance of your Rails app,
         particularly when logging to disk. Additionally, there are a few subtleties:

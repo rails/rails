@@ -57,6 +57,13 @@ class TaggedLoggingTest < ActiveSupport::TestCase
     assert_equal "[A] [B] [C] a\n[A] [B] b\n[A] c\nd\n", @output.string
   end
 
+  test "Add global tags" do
+    @logger.add_global_tags("D")
+    assert_equal %w(A B C), @logger.push_tags("A", ["B", "  ", ["C"]])
+    @logger.info "d"
+    assert_equal "[D] [A] [B] [C] d\n", @output.string
+  end
+
   test "does not strip message content" do
     @logger.info "  Hello"
     assert_equal "  Hello\n", @output.string

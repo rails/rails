@@ -16,6 +16,16 @@ module ActiveSupport
   # This is used by the default Rails.logger as configured by Railties to make
   # it easy to stamp log lines with subdomains, request ids, and anything else
   # to aid debugging of multi-user production applications.
+  #
+  # Tags are thread-safe - if you create a new thread, it will start with a clean
+  # set of tags. You can also add "global" tags, which are synchronized across threads.
+  # These are useful if you have a multi-tier architecture - you can assign
+  # each tier a separate logger with its own global tag:
+  #
+  #    logger = ActiveSupport::TaggedLogging.new(Logger.new(STDOUT))
+  #    logger.add_global_tags('Messaging')
+  #    logger.info("Stuff")                         # Logs [Messaging] Stuff
+  #    logger.tagged("BCX") { logger.info("Stuff")} # Logs [Messaging] [BCX] Stuff
   module TaggedLogging
     module Formatter # :nodoc:
       # This method is invoked when a log event occurs.
@@ -40,6 +50,13 @@ module ActiveSupport
         current_tags.pop size
       end
 
+      # Add tags that remain in the logger across threads.
+      def add_global_tags(*tags)
+        tags.flatten.reject(&:blank?).tap do |new_tags|
+          global_tags.concat new_tags
+        end
+      end
+
       def clear_tags!
         current_tags.clear
       end
@@ -50,8 +67,12 @@ module ActiveSupport
         Thread.current[thread_key] ||= []
       end
 
+      def global_tags
+        @global_tags ||= []
+      end
+
       def tags_text
-        tags = current_tags
+        tags = global_tags + current_tags
         if tags.one?
           "[#{tags[0]}] "
         elsif tags.any?
@@ -74,7 +95,7 @@ module ActiveSupport
       logger.extend(self)
     end
 
-    delegate :push_tags, :pop_tags, :clear_tags!, to: :formatter
+    delegate :push_tags, :pop_tags, :clear_tags!, :add_global_tags, to: :formatter
 
     def tagged(*tags)
       formatter.tagged(*tags) { yield self }

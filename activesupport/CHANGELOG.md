@@ -1,3 +1,8 @@
+*   Added `add_global_tags` to `ActiveSupport::TaggedLogging` to allow for
+    multi-tier logging support.
+    
+    *Daniel Orner*
+
 *   If the same block is `included` multiple times for a Concern, an exception is no longer raised.
 
     *Mark J. Titorenko*, *Vlad Bokov*
