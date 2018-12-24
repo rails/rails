@@ -1,3 +1,13 @@
+*   Allow multiple values to optional params `from:` and `to:` for `#attribute_changed?`.
+
+    Example:
+
+        person.name = "Bob"
+        person.name_changed?(from: nil, to: ["Bob", "Bill"]) # => true
+        person.name_changed?(from: ["Pete", "Bill"], to: "Bob"]) # => false
+
+    *David Santos Merino*
+
 *   Fix numericality equality validation of `BigDecimal` and `Float`
     by casting to `BigDecimal` on both ends of the validation.
 

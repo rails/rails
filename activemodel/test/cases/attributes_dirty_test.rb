@@ -54,6 +54,18 @@ class AttributesDirtyTest < ActiveModel::TestCase
     assert_not @model.name_changed?(from: "Pete")
   end
 
+  test "checking if an attribute has changed from/to a list of values" do
+    @model.name = "Ringo"
+    @model.save
+    @model.name.replace("Pete")
+    assert @model.name_changed?(from: ["Ringo", "Otto"])
+    assert @model.name_changed?(from: ["Ringo", "Otto"], to: "Pete")
+    assert_not @model.name_changed?(from: ["Pete", "Otto"], to: "Ringo")
+    assert_not @model.name_changed?(from: ["David", "Rafael"], to: "Pete")
+    assert @model.name_changed?(from: "Ringo", to: ["David", "Pete"])
+    assert_not @model.name_changed?(from: "Ringo", to: ["David", "Rafael"])
+  end
+
   test "changes accessible through both strings and symbols" do
     @model.name = "David"
     assert_not_nil @model.changes[:name]
