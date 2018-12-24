@@ -6,6 +6,11 @@ class Bird < ActiveRecord::Base
 
   accepts_nested_attributes_for :pirate
 
+  before_save do
+    # force materialize_transactions
+    self.class.connection.materialize_transactions
+  end
+
   attr_accessor :cancel_save_from_callback
   before_save :cancel_save_callback_method, if: :cancel_save_from_callback
   def cancel_save_callback_method

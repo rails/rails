@@ -130,11 +130,38 @@ module ActiveRecord
       end
     end
 
+    # Returns true if role is the current connected role.
+    #
+    #   ActiveRecord::Base.connected_to(role: :writing) do
+    #     ActiveRecord::Base.connected_to?(role: :writing) #=> true
+    #     ActiveRecord::Base.connected_to?(role: :reading) #=> false
+    #   end
+    def connected_to?(role:)
+      current_role == role.to_sym
+    end
+
+    # Returns the symbol representing the current connected role.
+    #
+    #   ActiveRecord::Base.connected_to(role: :writing) do
+    #     ActiveRecord::Base.current_role #=> :writing
+    #   end
+    #
+    #   ActiveRecord::Base.connected_to(role: :reading) do
+    #     ActiveRecord::Base.current_role #=> :reading
+    #   end
+    def current_role
+      connection_handlers.key(connection_handler)
+    end
+
     def lookup_connection_handler(handler_key) # :nodoc:
       connection_handlers[handler_key] ||= ActiveRecord::ConnectionAdapters::ConnectionHandler.new
     end
 
     def with_handler(handler_key, &blk) # :nodoc:
+      unless ActiveRecord::Base.connection_handlers.keys.include?(handler_key)
+        raise ArgumentError, "The #{handler_key} role does not exist. Add it by establishing a connection with `connects_to` or use an existing role (#{ActiveRecord::Base.connection_handlers.keys.join(", ")})."
+      end
+
       handler = lookup_connection_handler(handler_key)
       swap_connection_handler(handler, &blk)
     end

@@ -225,10 +225,10 @@ class Rails::Command::ServerCommandTest < ActiveSupport::TestCase
   end
 
   def test_records_user_supplied_options
-    server_options = parse_arguments(["-p", 3001])
+    server_options = parse_arguments(["-p", "3001"])
     assert_equal [:Port], server_options[:user_supplied_options]
 
-    server_options = parse_arguments(["--port", 3001])
+    server_options = parse_arguments(["--port", "3001"])
     assert_equal [:Port], server_options[:user_supplied_options]
 
     server_options = parse_arguments(["-p3001", "-C", "--binding", "127.0.0.1"])

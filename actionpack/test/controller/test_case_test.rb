@@ -156,6 +156,10 @@ XML
       render html: '<body class="foo"></body>'.html_safe
     end
 
+    def render_json
+      render json: request.raw_post
+    end
+
     def boom
       raise "boom!"
     end
@@ -469,6 +473,18 @@ XML
       {
         "controller" => "test_case_test/test", "action" => "test_params",
         "page" => { "name" => "Page name", "month" => "4", "year" => "2004", "day" => "6" }
+      },
+      parsed_params
+    )
+  end
+
+  def test_nil_params
+    get :test_params, params: nil
+    parsed_params = JSON.parse(@response.body)
+    assert_equal(
+      {
+        "action" => "test_params",
+        "controller" => "test_case_test/test"
       },
       parsed_params
     )
@@ -964,6 +980,16 @@ XML
       params: { q: "test2" }
 
     assert_equal "q=test2", @response.body
+  end
+
+  def test_parsed_body_without_as_option
+    post :render_json, body: { foo: "heyo" }
+    assert_equal({ "foo" => "heyo" }, response.parsed_body)
+  end
+
+  def test_parsed_body_with_as_option
+    post :render_json, body: { foo: "heyo" }.to_json, as: :json
+    assert_equal({ "foo" => "heyo" }, response.parsed_body)
   end
 end
 

@@ -364,7 +364,7 @@ module Rails
         gems
       end
 
-      def bundle_command(command)
+      def bundle_command(command, env = {})
         say_status :run, "bundle #{command}"
 
         # We are going to shell out rather than invoking Bundler::CLI.new(command)
@@ -381,9 +381,9 @@ module Rails
         Bundler.with_clean_env do
           full_command = %Q["#{Gem.ruby}" "#{_bundle_command}" #{command}]
           if options[:quiet]
-            system(full_command, out: File::NULL)
+            system(env, full_command, out: File::NULL)
           else
-            system(full_command)
+            system(env, full_command)
           end
         end
       end
@@ -417,7 +417,7 @@ module Rails
       end
 
       def run_bundle
-        bundle_command("install") if bundle_install?
+        bundle_command("install", "BUNDLE_IGNORE_MESSAGES" => "1") if bundle_install?
       end
 
       def run_webpack

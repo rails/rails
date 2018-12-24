@@ -209,7 +209,7 @@ module ActiveRecord
       # DATABASE STATEMENTS ======================================
       #++
 
-      READ_QUERY = ActiveRecord::ConnectionAdapters::AbstractAdapter.build_read_query_regexp(:select) # :nodoc:
+      READ_QUERY = ActiveRecord::ConnectionAdapters::AbstractAdapter.build_read_query_regexp(:begin, :commit, :explain, :select, :pragma, :release, :savepoint, :rollback) # :nodoc:
       private_constant :READ_QUERY
 
       def write_query?(sql) # :nodoc:
@@ -222,6 +222,10 @@ module ActiveRecord
       end
 
       def exec_query(sql, name = nil, binds = [], prepare: false)
+        if preventing_writes? && write_query?(sql)
+          raise ActiveRecord::ReadOnlyError, "Write query attempted while in readonly mode: #{sql}"
+        end
+
         materialize_transactions
 
         type_casted_binds = type_casted_binds(binds)
@@ -265,7 +269,7 @@ module ActiveRecord
 
       def execute(sql, name = nil) #:nodoc:
         if preventing_writes? && write_query?(sql)
-          raise ActiveRecord::StatementInvalid, "Write query attempted while in readonly mode: #{sql}"
+          raise ActiveRecord::ReadOnlyError, "Write query attempted while in readonly mode: #{sql}"
         end
 
         materialize_transactions

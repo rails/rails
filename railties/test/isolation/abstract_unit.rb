@@ -197,6 +197,7 @@ module TestHelpers
       end
 
       add_to_config <<-RUBY
+        config.hosts << proc { true }
         config.eager_load = false
         config.session_store :cookie_store, key: "_myapp_session"
         config.active_support.deprecation = :log
@@ -220,6 +221,7 @@ module TestHelpers
       @app = Class.new(Rails::Application) do
         def self.name; "RailtiesTestApp"; end
       end
+      @app.config.hosts << proc { true }
       @app.config.eager_load = false
       @app.config.session_store :cookie_store, key: "_myapp_session"
       @app.config.active_support.deprecation = :log
@@ -460,10 +462,6 @@ class ActiveSupport::TestCase
   include TestHelpers::Generation
   include ActiveSupport::Testing::Stream
   include ActiveSupport::Testing::MethodCallAssertions
-
-  def frozen_error_class
-    Object.const_defined?(:FrozenError) ? FrozenError : RuntimeError
-  end
 end
 
 # Create a scope and build a fixture rails app

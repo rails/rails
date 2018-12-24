@@ -187,11 +187,9 @@ class LoggingTest < ActiveSupport::TestCase
 
   def test_retry_stopped_logging_without_block
     perform_enqueued_jobs do
-      begin
-        RetryJob.perform_later "DefaultsError", 6
-      rescue DefaultsError
-        assert_match(/Stopped retrying RetryJob due to a DefaultsError, which reoccurred on \d+ attempts\./, @logger.messages)
-      end
+      RetryJob.perform_later "DefaultsError", 6
+    rescue DefaultsError
+      assert_match(/Stopped retrying RetryJob due to a DefaultsError, which reoccurred on \d+ attempts\./, @logger.messages)
     end
   end
 

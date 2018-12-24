@@ -507,8 +507,8 @@ module ActiveModel
             temp_method_name = "__temp__#{safe_name}#{'=' if writer}"
             attr_name_expr = "::ActiveModel::AttributeMethods::AttrNames::#{const_name}"
             yield temp_method_name, attr_name_expr
-            mod.send(:alias_method, method_name, temp_method_name)
-            mod.send(:undef_method, temp_method_name)
+            mod.alias_method method_name, temp_method_name
+            mod.undef_method temp_method_name
           end
         end
       end

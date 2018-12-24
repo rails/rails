@@ -99,6 +99,7 @@ module ActiveRecord
         def delete_or_nullify_all_records(method)
           count = delete_count(method, scope)
           update_counter(-count)
+          count
         end
 
         # Deletes the records according to the <tt>:dependent</tt> option.

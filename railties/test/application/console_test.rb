@@ -25,7 +25,7 @@ class ConsoleTest < ActiveSupport::TestCase
   end
 
   def test_app_method_should_return_integration_session
-    TestHelpers::Rack.send :remove_method, :app
+    TestHelpers::Rack.remove_method :app
     load_environment
     console_session = irb_context.app
     assert_instance_of ActionDispatch::Integration::Session, console_session

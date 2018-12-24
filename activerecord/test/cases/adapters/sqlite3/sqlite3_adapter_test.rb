@@ -575,7 +575,7 @@ module ActiveRecord
 
       def test_errors_when_an_insert_query_is_called_while_preventing_writes
         with_example_table "id int, data string" do
-          assert_raises(ActiveRecord::StatementInvalid) do
+          assert_raises(ActiveRecord::ReadOnlyError) do
             @conn.while_preventing_writes do
               @conn.execute("INSERT INTO ex (data) VALUES ('138853948594')")
             end
@@ -587,7 +587,7 @@ module ActiveRecord
         with_example_table "id int, data string" do
           @conn.execute("INSERT INTO ex (data) VALUES ('138853948594')")
 
-          assert_raises(ActiveRecord::StatementInvalid) do
+          assert_raises(ActiveRecord::ReadOnlyError) do
             @conn.while_preventing_writes do
               @conn.execute("UPDATE ex SET data = '9989' WHERE data = '138853948594'")
             end
@@ -599,7 +599,7 @@ module ActiveRecord
         with_example_table "id int, data string" do
           @conn.execute("INSERT INTO ex (data) VALUES ('138853948594')")
 
-          assert_raises(ActiveRecord::StatementInvalid) do
+          assert_raises(ActiveRecord::ReadOnlyError) do
             @conn.while_preventing_writes do
               @conn.execute("DELETE FROM ex where data = '138853948594'")
             end
@@ -611,7 +611,7 @@ module ActiveRecord
         with_example_table "id int, data string" do
           @conn.execute("INSERT INTO ex (data) VALUES ('138853948594')")
 
-          assert_raises(ActiveRecord::StatementInvalid) do
+          assert_raises(ActiveRecord::ReadOnlyError) do
             @conn.while_preventing_writes do
               @conn.execute("REPLACE INTO ex (data) VALUES ('249823948')")
             end

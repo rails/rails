@@ -782,6 +782,8 @@ There are a few configuration options available in Active Support:
 
 * `config.active_job.custom_serializers` allows to set custom argument serializers. Defaults to `[]`.
 
+* `config.active_job.return_false_on_aborted_enqueue` change the return value of `#enqueue` to false instead of the job instance when the enqueuing is aborted. Defaults to `false`.
+
 ### Configuring Action Cable
 
 * `config.action_cable.url` accepts a string for the URL for where
@@ -1402,7 +1404,7 @@ Custom configuration
 You can configure your own code through the Rails configuration object with
 custom configuration under either the `config.x` namespace, or `config` directly.
 The key difference between these two is that you should be using `config.x` if you
-are defining _nested_ configuration (ex: `config.x.nested.nested.hi`), and just
+are defining _nested_ configuration (ex: `config.x.nested.hi`), and just
 `config` for _single level_ configuration (ex: `config.hello`).
 
   ```ruby

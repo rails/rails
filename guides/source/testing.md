@@ -473,8 +473,8 @@ takes your entire test suite to run.
 ### Parallel testing with processes
 
 The default parallelization method is to fork processes using Ruby's DRb system. The processes
-are forked based on the number of workers provided. The default is 2, but can be changed by the
-number passed to the parallelize method.
+are forked based on the number of workers provided. The default number is the actual core count
+on the machine you are on, but can be changed by the number passed to the parallelize method.
 
 To enable parallelization add the following to your `test_helper.rb`:
 
@@ -516,7 +516,7 @@ class ActiveSupport::TestCase
     # cleanup databases
   end
 
-  parallelize(workers: 2)
+  parallelize(workers: :number_of_processors)
 end
 ```
 
@@ -531,7 +531,7 @@ To change the parallelization method to use threads over forks put the following
 
 ```ruby
 class ActiveSupport::TestCase
-  parallelize(workers: 2, with: :threads)
+  parallelize(workers: :number_of_processors, with: :threads)
 end
 ```
 
@@ -1396,6 +1396,56 @@ class ProfileControllerTest < ActionDispatch::IntegrationTest
   end
 end
 ```
+
+#### Using Separate Files
+
+If you find your helpers are cluttering `test_helper.rb`, you can extract them into separate files. One good place to store them is `lib/test`.
+
+```ruby
+# lib/test/multiple_assertions.rb
+module MultipleAssertions
+  def assert_multiple_of_fourty_two(number)
+    assert (number % 42 == 0), 'expected #{number} to be a multiple of 42'
+  end
+end
+```
+
+These helpers can then be explicitly required as needed and included as needed
+
+```ruby
+require 'test_helper'
+require 'test/multiple_assertions'
+
+class NumberTest < ActiveSupport::TestCase
+  include MultipleAssertions
+
+  test '420 is a multiple of fourty two' do
+    assert_multiple_of_fourty_two 420
+  end
+end
+```
+
+or they can continue to be included directly into the relevant parent classes
+
+```ruby
+# test/test_helper.rb
+require 'test/sign_in_helper'
+
+class ActionDispatch::IntegrationTest
+  include SignInHelper
+end
+```
+
+#### Eagerly Requiring Helpers
+
+You may find it convenient to eagerly require helpers in `test_helper.rb` so your test files have implicit access to them. This can be accomplished using globbing, as follows
+
+```ruby
+# test/test_helper.rb
+Dir[Rails.root.join('lib', 'test', '**', '*.rb')].each { |file| require file }
+```
+
+This has the downside of increasing the boot-up time, as opposed to manually requiring only the necessary files in your individual tests.
 
 Testing Routes
 --------------

@@ -31,7 +31,7 @@ module CallbacksTest
 
       def callback_object(callback_method)
         klass = Class.new
-        klass.send(:define_method, callback_method) do |model|
+        klass.define_method(callback_method) do |model|
           model.history << [:"#{callback_method}_save", :object]
         end
         klass.new

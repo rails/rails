@@ -1,4 +1,4 @@
-*   Deliver parameterized mail with `ActionMailer::DeliveryJob` and remove `ActionMailer::Parameterized::DeliveryJob`.
+*   Add `MailDeliveryJob` for delivering both regular and parameterized mail. Deprecate using `DeliveryJob` and `Parameterized::DeliveryJob`.
 
     *Gannon McGibbon*
 
@@ -57,9 +57,9 @@
 
     *Claudio Ortolina*, *Kota Miyake*
 
-*   Rails 6 requires Ruby 2.4.1 or newer.
+*   Rails 6 requires Ruby 2.5.0 or newer.
 
-    *Jeremy Daer*
+    *Jeremy Daer*, *Kasper Timm Hansen*
 
 
 Please check [5-2-stable](https://github.com/rails/rails/blob/5-2-stable/actionmailer/CHANGELOG.md) for previous changes.

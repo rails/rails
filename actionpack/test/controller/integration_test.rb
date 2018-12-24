@@ -152,7 +152,7 @@ class IntegrationTestTest < ActiveSupport::TestCase
       assert_equal "pass", @test.foo
     ensure
       # leave other tests as unaffected as possible
-      mixin.__send__(:remove_method, :method_missing)
+      mixin.remove_method :method_missing
     end
   end
 end

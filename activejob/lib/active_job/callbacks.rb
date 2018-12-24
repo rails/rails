@@ -29,6 +29,9 @@ module ActiveJob
     included do
       define_callbacks :perform
       define_callbacks :enqueue
+
+      class_attribute :return_false_on_aborted_enqueue, instance_accessor: false, instance_predicate: false
+      self.return_false_on_aborted_enqueue = false
     end
 
     # These methods will be included into any Active Job object, adding

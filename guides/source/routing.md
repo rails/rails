@@ -543,6 +543,8 @@ resources :photos do
 end
 ```
 
+NOTE: If you're defining additional resource routes with a symbol as the first positional argument, be mindful that it is not equivalent to using a string. Symbols infer controller actions while strings infer paths.
+
 #### Adding Routes for Additional New Actions
 
 To add an alternate new action using the `:on` shortcut:

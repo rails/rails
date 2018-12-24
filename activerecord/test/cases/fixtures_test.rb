@@ -73,14 +73,12 @@ class FixturesTest < ActiveRecord::TestCase
 
   if current_adapter?(:Mysql2Adapter, :PostgreSQLAdapter)
     def test_bulk_insert
-      begin
-        subscriber = InsertQuerySubscriber.new
-        subscription = ActiveSupport::Notifications.subscribe("sql.active_record", subscriber)
-        create_fixtures("bulbs")
-        assert_equal 1, subscriber.events.size, "It takes one INSERT query to insert two fixtures"
-      ensure
-        ActiveSupport::Notifications.unsubscribe(subscription)
-      end
+      subscriber = InsertQuerySubscriber.new
+      subscription = ActiveSupport::Notifications.subscribe("sql.active_record", subscriber)
+      create_fixtures("bulbs")
+      assert_equal 1, subscriber.events.size, "It takes one INSERT query to insert two fixtures"
+    ensure
+      ActiveSupport::Notifications.unsubscribe(subscription)
     end
 
     def test_bulk_insert_multiple_table_with_a_multi_statement_query

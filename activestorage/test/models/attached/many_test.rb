@@ -590,7 +590,7 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
       assert_equal "town.jpg", @user.highlights.first.filename.to_s
       assert_equal "funky.jpg", @user.highlights.second.filename.to_s
     ensure
-      User.send(:remove_method, :highlights)
+      User.remove_method :highlights
     end
   end
 end

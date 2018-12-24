@@ -43,8 +43,8 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   def test_assigning_belongs_to_on_destroyed_object
     client = Client.create!(name: "Client")
     client.destroy!
-    assert_raise(frozen_error_class) { client.firm = nil }
-    assert_raise(frozen_error_class) { client.firm = Firm.new(name: "Firm") }
+    assert_raise(FrozenError) { client.firm = nil }
+    assert_raise(FrozenError) { client.firm = Firm.new(name: "Firm") }
   end
 
   def test_eager_loading_wont_mutate_owner_record

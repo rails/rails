@@ -132,19 +132,17 @@ module ActiveRecord
       end
 
       def test_not_specifying_database_name_for_cross_database_selects
-        begin
-          assert_nothing_raised do
-            ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations["arunit"].except(:database))
+        assert_nothing_raised do
+          ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations["arunit"].except(:database))
 
-            config = ARTest.connection_config
-            ActiveRecord::Base.connection.execute(
-              "SELECT #{config['arunit']['database']}.pirates.*, #{config['arunit2']['database']}.courses.* " \
-              "FROM #{config['arunit']['database']}.pirates, #{config['arunit2']['database']}.courses"
-            )
-          end
-        ensure
-          ActiveRecord::Base.establish_connection :arunit
+          config = ARTest.connection_config
+          ActiveRecord::Base.connection.execute(
+            "SELECT #{config['arunit']['database']}.pirates.*, #{config['arunit2']['database']}.courses.* " \
+            "FROM #{config['arunit']['database']}.pirates, #{config['arunit2']['database']}.courses"
+          )
         end
+      ensure
+        ActiveRecord::Base.establish_connection :arunit
       end
     end
 
@@ -162,6 +160,55 @@ module ActiveRecord
       class << @connection
         remove_method :table_alias_length
         alias_method :table_alias_length, :old_table_alias_length
+      end
+    end
+
+    def test_errors_when_an_insert_query_is_called_while_preventing_writes
+      assert_no_queries do
+        assert_raises(ActiveRecord::ReadOnlyError) do
+          @connection.while_preventing_writes do
+            @connection.transaction do
+              @connection.insert("INSERT INTO subscribers(nick) VALUES ('138853948594')", nil, false)
+            end
+          end
+        end
+      end
+    end
+
+    def test_errors_when_an_update_query_is_called_while_preventing_writes
+      @connection.insert("INSERT INTO subscribers(nick) VALUES ('138853948594')")
+
+      assert_no_queries do
+        assert_raises(ActiveRecord::ReadOnlyError) do
+          @connection.while_preventing_writes do
+            @connection.transaction do
+              @connection.update("UPDATE subscribers SET nick = '9989' WHERE nick = '138853948594'")
+            end
+          end
+        end
+      end
+    end
+
+    def test_errors_when_a_delete_query_is_called_while_preventing_writes
+      @connection.insert("INSERT INTO subscribers(nick) VALUES ('138853948594')")
+
+      assert_no_queries do
+        assert_raises(ActiveRecord::ReadOnlyError) do
+          @connection.while_preventing_writes do
+            @connection.transaction do
+              @connection.delete("DELETE FROM subscribers WHERE nick = '138853948594'")
+            end
+          end
+        end
+      end
+    end
+
+    def test_doesnt_error_when_a_select_query_is_called_while_preventing_writes
+      @connection.insert("INSERT INTO subscribers(nick) VALUES ('138853948594')")
+
+      @connection.while_preventing_writes do
+        result = @connection.select_all("SELECT subscribers.* FROM subscribers WHERE nick = '138853948594'")
+        assert_equal 1, result.length
       end
     end
 

@@ -12,9 +12,16 @@ module ActionMailer
 
     rescue_from StandardError, with: :handle_exception_with_mailer_class
 
-    def perform(mailer, mail_method, delivery_method, params, *args) #:nodoc:
-      mailer_class = params ? mailer.constantize.with(params) : mailer.constantize
-      mailer_class.public_send(mail_method, *args).send(delivery_method)
+    before_perform do
+      ActiveSupport::Deprecation.warn <<~MSG.squish
+        Sending mail with DeliveryJob and Parameterized::DeliveryJob
+        is deprecated and will be removed in Rails 6.1.
+        Please use MailDeliveryJob instead.
+      MSG
+    end
+
+    def perform(mailer, mail_method, delivery_method, *args) #:nodoc:
+      mailer.constantize.public_send(mail_method, *args).send(delivery_method)
     end
 
     private

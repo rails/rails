@@ -1,3 +1,60 @@
+*   Introduce guard against DNS rebinding attacks
+
+    The `ActionDispatch::HostAuthorization` is a new middleware that prevent
+    against DNS rebinding and other `Host` header attacks. It is included in
+    the development environment by default with the following configuration:
+
+        Rails.application.config.hosts = [
+          IPAddr.new("0.0.0.0/0"), # All IPv4 addresses.
+          IPAddr.new("::/0"),      # All IPv6 addresses.
+          "localhost"              # The localhost reserved domain.
+        ]
+
+    In other environments `Rails.application.config.hosts` is empty and no
+    `Host` header checks will be done. If you want to guard against header
+    attacks on production, you have to manually whitelist the allowed hosts
+    with:
+
+        Rails.application.config.hosts << "product.com"
+
+    The host of a request is checked against the `hosts` entries with the case
+    operator (`#===`), which lets `hosts` support entries of type `RegExp`,
+    `Proc` and `IPAddr` to name a few. Here is an example with a regexp.
+
+        # Allow requests from subdomains like `www.product.com` and
+        # `beta1.product.com`.
+        Rails.application.config.hosts << /.*\.product\.com/
+
+    A special case is supported that allows you to whitelist all sub-domains:
+
+        # Allow requests from subdomains like `www.product.com` and
+        # `beta1.product.com`.
+        Rails.application.config.hosts << ".product.com"
+
+    *Genadi Samokovarov*
+
+*   Remove redundant suffixes on generated helpers.
+
+    *Gannon McGibbon*
+
+*   Remove redundant suffixes on generated integration tests.
+
+    *Gannon McGibbon*
+
+*   Fix boolean interaction in scaffold system tests.
+
+    *Gannon McGibbon*
+
+*   Remove redundant suffixes on generated system tests.
+
+    *Gannon McGibbon*
+
+*   Add an `abort_on_failure` boolean option to the generator method that shell
+    out (`generate`, `rake`, `rails_command`) to abort the generator if the
+    command fails.
+
+    *David Rodríguez*
+
 *   Remove `app/assets` and `app/javascript` from `eager_load_paths` and `autoload_paths`.
 
     *Gannon McGibbon*
@@ -184,9 +241,9 @@
 
     *Benoit Tigeot*
 
-*   Rails 6 requires Ruby 2.4.1 or newer.
+*   Rails 6 requires Ruby 2.5.0 or newer.
 
-    *Jeremy Daer*
+    *Jeremy Daer*, *Kasper Timm Hansen*
 
 
 Please check [5-2-stable](https://github.com/rails/rails/blob/5-2-stable/railties/CHANGELOG.md) for previous changes.

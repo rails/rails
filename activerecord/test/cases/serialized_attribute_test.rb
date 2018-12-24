@@ -13,6 +13,10 @@ class SerializedAttributeTest < ActiveRecord::TestCase
 
   MyObject = Struct.new :attribute1, :attribute2
 
+  # NOTE: Use a duplicate of Topic so attribute
+  # changes don't bleed into other tests
+  Topic = ::Topic.dup
+
   teardown do
     Topic.serialize("content")
   end
@@ -367,7 +371,7 @@ class SerializedAttributeTest < ActiveRecord::TestCase
   end
 
   def test_serialized_attribute_works_under_concurrent_initial_access
-    model = Topic.dup
+    model = ::Topic.dup
 
     topic = model.last
     topic.update group: "1"

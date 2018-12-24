@@ -1,3 +1,22 @@
+*   Fix UJS permanently showing disabled text in a[data-remote][data-disable-with] elements within forms.
+    Fixes #33889
+
+    *Wolfgang Hobmaier*
+
+
+*   Prevent non-primary mouse keys from triggering Rails UJS click handlers.
+    Firefox fires click events even if the click was triggered by non-primary mouse keys such as right- or scroll-wheel-clicks.
+    For example, right-clicking a link such as the one described below (with an underlying ajax request registered on click) should not cause that request to occur.
+
+    ```
+    <%= link_to 'Remote', remote_path, class: 'remote', remote: true, data: { type: :json } %>
+    ```
+
+    Fixes #34541
+
+    *Wolfgang Hobmaier*
+
+
 *   Prevent `ActionView::TextHelper#word_wrap` from unexpectedly stripping white space from the _left_ side of lines.
 
     For example, given input like this:
@@ -156,9 +175,9 @@
 
     *Rui Onodera*
 
-*   Rails 6 requires Ruby 2.4.1 or newer.
+*   Rails 6 requires Ruby 2.5.0 or newer.
 
-    *Jeremy Daer*
+    *Jeremy Daer*, *Kasper Timm Hansen*
 
 
 Please check [5-2-stable](https://github.com/rails/rails/blob/5-2-stable/actionview/CHANGELOG.md) for previous changes.

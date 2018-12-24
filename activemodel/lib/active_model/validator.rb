@@ -90,7 +90,7 @@ module ActiveModel
   #   class MyValidator < ActiveModel::Validator
   #     def initialize(options={})
   #       super
-  #       options[:class].send :attr_accessor, :custom_attribute
+  #       options[:class].attr_accessor :custom_attribute
   #     end
   #   end
   class Validator

@@ -51,12 +51,10 @@ module ActiveStorage
 
     def delete(key)
       instrument :delete, key: key do
-        begin
-          blobs.delete_blob(container, key)
-        rescue Azure::Core::Http::HTTPError => e
-          raise unless e.type == "BlobNotFound"
-          # Ignore files already deleted
-        end
+        blobs.delete_blob(container, key)
+      rescue Azure::Core::Http::HTTPError => e
+        raise unless e.type == "BlobNotFound"
+        # Ignore files already deleted
       end
     end
 

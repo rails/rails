@@ -1,3 +1,8 @@
+*   The JavaScript WebSocket client will no longer try to reconnect
+    when you call `reject_unauthorized_connection` on the connection.
+
+    *Mick Staugaard*
+
 *   `ActionCable.Connection#getState` now references the configurable
     `ActionCable.adapters.WebSocket` property rather than the `WebSocket` global
     variable, matching the behavior of `ActionCable.Connection#open`.
@@ -61,9 +66,9 @@
 
     *Ilia Kasianenko*
 
-*   Rails 6 requires Ruby 2.4.1 or newer.
+*   Rails 6 requires Ruby 2.5.0 or newer.
 
-    *Jeremy Daer*
+    *Jeremy Daer*, *Kasper Timm Hansen*
 
 
 Please check [5-2-stable](https://github.com/rails/rails/blob/5-2-stable/actioncable/CHANGELOG.md) for previous changes.

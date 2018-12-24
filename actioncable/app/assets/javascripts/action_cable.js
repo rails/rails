@@ -136,9 +136,15 @@
   var INTERNAL = {
     message_types: {
       welcome: "welcome",
+      disconnect: "disconnect",
       ping: "ping",
       confirmation: "confirm_subscription",
       rejection: "reject_subscription"
+    },
+    disconnect_reasons: {
+      unauthorized: "unauthorized",
+      invalid_request: "invalid_request",
+      server_restart: "server_restart"
     },
     default_mount_path: "/cable",
     protocols: [ "actioncable-v1-json", "actioncable-unsupported" ]
@@ -251,11 +257,17 @@
       if (!this.isProtocolSupported()) {
         return;
       }
-      var _JSON$parse = JSON.parse(event.data), identifier = _JSON$parse.identifier, message = _JSON$parse.message, type = _JSON$parse.type;
+      var _JSON$parse = JSON.parse(event.data), identifier = _JSON$parse.identifier, message = _JSON$parse.message, reason = _JSON$parse.reason, reconnect = _JSON$parse.reconnect, type = _JSON$parse.type;
       switch (type) {
        case message_types.welcome:
         this.monitor.recordConnect();
         return this.subscriptions.reload();
+
+       case message_types.disconnect:
+        logger.log("Disconnecting. Reason: " + reason);
+        return this.close({
+          allowReconnect: reconnect
+        });
 
        case message_types.ping:
         return this.monitor.recordPing();

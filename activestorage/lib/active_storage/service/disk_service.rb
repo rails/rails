@@ -29,35 +29,29 @@ module ActiveStorage
         end
       else
         instrument :download, key: key do
-          begin
-            File.binread path_for(key)
-          rescue Errno::ENOENT
-            raise ActiveStorage::FileNotFoundError
-          end
-        end
-      end
-    end
-
-    def download_chunk(key, range)
-      instrument :download_chunk, key: key, range: range do
-        begin
-          File.open(path_for(key), "rb") do |file|
-            file.seek range.begin
-            file.read range.size
-          end
+          File.binread path_for(key)
         rescue Errno::ENOENT
           raise ActiveStorage::FileNotFoundError
         end
       end
     end
 
+    def download_chunk(key, range)
+      instrument :download_chunk, key: key, range: range do
+        File.open(path_for(key), "rb") do |file|
+          file.seek range.begin
+          file.read range.size
+        end
+      rescue Errno::ENOENT
+        raise ActiveStorage::FileNotFoundError
+      end
+    end
+
     def delete(key)
       instrument :delete, key: key do
-        begin
-          File.delete path_for(key)
-        rescue Errno::ENOENT
-          # Ignore files already deleted
-        end
+        File.delete path_for(key)
+      rescue Errno::ENOENT
+        # Ignore files already deleted
       end
     end
 

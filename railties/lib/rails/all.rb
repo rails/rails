@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# rubocop:disable Style/RedundantBegin
+
 require "rails"
 
 %w(

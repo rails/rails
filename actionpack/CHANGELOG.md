@@ -1,3 +1,31 @@
+*   Introduce ActionDispatch::HostAuthorization
+
+    This is a new middleware that guards against DNS rebinding attacks by
+    white-listing the allowed hosts a request can be made to.
+
+    Each host is checked with the case operator (`#===`) to support `RegExp`,
+    `Proc`, `IPAddr` and custom objects as host allowances.
+
+    *Genadi Samokovarov*
+
+*   Allow using `parsed_body` in `ActionController::TestCase`.
+
+    In addition to `ActionDispatch::IntegrationTest`, allow using
+    `parsed_body` in `ActionController::TestCase`:
+
+    ```
+    class SomeControllerTest < ActionController::TestCase
+      def test_some_action
+        post :action, body: { foo: 'bar' }
+        assert_equal({ "foo" => "bar" }, response.parsed_body)
+      end
+    end
+    ```
+
+    Fixes #34676.
+
+    *Tobias Bühlmann*
+
 *   Raise an error on root route naming conflicts.
 
     Raises an ArgumentError when multiple root routes are defined in the
@@ -165,9 +193,9 @@
 
     *Derek Prior*
 
-*   Rails 6 requires Ruby 2.4.1 or newer.
+*   Rails 6 requires Ruby 2.5.0 or newer.
 
-    *Jeremy Daer*
+    *Jeremy Daer*, *Kasper Timm Hansen*
 
 
 Please check [5-2-stable](https://github.com/rails/rails/blob/5-2-stable/actionpack/CHANGELOG.md) for previous changes.
