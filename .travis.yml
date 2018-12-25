@@ -124,8 +124,6 @@ matrix:
       env:
         - "GEM=am,amo,aj"
   allow_failures:
-    - rvm: 2.2.10
-      env: "GEM=guides"
     - rvm: ruby-head
     - rvm: jruby-9.1.15.0
     - env: "GEM=ac:integration"
