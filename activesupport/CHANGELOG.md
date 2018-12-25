@@ -1,3 +1,35 @@
+*   Introduce `ActiveSupport::ActionableError`.
+
+    Actionable errors let's you dispatch actions from Rails' error pages. This
+    can help you save time if you have a clear action for the resolution of
+    common development errors.
+
+    The de-facto example are pending migrations. Every time pending migrations
+    are found, a middleware raises an error. With actionable errors, you can
+    run the migrations right from the error page. Other examples include Rails
+    plugins that need to run a rake task to setup themselves. They can now
+    raise actionable errors to run the setup straight from the error pages.
+
+    Here is how to define an actionable error:
+
+    ```ruby
+    class PendingMigrationError < MigrationError #:nodoc:
+      include ActiveSupport::ActionableError
+
+      action "Run pending migrations" do
+        ActiveRecord::Tasks::DatabaseTasks.migrate
+      end
+    end
+    ```
+
+    To make an error actionable, include the `ActiveSupport::ActionableError`
+    module and invoke the `action` class macro to define the action. An action
+    needs a name and a procedure to execute. The name is shown as the name of a
+    button on the error pages. Once clicked, it will invoke the given
+    procedure.
+
+    *Vipul A M*, *Yao Jie*, *Genadi Samokovarov*
+
 *   Preserve `html_safe?` status on `ActiveSupport::SafeBuffer#*`.
 
     Before:

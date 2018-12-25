@@ -4,6 +4,7 @@ require "benchmark"
 require "set"
 require "zlib"
 require "active_support/core_ext/module/attribute_accessors"
+require "active_support/actionable_error"
 
 module ActiveRecord
   class MigrationError < ActiveRecordError #:nodoc:

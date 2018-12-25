@@ -33,6 +33,7 @@ require "active_support/core_ext/date_and_time/compatibility"
 module ActiveSupport
   extend ActiveSupport::Autoload
 
+  autoload :ActionableError
   autoload :Concern
   autoload :CurrentAttributes
   autoload :Dependencies

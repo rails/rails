@@ -1,3 +1,12 @@
+*   Introduce `ActionDispatch::ActionableExceptions`.
+
+    The `ActionDispatch::ActionableExceptions` middleware dispatches actions
+    from `ActiveSupport::ActionableError` descendants.
+
+    Actionable errors let's you dispatch actions from Rails' error pages.
+
+    *Vipul A M*, *Yao Jie*, *Genadi Samokovarov*
+
 *   Raise an `ArgumentError` if a resource custom param contains a colon (`:`).
 
     After this change it's not possible anymore to configure routes like this:

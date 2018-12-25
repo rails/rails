@@ -4,6 +4,8 @@ require "action_dispatch/http/request"
 require "action_dispatch/middleware/exception_wrapper"
 require "action_dispatch/routing/inspector"
 
+require "active_support/actionable_error"
+
 require "action_view"
 require "action_view/base"
 
@@ -19,7 +21,7 @@ module ActionDispatch
     end
 
     def initialize(app, routes_app = nil, response_format = :default, interceptors = self.class.interceptors)
-      @app             = app
+      @app             = ActionableExceptions.new(app)
       @routes_app      = routes_app
       @response_format = response_format
       @interceptors    = interceptors
