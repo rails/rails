@@ -20,7 +20,7 @@ module Rails
       end
 
       def edit
-        require_application_and_environment!
+        require_application!
 
         ensure_editor_available(command: "bin/rails credentials:edit") || (return)
 
@@ -39,7 +39,7 @@ module Rails
       end
 
       def show
-        require_application_and_environment!
+        require_application!
 
         encrypted = Rails.application.encrypted(content_path, key_path: key_path)
 

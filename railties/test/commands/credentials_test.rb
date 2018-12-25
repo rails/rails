@@ -63,6 +63,14 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
     end
   end
 
+  test "edit command does not raise when an initializer tries to acces non-existent credentials" do
+    app_file "config/initializers/raise_when_loaded.rb", <<-RUBY
+      Rails.application.credentials.missing_key!
+    RUBY
+
+    assert_match(/access_key_id: 123/, run_edit_command(environment: "qa"))
+  end
+
   test "show credentials" do
     assert_match(/access_key_id: 123/, run_show_command)
   end
