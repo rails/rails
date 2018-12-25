@@ -200,7 +200,7 @@ module ActionCable::StreamTests
       end
 
       def receive(connection, command:, identifiers:, channel: "ActionCable::StreamTests::ChatChannel")
-        identifier = JSON.generate(channel: channel, **identifiers)
+        identifier = JSON.generate(identifiers.merge(channel: channel))
         connection.dispatch_websocket_message JSON.generate(command: command, identifier: identifier)
         wait_for_async
       end

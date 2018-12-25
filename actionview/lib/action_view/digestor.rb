@@ -70,13 +70,11 @@ module ActionView
       end
 
       private
-        def find_template(finder, *args)
+        def find_template(finder, name, prefixes, partial, keys)
           finder.disable_cache do
-            if format = finder.rendered_format
-              finder.find_all(*args, formats: [format]).first || finder.find_all(*args).first
-            else
-              finder.find_all(*args).first
-            end
+            format = finder.rendered_format
+            result = finder.find_all(name, prefixes, partial, keys, formats: [format]).first if format
+            result || finder.find_all(name, prefixes, partial, keys).first
           end
         end
     end
