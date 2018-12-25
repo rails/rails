@@ -13,7 +13,7 @@ class ActiveStorage::RepresentationsController < ActiveStorage::BaseController
   end
 
   def proxy
-    expires_in ActiveStorage.proxy_urls_expire_in
+    expires_in ActiveStorage.proxy_urls_expire_in, public: ActiveStorage.proxy_urls_public
 
     representation = @blob.representation(params[:variation_key]).processed
 

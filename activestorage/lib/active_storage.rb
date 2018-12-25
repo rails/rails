@@ -54,6 +54,7 @@ module ActiveStorage
   mattr_accessor :service_urls_expire_in, default: 5.minutes
   mattr_accessor :delivery_method, default: :redirect
   mattr_accessor :proxy_urls_expire_in, default: 1.year
+  mattr_accessor :proxy_urls_public, default: true
   mattr_accessor :routes_prefix, default: "/rails/active_storage"
 
   module Transformers

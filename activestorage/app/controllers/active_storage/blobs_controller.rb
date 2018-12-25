@@ -13,7 +13,7 @@ class ActiveStorage::BlobsController < ActiveStorage::BaseController
   end
 
   def proxy
-    expires_in ActiveStorage.proxy_urls_expire_in
+    expires_in ActiveStorage.proxy_urls_expire_in, public: ActiveStorage.proxy_urls_public
 
     response.headers["Content-Type"] = @blob.content_type
     response.headers["Content-Disposition"] = @blob.disposition(params[:disposition])

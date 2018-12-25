@@ -71,6 +71,7 @@ module ActiveStorage
         ActiveStorage.service_urls_expire_in = app.config.active_storage.service_urls_expire_in || 5.minutes
         ActiveStorage.delivery_method = app.config.active_storage.delivery_method || :redirect
         ActiveStorage.proxy_urls_expire_in = app.config.active_storage.proxy_urls_expire_in || 1.year
+        ActiveStorage.proxy_urls_public = app.config.active_storage.proxy_urls_public || true
         ActiveStorage.content_types_allowed_inline = app.config.active_storage.content_types_allowed_inline || []
         ActiveStorage.binary_content_type = app.config.active_storage.binary_content_type || "application/octet-stream"
       end
