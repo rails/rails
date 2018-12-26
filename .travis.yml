@@ -37,10 +37,10 @@ before_install:
   - "travis_retry gem update --system"
   - "travis_retry gem install bundler -v '2.0.0.pre.2'"
   - "[[ -z $encrypted_0fb9444d0374_key && -z $encrypted_0fb9444d0374_iv ]] || openssl aes-256-cbc -K $encrypted_0fb9444d0374_key -iv $encrypted_0fb9444d0374_iv -in activestorage/test/service/configurations.yml.enc -out activestorage/test/service/configurations.yml -d"
-  - "[[ $GEM != 'ac:integration' ]] || yarn install"
-  - "[[ $GEM != 'av:ujs' ]] || nvm install node"
-  - "[[ $GEM != 'av:ujs' ]] || node --version"
-  - "[[ $GEM != 'av:ujs' ]] || (cd actionview && npm install)"
+  - "[[ $GEM != 'actioncable:integration' ]] || yarn install"
+  - "[[ $GEM != 'actionview:ujs' ]] || nvm install node"
+  - "[[ $GEM != 'actionview:ujs' ]] || node --version"
+  - "[[ $GEM != 'actionview:ujs' ]] || (cd actionview && npm install)"
   - "[[ $GEM != 'railties' ]] || (curl -o- -L https://yarnpkg.com/install.sh | bash)"
   - "[[ $GEM != 'railties' ]] || export PATH=$HOME/.yarn/bin:$PATH"
 
@@ -56,12 +56,12 @@ env:
   global:
     - "JRUBY_OPTS='--dev -J-Xmx1024M'"
   matrix:
-    - "GEM=ap,ac"
-    - "GEM=am,amo,as,av,aj,ast"
-    - "GEM=as PRESERVE_TIMEZONES=1"
-    - "GEM=ar:sqlite3"
+    - "GEM=actionpack,actioncable"
+    - "GEM=actionmailer,activemodel,activesupport,actionview,activejob,activestorage,actionmailbox"
+    - "GEM=activesupport PRESERVE_TIMEZONES=1"
+    - "GEM=activerecord:sqlite3"
     - "GEM=guides"
-    - "GEM=ac:integration"
+    - "GEM=actioncable:integration"
 
 rvm:
   - 2.5.3
@@ -88,10 +88,10 @@ matrix:
         - "sudo sed -i 's/port = 5433/port = 5432/' /etc/postgresql/10/main/postgresql.conf"
         - "sudo service postgresql restart 10"
     - rvm: 2.5.3
-      env: "GEM=av:ujs"
+      env: "GEM=actionview:ujs"
     - rvm: 2.5.3
       sudo: required
-      env: "GEM=aj:integration"
+      env: "GEM=activejob:integration"
       services:
         - memcached
         - redis-server
@@ -104,7 +104,7 @@ matrix:
         - "pushd /tmp/beanstalkd-1.10 && make && (./beanstalkd &); popd"
     - rvm: ruby-head
       sudo: required
-      env: "GEM=aj:integration"
+      env: "GEM=activejob:integration"
       services:
         - memcached
         - redis-server
@@ -116,14 +116,14 @@ matrix:
         - "[ -f /tmp/beanstalkd-1.10/Makefile ] || (curl -L https://github.com/beanstalkd/beanstalkd/archive/v1.10.tar.gz | tar xz -C /tmp)"
         - "pushd /tmp/beanstalkd-1.10 && make && (./beanstalkd &); popd"
     - rvm: 2.5.3
-      env: "GEM=ar:mysql2"
+      env: "GEM=activerecord:mysql2"
       sudo: required
       before_install:
         - "sudo mysql -e \"use mysql; update user set authentication_string='' where User='root'; update user set plugin='mysql_native_password';FLUSH PRIVILEGES;\""
         - "sudo mysql_upgrade"
         - "sudo service mysql restart"
     - rvm: ruby-head
-      env: "GEM=ar:mysql2"
+      env: "GEM=activerecord:mysql2"
       sudo: required
       before_install:
         - "sudo mysql -e \"use mysql; update user set authentication_string='' where User='root'; update user set plugin='mysql_native_password';FLUSH PRIVILEGES;\""
@@ -131,20 +131,20 @@ matrix:
         - "sudo service mysql restart"
     - rvm: 2.5.3
       env:
-        - "GEM=ar:mysql2 MYSQL=mariadb"
+        - "GEM=activerecord:mysql2 MYSQL=mariadb"
       addons:
         mariadb: 10.3
     - rvm: 2.5.3
       env:
-        - "GEM=ar:sqlite3_mem"
+        - "GEM=activerecord:sqlite3_mem"
     - rvm: 2.5.3
-      env: "GEM=ar:postgresql"
+      env: "GEM=activerecord:postgresql"
       sudo: required
       before_install:
         - "sudo sed -i 's/port = 5433/port = 5432/' /etc/postgresql/10/main/postgresql.conf"
         - "sudo service postgresql restart 10"
     - rvm: ruby-head
-      env: "GEM=ar:postgresql"
+      env: "GEM=activerecord:postgresql"
       sudo: required
       before_install:
         - "sudo sed -i 's/port = 5433/port = 5432/' /etc/postgresql/10/main/postgresql.conf"
@@ -152,15 +152,15 @@ matrix:
     - rvm: jruby-head
       jdk: oraclejdk8
       env:
-        - "GEM=ap"
+        - "GEM=actionpack"
     - rvm: jruby-head
       jdk: oraclejdk8
       env:
-        - "GEM=am,amo,aj"
+        - "GEM=actionmailer,activemodel,activejob"
   allow_failures:
     - rvm: ruby-head
     - rvm: jruby-head
-    - env: "GEM=ac:integration"
+    - env: "GEM=actioncable:integration"
   fast_finish: true
 
 notifications:

@@ -1,0 +1,6 @@
+# frozen_string_literal: true
+
+class <%= class_name %>Mailbox < ApplicationMailbox
+  def process
+  end
+end
