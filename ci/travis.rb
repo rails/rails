@@ -114,7 +114,7 @@ class Build
   end
 
   def gem
-    MAP[component.split(":").first]
+    MAP[component.split(":").first] || abort("#{component} doesn't exist")
   end
   alias :dir :gem
 
@@ -155,6 +155,8 @@ if ENV["GEM"] == "aj:integration"
 end
 
 results = {}
+
+abort "GEM environment variable is required" unless ENV["GEM"]
 
 ENV["GEM"].split(",").each do |gem|
   [false, true].each do |isolated|
