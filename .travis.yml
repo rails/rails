@@ -164,7 +164,23 @@ matrix:
         - "GEM=activerecord:mysql2 MYSQL=mariadb"
       addons:
         mariadb: 10.3
+    - rvm: 2.6.0
+      env:
+        - "GEM=activerecord:mysql2 MYSQL=mariadb"
+      addons:
+        mariadb: 10.3
+    - rvm: ruby-head
+      env:
+        - "GEM=activerecord:mysql2 MYSQL=mariadb"
+      addons:
+        mariadb: 10.3
     - rvm: 2.5.3
+      env:
+        - "GEM=activerecord:sqlite3_mem"
+    - rvm: 2.6.0
+      env:
+        - "GEM=activerecord:sqlite3_mem"
+    - rvm: ruby-head
       env:
         - "GEM=activerecord:sqlite3_mem"
     - rvm: 2.5.3
