@@ -8,7 +8,7 @@ module ActiveModel
       CHECKS = { greater_than: :>, greater_than_or_equal_to: :>=,
                  equal_to: :==, less_than: :<, less_than_or_equal_to: :<=,
                  odd: :odd?, even: :even?, other_than: :!= }.freeze
-
+      CHECKS_IGNORING_NIL = %i(greater_than greater_than_or_equal_to less_than less_than_or_equal_to)
       RESERVED_OPTIONS = CHECKS.keys + [:only_integer]
 
       INTEGER_REGEX = /\A[+-]?\d+\z/
@@ -69,6 +69,8 @@ module ActiveModel
               option_value = record.send(option_value)
             end
 
+            next if option_value.nil? && CHECKS_IGNORING_NIL.include?(option)
+
             option_value = parse_as_number(option_value)
 
             unless value.send(CHECKS[option], option_value)
@@ -88,7 +90,7 @@ module ActiveModel
       def parse_as_number(raw_value)
         if raw_value.is_a?(Float)
           raw_value.to_d
-        elsif raw_value.is_a?(Numeric)
+        elsif raw_value.is_a?(Numeric) || raw_value.nil?
           raw_value
         elsif is_integer?(raw_value)
           raw_value.to_i
@@ -180,6 +182,10 @@ module ActiveModel
       #     validates_numericality_of :width, less_than: ->(person) { person.height }
       #     validates_numericality_of :width, greater_than: :minimum_weight
       #   end
+      #
+      # :greater_than, :greater_than_or_equal_to, :less_than and :less_than_or_equal_to
+      # are passing when a proc or a method call return nil.
+      #
       def validates_numericality_of(*attr_names)
         validates_with NumericalityValidator, _merge_attributes(attr_names)
       end

@@ -233,6 +233,31 @@ class NumericalityValidationTest < ActiveModel::TestCase
     Topic.remove_method :max_approved
   end
 
+  def test_validates_numericality_with_symbol_and_nil_value
+    Topic.define_method(:max_approved) { nil }
+    Topic.validates_numericality_of :approved, less_than_or_equal_to: :max_approved
+
+    valid!([4])
+  ensure
+    Topic.remove_method :max_approved
+  end
+
+  def test_validates_numericality_equal_to_with_symbol_and_nil_value
+    Topic.define_method(:max_approved) { nil }
+    Topic.validates_numericality_of :approved, allow_nil: true, equal_to: :max_approved
+
+    invalid!([4, 5])
+    valid!([nil])
+  ensure
+    Topic.remove_method :max_approved
+  end
+
+  def test_validates_numericality_with_proc_and_nil_value
+    Topic.validates_numericality_of :approved, less_than_or_equal_to: ->(_) { nil }
+
+    valid!([4])
+  end
+
   def test_validates_numericality_with_numeric_message
     Topic.validates_numericality_of :approved, less_than: 4, message: "smaller than %{count}"
     topic = Topic.new("title" => "numeric test", "approved" => 10)
