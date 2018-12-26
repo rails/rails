@@ -65,11 +65,21 @@ env:
 
 rvm:
   - 2.5.3
+  - 2.6.0
   - ruby-head
 
 matrix:
   include:
     - rvm: 2.5.3
+      env: "GEM=railties"
+      sudo: required
+      before_install:
+        - "rm ${BUNDLE_GEMFILE}.lock"
+        - "travis_retry gem update --system"
+        - "travis_retry gem install bundler"
+        - "sudo sed -i 's/port = 5433/port = 5432/' /etc/postgresql/10/main/postgresql.conf"
+        - "sudo service postgresql restart 10"
+    - rvm: 2.6.0
       env: "GEM=railties"
       sudo: required
       before_install:
@@ -102,6 +112,19 @@ matrix:
         - "sudo service postgresql restart 10"
         - "[ -f /tmp/beanstalkd-1.10/Makefile ] || (curl -L https://github.com/beanstalkd/beanstalkd/archive/v1.10.tar.gz | tar xz -C /tmp)"
         - "pushd /tmp/beanstalkd-1.10 && make && (./beanstalkd &); popd"
+    - rvm: 2.6.0
+      sudo: required
+      env: "GEM=activejob:integration"
+      services:
+        - memcached
+        - redis-server
+        - rabbitmq
+      before_install:
+        - sudo sed -i -e '/local.*peer/s/postgres/all/' -e 's/peer\|md5/trust/g' /etc/postgresql/*/main/pg_hba.conf
+        - "sudo sed -i 's/port = 5433/port = 5432/' /etc/postgresql/10/main/postgresql.conf"
+        - "sudo service postgresql restart 10"
+        - "[ -f /tmp/beanstalkd-1.10/Makefile ] || (curl -L https://github.com/beanstalkd/beanstalkd/archive/v1.10.tar.gz | tar xz -C /tmp)"
+        - "pushd /tmp/beanstalkd-1.10 && make && (./beanstalkd &); popd"
     - rvm: ruby-head
       sudo: required
       env: "GEM=activejob:integration"
@@ -116,6 +139,13 @@ matrix:
         - "[ -f /tmp/beanstalkd-1.10/Makefile ] || (curl -L https://github.com/beanstalkd/beanstalkd/archive/v1.10.tar.gz | tar xz -C /tmp)"
         - "pushd /tmp/beanstalkd-1.10 && make && (./beanstalkd &); popd"
     - rvm: 2.5.3
+      env: "GEM=activerecord:mysql2"
+      sudo: required
+      before_install:
+        - "sudo mysql -e \"use mysql; update user set authentication_string='' where User='root'; update user set plugin='mysql_native_password';FLUSH PRIVILEGES;\""
+        - "sudo mysql_upgrade"
+        - "sudo service mysql restart"
+    - rvm: 2.6.0
       env: "GEM=activerecord:mysql2"
       sudo: required
       before_install:
@@ -138,6 +168,12 @@ matrix:
       env:
         - "GEM=activerecord:sqlite3_mem"
     - rvm: 2.5.3
+      env: "GEM=activerecord:postgresql"
+      sudo: required
+      before_install:
+        - "sudo sed -i 's/port = 5433/port = 5432/' /etc/postgresql/10/main/postgresql.conf"
+        - "sudo service postgresql restart 10"
+    - rvm: 2.6.0
       env: "GEM=activerecord:postgresql"
       sudo: required
       before_install:
