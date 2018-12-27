@@ -1,3 +1,7 @@
+*   Add `Date.use_beginning_of_week` for overriding `Date.beginning_of_week` locally inside supplied block.
+
+    *Ari Summer*
+
 *   If the same block is `included` multiple times for a Concern, an exception is no longer raised.
 
     *Mark J. Titorenko*, *Vlad Bokov*

@@ -28,6 +28,28 @@ class Date
       Thread.current[:beginning_of_week] = find_beginning_of_week!(week_start)
     end
 
+    # Allows override of <tt>Date.beginning_of_week</tt> locally inside supplied block;
+    # resets <tt>Date.beginning_of_week</tt> to existing value when done.
+    #
+    #   class ApplicationController < ActionController::Base
+    #     around_action :set_beginning_of_week
+    #
+    #     private
+    #
+    #     def set_beginning_of_week
+    #       Date.use_beginning_of_week(current_user.beginning_of_week) { yield }
+    #     end
+    #   end
+    def use_beginning_of_week(week_start)
+      new_beginning = find_beginning_of_week!(week_start)
+      begin
+        old_beginning, ::Date.beginning_of_week = ::Date.beginning_of_week, new_beginning
+        yield
+      ensure
+        ::Date.beginning_of_week = old_beginning
+      end
+    end
+
     # Returns week start day symbol (e.g. :monday), or raises an +ArgumentError+ for invalid day symbol.
     def find_beginning_of_week!(week_start)
       raise ArgumentError, "Invalid beginning of week: #{week_start}" unless ::Date::DAYS_INTO_WEEK.key?(week_start)
