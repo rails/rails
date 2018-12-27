@@ -442,7 +442,6 @@ class MigrationTest < ActiveRecord::TestCase
     current_env     = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
     migrations_path = MIGRATIONS_ROOT + "/valid"
 
-    current_env = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
     migrator = ActiveRecord::MigrationContext.new(migrations_path)
     migrator.up
     assert_equal current_env, ActiveRecord::InternalMetadata[:environment]
