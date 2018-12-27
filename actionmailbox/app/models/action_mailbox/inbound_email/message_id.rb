@@ -18,7 +18,7 @@ module ActionMailbox::InboundEmail::MessageId
     # attachment called `raw_email`. Before the upload, extract the Message-ID from the `source` and set
     # it as an attribute on the new `InboundEmail`.
     def create_and_extract_message_id!(source, **options)
-      create! message_id: extract_message_id(source), **options do |inbound_email|
+      create! options.merge(message_id: extract_message_id(source)) do |inbound_email|
         inbound_email.raw_email.attach io: StringIO.new(source), filename: "message.eml", content_type: "message/rfc822"
       end
     end
