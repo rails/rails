@@ -946,6 +946,8 @@ module ActiveRecord
   end
 
   class DatabaseTasksTruncateTablesTest < ActiveRecord::TestCase
+    self.use_transactional_tests = false
+
     fixtures :authors, :author_addresses
 
     def test_truncate_tables

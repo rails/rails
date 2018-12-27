@@ -189,8 +189,10 @@ module ActiveRecord
           ActiveRecord::Base.internal_metadata_table_name
         ]
 
-        table_names.without(*internal_table_names).each do |table_name|
-          ActiveRecord::Base.connection.truncate(table_name)
+        ActiveRecord::Base.connection.disable_referential_integrity do
+          table_names.without(*internal_table_names).each do |table_name|
+            ActiveRecord::Base.connection.truncate(table_name)
+          end
         end
       end
 
