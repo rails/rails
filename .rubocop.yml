@@ -180,6 +180,9 @@ Style/UnneededPercentQ:
 Lint/RequireParentheses:
   Enabled: true
 
+Lint/ShadowingOuterLocalVariable:
+  Enabled: true
+
 Lint/StringConversionInInterpolation:
   Enabled: true
 
