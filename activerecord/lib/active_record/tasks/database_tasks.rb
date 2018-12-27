@@ -182,6 +182,18 @@ module ActiveRecord
         }
       end
 
+      def truncate_tables
+        table_names = ActiveRecord::Base.connection.tables
+        internal_table_names = [
+          ActiveRecord::Base.schema_migrations_table_name,
+          ActiveRecord::Base.internal_metadata_table_name
+        ]
+
+        table_names.without(*internal_table_names).each do |table_name|
+          ActiveRecord::Base.connection.truncate(table_name)
+        end
+      end
+
       def migrate
         check_target_version
 

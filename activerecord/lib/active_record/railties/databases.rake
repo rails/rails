@@ -62,15 +62,7 @@ db_namespace = namespace :db do
 
   # desc "Truncates database tables for current environment"
   task truncate_tables: [:load_config, :check_protected_environments] do
-    table_names = ActiveRecord::Base.connection.tables
-    internal_table_names = [
-      ActiveRecord::Base.schema_migrations_table_name,
-      ActiveRecord::Base.internal_metadata_table_name
-    ]
-
-    table_names.without(*internal_table_names).each do |table_name|
-      ActiveRecord::Base.connection.truncate(table_name)
-    end
+    ActiveRecord::Tasks::DatabaseTasks.truncate_tables
   end
 
   namespace :purge do

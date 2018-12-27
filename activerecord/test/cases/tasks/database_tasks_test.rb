@@ -2,6 +2,7 @@
 
 require "cases/helper"
 require "active_record/tasks/database_tasks"
+require "models/author"
 
 module ActiveRecord
   module DatabaseTasksSetupper
@@ -941,6 +942,20 @@ module ActiveRecord
       end
     ensure
       ActiveRecord::Base.configurations = old_configurations
+    end
+  end
+
+  class DatabaseTasksTruncateTablesTest < ActiveRecord::TestCase
+    fixtures :authors, :author_addresses
+
+    def test_truncate_tables
+      assert_operator Author.count, :>, 0
+      assert_operator AuthorAddress.count, :>, 0
+
+      ActiveRecord::Tasks::DatabaseTasks.truncate_tables
+
+      assert_equal 0, Author.count
+      assert_equal 0, AuthorAddress.count
     end
   end
 
