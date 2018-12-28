@@ -565,6 +565,11 @@ module ActionMailer
       #     end
       #   end
       def receive(raw_mail)
+        ActiveSupport::Deprecation.warn(<<~MESSAGE.squish)
+          ActionMailer::Base.receive is deprecated and will be removed in Rails 6.1.
+          Use Action Mailbox to process inbound email.
+        MESSAGE
+
         ActiveSupport::Notifications.instrument("receive.action_mailer") do |payload|
           mail = Mail.new(raw_mail)
           set_payload_for_mail(payload, mail)

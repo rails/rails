@@ -3,10 +3,11 @@
 require "abstract_unit"
 require "mailers/base_mailer"
 require "active_support/log_subscriber/test_helper"
+require "active_support/testing/stream"
 require "action_mailer/log_subscriber"
 
 class AMLogSubscriberTest < ActionMailer::TestCase
-  include ActiveSupport::LogSubscriber::TestHelper
+  include ActiveSupport::LogSubscriber::TestHelper, ActiveSupport::Testing::Stream
 
   def setup
     super
@@ -53,7 +54,7 @@ class AMLogSubscriberTest < ActionMailer::TestCase
 
   def test_receive_is_notified
     fixture = File.read(File.expand_path("fixtures/raw_email", __dir__))
-    TestMailer.receive(fixture)
+    silence_stream(STDERR) { TestMailer.receive(fixture) }
     wait
     assert_equal(1, @logger.logged(:info).size)
     assert_match(/Received mail/, @logger.logged(:info).first)
