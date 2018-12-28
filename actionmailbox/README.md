@@ -14,20 +14,11 @@ Rails has long had an anemic way of [receiving emails using Action Mailer](https
 
 ## Installing
 
-Assumes a Rails 5.2+ application:
-
-1. Install the gem:
-
-    ```ruby
-    # Gemfile
-    gem "actionmailbox", github: "rails/actionmailbox", require: "action_mailbox"
-    ```
-
-1. Install migrations needed for InboundEmail (and ensure Active Storage is setup)
+Ensure Active Storage is setup and install migrations needed for InboundEmail:
 
    ```
-   ./bin/rails action_mailbox:install
-   ./bin/rails db:migrate
+   rails action_mailbox:install
+   rails db:migrate
    ```
 
 ## Configuring
