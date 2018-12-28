@@ -228,13 +228,16 @@ class ErrorsTest < ActiveModel::TestCase
     assert_not person.errors.added?(:name)
   end
 
-  test "added? returns false when checking for an error with an incorrect or missing option" do
+  test "added? returns false when checking for an error with incorrect options" do
     person = Person.new
-    person.errors.add :name, :too_long, count: 25
+    person.errors.add :name, :too_long, count: 25, actual_count: 42
 
-    assert person.errors.added? :name, :too_long, count: 25
+    assert person.errors.added? :name, :too_long
+    assert person.errors.added? :name, :too_long, count: 25, actual_count: 42
+    assert person.errors.added? :name, "is too long (maximum is 25 characters)"
+    assert_not person.errors.added? :name, :too_long, count: 25
+    assert_not person.errors.added? :name, :too_long, count: 24, actual_count: 42
     assert_not person.errors.added? :name, :too_long, count: 24
-    assert_not person.errors.added? :name, :too_long
     assert_not person.errors.added? :name, "is too long"
   end
 
