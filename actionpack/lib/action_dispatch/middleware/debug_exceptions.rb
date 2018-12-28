@@ -21,7 +21,7 @@ module ActionDispatch
     end
 
     def initialize(app, routes_app = nil, response_format = :default, interceptors = self.class.interceptors)
-      @app             = ActionableExceptions.new(app)
+      @app             = app
       @routes_app      = routes_app
       @response_format = response_format
       @interceptors    = interceptors
