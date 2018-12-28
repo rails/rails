@@ -1917,11 +1917,11 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   test "#includes does not trigger more queries if the association is already included" do
-    relation = Comment.includes(:post)
+    relation = Comment.includes(:parent, post: { author: [:post_about_thinking, :serialized_posts] })
     relation.load
 
     assert_no_queries do
-      relation.includes(:post).load
+      relation.includes(post: { author: :post_about_thinking }).load
     end
   end
 

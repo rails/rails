@@ -114,7 +114,7 @@ module ActiveRecord
     def includes(*args)
       check_if_method_has_arguments!(:includes, args)
 
-      return self if self.includes_values == args.reject(&:blank?).flatten
+      return self if paths(args.reject(&:blank?)) - paths(self.includes_values) == []
       spawn.includes!(*args)
     end
 
@@ -926,6 +926,18 @@ module ActiveRecord
       def assert_mutability!
         raise ImmutableRelation if @loaded
         raise ImmutableRelation if defined?(@arel) && @arel
+      end
+
+      def paths(node, previous_path = "")
+        return [previous_path, node].join("/") unless node.respond_to?(:reduce)
+
+        node.reduce([]) do |memo, element|
+          key, value = element
+          memo << paths(key, previous_path)
+          memo << paths(value, [previous_path, key].join("/")) if value
+
+          memo
+        end.flatten
       end
 
       def build_arel(aliases)
