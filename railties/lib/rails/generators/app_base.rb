@@ -200,7 +200,8 @@ module Rails
             :skip_sprockets,
             :skip_action_cable
           ),
-          skip_active_storage?
+          skip_active_storage?,
+          skip_action_mailbox?
         ].flatten.none?
       end
 
@@ -227,6 +228,10 @@ module Rails
 
       def skip_active_storage? # :doc:
         options[:skip_active_storage] || options[:skip_active_record]
+      end
+
+      def skip_action_mailbox? # :doc:
+        options[:skip_active_record]
       end
 
       class GemfileEntry < Struct.new(:name, :version, :comment, :options, :commented_out)
