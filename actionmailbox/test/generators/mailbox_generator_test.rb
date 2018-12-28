@@ -38,7 +38,7 @@ class MailboxGeneratorTest < Rails::Generators::TestCase
     assert_file "test/mailboxes/inceptions/inbox_mailbox_test.rb" do |mailbox|
       assert_match(/class Inceptions::InboxMailboxTest < ActionMailbox::TestCase/, mailbox)
       assert_match(/# test "receive mail" do/, mailbox)
-      assert_match(/#     to: '"someone" <someone@example.com>,/, mailbox)
+      assert_match(/#     to: '"someone" <someone@example.com>',/, mailbox)
     end
 
     assert_file "app/mailboxes/application_mailbox.rb" do |mailbox|
@@ -62,7 +62,7 @@ class MailboxGeneratorTest < Rails::Generators::TestCase
     assert_file "test/mailboxes/inbox_mailbox_test.rb" do |test|
       assert_match(/class InboxMailboxTest < ActionMailbox::TestCase/, test)
       assert_match(/# test "receive mail" do/, test)
-      assert_match(/#     to: '"someone" <someone@example.com>,/, test)
+      assert_match(/#     to: '"someone" <someone@example.com>',/, test)
     end
   end
 
