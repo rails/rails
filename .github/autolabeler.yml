@@ -1,5 +1,7 @@
 actioncable:
   - "actioncable/**/*"
+actionmailbox:
+  - "actionmailbox/**/*"
 actionmailer:
   - "actionmailer/**/*"
 actionpack:
