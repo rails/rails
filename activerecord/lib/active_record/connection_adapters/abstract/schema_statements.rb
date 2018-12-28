@@ -1061,10 +1061,8 @@ module ActiveRecord
         version = version.to_i
         sm_table = quote_table_name(ActiveRecord::SchemaMigration.table_name)
 
-        migrated = ActiveRecord::SchemaMigration.all_versions.map(&:to_i)
-        versions = migration_context.migration_files.map do |file|
-          migration_context.parse_migration_filename(file).first.to_i
-        end
+        migrated = migration_context.get_all_versions
+        versions = migration_context.migrations.map(&:version)
 
         unless migrated.include?(version)
           execute "INSERT INTO #{sm_table} (version) VALUES (#{quote(version)})"
