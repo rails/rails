@@ -415,6 +415,27 @@ message.video.open do |file|
 end
 ```
 
+File Delivery Methods
+-----------------
+
+The delivery method can be configured to meet the needs of your application. There are 3 options for delivery:
+
+1. Redirect
+    
+    This is the default delivery method. This will redirect your users to a temporary service URL.
+
+2. Proxy
+
+    Proxy files from the service through your application. Useful for CDNs such as Cloudflare.
+
+3. Direct
+
+    Links directly to the temporary service URL. Useful for reducing the load on your application server for pages that are image heavy.
+
+### Changing delivery method
+The delivery method can be changed globally by setting `config.active_storage.delivery_method = :proxy`. You can also change the delivery method in the model `has_one_attached :avatar, delivery_method: :direct` and view `user.avatar.variant(resize: "100x100").deliver(:redirect)`.
+    
+
 Transforming Images
 -------------------
 

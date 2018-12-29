@@ -104,6 +104,32 @@ Variation of image attachment:
 <%= image_tag user.avatar.variant(resize_to_fit: [100, 100]) %>
 ```
 
+## Delivery methods
+You can change the delivery method to best suit the needs of your application.
+
+### Redirect (default)
+Requests for files will redirect to a temporary service URL.
+
+### Proxy
+Files are proxied through the application server so they appear as though they're being served from your server. Useful for CDNs such as Cloudflare.
+
+### Direct
+Directly links to the backing file service. Can be useful to lower the load on your application server if you have a lot of images.
+
+### Changing delivery method
+globally
+```ruby
+app.config.active_storage.delivery_method = :proxy
+```
+model
+```ruby
+has_one_attached :avatar, delivery_method: :direct
+```
+view
+```ruby
+user.avatar.variant(resize: "100x100").deliver(:redirect)
+```
+
 ## Direct uploads
 
 Active Storage, with its included JavaScript library, supports uploading directly from the client to the cloud.

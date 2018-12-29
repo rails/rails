@@ -847,6 +847,33 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 
   The default is `/rails/active_storage`
 
+* `config.active_storage.delivery_method` can be used to globally change how Active Storage files are delivered.
+
+  ```ruby
+  config.active_storage.delivery_method = :proxy
+  ```
+
+  The default is `:redirect` Can include any of these options:
+    * `:redirect` - Redirect files to temporary service URL.
+    * `:proxy` - Proxy assets from service so they can be delivered from your application.
+    * `:direct` - Direct link to service URL.
+  
+* `config.active_storage.proxy_urls_expire_in` sets the expiration time for proxied requests
+
+  ```ruby
+  config.active_storage.proxy_urls_expire_in = 6.months
+  ```
+
+  The default is `1.year`
+
+* `config.active_storage.proxy_urls_public` Determines whether proxied files are public
+
+  ```ruby
+  config.active_storage.proxy_urls_public = false
+  ```
+
+  The default is `true`
+
 ### Configuring a Database
 
 Just about every Rails application will interact with a database. You can connect to the database by setting an environment variable `ENV['DATABASE_URL']` or by using a configuration file called `config/database.yml`.
