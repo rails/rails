@@ -272,8 +272,10 @@ module Rails
         else
           options     = sorted_groups.flat_map(&:last)
           suggestion  = Rails::Command::Spellchecker.suggest(namespace.to_s, from: options)
+          suggestion_msg = "Maybe you meant #{suggestion.inspect}?" if suggestion
+
           puts <<~MSG
-            Could not find generator '#{namespace}'. Maybe you meant #{suggestion.inspect}?
+            Could not find generator '#{namespace}'. #{suggestion_msg}
             Run `rails generate --help` for more options.
           MSG
         end
