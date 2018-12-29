@@ -15,20 +15,25 @@ module ActiveSupport
 
     NonActionable = Class.new(StandardError)
 
-    included do
-      class_attribute :_actions, default: Hash.new do |_, label|
-        raise NonActionable, "Cannot find action \"#{label}\" for #{self}"
-      end
+    NoActions = Hash.new do |_, label| # :nodoc:
+      raise NonActionable, "Cannot find action \"#{label}\" for #{self}"
     end
 
-    def self.===(other) # :nodoc:
-      super || Module === other && other.ancestors.include?(self)
+    included do
+      class_attribute :_actions, default: NoActions.dup
     end
 
     def self.actions(error) # :nodoc:
-      error = error.constantize if String === error
-      raise NonActionable, "#{error.name} is non-actionable" unless self === error
-      error._actions
+      case error
+      when String
+        actions(error.constantize)
+      when ActionableError, -> it { Class === it && it < ActionableError }
+        error._actions
+      when Exception
+        NoActions
+      else
+        raise NonActionable, "#{error} is non-actionable"
+      end
     end
 
     def self.dispatch(error, label) # :nodoc:

@@ -4,8 +4,7 @@ require "abstract_unit"
 require "active_support/actionable_error"
 
 class ActionableErrorTest < ActiveSupport::TestCase
-  class NonActionableError < StandardError
-  end
+  NonActionableError = Class.new(StandardError)
 
   class DispatchableError < StandardError
     include ActiveSupport::ActionableError
@@ -22,15 +21,23 @@ class ActionableErrorTest < ActiveSupport::TestCase
     end
   end
 
-  test "can get all action of an actionable error" do
+  test "lists all action of an actionable error" do
     assert_equal ["Flip 1", "Flip 2"], ActiveSupport::ActionableError.actions(DispatchableError).keys
     assert_equal ["Flip 1", "Flip 2"], ActiveSupport::ActionableError.actions(DispatchableError.new).keys
   end
 
-  test "cannot get actions from non-actionable errors" do
+  test "raises an error when trying to get actions from non-actionable error classes" do
     assert_raises ActiveSupport::ActionableError::NonActionable do
       ActiveSupport::ActionableError.actions(NonActionableError)
     end
+
+    assert_raises ActiveSupport::ActionableError::NonActionable do
+      ActiveSupport::ActionableError.actions(NonActionableError.name)
+    end
+  end
+
+  test "returns no actions from non-actionable exception instances" do
+    assert ActiveSupport::ActionableError.actions(Exception.new).empty?
   end
 
   test "dispatches actions from class and a label" do
