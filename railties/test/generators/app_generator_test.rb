@@ -440,6 +440,11 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "#{application_path}/config/application.rb", /#\s+require\s+["']action_mailbox\/engine["']/
   end
 
+  def test_generator_skips_action_mailbox_when_skip_active_storage_is_given
+    run_generator [destination_root, "--skip-active-storage"]
+    assert_file "#{application_path}/config/application.rb", /#\s+require\s+["']action_mailbox\/engine["']/
+  end
+
   def test_app_update_does_not_change_config_target_version
     run_generator
 

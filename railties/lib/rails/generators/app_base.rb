@@ -231,7 +231,7 @@ module Rails
       end
 
       def skip_action_mailbox? # :doc:
-        options[:skip_active_record]
+        skip_active_storage?
       end
 
       class GemfileEntry < Struct.new(:name, :version, :comment, :options, :commented_out)
