@@ -945,20 +945,141 @@ module ActiveRecord
     end
   end
 
-  class DatabaseTasksTruncateTablesTest < ActiveRecord::TestCase
-    self.use_transactional_tests = false
+  unless in_memory_db?
+    class DatabaseTasksTruncateAllTest < ActiveRecord::TestCase
+      self.use_transactional_tests = false
 
-    fixtures :authors, :author_addresses
+      fixtures :authors, :author_addresses
 
-    def test_truncate_tables
-      assert_operator Author.count, :>, 0
-      assert_operator AuthorAddress.count, :>, 0
+      def test_truncate_tables
+        assert_operator Author.count, :>, 0
+        assert_operator AuthorAddress.count, :>, 0
 
-      ActiveRecord::Tasks::DatabaseTasks.truncate_tables
+        old_configurations = ActiveRecord::Base.configurations
+        configurations = { development: ActiveRecord::Base.configurations["arunit"] }
+        ActiveRecord::Base.configurations = configurations
 
-      assert_equal 0, Author.count
-      assert_equal 0, AuthorAddress.count
+        ActiveRecord::Tasks::DatabaseTasks.stub(:root, nil) do
+          ActiveRecord::Tasks::DatabaseTasks.truncate_all(
+            ActiveSupport::StringInquirer.new("development")
+          )
+        end
+
+        assert_equal 0, Author.count
+        assert_equal 0, AuthorAddress.count
+      ensure
+        ActiveRecord::Base.configurations = old_configurations
+      end
     end
+  end
+
+  class DatabaseTasksTruncateAllWithMultipleDatabasesTest < ActiveRecord::TestCase
+    def setup
+      @configurations = {
+        "development" => { "primary" => { "database" => "dev-db" }, "secondary" => { "database" => "secondary-dev-db" } },
+        "test" => { "primary" => { "database" => "test-db" }, "secondary" => { "database" => "secondary-test-db" } },
+        "production" => { "primary" => { "url" => "abstract://prod-db-host/prod-db" }, "secondary" => { "url" => "abstract://secondary-prod-db-host/secondary-prod-db" } }
+      }
+    end
+
+    def test_truncate_all_databases_for_environment
+      with_stubbed_configurations_establish_connection do
+        assert_called_with(
+          ActiveRecord::Tasks::DatabaseTasks,
+          :truncate_tables,
+          [
+            ["database" => "test-db"],
+            ["database" => "secondary-test-db"]
+          ]
+        ) do
+          ActiveRecord::Tasks::DatabaseTasks.truncate_all(
+            ActiveSupport::StringInquirer.new("test")
+          )
+        end
+      end
+    end
+
+    def test_truncate_all_databases_with_url_for_environment
+      with_stubbed_configurations_establish_connection do
+        assert_called_with(
+          ActiveRecord::Tasks::DatabaseTasks,
+          :truncate_tables,
+          [
+            ["adapter" => "abstract", "database" => "prod-db", "host" => "prod-db-host"],
+            ["adapter" => "abstract", "database" => "secondary-prod-db", "host" => "secondary-prod-db-host"]
+          ]
+        ) do
+          ActiveRecord::Tasks::DatabaseTasks.truncate_all(
+            ActiveSupport::StringInquirer.new("production")
+          )
+        end
+      end
+    end
+
+    def test_truncate_all_development_databases_when_env_was_no_specified
+      with_stubbed_configurations_establish_connection do
+        assert_called_with(
+          ActiveRecord::Tasks::DatabaseTasks,
+          :truncate_tables,
+          [
+            ["database" => "dev-db"],
+            ["database" => "secondary-dev-db"]
+          ]
+        ) do
+          ActiveRecord::Tasks::DatabaseTasks.truncate_all(
+            ActiveSupport::StringInquirer.new("development")
+          )
+        end
+      end
+    end
+
+    def test_truncate_all_development_databases_when_env_is_development
+      old_env = ENV["RAILS_ENV"]
+      ENV["RAILS_ENV"] = "development"
+
+      with_stubbed_configurations_establish_connection do
+        assert_called_with(
+          ActiveRecord::Tasks::DatabaseTasks,
+          :truncate_tables,
+          [
+            ["database" => "dev-db"],
+            ["database" => "secondary-dev-db"]
+          ]
+        ) do
+          ActiveRecord::Tasks::DatabaseTasks.truncate_all(
+            ActiveSupport::StringInquirer.new("development")
+          )
+        end
+      end
+    ensure
+      ENV["RAILS_ENV"] = old_env
+    end
+
+    def test_establishes_connection_for_the_given_environments_config
+      ActiveRecord::Tasks::DatabaseTasks.stub(:truncate_tables, nil) do
+        assert_called_with(
+          ActiveRecord::Base,
+          :establish_connection,
+          [:development]
+        ) do
+          ActiveRecord::Tasks::DatabaseTasks.truncate_all(
+            ActiveSupport::StringInquirer.new("development")
+          )
+        end
+      end
+    end
+
+    private
+      def with_stubbed_configurations_establish_connection
+        old_configurations = ActiveRecord::Base.configurations
+        ActiveRecord::Base.configurations = @configurations
+
+        ActiveRecord::Base.connection_handler.stub(:establish_connection, nil) do
+          yield
+        end
+      ensure
+        ActiveRecord::Base.configurations = old_configurations
+      end
   end
 
   class DatabaseTasksCharsetTest < ActiveRecord::TestCase

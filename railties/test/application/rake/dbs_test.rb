@@ -140,7 +140,7 @@ module ApplicationTests
         end
       end
 
-      test "db:truncate_tables truncates all not internal tables" do
+      test "db:truncate_all truncates all not internal tables" do
         Dir.chdir(app_path) do
           rails "generate", "model", "book", "title:string"
           rails "db:migrate"
@@ -150,7 +150,7 @@ module ApplicationTests
           schema_migrations = ActiveRecord::Base.connection.execute("SELECT * from \"#{ActiveRecord::Base.schema_migrations_table_name}\"")
           internal_metadata = ActiveRecord::Base.connection.execute("SELECT * from \"#{ActiveRecord::Base.internal_metadata_table_name}\"")
 
-          rails "db:truncate_tables"
+          rails "db:truncate_all"
 
           assert_equal(
             schema_migrations,
@@ -164,7 +164,7 @@ module ApplicationTests
         end
       end
 
-      test "db:truncate_tables does not truncate any tables when environment is protected" do
+      test "db:truncate_all does not truncate any tables when environment is protected" do
         with_rails_env "production" do
           Dir.chdir(app_path) do
             rails "generate", "model", "book", "title:string"
@@ -176,7 +176,7 @@ module ApplicationTests
             internal_metadata = ActiveRecord::Base.connection.execute("SELECT * from \"#{ActiveRecord::Base.internal_metadata_table_name}\"")
             books = ActiveRecord::Base.connection.execute("SELECT * from \"books\"")
 
-            output = rails("db:truncate_tables", allow_failure: true)
+            output = rails("db:truncate_all", allow_failure: true)
             assert_match(/ActiveRecord::ProtectedEnvironmentError/, output)
 
             assert_equal(

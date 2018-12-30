@@ -1,4 +1,5 @@
-*   Add `rails db:seed:replant` that truncates database tables and loads the seeds.
+*   Add `rails db:seed:replant` that truncates tables of each database
+    for current environment and loads the seeds.
 
     *bogdanvlviv*, *DHH*
 

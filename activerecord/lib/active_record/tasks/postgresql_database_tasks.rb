@@ -48,6 +48,18 @@ module ActiveRecord
         create true
       end
 
+      def truncate_tables(*table_names)
+        return if table_names.empty?
+
+        ActiveRecord::Base.connection.disable_referential_integrity do
+          quoted_table_names = table_names.map do |table_name|
+            ActiveRecord::Base.connection.quote_table_name(table_name)
+          end
+
+          ActiveRecord::Base.connection.execute "TRUNCATE TABLE #{quoted_table_names.join(", ")}"
+        end
+      end
+
       def structure_dump(filename, extra_flags)
         set_psql_env
 
