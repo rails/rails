@@ -131,6 +131,18 @@ module ApplicationTests
       end
     end
 
+    def test_run_mailboxes
+      create_test_file :mailboxes, "foo_mailbox"
+      create_test_file :mailboxes, "bar_mailbox"
+      create_test_file :models, "foo"
+
+      rails("test:mailboxes").tap do |output|
+        assert_match "FooMailboxTest", output
+        assert_match "BarMailboxTest", output
+        assert_match "2 runs, 2 assertions, 0 failures", output
+      end
+    end
+
     def test_run_functionals
       create_test_file :mailers, "foo_mailer"
       create_test_file :controllers, "bar_controller"
@@ -155,11 +167,11 @@ module ApplicationTests
     end
 
     def test_run_all_suites
-      suites = [:models, :helpers, :unit, :controllers, :mailers, :functional, :integration, :jobs]
+      suites = [:models, :helpers, :unit, :controllers, :mailers, :functional, :integration, :jobs, :mailboxes]
       suites.each { |suite| create_test_file suite, "foo_#{suite}" }
       run_test_command("") .tap do |output|
         suites.each { |suite| assert_match "Foo#{suite.to_s.camelize}Test", output }
-        assert_match "8 runs, 8 assertions, 0 failures", output
+        assert_match "9 runs, 9 assertions, 0 failures", output
       end
     end
 
