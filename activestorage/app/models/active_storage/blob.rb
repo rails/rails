@@ -16,6 +16,8 @@ require "active_storage/downloader"
 # update a blob's metadata on a subsequent pass, but you should not update the key or change the uploaded file.
 # If you need to create a derivative or otherwise change the blob, simply create a new blob and purge the old one.
 class ActiveStorage::Blob < ActiveRecord::Base
+  BASE36_ALPHABET = ('a'..'z').to_a + ('0'..'9').to_a
+
   require_dependency "active_storage/blob/analyzable"
   require_dependency "active_storage/blob/identifiable"
   require_dependency "active_storage/blob/representable"
@@ -86,7 +88,7 @@ class ActiveStorage::Blob < ActiveRecord::Base
     # the same or higher amount of entropy as in the base-58 encoding used by `has_secure_token`
     # the number of bytes used is increased to 28 from the standard 24
     def generate_unique_secure_token
-      SecureRandom.base58(28).downcase
+      28.times.map { BASE36_ALPHABET[SecureRandom.random_number(BASE36_ALPHABET.length)] }.join
     end
   end
 
