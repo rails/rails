@@ -133,6 +133,17 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
     assert_equal 20, image.height
   end
 
+  test "resized variation of TIFF blob" do
+    blob = create_file_blob(filename: "racecar.tif")
+    variant = blob.variant(resize: "50x50").processed
+    assert_match(/racecar\.png/, variant.service_url)
+
+    image = read_image(variant)
+    assert_equal "PNG", image.type
+    assert_equal 50, image.width
+    assert_equal 33, image.height
+  end
+
   test "optimized variation of GIF blob" do
     blob = create_file_blob(filename: "image.gif", content_type: "image/gif")
 

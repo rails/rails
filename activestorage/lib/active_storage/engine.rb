@@ -27,6 +27,7 @@ module ActiveStorage
       image/jpg
       image/jpeg
       image/pjpeg
+      image/tiff
       image/vnd.adobe.photoshop
       image/vnd.microsoft.icon
     )
@@ -49,6 +50,7 @@ module ActiveStorage
       image/gif
       image/jpg
       image/jpeg
+      image/tiff
       image/vnd.adobe.photoshop
       image/vnd.microsoft.icon
       application/pdf
