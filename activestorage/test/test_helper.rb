@@ -52,11 +52,11 @@ class ActiveSupport::TestCase
 
   private
     def create_blob(data: "Hello world!", filename: "hello.txt", content_type: "text/plain", identify: true, record: nil)
-      ActiveStorage::Blob.create_after_upload! io: StringIO.new(data), filename: filename, content_type: content_type, identify: identify, record: record
+      ActiveStorage::Blob.create_and_upload! io: StringIO.new(data), filename: filename, content_type: content_type, identify: identify, record: record
     end
 
     def create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg", metadata: nil, record: nil)
-      ActiveStorage::Blob.create_after_upload! io: file_fixture(filename).open, filename: filename, content_type: content_type, metadata: metadata, record: record
+      ActiveStorage::Blob.create_and_upload! io: file_fixture(filename).open, filename: filename, content_type: content_type, metadata: metadata, record: record
     end
 
     def create_blob_before_direct_upload(filename: "hello.txt", byte_size:, checksum:, content_type: "text/plain", record: nil)
