@@ -1,3 +1,9 @@
+*   Use base36 (all lowercase) for all new Blob keys to prevent
+    collisions and undefined behavior with case-insensitive filesystems and
+    database indices.
+
+    *Julik Tarkhanov*
+
 *   It doesn’t include an `X-CSRF-Token` header if a meta tag is not found on
     the page. It previously included one with a value of `undefined`.
 
