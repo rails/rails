@@ -302,9 +302,10 @@ module Rails
             MSG
           else
             suggestion = Rails::Command::Spellchecker.suggest(server, from: RACK_SERVERS)
+            suggestion_msg = "Maybe you meant #{suggestion.inspect}?" if suggestion
 
             <<~MSG
-              Could not find server "#{server}". Maybe you meant #{suggestion.inspect}?
+              Could not find server "#{server}". #{suggestion_msg}
               Run `rails server --help` for more options.
             MSG
           end

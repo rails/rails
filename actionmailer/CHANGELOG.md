@@ -1,3 +1,7 @@
+*   Deprecate `ActionMailer::Base.receive` in favor of [Action Mailbox](https://github.com/rails/rails/tree/master/actionmailbox).
+
+    *George Claghorn*
+
 *   Add `MailDeliveryJob` for delivering both regular and parameterized mail. Deprecate using `DeliveryJob` and `Parameterized::DeliveryJob`.
 
     *Gannon McGibbon*

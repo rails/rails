@@ -1,3 +1,7 @@
+*   Deprecate passing `migrations_paths` to `connection.assume_migrated_upto_version`.
+
+    *Ryuta Kamizono*
+
 *   MySQL: `ROW_FORMAT=DYNAMIC` create table option by default.
 
     Since MySQL 5.7.9, the `innodb_default_row_format` option defines the default row

@@ -29,9 +29,6 @@ gem "json", ">= 2.0.0"
 
 gem "rubocop", ">= 0.47", require: false
 
-# https://github.com/guard/rb-inotify/pull/79
-gem "rb-inotify", github: "matthewd/rb-inotify", branch: "close-handling", require: false
-
 group :doc do
   gem "sdoc", "~> 1.0"
   gem "redcarpet", "~> 3.2.3", platforms: :ruby
@@ -39,7 +36,7 @@ group :doc do
   gem "kindlerb", "~> 1.2.0"
 end
 
-# Active Support.
+# Active Support
 gem "dalli"
 gem "listen", ">= 3.0.5", "< 3.2", require: false
 gem "libxml-ruby", platforms: :ruby
@@ -48,7 +45,7 @@ gem "connection_pool", require: false
 # for railties app_generator_test
 gem "bootsnap", ">= 1.1.0", require: false
 
-# Active Job.
+# Active Job
 group :job do
   gem "resque", require: false
   gem "resque-scheduler", require: false
@@ -87,6 +84,10 @@ group :storage do
 
   gem "image_processing", "~> 1.2"
 end
+
+# Action Mailbox
+gem "aws-sdk-sns", require: false
+gem "webmock"
 
 group :ujs do
   gem "qunit-selenium"

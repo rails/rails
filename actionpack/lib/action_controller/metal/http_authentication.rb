@@ -69,21 +69,20 @@ module ActionController
         extend ActiveSupport::Concern
 
         module ClassMethods
-          def http_basic_authenticate_with(options = {})
-            before_action(options.except(:name, :password, :realm)) do
-              authenticate_or_request_with_http_basic(options[:realm] || "Application") do |name, password|
-                # This comparison uses & so that it doesn't short circuit and
-                # uses `secure_compare` so that length information
-                # isn't leaked.
-                ActiveSupport::SecurityUtils.secure_compare(name, options[:name]) &
-                  ActiveSupport::SecurityUtils.secure_compare(password, options[:password])
-              end
-            end
+          def http_basic_authenticate_with(name:, password:, realm: nil, **options)
+            before_action(options) { http_basic_authenticate_or_request_with name: name, password: password, realm: realm }
           end
         end
 
-        def authenticate_or_request_with_http_basic(realm = "Application", message = nil, &login_procedure)
-          authenticate_with_http_basic(&login_procedure) || request_http_basic_authentication(realm, message)
+        def http_basic_authenticate_or_request_with(name:, password:, realm: nil, message: nil)
+          authenticate_or_request_with_http_basic(realm, message) do |given_name, given_password|
+            ActiveSupport::SecurityUtils.secure_compare(given_name, name) &
+              ActiveSupport::SecurityUtils.secure_compare(given_password, password)
+          end
+        end
+
+        def authenticate_or_request_with_http_basic(realm = nil, message = nil, &login_procedure)
+          authenticate_with_http_basic(&login_procedure) || request_http_basic_authentication(realm || "Application", message)
         end
 
         def authenticate_with_http_basic(&login_procedure)
