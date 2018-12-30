@@ -21,23 +21,22 @@ class SecureRandomTest < ActiveSupport::TestCase
   end
 
   def test_base36_lowercase
-    s1 = SecureRandom.base36_lowercase
-    s2 = SecureRandom.base36_lowercase
+    s1 = SecureRandom.base36
+    s2 = SecureRandom.base36
 
     assert_not_equal s1, s2
     assert_equal 16, s1.length
-    assert_match /^[a-z0-9]+$/, s1
-    assert_match /^[a-z0-9]+$/, s2
+    assert_match(/^[a-z0-9]+$/, s1)
+    assert_match(/^[a-z0-9]+$/, s2)
   end
 
   def test_base36_with_length
-    s1 = SecureRandom.base36_lowercase(24)
-    s2 = SecureRandom.base36_lowercase(24)
+    s1 = SecureRandom.base36(24)
+    s2 = SecureRandom.base36(24)
 
     assert_not_equal s1, s2
     assert_equal 24, s1.length
-    assert_match /^[a-z0-9]+$/, s1
-    assert_match /^[a-z0-9]+$/, s2
+    assert_match(/^[a-z0-9]+$/, s1)
+    assert_match(/^[a-z0-9]+$/, s2)
   end
-
 end

@@ -86,7 +86,7 @@ class ActiveStorage::Blob < ActiveRecord::Base
     # the same or higher amount of entropy as in the base-58 encoding used by `has_secure_token`
     # the number of bytes used is increased to 28 from the standard 24
     def generate_unique_secure_token
-      SecureRandom.base36_lowercase(28)
+      SecureRandom.base36(28)
     end
   end
 
