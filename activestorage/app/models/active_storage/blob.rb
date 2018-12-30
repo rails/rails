@@ -16,8 +16,6 @@ require "active_storage/downloader"
 # update a blob's metadata on a subsequent pass, but you should not update the key or change the uploaded file.
 # If you need to create a derivative or otherwise change the blob, simply create a new blob and purge the old one.
 class ActiveStorage::Blob < ActiveRecord::Base
-  BASE36_ALPHABET = ("a".."z").to_a + ("0".."9").to_a
-
   require_dependency "active_storage/blob/analyzable"
   require_dependency "active_storage/blob/identifiable"
   require_dependency "active_storage/blob/representable"
