@@ -1,12 +1,4 @@
 GIT
-  remote: https://github.com/matthewd/rb-inotify.git
-  revision: 856730aad4b285969e8dd621e44808a7c5af4242
-  branch: close-handling
-  specs:
-    rb-inotify (0.9.9)
-      ffi (~> 1.0)
-
-GIT
   remote: https://github.com/matthewd/websocket-client-simple.git
   revision: e161305f1a466b9398d86df3b1731b03362da91b
   branch: close-race
@@ -391,6 +383,8 @@ GEM
     rainbow (3.0.0)
     rake (12.3.1)
     rb-fsevent (0.10.3)
+    rb-inotify (0.10.0)
+      ffi (~> 1.0)
     rdoc (6.0.4)
     redcarpet (3.2.3)
     redis (4.0.3)
@@ -568,7 +562,6 @@ DEPENDENCIES
   rack-cache (~> 1.2)
   rails!
   rake (>= 11.1)
-  rb-inotify!
   redcarpet (~> 3.2.3)
   redis (~> 4.0)
   redis-namespace
