@@ -74,7 +74,12 @@
     -
       name: Action Mailer Basics
       url: action_mailer_basics.html
-      description: This guide describes how to use Action Mailer to send and receive emails.
+      description: This guide describes how to use Action Mailer to send emails.
+    -
+      name: Action Mailbox Basics
+      work_in_progress: true
+      url: action_mailbox_basics.html
+      description: This guide describes how to use Action Mailbox to receive emails.
     -
       name: Active Job Basics
       url: active_job_basics.html

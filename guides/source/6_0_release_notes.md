@@ -5,6 +5,7 @@ Ruby on Rails 6.0 Release Notes
 
 Highlights in Rails 6.0:
 
+* Action Mailbox
 * Parallel Testing
 
 These release notes cover only the major changes. To learn about various bug
@@ -27,6 +28,14 @@ guide.
 
 Major Features
 --------------
+
+### Action Mailbox
+
+[Pull Request](https://github.com/rails/rails/pull/34786)
+
+[Action Mailbox](https://github.com/rails/rails/tree/6-0-stable/actionmailbox) allows you
+to route incoming emails to controller-like mailboxes.
+You can read more about Action Mailbox in the [Action Mailbox Basics](action_mailbox_basics.html) guide.
 
 ### Parallel Testing
 
