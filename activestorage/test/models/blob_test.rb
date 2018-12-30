@@ -47,14 +47,8 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     assert_equal "text/csv", blob.content_type
   end
 
-  test "create after upload only assigns lowercase keys with 28 bytes of data" do
-    blobs = 20.times.map do
-      create_blob data: Random.new.bytes(20), filename: "rand.bin", content_type: "binary/octet-stream", identify: false
-    end
-    keys = blobs.map(&:key)
-    keys.each do |key|
-      assert_match /^[a-z0-9]{28}$/, key
-    end
+  test "create after upload generates a 28-character base36 key" do
+    assert_match(/^[a-z0-9]{28}$/, create_blob.key)
   end
 
   test "image?" do
