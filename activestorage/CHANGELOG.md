@@ -1,4 +1,4 @@
-*   Use base36 (all lowercase) for all new Blob keys keys to prevent
+*   Use base36 (all lowercase) for all new Blob keys to prevent
     collisions and undefined behavior with case-insensitive filesystems and
     database indices.
 
