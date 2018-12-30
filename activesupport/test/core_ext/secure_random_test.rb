@@ -20,7 +20,7 @@ class SecureRandomTest < ActiveSupport::TestCase
     assert_equal 24, s1.length
   end
 
-  def test_base36_lowercase
+  def test_base36
     s1 = SecureRandom.base36
     s2 = SecureRandom.base36
 
