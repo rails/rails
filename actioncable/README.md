@@ -65,7 +65,7 @@ end
 Here `identified_by` is a connection identifier that can be used to find the specific connection again or later.
 Note that anything marked as an identifier will automatically create a delegate by the same name on any channel instances created off the connection.
 
-This relies on the fact that you will already have handled authentication of the user, and
+This relies on the fact that you will have already handled authentication of the user, and
 that a successful authentication sets a signed cookie with the `user_id`. This cookie is then
 automatically sent to the connection instance when a new connection is attempted, and you
 use that to set the `current_user`. By identifying the connection by this same current_user,
@@ -219,10 +219,10 @@ ActionCable.server.broadcast \
   "web_notifications_#{current_user.id}", { title: 'New things!', body: 'All the news that is fit to print' }
 ```
 
-The `ActionCable.server.broadcast` call places a message in the Action Cable pubsub queue under a separate broadcasting name for each user. For a user with an ID of 1, the broadcasting name would be `web_notifications_1`.
+The `ActionCable.server.broadcast` call places a message in the Action Cable Pub/Sub queue under a separate broadcasting name for each user. For a user with an ID of 1, the broadcasting name would be `web_notifications_1`.
 The channel has been instructed to stream everything that arrives at `web_notifications_1` directly to the client by invoking the
-`#received(data)` callback. The data is the hash sent as the second parameter to the server-side broadcast call, JSON encoded for the trip
-across the wire, and unpacked for the data argument arriving to `#received`.
+`#received(data)` callback. The hash of the data is sent as the second parameter to the server-side broadcast call, for the trip
+across the wire it is encoded in JSON, and unpacked for the data argument arriving to `#received`.
 
 
 ### Passing Parameters to Channel
