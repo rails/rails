@@ -71,6 +71,13 @@ class MigrationTest < ActiveRecord::TestCase
     ActiveRecord::Migration.verbose = @verbose_was
   end
 
+  def test_passing_migrations_paths_to_assume_migrated_upto_version_is_deprecated
+    ActiveRecord::SchemaMigration.create_table
+    assert_deprecated do
+      ActiveRecord::Base.connection.assume_migrated_upto_version(0, [])
+    end
+  end
+
   def test_migrator_migrations_path_is_deprecated
     assert_deprecated do
       ActiveRecord::Migrator.migrations_path = "/whatever"
@@ -442,7 +449,6 @@ class MigrationTest < ActiveRecord::TestCase
     current_env     = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
     migrations_path = MIGRATIONS_ROOT + "/valid"
 
-    current_env = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
     migrator = ActiveRecord::MigrationContext.new(migrations_path)
     migrator.up
     assert_equal current_env, ActiveRecord::InternalMetadata[:environment]

@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "abstract_unit"
+require "ipaddr"
 
 class HostAuthorizationTest < ActionDispatch::IntegrationTest
   App = -> env { [200, {}, %w(Success)] }

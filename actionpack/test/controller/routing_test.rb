@@ -355,10 +355,10 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
     rs.draw { ActiveSupport::Deprecation.silence { get "/:controller/:action", action: /auth[-|_].+/ } }
 
     assert_equal({ action: "auth_google", controller: "content" }, rs.recognize_path("/content/auth_google"))
-    assert_equal({ action: "auth-facebook", controller: "content" }, rs.recognize_path("/content/auth-facebook"))
+    assert_equal({ action: "auth-twitter", controller: "content" }, rs.recognize_path("/content/auth-twitter"))
 
     assert_equal "/content/auth_google", url_for(rs, controller: "content", action: "auth_google")
-    assert_equal "/content/auth-facebook", url_for(rs, controller: "content", action: "auth-facebook")
+    assert_equal "/content/auth-twitter", url_for(rs, controller: "content", action: "auth-twitter")
   end
 
   def test_route_with_regexp_for_controller

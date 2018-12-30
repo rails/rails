@@ -3,13 +3,13 @@
 Action Mailer Basics
 ====================
 
-This guide provides you with all you need to get started in sending and
-receiving emails from and to your application, and many internals of Action
+This guide provides you with all you need to get started in sending
+emails from and to your application, and many internals of Action
 Mailer. It also covers how to test your mailers.
 
 After reading this guide, you will know:
 
-* How to send and receive email within a Rails application.
+* How to send email within a Rails application.
 * How to generate and edit an Action Mailer class and mailer view.
 * How to configure Action Mailer for your environment.
 * How to test your Action Mailer classes.
@@ -427,7 +427,7 @@ If you would like to render a template located outside of the default `app/views
 ```ruby
 class UserMailer < ApplicationMailer
   prepend_view_path "custom/path/to/mailer/view"
-  
+
   # This will try to load "custom/path/to/mailer/view/welcome_email" template
   def welcome_email
     # ...
@@ -651,48 +651,8 @@ class UserMailer < ApplicationMailer
 end
 ```
 
-Receiving Emails
-----------------
-
-Receiving and parsing emails with Action Mailer can be a rather complex
-endeavor. Before your email reaches your Rails app, you would have had to
-configure your system to somehow forward emails to your app, which needs to be
-listening for that. So, to receive emails in your Rails app you'll need to:
-
-* Implement a `receive` method in your mailer.
-
-* Configure your email server to forward emails from the address(es) you would
-  like your app to receive to `/path/to/app/bin/rails runner
-  'UserMailer.receive(STDIN.read)'`.
-
-Once a method called `receive` is defined in any mailer, Action Mailer will
-parse the raw incoming email into an email object, decode it, instantiate a new
-mailer, and pass the email object to the mailer `receive` instance
-method. Here's an example:
-
-```ruby
-class UserMailer < ApplicationMailer
-  def receive(email)
-    page = Page.find_by(address: email.to.first)
-    page.emails.create(
-      subject: email.subject,
-      body: email.body
-    )
-
-    if email.has_attachments?
-      email.attachments.each do |attachment|
-        page.attachments.create({
-          file: attachment,
-          description: email.subject
-        })
-      end
-    end
-  end
-end
-```
-
 Action Mailer Callbacks
----------------------------
+-----------------------
 
 Action Mailer allows for you to specify a `before_action`, `after_action` and
 `around_action`.
@@ -882,7 +842,7 @@ class EmailDeliveryObserver
   end
 end
 ```
-Like interceptors, you need to register observers with the Action Mailer framework. You can do this in an initializer file 
+Like interceptors, you need to register observers with the Action Mailer framework. You can do this in an initializer file
 `config/initializers/email_delivery_observer.rb`
 
 ```ruby

@@ -2,6 +2,7 @@
 
 require "active_record/migration/join_table"
 require "active_support/core_ext/string/access"
+require "active_support/deprecation"
 require "digest/sha2"
 
 module ActiveRecord
@@ -1050,15 +1051,18 @@ module ActiveRecord
         { primary_key: true }
       end
 
-      def assume_migrated_upto_version(version, migrations_paths)
-        migrations_paths = Array(migrations_paths)
+      def assume_migrated_upto_version(version, migrations_paths = nil)
+        unless migrations_paths.nil?
+          ActiveSupport::Deprecation.warn(<<~MSG)
+            Passing migrations_paths to #assume_migrated_upto_version is deprecated and will be removed in Rails 6.1.
+          MSG
+        end
+
         version = version.to_i
         sm_table = quote_table_name(ActiveRecord::SchemaMigration.table_name)
 
-        migrated = ActiveRecord::SchemaMigration.all_versions.map(&:to_i)
-        versions = migration_context.migration_files.map do |file|
-          migration_context.parse_migration_filename(file).first.to_i
-        end
+        migrated = migration_context.get_all_versions
+        versions = migration_context.migrations.map(&:version)
 
         unless migrated.include?(version)
           execute "INSERT INTO #{sm_table} (version) VALUES (#{quote(version)})"

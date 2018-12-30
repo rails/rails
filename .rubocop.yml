@@ -8,6 +8,7 @@ AllCops:
     - '**/vendor/**/*'
     - 'actionpack/lib/action_dispatch/journey/parser.rb'
     - 'railties/test/fixtures/tmp/**/*'
+    - 'actionmailbox/test/dummy/**/*'
     - 'node_modules/**/*'
 
 Performance:
@@ -133,6 +134,7 @@ Style/FrozenStringLiteralComment:
     - 'actionpack/test/**/*.builder'
     - 'actionpack/test/**/*.ruby'
     - 'activestorage/db/migrate/**/*.rb'
+    - 'actionmailbox/db/migrate/**/*.rb'
 
 Style/RedundantFreeze:
   Enabled: true
@@ -176,6 +178,9 @@ Style/UnneededPercentQ:
 
 # Use my_method(my_arg) not my_method( my_arg ) or my_method my_arg.
 Lint/RequireParentheses:
+  Enabled: true
+
+Lint/ShadowingOuterLocalVariable:
   Enabled: true
 
 Lint/StringConversionInInterpolation:

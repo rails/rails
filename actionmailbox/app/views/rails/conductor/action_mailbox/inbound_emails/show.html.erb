@@ -1,0 +1,15 @@
+<% provide :title, @inbound_email.message_id %>
+
+<h1><%= @inbound_email.message_id %>: <%= @inbound_email.status %></h1>
+
+<ul>
+  <li><%= button_to "Route again", main_app.rails_conductor_inbound_email_reroute_path(@inbound_email), method: :post %></li>
+  <li>Incinerate</li>
+</ul>
+
+<details>
+  <summary>Full email source</summary>
+  <pre><%= @inbound_email.source %></pre>
+</details>
+
+<%= link_to "Back to all inbound emails", main_app.rails_conductor_inbound_emails_path %>

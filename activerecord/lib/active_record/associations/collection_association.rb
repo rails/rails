@@ -303,22 +303,6 @@ module ActiveRecord
       end
 
       private
-        def find_target
-          scope = self.scope
-          return scope.to_a if skip_statement_cache?(scope)
-
-          conn = klass.connection
-          sc = reflection.association_scope_cache(conn, owner) do |params|
-            as = AssociationScope.create { params.bind }
-            target_scope.merge!(as.scope(self))
-          end
-
-          binds = AssociationScope.get_bind_values(owner, reflection.chain)
-          sc.execute(binds, conn) do |record|
-            set_inverse_instance(record)
-          end
-        end
-
         # We have some records loaded from the database (persisted) and some that are
         # in-memory (memory). The same record may be represented in the persisted array
         # and in the memory array.
