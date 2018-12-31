@@ -40,7 +40,7 @@ module ActionView::Helpers
     def render
       options = @options.stringify_keys
       add_default_name_and_id(options)
-      options["input"] ||= dom_id(object, [options["id"], :trix_input].compact.join("_"))
+      options["input"] ||= dom_id(object, [options["id"], :trix_input].compact.join("_")) if object
       @template_object.rich_text_area_tag(options.delete("name"), editable_value, options)
     end
 

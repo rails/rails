@@ -1,4 +1,5 @@
 .bundle/
+.byebug_history
 log/*.log
 node_modules/
 pkg/

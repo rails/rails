@@ -73,6 +73,7 @@ GEM
   remote: https://rubygems.org/
   specs:
     builder (3.2.3)
+    byebug (10.0.2)
     concurrent-ruby (1.0.5)
     crass (1.0.4)
     erubi (1.7.1)
@@ -133,6 +134,7 @@ PLATFORMS
 DEPENDENCIES
   actiontext!
   bundler (~> 1.15)
+  byebug
   mini_magick
   rails!
   sqlite3

@@ -22,6 +22,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency "mini_magick"
   s.add_development_dependency "sqlite3"
   s.add_development_dependency "webpacker", "~> 3.2.2"
+  s.add_development_dependency "byebug"
 
   s.files      = `git ls-files`.split("\n")
   s.test_files = `git ls-files -- test/*`.split("\n")
