@@ -220,6 +220,7 @@ module Rails
         rails.delete("encryption_key_file")
         rails.delete("master_key")
         rails.delete("credentials")
+        rails.delete("db:system:change")
 
         hidden_namespaces.each { |n| groups.delete(n.to_s) }
 
