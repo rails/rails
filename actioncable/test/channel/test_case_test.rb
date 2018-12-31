@@ -93,13 +93,39 @@ class StreamsTestChannelTest < ActionCable::Channel::TestCase
   def test_stream_without_params
     subscribe
 
-    assert_equal "test_0", streams.last
+    assert_has_stream "test_0"
   end
 
   def test_stream_with_params
     subscribe id: 42
 
-    assert_equal "test_42", streams.last
+    assert_has_stream "test_42"
+  end
+end
+
+class StreamsForTestChannel < ActionCable::Channel::Base
+  def subscribed
+    stream_for User.new(params[:id])
+  end
+end
+
+class StreamsForTestChannelTest < ActionCable::Channel::TestCase
+  def test_stream_with_params
+    subscribe id: 42
+
+    assert_has_stream_for User.new(42)
+  end
+end
+
+class NoStreamsTestChannel < ActionCable::Channel::Base
+  def subscribed; end # no-op
+end
+
+class NoStreamsTestChannelTest < ActionCable::Channel::TestCase
+  def test_stream_with_params
+    subscribe
+
+    assert_no_streams
   end
 end
 
