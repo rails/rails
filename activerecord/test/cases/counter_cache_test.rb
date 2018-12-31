@@ -144,7 +144,7 @@ class CounterCacheTest < ActiveRecord::TestCase
 
   test "update other counters on parent destroy" do
     david, joanna = dog_lovers(:david, :joanna)
-    joanna = joanna # squelch a warning
+    _ = joanna # squelch a warning
 
     assert_difference "joanna.reload.dogs_count", -1 do
       david.destroy

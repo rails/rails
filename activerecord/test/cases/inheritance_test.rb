@@ -240,7 +240,7 @@ class InheritanceTest < ActiveRecord::TestCase
     cabbage = vegetable.becomes!(Cabbage)
     assert_equal "Cabbage", cabbage.custom_type
 
-    vegetable = cabbage.becomes!(Vegetable)
+    cabbage.becomes!(Vegetable)
     assert_nil cabbage.custom_type
   end
 
@@ -654,7 +654,7 @@ class InheritanceAttributeMappingTest < ActiveRecord::TestCase
 
     assert_equal ["omg_inheritance_attribute_mapping_test/company"], ActiveRecord::Base.connection.select_values("SELECT sponsorable_type FROM sponsors")
 
-    sponsor = Sponsor.first
+    sponsor = Sponsor.find(sponsor.id)
     assert_equal startup, sponsor.sponsorable
   end
 end
