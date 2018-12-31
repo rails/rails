@@ -23,6 +23,8 @@ module Rails
     autoload :ActiveModel,     "rails/generators/active_model"
     autoload :Base,            "rails/generators/base"
     autoload :Migration,       "rails/generators/migration"
+    autoload :Database,        "rails/generators/database"
+    autoload :AppName,         "rails/generators/app_name"
     autoload :NamedBase,       "rails/generators/named_base"
     autoload :ResourceHelpers, "rails/generators/resource_helpers"
     autoload :TestCase,        "rails/generators/test_case"
