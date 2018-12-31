@@ -15,3 +15,9 @@ david_unicyclist:
   person_id: 2
   job_id: 1
   favourite: false
+
+susan_favourite_unicyclist:
+  id: 4
+  person_id: 3
+  job_id: 3
+  favourite: true

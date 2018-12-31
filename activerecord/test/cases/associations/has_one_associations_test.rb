@@ -45,6 +45,8 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
 
     firms = Firm.includes(:account).to_a
     assert_queries(1) { firms.each(&:account) }
+
+    firms = Firm.includes_immediately(:account).to_a
     assert_no_queries { firms.each(&:account) }
   end
 

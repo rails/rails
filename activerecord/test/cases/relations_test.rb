@@ -41,15 +41,26 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal van, Minivan.where(minivan_id: [van]).to_a.first
   end
 
+  def test_two_scopes_with_includes_immediately_should_not_drop_any_include
+    # heat habtm cache
+    car = Car.incl_immediate_engines.incl_immediate_tyres.first
+    car.tyres.length
+    car.engines.length
+
+    cars = Car.incl_immediate_engines.incl_immediate_tyres.records
+    assert_no_queries { cars.map { |c| c.tyres.length } }
+    assert_no_queries { cars.map { |c| c.engines.length } }
+  end
+
   def test_two_scopes_with_includes_should_not_drop_any_include
     # heat habtm cache
     car = Car.incl_engines.incl_tyres.first
     car.tyres.length
     car.engines.length
 
-    car = Car.incl_engines.incl_tyres.first
-    assert_no_queries { car.tyres.length }
-    assert_no_queries { car.engines.length }
+    cars = assert_queries(1) { Car.incl_engines.incl_tyres.records }
+    assert_queries(1) { cars.map { |c| c.tyres.length } }
+    assert_queries(1) { cars.map { |c| c.engines.length } }
   end
 
   def test_dynamic_finder
@@ -552,16 +563,21 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_preload_applies_to_all_chained_preloaded_scopes
-    post = nil
+    assert_queries(3) do
+      assert Post.with_immediate_comments.with_immediate_tags.first
+    end
+  end
 
-    assert_queries(1) do
-      post = Post.with_comments.with_tags.first
-      assert post
+  def test_lazy_load_applies_to_all_chained_preloaded_scopes
+    posts = assert_queries(1) do
+      Post.with_comments.with_tags.to_a
     end
 
     assert_queries(2) do
-      post.comments.first
-      post.tags.first
+      posts.each do |post|
+        post.comments.first
+        post.taggings.first
+      end
     end
   end
 
@@ -605,31 +621,81 @@ class RelationTest < ActiveRecord::TestCase
     post = Post.create! title: "Uhuu", body: "body"
     reader = Reader.create! post_id: post.id, person_id: 1
     comment = Comment.create! post_id: post.id, body: "body"
+    post1 = Post.create! title: "Uhuu1", body: "body"
+    Reader.create! post_id: post1.id, person_id: 1
+    Comment.create! post_id: post1.id, body: "body"
 
     assert_not_respond_to comment, :readers
 
-    post_rel = Post.preload(:readers).joins(:readers).where(title: "Uhuu")
-    result_comment = Comment.includes(:post).joins(:post).merge(post_rel).to_a.first
-    assert_equal comment, result_comment
-
-    assert_queries(1) do
-      assert_equal post, result_comment.post
-      assert_equal [reader], result_comment.post.readers.to_a
-    end
-
-    post_rel = Post.includes(:readers).where(title: "Uhuu")
-    result_comment = Comment.includes(:post).joins(:post).merge(post_rel).first
-    assert_equal comment, result_comment
+    post_rel = Post.includes_immediately(:readers).joins(:readers).where(title: ["Uhuu", "Uhuu1"])
+    result_comments = Comment.joins(:post).merge(post_rel).to_a
+    assert_equal comment, result_comments[0]
 
     assert_no_queries do
-      assert_equal post, result_comment.post
-      assert_equal [reader], result_comment.post.readers.to_a
+      assert_equal post, result_comments[0].post
+      assert_equal [reader], result_comments[0].post.readers.to_a
+    end
+
+    post_rel = Post.includes(:readers).joins(:readers).where(title: ["Uhuu", "Uhuu1"])
+    result_comments = Comment.includes(:post).joins(:post).merge(post_rel)
+    assert_equal comment, result_comments[0]
+
+    assert_no_queries do
+      assert_equal post, result_comments[0].post
+      assert_equal [reader], result_comments[0].post.readers.to_a
+    end
+
+    post_rel = Post.preload(:readers).joins(:readers).where(title: ["Uhuu", "Uhuu1"])
+    result_comments = Comment.joins(:post).merge(post_rel).to_a
+    assert_equal comment, result_comments[0]
+    assert_queries(2) { result_comments[1].post.readers.to_a }
+
+    assert_no_queries do
+      assert_equal post, result_comments[0].post
+      assert_equal [reader], result_comments[0].post.readers.to_a
+    end
+
+    post_rel = Post.includes(:readers).where(title: ["Uhuu", "Uhuu1"])
+    result_comments = Comment.joins(:post).merge(post_rel).to_a
+    assert_equal comment, result_comments[0]
+    assert_queries(2) { result_comments[1].post.readers.to_a }
+
+    assert_no_queries do
+      assert_equal post, result_comments[0].post
+      assert_equal [reader], result_comments[0].post.readers.to_a
+    end
+
+    post_rel = Post.includes(:readers).where(title: ["Uhuu", "Uhuu1"])
+    result_comments = Comment.preload(:post).joins(:post).merge(post_rel).to_a
+    assert_equal comment, result_comments[0]
+    assert_queries(2) { result_comments[1].post.readers.to_a }
+
+    assert_no_queries do
+      assert_equal post, result_comments[0].post
+      assert_equal [reader], result_comments[0].post.readers.to_a
+    end
+
+    post_rel = Post.preload(:readers).joins(:readers).where(title: ["Uhuu", "Uhuu1"])
+    result_comments = Comment.includes(:post).joins(:post).merge(post_rel)
+    assert_equal comment, result_comments[0]
+    assert_queries(1) { result_comments[1].post.readers.to_a }
+
+    assert_no_queries do
+      assert_equal post, result_comments[0].post
+      assert_equal [reader], result_comments[0].post.readers.to_a
     end
   end
 
   def test_preloading_with_associations_default_scopes_and_merges
     post = Post.create! title: "Uhuu", body: "body"
     reader = Reader.create! post_id: post.id, person_id: 1
+
+    post_rel = PostWithIncludesImmediatelyDefaultScope.preload(:readers).joins(:readers).where(title: "Uhuu")
+    result_post = PostWithIncludesImmediatelyDefaultScope.all.merge(post_rel).to_a.first
+
+    assert_no_queries do
+      assert_equal [reader], result_post.readers.to_a
+    end
 
     post_rel = PostWithPreloadDefaultScope.preload(:readers).joins(:readers).where(title: "Uhuu")
     result_post = PostWithPreloadDefaultScope.all.merge(post_rel).to_a.first
@@ -683,10 +749,10 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_dynamic_find_by_attributes
     david = authors(:david)
-    author = Author.preload(:taggings).find_by_id(david.id)
+    author = Author.includes_immediately(:taggings).find_by_id(david.id)
     expected_taggings = taggings(:welcome_general, :thinking_general)
 
-    assert_queries(2) do
+    assert_no_queries do
       assert_equal expected_taggings, author.taggings.uniq.sort_by(&:id)
     end
 
@@ -1802,6 +1868,20 @@ class RelationTest < ActiveRecord::TestCase
     assert_no_queries { relation.to_a }
   end
 
+  test "group with select and includes_immediately" do
+    authors_count = Post.select("author_id, COUNT(author_id) AS num_posts").
+      group("author_id").order("author_id").includes_immediately(:author).to_a
+
+    assert_no_queries do
+      result = authors_count.map do |post|
+        [post.num_posts, post.author.try(:name)]
+      end
+
+      expected = [[1, nil], [5, "David"], [3, "Mary"], [2, "Bob"]]
+      assert_equal expected, result
+    end
+  end
+
   test "group with select and includes" do
     authors_count = Post.select("author_id, COUNT(author_id) AS num_posts").
       group("author_id").order("author_id").includes(:author).to_a
@@ -1896,20 +1976,30 @@ class RelationTest < ActiveRecord::TestCase
     end
   end
 
-  test "#skip_query_cache! with a preload" do
+  test "#skip_query_cache! with a includes_immediately" do
     Post.cache do
       assert_queries(2) do
-        Post.preload(:comments).each { |post| post.comments.first }
-        Post.preload(:comments).each { |post| post.comments.first }
+        Post.includes_immediately(:comments).load
+        Post.includes_immediately(:comments).load
       end
 
       assert_queries(4) do
-        Post.preload(:comments).skip_query_cache!.each do |post|
-          post.comments.first
-        end
-        Post.preload(:comments).skip_query_cache!.each do |post|
-          post.comments.first
-        end
+        Post.includes_immediately(:comments).skip_query_cache!.load
+        Post.includes_immediately(:comments).skip_query_cache!.load
+      end
+    end
+  end
+
+  test "#skip_query_cache! with a preload" do
+    Post.cache do
+      assert_queries(2) do
+        Post.preload(:comments).flat_map(&:comments)
+        Post.preload(:comments).flat_map(&:comments)
+      end
+
+      assert_queries(4) do
+        Post.preload(:comments).skip_query_cache!.flat_map(&:comments)
+        Post.preload(:comments).skip_query_cache!.flat_map(&:comments)
       end
     end
   end

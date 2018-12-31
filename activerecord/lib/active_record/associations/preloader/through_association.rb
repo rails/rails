@@ -65,9 +65,9 @@ module ActiveRecord
               values = reflection_scope.values
 
               if includes = values[:includes]
-                scope.includes!(source_reflection.name => includes)
+                scope.includes_immediately!(source_reflection.name => includes)
               else
-                scope.includes!(source_reflection.name)
+                scope.includes_immediately!(source_reflection.name)
               end
 
               if values[:references] && !values[:references].empty?

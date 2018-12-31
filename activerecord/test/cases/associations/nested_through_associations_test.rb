@@ -62,12 +62,18 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_many_through_has_many_with_has_many_through_source_reflection_preload
-    authors = assert_queries(1) { Author.includes(:tags).to_a }
     general = tags(:general)
 
+    authors = assert_queries(4) { Author.includes_immediately(:tags).to_a }
+    assert_no_queries do
+      assert_equal [general, general], authors.first.tags
+    end
+
+    authors = assert_queries(1) { Author.includes(:tags).to_a }
     assert_queries(3) do
       assert_equal [general, general], authors.first.tags
     end
+    assert_no_queries { authors.flat_map(&:tags) }
   end
 
   def test_has_many_through_has_many_with_has_many_through_source_reflection_preload_via_joins
@@ -91,6 +97,12 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_has_many_through_has_many_through_with_has_many_source_reflection_preload
     luke, david = subscribers(:first), subscribers(:second)
+
+    authors = assert_queries(4) { Author.includes_immediately(:subscribers).to_a }
+    assert_no_queries do
+      assert_equal [luke, david, david], authors.first.subscribers.sort_by(&:nick)
+    end
+
     authors = assert_queries(1) { Author.includes(:subscribers).to_a }
     assert_queries(3) do
       assert_equal [luke, david, david], authors.first.subscribers.sort_by(&:nick)
@@ -113,8 +125,14 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_many_through_has_one_with_has_one_through_source_reflection_preload
-    members = assert_queries(1) { Member.includes(:nested_member_types).to_a }
     founding = member_types(:founding)
+
+    members = assert_queries(4) { Member.includes_immediately(:nested_member_types).to_a }
+    assert_no_queries do
+      assert_equal [founding], members.first.nested_member_types
+    end
+
+    members = assert_queries(1) { Member.includes(:nested_member_types).to_a }
     assert_queries(3) do
       assert_equal [founding], members.first.nested_member_types
     end
@@ -135,8 +153,14 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_many_through_has_one_through_with_has_one_source_reflection_preload
-    members = assert_queries(1) { Member.includes(:nested_sponsors).to_a }
     mustache = sponsors(:moustache_club_sponsor_for_groucho)
+
+    members = assert_queries(4) { Member.includes_immediately(:nested_sponsors).to_a }
+    assert_no_queries do
+      assert_equal [mustache], members.first.nested_sponsors
+    end
+
+    members = assert_queries(1) { Member.includes(:nested_sponsors).to_a }
     assert_queries(3, ignore_none: false) do
       assert_equal [mustache], members.first.nested_sponsors
     end
@@ -161,9 +185,14 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_has_many_through_has_one_with_has_many_through_source_reflection_preload
     ActiveRecord::Base.connection.table_alias_length  # preheat cache
-    members = assert_queries(1) { Member.includes(:organization_member_details).to_a.sort_by(&:id) }
     groucho_details, other_details = member_details(:groucho), member_details(:some_other_guy)
 
+    members = assert_queries(4) { Member.includes_immediately(:organization_member_details).to_a.sort_by(&:id) }
+    assert_no_queries do
+      assert_equal [groucho_details, other_details], members.first.organization_member_details.sort_by(&:id)
+    end
+
+    members = assert_queries(1) { Member.includes(:organization_member_details).to_a.sort_by(&:id) }
     assert_queries(3) do
       assert_equal [groucho_details, other_details], members.first.organization_member_details.sort_by(&:id)
     end
@@ -191,11 +220,16 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_many_through_has_one_through_with_has_many_source_reflection_preload
-    members = assert_queries(1) { Member.includes(:organization_member_details_2).to_a.sort_by(&:id) }
     groucho_details, other_details = member_details(:groucho), member_details(:some_other_guy)
 
+    members = assert_queries(4) { Member.includes_immediately(:organization_member_details_2).to_a.sort_by(&:id) }
     # postgresql test if randomly executed then executes "SHOW max_identifier_length". Hence
     # the need to ignore certain predefined sqls that deal with system calls.
+    assert_no_queries do
+      assert_equal [groucho_details, other_details], members.first.organization_member_details_2.sort_by(&:id)
+    end
+
+    members = assert_queries(1) { Member.includes(:organization_member_details_2).to_a.sort_by(&:id) }
     assert_queries(3, ignore_none: false) do
       assert_equal [groucho_details, other_details], members.first.organization_member_details_2.sort_by(&:id)
     end
@@ -222,9 +256,14 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_many_through_has_many_with_has_and_belongs_to_many_source_reflection_preload
-    authors = assert_queries(1) { Author.includes(:post_categories).to_a.sort_by(&:id) }
     general, cooking = categories(:general), categories(:cooking)
 
+    authors = assert_queries(4) { Author.includes_immediately(:post_categories).to_a.sort_by(&:id) }
+    assert_no_queries do
+      assert_equal [general, cooking], authors[2].post_categories.sort_by(&:id)
+    end
+
+    authors = assert_queries(1) { Author.includes(:post_categories).to_a.sort_by(&:id) }
     assert_queries(3) do
       assert_equal [general, cooking], authors[2].post_categories.sort_by(&:id)
     end
@@ -250,10 +289,15 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_many_through_has_and_belongs_to_many_with_has_many_source_reflection_preload
-    Category.includes(:post_comments).to_a # preheat cache
-    categories = assert_queries(1) { Category.includes(:post_comments).to_a.sort_by(&:id) }
+    Category.includes_immediately(:post_comments).to_a # preheat cache
     greetings, more = comments(:greetings), comments(:more_greetings)
 
+    categories = assert_queries(4) { Category.includes_immediately(:post_comments).to_a.sort_by(&:id) }
+    assert_no_queries do
+      assert_equal [greetings, more], categories[1].post_comments.sort_by(&:id)
+    end
+
+    categories = assert_queries(1) { Category.includes(:post_comments).to_a.sort_by(&:id) }
     assert_queries(3) do
       assert_equal [greetings, more], categories[1].post_comments.sort_by(&:id)
     end
@@ -279,9 +323,14 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_many_through_has_many_with_has_many_through_habtm_source_reflection_preload
-    authors = assert_queries(1) { Author.includes(:category_post_comments).to_a.sort_by(&:id) }
     greetings, more = comments(:greetings), comments(:more_greetings)
 
+    authors = assert_queries(6) { Author.includes_immediately(:category_post_comments).to_a.sort_by(&:id) }
+    assert_no_queries do
+      assert_equal [greetings, more], authors[2].category_post_comments.sort_by(&:id)
+    end
+
+    authors = assert_queries(1) { Author.includes(:category_post_comments).to_a.sort_by(&:id) }
     assert_queries(5) do
       assert_equal [greetings, more], authors[2].category_post_comments.sort_by(&:id)
     end
@@ -305,9 +354,14 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_many_through_has_many_through_with_belongs_to_source_reflection_preload
-    authors = assert_queries(1) { Author.includes(:tagging_tags).to_a }
     general = tags(:general)
 
+    authors = assert_queries(4) { Author.includes_immediately(:tagging_tags).to_a }
+    assert_no_queries do
+      assert_equal [general, general], authors.first.tagging_tags
+    end
+
+    authors = assert_queries(1) { Author.includes(:tagging_tags).to_a }
     assert_queries(3) do
       assert_equal [general, general], authors.first.tagging_tags
     end
@@ -331,9 +385,14 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_many_through_belongs_to_with_has_many_through_source_reflection_preload
-    categorizations = assert_queries(1) { Categorization.includes(:post_taggings).to_a.sort_by(&:id) }
     welcome_general, thinking_general = taggings(:welcome_general), taggings(:thinking_general)
 
+    categorizations = assert_queries(4) { Categorization.includes_immediately(:post_taggings).to_a.sort_by(&:id) }
+    assert_no_queries do
+      assert_equal [welcome_general, thinking_general], categorizations.first.post_taggings.sort_by(&:id)
+    end
+
+    categorizations = assert_queries(1) { Categorization.includes(:post_taggings).to_a.sort_by(&:id) }
     assert_queries(3) do
       assert_equal [welcome_general, thinking_general], categorizations.first.post_taggings.sort_by(&:id)
     end
@@ -354,9 +413,14 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_one_through_has_one_with_has_one_through_source_reflection_preload
-    members = assert_queries(1) { Member.includes(:nested_member_type).to_a.sort_by(&:id) }
     founding = member_types(:founding)
 
+    members = assert_queries(4) { Member.includes_immediately(:nested_member_type).to_a.sort_by(&:id) }
+    assert_no_queries do
+      assert_equal founding, members.first.nested_member_type
+    end
+
+    members = assert_queries(1) { Member.includes(:nested_member_type).to_a.sort_by(&:id) }
     assert_queries(3) do
       assert_equal founding, members.first.nested_member_type
     end
@@ -388,9 +452,14 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_one_through_has_one_through_with_belongs_to_source_reflection_preload
-    members = assert_queries(1) { Member.includes(:club_category).to_a.sort_by(&:id) }
     general = categories(:general)
 
+    members = assert_queries(4) { Member.includes_immediately(:club_category).to_a.sort_by(&:id) }
+    assert_no_queries do
+      assert_equal general, members.first.club_category
+    end
+
+    members = assert_queries(1) { Member.includes(:club_category).to_a.sort_by(&:id) }
     assert_queries(3) do
       assert_equal general, members.first.club_category
     end
@@ -447,7 +516,7 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal [people(:michael), people(:susan)], jobs(:unicyclist).agents.order("people.id")
 
     jobs = Job.joins(:agents)
-    assert_equal [jobs(:unicyclist), jobs(:unicyclist)], jobs
+    assert_equal [jobs(:unicyclist), jobs(:unicyclist), jobs(:magician)], jobs
   end
 
   def test_has_many_through_with_sti_on_through_reflection
@@ -518,10 +587,14 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_nested_has_many_through_with_conditions_on_through_associations_preload
     assert_empty Author.where("tags.id" => 100).joins(:misc_post_first_blue_tags)
-
-    authors = assert_queries(1) { Author.includes(:misc_post_first_blue_tags).to_a.sort_by(&:id) }
     blue = tags(:blue)
 
+    authors = assert_queries(3) { Author.includes_immediately(:misc_post_first_blue_tags).to_a.sort_by(&:id) }
+    assert_no_queries do
+      assert_equal [blue], authors[2].misc_post_first_blue_tags
+    end
+
+    authors = assert_queries(1) { Author.includes(:misc_post_first_blue_tags).to_a.sort_by(&:id) }
     assert_queries(2) do
       assert_equal [blue], authors[2].misc_post_first_blue_tags
     end
@@ -540,12 +613,19 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_nested_has_many_through_with_conditions_on_source_associations_preload
-    authors = assert_queries(1) { Author.includes(:misc_post_first_blue_tags_2).to_a.sort_by(&:id) }
     blue = tags(:blue)
 
+    authors = assert_queries(4) { Author.includes_immediately(:misc_post_first_blue_tags_2).to_a.sort_by(&:id) }
+    assert_no_queries do
+      assert_equal [blue], authors[2].misc_post_first_blue_tags_2
+    end
+
+    authors = assert_queries(1) { Author.includes(:misc_post_first_blue_tags_2).to_a.sort_by(&:id) }
     assert_queries(3) do
       assert_equal [blue], authors[2].misc_post_first_blue_tags_2
     end
+
+    assert_no_queries { authors.each(&:misc_post_first_blue_tags_2) }
   end
 
   def test_nested_has_many_through_with_conditions_on_source_associations_preload_via_joins

@@ -56,9 +56,15 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_polymorphic_has_many_going_through_join_model
-    assert_equal tags(:general), tag = posts(:welcome).tags.first
+    post = posts(:misc_by_bob)
+    tags = assert_queries(1) { post.tags.limit(2).to_a }
+
+    assert_equal tags(:misc), tags.first
+    assert_queries(1) do
+      tags[1].tagging
+    end
     assert_no_queries do
-      tag.tagging
+      tags[0].tagging
     end
   end
 
@@ -67,24 +73,16 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     assert_equal 1, posts(:welcome).tags.count
   end
 
-  def test_polymorphic_has_many_going_through_join_model_with_find
-    assert_equal tags(:general), tag = posts(:welcome).tags.first
-    assert_no_queries do
-      tag.tagging
-    end
-  end
-
   def test_polymorphic_has_many_going_through_join_model_with_include_on_source_reflection
-    assert_equal tags(:general), tag = posts(:welcome).funky_tags.first
-    assert_no_queries do
-      tag.tagging
-    end
-  end
+    post = posts(:misc_by_bob)
+    tags = assert_queries(1) { post.funky_tags.limit(2).to_a }
 
-  def test_polymorphic_has_many_going_through_join_model_with_include_on_source_reflection_with_find
-    assert_equal tags(:general), tag = posts(:welcome).funky_tags.first
+    assert_equal tags(:misc), tags.first
+    assert_queries(1) do
+      tags[1].tagging
+    end
     assert_no_queries do
-      tag.tagging
+      tags[0].tagging
     end
   end
 
@@ -245,32 +243,64 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
 
   def test_include_has_many_through
     posts              = Post.all.merge!(order: "posts.id").to_a
-    posts_with_authors = Post.all.merge!(includes: :authors, order: "posts.id").to_a
+    posts_with_authors = Post.all.merge!(includes_immediately: :authors, order: "posts.id").to_a
+    assert_equal posts.length, posts_with_authors.length
+    posts.length.times do |i|
+      assert_equal posts[i].authors.length, assert_no_queries { posts_with_authors[i].authors.length }
+    end
+
+    posts_with_authors = assert_queries(1) { Post.all.merge!(includes: :authors, order: "posts.id").to_a }
     assert_equal posts.length, posts_with_authors.length
     posts.length.times do |i|
       assert_equal posts[i].authors.length, assert_queries(i.zero? ? 2 : 0) { posts_with_authors[i].authors.length }
     end
   end
 
-  def test_include_polymorphic_has_one
-    post    = Post.includes(:tagging).find posts(:welcome).id
+  def test_include_immediately_polymorphic_has_one
+    post    = Post.includes_immediately(:tagging).find posts(:welcome).id
     tagging = taggings(:welcome_general)
-    assert_queries(1) do
+    assert_no_queries do
       assert_equal tagging, post.tagging
     end
   end
 
-  def test_include_polymorphic_has_one_defined_in_abstract_parent
-    item    = Item.includes(:tagging).find items(:dvd).id
+  def test_include_polymorphic_has_one
+    posts   = assert_queries(1) { Post.includes(:tagging).to_a }
+    post    = posts.find { |p| p.id == posts(:welcome).id }
+    tagging = taggings(:welcome_general)
+    assert_queries(1) { posts.each(&:tagging) }
+    assert_no_queries do
+      assert_equal tagging, post.tagging
+    end
+  end
+
+  def test_include_immediately_polymorphic_has_one_defined_in_abstract_parent
+    item    = Item.includes_immediately(:tagging).find items(:dvd).id
     tagging = taggings(:godfather)
-    assert_queries(1) do
+    assert_no_queries do
+      assert_equal tagging, item.tagging
+    end
+  end
+
+  def test_include_polymorphic_has_one_defined_in_abstract_parent
+    items   = assert_queries(1) { Item.includes(:tagging).to_a }
+    item    = items.find { |i| i.id == items(:dvd).id }
+    tagging = taggings(:godfather)
+    assert_queries(1) { items.each(&:tagging) }
+    assert_no_queries do
       assert_equal tagging, item.tagging
     end
   end
 
   def test_include_polymorphic_has_many_through
     posts           = Post.all.merge!(order: "posts.id").to_a
-    posts_with_tags = Post.all.merge!(includes: :tags, order: "posts.id").to_a
+    posts_with_tags = Post.all.merge!(includes_immediately: :tags, order: "posts.id").to_a
+    assert_equal posts.length, posts_with_tags.length
+    posts.length.times do |i|
+      assert_equal posts[i].tags.length, assert_no_queries { posts_with_tags[i].tags.length }
+    end
+
+    posts_with_tags = assert_queries(1) { Post.all.merge!(includes: :tags, order: "posts.id").to_a }
     assert_equal posts.length, posts_with_tags.length
     posts.length.times do |i|
       assert_equal posts[i].tags.length, assert_queries(i.zero? ? 2 : 0) { posts_with_tags[i].tags.length }
@@ -279,6 +309,12 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
 
   def test_include_polymorphic_has_many
     posts               = Post.all.merge!(order: "posts.id").to_a
+    posts_with_taggings = Post.all.merge!(includes_immediately: :taggings, order: "posts.id").to_a
+    assert_equal posts.length, posts_with_taggings.length
+    posts.length.times do |i|
+      assert_equal posts[i].taggings.length, assert_no_queries { posts_with_taggings[i].taggings.length }
+    end
+
     posts_with_taggings = Post.all.merge!(includes: :taggings, order: "posts.id").to_a
     assert_equal posts.length, posts_with_taggings.length
     posts.length.times do |i|
@@ -373,13 +409,27 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_eager_has_many_polymorphic_with_source_type
-    tag_with_include = Tag.all.merge!(includes: :tagged_posts).find(tags(:general).id)
+    tag_with_include = Tag.all.merge!(includes_immediately: :tagged_posts).find(tags(:general).id)
     desired = posts(:welcome, :thinking)
-    assert_queries(2) do
+    assert_no_queries do
       # added sort by ID as otherwise test using JRuby was failing as array elements were in different order
       assert_equal desired.sort_by(&:id), tag_with_include.tagged_posts.sort_by(&:id)
     end
     assert_equal 5, tag_with_include.taggings.length
+  end
+
+  def test_lazy_has_many_polymorphic_with_source_type
+    tags_with_include = assert_queries(1) { Tag.all.merge!(includes: :tagged_posts).to_a }
+    tag = tags_with_include.find { |t| t.id == tags(:general).id }
+    desired = posts(:welcome, :thinking)
+
+    assert_queries(2) { tags_with_include.flat_map(&:tagged_posts) }
+
+    assert_no_queries do
+      # added sort by ID as otherwise test using JRuby was failing as array elements were in different order
+      assert_equal desired.sort_by(&:id), tag.tagged_posts.sort_by(&:id)
+    end
+    assert_equal 5, tag.taggings.length
   end
 
   def test_has_many_through_has_many_find_all
@@ -411,10 +461,20 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     assert_equal taggings(:welcome_general, :thinking_general), authors(:david).taggings.distinct.sort_by(&:id)
   end
 
-  def test_include_has_many_through_polymorphic_has_many
-    author            = Author.includes(:taggings).find authors(:david).id
+  def test_includes_immediately_has_many_through_polymorphic_has_many
+    author            = Author.includes_immediately(:taggings).find authors(:david).id
     expected_taggings = taggings(:welcome_general, :thinking_general)
-    assert_queries(2) do
+    assert_no_queries do
+      assert_equal expected_taggings, author.taggings.uniq.sort_by(&:id)
+    end
+  end
+
+  def test_include_has_many_through_polymorphic_has_many
+    authors           = assert_queries(1) { Author.includes(:taggings).to_a }
+    author            = authors.find { |a| a.id == authors(:david).id }
+    expected_taggings = taggings(:welcome_general, :thinking_general)
+    assert_queries(2) { authors.flat_map(&:taggings) }
+    assert_no_queries do
       assert_equal expected_taggings, author.taggings.uniq.sort_by(&:id)
     end
   end
@@ -643,26 +703,48 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
 
   def test_polymorphic_has_many
     expected = taggings(:welcome_general)
-    p = Post.all.merge!(includes: :taggings).find(posts(:welcome).id)
-    assert_queries(1) { assert_includes p.taggings, expected }
+    p = Post.all.merge!(includes_immediately: :taggings).find(posts(:welcome).id)
+    assert_no_queries { assert_includes p.taggings, expected }
+    assert_includes posts(:welcome).taggings, taggings(:welcome_general)
+
+    ps = assert_queries(1) { Post.all.merge!(includes: :taggings).to_a }
+    p = ps.find { |post| post.id == posts(:welcome).id }
+    assert_queries(1) { ps.flat_map(&:taggings) }
+    assert_no_queries { assert_includes p.taggings, expected }
     assert_includes posts(:welcome).taggings, taggings(:welcome_general)
   end
 
   def test_polymorphic_has_one
     expected = posts(:welcome)
 
-    tagging  = Tagging.all.merge!(includes: :taggable).find(taggings(:welcome_general).id)
-    assert_queries(1) { assert_equal expected, tagging.taggable }
+    tagging  = Tagging.all.merge!(includes_immediately: :taggable).find(taggings(:welcome_general).id)
+    assert_no_queries { assert_equal expected, tagging.taggable }
+
+    taggings  = assert_queries(1) { Tagging.where(taggable_type: "Post").all.merge!(includes: :taggable).to_a }
+    tagging   = taggings.find { |t| t.id == taggings(:welcome_general).id }
+    assert_queries(1) { taggings.each(&:taggable) }
+    assert_no_queries { assert_equal expected, tagging.taggable }
   end
 
   def test_polymorphic_belongs_to
-    p = Post.all.merge!(includes: { taggings: :taggable }).find(posts(:welcome).id)
-    assert_queries(1) { assert_equal posts(:welcome), p.taggings.first.taggable }
+    p = Post.all.merge!(includes_immediately: { taggings: :taggable }).find(posts(:welcome).id)
+    assert_no_queries { assert_equal posts(:welcome), p.taggings.first.taggable }
+
+    ps = assert_queries(1) { Post.all.merge!(includes: { taggings: :taggable }).to_a }
+    p = ps.find { |post| post.id == posts(:welcome).id }
+    assert_queries(1) { ps.flat_map(&:taggings).each(&:taggable) }
+    assert_no_queries { assert_equal posts(:welcome), p.taggings[0].taggable }
   end
 
   def test_preload_polymorphic_has_many_through
     posts           = Post.all.merge!(order: "posts.id").to_a
-    posts_with_tags = Post.all.merge!(includes: :tags, order: "posts.id").to_a
+    posts_with_tags = Post.all.merge!(includes_immediately: :tags, order: "posts.id").to_a
+    assert_equal posts.length, posts_with_tags.length
+    posts.length.times do |i|
+      assert_equal posts[i].tags.length, assert_no_queries { posts_with_tags[i].tags.length }
+    end
+
+    posts_with_tags = assert_queries(1) { Post.all.merge!(includes: :tags, order: "posts.id").to_a }
     assert_equal posts.length, posts_with_tags.length
     posts.length.times do |i|
       assert_equal posts[i].tags.length, assert_queries(i.zero? ? 2 : 0) { posts_with_tags[i].tags.length }
@@ -670,8 +752,22 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_preload_polymorph_many_types
-    taggings = Tagging.all.merge!(includes: :taggable, where: ["taggable_type != ?", "FakeModel"]).to_a
-    taggings.first.taggable
+    taggings = Tagging.all.merge!(includes_immediately: :taggable, where: ["taggable_type != ?", "FakeModel"]).to_a
+
+    assert_no_queries do
+      taggings.first.taggable.id
+      taggings[1].taggable.id
+    end
+
+    taggables = taggings.map(&:taggable)
+    assert_includes taggables, items(:dvd)
+    assert_includes taggables, posts(:welcome)
+  end
+
+  def test_lazy_load_polymorph_many_types
+    taggings = assert_queries(1) { Tagging.all.merge!(includes: :taggable, where: ["taggable_type != ?", "FakeModel"]).to_a }
+
+    assert_queries(Tagging.where.not(taggable_type: "FakeModel").distinct.count(:taggable_type)) { taggings.first.taggable }
 
     assert_no_queries do
       taggings.first.taggable.id
@@ -691,7 +787,13 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
 
   def test_preload_polymorphic_has_many
     posts               = Post.all.merge!(order: "posts.id").to_a
-    posts_with_taggings = Post.all.merge!(includes: :taggings, order: "posts.id").to_a
+    posts_with_taggings = Post.all.merge!(includes_immediately: :taggings, order: "posts.id").to_a
+    assert_equal posts.length, posts_with_taggings.length
+    posts.length.times do |i|
+      assert_equal posts[i].taggings.length, assert_no_queries { posts_with_taggings[i].taggings.length }
+    end
+
+    posts_with_taggings = assert_queries(1) { Post.all.merge!(includes: :taggings, order: "posts.id").to_a }
     assert_equal posts.length, posts_with_taggings.length
     posts.length.times do |i|
       assert_equal posts[i].taggings.length, assert_queries(i.zero? ? 1 : 0) { posts_with_taggings[i].taggings.length }
@@ -699,9 +801,17 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_belongs_to_shared_parent
-    comments = Comment.all.merge!(includes: :post, where: "post_id = 1").to_a
+    comments = Comment.all.merge!(includes_immediately: :post, where: "post_id = 1").to_a
+
+    assert_no_queries do
+      assert_equal comments.first.post, comments[1].post
+    end
+
+    comments = assert_queries(1) { Comment.all.merge!(includes: :post, where: "post_id = 1").to_a }
     assert_queries(1) do
       comments.each &:post
+    end
+    assert_no_queries do
       assert_equal comments.first.post, comments[1].post
     end
   end

@@ -137,14 +137,30 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_one_through_eager_loading
+    members = assert_queries(3) do # base table, through table, clubs table
+      Member.all.merge!(includes_immediately: :club, where: ["name = ?", "Groucho Marx"]).to_a
+    end
+    assert_equal 1, members.size
+    assert_not_nil assert_no_queries { members.collect(&:club) }
+  end
+
+  def test_has_one_through_lazy_loading
     members = assert_queries(1) do # base table, through table, clubs table
       Member.all.merge!(includes: :club, where: ["name = ?", "Groucho Marx"]).to_a
     end
     assert_equal 1, members.size
-    assert_not_nil assert_queries(2) { members[0].club }
+    assert_not_nil assert_queries(2) { members.collect(&:club) }
   end
 
   def test_has_one_through_eager_loading_through_polymorphic
+    members = assert_queries(3) do # base table, through table, clubs table
+      Member.all.merge!(includes_immediately: :sponsor_club, where: ["name = ?", "Groucho Marx"]).to_a
+    end
+    assert_equal 1, members.size
+    assert_not_nil assert_no_queries { members[0].sponsor_club }
+  end
+
+  def test_has_one_through_lazy_loading_through_polymorphic
     members = assert_queries(1) do # base table, through table, clubs table
       Member.all.merge!(includes: :sponsor_club, where: ["name = ?", "Groucho Marx"]).to_a
     end
@@ -169,9 +185,15 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_eager_has_one_through_polymorphic_with_source_type
-    clubs = Club.all.merge!(includes: :sponsored_member, where: ["name = ?", "Moustache and Eyebrow Fancier Club"]).to_a
+    clubs = Club.all.merge!(includes_immediately: :sponsored_member, where: ["name = ?", "Moustache and Eyebrow Fancier Club"]).to_a
     # Only the eyebrow fanciers club has a sponsored_member
-    assert_not_nil assert_queries(2) { clubs[0].sponsored_member }
+    assert_not_nil assert_no_queries { clubs[0].sponsored_member }
+  end
+
+  def test_lazy_has_one_through_polymorphic_with_source_type
+    clubs = assert_queries(1) { Club.all.merge!(includes: :sponsored_member, where: ["name = ?", "Moustache and Eyebrow Fancier Club"]).to_a }
+    # Only the eyebrow fanciers club has a sponsored_member
+    assert_not_empty assert_queries(2) { clubs.collect(&:sponsored_member).compact }
   end
 
   def test_has_one_through_nonpreload_eagerloading
@@ -256,6 +278,21 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_preloading_has_one_through_on_belongs_to
+    MemberDetail.delete_all
+    assert_not_nil @member.member_type
+    @organization = organizations(:nsa)
+    @member_detail = MemberDetail.new
+    @member.member_detail = @member_detail
+    @member.organization = @organization
+    @member_details = assert_queries(3) do
+      MemberDetail.all.merge!(includes_immediately: :member_type).to_a
+    end
+    @new_detail = @member_details[0]
+    assert_predicate @new_detail.send(:association, :member_type), :loaded?
+    assert_no_queries { @new_detail.member_type }
+  end
+
+  def test_lazy_loading_has_one_through_on_belongs_to
     MemberDetail.delete_all
     assert_not_nil @member.member_type
     @organization = organizations(:nsa)

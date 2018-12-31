@@ -616,7 +616,7 @@ module ActiveRecord
       return if preload.empty? && (includes_immediately_values.empty? || eager_loading?)
 
       preloader = build_preloader
-      preloader.preload records, includes_immediately_values unless eager_loading?
+      preloader.preload(records, includes_immediately_values) unless eager_loading?
       ExplainRegistry.collect? ? preloader.preload(records, preload) : preloader.lazy_preload(records, preload)
     end
 

@@ -87,23 +87,25 @@ module ActiveRecord
       #   [ :books, :author ]
       #   { author: :avatar }
       #   [ :books, { author: :avatar } ]
-      def preload(records, associations, preload_scope = nil)
+      def preload(records, associations, preload_scope = nil, polymorphic_parent = false)
         records = Array.wrap(records).compact
 
         if records.empty?
           []
         else
-          query_runner.call { preload_now associations, records.uniq, preload_scope } unless records.empty?
+          query_runner.call do
+            Array.wrap(associations).flat_map do |association|
+              preloaders_on association, records, preload_scope, polymorphic_parent
+            end
+          end
         end
       end
 
-      def lazy_preload(records, associations)
+      def lazy_preload(records, associations, polymorphic_parent = false)
         records = Array.wrap(records).compact
 
         unless records.empty?
-          records.uniq!
-          preloader = LazyPreloader.new records, self, associations
-          records.each { |record| LazyPreloader::Registry.store record, preloader }
+          LazyPreloader.preload(records, self, associations, polymorphic_parent)
         end
       end
 
@@ -111,12 +113,6 @@ module ActiveRecord
 
         def query_runner
           @klass.method @query_runner_type
-        end
-
-        def preload_now(associations, records, preload_scope)
-          Array.wrap(associations).flat_map do |association|
-            preloaders_on association, records, preload_scope
-          end
         end
 
         # Loads all the given data into +records+ for the +association+.

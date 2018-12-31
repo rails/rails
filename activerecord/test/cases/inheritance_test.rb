@@ -388,9 +388,9 @@ class InheritanceTest < ActiveRecord::TestCase
   end
 
   def test_alt_inheritance_condition
-    assert_equal 4, Vegetable.count
+    assert_equal 5, Vegetable.count
     assert_equal 1, Cucumber.count
-    assert_equal 3, Cabbage.count
+    assert_equal 4, Cabbage.count
   end
 
   def test_finding_incorrect_type_data
@@ -461,17 +461,27 @@ class InheritanceTest < ActiveRecord::TestCase
   end
 
   def test_eager_load_belongs_to_something_inherited
-    account = Account.all.merge!(includes: :firm).find(1)
-    assert_not account.association(:firm).loaded?, "association was eager loaded prematurely"
-    account.firm
+    account = Account.all.merge!(includes_immediately: :firm).find(1)
     assert account.association(:firm).loaded?, "association was not eager loaded"
   end
 
+  def test_lazy_load_belongs_to_something_inherited
+    accounts = Account.all.merge!(includes: :firm).order(:id).to_a
+    assert_not accounts[0].association(:firm).loaded?, "association was eager loaded prematurely"
+    accounts[1].firm
+    assert accounts[0].association(:firm).loaded?, "association was not eager loaded"
+  end
+
   def test_alt_eager_loading
-    cabbage = RedCabbage.all.merge!(includes: :seller).find(4)
-    assert_not cabbage.association(:seller).loaded?, "association was eager loaded prematurely"
-    cabbage.seller
+    cabbage = RedCabbage.all.merge!(includes_immediately: :seller).find(4)
     assert cabbage.association(:seller).loaded?, "association was not eager loaded"
+  end
+
+  def test_alt_lazy_loading
+    cabbages = RedCabbage.all.merge!(includes: :seller).to_a
+    assert_not cabbages[0].association(:seller).loaded?, "association was eager loaded prematurely"
+    cabbages[1].seller
+    assert cabbages[0].association(:seller).loaded?, "association was not eager loaded"
   end
 
   def test_eager_load_belongs_to_primary_key_quoting

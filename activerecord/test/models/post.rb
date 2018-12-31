@@ -30,6 +30,7 @@ class Post < ActiveRecord::Base
   belongs_to :readonly_author, -> { readonly }, class_name: "Author", foreign_key: :author_id
 
   belongs_to :author_with_posts, -> { includes(:posts) }, class_name: "Author", foreign_key: :author_id
+  belongs_to :author_with_immediate_posts, -> { includes_immediately(:posts) }, class_name: "Author", foreign_key: :author_id
   belongs_to :author_with_address, -> { includes(:author_address) }, class_name: "Author", foreign_key: :author_id
 
   def first_comment
@@ -44,6 +45,9 @@ class Post < ActiveRecord::Base
 
   scope :with_comments, -> { preload(:comments) }
   scope :with_tags, -> { preload(:taggings) }
+
+  scope :with_immediate_comments, -> { includes_immediately(:comments) }
+  scope :with_immediate_tags, -> { includes_immediately(:taggings) }
 
   scope :tagged_with, ->(id) { joins(:taggings).where(taggings: { tag_id: id }) }
   scope :tagged_with_comment, ->(comment) { joins(:taggings).where(taggings: { comment: comment }) }
@@ -85,6 +89,7 @@ class Post < ActiveRecord::Base
 
   has_one  :very_special_comment
   has_one  :very_special_comment_with_post, -> { includes(:post) }, class_name: "VerySpecialComment"
+  has_one  :very_special_comment_with_immediate_post, -> { includes_immediately(:post) }, class_name: "VerySpecialComment"
   has_one :very_special_comment_with_post_with_joins, -> { joins(:post).order("posts.id") }, class_name: "VerySpecialComment"
   has_many :special_comments
   has_many :nonexistent_comments, -> { where "comments.id < 0" }, class_name: "Comment"
@@ -247,6 +252,14 @@ class PostWithIncludesDefaultScope < ActiveRecord::Base
   has_many :readers, foreign_key: "post_id"
 
   default_scope { includes(:readers) }
+end
+
+class PostWithIncludesImmediatelyDefaultScope < ActiveRecord::Base
+  self.table_name = "posts"
+
+  has_many :readers, foreign_key: "post_id"
+
+  default_scope { includes_immediately(:readers) }
 end
 
 class SpecialPostWithDefaultScope < ActiveRecord::Base

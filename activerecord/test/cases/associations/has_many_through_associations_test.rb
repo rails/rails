@@ -76,8 +76,19 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     Membership.create! club: club, member: Member.create!(name: "Aaron")
     Membership.create! club: club, member: Member.create!(name: "Bob")
 
-    preloaded_clubs = Club.joins(:memberships).preload(:membership).to_a
+    preloaded_clubs = Club.joins(:memberships).includes_immediately(:membership).to_a
     assert_no_queries { preloaded_clubs.each(&:membership) }
+  end
+
+  def test_lazy_load_multiple_instances_of_the_same_record
+    club = Club.create!(name: "Aaron cool banana club")
+    Membership.create! club: club, member: Member.create!(name: "Aaron")
+    Membership.create! club: club, member: Member.create!(name: "Bob")
+
+    preloaded_clubs = Club.joins(:memberships).preload(:membership).to_a
+    assert_queries(1) do
+      preloaded_clubs.each(&:membership)
+    end
   end
 
   def test_ordered_has_many_through
@@ -219,7 +230,6 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   def test_delete_all_for_with_dependent_option_delete_all
     person = people(:david)
     assert_equal 1, person.jobs_with_dependent_delete_all.count
-
     assert_no_difference "Job.count" do
       assert_difference "Reference.count", -1 do
         assert_equal 1, person.reload.jobs_with_dependent_delete_all.delete_all

@@ -75,8 +75,23 @@ class ModulesTest < ActiveRecord::TestCase
     clients = []
 
     assert_nothing_raised do
-      clients << MyApplication::Business::Client.references(:accounts).merge!(includes: { firm: :account }, where: "accounts.id IS NOT NULL").find(3)
-      clients << MyApplication::Business::Client.includes(firm: :account).find(3)
+      clients << MyApplication::Business::Client.references(:accounts).merge!(includes_immediately: { firm: :account }, where: "accounts.id IS NOT NULL").find(3)
+      clients << MyApplication::Business::Client.includes_immediately(firm: :account).find(3)
+    end
+
+    assert_no_queries do
+      clients.each do |client|
+        assert_not_nil(client.firm.account)
+      end
+    end
+  end
+
+  def test_lazy_loading_in_modules
+    clients = []
+
+    assert_nothing_raised do
+      clients.push(*MyApplication::Business::Client.where(id: [11, 3]).references(:accounts).merge!(includes: { firm: :account }, where: "accounts.id IS NOT NULL").to_a)
+      clients.push(*MyApplication::Business::Client.where(id: [11, 3]).includes(firm: :account).to_a)
     end
 
     assert_queries(2) do
@@ -85,6 +100,7 @@ class ModulesTest < ActiveRecord::TestCase
       end
     end
   end
+
 
   def test_module_table_name_prefix
     assert_equal "prefixed_companies", MyApplication::Business::Prefixed::Company.table_name, "inferred table_name for ActiveRecord model in module with table_name_prefix"

@@ -137,6 +137,7 @@ module ActiveRecord
 
       self.includes! args
       self.includes_immediately_values |= args
+      self
     end
 
     # Forces eager loading by performing a LEFT OUTER JOIN on +args+:

@@ -263,19 +263,37 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   def test_eager_loading_with_primary_key
     Firm.create("name" => "Apple")
     Client.create("name" => "Citibank", :firm_name => "Apple")
-    citibank_result = Client.all.merge!(where: { name: "Citibank" }, includes: :firm_with_primary_key).first
-    assert_not_predicate citibank_result.association(:firm_with_primary_key), :loaded?
-    citibank_result.firm_with_primary_key
+    citibank_result = Client.all.merge!(where: { name: "Citibank" }, includes_immediately: :firm_with_primary_key).first
     assert_predicate citibank_result.association(:firm_with_primary_key), :loaded?
+  end
+
+  def test_lazy_loading_with_primary_key
+    Firm.create("name" => "Apple")
+    Client.create("name" => "Citibank", :firm_name => "Apple")
+    Client.create("name" => "Citibank", :firm_name => "Apple")
+    citibank_results = Client.all.merge!(where: { name: "Citibank" }, includes: :firm_with_primary_key).to_a
+    assert_not_predicate citibank_results[0].association(:firm_with_primary_key), :loaded?
+    citibank_results[0].firm_with_primary_key
+    assert_predicate citibank_results[0].association(:firm_with_primary_key), :loaded?
+    assert_predicate citibank_results[1].association(:firm_with_primary_key), :loaded?
   end
 
   def test_eager_loading_with_primary_key_as_symbol
     Firm.create("name" => "Apple")
     Client.create("name" => "Citibank", :firm_name => "Apple")
-    citibank_result = Client.all.merge!(where: { name: "Citibank" }, includes: :firm_with_primary_key_symbols).first
-    assert_not_predicate citibank_result.association(:firm_with_primary_key_symbols), :loaded?
-    citibank_result.firm_with_primary_key_symbols
+    citibank_result = Client.all.merge!(where: { name: "Citibank" }, includes_immediately: :firm_with_primary_key_symbols).first
     assert_predicate citibank_result.association(:firm_with_primary_key_symbols), :loaded?
+  end
+
+  def test_lazy_loading_with_primary_key_as_symbol
+    Firm.create("name" => "Apple")
+    Client.create("name" => "Citibank", :firm_name => "Apple")
+    Client.create("name" => "Citibank", :firm_name => "Apple")
+    citibank_results = Client.all.merge!(where: { name: "Citibank" }, includes: :firm_with_primary_key_symbols).to_a
+    assert_not_predicate citibank_results[0].association(:firm_with_primary_key_symbols), :loaded?
+    citibank_results[0].firm_with_primary_key_symbols
+    assert_predicate citibank_results[0].association(:firm_with_primary_key_symbols), :loaded?
+    assert_predicate citibank_results[1].association(:firm_with_primary_key_symbols), :loaded?
   end
 
   def test_creating_the_belonging_object

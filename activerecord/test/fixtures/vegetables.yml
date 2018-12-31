@@ -13,8 +13,14 @@ second_cabbage:
   custom_type: Cabbage
   name: 'his cabbage'
 
-red_cabbage:
+first_red_cabbage:
   id: 4
+  custom_type: RedCabbage
+  name: 'red cabbage'
+  seller_id: 3
+
+second_red_cabbage:
+  id: 5
   custom_type: RedCabbage
   name: 'red cabbage'
   seller_id: 3

@@ -379,7 +379,7 @@ module ActiveRecord
 
       def apply_join_dependency(eager_loading: group_values.empty?)
         join_dependency = construct_join_dependency(eager_load_values + includes_values)
-        relation = except(:includes, :eager_load, :preload).joins!(join_dependency)
+        relation = except(:includes, :includes_immediately, :eager_load, :preload).joins!(join_dependency)
 
         if eager_loading && !using_limitable_reflections?(join_dependency.reflections)
           if has_limit_or_offset?

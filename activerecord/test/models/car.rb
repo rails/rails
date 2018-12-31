@@ -19,6 +19,9 @@ class Car < ActiveRecord::Base
   scope :incl_tyres, -> { includes(:tyres) }
   scope :incl_engines, -> { includes(:engines) }
 
+  scope :incl_immediate_tyres, -> { includes_immediately(:tyres) }
+  scope :incl_immediate_engines, -> { includes_immediately(:engines) }
+
   scope :order_using_new_style,  -> { order("name asc") }
 
   attribute :wheels_owned_at, :datetime, default: -> { Time.now }

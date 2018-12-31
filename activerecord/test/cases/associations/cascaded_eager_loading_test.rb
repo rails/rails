@@ -71,7 +71,14 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
   end
 
   def test_eager_association_loading_with_join_for_count
-    authors = Author.joins(:special_posts).includes([:posts, :categorizations])
+    authors = Author.joins(:special_posts).includes_immediately([:posts, :categorizations])
+
+    assert_nothing_raised { authors.count }
+    assert_queries(3) { authors.to_a }
+  end
+
+  def test_lazy_association_loading_with_join_for_count
+    authors = assert_no_queries { Author.joins(:special_posts).includes([:posts, :categorizations]) }
 
     assert_nothing_raised { authors.count }
     assert_queries(1) { authors.to_a }
@@ -109,7 +116,16 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
   end
 
   def test_eager_association_loading_with_has_many_sti
-    topics = Topic.all.merge!(includes: :replies, order: "topics.id").to_a
+    topics = Topic.all.merge!(includes_immediately: :replies, order: "topics.id").to_a
+    first, second, = topics(:first).replies.size, topics(:second).replies.size
+    assert_no_queries do
+      assert_equal first, topics[0].replies.size
+      assert_equal second, topics[1].replies.size
+    end
+  end
+
+  def test_lazy_association_loading_with_has_many_sti
+    topics = assert_queries(1) { Topic.all.merge!(includes: :replies, order: "topics.id").to_a }
     first, second, = topics(:first).replies.size, topics(:second).replies.size
     assert_queries(2) do
       assert_equal first, topics[0].replies.size
@@ -129,11 +145,18 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
   end
 
   def test_eager_association_loading_with_belongs_to_sti
-    replies = Reply.all.merge!(includes: :topic, order: "topics.id").to_a
+    replies = Reply.all.merge!(includes_immediately: :topic, order: "topics.id").to_a
     assert_includes replies, topics(:second)
     assert_not_includes replies, topics(:first)
-    assert_queries(1) { replies.each &:topic }
     assert_equal topics(:first), assert_no_queries { replies.first.topic }
+  end
+
+  def test_lazy_association_loading_with_belongs_to_sti
+    replies = assert_queries(1) { Reply.all.merge!(includes: :topic, order: "topics.id").to_a }
+    assert_includes replies, topics(:second)
+    assert_not_includes replies, topics(:first)
+    assert_equal topics(:first), assert_queries(1) { replies.first.topic }
+    assert_no_queries { replies.each &:topic }
   end
 
   def test_eager_association_loading_with_multiple_stis_and_order
@@ -155,7 +178,16 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
   end
 
   def test_eager_association_loading_where_first_level_returns_nil
-    authors = Author.all.merge!(includes: { post_about_thinking: :comments }, order: "authors.id DESC").to_a
+    authors = Author.all.merge!(includes_immediately: { post_about_thinking: :comments }, order: "authors.id DESC").to_a
+    assert_equal [authors(:bob), authors(:mary), authors(:david)], authors
+
+    assert_no_queries do
+      authors[2].post_about_thinking.comments.first
+    end
+  end
+
+  def test_lazy_association_loading_where_first_level_returns_nil
+    authors = assert_queries(1) { Author.all.merge!(includes: { post_about_thinking: :comments }, order: "authors.id DESC").to_a }
     assert_equal [authors(:bob), authors(:mary), authors(:david)], authors
 
     assert_queries(2) do
@@ -168,8 +200,15 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
   end
 
   def test_preload_through_missing_records
-    post = Post.where.not(author_id: Author.select(:id)).preload(author: { comments: :post }).first!
-    assert_no_queries { assert_nil post.author }
+    posts = assert_queries(2) { Post.where.not(author_id: Author.select(:id)).includes_immediately(author: { comments: :post }).records }
+    assert_no_queries do
+      posts.each { |post| assert_nil post.author }
+    end
+
+    posts = assert_queries(1) { Post.where.not(author_id: Author.select(:id)).includes(author: { comments: :post }).records }
+    assert_queries(1) do
+      posts.each { |post| assert_nil post.author }
+    end
   end
 
   def test_eager_association_loading_with_missing_first_record
@@ -178,13 +217,25 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
   end
 
   def test_eager_association_loading_with_recursive_cascading_four_levels_has_many_through
-    source = Vertex.all.merge!(includes: { sinks: { sinks: { sinks: :sinks } } }, order: "vertices.id").first
-    assert_equal vertices(:vertex_4), assert_queries(6) { source.sinks.first.sinks.first.sinks.first }
+    source = Vertex.all.merge!(includes_immediately: { sinks: { sinks: { sinks: :sinks } } }, order: "vertices.id").first
+    assert_equal vertices(:vertex_4), assert_no_queries { source.sinks.first.sinks.first.sinks.first }
+  end
+
+  def test_lazy_association_loading_with_recursive_cascading_four_levels_has_many_through
+    sources = assert_queries(1) { Vertex.all.merge!(includes: { sinks: { sinks: { sinks: :sinks } } }, order: "vertices.id").limit(2).to_a }
+    assert_equal vertices(:vertex_4), assert_queries(6) { sources[0].sinks.first.sinks.first.sinks.first }
+    assert_no_queries { sources[1].sinks.first.sinks.first.sinks.first }
   end
 
   def test_eager_association_loading_with_recursive_cascading_four_levels_has_and_belongs_to_many
-    sink = Vertex.all.merge!(includes: { sources: { sources: { sources: :sources } } }, order: "vertices.id DESC").first
-    assert_equal vertices(:vertex_1), assert_queries(8) { sink.sources.first.sources.first.sources.first.sources.first }
+    sink = Vertex.all.merge!(includes_immediately: { sources: { sources: { sources: :sources } } }, order: "vertices.id DESC").first
+    assert_equal vertices(:vertex_1), assert_no_queries { sink.sources.first.sources.first.sources.first.sources.first }
+  end
+
+  def test_lazy_association_loading_with_recursive_cascading_four_levels_has_and_belongs_to_many
+    sinks = assert_queries(1) { Vertex.all.merge!(includes: { sources: { sources: { sources: :sources } } }, order: "vertices.id DESC").limit(2).to_a }
+    assert_equal vertices(:vertex_1), assert_queries(8) { sinks[0].sources.first.sources.first.sources.first.sources.first }
+    assert_no_queries { sinks[1].sources.first.sources.first.sources.first.sources.first }
   end
 
   def test_eager_association_loading_with_cascaded_interdependent_one_level_and_two_levels

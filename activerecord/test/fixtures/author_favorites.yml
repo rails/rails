@@ -2,3 +2,8 @@ david_mary:
   id: 1
   author_id: 1
   favorite_author_id: 2
+
+susan_david:
+  id: 2
+  author_id: 3
+  favorite_author_id: 1
