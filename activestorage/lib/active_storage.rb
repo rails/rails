@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 #--
-# Copyright (c) 2017-2018 David Heinemeier Hansson, Basecamp
+# Copyright (c) 2017-2019 David Heinemeier Hansson, Basecamp
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
