@@ -5,8 +5,8 @@ require "active_support/core_ext/class/attribute"
 require "active_support/subscriber"
 
 module ActiveSupport
-  # ActiveSupport::LogSubscriber is an object set to consume
-  # ActiveSupport::Notifications with the sole purpose of logging them.
+  # <tt>ActiveSupport::LogSubscriber</tt> is an object set to consume
+  # <tt>ActiveSupport::Notifications</tt> with the sole purpose of logging them.
   # The log subscriber dispatches notifications to a registered object based
   # on its given namespace.
   #
@@ -29,13 +29,36 @@ module ActiveSupport
   # subscriber, the line above should be called after your
   # <tt>ActiveRecord::LogSubscriber</tt> definition.
   #
-  # After configured, whenever a "sql.active_record" notification is published,
-  # it will properly dispatch the event (ActiveSupport::Notifications::Event) to
-  # the sql method.
+  # After configured, whenever a <tt>"sql.active_record"</tt> notification is published,
+  # it will properly dispatch the event
+  # (<tt>ActiveSupport::Notifications::Event</tt>) to the sql method.
+  #
+  # Being an <tt>ActiveSupport::Notifications</tt> consumer,
+  # <tt>ActiveSupport::LogSubscriber</tt> exposes a simple interface to check if
+  # instrumented code raises an exception. It is common to log a different
+  # message in case of an error, and this can be achieved by extending
+  # the previous example:
+  #
+  #   module ActiveRecord
+  #     class LogSubscriber < ActiveSupport::LogSubscriber
+  #       def sql(event)
+  #         exception = event.payload[:exception]
+  #
+  #         if exception
+  #           exception_object = event.payload[:exception_object]
+  #
+  #           "[ERROR] #{event.payload[:name]}: #{exception.join(', ')} " \
+  #           "(#{exception_object.backtrace.first})"
+  #         else
+  #           # standard logger code
+  #         end
+  #       end
+  #     end
+  #   end
   #
   # Log subscriber also has some helpers to deal with logging and automatically
-  # flushes all logs when the request finishes (via action_dispatch.callback
-  # notification) in a Rails environment.
+  # flushes all logs when the request finishes
+  # (via <tt>action_dispatch.callback</tt> notification) in a Rails environment.
   class LogSubscriber < Subscriber
     # Embed in a String to clear all previous ANSI sequences.
     CLEAR   = "\e[0m"
