@@ -21,44 +21,33 @@ class ActionableErrorTest < ActiveSupport::TestCase
     end
   end
 
-  test "lists all action of an actionable error" do
+  test "returns all action of an actionable error" do
     assert_equal ["Flip 1", "Flip 2"], ActiveSupport::ActionableError.actions(DispatchableError).keys
     assert_equal ["Flip 1", "Flip 2"], ActiveSupport::ActionableError.actions(DispatchableError.new).keys
   end
 
-  test "raises an error when trying to get actions from non-actionable error classes" do
-    assert_raises ActiveSupport::ActionableError::NonActionable do
-      ActiveSupport::ActionableError.actions(NonActionableError)
-    end
-
-    assert_raises ActiveSupport::ActionableError::NonActionable do
-      ActiveSupport::ActionableError.actions(NonActionableError.name)
-    end
-  end
-
-  test "returns no actions from non-actionable exception instances" do
+  test "returns no actions for non-actionable errors" do
+    assert ActiveSupport::ActionableError.actions(Exception).empty?
     assert ActiveSupport::ActionableError.actions(Exception.new).empty?
   end
 
-  test "dispatches actions from class and a label" do
+  test "dispatches actions from error and name" do
     assert_changes "DispatchableError.flip1", from: false, to: true do
       ActiveSupport::ActionableError.dispatch DispatchableError, "Flip 1"
     end
   end
 
-  test "dispatches actions from class name and a label" do
+  test "dispatches actions from error class as string and name" do
     assert_changes "DispatchableError.flip2", from: false, to: true do
       ActiveSupport::ActionableError.dispatch DispatchableError.name, "Flip 2"
     end
   end
 
-  test "cannot dispatch errors that do not include ActiveSupport::ActionableError" do
+  test "cannot dispatch missing actions" do
     err = assert_raises ActiveSupport::ActionableError::NonActionable do
       ActiveSupport::ActionableError.dispatch NonActionableError, "action"
     end
 
-    assert_equal <<~EXPECTED.chop, err.to_s
-      ActionableErrorTest::NonActionableError is non-actionable
-    EXPECTED
+    assert_equal 'Cannot find action "action"', err.to_s
   end
 end

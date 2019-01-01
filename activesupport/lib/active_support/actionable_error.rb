@@ -15,8 +15,8 @@ module ActiveSupport
 
     NonActionable = Class.new(StandardError)
 
-    NoActions = Hash.new do |_, label| # :nodoc:
-      raise NonActionable, "Cannot find action \"#{label}\" for #{self}"
+    NoActions = Hash.new do |_, name| # :nodoc:
+      raise NonActionable, "Cannot find action \"#{name}\""
     end
 
     included do
@@ -25,19 +25,15 @@ module ActiveSupport
 
     def self.actions(error) # :nodoc:
       case error
-      when String
-        actions(error.constantize)
       when ActionableError, -> it { Class === it && it < ActionableError }
         error._actions
-      when Exception
-        NoActions
       else
-        raise NonActionable, "#{error} is non-actionable"
+        NoActions
       end
     end
 
-    def self.dispatch(error, label) # :nodoc:
-      actions(error)[label].call
+    def self.dispatch(error, name) # :nodoc:
+      actions(error.is_a?(String) ? error.constantize : error)[name].call
     end
 
     module ClassMethods
@@ -50,8 +46,8 @@ module ActiveSupport
       #       ActiveRecord::Tasks::DatabaseTasks.migrate
       #     end
       #   end
-      def action(label, &block)
-        _actions[label] = block
+      def action(name, &block)
+        _actions[name] = block
       end
     end
   end
