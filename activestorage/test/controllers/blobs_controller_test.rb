@@ -19,4 +19,13 @@ class ActiveStorage::BlobsControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to(/racecar\.jpg/)
     assert_equal "max-age=300, private", @response.headers["Cache-Control"]
   end
+
+  test "proxying blob should default to long public cache time" do
+    ActiveStorage.delivery_method = :proxy
+    get rails_blob_url(@blob)
+    ActiveStorage.delivery_method = :redirect
+
+    assert_response(:success)
+    assert_equal "max-age=31556952, public", @response.headers["Cache-Control"]
+  end
 end

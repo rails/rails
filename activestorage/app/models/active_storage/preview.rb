@@ -70,6 +70,7 @@ class ActiveStorage::Preview
     "variants/#{image.key}/#{Digest::SHA256.hexdigest(variation.key)}"
   end
 
+  # Proxies the deliver method to the variation.
   def deliver(method)
     variation.deliver(method, self)
   end
