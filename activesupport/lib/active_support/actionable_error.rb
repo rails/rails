@@ -6,10 +6,8 @@ module ActiveSupport
   # Actionable errors let's you define actions to resolve an error.
   #
   # To make an error actionable, include the <tt>ActiveSupport::ActionableError</tt>
-  # module and invoke the +action+ class macro to define the action.
-  #
-  # An action needs a name and a procedure to execute. The name can be shown by
-  # the action dispatching mechanism.
+  # module and invoke the +action+ class macro to define the action. An action
+  # needs a name and a block to execute.
   module ActionableError
     extend Concern
 
