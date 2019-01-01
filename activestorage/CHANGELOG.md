@@ -1,3 +1,14 @@
+*   Replace `config.active_storage.queue` with two options that indicate which
+    queues analysis and purge jobs should use, respectively:
+
+    * `config.active_storage.queues.analysis`
+    * `config.active_storage.queues.purge`
+
+    `config.active_storage.queue` is preferred over the new options when it's
+    set, but it is deprecated and will be removed in Rails 6.1.
+
+    *George Claghorn*
+
 *   Permit generating variants of TIFF images.
 
     *Luciano Sousa*

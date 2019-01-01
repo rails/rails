@@ -843,10 +843,16 @@ normal Rails server.
 * `config.active_storage.content_types_to_serve_as_binary` accepts an array of strings indicating the content types that Active Storage will always serve as an attachment, rather than inline. The default is `%w(text/html
 text/javascript image/svg+xml application/postscript application/x-shockwave-flash text/xml application/xml application/xhtml+xml)`.
 
-* `config.active_storage.queue` can be used to set the name of the Active Job queue used to perform jobs like analyzing the content of a blob or purging a blog.
+* `config.active_storage.queues.analysis` accepts a symbol indicating the Active Job queue to use for analysis jobs. When this option is `nil`, analysis jobs are sent to the default Active Job queue (see `config.active_job.default_queue_name`).
+
+   ```ruby
+   config.active_storage.queues.analysis = :low_priority
+   ```
+
+* `config.active_storage.queues.purge` accepts a symbol indicating the Active Job queue to use for purge jobs. When this option is `nil`, purge jobs are sent to the default Active Job queue (see `config.active_job.default_queue_name`).
 
   ```ruby
-  config.active_storage.queue = :low_priority
+  config.active_storage.queues.purge = :low_priority
   ```
 
 * `config.active_storage.logger` can be used to set the logger used by Active Storage. Accepts a logger conforming to the interface of Log4r or the default Ruby Logger class.
@@ -869,6 +875,7 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
   ```
 
   The default is `/rails/active_storage`
+
 
 ### Configuring a Database
 
