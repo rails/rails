@@ -1505,6 +1505,8 @@ To hook into the initialization process of one of the following classes use the 
 | `ActionController::TestCase`      | `action_controller_test_case`        |
 | `ActionDispatch::IntegrationTest` | `action_dispatch_integration_test`   |
 | `ActionDispatch::SystemTestCase`  | `action_dispatch_system_test_case`   |
+| `ActionMailbox::Base`             | `action_mailbox`                     |
+| `ActionMailbox::InboundEmail`     | `action_mailbox_inbound_email`       |
 | `ActionMailer::Base`              | `action_mailer`                      |
 | `ActionMailer::TestCase`          | `action_mailer_test_case`            |
 | `ActionView::Base`                | `action_view`                        |
@@ -1512,6 +1514,7 @@ To hook into the initialization process of one of the following classes use the 
 | `ActiveJob::Base`                 | `active_job`                         |
 | `ActiveJob::TestCase`             | `active_job_test_case`               |
 | `ActiveRecord::Base`              | `active_record`                      |
+| `ActiveStorage::Blob`             | `active_storage_blob`                |
 | `ActiveSupport::TestCase`         | `active_support_test_case`           |
 | `i18n`                            | `i18n`                               |
 
