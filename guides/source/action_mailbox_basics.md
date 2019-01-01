@@ -50,7 +50,7 @@ Install the [`aws-sdk-sns`](https://rubygems.org/gems/aws-sdk-sns) gem:
 ```ruby
 # Gemfile
 gem "aws-sdk-sns", ">= 1.9.0", require: false
-   ```
+```
 
 Tell Action Mailbox to accept emails from SES:
 
