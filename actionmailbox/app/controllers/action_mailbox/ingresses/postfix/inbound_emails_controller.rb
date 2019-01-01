@@ -35,7 +35,7 @@ module ActionMailbox
   #
   #    Alternatively, provide the password in the +RAILS_INBOUND_EMAIL_PASSWORD+ environment variable.
   #
-  # 3. {Configure Postfix}{https://serverfault.com/questions/258469/how-to-configure-postfix-to-pipe-all-incoming-email-to-a-script}
+  # 3. {Configure Postfix}[https://serverfault.com/questions/258469/how-to-configure-postfix-to-pipe-all-incoming-email-to-a-script]
   #    to pipe inbound emails to <tt>bin/rails action_mailbox:ingress:postfix</tt>, providing the +URL+ of the Postfix
   #    ingress and the +INGRESS_PASSWORD+ you previously generated.
   #
