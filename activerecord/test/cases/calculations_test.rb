@@ -432,6 +432,8 @@ class CalculationsTest < ActiveRecord::TestCase
   def test_should_count_selected_field_with_include
     assert_equal 6, Account.includes(:firm).distinct.count
     assert_equal 4, Account.includes(:firm).distinct.select(:credit_limit).count
+    assert_equal 4, Account.includes(:firm).distinct.count("DISTINCT credit_limit")
+    assert_equal 4, Account.includes(:firm).distinct.count("DISTINCT(credit_limit)")
   end
 
   def test_should_not_perform_joined_include_by_default
