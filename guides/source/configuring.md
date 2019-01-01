@@ -619,6 +619,29 @@ Defaults to `'signed cookie'`.
   development mode, but for large test suites, disabling this option in
   the test environment can improve performance. This defaults to `true`.
 
+
+### Configuring Action Mailbox
+
+`config.action_mailbox` provides the following configuration options:
+
+* `config.action_mailbox.logger` contains the logger used by Action Mailbox. It accepts a logger conforming to the interface of Log4r or the default Ruby Logger class. The default is `Rails.logger`.
+
+  ```ruby
+  config.action_mailbox.logger = ActiveSupport::Logger.new(STDOUT)
+  ```
+
+* `config.action_mailbox.incinerate_after` accepts an `ActiveSupport::Duration` indicating how long after processing `ActionMailbox::InboundEmail` records should be destroyed. It defaults to `30.days`.
+
+   ```ruby
+   # Incinerate inbound emails 14 days after processing.
+   config.action_mailbox.incinerate_after = 14.days
+   ```
+
+* `config.action_mailbox.queues.incineration` accepts a symbol indicating the Active Job queue to use for incineration jobs. It defaults to `:action_mailbox_incineration`.
+
+* `config.action_mailbox.queues.routing` accepts a symbol indicating the Active Job queue to use for routing jobs. It defaults to `:action_mailbox_routing`.
+
+
 ### Configuring Action Mailer
 
 There are a number of settings available on `config.action_mailer`:
