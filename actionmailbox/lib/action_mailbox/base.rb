@@ -113,3 +113,5 @@ module ActionMailbox
       end
   end
 end
+
+ActiveSupport.run_load_hooks :action_mailbox, ActionMailbox::Base
