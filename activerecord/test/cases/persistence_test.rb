@@ -53,6 +53,20 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_not_equal "2 updated", Topic.find(2).content
   end
 
+  def test_class_level_update_without_ids
+    topics = Topic.all
+    assert_equal 5, topics.length
+    topics.each do |topic|
+      assert_not_equal "updated", topic.content
+    end
+
+    updated = Topic.update(content: "updated")
+    assert_equal 5, updated.length
+    updated.each do |topic|
+      assert_equal "updated", topic.content
+    end
+  end
+
   def test_class_level_update_is_affected_by_scoping
     topic_data = { 1 => { "content" => "1 updated" }, 2 => { "content" => "2 updated" } }
 
