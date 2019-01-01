@@ -1507,6 +1507,7 @@ To hook into the initialization process of one of the following classes use the 
 | `ActionDispatch::SystemTestCase`  | `action_dispatch_system_test_case`   |
 | `ActionMailbox::Base`             | `action_mailbox`                     |
 | `ActionMailbox::InboundEmail`     | `action_mailbox_inbound_email`       |
+| `ActionMailbox::TestCase`         | `action_mailbox_test_case`           |
 | `ActionMailer::Base`              | `action_mailer`                      |
 | `ActionMailer::TestCase`          | `action_mailer_test_case`            |
 | `ActionView::Base`                | `action_view`                        |
