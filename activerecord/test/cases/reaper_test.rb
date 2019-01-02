@@ -48,7 +48,7 @@ module ActiveRecord
 
         reaper = ConnectionPool::Reaper.new(fp, 0.0001)
         reaper.run
-        until fp.reaped
+        until fp.flushed
           Thread.pass
         end
         assert fp.reaped
