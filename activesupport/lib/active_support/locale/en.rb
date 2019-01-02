@@ -26,6 +26,16 @@
           "#{number}#{ActiveSupport::Inflector.ordinal(number)}"
         end
       }
+    },
+    string: {
+      format: {
+        titleize: lambda do |_key, word:, keep_id_suffix: false, **_options|
+          ActiveSupport::Inflector.humanize(
+            ActiveSupport::Inflector.underscore(word),
+            keep_id_suffix: keep_id_suffix
+          ).gsub(/\b(?<!\w['’`])[a-z]/, &:capitalize)
+        end
+      }
     }
   }
 }

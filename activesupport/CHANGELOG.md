@@ -1,3 +1,25 @@
+*   `ActiveSupport::Inflector#titleize` now supports translations through I18n.
+
+        # locale/fr.rb
+
+        {
+          fr: {
+            string: {
+              format: {
+                titleize: lambda do |_key, word:, keep_id_suffix: false, **_options|
+                  ActiveSupport::Inflector.humanize(
+                    ActiveSupport::Inflector.underscore(word),
+                    keep_id_suffix: keep_id_suffix
+                  ).capitalize
+                end
+              }
+            }
+          }
+        }
+
+
+    *Christian Blais*
+
 *   If the same block is `included` multiple times for a Concern, an exception is no longer raised.
 
     *Mark J. Titorenko*, *Vlad Bokov*
