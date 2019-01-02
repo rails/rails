@@ -42,7 +42,7 @@ module ActiveStorage
 
   mattr_accessor :logger
   mattr_accessor :verifier
-  mattr_accessor :queue
+  mattr_accessor :queues, default: {}
   mattr_accessor :previewers, default: []
   mattr_accessor :analyzers, default: []
   mattr_accessor :variant_processor, default: :mini_magick
