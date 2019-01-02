@@ -16,7 +16,7 @@ module ActiveSupport
   #   module ActiveRecord
   #     class LogSubscriber < ActiveSupport::LogSubscriber
   #       def sql(event)
-  #         "#{event.payload[:name]} (#{event.duration}) #{event.payload[:sql]}"
+  #         info "#{event.payload[:name]} (#{event.duration}) #{event.payload[:sql]}"
   #       end
   #     end
   #   end
@@ -47,8 +47,8 @@ module ActiveSupport
   #         if exception
   #           exception_object = event.payload[:exception_object]
   #
-  #           "[ERROR] #{event.payload[:name]}: #{exception.join(', ')} " \
-  #           "(#{exception_object.backtrace.first})"
+  #           error "[ERROR] #{event.payload[:name]}: #{exception.join(', ')} " \
+  #                 "(#{exception_object.backtrace.first})"
   #         else
   #           # standard logger code
   #         end
