@@ -97,11 +97,13 @@ module ActiveRecord
       # When running callbacks is not needed for each record update,
       # it is preferred to use {update_all}[rdoc-ref:Relation#update_all]
       # for updating all records in a single query.
-      def update(id, attributes)
+      def update(id = :all, attributes)
         if id.is_a?(Array)
           id.map { |one_id| find(one_id) }.each_with_index { |object, idx|
             object.update(attributes[idx])
           }
+        elsif id == :all
+          all.each { |record| record.update(attributes) }
         else
           if ActiveRecord::Base === id
             raise ArgumentError,

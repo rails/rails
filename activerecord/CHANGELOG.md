@@ -1,3 +1,9 @@
+*   Restore an ability that class level `update` without giving ids.
+
+    Fixes #34743.
+
+    *Ryuta Kamizono*
+
 *   Fix join table column quoting with SQLite.
 
     *Gannon McGibbon*
