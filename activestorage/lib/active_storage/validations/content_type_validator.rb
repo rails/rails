@@ -11,7 +11,7 @@ module ActiveStorage
 
         files = Array.wrap(files)
 
-        errors_options = {authorized_types: types_to_human_format}
+        errors_options = { authorized_types: types_to_human_format }
         errors_options[:message] = options[:message] if options[:message].present?
 
         files.each do |file|

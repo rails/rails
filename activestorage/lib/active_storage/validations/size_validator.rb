@@ -8,7 +8,7 @@ module ActiveStorage
       AVAILABLE_CHECKS = [:less_than, :less_than_or_equal_to, :greater_than, :greater_than_or_equal_to, :between]
 
       def check_validity!
-        unless (AVAILABLE_CHECKS).any? {|argument| options.has_key?(argument)}
+        unless (AVAILABLE_CHECKS).any? { |argument| options.has_key?(argument) }
           raise ArgumentError, "You must pass either :less_than, :greater_than, or :between to the validator"
         end
       end
