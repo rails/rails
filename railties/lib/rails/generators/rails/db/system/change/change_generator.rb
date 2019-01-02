@@ -22,7 +22,7 @@ module Rails
             super
 
             unless DATABASES.include?(options[:to])
-              raise Error, "Invalid value for --to option. Supported for preconfiguration are: #{DATABASES.join(", ")}."
+              raise Error, "Invalid value for --to option. Supported preconfigurations are: #{DATABASES.join(", ")}."
             end
 
             opt = options.dup

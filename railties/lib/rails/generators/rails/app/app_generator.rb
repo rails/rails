@@ -267,7 +267,7 @@ module Rails
         super
 
         if !options[:skip_active_record] && !DATABASES.include?(options[:database])
-          raise Error, "Invalid value for --database option. Supported for preconfiguration are: #{DATABASES.join(", ")}."
+          raise Error, "Invalid value for --database option. Supported preconfigurations are: #{DATABASES.join(", ")}."
         end
 
         # Force sprockets and yarn to be skipped when generating API only apps.
