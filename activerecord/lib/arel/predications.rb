@@ -35,15 +35,15 @@ module Arel # :nodoc: all
     end
 
     def between(other)
-      if equals_quoted?(other.begin, -Float::INFINITY)
-        if equals_quoted?(other.end, Float::INFINITY)
+      if infinity?(other.begin)
+        if infinity?(other.end)
           not_in([])
         elsif other.exclude_end?
           lt(other.end)
         else
           lteq(other.end)
         end
-      elsif equals_quoted?(other.end, Float::INFINITY)
+      elsif infinity?(other.end)
         gteq(other.begin)
       elsif other.exclude_end?
         gteq(other.begin).and(lt(other.end))
@@ -81,15 +81,15 @@ Passing a range to `#in` is deprecated. Call `#between`, instead.
     end
 
     def not_between(other)
-      if equals_quoted?(other.begin, -Float::INFINITY)
-        if equals_quoted?(other.end, Float::INFINITY)
+      if infinity?(other.begin)
+        if infinity?(other.end)
           self.in([])
         elsif other.exclude_end?
           gteq(other.end)
         else
           gt(other.end)
         end
-      elsif equals_quoted?(other.end, Float::INFINITY)
+      elsif infinity?(other.end)
         lt(other.begin)
       else
         left = lt(other.begin)
@@ -238,12 +238,8 @@ Passing a range to `#not_in` is deprecated. Call `#not_between`, instead.
         others.map { |v| quoted_node(v) }
       end
 
-      def equals_quoted?(maybe_quoted, value)
-        if maybe_quoted.is_a?(Nodes::Quoted)
-          maybe_quoted.val == value
-        else
-          maybe_quoted == value
-        end
+      def infinity?(value)
+        value.respond_to?(:infinite?) && value.infinite?
       end
   end
 end
