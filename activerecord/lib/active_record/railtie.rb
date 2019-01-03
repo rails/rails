@@ -140,7 +140,19 @@ end_error
     initializer "active_record.define_attribute_methods" do |app|
       config.after_initialize do
         ActiveSupport.on_load(:active_record) do
-          descendants.each(&:define_attribute_methods) if app.config.eager_load
+          if app.config.eager_load
+            descendants.each do |model|
+              # SchemaMigration and InternalMetadata both override `table_exists?`
+              # to bypass the schema cache, so skip them to avoid the extra queries.
+              next if model._internal?
+
+              # If there's no connection yet, or the schema cache doesn't have the columns
+              # hash for the model cached, `define_attribute_methods` would trigger a query.
+              next unless model.connected? && model.connection.schema_cache.columns_hash?(model.table_name)
+
+              model.define_attribute_methods
+            end
+          end
         end
       end
     end

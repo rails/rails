@@ -282,6 +282,10 @@ module ActiveRecord
         TypeCaster::Map.new(self)
       end
 
+      def _internal? # :nodoc:
+        false
+      end
+
       private
 
         def cached_find_by_statement(key, &block)
