@@ -157,10 +157,6 @@ module ActiveRecord
           end
         end
 
-        def types_which_need_no_typecasting
-          [nil, Numeric, String]
-        end
-
         def _quote(value)
           case value
           when String, ActiveSupport::Multibyte::Chars
@@ -188,10 +184,9 @@ module ActiveRecord
           when false      then unquoted_false
           # BigDecimals need to be put in a non-normalized form and quoted.
           when BigDecimal then value.to_s("F")
+          when nil, Numeric, String then value
           when Type::Time::Value then quoted_time(value)
           when Date, Time then quoted_date(value)
-          when *types_which_need_no_typecasting
-            value
           else raise TypeError
           end
         end
