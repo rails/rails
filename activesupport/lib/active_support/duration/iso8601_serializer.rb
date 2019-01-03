@@ -6,6 +6,8 @@ module ActiveSupport
   class Duration
     # Serializes duration to string according to ISO 8601 Duration format.
     class ISO8601Serializer # :nodoc:
+      DATE_COMPONENTS = [:years, :months, :days]
+
       def initialize(duration, precision: nil)
         @duration = duration
         @precision = precision
@@ -20,6 +22,7 @@ module ActiveSupport
         output << "#{parts[:years]}Y"   if parts.key?(:years)
         output << "#{parts[:months]}M"  if parts.key?(:months)
         output << "#{parts[:days]}D"    if parts.key?(:days)
+        output << "#{parts[:weeks]}W"   if parts.key?(:weeks) && !week_mixed_with_date?(parts)
         time = +""
         time << "#{parts[:hours]}H"     if parts.key?(:hours)
         time << "#{parts[:minutes]}M"   if parts.key?(:minutes)
@@ -41,8 +44,8 @@ module ActiveSupport
             p[k] += v  unless v.zero?
           end
 
-          # Convert weeks to days and remove weeks
-          if parts.key?(:weeks)
+          # Convert weeks to days and remove weeks if mixed with date parts
+          if week_mixed_with_date?(parts)
             days_in_week = SECONDS_PER_WEEK / SECONDS_PER_DAY
             parts[:days] = parts[:days].to_i + (parts[:weeks] * days_in_week)
             parts.delete(:weeks)
@@ -55,6 +58,10 @@ module ActiveSupport
             parts.transform_values!(&:-@)
           end
           [parts, sign]
+        end
+
+        def week_mixed_with_date?(parts)
+          parts.key?(:weeks) && (parts.keys & DATE_COMPONENTS).any?
         end
     end
   end

@@ -559,7 +559,7 @@ class DurationTest < ActiveSupport::TestCase
   def test_iso8601_output
     expectations = [
       ["P1Y",           1.year                           ],
-      ["P7D",           1.week                           ],
+      ["P1W",           1.week                           ],
       ["P1Y1M",         1.year + 1.month                 ],
       ["P1Y1M1D",       1.year + 1.month + 1.day         ],
       ["-P1Y1D",        -1.year - 1.day                  ],
