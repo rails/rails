@@ -159,7 +159,7 @@ module ActiveRecord
 
         def _quote(value)
           case value
-          when String, ActiveSupport::Multibyte::Chars
+          when String, Symbol, ActiveSupport::Multibyte::Chars
             "'#{quote_string(value.to_s)}'"
           when true       then quoted_true
           when false      then quoted_false
@@ -170,7 +170,6 @@ module ActiveRecord
           when Type::Binary::Data then quoted_binary(value)
           when Type::Time::Value then "'#{quoted_time(value)}'"
           when Date, Time then "'#{quoted_date(value)}'"
-          when Symbol     then "'#{quote_string(value.to_s)}'"
           when Class      then "'#{value}'"
           else raise TypeError, "can't quote #{value.class.name}"
           end
