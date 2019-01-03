@@ -435,6 +435,11 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_file "#{app_root}/config/storage.yml"
   end
 
+  def test_generator_skips_action_mailbox_when_skip_action_mailbox_is_given
+    run_generator [destination_root, "--skip-action-mailbox"]
+    assert_file "#{application_path}/config/application.rb", /#\s+require\s+["']action_mailbox\/engine["']/
+  end
+
   def test_generator_skips_action_mailbox_when_skip_active_record_is_given
     run_generator [destination_root, "--skip-active-record"]
     assert_file "#{application_path}/config/application.rb", /#\s+require\s+["']action_mailbox\/engine["']/

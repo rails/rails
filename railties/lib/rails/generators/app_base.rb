@@ -44,6 +44,9 @@ module Rails
                                            default: false,
                                            desc: "Skip Action Mailer files"
 
+        class_option :skip_action_mailbox, type: :boolean, default: false,
+                                           desc: "Skip Action Mailbox gem"
+
         class_option :skip_active_record,  type: :boolean, aliases: "-O", default: false,
                                            desc: "Skip Active Record files"
 
@@ -231,7 +234,7 @@ module Rails
       end
 
       def skip_action_mailbox? # :doc:
-        skip_active_storage?
+        options[:skip_action_mailbox] || skip_active_storage?
       end
 
       class GemfileEntry < Struct.new(:name, :version, :comment, :options, :commented_out)
