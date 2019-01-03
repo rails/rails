@@ -61,6 +61,7 @@ module ActiveRecord
         @polymorphic_parent = polymorphic_parent
 
         check_preloadable! records
+        preload_association_on_loaded_record
       end
 
       # Maps weak references to real objects
@@ -79,7 +80,7 @@ module ActiveRecord
         associations_to_load.delete association
 
         @preloader.preload records, association, nil, @polymorphic_parent
-        load_next_records association, associations_to_load_next(association)
+        load_next_records association
       end
 
       private
@@ -118,7 +119,8 @@ module ActiveRecord
           -> object_id { @records.delete object_id }
         end
 
-        def load_next_records(parent_association, child_association)
+        def load_next_records(parent_association)
+          child_association = associations_to_load_next(parent_association)
           return if child_association.empty?
 
           loaded_records = []
@@ -131,6 +133,27 @@ module ActiveRecord
           end
 
           @preloader.lazy_preload loaded_records, child_association, child_polymorphic_parent
+        end
+
+        def preload_association_on_loaded_record
+          associations_to_check = @associations.each_with_object([]) do |association, result|
+            result.push(*association.keys) if association.is_a?(Hash)
+          end
+
+          return if associations_to_check.empty?
+
+          records.each do |record|
+            associations_to_check.reject! do |association|
+              if record.class._reflect_on_association(association) && record.association(association).loaded?
+                load_next_records(association)
+                true
+              else
+                false
+              end
+            end
+
+            return if associations_to_check.empty?
+          end
         end
 
         def associations_to_load
@@ -151,10 +174,14 @@ module ActiveRecord
         end
 
         def associations_to_load_next(association)
-          @associations.each_with_object([]) do |current, result|
-            if current.is_a?(::Hash) && current.key?(association)
-              result << current[association]
-            end
+          @associations_to_load_next ||= {}
+
+          @associations_to_load_next[association] ||= begin
+            @associations.each_with_object([]) do |current, result|
+              if current.is_a?(::Hash) && current.key?(association)
+                result << current[association]
+              end
+            end.freeze
           end
         end
     end
