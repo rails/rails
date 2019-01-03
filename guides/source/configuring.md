@@ -441,7 +441,7 @@ The schema dumper adds two additional configuration options:
 
 * `config.action_controller.per_form_csrf_tokens` configures whether CSRF tokens are only valid for the method/action they were generated for.
 
-* `config.action_controller.default_protect_from_forgery` determines whether forgery protection is added on `ActionController:Base`. This is false by default, but enabled when loading defaults for Rails 5.2.
+* `config.action_controller.default_protect_from_forgery` determines whether forgery protection is added on `ActionController:Base`. This is false by default.
 
 * `config.action_controller.relative_url_root` can be used to tell Rails that you are [deploying to a subdirectory](configuring.html#deploy-to-a-subdirectory-relative-url-root). The default is `ENV['RAILS_RELATIVE_URL_ROOT']`.
 
@@ -738,7 +738,7 @@ There are a few configuration options available in Active Support:
 
 * `config.active_support.use_sha1_digests` specifies whether to use SHA-1 instead of MD5 to generate non-sensitive digests, such as the ETag header. Defaults to false.
 
-* `config.active_support.use_authenticated_message_encryption` specifies whether to use AES-256-GCM authenticated encryption as the default cipher for encrypting messages instead of AES-256-CBC. This is false by default, but enabled when loading defaults for Rails 5.2.
+* `config.active_support.use_authenticated_message_encryption` specifies whether to use AES-256-GCM authenticated encryption as the default cipher for encrypting messages instead of AES-256-CBC. This is false by default.
 
 * `ActiveSupport::Logger.silencer` is set to `false` to disable the ability to silence logging in a block. The default is `true`.
 
@@ -876,6 +876,36 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 
   The default is `/rails/active_storage`
 
+### Results of `load_defaults`
+
+#### With '5.0':
+
+- `config.action_controller.per_form_csrf_tokens`: `true`
+- `config.action_controller.forgery_protection_origin_check`: `true`
+- `ActiveSupport.to_time_preserves_timezone`: `true`
+- `config.active_record.belongs_to_required_by_default`: `true`
+- `config.ssl_options`: `{ hsts: { subdomains: true } }`
+
+#### With '5.1':
+
+- `config.assets.unknown_asset_fallback`: `false`
+- `config.action_view.form_with_generates_remote_forms`: `true`
+
+#### With '5.2':
+
+- `config.active_record.cache_versioning`: `true`
+- `ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer`: `true`
+- `action_dispatch.use_authenticated_cookie_encryption`: `true`
+- `config.active_support.use_authenticated_message_encryption`: `true`
+- `config.active_support.use_sha1_digests`: `true`
+- `config.action_controller.default_protect_from_forgery`: `true`
+- `config.action_view.form_with_generates_ids`: `true`
+
+#### With '6.0':
+
+- `config.action_view.default_enforce_utf8`: `false`
+- `config.action_dispatch.use_cookies_with_metadata`: `true`
+- `config.active_job.return_false_on_aborted_enqueue`: `true`
 
 ### Configuring a Database
 
