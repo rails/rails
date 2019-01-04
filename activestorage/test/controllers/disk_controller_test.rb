@@ -49,7 +49,8 @@ class ActiveStorage::DiskControllerTest < ActionDispatch::IntegrationTest
     data = "Something else entirely!"
     blob = create_blob_before_direct_upload byte_size: data.size, checksum: Digest::MD5.base64digest(data)
 
-    put blob.service_url_for_direct_upload, params: data, headers: { "Content-Type" => "text/plain" }
+    puts blob.service_direct_upload.url
+    put blob.service_direct_upload.url, params: data, headers: { "Content-Type" => "text/plain" }
     assert_response :no_content
     assert_equal data, blob.download
   end
@@ -58,7 +59,7 @@ class ActiveStorage::DiskControllerTest < ActionDispatch::IntegrationTest
     data = "Something else entirely!"
     blob = create_blob_before_direct_upload byte_size: data.size, checksum: Digest::MD5.base64digest("bad data")
 
-    put blob.service_url_for_direct_upload, params: data
+    put blob.service_direct_upload.url, params: data
     assert_response :unprocessable_entity
     assert_not blob.service.exist?(blob.key)
   end
@@ -67,7 +68,7 @@ class ActiveStorage::DiskControllerTest < ActionDispatch::IntegrationTest
     data = "Something else entirely!"
     blob = create_blob_before_direct_upload byte_size: data.size, checksum: Digest::MD5.base64digest(data)
 
-    put blob.service_url_for_direct_upload, params: data, headers: { "Content-Type" => "application/octet-stream" }
+    put blob.service_direct_upload.url, params: data, headers: { "Content-Type" => "application/octet-stream" }
     assert_response :unprocessable_entity
     assert_not blob.service.exist?(blob.key)
   end
@@ -86,7 +87,7 @@ class ActiveStorage::DiskControllerTest < ActionDispatch::IntegrationTest
     data = "Something else entirely!"
     blob = create_blob_before_direct_upload byte_size: data.size - 1, checksum: Digest::MD5.base64digest(data)
 
-    put blob.service_url_for_direct_upload, params: data, headers: { "Content-Type" => "text/plain" }
+    put blob.service_direct_upload.url, params: data, headers: { "Content-Type" => "text/plain" }
     assert_response :unprocessable_entity
     assert_not blob.service.exist?(blob.key)
   end

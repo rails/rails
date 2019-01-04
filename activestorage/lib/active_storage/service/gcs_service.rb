@@ -94,7 +94,15 @@ module ActiveStorage
       end
     end
 
-    def url_for_direct_upload(key, expires_in:, checksum:, **)
+    def direct_upload(key, expires_in:, checksum:, **)
+      instrument :direct_upload, key: key do |payload|
+        url = url_for_direct_upload(key, expires_in: expires_in, checksum: checksum)
+        headers = headers_for_direct_upload(key, checksum: checksum)
+        ActiveStorage::DirectUpload.new(url: url, headers: headers).tap { |obj| payload[:direct_upload] = obj }
+      end
+    end
+
+    def url_for_direct_upload(key, expires_in:, checksum:)
       instrument :url, key: key do |payload|
         generated_url = bucket.signed_url key, method: "PUT", expires: expires_in, content_md5: checksum
 
@@ -104,7 +112,7 @@ module ActiveStorage
       end
     end
 
-    def headers_for_direct_upload(key, checksum:, **)
+    def headers_for_direct_upload(key, checksum:)
       { "Content-MD5" => checksum }
     end
 
