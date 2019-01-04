@@ -243,7 +243,7 @@ class Module
   #     end
   #
   #     def person
-  #       @event.detail.person || @event.creator
+  #       detail.person || creator
   #     end
   #
   #     private
