@@ -1,3 +1,11 @@
+*   Send Active Storage analysis and purge jobs to dedicated queues by default.
+
+    Analysis jobs now use the `:active_storage_analysis` queue, and purge jobs
+    now use the `:active_storage_purge` queue. This matches Action Mailbox,
+    which sends its jobs to dedicated queues by default.
+
+    *George Claghorn*
+
 *   Add `rails test:mailboxes`.
 
     *George Claghorn*
