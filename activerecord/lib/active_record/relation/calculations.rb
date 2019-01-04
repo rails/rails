@@ -383,7 +383,7 @@ module ActiveRecord
         case operation
         when "count"   then value.to_i
         when "sum"     then type.deserialize(value || 0)
-        when "average" then value.respond_to?(:to_d) ? value.to_d : value
+        when "average" then value && value.respond_to?(:to_d) ? value.to_d : value
         else type.deserialize(value)
         end
       end
