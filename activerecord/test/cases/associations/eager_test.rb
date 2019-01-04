@@ -1967,7 +1967,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
     end
 
     assert_no_queries do
-      sponsors.each(&:sponsorable).each{ |s| s.respond_to?(:post) && s.post }
+      sponsors.each(&:sponsorable).each { |s| s.respond_to?(:post) && s.post }
     end
 
     assert_queries(2) do
