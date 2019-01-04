@@ -99,6 +99,14 @@ module ActiveStorage
       end
     end
 
+    def direct_upload(key, expires_in:, content_type:, content_length:, checksum:, **)
+      instrument :direct_upload, key: key do |payload|
+        url = url_for_direct_upload(key, expires_in: expires_in, content_type: content_type, content_length: content_length, checksum: checksum)
+        headers = headers_for_direct_upload(key, content_type: content_type, checksum: checksum)
+        ActiveStorage::DirectUpload.new(url: url, headers: headers).tap { |obj| payload[:direct_upload] = obj }
+      end
+    end
+
     def url_for_direct_upload(key, expires_in:, content_type:, content_length:, checksum:)
       instrument :url, key: key do |payload|
         generated_url = signer.signed_uri(
@@ -114,7 +122,7 @@ module ActiveStorage
       end
     end
 
-    def headers_for_direct_upload(key, content_type:, checksum:, **)
+    def headers_for_direct_upload(key, content_type:, checksum:)
       { "Content-Type" => content_type, "Content-MD5" => checksum, "x-ms-blob-type" => "BlockBlob" }
     end
 
