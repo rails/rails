@@ -22,8 +22,8 @@ module ActionText
       options[:class] ||= "trix-content"
 
       options[:data] ||= {}
-      options[:data][:direct_upload_url] = rails_direct_uploads_url
-      options[:data][:blob_url_template] = rails_service_blob_url(":signed_id", ":filename")
+      options[:data][:direct_upload_url] = main_app.rails_direct_uploads_url
+      options[:data][:blob_url_template] = main_app.rails_service_blob_url(":signed_id", ":filename")
 
       editor_tag = content_tag("trix-editor", "", options)
       input_tag = hidden_field_tag(name, value, id: options[:input])
