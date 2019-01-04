@@ -96,6 +96,12 @@ module ActiveStorage
       raise NotImplementedError
     end
 
+    # Return an instance of ActiveStorage::DirectUpload for direct upload request.
+    def direct_upload(key, options: {})
+      raise NotImplementedError
+    end
+
+    # DEPRECATED:
     # Returns a signed, temporary URL that a direct upload file can be PUT to on the +key+.
     # The URL will be valid for the amount of seconds specified in +expires_in+.
     # You must also provide the +content_type+, +content_length+, and +checksum+ of the file
@@ -104,13 +110,10 @@ module ActiveStorage
       raise NotImplementedError
     end
 
+    # DEPRECATED:
     # Returns a Hash of headers for +url_for_direct_upload+ requests.
     def headers_for_direct_upload(key, filename:, content_type:, content_length:, checksum:)
       {}
-    end
-
-    # Returns a HTTP Method for +url_for_direct_upload+ requests.
-    def method_for_direct_upload
     end
 
     private

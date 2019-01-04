@@ -118,7 +118,6 @@ class ActiveStorage::Blob < ActiveRecord::Base
     content_type.start_with?("text")
   end
 
-
   # Returns the URL of the blob on the service. This URL is intended to be short-lived for security and not used directly
   # with users. Instead, the +service_url+ should only be exposed as a redirect from a stable, possibly authenticated URL.
   # Hiding the +service_url+ behind a redirect also gives you the power to change services without updating all URLs. And
@@ -130,20 +129,23 @@ class ActiveStorage::Blob < ActiveRecord::Base
       disposition: forcibly_serve_as_binary? ? :attachment : disposition, **options
   end
 
+  # Return a ActiveStorage::DirectUpload with specified request method, url and headers that can be used to directly upload
+  # a file for this blob on the service.
+  def service_direct_upload(expires_in: ActiveStorage.service_urls_expire_in, **options)
+    service.direct_upload key, expires_in: expires_in, filename: filename, content_type: content_type, content_length: byte_size, checksum: checksum, **options
+  end
+
+  # DEPRECATED:
   # Returns a URL that can be used to directly upload a file for this blob on the service. This URL is intended to be
   # short-lived for security and only generated on-demand by the client-side JavaScript responsible for doing the uploading.
   def service_url_for_direct_upload(expires_in: ActiveStorage.service_urls_expire_in)
     service.url_for_direct_upload key, expires_in: expires_in, content_type: content_type, content_length: byte_size, checksum: checksum
   end
 
+  # DEPRECATED:
   # Returns a Hash of headers for +service_url_for_direct_upload+ requests.
   def service_headers_for_direct_upload
     service.headers_for_direct_upload key, filename: filename, content_type: content_type, content_length: byte_size, checksum: checksum
-  end
-
-  # Returns a HTTP Methods for +service_url_for_direct_upload+ requests.
-  def service_method_for_direct_upload
-    service.method_for_direct_upload
   end
 
   # Uploads the +io+ to the service on the +key+ for this blob. Blobs are intended to be immutable, so you shouldn't be

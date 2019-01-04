@@ -96,6 +96,14 @@ module ActiveStorage
       end
     end
 
+    def direct_upload(key, expires_in:, content_type:, content_length:, checksum:, **)
+      instrument :direct_upload, key: key do |payload|
+        url = url_for_direct_upload(key, expires_in: expires_in, content_type: content_type, content_length: content_length, checksum: checksum)
+        headers = headers_for_direct_upload(key, content_type: content_type)
+        ActiveStorage::DirectUpload.new(url: url, headers: headers).tap { |record| payload[:direct_upload] = record }
+      end
+    end
+
     def url_for_direct_upload(key, expires_in:, content_type:, content_length:, checksum:)
       instrument :url, key: key do |payload|
         verified_token_with_expiration = ActiveStorage.verifier.generate(
@@ -117,7 +125,7 @@ module ActiveStorage
       end
     end
 
-    def headers_for_direct_upload(key, content_type:, **)
+    def headers_for_direct_upload(key, content_type:)
       { "Content-Type" => content_type }
     end
 

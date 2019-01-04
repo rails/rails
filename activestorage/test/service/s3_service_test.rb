@@ -14,13 +14,12 @@ if SERVICE_CONFIGURATIONS[:s3]
         key      = SecureRandom.base58(24)
         data     = "Something else entirely!"
         checksum = Digest::MD5.base64digest(data)
-        url      = @service.url_for_direct_upload(key, expires_in: 5.minutes, content_type: "text/plain", content_length: data.size, checksum: checksum)
+        direct_upload = @service.direct_upload(key, expires_in: 5.minutes, content_type: "text/plain", content_length: data.size, checksum: checksum)
 
-        uri = URI.parse url
+        uri = URI.parse direct_upload.url
         request = Net::HTTP::Put.new uri.request_uri
         request.body = data
-        request.add_field "Content-Type", "text/plain"
-        request.add_field "Content-MD5", checksum
+        direct_upload.headers.each { |k, v| request.add_field k, v }
         Net::HTTP.start(uri.host, uri.port, use_ssl: true) do |http|
           http.request request
         end
