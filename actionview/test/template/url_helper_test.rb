@@ -119,6 +119,16 @@ class UrlHelperTest < ActiveSupport::TestCase
     )
   end
 
+  def test_button_to_without_protect_against_forgery_method
+    self.class.undef_method(:protect_against_forgery?)
+    assert_dom_equal(
+      %{<form method="post" action="http://www.example.com" class="button_to"><input type="submit" value="Hello" /></form>},
+      button_to("Hello", "http://www.example.com")
+    )
+  ensure
+    self.class.define_method(:protect_against_forgery?) { request_forgery }
+  end
+
   def test_button_to_with_straight_url
     assert_dom_equal %{<form method="post" action="http://www.example.com" class="button_to"><input type="submit" value="Hello" /></form>}, button_to("Hello", "http://www.example.com")
   end
