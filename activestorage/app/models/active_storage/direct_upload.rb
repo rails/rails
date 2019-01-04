@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class ActiveStorage::DirectUpload
-  DEFAULT_REQUEST_METHOD = 'put'
+  DEFAULT_REQUEST_METHOD = "put"
 
   attr_reader :method, :url, :headers
 
