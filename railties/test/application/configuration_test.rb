@@ -2226,6 +2226,34 @@ module ApplicationTests
       assert_equal true, ActiveJob::Base.return_false_on_aborted_enqueue
     end
 
+    test "ActiveStorage.queues[:analysis] is :active_storage_analysis by default" do
+      app "development"
+
+      assert_equal :active_storage_analysis, ActiveStorage.queues[:analysis]
+    end
+
+    test "ActiveStorage.queues[:analysis] is nil without Rails 6 defaults" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app "development"
+
+      assert_nil ActiveStorage.queues[:analysis]
+    end
+
+    test "ActiveStorage.queues[:purge] is :active_storage_purge by default" do
+      app "development"
+
+      assert_equal :active_storage_purge, ActiveStorage.queues[:purge]
+    end
+
+    test "ActiveStorage.queues[:purge] is nil without Rails 6 defaults" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app "development"
+
+      assert_nil ActiveStorage.queues[:purge]
+    end
+
     test "ActiveRecord::Base.filter_attributes should equal to filter_parameters" do
       app_file "config/initializers/filter_parameters_logging.rb", <<-RUBY
         Rails.application.config.filter_parameters += [ :password, :credit_card_number ]
