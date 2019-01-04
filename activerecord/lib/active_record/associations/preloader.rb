@@ -101,11 +101,11 @@ module ActiveRecord
         end
       end
 
-      def lazy_preload(records, associations, polymorphic_parent = false)
+      def lazy_preload(records, associations, **opts)
         records = Array.wrap(records).compact
 
         unless records.empty?
-          LazyPreloader.preload(records, self, associations, polymorphic_parent)
+          LazyPreloader.preload(records, self, associations, opts)
         end
       end
 

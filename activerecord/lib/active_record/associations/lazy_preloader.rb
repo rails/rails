@@ -46,22 +46,22 @@ module ActiveRecord
         end
       end
 
-      def self.preload(records, preloader, associations, polymorphic_parent = false)
-        new(records, preloader, associations, polymorphic_parent).tap do |lazy_loader|
+      def self.preload(records, preloader, associations, polymorphic_parent: false, loaded_associations: true)
+        new(records, preloader, associations, polymorphic_parent, loaded_associations).tap do |lazy_loader|
           records.each { |record| LazyPreloader::Registry.store record, lazy_loader }
         end
       end
 
       private_class_method :new
 
-      def initialize(records, preloader, associations, polymorphic_parent)
+      def initialize(records, preloader, associations, polymorphic_parent, loaded_associations)
         @records = weak_references records
         @preloader = preloader
         @associations = normalize_associations associations
         @polymorphic_parent = polymorphic_parent
 
         check_preloadable! records
-        preload_association_on_loaded_record
+        preload_association_on_loaded_record(records, loaded_associations)
       end
 
       # Maps weak references to real objects
@@ -84,19 +84,7 @@ module ActiveRecord
       end
 
       private
-
-        def normalize_associations(associations)
-          Array.wrap(associations).flatten.map! do |association|
-            case association
-            when Hash
-              association.transform_keys { |key| symbolize_association(key) }
-            else
-              symbolize_association(association)
-            end
-          end
-        end
-
-        def check_preloadable!(records = self.records)
+        def check_preloadable!(records)
           records.uniq(&:class).each do |record|
             associations_to_load.each do |association|
               if reflection = record.class._reflect_on_association(association)
@@ -109,17 +97,15 @@ module ActiveRecord
         end
 
         def weak_references(records)
+          record_finalizer = ->(object_id) { @records.delete object_id }
+
           records.index_by(&:object_id).transform_values! do |record|
             ::ObjectSpace.define_finalizer record, record_finalizer
             ::WeakRef.new record
           end
         end
 
-        def record_finalizer
-          -> object_id { @records.delete object_id }
-        end
-
-        def load_next_records(parent_association)
+        def load_next_records(parent_association, loaded_associations = false)
           child_association = associations_to_load_next(parent_association)
           return if child_association.empty?
 
@@ -132,12 +118,20 @@ module ActiveRecord
             end
           end
 
-          @preloader.lazy_preload loaded_records, child_association, child_polymorphic_parent
+          @preloader.lazy_preload loaded_records, child_association, polymorphic_parent: child_polymorphic_parent, loaded_associations: loaded_associations
         end
 
-        def preload_association_on_loaded_record
+        def preload_association_on_loaded_record(records, loaded_associations)
+          return unless loaded_associations
+
           associations_to_check = @associations.each_with_object([]) do |association, result|
             result.push(*association.keys) if association.is_a?(Hash)
+          end
+          associations_to_check.uniq!
+
+          if loaded_associations != true
+            loaded_associations = normalize_associations(loaded_associations)
+            associations_to_check &= root_associations(loaded_associations)
           end
 
           return if associations_to_check.empty?
@@ -145,7 +139,8 @@ module ActiveRecord
           records.each do |record|
             associations_to_check.reject! do |association|
               if record.class._reflect_on_association(association) && record.association(association).loaded?
-                load_next_records(association)
+                child_loaded_associations = loaded_associations == true || child_associations(loaded_associations, association)
+                load_next_records(association, child_loaded_associations)
                 true
               else
                 false
@@ -157,10 +152,37 @@ module ActiveRecord
         end
 
         def associations_to_load
-          @associations_to_load ||= begin
-            @associations.flat_map do |association|
-              association.is_a?(Hash) ? association.keys : association
-            end.tap(&:uniq!)
+          @associations_to_load ||= root_associations(@associations)
+        end
+
+        def associations_to_load_next(parent_association)
+          @associations_to_load_next ||= {}
+
+          @associations_to_load_next[parent_association] ||= child_associations(@associations, parent_association).freeze
+        end
+
+        def root_associations(associations)
+          associations.flat_map do |association|
+            association.is_a?(Hash) ? association.keys : association
+          end.tap(&:uniq!)
+        end
+
+        def child_associations(associations, parent_association)
+          associations.each_with_object([]) do |current, result|
+            if current.is_a?(::Hash) && current.key?(parent_association)
+              result << current[parent_association]
+            end
+          end
+        end
+
+        def normalize_associations(associations)
+          Array.wrap(associations).flatten.map! do |association|
+            case association
+            when Hash
+              association.transform_keys { |key| symbolize_association(key) }
+            else
+              symbolize_association(association)
+            end
           end
         end
 
@@ -170,18 +192,6 @@ module ActiveRecord
             association.to_sym
           else
             raise ArgumentError, "#{association.inspect} was not recognized for preload"
-          end
-        end
-
-        def associations_to_load_next(association)
-          @associations_to_load_next ||= {}
-
-          @associations_to_load_next[association] ||= begin
-            @associations.each_with_object([]) do |current, result|
-              if current.is_a?(::Hash) && current.key?(association)
-                result << current[association]
-              end
-            end.freeze
           end
         end
     end

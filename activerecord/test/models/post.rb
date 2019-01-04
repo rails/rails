@@ -34,7 +34,7 @@ class Post < ActiveRecord::Base
   belongs_to :author_with_address, -> { includes(:author_address) }, class_name: "Author", foreign_key: :author_id
 
   def first_comment
-    super.body
+    super&.body
   end
   has_one :first_comment, -> { order("id ASC") }, class_name: "Comment"
   has_one :last_comment, -> { order("id desc") }, class_name: "Comment"

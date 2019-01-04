@@ -1882,6 +1882,99 @@ class EagerAssociationTest < ActiveRecord::TestCase
     end
   end
 
+  test "deep lazy preload with overlapping includes_immediately" do
+    post = assert_queries(3) do
+      Post.preload(author: :posts, comments: :post).includes_immediately(:author, :comments).first
+    end
+
+    assert_no_queries do
+      assert_not_predicate post.author.association(:posts), :loaded?
+    end
+    assert_no_queries do
+      assert_not_predicate post.comments.first.association(:post), :loaded?
+    end
+
+    assert_queries(2) do
+      post.author.posts.first
+      post.comments[-1].post
+
+      assert_predicate post.author.association(:posts), :loaded?
+      assert_predicate post.comments.first.association(:post), :loaded?
+    end
+  end
+
+  test "deep nested lazy preload with overlapping includes_immediately" do
+    posts = assert_queries(3) do
+      Post.preload(author: [posts: :first_comment], comments: [post: :first_comment]).includes_immediately(:author, :comments).to_a
+    end
+
+    assert_no_queries do
+      assert_not_predicate posts.first.author.association(:posts), :loaded?
+    end
+    assert_no_queries do
+      assert_not_predicate posts.first.comments.first.association(:post), :loaded?
+    end
+
+    assert_queries(2) do
+      posts.map(&:author).compact.flat_map(&:posts)
+      posts.flat_map(&:comments).map(&:post)
+    end
+
+    assert_queries(2) do
+      posts.map(&:author).compact.flat_map(&:posts).map(&:first_comment)
+      posts.flat_map(&:comments).map(&:post).map(&:first_comment)
+    end
+  end
+
+
+  test "deep nested lazy preload with deep overlapping includes_immediately" do
+    posts = assert_queries(5) do
+      Post.preload(author: [posts: :first_comment], comments: [post: :first_comment]).includes_immediately(comments: :post, author: :posts).to_a
+    end
+
+    assert_no_queries do
+      assert_predicate posts.first.author.association(:posts), :loaded?
+      assert_not_predicate posts.first.author.posts.first.association(:first_comment), :loaded?
+    end
+    assert_no_queries do
+      assert_predicate posts.first.comments.first.association(:post), :loaded?
+      assert_not_predicate posts.first.comments.first.post.association(:first_comment), :loaded?
+    end
+
+    assert_queries(2) do
+      posts.map(&:author).compact.flat_map(&:posts).map(&:first_comment)
+      posts.flat_map(&:comments).map(&:post).map(&:first_comment)
+    end
+  end
+
+  test "polymorphic deep lazy preload with overlapping includes_immediately" do
+    sponsors = assert_queries(3) do
+      Sponsor.where(sponsorable_id: 1).includes_immediately(:sponsorable).includes(sponsorable: [{ post: :first_comment }, :membership]).to_a
+    end
+
+    assert_no_queries do
+      sponsors.each(&:sponsorable)
+    end
+
+    assert_queries(3) do
+      sponsors.map(&:sponsorable).map { |s| s.respond_to?(:post) ? s.post.first_comment : s.try(:membership) }
+    end
+  end
+
+  test "polymorphic deep lazy preload with overlapping deep includes_immediately" do
+    sponsors = assert_queries(4) do
+      Sponsor.where(sponsorable_id: 1).includes_immediately(sponsorable: :post).includes(sponsorable: [{ post: :first_comment }, :membership]).to_a
+    end
+
+    assert_no_queries do
+      sponsors.each(&:sponsorable).each{ |s| s.respond_to?(:post) && s.post }
+    end
+
+    assert_queries(2) do
+      sponsors.map(&:sponsorable).map { |s| s.respond_to?(:post) ? s.post.first_comment : s.try(:membership) }
+    end
+  end
+
   test "deep inclues with partial references" do
     post = assert_queries(2) do
       Post.includes(author: :posts, comments: :post).references(:author, :comments).first
