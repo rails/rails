@@ -154,6 +154,7 @@ ENV["GEM"].split(",").each do |gem|
     next if gem == "actionview:ujs" && isolated
     next if gem == "activestorage" && isolated
     next if gem == "actionmailbox" && isolated
+    next if gem == "actiontext" && isolated
 
     build = Build.new(gem, isolated: isolated)
     results[build.key] = build.run!
