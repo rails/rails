@@ -346,11 +346,16 @@ module SharedGeneratorTests
     run_generator
     assert_file "#{application_path}/package.json", /dependencies/
     assert_file "#{application_path}/bin/yarn"
+    assert_file "#{application_path}/config/initializers/assets.rb", /node_modules/
   end
 
   def test_generator_for_yarn_skipped
     run_generator([destination_root, "--skip-javascript"])
     assert_no_file "#{application_path}/package.json"
     assert_no_file "#{application_path}/bin/yarn"
+
+    assert_file "#{application_path}/config/initializers/assets.rb" do |content|
+      assert_no_match(/node_modules/, content)
+    end
   end
 end
