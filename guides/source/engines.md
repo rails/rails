@@ -1510,6 +1510,7 @@ To hook into the initialization process of one of the following classes use the 
 | `ActionMailbox::TestCase`         | `action_mailbox_test_case`           |
 | `ActionMailer::Base`              | `action_mailer`                      |
 | `ActionMailer::TestCase`          | `action_mailer_test_case`            |
+| `ActionText::Content`             | `action_text_content`                |
 | `ActionView::Base`                | `action_view`                        |
 | `ActionView::TestCase`            | `action_view_test_case`              |
 | `ActiveJob::Base`                 | `active_job`                         |
