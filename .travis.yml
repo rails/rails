@@ -57,7 +57,7 @@ env:
     - "JRUBY_OPTS='--dev -J-Xmx1024M'"
   matrix:
     - "GEM=actionpack,actioncable"
-    - "GEM=actionmailer,activemodel,activesupport,actionview,activejob,activestorage,actionmailbox"
+    - "GEM=actionmailer,activemodel,activesupport,actionview,activejob,activestorage,actionmailbox,actiontext"
     - "GEM=activesupport PRESERVE_TIMEZONES=1"
     - "GEM=activerecord:sqlite3"
     - "GEM=guides"

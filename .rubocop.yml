@@ -9,6 +9,7 @@ AllCops:
     - 'actionpack/lib/action_dispatch/journey/parser.rb'
     - 'railties/test/fixtures/tmp/**/*'
     - 'actionmailbox/test/dummy/**/*'
+    - 'actiontext/test/dummy/**/*'
     - 'node_modules/**/*'
 
 Performance:
@@ -135,6 +136,7 @@ Style/FrozenStringLiteralComment:
     - 'actionpack/test/**/*.ruby'
     - 'activestorage/db/migrate/**/*.rb'
     - 'actionmailbox/db/migrate/**/*.rb'
+    - 'actiontext/db/migrate/**/*.rb'
 
 Style/RedundantFreeze:
   Enabled: true
