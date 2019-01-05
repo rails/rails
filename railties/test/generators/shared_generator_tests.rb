@@ -128,6 +128,7 @@ module SharedGeneratorTests
       "--skip-active-storage",
       "--skip-action-mailer",
       "--skip-action-mailbox",
+      "--skip-action-text",
       "--skip-action-cable",
       "--skip-sprockets"
     ]
@@ -141,6 +142,7 @@ module SharedGeneratorTests
     assert_file "#{application_path}/config/application.rb", /^# require\s+["']action_mailer\/railtie["']/
     unless generator_class.name == "Rails::Generators::PluginGenerator"
       assert_file "#{application_path}/config/application.rb", /^# require\s+["']action_mailbox\/engine["']/
+      assert_file "#{application_path}/config/application.rb", /^# require\s+["']action_text\/engine["']/
     end
     assert_file "#{application_path}/config/application.rb", /^require\s+["']action_view\/railtie["']/
     assert_file "#{application_path}/config/application.rb", /^# require\s+["']action_cable\/engine["']/
