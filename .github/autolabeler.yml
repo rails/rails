@@ -6,6 +6,8 @@ actionmailer:
   - "actionmailer/**/*"
 actionpack:
   - "actionpack/**/*"
+actiontext:
+  - "actiontext/**/*"
 actionview:
   - "actionview/**/*"
 activejob:
