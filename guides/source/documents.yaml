@@ -81,6 +81,11 @@
       url: action_mailbox_basics.html
       description: This guide describes how to use Action Mailbox to receive emails.
     -
+      name: Action Text Overview
+      work_in_progress: true
+      url: action_text_overview.html
+      description: This guide describes how to use Action Text to handle rich text content.
+    -
       name: Active Job Basics
       url: active_job_basics.html
       description: This guide provides you with all you need to get started creating, enqueuing, and executing background jobs.
