@@ -20,6 +20,7 @@ module ActiveStorage
         IO.copy_stream(io, make_path_for(key))
         ensure_integrity_of(key, checksum) if checksum
       end
+      io.rewind
     end
 
     def download(key, &block)
