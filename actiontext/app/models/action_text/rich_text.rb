@@ -4,22 +4,24 @@
 # It also holds all the references to the embedded files, which are stored using Active Storage.
 # This record is then associated with the Active Record model the application desires to have
 # rich text content using the `has_rich_text` class method.
-class ActionText::RichText < ActiveRecord::Base
-  self.table_name = "action_text_rich_texts"
+module ActionText
+  class RichText < ActiveRecord::Base
+    self.table_name = "action_text_rich_texts"
 
-  serialize :body, ActionText::Content
-  delegate :to_s, :nil?, to: :body
+    serialize :body, ActionText::Content
+    delegate :to_s, :nil?, to: :body
 
-  belongs_to :record, polymorphic: true, touch: true
-  has_many_attached :embeds
+    belongs_to :record, polymorphic: true, touch: true
+    has_many_attached :embeds
 
-  before_save do
-    self.embeds = body.attachments.map(&:attachable) if body.present?
+    before_save do
+      self.embeds = body.attachments.map(&:attachable) if body.present?
+    end
+
+    def to_plain_text
+      body&.to_plain_text.to_s
+    end
+
+    delegate :blank?, :empty?, :present?, to: :to_plain_text
   end
-
-  def to_plain_text
-    body&.to_plain_text.to_s
-  end
-
-  delegate :blank?, :empty?, :present?, to: :to_plain_text
 end
