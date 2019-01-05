@@ -2,7 +2,6 @@
 
 version = File.read(File.expand_path("../RAILS_VERSION", __dir__)).strip
 
-# Describe your gem and declare its dependencies:
 Gem::Specification.new do |s|
   s.platform    = Gem::Platform::RUBY
   s.name        = "actiontext"
