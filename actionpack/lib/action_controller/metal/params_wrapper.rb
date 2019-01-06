@@ -253,10 +253,9 @@ module ActionController
         # This will display the wrapped hash in the log file.
         request.filtered_parameters.merge! wrapped_filtered_hash
       end
-    ensure
-      # NOTE: Rescues all exceptions so they
-      # may be caught in ActionController::Rescue.
-      return super
+      super
+    rescue ActionDispatch::Http::Parameters::ParseError
+      super
     end
 
     private
