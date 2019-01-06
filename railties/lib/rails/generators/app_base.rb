@@ -326,7 +326,7 @@ module Rails
       def assets_gemfile_entry
         return [] if options[:skip_sprockets]
 
-        GemfileEntry.version("sass-rails", "~> 5.0", "Use SCSS for stylesheets")
+        GemfileEntry.version("sassc-rails", "~> 2.1", "Use SCSS for stylesheets")
       end
 
       def webpacker_gemfile_entry
