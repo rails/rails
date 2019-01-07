@@ -38,5 +38,10 @@
     <%= form.text_area :body, size: "40x20" %>
   </div>
 
+  <div>
+    <%= form.label :attachments, "Attachments" %><br>
+    <%= form.file_field :attachments, multiple: true %>
+  </div>
+
   <%= form.submit "Deliver inbound email" %>
 <% end %>
