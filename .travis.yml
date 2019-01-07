@@ -27,8 +27,8 @@ rvm:
   - 2.0.0-p648
   - 2.1.10
   - 2.2.10
-  - 2.3.7
-  - 2.4.4
+  - 2.3.8
+  - 2.4.5
 
 matrix:
   allow_failures:
@@ -38,7 +38,7 @@ matrix:
       env: "GEM=ar:mysql"
     - env: "GEM=aj:integration"
   exclude:
-    - rvm: 2.4.4
+    - rvm: 2.4.5
       env: "GEM=ar:mysql"
   fast_finish: true
 notifications:
