@@ -25,3 +25,5 @@ module ActionText
     delegate :blank?, :empty?, :present?, to: :to_plain_text
   end
 end
+
+ActiveSupport.run_load_hooks :action_text_rich_text, ActionText::RichText
