@@ -1,3 +1,9 @@
+*   Preserve key order passed to `ActiveSupport::CacheStore#fetch_multi`.
+
+    `fetch_multi(*names)` now returns its results in the same order as the `*names` requested, rather than returning cache hits followed by cache misses.
+
+    *Gannon McGibbon*
+
 *   If the same block is `included` multiple times for a Concern, an exception is no longer raised.
 
     *Mark J. Titorenko*, *Vlad Bokov*

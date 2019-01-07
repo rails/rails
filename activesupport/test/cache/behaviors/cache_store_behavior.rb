@@ -130,7 +130,7 @@ module CacheStoreBehavior
     assert_equal("fufu", @cache.read("fu"))
   end
 
-  def test_multi_with_objects
+  def test_fetch_multi_with_objects
     cache_struct = Struct.new(:cache_key, :title)
     foo = cache_struct.new("foo", "FOO!")
     bar = cache_struct.new("bar")
@@ -140,6 +140,14 @@ module CacheStoreBehavior
     values = @cache.fetch_multi(foo, bar) { |object| object.title }
 
     assert_equal({ foo => "FOO!", bar => "BAM!" }, values)
+  end
+
+  def test_fetch_multi_returns_ordered_names
+    @cache.write("bam", "BAM")
+
+    values = @cache.fetch_multi("foo", "bar", "bam") { |key| key.upcase }
+
+    assert_equal(%w(foo bar bam), values.keys)
   end
 
   def test_fetch_multi_without_block
