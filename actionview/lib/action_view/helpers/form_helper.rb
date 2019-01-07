@@ -1680,6 +1680,227 @@ module ActionView
         @index = options[:index] || options[:child_index]
       end
 
+      ##
+      # :method: text_field
+      #
+      # :call-seq: text_field(method, options = {})
+      #
+      # Wraps ActionView::Helpers::FormHelper#text_field for form builders:
+      #
+      #   <%= form_with model: @user do |f| %>
+      #     <%= f.text_field :name %>
+      #   <% end %>
+      #
+      # Please refer to the documentation of the base helper for details.
+
+      ##
+      # :method: password_field
+      #
+      # :call-seq: password_field(method, options = {})
+      #
+      # Wraps ActionView::Helpers::FormHelper#password_field for form builders:
+      #
+      #   <%= form_with model: @user do |f| %>
+      #     <%= f.password_field :password %>
+      #   <% end %>
+      #
+      # Please refer to the documentation of the base helper for details.
+
+      ##
+      # :method: text_area
+      #
+      # :call-seq: text_area(method, options = {})
+      #
+      # Wraps ActionView::Helpers::FormHelper#text_area for form builders:
+      #
+      #   <%= form_with model: @user do |f| %>
+      #     <%= f.text_area :detail %>
+      #   <% end %>
+      #
+      # Please refer to the documentation of the base helper for details.
+
+      ##
+      # :method: color_field
+      #
+      # :call-seq: color_field(method, options = {})
+      #
+      # Wraps ActionView::Helpers::FormHelper#color_field for form builders:
+      #
+      #   <%= form_with model: @user do |f| %>
+      #     <%= f.color_field :favorite_color %>
+      #   <% end %>
+      #
+      # Please refer to the documentation of the base helper for details.
+
+      ##
+      # :method: search_field
+      #
+      # :call-seq: search_field(method, options = {})
+      #
+      # Wraps ActionView::Helpers::FormHelper#search_field for form builders:
+      #
+      #   <%= form_with model: @user do |f| %>
+      #     <%= f.search_field :name %>
+      #   <% end %>
+      #
+      # Please refer to the documentation of the base helper for details.
+
+      ##
+      # :method: telephone_field
+      #
+      # :call-seq: telephone_field(method, options = {})
+      #
+      # Wraps ActionView::Helpers::FormHelper#telephone_field for form builders:
+      #
+      #   <%= form_with model: @user do |f| %>
+      #     <%= f.telephone_field :phone %>
+      #   <% end %>
+      #
+      # Please refer to the documentation of the base helper for details.
+
+      ##
+      # :method: phone_field
+      #
+      # :call-seq: phone_field(method, options = {})
+      #
+      # Wraps ActionView::Helpers::FormHelper#phone_field for form builders:
+      #
+      #   <%= form_with model: @user do |f| %>
+      #     <%= f.phone_field :phone %>
+      #   <% end %>
+      #
+      # Please refer to the documentation of the base helper for details.
+
+      ##
+      # :method: date_field
+      #
+      # :call-seq: date_field(method, options = {})
+      #
+      # Wraps ActionView::Helpers::FormHelper#date_field for form builders:
+      #
+      #   <%= form_with model: @user do |f| %>
+      #     <%= f.date_field :born_on %>
+      #   <% end %>
+      #
+      # Please refer to the documentation of the base helper for details.
+
+      ##
+      # :method: time_field
+      #
+      # :call-seq: time_field(method, options = {})
+      #
+      # Wraps ActionView::Helpers::FormHelper#time_field for form builders:
+      #
+      #   <%= form_with model: @user do |f| %>
+      #     <%= f.time_field :borned_at %>
+      #   <% end %>
+      #
+      # Please refer to the documentation of the base helper for details.
+
+      ##
+      # :method: datetime_field
+      #
+      # :call-seq: datetime_field(method, options = {})
+      #
+      # Wraps ActionView::Helpers::FormHelper#datetime_field for form builders:
+      #
+      #   <%= form_with model: @user do |f| %>
+      #     <%= f.datetime_field :graduation_day %>
+      #   <% end %>
+      #
+      # Please refer to the documentation of the base helper for details.
+
+      ##
+      # :method: datetime_local_field
+      #
+      # :call-seq: datetime_local_field(method, options = {})
+      #
+      # Wraps ActionView::Helpers::FormHelper#datetime_local_field for form builders:
+      #
+      #   <%= form_with model: @user do |f| %>
+      #     <%= f.datetime_local_field :graduation_day %>
+      #   <% end %>
+      #
+      # Please refer to the documentation of the base helper for details.
+
+      ##
+      # :method: month_field
+      #
+      # :call-seq: month_field(method, options = {})
+      #
+      # Wraps ActionView::Helpers::FormHelper#month_field for form builders:
+      #
+      #   <%= form_with model: @user do |f| %>
+      #     <%= f.month_field :birthday_month %>
+      #   <% end %>
+      #
+      # Please refer to the documentation of the base helper for details.
+
+      ##
+      # :method: week_field
+      #
+      # :call-seq: week_field(method, options = {})
+      #
+      # Wraps ActionView::Helpers::FormHelper#week_field for form builders:
+      #
+      #   <%= form_with model: @user do |f| %>
+      #     <%= f.week_field :birthday_week %>
+      #   <% end %>
+      #
+      # Please refer to the documentation of the base helper for details.
+
+      ##
+      # :method: url_field
+      #
+      # :call-seq: url_field(method, options = {})
+      #
+      # Wraps ActionView::Helpers::FormHelper#url_field for form builders:
+      #
+      #   <%= form_with model: @user do |f| %>
+      #     <%= f.url_field :homepage %>
+      #   <% end %>
+      #
+      # Please refer to the documentation of the base helper for details.
+
+      ##
+      # :method: email_field
+      #
+      # :call-seq: email_field(method, options = {})
+      #
+      # Wraps ActionView::Helpers::FormHelper#email_field for form builders:
+      #
+      #   <%= form_with model: @user do |f| %>
+      #     <%= f.email_field :address %>
+      #   <% end %>
+      #
+      # Please refer to the documentation of the base helper for details.
+
+      ##
+      # :method: number_field
+      #
+      # :call-seq: number_field(method, options = {})
+      #
+      # Wraps ActionView::Helpers::FormHelper#number_field for form builders:
+      #
+      #   <%= form_with model: @user do |f| %>
+      #     <%= f.number_field :age %>
+      #   <% end %>
+      #
+      # Please refer to the documentation of the base helper for details.
+
+      ##
+      # :method: range_field
+      #
+      # :call-seq: range_field(method, options = {})
+      #
+      # Wraps ActionView::Helpers::FormHelper#range_field for form builders:
+      #
+      #   <%= form_with model: @user do |f| %>
+      #     <%= f.range_field :age %>
+      #   <% end %>
+      #
+      # Please refer to the documentation of the base helper for details.
+
       (field_helpers - [:label, :check_box, :radio_button, :fields_for, :fields, :hidden_field, :file_field]).each do |selector|
         class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
           def #{selector}(method, options = {})  # def text_field(method, options = {})

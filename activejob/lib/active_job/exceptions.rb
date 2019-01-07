@@ -30,21 +30,28 @@ module ActiveJob
       #  class RemoteServiceJob < ActiveJob::Base
       #    retry_on CustomAppException # defaults to 3s wait, 5 attempts
       #    retry_on AnotherCustomAppException, wait: ->(executions) { executions * 2 }
+      #
+      #    retry_on ActiveRecord::Deadlocked, wait: 5.seconds, attempts: 3
+      #    retry_on Net::OpenTimeout, Timeout::Error, wait: :exponentially_longer, attempts: 10 # retries at most 10 times for Net::OpenTimeout and Timeout::Error combined
+      #    # To retry at most 10 times for each individual exception:
+      #    # retry_on Net::OpenTimeout, wait: :exponentially_longer, attempts: 10
+      #    # retry_on Timeout::Error, wait: :exponentially_longer, attempts: 10
+      #
       #    retry_on(YetAnotherCustomAppException) do |job, error|
       #      ExceptionNotifier.caught(error)
       #    end
-      #    retry_on ActiveRecord::Deadlocked, wait: 5.seconds, attempts: 3
-      #    retry_on Net::OpenTimeout, wait: :exponentially_longer, attempts: 10
       #
       #    def perform(*args)
       #      # Might raise CustomAppException, AnotherCustomAppException, or YetAnotherCustomAppException for something domain specific
       #      # Might raise ActiveRecord::Deadlocked when a local db deadlock is detected
-      #      # Might raise Net::OpenTimeout when the remote service is down
+      #      # Might raise Net::OpenTimeout or Timeout::Error when the remote service is down
       #    end
       #  end
       def retry_on(*exceptions, wait: 3.seconds, attempts: 5, queue: nil, priority: nil)
         rescue_from(*exceptions) do |error|
-          exception_executions[exceptions.to_s] += 1
+          # Guard against jobs that were persisted before we started having individual executions counters per retry_on
+          self.exception_executions ||= Hash.new(0)
+          self.exception_executions[exceptions.to_s] += 1
 
           if exception_executions[exceptions.to_s] < attempts
             retry_job wait: determine_delay(wait), queue: queue, priority: priority, error: error

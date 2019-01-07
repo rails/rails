@@ -21,13 +21,11 @@ module ActionDispatch
 
       def allows?(host)
         @hosts.any? do |allowed|
-          begin
-            allowed === host
-          rescue
-            # IPAddr#=== raises an error if you give it a hostname instead of
-            # IP. Treat similar errors as blocked access.
-            false
-          end
+          allowed === host
+        rescue
+          # IPAddr#=== raises an error if you give it a hostname instead of
+          # IP. Treat similar errors as blocked access.
+          false
         end
       end
 

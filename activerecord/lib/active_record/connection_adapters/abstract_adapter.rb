@@ -146,7 +146,7 @@ module ActiveRecord
         replica? || prevent_writes
       end
 
-      # Prevent writing to the database  regardless of role.
+      # Prevent writing to the database regardless of role.
       #
       # In some cases you may want to prevent writes to the database
       # even if you are on a database that can write. `while_preventing_writes`
@@ -631,13 +631,11 @@ module ActiveRecord
             statement_name:    statement_name,
             connection_id:     object_id,
             connection:        self) do
-            begin
-              @lock.synchronize do
-                yield
-              end
-            rescue => e
-              raise translate_exception_class(e, sql, binds)
+            @lock.synchronize do
+              yield
             end
+          rescue => e
+            raise translate_exception_class(e, sql, binds)
           end
         end
 

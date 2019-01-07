@@ -131,6 +131,18 @@ module ApplicationTests
       end
     end
 
+    def test_run_mailboxes
+      create_test_file :mailboxes, "foo_mailbox"
+      create_test_file :mailboxes, "bar_mailbox"
+      create_test_file :models, "foo"
+
+      rails("test:mailboxes").tap do |output|
+        assert_match "FooMailboxTest", output
+        assert_match "BarMailboxTest", output
+        assert_match "2 runs, 2 assertions, 0 failures", output
+      end
+    end
+
     def test_run_functionals
       create_test_file :mailers, "foo_mailer"
       create_test_file :controllers, "bar_controller"
@@ -155,11 +167,11 @@ module ApplicationTests
     end
 
     def test_run_all_suites
-      suites = [:models, :helpers, :unit, :controllers, :mailers, :functional, :integration, :jobs]
+      suites = [:models, :helpers, :unit, :controllers, :mailers, :functional, :integration, :jobs, :mailboxes]
       suites.each { |suite| create_test_file suite, "foo_#{suite}" }
       run_test_command("") .tap do |output|
         suites.each { |suite| assert_match "Foo#{suite.to_s.camelize}Test", output }
-        assert_match "8 runs, 8 assertions, 0 failures", output
+        assert_match "9 runs, 9 assertions, 0 failures", output
       end
     end
 
@@ -523,7 +535,7 @@ module ApplicationTests
     end
 
     def test_run_in_parallel_with_processes
-      substitute_arguments_of_parallelize_method("workers: 2, with: :processes")
+      exercise_parallelization_regardless_of_machine_core_count(with: :processes)
 
       file_name = create_parallel_processes_test_file
 
@@ -542,7 +554,7 @@ module ApplicationTests
     end
 
     def test_run_in_parallel_with_threads
-      substitute_arguments_of_parallelize_method("workers: 2, with: :threads")
+      exercise_parallelization_regardless_of_machine_core_count(with: :threads)
 
       file_name = create_parallel_threads_test_file
 
@@ -561,7 +573,7 @@ module ApplicationTests
     end
 
     def test_run_in_parallel_with_unmarshable_exception
-      substitute_arguments_of_parallelize_method("workers: 2, with: :processes")
+      exercise_parallelization_regardless_of_machine_core_count(with: :processes)
 
       file = app_file "test/fail_test.rb", <<-RUBY
         require "test_helper"
@@ -587,8 +599,10 @@ module ApplicationTests
     end
 
     def test_run_in_parallel_with_unknown_object
-      substitute_arguments_of_parallelize_method("workers: 2, with: :processes")
+      exercise_parallelization_regardless_of_machine_core_count(with: :processes)
+
       create_scaffold
+
       app_file "config/environments/test.rb", <<-RUBY
         Rails.application.configure do
           config.action_controller.allow_forgery_protection = true
@@ -967,10 +981,10 @@ module ApplicationTests
         RUBY
       end
 
-      def substitute_arguments_of_parallelize_method(arguments)
+      def exercise_parallelization_regardless_of_machine_core_count(with:)
         app_path("test/test_helper.rb") do |file_name|
           file = File.read(file_name)
-          file.sub!(/parallelize\(([^\)]*)\)/, "parallelize(#{arguments})")
+          file.sub!(/parallelize\(([^\)]*)\)/, "parallelize(workers: 2, with: :#{with})")
           File.write(file_name, file)
         end
       end

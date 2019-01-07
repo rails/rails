@@ -430,7 +430,7 @@ module TestHelpers
     end
 
     def use_frameworks(arr)
-      to_remove = [:actionmailer, :activerecord, :activestorage, :activejob] - arr
+      to_remove = [:actionmailer, :activerecord, :activestorage, :activejob, :actionmailbox] - arr
 
       if to_remove.include?(:activerecord)
         remove_from_config "config.active_record.*"
@@ -462,10 +462,6 @@ class ActiveSupport::TestCase
   include TestHelpers::Generation
   include ActiveSupport::Testing::Stream
   include ActiveSupport::Testing::MethodCallAssertions
-
-  def frozen_error_class
-    Object.const_defined?(:FrozenError) ? FrozenError : RuntimeError
-  end
 end
 
 # Create a scope and build a fixture rails app

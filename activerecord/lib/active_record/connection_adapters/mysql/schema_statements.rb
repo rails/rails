@@ -77,9 +77,13 @@ module ActiveRecord
           super
         end
 
+        def create_table(table_name, options: default_row_format, **)
+          super
+        end
+
         def internal_string_options_for_primary_key
           super.tap do |options|
-            if CHARSETS_OF_4BYTES_MAXLEN.include?(charset) && (mariadb? || version < "8.0.0")
+            if !row_format_dynamic_by_default? && CHARSETS_OF_4BYTES_MAXLEN.include?(charset)
               options[:collation] = collation.sub(/\A[^_]+/, "utf8")
             end
           end
@@ -95,6 +99,28 @@ module ActiveRecord
 
         private
           CHARSETS_OF_4BYTES_MAXLEN = ["utf8mb4", "utf16", "utf16le", "utf32"]
+
+          def row_format_dynamic_by_default?
+            if mariadb?
+              version >= "10.2.2"
+            else
+              version >= "5.7.9"
+            end
+          end
+
+          def default_row_format
+            return if row_format_dynamic_by_default?
+
+            unless defined?(@default_row_format)
+              if query_value("SELECT @@innodb_file_per_table = 1 AND @@innodb_file_format = 'Barracuda'") == 1
+                @default_row_format = "ROW_FORMAT=DYNAMIC"
+              else
+                @default_row_format = nil
+              end
+            end
+
+            @default_row_format
+          end
 
           def schema_creation
             MySQL::SchemaCreation.new(self)

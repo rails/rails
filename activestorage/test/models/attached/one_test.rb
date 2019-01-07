@@ -507,7 +507,7 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
 
       assert_equal "gpj.yknuf", @user.avatar
     ensure
-      User.send(:remove_method, :avatar)
+      User.remove_method :avatar
     end
   end
 end

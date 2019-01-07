@@ -283,26 +283,24 @@ module ActiveRecord
 
       def within_new_transaction(options = {})
         @connection.lock.synchronize do
-          begin
-            transaction = begin_transaction options
-            yield
-          rescue Exception => error
-            if transaction
+          transaction = begin_transaction options
+          yield
+        rescue Exception => error
+          if transaction
+            rollback_transaction
+            after_failure_actions(transaction, error)
+          end
+          raise
+        ensure
+          if !error && transaction
+            if Thread.current.status == "aborting"
               rollback_transaction
-              after_failure_actions(transaction, error)
-            end
-            raise
-          ensure
-            unless error
-              if Thread.current.status == "aborting"
-                rollback_transaction if transaction
-              else
-                begin
-                  commit_transaction if transaction
-                rescue Exception
-                  rollback_transaction(transaction) unless transaction.state.completed?
-                  raise
-                end
+            else
+              begin
+                commit_transaction
+              rescue Exception
+                rollback_transaction(transaction) unless transaction.state.completed?
+                raise
               end
             end
           end

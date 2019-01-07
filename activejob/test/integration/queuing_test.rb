@@ -60,25 +60,21 @@ class QueuingTest < ActiveSupport::TestCase
   end
 
   test "should not run job enqueued in the future" do
-    begin
-      TestJob.set(wait: 10.minutes).perform_later @id
-      wait_for_jobs_to_finish_for(5.seconds)
-      assert_not job_executed
-    rescue NotImplementedError
-      skip
-    end
+    TestJob.set(wait: 10.minutes).perform_later @id
+    wait_for_jobs_to_finish_for(5.seconds)
+    assert_not job_executed
+  rescue NotImplementedError
+    skip
   end
 
   test "should run job enqueued in the future at the specified time" do
-    begin
-      TestJob.set(wait: 5.seconds).perform_later @id
-      wait_for_jobs_to_finish_for(2.seconds)
-      assert_not job_executed
-      wait_for_jobs_to_finish_for(10.seconds)
-      assert job_executed
-    rescue NotImplementedError
-      skip
-    end
+    TestJob.set(wait: 5.seconds).perform_later @id
+    wait_for_jobs_to_finish_for(2.seconds)
+    assert_not job_executed
+    wait_for_jobs_to_finish_for(10.seconds)
+    assert job_executed
+  rescue NotImplementedError
+    skip
   end
 
   test "should supply a provider_job_id when available for immediate jobs" do

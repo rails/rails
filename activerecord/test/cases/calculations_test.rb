@@ -57,12 +57,8 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 3, value
   end
 
-  def test_should_return_nil_to_d_as_average
-    if nil.respond_to?(:to_d)
-      assert_equal BigDecimal(0), NumericData.average(:bank_balance)
-    else
-      assert_nil NumericData.average(:bank_balance)
-    end
+  def test_should_return_nil_as_average
+    assert_nil NumericData.average(:bank_balance)
   end
 
   def test_should_get_maximum_of_field
@@ -432,6 +428,8 @@ class CalculationsTest < ActiveRecord::TestCase
   def test_should_count_selected_field_with_include
     assert_equal 6, Account.includes(:firm).distinct.count
     assert_equal 4, Account.includes(:firm).distinct.select(:credit_limit).count
+    assert_equal 4, Account.includes(:firm).distinct.count("DISTINCT credit_limit")
+    assert_equal 4, Account.includes(:firm).distinct.count("DISTINCT(credit_limit)")
   end
 
   def test_should_not_perform_joined_include_by_default

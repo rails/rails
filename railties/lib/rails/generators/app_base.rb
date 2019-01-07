@@ -44,6 +44,12 @@ module Rails
                                            default: false,
                                            desc: "Skip Action Mailer files"
 
+        class_option :skip_action_mailbox, type: :boolean, default: false,
+                                           desc: "Skip Action Mailbox gem"
+
+        class_option :skip_action_text,    type: :boolean, default: false,
+                                           desc: "Skip Action Text gem"
+
         class_option :skip_active_record,  type: :boolean, aliases: "-O", default: false,
                                            desc: "Skip Active Record files"
 
@@ -200,7 +206,9 @@ module Rails
             :skip_sprockets,
             :skip_action_cable
           ),
-          skip_active_storage?
+          skip_active_storage?,
+          skip_action_mailbox?,
+          skip_action_text?
         ].flatten.none?
       end
 
@@ -227,6 +235,14 @@ module Rails
 
       def skip_active_storage? # :doc:
         options[:skip_active_storage] || options[:skip_active_record]
+      end
+
+      def skip_action_mailbox? # :doc:
+        options[:skip_action_mailbox] || skip_active_storage?
+      end
+
+      def skip_action_text? # :doc:
+        options[:skip_action_text] || skip_active_storage?
       end
 
       class GemfileEntry < Struct.new(:name, :version, :comment, :options, :commented_out)

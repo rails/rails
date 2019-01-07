@@ -108,6 +108,7 @@ module ActiveRecord
           ActiveRecord::Base.connected_to(role: :reading) do
             @ro_handler = ActiveRecord::Base.connection_handler
             assert_equal ActiveRecord::Base.connection_handler, ActiveRecord::Base.connection_handlers[:reading]
+            assert_equal :reading, ActiveRecord::Base.current_role
             assert ActiveRecord::Base.connected_to?(role: :reading)
             assert_not ActiveRecord::Base.connected_to?(role: :writing)
           end
@@ -115,6 +116,7 @@ module ActiveRecord
           ActiveRecord::Base.connected_to(role: :writing) do
             assert_equal ActiveRecord::Base.connection_handler, ActiveRecord::Base.connection_handlers[:writing]
             assert_not_equal @ro_handler, ActiveRecord::Base.connection_handler
+            assert_equal :writing, ActiveRecord::Base.current_role
             assert ActiveRecord::Base.connected_to?(role: :writing)
             assert_not ActiveRecord::Base.connected_to?(role: :reading)
           end
@@ -129,6 +131,7 @@ module ActiveRecord
           previous_url, ENV["DATABASE_URL"] = ENV["DATABASE_URL"], "postgres://localhost/foo"
 
           ActiveRecord::Base.connected_to(database: { writing: "postgres://localhost/bar" }) do
+            assert_equal :writing, ActiveRecord::Base.current_role
             assert ActiveRecord::Base.connected_to?(role: :writing)
 
             handler = ActiveRecord::Base.connection_handler
@@ -148,6 +151,7 @@ module ActiveRecord
           config = { adapter: "sqlite3", database: "db/readonly.sqlite3" }
 
           ActiveRecord::Base.connected_to(database: { writing: config }) do
+            assert_equal :writing, ActiveRecord::Base.current_role
             assert ActiveRecord::Base.connected_to?(role: :writing)
 
             handler = ActiveRecord::Base.connection_handler
@@ -187,6 +191,7 @@ module ActiveRecord
           @prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, config
 
           ActiveRecord::Base.connected_to(database: :readonly) do
+            assert_equal :readonly, ActiveRecord::Base.current_role
             assert ActiveRecord::Base.connected_to?(role: :readonly)
 
             handler = ActiveRecord::Base.connection_handler
@@ -211,6 +216,7 @@ module ActiveRecord
 
           assert_equal 1, ActiveRecord::Base.connection_handlers.size
           assert_equal ActiveRecord::Base.connection_handler, ActiveRecord::Base.connection_handlers[:writing]
+          assert_equal :writing, ActiveRecord::Base.current_role
           assert ActiveRecord::Base.connected_to?(role: :writing)
         ensure
           ActiveRecord::Base.configurations = @prev_configs
@@ -327,6 +333,16 @@ module ActiveRecord
         assert_equal reading, reading_handler
       ensure
         ActiveRecord::Base.connection_handlers = original_handlers
+      end
+
+      def test_calling_connected_to_on_a_non_existent_handler_raises
+        error = assert_raises ArgumentError do
+          ActiveRecord::Base.connected_to(role: :reading) do
+            yield
+          end
+        end
+
+        assert_equal "The reading role does not exist. Add it by establishing a connection with `connects_to` or use an existing role (writing).", error.message
       end
     end
   end

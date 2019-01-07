@@ -55,8 +55,8 @@ module ActiveModel
             attr_readers = attributes.reject { |name| klass.attribute_method?(name) }
             attr_writers = attributes.reject { |name| klass.attribute_method?("#{name}=") }
             klass.define_attribute_methods
-            klass.send(:attr_reader, *attr_readers)
-            klass.send(:attr_writer, *attr_writers)
+            klass.attr_reader(*attr_readers)
+            klass.attr_writer(*attr_writers)
           end
 
           private

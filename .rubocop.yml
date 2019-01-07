@@ -1,5 +1,5 @@
 AllCops:
-  TargetRubyVersion: 2.4
+  TargetRubyVersion: 2.5
   # RuboCop has a bunch of cops enabled by default. This setting tells RuboCop
   # to ignore them, so only the ones explicitly set in this file are enabled.
   DisabledByDefault: true
@@ -8,6 +8,8 @@ AllCops:
     - '**/vendor/**/*'
     - 'actionpack/lib/action_dispatch/journey/parser.rb'
     - 'railties/test/fixtures/tmp/**/*'
+    - 'actionmailbox/test/dummy/**/*'
+    - 'actiontext/test/dummy/**/*'
     - 'node_modules/**/*'
 
 Performance:
@@ -133,6 +135,8 @@ Style/FrozenStringLiteralComment:
     - 'actionpack/test/**/*.builder'
     - 'actionpack/test/**/*.ruby'
     - 'activestorage/db/migrate/**/*.rb'
+    - 'actionmailbox/db/migrate/**/*.rb'
+    - 'actiontext/db/migrate/**/*.rb'
 
 Style/RedundantFreeze:
   Enabled: true
@@ -178,6 +182,9 @@ Style/UnneededPercentQ:
 Lint/RequireParentheses:
   Enabled: true
 
+Lint/ShadowingOuterLocalVariable:
+  Enabled: true
+
 Lint/StringConversionInInterpolation:
   Enabled: true
 
@@ -185,6 +192,9 @@ Lint/UriEscapeUnescape:
   Enabled: true
 
 Style/ParenthesesAroundCondition:
+  Enabled: true
+
+Style/RedundantBegin:
   Enabled: true
 
 Style/RedundantReturn:

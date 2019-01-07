@@ -331,7 +331,7 @@ module ApplicationTests
       assert_not_includes Post.instance_methods, :title
     end
 
-    test "eager loads attribute methods in production" do
+    test "does not eager load attribute methods in production when the schema cache is empty" do
       app_file "app/models/post.rb", <<-RUBY
         class Post < ActiveRecord::Base
         end
@@ -354,7 +354,69 @@ module ApplicationTests
 
       app "production"
 
+      assert_not_includes Post.instance_methods, :title
+    end
+
+    test "eager loads attribute methods in production when the schema cache is populated" do
+      app_file "app/models/post.rb", <<-RUBY
+        class Post < ActiveRecord::Base
+        end
+      RUBY
+
+      app_file "config/initializers/active_record.rb", <<-RUBY
+        ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
+        ActiveRecord::Migration.verbose = false
+        ActiveRecord::Schema.define(version: 1) do
+          create_table :posts do |t|
+            t.string :title
+          end
+        end
+      RUBY
+
+      add_to_config <<-RUBY
+        config.eager_load = true
+        config.cache_classes = true
+      RUBY
+
+      app_file "config/initializers/schema_cache.rb", <<-RUBY
+        ActiveRecord::Base.connection.schema_cache.add("posts")
+      RUBY
+
+      app "production"
+
       assert_includes Post.instance_methods, :title
+    end
+
+    test "does not attempt to eager load attribute methods for models that aren't connected" do
+      app_file "app/models/post.rb", <<-RUBY
+        class Post < ActiveRecord::Base
+        end
+      RUBY
+
+      app_file "config/initializers/active_record.rb", <<-RUBY
+        ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
+        ActiveRecord::Migration.verbose = false
+        ActiveRecord::Schema.define(version: 1) do
+          create_table :posts do |t|
+            t.string :title
+          end
+        end
+      RUBY
+
+      add_to_config <<-RUBY
+        config.eager_load = true
+        config.cache_classes = true
+      RUBY
+
+      app_file "app/models/comment.rb", <<-RUBY
+        class Comment < ActiveRecord::Base
+          establish_connection(adapter: "mysql2", database: "does_not_exist")
+        end
+      RUBY
+
+      assert_nothing_raised do
+        app "production"
+      end
     end
 
     test "initialize an eager loaded, cache classes app" do
@@ -1493,14 +1555,12 @@ module ApplicationTests
     end
 
     test "config.session_store with :active_record_store with activerecord-session_store gem" do
-      begin
-        make_basic_app do |application|
-          ActionDispatch::Session::ActiveRecordStore = Class.new(ActionDispatch::Session::CookieStore)
-          application.config.session_store :active_record_store
-        end
-      ensure
-        ActionDispatch::Session.send :remove_const, :ActiveRecordStore
+      make_basic_app do |application|
+        ActionDispatch::Session::ActiveRecordStore = Class.new(ActionDispatch::Session::CookieStore)
+        application.config.session_store :active_record_store
       end
+    ensure
+      ActionDispatch::Session.send :remove_const, :ActiveRecordStore
     end
 
     test "config.session_store with :active_record_store without activerecord-session_store gem" do
@@ -2164,6 +2224,105 @@ module ApplicationTests
       app "development"
 
       assert_equal true, ActiveJob::Base.return_false_on_aborted_enqueue
+    end
+
+    test "ActiveStorage.queues[:analysis] is :active_storage_analysis by default" do
+      app "development"
+
+      assert_equal :active_storage_analysis, ActiveStorage.queues[:analysis]
+    end
+
+    test "ActiveStorage.queues[:analysis] is nil without Rails 6 defaults" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app "development"
+
+      assert_nil ActiveStorage.queues[:analysis]
+    end
+
+    test "ActiveStorage.queues[:purge] is :active_storage_purge by default" do
+      app "development"
+
+      assert_equal :active_storage_purge, ActiveStorage.queues[:purge]
+    end
+
+    test "ActiveStorage.queues[:purge] is nil without Rails 6 defaults" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app "development"
+
+      assert_nil ActiveStorage.queues[:purge]
+    end
+
+    test "ActionMailbox.logger is Rails.logger by default" do
+      app "development"
+
+      assert_equal Rails.logger, ActionMailbox.logger
+    end
+
+    test "ActionMailbox.logger can be configured" do
+      app_file "lib/my_logger.rb", <<-RUBY
+        require "logger"
+        class MyLogger < ::Logger
+        end
+      RUBY
+
+      add_to_config <<-RUBY
+        require "my_logger"
+        config.action_mailbox.logger = MyLogger.new(STDOUT)
+      RUBY
+
+      app "development"
+
+      assert_equal "MyLogger", ActionMailbox.logger.class.name
+    end
+
+    test "ActionMailbox.incinerate_after is 30.days by default" do
+      app "development"
+
+      assert_equal 30.days, ActionMailbox.incinerate_after
+    end
+
+    test "ActionMailbox.incinerate_after can be configured" do
+      add_to_config <<-RUBY
+        config.action_mailbox.incinerate_after = 14.days
+      RUBY
+
+      app "development"
+
+      assert_equal 14.days, ActionMailbox.incinerate_after
+    end
+
+    test "ActionMailbox.queues[:incineration] is :action_mailbox_incineration by default" do
+      app "development"
+
+      assert_equal :action_mailbox_incineration, ActionMailbox.queues[:incineration]
+    end
+
+    test "ActionMailbox.queues[:incineration] can be configured" do
+      add_to_config <<-RUBY
+        config.action_mailbox.queues.incineration = :another_queue
+      RUBY
+
+      app "development"
+
+      assert_equal :another_queue, ActionMailbox.queues[:incineration]
+    end
+
+    test "ActionMailbox.queues[:routing] is :action_mailbox_routing by default" do
+      app "development"
+
+      assert_equal :action_mailbox_routing, ActionMailbox.queues[:routing]
+    end
+
+    test "ActionMailbox.queues[:routing] can be configured" do
+      add_to_config <<-RUBY
+        config.action_mailbox.queues.routing = :another_queue
+      RUBY
+
+      app "development"
+
+      assert_equal :another_queue, ActionMailbox.queues[:routing]
     end
 
     test "ActiveRecord::Base.filter_attributes should equal to filter_parameters" do

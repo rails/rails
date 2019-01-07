@@ -179,6 +179,22 @@ module ActiveRecord
       end
 
       private
+        def find_target
+          scope = self.scope
+          return scope.to_a if skip_statement_cache?(scope)
+
+          conn = klass.connection
+          sc = reflection.association_scope_cache(conn, owner) do |params|
+            as = AssociationScope.create { params.bind }
+            target_scope.merge!(as.scope(self))
+          end
+
+          binds = AssociationScope.get_bind_values(owner, reflection.chain)
+          sc.execute(binds, conn) do |record|
+            set_inverse_instance(record)
+          end
+        end
+
         # The scope for this association.
         #
         # Note that the association_scope is merged into the target_scope only when the

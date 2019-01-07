@@ -988,7 +988,7 @@ XML
   end
 
   def test_parsed_body_with_as_option
-    post :render_json, body: { foo: "heyo" }, as: :json
+    post :render_json, body: { foo: "heyo" }.to_json, as: :json
     assert_equal({ "foo" => "heyo" }, response.parsed_body)
   end
 end

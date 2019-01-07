@@ -519,11 +519,9 @@ module ActiveRecord
       def instantiate_fixtures(object, fixture_set, load_instances = true)
         return unless load_instances
         fixture_set.each do |fixture_name, fixture|
-          begin
-            object.instance_variable_set "@#{fixture_name}", fixture.find
-          rescue FixtureClassNotFound
-            nil
-          end
+          object.instance_variable_set "@#{fixture_name}", fixture.find
+        rescue FixtureClassNotFound
+          nil
         end
       end
 

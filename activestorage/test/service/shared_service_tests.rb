@@ -20,48 +20,42 @@ module ActiveStorage::Service::SharedServiceTests
     end
 
     test "uploading with integrity" do
-      begin
-        key  = SecureRandom.base58(24)
-        data = "Something else entirely!"
-        @service.upload(key, StringIO.new(data), checksum: Digest::MD5.base64digest(data))
+      key  = SecureRandom.base58(24)
+      data = "Something else entirely!"
+      @service.upload(key, StringIO.new(data), checksum: Digest::MD5.base64digest(data))
 
-        assert_equal data, @service.download(key)
-      ensure
-        @service.delete key
-      end
+      assert_equal data, @service.download(key)
+    ensure
+      @service.delete key
     end
 
     test "uploading without integrity" do
-      begin
-        key  = SecureRandom.base58(24)
-        data = "Something else entirely!"
+      key  = SecureRandom.base58(24)
+      data = "Something else entirely!"
 
-        assert_raises(ActiveStorage::IntegrityError) do
-          @service.upload(key, StringIO.new(data), checksum: Digest::MD5.base64digest("bad data"))
-        end
-
-        assert_not @service.exist?(key)
-      ensure
-        @service.delete key
+      assert_raises(ActiveStorage::IntegrityError) do
+        @service.upload(key, StringIO.new(data), checksum: Digest::MD5.base64digest("bad data"))
       end
+
+      assert_not @service.exist?(key)
+    ensure
+      @service.delete key
     end
 
     test "uploading with integrity and multiple keys" do
-      begin
-        key  = SecureRandom.base58(24)
-        data = "Something else entirely!"
-        @service.upload(
-          key,
-          StringIO.new(data),
-          checksum: Digest::MD5.base64digest(data),
-          filename: "racecar.jpg",
-          content_type: "image/jpg"
-        )
+      key  = SecureRandom.base58(24)
+      data = "Something else entirely!"
+      @service.upload(
+        key,
+        StringIO.new(data),
+        checksum: Digest::MD5.base64digest(data),
+        filename: "racecar.jpg",
+        content_type: "image/jpg"
+      )
 
-        assert_equal data, @service.download(key)
-      ensure
-        @service.delete key
-      end
+      assert_equal data, @service.download(key)
+    ensure
+      @service.delete key
     end
 
     test "downloading" do
@@ -129,20 +123,18 @@ module ActiveStorage::Service::SharedServiceTests
     end
 
     test "deleting by prefix" do
-      begin
-        @service.upload("a/a/a", StringIO.new(FIXTURE_DATA))
-        @service.upload("a/a/b", StringIO.new(FIXTURE_DATA))
-        @service.upload("a/b/a", StringIO.new(FIXTURE_DATA))
+      @service.upload("a/a/a", StringIO.new(FIXTURE_DATA))
+      @service.upload("a/a/b", StringIO.new(FIXTURE_DATA))
+      @service.upload("a/b/a", StringIO.new(FIXTURE_DATA))
 
-        @service.delete_prefixed("a/a/")
-        assert_not @service.exist?("a/a/a")
-        assert_not @service.exist?("a/a/b")
-        assert @service.exist?("a/b/a")
-      ensure
-        @service.delete("a/a/a")
-        @service.delete("a/a/b")
-        @service.delete("a/b/a")
-      end
+      @service.delete_prefixed("a/a/")
+      assert_not @service.exist?("a/a/a")
+      assert_not @service.exist?("a/a/b")
+      assert @service.exist?("a/b/a")
+    ensure
+      @service.delete("a/a/a")
+      @service.delete("a/a/b")
+      @service.delete("a/b/a")
     end
   end
 end

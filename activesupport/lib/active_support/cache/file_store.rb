@@ -108,12 +108,10 @@ module ActiveSupport
         def lock_file(file_name, &block)
           if File.exist?(file_name)
             File.open(file_name, "r+") do |f|
-              begin
-                f.flock File::LOCK_EX
-                yield
-              ensure
-                f.flock File::LOCK_UN
-              end
+              f.flock File::LOCK_EX
+              yield
+            ensure
+              f.flock File::LOCK_UN
             end
           else
             yield

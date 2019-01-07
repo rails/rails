@@ -132,19 +132,17 @@ module ActiveRecord
       end
 
       def test_not_specifying_database_name_for_cross_database_selects
-        begin
-          assert_nothing_raised do
-            ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations["arunit"].except(:database))
+        assert_nothing_raised do
+          ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations["arunit"].except(:database))
 
-            config = ARTest.connection_config
-            ActiveRecord::Base.connection.execute(
-              "SELECT #{config['arunit']['database']}.pirates.*, #{config['arunit2']['database']}.courses.* " \
-              "FROM #{config['arunit']['database']}.pirates, #{config['arunit2']['database']}.courses"
-            )
-          end
-        ensure
-          ActiveRecord::Base.establish_connection :arunit
+          config = ARTest.connection_config
+          ActiveRecord::Base.connection.execute(
+            "SELECT #{config['arunit']['database']}.pirates.*, #{config['arunit2']['database']}.courses.* " \
+            "FROM #{config['arunit']['database']}.pirates, #{config['arunit2']['database']}.courses"
+          )
         end
+      ensure
+        ActiveRecord::Base.establish_connection :arunit
       end
     end
 
@@ -163,6 +161,16 @@ module ActiveRecord
         remove_method :table_alias_length
         alias_method :table_alias_length, :old_table_alias_length
       end
+    end
+
+    def test_preventing_writes_predicate
+      assert_not_predicate @connection, :preventing_writes?
+
+      @connection.while_preventing_writes do
+        assert_predicate @connection, :preventing_writes?
+      end
+
+      assert_not_predicate @connection, :preventing_writes?
     end
 
     def test_errors_when_an_insert_query_is_called_while_preventing_writes

@@ -97,31 +97,15 @@ module ActiveRecord
       end
 
       def supports_datetime_with_precision?
-        if mariadb?
-          version >= "5.3.0"
-        else
-          version >= "5.6.4"
-        end
+        mariadb? || version >= "5.6.4"
       end
 
       def supports_virtual_columns?
-        if mariadb?
-          version >= "5.2.0"
-        else
-          version >= "5.7.5"
-        end
+        mariadb? || version >= "5.7.5"
       end
 
       def supports_advisory_locks?
         true
-      end
-
-      def supports_longer_index_key_prefix?
-        if mariadb?
-          version >= "10.2.2"
-        else
-          version >= "5.7.9"
-        end
       end
 
       def get_advisory_lock(lock_name, timeout = 0) # :nodoc:
@@ -250,7 +234,7 @@ module ActiveRecord
           execute "CREATE DATABASE #{quote_table_name(name)} DEFAULT COLLATE #{quote_table_name(options[:collation])}"
         elsif options[:charset]
           execute "CREATE DATABASE #{quote_table_name(name)} DEFAULT CHARACTER SET #{quote_table_name(options[:charset])}"
-        elsif supports_longer_index_key_prefix?
+        elsif row_format_dynamic_by_default?
           execute "CREATE DATABASE #{quote_table_name(name)} DEFAULT CHARACTER SET `utf8mb4`"
         else
           raise "Configure a supported :charset and ensure innodb_large_prefix is enabled to support indexes on varchar(255) string columns."

@@ -276,9 +276,6 @@ module ActionController
   #      after calling +post+. If the various assert methods are not sufficient, then you
   #      may use this object to inspect the HTTP response in detail.
   #
-  # (Earlier versions of \Rails required each functional test to subclass
-  # Test::Unit::TestCase and define @controller, @request, @response in +setup+.)
-  #
   # == Controller is automatically inferred
   #
   # ActionController::TestCase will automatically infer the controller under test

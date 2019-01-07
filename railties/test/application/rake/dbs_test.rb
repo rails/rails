@@ -321,13 +321,12 @@ module ApplicationTests
       end
 
       test "db:setup loads schema and seeds database" do
-        begin
-          @old_rails_env = ENV["RAILS_ENV"]
-          @old_rack_env = ENV["RACK_ENV"]
-          ENV.delete "RAILS_ENV"
-          ENV.delete "RACK_ENV"
+        @old_rails_env = ENV["RAILS_ENV"]
+        @old_rack_env = ENV["RACK_ENV"]
+        ENV.delete "RAILS_ENV"
+        ENV.delete "RACK_ENV"
 
-          app_file "db/schema.rb", <<-RUBY
+        app_file "db/schema.rb", <<-RUBY
             ActiveRecord::Schema.define(version: "1") do
               create_table :users do |t|
                 t.string :name
@@ -335,16 +334,15 @@ module ApplicationTests
             end
           RUBY
 
-          app_file "db/seeds.rb", <<-RUBY
-            puts ActiveRecord::Base.connection_config[:database]
-          RUBY
+        app_file "db/seeds.rb", <<-RUBY
+          puts ActiveRecord::Base.connection_config[:database]
+        RUBY
 
-          database_path = rails("db:setup")
-          assert_equal "development.sqlite3", File.basename(database_path.strip)
-        ensure
-          ENV["RAILS_ENV"] = @old_rails_env
-          ENV["RACK_ENV"] = @old_rack_env
-        end
+        database_path = rails("db:setup")
+        assert_equal "development.sqlite3", File.basename(database_path.strip)
+      ensure
+        ENV["RAILS_ENV"] = @old_rails_env
+        ENV["RACK_ENV"] = @old_rack_env
       end
 
       test "db:setup sets ar_internal_metadata" do

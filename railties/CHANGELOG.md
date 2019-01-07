@@ -2,6 +2,18 @@
 
     *Marco Costa*
 
+*   Send Active Storage analysis and purge jobs to dedicated queues by default.
+
+    Analysis jobs now use the `:active_storage_analysis` queue, and purge jobs
+    now use the `:active_storage_purge` queue. This matches Action Mailbox,
+    which sends its jobs to dedicated queues by default.
+
+    *George Claghorn*
+
+*   Add `rails test:mailboxes`.
+
+    *George Claghorn*
+
 *   Introduce guard against DNS rebinding attacks
 
     The `ActionDispatch::HostAuthorization` is a new middleware that prevent
@@ -245,9 +257,9 @@
 
     *Benoit Tigeot*
 
-*   Rails 6 requires Ruby 2.4.1 or newer.
+*   Rails 6 requires Ruby 2.5.0 or newer.
 
-    *Jeremy Daer*
+    *Jeremy Daer*, *Kasper Timm Hansen*
 
 
 Please check [5-2-stable](https://github.com/rails/rails/blob/5-2-stable/railties/CHANGELOG.md) for previous changes.

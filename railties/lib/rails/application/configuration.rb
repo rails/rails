@@ -133,6 +133,11 @@ module Rails
           if respond_to?(:active_job)
             active_job.return_false_on_aborted_enqueue = true
           end
+
+          if respond_to?(:active_storage)
+            active_storage.queues.analysis = :active_storage_analysis
+            active_storage.queues.purge    = :active_storage_purge
+          end
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end

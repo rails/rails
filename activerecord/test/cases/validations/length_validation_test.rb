@@ -64,7 +64,7 @@ class LengthValidationTest < ActiveRecord::TestCase
 
   def test_validates_length_of_virtual_attribute_on_model
     repair_validations(Pet) do
-      Pet.send(:attr_accessor, :nickname)
+      Pet.attr_accessor(:nickname)
       Pet.validates_length_of(:name, minimum: 1)
       Pet.validates_length_of(:nickname, minimum: 1)
 

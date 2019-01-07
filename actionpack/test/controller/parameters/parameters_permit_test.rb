@@ -365,17 +365,15 @@ class ParametersPermitTest < ActiveSupport::TestCase
   end
 
   test "permitted takes a default value when Parameters.permit_all_parameters is set" do
-    begin
-      ActionController::Parameters.permit_all_parameters = true
-      params = ActionController::Parameters.new(person: {
-        age: "32", name: { first: "David", last: "Heinemeier Hansson" }
-      })
+    ActionController::Parameters.permit_all_parameters = true
+    params = ActionController::Parameters.new(person: {
+      age: "32", name: { first: "David", last: "Heinemeier Hansson" }
+    })
 
-      assert_predicate params.slice(:person), :permitted?
-      assert_predicate params[:person][:name], :permitted?
-    ensure
-      ActionController::Parameters.permit_all_parameters = false
-    end
+    assert_predicate params.slice(:person), :permitted?
+    assert_predicate params[:person][:name], :permitted?
+  ensure
+    ActionController::Parameters.permit_all_parameters = false
   end
 
   test "permitting parameters as an array" do
@@ -396,16 +394,14 @@ class ParametersPermitTest < ActiveSupport::TestCase
   end
 
   test "to_h returns converted hash when .permit_all_parameters is set" do
-    begin
-      ActionController::Parameters.permit_all_parameters = true
-      params = ActionController::Parameters.new(crab: "Senjougahara Hitagi")
+    ActionController::Parameters.permit_all_parameters = true
+    params = ActionController::Parameters.new(crab: "Senjougahara Hitagi")
 
-      assert_instance_of ActiveSupport::HashWithIndifferentAccess, params.to_h
-      assert_not_kind_of ActionController::Parameters, params.to_h
-      assert_equal({ "crab" => "Senjougahara Hitagi" }, params.to_h)
-    ensure
-      ActionController::Parameters.permit_all_parameters = false
-    end
+    assert_instance_of ActiveSupport::HashWithIndifferentAccess, params.to_h
+    assert_not_kind_of ActionController::Parameters, params.to_h
+    assert_equal({ "crab" => "Senjougahara Hitagi" }, params.to_h)
+  ensure
+    ActionController::Parameters.permit_all_parameters = false
   end
 
   test "to_hash raises UnfilteredParameters on unfiltered params" do
@@ -429,17 +425,15 @@ class ParametersPermitTest < ActiveSupport::TestCase
   end
 
   test "to_hash returns converted hash when .permit_all_parameters is set" do
-    begin
-      ActionController::Parameters.permit_all_parameters = true
-      params = ActionController::Parameters.new(crab: "Senjougahara Hitagi")
+    ActionController::Parameters.permit_all_parameters = true
+    params = ActionController::Parameters.new(crab: "Senjougahara Hitagi")
 
-      assert_instance_of Hash, params.to_hash
-      assert_not_kind_of ActionController::Parameters, params.to_hash
-      assert_equal({ "crab" => "Senjougahara Hitagi" }, params.to_hash)
-      assert_equal({ "crab" => "Senjougahara Hitagi" }, params)
-    ensure
-      ActionController::Parameters.permit_all_parameters = false
-    end
+    assert_instance_of Hash, params.to_hash
+    assert_not_kind_of ActionController::Parameters, params.to_hash
+    assert_equal({ "crab" => "Senjougahara Hitagi" }, params.to_hash)
+    assert_equal({ "crab" => "Senjougahara Hitagi" }, params)
+  ensure
+    ActionController::Parameters.permit_all_parameters = false
   end
 
   test "to_unsafe_h returns unfiltered params" do
