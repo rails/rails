@@ -372,8 +372,6 @@ module Rails
         # its own vendored Thor, which could be a different version. Running both
         # things in the same process is a recipe for a night with paracetamol.
         #
-        # We unset temporary bundler variables to load proper bundler and Gemfile.
-        #
         # Thanks to James Tucker for the Gem tricks involved in this call.
         _bundle_command = Gem.bin_path("bundler", "bundle")
 
