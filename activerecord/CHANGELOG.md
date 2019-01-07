@@ -1,3 +1,7 @@
+*   Allow `ActionController::Params` as argument of `ActiveRecord::Base#exists?`.
+
+    *Gannon McGibbon*
+
 *   Deprecate passing `migrations_paths` to `connection.assume_migrated_upto_version`.
 
     *Ryuta Kamizono*
