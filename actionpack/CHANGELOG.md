@@ -1,3 +1,13 @@
+*   Allow using combine the Cache Control `public` and `no-cache` headers.
+
+    Before this change, even if `public` was specified for Cache Control header,
+    it was excluded when `no-cache` was included. This fixed to keep `public`
+    header as is.
+
+    Fixes #34780.
+
+    *Yuji Yaginuma*
+
 *   Allow `nil` params for `ActionController::TestCase`.
 
     *Ryo Nakamura*
