@@ -1,17 +1,18 @@
 # frozen_string_literal: true
 
+# Order dependent. E.g. Action Mailbox depends on Active Record so it should be after.
 FRAMEWORKS = %w(
-  activejob
+  activesupport
   activemodel
   activerecord
-  activestorage
-  activesupport
-  actioncable
-  actionmailbox
-  actionmailer
-  actionpack
-  actiontext
   actionview
+  actionpack
+  activejob
+  actionmailer
+  actioncable
+  activestorage
+  actionmailbox
+  actiontext
   railties
 )
 FRAMEWORK_NAMES = Hash.new { |h, k| k.split(/(?<=active|action)/).map(&:capitalize).join(" ") }
