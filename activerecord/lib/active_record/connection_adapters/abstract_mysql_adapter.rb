@@ -579,13 +579,13 @@ module ActiveRecord
           m.alias_type %r(bit)i,           "binary"
 
           m.register_type(%r(enum)i) do |sql_type|
-            limit = sql_type[/^enum\((.+)\)/i, 1]
+            limit = sql_type[/^enum\s*\((.+)\)/i, 1]
               .split(",").map { |enum| enum.strip.length - 2 }.max
             MysqlString.new(limit: limit)
           end
 
           m.register_type(%r(^set)i) do |sql_type|
-            limit = sql_type[/^set\((.+)\)/i, 1]
+            limit = sql_type[/^set\s*\((.+)\)/i, 1]
               .split(",").map { |set| set.strip.length - 1 }.sum - 1
             MysqlString.new(limit: limit)
           end
