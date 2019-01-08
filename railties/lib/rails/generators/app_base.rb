@@ -408,19 +408,21 @@ module Rails
         # its own vendored Thor, which could be a different version. Running both
         # things in the same process is a recipe for a night with paracetamol.
         #
-        # We unset temporary bundler variables to load proper bundler and Gemfile.
-        #
         # Thanks to James Tucker for the Gem tricks involved in this call.
         _bundle_command = Gem.bin_path("bundler", "bundle")
 
         require "bundler"
-        Bundler.with_clean_env do
-          full_command = %Q["#{Gem.ruby}" "#{_bundle_command}" #{command}]
-          if options[:quiet]
-            system(full_command, out: File::NULL)
-          else
-            system(full_command)
-          end
+        Bundler.with_original_env do
+          exec_bundle_command(_bundle_command, command)
+        end
+      end
+
+      def exec_bundle_command(bundle_command, command)
+        full_command = %Q["#{Gem.ruby}" "#{bundle_command}" #{command}]
+        if options[:quiet]
+          system(full_command, out: File::NULL)
+        else
+          system(full_command)
         end
       end
 

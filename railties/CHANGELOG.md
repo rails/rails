@@ -1,3 +1,7 @@
+*   Use original `bundler` environment variables during the process of generating a new rails project.
+
+    *Marco Costa*
+
 *   Allow loading seeds without ActiveJob.
 
     Fixes #35782
