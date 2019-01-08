@@ -230,14 +230,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_equal "false\n", output
   end
 
-  def test_csp_initializer_include_connect_src_example
-    run_generator
-
-    assert_file "config/initializers/content_security_policy.rb" do |content|
-      assert_match(/#   policy\.connect_src/, content)
-    end
-  end
-
   def test_app_update_keep_the_cookie_serializer_if_it_is_already_configured
     app_root = File.join(destination_root, "myapp")
     run_generator [app_root]
@@ -845,9 +837,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
 
     assert_no_gem "webpacker"
-    assert_file "config/initializers/content_security_policy.rb" do |content|
-      assert_no_match(/policy\.connect_src/, content)
-    end
   end
 
   def test_webpack_option_with_js_framework

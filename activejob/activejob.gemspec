@@ -25,9 +25,6 @@ Gem::Specification.new do |s|
     "changelog_uri"   => "https://github.com/rails/rails/blob/v#{version}/activejob/CHANGELOG.md"
   }
 
-  # NOTE: Please read our dependency guidelines before updating versions:
-  # https://edgeguides.rubyonrails.org/security.html#dependency-management-and-cves
-
   s.add_dependency "activesupport", version
   s.add_dependency "globalid", ">= 0.3.6"
 end
