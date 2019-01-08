@@ -1,6 +1,19 @@
 # frozen_string_literal: true
 
-FRAMEWORKS = %w( activesupport activemodel activerecord actionview actionpack activejob actionmailer actioncable activestorage railties )
+FRAMEWORKS = %w(
+  activejob
+  activemodel
+  activerecord
+  activestorage
+  activesupport
+  actioncable
+  actionmailbox
+  actionmailer
+  actionpack
+  actiontext
+  actionview
+  railties
+)
 FRAMEWORK_NAMES = Hash.new { |h, k| k.split(/(?<=active|action)/).map(&:capitalize).join(" ") }
 
 root    = File.expand_path("..", __dir__)
