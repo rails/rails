@@ -54,10 +54,6 @@ module Rails
           table << "</table>"
         end
       end
-
-      def to_json
-        Hash[properties].to_json
-      end
     end
 
     # The Rails version.

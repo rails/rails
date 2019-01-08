@@ -71,12 +71,6 @@
 
     *Gannon McGibbon*
 
-*   Add JSON support to rails properties route (`/rails/info/properties`).
-
-    Now, `Rails::Info` properties may be accessed in JSON format at `/rails/info/properties.json`.
-
-    *Yoshiyuki Hirano*
-
 *   Use Ids instead of memory addresses when displaying references in scaffold views.
 
     Fixes #29200.
