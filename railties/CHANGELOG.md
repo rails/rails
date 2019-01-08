@@ -1,3 +1,7 @@
+*   Use original `bundler` environment variables during the process of generating a new rails project.
+
+    *Marco Costa*
+
 *   Send Active Storage analysis and purge jobs to dedicated queues by default.
 
     Analysis jobs now use the `:active_storage_analysis` queue, and purge jobs

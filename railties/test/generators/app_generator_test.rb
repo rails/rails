@@ -773,6 +773,24 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_bundler_command_called("install")
   end
 
+  def test_generation_use_original_bundle_environment
+    generator([destination_root], skip_webpack_install: true)
+
+    mock_original_env = -> do
+      { "BUNDLE_RUBYONRAILS__ORG" => "user:pass" }
+    end
+
+    ensure_environment_is_set = -> *_args do
+      assert_equal "user:pass", ENV["BUNDLE_RUBYONRAILS__ORG"]
+    end
+
+    Bundler.stub :original_env, mock_original_env do
+      generator.stub :exec_bundle_command, ensure_environment_is_set do
+        quietly { generator.invoke_all }
+      end
+    end
+  end
+
   def test_dev_option
     generator([destination_root], dev: true, skip_webpack_install: true)
 
