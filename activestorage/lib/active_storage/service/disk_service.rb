@@ -100,7 +100,7 @@ module ActiveStorage
       instrument :direct_upload, key: key do |payload|
         url = url_for_direct_upload(key, expires_in: expires_in, content_type: content_type, content_length: content_length, checksum: checksum)
         headers = headers_for_direct_upload(key, content_type: content_type)
-        ActiveStorage::DirectUpload.new(url: url, headers: headers).tap { |record| payload[:direct_upload] = record }
+        ActiveStorage::DirectUpload.new(url: url, headers: headers).tap { |config| payload[:direct_upload] = config }
       end
     end
 
