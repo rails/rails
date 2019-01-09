@@ -14,7 +14,7 @@ run "yarn add https://github.com/rails/actiontext"
 
 APPLICATION_PACK_PATH = "app/javascript/packs/application.js"
 
-if File.exists?(APPLICATION_PACK_PATH) && File.read(APPLICATION_PACK_PATH) !~ /import "actiontext"/
+if File.exist?(APPLICATION_PACK_PATH) && File.read(APPLICATION_PACK_PATH) !~ /import "actiontext"/
   say "Adding import to default JavaScript pack"
   append_to_file APPLICATION_PACK_PATH, <<-EOS
 import "actiontext"
