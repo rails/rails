@@ -351,7 +351,7 @@ task default: :test
         modules.reverse.inject(unwrapped_code) do |content, mod|
           str = +"module #{mod}\n"
           str << content.lines.map { |line| "  #{line}" }.join
-          str << content.present? ? "\nend" : "end"
+          str << (content.present? ? "\nend" : "end")
         end
       end
 
