@@ -120,6 +120,7 @@ ActiveRecord::Schema.define do
     t.datetime :published_on
     t.boolean :boolean_status
     t.index [:author_id, :name], unique: true
+    t.integer :tags_count, default: 0
     t.index :isbn, where: "published_on IS NOT NULL", unique: true
     t.index "(lower(external_id))", unique: true if supports_expression_index?
 
@@ -242,6 +243,8 @@ ActiveRecord::Schema.define do
 
   create_table :content, force: true do |t|
     t.string :title
+    t.belongs_to :book
+    t.belongs_to :book_destroy_async
   end
 
   create_table :content_positions, force: true do |t|
@@ -290,6 +293,50 @@ ActiveRecord::Schema.define do
     t.string :dashboard_id, **case_sensitive_options
     t.string :name
   end
+
+  create_table :destroy_async_parents, force: true, id: false do |t|
+    t.primary_key :parent_id
+    t.string :name
+    t.integer :tags_count, default: 0
+  end
+
+  create_table :destroy_async_parent_soft_deletes, force: true do |t|
+    t.integer :tags_count, default: 0
+    t.boolean :deleted
+  end
+
+  create_table :dl_keyed_belongs_tos, force: true, id: false do |t|
+    t.primary_key :belongs_key
+    t.references :destroy_async_parent
+  end
+
+  create_table :dl_keyed_belongs_to_soft_deletes, force: true do |t|
+    t.references :destroy_async_parent_soft_delete,
+      index: { name: :soft_del_parent }
+    t.boolean :deleted
+  end
+
+  create_table :dl_keyed_has_ones, force: true, id: false do |t|
+   t.primary_key :has_one_key
+
+   t.references :destroy_async_parent
+   t.references :destroy_async_parent_soft_delete
+ end
+
+  create_table :dl_keyed_has_manies, force: true, id: false do |t|
+   t.primary_key :many_key
+   t.references :destroy_async_parent
+ end
+
+  create_table :dl_keyed_has_many_throughs, force: true, id: false do |t|
+   t.primary_key :through_key
+ end
+
+  create_table :dl_keyed_joins, force: true, id: false do |t|
+   t.primary_key :joins_key
+   t.references :destroy_async_parent
+   t.references :dl_keyed_has_many_through
+ end
 
   create_table :developers, force: true do |t|
     t.string   :name
@@ -361,6 +408,7 @@ ActiveRecord::Schema.define do
     t.string :writer_type
     t.string :category_id
     t.string :author_id
+    t.references :book
   end
 
   create_table :events, force: true do |t|
@@ -991,6 +1039,13 @@ ActiveRecord::Schema.define do
 
   create_table :tyres, force: true do |t|
     t.integer :car_id
+  end
+
+  create_table :unused_destroy_asyncs, force: true do |t|
+  end
+
+  create_table :unused_belongs_to, force: true do |t|
+    t.belongs_to :unused_destroy_async
   end
 
   create_table :variants, force: true do |t|

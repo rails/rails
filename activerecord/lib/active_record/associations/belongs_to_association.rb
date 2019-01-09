@@ -11,6 +11,18 @@ module ActiveRecord
         when :destroy
           target.destroy
           raise ActiveRecord::Rollback unless target.destroyed?
+        when :destroy_async
+          id = owner.send(reflection.foreign_key.to_sym)
+          primary_key_column = reflection.active_record_primary_key.to_sym
+
+          enqueue_destroy_association(
+            owner_model_name: owner.class.to_s,
+            owner_id: owner.id,
+            association_class: reflection.klass.to_s,
+            association_ids: [id],
+            association_primary_key_column: primary_key_column,
+            ensuring_owner_was_method: options.fetch(:ensuring_owner_was, nil)
+          )
         else
           target.send(options[:dependent])
         end

@@ -321,6 +321,10 @@ module ActiveRecord
             klass.scope_attributes? ||
             reflection.source_reflection.active_record.default_scopes.any?
         end
+
+        def enqueue_destroy_association(options)
+          owner.class.destroy_association_async_job&.perform_later(**options)
+        end
     end
   end
 end

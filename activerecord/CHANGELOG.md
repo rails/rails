@@ -1,3 +1,15 @@
+*   Allow associations supporting the `dependent:` key to take `dependent: :destroy_async`.
+
+    ```ruby
+    class Account < ActiveRecord::Base
+        belongs_to :supplier, dependent: :destroy_async
+    end
+    ```
+
+    `:destroy_async` will enqueue a job to destroy associated records in the background.
+
+    *DHH*, *George Claghorn*, *Cory Gwin*, *Rafael Mendonça França*, *Adrianna Chang*
+
 *   Add `SKIP_TEST_DATABASE` environment variable to disable modifying the test database when `rails db:create` and `rails db:drop` are called.
 
     *Jason Schweier*
