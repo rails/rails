@@ -19,6 +19,8 @@ class Book < ActiveRecord::Base
   enum difficulty: [:easy, :medium, :hard], _suffix: :to_read
   enum cover: { hard: "hard", soft: "soft" }
 
+  destroy_later after: 30.days, if: -> { status_previously_changed? && published? }, ensuring: :published?
+
   def published!
     super
     "do publish work..."

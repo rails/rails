@@ -1,3 +1,21 @@
+*   Add `ActiveRecord::Base.destroy_later` for automatically destroying records
+    after a specified amount of time.
+
+    ```ruby
+    class Export < ApplicationRecord
+      # Destroy all exports 30 days after creation
+      destroy_later after: 30.days
+
+      # Destroy exports 30 days after completing them
+      destroy_later after: 30.days, if: -> { status_previously_changed? && completed? }
+
+      # Destroy exports 30 days after completing them, ensuring they're still completed at destroy time
+      destroy_later after: 30.days, if: -> { status_previously_changed? && completed? }, ensuring: :completed?
+    end
+    ```
+
+    *DHH*, *George Claghorn*
+
 *   Don't call commit/rollback callbacks despite a record isn't saved.
 
     Fixes #29747.

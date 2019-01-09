@@ -26,6 +26,7 @@
 require "active_support"
 require "active_support/rails"
 require "active_model"
+require "active_job"
 require "arel"
 require "yaml"
 
@@ -74,6 +75,8 @@ module ActiveRecord
   autoload :Validations
   autoload :SecureToken
   autoload :DatabaseSelector, "active_record/middleware/database_selector"
+  autoload :DestroyLater
+  autoload :DestroyJob
 
   eager_autoload do
     autoload :ActiveRecordError, "active_record/errors"

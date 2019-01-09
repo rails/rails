@@ -59,6 +59,7 @@ PATH
     activemodel (6.0.0.beta3)
       activesupport (= 6.0.0.beta3)
     activerecord (6.0.0.beta3)
+      activejob (= 6.0.0.beta3)
       activemodel (= 6.0.0.beta3)
       activesupport (= 6.0.0.beta3)
     activestorage (6.0.0.beta3)

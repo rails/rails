@@ -381,6 +381,8 @@ All these configuration options are delegated to the `I18n` library.
   having to send a query to the database to get this information.
   Defaults to `true`.
 
+* `config.active_record.queues.destroy` allows specifying the Active Job queue to use for destroy jobs. It defaults to `:active_record_destroy`.
+
 The MySQL adapter adds one additional configuration option:
 
 * `ActiveRecord::ConnectionAdapters::Mysql2Adapter.emulate_booleans` controls whether Active Record will consider all `tinyint(1)` columns as booleans. Defaults to `true`.
