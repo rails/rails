@@ -310,6 +310,7 @@ module ActiveRecord #:nodoc:
     include Store
     include SecureToken
     include Suppressor
+    include DestroyLater
   end
 
   ActiveSupport.run_load_hooks(:active_record, Base)
