@@ -214,8 +214,11 @@ module ActiveSupport
     end
 
     def coerce(other) #:nodoc:
-      if Scalar === other
+      case other
+      when Scalar
         [other, self]
+      when Duration
+        [Scalar.new(other.value), self]
       else
         [Scalar.new(other), self]
       end
