@@ -595,10 +595,10 @@ TIP: By default, dynamic segments don't accept dots - this is because the dot is
 You can specify static segments when creating a route by not prepending a colon to a fragment:
 
 ```ruby
-get 'photos/:id/with_user/:user_id', to: 'photos#show'
+get 'photos/1/with_user/2', to: 'photos#show'
 ```
 
-This route would respond to paths such as `/photos/1/with_user/2`. In this case, `params` would be `{ controller: 'photos', action: 'show', id: '1', user_id: '2' }`.
+This route would respond to path `/photos/1/with_user/2`. It will be dispatched to the `show` action of the `PhotosController. ` `params` will be `{ controller: 'photos', action: 'show' }`.
 
 ### The Query String
 
@@ -608,7 +608,7 @@ The `params` will also include any parameters from the query string. For example
 get 'photos/:id', to: 'photos#show'
 ```
 
-An incoming path of `/photos/1?user_id=2` will be dispatched to the `show` action of the `Photos` controller. `params` will be `{ controller: 'photos', action: 'show', id: '1', user_id: '2' }`.
+An incoming path of `/photos/1?user_id=2` will be dispatched to the `show` action of the `PhotosController`. `params` will be `{ controller: 'photos', action: 'show', id: '1', user_id: '2' }`.
 
 ### Defining Defaults
 
