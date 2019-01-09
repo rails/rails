@@ -46,6 +46,10 @@ module ActionMailer
         register_preview_interceptors(options.delete(:preview_interceptors))
         register_observers(options.delete(:observers))
 
+        if delivery_job = options.delete(:delivery_job)
+          self.delivery_job = delivery_job.constantize
+        end
+
         options.each { |k, v| send("#{k}=", v) }
       end
 

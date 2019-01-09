@@ -22,3 +22,12 @@
 # Send Active Storage analysis and purge jobs to dedicated queues.
 # Rails.application.config.active_storage.queues.analysis = :active_storage_analysis
 # Rails.application.config.active_storage.queues.purge    = :active_storage_purge
+
+# Use ActionMailer::MailDeliveryJob for sending parameterized and normal mail.
+#
+# The default delivery job (ActionMailer::DeliveryJob), will be removed in Rails 6.1.
+# This setting is not backwards compatible with earlier Rails versions.
+# If you send mail in the background, job workers need to have a copy of
+# MailDeliveryJob to ensure all delivery jobs are processed properly.
+# Make sure your entire app is migrated and stable on 6.0 before using this setting.
+# Rails.application.config.action_mailer.delivery_job = "ActionMailer::MailDeliveryJob"
