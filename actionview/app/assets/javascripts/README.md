@@ -17,11 +17,11 @@ Note that the `data` attributes this library adds are a feature of HTML5. If you
 
 ### NPM
 
-    npm install rails-ujs --save
-    
+    npm install @rails/ujs --save
+
 ### Yarn
-    
-    yarn add rails-ujs
+
+    yarn add @rails/ujs
 
 Ensure that `.yarnclean` does not include `assets` if you use [yarn autoclean](https://yarnpkg.com/lang/en/docs/cli/autoclean/).
 
@@ -40,7 +40,7 @@ In a conventional Rails application that uses the asset pipeline, require `rails
 If you're using the Webpacker gem or some other JavaScript bundler, add the following to your main JS file:
 
 ```javascript
-import Rails from 'rails-ujs';
+import Rails from "@rails/ujs"
 Rails.start()
 ```
 

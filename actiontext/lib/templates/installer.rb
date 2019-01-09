@@ -8,15 +8,14 @@ say "Copying blob rendering partial to app/views/active_storage/blobs/_blob.html
 copy_file "#{__dir__}/../../app/views/active_storage/blobs/_blob.html.erb",
   "app/views/active_storage/blobs/_blob.html.erb"
 
-# FIXME: Replace with release version on release
 say "Installing JavaScript dependency"
-run "yarn add https://github.com/rails/actiontext"
+run "yarn add @rails/actiontext"
 
 APPLICATION_PACK_PATH = "app/javascript/packs/application.js"
 
-if File.exist?(APPLICATION_PACK_PATH) && File.read(APPLICATION_PACK_PATH) !~ /import "actiontext"/
+if File.exist?(APPLICATION_PACK_PATH) && File.read(APPLICATION_PACK_PATH) !~ /import "@rails\/actiontext"/
   say "Adding import to default JavaScript pack"
   append_to_file APPLICATION_PACK_PATH, <<-EOS
-import "actiontext"
+import "@rails/actiontext"
 EOS
 end

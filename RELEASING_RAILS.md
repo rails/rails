@@ -109,13 +109,14 @@ browser.
 This will stop you from looking silly when you push an RC to rubygems.org and
 then realize it is broken.
 
-### Release to RubyGems and NPM.
+### Release to RubyGems and npm.
 
-IMPORTANT: The Action Cable client and Action View's UJS adapter are released
-as NPM packages, so you must have Node.js installed, have an NPM account
-(npmjs.com), and be a package owner for `actioncable` and `rails-ujs` (you can
-check this via `npm owner ls actioncable` and `npm owner ls rails-ujs`) in
-order to do a full release. Do not release until you're set up with NPM!
+IMPORTANT: Several gems have JavaScript components that are released as npm
+packages, so you must have Node.js installed, have an npm account (npmjs.com),
+and be a package owner for `@rails/actioncable`, `@rails/actiontext`,
+`@rails/activestorage`, and `@rails/ujs`. You can check this by making sure your
+npm user (`npm whoami`) is listed as an owner (`npm owner ls <pkg>`) of each
+package. Do not release until you're set up with npm!
 
 The release task will sign the release tag. If you haven't got commit signing
 set up, use https://git-scm.com/book/tr/v2/Git-Tools-Signing-Your-Work as a

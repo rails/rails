@@ -504,7 +504,7 @@ WebSocket functionality.
 ### Installation
 
 ```
-npm install actioncable --save
+npm install @rails/actioncable --save
 ```
 
 ### Usage
@@ -516,7 +516,7 @@ provided.
 In JavaScript...
 
 ```javascript
-ActionCable = require('actioncable')
+ActionCable = require('@rails/actioncable')
 
 var cable = ActionCable.createConsumer('wss://RAILS-API-PATH.com/cable')
 
@@ -528,7 +528,7 @@ cable.subscriptions.create('AppearanceChannel', {
 and in CoffeeScript...
 
 ```coffeescript
-ActionCable = require('actioncable')
+ActionCable = require('@rails/actioncable')
 
 cable = ActionCable.createConsumer('wss://RAILS-API-PATH.com/cable')
 
