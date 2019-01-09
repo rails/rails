@@ -888,7 +888,7 @@ class ControllerWithSymbolAsFilter < PostsController
       yield
 
       # Do stuff...
-      wtf += 1
+      wtf + 1
     end
 end
 

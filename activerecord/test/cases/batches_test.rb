@@ -430,7 +430,7 @@ class EachTest < ActiveRecord::TestCase
         assert_kind_of ActiveRecord::Relation, relation
         assert_kind_of Post, relation.first
 
-        relation = [not_a_post] * relation.count
+        [not_a_post] * relation.count
       end
     end
   end

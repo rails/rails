@@ -15,8 +15,9 @@ module Arel # :nodoc: all
             collector << "ORDER BY "
             collector = inject_join o.orders, collector, ", "
           end
-          collector = maybe_visit o.lock, collector
+          maybe_visit o.lock, collector
         end
+
         def visit_Arel_Nodes_SelectCore(o, collector)
           collector = inject_join o.projections, collector, ", "
           if o.source && !o.source.empty?
