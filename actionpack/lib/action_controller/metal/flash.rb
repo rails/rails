@@ -46,7 +46,6 @@ module ActionController #:nodoc:
       def action_methods #:nodoc:
         super - _flash_types.map(&:to_s).to_set
       end
-
     end
     private
       def redirect_to(options = {}, response_status_and_flash = {}) #:doc:
