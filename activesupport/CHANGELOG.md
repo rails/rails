@@ -1,3 +1,7 @@
+*   Fix `String#safe_constantize` throwing a `LoadError` for incorrectly cased constant references.
+
+    *Keenan Brock*
+
 *   Allow Range#=== and Range#cover? on Range
 
     `Range#cover?` can now accept a range argument like `Range#include?` and

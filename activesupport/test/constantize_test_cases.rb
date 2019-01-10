@@ -112,6 +112,16 @@ module ConstantizeTestCases
     assert_nil yield("A::Object::B")
     assert_nil yield("A::Object::Object::Object::B")
 
+    with_autoloading_fixtures do
+      assert_nil yield("Em")
+    end
+
+    assert_raises(LoadError) do
+      with_autoloading_fixtures do
+        yield("RaisesLoadError")
+      end
+    end
+
     assert_raises(NameError) do
       with_autoloading_fixtures do
         yield("RaisesNameError")
