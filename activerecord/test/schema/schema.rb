@@ -93,7 +93,7 @@ ActiveRecord::Schema.define do
     t.integer :pirate_id
   end
 
-  create_table :books, force: true do |t|
+  create_table :books, id: :integer, force: true do |t|
     t.references :author
     t.string :format
     t.column :name, :string
@@ -158,8 +158,8 @@ ActiveRecord::Schema.define do
   end
 
   create_table :citations, force: true do |t|
-    t.column :book1_id, :integer
-    t.column :book2_id, :integer
+    t.references :book1
+    t.references :book2
     t.references :citation
   end
 
@@ -216,7 +216,7 @@ ActiveRecord::Schema.define do
     t.index [:firm_id, :type, :rating], name: "company_index", length: { type: 10 }, order: { rating: :desc }
     t.index [:firm_id, :type], name: "company_partial_index", where: "(rating > 10)"
     t.index :name, name: "company_name_index", using: :btree
-    t.index "(CASE WHEN rating > 0 THEN lower(name) END)", name: "company_expression_index" if supports_expression_index?
+    t.index "(CASE WHEN rating > 0 THEN lower(name) END) DESC", name: "company_expression_index" if supports_expression_index?
   end
 
   create_table :content, force: true do |t|
@@ -601,33 +601,55 @@ ActiveRecord::Schema.define do
     t.integer :non_poly_two_id
   end
 
-  create_table :parrots, force: true do |t|
-    t.column :name, :string
-    t.column :color, :string
-    t.column :parrot_sti_class, :string
-    t.column :killer_id, :integer
-    t.column :updated_count, :integer, default: 0
-    if subsecond_precision_supported?
-      t.column :created_at, :datetime, precision: 0
-      t.column :created_on, :datetime, precision: 0
-      t.column :updated_at, :datetime, precision: 0
-      t.column :updated_on, :datetime, precision: 0
-    else
-      t.column :created_at, :datetime
-      t.column :created_on, :datetime
-      t.column :updated_at, :datetime
-      t.column :updated_on, :datetime
+  disable_referential_integrity do
+    create_table :parrots, force: :cascade do |t|
+      t.string :name
+      t.string :color
+      t.string :parrot_sti_class
+      t.integer :killer_id
+      t.integer :updated_count, :integer, default: 0
+      if subsecond_precision_supported?
+        t.datetime :created_at, precision: 0
+        t.datetime :created_on, precision: 0
+        t.datetime :updated_at, precision: 0
+        t.datetime :updated_on, precision: 0
+      else
+        t.datetime :created_at
+        t.datetime :created_on
+        t.datetime :updated_at
+        t.datetime :updated_on
+      end
     end
-  end
 
-  create_table :parrots_pirates, id: false, force: true do |t|
-    t.column :parrot_id, :integer
-    t.column :pirate_id, :integer
-  end
+    create_table :pirates, force: :cascade do |t|
+      t.string :catchphrase
+      t.integer :parrot_id
+      t.integer :non_validated_parrot_id
+      if subsecond_precision_supported?
+        t.datetime :created_on, precision: 6
+        t.datetime :updated_on, precision: 6
+      else
+        t.datetime :created_on
+        t.datetime :updated_on
+      end
+    end
 
-  create_table :parrots_treasures, id: false, force: true do |t|
-    t.column :parrot_id, :integer
-    t.column :treasure_id, :integer
+    create_table :treasures, force: :cascade do |t|
+      t.string :name
+      t.string :type
+      t.references :looter, polymorphic: true
+      t.references :ship
+    end
+
+    create_table :parrots_pirates, id: false, force: true do |t|
+      t.references :parrot, foreign_key: true
+      t.references :pirate, foreign_key: true
+    end
+
+    create_table :parrots_treasures, id: false, force: true do |t|
+      t.references :parrot, foreign_key: true
+      t.references :treasure, foreign_key: true
+    end
   end
 
   create_table :people, force: true do |t|
@@ -671,19 +693,6 @@ ActiveRecord::Schema.define do
     t.column :treasure_id, :integer
     t.column :pet_id, :integer
     t.column :rainbow_color, :string
-  end
-
-  create_table :pirates, force: true do |t|
-    t.column :catchphrase, :string
-    t.column :parrot_id, :integer
-    t.integer :non_validated_parrot_id
-    if subsecond_precision_supported?
-      t.column :created_on, :datetime, precision: 6
-      t.column :updated_on, :datetime, precision: 6
-    else
-      t.column :created_on, :datetime
-      t.column :updated_on, :datetime
-    end
   end
 
   create_table :posts, force: true do |t|
@@ -916,14 +925,6 @@ ActiveRecord::Schema.define do
     t.datetime :updated_at
   end
 
-  create_table :treasures, force: true do |t|
-    t.column :name, :string
-    t.column :type, :string
-    t.column :looter_id, :integer
-    t.column :looter_type, :string
-    t.belongs_to :ship
-  end
-
   create_table :tuning_pegs, force: true do |t|
     t.integer :guitar_id
     t.float :pitch
@@ -983,14 +984,16 @@ ActiveRecord::Schema.define do
     t.references :wheelable, polymorphic: true
   end
 
-  create_table :countries, force: true, id: false, primary_key: "country_id" do |t|
-    t.string :country_id
+  create_table :countries, force: true, id: false do |t|
+    t.string :country_id, primary_key: true
     t.string :name
   end
-  create_table :treaties, force: true, id: false, primary_key: "treaty_id" do |t|
-    t.string :treaty_id
+
+  create_table :treaties, force: true, id: false do |t|
+    t.string :treaty_id, primary_key: true
     t.string :name
   end
+
   create_table :countries_treaties, force: true, primary_key: [:country_id, :treaty_id] do |t|
     t.string :country_id, null: false
     t.string :treaty_id, null: false

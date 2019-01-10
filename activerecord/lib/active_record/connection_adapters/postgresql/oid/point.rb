@@ -7,7 +7,7 @@ module ActiveRecord
     module PostgreSQL
       module OID # :nodoc:
         class Point < Type::Value # :nodoc:
-          include Type::Helpers::Mutable
+          include ActiveModel::Type::Helpers::Mutable
 
           def type
             :point

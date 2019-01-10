@@ -56,12 +56,10 @@ module Rails
           def lookup!
             $LOAD_PATH.each do |base|
               Dir[File.join(base, *file_lookup_paths)].each do |path|
-                begin
-                  path = path.sub("#{base}/", "")
-                  require path
-                rescue Exception
-                  # No problem
-                end
+                path = path.sub("#{base}/", "")
+                require path
+              rescue Exception
+                # No problem
               end
             end
           end

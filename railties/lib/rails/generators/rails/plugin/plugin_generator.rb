@@ -88,7 +88,7 @@ task default: :test
 
     PASSTHROUGH_OPTIONS = [
       :skip_active_record, :skip_active_storage, :skip_action_mailer, :skip_javascript, :skip_action_cable, :skip_sprockets, :database,
-      :javascript, :skip_yarn, :api, :quiet, :pretend, :skip
+      :api, :quiet, :pretend, :skip
     ]
 
     def generate_test_dummy(force = false)
@@ -349,9 +349,9 @@ task default: :test
       def wrap_in_modules(unwrapped_code)
         unwrapped_code = "#{unwrapped_code}".strip.gsub(/\s$\n/, "")
         modules.reverse.inject(unwrapped_code) do |content, mod|
-          str = "module #{mod}\n"
-          str += content.lines.map { |line| "  #{line}" }.join
-          str += content.present? ? "\nend" : "end"
+          str = +"module #{mod}\n"
+          str << content.lines.map { |line| "  #{line}" }.join
+          str << (content.present? ? "\nend" : "end")
         end
       end
 

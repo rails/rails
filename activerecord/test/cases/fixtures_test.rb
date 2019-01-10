@@ -73,14 +73,12 @@ class FixturesTest < ActiveRecord::TestCase
 
   if current_adapter?(:Mysql2Adapter, :PostgreSQLAdapter)
     def test_bulk_insert
-      begin
-        subscriber = InsertQuerySubscriber.new
-        subscription = ActiveSupport::Notifications.subscribe("sql.active_record", subscriber)
-        create_fixtures("bulbs")
-        assert_equal 1, subscriber.events.size, "It takes one INSERT query to insert two fixtures"
-      ensure
-        ActiveSupport::Notifications.unsubscribe(subscription)
-      end
+      subscriber = InsertQuerySubscriber.new
+      subscription = ActiveSupport::Notifications.subscribe("sql.active_record", subscriber)
+      create_fixtures("bulbs")
+      assert_equal 1, subscriber.events.size, "It takes one INSERT query to insert two fixtures"
+    ensure
+      ActiveSupport::Notifications.unsubscribe(subscription)
     end
 
     def test_bulk_insert_multiple_table_with_a_multi_statement_query
@@ -473,11 +471,11 @@ class FixturesTest < ActiveRecord::TestCase
   end
 
   def test_empty_yaml_fixture
-    assert_not_nil ActiveRecord::FixtureSet.new(Account.connection, "accounts", Account, FIXTURES_ROOT + "/naked/yml/accounts")
+    assert_not_nil ActiveRecord::FixtureSet.new(nil, "accounts", Account, FIXTURES_ROOT + "/naked/yml/accounts")
   end
 
   def test_empty_yaml_fixture_with_a_comment_in_it
-    assert_not_nil ActiveRecord::FixtureSet.new(Account.connection, "companies", Company, FIXTURES_ROOT + "/naked/yml/companies")
+    assert_not_nil ActiveRecord::FixtureSet.new(nil, "companies", Company, FIXTURES_ROOT + "/naked/yml/companies")
   end
 
   def test_nonexistent_fixture_file
@@ -487,14 +485,14 @@ class FixturesTest < ActiveRecord::TestCase
     assert_empty Dir[nonexistent_fixture_path + "*"]
 
     assert_raise(Errno::ENOENT) do
-      ActiveRecord::FixtureSet.new(Account.connection, "companies", Company, nonexistent_fixture_path)
+      ActiveRecord::FixtureSet.new(nil, "companies", Company, nonexistent_fixture_path)
     end
   end
 
   def test_dirty_dirty_yaml_file
     fixture_path = FIXTURES_ROOT + "/naked/yml/courses"
     error = assert_raise(ActiveRecord::Fixture::FormatError) do
-      ActiveRecord::FixtureSet.new(Account.connection, "courses", Course, fixture_path)
+      ActiveRecord::FixtureSet.new(nil, "courses", Course, fixture_path)
     end
     assert_equal "fixture is not a hash: #{fixture_path}.yml", error.to_s
   end
@@ -502,7 +500,7 @@ class FixturesTest < ActiveRecord::TestCase
   def test_yaml_file_with_one_invalid_fixture
     fixture_path = FIXTURES_ROOT + "/naked/yml/courses_with_invalid_key"
     error = assert_raise(ActiveRecord::Fixture::FormatError) do
-      ActiveRecord::FixtureSet.new(Account.connection, "courses", Course, fixture_path)
+      ActiveRecord::FixtureSet.new(nil, "courses", Course, fixture_path)
     end
     assert_equal "fixture key is not a hash: #{fixture_path}.yml, keys: [\"two\"]", error.to_s
   end
@@ -525,7 +523,7 @@ class FixturesTest < ActiveRecord::TestCase
 
   def test_omap_fixtures
     assert_nothing_raised do
-      fixtures = ActiveRecord::FixtureSet.new(Account.connection, "categories", Category, FIXTURES_ROOT + "/categories_ordered")
+      fixtures = ActiveRecord::FixtureSet.new(nil, "categories", Category, FIXTURES_ROOT + "/categories_ordered")
 
       fixtures.each.with_index do |(name, fixture), i|
         assert_equal "fixture_no_#{i}", name
@@ -596,7 +594,7 @@ class HasManyThroughFixture < ActiveRecord::TestCase
 
     parrots = File.join FIXTURES_ROOT, "parrots"
 
-    fs = ActiveRecord::FixtureSet.new parrot.connection, "parrots", parrot, parrots
+    fs = ActiveRecord::FixtureSet.new(nil, "parrots", parrot, parrots)
     rows = fs.table_rows
     assert_equal load_has_and_belongs_to_many["parrots_treasures"], rows["parrots_treasures"]
   end
@@ -614,9 +612,13 @@ class HasManyThroughFixture < ActiveRecord::TestCase
 
     parrots = File.join FIXTURES_ROOT, "parrots"
 
-    fs = ActiveRecord::FixtureSet.new parrot.connection, "parrots", parrot, parrots
+    fs = ActiveRecord::FixtureSet.new(nil, "parrots", parrot, parrots)
     rows = fs.table_rows
     assert_equal load_has_and_belongs_to_many["parrots_treasures"], rows["parrot_treasures"]
+  end
+
+  def test_has_and_belongs_to_many_order
+    assert_equal ["parrots", "parrots_treasures"], load_has_and_belongs_to_many.keys
   end
 
   def load_has_and_belongs_to_many
@@ -625,7 +627,7 @@ class HasManyThroughFixture < ActiveRecord::TestCase
 
     parrots = File.join FIXTURES_ROOT, "parrots"
 
-    fs = ActiveRecord::FixtureSet.new parrot.connection, "parrots", parrot, parrots
+    fs = ActiveRecord::FixtureSet.new(nil, "parrots", parrot, parrots)
     fs.table_rows
   end
 end
@@ -1359,4 +1361,38 @@ class NilFixturePathTest < ActiveRecord::TestCase
       Please set `NilFixturePathTest::TestCase.fixture_path`.
     MSG
   end
+end
+
+class MultipleDatabaseFixturesTest < ActiveRecord::TestCase
+  test "enlist_fixture_connections ensures multiple databases share a connection pool" do
+    with_temporary_connection_pool do
+      ActiveRecord::Base.connects_to database: { writing: :arunit, reading: :arunit2 }
+
+      rw_conn = ActiveRecord::Base.connection
+      ro_conn = ActiveRecord::Base.connection_handlers[:reading].connection_pool_list.first.connection
+
+      assert_not_equal rw_conn, ro_conn
+
+      enlist_fixture_connections
+
+      rw_conn = ActiveRecord::Base.connection
+      ro_conn = ActiveRecord::Base.connection_handlers[:reading].connection_pool_list.first.connection
+
+      assert_equal rw_conn, ro_conn
+    end
+  ensure
+    ActiveRecord::Base.connection_handlers = { writing: ActiveRecord::Base.connection_handler }
+  end
+
+  private
+
+    def with_temporary_connection_pool
+      old_pool = ActiveRecord::Base.connection_handler.retrieve_connection_pool(ActiveRecord::Base.connection_specification_name)
+      new_pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new ActiveRecord::Base.connection_pool.spec
+      ActiveRecord::Base.connection_handler.send(:owner_to_pool)["primary"] = new_pool
+
+      yield
+    ensure
+      ActiveRecord::Base.connection_handler.send(:owner_to_pool)["primary"] = old_pool
+    end
 end

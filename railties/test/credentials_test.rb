@@ -1,9 +1,10 @@
 # frozen_string_literal: true
 
 require "isolation/abstract_unit"
+require "env_helpers"
 
 class Rails::CredentialsTest < ActiveSupport::TestCase
-  include ActiveSupport::Testing::Isolation
+  include ActiveSupport::Testing::Isolation, EnvHelpers
 
   setup :build_app
   teardown :teardown_app
@@ -35,6 +36,21 @@ class Rails::CredentialsTest < ActiveSupport::TestCase
       app("production")
 
       assert_equal "revealed", Rails.application.credentials.mystery
+    end
+  end
+
+  test "reads credentials using environment variable key" do
+    with_credentials do |content, key|
+      Dir.chdir(app_path) do
+        Dir.mkdir("config/credentials")
+        File.write("config/credentials/production.yml.enc", content)
+      end
+
+      switch_env("RAILS_MASTER_KEY", key) do
+        app("production")
+
+        assert_equal "revealed", Rails.application.credentials.mystery
+      end
     end
   end
 

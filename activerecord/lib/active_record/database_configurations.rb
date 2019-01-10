@@ -29,7 +29,7 @@ module ActiveRecord
     # configs for all environments.
     # <tt>spec_name:</tt> The specification name (ie primary, animals, etc.). Defaults
     # to +nil+.
-    # <tt>include_replicas:</tt> Determines whether to include replicas in the
+    # <tt>include_replicas:</tt> Determines whether to include replicas in
     # the returned list. Most of the time we're only iterating over the write
     # connection (i.e. migrations don't need to run for the write and read connection).
     # Defaults to +false+.
@@ -124,15 +124,13 @@ module ActiveRecord
       end
 
       def build_db_config_from_string(env_name, spec_name, config)
-        begin
-          url = config
-          uri = URI.parse(url)
-          if uri.try(:scheme)
-            ActiveRecord::DatabaseConfigurations::UrlConfig.new(env_name, spec_name, url)
-          end
-        rescue URI::InvalidURIError
-          ActiveRecord::DatabaseConfigurations::HashConfig.new(env_name, spec_name, config)
+        url = config
+        uri = URI.parse(url)
+        if uri.try(:scheme)
+          ActiveRecord::DatabaseConfigurations::UrlConfig.new(env_name, spec_name, url)
         end
+      rescue URI::InvalidURIError
+        ActiveRecord::DatabaseConfigurations::HashConfig.new(env_name, spec_name, config)
       end
 
       def build_db_config_from_hash(env_name, spec_name, config)

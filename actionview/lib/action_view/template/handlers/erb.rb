@@ -17,8 +17,8 @@ module ActionView
         class_attribute :escape_ignore_list, default: ["text/plain"]
 
         [self, singleton_class].each do |base|
-          base.send(:alias_method, :escape_whitelist, :escape_ignore_list)
-          base.send(:alias_method, :escape_whitelist=, :escape_ignore_list=)
+          base.alias_method :escape_whitelist, :escape_ignore_list
+          base.alias_method :escape_whitelist=, :escape_ignore_list=
 
           base.deprecate(
             escape_whitelist: "use #escape_ignore_list instead",

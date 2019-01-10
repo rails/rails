@@ -3,6 +3,38 @@
 module ActiveRecord
   class FixtureSet
     class TableRow # :nodoc:
+      class ReflectionProxy # :nodoc:
+        def initialize(association)
+          @association = association
+        end
+
+        def join_table
+          @association.join_table
+        end
+
+        def name
+          @association.name
+        end
+
+        def primary_key_type
+          @association.klass.type_for_attribute(@association.klass.primary_key).type
+        end
+      end
+
+      class HasManyThroughProxy < ReflectionProxy # :nodoc:
+        def rhs_key
+          @association.foreign_key
+        end
+
+        def lhs_key
+          @association.through_reflection.foreign_key
+        end
+
+        def join_table
+          @association.through_reflection.table_name
+        end
+      end
+
       def initialize(fixture, table_rows:, label:, now:)
         @table_rows = table_rows
         @label = label
@@ -31,7 +63,7 @@ module ActiveRecord
           interpolate_label
           generate_primary_key
           resolve_enums
-          @table_rows.resolve_sti_reflections(@row)
+          resolve_sti_reflections
         end
 
         def reflection_class
@@ -72,6 +104,48 @@ module ActiveRecord
             if @row.include?(name)
               @row[name] = values.fetch(@row[name], @row[name])
             end
+          end
+        end
+
+        def resolve_sti_reflections
+          # If STI is used, find the correct subclass for association reflection
+          reflection_class._reflections.each_value do |association|
+            case association.macro
+            when :belongs_to
+              # Do not replace association name with association foreign key if they are named the same
+              fk_name = (association.options[:foreign_key] || "#{association.name}_id").to_s
+
+              if association.name.to_s != fk_name && value = @row.delete(association.name.to_s)
+                if association.polymorphic? && value.sub!(/\s*\(([^\)]*)\)\s*$/, "")
+                  # support polymorphic belongs_to as "label (Type)"
+                  @row[association.foreign_type] = $1
+                end
+
+                fk_type = reflection_class.type_for_attribute(fk_name).type
+                @row[fk_name] = ActiveRecord::FixtureSet.identify(value, fk_type)
+              end
+            when :has_many
+              if association.options[:through]
+                add_join_records(HasManyThroughProxy.new(association))
+              end
+            end
+          end
+        end
+
+        def add_join_records(association)
+          # This is the case when the join table has no fixtures file
+          if (targets = @row.delete(association.name.to_s))
+            table_name  = association.join_table
+            column_type = association.primary_key_type
+            lhs_key     = association.lhs_key
+            rhs_key     = association.rhs_key
+
+            targets = targets.is_a?(Array) ? targets : targets.split(/\s*,\s*/)
+            joins   = targets.map do |target|
+              { lhs_key => @row[model_metadata.primary_key_name],
+                rhs_key => ActiveRecord::FixtureSet.identify(target, column_type) }
+            end
+            @table_rows.tables[table_name].concat(joins)
           end
         end
     end

@@ -191,11 +191,9 @@ db_namespace = namespace :db do
 
   # desc "Retrieves the collation for the current environment's database"
   task collation: :load_config do
-    begin
-      puts ActiveRecord::Tasks::DatabaseTasks.collation_current
-    rescue NoMethodError
-      $stderr.puts "Sorry, your database adapter is not supported yet. Feel free to submit a patch."
-    end
+    puts ActiveRecord::Tasks::DatabaseTasks.collation_current
+  rescue NoMethodError
+    $stderr.puts "Sorry, your database adapter is not supported yet. Feel free to submit a patch."
   end
 
   desc "Retrieves the current schema version number"
@@ -300,15 +298,22 @@ db_namespace = namespace :db do
     namespace :cache do
       desc "Creates a db/schema_cache.yml file."
       task dump: :load_config do
-        conn = ActiveRecord::Base.connection
-        filename = File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, "schema_cache.yml")
-        ActiveRecord::Tasks::DatabaseTasks.dump_schema_cache(conn, filename)
+        ActiveRecord::Base.configurations.configs_for(env_name: Rails.env).each do |db_config|
+          ActiveRecord::Base.establish_connection(db_config.config)
+          filename = ActiveRecord::Tasks::DatabaseTasks.cache_dump_filename(db_config.spec_name)
+          ActiveRecord::Tasks::DatabaseTasks.dump_schema_cache(
+            ActiveRecord::Base.connection,
+            filename,
+          )
+        end
       end
 
       desc "Clears a db/schema_cache.yml file."
       task clear: :load_config do
-        filename = File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, "schema_cache.yml")
-        rm_f filename, verbose: false
+        ActiveRecord::Base.configurations.configs_for(env_name: Rails.env).each do |db_config|
+          filename = ActiveRecord::Tasks::DatabaseTasks.cache_dump_filename(db_config.spec_name)
+          rm_f filename, verbose: false
+        end
       end
     end
   end
@@ -354,17 +359,15 @@ db_namespace = namespace :db do
 
     # desc "Recreate the test database from an existent schema.rb file"
     task load_schema: %w(db:test:purge) do
-      begin
-        should_reconnect = ActiveRecord::Base.connection_pool.active_connection?
-        ActiveRecord::Schema.verbose = false
-        ActiveRecord::Base.configurations.configs_for(env_name: "test").each do |db_config|
-          filename = ActiveRecord::Tasks::DatabaseTasks.dump_filename(db_config.spec_name, :ruby)
-          ActiveRecord::Tasks::DatabaseTasks.load_schema(db_config.config, :ruby, filename, "test")
-        end
-      ensure
-        if should_reconnect
-          ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations.default_hash(ActiveRecord::Tasks::DatabaseTasks.env))
-        end
+      should_reconnect = ActiveRecord::Base.connection_pool.active_connection?
+      ActiveRecord::Schema.verbose = false
+      ActiveRecord::Base.configurations.configs_for(env_name: "test").each do |db_config|
+        filename = ActiveRecord::Tasks::DatabaseTasks.dump_filename(db_config.spec_name, :ruby)
+        ActiveRecord::Tasks::DatabaseTasks.load_schema(db_config.config, :ruby, filename, "test")
+      end
+    ensure
+      if should_reconnect
+        ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations.default_hash(ActiveRecord::Tasks::DatabaseTasks.env))
       end
     end
 

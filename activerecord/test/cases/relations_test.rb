@@ -1315,6 +1315,13 @@ class RelationTest < ActiveRecord::TestCase
     assert_not_equal subscriber, Subscriber.create_or_find_by(nick: "cat")
   end
 
+  def test_create_or_find_by_should_not_raise_due_to_validation_errors
+    assert_nothing_raised do
+      bird = Bird.create_or_find_by(color: "green")
+      assert_predicate bird, :invalid?
+    end
+  end
+
   def test_create_or_find_by_with_non_unique_attributes
     Subscriber.create!(nick: "bob", name: "the builder")
 
@@ -1331,6 +1338,38 @@ class RelationTest < ActiveRecord::TestCase
     Subscriber.transaction do
       assert_equal subscriber, Subscriber.create_or_find_by(nick: "bob")
       assert_not_equal subscriber, Subscriber.create_or_find_by(nick: "cat")
+    end
+  end
+
+  def test_create_or_find_by_with_bang
+    assert_nil Subscriber.find_by(nick: "bob")
+
+    subscriber = Subscriber.create!(nick: "bob")
+
+    assert_equal subscriber, Subscriber.create_or_find_by!(nick: "bob")
+    assert_not_equal subscriber, Subscriber.create_or_find_by!(nick: "cat")
+  end
+
+  def test_create_or_find_by_with_bang_should_raise_due_to_validation_errors
+    assert_raises(ActiveRecord::RecordInvalid) { Bird.create_or_find_by!(color: "green") }
+  end
+
+  def test_create_or_find_by_with_bang_with_non_unique_attributes
+    Subscriber.create!(nick: "bob", name: "the builder")
+
+    assert_raises(ActiveRecord::RecordNotFound) do
+      Subscriber.create_or_find_by!(nick: "bob", name: "the cat")
+    end
+  end
+
+  def test_create_or_find_by_with_bang_within_transaction
+    assert_nil Subscriber.find_by(nick: "bob")
+
+    subscriber = Subscriber.create!(nick: "bob")
+
+    Subscriber.transaction do
+      assert_equal subscriber, Subscriber.create_or_find_by!(nick: "bob")
+      assert_not_equal subscriber, Subscriber.create_or_find_by!(nick: "cat")
     end
   end
 

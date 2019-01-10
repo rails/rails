@@ -152,8 +152,8 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal DateTime.civil(2005, 2, 22, 11, 10, 10), DateTime.civil(2005, 2, 22, 10, 10, 10).since(3600)
     assert_equal DateTime.civil(2005, 2, 24, 10, 10, 10), DateTime.civil(2005, 2, 22, 10, 10, 10).since(86400 * 2)
     assert_equal DateTime.civil(2005, 2, 24, 11, 10, 35), DateTime.civil(2005, 2, 22, 10, 10, 10).since(86400 * 2 + 3600 + 25)
-    assert_equal DateTime.civil(2005, 2, 22, 10, 10, 11), DateTime.civil(2005, 2, 22, 10, 10, 10).since(1.333)
-    assert_equal DateTime.civil(2005, 2, 22, 10, 10, 12), DateTime.civil(2005, 2, 22, 10, 10, 10).since(1.667)
+    assert_not_equal DateTime.civil(2005, 2, 22, 10, 10, 11), DateTime.civil(2005, 2, 22, 10, 10, 10).since(1.333)
+    assert_not_equal DateTime.civil(2005, 2, 22, 10, 10, 12), DateTime.civil(2005, 2, 22, 10, 10, 10).since(1.667)
   end
 
   def test_change

@@ -52,8 +52,13 @@ module ActiveSupport
     end
 
     class Event
-      attr_reader :name, :time, :transaction_id, :payload, :children
-      attr_accessor :end
+      attr_reader :name, :time, :end, :transaction_id, :payload, :children
+
+      def self.clock_gettime_supported? # :nodoc:
+        defined?(Process::CLOCK_PROCESS_CPUTIME_ID) &&
+          !Gem.win_platform?
+      end
+      private_class_method :clock_gettime_supported?
 
       def initialize(name, start, ending, transaction_id, payload)
         @name           = name
@@ -81,6 +86,11 @@ module ActiveSupport
         @cpu_time_finish = now_cpu
         @end = now
         @allocation_count_finish = now_allocations
+      end
+
+      def end=(ending)
+        ActiveSupport::Deprecation.deprecation_warning(:end=, :finish!)
+        @end = ending
       end
 
       # Returns the CPU time (in milliseconds) passed since the call to
@@ -130,7 +140,7 @@ module ActiveSupport
           Process.clock_gettime(Process::CLOCK_MONOTONIC)
         end
 
-        if defined?(Process::CLOCK_PROCESS_CPUTIME_ID)
+        if clock_gettime_supported?
           def now_cpu
             Process.clock_gettime(Process::CLOCK_PROCESS_CPUTIME_ID)
           end

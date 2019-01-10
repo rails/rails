@@ -378,7 +378,7 @@ module ActionView
           # This regex match does double duty of finding only files which match
           # details (instead of just matching the prefix) and also filtering for
           # case-insensitive file systems.
-          !filename.match(regex) ||
+          !regex.match?(filename) ||
             File.directory?(filename)
         end.sort_by do |filename|
           # Because we scanned the directory, instead of checking for files

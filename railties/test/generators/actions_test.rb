@@ -303,12 +303,24 @@ class ActionsTest < Rails::Generators::TestCase
   end
 
   def test_generate_should_run_script_generate_with_argument_and_options
-    assert_called_with(generator, :run_ruby_script, ["bin/rails generate model MyModel", verbose: false]) do
-      action :generate, "model", "MyModel"
-    end
+    run_generator
+    action :generate, "model", "MyModel"
+    assert_file "app/models/my_model.rb", /MyModel/
   end
 
-  def test_rails_should_run_rake_command_with_default_env
+  def test_generate_aborts_when_subprocess_fails_if_requested
+    run_generator
+    content = capture(:stderr) do
+      assert_raises SystemExit do
+        action :generate, "model", "MyModel:ADsad", abort_on_failure: true
+        action :generate, "model", "MyModel"
+      end
+    end
+    assert_match(/wrong constant name MyModel:aDsad/, content)
+    assert_no_file "app/models/my_model.rb"
+  end
+
+  def test_rake_should_run_rake_command_with_default_env
     assert_called_with(generator, :run, ["rake log:clear RAILS_ENV=development", verbose: false]) do
       with_rails_env nil do
         action :rake, "log:clear"
@@ -316,13 +328,13 @@ class ActionsTest < Rails::Generators::TestCase
     end
   end
 
-  def test_rails_with_env_option_should_run_rake_command_in_env
+  def test_rake_with_env_option_should_run_rake_command_in_env
     assert_called_with(generator, :run, ["rake log:clear RAILS_ENV=production", verbose: false]) do
       action :rake, "log:clear", env: "production"
     end
   end
 
-  test "rails command with RAILS_ENV variable should run rake command in env" do
+  test "rake with RAILS_ENV variable should run rake command in env" do
     assert_called_with(generator, :run, ["rake log:clear RAILS_ENV=production", verbose: false]) do
       with_rails_env "production" do
         action :rake, "log:clear"
@@ -338,7 +350,7 @@ class ActionsTest < Rails::Generators::TestCase
     end
   end
 
-  test "rails command with sudo option should run rake command with sudo" do
+  test "rake with sudo option should run rake command with sudo" do
     assert_called_with(generator, :run, ["sudo rake log:clear RAILS_ENV=development", verbose: false]) do
       with_rails_env nil do
         action :rake, "log:clear", sudo: true

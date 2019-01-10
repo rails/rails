@@ -25,12 +25,10 @@ module RailtiesTest
     end
 
     test "Railtie provides railtie_name" do
-      begin
-        class ::FooBarBaz < Rails::Railtie ; end
-        assert_equal "foo_bar_baz", FooBarBaz.railtie_name
-      ensure
-        Object.send(:remove_const, :"FooBarBaz")
-      end
+      class ::FooBarBaz < Rails::Railtie ; end
+      assert_equal "foo_bar_baz", FooBarBaz.railtie_name
+    ensure
+      Object.send(:remove_const, :"FooBarBaz")
     end
 
     test "railtie_name can be set manually" do
@@ -203,14 +201,12 @@ module RailtiesTest
     end
 
     test "we can change our environment if we want to" do
-      begin
-        original_env = Rails.env
-        Rails.env = "foo"
-        assert_equal("foo", Rails.env)
-      ensure
-        Rails.env = original_env
-        assert_equal(original_env, Rails.env)
-      end
+      original_env = Rails.env
+      Rails.env = "foo"
+      assert_equal("foo", Rails.env)
+    ensure
+      Rails.env = original_env
+      assert_equal(original_env, Rails.env)
     end
   end
 end

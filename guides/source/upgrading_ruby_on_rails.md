@@ -35,7 +35,7 @@ You can find a list of all released Rails versions [here](https://rubygems.org/g
 
 Rails generally stays close to the latest released Ruby version when it's released:
 
-* Rails 6 requires Ruby 2.4.1 or newer.
+* Rails 6 requires Ruby 2.5.0 or newer.
 * Rails 5 requires Ruby 2.2.2 or newer.
 * Rails 4 prefers Ruby 2.0 and requires 1.9.3 or newer.
 * Rails 3.2.x is the last branch to support Ruby 1.8.7.
@@ -407,7 +407,7 @@ want to add this feature it will need to be turned on in an initializer.
 
 Rails 5 now supports per-form CSRF tokens to mitigate against code-injection attacks with forms
 created by JavaScript. With this option turned on, forms in your application will each have their
-own CSRF token that is specified to the action and method for that form.
+own CSRF token that is specific to the action and method for that form.
 
     config.action_controller.per_form_csrf_tokens = true
 

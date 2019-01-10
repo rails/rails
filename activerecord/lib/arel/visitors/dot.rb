@@ -195,6 +195,8 @@ module Arel # :nodoc: all
         alias :visit_Arel_Nodes_JoinSource         :binary
         alias :visit_Arel_Nodes_LessThan           :binary
         alias :visit_Arel_Nodes_LessThanOrEqual    :binary
+        alias :visit_Arel_Nodes_IsNotDistinctFrom  :binary
+        alias :visit_Arel_Nodes_IsDistinctFrom     :binary
         alias :visit_Arel_Nodes_Matches            :binary
         alias :visit_Arel_Nodes_NotEqual           :binary
         alias :visit_Arel_Nodes_NotIn              :binary

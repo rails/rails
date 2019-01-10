@@ -7,7 +7,7 @@ pkg/
 <%= dummy_path %>/db/*.sqlite3-journal
 <% end -%>
 <%= dummy_path %>/log/*.log
-<% unless options[:skip_yarn] -%>
+<% unless options[:skip_javascript] -%>
 <%= dummy_path %>/node_modules/
 <%= dummy_path %>/yarn-error.log
 <% end -%>

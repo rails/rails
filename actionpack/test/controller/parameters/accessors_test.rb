@@ -77,11 +77,15 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
 
   test "each_value carries permitted status" do
     @params.permit!
-    @params["person"].each_value { |value| assert(value.permitted?) if value == 32 }
+    @params.each_value do |value|
+      assert_predicate(value, :permitted?)
+    end
   end
 
   test "each_value carries unpermitted status" do
-    @params["person"].each_value { |value| assert_not(value.permitted?) if value == 32 }
+    @params.each_value do |value|
+      assert_not_predicate(value, :permitted?)
+    end
   end
 
   test "each_key converts to hash for permitted" do

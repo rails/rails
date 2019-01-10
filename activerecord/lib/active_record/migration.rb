@@ -23,7 +23,7 @@ module ActiveRecord
   #         t.string :zipcode
   #       end
   #
-  #       execute <<-SQL
+  #       execute <<~SQL
   #         ALTER TABLE distributors
   #           ADD CONSTRAINT zipchk
   #             CHECK (char_length(zipcode) = 5) NO INHERIT;
@@ -41,7 +41,7 @@ module ActiveRecord
   #        t.string :zipcode
   #      end
   #
-  #      execute <<-SQL
+  #      execute <<~SQL
   #        ALTER TABLE distributors
   #          ADD CONSTRAINT zipchk
   #            CHECK (char_length(zipcode) = 5) NO INHERIT;
@@ -49,7 +49,7 @@ module ActiveRecord
   #    end
   #
   #    def down
-  #      execute <<-SQL
+  #      execute <<~SQL
   #        ALTER TABLE distributors
   #          DROP CONSTRAINT zipchk
   #      SQL
@@ -68,7 +68,7 @@ module ActiveRecord
   #
   #       reversible do |dir|
   #         dir.up do
-  #           execute <<-SQL
+  #           execute <<~SQL
   #             ALTER TABLE distributors
   #               ADD CONSTRAINT zipchk
   #                 CHECK (char_length(zipcode) = 5) NO INHERIT;
@@ -76,7 +76,7 @@ module ActiveRecord
   #         end
   #
   #         dir.down do
-  #           execute <<-SQL
+  #           execute <<~SQL
   #             ALTER TABLE distributors
   #               DROP CONSTRAINT zipchk
   #           SQL
@@ -1087,10 +1087,6 @@ module ActiveRecord
       migrations.last || NullMigration.new
     end
 
-    def parse_migration_filename(filename) # :nodoc:
-      File.basename(filename).scan(Migration::MigrationFilenameRegexp).first
-    end
-
     def migrations
       migrations = migration_files.map do |file|
         version, name, scope = parse_migration_filename(file)
@@ -1122,11 +1118,6 @@ module ActiveRecord
       (db_list + file_list).sort_by { |_, version, _| version }
     end
 
-    def migration_files
-      paths = Array(migrations_paths)
-      Dir[*paths.flat_map { |path| "#{path}/**/[0-9]*_*.rb" }]
-    end
-
     def current_environment
       ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
     end
@@ -1145,6 +1136,15 @@ module ActiveRecord
     end
 
     private
+      def migration_files
+        paths = Array(migrations_paths)
+        Dir[*paths.flat_map { |path| "#{path}/**/[0-9]*_*.rb" }]
+      end
+
+      def parse_migration_filename(filename)
+        File.basename(filename).scan(Migration::MigrationFilenameRegexp).first
+      end
+
       def move(direction, steps)
         migrator = Migrator.new(direction, migrations)
 

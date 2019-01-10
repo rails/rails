@@ -13,12 +13,16 @@ class SerializedAttributeTest < ActiveRecord::TestCase
 
   MyObject = Struct.new :attribute1, :attribute2
 
+  # NOTE: Use a duplicate of Topic so attribute
+  # changes don't bleed into other tests
+  Topic = ::Topic.dup
+
   teardown do
     Topic.serialize("content")
   end
 
   def test_serialize_does_not_eagerly_load_columns
-    Topic.reset_column_information
+    reset_column_information_of(Topic)
     assert_no_queries do
       Topic.serialize(:content)
     end
@@ -367,13 +371,14 @@ class SerializedAttributeTest < ActiveRecord::TestCase
   end
 
   def test_serialized_attribute_works_under_concurrent_initial_access
-    model = Topic.dup
+    model = ::Topic.dup
 
     topic = model.last
     topic.update group: "1"
 
     model.serialize :group, JSON
-    model.reset_column_information
+
+    reset_column_information_of(model)
 
     # This isn't strictly necessary for the test, but a little bit of
     # knowledge of internals allows us to make failures far more likely.
@@ -393,4 +398,12 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     # raw string ("1"), or raise an exception.
     assert_equal [1] * threads.size, threads.map(&:value)
   end
+
+  private
+
+    def reset_column_information_of(topic_class)
+      topic_class.reset_column_information
+      # reset original topic to undefine attribute methods
+      ::Topic.reset_column_information
+    end
 end

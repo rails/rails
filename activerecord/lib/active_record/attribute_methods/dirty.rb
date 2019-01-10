@@ -158,9 +158,13 @@ module ActiveRecord
       end
 
       private
-        def write_attribute_without_type_cast(attr_name, _)
-          result = super
-          clear_attribute_change(attr_name)
+        def write_attribute_without_type_cast(attr_name, value)
+          name = attr_name.to_s
+          if self.class.attribute_alias?(name)
+            name = self.class.attribute_alias(name)
+          end
+          result = super(name, value)
+          clear_attribute_change(name)
           result
         end
 

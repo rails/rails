@@ -1,3 +1,50 @@
+*   Preserve key order passed to `ActiveSupport::CacheStore#fetch_multi`.
+
+    `fetch_multi(*names)` now returns its results in the same order as the `*names` requested, rather than returning cache hits followed by cache misses.
+
+    *Gannon McGibbon*
+
+*   If the same block is `included` multiple times for a Concern, an exception is no longer raised.
+
+    *Mark J. Titorenko*, *Vlad Bokov*
+
+*   Fix bug where `#to_options` for `ActiveSupport::HashWithIndifferentAccess`
+    would not act as alias for `#symbolize_keys`.
+
+    *Nick Weiland*
+
+*   Improve the logic that detects non-autoloaded constants.
+
+    *Jan Habermann*, *Xavier Noria*
+
+*   Deprecate `ActiveSupport::Multibyte::Unicode#pack_graphemes(array)` and `ActiveSuppport::Multibyte::Unicode#unpack_graphemes(string)`
+    in favor of `array.flatten.pack("U*")` and `string.scan(/\X/).map(&:codepoints)`, respectively.
+
+    *Francesco Rodríguez*
+
+*   Deprecate `ActiveSupport::Multibyte::Chars.consumes?` in favor of `String#is_utf8?`.
+
+    *Francesco Rodríguez*
+
+*   Fix duration being rounded to a full second.
+    ```
+      time = DateTime.parse("2018-1-1")
+      time += 0.51.seconds
+    ```
+    Will now correctly add 0.51 second and not 1 full second.
+
+    *Edouard Chin*
+
+*   Deprecate `ActiveSupport::Multibyte::Unicode#normalize` and `ActiveSuppport::Multibyte::Chars#normalize`
+    in favor of `String#unicode_normalize`
+
+    *Francesco Rodríguez*
+
+*   Deprecate `ActiveSupport::Multibyte::Unicode#downcase/upcase/swapcase` in favor of
+    `String#downcase/upcase/swapcase`.
+
+    *Francesco Rodríguez*
+
 *   Add `ActiveSupport::ParameterFilter`.
 
     *Yoshiyuki Kinjo*
@@ -241,9 +288,9 @@
 
     *Jeremy Daer*
 
-*   Rails 6 requires Ruby 2.4.1 or newer.
+*   Rails 6 requires Ruby 2.5.0 or newer.
 
-    *Jeremy Daer*
+    *Jeremy Daer*, *Kasper Timm Hansen*
 
 *   Adds parallel testing to Rails.
 

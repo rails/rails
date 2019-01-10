@@ -15,13 +15,13 @@ module PostgresqlCompositeBehavior
 
     @connection = ActiveRecord::Base.connection
     @connection.transaction do
-      @connection.execute <<-SQL
-         CREATE TYPE full_address AS
-         (
-             city VARCHAR(90),
-             street VARCHAR(90)
-         );
-        SQL
+      @connection.execute <<~SQL
+        CREATE TYPE full_address AS
+        (
+          city VARCHAR(90),
+          street VARCHAR(90)
+        );
+      SQL
       @connection.create_table("postgresql_composites") do |t|
         t.column :address, :full_address
       end

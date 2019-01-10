@@ -39,23 +39,23 @@ module Rails
 
         private
 
-        # parse possible attribute options like :limit for string/text/binary/integer, :precision/:scale for decimals or :polymorphic for references/belongs_to
-        # when declaring options curly brackets should be used
-        def parse_type_and_options(type)
-          case type
-          when /(string|text|binary|integer)\{(\d+)\}/
-            return $1, limit: $2.to_i
-          when /decimal\{(\d+)[,.-](\d+)\}/
-            return :decimal, precision: $1.to_i, scale: $2.to_i
-          when /(references|belongs_to)\{(.+)\}/
-            type = $1
-            provided_options = $2.split(/[,.-]/)
-            options = Hash[provided_options.map { |opt| [opt.to_sym, true] }]
-            return type, options
-          else
-            return type, {}
+          # parse possible attribute options like :limit for string/text/binary/integer, :precision/:scale for decimals or :polymorphic for references/belongs_to
+          # when declaring options curly brackets should be used
+          def parse_type_and_options(type)
+            case type
+            when /(string|text|binary|integer)\{(\d+)\}/
+              return $1, limit: $2.to_i
+            when /decimal\{(\d+)[,.-](\d+)\}/
+              return :decimal, precision: $1.to_i, scale: $2.to_i
+            when /(references|belongs_to)\{(.+)\}/
+              type = $1
+              provided_options = $2.split(/[,.-]/)
+              options = Hash[provided_options.map { |opt| [opt.to_sym, true] }]
+              return type, options
+            else
+              return type, {}
+            end
           end
-        end
       end
 
       def initialize(name, type = nil, index_type = false, attr_options = {})

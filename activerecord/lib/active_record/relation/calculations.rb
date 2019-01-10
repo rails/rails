@@ -245,7 +245,7 @@ module ActiveRecord
             if distinct && (group_values.any? || select_values.empty? && order_values.empty?)
               column_name = primary_key
             end
-          elsif /\s*DISTINCT[\s(]+/i.match?(column_name.to_s)
+          elsif column_name.is_a?(::String) && /\bDISTINCT[\s(]/i.match?(column_name)
             distinct = nil
           end
         end
@@ -401,7 +401,7 @@ module ActiveRecord
         case operation
         when "count"   then value.to_i
         when "sum"     then type.deserialize(value || 0)
-        when "average" then value.respond_to?(:to_d) ? value.to_d : value
+        when "average" then value&.respond_to?(:to_d) ? value.to_d : value
         else type.deserialize(value)
         end
       end

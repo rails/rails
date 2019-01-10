@@ -125,6 +125,10 @@ module ActiveRecord
             raise ArgumentError, "Invalid argument for .where.not(), got nil."
           when Arel::Nodes::In
             Arel::Nodes::NotIn.new(node.left, node.right)
+          when Arel::Nodes::IsNotDistinctFrom
+            Arel::Nodes::IsDistinctFrom.new(node.left, node.right)
+          when Arel::Nodes::IsDistinctFrom
+            Arel::Nodes::IsNotDistinctFrom.new(node.left, node.right)
           when Arel::Nodes::Equality
             Arel::Nodes::NotEqual.new(node.left, node.right)
           when String

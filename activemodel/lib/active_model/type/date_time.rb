@@ -39,9 +39,9 @@ module ActiveModel
         end
 
         def value_from_multiparameter_assignment(values_hash)
-          missing_parameter = (1..3).detect { |key| !values_hash.key?(key) }
-          if missing_parameter
-            raise ArgumentError, missing_parameter
+          missing_parameters = (1..3).select { |key| !values_hash.key?(key) }
+          if missing_parameters.any?
+            raise ArgumentError, "Provided hash #{values_hash} doesn't contain necessary keys: #{missing_parameters}"
           end
           super
         end

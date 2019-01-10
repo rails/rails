@@ -29,7 +29,7 @@ class File
       old_stat = if exist?(file_name)
         # Get original file permissions
         stat(file_name)
-      elsif temp_dir != dirname(file_name)
+      else
         # If not possible, probe which are the default permissions in the
         # destination directory.
         probe_stat_in(dirname(file_name))

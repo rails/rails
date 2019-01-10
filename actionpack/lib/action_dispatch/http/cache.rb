@@ -197,10 +197,12 @@ module ActionDispatch
           if control.empty?
             # Let middleware handle default behavior
           elsif control[:no_cache]
-            self._cache_control = NO_CACHE
-            if control[:extras]
-              self._cache_control = _cache_control + ", #{control[:extras].join(', ')}"
-            end
+            options = []
+            options << PUBLIC if control[:public]
+            options << NO_CACHE
+            options.concat(control[:extras]) if control[:extras]
+
+            self._cache_control = options.join(", ")
           else
             extras = control[:extras]
             max_age = control[:max_age]

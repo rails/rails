@@ -20,7 +20,7 @@ module ActiveRecord
       # Indicates whether to use a stable #cache_key method that is accompanied
       # by a changing version in the #cache_version method.
       #
-      # This is +false+, by default until Rails 6.0.
+      # This is +true+, by default on Rails 5.2 and above.
       class_attribute :cache_versioning, instance_writer: false, default: false
     end
 
@@ -96,8 +96,19 @@ module ActiveRecord
     # Note, this method will return nil if ActiveRecord::Base.cache_versioning is set to
     # +false+ (which it is by default until Rails 6.0).
     def cache_version
-      if cache_versioning && timestamp = try(:updated_at)
-        timestamp.utc.to_s(:usec)
+      return unless cache_versioning
+
+      if has_attribute?("updated_at")
+        timestamp = updated_at_before_type_cast
+        if can_use_fast_cache_version?(timestamp)
+          raw_timestamp_to_cache_version(timestamp)
+        elsif timestamp = updated_at
+          timestamp.utc.to_s(cache_timestamp_format)
+        end
+      else
+        if self.class.has_attribute?("updated_at")
+          raise ActiveModel::MissingAttributeError, "missing attribute: updated_at"
+        end
       end
     end
 
@@ -151,5 +162,43 @@ module ActiveRecord
         end
       end
     end
+
+    private
+      # Detects if the value before type cast
+      # can be used to generate a cache_version.
+      #
+      # The fast cache version only works with a
+      # string value directly from the database.
+      #
+      # We also must check if the timestamp format has been changed
+      # or if the timezone is not set to UTC then
+      # we cannot apply our transformations correctly.
+      def can_use_fast_cache_version?(timestamp)
+        timestamp.is_a?(String) &&
+          cache_timestamp_format == :usec &&
+          default_timezone == :utc &&
+          !updated_at_came_from_user?
+      end
+
+      # Converts a raw database string to `:usec`
+      # format.
+      #
+      # Example:
+      #
+      #   timestamp = "2018-10-15 20:02:15.266505"
+      #   raw_timestamp_to_cache_version(timestamp)
+      #   # => "20181015200215266505"
+      #
+      # Postgres truncates trailing zeros,
+      # https://github.com/postgres/postgres/commit/3e1beda2cde3495f41290e1ece5d544525810214
+      # to account for this we pad the output with zeros
+      def raw_timestamp_to_cache_version(timestamp)
+        key = timestamp.delete("- :.")
+        if key.length < 20
+          key.ljust(20, "0")
+        else
+          key
+        end
+      end
   end
 end

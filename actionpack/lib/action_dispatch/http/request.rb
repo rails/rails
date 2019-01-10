@@ -383,9 +383,6 @@ module ActionDispatch
         end
         self.request_parameters = Request::Utils.normalize_encode_params(pr)
       end
-    rescue Http::Parameters::ParseError # one of the parse strategies blew up
-      self.request_parameters = Request::Utils.normalize_encode_params(super || {})
-      raise
     rescue Rack::Utils::ParameterTypeError, Rack::Utils::InvalidParameterError => e
       raise ActionController::BadRequest.new("Invalid request parameters: #{e.message}")
     end

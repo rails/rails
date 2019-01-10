@@ -31,9 +31,6 @@ module Rails
         class_option :database,            type: :string, aliases: "-d", default: "sqlite3",
                                            desc: "Preconfigure for selected database (options: #{DATABASES.join('/')})"
 
-        class_option :skip_yarn,           type: :boolean, default: false,
-                                           desc: "Don't use Yarn for managing JavaScript dependencies"
-
         class_option :skip_gemfile,        type: :boolean, default: false,
                                            desc: "Don't create a Gemfile"
 
@@ -46,6 +43,12 @@ module Rails
         class_option :skip_action_mailer,  type: :boolean, aliases: "-M",
                                            default: false,
                                            desc: "Skip Action Mailer files"
+
+        class_option :skip_action_mailbox, type: :boolean, default: false,
+                                           desc: "Skip Action Mailbox gem"
+
+        class_option :skip_action_text,    type: :boolean, default: false,
+                                           desc: "Skip Action Text gem"
 
         class_option :skip_active_record,  type: :boolean, aliases: "-O", default: false,
                                            desc: "Skip Active Record files"
@@ -203,7 +206,9 @@ module Rails
             :skip_sprockets,
             :skip_action_cable
           ),
-          skip_active_storage?
+          skip_active_storage?,
+          skip_action_mailbox?,
+          skip_action_text?
         ].flatten.none?
       end
 
@@ -230,6 +235,14 @@ module Rails
 
       def skip_active_storage? # :doc:
         options[:skip_active_storage] || options[:skip_active_record]
+      end
+
+      def skip_action_mailbox? # :doc:
+        options[:skip_action_mailbox] || skip_active_storage?
+      end
+
+      def skip_action_text? # :doc:
+        options[:skip_action_text] || skip_active_storage?
       end
 
       class GemfileEntry < Struct.new(:name, :version, :comment, :options, :commented_out)
@@ -367,7 +380,7 @@ module Rails
         gems
       end
 
-      def bundle_command(command)
+      def bundle_command(command, env = {})
         say_status :run, "bundle #{command}"
 
         # We are going to shell out rather than invoking Bundler::CLI.new(command)
@@ -375,19 +388,21 @@ module Rails
         # its own vendored Thor, which could be a different version. Running both
         # things in the same process is a recipe for a night with paracetamol.
         #
-        # We unset temporary bundler variables to load proper bundler and Gemfile.
-        #
         # Thanks to James Tucker for the Gem tricks involved in this call.
         _bundle_command = Gem.bin_path("bundler", "bundle")
 
         require "bundler"
-        Bundler.with_clean_env do
-          full_command = %Q["#{Gem.ruby}" "#{_bundle_command}" #{command}]
-          if options[:quiet]
-            system(full_command, out: File::NULL)
-          else
-            system(full_command)
-          end
+        Bundler.with_original_env do
+          exec_bundle_command(_bundle_command, command, env)
+        end
+      end
+
+      def exec_bundle_command(bundle_command, command, env)
+        full_command = %Q["#{Gem.ruby}" "#{bundle_command}" #{command}]
+        if options[:quiet]
+          system(env, full_command, out: File::NULL)
+        else
+          system(env, full_command)
         end
       end
 
@@ -420,7 +435,7 @@ module Rails
       end
 
       def run_bundle
-        bundle_command("install") if bundle_install?
+        bundle_command("install", "BUNDLE_IGNORE_MESSAGES" => "1") if bundle_install?
       end
 
       def run_webpack

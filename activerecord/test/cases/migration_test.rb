@@ -71,6 +71,13 @@ class MigrationTest < ActiveRecord::TestCase
     ActiveRecord::Migration.verbose = @verbose_was
   end
 
+  def test_passing_migrations_paths_to_assume_migrated_upto_version_is_deprecated
+    ActiveRecord::SchemaMigration.create_table
+    assert_deprecated do
+      ActiveRecord::Base.connection.assume_migrated_upto_version(0, [])
+    end
+  end
+
   def test_migrator_migrations_path_is_deprecated
     assert_deprecated do
       ActiveRecord::Migrator.migrations_path = "/whatever"
@@ -125,6 +132,36 @@ class MigrationTest < ActiveRecord::TestCase
     assert_equal 0, migrator.current_version
     migrator.up(20131219224947)
     assert_equal 20131219224947, migrator.current_version
+  end
+
+  def test_create_table_raises_if_already_exists
+    connection = Person.connection
+    connection.create_table :testings, force: true do |t|
+      t.string :foo
+    end
+
+    assert_raise(ActiveRecord::StatementInvalid) do
+      connection.create_table :testings do |t|
+        t.string :foo
+      end
+    end
+  ensure
+    connection.drop_table :testings, if_exists: true
+  end
+
+  def test_create_table_with_if_not_exists_true
+    connection = Person.connection
+    connection.create_table :testings, force: true do |t|
+      t.string :foo
+    end
+
+    assert_nothing_raised do
+      connection.create_table :testings, if_not_exists: true do |t|
+        t.string :foo
+      end
+    end
+  ensure
+    connection.drop_table :testings, if_exists: true
   end
 
   def test_create_table_with_force_true_does_not_drop_nonexisting_table
@@ -412,7 +449,6 @@ class MigrationTest < ActiveRecord::TestCase
     current_env     = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
     migrations_path = MIGRATIONS_ROOT + "/valid"
 
-    current_env = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
     migrator = ActiveRecord::MigrationContext.new(migrations_path)
     migrator.up
     assert_equal current_env, ActiveRecord::InternalMetadata[:environment]
@@ -546,29 +582,25 @@ class MigrationTest < ActiveRecord::TestCase
       # table name is 29 chars, the standard sequence name will
       # be 33 chars and should be shortened
       assert_nothing_raised do
-        begin
-          Person.connection.create_table :table_with_name_thats_just_ok do |t|
-            t.column :foo, :string, null: false
-          end
-        ensure
-          Person.connection.drop_table :table_with_name_thats_just_ok rescue nil
+        Person.connection.create_table :table_with_name_thats_just_ok do |t|
+          t.column :foo, :string, null: false
         end
+      ensure
+        Person.connection.drop_table :table_with_name_thats_just_ok rescue nil
       end
 
       # should be all good w/ a custom sequence name
       assert_nothing_raised do
-        begin
-          Person.connection.create_table :table_with_name_thats_just_ok,
-            sequence_name: "suitably_short_seq" do |t|
-            t.column :foo, :string, null: false
-          end
-
-          Person.connection.execute("select suitably_short_seq.nextval from dual")
-
-        ensure
-          Person.connection.drop_table :table_with_name_thats_just_ok,
-            sequence_name: "suitably_short_seq" rescue nil
+        Person.connection.create_table :table_with_name_thats_just_ok,
+          sequence_name: "suitably_short_seq" do |t|
+          t.column :foo, :string, null: false
         end
+
+        Person.connection.execute("select suitably_short_seq.nextval from dual")
+
+      ensure
+        Person.connection.drop_table :table_with_name_thats_just_ok,
+          sequence_name: "suitably_short_seq" rescue nil
       end
 
       # confirm the custom sequence got dropped
@@ -712,15 +744,13 @@ class MigrationTest < ActiveRecord::TestCase
       test_terminated = Concurrent::CountDownLatch.new
 
       other_process = Thread.new do
-        begin
-          conn = ActiveRecord::Base.connection_pool.checkout
-          conn.get_advisory_lock(lock_id)
-          thread_lock.count_down
-          test_terminated.wait # hold the lock open until we tested everything
-        ensure
-          conn.release_advisory_lock(lock_id)
-          ActiveRecord::Base.connection_pool.checkin(conn)
-        end
+        conn = ActiveRecord::Base.connection_pool.checkout
+        conn.get_advisory_lock(lock_id)
+        thread_lock.count_down
+        test_terminated.wait # hold the lock open until we tested everything
+      ensure
+        conn.release_advisory_lock(lock_id)
+        ActiveRecord::Base.connection_pool.checkin(conn)
       end
 
       thread_lock.wait # wait until the 'other process' has the lock

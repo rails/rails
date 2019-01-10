@@ -276,9 +276,6 @@ module ActionController
   #      after calling +post+. If the various assert methods are not sufficient, then you
   #      may use this object to inspect the HTTP response in detail.
   #
-  # (Earlier versions of \Rails required each functional test to subclass
-  # Test::Unit::TestCase and define @controller, @request, @response in +setup+.)
-  #
   # == Controller is automatically inferred
   #
   # ActionController::TestCase will automatically infer the controller under test
@@ -457,7 +454,7 @@ module ActionController
       # respectively which will make tests more expressive.
       #
       # Note that the request method is not verified.
-      def process(action, method: "GET", params: {}, session: nil, body: nil, flash: {}, format: nil, xhr: false, as: nil)
+      def process(action, method: "GET", params: nil, session: nil, body: nil, flash: {}, format: nil, xhr: false, as: nil)
         check_required_ivars
 
         http_method = method.to_s.upcase
@@ -485,7 +482,7 @@ module ActionController
           format ||= as
         end
 
-        parameters = params.symbolize_keys
+        parameters = (params || {}).symbolize_keys
 
         if format
           parameters[:format] = format

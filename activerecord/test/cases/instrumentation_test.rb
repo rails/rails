@@ -5,6 +5,10 @@ require "models/book"
 
 module ActiveRecord
   class InstrumentationTest < ActiveRecord::TestCase
+    def setup
+      ActiveRecord::Base.connection.schema_cache.add(Book.table_name)
+    end
+
     def test_payload_name_on_load
       Book.create(name: "test book")
       subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |*args|

@@ -462,7 +462,6 @@ module ActionMailer
     helper ActionMailer::MailHelper
 
     class_attribute :delivery_job, default: ::ActionMailer::DeliveryJob
-    class_attribute :parameterized_delivery_job, default: ::ActionMailer::Parameterized::DeliveryJob
     class_attribute :default_params, default: {
       mime_version: "1.0",
       charset:      "UTF-8",
@@ -566,6 +565,11 @@ module ActionMailer
       #     end
       #   end
       def receive(raw_mail)
+        ActiveSupport::Deprecation.warn(<<~MESSAGE.squish)
+          ActionMailer::Base.receive is deprecated and will be removed in Rails 6.1.
+          Use Action Mailbox to process inbound email.
+        MESSAGE
+
         ActiveSupport::Notifications.instrument("receive.action_mailer") do |payload|
           mail = Mail.new(raw_mail)
           set_payload_for_mail(payload, mail)
@@ -942,14 +946,19 @@ module ActionMailer
 
       def collect_responses(headers)
         if block_given?
-          collector = ActionMailer::Collector.new(lookup_context) { render(action_name) }
-          yield(collector)
-          collector.responses
+          collect_responses_from_block(headers, &Proc.new)
         elsif headers[:body]
           collect_responses_from_text(headers)
         else
           collect_responses_from_templates(headers)
         end
+      end
+
+      def collect_responses_from_block(headers)
+        templates_name = headers[:template_name] || action_name
+        collector = ActionMailer::Collector.new(lookup_context) { render(templates_name) }
+        yield(collector)
+        collector.responses
       end
 
       def collect_responses_from_text(headers)

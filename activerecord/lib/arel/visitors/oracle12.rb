@@ -20,7 +20,7 @@ module Arel # :nodoc: all
         def visit_Arel_Nodes_SelectOptions(o, collector)
           collector = maybe_visit o.offset, collector
           collector = maybe_visit o.limit, collector
-          collector = maybe_visit o.lock, collector
+          maybe_visit o.lock, collector
         end
 
         def visit_Arel_Nodes_Limit(o, collector)
@@ -55,6 +55,12 @@ module Arel # :nodoc: all
 
         def visit_Arel_Nodes_BindParam(o, collector)
           collector.add_bind(o.value) { |i| ":a#{i}" }
+        end
+
+        def is_distinct_from(o, collector)
+          collector << "DECODE("
+          collector = visit [o.left, o.right, 0, 1], collector
+          collector << ")"
         end
     end
   end

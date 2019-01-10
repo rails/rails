@@ -55,11 +55,11 @@ module ActiveRecord
         owner = Owner.create!(name: "hello".encode("ascii-8bit"))
         owner.reload
         select = Owner.columns.map { |c| "typeof(#{c.name})" }.join ", "
-        result = Owner.connection.exec_query <<-esql
+        result = Owner.connection.exec_query <<~SQL
           SELECT #{select}
           FROM   #{Owner.table_name}
           WHERE  #{Owner.primary_key} = #{owner.id}
-        esql
+        SQL
 
         assert_not(result.rows.first.include?("blob"), "should not store blobs")
       ensure
@@ -160,13 +160,13 @@ module ActiveRecord
       end
 
       def test_quote_binary_column_escapes_it
-        DualEncoding.connection.execute(<<-eosql)
+        DualEncoding.connection.execute(<<~SQL)
           CREATE TABLE IF NOT EXISTS dual_encodings (
             id integer PRIMARY KEY AUTOINCREMENT,
             name varchar(255),
             data binary
           )
-        eosql
+        SQL
         str = (+"\x80").force_encoding("ASCII-8BIT")
         binary = DualEncoding.new name: "いただきます！", data: str
         binary.save!
@@ -261,7 +261,7 @@ module ActiveRecord
       end
 
       def test_tables_logs_name
-        sql = <<-SQL
+        sql = <<~SQL
           SELECT name FROM sqlite_master WHERE name <> 'sqlite_sequence' AND type IN ('table')
         SQL
         assert_logged [[sql.squish, "SCHEMA", []]] do
@@ -271,7 +271,7 @@ module ActiveRecord
 
       def test_table_exists_logs_name
         with_example_table do
-          sql = <<-SQL
+          sql = <<~SQL
             SELECT name FROM sqlite_master WHERE name <> 'sqlite_sequence' AND name = 'ex' AND type IN ('table')
           SQL
           assert_logged [[sql.squish, "SCHEMA", []]] do
@@ -573,6 +573,62 @@ module ActiveRecord
         end
       end
 
+      def test_errors_when_an_insert_query_is_called_while_preventing_writes
+        with_example_table "id int, data string" do
+          assert_raises(ActiveRecord::ReadOnlyError) do
+            @conn.while_preventing_writes do
+              @conn.execute("INSERT INTO ex (data) VALUES ('138853948594')")
+            end
+          end
+        end
+      end
+
+      def test_errors_when_an_update_query_is_called_while_preventing_writes
+        with_example_table "id int, data string" do
+          @conn.execute("INSERT INTO ex (data) VALUES ('138853948594')")
+
+          assert_raises(ActiveRecord::ReadOnlyError) do
+            @conn.while_preventing_writes do
+              @conn.execute("UPDATE ex SET data = '9989' WHERE data = '138853948594'")
+            end
+          end
+        end
+      end
+
+      def test_errors_when_a_delete_query_is_called_while_preventing_writes
+        with_example_table "id int, data string" do
+          @conn.execute("INSERT INTO ex (data) VALUES ('138853948594')")
+
+          assert_raises(ActiveRecord::ReadOnlyError) do
+            @conn.while_preventing_writes do
+              @conn.execute("DELETE FROM ex where data = '138853948594'")
+            end
+          end
+        end
+      end
+
+      def test_errors_when_a_replace_query_is_called_while_preventing_writes
+        with_example_table "id int, data string" do
+          @conn.execute("INSERT INTO ex (data) VALUES ('138853948594')")
+
+          assert_raises(ActiveRecord::ReadOnlyError) do
+            @conn.while_preventing_writes do
+              @conn.execute("REPLACE INTO ex (data) VALUES ('249823948')")
+            end
+          end
+        end
+      end
+
+      def test_doesnt_error_when_a_select_query_is_called_while_preventing_writes
+        with_example_table "id int, data string" do
+          @conn.execute("INSERT INTO ex (data) VALUES ('138853948594')")
+
+          @conn.while_preventing_writes do
+            assert_equal 1, @conn.execute("SELECT data from ex WHERE data = '138853948594'").count
+          end
+        end
+      end
+
       private
 
         def assert_logged(logs)
@@ -585,7 +641,7 @@ module ActiveRecord
         end
 
         def with_example_table(definition = nil, table_name = "ex", &block)
-          definition ||= <<-SQL
+          definition ||= <<~SQL
             id integer PRIMARY KEY AUTOINCREMENT,
             number integer
           SQL

@@ -1,3 +1,16 @@
+*   Add `ActiveModel::Errors#of_kind?`.
+
+    *bogdanvlviv*, *Rafael Mendonça França*
+
+*   Fix numericality equality validation of `BigDecimal` and `Float`
+    by casting to `BigDecimal` on both ends of the validation.
+
+    *Gannon McGibbon*
+
+*   Add `#slice!` method to `ActiveModel::Errors`.
+
+    *Daniel López Prat*
+
 *   Fix numericality validator to still use value before type cast except Active Record.
 
     Fixes #33651, #33686.
@@ -45,9 +58,9 @@
 
     *Martin Larochelle*
 
-*   Rails 6 requires Ruby 2.4.1 or newer.
+*   Rails 6 requires Ruby 2.5.0 or newer.
 
-    *Jeremy Daer*
+    *Jeremy Daer*, *Kasper Timm Hansen*
 
 
 Please check [5-2-stable](https://github.com/rails/rails/blob/5-2-stable/activemodel/CHANGELOG.md) for previous changes.

@@ -909,20 +909,17 @@ module ActiveRecord
       @arel ||= build_arel(aliases)
     end
 
-    # Returns a relation value with a given name
-    def get_value(name) # :nodoc:
-      @values.fetch(name, DEFAULT_VALUES[name])
-    end
-
-    protected
+    private
+      # Returns a relation value with a given name
+      def get_value(name)
+        @values.fetch(name, DEFAULT_VALUES[name])
+      end
 
       # Sets the relation value with the given name
-      def set_value(name, value) # :nodoc:
+      def set_value(name, value)
         assert_mutability!
         @values[name] = value
       end
-
-    private
 
       def assert_mutability!
         raise ImmutableRelation if @loaded
@@ -1188,8 +1185,9 @@ module ActiveRecord
 
       STRUCTURAL_OR_METHODS = Relation::VALUE_METHODS - [:extending, :where, :having, :unscope, :references]
       def structurally_incompatible_values_for_or(other)
+        values = other.values
         STRUCTURAL_OR_METHODS.reject do |method|
-          get_value(method) == other.get_value(method)
+          get_value(method) == values.fetch(method, DEFAULT_VALUES[method])
         end
       end
 

@@ -3,53 +3,14 @@
 require "action_dispatch/http/request"
 require "action_dispatch/middleware/exception_wrapper"
 require "action_dispatch/routing/inspector"
+
 require "action_view"
 require "action_view/base"
-
-require "pp"
 
 module ActionDispatch
   # This middleware is responsible for logging exceptions and
   # showing a debugging page in case the request is local.
   class DebugExceptions
-    RESCUES_TEMPLATE_PATH = File.expand_path("templates", __dir__)
-
-    class DebugView < ActionView::Base
-      def debug_params(params)
-        clean_params = params.clone
-        clean_params.delete("action")
-        clean_params.delete("controller")
-
-        if clean_params.empty?
-          "None"
-        else
-          PP.pp(clean_params, +"", 200)
-        end
-      end
-
-      def debug_headers(headers)
-        if headers.present?
-          headers.inspect.gsub(",", ",\n")
-        else
-          "None"
-        end
-      end
-
-      def debug_hash(object)
-        object.to_hash.sort_by { |k, _| k.to_s }.map { |k, v| "#{k}: #{v.inspect rescue $!.message}" }.join("\n")
-      end
-
-      def render(*)
-        logger = ActionView::Base.logger
-
-        if logger && logger.respond_to?(:silence)
-          logger.silence { super }
-        else
-          super
-        end
-      end
-    end
-
     cattr_reader :interceptors, instance_accessor: false, default: []
 
     def self.register_interceptor(object = nil, &block)
@@ -87,11 +48,9 @@ module ActionDispatch
         wrapper = ExceptionWrapper.new(backtrace_cleaner, exception)
 
         @interceptors.each do |interceptor|
-          begin
-            interceptor.call(request, exception)
-          rescue Exception
-            log_error(request, wrapper)
-          end
+          interceptor.call(request, exception)
+        rescue Exception
+          log_error(request, wrapper)
         end
       end
 
@@ -152,7 +111,7 @@ module ActionDispatch
       end
 
       def create_template(request, wrapper)
-        DebugView.new([RESCUES_TEMPLATE_PATH],
+        DebugView.new(
           request: request,
           exception_wrapper: wrapper,
           exception: wrapper.exception,
@@ -180,11 +139,14 @@ module ActionDispatch
         trace = wrapper.framework_trace if trace.empty?
 
         ActiveSupport::Deprecation.silence do
-          logger.fatal "  "
-          logger.fatal "#{exception.class} (#{exception.message}):"
-          log_array logger, exception.annoted_source_code if exception.respond_to?(:annoted_source_code)
-          logger.fatal "  "
-          log_array logger, trace
+          message = []
+          message << "  "
+          message << "#{exception.class} (#{exception.message}):"
+          message.concat(exception.annoted_source_code) if exception.respond_to?(:annoted_source_code)
+          message << "  "
+          message.concat(trace)
+
+          log_array(logger, message)
         end
       end
 

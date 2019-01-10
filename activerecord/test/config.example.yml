@@ -1,7 +1,5 @@
 default_connection: <%= defined?(JRUBY_VERSION) ? 'jdbcsqlite3' : 'sqlite3' %>
 
-with_manual_interventions: false
-
 connections:
   jdbcderby:
     arunit:  activerecord_unittest
@@ -59,6 +57,7 @@ connections:
     arunit2:
       username: rails
       encoding: utf8mb4
+      collation: utf8mb4_general_ci
 
   oracle:
      arunit:

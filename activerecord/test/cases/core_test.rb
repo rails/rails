@@ -30,6 +30,11 @@ class CoreTest < ActiveRecord::TestCase
     assert_equal %(#<Topic id: 1, title: "The First Topic">), Topic.all.merge!(select: "id, title", where: "id = 1").first.inspect
   end
 
+  def test_inspect_instance_with_non_primary_key_id_attribute
+    topic = topics(:first).becomes(TitlePrimaryKeyTopic)
+    assert_match(/id: 1/, topic.inspect)
+  end
+
   def test_inspect_class_without_table
     assert_equal "NonExistentTable(Table doesn't exist)", NonExistentTable.inspect
   end
@@ -109,5 +114,12 @@ class CoreTest < ActiveRecord::TestCase
     actual = +""
     PP.pp(subtopic.new, StringIO.new(actual))
     assert_equal "inspecting topic\n", actual
+  end
+
+  def test_pretty_print_with_non_primary_key_id_attribute
+    topic = topics(:first).becomes(TitlePrimaryKeyTopic)
+    actual = +""
+    PP.pp(topic, StringIO.new(actual))
+    assert_match(/id: 1/, actual)
   end
 end

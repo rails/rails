@@ -1,3 +1,86 @@
+*   Use original `bundler` environment variables during the process of generating a new rails project.
+
+    *Marco Costa*
+
+*   Send Active Storage analysis and purge jobs to dedicated queues by default.
+
+    Analysis jobs now use the `:active_storage_analysis` queue, and purge jobs
+    now use the `:active_storage_purge` queue. This matches Action Mailbox,
+    which sends its jobs to dedicated queues by default.
+
+    *George Claghorn*
+
+*   Add `rails test:mailboxes`.
+
+    *George Claghorn*
+
+*   Introduce guard against DNS rebinding attacks
+
+    The `ActionDispatch::HostAuthorization` is a new middleware that prevent
+    against DNS rebinding and other `Host` header attacks. It is included in
+    the development environment by default with the following configuration:
+
+        Rails.application.config.hosts = [
+          IPAddr.new("0.0.0.0/0"), # All IPv4 addresses.
+          IPAddr.new("::/0"),      # All IPv6 addresses.
+          "localhost"              # The localhost reserved domain.
+        ]
+
+    In other environments `Rails.application.config.hosts` is empty and no
+    `Host` header checks will be done. If you want to guard against header
+    attacks on production, you have to manually whitelist the allowed hosts
+    with:
+
+        Rails.application.config.hosts << "product.com"
+
+    The host of a request is checked against the `hosts` entries with the case
+    operator (`#===`), which lets `hosts` support entries of type `RegExp`,
+    `Proc` and `IPAddr` to name a few. Here is an example with a regexp.
+
+        # Allow requests from subdomains like `www.product.com` and
+        # `beta1.product.com`.
+        Rails.application.config.hosts << /.*\.product\.com/
+
+    A special case is supported that allows you to whitelist all sub-domains:
+
+        # Allow requests from subdomains like `www.product.com` and
+        # `beta1.product.com`.
+        Rails.application.config.hosts << ".product.com"
+
+    *Genadi Samokovarov*
+
+*   Remove redundant suffixes on generated helpers.
+
+    *Gannon McGibbon*
+
+*   Remove redundant suffixes on generated integration tests.
+
+    *Gannon McGibbon*
+
+*   Fix boolean interaction in scaffold system tests.
+
+    *Gannon McGibbon*
+
+*   Remove redundant suffixes on generated system tests.
+
+    *Gannon McGibbon*
+
+*   Add an `abort_on_failure` boolean option to the generator method that shell
+    out (`generate`, `rake`, `rails_command`) to abort the generator if the
+    command fails.
+
+    *David Rodríguez*
+
+*   Remove `app/assets` and `app/javascript` from `eager_load_paths` and `autoload_paths`.
+
+    *Gannon McGibbon*
+
+*   Use Ids instead of memory addresses when displaying references in scaffold views.
+
+    Fixes #29200.
+
+    *Rasesh Patel*
+
 *   Adds support for multiple databases to `rails db:migrate:status`.
     Subtasks are also added to get the status of individual databases (eg. `rails db:migrate:status:animals`).
 
@@ -11,34 +94,18 @@
 
     *DHH*, *Lachlan Sylvester*
 
-*   Refactors `migrations_paths` command option in generators
-    to `database` (aliased as `db`). Now, the migrations paths
-    will be read from the specified database configuration in the
-    current environment.
+*   Add `database` (aliased as `db`) option to model generator to allow
+    setting the database. This is useful for applications that use
+    multiple databases and put migrations per database in their own directories.
 
     ```
-    bin/rails g model Chair brand:string --database=kingston
-          invoke  active_record
-          create    db/kingston_migrate/20180830151055_create_chairs.rb
-    ```
-
-    `--database` can be used with the migration, model, and scaffold generators.
-
-    *Gannon McGibbon*
-
-*   Adds an option to the model generator to allow setting the
-    migrations paths for that migration. This is useful for
-    applications that use multiple databases and put migrations
-    per database in their own directories.
-
-    ```
-    bin/rails g model Room capacity:integer --migrations-paths=db/kingston_migrate
+    bin/rails g model Room capacity:integer --database=kingston
           invoke  active_record
           create    db/kingston_migrate/20180830151055_create_rooms.rb
     ```
 
     Because rails scaffolding uses the model generator, you can
-    also specify migrations paths with the scaffold generator.
+    also specify a database with the scaffold generator.
 
     *Gannon McGibbon*
 
@@ -66,15 +133,15 @@
 
     *Yoshiyuki Kinjo*
 
-*   Add `--migrations_paths` option to migration generator.
+*   Add `database` (aliased as `db`) option to migration generator.
 
     If you're using multiple databases and have a folder for each database
     for migrations (ex db/migrate and db/new_db_migrate) you can now pass the
-    `--migrations_paths` option to the generator to make sure the the migration
+    `--database` option to the generator to make sure the the migration
     is inserted into the correct folder.
 
     ```
-    rails g migration CreateHouses --migrations_paths=db/kingston_migrate
+    rails g migration CreateHouses --database=kingston
       invoke  active_record
       create    db/kingston_migrate/20180830151055_create_houses.rb
     ```
@@ -184,9 +251,9 @@
 
     *Benoit Tigeot*
 
-*   Rails 6 requires Ruby 2.4.1 or newer.
+*   Rails 6 requires Ruby 2.5.0 or newer.
 
-    *Jeremy Daer*
+    *Jeremy Daer*, *Kasper Timm Hansen*
 
 
 Please check [5-2-stable](https://github.com/rails/rails/blob/5-2-stable/railties/CHANGELOG.md) for previous changes.

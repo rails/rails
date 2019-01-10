@@ -1,3 +1,37 @@
+*   Replace `config.active_storage.queue` with two options that indicate which
+    queues analysis and purge jobs should use, respectively:
+
+    * `config.active_storage.queues.analysis`
+    * `config.active_storage.queues.purge`
+
+    `config.active_storage.queue` is preferred over the new options when it's
+    set, but it is deprecated and will be removed in Rails 6.1.
+
+    *George Claghorn*
+
+*   Permit generating variants of TIFF images.
+
+    *Luciano Sousa*
+
+*   Use base36 (all lowercase) for all new Blob keys to prevent
+    collisions and undefined behavior with case-insensitive filesystems and
+    database indices.
+
+    *Julik Tarkhanov*
+
+*   It doesn’t include an `X-CSRF-Token` header if a meta tag is not found on
+    the page. It previously included one with a value of `undefined`.
+
+    *Cameron Bothner*
+
+*   Fix `ArgumentError` when uploading to amazon s3
+
+    *Hiroki Sanpei*
+
+*   Add progressive JPG to default list of variable content types
+
+    *Maurice Kühlborn*
+
 *   Add `ActiveStorage.routes_prefix` for configuring generated routes.
 
     *Chris Bisnett*
@@ -115,9 +149,9 @@
 
     *Janko Marohnić*
 
-*   Rails 6 requires Ruby 2.4.1 or newer.
+*   Rails 6 requires Ruby 2.5.0 or newer.
 
-    *Jeremy Daer*
+    *Jeremy Daer*, *Kasper Timm Hansen*
 
 
 Please check [5-2-stable](https://github.com/rails/rails/blob/5-2-stable/activestorage/CHANGELOG.md) for previous changes.

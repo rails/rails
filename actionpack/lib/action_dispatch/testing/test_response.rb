@@ -14,11 +14,6 @@ module ActionDispatch
       new response.status, response.headers, response.body
     end
 
-    def initialize(*) # :nodoc:
-      super
-      @response_parser = RequestEncoder.parser(content_type)
-    end
-
     # Was the response successful?
     def success?
       ActiveSupport::Deprecation.warn(<<-MSG.squish)
@@ -47,7 +42,11 @@ module ActionDispatch
     end
 
     def parsed_body
-      @parsed_body ||= @response_parser.call(body)
+      @parsed_body ||= response_parser.call(body)
+    end
+
+    def response_parser
+      @response_parser ||= RequestEncoder.parser(content_type)
     end
   end
 end

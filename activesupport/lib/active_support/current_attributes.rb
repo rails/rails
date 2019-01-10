@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_support/callbacks"
+
 module ActiveSupport
   # Abstract super class that provides a thread-isolated attributes singleton, which resets automatically
   # before and after each request. This allows you to keep all the per-request attributes easily

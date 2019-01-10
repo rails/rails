@@ -354,7 +354,6 @@ class CompositePrimaryKeyTest < ActiveRecord::TestCase
   end
 
   def test_composite_primary_key_out_of_order
-    skip if current_adapter?(:SQLite3Adapter)
     assert_equal ["code", "region"], @connection.primary_keys("barcodes_reverse")
   end
 
@@ -376,7 +375,6 @@ class CompositePrimaryKeyTest < ActiveRecord::TestCase
   end
 
   def test_dumping_composite_primary_key_out_of_order
-    skip if current_adapter?(:SQLite3Adapter)
     schema = dump_table_schema "barcodes_reverse"
     assert_match %r{create_table "barcodes_reverse", primary_key: \["code", "region"\]}, schema
   end

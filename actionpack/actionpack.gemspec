@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
   s.summary     = "Web-flow and rendering framework putting the VC in MVC (part of Rails)."
   s.description = "Web apps on Rails. Simple, battle-tested conventions for building and testing MVC web applications. Works with any Rack-compatible server."
 
-  s.required_ruby_version = ">= 2.4.1"
+  s.required_ruby_version = ">= 2.5.0"
 
   s.license = "MIT"
 
@@ -25,6 +25,9 @@ Gem::Specification.new do |s|
     "source_code_uri" => "https://github.com/rails/rails/tree/v#{version}/actionpack",
     "changelog_uri"   => "https://github.com/rails/rails/blob/v#{version}/actionpack/CHANGELOG.md"
   }
+
+  # NOTE: Please read our dependency guidelines before updating versions:
+  # https://edgeguides.rubyonrails.org/security.html#dependency-management-and-cves
 
   s.add_dependency "activesupport", version
 

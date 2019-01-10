@@ -32,7 +32,8 @@ module QueJobsManager
 
   rescue Sequel::DatabaseConnectionError
     puts "Cannot run integration tests for que. To be able to run integration tests for que you need to install and start postgresql.\n"
-    exit
+    status = ENV["CI"] ? false : true
+    exit status
   end
 
   def stop_workers

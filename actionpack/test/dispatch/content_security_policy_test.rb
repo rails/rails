@@ -260,12 +260,13 @@ class DefaultContentSecurityPolicyIntegrationTest < ActionDispatch::IntegrationT
   ROUTES.draw do
     scope module: "default_content_security_policy_integration_test" do
       get "/", to: "policy#index"
+      get "/redirect", to: redirect("/")
     end
   end
 
   POLICY = ActionDispatch::ContentSecurityPolicy.new do |p|
-    p.default_src :self
-    p.script_src  :https
+    p.default_src -> { :self  }
+    p.script_src  -> { :https }
   end
 
   class PolicyConfigMiddleware
@@ -295,14 +296,19 @@ class DefaultContentSecurityPolicyIntegrationTest < ActionDispatch::IntegrationT
   def test_adds_nonce_to_script_src_content_security_policy_only_once
     get "/"
     get "/"
+    assert_response :success
+    assert_policy "default-src 'self'; script-src https: 'nonce-iyhD0Yc0W+c='"
+  end
+
+  def test_redirect_works_with_dynamic_sources
+    get "/redirect"
+    assert_response :redirect
     assert_policy "default-src 'self'; script-src https: 'nonce-iyhD0Yc0W+c='"
   end
 
   private
 
     def assert_policy(expected, report_only: false)
-      assert_response :success
-
       if report_only
         expected_header = "Content-Security-Policy-Report-Only"
         unexpected_header = "Content-Security-Policy"
