@@ -37,10 +37,16 @@ module ActionController #:nodoc:
             request.flash[type]
           end
           helper_method(type) if respond_to?(:helper_method)
-          self.added_flash_types << type
           self._flash_types += [type]
         end
       end
+
+      # Extend AbstractController::Base::action_methods to remove any added flash types
+      # from the set
+      def action_methods #:nodoc:
+        super - _flash_types.map(&:to_s).to_set
+      end
+
     end
 
     private

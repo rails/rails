@@ -79,20 +79,10 @@ module AbstractController
             # Except for public instance methods of Base and its ancestors
             internal_methods +
             # Be sure to include shadowed public instance methods of this class
-            public_instance_methods(false) -
-            # Except for flash methods added to this controller class
-            added_flash_types.to_a).map(&:to_s)
+            public_instance_methods(false)).map(&:to_s)
 
           methods.to_set
         end
-      end
-
-      # A list of flash message types defined on this controller via `add_flash_types`.
-      #
-      # ==== Returns
-      # * <tt>Set</tt> - A set of all flash types defined on this controller.
-      def added_flash_types
-        @added_flash_types ||= Set.new
       end
 
       # action_methods are cached and there is sometimes a need to refresh
