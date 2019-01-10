@@ -20,8 +20,8 @@ Introduction
 
 Action Mailbox routes incoming emails to controller-like mailboxes for
 processing in Rails. It ships with ingresses for Amazon SES, Mailgun, Mandrill,
-and SendGrid. You can also handle inbound mails directly via the built-in
-Postfix ingress.
+Postmark, and SendGrid. You can also handle inbound mails directly via the
+built-in Postfix ingress.
 
 The inbound emails are turned into `InboundEmail` records using Active Record
 and feature lifecycle tracking, storage of the original email on cloud storage
