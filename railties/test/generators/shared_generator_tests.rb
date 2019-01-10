@@ -206,7 +206,7 @@ module SharedGeneratorTests
 
     unless generator_class.name == "Rails::Generators::PluginGenerator"
       assert_file "#{application_path}/app/javascript/packs/application.js" do |content|
-        assert_match(/^import \* as ActiveStorage from "activestorage"\nActiveStorage.start\(\)/, content)
+        assert_match(/^import \* as ActiveStorage from "@rails\/activestorage"\nActiveStorage.start\(\)/, content)
       end
     end
 
@@ -267,7 +267,7 @@ module SharedGeneratorTests
     assert_file "#{application_path}/config/application.rb", /#\s+require\s+["']active_storage\/engine["']/
 
     assert_file "#{application_path}/app/javascript/packs/application.js" do |content|
-      assert_no_match(/^import * as ActiveStorage from "activestorage"\nActiveStorage.start\(\)/, content)
+      assert_no_match(/^import * as ActiveStorage from "@rails\/activestorage"\nActiveStorage.start\(\)/, content)
     end
 
     assert_file "#{application_path}/config/environments/development.rb" do |content|
