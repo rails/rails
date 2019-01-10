@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module ActionMailbox
-  # Ingests inbound emails from Postmark. Requires +RawEmail+ parameter containing a full RFC 822 message.
+  # Ingests inbound emails from Postmark. Requires a +RawEmail+ parameter containing a full RFC 822 message.
   #
   # Authenticates requests using HTTP basic access authentication. The username is always +actionmailbox+, and the
   # password is read from the application's encrypted credentials or an environment variable. See the Usage section below.
@@ -35,10 +35,10 @@ module ActionMailbox
   #
   #    Alternatively, provide the password in the +RAILS_INBOUND_EMAIL_PASSWORD+ environment variable.
   #
-  # 3. {Configure Postmark inbound webhook}[https://postmarkapp.com/manual#configure-your-inbound-webhook-url]
-  #    to forward inbound emails to +/rails/action_mailbox/postmark/inbound_emails+ with the username +actionmailbox+ and
-  #    the password you previously generated. If your application lived at <tt>https://example.com</tt>, you would
-  #    configure Postmark with the following fully-qualified URL:
+  # 3. {Configure Postmark}[https://postmarkapp.com/manual#configure-your-inbound-webhook-url] to forward inbound emails
+  #    to +/rails/action_mailbox/postmark/inbound_emails+ with the username +actionmailbox+ and the password you
+  #    previously generated. If your application lived at <tt>https://example.com</tt>, you would configure your
+  #    Postmark inbound webhook with the following fully-qualified URL:
   #
   #        https://actionmailbox:PASSWORD@example.com/rails/action_mailbox/postmark/inbound_emails
   #
