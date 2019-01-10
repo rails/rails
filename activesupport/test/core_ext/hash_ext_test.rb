@@ -310,6 +310,17 @@ class HashExtTest < ActiveSupport::TestCase
     assert_equal expected, merged
   end
 
+  def test_deep_reverse_merge
+    defaults = {a: "a", b: "b", c: { c1: "c1", c2: "c2", c3: { d1: "d1" } }}.freeze
+    options = { a: 1, c: { c1: 2, c3: { d2: "d2" } } }
+    expected = { a: 1, b: "b", c: { c1: 2, c2: "c2", c3: { d1: "d1", d2: "d2" } } }.freeze
+
+    assert_equal expected, options.deep_reverse_merge(defaults)
+
+    options.deep_reverse_merge!(defaults)
+    assert_equal expected, options
+  end
+
   def test_slice_inplace
     original = { a: "x", b: "y", c: 10 }
     expected_return = { c: 10 }

@@ -1,3 +1,7 @@
+*   Add `Hash#deep_reverse_merge` and `Hash#deep_reverse_merge!`
+
+    *Alex Ghiculescu*
+
 *   Fix `String#safe_constantize` throwing a `LoadError` for incorrectly cased constant references.
 
     *Keenan Brock*
