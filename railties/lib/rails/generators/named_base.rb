@@ -158,7 +158,7 @@ module Rails
 
         def singular_route_name # :doc:
           if options[:model_name]
-            (controller_class_path + [ singular_table_name ]) * '_'
+            (controller_class_path + [ singular_table_name ]) * "_"
           else
             singular_table_name
           end
@@ -166,7 +166,7 @@ module Rails
 
         def plural_route_name # :doc:
           if options[:model_name]
-            (controller_class_path + [ plural_table_name ]) * '_'
+            (controller_class_path + [ plural_table_name ]) * "_"
           else
             plural_table_name
           end
