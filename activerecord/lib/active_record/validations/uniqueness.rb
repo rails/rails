@@ -56,11 +56,6 @@ module ActiveRecord
       end
 
       def build_relation(klass, attribute, value)
-        if reflection = klass._reflect_on_association(attribute)
-          attribute = reflection.foreign_key
-          value = value.attributes[reflection.klass.primary_key] unless value.nil?
-        end
-
         relation = klass.unscoped
         comparison = relation.bind_attribute(attribute, value) do |attr, bind|
           return relation.none! unless bind.boundable?
