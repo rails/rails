@@ -1,5 +1,5 @@
 {
-  "name": "activestorage",
+  "name": "@rails/activestorage",
   "version": "6.0.0-alpha",
   "description": "Attach cloud and local files in Rails applications",
   "main": "app/assets/javascripts/activestorage.js",

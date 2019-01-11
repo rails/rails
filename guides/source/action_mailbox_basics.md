@@ -20,8 +20,8 @@ Introduction
 
 Action Mailbox routes incoming emails to controller-like mailboxes for
 processing in Rails. It ships with ingresses for Amazon SES, Mailgun, Mandrill,
-and SendGrid. You can also handle inbound mails directly via the built-in
-Postfix ingress.
+Postmark, and SendGrid. You can also handle inbound mails directly via the
+built-in Postfix ingress.
 
 The inbound emails are turned into `InboundEmail` records using Active Record
 and feature lifecycle tracking, storage of the original email on cloud storage
@@ -154,6 +154,42 @@ would look like this:
 ```bash
 $ URL=https://example.com/rails/action_mailbox/postfix/inbound_emails INGRESS_PASSWORD=... rails action_mailbox:ingress:postfix
 ```
+
+### Postmark
+
+Tell Action Mailbox to accept emails from Postmark:
+
+```ruby
+# config/environments/production.rb
+config.action_mailbox.ingress = :postmark
+```
+
+Generate a strong password that Action Mailbox can use to authenticate
+requests to the Postmark ingress.
+
+Use `rails credentials:edit` to add the password to your application's
+encrypted credentials under `action_mailbox.ingress_password`,
+where Action Mailbox will automatically find it:
+
+```yaml
+action_mailbox:
+  ingress_password: ...
+```
+
+Alternatively, provide the password in the `RAILS_INBOUND_EMAIL_PASSWORD`
+environment variable.
+
+[Configure Postmark inbound webhook](https://postmarkapp.com/manual#configure-your-inbound-webhook-url)
+to forward inbound emails to `/rails/action_mailbox/postmark/inbound_emails` with the username `actionmailbox`
+and the password you previously generated. If your application lived at `https://example.com`, you would
+configure Postmark with the following fully-qualified URL:
+
+```
+https://actionmailbox:PASSWORD@example.com/rails/action_mailbox/postmark/inbound_emails
+```
+
+NOTE: When configuring your Postmark inbound webhook, be sure to check the box labeled **"Include raw email content in JSON payload"**.
+Action Mailbox needs the raw email content to work.
 
 ### SendGrid
 

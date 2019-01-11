@@ -1,3 +1,7 @@
+*   Use original `bundler` environment variables during the process of generating a new rails project.
+
+    *Marco Costa*
+
 *   Send Active Storage analysis and purge jobs to dedicated queues by default.
 
     Analysis jobs now use the `:active_storage_analysis` queue, and purge jobs
@@ -70,12 +74,6 @@
 *   Remove `app/assets` and `app/javascript` from `eager_load_paths` and `autoload_paths`.
 
     *Gannon McGibbon*
-
-*   Add JSON support to rails properties route (`/rails/info/properties`).
-
-    Now, `Rails::Info` properties may be accessed in JSON format at `/rails/info/properties.json`.
-
-    *Yoshiyuki Hirano*
 
 *   Use Ids instead of memory addresses when displaying references in scaffold views.
 

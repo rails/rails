@@ -1,6 +1,20 @@
 # frozen_string_literal: true
 
-FRAMEWORKS = %w( activesupport activemodel activerecord actionview actionpack activejob actionmailer actioncable activestorage railties )
+# Order dependent. E.g. Action Mailbox depends on Active Record so it should be after.
+FRAMEWORKS = %w(
+  activesupport
+  activemodel
+  activerecord
+  actionview
+  actionpack
+  activejob
+  actionmailer
+  actioncable
+  activestorage
+  actionmailbox
+  actiontext
+  railties
+)
 FRAMEWORK_NAMES = Hash.new { |h, k| k.split(/(?<=active|action)/).map(&:capitalize).join(" ") }
 
 root    = File.expand_path("..", __dir__)

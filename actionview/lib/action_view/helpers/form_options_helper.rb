@@ -654,7 +654,7 @@ module ActionView
       #
       # ==== Gotcha
       #
-      # The HTML specification says when nothing is select on a collection of radio buttons
+      # The HTML specification says when nothing is selected on a collection of radio buttons
       # web browsers do not send any value to server.
       # Unfortunately this introduces a gotcha:
       # if a +User+ model has a +category_id+ field and in the form no category is selected, no +category_id+ parameter is sent. So,

@@ -1,6 +1,11 @@
+
 *   Allow `ActionController::Params` as argument of `ActiveRecord::Base#exists?`.
 
     *Gannon McGibbon*
+
+*   Add support for endless ranges introduces in Ruby 2.6.
+
+    *Greg Navis*
 
 *   Deprecate passing `migrations_paths` to `connection.assume_migrated_upto_version`.
 

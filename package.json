@@ -2,6 +2,7 @@
   "private": true,
   "workspaces": [
     "actioncable",
+    "actiontext",
     "activestorage",
     "actionview",
     "tmp/templates/app_template",
