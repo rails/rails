@@ -53,44 +53,45 @@ class FormCollectionsHelperTest < ActionView::TestCase
   end
 
   test "collection radio accepts checked item" do
-    with_collection_radio_buttons :user, :active, [[1, true], [0, false]], :last, :first, checked: true
+    collection = [["Alberto", "alberto"], ["Maria", "maria"]]
+    with_collection_radio_buttons :user, :active, collection, :last, :first, checked: "alberto"
 
-    assert_select "input[type=radio][value=true][checked=checked]"
-    assert_no_select "input[type=radio][value=false][checked=checked]"
+    assert_select "input[type=radio][value=alberto][checked=checked]"
+    assert_no_select "input[type=radio][value=maria][checked=checked]"
   end
 
   test "collection radio accepts multiple disabled items" do
-    collection = [[1, true], [0, false], [2, "other"]]
-    with_collection_radio_buttons :user, :active, collection, :last, :first, disabled: [true, false]
+    collection = [["Alberto", "alberto"], ["Maria", "maria"], ["Other", "other"]]
+    with_collection_radio_buttons :user, :active, collection, :last, :first, disabled: ["alberto", "maria"]
 
-    assert_select "input[type=radio][value=true][disabled=disabled]"
-    assert_select "input[type=radio][value=false][disabled=disabled]"
+    assert_select "input[type=radio][value=alberto][disabled=disabled]"
+    assert_select "input[type=radio][value=maria][disabled=disabled]"
     assert_no_select "input[type=radio][value=other][disabled=disabled]"
   end
 
   test "collection radio accepts single disabled item" do
-    collection = [[1, true], [0, false]]
-    with_collection_radio_buttons :user, :active, collection, :last, :first, disabled: true
+    collection = [["Alberto", "alberto"], ["Maria", "maria"]]
+    with_collection_radio_buttons :user, :active, collection, :last, :first, disabled: "alberto"
 
-    assert_select "input[type=radio][value=true][disabled=disabled]"
-    assert_no_select "input[type=radio][value=false][disabled=disabled]"
+    assert_select "input[type=radio][value=alberto][disabled=disabled]"
+    assert_no_select "input[type=radio][value=maria][disabled=disabled]"
   end
 
   test "collection radio accepts multiple readonly items" do
-    collection = [[1, true], [0, false], [2, "other"]]
-    with_collection_radio_buttons :user, :active, collection, :last, :first, readonly: [true, false]
+    collection = [["Alberto", "alberto"], ["Maria", "maria"], ["Other", "other"]]
+    with_collection_radio_buttons :user, :active, collection, :last, :first, readonly: ["alberto", "maria"]
 
-    assert_select "input[type=radio][value=true][readonly=readonly]"
-    assert_select "input[type=radio][value=false][readonly=readonly]"
+    assert_select "input[type=radio][value=alberto][readonly=readonly]"
+    assert_select "input[type=radio][value=maria][readonly=readonly]"
     assert_no_select "input[type=radio][value=other][readonly=readonly]"
   end
 
   test "collection radio accepts single readonly item" do
-    collection = [[1, true], [0, false]]
-    with_collection_radio_buttons :user, :active, collection, :last, :first, readonly: true
+    collection = [["Alberto", "alberto"], ["Maria", "maria"]]
+    with_collection_radio_buttons :user, :active, collection, :last, :first, readonly: "maria"
 
-    assert_select "input[type=radio][value=true][readonly=readonly]"
-    assert_no_select "input[type=radio][value=false][readonly=readonly]"
+    assert_select "input[type=radio][value=maria][readonly=readonly]"
+    assert_no_select "input[type=radio][value=alberto][readonly=readonly]"
   end
 
   test "collection radio accepts html options as input" do
@@ -198,12 +199,6 @@ class FormCollectionsHelperTest < ActionView::TestCase
 
     assert_select "label[for=post_category_id_1]", "Category 1"
     assert_select "label[for=post_category_id_2]", "Category 2"
-  end
-
-  test "collection radio accepts checked item which has a value of false" do
-    with_collection_radio_buttons :user, :active, [[1, true], [0, false]], :last, :first, checked: false
-    assert_no_select "input[type=radio][value=true][checked=checked]"
-    assert_select "input[type=radio][value=false][checked=checked]"
   end
 
   test "collection radio buttons generates only one hidden field for the entire collection, to ensure something will be sent back to the server when posting an empty collection" do
