@@ -82,14 +82,14 @@ Passing a range to `#in` is deprecated. Call `#between`, instead.
 
     def not_between(other)
       if infinity?(other.begin)
-        if infinity?(other.end)
+        if other.end.nil? || infinity?(other.end)
           self.in([])
         elsif other.exclude_end?
           gteq(other.end)
         else
           gt(other.end)
         end
-      elsif infinity?(other.end)
+      elsif other.end.nil? || infinity?(other.end)
         lt(other.begin)
       else
         left = lt(other.begin)
