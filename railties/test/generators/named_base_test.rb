@@ -168,6 +168,26 @@ class NamedBaseTest < Rails::Generators::TestCase
     assert_name g, "users", :plural_route_name
   end
 
+  def test_scaffold_redirect_resource_name_with_model_name_option
+    g = generator ["User"], model_name: "User"
+    assert_name g, "[@user]", :redirect_resource_name
+  end
+
+  def test_scaffold_model_resource_name_with_model_name_option
+    g = generator ["User"], model_name: "User"
+    assert_name g, "[user]",  :model_resource_name
+  end
+
+  def test_scaffold_singular_route_name_with_model_name_option
+    g = generator ["User"], model_name: "User"
+    assert_name g, "user",  :singular_route_name
+  end
+
+  def test_scaffold_plural_route_name_with_model_name_option
+    g = generator ["User"], model_name: "User"
+    assert_name g, "users", :plural_route_name
+  end
+
   private
 
     def assert_name(generator, value, method)
