@@ -26,7 +26,6 @@ class Rails::Command::RoutesTest < ActiveSupport::TestCase
                                     PUT    /post(.:format)                                         posts#update
                                     DELETE /post(.:format)                                         posts#destroy
                                     POST   /post(.:format)                                         posts#create
-       rails_postfix_inbound_emails POST   /rails/action_mailbox/postfix/inbound_emails(.:format)  action_mailbox/ingresses/postfix/inbound_emails#create
       rails_postmark_inbound_emails POST   /rails/action_mailbox/postmark/inbound_emails(.:format) action_mailbox/ingresses/postmark/inbound_emails#create
     OUTPUT
 
@@ -65,8 +64,8 @@ class Rails::Command::RoutesTest < ActiveSupport::TestCase
                                             POST /cart(.:format)                                                     cart#create
                 rails_amazon_inbound_emails POST /rails/action_mailbox/amazon/inbound_emails(.:format)               action_mailbox/ingresses/amazon/inbound_emails#create
               rails_mandrill_inbound_emails POST /rails/action_mailbox/mandrill/inbound_emails(.:format)             action_mailbox/ingresses/mandrill/inbound_emails#create
-               rails_postfix_inbound_emails POST /rails/action_mailbox/postfix/inbound_emails(.:format)              action_mailbox/ingresses/postfix/inbound_emails#create
               rails_postmark_inbound_emails POST /rails/action_mailbox/postmark/inbound_emails(.:format)             action_mailbox/ingresses/postmark/inbound_emails#create
+                 rails_relay_inbound_emails POST /rails/action_mailbox/relay/inbound_emails(.:format)                action_mailbox/ingresses/relay/inbound_emails#create
               rails_sendgrid_inbound_emails POST /rails/action_mailbox/sendgrid/inbound_emails(.:format)             action_mailbox/ingresses/sendgrid/inbound_emails#create
                rails_mailgun_inbound_emails POST /rails/action_mailbox/mailgun/inbound_emails/mime(.:format)         action_mailbox/ingresses/mailgun/inbound_emails#create
                                             POST /rails/conductor/action_mailbox/inbound_emails(.:format)            rails/conductor/action_mailbox/inbound_emails#create
@@ -141,7 +140,6 @@ class Rails::Command::RoutesTest < ActiveSupport::TestCase
                                     PUT    /admin/post(.:format)                                   admin/posts#update
                                     DELETE /admin/post(.:format)                                   admin/posts#destroy
                                     POST   /admin/post(.:format)                                   admin/posts#create
-       rails_postfix_inbound_emails POST   /rails/action_mailbox/postfix/inbound_emails(.:format)  action_mailbox/ingresses/postfix/inbound_emails#create
       rails_postmark_inbound_emails POST   /rails/action_mailbox/postmark/inbound_emails(.:format) action_mailbox/ingresses/postmark/inbound_emails#create
     OUTPUT
 
@@ -170,8 +168,8 @@ class Rails::Command::RoutesTest < ActiveSupport::TestCase
                                      Prefix Verb   URI Pattern                                                                              Controller#Action
                 rails_amazon_inbound_emails POST   /rails/action_mailbox/amazon/inbound_emails(.:format)                                    action_mailbox/ingresses/amazon/inbound_emails#create
               rails_mandrill_inbound_emails POST   /rails/action_mailbox/mandrill/inbound_emails(.:format)                                  action_mailbox/ingresses/mandrill/inbound_emails#create
-               rails_postfix_inbound_emails POST   /rails/action_mailbox/postfix/inbound_emails(.:format)                                   action_mailbox/ingresses/postfix/inbound_emails#create
               rails_postmark_inbound_emails POST   /rails/action_mailbox/postmark/inbound_emails(.:format)                                  action_mailbox/ingresses/postmark/inbound_emails#create
+                 rails_relay_inbound_emails POST   /rails/action_mailbox/relay/inbound_emails(.:format)                                     action_mailbox/ingresses/relay/inbound_emails#create
               rails_sendgrid_inbound_emails POST   /rails/action_mailbox/sendgrid/inbound_emails(.:format)                                  action_mailbox/ingresses/sendgrid/inbound_emails#create
                rails_mailgun_inbound_emails POST   /rails/action_mailbox/mailgun/inbound_emails/mime(.:format)                              action_mailbox/ingresses/mailgun/inbound_emails#create
              rails_conductor_inbound_emails GET    /rails/conductor/action_mailbox/inbound_emails(.:format)                                 rails/conductor/action_mailbox/inbound_emails#index
@@ -219,15 +217,15 @@ class Rails::Command::RoutesTest < ActiveSupport::TestCase
       URI               | /rails/action_mailbox/mandrill/inbound_emails(.:format)
       Controller#Action | action_mailbox/ingresses/mandrill/inbound_emails#create
       --[ Route 4 ]--------------
-      Prefix            | rails_postfix_inbound_emails
-      Verb              | POST
-      URI               | /rails/action_mailbox/postfix/inbound_emails(.:format)
-      Controller#Action | action_mailbox/ingresses/postfix/inbound_emails#create
-      --[ Route 5 ]--------------
       Prefix            | rails_postmark_inbound_emails
       Verb              | POST
       URI               | /rails/action_mailbox/postmark/inbound_emails(.:format)
       Controller#Action | action_mailbox/ingresses/postmark/inbound_emails#create
+      --[ Route 5 ]--------------
+      Prefix            | rails_relay_inbound_emails
+      Verb              | POST
+      URI               | /rails/action_mailbox/relay/inbound_emails(.:format)
+      Controller#Action | action_mailbox/ingresses/relay/inbound_emails#create
       --[ Route 6 ]--------------
       Prefix            | rails_sendgrid_inbound_emails
       Verb              | POST

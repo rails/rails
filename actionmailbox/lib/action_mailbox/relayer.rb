@@ -5,19 +5,27 @@ require "net/http"
 require "uri"
 
 module ActionMailbox
-  class PostfixRelayer
-    class Result < Struct.new(:output)
+  class Relayer
+    class Result < Struct.new(:status_code, :message)
       def success?
         !failure?
       end
 
       def failure?
-        output.match?(/\A[45]\.\d{1,3}\.\d{1,3}(\s|\z)/)
+        transient_failure? || permanent_failure?
+      end
+
+      def transient_failure?
+        status_code.start_with?("4.")
+      end
+
+      def permanent_failure?
+        status_code.start_with?("5.")
       end
     end
 
     CONTENT_TYPE = "message/rfc822"
-    USER_AGENT   = "Action Mailbox Postfix relayer v#{ActionMailbox.version}"
+    USER_AGENT   = "Action Mailbox relayer v#{ActionMailbox.version}"
 
     attr_reader :uri, :username, :password
 
@@ -28,18 +36,18 @@ module ActionMailbox
     def relay(source)
       case response = post(source)
       when Net::HTTPSuccess
-        Result.new "2.0.0 Successfully relayed message to Postfix ingress"
+        Result.new "2.0.0", "Successfully relayed message to ingress"
       when Net::HTTPUnauthorized
-        Result.new "4.7.0 Invalid credentials for Postfix ingress"
+        Result.new "4.7.0", "Invalid credentials for ingress"
       else
-        Result.new "4.0.0 HTTP #{response.code}"
+        Result.new "4.0.0", "HTTP #{response.code}"
       end
     rescue IOError, SocketError, SystemCallError => error
-      Result.new "4.4.2 Network error relaying to Postfix ingress: #{error.message}"
+      Result.new "4.4.2", "Network error relaying to ingress: #{error.message}"
     rescue Timeout::Error
-      Result.new "4.4.2 Timed out relaying to Postfix ingress"
+      Result.new "4.4.2", "Timed out relaying to ingress"
     rescue => error
-      Result.new "4.0.0 Error relaying to Postfix ingress: #{error.message}"
+      Result.new "4.0.0", "Error relaying to ingress: #{error.message}"
     end
 
     private

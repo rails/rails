@@ -2,12 +2,12 @@
 
 require "test_helper"
 
-class ActionMailbox::Ingresses::Postfix::InboundEmailsControllerTest < ActionDispatch::IntegrationTest
-  setup { ActionMailbox.ingress = :postfix }
+class ActionMailbox::Ingresses::Relay::InboundEmailsControllerTest < ActionDispatch::IntegrationTest
+  setup { ActionMailbox.ingress = :relay }
 
-  test "receiving an inbound email from Postfix" do
+  test "receiving an inbound email relayed from an SMTP server" do
     assert_difference -> { ActionMailbox::InboundEmail.count }, +1 do
-      post rails_postfix_inbound_emails_url, headers: { "Authorization" => credentials, "Content-Type" => "message/rfc822" },
+      post rails_relay_inbound_emails_url, headers: { "Authorization" => credentials, "Content-Type" => "message/rfc822" },
         params: file_fixture("../files/welcome.eml").read
     end
 
@@ -18,18 +18,18 @@ class ActionMailbox::Ingresses::Postfix::InboundEmailsControllerTest < ActionDis
     assert_equal "0CB459E0-0336-41DA-BC88-E6E28C697DDB@37signals.com", inbound_email.message_id
   end
 
-  test "rejecting an unauthorized inbound email from Postfix" do
+  test "rejecting an unauthorized inbound email" do
     assert_no_difference -> { ActionMailbox::InboundEmail.count } do
-      post rails_postfix_inbound_emails_url, headers: { "Content-Type" => "message/rfc822" },
+      post rails_relay_inbound_emails_url, headers: { "Content-Type" => "message/rfc822" },
         params: file_fixture("../files/welcome.eml").read
     end
 
     assert_response :unauthorized
   end
 
-  test "rejecting an inbound email of an unsupported media type from Postfix" do
+  test "rejecting an inbound email of an unsupported media type" do
     assert_no_difference -> { ActionMailbox::InboundEmail.count } do
-      post rails_postfix_inbound_emails_url, headers: { "Authorization" => credentials, "Content-Type" => "text/plain" },
+      post rails_relay_inbound_emails_url, headers: { "Authorization" => credentials, "Content-Type" => "text/plain" },
         params: file_fixture("../files/welcome.eml").read
     end
 
@@ -39,7 +39,7 @@ class ActionMailbox::Ingresses::Postfix::InboundEmailsControllerTest < ActionDis
   test "raising when the configured password is nil" do
     switch_password_to nil do
       assert_raises ArgumentError do
-        post rails_postfix_inbound_emails_url, headers: { "Authorization" => credentials, "Content-Type" => "message/rfc822" },
+        post rails_relay_inbound_emails_url, headers: { "Authorization" => credentials, "Content-Type" => "message/rfc822" },
           params: file_fixture("../files/welcome.eml").read
       end
     end
@@ -48,7 +48,7 @@ class ActionMailbox::Ingresses::Postfix::InboundEmailsControllerTest < ActionDis
   test "raising when the configured password is blank" do
     switch_password_to "" do
       assert_raises ArgumentError do
-        post rails_postfix_inbound_emails_url, headers: { "Authorization" => credentials, "Content-Type" => "message/rfc822" },
+        post rails_relay_inbound_emails_url, headers: { "Authorization" => credentials, "Content-Type" => "message/rfc822" },
           params: file_fixture("../files/welcome.eml").read
       end
     end

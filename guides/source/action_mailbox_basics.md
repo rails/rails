@@ -21,7 +21,7 @@ Introduction
 Action Mailbox routes incoming emails to controller-like mailboxes for
 processing in Rails. It ships with ingresses for Amazon SES, Mailgun, Mandrill,
 Postmark, and SendGrid. You can also handle inbound mails directly via the
-built-in Postfix ingress.
+built-in Exim, Postfix, and Qmail ingresses.
 
 The inbound emails are turned into `InboundEmail` records using Active Record
 and feature lifecycle tracking, storage of the original email on cloud storage
@@ -64,6 +64,36 @@ to deliver emails to your application via POST requests to
 `/rails/action_mailbox/amazon/inbound_emails`. If your application lived at
 `https://example.com`, you would specify the fully-qualified URL
 `https://example.com/rails/action_mailbox/amazon/inbound_emails`.
+
+### Exim
+
+Tell Action Mailbox to accept emails from an SMTP relay:
+
+```ruby
+# config/environments/production.rb
+config.action_mailbox.ingress = :relay
+```
+
+Generate a strong password that Action Mailbox can use to authenticate requests to the relay ingress.
+
+Use `rails credentials:edit` to add the password to your application's encrypted credentials under
+`action_mailbox.ingress_password`, where Action Mailbox will automatically find it:
+
+```yaml
+action_mailbox:
+  ingress_password: ...
+```
+
+Alternatively, provide the password in the `RAILS_INBOUND_EMAIL_PASSWORD` environment variable.
+
+Configure Exim to pipe inbound emails to `bin/rails action_mailbox:ingress:exim`,
+providing the `URL` of the relay ingress and the `INGRESS_PASSWORD` you
+previously generated. If your application lived at `https://example.com`, the
+full command would look like this:
+
+```shell
+bin/rails action_mailbox:ingress:exim URL=https://example.com/rails/action_mailbox/relay/inbound_emails INGRESS_PASSWORD=...
+```
 
 ### Mailgun
 
@@ -126,14 +156,14 @@ the fully-qualified URL `https://example.com/rails/action_mailbox/mandrill/inbou
 
 ### Postfix
 
-Tell Action Mailbox to accept emails from Postfix:
+Tell Action Mailbox to accept emails from an SMTP relay:
 
 ```ruby
 # config/environments/production.rb
-config.action_mailbox.ingress = :postfix
+config.action_mailbox.ingress = :relay
 ```
 
-Generate a strong password that Action Mailbox can use to authenticate requests to the Postfix ingress.
+Generate a strong password that Action Mailbox can use to authenticate requests to the relay ingress.
 
 Use `rails credentials:edit` to add the password to your application's encrypted credentials under
 `action_mailbox.ingress_password`, where Action Mailbox will automatically find it:
@@ -151,8 +181,8 @@ the `URL` of the Postfix ingress and the `INGRESS_PASSWORD` you previously
 generated. If your application lived at `https://example.com`, the full command
 would look like this:
 
-```bash
-$ URL=https://example.com/rails/action_mailbox/postfix/inbound_emails INGRESS_PASSWORD=... rails action_mailbox:ingress:postfix
+```shell
+$ bin/rails action_mailbox:ingress:postfix URL=https://example.com/rails/action_mailbox/relay/inbound_emails INGRESS_PASSWORD=...
 ```
 
 ### Postmark
@@ -190,6 +220,36 @@ https://actionmailbox:PASSWORD@example.com/rails/action_mailbox/postmark/inbound
 
 NOTE: When configuring your Postmark inbound webhook, be sure to check the box labeled **"Include raw email content in JSON payload"**.
 Action Mailbox needs the raw email content to work.
+
+### Qmail
+
+Tell Action Mailbox to accept emails from an SMTP relay:
+
+```ruby
+# config/environments/production.rb
+config.action_mailbox.ingress = :relay
+```
+
+Generate a strong password that Action Mailbox can use to authenticate requests to the relay ingress.
+
+Use `rails credentials:edit` to add the password to your application's encrypted credentials under
+`action_mailbox.ingress_password`, where Action Mailbox will automatically find it:
+
+```yaml
+action_mailbox:
+  ingress_password: ...
+```
+
+Alternatively, provide the password in the `RAILS_INBOUND_EMAIL_PASSWORD` environment variable.
+
+Configure Qmail to pipe inbound emails to `bin/rails action_mailbox:ingress:qmail`,
+providing the `URL` of the relay ingress and the `INGRESS_PASSWORD` you
+previously generated. If your application lived at `https://example.com`, the
+full command would look like this:
+
+```shell
+bin/rails action_mailbox:ingress:qmail URL=https://example.com/rails/action_mailbox/relay/inbound_emails INGRESS_PASSWORD=...
+```
 
 ### SendGrid
 
