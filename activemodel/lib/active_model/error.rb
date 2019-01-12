@@ -64,7 +64,7 @@ module ActiveModel
     end
 
     def ==(other)
-      attributes_for_hash == other.attributes_for_hash
+      other.is_a?(self.class) && attributes_for_hash == other.attributes_for_hash
     end
     alias eql? ==
 

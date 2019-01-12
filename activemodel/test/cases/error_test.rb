@@ -190,4 +190,11 @@ class ErrorTest < ActiveModel::TestCase
     assert error != ActiveModel::Error.new(person, :title, foo: :bar)
     assert error != ActiveModel::Error.new(Person.new, :name, foo: :bar)
   end
+
+  test "comparing against different class would not raise error" do
+    person = Person.new
+    error = ActiveModel::Error.new(person, :name, foo: :bar)
+
+    assert error != person
+  end
 end
