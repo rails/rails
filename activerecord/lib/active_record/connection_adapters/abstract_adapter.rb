@@ -6,6 +6,7 @@ require "active_record/connection_adapters/sql_type_metadata"
 require "active_record/connection_adapters/abstract/schema_dumper"
 require "active_record/connection_adapters/abstract/schema_creation"
 require "active_support/concurrency/load_interlock_aware_monitor"
+require "active_support/deprecation"
 require "arel/collectors/bind"
 require "arel/collectors/composite"
 require "arel/collectors/sql_string"
@@ -76,8 +77,11 @@ module ActiveRecord
 
       SIMPLE_INT = /\A\d+\z/
 
-      attr_accessor :visitor, :pool, :prevent_writes
-      attr_reader :schema_cache, :owner, :logger, :prepared_statements, :lock
+      attr_writer :visitor
+      deprecate :visitor=
+
+      attr_accessor :pool, :prevent_writes
+      attr_reader :schema_cache, :visitor, :owner, :logger, :prepared_statements, :lock
       alias :in_use? :owner
 
       set_callback :checkin, :after, :enable_lazy_transactions!
