@@ -80,8 +80,8 @@ module ActiveRecord
       attr_writer :visitor
       deprecate :visitor=
 
-      attr_accessor :pool, :prevent_writes
-      attr_reader :schema_cache, :visitor, :owner, :logger, :prepared_statements, :lock
+      attr_accessor :pool
+      attr_reader :schema_cache, :visitor, :owner, :logger, :lock, :prepared_statements, :prevent_writes
       alias :in_use? :owner
 
       set_callback :checkin, :after, :enable_lazy_transactions!
@@ -121,6 +121,7 @@ module ActiveRecord
         @idle_since          = Concurrent.monotonic_time
         @schema_cache        = SchemaCache.new self
         @quoted_column_names, @quoted_table_names = {}, {}
+        @prevent_writes = false
         @visitor = arel_visitor
         @lock = ActiveSupport::Concurrency::LoadInterlockAwareMonitor.new
 
@@ -156,11 +157,10 @@ module ActiveRecord
       # even if you are on a database that can write. `while_preventing_writes`
       # will prevent writes to the database for the duration of the block.
       def while_preventing_writes
-        original = self.prevent_writes
-        self.prevent_writes = true
+        original, @prevent_writes = @prevent_writes, true
         yield
       ensure
-        self.prevent_writes = original
+        @prevent_writes = original
       end
 
       def migrations_paths # :nodoc:
