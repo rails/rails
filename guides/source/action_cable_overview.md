@@ -195,12 +195,12 @@ you're interested in having.
 A consumer becomes a subscriber by creating a subscription to a given channel:
 
 ```js
-// app/javascript/cable/subscriptions/chat_channel.js
+// app/javascript/channels/chat_channel.js
 import consumer from "./consumer"
 
 consumer.subscriptions.create({ channel: "ChatChannel", room: "Best Room" })
 
-// app/javascript/cable/subscriptions/appearance_channel.js
+// app/javascript/channels/appearance_channel.js
 import consumer from "./consumer"
 
 consumer.subscriptions.create({ channel: "AppearanceChannel" })
@@ -213,7 +213,7 @@ A consumer can act as a subscriber to a given channel any number of times. For
 example, a consumer could subscribe to multiple chat rooms at the same time:
 
 ```js
-// app/javascript/cable/subscriptions/chat_channel.js
+// app/javascript/channels/chat_channel.js
 import consumer from "./consumer"
 
 consumer.subscriptions.create({ channel: "ChatChannel", room: "1st Room" })
@@ -291,7 +291,7 @@ connection is called a subscription. Incoming messages are then routed to
 these channel subscriptions based on an identifier sent by the cable consumer.
 
 ```js
-// app/javascript/cable/subscriptions/chat_channel.js
+// app/javascript/channels/chat_channel.js
 // Assumes you've already requested the right to send web notifications
 import consumer from "./consumer"
 
@@ -335,7 +335,7 @@ An object passed as the first argument to `subscriptions.create` becomes the
 params hash in the cable channel. The keyword `channel` is required:
 
 ```js
-// app/javascript/cable/subscriptions/chat_channel.js
+// app/javascript/channels/chat_channel.js
 import consumer from "./consumer"
 
 consumer.subscriptions.create({ channel: "ChatChannel", room: "Best Room" }, {
@@ -389,7 +389,7 @@ end
 ```
 
 ```js
-// app/javascript/cable/subscriptions/chat_channel.js
+// app/javascript/channels/chat_channel.js
 import consumer from "./consumer"
 
 const chatChannel = consumer.subscriptions.create({ channel: "ChatChannel", room: "Best Room" }, {
@@ -449,7 +449,7 @@ appear/disappear API could be backed by Redis, a database, or whatever else.
 Create the client-side appearance channel subscription:
 
 ```js
-// app/javascript/cable/subscriptions/appearance_channel.js
+// app/javascript/channels/appearance_channel.js
 import consumer from "./consumer"
 
 consumer.subscriptions.create("AppearanceChannel", {
@@ -564,7 +564,7 @@ end
 Create the client-side web notifications channel subscription:
 
 ```js
-// app/javascript/cable/subscriptions/web_notifications_channel.js
+// app/javascript/channels/web_notifications_channel.js
 // Client-side which assumes you've already requested
 // the right to send web notifications.
 import consumer from "./consumer"
