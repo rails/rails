@@ -23,15 +23,7 @@ module ActionCable
       #   # Asserts that connection without user_id fails
       #   assert_reject_connection { connect params: { user_id: '' } }
       def assert_reject_connection(&block)
-        res =
-          begin
-            block.call
-            false
-          rescue ActionCable::Connection::Authorization::UnauthorizedError
-            true
-          end
-
-        assert res, "Expected to reject connection but no rejection were made"
+        assert_raises(Authorization::UnauthorizedError, "Expected to reject connection but no rejection was made", &block)
       end
     end
 
@@ -66,61 +58,64 @@ module ActionCable
       end
     end
 
-    # Superclass for Action Cable connection unit tests.
+    # Unit test Action Cable connections.
+    #
+    # Useful to check whether a connection's +identified_by+ gets assigned properly
+    # and that any improper connection requests are rejected.
     #
     # == Basic example
     #
     # Unit tests are written as follows:
-    # 1. First, one uses the +connect+ method to simulate connection.
-    # 2. Then, one asserts whether the current state is as expected (e.g. identifiers).
     #
-    # For example:
+    # 1. Simulate a connection attempt by calling +connect+.
+    # 2. Assert state, e.g. identifiers, has been assigned.
     #
-    #   module ApplicationCable
-    #     class ConnectionTest < ActionCable::Connection::TestCase
-    #       def test_connects_with_cookies
-    #         cookies["user_id"] = users[:john].id
-    #         # Simulate a connection
-    #         connect
     #
-    #         # Asserts that the connection identifier is correct
-    #         assert_equal "John", connection.user.name
-    #       end
+    #   class ApplicationCable::ConnectionTest < ActionCable::Connection::TestCase
+    #     def test_connects_with_proper_cookie
+    #       # Simulate the connection request with a cookie.
+    #       cookies["user_id"] = users(:john).id
+
+    #       connect
     #
-    #       def test_does_not_connect_without_user
-    #         assert_reject_connection do
-    #           connect
-    #         end
-    #       end
+    #       # Assert the connection identifier matches the fixture.
+    #       assert_equal users(:john).id, connection.user.id
+    #     end
+    #
+    #     def test_rejects_connection_without_proper_cookie
+    #       assert_reject_connection { connect }
     #     end
     #   end
     #
-    # You can also provide additional information about underlying HTTP request
-    # (params, headers, session and Rack env):
+    # +connect+ accepts additional information the HTTP request with the
+    # +params+, +headers+, +session+ and Rack +env+ options.
     #
     #   def test_connect_with_headers_and_query_string
-    #     connect "/cable?user_id=1", headers: { "X-API-TOKEN" => 'secret-my' }
+    #     connect params: { user_id: 1 }, headers: { "X-API-TOKEN" => "secret-my" }
     #
-    #     assert_equal connection.user_id, "1"
+    #     assert_equal "1", connection.user.id
+    #     assert_equal "secret-my", connection.token
     #   end
     #
     #   def test_connect_with_params
     #     connect params: { user_id: 1 }
     #
-    #     assert_equal connection.user_id, "1"
+    #     assert_equal "1", connection.user.id
     #   end
     #
-    # You can also manage request cookies:
+    # You can also setup the correct cookies before the connection request:
     #
     #   def test_connect_with_cookies
-    #     # plain cookies
+    #     # Plain cookies:
     #     cookies["user_id"] = 1
-    #     # or signed/encrypted
+    #
+    #     # Or signed/encrypted:
     #     # cookies.signed["user_id"] = 1
+    #     # cookies.encrypted["user_id"] = 1
     #
     #     connect
     #
-    #     assert_equal connection.user_id, "1"
+    #     assert_equal "1", connection.user_id
     #   end
     #
     # == Connection is automatically inferred
@@ -179,13 +174,14 @@ module ActionCable
           end
         end
 
-        # Performs connection attempt (i.e. calls #connect method).
+        # Performs connection attempt to exert #connect on the connection under test.
         #
         # Accepts request path as the first argument and the following request options:
+        #
         # - params – url parameters (Hash)
         # - headers – request headers (Hash)
         # - session – session data (Hash)
-        # - env – addittional Rack env configuration (Hash)
+        # - env – additional Rack env configuration (Hash)
         def connect(path = ActionCable.server.config.mount_path, **request_params)
           path ||= DEFAULT_PATH
 
@@ -198,7 +194,7 @@ module ActionCable
           @connection = connection
         end
 
-        # Disconnect the connection under test (i.e. calls #disconnect)
+        # Exert #disconnect on the connection under test.
         def disconnect
           raise "Must be connected!" if connection.nil?
 
@@ -211,7 +207,6 @@ module ActionCable
         end
 
         private
-
           def build_test_request(path, params: nil, headers: {}, session: {}, env: {})
             wrapped_headers = ActionDispatch::Http::Headers.from_hash(headers)
 

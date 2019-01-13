@@ -75,10 +75,8 @@ class Connection < ActionCable::Connection::Base
   end
 
   private
-
     def verify_user
-      reject_unauthorized_connection unless cookies.signed[:user_id].present?
-      cookies.signed[:user_id]
+      cookies.signed[:user_id].presence || reject_unauthorized_connection
     end
 end
 
@@ -101,6 +99,14 @@ class ConnectionTest < ActionCable::Connection::TestCase
   def test_connection_rejected
     assert_reject_connection { connect }
   end
+
+  def test_connection_rejected_assertion_message
+    error = assert_raises Minitest::Assertion do
+      assert_reject_connection { "Intentionally doesn't connect." }
+    end
+
+    assert_match(/Expected to reject connection/, error.message)
+  end
 end
 
 class EncryptedCookiesConnection < ActionCable::Connection::Base
@@ -111,10 +117,8 @@ class EncryptedCookiesConnection < ActionCable::Connection::Base
   end
 
   private
-
     def verify_user
-      reject_unauthorized_connection unless cookies.encrypted[:user_id].present?
-      cookies.encrypted[:user_id]
+      cookies.encrypted[:user_id].presence || reject_unauthorized_connection
     end
 end
 
@@ -142,10 +146,8 @@ class SessionConnection < ActionCable::Connection::Base
   end
 
   private
-
     def verify_user
-      reject_unauthorized_connection unless request.session[:user_id].present?
-      request.session[:user_id]
+      request.session[:user_id].presence || reject_unauthorized_connection
     end
 end
 
@@ -170,11 +172,9 @@ class EnvConnection < ActionCable::Connection::Base
   end
 
   private
-
     def verify_user
       # Warden-like authentication
-      reject_unauthorized_connection unless env["authenticator"]&.user.present?
-      env["authenticator"].user
+      env["authenticator"]&.user || reject_unauthorized_connection
     end
 end
 
@@ -182,7 +182,12 @@ class EnvConnectionTest < ActionCable::Connection::TestCase
   tests EnvConnection
 
   def test_connected_with_env
-    connect env: { "authenticator" => OpenStruct.new(user: "David") }
+    authenticator = Class.new do
+      def user; "David"; end
+    end
+
+    connect env: { "authenticator" => authenticator.new }
+
     assert_equal "David", connection.user
   end
 
