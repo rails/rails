@@ -166,4 +166,13 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
   ensure
     ActiveStorage.variant_processor = :mini_magick
   end
+
+  test "change delivery on instance" do
+    blob = create_file_blob filename: "racecar.jpg"
+    variant = blob.variant(resize: "100x100").processed
+
+    assert_equal variant.deliver(:redirect), Rails.application.routes.url_helpers.route_for(:rails_blob_representation, blob.signed_id, variant.variation.key, blob.filename, only_path: true)
+    assert_equal variant.deliver(:proxy), Rails.application.routes.url_helpers.route_for(:rails_blob_representation_proxy, blob.signed_id, variant.variation.key, blob.filename, only_path: true)
+    assert_equal variant.deliver(:direct)[0..417], variant.service_url[0..417]
+  end
 end
