@@ -1,3 +1,7 @@
+*   Remove deprecated `ActiveRecord::Migrator.migrations_path=`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `expand_hash_conditions_for_aggregates`.
 
     *Rafael Mendonça França*
