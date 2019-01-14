@@ -1,3 +1,7 @@
+*   Remove ability to specify a timestamp name for `#cache_key`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `ActiveRecord::Migrator.migrations_path=`.
 
     *Rafael Mendonça França*

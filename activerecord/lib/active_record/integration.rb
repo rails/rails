@@ -61,23 +61,14 @@ module ActiveRecord
     #
     #   Product.cache_versioning = false
     #   Product.find(5).cache_key  # => "products/5-20071224150000" (updated_at available)
-    def cache_key(*timestamp_names)
+    def cache_key
       if new_record?
         "#{model_name.cache_key}/new"
       else
-        if cache_version && timestamp_names.none?
+        if cache_version
           "#{model_name.cache_key}/#{id}"
         else
-          timestamp = if timestamp_names.any?
-            ActiveSupport::Deprecation.warn(<<-MSG.squish)
-              Specifying a timestamp name for #cache_key has been deprecated in favor of
-              the explicit #cache_version method that can be overwritten.
-            MSG
-
-            max_updated_column_timestamp(timestamp_names)
-          else
-            max_updated_column_timestamp
-          end
+          timestamp = max_updated_column_timestamp
 
           if timestamp
             timestamp = timestamp.utc.to_s(cache_timestamp_format)
