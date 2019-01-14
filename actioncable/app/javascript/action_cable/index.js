@@ -18,11 +18,7 @@ export {
   logger,
 }
 
-export function createConsumer(url) {
-  if (url == null) {
-    const urlConfig = getConfig("url")
-    url = (urlConfig ? urlConfig : INTERNAL.default_mount_path)
-  }
+export function createConsumer(url = getConfig("url") || INTERNAL.default_mount_path) {
   return new Consumer(createWebSocketURL(url))
 }
 

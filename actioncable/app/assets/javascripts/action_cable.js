@@ -452,11 +452,8 @@
     };
     return Consumer;
   }();
-  function createConsumer(url) {
-    if (url == null) {
-      var urlConfig = getConfig("url");
-      url = urlConfig ? urlConfig : INTERNAL.default_mount_path;
-    }
+  function createConsumer() {
+    var url = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : getConfig("url") || INTERNAL.default_mount_path;
     return new Consumer(createWebSocketURL(url));
   }
   function getConfig(name) {
