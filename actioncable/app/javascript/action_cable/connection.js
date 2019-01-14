@@ -44,7 +44,7 @@ class Connection {
 
   close({allowReconnect} = {allowReconnect: true}) {
     if (!allowReconnect) { this.monitor.stop() }
-    if (this.isActive() && this.webSocket) {
+    if (this.isActive()) {
       return this.webSocket.close()
     }
   }
