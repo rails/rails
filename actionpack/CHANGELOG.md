@@ -1,3 +1,7 @@
+*   Remove deprecated `fragment_cache_key` helper in favor of `combined_fragment_cache_key`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated methods in `ActionDispatch::TestResponse`.
 
     `#success?`, `missing?` and `error?` were deprecated in Rails 5.2 in favor of

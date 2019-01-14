@@ -60,14 +60,6 @@ class FragmentCachingTest < ActionController::TestCase
     @m2v2 = ModelWithKeyAndVersion.new("model/2", "2")
   end
 
-  def test_fragment_cache_key
-    assert_deprecated do
-      assert_equal "views/what a key", @controller.fragment_cache_key("what a key")
-      assert_equal "views/test.host/fragment_caching_test/some_action",
-        @controller.fragment_cache_key(controller: "fragment_caching_test", action: "some_action")
-    end
-  end
-
   def test_combined_fragment_cache_key
     assert_equal [ :views, "what a key" ], @controller.combined_fragment_cache_key("what a key")
     assert_equal [ :views, "test.host/fragment_caching_test/some_action" ],
