@@ -768,3 +768,8 @@ internally, irrespective of whether the application server is multi-threaded or 
 
 Accordingly, Action Cable works with popular servers like Unicorn, Puma, and
 Passenger.
+
+## Testing
+
+You can find detailed instructions on how to test your Action Cable functionality in the
+[testing guide](testing.html#testing-action-cable).
