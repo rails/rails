@@ -81,6 +81,7 @@ DEFAULT_APP_FILES = %w(
   test/test_helper.rb
   test/fixtures
   test/fixtures/files
+  test/channels/application_cable/connection_test.rb
   test/controllers
   test/models
   test/helpers
@@ -363,6 +364,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "#{app_root}/config/environments/production.rb" do |content|
       assert_no_match(/config\.action_cable/, content)
     end
+
+    assert_no_file "#{app_root}/test/channels/application_cable/connection_test.rb"
   end
 
   def test_app_update_does_not_generate_bootsnap_contents_when_skip_bootsnap_is_given

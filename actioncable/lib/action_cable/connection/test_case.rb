@@ -75,7 +75,7 @@ module ActionCable
     #     def test_connects_with_proper_cookie
     #       # Simulate the connection request with a cookie.
     #       cookies["user_id"] = users(:john).id
-
+    #
     #       connect
     #
     #       # Assert the connection identifier matches the fixture.

@@ -1,3 +1,7 @@
+*   Merge [`action-cable-testing`](https://github.com/palkan/action-cable-testing) to Rails.
+
+    *Vladimir Dementyev*
+
 *   The JavaScript WebSocket client will no longer try to reconnect
     when you call `reject_unauthorized_connection` on the connection.
 

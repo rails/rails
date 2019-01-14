@@ -8,6 +8,7 @@ Highlights in Rails 6.0:
 * Action Mailbox
 * Action Text
 * Parallel Testing
+* Action Cable Testing
 
 These release notes cover only the major changes. To learn about various bug
 fixes and changes, please refer to the change logs or check out the [list of
@@ -61,6 +62,13 @@ You can read more about Action Text in the [Action Text Overview](action_text_ov
 test suite. While forking processes is the default method, threading is
 supported as well. Running tests in parallel reduces the time it takes
 your entire test suite to run.
+
+### Action Cable Testing
+
+[Pull Request](https://github.com/rails/rails/pull/33659)
+
+[Action Cable testing tools](testing.html#testing-action-cable) allow you to test your
+Action Cable functionality at any level: connections, channels, broadcasts.
 
 Railties
 --------
