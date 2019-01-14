@@ -134,7 +134,7 @@ module DateAndTime
     #   now = DateTime.current # => Fri, 10 Jul 2015 18:41:29 +0000
     #   now.beginning_of_quarter # => Wed, 01 Jul 2015 00:00:00 +0000
     def beginning_of_quarter
-      first_quarter_month = [10, 7, 4, 1].detect { |m| m <= month }
+      first_quarter_month = month - (2 + month) % 3
       beginning_of_month.change(month: first_quarter_month)
     end
     alias :at_beginning_of_quarter :beginning_of_quarter
