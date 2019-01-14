@@ -13,6 +13,8 @@ class ActiveStorage::Attachment < ActiveRecord::Base
 
   delegate_missing_to :blob
 
+  attr_accessor :delivery_method
+
   after_create_commit :analyze_blob_later, :identify_blob
   after_destroy_commit :purge_dependent_blob_later
 

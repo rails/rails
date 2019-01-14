@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 def resolve_delivery_method(attachment)
-  attachment&.record&.delivery_method || ActiveStorage.delivery_method
+  attachment&.delivery_method || ActiveStorage.delivery_method
 end
 
 Rails.application.routes.draw do
