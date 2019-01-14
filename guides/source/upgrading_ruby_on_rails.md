@@ -97,6 +97,42 @@ If you require your cookies to be read by 5.2 and older, or you are still valida
 to allow you to rollback set
 `Rails.application.config.action_dispatch.use_cookies_with_metadata` to `false`.
 
+### ActionCable javascript API Changes
+
+The ActionCable javascript package has been converted from CoffeeScript
+to ES2015, and we now publish the source code in the npm distribution.
+
+This change includes some breaking changes to optional parts of the
+ActionCable javascript API:
+
+- Configuration of the WebSocket adapter and logger adapter have been moved
+  from properties of `ActionCable` to properties of `ActionCable.adapters`.
+  If you are currently configuring these adapters you will need to make
+  these changes when upgrading:
+
+  ```diff
+  -    ActionCable.WebSocket = MyWebSocket
+  +    ActionCable.adapters.WebSocket = MyWebSocket
+  ```
+  ```diff
+  -    ActionCable.logger = myLogger
+  +    ActionCable.adapters.logger = myLogger
+  ```
+
+- The `ActionCable.startDebugging()` and `ActionCable.stopDebugging()`
+  methods have been removed and replaced with the property
+  `ActionCable.logger.enabled`. If you are currently using these methods you
+  will need to make these changes when upgrading:
+
+  ```diff
+  -    ActionCable.startDebugging()
+  +    ActionCable.logger.enabled = true
+  ```
+  ```diff
+  -    ActionCable.stopDebugging()
+  +    ActionCable.logger.enabled = false
+  ```
+
 Upgrading from Rails 5.1 to Rails 5.2
 -------------------------------------
 

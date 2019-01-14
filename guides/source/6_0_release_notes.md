@@ -92,6 +92,22 @@ Please refer to the [Changelog][action-cable] for detailed changes.
 
 ### Notable changes
 
+*   The ActionCable javascript package has been converted from CoffeeScript
+    to ES2015, and we now publish the source code in the npm distribution.
+
+    This allows ActionCable users to depend on the javascript source code
+    rather than the compiled code, which can produce smaller javascript bundles.
+
+    This change includes some breaking changes to optional parts of the
+    ActionCable javascript API:
+
+    - Configuration of the WebSocket adapter and logger adapter have been moved
+      from properties of `ActionCable` to properties of `ActionCable.adapters`.
+
+    - The `ActionCable.startDebugging()` and `ActionCable.stopDebugging()`
+      methods have been removed and replaced with the property
+      `ActionCable.logger.enabled`.
+
 Action Pack
 -----------
 
