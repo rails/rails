@@ -43,7 +43,7 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
   test "attaching a new blob from a Hash to an existing record passes record" do
     hash = { io: StringIO.new("STUFF"), filename: "town.jpg", content_type: "image/jpg" }
     blob = ActiveStorage::Blob.build_after_unfurling(**hash)
-    arguments = [hash.merge(record: @user)]
+    arguments = [hash.merge(record: @user, service_name: nil)]
     assert_called_with(ActiveStorage::Blob, :build_after_unfurling, arguments, returns: blob) do
       @user.avatar.attach hash
     end
@@ -59,7 +59,7 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
     def upload.open
       @io ||= StringIO.new("")
     end
-    arguments = { io: upload.open, filename: upload.original_filename, content_type: upload.content_type, record: @user }
+    arguments = { io: upload.open, filename: upload.original_filename, content_type: upload.content_type, record: @user, service_name: nil }
     blob = ActiveStorage::Blob.build_after_unfurling(**arguments)
     assert_called_with(ActiveStorage::Blob, :build_after_unfurling, [arguments], returns: blob) do
       @user.avatar.attach upload
@@ -543,5 +543,35 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
     ensure
       User.remove_method :avatar
     end
+  end
+
+  test "attaching a new blob from a Hash with a custom service" do
+    with_service("mirror") do
+      @user.avatar.attach io: StringIO.new("STUFF"), filename: "town.jpg", content_type: "image/jpg"
+      @user.cover_photo.attach io: StringIO.new("STUFF"), filename: "town.jpg", content_type: "image/jpg"
+
+      assert_instance_of ActiveStorage::Service::MirrorService, @user.avatar.service
+      assert_instance_of ActiveStorage::Service::DiskService, @user.cover_photo.service
+    end
+  end
+
+  test "attaching a new blob from an uploaded file with a custom_service" do
+    with_service("mirror") do
+      @user.avatar.attach fixture_file_upload("racecar.jpg")
+      @user.cover_photo.attach fixture_file_upload("racecar.jpg")
+
+      assert_instance_of ActiveStorage::Service::MirrorService, @user.avatar.service
+      assert_instance_of ActiveStorage::Service::DiskService, @user.cover_photo.service
+    end
+  end
+
+  test "raises error when misconfigured service is passed" do
+    error = assert_raises ArgumentError do
+      User.class_eval do
+        has_one_attached :featured_photo, service: :unknown
+      end
+    end
+
+    assert_match(/Cannot configure service :unknown for User#featured_photo/, error.message)
   end
 end

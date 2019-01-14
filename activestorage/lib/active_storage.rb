@@ -38,6 +38,7 @@ module ActiveStorage
 
   autoload :Attached
   autoload :Service
+  autoload :ServiceRegistry
   autoload :Previewer
   autoload :Analyzer
 

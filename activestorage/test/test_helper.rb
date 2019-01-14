@@ -34,7 +34,16 @@ rescue Errno::ENOENT
 end
 
 require "tmpdir"
-ActiveStorage::Blob.service = ActiveStorage::Service::DiskService.new(root: Dir.mktmpdir("active_storage_tests"))
+
+Rails.configuration.active_storage.service_configurations = {
+  "local" => { "service" => "Disk", "root" => Dir.mktmpdir("active_storage_tests") },
+  "disk_mirror_1" => { "service" => "Disk", "root" => Dir.mktmpdir("active_storage_tests_1") },
+  "disk_mirror_2" => { "service" => "Disk", "root" => Dir.mktmpdir("active_storage_tests_2") },
+  "disk_mirror_3" => { "service" => "Disk", "root" => Dir.mktmpdir("active_storage_tests_3") },
+  "mirror" => { "service" => "Mirror", "primary" => "local", "mirrors" => ["disk_mirror_1", "disk_mirror_2", "disk_mirror_3"] }
+}
+
+Rails.configuration.active_storage.service = "local"
 
 ActiveStorage.logger = ActiveSupport::Logger.new(nil)
 ActiveStorage.verifier = ActiveSupport::MessageVerifier.new("Testing")
@@ -51,8 +60,8 @@ class ActiveSupport::TestCase
   end
 
   private
-    def create_blob(key: nil, data: "Hello world!", filename: "hello.txt", content_type: "text/plain", identify: true, record: nil)
-      ActiveStorage::Blob.create_and_upload! key: key, io: StringIO.new(data), filename: filename, content_type: content_type, identify: identify, record: record
+    def create_blob(key: nil, data: "Hello world!", filename: "hello.txt", content_type: "text/plain", identify: true, service_name: nil, record: nil)
+      ActiveStorage::Blob.create_and_upload! key: key, io: StringIO.new(data), filename: filename, content_type: content_type, identify: identify, service_name: service_name, record: record
     end
 
     def create_file_blob(key: nil, filename: "racecar.jpg", content_type: "image/jpeg", metadata: nil, record: nil)
@@ -89,6 +98,18 @@ class ActiveSupport::TestCase
     def fixture_file_upload(filename)
       Rack::Test::UploadedFile.new file_fixture(filename).to_s
     end
+
+    def with_service(service_name)
+      service = ActiveStorage::ServiceRegistry.fetch(service_name)
+      ActiveStorage::Blob.service, previous_service = service, ActiveStorage::Blob.service
+
+      Rails.configuration.active_storage.service, previous_service_name = service_name, Rails.configuration.active_storage.service
+
+      yield
+    ensure
+      ActiveStorage::Blob.service = previous_service
+      Rails.configuration.active_storage.service = previous_service_name
+    end
 end
 
 require "global_id"
@@ -99,10 +120,10 @@ class User < ActiveRecord::Base
   validates :name, presence: true
 
   has_one_attached :avatar
-  has_one_attached :cover_photo, dependent: false
+  has_one_attached :cover_photo, dependent: false, service: :local
 
   has_many_attached :highlights
-  has_many_attached :vlogs, dependent: false
+  has_many_attached :vlogs, dependent: false, service: :local
 end
 
 class Group < ActiveRecord::Base
