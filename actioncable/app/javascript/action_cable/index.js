@@ -24,7 +24,9 @@ export function createConsumer(url = getConfig("url") || INTERNAL.default_mount_
 
 export function getConfig(name) {
   const element = document.head.querySelector(`meta[name='action-cable-${name}']`)
-  return (element ? element.getAttribute("content") : undefined)
+  if (element) {
+    return element.getAttribute("content")
+  }
 }
 
 export function createWebSocketURL(url) {
