@@ -18,17 +18,15 @@ export {
   logger,
 }
 
-export function createConsumer(url) {
-  if (url == null) {
-    const urlConfig = getConfig("url")
-    url = (urlConfig ? urlConfig : INTERNAL.default_mount_path)
-  }
+export function createConsumer(url = getConfig("url") || INTERNAL.default_mount_path) {
   return new Consumer(createWebSocketURL(url))
 }
 
 export function getConfig(name) {
   const element = document.head.querySelector(`meta[name='action-cable-${name}']`)
-  return (element ? element.getAttribute("content") : undefined)
+  if (element) {
+    return element.getAttribute("content")
+  }
 }
 
 export function createWebSocketURL(url) {
