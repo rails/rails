@@ -1,3 +1,11 @@
+*   Deprecate `config.activerecord.sqlite3.represent_boolean_as_integer`.
+
+    *Rafael Mendonça França*
+
+*   Change `SQLite3Adapter` to always represent boolean values as integers.
+
+    *Rafael Mendonça França*
+
 *   Remove ability to specify a timestamp name for `#cache_key`.
 
     *Rafael Mendonça França*

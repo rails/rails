@@ -76,22 +76,15 @@ module ActiveRecord
         json:         { name: "json" },
       }
 
-      ##
-      # :singleton-method:
-      # Indicates whether boolean values are stored in sqlite3 databases as 1
-      # and 0 or 't' and 'f'. Leaving <tt>ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer</tt>
-      # set to false is deprecated. SQLite databases have used 't' and 'f' to
-      # serialize boolean values and must have old data converted to 1 and 0
-      # (its native boolean serialization) before setting this flag to true.
-      # Conversion can be accomplished by setting up a rake task which runs
-      #
-      #   ExampleModel.where("boolean_column = 't'").update_all(boolean_column: 1)
-      #   ExampleModel.where("boolean_column = 'f'").update_all(boolean_column: 0)
-      # for all models and all boolean columns, after which the flag must be set
-      # to true by adding the following to your <tt>application.rb</tt> file:
-      #
-      #   Rails.application.config.active_record.sqlite3.represent_boolean_as_integer = true
-      class_attribute :represent_boolean_as_integer, default: false
+      def self.represent_boolean_as_integer=(value) # :nodoc:
+        if value == false
+          raise "`.represent_boolean_as_integer=` is now always true, so make sure your application can work with it and remove this settings."
+        end
+
+        ActiveSupport::Deprecation.warn(
+          "`.represent_boolean_as_integer=` is now always true, so setting this is deprecated and will be removed in Rails 6.1."
+        )
+      end
 
       class StatementPool < ConnectionAdapters::StatementPool # :nodoc:
         private

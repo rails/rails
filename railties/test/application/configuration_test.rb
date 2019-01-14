@@ -1941,33 +1941,7 @@ module ApplicationTests
       assert_equal({}, Rails.application.config.my_custom_config)
     end
 
-    test "default SQLite3Adapter.represent_boolean_as_integer for 5.1 is false" do
-      remove_from_config '.*config\.load_defaults.*\n'
-
-      app_file "app/models/post.rb", <<-RUBY
-        class Post < ActiveRecord::Base
-        end
-      RUBY
-
-      app "development"
-      force_lazy_load_hooks { Post }
-
-      assert_not ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer
-    end
-
-    test "default SQLite3Adapter.represent_boolean_as_integer for new installs is true" do
-      app_file "app/models/post.rb", <<-RUBY
-        class Post < ActiveRecord::Base
-        end
-      RUBY
-
-      app "development"
-      force_lazy_load_hooks { Post }
-
-      assert ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer
-    end
-
-    test "represent_boolean_as_integer should be able to set via config.active_record.sqlite3.represent_boolean_as_integer" do
+    test "represent_boolean_as_integer is deprecated" do
       remove_from_config '.*config\.load_defaults.*\n'
 
       app_file "config/initializers/new_framework_defaults_6_0.rb", <<-RUBY
@@ -1980,9 +1954,27 @@ module ApplicationTests
       RUBY
 
       app "development"
-      force_lazy_load_hooks { Post }
+      assert_deprecated do
+        force_lazy_load_hooks { Post }
+      end
+    end
 
-      assert ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer
+    test "represent_boolean_as_integer raises when the value is false" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app_file "config/initializers/new_framework_defaults_6_0.rb", <<-RUBY
+        Rails.application.config.active_record.sqlite3.represent_boolean_as_integer = false
+      RUBY
+
+      app_file "app/models/post.rb", <<-RUBY
+        class Post < ActiveRecord::Base
+        end
+      RUBY
+
+      app "development"
+      assert_raises(RuntimeError) do
+        force_lazy_load_hooks { Post }
+      end
     end
 
     test "config_for containing ERB tags should evaluate" do
