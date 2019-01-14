@@ -285,6 +285,15 @@ Call `avatar.attached?` to determine whether a particular user has an avatar:
 user.avatar.attached?
 ```
 
+In some cases you might want to override a default service for a specific attachment.
+You can configure specific services per attachment using the `service` option:
+
+```ruby
+class User < ApplicationRecord
+  has_one_attached :avatar, service: :s3
+end
+```
+
 ### `has_many_attached`
 
 The `has_many_attached` macro sets up a one-to-many relationship between records
@@ -325,6 +334,14 @@ Call `images.attached?` to determine whether a particular message has any images
 
 ```ruby
 @message.images.attached?
+```
+
+Overriding the default service is done done the same way as `has_one_attached`, by using the `service` option:
+
+```ruby
+class Message < ApplicationRecord
+  has_many_attached :images, service: :s3
+end
 ```
 
 ### Attaching File/IO Objects

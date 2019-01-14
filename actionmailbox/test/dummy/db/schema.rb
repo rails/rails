@@ -36,6 +36,7 @@ ActiveRecord::Schema.define(version: 2018_02_12_164506) do
     t.string "filename", null: false
     t.string "content_type"
     t.text "metadata"
+    t.string "service_name", null: false
     t.bigint "byte_size", null: false
     t.string "checksum", null: false
     t.datetime "created_at", null: false

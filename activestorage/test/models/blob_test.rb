@@ -228,6 +228,21 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     end
   end
 
+  test "uses service from blob when provided" do
+    with_service("mirror") do
+      blob = create_blob(filename: "funky.jpg", service_name: :local)
+      assert_instance_of ActiveStorage::Service::DiskService, blob.service
+    end
+  end
+
+  test "invalidates record when provided service_name is invalid" do
+    blob = create_blob(filename: "funky.jpg")
+    blob.update(service_name: :unknown)
+
+    assert_not blob.valid?
+    assert_equal ["is invalid"], blob.errors[:service_name]
+  end
+
   private
     def expected_url_for(blob, disposition: :attachment, filename: nil, content_type: nil)
       filename ||= blob.filename

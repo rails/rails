@@ -650,6 +650,36 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     end
   end
 
+  test "attaching a new blob from a Hash with a custom service" do
+    with_service("mirror") do
+      @user.highlights.attach io: StringIO.new("STUFF"), filename: "town.jpg", content_type: "image/jpg"
+      @user.vlogs.attach io: StringIO.new("STUFF"), filename: "town.jpg", content_type: "image/jpg"
+
+      assert_instance_of ActiveStorage::Service::MirrorService, @user.highlights.first.service
+      assert_instance_of ActiveStorage::Service::DiskService, @user.vlogs.first.service
+    end
+  end
+
+  test "attaching a new blob from an uploaded file with a custom_ ervice" do
+    with_service("mirror") do
+      @user.highlights.attach fixture_file_upload("racecar.jpg")
+      @user.vlogs.attach fixture_file_upload("racecar.jpg")
+
+      assert_instance_of ActiveStorage::Service::MirrorService, @user.highlights.first.service
+      assert_instance_of ActiveStorage::Service::DiskService, @user.vlogs.first.service
+    end
+  end
+
+  test "raises error when misconfigured service is passed" do
+    error = assert_raises ArgumentError do
+      User.class_eval do
+        has_many_attached :featured_photos, service: :unknown
+      end
+    end
+
+    assert_match(/Cannot configure service :unknown for User#featured_photos/, error.message)
+  end
+
   private
     def append_on_assign
       ActiveStorage.replace_on_assign_to_many, previous = false, ActiveStorage.replace_on_assign_to_many

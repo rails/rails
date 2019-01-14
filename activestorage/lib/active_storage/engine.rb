@@ -101,26 +101,9 @@ module ActiveStorage
     initializer "active_storage.services" do
       ActiveSupport.on_load(:active_storage_blob) do
         if config_choice = Rails.configuration.active_storage.service
-          configs = Rails.configuration.active_storage.service_configurations ||= begin
-            config_file = Pathname.new(Rails.root.join("config/storage.yml"))
-            raise("Couldn't find Active Storage configuration in #{config_file}") unless config_file.exist?
-
-            require "yaml"
-            require "erb"
-
-            YAML.load(ERB.new(config_file.read).result) || {}
-          rescue Psych::SyntaxError => e
-            raise "YAML syntax error occurred while parsing #{config_file}. " \
-                  "Please note that YAML must be consistently indented using spaces. Tabs are not allowed. " \
-                  "Error: #{e.message}"
+          ActiveStorage::Blob.service = ActiveStorage::ServiceRegistry.fetch(config_choice) do
+            raise ArgumentError, "Cannot load `Rails.application.config.active_storage.service`:\n#{config_choice}"
           end
-
-          ActiveStorage::Blob.service =
-            begin
-              ActiveStorage::Service.configure config_choice, configs
-            rescue => e
-              raise e, "Cannot load `Rails.config.active_storage.service`:\n#{e.message}", e.backtrace
-            end
         end
       end
     end
