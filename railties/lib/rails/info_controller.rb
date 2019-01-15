@@ -14,16 +14,8 @@ class Rails::InfoController < Rails::ApplicationController # :nodoc:
   end
 
   def properties
-    respond_to do |format|
-      format.html do
-        @info = Rails::Info.to_html
-        @page_title = "Properties"
-      end
-
-      format.json do
-        render json: Rails::Info.to_json
-      end
-    end
+    @info = Rails::Info.to_html
+    @page_title = "Properties"
   end
 
   def routes

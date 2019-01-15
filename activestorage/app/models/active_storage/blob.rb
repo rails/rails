@@ -79,6 +79,15 @@ class ActiveStorage::Blob < ActiveRecord::Base
     def create_before_direct_upload!(filename:, byte_size:, checksum:, content_type: nil, metadata: nil)
       create! filename: filename, byte_size: byte_size, checksum: checksum, content_type: content_type, metadata: metadata
     end
+
+    # To prevent problems with case-insensitive filesystems, especially in combination
+    # with databases which treat indices as case-sensitive, all blob keys generated are going
+    # to only contain the base-36 character alphabet and will therefore be lowercase. To maintain
+    # the same or higher amount of entropy as in the base-58 encoding used by `has_secure_token`
+    # the number of bytes used is increased to 28 from the standard 24
+    def generate_unique_secure_token
+      SecureRandom.base36(28)
+    end
   end
 
   # Returns a signed ID for this blob that's suitable for reference on the client-side without fear of tampering.
@@ -87,9 +96,10 @@ class ActiveStorage::Blob < ActiveRecord::Base
     ActiveStorage.verifier.generate(id, purpose: :blob_id)
   end
 
-  # Returns the key pointing to the file on the service that's associated with this blob. The key is in the
-  # standard secure-token format from Rails. So it'll look like: XTAPjJCJiuDrLk3TmwyJGpUo. This key is not intended
-  # to be revealed directly to the user. Always refer to blobs using the signed_id or a verified form of the key.
+  # Returns the key pointing to the file on the service that's associated with this blob. The key is the
+  # secure-token format from Rails in lower case. So it'll look like: xtapjjcjiudrlk3tmwyjgpuobabd.
+  # This key is not intended to be revealed directly to the user.
+  # Always refer to blobs using the signed_id or a verified form of the key.
   def key
     # We can't wait until the record is first saved to have a key for it
     self[:key] ||= self.class.generate_unique_secure_token

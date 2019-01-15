@@ -82,6 +82,14 @@ module Rails
           )
         },
 
+        "actiontext" => {
+          include: %w(
+            README.md
+            app/**/action_text/**/*.rb
+            lib/action_text/**/*.rb
+          )
+        },
+
         "railties" => {
           include: %w(
             README.rdoc

@@ -127,6 +127,8 @@ module SharedGeneratorTests
       "--skip-active-record",
       "--skip-active-storage",
       "--skip-action-mailer",
+      "--skip-action-mailbox",
+      "--skip-action-text",
       "--skip-action-cable",
       "--skip-sprockets"
     ]
@@ -138,6 +140,10 @@ module SharedGeneratorTests
     assert_file "#{application_path}/config/application.rb", /^# require\s+["']active_storage\/engine["']/
     assert_file "#{application_path}/config/application.rb", /^require\s+["']action_controller\/railtie["']/
     assert_file "#{application_path}/config/application.rb", /^# require\s+["']action_mailer\/railtie["']/
+    unless generator_class.name == "Rails::Generators::PluginGenerator"
+      assert_file "#{application_path}/config/application.rb", /^# require\s+["']action_mailbox\/engine["']/
+      assert_file "#{application_path}/config/application.rb", /^# require\s+["']action_text\/engine["']/
+    end
     assert_file "#{application_path}/config/application.rb", /^require\s+["']action_view\/railtie["']/
     assert_file "#{application_path}/config/application.rb", /^# require\s+["']action_cable\/engine["']/
     assert_file "#{application_path}/config/application.rb", /^# require\s+["']sprockets\/railtie["']/
@@ -200,7 +206,7 @@ module SharedGeneratorTests
 
     unless generator_class.name == "Rails::Generators::PluginGenerator"
       assert_file "#{application_path}/app/javascript/packs/application.js" do |content|
-        assert_match(/^import \* as ActiveStorage from "activestorage"\nActiveStorage.start\(\)/, content)
+        assert_match(/^import \* as ActiveStorage from "@rails\/activestorage"\nActiveStorage.start\(\)/, content)
       end
     end
 
@@ -261,7 +267,7 @@ module SharedGeneratorTests
     assert_file "#{application_path}/config/application.rb", /#\s+require\s+["']active_storage\/engine["']/
 
     assert_file "#{application_path}/app/javascript/packs/application.js" do |content|
-      assert_no_match(/^import * as ActiveStorage from "activestorage"\nActiveStorage.start\(\)/, content)
+      assert_no_match(/^import * as ActiveStorage from "@rails\/activestorage"\nActiveStorage.start\(\)/, content)
     end
 
     assert_file "#{application_path}/config/environments/development.rb" do |content|
@@ -340,11 +346,16 @@ module SharedGeneratorTests
     run_generator
     assert_file "#{application_path}/package.json", /dependencies/
     assert_file "#{application_path}/bin/yarn"
+    assert_file "#{application_path}/config/initializers/assets.rb", /node_modules/
   end
 
   def test_generator_for_yarn_skipped
     run_generator([destination_root, "--skip-javascript"])
     assert_no_file "#{application_path}/package.json"
     assert_no_file "#{application_path}/bin/yarn"
+
+    assert_file "#{application_path}/config/initializers/assets.rb" do |content|
+      assert_no_match(/node_modules/, content)
+    end
   end
 end

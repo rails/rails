@@ -11,9 +11,6 @@ class LegacyDeliveryJobTest < ActiveSupport::TestCase
   class LegacyDeliveryJob < ActionMailer::DeliveryJob
   end
 
-  class LegacyParmeterizedDeliveryJob < ActionMailer::Parameterized::DeliveryJob
-  end
-
   setup do
     @previous_logger = ActiveJob::Base.logger
     ActiveJob::Base.logger = Logger.new(nil)
@@ -42,9 +39,9 @@ class LegacyDeliveryJobTest < ActiveSupport::TestCase
       { inviter: "david@basecamp.com", invitee: "jason@basecamp.com" },
     ]
 
-    with_delivery_job(LegacyParmeterizedDeliveryJob) do
+    with_delivery_job(LegacyDeliveryJob) do
       assert_deprecated do
-        assert_performed_with(job: LegacyParmeterizedDeliveryJob, args: args) do
+        assert_performed_with(job: ActionMailer::Parameterized::DeliveryJob, args: args) do
           mail.deliver_later
         end
       end

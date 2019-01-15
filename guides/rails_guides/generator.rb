@@ -63,9 +63,9 @@ module RailsGuides
       end
 
       def mobi
-        mobi  = "ruby_on_rails_guides_#{@version || @edge[0, 7]}"
-        mobi += ".#{@language}" if @language
-        mobi += ".mobi"
+        mobi = +"ruby_on_rails_guides_#{@version || @edge[0, 7]}"
+        mobi << ".#{@language}" if @language
+        mobi << ".mobi"
       end
 
       def initialize_dirs

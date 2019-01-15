@@ -33,11 +33,11 @@ Rails creates a `test` directory for you as soon as you create a Rails project u
 
 ```bash
 $ ls -F test
-application_system_test_case.rb  fixtures/                        integration/                     models/                          test_helper.rb
-controllers/                     helpers/                         mailers/                         system/
+application_system_test_case.rb  controllers/                     helpers/                         mailers/                         system/
+channels/                        fixtures/                        integration/                     models/                          test_helper.rb
 ```
 
-The `helpers`, `mailers`, and `models` directories are meant to hold tests for view helpers, mailers, and models, respectively. The `controllers` directory is meant to hold tests for controllers, routes, and views. The `integration` directory is meant to hold tests for interactions between controllers.
+The `helpers`, `mailers`, and `models` directories are meant to hold tests for view helpers, mailers, and models, respectively. The `channels` directory is meant to hold tests for Action Cable connection and channels. The `controllers` directory is meant to hold tests for controllers, routes, and views. The `integration` directory is meant to hold tests for interactions between controllers.
 
 The system test directory holds system tests, which are used for full browser
 testing of your application. System tests allow you to test your application
@@ -1725,6 +1725,114 @@ require 'test_helper'
 class ProductTest < ActiveJob::TestCase
   test 'billing job scheduling' do
     assert_enqueued_with(job: BillingJob) do
+      product.charge(account)
+    end
+  end
+end
+```
+
+Testing Action Cable
+--------------------
+
+Since Action Cable is used at different levels inside your application,
+you'll need to test both the channels and connection classes themsleves and that other
+entities broadcast correct messages.
+
+### Connection Test Case
+
+By default, when you generate new Rails application with Action Cable, a test for the base connection class (`ApplicationCable::Connection`) is generated as well under `test/channels/application_cable` directory.
+
+Connection tests aim to check whether a connection's identifiers gets assigned properly
+or that any improper connection requests are rejected. Here is an example:
+
+```ruby
+class ApplicationCable::ConnectionTest < ActionCable::Connection::TestCase
+  test "connects with params" do
+    # Simulate a connection opening by calling the `connect` method
+    connect params: { user_id: 42 }
+
+    # You can access the Connection object via `connection` in tests
+    assert_equal connection.user_id, "42"
+  end
+
+  test "rejects connection without params" do
+    # Use `assert_reject_connection` matcher to verify that
+    # connection is rejected
+    assert_reject_connection { connect }
+  end
+end
+```
+
+You can also specify request cookies the same way you do in integration tests:
+
+
+```ruby
+test "connects with_cookies" do
+  cookies.signed[:user_id] = "42"
+
+  connect
+
+  assert_equal connection.user_id, "42"
+end
+```
+
+See the API documentation for [`AcionCable::Connection::TestCase`](http://api.rubyonrails.org/classes/ActionCable/Connection/TestCase.html) for more information.
+
+
+### Channel Test Case
+
+By default, when you generate a channel, an associated test will be generated as well
+under the `test/channels` directory. Here's an example test with a chat channel:
+
+```ruby
+require "test_helper"
+
+class ChatChannelTest < ActionCable::Channel::TestCase
+  test "subscribes and stream for room" do
+    # Simulate a subscription creation by calling `subscribe`
+    subscribe room: "15"
+
+    # You can access the Channel object via `subscription` in tests
+    assert subscription.confirmed?
+    assert_has_stream "chat_15"
+  end
+end
+```
+
+This test is pretty simple and only asserts that the channel subscribes the connection to a particular stream.
+
+You can also specify the underlying connection identifiers. Here's an example test with a web notifications channel:
+
+```ruby
+require "test_helper"
+
+class WebNotificationsChannelTest < ActionCable::Channel::TestCase
+  test "subscribes and stream for user" do
+    stub_connection current_user: users[:john]
+
+    subscribe
+
+    assert_has_stream_for users[:john]
+  end
+end
+```
+
+See the API documentation for [`AcionCable::Channel::TestCase`](http://api.rubyonrails.org/classes/ActionCable/Channel/TestCase.html) for more information.
+
+### Custom Assertions And Testing Broadcasts Inside Other Components
+
+Action Cable ships with a bunch of custom assertions that can be used to lessen the verbosity of tests. For a full list of available assertions, see the API documentation for [`ActionCable::TestHelper`](http://api.rubyonrails.org/classes/ActionCable/TestHelper.html).
+
+It's a good practice to ensure that the correct message has been broadcasted inside another components (e.g. inside your controllers). This is precisely where
+the custom assertions provided by Action Cable are pretty useful. For instance,
+within a model:
+
+```ruby
+require 'test_helper'
+
+class ProductTest < ActionCable::TestCase
+  test "broadcast status after charge" do
+    assert_broadcast_on("products:#{product.id}", type: "charged") do
       product.charge(account)
     end
   end

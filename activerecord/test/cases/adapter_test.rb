@@ -163,6 +163,16 @@ module ActiveRecord
       end
     end
 
+    def test_preventing_writes_predicate
+      assert_not_predicate @connection, :preventing_writes?
+
+      @connection.while_preventing_writes do
+        assert_predicate @connection, :preventing_writes?
+      end
+
+      assert_not_predicate @connection, :preventing_writes?
+    end
+
     def test_errors_when_an_insert_query_is_called_while_preventing_writes
       assert_no_queries do
         assert_raises(ActiveRecord::ReadOnlyError) do

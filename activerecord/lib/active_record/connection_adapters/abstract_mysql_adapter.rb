@@ -97,19 +97,11 @@ module ActiveRecord
       end
 
       def supports_datetime_with_precision?
-        if mariadb?
-          version >= "5.3.0"
-        else
-          version >= "5.6.4"
-        end
+        mariadb? || version >= "5.6.4"
       end
 
       def supports_virtual_columns?
-        if mariadb?
-          version >= "5.2.0"
-        else
-          version >= "5.7.5"
-        end
+        mariadb? || version >= "5.7.5"
       end
 
       def supports_advisory_locks?
@@ -484,9 +476,11 @@ module ActiveRecord
         SQL
       end
 
-      def case_sensitive_comparison(table, attribute, column, value) # :nodoc:
+      def case_sensitive_comparison(attribute, value) # :nodoc:
+        column = column_for_attribute(attribute)
+
         if column.collation && !column.case_sensitive?
-          table[attribute].eq(Arel::Nodes::Bin.new(value))
+          attribute.eq(Arel::Nodes::Bin.new(value))
         else
           super
         end
@@ -587,13 +581,13 @@ module ActiveRecord
           m.alias_type %r(bit)i,           "binary"
 
           m.register_type(%r(enum)i) do |sql_type|
-            limit = sql_type[/^enum\((.+)\)/i, 1]
+            limit = sql_type[/^enum\s*\((.+)\)/i, 1]
               .split(",").map { |enum| enum.strip.length - 2 }.max
             MysqlString.new(limit: limit)
           end
 
           m.register_type(%r(^set)i) do |sql_type|
-            limit = sql_type[/^set\((.+)\)/i, 1]
+            limit = sql_type[/^set\s*\((.+)\)/i, 1]
               .split(",").map { |set| set.strip.length - 1 }.sum - 1
             MysqlString.new(limit: limit)
           end

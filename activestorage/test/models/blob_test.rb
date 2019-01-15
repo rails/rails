@@ -47,6 +47,10 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     assert_equal "text/csv", blob.content_type
   end
 
+  test "create after upload generates a 28-character base36 key" do
+    assert_match(/^[a-z0-9]{28}$/, create_blob.key)
+  end
+
   test "image?" do
     blob = create_file_blob filename: "racecar.jpg"
     assert_predicate blob, :image?

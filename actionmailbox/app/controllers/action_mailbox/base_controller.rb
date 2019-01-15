@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module ActionMailbox
-  # The base class for all Active Mailbox ingress controllers.
+  # The base class for all Action Mailbox ingress controllers.
   class BaseController < ActionController::Base
     skip_forgery_protection
 

@@ -84,7 +84,18 @@ module ActionCable
     #       assert subscription.confirmed?
     #
     #       # Asserts that the channel subscribes connection to a stream
-    #       assert_equal "chat_1", streams.last
+    #       assert_has_stream "chat_1"
+    #
+    #       # Asserts that the channel subscribes connection to a specific
+    #       # stream created for a model
+    #       assert_has_stream_for Room.find(1)
+    #     end
+    #
+    #     def test_does_not_stream_with_incorrect_room_number
+    #       subscribe room_number: -1
+    #
+    #       # Asserts that not streams was started
+    #       assert_no_streams
     #     end
     #
     #     def test_does_not_subscribe_without_room_number
@@ -115,8 +126,6 @@ module ActionCable
     #      An instance of the current channel, created when you call `subscribe`.
     # <b>transmissions</b>::
     #      A list of all messages that have been transmitted into the channel.
-    # <b>streams</b>::
-    #      A list of all created streams subscriptions (as identifiers) for the subscription.
     #
     #
     # == Channel is automatically inferred
@@ -167,7 +176,6 @@ module ActionCable
           class_attribute :_channel_class
 
           attr_reader :connection, :subscription
-          delegate :streams, to: :subscription
 
           ActiveSupport.run_load_hooks(:action_cable_channel_test_case, self)
         end
@@ -249,6 +257,39 @@ module ActionCable
 
         def assert_broadcast_on(stream_or_object, *args)
           super(broadcasting_for(stream_or_object), *args)
+        end
+
+        # Asserts that no streams have been started.
+        #
+        #   def test_assert_no_started_stream
+        #     subscribe
+        #     assert_no_streams
+        #   end
+        #
+        def assert_no_streams
+          assert subscription.streams.empty?, "No streams started was expected, but #{subscription.streams.count} found"
+        end
+
+        # Asserts that the specified stream has been started.
+        #
+        #   def test_assert_started_stream
+        #     subscribe
+        #     assert_has_stream 'messages'
+        #   end
+        #
+        def assert_has_stream(stream)
+          assert subscription.streams.include?(stream), "Stream #{stream} has not been started"
+        end
+
+        # Asserts that the specified stream for a model has started.
+        #
+        #   def test_assert_started_stream_for
+        #     subscribe id: 42
+        #     assert_has_stream_for User.find(42)
+        #   end
+        #
+        def assert_has_stream_for(object)
+          assert_has_stream(broadcasting_for(object))
         end
 
         private

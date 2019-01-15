@@ -130,8 +130,17 @@ module Rails
             action_dispatch.use_cookies_with_metadata = true
           end
 
+          if respond_to?(:action_mailer)
+            action_mailer.delivery_job = "ActionMailer::MailDeliveryJob"
+          end
+
           if respond_to?(:active_job)
             active_job.return_false_on_aborted_enqueue = true
+          end
+
+          if respond_to?(:active_storage)
+            active_storage.queues.analysis = :active_storage_analysis
+            active_storage.queues.purge    = :active_storage_purge
           end
         else
           raise "Unknown version #{target_version.to_s.inspect}"
@@ -284,24 +293,24 @@ module Rails
       end
 
       private
-        def credentials_available_for_current_env?
-          File.exist?("#{root}/config/credentials/#{Rails.env}.yml.enc")
-        end
-
         def default_credentials_content_path
           if credentials_available_for_current_env?
-            File.join(root, "config", "credentials", "#{Rails.env}.yml.enc")
+            root.join("config", "credentials", "#{Rails.env}.yml.enc")
           else
-            File.join(root, "config", "credentials.yml.enc")
+            root.join("config", "credentials.yml.enc")
           end
         end
 
         def default_credentials_key_path
           if credentials_available_for_current_env?
-            File.join(root, "config", "credentials", "#{Rails.env}.key")
+            root.join("config", "credentials", "#{Rails.env}.key")
           else
-            File.join(root, "config", "master.key")
+            root.join("config", "master.key")
           end
+        end
+
+        def credentials_available_for_current_env?
+          File.exist?(root.join("config", "credentials", "#{Rails.env}.yml.enc"))
         end
     end
   end

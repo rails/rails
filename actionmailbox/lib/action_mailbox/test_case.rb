@@ -8,3 +8,5 @@ module ActionMailbox
     include ActionMailbox::TestHelper
   end
 end
+
+ActiveSupport.run_load_hooks :action_mailbox_test_case, ActionMailbox::TestCase

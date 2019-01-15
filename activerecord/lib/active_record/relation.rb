@@ -44,6 +44,11 @@ module ActiveRecord
     end
 
     def bind_attribute(name, value) # :nodoc:
+      if reflection = klass._reflect_on_association(name)
+        name = reflection.foreign_key
+        value = value.read_attribute(reflection.klass.primary_key) unless value.nil?
+      end
+
       attr = arel_attribute(name)
       bind = predicate_builder.build_bind_attribute(attr.name, value)
       yield attr, bind

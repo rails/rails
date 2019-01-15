@@ -44,6 +44,12 @@ module Rails
                                            default: false,
                                            desc: "Skip Action Mailer files"
 
+        class_option :skip_action_mailbox, type: :boolean, default: false,
+                                           desc: "Skip Action Mailbox gem"
+
+        class_option :skip_action_text,    type: :boolean, default: false,
+                                           desc: "Skip Action Text gem"
+
         class_option :skip_active_record,  type: :boolean, aliases: "-O", default: false,
                                            desc: "Skip Active Record files"
 
@@ -201,7 +207,8 @@ module Rails
             :skip_action_cable
           ),
           skip_active_storage?,
-          skip_action_mailbox?
+          skip_action_mailbox?,
+          skip_action_text?
         ].flatten.none?
       end
 
@@ -231,7 +238,11 @@ module Rails
       end
 
       def skip_action_mailbox? # :doc:
-        skip_active_storage?
+        options[:skip_action_mailbox] || skip_active_storage?
+      end
+
+      def skip_action_text? # :doc:
+        options[:skip_action_text] || skip_active_storage?
       end
 
       class GemfileEntry < Struct.new(:name, :version, :comment, :options, :commented_out)
@@ -377,19 +388,21 @@ module Rails
         # its own vendored Thor, which could be a different version. Running both
         # things in the same process is a recipe for a night with paracetamol.
         #
-        # We unset temporary bundler variables to load proper bundler and Gemfile.
-        #
         # Thanks to James Tucker for the Gem tricks involved in this call.
         _bundle_command = Gem.bin_path("bundler", "bundle")
 
         require "bundler"
-        Bundler.with_clean_env do
-          full_command = %Q["#{Gem.ruby}" "#{_bundle_command}" #{command}]
-          if options[:quiet]
-            system(env, full_command, out: File::NULL)
-          else
-            system(env, full_command)
-          end
+        Bundler.with_original_env do
+          exec_bundle_command(_bundle_command, command, env)
+        end
+      end
+
+      def exec_bundle_command(bundle_command, command, env)
+        full_command = %Q["#{Gem.ruby}" "#{bundle_command}" #{command}]
+        if options[:quiet]
+          system(env, full_command, out: File::NULL)
+        else
+          system(env, full_command)
         end
       end
 
