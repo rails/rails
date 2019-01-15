@@ -65,8 +65,7 @@ module ActiveSupport
         @__instance__[locale] ||= new
       end
 
-      attr_reader :plurals, :singulars, :uncountables, :humans, :acronyms, :acronym_regex
-      deprecate :acronym_regex
+      attr_reader :plurals, :singulars, :uncountables, :humans, :acronyms
 
       attr_reader :acronyms_camelize_regex, :acronyms_underscore_regex # :nodoc:
 
