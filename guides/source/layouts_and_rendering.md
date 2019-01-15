@@ -296,6 +296,7 @@ Calls to the `render` method generally accept five options:
 * `:location`
 * `:status`
 * `:formats`
+* `:variants`
 
 ##### The `:content_type` Option
 
@@ -416,6 +417,44 @@ render formats: [:json, :xml]
 ```
 
 If a template with the specified format does not exist an `ActionView::MissingTemplate` error is raised.
+
+##### The `:variants` Option
+
+This tells rails to look for template variations of the same format.
+You can specify a list of variants by passing the `:variants` option with a symbol or an array. 
+
+An example of use would be this.
+
+```ruby
+# called in HomeController#index
+render variants: [:mobile, :desktop]
+```
+
+With this set of variants Rails will look for the following set of templates and use the first that exists.
+
+- `app/views/home/index.html+mobile.erb`
+- `app/views/home/index.html+desktop.erb`
+- `app/views/home/index.html.erb`
+
+If a template with the specified format does not exist an `ActionView::MissingTemplate` error is raised.
+
+Instead of setting the variant on the render call you may also set it on the request object in your controller action.
+
+```ruby
+def index
+  request.variant = determine_variant
+end
+
+private
+
+def determine_variant
+  variant = nil 
+  # some code to determine the variant(s) to use
+  variant = :mobile if session[:use_mobile]
+  
+  variant    
+end
+```
 
 #### Finding Layouts
 
