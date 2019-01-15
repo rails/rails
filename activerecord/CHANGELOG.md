@@ -1,3 +1,7 @@
+*   Remove deprecated `#insert_fixtures` from the database adapters.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `ActiveRecord::ConnectionAdapters::SQLite3Adapter#valid_alter_table_type?`.
 
     *Rafael Mendonça França*
