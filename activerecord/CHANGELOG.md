@@ -1,3 +1,7 @@
+*   Remove delegation of missing methods in a relation to private methods of the class.
+
+    *Rafael Mendonça França*
+
 *   Deprecate `config.activerecord.sqlite3.represent_boolean_as_integer`.
 
     *Rafael Mendonça França*
