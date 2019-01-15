@@ -1,3 +1,7 @@
+*   Remove delegation of missing methods in a relation to arel.
+
+    *Rafael Mendonça França*
+
 *   Remove delegation of missing methods in a relation to private methods of the class.
 
     *Rafael Mendonça França*
