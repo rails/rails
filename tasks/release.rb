@@ -173,17 +173,56 @@ namespace :all do
   end
 
   task verify: :install do
-    app_name = "pkg/verify-#{version}-#{Time.now.to_i}"
+    require "tmpdir"
+
+    cd Dir.tmpdir
+    app_name = "verify-#{version}-#{Time.now.to_i}"
     sh "rails _#{version}_ new #{app_name} --skip-bundle" # Generate with the right version.
     cd app_name
 
+    substitute = -> (file_name, regex, replacement) do
+      File.write(file_name, File.read(file_name).sub(regex, replacement))
+    end
+
     # Replace the generated gemfile entry with the exact version.
-    File.write("Gemfile", File.read("Gemfile").sub(/^gem 'rails.*/, "gem 'rails', '#{version}'"))
+    substitute.call("Gemfile", /^gem 'rails.*/, "gem 'rails', '#{version}'")
+    substitute.call("Gemfile", /^# gem 'image_processing/, "gem 'image_processing")
     sh "bundle"
     sh "rails action_mailbox:install"
     sh "rails action_text:install"
 
-    sh "rails generate scaffold user name admin:boolean && rails db:migrate"
+    sh "rails generate scaffold user name description:text admin:boolean"
+    sh "rails db:migrate"
+
+    # Replace the generated gemfile entry with the exact version.
+    substitute.call("app/models/user.rb", /end\n\z/, <<~CODE)
+        has_one_attached :avatar
+        has_rich_text :description
+      end
+    CODE
+
+    substitute.call("app/views/users/_form.html.erb", /text_area :description %>\n  <\/div>/, <<~CODE)
+      rich_text_area :description %>\n  </div>
+
+      <div class="field">
+        Avatar: <%= form.file_field :avatar %>
+      </div>
+    CODE
+
+    substitute.call("app/views/users/show.html.erb", /description %>\n<\/p>/, <<~CODE)
+      description %>\n</p>
+
+      <p>
+        <%= image_tag @user.avatar.representation(resize_to_fit: [500, 500]) %>
+      </p>
+    CODE
+
+    # Permit the avatar param.
+    substitute.call("app/controllers/users_controller.rb", /:admin/, ":admin, :avatar")
+
+    if ENV["EDITOR"]
+      `#{ENV["EDITOR"]} #{File.expand_path(app_name)}`
+    end
 
     puts "Booting a Rails server. Verify the release by:"
     puts
