@@ -1,8 +1,12 @@
+*   Fix the need of `#protect_against_forgery?` method defined in
+    `ActionView::Base` subclasses. This prevents the use of forms and buttons.
+
+    *Genadi Samokovarov*
+
 *   Fix UJS permanently showing disabled text in a[data-remote][data-disable-with] elements within forms.
     Fixes #33889
 
     *Wolfgang Hobmaier*
-
 
 *   Prevent non-primary mouse keys from triggering Rails UJS click handlers.
     Firefox fires click events even if the click was triggered by non-primary mouse keys such as right- or scroll-wheel-clicks.
@@ -15,7 +19,6 @@
     Fixes #34541
 
     *Wolfgang Hobmaier*
-
 
 *   Prevent `ActionView::TextHelper#word_wrap` from unexpectedly stripping white space from the _left_ side of lines.
 
@@ -33,7 +36,6 @@
     Fixes #34487
 
     *Lyle Mullican*
-
 
 *   Add allocations to template rendering instrumentation.
 

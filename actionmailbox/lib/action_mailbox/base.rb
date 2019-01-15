@@ -77,7 +77,7 @@ module ActionMailbox
       @inbound_email = inbound_email
     end
 
-    def perform_processing
+    def perform_processing #:nodoc:
       track_status_of_inbound_email do
         run_callbacks :process do
           process
@@ -92,11 +92,12 @@ module ActionMailbox
       # Overwrite in subclasses
     end
 
-    def finished_processing?
+    def finished_processing? #:nodoc:
       inbound_email.delivered? || inbound_email.bounced?
     end
 
 
+    # Enqueues the given +message+ for delivery and changes the inbound email's status to +:bounced+.
     def bounce_with(message)
       inbound_email.bounced!
       message.deliver_later
@@ -113,3 +114,5 @@ module ActionMailbox
       end
   end
 end
+
+ActiveSupport.run_load_hooks :action_mailbox, ActionMailbox::Base

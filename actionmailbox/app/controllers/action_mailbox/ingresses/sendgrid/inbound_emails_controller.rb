@@ -35,7 +35,7 @@ module ActionMailbox
   #
   #    Alternatively, provide the password in the +RAILS_INBOUND_EMAIL_PASSWORD+ environment variable.
   #
-  # 3. {Configure SendGrid Inbound Parse}{https://sendgrid.com/docs/for-developers/parsing-email/setting-up-the-inbound-parse-webhook/}
+  # 3. {Configure SendGrid Inbound Parse}[https://sendgrid.com/docs/for-developers/parsing-email/setting-up-the-inbound-parse-webhook/]
   #    to forward inbound emails to +/rails/action_mailbox/sendgrid/inbound_emails+ with the username +actionmailbox+ and
   #    the password you previously generated. If your application lived at <tt>https://example.com</tt>, you would
   #    configure SendGrid with the following fully-qualified URL:

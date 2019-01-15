@@ -22,8 +22,8 @@ module ActiveRecord
         def create_database(name, options = {})
           options = { encoding: "utf8" }.merge!(options.symbolize_keys)
 
-          option_string = options.inject("") do |memo, (key, value)|
-            memo += case key
+          option_string = options.each_with_object(+"") do |(key, value), memo|
+            memo << case key
                     when :owner
                       " OWNER = \"#{value}\""
                     when :template

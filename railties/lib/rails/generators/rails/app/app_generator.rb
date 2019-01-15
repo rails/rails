@@ -213,6 +213,7 @@ module Rails
       empty_directory_with_keep_file "test/helpers"
       empty_directory_with_keep_file "test/integration"
 
+      template "test/channels/application_cable/connection_test.rb"
       template "test/test_helper.rb"
     end
 
@@ -440,6 +441,7 @@ module Rails
         if options[:skip_action_cable]
           remove_dir "app/javascript/channels"
           remove_dir "app/channels"
+          remove_dir "test/channels"
         end
       end
 

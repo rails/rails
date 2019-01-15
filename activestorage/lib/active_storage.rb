@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 #--
-# Copyright (c) 2017-2018 David Heinemeier Hansson, Basecamp
+# Copyright (c) 2017-2019 David Heinemeier Hansson, Basecamp
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -42,7 +42,7 @@ module ActiveStorage
 
   mattr_accessor :logger
   mattr_accessor :verifier
-  mattr_accessor :queue
+  mattr_accessor :queues, default: {}
   mattr_accessor :previewers, default: []
   mattr_accessor :analyzers, default: []
   mattr_accessor :variant_processor, default: :mini_magick

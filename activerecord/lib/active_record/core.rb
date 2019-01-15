@@ -282,6 +282,10 @@ module ActiveRecord
         TypeCaster::Map.new(self)
       end
 
+      def _internal? # :nodoc:
+        false
+      end
+
       private
 
         def cached_find_by_statement(key, &block)
@@ -350,9 +354,7 @@ module ActiveRecord
     # Initialize an empty model object from +attributes+.
     # +attributes+ should be an attributes object, and unlike the
     # `initialize` method, no assignment calls are made per attribute.
-    #
-    # :nodoc:
-    def init_with_attributes(attributes, new_record = false)
+    def init_with_attributes(attributes, new_record = false) # :nodoc:
       init_internals
 
       @new_record = new_record

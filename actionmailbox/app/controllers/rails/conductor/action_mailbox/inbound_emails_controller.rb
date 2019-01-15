@@ -20,7 +20,11 @@ module Rails
 
     private
       def new_mail
-        Mail.new params.require(:mail).permit(:from, :to, :cc, :bcc, :in_reply_to, :subject, :body).to_h
+        Mail.new(params.require(:mail).permit(:from, :to, :cc, :bcc, :in_reply_to, :subject, :body).to_h).tap do |mail|
+          params[:mail][:attachments].to_a.each do |attachment|
+            mail.attachments[attachment.original_filename] = { filename: attachment.path, content_type: attachment.content_type }
+          end
+        end
       end
 
       def create_inbound_email(mail)

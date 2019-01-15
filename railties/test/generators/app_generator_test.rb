@@ -81,6 +81,7 @@ DEFAULT_APP_FILES = %w(
   test/test_helper.rb
   test/fixtures
   test/fixtures/files
+  test/channels/application_cable/connection_test.rb
   test/controllers
   test/models
   test/helpers
@@ -363,6 +364,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "#{app_root}/config/environments/production.rb" do |content|
       assert_no_match(/config\.action_cable/, content)
     end
+
+    assert_no_file "#{app_root}/test/channels/application_cable/connection_test.rb"
   end
 
   def test_app_update_does_not_generate_bootsnap_contents_when_skip_bootsnap_is_given
@@ -435,6 +438,11 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_file "#{app_root}/config/storage.yml"
   end
 
+  def test_generator_skips_action_mailbox_when_skip_action_mailbox_is_given
+    run_generator [destination_root, "--skip-action-mailbox"]
+    assert_file "#{application_path}/config/application.rb", /#\s+require\s+["']action_mailbox\/engine["']/
+  end
+
   def test_generator_skips_action_mailbox_when_skip_active_record_is_given
     run_generator [destination_root, "--skip-active-record"]
     assert_file "#{application_path}/config/application.rb", /#\s+require\s+["']action_mailbox\/engine["']/
@@ -443,6 +451,21 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_generator_skips_action_mailbox_when_skip_active_storage_is_given
     run_generator [destination_root, "--skip-active-storage"]
     assert_file "#{application_path}/config/application.rb", /#\s+require\s+["']action_mailbox\/engine["']/
+  end
+
+  def test_generator_skips_action_text_when_skip_action_text_is_given
+    run_generator [destination_root, "--skip-action-text"]
+    assert_file "#{application_path}/config/application.rb", /#\s+require\s+["']action_text\/engine["']/
+  end
+
+  def test_generator_skips_action_text_when_skip_active_record_is_given
+    run_generator [destination_root, "--skip-active-record"]
+    assert_file "#{application_path}/config/application.rb", /#\s+require\s+["']action_text\/engine["']/
+  end
+
+  def test_generator_skips_action_text_when_skip_active_storage_is_given
+    run_generator [destination_root, "--skip-active-storage"]
+    assert_file "#{application_path}/config/application.rb", /#\s+require\s+["']action_text\/engine["']/
   end
 
   def test_app_update_does_not_change_config_target_version
@@ -751,6 +774,24 @@ class AppGeneratorTest < Rails::Generators::TestCase
     generator([destination_root], skip_webpack_install: true)
 
     assert_bundler_command_called("install")
+  end
+
+  def test_generation_use_original_bundle_environment
+    generator([destination_root], skip_webpack_install: true)
+
+    mock_original_env = -> do
+      { "BUNDLE_RUBYONRAILS__ORG" => "user:pass" }
+    end
+
+    ensure_environment_is_set = -> *_args do
+      assert_equal "user:pass", ENV["BUNDLE_RUBYONRAILS__ORG"]
+    end
+
+    Bundler.stub :original_env, mock_original_env do
+      generator.stub :exec_bundle_command, ensure_environment_is_set do
+        quietly { generator.invoke_all }
+      end
+    end
   end
 
   def test_dev_option

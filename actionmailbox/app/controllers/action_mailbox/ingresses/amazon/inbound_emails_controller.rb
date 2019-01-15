@@ -37,7 +37,7 @@ module ActionMailbox
 
     def self.prepare
       self.verifier ||= begin
-        require "aws-sdk-sns/message_verifier"
+        require "aws-sdk-sns"
         Aws::SNS::MessageVerifier.new
       end
     end

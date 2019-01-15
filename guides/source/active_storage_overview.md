@@ -510,7 +510,7 @@ directly from the client to the cloud.
     Using the npm package:
 
     ```js
-    import * as ActiveStorage from "activestorage"
+    import * as ActiveStorage from "@rails/activestorage"
     ActiveStorage.start()
     ```
 
@@ -637,7 +637,7 @@ of choice, instantiate a DirectUpload and call its create method. Create takes
 a callback to invoke when the upload completes.
 
 ```js
-import { DirectUpload } from "activestorage"
+import { DirectUpload } from "@rails/activestorage"
 
 const input = document.querySelector('input[type=file]')
 
@@ -685,7 +685,7 @@ will call the object's `directUploadWillStoreFileWithXHR` method. You can then
 bind your own progress handler on the XHR.
 
 ```js
-import { DirectUpload } from "activestorage"
+import { DirectUpload } from "@rails/activestorage"
 
 class Uploader {
   constructor(file, url) {

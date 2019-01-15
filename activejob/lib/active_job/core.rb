@@ -81,7 +81,7 @@ module ActiveJob
       @queue_name = self.class.queue_name
       @priority   = self.class.priority
       @executions = 0
-      @exception_executions = Hash.new(0)
+      @exception_executions = {}
     end
 
     # Returns a hash with the job data that can safely be passed to the

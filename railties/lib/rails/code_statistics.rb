@@ -95,8 +95,8 @@ class CodeStatistics #:nodoc:
     end
 
     def print_line(name, statistics)
-      m_over_c   = (statistics.methods / statistics.classes) rescue m_over_c = 0
-      loc_over_m = (statistics.code_lines / statistics.methods) - 2 rescue loc_over_m = 0
+      m_over_c   = (statistics.methods / statistics.classes) rescue 0
+      loc_over_m = (statistics.code_lines / statistics.methods) - 2 rescue 0
 
       print "| #{name.ljust(20)} "
       HEADERS.each_key do |k|

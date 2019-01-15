@@ -18,7 +18,7 @@ class CustomDiscardableError < StandardError; end
 
 class RetryJob < ActiveJob::Base
   retry_on DefaultsError
-  retry_on FirstRetryableErrorOfTwo, SecondRetryableErrorOfTwo
+  retry_on FirstRetryableErrorOfTwo, SecondRetryableErrorOfTwo, attempts: 4
   retry_on LongWaitError, wait: 1.hour, attempts: 10
   retry_on ShortWaitTenAttemptsError, wait: 1.second, attempts: 10
   retry_on ExponentialWaitTenAttemptsError, wait: :exponentially_longer, attempts: 10
@@ -30,21 +30,19 @@ class RetryJob < ActiveJob::Base
   discard_on FirstDiscardableErrorOfTwo, SecondDiscardableErrorOfTwo
   discard_on(CustomDiscardableError) { |job, error| JobBuffer.add("Dealt with a job that was discarded in a custom way. Message: #{error.message}") }
 
-  def perform(raising, attempts)
-    if executions < attempts
+  before_enqueue do |job|
+    if job.arguments.include?(:log_scheduled_at) && job.scheduled_at
+      JobBuffer.add("Next execution scheduled at #{job.scheduled_at}")
+    end
+  end
+
+  def perform(raising, attempts, *)
+    raising = raising.shift if raising.is_a?(Array)
+    if raising && executions < attempts
       JobBuffer.add("Raised #{raising} for the #{executions.ordinalize} time")
       raise raising.constantize
     else
       JobBuffer.add("Successfully completed job")
     end
-  end
-end
-
-class ExceptionRetryJob < ActiveJob::Base
-  retry_on FirstRetryableErrorOfTwo, SecondRetryableErrorOfTwo, attempts: 4
-  retry_on DefaultsError
-
-  def perform(exceptions)
-    raise exceptions.shift.constantize.new unless exceptions.empty?
   end
 end

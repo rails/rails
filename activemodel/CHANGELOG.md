@@ -1,3 +1,7 @@
+*   Add `ActiveModel::Errors#of_kind?`.
+
+    *bogdanvlviv*, *Rafael Mendonça França*
+
 *   Fix numericality equality validation of `BigDecimal` and `Float`
     by casting to `BigDecimal` on both ends of the validation.
 

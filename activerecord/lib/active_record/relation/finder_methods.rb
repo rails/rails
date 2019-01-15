@@ -312,6 +312,8 @@ module ActiveRecord
 
       return false if !conditions || limit_value == 0
 
+      conditions = sanitize_forbidden_attributes(conditions)
+
       if eager_loading?
         relation = apply_join_dependency(eager_loading: false)
         return relation.exists?(conditions)
