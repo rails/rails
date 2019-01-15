@@ -1,3 +1,7 @@
+*   Remove deprecated `ActiveRecord::ConnectionAdapters::SQLite3Adapter#valid_alter_table_type?`.
+
+    *Rafael Mendonça França*
+
 *   Do not allow passing the column name to `sum` when a block is passed.
 
     *Rafael Mendonça França*
