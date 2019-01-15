@@ -1815,6 +1815,22 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal num_accounts, Account.count
   end
 
+  def test_depends_and_nullify_on_polymorphic_assoc
+    author = PersonWithPolymorphicDependentNullifyComments.create!(first_name: "Laertis")
+    comment = posts(:welcome).comments.first
+    comment.author = author
+    comment.save!
+
+    assert_equal comment.author_id, author.id
+    assert_equal comment.author_type, author.class.name
+
+    author.destroy
+    comment.reload
+
+    assert_nil comment.author_id
+    assert_nil comment.author_type
+  end
+
   def test_restrict_with_exception
     firm = RestrictedWithExceptionFirm.create!(name: "restrict")
     firm.companies.create(name: "child")

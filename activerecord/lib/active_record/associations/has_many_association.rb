@@ -92,7 +92,7 @@ module ActiveRecord
           if method == :delete_all
             scope.delete_all
           else
-            scope.update_all(reflection.foreign_key => nil)
+            scope.update_all(nullified_owner_attributes)
           end
         end
 
