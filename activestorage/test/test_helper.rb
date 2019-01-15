@@ -93,8 +93,10 @@ class User < ActiveRecord::Base
 
   has_one_attached :avatar
   has_one_attached :cover_photo, dependent: false
+  has_one_attached :proxied_image, delivery_method: :proxy
 
   has_many_attached :highlights
+  has_many_attached :direct_images, delivery_method: :direct
   has_many_attached :vlogs, dependent: false
 end
 
