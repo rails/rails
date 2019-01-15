@@ -35,12 +35,12 @@ Rails.application.routes.draw do
   resolve("ActiveStorage::Variant") { |variant, options| route_for(:rails_representation, variant, options) }
   resolve("ActiveStorage::Preview") { |preview, options| route_for(:rails_representation, preview, options) }
 
-  route_blob = -> (blob, delivery_method, options, klass) {
+  route_blob = -> (blob, delivery_method, options, instance) {
     case delivery_method
     when :redirect
-      klass.route_for(:rails_service_blob, blob.signed_id, blob.filename, options)
+      instance.route_for(:rails_service_blob, blob.signed_id, blob.filename, options)
     when :proxy
-      klass.route_for(:rails_blob_proxy, blob.signed_id, blob.filename, options)
+      instance.route_for(:rails_blob_proxy, blob.signed_id, blob.filename, options)
     when :direct
       blob.service_url
     end
