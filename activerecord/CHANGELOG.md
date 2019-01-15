@@ -1,3 +1,7 @@
+*   Remove deprecated `#supports_statement_cache?` from the database adapters.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `#insert_fixtures` from the database adapters.
 
     *Rafael Mendonça França*

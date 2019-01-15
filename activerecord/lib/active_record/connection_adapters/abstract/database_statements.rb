@@ -173,13 +173,6 @@ module ActiveRecord
         exec_delete(sql, name, binds)
       end
 
-      # Returns +true+ when the connection adapter supports prepared statement
-      # caching, otherwise returns +false+
-      def supports_statement_cache? # :nodoc:
-        true
-      end
-      deprecate :supports_statement_cache?
-
       # Runs the given block in a database transaction, and returns the result
       # of the block.
       #
