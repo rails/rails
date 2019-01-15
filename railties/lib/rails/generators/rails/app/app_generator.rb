@@ -21,7 +21,6 @@ module Rails
         RUBY
       end
 
-      # TODO: Remove once this is fully in place
       def method_missing(meth, *args, &block)
         @generator.send(meth, *args, &block)
       end
@@ -81,7 +80,6 @@ module Rails
       directory "app"
 
       keep_file "app/assets/images"
-      empty_directory_with_keep_file "app/assets/javascripts/channels" unless options[:skip_action_cable]
 
       keep_file  "app/controllers/concerns"
       keep_file  "app/models/concerns"
@@ -95,11 +93,9 @@ module Rails
     end
 
     def bin_when_updating
-      bin_yarn_exist = File.exist?("bin/yarn")
-
       bin
 
-      if options[:api] && !bin_yarn_exist
+      if options[:skip_javascript]
         remove_file "bin/yarn"
       end
     end
@@ -157,10 +153,6 @@ module Rails
       if options[:api]
         unless cookie_serializer_config_exist
           remove_file "config/initializers/cookies_serializer.rb"
-        end
-
-        unless assets_config_exist
-          remove_file "config/initializers/assets.rb"
         end
 
         unless csp_config_exist
@@ -221,6 +213,7 @@ module Rails
       empty_directory_with_keep_file "test/helpers"
       empty_directory_with_keep_file "test/integration"
 
+      template "test/channels/application_cable/connection_test.rb"
       template "test/test_helper.rb"
     end
 
@@ -256,7 +249,7 @@ module Rails
 
       add_shared_options_for "application"
 
-      # Add bin/rails options
+      # Add rails command options
       class_option :version, type: :boolean, aliases: "-v", group: :rails,
                              desc: "Show Rails version number and quit"
 
@@ -266,8 +259,11 @@ module Rails
       class_option :skip_bundle, type: :boolean, aliases: "-B", default: false,
                                  desc: "Don't run bundle install"
 
-      class_option :webpack, type: :string, default: nil,
-                             desc: "Preconfigure for app-like JavaScript with Webpack (options: #{WEBPACKS.join('/')})"
+      class_option :webpack, type: :string, aliases: "--webpacker", default: nil,
+                             desc: "Preconfigure Webpack with a particular framework (options: #{WEBPACKS.join(", ")})"
+
+      class_option :skip_webpack_install, type: :boolean, default: false,
+                                          desc: "Don't run Webpack install"
 
       def initialize(*args)
         super
@@ -279,7 +275,7 @@ module Rails
         # Force sprockets and yarn to be skipped when generating API only apps.
         # Can't modify options hash as it's frozen by default.
         if options[:api]
-          self.options = options.merge(skip_sprockets: true, skip_javascript: true, skip_yarn: true).freeze
+          self.options = options.merge(skip_sprockets: true, skip_javascript: true).freeze
         end
       end
 
@@ -294,7 +290,7 @@ module Rails
         build(:gitignore)   unless options[:skip_git]
         build(:gemfile)     unless options[:skip_gemfile]
         build(:version_control)
-        build(:package_json) unless options[:skip_yarn]
+        build(:package_json) unless options[:skip_javascript]
       end
 
       def create_app_files
@@ -328,7 +324,7 @@ module Rails
       end
 
       def display_upgrade_guide_info
-        say "\nAfter this, check Rails upgrade guide at http://guides.rubyonrails.org/upgrading_ruby_on_rails.html for more details about upgrading your app."
+        say "\nAfter this, check Rails upgrade guide at https://guides.rubyonrails.org/upgrading_ruby_on_rails.html for more details about upgrading your app."
       end
       remove_task :display_upgrade_guide_info
 
@@ -416,7 +412,7 @@ module Rails
 
       def delete_js_folder_skipping_javascript
         if options[:skip_javascript]
-          remove_dir "app/assets/javascripts"
+          remove_dir "app/javascript"
         end
       end
 
@@ -443,8 +439,9 @@ module Rails
 
       def delete_action_cable_files_skipping_action_cable
         if options[:skip_action_cable]
-          remove_file "app/assets/javascripts/cable.js"
+          remove_dir "app/javascript/channels"
           remove_dir "app/channels"
+          remove_dir "test/channels"
         end
       end
 
@@ -467,8 +464,8 @@ module Rails
         end
       end
 
-      def delete_bin_yarn_if_skip_yarn_option
-        remove_file "bin/yarn" if options[:skip_yarn]
+      def delete_bin_yarn
+        remove_file "bin/yarn" if options[:skip_javascript]
       end
 
       def finish_template
@@ -476,7 +473,8 @@ module Rails
       end
 
       public_task :apply_rails_template, :run_bundle
-      public_task :run_webpack, :generate_spring_binstubs
+      public_task :generate_bundler_binstub, :generate_spring_binstubs
+      public_task :run_webpack
 
       def run_after_bundle_callbacks
         @after_bundle_callbacks.each(&:call)
@@ -494,7 +492,11 @@ module Rails
       end
 
       def app_name
-        @app_name ||= (defined_app_const_base? ? defined_app_name : File.basename(destination_root)).tr('\\', "").tr(". ", "_")
+        @app_name ||= original_app_name.tr("-", "_")
+      end
+
+      def original_app_name
+        @original_app_name ||= (defined_app_const_base? ? defined_app_name : File.basename(destination_root)).tr('\\', "").tr(". ", "_")
       end
 
       def defined_app_name
@@ -518,14 +520,14 @@ module Rails
       end
 
       def valid_const?
-        if app_const =~ /^\d/
-          raise Error, "Invalid application name #{app_name}. Please give a name which does not start with numbers."
-        elsif RESERVED_NAMES.include?(app_name)
-          raise Error, "Invalid application name #{app_name}. Please give a " \
+        if /^\d/.match?(app_const)
+          raise Error, "Invalid application name #{original_app_name}. Please give a name which does not start with numbers."
+        elsif RESERVED_NAMES.include?(original_app_name)
+          raise Error, "Invalid application name #{original_app_name}. Please give a " \
                        "name which does not match one of the reserved rails " \
                        "words: #{RESERVED_NAMES.join(", ")}"
         elsif Object.const_defined?(app_const_base)
-          raise Error, "Invalid application name #{app_name}, constant #{app_const_base} is already in use. Please choose another application name."
+          raise Error, "Invalid application name #{original_app_name}, constant #{app_const_base} is already in use. Please choose another application name."
         end
       end
 

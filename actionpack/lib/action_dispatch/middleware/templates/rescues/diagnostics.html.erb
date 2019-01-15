@@ -10,7 +10,25 @@
 <div id="container">
   <h2><%= h @exception.message %></h2>
 
-  <%= render template: "rescues/_source" %>
-  <%= render template: "rescues/_trace" %>
+  <%= render "rescues/source", source_extracts: @source_extracts, show_source_idx: @show_source_idx, error_index: 0 %>
+  <%= render "rescues/trace", traces: @traces, trace_to_show: @trace_to_show, error_index: 0 %>
+
+  <% if @exception.cause %>
+    <h2>Exception Causes</h2>
+  <% end %>
+
+  <% @exception_wrapper.wrapped_causes.each.with_index(1) do |wrapper, index| %>
+    <div class="details">
+      <a class="summary" href="#" style="color: #F0F0F0; text-decoration: none; background: #C52F24; border-bottom: none;" onclick="return toggle(<%= wrapper.exception.object_id %>)">
+        <%= wrapper.exception.class.name %>: <%= h wrapper.exception.message %>
+      </a>
+    </div>
+
+    <div id="<%= wrapper.exception.object_id %>" style="display: none;">
+      <%= render "rescues/source", source_extracts: wrapper.source_extracts, show_source_idx: wrapper.source_to_show_id, error_index: index %>
+      <%= render "rescues/trace", traces: wrapper.traces, trace_to_show: wrapper.trace_to_show, error_index: index %>
+    </div>
+  <% end %>
+
   <%= render template: "rescues/_request_and_response" %>
 </div>

@@ -493,6 +493,15 @@ module ActionDispatch
         assert_not called
       end
 
+      def test_eager_load_with_routes
+        get "/foo-bar", to: "foo#bar"
+        assert_nil router.eager_load!
+      end
+
+      def test_eager_load_without_routes
+        assert_nil router.eager_load!
+      end
+
       private
 
         def get(*args)

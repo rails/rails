@@ -12,8 +12,8 @@ module Rails
 
       class << self
         def attach_before_load_options(opts)
-          opts.on("--warnings", "-w", "Run with Ruby warnings enabled") {}
-          opts.on("-e", "--environment ENV", "Run tests in the ENV environment") {}
+          opts.on("--warnings", "-w", "Run with Ruby warnings enabled") { }
+          opts.on("-e", "--environment ENV", "Run tests in the ENV environment") { }
         end
 
         def parse_options(argv)
@@ -63,7 +63,7 @@ module Rails
             # Extract absolute and relative paths but skip -n /.*/ regexp filters.
             argv.select { |arg| arg =~ %r%^/?\w+/% && !arg.end_with?("/") }.map do |path|
               case
-              when path =~ /(:\d+)+$/
+              when /(:\d+)+$/.match?(path)
                 file, *lines = path.split(":")
                 filters << [ file, lines ]
                 file
@@ -87,7 +87,7 @@ module Rails
         @filters = [ @named_filter, *derive_line_filters(patterns) ].compact
       end
 
-      # Minitest uses === to find matching filters.
+      # minitest uses === to find matching filters.
       def ===(method)
         @filters.any? { |filter| filter === method }
       end
@@ -96,7 +96,7 @@ module Rails
         def derive_named_filter(filter)
           if filter.respond_to?(:named_filter)
             filter.named_filter
-          elsif filter =~ %r%/(.*)/% # Regexp filtering copied from Minitest.
+          elsif filter =~ %r%/(.*)/% # Regexp filtering copied from minitest.
             Regexp.new $1
           elsif filter.is_a?(String)
             filter

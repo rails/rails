@@ -272,7 +272,7 @@ class HttpDigestAuthenticationTest < ActionController::TestCase
       credentials.merge!(options)
       path_info = @request.env["PATH_INFO"].to_s
       uri = options[:uri] || path_info
-      credentials.merge!(uri: uri)
+      credentials[:uri] = uri
       @request.env["ORIGINAL_FULLPATH"] = path_info
       ActionController::HttpAuthentication::Digest.encode_credentials(method, credentials, password, options[:password_is_ha1])
     end

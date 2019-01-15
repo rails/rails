@@ -214,4 +214,38 @@ class StoreTest < ActiveRecord::TestCase
     second_dump = YAML.dump(loaded)
     assert_equal @john, YAML.load(second_dump)
   end
+
+  test "read store attributes through accessors with default suffix" do
+    @john.configs[:two_factor_auth] = true
+    assert_equal true, @john.two_factor_auth_configs
+  end
+
+  test "write store attributes through accessors with default suffix" do
+    @john.two_factor_auth_configs = false
+    assert_equal false, @john.configs[:two_factor_auth]
+  end
+
+  test "read store attributes through accessors with custom suffix" do
+    @john.configs[:login_retry] = 3
+    assert_equal 3, @john.login_retry_config
+  end
+
+  test "write store attributes through accessors with custom suffix" do
+    @john.login_retry_config = 5
+    assert_equal 5, @john.configs[:login_retry]
+  end
+
+  test "read accessor without pre/suffix in the same store as other pre/suffixed accessors still works" do
+    @john.configs[:secret_question] = "What is your high school?"
+    assert_equal "What is your high school?", @john.secret_question
+  end
+
+  test "write accessor without pre/suffix in the same store as other pre/suffixed accessors still works" do
+    @john.secret_question = "What was the Rails version when you first worked on it?"
+    assert_equal "What was the Rails version when you first worked on it?", @john.configs[:secret_question]
+  end
+
+  test "prefix/suffix do not affect stored attributes" do
+    assert_equal [:secret_question, :two_factor_auth, :login_retry], Admin::User.stored_attributes[:configs]
+  end
 end

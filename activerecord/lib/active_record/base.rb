@@ -22,6 +22,7 @@ require "active_record/explain_subscriber"
 require "active_record/relation/delegation"
 require "active_record/attributes"
 require "active_record/type_caster"
+require "active_record/database_configurations"
 
 module ActiveRecord #:nodoc:
   # = Active Record
@@ -288,9 +289,9 @@ module ActiveRecord #:nodoc:
     extend Enum
     extend Delegation::DelegateCache
     extend CollectionCacheKey
+    extend Aggregations::ClassMethods
 
     include Core
-    include DatabaseConfigurations
     include Persistence
     include ReadonlyAttributes
     include ModelSchema
@@ -314,7 +315,6 @@ module ActiveRecord #:nodoc:
     include ActiveModel::SecurePassword
     include AutosaveAssociation
     include NestedAttributes
-    include Aggregations
     include Transactions
     include TouchLater
     include NoTouching

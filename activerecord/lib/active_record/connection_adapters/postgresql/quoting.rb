@@ -93,11 +93,11 @@ module ActiveRecord
               elsif value.hex?
                 "X'#{value}'"
               end
-            when Float
-              if value.infinite? || value.nan?
-                "'#{value}'"
-              else
+            when Numeric
+              if value.finite?
                 super
+              else
+                "'#{value}'"
               end
             when OID::Array::Data
               _quote(encode_array(value))

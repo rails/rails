@@ -165,12 +165,12 @@ module ApplicationTests
       app.config.some_setting = "a_different_setting"
       assert_equal "a_different_setting", app.config.some_setting, "The configuration's some_setting should be set."
 
-      new_config = Rails::Application::Configuration.new("root_of_application")
+      new_config = Rails::Application::Configuration.new(Pathname.new("root_of_application"))
       new_config.some_setting = "some_setting_dude"
       app.config = new_config
 
       assert_equal "some_setting_dude", app.config.some_setting, "The configuration's some_setting should have changed."
-      assert_equal "root_of_application", app.config.root, "The root should have changed to the new config's root."
+      assert_equal "root_of_application", app.config.root.to_s, "The root should have changed to the new config's root."
       assert_equal new_config, app.config, "The application's config should have changed to the new config."
     end
   end

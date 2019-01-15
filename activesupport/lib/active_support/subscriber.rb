@@ -79,25 +79,24 @@ module ActiveSupport
     end
 
     def start(name, id, payload)
-      e = ActiveSupport::Notifications::Event.new(name, Time.now, nil, id, payload)
+      event = ActiveSupport::Notifications::Event.new(name, nil, nil, id, payload)
+      event.start!
       parent = event_stack.last
-      parent << e if parent
+      parent << event if parent
 
-      event_stack.push e
+      event_stack.push event
     end
 
     def finish(name, id, payload)
-      finished  = Time.now
-      event     = event_stack.pop
-      event.end = finished
+      event = event_stack.pop
+      event.finish!
       event.payload.merge!(payload)
 
-      method = name.split(".".freeze).first
+      method = name.split(".").first
       send(method, event)
     end
 
     private
-
       def event_stack
         SubscriberQueueRegistry.instance.get_queue(@queue_key)
       end

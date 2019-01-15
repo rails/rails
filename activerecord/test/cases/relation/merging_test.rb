@@ -121,6 +121,20 @@ class RelationMergingTest < ActiveRecord::TestCase
     relation = relation.merge(Post.from("posts"))
     assert_not_empty relation.from_clause
   end
+
+  def test_merging_with_from_clause_on_different_class
+    assert Comment.joins(:post).merge(Post.from("posts")).first
+  end
+
+  def test_merging_with_order_with_binds
+    relation = Post.all.merge(Post.order([Arel.sql("title LIKE ?"), "%suffix"]))
+    assert_equal ["title LIKE '%suffix'"], relation.order_values
+  end
+
+  def test_merging_with_order_without_binds
+    relation = Post.all.merge(Post.order(Arel.sql("title LIKE '%?'")))
+    assert_equal ["title LIKE '%?'"], relation.order_values
+  end
 end
 
 class MergingDifferentRelationsTest < ActiveRecord::TestCase

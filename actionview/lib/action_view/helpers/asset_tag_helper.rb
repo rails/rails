@@ -55,7 +55,7 @@ module ActionView
       #   that path.
       # * <tt>:skip_pipeline</tt>  - This option is used to bypass the asset pipeline
       #   when it is set to true.
-      # * <tt>:nonce<tt>  - When set to true, adds an automatic nonce value if
+      # * <tt>:nonce</tt>  - When set to true, adds an automatic nonce value if
       #   you have Content Security Policy enabled.
       #
       # ==== Examples
@@ -98,7 +98,7 @@ module ActionView
           if tag_options["nonce"] == true
             tag_options["nonce"] = content_security_policy_nonce
           end
-          content_tag("script".freeze, "", tag_options)
+          content_tag("script", "", tag_options)
         }.join("\n").html_safe
 
         request.send_early_hints("Link" => early_hints_links.join("\n")) if respond_to?(:request) && request
@@ -375,7 +375,7 @@ module ActionView
       def image_alt(src)
         ActiveSupport::Deprecation.warn("image_alt is deprecated and will be removed from Rails 6.0. You must explicitly set alt text on images.")
 
-        File.basename(src, ".*".freeze).sub(/-[[:xdigit:]]{32,64}\z/, "".freeze).tr("-_".freeze, " ".freeze).capitalize
+        File.basename(src, ".*").sub(/-[[:xdigit:]]{32,64}\z/, "").tr("-_", " ").capitalize
       end
 
       # Returns an HTML video tag for the +sources+. If +sources+ is a string,

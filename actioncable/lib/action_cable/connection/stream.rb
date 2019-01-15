@@ -98,8 +98,10 @@ module ActionCable
       def hijack_rack_socket
         return unless @socket_object.env["rack.hijack"]
 
-        @socket_object.env["rack.hijack"].call
-        @rack_hijack_io = @socket_object.env["rack.hijack_io"]
+        # This should return the underlying io according to the SPEC:
+        @rack_hijack_io = @socket_object.env["rack.hijack"].call
+        # Retain existing behaviour if required:
+        @rack_hijack_io ||= @socket_object.env["rack.hijack_io"]
 
         @event_loop.attach(@rack_hijack_io, self)
       end

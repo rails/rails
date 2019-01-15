@@ -42,6 +42,21 @@ module GeneratorsTestHelper
     end
   end
 
+  def with_secondary_database_configuration
+    original_configurations = ActiveRecord::Base.configurations
+    ActiveRecord::Base.configurations = {
+      test: {
+        secondary: {
+          database: "db/secondary.sqlite3",
+          migrations_paths: "db/secondary_migrate",
+        },
+      },
+    }
+    yield
+  ensure
+    ActiveRecord::Base.configurations = original_configurations
+  end
+
   def copy_routes
     routes = File.expand_path("../../lib/rails/generators/rails/app/templates/config/routes.rb.tt", __dir__)
     destination = File.join(destination_root, "config")

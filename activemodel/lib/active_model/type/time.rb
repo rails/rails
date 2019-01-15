@@ -18,6 +18,8 @@ module ActiveModel
         case value
         when ::String
           value = "2000-01-01 #{value}"
+          time_hash = ::Date._parse(value)
+          return if time_hash[:hour].nil?
         when ::Time
           value = value.change(year: 2000, day: 1, month: 1)
         end

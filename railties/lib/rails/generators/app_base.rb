@@ -31,9 +31,6 @@ module Rails
         class_option :database,            type: :string, aliases: "-d", default: "sqlite3",
                                            desc: "Preconfigure for selected database (options: #{DATABASES.join('/')})"
 
-        class_option :skip_yarn,           type: :boolean, default: false,
-                                           desc: "Don't use Yarn for managing JavaScript dependencies"
-
         class_option :skip_gemfile,        type: :boolean, default: false,
                                            desc: "Don't create a Gemfile"
 
@@ -46,6 +43,12 @@ module Rails
         class_option :skip_action_mailer,  type: :boolean, aliases: "-M",
                                            default: false,
                                            desc: "Skip Action Mailer files"
+
+        class_option :skip_action_mailbox, type: :boolean, default: false,
+                                           desc: "Skip Action Mailbox gem"
+
+        class_option :skip_action_text,    type: :boolean, default: false,
+                                           desc: "Skip Action Text gem"
 
         class_option :skip_active_record,  type: :boolean, aliases: "-O", default: false,
                                            desc: "Skip Active Record files"
@@ -68,10 +71,7 @@ module Rails
         class_option :skip_listen,         type: :boolean, default: false,
                                            desc: "Don't generate configuration that depends on the listen gem"
 
-        class_option :skip_coffee,         type: :boolean, default: false,
-                                           desc: "Don't use CoffeeScript"
-
-        class_option :skip_javascript,     type: :boolean, aliases: "-J", default: false,
+        class_option :skip_javascript,     type: :boolean, aliases: "-J", default: name == "plugin",
                                            desc: "Skip JavaScript files"
 
         class_option :skip_turbolinks,     type: :boolean, default: false,
@@ -206,7 +206,9 @@ module Rails
             :skip_sprockets,
             :skip_action_cable
           ),
-          skip_active_storage?
+          skip_active_storage?,
+          skip_action_mailbox?,
+          skip_action_text?
         ].flatten.none?
       end
 
@@ -233,6 +235,14 @@ module Rails
 
       def skip_active_storage? # :doc:
         options[:skip_active_storage] || options[:skip_active_record]
+      end
+
+      def skip_action_mailbox? # :doc:
+        options[:skip_action_mailbox] || skip_active_storage?
+      end
+
+      def skip_action_text? # :doc:
+        options[:skip_action_text] || skip_active_storage?
       end
 
       class GemfileEntry < Struct.new(:name, :version, :comment, :options, :commented_out)
@@ -299,7 +309,7 @@ module Rails
       def gem_for_database
         # %w( mysql postgresql sqlite3 oracle frontbase ibm_db sqlserver jdbcmysql jdbcsqlite3 jdbcpostgresql )
         case options[:database]
-        when "mysql"          then ["mysql2", [">= 0.4.4", "< 0.6.0"]]
+        when "mysql"          then ["mysql2", [">= 0.4.4"]]
         when "postgresql"     then ["pg", [">= 0.18", "< 2.0"]]
         when "oracle"         then ["activerecord-oracle_enhanced-adapter", nil]
         when "frontbase"      then ["ruby-frontbase", nil]
@@ -327,24 +337,17 @@ module Rails
       def assets_gemfile_entry
         return [] if options[:skip_sprockets]
 
-        gems = []
-        gems << GemfileEntry.version("sass-rails", "~> 5.0",
-                                     "Use SCSS for stylesheets")
-
-        if !options[:skip_javascript]
-          gems << GemfileEntry.version("uglifier",
-                                     ">= 1.3.0",
-                                     "Use Uglifier as compressor for JavaScript assets")
-        end
-
-        gems
+        GemfileEntry.version("sass-rails", "~> 5.0", "Use SCSS for stylesheets")
       end
 
       def webpacker_gemfile_entry
-        return [] unless options[:webpack]
+        return [] if options[:skip_javascript]
 
-        comment = "Transpile app-like JavaScript. Read more: https://github.com/rails/webpacker"
-        GemfileEntry.new "webpacker", nil, comment
+        if options.dev? || options.edge?
+          GemfileEntry.github "webpacker", "rails/webpacker", nil, "Use development version of Webpacker"
+        else
+          GemfileEntry.new "webpacker", nil, "Transpile app-like JavaScript. Read more: https://github.com/rails/webpacker"
+        end
       end
 
       def jbuilder_gemfile_entry
@@ -352,34 +355,12 @@ module Rails
         GemfileEntry.new "jbuilder", "~> 2.5", comment, {}, options[:api]
       end
 
-      def coffee_gemfile_entry
-        GemfileEntry.version "coffee-rails", "~> 4.2", "Use CoffeeScript for .coffee assets and views"
-      end
-
       def javascript_gemfile_entry
-        if options[:skip_javascript] || options[:skip_sprockets]
+        if options[:skip_javascript] || options[:skip_turbolinks]
           []
         else
-          gems = [javascript_runtime_gemfile_entry]
-          gems << coffee_gemfile_entry unless options[:skip_coffee]
-
-          unless options[:skip_turbolinks]
-            gems << GemfileEntry.version("turbolinks", "~> 5",
-             "Turbolinks makes navigating your web application faster. Read more: https://github.com/turbolinks/turbolinks")
-          end
-
-          gems
-        end
-      end
-
-      def javascript_runtime_gemfile_entry
-        comment = "See https://github.com/rails/execjs#readme for more supported runtimes"
-        if defined?(JRUBY_VERSION)
-          GemfileEntry.version "therubyrhino", nil, comment
-        elsif RUBY_PLATFORM =~ /mingw|mswin/
-          GemfileEntry.version "duktape", nil, comment
-        else
-          GemfileEntry.new "mini_racer", nil, comment, { platforms: :ruby }, true
+          [ GemfileEntry.version("turbolinks", "~> 5",
+             "Turbolinks makes navigating your web application faster. Read more: https://github.com/turbolinks/turbolinks") ]
         end
       end
 
@@ -399,7 +380,7 @@ module Rails
         gems
       end
 
-      def bundle_command(command)
+      def bundle_command(command, env = {})
         say_status :run, "bundle #{command}"
 
         # We are going to shell out rather than invoking Bundler::CLI.new(command)
@@ -407,19 +388,21 @@ module Rails
         # its own vendored Thor, which could be a different version. Running both
         # things in the same process is a recipe for a night with paracetamol.
         #
-        # We unset temporary bundler variables to load proper bundler and Gemfile.
-        #
         # Thanks to James Tucker for the Gem tricks involved in this call.
         _bundle_command = Gem.bin_path("bundler", "bundle")
 
         require "bundler"
-        Bundler.with_clean_env do
-          full_command = %Q["#{Gem.ruby}" "#{_bundle_command}" #{command}]
-          if options[:quiet]
-            system(full_command, out: File::NULL)
-          else
-            system(full_command)
-          end
+        Bundler.with_original_env do
+          exec_bundle_command(_bundle_command, command, env)
+        end
+      end
+
+      def exec_bundle_command(bundle_command, command, env)
+        full_command = %Q["#{Gem.ruby}" "#{bundle_command}" #{command}]
+        if options[:quiet]
+          system(env, full_command, out: File::NULL)
+        else
+          system(env, full_command)
         end
       end
 
@@ -429,6 +412,10 @@ module Rails
 
       def spring_install?
         !options[:skip_spring] && !options.dev? && Process.respond_to?(:fork) && !RUBY_PLATFORM.include?("cygwin")
+      end
+
+      def webpack_install?
+        !(options[:skip_javascript] || options[:skip_webpack_install])
       end
 
       def depends_on_system_test?
@@ -448,13 +435,19 @@ module Rails
       end
 
       def run_bundle
-        bundle_command("install") if bundle_install?
+        bundle_command("install", "BUNDLE_IGNORE_MESSAGES" => "1") if bundle_install?
       end
 
       def run_webpack
-        if !(webpack = options[:webpack]).nil?
+        if webpack_install?
           rails_command "webpacker:install"
-          rails_command "webpacker:install:#{webpack}" unless webpack == "webpack"
+          rails_command "webpacker:install:#{options[:webpack]}" if options[:webpack] && options[:webpack] != "webpack"
+        end
+      end
+
+      def generate_bundler_binstub
+        if bundle_install?
+          bundle_command("binstubs bundler")
         end
       end
 

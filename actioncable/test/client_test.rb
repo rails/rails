@@ -7,7 +7,6 @@ require "websocket-client-simple"
 require "json"
 
 require "active_support/hash_with_indifferent_access"
-require "active_support/testing/method_call_assertions"
 
 ####
 # 😷 Warning suppression 😷
@@ -28,8 +27,6 @@ WebSocket::Frame::Data.prepend Module.new {
 ####
 
 class ClientTest < ActionCable::TestCase
-  include ActiveSupport::Testing::MethodCallAssertions
-
   WAIT_WHEN_EXPECTING_EVENT = 2
   WAIT_WHEN_NOT_EXPECTING_EVENT = 0.5
 

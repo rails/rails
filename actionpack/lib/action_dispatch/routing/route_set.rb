@@ -90,11 +90,11 @@ module ActionDispatch
 
         def clear!
           @path_helpers.each do |helper|
-            @path_helpers_module.send :remove_method, helper
+            @path_helpers_module.remove_method helper
           end
 
           @url_helpers.each do |helper|
-            @url_helpers_module.send  :remove_method, helper
+            @url_helpers_module.remove_method helper
           end
 
           @routes.clear
@@ -108,8 +108,8 @@ module ActionDispatch
           url_name  = :"#{name}_url"
 
           if routes.key? key
-            @path_helpers_module.send :undef_method, path_name
-            @url_helpers_module.send  :undef_method, url_name
+            @path_helpers_module.undef_method path_name
+            @url_helpers_module.undef_method url_name
           end
           routes[key] = route
           define_url_helper @path_helpers_module, route, path_name, route.defaults, name, PATH
@@ -245,7 +245,7 @@ module ActionDispatch
                   missing_keys << missing_key
                 }
                 constraints = Hash[@route.requirements.merge(params).sort_by { |k, v| k.to_s }]
-                message = "No route matches #{constraints.inspect}".dup
+                message = +"No route matches #{constraints.inspect}"
                 message << ", missing required keys: #{missing_keys.sort.inspect}"
 
                 raise ActionController::UrlGenerationError, message
@@ -377,7 +377,7 @@ module ActionDispatch
         @prepend                    = []
         @disable_clear_and_finalize = false
         @finalized                  = false
-        @env_key                    = "ROUTES_#{object_id}_SCRIPT_NAME".freeze
+        @env_key                    = "ROUTES_#{object_id}_SCRIPT_NAME"
 
         @set    = Journey::Routes.new
         @router = Journey::Router.new @set
@@ -584,7 +584,7 @@ module ActionDispatch
             "You may have defined two routes with the same name using the `:as` option, or " \
             "you may be overriding a route already defined by a resource with the same naming. " \
             "For the latter, you can restrict the routes created with `resources` as explained here: \n" \
-            "http://guides.rubyonrails.org/routing.html#restricting-the-routes-created"
+            "https://guides.rubyonrails.org/routing.html#restricting-the-routes-created"
         end
 
         route = @set.add_route(name, mapping)
@@ -729,7 +729,7 @@ module ActionDispatch
         # Remove leading slashes from controllers
         def normalize_controller!
           if controller
-            if controller.start_with?("/".freeze)
+            if controller.start_with?("/")
               @options[:controller] = controller[1..-1]
             else
               @options[:controller] = controller
@@ -819,10 +819,6 @@ module ActionDispatch
         RESERVED_OPTIONS.each { |ro| path_options.delete ro }
 
         path, params = generate(route_name, path_options, recall)
-
-        if options.key? :params
-          params.merge! options[:params]
-        end
 
         options[:path]        = path
         options[:script_name] = script_name

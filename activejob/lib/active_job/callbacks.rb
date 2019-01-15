@@ -29,6 +29,9 @@ module ActiveJob
     included do
       define_callbacks :perform
       define_callbacks :enqueue
+
+      class_attribute :return_false_on_aborted_enqueue, instance_accessor: false, instance_predicate: false
+      self.return_false_on_aborted_enqueue = false
     end
 
     # These methods will be included into any Active Job object, adding
@@ -130,7 +133,7 @@ module ActiveJob
         set_callback(:enqueue, :after, *filters, &blk)
       end
 
-      # Defines a callback that will get called around the enqueueing
+      # Defines a callback that will get called around the enqueuing
       # of the job.
       #
       #   class VideoProcessJob < ActiveJob::Base

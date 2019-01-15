@@ -5,7 +5,7 @@ require "stubs/test_connection"
 require "stubs/room"
 require "active_support/time"
 
-class ActionCable::Channel::PeriodicTimersTest < ActiveSupport::TestCase
+class ActionCable::Channel::PeriodicTimersTest < ActionCable::TestCase
   class ChatChannel < ActionCable::Channel::Base
     # Method name arg
     periodically :send_updates, every: 1
@@ -64,11 +64,22 @@ class ActionCable::Channel::PeriodicTimersTest < ActiveSupport::TestCase
   end
 
   test "timer start and stop" do
-    @connection.server.event_loop.expects(:timer).times(3).returns(stub(shutdown: nil))
-    channel = ChatChannel.new @connection, "{id: 1}", id: 1
+    mock = Minitest::Mock.new
+    3.times { mock.expect(:shutdown, nil) }
 
-    channel.subscribe_to_channel
-    channel.unsubscribe_from_channel
-    assert_equal [], channel.send(:active_periodic_timers)
+    assert_called(
+      @connection.server.event_loop,
+      :timer,
+      times: 3,
+      returns: mock
+    ) do
+      channel = ChatChannel.new @connection, "{id: 1}", id: 1
+
+      channel.subscribe_to_channel
+      channel.unsubscribe_from_channel
+      assert_equal [], channel.send(:active_periodic_timers)
+    end
+
+    assert mock.verify
   end
 end

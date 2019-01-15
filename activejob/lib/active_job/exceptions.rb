@@ -30,28 +30,38 @@ module ActiveJob
       #  class RemoteServiceJob < ActiveJob::Base
       #    retry_on CustomAppException # defaults to 3s wait, 5 attempts
       #    retry_on AnotherCustomAppException, wait: ->(executions) { executions * 2 }
-      #    retry_on(YetAnotherCustomAppException) do |job, exception|
-      #      ExceptionNotifier.caught(exception)
-      #    end
+      #
       #    retry_on ActiveRecord::Deadlocked, wait: 5.seconds, attempts: 3
-      #    retry_on Net::OpenTimeout, wait: :exponentially_longer, attempts: 10
+      #    retry_on Net::OpenTimeout, Timeout::Error, wait: :exponentially_longer, attempts: 10 # retries at most 10 times for Net::OpenTimeout and Timeout::Error combined
+      #    # To retry at most 10 times for each individual exception:
+      #    # retry_on Net::OpenTimeout, wait: :exponentially_longer, attempts: 10
+      #    # retry_on Timeout::Error, wait: :exponentially_longer, attempts: 10
+      #
+      #    retry_on(YetAnotherCustomAppException) do |job, error|
+      #      ExceptionNotifier.caught(error)
+      #    end
       #
       #    def perform(*args)
       #      # Might raise CustomAppException, AnotherCustomAppException, or YetAnotherCustomAppException for something domain specific
       #      # Might raise ActiveRecord::Deadlocked when a local db deadlock is detected
-      #      # Might raise Net::OpenTimeout when the remote service is down
+      #      # Might raise Net::OpenTimeout or Timeout::Error when the remote service is down
       #    end
       #  end
-      def retry_on(exception, wait: 3.seconds, attempts: 5, queue: nil, priority: nil)
-        rescue_from exception do |error|
-          if executions < attempts
-            logger.error "Retrying #{self.class} in #{wait} seconds, due to a #{exception}. The original exception was #{error.cause.inspect}."
-            retry_job wait: determine_delay(wait), queue: queue, priority: priority
+      def retry_on(*exceptions, wait: 3.seconds, attempts: 5, queue: nil, priority: nil)
+        rescue_from(*exceptions) do |error|
+          # Guard against jobs that were persisted before we started having individual executions counters per retry_on
+          self.exception_executions ||= {}
+          self.exception_executions[exceptions.to_s] = (exception_executions[exceptions.to_s] || 0) + 1
+
+          if exception_executions[exceptions.to_s] < attempts
+            retry_job wait: determine_delay(wait), queue: queue, priority: priority, error: error
           else
             if block_given?
-              yield self, error
+              instrument :retry_stopped, error: error do
+                yield self, error
+              end
             else
-              logger.error "Stopped retrying #{self.class} due to a #{exception}, which reoccurred on #{executions} attempts. The original exception was #{error.cause.inspect}."
+              instrument :retry_stopped, error: error
               raise error
             end
           end
@@ -67,8 +77,8 @@ module ActiveJob
       #
       #  class SearchIndexingJob < ActiveJob::Base
       #    discard_on ActiveJob::DeserializationError
-      #    discard_on(CustomAppException) do |job, exception|
-      #      ExceptionNotifier.caught(exception)
+      #    discard_on(CustomAppException) do |job, error|
+      #      ExceptionNotifier.caught(error)
       #    end
       #
       #    def perform(record)
@@ -76,12 +86,10 @@ module ActiveJob
       #      # Might raise CustomAppException for something domain specific
       #    end
       #  end
-      def discard_on(exception)
-        rescue_from exception do |error|
-          if block_given?
-            yield self, exception
-          else
-            logger.error "Discarded #{self.class} due to a #{exception}. The original exception was #{error.cause.inspect}."
+      def discard_on(*exceptions)
+        rescue_from(*exceptions) do |error|
+          instrument :discard, error: error do
+            yield self, error if block_given?
           end
         end
       end
@@ -109,7 +117,9 @@ module ActiveJob
     #    end
     #  end
     def retry_job(options = {})
-      enqueue options
+      instrument :enqueue_retry, options.slice(:error, :wait) do
+        enqueue options
+      end
     end
 
     private
@@ -129,6 +139,12 @@ module ActiveJob
         else
           raise "Couldn't determine a delay based on #{seconds_or_duration_or_algorithm.inspect}"
         end
+      end
+
+      def instrument(name, error: nil, wait: nil, &block)
+        payload = { job: self, adapter: self.class.queue_adapter, error: error, wait: wait }
+
+        ActiveSupport::Notifications.instrument("#{name}.active_job", payload, &block)
       end
   end
 end

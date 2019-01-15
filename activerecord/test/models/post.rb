@@ -253,6 +253,8 @@ class SpecialPostWithDefaultScope < ActiveRecord::Base
   self.inheritance_column = :disabled
   self.table_name = "posts"
   default_scope { where(id: [1, 5, 6]) }
+  scope :unscoped_all, -> { unscoped { all } }
+  scope :authorless, -> { unscoped { where(author_id: 0) } }
 end
 
 class PostThatLoadsCommentsInAnAfterSaveHook < ActiveRecord::Base
@@ -296,8 +298,6 @@ end
 class FakeKlass
   extend ActiveRecord::Delegation::DelegateCache
 
-  inherited self
-
   class << self
     def connection
       Post.connection
@@ -323,7 +323,7 @@ class FakeKlass
       table[name]
     end
 
-    def enforce_raw_sql_whitelist(*args)
+    def disallow_raw_sql!(*args)
       # noop
     end
 
@@ -334,5 +334,11 @@ class FakeKlass
     def predicate_builder
       Post.predicate_builder
     end
+
+    def base_class?
+      true
+    end
   end
+
+  inherited self
 end

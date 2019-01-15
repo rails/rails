@@ -70,7 +70,7 @@ module Rails
         end
 
         def executable
-          "bin/rails #{command_name}"
+          "rails #{command_name}"
         end
 
         # Use Rails' default banner.

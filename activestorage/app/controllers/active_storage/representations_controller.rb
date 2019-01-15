@@ -8,7 +8,7 @@ class ActiveStorage::RepresentationsController < ActiveStorage::BaseController
   include ActiveStorage::SetBlob
 
   def show
-    expires_in ActiveStorage::Blob.service.url_expires_in
+    expires_in ActiveStorage.service_urls_expire_in
     redirect_to @blob.representation(params[:variation_key]).processed.service_url(disposition: params[:disposition])
   end
 end

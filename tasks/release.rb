@@ -1,6 +1,20 @@
 # frozen_string_literal: true
 
-FRAMEWORKS = %w( activesupport activemodel activerecord actionview actionpack activejob actionmailer actioncable activestorage railties )
+# Order dependent. E.g. Action Mailbox depends on Active Record so it should be after.
+FRAMEWORKS = %w(
+  activesupport
+  activemodel
+  activerecord
+  actionview
+  actionpack
+  activejob
+  actionmailer
+  actioncable
+  activestorage
+  actionmailbox
+  actiontext
+  railties
+)
 FRAMEWORK_NAMES = Hash.new { |h, k| k.split(/(?<=active|action)/).map(&:capitalize).join(" ") }
 
 root    = File.expand_path("..", __dir__)
@@ -89,7 +103,7 @@ npm_version = version.gsub(/\./).with_index { |s, i| i >= 2 ? "-" : s }
 
       if File.exist?("#{framework}/package.json")
         Dir.chdir("#{framework}") do
-          npm_tag = version =~ /[a-z]/ ? "pre" : "latest"
+          npm_tag = /[a-z]/.match?(version) ? "pre" : "latest"
           sh "npm publish --tag #{npm_tag}"
         end
       end
@@ -105,7 +119,7 @@ namespace :changelog do
       current_contents = File.read(fname)
 
       header = "## Rails #{version} (#{Date.today.strftime('%B %d, %Y')}) ##\n\n"
-      header += "*   No changes.\n\n\n" if current_contents =~ /\A##/
+      header += "*   No changes.\n\n\n" if current_contents.start_with?("##")
       contents = header + current_contents
       File.write(fname, contents)
     end
@@ -122,15 +136,20 @@ namespace :changelog do
     end
   end
 
-  task :release_summary do
-    (FRAMEWORKS + ["guides"]).each do |fw|
-      puts "## #{fw}"
+  task :release_summary, [:base_release] do |_, args|
+    release_regexp = args[:base_release] ? Regexp.escape(args[:base_release]) : /\d+\.\d+\.\d+/
+
+    FRAMEWORKS.each do |fw|
+      puts "## #{FRAMEWORK_NAMES[fw]}"
       fname    = File.join fw, "CHANGELOG.md"
       contents = File.readlines fname
       contents.shift
       changes = []
-      changes << contents.shift until contents.first =~ /^\*Rails \d+\.\d+\.\d+/
-      puts changes.reject { |change| change.strip.empty? }.join
+      until contents.first =~ /^## Rails #{release_regexp}.*$/
+        changes << contents.shift
+      end
+
+      puts changes.join
       puts
     end
   end

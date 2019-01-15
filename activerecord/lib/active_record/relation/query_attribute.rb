@@ -30,12 +30,12 @@ module ActiveRecord
         @_boundable = false
       end
 
-      def infinity?
-        _infinity?(value_before_type_cast) || boundable? && _infinity?(value_for_database)
+      def infinite?
+        infinity?(value_before_type_cast) || boundable? && infinity?(value_for_database)
       end
 
       private
-        def _infinity?(value)
+        def infinity?(value)
           value.respond_to?(:infinite?) && value.infinite?
         end
     end

@@ -38,7 +38,7 @@ class EventedFileUpdateCheckerTest < ActiveSupport::TestCase
 
     FileUtils.touch(tmpfiles)
 
-    checker = new_checker(tmpfiles) {}
+    checker = new_checker(tmpfiles) { }
     assert_not_predicate checker, :updated?
 
     # Pipes used for flow control across fork.
@@ -75,6 +75,34 @@ class EventedFileUpdateCheckerTest < ActiveSupport::TestCase
     assert_predicate checker, :updated?
 
     Process.wait(pid)
+  end
+
+  test "updated should become true when nonexistent directory is added later" do
+    Dir.mktmpdir do |dir|
+      watched_dir = File.join(dir, "app")
+      unwatched_dir = File.join(dir, "node_modules")
+      not_exist_watched_dir = File.join(dir, "test")
+
+      Dir.mkdir(watched_dir)
+      Dir.mkdir(unwatched_dir)
+
+      checker = new_checker([], watched_dir => ".rb", not_exist_watched_dir => ".rb") { }
+
+      FileUtils.touch(File.join(watched_dir, "a.rb"))
+      wait
+      assert_predicate checker, :updated?
+      assert checker.execute_if_updated
+
+      Dir.mkdir(not_exist_watched_dir)
+      wait
+      assert_predicate checker, :updated?
+      assert checker.execute_if_updated
+
+      FileUtils.touch(File.join(unwatched_dir, "a.rb"))
+      wait
+      assert_not_predicate checker, :updated?
+      assert_not checker.execute_if_updated
+    end
   end
 end
 

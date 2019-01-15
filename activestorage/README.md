@@ -16,6 +16,8 @@ A key difference to how Active Storage works compared to other attachment soluti
 
 Run `rails active_storage:install` to copy over active_storage migrations.
 
+NOTE: If the task cannot be found, verify that `require "active_storage/engine"` is present in `config/application.rb`.
+
 ## Examples
 
 One attachment:
@@ -116,7 +118,7 @@ Active Storage, with its included JavaScript library, supports uploading directl
     ```
     Using the npm package:
     ```js
-    import * as ActiveStorage from "activestorage"
+    import * as ActiveStorage from "@rails/activestorage"
     ActiveStorage.start()
     ```
 2. Annotate file inputs with the direct upload URL.

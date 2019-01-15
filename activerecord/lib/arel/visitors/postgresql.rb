@@ -5,7 +5,7 @@ module Arel # :nodoc: all
     class PostgreSQL < Arel::Visitors::ToSql
       CUBE = "CUBE"
       ROLLUP = "ROLLUP"
-      GROUPING_SET = "GROUPING SET"
+      GROUPING_SETS = "GROUPING SETS"
       LATERAL = "LATERAL"
 
       private
@@ -67,7 +67,7 @@ module Arel # :nodoc: all
         end
 
         def visit_Arel_Nodes_GroupingSet(o, collector)
-          collector << GROUPING_SET
+          collector << GROUPING_SETS
           grouping_array_or_grouping_element o, collector
         end
 
@@ -75,6 +75,18 @@ module Arel # :nodoc: all
           collector << LATERAL
           collector << SPACE
           grouping_parentheses o, collector
+        end
+
+        def visit_Arel_Nodes_IsNotDistinctFrom(o, collector)
+          collector = visit o.left, collector
+          collector << " IS NOT DISTINCT FROM "
+          visit o.right, collector
+        end
+
+        def visit_Arel_Nodes_IsDistinctFrom(o, collector)
+          collector = visit o.left, collector
+          collector << " IS DISTINCT FROM "
+          visit o.right, collector
         end
 
         # Used by Lateral visitor to enclose select queries in parentheses

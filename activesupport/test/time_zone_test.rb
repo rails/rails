@@ -225,6 +225,16 @@ class TimeZoneTest < ActiveSupport::TestCase
     assert_equal secs, twz.to_f
   end
 
+  def test_at_with_microseconds
+    zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
+    secs = 946684800.0
+    microsecs = 123456.789
+    twz = zone.at(secs, microsecs)
+    assert_equal zone, twz.time_zone
+    assert_equal secs, twz.to_i
+    assert_equal 123456789, twz.nsec
+  end
+
   def test_iso8601
     zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
     twz = zone.iso8601("1999-12-31T19:00:00")

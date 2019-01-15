@@ -3,13 +3,14 @@
   getData, $
   refreshCSRFTokens, CSRFProtection
   enableElement, disableElement, handleDisabledElement
-  handleConfirm
-  handleRemote, formSubmitButtonClick, handleMetaClick
+  handleConfirm, preventInsignificantClick
+  handleRemote, formSubmitButtonClick,
   handleMethod
 } = Rails
 
 # For backward compatibility
-if jQuery? and jQuery.ajax? and not jQuery.rails
+if jQuery? and jQuery.ajax?
+  throw new Error('If you load both jquery_ujs and rails-ujs, use rails-ujs only.') if jQuery.rails
   jQuery.rails = Rails
   jQuery.ajaxPrefilter (options, originalOptions, xhr) ->
     CSRFProtection(xhr) unless options.crossDomain
@@ -34,13 +35,14 @@ Rails.start = ->
   delegate document, Rails.buttonDisableSelector, 'ajax:complete', enableElement
   delegate document, Rails.buttonDisableSelector, 'ajax:stopped', enableElement
 
+  delegate document, Rails.linkClickSelector, 'click', preventInsignificantClick
   delegate document, Rails.linkClickSelector, 'click', handleDisabledElement
   delegate document, Rails.linkClickSelector, 'click', handleConfirm
-  delegate document, Rails.linkClickSelector, 'click', handleMetaClick
   delegate document, Rails.linkClickSelector, 'click', disableElement
   delegate document, Rails.linkClickSelector, 'click', handleRemote
   delegate document, Rails.linkClickSelector, 'click', handleMethod
 
+  delegate document, Rails.buttonClickSelector, 'click', preventInsignificantClick
   delegate document, Rails.buttonClickSelector, 'click', handleDisabledElement
   delegate document, Rails.buttonClickSelector, 'click', handleConfirm
   delegate document, Rails.buttonClickSelector, 'click', disableElement
@@ -59,6 +61,7 @@ Rails.start = ->
   delegate document, Rails.formSubmitSelector, 'ajax:send', disableElement
   delegate document, Rails.formSubmitSelector, 'ajax:complete', enableElement
 
+  delegate document, Rails.formInputClickSelector, 'click', preventInsignificantClick
   delegate document, Rails.formInputClickSelector, 'click', handleDisabledElement
   delegate document, Rails.formInputClickSelector, 'click', handleConfirm
   delegate document, Rails.formInputClickSelector, 'click', formSubmitButtonClick

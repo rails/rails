@@ -51,12 +51,12 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_add_migration_with_table_having_from_in_title
-    migration = "add_email_address_to_blacklisted_from_campaign"
+    migration = "add_email_address_to_excluded_from_campaign"
     run_generator [migration, "email_address:string"]
 
     assert_migration "db/migrate/#{migration}.rb" do |content|
       assert_method :change, content do |change|
-        assert_match(/add_column :blacklisted_from_campaigns, :email_address, :string/, change)
+        assert_match(/add_column :excluded_from_campaigns, :email_address, :string/, change)
       end
     end
   end
@@ -250,6 +250,17 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
     assert_migration "db/migrate/create_books.rb" do |content|
       assert_method :change, content do |change|
         assert_match(/create_table :books, id: :uuid/, change)
+      end
+    end
+  end
+
+  def test_database_puts_migrations_in_configured_folder
+    with_secondary_database_configuration do
+      run_generator ["create_books", "--database=secondary"]
+      assert_migration "db/secondary_migrate/create_books.rb" do |content|
+        assert_method :change, content do |change|
+          assert_match(/create_table :books/, change)
+        end
       end
     end
   end

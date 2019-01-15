@@ -12,7 +12,7 @@ module ActiveStorage
       end
 
       def pdftoppm_exists?
-        return @pdftoppm_exists unless @pdftoppm_exists.nil?
+        return @pdftoppm_exists if defined?(@pdftoppm_exists)
 
         @pdftoppm_exists = system(pdftoppm_path, "-v", out: File::NULL, err: File::NULL)
       end

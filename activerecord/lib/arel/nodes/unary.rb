@@ -37,7 +37,6 @@ module Arel # :nodoc: all
       On
       Ordering
       RollUp
-      Top
     }.each do |name|
       const_set(name, Class.new(Unary))
     end

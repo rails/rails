@@ -1,7 +1,5 @@
-require: './ci/custom_cops/lib/custom_cops'
-
 AllCops:
-  TargetRubyVersion: 2.4
+  TargetRubyVersion: 2.5
   # RuboCop has a bunch of cops enabled by default. This setting tells RuboCop
   # to ignore them, so only the ones explicitly set in this file are enabled.
   DisabledByDefault: true
@@ -10,14 +8,24 @@ AllCops:
     - '**/vendor/**/*'
     - 'actionpack/lib/action_dispatch/journey/parser.rb'
     - 'railties/test/fixtures/tmp/**/*'
+    - 'actionmailbox/test/dummy/**/*'
+    - 'actiontext/test/dummy/**/*'
+    - 'node_modules/**/*'
 
-# Prefer assert_not_x over refute_x
-CustomCops/RefuteNot:
+Performance:
+  Exclude:
+    - '**/test/**/*'
+
+Rails:
+  Enabled: true
+
+# Prefer assert_not over assert !
+Rails/AssertNot:
   Include:
     - '**/test/**/*'
 
-# Prefer assert_not over assert !
-CustomCops/AssertNot:
+# Prefer assert_not_x over refute_x
+Rails/RefuteMethods:
   Include:
     - '**/test/**/*'
 
@@ -50,6 +58,9 @@ Layout/EndAlignment:
   AutoCorrect: true
 
 Layout/EmptyLineAfterMagicComment:
+  Enabled: true
+
+Layout/EmptyLinesAroundBlockBody:
   Enabled: true
 
 # In a regular class definition, no empty lines around the body.
@@ -90,6 +101,9 @@ Layout/SpaceAfterColon:
 Layout/SpaceAfterComma:
   Enabled: true
 
+Layout/SpaceAfterSemicolon:
+  Enabled: true
+
 Layout/SpaceAroundEqualsInParameterDefault:
   Enabled: true
 
@@ -100,10 +114,10 @@ Layout/SpaceAroundOperators:
   Enabled: true
 
 Layout/SpaceBeforeComma:
-    Enabled: true
+  Enabled: true
 
 Layout/SpaceBeforeFirstArg:
-    Enabled: true
+  Enabled: true
 
 Style/DefWithParentheses:
   Enabled: true
@@ -121,6 +135,11 @@ Style/FrozenStringLiteralComment:
     - 'actionpack/test/**/*.builder'
     - 'actionpack/test/**/*.ruby'
     - 'activestorage/db/migrate/**/*.rb'
+    - 'actionmailbox/db/migrate/**/*.rb'
+    - 'actiontext/db/migrate/**/*.rb'
+
+Style/RedundantFreeze:
+  Enabled: true
 
 # Use `foo {}` not `foo{}`.
 Layout/SpaceBeforeBlockBraces:
@@ -129,6 +148,7 @@ Layout/SpaceBeforeBlockBraces:
 # Use `foo { bar }` not `foo {bar}`.
 Layout/SpaceInsideBlockBraces:
   Enabled: true
+  EnforcedStyleForEmptyBraces: space
 
 # Use `{ a: 1 }` not `{a:1}`.
 Layout/SpaceInsideHashLiteralBraces:
@@ -162,6 +182,27 @@ Style/UnneededPercentQ:
 Lint/RequireParentheses:
   Enabled: true
 
+Lint/ShadowingOuterLocalVariable:
+  Enabled: true
+
+Lint/StringConversionInInterpolation:
+  Enabled: true
+
+Lint/UriEscapeUnescape:
+  Enabled: true
+
+Lint/UselessAssignment:
+  Enabled: true
+
+Lint/DeprecatedClassMethods:
+  Enabled: true
+
+Style/ParenthesesAroundCondition:
+  Enabled: true
+
+Style/RedundantBegin:
+  Enabled: true
+
 Style/RedundantReturn:
   Enabled: true
   AllowMultipleReturnValues: true
@@ -172,4 +213,25 @@ Style/Semicolon:
 
 # Prefer Foo.method over Foo::method
 Style/ColonMethodCall:
+  Enabled: true
+
+Style/TrivialAccessors:
+  Enabled: true
+
+Performance/FlatMap:
+  Enabled: true
+
+Performance/RedundantMerge:
+  Enabled: true
+
+Performance/StartWith:
+  Enabled: true
+
+Performance/EndWith:
+  Enabled: true
+
+Performance/RegexpMatch:
+  Enabled: true
+
+Performance/UnfreezeString:
   Enabled: true

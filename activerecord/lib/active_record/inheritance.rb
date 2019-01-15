@@ -55,6 +55,10 @@ module ActiveRecord
         if has_attribute?(inheritance_column)
           subclass = subclass_from_attributes(attributes)
 
+          if subclass.nil? && scope_attributes = current_scope&.scope_for_create
+            subclass = subclass_from_attributes(scope_attributes)
+          end
+
           if subclass.nil? && base_class?
             subclass = subclass_from_attributes(column_defaults)
           end
@@ -176,7 +180,7 @@ module ActiveRecord
         # Returns the class type of the record using the current module as a prefix. So descendants of
         # MyApp::Business::Account would appear as MyApp::Business::AccountSubclass.
         def compute_type(type_name)
-          if type_name.start_with?("::".freeze)
+          if type_name.start_with?("::")
             # If the type is prefixed with a scope operator then we assume that
             # the type_name is an absolute reference.
             ActiveSupport::Dependencies.constantize(type_name)

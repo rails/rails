@@ -353,7 +353,7 @@ class PostgresqlArrayTest < ActiveRecord::PostgreSQLTestCase
     assert e1.persisted?, "Saving e1"
 
     e2 = klass.create("tags" => ["black", "blue"])
-    assert !e2.persisted?, "e2 shouldn't be valid"
+    assert_not e2.persisted?, "e2 shouldn't be valid"
     assert e2.errors[:tags].any?, "Should have errors for tags"
     assert_equal ["has already been taken"], e2.errors[:tags], "Should have uniqueness message for tags"
   end

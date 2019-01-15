@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 #--
-# Copyright (c) 2004-2018 David Heinemeier Hansson
+# Copyright (c) 2004-2019 David Heinemeier Hansson
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -40,7 +40,6 @@ module ActiveRecord
   autoload :Core
   autoload :ConnectionHandling
   autoload :CounterCache
-  autoload :DatabaseConfigurations
   autoload :DynamicMatchers
   autoload :Enum
   autoload :InternalMetadata

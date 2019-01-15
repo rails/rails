@@ -164,8 +164,11 @@ class TranslationHelperTest < ActiveSupport::TestCase
     assert_equal "<a>Other &lt;One&gt;</a>", translate(:'translations.count_html', count: "<One>")
   end
 
-  def test_translation_returning_an_array_ignores_html_suffix
-    assert_equal ["foo", "bar"], translate(:'translations.array_html')
+  def test_translate_marks_array_of_translations_with_a_html_safe_suffix_as_safe_html
+    translate(:'translations.array_html').tap do |translated|
+      assert_equal %w( foo bar ), translated
+      assert translated.all?(&:html_safe?)
+    end
   end
 
   def test_translate_with_default_named_html

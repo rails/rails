@@ -19,7 +19,7 @@ class TestRunnerInEngineTest < ActiveSupport::TestCase
     create_test_file "post", pass: false
 
     output = run_test_command("test/post_test.rb")
-    expect = %r{Running:\n\nPostTest\nF\n\nFailure:\nPostTest#test_truth \[[^\]]+test/post_test\.rb:6\]:\nwups!\n\nbin/rails test test/post_test\.rb:4}
+    expect = %r{Running:\n\nPostTest\nF\n\nFailure:\nPostTest#test_truth \[[^\]]+test/post_test\.rb:6\]:\nwups!\n\nrails test test/post_test\.rb:4}
     assert_match expect, output
   end
 

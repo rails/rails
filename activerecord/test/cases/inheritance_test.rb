@@ -91,7 +91,6 @@ class InheritanceTest < ActiveRecord::TestCase
     end
 
     ActiveSupport::Dependencies.stub(:safe_constantize, proc { raise e }) do
-
       exception = assert_raises NameError do
         Company.send :compute_type, "InvalidModel"
       end
@@ -163,7 +162,7 @@ class InheritanceTest < ActiveRecord::TestCase
     assert_not_predicate ActiveRecord::Base, :descends_from_active_record?
     assert AbstractCompany.descends_from_active_record?, "AbstractCompany should descend from ActiveRecord::Base"
     assert Company.descends_from_active_record?, "Company should descend from ActiveRecord::Base"
-    assert !Class.new(Company).descends_from_active_record?, "Company subclass should not descend from ActiveRecord::Base"
+    assert_not Class.new(Company).descends_from_active_record?, "Company subclass should not descend from ActiveRecord::Base"
   end
 
   def test_abstract_class
@@ -241,7 +240,7 @@ class InheritanceTest < ActiveRecord::TestCase
     cabbage = vegetable.becomes!(Cabbage)
     assert_equal "Cabbage", cabbage.custom_type
 
-    vegetable = cabbage.becomes!(Vegetable)
+    cabbage.becomes!(Vegetable)
     assert_nil cabbage.custom_type
   end
 
@@ -655,7 +654,7 @@ class InheritanceAttributeMappingTest < ActiveRecord::TestCase
 
     assert_equal ["omg_inheritance_attribute_mapping_test/company"], ActiveRecord::Base.connection.select_values("SELECT sponsorable_type FROM sponsors")
 
-    sponsor = Sponsor.first
+    sponsor = Sponsor.find(sponsor.id)
     assert_equal startup, sponsor.sponsorable
   end
 end

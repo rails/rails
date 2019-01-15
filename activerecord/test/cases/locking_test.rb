@@ -445,32 +445,38 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     assert_equal 0, car.wheels_count
     assert_equal 0, car.lock_version
 
-    previously_car_updated_at = car.updated_at
-    travel(2.second) do
+    previously_updated_at = car.updated_at
+    previously_wheels_owned_at = car.wheels_owned_at
+    travel(1.second) do
       Wheel.create!(wheelable: car)
     end
 
     assert_equal 1, car.reload.wheels_count
-    assert_not_equal previously_car_updated_at, car.updated_at
     assert_equal 1, car.lock_version
+    assert_operator previously_updated_at, :<, car.updated_at
+    assert_operator previously_wheels_owned_at, :<, car.wheels_owned_at
 
-    previously_car_updated_at = car.updated_at
-    travel(1.day) do
+    previously_updated_at = car.updated_at
+    previously_wheels_owned_at = car.wheels_owned_at
+    travel(2.second) do
       car.wheels.first.update(size: 42)
     end
 
     assert_equal 1, car.reload.wheels_count
-    assert_not_equal previously_car_updated_at, car.updated_at
     assert_equal 2, car.lock_version
+    assert_operator previously_updated_at, :<, car.updated_at
+    assert_operator previously_wheels_owned_at, :<, car.wheels_owned_at
 
-    previously_car_updated_at = car.updated_at
-    travel(2.second) do
+    previously_updated_at = car.updated_at
+    previously_wheels_owned_at = car.wheels_owned_at
+    travel(3.second) do
       car.wheels.first.destroy!
     end
 
     assert_equal 0, car.reload.wheels_count
-    assert_not_equal previously_car_updated_at, car.updated_at
     assert_equal 3, car.lock_version
+    assert_operator previously_updated_at, :<, car.updated_at
+    assert_operator previously_wheels_owned_at, :<, car.wheels_owned_at
   end
 
   def test_polymorphic_destroy_with_dependencies_and_lock_version

@@ -35,6 +35,11 @@ module Arel # :nodoc: all
   def self.star
     sql "*"
   end
+
+  def self.arel_node?(value)
+    value.is_a?(Arel::Node) || value.is_a?(Arel::Attribute) || value.is_a?(Arel::Nodes::SqlLiteral)
+  end
+
   ## Convenience Alias
   Node = Arel::Nodes::Node
 end

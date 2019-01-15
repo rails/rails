@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
 The Asset Pipeline
 ==================
@@ -20,7 +20,7 @@ What is the Asset Pipeline?
 
 The asset pipeline provides a framework to concatenate and minify or compress
 JavaScript and CSS assets. It also adds the ability to write these assets in
-other languages and pre-processors such as CoffeeScript, Sass and ERB.
+other languages and pre-processors such as CoffeeScript, Sass, and ERB.
 It allows assets in your application to be automatically combined with assets
 from other gems.
 
@@ -184,9 +184,8 @@ the file `scaffolds.css` (or `scaffolds.scss` if `sass-rails` is in the
 `Gemfile`.)
 
 For example, if you generate a `ProjectsController`, Rails will also add a new
-file at `app/assets/javascripts/projects.coffee` and another at
-`app/assets/stylesheets/projects.scss`. By default these files will be ready
-to use by your application immediately using the `require_tree` directive. See
+file at `app/assets/stylesheets/projects.scss`. By default these files will be
+ready to use by your application immediately using the `require_tree` directive. See
 [Manifest Files and Directives](#manifest-files-and-directives) for more details
 on require_tree.
 
@@ -224,7 +223,7 @@ Pipeline assets can be placed inside an application in one of three locations:
 `app/assets`, `lib/assets` or `vendor/assets`.
 
 * `app/assets` is for assets that are owned by the application, such as custom
-images, JavaScript files or stylesheets.
+images, JavaScript files, or stylesheets.
 
 * `lib/assets` is for your own libraries' code that doesn't really fit into the
 scope of the application or those libraries which are shared across applications.
@@ -233,11 +232,6 @@ scope of the application or those libraries which are shared across applications
 code for JavaScript plugins and CSS frameworks. Keep in mind that third party
 code with references to other files also processed by the asset Pipeline (images,
 stylesheets, etc.), will need to be rewritten to use helpers like `asset_path`.
-
-WARNING: If you are upgrading from Rails 3, please take into account that assets
-under `lib/assets` or `vendor/assets` are available for inclusion via the
-application manifests but no longer part of the precompile array. See
-[Precompiling Assets](#precompiling-assets) for guidance.
 
 #### Search Paths
 
@@ -434,7 +428,7 @@ Sprockets uses manifest files to determine which assets to include and serve.
 These manifest files contain _directives_ - instructions that tell Sprockets
 which files to require in order to build a single CSS or JavaScript file. With
 these directives, Sprockets loads the files specified, processes them if
-necessary, concatenates them into one single file and then compresses them
+necessary, concatenates them into one single file, and then compresses them
 (based on value of `Rails.application.config.assets.js_compressor`). By serving
 one file rather than many, the load time of pages can be greatly reduced because
 the browser makes fewer requests. Compression also reduces file size, enabling
@@ -673,20 +667,20 @@ content changes.
 
 ### Precompiling Assets
 
-Rails comes bundled with a task to compile the asset manifests and other
+Rails comes bundled with a command to compile the asset manifests and other
 files in the pipeline.
 
 Compiled assets are written to the location specified in `config.assets.prefix`.
 By default, this is the `/assets` directory.
 
-You can call this task on the server during deployment to create compiled
+You can call this command on the server during deployment to create compiled
 versions of your assets directly on the server. See the next section for
 information on compiling locally.
 
-The task is:
+The command is:
 
 ```bash
-$ RAILS_ENV=production bin/rails assets:precompile
+$ RAILS_ENV=production rails assets:precompile
 ```
 
 Capistrano (v2.15.1 and above) includes a recipe to handle this in deployment.
@@ -698,7 +692,7 @@ load 'deploy/assets'
 
 This links the folder specified in `config.assets.prefix` to `shared/assets`.
 If you already use this shared folder you'll need to write your own deployment
-task.
+command.
 
 It is important that this folder is shared between deployments so that remotely
 cached pages referencing the old compiled assets still work for the life of
@@ -728,7 +722,7 @@ Rails.application.config.assets.precompile += %w( admin.js admin.css )
 NOTE. Always specify an expected compiled filename that ends with `.js` or `.css`,
 even if you want to add Sass or CoffeeScript files to the precompile array.
 
-The task also generates a `.sprockets-manifest-randomhex.json` (where `randomhex` is
+The command also generates a `.sprockets-manifest-randomhex.json` (where `randomhex` is
 a 16-byte random hex string) that contains a list with all your assets and their respective
 fingerprints. This is used by the Rails helper methods to avoid handing the
 mapping requests back to Sprockets. A typical manifest file looks like:
@@ -845,7 +839,7 @@ signals all caches between your server and the client browser that this content
 number of requests for this asset from your server; the asset has a good chance
 of being in the local browser cache or some intermediate cache.
 
-This mode uses more memory, performs more poorly than the default and is not
+This mode uses more memory, performs more poorly than the default, and is not
 recommended.
 
 If you are deploying a production application to a system without any
@@ -1107,7 +1101,7 @@ Windows you have a JavaScript runtime installed in your operating system.
 
 
 
-### Serving GZipped version of assets
+### GZipping your assets
 
 By default, gzipped version of compiled assets will be generated, along with
 the non-gzipped version of assets. Gzipped assets help reduce the transmission
@@ -1116,6 +1110,8 @@ of data over the wire. You can configure this by setting the `gzip` flag.
 ```ruby
 config.assets.gzip = false # disable gzipped assets generation
 ```
+
+Refer to your web server's documentation for instructions on how to serve gzipped assets.
 
 ### Using Your Own Compressor
 
@@ -1235,60 +1231,3 @@ it as a preprocessor for your mime type.
 Sprockets.register_preprocessor 'text/css', AddComment
 ```
 
-Upgrading from Old Versions of Rails
-------------------------------------
-
-There are a few issues when upgrading from Rails 3.0 or Rails 2.x. The first is
-moving the files from `public/` to the new locations. See [Asset
-Organization](#asset-organization) above for guidance on the correct locations
-for different file types.
-
-Next is updating the various environment files with the correct default
-options.
-
-In `application.rb`:
-
-```ruby
-# Version of your assets, change this if you want to expire all your assets
-config.assets.version = '1.0'
-
-# Change the path that assets are served from config.assets.prefix = "/assets"
-```
-
-In `development.rb`:
-
-```ruby
-# Expands the lines which load the assets
-config.assets.debug = true
-```
-
-And in `production.rb`:
-
-```ruby
-# Choose the compressors to use (if any)
-config.assets.js_compressor = :uglifier
-# config.assets.css_compressor = :yui
-
-# Don't fallback to assets pipeline if a precompiled asset is missed
-config.assets.compile = false
-
-# Generate digests for assets URLs.
-config.assets.digest = true
-
-# Precompile additional assets (application.js, application.css, and all
-# non-JS/CSS are already added)
-# config.assets.precompile += %w( admin.js admin.css )
-```
-
-Rails 4 and above no longer set default config values for Sprockets in `test.rb`, so
-`test.rb` now requires Sprockets configuration. The old defaults in the test
-environment are: `config.assets.compile = true`, `config.assets.compress = false`,
-`config.assets.debug = false` and `config.assets.digest = false`.
-
-The following should also be added to your `Gemfile`:
-
-```ruby
-gem 'sass-rails',   "~> 3.2.3"
-gem 'coffee-rails', "~> 3.2.1"
-gem 'uglifier'
-```

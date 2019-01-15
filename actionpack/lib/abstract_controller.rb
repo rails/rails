@@ -7,6 +7,7 @@ require "active_support/i18n"
 module AbstractController
   extend ActiveSupport::Autoload
 
+  autoload :ActionNotFound, "abstract_controller/base"
   autoload :Base
   autoload :Caching
   autoload :Callbacks

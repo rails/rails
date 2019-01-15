@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
 Active Support Core Extensions
 ==============================
@@ -590,9 +590,9 @@ NOTE: Defined in `active_support/core_ext/module/attribute_accessors.rb`.
 
 ### Parents
 
-#### `parent`
+#### `module_parent`
 
-The `parent` method on a nested named module returns the module that contains its corresponding constant:
+The `module_parent` method on a nested named module returns the module that contains its corresponding constant:
 
 ```ruby
 module X
@@ -603,19 +603,19 @@ module X
 end
 M = X::Y::Z
 
-X::Y::Z.parent # => X::Y
-M.parent       # => X::Y
+X::Y::Z.module_parent # => X::Y
+M.module_parent       # => X::Y
 ```
 
-If the module is anonymous or belongs to the top-level, `parent` returns `Object`.
+If the module is anonymous or belongs to the top-level, `module_parent` returns `Object`.
 
-WARNING: Note that in that case `parent_name` returns `nil`.
+WARNING: Note that in that case `module_parent_name` returns `nil`.
 
 NOTE: Defined in `active_support/core_ext/module/introspection.rb`.
 
-#### `parent_name`
+#### `module_parent_name`
 
-The `parent_name` method on a nested named module returns the fully qualified name of the module that contains its corresponding constant:
+The `module_parent_name` method on a nested named module returns the fully qualified name of the module that contains its corresponding constant:
 
 ```ruby
 module X
@@ -626,19 +626,19 @@ module X
 end
 M = X::Y::Z
 
-X::Y::Z.parent_name # => "X::Y"
-M.parent_name       # => "X::Y"
+X::Y::Z.module_parent_name # => "X::Y"
+M.module_parent_name       # => "X::Y"
 ```
 
-For top-level or anonymous modules `parent_name` returns `nil`.
+For top-level or anonymous modules `module_parent_name` returns `nil`.
 
-WARNING: Note that in that case `parent` returns `Object`.
+WARNING: Note that in that case `module_parent` returns `Object`.
 
 NOTE: Defined in `active_support/core_ext/module/introspection.rb`.
 
-#### `parents`
+#### `module_parents`
 
-The method `parents` calls `parent` on the receiver and upwards until `Object` is reached. The chain is returned in an array, from bottom to top:
+The method `module_parents` calls `module_parent` on the receiver and upwards until `Object` is reached. The chain is returned in an array, from bottom to top:
 
 ```ruby
 module X
@@ -649,8 +649,8 @@ module X
 end
 M = X::Y::Z
 
-X::Y::Z.parents # => [X::Y, X, Object]
-M.parents       # => [X::Y, X, Object]
+X::Y::Z.module_parents # => [X::Y, X, Object]
+M.module_parents       # => [X::Y, X, Object]
 ```
 
 NOTE: Defined in `active_support/core_ext/module/introspection.rb`.
@@ -2039,6 +2039,21 @@ WARNING. Keys should normally be unique. If the block returns the same value for
 
 NOTE: Defined in `active_support/core_ext/enumerable.rb`.
 
+### `index_with`
+
+The method `index_with` generates a hash with the elements of an enumerable as keys. The value
+is either a passed default or returned in a block.
+
+```ruby
+%i( title body created_at ).index_with { |attr_name| post.public_send(attr_name) }
+# => { title: "hey", body: "what's up?", … }
+
+WEEKDAYS.index_with(Interval.all_day)
+# => { monday: [ 0, 1440 ], … }
+```
+
+NOTE: Defined in `active_support/core_ext/enumerable.rb`.
+
 ### `many?`
 
 The method `many?` is shorthand for `collection.size > 1`:
@@ -2117,29 +2132,18 @@ The methods `second`, `third`, `fourth`, and `fifth` return the corresponding el
 
 NOTE: Defined in `active_support/core_ext/array/access.rb`.
 
-### Adding Elements
+### Extracting
 
-#### `prepend`
-
-This method is an alias of `Array#unshift`.
-
-```ruby
-%w(a b c d).prepend('e')  # => ["e", "a", "b", "c", "d"]
-[].prepend(10)            # => [10]
-```
-
-NOTE: Defined in `active_support/core_ext/array/prepend_and_append.rb`.
-
-#### `append`
-
-This method is an alias of `Array#<<`.
+The method `extract!` removes and returns the elements for which the block returns a true value.
+If no block is given, an Enumerator is returned instead.
 
 ```ruby
-%w(a b c d).append('e')  # => ["a", "b", "c", "d", "e"]
-[].append([1,2])         # => [[1, 2]]
+numbers = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+odd_numbers = numbers.extract! { |number| number.odd? } # => [1, 3, 5, 7, 9]
+numbers # => [0, 2, 4, 6, 8]
 ```
 
-NOTE: Defined in `active_support/core_ext/array/prepend_and_append.rb`.
+NOTE: Defined in `active_support/core_ext/array/extract.rb`.
 
 ### Options Extraction
 
@@ -2618,48 +2622,6 @@ There's also the bang variant `except!` that removes keys in the very receiver.
 
 NOTE: Defined in `active_support/core_ext/hash/except.rb`.
 
-#### `transform_keys` and `transform_keys!`
-
-The method `transform_keys` accepts a block and returns a hash that has applied the block operations to each of the keys in the receiver:
-
-```ruby
-{nil => nil, 1 => 1, a: :a}.transform_keys { |key| key.to_s.upcase }
-# => {"" => nil, "1" => 1, "A" => :a}
-```
-
-In case of key collision, one of the values will be chosen. The chosen value may not always be the same given the same hash:
-
-```ruby
-{"a" => 1, a: 2}.transform_keys { |key| key.to_s.upcase }
-# The result could either be
-# => {"A"=>2}
-# or
-# => {"A"=>1}
-```
-
-This method may be useful for example to build specialized conversions. For instance `stringify_keys` and `symbolize_keys` use `transform_keys` to perform their key conversions:
-
-```ruby
-def stringify_keys
-  transform_keys { |key| key.to_s }
-end
-...
-def symbolize_keys
-  transform_keys { |key| key.to_sym rescue key }
-end
-```
-
-There's also the bang variant `transform_keys!` that applies the block operations to keys in the very receiver.
-
-Besides that, one can use `deep_transform_keys` and `deep_transform_keys!` to perform the block operation on all the keys in the given hash and all the hashes nested into it. An example of the result is:
-
-```ruby
-{nil => nil, 1 => 1, nested: {a: 3, 5 => 5}}.deep_transform_keys { |key| key.to_s.upcase }
-# => {""=>nil, "1"=>1, "NESTED"=>{"A"=>3, "5"=>5}}
-```
-
-NOTE: Defined in `active_support/core_ext/hash/keys.rb`.
-
 #### `stringify_keys` and `stringify_keys!`
 
 The method `stringify_keys` returns a hash that has a stringified version of the keys in the receiver. It does so by sending `to_s` to them:
@@ -2767,26 +2729,7 @@ NOTE: Defined in `active_support/core_ext/hash/keys.rb`.
 
 ### Slicing
 
-Ruby has built-in support for taking slices out of strings and arrays. Active Support extends slicing to hashes:
-
-```ruby
-{a: 1, b: 2, c: 3}.slice(:a, :c)
-# => {:a=>1, :c=>3}
-
-{a: 1, b: 2, c: 3}.slice(:b, :X)
-# => {:b=>2} # non-existing keys are ignored
-```
-
-If the receiver responds to `convert_key` keys are normalized:
-
-```ruby
-{a: 1, b: 2}.with_indifferent_access.slice("a")
-# => {:a=>1}
-```
-
-NOTE. Slicing may come in handy for sanitizing option hashes with a white list of keys.
-
-There's also `slice!` which in addition to perform a slice in place returns what's removed:
+The method `slice!` replaces the hash with only the given keys and returns a hash containing the removed key/value pairs.
 
 ```ruby
 hash = {a: 1, b: 2}
@@ -2874,9 +2817,9 @@ As the example depicts, the `:db` format generates a `BETWEEN` SQL clause. That 
 
 NOTE: Defined in `active_support/core_ext/range/conversions.rb`.
 
-### `include?`
+### `===`, `include?`, and `cover?`
 
-The methods `Range#include?` and `Range#===` say whether some value falls between the ends of a given instance:
+The methods `Range#===`, `Range#include?`, and `Range#cover?` say whether some value falls between the ends of a given instance:
 
 ```ruby
 (2..3).include?(Math::E) # => true
@@ -2885,18 +2828,23 @@ The methods `Range#include?` and `Range#===` say whether some value falls betwee
 Active Support extends these methods so that the argument may be another range in turn. In that case we test whether the ends of the argument range belong to the receiver themselves:
 
 ```ruby
+(1..10) === (3..7)  # => true
+(1..10) === (0..7)  # => false
+(1..10) === (3..11) # => false
+(1...9) === (3..9)  # => false
+
 (1..10).include?(3..7)  # => true
 (1..10).include?(0..7)  # => false
 (1..10).include?(3..11) # => false
 (1...9).include?(3..9)  # => false
 
-(1..10) === (3..7)  # => true
-(1..10) === (0..7)  # => false
-(1..10) === (3..11) # => false
-(1...9) === (3..9)  # => false
+(1..10).cover?(3..7)  # => true
+(1..10).cover?(0..7)  # => false
+(1..10).cover?(3..11) # => false
+(1...9).cover?(3..9)  # => false
 ```
 
-NOTE: Defined in `active_support/core_ext/range/include_range.rb`.
+NOTE: Defined in `active_support/core_ext/range/compare_range.rb`.
 
 ### `overlaps?`
 
@@ -2915,34 +2863,6 @@ Extensions to `Date`
 
 ### Calculations
 
-NOTE: All the following methods are defined in `active_support/core_ext/date/calculations.rb`.
-
-```ruby
-yesterday
-tomorrow
-beginning_of_week (at_beginning_of_week)
-end_of_week (at_end_of_week)
-monday
-sunday
-weeks_ago
-prev_week (last_week)
-next_week
-months_ago
-months_since
-beginning_of_month (at_beginning_of_month)
-end_of_month (at_end_of_month)
-last_month
-beginning_of_quarter (at_beginning_of_quarter)
-end_of_quarter (at_end_of_quarter)
-beginning_of_year (at_beginning_of_year)
-end_of_year (at_end_of_year)
-years_ago
-years_since
-last_year
-on_weekday?
-on_weekend?
-```
-
 INFO: The following calculation methods have edge cases in October 1582, since days 5..14 just do not exist. This guide does not document their behavior around those days for brevity, but it is enough to say that they do what you would expect. That is, `Date.new(1582, 10, 4).tomorrow` returns `Date.new(1582, 10, 15)` and so on. Please check `test/core_ext/date_ext_test.rb` in the Active Support test suite for expected behavior.
 
 #### `Date.current`
@@ -2950,6 +2870,8 @@ INFO: The following calculation methods have edge cases in October 1582, since d
 Active Support defines `Date.current` to be today in the current time zone. That's like `Date.today`, except that it honors the user time zone, if defined. It also defines `Date.yesterday` and `Date.tomorrow`, and the instance predicates `past?`, `today?`, `future?`, `on_weekday?` and `on_weekend?`, all of them relative to `Date.current`.
 
 When making Date comparisons using methods which honor the user time zone, make sure to use `Date.current` and not `Date.today`. There are cases where the user time zone might be in the future compared to the system time zone, which `Date.today` uses by default. This means `Date.today` may equal `Date.yesterday`.
+
+NOTE: Defined in `active_support/core_ext/date/calculations.rb`.
 
 #### Named dates
 
@@ -2970,6 +2892,8 @@ d.end_of_week(:sunday)       # => Sat, 08 May 2010
 
 `beginning_of_week` is aliased to `at_beginning_of_week` and `end_of_week` is aliased to `at_end_of_week`.
 
+NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
+
 ##### `monday`, `sunday`
 
 The methods `monday` and `sunday` return the dates for the previous Monday and
@@ -2986,6 +2910,8 @@ d.monday                     # => Mon, 10 Sep 2012
 d = Date.new(2012, 9, 16)    # => Sun, 16 Sep 2012
 d.sunday                     # => Sun, 16 Sep 2012
 ```
+
+NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
 
 ##### `prev_week`, `next_week`
 
@@ -3009,6 +2935,8 @@ d.prev_week(:friday)     # => Fri, 30 Apr 2010
 
 Both `next_week` and `prev_week` work as expected when `Date.beginning_of_week` or `config.beginning_of_week` are set.
 
+NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
+
 ##### `beginning_of_month`, `end_of_month`
 
 The methods `beginning_of_month` and `end_of_month` return the dates for the beginning and end of the month:
@@ -3020,6 +2948,8 @@ d.end_of_month           # => Mon, 31 May 2010
 ```
 
 `beginning_of_month` is aliased to `at_beginning_of_month`, and `end_of_month` is aliased to `at_end_of_month`.
+
+NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
 
 ##### `beginning_of_quarter`, `end_of_quarter`
 
@@ -3033,6 +2963,8 @@ d.end_of_quarter         # => Wed, 30 Jun 2010
 
 `beginning_of_quarter` is aliased to `at_beginning_of_quarter`, and `end_of_quarter` is aliased to `at_end_of_quarter`.
 
+NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
+
 ##### `beginning_of_year`, `end_of_year`
 
 The methods `beginning_of_year` and `end_of_year` return the dates for the beginning and end of the year:
@@ -3044,6 +2976,8 @@ d.end_of_year            # => Fri, 31 Dec 2010
 ```
 
 `beginning_of_year` is aliased to `at_beginning_of_year`, and `end_of_year` is aliased to `at_end_of_year`.
+
+NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
 
 #### Other Date Computations
 
@@ -3072,6 +3006,8 @@ Date.new(2012, 2, 29).years_since(3)   # => Sat, 28 Feb 2015
 
 `last_year` is short-hand for `#years_ago(1)`.
 
+NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
+
 ##### `months_ago`, `months_since`
 
 The methods `months_ago` and `months_since` work analogously for months:
@@ -3090,6 +3026,8 @@ Date.new(2009, 12, 31).months_since(2) # => Sun, 28 Feb 2010
 
 `last_month` is short-hand for `#months_ago(1)`.
 
+NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
+
 ##### `weeks_ago`
 
 The method `weeks_ago` works analogously for weeks:
@@ -3098,6 +3036,8 @@ The method `weeks_ago` works analogously for weeks:
 Date.new(2010, 5, 24).weeks_ago(1)    # => Mon, 17 May 2010
 Date.new(2010, 5, 24).weeks_ago(2)    # => Mon, 10 May 2010
 ```
+
+NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
 
 ##### `advance`
 
@@ -3127,6 +3067,8 @@ Date.new(2010, 2, 28).advance(days: 1).advance(months: 1)
 # => Thu, 01 Apr 2010
 ```
 
+NOTE: Defined in `active_support/core_ext/date/calculations.rb`.
+
 #### Changing Components
 
 The method `change` allows you to get a new date which is the same as the receiver except for the given year, month, or day:
@@ -3142,6 +3084,8 @@ This method is not tolerant to non-existing dates, if the change is invalid `Arg
 Date.new(2010, 1, 31).change(month: 2)
 # => ArgumentError: invalid date
 ```
+
+NOTE: Defined in `active_support/core_ext/date/calculations.rb`.
 
 #### Durations
 
@@ -3185,6 +3129,8 @@ date.end_of_day # => Mon Jun 07 23:59:59 +0200 2010
 
 `beginning_of_day` is aliased to `at_beginning_of_day`, `midnight`, `at_midnight`.
 
+NOTE: Defined in `active_support/core_ext/date/calculations.rb`.
+
 ##### `beginning_of_hour`, `end_of_hour`
 
 The method `beginning_of_hour` returns a timestamp at the beginning of the hour (hh:00:00):
@@ -3202,6 +3148,8 @@ date.end_of_hour # => Mon Jun 07 19:59:59 +0200 2010
 ```
 
 `beginning_of_hour` is aliased to `at_beginning_of_hour`.
+
+NOTE: Defined in `active_support/core_ext/date_time/calculations.rb`.
 
 ##### `beginning_of_minute`, `end_of_minute`
 
@@ -3223,6 +3171,8 @@ date.end_of_minute # => Mon Jun 07 19:55:59 +0200 2010
 
 INFO: `beginning_of_hour`, `end_of_hour`, `beginning_of_minute` and `end_of_minute` are implemented for `Time` and `DateTime` but **not** `Date` as it does not make sense to request the beginning or end of an hour or minute on a `Date` instance.
 
+NOTE: Defined in `active_support/core_ext/date_time/calculations.rb`.
+
 ##### `ago`, `since`
 
 The method `ago` receives a number of seconds as argument and returns a timestamp those many seconds ago from midnight:
@@ -3239,6 +3189,8 @@ date = Date.current # => Fri, 11 Jun 2010
 date.since(1)       # => Fri, 11 Jun 2010 00:00:01 EDT -04:00
 ```
 
+NOTE: Defined in `active_support/core_ext/date/calculations.rb`.
+
 #### Other Time Computations
 
 ### Conversions
@@ -3249,8 +3201,6 @@ Extensions to `DateTime`
 WARNING: `DateTime` is not aware of DST rules and so some of these methods have edge cases when a DST change is going on. For example `seconds_since_midnight` might not return the real amount in such a day.
 
 ### Calculations
-
-NOTE: All the following methods are defined in `active_support/core_ext/date_time/calculations.rb`.
 
 The class `DateTime` is a subclass of `Date` so by loading `active_support/core_ext/date/calculations.rb` you inherit these methods and their aliases, except that they will always return datetimes.
 
@@ -3278,6 +3228,8 @@ end_of_hour
 
 Active Support defines `DateTime.current` to be like `Time.now.to_datetime`, except that it honors the user time zone, if defined. It also defines `DateTime.yesterday` and `DateTime.tomorrow`, and the instance predicates `past?`, and `future?` relative to `DateTime.current`.
 
+NOTE: Defined in `active_support/core_ext/date_time/calculations.rb`.
+
 #### Other Extensions
 
 ##### `seconds_since_midnight`
@@ -3288,6 +3240,8 @@ The method `seconds_since_midnight` returns the number of seconds since midnight
 now = DateTime.current     # => Mon, 07 Jun 2010 20:26:36 +0000
 now.seconds_since_midnight # => 73596
 ```
+
+NOTE: Defined in `active_support/core_ext/date_time/calculations.rb`.
 
 ##### `utc`
 
@@ -3300,6 +3254,8 @@ now.utc                # => Mon, 07 Jun 2010 23:27:52 +0000
 
 This method is also aliased as `getutc`.
 
+NOTE: Defined in `active_support/core_ext/date_time/calculations.rb`.
+
 ##### `utc?`
 
 The predicate `utc?` says whether the receiver has UTC as its time zone:
@@ -3309,6 +3265,8 @@ now = DateTime.now # => Mon, 07 Jun 2010 19:30:47 -0400
 now.utc?           # => false
 now.utc.utc?       # => true
 ```
+
+NOTE: Defined in `active_support/core_ext/date_time/calculations.rb`.
 
 ##### `advance`
 
@@ -3340,6 +3298,8 @@ d.advance(seconds: 1).advance(months: 1)
 ```
 
 WARNING: Since `DateTime` is not DST-aware you can end up in a non-existing point in time with no warning or error telling you so.
+
+NOTE: Defined in `active_support/core_ext/date_time/calculations.rb`.
 
 #### Changing Components
 
@@ -3373,6 +3333,8 @@ DateTime.current.change(month: 2, day: 30)
 # => ArgumentError: invalid date
 ```
 
+NOTE: Defined in `active_support/core_ext/date_time/calculations.rb`.
+
 #### Durations
 
 Durations can be added to and subtracted from datetimes:
@@ -3398,52 +3360,6 @@ Extensions to `Time`
 
 ### Calculations
 
-NOTE: All the following methods are defined in `active_support/core_ext/time/calculations.rb`.
-
-```ruby
-past?
-today?
-future?
-yesterday
-tomorrow
-seconds_since_midnight
-change
-advance
-ago
-since (in)
-prev_day
-next_day
-beginning_of_day (midnight, at_midnight, at_beginning_of_day)
-end_of_day
-beginning_of_hour (at_beginning_of_hour)
-end_of_hour
-beginning_of_week (at_beginning_of_week)
-end_of_week (at_end_of_week)
-monday
-sunday
-weeks_ago
-prev_week (last_week)
-next_week
-months_ago
-months_since
-beginning_of_month (at_beginning_of_month)
-end_of_month (at_end_of_month)
-prev_month
-next_month
-last_month
-beginning_of_quarter (at_beginning_of_quarter)
-end_of_quarter (at_end_of_quarter)
-beginning_of_year (at_beginning_of_year)
-end_of_year (at_end_of_year)
-years_ago
-years_since
-prev_year
-last_year
-next_year
-on_weekday?
-on_weekend?
-```
-
 They are analogous. Please refer to their documentation above and take into account the following differences:
 
 * `change` accepts an additional `:usec` option.
@@ -3467,6 +3383,8 @@ t.advance(seconds: 1)
 Active Support defines `Time.current` to be today in the current time zone. That's like `Time.now`, except that it honors the user time zone, if defined. It also defines the instance predicates `past?`, `today?`, and `future?`, all of them relative to `Time.current`.
 
 When making Time comparisons using methods which honor the user time zone, make sure to use `Time.current` instead of `Time.now`. There are cases where the user time zone might be in the future compared to the system time zone, which `Time.now` uses by default. This means `Time.now.to_date` may equal `Date.yesterday`.
+
+NOTE: Defined in `active_support/core_ext/time/calculations.rb`.
 
 #### `all_day`, `all_week`, `all_month`, `all_quarter` and `all_year`
 
@@ -3496,6 +3414,8 @@ now.all_year
 # => Fri, 01 Jan 2010 00:00:00 UTC +00:00..Fri, 31 Dec 2010 23:59:59 UTC +00:00
 ```
 
+NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
+
 #### `prev_day`, `next_day`
 
 In Ruby 1.9 `prev_day` and `next_day` return the date in the last or next day:
@@ -3505,6 +3425,8 @@ d = Date.new(2010, 5, 8) # => Sat, 08 May 2010
 d.prev_day               # => Fri, 07 May 2010
 d.next_day               # => Sun, 09 May 2010
 ```
+
+NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
 
 #### `prev_month`, `next_month`
 
@@ -3525,6 +3447,8 @@ Date.new(2000, 5, 31).next_month # => Fri, 30 Jun 2000
 Date.new(2000, 1, 31).next_month # => Tue, 29 Feb 2000
 ```
 
+NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
+
 #### `prev_year`, `next_year`
 
 In Ruby 1.9 `prev_year` and `next_year` return a date with the same day/month in the last or next year:
@@ -3542,6 +3466,8 @@ d = Date.new(2000, 2, 29) # => Tue, 29 Feb 2000
 d.prev_year               # => Sun, 28 Feb 1999
 d.next_year               # => Wed, 28 Feb 2001
 ```
+
+NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
 
 #### `prev_quarter`, `next_quarter`
 
@@ -3563,6 +3489,8 @@ Time.local(2000, 11, 31).next_quarter # => 2001-03-01 00:00:00 +0200
 ```
 
 `prev_quarter` is aliased to `last_quarter`.
+
+NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
 
 ### Time Constructors
 

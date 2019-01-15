@@ -62,6 +62,11 @@ module ActiveModel
     CALLBACKS_OPTIONS = [:if, :unless, :on, :allow_nil, :allow_blank, :strict]
     MESSAGE_OPTIONS = [:message]
 
+    class << self
+      attr_accessor :i18n_full_message # :nodoc:
+    end
+    self.i18n_full_message = false
+
     attr_reader :messages, :details
 
     # Pass in the instance of the object that is using the errors object.
@@ -105,6 +110,17 @@ module ActiveModel
     def merge!(other)
       @messages.merge!(other.messages) { |_, ary1, ary2| ary1 + ary2 }
       @details.merge!(other.details) { |_, ary1, ary2| ary1 + ary2 }
+    end
+
+    # Removes all errors except the given keys. Returns a hash containing the removed errors.
+    #
+    #   person.errors.keys                  # => [:name, :age, :gender, :city]
+    #   person.errors.slice!(:age, :gender) # => { :name=>["cannot be nil"], :city=>["cannot be nil"] }
+    #   person.errors.keys                  # => [:age, :gender]
+    def slice!(*keys)
+      keys = keys.map(&:to_sym)
+      @details.slice!(*keys)
+      @messages.slice!(*keys)
     end
 
     # Clear the error messages.
@@ -312,21 +328,42 @@ module ActiveModel
     #   person.errors.added? :name, :blank           # => true
     #   person.errors.added? :name, "can't be blank" # => true
     #
-    # If the error message requires an option, then it returns +true+ with
-    # the correct option, or +false+ with an incorrect or missing option.
+    # If the error message requires options, then it returns +true+ with
+    # the correct options, or +false+ with incorrect or missing options.
     #
-    #  person.errors.add :name, :too_long, { count: 25 }
-    #  person.errors.added? :name, :too_long, count: 25                     # => true
-    #  person.errors.added? :name, "is too long (maximum is 25 characters)" # => true
-    #  person.errors.added? :name, :too_long, count: 24                     # => false
-    #  person.errors.added? :name, :too_long                                # => false
-    #  person.errors.added? :name, "is too long"                            # => false
+    #   person.errors.add :name, :too_long, { count: 25 }
+    #   person.errors.added? :name, :too_long, count: 25                     # => true
+    #   person.errors.added? :name, "is too long (maximum is 25 characters)" # => true
+    #   person.errors.added? :name, :too_long, count: 24                     # => false
+    #   person.errors.added? :name, :too_long                                # => false
+    #   person.errors.added? :name, "is too long"                            # => false
     def added?(attribute, message = :invalid, options = {})
+      message = message.call if message.respond_to?(:call)
+
       if message.is_a? Symbol
-        self.details[attribute].map { |e| e[:error] }.include? message
+        details[attribute.to_sym].include? normalize_detail(message, options)
       else
-        message = message.call if message.respond_to?(:call)
-        message = normalize_message(attribute, message, options)
+        self[attribute].include? message
+      end
+    end
+
+    # Returns +true+ if an error on the attribute with the given message is
+    # present, or +false+ otherwise. +message+ is treated the same as for +add+.
+    #
+    #   person.errors.add :age
+    #   person.errors.add :name, :too_long, { count: 25 }
+    #   person.errors.of_kind? :age                                            # => true
+    #   person.errors.of_kind? :name                                           # => false
+    #   person.errors.of_kind? :name, :too_long                                # => true
+    #   person.errors.of_kind? :name, "is too long (maximum is 25 characters)" # => true
+    #   person.errors.of_kind? :name, :not_too_long                            # => false
+    #   person.errors.of_kind? :name, "is too long"                            # => false
+    def of_kind?(attribute, message = :invalid)
+      message = message.call if message.respond_to?(:call)
+
+      if message.is_a? Symbol
+        details[attribute.to_sym].map { |e| e[:error] }.include? message
+      else
         self[attribute].include? message
       end
     end
@@ -364,12 +401,54 @@ module ActiveModel
     # Returns a full message for a given attribute.
     #
     #   person.errors.full_message(:name, 'is invalid') # => "Name is invalid"
+    #
+    # The `"%{attribute} %{message}"` error format can be overridden with either
+    #
+    # * <tt>activemodel.errors.models.person/contacts/addresses.attributes.street.format</tt>
+    # * <tt>activemodel.errors.models.person/contacts/addresses.format</tt>
+    # * <tt>activemodel.errors.models.person.attributes.name.format</tt>
+    # * <tt>activemodel.errors.models.person.format</tt>
+    # * <tt>errors.format</tt>
     def full_message(attribute, message)
       return message if attribute == :base
-      attr_name = attribute.to_s.tr(".", "_").humanize
+      attribute = attribute.to_s
+
+      if self.class.i18n_full_message && @base.class.respond_to?(:i18n_scope)
+        attribute = attribute.remove(/\[\d\]/)
+        parts = attribute.split(".")
+        attribute_name = parts.pop
+        namespace = parts.join("/") unless parts.empty?
+        attributes_scope = "#{@base.class.i18n_scope}.errors.models"
+
+        if namespace
+          defaults = @base.class.lookup_ancestors.map do |klass|
+            [
+              :"#{attributes_scope}.#{klass.model_name.i18n_key}/#{namespace}.attributes.#{attribute_name}.format",
+              :"#{attributes_scope}.#{klass.model_name.i18n_key}/#{namespace}.format",
+            ]
+          end
+        else
+          defaults = @base.class.lookup_ancestors.map do |klass|
+            [
+              :"#{attributes_scope}.#{klass.model_name.i18n_key}.attributes.#{attribute_name}.format",
+              :"#{attributes_scope}.#{klass.model_name.i18n_key}.format",
+            ]
+          end
+        end
+
+        defaults.flatten!
+      else
+        defaults = []
+      end
+
+      defaults << :"errors.format"
+      defaults << "%{attribute} %{message}"
+
+      attr_name = attribute.tr(".", "_").humanize
       attr_name = @base.class.human_attribute_name(attribute, default: attr_name)
-      I18n.t(:"errors.format",
-        default:  "%{attribute} %{message}",
+
+      I18n.t(defaults.shift,
+        default:  defaults,
         attribute: attr_name,
         message:   message)
     end

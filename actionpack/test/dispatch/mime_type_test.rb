@@ -96,57 +96,47 @@ class MimeTypeTest < ActiveSupport::TestCase
   end
 
   test "custom type" do
-    begin
-      type = Mime::Type.register("image/foo", :foo)
-      assert_equal type, Mime[:foo]
-    ensure
-      Mime::Type.unregister(:foo)
-    end
+    type = Mime::Type.register("image/foo", :foo)
+    assert_equal type, Mime[:foo]
+  ensure
+    Mime::Type.unregister(:foo)
   end
 
   test "custom type with type aliases" do
-    begin
-      Mime::Type.register "text/foobar", :foobar, ["text/foo", "text/bar"]
-      %w[text/foobar text/foo text/bar].each do |type|
-        assert_equal Mime[:foobar], type
-      end
-    ensure
-      Mime::Type.unregister(:foobar)
+    Mime::Type.register "text/foobar", :foobar, ["text/foo", "text/bar"]
+    %w[text/foobar text/foo text/bar].each do |type|
+      assert_equal Mime[:foobar], type
     end
+  ensure
+    Mime::Type.unregister(:foobar)
   end
 
   test "register callbacks" do
-    begin
-      registered_mimes = []
-      Mime::Type.register_callback do |mime|
-        registered_mimes << mime
-      end
-
-      mime = Mime::Type.register("text/foo", :foo)
-      assert_equal [mime], registered_mimes
-    ensure
-      Mime::Type.unregister(:foo)
+    registered_mimes = []
+    Mime::Type.register_callback do |mime|
+      registered_mimes << mime
     end
+
+    mime = Mime::Type.register("text/foo", :foo)
+    assert_equal [mime], registered_mimes
+  ensure
+    Mime::Type.unregister(:foo)
   end
 
   test "custom type with extension aliases" do
-    begin
-      Mime::Type.register "text/foobar", :foobar, [], [:foo, "bar"]
-      %w[foobar foo bar].each do |extension|
-        assert_equal Mime[:foobar], Mime::EXTENSION_LOOKUP[extension]
-      end
-    ensure
-      Mime::Type.unregister(:foobar)
+    Mime::Type.register "text/foobar", :foobar, [], [:foo, "bar"]
+    %w[foobar foo bar].each do |extension|
+      assert_equal Mime[:foobar], Mime::EXTENSION_LOOKUP[extension]
     end
+  ensure
+    Mime::Type.unregister(:foobar)
   end
 
   test "register alias" do
-    begin
-      Mime::Type.register_alias "application/xhtml+xml", :foobar
-      assert_equal Mime[:html], Mime::EXTENSION_LOOKUP["foobar"]
-    ensure
-      Mime::Type.unregister(:foobar)
-    end
+    Mime::Type.register_alias "application/xhtml+xml", :foobar
+    assert_equal Mime[:html], Mime::EXTENSION_LOOKUP["foobar"]
+  ensure
+    Mime::Type.unregister(:foobar)
   end
 
   test "type should be equal to symbol" do

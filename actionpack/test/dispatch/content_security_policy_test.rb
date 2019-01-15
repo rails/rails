@@ -260,12 +260,13 @@ class DefaultContentSecurityPolicyIntegrationTest < ActionDispatch::IntegrationT
   ROUTES.draw do
     scope module: "default_content_security_policy_integration_test" do
       get "/", to: "policy#index"
+      get "/redirect", to: redirect("/")
     end
   end
 
   POLICY = ActionDispatch::ContentSecurityPolicy.new do |p|
-    p.default_src :self
-    p.script_src  :https
+    p.default_src -> { :self  }
+    p.script_src  -> { :https }
   end
 
   class PolicyConfigMiddleware
@@ -295,14 +296,19 @@ class DefaultContentSecurityPolicyIntegrationTest < ActionDispatch::IntegrationT
   def test_adds_nonce_to_script_src_content_security_policy_only_once
     get "/"
     get "/"
+    assert_response :success
+    assert_policy "default-src 'self'; script-src https: 'nonce-iyhD0Yc0W+c='"
+  end
+
+  def test_redirect_works_with_dynamic_sources
+    get "/redirect"
+    assert_response :redirect
     assert_policy "default-src 'self'; script-src https: 'nonce-iyhD0Yc0W+c='"
   end
 
   private
 
     def assert_policy(expected, report_only: false)
-      assert_response :success
-
       if report_only
         expected_header = "Content-Security-Policy-Report-Only"
         unexpected_header = "Content-Security-Policy"
@@ -339,6 +345,11 @@ class ContentSecurityPolicyIntegrationTest < ActionDispatch::IntegrationTest
       p.script_src :self
     end
 
+    content_security_policy only: :style_src do |p|
+      p.default_src false
+      p.style_src :self
+    end
+
     content_security_policy(false, only: :no_policy)
 
     content_security_policy_report_only only: :report_only
@@ -363,6 +374,10 @@ class ContentSecurityPolicyIntegrationTest < ActionDispatch::IntegrationTest
       head :ok
     end
 
+    def style_src
+      head :ok
+    end
+
     def no_policy
       head :ok
     end
@@ -381,6 +396,7 @@ class ContentSecurityPolicyIntegrationTest < ActionDispatch::IntegrationTest
       get "/conditional", to: "policy#conditional"
       get "/report-only", to: "policy#report_only"
       get "/script-src", to: "policy#script_src"
+      get "/style-src", to: "policy#style_src"
       get "/no-policy", to: "policy#no_policy"
     end
   end
@@ -439,6 +455,11 @@ class ContentSecurityPolicyIntegrationTest < ActionDispatch::IntegrationTest
   def test_adds_nonce_to_script_src_content_security_policy
     get "/script-src"
     assert_policy "script-src 'self' 'nonce-iyhD0Yc0W+c='"
+  end
+
+  def test_adds_nonce_to_style_src_content_security_policy
+    get "/style-src"
+    assert_policy "style-src 'self' 'nonce-iyhD0Yc0W+c='"
   end
 
   def test_generates_no_content_security_policy

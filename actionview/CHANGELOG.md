@@ -1,3 +1,111 @@
+*   Fix the need of `#protect_against_forgery?` method defined in
+    `ActionView::Base` subclasses. This prevents the use of forms and buttons.
+
+    *Genadi Samokovarov*
+
+*   Fix UJS permanently showing disabled text in a[data-remote][data-disable-with] elements within forms.
+    Fixes #33889
+
+    *Wolfgang Hobmaier*
+
+*   Prevent non-primary mouse keys from triggering Rails UJS click handlers.
+    Firefox fires click events even if the click was triggered by non-primary mouse keys such as right- or scroll-wheel-clicks.
+    For example, right-clicking a link such as the one described below (with an underlying ajax request registered on click) should not cause that request to occur.
+
+    ```
+    <%= link_to 'Remote', remote_path, class: 'remote', remote: true, data: { type: :json } %>
+    ```
+
+    Fixes #34541
+
+    *Wolfgang Hobmaier*
+
+*   Prevent `ActionView::TextHelper#word_wrap` from unexpectedly stripping white space from the _left_ side of lines.
+
+    For example, given input like this:
+
+    ```
+        This is a paragraph with an initial indent,
+    followed by additional lines that are not indented,
+    and finally terminated with a blockquote:
+      "A pithy saying"
+    ```
+
+    Calling `word_wrap` should not trim the indents on the first and last lines.
+
+    Fixes #34487
+
+    *Lyle Mullican*
+
+*   Add allocations to template rendering instrumentation.
+
+    Adds the allocations for template and partial rendering to the server output on render.
+
+    ```
+      Rendered posts/_form.html.erb (Duration: 7.1ms | Allocations: 6004)
+      Rendered posts/new.html.erb within layouts/application (Duration: 8.3ms | Allocations: 6654)
+    Completed 200 OK in 858ms (Views: 848.4ms | ActiveRecord: 0.4ms | Allocations: 1539564)
+    ```
+
+    *Eileen M. Uchitelle*, *Aaron Patterson*
+
+*   Respect the `only_path` option passed to `url_for` when the options are passed in as an array
+
+    Fixes #33237.
+
+    *Joel Ambass*
+
+*   Deprecate calling private model methods from view helpers.
+
+    For example, in methods like `options_from_collection_for_select`
+    and `collection_select` it is possible to call private methods from
+    the objects used.
+
+    Fixes #33546.
+
+    *Ana María Martínez Gómez*
+
+*   Fix issue with `button_to`'s `to_form_params`
+
+    `button_to` was throwing exception when invoked with `params` hash that
+    contains symbol and string keys. The reason for the exception was that
+    `to_form_params` was comparing the given symbol and string keys.
+
+    The issue is fixed by turning all keys to strings inside
+    `to_form_params` before comparing them.
+
+    *Georgi Georgiev*
+
+*   Mark arrays of translations as trusted safe by using the `_html` suffix.
+
+    Example:
+
+        en:
+          foo_html:
+            - "One"
+            - "<strong>Two</strong>"
+            - "Three &#128075; &#128578;"
+
+    *Juan Broullon*
+
+*   Add `year_format` option to date_select tag. This option makes it possible to customize year
+    names. Lambda should be passed to use this option.
+
+    Example:
+
+        date_select('user_birthday', '', start_year: 1998, end_year: 2000, year_format: ->year { "Heisei #{year - 1988}" })
+
+    The HTML produced:
+
+        <select id="user_birthday__1i" name="user_birthday[(1i)]">
+        <option value="1998">Heisei 10</option>
+        <option value="1999">Heisei 11</option>
+        <option value="2000">Heisei 12</option>
+        </select>
+        /* The rest is omitted */
+
+    *Koki Ryu*
+
 *   Fix JavaScript views rendering does not work with Firefox when using
     Content Security Policy.
 
@@ -25,7 +133,9 @@
     *Simon Coffey*
 
 *   Extract the `confirm` call in its own, overridable method in `rails_ujs`.
-    Example :
+
+    Example:
+
         Rails.confirm = function(message, element) {
           return (my_bootstrap_modal_confirm(message));
         }
@@ -33,7 +143,9 @@
     *Mathieu Mahé*
 
 *   Enable select tag helper to mark `prompt` option as `selected` and/or `disabled` for `required`
-    field. Example:
+    field.
+
+    Example:
 
         select :post,
                :category,
@@ -41,7 +153,9 @@
                { selected: "", disabled: "", prompt: "Choose one" },
                { required: true }
 
-    Placeholder option would be selected and disabled. The HTML produced:
+    Placeholder option would be selected and disabled.
+
+    The HTML produced:
 
         <select required="required" name="post[category]" id="post_category">
         <option disabled="disabled" selected="selected" value="">Choose one</option>
@@ -63,9 +177,9 @@
 
     *Rui Onodera*
 
-*   Rails 6 requires Ruby 2.4.1 or newer.
+*   Rails 6 requires Ruby 2.5.0 or newer.
 
-    *Jeremy Daer*
+    *Jeremy Daer*, *Kasper Timm Hansen*
 
 
 Please check [5-2-stable](https://github.com/rails/rails/blob/5-2-stable/actionview/CHANGELOG.md) for previous changes.

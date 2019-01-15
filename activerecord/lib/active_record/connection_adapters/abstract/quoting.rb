@@ -60,7 +60,7 @@ module ActiveRecord
       # Quotes a string, escaping any ' (single quote) and \ (backslash)
       # characters.
       def quote_string(s)
-        s.gsub('\\'.freeze, '\&\&'.freeze).gsub("'".freeze, "''".freeze) # ' (for ruby-mode)
+        s.gsub('\\', '\&\&').gsub("'", "''") # ' (for ruby-mode)
       end
 
       # Quotes the column name. Defaults to no quoting.
@@ -95,7 +95,7 @@ module ActiveRecord
       end
 
       def quoted_true
-        "TRUE".freeze
+        "TRUE"
       end
 
       def unquoted_true
@@ -103,7 +103,7 @@ module ActiveRecord
       end
 
       def quoted_false
-        "FALSE".freeze
+        "FALSE"
       end
 
       def unquoted_false
@@ -130,6 +130,7 @@ module ActiveRecord
       end
 
       def quoted_time(value) # :nodoc:
+        value = value.change(year: 2000, month: 1, day: 1)
         quoted_date(value).sub(/\A\d\d\d\d-\d\d-\d\d /, "")
       end
 
@@ -156,13 +157,9 @@ module ActiveRecord
           end
         end
 
-        def types_which_need_no_typecasting
-          [nil, Numeric, String]
-        end
-
         def _quote(value)
           case value
-          when String, ActiveSupport::Multibyte::Chars
+          when String, Symbol, ActiveSupport::Multibyte::Chars
             "'#{quote_string(value.to_s)}'"
           when true       then quoted_true
           when false      then quoted_false
@@ -173,7 +170,6 @@ module ActiveRecord
           when Type::Binary::Data then quoted_binary(value)
           when Type::Time::Value then "'#{quoted_time(value)}'"
           when Date, Time then "'#{quoted_date(value)}'"
-          when Symbol     then "'#{quote_string(value.to_s)}'"
           when Class      then "'#{value}'"
           else raise TypeError, "can't quote #{value.class.name}"
           end
@@ -187,10 +183,9 @@ module ActiveRecord
           when false      then unquoted_false
           # BigDecimals need to be put in a non-normalized form and quoted.
           when BigDecimal then value.to_s("F")
+          when nil, Numeric, String then value
           when Type::Time::Value then quoted_time(value)
           when Date, Time then quoted_date(value)
-          when *types_which_need_no_typecasting
-            value
           else raise TypeError
           end
         end

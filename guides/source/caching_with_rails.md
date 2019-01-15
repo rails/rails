@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
 Caching with Rails: An Overview
 ===============================
@@ -295,14 +295,14 @@ Consider the following example. An application has a `Product` model with an ins
 ```ruby
 class Product < ApplicationRecord
   def competing_price
-    Rails.cache.fetch("#{cache_key}/competing_price", expires_in: 12.hours) do
+    Rails.cache.fetch("#{cache_key_with_version}/competing_price", expires_in: 12.hours) do
       Competitor::API.find_price(id)
     end
   end
 end
 ```
 
-NOTE: Notice that in this example we used the `cache_key` method, so the resulting cache key will be something like `products/233-20140225082222765838000/competing_price`. `cache_key` generates a string based on the model's `id` and `updated_at` attributes. This is a common convention and has the benefit of invalidating the cache whenever the product is updated. In general, when you use low-level caching for instance level information, you need to generate a cache key.
+NOTE: Notice that in this example we used the `cache_key_with_version` method, so the resulting cache key will be something like `products/233-20140225082222765838000/competing_price`. `cache_key_with_version` generates a string based on the model's `id` and `updated_at` attributes. This is a common convention and has the benefit of invalidating the cache whenever the product is updated. In general, when you use low-level caching for instance level information, you need to generate a cache key.
 
 ### SQL Caching
 
@@ -362,7 +362,7 @@ This class provides the foundation for interacting with the cache in Rails. This
 
 The main methods to call are `read`, `write`, `delete`, `exist?`, and `fetch`. The fetch method takes a block and will either return an existing value from the cache, or evaluate the block and write the result to the cache if no value exists.
 
-There are some common options used by all cache implementations. These can be passed to the constructor or the various methods to interact with entries.
+There are some common options that can be used by all cache implementations. These can be passed to the constructor or the various methods to interact with entries.
 
 * `:namespace` - This option can be used to create a namespace within the cache store. It is especially useful if your application shares a cache with other applications.
 
@@ -370,7 +370,7 @@ There are some common options used by all cache implementations. These can be pa
 
 * `:compress_threshold` - Defaults to 1kB. Cache entries larger than this threshold, specified in bytes, are compressed.
 
-* `:expires_in` - This option sets an expiration time in seconds for the cache entry when it will be automatically removed from the cache.
+* `:expires_in` - This option sets an expiration time in seconds for the cache entry, if the cache store supports it, when it will be automatically removed from the cache.
 
 * `:race_condition_ttl` - This option is used in conjunction with the `:expires_in` option. It will prevent race conditions when cache entries expire by preventing multiple processes from simultaneously regenerating the same entry (also known as the dog pile effect). This option sets the number of seconds that an expired entry can be reused while a new value is being regenerated. It's a good practice to set this value if you use the `:expires_in` option.
 
@@ -408,7 +408,7 @@ as well as development and test environments.
 New Rails projects are configured to use this implementation in development environment by default.
 
 NOTE: Since processes will not share cache data when using `:memory_store`,
-it will not be possible to manually read, write or expire the cache via the Rails console.
+it will not be possible to manually read, write, or expire the cache via the Rails console.
 
 ### ActiveSupport::Cache::FileStore
 
@@ -563,7 +563,7 @@ class ProductsController < ApplicationController
 
     # If the request is stale according to the given timestamp and etag value
     # (i.e. it needs to be processed again) then execute this block
-    if stale?(last_modified: @product.updated_at.utc, etag: @product.cache_key)
+    if stale?(last_modified: @product.updated_at.utc, etag: @product.cache_key_with_version)
       respond_to do |wants|
         # ... normal response processing
       end
@@ -577,7 +577,7 @@ class ProductsController < ApplicationController
 end
 ```
 
-Instead of an options hash, you can also simply pass in a model. Rails will use the `updated_at` and `cache_key` methods for setting `last_modified` and `etag`:
+Instead of an options hash, you can also simply pass in a model. Rails will use the `updated_at` and `cache_key_with_version` methods for setting `last_modified` and `etag`:
 
 ```ruby
 class ProductsController < ApplicationController
@@ -670,13 +670,13 @@ Caching in Development
 ----------------------
 
 It's common to want to test the caching strategy of your application
-in development mode. Rails provides the rake task `dev:cache` to
+in development mode. Rails provides the rails command `dev:cache` to
 easily toggle caching on/off.
 
 ```bash
-$ bin/rails dev:cache
+$ rails dev:cache
 Development mode is now being cached.
-$ bin/rails dev:cache
+$ rails dev:cache
 Development mode is no longer being cached.
 ```
 

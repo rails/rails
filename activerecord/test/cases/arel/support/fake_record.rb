@@ -51,11 +51,11 @@ module FakeRecord
     end
 
     def quote_table_name(name)
-      "\"#{name.to_s}\""
+      "\"#{name}\""
     end
 
     def quote_column_name(name)
-      "\"#{name.to_s}\""
+      "\"#{name}\""
     end
 
     def schema_cache

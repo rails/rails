@@ -151,7 +151,8 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
 
     def build_app(console)
       mocked_console = Class.new do
-        attr_reader :sandbox, :console
+        attr_accessor :sandbox
+        attr_reader :console
 
         def initialize(console)
           @console = console
@@ -159,10 +160,6 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
 
         def config
           self
-        end
-
-        def sandbox=(arg)
-          @sandbox = arg
         end
 
         def load_console

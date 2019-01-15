@@ -33,6 +33,13 @@ module ActiveRecord
           children.each { |child| child.each(&block) }
         end
 
+        def each_children(&block)
+          children.each do |child|
+            yield self, child
+            child.each_children(&block)
+          end
+        end
+
         # An Arel::Table for the active_record
         def table
           raise NotImplementedError
@@ -47,8 +54,8 @@ module ActiveRecord
           length = column_names_with_alias.length
 
           while index < length
-            column_name, alias_name = column_names_with_alias[index]
-            hash[column_name] = row[alias_name]
+            column = column_names_with_alias[index]
+            hash[column.name] = row[column.alias]
             index += 1
           end
 

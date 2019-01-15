@@ -217,8 +217,14 @@ module ActionView
 
     test "is able to use routes" do
       controller.request.assign_parameters(@routes, "foo", "index", {}, "/foo", [])
-      assert_equal "/foo", url_for
-      assert_equal "/bar", url_for(controller: "bar")
+      with_routing do |set|
+        set.draw {
+          get :foo, to: "foo#index"
+          get :bar, to: "bar#index"
+        }
+        assert_equal "/foo", url_for
+        assert_equal "/bar", url_for(controller: "bar")
+      end
     end
 
     test "is able to use named routes" do
@@ -236,13 +242,15 @@ module ActionView
             @routes ||= ActionDispatch::Routing::RouteSet.new
           end
 
-          routes.draw { get "bar", to: lambda {} }
+          routes.draw { get "bar", to: lambda { } }
 
           def self.call(*)
           end
         end
 
         set.draw { mount app => "/foo", :as => "foo_app" }
+
+        singleton_class.include set.mounted_helpers
 
         assert_equal "/foo/bar", foo_app.bar_path
       end

@@ -9,15 +9,12 @@ gemspec
 # We need a newish Rake since Active Job sets its test tasks' descriptions.
 gem "rake", ">= 11.1"
 
-gem "mocha"
-
 gem "capybara", ">= 2.15"
 
 gem "rack-cache", "~> 1.2"
-gem "coffee-rails"
 gem "sass-rails"
 gem "turbolinks", "~> 5"
-
+gem "webpacker", github: "rails/webpacker", require: ENV["SKIP_REQUIRE_WEBPACKER"] != "true"
 # require: false so bcrypt is loaded only when has_secure_password is used.
 # This is to avoid Active Model (and by extension the entire framework)
 # being dependent on a binary library.
@@ -32,9 +29,6 @@ gem "json", ">= 2.0.0"
 
 gem "rubocop", ">= 0.47", require: false
 
-# https://github.com/guard/rb-inotify/pull/79
-gem "rb-inotify", github: "matthewd/rb-inotify", branch: "close-handling", require: false
-
 group :doc do
   gem "sdoc", "~> 1.0"
   gem "redcarpet", "~> 3.2.3", platforms: :ruby
@@ -42,7 +36,7 @@ group :doc do
   gem "kindlerb", "~> 1.2.0"
 end
 
-# Active Support.
+# Active Support
 gem "dalli"
 gem "listen", ">= 3.0.5", "< 3.2", require: false
 gem "libxml-ruby", platforms: :ruby
@@ -51,7 +45,7 @@ gem "connection_pool", require: false
 # for railties app_generator_test
 gem "bootsnap", ">= 1.1.0", require: false
 
-# Active Job.
+# Active Job
 group :job do
   gem "resque", require: false
   gem "resque-scheduler", require: false
@@ -89,8 +83,11 @@ group :storage do
   gem "azure-storage", require: false
 
   gem "image_processing", "~> 1.2"
-  gem "ffi", "<= 1.9.21"
 end
+
+# Action Mailbox
+gem "aws-sdk-sns", require: false
+gem "webmock"
 
 group :ujs do
   gem "qunit-selenium"
@@ -103,12 +100,11 @@ instance_eval File.read local_gemfile if File.exist? local_gemfile
 
 group :test do
   gem "minitest-bisect"
+  gem "minitest-retry"
 
   platforms :mri do
     gem "stackprof"
     gem "byebug"
-    # FIXME: Remove this when thor 0.21 is release
-    gem "thor", git: "https://github.com/erikhuda/thor.git", ref: "006832ea32480618791f89bb7d9e67b22fc814b9"
   end
 
   gem "benchmark-ips"

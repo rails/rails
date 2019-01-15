@@ -27,7 +27,7 @@ module ActiveRecord
           key
         else
           key = key.to_s
-          key.split(".".freeze).first if key.include?(".".freeze)
+          key.split(".").first if key.include?(".")
         end
       end.compact
     end
@@ -48,7 +48,12 @@ module ActiveRecord
     end
 
     def build(attribute, value)
-      handler_for(value).call(attribute, value)
+      if table.type(attribute.name).force_equality?(value)
+        bind = build_bind_attribute(attribute.name, value)
+        attribute.eq(bind)
+      else
+        handler_for(value).call(attribute, value)
+      end
     end
 
     def build_bind_attribute(column_name, value)
@@ -95,10 +100,6 @@ module ActiveRecord
               end.reduce(&:and)
             end
             queries.reduce(&:or)
-          # FIXME: Deprecate this and provide a public API to force equality
-          elsif (value.is_a?(Range) || value.is_a?(Array)) &&
-            table.type(key.to_s).respond_to?(:subtype)
-            BasicObjectHandler.new(self).call(table.arel_attribute(key), value)
           else
             build(table.arel_attribute(key), value)
           end
@@ -114,11 +115,11 @@ module ActiveRecord
 
       def convert_dot_notation_to_hash(attributes)
         dot_notation = attributes.select do |k, v|
-          k.include?(".".freeze) && !v.is_a?(Hash)
+          k.include?(".") && !v.is_a?(Hash)
         end
 
         dot_notation.each_key do |key|
-          table_name, column_name = key.split(".".freeze)
+          table_name, column_name = key.split(".")
           value = attributes.delete(key)
           attributes[table_name] ||= {}
 

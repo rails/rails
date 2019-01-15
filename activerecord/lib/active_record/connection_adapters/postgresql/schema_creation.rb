@@ -23,6 +23,17 @@ module ActiveRecord
             end
             super
           end
+
+          # Returns any SQL string to go between CREATE and TABLE. May be nil.
+          def table_modifier_in_create(o)
+            # A table cannot be both TEMPORARY and UNLOGGED, since all TEMPORARY
+            # tables are already UNLOGGED.
+            if o.temporary
+              " TEMPORARY"
+            elsif o.unlogged
+              " UNLOGGED"
+            end
+          end
       end
     end
   end

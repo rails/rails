@@ -251,8 +251,9 @@ module ActiveRecord
           end
         end
 
-        bind = primary_key_bind(primary_key_offset)
-        batch_relation = relation.where(arel_attribute(primary_key).gt(bind))
+        batch_relation = relation.where(
+          bind_attribute(primary_key, primary_key_offset) { |attr, bind| attr.gt(bind) }
+        )
       end
     end
 
@@ -265,15 +266,11 @@ module ActiveRecord
       end
 
       def apply_start_limit(relation, start)
-        relation.where(arel_attribute(primary_key).gteq(primary_key_bind(start)))
+        relation.where(bind_attribute(primary_key, start) { |attr, bind| attr.gteq(bind) })
       end
 
       def apply_finish_limit(relation, finish)
-        relation.where(arel_attribute(primary_key).lteq(primary_key_bind(finish)))
-      end
-
-      def primary_key_bind(value)
-        predicate_builder.build_bind_attribute(primary_key, value)
+        relation.where(bind_attribute(primary_key, finish) { |attr, bind| attr.lteq(bind) })
       end
 
       def batch_order

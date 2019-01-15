@@ -190,7 +190,7 @@ module ActiveRecord
         relation = apply_join_dependency
         relation.pluck(*column_names)
       else
-        enforce_raw_sql_whitelist(column_names)
+        disallow_raw_sql!(column_names)
         relation = spawn
         relation.select_values = column_names.map { |cn|
           @klass.has_attribute?(cn) || @klass.attribute_alias?(cn) ? arel_attribute(cn) : cn
@@ -245,7 +245,7 @@ module ActiveRecord
             if distinct && (group_values.any? || select_values.empty? && order_values.empty?)
               column_name = primary_key
             end
-          elsif column_name =~ /\s*DISTINCT[\s(]+/i
+          elsif column_name.is_a?(::String) && /\bDISTINCT[\s(]/i.match?(column_name)
             distinct = nil
           end
         end
@@ -401,7 +401,7 @@ module ActiveRecord
         case operation
         when "count"   then value.to_i
         when "sum"     then type.deserialize(value || 0)
-        when "average" then value.respond_to?(:to_d) ? value.to_d : value
+        when "average" then value&.respond_to?(:to_d) ? value.to_d : value
         else type.deserialize(value)
         end
       end

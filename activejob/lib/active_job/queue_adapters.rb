@@ -3,7 +3,7 @@
 module ActiveJob
   # == Active Job adapters
   #
-  # Active Job has adapters for the following queueing backends:
+  # Active Job has adapters for the following queuing backends:
   #
   # * {Backburner}[https://github.com/nesquena/backburner]
   # * {Delayed Job}[https://github.com/collectiveidea/delayed_job]
@@ -15,7 +15,7 @@ module ActiveJob
   # * {Sucker Punch}[https://github.com/brandonhilkert/sucker_punch]
   # * {Active Job Async Job}[http://api.rubyonrails.org/classes/ActiveJob/QueueAdapters/AsyncAdapter.html]
   # * {Active Job Inline}[http://api.rubyonrails.org/classes/ActiveJob/QueueAdapters/InlineAdapter.html]
-  # * Please Note: We are not accepting pull requests for new adapters. See the README for more details.
+  # * Please Note: We are not accepting pull requests for new adapters. See the {README}[link:files/activejob/README_md.html] for more details.
   #
   # === Backends Features
   #
@@ -52,7 +52,7 @@ module ActiveJob
   #
   # No: The adapter will run jobs at the next opportunity and cannot use perform_later.
   #
-  # N/A: The adapter does not support queueing.
+  # N/A: The adapter does not support queuing.
   #
   # NOTE:
   # queue_classic supports job scheduling since version 3.1.
@@ -74,7 +74,7 @@ module ActiveJob
   #
   # No: Does not allow the priority of jobs to be configured.
   #
-  # N/A: The adapter does not support queueing, and therefore sorting them.
+  # N/A: The adapter does not support queuing, and therefore sorting them.
   #
   # ==== Timeout
   #
@@ -121,7 +121,7 @@ module ActiveJob
     autoload :SuckerPunchAdapter
     autoload :TestAdapter
 
-    ADAPTER = "Adapter".freeze
+    ADAPTER = "Adapter"
     private_constant :ADAPTER
 
     class << self

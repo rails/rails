@@ -24,7 +24,7 @@ class BaseRequestTest < ActiveSupport::TestCase
     def stub_request(env = {})
       ip_spoofing_check = env.key?(:ip_spoofing_check) ? env.delete(:ip_spoofing_check) : true
       @trusted_proxies ||= nil
-      ip_app = ActionDispatch::RemoteIp.new(Proc.new {}, ip_spoofing_check, @trusted_proxies)
+      ip_app = ActionDispatch::RemoteIp.new(Proc.new { }, ip_spoofing_check, @trusted_proxies)
       ActionDispatch::Http::URL.tld_length = env.delete(:tld_length) if env.key?(:tld_length)
 
       ip_app.call(env)
@@ -1059,44 +1059,9 @@ class RequestParameters < BaseRequestTest
 end
 
 class RequestParameterFilter < BaseRequestTest
-  test "process parameter filter" do
-    test_hashes = [
-    [{ "foo" => "bar" }, { "foo" => "bar" }, %w'food'],
-    [{ "foo" => "bar" }, { "foo" => "[FILTERED]" }, %w'foo'],
-    [{ "foo" => "bar", "bar" => "foo" }, { "foo" => "[FILTERED]", "bar" => "foo" }, %w'foo baz'],
-    [{ "foo" => "bar", "baz" => "foo" }, { "foo" => "[FILTERED]", "baz" => "[FILTERED]" }, %w'foo baz'],
-    [{ "bar" => { "foo" => "bar", "bar" => "foo" } }, { "bar" => { "foo" => "[FILTERED]", "bar" => "foo" } }, %w'fo'],
-    [{ "foo" => { "foo" => "bar", "bar" => "foo" } }, { "foo" => "[FILTERED]" }, %w'f banana'],
-    [{ "deep" => { "cc" => { "code" => "bar", "bar" => "foo" }, "ss" => { "code" => "bar" } } }, { "deep" => { "cc" => { "code" => "[FILTERED]", "bar" => "foo" }, "ss" => { "code" => "bar" } } }, %w'deep.cc.code'],
-    [{ "baz" => [{ "foo" => "baz" }, "1"] }, { "baz" => [{ "foo" => "[FILTERED]" }, "1"] }, [/foo/]]]
-
-    test_hashes.each do |before_filter, after_filter, filter_words|
-      parameter_filter = ActionDispatch::Http::ParameterFilter.new(filter_words)
-      assert_equal after_filter, parameter_filter.filter(before_filter)
-
-      filter_words << "blah"
-      filter_words << lambda { |key, value|
-        value.reverse! if key =~ /bargain/
-      }
-
-      parameter_filter = ActionDispatch::Http::ParameterFilter.new(filter_words)
-      before_filter["barg"] = { :bargain => "gain", "blah" => "bar", "bar" => { "bargain" => { "blah" => "foo" } } }
-      after_filter["barg"]  = { :bargain => "niag", "blah" => "[FILTERED]", "bar" => { "bargain" => { "blah" => "[FILTERED]" } } }
-
-      assert_equal after_filter, parameter_filter.filter(before_filter)
-    end
-  end
-
-  test "parameter filter should maintain hash with indifferent access" do
-    test_hashes = [
-      [{ "foo" => "bar" }.with_indifferent_access, ["blah"]],
-      [{ "foo" => "bar" }.with_indifferent_access, []]
-    ]
-
-    test_hashes.each do |before_filter, filter_words|
-      parameter_filter = ActionDispatch::Http::ParameterFilter.new(filter_words)
-      assert_instance_of ActiveSupport::HashWithIndifferentAccess,
-                         parameter_filter.filter(before_filter)
+  test "parameter filter is deprecated" do
+    assert_deprecated do
+      ActionDispatch::Http::ParameterFilter.new(["blah"])
     end
   end
 

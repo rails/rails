@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
 Ruby on Rails 5.0 Release Notes
 ===============================
@@ -73,7 +73,7 @@ This will do three main things:
   `ActionController::Base`. As with middleware, this will leave out any Action
   Controller modules that provide functionalities primarily used by browser
   applications.
-- Configure the generators to skip generating views, helpers and assets when
+- Configure the generators to skip generating views, helpers, and assets when
   you generate a new resource.
 
 The application provides a base for APIs,
@@ -169,7 +169,7 @@ It includes some of these notable advancements:
 instead of waiting for the suite to complete.
 - Defer test output until the end of a full test run using the `-d` option.
 - Complete exception backtrace output using `-b` option.
-- Integration with `Minitest` to allow options like `-s` for test seed data,
+- Integration with minitest to allow options like `-s` for test seed data,
 `-n` for running specific test by name, `-v` for better verbose output and so forth.
 - Colored test output.
 
@@ -997,7 +997,7 @@ Please refer to the [Changelog][active-support] for detailed changes.
 
 *   New config option
     `config.active_support.halt_callback_chains_on_return_false` to specify
-    whether ActiveRecord, ActiveModel and ActiveModel::Validations callback
+    whether ActiveRecord, ActiveModel, and ActiveModel::Validations callback
     chains can be halted by returning `false` in a 'before' callback.
     ([Pull Request](https://github.com/rails/rails/pull/17227))
 

@@ -276,16 +276,14 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
   end
 
   def test_assert_redirect_failure_message_with_protocol_relative_url
-    begin
-      process :redirect_external_protocol_relative
-      assert_redirected_to "/foo"
-    rescue ActiveSupport::TestCase::Assertion => ex
-      assert_no_match(
-        /#{request.protocol}#{request.host}\/\/www.rubyonrails.org/,
-        ex.message,
-        "protocol relative url was incorrectly normalized"
-      )
-    end
+    process :redirect_external_protocol_relative
+    assert_redirected_to "/foo"
+  rescue ActiveSupport::TestCase::Assertion => ex
+    assert_no_match(
+      /#{request.protocol}#{request.host}\/\/www.rubyonrails.org/,
+      ex.message,
+      "protocol relative url was incorrectly normalized"
+    )
   end
 
   def test_template_objects_exist

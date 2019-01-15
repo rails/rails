@@ -19,6 +19,85 @@ if ActiveRecord::Base.connection.supports_foreign_keys_in_create?
           assert_equal "fk_name", fk.name unless current_adapter?(:SQLite3Adapter)
         end
       end
+
+      class ForeignKeyChangeColumnTest < ActiveRecord::TestCase
+        self.use_transactional_tests = false
+
+        class Rocket < ActiveRecord::Base
+          has_many :astronauts
+        end
+
+        class Astronaut < ActiveRecord::Base
+          belongs_to :rocket
+        end
+
+        setup do
+          @connection = ActiveRecord::Base.connection
+          @connection.create_table "rockets", force: true do |t|
+            t.string :name
+          end
+
+          @connection.create_table "astronauts", force: true do |t|
+            t.string :name
+            t.references :rocket, foreign_key: true
+          end
+          Rocket.reset_column_information
+          Astronaut.reset_column_information
+        end
+
+        teardown do
+          @connection.drop_table "astronauts", if_exists: true
+          @connection.drop_table "rockets", if_exists: true
+          Rocket.reset_column_information
+          Astronaut.reset_column_information
+        end
+
+        def test_change_column_of_parent_table
+          rocket = Rocket.create!(name: "myrocket")
+          rocket.astronauts << Astronaut.create!
+
+          @connection.change_column_null :rockets, :name, false
+
+          foreign_keys = @connection.foreign_keys("astronauts")
+          assert_equal 1, foreign_keys.size
+
+          fk = foreign_keys.first
+          assert_equal "myrocket", Rocket.first.name
+          assert_equal "astronauts", fk.from_table
+          assert_equal "rockets", fk.to_table
+        end
+
+        def test_rename_column_of_child_table
+          rocket = Rocket.create!(name: "myrocket")
+          rocket.astronauts << Astronaut.create!
+
+          @connection.rename_column :astronauts, :name, :astronaut_name
+
+          foreign_keys = @connection.foreign_keys("astronauts")
+          assert_equal 1, foreign_keys.size
+
+          fk = foreign_keys.first
+          assert_equal "myrocket", Rocket.first.name
+          assert_equal "astronauts", fk.from_table
+          assert_equal "rockets", fk.to_table
+        end
+
+        def test_rename_reference_column_of_child_table
+          rocket = Rocket.create!(name: "myrocket")
+          rocket.astronauts << Astronaut.create!
+
+          @connection.rename_column :astronauts, :rocket_id, :new_rocket_id
+
+          foreign_keys = @connection.foreign_keys("astronauts")
+          assert_equal 1, foreign_keys.size
+
+          fk = foreign_keys.first
+          assert_equal "myrocket", Rocket.first.name
+          assert_equal "astronauts", fk.from_table
+          assert_equal "rockets", fk.to_table
+          assert_equal "new_rocket_id", fk.options[:column]
+        end
+      end
     end
   end
 end

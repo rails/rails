@@ -19,8 +19,19 @@ module ActiveRecord
           execute(sql, name).to_a
         end
 
+        READ_QUERY = ActiveRecord::ConnectionAdapters::AbstractAdapter.build_read_query_regexp(:begin, :commit, :explain, :select, :set, :show, :release, :savepoint, :rollback) # :nodoc:
+        private_constant :READ_QUERY
+
+        def write_query?(sql) # :nodoc:
+          !READ_QUERY.match?(sql)
+        end
+
         # Executes the SQL statement in the context of this connection.
         def execute(sql, name = nil)
+          if preventing_writes? && write_query?(sql)
+            raise ActiveRecord::ReadOnlyError, "Write query attempted while in readonly mode: #{sql}"
+          end
+
           # make sure we carry over any changes to ActiveRecord::Base.default_timezone that have been
           # made since we established the connection
           @connection.query_options[:database_timezone] = ActiveRecord::Base.default_timezone
@@ -31,11 +42,19 @@ module ActiveRecord
         def exec_query(sql, name = "SQL", binds = [], prepare: false)
           if without_prepared_statement?(binds)
             execute_and_free(sql, name) do |result|
-              ActiveRecord::Result.new(result.fields, result.to_a) if result
+              if result
+                ActiveRecord::Result.new(result.fields, result.to_a)
+              else
+                ActiveRecord::Result.new([], [])
+              end
             end
           else
             exec_stmt_and_free(sql, name, binds, cache_stmt: prepare) do |_, result|
-              ActiveRecord::Result.new(result.fields, result.to_a) if result
+              if result
+                ActiveRecord::Result.new(result.fields, result.to_a)
+              else
+                ActiveRecord::Result.new([], [])
+              end
             end
           end
         end
@@ -62,7 +81,49 @@ module ActiveRecord
             @connection.abandon_results!
           end
 
+          def supports_set_server_option?
+            @connection.respond_to?(:set_server_option)
+          end
+
+          def multi_statements_enabled?(flags)
+            if flags.is_a?(Array)
+              flags.include?("MULTI_STATEMENTS")
+            else
+              (flags & Mysql2::Client::MULTI_STATEMENTS) != 0
+            end
+          end
+
+          def with_multi_statements
+            previous_flags = @config[:flags]
+
+            unless multi_statements_enabled?(previous_flags)
+              if supports_set_server_option?
+                @connection.set_server_option(Mysql2::Client::OPTION_MULTI_STATEMENTS_ON)
+              else
+                @config[:flags] = Mysql2::Client::MULTI_STATEMENTS
+                reconnect!
+              end
+            end
+
+            yield
+          ensure
+            unless multi_statements_enabled?(previous_flags)
+              if supports_set_server_option?
+                @connection.set_server_option(Mysql2::Client::OPTION_MULTI_STATEMENTS_OFF)
+              else
+                @config[:flags] = previous_flags
+                reconnect!
+              end
+            end
+          end
+
           def exec_stmt_and_free(sql, name, binds, cache_stmt: false)
+            if preventing_writes? && write_query?(sql)
+              raise ActiveRecord::ReadOnlyError, "Write query attempted while in readonly mode: #{sql}"
+            end
+
+            materialize_transactions
+
             # make sure we carry over any changes to ActiveRecord::Base.default_timezone that have been
             # made since we established the connection
             @connection.query_options[:database_timezone] = ActiveRecord::Base.default_timezone

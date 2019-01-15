@@ -33,8 +33,6 @@ module Rails
       rails: {
         actions: "-a",
         orm: "-o",
-        javascripts: "-j",
-        javascript_engine: "-je",
         resource_controller: "-c",
         scaffold_controller: "-c",
         stylesheets: "-y",
@@ -56,8 +54,6 @@ module Rails
         force_plural: false,
         helper: true,
         integration_tool: nil,
-        javascripts: true,
-        javascript_engine: :js,
         orm: false,
         resource_controller: :controller,
         resource_route: true,
@@ -126,7 +122,7 @@ module Rails
         )
 
         if ARGV.first == "mailer"
-          options[:rails].merge!(template_engine: :erb)
+          options[:rails][:template_engine] = :erb
         end
       end
 
@@ -258,7 +254,6 @@ module Rails
 
         namespaces = Hash[subclasses.map { |klass| [klass.namespace, klass] }]
         lookups.each do |namespace|
-
           klass = namespaces[namespace]
           return klass if klass
         end
@@ -277,8 +272,10 @@ module Rails
         else
           options     = sorted_groups.flat_map(&:last)
           suggestion  = Rails::Command::Spellchecker.suggest(namespace.to_s, from: options)
+          suggestion_msg = "Maybe you meant #{suggestion.inspect}?" if suggestion
+
           puts <<~MSG
-            Could not find generator '#{namespace}'. Maybe you meant #{suggestion.inspect}?
+            Could not find generator '#{namespace}'. #{suggestion_msg}
             Run `rails generate --help` for more options.
           MSG
         end

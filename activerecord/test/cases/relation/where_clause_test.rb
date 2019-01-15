@@ -92,12 +92,16 @@ class ActiveRecord::Relation
       original = WhereClause.new([
         table["id"].in([1, 2, 3]),
         table["id"].eq(1),
+        table["id"].is_not_distinct_from(1),
+        table["id"].is_distinct_from(2),
         "sql literal",
         random_object
       ])
       expected = WhereClause.new([
         table["id"].not_in([1, 2, 3]),
         table["id"].not_eq(1),
+        table["id"].is_distinct_from(1),
+        table["id"].is_not_distinct_from(2),
         Arel::Nodes::Not.new(Arel::Nodes::SqlLiteral.new("sql literal")),
         Arel::Nodes::Not.new(random_object)
       ])

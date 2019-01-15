@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
   s.summary     = "Object-relational mapper framework (part of Rails)."
   s.description = "Databases on Rails. Build a persistent domain model by mapping database tables to Ruby classes. Strong conventions for associations, validations, aggregations, migrations, and testing come baked-in."
 
-  s.required_ruby_version = ">= 2.4.1"
+  s.required_ruby_version = ">= 2.5.0"
 
   s.license = "MIT"
 
@@ -27,6 +27,9 @@ Gem::Specification.new do |s|
     "source_code_uri" => "https://github.com/rails/rails/tree/v#{version}/activerecord",
     "changelog_uri"   => "https://github.com/rails/rails/blob/v#{version}/activerecord/CHANGELOG.md"
   }
+
+  # NOTE: Please read our dependency guidelines before updating versions:
+  # https://edgeguides.rubyonrails.org/security.html#dependency-management-and-cves
 
   s.add_dependency "activesupport", version
   s.add_dependency "activemodel",   version

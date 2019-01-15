@@ -8,9 +8,8 @@ module ActiveRecord
   module SpawnMethods
     # This is overridden by Associations::CollectionProxy
     def spawn #:nodoc:
-      clone
+      @delegate_to_klass ? klass.all : clone
     end
-    alias :all :spawn
 
     # Merges in the conditions from <tt>other</tt>, if <tt>other</tt> is an ActiveRecord::Relation.
     # Returns an array representing the intersection of the resulting records with <tt>other</tt>, if <tt>other</tt> is an array.

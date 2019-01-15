@@ -71,6 +71,13 @@ class MigrationTest < ActiveRecord::TestCase
     ActiveRecord::Migration.verbose = @verbose_was
   end
 
+  def test_passing_migrations_paths_to_assume_migrated_upto_version_is_deprecated
+    ActiveRecord::SchemaMigration.create_table
+    assert_deprecated do
+      ActiveRecord::Base.connection.assume_migrated_upto_version(0, [])
+    end
+  end
+
   def test_migrator_migrations_path_is_deprecated
     assert_deprecated do
       ActiveRecord::Migrator.migrations_path = "/whatever"
@@ -87,7 +94,6 @@ class MigrationTest < ActiveRecord::TestCase
 
   def test_migrator_versions
     migrations_path = MIGRATIONS_ROOT + "/valid"
-    old_path = ActiveRecord::Migrator.migrations_paths
     migrator = ActiveRecord::MigrationContext.new(migrations_path)
 
     migrator.up
@@ -100,24 +106,18 @@ class MigrationTest < ActiveRecord::TestCase
 
     ActiveRecord::SchemaMigration.create!(version: 3)
     assert_equal true, migrator.needs_migration?
-  ensure
-    ActiveRecord::MigrationContext.new(old_path)
   end
 
   def test_migration_detection_without_schema_migration_table
     ActiveRecord::Base.connection.drop_table "schema_migrations", if_exists: true
 
     migrations_path = MIGRATIONS_ROOT + "/valid"
-    old_path = ActiveRecord::Migrator.migrations_paths
     migrator = ActiveRecord::MigrationContext.new(migrations_path)
 
     assert_equal true, migrator.needs_migration?
-  ensure
-    ActiveRecord::MigrationContext.new(old_path)
   end
 
   def test_any_migrations
-    old_path = ActiveRecord::Migrator.migrations_paths
     migrator = ActiveRecord::MigrationContext.new(MIGRATIONS_ROOT + "/valid")
 
     assert_predicate migrator, :any_migrations?
@@ -125,8 +125,6 @@ class MigrationTest < ActiveRecord::TestCase
     migrator_empty = ActiveRecord::MigrationContext.new(MIGRATIONS_ROOT + "/empty")
 
     assert_not_predicate migrator_empty, :any_migrations?
-  ensure
-    ActiveRecord::MigrationContext.new(old_path)
   end
 
   def test_migration_version
@@ -145,6 +143,36 @@ class MigrationTest < ActiveRecord::TestCase
     last_year_number = "#{last_year}#{not_a_month}#{day_of_month}#{time}01"
     this_year_number = "#{this_year}#{not_a_month}#{day_of_month}#{time}01"
     assert_equal ActiveRecord::Migration.new.next_migration_number(last_year_number).to_s, last_year_number
+  end
+
+  def test_create_table_raises_if_already_exists
+    connection = Person.connection
+    connection.create_table :testings, force: true do |t|
+      t.string :foo
+    end
+
+    assert_raise(ActiveRecord::StatementInvalid) do
+      connection.create_table :testings do |t|
+        t.string :foo
+      end
+    end
+  ensure
+    connection.drop_table :testings, if_exists: true
+  end
+
+  def test_create_table_with_if_not_exists_true
+    connection = Person.connection
+    connection.create_table :testings, force: true do |t|
+      t.string :foo
+    end
+
+    assert_nothing_raised do
+      connection.create_table :testings, if_not_exists: true do |t|
+        t.string :foo
+      end
+    end
+  ensure
+    connection.drop_table :testings, if_exists: true
   end
 
   def test_create_table_with_force_true_does_not_drop_nonexisting_table
@@ -273,21 +301,21 @@ class MigrationTest < ActiveRecord::TestCase
 
   def test_instance_based_migration_up
     migration = MockMigration.new
-    assert !migration.went_up, "have not gone up"
-    assert !migration.went_down, "have not gone down"
+    assert_not migration.went_up, "have not gone up"
+    assert_not migration.went_down, "have not gone down"
 
     migration.migrate :up
     assert migration.went_up, "have gone up"
-    assert !migration.went_down, "have not gone down"
+    assert_not migration.went_down, "have not gone down"
   end
 
   def test_instance_based_migration_down
     migration = MockMigration.new
-    assert !migration.went_up, "have not gone up"
-    assert !migration.went_down, "have not gone down"
+    assert_not migration.went_up, "have not gone up"
+    assert_not migration.went_down, "have not gone down"
 
     migration.migrate :down
-    assert !migration.went_up, "have gone up"
+    assert_not migration.went_up, "have gone up"
     assert migration.went_down, "have not gone down"
   end
 
@@ -404,7 +432,6 @@ class MigrationTest < ActiveRecord::TestCase
   def test_internal_metadata_stores_environment
     current_env     = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
     migrations_path = MIGRATIONS_ROOT + "/valid"
-    old_path        = ActiveRecord::Migrator.migrations_paths
     migrator = ActiveRecord::MigrationContext.new(migrations_path)
 
     migrator.up
@@ -421,7 +448,6 @@ class MigrationTest < ActiveRecord::TestCase
     migrator.up
     assert_equal new_env, ActiveRecord::InternalMetadata[:environment]
   ensure
-    migrator = ActiveRecord::MigrationContext.new(old_path)
     ENV["RAILS_ENV"] = original_rails_env
     ENV["RACK_ENV"]  = original_rack_env
     migrator.up
@@ -433,16 +459,11 @@ class MigrationTest < ActiveRecord::TestCase
 
     current_env     = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
     migrations_path = MIGRATIONS_ROOT + "/valid"
-    old_path        = ActiveRecord::Migrator.migrations_paths
 
-    current_env = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
     migrator = ActiveRecord::MigrationContext.new(migrations_path)
     migrator.up
     assert_equal current_env, ActiveRecord::InternalMetadata[:environment]
     assert_equal "bar", ActiveRecord::InternalMetadata[:foo]
-  ensure
-    migrator = ActiveRecord::MigrationContext.new(old_path)
-    migrator.up
   end
 
   def test_proper_table_name_on_migration
@@ -572,29 +593,25 @@ class MigrationTest < ActiveRecord::TestCase
       # table name is 29 chars, the standard sequence name will
       # be 33 chars and should be shortened
       assert_nothing_raised do
-        begin
-          Person.connection.create_table :table_with_name_thats_just_ok do |t|
-            t.column :foo, :string, null: false
-          end
-        ensure
-          Person.connection.drop_table :table_with_name_thats_just_ok rescue nil
+        Person.connection.create_table :table_with_name_thats_just_ok do |t|
+          t.column :foo, :string, null: false
         end
+      ensure
+        Person.connection.drop_table :table_with_name_thats_just_ok rescue nil
       end
 
       # should be all good w/ a custom sequence name
       assert_nothing_raised do
-        begin
-          Person.connection.create_table :table_with_name_thats_just_ok,
-            sequence_name: "suitably_short_seq" do |t|
-            t.column :foo, :string, null: false
-          end
-
-          Person.connection.execute("select suitably_short_seq.nextval from dual")
-
-        ensure
-          Person.connection.drop_table :table_with_name_thats_just_ok,
-            sequence_name: "suitably_short_seq" rescue nil
+        Person.connection.create_table :table_with_name_thats_just_ok,
+          sequence_name: "suitably_short_seq" do |t|
+          t.column :foo, :string, null: false
         end
+
+        Person.connection.execute("select suitably_short_seq.nextval from dual")
+
+      ensure
+        Person.connection.drop_table :table_with_name_thats_just_ok,
+          sequence_name: "suitably_short_seq" rescue nil
       end
 
       # confirm the custom sequence got dropped
@@ -738,15 +755,13 @@ class MigrationTest < ActiveRecord::TestCase
       test_terminated = Concurrent::CountDownLatch.new
 
       other_process = Thread.new do
-        begin
-          conn = ActiveRecord::Base.connection_pool.checkout
-          conn.get_advisory_lock(lock_id)
-          thread_lock.count_down
-          test_terminated.wait # hold the lock open until we tested everything
-        ensure
-          conn.release_advisory_lock(lock_id)
-          ActiveRecord::Base.connection_pool.checkin(conn)
-        end
+        conn = ActiveRecord::Base.connection_pool.checkout
+        conn.get_advisory_lock(lock_id)
+        thread_lock.count_down
+        test_terminated.wait # hold the lock open until we tested everything
+      ensure
+        conn.release_advisory_lock(lock_id)
+        ActiveRecord::Base.connection_pool.checkin(conn)
       end
 
       thread_lock.wait # wait until the 'other process' has the lock
@@ -804,12 +819,20 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
     end
 
     def test_adding_multiple_columns
-      assert_queries(1) do
+      classname = ActiveRecord::Base.connection.class.name[/[^:]*$/]
+      expected_query_count = {
+        "Mysql2Adapter"     => 1,
+        "PostgreSQLAdapter" => 2, # one for bulk change, one for comment
+      }.fetch(classname) {
+        raise "need an expected query count for #{classname}"
+      }
+
+      assert_queries(expected_query_count) do
         with_bulk_change_table do |t|
           t.column :name, :string
           t.string :qualification, :experience
           t.integer :age, default: 0
-          t.date :birthdate
+          t.date :birthdate, comment: "This is a comment"
           t.timestamps null: true
         end
       end
@@ -817,6 +840,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
       assert_equal 8, columns.size
       [:name, :qualification, :experience].each { |s| assert_equal :string, column(s).type }
       assert_equal "0", column(:age).default
+      assert_equal "This is a comment", column(:birthdate).comment
     end
 
     def test_removing_columns
@@ -1161,7 +1185,7 @@ class CopyMigrationsTest < ActiveRecord::TestCase
   def test_check_pending_with_stdlib_logger
     old, ActiveRecord::Base.logger = ActiveRecord::Base.logger, ::Logger.new($stdout)
     quietly do
-      assert_nothing_raised { ActiveRecord::Migration::CheckPending.new(Proc.new {}).call({}) }
+      assert_nothing_raised { ActiveRecord::Migration::CheckPending.new(Proc.new { }).call({}) }
     end
   ensure
     ActiveRecord::Base.logger = old

@@ -14,7 +14,6 @@ require "models/computer"
 require "models/project"
 require "models/default"
 require "models/auto_id"
-require "models/boolean"
 require "models/column_name"
 require "models/subscriber"
 require "models/comment"
@@ -283,11 +282,13 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_initialize_with_invalid_attribute
-    Topic.new("title" => "test",
-      "last_read(1i)" => "2005", "last_read(2i)" => "2", "last_read(3i)" => "31")
-  rescue ActiveRecord::MultiparameterAssignmentErrors => ex
+    ex = assert_raise(ActiveRecord::MultiparameterAssignmentErrors) do
+      Topic.new("title" => "test",
+        "written_on(4i)" => "16", "written_on(5i)" => "24", "written_on(6i)" => "00")
+    end
+
     assert_equal(1, ex.errors.size)
-    assert_equal("last_read", ex.errors[0].attribute)
+    assert_equal("written_on", ex.errors[0].attribute)
   end
 
   def test_create_after_initialize_without_block
@@ -716,48 +717,6 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal expected_attributes, category.attributes
   end
 
-  def test_boolean
-    b_nil = Boolean.create("value" => nil)
-    nil_id = b_nil.id
-    b_false = Boolean.create("value" => false)
-    false_id = b_false.id
-    b_true = Boolean.create("value" => true)
-    true_id = b_true.id
-
-    b_nil = Boolean.find(nil_id)
-    assert_nil b_nil.value
-    b_false = Boolean.find(false_id)
-    assert_not_predicate b_false, :value?
-    b_true = Boolean.find(true_id)
-    assert_predicate b_true, :value?
-  end
-
-  def test_boolean_without_questionmark
-    b_true = Boolean.create("value" => true)
-    true_id = b_true.id
-
-    subclass   = Class.new(Boolean).find true_id
-    superclass = Boolean.find true_id
-
-    assert_equal superclass.read_attribute(:has_fun), subclass.read_attribute(:has_fun)
-  end
-
-  def test_boolean_cast_from_string
-    b_blank = Boolean.create("value" => "")
-    blank_id = b_blank.id
-    b_false = Boolean.create("value" => "0")
-    false_id = b_false.id
-    b_true = Boolean.create("value" => "1")
-    true_id = b_true.id
-
-    b_blank = Boolean.find(blank_id)
-    assert_nil b_blank.value
-    b_false = Boolean.find(false_id)
-    assert_not_predicate b_false, :value?
-    b_true = Boolean.find(true_id)
-    assert_predicate b_true, :value?
-  end
-
   def test_new_record_returns_boolean
     assert_equal false, Topic.new.persisted?
     assert_equal true, Topic.find(1).persisted?
@@ -896,8 +855,7 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal company, Company.find(company.id)
   end
 
-  # TODO: extend defaults tests to other databases!
-  if current_adapter?(:PostgreSQLAdapter)
+  if current_adapter?(:PostgreSQLAdapter, :Mysql2Adapter, :SQLite3Adapter)
     def test_default
       with_timezone_config default: :local do
         default = Default.new
@@ -909,7 +867,10 @@ class BasicsTest < ActiveRecord::TestCase
         # char types
         assert_equal "Y", default.char1
         assert_equal "a varchar field", default.char2
-        assert_equal "a text field", default.char3
+        # Mysql text type can't have default value
+        unless current_adapter?(:Mysql2Adapter)
+          assert_equal "a text field", default.char3
+        end
       end
     end
   end
@@ -1486,6 +1447,14 @@ class BasicsTest < ActiveRecord::TestCase
     assert_not_respond_to developer, :first_name=
   end
 
+  test "when ignored attribute is loaded, cast type should be preferred over DB type" do
+    developer = AttributedDeveloper.create
+    developer.update_column :name, "name"
+
+    loaded_developer = AttributedDeveloper.where(id: developer.id).select("*").first
+    assert_equal "Developer: name", loaded_developer.name
+  end
+
   test "ignored columns not included in SELECT" do
     query = Developer.all.to_sql.downcase
 
@@ -1518,5 +1487,65 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal ["staging", "production"], ActiveRecord::Base.protected_environments
   ensure
     ActiveRecord::Base.protected_environments = previous_protected_environments
+  end
+
+  test "creating a record raises if preventing writes" do
+    error = assert_raises ActiveRecord::ReadOnlyError do
+      ActiveRecord::Base.connection.while_preventing_writes do
+        Bird.create! name: "Bluejay"
+      end
+    end
+
+    assert_match %r/\AWrite query attempted while in readonly mode: INSERT /, error.message
+  end
+
+  test "updating a record raises if preventing writes" do
+    bird = Bird.create! name: "Bluejay"
+
+    error = assert_raises ActiveRecord::ReadOnlyError do
+      ActiveRecord::Base.connection.while_preventing_writes do
+        bird.update! name: "Robin"
+      end
+    end
+
+    assert_match %r/\AWrite query attempted while in readonly mode: UPDATE /, error.message
+  end
+
+  test "deleting a record raises if preventing writes" do
+    bird = Bird.create! name: "Bluejay"
+
+    error = assert_raises ActiveRecord::ReadOnlyError do
+      ActiveRecord::Base.connection.while_preventing_writes do
+        bird.destroy!
+      end
+    end
+
+    assert_match %r/\AWrite query attempted while in readonly mode: DELETE /, error.message
+  end
+
+  test "selecting a record does not raise if preventing writes" do
+    bird = Bird.create! name: "Bluejay"
+
+    ActiveRecord::Base.connection.while_preventing_writes do
+      assert_equal bird, Bird.where(name: "Bluejay").first
+    end
+  end
+
+  test "an explain query does not raise if preventing writes" do
+    Bird.create!(name: "Bluejay")
+
+    ActiveRecord::Base.connection.while_preventing_writes do
+      assert_queries(2) { Bird.where(name: "Bluejay").explain }
+    end
+  end
+
+  test "an empty transaction does not raise if preventing writes" do
+    ActiveRecord::Base.connection.while_preventing_writes do
+      assert_queries(2, ignore_none: true) do
+        Bird.transaction do
+          ActiveRecord::Base.connection.materialize_transactions
+        end
+      end
+    end
   end
 end

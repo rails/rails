@@ -14,6 +14,8 @@ module ActiveStorage
       info event, color("Downloaded file from key: #{key_in(event)}", BLUE)
     end
 
+    alias_method :service_streaming_download, :service_download
+
     def service_delete(event)
       info event, color("Deleted file from key: #{key_in(event)}", RED)
     end

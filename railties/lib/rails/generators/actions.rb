@@ -7,7 +7,7 @@ module Rails
     module Actions
       def initialize(*) # :nodoc:
         super
-        @in_group = nil
+        @indentation = 0
         @after_bundle_callbacks = []
       end
 
@@ -36,13 +36,11 @@ module Rails
 
         log :gemfile, message
 
-        options.each do |option, value|
-          parts << "#{option}: #{quote(value)}"
-        end
+        parts << quote(options) unless options.empty?
 
         in_root do
           str = "gem #{parts.join(", ")}"
-          str = "  " + str if @in_group
+          str = indentation + str
           str = "\n" + str
           append_file "Gemfile", str, verbose: false
         end
@@ -54,17 +52,29 @@ module Rails
       #     gem "rspec-rails"
       #   end
       def gem_group(*names, &block)
-        name = names.map(&:inspect).join(", ")
-        log :gemfile, "group #{name}"
+        options = names.extract_options!
+        str = names.map(&:inspect)
+        str << quote(options) unless options.empty?
+        str = str.join(", ")
+        log :gemfile, "group #{str}"
 
         in_root do
-          append_file "Gemfile", "\ngroup #{name} do", force: true
-
-          @in_group = true
-          instance_eval(&block)
-          @in_group = false
-
+          append_file "Gemfile", "\ngroup #{str} do", force: true
+          with_indentation(&block)
           append_file "Gemfile", "\nend\n", force: true
+        end
+      end
+
+      def github(repo, options = {}, &block)
+        str = [quote(repo)]
+        str << quote(options) unless options.empty?
+        str = str.join(", ")
+        log :github, "github #{str}"
+
+        in_root do
+          append_file "Gemfile", "\n#{indentation}github #{str} do", force: true
+          with_indentation(&block)
+          append_file "Gemfile", "\n#{indentation}end", force: true
         end
       end
 
@@ -83,9 +93,7 @@ module Rails
         in_root do
           if block
             append_file "Gemfile", "\nsource #{quote(source)} do", force: true
-            @in_group = true
-            instance_eval(&block)
-            @in_group = false
+            with_indentation(&block)
             append_file "Gemfile", "\nend\n", force: true
           else
             prepend_file "Gemfile", "source #{quote(source)}\n", verbose: false
@@ -213,9 +221,11 @@ module Rails
       #   generate(:authenticated, "user session")
       def generate(what, *args)
         log :generate, what
+
+        options = args.extract_options!
         argument = args.flat_map(&:to_s).join(" ")
 
-        in_root { run_ruby_script("bin/rails generate #{what} #{argument}", verbose: false) }
+        execute_command :rails, "generate #{what} #{argument}", options
       end
 
       # Runs the supplied rake task (invoked with 'rake ...')
@@ -298,7 +308,8 @@ module Rails
           sudo = options[:sudo] && !Gem.win_platform? ? "sudo " : ""
           config = { verbose: false }
 
-          config.merge!(capture: options[:capture]) if options[:capture]
+          config[:capture] = options[:capture] if options[:capture]
+          config[:abort_on_failure] = options[:abort_on_failure] if options[:abort_on_failure]
 
           in_root { run("#{sudo}#{extify(executor)} #{command} RAILS_ENV=#{env}", config) }
         end
@@ -315,6 +326,11 @@ module Rails
         # Surround string with single quotes if there is no quotes.
         # Otherwise fall back to double quotes
         def quote(value) # :doc:
+          if value.respond_to? :each_pair
+            return value.map do |k, v|
+              "#{k}: #{quote(v)}"
+            end.join(", ")
+          end
           return value.inspect unless value.is_a? String
 
           if value.include?("'")
@@ -333,6 +349,19 @@ module Rails
           else
             "#{value.strip.indent(amount)}\n"
           end
+        end
+
+        # Indent the +Gemfile+ to the depth of @indentation
+        def indentation # :doc:
+          "  " * @indentation
+        end
+
+        # Manage +Gemfile+ indentation for a DSL action block
+        def with_indentation(&block) # :doc:
+          @indentation += 1
+          instance_eval(&block)
+        ensure
+          @indentation -= 1
         end
     end
   end

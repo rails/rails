@@ -5,6 +5,12 @@ require "abstract_unit"
 class Workshop
   extend ActiveModel::Naming
   include ActiveModel::Conversion
+
+  OUT_OF_SCOPE_BLOCK = proc do
+    raise "Not executed in controller's context" unless RedirectController === self
+    request.original_url
+  end
+
   attr_accessor :id
 
   def initialize(id)
@@ -119,6 +125,10 @@ class RedirectController < ActionController::Base
     redirect_to proc { { action: "hello_world" } }
   end
 
+  def redirect_to_out_of_scope_block
+    redirect_to Workshop::OUT_OF_SCOPE_BLOCK
+  end
+
   def redirect_with_header_break
     redirect_to "/lol\r\nwat"
   end
@@ -202,6 +212,13 @@ class RedirectTest < ActionController::TestCase
     get :relative_url_redirect_with_status_hash
     assert_response 301
     assert_equal "http://test.host/things/stuff", redirect_to_url
+  end
+
+  def test_relative_url_redirect_host_with_port
+    request.host = "test.host:1234"
+    get :relative_url_redirect_with_status
+    assert_response 302
+    assert_equal "http://test.host:1234/things/stuff", redirect_to_url
   end
 
   def test_simple_redirect_using_options
@@ -324,6 +341,12 @@ class RedirectTest < ActionController::TestCase
     get :redirect_to_with_block_and_assigns
     assert_response :redirect
     assert_redirected_to "http://www.rubyonrails.org/"
+  end
+
+  def test_redirect_to_out_of_scope_block
+    get :redirect_to_out_of_scope_block
+    assert_response :redirect
+    assert_redirected_to "http://test.host/redirect/redirect_to_out_of_scope_block"
   end
 
   def test_redirect_to_with_block_and_accepted_options

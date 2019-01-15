@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "ipaddr"
 require "active_support/core_ext/kernel/reporting"
 require "active_support/file_update_checker"
 require "rails/engine/configuration"
@@ -11,13 +12,13 @@ module Rails
       attr_accessor :allow_concurrency, :asset_host, :autoflush_log,
                     :cache_classes, :cache_store, :consider_all_requests_local, :console,
                     :eager_load, :exceptions_app, :file_watcher, :filter_parameters,
-                    :force_ssl, :helpers_paths, :logger, :log_formatter, :log_tags,
+                    :force_ssl, :helpers_paths, :hosts, :logger, :log_formatter, :log_tags,
                     :railties_order, :relative_url_root, :secret_key_base, :secret_token,
                     :ssl_options, :public_file_server,
                     :session_options, :time_zone, :reload_classes_only_on_change,
                     :beginning_of_week, :filter_redirect, :x, :enable_dependency_loading,
                     :read_encrypted_secrets, :log_level, :content_security_policy_report_only,
-                    :content_security_policy_nonce_generator, :require_master_key
+                    :content_security_policy_nonce_generator, :require_master_key, :credentials
 
       attr_reader :encoding, :api_only, :loaded_config_version
 
@@ -29,6 +30,7 @@ module Rails
         @filter_parameters                       = []
         @filter_redirect                         = []
         @helpers_paths                           = []
+        @hosts                                   = Array(([IPAddr.new("0.0.0.0/0"), IPAddr.new("::/0"), "localhost"] if Rails.env.development?))
         @public_file_server                      = ActiveSupport::OrderedOptions.new
         @public_file_server.enabled              = true
         @public_file_server.index_name           = "index"
@@ -60,6 +62,9 @@ module Rails
         @content_security_policy_nonce_generator = nil
         @require_master_key                      = false
         @loaded_config_version                   = nil
+        @credentials                             = ActiveSupport::OrderedOptions.new
+        @credentials.content_path                = default_credentials_content_path
+        @credentials.key_path                    = default_credentials_key_path
       end
 
       def load_defaults(target_version)
@@ -120,6 +125,23 @@ module Rails
           if respond_to?(:action_view)
             action_view.default_enforce_utf8 = false
           end
+
+          if respond_to?(:action_dispatch)
+            action_dispatch.use_cookies_with_metadata = true
+          end
+
+          if respond_to?(:action_mailer)
+            action_mailer.delivery_job = "ActionMailer::MailDeliveryJob"
+          end
+
+          if respond_to?(:active_job)
+            active_job.return_false_on_aborted_enqueue = true
+          end
+
+          if respond_to?(:active_storage)
+            active_storage.queues.analysis = :active_storage_analysis
+            active_storage.queues.purge    = :active_storage_purge
+          end
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end
@@ -146,9 +168,7 @@ module Rails
         @debug_exception_response_format || :default
       end
 
-      def debug_exception_response_format=(value)
-        @debug_exception_response_format = value
-      end
+      attr_writer :debug_exception_response_format
 
       def paths
         @paths ||= begin
@@ -164,18 +184,6 @@ module Rails
           paths.add "tmp"
           paths
         end
-      end
-
-      # Loads the database YAML without evaluating ERB.  People seem to
-      # write ERB that makes the database configuration depend on
-      # Rails configuration.  But we want Rails configuration (specifically
-      # `rake` and `rails` tasks) to be generated based on information in
-      # the database yaml, so we need a method that loads the database
-      # yaml *without* the context of the Rails application.
-      def load_database_yaml # :nodoc:
-        path = paths["config/database"].existent.first
-        return {} unless path
-        YAML.load_file(path.to_s)
       end
 
       # Loads and returns the entire raw configuration of database from
@@ -209,7 +217,7 @@ module Rails
               "Please note that YAML must be consistently indented using spaces. Tabs are not allowed. " \
               "Error: #{e.message}"
       rescue => e
-        raise e, "Cannot load `Rails.application.database_configuration`:\n#{e.message}", e.backtrace
+        raise e, "Cannot load database configuration:\n#{e.message}", e.backtrace
       end
 
       def colorize_logging
@@ -283,6 +291,27 @@ module Rails
           true
         end
       end
+
+      private
+        def default_credentials_content_path
+          if credentials_available_for_current_env?
+            root.join("config", "credentials", "#{Rails.env}.yml.enc")
+          else
+            root.join("config", "credentials.yml.enc")
+          end
+        end
+
+        def default_credentials_key_path
+          if credentials_available_for_current_env?
+            root.join("config", "credentials", "#{Rails.env}.key")
+          else
+            root.join("config", "master.key")
+          end
+        end
+
+        def credentials_available_for_current_env?
+          File.exist?(root.join("config", "credentials", "#{Rails.env}.yml.enc"))
+        end
     end
   end
 end

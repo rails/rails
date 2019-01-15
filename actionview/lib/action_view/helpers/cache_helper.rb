@@ -201,34 +201,42 @@ module ActionView
       end
 
       # This helper returns the name of a cache key for a given fragment cache
-      # call. By supplying +skip_digest:+ true to cache, the digestion of cache
+      # call. By supplying <tt>skip_digest: true</tt> to cache, the digestion of cache
       # fragments can be manually bypassed. This is useful when cache fragments
       # cannot be manually expired unless you know the exact key which is the
       # case when using memcached.
       #
       # The digest will be generated using +virtual_path:+ if it is provided.
       #
-      def cache_fragment_name(name = {}, skip_digest: nil, virtual_path: nil)
+      def cache_fragment_name(name = {}, skip_digest: nil, virtual_path: nil, digest_path: nil)
         if skip_digest
           name
         else
-          fragment_name_with_digest(name, virtual_path)
+          fragment_name_with_digest(name, virtual_path, digest_path)
+        end
+      end
+
+      def digest_path_from_virtual(virtual_path) # :nodoc:
+        digest = Digestor.digest(name: virtual_path, finder: lookup_context, dependencies: view_cache_dependencies)
+
+        if digest.present?
+          "#{virtual_path}:#{digest}"
+        else
+          virtual_path
         end
       end
 
     private
 
-      def fragment_name_with_digest(name, virtual_path)
+      def fragment_name_with_digest(name, virtual_path, digest_path)
         virtual_path ||= @virtual_path
 
-        if virtual_path
+        if virtual_path || digest_path
           name = controller.url_for(name).split("://").last if name.is_a?(Hash)
 
-          if digest = Digestor.digest(name: virtual_path, finder: lookup_context, dependencies: view_cache_dependencies).presence
-            [ "#{virtual_path}:#{digest}", name ]
-          else
-            [ virtual_path, name ]
-          end
+          digest_path ||= digest_path_from_virtual(virtual_path)
+
+          [ digest_path, name ]
         else
           name
         end

@@ -12,6 +12,11 @@ module ActiveSupport
     class NullStore < Store
       prepend Strategy::LocalCache
 
+      # Advertise cache versioning support.
+      def self.supports_cache_versioning?
+        true
+      end
+
       def clear(options = nil)
       end
 

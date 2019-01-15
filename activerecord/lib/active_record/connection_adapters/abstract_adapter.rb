@@ -65,7 +65,7 @@ module ActiveRecord
     # Most of the methods in the adapter are useful during migrations. Most
     # notably, the instance methods provided by SchemaStatements are very useful.
     class AbstractAdapter
-      ADAPTER_NAME = "Abstract".freeze
+      ADAPTER_NAME = "Abstract"
       include ActiveSupport::Callbacks
       define_callbacks :checkout, :checkin
 
@@ -76,12 +76,16 @@ module ActiveRecord
 
       SIMPLE_INT = /\A\d+\z/
 
-      attr_accessor :visitor, :pool
+      attr_accessor :visitor, :pool, :prevent_writes
       attr_reader :schema_cache, :owner, :logger, :prepared_statements, :lock
       alias :in_use? :owner
 
+      set_callback :checkin, :after, :enable_lazy_transactions!
+
       def self.type_cast_config_to_integer(config)
-        if config =~ SIMPLE_INT
+        if config.is_a?(Integer)
+          config
+        elsif SIMPLE_INT.match?(config)
           config.to_i
         else
           config
@@ -94,6 +98,11 @@ module ActiveRecord
         else
           config
         end
+      end
+
+      def self.build_read_query_regexp(*parts) # :nodoc:
+        parts = parts.map { |part| /\A\s*#{part}/i }
+        Regexp.union(*parts)
       end
 
       def initialize(connection, logger = nil, config = {}) # :nodoc:
@@ -117,6 +126,37 @@ module ActiveRecord
         else
           @prepared_statements = false
         end
+
+        @advisory_locks_enabled = self.class.type_cast_config_to_boolean(
+          config.fetch(:advisory_locks, true)
+        )
+
+        check_version
+      end
+
+      def replica?
+        @config[:replica] || false
+      end
+
+      # Determines whether writes are currently being prevents.
+      #
+      # Returns true if the connection is a replica, or if +prevent_writes+
+      # is set to true.
+      def preventing_writes?
+        replica? || prevent_writes
+      end
+
+      # Prevent writing to the database regardless of role.
+      #
+      # In some cases you may want to prevent writes to the database
+      # even if you are on a database that can write. `while_preventing_writes`
+      # will prevent writes to the database for the duration of the block.
+      def while_preventing_writes
+        original = self.prevent_writes
+        self.prevent_writes = true
+        yield
+      ensure
+        self.prevent_writes = original
       end
 
       def migrations_paths # :nodoc:
@@ -137,6 +177,10 @@ module ActiveRecord
         def <=>(version_string)
           @version <=> version_string.split(".").map(&:to_i)
         end
+
+        def to_s
+          @version.join(".")
+        end
       end
 
       def valid_type?(type) # :nodoc:
@@ -146,7 +190,7 @@ module ActiveRecord
       # this method must only be called while holding connection pool's mutex
       def lease
         if in_use?
-          msg = "Cannot lease connection, ".dup
+          msg = +"Cannot lease connection, "
           if @owner == Thread.current
             msg << "it is already leased by the current thread."
           else
@@ -296,6 +340,11 @@ module ActiveRecord
         false
       end
 
+      # Does this adapter support materialized views?
+      def supports_materialized_views?
+        false
+      end
+
       # Does this adapter support datetime with precision?
       def supports_datetime_with_precision?
         false
@@ -320,6 +369,7 @@ module ActiveRecord
       def supports_multi_insert?
         true
       end
+      deprecate :supports_multi_insert?
 
       # Does this adapter support virtual columns?
       def supports_virtual_columns?
@@ -331,12 +381,20 @@ module ActiveRecord
         false
       end
 
+      def supports_lazy_transactions?
+        false
+      end
+
       # This is meant to be implemented by the adapters that support extensions
       def disable_extension(name)
       end
 
       # This is meant to be implemented by the adapters that support extensions
       def enable_extension(name)
+      end
+
+      def advisory_locks_enabled? # :nodoc:
+        supports_advisory_locks? && @advisory_locks_enabled
       end
 
       # This is meant to be implemented by the adapters that support advisory
@@ -442,18 +500,21 @@ module ActiveRecord
       # This is useful for when you need to call a proprietary method such as
       # PostgreSQL's lo_* methods.
       def raw_connection
+        disable_lazy_transactions!
         @connection
       end
 
-      def case_sensitive_comparison(table, attribute, column, value) # :nodoc:
-        table[attribute].eq(value)
+      def case_sensitive_comparison(attribute, value) # :nodoc:
+        attribute.eq(value)
       end
 
-      def case_insensitive_comparison(table, attribute, column, value) # :nodoc:
+      def case_insensitive_comparison(attribute, value) # :nodoc:
+        column = column_for_attribute(attribute)
+
         if can_perform_case_insensitive_comparison_for?(column)
-          table[attribute].lower.eq(table.lower(value))
+          attribute.lower.eq(attribute.relation.lower(value))
         else
-          table[attribute].eq(value)
+          attribute.eq(value)
         end
       end
 
@@ -468,11 +529,7 @@ module ActiveRecord
       end
 
       def column_name_for_operation(operation, node) # :nodoc:
-        column_name_from_arel_node(node)
-      end
-
-      def column_name_from_arel_node(node) # :nodoc:
-        visitor.accept(node, Arel::Collectors::SQLString.new).value
+        visitor.compile(node)
       end
 
       def default_index_type?(index) # :nodoc:
@@ -480,6 +537,9 @@ module ActiveRecord
       end
 
       private
+        def check_version
+        end
+
         def type_map
           @type_map ||= Type::TypeMap.new.tap do |mapping|
             initialize_type_map(mapping)
@@ -553,14 +613,12 @@ module ActiveRecord
           $1.to_i if sql_type =~ /\((.*)\)/
         end
 
-        def translate_exception_class(e, sql)
-          begin
-            message = "#{e.class.name}: #{e.message}: #{sql}"
-          rescue Encoding::CompatibilityError
-            message = "#{e.class.name}: #{e.message.force_encoding sql.encoding}: #{sql}"
-          end
+        def translate_exception_class(e, sql, binds)
+          message = "#{e.class.name}: #{e.message}"
 
-          exception = translate_exception(e, message)
+          exception = translate_exception(
+            e, message: message, sql: sql, binds: binds
+          )
           exception.set_backtrace e.backtrace
           exception
         end
@@ -573,24 +631,23 @@ module ActiveRecord
             binds:             binds,
             type_casted_binds: type_casted_binds,
             statement_name:    statement_name,
-            connection_id:     object_id) do
-            begin
-              @lock.synchronize do
-                yield
-              end
-            rescue => e
-              raise translate_exception_class(e, sql)
+            connection_id:     object_id,
+            connection:        self) do
+            @lock.synchronize do
+              yield
             end
+          rescue => e
+            raise translate_exception_class(e, sql, binds)
           end
         end
 
-        def translate_exception(exception, message)
+        def translate_exception(exception, message:, sql:, binds:)
           # override in derived class
           case exception
           when RuntimeError
             exception
           else
-            ActiveRecord::StatementInvalid.new(message)
+            ActiveRecord::StatementInvalid.new(message, sql: sql, binds: binds)
           end
         end
 
@@ -602,6 +659,11 @@ module ActiveRecord
           column_name = column_name.to_s
           columns(table_name).detect { |c| c.name == column_name } ||
             raise(ActiveRecordError, "No such column: #{table_name}.#{column_name}")
+        end
+
+        def column_for_attribute(attribute)
+          table_name = attribute.relation.name
+          schema_cache.columns_hash(table_name)[attribute.name.to_s]
         end
 
         def collector

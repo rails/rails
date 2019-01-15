@@ -1,3 +1,200 @@
+*   Fix `String#safe_constantize` throwing a `LoadError` for incorrectly cased constant references.
+
+    *Keenan Brock*
+
+*   Preserve key order passed to `ActiveSupport::CacheStore#fetch_multi`.
+
+    `fetch_multi(*names)` now returns its results in the same order as the `*names` requested, rather than returning cache hits followed by cache misses.
+
+    *Gannon McGibbon*
+
+*   If the same block is `included` multiple times for a Concern, an exception is no longer raised.
+
+    *Mark J. Titorenko*, *Vlad Bokov*
+
+*   Fix bug where `#to_options` for `ActiveSupport::HashWithIndifferentAccess`
+    would not act as alias for `#symbolize_keys`.
+
+    *Nick Weiland*
+
+*   Improve the logic that detects non-autoloaded constants.
+
+    *Jan Habermann*, *Xavier Noria*
+
+*   Deprecate `ActiveSupport::Multibyte::Unicode#pack_graphemes(array)` and `ActiveSuppport::Multibyte::Unicode#unpack_graphemes(string)`
+    in favor of `array.flatten.pack("U*")` and `string.scan(/\X/).map(&:codepoints)`, respectively.
+
+    *Francesco Rodríguez*
+
+*   Deprecate `ActiveSupport::Multibyte::Chars.consumes?` in favor of `String#is_utf8?`.
+
+    *Francesco Rodríguez*
+
+*   Fix duration being rounded to a full second.
+    ```
+      time = DateTime.parse("2018-1-1")
+      time += 0.51.seconds
+    ```
+    Will now correctly add 0.51 second and not 1 full second.
+
+    *Edouard Chin*
+
+*   Deprecate `ActiveSupport::Multibyte::Unicode#normalize` and `ActiveSuppport::Multibyte::Chars#normalize`
+    in favor of `String#unicode_normalize`
+
+    *Francesco Rodríguez*
+
+*   Deprecate `ActiveSupport::Multibyte::Unicode#downcase/upcase/swapcase` in favor of
+    `String#downcase/upcase/swapcase`.
+
+    *Francesco Rodríguez*
+
+*   Add `ActiveSupport::ParameterFilter`.
+
+    *Yoshiyuki Kinjo*
+
+*   Rename `Module#parent`, `Module#parents`, and `Module#parent_name` to
+    `module_parent`, `module_parents`, and `module_parent_name`.
+
+    *Gannon McGibbon*
+
+*   Deprecate the use of `LoggerSilence` in favor of `ActiveSupport::LoggerSilence`
+
+    *Edouard Chin*
+
+*   Deprecate using negative limits in `String#first` and `String#last`.
+
+    *Gannon McGibbon*, *Eric Turner*
+
+*   Fix bug where `#without` for `ActiveSupport::HashWithIndifferentAccess` would fail
+    with symbol arguments
+
+    *Abraham Chan*
+
+*   Treat `#delete_prefix`, `#delete_suffix` and `#unicode_normalize` results as non-`html_safe`.
+    Ensure safety of arguments for `#insert`, `#[]=` and `#replace` calls on `html_safe` Strings.
+
+    *Janosch Müller*
+
+*   Changed `ActiveSupport::TaggedLogging.new` to return a new logger instance instead
+    of mutating the one received as parameter.
+
+    *Thierry Joyal*
+
+*   Define `unfreeze_time` as an alias of `travel_back` in `ActiveSupport::Testing::TimeHelpers`.
+
+    The alias is provided for symmetry with `freeze_time`.
+
+    *Ryan Davidson*
+
+*   Add support for tracing constant autoloads. Just throw
+
+        ActiveSupport::Dependencies.logger = Rails.logger
+        ActiveSupport::Dependencies.verbose = true
+
+    in an initializer.
+
+    *Xavier Noria*
+
+*   Maintain `html_safe?` on html_safe strings when sliced.
+
+        string = "<div>test</div>".html_safe
+        string[-1..1].html_safe? # => true
+
+    *Elom Gomez*, *Yumin Wong*
+
+*   Add `Array#extract!`.
+
+    The method removes and returns the elements for which the block returns a true value.
+    If no block is given, an Enumerator is returned instead.
+
+        numbers = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+        odd_numbers = numbers.extract! { |number| number.odd? } # => [1, 3, 5, 7, 9]
+        numbers # => [0, 2, 4, 6, 8]
+
+    *bogdanvlviv*
+
+*   Support not to cache `nil` for `ActiveSupport::Cache#fetch`.
+
+        cache.fetch('bar', skip_nil: true) { nil }
+        cache.exist?('bar') # => false
+
+    *Martin Hong*
+
+*   Add "event object" support to the notification system.
+    Before this change, end users were forced to create hand made artisanal
+    event objects on their own, like this:
+
+        ActiveSupport::Notifications.subscribe('wait') do |*args|
+          @event = ActiveSupport::Notifications::Event.new(*args)
+        end
+
+        ActiveSupport::Notifications.instrument('wait') do
+          sleep 1
+        end
+
+        @event.duration # => 1000.138
+
+    After this change, if the block passed to `subscribe` only takes one
+    parameter, the framework will yield an event object to the block.  Now
+    end users are no longer required to make their own:
+
+        ActiveSupport::Notifications.subscribe('wait') do |event|
+          @event = event
+        end
+
+        ActiveSupport::Notifications.instrument('wait') do
+          sleep 1
+        end
+
+        p @event.allocations # => 7
+        p @event.cpu_time    # => 0.256
+        p @event.idle_time   # => 1003.2399
+
+    Now you can enjoy event objects without making them yourself.  Neat!
+
+    *Aaron "t.lo" Patterson*
+
+*   Add cpu_time, idle_time, and allocations to Event.
+
+    *Eileen M. Uchitelle*, *Aaron Patterson*
+
+*   RedisCacheStore: support key expiry in increment/decrement.
+
+    Pass `:expires_in` to `#increment` and `#decrement` to set a Redis EXPIRE on the key.
+
+    If the key is already set to expire, RedisCacheStore won't extend its expiry.
+
+        Rails.cache.increment("some_key", 1, expires_in: 2.minutes)
+
+    *Jason Lee*
+
+*   Allow `Range#===` and `Range#cover?` on Range.
+
+    `Range#cover?` can now accept a range argument like `Range#include?` and
+    `Range#===`. `Range#===` works correctly on Ruby 2.6. `Range#include?` is moved
+    into a new file, with these two methods.
+
+    *Requiring active_support/core_ext/range/include_range is now deprecated.*
+    *Use `require "active_support/core_ext/range/compare_range"` instead.*
+
+    *utilum*
+
+*   Add `index_with` to Enumerable.
+
+    Allows creating a hash from an enumerable with the value from a passed block
+    or a default argument.
+
+        %i( title body ).index_with { |attr| post.public_send(attr) }
+        # => { title: "hey", body: "what's up?" }
+
+        %i( title body ).index_with(nil)
+        # => { title: nil, body: nil }
+
+    Closely linked with `index_by`, which creates a hash where the keys are extracted from a block.
+
+    *Kasper Timm Hansen*
+
 *   Fix bug where `ActiveSupport::Timezone.all` would fail when tzinfo data for
     any timezone defined in `ActiveSupport::TimeZone::MAPPING` is missing.
 
@@ -15,7 +212,7 @@
 
     *Godfrey Chan*
 
-*   Fix bug where `URI.unscape` would fail with mixed Unicode/escaped character input:
+*   Fix bug where `URI.unescape` would fail with mixed Unicode/escaped character input:
 
         URI.unescape("\xe3\x83\x90")  # => "バ"
         URI.unescape("%E3%83%90")  # => "バ"
@@ -95,9 +292,9 @@
 
     *Jeremy Daer*
 
-*   Rails 6 requires Ruby 2.4.1 or newer.
+*   Rails 6 requires Ruby 2.5.0 or newer.
 
-    *Jeremy Daer*
+    *Jeremy Daer*, *Kasper Timm Hansen*
 
 *   Adds parallel testing to Rails.
 

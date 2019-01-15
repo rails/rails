@@ -48,6 +48,15 @@ def mysql_enforcing_gtid_consistency?
   current_adapter?(:Mysql2Adapter) && "ON" == ActiveRecord::Base.connection.show_variable("enforce_gtid_consistency")
 end
 
+def supports_default_expression?
+  if current_adapter?(:PostgreSQLAdapter)
+    true
+  elsif current_adapter?(:Mysql2Adapter)
+    conn = ActiveRecord::Base.connection
+    !conn.mariadb? && conn.version >= "8.0.13"
+  end
+end
+
 def supports_savepoints?
   ActiveRecord::Base.connection.supports_savepoints?
 end
@@ -183,5 +192,3 @@ module InTimeZone
       ActiveRecord::Base.time_zone_aware_attributes = old_tz
     end
 end
-
-require "mocha/minitest" # FIXME: stop using mocha

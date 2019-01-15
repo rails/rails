@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
 Ruby on Rails 5.1 Release Notes
 ===============================
@@ -102,7 +102,7 @@ Secrets will be decrypted in production, using a key stored either in the
 [Pull Request](https://github.com/rails/rails/pull/27825)
 
 Allows specifying common parameters used for all methods in a mailer class in
-order to share instance variables, headers and other common setup.
+order to share instance variables, headers, and other common setup.
 
 ``` ruby
 class InvitationsMailer < ApplicationMailer
@@ -170,7 +170,7 @@ Before Rails 5.1, there were two interfaces for handling HTML forms:
 `form_for` for model instances and `form_tag` for custom URLs.
 
 Rails 5.1 combines both of these interfaces with `form_with`, and
-can generate form tags based on URLs, scopes or models.
+can generate form tags based on URLs, scopes, or models.
 
 Using just a URL:
 
@@ -399,7 +399,7 @@ Please refer to the [Changelog][action-view] for detailed changes.
 
 *   Change `datetime_field` and `datetime_field_tag` to generate `datetime-local`
     fields.
-    ([Pull Request](https://github.com/rails/rails/pull/28061))
+    ([Pull Request](https://github.com/rails/rails/pull/25469))
 
 *   New Builder-style syntax for HTML tags (`tag.div`, `tag.br`, etc.)
     ([Pull Request](https://github.com/rails/rails/pull/25543))

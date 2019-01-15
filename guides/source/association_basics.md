@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
 Active Record Associations
 ==========================
@@ -96,7 +96,7 @@ end
 
 ![belongs_to Association Diagram](images/association_basics/belongs_to.png)
 
-NOTE: `belongs_to` associations _must_ use the singular term. If you used the pluralized form in the above example for the `author` association in the `Book` model, you would be told that there was an "uninitialized constant Book::Authors". This is because Rails automatically infers the class name from the association name. If the association name is wrongly pluralized, then the inferred class will be wrongly pluralized too.
+NOTE: `belongs_to` associations _must_ use the singular term. If you used the pluralized form in the above example for the `author` association in the `Book` model and tried to create the instance by `Book.create(authors: @author)`, you would be told that there was an "uninitialized constant Book::Authors". This is because Rails automatically infers the class name from the association name. If the association name is wrongly pluralized, then the inferred class will be wrongly pluralized too.
 
 The corresponding migration might look like this:
 
@@ -109,7 +109,7 @@ class CreateBooks < ActiveRecord::Migration[5.0]
     end
 
     create_table :books do |t|
-      t.belongs_to :author, index: true
+      t.belongs_to :author
       t.datetime :published_at
       t.timestamps
     end
@@ -140,7 +140,7 @@ class CreateSuppliers < ActiveRecord::Migration[5.0]
     end
 
     create_table :accounts do |t|
-      t.belongs_to :supplier, index: true
+      t.belongs_to :supplier
       t.string :account_number
       t.timestamps
     end
@@ -184,7 +184,7 @@ class CreateAuthors < ActiveRecord::Migration[5.0]
     end
 
     create_table :books do |t|
-      t.belongs_to :author, index: true
+      t.belongs_to :author
       t.datetime :published_at
       t.timestamps
     end
@@ -231,8 +231,8 @@ class CreateAppointments < ActiveRecord::Migration[5.0]
     end
 
     create_table :appointments do |t|
-      t.belongs_to :physician, index: true
-      t.belongs_to :patient, index: true
+      t.belongs_to :physician
+      t.belongs_to :patient
       t.datetime :appointment_date
       t.timestamps
     end
@@ -312,13 +312,13 @@ class CreateAccountHistories < ActiveRecord::Migration[5.0]
     end
 
     create_table :accounts do |t|
-      t.belongs_to :supplier, index: true
+      t.belongs_to :supplier
       t.string :account_number
       t.timestamps
     end
 
     create_table :account_histories do |t|
-      t.belongs_to :account, index: true
+      t.belongs_to :account
       t.integer :credit_rating
       t.timestamps
     end
@@ -358,8 +358,8 @@ class CreateAssembliesAndParts < ActiveRecord::Migration[5.0]
     end
 
     create_table :assemblies_parts, id: false do |t|
-      t.belongs_to :assembly, index: true
-      t.belongs_to :part, index: true
+      t.belongs_to :assembly
+      t.belongs_to :part
     end
   end
 end
@@ -439,7 +439,7 @@ end
 
 The simplest rule of thumb is that you should set up a `has_many :through` relationship if you need to work with the relationship model as an independent entity. If you don't need to do anything with the relationship model, it may be simpler to set up a `has_and_belongs_to_many` relationship (though you'll need to remember to create the joining table in the database).
 
-You should use `has_many :through` if you need validations, callbacks or extra attributes on the join model.
+You should use `has_many :through` if you need validations, callbacks, or extra attributes on the join model.
 
 ### Polymorphic Associations
 
@@ -487,7 +487,7 @@ class CreatePictures < ActiveRecord::Migration[5.0]
   def change
     create_table :pictures do |t|
       t.string :name
-      t.references :imageable, polymorphic: true, index: true
+      t.references :imageable, polymorphic: true
       t.timestamps
     end
   end
@@ -517,7 +517,7 @@ In your migrations/schema, you will add a references column to the model itself.
 class CreateEmployees < ActiveRecord::Migration[5.0]
   def change
     create_table :employees do |t|
-      t.references :manager, index: true
+      t.references :manager
       t.timestamps
     end
   end
@@ -600,7 +600,7 @@ NOTE: If you wish to [enforce referential integrity at the database level](/acti
 
 #### Creating Join Tables for `has_and_belongs_to_many` Associations
 
-If you create a `has_and_belongs_to_many` association, you need to explicitly create the joining table. Unless the name of the join table is explicitly specified by using the `:join_table` option, Active Record creates the name by using the lexical book of the class names. So a join between author and book models will give the default join table name of "authors_books" because "a" outranks "b" in lexical ordering.
+If you create a `has_and_belongs_to_many` association, you need to explicitly create the joining table. Unless the name of the join table is explicitly specified by using the `:join_table` option, Active Record creates the name by using the lexical order of the class names. So a join between author and book models will give the default join table name of "authors_books" because "a" outranks "b" in lexical ordering.
 
 WARNING: The precedence between model names is calculated using the `<=>` operator for `String`. This means that if the strings are of different lengths, and the strings are equal when compared up to the shortest length, then the longer string is considered of higher lexical precedence than the shorter one. For example, one would expect the tables "paper_boxes" and "papers" to generate a join table name of "papers_paper_boxes" because of the length of the name "paper_boxes", but it in fact generates a join table name of "paper_boxes_papers" (because the underscore '\_' is lexicographically _less_ than 's' in common encodings).
 
@@ -868,7 +868,7 @@ While Rails uses intelligent defaults that will work well in most situations, th
 
 ```ruby
 class Book < ApplicationRecord
-  belongs_to :author, dependent: :destroy,
+  belongs_to :author, touch: :books_updated_at,
     counter_cache: true
 end
 ```
@@ -1048,8 +1048,7 @@ There may be times when you wish to customize the query used by `belongs_to`. Su
 
 ```ruby
 class Book < ApplicationRecord
-  belongs_to :author, -> { where active: true },
-                        dependent: :destroy
+  belongs_to :author, -> { where active: true }
 end
 ```
 
@@ -1075,13 +1074,13 @@ end
 You can use the `includes` method to specify second-order associations that should be eager-loaded when this association is used. For example, consider these models:
 
 ```ruby
-class LineItem < ApplicationRecord
+class Chapter < ApplicationRecord
   belongs_to :book
 end
 
 class Book < ApplicationRecord
   belongs_to :author
-  has_many :line_items
+  has_many :chapters
 end
 
 class Author < ApplicationRecord
@@ -1089,16 +1088,16 @@ class Author < ApplicationRecord
 end
 ```
 
-If you frequently retrieve authors directly from line items (`@line_item.book.author`), then you can make your code somewhat more efficient by including authors in the association from line items to books:
+If you frequently retrieve authors directly from chapters (`@chapter.book.author`), then you can make your code somewhat more efficient by including authors in the association from chapters to books:
 
 ```ruby
-class LineItem < ApplicationRecord
+class Chapter < ApplicationRecord
   belongs_to :book, -> { includes :author }
 end
 
 class Book < ApplicationRecord
   belongs_to :author
-  has_many :line_items
+  has_many :chapters
 end
 
 class Author < ApplicationRecord
@@ -1259,7 +1258,7 @@ Controls what happens to the associated object when its owner is destroyed:
 * `:destroy` causes the associated object to also be destroyed
 * `:delete` causes the associated object to be deleted directly from the database (so callbacks will not execute)
 * `:nullify` causes the foreign key to be set to `NULL`. Callbacks are not executed.
-* `:restrict_with_exception` causes an exception to be raised if there is an associated record
+* `:restrict_with_exception` causes an `ActiveRecord::DeleteRestrictionError` exception to be raised if there is an associated record
 * `:restrict_with_error` causes an error to be added to the owner if there is an associated object
 
 It's necessary not to set or leave `:nullify` option for those associations
@@ -1660,8 +1659,10 @@ Controls what happens to the associated objects when their owner is destroyed:
 * `:destroy` causes all the associated objects to also be destroyed
 * `:delete_all` causes all the associated objects to be deleted directly from the database (so callbacks will not execute)
 * `:nullify` causes the foreign keys to be set to `NULL`. Callbacks are not executed.
-* `:restrict_with_exception` causes an exception to be raised if there are any associated records
+* `:restrict_with_exception` causes an `ActiveRecord::DeleteRestrictionError` exception to be raised if there are any associated records
 * `:restrict_with_error` causes an error to be added to the owner if there are any associated objects
+
+The `:destroy` and `:delete_all` options also affect the semantics of the `collection.delete` and `collection=` methods by causing them to destroy associated objects when they are removed from the collection.
 
 ##### `:foreign_key`
 
@@ -1779,8 +1780,8 @@ The `group` method supplies an attribute name to group the result set by, using 
 
 ```ruby
 class Author < ApplicationRecord
-  has_many :line_items, -> { group 'books.id' },
-                        through: :books
+  has_many :chapters, -> { group 'books.id' },
+                      through: :books
 end
 ```
 
@@ -1795,27 +1796,27 @@ end
 
 class Book < ApplicationRecord
   belongs_to :author
-  has_many :line_items
+  has_many :chapters
 end
 
-class LineItem < ApplicationRecord
+class Chapter < ApplicationRecord
   belongs_to :book
 end
 ```
 
-If you frequently retrieve line items directly from authors (`@author.books.line_items`), then you can make your code somewhat more efficient by including line items in the association from authors to books:
+If you frequently retrieve chapters directly from authors (`@author.books.chapters`), then you can make your code somewhat more efficient by including chapters in the association from authors to books:
 
 ```ruby
 class Author < ApplicationRecord
-  has_many :books, -> { includes :line_items }
+  has_many :books, -> { includes :chapters }
 end
 
 class Book < ApplicationRecord
   belongs_to :author
-  has_many :line_items
+  has_many :chapters
 end
 
-class LineItem < ApplicationRecord
+class Chapter < ApplicationRecord
   belongs_to :book
 end
 ```
@@ -2391,7 +2392,7 @@ Single Table Inheritance
 ------------------------
 
 Sometimes, you may want to share fields and behavior between different models.
-Let's say we have Car, Motorcycle and Bicycle models. We will want to share
+Let's say we have Car, Motorcycle, and Bicycle models. We will want to share
 the `color` and `price` fields and some methods for all of them, but having some
 specific behavior for each, and separated controllers too.
 

@@ -484,7 +484,7 @@
     }, {
       key: "readNextChunk",
       value: function readNextChunk() {
-        if (this.chunkIndex < this.chunkCount) {
+        if (this.chunkIndex < this.chunkCount || this.chunkIndex == 0 && this.chunkCount == 0) {
           var start = this.chunkIndex * this.chunkSize;
           var end = Math.min(start + this.chunkSize, this.file.size);
           var bytes = fileSlice.call(this.file, start, end);
@@ -560,7 +560,10 @@
       this.xhr.setRequestHeader("Content-Type", "application/json");
       this.xhr.setRequestHeader("Accept", "application/json");
       this.xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
-      this.xhr.setRequestHeader("X-CSRF-Token", getMetaValue("csrf-token"));
+      var csrfToken = getMetaValue("csrf-token");
+      if (csrfToken != undefined) {
+        this.xhr.setRequestHeader("X-CSRF-Token", csrfToken);
+      }
       this.xhr.addEventListener("load", function(event) {
         return _this.requestDidLoad(event);
       });
@@ -855,12 +858,20 @@
     return DirectUploadsController;
   }();
   var processingAttribute = "data-direct-uploads-processing";
+  var submitButtonsByForm = new WeakMap();
   var started = false;
   function start() {
     if (!started) {
       started = true;
+      document.addEventListener("click", didClick, true);
       document.addEventListener("submit", didSubmitForm);
       document.addEventListener("ajax:before", didSubmitRemoteElement);
+    }
+  }
+  function didClick(event) {
+    var target = event.target;
+    if ((target.tagName == "INPUT" || target.tagName == "BUTTON") && target.type == "submit" && target.form) {
+      submitButtonsByForm.set(target.form, target);
     }
   }
   function didSubmitForm(event) {
@@ -894,7 +905,7 @@
     }
   }
   function submitForm(form) {
-    var button = findElement(form, "input[type=submit]");
+    var button = submitButtonsByForm.get(form) || findElement(form, "input[type=submit], button[type=submit]");
     if (button) {
       var _button = button, disabled = _button.disabled;
       button.disabled = false;
@@ -909,6 +920,7 @@
       button.click();
       form.removeChild(button);
     }
+    submitButtonsByForm.delete(form);
   }
   function disable(input) {
     input.disabled = true;

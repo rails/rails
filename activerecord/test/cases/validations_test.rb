@@ -3,11 +3,11 @@
 require "cases/helper"
 require "models/topic"
 require "models/reply"
-require "models/person"
 require "models/developer"
 require "models/computer"
 require "models/parrot"
 require "models/company"
+require "models/price_estimate"
 
 class ValidationsTest < ActiveRecord::TestCase
   fixtures :topics, :developers
@@ -144,6 +144,13 @@ class ValidationsTest < ActiveRecord::TestCase
     assert_equal "100,000", d.salary_before_type_cast
   end
 
+  def test_validates_acceptance_of_with_undefined_attribute_methods
+    Topic.validates_acceptance_of(:approved)
+    topic = Topic.new(approved: true)
+    Topic.undefine_attribute_methods
+    assert topic.approved
+  end
+
   def test_validates_acceptance_of_as_database_column
     Topic.validates_acceptance_of(:approved)
     topic = Topic.create("approved" => true)
@@ -181,6 +188,22 @@ class ValidationsTest < ActiveRecord::TestCase
     assert_not_predicate klass.new(wibble: "97.179"), :valid?
     assert_not_predicate klass.new(wibble: 97.179), :valid?
     assert_not_predicate klass.new(wibble: BigDecimal("97.179")), :valid?
+  end
+
+  def test_numericality_validator_wont_be_affected_by_custom_getter
+    price_estimate = PriceEstimate.new(price: 50)
+
+    assert_equal "$50.00", price_estimate.price
+    assert_equal 50, price_estimate.price_before_type_cast
+    assert_equal 50, price_estimate.read_attribute(:price)
+
+    assert_predicate price_estimate, :price_came_from_user?
+    assert_predicate price_estimate, :valid?
+
+    price_estimate.save!
+
+    assert_not_predicate price_estimate, :price_came_from_user?
+    assert_predicate price_estimate, :valid?
   end
 
   def test_acceptance_validator_doesnt_require_db_connection

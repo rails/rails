@@ -12,11 +12,29 @@ module Arel # :nodoc: all
 
       private
 
-        # `top` wouldn't really work here. I.e. User.select("distinct first_name").limit(10) would generate
-        # "select top 10 distinct first_name from users", which is invalid query! it should be
-        # "select distinct top 10 first_name from users"
-        def visit_Arel_Nodes_Top(o)
-          ""
+        def visit_Arel_Nodes_IsNotDistinctFrom(o, collector)
+          right = o.right
+
+          if right.nil?
+            collector = visit o.left, collector
+            collector << " IS NULL"
+          else
+            collector << "EXISTS (VALUES ("
+            collector = visit o.left, collector
+            collector << ") INTERSECT VALUES ("
+            collector = visit right, collector
+            collector << "))"
+          end
+        end
+
+        def visit_Arel_Nodes_IsDistinctFrom(o, collector)
+          if o.right.nil?
+            collector = visit o.left, collector
+            collector << " IS NOT NULL"
+          else
+            collector << "NOT "
+            visit_Arel_Nodes_IsNotDistinctFrom o, collector
+          end
         end
 
         def visit_Arel_Visitors_MSSQL_RowNumber(o, collector)

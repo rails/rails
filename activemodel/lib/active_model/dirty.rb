@@ -141,7 +141,9 @@ module ActiveModel
       @mutations_from_database = nil
     end
 
-    def changes_applied # :nodoc:
+    # Clears dirty data and moves +changes+ to +previously_changed+ and
+    # +mutations_from_database+ to +mutations_before_last_save+ respectively.
+    def changes_applied
       unless defined?(@attributes)
         @previously_changed = changes
       end
@@ -151,7 +153,7 @@ module ActiveModel
       @mutations_from_database = nil
     end
 
-    # Returns +true+ if any of the attributes have unsaved changes, +false+ otherwise.
+    # Returns +true+ if any of the attributes has unsaved changes, +false+ otherwise.
     #
     #   person.changed? # => false
     #   person.name = 'bob'
@@ -304,7 +306,7 @@ module ActiveModel
 
       # Handles <tt>*_previous_change</tt> for +method_missing+.
       def attribute_previous_change(attr)
-        previous_changes[attr] if attribute_previously_changed?(attr)
+        previous_changes[attr]
       end
 
       # Handles <tt>*_will_change!</tt> for +method_missing+.

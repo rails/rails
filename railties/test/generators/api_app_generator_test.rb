@@ -14,9 +14,9 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
     super
 
     Kernel.silence_warnings do
-      Thor::Base.shell.send(:attr_accessor, :always_force)
+      Thor::Base.shell.attr_accessor :always_force
       @shell = Thor::Base.shell.new
-      @shell.send(:always_force=, true)
+      @shell.always_force = true
     end
   end
 
@@ -40,7 +40,6 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
     end
 
     assert_file "Gemfile" do |content|
-      assert_no_match(/gem 'coffee-rails'/, content)
       assert_no_match(/gem 'sass-rails'/, content)
       assert_no_match(/gem 'web-console'/, content)
       assert_no_match(/gem 'capybara'/, content)
@@ -118,7 +117,6 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
         app/views/layouts
         app/views/layouts/mailer.html.erb
         app/views/layouts/mailer.text.erb
-        bin/bundle
         bin/rails
         bin/rake
         bin/setup

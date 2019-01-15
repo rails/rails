@@ -46,10 +46,17 @@ module ActionMailer
         register_preview_interceptors(options.delete(:preview_interceptors))
         register_observers(options.delete(:observers))
 
+        if delivery_job = options.delete(:delivery_job)
+          self.delivery_job = delivery_job.constantize
+        end
+
         options.each { |k, v| send("#{k}=", v) }
       end
 
-      ActiveSupport.on_load(:action_dispatch_integration_test) { include ActionMailer::TestCase::ClearTestDeliveries }
+      ActiveSupport.on_load(:action_dispatch_integration_test) do
+        include ActionMailer::TestHelper
+        include ActionMailer::TestCase::ClearTestDeliveries
+      end
     end
 
     initializer "action_mailer.compile_config_methods" do

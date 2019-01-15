@@ -21,6 +21,11 @@ class BaseMailer < ActionMailer::Base
     mail(template_name: "welcome", template_path: path)
   end
 
+  def welcome_without_deliveries
+    mail(template_name: "welcome")
+    mail.perform_deliveries = false
+  end
+
   def html_only(hash = {})
     mail(hash)
   end
@@ -104,6 +109,13 @@ class BaseMailer < ActionMailer::Base
 
   def implicit_different_template(template_name = "")
     mail(template_name: template_name)
+  end
+
+  def implicit_different_template_with_block(template_name = "")
+    mail(template_name: template_name) do |format|
+      format.text
+      format.html
+    end
   end
 
   def explicit_different_template(template_name = "")

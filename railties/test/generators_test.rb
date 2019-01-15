@@ -28,6 +28,7 @@ class GeneratorsTest < Rails::Generators::TestCase
     output = capture(:stdout) { Rails::Generators.invoke name }
     assert_match "Could not find generator '#{name}'", output
     assert_match "`rails generate --help`", output
+    assert_no_match "Maybe you meant", output
   end
 
   def test_generator_suggestions
@@ -47,12 +48,6 @@ class GeneratorsTest < Rails::Generators::TestCase
   ensure
     I18n.available_locales = orig_available_locales
     I18n.default_locale = orig_default_locale
-  end
-
-  def test_generator_multiple_suggestions
-    name = :tas
-    output = capture(:stdout) { Rails::Generators.invoke name }
-    assert_match 'Maybe you meant "task"?', output
   end
 
   def test_help_when_a_generator_with_required_arguments_is_invoked_without_arguments

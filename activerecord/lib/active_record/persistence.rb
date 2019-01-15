@@ -67,8 +67,7 @@ module ActiveRecord
       # how this "single-table" inheritance mapping is implemented.
       def instantiate(attributes, column_types = {}, &block)
         klass = discriminate_class_for_record(attributes)
-        attributes = klass.attributes_builder.build_from_database(attributes, column_types)
-        klass.allocate.init_with("attributes" => attributes, "new_record" => false, &block)
+        instantiate_instance_of(klass, attributes, column_types, &block)
       end
 
       # Updates an object (or multiple objects) and saves it to the database, if validations pass.
@@ -208,6 +207,13 @@ module ActiveRecord
       end
 
       private
+        # Given a class, an attributes hash, +instantiate_instance_of+ returns a
+        # new instance of the class. Accepts only keys as strings.
+        def instantiate_instance_of(klass, attributes, column_types = {}, &block)
+          attributes = klass.attributes_builder.build_from_database(attributes, column_types)
+          klass.allocate.init_with_attributes(attributes, &block)
+        end
+
         # Called by +instantiate+ to decide which class to use for a new
         # record instance.
         #
@@ -373,7 +379,7 @@ module ActiveRecord
       became = klass.allocate
       became.send(:initialize)
       became.instance_variable_set("@attributes", @attributes)
-      became.instance_variable_set("@mutations_from_database", @mutations_from_database) if defined?(@mutations_from_database)
+      became.instance_variable_set("@mutations_from_database", @mutations_from_database ||= nil)
       became.instance_variable_set("@changed_attributes", attributes_changed_by_setter)
       became.instance_variable_set("@new_record", new_record?)
       became.instance_variable_set("@destroyed", destroyed?)
@@ -475,14 +481,15 @@ module ActiveRecord
         verify_readonly_attribute(key.to_s)
       end
 
+      id_in_database = self.id_in_database
+      attributes.each do |k, v|
+        write_attribute_without_type_cast(k, v)
+      end
+
       affected_rows = self.class._update_record(
         attributes,
         self.class.primary_key => id_in_database
       )
-
-      attributes.each do |k, v|
-        write_attribute_without_type_cast(k, v)
-      end
 
       affected_rows == 1
     end
@@ -710,7 +717,6 @@ module ActiveRecord
     # Updates the associated record with values matching those of the instance attributes.
     # Returns the number of affected rows.
     def _update_record(attribute_names = self.attribute_names)
-      attribute_names &= self.class.column_names
       attribute_names = attributes_for_update(attribute_names)
 
       if attribute_names.empty?
@@ -729,10 +735,12 @@ module ActiveRecord
     # Creates a record with values matching those of the instance attributes
     # and returns its id.
     def _create_record(attribute_names = self.attribute_names)
-      attribute_names &= self.class.column_names
-      attributes_values = attributes_with_values_for_create(attribute_names)
+      attribute_names = attributes_for_create(attribute_names)
 
-      new_id = self.class._insert_record(attributes_values)
+      new_id = self.class._insert_record(
+        attributes_with_values(attribute_names)
+      )
+
       self.id ||= new_id if self.class.primary_key
 
       @new_record = false
@@ -753,6 +761,8 @@ module ActiveRecord
       @_association_destroy_exception = nil
     end
 
+    # The name of the method used to touch a +belongs_to+ association when the
+    # +:touch+ option is used.
     def belongs_to_touch_method
       :touch
     end

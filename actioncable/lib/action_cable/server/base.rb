@@ -36,7 +36,9 @@ module ActionCable
       end
 
       def restart
-        connections.each(&:close)
+        connections.each do |connection|
+          connection.close(reason: ActionCable::INTERNAL[:disconnect_reasons][:server_restart])
+        end
 
         @mutex.synchronize do
           # Shutdown the worker pool

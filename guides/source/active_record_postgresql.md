@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
 Active Record and PostgreSQL
 ============================
@@ -14,7 +14,7 @@ After reading this guide, you will know:
 
 --------------------------------------------------------------------------------
 
-In order to use the PostgreSQL adapter you need to have at least version 9.1
+In order to use the PostgreSQL adapter you need to have at least version 9.3
 installed. Older versions are not supported.
 
 To get started with PostgreSQL have a look at the
@@ -276,7 +276,7 @@ end
 
 NOTE: ENUM values can't be dropped currently. You can read why [here](https://www.postgresql.org/message-id/29F36C7C98AB09499B1A209D48EAA615B7653DBC8A@mail2a.alliedtesting.com).
 
-Hint: to show all the values of the all enums you have, you should call this query in `bin/rails db` or `psql` console:
+Hint: to show all the values of the all enums you have, you should call this query in `rails db` or `psql` console:
 
 ```sql
 SELECT n.nspname AS enum_schema,

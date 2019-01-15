@@ -15,6 +15,8 @@ require "sqlite3"
 module ActiveRecord
   module ConnectionHandling # :nodoc:
     def sqlite3_connection(config)
+      config = config.symbolize_keys
+
       # Require database.
       unless config[:database]
         raise ArgumentError, "No database file specified. Missing argument: database"
@@ -31,7 +33,7 @@ module ActiveRecord
 
       db = SQLite3::Database.new(
         config[:database].to_s,
-        results_as_hash: true
+        config.merge(results_as_hash: true)
       )
 
       db.busy_timeout(ConnectionAdapters::SQLite3Adapter.type_cast_config_to_integer(config[:timeout])) if config[:timeout]
@@ -54,7 +56,7 @@ module ActiveRecord
     #
     # * <tt>:database</tt> - Path to the database file.
     class SQLite3Adapter < AbstractAdapter
-      ADAPTER_NAME = "SQLite".freeze
+      ADAPTER_NAME = "SQLite"
 
       include SQLite3::Quoting
       include SQLite3::SchemaStatements
@@ -103,7 +105,6 @@ module ActiveRecord
 
         @active     = true
         @statements = StatementPool.new(self.class.type_cast_config_to_integer(config[:statement_limit]))
-
         configure_connection
       end
 
@@ -116,7 +117,11 @@ module ActiveRecord
       end
 
       def supports_partial_index?
-        sqlite_version >= "3.8.0"
+        true
+      end
+
+      def supports_expression_index?
+        sqlite_version >= "3.9.0"
       end
 
       def requires_reloading?
@@ -124,7 +129,7 @@ module ActiveRecord
       end
 
       def supports_foreign_keys_in_create?
-        sqlite_version >= "3.6.19"
+        true
       end
 
       def supports_views?
@@ -137,10 +142,6 @@ module ActiveRecord
 
       def supports_json?
         true
-      end
-
-      def supports_multi_insert?
-        sqlite_version >= "3.7.11"
       end
 
       def active?
@@ -184,16 +185,23 @@ module ActiveRecord
         true
       end
 
+      def supports_lazy_transactions?
+        true
+      end
+
       # REFERENTIAL INTEGRITY ====================================
 
       def disable_referential_integrity # :nodoc:
-        old = query_value("PRAGMA foreign_keys")
+        old_foreign_keys = query_value("PRAGMA foreign_keys")
+        old_defer_foreign_keys = query_value("PRAGMA defer_foreign_keys")
 
         begin
+          execute("PRAGMA defer_foreign_keys = ON")
           execute("PRAGMA foreign_keys = OFF")
           yield
         ensure
-          execute("PRAGMA foreign_keys = #{old}")
+          execute("PRAGMA defer_foreign_keys = #{old_defer_foreign_keys}")
+          execute("PRAGMA foreign_keys = #{old_foreign_keys}")
         end
       end
 
@@ -201,12 +209,25 @@ module ActiveRecord
       # DATABASE STATEMENTS ======================================
       #++
 
+      READ_QUERY = ActiveRecord::ConnectionAdapters::AbstractAdapter.build_read_query_regexp(:begin, :commit, :explain, :select, :pragma, :release, :savepoint, :rollback) # :nodoc:
+      private_constant :READ_QUERY
+
+      def write_query?(sql) # :nodoc:
+        !READ_QUERY.match?(sql)
+      end
+
       def explain(arel, binds = [])
         sql = "EXPLAIN QUERY PLAN #{to_sql(arel, binds)}"
         SQLite3::ExplainPrettyPrinter.new.pp(exec_query(sql, "EXPLAIN", []))
       end
 
       def exec_query(sql, name = nil, binds = [], prepare: false)
+        if preventing_writes? && write_query?(sql)
+          raise ActiveRecord::ReadOnlyError, "Write query attempted while in readonly mode: #{sql}"
+        end
+
+        materialize_transactions
+
         type_casted_binds = type_casted_binds(binds)
 
         log(sql, name, binds, type_casted_binds) do
@@ -247,6 +268,12 @@ module ActiveRecord
       end
 
       def execute(sql, name = nil) #:nodoc:
+        if preventing_writes? && write_query?(sql)
+          raise ActiveRecord::ReadOnlyError, "Write query attempted while in readonly mode: #{sql}"
+        end
+
+        materialize_transactions
+
         log(sql, name) do
           ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
             @connection.execute(sql)
@@ -384,6 +411,18 @@ module ActiveRecord
       end
 
       private
+        # See https://www.sqlite.org/limits.html,
+        # the default value is 999 when not configured.
+        def bind_params_length
+          999
+        end
+
+        def check_version
+          if sqlite_version < "3.8.0"
+            raise "Your version of SQLite (#{sqlite_version}) is too old. Active Record supports SQLite >= 3.8."
+          end
+        end
+
         def initialize_type_map(m = type_map)
           super
           register_class_with_limit m, %r(int)i, SQLite3Integer
@@ -404,12 +443,25 @@ module ActiveRecord
 
         def alter_table(table_name, options = {})
           altered_table_name = "a#{table_name}"
-          caller = lambda { |definition| yield definition if block_given? }
+          foreign_keys = foreign_keys(table_name)
+
+          caller = lambda do |definition|
+            rename = options[:rename] || {}
+            foreign_keys.each do |fk|
+              if column = rename[fk.options[:column]]
+                fk.options[:column] = column
+              end
+              definition.foreign_key(fk.to_table, fk.options)
+            end
+
+            yield definition if block_given?
+          end
 
           transaction do
-            move_table(table_name, altered_table_name,
-              options.merge(temporary: true))
-            move_table(altered_table_name, table_name, &caller)
+            disable_referential_integrity do
+              move_table(table_name, altered_table_name, options.merge(temporary: true))
+              move_table(altered_table_name, table_name, &caller)
+            end
           end
         end
 
@@ -439,6 +491,7 @@ module ActiveRecord
                 primary_key: column_name == from_primary_key
               )
             end
+
             yield @definition if block_given?
           end
           copy_table_indexes(from, to, options[:rename] || {})
@@ -450,18 +503,18 @@ module ActiveRecord
         def copy_table_indexes(from, to, rename = {})
           indexes(from).each do |index|
             name = index.name
-            # indexes sqlite creates for internal use start with `sqlite_` and
-            # don't need to be copied
-            next if name.starts_with?("sqlite_")
             if to == "a#{from}"
               name = "t#{name}"
             elsif from == "a#{to}"
               name = name[1..-1]
             end
 
-            to_column_names = columns(to).map(&:name)
-            columns = index.columns.map { |c| rename[c] || c }.select do |column|
-              to_column_names.include?(column)
+            columns = index.columns
+            if columns.is_a?(Array)
+              to_column_names = columns(to).map(&:name)
+              columns = columns.map { |c| rename[c] || c }.select do |column|
+                to_column_names.include?(column)
+              end
             end
 
             unless columns.empty?
@@ -491,18 +544,18 @@ module ActiveRecord
           @sqlite_version ||= SQLite3Adapter::Version.new(query_value("SELECT sqlite_version(*)"))
         end
 
-        def translate_exception(exception, message)
+        def translate_exception(exception, message:, sql:, binds:)
           case exception.message
           # SQLite 3.8.2 returns a newly formatted error message:
           #   UNIQUE constraint failed: *table_name*.*column_name*
           # Older versions of SQLite return:
           #   column *column_name* is not unique
           when /column(s)? .* (is|are) not unique/, /UNIQUE constraint failed: .*/
-            RecordNotUnique.new(message)
+            RecordNotUnique.new(message, sql: sql, binds: binds)
           when /.* may not be NULL/, /NOT NULL constraint failed: .*/
-            NotNullViolation.new(message)
+            NotNullViolation.new(message, sql: sql, binds: binds)
           when /FOREIGN KEY constraint failed/i
-            InvalidForeignKey.new(message)
+            InvalidForeignKey.new(message, sql: sql, binds: binds)
           else
             super
           end
@@ -512,7 +565,7 @@ module ActiveRecord
 
         def table_structure_with_collation(table_name, basic_structure)
           collation_hash = {}
-          sql = <<-SQL
+          sql = <<~SQL
             SELECT sql FROM
               (SELECT * FROM sqlite_master UNION ALL
                SELECT * FROM sqlite_temp_master)
@@ -545,7 +598,7 @@ module ActiveRecord
               column
             end
           else
-            basic_structure.to_hash
+            basic_structure.to_a
           end
         end
 

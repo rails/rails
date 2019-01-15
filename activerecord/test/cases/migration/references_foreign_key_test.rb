@@ -152,25 +152,23 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
         end
 
         test "foreign key methods respect pluralize_table_names" do
-          begin
-            original_pluralize_table_names = ActiveRecord::Base.pluralize_table_names
-            ActiveRecord::Base.pluralize_table_names = false
-            @connection.create_table :testing
-            @connection.change_table :testing_parents do |t|
-              t.references :testing, foreign_key: true
-            end
-
-            fk = @connection.foreign_keys("testing_parents").first
-            assert_equal "testing_parents", fk.from_table
-            assert_equal "testing", fk.to_table
-
-            assert_difference "@connection.foreign_keys('testing_parents').size", -1 do
-              @connection.remove_reference :testing_parents, :testing, foreign_key: true
-            end
-          ensure
-            ActiveRecord::Base.pluralize_table_names = original_pluralize_table_names
-            @connection.drop_table "testing", if_exists: true
+          original_pluralize_table_names = ActiveRecord::Base.pluralize_table_names
+          ActiveRecord::Base.pluralize_table_names = false
+          @connection.create_table :testing
+          @connection.change_table :testing_parents do |t|
+            t.references :testing, foreign_key: true
           end
+
+          fk = @connection.foreign_keys("testing_parents").first
+          assert_equal "testing_parents", fk.from_table
+          assert_equal "testing", fk.to_table
+
+          assert_difference "@connection.foreign_keys('testing_parents').size", -1 do
+            @connection.remove_reference :testing_parents, :testing, foreign_key: true
+          end
+        ensure
+          ActiveRecord::Base.pluralize_table_names = original_pluralize_table_names
+          @connection.drop_table "testing", if_exists: true
         end
 
         class CreateDogsMigration < ActiveRecord::Migration::Current

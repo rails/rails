@@ -20,7 +20,7 @@ module Rails
 
           add_credentials_file_silently(template)
 
-          say "You can edit encrypted credentials with `bin/rails credentials:edit`."
+          say "You can edit encrypted credentials with `rails credentials:edit`."
           say ""
         end
       end

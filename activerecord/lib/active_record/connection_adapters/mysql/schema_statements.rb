@@ -35,13 +35,39 @@ module ActiveRecord
                 ]
               end
 
-              indexes.last[-2] << row[:Column_name]
-              indexes.last[-1][:lengths].merge!(row[:Column_name] => row[:Sub_part].to_i) if row[:Sub_part]
-              indexes.last[-1][:orders].merge!(row[:Column_name] => :desc) if row[:Collation] == "D"
+              if row[:Expression]
+                expression = row[:Expression]
+                expression = +"(#{expression})" unless expression.start_with?("(")
+                indexes.last[-2] << expression
+                indexes.last[-1][:expressions] ||= {}
+                indexes.last[-1][:expressions][expression] = expression
+                indexes.last[-1][:orders][expression] = :desc if row[:Collation] == "D"
+              else
+                indexes.last[-2] << row[:Column_name]
+                indexes.last[-1][:lengths][row[:Column_name]] = row[:Sub_part].to_i if row[:Sub_part]
+                indexes.last[-1][:orders][row[:Column_name]] = :desc if row[:Collation] == "D"
+              end
             end
           end
 
-          indexes.map { |index| IndexDefinition.new(*index) }
+          indexes.map do |index|
+            options = index.last
+
+            if expressions = options.delete(:expressions)
+              orders = options.delete(:orders)
+              lengths = options.delete(:lengths)
+
+              columns = index[-2].map { |name|
+                [ name.to_sym, expressions[name] || +quote_column_name(name) ]
+              }.to_h
+
+              index[-2] = add_options_for_index_columns(
+                columns, order: orders, length: lengths
+              ).values.join(", ")
+            end
+
+            IndexDefinition.new(*index)
+          end
         end
 
         def remove_column(table_name, column_name, type = nil, options = {})
@@ -51,9 +77,13 @@ module ActiveRecord
           super
         end
 
+        def create_table(table_name, options: default_row_format, **)
+          super
+        end
+
         def internal_string_options_for_primary_key
           super.tap do |options|
-            if CHARSETS_OF_4BYTES_MAXLEN.include?(charset) && (mariadb? || version < "8.0.0")
+            if !row_format_dynamic_by_default? && CHARSETS_OF_4BYTES_MAXLEN.include?(charset)
               options[:collation] = collation.sub(/\A[^_]+/, "utf8")
             end
           end
@@ -70,6 +100,28 @@ module ActiveRecord
         private
           CHARSETS_OF_4BYTES_MAXLEN = ["utf8mb4", "utf16", "utf16le", "utf32"]
 
+          def row_format_dynamic_by_default?
+            if mariadb?
+              version >= "10.2.2"
+            else
+              version >= "5.7.9"
+            end
+          end
+
+          def default_row_format
+            return if row_format_dynamic_by_default?
+
+            unless defined?(@default_row_format)
+              if query_value("SELECT @@innodb_file_per_table = 1 AND @@innodb_file_format = 'Barracuda'") == 1
+                @default_row_format = "ROW_FORMAT=DYNAMIC"
+              else
+                @default_row_format = nil
+              end
+            end
+
+            @default_row_format
+          end
+
           def schema_creation
             MySQL::SchemaCreation.new(self)
           end
@@ -80,10 +132,13 @@ module ActiveRecord
 
           def new_column_from_field(table_name, field)
             type_metadata = fetch_type_metadata(field[:Type], field[:Extra])
-            if type_metadata.type == :datetime && /\ACURRENT_TIMESTAMP(?:\(\))?\z/i.match?(field[:Default])
-              default, default_function = nil, "CURRENT_TIMESTAMP"
-            else
-              default, default_function = field[:Default], nil
+            default, default_function = field[:Default], nil
+
+            if type_metadata.type == :datetime && /\ACURRENT_TIMESTAMP(?:\([0-6]?\))?\z/i.match?(default)
+              default, default_function = nil, default
+            elsif type_metadata.extra == "DEFAULT_GENERATED"
+              default = +"(#{default})" unless default.start_with?("(")
+              default, default_function = nil, default
             end
 
             MySQL::Column.new(
@@ -121,7 +176,7 @@ module ActiveRecord
           def data_source_sql(name = nil, type: nil)
             scope = quoted_scope(name, type: type)
 
-            sql = "SELECT table_name FROM information_schema.tables".dup
+            sql = +"SELECT table_name FROM information_schema.tables"
             sql << " WHERE table_schema = #{scope[:schema]}"
             sql << " AND table_name = #{scope[:name]}" if scope[:name]
             sql << " AND table_type = #{scope[:type]}" if scope[:type]

@@ -9,22 +9,29 @@ module ActiveStorage
     #
     # All methods called on this proxy object that aren't listed here will automatically be delegated to +attachments+.
     def attachments
-      record.public_send("#{name}_attachments")
+      change.present? ? change.attachments : record.public_send("#{name}_attachments")
     end
 
-    # Associates one or several attachments with the current record, saving them to the database.
+    # Returns all attached blobs.
+    def blobs
+      change.present? ? change.blobs : record.public_send("#{name}_blobs")
+    end
+
+    # Attaches one or more +attachables+ to the record.
+    #
+    # If the record is persisted and unchanged, the attachments are saved to
+    # the database immediately. Otherwise, they'll be saved to the DB when the
+    # record is next saved.
     #
     #   document.images.attach(params[:images]) # Array of ActionDispatch::Http::UploadedFile objects
     #   document.images.attach(params[:signed_blob_id]) # Signed reference to blob from direct upload
     #   document.images.attach(io: File.open("/path/to/racecar.jpg"), filename: "racecar.jpg", content_type: "image/jpg")
     #   document.images.attach([ first_blob, second_blob ])
     def attach(*attachables)
-      attachables.flatten.collect do |attachable|
-        if record.new_record?
-          attachments.build(record: record, blob: create_blob_from(attachable))
-        else
-          attachments.create!(record: record, blob: create_blob_from(attachable))
-        end
+      if record.persisted? && !record.changed?
+        record.update(name => blobs + attachables.flatten)
+      else
+        record.public_send("#{name}=", blobs + attachables.flatten)
       end
     end
 
@@ -41,7 +48,7 @@ module ActiveStorage
 
     # Deletes associated attachments without purging them, leaving their respective blobs in place.
     def detach
-      attachments.destroy_all if attached?
+      attachments.delete_all if attached?
     end
 
     ##
@@ -49,7 +56,6 @@ module ActiveStorage
     #
     # Directly purges each associated attachment (i.e. destroys the blobs and
     # attachments and deletes the files on the service).
-
 
     ##
     # :method: purge_later

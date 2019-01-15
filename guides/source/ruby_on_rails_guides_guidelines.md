@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
 Ruby on Rails Guides Guidelines
 ===============================
@@ -107,8 +107,8 @@ HTML Guides
 -----------
 
 Before generating the guides, make sure that you have the latest version of
-Bundler installed on your system. As of this writing, you must install Bundler
-1.3.5 or later on your device.
+Bundler installed on your system. You can find the latest Bundler version
+[here](https://rubygems.org/gems/bundler). As of this writing, it's v1.17.1.
 
 To install the latest version of Bundler, run `gem install bundler`.
 

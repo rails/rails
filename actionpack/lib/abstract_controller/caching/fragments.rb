@@ -82,13 +82,17 @@ module AbstractController
       # Given a key (as described in +expire_fragment+), returns
       # a key array suitable for use in reading, writing, or expiring a
       # cached fragment. All keys begin with <tt>:views</tt>,
-      # followed by ENV["RAILS_CACHE_ID"] or ENV["RAILS_APP_VERSION"] if set,
+      # followed by <tt>ENV["RAILS_CACHE_ID"]</tt> or <tt>ENV["RAILS_APP_VERSION"]</tt> if set,
       # followed by any controller-wide key prefix values, ending
       # with the specified +key+ value.
       def combined_fragment_cache_key(key)
         head = self.class.fragment_cache_keys.map { |k| instance_exec(&k) }
         tail = key.is_a?(Hash) ? url_for(key).split("://").last : key
-        [ :views, (ENV["RAILS_CACHE_ID"] || ENV["RAILS_APP_VERSION"]), *head, *tail ].compact
+
+        cache_key = [:views, ENV["RAILS_CACHE_ID"] || ENV["RAILS_APP_VERSION"], head, tail]
+        cache_key.flatten!(1)
+        cache_key.compact!
+        cache_key
       end
 
       # Writes +content+ to the location signified by
