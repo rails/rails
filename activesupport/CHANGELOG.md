@@ -1,3 +1,7 @@
+*   Remove deprecated `Module#reachable?` method.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `#acronym_regex` method from `Inflections`.
 
     *Rafael Mendonça França*
