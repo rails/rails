@@ -1,3 +1,7 @@
+*   Do not allow passing the column name to `count` when a block is passed.
+
+    *Rafael Mendonça França*
+
 *   Remove delegation of missing methods in a relation to arel.
 
     *Rafael Mendonça França*
