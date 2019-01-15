@@ -1,3 +1,7 @@
+*   Remove deprecated `#set_state` from the transaction object.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `#supports_statement_cache?` from the database adapters.
 
     *Rafael Mendonça França*
