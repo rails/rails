@@ -21,6 +21,7 @@ require "models/dog"
 require "models/car"
 require "models/tyre"
 require "models/subscriber"
+require "support/stubs/strong_parameters"
 
 class FinderTest < ActiveRecord::TestCase
   fixtures :companies, :topics, :entrants, :developers, :developers_projects, :posts, :comments, :accounts, :authors, :author_addresses, :customers, :categories, :categorizations, :cars
@@ -222,6 +223,14 @@ class FinderTest < ActiveRecord::TestCase
 
     assert_equal true, Subscriber.exists?("foo")
     assert_equal true, Subscriber.exists?("   ")
+  end
+
+  def test_exists_with_strong_parameters
+    assert_equal false, Subscriber.exists?(Parameters.new(nick: "foo"))
+
+    Subscriber.create!(nick: "foo")
+
+    assert_equal true, Subscriber.exists?(Parameters.new(nick: "foo"))
   end
 
   def test_exists_passing_active_record_object_is_not_permitted

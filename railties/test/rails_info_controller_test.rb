@@ -50,11 +50,6 @@ class InfoControllerTest < ActionController::TestCase
     assert_select "table"
   end
 
-  test "info controller renders json with properties" do
-    get :properties, format: :json
-    assert_equal Rails::Info.to_json, response.body
-  end
-
   test "info controller renders with routes" do
     get :routes
     assert_response :success

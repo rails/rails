@@ -56,33 +56,21 @@ module ActiveRecord
       end
 
       def build_relation(klass, attribute, value)
-        if reflection = klass._reflect_on_association(attribute)
-          attribute = reflection.foreign_key
-          value = value.attributes[reflection.klass.primary_key] unless value.nil?
+        relation = klass.unscoped
+        comparison = relation.bind_attribute(attribute, value) do |attr, bind|
+          return relation.none! unless bind.boundable?
+
+          if bind.nil?
+            attr.eq(bind)
+          elsif options[:case_sensitive]
+            klass.connection.case_sensitive_comparison(attr, bind)
+          else
+            # will use SQL LOWER function before comparison, unless it detects a case insensitive collation
+            klass.connection.case_insensitive_comparison(attr, bind)
+          end
         end
 
-        if value.nil?
-          return klass.unscoped.where!(attribute => value)
-        end
-
-        # the attribute may be an aliased attribute
-        if klass.attribute_alias?(attribute)
-          attribute = klass.attribute_alias(attribute)
-        end
-
-        attribute_name = attribute.to_s
-        value = klass.predicate_builder.build_bind_attribute(attribute_name, value)
-
-        table = klass.arel_table
-        column = klass.columns_hash[attribute_name]
-
-        comparison = if !options[:case_sensitive]
-          # will use SQL LOWER function before comparison, unless it detects a case insensitive collation
-          klass.connection.case_insensitive_comparison(table, attribute, column, value)
-        else
-          klass.connection.case_sensitive_comparison(table, attribute, column, value)
-        end
-        klass.unscoped.where!(comparison)
+        relation.where!(comparison)
       end
 
       def scope_relation(record, relation)

@@ -6,6 +6,7 @@ require "active_record/connection_adapters/sql_type_metadata"
 require "active_record/connection_adapters/abstract/schema_dumper"
 require "active_record/connection_adapters/abstract/schema_creation"
 require "active_support/concurrency/load_interlock_aware_monitor"
+require "active_support/deprecation"
 require "arel/collectors/bind"
 require "arel/collectors/composite"
 require "arel/collectors/sql_string"
@@ -76,8 +77,11 @@ module ActiveRecord
 
       SIMPLE_INT = /\A\d+\z/
 
-      attr_accessor :visitor, :pool, :prevent_writes
-      attr_reader :schema_cache, :owner, :logger, :prepared_statements, :lock
+      attr_writer :visitor
+      deprecate :visitor=
+
+      attr_accessor :pool
+      attr_reader :schema_cache, :visitor, :owner, :logger, :lock, :prepared_statements, :prevent_writes
       alias :in_use? :owner
 
       set_callback :checkin, :after, :enable_lazy_transactions!
@@ -117,6 +121,7 @@ module ActiveRecord
         @idle_since          = Concurrent.monotonic_time
         @schema_cache        = SchemaCache.new self
         @quoted_column_names, @quoted_table_names = {}, {}
+        @prevent_writes = false
         @visitor = arel_visitor
         @lock = ActiveSupport::Concurrency::LoadInterlockAwareMonitor.new
 
@@ -152,11 +157,10 @@ module ActiveRecord
       # even if you are on a database that can write. `while_preventing_writes`
       # will prevent writes to the database for the duration of the block.
       def while_preventing_writes
-        original = self.prevent_writes
-        self.prevent_writes = true
+        original, @prevent_writes = @prevent_writes, true
         yield
       ensure
-        self.prevent_writes = original
+        @prevent_writes = original
       end
 
       def migrations_paths # :nodoc:
@@ -504,15 +508,17 @@ module ActiveRecord
         @connection
       end
 
-      def case_sensitive_comparison(table, attribute, column, value) # :nodoc:
-        table[attribute].eq(value)
+      def case_sensitive_comparison(attribute, value) # :nodoc:
+        attribute.eq(value)
       end
 
-      def case_insensitive_comparison(table, attribute, column, value) # :nodoc:
+      def case_insensitive_comparison(attribute, value) # :nodoc:
+        column = column_for_attribute(attribute)
+
         if can_perform_case_insensitive_comparison_for?(column)
-          table[attribute].lower.eq(table.lower(value))
+          attribute.lower.eq(attribute.relation.lower(value))
         else
-          table[attribute].eq(value)
+          attribute.eq(value)
         end
       end
 
@@ -657,6 +663,11 @@ module ActiveRecord
           column_name = column_name.to_s
           columns(table_name).detect { |c| c.name == column_name } ||
             raise(ActiveRecordError, "No such column: #{table_name}.#{column_name}")
+        end
+
+        def column_for_attribute(attribute)
+          table_name = attribute.relation.name
+          schema_cache.columns_hash(table_name)[attribute.name.to_s]
         end
 
         def collector

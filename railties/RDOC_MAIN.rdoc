@@ -44,11 +44,11 @@ or to generate the body of an email. In \Rails, View generation is handled by {A
 {Active Record}[link:files/activerecord/README_rdoc.html], {Active Model}[link:files/activemodel/README_rdoc.html],
 {Action Pack}[link:files/actionpack/README_rdoc.html], and {Action View}[link:files/actionview/README_rdoc.html] can each be used independently outside \Rails.
 In addition to that, \Rails also comes with {Action Mailer}[link:files/actionmailer/README_rdoc.html], a library
-to generate and send emails; {Active Job}[link:files/activejob/README_md.html], a
-framework for declaring jobs and making them run on a variety of queueing
+to generate and send emails; {Action Mailbox}[link:files/actionmailbox/README_md.html], a library to receive emails within a Rails application;
+{Active Job}[link:files/activejob/README_md.html], a framework for declaring jobs and making them run on a variety of queueing
 backends; {Action Cable}[link:files/actioncable/README_md.html], a framework to
 integrate WebSockets with a \Rails application; {Active Storage}[link:files/activestorage/README_md.html],
-a library to attach cloud and local files to \Rails applications;
+a library to attach cloud and local files to \Rails applications; {Action Text}[link:files/actiontext/README_md.html], a library to handle rich text content;
 and {Active Support}[link:files/activesupport/README_rdoc.html], a collection
 of utility classes and standard library extensions that are useful for \Rails,
 and may also be used independently outside \Rails.

@@ -191,6 +191,12 @@ Lint/StringConversionInInterpolation:
 Lint/UriEscapeUnescape:
   Enabled: true
 
+Lint/UselessAssignment:
+  Enabled: true
+
+Lint/DeprecatedClassMethods:
+  Enabled: true
+
 Style/ParenthesesAroundCondition:
   Enabled: true
 
