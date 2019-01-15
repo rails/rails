@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
-# The `Message-ID` as specified by rfc822 is supposed to be a unique identifier for that individual email.
-# That makes it an ideal tracking token for debugging and forensics, just like `X-Request-Id` does for
+# The +Message-ID+ as specified by rfc822 is supposed to be a unique identifier for that individual email.
+# That makes it an ideal tracking token for debugging and forensics, just like +X-Request-Id+ does for
 # web request.
 #
 # If an inbound email does not, against the rfc822 mandate, specify a Message-ID, one will be generated
-# using the approach from `Mail::MessageIdField`.
+# using the approach from <tt>Mail::MessageIdField</tt>.
 module ActionMailbox::InboundEmail::MessageId
   extend ActiveSupport::Concern
 
@@ -14,9 +14,9 @@ module ActionMailbox::InboundEmail::MessageId
   end
 
   class_methods do
-    # Create a new `InboundEmail` from the raw `source` of the email, which be uploaded as a Active Storage
-    # attachment called `raw_email`. Before the upload, extract the Message-ID from the `source` and set
-    # it as an attribute on the new `InboundEmail`.
+    # Create a new +InboundEmail+ from the raw +source+ of the email, which be uploaded as a Active Storage
+    # attachment called +raw_email+. Before the upload, extract the Message-ID from the +source+ and set
+    # it as an attribute on the new +InboundEmail+.
     def create_and_extract_message_id!(source, **options)
       create! options.merge(message_id: extract_message_id(source)) do |inbound_email|
         inbound_email.raw_email.attach io: StringIO.new(source), filename: "message.eml", content_type: "message/rfc822"
