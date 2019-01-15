@@ -180,6 +180,8 @@ namespace :all do
     # Replace the generated gemfile entry with the exact version.
     File.write("Gemfile", File.read("Gemfile").sub(/^gem 'rails.*/, "gem 'rails', '#{version}'"))
     sh "bundle"
+    sh "rails action_mailbox:install"
+    sh "rails action_text:install"
 
     sh "rails generate scaffold user name admin:boolean && rails db:migrate"
 
