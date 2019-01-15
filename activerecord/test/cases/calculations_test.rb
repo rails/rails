@@ -923,9 +923,9 @@ class CalculationsTest < ActiveRecord::TestCase
     end
   end
 
-  def test_deprecate_sum_with_block_and_column_name
-    assert_deprecated do
-      assert_equal 6, Account.sum(:firm_id) { 1 }
+  def test_sum_with_block_and_column_name_raises_an_error
+    assert_raises(ArgumentError) do
+      Account.sum(:firm_id) { 1 }
     end
   end
 

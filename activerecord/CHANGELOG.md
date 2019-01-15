@@ -1,3 +1,7 @@
+*   Do not allow passing the column name to `sum` when a block is passed.
+
+    *Rafael Mendonça França*
+
 *   Do not allow passing the column name to `count` when a block is passed.
 
     *Rafael Mendonça França*

@@ -84,15 +84,13 @@ module ActiveRecord
     def sum(column_name = nil)
       if block_given?
         unless column_name.nil?
-          ActiveSupport::Deprecation.warn \
-            "When `sum' is called with a block, it ignores other arguments. " \
-            "This behavior is now deprecated and will result in an ArgumentError in Rails 6.0."
+          raise ArgumentError, "Column name argument is not supported when a block is passed."
         end
 
-        return super()
+        super()
+      else
+        calculate(:sum, column_name)
       end
-
-      calculate(:sum, column_name)
     end
 
     # This calculates aggregate values in the given column. Methods for #count, #sum, #average,
