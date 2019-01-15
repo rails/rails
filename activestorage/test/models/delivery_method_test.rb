@@ -17,4 +17,12 @@ class ActiveStorage::ImageTagTest < ActionView::TestCase
     assert_equal polymorphic_url(user.direct_images.first)[0..200], blob.service_url[0..200]
     assert_equal polymorphic_url(user.direct_images.first.variant(resize: "100x100"))[0..200], blob.variant(resize: "100x100").service_url[0..200]
   end
+
+  test "model delivery method on preview" do
+    pdf_blob = create_file_blob filename: "report.pdf", content_type: "application/pdf"
+
+    user = User.new(name: "Tom", proxied_image: pdf_blob)
+
+    assert_match 'representations_proxy', image_tag(user.proxied_image.preview(resize_to_fit: [100, 100]))
+  end
 end
