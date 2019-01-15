@@ -12,8 +12,8 @@ class ActiveStorage::ImageTagTest < ActionView::TestCase
     user = User.new(name: "Tom", proxied_image: blob)
     user.direct_images.attach(blob)
 
-    assert_match 'blobs_proxy', image_tag(user.proxied_image)
-    assert_match 'representations_proxy', image_tag(user.proxied_image.variant(resize: "100x100"))
+    assert_match "blobs_proxy", image_tag(user.proxied_image)
+    assert_match "representations_proxy", image_tag(user.proxied_image.variant(resize: "100x100"))
     assert_equal polymorphic_url(user.direct_images.first)[0..200], blob.service_url[0..200]
     assert_equal polymorphic_url(user.direct_images.first.variant(resize: "100x100"))[0..200], blob.variant(resize: "100x100").service_url[0..200]
   end
@@ -23,6 +23,6 @@ class ActiveStorage::ImageTagTest < ActionView::TestCase
 
     user = User.new(name: "Tom", proxied_image: pdf_blob)
 
-    assert_match 'representations_proxy', image_tag(user.proxied_image.preview(resize_to_fit: [100, 100]))
+    assert_match "representations_proxy", image_tag(user.proxied_image.preview(resize_to_fit: [100, 100]))
   end
 end
