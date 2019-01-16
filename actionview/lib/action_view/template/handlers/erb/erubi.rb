@@ -13,7 +13,7 @@ module ActionView
 
             # Dup properties so that we don't modify argument
             properties = Hash[properties]
-            properties[:preamble]   = "@output_buffer = output_buffer || ActionView::OutputBuffer.new;"
+            properties[:preamble]   = "@output_buffer = output_buffer;"
             properties[:postamble]  = "@output_buffer.to_s"
             properties[:bufvar]     = "@output_buffer"
             properties[:escapefunc] = ""
@@ -23,6 +23,8 @@ module ActionView
 
           def evaluate(action_view_erb_handler_context)
             pr = eval("proc { #{@src} }", binding, @filename || "(erubi)")
+            # Double assignment to eliminate -w warnings
+            output_buffer = output_buffer = ActionView::OutputBuffer.new
             action_view_erb_handler_context.instance_eval(&pr)
           end
 
