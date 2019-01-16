@@ -10,7 +10,7 @@ module ApplicationTests
       setup :build_app
       teardown :teardown_app
 
-      test "rake routes outputs routes" do
+      test "`rake routes` outputs routes" do
         app_file "config/routes.rb", <<-RUBY
           Rails.application.routes.draw do
             get '/cart', to: 'cart#show'
