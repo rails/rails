@@ -1735,14 +1735,14 @@ Testing Action Cable
 --------------------
 
 Since Action Cable is used at different levels inside your application,
-you'll need to test both the channels and connection classes themsleves and that other
+you'll need to test both the channels, connection classes themselves, and that other
 entities broadcast correct messages.
 
 ### Connection Test Case
 
 By default, when you generate new Rails application with Action Cable, a test for the base connection class (`ApplicationCable::Connection`) is generated as well under `test/channels/application_cable` directory.
 
-Connection tests aim to check whether a connection's identifiers gets assigned properly
+Connection tests aim to check whether a connection's identifiers get assigned properly
 or that any improper connection requests are rejected. Here is an example:
 
 ```ruby
@@ -1765,9 +1765,8 @@ end
 
 You can also specify request cookies the same way you do in integration tests:
 
-
 ```ruby
-test "connects with_cookies" do
+test "connects with cookies" do
   cookies.signed[:user_id] = "42"
 
   connect
@@ -1777,7 +1776,6 @@ end
 ```
 
 See the API documentation for [`AcionCable::Connection::TestCase`](http://api.rubyonrails.org/classes/ActionCable/Connection/TestCase.html) for more information.
-
 
 ### Channel Test Case
 
@@ -1823,7 +1821,7 @@ See the API documentation for [`AcionCable::Channel::TestCase`](http://api.rubyo
 
 Action Cable ships with a bunch of custom assertions that can be used to lessen the verbosity of tests. For a full list of available assertions, see the API documentation for [`ActionCable::TestHelper`](http://api.rubyonrails.org/classes/ActionCable/TestHelper.html).
 
-It's a good practice to ensure that the correct message has been broadcasted inside another components (e.g. inside your controllers). This is precisely where
+It's a good practice to ensure that the correct message has been broadcasted inside other components (e.g. inside your controllers). This is precisely where
 the custom assertions provided by Action Cable are pretty useful. For instance,
 within a model:
 
