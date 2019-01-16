@@ -1091,16 +1091,15 @@ main Rails application.
 Engine model and controller classes can be extended by open classing them in the
 main Rails application (since model and controller classes are just Ruby classes
 that inherit Rails specific functionality). Open classing an Engine class
-redefines it for use in the main application. This is usually implemented by
-using the decorator pattern.
+redefines it for use in the main application.
 
 For simple class modifications, use `Class#class_eval`. For complex class
 modifications, consider using `ActiveSupport::Concern`.
 
-#### A note on Decorators and Loading Code
+#### A note on Overriding and Loading Code
 
-Because these decorators are not referenced by your Rails application itself,
-Rails' autoloading system will not kick in and load your decorators. This means
+Because these overrides are not referenced by your Rails application itself,
+Rails' autoloading system will not kick in and load your overrides. This means
 that you need to require them yourself.
 
 Here is some sample code to do this:
@@ -1112,7 +1111,7 @@ module Blorgh
     isolate_namespace Blorgh
 
     config.to_prepare do
-      Dir.glob(Rails.root + "app/decorators/**/*_decorator*.rb").each do |c|
+      Dir.glob(Rails.root + "app/overrides/**/*_override*.rb").each do |c|
         require_dependency(c)
       end
     end
@@ -1120,15 +1119,15 @@ module Blorgh
 end
 ```
 
-This doesn't apply to just Decorators, but anything that you add in an engine
+This doesn't apply to just overrides, but anything that you add in an engine
 that isn't referenced by your main application.
 
-#### Implementing Decorator Pattern Using Class#class_eval
+#### Reopening existing classes using Class#class_eval
 
 **Adding** `Article#time_since_created`:
 
 ```ruby
-# MyApp/app/decorators/models/blorgh/article_decorator.rb
+# MyApp/app/overrides/models/blorgh/article_override.rb
 
 Blorgh::Article.class_eval do
   def time_since_created
@@ -1149,7 +1148,7 @@ end
 **Overriding** `Article#summary`:
 
 ```ruby
-# MyApp/app/decorators/models/blorgh/article_decorator.rb
+# MyApp/app/overrides/models/blorgh/article_override.rb
 
 Blorgh::Article.class_eval do
   def summary
@@ -1169,7 +1168,7 @@ class Article < ApplicationRecord
 end
 ```
 
-#### Implementing Decorator Pattern Using ActiveSupport::Concern
+#### Reopening existing classes using ActiveSupport::Concern
 
 Using `Class#class_eval` is great for simple adjustments, but for more complex
 class modifications, you might want to consider using [`ActiveSupport::Concern`]
