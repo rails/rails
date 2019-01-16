@@ -476,7 +476,7 @@ Module.new do
     `yarn build`
   end
 
-  `#{Gem.ruby} #{RAILS_FRAMEWORK_ROOT}/railties/exe/rails new #{app_template_path} --skip-gemfile --skip-listen --no-rc`
+  `#{Gem.ruby} #{RAILS_FRAMEWORK_ROOT}/railties/exe/rails new #{app_template_path} --skip-bundle --skip-listen --no-rc`
   File.open("#{app_template_path}/config/boot.rb", "w") do |f|
     f.puts "require 'rails/all'"
   end

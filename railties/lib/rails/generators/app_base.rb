@@ -11,9 +11,8 @@ require "active_support/core_ext/array/extract_options"
 module Rails
   module Generators
     class AppBase < Base # :nodoc:
-      DATABASES = %w( mysql postgresql sqlite3 oracle frontbase ibm_db sqlserver )
-      JDBC_DATABASES = %w( jdbcmysql jdbcsqlite3 jdbcpostgresql jdbc )
-      DATABASES.concat(JDBC_DATABASES)
+      include Database
+      include AppName
 
       attr_accessor :rails_template
       add_shebang_option!
@@ -106,7 +105,6 @@ module Rails
         @gem_filter    = lambda { |gem| true }
         @extra_entries = []
         super
-        convert_database_option_for_jruby
       end
 
     private
@@ -303,34 +301,6 @@ module Rails
           # ~> 1.2.3, >= 1.2.3.4.pre5
           patch = gem_version.segments[0, 3].join(".")
           ["~> #{patch}", ">= #{gem_version}"]
-        end
-      end
-
-      def gem_for_database
-        # %w( mysql postgresql sqlite3 oracle frontbase ibm_db sqlserver jdbcmysql jdbcsqlite3 jdbcpostgresql )
-        case options[:database]
-        when "mysql"          then ["mysql2", [">= 0.4.4"]]
-        when "postgresql"     then ["pg", [">= 0.18", "< 2.0"]]
-        when "oracle"         then ["activerecord-oracle_enhanced-adapter", nil]
-        when "frontbase"      then ["ruby-frontbase", nil]
-        when "sqlserver"      then ["activerecord-sqlserver-adapter", nil]
-        when "jdbcmysql"      then ["activerecord-jdbcmysql-adapter", nil]
-        when "jdbcsqlite3"    then ["activerecord-jdbcsqlite3-adapter", nil]
-        when "jdbcpostgresql" then ["activerecord-jdbcpostgresql-adapter", nil]
-        when "jdbc"           then ["activerecord-jdbc-adapter", nil]
-        else [options[:database], nil]
-        end
-      end
-
-      def convert_database_option_for_jruby
-        if defined?(JRUBY_VERSION)
-          opt = options.dup
-          case opt[:database]
-          when "postgresql" then opt[:database] = "jdbcpostgresql"
-          when "mysql"      then opt[:database] = "jdbcmysql"
-          when "sqlite3"    then opt[:database] = "jdbcsqlite3"
-          end
-          self.options = opt.freeze
         end
       end
 

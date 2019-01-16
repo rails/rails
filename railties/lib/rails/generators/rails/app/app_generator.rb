@@ -242,7 +242,6 @@ module Rails
     # We need to store the RAILS_DEV_PATH in a constant, otherwise the path
     # can change in Ruby 1.8.7 when we FileUtils.cd.
     RAILS_DEV_PATH = File.expand_path("../../../../../..", __dir__)
-    RESERVED_NAMES = %w[application destroy plugin runner test]
 
     class AppGenerator < AppBase # :nodoc:
       WEBPACKS = %w( react vue angular elm stimulus )
@@ -269,7 +268,7 @@ module Rails
         super
 
         if !options[:skip_active_record] && !DATABASES.include?(options[:database])
-          raise Error, "Invalid value for --database option. Supported for preconfiguration are: #{DATABASES.join(", ")}."
+          raise Error, "Invalid value for --database option. Supported preconfigurations are: #{DATABASES.join(", ")}."
         end
 
         # Force sprockets and yarn to be skipped when generating API only apps.
@@ -489,60 +488,6 @@ module Rails
       # Define file as an alias to create_file for backwards compatibility.
       def file(*args, &block)
         create_file(*args, &block)
-      end
-
-      def app_name
-        @app_name ||= original_app_name.tr("-", "_")
-      end
-
-      def original_app_name
-        @original_app_name ||= (defined_app_const_base? ? defined_app_name : File.basename(destination_root)).tr('\\', "").tr(". ", "_")
-      end
-
-      def defined_app_name
-        defined_app_const_base.underscore
-      end
-
-      def defined_app_const_base
-        Rails.respond_to?(:application) && defined?(Rails::Application) &&
-          Rails.application.is_a?(Rails::Application) && Rails.application.class.name.sub(/::Application$/, "")
-      end
-
-      alias :defined_app_const_base? :defined_app_const_base
-
-      def app_const_base
-        @app_const_base ||= defined_app_const_base || app_name.gsub(/\W/, "_").squeeze("_").camelize
-      end
-      alias :camelized :app_const_base
-
-      def app_const
-        @app_const ||= "#{app_const_base}::Application"
-      end
-
-      def valid_const?
-        if /^\d/.match?(app_const)
-          raise Error, "Invalid application name #{original_app_name}. Please give a name which does not start with numbers."
-        elsif RESERVED_NAMES.include?(original_app_name)
-          raise Error, "Invalid application name #{original_app_name}. Please give a " \
-                       "name which does not match one of the reserved rails " \
-                       "words: #{RESERVED_NAMES.join(", ")}"
-        elsif Object.const_defined?(app_const_base)
-          raise Error, "Invalid application name #{original_app_name}, constant #{app_const_base} is already in use. Please choose another application name."
-        end
-      end
-
-      def mysql_socket
-        @mysql_socket ||= [
-          "/tmp/mysql.sock",                        # default
-          "/var/run/mysqld/mysqld.sock",            # debian/gentoo
-          "/var/tmp/mysql.sock",                    # freebsd
-          "/var/lib/mysql/mysql.sock",              # fedora
-          "/opt/local/lib/mysql/mysql.sock",        # fedora
-          "/opt/local/var/run/mysqld/mysqld.sock",  # mac + darwinports + mysql
-          "/opt/local/var/run/mysql4/mysqld.sock",  # mac + darwinports + mysql4
-          "/opt/local/var/run/mysql5/mysqld.sock",  # mac + darwinports + mysql5
-          "/opt/lampp/var/mysql/mysql.sock"         # xampp for linux
-        ].find { |f| File.exist?(f) } unless Gem.win_platform?
       end
 
       def get_builder_class

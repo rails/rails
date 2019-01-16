@@ -1,6 +1,19 @@
+*   Add `rails db:system:change` command for changing databases.
+
+    ```
+    bin/rails db:system:change --to=postgresql
+       force  config/database.yml
+        gsub  Gemfile
+    ```
+
+    The change command copies a template `config/database.yml` with the target database adapter into your app, and replaces your database gem with the target database gem.
+
+    *Gannon McGibbon*
+
 *   Add `rails test:channels`.
 
     *bogdanvlviv*
+
 
 *   Use original `bundler` environment variables during the process of generating a new rails project.
 
