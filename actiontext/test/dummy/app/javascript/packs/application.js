@@ -1,1 +1,1 @@
-import "actiontext"
+import "@rails/actiontext"

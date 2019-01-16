@@ -25,8 +25,8 @@
 
 # Use ActionMailer::MailDeliveryJob for sending parameterized and normal mail.
 #
-# The default delivery job (ActionMailer::DeliveryJob), will be removed in Rails 6.1.
-# This setting is not backwards compatible with earlier Rails versions.
+# The default delivery jobs (ActionMailer::Parameterized::DeliveryJob, ActionMailer::DeliveryJob),
+# will be removed in Rails 6.1. This setting is not backwards compatible with earlier Rails versions.
 # If you send mail in the background, job workers need to have a copy of
 # MailDeliveryJob to ensure all delivery jobs are processed properly.
 # Make sure your entire app is migrated and stable on 6.0 before using this setting.

@@ -123,7 +123,7 @@ module ActiveRecord
       # +binds+ as the bind substitutes. +name+ is logged along with
       # the executed +sql+ statement.
       def exec_insert(sql, name = nil, binds = [], pk = nil, sequence_name = nil)
-        sql, binds = sql_for_insert(sql, pk, nil, sequence_name, binds)
+        sql, binds = sql_for_insert(sql, pk, sequence_name, binds)
         exec_query(sql, name, binds)
       end
 
@@ -464,7 +464,7 @@ module ActiveRecord
           exec_query(sql, name, binds, prepare: true)
         end
 
-        def sql_for_insert(sql, pk, id_value, sequence_name, binds)
+        def sql_for_insert(sql, pk, sequence_name, binds)
           [sql, binds]
         end
 

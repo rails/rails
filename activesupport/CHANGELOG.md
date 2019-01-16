@@ -1,3 +1,7 @@
+*   Fix `String#safe_constantize` throwing a `LoadError` for incorrectly cased constant references.
+
+    *Keenan Brock*
+
 *   Preserve key order passed to `ActiveSupport::CacheStore#fetch_multi`.
 
     `fetch_multi(*names)` now returns its results in the same order as the `*names` requested, rather than returning cache hits followed by cache misses.

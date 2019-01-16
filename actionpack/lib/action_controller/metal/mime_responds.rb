@@ -124,6 +124,14 @@ module ActionController #:nodoc:
     #
     #   render json: @people
     #
+    # +any+ can also be used with no arguments, in which case it will be used for any format requested by
+    # the user:
+    #
+    #   respond_to do |format|
+    #     format.html
+    #     format.any { redirect_to support_path }
+    #   end
+    #
     # Formats can have different variants.
     #
     # The request variant is a specialization of the request format, like <tt>:tablet</tt>,

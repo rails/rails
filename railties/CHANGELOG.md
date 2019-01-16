@@ -10,6 +10,11 @@
 
     *Gannon McGibbon*
 
+*   Add `rails test:channels`.
+
+    *bogdanvlviv*
+
+
 *   Use original `bundler` environment variables during the process of generating a new rails project.
 
     *Marco Costa*
@@ -128,12 +133,20 @@
 
     *Richard Schneeman*
 
-*   Support environment specific credentials file.
+*   Support environment specific credentials overrides.
 
-    For `production` environment look first for `config/credentials/production.yml.enc` file that can be decrypted by
-    `ENV["RAILS_MASTER_KEY"]` or `config/credentials/production.key` master key.
-    Edit given environment credentials file by command `rails credentials:edit --environment production`.
-    Default paths can be overwritten by setting `config.credentials.content_path` and `config.credentials.key_path`.
+    So any environment will look for `config/credentials/#{Rails.env}.yml.enc` and fall back
+    to `config/credentials.yml.enc`.
+
+    The encryption key can be in `ENV["RAILS_MASTER_KEY"]` or `config/credentials/production.key`.
+
+    Environment credentials overrides can be edited with `rails credentials:edit --environment production`.
+    If no override is setup for the passed environment, it will be created.
+
+    Additionally, the default lookup paths can be overwritten with these configs:
+
+    - `config.credentials.content_path`
+    - `config.credentials.key_path`
 
     *Wojciech Wnętrzak*
 
