@@ -305,6 +305,13 @@ module Rails
       end
       remove_task :update_bin_files
 
+      def update_active_storage
+        unless skip_active_storage?
+          rails_command "active_storage:update"
+        end
+      end
+      remove_task :update_active_storage
+
       def create_config_files
         build(:config)
       end
