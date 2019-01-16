@@ -3,19 +3,13 @@
 // a relevant structure within app/javascript and only use these pack files to reference
 // that code so it'll be compiled.
 
-import Rails from "@rails/ujs"
-Rails.start()
+require("@rails/ujs").start()
 <%- unless options[:skip_turbolinks] -%>
-
-import Turbolinks from "turbolinks"
-Turbolinks.start()
+require("turbolinks").start()
 <%- end -%>
 <%- unless skip_active_storage? -%>
-
-import * as ActiveStorage from "@rails/activestorage"
-ActiveStorage.start()
+require("@rails/activestorage").start()
 <%- end -%>
 <%- unless options[:skip_action_cable] -%>
-
-import "channels"
+require("channels")
 <%- end -%>
