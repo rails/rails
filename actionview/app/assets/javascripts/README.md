@@ -40,8 +40,7 @@ In a conventional Rails application that uses the asset pipeline, require `rails
 If you're using the Webpacker gem or some other JavaScript bundler, add the following to your main JS file:
 
 ```javascript
-import Rails from "@rails/ujs"
-Rails.start()
+require("@rails/ujs").start()
 ```
 
 ## How to run tests
