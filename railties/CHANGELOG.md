@@ -1,3 +1,7 @@
+*   Remove deprecated `config.secret_token`.
+
+    *Rafael Mendonça França*
+
 *   Seed database with inline ActiveJob job adapter.
 
     *Gannon McGibbon*
@@ -17,7 +21,6 @@
 *   Add `rails test:channels`.
 
     *bogdanvlviv*
-
 
 *   Use original `bundler` environment variables during the process of generating a new rails project.
 
