@@ -229,6 +229,7 @@ module ActiveRecord
           column_types.each do |column_type|
             module_eval <<-RUBY, __FILE__, __LINE__ + 1
               def #{column_type}(*names, **options)
+                raise ArgumentError, "missing column name(s) for #{column_type}" if names.empty?
                 names.each { |name| column(name, :#{column_type}, options) }
               end
             RUBY

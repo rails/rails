@@ -318,6 +318,15 @@ module ActiveRecord
       ensure
         connection.drop_table(:my_table) rescue nil
       end
+
+      def test_add_column_without_column_name
+        e = assert_raise ArgumentError do
+          connection.create_table "my_table", force: true do |t|
+            t.timestamp
+          end
+        end
+        assert e.message.include?("timestamp")
+      end
     end
   end
 end
