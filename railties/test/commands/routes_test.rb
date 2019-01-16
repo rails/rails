@@ -289,21 +289,31 @@ class Rails::Command::RoutesTest < ActiveSupport::TestCase
       URI               | /rails/active_storage/blobs/:signed_id/*filename(.:format)
       Controller#Action | active_storage/blobs#show
       --[ Route 18 ]-------------
+      Prefix            | rails_blob_proxy
+      Verb              | GET
+      URI               | /rails/active_storage/blobs_proxy/:signed_id/*filename(.:format)
+      Controller#Action | active_storage/blobs#proxy
+      --[ Route 19 ]-------------
       Prefix            | rails_blob_representation
       Verb              | GET
       URI               | /rails/active_storage/representations/:signed_blob_id/:variation_key/*filename(.:format)
       Controller#Action | active_storage/representations#show
-      --[ Route 19 ]-------------
+      --[ Route 20 ]-------------
+      Prefix            | rails_blob_representation_proxy
+      Verb              | GET
+      URI               | /rails/active_storage/representations_proxy/:signed_blob_id/:variation_key/*filename(.:format)
+      Controller#Action | active_storage/representations#proxy
+      --[ Route 21 ]-------------
       Prefix            | rails_disk_service
       Verb              | GET
       URI               | /rails/active_storage/disk/:encoded_key/*filename(.:format)
       Controller#Action | active_storage/disk#show
-      --[ Route 20 ]-------------
+      --[ Route 22 ]-------------
       Prefix            | update_rails_disk_service
       Verb              | PUT
       URI               | /rails/active_storage/disk/:encoded_token(.:format)
       Controller#Action | active_storage/disk#update
-      --[ Route 21 ]-------------
+      --[ Route 23 ]-------------
       Prefix            | rails_direct_uploads
       Verb              | POST
       URI               | /rails/active_storage/direct_uploads(.:format)
