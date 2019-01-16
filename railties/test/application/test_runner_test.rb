@@ -98,6 +98,17 @@ module ApplicationTests
       end
     end
 
+    def test_run_channels
+      create_test_file :channels, "foo_channel"
+      create_test_file :channels, "bar_channel"
+
+      rails("test:channels").tap do |output|
+        assert_match "FooChannelTest", output
+        assert_match "BarChannelTest", output
+        assert_match "2 runs, 2 assertions, 0 failures", output
+      end
+    end
+
     def test_run_controllers
       create_test_file :controllers, "foo_controller"
       create_test_file :controllers, "bar_controller"
@@ -167,11 +178,11 @@ module ApplicationTests
     end
 
     def test_run_all_suites
-      suites = [:models, :helpers, :unit, :controllers, :mailers, :functional, :integration, :jobs, :mailboxes]
+      suites = [:models, :helpers, :unit, :channels, :controllers, :mailers, :functional, :integration, :jobs, :mailboxes]
       suites.each { |suite| create_test_file suite, "foo_#{suite}" }
       run_test_command("") .tap do |output|
         suites.each { |suite| assert_match "Foo#{suite.to_s.camelize}Test", output }
-        assert_match "9 runs, 9 assertions, 0 failures", output
+        assert_match "10 runs, 10 assertions, 0 failures", output
       end
     end
 
