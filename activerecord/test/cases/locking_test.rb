@@ -176,21 +176,22 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     assert_equal 42, p1.lock_version
   end
 
-  def test_touch_existing_lock
+  def test_touch_existing_lock_should_not_raise
     p1 = Person.find(1)
     assert_equal 0, p1.lock_version
 
     p1.touch
-    assert_equal 1, p1.lock_version
-    assert_not p1.changed?, "Changes should have been cleared"
+
+    assert_equal 0, p1.lock_version
+    assert_not p1.changed?, "Lock should not have been changed"
   end
 
-  def test_touch_stale_object
+  def test_touch_stale_object_should_not_raise
     person = Person.create!(first_name: "Mehmet Emin")
     stale_person = Person.find(person.id)
     person.update_attribute(:gender, "M")
 
-    assert_raises(ActiveRecord::StaleObjectError) do
+    assert_nothing_raised do
       stale_person.touch
     end
   end
@@ -295,16 +296,16 @@ class OptimisticLockingTest < ActiveRecord::TestCase
 
     t1.touch
 
-    assert_equal 1, t1.lock_version
+    assert_equal 0, t1.lock_version
   end
 
-  def test_touch_stale_object_with_lock_without_default
+  def test_touch_does_not_raise_stale_object_with_lock_without_default
     t1 = LockWithoutDefault.create!(title: "title1")
     stale_object = LockWithoutDefault.find(t1.id)
 
     t1.update!(title: "title2")
 
-    assert_raises(ActiveRecord::StaleObjectError) do
+    assert_nothing_raised do
       stale_object.touch
     end
   end
@@ -463,7 +464,7 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     end
 
     assert_equal 1, car.reload.wheels_count
-    assert_equal 2, car.lock_version
+    assert_equal 1, car.lock_version
     assert_operator previously_updated_at, :<, car.updated_at
     assert_operator previously_wheels_owned_at, :<, car.wheels_owned_at
 
@@ -474,7 +475,7 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     end
 
     assert_equal 0, car.reload.wheels_count
-    assert_equal 3, car.lock_version
+    assert_equal 2, car.lock_version
     assert_operator previously_updated_at, :<, car.updated_at
     assert_operator previously_wheels_owned_at, :<, car.wheels_owned_at
   end

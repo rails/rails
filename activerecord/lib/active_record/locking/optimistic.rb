@@ -71,9 +71,7 @@ module ActiveRecord
         end
 
         def _touch_row(attribute_names, time)
-          super
-        ensure
-          clear_attribute_change(self.class.locking_column) if locking_enabled?
+          without_locking { super }
         end
 
         def _update_row(attribute_names, attempted_action = "update")
@@ -120,6 +118,14 @@ module ActiveRecord
           end
 
           affected_rows
+        end
+
+        def without_locking
+          old_lock_optimistically = self.class.lock_optimistically
+          self.class.lock_optimistically = false
+          yield
+        ensure
+          self.class.lock_optimistically = old_lock_optimistically
         end
 
         module ClassMethods
