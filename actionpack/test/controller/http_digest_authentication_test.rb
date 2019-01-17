@@ -44,7 +44,10 @@ class HttpDigestAuthenticationTest < ActionController::TestCase
   setup do
     # Used as secret in generating nonce to prevent tampering of timestamp
     @secret = "4fb45da9e4ab4ddeb7580d6a35503d99"
-    @request.env["action_dispatch.key_generator"] = ActiveSupport::LegacyKeyGenerator.new(@secret)
+    @request.env["action_dispatch.key_generator"] = ActiveSupport::CachingKeyGenerator.new(
+      ActiveSupport::KeyGenerator.new(@secret)
+    )
+    @request.env["action_dispatch.http_auth_salt"] = "http authentication"
   end
 
   teardown do
