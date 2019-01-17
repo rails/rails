@@ -32,27 +32,17 @@ In order to develop secure web applications you have to keep up to date on all l
 Sessions
 --------
 
-A good place to start looking at security is with sessions, which can be vulnerable to particular attacks.
+This chapter describes some particular attacks related to sessions, and security measures to protect your session data.
 
 ### What are Sessions?
 
-NOTE: _HTTP is a stateless protocol. Sessions make it stateful._
+INFO: Sessions enable the application to maintain user-specific state, while users interact with the application. For example, sessions allow users to authenticate once and remain signed in for future requests.
 
-Most applications need to keep track of certain state of a particular user. This could be the contents of a shopping basket or the user id of the currently logged in user. Without the idea of sessions, the user would have to identify, and probably authenticate, on every request.
-Rails will create a new session automatically if a new user accesses the application. It will load an existing session if the user has already used the application.
+Most applications need to keep track of state for users that interact with the application. This could be the contents of a shopping basket, or the user id of the currently logged in user. This kind of user-specific state can be stored in the session.
 
-A session usually consists of a hash of values and a session ID, usually a 32-character string, to identify the hash. Every cookie sent to the client's browser includes the session ID. And the other way round: the browser will send it to the server on every request from the client. In Rails you can save and retrieve values using the session method:
+Rails provides a session object for each user that accesses the application. If the user already has an active session, Rails uses the existing session. Otherwise a new session is created.
 
-```ruby
-session[:user_id] = @current_user.id
-User.find(session[:user_id])
-```
-
-### Session ID
-
-NOTE: _The session ID is a 32-character random hex string._
-
-The session ID is generated using `SecureRandom.hex` which generates a random hex string using platform specific methods (such as OpenSSL, /dev/urandom or Win32 CryptoAPI) for generating cryptographically secure random numbers. Currently it is not feasible to brute-force Rails' session IDs.
+NOTE: Read more about sessions and how to use them in [Action Controller Overview Guide](action_controller_overview.html#session).
 
 ### Session Hijacking
 
@@ -76,34 +66,30 @@ Hence, the cookie serves as temporary authentication for the web application. An
 
 The main objective of most attackers is to make money. The underground prices for stolen bank login accounts range from 0.5%-10% of account balance, $0.5-$30 for credit card numbers ($20-$60 with full details), $0.1-$1.5 for identities (Name, SSN & DOB), $20-$50 for retailer accounts, and $6-$10 for cloud service provider accounts, according to the [Symantec Internet Security Threat Report (2017)](https://www.symantec.com/content/dam/symantec/docs/reports/istr-22-2017-en.pdf).
 
-### Session Guidelines
+### Session Storage
 
-Here are some general guidelines on sessions.
+NOTE: Rails uses `ActionDispatch::Session::CookieStore` as the default session storage.
 
-* _Do not store large objects in a session_. Instead you should store them in the database and save their id in the session. This will eliminate synchronization headaches and it won't fill up your session storage space (depending on what session storage you chose, see below).
-This will also be a good idea, if you modify the structure of an object and old versions of it are still in some user's cookies. With server-side session storages you can clear out the sessions, but with client-side storages, this is hard to mitigate.
+TIP: Learn more about other session storages in [Action Controller Overview Guide](action_controller_overview.html#session).
 
-* _Critical data should not be stored in session_. If the user clears their cookies or closes the browser, they will be lost. And with a client-side session storage, the user can read the data.
-
-### Encrypted Session Storage
-
-NOTE: _Rails provides several storage mechanisms for the session hashes. The most important is `ActionDispatch::Session::CookieStore`._
-
-The `CookieStore` saves the session hash directly in a cookie on the
-client-side. The server retrieves the session hash from the cookie and
+Rails `CookieStore` saves the session hash in a cookie on the client-side.
+The server retrieves the session hash from the cookie and
 eliminates the need for a session ID. That will greatly increase the
 speed of the application, but it is a controversial storage option and
 you have to think about the security implications and storage
 limitations of it:
 
-* Cookies imply a strict size limit of 4kB. This is fine as you should
-  not store large amounts of data in a session anyway, as described
-  before. Storing the current user's database id in a session is common
-  practice.
+*  Cookies have a size limit of 4kB. Use cookies only for data which is relevant for the session.
+
+* Cookies are stored on the client-side. The client may preserve cookie contents even for expired cookies. The client may copy cookies to other machines. Avoid storing sensitive data in cookies.
+
+* Cookies are temporary by nature. The server can set expiration time for the cookie, but the client may delete the cookie and its contents before that. Persist all data that is of more permanent nature on the server side.
 
 * Session cookies do not invalidate themselves and can be maliciously
   reused. It may be a good idea to have your application invalidate old
   session cookies using a stored timestamp.
+
+* Rails encrypts cookies by default. The client cannot read or edit the contents of the cookie, without breaking encryption. If you take appropriate care of your secrets, you can consider your cookies to be generally secured.
 
 The `CookieStore` uses the
 [encrypted](http://api.rubyonrails.org/classes/ActionDispatch/Cookies/ChainedCookieJars.html#method-i-encrypted)
@@ -114,32 +100,9 @@ verification key used for
 [signed](http://api.rubyonrails.org/classes/ActionDispatch/Cookies/ChainedCookieJars.html#method-i-signed)
 cookies, is derived from the `secret_key_base` configuration value.
 
-As of Rails 5.2 encrypted cookies and sessions are protected using AES
-GCM encryption. This form of encryption is a type of Authenticated
-Encryption and couples authentication and encryption in single step
-while also producing shorter ciphertexts as compared to other
-algorithms previously used. The key for cookies encrypted with AES GCM
-are derived using a salt value defined by the
-`config.action_dispatch.authenticated_encrypted_cookie_salt`
-configuration value.
+TIP: Secrets must be long and random. Use `rails secret` to get new unique secrets.
 
-Prior to this version, encrypted cookies were secured using AES in CBC
-mode with HMAC using SHA1 for authentication. The keys for this type of
-encryption and for HMAC verification were derived via the salts defined
-by `config.action_dispatch.encrypted_cookie_salt` and
-`config.action_dispatch.encrypted_signed_cookie_salt` respectively.
-
-Prior to Rails version 4 in both versions 2 and 3, session cookies were
-protected using only HMAC verification. As such, these session cookies
-only provided integrity to their content because the actual session data
-was stored in plaintext encoded as base64. This is how `signed` cookies
-work in the current version of Rails. These kinds of cookies are still
-useful for protecting the integrity of certain client-stored data and
-information.
-
-__Do not use a trivial secret for the `secret_key_base`, i.e. a word
-from a dictionary, or one which is shorter than 30 characters! Instead
-use `rails secret` to generate secret keys!__
+INFO: Learn more about [managing credentials later in this guide](security.html#custom-credentials)
 
 It is also important to use different salt values for encrypted and
 signed cookies. Using the same value for different salt configuration
@@ -150,7 +113,7 @@ In test and development applications get a `secret_key_base` derived from the ap
 
     secret_key_base: 492f...
 
-If you have received an application where the secret was exposed (e.g. an application whose source was shared), strongly consider changing the secret.
+WARNING: If your application's secrets may have been exposed, strongly consider changing them. Changing `secret_key_base` will expire currently active sessions.
 
 ### Rotating Encrypted and Signed Cookies Configurations
 
@@ -1204,23 +1167,18 @@ loaded inline `<script>` elements.
 Environmental Security
 ----------------------
 
-It is beyond the scope of this guide to inform you on how to secure your application code and environments. However, please secure your database configuration, e.g. `config/database.yml`, and your server-side secret, e.g. stored in `config/secrets.yml`. You may want to further restrict access, using environment-specific versions of these files and any others that may contain sensitive information.
+It is beyond the scope of this guide to inform you on how to secure your application code and environments. However, please secure your database configuration, e.g. `config/database.yml`, master key for `credentials.yml`, and other unencrypted secrets. You may want to further restrict access, using environment-specific versions of these files and any others that may contain sensitive information.
 
 ### Custom credentials
 
-Rails generates a `config/credentials.yml.enc` to store third-party credentials
-within the repo. This is only viable because Rails encrypts the file with a master
-key that's generated into a version control ignored `config/master.key` — Rails
-will also look for that key in `ENV["RAILS_MASTER_KEY"]`. Rails also requires the
-key to boot in production, so the credentials can be read.
+Rails stores secrets in `config/credentials.yml.enc`, which is encrypted and hence cannot be edited directly. Rails uses `config/master.key` or alternatively looks for environment variable `ENV["RAILS_MASTER_KEY"]` to encrypt the credentials file. The credentials file can be stored in version control, as long as master key is kept safe.
 
-To edit stored credentials use `rails credentials:edit`.
+To add new secret to credentials, first run `rails secret` to get a new secret. Then run `rails credentials:edit` to edit credentials, and add the secret. Running `credentials:edit` creates new credentials file and master key, if they did not already exist.
 
 By default, this file contains the application's
-`secret_key_base`, but it could also be used to store other credentials such as
-access keys for external APIs.
+`secret_key_base`, but it could also be used to store other credentials such as access keys for external APIs.
 
-The credentials added to this file are accessible via `Rails.application.credentials`.
+The secrets kept in credentials file are accessible via `Rails.application.credentials`.
 For example, with the following decrypted `config/credentials.yml.enc`:
 
     secret_key_base: 3b7cd727ee24e8444053437c36cc66c3
@@ -1234,6 +1192,11 @@ version:
 ```ruby
 Rails.application.credentials.some_api_key! # => raises KeyError: :some_api_key is blank
 ```
+
+
+TIP: Learn more about credentials with `rails credentials:help`.
+
+WARNING: Keep your master key safe. Do not commit your master key.
 
 Dependency Management and CVEs
 ------------------------------
