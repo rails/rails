@@ -536,10 +536,6 @@ module ActiveRecord
         end
       end
 
-      def test_deprecate_valid_alter_table_type
-        assert_deprecated { @conn.valid_alter_table_type?(:string) }
-      end
-
       def test_db_is_not_readonly_when_readonly_option_is_false
         conn = Base.sqlite3_connection database: ":memory:",
                                        adapter: "sqlite3",

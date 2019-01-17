@@ -596,45 +596,6 @@ module ApplicationTests
       assert_equal "some_value", verifier.verify(message)
     end
 
-    test "application message verifier can be used when the key_generator is ActiveSupport::LegacyKeyGenerator" do
-      app_file "config/initializers/secret_token.rb", <<-RUBY
-        Rails.application.credentials.secret_key_base = nil
-        Rails.application.config.secret_token = "b3c631c314c0bbca50c1b2843150fe33"
-      RUBY
-
-      app "production"
-
-      assert_kind_of ActiveSupport::LegacyKeyGenerator, Rails.application.key_generator
-      message = app.message_verifier(:sensitive_value).generate("some_value")
-      assert_equal "some_value", Rails.application.message_verifier(:sensitive_value).verify(message)
-    end
-
-    test "config.secret_token is deprecated" do
-      app_file "config/initializers/secret_token.rb", <<-RUBY
-        Rails.application.config.secret_token = "b3c631c314c0bbca50c1b2843150fe33"
-      RUBY
-
-      app "production"
-
-      assert_deprecated(/secret_token/) do
-        app.secrets
-      end
-    end
-
-    test "secrets.secret_token is deprecated" do
-      app_file "config/secrets.yml", <<-YAML
-        production:
-          secret_token: "b3c631c314c0bbca50c1b2843150fe33"
-      YAML
-
-      app "production"
-
-      assert_deprecated(/secret_token/) do
-        app.secrets
-      end
-    end
-
-
     test "raises when secret_key_base is blank" do
       app_file "config/initializers/secret_token.rb", <<-RUBY
         Rails.application.credentials.secret_key_base = nil
@@ -654,20 +615,6 @@ module ApplicationTests
       assert_raise(ArgumentError) do
         app "production"
       end
-    end
-
-    test "prefer secrets.secret_token over config.secret_token" do
-      app_file "config/initializers/secret_token.rb", <<-RUBY
-        Rails.application.config.secret_token = ""
-      RUBY
-      app_file "config/secrets.yml", <<-YAML
-        development:
-          secret_token: 3b7cd727ee24e8444053437c36cc66c3
-      YAML
-
-      app "development"
-
-      assert_equal "3b7cd727ee24e8444053437c36cc66c3", app.secrets.secret_token
     end
 
     test "application verifier can build different verifiers" do
@@ -709,22 +656,6 @@ module ApplicationTests
 
       app "development"
       assert_equal "3b7cd727ee24e8444053437c36cc66c3", app.secrets.secret_key_base
-    end
-
-    test "config.secret_token over-writes a blank secrets.secret_token" do
-      app_file "config/initializers/secret_token.rb", <<-RUBY
-        Rails.application.config.secret_token = "b3c631c314c0bbca50c1b2843150fe33"
-      RUBY
-      app_file "config/secrets.yml", <<-YAML
-        development:
-          secret_key_base:
-          secret_token:
-      YAML
-
-      app "development"
-
-      assert_equal "b3c631c314c0bbca50c1b2843150fe33", app.secrets.secret_token
-      assert_equal "b3c631c314c0bbca50c1b2843150fe33", app.config.secret_token
     end
 
     test "custom secrets saved in config/secrets.yml are loaded in app secrets" do
@@ -787,19 +718,6 @@ module ApplicationTests
       app "development"
 
       assert_equal "iaminallyoursecretkeybase", app.secrets.secret_key_base
-    end
-
-    test "uses ActiveSupport::LegacyKeyGenerator as app.key_generator when secrets.secret_key_base is blank" do
-      app_file "config/initializers/secret_token.rb", <<-RUBY
-        Rails.application.credentials.secret_key_base = nil
-        Rails.application.config.secret_token = "b3c631c314c0bbca50c1b2843150fe33"
-      RUBY
-
-      app "production"
-
-      assert_equal "b3c631c314c0bbca50c1b2843150fe33", app.config.secret_token
-      assert_nil app.credentials.secret_key_base
-      assert_kind_of ActiveSupport::LegacyKeyGenerator, app.key_generator
     end
 
     test "that nested keys are symbolized the same as parents for hashes more than one level deep" do
@@ -1941,33 +1859,7 @@ module ApplicationTests
       assert_equal({}, Rails.application.config.my_custom_config)
     end
 
-    test "default SQLite3Adapter.represent_boolean_as_integer for 5.1 is false" do
-      remove_from_config '.*config\.load_defaults.*\n'
-
-      app_file "app/models/post.rb", <<-RUBY
-        class Post < ActiveRecord::Base
-        end
-      RUBY
-
-      app "development"
-      force_lazy_load_hooks { Post }
-
-      assert_not ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer
-    end
-
-    test "default SQLite3Adapter.represent_boolean_as_integer for new installs is true" do
-      app_file "app/models/post.rb", <<-RUBY
-        class Post < ActiveRecord::Base
-        end
-      RUBY
-
-      app "development"
-      force_lazy_load_hooks { Post }
-
-      assert ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer
-    end
-
-    test "represent_boolean_as_integer should be able to set via config.active_record.sqlite3.represent_boolean_as_integer" do
+    test "represent_boolean_as_integer is deprecated" do
       remove_from_config '.*config\.load_defaults.*\n'
 
       app_file "config/initializers/new_framework_defaults_6_0.rb", <<-RUBY
@@ -1980,9 +1872,27 @@ module ApplicationTests
       RUBY
 
       app "development"
-      force_lazy_load_hooks { Post }
+      assert_deprecated do
+        force_lazy_load_hooks { Post }
+      end
+    end
 
-      assert ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer
+    test "represent_boolean_as_integer raises when the value is false" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app_file "config/initializers/new_framework_defaults_6_0.rb", <<-RUBY
+        Rails.application.config.active_record.sqlite3.represent_boolean_as_integer = false
+      RUBY
+
+      app_file "app/models/post.rb", <<-RUBY
+        class Post < ActiveRecord::Base
+        end
+      RUBY
+
+      app "development"
+      assert_raises(RuntimeError) do
+        force_lazy_load_hooks { Post }
+      end
     end
 
     test "config_for containing ERB tags should evaluate" do

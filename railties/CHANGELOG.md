@@ -1,3 +1,27 @@
+*   Remove deprecated `after_bundle` helper inside plugins templates.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `server` argument from the rails server command.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated support to old `config.ru` that use the application class as argument of `run`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `environment` argument from the rails commands.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `capify!`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `config.secret_token`.
+
+    *Rafael Mendonça França*
+
 *   Seed database with inline ActiveJob job adapter.
 
     *Gannon McGibbon*
@@ -17,7 +41,6 @@
 *   Add `rails test:channels`.
 
     *bogdanvlviv*
-
 
 *   Use original `bundler` environment variables during the process of generating a new rails project.
 

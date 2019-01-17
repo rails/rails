@@ -8,7 +8,6 @@ module Rails
       def initialize(*) # :nodoc:
         super
         @indentation = 0
-        @after_bundle_callbacks = []
       end
 
       # Adds an entry into +Gemfile+ for the supplied gem.
@@ -248,15 +247,6 @@ module Rails
         execute_command :rails, command, options
       end
 
-      # Just run the capify command in root
-      #
-      #   capify!
-      def capify!
-        ActiveSupport::Deprecation.warn("`capify!` is deprecated and will be removed in the next version of Rails.")
-        log :capify, ""
-        in_root { run("#{extify(:capify)} .", verbose: false) }
-      end
-
       # Make an entry in Rails routing file <tt>config/routes.rb</tt>
       #
       #   route "root 'welcome#index'"
@@ -274,16 +264,6 @@ module Rails
       #   readme "README"
       def readme(path)
         log File.read(find_in_source_paths(path))
-      end
-
-      # Registers a callback to be executed after bundle and spring binstubs
-      # have run.
-      #
-      #   after_bundle do
-      #     git add: '.'
-      #   end
-      def after_bundle(&block)
-        @after_bundle_callbacks << block
       end
 
       private

@@ -1,3 +1,7 @@
+*   Remove deprecated `image_alt` helper.
+
+    *Rafael Mendonça França*
+
 *   Fix the need of `#protect_against_forgery?` method defined in
     `ActionView::Base` subclasses. This prevents the use of forms and buttons.
 

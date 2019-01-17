@@ -1,3 +1,11 @@
+*   Remove deprecated `Module#reachable?` method.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `#acronym_regex` method from `Inflections`.
+
+    *Rafael Mendonça França*
+
 *   Fix `String#safe_constantize` throwing a `LoadError` for incorrectly cased constant references.
 
     *Keenan Brock*

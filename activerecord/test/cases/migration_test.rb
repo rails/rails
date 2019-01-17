@@ -78,16 +78,6 @@ class MigrationTest < ActiveRecord::TestCase
     end
   end
 
-  def test_migrator_migrations_path_is_deprecated
-    assert_deprecated do
-      ActiveRecord::Migrator.migrations_path = "/whatever"
-    end
-  ensure
-    assert_deprecated do
-      ActiveRecord::Migrator.migrations_path = "db/migrate"
-    end
-  end
-
   def test_migration_version_matches_component_version
     assert_equal ActiveRecord::VERSION::STRING.to_f, ActiveRecord::Migration.current_version
   end

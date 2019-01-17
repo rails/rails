@@ -168,12 +168,6 @@ class SanitizeTest < ActiveRecord::TestCase
     assert_equal "#{ActiveRecord::Base.connection.quote('10')}::integer '2009-01-01'::date", l.call
   end
 
-  def test_deprecated_expand_hash_conditions_for_aggregates
-    assert_deprecated do
-      assert_equal({ "balance" => 50 }, Customer.send(:expand_hash_conditions_for_aggregates, balance: Money.new(50)))
-    end
-  end
-
   private
     def bind(statement, *vars)
       if vars.first.is_a?(Hash)

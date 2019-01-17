@@ -1,3 +1,14 @@
+*   Remove deprecated `fragment_cache_key` helper in favor of `combined_fragment_cache_key`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated methods in `ActionDispatch::TestResponse`.
+
+    `#success?`, `missing?` and `error?` were deprecated in Rails 5.2 in favor of
+    `#successful?`, `not_found?` and `server_error?`.
+
+    *Rafael Mendonça França*
+
 *   Ensure external redirects are explicitly allowed
 
     Add `fallback_location` and `allow_other_host` options to `redirect_to`.

@@ -301,20 +301,6 @@ class FixturesTest < ActiveRecord::TestCase
     assert_equal fixtures, result.to_a
   end
 
-  def test_deprecated_insert_fixtures
-    fixtures = [
-      { "name" => "first", "wheels_count" => 2 },
-      { "name" => "second", "wheels_count" => 3 }
-    ]
-    conn = ActiveRecord::Base.connection
-    conn.delete("DELETE FROM aircraft")
-    assert_deprecated do
-      conn.insert_fixtures(fixtures, "aircraft")
-    end
-    result = conn.select_all("SELECT name, wheels_count FROM aircraft ORDER BY id")
-    assert_equal fixtures, result.to_a
-  end
-
   def test_broken_yaml_exception
     badyaml = Tempfile.new ["foo", ".yml"]
     badyaml.write "a: : "

@@ -763,7 +763,6 @@ class RequestMethod < BaseRequestTest
 
   test "post uneffected by local inflections" do
     existing_acronyms = ActiveSupport::Inflector.inflections.acronyms.dup
-    assert_deprecated { ActiveSupport::Inflector.inflections.acronym_regex.dup }
     begin
       ActiveSupport::Inflector.inflections do |inflect|
         inflect.acronym "POS"

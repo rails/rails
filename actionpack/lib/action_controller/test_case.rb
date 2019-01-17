@@ -26,7 +26,7 @@ module ActionController
     end
   end
 
-  # ActionController::TestCase will be deprecated and moved to a gem in Rails 5.1.
+  # ActionController::TestCase will be deprecated and moved to a gem in the future.
   # Please use ActionDispatch::IntegrationTest going forward.
   class TestRequest < ActionDispatch::TestRequest #:nodoc:
     DEFAULT_ENV = ActionDispatch::TestRequest::DEFAULT_ENV.dup

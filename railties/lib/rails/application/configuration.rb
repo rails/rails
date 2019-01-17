@@ -13,7 +13,7 @@ module Rails
                     :cache_classes, :cache_store, :consider_all_requests_local, :console,
                     :eager_load, :exceptions_app, :file_watcher, :filter_parameters,
                     :force_ssl, :helpers_paths, :hosts, :logger, :log_formatter, :log_tags,
-                    :railties_order, :relative_url_root, :secret_key_base, :secret_token,
+                    :railties_order, :relative_url_root, :secret_key_base,
                     :ssl_options, :public_file_server,
                     :session_options, :time_zone, :reload_classes_only_on_change,
                     :beginning_of_week, :filter_redirect, :x, :enable_dependency_loading,
@@ -50,7 +50,6 @@ module Rails
         @autoflush_log                           = true
         @log_formatter                           = ActiveSupport::Logger::SimpleFormatter.new
         @eager_load                              = nil
-        @secret_token                            = nil
         @secret_key_base                         = nil
         @api_only                                = false
         @debug_exception_response_format         = nil
@@ -97,10 +96,6 @@ module Rails
 
           if respond_to?(:active_record)
             active_record.cache_versioning = true
-            # Remove the temporary load hook from SQLite3Adapter when this is removed
-            ActiveSupport.on_load(:active_record_sqlite3adapter) do
-              ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer = true
-            end
           end
 
           if respond_to?(:action_dispatch)
