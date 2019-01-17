@@ -74,7 +74,7 @@ class TransmissionsTest < ActionCable::TestCase
   end
 end
 
-class TransmitedDataTest < ActionCable::TestCase
+class TransmittedDataTest < ActionCable::TestCase
   include ActionCable::TestHelper
 
   def test_assert_broadcast_on
