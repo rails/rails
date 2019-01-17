@@ -1,3 +1,7 @@
+*   Remove deprecated support to old `config.ru` that use the application class as argument of `run`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `environment` argument from the rails commands.
 
     *Rafael Mendonça França*
