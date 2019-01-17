@@ -316,7 +316,7 @@ module Rails
         if options.dev? || options.edge?
           GemfileEntry.github "webpacker", "rails/webpacker", nil, "Use development version of Webpacker"
         else
-          GemfileEntry.new "webpacker", nil, "Transpile app-like JavaScript. Read more: https://github.com/rails/webpacker"
+          GemfileEntry.version "webpacker", ">= 4.0.0.rc.3", "Transpile app-like JavaScript. Read more: https://github.com/rails/webpacker"
         end
       end
 

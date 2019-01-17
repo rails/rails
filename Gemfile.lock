@@ -15,15 +15,6 @@ GIT
     queue_classic (3.2.0.RC1)
       pg (>= 0.17, < 2.0)
 
-GIT
-  remote: https://github.com/rails/webpacker.git
-  revision: bb132d591da35095e3246082cba3d693f847e0b5
-  specs:
-    webpacker (4.0.0.pre.3)
-      activesupport (>= 4.2)
-      rack-proxy (>= 0.6.1)
-      railties (>= 4.2)
-
 PATH
   remote: .
   specs:
@@ -513,6 +504,10 @@ GEM
       addressable (>= 2.3.6)
       crack (>= 0.3.2)
       hashdiff
+    webpacker (4.0.0.rc.3)
+      activesupport (>= 4.2)
+      rack-proxy (>= 0.6.1)
+      railties (>= 4.2)
     websocket (1.2.8)
     websocket-driver (0.7.0)
       websocket-extensions (>= 0.1.0)
@@ -590,7 +585,7 @@ DEPENDENCIES
   w3c_validators
   wdm (>= 0.1.0)
   webmock
-  webpacker!
+  webpacker (>= 4.0.0.rc.3)
   websocket-client-simple!
 
 BUNDLED WITH
