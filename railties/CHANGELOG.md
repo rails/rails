@@ -1,3 +1,7 @@
+*   Remove deprecated `environment` argument from the rails commands.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `capify!`.
 
     *Rafael Mendonça França*
