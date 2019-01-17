@@ -951,6 +951,7 @@ class FinderTest < ActiveRecord::TestCase
     assert_kind_of Money, zaphod_balance
     found_customers = Customer.where(balance: [david_balance, zaphod_balance])
     assert_equal [customers(:david), customers(:zaphod)], found_customers.sort_by(&:id)
+    assert_equal Customer.where(balance: [david_balance.amount, zaphod_balance.amount]).to_sql, found_customers.to_sql
   end
 
   def test_hash_condition_find_with_aggregate_attribute_having_same_name_as_field_and_key_value_being_aggregate
