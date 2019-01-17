@@ -210,6 +210,13 @@ module ActionView #:nodoc:
       _prepare_context
     end
 
+    def run(method, locals, buffer, &block)
+      _old_output_buffer = @output_buffer
+      send(method, locals, buffer, &block)
+    ensure
+      @output_buffer = _old_output_buffer
+    end
+
     ActiveSupport.run_load_hooks(:action_view, self)
   end
 end

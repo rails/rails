@@ -61,7 +61,7 @@ module RenderERBUtils
       ActionView::Template::Handlers::ERB,
       {})
 
-    template.render(self, {}).strip
+    template.render(ActionView::Base.new, {}).strip
   end
 end
 
