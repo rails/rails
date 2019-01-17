@@ -21,7 +21,9 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "trix": "^1.0.0",
     "@rails/activestorage": "^6.0.0-alpha"
+  },
+  "peerDependencies": {
+    "trix": "^1.0.0"
   }
 }
