@@ -226,11 +226,15 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_exists_with_strong_parameters
-    assert_equal false, Subscriber.exists?(Parameters.new(nick: "foo"))
+    assert_equal false, Subscriber.exists?(Parameters.new(nick: "foo").permit!)
 
     Subscriber.create!(nick: "foo")
 
-    assert_equal true, Subscriber.exists?(Parameters.new(nick: "foo"))
+    assert_equal true, Subscriber.exists?(Parameters.new(nick: "foo").permit!)
+
+    assert_raises(ActiveModel::ForbiddenAttributesError) do
+      Subscriber.exists?(Parameters.new(nick: "foo"))
+    end
   end
 
   def test_exists_passing_active_record_object_is_not_permitted

@@ -1,10 +1,10 @@
-*   Set polymorphic type column to NULL on `dependent: :nullify` strategy. 
-    
+*   Set polymorphic type column to NULL on `dependent: :nullify` strategy.
+
     On polymorphic associations both the foreign key and the foreign type columns will be set to NULL.
-    
+
     *Laerti Papa*
 
-*   Allow `ActionController::Params` as argument of `ActiveRecord::Base#exists?`.
+*   Allow permitted instance of `ActionController::Parameters` as argument of `ActiveRecord::Relation#exists?`.
 
     *Gannon McGibbon*
 

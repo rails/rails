@@ -3,10 +3,16 @@
 class Parameters
   def initialize(parameters = {})
     @parameters = parameters.with_indifferent_access
+    @permitted = false
   end
 
   def permitted?
-    true
+    @permitted
+  end
+
+  def permit!
+    @permitted = true
+    self
   end
 
   def to_h
