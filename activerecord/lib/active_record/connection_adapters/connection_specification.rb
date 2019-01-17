@@ -248,8 +248,27 @@ module ActiveRecord
             if db_config
               resolve_connection(db_config.config).merge("name" => pool_name.to_s)
             else
-              raise(AdapterNotSpecified, "'#{env_name}' database is not configured. Available: #{configurations.configurations.map(&:env_name).join(", ")}")
+              raise AdapterNotSpecified, <<~MSG
+                The `#{env_name}` database is not configured for the `#{ActiveRecord::ConnectionHandling::DEFAULT_ENV.call}` environment.
+
+                Available databases configurations are:
+
+                #{build_configuration_sentence}
+              MSG
             end
+          end
+
+          def build_configuration_sentence # :nodoc:
+            configs = configurations.configs_for(include_replicas: true)
+
+            configs.group_by(&:env_name).map do |env, config|
+              namespaces = config.map(&:spec_name)
+              if namespaces.size > 1
+                "#{env}: #{namespaces.join(", ")}"
+              else
+                env
+              end
+            end.join("\n")
           end
 
           # Accepts a hash. Expands the "url" key that contains a
