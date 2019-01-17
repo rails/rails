@@ -55,12 +55,12 @@ module ActionController
     # Statements after +redirect_to+ in our controller get executed, so +redirect_to+ doesn't stop the execution of the function.
     # To terminate the execution of the function immediately after the +redirect_to+, use return.
     #   redirect_to post_url(@post) and return
-    def redirect_to(options = {}, response_status = {})
+    def redirect_to(options = {}, response_options = {})
       raise ActionControllerError.new("Cannot redirect to nil!") unless options
       raise AbstractController::DoubleRenderError if response_body
 
-      self.status        = _extract_redirect_to_status(options, response_status)
-      self.location      = _compute_redirect_to_location(request, options)
+      self.status        = _extract_redirect_to_status(options, response_options)
+      self.location      = _compute_safe_redirect_to_location(request, options, response_options)
       self.response_body = "<html><body>You are being <a href=\"#{ERB::Util.unwrapped_html_escape(response.location)}\">redirected</a>.</body></html>"
     end
 
@@ -88,9 +88,13 @@ module ActionController
     # All other options that can be passed to <tt>redirect_to</tt> are accepted as
     # options and the behavior is identical.
     def redirect_back(fallback_location:, allow_other_host: true, **args)
-      referer = request.headers["Referer"]
-      redirect_to_referer = referer && (allow_other_host || _url_host_allowed?(referer))
-      redirect_to redirect_to_referer ? referer : fallback_location, **args
+      referer = request.headers.fetch("Referer", fallback_location)
+      response_options = {
+        fallback_location: fallback_location,
+        allow_other_host: allow_other_host,
+        **args,
+      }
+      redirect_to referer, response_options
     end
 
     def _compute_redirect_to_location(request, options) #:nodoc:
@@ -114,18 +118,35 @@ module ActionController
     public :_compute_redirect_to_location
 
     private
-      def _extract_redirect_to_status(options, response_status)
+      def _compute_safe_redirect_to_location(request, options, response_options)
+        location = _compute_redirect_to_location(request, options)
+        location_options = options.is_a?(Hash) ? options : {}
+        if response_options[:allow_other_host] || _url_host_allowed?(location, location_options)
+          location
+        else
+          fallback_location = response_options.fetch(:fallback_location) do
+            raise ArgumentError, <<~MSG.squish
+              Unsafe redirect #{location.inspect},
+              use :fallback_location to specify a fallback
+              or :allow_other_host to redirect anyway.
+            MSG
+          end
+          _compute_redirect_to_location(request, fallback_location)
+        end
+      end
+
+      def _extract_redirect_to_status(options, response_options)
         if options.is_a?(Hash) && options.key?(:status)
           Rack::Utils.status_code(options.delete(:status))
-        elsif response_status.key?(:status)
-          Rack::Utils.status_code(response_status[:status])
+        elsif response_options.key?(:status)
+          Rack::Utils.status_code(response_options[:status])
         else
           302
         end
       end
 
-      def _url_host_allowed?(url)
-        URI(url.to_s).host == request.host
+      def _url_host_allowed?(url, options = {})
+        URI(url.to_s).host.in?([request.host, options[:host]])
       rescue ArgumentError, URI::Error
         false
       end

@@ -1,3 +1,9 @@
+*   Ensure external redirects are explicitly allowed
+
+    Add `fallback_location` and `allow_other_host` options to `redirect_to`.
+
+    *Gannon McGibbon*
+
 *   Introduce ActionDispatch::HostAuthorization
 
     This is a new middleware that guards against DNS rebinding attacks by
