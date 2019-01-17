@@ -1,3 +1,7 @@
+*   Remove deprecated `capify!`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `config.secret_token`.
 
     *Rafael Mendonça França*

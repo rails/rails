@@ -248,15 +248,6 @@ module Rails
         execute_command :rails, command, options
       end
 
-      # Just run the capify command in root
-      #
-      #   capify!
-      def capify!
-        ActiveSupport::Deprecation.warn("`capify!` is deprecated and will be removed in the next version of Rails.")
-        log :capify, ""
-        in_root { run("#{extify(:capify)} .", verbose: false) }
-      end
-
       # Make an entry in Rails routing file <tt>config/routes.rb</tt>
       #
       #   route "root 'welcome#index'"
