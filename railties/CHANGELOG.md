@@ -1,3 +1,7 @@
+*   Seed database with inline ActiveJob job adapter.
+
+    *Gannon McGibbon*
+
 *   Add `rails db:system:change` command for changing databases.
 
     ```
