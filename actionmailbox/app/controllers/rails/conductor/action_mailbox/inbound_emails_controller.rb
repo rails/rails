@@ -28,8 +28,7 @@ module Rails
       end
 
       def create_inbound_email(mail)
-        ActionMailbox::InboundEmail.create! raw_email: \
-          { io: StringIO.new(mail.to_s), filename: "inbound.eml", content_type: "message/rfc822" }
+        ActionMailbox::InboundEmail.create_and_extract_message_id!(mail.to_s)
       end
   end
 end
