@@ -301,9 +301,7 @@ module ActionView
         # encoding of the code
         source = +<<-end_src
           def #{method_name}(local_assigns, output_buffer)
-            _old_virtual_path, @virtual_path = @virtual_path, #{@virtual_path.inspect};#{locals_code};#{code}
-          ensure
-            @virtual_path = _old_virtual_path
+            @virtual_path = #{@virtual_path.inspect};#{locals_code};#{code}
           end
         end_src
 

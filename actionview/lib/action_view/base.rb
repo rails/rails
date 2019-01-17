@@ -211,11 +211,11 @@ module ActionView #:nodoc:
     end
 
     def run(method, locals, buffer, &block)
-      _old_output_buffer = @output_buffer
+      _old_output_buffer, _old_virtual_path = @output_buffer, @virtual_path
       @output_buffer = buffer
       send(method, locals, buffer, &block)
     ensure
-      @output_buffer = _old_output_buffer
+      @output_buffer, @virtual_path = _old_output_buffer, _old_virtual_path
     end
 
     ActiveSupport.run_load_hooks(:action_view, self)
