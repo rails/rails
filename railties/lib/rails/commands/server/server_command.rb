@@ -98,8 +98,6 @@ module Rails
       DEFAULT_PORT = 3000
       DEFAULT_PID_PATH = "tmp/pids/server.pid"
 
-      argument :using, optional: true
-
       class_option :port, aliases: "-p", type: :numeric,
         desc: "Runs Rails on the specified port - defaults to 3000.", banner: :port
       class_option :binding, aliases: "-b", type: :string,
@@ -126,7 +124,6 @@ module Rails
         super
 
         @original_options = local_options - %w( --restart )
-        deprecate_positional_rack_server_and_rewrite_to_option(@original_options)
       end
 
       def perform
@@ -144,7 +141,7 @@ module Rails
             after_stop_callback = -> { say "Exiting" unless options[:daemon] }
             server.start(after_stop_callback)
           else
-            say rack_server_suggestion(using)
+            say rack_server_suggestion(options[:using])
           end
         end
       end
@@ -153,7 +150,7 @@ module Rails
         def server_options
           {
             user_supplied_options: user_supplied_options,
-            server:                using,
+            server:                options[:using],
             log_stdout:            log_to_stdout?,
             Port:                  port,
             Host:                  host,
@@ -260,22 +257,6 @@ module Rails
 
         def prepare_restart
           FileUtils.rm_f(options[:pid]) if options[:restart]
-        end
-
-        def deprecate_positional_rack_server_and_rewrite_to_option(original_options)
-          if using
-            ActiveSupport::Deprecation.warn(<<~MSG)
-              Passing the Rack server name as a regular argument is deprecated
-              and will be removed in the next Rails version. Please, use the -u
-              option instead.
-            MSG
-
-            original_options.concat [ "-u", using ]
-          else
-            # Use positional internally to get around Thor's immutable options.
-            # TODO: Replace `using` occurrences with `options[:using]` after deprecation removal.
-            @using = options[:using]
-          end
         end
 
         def rack_server_suggestion(server)
