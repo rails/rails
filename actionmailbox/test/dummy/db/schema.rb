@@ -15,8 +15,10 @@ ActiveRecord::Schema.define(version: 2018_02_12_164506) do
   create_table "action_mailbox_inbound_emails", force: :cascade do |t|
     t.integer "status", default: 0, null: false
     t.string "message_id"
+    t.string "message_checksum"
     t.datetime "created_at", precision: 6
     t.datetime "updated_at", precision: 6
+    t.index ["message_id", "message_checksum"], name: "index_action_mailbox_inbound_emails_uniqueness", unique: true
   end
 
   create_table "active_storage_attachments", force: :cascade do |t|
