@@ -93,7 +93,7 @@ module ActiveRecord
             if mapping.length == 1
               column_name, aggr_attr = mapping.first
               values = Array.wrap(value).map do |object|
-                object.respond_to?(aggr_attr) ? object.send(aggr_attr) : object
+                object.respond_to?(aggr_attr) ? object.public_send(aggr_attr) : object
               end
               build(table.arel_attribute(column_name), values)
             else
