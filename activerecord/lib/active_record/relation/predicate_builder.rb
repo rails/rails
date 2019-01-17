@@ -91,12 +91,11 @@ module ActiveRecord
           elsif table.aggregated_with?(key)
             mapping = table.reflect_on_aggregation(key).mapping
             if mapping.length == 1
-              mapping.first.yield_self do |field_attr, aggregate_attr|
-                values = Array.wrap(value).map do |object|
-                  object.respond_to?(aggregate_attr) ? object.send(aggregate_attr) : object
-                end
-                build(table.arel_attribute(field_attr), values)
+              column_name, aggr_attr = mapping.first
+              values = Array.wrap(value).map do |object|
+                object.respond_to?(aggr_attr) ? object.send(aggr_attr) : object
               end
+              build(table.arel_attribute(column_name), values)
             else
               queries = Array.wrap(value).map do |object|
                 mapping.map do |field_attr, aggregate_attr|
