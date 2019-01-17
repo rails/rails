@@ -1,3 +1,7 @@
+*   Seed database with inline ActiveJob job adapter.
+
+    *Gannon McGibbon*
+
 *   Fix boolean interaction in scaffold system tests.
 
     *Gannon McGibbon*

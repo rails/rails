@@ -548,7 +548,7 @@ module Rails
     # Blog::Engine.load_seed
     def load_seed
       seed_file = paths["db/seeds.rb"].existent.first
-      load(seed_file) if seed_file
+      with_inline_jobs { load(seed_file) } if seed_file
     end
 
     # Add configured load paths to Ruby's load path, and remove duplicate entries.
@@ -655,6 +655,18 @@ module Rails
       def load_config_initializer(initializer) # :doc:
         ActiveSupport::Notifications.instrument("load_config_initializer.railties", initializer: initializer) do
           load(initializer)
+        end
+      end
+
+      def with_inline_jobs
+        queue_adapter = config.active_job.queue_adapter
+        ActiveSupport.on_load(:active_job) do
+          self.queue_adapter = :inline
+        end
+        yield
+      ensure
+        ActiveSupport.on_load(:active_job) do
+          self.queue_adapter = queue_adapter
         end
       end
 
