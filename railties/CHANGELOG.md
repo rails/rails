@@ -1,3 +1,7 @@
+*   Remove deprecated `after_bundle` helper inside plugins templates.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `server` argument from the rails server command.
 
     *Rafael Mendonça França*

@@ -276,6 +276,8 @@ module Rails
         if options[:api]
           self.options = options.merge(skip_sprockets: true, skip_javascript: true).freeze
         end
+
+        @after_bundle_callbacks = []
       end
 
       public_task :set_default_accessors!
@@ -495,6 +497,16 @@ module Rails
       # Define file as an alias to create_file for backwards compatibility.
       def file(*args, &block)
         create_file(*args, &block)
+      end
+
+      # Registers a callback to be executed after bundle and spring binstubs
+      # have run.
+      #
+      #   after_bundle do
+      #     git add: '.'
+      #   end
+      def after_bundle(&block) # :doc:
+        @after_bundle_callbacks << block
       end
 
       def get_builder_class
