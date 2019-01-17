@@ -90,16 +90,21 @@ module ActiveRecord
             queries.reduce(&:or)
           elsif table.aggregated_with?(key)
             mapping = table.reflect_on_aggregation(key).mapping
-            queries = Array.wrap(value).map do |object|
-              mapping.map do |field_attr, aggregate_attr|
-                if mapping.size == 1 && !object.respond_to?(aggregate_attr)
-                  build(table.arel_attribute(field_attr), object)
-                else
-                  build(table.arel_attribute(field_attr), object.send(aggregate_attr))
+            if mapping.length == 1
+              mapping.first.yield_self do |field_attr, aggregate_attr|
+                values = Array.wrap(value).map do |object|
+                  object.respond_to?(aggregate_attr) ? object.send(aggregate_attr) : object
                 end
-              end.reduce(&:and)
+                build(table.arel_attribute(field_attr), values)
+              end
+            else
+              queries = Array.wrap(value).map do |object|
+                mapping.map do |field_attr, aggregate_attr|
+                  build(table.arel_attribute(field_attr), object.send(aggregate_attr))
+                end.reduce(&:and)
+              end
+              queries.reduce(&:or)
             end
-            queries.reduce(&:or)
           else
             build(table.arel_attribute(key), value)
           end
