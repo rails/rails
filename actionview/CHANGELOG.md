@@ -1,3 +1,8 @@
+*   Ensure unique DOM IDs for collection inputs with float values.
+    Fixes #34974
+
+    *Mark Edmondson*
+
 ## Rails 6.0.0.beta1 (January 18, 2019) ##
 
 *   Remove deprecated `image_alt` helper.
