@@ -1,3 +1,5 @@
+## Rails 6.0.0.beta1 (January 18, 2019) ##
+
 *   New section _Troubleshooting_ in the _Autoloading and Reloading Constants_ guide.
 
     *Xavier Noria*

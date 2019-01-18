@@ -1,3 +1,5 @@
+## Rails 6.0.0.beta1 (January 18, 2019) ##
+
 *   Return false instead of the job instance when `enqueue` is aborted.
 
     This will be the behavior in Rails 6.1 but it can be controlled now with

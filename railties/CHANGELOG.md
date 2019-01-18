@@ -1,3 +1,5 @@
+## Rails 6.0.0.beta1 (January 18, 2019) ##
+
 *   Remove deprecated `after_bundle` helper inside plugins templates.
 
     *Rafael Mendonça França*

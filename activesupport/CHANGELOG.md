@@ -1,3 +1,5 @@
+## Rails 6.0.0.beta1 (January 18, 2019) ##
+
 *   Remove deprecated `Module#reachable?` method.
 
     *Rafael Mendonça França*
