@@ -224,6 +224,10 @@ module ActionView #:nodoc:
       @output_buffer, @virtual_path = _old_output_buffer, _old_virtual_path
     end
 
+    def compiled_method_container
+      CompiledTemplates
+    end
+
     ActiveSupport.run_load_hooks(:action_view, self)
   end
 end

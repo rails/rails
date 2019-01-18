@@ -264,11 +264,7 @@ module ActionView
           # re-compilation
           return if @compiled
 
-          if view.is_a?(ActionView::CompiledTemplates)
-            mod = ActionView::CompiledTemplates
-          else
-            mod = view.singleton_class
-          end
+          mod = view.compiled_method_container
 
           instrument("!compile_template") do
             compile(mod)
