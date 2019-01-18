@@ -1,3 +1,8 @@
+*   Make `t.timestamps` with precision by default.
+
+    *Ryuta Kamizono*
+
+
 ## Rails 6.0.0.beta1 (January 18, 2019) ##
 
 *   Remove deprecated `#set_state` from the transaction object.

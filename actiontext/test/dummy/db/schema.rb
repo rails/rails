@@ -17,8 +17,8 @@ ActiveRecord::Schema.define(version: 2018_10_03_185713) do
     t.text "body", limit: 16777215
     t.string "record_type", null: false
     t.integer "record_id", null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
     t.index ["record_type", "record_id", "name"], name: "index_action_text_rich_texts_uniqueness", unique: true
   end
 
@@ -45,14 +45,14 @@ ActiveRecord::Schema.define(version: 2018_10_03_185713) do
 
   create_table "messages", force: :cascade do |t|
     t.string "subject"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
   end
 
   create_table "people", force: :cascade do |t|
     t.string "name"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
   end
 
 end
