@@ -10,6 +10,10 @@ require "action_view/template"
 require "action_view/lookup_context"
 
 module ActionView #:nodoc:
+  module CompiledTemplates #:nodoc:
+    # holds compiled template code
+  end
+
   # = Action View Base
   #
   # Action View templates can be written in several ways.
@@ -140,6 +144,8 @@ module ActionView #:nodoc:
   # code}[https://github.com/jimweirich/builder].
   class Base
     include Helpers, ::ERB::Util, Context
+
+    include CompiledTemplates
 
     # Specify the proc used to decorate input tags that refer to attributes with errors.
     cattr_accessor :field_error_proc, default: Proc.new { |html_tag, instance| "<div class=\"field_with_errors\">#{html_tag}</div>".html_safe }
