@@ -213,7 +213,9 @@ namespace :all do
       description %>\n</p>
 
       <p>
-        <%= image_tag @user.avatar.representation(resize_to_fit: [500, 500]) %>
+        <% if @user.avatar.attached? -%>
+          <%= image_tag @user.avatar.representation(resize_to_fit: [500, 500]) %>
+        <% end -%>
       </p>
     CODE
 
