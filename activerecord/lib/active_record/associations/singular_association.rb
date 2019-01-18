@@ -37,8 +37,6 @@ module ActiveRecord
 
         def find_target
           super.first
-        rescue ::RangeError
-          nil
         end
 
         def replace(record)

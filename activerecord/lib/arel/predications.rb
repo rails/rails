@@ -35,15 +35,17 @@ module Arel # :nodoc: all
     end
 
     def between(other)
-      if infinity?(other.begin)
-        if other.end.nil? || infinity?(other.end)
+      if unboundable?(other.begin) == 1 || unboundable?(other.end) == -1
+        self.in([])
+      elsif open_ended?(other.begin)
+        if other.end.nil? || open_ended?(other.end)
           not_in([])
         elsif other.exclude_end?
           lt(other.end)
         else
           lteq(other.end)
         end
-      elsif other.end.nil? || infinity?(other.end)
+      elsif other.end.nil? || open_ended?(other.end)
         gteq(other.begin)
       elsif other.exclude_end?
         gteq(other.begin).and(lt(other.end))
@@ -81,15 +83,17 @@ Passing a range to `#in` is deprecated. Call `#between`, instead.
     end
 
     def not_between(other)
-      if infinity?(other.begin)
-        if other.end.nil? || infinity?(other.end)
+      if unboundable?(other.begin) == 1 || unboundable?(other.end) == -1
+        not_in([])
+      elsif open_ended?(other.begin)
+        if other.end.nil? || open_ended?(other.end)
           self.in([])
         elsif other.exclude_end?
           gteq(other.end)
         else
           gt(other.end)
         end
-      elsif other.end.nil? || infinity?(other.end)
+      elsif other.end.nil? || open_ended?(other.end)
         lt(other.begin)
       else
         left = lt(other.begin)
@@ -240,6 +244,14 @@ Passing a range to `#not_in` is deprecated. Call `#not_between`, instead.
 
       def infinity?(value)
         value.respond_to?(:infinite?) && value.infinite?
+      end
+
+      def unboundable?(value)
+        value.respond_to?(:unboundable?) && value.unboundable?
+      end
+
+      def open_ended?(value)
+        infinity?(value) || unboundable?(value)
       end
   end
 end

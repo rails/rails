@@ -27,6 +27,7 @@ require "models/categorization"
 require "models/minivan"
 require "models/speedometer"
 require "models/reference"
+require "models/job"
 require "models/college"
 require "models/student"
 require "models/pirate"
@@ -2924,6 +2925,11 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
       end
       assert client.rollback_on_create_called
     end
+  end
+
+  def test_has_many_with_out_of_range_value
+    reference = Reference.create!(id: 2147483648) # out of range in the integer
+    assert_equal [], reference.ideal_jobs
   end
 
   private
