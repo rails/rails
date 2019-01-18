@@ -2,10 +2,6 @@
 
     *Rafael Mendonça França*
 
-*   Remove deprecated `server` argument from the rails server command.
-
-    *Rafael Mendonça França*
-
 *   Remove deprecated support to old `config.ru` that use the application class as argument of `run`.
 
     *Rafael Mendonça França*
