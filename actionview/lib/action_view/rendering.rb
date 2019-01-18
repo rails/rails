@@ -55,10 +55,8 @@ module ActionView
       end
     end
 
-    attr_internal_writer :view_context_class
-
     def view_context_class
-      @_view_context_class ||= self.class.view_context_class
+      self.class.view_context_class
     end
 
     # An instance of a view class. The default view class is ActionView::Base.
