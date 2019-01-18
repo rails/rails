@@ -3,8 +3,8 @@
 })(this, function(exports) {
   "use strict";
   var adapters = {
-    logger: window.console,
-    WebSocket: window.WebSocket
+    logger: self.console,
+    WebSocket: self.WebSocket
   };
   var logger = {
     log: function log() {
@@ -49,7 +49,7 @@
         this.startedAt = now();
         delete this.stoppedAt;
         this.startPolling();
-        document.addEventListener("visibilitychange", this.visibilityDidChange);
+        addEventListener("visibilitychange", this.visibilityDidChange);
         logger.log("ConnectionMonitor started. pollInterval = " + this.getPollInterval() + " ms");
       }
     };
@@ -57,7 +57,7 @@
       if (this.isRunning()) {
         this.stoppedAt = now();
         this.stopPolling();
-        document.removeEventListener("visibilitychange", this.visibilityDidChange);
+        removeEventListener("visibilitychange", this.visibilityDidChange);
         logger.log("ConnectionMonitor stopped");
       }
     };
@@ -192,7 +192,7 @@
         this.monitor.stop();
       }
       if (this.isActive()) {
-        return this.webSocket ? this.webSocket.close() : undefined;
+        return this.webSocket.close();
       }
     };
     Connection.prototype.reopen = function reopen() {
@@ -211,7 +211,9 @@
       }
     };
     Connection.prototype.getProtocol = function getProtocol() {
-      return this.webSocket ? this.webSocket.protocol : undefined;
+      if (this.webSocket) {
+        return this.webSocket.protocol;
+      }
     };
     Connection.prototype.isOpen = function isOpen() {
       return this.isState("open");
@@ -452,16 +454,15 @@
     };
     return Consumer;
   }();
-  function createConsumer(url) {
-    if (url == null) {
-      var urlConfig = getConfig("url");
-      url = urlConfig ? urlConfig : INTERNAL.default_mount_path;
-    }
+  function createConsumer() {
+    var url = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : getConfig("url") || INTERNAL.default_mount_path;
     return new Consumer(createWebSocketURL(url));
   }
   function getConfig(name) {
     var element = document.head.querySelector("meta[name='action-cable-" + name + "']");
-    return element ? element.getAttribute("content") : undefined;
+    if (element) {
+      return element.getAttribute("content");
+    }
   }
   function createWebSocketURL(url) {
     if (url && !/^wss?:/i.test(url)) {

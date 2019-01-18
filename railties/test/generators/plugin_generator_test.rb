@@ -712,38 +712,6 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     Object.send(:remove_const, "ENGINE_ROOT")
   end
 
-  def test_after_bundle_callback
-    path = "http://example.org/rails_template"
-    template = +%{ after_bundle { run "echo ran after_bundle" } }
-    template.instance_eval "def read; self; end" # Make the string respond to read
-
-    check_open = -> *args do
-      assert_equal [ path, "Accept" => "application/x-thor-template" ], args
-      template
-    end
-
-    sequence = ["echo ran after_bundle"]
-    @sequence_step ||= 0
-    ensure_bundler_first = -> command do
-      assert_equal sequence[@sequence_step], command, "commands should be called in sequence #{sequence}"
-      @sequence_step += 1
-    end
-
-    content = nil
-    generator([destination_root], template: path).stub(:open, check_open, template) do
-      generator.stub(:bundle_command, ensure_bundler_first) do
-        generator.stub(:run, ensure_bundler_first) do
-          silence_stream($stdout) do
-            content = capture(:stderr) { generator.invoke_all }
-          end
-        end
-      end
-    end
-
-    assert_equal 1, @sequence_step
-    assert_match(/DEPRECATION WARNING: `after_bundle` is deprecated/, content)
-  end
-
   private
 
     def action(*args, &block)

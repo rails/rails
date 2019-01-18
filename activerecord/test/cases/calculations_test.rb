@@ -917,15 +917,15 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal({ "proposed" => 2, "published" => 2 }, Book.group(:status).count)
   end
 
-  def test_deprecate_count_with_block_and_column_name
-    assert_deprecated do
-      assert_equal 6, Account.count(:firm_id) { true }
+  def test_count_with_block_and_column_name_raises_an_error
+    assert_raises(ArgumentError) do
+      Account.count(:firm_id) { true }
     end
   end
 
-  def test_deprecate_sum_with_block_and_column_name
-    assert_deprecated do
-      assert_equal 6, Account.sum(:firm_id) { 1 }
+  def test_sum_with_block_and_column_name_raises_an_error
+    assert_raises(ArgumentError) do
+      Account.sum(:firm_id) { 1 }
     end
   end
 

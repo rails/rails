@@ -18,11 +18,11 @@ ruby <%= "'#{RUBY_VERSION}'" -%>
 <% end -%>
 <% end -%>
 
-# Use ActiveModel has_secure_password
+# Use Active Model has_secure_password
 # gem 'bcrypt', '~> 3.1.7'
 <% unless skip_active_storage? -%>
 
-# Use ActiveStorage variant
+# Use Active Storage variant
 # gem 'image_processing', '~> 1.2'
 <% end -%>
 

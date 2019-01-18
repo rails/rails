@@ -263,16 +263,6 @@ task default: :test
 
       public_task :apply_rails_template
 
-      def run_after_bundle_callbacks
-        unless @after_bundle_callbacks.empty?
-          ActiveSupport::Deprecation.warn("`after_bundle` is deprecated and will be removed in the next version of Rails. ")
-        end
-
-        @after_bundle_callbacks.each do |callback|
-          callback.call
-        end
-      end
-
       def name
         @name ||= begin
           # same as ActiveSupport::Inflector#underscore except not replacing '-'
@@ -349,9 +339,9 @@ task default: :test
       def wrap_in_modules(unwrapped_code)
         unwrapped_code = "#{unwrapped_code}".strip.gsub(/\s$\n/, "")
         modules.reverse.inject(unwrapped_code) do |content, mod|
-          str = "module #{mod}\n"
-          str += content.lines.map { |line| "  #{line}" }.join
-          str += content.present? ? "\nend" : "end"
+          str = +"module #{mod}\n"
+          str << content.lines.map { |line| "  #{line}" }.join
+          str << (content.present? ? "\nend" : "end")
         end
       end
 

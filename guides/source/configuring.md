@@ -387,28 +387,6 @@ The PostgreSQL adapter adds one additional configuration option:
   highly recommended that you do not enable this in a production environment.
   Defaults to `false` in all environments.
 
-The SQLite3Adapter adapter adds one additional configuration option:
-
-* `ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer`
-indicates whether boolean values are stored in sqlite3 databases as 1 and 0 or
-'t' and 'f'. Leaving `ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer`
-set to false is deprecated. SQLite databases have used 't' and 'f' to serialize
-boolean values and must have old data converted to 1 and 0 (its native boolean
-serialization) before setting this flag to true. Conversion can be accomplished
-by setting up a Rake task which runs
-
-    ```ruby
-    ExampleModel.where("boolean_column = 't'").update_all(boolean_column: 1)
-    ExampleModel.where("boolean_column = 'f'").update_all(boolean_column: 0)
-    ```
-
-  for all models and all boolean columns, after which the flag must be set to true
-by adding the following to your `application.rb` file:
-
-    ```ruby
-    Rails.application.config.active_record.sqlite3.represent_boolean_as_integer = true
-    ```
-
 The schema dumper adds two additional configuration options:
 
 * `ActiveRecord::SchemaDumper.ignore_tables` accepts an array of tables that should _not_ be included in any generated schema file.
@@ -721,6 +699,8 @@ There are a number of settings available on `config.action_mailer`:
 
 * `config.action_mailer.perform_caching` specifies whether the mailer templates should perform fragment caching or not. By default this is `false` in all environments.
 
+* `config.action_mailer.delivery_job` specifies delivery job for mail. Defaults to `ActionMailer::DeliveryJob`.
+
 
 ### Configuring Active Support
 
@@ -894,7 +874,6 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 #### With '5.2':
 
 - `config.active_record.cache_versioning`: `true`
-- `ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer`: `true`
 - `action_dispatch.use_authenticated_cookie_encryption`: `true`
 - `config.active_support.use_authenticated_message_encryption`: `true`
 - `config.active_support.use_sha1_digests`: `true`
@@ -905,6 +884,7 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 
 - `config.action_view.default_enforce_utf8`: `false`
 - `config.action_dispatch.use_cookies_with_metadata`: `true`
+- `config.action_mailer.delivery_job`: `"ActionMailer::MailDeliveryJob"`
 - `config.active_job.return_false_on_aborted_enqueue`: `true`
 - `config.active_storage.queues.analysis`: `:active_storage_analysis`
 - `config.active_storage.queues.purge`: `:active_storage_purge`

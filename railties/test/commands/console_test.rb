@@ -94,28 +94,7 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
     assert_match(/\sspecial-production\s/, output)
   end
 
-  def test_rails_env_is_production_when_first_argument_is_p
-    assert_deprecated do
-      start ["p"]
-      assert_match(/\sproduction\s/, output)
-    end
-  end
-
-  def test_rails_env_is_test_when_first_argument_is_t
-    assert_deprecated do
-      start ["t"]
-      assert_match(/\stest\s/, output)
-    end
-  end
-
-  def test_rails_env_is_development_when_argument_is_d
-    assert_deprecated do
-      start ["d"]
-      assert_match(/\sdevelopment\s/, output)
-    end
-  end
-
-  def test_rails_env_is_dev_when_argument_is_dev_and_dev_env_is_present
+  def test_rails_env_is_dev_when_environment_option_is_dev_and_dev_env_is_present
     Rails::Command::ConsoleCommand.class_eval do
       alias_method :old_environments, :available_environments
 
@@ -124,9 +103,7 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
       end
     end
 
-    assert_deprecated do
-      assert_match("dev", parse_arguments(["dev"])[:environment])
-    end
+    assert_match("dev", parse_arguments(["-e", "dev"])[:environment])
   ensure
     Rails::Command::ConsoleCommand.class_eval do
       undef_method :available_environments

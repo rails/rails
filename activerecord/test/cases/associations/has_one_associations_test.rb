@@ -12,6 +12,9 @@ require "models/bulb"
 require "models/author"
 require "models/image"
 require "models/post"
+require "models/drink_designer"
+require "models/chef"
+require "models/department"
 
 class HasOneAssociationsTest < ActiveRecord::TestCase
   self.use_transactional_tests = false unless supports_savepoints?
@@ -112,6 +115,21 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     firm.account = Account.new(credit_limit: 5)
     # account is dependent with nullify, therefore its firm_id should be nil
     assert_nil Account.find(old_account_id).firm_id
+  end
+
+  def test_nullify_on_polymorphic_association
+    department = Department.create!
+    designer = DrinkDesignerWithPolymorphicDependentNullifyChef.create!
+    chef = department.chefs.create!(employable: designer)
+
+    assert_equal chef.employable_id, designer.id
+    assert_equal chef.employable_type, designer.class.name
+
+    designer.destroy!
+    chef.reload
+
+    assert_nil chef.employable_id
+    assert_nil chef.employable_type
   end
 
   def test_nullification_on_destroyed_association

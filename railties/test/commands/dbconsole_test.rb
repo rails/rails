@@ -99,25 +99,9 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
     ENV["RACK_ENV"] = nil
   end
 
-  def test_rails_env_is_development_when_argument_is_dev
-    assert_deprecated do
-      stub_available_environments([ "development", "test" ]) do
-        assert_match("development", parse_arguments([ "dev" ])[:environment])
-      end
-    end
-  end
-
   def test_rails_env_is_development_when_environment_option_is_dev
     stub_available_environments([ "development", "test" ]) do
       assert_match("development", parse_arguments([ "-e", "dev" ])[:environment])
-    end
-  end
-
-  def test_rails_env_is_dev_when_argument_is_dev_and_dev_env_is_present
-    assert_deprecated do
-      stub_available_environments([ "dev" ]) do
-        assert_match("dev", parse_arguments([ "dev" ])[:environment])
-      end
     end
   end
 
@@ -265,14 +249,14 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
     stdout = capture(:stdout) do
       Rails::Command.invoke(:dbconsole, ["-h"])
     end
-    assert_match(/rails dbconsole \[environment\]/, stdout)
+    assert_match(/rails dbconsole \[options\]/, stdout)
   end
 
   def test_print_help_long
     stdout = capture(:stdout) do
       Rails::Command.invoke(:dbconsole, ["--help"])
     end
-    assert_match(/rails dbconsole \[environment\]/, stdout)
+    assert_match(/rails dbconsole \[options\]/, stdout)
   end
 
   attr_reader :aborted, :output

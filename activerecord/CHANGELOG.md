@@ -1,3 +1,69 @@
+*   Remove deprecated `#set_state` from the transaction object.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `#supports_statement_cache?` from the database adapters.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `#insert_fixtures` from the database adapters.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `ActiveRecord::ConnectionAdapters::SQLite3Adapter#valid_alter_table_type?`.
+
+    *Rafael Mendonça França*
+
+*   Do not allow passing the column name to `sum` when a block is passed.
+
+    *Rafael Mendonça França*
+
+*   Do not allow passing the column name to `count` when a block is passed.
+
+    *Rafael Mendonça França*
+
+*   Remove delegation of missing methods in a relation to arel.
+
+    *Rafael Mendonça França*
+
+*   Remove delegation of missing methods in a relation to private methods of the class.
+
+    *Rafael Mendonça França*
+
+*   Deprecate `config.activerecord.sqlite3.represent_boolean_as_integer`.
+
+    *Rafael Mendonça França*
+
+*   Change `SQLite3Adapter` to always represent boolean values as integers.
+
+    *Rafael Mendonça França*
+
+*   Remove ability to specify a timestamp name for `#cache_key`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `ActiveRecord::Migrator.migrations_path=`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `expand_hash_conditions_for_aggregates`.
+
+    *Rafael Mendonça França*
+
+*   Set polymorphic type column to NULL on `dependent: :nullify` strategy.
+
+    On polymorphic associations both the foreign key and the foreign type columns will be set to NULL.
+
+    *Laerti Papa*
+
+*   Allow permitted instance of `ActionController::Parameters` as argument of `ActiveRecord::Relation#exists?`.
+
+    *Gannon McGibbon*
+
+*   Add support for endless ranges introduces in Ruby 2.6.
+
+    *Greg Navis*
+
 *   Deprecate passing `migrations_paths` to `connection.assume_migrated_upto_version`.
 
     *Ryuta Kamizono*

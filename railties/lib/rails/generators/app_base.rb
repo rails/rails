@@ -11,9 +11,8 @@ require "active_support/core_ext/array/extract_options"
 module Rails
   module Generators
     class AppBase < Base # :nodoc:
-      DATABASES = %w( mysql postgresql sqlite3 oracle frontbase ibm_db sqlserver )
-      JDBC_DATABASES = %w( jdbcmysql jdbcsqlite3 jdbcpostgresql jdbc )
-      DATABASES.concat(JDBC_DATABASES)
+      include Database
+      include AppName
 
       attr_accessor :rails_template
       add_shebang_option!
@@ -106,7 +105,6 @@ module Rails
         @gem_filter    = lambda { |gem| true }
         @extra_entries = []
         super
-        convert_database_option_for_jruby
       end
 
     private
@@ -306,34 +304,6 @@ module Rails
         end
       end
 
-      def gem_for_database
-        # %w( mysql postgresql sqlite3 oracle frontbase ibm_db sqlserver jdbcmysql jdbcsqlite3 jdbcpostgresql )
-        case options[:database]
-        when "mysql"          then ["mysql2", [">= 0.4.4"]]
-        when "postgresql"     then ["pg", [">= 0.18", "< 2.0"]]
-        when "oracle"         then ["activerecord-oracle_enhanced-adapter", nil]
-        when "frontbase"      then ["ruby-frontbase", nil]
-        when "sqlserver"      then ["activerecord-sqlserver-adapter", nil]
-        when "jdbcmysql"      then ["activerecord-jdbcmysql-adapter", nil]
-        when "jdbcsqlite3"    then ["activerecord-jdbcsqlite3-adapter", nil]
-        when "jdbcpostgresql" then ["activerecord-jdbcpostgresql-adapter", nil]
-        when "jdbc"           then ["activerecord-jdbc-adapter", nil]
-        else [options[:database], nil]
-        end
-      end
-
-      def convert_database_option_for_jruby
-        if defined?(JRUBY_VERSION)
-          opt = options.dup
-          case opt[:database]
-          when "postgresql" then opt[:database] = "jdbcpostgresql"
-          when "mysql"      then opt[:database] = "jdbcmysql"
-          when "sqlite3"    then opt[:database] = "jdbcsqlite3"
-          end
-          self.options = opt.freeze
-        end
-      end
-
       def assets_gemfile_entry
         return [] if options[:skip_sprockets]
 
@@ -346,7 +316,7 @@ module Rails
         if options.dev? || options.edge?
           GemfileEntry.github "webpacker", "rails/webpacker", nil, "Use development version of Webpacker"
         else
-          GemfileEntry.new "webpacker", nil, "Transpile app-like JavaScript. Read more: https://github.com/rails/webpacker"
+          GemfileEntry.version "webpacker", ">= 4.0.0.rc.3", "Transpile app-like JavaScript. Read more: https://github.com/rails/webpacker"
         end
       end
 
@@ -388,19 +358,21 @@ module Rails
         # its own vendored Thor, which could be a different version. Running both
         # things in the same process is a recipe for a night with paracetamol.
         #
-        # We unset temporary bundler variables to load proper bundler and Gemfile.
-        #
         # Thanks to James Tucker for the Gem tricks involved in this call.
         _bundle_command = Gem.bin_path("bundler", "bundle")
 
         require "bundler"
-        Bundler.with_clean_env do
-          full_command = %Q["#{Gem.ruby}" "#{_bundle_command}" #{command}]
-          if options[:quiet]
-            system(env, full_command, out: File::NULL)
-          else
-            system(env, full_command)
-          end
+        Bundler.with_original_env do
+          exec_bundle_command(_bundle_command, command, env)
+        end
+      end
+
+      def exec_bundle_command(bundle_command, command, env)
+        full_command = %Q["#{Gem.ruby}" "#{bundle_command}" #{command}]
+        if options[:quiet]
+          system(env, full_command, out: File::NULL)
+        else
+          system(env, full_command)
         end
       end
 

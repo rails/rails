@@ -224,12 +224,6 @@ class InflectorTest < ActiveSupport::TestCase
     assert_equal("json_html_api", ActiveSupport::Inflector.underscore("JSONHTMLAPI"))
   end
 
-  def test_acronym_regexp_is_deprecated
-    assert_deprecated do
-      ActiveSupport::Inflector.inflections.acronym_regex
-    end
-  end
-
   def test_underscore
     CamelToUnderscore.each do |camel, underscore|
       assert_equal(underscore, ActiveSupport::Inflector.underscore(camel))

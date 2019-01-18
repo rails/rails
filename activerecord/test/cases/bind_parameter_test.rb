@@ -77,10 +77,6 @@ if ActiveRecord::Base.connection.prepared_statements
         assert_logs_binds(binds)
       end
 
-      def test_deprecate_supports_statement_cache
-        assert_deprecated { ActiveRecord::Base.connection.supports_statement_cache? }
-      end
-
       private
         def assert_logs_binds(binds)
           payload = {

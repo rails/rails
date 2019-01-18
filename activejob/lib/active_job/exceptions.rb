@@ -50,8 +50,8 @@ module ActiveJob
       def retry_on(*exceptions, wait: 3.seconds, attempts: 5, queue: nil, priority: nil)
         rescue_from(*exceptions) do |error|
           # Guard against jobs that were persisted before we started having individual executions counters per retry_on
-          self.exception_executions ||= Hash.new(0)
-          self.exception_executions[exceptions.to_s] += 1
+          self.exception_executions ||= {}
+          self.exception_executions[exceptions.to_s] = (exception_executions[exceptions.to_s] || 0) + 1
 
           if exception_executions[exceptions.to_s] < attempts
             retry_job wait: determine_delay(wait), queue: queue, priority: priority, error: error

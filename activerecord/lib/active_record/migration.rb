@@ -1169,13 +1169,6 @@ module ActiveRecord
     class << self
       attr_accessor :migrations_paths
 
-      def migrations_path=(path)
-        ActiveSupport::Deprecation.warn \
-          "`ActiveRecord::Migrator.migrations_path=` is now deprecated and will be removed in Rails 6.0. " \
-          "You can set the `migrations_paths` on the `connection` instead through the `database.yml`."
-        self.migrations_paths = [path]
-      end
-
       # For cases where a table doesn't exist like loading from schema cache
       def current_version
         MigrationContext.new(migrations_paths).current_version

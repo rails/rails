@@ -21,6 +21,7 @@ require "models/dog"
 require "models/car"
 require "models/tyre"
 require "models/subscriber"
+require "support/stubs/strong_parameters"
 
 class FinderTest < ActiveRecord::TestCase
   fixtures :companies, :topics, :entrants, :developers, :developers_projects, :posts, :comments, :accounts, :authors, :author_addresses, :customers, :categories, :categorizations, :cars
@@ -222,6 +223,18 @@ class FinderTest < ActiveRecord::TestCase
 
     assert_equal true, Subscriber.exists?("foo")
     assert_equal true, Subscriber.exists?("   ")
+  end
+
+  def test_exists_with_strong_parameters
+    assert_equal false, Subscriber.exists?(Parameters.new(nick: "foo").permit!)
+
+    Subscriber.create!(nick: "foo")
+
+    assert_equal true, Subscriber.exists?(Parameters.new(nick: "foo").permit!)
+
+    assert_raises(ActiveModel::ForbiddenAttributesError) do
+      Subscriber.exists?(Parameters.new(nick: "foo"))
+    end
   end
 
   def test_exists_passing_active_record_object_is_not_permitted
@@ -938,6 +951,7 @@ class FinderTest < ActiveRecord::TestCase
     assert_kind_of Money, zaphod_balance
     found_customers = Customer.where(balance: [david_balance, zaphod_balance])
     assert_equal [customers(:david), customers(:zaphod)], found_customers.sort_by(&:id)
+    assert_equal Customer.where(balance: [david_balance.amount, zaphod_balance.amount]).to_sql, found_customers.to_sql
   end
 
   def test_hash_condition_find_with_aggregate_attribute_having_same_name_as_field_and_key_value_being_aggregate

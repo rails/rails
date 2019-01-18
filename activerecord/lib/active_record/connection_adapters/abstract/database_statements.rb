@@ -123,7 +123,7 @@ module ActiveRecord
       # +binds+ as the bind substitutes. +name+ is logged along with
       # the executed +sql+ statement.
       def exec_insert(sql, name = nil, binds = [], pk = nil, sequence_name = nil)
-        sql, binds = sql_for_insert(sql, pk, nil, sequence_name, binds)
+        sql, binds = sql_for_insert(sql, pk, sequence_name, binds)
         exec_query(sql, name, binds)
       end
 
@@ -172,13 +172,6 @@ module ActiveRecord
         sql, binds = to_sql_and_binds(arel, binds)
         exec_delete(sql, name, binds)
       end
-
-      # Returns +true+ when the connection adapter supports prepared statement
-      # caching, otherwise returns +false+
-      def supports_statement_cache? # :nodoc:
-        true
-      end
-      deprecate :supports_statement_cache?
 
       # Runs the given block in a database transaction, and returns the result
       # of the block.
@@ -336,7 +329,7 @@ module ActiveRecord
 
       # Inserts the given fixture into the table. Overridden in adapters that require
       # something beyond a simple insert (eg. Oracle).
-      # Most of adapters should implement `insert_fixtures` that leverages bulk SQL insert.
+      # Most of adapters should implement `insert_fixtures_set` that leverages bulk SQL insert.
       # We keep this method to provide fallback
       # for databases like sqlite that do not support bulk inserts.
       def insert_fixture(fixture, table_name)
@@ -363,18 +356,6 @@ module ActiveRecord
         manager.into(table)
         manager.insert(values)
         execute manager.to_sql, "Fixture Insert"
-      end
-
-      # Inserts a set of fixtures into the table. Overridden in adapters that require
-      # something beyond a simple insert (eg. Oracle).
-      def insert_fixtures(fixtures, table_name)
-        ActiveSupport::Deprecation.warn(<<-MSG.squish)
-          `insert_fixtures` is deprecated and will be removed in the next version of Rails.
-          Consider using `insert_fixtures_set` for performance improvement.
-        MSG
-        return if fixtures.empty?
-
-        execute(build_fixture_sql(fixtures, table_name), "Fixtures Insert")
       end
 
       def insert_fixtures_set(fixture_set, tables_to_delete = [])
@@ -464,7 +445,7 @@ module ActiveRecord
           exec_query(sql, name, binds, prepare: true)
         end
 
-        def sql_for_insert(sql, pk, id_value, sequence_name, binds)
+        def sql_for_insert(sql, pk, sequence_name, binds)
           [sql, binds]
         end
 

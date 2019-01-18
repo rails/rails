@@ -1,3 +1,20 @@
+*   Remove deprecated `fragment_cache_key` helper in favor of `combined_fragment_cache_key`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated methods in `ActionDispatch::TestResponse`.
+
+    `#success?`, `missing?` and `error?` were deprecated in Rails 5.2 in favor of
+    `#successful?`, `not_found?` and `server_error?`.
+
+    *Rafael Mendonça França*
+
+*   Ensure external redirects are explicitly allowed
+
+    Add `fallback_location` and `allow_other_host` options to `redirect_to`.
+
+    *Gannon McGibbon*
+
 *   Introduce ActionDispatch::HostAuthorization
 
     This is a new middleware that guards against DNS rebinding attacks by
@@ -84,10 +101,6 @@
 *   Deprecate `ActionDispatch::Http::ParameterFilter` in favor of `ActiveSupport::ParameterFilter`.
 
     *Yoshiyuki Kinjo*
-
-*   Remove undocumented `params` option from `url_for` helper.
-
-    *Ilkka Oksanen*
 
 *   Encode Content-Disposition filenames on `send_data` and `send_file`.
     Previously, `send_data 'data', filename: "\u{3042}.txt"` sends

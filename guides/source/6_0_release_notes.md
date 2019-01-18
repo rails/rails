@@ -8,6 +8,7 @@ Highlights in Rails 6.0:
 * Action Mailbox
 * Action Text
 * Parallel Testing
+* Action Cable Testing
 
 These release notes cover only the major changes. To learn about various bug
 fixes and changes, please refer to the change logs or check out the [list of
@@ -62,6 +63,13 @@ test suite. While forking processes is the default method, threading is
 supported as well. Running tests in parallel reduces the time it takes
 your entire test suite to run.
 
+### Action Cable Testing
+
+[Pull Request](https://github.com/rails/rails/pull/33659)
+
+[Action Cable testing tools](testing.html#testing-action-cable) allow you to test your
+Action Cable functionality at any level: connections, channels, broadcasts.
+
 Railties
 --------
 
@@ -83,6 +91,22 @@ Please refer to the [Changelog][action-cable] for detailed changes.
 ### Deprecations
 
 ### Notable changes
+
+*   The ActionCable javascript package has been converted from CoffeeScript
+    to ES2015, and we now publish the source code in the npm distribution.
+
+    This allows ActionCable users to depend on the javascript source code
+    rather than the compiled code, which can produce smaller javascript bundles.
+
+    This change includes some breaking changes to optional parts of the
+    ActionCable javascript API:
+
+    - Configuration of the WebSocket adapter and logger adapter have been moved
+      from properties of `ActionCable` to properties of `ActionCable.adapters`.
+
+    - The `ActionCable.startDebugging()` and `ActionCable.stopDebugging()`
+      methods have been removed and replaced with the property
+      `ActionCable.logger.enabled`.
 
 Action Pack
 -----------

@@ -208,14 +208,12 @@ module Arel # :nodoc: all
           end
 
           visit_Arel_Nodes_SelectOptions(o, collector)
-
-          collector
         end
 
         def visit_Arel_Nodes_SelectOptions(o, collector)
           collector = maybe_visit o.limit, collector
           collector = maybe_visit o.offset, collector
-          collector = maybe_visit o.lock, collector
+          maybe_visit o.lock, collector
         end
 
         def visit_Arel_Nodes_SelectCore(o, collector)
@@ -578,7 +576,7 @@ module Arel # :nodoc: all
 
         def visit_Arel_Nodes_In(o, collector)
           if Array === o.right && !o.right.empty?
-            o.right.keep_if { |value| boundable?(value) }
+            o.right.delete_if { |value| unboundable?(value) }
           end
 
           if Array === o.right && o.right.empty?
@@ -592,7 +590,7 @@ module Arel # :nodoc: all
 
         def visit_Arel_Nodes_NotIn(o, collector)
           if Array === o.right && !o.right.empty?
-            o.right.keep_if { |value| boundable?(value) }
+            o.right.delete_if { |value| unboundable?(value) }
           end
 
           if Array === o.right && o.right.empty?
@@ -814,8 +812,8 @@ module Arel # :nodoc: all
           }
         end
 
-        def boundable?(value)
-          !value.respond_to?(:boundable?) || value.boundable?
+        def unboundable?(value)
+          value.respond_to?(:unboundable?) && value.unboundable?
         end
 
         def has_join_sources?(o)
