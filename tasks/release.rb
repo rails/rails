@@ -136,8 +136,10 @@ namespace :changelog do
     end
   end
 
-  task :release_summary, [:base_release] do |_, args|
+  task :release_summary, [:base_release, :release] do |_, args|
     release_regexp = args[:base_release] ? Regexp.escape(args[:base_release]) : /\d+\.\d+\.\d+/
+
+    puts release
 
     FRAMEWORKS.each do |fw|
       puts "## #{FRAMEWORK_NAMES[fw]}"
@@ -145,7 +147,9 @@ namespace :changelog do
       contents = File.readlines fname
       contents.shift
       changes = []
-      until contents.first =~ /^## Rails #{release_regexp}.*$/
+      until contents.first =~ /^## Rails #{release_regexp}.*$/ ||
+          contents.first =~ /^Please check.*for previous changes\.$/ ||
+          contents.empty?
         changes << contents.shift
       end
 
