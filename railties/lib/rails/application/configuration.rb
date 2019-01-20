@@ -30,7 +30,7 @@ module Rails
         @filter_parameters                       = []
         @filter_redirect                         = []
         @helpers_paths                           = []
-        @hosts                                   = Array(([IPAddr.new("0.0.0.0/0"), IPAddr.new("::/0"), "localhost"] if Rails.env.development?))
+        @hosts                                   = Array(([IPAddr.new("0.0.0.0/0"), IPAddr.new("::/0"), ".localhost"] if Rails.env.development?))
         @public_file_server                      = ActiveSupport::OrderedOptions.new
         @public_file_server.enabled              = true
         @public_file_server.index_name           = "index"
