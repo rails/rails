@@ -5,7 +5,7 @@ module ActiveModel
     class Time < Value # :nodoc:
       include Helpers::TimeValue
       include Helpers::AcceptsMultiparameterTime.new(
-        defaults: { 1 => 1970, 2 => 1, 3 => 1, 4 => 0, 5 => 0 }
+        defaults: { 1 => 2000, 2 => 1, 3 => 1, 4 => 0, 5 => 0 }
       )
 
       def type

@@ -1,3 +1,31 @@
+*   Fix year value when casting a multiparameter time hash
+
+    When assigning a hash to a time attribute that's missing a year component
+    (e.g. a `time_select` with `:ignore_date` set to `true`) then the year
+    defaults to 1970 instead of the expected 2000. This results in the attribute
+    changing as a result of the save.
+
+    Before:
+    ```
+    event = Event.new(start_time: { 4 => 20, 5 => 30 })
+    event.start_time # => 1970-01-01 20:30:00 UTC
+    event.save
+    event.reload
+    event.start_time # => 2000-01-01 20:30:00 UTC
+    ```
+
+    After:
+    ```
+    event = Event.new(start_time: { 4 => 20, 5 => 30 })
+    event.start_time # => 2000-01-01 20:30:00 UTC
+    event.save
+    event.reload
+    event.start_time # => 2000-01-01 20:30:00 UTC
+    ```
+
+    *Andrew White*
+
+
 ## Rails 6.0.0.beta1 (January 18, 2019) ##
 
 *   Add `ActiveModel::Errors#of_kind?`.
