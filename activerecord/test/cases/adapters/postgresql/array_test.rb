@@ -17,7 +17,7 @@ class PostgresqlArrayTest < ActiveRecord::PostgreSQLTestCase
     enable_extension!("hstore", @connection)
 
     @connection.transaction do
-      @connection.create_table("pg_arrays") do |t|
+      @connection.create_table "pg_arrays", force: true do |t|
         t.string "tags", array: true, limit: 255
         t.integer "ratings", array: true
         t.datetime :datetimes, array: true
@@ -103,6 +103,18 @@ class PostgresqlArrayTest < ActiveRecord::PostgreSQLTestCase
   def test_change_column_with_array
     @connection.add_column :pg_arrays, :snippets, :string, array: true, default: []
     @connection.change_column :pg_arrays, :snippets, :text, array: true, default: []
+
+    PgArray.reset_column_information
+    column = PgArray.columns_hash["snippets"]
+
+    assert_equal :text, column.type
+    assert_equal [], PgArray.column_defaults["snippets"]
+    assert_predicate column, :array?
+  end
+
+  def test_change_column_from_non_array_to_array
+    @connection.add_column :pg_arrays, :snippets, :string
+    @connection.change_column :pg_arrays, :snippets, :text, array: true, default: [], using: "string_to_array(\"snippets\", ',')"
 
     PgArray.reset_column_information
     column = PgArray.columns_hash["snippets"]
