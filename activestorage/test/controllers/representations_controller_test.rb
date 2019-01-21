@@ -59,3 +59,33 @@ class ActiveStorage::RepresentationsControllerWithPreviewsTest < ActionDispatch:
     assert_response :not_found
   end
 end
+
+if SERVICE_CONFIGURATIONS[:s3] && SERVICE_CONFIGURATIONS[:s3][:access_key_id].present?
+  class ActiveStorage::S3RepresentationsControllerWithVariantsTest < ActionDispatch::IntegrationTest
+    setup do
+      @old_service = ActiveStorage::Blob.service
+      ActiveStorage::Blob.service = ActiveStorage::Service.configure(:s3, SERVICE_CONFIGURATIONS)
+    end
+
+    teardown do
+      ActiveStorage::Blob.service = @old_service
+    end
+
+    test "allow redirection to the different host" do
+      blob = create_file_blob filename: "racecar.jpg"
+
+      assert_nothing_raised do
+        get rails_blob_representation_url(
+          filename: blob.filename,
+          signed_blob_id: blob.signed_id,
+          variation_key: ActiveStorage::Variation.encode(resize: "100x100"))
+      end
+      assert_response :redirect
+      assert_no_match @request.host, @response.headers["Location"]
+    ensure
+      blob.purge
+    end
+  end
+else
+  puts "Skipping S3 redirection tests because no S3 configuration was supplied"
+end
