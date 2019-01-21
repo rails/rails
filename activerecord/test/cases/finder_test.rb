@@ -282,6 +282,17 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal true, Topic.order(Arel.sql("invalid sql here")).exists?
   end
 
+  def test_exists_with_large_number
+    assert_equal true, Topic.where(id: [1, 9223372036854775808]).exists?
+    assert_equal true, Topic.where(id: 1..9223372036854775808).exists?
+    assert_equal true, Topic.where(id: -9223372036854775809..9223372036854775808).exists?
+    assert_equal false, Topic.where(id: 9223372036854775808..9223372036854775809).exists?
+    assert_equal false, Topic.where(id: -9223372036854775810..-9223372036854775809).exists?
+    assert_equal false, Topic.where(id: 9223372036854775808..1).exists?
+    assert_equal true, Topic.where(id: 1).or(Topic.where(id: 9223372036854775808)).exists?
+    assert_equal true, Topic.where.not(id: 9223372036854775808).exists?
+  end
+
   def test_exists_with_joins
     assert_equal true, Topic.joins(:replies).where(replies_topics: { approved: true }).order("replies_topics.created_at DESC").exists?
   end
@@ -383,16 +394,19 @@ class FinderTest < ActiveRecord::TestCase
     assert_raises(ActiveRecord::RecordNotFound) do
       Topic.where("1=1").find(9999999999999999999999999999999)
     end
+    assert_equal topics(:first), Topic.where(id: [1, 9999999999999999999999999999999]).find(1)
   end
 
   def test_find_by_on_relation_with_large_number
     assert_nil Topic.where("1=1").find_by(id: 9999999999999999999999999999999)
+    assert_equal topics(:first), Topic.where(id: [1, 9999999999999999999999999999999]).find_by(id: 1)
   end
 
   def test_find_by_bang_on_relation_with_large_number
     assert_raises(ActiveRecord::RecordNotFound) do
       Topic.where("1=1").find_by!(id: 9999999999999999999999999999999)
     end
+    assert_equal topics(:first), Topic.where(id: [1, 9999999999999999999999999999999]).find_by!(id: 1)
   end
 
   def test_find_an_empty_array
@@ -987,6 +1001,24 @@ class FinderTest < ActiveRecord::TestCase
     assert_kind_of Address, address
     found_customer = Customer.where(address: address, name: customers(:david).name).first
     assert_equal customers(:david), found_customer
+  end
+
+  def test_hash_condition_find_nil_with_aggregate_having_one_mapping
+    assert_nil customers(:zaphod).gps_location
+    found_customer = Customer.where(gps_location: nil, name: customers(:zaphod).name).first
+    assert_equal customers(:zaphod), found_customer
+  end
+
+  def test_hash_condition_find_nil_with_aggregate_having_multiple_mappings
+    customers(:david).update(address: nil)
+    assert_nil customers(:david).address_street
+    assert_nil customers(:david).address_city
+    found_customer = Customer.where(address: nil, name: customers(:david).name).first
+    assert_equal customers(:david), found_customer
+  end
+
+  def test_hash_condition_find_empty_array_with_aggregate_having_multiple_mappings
+    assert_nil Customer.where(address: []).first
   end
 
   def test_condition_utc_time_interpolation_with_default_timezone_local

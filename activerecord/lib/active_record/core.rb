@@ -169,15 +169,12 @@ module ActiveRecord
           where(key => params.bind).limit(1)
         }
 
-        record = statement.execute([id], connection).first
+        record = statement.execute([id], connection)&.first
         unless record
           raise RecordNotFound.new("Couldn't find #{name} with '#{primary_key}'=#{id}",
                                    name, primary_key, id)
         end
         record
-      rescue ::RangeError
-        raise RecordNotFound.new("Couldn't find #{name} with an out of range value for '#{primary_key}'",
-                                 name, primary_key)
       end
 
       def find_by(*args) # :nodoc:
@@ -201,11 +198,9 @@ module ActiveRecord
           where(wheres).limit(1)
         }
         begin
-          statement.execute(hash.values, connection).first
+          statement.execute(hash.values, connection)&.first
         rescue TypeError
           raise ActiveRecord::StatementInvalid
-        rescue ::RangeError
-          nil
         end
       end
 

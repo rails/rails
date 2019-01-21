@@ -1,3 +1,5 @@
+## Rails 6.0.0.beta1 (January 18, 2019) ##
+
 *   Remove deprecated `fragment_cache_key` helper in favor of `combined_fragment_cache_key`.
 
     *Rafael Mendonça França*

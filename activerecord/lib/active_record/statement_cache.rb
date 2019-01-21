@@ -132,6 +132,8 @@ module ActiveRecord
       sql = query_builder.sql_for bind_values, connection
 
       klass.find_by_sql(sql, bind_values, preparable: true, &block)
+    rescue ::RangeError
+      nil
     end
 
     def self.unsupported_value?(value)

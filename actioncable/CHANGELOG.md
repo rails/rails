@@ -1,3 +1,5 @@
+## Rails 6.0.0.beta1 (January 18, 2019) ##
+
 *   Merge [`action-cable-testing`](https://github.com/palkan/action-cable-testing) to Rails.
 
     *Vladimir Dementyev*

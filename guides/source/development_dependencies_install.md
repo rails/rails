@@ -227,7 +227,6 @@ If you're using another database, check the file `activerecord/test/config.yml` 
 If you installed Yarn, you will need to install the javascript dependencies:
 
 ```bash
-$ cd activestorage
 $ yarn install
 ```
 

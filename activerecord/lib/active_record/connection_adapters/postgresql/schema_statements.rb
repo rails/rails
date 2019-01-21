@@ -683,38 +683,20 @@ module ActiveRecord
             end
           end
 
-          def change_column_sql(table_name, column_name, type, options = {})
-            quoted_column_name = quote_column_name(column_name)
-            sql_type = type_to_sql(type, options)
-            sql = +"ALTER COLUMN #{quoted_column_name} TYPE #{sql_type}"
-            if options[:collation]
-              sql << " COLLATE \"#{options[:collation]}\""
-            end
-            if options[:using]
-              sql << " USING #{options[:using]}"
-            elsif options[:cast_as]
-              cast_as_type = type_to_sql(options[:cast_as], options)
-              sql << " USING CAST(#{quoted_column_name} AS #{cast_as_type})"
-            end
-
-            sql
-          end
-
           def add_column_for_alter(table_name, column_name, type, options = {})
             return super unless options.key?(:comment)
             [super, Proc.new { change_column_comment(table_name, column_name, options[:comment]) }]
           end
 
           def change_column_for_alter(table_name, column_name, type, options = {})
-            sqls = [change_column_sql(table_name, column_name, type, options)]
-            sqls << change_column_default_for_alter(table_name, column_name, options[:default]) if options.key?(:default)
-            sqls << change_column_null_for_alter(table_name, column_name, options[:null], options[:default]) if options.key?(:null)
+            td = create_table_definition(table_name)
+            cd = td.new_column_definition(column_name, type, options)
+            sqls = [schema_creation.accept(ChangeColumnDefinition.new(cd, column_name))]
             sqls << Proc.new { change_column_comment(table_name, column_name, options[:comment]) } if options.key?(:comment)
             sqls
           end
 
-          # Changes the default value of a table column.
-          def change_column_default_for_alter(table_name, column_name, default_or_changes) # :nodoc:
+          def change_column_default_for_alter(table_name, column_name, default_or_changes)
             column = column_for(table_name, column_name)
             return unless column
 
@@ -729,8 +711,8 @@ module ActiveRecord
             end
           end
 
-          def change_column_null_for_alter(table_name, column_name, null, default = nil) #:nodoc:
-            "ALTER #{quote_column_name(column_name)} #{null ? 'DROP' : 'SET'} NOT NULL"
+          def change_column_null_for_alter(table_name, column_name, null, default = nil)
+            "ALTER COLUMN #{quote_column_name(column_name)} #{null ? 'DROP' : 'SET'} NOT NULL"
           end
 
           def add_timestamps_for_alter(table_name, options = {})
