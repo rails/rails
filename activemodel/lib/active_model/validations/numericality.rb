@@ -10,7 +10,6 @@ module ActiveModel
       RESERVED_OPTIONS = CHECKS.keys + [:only_integer]
 
       INTEGER_REGEX = /\A[+-]?\d+\z/
-      DECIMAL_REGEX = /\A[+-]?\d+\.?\d*(e|e[+-])?\d+\z/
 
       def check_validity!
         keys = CHECKS.keys - [:odd, :even]
@@ -92,8 +91,8 @@ module ActiveModel
           raw_value
         elsif is_integer?(raw_value)
           raw_value.to_i
-        elsif is_decimal?(raw_value) && !is_hexadecimal_literal?(raw_value)
-          BigDecimal(raw_value)
+        elsif !is_hexadecimal_literal?(raw_value)
+          Kernel.Float(raw_value).to_d
         end
       end
 
@@ -101,12 +100,8 @@ module ActiveModel
         INTEGER_REGEX.match?(raw_value.to_s)
       end
 
-      def is_decimal?(raw_value)
-        DECIMAL_REGEX.match?(raw_value.to_s)
-      end
-
       def is_hexadecimal_literal?(raw_value)
-        /\A0[xX]/.match?(raw_value)
+        /\A0[xX]/.match?(raw_value.to_s)
       end
 
       def filtered_options(value)
