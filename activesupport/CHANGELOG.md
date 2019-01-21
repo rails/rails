@@ -1,4 +1,7 @@
 ## Rails 6.0.0.beta1 (January 18, 2019) ##
+*   Add `minute` and `second` parameters to DateTime.change, in addition to existing `min` and `sec`.
+
+    *Ivan Tumanov*
 
 *   Remove deprecated `Module#reachable?` method.
 
