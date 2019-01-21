@@ -341,4 +341,14 @@ class Time
   def next_year(years = 1)
     advance(years: years)
   end
+
+  # Returns true if the time is in the past.
+  def past?
+    self < self.class.now
+  end
+
+  # Returns true if the time is in the future.
+  def future?
+    self > self.class.now
+  end
 end

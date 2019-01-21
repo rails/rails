@@ -253,7 +253,7 @@ class TimeWithZoneTest < ActiveSupport::TestCase
 
   def test_past_with_time_current_as_time_local
     with_env_tz "US/Eastern" do
-      Time.stub(:current, Time.local(2005, 2, 10, 15, 30, 45)) do
+      Time.stub(:now, Time.local(2005, 2, 10, 15, 30, 45)) do
         assert_equal true, ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.local(2005, 2, 10, 15, 30, 44)).past?
         assert_equal false, ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.local(2005, 2, 10, 15, 30, 45)).past?
         assert_equal false, ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.local(2005, 2, 10, 15, 30, 46)).past?
@@ -263,7 +263,7 @@ class TimeWithZoneTest < ActiveSupport::TestCase
 
   def test_past_with_time_current_as_time_with_zone
     twz = ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.local(2005, 2, 10, 15, 30, 45))
-    Time.stub(:current, twz) do
+    Time.stub(:now, twz) do
       assert_equal true, ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.local(2005, 2, 10, 15, 30, 44)).past?
       assert_equal false, ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.local(2005, 2, 10, 15, 30, 45)).past?
       assert_equal false, ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.local(2005, 2, 10, 15, 30, 46)).past?
@@ -272,7 +272,7 @@ class TimeWithZoneTest < ActiveSupport::TestCase
 
   def test_future_with_time_current_as_time_local
     with_env_tz "US/Eastern" do
-      Time.stub(:current, Time.local(2005, 2, 10, 15, 30, 45)) do
+      Time.stub(:now, Time.local(2005, 2, 10, 15, 30, 45)) do
         assert_equal false, ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.local(2005, 2, 10, 15, 30, 44)).future?
         assert_equal false, ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.local(2005, 2, 10, 15, 30, 45)).future?
         assert_equal true, ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.local(2005, 2, 10, 15, 30, 46)).future?
@@ -282,7 +282,7 @@ class TimeWithZoneTest < ActiveSupport::TestCase
 
   def test_future_with_time_current_as_time_with_zone
     twz = ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.local(2005, 2, 10, 15, 30, 45))
-    Time.stub(:current, twz) do
+    Time.stub(:now, twz) do
       assert_equal false, ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.local(2005, 2, 10, 15, 30, 44)).future?
       assert_equal false, ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.local(2005, 2, 10, 15, 30, 45)).future?
       assert_equal true, ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.local(2005, 2, 10, 15, 30, 46)).future?

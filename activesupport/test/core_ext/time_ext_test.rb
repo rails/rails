@@ -688,7 +688,7 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
 
   def test_past_with_time_current_as_time_local
     with_env_tz "US/Eastern" do
-      Time.stub(:current, Time.local(2005, 2, 10, 15, 30, 45)) do
+      Time.stub(:now, Time.local(2005, 2, 10, 15, 30, 45)) do
         assert_equal true,  Time.local(2005, 2, 10, 15, 30, 44).past?
         assert_equal false,  Time.local(2005, 2, 10, 15, 30, 45).past?
         assert_equal false,  Time.local(2005, 2, 10, 15, 30, 46).past?
@@ -702,7 +702,7 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
   def test_past_with_time_current_as_time_with_zone
     with_env_tz "US/Eastern" do
       twz = Time.utc(2005, 2, 10, 15, 30, 45).in_time_zone("Central Time (US & Canada)")
-      Time.stub(:current, twz) do
+      Time.stub(:now, twz) do
         assert_equal true,  Time.local(2005, 2, 10, 10, 30, 44).past?
         assert_equal false,  Time.local(2005, 2, 10, 10, 30, 45).past?
         assert_equal false,  Time.local(2005, 2, 10, 10, 30, 46).past?
@@ -715,7 +715,7 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
 
   def test_future_with_time_current_as_time_local
     with_env_tz "US/Eastern" do
-      Time.stub(:current, Time.local(2005, 2, 10, 15, 30, 45)) do
+      Time.stub(:now, Time.local(2005, 2, 10, 15, 30, 45)) do
         assert_equal false,  Time.local(2005, 2, 10, 15, 30, 44).future?
         assert_equal false,  Time.local(2005, 2, 10, 15, 30, 45).future?
         assert_equal true,  Time.local(2005, 2, 10, 15, 30, 46).future?
@@ -729,7 +729,7 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
   def test_future_with_time_current_as_time_with_zone
     with_env_tz "US/Eastern" do
       twz = Time.utc(2005, 2, 10, 15, 30, 45).in_time_zone("Central Time (US & Canada)")
-      Time.stub(:current, twz) do
+      Time.stub(:now, twz) do
         assert_equal false,  Time.local(2005, 2, 10, 10, 30, 44).future?
         assert_equal false,  Time.local(2005, 2, 10, 10, 30, 45).future?
         assert_equal true,  Time.local(2005, 2, 10, 10, 30, 46).future?
