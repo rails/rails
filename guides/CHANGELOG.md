@@ -1,5 +1,13 @@
 ## Rails 6.0.0.beta1 (January 18, 2019) ##
 
+*   Add "Action Text Overview" Guide.
+
+    *DHH*
+
+*   Add "Action Mailbox Basics" Guide.
+
+    *DHH*
+
 *   New section _Troubleshooting_ in the _Autoloading and Reloading Constants_ guide.
 
     *Xavier Noria*
