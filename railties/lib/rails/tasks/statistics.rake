@@ -20,6 +20,7 @@ STATS_DIRECTORIES = [
   %w(Model\ tests       test/models),
   %w(Mailer\ tests      test/mailers),
   %w(Mailbox\ tests     test/mailboxes),
+  %w(Channel\ tests     test/channels),
   %w(Job\ tests         test/jobs),
   %w(Integration\ tests test/integration),
   %w(System\ tests      test/system),
