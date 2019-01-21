@@ -590,9 +590,9 @@ NOTE: Defined in `active_support/core_ext/module/attribute_accessors.rb`.
 
 ### Parents
 
-#### `parent`
+#### `module_parent`
 
-The `parent` method on a nested named module returns the module that contains its corresponding constant:
+The `module_parent` method on a nested named module returns the module that contains its corresponding constant:
 
 ```ruby
 module X
@@ -603,19 +603,19 @@ module X
 end
 M = X::Y::Z
 
-X::Y::Z.parent # => X::Y
-M.parent       # => X::Y
+X::Y::Z.module_parent # => X::Y
+M.module_parent       # => X::Y
 ```
 
-If the module is anonymous or belongs to the top-level, `parent` returns `Object`.
+If the module is anonymous or belongs to the top-level, `module_parent` returns `Object`.
 
-WARNING: Note that in that case `parent_name` returns `nil`.
+WARNING: Note that in that case `module_parent_name` returns `nil`.
 
 NOTE: Defined in `active_support/core_ext/module/introspection.rb`.
 
-#### `parent_name`
+#### `module_parent_name`
 
-The `parent_name` method on a nested named module returns the fully qualified name of the module that contains its corresponding constant:
+The `module_parent_name` method on a nested named module returns the fully qualified name of the module that contains its corresponding constant:
 
 ```ruby
 module X
@@ -626,19 +626,19 @@ module X
 end
 M = X::Y::Z
 
-X::Y::Z.parent_name # => "X::Y"
-M.parent_name       # => "X::Y"
+X::Y::Z.module_parent_name # => "X::Y"
+M.module_parent_name       # => "X::Y"
 ```
 
-For top-level or anonymous modules `parent_name` returns `nil`.
+For top-level or anonymous modules `module_parent_name` returns `nil`.
 
-WARNING: Note that in that case `parent` returns `Object`.
+WARNING: Note that in that case `module_parent` returns `Object`.
 
 NOTE: Defined in `active_support/core_ext/module/introspection.rb`.
 
-#### `parents`
+#### `module_parents`
 
-The method `parents` calls `parent` on the receiver and upwards until `Object` is reached. The chain is returned in an array, from bottom to top:
+The method `module_parents` calls `module_parent` on the receiver and upwards until `Object` is reached. The chain is returned in an array, from bottom to top:
 
 ```ruby
 module X
@@ -649,8 +649,8 @@ module X
 end
 M = X::Y::Z
 
-X::Y::Z.parents # => [X::Y, X, Object]
-M.parents       # => [X::Y, X, Object]
+X::Y::Z.module_parents # => [X::Y, X, Object]
+M.module_parents       # => [X::Y, X, Object]
 ```
 
 NOTE: Defined in `active_support/core_ext/module/introspection.rb`.
@@ -2132,30 +2132,6 @@ The methods `second`, `third`, `fourth`, and `fifth` return the corresponding el
 
 NOTE: Defined in `active_support/core_ext/array/access.rb`.
 
-### Adding Elements
-
-#### `prepend`
-
-This method is an alias of `Array#unshift`.
-
-```ruby
-%w(a b c d).prepend('e')  # => ["e", "a", "b", "c", "d"]
-[].prepend(10)            # => [10]
-```
-
-NOTE: Defined in `active_support/core_ext/array/prepend_and_append.rb`.
-
-#### `append`
-
-This method is an alias of `Array#<<`.
-
-```ruby
-%w(a b c d).append('e')  # => ["a", "b", "c", "d", "e"]
-[].append([1,2])         # => [[1, 2]]
-```
-
-NOTE: Defined in `active_support/core_ext/array/prepend_and_append.rb`.
-
 ### Extracting
 
 The method `extract!` removes and returns the elements for which the block returns a true value.
@@ -2646,48 +2622,6 @@ There's also the bang variant `except!` that removes keys in the very receiver.
 
 NOTE: Defined in `active_support/core_ext/hash/except.rb`.
 
-#### `transform_keys` and `transform_keys!`
-
-The method `transform_keys` accepts a block and returns a hash that has applied the block operations to each of the keys in the receiver:
-
-```ruby
-{nil => nil, 1 => 1, a: :a}.transform_keys { |key| key.to_s.upcase }
-# => {"" => nil, "1" => 1, "A" => :a}
-```
-
-In case of key collision, one of the values will be chosen. The chosen value may not always be the same given the same hash:
-
-```ruby
-{"a" => 1, a: 2}.transform_keys { |key| key.to_s.upcase }
-# The result could either be
-# => {"A"=>2}
-# or
-# => {"A"=>1}
-```
-
-This method may be useful for example to build specialized conversions. For instance `stringify_keys` and `symbolize_keys` use `transform_keys` to perform their key conversions:
-
-```ruby
-def stringify_keys
-  transform_keys { |key| key.to_s }
-end
-...
-def symbolize_keys
-  transform_keys { |key| key.to_sym rescue key }
-end
-```
-
-There's also the bang variant `transform_keys!` that applies the block operations to keys in the very receiver.
-
-Besides that, one can use `deep_transform_keys` and `deep_transform_keys!` to perform the block operation on all the keys in the given hash and all the hashes nested into it. An example of the result is:
-
-```ruby
-{nil => nil, 1 => 1, nested: {a: 3, 5 => 5}}.deep_transform_keys { |key| key.to_s.upcase }
-# => {""=>nil, "1"=>1, "NESTED"=>{"A"=>3, "5"=>5}}
-```
-
-NOTE: Defined in `active_support/core_ext/hash/keys.rb`.
-
 #### `stringify_keys` and `stringify_keys!`
 
 The method `stringify_keys` returns a hash that has a stringified version of the keys in the receiver. It does so by sending `to_s` to them:
@@ -2795,26 +2729,7 @@ NOTE: Defined in `active_support/core_ext/hash/keys.rb`.
 
 ### Slicing
 
-Ruby has built-in support for taking slices out of strings and arrays. Active Support extends slicing to hashes:
-
-```ruby
-{a: 1, b: 2, c: 3}.slice(:a, :c)
-# => {:a=>1, :c=>3}
-
-{a: 1, b: 2, c: 3}.slice(:b, :X)
-# => {:b=>2} # non-existing keys are ignored
-```
-
-If the receiver responds to `convert_key` keys are normalized:
-
-```ruby
-{a: 1, b: 2}.with_indifferent_access.slice("a")
-# => {:a=>1}
-```
-
-NOTE. Slicing may come in handy for sanitizing option hashes with a white list of keys.
-
-There's also `slice!` which in addition to perform a slice in place returns what's removed:
+The method `slice!` replaces the hash with only the given keys and returns a hash containing the removed key/value pairs.
 
 ```ruby
 hash = {a: 1, b: 2}

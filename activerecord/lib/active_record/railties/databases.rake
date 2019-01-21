@@ -149,18 +149,21 @@ db_namespace = namespace :db do
 
     desc "Display status of migrations"
     task status: :load_config do
-      unless ActiveRecord::SchemaMigration.table_exists?
-        abort "Schema migrations table does not exist yet."
+      ActiveRecord::Base.configurations.configs_for(env_name: Rails.env).each do |db_config|
+        ActiveRecord::Base.establish_connection(db_config.config)
+        ActiveRecord::Tasks::DatabaseTasks.migrate_status
       end
+    end
 
-      # output
-      puts "\ndatabase: #{ActiveRecord::Base.connection_config[:database]}\n\n"
-      puts "#{'Status'.center(8)}  #{'Migration ID'.ljust(14)}  Migration Name"
-      puts "-" * 50
-      ActiveRecord::Base.connection.migration_context.migrations_status.each do |status, version, name|
-        puts "#{status.center(8)}  #{version.ljust(14)}  #{name}"
+    namespace :status do
+      ActiveRecord::Tasks::DatabaseTasks.for_each do |spec_name|
+        desc "Display status of migrations for #{spec_name} database"
+        task spec_name => :load_config do
+          db_config = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env, spec_name: spec_name)
+          ActiveRecord::Base.establish_connection(db_config.config)
+          ActiveRecord::Tasks::DatabaseTasks.migrate_status
+        end
       end
-      puts
     end
   end
 
@@ -188,11 +191,9 @@ db_namespace = namespace :db do
 
   # desc "Retrieves the collation for the current environment's database"
   task collation: :load_config do
-    begin
-      puts ActiveRecord::Tasks::DatabaseTasks.collation_current
-    rescue NoMethodError
-      $stderr.puts "Sorry, your database adapter is not supported yet. Feel free to submit a patch."
-    end
+    puts ActiveRecord::Tasks::DatabaseTasks.collation_current
+  rescue NoMethodError
+    $stderr.puts "Sorry, your database adapter is not supported yet. Feel free to submit a patch."
   end
 
   desc "Retrieves the current schema version number"
@@ -297,15 +298,22 @@ db_namespace = namespace :db do
     namespace :cache do
       desc "Creates a db/schema_cache.yml file."
       task dump: :load_config do
-        conn = ActiveRecord::Base.connection
-        filename = File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, "schema_cache.yml")
-        ActiveRecord::Tasks::DatabaseTasks.dump_schema_cache(conn, filename)
+        ActiveRecord::Base.configurations.configs_for(env_name: Rails.env).each do |db_config|
+          ActiveRecord::Base.establish_connection(db_config.config)
+          filename = ActiveRecord::Tasks::DatabaseTasks.cache_dump_filename(db_config.spec_name)
+          ActiveRecord::Tasks::DatabaseTasks.dump_schema_cache(
+            ActiveRecord::Base.connection,
+            filename,
+          )
+        end
       end
 
       desc "Clears a db/schema_cache.yml file."
       task clear: :load_config do
-        filename = File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, "schema_cache.yml")
-        rm_f filename, verbose: false
+        ActiveRecord::Base.configurations.configs_for(env_name: Rails.env).each do |db_config|
+          filename = ActiveRecord::Tasks::DatabaseTasks.cache_dump_filename(db_config.spec_name)
+          rm_f filename, verbose: false
+        end
       end
     end
   end
@@ -351,17 +359,15 @@ db_namespace = namespace :db do
 
     # desc "Recreate the test database from an existent schema.rb file"
     task load_schema: %w(db:test:purge) do
-      begin
-        should_reconnect = ActiveRecord::Base.connection_pool.active_connection?
-        ActiveRecord::Schema.verbose = false
-        ActiveRecord::Base.configurations.configs_for(env_name: "test").each do |db_config|
-          filename = ActiveRecord::Tasks::DatabaseTasks.dump_filename(db_config.spec_name, :ruby)
-          ActiveRecord::Tasks::DatabaseTasks.load_schema(db_config.config, :ruby, filename, "test")
-        end
-      ensure
-        if should_reconnect
-          ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations.default_hash(ActiveRecord::Tasks::DatabaseTasks.env))
-        end
+      should_reconnect = ActiveRecord::Base.connection_pool.active_connection?
+      ActiveRecord::Schema.verbose = false
+      ActiveRecord::Base.configurations.configs_for(env_name: "test").each do |db_config|
+        filename = ActiveRecord::Tasks::DatabaseTasks.dump_filename(db_config.spec_name, :ruby)
+        ActiveRecord::Tasks::DatabaseTasks.load_schema(db_config.config, :ruby, filename, "test")
+      end
+    ensure
+      if should_reconnect
+        ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations.default_hash(ActiveRecord::Tasks::DatabaseTasks.env))
       end
     end
 
@@ -400,6 +406,10 @@ namespace :railties do
 
         if railtie.respond_to?(:paths) && (path = railtie.paths["db/migrate"].first)
           railties[railtie.railtie_name] = path
+        end
+
+        unless ENV["MIGRATIONS_PATH"].blank?
+          railties[railtie.railtie_name] = railtie.root + ENV["MIGRATIONS_PATH"]
         end
       end
 

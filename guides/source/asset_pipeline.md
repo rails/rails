@@ -184,9 +184,8 @@ the file `scaffolds.css` (or `scaffolds.scss` if `sass-rails` is in the
 `Gemfile`.)
 
 For example, if you generate a `ProjectsController`, Rails will also add a new
-file at `app/assets/javascripts/projects.coffee` and another at
-`app/assets/stylesheets/projects.scss`. By default these files will be ready
-to use by your application immediately using the `require_tree` directive. See
+file at `app/assets/stylesheets/projects.scss`. By default these files will be
+ready to use by your application immediately using the `require_tree` directive. See
 [Manifest Files and Directives](#manifest-files-and-directives) for more details
 on require_tree.
 
@@ -233,11 +232,6 @@ scope of the application or those libraries which are shared across applications
 code for JavaScript plugins and CSS frameworks. Keep in mind that third party
 code with references to other files also processed by the asset Pipeline (images,
 stylesheets, etc.), will need to be rewritten to use helpers like `asset_path`.
-
-WARNING: If you are upgrading from Rails 3, please take into account that assets
-under `lib/assets` or `vendor/assets` are available for inclusion via the
-application manifests but no longer part of the precompile array. See
-[Precompiling Assets](#precompiling-assets) for guidance.
 
 #### Search Paths
 
@@ -1107,7 +1101,7 @@ Windows you have a JavaScript runtime installed in your operating system.
 
 
 
-### Serving GZipped version of assets
+### GZipping your assets
 
 By default, gzipped version of compiled assets will be generated, along with
 the non-gzipped version of assets. Gzipped assets help reduce the transmission
@@ -1116,6 +1110,8 @@ of data over the wire. You can configure this by setting the `gzip` flag.
 ```ruby
 config.assets.gzip = false # disable gzipped assets generation
 ```
+
+Refer to your web server's documentation for instructions on how to serve gzipped assets.
 
 ### Using Your Own Compressor
 
@@ -1235,60 +1231,3 @@ it as a preprocessor for your mime type.
 Sprockets.register_preprocessor 'text/css', AddComment
 ```
 
-Upgrading from Old Versions of Rails
-------------------------------------
-
-There are a few issues when upgrading from Rails 3.0 or Rails 2.x. The first is
-moving the files from `public/` to the new locations. See [Asset
-Organization](#asset-organization) above for guidance on the correct locations
-for different file types.
-
-Next is updating the various environment files with the correct default
-options.
-
-In `application.rb`:
-
-```ruby
-# Version of your assets, change this if you want to expire all your assets
-config.assets.version = '1.0'
-
-# Change the path that assets are served from config.assets.prefix = "/assets"
-```
-
-In `development.rb`:
-
-```ruby
-# Expands the lines which load the assets
-config.assets.debug = true
-```
-
-And in `production.rb`:
-
-```ruby
-# Choose the compressors to use (if any)
-config.assets.js_compressor = :uglifier
-# config.assets.css_compressor = :yui
-
-# Don't fallback to assets pipeline if a precompiled asset is missed
-config.assets.compile = false
-
-# Generate digests for assets URLs.
-config.assets.digest = true
-
-# Precompile additional assets (application.js, application.css, and all
-# non-JS/CSS are already added)
-# config.assets.precompile += %w( admin.js admin.css )
-```
-
-Rails 4 and above no longer set default config values for Sprockets in `test.rb`, so
-`test.rb` now requires Sprockets configuration. The old defaults in the test
-environment are: `config.assets.compile = true`, `config.assets.compress = false`,
-`config.assets.debug = false` and `config.assets.digest = false`.
-
-The following should also be added to your `Gemfile`:
-
-```ruby
-gem 'sass-rails',   "~> 3.2.3"
-gem 'coffee-rails', "~> 3.2.1"
-gem 'uglifier'
-```

@@ -12,6 +12,9 @@ require "models/bulb"
 require "models/author"
 require "models/image"
 require "models/post"
+require "models/drink_designer"
+require "models/chef"
+require "models/department"
 
 class HasOneAssociationsTest < ActiveRecord::TestCase
   self.use_transactional_tests = false unless supports_savepoints?
@@ -22,8 +25,12 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_one
-    assert_equal companies(:first_firm).account, Account.find(1)
-    assert_equal Account.find(1).credit_limit, companies(:first_firm).account.credit_limit
+    firm = companies(:first_firm)
+    first_account = Account.find(1)
+    assert_sql(/LIMIT|ROWNUM <=|FETCH FIRST/) do
+      assert_equal first_account, firm.account
+      assert_equal first_account.credit_limit, firm.account.credit_limit
+    end
   end
 
   def test_has_one_does_not_use_order_by
@@ -37,10 +44,10 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
   def test_has_one_cache_nils
     firm = companies(:another_firm)
     assert_queries(1) { assert_nil firm.account }
-    assert_queries(0) { assert_nil firm.account }
+    assert_no_queries { assert_nil firm.account }
 
-    firms = Firm.all.merge!(includes: :account).to_a
-    assert_queries(0) { firms.each(&:account) }
+    firms = Firm.includes(:account).to_a
+    assert_no_queries { firms.each(&:account) }
   end
 
   def test_with_select
@@ -108,6 +115,21 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     firm.account = Account.new(credit_limit: 5)
     # account is dependent with nullify, therefore its firm_id should be nil
     assert_nil Account.find(old_account_id).firm_id
+  end
+
+  def test_nullify_on_polymorphic_association
+    department = Department.create!
+    designer = DrinkDesignerWithPolymorphicDependentNullifyChef.create!
+    chef = department.chefs.create!(employable: designer)
+
+    assert_equal chef.employable_id, designer.id
+    assert_equal chef.employable_type, designer.class.name
+
+    designer.destroy!
+    chef.reload
+
+    assert_nil chef.employable_id
+    assert_nil chef.employable_type
   end
 
   def test_nullification_on_destroyed_association
@@ -231,9 +253,13 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_build_association_dont_create_transaction
-    assert_no_queries(ignore_none: false) {
-      Firm.new.build_account
-    }
+    # Load schema information so we don't query below if running just this test.
+    Account.define_attribute_methods
+
+    firm = Firm.new
+    assert_no_queries do
+      firm.build_account
+    end
   end
 
   def test_building_the_associated_object_with_implicit_sti_base_class
@@ -327,6 +353,29 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_equal 53, odegy.account.credit_limit
 
     assert_equal 80, odegy.reload_account.credit_limit
+  end
+
+  def test_reload_association_with_query_cache
+    odegy_id = companies(:odegy).id
+
+    connection = ActiveRecord::Base.connection
+    connection.enable_query_cache!
+    connection.clear_query_cache
+
+    # Populate the cache with a query
+    odegy = Company.find(odegy_id)
+    # Populate the cache with a second query
+    odegy.account
+
+    assert_equal 2, connection.query_cache.size
+
+    # Clear the cache and fetch the account again, populating the cache with a query
+    assert_queries(1) { odegy.reload_account }
+
+    # This query is not cached anymore, so it should make a real SQL query
+    assert_queries(1) { Company.find(odegy_id) }
+  ensure
+    ActiveRecord::Base.connection.disable_query_cache!
   end
 
   def test_build

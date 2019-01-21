@@ -9,7 +9,7 @@ class ActiveStorage::DiskController < ActiveStorage::BaseController
 
   def show
     if key = decode_verified_key
-      serve_file disk_service.path_for(key), content_type: params[:content_type], disposition: params[:disposition]
+      serve_file disk_service.path_for(key[:key]), content_type: key[:content_type], disposition: key[:disposition]
     else
       head :not_found
     end
@@ -61,6 +61,6 @@ class ActiveStorage::DiskController < ActiveStorage::BaseController
     end
 
     def acceptable_content?(token)
-      token[:content_type] == request.content_type && token[:content_length] == request.content_length
+      token[:content_type] == request.content_mime_type && token[:content_length] == request.content_length
     end
 end

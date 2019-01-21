@@ -587,7 +587,7 @@ class TransactionTest < ActiveRecord::TestCase
   def test_rollback_when_saving_a_frozen_record
     topic = Topic.new(title: "test")
     topic.freeze
-    e = assert_raise(frozen_error_class) { topic.save }
+    e = assert_raise(FrozenError) { topic.save }
     # Not good enough, but we can't do much
     # about it since there is no specific error
     # for frozen objects.
@@ -882,17 +882,6 @@ class TransactionTest < ActiveRecord::TestCase
 
     assert_not_predicate transaction.state, :rolledback?
     assert_predicate transaction.state, :committed?
-  end
-
-  def test_set_state_method_is_deprecated
-    connection = Topic.connection
-    transaction = ActiveRecord::ConnectionAdapters::TransactionManager.new(connection).begin_transaction
-
-    transaction.commit
-
-    assert_deprecated do
-      transaction.state.set_state(:rolledback)
-    end
   end
 
   def test_mark_transaction_state_as_committed

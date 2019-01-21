@@ -75,6 +75,15 @@ class UrlHelperTest < ActiveSupport::TestCase
     assert_equal "javascript:history.back()", url_for(:back)
   end
 
+  def test_url_for_with_array_defaults_to_only_path_true
+    assert_equal "/other", url_for([:other, { controller: "foo" }])
+  end
+
+  def test_url_for_with_array_and_only_path_set_to_false
+    default_url_options[:host] = "http://example.com"
+    assert_equal "http://example.com/other", url_for([:other, { controller: "foo", only_path: false }])
+  end
+
   def test_to_form_params_with_hash
     assert_equal(
       [{ name: "name", value: "David" }, { name: "nationality", value: "Danish" }],
@@ -108,6 +117,16 @@ class UrlHelperTest < ActiveSupport::TestCase
       [{ name: "country[name]", value: "Denmark" }],
       to_form_params({ name: "Denmark" }, "country")
     )
+  end
+
+  def test_button_to_without_protect_against_forgery_method
+    self.class.undef_method(:protect_against_forgery?)
+    assert_dom_equal(
+      %{<form method="post" action="http://www.example.com" class="button_to"><input type="submit" value="Hello" /></form>},
+      button_to("Hello", "http://www.example.com")
+    )
+  ensure
+    self.class.define_method(:protect_against_forgery?) { request_forgery }
   end
 
   def test_button_to_with_straight_url

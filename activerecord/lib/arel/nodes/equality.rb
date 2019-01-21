@@ -7,5 +7,12 @@ module Arel # :nodoc: all
       alias :operand1 :left
       alias :operand2 :right
     end
+
+    %w{
+      IsDistinctFrom
+      IsNotDistinctFrom
+    }.each do |name|
+      const_set name, Class.new(Equality)
+    end
   end
 end

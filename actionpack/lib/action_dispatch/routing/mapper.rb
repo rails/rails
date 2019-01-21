@@ -160,17 +160,8 @@ module ActionDispatch
         end
 
         def make_route(name, precedence)
-          route = Journey::Route.new(name,
-                            application,
-                            path,
-                            conditions,
-                            required_defaults,
-                            defaults,
-                            request_method,
-                            precedence,
-                            @internal)
-
-          route
+          Journey::Route.new(name, application, path, conditions, required_defaults,
+                             defaults, request_method, precedence, @internal)
         end
 
         def application
@@ -656,7 +647,7 @@ module ActionDispatch
 
         # Query if the following named route was already defined.
         def has_named_route?(name)
-          @set.named_routes.key? name
+          @set.named_routes.key?(name)
         end
 
         private
@@ -676,6 +667,7 @@ module ActionDispatch
           def define_generate_prefix(app, name)
             _route = @set.named_routes.get name
             _routes = @set
+            _url_helpers = @set.url_helpers
 
             script_namer = ->(options) do
               prefix_options = options.slice(*_route.segment_keys)
@@ -687,7 +679,7 @@ module ActionDispatch
 
               # We must actually delete prefix segment keys to avoid passing them to next url_for.
               _route.segment_keys.each { |k| options.delete(k) }
-              @set.url_helpers.send("#{name}_path", prefix_options)
+              _url_helpers.send("#{name}_path", prefix_options)
             end
 
             app.routes.define_mounted_helper(name, script_namer)
@@ -1170,10 +1162,16 @@ module ActionDispatch
           end
 
           def actions
+            if @except
+              available_actions - Array(@except).map(&:to_sym)
+            else
+              available_actions
+            end
+          end
+
+          def available_actions
             if @only
               Array(@only).map(&:to_sym)
-            elsif @except
-              default_actions - Array(@except).map(&:to_sym)
             else
               default_actions
             end
@@ -1945,9 +1943,7 @@ module ActionDispatch
           end
 
           def match_root_route(options)
-            name = has_named_route?(name_for_action(:root, nil)) ? nil : :root
-            args = ["/", { as: name, via: :get }.merge!(options)]
-
+            args = ["/", { as: :root, via: :get }.merge(options)]
             match(*args)
           end
       end

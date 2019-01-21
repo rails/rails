@@ -125,9 +125,13 @@ module ActiveSupport
 
     def included(base = nil, &block)
       if base.nil?
-        raise MultipleIncludedBlocks if instance_variable_defined?(:@_included_block)
-
-        @_included_block = block
+        if instance_variable_defined?(:@_included_block)
+          if @_included_block.source_location != block.source_location
+            raise MultipleIncludedBlocks
+          end
+        else
+          @_included_block = block
+        end
       else
         super
       end

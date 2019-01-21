@@ -28,13 +28,13 @@ class ActionPackAssertionsController < ActionController::Base
 
   def redirect_to_path() redirect_to "/some/path" end
 
-  def redirect_invalid_external_route() redirect_to "ht_tp://www.rubyonrails.org" end
+  def redirect_invalid_external_route() redirect_to "ht_tp://www.rubyonrails.org", allow_other_host: true end
 
   def redirect_to_named_route() redirect_to route_one_url end
 
-  def redirect_external() redirect_to "http://www.rubyonrails.org"; end
+  def redirect_external() redirect_to "http://www.rubyonrails.org", allow_other_host: true; end
 
-  def redirect_external_protocol_relative() redirect_to "//www.rubyonrails.org"; end
+  def redirect_external_protocol_relative() redirect_to "//www.rubyonrails.org", allow_other_host: true; end
 
   def response404() head "404 AWOL" end
 
@@ -276,16 +276,14 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
   end
 
   def test_assert_redirect_failure_message_with_protocol_relative_url
-    begin
-      process :redirect_external_protocol_relative
-      assert_redirected_to "/foo"
-    rescue ActiveSupport::TestCase::Assertion => ex
-      assert_no_match(
-        /#{request.protocol}#{request.host}\/\/www.rubyonrails.org/,
-        ex.message,
-        "protocol relative url was incorrectly normalized"
-      )
-    end
+    process :redirect_external_protocol_relative
+    assert_redirected_to "/foo"
+  rescue ActiveSupport::TestCase::Assertion => ex
+    assert_no_match(
+      /#{request.protocol}#{request.host}\/\/www.rubyonrails.org/,
+      ex.message,
+      "protocol relative url was incorrectly normalized"
+    )
   end
 
   def test_template_objects_exist

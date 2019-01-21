@@ -130,7 +130,7 @@ module CacheStoreBehavior
     assert_equal("fufu", @cache.read("fu"))
   end
 
-  def test_multi_with_objects
+  def test_fetch_multi_with_objects
     cache_struct = Struct.new(:cache_key, :title)
     foo = cache_struct.new("foo", "FOO!")
     bar = cache_struct.new("bar")
@@ -140,6 +140,14 @@ module CacheStoreBehavior
     values = @cache.fetch_multi(foo, bar) { |object| object.title }
 
     assert_equal({ foo => "FOO!", bar => "BAM!" }, values)
+  end
+
+  def test_fetch_multi_returns_ordered_names
+    @cache.write("bam", "BAM")
+
+    values = @cache.fetch_multi("foo", "bar", "bam") { |key| key.upcase }
+
+    assert_equal(%w(foo bar bam), values.keys)
   end
 
   def test_fetch_multi_without_block
@@ -288,6 +296,55 @@ module CacheStoreBehavior
   def test_array_as_cache_key
     @cache.write([:fu, "foo"], "bar")
     assert_equal "bar", @cache.read("fu/foo")
+  end
+
+  InstanceTest = Struct.new(:name, :id) do
+    def cache_key
+      "#{name}/#{id}"
+    end
+
+    def to_param
+      "hello"
+    end
+  end
+
+  def test_array_with_single_instance_as_cache_key_uses_cache_key_method
+    test_instance_one = InstanceTest.new("test", 1)
+    test_instance_two = InstanceTest.new("test", 2)
+
+    @cache.write([test_instance_one], "one")
+    @cache.write([test_instance_two], "two")
+
+    assert_equal "one", @cache.read([test_instance_one])
+    assert_equal "two", @cache.read([test_instance_two])
+  end
+
+  def test_array_with_multiple_instances_as_cache_key_uses_cache_key_method
+    test_instance_one = InstanceTest.new("test", 1)
+    test_instance_two = InstanceTest.new("test", 2)
+    test_instance_three = InstanceTest.new("test", 3)
+
+    @cache.write([test_instance_one, test_instance_three], "one")
+    @cache.write([test_instance_two, test_instance_three], "two")
+
+    assert_equal "one", @cache.read([test_instance_one, test_instance_three])
+    assert_equal "two", @cache.read([test_instance_two, test_instance_three])
+  end
+
+  def test_format_of_expanded_key_for_single_instance
+    test_instance_one = InstanceTest.new("test", 1)
+
+    expanded_key = @cache.send(:expanded_key, test_instance_one)
+
+    assert_equal expanded_key, test_instance_one.cache_key
+  end
+
+  def test_format_of_expanded_key_for_single_instance_in_array
+    test_instance_one = InstanceTest.new("test", 1)
+
+    expanded_key = @cache.send(:expanded_key, [test_instance_one])
+
+    assert_equal expanded_key, test_instance_one.cache_key
   end
 
   def test_hash_as_cache_key

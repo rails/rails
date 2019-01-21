@@ -25,7 +25,7 @@ class ConsoleTest < ActiveSupport::TestCase
   end
 
   def test_app_method_should_return_integration_session
-    TestHelpers::Rack.send :remove_method, :app
+    TestHelpers::Rack.remove_method :app
     load_environment
     console_session = irb_context.app
     assert_instance_of ActionDispatch::Integration::Session, console_session
@@ -149,7 +149,7 @@ class FullStackConsoleTest < ActiveSupport::TestCase
   end
 
   def test_environment_option_and_irb_option
-    spawn_console("test -- --verbose")
+    spawn_console("-e test -- --verbose")
 
     write_prompt "a = 1", "a = 1"
     write_prompt "puts Rails.env", "puts Rails.env\r\ntest"

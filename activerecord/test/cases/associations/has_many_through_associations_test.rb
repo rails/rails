@@ -200,7 +200,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
     assert_no_difference "Job.count" do
       assert_difference "Reference.count", -1 do
-        person.reload.jobs_with_dependent_destroy.delete_all
+        assert_equal 1, person.reload.jobs_with_dependent_destroy.delete_all
       end
     end
   end
@@ -211,7 +211,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
     assert_no_difference "Job.count" do
       assert_no_difference "Reference.count" do
-        person.reload.jobs_with_dependent_nullify.delete_all
+        assert_equal 1, person.reload.jobs_with_dependent_nullify.delete_all
       end
     end
   end
@@ -222,9 +222,17 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
     assert_no_difference "Job.count" do
       assert_difference "Reference.count", -1 do
-        person.reload.jobs_with_dependent_delete_all.delete_all
+        assert_equal 1, person.reload.jobs_with_dependent_delete_all.delete_all
       end
     end
+  end
+
+  def test_delete_all_on_association_clears_scope
+    post = Post.create!(title: "Rails 6", body: "")
+    people = post.people
+    people.create!(first_name: "Jeb")
+    people.delete_all
+    assert_nil people.first
   end
 
   def test_concat
@@ -274,7 +282,10 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_queries(1) { posts(:thinking) }
     new_person = nil # so block binding catches it
 
-    assert_queries(0) do
+    # Load schema information so we don't query below if running just this test.
+    Person.define_attribute_methods
+
+    assert_no_queries do
       new_person = Person.new first_name: "bob"
     end
 
@@ -294,7 +305,10 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   def test_associate_new_by_building
     assert_queries(1) { posts(:thinking) }
 
-    assert_queries(0) do
+    # Load schema information so we don't query below if running just this test.
+    Person.define_attribute_methods
+
+    assert_no_queries do
       posts(:thinking).people.build(first_name: "Bob")
       posts(:thinking).people.new(first_name: "Ted")
     end
@@ -360,7 +374,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_delete_association
-    assert_queries(2) { posts(:welcome);people(:michael); }
+    assert_queries(2) { posts(:welcome); people(:michael); }
 
     assert_queries(1) do
       posts(:welcome).people.delete(people(:michael))
@@ -393,6 +407,30 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
     assert_empty posts(:welcome).reload.people
     assert_empty posts(:welcome).people.reload
+  end
+
+  def test_destroy_all_on_association_clears_scope
+    post = Post.create!(title: "Rails 6", body: "")
+    people = post.people
+    people.create!(first_name: "Jeb")
+    people.destroy_all
+    assert_nil people.first
+  end
+
+  def test_destroy_on_association_clears_scope
+    post = Post.create!(title: "Rails 6", body: "")
+    people = post.people
+    person = people.create!(first_name: "Jeb")
+    people.destroy(person)
+    assert_nil people.first
+  end
+
+  def test_delete_on_association_clears_scope
+    post = Post.create!(title: "Rails 6", body: "")
+    people = post.people
+    person = people.create!(first_name: "Jeb")
+    people.delete(person)
+    assert_nil people.first
   end
 
   def test_should_raise_exception_for_destroying_mismatching_records
@@ -563,7 +601,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_replace_association
-    assert_queries(4) { posts(:welcome);people(:david);people(:michael); posts(:welcome).people.reload }
+    assert_queries(4) { posts(:welcome); people(:david); people(:michael); posts(:welcome).people.reload }
 
     # 1 query to delete the existing reader (michael)
     # 1 query to associate the new reader (david)
@@ -571,13 +609,23 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
       posts(:welcome).people = [people(:david)]
     end
 
-    assert_queries(0) {
+    assert_no_queries do
       assert_includes posts(:welcome).people, people(:david)
       assert_not_includes posts(:welcome).people, people(:michael)
-    }
+    end
 
     assert_includes posts(:welcome).reload.people.reload, people(:david)
     assert_not_includes posts(:welcome).reload.people.reload, people(:michael)
+  end
+
+  def test_replace_association_with_duplicates
+    post   = posts(:thinking)
+    person = people(:david)
+
+    assert_difference "post.people.count", 2 do
+      post.people = [person]
+      post.people = [person, person]
+    end
   end
 
   def test_replace_order_is_preserved
@@ -692,13 +740,13 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_clear_associations
-    assert_queries(2) { posts(:welcome);posts(:welcome).people.reload }
+    assert_queries(2) { posts(:welcome); posts(:welcome).people.reload }
 
     assert_queries(1) do
       posts(:welcome).people.clear
     end
 
-    assert_queries(0) do
+    assert_no_queries do
       assert_empty posts(:welcome).people
     end
 
@@ -788,7 +836,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   def test_get_ids_for_loaded_associations
     person = people(:michael)
     person.posts.reload
-    assert_queries(0) do
+    assert_no_queries do
       person.post_ids
       person.post_ids
     end
@@ -1198,7 +1246,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   def test_has_many_through_associations_on_new_records_use_null_relations
     person = Person.new
 
-    assert_no_queries(ignore_none: false) do
+    assert_no_queries do
       assert_equal [], person.posts
       assert_equal [], person.posts.where(body: "omg")
       assert_equal [], person.posts.pluck(:body)

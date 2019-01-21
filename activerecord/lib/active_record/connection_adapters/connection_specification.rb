@@ -174,12 +174,12 @@ module ActiveRecord
             if e.path == path_to_adapter
               # We can assume that a non-builtin adapter was specified, so it's
               # either misspelled or missing from Gemfile.
-              raise e.class, "Could not load the '#{spec[:adapter]}' Active Record adapter. Ensure that the adapter is spelled correctly in config/database.yml and that you've added the necessary adapter gem to your Gemfile.", e.backtrace
+              raise LoadError, "Could not load the '#{spec[:adapter]}' Active Record adapter. Ensure that the adapter is spelled correctly in config/database.yml and that you've added the necessary adapter gem to your Gemfile.", e.backtrace
 
             # Bubbled up from the adapter require. Prefix the exception message
             # with some guidance about how to address it and reraise.
             else
-              raise e.class, "Error loading the '#{spec[:adapter]}' Active Record adapter. Missing a gem it depends on? #{e.message}", e.backtrace
+              raise LoadError, "Error loading the '#{spec[:adapter]}' Active Record adapter. Missing a gem it depends on? #{e.message}", e.backtrace
             end
           end
 
@@ -248,8 +248,27 @@ module ActiveRecord
             if db_config
               resolve_connection(db_config.config).merge("name" => pool_name.to_s)
             else
-              raise(AdapterNotSpecified, "'#{env_name}' database is not configured. Available: #{configurations.configurations.map(&:env_name).join(", ")}")
+              raise AdapterNotSpecified, <<~MSG
+                The `#{env_name}` database is not configured for the `#{ActiveRecord::ConnectionHandling::DEFAULT_ENV.call}` environment.
+
+                Available databases configurations are:
+
+                #{build_configuration_sentence}
+              MSG
             end
+          end
+
+          def build_configuration_sentence # :nodoc:
+            configs = configurations.configs_for(include_replicas: true)
+
+            configs.group_by(&:env_name).map do |env, config|
+              namespaces = config.map(&:spec_name)
+              if namespaces.size > 1
+                "#{env}: #{namespaces.join(", ")}"
+              else
+                env
+              end
+            end.join("\n")
           end
 
           # Accepts a hash. Expands the "url" key that contains a

@@ -14,9 +14,9 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
     super
 
     Kernel.silence_warnings do
-      Thor::Base.shell.send(:attr_accessor, :always_force)
+      Thor::Base.shell.attr_accessor :always_force
       @shell = Thor::Base.shell.new
-      @shell.send(:always_force=, true)
+      @shell.always_force = true
     end
   end
 

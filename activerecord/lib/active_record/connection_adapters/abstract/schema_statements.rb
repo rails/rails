@@ -2,6 +2,7 @@
 
 require "active_record/migration/join_table"
 require "active_support/core_ext/string/access"
+require "active_support/deprecation"
 require "digest/sha2"
 
 module ActiveRecord
@@ -205,6 +206,9 @@ module ActiveRecord
       #   Set to true to drop the table before creating it.
       #   Set to +:cascade+ to drop dependent objects as well.
       #   Defaults to false.
+      # [<tt>:if_not_exists</tt>]
+      #   Set to true to avoid raising an error when the table already exists.
+      #   Defaults to false.
       # [<tt>:as</tt>]
       #   SQL to use to generate the table. When this option is used, the block is
       #   ignored, as are the <tt>:id</tt> and <tt>:primary_key</tt> options.
@@ -287,8 +291,8 @@ module ActiveRecord
       #     SELECT * FROM orders INNER JOIN line_items ON order_id=orders.id
       #
       # See also TableDefinition#column for details on how to create columns.
-      def create_table(table_name, comment: nil, **options)
-        td = create_table_definition table_name, options[:temporary], options[:options], options[:as], comment: comment
+      def create_table(table_name, **options)
+        td = create_table_definition(table_name, options)
 
         if options[:id] != false && !options[:as]
           pk = options.fetch(:primary_key) do
@@ -317,7 +321,9 @@ module ActiveRecord
         end
 
         if supports_comments? && !supports_comments_in_create?
-          change_table_comment(table_name, comment) if comment.present?
+          if table_comment = options[:comment].presence
+            change_table_comment(table_name, table_comment)
+          end
 
           td.columns.each do |column|
             change_column_comment(table_name, column.name, column.comment) if column.comment.present?
@@ -846,17 +852,17 @@ module ActiveRecord
       # [<tt>:null</tt>]
       #   Whether the column allows nulls. Defaults to true.
       #
-      # ====== Create a user_id bigint column
+      # ====== Create a user_id bigint column without a index
       #
-      #   add_reference(:products, :user)
+      #   add_reference(:products, :user, index: false)
       #
       # ====== Create a user_id string column
       #
       #   add_reference(:products, :user, type: :string)
       #
-      # ====== Create supplier_id, supplier_type columns and appropriate index
+      # ====== Create supplier_id, supplier_type columns
       #
-      #   add_reference(:products, :supplier, polymorphic: true, index: true)
+      #   add_reference(:products, :supplier, polymorphic: true)
       #
       # ====== Create a supplier_id column with a unique index
       #
@@ -884,7 +890,7 @@ module ActiveRecord
       #
       # ====== Remove the reference
       #
-      #   remove_reference(:products, :user, index: true)
+      #   remove_reference(:products, :user, index: false)
       #
       # ====== Remove polymorphic reference
       #
@@ -892,7 +898,7 @@ module ActiveRecord
       #
       # ====== Remove the reference with a foreign key
       #
-      #   remove_reference(:products, :user, index: true, foreign_key: true)
+      #   remove_reference(:products, :user, foreign_key: true)
       #
       def remove_reference(table_name, ref_name, foreign_key: false, polymorphic: false, **options)
         if foreign_key
@@ -1045,15 +1051,18 @@ module ActiveRecord
         { primary_key: true }
       end
 
-      def assume_migrated_upto_version(version, migrations_paths)
-        migrations_paths = Array(migrations_paths)
+      def assume_migrated_upto_version(version, migrations_paths = nil)
+        unless migrations_paths.nil?
+          ActiveSupport::Deprecation.warn(<<~MSG)
+            Passing migrations_paths to #assume_migrated_upto_version is deprecated and will be removed in Rails 6.1.
+          MSG
+        end
+
         version = version.to_i
         sm_table = quote_table_name(ActiveRecord::SchemaMigration.table_name)
 
-        migrated = ActiveRecord::SchemaMigration.all_versions.map(&:to_i)
-        versions = migration_context.migration_files.map do |file|
-          migration_context.parse_migration_filename(file).first.to_i
-        end
+        migrated = migration_context.get_all_versions
+        versions = migration_context.migrations.map(&:version)
 
         unless migrated.include?(version)
           execute "INSERT INTO #{sm_table} (version) VALUES (#{quote(version)})"

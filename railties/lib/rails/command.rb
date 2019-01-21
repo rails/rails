@@ -83,20 +83,21 @@ module Rails
       end
 
       def print_commands # :nodoc:
-        sorted_groups.each { |b, n| print_list(b, n) }
-      end
-
-      def sorted_groups # :nodoc:
-        lookup!
-
-        groups = (subclasses - hidden_commands).group_by { |c| c.namespace.split(":").first }
-        groups.transform_values! { |commands| commands.flat_map(&:printing_commands).sort }
-
-        rails = groups.delete("rails")
-        [[ "rails", rails ]] + groups.sort.to_a
+        commands.each { |command| puts("  #{command}") }
       end
 
       private
+        COMMANDS_IN_USAGE = %w(generate console server test test:system dbconsole new)
+        private_constant :COMMANDS_IN_USAGE
+
+        def commands
+          lookup!
+
+          visible_commands = (subclasses - hidden_commands).flat_map(&:printing_commands)
+
+          (visible_commands - COMMANDS_IN_USAGE).sort
+        end
+
         def command_type # :doc:
           @command_type ||= "command"
         end

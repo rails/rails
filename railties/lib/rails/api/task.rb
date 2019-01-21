@@ -74,6 +74,22 @@ module Rails
           )
         },
 
+        "actionmailbox" => {
+          include: %w(
+            README.md
+            app/**/action_mailbox/**/*.rb
+            lib/action_mailbox/**/*.rb
+          )
+        },
+
+        "actiontext" => {
+          include: %w(
+            README.md
+            app/**/action_text/**/*.rb
+            lib/action_text/**/*.rb
+          )
+        },
+
         "railties" => {
           include: %w(
             README.rdoc

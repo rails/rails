@@ -134,43 +134,6 @@ module ActiveRecord
       end
 
       private
-        # Accepts a hash of SQL conditions and replaces those attributes
-        # that correspond to a {#composed_of}[rdoc-ref:Aggregations::ClassMethods#composed_of]
-        # relationship with their expanded aggregate attribute values.
-        #
-        # Given:
-        #
-        #   class Person < ActiveRecord::Base
-        #     composed_of :address, class_name: "Address",
-        #       mapping: [%w(address_street street), %w(address_city city)]
-        #   end
-        #
-        # Then:
-        #
-        #   { address: Address.new("813 abc st.", "chicago") }
-        #   # => { address_street: "813 abc st.", address_city: "chicago" }
-        def expand_hash_conditions_for_aggregates(attrs) # :doc:
-          expanded_attrs = {}
-          attrs.each do |attr, value|
-            if aggregation = reflect_on_aggregation(attr.to_sym)
-              mapping = aggregation.mapping
-              mapping.each do |field_attr, aggregate_attr|
-                expanded_attrs[field_attr] = if value.is_a?(Array)
-                  value.map { |it| it.send(aggregate_attr) }
-                elsif mapping.size == 1 && !value.respond_to?(aggregate_attr)
-                  value
-                else
-                  value.send(aggregate_attr)
-                end
-              end
-            else
-              expanded_attrs[attr] = value
-            end
-          end
-          expanded_attrs
-        end
-        deprecate :expand_hash_conditions_for_aggregates
-
         def replace_bind_variables(statement, values)
           raise_if_bind_arity_mismatch(statement, statement.count("?"), values.size)
           bound = values.dup

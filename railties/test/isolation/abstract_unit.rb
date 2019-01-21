@@ -16,6 +16,9 @@ require "active_support/testing/autorun"
 require "active_support/testing/stream"
 require "active_support/testing/method_call_assertions"
 require "active_support/test_case"
+require "minitest/retry"
+
+Minitest::Retry.use!(verbose: false, retry_count: 1)
 
 RAILS_FRAMEWORK_ROOT = File.expand_path("../../..", __dir__)
 
@@ -194,6 +197,7 @@ module TestHelpers
       end
 
       add_to_config <<-RUBY
+        config.hosts << proc { true }
         config.eager_load = false
         config.session_store :cookie_store, key: "_myapp_session"
         config.active_support.deprecation = :log
@@ -217,6 +221,7 @@ module TestHelpers
       @app = Class.new(Rails::Application) do
         def self.name; "RailtiesTestApp"; end
       end
+      @app.config.hosts << proc { true }
       @app.config.eager_load = false
       @app.config.session_store :cookie_store, key: "_myapp_session"
       @app.config.active_support.deprecation = :log
@@ -425,7 +430,7 @@ module TestHelpers
     end
 
     def use_frameworks(arr)
-      to_remove = [:actionmailer, :activerecord, :activestorage, :activejob] - arr
+      to_remove = [:actionmailer, :activerecord, :activestorage, :activejob, :actionmailbox] - arr
 
       if to_remove.include?(:activerecord)
         remove_from_config "config.active_record.*"
@@ -457,10 +462,6 @@ class ActiveSupport::TestCase
   include TestHelpers::Generation
   include ActiveSupport::Testing::Stream
   include ActiveSupport::Testing::MethodCallAssertions
-
-  def frozen_error_class
-    Object.const_defined?(:FrozenError) ? FrozenError : RuntimeError
-  end
 end
 
 # Create a scope and build a fixture rails app
@@ -475,7 +476,7 @@ Module.new do
     `yarn build`
   end
 
-  `#{Gem.ruby} #{RAILS_FRAMEWORK_ROOT}/railties/exe/rails new #{app_template_path} --skip-gemfile --skip-listen --no-rc`
+  `#{Gem.ruby} #{RAILS_FRAMEWORK_ROOT}/railties/exe/rails new #{app_template_path} --skip-bundle --skip-listen --no-rc`
   File.open("#{app_template_path}/config/boot.rb", "w") do |f|
     f.puts "require 'rails/all'"
   end

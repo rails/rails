@@ -1,3 +1,67 @@
+## Rails 6.0.0.beta1 (January 18, 2019) ##
+
+*   Remove deprecated `image_alt` helper.
+
+    *Rafael Mendonça França*
+
+*   Fix the need of `#protect_against_forgery?` method defined in
+    `ActionView::Base` subclasses. This prevents the use of forms and buttons.
+
+    *Genadi Samokovarov*
+
+*   Fix UJS permanently showing disabled text in a[data-remote][data-disable-with] elements within forms.
+
+    Fixes #33889.
+
+    *Wolfgang Hobmaier*
+
+*   Prevent non-primary mouse keys from triggering Rails UJS click handlers.
+    Firefox fires click events even if the click was triggered by non-primary mouse keys such as right- or scroll-wheel-clicks.
+    For example, right-clicking a link such as the one described below (with an underlying ajax request registered on click) should not cause that request to occur.
+
+    ```
+    <%= link_to 'Remote', remote_path, class: 'remote', remote: true, data: { type: :json } %>
+    ```
+
+    Fixes #34541.
+
+    *Wolfgang Hobmaier*
+
+*   Prevent `ActionView::TextHelper#word_wrap` from unexpectedly stripping white space from the _left_ side of lines.
+
+    For example, given input like this:
+
+    ```
+        This is a paragraph with an initial indent,
+    followed by additional lines that are not indented,
+    and finally terminated with a blockquote:
+      "A pithy saying"
+    ```
+
+    Calling `word_wrap` should not trim the indents on the first and last lines.
+
+    Fixes #34487.
+
+    *Lyle Mullican*
+
+*   Add allocations to template rendering instrumentation.
+
+    Adds the allocations for template and partial rendering to the server output on render.
+
+    ```
+      Rendered posts/_form.html.erb (Duration: 7.1ms | Allocations: 6004)
+      Rendered posts/new.html.erb within layouts/application (Duration: 8.3ms | Allocations: 6654)
+    Completed 200 OK in 858ms (Views: 848.4ms | ActiveRecord: 0.4ms | Allocations: 1539564)
+    ```
+
+    *Eileen M. Uchitelle*, *Aaron Patterson*
+
+*   Respect the `only_path` option passed to `url_for` when the options are passed in as an array
+
+    Fixes #33237.
+
+    *Joel Ambass*
+
 *   Deprecate calling private model methods from view helpers.
 
     For example, in methods like `options_from_collection_for_select`
@@ -120,9 +184,9 @@
 
     *Rui Onodera*
 
-*   Rails 6 requires Ruby 2.4.1 or newer.
+*   Rails 6 requires Ruby 2.5.0 or newer.
 
-    *Jeremy Daer*
+    *Jeremy Daer*, *Kasper Timm Hansen*
 
 
 Please check [5-2-stable](https://github.com/rails/rails/blob/5-2-stable/actionview/CHANGELOG.md) for previous changes.

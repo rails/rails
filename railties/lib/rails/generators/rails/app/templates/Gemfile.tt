@@ -18,16 +18,13 @@ ruby <%= "'#{RUBY_VERSION}'" -%>
 <% end -%>
 <% end -%>
 
-# Use ActiveModel has_secure_password
+# Use Active Model has_secure_password
 # gem 'bcrypt', '~> 3.1.7'
 <% unless skip_active_storage? -%>
 
-# Use ActiveStorage variant
+# Use Active Storage variant
 # gem 'image_processing', '~> 1.2'
 <% end -%>
-
-# Use Capistrano for deployment
-# gem 'capistrano-rails', group: :development
 
 <% if depend_on_bootsnap? -%>
 # Reduces boot times through caching; required in config/boot.rb
@@ -45,6 +42,7 @@ group :development, :test do
   gem 'byebug', platforms: [:mri, :mingw, :x64_mingw]
 end
 
+<% end -%>
 group :development do
 <%- unless options.api? -%>
   # Access an interactive console on exception pages or by calling 'console' anywhere in the code.
@@ -75,7 +73,6 @@ group :test do
   gem 'chromedriver-helper'
 end
 <%- end -%>
-<% end -%>
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
 gem 'tzinfo-data', platforms: [:mingw, :mswin, :x64_mingw, :jruby]

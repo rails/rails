@@ -42,7 +42,7 @@ class ResponseTest < ActiveSupport::TestCase
   def test_each_isnt_called_if_str_body_is_written
     # Controller writes and reads response body
     each_counter = 0
-    @response.body = Object.new.tap { |o| o.singleton_class.send(:define_method, :each) { |&block| each_counter += 1; block.call "foo" } }
+    @response.body = Object.new.tap { |o| o.singleton_class.define_method(:each) { |&block| each_counter += 1; block.call "foo" } }
     @response["X-Foo"] = @response.body
 
     assert_equal 1, each_counter, "#each was not called once"

@@ -98,6 +98,11 @@ module ActiveRecord
         exec_query(sql, name).rows
       end
 
+      # Determines whether the SQL statement is a write query.
+      def write_query?(sql)
+        raise NotImplementedError
+      end
+
       # Executes the SQL statement in the context of this connection and returns
       # the raw result from the connection adapter.
       # Note: depending on your database connector, the result returned by this
@@ -118,7 +123,7 @@ module ActiveRecord
       # +binds+ as the bind substitutes. +name+ is logged along with
       # the executed +sql+ statement.
       def exec_insert(sql, name = nil, binds = [], pk = nil, sequence_name = nil)
-        sql, binds = sql_for_insert(sql, pk, nil, sequence_name, binds)
+        sql, binds = sql_for_insert(sql, pk, sequence_name, binds)
         exec_query(sql, name, binds)
       end
 
@@ -167,13 +172,6 @@ module ActiveRecord
         sql, binds = to_sql_and_binds(arel, binds)
         exec_delete(sql, name, binds)
       end
-
-      # Returns +true+ when the connection adapter supports prepared statement
-      # caching, otherwise returns +false+
-      def supports_statement_cache? # :nodoc:
-        true
-      end
-      deprecate :supports_statement_cache?
 
       # Runs the given block in a database transaction, and returns the result
       # of the block.
@@ -331,7 +329,7 @@ module ActiveRecord
 
       # Inserts the given fixture into the table. Overridden in adapters that require
       # something beyond a simple insert (eg. Oracle).
-      # Most of adapters should implement `insert_fixtures` that leverages bulk SQL insert.
+      # Most of adapters should implement `insert_fixtures_set` that leverages bulk SQL insert.
       # We keep this method to provide fallback
       # for databases like sqlite that do not support bulk inserts.
       def insert_fixture(fixture, table_name)
@@ -358,18 +356,6 @@ module ActiveRecord
         manager.into(table)
         manager.insert(values)
         execute manager.to_sql, "Fixture Insert"
-      end
-
-      # Inserts a set of fixtures into the table. Overridden in adapters that require
-      # something beyond a simple insert (eg. Oracle).
-      def insert_fixtures(fixtures, table_name)
-        ActiveSupport::Deprecation.warn(<<-MSG.squish)
-          `insert_fixtures` is deprecated and will be removed in the next version of Rails.
-          Consider using `insert_fixtures_set` for performance improvement.
-        MSG
-        return if fixtures.empty?
-
-        execute(build_fixture_sql(fixtures, table_name), "Fixtures Insert")
       end
 
       def insert_fixtures_set(fixture_set, tables_to_delete = [])
@@ -409,16 +395,6 @@ module ActiveRecord
           Integer(limit)
         end
       end
-
-      # The default strategy for an UPDATE with joins is to use a subquery. This doesn't work
-      # on MySQL (even when aliasing the tables), but MySQL allows using JOIN directly in
-      # an UPDATE statement, so in the MySQL adapters we redefine this to do that.
-      def join_to_update(update, select, key) # :nodoc:
-        subselect = subquery_for(key, select)
-
-        update.where key.in(subselect)
-      end
-      alias join_to_delete join_to_update
 
       private
         def default_insert_value(column)
@@ -460,13 +436,6 @@ module ActiveRecord
           total_sql.join(";\n")
         end
 
-        # Returns a subquery for the given key using the join information.
-        def subquery_for(key, select)
-          subselect = select.clone
-          subselect.projections = [key]
-          subselect
-        end
-
         # Returns an ActiveRecord::Result instance.
         def select(sql, name = nil, binds = [])
           exec_query(sql, name, binds, prepare: false)
@@ -476,7 +445,7 @@ module ActiveRecord
           exec_query(sql, name, binds, prepare: true)
         end
 
-        def sql_for_insert(sql, pk, id_value, sequence_name, binds)
+        def sql_for_insert(sql, pk, sequence_name, binds)
           [sql, binds]
         end
 

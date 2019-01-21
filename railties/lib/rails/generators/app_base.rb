@@ -11,9 +11,8 @@ require "active_support/core_ext/array/extract_options"
 module Rails
   module Generators
     class AppBase < Base # :nodoc:
-      DATABASES = %w( mysql postgresql sqlite3 oracle frontbase ibm_db sqlserver )
-      JDBC_DATABASES = %w( jdbcmysql jdbcsqlite3 jdbcpostgresql jdbc )
-      DATABASES.concat(JDBC_DATABASES)
+      include Database
+      include AppName
 
       attr_accessor :rails_template
       add_shebang_option!
@@ -31,9 +30,6 @@ module Rails
         class_option :database,            type: :string, aliases: "-d", default: "sqlite3",
                                            desc: "Preconfigure for selected database (options: #{DATABASES.join('/')})"
 
-        class_option :skip_yarn,           type: :boolean, default: false,
-                                           desc: "Don't use Yarn for managing JavaScript dependencies"
-
         class_option :skip_gemfile,        type: :boolean, default: false,
                                            desc: "Don't create a Gemfile"
 
@@ -46,6 +42,12 @@ module Rails
         class_option :skip_action_mailer,  type: :boolean, aliases: "-M",
                                            default: false,
                                            desc: "Skip Action Mailer files"
+
+        class_option :skip_action_mailbox, type: :boolean, default: false,
+                                           desc: "Skip Action Mailbox gem"
+
+        class_option :skip_action_text,    type: :boolean, default: false,
+                                           desc: "Skip Action Text gem"
 
         class_option :skip_active_record,  type: :boolean, aliases: "-O", default: false,
                                            desc: "Skip Active Record files"
@@ -103,7 +105,6 @@ module Rails
         @gem_filter    = lambda { |gem| true }
         @extra_entries = []
         super
-        convert_database_option_for_jruby
       end
 
     private
@@ -203,7 +204,9 @@ module Rails
             :skip_sprockets,
             :skip_action_cable
           ),
-          skip_active_storage?
+          skip_active_storage?,
+          skip_action_mailbox?,
+          skip_action_text?
         ].flatten.none?
       end
 
@@ -230,6 +233,14 @@ module Rails
 
       def skip_active_storage? # :doc:
         options[:skip_active_storage] || options[:skip_active_record]
+      end
+
+      def skip_action_mailbox? # :doc:
+        options[:skip_action_mailbox] || skip_active_storage?
+      end
+
+      def skip_action_text? # :doc:
+        options[:skip_action_text] || skip_active_storage?
       end
 
       class GemfileEntry < Struct.new(:name, :version, :comment, :options, :commented_out)
@@ -293,34 +304,6 @@ module Rails
         end
       end
 
-      def gem_for_database
-        # %w( mysql postgresql sqlite3 oracle frontbase ibm_db sqlserver jdbcmysql jdbcsqlite3 jdbcpostgresql )
-        case options[:database]
-        when "mysql"          then ["mysql2", [">= 0.4.4"]]
-        when "postgresql"     then ["pg", [">= 0.18", "< 2.0"]]
-        when "oracle"         then ["activerecord-oracle_enhanced-adapter", nil]
-        when "frontbase"      then ["ruby-frontbase", nil]
-        when "sqlserver"      then ["activerecord-sqlserver-adapter", nil]
-        when "jdbcmysql"      then ["activerecord-jdbcmysql-adapter", nil]
-        when "jdbcsqlite3"    then ["activerecord-jdbcsqlite3-adapter", nil]
-        when "jdbcpostgresql" then ["activerecord-jdbcpostgresql-adapter", nil]
-        when "jdbc"           then ["activerecord-jdbc-adapter", nil]
-        else [options[:database], nil]
-        end
-      end
-
-      def convert_database_option_for_jruby
-        if defined?(JRUBY_VERSION)
-          opt = options.dup
-          case opt[:database]
-          when "postgresql" then opt[:database] = "jdbcpostgresql"
-          when "mysql"      then opt[:database] = "jdbcmysql"
-          when "sqlite3"    then opt[:database] = "jdbcsqlite3"
-          end
-          self.options = opt.freeze
-        end
-      end
-
       def assets_gemfile_entry
         return [] if options[:skip_sprockets]
 
@@ -333,7 +316,7 @@ module Rails
         if options.dev? || options.edge?
           GemfileEntry.github "webpacker", "rails/webpacker", nil, "Use development version of Webpacker"
         else
-          GemfileEntry.new "webpacker", nil, "Transpile app-like JavaScript. Read more: https://github.com/rails/webpacker"
+          GemfileEntry.version "webpacker", ">= 4.0.0.rc.3", "Transpile app-like JavaScript. Read more: https://github.com/rails/webpacker"
         end
       end
 
@@ -367,7 +350,7 @@ module Rails
         gems
       end
 
-      def bundle_command(command)
+      def bundle_command(command, env = {})
         say_status :run, "bundle #{command}"
 
         # We are going to shell out rather than invoking Bundler::CLI.new(command)
@@ -375,19 +358,21 @@ module Rails
         # its own vendored Thor, which could be a different version. Running both
         # things in the same process is a recipe for a night with paracetamol.
         #
-        # We unset temporary bundler variables to load proper bundler and Gemfile.
-        #
         # Thanks to James Tucker for the Gem tricks involved in this call.
         _bundle_command = Gem.bin_path("bundler", "bundle")
 
         require "bundler"
-        Bundler.with_clean_env do
-          full_command = %Q["#{Gem.ruby}" "#{_bundle_command}" #{command}]
-          if options[:quiet]
-            system(full_command, out: File::NULL)
-          else
-            system(full_command)
-          end
+        Bundler.with_original_env do
+          exec_bundle_command(_bundle_command, command, env)
+        end
+      end
+
+      def exec_bundle_command(bundle_command, command, env)
+        full_command = %Q["#{Gem.ruby}" "#{bundle_command}" #{command}]
+        if options[:quiet]
+          system(env, full_command, out: File::NULL)
+        else
+          system(env, full_command)
         end
       end
 
@@ -397,6 +382,10 @@ module Rails
 
       def spring_install?
         !options[:skip_spring] && !options.dev? && Process.respond_to?(:fork) && !RUBY_PLATFORM.include?("cygwin")
+      end
+
+      def webpack_install?
+        !(options[:skip_javascript] || options[:skip_webpack_install])
       end
 
       def depends_on_system_test?
@@ -416,11 +405,11 @@ module Rails
       end
 
       def run_bundle
-        bundle_command("install") if bundle_install?
+        bundle_command("install", "BUNDLE_IGNORE_MESSAGES" => "1") if bundle_install?
       end
 
       def run_webpack
-        unless options[:skip_javascript]
+        if webpack_install?
           rails_command "webpacker:install"
           rails_command "webpacker:install:#{options[:webpack]}" if options[:webpack] && options[:webpack] != "webpack"
         end

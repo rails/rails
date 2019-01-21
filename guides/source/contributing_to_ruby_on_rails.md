@@ -324,6 +324,26 @@ $ cd actionmailer
 $ bundle exec rake test
 ```
 
+#### For a Specific Directory
+
+If you want to run the tests located in a specific directory use the `TEST_DIR`
+environment variable. For example, this will run the tests in the
+`railties/test/generators` directory only:
+
+```bash
+$ cd railties
+$ TEST_DIR=generators bundle exec rake test
+```
+
+#### For a Specific File
+
+You can run the tests for a particular file by using:
+
+```bash
+$ cd actionpack
+$ bundle exec ruby -w -Itest test/template/form_helper_test.rb
+```
+
 #### Running a Single Test
 
 You can run a single test through ruby. For instance:
@@ -333,8 +353,27 @@ $ cd actionmailer
 $ bundle exec ruby -w -Itest test/mail_layout_test.rb -n test_explicit_class_layout
 ```
 
-The `-n` option allows you to run a single method instead of the whole
-file.
+The `-n` option allows you to run a single method instead of the whole file.
+
+#### Running tests with a specific seed
+
+Test execution is randomized with a randomization seed. If you are experiencing random
+test failures you can more accurately reproduce a failing test scenario by specifically
+setting the randomization seed.
+
+Running all tests for a component:
+
+```bash
+$ cd actionmailer
+$ SEED=15002 bundle exec rake test
+```
+
+Running a single test file:
+
+```bash
+$ cd actionmailer
+$ SEED=15002 bundle exec ruby -w -Itest test/mail_layout_test.rb
+```
 
 #### Testing Active Record
 
@@ -576,13 +615,13 @@ $ git rebase -i rails/master
 < Choose 'squash' for all of your commits except the first one. >
 < Edit the commit message to make sense, and describe all your changes. >
 
-$ git push fork my_new_branch -f
+$ git push fork my_new_branch --force-with-lease
 ```
 
 You should be able to refresh the pull request on GitHub and see that it has
 been updated.
 
-#### Updating pull request
+#### Updating a pull request
 
 Sometimes you will be asked to make some changes to the code you have
 already committed. This can include amending existing commits. In this
@@ -592,12 +631,13 @@ you can force push to your branch on GitHub as described earlier in
 squashing commits section:
 
 ```bash
-$ git push fork my_new_branch -f
+$ git push fork my_new_branch --force-with-lease
 ```
 
-This will update the branch and pull request on GitHub with your new code. Do
-note that using force push may result in commits being lost on the remote branch; use it with care.
-
+This will update the branch and pull request on GitHub with your new code.
+By force pushing with `--force-with-lease`, git will more safely update
+the remote than with a typical `-f`, which can delete work from the remote
+that you don't already have.
 
 ### Older Versions of Ruby on Rails
 

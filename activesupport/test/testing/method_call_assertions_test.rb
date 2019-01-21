@@ -60,12 +60,6 @@ class MethodCallAssertionsTest < ActiveSupport::TestCase
     assert_match(/dang it.\nExpected increment/, error.message)
   end
 
-  def test_assert_called_with
-    assert_called_with(@object, :increment) do
-      @object.increment
-    end
-  end
-
   def test_assert_called_with_arguments
     assert_called_with(@object, :<<, [ 2 ]) do
       @object << 2
@@ -85,12 +79,6 @@ class MethodCallAssertionsTest < ActiveSupport::TestCase
       assert_called_with(@object, :<<, [ 4567 ]) do
         @object << 2
       end
-    end
-  end
-
-  def test_assert_called_with_returns
-    assert_called_with(@object, :increment, returns: 1) do
-      @object.increment
     end
   end
 

@@ -1,3 +1,23 @@
+## Rails 6.0.0.beta1 (January 18, 2019) ##
+
+*   Deprecate `ActionMailer::Base.receive` in favor of [Action Mailbox](https://github.com/rails/rails/tree/master/actionmailbox).
+
+    *George Claghorn*
+
+*   Add `MailDeliveryJob` for delivering both regular and parameterized mail. Deprecate using `DeliveryJob` and `Parameterized::DeliveryJob`.
+
+    *Gannon McGibbon*
+
+*   Fix ActionMailer assertions not working when a Mail defines
+    a custom delivery job class
+
+    *Edouard Chin*
+
+*   Mails with multipart `format` blocks with implicit render now also check for
+    a template name in options hash instead of only using the action name.
+
+    *Marcus Ilgner*
+
 *   `ActionDispatch::IntegrationTest` includes `ActionMailer::TestHelper` module by default.
 
     *Ricardo Díaz*
@@ -43,9 +63,9 @@
 
     *Claudio Ortolina*, *Kota Miyake*
 
-*   Rails 6 requires Ruby 2.4.1 or newer.
+*   Rails 6 requires Ruby 2.5.0 or newer.
 
-    *Jeremy Daer*
+    *Jeremy Daer*, *Kasper Timm Hansen*
 
 
 Please check [5-2-stable](https://github.com/rails/rails/blob/5-2-stable/actionmailer/CHANGELOG.md) for previous changes.

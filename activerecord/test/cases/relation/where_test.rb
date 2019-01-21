@@ -359,6 +359,16 @@ module ActiveRecord
       assert_equal author, Author.where(params.permit!).first
     end
 
+    def test_where_with_large_number
+      assert_equal [authors(:bob)], Author.where(id: [3, 9223372036854775808])
+      assert_equal [authors(:bob)], Author.where(id: 3..9223372036854775808)
+    end
+
+    def test_to_sql_with_large_number
+      assert_equal [authors(:bob)], Author.find_by_sql(Author.where(id: [3, 9223372036854775808]).to_sql)
+      assert_equal [authors(:bob)], Author.find_by_sql(Author.where(id: 3..9223372036854775808).to_sql)
+    end
+
     def test_where_with_unsupported_arguments
       assert_raises(ArgumentError) { Author.where(42) }
     end

@@ -195,6 +195,12 @@ You can also run commands as a super-user:
 rails_command "log:clear", sudo: true
 ```
 
+You can also run commands that should abort application generation if they fail:
+
+```ruby
+rails_command "db:migrate", abort_on_failure: true
+```
+
 ### route(routing_code)
 
 Adds a routing entry to the `config/routes.rb` file. In the steps above, we generated a person scaffold and also removed `README.rdoc`. Now, to make `PeopleController#index` the default page for the application:

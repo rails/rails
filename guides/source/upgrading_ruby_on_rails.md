@@ -35,13 +35,13 @@ You can find a list of all released Rails versions [here](https://rubygems.org/g
 
 Rails generally stays close to the latest released Ruby version when it's released:
 
-* Rails 6 requires Ruby 2.4.1 or newer.
+* Rails 6 requires Ruby 2.5.0 or newer.
 * Rails 5 requires Ruby 2.2.2 or newer.
 * Rails 4 prefers Ruby 2.0 and requires 1.9.3 or newer.
 * Rails 3.2.x is the last branch to support Ruby 1.8.7.
 * Rails 3 and above require Ruby 1.8.7 or higher. Support for all of the previous Ruby versions has been dropped officially. You should upgrade as early as possible.
 
-TIP: Ruby 1.8.7 p248 and p249 have marshaling bugs that crash Rails. Ruby Enterprise Edition has these fixed since the release of 1.8.7-2010.02. On the 1.9 front, Ruby 1.9.1 is not usable because it outright segfaults, so if you want to use 1.9.x, jump straight to 1.9.3 for smooth sailing.
+TIP: Ruby 1.8.7 p248 and p249 have marshalling bugs that crash Rails. Ruby Enterprise Edition has these fixed since the release of 1.8.7-2010.02. On the 1.9 front, Ruby 1.9.1 is not usable because it outright segfaults, so if you want to use 1.9.x, jump straight to 1.9.3 for smooth sailing.
 
 ### The Update Task
 
@@ -96,6 +96,42 @@ This new embed information make those cookies incompatible with versions of Rail
 If you require your cookies to be read by 5.2 and older, or you are still validating your 6.0 deploy and want
 to allow you to rollback set
 `Rails.application.config.action_dispatch.use_cookies_with_metadata` to `false`.
+
+### ActionCable javascript API Changes
+
+The ActionCable javascript package has been converted from CoffeeScript
+to ES2015, and we now publish the source code in the npm distribution.
+
+This change includes some breaking changes to optional parts of the
+ActionCable javascript API:
+
+- Configuration of the WebSocket adapter and logger adapter have been moved
+  from properties of `ActionCable` to properties of `ActionCable.adapters`.
+  If you are currently configuring these adapters you will need to make
+  these changes when upgrading:
+
+  ```diff
+  -    ActionCable.WebSocket = MyWebSocket
+  +    ActionCable.adapters.WebSocket = MyWebSocket
+  ```
+  ```diff
+  -    ActionCable.logger = myLogger
+  +    ActionCable.adapters.logger = myLogger
+  ```
+
+- The `ActionCable.startDebugging()` and `ActionCable.stopDebugging()`
+  methods have been removed and replaced with the property
+  `ActionCable.logger.enabled`. If you are currently using these methods you
+  will need to make these changes when upgrading:
+
+  ```diff
+  -    ActionCable.startDebugging()
+  +    ActionCable.logger.enabled = true
+  ```
+  ```diff
+  -    ActionCable.stopDebugging()
+  +    ActionCable.logger.enabled = false
+  ```
 
 Upgrading from Rails 5.1 to Rails 5.2
 -------------------------------------
@@ -407,7 +443,7 @@ want to add this feature it will need to be turned on in an initializer.
 
 Rails 5 now supports per-form CSRF tokens to mitigate against code-injection attacks with forms
 created by JavaScript. With this option turned on, forms in your application will each have their
-own CSRF token that is specified to the action and method for that form.
+own CSRF token that is specific to the action and method for that form.
 
     config.action_controller.per_form_csrf_tokens = true
 

@@ -7,8 +7,11 @@ module AbstractController
         Module.new do
           define_method(:inherited) do |klass|
             super(klass)
-
-            routes.include_helpers klass, include_path_helpers
+            if namespace = klass.module_parents.detect { |m| m.respond_to?(:railtie_routes_url_helpers) }
+              klass.include(namespace.railtie_routes_url_helpers(include_path_helpers))
+            else
+              klass.include(routes.url_helpers(include_path_helpers))
+            end
           end
         end
       end

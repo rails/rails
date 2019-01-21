@@ -103,6 +103,8 @@ module ActiveSupport #:nodoc:
       # parent.rb then requires namespace/child.rb, the stack will look like
       # [[Object], [Namespace]].
 
+      attr_reader :watching
+
       def initialize
         @watching = []
         @stack = Hash.new { |h, k| h[k] = [] }
@@ -254,7 +256,9 @@ module ActiveSupport #:nodoc:
 
       def load_dependency(file)
         if Dependencies.load? && Dependencies.constant_watch_stack.watching?
-          Dependencies.new_constants_in(Object) { yield }
+          descs = Dependencies.constant_watch_stack.watching.flatten.uniq
+
+          Dependencies.new_constants_in(*descs) { yield }
         else
           yield
         end
@@ -521,8 +525,8 @@ module ActiveSupport #:nodoc:
         end
       elsif mod = autoload_module!(from_mod, const_name, qualified_name, path_suffix)
         return mod
-      elsif (parent = from_mod.parent) && parent != from_mod &&
-            ! from_mod.parents.any? { |p| p.const_defined?(const_name, false) }
+      elsif (parent = from_mod.module_parent) && parent != from_mod &&
+            ! from_mod.module_parents.any? { |p| p.const_defined?(const_name, false) }
         # If our parents do not have a constant named +const_name+ then we are free
         # to attempt to load upwards. If they do have such a constant, then this
         # const_missing must be due to from_mod::const_name, which should not

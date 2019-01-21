@@ -79,12 +79,12 @@ module ActiveSupport
     end
 
     def start(name, id, payload)
-      e = ActiveSupport::Notifications::Event.new(name, nil, nil, id, payload)
-      e.start!
+      event = ActiveSupport::Notifications::Event.new(name, nil, nil, id, payload)
+      event.start!
       parent = event_stack.last
-      parent << e if parent
+      parent << event if parent
 
-      event_stack.push e
+      event_stack.push event
     end
 
     def finish(name, id, payload)

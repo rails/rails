@@ -32,16 +32,19 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
            :posts, :tags, :taggings, :comments, :sponsors, :members
 
   def test_belongs_to
-    firm = Client.find(3).firm
-    assert_not_nil firm
-    assert_equal companies(:first_firm).name, firm.name
+    client = Client.find(3)
+    first_firm = companies(:first_firm)
+    assert_sql(/LIMIT|ROWNUM <=|FETCH FIRST/) do
+      assert_equal first_firm, client.firm
+      assert_equal first_firm.name, client.firm.name
+    end
   end
 
   def test_assigning_belongs_to_on_destroyed_object
     client = Client.create!(name: "Client")
     client.destroy!
-    assert_raise(frozen_error_class) { client.firm = nil }
-    assert_raise(frozen_error_class) { client.firm = Firm.new(name: "Firm") }
+    assert_raise(FrozenError) { client.firm = nil }
+    assert_raise(FrozenError) { client.firm = Firm.new(name: "Firm") }
   end
 
   def test_eager_loading_wont_mutate_owner_record
@@ -365,6 +368,30 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal "Odegy", odegy_account.firm.name
 
     assert_equal "ODEGY", odegy_account.reload_firm.name
+  end
+
+  def test_reload_the_belonging_object_with_query_cache
+    odegy_account_id = accounts(:odegy_account).id
+
+    connection = ActiveRecord::Base.connection
+    connection.enable_query_cache!
+    connection.clear_query_cache
+
+    # Populate the cache with a query
+    odegy_account = Account.find(odegy_account_id)
+
+    # Populate the cache with a second query
+    odegy_account.firm
+
+    assert_equal 2, connection.query_cache.size
+
+    # Clear the cache and fetch the firm again, populating the cache with a query
+    assert_queries(1) { odegy_account.reload_firm }
+
+    # This query is not cached anymore, so it should make a real SQL query
+    assert_queries(1) { Account.find(odegy_account_id) }
+  ensure
+    ActiveRecord::Base.connection.disable_query_cache!
   end
 
   def test_natural_assignment_to_nil
@@ -694,7 +721,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     line_item = LineItem.create!
     Invoice.create!(line_items: [line_item])
 
-    assert_queries(0) { line_item.save }
+    assert_no_queries { line_item.save }
   end
 
   def test_belongs_to_with_touch_option_on_destroy
@@ -789,7 +816,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
   def test_dont_find_target_when_foreign_key_is_null
     tagging = taggings(:thinking_general)
-    assert_queries(0) { tagging.super_tag }
+    assert_no_queries { tagging.super_tag }
   end
 
   def test_dont_find_target_when_saving_foreign_key_after_stale_association_loaded
@@ -1266,17 +1293,17 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_belongs_to_with_out_of_range_value_assigning
-    model = Class.new(Comment) do
+    model = Class.new(Author) do
       def self.name; "Temp"; end
-      validates :post, presence: true
+      validates :author_address, presence: true
     end
 
-    comment = model.new
-    comment.post_id = 9223372036854775808 # out of range in the bigint
+    author = model.new
+    author.author_address_id = 9223372036854775808 # out of range in the bigint
 
-    assert_nil comment.post
-    assert_not_predicate comment, :valid?
-    assert_equal [{ error: :blank }], comment.errors.details[:post]
+    assert_nil author.author_address
+    assert_not_predicate author, :valid?
+    assert_equal [{ error: :blank }], author.errors.details[:author_address]
   end
 
   def test_polymorphic_with_custom_primary_key

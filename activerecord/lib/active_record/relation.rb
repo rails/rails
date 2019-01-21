@@ -44,6 +44,11 @@ module ActiveRecord
     end
 
     def bind_attribute(name, value) # :nodoc:
+      if reflection = klass._reflect_on_association(name)
+        name = reflection.foreign_key
+        value = value.read_attribute(reflection.klass.primary_key) unless value.nil?
+      end
+
       attr = arel_attribute(name)
       bind = predicate_builder.build_bind_attribute(attr.name, value)
       yield attr, bind
@@ -163,7 +168,7 @@ module ActiveRecord
     # Attempts to create a record with the given attributes in a table that has a unique constraint
     # on one or several of its columns. If a row already exists with one or several of these
     # unique constraints, the exception such an insertion would normally raise is caught,
-    # and the existing record with those attributes is found using #find_by.
+    # and the existing record with those attributes is found using #find_by!.
     #
     # This is similar to #find_or_create_by, but avoids the problem of stale reads between the SELECT
     # and the INSERT, as that method needs to first query the table, then attempt to insert a row
@@ -173,7 +178,7 @@ module ActiveRecord
     #
     # * The underlying table must have the relevant columns defined with unique constraints.
     # * A unique constraint violation may be triggered by only one, or at least less than all,
-    #   of the given attributes. This means that the subsequent #find_by may fail to find a
+    #   of the given attributes. This means that the subsequent #find_by! may fail to find a
     #   matching record, which will then raise an <tt>ActiveRecord::RecordNotFound</tt> exception,
     #   rather than a record with the given attributes.
     # * While we avoid the race condition between SELECT -> INSERT from #find_or_create_by,
@@ -348,22 +353,17 @@ module ActiveRecord
       end
 
       stmt = Arel::UpdateManager.new
-      stmt.table(table)
+      stmt.table(arel.join_sources.empty? ? table : arel.source)
+      stmt.key = arel_attribute(primary_key)
+      stmt.take(arel.limit)
+      stmt.offset(arel.offset)
+      stmt.order(*arel.orders)
+      stmt.wheres = arel.constraints
 
       if updates.is_a?(Hash)
         stmt.set _substitute_values(updates)
       else
         stmt.set Arel.sql(klass.sanitize_sql_for_assignment(updates, table.name))
-      end
-
-      if has_join_values?
-        @klass.connection.join_to_update(stmt, arel, arel_attribute(primary_key))
-      else
-        stmt.key = arel_attribute(primary_key)
-        stmt.take(arel.limit)
-        stmt.offset(arel.offset)
-        stmt.order(*arel.orders)
-        stmt.wheres = arel.constraints
       end
 
       @klass.connection.update stmt, "#{@klass} Update All"
@@ -483,17 +483,12 @@ module ActiveRecord
       end
 
       stmt = Arel::DeleteManager.new
-      stmt.from(table)
-
-      if has_join_values?
-        @klass.connection.join_to_delete(stmt, arel, arel_attribute(primary_key))
-      else
-        stmt.key = arel_attribute(primary_key)
-        stmt.take(arel.limit)
-        stmt.offset(arel.offset)
-        stmt.order(*arel.orders)
-        stmt.wheres = arel.constraints
-      end
+      stmt.from(arel.join_sources.empty? ? table : arel.source)
+      stmt.key = arel_attribute(primary_key)
+      stmt.take(arel.limit)
+      stmt.offset(arel.offset)
+      stmt.order(*arel.orders)
+      stmt.wheres = arel.constraints
 
       affected = @klass.connection.delete(stmt, "#{@klass} Destroy")
 
@@ -646,10 +641,6 @@ module ActiveRecord
           end
           [attr, value]
         end
-      end
-
-      def has_join_values?
-        joins_values.any? || left_outer_joins_values.any?
       end
 
       def exec_queries(&block)

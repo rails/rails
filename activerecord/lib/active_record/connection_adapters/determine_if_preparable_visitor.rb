@@ -10,7 +10,12 @@ module ActiveRecord
         super
       end
 
-      def visit_Arel_Nodes_In(*)
+      def visit_Arel_Nodes_In(o, collector)
+        @preparable = false
+        super
+      end
+
+      def visit_Arel_Nodes_NotIn(o, collector)
         @preparable = false
         super
       end

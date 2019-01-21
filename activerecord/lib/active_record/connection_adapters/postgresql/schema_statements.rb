@@ -22,8 +22,8 @@ module ActiveRecord
         def create_database(name, options = {})
           options = { encoding: "utf8" }.merge!(options.symbolize_keys)
 
-          option_string = options.inject("") do |memo, (key, value)|
-            memo += case key
+          option_string = options.each_with_object(+"") do |(key, value), memo|
+            memo << case key
                     when :owner
                       " OWNER = \"#{value}\""
                     when :template
@@ -68,7 +68,7 @@ module ActiveRecord
           table = quoted_scope(table_name)
           index = quoted_scope(index_name)
 
-          query_value(<<-SQL, "SCHEMA").to_i > 0
+          query_value(<<~SQL, "SCHEMA").to_i > 0
             SELECT COUNT(*)
             FROM pg_class t
             INNER JOIN pg_index d ON t.oid = d.indrelid
@@ -85,7 +85,7 @@ module ActiveRecord
         def indexes(table_name) # :nodoc:
           scope = quoted_scope(table_name)
 
-          result = query(<<-SQL, "SCHEMA")
+          result = query(<<~SQL, "SCHEMA")
             SELECT distinct i.relname, d.indisunique, d.indkey, pg_get_indexdef(d.indexrelid), t.oid,
                             pg_catalog.obj_description(i.oid, 'pg_class') AS comment
             FROM pg_class t
@@ -124,7 +124,7 @@ module ActiveRecord
 
               # add info on sort order (only desc order is explicitly specified, asc is the default)
               # and non-default opclasses
-              expressions.scan(/(?<column>\w+)\s?(?<opclass>\w+_ops)?\s?(?<desc>DESC)?\s?(?<nulls>NULLS (?:FIRST|LAST))?/).each do |column, opclass, desc, nulls|
+              expressions.scan(/(?<column>\w+)"?\s?(?<opclass>\w+_ops)?\s?(?<desc>DESC)?\s?(?<nulls>NULLS (?:FIRST|LAST))?/).each do |column, opclass, desc, nulls|
                 opclasses[column] = opclass.to_sym if opclass
                 if nulls
                   orders[column] = [desc, nulls].compact.join(" ")
@@ -196,7 +196,7 @@ module ActiveRecord
 
         # Returns an array of schema names.
         def schema_names
-          query_values(<<-SQL, "SCHEMA")
+          query_values(<<~SQL, "SCHEMA")
             SELECT nspname
               FROM pg_namespace
              WHERE nspname !~ '^pg_.*'
@@ -302,7 +302,7 @@ module ActiveRecord
         def pk_and_sequence_for(table) #:nodoc:
           # First try looking for a sequence with a dependency on the
           # given table's primary key.
-          result = query(<<-end_sql, "SCHEMA")[0]
+          result = query(<<~SQL, "SCHEMA")[0]
             SELECT attr.attname, nsp.nspname, seq.relname
             FROM pg_class      seq,
                  pg_attribute  attr,
@@ -319,10 +319,10 @@ module ActiveRecord
               AND cons.contype      = 'p'
               AND dep.classid       = 'pg_class'::regclass
               AND dep.refobjid      = #{quote(quote_table_name(table))}::regclass
-          end_sql
+          SQL
 
           if result.nil? || result.empty?
-            result = query(<<-end_sql, "SCHEMA")[0]
+            result = query(<<~SQL, "SCHEMA")[0]
               SELECT attr.attname, nsp.nspname,
                 CASE
                   WHEN pg_get_expr(def.adbin, def.adrelid) !~* 'nextval' THEN NULL
@@ -339,7 +339,7 @@ module ActiveRecord
               WHERE t.oid = #{quote(quote_table_name(table))}::regclass
                 AND cons.contype = 'p'
                 AND pg_get_expr(def.adbin, def.adrelid) ~* 'nextval|uuid_generate'
-            end_sql
+            SQL
           end
 
           pk = result.shift
@@ -683,38 +683,20 @@ module ActiveRecord
             end
           end
 
-          def change_column_sql(table_name, column_name, type, options = {})
-            quoted_column_name = quote_column_name(column_name)
-            sql_type = type_to_sql(type, options)
-            sql = +"ALTER COLUMN #{quoted_column_name} TYPE #{sql_type}"
-            if options[:collation]
-              sql << " COLLATE \"#{options[:collation]}\""
-            end
-            if options[:using]
-              sql << " USING #{options[:using]}"
-            elsif options[:cast_as]
-              cast_as_type = type_to_sql(options[:cast_as], options)
-              sql << " USING CAST(#{quoted_column_name} AS #{cast_as_type})"
-            end
-
-            sql
-          end
-
           def add_column_for_alter(table_name, column_name, type, options = {})
             return super unless options.key?(:comment)
             [super, Proc.new { change_column_comment(table_name, column_name, options[:comment]) }]
           end
 
           def change_column_for_alter(table_name, column_name, type, options = {})
-            sqls = [change_column_sql(table_name, column_name, type, options)]
-            sqls << change_column_default_for_alter(table_name, column_name, options[:default]) if options.key?(:default)
-            sqls << change_column_null_for_alter(table_name, column_name, options[:null], options[:default]) if options.key?(:null)
+            td = create_table_definition(table_name)
+            cd = td.new_column_definition(column_name, type, options)
+            sqls = [schema_creation.accept(ChangeColumnDefinition.new(cd, column_name))]
             sqls << Proc.new { change_column_comment(table_name, column_name, options[:comment]) } if options.key?(:comment)
             sqls
           end
 
-          # Changes the default value of a table column.
-          def change_column_default_for_alter(table_name, column_name, default_or_changes) # :nodoc:
+          def change_column_default_for_alter(table_name, column_name, default_or_changes)
             column = column_for(table_name, column_name)
             return unless column
 
@@ -729,8 +711,8 @@ module ActiveRecord
             end
           end
 
-          def change_column_null_for_alter(table_name, column_name, null, default = nil) #:nodoc:
-            "ALTER #{quote_column_name(column_name)} #{null ? 'DROP' : 'SET'} NOT NULL"
+          def change_column_null_for_alter(table_name, column_name, null, default = nil)
+            "ALTER COLUMN #{quote_column_name(column_name)} #{null ? 'DROP' : 'SET'} NOT NULL"
           end
 
           def add_timestamps_for_alter(table_name, options = {})

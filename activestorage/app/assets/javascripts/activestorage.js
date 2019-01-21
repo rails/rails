@@ -560,7 +560,10 @@
       this.xhr.setRequestHeader("Content-Type", "application/json");
       this.xhr.setRequestHeader("Accept", "application/json");
       this.xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
-      this.xhr.setRequestHeader("X-CSRF-Token", getMetaValue("csrf-token"));
+      var csrfToken = getMetaValue("csrf-token");
+      if (csrfToken != undefined) {
+        this.xhr.setRequestHeader("X-CSRF-Token", csrfToken);
+      }
       this.xhr.addEventListener("load", function(event) {
         return _this.requestDidLoad(event);
       });
@@ -867,7 +870,7 @@
   }
   function didClick(event) {
     var target = event.target;
-    if (target.tagName == "INPUT" && target.type == "submit" && target.form) {
+    if ((target.tagName == "INPUT" || target.tagName == "BUTTON") && target.type == "submit" && target.form) {
       submitButtonsByForm.set(target.form, target);
     }
   }
@@ -902,7 +905,7 @@
     }
   }
   function submitForm(form) {
-    var button = submitButtonsByForm.get(form) || findElement(form, "input[type=submit]");
+    var button = submitButtonsByForm.get(form) || findElement(form, "input[type=submit], button[type=submit]");
     if (button) {
       var _button = button, disabled = _button.disabled;
       button.disabled = false;

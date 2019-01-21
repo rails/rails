@@ -93,42 +93,6 @@ Example:
     .....
   end
 
-== Receiving emails
-
-To receive emails, you need to implement a public instance method called
-+receive+ that takes an email object as its single parameter. The Action Mailer
-framework has a corresponding class method, which is also called +receive+, that
-accepts a raw, unprocessed email as a string, which it then turns into the email
-object and calls the receive instance method.
-
-Example:
-
-  class Mailman < ActionMailer::Base
-    def receive(email)
-      page = Page.find_by(address: email.to.first)
-      page.emails.create(
-        subject: email.subject, body: email.body
-      )
-
-      if email.has_attachments?
-        email.attachments.each do |attachment|
-          page.attachments.create({
-            file: attachment, description: email.subject
-          })
-        end
-      end
-    end
-  end
-
-This Mailman can be the target for Postfix or other MTAs. In Rails, you would use
-the runner in the trivial case like this:
-
-  rails runner 'Mailman.receive(STDIN.read)'
-
-However, invoking Rails in the runner for each mail to be received is very
-resource intensive. A single instance of Rails should be run within a daemon, if
-it is going to process more than just a limited amount of email.
-
 == Configuration
 
 The Base class has the full list of configuration options. Here's an example:

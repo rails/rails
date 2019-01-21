@@ -3698,15 +3698,25 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
   end
 
-  def test_multiple_roots
-    draw do
-      namespace :foo do
+  def test_multiple_roots_raises_error
+    ex = assert_raises(ArgumentError) {
+      draw do
         root "pages#index", constraints: { host: "www.example.com" }
         root "admin/pages#index", constraints: { host: "admin.example.com" }
       end
+    }
+    assert_match(/Invalid route name, already in use: 'root'/, ex.message)
+  end
+
+  def test_multiple_named_roots
+    draw do
+      namespace :foo do
+        root "pages#index", constraints: { host: "www.example.com" }
+        root "admin/pages#index", constraints: { host: "admin.example.com" }, as: :admin_root
+      end
 
       root "pages#index", constraints: { host: "www.example.com" }
-      root "admin/pages#index", constraints: { host: "admin.example.com" }
+      root "admin/pages#index", constraints: { host: "admin.example.com" },  as: :admin_root
     end
 
     get "http://www.example.com/foo"
@@ -4981,8 +4991,12 @@ end
 
 class FlashRedirectTest < ActionDispatch::IntegrationTest
   SessionKey = "_myapp_session"
-  Generator  = ActiveSupport::LegacyKeyGenerator.new("b3c631c314c0bbca50c1b2843150fe33")
-  Rotations  = ActiveSupport::Messages::RotationConfiguration.new
+  Generator = ActiveSupport::CachingKeyGenerator.new(
+    ActiveSupport::KeyGenerator.new("b3c631c314c0bbca50c1b2843150fe33", iterations: 1000)
+  )
+  Rotations = ActiveSupport::Messages::RotationConfiguration.new
+  SIGNED_COOKIE_SALT = "signed cookie"
+  ENCRYPTED_SIGNED_COOKIE_SALT = "sigend encrypted cookie"
 
   class KeyGeneratorMiddleware
     def initialize(app)
@@ -4992,6 +5006,8 @@ class FlashRedirectTest < ActionDispatch::IntegrationTest
     def call(env)
       env["action_dispatch.key_generator"] ||= Generator
       env["action_dispatch.cookies_rotations"] ||= Rotations
+      env["action_dispatch.signed_cookie_salt"] = SIGNED_COOKIE_SALT
+      env["action_dispatch.encrypted_signed_cookie_salt"] = ENCRYPTED_SIGNED_COOKIE_SALT
 
       @app.call(env)
     end

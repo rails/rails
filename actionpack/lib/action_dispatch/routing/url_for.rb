@@ -133,6 +133,7 @@ module ActionDispatch
       #   <tt>ActionDispatch::Http::URL.tld_length</tt>, which in turn defaults to 1.
       # * <tt>:port</tt> - Optionally specify the port to connect to.
       # * <tt>:anchor</tt> - An anchor name to be appended to the path.
+      # * <tt>:params</tt> - The query parameters to be appended to the path.
       # * <tt>:trailing_slash</tt> - If true, adds a trailing slash, as in "/archive/2009/"
       # * <tt>:script_name</tt> - Specifies application path relative to domain root. If provided, prepends application path.
       #

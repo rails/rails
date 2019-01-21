@@ -7,6 +7,11 @@ module ActionDispatch
     module MimeNegotiation
       extend ActiveSupport::Concern
 
+      RESCUABLE_MIME_FORMAT_ERRORS = [
+        ActionController::BadRequest,
+        ActionDispatch::Http::Parameters::ParseError,
+      ]
+
       included do
         mattr_accessor :ignore_accept_header, default: false
       end
@@ -59,7 +64,7 @@ module ActionDispatch
         fetch_header("action_dispatch.request.formats") do |k|
           params_readable = begin
                               parameters[:format]
-                            rescue ActionController::BadRequest
+                            rescue *RESCUABLE_MIME_FORMAT_ERRORS
                               false
                             end
 

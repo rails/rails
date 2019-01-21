@@ -14,9 +14,9 @@ module ActiveRecord
     # of your own such as 'LOCK IN SHARE MODE' or 'FOR UPDATE NOWAIT'. Example:
     #
     #   Account.transaction do
-    #     # select * from accounts where name = 'shugo' limit 1 for update
-    #     shugo = Account.where("name = 'shugo'").lock(true).first
-    #     yuko = Account.where("name = 'yuko'").lock(true).first
+    #     # select * from accounts where name = 'shugo' limit 1 for update nowait
+    #     shugo = Account.lock("FOR UPDATE NOWAIT").find_by(name: "shugo")
+    #     yuko = Account.lock("FOR UPDATE NOWAIT").find_by(name: "yuko")
     #     shugo.balance -= 100
     #     shugo.save!
     #     yuko.balance += 100

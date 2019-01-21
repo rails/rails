@@ -76,22 +76,15 @@ module ActiveRecord
         json:         { name: "json" },
       }
 
-      ##
-      # :singleton-method:
-      # Indicates whether boolean values are stored in sqlite3 databases as 1
-      # and 0 or 't' and 'f'. Leaving <tt>ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer</tt>
-      # set to false is deprecated. SQLite databases have used 't' and 'f' to
-      # serialize boolean values and must have old data converted to 1 and 0
-      # (its native boolean serialization) before setting this flag to true.
-      # Conversion can be accomplished by setting up a rake task which runs
-      #
-      #   ExampleModel.where("boolean_column = 't'").update_all(boolean_column: 1)
-      #   ExampleModel.where("boolean_column = 'f'").update_all(boolean_column: 0)
-      # for all models and all boolean columns, after which the flag must be set
-      # to true by adding the following to your <tt>application.rb</tt> file:
-      #
-      #   Rails.application.config.active_record.sqlite3.represent_boolean_as_integer = true
-      class_attribute :represent_boolean_as_integer, default: false
+      def self.represent_boolean_as_integer=(value) # :nodoc:
+        if value == false
+          raise "`.represent_boolean_as_integer=` is now always true, so make sure your application can work with it and remove this settings."
+        end
+
+        ActiveSupport::Deprecation.warn(
+          "`.represent_boolean_as_integer=` is now always true, so setting this is deprecated and will be removed in Rails 6.1."
+        )
+      end
 
       class StatementPool < ConnectionAdapters::StatementPool # :nodoc:
         private
@@ -105,11 +98,6 @@ module ActiveRecord
 
         @active     = true
         @statements = StatementPool.new(self.class.type_cast_config_to_integer(config[:statement_limit]))
-
-        if sqlite_version < "3.8.0"
-          raise "Your version of SQLite (#{sqlite_version}) is too old. Active Record supports SQLite >= 3.8."
-        end
-
         configure_connection
       end
 
@@ -214,12 +202,23 @@ module ActiveRecord
       # DATABASE STATEMENTS ======================================
       #++
 
+      READ_QUERY = ActiveRecord::ConnectionAdapters::AbstractAdapter.build_read_query_regexp(:begin, :commit, :explain, :select, :pragma, :release, :savepoint, :rollback) # :nodoc:
+      private_constant :READ_QUERY
+
+      def write_query?(sql) # :nodoc:
+        !READ_QUERY.match?(sql)
+      end
+
       def explain(arel, binds = [])
         sql = "EXPLAIN QUERY PLAN #{to_sql(arel, binds)}"
         SQLite3::ExplainPrettyPrinter.new.pp(exec_query(sql, "EXPLAIN", []))
       end
 
       def exec_query(sql, name = nil, binds = [], prepare: false)
+        if preventing_writes? && write_query?(sql)
+          raise ActiveRecord::ReadOnlyError, "Write query attempted while in readonly mode: #{sql}"
+        end
+
         materialize_transactions
 
         type_casted_binds = type_casted_binds(binds)
@@ -262,6 +261,10 @@ module ActiveRecord
       end
 
       def execute(sql, name = nil) #:nodoc:
+        if preventing_writes? && write_query?(sql)
+          raise ActiveRecord::ReadOnlyError, "Write query attempted while in readonly mode: #{sql}"
+        end
+
         materialize_transactions
 
         log(sql, name) do
@@ -303,11 +306,6 @@ module ActiveRecord
         exec_query "ALTER TABLE #{quote_table_name(table_name)} RENAME TO #{quote_table_name(new_name)}"
         rename_table_indexes(table_name, new_name)
       end
-
-      def valid_alter_table_type?(type, options = {})
-        !invalid_alter_table_type?(type, options)
-      end
-      deprecate :valid_alter_table_type?
 
       def add_column(table_name, column_name, type, options = {}) #:nodoc:
         if invalid_alter_table_type?(type, options)
@@ -380,14 +378,6 @@ module ActiveRecord
         end
       end
 
-      def insert_fixtures(rows, table_name)
-        ActiveSupport::Deprecation.warn(<<-MSG.squish)
-          `insert_fixtures` is deprecated and will be removed in the next version of Rails.
-          Consider using `insert_fixtures_set` for performance improvement.
-        MSG
-        insert_fixtures_set(table_name => rows)
-      end
-
       def insert_fixtures_set(fixture_set, tables_to_delete = [])
         disable_referential_integrity do
           transaction(requires_new: true) do
@@ -401,6 +391,18 @@ module ActiveRecord
       end
 
       private
+        # See https://www.sqlite.org/limits.html,
+        # the default value is 999 when not configured.
+        def bind_params_length
+          999
+        end
+
+        def check_version
+          if sqlite_version < "3.8.0"
+            raise "Your version of SQLite (#{sqlite_version}) is too old. Active Record supports SQLite >= 3.8."
+          end
+        end
+
         def initialize_type_map(m = type_map)
           super
           register_class_with_limit m, %r(int)i, SQLite3Integer
@@ -522,18 +524,18 @@ module ActiveRecord
           @sqlite_version ||= SQLite3Adapter::Version.new(query_value("SELECT sqlite_version(*)"))
         end
 
-        def translate_exception(exception, message)
+        def translate_exception(exception, message:, sql:, binds:)
           case exception.message
           # SQLite 3.8.2 returns a newly formatted error message:
           #   UNIQUE constraint failed: *table_name*.*column_name*
           # Older versions of SQLite return:
           #   column *column_name* is not unique
           when /column(s)? .* (is|are) not unique/, /UNIQUE constraint failed: .*/
-            RecordNotUnique.new(message)
+            RecordNotUnique.new(message, sql: sql, binds: binds)
           when /.* may not be NULL/, /NOT NULL constraint failed: .*/
-            NotNullViolation.new(message)
+            NotNullViolation.new(message, sql: sql, binds: binds)
           when /FOREIGN KEY constraint failed/i
-            InvalidForeignKey.new(message)
+            InvalidForeignKey.new(message, sql: sql, binds: binds)
           else
             super
           end
@@ -543,7 +545,7 @@ module ActiveRecord
 
         def table_structure_with_collation(table_name, basic_structure)
           collation_hash = {}
-          sql = <<-SQL
+          sql = <<~SQL
             SELECT sql FROM
               (SELECT * FROM sqlite_master UNION ALL
                SELECT * FROM sqlite_temp_master)

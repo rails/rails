@@ -336,7 +336,7 @@ class DirtyTest < ActiveRecord::TestCase
     end
 
     with_partial_writes Pirate, true do
-      assert_queries(0) { 2.times { pirate.save! } }
+      assert_no_queries { 2.times { pirate.save! } }
       assert_equal old_updated_on, pirate.reload.updated_on
 
       assert_queries(1) { pirate.catchphrase = "bar"; pirate.save! }
@@ -355,7 +355,7 @@ class DirtyTest < ActiveRecord::TestCase
     old_lock_version = person.lock_version
 
     with_partial_writes Person, true do
-      assert_queries(0) { 2.times { person.save! } }
+      assert_no_queries { 2.times { person.save! } }
       assert_equal old_lock_version, person.reload.lock_version
 
       assert_queries(1) { person.first_name = "bar"; person.save! }

@@ -92,13 +92,14 @@ module ActiveRecord
           if method == :delete_all
             scope.delete_all
           else
-            scope.update_all(reflection.foreign_key => nil)
+            scope.update_all(nullified_owner_attributes)
           end
         end
 
         def delete_or_nullify_all_records(method)
           count = delete_count(method, scope)
           update_counter(-count)
+          count
         end
 
         # Deletes the records according to the <tt>:dependent</tt> option.
@@ -129,6 +130,14 @@ module ActiveRecord
             update_counter_in_memory(difference)
           end
           saved_successfully
+        end
+
+        def difference(a, b)
+          a - b
+        end
+
+        def intersection(a, b)
+          a & b
         end
     end
   end

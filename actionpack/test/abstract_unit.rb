@@ -13,13 +13,6 @@ silence_warnings do
   Encoding.default_external = Encoding::UTF_8
 end
 
-require "drb"
-begin
-  require "drb/unix"
-rescue LoadError
-  puts "'drb/unix' is not available"
-end
-
 if ENV["TRAVIS"]
   PROCESS_COUNT = 0
 else
@@ -80,7 +73,7 @@ end
 module ActiveSupport
   class TestCase
     if RUBY_ENGINE == "ruby" && PROCESS_COUNT > 0
-      parallelize_me!
+      parallelize(workers: PROCESS_COUNT)
     end
   end
 end
@@ -100,10 +93,7 @@ end
 
 class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
   def self.build_app(routes = nil)
-    routes ||= ActionDispatch::Routing::RouteSet.new.tap { |rs|
-      rs.draw { }
-    }
-    RoutedRackApp.new(routes) do |middleware|
+    RoutedRackApp.new(routes || ActionDispatch::Routing::RouteSet.new) do |middleware|
       middleware.use ActionDispatch::ShowExceptions, ActionDispatch::PublicExceptions.new("#{FIXTURE_LOAD_PATH}/public")
       middleware.use ActionDispatch::DebugExceptions
       middleware.use ActionDispatch::Callbacks
@@ -361,75 +351,6 @@ class AccountsController < ResourcesController; end
 class ImagesController < ResourcesController; end
 
 require "active_support/testing/method_call_assertions"
-
-class ForkingExecutor
-  class Server
-    include DRb::DRbUndumped
-
-    def initialize
-      @queue = Queue.new
-    end
-
-    def record(reporter, result)
-      reporter.record result
-    end
-
-    def <<(o)
-      o[2] = DRbObject.new(o[2]) if o
-      @queue << o
-    end
-    def pop; @queue.pop; end
-  end
-
-  def initialize(size)
-    @size  = size
-    @queue = Server.new
-    @pool  = nil
-    @url = DRb.start_service("drbunix:", @queue).uri
-  end
-
-  def <<(work); @queue << work; end
-
-  def shutdown
-    pool = @size.times.map {
-      fork {
-        DRb.stop_service
-        queue = DRbObject.new_with_uri @url
-        while job = queue.pop
-          klass    = job[0]
-          method   = job[1]
-          reporter = job[2]
-          result = Minitest.run_one_method klass, method
-          if result.error?
-            translate_exceptions result
-          end
-          queue.record reporter, result
-        end
-      }
-    }
-    @size.times { @queue << nil }
-    pool.each { |pid| Process.waitpid pid }
-  end
-
-  private
-    def translate_exceptions(result)
-      result.failures.map! { |e|
-        begin
-          Marshal.dump e
-          e
-        rescue TypeError
-          ex = Exception.new e.message
-          ex.set_backtrace e.backtrace
-          Minitest::UnexpectedError.new ex
-        end
-      }
-    end
-end
-
-if RUBY_ENGINE == "ruby" && PROCESS_COUNT > 0
-  # Use N processes (N defaults to 4)
-  Minitest.parallel_executor = ForkingExecutor.new(PROCESS_COUNT)
-end
 
 class ActiveSupport::TestCase
   include ActiveSupport::Testing::MethodCallAssertions

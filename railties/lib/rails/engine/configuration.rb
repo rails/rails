@@ -38,8 +38,9 @@ module Rails
         @paths ||= begin
           paths = Rails::Paths::Root.new(@root)
 
-          paths.add "config/routes.rb",    eager_load: true
-          paths.add "app",                 eager_load: true, glob: "{*,*/concerns}"
+          paths.add "app",                 eager_load: true,
+                                           glob: "{*,*/concerns}",
+                                           exclude: %w(assets javascript)
           paths.add "app/assets",          glob: "*"
           paths.add "app/controllers",     eager_load: true
           paths.add "app/channels",        eager_load: true, glob: "**/*_channel.rb"
@@ -56,6 +57,7 @@ module Rails
           paths.add "config/environments", glob: "#{Rails.env}.rb"
           paths.add "config/initializers", glob: "**/*.rb"
           paths.add "config/locales",      glob: "*.{rb,yml}"
+          paths.add "config/routes.rb"
 
           paths.add "db"
           paths.add "db/migrate"

@@ -172,14 +172,9 @@ module Rails
     def key_generator
       # number of iterations selected based on consultation with the google security
       # team. Details at https://github.com/rails/rails/pull/6952#issuecomment-7661220
-      @caching_key_generator ||=
-        if secret_key_base
-          ActiveSupport::CachingKeyGenerator.new(
-            ActiveSupport::KeyGenerator.new(secret_key_base, iterations: 1000)
-          )
-        else
-          ActiveSupport::LegacyKeyGenerator.new(secrets.secret_token)
-        end
+      @caching_key_generator ||= ActiveSupport::CachingKeyGenerator.new(
+        ActiveSupport::KeyGenerator.new(secret_key_base, iterations: 1000)
+      )
     end
 
     # Returns a message verifier object.
@@ -232,10 +227,12 @@ module Rails
 
       if yaml.exist?
         require "erb"
-        require "active_support/ordered_options"
+        config = YAML.load(ERB.new(yaml.read).result) || {}
+        config = (config["shared"] || {}).merge(config[env] || {})
 
-        config = (YAML.load(ERB.new(yaml.read).result) || {})[env] || {}
-        ActiveSupport::InheritableOptions.new(config.deep_symbolize_keys)
+        ActiveSupport::OrderedOptions.new.tap do |config_as_ordered_options|
+          config_as_ordered_options.update(config.deep_symbolize_keys)
+        end
       else
         raise "Could not load configuration. No such file - #{yaml}"
       end
@@ -252,7 +249,6 @@ module Rails
         super.merge(
           "action_dispatch.parameter_filter" => config.filter_parameters,
           "action_dispatch.redirect_filter" => config.filter_redirect,
-          "action_dispatch.secret_token" => secrets.secret_token,
           "action_dispatch.secret_key_base" => secret_key_base,
           "action_dispatch.show_exceptions" => config.action_dispatch.show_exceptions,
           "action_dispatch.show_detailed_exceptions" => config.consider_all_requests_local,
@@ -402,14 +398,6 @@ module Rails
 
         # Fallback to config.secret_key_base if secrets.secret_key_base isn't set
         secrets.secret_key_base ||= config.secret_key_base
-        # Fallback to config.secret_token if secrets.secret_token isn't set
-        secrets.secret_token ||= config.secret_token
-
-        if secrets.secret_token.present?
-          ActiveSupport::Deprecation.warn(
-            "`secrets.secret_token` is deprecated in favor of `secret_key_base` and will be removed in Rails 6.0."
-          )
-        end
 
         secrets
       end
@@ -585,7 +573,7 @@ module Rails
         secret_key_base
       elsif secret_key_base
         raise ArgumentError, "`secret_key_base` for #{Rails.env} environment must be a type of String`"
-      elsif secrets.secret_token.blank?
+      else
         raise ArgumentError, "Missing `secret_key_base` for '#{Rails.env}' environment, set this string with `rails credentials:edit`"
       end
     end

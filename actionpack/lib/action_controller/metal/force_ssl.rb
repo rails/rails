@@ -13,7 +13,7 @@ module ActionController
 
     ACTION_OPTIONS = [:only, :except, :if, :unless]
     URL_OPTIONS = [:protocol, :host, :domain, :subdomain, :port, :path]
-    REDIRECT_OPTIONS = [:status, :flash, :alert, :notice]
+    REDIRECT_OPTIONS = [:status, :flash, :alert, :notice, :allow_other_host]
 
     module ClassMethods # :nodoc:
       def force_ssl(options = {})
@@ -40,7 +40,8 @@ module ActionController
           protocol: "https://",
           host: request.host,
           path: request.fullpath,
-          status: :moved_permanently
+          status: :moved_permanently,
+          allow_other_host: true,
         }
 
         if host_or_options.is_a?(Hash)

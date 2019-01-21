@@ -272,7 +272,7 @@ if current_adapter?(:Mysql2Adapter)
 
       def test_db_retrieves_collation
         ActiveRecord::Base.stub(:connection, @connection) do
-          assert_called_with(@connection, :collation) do
+          assert_called(@connection, :collation) do
             ActiveRecord::Tasks::DatabaseTasks.collation @configuration
           end
         end

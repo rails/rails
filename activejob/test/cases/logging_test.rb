@@ -169,36 +169,34 @@ class LoggingTest < ActiveSupport::TestCase
   def test_enqueue_retry_logging
     perform_enqueued_jobs do
       RetryJob.perform_later "DefaultsError", 2
-      assert_match(/Retrying RetryJob in \d+ seconds, due to a DefaultsError\. The original exception was nil\./, @logger.messages)
+      assert_match(/Retrying RetryJob in 3 seconds, due to a DefaultsError\./, @logger.messages)
     end
   end
 
   def test_enqueue_retry_logging_on_retry_job
     perform_enqueued_jobs { RescueJob.perform_later "david" }
-    assert_match(/Retrying RescueJob in nil seconds, due to a nil\. The original exception was nil\./, @logger.messages)
+    assert_match(/Retrying RescueJob in 0 seconds\./, @logger.messages)
   end
 
   def test_retry_stopped_logging
     perform_enqueued_jobs do
       RetryJob.perform_later "CustomCatchError", 6
-      assert_match(/Stopped retrying RetryJob due to a CustomCatchError, which reoccurred on \d+ attempts\. The original exception was #<CustomCatchError: CustomCatchError>\./, @logger.messages)
+      assert_match(/Stopped retrying RetryJob due to a CustomCatchError, which reoccurred on \d+ attempts\./, @logger.messages)
     end
   end
 
   def test_retry_stopped_logging_without_block
     perform_enqueued_jobs do
-      begin
-        RetryJob.perform_later "DefaultsError", 6
-      rescue DefaultsError
-        assert_match(/Stopped retrying RetryJob due to a DefaultsError, which reoccurred on \d+ attempts\. The original exception was #<DefaultsError: DefaultsError>\./, @logger.messages)
-      end
+      RetryJob.perform_later "DefaultsError", 6
+    rescue DefaultsError
+      assert_match(/Stopped retrying RetryJob due to a DefaultsError, which reoccurred on \d+ attempts\./, @logger.messages)
     end
   end
 
   def test_discard_logging
     perform_enqueued_jobs do
       RetryJob.perform_later "DiscardableError", 2
-      assert_match(/Discarded RetryJob due to a DiscardableError\. The original exception was nil\./, @logger.messages)
+      assert_match(/Discarded RetryJob due to a DiscardableError\./, @logger.messages)
     end
   end
 end

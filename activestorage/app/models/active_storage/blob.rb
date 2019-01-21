@@ -40,7 +40,7 @@ class ActiveStorage::Blob < ActiveRecord::Base
   end
 
   class << self
-    # You can used the signed ID of a blob to refer to it on the client side without fear of tampering.
+    # You can use the signed ID of a blob to refer to it on the client side without fear of tampering.
     # This is particularly helpful for direct uploads where the client-side needs to refer to the blob
     # that was created ahead of the upload itself on form submission.
     #
@@ -79,6 +79,15 @@ class ActiveStorage::Blob < ActiveRecord::Base
     def create_before_direct_upload!(filename:, byte_size:, checksum:, content_type: nil, metadata: nil)
       create! filename: filename, byte_size: byte_size, checksum: checksum, content_type: content_type, metadata: metadata
     end
+
+    # To prevent problems with case-insensitive filesystems, especially in combination
+    # with databases which treat indices as case-sensitive, all blob keys generated are going
+    # to only contain the base-36 character alphabet and will therefore be lowercase. To maintain
+    # the same or higher amount of entropy as in the base-58 encoding used by `has_secure_token`
+    # the number of bytes used is increased to 28 from the standard 24
+    def generate_unique_secure_token
+      SecureRandom.base36(28)
+    end
   end
 
   # Returns a signed ID for this blob that's suitable for reference on the client-side without fear of tampering.
@@ -87,9 +96,10 @@ class ActiveStorage::Blob < ActiveRecord::Base
     ActiveStorage.verifier.generate(id, purpose: :blob_id)
   end
 
-  # Returns the key pointing to the file on the service that's associated with this blob. The key is in the
-  # standard secure-token format from Rails. So it'll look like: XTAPjJCJiuDrLk3TmwyJGpUo. This key is not intended
-  # to be revealed directly to the user. Always refer to blobs using the signed_id or a verified form of the key.
+  # Returns the key pointing to the file on the service that's associated with this blob. The key is the
+  # secure-token format from Rails in lower case. So it'll look like: xtapjjcjiudrlk3tmwyjgpuobabd.
+  # This key is not intended to be revealed directly to the user.
+  # Always refer to blobs using the signed_id or a verified form of the key.
   def key
     # We can't wait until the record is first saved to have a key for it
     self[:key] ||= self.class.generate_unique_secure_token
@@ -130,8 +140,8 @@ class ActiveStorage::Blob < ActiveRecord::Base
   def service_url(expires_in: ActiveStorage.service_urls_expire_in, disposition: :inline, filename: nil, **options)
     filename = ActiveStorage::Filename.wrap(filename || self.filename)
 
-    service.url key, expires_in: expires_in, filename: filename, content_type: content_type,
-      disposition: forcibly_serve_as_binary? ? :attachment : disposition, **options
+    service.url key, expires_in: expires_in, filename: filename, content_type: content_type_for_service_url,
+      disposition: forced_disposition_for_service_url || disposition, **options
   end
 
   # Returns a URL that can be used to directly upload a file for this blob on the service. This URL is intended to be
@@ -170,7 +180,7 @@ class ActiveStorage::Blob < ActiveRecord::Base
   end
 
   def upload_without_unfurling(io) #:nodoc:
-    service.upload key, io, checksum: checksum
+    service.upload key, io, checksum: checksum, **service_metadata
   end
 
   # Downloads the file associated with this blob. If no block is given, the entire file is read into memory and returned.
@@ -237,6 +247,30 @@ class ActiveStorage::Blob < ActiveRecord::Base
 
     def forcibly_serve_as_binary?
       ActiveStorage.content_types_to_serve_as_binary.include?(content_type)
+    end
+
+    def allowed_inline?
+      ActiveStorage.content_types_allowed_inline.include?(content_type)
+    end
+
+    def content_type_for_service_url
+      forcibly_serve_as_binary? ? ActiveStorage.binary_content_type : content_type
+    end
+
+    def forced_disposition_for_service_url
+      if forcibly_serve_as_binary? || !allowed_inline?
+        :attachment
+      end
+    end
+
+    def service_metadata
+      if forcibly_serve_as_binary?
+        { content_type: ActiveStorage.binary_content_type, disposition: :attachment, filename: filename }
+      elsif !allowed_inline?
+        { content_type: content_type, disposition: :attachment, filename: filename }
+      else
+        { content_type: content_type }
+      end
     end
 
     ActiveSupport.run_load_hooks(:active_storage_blob, self)

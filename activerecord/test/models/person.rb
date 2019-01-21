@@ -62,6 +62,11 @@ class PersonWithDependentNullifyJobs < ActiveRecord::Base
   has_many :jobs, source: :job, through: :references, dependent: :nullify
 end
 
+class PersonWithPolymorphicDependentNullifyComments < ActiveRecord::Base
+  self.table_name = "people"
+  has_many :comments, as: :author, dependent: :nullify
+end
+
 class LoosePerson < ActiveRecord::Base
   self.table_name = "people"
   self.abstract_class = true

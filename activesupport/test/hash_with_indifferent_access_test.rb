@@ -57,6 +57,13 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
     assert_equal @symbols, @mixed.with_indifferent_access.symbolize_keys
   end
 
+  def test_to_options_for_hash_with_indifferent_access
+    assert_instance_of Hash, @symbols.with_indifferent_access.to_options
+    assert_equal @symbols, @symbols.with_indifferent_access.to_options
+    assert_equal @symbols, @strings.with_indifferent_access.to_options
+    assert_equal @symbols, @mixed.with_indifferent_access.to_options
+  end
+
   def test_deep_symbolize_keys_for_hash_with_indifferent_access
     assert_instance_of Hash, @nested_symbols.with_indifferent_access.deep_symbolize_keys
     assert_equal @nested_symbols, @nested_symbols.with_indifferent_access.deep_symbolize_keys

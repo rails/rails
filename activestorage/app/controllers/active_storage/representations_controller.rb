@@ -9,6 +9,6 @@ class ActiveStorage::RepresentationsController < ActiveStorage::BaseController
 
   def show
     expires_in ActiveStorage.service_urls_expire_in
-    redirect_to @blob.representation(params[:variation_key]).processed.service_url(disposition: params[:disposition])
+    redirect_to @blob.representation(params[:variation_key]).processed.service_url(disposition: params[:disposition]), allow_other_host: true
   end
 end

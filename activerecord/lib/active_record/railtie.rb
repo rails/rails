@@ -140,7 +140,19 @@ end_error
     initializer "active_record.define_attribute_methods" do |app|
       config.after_initialize do
         ActiveSupport.on_load(:active_record) do
-          descendants.each(&:define_attribute_methods) if app.config.eager_load
+          if app.config.eager_load
+            descendants.each do |model|
+              # SchemaMigration and InternalMetadata both override `table_exists?`
+              # to bypass the schema cache, so skip them to avoid the extra queries.
+              next if model._internal?
+
+              # If there's no connection yet, or the schema cache doesn't have the columns
+              # hash for the model cached, `define_attribute_methods` would trigger a query.
+              next unless model.connected? && model.connection.schema_cache.columns_hash?(model.table_name)
+
+              model.define_attribute_methods
+            end
+          end
         end
       end
     end
@@ -155,8 +167,18 @@ end_error
 
     initializer "active_record.set_configs" do |app|
       ActiveSupport.on_load(:active_record) do
-        configs = app.config.active_record.dup
+        configs = app.config.active_record
+
+        represent_boolean_as_integer = configs.sqlite3.delete(:represent_boolean_as_integer)
+
+        unless represent_boolean_as_integer.nil?
+          ActiveSupport.on_load(:active_record_sqlite3adapter) do
+            ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer = represent_boolean_as_integer
+          end
+        end
+
         configs.delete(:sqlite3)
+
         configs.each do |k, v|
           send "#{k}=", v
         end
@@ -168,21 +190,7 @@ end_error
     initializer "active_record.initialize_database" do
       ActiveSupport.on_load(:active_record) do
         self.configurations = Rails.application.config.database_configuration
-
-        begin
-          establish_connection
-        rescue ActiveRecord::NoDatabaseError
-          warn <<-end_warning
-Oops - You have a database configured, but it doesn't exist yet!
-
-Here's how to get started:
-
-  1. Configure your database in config/database.yml.
-  2. Run `rails db:create` to create the database.
-  3. Run `rails db:setup` to load your database schema.
-end_warning
-          raise
-        end
+        establish_connection
       end
     end
 
@@ -234,35 +242,6 @@ end_warning
 
           clear_active_connections!
           flush_idle_connections!
-        end
-      end
-    end
-
-    initializer "active_record.check_represent_sqlite3_boolean_as_integer" do
-      config.after_initialize do
-        ActiveSupport.on_load(:active_record_sqlite3adapter) do
-          represent_boolean_as_integer = Rails.application.config.active_record.sqlite3.delete(:represent_boolean_as_integer)
-          unless represent_boolean_as_integer.nil?
-            ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer = represent_boolean_as_integer
-          end
-
-          unless ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer
-            ActiveSupport::Deprecation.warn <<-MSG
-Leaving `ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer`
-set to false is deprecated. SQLite databases have used 't' and 'f' to serialize
-boolean values and must have old data converted to 1 and 0 (its native boolean
-serialization) before setting this flag to true. Conversion can be accomplished
-by setting up a rake task which runs
-
-  ExampleModel.where("boolean_column = 't'").update_all(boolean_column: 1)
-  ExampleModel.where("boolean_column = 'f'").update_all(boolean_column: 0)
-
-for all models and all boolean columns, after which the flag must be set to
-true by adding the following to your application.rb file:
-
-  Rails.application.config.active_record.sqlite3.represent_boolean_as_integer = true
-MSG
-          end
         end
       end
     end

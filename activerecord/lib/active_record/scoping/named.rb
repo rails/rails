@@ -179,18 +179,20 @@ module ActiveRecord
           extension = Module.new(&block) if block
 
           if body.respond_to?(:to_proc)
-            singleton_class.send(:define_method, name) do |*args|
+            singleton_class.define_method(name) do |*args|
               scope = all._exec_scope(*args, &body)
               scope = scope.extending(extension) if extension
               scope
             end
           else
-            singleton_class.send(:define_method, name) do |*args|
+            singleton_class.define_method(name) do |*args|
               scope = body.call(*args) || all
               scope = scope.extending(extension) if extension
               scope
             end
           end
+
+          generate_relation_method(name)
         end
 
         private

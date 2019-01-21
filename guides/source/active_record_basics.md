@@ -82,9 +82,9 @@ of two or more words, the model class name should follow the Ruby conventions,
 using the CamelCase form, while the table name must contain the words separated
 by underscores. Examples:
 
-* Database Table - Plural with underscores separating words (e.g., `book_clubs`).
 * Model Class - Singular with the first letter of each word capitalized (e.g.,
 `BookClub`).
+* Database Table - Plural with underscores separating words (e.g., `book_clubs`).
 
 | Model / Class    | Table / Schema |
 | ---------------- | -------------- |
@@ -105,9 +105,9 @@ depending on the purpose of these columns.
   fields that Active Record will look for when you create associations between
   your models.
 * **Primary keys** - By default, Active Record will use an integer column named
-  `id` as the table's primary key. When using [Active Record
-  Migrations](active_record_migrations.html) to create your tables, this column will be
-  automatically created.
+  `id` as the table's primary key (`bigint` for Postgres and MYSQL, `integer`
+  for SQLite). When using [Active Record Migrations](active_record_migrations.html)
+  to create your tables, this column will be automatically created.
 
 There are also some optional column names that will add additional features
 to Active Record instances:
@@ -201,6 +201,8 @@ class Product < ApplicationRecord
   self.primary_key = "product_id"
 end
 ```
+
+NOTE: Active Record does not support using non-primary key columns named `id`.
 
 CRUD: Reading and Writing Data
 ------------------------------

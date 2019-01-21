@@ -8,7 +8,6 @@ module Rails
       def initialize(*) # :nodoc:
         super
         @indentation = 0
-        @after_bundle_callbacks = []
       end
 
       # Adds an entry into +Gemfile+ for the supplied gem.
@@ -221,9 +220,11 @@ module Rails
       #   generate(:authenticated, "user session")
       def generate(what, *args)
         log :generate, what
+
+        options = args.extract_options!
         argument = args.flat_map(&:to_s).join(" ")
 
-        in_root { run_ruby_script("bin/rails generate #{what} #{argument}", verbose: false) }
+        execute_command :rails, "generate #{what} #{argument}", options
       end
 
       # Runs the supplied rake task (invoked with 'rake ...')
@@ -246,15 +247,6 @@ module Rails
         execute_command :rails, command, options
       end
 
-      # Just run the capify command in root
-      #
-      #   capify!
-      def capify!
-        ActiveSupport::Deprecation.warn("`capify!` is deprecated and will be removed in the next version of Rails.")
-        log :capify, ""
-        in_root { run("#{extify(:capify)} .", verbose: false) }
-      end
-
       # Make an entry in Rails routing file <tt>config/routes.rb</tt>
       #
       #   route "root 'welcome#index'"
@@ -272,16 +264,6 @@ module Rails
       #   readme "README"
       def readme(path)
         log File.read(find_in_source_paths(path))
-      end
-
-      # Registers a callback to be executed after bundle and spring binstubs
-      # have run.
-      #
-      #   after_bundle do
-      #     git add: '.'
-      #   end
-      def after_bundle(&block)
-        @after_bundle_callbacks << block
       end
 
       private
@@ -307,6 +289,7 @@ module Rails
           config = { verbose: false }
 
           config[:capture] = options[:capture] if options[:capture]
+          config[:abort_on_failure] = options[:abort_on_failure] if options[:abort_on_failure]
 
           in_root { run("#{sudo}#{extify(executor)} #{command} RAILS_ENV=#{env}", config) }
         end

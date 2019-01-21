@@ -175,6 +175,13 @@ module ActiveRecord
       class TableDefinition < ActiveRecord::ConnectionAdapters::TableDefinition
         include ColumnMethods
 
+        attr_reader :unlogged
+
+        def initialize(*)
+          super
+          @unlogged = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.create_unlogged_tables
+        end
+
         private
           def integer_like_primary_key_type(type, options)
             if type == :bigint || options[:limit] == 8

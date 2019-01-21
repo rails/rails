@@ -95,7 +95,7 @@ module Rails
     def bin_when_updating
       bin
 
-      if options[:skip_yarn]
+      if options[:skip_javascript]
         remove_file "bin/yarn"
       end
     end
@@ -213,6 +213,7 @@ module Rails
       empty_directory_with_keep_file "test/helpers"
       empty_directory_with_keep_file "test/integration"
 
+      template "test/channels/application_cable/connection_test.rb"
       template "test/test_helper.rb"
     end
 
@@ -241,7 +242,6 @@ module Rails
     # We need to store the RAILS_DEV_PATH in a constant, otherwise the path
     # can change in Ruby 1.8.7 when we FileUtils.cd.
     RAILS_DEV_PATH = File.expand_path("../../../../../..", __dir__)
-    RESERVED_NAMES = %w[application destroy plugin runner test]
 
     class AppGenerator < AppBase # :nodoc:
       WEBPACKS = %w( react vue angular elm stimulus )
@@ -258,21 +258,26 @@ module Rails
       class_option :skip_bundle, type: :boolean, aliases: "-B", default: false,
                                  desc: "Don't run bundle install"
 
-      class_option :webpack, type: :string, default: nil,
-                             desc: "Preconfigure Webpack with a particular framework (options: #{WEBPACKS.join('/')})"
+      class_option :webpack, type: :string, aliases: "--webpacker", default: nil,
+                             desc: "Preconfigure Webpack with a particular framework (options: #{WEBPACKS.join(", ")})"
+
+      class_option :skip_webpack_install, type: :boolean, default: false,
+                                          desc: "Don't run Webpack install"
 
       def initialize(*args)
         super
 
         if !options[:skip_active_record] && !DATABASES.include?(options[:database])
-          raise Error, "Invalid value for --database option. Supported for preconfiguration are: #{DATABASES.join(", ")}."
+          raise Error, "Invalid value for --database option. Supported preconfigurations are: #{DATABASES.join(", ")}."
         end
 
         # Force sprockets and yarn to be skipped when generating API only apps.
         # Can't modify options hash as it's frozen by default.
         if options[:api]
-          self.options = options.merge(skip_sprockets: true, skip_javascript: true, skip_yarn: true).freeze
+          self.options = options.merge(skip_sprockets: true, skip_javascript: true).freeze
         end
+
+        @after_bundle_callbacks = []
       end
 
       public_task :set_default_accessors!
@@ -286,7 +291,7 @@ module Rails
         build(:gitignore)   unless options[:skip_git]
         build(:gemfile)     unless options[:skip_gemfile]
         build(:version_control)
-        build(:package_json) unless options[:skip_yarn]
+        build(:package_json) unless options[:skip_javascript]
       end
 
       def create_app_files
@@ -301,6 +306,13 @@ module Rails
         build(:bin_when_updating)
       end
       remove_task :update_bin_files
+
+      def update_active_storage
+        unless skip_active_storage?
+          rails_command "active_storage:update"
+        end
+      end
+      remove_task :update_active_storage
 
       def create_config_files
         build(:config)
@@ -435,9 +447,9 @@ module Rails
 
       def delete_action_cable_files_skipping_action_cable
         if options[:skip_action_cable]
-          remove_file "app/javascript/channels/consumer.js"
           remove_dir "app/javascript/channels"
           remove_dir "app/channels"
+          remove_dir "test/channels"
         end
       end
 
@@ -460,8 +472,8 @@ module Rails
         end
       end
 
-      def delete_bin_yarn_if_skip_yarn_option
-        remove_file "bin/yarn" if options[:skip_yarn]
+      def delete_bin_yarn
+        remove_file "bin/yarn" if options[:skip_javascript]
       end
 
       def finish_template
@@ -487,58 +499,14 @@ module Rails
         create_file(*args, &block)
       end
 
-      def app_name
-        @app_name ||= original_app_name.tr("-", "_")
-      end
-
-      def original_app_name
-        @original_app_name ||= (defined_app_const_base? ? defined_app_name : File.basename(destination_root)).tr('\\', "").tr(". ", "_")
-      end
-
-      def defined_app_name
-        defined_app_const_base.underscore
-      end
-
-      def defined_app_const_base
-        Rails.respond_to?(:application) && defined?(Rails::Application) &&
-          Rails.application.is_a?(Rails::Application) && Rails.application.class.name.sub(/::Application$/, "")
-      end
-
-      alias :defined_app_const_base? :defined_app_const_base
-
-      def app_const_base
-        @app_const_base ||= defined_app_const_base || app_name.gsub(/\W/, "_").squeeze("_").camelize
-      end
-      alias :camelized :app_const_base
-
-      def app_const
-        @app_const ||= "#{app_const_base}::Application"
-      end
-
-      def valid_const?
-        if /^\d/.match?(app_const)
-          raise Error, "Invalid application name #{original_app_name}. Please give a name which does not start with numbers."
-        elsif RESERVED_NAMES.include?(original_app_name)
-          raise Error, "Invalid application name #{original_app_name}. Please give a " \
-                       "name which does not match one of the reserved rails " \
-                       "words: #{RESERVED_NAMES.join(", ")}"
-        elsif Object.const_defined?(app_const_base)
-          raise Error, "Invalid application name #{original_app_name}, constant #{app_const_base} is already in use. Please choose another application name."
-        end
-      end
-
-      def mysql_socket
-        @mysql_socket ||= [
-          "/tmp/mysql.sock",                        # default
-          "/var/run/mysqld/mysqld.sock",            # debian/gentoo
-          "/var/tmp/mysql.sock",                    # freebsd
-          "/var/lib/mysql/mysql.sock",              # fedora
-          "/opt/local/lib/mysql/mysql.sock",        # fedora
-          "/opt/local/var/run/mysqld/mysqld.sock",  # mac + darwinports + mysql
-          "/opt/local/var/run/mysql4/mysqld.sock",  # mac + darwinports + mysql4
-          "/opt/local/var/run/mysql5/mysqld.sock",  # mac + darwinports + mysql5
-          "/opt/lampp/var/mysql/mysql.sock"         # xampp for linux
-        ].find { |f| File.exist?(f) } unless Gem.win_platform?
+      # Registers a callback to be executed after bundle and spring binstubs
+      # have run.
+      #
+      #   after_bundle do
+      #     git add: '.'
+      #   end
+      def after_bundle(&block) # :doc:
+        @after_bundle_callbacks << block
       end
 
       def get_builder_class

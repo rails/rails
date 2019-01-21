@@ -155,6 +155,43 @@ module Arel
         end
       end
 
+      describe "Nodes::IsNotDistinctFrom" do
+        it "should construct a valid generic SQL statement" do
+          test = Table.new(:users)[:name].is_not_distinct_from "Aaron Patterson"
+          compile(test).must_be_like %{
+            CASE WHEN "users"."name" = 'Aaron Patterson' OR ("users"."name" IS NULL AND 'Aaron Patterson' IS NULL) THEN 0 ELSE 1 END = 0
+          }
+        end
+
+        it "should handle column names on both sides" do
+          test = Table.new(:users)[:first_name].is_not_distinct_from Table.new(:users)[:last_name]
+          compile(test).must_be_like %{
+            CASE WHEN "users"."first_name" = "users"."last_name" OR ("users"."first_name" IS NULL AND "users"."last_name" IS NULL) THEN 0 ELSE 1 END = 0
+          }
+        end
+
+        it "should handle nil" do
+          val = Nodes.build_quoted(nil, @table[:active])
+          sql = compile Nodes::IsNotDistinctFrom.new(@table[:name], val)
+          sql.must_be_like %{ "users"."name" IS NULL }
+        end
+      end
+
+      describe "Nodes::IsDistinctFrom" do
+        it "should handle column names on both sides" do
+          test = Table.new(:users)[:first_name].is_distinct_from Table.new(:users)[:last_name]
+          compile(test).must_be_like %{
+            CASE WHEN "users"."first_name" = "users"."last_name" OR ("users"."first_name" IS NULL AND "users"."last_name" IS NULL) THEN 0 ELSE 1 END = 1
+          }
+        end
+
+        it "should handle nil" do
+          val = Nodes.build_quoted(nil, @table[:active])
+          sql = compile Nodes::IsDistinctFrom.new(@table[:name], val)
+          sql.must_be_like %{ "users"."name" IS NOT NULL }
+        end
+      end
+
       it "should visit string subclass" do
         [
           Class.new(String).new(":'("),
@@ -477,6 +514,28 @@ module Arel
         it "should handle arbitrary operators" do
           node = Arel::Nodes::UnaryOperation.new("!", Arel::Attributes::String.new(Table.new(:products), :active))
           compile(node).must_equal %( ! "products"."active")
+        end
+      end
+
+      describe "Nodes::Union" do
+        it "squashes parenthesis on multiple unions" do
+          subnode = Nodes::Union.new Arel.sql("left"), Arel.sql("right")
+          node = Nodes::Union.new subnode, Arel.sql("topright")
+          assert_equal("( left UNION right UNION topright )", compile(node))
+          subnode = Nodes::Union.new Arel.sql("left"), Arel.sql("right")
+          node = Nodes::Union.new Arel.sql("topleft"), subnode
+          assert_equal("( topleft UNION left UNION right )", compile(node))
+        end
+      end
+
+      describe "Nodes::UnionAll" do
+        it "squashes parenthesis on multiple union alls" do
+          subnode = Nodes::UnionAll.new Arel.sql("left"), Arel.sql("right")
+          node = Nodes::UnionAll.new subnode, Arel.sql("topright")
+          assert_equal("( left UNION ALL right UNION ALL topright )", compile(node))
+          subnode = Nodes::UnionAll.new Arel.sql("left"), Arel.sql("right")
+          node = Nodes::UnionAll.new Arel.sql("topleft"), subnode
+          assert_equal("( topleft UNION ALL left UNION ALL right )", compile(node))
         end
       end
 

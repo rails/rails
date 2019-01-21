@@ -33,14 +33,12 @@ module TestCaseHelpers
     end
 
     def wait_for_jobs_to_finish_for(seconds = 60)
-      begin
-        Timeout.timeout(seconds) do
-          while !job_executed do
-            sleep 0.25
-          end
+      Timeout.timeout(seconds) do
+        while !job_executed do
+          sleep 0.25
         end
-      rescue Timeout::Error
       end
+    rescue Timeout::Error
     end
 
     def job_file(id)

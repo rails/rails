@@ -5,6 +5,7 @@ require "active_job/arguments"
 require "models/person"
 require "active_support/core_ext/hash/indifferent_access"
 require "jobs/kwargs_job"
+require "support/stubs/strong_parameters"
 
 class ArgumentSerializationTest < ActiveSupport::TestCase
   setup do
@@ -40,6 +41,10 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
     assert_arguments_roundtrip [@person]
   end
 
+  test "should keep Global IDs strings as they are" do
+    assert_arguments_roundtrip [@person.to_gid.to_s]
+  end
+
   test "should dive deep into arrays and hashes" do
     assert_arguments_roundtrip [3, [@person]]
     assert_arguments_roundtrip [{ "a" => @person }]
@@ -47,6 +52,15 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
 
   test "should maintain string and symbol keys" do
     assert_arguments_roundtrip([a: 1, "b" => 2])
+  end
+
+  test "serialize a ActionController::Parameters" do
+    parameters = Parameters.new(a: 1)
+
+    assert_equal(
+      { "a" => 1, "_aj_hash_with_indifferent_access" => true },
+      ActiveJob::Arguments.serialize([parameters]).first
+    )
   end
 
   test "serialize a hash" do
@@ -73,6 +87,7 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
     string_key = { "a" => 1, "_aj_symbol_keys" => [] }
     another_string_key = { "a" => 1 }
     indifferent_access = { "a" => 1, "_aj_hash_with_indifferent_access" => true }
+    indifferent_access_symbol_key = symbol_key.with_indifferent_access
 
     assert_equal(
       { a: 1 },
@@ -89,6 +104,10 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
     assert_equal(
       { "a" => 1 },
       ActiveJob::Arguments.deserialize([indifferent_access]).first
+    )
+    assert_equal(
+      { a: 1 },
+      ActiveJob::Arguments.deserialize([indifferent_access_symbol_key]).first
     )
   end
 

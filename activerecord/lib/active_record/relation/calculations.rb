@@ -41,15 +41,13 @@ module ActiveRecord
     def count(column_name = nil)
       if block_given?
         unless column_name.nil?
-          ActiveSupport::Deprecation.warn \
-            "When `count' is called with a block, it ignores other arguments. " \
-            "This behavior is now deprecated and will result in an ArgumentError in Rails 6.0."
+          raise ArgumentError, "Column name argument is not supported when a block is passed."
         end
 
-        return super()
+        super()
+      else
+        calculate(:count, column_name)
       end
-
-      calculate(:count, column_name)
     end
 
     # Calculates the average value on a given column. Returns +nil+ if there's
@@ -86,15 +84,13 @@ module ActiveRecord
     def sum(column_name = nil)
       if block_given?
         unless column_name.nil?
-          ActiveSupport::Deprecation.warn \
-            "When `sum' is called with a block, it ignores other arguments. " \
-            "This behavior is now deprecated and will result in an ArgumentError in Rails 6.0."
+          raise ArgumentError, "Column name argument is not supported when a block is passed."
         end
 
-        return super()
+        super()
+      else
+        calculate(:sum, column_name)
       end
-
-      calculate(:sum, column_name)
     end
 
     # This calculates aggregate values in the given column. Methods for #count, #sum, #average,
@@ -245,7 +241,7 @@ module ActiveRecord
             if distinct && (group_values.any? || select_values.empty? && order_values.empty?)
               column_name = primary_key
             end
-          elsif /\s*DISTINCT[\s(]+/i.match?(column_name.to_s)
+          elsif column_name.is_a?(::String) && /\bDISTINCT[\s(]/i.match?(column_name)
             distinct = nil
           end
         end
@@ -401,7 +397,7 @@ module ActiveRecord
         case operation
         when "count"   then value.to_i
         when "sum"     then type.deserialize(value || 0)
-        when "average" then value.respond_to?(:to_d) ? value.to_d : value
+        when "average" then value&.respond_to?(:to_d) ? value.to_d : value
         else type.deserialize(value)
         end
       end
