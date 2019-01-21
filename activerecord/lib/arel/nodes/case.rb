@@ -3,6 +3,8 @@
 module Arel # :nodoc: all
   module Nodes
     class Case < Arel::Nodes::Node
+      include Arel::AliasPredication
+
       attr_accessor :case, :conditions, :default
 
       def initialize(expression = nil, default = nil)
