@@ -82,11 +82,16 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
     assert_equal Date.new(2005, 2, 21), Date.new(2005, 2, 21).to_date
   end
 
-  def test_change
+  def test_change_of_date
     assert_equal Date.new(2005, 2, 21), Date.new(2005, 2, 11).change(day: 21)
     assert_equal Date.new(2007, 5, 11), Date.new(2005, 2, 11).change(year: 2007, month: 5)
     assert_equal Date.new(2006, 2, 22), Date.new(2005, 2, 22).change(year: 2006)
     assert_equal Date.new(2005, 6, 22), Date.new(2005, 2, 22).change(month: 6)
+  end
+
+  def test_change_of_time
+    assert_equal DateTime.new(2005, 6, 22, 3, 12, 9), DateTime.new(2005, 6, 22, 0, 0, 0).change(hour: 3, min: 12, sec: 9)
+    assert_equal DateTime.new(2005, 6, 22, 0, 23, 8), DateTime.new(2005, 6, 22, 0, 0, 0).change(minute: 23, second: 8)
   end
 
   def test_sunday
