@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "action_dispatch"
+require "active_support/rescuable"
 
 module ActionCable
   module Connection
@@ -46,6 +47,7 @@ module ActionCable
       include Identification
       include InternalChannel
       include Authorization
+      include ActiveSupport::Rescuable
 
       attr_reader :server, :env, :subscriptions, :logger, :worker_pool, :protocol
       delegate :event_loop, :pubsub, to: :server
@@ -168,7 +170,7 @@ module ActionCable
 
         def handle_open
           @protocol = websocket.protocol
-          connect if respond_to?(:connect)
+          rescuably_envoke(:connect) # connect if respond_to?(:connect)
           subscribe_to_internal_channel
           send_welcome_message
 
@@ -186,7 +188,14 @@ module ActionCable
           subscriptions.unsubscribe_from_all
           unsubscribe_from_internal_channel
 
-          disconnect if respond_to?(:disconnect)
+          rescuably_envoke(:disconnect) # disconnect if respond_to?(:disconnect)
+        end
+
+        def rescuably_envoke(method)
+          send(method) if respond_to?(method)
+
+        rescue Exception => exception
+          rescue_with_handler(exception) || raise
         end
 
         def send_welcome_message
