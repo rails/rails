@@ -35,7 +35,7 @@ application. Any Rack compliant web server should be using
 
 ### `rails server`
 
-`rails server` does the basic job of creating a `Rack::Server` object and starting the webserver.
+`rails server` does the basic job of creating a `Rack::Server` object and starting the web server.
 
 Here's how `rails server` creates an instance of `Rack::Server`
 

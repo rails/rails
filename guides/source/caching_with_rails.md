@@ -51,10 +51,10 @@ For instance, it will not impact low-level caching, that we address
 ### Page Caching
 
 Page caching is a Rails mechanism which allows the request for a generated page
-to be fulfilled by the webserver (i.e. Apache or NGINX) without having to go
+to be fulfilled by the web server (i.e. Apache or NGINX) without having to go
 through the entire Rails stack. While this is super fast it can't be applied to
 every situation (such as pages that need authentication). Also, because the
-webserver is serving a file directly from the filesystem you will need to
+web server is serving a file directly from the filesystem you will need to
 implement cache expiration.
 
 INFO: Page Caching has been removed from Rails 4. See the [actionpack-page_caching gem](https://github.com/rails/actionpack-page_caching).

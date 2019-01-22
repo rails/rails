@@ -62,7 +62,7 @@ module ActionController
         assert_nil @response.headers["Content-Length"]
       end
 
-      def test_headers_cannot_be_written_after_webserver_reads
+      def test_headers_cannot_be_written_after_web_server_reads
         @response.stream.write "omg"
         latch = Concurrent::CountDownLatch.new
 
