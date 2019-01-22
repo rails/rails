@@ -7,7 +7,7 @@ module ActionCable
     module Broadcasting
       extend ActiveSupport::Concern
 
-      delegate :broadcasting_for, to: :class
+      delegate :broadcasting_for, :broadcast_to, to: :class
 
       module ClassMethods
         # Broadcast a hash to a unique broadcasting for this <tt>model</tt> in this channel.
