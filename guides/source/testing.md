@@ -1806,11 +1806,11 @@ require "test_helper"
 
 class WebNotificationsChannelTest < ActionCable::Channel::TestCase
   test "subscribes and stream for user" do
-    stub_connection current_user: users[:john]
+    stub_connection current_user: users(:john)
 
     subscribe
 
-    assert_has_stream_for users[:john]
+    assert_has_stream_for users(:john)
   end
 end
 ```
@@ -1855,7 +1855,7 @@ class ChatRelayJobTest < ActiveJob::TestCase
   include ActionCable::TestHelper
 
   test "broadcast message to room" do
-    room = rooms[:all]
+    room = rooms(:all)
 
     assert_broadcast_on(ChatChannel.broadcasting_for(room), text: "Hi!") do
       ChatRelayJob.perform_now(room, "Hi!")
