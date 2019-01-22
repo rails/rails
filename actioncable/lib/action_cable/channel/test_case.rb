@@ -300,9 +300,7 @@ module ActionCable
           def broadcasting_for(stream_or_object)
             return stream_or_object if stream_or_object.is_a?(String)
 
-            self.class.channel_class.broadcasting_for(
-              [self.class.channel_class.channel_name, stream_or_object]
-            )
+            self.class.channel_class.broadcasting_for(stream_or_object)
           end
       end
 
