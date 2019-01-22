@@ -15,7 +15,12 @@ module ActionCable
           ActionCable.server.broadcast(broadcasting_for(model), message)
         end
 
-        # Returns a unique broadcasting identifier for this <tt>model</tt> in this channel.
+        # Returns a unique broadcasting identifier for this <tt>model</tt> in this channel:
+        #
+        #    CommentsChannel.broadcasting_for("all") # => "comments:all"
+        #
+        # You can pass any object as a target (e.g. Active Record model), and it
+        # would be serialized into a string under the hood.
         def broadcasting_for(model)
           serialize_broadcasting([ channel_name, model ])
         end
