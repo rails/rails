@@ -570,6 +570,7 @@ module ActiveRecord
     class << self
       attr_accessor :delegate # :nodoc:
       attr_accessor :disable_ddl_transaction # :nodoc:
+      attr_accessor :skip
 
       def nearest_delegate # :nodoc:
         delegate || superclass.nearest_delegate
@@ -616,10 +617,18 @@ module ActiveRecord
       def disable_ddl_transaction!
         @disable_ddl_transaction = true
       end
+
+      def skip!
+        @skip = true
+      end
     end
 
     def disable_ddl_transaction # :nodoc:
       self.class.disable_ddl_transaction
+    end
+
+    def skip # :nodoc:
+      self.class.skip
     end
 
     cattr_accessor :verbose
@@ -982,7 +991,7 @@ module ActiveRecord
       File.mtime filename
     end
 
-    delegate :migrate, :announce, :write, :disable_ddl_transaction, to: :migration
+    delegate :migrate, :announce, :write, :disable_ddl_transaction, :skip, to: :migration
 
     private
 
@@ -1286,6 +1295,7 @@ module ActiveRecord
       def execute_migration_in_transaction(migration, direction)
         return if down? && !migrated.include?(migration.version.to_i)
         return if up?   &&  migrated.include?(migration.version.to_i)
+        return if migration.skip
 
         Base.logger.info "Migrating to #{migration.name} (#{migration.version})" if Base.logger
 

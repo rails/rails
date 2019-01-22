@@ -454,6 +454,24 @@ module ApplicationTests
           assert_match(/up\s+\d{14}\s+\** NO FILE \**/, output)
         end
       end
+
+      test "running migrations with skip flag" do
+        app_file "db/migrate/01_one_migration.rb", <<-MIGRATION
+          class OneMigration < ActiveRecord::Migration::Current
+          end
+        MIGRATION
+
+        app_file "db/migrate/02_two_migration.rb", <<-MIGRATION
+          class TwoMigration < ActiveRecord::Migration::Current
+            skip!
+          end
+        MIGRATION
+
+        rails "db:migrate"
+
+        output = rails("db:version")
+        assert_match(/Current version: 1/, output)
+      end
     end
   end
 end
