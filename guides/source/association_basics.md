@@ -2462,7 +2462,7 @@ specific behavior for each, and separated controllers too.
 First, let's generate the base Vehicle model:
 
 ```bash
-$ rails generate model vehicle type:string color:string price:decimal{10.2}
+$ bin/rails generate model vehicle type:string color:string price:decimal{10.2}
 ```
 
 Did you note we are adding a "type" field? Since all models will be saved in a
@@ -2478,7 +2478,7 @@ table already exists).
 For example, to generate the Car model:
 
 ```bash
-$ rails generate model car --parent=Vehicle
+$ bin/rails generate model car --parent=Vehicle
 ```
 
 The generated model will look like this:

@@ -10,7 +10,7 @@ Description:
     template engine and test framework generators.
 
 Example:
-    `rails generate scaffold_controller CreditCard`
+    `bin/rails generate scaffold_controller CreditCard`
 
     Credit card controller with URLs like /credit_cards.
         Controller: app/controllers/credit_cards_controller.rb

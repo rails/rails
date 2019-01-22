@@ -199,7 +199,7 @@ start a web server on your development machine. You can do this by running the
 following in the `blog` directory:
 
 ```bash
-$ rails server
+$ bin/rails server
 ```
 
 TIP: If you are using Windows, you have to pass the scripts under the `bin`
@@ -253,7 +253,7 @@ tell it you want a controller called "Welcome" with an action called "index",
 just like this:
 
 ```bash
-$ rails generate controller Welcome index
+$ bin/rails generate controller Welcome index
 ```
 
 Rails will create several files and a route for you.
@@ -324,7 +324,7 @@ end
 application to the welcome controller's index action and `get 'welcome/index'`
 tells Rails to map requests to <http://localhost:3000/welcome/index> to the
 welcome controller's index action. This was created earlier when you ran the
-controller generator (`rails generate controller Welcome index`).
+controller generator (`bin/rails generate controller Welcome index`).
 
 Launch the web server again if you stopped it to generate the controller (`rails
 server`) and navigate to <http://localhost:3000> in your browser. You'll see the
@@ -360,13 +360,13 @@ Rails.application.routes.draw do
 end
 ```
 
-If you run `rails routes`, you'll see that it has defined routes for all the
+If you run `bin/rails routes`, you'll see that it has defined routes for all the
 standard RESTful actions.  The meaning of the prefix column (and other columns)
 will be seen later, but for now notice that Rails has inferred the
 singular form `article` and makes meaningful use of the distinction.
 
 ```bash
-$ rails routes
+$ bin/rails routes
        Prefix Verb   URI Pattern                  Controller#Action
 welcome_index GET    /welcome/index(.:format)     welcome#index
      articles GET    /articles(.:format)          articles#index
@@ -405,7 +405,7 @@ a controller called `ArticlesController`. You can do this by running this
 command:
 
 ```bash
-$ rails generate controller Articles
+$ bin/rails generate controller Articles
 ```
 
 If you open up the newly generated `app/controllers/articles_controller.rb`
@@ -554,10 +554,10 @@ this:
 
 In this example, the `articles_path` helper is passed to the `:url` option.
 To see what Rails will do with this, we look back at the output of
-`rails routes`:
+`bin/rails routes`:
 
 ```bash
-$ rails routes
+$ bin/rails routes
       Prefix Verb   URI Pattern                  Controller#Action
 welcome_index GET    /welcome/index(.:format)     welcome#index
      articles GET    /articles(.:format)          articles#index
@@ -651,7 +651,7 @@ Rails developers tend to use when creating new models. To create the new model,
 run this command in your terminal:
 
 ```bash
-$ rails generate model Article title:string text:text
+$ bin/rails generate model Article title:string text:text
 ```
 
 With that command we told Rails that we want an `Article` model, together
@@ -670,7 +670,7 @@ models, as that will be done automatically by Active Record.
 
 ### Running a Migration
 
-As we've just seen, `rails generate model` created a _database migration_ file
+As we've just seen, `bin/rails generate model` created a _database migration_ file
 inside the `db/migrate` directory. Migrations are Ruby classes that are
 designed to make it simple to create and modify database tables. Rails uses
 rake commands to run migrations, and it's possible to undo a migration after
@@ -706,7 +706,7 @@ TIP: For more information about migrations, refer to [Active Record Migrations]
 At this point, you can use a rails command to run the migration:
 
 ```bash
-$ rails db:migrate
+$ bin/rails db:migrate
 ```
 
 Rails will execute this migration command and tell you it created the Articles
@@ -723,7 +723,7 @@ NOTE. Because you're working in the development environment by default, this
 command will apply to the database defined in the `development` section of your
 `config/database.yml` file. If you would like to execute migrations in another
 environment, for instance in production, you must explicitly pass it when
-invoking the command: `rails db:migrate RAILS_ENV=production`.
+invoking the command: `bin/rails db:migrate RAILS_ENV=production`.
 
 ### Saving Data in the Controller
 
@@ -811,7 +811,7 @@ If you submit the form again now, Rails will complain about not finding the
 `show` action. That's not very useful though, so let's add the `show` action
 before proceeding.
 
-As we have seen in the output of `rails routes`, the route for `show` action is
+As we have seen in the output of `bin/rails routes`, the route for `show` action is
 as follows:
 
 ```
@@ -873,7 +873,7 @@ Visit <http://localhost:3000/articles/new> and give it a try!
 ### Listing all Articles
 
 We still need a way to list all our articles, so let's do that.
-The route for this as per output of `rails routes` is:
+The route for this as per output of `bin/rails routes` is:
 
 ```
 articles GET    /articles(.:format)          articles#index
@@ -1379,7 +1379,7 @@ Then do the same for the `app/views/articles/edit.html.erb` view:
 
 We're now ready to cover the "D" part of CRUD, deleting articles from the
 database. Following the REST convention, the route for
-deleting articles as per output of `rails routes` is:
+deleting articles as per output of `bin/rails routes` is:
 
 ```ruby
 DELETE /articles/:id(.:format)      articles#destroy
@@ -1529,7 +1529,7 @@ the `Article` model. This time we'll create a `Comment` model to hold a
 reference to an article. Run this command in your terminal:
 
 ```bash
-$ rails generate model Comment commenter:string body:text article:references
+$ bin/rails generate model Comment commenter:string body:text article:references
 ```
 
 This command will generate four files:
@@ -1580,7 +1580,7 @@ for it, and a foreign key constraint that points to the `id` column of the `arti
 table. Go ahead and run the migration:
 
 ```bash
-$ rails db:migrate
+$ bin/rails db:migrate
 ```
 
 Rails is smart enough to only execute the migrations that have not already been
@@ -1656,7 +1656,7 @@ With the model in hand, you can turn your attention to creating a matching
 controller. Again, we'll use the same generator we used before:
 
 ```bash
-$ rails generate controller Comments
+$ bin/rails generate controller Comments
 ```
 
 This creates four files and one empty directory:

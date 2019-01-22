@@ -18,7 +18,7 @@ After reading this guide, you will know:
 This guide goes through every method call that is
 required to boot up the Ruby on Rails stack for a default Rails
 application, explaining each part in detail along the way. For this
-guide, we will be focusing on what happens when you execute `rails server`
+guide, we will be focusing on what happens when you execute `bin/rails server`
 to boot your app.
 
 NOTE: Paths in this guide are relative to Rails or a Rails application unless otherwise specified.
