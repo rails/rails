@@ -18,7 +18,7 @@ class TestERBTemplate < ActiveSupport::TestCase
     attr_accessor :formats
   end
 
-  class Context
+  class Context < ActionView::Base
     def initialize
       @output_buffer = "original"
       @virtual_path = nil

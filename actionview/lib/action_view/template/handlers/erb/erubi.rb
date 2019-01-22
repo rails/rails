@@ -13,7 +13,7 @@ module ActionView
 
             # Dup properties so that we don't modify argument
             properties = Hash[properties]
-            properties[:preamble]   = "@output_buffer = output_buffer || ActionView::OutputBuffer.new;"
+            properties[:preamble]   = ""
             properties[:postamble]  = "@output_buffer.to_s"
             properties[:bufvar]     = "@output_buffer"
             properties[:escapefunc] = ""
@@ -22,8 +22,12 @@ module ActionView
           end
 
           def evaluate(action_view_erb_handler_context)
-            pr = eval("proc { #{@src} }", binding, @filename || "(erubi)")
-            action_view_erb_handler_context.instance_eval(&pr)
+            src = @src
+            view = Class.new(ActionView::Base) {
+              include action_view_erb_handler_context._routes.url_helpers
+              class_eval("define_method(:_template) { |local_assigns, output_buffer| #{src} }", @filename || "(erubi)", 0)
+            }.new(action_view_erb_handler_context)
+            view.run(:_template, {}, ActionView::OutputBuffer.new)
           end
 
         private
