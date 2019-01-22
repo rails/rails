@@ -8,7 +8,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
   class Boomer
     attr_accessor :closed
 
-    def initialize(detailed  = false)
+    def initialize(detailed = false)
       @detailed = detailed
       @closed = false
     end
