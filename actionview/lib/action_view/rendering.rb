@@ -36,21 +36,12 @@ module ActionView
 
     module ClassMethods
       def view_context_class
-        @view_context_class ||= begin
-          supports_path = supports_path?
-          routes  = respond_to?(:_routes)  && _routes
-          helpers = respond_to?(:_helpers) && _helpers
+        klass = ActionView::LookupContext::DetailsKey.view_context_class(ActionView::Base)
 
-          Class.new(ActionView::Base) do
-            if routes
-              include routes.url_helpers(supports_path)
-              include routes.mounted_helpers
-            end
+        @view_context_class ||= build_view_context_class(klass, supports_path?, _routes, _helpers)
 
-            if helpers
-              include helpers
-            end
-          end
+        if klass.changed?(@view_context_class)
+          @view_context_class = build_view_context_class(klass, supports_path?, _routes, _helpers)
         end
       end
     end

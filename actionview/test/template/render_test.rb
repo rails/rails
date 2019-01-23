@@ -9,7 +9,8 @@ end
 module RenderTestCases
   def setup_view(paths)
     @assigns = { secret: "in the sauce" }
-    @view = Class.new(ActionView::Base) do
+
+    @view = Class.new(ActionView::Base.with_empty_template_cache) do
       def view_cache_dependencies; []; end
 
       def combined_fragment_cache_key(key)
@@ -17,7 +18,16 @@ module RenderTestCases
       end
     end.with_view_paths(paths, @assigns)
 
-    @controller_view = TestController.new.view_context
+    controller = TestController.new
+    view = @view
+
+    @controller_view = Class.new(controller.view_context_class) do
+      include view.compiled_method_container
+
+      define_method(:compiled_method_container) do
+        view.compiled_method_container
+      end
+    end.new(controller.view_renderer, controller.view_assigns, controller)
 
     # Reload and register danish language for testing
     I18n.backend.store_translations "da", {}
@@ -629,6 +639,8 @@ class CachedViewRenderTest < ActiveSupport::TestCase
   # Ensure view path cache is primed
   def setup
     view_paths = ActionController::Base.view_paths
+    view_paths.each(&:clear_cache)
+    ActionView::LookupContext.fallbacks.each(&:clear_cache)
     assert_equal ActionView::OptimizedFileSystemResolver, view_paths.first.class
     setup_view(view_paths)
   end
@@ -645,6 +657,9 @@ class LazyViewRenderTest < ActiveSupport::TestCase
   # Test the same thing as above, but make sure the view path
   # is not eager loaded
   def setup
+    view_paths = ActionController::Base.view_paths
+    view_paths.each(&:clear_cache)
+    ActionView::LookupContext.fallbacks.each(&:clear_cache)
     path = ActionView::FileSystemResolver.new(FIXTURE_LOAD_PATH)
     view_paths = ActionView::PathSet.new([path])
     assert_equal ActionView::FileSystemResolver.new(FIXTURE_LOAD_PATH), view_paths.first
@@ -704,6 +719,8 @@ class CachedCollectionViewRenderTest < ActiveSupport::TestCase
   setup do
     view_paths = ActionController::Base.view_paths
     assert_equal ActionView::OptimizedFileSystemResolver, view_paths.first.class
+    view_paths.each(&:clear_cache)
+    ActionView::LookupContext.fallbacks.each(&:clear_cache)
 
     ActionView::PartialRenderer.collection_cache = ActiveSupport::Cache::MemoryStore.new
 

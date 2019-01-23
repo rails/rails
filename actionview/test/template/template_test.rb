@@ -20,6 +20,7 @@ class TestERBTemplate < ActiveSupport::TestCase
 
   class Context < ActionView::Base
     def initialize
+      super
       @output_buffer = "original"
       @virtual_path = nil
     end
@@ -63,7 +64,8 @@ class TestERBTemplate < ActiveSupport::TestCase
   end
 
   def setup
-    @context = Context.new
+    @context = Context.with_empty_template_cache.new
+    super
   end
 
   def test_basic_template

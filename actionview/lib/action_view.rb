@@ -35,7 +35,6 @@ module ActionView
   eager_autoload do
     autoload :Base
     autoload :Context
-    autoload :CompiledTemplates, "action_view/context"
     autoload :Digestor
     autoload :Helpers
     autoload :LookupContext

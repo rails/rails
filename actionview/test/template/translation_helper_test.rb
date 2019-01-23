@@ -36,7 +36,10 @@ class TranslationHelperTest < ActiveSupport::TestCase
         }
       }
     )
-    @view = ::ActionView::Base.with_view_paths(ActionController::Base.view_paths, {})
+    view_paths     = ActionController::Base.view_paths
+    view_paths.each(&:clear_cache)
+    ActionView::LookupContext.fallbacks.each(&:clear_cache)
+    @view = ::ActionView::Base.with_empty_template_cache.with_view_paths(view_paths, {})
   end
 
   teardown do
