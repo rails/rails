@@ -5,7 +5,6 @@ require "active_support/core_ext/object/try"
 module ActionView
   class TemplateRenderer < AbstractRenderer #:nodoc:
     def render(context, options)
-      @view    = context
       @details = extract_details(options)
       template = determine_template(options)
 
@@ -13,7 +12,7 @@ module ActionView
 
       @lookup_context.rendered_format ||= (template.formats.first || formats.first)
 
-      render_template(template, options[:layout], options[:locals])
+      render_template(context, template, options[:layout], options[:locals])
     end
 
     private
@@ -46,22 +45,21 @@ module ActionView
 
       # Renders the given template. A string representing the layout can be
       # supplied as well.
-      def render_template(template, layout_name = nil, locals = nil)
-        view, locals = @view, locals || {}
+      def render_template(view, template, layout_name = nil, locals = nil)
+        locals ||= {}
 
-        render_with_layout(layout_name, locals) do |layout|
+        render_with_layout(view, layout_name, locals) do |layout|
           instrument(:template, identifier: template.identifier, layout: layout.try(:virtual_path)) do
             template.render(view, locals) { |*name| view._layout_for(*name) }
           end
         end
       end
 
-      def render_with_layout(path, locals)
+      def render_with_layout(view, path, locals)
         layout  = path && find_layout(path, locals.keys, [formats.first])
         content = yield(layout)
 
         if layout
-          view = @view
           view.view_flow.set(:layout, content)
           layout.render(view, locals) { |*name| view._layout_for(*name) }
         else
