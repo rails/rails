@@ -68,6 +68,10 @@ module JSONTest
                      [ :this,  %("this") ],
                      [ :"a b", %("a b")  ]]
 
+    ModuleTests   = [[ Module, %("Module") ],
+                     [ Class,  %("Class")  ],
+                     [ ActiveSupport,                   %("ActiveSupport")                   ],
+                     [ ActiveSupport::MessageEncryptor, %("ActiveSupport::MessageEncryptor") ]]
     ObjectTests   = [[ Foo.new(1, 2), %({\"a\":1,\"b\":2}) ]]
     HashlikeTests = [[ Hashlike.new, %({\"bar\":\"world\",\"foo\":\"hello\"}) ]]
     StructTests   = [[ MyStruct.new(:foo, "bar"), %({\"name\":\"foo\",\"value\":\"bar\"}) ],
