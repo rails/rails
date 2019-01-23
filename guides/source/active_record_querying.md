@@ -377,7 +377,7 @@ Customer.where(first_name: 'does not exist').take!
 
 ### Retrieving Multiple Objects in Batches
 
-We often need to iterate over a large set of records, as when we send a newsletter to a large set of users, or when we export data.
+We often need to iterate over a large set of records, as when we send a newsletter to a large set of customers, or when we export data.
 
 This may appear straightforward:
 
@@ -388,7 +388,7 @@ Customer.all.each do |customer|
 end
 ```
 
-But this approach becomes increasingly impractical as the table size increases, since `User.all.each` instructs Active Record to fetch _the entire table_ in a single pass, build a model object per row, and then keep the entire array of model objects in memory. Indeed, if we have a large number of records, the entire collection may exceed the amount of memory available.
+But this approach becomes increasingly impractical as the table size increases, since `Customer.all.each` instructs Active Record to fetch _the entire table_ in a single pass, build a model object per row, and then keep the entire array of model objects in memory. Indeed, if we have a large number of records, the entire collection may exceed the amount of memory available.
 
 Rails provides two methods that address this problem by dividing records into memory-friendly batches for processing. The first method, `find_each`, retrieves a batch of records and then yields _each_ record to the block individually as a model. The second method, `find_in_batches`, retrieves a batch of records and then yields _the entire batch_ to the block as an array of models.
 
@@ -396,7 +396,7 @@ TIP: The `find_each` and `find_in_batches` methods are intended for use in the b
 
 #### `find_each`
 
-The `find_each` method retrieves records in batches and then yields _each_ one to the block. In the following example, `find_each` retrieves users in batches of 1000 and yields them to the block one by one:
+The `find_each` method retrieves records in batches and then yields _each_ one to the block. In the following example, `find_each` retrieves customers in batches of 1000 and yields them to the block one by one:
 
 ```ruby
 Customer.find_each do |customer|
@@ -439,7 +439,7 @@ end
 
 By default, records are fetched in ascending order of the primary key. The `:start` option allows you to configure the first ID of the sequence whenever the lowest ID is not the one you need. This would be useful, for example, if you wanted to resume an interrupted batch process, provided you saved the last processed ID as a checkpoint.
 
-For example, to send newsletters only to users with the primary key starting from 2000:
+For example, to send newsletters only to customers with the primary key starting from 2000:
 
 ```ruby
 Customer.find_each(start: 2000) do |customer|
@@ -452,7 +452,7 @@ end
 Similar to the `:start` option, `:finish` allows you to configure the last ID of the sequence whenever the highest ID is not the one you need.
 This would be useful, for example, if you wanted to run a batch process using a subset of records based on `:start` and `:finish`.
 
-For example, to send newsletters only to users with the primary key starting from 2000 up to 10000:
+For example, to send newsletters only to customers with the primary key starting from 2000 up to 10000:
 
 ```ruby
 Customer.find_each(start: 2000, finish: 10000) do |customer|
