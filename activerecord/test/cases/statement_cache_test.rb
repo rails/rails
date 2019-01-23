@@ -4,6 +4,7 @@ require "cases/helper"
 require "models/book"
 require "models/liquid"
 require "models/molecule"
+require "models/numeric_data"
 require "models/electron"
 
 module ActiveRecord
@@ -72,6 +73,11 @@ module ActiveRecord
 
       liquids = cache.execute([], Book.connection)
       assert_equal "salty", liquids[0].name
+    end
+
+    def test_statement_cache_with_strictly_cast_attribute
+      row = NumericData.create(temperature: 1.5)
+      assert_equal row, NumericData.find_by(temperature: 1.5)
     end
 
     def test_statement_cache_values_differ
