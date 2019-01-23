@@ -32,7 +32,7 @@ module ActiveRecord
         if defined?(@_unboundable)
           @_unboundable
         else
-          value_for_database
+          value_for_database unless value_before_type_cast.is_a?(StatementCache::Substitute)
           @_unboundable = nil
         end
       rescue ::RangeError
