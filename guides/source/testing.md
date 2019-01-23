@@ -1775,7 +1775,7 @@ test "connects with cookies" do
 end
 ```
 
-See the API documentation for [`AcionCable::Connection::TestCase`](http://api.rubyonrails.org/classes/ActionCable/Connection/TestCase.html) for more information.
+See the API documentation for [`ActionCable::Connection::TestCase`](http://api.rubyonrails.org/classes/ActionCable/Connection/TestCase.html) for more information.
 
 ### Channel Test Case
 
