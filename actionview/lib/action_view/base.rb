@@ -185,8 +185,13 @@ module ActionView #:nodoc:
         template_container = Module.new
         Class.new(self) {
           include template_container
-          define_method(:compiled_method_container) { template_container }
+          define_method(:compiled_method_container)           { template_container }
+          define_singleton_method(:compiled_method_container) { template_container }
         }
+      end
+
+      def changed?(other) # :nodoc:
+        compiled_method_container != other.compiled_method_container
       end
     end
 
