@@ -39,52 +39,50 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     def call(env)
       env["action_dispatch.show_detailed_exceptions"] = @detailed
       req = ActionDispatch::Request.new(env)
+      template = ActionView::Template.new(File.read(__FILE__), __FILE__, ActionView::Template::Handlers::Raw.new, {})
+
       case req.path
-      when %r{/pass}
+      when "/pass"
         [404, { "X-Cascade" => "pass" }, self]
-      when %r{/not_found}
+      when "/not_found"
         raise AbstractController::ActionNotFound
-      when %r{/runtime_error}
+      when "/runtime_error"
         raise RuntimeError
-      when %r{/method_not_allowed}
+      when "/method_not_allowed"
         raise ActionController::MethodNotAllowed
-      when %r{/intercepted_error}
+      when "/intercepted_error"
         raise InterceptedErrorInstance
-      when %r{/unknown_http_method}
+      when "/unknown_http_method"
         raise ActionController::UnknownHttpMethod
-      when %r{/not_implemented}
+      when "/not_implemented"
         raise ActionController::NotImplemented
-      when %r{/unprocessable_entity}
+      when "/unprocessable_entity"
         raise ActionController::InvalidAuthenticityToken
-      when %r{/not_found_original_exception}
+      when "/not_found_original_exception"
         begin
           raise AbstractController::ActionNotFound.new
         rescue
-          raise ActionView::Template::Error.new("template")
+          raise ActionView::Template::Error.new(template)
         end
-      when %r{/missing_template}
+      when "/missing_template"
         raise ActionView::MissingTemplate.new(%w(foo), "foo/index", %w(foo), false, "mailer")
-      when %r{/bad_request}
+      when "/bad_request"
         raise ActionController::BadRequest
-      when %r{/missing_keys}
+      when "/missing_keys"
         raise ActionController::UrlGenerationError, "No route matches"
-      when %r{/parameter_missing}
+      when "/parameter_missing"
         raise ActionController::ParameterMissing, :missing_param_key
-      when %r{/original_syntax_error}
+      when "/original_syntax_error"
         eval "broke_syntax =" # `eval` need for raise native SyntaxError at runtime
-      when %r{/syntax_error_into_view}
+      when "/syntax_error_into_view"
         begin
           eval "broke_syntax ="
         rescue Exception
-          template = ActionView::Template.new(File.read(__FILE__),
-                                              __FILE__,
-                                              ActionView::Template::Handlers::Raw.new,
-                                              {})
           raise ActionView::Template::Error.new(template)
         end
-      when %r{/framework_raises}
+      when "/framework_raises"
         method_that_raises
-      when %r{/nested_exceptions}
+      when "/nested_exceptions"
         raise_nested_exceptions
       else
         raise "puke!"
