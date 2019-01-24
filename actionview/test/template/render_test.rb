@@ -19,15 +19,8 @@ module RenderTestCases
     end.with_view_paths(paths, @assigns)
 
     controller = TestController.new
-    view = @view
 
-    @controller_view = Class.new(controller.view_context_class) do
-      include view.compiled_method_container
-
-      define_method(:compiled_method_container) do
-        view.compiled_method_container
-      end
-    end.new(controller.view_renderer, controller.view_assigns, controller)
+    @controller_view = controller.view_context_class.with_empty_template_cache.new(controller.view_renderer, controller.view_assigns, controller)
 
     # Reload and register danish language for testing
     I18n.backend.store_translations "da", {}
