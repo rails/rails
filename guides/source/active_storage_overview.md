@@ -434,7 +434,7 @@ original blob into the specified format and redirect to its new service
 location.
 
 ```erb
-<%= image_tag user.avatar.variant(resize_to_fit: [100, 100]) %>
+<%= image_tag user.avatar.variant(resize_to_limit: [100, 100]) %>
 ```
 
 To switch to the Vips processor, you would add the following to
