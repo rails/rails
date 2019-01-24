@@ -485,8 +485,8 @@ class TestController < ActionController::Base
     render partial: "customer", locals: { customer: Customer.new("david") }
   end
 
-  def partial_with_string_locals
-    render partial: "customer", locals: { "customer" => Customer.new("david") }
+  def partial_with_hashlike_locals
+    render partial: "customer", locals: ActionController::Parameters.new(customer: Customer.new("david"))
   end
 
   def partial_with_form_builder
@@ -691,7 +691,7 @@ class RenderTest < ActionController::TestCase
     get :partial_with_locals, to: "test#partial_with_locals"
     get :partial_with_nested_object, to: "test#partial_with_nested_object"
     get :partial_with_nested_object_shorthand, to: "test#partial_with_nested_object_shorthand"
-    get :partial_with_string_locals, to: "test#partial_with_string_locals"
+    get :partial_with_hashlike_locals, to: "test#partial_with_hashlike_locals"
     get :partials_list, to: "test#partials_list"
     get :render_action_hello_world, to: "test#render_action_hello_world"
     get :render_action_hello_world_as_string, to: "test#render_action_hello_world_as_string"
@@ -1292,8 +1292,8 @@ class RenderTest < ActionController::TestCase
     assert_equal "Hello: david", @response.body
   end
 
-  def test_partial_with_string_locals
-    get :partial_with_string_locals
+  def test_partial_with_hashlike_locals
+    get :partial_with_hashlike_locals
     assert_equal "Hello: david", @response.body
   end
 
