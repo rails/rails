@@ -268,7 +268,11 @@ module ActionView #:nodoc:
     end
 
     def compiled_method_container
-      raise NotImplementedError
+      raise NotImplementedError, <<~msg
+        Subclasses of ActionView::Base must implement `compiled_method_container`
+        or use the class method `with_empty_template_cache` for constructing
+        an ActionView::Base subclass thata has an empty cache.
+      msg
     end
 
     ActiveSupport.run_load_hooks(:action_view, self)
