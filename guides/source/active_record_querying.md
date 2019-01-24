@@ -1614,31 +1614,70 @@ For example, `Customer.find_by_first_name_and_orders_count("Ryan", 5)`.
 Enums
 -----
 
-The `enum` macro maps an integer column to a set of possible values.
+An `enum` lets you define an Array of values for an attribute and refer to them by name.  The actual value stored in the database is an Integer that has been mapped to one of the values.  
+
+Declaring an enum will:
+1. create a scope that can be used to find all objects that have one of the enum values (for all of the values of an enum)
+2. create a scope that can be used to determine if an object has a particular value for the enum (for all of the values of an enum)
+3. create a scope that can be used to change the enum value of an object (for all values of an enum)
+
+In other words, an `enum` will automatically create three [scopes](#scopes) for every value you've declared for the enum:  one to find all objects with a particular enum value, one scope that you can use to query whether an object has that enum value (ends with a "?"), and one scope that you can use to change the enum value (ends with a "!").
+  
+For example, given this `enum` declaration:
+    
 
 ```ruby
 class Order < ApplicationRecord
-  enum status: [ :shipped, :being_packaged, :complete, :cancelled, ]
+  enum status: [:shipped, :being_packaged, :complete, :cancelled]
 end
 ```
 
-This will automatically create the corresponding [scopes](#scopes) to query the
-model. The methods to query the enum end in a question mark (`?`) and return a Boolean.
- 
-Methods to change the value _and_ then query the (updated) value end in exclamation points (`!`).
-
+These [scopes](#scopes) are created automatically and can be used to find all objects with a particular value for `status`:
 ```ruby
-# Both examples below query only the shipped orders.
-Order.shipped
-# or
-Order.where(status: :shipped)
+  Order.shipped         # find all Order objects with status == :shipped
+    # equivalent to Order.where(status: :shipped)
+  
+  Order.being_packaged  # find all Order objects with status == :being_packaged
+    # equivalent to Order.where(status: :being_packaged)
  
-first_customer = Customer.first
-order = Order.new(status: :shipped, customer: first_customer)
-order.shipped?   # => true
-order.cancelled! # => true   (This changes the status to :cancelled and then queries it.)
-order.shipped?   # => false
+   Order.complete        # find all Order objects with status == :complete
+     # equivalent to Order.where(status: :complete)
+ 
+   Order.cancelled       # find all Order objects with status == :cancelled
+     # equivalent to Order.where(status: :cancelled)
 ```
+
+These [scopes](#scopes) are created automatically and query whether the model has that value for the `status` enum:
+```ruby
+   order = Order.first
+   order.shipped?         # true if status == :shipped
+   order.being_packaged?  # true if status == :being_packaged
+   order.complete?        # true if status == :complete
+   order.cancelled?       # true if status == :cancelled
+```
+Consistent with the Ruby convention for methods ending in "?", these all return a Boolean value.
+
+These [scopes](#scopes) are created automatically and will first update the value of `status` to the named value (the scope name) and then query whether or not the status has been successfully set to the value:
+```ruby
+order = Order.first
+ 
+order.shipped!   
+# =>  UPDATE "orders" SET "status" = ?, "updated_at" = ? WHERE "orders"."id" = ?  [["status", 0], ["updated_at", "2019-01-24 07:13:08.524320"], ["id", 1]]
+# => true
+  
+order.being_packaged! 
+# =>  UPDATE "orders" SET "status" = ?, "updated_at" = ? WHERE "orders"."id" = ?  [["status", 1], ["updated_at", "2019-01-24 07:13:09.524320"], ["id", 1]]
+# => true
+ 
+order.complete!
+# =>  UPDATE "orders" SET "status" = ?, "updated_at" = ? WHERE "orders"."id" = ?  [["status", 2], ["updated_at", "2019-01-24 07:13:10.524320"], ["id", 1]]
+# => true 
+ 
+order.cancelled!
+# =>  UPDATE "orders" SET "status" = ?, "updated_at" = ? WHERE "orders"."id" = ?  [["status", 3], ["updated_at", "2019-01-24 07:13:11.524320"], ["id", 1]]
+# => true
+```
+Consistent with the Ruby convention for methods ending in "!", these all change a value in place.
 
 Read the full documentation about enums
 [in the Rails API docs](http://api.rubyonrails.org/classes/ActiveRecord/Enum.html).
