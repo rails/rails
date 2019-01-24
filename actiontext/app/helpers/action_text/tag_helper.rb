@@ -4,7 +4,7 @@ module ActionText
   module TagHelper
     cattr_accessor(:id, instance_accessor: false) { 0 }
 
-    # Returns a `trix-editor` tag that instantiates the Trix JavaScript editor as well as a hidden field
+    # Returns a +trix-editor+ tag that instantiates the Trix JavaScript editor as well as a hidden field
     # that Trix will write to on changes, so the content will be sent on form submissions.
     #
     # ==== Options
@@ -50,7 +50,7 @@ module ActionView::Helpers
   end
 
   module FormHelper
-    # Returns a `trix-editor` tag that instantiates the Trix JavaScript editor as well as a hidden field
+    # Returns a +trix-editor+ tag that instantiates the Trix JavaScript editor as well as a hidden field
     # that Trix will write to on changes, so the content will be sent on form submissions.
     #
     # ==== Options
