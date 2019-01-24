@@ -1,3 +1,9 @@
+*   ActionView::Template.finalize_compiled_template_methods is deprecated with
+    no replacement.
+
+*   config.action_view.finalize_compiled_template_methods is deprecated with
+    no replacement.
+
 *   Ensure unique DOM IDs for collection inputs with float values.
     Fixes #34974
 

@@ -6,10 +6,13 @@ require "rails"
 module ActionView
   # = Action View Railtie
   class Railtie < Rails::Engine # :nodoc:
+    NULL_OPTION = Object.new
+
     config.action_view = ActiveSupport::OrderedOptions.new
     config.action_view.embed_authenticity_token_in_remote_forms = nil
     config.action_view.debug_missing_translation = true
     config.action_view.default_enforce_utf8 = nil
+    config.action_view.finalize_compiled_template_methods = NULL_OPTION
 
     config.eager_load_namespaces << ActionView
 
@@ -41,6 +44,16 @@ module ActionView
         default_enforce_utf8 = app.config.action_view.delete(:default_enforce_utf8)
         unless default_enforce_utf8.nil?
           ActionView::Helpers::FormTagHelper.default_enforce_utf8 = default_enforce_utf8
+        end
+      end
+    end
+
+    initializer "action_view.finalize_compiled_template_methods" do |app|
+      ActiveSupport.on_load(:action_view) do
+        option = app.config.action_view.delete(:finalize_compiled_template_methods)
+
+        if option != NULL_OPTION
+          ActiveSupport::Deprecation.warn "action_view.finalize_compiled_template_methods is deprecated and has no effect"
         end
       end
     end

@@ -2092,6 +2092,27 @@ module ApplicationTests
       assert_equal true, ActionView::Helpers::FormTagHelper.default_enforce_utf8
     end
 
+    test "ActionView::Template.finalize_compiled_template_methods is true by default" do
+      app "test"
+      assert_deprecated do
+        ActionView::Template.finalize_compiled_template_methods
+      end
+    end
+
+    test "ActionView::Template.finalize_compiled_template_methods can be configured via config.action_view.finalize_compiled_template_methods" do
+      app_file "config/environments/test.rb", <<-RUBY
+      Rails.application.configure do
+        config.action_view.finalize_compiled_template_methods = false
+      end
+      RUBY
+
+      app "test"
+
+      assert_deprecated do
+        ActionView::Template.finalize_compiled_template_methods
+      end
+    end
+
     test "ActiveJob::Base.return_false_on_aborted_enqueue is true by default" do
       app "development"
 
