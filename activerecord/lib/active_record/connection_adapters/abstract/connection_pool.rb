@@ -1006,7 +1006,16 @@ module ActiveRecord
       # for (not necessarily the current class).
       def retrieve_connection(spec_name) #:nodoc:
         pool = retrieve_connection_pool(spec_name)
-        raise ConnectionNotEstablished, "No connection pool with '#{spec_name}' found." unless pool
+
+        unless pool
+          # multiple database application
+          if ActiveRecord::Base.connection_handler != ActiveRecord::Base.default_connection_handler
+            raise ConnectionNotEstablished, "No connection pool with '#{spec_name}' found for the '#{ActiveRecord::Base.current_role}' role."
+          else
+            raise ConnectionNotEstablished, "No connection pool with '#{spec_name}' found."
+          end
+        end
+
         pool.connection
       end
 
