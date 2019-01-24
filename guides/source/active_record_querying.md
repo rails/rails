@@ -2098,13 +2098,15 @@ For options, please see the parent section, [Calculations](#calculations).
 Running EXPLAIN
 ---------------
 
-You can run EXPLAIN on the queries triggered by relations. For example,
+You can run EXPLAIN on the queries triggered by relations.  EXPLAIN output varies for each database. 
+ 
+For example, running
 
 ```ruby
 Customer.where(id: 1).joins(:orders).explain
 ```
 
-may yield
+may yield this for MySQL and MariaDB:
 
 ```
 EXPLAIN for: SELECT `customers`.* FROM `customers` INNER JOIN `orders` ON `orders`.`customer_id` = `customers`.`id` WHERE `customers`.`id` = 1
@@ -2124,11 +2126,7 @@ EXPLAIN for: SELECT `customers`.* FROM `customers` INNER JOIN `orders` ON `order
 2 rows in set (0.00 sec)
 ```
 
-under MySQL and MariaDB.
-
-Active Record performs a pretty printing that emulates that of the
-corresponding database shell. So, the same query running with the
-PostgreSQL adapter would yield instead
+and may yield this for PostgreSQL:
 
 ```
 EXPLAIN for: SELECT "customers".* FROM "customers" INNER JOIN "orders" ON "orders"."customer_id" = "customers"."id" WHERE "customers"."id" = $1 [["id", 1]]
@@ -2145,14 +2143,15 @@ EXPLAIN for: SELECT "customers".* FROM "customers" INNER JOIN "orders" ON "order
 ```
 
 Eager loading may trigger more than one query under the hood, and some queries
-may need the results of previous ones. Because of that, `explain` actually
-executes the query, and then asks for the query plans. For example,
+may need the results of previous ones. Because of that, `explain` actually first
+executes the query, and then asks for the query plans. 
 
+For example, 
 ```ruby
 Customer.where(id: 1).includes(:orders).explain
 ```
 
-yields
+may yield this for MySQL and MariaDB:
 
 ```
 EXPLAIN for: SELECT `customers`.* FROM `customers`  WHERE `customers`.`id` = 1
@@ -2185,10 +2184,8 @@ EXPLAIN for: SELECT `orders`.* FROM `orders`  WHERE `orders`.`customer_id` IN (1
 1 row in set (0.00 sec)
 ```
 
-under MySQL and MariaDB.
 
-So, the same query running with the
-PostgreSQL adapter would yield instead
+and may yield this for PostgreSQL:
 
 ```
   Customer Load (0.3ms)  SELECT "customers".* FROM "customers" WHERE "customers"."id" = $1  [["id", 1]]
@@ -2200,6 +2197,7 @@ PostgreSQL adapter would yield instead
    Index Cond: (id = '1'::bigint)
 (2 rows)
 ```
+
 
 ### Interpreting EXPLAIN
 
