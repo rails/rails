@@ -795,7 +795,7 @@ The SQL that would be executed would be something like this:
 
 ```sql
 SELECT COUNT (*) AS count_all, status AS status
-FROM "orders"
+FROM orders
 GROUP BY status
 ```
 
@@ -856,14 +856,14 @@ You can also unscope specific `where` clauses. For example, this will remove `id
 
 ```ruby
 Book.where(id: 10, out_of_print: false).unscope(where: :id)
-# SELECT "books".* FROM "books" WHERE out_of_print = 0
+# SELECT books.* FROM books WHERE out_of_print = 0
 ```
 
 A relation which has used `unscope` will affect any relation into which it is merged:
 
 ```ruby
 Book.order('id desc').merge(Book.unscope(:order))
-# SELECT "books".* FROM "books"
+# SELECT books.* FROM books
 ```
 
 ### `only`
@@ -1260,7 +1260,7 @@ Customer.left_outer_joins(:reviews).distinct.select('customers.*, COUNT(reviews.
 Which produces:
 
 ```sql
-SELECT  DISTINCT customers.*, COUNT(reviews.*) AS reviews_count FROM "customers" 
+SELECT  DISTINCT customers.*, COUNT(reviews.*) AS reviews_count FROM customers 
 LEFT OUTER JOIN reviews ON reviews.customer_id = customers.id GROUP BY customers.id
 ```
 
@@ -1343,8 +1343,8 @@ Author.includes(:books).where(books: { out_of_print: true })
 This would generate a query which contains a `LEFT OUTER JOIN` whereas the
 `joins` method would generate one using the `INNER JOIN` function instead.
 
-```ruby
-  SELECT "authors"."id" AS t0_r0, ... "books"."updated_at" AS t1_r5 FROM "authors" LEFT OUTER JOIN "books" ON "books"."author_id" = "authors"."id" WHERE (books.out_of_print = 1)
+```sql
+  SELECT authors.id AS t0_r0, ... books.updated_at AS t1_r5 FROM authors LEFT OUTER JOIN "books" ON "books"."author_id" = "authors"."id" WHERE (books.out_of_print = 1)
 ```
 
 If there was no `where` condition, this would generate the normal set of two queries.
@@ -1522,7 +1522,7 @@ class Book < ApplicationRecord
 end
 
 Book.out_of_print.old
-# SELECT "books".* FROM "books" WHERE "books"."out_of_print" = 'true' AND "books"."year_published" < 1969
+# SELECT books.* FROM books WHERE books.out_of_print = 'true' AND books.year_published < 1969
 ```
 
 We can mix and match `scope` and `where` conditions and the final SQL
@@ -1530,7 +1530,7 @@ will have all conditions joined with `AND`.
 
 ```ruby
 Book.in_print.where('price < 100')
-# SELECT "books".* FROM "books" WHERE "books"."out_of_print" = 'false' AND "books"."price" < 100
+# SELECT books.* FROM books WHERE books.out_of_print = 'false' AND books.price < 100
 ```
 
 If we want the last `where` clause to win then `Relation#merge` can
@@ -1538,7 +1538,7 @@ be used.
 
 ```ruby
 Book.in_print.merge(Book.out_of_print)
-# SELECT  "books".* FROM "books" WHERE "books"."out_of_print" = true
+# SELECT  books.* FROM books WHERE books.out_of_print = true
 ```
 
 One important caveat is that `default_scope` will be _prepended_ in
@@ -1553,13 +1553,13 @@ class Book < ApplicationRecord
 end
 
 Book.all
-# SELECT "books".* FROM "books" WHERE (year_published >= 1969)  
+# SELECT books.* FROM books WHERE (year_published >= 1969)  
 
 Book.in_print
-# SELECT "books".* FROM "books" WHERE (year_published >= 1969) AND "books"."out_of_print" = true 
+# SELECT books.* FROM books WHERE (year_published >= 1969) AND books.out_of_print = true 
 
 Book.where('price > 50')
-# SELECT "books".* FROM "books" WHERE (year_published >= 1969) AND (price > 50) 
+# SELECT books.* FROM books WHERE (year_published >= 1969) AND (price > 50) 
 ```
 
 As you can see above the `default_scope` is being merged in both
@@ -1579,11 +1579,11 @@ This method removes all scoping and will do a normal query on the table.
 
 ```ruby
 Book.unscoped.all
-# SELECT "books".* FROM "books"
+# SELECT books.* FROM books
 # Note that the default scope is not applied 
 
 Book.where(out_of_print: true).unscoped.all
-# SELECT "books".* FROM "books"
+# SELECT books.* FROM books
 # Note that no where clauses are applied 
 ```
 
@@ -1593,7 +1593,7 @@ Book.where(out_of_print: true).unscoped.all
 Book.unscoped {
   Book.out_of_print
 }
-# SELECT "books".* FROM "books" WHERE "books"."out_of_print"
+# SELECT books.* FROM books WHERE books.out_of_print
 # Note that the default scope is not applied 
 ```
 
