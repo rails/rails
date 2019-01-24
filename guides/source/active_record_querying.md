@@ -1328,7 +1328,7 @@ Customer.includes(orders: {books: [:supplier, :author]}).find(4)
 
 ```
 
-This will find the customer with id 4 and eager load all of the associated orders, the books for all of the orders, and the author and supplier for each of the books.
+This will find the customer with `id` = 4 and eager load all of the associated orders for it, the books for all of the orders, and the author and supplier for each of the books.
 
 ### Specifying Conditions on Eager Loaded Associations
 
