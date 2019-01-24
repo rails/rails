@@ -17,7 +17,7 @@ module Rails
       end
 
       def edit
-        require_application_and_environment!
+        require_application!
 
         ensure_editor_available(command: "bin/rails credentials:edit") || (return)
         ensure_master_key_has_been_added if Rails.application.credentials.key.nil?
@@ -31,7 +31,7 @@ module Rails
       end
 
       def show
-        require_application_and_environment!
+        require_application!
 
         say Rails.application.credentials.read.presence || missing_credentials_message
       end
