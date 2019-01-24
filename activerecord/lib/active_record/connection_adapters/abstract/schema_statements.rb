@@ -134,7 +134,7 @@ module ActiveRecord
         column_name = column_name.to_s
         checks = []
         checks << lambda { |c| c.name == column_name }
-        checks << lambda { |c| c.type == type } if type
+        checks << lambda { |c| c.type == type.to_sym rescue nil } if type
         column_options_keys.each do |attr|
           checks << lambda { |c| c.send(attr) == options[attr] } if options.key?(attr)
         end
