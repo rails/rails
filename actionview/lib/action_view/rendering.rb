@@ -41,7 +41,7 @@ module ActionView
       def _helpers
       end
 
-      def build_av_class(klass, supports_path, routes, helpers)
+      def build_view_context_class(klass, supports_path, routes, helpers)
         Class.new(klass) do
           if routes
             include routes.url_helpers(supports_path)
@@ -57,10 +57,10 @@ module ActionView
       def view_context_class
         klass = ActionView::LookupContext::DetailsKey.view_context_class(ActionView::Base)
 
-        @view_context_class ||= build_av_class(klass, supports_path?, _routes, _helpers)
+        @view_context_class ||= build_view_context_class(klass, supports_path?, _routes, _helpers)
 
         if klass.changed?(@view_context_class)
-          @view_context_class = build_av_class(klass, supports_path?, _routes, _helpers)
+          @view_context_class = build_view_context_class(klass, supports_path?, _routes, _helpers)
         end
 
         @view_context_class
