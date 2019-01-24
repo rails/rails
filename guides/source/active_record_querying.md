@@ -38,7 +38,7 @@ class Book < ApplicationRecord
   belongs_to :author, dependent: :destroy
 
   has_many :reviews
-  has_and_belongs_to_many :orders, join_table: "books_orders"
+  has_and_belongs_to_many :orders, join_table: 'books_orders'
  
   # default_scope { where('year_published >= ?', Date.current.year - 50 )}
 
@@ -48,9 +48,9 @@ class Book < ApplicationRecord
   scope :recent, -> { where('year_published >= ?', Date.current.year - 50 )}
   scope :old, -> { where('year_published < ?', Date.current.year - 50 )}
 
-  scope :out_of_print_and_expensive, -> { out_of_print.where("price > 500") }
+  scope :out_of_print_and_expensive, -> { out_of_print.where('price > 500') }
 
-  scope :costs_more_than, ->(amount) { where("price > ?", amount) }
+  scope :costs_more_than, ->(amount) { where('price > ?', amount) }
 end
 ```
 ```ruby
@@ -93,11 +93,11 @@ end
 ```ruby
 class Order < ApplicationRecord
   belongs_to :customer, counter_cache: true
-  has_and_belongs_to_many :books, join_table: "books_orders"
+  has_and_belongs_to_many :books, join_table: 'books_orders'
 
-  enum status: [ :shipped, :being_packed, :complete, :cancelled ]
+  enum status: [:shipped, :being_packed, :complete, :cancelled]
 
-  scope :created_before, ->(time) { where("created_at < ?", time) if time.present? }
+  scope :created_before, ->(time) { where('created_at < ?', time) if time.present? }
 
 end
 ```
