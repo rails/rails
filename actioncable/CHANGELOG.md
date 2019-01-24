@@ -1,3 +1,22 @@
+*   Add `Channel::Base#broadcast_to`.
+
+    You can now call `broadcast_to` within a channel action, which equals to
+    the `self.class.broadcast_to`.
+
+    *Vladimir Dementyev*
+
+*   Make `Channel::Base.broadcasting_for` a public API.
+
+    You can use `.broadcasting_for` to generate a unique stream identifier within
+    a channel for the specified target (e.g. Active Record model):
+
+    ```ruby
+    ChatChannel.broadcasting_for(model) # => "chat:<model.to_gid_param>"
+    ```
+
+    *Vladimir Dementyev*
+
+
 ## Rails 6.0.0.beta1 (January 18, 2019) ##
 
 *   Merge [`action-cable-testing`](https://github.com/palkan/action-cable-testing) to Rails.
