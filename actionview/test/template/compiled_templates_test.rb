@@ -7,7 +7,7 @@ class CompiledTemplatesTest < ActiveSupport::TestCase
 
   def setup
     super
-    view_paths     = ActionController::Base.view_paths
+    view_paths = ActionController::Base.view_paths
     view_paths.each(&:clear_cache)
     ActionView::LookupContext.fallbacks.each(&:clear_cache)
     @view_class = ActionView::Base.with_empty_template_cache
