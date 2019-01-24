@@ -31,14 +31,26 @@ module ActionDispatch
       "ActionController::MissingExactTemplate" => "missing_exact_template",
     )
 
+    cattr_accessor :wrapper_exceptions, default: [
+      "ActionView::Template::Error"
+    ]
+
     attr_reader :backtrace_cleaner, :exception, :wrapped_causes, :line_number, :file
 
     def initialize(backtrace_cleaner, exception)
       @backtrace_cleaner = backtrace_cleaner
-      @exception = original_exception(exception)
+      @exception = exception
       @wrapped_causes = wrapped_causes_for(exception, backtrace_cleaner)
 
       expand_backtrace if exception.is_a?(SyntaxError) || exception.cause.is_a?(SyntaxError)
+    end
+
+    def unwrapped_exception
+      if wrapper_exceptions.include?(exception.class.to_s)
+        exception.cause
+      else
+        exception
+      end
     end
 
     def rescue_template
@@ -46,7 +58,7 @@ module ActionDispatch
     end
 
     def status_code
-      self.class.status_code_for_exception(@exception.class.name)
+      self.class.status_code_for_exception(unwrapped_exception.class.name)
     end
 
     def application_trace
@@ -120,14 +132,6 @@ module ActionDispatch
 
       def backtrace
         Array(@exception.backtrace)
-      end
-
-      def original_exception(exception)
-        if @@rescue_responses.has_key?(exception.cause.class.name)
-          exception.cause
-        else
-          exception
-        end
       end
 
       def causes_for(exception)

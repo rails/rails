@@ -64,6 +64,12 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
         rescue
           raise ActionView::Template::Error.new(template)
         end
+      when "/cause_mapped_to_rescue_responses"
+        begin
+          raise ActionController::ParameterMissing, :missing_param_key
+        rescue
+          raise NameError.new("uninitialized constant Userr")
+        end
       when "/missing_template"
         raise ActionView::MissingTemplate.new(%w(foo), "foo/index", %w(foo), false, "mailer")
       when "/bad_request"
@@ -311,12 +317,22 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     assert_match("&quot;foo&quot;=&gt;&quot;[FILTERED]&quot;", body)
   end
 
-  test "show registered original exception for wrapped exceptions" do
+  test "show registered original exception if the last exception is TemplateError" do
     @app = DevelopmentApp
 
     get "/not_found_original_exception", headers: { "action_dispatch.show_exceptions" => true }
     assert_response 404
-    assert_match(/AbstractController::ActionNotFound/, body)
+    assert_match %r{AbstractController::ActionNotFound}, body
+    assert_match %r{Showing <i>/.*/actionpack/test/dispatch/debug_exceptions_test.rb</i>}, body
+  end
+
+  test "show the last exception and cause even when the cause is mapped to resque_responses" do
+    @app = DevelopmentApp
+
+    get "/cause_mapped_to_rescue_responses", headers: { "action_dispatch.show_exceptions" => true }
+    assert_response 500
+    assert_match %r{ActionController::ParameterMissing}, body
+    assert_match %r{NameError}, body
   end
 
   test "named urls missing keys raise 500 level error" do
@@ -478,6 +494,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     assert_select "#Application-Trace-0" do
       assert_select "code", /syntax error, unexpected/
     end
+    assert_match %r{Showing <i>/.*/actionpack/test/dispatch/debug_exceptions_test.rb</i>}, body
   end
 
   test "debug exceptions app shows user code that caused the error in source view" do
