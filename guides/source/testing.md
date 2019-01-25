@@ -1815,7 +1815,7 @@ class WebNotificationsChannelTest < ActionCable::Channel::TestCase
 end
 ```
 
-See the API documentation for [`AcionCable::Channel::TestCase`](http://api.rubyonrails.org/classes/ActionCable/Channel/TestCase.html) for more information.
+See the API documentation for [`ActionCable::Channel::TestCase`](http://api.rubyonrails.org/classes/ActionCable/Channel/TestCase.html) for more information.
 
 ### Custom Assertions And Testing Broadcasts Inside Other Components
 
