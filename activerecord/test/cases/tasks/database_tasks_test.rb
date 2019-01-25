@@ -983,7 +983,7 @@ module ActiveRecord
     end
 
     def test_truncate_all_databases_for_environment
-      with_stubbed_configurations_establish_connection do
+      with_stubbed_configurations do
         assert_called_with(
           ActiveRecord::Tasks::DatabaseTasks,
           :truncate_tables,
@@ -1000,7 +1000,7 @@ module ActiveRecord
     end
 
     def test_truncate_all_databases_with_url_for_environment
-      with_stubbed_configurations_establish_connection do
+      with_stubbed_configurations do
         assert_called_with(
           ActiveRecord::Tasks::DatabaseTasks,
           :truncate_tables,
@@ -1017,7 +1017,7 @@ module ActiveRecord
     end
 
     def test_truncate_all_development_databases_when_env_was_no_specified
-      with_stubbed_configurations_establish_connection do
+      with_stubbed_configurations do
         assert_called_with(
           ActiveRecord::Tasks::DatabaseTasks,
           :truncate_tables,
@@ -1037,7 +1037,7 @@ module ActiveRecord
       old_env = ENV["RAILS_ENV"]
       ENV["RAILS_ENV"] = "development"
 
-      with_stubbed_configurations_establish_connection do
+      with_stubbed_configurations do
         assert_called_with(
           ActiveRecord::Tasks::DatabaseTasks,
           :truncate_tables,
@@ -1055,28 +1055,12 @@ module ActiveRecord
       ENV["RAILS_ENV"] = old_env
     end
 
-    def test_establishes_connection_for_the_given_environments_config
-      ActiveRecord::Tasks::DatabaseTasks.stub(:truncate_tables, nil) do
-        assert_called_with(
-          ActiveRecord::Base,
-          :establish_connection,
-          [:development]
-        ) do
-          ActiveRecord::Tasks::DatabaseTasks.truncate_all(
-            ActiveSupport::StringInquirer.new("development")
-          )
-        end
-      end
-    end
-
     private
-      def with_stubbed_configurations_establish_connection
+      def with_stubbed_configurations
         old_configurations = ActiveRecord::Base.configurations
         ActiveRecord::Base.configurations = @configurations
 
-        ActiveRecord::Base.connection_handler.stub(:establish_connection, nil) do
-          yield
-        end
+        yield
       ensure
         ActiveRecord::Base.configurations = old_configurations
       end
