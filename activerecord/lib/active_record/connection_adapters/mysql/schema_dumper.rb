@@ -10,6 +10,10 @@ module ActiveRecord
             spec[:unsigned] = "true" if column.unsigned?
             spec[:auto_increment] = "true" if column.auto_increment?
 
+            if /\A(?<size>tiny|medium|long)(?:text|blob)/ =~ column.sql_type
+              spec = { size: size.to_sym.inspect }.merge!(spec)
+            end
+
             if @connection.supports_virtual_columns? && column.virtual?
               spec[:as] = extract_expression_for_virtual_column(column)
               spec[:stored] = "true" if /\b(?:STORED|PERSISTENT)\b/.match?(column.extra)
@@ -37,11 +41,13 @@ module ActiveRecord
             case column.sql_type
             when /\Atimestamp\b/
               :timestamp
-            when "tinyblob"
-              :blob
             else
               super
             end
+          end
+
+          def schema_limit(column)
+            super unless /\A(?:tiny|medium|long)?(?:text|blob)/.match?(column.sql_type)
           end
 
           def schema_precision(column)

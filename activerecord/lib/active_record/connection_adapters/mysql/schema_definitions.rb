@@ -56,6 +56,16 @@ module ActiveRecord
           case type
           when :virtual
             type = options[:type]
+          when :text, :blob, :binary
+            case (size = options[:size])&.to_s
+            when "tiny", "medium", "long"
+              sql_type = @conn.native_database_types[type][:name]
+              type = "#{size}#{sql_type}"
+            else
+              raise ArgumentError, <<~MSG unless size.nil?
+                #{size.inspect} is invalid :size value. Only :tiny, :medium, and :long are allowed.
+              MSG
+            end
           when :primary_key
             type = :integer
             options[:limit] ||= 8

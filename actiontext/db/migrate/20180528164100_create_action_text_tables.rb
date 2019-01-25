@@ -2,7 +2,7 @@ class CreateActionTextTables < ActiveRecord::Migration[6.0]
   def change
     create_table :action_text_rich_texts do |t|
       t.string     :name, null: false
-      t.text       :body, limit: 16777215
+      t.text       :body, size: :long
       t.references :record, null: false, polymorphic: true, index: false
 
       t.timestamps

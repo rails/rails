@@ -245,25 +245,31 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
   if current_adapter?(:Mysql2Adapter)
     def test_schema_dump_includes_length_for_mysql_binary_fields
-      output = standard_dump
+      output = dump_table_schema "binary_fields"
       assert_match %r{t\.binary\s+"var_binary",\s+limit: 255$}, output
       assert_match %r{t\.binary\s+"var_binary_large",\s+limit: 4095$}, output
     end
 
     def test_schema_dump_includes_length_for_mysql_blob_and_text_fields
-      output = standard_dump
-      assert_match %r{t\.blob\s+"tiny_blob",\s+limit: 255$}, output
+      output = dump_table_schema "binary_fields"
+      assert_match %r{t\.binary\s+"tiny_blob",\s+size: :tiny$}, output
       assert_match %r{t\.binary\s+"normal_blob"$}, output
-      assert_match %r{t\.binary\s+"medium_blob",\s+limit: 16777215$}, output
-      assert_match %r{t\.binary\s+"long_blob",\s+limit: 4294967295$}, output
-      assert_match %r{t\.text\s+"tiny_text",\s+limit: 255$}, output
+      assert_match %r{t\.binary\s+"medium_blob",\s+size: :medium$}, output
+      assert_match %r{t\.binary\s+"long_blob",\s+size: :long$}, output
+      assert_match %r{t\.text\s+"tiny_text",\s+size: :tiny$}, output
       assert_match %r{t\.text\s+"normal_text"$}, output
-      assert_match %r{t\.text\s+"medium_text",\s+limit: 16777215$}, output
-      assert_match %r{t\.text\s+"long_text",\s+limit: 4294967295$}, output
+      assert_match %r{t\.text\s+"medium_text",\s+size: :medium$}, output
+      assert_match %r{t\.text\s+"long_text",\s+size: :long$}, output
+      assert_match %r{t\.binary\s+"tiny_blob_2",\s+size: :tiny$}, output
+      assert_match %r{t\.binary\s+"medium_blob_2",\s+size: :medium$}, output
+      assert_match %r{t\.binary\s+"long_blob_2",\s+size: :long$}, output
+      assert_match %r{t\.text\s+"tiny_text_2",\s+size: :tiny$}, output
+      assert_match %r{t\.text\s+"medium_text_2",\s+size: :medium$}, output
+      assert_match %r{t\.text\s+"long_text_2",\s+size: :long$}, output
     end
 
     def test_schema_does_not_include_limit_for_emulated_mysql_boolean_fields
-      output = standard_dump
+      output = dump_table_schema "booleans"
       assert_no_match %r{t\.boolean\s+"has_fun",.+limit: 1}, output
     end
 
