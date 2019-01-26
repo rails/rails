@@ -709,6 +709,8 @@ module ActiveRecord
         end
 
         def add_timestamps_for_alter(table_name, options = {})
+          options[:null] = false if options[:null].nil?
+
           [add_column_for_alter(table_name, :created_at, :datetime, options), add_column_for_alter(table_name, :updated_at, :datetime, options)]
         end
 

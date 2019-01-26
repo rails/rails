@@ -133,6 +133,21 @@ class ActiveRecordSchemaTest < ActiveRecord::TestCase
     assert @connection.column_exists?(:has_timestamps, :updated_at, null: false)
   end
 
+  if ActiveRecord::Base.connection.supports_bulk_alter?
+    def test_timestamps_without_null_set_null_to_false_on_change_table_with_bulk
+      ActiveRecord::Schema.define do
+        create_table :has_timestamps
+
+        change_table :has_timestamps, bulk: true do |t|
+          t.timestamps default: Time.now
+        end
+      end
+
+      assert @connection.column_exists?(:has_timestamps, :created_at, null: false)
+      assert @connection.column_exists?(:has_timestamps, :updated_at, null: false)
+    end
+  end
+
   def test_timestamps_without_null_set_null_to_false_on_add_timestamps
     ActiveRecord::Schema.define do
       create_table :has_timestamps

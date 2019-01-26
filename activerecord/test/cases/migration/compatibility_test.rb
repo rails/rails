@@ -107,6 +107,23 @@ module ActiveRecord
         assert connection.column_exists?(:testings, :updated_at, null: true)
       end
 
+      if ActiveRecord::Base.connection.supports_bulk_alter?
+        def test_timestamps_have_null_constraints_if_not_present_in_migration_of_change_table_with_bulk
+          migration = Class.new(ActiveRecord::Migration[4.2]) {
+            def migrate(x)
+              change_table :testings, bulk: true do |t|
+                t.timestamps
+              end
+            end
+          }.new
+
+          ActiveRecord::Migrator.new(:up, [migration]).migrate
+
+          assert connection.column_exists?(:testings, :created_at, null: true)
+          assert connection.column_exists?(:testings, :updated_at, null: true)
+        end
+      end
+
       def test_timestamps_have_null_constraints_if_not_present_in_migration_for_adding_timestamps_to_existing_table
         migration = Class.new(ActiveRecord::Migration[4.2]) {
           def migrate(x)
