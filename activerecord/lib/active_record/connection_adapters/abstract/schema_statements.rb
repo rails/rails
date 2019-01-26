@@ -130,7 +130,7 @@ module ActiveRecord
       #   column_exists?(:suppliers, :name, :string, null: false)
       #   column_exists?(:suppliers, :tax, :decimal, precision: 8, scale: 2)
       #
-      def column_exists?(table_name, column_name, type = nil, options = {})
+      def column_exists?(table_name, column_name, type = nil, **options)
         column_name = column_name.to_s
         checks = []
         checks << lambda { |c| c.name == column_name }

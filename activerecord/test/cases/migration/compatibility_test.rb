@@ -86,8 +86,8 @@ module ActiveRecord
 
         ActiveRecord::Migrator.new(:up, [migration]).migrate
 
-        assert connection.columns(:more_testings).find { |c| c.name == "created_at" }.null
-        assert connection.columns(:more_testings).find { |c| c.name == "updated_at" }.null
+        assert connection.column_exists?(:more_testings, :created_at, null: true)
+        assert connection.column_exists?(:more_testings, :updated_at, null: true)
       ensure
         connection.drop_table :more_testings rescue nil
       end
@@ -103,8 +103,8 @@ module ActiveRecord
 
         ActiveRecord::Migrator.new(:up, [migration]).migrate
 
-        assert connection.columns(:testings).find { |c| c.name == "created_at" }.null
-        assert connection.columns(:testings).find { |c| c.name == "updated_at" }.null
+        assert connection.column_exists?(:testings, :created_at, null: true)
+        assert connection.column_exists?(:testings, :updated_at, null: true)
       end
 
       def test_timestamps_have_null_constraints_if_not_present_in_migration_for_adding_timestamps_to_existing_table
@@ -116,8 +116,8 @@ module ActiveRecord
 
         ActiveRecord::Migrator.new(:up, [migration]).migrate
 
-        assert connection.columns(:testings).find { |c| c.name == "created_at" }.null
-        assert connection.columns(:testings).find { |c| c.name == "updated_at" }.null
+        assert connection.column_exists?(:testings, :created_at, null: true)
+        assert connection.column_exists?(:testings, :updated_at, null: true)
       end
 
       def test_legacy_migrations_raises_exception_when_inherited
