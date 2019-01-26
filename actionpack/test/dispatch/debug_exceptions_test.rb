@@ -323,7 +323,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     get "/not_found_original_exception", headers: { "action_dispatch.show_exceptions" => true }
     assert_response 404
     assert_match %r{AbstractController::ActionNotFound}, body
-    assert_match %r{Showing <i>/.*/actionpack/test/dispatch/debug_exceptions_test.rb</i>}, body
+    assert_match %r{Showing <i>.*test/dispatch/debug_exceptions_test.rb</i>}, body
   end
 
   test "show the last exception and cause even when the cause is mapped to resque_responses" do
@@ -494,7 +494,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     assert_select "#Application-Trace-0" do
       assert_select "code", /syntax error, unexpected/
     end
-    assert_match %r{Showing <i>/.*/actionpack/test/dispatch/debug_exceptions_test.rb</i>}, body
+    assert_match %r{Showing <i>.*test/dispatch/debug_exceptions_test.rb</i>}, body
   end
 
   test "debug exceptions app shows user code that caused the error in source view" do
