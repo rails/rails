@@ -682,11 +682,7 @@ ActiveRecord::Schema.define do
   create_table :pets, primary_key: :pet_id, force: true do |t|
     t.string :name
     t.integer :owner_id, :integer
-    if subsecond_precision_supported?
-      t.timestamps null: false, precision: 6
-    else
-      t.timestamps null: false
-    end
+    t.timestamps
   end
 
   create_table :pets_treasures, force: true do |t|
@@ -904,11 +900,7 @@ ActiveRecord::Schema.define do
     t.string   :parent_title
     t.string   :type
     t.string   :group
-    if subsecond_precision_supported?
-      t.timestamps null: true, precision: 6
-    else
-      t.timestamps null: true
-    end
+    t.timestamps null: true
   end
 
   create_table :toys, primary_key: :toy_id, force: true do |t|

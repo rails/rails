@@ -1129,6 +1129,10 @@ module ActiveRecord
       def add_timestamps(table_name, options = {})
         options[:null] = false if options[:null].nil?
 
+        if !options.key?(:precision) && supports_datetime_with_precision?
+          options[:precision] = 6
+        end
+
         add_column table_name, :created_at, :datetime, options
         add_column table_name, :updated_at, :datetime, options
       end
@@ -1290,7 +1294,7 @@ module ActiveRecord
         end
 
         def create_table_definition(*args)
-          TableDefinition.new(*args)
+          TableDefinition.new(self, *args)
         end
 
         def create_alter_table(name)
