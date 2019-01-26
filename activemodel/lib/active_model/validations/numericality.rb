@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "bigdecimal/util"
+
 module ActiveModel
   module Validations
     class NumericalityValidator < EachValidator # :nodoc:
