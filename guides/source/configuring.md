@@ -1239,7 +1239,7 @@ Using Initializer Files
 
 After loading the framework and any gems in your application, Rails turns to loading initializers. An initializer is any Ruby file stored under `config/initializers` in your application. You can use initializers to hold configuration settings that should be made after all of the frameworks and gems are loaded, such as options to configure settings for these parts.
 
-NOTE: There is no guarantee that your initializers will run after all the gem initilizers, so any initialization code that depends on a given gem having been initialized should go into a `config.after_initilize` block.
+NOTE: There is no guarantee that your initializers will run after all the gem initializers, so any initialization code that depends on a given gem having been initialized should go into a `config.after_initialize` block.
 
 NOTE: You can use subfolders to organize your initializers if you like, because Rails will look into the whole file hierarchy from the initializers folder on down.
 
