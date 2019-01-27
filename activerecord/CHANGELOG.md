@@ -1,3 +1,7 @@
+*   Allow generated create_table migrations to include or skip timestamps
+
+    *Michael Duchemin*
+
 *   Fix `relation.create` to avoid leaking scope to initialization block and callbacks.
 
     Fixes #9894, #17577.
