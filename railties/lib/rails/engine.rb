@@ -473,9 +473,10 @@ module Rails
     # files inside eager_load paths.
     def eager_load!
       config.eager_load_paths.each do |load_path|
-        matcher = /\A#{Regexp.escape(load_path.to_s)}\/(.*)\.rb\Z/
+        # Starts after load_path plus a slash, ends before ".rb".
+        relname_range = (load_path.length + 1)...-3
         Dir.glob("#{load_path}/**/*.rb").sort.each do |file|
-          require_dependency file.sub(matcher, '\1')
+          require_dependency file[relname_range]
         end
       end
     end
