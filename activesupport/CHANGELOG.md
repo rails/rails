@@ -1,9 +1,12 @@
+*   Add `before_reset` callback to `CurrentAttributes` and define `after_reset` as an alias of `resets` for symmetry.
+
+    *Rosa Gutierrez*
+
 *   Add `ActiveSupport::HashWithIndifferentAccess#assoc`.
 
     `assoc` can now be called with either a string or a symbol.
 
     *Stefan Schüßler*
-
 
 ## Rails 6.0.0.beta1 (January 18, 2019) ##
 
