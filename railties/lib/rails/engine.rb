@@ -474,7 +474,7 @@ module Rails
     def eager_load!
       config.eager_load_paths.each do |load_path|
         # Starts after load_path plus a slash, ends before ".rb".
-        relname_range = (load_path.length + 1)...-3
+        relname_range = (load_path.to_s.length + 1)...-3
         Dir.glob("#{load_path}/**/*.rb").sort.each do |file|
           require_dependency file[relname_range]
         end
