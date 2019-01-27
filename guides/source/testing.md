@@ -1722,7 +1722,7 @@ within a model:
 ```ruby
 require 'test_helper'
 
-class ProductTest < ActiveJob::TestCase
+class ProductTest < ActiveSupport::TestCase
   test 'billing job scheduling' do
     assert_enqueued_with(job: BillingJob) do
       product.charge(account)
