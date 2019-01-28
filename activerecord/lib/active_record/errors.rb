@@ -309,6 +309,9 @@ module ActiveRecord
   class ImmutableRelation < ActiveRecordError
   end
 
+  class NonUniqueResult < ActiveRecordError
+  end
+
   # TransactionIsolationError will be raised under the following conditions:
   #
   # * The adapter does not support setting the isolation level

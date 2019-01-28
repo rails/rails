@@ -104,6 +104,15 @@ module ActiveRecord
       take || raise_record_not_found_exception!
     end
 
+    def take_unique
+      records = take(2)
+      records.many? : raise NonUniqueResult : records.first
+    end
+
+    def take_unique!
+      take_unique || raise_record_not_found_exception
+    end
+
     # Find the first record (or first N records if a parameter is supplied).
     # If no order is defined it will order by primary key.
     #
