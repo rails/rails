@@ -28,7 +28,7 @@ module ActionView
         elsif options.key?(:html)
           Template::HTML.new(options[:html], formats.first)
         elsif options.key?(:file)
-          with_fallbacks { find_file(options[:file], nil, false, keys, @details) }
+          @lookup_context.with_fallbacks.find_file(options[:file], nil, false, keys, @details)
         elsif options.key?(:inline)
           handler = Template.handler_for_extension(options[:type] || "erb")
           Template.new(options[:inline], "inline template", handler, locals: keys)
@@ -36,7 +36,7 @@ module ActionView
           if options[:template].respond_to?(:render)
             options[:template]
           else
-            find_template(options[:template], options[:prefixes], false, keys, @details)
+            @lookup_context.find_template(options[:template], options[:prefixes], false, keys, @details)
           end
         else
           raise ArgumentError, "You invoked render but did not give any of :partial, :template, :inline, :file, :plain, :html or :body option."
@@ -82,9 +82,9 @@ module ActionView
         when String
           begin
             if layout.start_with?("/")
-              with_fallbacks { find_template(layout, nil, false, [], details) }
+              @lookup_context.with_fallbacks.find_template(layout, nil, false, [], details)
             else
-              find_template(layout, nil, false, [], details)
+              @lookup_context.find_template(layout, nil, false, [], details)
             end
           rescue ActionView::MissingTemplate
             all_details = @details.merge(formats: @lookup_context.default_formats)
