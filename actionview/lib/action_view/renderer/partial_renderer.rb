@@ -296,41 +296,42 @@ module ActionView
 
     def render(context, options, block)
       setup(context, options, block)
-      @template = find_partial
+      template = find_partial
 
       @lookup_context.rendered_format ||= begin
-        if @template && @template.formats.present?
-          @template.formats.first
+        if template && template.formats.first
+          template.formats.first
         else
           formats.first
         end
       end
 
       if @collection
-        render_collection(context)
+        render_collection(context, template)
       else
-        render_partial(context)
+        render_partial(context, template)
       end
     end
 
     private
 
-      def render_collection(view)
-        instrument(:collection, count: @collection.size) do |payload|
+      def render_collection(view, template)
+        identifier = (template && template.identifier) || @path
+        instrument(:collection, identifier: identifier, count: @collection.size) do |payload|
           return nil if @collection.blank?
 
           if @options.key?(:spacer_template)
             spacer = find_template(@options[:spacer_template], @locals.keys).render(view, @locals)
           end
 
-          cache_collection_render(payload, view) do
-            @template ? collection_with_template(view) : collection_without_template(view)
+          cache_collection_render(payload, view, template) do
+            template ? collection_with_template(view, template) : collection_without_template(view)
           end.join(spacer).html_safe
         end
       end
 
-      def render_partial(view)
-        instrument(:partial) do |payload|
+      def render_partial(view, template)
+        instrument(:partial, identifier: template.identifier) do |payload|
           locals, block = @locals, @block
           object, as = @object, @variable
 
@@ -341,12 +342,12 @@ module ActionView
           object = locals[as] if object.nil? # Respect object when object is false
           locals[as] = object if @has_object
 
-          content = @template.render(view, locals) do |*name|
+          content = template.render(view, locals) do |*name|
             view._layout_for(*name, &block)
           end
 
           content = layout.render(view, locals) { content } if layout
-          payload[:cache_hit] = view.view_renderer.cache_hits[@template.virtual_path]
+          payload[:cache_hit] = view.view_renderer.cache_hits[template.virtual_path]
           content
         end
       end
@@ -422,8 +423,8 @@ module ActionView
         @lookup_context.find_template(path, prefixes, true, locals, @details)
       end
 
-      def collection_with_template(view)
-        locals, template = @locals, @template
+      def collection_with_template(view, template)
+        locals = @locals
         as, counter, iteration = @variable, @variable_counter, @variable_iteration
 
         if layout = @options[:layout]

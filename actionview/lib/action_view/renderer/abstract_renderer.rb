@@ -38,8 +38,6 @@ module ActionView
       end
 
       def instrument(name, **options) # :doc:
-        options[:identifier] ||= (@template && @template.identifier) || @path
-
         ActiveSupport::Notifications.instrument("render_#{name}.action_view", options) do |payload|
           yield payload
         end
