@@ -8,11 +8,13 @@ module ActionView #:nodoc:
   # useful for testing extensions that have no way of knowing what the file
   # system will look like at runtime.
   class FixtureResolver < PathResolver
-    attr_reader :hash
-
     def initialize(hash = {}, pattern = nil)
       super(pattern)
       @hash = hash
+    end
+
+    def data
+      @hash
     end
 
     def to_s

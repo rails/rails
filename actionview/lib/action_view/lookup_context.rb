@@ -106,12 +106,6 @@ module ActionView
     module ViewPaths
       attr_reader :view_paths, :html_fallback_for_js
 
-      # Whenever setting view paths, makes a copy so that we can manipulate them in
-      # instance objects as we wish.
-      def view_paths=(paths)
-        @view_paths = ActionView::PathSet.new(Array(paths))
-      end
-
       def find(name, prefixes = [], partial = false, keys = [], options = {})
         @view_paths.find(*args_for_lookup(name, prefixes, partial, keys, options))
       end
@@ -138,18 +132,20 @@ module ActionView
       # Adds fallbacks to the view paths. Useful in cases when you are rendering
       # a :file.
       def with_fallbacks
-        added_resolvers = 0
-        self.class.fallbacks.each do |resolver|
-          next if view_paths.include?(resolver)
-          view_paths.push(resolver)
-          added_resolvers += 1
-        end
+        view_paths = @view_paths
+        @view_paths = build_view_paths((view_paths.paths + self.class.fallbacks).uniq)
         yield
       ensure
-        added_resolvers.times { view_paths.pop }
+        @view_paths = view_paths
       end
 
     private
+
+      # Whenever setting view paths, makes a copy so that we can manipulate them in
+      # instance objects as we wish.
+      def build_view_paths(paths)
+        ActionView::PathSet.new(Array(paths))
+      end
 
       def args_for_lookup(name, prefixes, partial, keys, details_options)
         name, prefixes = normalize_name(name, prefixes)
@@ -226,7 +222,7 @@ module ActionView
       @rendered_format = nil
 
       @details = initialize_details({}, details)
-      self.view_paths = view_paths
+      @view_paths = build_view_paths(view_paths)
     end
 
     def digest_cache
