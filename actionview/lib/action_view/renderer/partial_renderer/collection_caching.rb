@@ -54,18 +54,16 @@ module ActionView
       def collection_by_cache_keys(view, template)
         seed = callable_cache_key? ? @options[:cached] : ->(i) { i }
 
+        digest_path = view.digest_path_from_virtual(template.virtual_path)
+
         @collection.each_with_object({}) do |item, hash|
-          hash[expanded_cache_key(seed.call(item), view, template)] = item
+          hash[expanded_cache_key(seed.call(item), view, template, digest_path)] = item
         end
       end
 
-      def expanded_cache_key(key, view, template)
-        key = view.combined_fragment_cache_key(view.cache_fragment_name(key, virtual_path: template.virtual_path, digest_path: digest_path(view, template)))
+      def expanded_cache_key(key, view, template, digest_path)
+        key = view.combined_fragment_cache_key(view.cache_fragment_name(key, virtual_path: template.virtual_path, digest_path: digest_path))
         key.frozen? ? key.dup : key # #read_multi & #write may require mutability, Dalli 2.6.0.
-      end
-
-      def digest_path(view, template)
-        @digest_path ||= view.digest_path_from_virtual(template.virtual_path)
       end
 
       # `order_by` is an enumerable object containing keys of the cache,
