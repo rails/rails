@@ -5,8 +5,12 @@ require "abstract_controller/rendering"
 
 class LookupContextTest < ActiveSupport::TestCase
   def setup
-    @lookup_context = ActionView::LookupContext.new(FIXTURE_LOAD_PATH, {})
+    @lookup_context = build_lookup_context(FIXTURE_LOAD_PATH, {})
     ActionView::LookupContext::DetailsKey.clear
+  end
+
+  def build_lookup_context(paths, details)
+    ActionView::LookupContext.new(paths, details)
   end
 
   def teardown
@@ -156,7 +160,7 @@ class LookupContextTest < ActiveSupport::TestCase
   end
 
   test "gives the key forward to the resolver, so it can be used as cache key" do
-    @lookup_context.view_paths = ActionView::FixtureResolver.new("test/_foo.erb" => "Foo")
+    @lookup_context = build_lookup_context(ActionView::FixtureResolver.new("test/_foo.erb" => "Foo"), {})
     template = @lookup_context.find("foo", %w(test), true)
     assert_equal "Foo", template.source
 
@@ -185,7 +189,7 @@ class LookupContextTest < ActiveSupport::TestCase
   end
 
   test "can disable the cache on demand" do
-    @lookup_context.view_paths = ActionView::FixtureResolver.new("test/_foo.erb" => "Foo")
+    @lookup_context = build_lookup_context(ActionView::FixtureResolver.new("test/_foo.erb" => "Foo"), {})
     old_template = @lookup_context.find("foo", %w(test), true)
 
     template = @lookup_context.find("foo", %w(test), true)
