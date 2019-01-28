@@ -12,7 +12,7 @@ module ActionView
 
       @lookup_context.rendered_format ||= (template.formats.first || formats.first)
 
-      render_template(context, template, options[:layout], options[:locals])
+      render_template(context, template, options[:layout], options[:locals] || {})
     end
 
     private
@@ -45,9 +45,7 @@ module ActionView
 
       # Renders the given template. A string representing the layout can be
       # supplied as well.
-      def render_template(view, template, layout_name = nil, locals = nil)
-        locals ||= {}
-
+      def render_template(view, template, layout_name, locals)
         render_with_layout(view, layout_name, locals) do |layout|
           instrument(:template, identifier: template.identifier, layout: layout.try(:virtual_path)) do
             template.render(view, locals) { |*name| view._layout_for(*name) }
