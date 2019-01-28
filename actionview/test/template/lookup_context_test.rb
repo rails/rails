@@ -162,7 +162,7 @@ class LookupContextTest < ActiveSupport::TestCase
 
     # Now we are going to change the template, but it won't change the returned template
     # since we will hit the cache.
-    @lookup_context.view_paths.first.hash["test/_foo.erb"] = "Bar"
+    @lookup_context.view_paths.first.data["test/_foo.erb"] = "Bar"
     template = @lookup_context.find("foo", %w(test), true)
     assert_equal "Foo", template.source
 
@@ -221,12 +221,12 @@ class LookupContextWithFalseCaching < ActiveSupport::TestCase
 
       # Now we are going to change the template, but it won't change the returned template
       # since the timestamp is the same.
-      @resolver.hash["test/_foo.erb"][0] = "Bar"
+      @resolver.data["test/_foo.erb"][0] = "Bar"
       template = @lookup_context.find("foo", %w(test), true)
       assert_equal "Foo", template.source
 
       # Now update the timestamp.
-      @resolver.hash["test/_foo.erb"][1] = Time.now.utc
+      @resolver.data["test/_foo.erb"][1] = Time.now.utc
       template = @lookup_context.find("foo", %w(test), true)
       assert_equal "Bar", template.source
     end
@@ -237,7 +237,7 @@ class LookupContextWithFalseCaching < ActiveSupport::TestCase
       template = @lookup_context.find("foo", %w(test), true)
       assert_equal "Foo", template.source
 
-      @resolver.hash.clear
+      @resolver.data.clear
       assert_raise ActionView::MissingTemplate do
         @lookup_context.find("foo", %w(test), true)
       end
@@ -246,12 +246,12 @@ class LookupContextWithFalseCaching < ActiveSupport::TestCase
 
   test "if no template was cached in the first lookup, retrieval should work in the second call" do
     ActionView::Resolver.stub(:caching?, false) do
-      @resolver.hash.clear
+      @resolver.data.clear
       assert_raise ActionView::MissingTemplate do
         @lookup_context.find("foo", %w(test), true)
       end
 
-      @resolver.hash["test/_foo.erb"] = ["Foo", Time.utc(2000)]
+      @resolver.data["test/_foo.erb"] = ["Foo", Time.utc(2000)]
       template = @lookup_context.find("foo", %w(test), true)
       assert_equal "Foo", template.source
     end
