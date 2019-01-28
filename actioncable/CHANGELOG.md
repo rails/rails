@@ -19,6 +19,12 @@
 
 ## Rails 6.0.0.beta1 (January 18, 2019) ##
 
+*   [Rename npm package](https://github.com/rails/rails/pull/34905) from
+    [`actioncable`](https://www.npmjs.com/package/actioncable) to
+    [`@rails/actioncable`](https://www.npmjs.com/package/@rails/actioncable).
+
+    *Javan Makhmali*
+
 *   Merge [`action-cable-testing`](https://github.com/palkan/action-cable-testing) to Rails.
 
     *Vladimir Dementyev*
