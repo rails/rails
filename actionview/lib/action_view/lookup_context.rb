@@ -3,6 +3,7 @@
 require "concurrent/map"
 require "active_support/core_ext/module/remove_method"
 require "active_support/core_ext/module/attribute_accessors"
+require "active_support/deprecation"
 require "action_view/template/resolver"
 
 module ActionView
@@ -132,11 +133,24 @@ module ActionView
       # Adds fallbacks to the view paths. Useful in cases when you are rendering
       # a :file.
       def with_fallbacks
-        view_paths = @view_paths
-        @view_paths = build_view_paths((view_paths.paths + self.class.fallbacks).uniq)
-        yield
-      ensure
-        @view_paths = view_paths
+        view_paths = build_view_paths((@view_paths.paths + self.class.fallbacks).uniq)
+
+        if block_given?
+          ActiveSupport::Deprecation.warn <<~eowarn
+          Calling `with_fallbacks` with a block is deprecated.  Call methods on
+          the lookup context returned by `with_fallbacks` instead.
+          eowarn
+
+          begin
+            _view_paths = @view_paths
+            @view_paths = view_paths
+            yield
+          ensure
+            @view_paths = _view_paths
+          end
+        else
+          ActionView::LookupContext.new(view_paths, @details, @prefixes)
+        end
       end
 
     private

@@ -122,19 +122,32 @@ class LookupContextTest < ActiveSupport::TestCase
   test "adds fallbacks to view paths when required" do
     assert_equal 1, @lookup_context.view_paths.size
 
-    @lookup_context.with_fallbacks do
-      assert_equal 3, @lookup_context.view_paths.size
-      assert_includes @lookup_context.view_paths, ActionView::FallbackFileSystemResolver.new("")
-      assert_includes @lookup_context.view_paths, ActionView::FallbackFileSystemResolver.new("/")
+    assert_deprecated do
+      @lookup_context.with_fallbacks do
+        assert_equal 3, @lookup_context.view_paths.size
+        assert_includes @lookup_context.view_paths, ActionView::FallbackFileSystemResolver.new("")
+        assert_includes @lookup_context.view_paths, ActionView::FallbackFileSystemResolver.new("/")
+      end
     end
+
+    @lookup_context = @lookup_context.with_fallbacks
+
+    assert_equal 3, @lookup_context.view_paths.size
+    assert_includes @lookup_context.view_paths, ActionView::FallbackFileSystemResolver.new("")
+    assert_includes @lookup_context.view_paths, ActionView::FallbackFileSystemResolver.new("/")
   end
 
   test "add fallbacks just once in nested fallbacks calls" do
-    @lookup_context.with_fallbacks do
+    assert_deprecated do
       @lookup_context.with_fallbacks do
-        assert_equal 3, @lookup_context.view_paths.size
+        @lookup_context.with_fallbacks do
+          assert_equal 3, @lookup_context.view_paths.size
+        end
       end
     end
+
+    @lookup_context = @lookup_context.with_fallbacks.with_fallbacks
+    assert_equal 3, @lookup_context.view_paths.size
   end
 
   test "generates a new details key for each details hash" do
