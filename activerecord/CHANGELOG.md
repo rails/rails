@@ -1,3 +1,7 @@
+*   MySQL: Support `:size` option to change text and blob size.
+
+    *Ryuta Kamizono*
+
 *   Make `t.timestamps` with precision by default.
 
     *Ryuta Kamizono*

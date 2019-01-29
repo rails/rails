@@ -14,7 +14,7 @@ ActiveRecord::Schema.define(version: 2018_10_03_185713) do
 
   create_table "action_text_rich_texts", force: :cascade do |t|
     t.string "name", null: false
-    t.text "body", limit: 16777215
+    t.text "body"
     t.string "record_type", null: false
     t.integer "record_id", null: false
     t.datetime "created_at", precision: 6, null: false
