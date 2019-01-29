@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "pathname"
 require "json"
 
@@ -19,7 +21,14 @@ copy_file "#{__dir__}/../../app/views/active_storage/blobs/_blob.html.erb",
   "app/views/active_storage/blobs/_blob.html.erb"
 
 say "Installing JavaScript dependencies"
-run "yarn add #{JS_DEPENDENCIES.map { |name, version| "#{name}@#{version}" }.join(" ")}"
+
+begin
+  exec "yarnpkg add #{JS_DEPENDENCIES.map { |name, version| "#{name}@#{version}" }.join(" ")}"
+rescue Errno::ENOENT
+  $stderr.puts "Yarn executable was not detected in the system."
+  $stderr.puts "Download Yarn at https://yarnpkg.com/en/docs/install"
+  exit 1
+end
 
 if APPLICATION_PACK_PATH.exist?
   JS_DEPENDENCIES.keys.each do |name|
