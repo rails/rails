@@ -75,7 +75,7 @@
 
     In other environments `Rails.application.config.hosts` is empty and no
     `Host` header checks will be done. If you want to guard against header
-    attacks on production, you have to manually whitelist the allowed hosts
+    attacks on production, you have to manually permit the allowed hosts
     with:
 
         Rails.application.config.hosts << "product.com"
@@ -88,7 +88,7 @@
         # `beta1.product.com`.
         Rails.application.config.hosts << /.*\.product\.com/
 
-    A special case is supported that allows you to whitelist all sub-domains:
+    A special case is supported that allows you to permit all sub-domains:
 
         # Allow requests from subdomains like `www.product.com` and
         # `beta1.product.com`.
