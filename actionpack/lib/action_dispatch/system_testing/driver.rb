@@ -3,12 +3,12 @@
 module ActionDispatch
   module SystemTesting
     class Driver # :nodoc:
-      def initialize(name, **options, &desired_capabilities)
+      def initialize(name, **options, &capabilities)
         @name = name
         @browser = Browser.new(options[:using])
         @screen_size = options[:screen_size]
         @options = options[:options]
-        @desired_capabilities = desired_capabilities
+        @capabilities = capabilities
       end
 
       def use
@@ -23,7 +23,7 @@ module ActionDispatch
         end
 
         def register
-          define_browser_capabilities(@browser.driver_options)
+          define_browser_capabilities(@browser.capabilities)
 
           Capybara.register_driver @name do |app|
             case @name
@@ -34,8 +34,8 @@ module ActionDispatch
           end
         end
 
-        def define_browser_capabilities(driver_options)
-          @desired_capabilities.call(driver_options) if @desired_capabilities
+        def define_browser_capabilities(capabilities)
+          @capabilities.call(capabilities) if @capabilities
         end
 
         def browser_options

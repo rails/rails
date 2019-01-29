@@ -771,6 +771,7 @@ module ApplicationTests
     def test_reset_sessions_on_failed_system_test_screenshot
       app_file "test/system/reset_sessions_on_failed_system_test_screenshot_test.rb", <<~RUBY
         require "application_system_test_case"
+        require "selenium/webdriver"
 
         class ResetSessionsOnFailedSystemTestScreenshotTest < ApplicationSystemTestCase
           ActionDispatch::SystemTestCase.class_eval do
