@@ -109,6 +109,14 @@ module ActiveRecord
         true
       end
 
+      def supports_insert_on_duplicate_skip?
+        true
+      end
+
+      def supports_insert_on_duplicate_update?
+        true
+      end
+
       def get_advisory_lock(lock_name, timeout = 0) # :nodoc:
         query_value("SELECT GET_LOCK(#{quote(lock_name.to_s)}, #{timeout})") == 1
       end
@@ -509,6 +517,20 @@ module ActiveRecord
         with_multi_statements do
           super { discard_remaining_results }
         end
+      end
+
+      def build_insert_sql(insert) # :nodoc:
+        sql = +"INSERT #{insert.into} #{insert.values_list}"
+
+        if insert.skip_duplicates?
+          any_column = quote_column_name(insert.model.columns.first.name)
+          sql << " ON DUPLICATE KEY UPDATE #{any_column}=#{any_column}"
+        elsif insert.update_duplicates?
+          sql << " ON DUPLICATE KEY UPDATE "
+          sql << insert.updatable_columns.map { |column| "#{column}=VALUES(#{column})" }.join(",")
+        end
+
+        sql
       end
 
       private

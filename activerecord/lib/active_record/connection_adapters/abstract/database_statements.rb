@@ -404,6 +404,17 @@ module ActiveRecord
         end
       end
 
+      # Fixture value is quoted by Arel, however scalar values
+      # are not quotable. In this case we want to convert
+      # the column value to YAML.
+      def with_yaml_fallback(value) # :nodoc:
+        if value.is_a?(Hash) || value.is_a?(Array)
+          YAML.dump(value)
+        else
+          value
+        end
+      end
+
       private
         def default_insert_value(column)
           Arel.sql("DEFAULT")
@@ -471,17 +482,6 @@ module ActiveRecord
             relation.arel
           else
             relation
-          end
-        end
-
-        # Fixture value is quoted by Arel, however scalar values
-        # are not quotable. In this case we want to convert
-        # the column value to YAML.
-        def with_yaml_fallback(value)
-          if value.is_a?(Hash) || value.is_a?(Array)
-            YAML.dump(value)
-          else
-            value
           end
         end
     end

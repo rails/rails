@@ -387,6 +387,22 @@ module ActiveRecord
         false
       end
 
+      def supports_insert_returning?
+        false
+      end
+
+      def supports_insert_on_duplicate_skip?
+        false
+      end
+
+      def supports_insert_on_duplicate_update?
+        false
+      end
+
+      def supports_insert_conflict_target?
+        false
+      end
+
       # This is meant to be implemented by the adapters that support extensions
       def disable_extension(name)
       end
@@ -540,6 +556,19 @@ module ActiveRecord
 
       def default_index_type?(index) # :nodoc:
         index.using.nil?
+      end
+
+      # Called by ActiveRecord::InsertAll,
+      # Passed an instance of ActiveRecord::InsertAll::Builder,
+      # This method implements standard bulk inserts for all databases, but
+      # should be overridden by adapters to implement common features with
+      # non-standard syntax like handling duplicates or returning values.
+      def build_insert_sql(insert) # :nodoc:
+        if insert.skip_duplicates? || insert.update_duplicates?
+          raise NotImplementedError, "#{self.class} should define `build_insert_sql` to implement adapter-specific logic for handling duplicates during INSERT"
+        end
+
+        "INSERT #{insert.into} #{insert.values_list}"
       end
 
       private
