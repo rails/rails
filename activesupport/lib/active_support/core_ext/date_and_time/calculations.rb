@@ -110,6 +110,16 @@ module DateAndTime
       advance(years: years)
     end
 
+    # Returns a new date/time before <tt>date_or_time</tt>.
+    def before(date_or_time)
+      since(-date_or_time)
+    end
+
+    # Returns a new date/time after <tt>date_or_time</tt>.
+    def after(date_or_time)
+      since(date_or_time)
+    end
+
     # Returns a new date/time at the start of the month.
     #
     #   today = Date.today # => Thu, 18 Jun 2015
