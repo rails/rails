@@ -15,7 +15,7 @@ module RenderTestCases
       def combined_fragment_cache_key(key)
         [ :views, key ]
       end
-    end.new(paths, @assigns)
+    end.with_view_paths(paths, @assigns)
 
     @controller_view = TestController.new.view_context
 

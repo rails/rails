@@ -5,7 +5,7 @@ require "abstract_unit"
 class CaptureHelperTest < ActionView::TestCase
   def setup
     super
-    @av = ActionView::Base.new
+    @av = ActionView::Base.empty
     @view_flow = ActionView::OutputFlow.new
   end
 

@@ -26,7 +26,7 @@ module ActionView
             view = Class.new(ActionView::Base) {
               include action_view_erb_handler_context._routes.url_helpers
               class_eval("define_method(:_template) { |local_assigns, output_buffer| #{src} }", @filename || "(erubi)", 0)
-            }.new(action_view_erb_handler_context)
+            }.with_context(action_view_erb_handler_context)
             view.run(:_template, {}, ActionView::OutputBuffer.new)
           end
 
