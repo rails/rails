@@ -1688,7 +1688,7 @@ class PerformedJobsTest < ActiveJob::TestCase
     end
   end
 
-  def test_assert_performed_with_without_bllock_with_global_id_args
+  def test_assert_performed_with_without_block_with_global_id_args
     ricardo = Person.new(9)
     HelloJob.perform_later(ricardo)
     perform_enqueued_jobs
