@@ -58,6 +58,43 @@ module ActiveRecord
       assert called
     end
 
+    def test_write_to_primary
+      resolver = ActiveRecord::Middleware::DatabaseSelector::Resolver.new(@session)
+
+      # Session should start empty
+      assert_nil @session_store[:last_write]
+
+      called = false
+      resolver.write do
+        assert ActiveRecord::Base.connected_to?(role: :writing)
+        called = true
+      end
+      assert called
+
+      # and be populated by the last write time
+      assert @session_store[:last_write]
+    end
+
+    def test_write_to_primary_with_exception
+      resolver = ActiveRecord::Middleware::DatabaseSelector::Resolver.new(@session)
+
+      # Session should start empty
+      assert_nil @session_store[:last_write]
+
+      called = false
+      assert_raises(ActiveRecord::RecordNotFound) do
+        resolver.write do
+          assert ActiveRecord::Base.connected_to?(role: :writing)
+          called = true
+          raise ActiveRecord::RecordNotFound
+        end
+      end
+      assert called
+
+      # and be populated by the last write time
+      assert @session_store[:last_write]
+    end
+
     def test_the_middleware_chooses_writing_role_with_POST_request
       middleware = ActiveRecord::Middleware::DatabaseSelector.new(lambda { |env|
         assert ActiveRecord::Base.connected_to?(role: :writing)
