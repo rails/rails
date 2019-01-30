@@ -680,9 +680,10 @@ module ActiveRecord
       end
       alias :remove_belongs_to :remove_references
 
-      # Adds a foreign key.
+      # Adds a foreign key to the table using a supplied table name.
       #
       #  t.foreign_key(:authors)
+      #  t.foreign_key(:authors, column: :author_id, primary_key: "id")
       #
       # See {connection.add_foreign_key}[rdoc-ref:SchemaStatements#add_foreign_key]
       def foreign_key(*args)
