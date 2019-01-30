@@ -281,7 +281,7 @@ class NumericalityValidationTest < ActiveModel::TestCase
     assert_predicate topic, :invalid?
   end
 
-  def test_validates_numericalty_with_object_acting_as_numeric
+  def test_validates_numericality_with_object_acting_as_numeric
     klass = Class.new do
       def to_f
         123.54
