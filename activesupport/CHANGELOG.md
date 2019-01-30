@@ -1,3 +1,9 @@
+*   Add `ActiveSupport::HashWithIndifferentAccess#assoc`.
+
+    `assoc` can now be called with either a string or a symbol.
+
+    *Stefan Schüßler*
+
 *   Fix `String#safe_constantize` throwing a `LoadError` for incorrectly cased constant references.
 
     *Keenan Brock*

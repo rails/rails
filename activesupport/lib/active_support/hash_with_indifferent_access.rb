@@ -163,6 +163,19 @@ module ActiveSupport
       super(convert_key(key))
     end
 
+    # Same as <tt>Hash#assoc</tt> where the key passed as argument can be
+    # either a string or a symbol:
+    #
+    #   counters = ActiveSupport::HashWithIndifferentAccess.new
+    #   counters[:foo] = 1
+    #
+    #   counters.assoc('foo') # => ["foo", 1]
+    #   counters.assoc(:foo)  # => ["foo", 1]
+    #   counters.assoc(:zoo)  # => nil
+    def assoc(key)
+      super(convert_key(key))
+    end
+
     # Same as <tt>Hash#fetch</tt> where the key passed as argument can be
     # either a string or a symbol:
     #
