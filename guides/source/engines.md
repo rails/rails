@@ -1497,6 +1497,8 @@ To hook into the initialization process of one of the following classes use the 
 | Class                             | Available Hooks                      |
 | --------------------------------- | ------------------------------------ |
 | `ActionCable`                     | `action_cable`                       |
+| `ActionCable::Channel::Base`      | `action_cable_channel`               |
+| `ActionCable::Connection::Base`   | `action_cable_connection`            |
 | `ActionController::API`           | `action_controller_api`              |
 | `ActionController::API`           | `action_controller`                  |
 | `ActionController::Base`          | `action_controller_base`             |
