@@ -56,12 +56,17 @@ module ActiveRecord
       end
 
       private
-        def build_config(original_config, url)
-          if /^jdbc:/.match?(url)
-            hash = { "url" => url }
+
+        def build_url_hash(url)
+          if url.nil? || /^jdbc:/.match?(url)
+            { "url" => url }
           else
-            hash = ActiveRecord::ConnectionAdapters::ConnectionSpecification::ConnectionUrlResolver.new(url).to_hash
+            ActiveRecord::ConnectionAdapters::ConnectionSpecification::ConnectionUrlResolver.new(url).to_hash
           end
+        end
+
+        def build_config(original_config, url)
+          hash = build_url_hash(url)
 
           if original_config[env_name]
             original_config[env_name].merge(hash)

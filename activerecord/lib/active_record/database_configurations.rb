@@ -134,9 +134,11 @@ module ActiveRecord
       end
 
       def build_db_config_from_hash(env_name, spec_name, config)
-        if url = config["url"]
+        if config.has_key?("url")
+          url = config["url"]
           config_without_url = config.dup
           config_without_url.delete "url"
+
           ActiveRecord::DatabaseConfigurations::UrlConfig.new(env_name, spec_name, url, config_without_url)
         elsif config["database"] || (config.size == 1 && config.values.all? { |v| v.is_a? String })
           ActiveRecord::DatabaseConfigurations::HashConfig.new(env_name, spec_name, config)
