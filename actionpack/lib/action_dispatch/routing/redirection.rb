@@ -25,18 +25,7 @@ module ActionDispatch
 
       def serve(req)
         uri = URI.parse(path(req.path_parameters, req))
-
-        unless uri.host
-          if relative_path?(uri.path)
-            uri.path = "#{req.script_name}/#{uri.path}"
-          elsif uri.path.empty?
-            uri.path = req.script_name.empty? ? "/" : req.script_name
-          end
-        end
-
-        uri.scheme ||= req.scheme
-        uri.host   ||= req.host
-        uri.port   ||= req.port unless req.standard_port?
+        uri = adjust_redirect_uri(uri, req)
 
         req.commit_flash
 
@@ -74,6 +63,22 @@ module ActionDispatch
 
         def escape_path(params)
           Hash[params.map { |k, v| [k, Journey::Router::Utils.escape_path(v)] }]
+        end
+
+        def adjust_redirect_uri(uri, req)
+          unless uri.host
+            if relative_path?(uri.path)
+              uri.path = "#{req.script_name}/#{uri.path}"
+            elsif uri.path.empty?
+              uri.path = req.script_name.empty? ? "/" : req.script_name
+            end
+          end
+
+          uri.scheme ||= req.scheme
+          uri.host   ||= req.host
+          uri.port   ||= req.port unless req.standard_port?
+
+          uri
         end
     end
 
@@ -134,6 +139,11 @@ module ActionDispatch
       def inspect
         "redirect(#{status}, #{options.map { |k, v| "#{k}: #{v}" }.join(', ')})"
       end
+
+      private
+        def adjust_redirect_uri(uri, req)
+          options[:only_path] ? uri : super
+        end
     end
 
     module Redirection
