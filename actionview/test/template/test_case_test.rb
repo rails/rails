@@ -52,7 +52,7 @@ module ActionView
     end
 
     test "retrieve non existing config values" do
-      assert_nil ActionView::Base.new.config.something_odd
+      assert_nil ActionView::Base.empty.config.something_odd
     end
 
     test "works without testing a helper module" do

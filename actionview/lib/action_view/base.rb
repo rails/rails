@@ -3,6 +3,7 @@
 require "active_support/core_ext/module/attr_internal"
 require "active_support/core_ext/module/attribute_accessors"
 require "active_support/ordered_options"
+require "active_support/deprecation"
 require "action_view/log_subscriber"
 require "action_view/helpers"
 require "action_view/context"
@@ -187,7 +188,7 @@ module ActionView #:nodoc:
       end
     end
 
-    attr_accessor :view_renderer
+    attr_reader :view_renderer
     attr_internal :config, :assigns
 
     delegate :lookup_context, to: :view_renderer
@@ -197,17 +198,49 @@ module ActionView #:nodoc:
       @_assigns = new_assigns.each { |key, value| instance_variable_set("@#{key}", value) }
     end
 
-    def initialize(context = nil, assigns = {}, controller = nil, formats = nil) #:nodoc:
+    # :stopdoc:
+
+    def self.build_renderer(context, controller, formats)
+      lookup_context = context.is_a?(ActionView::LookupContext) ?
+        context : ActionView::LookupContext.new(context)
+      lookup_context.formats  = formats if formats
+      lookup_context.prefixes = controller._prefixes if controller
+      ActionView::Renderer.new(lookup_context)
+    end
+
+    def self.empty
+      with_view_paths([])
+    end
+
+    def self.with_view_paths(view_paths, assigns = {}, controller = nil)
+      with_context ActionView::LookupContext.new(view_paths), assigns, controller
+    end
+
+    def self.with_context(context, assigns = {}, controller = nil)
+      new ActionView::Renderer.new(context), assigns, controller
+    end
+
+    NULL = Object.new
+
+    # :startdoc:
+
+    def initialize(renderer, assigns = {}, controller = nil, formats = NULL) #:nodoc:
       @_config = ActiveSupport::InheritableOptions.new
 
-      if context.is_a?(ActionView::Renderer)
-        @view_renderer = context
+      unless formats == NULL
+        ActiveSupport::Deprecation.warn <<~eowarn
+        Passing formats to ActionView::Base.new is deprecated
+        eowarn
+      end
+
+      if renderer.is_a?(ActionView::Renderer)
+        @view_renderer = renderer
       else
-        lookup_context = context.is_a?(ActionView::LookupContext) ?
-          context : ActionView::LookupContext.new(context)
-        lookup_context.formats  = formats if formats
-        lookup_context.prefixes = controller._prefixes if controller
-        @view_renderer = ActionView::Renderer.new(lookup_context)
+        ActiveSupport::Deprecation.warn <<~eowarn
+        ActionView::Base instances should be constructed with a view renderer,
+        assigments, and a controller.
+        eowarn
+        @view_renderer = self.class.build_renderer(renderer, controller, formats)
       end
 
       @cache_hit = {}

@@ -75,7 +75,7 @@ module ActionController
       # Provides a proxy to access helper methods from outside the view.
       def helpers
         @helper_proxy ||= begin
-          proxy = ActionView::Base.new
+          proxy = ActionView::Base.empty
           proxy.config = config.inheritable_copy
           proxy.extend(_helpers)
         end
