@@ -320,6 +320,12 @@ class ActionsTest < Rails::Generators::TestCase
     assert_no_file "app/models/my_model.rb"
   end
 
+  def test_generate_should_run_command_without_env
+    assert_called_with(generator, :run, ["rails generate model MyModel name:string", verbose: false]) do
+      action :generate, "model", "MyModel", "name:string"
+    end
+  end
+
   def test_rake_should_run_rake_command_with_default_env
     assert_called_with(generator, :run, ["rake log:clear RAILS_ENV=development", verbose: false]) do
       with_rails_env nil do
