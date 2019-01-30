@@ -21,6 +21,24 @@ class ActiveStorage::BlobsControllerTest < ActionDispatch::IntegrationTest
   end
 end
 
+class ActiveStorage::BlobsControllerNoCacheTest < ActionDispatch::IntegrationTest
+  setup do
+    ActiveStorage.disable_cache_for_tests = true
+    @blob = create_file_blob filename: "racecar.jpg"
+  end
+
+  teardown do
+    ActiveStorage.disable_cache_for_tests = false
+  end
+
+  test "disable_cache_for_tests disables browser caching" do
+    get rails_blob_url(@blob)
+
+    assert_redirected_to(/racecar\.jpg/)
+    assert_equal "no-cache", @response.headers["Cache-Control"]
+  end
+end
+
 if SERVICE_CONFIGURATIONS[:s3] && SERVICE_CONFIGURATIONS[:s3][:access_key_id].present?
   class ActiveStorage::S3BlobsControllerTest < ActionDispatch::IntegrationTest
     setup do

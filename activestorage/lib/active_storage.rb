@@ -52,6 +52,7 @@ module ActiveStorage
   mattr_accessor :content_types_allowed_inline, default: []
   mattr_accessor :binary_content_type, default: "application/octet-stream"
   mattr_accessor :service_urls_expire_in, default: 5.minutes
+  mattr_accessor :disable_cache_for_tests, default: false
   mattr_accessor :routes_prefix, default: "/rails/active_storage"
 
   module Transformers
