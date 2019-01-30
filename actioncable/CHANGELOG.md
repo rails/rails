@@ -1,3 +1,16 @@
+*   Add `:action_cable_connection` and `:action_cable_channel` load hooks.
+
+    You can use them to extend `ActionCable::Connection::Base` and `ActionCable::Channel::Base`
+    functionality:
+
+    ```ruby
+    ActiveSupport.on_load(:action_cable_channel) do
+      # do something in the context of ActionCable::Channel::Base
+    end
+    ```
+
+    *Vladimir Dementyev*
+
 *   Add `Channel::Base#broadcast_to`.
 
     You can now call `broadcast_to` within a channel action, which equals to
