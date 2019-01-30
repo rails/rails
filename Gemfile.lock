@@ -171,8 +171,8 @@ GEM
     bootsnap (1.3.2-java)
       msgpack (~> 1.0)
     builder (3.2.3)
-    bunny (2.9.2)
-      amq-protocol (~> 2.3.0)
+    bunny (2.13.0)
+      amq-protocol (~> 2.3, >= 2.3.0)
     byebug (10.0.2)
     capybara (3.10.1)
       addressable
@@ -191,7 +191,7 @@ GEM
       coffee-script-source
       execjs
     coffee-script-source (1.12.2)
-    concurrent-ruby (1.1.3)
+    concurrent-ruby (1.1.4)
     connection_pool (2.2.2)
     cookiejar (0.3.3)
     crack (0.4.3)
@@ -454,9 +454,10 @@ GEM
       rack (~> 2.0)
       rack-protection (= 2.0.4)
       tilt (~> 2.0)
-    sneakers (2.7.0)
-      bunny (~> 2.9.2)
+    sneakers (2.11.0)
+      bunny (~> 2.12)
       concurrent-ruby (~> 1.0)
+      rake
       serverengine (~> 2.0.5)
       thor
     sprockets (3.7.2)
