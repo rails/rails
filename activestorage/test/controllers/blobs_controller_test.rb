@@ -23,15 +23,15 @@ end
 
 class ActiveStorage::BlobsControllerNoCacheTest < ActionDispatch::IntegrationTest
   setup do
-    ActiveStorage.disable_cache_for_tests = true
+    ActiveStorage.browser_no_cache = true
     @blob = create_file_blob filename: "racecar.jpg"
   end
 
   teardown do
-    ActiveStorage.disable_cache_for_tests = false
+    ActiveStorage.browser_no_cache = false
   end
 
-  test "disable_cache_for_tests disables browser caching" do
+  test "browser_no_cache disables browser caching" do
     get rails_blob_url(@blob)
 
     assert_redirected_to(/racecar\.jpg/)

@@ -8,7 +8,7 @@ class ActiveStorage::BlobsController < ActiveStorage::BaseController
   include ActiveStorage::SetBlob
 
   def show
-    unless Rails.env.test? && ActiveStorage.disable_cache_for_tests
+    unless ActiveStorage.browser_no_cache
       expires_in ActiveStorage.service_urls_expire_in
     end
     redirect_to @blob.service_url(disposition: params[:disposition])
