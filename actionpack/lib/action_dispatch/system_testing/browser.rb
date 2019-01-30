@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "selenium/webdriver"
-
 module ActionDispatch
   module SystemTesting
     class Browser # :nodoc:
@@ -35,9 +33,9 @@ module ActionDispatch
         @option ||=
           case type
           when :chrome
-            Selenium::WebDriver::Chrome::Options.new
+            ::Selenium::WebDriver::Chrome::Options.new
           when :firefox
-            Selenium::WebDriver::Firefox::Options.new
+            ::Selenium::WebDriver::Firefox::Options.new
           end
       end
 
