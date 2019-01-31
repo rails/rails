@@ -10,6 +10,7 @@ namespace :action_text do
   task :run_installer do
     installer_template = File.expand_path("../templates/installer.rb", __dir__)
     system "#{RbConfig.ruby} ./bin/rails app:template LOCATION=#{installer_template}"
+    abort unless $?.success?
   end
 
   task :copy_migrations do
