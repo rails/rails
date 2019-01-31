@@ -64,12 +64,9 @@ module ActiveRecord
           def write_to_primary(&blk)
             ActiveRecord::Base.connected_to(role: :writing) do
               instrumenter.instrument("database_selector.active_record.wrote_to_primary") do
-                begin
-                  ret = yield
-                ensure
-                  resolver.update_last_write_timestamp
-                end
-                ret
+                yield
+              ensure
+                resolver.update_last_write_timestamp
               end
             end
           end
