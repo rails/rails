@@ -11,7 +11,7 @@ module ActiveStorage
   #
   # Example:
   #
-  #   ActiveStorage::VideoAnalyzer.new(blob).metadata
+  #   ActiveStorage::Analyzer::VideoAnalyzer.new(blob).metadata
   #   # => { width: 640.0, height: 480.0, duration: 5.0, angle: 0, display_aspect_ratio: [4, 3] }
   #
   # When a video's angle is 90 or 270 degrees, its width and height are automatically swapped for convenience.

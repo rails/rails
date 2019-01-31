@@ -263,6 +263,7 @@ module ActiveRecord
       deprecate :indexes=
 
       def initialize(
+        conn,
         name,
         temporary: false,
         if_not_exists: false,
@@ -271,6 +272,7 @@ module ActiveRecord
         comment: nil,
         **
       )
+        @conn = conn
         @columns_hash = {}
         @indexes = []
         @foreign_keys = []
@@ -409,6 +411,10 @@ module ActiveRecord
       #   t.timestamps null: false
       def timestamps(**options)
         options[:null] = false if options[:null].nil?
+
+        if !options.key?(:precision) && @conn.supports_datetime_with_precision?
+          options[:precision] = 6
+        end
 
         column(:created_at, :datetime, options)
         column(:updated_at, :datetime, options)

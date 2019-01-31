@@ -139,8 +139,8 @@ class Mysql2ActiveSchemaTest < ActiveRecord::Mysql2TestCase
     with_real_execute do
       ActiveRecord::Base.connection.create_table :delete_me
       ActiveRecord::Base.connection.add_timestamps :delete_me, null: true
-      assert column_present?("delete_me", "updated_at", "datetime")
-      assert column_present?("delete_me", "created_at", "datetime")
+      assert column_exists?("delete_me", "updated_at", "datetime")
+      assert column_exists?("delete_me", "created_at", "datetime")
     ensure
       ActiveRecord::Base.connection.drop_table :delete_me rescue nil
     end
@@ -152,8 +152,8 @@ class Mysql2ActiveSchemaTest < ActiveRecord::Mysql2TestCase
         t.timestamps null: true
       end
       ActiveRecord::Base.connection.remove_timestamps :delete_me, null: true
-      assert_not column_present?("delete_me", "updated_at", "datetime")
-      assert_not column_present?("delete_me", "created_at", "datetime")
+      assert_not column_exists?("delete_me", "updated_at", "datetime")
+      assert_not column_exists?("delete_me", "created_at", "datetime")
     ensure
       ActiveRecord::Base.connection.drop_table :delete_me rescue nil
     end
@@ -193,10 +193,5 @@ class Mysql2ActiveSchemaTest < ActiveRecord::Mysql2TestCase
 
     def method_missing(method_symbol, *arguments)
       ActiveRecord::Base.connection.send(method_symbol, *arguments)
-    end
-
-    def column_present?(table_name, column_name, type)
-      results = ActiveRecord::Base.connection.select_all("SHOW FIELDS FROM #{table_name} LIKE '#{column_name}'")
-      results.first && results.first["Type"] == type
     end
 end

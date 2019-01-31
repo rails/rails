@@ -1,3 +1,10 @@
+*   Add `ActiveSupport::HashWithIndifferentAccess#assoc`.
+
+    `assoc` can now be called with either a string or a symbol.
+
+    *Stefan Schüßler*
+
+
 ## Rails 6.0.0.beta1 (January 18, 2019) ##
 
 *   Remove deprecated `Module#reachable?` method.

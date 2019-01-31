@@ -130,11 +130,11 @@ module ActiveRecord
       #   column_exists?(:suppliers, :name, :string, null: false)
       #   column_exists?(:suppliers, :tax, :decimal, precision: 8, scale: 2)
       #
-      def column_exists?(table_name, column_name, type = nil, options = {})
+      def column_exists?(table_name, column_name, type = nil, **options)
         column_name = column_name.to_s
         checks = []
         checks << lambda { |c| c.name == column_name }
-        checks << lambda { |c| c.type == type } if type
+        checks << lambda { |c| c.type == type.to_sym rescue nil } if type
         column_options_keys.each do |attr|
           checks << lambda { |c| c.send(attr) == options[attr] } if options.key?(attr)
         end
@@ -1129,6 +1129,10 @@ module ActiveRecord
       def add_timestamps(table_name, options = {})
         options[:null] = false if options[:null].nil?
 
+        if !options.key?(:precision) && supports_datetime_with_precision?
+          options[:precision] = 6
+        end
+
         add_column table_name, :created_at, :datetime, options
         add_column table_name, :updated_at, :datetime, options
       end
@@ -1290,7 +1294,7 @@ module ActiveRecord
         end
 
         def create_table_definition(*args)
-          TableDefinition.new(*args)
+          TableDefinition.new(self, *args)
         end
 
         def create_alter_table(name)

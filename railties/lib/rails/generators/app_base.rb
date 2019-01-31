@@ -128,7 +128,7 @@ module Rails
       def gemfile_entries # :doc:
         [rails_gemfile_entry,
          database_gemfile_entry,
-         webserver_gemfile_entry,
+         web_server_gemfile_entry,
          assets_gemfile_entry,
          webpacker_gemfile_entry,
          javascript_gemfile_entry,
@@ -189,7 +189,7 @@ module Rails
                             "Use #{options[:database]} as the database for Active Record"
       end
 
-      def webserver_gemfile_entry # :doc:
+      def web_server_gemfile_entry # :doc:
         return [] if options[:skip_puma]
         comment = "Use Puma as the app server"
         GemfileEntry.new("puma", "~> 3.11", comment)

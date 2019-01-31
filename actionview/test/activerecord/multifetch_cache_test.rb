@@ -19,7 +19,7 @@ class MultifetchCacheTest < ActiveRecordTestCase
       def combined_fragment_cache_key(key)
         [ :views, key ]
       end
-    end.new(view_paths, {})
+    end.with_view_paths(view_paths, {})
   end
 
   def test_only_preloading_for_records_that_miss_the_cache

@@ -143,7 +143,7 @@ module ActionCable
     # You need to set up your connection manually to provide values for the identifiers.
     # To do this just use:
     #
-    #   stub_connection(user: users[:john])
+    #   stub_connection(user: users(:john))
     #
     # == Testing broadcasting
     #
@@ -157,9 +157,9 @@ module ActionCable
     #  end
     #
     #  def test_speak
-    #    subscribe room_id: rooms[:chat].id
+    #    subscribe room_id: rooms(:chat).id
     #
-    #    assert_broadcasts_on(rooms[:chat], text: "Hello, Rails!") do
+    #    assert_broadcasts_on(rooms(:chat), text: "Hello, Rails!") do
     #      perform :speak, message: "Hello, Rails!"
     #    end
     #  end
@@ -300,9 +300,7 @@ module ActionCable
           def broadcasting_for(stream_or_object)
             return stream_or_object if stream_or_object.is_a?(String)
 
-            self.class.channel_class.broadcasting_for(
-              [self.class.channel_class.channel_name, stream_or_object]
-            )
+            self.class.channel_class.broadcasting_for(stream_or_object)
           end
       end
 

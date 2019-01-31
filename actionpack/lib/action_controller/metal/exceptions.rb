@@ -52,7 +52,7 @@ module ActionController
   end
 
   # Raised when a nested respond_to is triggered and the content types of each
-  # are incompatible. For exampe:
+  # are incompatible. For example:
   #
   #  respond_to do |outer_type|
   #    outer_type.js do

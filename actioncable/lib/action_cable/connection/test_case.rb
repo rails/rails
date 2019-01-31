@@ -42,8 +42,6 @@ module ActionCable
 
     class TestRequest < ActionDispatch::TestRequest
       attr_accessor :session, :cookie_jar
-
-      attr_writer :cookie_jar
     end
 
     module TestConnection

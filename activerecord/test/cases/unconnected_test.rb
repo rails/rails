@@ -29,6 +29,14 @@ class TestUnconnectedAdapter < ActiveRecord::TestCase
     end
   end
 
+  def test_error_message_when_connection_not_established
+    error = assert_raise(ActiveRecord::ConnectionNotEstablished) do
+      TestRecord.find(1)
+    end
+
+    assert_equal "No connection pool with 'primary' found.", error.message
+  end
+
   def test_underlying_adapter_no_longer_active
     assert_not @underlying.active?, "Removed adapter should no longer be active"
   end

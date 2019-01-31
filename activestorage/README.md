@@ -101,7 +101,7 @@ Variation of image attachment:
 
 ```erb
 <%# Hitting the variant URL will lazy transform the original blob and then redirect to its new service location %>
-<%= image_tag user.avatar.variant(resize_to_fit: [100, 100]) %>
+<%= image_tag user.avatar.variant(resize_to_limit: [100, 100]) %>
 ```
 
 ## Direct uploads

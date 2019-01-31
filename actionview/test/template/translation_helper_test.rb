@@ -36,7 +36,7 @@ class TranslationHelperTest < ActiveSupport::TestCase
         }
       }
     )
-    @view = ::ActionView::Base.new(ActionController::Base.view_paths, {})
+    @view = ::ActionView::Base.with_view_paths(ActionController::Base.view_paths, {})
   end
 
   teardown do

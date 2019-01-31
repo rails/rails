@@ -11,13 +11,13 @@ module ActionView
     end
 
     private
-      def cache_collection_render(instrumentation_payload)
+      def cache_collection_render(instrumentation_payload, view, template)
         return yield unless @options[:cached]
 
         # Result is a hash with the key represents the
         # key used for cache lookup and the value is the item
         # on which the partial is being rendered
-        keyed_collection = collection_by_cache_keys
+        keyed_collection = collection_by_cache_keys(view, template)
 
         # Pull all partials from cache
         # Result is a hash, key matches the entry in
@@ -51,21 +51,19 @@ module ActionView
         @options[:cached].respond_to?(:call)
       end
 
-      def collection_by_cache_keys
+      def collection_by_cache_keys(view, template)
         seed = callable_cache_key? ? @options[:cached] : ->(i) { i }
 
+        digest_path = view.digest_path_from_virtual(template.virtual_path)
+
         @collection.each_with_object({}) do |item, hash|
-          hash[expanded_cache_key(seed.call(item))] = item
+          hash[expanded_cache_key(seed.call(item), view, template, digest_path)] = item
         end
       end
 
-      def expanded_cache_key(key)
-        key = @view.combined_fragment_cache_key(@view.cache_fragment_name(key, virtual_path: @template.virtual_path, digest_path: digest_path))
+      def expanded_cache_key(key, view, template, digest_path)
+        key = view.combined_fragment_cache_key(view.cache_fragment_name(key, virtual_path: template.virtual_path, digest_path: digest_path))
         key.frozen? ? key.dup : key # #read_multi & #write may require mutability, Dalli 2.6.0.
-      end
-
-      def digest_path
-        @digest_path ||= @view.digest_path_from_virtual(@template.virtual_path)
       end
 
       # `order_by` is an enumerable object containing keys of the cache,

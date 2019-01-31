@@ -336,13 +336,13 @@ module ActiveRecord
       end
 
       def test_calling_connected_to_on_a_non_existent_handler_raises
-        error = assert_raises ArgumentError do
+        error = assert_raises ActiveRecord::ConnectionNotEstablished do
           ActiveRecord::Base.connected_to(role: :reading) do
-            yield
+            Person.first
           end
         end
 
-        assert_equal "The reading role does not exist. Add it by establishing a connection with `connects_to` or use an existing role (writing).", error.message
+        assert_equal "No connection pool with 'primary' found for the 'reading' role.", error.message
       end
     end
   end

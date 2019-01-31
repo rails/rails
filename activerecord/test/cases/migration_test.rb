@@ -626,6 +626,18 @@ class MigrationTest < ActiveRecord::TestCase
     ensure
       Person.connection.drop_table :test_text_limits, if_exists: true
     end
+
+    def test_invalid_text_size_should_raise
+      e = assert_raise(ArgumentError) do
+        Person.connection.create_table :test_text_sizes, force: true do |t|
+          t.text :bigtext, size: 0xfffffffff
+        end
+      end
+
+      assert_match(/#{0xfffffffff} is invalid :size value\. Only :tiny, :medium, and :long are allowed\./, e.message)
+    ensure
+      Person.connection.drop_table :test_text_sizes, if_exists: true
+    end
   end
 
   if ActiveRecord::Base.connection.supports_advisory_locks?

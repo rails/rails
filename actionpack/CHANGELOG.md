@@ -11,6 +11,12 @@
 
     *Gavin Morrice*
 
+*   `ActionDispatch::SystemTestCase.driven_by` can now be called with a block
+    to define specific browser capabilities.
+
+    *Edouard Chin*
+
+
 ## Rails 6.0.0.beta1 (January 18, 2019) ##
 
 *   Remove deprecated `fragment_cache_key` helper in favor of `combined_fragment_cache_key`.
@@ -23,12 +29,6 @@
     `#successful?`, `not_found?` and `server_error?`.
 
     *Rafael Mendonça França*
-
-*   Ensure external redirects are explicitly allowed
-
-    Add `fallback_location` and `allow_other_host` options to `redirect_to`.
-
-    *Gannon McGibbon*
 
 *   Introduce ActionDispatch::HostAuthorization
 
@@ -95,7 +95,7 @@
 *   Apply mapping to symbols returned from dynamic CSP sources
 
     Previously if a dynamic source returned a symbol such as :self it
-    would be converted to a string implicity, e.g:
+    would be converted to a string implicitly, e.g:
 
         policy.default_src -> { :self }
 
@@ -148,7 +148,7 @@
 
     *Assain Jaleel*
 
-*   Raises `ActionController::RespondToMismatchError` with confliciting `respond_to` invocations.
+*   Raises `ActionController::RespondToMismatchError` with conflicting `respond_to` invocations.
 
     `respond_to` can match multiple types and lead to undefined behavior when
     multiple invocations are made and the types do not match:
@@ -173,7 +173,7 @@
 
     *Aaron Kromer*
 
-*   Pass along arguments to underlying `get` method in `follow_redirect!`.
+*   Pass along arguments to underlying `get` method in `follow_redirect!`
 
     Now all arguments passed to `follow_redirect!` are passed to the underlying
     `get` method. This for example allows to set custom headers for the

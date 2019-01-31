@@ -46,6 +46,14 @@ module ActiveRecord
         assert_equal expected, actual
       end
 
+      def test_resolver_with_nil_database_url_and_current_env
+        ENV["RAILS_ENV"] = "foo"
+        config = { "foo" => { "adapter" => "postgres", "url" => ENV["DATABASE_URL"] } }
+        actual   = resolve_spec(:foo, config)
+        expected = { "adapter" => "postgres", "url" => nil, "name" => "foo" }
+        assert_equal expected, actual
+      end
+
       def test_resolver_with_database_uri_and_current_env_symbol_key_and_rack_env
         ENV["DATABASE_URL"] = "postgres://localhost/foo"
         ENV["RACK_ENV"]     = "foo"

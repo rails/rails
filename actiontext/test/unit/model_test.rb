@@ -35,6 +35,15 @@ class ActionText::ModelTest < ActiveSupport::TestCase
     assert_equal "racecar.jpg", message.content.embeds.first.filename.to_s
   end
 
+  test "embed extraction only extracts file attachments" do
+    remote_image_html = '<action-text-attachment content-type="image" url="http://example.com/cat.jpg"></action-text-attachment>'
+    blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpg")
+    content = ActionText::Content.new(remote_image_html).append_attachables(blob)
+    message = Message.create!(subject: "Greetings", content: content)
+    assert_equal [ActionText::Attachables::RemoteImage, ActiveStorage::Blob], message.content.body.attachables.map(&:class)
+    assert_equal [ActiveStorage::Attachment], message.content.embeds.map(&:class)
+  end
+
   test "saving content" do
     message = Message.create!(subject: "Greetings", content: "<h1>Hello world</h1>")
     assert_equal "Hello world", message.content.to_plain_text

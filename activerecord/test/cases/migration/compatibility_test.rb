@@ -86,8 +86,8 @@ module ActiveRecord
 
         ActiveRecord::Migrator.new(:up, [migration]).migrate
 
-        assert connection.columns(:more_testings).find { |c| c.name == "created_at" }.null
-        assert connection.columns(:more_testings).find { |c| c.name == "updated_at" }.null
+        assert connection.column_exists?(:more_testings, :created_at, null: true)
+        assert connection.column_exists?(:more_testings, :updated_at, null: true)
       ensure
         connection.drop_table :more_testings rescue nil
       end
@@ -103,8 +103,25 @@ module ActiveRecord
 
         ActiveRecord::Migrator.new(:up, [migration]).migrate
 
-        assert connection.columns(:testings).find { |c| c.name == "created_at" }.null
-        assert connection.columns(:testings).find { |c| c.name == "updated_at" }.null
+        assert connection.column_exists?(:testings, :created_at, null: true)
+        assert connection.column_exists?(:testings, :updated_at, null: true)
+      end
+
+      if ActiveRecord::Base.connection.supports_bulk_alter?
+        def test_timestamps_have_null_constraints_if_not_present_in_migration_of_change_table_with_bulk
+          migration = Class.new(ActiveRecord::Migration[4.2]) {
+            def migrate(x)
+              change_table :testings, bulk: true do |t|
+                t.timestamps
+              end
+            end
+          }.new
+
+          ActiveRecord::Migrator.new(:up, [migration]).migrate
+
+          assert connection.column_exists?(:testings, :created_at, null: true)
+          assert connection.column_exists?(:testings, :updated_at, null: true)
+        end
       end
 
       def test_timestamps_have_null_constraints_if_not_present_in_migration_for_adding_timestamps_to_existing_table
@@ -116,8 +133,70 @@ module ActiveRecord
 
         ActiveRecord::Migrator.new(:up, [migration]).migrate
 
-        assert connection.columns(:testings).find { |c| c.name == "created_at" }.null
-        assert connection.columns(:testings).find { |c| c.name == "updated_at" }.null
+        assert connection.column_exists?(:testings, :created_at, null: true)
+        assert connection.column_exists?(:testings, :updated_at, null: true)
+      end
+
+      def test_timestamps_doesnt_set_precision_on_create_table
+        migration = Class.new(ActiveRecord::Migration[5.2]) {
+          def migrate(x)
+            create_table :more_testings do |t|
+              t.timestamps
+            end
+          end
+        }.new
+
+        ActiveRecord::Migrator.new(:up, [migration]).migrate
+
+        assert connection.column_exists?(:more_testings, :created_at, null: false, **precision_implicit_default)
+        assert connection.column_exists?(:more_testings, :updated_at, null: false, **precision_implicit_default)
+      ensure
+        connection.drop_table :more_testings rescue nil
+      end
+
+      def test_timestamps_doesnt_set_precision_on_change_table
+        migration = Class.new(ActiveRecord::Migration[5.2]) {
+          def migrate(x)
+            change_table :testings do |t|
+              t.timestamps default: Time.now
+            end
+          end
+        }.new
+
+        ActiveRecord::Migrator.new(:up, [migration]).migrate
+
+        assert connection.column_exists?(:testings, :created_at, null: false, **precision_implicit_default)
+        assert connection.column_exists?(:testings, :updated_at, null: false, **precision_implicit_default)
+      end
+
+      if ActiveRecord::Base.connection.supports_bulk_alter?
+        def test_timestamps_doesnt_set_precision_on_change_table_with_bulk
+          migration = Class.new(ActiveRecord::Migration[5.2]) {
+            def migrate(x)
+              change_table :testings, bulk: true do |t|
+                t.timestamps
+              end
+            end
+          }.new
+
+          ActiveRecord::Migrator.new(:up, [migration]).migrate
+
+          assert connection.column_exists?(:testings, :created_at, null: false, **precision_implicit_default)
+          assert connection.column_exists?(:testings, :updated_at, null: false, **precision_implicit_default)
+        end
+      end
+
+      def test_timestamps_doesnt_set_precision_on_add_timestamps
+        migration = Class.new(ActiveRecord::Migration[5.2]) {
+          def migrate(x)
+            add_timestamps :testings, default: Time.now
+          end
+        }.new
+
+        ActiveRecord::Migrator.new(:up, [migration]).migrate
+
+        assert connection.column_exists?(:testings, :created_at, null: false, **precision_implicit_default)
+        assert connection.column_exists?(:testings, :updated_at, null: false, **precision_implicit_default)
       end
 
       def test_legacy_migrations_raises_exception_when_inherited
@@ -159,6 +238,15 @@ module ActiveRecord
           ActiveRecord::Base.clear_cache!
         end
       end
+
+      private
+        def precision_implicit_default
+          if current_adapter?(:Mysql2Adapter)
+            { presicion: 0 }
+          else
+            { presicion: nil }
+          end
+        end
     end
   end
 end

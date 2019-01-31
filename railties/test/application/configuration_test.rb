@@ -2289,6 +2289,11 @@ module ApplicationTests
       MESSAGE
     end
 
+    test "the host whitelist includes .localhost in development" do
+      app "development"
+      assert_includes Rails.application.config.hosts, ".localhost"
+    end
+
     private
       def force_lazy_load_hooks
         yield # Tasty clarifying sugar, homie! We only need to reference a constant to load it.

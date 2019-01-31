@@ -1,5 +1,11 @@
 ## Rails 6.0.0.beta1 (January 18, 2019) ##
 
+*   [Rename npm package](https://github.com/rails/rails/pull/34905) from
+    [`rails-ujs`](https://www.npmjs.com/package/rails-ujs) to
+    [`@rails/ujs`](https://www.npmjs.com/package/@rails/ujs).
+
+    *Javan Makhmali*
+
 *   Remove deprecated `image_alt` helper.
 
     *Rafael Mendonça França*

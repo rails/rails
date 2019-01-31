@@ -1,4 +1,42 @@
+*   Add `:action_cable_connection` and `:action_cable_channel` load hooks.
+
+    You can use them to extend `ActionCable::Connection::Base` and `ActionCable::Channel::Base`
+    functionality:
+
+    ```ruby
+    ActiveSupport.on_load(:action_cable_channel) do
+      # do something in the context of ActionCable::Channel::Base
+    end
+    ```
+
+    *Vladimir Dementyev*
+
+*   Add `Channel::Base#broadcast_to`.
+
+    You can now call `broadcast_to` within a channel action, which equals to
+    the `self.class.broadcast_to`.
+
+    *Vladimir Dementyev*
+
+*   Make `Channel::Base.broadcasting_for` a public API.
+
+    You can use `.broadcasting_for` to generate a unique stream identifier within
+    a channel for the specified target (e.g. Active Record model):
+
+    ```ruby
+    ChatChannel.broadcasting_for(model) # => "chat:<model.to_gid_param>"
+    ```
+
+    *Vladimir Dementyev*
+
+
 ## Rails 6.0.0.beta1 (January 18, 2019) ##
+
+*   [Rename npm package](https://github.com/rails/rails/pull/34905) from
+    [`actioncable`](https://www.npmjs.com/package/actioncable) to
+    [`@rails/actioncable`](https://www.npmjs.com/package/@rails/actioncable).
+
+    *Javan Makhmali*
 
 *   Merge [`action-cable-testing`](https://github.com/palkan/action-cable-testing) to Rails.
 

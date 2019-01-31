@@ -62,7 +62,7 @@ module ActiveRecord
           end
 
           def create_table_definition(*args)
-            SQLite3::TableDefinition.new(*args)
+            SQLite3::TableDefinition.new(self, *args)
           end
 
           def new_column_from_field(table_name, field)

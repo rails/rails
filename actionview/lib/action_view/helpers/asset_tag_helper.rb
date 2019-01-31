@@ -329,14 +329,14 @@ module ActionView
       #   image_tag("pic.jpg", srcset: [["pic_1024.jpg", "1024w"], ["pic_1980.jpg", "1980w"]], sizes: "100vw")
       #   # => <img src="/assets/pic.jpg" srcset="/assets/pic_1024.jpg 1024w, /assets/pic_1980.jpg 1980w" sizes="100vw">
       #
-      # Active Storage (images that are uploaded by the users of your app):
+      # Active Storage blobs (images that are uploaded by the users of your app):
       #
       #   image_tag(user.avatar)
       #   # => <img src="/rails/active_storage/blobs/.../tiger.jpg" />
-      #   image_tag(user.avatar.variant(resize_to_fit: [100, 100]))
-      #   # => <img src="/rails/active_storage/variants/.../tiger.jpg" />
-      #   image_tag(user.avatar.variant(resize_to_fit: [100, 100]), size: '100')
-      #   # => <img width="100" height="100" src="/rails/active_storage/variants/.../tiger.jpg" />
+      #   image_tag(user.avatar.variant(resize_to_limit: [100, 100]))
+      #   # => <img src="/rails/active_storage/representations/.../tiger.jpg" />
+      #   image_tag(user.avatar.variant(resize_to_limit: [100, 100]), size: '100')
+      #   # => <img width="100" height="100" src="/rails/active_storage/representations/.../tiger.jpg" />
       def image_tag(source, options = {})
         options = options.symbolize_keys
         check_for_image_tag_errors(options)

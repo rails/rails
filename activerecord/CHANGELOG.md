@@ -1,3 +1,45 @@
+*   Allow applications to automatically switch connections.
+
+    Adds a middleware and configuration options that can be used in your
+    application to automatically switch between the writing and reading
+    database connections.
+
+    `GET` and `HEAD` requests will read from the replica unless there was
+    a write in the last 2 seconds, otherwise they will read from the primary.
+    Non-get requests will always write to the primary. The middleware accepts
+    an argument for a Resolver class and a Operations class where you are able
+    to change how the auto-switcher works to be most beneficial for your
+    application.
+
+    To use the middleware in your application you can use the following
+    configuration options:
+
+    ```
+    config.active_record.database_selector = { delay: 2.seconds }
+    config.active_record.database_resolver = ActiveRecord::Middleware::DatabaseSelector::Resolver
+    config.active_record.database_operations = ActiveRecord::Middleware::DatabaseSelector::Resolver::Session
+    ```
+
+    To change the database selection strategy, pass a custom class to the
+    configuration options:
+
+    ```
+    config.active_record.database_selector = { delay: 10.seconds }
+    config.active_record.database_resolver = MyResolver
+    config.active_record.database_operations = MyResolver::MyCookies
+    ```
+
+    *Eileen M. Uchitelle*
+
+*   MySQL: Support `:size` option to change text and blob size.
+
+    *Ryuta Kamizono*
+
+*   Make `t.timestamps` with precision by default.
+
+    *Ryuta Kamizono*
+
+
 ## Rails 6.0.0.beta1 (January 18, 2019) ##
 
 *   Remove deprecated `#set_state` from the transaction object.

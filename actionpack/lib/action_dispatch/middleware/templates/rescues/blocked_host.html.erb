@@ -2,6 +2,6 @@
   <h1>Blocked host: <%= @host %></h1>
 </header>
 <div id="container">
-  <h2>To allow requests to <%= @host %>, add the following configuration:</h2>
-  <pre>Rails.application.config.hosts &lt;&lt; "<%= @host %>"</pre>
+  <h2>To allow requests to <%= @host %>, add the following to your environment configuration:</h2>
+  <pre>config.hosts &lt;&lt; "<%= @host %>"</pre>
 </div>

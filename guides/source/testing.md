@@ -1775,7 +1775,7 @@ test "connects with cookies" do
 end
 ```
 
-See the API documentation for [`AcionCable::Connection::TestCase`](http://api.rubyonrails.org/classes/ActionCable/Connection/TestCase.html) for more information.
+See the API documentation for [`ActionCable::Connection::TestCase`](http://api.rubyonrails.org/classes/ActionCable/Connection/TestCase.html) for more information.
 
 ### Channel Test Case
 
@@ -1806,16 +1806,16 @@ require "test_helper"
 
 class WebNotificationsChannelTest < ActionCable::Channel::TestCase
   test "subscribes and stream for user" do
-    stub_connection current_user: users[:john]
+    stub_connection current_user: users(:john)
 
     subscribe
 
-    assert_has_stream_for users[:john]
+    assert_has_stream_for users(:john)
   end
 end
 ```
 
-See the API documentation for [`AcionCable::Channel::TestCase`](http://api.rubyonrails.org/classes/ActionCable/Channel/TestCase.html) for more information.
+See the API documentation for [`ActionCable::Channel::TestCase`](http://api.rubyonrails.org/classes/ActionCable/Channel/TestCase.html) for more information.
 
 ### Custom Assertions And Testing Broadcasts Inside Other Components
 
@@ -1832,6 +1832,33 @@ class ProductTest < ActionCable::TestCase
   test "broadcast status after charge" do
     assert_broadcast_on("products:#{product.id}", type: "charged") do
       product.charge(account)
+    end
+  end
+end
+```
+
+If you want to test the broadcasting made with `Channel.broadcast_to`, you shoud use
+`Channel.broadcasting_for` to generate an underlying stream name:
+
+```ruby
+# app/jobs/chat_relay_job.rb
+class ChatRelayJob < ApplicationJob
+  def perform_later(room, message)
+    ChatChannel.broadcast_to room, text: message
+  end
+end
+
+# test/jobs/chat_relay_job_test.rb
+require 'test_helper'
+
+class ChatRelayJobTest < ActiveJob::TestCase
+  include ActionCable::TestHelper
+
+  test "broadcast message to room" do
+    room = rooms(:all)
+
+    assert_broadcast_on(ChatChannel.broadcasting_for(room), text: "Hi!") do
+      ChatRelayJob.perform_now(room, "Hi!")
     end
   end
 end

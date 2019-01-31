@@ -155,10 +155,10 @@ module ActionView
     # This method is instrumented as "!render_template.action_view". Notice that
     # we use a bang in this instrumentation because you don't want to
     # consume this in production. This is only slow if it's being listened to.
-    def render(view, locals, buffer = nil, &block)
+    def render(view, locals, buffer = ActionView::OutputBuffer.new, &block)
       instrument_render_template do
         compile!(view)
-        view.send(method_name, locals, buffer, &block)
+        view.run(method_name, locals, buffer, &block)
       end
     rescue => e
       handle_render_error(view, e)
@@ -264,11 +264,7 @@ module ActionView
           # re-compilation
           return if @compiled
 
-          if view.is_a?(ActionView::CompiledTemplates)
-            mod = ActionView::CompiledTemplates
-          else
-            mod = view.singleton_class
-          end
+          mod = view.compiled_method_container
 
           instrument("!compile_template") do
             compile(mod)
@@ -301,9 +297,7 @@ module ActionView
         # encoding of the code
         source = +<<-end_src
           def #{method_name}(local_assigns, output_buffer)
-            _old_virtual_path, @virtual_path = @virtual_path, #{@virtual_path.inspect};_old_output_buffer = @output_buffer;#{locals_code};#{code}
-          ensure
-            @virtual_path, @output_buffer = _old_virtual_path, _old_output_buffer
+            @virtual_path = #{@virtual_path.inspect};#{locals_code};#{code}
           end
         end_src
 

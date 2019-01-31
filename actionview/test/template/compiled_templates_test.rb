@@ -72,13 +72,13 @@ class CompiledTemplatesTest < ActiveSupport::TestCase
 
     def render_with_cache(*args)
       view_paths = ActionController::Base.view_paths
-      ActionView::Base.new(view_paths, {}).render(*args)
+      ActionView::Base.with_view_paths(view_paths, {}).render(*args)
     end
 
     def render_without_cache(*args)
       path = ActionView::FileSystemResolver.new(FIXTURE_LOAD_PATH)
       view_paths = ActionView::PathSet.new([path])
-      ActionView::Base.new(view_paths, {}).render(*args)
+      ActionView::Base.with_view_paths(view_paths, {}).render(*args)
     end
 
     def modify_template(template, content)

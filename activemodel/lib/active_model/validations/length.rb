@@ -32,7 +32,7 @@ module ActiveModel
           value = options[key]
 
           unless (value.is_a?(Integer) && value >= 0) || value == Float::INFINITY || value.is_a?(Symbol) || value.is_a?(Proc)
-            raise ArgumentError, ":#{key} must be a nonnegative Integer, Infinity, Symbol, or Proc"
+            raise ArgumentError, ":#{key} must be a non-negative Integer, Infinity, Symbol, or Proc"
           end
         end
       end

@@ -17,7 +17,7 @@ module ActionView
   # that new object is called in turn. This abstracts the setup and rendering
   # into a separate classes for partials and templates.
   class AbstractRenderer #:nodoc:
-    delegate :find_template, :find_file, :template_exists?, :any_templates?, :with_fallbacks, :with_layout_format, :formats, to: :@lookup_context
+    delegate :template_exists?, :any_templates?, :formats, to: :@lookup_context
 
     def initialize(lookup_context)
       @lookup_context = lookup_context
@@ -38,8 +38,6 @@ module ActionView
       end
 
       def instrument(name, **options) # :doc:
-        options[:identifier] ||= (@template && @template.identifier) || @path
-
         ActiveSupport::Notifications.instrument("render_#{name}.action_view", options) do |payload|
           yield payload
         end
