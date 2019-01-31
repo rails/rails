@@ -25,7 +25,6 @@ module ActionDispatch
 
       def serve(req)
         uri = URI.parse(path(req.path_parameters, req))
-        uri = adjust_redirect_uri(uri, req)
 
         req.commit_flash
 
@@ -64,47 +63,6 @@ module ActionDispatch
         def escape_path(params)
           Hash[params.map { |k, v| [k, Journey::Router::Utils.escape_path(v)] }]
         end
-
-        def adjust_redirect_uri(uri, req)
-          unless uri.host
-            if relative_path?(uri.path)
-              uri.path = "#{req.script_name}/#{uri.path}"
-            elsif uri.path.empty?
-              uri.path = req.script_name.empty? ? "/" : req.script_name
-            end
-          end
-
-          uri.scheme ||= req.scheme
-          uri.host   ||= req.host
-          uri.port   ||= req.port unless req.standard_port?
-
-          uri
-        end
-    end
-
-    class PathRedirect < Redirect
-      URL_PARTS = /\A([^?]+)?(\?[^#]+)?(#.+)?\z/
-
-      def path(params, request)
-        if block.match(URL_PARTS)
-          path     = interpolation_required?($1, params) ? $1 % escape_path(params)     : $1
-          query    = interpolation_required?($2, params) ? $2 % escape(params)          : $2
-          fragment = interpolation_required?($3, params) ? $3 % escape_fragment(params) : $3
-
-          "#{path}#{query}#{fragment}"
-        else
-          interpolation_required?(block, params) ? block % escape(params) : block
-        end
-      end
-
-      def inspect
-        "redirect(#{status}, #{block})"
-      end
-
-      private
-        def interpolation_required?(string, params)
-          !params.empty? && string && string.match(/%\{\w*\}/)
-        end
     end
 
     class OptionRedirect < Redirect # :nodoc:
@@ -139,11 +97,6 @@ module ActionDispatch
       def inspect
         "redirect(#{status}, #{options.map { |k, v| "#{k}: #{v}" }.join(', ')})"
       end
-
-      private
-        def adjust_redirect_uri(uri, req)
-          options[:only_path] ? uri : super
-        end
     end
 
     module Redirection
@@ -200,7 +153,7 @@ module ActionDispatch
         path    = args.shift
 
         return OptionRedirect.new(status, options) if options.any?
-        return PathRedirect.new(status, path) if String === path
+        return OptionRedirect.new(status, path: path) if String === path
 
         block = path if path.respond_to? :call
         raise ArgumentError, "redirection argument not supported" unless block

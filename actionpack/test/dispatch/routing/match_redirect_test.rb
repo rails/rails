@@ -28,7 +28,7 @@ class MatchRedirectIntegrationTest < ActionDispatch::IntegrationTest
   Routes.draw do
     match "/option_redirect_full_uri/*path", via: [:get], to: redirect(path: "/works/%{path}")
     match "/option_redirect_path_only/*path", via: [:get], to: redirect(path: "/works/%{path}", only_path: true)
-    match "/path_redirect/*path", via: [:get], to: redirect("/works/%{path}")
+    match "/string_redirect/*path", via: [:get], to: redirect("/works/%{path}")
 
     namespace :works, path: "works" do
       resources :users, only: [:index]
@@ -45,5 +45,11 @@ class MatchRedirectIntegrationTest < ActionDispatch::IntegrationTest
     get "/option_redirect_path_only/users"
     assert_response :redirect
     assert_equal "/works/users", response.headers["Location"]
+  end
+
+  test "String redirection" do
+    get "/string_redirect/users"
+    assert_response :redirect
+    assert_equal "http://www.example.com/works/users", response.headers["Location"]
   end
 end
