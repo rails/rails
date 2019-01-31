@@ -1,3 +1,16 @@
+*   Exclude additional flash types from `ActionController::Base.action_methods`
+
+    Ensures that additional flash types defined on ActionController::Base subclasses
+    are not listed as actions on that controller.
+
+        class MyController < ApplicationController
+          add_flash_types :hype
+        end
+
+        MyController.action_methods.include?('hype') # => false
+
+    *Gavin Morrice*
+
 ## Rails 6.0.0.beta1 (January 18, 2019) ##
 
 *   Remove deprecated `fragment_cache_key` helper in favor of `combined_fragment_cache_key`.
