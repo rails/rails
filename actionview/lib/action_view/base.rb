@@ -224,10 +224,12 @@ module ActionView #:nodoc:
 
     # :startdoc:
 
-    def initialize(renderer, assigns = {}, controller = nil, formats = NULL) #:nodoc:
+    def initialize(renderer = nil, assigns = {}, controller = nil, formats = NULL) #:nodoc:
       @_config = ActiveSupport::InheritableOptions.new
 
-      unless formats == NULL
+      if formats == NULL
+        formats = nil
+      else
         ActiveSupport::Deprecation.warn <<~eowarn
         Passing formats to ActionView::Base.new is deprecated
         eowarn

@@ -336,6 +336,16 @@ module RenderTestCases
     assert_equal "Hello: davidHello: mary", @view.render(partial: "test/customer", collection: customers)
   end
 
+  def test_deprecated_constructor
+    assert_deprecated do
+      ActionView::Base.new
+    end
+
+    assert_deprecated do
+      ActionView::Base.new ["/a"]
+    end
+  end
+
   def test_render_partial_without_object_does_not_put_partial_name_to_local_assigns
     assert_equal "false", @view.render(partial: "test/partial_name_in_local_assigns")
   end
