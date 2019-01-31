@@ -43,7 +43,7 @@ module ActiveRecord
 
       attr_reader :resolver_klass, :operations_klass
 
-      # Middleware that determines which database connection to use in a mutliple
+      # Middleware that determines which database connection to use in a multiple
       # database application.
       def call(env)
         request = ActionDispatch::Request.new(env)
