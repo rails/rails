@@ -97,7 +97,7 @@ module ActiveSupport
     def run_callbacks(kind)
       callbacks = __callbacks[kind.to_sym]
 
-      if callbacks.empty?
+      if callbacks.blank?
         yield if block_given?
       else
         env = Filters::Environment.new(self, false, nil)
