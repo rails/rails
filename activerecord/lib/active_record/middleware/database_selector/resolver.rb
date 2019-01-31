@@ -9,7 +9,7 @@ module ActiveRecord
       # determine which database the request should use.
       #
       # To change the behavior of the Resolver class in your application,
-      # create a custom resolver class that inherts from
+      # create a custom resolver class that inherits from
       # DatabaseSelector::Resolver and implements the methods that need to
       # be changed.
       #
