@@ -51,4 +51,9 @@ Rails.application.configure do
 
   # Prevent expensive template finalization at end of test suite runs.
   config.action_view.finalize_compiled_template_methods = false
+
+  # Don't automatically run jobs created in test cases. The :test adapter lets
+  # you inspect the job queue and perform enqueued jobs in a predictable way -
+  # see ActiveJob::TestHelper for details
+  config.active_job.queue_adapter = :test
 end
