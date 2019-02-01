@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "active_support/deprecation"
-
 module ActiveRecord
   module ConnectionAdapters #:nodoc:
     # Abstract representation of an index definition on a table. Instances of
@@ -259,8 +257,6 @@ module ActiveRecord
       include ColumnMethods
 
       attr_reader :name, :temporary, :if_not_exists, :options, :as, :comment, :indexes, :foreign_keys
-      attr_writer :indexes
-      deprecate :indexes=
 
       def initialize(
         conn,

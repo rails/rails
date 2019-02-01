@@ -77,9 +77,6 @@ module ActiveRecord
 
       SIMPLE_INT = /\A\d+\z/
 
-      attr_writer :visitor
-      deprecate :visitor=
-
       attr_accessor :pool
       attr_reader :schema_cache, :visitor, :owner, :logger, :lock, :prepared_statements, :prevent_writes
       alias :in_use? :owner
