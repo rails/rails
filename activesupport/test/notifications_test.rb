@@ -81,7 +81,7 @@ module Notifications
       assert_equal expected, events
     end
 
-    def test_subsribing_to_instrumentation_while_inside_it
+    def test_subscribing_to_instrumentation_while_inside_it
       # the repro requires that there are no evented subscribers for the "foo" event,
       # so we have to duplicate some of the setup code
       old_notifier = ActiveSupport::Notifications.notifier
