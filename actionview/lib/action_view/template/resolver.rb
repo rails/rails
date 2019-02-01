@@ -198,7 +198,9 @@ module ActionView
         t.locals         = locals
         t.formats        = details[:formats]  || [:html] if t.formats.empty?
         t.variants       = details[:variants] || []      if t.variants.empty?
-        t.virtual_path ||= (cached ||= build_path(*path_info))
+        unless t.virtual_path == build_path(*path_info).virtual
+          raise "Virtual path mismatch"
+        end
       end
     end
   end
@@ -421,10 +423,6 @@ module ActionView
   class FallbackFileSystemResolver < FileSystemResolver #:nodoc:
     def self.instances
       [new(""), new("/")]
-    end
-
-    def decorate(*)
-      super.each { |t| t.virtual_path = nil }
     end
   end
 end

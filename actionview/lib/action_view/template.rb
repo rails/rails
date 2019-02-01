@@ -114,9 +114,10 @@ module ActionView
 
     extend Template::Handlers
 
-    attr_accessor :locals, :formats, :variants, :virtual_path
+    attr_accessor :locals, :formats, :variants
 
     attr_reader :source, :identifier, :handler, :original_encoding, :updated_at
+    attr_reader :virtual_path
 
     # This finalizer is needed (and exactly with a proc inside another proc)
     # otherwise templates leak in development.
