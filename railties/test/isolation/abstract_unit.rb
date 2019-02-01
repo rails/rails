@@ -483,7 +483,7 @@ Module.new do
 
   Dir.chdir(app_template_path) { `yarn add https://github.com/rails/webpacker.git` } # Use the latest version.
 
-  # Manually install `webpack` as bin symlinks are not created for subdependencies
+  # Manually install `webpack` as bin symlinks are not created for sub dependencies
   # in workspaces. See https://github.com/yarnpkg/yarn/issues/4964
   Dir.chdir(app_template_path) { `yarn add webpack@4.17.1 --tilde` }
   Dir.chdir(app_template_path) { `yarn add webpack-cli` }

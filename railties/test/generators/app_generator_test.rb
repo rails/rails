@@ -199,7 +199,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_new_application_use_json_serialzier
+  def test_new_application_use_json_serializer
     run_generator
 
     assert_file("config/initializers/cookies_serializer.rb", /Rails\.application\.config\.action_dispatch\.cookies_serializer = :json/)
