@@ -841,7 +841,7 @@ class DependenciesTest < ActiveSupport::TestCase
     remove_constants(:C)
   end
 
-  def test_new_contants_in_without_constants
+  def test_new_constants_in_without_constants
     assert_equal [], (ActiveSupport::Dependencies.new_constants_in(Object) { })
     assert ActiveSupport::Dependencies.constant_watch_stack.all? { |k, v| v.empty? }
   end
