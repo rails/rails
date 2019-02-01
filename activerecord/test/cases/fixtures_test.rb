@@ -924,7 +924,7 @@ class TransactionalFixturesOnConnectionNotification < ActiveRecord::TestCase
       def lock_thread=(lock_thread); end
     end.new
 
-    assert_called_with(connection, :begin_transaction, [joinable: false]) do
+    assert_called_with(connection, :begin_transaction, [joinable: false, _lazy: false]) do
       fire_connection_notification(connection)
     end
   end
