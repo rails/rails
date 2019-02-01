@@ -16,7 +16,7 @@ module Rails
         end
 
         def identical?
-          exists? && File.binread(existing_migration) == render.force_encoding('ASCII-8BIT')
+          exists? && File.binread(existing_migration) == render.force_encoding("ASCII-8BIT")
         end
 
         def revoke!
