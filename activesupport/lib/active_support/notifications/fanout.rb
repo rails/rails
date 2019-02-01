@@ -13,7 +13,8 @@ module ActiveSupport
       include Mutex_m
 
       def initialize
-        @subscribers = []
+        @string_subscribers = Hash.new { |h, k| h[k] = [] }
+        @other_subscribers = []
         @listeners_for = Concurrent::Map.new
         super
       end
@@ -21,7 +22,11 @@ module ActiveSupport
       def subscribe(pattern = nil, block = Proc.new)
         subscriber = Subscribers.new pattern, block
         synchronize do
-          @subscribers << subscriber
+          if String === pattern
+            @string_subscribers[pattern] << subscriber
+          else
+            @other_subscribers << subscriber
+          end
           @listeners_for.clear
         end
         subscriber
@@ -31,9 +36,14 @@ module ActiveSupport
         synchronize do
           case subscriber_or_name
           when String
-            @subscribers.reject! { |s| s.matches?(subscriber_or_name) }
+            @string_subscribers[subscriber_or_name].clear
           else
-            @subscribers.delete(subscriber_or_name)
+            pattern = subscriber_or_name.try(:pattern)
+            if String === pattern
+              @string_subscribers[pattern].delete(subscriber_or_name)
+            else
+              @other_subscribers.delete(subscriber_or_name)
+            end
           end
 
           @listeners_for.clear
@@ -56,7 +66,8 @@ module ActiveSupport
         # this is correctly done double-checked locking (Concurrent::Map's lookups have volatile semantics)
         @listeners_for[name] || synchronize do
           # use synchronisation when accessing @subscribers
-          @listeners_for[name] ||= @subscribers.select { |s| s.subscribed_to?(name) }
+          @listeners_for[name] ||=
+            @string_subscribers[name] + @other_subscribers.select { |s| s.subscribed_to?(name) }
         end
       end
 
@@ -101,6 +112,8 @@ module ActiveSupport
         end
 
         class Evented #:nodoc:
+          attr_reader :pattern
+
           def initialize(pattern, delegate)
             @pattern = pattern
             @delegate = delegate
