@@ -89,10 +89,10 @@ module ActiveRecord
     end
 
     initializer "active_record.database_selector" do
-      if config.active_record.database_selector
+      if options = config.active_record.delete(:database_selector)
         resolver = config.active_record.delete(:database_resolver)
         operations = config.active_record.delete(:database_operations)
-        config.app_middleware.use ActiveRecord::Middleware::DatabaseSelector, resolver, operations
+        config.app_middleware.use ActiveRecord::Middleware::DatabaseSelector, resolver, operations, options
       end
     end
 

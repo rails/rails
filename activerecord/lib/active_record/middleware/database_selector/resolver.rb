@@ -18,16 +18,18 @@ module ActiveRecord
       class Resolver # :nodoc:
         SEND_TO_REPLICA_DELAY = 2.seconds
 
-        def self.call(resolver)
-          new(resolver)
+        def self.call(resolver, options = {})
+          new(resolver, options)
         end
 
-        def initialize(resolver)
+        def initialize(resolver, options = {})
           @resolver = resolver
+          @options = options
+          @delay = @options && @options[:delay] ? @options[:delay] : SEND_TO_REPLICA_DELAY
           @instrumenter = ActiveSupport::Notifications.instrumenter
         end
 
-        attr_reader :resolver, :instrumenter
+        attr_reader :resolver, :delay, :instrumenter
 
         def read(&blk)
           if read_from_primary?
@@ -76,8 +78,7 @@ module ActiveRecord
           end
 
           def send_to_replica_delay
-            (ActiveRecord::Base.database_selector && ActiveRecord::Base.database_selector[:delay]) ||
-              SEND_TO_REPLICA_DELAY
+            delay
           end
 
           def time_since_last_write_ok?
