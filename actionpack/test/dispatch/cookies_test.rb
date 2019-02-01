@@ -1193,11 +1193,7 @@ class CookiesTest < ActionController::TestCase
     get :encrypted_discount_and_user_id_cookie
 
     travel 2.hours
-    assert_equal 50, cookies.encrypted[:user_id]
-
-    cookies[:discount_percentage] = cookies[:user_id]
-    assert_not_equal 10, cookies.encrypted[:discount_percentage]
-    assert_equal 50, cookies.encrypted[:discount_percentage]
+    assert_nil cookies.signed[:user_id]
   end
 
   def test_switch_off_metadata_for_signed_cookies_if_config_is_false
@@ -1206,11 +1202,8 @@ class CookiesTest < ActionController::TestCase
     get :signed_discount_and_user_id_cookie
 
     travel 2.hours
-    assert_equal 50, cookies.signed[:user_id]
 
-    cookies[:discount_percentage] = cookies[:user_id]
-    assert_not_equal 10, cookies.signed[:discount_percentage]
-    assert_equal 50, cookies.signed[:discount_percentage]
+    assert_nil cookies.signed[:user_id]
   end
 
   def test_read_rails_5_2_stable_encrypted_cookies_if_config_is_false
