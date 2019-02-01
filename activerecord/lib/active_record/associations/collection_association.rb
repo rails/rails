@@ -210,7 +210,8 @@ module ActiveRecord
       # This method is abstract in the sense that it relies on
       # +count_records+, which is a method descendants have to provide.
       def size
-        if !find_target? || loaded?
+        if !find_target?
+          loaded! unless loaded?
           target.size
         elsif @association_ids
           @association_ids.size
@@ -233,7 +234,7 @@ module ActiveRecord
       # loaded and you are going to fetch the records anyway it is better to
       # check <tt>collection.length.zero?</tt>.
       def empty?
-        if loaded? || @association_ids
+        if loaded? || @association_ids || reflection.has_cached_counter?
           size.zero?
         else
           target.empty? && !scope.exists?
