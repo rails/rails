@@ -1,3 +1,7 @@
+*   utf8 identical checking for migration generator
+
+    *Chen Chongchen*
+
 *   Fix deeply nested namespace command printing.
 
     *Gannon McGibbon*
