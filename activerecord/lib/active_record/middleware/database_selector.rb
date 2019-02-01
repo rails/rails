@@ -35,13 +35,14 @@ module ActiveRecord
     #   config.active_record.database_resolver = MyResolver
     #   config.active_record.database_operations = MyResolver::MySession
     class DatabaseSelector
-      def initialize(app, resolver_klass = Resolver, operations_klass = Resolver::Session)
+      def initialize(app, resolver_klass = Resolver, operations_klass = Resolver::Session, options = {})
         @app = app
         @resolver_klass = resolver_klass
         @operations_klass = operations_klass
+        @options = options
       end
 
-      attr_reader :resolver_klass, :operations_klass
+      attr_reader :resolver_klass, :operations_klass, :options
 
       # Middleware that determines which database connection to use in a multiple
       # database application.
@@ -57,7 +58,7 @@ module ActiveRecord
 
         def select_database(request, &blk)
           operations = operations_klass.build(request)
-          database_resolver = resolver_klass.call(operations)
+          database_resolver = resolver_klass.call(operations, options)
 
           if reading_request?(request)
             database_resolver.read(&blk)
