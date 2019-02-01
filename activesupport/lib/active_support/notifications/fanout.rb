@@ -24,10 +24,11 @@ module ActiveSupport
         synchronize do
           if String === pattern
             @string_subscribers[pattern] << subscriber
+            @listeners_for.delete(pattern)
           else
             @other_subscribers << subscriber
+            @listeners_for.clear
           end
-          @listeners_for.clear
         end
         subscriber
       end
@@ -37,16 +38,17 @@ module ActiveSupport
           case subscriber_or_name
           when String
             @string_subscribers[subscriber_or_name].clear
+            @listeners_for.delete(subscriber_or_name)
           else
             pattern = subscriber_or_name.try(:pattern)
             if String === pattern
               @string_subscribers[pattern].delete(subscriber_or_name)
+              @listeners_for.delete(pattern)
             else
               @other_subscribers.delete(subscriber_or_name)
+              @listeners_for.clear
             end
           end
-
-          @listeners_for.clear
         end
       end
 
