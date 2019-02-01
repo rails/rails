@@ -46,6 +46,10 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     Reader.create person_id: 0, post_id: 0
   end
 
+  def test_has_many_through_create_record
+    assert books(:awdr).subscribers.create!(nick: "bob")
+  end
+
   def test_marshal_dump
     preloaded = Post.includes(:first_blue_tags).first
     assert_equal preloaded, Marshal.load(Marshal.dump(preloaded))
