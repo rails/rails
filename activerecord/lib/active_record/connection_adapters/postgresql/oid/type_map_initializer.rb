@@ -17,20 +17,23 @@ module ActiveRecord
           end
 
           def run(records)
-            nodes = records.reject { |row| @store.key? row["oid"].to_i }
-            mapped = nodes.extract! { |row| @store.key? row["typname"] }
-            ranges = nodes.extract! { |row| row["typtype"] == "r" }
-            enums = nodes.extract! { |row| row["typtype"] == "e" }
-            domains = nodes.extract! { |row| row["typtype"] == "d" }
-            arrays = nodes.extract! { |row| row["typinput"] == "array_in" }
-            composites = nodes.extract! { |row| row["typelem"].to_i != 0 }
-
-            mapped.each     { |row| register_mapped_type(row)    }
-            enums.each      { |row| register_enum_type(row)      }
-            domains.each    { |row| register_domain_type(row)    }
-            arrays.each     { |row| register_array_type(row)     }
-            ranges.each     { |row| register_range_type(row)     }
-            composites.each { |row| register_composite_type(row) }
+            records.each do |row|
+              if @store.key? row["oid"].to_i
+                continue
+              elsif @store.key? row["typname"]
+                register_mapped_type(row)
+              elsif row["typtype"] == "r"
+                register_range_type(row)
+              elsif row["typtype"] == "e"
+                register_enum_type(row)
+              elsif row["typtype"] == "d"
+                register_domain_type(row)
+              elsif row["typinput"] == "array_in"
+                register_array_type(row)
+              elsif row["typelem"].to_i != 0
+                register_composite_type(row)
+              end
+            end
           end
 
           def query_conditions_for_initial_load
