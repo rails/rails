@@ -112,9 +112,9 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
   end
 
   def test_mysql_full
-    start(adapter: "mysql2", database: "db", host: "locahost", port: 1234, socket: "socket", username: "user", password: "qwerty", encoding: "UTF-8")
+    start(adapter: "mysql2", database: "db", host: "localhost", port: 1234, socket: "socket", username: "user", password: "qwerty", encoding: "UTF-8")
     assert_not aborted
-    assert_equal [%w[mysql mysql5], "--host=locahost", "--port=1234", "--socket=socket", "--user=user", "--default-character-set=UTF-8", "-p", "db"], dbconsole.find_cmd_and_exec_args
+    assert_equal [%w[mysql mysql5], "--host=localhost", "--port=1234", "--socket=socket", "--user=user", "--default-character-set=UTF-8", "-p", "db"], dbconsole.find_cmd_and_exec_args
   end
 
   def test_mysql_include_password
