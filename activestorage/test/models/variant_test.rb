@@ -177,4 +177,14 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
   ensure
     ActiveStorage.variant_processor = :mini_magick
   end
+
+  test "deleting variant keeps original blob" do
+    blob = create_file_blob(filename: "racecar.jpg")
+    variant = blob.variant(resize: "20x20").processed
+
+    assert variant.send(:processed?)
+    variant.delete
+    assert_not variant.send(:processed?)
+    assert variant.service.exist?(variant.blob.key)
+  end
 end
