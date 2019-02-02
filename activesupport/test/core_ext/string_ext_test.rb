@@ -72,9 +72,53 @@ class StringInflectionsTest < ActiveSupport::TestCase
     assert_not_same name.pluralize(1), name
   end
 
+  test "pluralize uses specific I18n locale if locale is specified" do
+    begin
+      ActiveSupport::Inflector.inflections(:"es-test") { |i| i.plural(/z$/, "ces") }
+      assert_equal("peces", "pez".pluralize(:"es-test"))
+      assert_equal("pez", "pez".pluralize(1, :"es-test"))
+      assert_equal("peces", "pez".pluralize(2, :"es-test"))
+    ensure
+      ActiveSupport::Inflector.inflections(:"es-test") { |i| i.clear }
+    end
+  end
+
+  test "pluralize uses current I18n locale if locale is not specified" do
+    begin
+      ActiveSupport::Inflector.inflections(:"es-test") { |i| i.plural(/z$/, "ces") }
+      I18n.with_locale(:"es-test") do
+        assert_equal("peces", "pez".pluralize)
+        assert_equal("pez", "pez".pluralize(1))
+        assert_equal("peces", "pez".pluralize(2))
+      end
+    ensure
+      ActiveSupport::Inflector.inflections(:"es-test") { |i| i.clear }
+    end
+  end
+
   def test_singularize
     SingularToPlural.each do |singular, plural|
       assert_equal(singular, plural.singularize)
+    end
+  end
+
+  test "singularize uses current I18n locale if locale is specified" do
+    begin
+      ActiveSupport::Inflector.inflections(:"es-test") { |i| i.singular(/ces$/, "z") }
+      assert_equal("pez", "peces".singularize(:"es-test"))
+    ensure
+      ActiveSupport::Inflector.inflections(:"es-test") { |i| i.clear }
+    end
+  end
+
+  test "singularize uses current I18n locale if locale is not specified" do
+    begin
+      ActiveSupport::Inflector.inflections(:"es-test") { |i| i.singular(/ces$/, "z") }
+      I18n.with_locale(:"es-test") do
+        assert_equal("pez", "peces".singularize)
+      end
+    ensure
+      ActiveSupport::Inflector.inflections(:"es-test") { |i| i.clear }
     end
   end
 

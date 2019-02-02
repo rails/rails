@@ -1,3 +1,9 @@
+*   Made `String#singularize` and `String#pluralize` respect the current locale
+
+    `String#singularize` and `String#pluralize` now use the current I18n locale,
+    if one has been set. If there is no locale set, it defaults to English (which
+    was the old behaviour, regardless of the current locale).
+
 *   Allow Range#=== and Range#cover? on Range
 
     `Range#cover?` can now accept a range argument like `Range#include?` and
