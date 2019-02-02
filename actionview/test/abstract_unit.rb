@@ -58,7 +58,7 @@ module RenderERBUtils
     template = ActionView::Template.new(
       string.strip,
       "test template",
-      ActionView::Template::Handlers::ERB,
+      ActionView::Template.handler_for_extension(:erb),
       {})
 
     template.render(ActionView::Base.empty, {}).strip

@@ -2,7 +2,6 @@
 
 require "active_support/core_ext/object/try"
 require "active_support/core_ext/kernel/singleton_class"
-require "active_support/deprecation"
 require "thread"
 require "delegate"
 
@@ -304,7 +303,7 @@ module ActionView
       # regardless of the original source encoding.
       def compile(mod)
         source = encode!
-        code = @handler.call(LegacyTemplate.new(self, source))
+        code = @handler.call(self, source)
 
         # Make sure that the resulting String to be eval'd is in the
         # encoding of the code
