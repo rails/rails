@@ -3,6 +3,7 @@
 require "active_support/core_ext/object/try"
 require "active_support/core_ext/kernel/singleton_class"
 require "thread"
+require "delegate"
 
 module ActionView
   # = Action View Template
@@ -202,7 +203,9 @@ module ActionView
     # before passing the source on to the template engine, leaving a
     # blank line in its stead.
     def encode!
-      return unless source.encoding == Encoding::BINARY
+      source = self.source
+
+      return source unless source.encoding == Encoding::BINARY
 
       # Look for # encoding: *. If we find one, we'll encode the
       # String in that encoding, otherwise, we'll use the
@@ -277,6 +280,15 @@ module ActionView
         end
       end
 
+      class LegacyTemplate < DelegateClass(Template) # :nodoc:
+        attr_reader :source
+
+        def initialize(template, source)
+          super(template)
+          @source = source
+        end
+      end
+
       # Among other things, this method is responsible for properly setting
       # the encoding of the compiled template.
       #
@@ -290,8 +302,8 @@ module ActionView
       # In general, this means that templates will be UTF-8 inside of Rails,
       # regardless of the original source encoding.
       def compile(mod)
-        encode!
-        code = @handler.call(self)
+        source = encode!
+        code = @handler.call(self, source)
 
         # Make sure that the resulting String to be eval'd is in the
         # encoding of the code
@@ -312,7 +324,7 @@ module ActionView
         # handler is valid in the default_internal. This is for handlers
         # that handle encoding but screw up
         unless source.valid_encoding?
-          raise WrongEncodingError.new(@source, Encoding.default_internal)
+          raise WrongEncodingError.new(source, Encoding.default_internal)
         end
 
         mod.module_eval(source, identifier, 0)
