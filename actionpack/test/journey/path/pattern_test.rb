@@ -34,17 +34,17 @@ module ActionDispatch
         end
 
         {
-          "/:controller(/:action)"       => %r{\A/(#{x})(?:/([^/.?]+))?},
-          "/:controller/foo"             => %r{\A/(#{x})/foo},
-          "/:controller/:action"         => %r{\A/(#{x})/([^/.?]+)},
-          "/:controller"                 => %r{\A/(#{x})},
-          "/:controller(/:action(/:id))" => %r{\A/(#{x})(?:/([^/.?]+)(?:/([^/.?]+))?)?},
-          "/:controller/:action.xml"     => %r{\A/(#{x})/([^/.?]+)\.xml},
-          "/:controller.:format"         => %r{\A/(#{x})\.([^/.?]+)},
-          "/:controller(.:format)"       => %r{\A/(#{x})(?:\.([^/.?]+))?},
-          "/:controller/*foo"            => %r{\A/(#{x})/(.+)},
-          "/:controller/*foo/bar"        => %r{\A/(#{x})/(.+)/bar},
-          "/:foo|*bar"                   => %r{\A/(?:([^/.?]+)|(.+))},
+          "/:controller(/:action)"       => %r{\A/(#{x})(?:/([^/.?]+))?\b},
+          "/:controller/foo"             => %r{\A/(#{x})/foo\b},
+          "/:controller/:action"         => %r{\A/(#{x})/([^/.?]+)\b},
+          "/:controller"                 => %r{\A/(#{x})\b},
+          "/:controller(/:action(/:id))" => %r{\A/(#{x})(?:/([^/.?]+)(?:/([^/.?]+))?)?\b},
+          "/:controller/:action.xml"     => %r{\A/(#{x})/([^/.?]+)\.xml\b},
+          "/:controller.:format"         => %r{\A/(#{x})\.([^/.?]+)\b},
+          "/:controller(.:format)"       => %r{\A/(#{x})(?:\.([^/.?]+))?\b},
+          "/:controller/*foo"            => %r{\A/(#{x})/(.+)\b},
+          "/:controller/*foo/bar"        => %r{\A/(#{x})/(.+)/bar\b},
+          "/:foo|*bar"                   => %r{\A/(?:([^/.?]+)|(.+))\b},
         }.each do |path, expected|
           define_method(:"test_to_non_anchored_regexp_#{Regexp.escape(path)}") do
             path = Pattern.build(
