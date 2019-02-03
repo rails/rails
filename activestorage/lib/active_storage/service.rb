@@ -118,7 +118,7 @@ module ActiveStorage
 
     # Returns http method for +url_for_direct_upload+ requests.
     def method_for_direct_upload
-      'PUT'
+      "PUT"
     end
 
     # Returns a Hash of headers for +url_for_direct_upload+ requests.

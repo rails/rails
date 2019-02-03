@@ -1,6 +1,7 @@
+# frozen_string_literal: true
+
 module ActiveStorage
   class DirectUpload
-
     def initialize(blob)
       @blob = blob
 
@@ -12,6 +13,5 @@ module ActiveStorage
     def as_json
       { method: @method, url: @url, headers: @headers }
     end
-
   end
 end
