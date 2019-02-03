@@ -144,10 +144,20 @@ class ActiveStorage::Blob < ActiveRecord::Base
       disposition: forced_disposition_for_service_url || disposition, **options
   end
 
+  # Returns direct upload object, with url, http method, headers
+  def direct_upload
+    service.direct_upload(self)
+  end
+
   # Returns a URL that can be used to directly upload a file for this blob on the service. This URL is intended to be
   # short-lived for security and only generated on-demand by the client-side JavaScript responsible for doing the uploading.
   def service_url_for_direct_upload(expires_in: ActiveStorage.service_urls_expire_in)
     service.url_for_direct_upload key, expires_in: expires_in, content_type: content_type, content_length: byte_size, checksum: checksum
+  end
+
+  # Returns http method for +service_url_for_direct_upload+ requests.
+  def service_method_for_direct_upload
+    service.method_for_direct_upload
   end
 
   # Returns a Hash of headers for +service_url_for_direct_upload+ requests.
