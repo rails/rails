@@ -33,6 +33,13 @@ module ActionView
       end
     end
 
+    initializer "action_view.button_to_generates_input" do |app|
+      ActiveSupport.on_load(:action_view) do
+        button_to_generates_input = app.config.action_view.delete(:button_to_generates_input)
+        ActionView::Helpers::FormHelper.button_to_generates_input = button_to_generates_input
+      end
+    end
+
     config.after_initialize do |app|
       default_enforce_utf8 = app.config.action_view.delete(:default_enforce_utf8)
       unless default_enforce_utf8.nil?

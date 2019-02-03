@@ -182,6 +182,10 @@ module Rails
           if respond_to?(:active_support)
             active_support.utc_to_local_returns_utc_offset_times = true
           end
+
+          if respond_to?(:action_view)
+            action_view.button_to_generates_input = false
+          end
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end

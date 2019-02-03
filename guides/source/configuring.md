@@ -666,6 +666,8 @@ Defaults to `'signed cookie'`.
 
 * `config.action_view.form_with_generates_ids` determines whether `form_with` generates ids on inputs. This defaults to `false`.
 
+* `config.action_view.button_to_generates_input` determines whether `button_to` (when is used without block) generates input element instead of button. This defaults to `false`.
+
 * `config.action_view.default_enforce_utf8` determines whether forms are generated with a hidden tag that forces older versions of Internet Explorer to submit forms encoded in UTF-8. This defaults to `false`.
 
 
@@ -965,6 +967,7 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 
 - `config.autoloader`: `:zeitwerk`
 - `config.action_view.default_enforce_utf8`: `false`
+- `config.action_view.button_to_generates_input`: `false`
 - `config.action_dispatch.use_cookies_with_metadata`: `true`
 - `config.action_dispatch.return_only_media_type_on_content_type`: `false`
 - `config.action_mailer.delivery_job`: `"ActionMailer::MailDeliveryJob"`

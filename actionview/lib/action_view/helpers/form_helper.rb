@@ -480,6 +480,8 @@ module ActionView
 
       mattr_accessor :form_with_generates_ids, default: false
 
+      mattr_accessor :button_to_generates_input, default: false
+
       # Creates a form tag based on mixing URLs, scopes, or models.
       #
       #   # Using just a URL:

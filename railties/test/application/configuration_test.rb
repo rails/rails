@@ -952,6 +952,56 @@ module ApplicationTests
       assert_match(/data-remote/, last_response.body)
     end
 
+    test "button_to can be configured with button_to_generates_input" do
+      app_file "config/initializers/button_to.rb", <<-RUBY
+      Rails.configuration.action_view.button_to_generates_input = true
+      RUBY
+
+      app_file "app/controllers/posts_controller.rb", <<-RUBY
+      class PostsController < ApplicationController
+        def index
+          render inline: "<%= begin; button_to('Hello', '/'); rescue => e; e.to_s; end %>"
+        end
+      end
+      RUBY
+
+      add_to_config <<-RUBY
+        routes.prepend do
+          resources :posts
+        end
+      RUBY
+
+      app "development"
+
+      get "/posts"
+
+      assert_match(/input type=.submit. value=.Hello./, last_response.body)
+    end
+
+    test "button_to generates button by default" do
+      app_file "app/controllers/posts_controller.rb", <<-RUBY
+      class PostsController < ApplicationController
+        def index
+          render inline: "<%= begin; button_to('Hello', '/'); rescue => e; e.to_s; end %>"
+        end
+      end
+      RUBY
+
+      add_to_config <<-RUBY
+        routes.prepend do
+          resources :posts
+        end
+      RUBY
+
+      app "development"
+
+      get "/posts"
+
+      assert_match(/<button type=.submit.>Hello<\/button>/, last_response.body)
+      assert_no_match(/input type=.submit. value=.Hello./, last_response.body)
+    end
+
+
     test "default method for update can be changed" do
       app_file "app/models/post.rb", <<-RUBY
       class Post

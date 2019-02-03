@@ -1,3 +1,9 @@
+*   `button_to` when used without block generate `<button>` element instead of
+    `<input>` element. To keep generating `<input>` use
+    `Rails.configuration.action_view.button_to_generates_input = true`
+
+    *Dusan Orlovic*
+
 *   `ActionView::Helpers::TranslationHelper#translate` returns nil when
     passed `default: nil` without a translation matching `I18n#translate`.
 
