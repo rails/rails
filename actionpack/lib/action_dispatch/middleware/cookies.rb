@@ -488,13 +488,8 @@ module ActionDispatch
         end
 
         def cookie_metadata(name, options)
-          if request.use_cookies_with_metadata
-            metadata = expiry_options(options)
-            metadata[:purpose] = "cookie.#{name}"
-
-            metadata
-          else
-            {}
+          expiry_options(options).tap do |metadata|
+            metadata[:purpose] = "cookie.#{name}" if request.use_cookies_with_metadata
           end
         end
 
