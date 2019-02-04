@@ -461,22 +461,19 @@ available, Rails will raise an exception.
 
 Let's look at the full error message again:
 
->ArticlesController#new is missing a template for this request format and variant. request.formats: ["text/html"] request.variant: [] NOTE! For XHR/Ajax or API requests, this action would normally respond with 204 No Content: an empty white screen. Since you're loading it in a web browser, we assume that you expected to actually render a template, not… nothing, so we're showing an error to be extra-clear. If you expect 204 No Content, carry on. That's what you'll get from an XHR or API request. Give it a shot.
+>ArticlesController#new is missing a template for request formats: text/html
 
-That's quite a lot of text! Let's quickly go through and understand what each
-part of it means.
+>NOTE!
+>Unless told otherwise, Rails expects an action to render a template with the same name, contained in a folder named after its controller. If this controller is an API responding with 204 (No Content), which does not require a template, then this error will occur when trying to access it via browser, since we expect an HTML template to be rendered for such requests. If that's the case, carry on.
 
-The first part identifies which template is missing. In this case, it's the
+The message identifies which template is missing. In this case, it's the
 `articles/new` template. Rails will first look for this template. If not found,
-then it will attempt to load a template called `application/new`. It looks for
-one here because the `ArticlesController` inherits from `ApplicationController`.
+then it will attempt to load a template called `application/new`, because the
+`ArticlesController` inherits from `ApplicationController`.
 
-The next part of the message contains `request.formats` which specifies
-the format of template to be served in response. It is set to `text/html` as we
-requested this page via browser, so Rails is looking for an HTML template.
-`request.variant` specifies what kind of physical devices would be served by
-the response and helps Rails determine which template to use in the response.
-It is empty because no information has been provided.
+Next the message contains `request.formats` which specifies the format of
+template to be served in response. It is set to `text/html` as we requested
+this page via browser, so Rails is looking for an HTML template.
 
 The simplest template that would work in this case would be one located at
 `app/views/articles/new.html.erb`. The extension of this file name is important:
