@@ -477,6 +477,14 @@ module ActiveRecord
       end
     end
 
+    def present? # :nodoc:
+      true
+    end
+
+    def blank? # :nodoc:
+      false
+    end
+
     # Returns +true+ if the record is read only. Records loaded through joins with piggy-back
     # attributes will be marked as read only since they cannot be saved.
     def readonly?
