@@ -25,6 +25,14 @@ Gem::Specification.new do |s|
     "changelog_uri"   => "https://github.com/rails/rails/blob/v#{version}/actionmailbox/CHANGELOG.md"
   }
 
+  s.post_install_message = %q{
+    To use Action Mailbox, Install migrations needed for InboundEmail and ensure Active Storage is set up.
+    See: https://guides.rubyonrails.org/action_mailbox_basics.html
+    rails action_mailbox:install
+
+    rails db:migrate
+  }
+
   # NOTE: Please read our dependency guidelines before updating versions:
   # https://edgeguides.rubyonrails.org/security.html#dependency-management-and-cves
 
