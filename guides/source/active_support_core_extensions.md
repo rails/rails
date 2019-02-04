@@ -1201,6 +1201,8 @@ The `inquiry` method converts a string into a `StringInquirer` object making equ
 "active".inquiry.inactive?       # => false
 ```
 
+NOTE: Defined in `active_support/core_ext/string/inquiry.rb`.
+
 ### `starts_with?` and `ends_with?`
 
 Active Support defines 3rd person aliases of `String#start_with?` and `String#end_with?`:
