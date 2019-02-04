@@ -21,6 +21,7 @@ module ARTest
   def self.connect
     puts "Using #{connection_name}"
     ActiveRecord::Base.logger = ActiveSupport::Logger.new("debug.log", 0, 100 * 1024 * 1024)
+    ActiveRecord::Base.connection_handlers = { ActiveRecord::Base.writing_role => ActiveRecord::Base.default_connection_handler }
     ActiveRecord::Base.configurations = connection_config
     ActiveRecord::Base.establish_connection :arunit
     ARUnit2Model.establish_connection :arunit2
