@@ -1,4 +1,8 @@
-*   Remove the `` Kernel#` `` override that suppresses ENOENT and accidentally returns nil on Unix systems
+*   Add `before_reset` callback to `CurrentAttributes` and define `after_reset` as an alias of `resets` for symmetry.
+
+    *Rosa Gutierrez*
+
+*   Remove the `` Kernel#` `` override that suppresses ENOENT and accidentally returns nil on Unix systems.
 
     *Akinori Musha*
 
@@ -7,7 +11,6 @@
     `assoc` can now be called with either a string or a symbol.
 
     *Stefan Schüßler*
-
 
 ## Rails 6.0.0.beta1 (January 18, 2019) ##
 
