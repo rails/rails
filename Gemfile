@@ -118,7 +118,7 @@ platforms :ruby, :mswin, :mswin64, :mingw, :x64_mingw do
   gem "racc", ">=1.4.6", require: false
 
   # Active Record.
-  gem "sqlite3", "~> 1.3.6"
+  gem "sqlite3", "~> 1.3", ">= 1.3.6"
 
   group :db do
     gem "pg", ">= 0.18.0"
