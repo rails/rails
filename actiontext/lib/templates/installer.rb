@@ -11,7 +11,8 @@ JS_DEPENDENCIES = JS_PACKAGE["peerDependencies"].dup.merge \
   JS_PACKAGE["name"] => "^#{JS_PACKAGE["version"]}"
 
 say "Installing JavaScript dependencies"
-run "bin/yarn add #{JS_DEPENDENCIES.map { |name, version| "#{name}@#{version}" }.join(" ")}"
+run "bin/yarn add #{JS_DEPENDENCIES.map { |name, version| "#{name}@#{version}" }.join(" ")}",
+    abort_on_failure: true
 
 say "Copying actiontext.scss to app/assets/stylesheets"
 copy_file "#{__dir__}/actiontext.scss", "app/assets/stylesheets/actiontext.scss"
