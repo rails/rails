@@ -471,6 +471,15 @@ module RenderTestCases
     ActionView::Template.unregister_template_handler :ruby_handler
   end
 
+  def test_optional_second_arg_works_without_deprecation
+    assert_not_deprecated do
+      ActionView::Template.register_template_handler :ruby_handler, ->(view, source = nil) { source }
+    end
+    assert_equal "3", @view.render(inline: "(1 + 2).to_s", type: :ruby_handler)
+  ensure
+    ActionView::Template.unregister_template_handler :ruby_handler
+  end
+
   def test_render_inline_with_compilable_custom_type
     ActionView::Template.register_template_handler :foo, CustomHandler
     assert_equal 'source: "Hello, World!"', @view.render(inline: "Hello, World!", type: :foo)

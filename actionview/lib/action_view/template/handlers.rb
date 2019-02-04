@@ -43,7 +43,7 @@ module ActionView #:nodoc:
           handler.method(:call).parameters
         end
 
-        unless params.find_all { |type, _| type == :req }.length >= 2
+        unless params.find_all { |type, _| type == :req || type == :opt }.length >= 2
           ActiveSupport::Deprecation.warn <<~eowarn
           Single arity template handlers are deprecated.  Template handlers must
           now accept two parameters, the view object and the source for the view object.
