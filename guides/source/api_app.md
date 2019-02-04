@@ -374,7 +374,7 @@ controller modules by default:
 - `ActionController::Renderers::All`: Support for `render :json` and friends.
 - `ActionController::ConditionalGet`: Support for `stale?`.
 - `ActionController::BasicImplicitRender`: Makes sure to return an empty response, if there isn't an explicit one.
-- `ActionController::StrongParameters`: Support for parameters white-listing in combination with Active Model mass assignment.
+- `ActionController::StrongParameters`: Support for parameters filtering in combination with Active Model mass assignment.
 - `ActionController::DataStreaming`: Support for `send_file` and `send_data`.
 - `AbstractController::Callbacks`: Support for `before_action` and
   similar helpers.

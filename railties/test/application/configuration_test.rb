@@ -2289,7 +2289,7 @@ module ApplicationTests
       MESSAGE
     end
 
-    test "the host whitelist includes .localhost in development" do
+    test "hosts include .localhost in development" do
       app "development"
       assert_includes Rails.application.config.hosts, ".localhost"
     end

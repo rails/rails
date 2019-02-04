@@ -20,7 +20,7 @@
 *   Introduce ActionDispatch::HostAuthorization
 
     This is a new middleware that guards against DNS rebinding attacks by
-    white-listing the allowed hosts a request can be made to.
+    explicitly permitting the hosts a request can be made to.
 
     Each host is checked with the case operator (`#===`) to support `RegExp`,
     `Proc`, `IPAddr` and custom objects as host allowances.
