@@ -29,9 +29,17 @@ steps:
         - name: ":pipeline:"
           command: >-
             $$PIPELINE_COMMAND
+          plugins:
+            - artifacts#v1.2.0:
+                download:
+                  - ".buildkite/*"
+                  - ".buildkite/**/*"
           timeout_in_minutes: 5
       NESTED
       fi
+    plugins:
+      - artifacts#v1.2.0:
+          upload: ".buildkite/**/*"
     env:
       PIPELINE_COMMAND: >-
         docker run --rm

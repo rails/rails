@@ -188,7 +188,7 @@ puts YAML.dump("steps" => [
           "plugins" => [
             {
               ARTIFACTS_PLUGIN => {
-                "upload" => ".buildkite/**/*",
+                "download" => [".buildkite/*", ".buildkite/**/*"],
               },
             },
             {
