@@ -179,14 +179,14 @@ module ActionView
 
       def args_for_lookup(name, prefixes, partial, keys, details_options)
         name, prefixes = normalize_name(name, prefixes)
-        details, details_key = detail_args_for(details_options)
+        details, details_key = detail_args_for(details_options, keys)
         [name, prefixes, partial || false, details, details_key, keys]
       end
 
       # Compute details hash and key according to user options (e.g. passed from #render).
-      def detail_args_for(options) # :doc:
-        return @details, details_key if options.empty? # most common path.
+      def detail_args_for(options, locals) # :doc:
         user_details = @details.merge(options)
+        user_details[:locals] = locals.sort.freeze
 
         if @cache
           details_key = DetailsKey.details_cache_key(user_details)
