@@ -411,10 +411,9 @@ module ActiveModel
     # * <tt>errors.format</tt>
     def full_message(attribute, message)
       return message if attribute == :base
-      attribute = attribute.to_s
+      attribute = attribute.to_s.remove(/\[\d\]/)
 
       if self.class.i18n_full_message && @base.class.respond_to?(:i18n_scope)
-        attribute = attribute.remove(/\[\d\]/)
         parts = attribute.split(".")
         attribute_name = parts.pop
         namespace = parts.join("/") unless parts.empty?

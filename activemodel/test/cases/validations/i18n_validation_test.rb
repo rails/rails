@@ -142,8 +142,8 @@ class I18nValidationTest < ActiveModel::TestCase
       errors: { models: { 'person/contacts/addresses': { attributes: { street: { format: "%{message}" } } } } } })
 
     person = Person.new
-    assert_equal "Contacts[0]/addresses[0] street cannot be blank", person.errors.full_message(:'contacts[0]/addresses[0].street', "cannot be blank")
-    assert_equal "Contacts[0]/addresses[0] country cannot be blank", person.errors.full_message(:'contacts[0]/addresses[0].country', "cannot be blank")
+    assert_equal "Contacts/addresses street cannot be blank", person.errors.full_message(:'contacts[0]/addresses[0].street', "cannot be blank")
+    assert_equal "Contacts/addresses country cannot be blank", person.errors.full_message(:'contacts[0]/addresses[0].country', "cannot be blank")
   end
 
   def test_errors_full_messages_with_i18n_attribute_name_without_i18n_config
@@ -154,8 +154,8 @@ class I18nValidationTest < ActiveModel::TestCase
     })
 
     person = Person.new
-    assert_equal "Contacts[0]/addresses[0] street cannot be blank", person.errors.full_message(:'contacts[0]/addresses[0].street', "cannot be blank")
-    assert_equal "Country cannot be blank", person.errors.full_message(:'contacts[0]/addresses[0].country', "cannot be blank")
+    assert_equal "Contacts/addresses street cannot be blank", person.errors.full_message(:'contacts[0]/addresses[0].street', "cannot be blank")
+    assert_equal "Contacts/addresses country cannot be blank", person.errors.full_message(:'contacts[0]/addresses[0].country', "cannot be blank")
   end
 
   # ActiveModel::Validations
