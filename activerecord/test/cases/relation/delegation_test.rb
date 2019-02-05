@@ -5,7 +5,7 @@ require "models/post"
 require "models/comment"
 
 module ActiveRecord
-  module ArrayDelegationTests
+  module DelegationTests
     ARRAY_DELEGATES = [
       :+, :-, :|, :&, :[], :shuffle,
       :all?, :collect, :compact, :detect, :each, :each_cons, :each_with_index,
@@ -21,10 +21,14 @@ module ActiveRecord
         assert_respond_to target, method
       end
     end
+
+    def test_not_respond_to_arel_method
+      assert_not_respond_to target, :exists
+    end
   end
 
   class DelegationAssociationTest < ActiveRecord::TestCase
-    include ArrayDelegationTests
+    include DelegationTests
 
     def target
       Post.new.comments
@@ -32,7 +36,7 @@ module ActiveRecord
   end
 
   class DelegationRelationTest < ActiveRecord::TestCase
-    include ArrayDelegationTests
+    include DelegationTests
 
     def target
       Comment.all

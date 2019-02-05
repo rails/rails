@@ -480,21 +480,6 @@ class RelationTest < ActiveRecord::TestCase
     assert_nothing_raised { Topic.reorder([]) }
   end
 
-  def test_respond_to_delegates_to_arel
-    relation = Topic.all
-    fake_arel = Struct.new(:responds) {
-      def respond_to?(method, access = false)
-        responds << [method, access]
-      end
-    }.new []
-
-    relation.extend(Module.new { attr_accessor :arel })
-    relation.arel = fake_arel
-
-    relation.respond_to?(:matching_attributes)
-    assert_equal [:matching_attributes, false], fake_arel.responds.first
-  end
-
   def test_respond_to_dynamic_finders
     relation = Topic.all
 
