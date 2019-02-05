@@ -33,6 +33,7 @@ ENV RAILS_ENV=test RACK_ENV=test
 ENV JRUBY_OPTS="--dev -J-Xmx1024M"
 
 ADD .buildkite/await-all /usr/local/bin/
+RUN chmod +x /usr/local/bin/await-all
 
 ADD actioncable/package.json actioncable/
 ADD actiontext/package.json actiontext/
