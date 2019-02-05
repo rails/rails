@@ -1224,12 +1224,15 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_has_many_without_counter_cache_option
     # Ship has a conventionally named `treasures_count` column, but the counter_cache
     # option is not given on the association.
-    ship = Ship.create(name: "Countless", treasures_count: 10)
+    ship = Ship.create!(name: "Countless", treasures_count: 10)
 
     assert_not_predicate Ship.reflect_on_association(:treasures), :has_cached_counter?
 
     # Count should come from sql count() of treasures rather than treasures_count attribute
-    assert_equal ship.treasures.size, 0
+    assert_queries(1) do
+      assert_equal ship.treasures.size, 0
+      assert_predicate ship.treasures, :loaded?
+    end
 
     assert_no_difference lambda { ship.reload.treasures_count }, "treasures_count should not be changed" do
       ship.treasures.create(name: "Gold")
@@ -1350,6 +1353,20 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     post = posts(:welcome)
     assert_no_queries do
       assert_not_empty post.comments
+      assert_equal 2, post.comments.size
+      assert_not_predicate post.comments, :loaded?
+    end
+    post = posts(:misc_by_bob)
+    assert_no_queries do
+      assert_empty post.comments
+      assert_predicate post.comments, :loaded?
+    end
+  end
+
+  def test_empty_association_loading_with_counter_cache
+    post = posts(:misc_by_bob)
+    assert_no_queries do
+      assert_empty post.comments.to_a
     end
   end
 
@@ -1986,9 +2003,22 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_not_predicate company.clients, :loaded?
   end
 
-  def test_counter_cache_on_unloaded_association
-    car = Car.create(name: "My AppliCar")
-    assert_equal car.engines.size, 0
+  def test_zero_counter_cache_usage_on_unloaded_association
+    car = Car.create!(name: "My AppliCar")
+    assert_no_queries do
+      assert_equal car.engines.size, 0
+      assert_predicate car.engines, :loaded?
+    end
+  end
+
+  def test_counter_cache_on_new_record_unloaded_association
+    car = Car.new(name: "My AppliCar")
+    # Ensure no schema queries inside assertion
+    Engine.primary_key
+    assert_no_queries do
+      assert_equal car.engines.size, 0
+      assert_predicate car.engines, :loaded?
+    end
   end
 
   def test_get_ids_ignores_include_option
