@@ -1,3 +1,7 @@
+*   Make debug exceptions works in an environment where ActiveStorage is not loaded.
+
+    *Tomoyuki Kurosawa*
+
 *   `ActionDispatch::SystemTestCase.driven_by` can now be called with a block
     to define specific browser capabilities.
 
