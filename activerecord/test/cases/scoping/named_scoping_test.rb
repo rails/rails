@@ -447,6 +447,16 @@ class NamedScopingTest < ActiveRecord::TestCase
     assert_equal [posts(:sti_comments)], Post.with_special_comments.with_post(4).to_a.uniq
   end
 
+  def test_chaining_doesnt_leak_conditions_to_another_scopes
+    expected = Topic.where(approved: false).where(id: Topic.children.select(:parent_id))
+    assert_equal expected.to_a, Topic.rejected.has_children.to_a
+  end
+
+  def test_nested_scoping
+    expected = Reply.approved
+    assert_equal expected.to_a, Topic.rejected.nested_scoping(expected)
+  end
+
   def test_scopes_batch_finders
     assert_equal 4, Topic.approved.count
 
