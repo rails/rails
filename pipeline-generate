@@ -1,0 +1,225 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require "json"
+require "yaml"
+require "net/http"
+
+IMAGE_BASE = "973266071021.dkr.ecr.us-east-1.amazonaws.com/builds"
+
+BRANCH = ([ENV["BUILDKITE_PULL_REQUEST_BASE_BRANCH"], ENV["BUILDKITE_BRANCH"], "master"] - [""]).first
+PULL_REQUEST = ([ENV["BUILDKITE_PULL_REQUEST"]] - ["false"]).first
+
+BUILD_ID = ENV["BUILDKITE_BUILD_ID"]
+
+DOCKER_COMPOSE_PLUGIN = "matthewd/docker-compose#master"
+ARTIFACTS_PLUGIN = "artifacts#v1.2.0"
+
+File.read(File.expand_path("../rails.gemspec", __dir__)) =~ /required_ruby_version[^0-9]+([0-9]+\.[0-9]+)/
+MIN_RUBY = Gem::Version.new($1 || "2.0")
+
+def available_tags_for_image(image)
+  uri = URI("https://registry.hub.docker.com/v1/repositories/#{image}/tags")
+  json = Net::HTTP.get(uri)
+  JSON.parse(json).map { |x| x["name"] }
+end
+
+RUBIES =
+  available_tags_for_image("ruby").
+  grep(/\A[0-9]+\.[0-9]+\z/).
+  map { |s| Gem::Version.new(s) }.
+  select { |v| v >= MIN_RUBY }.
+  sort.
+  map { |v| "ruby:#{v}" }
+
+ONE_RUBY = RUBIES.last
+
+STEPS = []
+
+def image_name_for(ruby, suffix = BUILD_ID, short: false)
+  tag = "#{mangle_name(ruby)}-#{suffix}"
+
+  if short
+    tag
+  else
+    "#{IMAGE_BASE}:#{tag}"
+  end
+end
+
+def mangle_name(name)
+  name.tr("^A-Za-z0-9", "-")
+end
+
+def step_for(subdirectory, rake_task, ruby: nil, service: "default")
+  return unless Dir.exist?(File.expand_path("../#{subdirectory}", __dir__))
+
+  label = +"#{subdirectory} #{rake_task.sub(/[:_]test|test:/, "")}"
+  label.sub!(/ test/, "")
+  if ruby
+    label << " (#{ruby.sub(/^ruby:|:latest$/, "")})"
+  end
+
+  if rake_task.start_with?("mysql2:")
+    rake_task = "db:mysql:rebuild #{rake_task}"
+  elsif rake_task.start_with?("postgresql:")
+    rake_task = "db:postgresql:rebuild #{rake_task}"
+  end
+
+  command = "echo; echo \"+++ #{subdirectory}: rake #{rake_task}\"; cd #{subdirectory} && bundle exec rake #{rake_task}"
+
+  timeout = 30
+
+  group =
+    if rake_task.include?("isolated")
+      "isolated"
+    else
+      ruby || ONE_RUBY
+    end
+
+  hash = {
+    "label" => label,
+    "command" => command,
+    "group" => group,
+    "plugins" => [
+      {
+        ARTIFACTS_PLUGIN => {
+          "download" => [".buildkite/*", ".buildkite/**/*"],
+        },
+      },
+      {
+        DOCKER_COMPOSE_PLUGIN => {
+          "run" => service,
+          "pull" => service,
+          "config" => ".buildkite/docker-compose.yml",
+        },
+      },
+    ],
+    "env" => {
+      "IMAGE_NAME" => image_name_for(ruby || ONE_RUBY),
+    },
+    "timeout_in_minutes" => timeout,
+  }
+
+  yield hash if block_given?
+
+  STEPS << hash
+end
+
+def steps_for(subdirectory, rake_task, service: "default", &block)
+  RUBIES.each do |ruby|
+    step_for(subdirectory, rake_task, ruby: ruby, service: service, &block)
+  end
+end
+
+# GROUP 1: Runs additional isolated tests for non-PR builds
+%w(
+  actionpack      test                default
+  actionmailer    test                default
+  activemodel     test                default
+  activesupport   test                default
+  actionview      test                default
+  activejob       test                default
+  activerecord    mysql2:test         mysqldb
+  activerecord    postgresql:test     postgresdb
+  activerecord    sqlite3:test        default
+).each_slice(3) do |dir, task, service|
+  steps_for(dir, task, service: service)
+
+  next if PULL_REQUEST
+  next if BRANCH != "master" && BRANCH !~ /\A[0-9-]+(?:-stable)?\z/
+
+  if task.match?(/:test/)
+    step_for(dir, task.sub(":test", ":isolated_test"), service: service)
+  else
+    step_for(dir, "#{task}:isolated", service: service)
+  end
+end
+
+# GROUP 2: No isolated tests, runs for each supported ruby
+%w(
+  actioncable     test                postgresdb
+  activestorage   test                default
+  actionmailbox   test                default
+  actiontext      test                default
+  guides          test                default
+).each_slice(3) do |dir, task, service|
+  steps_for(dir, task, service: service)
+end
+
+# GROUP 3: Special cases
+
+step_for("activerecord", "sqlite3_mem:test", service: "default")
+step_for("activerecord", "mysql2:test", service: "mysqldb") do |x|
+  x["label"] += " [mariadb]"
+  x["env"]["MYSQL_SERVICE"] = "mariadb"
+end
+steps_for("actioncable", "test:integration", service: "default") do |x|
+  x["retry"] = { "automatic" => { "limit" => 3 } }
+end
+step_for("actionview", "test:ujs", service: "actionview")
+steps_for("activejob", "test:integration", service: "activejob")
+steps_for("railties", "test", service: "railties") do |x|
+  x["parallelism"] = 12
+end
+
+###
+
+STEPS.sort_by! do |step|
+  [
+    -step["timeout_in_minutes"],
+    step["group"] == "isolated" ? 2 : 1,
+    step["command"].include?("test:") ? 2 : 1,
+    step["label"],
+  ]
+end
+
+groups = STEPS.group_by { |s| s.delete("group") }.map do |group, steps|
+  { "group" => group, "steps" => steps }
+end
+
+puts YAML.dump("steps" => [
+  "wait",
+  {
+    "group" => "build",
+    "steps" => [
+      *RUBIES.map do |ruby|
+        {
+          "label" => ":docker: #{ruby}",
+          "plugins" => [
+            {
+              ARTIFACTS_PLUGIN => {
+                "upload" => ".buildkite/**/*",
+              },
+            },
+            {
+              DOCKER_COMPOSE_PLUGIN => {
+                "build" => "base",
+                "config" => ".buildkite/docker-compose.yml",
+                "image-name" => image_name_for(ruby, short: true),
+                "cache-from" => [
+                  ENV.fetch("BUILDKITE_REBUILT_FROM_BUILD_ID", "") == "" ? nil :
+                  "base:" + image_name_for(ruby, ENV["BUILDKITE_REBUILT_FROM_BUILD_ID"]),
+                  PULL_REQUEST && "base:" + image_name_for(ruby, "pr-#{PULL_REQUEST}"),
+                  "base:" + image_name_for(ruby, "br-#{BRANCH}"),
+                  BRANCH == "master" ? nil : "base:" + image_name_for(ruby, "br-master"),
+                ].compact,
+                "push" => [
+                  PULL_REQUEST ?
+                  "base:" + image_name_for(ruby, "pr-#{PULL_REQUEST}") :
+                  "base:" + image_name_for(ruby, "br-#{BRANCH}"),
+                ],
+                "image-repository" => IMAGE_BASE,
+              },
+            },
+          ],
+          "env" => {
+            "RUBY_IMAGE" => ruby,
+          },
+          "timeout_in_minutes" => 15,
+        }
+      end,
+    ],
+  },
+  "wait",
+  *groups,
+])
