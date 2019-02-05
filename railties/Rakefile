@@ -36,10 +36,20 @@ namespace :test do
     dirs = (ENV["TEST_DIR"] || ENV["TEST_DIRS"] || "**").split(",")
     test_options = ENV["TESTOPTS"].to_s.split(/[\s]+/)
 
-    test_files = dirs.map { |dir| "test/#{dir}/*_test.rb" }
-    Dir[*test_files].each do |file|
-      next true if file.start_with?("test/fixtures/")
+    test_patterns = dirs.map { |dir| "test/#{dir}/*_test.rb" }
+    test_files = Dir[*test_patterns].select do |file|
+      !file.start_with?("test/fixtures/")
+    end.sort
 
+    if ENV["BUILDKITE_PARALLEL_JOB_COUNT"]
+      n = ENV["BUILDKITE_PARALLEL_JOB"].to_i
+      m = ENV["BUILDKITE_PARALLEL_JOB_COUNT"].to_i
+
+      test_files = test_files.each_slice(m).map { |slice| slice[n] }.compact
+    end
+
+    test_files.each do |file|
+      puts "--- #{file}"
       fake_command = Shellwords.join([
         FileUtils::RUBY,
         "-w",
@@ -59,10 +69,13 @@ namespace :test do
 
       unless $?.success?
         failing_files << file
+        puts "^^^ +++"
       end
     end
 
+    puts "--- All tests completed"
     unless failing_files.empty?
+      puts "^^^ +++"
       puts
       puts "Failed in:"
       failing_files.each do |file|
@@ -70,7 +83,7 @@ namespace :test do
       end
       puts
 
-      raise "Failure in isolated test runner"
+      exit 1
     end
   end
 end

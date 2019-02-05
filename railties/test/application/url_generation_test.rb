@@ -19,6 +19,7 @@ module ApplicationTests
         config.session_store :cookie_store, key: "_myapp_session"
         config.active_support.deprecation = :log
         config.eager_load = false
+        config.hosts << proc { true }
       end
 
       Rails.application.initialize!
