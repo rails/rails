@@ -526,7 +526,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     if defined?(JRUBY_VERSION)
       assert_gem "activerecord-jdbcsqlite3-adapter"
     else
-      assert_gem "sqlite3"
+      assert_gem "sqlite3", "'~> 1.3', '>= 1.3.6'"
     end
   end
 
