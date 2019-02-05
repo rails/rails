@@ -128,6 +128,8 @@ module ActionView
       end
     end
 
+    attr_reader :variable
+
     def initialize(source, identifier, handler, details)
       format = details[:format] || (handler.default_format if handler.respond_to?(:default_format))
 
@@ -138,6 +140,13 @@ module ActionView
       @original_encoding = nil
       @locals            = details[:locals] || []
       @virtual_path      = details[:virtual_path]
+
+      @variable = if @virtual_path
+        base = @virtual_path[-1] == "/" ? "" : File.basename(@virtual_path)
+        base =~ /\A_?(.*?)(?:\.\w+)*\z/
+        $1.to_sym
+      end
+
       @updated_at        = details[:updated_at] || Time.now
       @formats           = Array(format).map { |f| f.respond_to?(:ref) ? f.ref : f  }
       @variants          = [details[:variant]]
