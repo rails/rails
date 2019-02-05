@@ -44,8 +44,7 @@ module ActionView
       end
 
       # preallocate all the default blocks for performance/memory consumption reasons
-      PARTIAL_BLOCK = lambda { |cache, partial| cache[partial] = SmallCache.new }
-      PREFIX_BLOCK  = lambda { |cache, prefix|  cache[prefix]  = SmallCache.new(&PARTIAL_BLOCK) }
+      PREFIX_BLOCK  = lambda { |cache, prefix|  cache[prefix]  = SmallCache.new }
       NAME_BLOCK    = lambda { |cache, name|    cache[name]    = SmallCache.new(&PREFIX_BLOCK) }
       KEY_BLOCK     = lambda { |cache, key|     cache[key]     = SmallCache.new(&NAME_BLOCK) }
 
@@ -62,15 +61,15 @@ module ActionView
       end
 
       # Cache the templates returned by the block
-      def cache(key, name, prefix, partial, locals)
+      def cache(key, name, prefix, partial)
         if Resolver.caching?
-          @data[key][name][prefix][partial][locals] ||= canonical_no_templates(yield)
+          @data[key][name][prefix][partial] ||= canonical_no_templates(yield)
         else
           fresh_templates  = yield
-          cached_templates = @data[key][name][prefix][partial][locals]
+          cached_templates = @data[key][name][prefix][partial]
 
           if templates_have_changed?(cached_templates, fresh_templates)
-            @data[key][name][prefix][partial][locals] = canonical_no_templates(fresh_templates)
+            @data[key][name][prefix][partial] = canonical_no_templates(fresh_templates)
           else
             cached_templates || NO_TEMPLATES
           end
@@ -97,9 +96,7 @@ module ActionView
         @data.each_value do |v1|
           v1.each_value do |v2|
             v2.each_value do |v3|
-              v3.each_value do |v4|
-                size += v4.size
-              end
+              size += v3.size
             end
           end
         end
@@ -143,13 +140,13 @@ module ActionView
 
     # Normalizes the arguments and passes it on to find_templates.
     def find_all(name, prefix = nil, partial = false, details = {}, key = nil, locals = [])
-      cached(key, [name, prefix, partial], details, locals) do
+      cached(key, [name, prefix, partial], details) do
         find_templates(name, prefix, partial, details, details[:locals] || locals.sort)
       end
     end
 
     def find_all_anywhere(name, prefix, partial = false, details = {}, key = nil, locals = [])
-      cached(key, [name, prefix, partial], details, locals) do
+      cached(key, [name, prefix, partial], details) do
         find_templates(name, prefix, partial, details, details[:locals] || locals.sort, true)
       end
     end
@@ -178,21 +175,20 @@ module ActionView
     # always check the cache before hitting the resolver. Otherwise,
     # it always hits the resolver but if the key is present, check if the
     # resolver is fresher before returning it.
-    def cached(key, path_info, details, locals)
+    def cached(key, path_info, details)
       name, prefix, partial = path_info
-      locals = locals.map(&:to_s).sort!
 
       if key
-        @cache.cache(key, name, prefix, partial, locals) do
-          decorate(yield, path_info, details, locals)
+        @cache.cache(key, name, prefix, partial) do
+          decorate(yield, path_info, details)
         end
       else
-        decorate(yield, path_info, details, locals)
+        decorate(yield, path_info, details)
       end
     end
 
     # Ensures all the resolver information is set in the template.
-    def decorate(templates, path_info, details, locals)
+    def decorate(templates, path_info, details)
       cached = nil
       templates.each do |t|
         t.formats        = details[:formats]  || [:html] if t.formats.empty?
