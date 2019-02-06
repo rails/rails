@@ -504,6 +504,8 @@ Module.new do
   require "action_view"
   require "active_storage"
   require "action_cable"
+  require "action_mailbox"
+  require "action_text"
   require "sprockets"
 
   require "action_view/helpers"
