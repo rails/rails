@@ -2,7 +2,7 @@
 
 *   Allow skipping incineration of processed emails.
 
-    This can be done by setting `config.action_mailbox.skip_incineration` to `true`.
+    This can be done by setting `config.action_mailbox.incinerate` to `false`.
 
     *Pratik Naik*
 

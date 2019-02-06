@@ -7,8 +7,8 @@ module ActionMailbox
   # Since this incineration is set for the future, it'll automatically ignore any <tt>InboundEmail</tt>s
   # that have already been deleted and discard itself if so.
   #
-  # You can disable incinerating processed emails by setting +config.action_mailbox.skip_incineration+ or
-  # +ActionMailbox.skip_incineration+ to +true+.
+  # You can disable incinerating processed emails by setting +config.action_mailbox.incinerate+ or
+  # +ActionMailbox.incinerate+ to +false+.
   class IncinerationJob < ActiveJob::Base
     queue_as { ActionMailbox.queues[:incineration] }
 
