@@ -109,9 +109,8 @@ module ActiveRecord
         end
       end
 
-      # Add +records+ to this association. Returns +self+ so method calls may
-      # be chained. Since << flattens its argument list and inserts each record,
-      # +push+ and +concat+ behave identically.
+      # Add +records+ to this association. Since +<<+ flattens its argument list
+      # and inserts each record, +push+ and +concat+ behave identically.
       def concat(*records)
         records = records.flatten
         if owner.new_record?
