@@ -159,7 +159,7 @@ end
 step_for("actionview", "test:ujs", service: "actionview")
 steps_for("activejob", "test:integration", service: "activejob")
 steps_for("railties", "test", service: "railties") do |x|
-  x["parallelism"] = 12
+  x["parallelism"] = 12 if File.read(File.expand_path("../railties/Rakefile", __dir__)).include?("BUILDKITE_PARALLEL")
 end
 
 ###
