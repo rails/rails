@@ -57,7 +57,7 @@ module ActiveRecord
       private
 
         def select_database(request, &blk)
-          operations = operations_klass.build(request)
+          operations = operations_klass.call(request)
           database_resolver = resolver_klass.call(operations, options)
 
           if reading_request?(request)
