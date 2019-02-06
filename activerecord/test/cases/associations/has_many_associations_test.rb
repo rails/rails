@@ -996,9 +996,10 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     assert_predicate companies(:first_firm).clients_of_firm, :loaded?
 
-    companies(:first_firm).clients_of_firm.concat([Client.new("name" => "Natural Company"), Client.new("name" => "Apple")])
+    result = companies(:first_firm).clients_of_firm.concat([Client.new("name" => "Natural Company"), Client.new("name" => "Apple")])
     assert_equal 4, companies(:first_firm).clients_of_firm.size
     assert_equal 4, companies(:first_firm).clients_of_firm.reload.size
+    assert_equal companies(:first_firm).clients_of_firm, result
   end
 
   def test_transactions_when_adding_to_persisted
