@@ -38,8 +38,28 @@ module ActiveJob
           "#{job_data['job_class']} [#{job_data['job_id']}] from DelayedJob(#{job_data['queue_name']}) with arguments: #{job_data['arguments']}"
         end
 
+        def find_provider_job_id #:nodoc:
+          return nil if self.job_data.blank?
+
+          begin
+            job_id_aj = self.job_data["job_id"]
+            djs = Delayed::Job.where("handler LIKE '%#{job_id_aj}%'")  # in lieu of Delayed::Job.all
+            djs.map do |dj|
+              obj = dj.payload_object
+              next if obj.blank? || obj.job_data.blank?
+
+              job_id_persisted = obj.job_data["job_id"]
+              return dj.id if job_id_persisted == job_id_aj
+            end
+          rescue
+            return nil
+          end
+
+          nil
+        end
+
         def perform
-          Base.execute(job_data)
+          Base.execute job_data.merge("provider_job_id" => find_provider_job_id)
         end
       end
     end

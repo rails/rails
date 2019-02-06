@@ -1,3 +1,8 @@
+
+*   Extract provider_job_id at execution time for delayed_job adapter. See https://github.com/rails/rails/pull/26587#issuecomment-249314688
+
+    *Rob Chekaluk*
+
 ## Rails 6.0.0.beta1 (January 18, 2019) ##
 
 *   Return false instead of the job instance when `enqueue` is aborted.

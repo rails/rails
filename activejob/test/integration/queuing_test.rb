@@ -52,6 +52,30 @@ class QueuingTest < ActiveSupport::TestCase
     assert_match(/HelloJob \[[0-9a-f-]+\] from DelayedJob\(default\) with arguments: \[\]/, job.name)
   end
 
+  test "should access provider_job_id inside DelayedJob job" do
+    skip unless adapter_is?(:delayed_job)
+    job = ::ProviderJidJob.perform_later
+    job_id = job.provider_job_id
+
+    dj = Delayed::Job.first
+    obj = dj.payload_object
+
+    obj.perform
+    assert_equal "Provider Job ID: #{job_id}", JobBuffer.last_value
+  end
+
+  test "should not access provider_job_id inside DelayedJob job if missing" do
+    skip unless adapter_is?(:delayed_job)
+    ::ProviderJidJob.perform_later
+
+    dj = Delayed::Job.first
+    obj = dj.payload_object
+    dj.destroy
+
+    obj.perform
+    assert_equal "Provider Job ID: ", JobBuffer.last_value
+  end
+
   test "resque JobWrapper should have instance variable queue" do
     skip unless adapter_is?(:resque)
     job = ::HelloJob.set(wait: 5.seconds).perform_later
