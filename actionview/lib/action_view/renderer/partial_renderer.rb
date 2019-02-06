@@ -295,8 +295,21 @@ module ActionView
     end
 
     def render(context, options, block)
-      setup(context, options, block)
-      template = find_partial
+      as = as_variable(options)
+      setup(context, options, as, block)
+
+      if @path
+        if @has_object || @collection
+          @variable, @variable_counter, @variable_iteration = retrieve_variable(@path, as)
+          @template_keys = retrieve_template_keys(@variable)
+        else
+          @template_keys = @locals.keys
+        end
+        template = find_partial(@path, @template_keys)
+        @variable ||= template.variable
+      else
+        template = nil
+      end
 
       @lookup_context.rendered_format ||= begin
         if template && template.formats.first
@@ -359,7 +372,7 @@ module ActionView
       # If +options[:partial]+ is a string, then the <tt>@path</tt> instance variable is
       # set to that string. Otherwise, the +options[:partial]+ object must
       # respond to +to_partial_path+ in order to setup the path.
-      def setup(context, options, block)
+      def setup(context, options, as, block)
         @options = options
         @block   = block
 
@@ -382,25 +395,25 @@ module ActionView
 
           if @collection
             paths = @collection_data = @collection.map { |o| partial_path(o, context) }
-            @path = paths.uniq.one? ? paths.first : nil
+            if paths.uniq.length == 1
+              @path = paths.first
+            else
+              paths.map! { |path| retrieve_variable(path, as).unshift(path) }
+              @path = nil
+            end
           else
             @path = partial_path(@object, context)
           end
         end
 
+        self
+      end
+
+      def as_variable(options)
         if as = options[:as]
           raise_invalid_option_as(as) unless /\A[a-z_]\w*\z/.match?(as.to_s)
-          as = as.to_sym
+          as.to_sym
         end
-
-        if @path
-          @variable, @variable_counter, @variable_iteration = retrieve_variable(@path, as)
-          @template_keys = retrieve_template_keys
-        else
-          paths.map! { |path| retrieve_variable(path, as).unshift(path) }
-        end
-
-        self
       end
 
       def collection_from_options
@@ -414,8 +427,8 @@ module ActionView
         @object.to_ary if @object.respond_to?(:to_ary)
       end
 
-      def find_partial
-        find_template(@path, @template_keys) if @path
+      def find_partial(path, template_keys)
+        find_template(path, template_keys)
       end
 
       def find_template(path, locals)
@@ -511,9 +524,9 @@ module ActionView
         end
       end
 
-      def retrieve_template_keys
+      def retrieve_template_keys(variable)
         keys = @locals.keys
-        keys << @variable if @has_object || @collection
+        keys << variable
         if @collection
           keys << @variable_counter
           keys << @variable_iteration
