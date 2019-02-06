@@ -2003,6 +2003,21 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_not_predicate company.clients, :loaded?
   end
 
+  def test_ids_reader_cache_not_used_for_size_when_association_is_dirty
+    firm = Firm.create!(name: "Startup")
+    assert_equal 0, firm.client_ids.size
+    firm.clients.build
+    assert_equal 1, firm.clients.size
+  end
+
+  def test_ids_reader_cache_should_be_cleared_when_collection_is_deleted
+    firm = companies(:first_firm)
+    assert_equal [2, 3, 11], firm.client_ids
+    client = firm.clients.first
+    firm.clients.delete(client)
+    assert_equal [3, 11], firm.client_ids
+  end
+
   def test_zero_counter_cache_usage_on_unloaded_association
     car = Car.create!(name: "My AppliCar")
     assert_no_queries do

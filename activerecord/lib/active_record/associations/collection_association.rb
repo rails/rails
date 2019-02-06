@@ -348,7 +348,6 @@ module ActiveRecord
               add_to_target(record) do
                 result = insert_record(record, true, raise) {
                   @_was_loaded = loaded?
-                  @association_ids = nil
                 }
               end
               raise ActiveRecord::Rollback unless result
@@ -385,6 +384,7 @@ module ActiveRecord
 
           delete_records(existing_records, method) if existing_records.any?
           @target -= records
+          @association_ids = nil
 
           records.each { |record| callback(:after_remove, record) }
         end
@@ -425,7 +425,6 @@ module ActiveRecord
               unless owner.new_record?
                 result &&= insert_record(record, true, raise) {
                   @_was_loaded = loaded?
-                  @association_ids = nil
                 }
               end
             end
@@ -448,6 +447,7 @@ module ActiveRecord
           if index
             target[index] = record
           elsif @_was_loaded || !loaded?
+            @association_ids = nil
             target << record
           end
 
