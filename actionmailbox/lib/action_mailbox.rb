@@ -11,6 +11,7 @@ module ActionMailbox
 
   mattr_accessor :ingress
   mattr_accessor :logger
+  mattr_accessor :skip_incineration, default: false
   mattr_accessor :incinerate_after, default: 30.days
   mattr_accessor :queues, default: {}
 end
