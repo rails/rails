@@ -38,6 +38,16 @@ class ActionableExceptionsTest < ActionDispatch::IntegrationTest
     assert_equal "/", response.headers["Location"]
   end
 
+  test "cannot dispatch errors if not allowed" do
+    post ActionDispatch::ActionableExceptions.endpoint, params: {
+      error: ActionError.name,
+      action: "Successful action",
+      location: "/",
+    }, headers: { "action_dispatch.show_exceptions" => false }
+
+    assert_empty Actions
+  end
+
   test "dispatched action can fail" do
     assert_raise RuntimeError do
       post ActionDispatch::ActionableExceptions.endpoint, params: {
