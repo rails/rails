@@ -119,7 +119,7 @@ module ActionDispatch
 
         class UnanchoredRegexp < AnchoredRegexp # :nodoc:
           def accept(node)
-            %r{\A#{visit node}}
+            %r{\A#{visit node}(?:\b|\Z)}
           end
         end
 
