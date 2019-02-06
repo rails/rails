@@ -39,9 +39,7 @@ module ActionCable
       end
 
       def restart
-        connections.each do |connection|
-          connection.close(reason: ActionCable::INTERNAL[:disconnect_reasons][:server_restart])
-        end
+        close_all_connections(ActionCable::INTERNAL[:disconnect_reasons][:server_restart])
 
         @mutex.synchronize do
           # Shutdown the worker pool
@@ -52,6 +50,10 @@ module ActionCable
           @pubsub.shutdown if @pubsub
           @pubsub = nil
         end
+      end
+
+      def shutdown
+        close_all_connections(ActionCable::INTERNAL[:disconnect_reasons][:server_stop])
       end
 
       # Gateway to RemoteConnections. See that class for details.

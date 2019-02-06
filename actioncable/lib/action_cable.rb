@@ -41,7 +41,8 @@ module ActionCable
     disconnect_reasons: {
       unauthorized: "unauthorized",
       invalid_request: "invalid_request",
-      server_restart: "server_restart"
+      server_restart: "server_restart",
+      server_stop: "server_stop"
     },
     default_mount_path: "/cable",
     protocols: ["actioncable-v1-json", "actioncable-unsupported"].freeze
@@ -49,7 +50,9 @@ module ActionCable
 
   # Singleton instance of the server
   module_function def server
-    @server ||= ActionCable::Server::Base.new
+    @server ||= ActionCable::Server::Base.new.tap do |server|
+      at_exit { server.shutdown }
+    end
   end
 
   autoload :Server

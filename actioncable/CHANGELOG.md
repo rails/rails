@@ -1,3 +1,10 @@
+*   Close all connections explicitly before ActionCable server stops
+
+    Each connection will receive `server_stop` reason with an instruction to
+    to try to reconnect again.
+
+    *Sergey Ponomarev*
+
 *   Allow passing custom configuration to `ActionCable::Server::Base`.
 
     You can now create a standalone Action Cable server with a custom configuration

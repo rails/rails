@@ -35,4 +35,13 @@ class BaseTest < ActionCable::TestCase
       @server.restart
     end
   end
+
+  test "#shutdown closes all open connections" do
+    conn = FakeConnection.new
+    @server.add_connection(conn)
+
+    assert_called(conn, :close) do
+      @server.shutdown
+    end
+  end
 end

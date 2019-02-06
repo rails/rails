@@ -144,7 +144,8 @@
     disconnect_reasons: {
       unauthorized: "unauthorized",
       invalid_request: "invalid_request",
-      server_restart: "server_restart"
+      server_restart: "server_restart",
+      server_stop: "server_stop"
     },
     default_mount_path: "/cable",
     protocols: [ "actioncable-v1-json", "actioncable-unsupported" ]

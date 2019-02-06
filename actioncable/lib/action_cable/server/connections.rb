@@ -19,6 +19,12 @@ module ActionCable
         connections.delete connection
       end
 
+      def close_all_connections(reason)
+        connections.each do |connection|
+          connection.close(reason: reason)
+        end
+      end
+
       # WebSocket connection implementations differ on when they'll mark a connection as stale. We basically never want a connection to go stale, as you
       # then can't rely on being able to communicate with the connection. To solve this, a 3 second heartbeat runs on all connections. If the beat fails, we automatically
       # disconnect.
