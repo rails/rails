@@ -24,6 +24,10 @@ module ActionView
     DeveloperStruct = Struct.new(:name)
 
     module SharedTests
+      def setup
+        ActionView::LookupContext::DetailsKey.clear
+      end
+
       def self.included(test_case)
         test_case.class_eval do
           test "helpers defined on ActionView::TestCase are available" do

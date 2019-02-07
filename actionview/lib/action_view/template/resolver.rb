@@ -37,24 +37,13 @@ module ActionView
 
     # Threadsafe template cache
     class Cache #:nodoc:
-      class SmallCache < Concurrent::Map
-        def initialize(options = {})
-          super(options.merge(initial_capacity: 2))
-        end
-      end
-
-      # preallocate all the default blocks for performance/memory consumption reasons
-      PARTIAL_BLOCK = lambda { |cache, partial| cache[partial] = SmallCache.new }
-      PREFIX_BLOCK  = lambda { |cache, prefix|  cache[prefix]  = SmallCache.new(&PARTIAL_BLOCK) }
-      NAME_BLOCK    = lambda { |cache, name|    cache[name]    = SmallCache.new(&PREFIX_BLOCK) }
-      KEY_BLOCK     = lambda { |cache, key|     cache[key]     = SmallCache.new(&NAME_BLOCK) }
-
       # usually a majority of template look ups return nothing, use this canonical preallocated array to save memory
       NO_TEMPLATES = [].freeze
 
-      def initialize
-        @data = SmallCache.new(&KEY_BLOCK)
-        @query_cache = SmallCache.new
+      def initialize(resolver)
+        @data = ActionView::LookupContext::DetailsKey.view_template_cache
+        @query_cache = Concurrent::Map.new(initial_capacity: 2)
+        @resolver = resolver
       end
 
       def inspect
@@ -64,13 +53,13 @@ module ActionView
       # Cache the templates returned by the block
       def cache(key, name, prefix, partial, locals)
         if Resolver.caching?
-          @data[key][name][prefix][partial][locals] ||= canonical_no_templates(yield)
+          @data[key][@resolver][name][prefix][partial][locals] ||= canonical_no_templates(yield)
         else
           fresh_templates  = yield
-          cached_templates = @data[key][name][prefix][partial][locals]
+          cached_templates = @data[key][@resolver][name][prefix][partial][locals]
 
           if templates_have_changed?(cached_templates, fresh_templates)
-            @data[key][name][prefix][partial][locals] = canonical_no_templates(fresh_templates)
+            @data[key][@resolver][name][prefix][partial][locals] = canonical_no_templates(fresh_templates)
           else
             cached_templates || NO_TEMPLATES
           end
@@ -134,7 +123,7 @@ module ActionView
     end
 
     def initialize
-      @cache = Cache.new
+      @cache = Cache.new(self)
     end
 
     def clear_cache
