@@ -128,6 +128,25 @@ module Notifications
       assert_equal [["named.subscription", :foo], ["named.subscription", :foo]], @events
     end
 
+    def test_unsubscribing_by_name_leaves_regexp_matched_subscriptions
+      @matched_events = []
+      @notifier.subscribe(/subscription/) { |*args| @matched_events << event(*args) }
+      @notifier.publish("named.subscription", :before)
+      @notifier.wait
+      [@events, @named_events, @matched_events].each do |collector|
+        assert_includes(collector, ["named.subscription", :before])
+      end
+      @notifier.unsubscribe("named.subscription")
+      @notifier.publish("named.subscription", :after)
+      @notifier.publish("other.subscription", :after)
+      @notifier.wait
+      assert_includes(@events, ["named.subscription", :after])
+      assert_includes(@events, ["other.subscription", :after])
+      assert_includes(@matched_events, ["other.subscription", :after])
+      assert_not_includes(@matched_events, ["named.subscription", :after])
+      assert_not_includes(@named_events, ["named.subscription", :after])
+    end
+
   private
     def event(*args)
       args

@@ -1,3 +1,7 @@
+*   Revise `ActiveSupport::Notifications.unsubscribe` to correctly handle Regex or other multiple-pattern subscribers.
+
+    *Zach Kemp*
+
 *   Add `before_reset` callback to `CurrentAttributes` and define `after_reset` as an alias of `resets` for symmetry.
 
     *Rosa Gutierrez*
