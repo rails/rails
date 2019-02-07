@@ -55,25 +55,36 @@ module ActionView
     register_detail(:handlers) { Template::Handlers.extensions }
 
     class DetailsKey #:nodoc:
+
       alias :eql? :equal?
 
       @details_keys = Concurrent::Map.new
+      @digest_cache = Concurrent::Map.new
 
-      def self.get(details)
+      def self.digest_cache(details)
         if details[:formats]
           details = details.dup
           details[:formats] &= Template::Types.symbols
         end
-        @details_keys[details] ||= Concurrent::Map.new
+        @digest_cache[details] ||= Concurrent::Map.new
+      end
+
+      def self.details_cache_key(details)
+        if details[:formats]
+          details = details.dup
+          details[:formats] &= Template::Types.symbols
+        end
+        @details_keys[details] ||= Object.new
       end
 
       def self.clear
         @view_context_class = nil
         @details_keys.clear
+        @digest_cache.clear
       end
 
       def self.digest_caches
-        @details_keys.values
+        @digest_cache.values
       end
 
       def self.view_context_class(klass)
@@ -88,7 +99,7 @@ module ActionView
       # Calculate the details key. Remove the handlers from calculation to improve performance
       # since the user cannot modify it explicitly.
       def details_key #:nodoc:
-        @details_key ||= DetailsKey.get(@details) if @cache
+        @details_key ||= DetailsKey.details_cache_key(@details) if @cache
       end
 
       # Temporary skip passing the details_key forward.
@@ -102,7 +113,8 @@ module ActionView
     private
 
       def _set_detail(key, value) # :doc:
-        @details = @details.dup if @details_key
+        @details = @details.dup if @digest_cache || @details_key
+        @digest_cache = nil
         @details_key = nil
         @details[key] = value
       end
@@ -178,7 +190,7 @@ module ActionView
         user_details = @details.merge(options)
 
         if @cache
-          details_key = DetailsKey.get(user_details)
+          details_key = DetailsKey.details_cache_key(user_details)
         else
           details_key = nil
         end
@@ -205,7 +217,7 @@ module ActionView
           end
 
           if @cache
-            [details, DetailsKey.get(details)]
+            [details, DetailsKey.details_cache_key(details)]
           else
             [details, nil]
           end
@@ -236,6 +248,7 @@ module ActionView
 
     def initialize(view_paths, details = {}, prefixes = [])
       @details_key = nil
+      @digest_cache = nil
       @cache = true
       @prefixes = prefixes
       @rendered_format = nil
@@ -245,7 +258,7 @@ module ActionView
     end
 
     def digest_cache
-      details_key
+      @digest_cache ||= DetailsKey.digest_cache(@details)
     end
 
     def initialize_details(target, details)

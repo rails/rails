@@ -87,6 +87,7 @@ module ActionView
 
     # Returns an object that is able to render templates.
     def view_renderer # :nodoc:
+      # Lifespan: Per controller
       @_view_renderer ||= ActionView::Renderer.new(lookup_context)
     end
 
