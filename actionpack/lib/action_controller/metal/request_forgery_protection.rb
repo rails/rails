@@ -74,6 +74,11 @@ module ActionController #:nodoc:
       config_accessor :request_forgery_protection_token
       self.request_forgery_protection_token ||= :authenticity_token
 
+      # Control whether or not CSRF token must be sent as a header. Calling +protect_from_forgery+
+      # sets it to <tt>false</tt> by default.
+      config_accessor :request_forgery_protection_force_header
+      self.request_forgery_protection_force_header = false
+
       # Holds the class which implements the request forgery protection.
       config_accessor :forgery_protection_strategy
       self.forgery_protection_strategy = nil
@@ -137,6 +142,7 @@ module ActionController #:nodoc:
 
         self.forgery_protection_strategy = protection_method_class(options[:with] || :null_session)
         self.request_forgery_protection_token ||= :authenticity_token
+        self.request_forgery_protection_force_header ||= false
         before_action :verify_authenticity_token, options
         append_after_action :verify_same_origin_request
       end
@@ -304,9 +310,20 @@ module ActionController #:nodoc:
         end
       end
 
+      #:nodoc:
+      FORCE_HEADER_AUTHENTICITY_WARNING = "Sending CSRF tokens as params is disabled. Please send " \
+        "as a header instead."
+
       # Possible authenticity tokens sent in the request.
       def request_authenticity_tokens # :doc:
-        [form_authenticity_param, request.x_csrf_token]
+        if request_forgery_protection_force_header
+          if logger && log_warning_on_csrf_failure && form_authenticity_param
+            logger.warn FORCE_HEADER_AUTHENTICITY_WARNING
+          end
+          [request.x_csrf_token]
+        else
+          [form_authenticity_param, request.x_csrf_token]
+        end
       end
 
       # Sets the token value for the current session.

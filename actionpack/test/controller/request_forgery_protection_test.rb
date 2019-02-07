@@ -166,6 +166,19 @@ class PerFormTokensController < ActionController::Base
   end
 end
 
+class ForceHeaderAuthenticityParamController < ActionController::Base
+  protect_from_forgery with: :exception
+  self.request_forgery_protection_force_header = true
+
+  def index
+    render inline: "<%= form_tag (params[:form_path] || '/force_header_authenticity_param/post_one'), method: params[:form_method] %>"
+  end
+
+  def post_one
+    head :ok
+  end
+end
+
 class SkipProtectionController < ActionController::Base
   include RequestForgeryProtectionActions
   protect_from_forgery with: :exception
@@ -793,6 +806,82 @@ class CustomAuthenticityParamControllerTest < ActionController::TestCase
       ActionController::Base.logger = @old_logger
     end
   end
+end
+
+class ForceHeaderAuthenticityParamControllerTest < ActionController::TestCase
+  def setup
+    super
+    @old_logger = ActionController::Base.logger
+    @logger = ActiveSupport::LogSubscriber::TestHelper::MockLogger.new
+    ActionController::Base.request_forgery_protection_force_header = true
+  end
+
+  def teardown
+    ActionController::Base.request_forgery_protection_force_header = false
+    super
+  end
+
+  def test_rejects_and_warns_token_for_use_as_param
+    ActionController::Base.logger = @logger
+
+    get :index
+    form_token = assert_presence_and_fetch_form_csrf_token
+
+    begin
+      assert_raises(ActionController::InvalidAuthenticityToken) do
+        # This is required because PATH_INFO isn't reset between requests.
+        @request.env["PATH_INFO"] = "/force_header_authenticity_param/post_one"
+        post :post_one, params: { authenticity_token: form_token }
+      end
+      assert_equal 2, @logger.logged(:warn).size
+    ensure
+      ActionController::Base.logger = @old_logger
+    end
+  end
+
+  def test_rejects_but_no_warn
+    ActionController::Base.logger = @logger
+
+    begin
+      assert_raises(ActionController::InvalidAuthenticityToken) do
+        # This is required because PATH_INFO isn't reset between requests.
+        @request.env["PATH_INFO"] = "/force_header_authenticity_param/post_one"
+        post :post_one
+      end
+      assert_equal 1, @logger.logged(:warn).size
+    ensure
+      ActionController::Base.logger = @old_logger
+    end
+  end
+
+  def test_accepts_token_for_use_as_header
+    ActionController::Base.logger = @logger
+
+    get :index
+    form_token = assert_presence_and_fetch_form_csrf_token
+
+    begin
+      assert_nothing_raised do
+        @request.headers["X-CSRF-Token"] = form_token
+        # This is required because PATH_INFO isn't reset between requests.
+        @request.env["PATH_INFO"] = "/force_header_authenticity_param/post_one"
+        post :post_one
+      end
+      assert_equal 0, @logger.logged(:warn).size
+      assert_response :success
+    ensure
+      ActionController::Base.logger = @old_logger
+    end
+  end
+
+  private
+    def assert_presence_and_fetch_form_csrf_token
+      assert_select 'input[name="authenticity_token"]' do |input|
+        form_csrf_token = input.first["value"]
+        assert_not_nil form_csrf_token
+        return form_csrf_token
+      end
+    end
 end
 
 class PerFormTokensControllerTest < ActionController::TestCase
