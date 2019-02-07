@@ -29,7 +29,7 @@
     ```
     config.active_record.database_selector = { delay: 2.seconds }
     config.active_record.database_resolver = ActiveRecord::Middleware::DatabaseSelector::Resolver
-    config.active_record.database_operations = ActiveRecord::Middleware::DatabaseSelector::Resolver::Session
+    config.active_record.database_resolver_context = ActiveRecord::Middleware::DatabaseSelector::Resolver::Session
     ```
 
     To change the database selection strategy, pass a custom class to the
@@ -38,7 +38,7 @@
     ```
     config.active_record.database_selector = { delay: 10.seconds }
     config.active_record.database_resolver = MyResolver
-    config.active_record.database_operations = MyResolver::MyCookies
+    config.active_record.database_resolver_context = MyResolver::MyCookies
     ```
 
     *Eileen M. Uchitelle*
