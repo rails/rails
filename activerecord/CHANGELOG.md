@@ -1,3 +1,9 @@
+*   Fix `relation.create` to avoid leaking scope to initialization block and callbacks.
+
+    Fixes #9894, #17577.
+
+    *Ryuta Kamizono*
+
 *   Chaining named scope is no longer leaking to class level querying methods.
 
     Fixes #14003.

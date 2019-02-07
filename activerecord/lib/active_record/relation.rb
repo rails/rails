@@ -67,6 +67,11 @@ module ActiveRecord
     #   user = users.new { |user| user.name = 'Oscar' }
     #   user.name # => Oscar
     def new(attributes = nil, &block)
+      current_scope = klass.current_scope(true)
+      block = -> record do
+        klass.current_scope = current_scope
+        yield record if block_given?
+      end
       scoping { klass.new(attributes, &block) }
     end
 
@@ -92,7 +97,11 @@ module ActiveRecord
     #   users.create(name: nil) # validation on name
     #   # => #<User id: nil, name: nil, ...>
     def create(attributes = nil, &block)
-      scoping { klass.create(attributes, &block) }
+      if attributes.is_a?(Array)
+        attributes.collect { |attr| create(attr, &block) }
+      else
+        new(attributes, &block).tap(&:save)
+      end
     end
 
     # Similar to #create, but calls
@@ -102,7 +111,11 @@ module ActiveRecord
     # Expects arguments in the same format as
     # {ActiveRecord::Base.create!}[rdoc-ref:Persistence::ClassMethods#create!].
     def create!(attributes = nil, &block)
-      scoping { klass.create!(attributes, &block) }
+      if attributes.is_a?(Array)
+        attributes.collect { |attr| create!(attr, &block) }
+      else
+        new(attributes, &block).tap(&:save!)
+      end
     end
 
     def first_or_create(attributes = nil, &block) # :nodoc:

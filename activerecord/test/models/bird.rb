@@ -16,4 +16,9 @@ class Bird < ActiveRecord::Base
   def cancel_save_callback_method
     throw(:abort)
   end
+
+  attr_accessor :total_count
+  after_initialize do
+    self.total_count = Bird.count
+  end
 end
