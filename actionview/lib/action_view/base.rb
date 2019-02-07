@@ -11,10 +11,6 @@ require "action_view/template"
 require "action_view/lookup_context"
 
 module ActionView #:nodoc:
-  module CompiledTemplates #:nodoc:
-    # holds compiled template code
-  end
-
   # = Action View Base
   #
   # Action View templates can be written in several ways.
@@ -146,8 +142,6 @@ module ActionView #:nodoc:
   class Base
     include Helpers, ::ERB::Util, Context
 
-    include CompiledTemplates
-
     # Specify the proc used to decorate input tags that refer to attributes with errors.
     cattr_accessor :field_error_proc, default: Proc.new { |html_tag, instance| "<div class=\"field_with_errors\">#{html_tag}</div>".html_safe }
 
@@ -185,6 +179,20 @@ module ActionView #:nodoc:
 
       def xss_safe? #:nodoc:
         true
+      end
+
+      def with_empty_template_cache # :nodoc:
+        subclass = Class.new(self) {
+          # We can't implement these as self.class because subclasses will
+          # share the same template cache as superclasses, so "changed?" won't work
+          # correctly.
+          define_method(:compiled_method_container)           { subclass }
+          define_singleton_method(:compiled_method_container) { subclass }
+        }
+      end
+
+      def changed?(other) # :nodoc:
+        compiled_method_container != other.compiled_method_container
       end
     end
 
@@ -260,7 +268,11 @@ module ActionView #:nodoc:
     end
 
     def compiled_method_container
-      CompiledTemplates
+      raise NotImplementedError, <<~msg
+        Subclasses of ActionView::Base must implement `compiled_method_container`
+        or use the class method `with_empty_template_cache` for constructing
+        an ActionView::Base subclass that has an empty cache.
+      msg
     end
 
     ActiveSupport.run_load_hooks(:action_view, self)

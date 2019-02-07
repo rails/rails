@@ -8,8 +8,11 @@ end
 class SetupFiberedBase < ActiveSupport::TestCase
   def setup
     view_paths = ActionController::Base.view_paths
+    view_paths.each(&:clear_cache)
+    ActionView::LookupContext.fallbacks.each(&:clear_cache)
+
     @assigns = { secret: "in the sauce", name: nil }
-    @view = ActionView::Base.with_view_paths(view_paths, @assigns)
+    @view = ActionView::Base.with_empty_template_cache.with_view_paths(view_paths, @assigns)
     @controller_view = TestController.new.view_context
   end
 

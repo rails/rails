@@ -2094,7 +2094,9 @@ module ApplicationTests
 
     test "ActionView::Template.finalize_compiled_template_methods is true by default" do
       app "test"
-      assert_equal true, ActionView::Template.finalize_compiled_template_methods
+      assert_deprecated do
+        ActionView::Template.finalize_compiled_template_methods
+      end
     end
 
     test "ActionView::Template.finalize_compiled_template_methods can be configured via config.action_view.finalize_compiled_template_methods" do
@@ -2106,7 +2108,9 @@ module ApplicationTests
 
       app "test"
 
-      assert_equal false, ActionView::Template.finalize_compiled_template_methods
+      assert_deprecated do
+        ActionView::Template.finalize_compiled_template_methods
+      end
     end
 
     test "ActiveJob::Base.return_false_on_aborted_enqueue is true by default" do

@@ -2,6 +2,7 @@
 
 require "active_support/core_ext/object/try"
 require "active_support/core_ext/kernel/singleton_class"
+require "active_support/deprecation"
 require "thread"
 require "delegate"
 
@@ -10,7 +11,13 @@ module ActionView
   class Template
     extend ActiveSupport::Autoload
 
-    mattr_accessor :finalize_compiled_template_methods, default: true
+    def self.finalize_compiled_template_methods
+      ActiveSupport::Deprecation.warn "ActionView::Template.finalize_compiled_template_methods is deprecated and has no effect"
+    end
+
+    def self.finalize_compiled_template_methods=(_)
+      ActiveSupport::Deprecation.warn "ActionView::Template.finalize_compiled_template_methods= is deprecated and has no effect"
+    end
 
     # === Encodings in ActionView::Template
     #
@@ -117,16 +124,6 @@ module ActionView
     attr_accessor :locals, :formats, :variants, :virtual_path
 
     attr_reader :source, :identifier, :handler, :original_encoding, :updated_at
-
-    # This finalizer is needed (and exactly with a proc inside another proc)
-    # otherwise templates leak in development.
-    Finalizer = proc do |method_name, mod| # :nodoc:
-      proc do
-        mod.module_eval do
-          remove_possible_method method_name
-        end
-      end
-    end
 
     attr_reader :variable
 
@@ -337,9 +334,6 @@ module ActionView
         end
 
         mod.module_eval(source, identifier, 0)
-        if finalize_compiled_template_methods
-          ObjectSpace.define_finalizer(self, Finalizer[method_name, mod])
-        end
       end
 
       def handle_render_error(view, e)

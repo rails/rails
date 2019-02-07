@@ -15,6 +15,10 @@ module ActionDispatch
       super(renderer, assigns)
     end
 
+    def compiled_method_container
+      self.class
+    end
+
     def debug_params(params)
       clean_params = params.clone
       clean_params.delete("action")
