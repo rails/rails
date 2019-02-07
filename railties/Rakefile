@@ -38,7 +38,7 @@ namespace :test do
 
     test_patterns = dirs.map { |dir| "test/#{dir}/*_test.rb" }
     test_files = Dir[*test_patterns].select do |file|
-      !file.start_with?("test/fixtures/")
+      !file.start_with?("test/fixtures/") && !file.start_with?("test/isolation/assets/")
     end.sort
 
     if ENV["BUILDKITE_PARALLEL_JOB_COUNT"]

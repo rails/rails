@@ -47,6 +47,8 @@ before_script:
   # Decodes to e.g. `export VARIABLE=VALUE`
   - $(base64 --decode <<< "ZXhwb3J0IFNBVUNFX0FDQ0VTU19LRVk9YTAzNTM0M2YtZTkyMi00MGIzLWFhM2MtMDZiM2VhNjM1YzQ4")
   - $(base64 --decode <<< "ZXhwb3J0IFNBVUNFX1VTRVJOQU1FPXJ1YnlvbnJhaWxz")
+  - "[[ $GEM != 'railties' ]] || (cd actionview && yarn build)"
+  - "[[ $GEM != 'railties' ]] || (cd railties/test/isolation/assets && yarn install)"
 
 script: 'ci/travis.rb'
 
