@@ -31,14 +31,7 @@ module ActiveRecord
         #     Post.limit(10) # Fires "SELECT * FROM posts LIMIT 10"
         #   }
         def unscoped
-          block_given? ? _scoping(relation) { yield } : relation
-        end
-
-        def _scoping(relation) # :nodoc:
-          previous, self.current_scope = current_scope(true), relation
-          yield
-        ensure
-          self.current_scope = previous
+          block_given? ? relation.scoping { yield } : relation
         end
 
         # Are there attributes associated with this scope?

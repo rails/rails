@@ -180,8 +180,7 @@ module ActiveRecord
 
           if body.respond_to?(:to_proc)
             singleton_class.define_method(name) do |*args|
-              scope = all
-              scope = _scoping(false) { scope._exec_scope(*args, &body) }
+              scope = all._exec_scope(*args, &body)
               scope = scope.extending(extension) if extension
               scope
             end

@@ -27,10 +27,9 @@ module ActiveRecord
         ScopeRegistry.value_for(:current_scope, self, skip_inherited_scope)
       end
 
-      private
-        def current_scope=(scope)
-          ScopeRegistry.set_value_for(:current_scope, self, scope)
-        end
+      def current_scope=(scope)
+        ScopeRegistry.set_value_for(:current_scope, self, scope)
+      end
     end
 
     def populate_with_current_scope_attributes # :nodoc:
@@ -84,7 +83,7 @@ module ActiveRecord
         base = model.base_class
         while klass <= base
           value = @registry[scope_type][klass.name]
-          return value || nil unless value.nil?
+          return value if value
           klass = klass.superclass
         end
       end
