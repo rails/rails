@@ -78,6 +78,10 @@ module ActionView
       end
 
       def self.clear
+        ActionView::ViewPaths.all_view_paths.each do |path_set|
+          path_set.each(&:clear_cache)
+        end
+        ActionView::LookupContext.fallbacks.each(&:clear_cache)
         @view_context_class = nil
         @details_keys.clear
         @digest_cache.clear
