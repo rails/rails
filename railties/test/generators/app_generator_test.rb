@@ -623,6 +623,22 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_inclusion_of_listen_related_configuration_on_other_rubies
+    ruby_engine = Object.send(:remove_const, :RUBY_ENGINE)
+    Object.const_set(:RUBY_ENGINE, "MyRuby")
+    begin
+      run_generator
+      if RbConfig::CONFIG["host_os"] =~ /darwin|linux/
+        assert_listen_related_configuration
+      else
+        assert_no_listen_related_configuration
+      end
+    ensure
+      Object.send(:remove_const, :RUBY_ENGINE)
+      Object.const_set(:RUBY_ENGINE, ruby_engine)
+    end
+  end
+
   def test_non_inclusion_of_listen_related_configuration_if_skip_listen
     run_generator [destination_root, "--skip-listen"]
     assert_no_listen_related_configuration
