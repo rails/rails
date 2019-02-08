@@ -76,7 +76,6 @@ module ActionView
 
       alias :eql? :equal?
 
-      @details_keys = Concurrent::Map.new
       @digest_cache = Concurrent::Map.new
       @view_template_cache = SmallCache.new(&KEY_BLOCK)
 
@@ -93,12 +92,11 @@ module ActionView
           details = details.dup
           details[:formats] &= Template::Types.symbols
         end
-        @details_keys[details] ||= Object.new
+        @view_template_cache[details]
       end
 
       def self.clear
         @view_context_class = nil
-        @details_keys.clear
         @digest_cache.clear
         @view_template_cache.clear
       end
@@ -279,6 +277,13 @@ module ActionView
 
       @details = initialize_details({}, details)
       @view_paths = build_view_paths(view_paths)
+    end
+
+    def clear_cache
+      @view_paths.each(&:clear_cache)
+      DetailsKey.clear
+      @details_key = nil
+      @digest_cache = nil
     end
 
     def digest_cache

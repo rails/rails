@@ -196,7 +196,7 @@ class LookupContextTest < ActiveSupport::TestCase
     assert_equal "Foo", template.source
 
     # Finally, we can expire the cache. And the expected template will be used.
-    @lookup_context.view_paths.first.clear_cache
+    @lookup_context.clear_cache
     template = @lookup_context.find("foo", %w(test), true)
     assert_equal "Bar", template.source
   end
