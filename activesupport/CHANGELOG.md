@@ -12,6 +12,10 @@
 
     *Stefan Schüßler*
 
+*   Add `Hash#deep_transform_values`, and `Hash#deep_transform_values!`.
+
+    *Guillermo Iguaran*
+
 ## Rails 6.0.0.beta1 (January 18, 2019) ##
 
 *   Remove deprecated `Module#reachable?` method.

@@ -33,6 +33,8 @@ class HashExtTest < ActiveSupport::TestCase
     h = {}
     assert_respond_to h, :deep_transform_keys
     assert_respond_to h, :deep_transform_keys!
+    assert_respond_to h, :deep_transform_values
+    assert_respond_to h, :deep_transform_values!
     assert_respond_to h, :symbolize_keys
     assert_respond_to h, :symbolize_keys!
     assert_respond_to h, :deep_symbolize_keys
@@ -75,6 +77,31 @@ class HashExtTest < ActiveSupport::TestCase
     transformed_hash = @nested_mixed.deep_dup
     transformed_hash.deep_transform_keys! { |key| key.to_s.upcase }
     assert_equal @nested_upcase_strings, transformed_hash
+    assert_equal({ "a" => { b: { "c" => 3 } } }, @nested_mixed)
+  end
+
+  def test_deep_transform_values
+    assert_equal({ "a" => "1", "b" => "2" }, @strings.deep_transform_values{ |value| value.to_s })
+    assert_equal({ "a" => { "b" => { "c" => "3" } } }, @nested_strings.deep_transform_values { |value| value.to_s })
+    assert_equal({ "a" => [ { "b" => "2" }, { "c" => "3" }, "4" ] }, @string_array_of_hashes.deep_transform_values { |value| value.to_s })
+  end
+
+  def test_deep_transform_values_not_mutates
+    transformed_hash = @nested_mixed.deep_dup
+    transformed_hash.deep_transform_values { |value| value.to_s }
+    assert_equal @nested_mixed, transformed_hash
+  end
+
+  def test_deep_transform_values!
+    assert_equal({ "a" => "1", "b" => "2" }, @strings.deep_transform_values!{ |value| value.to_s })
+    assert_equal({ "a" => { "b" => { "c" => "3" } } }, @nested_strings.deep_transform_values! { |value| value.to_s })
+    assert_equal({ "a" => [ { "b" => "2" }, { "c" => "3" }, "4" ] }, @string_array_of_hashes.deep_transform_values! { |value| value.to_s })
+  end
+
+  def test_deep_transform_values_with_bang_mutates
+    transformed_hash = @nested_mixed.deep_dup
+    transformed_hash.deep_transform_values! { |value| value.to_s }
+    assert_equal({ "a" => { b: { "c" => "3" } } }, transformed_hash)
     assert_equal({ "a" => { b: { "c" => 3 } } }, @nested_mixed)
   end
 
