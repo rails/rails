@@ -25,9 +25,7 @@ class Hash
     def _deep_transform_values_in_object(object, &block)
       case object
       when Hash
-        object.each_with_object({}) do |(key, value), result|
-          result[key] = _deep_transform_values_in_object(value, &block)
-        end
+        object.transform_values { |value| _deep_transform_values_in_object(value, &block) }
       when Array
         object.map { |e| _deep_transform_values_in_object(e, &block) }
       else
@@ -38,10 +36,7 @@ class Hash
     def _deep_transform_values_in_object!(object, &block)
       case object
       when Hash
-        object.keys.each do |key|
-          value = object.delete(key)
-          object[key] = _deep_transform_values_in_object!(value, &block)
-        end
+        object.transform_values! { |value| _deep_transform_values_in_object!(value, &block) }
         object
       when Array
         object.map! { |e| _deep_transform_values_in_object!(e, &block) }
