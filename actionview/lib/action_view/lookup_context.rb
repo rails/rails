@@ -62,11 +62,7 @@ module ActionView
       @digest_cache = Concurrent::Map.new
 
       def self.digest_cache(details)
-        if details[:formats]
-          details = details.dup
-          details[:formats] &= Template::Types.symbols
-        end
-        @digest_cache[details] ||= Concurrent::Map.new
+        @digest_cache[details_cache_key(details)] ||= Concurrent::Map.new
       end
 
       def self.details_cache_key(details)
