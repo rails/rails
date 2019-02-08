@@ -41,13 +41,12 @@ module ActionView
       NO_TEMPLATES = [].freeze
 
       def initialize(resolver)
-        @data = ActionView::LookupContext::DetailsKey.view_template_cache
         @query_cache = Concurrent::Map.new(initial_capacity: 2)
         @resolver = resolver
       end
 
       def inspect
-        "#<#{self.class.name}:0x#{(object_id << 1).to_s(16)} keys=#{@data.size} queries=#{@query_cache.size}>"
+        "#<#{self.class.name}:0x#{(object_id << 1).to_s(16)} queries=#{@query_cache.size}>"
       end
 
       # Cache the templates returned by the block
@@ -75,25 +74,14 @@ module ActionView
       end
 
       def clear
-        @data.clear
+        ActionView::LookupContext::DetailsKey.clear
         @query_cache.clear
       end
 
       # Get the cache size.  Do not call this
       # method. This method is not guaranteed to be here ever.
       def size # :nodoc:
-        size = 0
-        @data.each_value do |v1|
-          v1.each_value do |v2|
-            v2.each_value do |v3|
-              v3.each_value do |v4|
-                size += v4.size
-              end
-            end
-          end
-        end
-
-        size + @query_cache.size
+        @query_cache.size
       end
 
       private

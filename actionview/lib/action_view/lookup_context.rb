@@ -101,10 +101,6 @@ module ActionView
         @view_template_cache.clear
       end
 
-      def self.view_template_cache
-        @view_template_cache
-      end
-
       def self.digest_caches
         @digest_cache.values
       end
