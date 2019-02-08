@@ -319,7 +319,7 @@ module ActiveRecord
 
       relation = construct_relation_for_exists(conditions)
 
-      skip_query_cache_if_necessary { connection.select_value(relation.arel, "#{name} Exists") } ? true : false
+      skip_query_cache_if_necessary { connection.select_one(relation.arel, "#{name} Exists") } ? true : false
     rescue ::RangeError
       false
     end
@@ -359,7 +359,11 @@ module ActiveRecord
       end
 
       def construct_relation_for_exists(conditions)
-        relation = except(:select, :distinct, :order)._select!(ONE_AS_ONE).limit!(1)
+        if distinct_value && offset_value
+          relation = limit(1)
+        else
+          relation = except(:select, :distinct, :order)._select!(ONE_AS_ONE).limit!(1)
+        end
 
         case conditions
         when Array, Hash
