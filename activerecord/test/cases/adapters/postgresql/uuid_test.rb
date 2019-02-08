@@ -85,7 +85,7 @@ class PostgresqlUUIDTest < ActiveRecord::PostgreSQLTestCase
     assert_predicate column, :array?
     assert_equal "{}", column.default
 
-    schema = dump_table_schema "uuid_data_type"
+    schema = dump_table_schema "public.uuid_data_type"
     assert_match %r{t\.uuid "thingy", default: \[\], array: true$}, schema
   end
 
@@ -160,7 +160,7 @@ class PostgresqlUUIDTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_schema_dump_with_shorthand
-    output = dump_table_schema "uuid_data_type"
+    output = dump_table_schema "public.uuid_data_type"
     assert_match %r{t\.uuid "guid"}, output
   end
 
@@ -245,23 +245,23 @@ class PostgresqlUUIDGenerationTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_schema_dumper_for_uuid_primary_key
-    schema = dump_table_schema "pg_uuids"
-    assert_match(/\bcreate_table "pg_uuids", id: :uuid, default: -> { "uuid_generate_v1\(\)" }/, schema)
+    schema = dump_table_schema "public.pg_uuids"
+    assert_match(/\bcreate_table "public.pg_uuids", id: :uuid, default: -> { "uuid_generate_v1\(\)" }/, schema)
     assert_match(/t\.uuid "other_uuid", default: -> { "uuid_generate_v4\(\)" }/, schema)
   end
 
   def test_schema_dumper_for_uuid_primary_key_with_custom_default
-    schema = dump_table_schema "pg_uuids_2"
-    assert_match(/\bcreate_table "pg_uuids_2", id: :uuid, default: -> { "my_uuid_generator\(\)" }/, schema)
+    schema = dump_table_schema "public.pg_uuids_2"
+    assert_match(/\bcreate_table "public.pg_uuids_2", id: :uuid, default: -> { "my_uuid_generator\(\)" }/, schema)
     assert_match(/t\.uuid "other_uuid_2", default: -> { "my_uuid_generator\(\)" }/, schema)
   end
 
   def test_schema_dumper_for_uuid_primary_key_default
-    schema = dump_table_schema "pg_uuids_3"
+    schema = dump_table_schema "public.pg_uuids_3"
     if connection.supports_pgcrypto_uuid?
-      assert_match(/\bcreate_table "pg_uuids_3", id: :uuid, default: -> { "gen_random_uuid\(\)" }/, schema)
+      assert_match(/\bcreate_table "public.pg_uuids_3", id: :uuid, default: -> { "gen_random_uuid\(\)" }/, schema)
     else
-      assert_match(/\bcreate_table "pg_uuids_3", id: :uuid, default: -> { "uuid_generate_v4\(\)" }/, schema)
+      assert_match(/\bcreate_table "public.pg_uuids_3", id: :uuid, default: -> { "uuid_generate_v4\(\)" }/, schema)
     end
   end
 
@@ -277,8 +277,8 @@ class PostgresqlUUIDGenerationTest < ActiveRecord::PostgreSQLTestCase
     end.new
     ActiveRecord::Migrator.new(:up, [migration]).migrate
 
-    schema = dump_table_schema "pg_uuids_4"
-    assert_match(/\bcreate_table "pg_uuids_4", id: :uuid, default: -> { "uuid_generate_v4\(\)" }/, schema)
+    schema = dump_table_schema "public.pg_uuids_4"
+    assert_match(/\bcreate_table "public.pg_uuids_4", id: :uuid, default: -> { "uuid_generate_v4\(\)" }/, schema)
   ensure
     drop_table "pg_uuids_4"
     ActiveRecord::Migration.verbose = @verbose_was
@@ -309,8 +309,8 @@ class PostgresqlUUIDTestNilDefault < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_schema_dumper_for_uuid_primary_key_with_default_override_via_nil
-    schema = dump_table_schema "pg_uuids"
-    assert_match(/\bcreate_table "pg_uuids", id: :uuid, default: nil/, schema)
+    schema = dump_table_schema "public.pg_uuids"
+    assert_match(/\bcreate_table "public.pg_uuids", id: :uuid, default: nil/, schema)
   end
 
   def test_schema_dumper_for_uuid_primary_key_with_default_nil_in_legacy_migration
@@ -325,8 +325,8 @@ class PostgresqlUUIDTestNilDefault < ActiveRecord::PostgreSQLTestCase
     end.new
     ActiveRecord::Migrator.new(:up, [migration]).migrate
 
-    schema = dump_table_schema "pg_uuids_4"
-    assert_match(/\bcreate_table "pg_uuids_4", id: :uuid, default: nil/, schema)
+    schema = dump_table_schema "public.pg_uuids_4"
+    assert_match(/\bcreate_table "public.pg_uuids_4", id: :uuid, default: nil/, schema)
   ensure
     drop_table "pg_uuids_4"
     ActiveRecord::Migration.verbose = @verbose_was

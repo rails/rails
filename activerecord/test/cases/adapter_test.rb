@@ -46,26 +46,27 @@ module ActiveRecord
 
     def test_tables
       tables = @connection.tables
-      assert_includes tables, "accounts"
-      assert_includes tables, "authors"
-      assert_includes tables, "tasks"
-      assert_includes tables, "topics"
+      assert_includes tables, "public.accounts"
+      assert_includes tables, "public.authors"
+      assert_includes tables, "public.tasks"
+      assert_includes tables, "public.topics"
     end
 
     def test_table_exists?
-      assert @connection.table_exists?("accounts")
+      assert @connection.table_exists?("public.accounts")
       assert @connection.table_exists?(:accounts)
       assert_not @connection.table_exists?("nonexistingtable")
+      assert_not @connection.table_exists?("public.nonexistingtable")
       assert_not @connection.table_exists?("'")
       assert_not @connection.table_exists?(nil)
     end
 
     def test_data_sources
       data_sources = @connection.data_sources
-      assert_includes data_sources, "accounts"
-      assert_includes data_sources, "authors"
-      assert_includes data_sources, "tasks"
-      assert_includes data_sources, "topics"
+      assert_includes data_sources, "public.accounts"
+      assert_includes data_sources, "public.authors"
+      assert_includes data_sources, "public.tasks"
+      assert_includes data_sources, "public.topics"
     end
 
     def test_data_source_exists?
