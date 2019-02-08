@@ -42,11 +42,10 @@ module ActiveRecord
 
           def associate_records_to_owner(owner, records)
             association = owner.association(reflection.name)
-            association.loaded!
             if reflection.collection?
-              association.target.concat(records)
+              association.target = records
             else
-              association.target = records.first unless records.empty?
+              association.target = records.first
             end
           end
 
