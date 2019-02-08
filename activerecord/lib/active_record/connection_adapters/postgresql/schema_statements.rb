@@ -745,7 +745,7 @@ module ActiveRecord
             scope = quoted_scope(name, type: type)
             scope[:type] ||= "'r','v','m','p','f'" # (r)elation/table, (v)iew, (m)aterialized view, (p)artitioned table, (f)oreign table
 
-            sql = +"SELECT c.relname FROM pg_class c LEFT JOIN pg_namespace n ON n.oid = c.relnamespace"
+            sql = +"SELECT format('%I.%I', n.nspname, c.relname) FROM pg_class c LEFT JOIN pg_namespace n ON n.oid = c.relnamespace"
             sql << " WHERE n.nspname = #{scope[:schema]}"
             sql << " AND c.relname = #{scope[:name]}" if scope[:name]
             sql << " AND c.relkind IN (#{scope[:type]})"
