@@ -67,11 +67,7 @@ module ActiveRecord
     #   user = users.new { |user| user.name = 'Oscar' }
     #   user.name # => Oscar
     def new(attributes = nil, &block)
-      current_scope = klass.current_scope(true)
-      block = -> record do
-        klass.current_scope = current_scope
-        yield record if block_given?
-      end
+      block = klass.current_scope_restoring_block(&block)
       scoping { klass.new(attributes, &block) }
     end
 
