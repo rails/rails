@@ -50,15 +50,15 @@ module ActionView
       end
 
       # Cache the templates returned by the block
-      def cache(key, name, prefix, partial, locals)
+      def cache(template_cache, name, prefix, partial, locals)
         if Resolver.caching?
-          key[@resolver][name][prefix][partial][locals] ||= canonical_no_templates(yield)
+          template_cache[@resolver][name][prefix][partial][locals] ||= canonical_no_templates(yield)
         else
           fresh_templates  = yield
-          cached_templates = key[@resolver][name][prefix][partial][locals]
+          cached_templates = template_cache[@resolver][name][prefix][partial][locals]
 
           if templates_have_changed?(cached_templates, fresh_templates)
-            key[@resolver][name][prefix][partial][locals] = canonical_no_templates(fresh_templates)
+            template_cache[@resolver][name][prefix][partial][locals] = canonical_no_templates(fresh_templates)
           else
             cached_templates || NO_TEMPLATES
           end
