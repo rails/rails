@@ -211,14 +211,14 @@ See the
 for the many people who spent many hours making Rails, the stable and robust
 framework it is. Kudos to all of them.
 
-[railties]:       https://github.com/rails/rails/blob/6-0-stable/railties/CHANGELOG.md
-[action-pack]:    https://github.com/rails/rails/blob/6-0-stable/actionpack/CHANGELOG.md
-[action-view]:    https://github.com/rails/rails/blob/6-0-stable/actionview/CHANGELOG.md
-[action-mailer]:  https://github.com/rails/rails/blob/6-0-stable/actionmailer/CHANGELOG.md
-[action-cable]:   https://github.com/rails/rails/blob/6-0-stable/actioncable/CHANGELOG.md
-[active-record]:  https://github.com/rails/rails/blob/6-0-stable/activerecord/CHANGELOG.md
-[active-storage]: https://github.com/rails/rails/blob/6-0-stable/activestorage/CHANGELOG.md
-[active-model]:   https://github.com/rails/rails/blob/6-0-stable/activemodel/CHANGELOG.md
-[active-support]: https://github.com/rails/rails/blob/6-0-stable/activesupport/CHANGELOG.md
-[active-job]:     https://github.com/rails/rails/blob/6-0-stable/activejob/CHANGELOG.md
-[guides]:         https://github.com/rails/rails/blob/6-0-stable/guides/CHANGELOG.md
+[railties]:       https://github.com/rails/rails/blob/master/railties/CHANGELOG.md
+[action-pack]:    https://github.com/rails/rails/blob/master/actionpack/CHANGELOG.md
+[action-view]:    https://github.com/rails/rails/blob/master/actionview/CHANGELOG.md
+[action-mailer]:  https://github.com/rails/rails/blob/master/actionmailer/CHANGELOG.md
+[action-cable]:   https://github.com/rails/rails/blob/master/actioncable/CHANGELOG.md
+[active-record]:  https://github.com/rails/rails/blob/master/activerecord/CHANGELOG.md
+[active-storage]: https://github.com/rails/rails/blob/master/activestorage/CHANGELOG.md
+[active-model]:   https://github.com/rails/rails/blob/master/activemodel/CHANGELOG.md
+[active-support]: https://github.com/rails/rails/blob/master/activesupport/CHANGELOG.md
+[active-job]:     https://github.com/rails/rails/blob/master/activejob/CHANGELOG.md
+[guides]:         https://github.com/rails/rails/blob/master/guides/CHANGELOG.md
