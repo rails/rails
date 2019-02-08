@@ -148,6 +148,11 @@ module ActiveRecord
           end
         end
 
+        # Returns an array of fully qualified table names (along with schema name) defined in the database.
+        def tables_with_schema_all
+          query_values(data_source_sql(type: "BASE TABLE", all: true), "SCHEMA")
+        end
+
         def table_options(table_name) # :nodoc:
           if comment = table_comment(table_name)
             { comment: comment }
@@ -741,12 +746,18 @@ module ActiveRecord
             super
           end
 
-          def data_source_sql(name = nil, type: nil)
+          def data_source_sql(name = nil, type: nil, all: false)
             scope = quoted_scope(name, type: type)
             scope[:type] ||= "'r','v','m','p','f'" # (r)elation/table, (v)iew, (m)aterialized view, (p)artitioned table, (f)oreign table
 
-            sql = +"SELECT c.relname FROM pg_class c LEFT JOIN pg_namespace n ON n.oid = c.relnamespace"
-            sql << " WHERE n.nspname = #{scope[:schema]}"
+            sql = +"SELECT "
+            sql << (all ? "format('%I.%I', n.nspname, c.relname)" : "c.relname")
+            sql << " FROM pg_class c LEFT JOIN pg_namespace n ON n.oid = c.relnamespace WHERE"
+            if all
+              sql << " not n.nspname ~ '^(pg_catalog|information_schema|pg_toast.*|pg_temp_.+)$'"
+            else
+              sql << " n.nspname = #{scope[:schema]}"
+            end
             sql << " AND c.relname = #{scope[:name]}" if scope[:name]
             sql << " AND c.relkind IN (#{scope[:type]})"
             sql
