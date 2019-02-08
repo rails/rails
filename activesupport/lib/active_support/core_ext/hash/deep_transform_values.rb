@@ -37,7 +37,6 @@ class Hash
       case object
       when Hash
         object.transform_values! { |value| _deep_transform_values_in_object!(value, &block) }
-        object
       when Array
         object.map! { |e| _deep_transform_values_in_object!(e, &block) }
       else
