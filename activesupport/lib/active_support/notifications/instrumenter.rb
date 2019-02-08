@@ -137,7 +137,7 @@ module ActiveSupport
 
       private
         def now
-          Process.clock_gettime(Process::CLOCK_MONOTONIC)
+          Concurrent.monotonic_time
         end
 
         if clock_gettime_supported?
