@@ -55,7 +55,6 @@ module ActionView
     register_detail(:handlers) { Template::Handlers.extensions }
 
     class DetailsKey #:nodoc:
-
       alias :eql? :equal?
 
       @details_keys = Concurrent::Map.new

@@ -26,6 +26,7 @@ module ActionView
     module SharedTests
       def setup
         ActionView::LookupContext::DetailsKey.clear
+        super
       end
 
       def self.included(test_case)

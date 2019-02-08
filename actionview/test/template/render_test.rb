@@ -650,8 +650,6 @@ class LazyViewRenderTest < ActiveSupport::TestCase
   # is not eager loaded
   def setup
     ActionView::LookupContext::DetailsKey.clear
-
-    view_paths = ActionController::Base.view_paths
     path = ActionView::FileSystemResolver.new(FIXTURE_LOAD_PATH)
     view_paths = ActionView::PathSet.new([path])
     assert_equal ActionView::FileSystemResolver.new(FIXTURE_LOAD_PATH), view_paths.first
