@@ -11,6 +11,15 @@ module ActiveSupport
   # Time#advance, respectively. It mainly supports the methods on Numeric.
   #
   #   1.month.ago       # equivalent to Time.now.advance(months: -1)
+  #
+  # Bear in mind that the same duration can have different representations.
+  #
+  #   1.hour == 60.minutes == 3600.seconds
+  #
+  # Values are the same for these 3 durations, but each of them has a different
+  # set of parts.
+  #
+  # Use ActiveSupport::Duration#normalize to obtain a normalized representation.
   class Duration
     class Scalar < Numeric #:nodoc:
       attr_reader :value
@@ -181,11 +190,17 @@ module ActiveSupport
       #   ActiveSupport::Duration.build(31556952).parts # => {:years=>1}
       #   ActiveSupport::Duration.build(2716146).parts  # => {:months=>1, :days=>1}
       #
-      def build(value)
+      # No parts greater than +max_part+ are taken into account.
+      #
+      #   Duration.build(3610).parts           # => {:hours=>1, :seconds=10}
+      #   Duration.build(3610, :minutes).parts # => {:minutes=>60, :seconds=10}
+      #
+      def build(value, max_part = :years)
         parts = {}
         remainder = value.to_f
+        parts_to_test = PARTS.slice(PARTS.index(max_part)..-1)
 
-        PARTS.each do |part|
+        parts_to_test.each do |part|
           unless part == :seconds
             part_in_seconds = PARTS_IN_SECONDS[part]
             parts[part] = remainder.div(part_in_seconds)
@@ -350,6 +365,27 @@ module ActiveSupport
     # same parts as this one.
     def eql?(other)
       Duration === other && other.value.eql?(value)
+    end
+
+    # Returns a Duration with the same value as this one, but making
+    # sure that none of its parts (up to +max_part+) can be expressed
+    # in terms of 1 or more larger parts.
+    #
+    # Useful because, after operating with durations, the results can
+    # have unintuitive values for some of their parts.
+    #
+    #   (55.seconds + 55.seconds)          # => 110.seconds
+    #   110.seconds.normalize              # => 1 minute, 50 seconds
+    #
+    #   3665.seconds.normalize             # => 1 hour, 1 minute, 5 seconds
+    #   3665.seconds.normalize(:minutes)   # => 61 minutes, 5 seconds
+    #
+    #   41040800.seconds.normalize         # => 1 year, 3 months, 2 weeks, 4 days,
+    #                                           10 hours, 56 minutes, 50.0 seconds
+    #   41040800.seconds.normalize(:days)  # => 475 days, 13 minutes, 20.0 seconds
+
+    def normalize(max_part = :years)
+      self.class.build(value, max_part)
     end
 
     def hash

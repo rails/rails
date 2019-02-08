@@ -661,6 +661,16 @@ class DurationTest < ActiveSupport::TestCase
     assert_equal 660, (d1 + 60).to_i
   end
 
+  def test_normalize
+    assert_equal_parts(110.seconds, 1.minutes + 50.seconds)
+    assert_equal_parts(3665.seconds, 1.hour + 1.minutes + 5.seconds)
+    assert_equal_parts(3665.seconds, 61.minutes + 5.seconds, :minutes)
+    assert_equal_parts((2.minutes + 2.seconds) * 60, 2.hours + 2.minutes)
+    assert_equal_parts((2.minutes + 2.seconds) * 60, 122.minutes, :minutes)
+    assert_equal_parts(24.days + 65.seconds, 3.weeks + 3.days + 1.minute + 5.seconds)
+    assert_equal_parts(24.days + 60.seconds, 576.hours + 1.minute, :hours)
+  end
+
   private
     def eastern_time_zone
       if Gem.win_platform?
@@ -668,5 +678,10 @@ class DurationTest < ActiveSupport::TestCase
       else
         "America/New_York"
       end
+    end
+
+    def assert_equal_parts(d1, d2, max_part = :years)
+      assert_equal(d1, d2)
+      assert_equal(d1.normalize(max_part).parts, d2.normalize(max_part).parts)
     end
 end
