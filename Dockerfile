@@ -1,7 +1,9 @@
 ARG RUBY_IMAGE
 FROM ${RUBY_IMAGE:-ruby:latest}
 
-RUN (gem update --system || gem update --system 2.7.8) && gem install bundler \
+RUN (gem update --system || gem update --system 2.7.8) \
+    && (gem install bundler || true) \
+    && gem install bundler -v '< 2' \
     && ruby --version && gem --version && bundle --version \
     && echo "--- :package: Installing system deps" \
     # Postgres apt sources
