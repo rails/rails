@@ -20,7 +20,8 @@ RUN (gem update --system || gem update --system 2.7.8) \
     && apt-get install -y --no-install-recommends \
         postgresql-client mysql-client sqlite3 \
         git nodejs yarn lsof \
-        ffmpeg mupdf mupdf-tools poppler-utils \
+    && (apt-get install -y --no-install-recommends \
+        ffmpeg mupdf mupdf-tools poppler-utils || true) \
     # await (for waiting on dependent services)
     && cd /tmp \
     && wget -qc https://github.com/betalo-sweden/await/releases/download/v0.4.0/await-linux-amd64 \
