@@ -112,14 +112,14 @@ module Arel # :nodoc: all
           # if it contained functions with several arguments (separated by ',').
           #
           # orders   = o.orders.map { |x| visit x }.join(', ').split(',')
-          orders   = o.orders.map do |x|
+          orders   = o.orders.flat_map do |x|
             string = visit(x, Arel::Collectors::SQLString.new).value
             if string.include?(",")
               split_order_string(string)
             else
               string
             end
-          end.flatten
+          end
           o.orders = []
           orders.each_with_index do |order, i|
             o.orders <<
