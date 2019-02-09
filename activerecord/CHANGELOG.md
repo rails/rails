@@ -1,3 +1,9 @@
+*   Retain explicit selections on the base model after applying `includes` and `joins`.
+
+    Resolves #34889.
+
+    *Patrick Rebsch*
+
 *   Allow attributes to be fetched from Arel node groupings.
 
     *Jeff Emminger*, *Gannon McGibbon*
