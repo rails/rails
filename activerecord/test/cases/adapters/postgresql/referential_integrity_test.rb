@@ -105,7 +105,42 @@ class PostgreSQLReferentialIntegrityTest < ActiveRecord::PostgreSQLTestCase
     end
   end
 
+  def test_disabling_referential_integrity_uses_fully_qualified_table_names
+    @connection.extend SchemaNamePresenceChecker
+    begin
+      @connection.execute %Q(CREATE SCHEMA "#{SCHEMA_NAME}" CREATE TABLE "#{TABLE_NAME}" (#{COLUMNS.join(',')}))
+      @connection.execute %Q(CREATE SCHEMA "#{SCHEMA2_NAME}" CREATE TABLE "#{TABLE_NAME}" (#{COLUMNS.join(',')}))
+      e = assert_raises(ArgumentError) do
+        @connection.disable_referential_integrity { }
+      end
+      assert_equal "All is good", e.message
+    ensure
+      @connection.drop_schema SCHEMA2_NAME, if_exists: true
+      @connection.drop_schema SCHEMA_NAME, if_exists: true
+    end
+  end
+
   private
+    SCHEMA_NAME = "test_Schema"
+    SCHEMA2_NAME = "Test_schema2"
+    TABLE_NAME = "tHings"
+    COLUMNS = [
+      "id integer",
+      "name text"
+    ]
+
+    HAS_BOTH_TABLES_SQL = lambda do |sql|
+      sql.match(/"#{SCHEMA_NAME}"\."#{TABLE_NAME}"/) && sql.match(/"#{SCHEMA2_NAME}"\."#{TABLE_NAME}"/)
+    end
+
+    module SchemaNamePresenceChecker
+      def execute(sql)
+        if IS_REFERENTIAL_INTEGRITY_SQL.call(sql) && HAS_BOTH_TABLES_SQL.call(sql)
+          raise ArgumentError, "All is good"
+        end
+        super
+      end
+    end
 
     def assert_transaction_is_not_broken
       assert_equal 1, @connection.select_value("SELECT 1")
