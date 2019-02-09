@@ -7,9 +7,9 @@ end
 
 class SetupFiberedBase < ActiveSupport::TestCase
   def setup
+    ActionView::LookupContext::DetailsKey.clear
+
     view_paths = ActionController::Base.view_paths
-    view_paths.each(&:clear_cache)
-    ActionView::LookupContext.fallbacks.each(&:clear_cache)
 
     @assigns = { secret: "in the sauce", name: nil }
     @view = ActionView::Base.with_empty_template_cache.with_view_paths(view_paths, @assigns)
