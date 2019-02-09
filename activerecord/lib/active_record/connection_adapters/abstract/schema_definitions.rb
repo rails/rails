@@ -198,41 +198,43 @@ module ActiveRecord
     end
 
     module ColumnMethods
+      extend ActiveSupport::Concern
+
       # Appends a primary key definition to the table definition.
       # Can be called multiple times, but this is probably not a good idea.
       def primary_key(name, type = :primary_key, **options)
         column(name, type, options.merge(primary_key: true))
       end
 
+      ##
+      # :method: column
+      # :call-seq: column(name, type, options = {})
+      #
       # Appends a column or columns of a specified type.
       #
       #  t.string(:goat)
       #  t.string(:goat, :sheep)
       #
       # See TableDefinition#column
-      [
-        :bigint,
-        :binary,
-        :boolean,
-        :date,
-        :datetime,
-        :decimal,
-        :float,
-        :integer,
-        :json,
-        :string,
-        :text,
-        :time,
-        :timestamp,
-        :virtual,
-      ].each do |column_type|
-        module_eval <<-CODE, __FILE__, __LINE__ + 1
-          def #{column_type}(*args, **options)
-            args.each { |name| column(name, :#{column_type}, options) }
-          end
-        CODE
+
+      included do
+        define_column_methods :bigint, :binary, :boolean, :date, :datetime, :decimal,
+          :float, :integer, :json, :string, :text, :time, :timestamp, :virtual
+
+        alias :numeric :decimal
       end
-      alias_method :numeric, :decimal
+
+      class_methods do
+        private def define_column_methods(*column_types) # :nodoc:
+          column_types.each do |column_type|
+            module_eval <<-RUBY, __FILE__, __LINE__ + 1
+              def #{column_type}(*names, **options)
+                names.each { |name| column(name, :#{column_type}, options) }
+              end
+            RUBY
+          end
+        end
+      end
     end
 
     # Represents the schema of an SQL table in an abstract way. This class
