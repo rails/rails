@@ -1,7 +1,7 @@
 ARG RUBY_IMAGE
 FROM ${RUBY_IMAGE:-ruby:latest}
 
-RUN gem update --system && gem install bundler \
+RUN (gem update --system || gem update --system 2.7.8) && gem install bundler \
     && ruby --version && gem --version && bundle --version \
     && echo "--- :package: Installing system deps" \
     # Postgres apt sources
@@ -35,15 +35,20 @@ ENV JRUBY_OPTS="--dev -J-Xmx1024M"
 ADD .buildkite/await-all /usr/local/bin/
 RUN chmod +x /usr/local/bin/await-all
 
-ADD actioncable/package.json actioncable/
-ADD actiontext/package.json actiontext/
-ADD actionview/package.json actionview/
-ADD activestorage/package.json activestorage/
-ADD package.json yarn.lock .yarnrc ./
+# Wildcard ignores missing files; .empty ensures ADD always has at least
+# one valid source: https://stackoverflow.com/a/46801962
+ADD .buildkite/.empty actioncable/package.jso[n] actioncable/
+ADD .buildkite/.empty actiontext/package.jso[n] actiontext/
+ADD .buildkite/.empty actionview/package.jso[n] actionview/
+ADD .buildkite/.empty activestorage/package.jso[n] activestorage/
+ADD .buildkite/.empty package.jso[n] yarn.loc[k] .yarnr[c] ./
 
-RUN echo "--- :javascript: Installing JavaScript deps" \
-    && yarn install \
-    && yarn cache clean
+RUN rm -f .empty */.empty && \
+    if [ -f package.json ]; then \
+        echo "--- :javascript: Installing JavaScript deps" \
+        && yarn install \
+        && yarn cache clean; \
+    fi
 
 ADD */*.gemspec tmp/
 ADD railties/exe/ railties/exe/
