@@ -81,7 +81,7 @@ class HashExtTest < ActiveSupport::TestCase
   end
 
   def test_deep_transform_values
-    assert_equal({ "a" => "1", "b" => "2" }, @strings.deep_transform_values{ |value| value.to_s })
+    assert_equal({ "a" => "1", "b" => "2" }, @strings.deep_transform_values { |value| value.to_s })
     assert_equal({ "a" => { "b" => { "c" => "3" } } }, @nested_strings.deep_transform_values { |value| value.to_s })
     assert_equal({ "a" => [ { "b" => "2" }, { "c" => "3" }, "4" ] }, @string_array_of_hashes.deep_transform_values { |value| value.to_s })
   end
@@ -93,7 +93,7 @@ class HashExtTest < ActiveSupport::TestCase
   end
 
   def test_deep_transform_values!
-    assert_equal({ "a" => "1", "b" => "2" }, @strings.deep_transform_values!{ |value| value.to_s })
+    assert_equal({ "a" => "1", "b" => "2" }, @strings.deep_transform_values! { |value| value.to_s })
     assert_equal({ "a" => { "b" => { "c" => "3" } } }, @nested_strings.deep_transform_values! { |value| value.to_s })
     assert_equal({ "a" => [ { "b" => "2" }, { "c" => "3" }, "4" ] }, @string_array_of_hashes.deep_transform_values! { |value| value.to_s })
   end
