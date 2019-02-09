@@ -45,8 +45,9 @@ ADD .buildkite/.empty actionview/package.jso[n] actionview/
 ADD .buildkite/.empty activestorage/package.jso[n] activestorage/
 ADD .buildkite/.empty package.jso[n] yarn.loc[k] .yarnr[c] ./
 
-RUN rm -f .empty */.empty && \
-    if [ -f package.json ]; then \
+RUN rm -f .empty */.empty \
+    && find . -type d -maxdepth 1 -empty -exec rmdir '{}' '+' \
+    && if [ -f package.json ]; then \
         echo "--- :javascript: Installing JavaScript deps" \
         && yarn install \
         && yarn cache clean; \
