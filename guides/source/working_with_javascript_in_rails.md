@@ -475,7 +475,7 @@ respond to your Ajax request. You then have a corresponding
 code that will be sent and executed on the client side.
 
 ```erb
-$("<%= escape_javascript(render @user) %>").appendTo("#users");
+$("#users").appendTo("<%= raw escape_javascript(render @user) %>");
 ```
 
 Turbolinks
