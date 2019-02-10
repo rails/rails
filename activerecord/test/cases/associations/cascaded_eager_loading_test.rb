@@ -18,7 +18,7 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
            :categorizations, :people, :categories, :edges, :vertices
 
   def test_eager_association_loading_with_cascaded_two_levels
-    authors = Author.all.merge!(includes: { posts: :comments }, order: "authors.id").to_a
+    authors = Author.includes(posts: :comments).order(:id).to_a
     assert_equal 3, authors.size
     assert_equal 5, authors[0].posts.size
     assert_equal 3, authors[1].posts.size
@@ -26,7 +26,7 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
   end
 
   def test_eager_association_loading_with_cascaded_two_levels_and_one_level
-    authors = Author.all.merge!(includes: [{ posts: :comments }, :categorizations], order: "authors.id").to_a
+    authors = Author.includes({ posts: :comments }, :categorizations).order(:id).to_a
     assert_equal 3, authors.size
     assert_equal 5, authors[0].posts.size
     assert_equal 3, authors[1].posts.size
@@ -36,7 +36,7 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
   end
 
   def test_eager_association_loading_with_hmt_does_not_table_name_collide_when_joining_associations
-    authors = Author.joins(:posts).eager_load(:comments).where(posts: { tags_count: 1 }).to_a
+    authors = Author.joins(:posts).eager_load(:comments).where(posts: { tags_count: 1 }).order(:id).to_a
     assert_equal 3, assert_no_queries { authors.size }
     assert_equal 10, assert_no_queries { authors[0].comments.size }
   end
