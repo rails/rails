@@ -102,7 +102,7 @@ module ActiveRecord
       alias validated? validate?
 
       def export_name_on_schema_dump?
-        name !~ ActiveRecord::SchemaDumper.fk_ignore_pattern
+        !ActiveRecord::SchemaDumper.fk_ignore_pattern.match?(name) if name
       end
 
       def defined_for?(to_table_ord = nil, to_table: nil, **options)

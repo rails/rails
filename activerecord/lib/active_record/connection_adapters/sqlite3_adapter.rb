@@ -121,7 +121,7 @@ module ActiveRecord
         true
       end
 
-      def supports_foreign_keys_in_create?
+      def supports_foreign_keys?
         true
       end
 
@@ -424,9 +424,8 @@ module ActiveRecord
           type.to_sym == :primary_key || options[:primary_key]
         end
 
-        def alter_table(table_name, options = {})
+        def alter_table(table_name, foreign_keys = foreign_keys(table_name), **options)
           altered_table_name = "a#{table_name}"
-          foreign_keys = foreign_keys(table_name)
 
           caller = lambda do |definition|
             rename = options[:rename] || {}

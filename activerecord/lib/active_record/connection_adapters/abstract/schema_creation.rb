@@ -15,7 +15,7 @@ module ActiveRecord
         end
 
         delegate :quote_column_name, :quote_table_name, :quote_default_expression, :type_to_sql,
-          :options_include_default?, :supports_indexes_in_create?, :supports_foreign_keys_in_create?, :foreign_key_options,
+          :options_include_default?, :supports_indexes_in_create?, :supports_foreign_keys?, :foreign_key_options,
           to: :@conn, private: true
 
         private
@@ -50,7 +50,7 @@ module ActiveRecord
               statements.concat(o.indexes.map { |column_name, options| index_in_create(o.name, column_name, options) })
             end
 
-            if supports_foreign_keys_in_create?
+            if supports_foreign_keys?
               statements.concat(o.foreign_keys.map { |to_table, options| foreign_key_in_create(o.name, to_table, options) })
             end
 
