@@ -1782,12 +1782,12 @@ module ApplicationTests
 
       actual = Rails.application.config.my_custom_config
 
-      assert_equal actual, foo: 0, bar: { baz: 1 }
-      assert_equal actual.keys, [ :foo, :bar ]
-      assert_equal actual.values, [ 0, baz: 1]
-      assert_equal actual.to_h, foo: 0, bar: { baz: 1 }
-      assert_equal actual[:foo], 0
-      assert_equal actual[:bar], baz: 1
+      assert_equal({ foo: 0, bar: { baz: 1 } }, actual)
+      assert_equal([ :foo, :bar ], actual.keys)
+      assert_equal([ 0, baz: 1], actual.values)
+      assert_equal({ foo: 0, bar: { baz: 1 } }, actual.to_h)
+      assert_equal(0, actual[:foo])
+      assert_equal({ baz: 1 }, actual[:bar])
     end
 
     test "config_for generates deprecation notice when nested hash methods are called with non-symbols" do
