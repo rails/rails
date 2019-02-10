@@ -367,13 +367,15 @@ module ActionView
     private
 
       def find_template_paths_from_details(path, details)
-        # Instead of checking for every possible path, as our other globs would
-        # do, scan the directory for files with the right prefix.
+        # Instead of checking for every possible path, as our other globs would,
+        # scan the directory for files with the right prefix.
         query = "#{escape_entry(File.join(@path, path))}*"
+        candidates = Dir[query]
+
+        return [] if candidates.empty?
 
         regex = build_regex(path, details)
-
-        Dir[query].uniq.reject do |filename|
+        candidates.uniq.reject do |filename|
           # This regex match does double duty of finding only files which match
           # details (instead of just matching the prefix) and also filtering for
           # case-insensitive file systems.
