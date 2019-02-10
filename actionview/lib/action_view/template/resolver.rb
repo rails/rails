@@ -375,7 +375,7 @@ module ActionView
 
         return [] if candidates.empty?
 
-        regex = build_regex(details)
+        regex = regex_for_details(details)
         candidates.uniq.select do |filename|
           # Reject mismatches from case-insensitive filesystems
           filename.starts_with?(basename)
@@ -404,19 +404,22 @@ module ActionView
         end.map(&:first)
       end
 
-      def build_regex(details)
-        exts = EXTENSIONS.map do |ext, prefix|
-          match =
-            if ext == :variants && details[ext] == :any
-              ".*?"
-            else
-              details[ext].compact.uniq.map { |e| Regexp.escape(e) }.join("|")
-            end
-          prefix = Regexp.escape(prefix)
-          "(#{prefix}(?<#{ext}>#{match}))?"
-        end.join
+      DETAILS_REGEX_CACHE = Concurrent::Map.new
 
-        %r{\A#{exts}\z}
+      def regex_for_details(details)
+        DETAILS_REGEX_CACHE[details] ||=
+          %r{\A#{
+            EXTENSIONS.map do |ext, prefix|
+              match =
+                if ext == :variants && details[ext] == :any
+                  ".*?"
+                else
+                  details[ext].compact.uniq.map { |e| Regexp.escape(e) }.join("|")
+                end
+              prefix = Regexp.escape(prefix)
+              "(#{prefix}(?<#{ext}>#{match}))?"
+            end.join
+          }\z}
       end
   end
 
