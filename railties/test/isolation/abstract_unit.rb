@@ -488,22 +488,6 @@ Module.new do
   Dir.chdir(app_template_path) { `yarn add webpack@4.17.1 --tilde` }
   Dir.chdir(app_template_path) { `yarn add webpack-cli` }
 
-  # FIXME: Temporary fix for webpack + ajv@6.9.0 compatible issue.
-  #        See https://github.com/epoberezkin/ajv/issues/941
-  Dir.chdir(app_template_path) do
-    package = File.read("package.json")
-    resolutions = <<~EOS
-      ,
-        "resolutions": {
-          "ajv": "6.8.1"
-        }
-      }
-    EOS
-    if package =~ /\n}\n\z/
-      File.open("package.json", "w") { |f| f.puts $` + resolutions + $' }
-    end
-  end
-
   # Fake 'Bundler.require' -- we run using the repo's Gemfile, not an
   # app-specific one: we don't want to require every gem that lists.
   contents = File.read("#{app_template_path}/config/application.rb")
