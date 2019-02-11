@@ -11,7 +11,7 @@ module ActiveRecord
     # behavior.
     #
     # The resolver class defines when the application should switch (i.e. read
-    # from the primary if a write occurred less than 2 seconds ago) and an
+    # from the primary if a write occurred less than 2 seconds ago) and a
     # resolver context class that sets a value that helps the resolver class
     # decide when to switch.
     #

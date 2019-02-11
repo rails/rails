@@ -142,7 +142,7 @@ module ActiveRecord
         end
       end
 
-      # Deletes the row with a primary key matching the +id+ argument, using a
+      # Deletes the row with a primary key matching the +id+ argument, using an
       # SQL +DELETE+ statement, and returns the number of rows deleted. Active
       # Record objects are not instantiated, so the object's callbacks are not
       # executed, including any <tt>:dependent</tt> association options.
