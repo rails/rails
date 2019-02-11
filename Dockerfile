@@ -50,6 +50,10 @@ RUN rm -f .empty */.empty \
     && find . -type d -maxdepth 1 -empty -exec rmdir '{}' '+' \
     && if [ -f package.json ]; then \
         echo "--- :javascript: Installing JavaScript deps" \
+        && (cd actionview && yarn build) \
+        && if [ -f railties/test/isolation/assets/package.json ]; then \
+            (cd railties/test/isolation/assets && yarn install); \
+        fi \
         && yarn install \
         && yarn cache clean; \
     fi
