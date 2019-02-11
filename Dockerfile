@@ -50,10 +50,6 @@ RUN rm -f .empty */.empty \
     && find . -type d -maxdepth 1 -empty -exec rmdir '{}' '+' \
     && if [ -f package.json ]; then \
         echo "--- :javascript: Installing JavaScript deps" \
-        && (cd actionview && yarn build) \
-        && if [ -f railties/test/isolation/assets/package.json ]; then \
-            (cd railties/test/isolation/assets && yarn install); \
-        fi \
         && yarn install \
         && yarn cache clean; \
     fi
@@ -70,4 +66,12 @@ RUN echo "--- :bundler: Installing Ruby deps" \
 
 ADD . ./
 
-RUN mv -f tmp/Gemfile.lock.updated Gemfile.lock
+RUN mv -f tmp/Gemfile.lock.updated Gemfile.lock \
+    && if [ -f package.json ]; then \
+        echo "--- :javascript: Building JavaScript package" \
+        && (cd actionview && yarn build) \
+        && if [ -f railties/test/isolation/assets/package.json ]; then \
+            (cd railties/test/isolation/assets && yarn install); \
+        fi \
+        && yarn cache clean; \
+    fi
