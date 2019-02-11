@@ -421,6 +421,10 @@ module TestHelpers
       file_name
     end
 
+    def app_dir(path)
+      FileUtils.mkdir_p("#{app_path}/#{path}")
+    end
+
     def remove_file(path)
       FileUtils.rm_rf "#{app_path}/#{path}"
     end
@@ -487,7 +491,11 @@ Module.new do
   # Fake 'Bundler.require' -- we run using the repo's Gemfile, not an
   # app-specific one: we don't want to require every gem that lists.
   contents = File.read("#{app_template_path}/config/application.rb")
-  contents.sub!(/^Bundler\.require.*/, "%w(turbolinks webpacker).each { |r| require r }")
+  if RUBY_ENGINE == "ruby"
+    contents.sub!(/^Bundler\.require.*/, "%w(turbolinks webpacker zeitwerk).each { |r| require r }")
+  else
+    contents.sub!(/^Bundler\.require.*/, "%w(turbolinks webpacker).each { |r| require r }")
+  end
   File.write("#{app_template_path}/config/application.rb", contents)
 
   require "rails"

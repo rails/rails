@@ -704,25 +704,27 @@ YAML
       RUBY
 
       @plugin.write "app/controllers/bukkits/foo_controller.rb", <<-RUBY
-        class Bukkits::FooController < ActionController::Base
-          def index
-            render inline: "<%= help_the_engine %>"
-          end
+        module Bukkits
+          class FooController < ActionController::Base
+            def index
+              render inline: "<%= help_the_engine %>"
+            end
 
-          def show
-            render plain: foo_path
-          end
+            def show
+              render plain: foo_path
+            end
 
-          def from_app
-            render inline: "<%= (self.respond_to?(:bar_path) || self.respond_to?(:something)) %>"
-          end
+            def from_app
+              render inline: "<%= (self.respond_to?(:bar_path) || self.respond_to?(:something)) %>"
+            end
 
-          def routes_helpers_in_view
-            render inline: "<%= foo_path %>, <%= main_app.bar_path %>"
-          end
+            def routes_helpers_in_view
+              render inline: "<%= foo_path %>, <%= main_app.bar_path %>"
+            end
 
-          def polymorphic_path_without_namespace
-            render plain: polymorphic_path(Post.new)
+            def polymorphic_path_without_namespace
+              render plain: polymorphic_path(Post.new)
+            end
           end
         end
       RUBY

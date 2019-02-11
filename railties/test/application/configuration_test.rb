@@ -1157,6 +1157,27 @@ module ApplicationTests
       end
     end
 
+    test "autoloader & autoloader=" do
+      app "development"
+
+      config = Rails.application.config
+      assert_instance_of Zeitwerk::Loader, Rails.autoloader
+      assert_instance_of Zeitwerk::Loader, Rails.once_autoloader
+      assert_equal [Rails.autoloader, Rails.once_autoloader], Rails.autoloaders
+
+      config.autoloader = :classic
+      assert_nil Rails.autoloader
+      assert_nil Rails.once_autoloader
+      assert_empty Rails.autoloaders
+
+      config.autoloader = :zeitwerk
+      assert_instance_of Zeitwerk::Loader, Rails.autoloader
+      assert_instance_of Zeitwerk::Loader, Rails.once_autoloader
+      assert_equal [Rails.autoloader, Rails.once_autoloader], Rails.autoloaders
+
+      assert_raises(ArgumentError) { config.autoloader = :unknown }
+    end
+
     test "config.action_view.cache_template_loading with cache_classes default" do
       add_to_config "config.cache_classes = true"
 
