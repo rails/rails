@@ -526,6 +526,23 @@ if current_adapter?(:PostgreSQLAdapter)
         end
       end
 
+      def test_structure_load_disables_pager
+        previous_env, ENV["PSQL_PAGER"] = ENV["PSQL_PAGER"], nil
+
+        filename = "awesome-file.sql"
+        assert_called(
+          Kernel,
+          :system,
+          returns: true
+        ) do
+          ActiveRecord::Tasks::DatabaseTasks.structure_load(@configuration, filename)
+        end
+
+        assert_equal "", ENV["PSQL_PAGER"]
+      ensure
+        ENV["PSQL_PAGER"] = previous_env
+      end
+
       private
         def with_structure_load_flags(flags)
           old = ActiveRecord::Tasks::DatabaseTasks.structure_load_flags

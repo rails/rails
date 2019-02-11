@@ -108,6 +108,7 @@ module ActiveRecord
           ENV["PGPORT"]     = configuration["port"].to_s     if configuration["port"]
           ENV["PGPASSWORD"] = configuration["password"].to_s if configuration["password"]
           ENV["PGUSER"]     = configuration["username"].to_s if configuration["username"]
+          ENV["PSQL_PAGER"] = ""
         end
 
         def run_cmd(cmd, args, action)
