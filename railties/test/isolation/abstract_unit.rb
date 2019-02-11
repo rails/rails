@@ -472,21 +472,17 @@ Module.new do
   FileUtils.rm_rf(app_template_path)
   FileUtils.mkdir_p(app_template_path)
 
-  Dir.chdir "#{RAILS_FRAMEWORK_ROOT}/actionview" do
-    `yarn build`
-  end
-
-  `#{Gem.ruby} #{RAILS_FRAMEWORK_ROOT}/railties/exe/rails new #{app_template_path} --skip-bundle --skip-listen --no-rc`
+  `#{Gem.ruby} #{RAILS_FRAMEWORK_ROOT}/railties/exe/rails new #{app_template_path} --skip-bundle --skip-listen --no-rc --skip-webpack-install`
   File.open("#{app_template_path}/config/boot.rb", "w") do |f|
     f.puts "require 'rails/all'"
   end
 
-  Dir.chdir(app_template_path) { `yarn add https://github.com/rails/webpacker.git` } # Use the latest version.
-
-  # Manually install `webpack` as bin symlinks are not created for sub dependencies
-  # in workspaces. See https://github.com/yarnpkg/yarn/issues/4964
-  Dir.chdir(app_template_path) { `yarn add webpack@4.17.1 --tilde` }
-  Dir.chdir(app_template_path) { `yarn add webpack-cli` }
+  assets_path = "#{RAILS_FRAMEWORK_ROOT}/railties/test/isolation/assets"
+  FileUtils.cp("#{assets_path}/package.json", "#{app_template_path}/package.json")
+  FileUtils.cp("#{assets_path}/config/webpacker.yml", "#{app_template_path}/config/webpacker.yml")
+  FileUtils.cp_r("#{assets_path}/config/webpack", "#{app_template_path}/config/webpack")
+  FileUtils.ln_s("#{assets_path}/node_modules", "#{app_template_path}/node_modules")
+  FileUtils.chdir(app_template_path) { `bin/rails webpacker:binstubs` }
 
   # Fake 'Bundler.require' -- we run using the repo's Gemfile, not an
   # app-specific one: we don't want to require every gem that lists.

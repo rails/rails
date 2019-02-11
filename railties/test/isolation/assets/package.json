@@ -1,0 +1,9 @@
+{
+  "name": "dummy",
+  "private": true,
+  "dependencies": {
+    "@rails/ujs": "file:../../../../actionview",
+    "@rails/webpacker": "https://github.com/rails/webpacker.git",
+    "turbolinks": "^5.2.0"
+  }
+}
