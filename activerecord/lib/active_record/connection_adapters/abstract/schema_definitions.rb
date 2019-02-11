@@ -519,6 +519,7 @@ module ActiveRecord
     #     t.json
     #     t.virtual
     #     t.remove
+    #     t.remove_foreign_key
     #     t.remove_references
     #     t.remove_belongs_to
     #     t.remove_index
@@ -690,6 +691,16 @@ module ActiveRecord
       # See {connection.add_foreign_key}[rdoc-ref:SchemaStatements#add_foreign_key]
       def foreign_key(*args)
         @base.add_foreign_key(name, *args)
+      end
+
+      # Removes the given foreign key from the table.
+      #
+      #  t.remove_foreign_key(:authors)
+      #  t.remove_foreign_key(column: :author_id)
+      #
+      # See {connection.remove_foreign_key}[rdoc-ref:SchemaStatements#remove_foreign_key]
+      def remove_foreign_key(*args)
+        @base.remove_foreign_key(name, *args)
       end
 
       # Checks to see if a foreign key exists.

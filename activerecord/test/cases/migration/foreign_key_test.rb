@@ -128,6 +128,17 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
 
           assert_empty @connection.foreign_keys(Astronaut.table_name)
         end
+
+        def test_remove_foreign_key_by_column_in_change_table
+          rocket = Rocket.create!(name: "myrocket")
+          rocket.astronauts << Astronaut.create!
+
+          @connection.change_table Astronaut.table_name do |t|
+            t.remove_foreign_key column: :rocket_id
+          end
+
+          assert_empty @connection.foreign_keys(Astronaut.table_name)
+        end
       end
 
       class ForeignKeyChangeColumnTest < ActiveRecord::TestCase
