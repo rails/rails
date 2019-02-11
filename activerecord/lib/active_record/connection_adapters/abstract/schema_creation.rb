@@ -127,6 +127,9 @@ module ActiveRecord
           end
 
           def foreign_key_in_create(from_table, to_table, options)
+            prefix = ActiveRecord::Base.table_name_prefix
+            suffix = ActiveRecord::Base.table_name_suffix
+            to_table = "#{prefix}#{to_table}#{suffix}"
             options = foreign_key_options(from_table, to_table, options)
             accept ForeignKeyDefinition.new(from_table, to_table, options)
           end

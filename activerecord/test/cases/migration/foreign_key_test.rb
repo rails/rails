@@ -20,9 +20,7 @@ if ActiveRecord::Base.connection.supports_foreign_keys_in_create?
         end
       end
 
-      class ForeignKeyChangeColumnTest < ActiveRecord::TestCase
-        self.use_transactional_tests = false
-
+      module ForeignKeyChangeColumnSharedTest
         class Rocket < ActiveRecord::Base
           has_many :astronauts
         end
@@ -31,24 +29,39 @@ if ActiveRecord::Base.connection.supports_foreign_keys_in_create?
           belongs_to :rocket
         end
 
-        setup do
-          @connection = ActiveRecord::Base.connection
-          @connection.create_table "rockets", force: true do |t|
-            t.string :name
+        class CreateRocketsMigration < ActiveRecord::Migration::Current
+          def up
+            create_table :rockets do |t|
+              t.string :name
+            end
+
+            create_table :astronauts do |t|
+              t.string :name
+              t.references :rocket, foreign_key: true
+            end
           end
 
-          @connection.create_table "astronauts", force: true do |t|
-            t.string :name
-            t.references :rocket, foreign_key: true
+          def down
+            drop_table :astronauts, if_exists: true
+            drop_table :rockets, if_exists: true
           end
+        end
+
+        def setup
+          @connection = ActiveRecord::Base.connection
+          @migration = CreateRocketsMigration.new
+          silence_stream($stdout) { @migration.migrate(:up) }
+          Rocket.reset_table_name
           Rocket.reset_column_information
+          Astronaut.reset_table_name
           Astronaut.reset_column_information
         end
 
-        teardown do
-          @connection.drop_table "astronauts", if_exists: true
-          @connection.drop_table "rockets", if_exists: true
+        def teardown
+          silence_stream($stdout) { @migration.migrate(:down) }
+          Rocket.reset_table_name
           Rocket.reset_column_information
+          Astronaut.reset_table_name
           Astronaut.reset_column_information
         end
 
@@ -56,46 +69,89 @@ if ActiveRecord::Base.connection.supports_foreign_keys_in_create?
           rocket = Rocket.create!(name: "myrocket")
           rocket.astronauts << Astronaut.create!
 
-          @connection.change_column_null :rockets, :name, false
+          @connection.change_column_null Rocket.table_name, :name, false
 
-          foreign_keys = @connection.foreign_keys("astronauts")
+          foreign_keys = @connection.foreign_keys(Astronaut.table_name)
           assert_equal 1, foreign_keys.size
 
           fk = foreign_keys.first
           assert_equal "myrocket", Rocket.first.name
-          assert_equal "astronauts", fk.from_table
-          assert_equal "rockets", fk.to_table
+          assert_equal Astronaut.table_name, fk.from_table
+          assert_equal Rocket.table_name, fk.to_table
         end
 
         def test_rename_column_of_child_table
           rocket = Rocket.create!(name: "myrocket")
           rocket.astronauts << Astronaut.create!
 
-          @connection.rename_column :astronauts, :name, :astronaut_name
+          @connection.rename_column Astronaut.table_name, :name, :astronaut_name
 
-          foreign_keys = @connection.foreign_keys("astronauts")
+          foreign_keys = @connection.foreign_keys(Astronaut.table_name)
           assert_equal 1, foreign_keys.size
 
           fk = foreign_keys.first
           assert_equal "myrocket", Rocket.first.name
-          assert_equal "astronauts", fk.from_table
-          assert_equal "rockets", fk.to_table
+          assert_equal Astronaut.table_name, fk.from_table
+          assert_equal Rocket.table_name, fk.to_table
         end
 
         def test_rename_reference_column_of_child_table
           rocket = Rocket.create!(name: "myrocket")
           rocket.astronauts << Astronaut.create!
 
-          @connection.rename_column :astronauts, :rocket_id, :new_rocket_id
+          @connection.rename_column Astronaut.table_name, :rocket_id, :new_rocket_id
 
-          foreign_keys = @connection.foreign_keys("astronauts")
+          foreign_keys = @connection.foreign_keys(Astronaut.table_name)
           assert_equal 1, foreign_keys.size
 
           fk = foreign_keys.first
           assert_equal "myrocket", Rocket.first.name
-          assert_equal "astronauts", fk.from_table
-          assert_equal "rockets", fk.to_table
+          assert_equal Astronaut.table_name, fk.from_table
+          assert_equal Rocket.table_name, fk.to_table
           assert_equal "new_rocket_id", fk.options[:column]
+        end
+
+        def test_remove_reference_column_of_child_table
+          rocket = Rocket.create!(name: "myrocket")
+          rocket.astronauts << Astronaut.create!
+
+          @connection.remove_column Astronaut.table_name, :rocket_id
+
+          assert_empty @connection.foreign_keys(Astronaut.table_name)
+        end
+      end
+
+      class ForeignKeyChangeColumnTest < ActiveRecord::TestCase
+        include ForeignKeyChangeColumnSharedTest
+
+        self.use_transactional_tests = false
+      end
+
+      class ForeignKeyChangeColumnWithPrefixTest < ActiveRecord::TestCase
+        include ForeignKeyChangeColumnSharedTest
+
+        self.use_transactional_tests = false
+
+        setup do
+          ActiveRecord::Base.table_name_prefix = "p_"
+        end
+
+        teardown do
+          ActiveRecord::Base.table_name_prefix = nil
+        end
+      end
+
+      class ForeignKeyChangeColumnWithSuffixTest < ActiveRecord::TestCase
+        include ForeignKeyChangeColumnSharedTest
+
+        self.use_transactional_tests = false
+
+        setup do
+          ActiveRecord::Base.table_name_suffix = "_p"
+        end
+
+        teardown do
+          ActiveRecord::Base.table_name_suffix = nil
         end
       end
     end

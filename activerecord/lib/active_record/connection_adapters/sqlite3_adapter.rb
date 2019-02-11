@@ -320,6 +320,9 @@ module ActiveRecord
       def remove_column(table_name, column_name, type = nil, options = {}) #:nodoc:
         alter_table(table_name) do |definition|
           definition.remove_column column_name
+          definition.foreign_keys.delete_if do |_, fk_options|
+            fk_options[:column] == column_name.to_s
+          end
         end
       end
 
@@ -431,7 +434,8 @@ module ActiveRecord
               if column = rename[fk.options[:column]]
                 fk.options[:column] = column
               end
-              definition.foreign_key(fk.to_table, fk.options)
+              to_table = strip_table_name_prefix_and_suffix(fk.to_table)
+              definition.foreign_key(to_table, fk.options)
             end
 
             yield definition if block_given?
