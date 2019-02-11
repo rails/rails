@@ -335,6 +335,7 @@ module ActiveRecord
       def supports_foreign_keys_in_create?
         supports_foreign_keys?
       end
+      deprecate :supports_foreign_keys_in_create?
 
       # Does this adapter support views?
       def supports_views?
