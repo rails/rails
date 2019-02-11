@@ -30,6 +30,12 @@ module RenderTestCases
     assert_equal ORIGINAL_LOCALES, I18n.available_locales.map(&:to_s).sort
   end
 
+  def test_implicit_format_comes_from_parent_template
+    rendered_templates = JSON.parse(@controller_view.render(template: "test/mixing_formats"))
+    assert_equal({ "format" => "HTML",
+                   "children" => ["XML", "HTML"]}, rendered_templates)
+  end
+
   def test_render_without_options
     e = assert_raises(ArgumentError) { @view.render() }
     assert_match(/You invoked render but did not give any of (.+) option\./, e.message)
