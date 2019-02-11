@@ -1,3 +1,8 @@
+*   Fix non-symbol access to nested hashes returned from `Rails::Application.config_for`
+    being broken by allowing non-symbol access with a deprecation notice.
+
+    *Ufuk Kayserilioglu*
+
 *   Fix deeply nested namespace command printing.
 
     *Gannon McGibbon*

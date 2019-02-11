@@ -7,6 +7,7 @@ require "active_support/key_generator"
 require "active_support/message_verifier"
 require "active_support/encrypted_configuration"
 require "active_support/deprecation"
+require "active_support/hash_with_indifferent_access"
 require "rails/engine"
 require "rails/secrets"
 
@@ -230,8 +231,8 @@ module Rails
         config = YAML.load(ERB.new(yaml.read).result) || {}
         config = (config["shared"] || {}).merge(config[env] || {})
 
-        ActiveSupport::OrderedOptions.new.tap do |config_as_ordered_options|
-          config_as_ordered_options.update(config.deep_symbolize_keys)
+        ActiveSupport::OrderedOptions.new.tap do |options|
+          options.update(NonSymbolAccessDeprecatedHash.new(config))
         end
       else
         raise "Could not load configuration. No such file - #{yaml}"
@@ -589,6 +590,39 @@ module Rails
 
       def build_middleware
         config.app_middleware + super
+      end
+
+      class NonSymbolAccessDeprecatedHash < HashWithIndifferentAccess # :nodoc:
+        def initialize(value = nil)
+          if value.is_a?(Hash)
+            value.each_pair { |k, v| self[k] = v }
+          else
+            super
+          end
+        end
+
+        def []=(key, value)
+          if value.is_a?(Hash)
+            value = self.class.new(value)
+          end
+          super(key.to_sym, value)
+        end
+
+        private
+
+          def convert_key(key)
+            unless key.kind_of?(Symbol)
+              ActiveSupport::Deprecation.warn(<<~MESSAGE.squish)
+                Accessing hashes returned from config_for by non-symbol keys
+                is deprecated and will be removed in Rails 6.1.
+                Use symbols for access instead.
+              MESSAGE
+
+              key = key.to_sym
+            end
+
+            key
+          end
       end
   end
 end
