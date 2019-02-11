@@ -1,5 +1,5 @@
 {"format":"HTML", "children":
 [
-  "<%= render(partial: "first", formats: :xml).chomp %>",
-  "<%= render(partial: "second").chomp %>"
+  <%= render(partial: "first", formats: :xml).chomp.html_safe %>,
+  <%= render(partial: "second").chomp.html_safe %>
 ]}
