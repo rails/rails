@@ -548,21 +548,21 @@ module ActiveRecord
               # The hard limit is 1GB, because of a 32-bit size field, and TOAST.
               case limit
               when nil, 0..0x3fffffff; super(type)
-              else raise ActiveRecordError, "No binary type has byte size #{limit}. The limit on binary can be at most 1GB - 1byte."
+              else raise ArgumentError, "No binary type has byte size #{limit}. The limit on binary can be at most 1GB - 1byte."
               end
             when "text"
               # PostgreSQL doesn't support limits on text columns.
               # The hard limit is 1GB, according to section 8.3 in the manual.
               case limit
               when nil, 0..0x3fffffff; super(type)
-              else raise ActiveRecordError, "No text type has byte size #{limit}. The limit on text can be at most 1GB - 1byte."
+              else raise ArgumentError, "No text type has byte size #{limit}. The limit on text can be at most 1GB - 1byte."
               end
             when "integer"
               case limit
               when 1, 2; "smallint"
               when nil, 3, 4; "integer"
               when 5..8; "bigint"
-              else raise(ActiveRecordError, "No integer type has byte size #{limit}. Use a numeric with scale 0 instead.")
+              else raise ArgumentError, "No integer type has byte size #{limit}. Use a numeric with scale 0 instead."
               end
             else
               super

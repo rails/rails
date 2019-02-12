@@ -1,3 +1,25 @@
+*   Raise `ArgumentError` for invalid `:limit` and `:precision` like as other options.
+
+    Before:
+
+    ```ruby
+    add_column :items, :attr1, :binary,   size: 10      # => ArgumentError
+    add_column :items, :attr2, :decimal,  scale: 10     # => ArgumentError
+    add_column :items, :attr3, :integer,  limit: 10     # => ActiveRecordError
+    add_column :items, :attr4, :datetime, precision: 10 # => ActiveRecordError
+    ```
+
+    After:
+
+    ```ruby
+    add_column :items, :attr1, :binary,   size: 10      # => ArgumentError
+    add_column :items, :attr2, :decimal,  scale: 10     # => ArgumentError
+    add_column :items, :attr3, :integer,  limit: 10     # => ArgumentError
+    add_column :items, :attr4, :datetime, precision: 10 # => ArgumentError
+    ```
+
+    *Ryuta Kamizono*
+
 *   Association loading isn't to be affected by scoping consistently
     whether preloaded / eager loaded or not, with the exception of `unscoped`.
 
