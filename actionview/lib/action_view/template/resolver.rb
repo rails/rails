@@ -375,18 +375,16 @@ module ActionView
         return [] if candidates.empty?
 
         regex = build_regex(path, details)
-        candidates.uniq.reject do |filename|
-          # This regex match does double duty of finding only files which match
-          # details (instead of just matching the prefix) and also filtering for
-          # case-insensitive file systems.
-          !regex.match?(filename) ||
-            File.directory?(filename)
-        end.sort_by do |filename|
+        candidates.uniq.map do |filename|
+          match = regex.match(filename)
+          [filename, match]
+        end.reject do |(filename, match)|
+          !match || File.directory?(filename)
+        end.sort_by do |(filename, match)|
           # Because we scanned the directory, instead of checking for files
           # one-by-one, they will be returned in an arbitrary order.
           # We can use the matches found by the regex and sort by their index in
           # details.
-          match = filename.match(regex)
           EXTENSIONS.keys.reverse.map do |ext|
             if ext == :variants && details[ext] == :any
               match[ext].nil? ? 0 : 1
@@ -398,7 +396,7 @@ module ActionView
               details[ext].index(found)
             end
           end
-        end
+        end.map(&:first)
       end
 
       def build_regex(path, details)
