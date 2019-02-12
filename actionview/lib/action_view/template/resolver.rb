@@ -369,14 +369,19 @@ module ActionView
       def find_template_paths_from_details(path, details)
         # Instead of checking for every possible path, as our other globs would,
         # scan the directory for files with the right prefix.
-        query = "#{escape_entry(File.join(@path, path))}*"
+        basename = File.join(@path, path)
+        query = "#{escape_entry(basename)}*"
         candidates = Dir[query]
 
         return [] if candidates.empty?
 
-        regex = build_regex(path, details)
-        candidates.uniq.map do |filename|
-          match = regex.match(filename)
+        regex = build_regex(details)
+        candidates.uniq.select do |filename|
+          # Reject mismatches from case-insensitive filesystems
+          filename.starts_with?(basename)
+        end.map do |filename|
+          details_part = filename[basename.length, filename.length]
+          match = regex.match(details_part)
           [filename, match]
         end.reject do |(filename, match)|
           !match || File.directory?(filename)
@@ -399,8 +404,7 @@ module ActionView
         end.map(&:first)
       end
 
-      def build_regex(path, details)
-        query = Regexp.escape(File.join(@path, path))
+      def build_regex(details)
         exts = EXTENSIONS.map do |ext, prefix|
           match =
             if ext == :variants && details[ext] == :any
@@ -412,7 +416,7 @@ module ActionView
           "(#{prefix}(?<#{ext}>#{match}))?"
         end.join
 
-        %r{\A#{query}#{exts}\z}
+        %r{\A#{exts}\z}
       end
   end
 
