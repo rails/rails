@@ -62,9 +62,9 @@ class JobSerializationTest < ActiveSupport::TestCase
     end
   end
 
-  test "serialize stores the enqueded_at time" do
+  test "serialize stores the enqueued_at time" do
     job = HelloJob.new
-    type = job.serialize["enqueded_at"].class
+    type = job.serialize["enqueued_at"].class
     assert_equal Time, type
   end
 end
