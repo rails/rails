@@ -172,7 +172,9 @@ module ActiveRecord
       #
       # See destroy for more info.
       def destroy_all
-        destroy(load_target).tap do
+        @target = merge_target_lists(find_target, target) if find_target?
+
+        destroy(target).tap do
           reset
           loaded!
         end
@@ -209,7 +211,7 @@ module ActiveRecord
       # This method is abstract in the sense that it relies on
       # +count_records+, which is a method descendants have to provide.
       def size
-        if !find_target?
+        if !find_target? && !counter_cache_value&.zero?
           loaded! unless loaded?
           target.size
         elsif @association_ids
@@ -271,7 +273,7 @@ module ActiveRecord
       end
 
       def load_target
-        if find_target?
+        if find_target? && !counter_cache_value&.zero?
           @target = merge_target_lists(find_target, target)
         end
 
@@ -493,6 +495,10 @@ module ActiveRecord
           else
             load_target.select { |r| ids.include?(r.id.to_s) }
           end
+        end
+
+        def counter_cache_value
+          reflection.has_cached_counter? ? owner._read_attribute(reflection.counter_cache_column).to_i : nil
         end
     end
   end

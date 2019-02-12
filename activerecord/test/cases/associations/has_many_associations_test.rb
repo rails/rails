@@ -1755,6 +1755,14 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_nil posts.first
   end
 
+  def test_destroy_all_on_desynced_counter_cache_association
+    category = categories(:general)
+    assert_operator category.categorizations.count, :>, 0
+
+    category.categorizations.destroy_all
+    assert_equal 0, category.categorizations.count
+  end
+
   def test_destroy_on_association_clears_scope
     author = Author.create!(name: "Gannon")
     posts = author.posts
@@ -2021,7 +2029,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_zero_counter_cache_usage_on_unloaded_association
     car = Car.create!(name: "My AppliCar")
-    assert_no_queries do
+    assert_no_queries(ignore_none: false) do
       assert_equal car.engines.size, 0
       assert_predicate car.engines, :loaded?
     end

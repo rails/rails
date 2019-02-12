@@ -62,14 +62,6 @@ module ActiveRecord
           [association_scope.limit_value, count].compact.min
         end
 
-        def counter_cache_value
-          reflection.has_cached_counter? ? owner._read_attribute(reflection.counter_cache_column).to_i : nil
-        end
-
-        def find_target?
-          super && !counter_cache_value&.zero?
-        end
-
         def update_counter(difference, reflection = reflection())
           if reflection.has_cached_counter?
             owner.increment!(reflection.counter_cache_column, difference)
