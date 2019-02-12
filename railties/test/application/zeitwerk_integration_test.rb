@@ -36,7 +36,7 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
   end
 
   test "ActiveSupport::Dependencies is not decorated in classic mode" do
-    add_to_config 'config.autoloader = :classic'
+    add_to_config "config.autoloader = :classic"
     boot
 
     assert_not decorated?
@@ -104,7 +104,7 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
   end
 
   test "eager loading loads anything managed by Zeitwerk" do
-    $zeitwerk_integration_test_user  = false
+    $zeitwerk_integration_test_user = false
     app_file "app/models/user.rb", "class User; end; $zeitwerk_integration_test_user = true"
 
     $zeitwerk_integration_test_extras = false
@@ -136,7 +136,7 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
     )
     boot
 
-    refute_includes Rails.autoloader.dirs, "#{app_path}/extras"
+    assert_not_includes Rails.autoloader.dirs, "#{app_path}/extras"
     assert_includes Rails.once_autoloader.dirs, "#{app_path}/extras"
   end
 
