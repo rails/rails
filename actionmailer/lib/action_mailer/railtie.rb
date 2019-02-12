@@ -59,6 +59,14 @@ module ActionMailer
       end
     end
 
+    initializer "action_mailer.set_autoload_paths" do |app|
+      options = app.config.action_mailer
+
+      if options.show_previews && options.preview_path
+        ActiveSupport::Dependencies.autoload_paths << options.preview_path
+      end
+    end
+
     initializer "action_mailer.compile_config_methods" do
       ActiveSupport.on_load(:action_mailer) do
         config.compile_methods! if config.respond_to?(:compile_methods!)
@@ -76,12 +84,8 @@ module ActionMailer
 
       if options.show_previews
         app.routes.prepend do
-          get "/rails/mailers"         => "rails/mailers#index", internal: true
-          get "/rails/mailers/*path"   => "rails/mailers#preview", internal: true
-        end
-
-        if options.preview_path
-          ActiveSupport::Dependencies.autoload_paths << options.preview_path
+          get "/rails/mailers"       => "rails/mailers#index", internal: true
+          get "/rails/mailers/*path" => "rails/mailers#preview", internal: true
         end
       end
     end

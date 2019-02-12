@@ -20,7 +20,7 @@ module Rails
                     :read_encrypted_secrets, :log_level, :content_security_policy_report_only,
                     :content_security_policy_nonce_generator, :require_master_key, :credentials
 
-      attr_reader :encoding, :api_only, :loaded_config_version
+      attr_reader :encoding, :api_only, :loaded_config_version, :autoloader
 
       def initialize(*)
         super
@@ -64,6 +64,7 @@ module Rails
         @credentials                             = ActiveSupport::OrderedOptions.new
         @credentials.content_path                = default_credentials_content_path
         @credentials.key_path                    = default_credentials_key_path
+        @autoloader                              = :classic
       end
 
       def load_defaults(target_version)
@@ -116,6 +117,8 @@ module Rails
           end
         when "6.0"
           load_defaults "5.2"
+
+          self.autoloader = :zeitwerk if RUBY_ENGINE == "ruby"
 
           if respond_to?(:action_view)
             action_view.default_enforce_utf8 = false
@@ -264,6 +267,14 @@ module Rails
           @content_security_policy = ActionDispatch::ContentSecurityPolicy.new(&block)
         else
           @content_security_policy
+        end
+      end
+
+      def autoloader=(autoloader)
+        if %i(classic zeitwerk).include?(autoloader)
+          @autoloader = autoloader
+        else
+          raise ArgumentError, "config.autoloader may be :classic or :zeitwerk, got #{autoloader.inspect} instead"
         end
       end
 
