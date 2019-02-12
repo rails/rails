@@ -101,7 +101,7 @@ module ActiveJob
         "exception_executions" => exception_executions,
         "locale"     => I18n.locale.to_s,
         "timezone"   => Time.zone.try(:name),
-        "enqueued_at" => Time.now
+        "enqueued_at" => Time.now.utc
       }
     end
 
@@ -145,7 +145,7 @@ module ActiveJob
     end
 
     def enqueded_for
-      Time.now - enqueued_at
+      Time.now.utc - enqueued_at
     end
 
     private
