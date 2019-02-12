@@ -70,7 +70,7 @@ module ActiveJob
         def perform_start(event)
           info do
             job = event.payload[:job]
-            "Performing #{job.class.name} (Job ID: #{job.job_id}) from #{queue_name(event)}" + args_info(job) + "added to queue at #{job.enqueued_at}"
+            "Performing #{job.class.name} (Job ID: #{job.job_id}) from #{queue_name(event)}" + args_info(job) + "enqueued at #{job.enqueued_at}"
           end
         end
 

@@ -116,7 +116,7 @@ class LoggingTest < ActiveSupport::TestCase
       LoggingJob.perform_later "Dummy"
       assert_match(/Performing LoggingJob \(Job ID: .*?\) from .*? with arguments:.*Dummy/, @logger.messages)
 
-      assert_match(/added to queue at /, @logger.messages)
+      assert_match(/enqueued at /, @logger.messages)
       assert_match(/Dummy, here is it: Dummy/, @logger.messages)
       assert_match(/Performed LoggingJob \(Job ID: .*?\) from .*? in .*ms/, @logger.messages)
     end
