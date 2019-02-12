@@ -153,6 +153,15 @@ module ActiveSupport
   #
   #   ActiveSupport::Notifications.unsubscribe("render")
   #
+  # Subscribers using a regexp or other pattern-matching object will remain subscribed
+  # to all events that match their original pattern, unless those events match a string
+  # passed to `unsubscribe`:
+  #
+  #   subscriber = ActiveSupport::Notifications.subscribe(/render/) { }
+  #   ActiveSupport::Notifications.unsubscribe('render_template.action_view')
+  #   subscriber.matches?('render_template.action_view') # => false
+  #   subscriber.matches?('render_partial.action_view') # => true
+  #
   # == Default Queue
   #
   # Notifications ships with a queue implementation that consumes and publishes events

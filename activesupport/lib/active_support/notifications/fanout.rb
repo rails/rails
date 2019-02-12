@@ -2,6 +2,7 @@
 
 require "mutex_m"
 require "concurrent/map"
+require "set"
 
 module ActiveSupport
   module Notifications
@@ -39,6 +40,7 @@ module ActiveSupport
           when String
             @string_subscribers[subscriber_or_name].clear
             @listeners_for.delete(subscriber_or_name)
+            @other_subscribers.each { |sub| sub.unsubscribe!(subscriber_or_name) }
           else
             pattern = subscriber_or_name.try(:pattern)
             if String === pattern
@@ -113,11 +115,33 @@ module ActiveSupport
           end
         end
 
+        class Matcher #:nodoc:
+          attr_reader :pattern, :exclusions
+
+          def self.wrap(pattern)
+            return pattern if String === pattern
+            new(pattern)
+          end
+
+          def initialize(pattern)
+            @pattern = pattern
+            @exclusions = Set.new
+          end
+
+          def unsubscribe!(name)
+            exclusions << -name if pattern === name
+          end
+
+          def ===(name)
+            pattern === name && !exclusions.include?(name)
+          end
+        end
+
         class Evented #:nodoc:
           attr_reader :pattern
 
           def initialize(pattern, delegate)
-            @pattern = pattern
+            @pattern = Matcher.wrap(pattern)
             @delegate = delegate
             @can_publish = delegate.respond_to?(:publish)
           end
@@ -137,11 +161,15 @@ module ActiveSupport
           end
 
           def subscribed_to?(name)
-            @pattern === name
+            pattern === name
           end
 
           def matches?(name)
-            @pattern && @pattern === name
+            pattern && pattern === name
+          end
+
+          def unsubscribe!(name)
+            pattern.unsubscribe!(name)
           end
         end
 
@@ -202,6 +230,10 @@ module ActiveSupport
 
           def subscribed_to?(name)
             true
+          end
+
+          def unsubscribe!(*)
+            false
           end
 
           alias :matches? :===
