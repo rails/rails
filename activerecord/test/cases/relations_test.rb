@@ -14,6 +14,7 @@ require "models/person"
 require "models/computer"
 require "models/reply"
 require "models/company"
+require "models/contract"
 require "models/bird"
 require "models/car"
 require "models/engine"
@@ -1813,6 +1814,12 @@ class RelationTest < ActiveRecord::TestCase
     posts = Post.joins(:author).select("id", "authors.author_address_id").order("posts.id").limit(3)
     assert_equal [1, 2, 4], posts.map(&:id)
     assert_equal [1, 1, 1], posts.map(&:author_address_id)
+  end
+
+  test "joins with select custom attribute" do
+    contract = Company.create!(name: "test").contracts.create!
+    company = Company.joins(:contracts).select(:id, :metadata).find(contract.company_id)
+    assert_equal contract.metadata, company.metadata
   end
 
   test "delegations do not leak to other classes" do

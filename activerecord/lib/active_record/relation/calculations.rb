@@ -186,11 +186,9 @@ module ActiveRecord
         relation = apply_join_dependency
         relation.pluck(*column_names)
       else
-        disallow_raw_sql!(column_names)
+        klass.disallow_raw_sql!(column_names)
         relation = spawn
-        relation.select_values = column_names.map { |cn|
-          @klass.has_attribute?(cn) || @klass.attribute_alias?(cn) ? arel_attribute(cn) : cn
-        }
+        relation.select_values = column_names
         result = skip_query_cache_if_necessary { klass.connection.select_all(relation.arel, nil) }
         result.cast_values(klass.attribute_types)
       end

@@ -247,6 +247,7 @@ ActiveRecord::Schema.define do
   create_table :contracts, force: true do |t|
     t.references :developer, index: false
     t.references :company, index: false
+    t.string :metadata
   end
 
   create_table :customers, force: true do |t|
