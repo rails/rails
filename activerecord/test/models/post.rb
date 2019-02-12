@@ -31,6 +31,7 @@ class Post < ActiveRecord::Base
 
   belongs_to :author_with_posts, -> { includes(:posts) }, class_name: "Author", foreign_key: :author_id
   belongs_to :author_with_address, -> { includes(:author_address) }, class_name: "Author", foreign_key: :author_id
+  belongs_to :author_with_select, -> { select(:id) }, class_name: "Author", foreign_key: :author_id
 
   def first_comment
     super.body
