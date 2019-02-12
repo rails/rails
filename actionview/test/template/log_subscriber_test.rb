@@ -16,8 +16,7 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
     view_paths = ActionController::Base.view_paths
 
     lookup_context = ActionView::LookupContext.new(view_paths, {}, ["test"])
-    renderer       = ActionView::Renderer.new(lookup_context)
-    @view          = ActionView::Base.with_empty_template_cache.new(renderer, {})
+    @view          = ActionView::Base.with_empty_template_cache.new(lookup_context, {})
 
     ActionView::LogSubscriber.attach_to :action_view
 

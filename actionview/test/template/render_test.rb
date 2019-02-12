@@ -20,7 +20,10 @@ module RenderTestCases
 
     controller = TestController.new
 
-    @controller_view = controller.view_context_class.with_empty_template_cache.new(controller.view_renderer, controller.view_assigns, controller)
+    @controller_view = controller.view_context_class.with_empty_template_cache.new(
+      controller.lookup_context,
+      controller.view_assigns,
+      controller)
 
     # Reload and register danish language for testing
     I18n.backend.store_translations "da", {}
@@ -83,7 +86,7 @@ module RenderTestCases
 
   def test_render_partial_use_last_prepended_format_for_partials_with_the_same_names
     @view.lookup_context.formats = [:html]
-    assert_equal "\nHTML Template, but JSON partial", @view.render(template: "test/change_priority")
+    assert_equal "\nHTML Template, but HTML partial", @view.render(template: "test/change_priority")
   end
 
   def test_render_template_with_a_missing_partial_of_another_format

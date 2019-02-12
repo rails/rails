@@ -260,6 +260,13 @@ module ActionView
       @digest_cache ||= DetailsKey.digest_cache(@details)
     end
 
+    def with_prepended_formats(formats)
+      details = @details.dup
+      details[:formats] = formats
+
+      self.class.new(@view_paths, details, @prefixes)
+    end
+
     def initialize_details(target, details)
       registered_details.each do |k|
         target[k] = details[k] || Accessors::DEFAULT_PROCS[k].call

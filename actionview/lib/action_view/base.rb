@@ -196,10 +196,9 @@ module ActionView #:nodoc:
       end
     end
 
-    attr_reader :view_renderer
+    attr_reader :view_renderer, :lookup_context
     attr_internal :config, :assigns
 
-    delegate :lookup_context, to: :view_renderer
     delegate :formats, :formats=, :locale, :locale=, :view_paths, :view_paths=, to: :lookup_context
 
     def assign(new_assigns) # :nodoc:
@@ -208,12 +207,17 @@ module ActionView #:nodoc:
 
     # :stopdoc:
 
-    def self.build_renderer(context, controller, formats)
-      lookup_context = context.is_a?(ActionView::LookupContext) ?
-        context : ActionView::LookupContext.new(context)
-      lookup_context.formats  = formats if formats
-      lookup_context.prefixes = controller._prefixes if controller
-      ActionView::Renderer.new(lookup_context)
+    def self.build_lookup_context(context, controller, formats)
+      case context
+      when ActionView::Renderer
+        context.lookup_context
+      when Array
+        ActionView::LookupContext.new(context)
+      when nil
+        ActionView::LookupContext.new([])
+      else
+        raise NotImplementedError, context.class.name
+      end
     end
 
     def self.empty
@@ -225,14 +229,14 @@ module ActionView #:nodoc:
     end
 
     def self.with_context(context, assigns = {}, controller = nil)
-      new ActionView::Renderer.new(context), assigns, controller
+      new context, assigns, controller
     end
 
     NULL = Object.new
 
     # :startdoc:
 
-    def initialize(renderer = nil, assigns = {}, controller = nil, formats = NULL) #:nodoc:
+    def initialize(lookup_context = nil, assigns = {}, controller = nil, formats = NULL) #:nodoc:
       @_config = ActiveSupport::InheritableOptions.new
 
       if formats == NULL
@@ -243,15 +247,18 @@ module ActionView #:nodoc:
         eowarn
       end
 
-      if renderer.is_a?(ActionView::Renderer)
-        @view_renderer = renderer
+      case lookup_context
+      when ActionView::LookupContext
+        @lookup_context = lookup_context
       else
         ActiveSupport::Deprecation.warn <<~eowarn
-        ActionView::Base instances should be constructed with a view renderer,
+        ActionView::Base instances should be constructed with a lookup context,
         assigments, and a controller.
         eowarn
-        @view_renderer = self.class.build_renderer(renderer, controller, formats)
+        @lookup_context = self.class.build_lookup_context(lookup_context, controller, formats)
       end
+
+      @view_renderer = ActionView::Renderer.new @lookup_context
 
       @cache_hit = {}
       assign(assigns)
@@ -273,6 +280,25 @@ module ActionView #:nodoc:
         or use the class method `with_empty_template_cache` for constructing
         an ActionView::Base subclass that has an empty cache.
       msg
+    end
+
+    def in_context(options, locals)
+      old_view_renderer  = @view_renderer
+      old_lookup_context = @lookup_context
+
+      if !lookup_context.html_fallback_for_js && options[:formats]
+        formats = Array(options[:formats])
+        if formats == [:js]
+          formats << :html
+        end
+        @lookup_context = lookup_context.with_prepended_formats(formats)
+        @view_renderer = ActionView::Renderer.new @lookup_context
+      end
+
+      yield @view_renderer
+    ensure
+      @view_renderer = old_view_renderer
+      @lookup_context = old_lookup_context
     end
 
     ActiveSupport.run_load_hooks(:action_view, self)

@@ -82,7 +82,7 @@ module ActionView
     #
     # Override this method in a module to change the default behavior.
     def view_context
-      view_context_class.new(view_renderer, view_assigns, self)
+      view_context_class.new(lookup_context, view_assigns, self)
     end
 
     # Returns an object that is able to render templates.
@@ -112,7 +112,7 @@ module ActionView
         lookup_context.rendered_format = nil if options[:formats]
         lookup_context.variants = variant if variant
 
-        view_renderer.render(context, options)
+        context.view_renderer.render(context, options)
       end
 
       # Assign the rendered format to look up context.
