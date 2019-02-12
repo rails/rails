@@ -335,7 +335,7 @@ module ActionDispatch
         klass = APP_SESSIONS[app] ||= Class.new(Integration::Session) {
           # If the app is a Rails app, make url_helpers available on the session.
           # This makes app.url_for and app.foo_path available in the console.
-          if app.respond_to?(:routes)
+          if app.respond_to?(:routes) && app.routes.is_a?(ActionDispatch::Routing::RouteSet)
             include app.routes.url_helpers
             include app.routes.mounted_helpers
           end
