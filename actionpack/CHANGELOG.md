@@ -1,3 +1,18 @@
+*   Raise an `ArgumentError` if a resource custom param contains a colon (`:`).
+
+    After this change it's not possible anymore to configure routes like this:
+
+    ```
+    routes.draw do
+      resources :users, param: 'name/:sneaky'
+    end
+    ```
+
+    Fixes #30467.
+
+    *Josua Schmid*
+
+
 ## Rails 6.0.0.beta3 (March 11, 2019) ##
 
 *   No changes.
