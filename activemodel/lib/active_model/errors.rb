@@ -593,4 +593,29 @@ module ActiveModel
       super("unknown attribute '#{attribute}' for #{@record.class}.")
     end
   end
+
+  # Raised when an error occurred while doing a mass assignment to an attribute through the
+  # {ActiveModel#attributes=}[rdoc-ref:AttributeAssignment#attributes=] method.
+  # The exception has an +attribute+ property that is the name of the offending attribute.
+  class AttributeAssignmentError < NoMethodError
+    attr_reader :exception, :attribute
+
+    def initialize(message = nil, exception = nil, attribute = nil)
+      super(message)
+      @exception = exception
+      @attribute = attribute
+    end
+  end
+
+  # Raised when there are multiple errors while doing a mass assignment through the
+  # ActiveModel#attributes=}[rdoc-ref:AttributeAssignment#attributes=]
+  # method. The exception has an +errors+ property that contains an array of AttributeAssignmentError
+  # objects, each corresponding to the error while assigning to an attribute.
+  class MultiparameterAssignmentErrors < NoMethodError
+    attr_reader :errors
+
+    def initialize(errors = nil)
+      @errors = errors
+    end
+  end
 end

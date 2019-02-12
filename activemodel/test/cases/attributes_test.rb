@@ -93,5 +93,35 @@ module ActiveModel
 
       assert_equal attributes, new_attributes
     end
+
+    test "multi parameter dates assignment" do
+      valid_dates = [[2007, 11, 30], [1993, 2, 28], [2008, 2, 29]]
+
+      invalid_dates = [[2007, 11, 31], [1993, 2, 29], [2007, 2, 29]]
+
+      valid_dates.each do |date_src|
+        model = ModelForAttributesTest.new(
+          "date_field(1i)" => date_src[0].to_s,
+          "date_field(2i)" => date_src[1].to_s,
+          "date_field(3i)" => date_src[2].to_s
+        )
+        assert_equal(model.date_field, Date.new(*date_src))
+      end
+
+      invalid_dates.each do |date_src|
+        assert_nothing_raised do
+          model = ModelForAttributesTest.new(
+            "date_field(1i)" => date_src[0].to_s,
+            "date_field(2i)" => date_src[1].to_s,
+            "date_field(3i)" => date_src[2].to_s
+          )
+          assert_equal(
+            model.date_field,
+            Time.local(*date_src).to_date,
+            "The date should be modified according to the behavior of the Time object"
+          )
+        end
+      end
+    end
   end
 end
