@@ -40,6 +40,9 @@ module ActiveJob
     # Timezone to be used during the job.
     attr_accessor :timezone
 
+    # Track when a job was enqueded
+    attr_accessor :enqueded_at
+
     # These methods will be included into any Active Job object, adding
     # helpers for de/serialization and creation of job instances.
     module ClassMethods
@@ -97,7 +100,8 @@ module ActiveJob
         "executions" => executions,
         "exception_executions" => exception_executions,
         "locale"     => I18n.locale.to_s,
-        "timezone"   => Time.zone.try(:name)
+        "timezone"   => Time.zone.try(:name),
+        "enqueded_at"=> Time.now
       }
     end
 
@@ -137,6 +141,11 @@ module ActiveJob
       self.exception_executions = job_data["exception_executions"]
       self.locale               = job_data["locale"] || I18n.locale.to_s
       self.timezone             = job_data["timezone"] || Time.zone.try(:name)
+      self.enqueded_at          = job_data["enqueded_at"]
+    end
+
+    def enqueded_for
+      Time.now - enqueded_at
     end
 
     private

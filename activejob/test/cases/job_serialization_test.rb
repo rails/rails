@@ -61,4 +61,10 @@ class JobSerializationTest < ActiveSupport::TestCase
       assert_equal "Hawaii", job.serialize["timezone"]
     end
   end
+
+  test "serialize stores the enqueded_at time" do
+    job = HelloJob.new
+    type = job.serialize["enqueded_at"].class
+    assert_equal Time, type
+  end
 end
