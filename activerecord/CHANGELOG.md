@@ -4,12 +4,6 @@
 
     *Ryuta Kamizono*
 
-*   Chaining named scope is no longer leaking to class level querying methods.
-
-    Fixes #14003.
-
-    *Ryuta Kamizono*
-
 *   Allow applications to automatically switch connections.
 
     Adds a middleware and configuration options that can be used in your
