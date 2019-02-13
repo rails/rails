@@ -239,9 +239,7 @@ module ActionView #:nodoc:
     def initialize(lookup_context = nil, assigns = {}, controller = nil, formats = NULL) #:nodoc:
       @_config = ActiveSupport::InheritableOptions.new
 
-      if formats == NULL
-        formats = nil
-      else
+      unless formats == NULL
         ActiveSupport::Deprecation.warn <<~eowarn
         Passing formats to ActionView::Base.new is deprecated
         eowarn
