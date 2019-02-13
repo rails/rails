@@ -65,11 +65,42 @@ end
       task adapter => "#{adapter}:env" do
         adapter_short = adapter == "db2" ? adapter : adapter[/^[a-z0-9]+/]
         puts [adapter, adapter_short].inspect
-        (Dir["test/cases/**/*_test.rb"].reject {
+
+        failing_files = []
+
+        test_files = (Dir["test/cases/**/*_test.rb"].reject {
           |x| x.include?("/adapters/")
-        } + Dir["test/cases/adapters/#{adapter_short}/**/*_test.rb"]).all? do |file|
-          sh(Gem.ruby, "-w", "-Itest", file)
-        end || raise("Failures")
+        } + Dir["test/cases/adapters/#{adapter_short}/**/*_test.rb"]).sort
+
+        if ENV["BUILDKITE_PARALLEL_JOB_COUNT"]
+          n = ENV["BUILDKITE_PARALLEL_JOB"].to_i
+          m = ENV["BUILDKITE_PARALLEL_JOB_COUNT"].to_i
+
+          test_files = test_files.each_slice(m).map { |slice| slice[n] }.compact
+        end
+
+        test_files.each do |file|
+          puts "--- #{file}"
+          success = sh(Gem.ruby, "-w", "-Itest", file)
+          unless success
+            failing_files << file
+            puts "^^^ +++"
+          end
+          puts
+        end
+
+        puts "--- All tests completed"
+        unless failing_files.empty?
+          puts "^^^ +++"
+          puts
+          puts "Failed in:"
+          failing_files.each do |file|
+            puts "  #{file}"
+          end
+          puts
+
+          exit 1
+        end
       end
     end
   end
