@@ -602,10 +602,7 @@ module Rails
         end
 
         def []=(key, value)
-          if value.is_a?(Hash)
-            value = self.class.new(value)
-          end
-          super(key.to_sym, value)
+          regular_writer(key.to_sym, convert_value(value, for: :assignment))
         end
 
         private
@@ -622,6 +619,23 @@ module Rails
             end
 
             key
+          end
+
+          def convert_value(value, options = {}) # :doc:
+            if value.is_a? Hash
+              if options[:for] == :to_hash
+                value.to_hash
+              else
+                self.class.new(value)
+              end
+            elsif value.is_a?(Array)
+              if options[:for] != :assignment || value.frozen?
+                value = value.dup
+              end
+              value.map! { |e| convert_value(e, options) }
+            else
+              value
+            end
           end
       end
   end

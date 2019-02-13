@@ -1,3 +1,8 @@
+*   Fix `Rails.application.config_for` returning a HWIA when Hash were
+    inside Array.
+
+    *Edouard Chin*
+
 *   Fix non-symbol access to nested hashes returned from `Rails::Application.config_for`
     being broken by allowing non-symbol access with a deprecation notice.
 
