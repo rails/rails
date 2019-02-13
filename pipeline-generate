@@ -7,10 +7,12 @@ require "net/http"
 
 IMAGE_BASE = "973266071021.dkr.ecr.us-east-1.amazonaws.com/builds"
 
-BRANCH = ([ENV["BUILDKITE_PULL_REQUEST_BASE_BRANCH"], ENV["BUILDKITE_BRANCH"], "master"] - [""]).first
+BASE_BRANCH = ([ENV["BUILDKITE_PULL_REQUEST_BASE_BRANCH"], ENV["BUILDKITE_BRANCH"], "master"] - [""]).first
+LOCAL_BRANCH = ([ENV["BUILDKITE_BRANCH"], "master"] - [""]).first
 PULL_REQUEST = ([ENV["BUILDKITE_PULL_REQUEST"]] - ["false"]).first
 
 BUILD_ID = ENV["BUILDKITE_BUILD_ID"]
+REBUILD_ID = ([ENV["BUILDKITE_REBUILT_FROM_BUILD_ID"]] - [""]).first
 
 DOCKER_COMPOSE_PLUGIN = "matthewd/docker-compose#master"
 ARTIFACTS_PLUGIN = "artifacts#v1.2.0"
@@ -125,8 +127,7 @@ end
 ).each_slice(3) do |dir, task, service|
   steps_for(dir, task, service: service)
 
-  next if PULL_REQUEST
-  next if BRANCH != "master" && BRANCH !~ /\A[0-9-]+(?:-stable)?\z/
+  next if LOCAL_BRANCH != "master" && LOCAL_BRANCH !~ /\A[0-9-]+(?:-stable)?\z/
 
   if task.match?(/:test/)
     step_for(dir, task.sub(":test", ":isolated_test"), service: service)
@@ -197,16 +198,16 @@ puts YAML.dump("steps" => [
                 "config" => ".buildkite/docker-compose.yml",
                 "image-name" => image_name_for(ruby, short: true),
                 "cache-from" => [
-                  ENV.fetch("BUILDKITE_REBUILT_FROM_BUILD_ID", "") == "" ? nil :
-                  "base:" + image_name_for(ruby, ENV["BUILDKITE_REBUILT_FROM_BUILD_ID"]),
+                  REBUILD_ID && "base:" + image_name_for(ruby, REBUILD_ID),
                   PULL_REQUEST && "base:" + image_name_for(ruby, "pr-#{PULL_REQUEST}"),
-                  "base:" + image_name_for(ruby, "br-#{BRANCH}"),
-                  BRANCH == "master" ? nil : "base:" + image_name_for(ruby, "br-master"),
-                ].compact,
+                  LOCAL_BRANCH && LOCAL_BRANCH !~ /:/ && "base:" + image_name_for(ruby, "br-#{LOCAL_BRANCH}"),
+                  BASE_BRANCH && "base:" + image_name_for(ruby, "br-#{BASE_BRANCH}"),
+                  "base:" + image_name_for(ruby, "br-master"),
+                ].grep(String).uniq,
                 "push" => [
-                  PULL_REQUEST ?
+                  LOCAL_BRANCH =~ /:/ ?
                   "base:" + image_name_for(ruby, "pr-#{PULL_REQUEST}") :
-                  "base:" + image_name_for(ruby, "br-#{BRANCH}"),
+                  "base:" + image_name_for(ruby, "br-#{LOCAL_BRANCH}"),
                 ],
                 "image-repository" => IMAGE_BASE,
               },

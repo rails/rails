@@ -5,11 +5,13 @@ steps:
   - name: ":pipeline:"
     command: |
       PATH=/bin:/usr/bin
+      set -e
       treesha="$$(git ls-tree -d HEAD .buildkite | awk '{print $$3}')"
       if [ -z "$${treesha}" ]; then
         echo "+++ No .buildkite/; using fallback repository"
         rm -rf .buildkite
         git clone "https://github.com/rails/buildkite-config" .buildkite
+        rm -rf .buildkite/.git
         sh -c "$$PIPELINE_COMMAND"
       elif [ "$${#treesha}" -lt 40 ]; then
         echo "Short SHA for .buildkite/"
