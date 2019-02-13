@@ -207,7 +207,7 @@ module ActionView #:nodoc:
 
     # :stopdoc:
 
-    def self.build_lookup_context(context, controller, formats)
+    def self.build_lookup_context(context)
       case context
       when ActionView::Renderer
         context.lookup_context
@@ -255,7 +255,7 @@ module ActionView #:nodoc:
         ActionView::Base instances should be constructed with a lookup context,
         assigments, and a controller.
         eowarn
-        @lookup_context = self.class.build_lookup_context(lookup_context, controller, formats)
+        @lookup_context = self.class.build_lookup_context(lookup_context)
       end
 
       @view_renderer = ActionView::Renderer.new @lookup_context
