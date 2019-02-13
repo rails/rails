@@ -791,6 +791,9 @@ main application.
 You can set this as nil to not mount Action Cable as part of your
 normal Rails server.
 
+You can find more detailed configuration options in the
+[Action Cable Overview](action_cable_overview.html#configuration).
+
 
 ### Configuring Active Storage
 
