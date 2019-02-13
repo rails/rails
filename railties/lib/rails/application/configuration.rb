@@ -271,7 +271,11 @@ module Rails
       end
 
       def autoloader=(autoloader)
-        if %i(classic zeitwerk).include?(autoloader)
+        case autoloader
+        when :classic
+          @autoloader = autoloader
+        when :zeitwerk
+          require "zeitwerk"
           @autoloader = autoloader
         else
           raise ArgumentError, "config.autoloader may be :classic or :zeitwerk, got #{autoloader.inspect} instead"
