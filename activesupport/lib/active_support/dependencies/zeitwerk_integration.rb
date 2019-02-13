@@ -41,12 +41,14 @@ module ActiveSupport
 
           def setup_autoloaders
             Dependencies.autoload_paths.each do |autoload_path|
-              if File.directory?(autoload_path)
-                if autoload_once?(autoload_path)
-                  Rails.once_autoloader.push_dir(autoload_path)
-                else
-                  Rails.autoloader.push_dir(autoload_path)
-                end
+              # Zeitwerk only accepts existing directories in `push_dir` to
+              # prevent misconfigurations.
+              next unless File.directory?(autoload_path)
+
+              if autoload_once?(autoload_path)
+                Rails.once_autoloader.push_dir(autoload_path)
+              else
+                Rails.autoloader.push_dir(autoload_path)
               end
             end
 
