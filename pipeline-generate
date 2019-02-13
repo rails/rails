@@ -129,8 +129,10 @@ end
 
   next if LOCAL_BRANCH != "master" && LOCAL_BRANCH !~ /\A[0-9-]+(?:-stable)?\z/
 
-  if task.match?(/:test/)
-    step_for(dir, task.sub(":test", ":isolated_test"), service: service)
+  if dir == "activerecord"
+    step_for(dir, task.sub(":test", ":isolated_test"), service: service) do |x|
+      x["parallelism"] = 5 if File.read(File.expand_path("../activerecord/Rakefile", __dir__)).include?("BUILDKITE_PARALLEL")
+    end
   else
     step_for(dir, "#{task}:isolated", service: service)
   end
