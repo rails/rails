@@ -1230,10 +1230,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_not_predicate Ship.reflect_on_association(:treasures), :has_cached_counter?
 
     # Count should come from sql count() of treasures rather than treasures_count attribute
-    assert_queries(1) do
-      assert_equal ship.treasures.size, 0
-      assert_predicate ship.treasures, :loaded?
-    end
+    assert_equal ship.treasures.size, 0
 
     assert_no_difference lambda { ship.reload.treasures_count }, "treasures_count should not be changed" do
       ship.treasures.create(name: "Gold")
@@ -1354,20 +1351,6 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     post = posts(:welcome)
     assert_no_queries do
       assert_not_empty post.comments
-      assert_equal 2, post.comments.size
-      assert_not_predicate post.comments, :loaded?
-    end
-    post = posts(:misc_by_bob)
-    assert_no_queries do
-      assert_empty post.comments
-      assert_predicate post.comments, :loaded?
-    end
-  end
-
-  def test_empty_association_loading_with_counter_cache
-    post = posts(:misc_by_bob)
-    assert_no_queries do
-      assert_empty post.comments.to_a
     end
   end
 
@@ -1755,6 +1738,14 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_nil posts.first
   end
 
+  def test_destroy_all_on_desynced_counter_cache_association
+    category = categories(:general)
+    assert_operator category.categorizations.count, :>, 0
+
+    category.categorizations.destroy_all
+    assert_equal 0, category.categorizations.count
+  end
+
   def test_destroy_on_association_clears_scope
     author = Author.create!(name: "Gannon")
     posts = author.posts
@@ -2004,6 +1995,11 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_not_predicate company.clients, :loaded?
   end
 
+  def test_counter_cache_on_unloaded_association
+    car = Car.create(name: "My AppliCar")
+    assert_equal 0, car.engines.size
+  end
+
   def test_ids_reader_cache_not_used_for_size_when_association_is_dirty
     firm = Firm.create!(name: "Startup")
     assert_equal 0, firm.client_ids.size
@@ -2017,24 +2013,6 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     client = firm.clients.first
     firm.clients.delete(client)
     assert_equal [3, 11], firm.client_ids
-  end
-
-  def test_zero_counter_cache_usage_on_unloaded_association
-    car = Car.create!(name: "My AppliCar")
-    assert_no_queries do
-      assert_equal car.engines.size, 0
-      assert_predicate car.engines, :loaded?
-    end
-  end
-
-  def test_counter_cache_on_new_record_unloaded_association
-    car = Car.new(name: "My AppliCar")
-    # Ensure no schema queries inside assertion
-    Engine.primary_key
-    assert_no_queries do
-      assert_equal car.engines.size, 0
-      assert_predicate car.engines, :loaded?
-    end
   end
 
   def test_get_ids_ignores_include_option

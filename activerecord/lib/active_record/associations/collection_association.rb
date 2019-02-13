@@ -209,8 +209,7 @@ module ActiveRecord
       # This method is abstract in the sense that it relies on
       # +count_records+, which is a method descendants have to provide.
       def size
-        if !find_target?
-          loaded! unless loaded?
+        if !find_target? || loaded?
           target.size
         elsif @association_ids
           @association_ids.size
