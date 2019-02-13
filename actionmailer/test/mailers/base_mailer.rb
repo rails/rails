@@ -21,8 +21,8 @@ class BaseMailer < ActionMailer::Base
     mail(template_name: "welcome", template_path: path)
   end
 
-  def welcome_without_deliveries
-    mail(template_name: "welcome")
+  def welcome_without_deliveries(hash = {})
+    mail({ template_name: "welcome" }.merge!(hash))
     mail.perform_deliveries = false
   end
 

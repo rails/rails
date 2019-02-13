@@ -593,6 +593,7 @@ module ActionMailer
     private
 
       def set_payload_for_mail(payload, mail)
+        payload[:mail]               = mail.encoded
         payload[:mailer]             = name
         payload[:message_id]         = mail.message_id
         payload[:subject]            = mail.subject
@@ -601,7 +602,6 @@ module ActionMailer
         payload[:bcc]                = mail.bcc if mail.bcc.present?
         payload[:cc]                 = mail.cc  if mail.cc.present?
         payload[:date]               = mail.date
-        payload[:mail]               = mail.encoded
         payload[:perform_deliveries] = mail.perform_deliveries
       end
 
