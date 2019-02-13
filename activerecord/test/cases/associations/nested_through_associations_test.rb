@@ -610,6 +610,12 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal hotel, Hotel.joins(:cake_designers, :drink_designers).take
   end
 
+  def test_has_many_through_reset_source_reflection_after_loading_is_complete
+    preloaded = Category.preload(:ordered_post_comments).find(1, 2).last
+    original = Category.find(2)
+    assert_equal original.ordered_post_comments.ids, preloaded.ordered_post_comments.ids
+  end
+
   private
 
     def assert_includes_and_joins_equal(query, expected, association)

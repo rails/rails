@@ -7,10 +7,9 @@ module ActiveRecord
         def run(preloader)
           already_loaded     = owners.first.association(through_reflection.name).loaded?
           through_scope      = through_scope()
-          reflection_scope   = target_reflection_scope
           through_preloaders = preloader.preload(owners, through_reflection.name, through_scope)
           middle_records     = through_preloaders.flat_map(&:preloaded_records)
-          preloaders         = preloader.preload(middle_records, source_reflection.name, reflection_scope)
+          preloaders         = preloader.preload(middle_records, source_reflection.name, scope)
           @preloaded_records = preloaders.flat_map(&:preloaded_records)
 
           owners.each do |owner|
@@ -25,17 +24,17 @@ module ActiveRecord
               owner.association(through_reflection.name).reset if through_scope
             end
             result = through_records.flat_map do |record|
-              association = record.association(source_reflection.name)
-              target = association.target
-              association.reset if preload_scope
-              target
+              record.association(source_reflection.name).target
             end
             result.compact!
-            if reflection_scope
-              result.sort_by! { |rhs| preload_index[rhs] } if reflection_scope.order_values.any?
-              result.uniq! if reflection_scope.distinct_value
-            end
+            result.sort_by! { |rhs| preload_index[rhs] } if scope.order_values.any?
+            result.uniq! if scope.distinct_value
             associate_records_to_owner(owner, result)
+          end
+          unless scope.empty_scope?
+            middle_records.each do |owner|
+              owner.association(source_reflection.name).reset
+            end
           end
         end
 
@@ -90,16 +89,6 @@ module ActiveRecord
             end
 
             scope unless scope.empty_scope?
-          end
-
-          def target_reflection_scope
-            if preload_scope
-              reflection_scope.merge(preload_scope)
-            elsif reflection.scope
-              reflection_scope
-            else
-              nil
-            end
           end
       end
     end
