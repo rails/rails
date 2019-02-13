@@ -321,12 +321,12 @@ module ActiveRecord
     # Please check unscoped if you want to remove all previous scopes (including
     # the default_scope) during the execution of a block.
     def scoping
-      @delegate_to_klass && klass.current_scope(true) ? yield : _scoping(self) { yield }
+      @delegate_to_klass ? yield : _scoping(self) { yield }
     end
 
     def _exec_scope(*args, &block) # :nodoc:
       @delegate_to_klass = true
-      _scoping(nil) { instance_exec(*args, &block) || self }
+      instance_exec(*args, &block) || self
     ensure
       @delegate_to_klass = false
     end
