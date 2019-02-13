@@ -11,9 +11,9 @@ module ActionMailer
       info do
         perform_deliveries = event.payload[:perform_deliveries]
         if perform_deliveries
-          "Delivered mail (#{event.duration.round(1)}ms)"
+          "Delivered mail #{event.payload[:message_id]} (#{event.duration.round(1)}ms)"
         else
-          "Skipped mail delivery as `perform_deliveries` is false"
+          "Skipped delivery of mail #{event.payload[:message_id]} as `perform_deliveries` is false"
         end
       end
 
