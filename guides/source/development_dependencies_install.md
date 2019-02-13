@@ -92,15 +92,16 @@ $ brew services start mysql
 
 Replace `mysql` with the name of the service you want to start.
 
-#### Ubuntu
+#### Ubuntu / Debian
 
 To install all run:
 
 ```bash
 $ sudo apt-get update
-$ sudo apt-get install sqlite3 libsqlite3-dev
-    mysql-server libmysqlclient-dev
-    postgresql postgresql-client postgresql-contrib libpq-dev
+$ sudo apt-get install libxml2-dev \
+    sqlite3 libsqlite3-dev \
+    mysql-server libmariadbclient-dev \
+    postgresql postgresql-client postgresql-contrib libpq-dev \
     redis-server memcached imagemagick ffmpeg mupdf mupdf-tools
 
 # Install Yarn
