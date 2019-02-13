@@ -770,6 +770,17 @@ class CachedCollectionViewRenderTest < ActiveSupport::TestCase
       @view.render(partial: "test/cached_customer", collection: [customer], cached: true)
   end
 
+  test "collection caching does not work on multi-partials" do
+    a = Object.new
+    b = Object.new
+    def a.to_partial_path; "test/partial_iteration_1"; end
+    def b.to_partial_path; "test/partial_iteration_2"; end
+
+    assert_raises(NotImplementedError) do
+      @controller_view.render(partial: [a, b], cached: true)
+    end
+  end
+
   private
     def cache_key(*names, virtual_path)
       digest = ActionView::Digestor.digest name: virtual_path, finder: @view.lookup_context, dependencies: []
