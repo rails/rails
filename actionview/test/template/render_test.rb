@@ -20,7 +20,10 @@ module RenderTestCases
 
     controller = TestController.new
 
-    @controller_view = controller.view_context_class.with_empty_template_cache.new(controller.view_renderer, controller.view_assigns, controller)
+    @controller_view = controller.view_context_class.with_empty_template_cache.new(
+      controller.lookup_context,
+      controller.view_assigns,
+      controller)
 
     # Reload and register danish language for testing
     I18n.backend.store_translations "da", {}
@@ -28,6 +31,21 @@ module RenderTestCases
 
     # Ensure original are still the same since we are reindexing view paths
     assert_equal ORIGINAL_LOCALES, I18n.available_locales.map(&:to_s).sort
+  end
+
+  def test_implicit_format_comes_from_parent_template
+    rendered_templates = JSON.parse(@controller_view.render(template: "test/mixing_formats"))
+    assert_equal({ "format" => "HTML",
+                   "children" => ["XML", "HTML"] }, rendered_templates)
+  end
+
+  def test_implicit_format_comes_from_parent_template_cascading
+    rendered_templates = JSON.parse(@controller_view.render(template: "test/mixing_formats_deep"))
+    assert_equal({ "format" => "HTML",
+                   "children" => [
+                     { "format" => "XML", "children" => ["XML"] },
+                     { "format" => "HTML", "children" => ["HTML"] },
+    ] }, rendered_templates)
   end
 
   def test_render_without_options
@@ -68,7 +86,7 @@ module RenderTestCases
 
   def test_render_partial_use_last_prepended_format_for_partials_with_the_same_names
     @view.lookup_context.formats = [:html]
-    assert_equal "\nHTML Template, but JSON partial", @view.render(template: "test/change_priority")
+    assert_equal "\nHTML Template, but HTML partial", @view.render(template: "test/change_priority")
   end
 
   def test_render_template_with_a_missing_partial_of_another_format

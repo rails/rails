@@ -379,8 +379,6 @@ module ActionView
         @locals  = options[:locals] || {}
         @details = extract_details(options)
 
-        prepend_formats(options[:formats])
-
         partial = options[:partial]
 
         if String === partial
