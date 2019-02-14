@@ -1095,7 +1095,10 @@ module ActiveRecord
             end
             o.split(",").map! do |s|
               s.strip!
-              s.gsub!(/\sasc\Z/i, " DESC") || s.gsub!(/\sdesc\Z/i, " ASC") || s.gsub!(/\s+(nulls)(\s+)(first|last)/i, ' DESC \1 \3') || (s << " DESC")
+              s.gsub!(/\sasc\Z/i, " DESC") || s.gsub!(/\sdesc\Z/i, " ASC") ||
+              s.gsub!(/\s+desc\s+(nulls)(\s+)(first|last)/i, ' ASC \1 \3') ||
+              s.gsub!(/(\s+asc)?\s+(nulls)(\s+)(first|last)/i, ' DESC \2 \4') ||
+              (s << " DESC")
             end
           else
             o

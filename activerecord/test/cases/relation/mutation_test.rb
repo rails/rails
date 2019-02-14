@@ -107,6 +107,33 @@ module ActiveRecord
       assert_equal "comments_count DESC", relation.order_values.last
     end
 
+    test "reverse_order! with 'foo NULLS FIRST'" do
+      @relation = Post.order("foo NULLS FIRST, bar")
+
+      relation.reverse_order!
+
+      assert_equal "foo DESC NULLS FIRST", relation.order_values.first
+      assert_equal "bar DESC", relation.order_values.last
+    end
+
+    test "reverse_order! with 'foo ASC NULLS FIRST'" do
+      @relation = Post.order("foo ASC NULLS FIRST, bar")
+
+      relation.reverse_order!
+
+      assert_equal "foo DESC NULLS FIRST", relation.order_values.first
+      assert_equal "bar DESC", relation.order_values.last
+    end
+
+    test "reverse_order! with 'foo DESC NULLS FIRST'" do
+      @relation = Post.order("foo DESC NULLS FIRST, bar DESC")
+
+      relation.reverse_order!
+
+      assert_equal "foo ASC NULLS FIRST", relation.order_values.first
+      assert_equal "bar ASC", relation.order_values.last
+    end
+
     test "create_with!" do
       assert relation.create_with!(foo: "bar").equal?(relation)
       assert_equal({ foo: "bar" }, relation.create_with_value)
