@@ -63,4 +63,8 @@ class ActiveStorage::Service::MirrorServiceTest < ActiveSupport::TestCase
         @service.url(@key, expires_in: 2.minutes, disposition: :inline, filename: filename, content_type: "text/plain")
     end
   end
+
+  test "path for file in primary service" do
+    assert_equal @service.primary.path_for(@key), @service.path_for(@key)
+  end
 end
