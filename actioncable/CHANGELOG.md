@@ -1,3 +1,9 @@
+*   PostgreSQL subscription adapters now support `channel_prefix` option in cable.yml
+
+    Avoids channel name collisions when multiple apps use the same database for Action Cable.
+
+    *Vladimir Dementyev*
+
 *   Allow passing custom configuration to `ActionCable::Server::Base`.
 
     You can now create a standalone Action Cable server with a custom configuration
