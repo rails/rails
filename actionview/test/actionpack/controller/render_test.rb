@@ -174,6 +174,10 @@ class TestController < ActionController::Base
     render inline: "<%= controller_name %>"
   end
 
+  def inline_rendered_format_without_format
+    render inline: "test"
+  end
+
   # :ported:
   def render_custom_code
     render plain: "hello world", status: 404
@@ -659,6 +663,7 @@ class RenderTest < ActionController::TestCase
     get :hello_world_from_rxml_using_action, to: "test#hello_world_from_rxml_using_action"
     get :hello_world_from_rxml_using_template, to: "test#hello_world_from_rxml_using_template"
     get :hello_world_with_layout_false, to: "test#hello_world_with_layout_false"
+    get :inline_rendered_format_without_format, to: "test#inline_rendered_format_without_format"
     get :layout_overriding_layout, to: "test#layout_overriding_layout"
     get :layout_test, to: "test#layout_test"
     get :layout_test_with_different_layout, to: "test#layout_test_with_different_layout"
@@ -1013,6 +1018,12 @@ class RenderTest < ActionController::TestCase
   def test_render_xml_with_layouts
     get :builder_layout_test
     assert_equal "<wrapper>\n<html>\n  <p>Hello </p>\n<p>This is grand!</p>\n</html>\n</wrapper>\n", @response.body
+  end
+
+  def test_rendered_format_without_format
+    get :inline_rendered_format_without_format
+    assert_equal "test", @response.body
+    assert_equal "text/html", @response.content_type
   end
 
   def test_partials_list
