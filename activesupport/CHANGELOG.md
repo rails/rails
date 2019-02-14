@@ -1,3 +1,7 @@
+*   New autoloading based on [Zeitwerk](https://github.com/fxn/zeitwerk).
+
+    *Xavier Noria*
+
 *   Revise `ActiveSupport::Notifications.unsubscribe` to correctly handle Regex or other multiple-pattern subscribers.
 
     *Zach Kemp*
