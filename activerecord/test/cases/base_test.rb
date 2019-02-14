@@ -1536,7 +1536,7 @@ class BasicsTest < ActiveRecord::TestCase
     Bird.create!(name: "Bluejay")
 
     ActiveRecord::Base.connection.while_preventing_writes do
-      assert_nothing_raised { Bird.where(name: "Bluejay").explain }
+      assert_queries(2) { Bird.where(name: "Bluejay").explain }
     end
   end
 

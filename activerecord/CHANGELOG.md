@@ -1,9 +1,3 @@
-*   Fix `relation.create` to avoid leaking scope to initialization block and callbacks.
-
-    Fixes #9894, #17577.
-
-    *Ryuta Kamizono*
-
 *   Allow applications to automatically switch connections.
 
     Adds a middleware and configuration options that can be used in your
