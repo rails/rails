@@ -25,9 +25,9 @@ module ActiveRecord
     #
     # Options:
     #
-    # <tt>env_name:</tt> The environment name. Defaults to nil which will collect
+    # <tt>env_name:</tt> The environment name. Defaults to +nil+ which will collect
     # configs for all environments.
-    # <tt>spec_name:</tt> The specification name (ie primary, animals, etc.). Defaults
+    # <tt>spec_name:</tt> The specification name (i.e. primary, animals, etc.). Defaults
     # to +nil+.
     # <tt>include_replicas:</tt> Determines whether to include replicas in
     # the returned list. Most of the time we're only iterating over the write
@@ -189,7 +189,7 @@ module ActiveRecord
 
           ActiveRecord::Base.configurations = new_configs
         else
-          raise NotImplementedError, "`ActiveRecord::Base.configurations` in Rails 6 now returns an object instead of a hash. The #{method} method is not supported. Please use `configs_for` or consult the documentation for supported methods."
+          raise NotImplementedError, "`ActiveRecord::Base.configurations` in Rails 6 now returns an object instead of a hash. The `#{method}` method is not supported. Please use `configs_for` or consult the documentation for supported methods."
         end
       end
 
