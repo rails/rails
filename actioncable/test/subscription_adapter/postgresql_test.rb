@@ -7,6 +7,7 @@ require "active_record"
 
 class PostgresqlAdapterTest < ActionCable::TestCase
   include CommonSubscriptionAdapterTest
+  include ChannelPrefixTest
 
   def setup
     database_config = { "adapter" => "postgresql", "database" => "activerecord_unittest" }
