@@ -13,6 +13,7 @@ require "active_support/core_ext/object/blank"
 
 require "rails/application"
 require "rails/version"
+require "rails/autoloaders"
 
 require "active_support/railtie"
 require "action_dispatch/railtie"
@@ -111,24 +112,8 @@ module Rails
       application && Pathname.new(application.paths["public"].first)
     end
 
-    def autoloader
-      if configuration.autoloader == :zeitwerk
-        @autoloader ||= Zeitwerk::Loader.new
-      end
-    end
-
-    def once_autoloader
-      if configuration.autoloader == :zeitwerk
-        @once_autoloader ||= Zeitwerk::Loader.new
-      end
-    end
-
     def autoloaders
-      if configuration.autoloader == :zeitwerk
-        [autoloader, once_autoloader]
-      else
-        []
-      end
+      Autoloaders
     end
   end
 end

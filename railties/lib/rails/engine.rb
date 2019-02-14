@@ -472,7 +472,7 @@ module Rails
     # Eager load the application by loading all ruby
     # files inside eager_load paths.
     def eager_load!
-      if Rails.autoloader
+      if Rails.autoloaders.zeitwerk_enabled?
         eager_load_with_zeitwerk!
       else
         eager_load_with_dependencies!

@@ -6,7 +6,7 @@ module ActiveSupport
       module Decorations
         def clear
           Dependencies.unload_interlock do
-            Rails.autoloader.reload
+            Rails.autoloaders.main.reload
           end
         end
 
@@ -19,9 +19,7 @@ module ActiveSupport
         end
 
         def autoloaded_constants
-          Rails.autoloaders.flat_map do |autoloader|
-            autoloader.loaded.to_a
-          end
+          (Rails.autoloaders.main.loaded + Rails.autoloaders.once.loaded).to_a
         end
 
         def autoloaded?(object)
@@ -46,9 +44,9 @@ module ActiveSupport
               next unless File.directory?(autoload_path)
 
               if autoload_once?(autoload_path)
-                Rails.once_autoloader.push_dir(autoload_path)
+                Rails.autoloaders.once.push_dir(autoload_path)
               else
-                Rails.autoloader.push_dir(autoload_path)
+                Rails.autoloaders.main.push_dir(autoload_path)
               end
             end
 

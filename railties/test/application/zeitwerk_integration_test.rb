@@ -30,9 +30,10 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
     boot
 
     assert decorated?
-    assert_instance_of Zeitwerk::Loader, Rails.autoloader
-    assert_instance_of Zeitwerk::Loader, Rails.once_autoloader
-    assert_equal [Rails.autoloader, Rails.once_autoloader], Rails.autoloaders
+    assert Rails.autoloaders.zeitwerk_enabled?
+    assert_instance_of Zeitwerk::Loader, Rails.autoloaders.main
+    assert_instance_of Zeitwerk::Loader, Rails.autoloaders.once
+    assert_equal [Rails.autoloaders.main, Rails.autoloaders.once], Rails.autoloaders.to_a
   end
 
   test "ActiveSupport::Dependencies is not decorated in classic mode" do
@@ -40,9 +41,10 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
     boot
 
     assert_not decorated?
-    assert_nil Rails.autoloader
-    assert_nil Rails.once_autoloader
-    assert_empty Rails.autoloaders
+    assert_not Rails.autoloaders.zeitwerk_enabled?
+    assert_nil Rails.autoloaders.main
+    assert_nil Rails.autoloaders.once
+    assert_equal 0, Rails.autoloaders.count
   end
 
   test "constantize returns the value stored in the constant" do
@@ -136,8 +138,8 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
     )
     boot
 
-    assert_not_includes Rails.autoloader.dirs, "#{app_path}/extras"
-    assert_includes Rails.once_autoloader.dirs, "#{app_path}/extras"
+    assert_not_includes Rails.autoloaders.main.dirs, "#{app_path}/extras"
+    assert_includes Rails.autoloaders.once.dirs, "#{app_path}/extras"
   end
 
   test "clear reloads the main autoloader, and does not reload the once one" do
@@ -145,13 +147,13 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
 
     $zeitwerk_integration_reload_test = []
 
-    autoloader = Rails.autoloader
-    def autoloader.reload
-      $zeitwerk_integration_reload_test << :autoloader
+    main_autoloader = Rails.autoloaders.main
+    def main_autoloader.reload
+      $zeitwerk_integration_reload_test << :main_autoloader
       super
     end
 
-    once_autoloader = Rails.once_autoloader
+    once_autoloader = Rails.autoloaders.once
     def once_autoloader.reload
       $zeitwerk_integration_reload_test << :once_autoloader
       super
@@ -159,6 +161,6 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
 
     ActiveSupport::Dependencies.clear
 
-    assert_equal %i(autoloader), $zeitwerk_integration_reload_test
+    assert_equal %i(main_autoloader), $zeitwerk_integration_reload_test
   end
 end
