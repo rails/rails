@@ -33,6 +33,10 @@ class SanitizeHelperTest < ActionView::TestCase
     assert_equal "", strip_tags("<script>")
   end
 
+  def test_strip_tags_is_marked_safe
+    assert_predicate strip_tags("&"), :html_safe?
+  end
+
   def test_strip_tags_will_not_encode_special_characters
     assert_equal "test\r\n\r\ntest", strip_tags("test\r\n\r\ntest")
   end
