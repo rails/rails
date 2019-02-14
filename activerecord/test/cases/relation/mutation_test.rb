@@ -107,7 +107,7 @@ module ActiveRecord
       assert_equal "comments_count DESC", relation.order_values.last
     end
 
-    test "reverse_order! with 'foo NULLS FIRST'" do
+    test "reverse_order! with 'foo NULLS FIRST, bar'" do
       @relation = Post.order("foo NULLS FIRST, bar")
 
       relation.reverse_order!
@@ -116,8 +116,8 @@ module ActiveRecord
       assert_equal "bar DESC", relation.order_values.last
     end
 
-    test "reverse_order! with 'foo ASC NULLS FIRST'" do
-      @relation = Post.order("foo ASC NULLS FIRST, bar")
+    test "reverse_order! with 'foo ASC NULLS FIRST, bar ASC'" do
+      @relation = Post.order("foo ASC NULLS FIRST, bar ASC")
 
       relation.reverse_order!
 
@@ -125,7 +125,7 @@ module ActiveRecord
       assert_equal "bar DESC", relation.order_values.last
     end
 
-    test "reverse_order! with 'foo DESC NULLS FIRST'" do
+    test "reverse_order! with 'foo DESC NULLS FIRST, bar DESC'" do
       @relation = Post.order("foo DESC NULLS FIRST, bar DESC")
 
       relation.reverse_order!
