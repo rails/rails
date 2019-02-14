@@ -16,6 +16,10 @@ class CspHelperWithCspEnabledTest < ActionView::TestCase
   def test_csp_meta_tag
     assert_equal "<meta name=\"csp-nonce\" content=\"iyhD0Yc0W+c=\" />", csp_meta_tag
   end
+
+  def test_csp_meta_tag_with_options
+    assert_equal "<meta property=\"csp-nonce\" name=\"csp-nonce\" content=\"iyhD0Yc0W+c=\" />", csp_meta_tag(property: "csp-nonce")
+  end
 end
 
 class CspHelperWithCspDisabledTest < ActionView::TestCase
