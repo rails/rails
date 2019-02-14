@@ -287,14 +287,7 @@ module ActiveSupport #:nodoc:
       end
 
       def set_block_back_references(block, match_data)
-        Thread.current[:__active_support_safe_buffer_backref] = match_data
-        begin
-          block.binding.eval(<<-EOC)
-            $~ = Thread.current[:__active_support_safe_buffer_backref]
-          EOC
-        ensure
-          Thread.current[:__active_support_safe_buffer_backref] = nil
-        end
+        block.binding.eval("proc { |m| $~ = m }").call(match_data)
       end
   end
 end
