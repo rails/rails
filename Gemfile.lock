@@ -70,6 +70,7 @@ PATH
       i18n (>= 0.7, < 2)
       minitest (~> 5.1)
       tzinfo (~> 1.1)
+      zeitwerk (~> 1.0)
     rails (6.0.0.beta1)
       actioncable (= 6.0.0.beta1)
       actionmailbox (= 6.0.0.beta1)
@@ -276,7 +277,7 @@ GEM
     hiredis (0.6.3-java)
     http_parser.rb (0.6.0)
     httpclient (2.8.3)
-    i18n (1.5.2)
+    i18n (1.5.3)
       concurrent-ruby (~> 1.0)
     image_processing (1.7.1)
       mini_magick (~> 4.0)
@@ -589,7 +590,6 @@ DEPENDENCIES
   webmock
   webpacker (>= 4.0.0.rc.3)
   websocket-client-simple!
-  zeitwerk (>= 1.0.0)
 
 BUNDLED WITH
    1.17.3

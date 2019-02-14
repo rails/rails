@@ -660,15 +660,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_gem "jbuilder"
   end
 
-  def test_inclusion_of_zeitwerk
-    run_generator
-    if RUBY_ENGINE == "ruby"
-      assert_gem "zeitwerk"
-    else
-      assert_no_gem "zeitwerk"
-    end
-  end
-
   def test_inclusion_of_a_debugger
     run_generator
     if defined?(JRUBY_VERSION) || RUBY_ENGINE == "rbx"
