@@ -743,8 +743,15 @@ class CachedCollectionViewRenderTest < ActiveSupport::TestCase
   end
 
   teardown do
-    GC.start
     I18n.reload!
+  end
+
+  test "template body written to cache" do
+    customer = Customer.new("david", 1)
+    key = cache_key(customer, "test/_customer")
+    assert_nil ActionView::PartialRenderer.collection_cache.read(key)
+    @view.render(partial: "test/customer", collection: [customer], cached: true)
+    assert_equal "Hello: david", ActionView::PartialRenderer.collection_cache.read(key)
   end
 
   test "collection caching does not cache by default" do
