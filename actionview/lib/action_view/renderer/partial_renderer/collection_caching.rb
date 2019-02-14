@@ -40,7 +40,7 @@ module ActionView
         rendered_partials = @collection.empty? ? [] : yield
 
         index = 0
-        fetch_or_cache_partial(cached_partials, order_by: keyed_collection.each_key) do
+        fetch_or_cache_partial(cached_partials, template, order_by: keyed_collection.each_key) do
           # This block is called once
           # for every cache miss while preserving order.
           rendered_partials[index].tap { index += 1 }
@@ -81,11 +81,13 @@ module ActionView
       #
       # If the partial is not already cached it will also be
       # written back to the underlying cache store.
-      def fetch_or_cache_partial(cached_partials, order_by:)
+      def fetch_or_cache_partial(cached_partials, template, order_by:)
         order_by.map do |cache_key|
-          cached_partials.fetch(cache_key) do
+          if content = cached_partials[cache_key]
+            build_rendered_template(content, nil, template)
+          else
             yield.tap do |rendered_partial|
-              collection_cache.write(cache_key, rendered_partial)
+              collection_cache.write(cache_key, rendered_partial.body)
             end
           end
         end

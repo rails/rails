@@ -27,6 +27,46 @@ module ActionView
       raise NotImplementedError
     end
 
+    class RenderedCollection # :nodoc:
+      attr_reader :rendered_templates
+
+      def initialize(rendered_templates, spacer)
+        @rendered_templates = rendered_templates
+        @spacer = spacer
+      end
+
+      def body
+        @rendered_templates.map(&:body).join(@spacer.body).html_safe
+      end
+
+      def format
+        rendered_templates.first.format
+      end
+
+      class EmptyCollection
+        def format; nil; end
+        def body; nil; end
+      end
+
+      EMPTY = EmptyCollection.new
+    end
+
+    class RenderedTemplate # :nodoc:
+      attr_reader :body, :layout, :template
+
+      def initialize(body, layout, template)
+        @body = body
+        @layout = layout
+        @template = template
+      end
+
+      def format
+        template.formats.first
+      end
+
+      EMPTY_SPACER = Struct.new(:body).new
+    end
+
     private
 
       def extract_details(options) # :doc:
@@ -48,6 +88,14 @@ module ActionView
         return if formats.empty? || @lookup_context.html_fallback_for_js
 
         @lookup_context.formats = formats | @lookup_context.formats
+      end
+
+      def build_rendered_template(content, layout, template)
+        RenderedTemplate.new content, layout, template
+      end
+
+      def build_rendered_collection(templates, spacer)
+        RenderedCollection.new(templates, spacer)
       end
   end
 end
