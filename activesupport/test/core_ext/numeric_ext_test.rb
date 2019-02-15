@@ -411,4 +411,34 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
       require "active_support/core_ext/numeric/inquiry"
     end
   end
+
+  def test_in_cents_for_integer
+    assert_equal 1, 1.in_cents
+    assert_equal 0, 0.in_cents
+    assert_equal -1, (-1).in_cents
+  end
+
+  def test_in_cents_for_float
+    assert_equal 0, (0.0).in_cents
+    assert_equal -1, (-0.01).in_cents
+    assert_equal -10, (-0.1).in_cents
+    assert_equal -100, (-1.0).in_cents
+    assert_equal 1, (0.01).in_cents
+    assert_equal 10, (0.1).in_cents
+    assert_equal 100, (1.0).in_cents
+    assert_equal 1000, (10.0).in_cents
+    assert_equal 12345, (123.45).in_cents
+  end
+
+  def test_in_cents_for_big_decimal
+    assert_equal 0, BigDecimal.new("0.0").in_cents
+    assert_equal -1, BigDecimal.new("-0.01").in_cents
+    assert_equal -10, BigDecimal.new("-0.1").in_cents
+    assert_equal -100, BigDecimal.new("-1.0").in_cents
+    assert_equal 1, BigDecimal.new("0.01").in_cents
+    assert_equal 10, BigDecimal.new("0.1").in_cents
+    assert_equal 100, BigDecimal.new("1.0").in_cents
+    assert_equal 1000, BigDecimal.new("10.0").in_cents
+    assert_equal 12345, BigDecimal.new("123.45").in_cents
+  end
 end

@@ -1785,6 +1785,16 @@ Singular forms are aliased so you are able to say:
 
 NOTE: Defined in `active_support/core_ext/numeric/bytes.rb`.
 
+### In Cents
+
+Convert a `Float` or `BigDecimal` value into a `Integer` relative cents value. An Integer value retuns itself as cents value.
+
+```ruby
+(1.23).in_cents                     # => 123
+BigDecimal.new("123.45").in_cents   # => 12345
+1.in_cents                          # => 1
+```
+
 ### Time
 
 Enables the use of time calculations and declarations, like `45.minutes + 2.hours + 4.weeks`.
