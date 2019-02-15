@@ -44,6 +44,16 @@ if ActiveRecord::Base.connection.prepared_statements
         assert_equal 0, topics.count
       end
 
+      def test_too_many_binds_with_query_cache
+        Topic.connection.enable_query_cache!
+        bind_params_length = @connection.send(:bind_params_length)
+        topics = Topic.where(id: (1 .. bind_params_length + 1).to_a)
+        assert_equal Topic.count, topics.count
+
+        topics = Topic.where.not(id: (1 .. bind_params_length + 1).to_a)
+        assert_equal 0, topics.count
+      end
+
       def test_bind_from_join_in_subquery
         subquery = Author.joins(:thinking_posts).where(name: "David")
         scope = Author.from(subquery, "authors").where(id: 1)
