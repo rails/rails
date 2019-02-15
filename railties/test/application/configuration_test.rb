@@ -1787,6 +1787,28 @@ module ApplicationTests
       end
     end
 
+    test "config_for loads nested custom configuration inside array from yaml with deprecated non-symbol access" do
+      app_file "config/custom.yml", <<-RUBY
+      development:
+        foo:
+          bar:
+          - baz: 1
+      RUBY
+
+      add_to_config <<-RUBY
+        config.my_custom_config = config_for('custom')
+      RUBY
+
+      app "development"
+
+      config = Rails.application.config.my_custom_config
+      assert_instance_of Rails::Application::NonSymbolAccessDeprecatedHash, config[:foo][:bar].first
+
+      assert_deprecated do
+        assert_equal 1, config[:foo][:bar].first["baz"]
+      end
+    end
+
     test "config_for makes all hash methods available" do
       app_file "config/custom.yml", <<-RUBY
       development:
