@@ -17,8 +17,8 @@ class Bird < ActiveRecord::Base
     throw(:abort)
   end
 
-  attr_accessor :total_count
+  attr_accessor :total_count, :enable_count
   after_initialize do
-    self.total_count = Bird.count
+    self.total_count = Bird.count if enable_count
   end
 end

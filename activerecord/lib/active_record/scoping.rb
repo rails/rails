@@ -30,14 +30,6 @@ module ActiveRecord
       def current_scope=(scope)
         ScopeRegistry.set_value_for(:current_scope, self, scope)
       end
-
-      def current_scope_restoring_block(&block)
-        current_scope = self.current_scope(true)
-        -> *args do
-          self.current_scope = current_scope
-          yield(*args) if block_given?
-        end
-      end
     end
 
     def populate_with_current_scope_attributes # :nodoc:

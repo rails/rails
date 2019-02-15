@@ -1,6 +1,5 @@
-*   Fix `relation.create` to avoid leaking scope to initialization block and callbacks.
-
-    Fixes #9894, #17577.
+*   Deprecate using class level querying methods if the receiver scope
+    regarded as leaked. Use `klass.unscoped` to avoid the leaking scope.
 
     *Ryuta Kamizono*
 
