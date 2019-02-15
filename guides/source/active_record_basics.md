@@ -45,7 +45,7 @@ relationships of the objects in an application can be easily stored and
 retrieved from a database without writing SQL statements directly and with less
 overall database access code.
 
-NOTE: If you are not familiar enough with relational database management systems (RDBMS) or structured query language (SQL), please go through [this tutorial](https://www.w3schools.com/sql/default.asp) (or [this one](http://www.sqlcourse.com/)) or study them by other means. Understanding how relational databases work is crucial to understanding Active Records and Rails in general.
+NOTE: Basic knowledge of relational database management systems (RDBMS) and structured query language (SQL) is helpful in order to fully understand Active Record. Please refer to [this tutorial](https://www.w3schools.com/sql/default.asp) (or [this one](http://www.sqlcourse.com/)) or study them by other means if you would like to learn more.
 
 ### Active Record as an ORM Framework
 
