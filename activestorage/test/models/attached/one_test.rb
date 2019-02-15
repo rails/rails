@@ -510,4 +510,37 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
       User.remove_method :avatar
     end
   end
+
+  test "generating a variant using transformations" do
+    @user.cover_photo.attach fixture_file_upload("racecar.jpg")
+
+    variant = @user.cover_photo.variant(resize: "100x100").processed
+    assert_match(/racecar\.jpg/, variant.service_url)
+
+    image = read_image(variant)
+    assert_equal 100, image.width
+    assert_equal 67, image.height
+  end
+
+  test "generating a defined variant" do
+    @user.cover_photo.attach fixture_file_upload("racecar.jpg")
+
+    variant = @user.cover_photo.variant(:thumbnail).processed
+    assert_match(/racecar\.jpg/, variant.service_url)
+
+    image = read_image(variant)
+    assert_equal 100, image.width
+    assert_equal 67, image.height
+  end
+
+  test "generating a defined variant with a string key" do
+    @user.cover_photo.attach fixture_file_upload("racecar.jpg")
+
+    variant = @user.cover_photo.variant("thumbnail").processed
+    assert_match(/racecar\.jpg/, variant.service_url)
+
+    image = read_image(variant)
+    assert_equal 100, image.width
+    assert_equal 67, image.height
+  end
 end

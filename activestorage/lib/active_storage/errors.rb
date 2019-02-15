@@ -23,4 +23,8 @@ module ActiveStorage
   # Raised when ActiveStorage::Blob#download is called on a blob where the
   # backing file is no longer present in its service.
   class FileNotFoundError < Error; end
+
+  # Raised when ActiveStorage::Attachment#variant is called with a variant
+  # name that has not been defined
+  class UndefinedVariant < Error; end
 end

@@ -8,8 +8,12 @@ module ActiveStorage
   class Attached
     attr_reader :name, :record
 
-    def initialize(name, record)
-      @name, @record = name, record
+    def initialize(name, record, configuration)
+      @name, @record, @configuration = name, record, configuration
+    end
+
+    def find_variant_by_name(variant_name)
+      @configuration[:defined_variants][variant_name.to_sym]
     end
 
     private
@@ -23,3 +27,4 @@ require "active_storage/attached/model"
 require "active_storage/attached/one"
 require "active_storage/attached/many"
 require "active_storage/attached/changes"
+require "active_storage/attached/configuration"

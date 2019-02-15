@@ -104,6 +104,21 @@ Variation of image attachment:
 <%= image_tag user.avatar.variant(resize_to_limit: [100, 100]) %>
 ```
 
+Defining variation of image attachment:
+
+```ruby
+class User < ApplicationRecord
+  has_one_attached :avatar do |attachment|
+    attachment.has_variant :thumbnail, resize_to_limit: [100, 100]
+  end
+end
+```
+
+```erb
+<%# Will generate a service url based on the `:thumbnail` transformations defined above %>
+<%= image_tag user.avatar.variant(:thumbnail) %>
+```
+
 ## Direct uploads
 
 Active Storage, with its included JavaScript library, supports uploading directly from the client to the cloud.

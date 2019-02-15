@@ -71,6 +71,14 @@ class ActiveSupport::TestCase
       end
     end
 
+    def create_attachment(record:, name:, blob:)
+      ActiveStorage::Attachment.create!(record: record, name: name, blob: blob)
+    end
+
+    def create_user(name: "Anjali")
+      User.create!(name: name)
+    end
+
     def read_image(blob_or_variant)
       MiniMagick::Image.open blob_or_variant.service.send(:path_for, blob_or_variant.key)
     end
@@ -92,10 +100,14 @@ class User < ActiveRecord::Base
   validates :name, presence: true
 
   has_one_attached :avatar
-  has_one_attached :cover_photo, dependent: false
+  has_one_attached :cover_photo, dependent: false do |attachable|
+    attachable.has_variant :thumbnail, resize: "100x100"
+  end
 
   has_many_attached :highlights
-  has_many_attached :vlogs, dependent: false
+  has_many_attached :vlogs, dependent: false do |attachable|
+    attachable.has_variant :thumbnail, resize: "100x100"
+  end
 end
 
 class Group < ActiveRecord::Base

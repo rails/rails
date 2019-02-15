@@ -28,6 +28,26 @@ class ActiveStorage::Attachment < ActiveRecord::Base
     blob&.purge_later
   end
 
+  # Generates a variant of the blob object.
+  #
+  # Accepts either a hash of transformations to be applied or name of a variant
+  # that has already been defined in the attachment configuration.
+  #
+  # Raises ActiveStorage::UndefinedVariant if variant name is specified but
+  # the variant has not been defined.
+  def variant(arg)
+    transformations =
+      arg.is_a?(Hash) ? arg : record.send(name).find_variant_by_name(arg)
+
+    if transformations.nil?
+      raise ActiveStorage::UndefinedVariant.new(
+        "No variant :#{arg} defined for #{record.class.name}.#{name}"
+      )
+    end
+
+    blob.variant(transformations)
+  end
+
   private
     def identify_blob
       blob.identify
@@ -40,7 +60,6 @@ class ActiveStorage::Attachment < ActiveRecord::Base
     def purge_dependent_blob_later
       blob&.purge_later if dependent == :purge_later
     end
-
 
     def dependent
       record.attachment_reflections[name]&.options[:dependent]

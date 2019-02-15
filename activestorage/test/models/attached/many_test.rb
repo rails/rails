@@ -593,4 +593,37 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
       User.remove_method :highlights
     end
   end
+
+  test "generating a variant using transformations" do
+    @user.vlogs.attach fixture_file_upload("racecar.jpg"), fixture_file_upload("image.gif")
+
+    variant = @user.vlogs.first.variant(resize: "100x100").processed
+    assert_match(/racecar\.jpg/, variant.service_url)
+
+    image = read_image(variant)
+    assert_equal 100, image.width
+    assert_equal 67, image.height
+  end
+
+  test "generating a defined variant" do
+    @user.vlogs.attach fixture_file_upload("racecar.jpg"), fixture_file_upload("image.gif")
+
+    variant = @user.vlogs.first.variant(:thumbnail).processed
+    assert_match(/racecar\.jpg/, variant.service_url)
+
+    image = read_image(variant)
+    assert_equal 100, image.width
+    assert_equal 67, image.height
+  end
+
+  test "generating a defined variant with a string key" do
+    @user.vlogs.attach fixture_file_upload("racecar.jpg"), fixture_file_upload("image.gif")
+
+    variant = @user.vlogs.first.variant("thumbnail").processed
+    assert_match(/racecar\.jpg/, variant.service_url)
+
+    image = read_image(variant)
+    assert_equal 100, image.width
+    assert_equal 67, image.height
+  end
 end

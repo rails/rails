@@ -12,6 +12,15 @@ module ActiveStorage
       #     has_one_attached :avatar
       #   end
       #
+      # Optionaly accepts a block specifying the configuration. See
+      # ActiveStorage::Attached::Configuration for a list of available
+      # configurations.
+      #
+      #  class User < ActiveRecord::Base
+      #     has_one_attached :avatar do |attachment|
+      #       attachment.has_variant :thumbnail, resize: "50x50"
+      #   end
+      #
       # There is no column defined on the model side, Active Storage takes
       # care of the mapping between your records and the attachment.
       #
@@ -30,10 +39,13 @@ module ActiveStorage
       #
       # If the +:dependent+ option isn't set, the attachment will be purged
       # (i.e. destroyed) whenever the record is destroyed.
-      def has_one_attached(name, dependent: :purge_later)
+      def has_one_attached(name, dependent: :purge_later, &block)
+        config = ActiveStorage::Attached::Configuration.new
+        yield(config) if block_given?
+
         generated_association_methods.class_eval <<-CODE, __FILE__, __LINE__ + 1
           def #{name}
-            @active_storage_attached_#{name} ||= ActiveStorage::Attached::One.new("#{name}", self)
+            @active_storage_attached_#{name} ||= ActiveStorage::Attached::One.new("#{name}", self, #{config})
           end
 
           def #{name}=(attachable)
@@ -68,6 +80,16 @@ module ActiveStorage
       #     has_many_attached :photos
       #   end
       #
+      # You can also pass a block specifying the configuration:
+      #
+      #  class User < ActiveRecord::Base
+      #     has_many_attached :photos do |attachment|
+      #       attachment.has_variant :thumbnail, resize: "50x50"
+      #   end
+      #
+      # See ActiveStorage::Attached::Configuration for a list of available
+      # configurations.
+      #
       # There are no columns defined on the model side, Active Storage takes
       # care of the mapping between your records and the attachments.
       #
@@ -86,10 +108,13 @@ module ActiveStorage
       #
       # If the +:dependent+ option isn't set, all the attachments will be purged
       # (i.e. destroyed) whenever the record is destroyed.
-      def has_many_attached(name, dependent: :purge_later)
+      def has_many_attached(name, dependent: :purge_later, &block)
+        config = ActiveStorage::Attached::Configuration.new
+        yield(config) if block_given?
+
         generated_association_methods.class_eval <<-CODE, __FILE__, __LINE__ + 1
           def #{name}
-            @active_storage_attached_#{name} ||= ActiveStorage::Attached::Many.new("#{name}", self)
+            @active_storage_attached_#{name} ||= ActiveStorage::Attached::Many.new("#{name}", self, #{config})
           end
 
           def #{name}=(attachables)
