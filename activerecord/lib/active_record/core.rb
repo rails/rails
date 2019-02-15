@@ -125,6 +125,10 @@ module ActiveRecord
 
       mattr_accessor :connection_handlers, instance_accessor: false, default: {}
 
+      mattr_accessor :writing_role, instance_accessor: false, default: :writing
+
+      mattr_accessor :reading_role, instance_accessor: false, default: :reading
+
       class_attribute :default_connection_handler, instance_writer: false
 
       self.filter_attributes = []
@@ -138,7 +142,6 @@ module ActiveRecord
       end
 
       self.default_connection_handler = ConnectionAdapters::ConnectionHandler.new
-      self.connection_handlers = { writing: ActiveRecord::Base.default_connection_handler }
     end
 
     module ClassMethods
@@ -472,6 +475,14 @@ module ActiveRecord
       else
         super
       end
+    end
+
+    def present? # :nodoc:
+      true
+    end
+
+    def blank? # :nodoc:
+      false
     end
 
     # Returns +true+ if the record is read only. Records loaded through joins with piggy-back

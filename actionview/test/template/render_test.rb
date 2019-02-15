@@ -9,7 +9,8 @@ end
 module RenderTestCases
   def setup_view(paths)
     @assigns = { secret: "in the sauce" }
-    @view = Class.new(ActionView::Base) do
+
+    @view = Class.new(ActionView::Base.with_empty_template_cache) do
       def view_cache_dependencies; []; end
 
       def combined_fragment_cache_key(key)
@@ -17,7 +18,12 @@ module RenderTestCases
       end
     end.with_view_paths(paths, @assigns)
 
-    @controller_view = TestController.new.view_context
+    controller = TestController.new
+
+    @controller_view = controller.view_context_class.with_empty_template_cache.new(
+      controller.lookup_context,
+      controller.view_assigns,
+      controller)
 
     # Reload and register danish language for testing
     I18n.backend.store_translations "da", {}
@@ -25,6 +31,21 @@ module RenderTestCases
 
     # Ensure original are still the same since we are reindexing view paths
     assert_equal ORIGINAL_LOCALES, I18n.available_locales.map(&:to_s).sort
+  end
+
+  def test_implicit_format_comes_from_parent_template
+    rendered_templates = JSON.parse(@controller_view.render(template: "test/mixing_formats"))
+    assert_equal({ "format" => "HTML",
+                   "children" => ["XML", "HTML"] }, rendered_templates)
+  end
+
+  def test_implicit_format_comes_from_parent_template_cascading
+    rendered_templates = JSON.parse(@controller_view.render(template: "test/mixing_formats_deep"))
+    assert_equal({ "format" => "HTML",
+                   "children" => [
+                     { "format" => "XML", "children" => ["XML"] },
+                     { "format" => "HTML", "children" => ["HTML"] },
+    ] }, rendered_templates)
   end
 
   def test_render_without_options
@@ -65,7 +86,7 @@ module RenderTestCases
 
   def test_render_partial_use_last_prepended_format_for_partials_with_the_same_names
     @view.lookup_context.formats = [:html]
-    assert_equal "\nHTML Template, but JSON partial", @view.render(template: "test/change_priority")
+    assert_equal "\nHTML Template, but HTML partial", @view.render(template: "test/change_priority")
   end
 
   def test_render_template_with_a_missing_partial_of_another_format
@@ -450,13 +471,31 @@ module RenderTestCases
     assert_equal "Hello, World!", @view.render(inline: "Hello, World!", type: :bar)
   end
 
-  CustomHandler = lambda do |template|
+  CustomHandler = lambda do |template, source|
     "@output_buffer = ''.dup\n" \
-      "@output_buffer << 'source: #{template.source.inspect}'\n"
+      "@output_buffer << 'source: #{source.inspect}'\n"
   end
 
   def test_render_inline_with_render_from_to_proc
-    ActionView::Template.register_template_handler :ruby_handler, :source.to_proc
+    ActionView::Template.register_template_handler :ruby_handler, lambda { |_, source| source }
+    assert_equal "3", @view.render(inline: "(1 + 2).to_s", type: :ruby_handler)
+  ensure
+    ActionView::Template.unregister_template_handler :ruby_handler
+  end
+
+  def test_render_inline_with_render_from_to_proc_deprecated
+    assert_deprecated do
+      ActionView::Template.register_template_handler :ruby_handler, :source.to_proc
+    end
+    assert_equal "3", @view.render(inline: "(1 + 2).to_s", type: :ruby_handler)
+  ensure
+    ActionView::Template.unregister_template_handler :ruby_handler
+  end
+
+  def test_optional_second_arg_works_without_deprecation
+    assert_not_deprecated do
+      ActionView::Template.register_template_handler :ruby_handler, ->(view, source = nil) { source }
+    end
     assert_equal "3", @view.render(inline: "(1 + 2).to_s", type: :ruby_handler)
   ensure
     ActionView::Template.unregister_template_handler :ruby_handler
@@ -610,6 +649,7 @@ class CachedViewRenderTest < ActiveSupport::TestCase
 
   # Ensure view path cache is primed
   def setup
+    ActionView::LookupContext::DetailsKey.clear
     view_paths = ActionController::Base.view_paths
     assert_equal ActionView::OptimizedFileSystemResolver, view_paths.first.class
     setup_view(view_paths)
@@ -627,6 +667,7 @@ class LazyViewRenderTest < ActiveSupport::TestCase
   # Test the same thing as above, but make sure the view path
   # is not eager loaded
   def setup
+    ActionView::LookupContext::DetailsKey.clear
     path = ActionView::FileSystemResolver.new(FIXTURE_LOAD_PATH)
     view_paths = ActionView::PathSet.new([path])
     assert_equal ActionView::FileSystemResolver.new(FIXTURE_LOAD_PATH), view_paths.first
@@ -684,6 +725,8 @@ class CachedCollectionViewRenderTest < ActiveSupport::TestCase
 
   # Ensure view path cache is primed
   setup do
+    ActionView::LookupContext::DetailsKey.clear
+
     view_paths = ActionController::Base.view_paths
     assert_equal ActionView::OptimizedFileSystemResolver, view_paths.first.class
 
@@ -725,6 +768,17 @@ class CachedCollectionViewRenderTest < ActiveSupport::TestCase
 
     assert_equal "Cached",
       @view.render(partial: "test/cached_customer", collection: [customer], cached: true)
+  end
+
+  test "collection caching does not work on multi-partials" do
+    a = Object.new
+    b = Object.new
+    def a.to_partial_path; "test/partial_iteration_1"; end
+    def b.to_partial_path; "test/partial_iteration_2"; end
+
+    assert_raises(NotImplementedError) do
+      @controller_view.render(partial: [a, b], cached: true)
+    end
   end
 
   private

@@ -50,7 +50,7 @@ class NamedScopingTest < ActiveRecord::TestCase
 
   def test_calling_merge_at_first_in_scope
     Topic.class_eval do
-      scope :calling_merge_at_first_in_scope, Proc.new { merge(Topic.replied) }
+      scope :calling_merge_at_first_in_scope, Proc.new { merge(Topic.unscoped.replied) }
     end
     assert_equal Topic.calling_merge_at_first_in_scope.to_a, Topic.replied.to_a
   end
@@ -445,6 +445,17 @@ class NamedScopingTest < ActiveRecord::TestCase
 
     # Nested hash conditions with different keys
     assert_equal [posts(:sti_comments)], Post.with_special_comments.with_post(4).to_a.uniq
+  end
+
+  def test_class_method_in_scope
+    assert_deprecated do
+      assert_equal [topics(:second)], topics(:first).approved_replies.ordered
+    end
+  end
+
+  def test_nested_scoping
+    expected = Reply.approved
+    assert_equal expected.to_a, Topic.rejected.nested_scoping(expected)
   end
 
   def test_scopes_batch_finders

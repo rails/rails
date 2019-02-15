@@ -1,4 +1,16 @@
-*   Remove the `` Kernel#` `` override that suppresses ENOENT and accidentally returns nil on Unix systems
+*   New autoloading based on [Zeitwerk](https://github.com/fxn/zeitwerk).
+
+    *Xavier Noria*
+
+*   Revise `ActiveSupport::Notifications.unsubscribe` to correctly handle Regex or other multiple-pattern subscribers.
+
+    *Zach Kemp*
+
+*   Add `before_reset` callback to `CurrentAttributes` and define `after_reset` as an alias of `resets` for symmetry.
+
+    *Rosa Gutierrez*
+
+*   Remove the `` Kernel#` `` override that suppresses ENOENT and accidentally returns nil on Unix systems.
 
     *Akinori Musha*
 
@@ -8,6 +20,9 @@
 
     *Stefan Schüßler*
 
+*   Add `Hash#deep_transform_values`, and `Hash#deep_transform_values!`.
+
+    *Guillermo Iguaran*
 
 ## Rails 6.0.0.beta1 (January 18, 2019) ##
 

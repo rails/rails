@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "base64"
 require "rake/testtask"
 require "pathname"
 require "open3"
@@ -25,7 +26,8 @@ namespace :test do
   end
 
   task :integration do
-    system("yarn test") || raise("Failures")
+    system(Hash[*Base64.decode64(ENV.fetch("ENCODED", "")).split(/[ =]/)], "yarn", "test")
+    exit($?.exitstatus) unless $?.success?
   end
 end
 

@@ -16,7 +16,7 @@ module ApplicationTests
       teardown_app
     end
 
-    def test_run_via_backwardscompatibility
+    def test_run_via_backwards_compatibility
       require "minitest/rails_plugin"
 
       assert_nothing_raised do

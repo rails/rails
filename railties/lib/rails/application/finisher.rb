@@ -21,6 +21,13 @@ module Rails
         end
       end
 
+      initializer :let_zeitwerk_take_over do
+        if config.autoloader == :zeitwerk
+          require "active_support/dependencies/zeitwerk_integration"
+          ActiveSupport::Dependencies::ZeitwerkIntegration.take_over
+        end
+      end
+
       initializer :add_builtin_route do |app|
         if Rails.env.development?
           app.routes.prepend do
@@ -66,6 +73,7 @@ module Rails
       initializer :eager_load! do
         if config.eager_load
           ActiveSupport.run_load_hooks(:before_eager_load, self)
+          Zeitwerk::Loader.eager_load_all if defined?(Zeitwerk)
           config.eager_load_namespaces.each(&:eager_load!)
         end
       end

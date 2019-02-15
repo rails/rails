@@ -93,19 +93,19 @@ module ActionDispatch
   # of through the +options+ hash.
   #
   # As an example, if you want to add mobile emulation on chrome, you'll have to
-  # create an instance of selenium's `Chrome::Options` object and add
+  # create an instance of selenium's +Chrome::Options+ object and add
   # capabilities with a block.
   #
-  # The block will be passed an instance of `<Driver>::Options` where you can
+  # The block will be passed an instance of <tt><Driver>::Options</tt> where you can
   # define the capabilities you want. Please refer to your driver documentation
   # to learn about supported options.
   #
-  # class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
-  #   driven_by :chrome, screen_size: [1024, 768] do |driver_option|
-  #     driver_option.add_emulation(device: 'iPhone 6')
-  #     driver_option.add_extension('path/to/chrome_extension.crx')
+  #   class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
+  #     driven_by :selenium, using: :chrome, screen_size: [1024, 768] do |driver_option|
+  #       driver_option.add_emulation(device_name: 'iPhone 6')
+  #       driver_option.add_extension('path/to/chrome_extension.crx')
+  #     end
   #   end
-  # end
   #
   # Because <tt>ActionDispatch::SystemTestCase</tt> is a shim between Capybara
   # and Rails, any driver that is supported by Capybara is supported by system

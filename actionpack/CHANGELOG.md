@@ -1,3 +1,7 @@
+*   Make debug exceptions works in an environment where ActiveStorage is not loaded.
+
+    *Tomoyuki Kurosawa*
+
 *   `ActionDispatch::SystemTestCase.driven_by` can now be called with a block
     to define specific browser capabilities.
 
@@ -20,7 +24,7 @@
 *   Introduce ActionDispatch::HostAuthorization
 
     This is a new middleware that guards against DNS rebinding attacks by
-    white-listing the allowed hosts a request can be made to.
+    explicitly permitting the hosts a request can be made to.
 
     Each host is checked with the case operator (`#===`) to support `RegExp`,
     `Proc`, `IPAddr` and custom objects as host allowances.

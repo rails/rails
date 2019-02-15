@@ -138,7 +138,7 @@ module ActionView
         end
 
         def html_safe_translation_key?(key)
-          /(\b|_|\.)html$/.match?(key.to_s)
+          /([_.]|\b)html\z/.match?(key.to_s)
         end
     end
   end

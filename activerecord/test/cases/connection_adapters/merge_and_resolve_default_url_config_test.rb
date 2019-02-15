@@ -72,6 +72,16 @@ module ActiveRecord
         assert_equal expected, actual
       end
 
+      def test_resolver_with_database_uri_and_multiple_envs
+        ENV["DATABASE_URL"] = "postgres://localhost"
+        ENV["RAILS_ENV"] = "test"
+
+        config   = { "production" => { "adapter" => "postgresql", "database" => "foo_prod" }, "test" => { "adapter" => "postgresql", "database" => "foo_test" } }
+        actual   = resolve_spec(:test, config)
+        expected = { "adapter" => "postgresql", "database" => "foo_test", "host" => "localhost", "name" => "test" }
+        assert_equal expected, actual
+      end
+
       def test_resolver_with_database_uri_and_unknown_symbol_key
         ENV["DATABASE_URL"] = "postgres://localhost/foo"
         config = { "not_production" => {  "adapter" => "not_postgres", "database" => "not_foo" } }

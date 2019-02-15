@@ -1029,9 +1029,7 @@ module ActiveRecord
       end
 
       def foreign_key_column_for(table_name) # :nodoc:
-        prefix = Base.table_name_prefix
-        suffix = Base.table_name_suffix
-        name = table_name.to_s =~ /#{prefix}(.+)#{suffix}/ ? $1 : table_name.to_s
+        name = strip_table_name_prefix_and_suffix(table_name)
         "#{name.singularize}_id"
       end
 
@@ -1326,6 +1324,12 @@ module ActiveRecord
           end
 
           { column: column_names }
+        end
+
+        def strip_table_name_prefix_and_suffix(table_name)
+          prefix = Base.table_name_prefix
+          suffix = Base.table_name_suffix
+          table_name.to_s =~ /#{prefix}(.+)#{suffix}/ ? $1 : table_name.to_s
         end
 
         def foreign_key_name(table_name, options)

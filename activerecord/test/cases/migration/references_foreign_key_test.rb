@@ -2,7 +2,7 @@
 
 require "cases/helper"
 
-if ActiveRecord::Base.connection.supports_foreign_keys_in_create?
+if ActiveRecord::Base.connection.supports_foreign_keys?
   module ActiveRecord
     class Migration
       class ReferencesForeignKeyInCreateTest < ActiveRecord::TestCase
@@ -65,9 +65,7 @@ if ActiveRecord::Base.connection.supports_foreign_keys_in_create?
       end
     end
   end
-end
 
-if ActiveRecord::Base.connection.supports_foreign_keys?
   module ActiveRecord
     class Migration
       class ReferencesForeignKeyTest < ActiveRecord::TestCase
@@ -172,12 +170,17 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
         end
 
         class CreateDogsMigration < ActiveRecord::Migration::Current
-          def change
+          def up
             create_table :dog_owners
 
             create_table :dogs do |t|
               t.references :dog_owner, foreign_key: true
             end
+          end
+
+          def down
+            drop_table :dogs, if_exists: true
+            drop_table :dog_owners, if_exists: true
           end
         end
 

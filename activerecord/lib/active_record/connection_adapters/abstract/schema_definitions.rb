@@ -102,7 +102,7 @@ module ActiveRecord
       alias validated? validate?
 
       def export_name_on_schema_dump?
-        name !~ ActiveRecord::SchemaDumper.fk_ignore_pattern
+        !ActiveRecord::SchemaDumper.fk_ignore_pattern.match?(name) if name
       end
 
       def defined_for?(to_table_ord = nil, to_table: nil, **options)
@@ -198,41 +198,44 @@ module ActiveRecord
     end
 
     module ColumnMethods
+      extend ActiveSupport::Concern
+
       # Appends a primary key definition to the table definition.
       # Can be called multiple times, but this is probably not a good idea.
       def primary_key(name, type = :primary_key, **options)
         column(name, type, options.merge(primary_key: true))
       end
 
+      ##
+      # :method: column
+      # :call-seq: column(name, type, options = {})
+      #
       # Appends a column or columns of a specified type.
       #
       #  t.string(:goat)
       #  t.string(:goat, :sheep)
       #
       # See TableDefinition#column
-      [
-        :bigint,
-        :binary,
-        :boolean,
-        :date,
-        :datetime,
-        :decimal,
-        :float,
-        :integer,
-        :json,
-        :string,
-        :text,
-        :time,
-        :timestamp,
-        :virtual,
-      ].each do |column_type|
-        module_eval <<-CODE, __FILE__, __LINE__ + 1
-          def #{column_type}(*args, **options)
-            args.each { |name| column(name, :#{column_type}, options) }
-          end
-        CODE
+
+      included do
+        define_column_methods :bigint, :binary, :boolean, :date, :datetime, :decimal,
+          :float, :integer, :json, :string, :text, :time, :timestamp, :virtual
+
+        alias :numeric :decimal
       end
-      alias_method :numeric, :decimal
+
+      class_methods do
+        private def define_column_methods(*column_types) # :nodoc:
+          column_types.each do |column_type|
+            module_eval <<-RUBY, __FILE__, __LINE__ + 1
+              def #{column_type}(*names, **options)
+                raise ArgumentError, "Missing column name(s) for #{column_type}" if names.empty?
+                names.each { |name| column(name, :#{column_type}, options) }
+              end
+            RUBY
+          end
+        end
+      end
     end
 
     # Represents the schema of an SQL table in an abstract way. This class
@@ -395,10 +398,7 @@ module ActiveRecord
       end
 
       def foreign_key(table_name, options = {}) # :nodoc:
-        table_name_prefix = ActiveRecord::Base.table_name_prefix
-        table_name_suffix = ActiveRecord::Base.table_name_suffix
-        table_name = "#{table_name_prefix}#{table_name}#{table_name_suffix}"
-        foreign_keys.push([table_name, options])
+        foreign_keys << [table_name, options]
       end
 
       # Appends <tt>:datetime</tt> columns <tt>:created_at</tt> and
@@ -519,6 +519,7 @@ module ActiveRecord
     #     t.json
     #     t.virtual
     #     t.remove
+    #     t.remove_foreign_key
     #     t.remove_references
     #     t.remove_belongs_to
     #     t.remove_index
@@ -682,13 +683,24 @@ module ActiveRecord
       end
       alias :remove_belongs_to :remove_references
 
-      # Adds a foreign key.
+      # Adds a foreign key to the table using a supplied table name.
       #
       #  t.foreign_key(:authors)
+      #  t.foreign_key(:authors, column: :author_id, primary_key: "id")
       #
       # See {connection.add_foreign_key}[rdoc-ref:SchemaStatements#add_foreign_key]
       def foreign_key(*args)
         @base.add_foreign_key(name, *args)
+      end
+
+      # Removes the given foreign key from the table.
+      #
+      #  t.remove_foreign_key(:authors)
+      #  t.remove_foreign_key(column: :author_id)
+      #
+      # See {connection.remove_foreign_key}[rdoc-ref:SchemaStatements#remove_foreign_key]
+      def remove_foreign_key(*args)
+        @base.remove_foreign_key(name, *args)
       end
 
       # Checks to see if a foreign key exists.

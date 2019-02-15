@@ -9,7 +9,7 @@ require "active_record/connection_adapters/sqlite3/schema_definitions"
 require "active_record/connection_adapters/sqlite3/schema_dumper"
 require "active_record/connection_adapters/sqlite3/schema_statements"
 
-gem "sqlite3", "~> 1.3.6"
+gem "sqlite3", "~> 1.3", ">= 1.3.6"
 require "sqlite3"
 
 module ActiveRecord
@@ -121,7 +121,7 @@ module ActiveRecord
         true
       end
 
-      def supports_foreign_keys_in_create?
+      def supports_foreign_keys?
         true
       end
 
@@ -320,6 +320,9 @@ module ActiveRecord
       def remove_column(table_name, column_name, type = nil, options = {}) #:nodoc:
         alter_table(table_name) do |definition|
           definition.remove_column column_name
+          definition.foreign_keys.delete_if do |_, fk_options|
+            fk_options[:column] == column_name.to_s
+          end
         end
       end
 
@@ -421,9 +424,8 @@ module ActiveRecord
           type.to_sym == :primary_key || options[:primary_key]
         end
 
-        def alter_table(table_name, options = {})
+        def alter_table(table_name, foreign_keys = foreign_keys(table_name), **options)
           altered_table_name = "a#{table_name}"
-          foreign_keys = foreign_keys(table_name)
 
           caller = lambda do |definition|
             rename = options[:rename] || {}
@@ -431,7 +433,8 @@ module ActiveRecord
               if column = rename[fk.options[:column]]
                 fk.options[:column] = column
               end
-              definition.foreign_key(fk.to_table, fk.options)
+              to_table = strip_table_name_prefix_and_suffix(fk.to_table)
+              definition.foreign_key(to_table, fk.options)
             end
 
             yield definition if block_given?

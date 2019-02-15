@@ -14,6 +14,7 @@ module ActionMailbox
     config.eager_load_namespaces << ActionMailbox
 
     config.action_mailbox = ActiveSupport::OrderedOptions.new
+    config.action_mailbox.incinerate = true
     config.action_mailbox.incinerate_after = 30.days
 
     config.action_mailbox.queues = ActiveSupport::InheritableOptions.new \
@@ -22,6 +23,7 @@ module ActionMailbox
     initializer "action_mailbox.config" do
       config.after_initialize do |app|
         ActionMailbox.logger = app.config.action_mailbox.logger || Rails.logger
+        ActionMailbox.incinerate = app.config.action_mailbox.incinerate.nil? ? true : app.config.action_mailbox.incinerate
         ActionMailbox.incinerate_after = app.config.action_mailbox.incinerate_after || 30.days
         ActionMailbox.queues = app.config.action_mailbox.queues || {}
       end

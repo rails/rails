@@ -185,7 +185,7 @@ module ActiveRecord
           def wait_poll(timeout)
             @num_waiting += 1
 
-            t0 = Time.now
+            t0 = Concurrent.monotonic_time
             elapsed = 0
             loop do
               ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
@@ -194,7 +194,7 @@ module ActiveRecord
 
               return remove if any?
 
-              elapsed = Time.now - t0
+              elapsed = Concurrent.monotonic_time - t0
               if elapsed >= timeout
                 msg = "could not obtain a connection from the pool within %0.3f seconds (waited %0.3f seconds); all pooled connections were in use" %
                   [timeout, elapsed]
@@ -686,13 +686,13 @@ module ActiveRecord
           end
 
           newly_checked_out = []
-          timeout_time      = Time.now + (@checkout_timeout * 2)
+          timeout_time      = Concurrent.monotonic_time + (@checkout_timeout * 2)
 
           @available.with_a_bias_for(Thread.current) do
             loop do
               synchronize do
                 return if collected_conns.size == @connections.size && @now_connecting == 0
-                remaining_timeout = timeout_time - Time.now
+                remaining_timeout = timeout_time - Concurrent.monotonic_time
                 remaining_timeout = 0 if remaining_timeout < 0
                 conn = checkout_for_exclusive_access(remaining_timeout)
                 collected_conns   << conn

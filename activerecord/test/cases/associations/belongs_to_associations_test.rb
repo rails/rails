@@ -63,7 +63,8 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     ActiveRecord::SQLCounter.clear_log
     Client.find(3).firm
   ensure
-    assert ActiveRecord::SQLCounter.log_all.all? { |sql| /order by/i !~ sql }, "ORDER BY was used in the query"
+    sql_log = ActiveRecord::SQLCounter.log
+    assert sql_log.all? { |sql| /order by/i !~ sql }, "ORDER BY was used in the query: #{sql_log}"
   end
 
   def test_belongs_to_with_primary_key
@@ -447,8 +448,13 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_with_select
-    assert_equal 1, Company.find(2).firm_with_select.attributes.size
-    assert_equal 1, Company.all.merge!(includes: :firm_with_select).find(2).firm_with_select.attributes.size
+    assert_equal 1, Post.find(2).author_with_select.attributes.size
+    assert_equal 1, Post.includes(:author_with_select).find(2).author_with_select.attributes.size
+  end
+
+  def test_custom_attribute_with_select
+    assert_equal 2, Company.find(2).firm_with_select.attributes.size
+    assert_equal 2, Company.includes(:firm_with_select).find(2).firm_with_select.attributes.size
   end
 
   def test_belongs_to_without_counter_cache_option

@@ -93,6 +93,8 @@ module ApplicationTests
 
       def with_bad_permissions
         Dir.chdir(app_path) do
+          skip "Can't avoid permissions as root" if Process.uid.zero?
+
           set_database_url
           FileUtils.chmod("-w", "db")
           yield

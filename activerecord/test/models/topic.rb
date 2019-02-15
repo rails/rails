@@ -88,6 +88,10 @@ class Topic < ActiveRecord::Base
     write_attribute(:approved, val)
   end
 
+  def self.nested_scoping(scope)
+    scope.base
+  end
+
   private
 
     def default_written_on

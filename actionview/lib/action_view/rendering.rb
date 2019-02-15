@@ -35,23 +35,35 @@ module ActionView
     end
 
     module ClassMethods
-      def view_context_class
-        @view_context_class ||= begin
-          supports_path = supports_path?
-          routes  = respond_to?(:_routes)  && _routes
-          helpers = respond_to?(:_helpers) && _helpers
+      def _routes
+      end
 
-          Class.new(ActionView::Base) do
-            if routes
-              include routes.url_helpers(supports_path)
-              include routes.mounted_helpers
-            end
+      def _helpers
+      end
 
-            if helpers
-              include helpers
-            end
+      def build_view_context_class(klass, supports_path, routes, helpers)
+        Class.new(klass) do
+          if routes
+            include routes.url_helpers(supports_path)
+            include routes.mounted_helpers
+          end
+
+          if helpers
+            include helpers
           end
         end
+      end
+
+      def view_context_class
+        klass = ActionView::LookupContext::DetailsKey.view_context_class(ActionView::Base)
+
+        @view_context_class ||= build_view_context_class(klass, supports_path?, _routes, _helpers)
+
+        if klass.changed?(@view_context_class)
+          @view_context_class = build_view_context_class(klass, supports_path?, _routes, _helpers)
+        end
+
+        @view_context_class
       end
     end
 
@@ -70,11 +82,12 @@ module ActionView
     #
     # Override this method in a module to change the default behavior.
     def view_context
-      view_context_class.new(view_renderer, view_assigns, self)
+      view_context_class.new(lookup_context, view_assigns, self)
     end
 
     # Returns an object that is able to render templates.
     def view_renderer # :nodoc:
+      # Lifespan: Per controller
       @_view_renderer ||= ActionView::Renderer.new(lookup_context)
     end
 
@@ -99,7 +112,7 @@ module ActionView
         lookup_context.rendered_format = nil if options[:formats]
         lookup_context.variants = variant if variant
 
-        view_renderer.render(context, options)
+        context.view_renderer.render(context, options)
       end
 
       # Assign the rendered format to look up context.

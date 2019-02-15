@@ -671,6 +671,21 @@ To configure the URL, add a call to `action_cable_meta_tag` in your HTML layout
 HEAD. This uses a URL or path typically set via `config.action_cable.url` in the
 environment configuration files.
 
+### Worker Pool Configuration
+
+The worker pool is used to run connection callbacks and channel actions in
+isolation from the server's main thread. Action Cable allows the application
+to configure the number of simultaneously processed threads in the worker pool.
+
+```ruby
+config.action_cable.worker_pool_size = 4
+```
+
+Also, note that your server must provide at least the same number of database
+connections as you have workers. The default worker pool size is set to 4, so
+that means you have to make at least 4 database connections available.
+ You can change that in `config/database.yml` through the `pool` attribute.
+
 ### Other Configurations
 
 The other common option to configure is the log tags applied to the
@@ -687,11 +702,6 @@ config.action_cable.log_tags = [
 
 For a full list of all configuration options, see the
 `ActionCable::Server::Configuration` class.
-
-Also, note that your server must provide at least the same number of database
-connections as you have workers. The default worker pool size is set to 4, so
-that means you have to make at least that available. You can change that in
-`config/database.yml` through the `pool` attribute.
 
 ## Running Standalone Cable Servers
 

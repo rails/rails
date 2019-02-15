@@ -226,9 +226,8 @@ module ActionView
 
         template_paths.map do |template|
           handler, format, variant = extract_handler_and_format_and_variant(template)
-          contents = File.binread(template)
 
-          Template.new(contents, File.expand_path(template), handler,
+          FileTemplate.new(File.expand_path(template), handler,
             virtual_path: path.virtual,
             format: format,
             variant: variant,

@@ -1052,15 +1052,27 @@ module ActiveRecord
 
       def arel_columns(columns)
         columns.flat_map do |field|
-          if (Symbol === field || String === field) && (klass.has_attribute?(field) || klass.attribute_alias?(field)) && !from_clause.value
-            arel_attribute(field)
-          elsif Symbol === field
-            connection.quote_table_name(field.to_s)
-          elsif Proc === field
+          case field
+          when Symbol
+            field = field.to_s
+            arel_column(field) { connection.quote_table_name(field) }
+          when String
+            arel_column(field) { field }
+          when Proc
             field.call
           else
             field
           end
+        end
+      end
+
+      def arel_column(field)
+        field = klass.attribute_alias(field) if klass.attribute_alias?(field)
+
+        if klass.columns_hash.key?(field) && !from_clause.value
+          arel_attribute(field)
+        else
+          yield
         end
       end
 

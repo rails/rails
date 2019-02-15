@@ -132,7 +132,7 @@ module ActiveRecord
 
     private
       def respond_to_missing?(method, _)
-        super || @klass.respond_to?(method) || arel.respond_to?(method)
+        super || @klass.respond_to?(method)
       end
   end
 end
