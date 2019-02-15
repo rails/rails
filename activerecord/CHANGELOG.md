@@ -1,3 +1,8 @@
+*   Deprecate using class level querying methods if the receiver scope
+    regarded as leaked. Use `klass.unscoped` to avoid the leaking scope.
+
+    *Ryuta Kamizono*
+
 *   Allow applications to automatically switch connections.
 
     Adds a middleware and configuration options that can be used in your

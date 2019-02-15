@@ -50,7 +50,7 @@ class NamedScopingTest < ActiveRecord::TestCase
 
   def test_calling_merge_at_first_in_scope
     Topic.class_eval do
-      scope :calling_merge_at_first_in_scope, Proc.new { merge(Topic.replied) }
+      scope :calling_merge_at_first_in_scope, Proc.new { merge(Topic.unscoped.replied) }
     end
     assert_equal Topic.calling_merge_at_first_in_scope.to_a, Topic.replied.to_a
   end
@@ -448,7 +448,9 @@ class NamedScopingTest < ActiveRecord::TestCase
   end
 
   def test_class_method_in_scope
-    assert_equal [topics(:second)], topics(:first).approved_replies.ordered
+    assert_deprecated do
+      assert_equal [topics(:second)], topics(:first).approved_replies.ordered
+    end
   end
 
   def test_nested_scoping

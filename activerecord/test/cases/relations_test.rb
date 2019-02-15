@@ -1169,9 +1169,11 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_first_or_create_with_after_initialize
     Bird.create!(color: "yellow", name: "canary")
-    parrot = Bird.where(color: "green").first_or_create do |bird|
-      bird.name = "parrot"
-      bird.enable_count = true
+    parrot = assert_deprecated do
+      Bird.where(color: "green").first_or_create do |bird|
+        bird.name = "parrot"
+        bird.enable_count = true
+      end
     end
     assert_equal 0, parrot.total_count
   end
@@ -1180,7 +1182,7 @@ class RelationTest < ActiveRecord::TestCase
     Bird.create!(color: "yellow", name: "canary")
     parrot = Bird.where(color: "green").first_or_create do |bird|
       bird.name = "parrot"
-      assert_equal 0, Bird.count
+      assert_deprecated { assert_equal 0, Bird.count }
     end
     assert_kind_of Bird, parrot
     assert_predicate parrot, :persisted?
@@ -1224,9 +1226,11 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_first_or_create_bang_with_after_initialize
     Bird.create!(color: "yellow", name: "canary")
-    parrot = Bird.where(color: "green").first_or_create! do |bird|
-      bird.name = "parrot"
-      bird.enable_count = true
+    parrot = assert_deprecated do
+      Bird.where(color: "green").first_or_create! do |bird|
+        bird.name = "parrot"
+        bird.enable_count = true
+      end
     end
     assert_equal 0, parrot.total_count
   end
@@ -1235,7 +1239,7 @@ class RelationTest < ActiveRecord::TestCase
     Bird.create!(color: "yellow", name: "canary")
     parrot = Bird.where(color: "green").first_or_create! do |bird|
       bird.name = "parrot"
-      assert_equal 0, Bird.count
+      assert_deprecated { assert_equal 0, Bird.count }
     end
     assert_kind_of Bird, parrot
     assert_predicate parrot, :persisted?
@@ -1287,9 +1291,11 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_first_or_initialize_with_after_initialize
     Bird.create!(color: "yellow", name: "canary")
-    parrot = Bird.where(color: "green").first_or_initialize do |bird|
-      bird.name = "parrot"
-      bird.enable_count = true
+    parrot = assert_deprecated do
+      Bird.where(color: "green").first_or_initialize do |bird|
+        bird.name = "parrot"
+        bird.enable_count = true
+      end
     end
     assert_equal 0, parrot.total_count
   end
@@ -1298,7 +1304,7 @@ class RelationTest < ActiveRecord::TestCase
     Bird.create!(color: "yellow", name: "canary")
     parrot = Bird.where(color: "green").first_or_initialize do |bird|
       bird.name = "parrot"
-      assert_equal 0, Bird.count
+      assert_deprecated { assert_equal 0, Bird.count }
     end
     assert_kind_of Bird, parrot
     assert_not_predicate parrot, :persisted?

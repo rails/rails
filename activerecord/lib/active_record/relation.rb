@@ -67,6 +67,7 @@ module ActiveRecord
     #   user = users.new { |user| user.name = 'Oscar' }
     #   user.name # => Oscar
     def new(attributes = nil, &block)
+      block = _deprecated_scope_block("new", &block)
       scoping { klass.new(attributes, &block) }
     end
 
@@ -92,7 +93,12 @@ module ActiveRecord
     #   users.create(name: nil) # validation on name
     #   # => #<User id: nil, name: nil, ...>
     def create(attributes = nil, &block)
-      scoping { klass.create(attributes, &block) }
+      if attributes.is_a?(Array)
+        attributes.collect { |attr| create(attr, &block) }
+      else
+        block = _deprecated_scope_block("create", &block)
+        scoping { klass.create(attributes, &block) }
+      end
     end
 
     # Similar to #create, but calls
@@ -102,7 +108,12 @@ module ActiveRecord
     # Expects arguments in the same format as
     # {ActiveRecord::Base.create!}[rdoc-ref:Persistence::ClassMethods#create!].
     def create!(attributes = nil, &block)
-      scoping { klass.create!(attributes, &block) }
+      if attributes.is_a?(Array)
+        attributes.collect { |attr| create!(attr, &block) }
+      else
+        block = _deprecated_scope_block("create!", &block)
+        scoping { klass.create!(attributes, &block) }
+      end
     end
 
     def first_or_create(attributes = nil, &block) # :nodoc:
@@ -312,12 +323,12 @@ module ActiveRecord
     # Please check unscoped if you want to remove all previous scopes (including
     # the default_scope) during the execution of a block.
     def scoping
-      @delegate_to_klass ? yield : _scoping(self) { yield }
+      already_in_scope? ? yield : _scoping(self) { yield }
     end
 
-    def _exec_scope(*args, &block) # :nodoc:
+    def _exec_scope(name, *args, &block) # :nodoc:
       @delegate_to_klass = true
-      instance_exec(*args, &block) || self
+      _scoping(_deprecated_spawn(name)) { instance_exec(*args, &block) || self }
     ensure
       @delegate_to_klass = false
     end
@@ -516,6 +527,7 @@ module ActiveRecord
 
     def reset
       @delegate_to_klass = false
+      @_deprecated_scope_source = nil
       @to_sql = @arel = @loaded = @should_eager_load = nil
       @records = [].freeze
       @offsets = {}
@@ -624,7 +636,10 @@ module ActiveRecord
       end
     end
 
+    attr_reader :_deprecated_scope_source # :nodoc:
+
     protected
+      attr_writer :_deprecated_scope_source # :nodoc:
 
       def load_records(records)
         @records = records.freeze
@@ -632,6 +647,24 @@ module ActiveRecord
       end
 
     private
+      def already_in_scope?
+        @delegate_to_klass && begin
+          scope = klass.current_scope(true)
+          scope && !scope._deprecated_scope_source
+        end
+      end
+
+      def _deprecated_spawn(name)
+        spawn.tap { |scope| scope._deprecated_scope_source = name }
+      end
+
+      def _deprecated_scope_block(name, &block)
+        -> record do
+          klass.current_scope = _deprecated_spawn(name)
+          yield record if block_given?
+        end
+      end
+
       def _scoping(scope)
         previous, klass.current_scope = klass.current_scope(true), scope
         yield
