@@ -26,6 +26,11 @@ module ActiveSupport
           cpath = object.is_a?(Module) ? object.name : object.to_s
           Rails.autoloaders.any? { |autoloader| autoloader.loaded?(cpath) }
         end
+
+        def verbose=(verbose)
+          l = verbose ? (logger || Rails.logger).method(:debug) : nil
+          Rails.autoloaders.each { |autoloader| autoloader.logger = l }
+        end
       end
 
       class << self
