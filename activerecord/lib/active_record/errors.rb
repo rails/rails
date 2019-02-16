@@ -135,6 +135,9 @@ module ActiveRecord
         msg << "\nOriginal message: #{message}"
       end
       super(msg)
+    rescue NoMethodError
+      p [message: message, table: table, foreign_key: foreign_key, target_table: target_table, primary_key: primary_key]
+      raise
     end
 
     private
