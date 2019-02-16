@@ -915,6 +915,16 @@ module ActiveRecord
     # about the model. The model needs to pass a specification name to the handler,
     # in order to look up the correct connection pool.
     class ConnectionHandler
+      def self.create_owner_to_pool # :nodoc:
+        Concurrent::Map.new(initial_capacity: 2) do |h, k|
+          # Discard the parent's connection pools immediately; we have no need
+          # of them
+          discard_unowned_pools(h)
+
+          h[k] = Concurrent::Map.new(initial_capacity: 2)
+        end
+      end
+
       def self.unowned_pool_finalizer(pid_map) # :nodoc:
         lambda do |_|
           discard_unowned_pools(pid_map)
@@ -929,13 +939,7 @@ module ActiveRecord
 
       def initialize
         # These caches are keyed by spec.name (ConnectionSpecification#name).
-        @owner_to_pool = Concurrent::Map.new(initial_capacity: 2) do |h, k|
-          # Discard the parent's connection pools immediately; we have no need
-          # of them
-          ConnectionHandler.discard_unowned_pools(h)
-
-          h[k] = Concurrent::Map.new(initial_capacity: 2)
-        end
+        @owner_to_pool = ConnectionHandler.create_owner_to_pool
 
         # Backup finalizer: if the forked child never needed a pool, the above
         # early discard has not occurred
