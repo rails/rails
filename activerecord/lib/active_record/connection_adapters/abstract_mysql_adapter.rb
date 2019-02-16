@@ -795,17 +795,27 @@ module ActiveRecord
         end
 
         def mismatched_foreign_key(message, sql:, binds:)
-          parts = sql.scan(/`(\w+)`[ $)]/).flatten
-          MismatchedForeignKey.new(
-            self,
+          match = %r/
+            (?:CREATE|ALTER)\s+TABLE\s*(?:`?\w+`?\.)?`?(?<table>\w+)`?.+?
+            FOREIGN\s+KEY\s*\(`?(?<foreign_key>\w+)`?\)\s*
+            REFERENCES\s*(`?(?<target_table>\w+)`?)\s*\(`?(?<primary_key>\w+)`?\)
+          /xmi.match(sql)
+
+          options = {
             message: message,
             sql: sql,
             binds: binds,
-            table: parts[0],
-            foreign_key: parts[1],
-            target_table: parts[2],
-            primary_key: parts[3],
-          )
+          }
+
+          if match
+            options[:table] = match[:table]
+            options[:foreign_key] = match[:foreign_key]
+            options[:target_table] = match[:target_table]
+            options[:primary_key] = match[:primary_key]
+            options[:primary_key_column] = column_for(match[:target_table], match[:primary_key])
+          end
+
+          MismatchedForeignKey.new(options)
         end
 
         def integer_to_sql(limit) # :nodoc:
