@@ -367,6 +367,13 @@ module RenderTestCases
     end
   end
 
+  def test_without_compiled_method_container_is_deprecated
+    view = ActionView::Base.with_view_paths(ActionController::Base.view_paths)
+    assert_deprecated("ActionView::Base instances must implement `compiled_method_container`") do
+      assert_equal "Hello world!", view.render(file: "test/hello_world")
+    end
+  end
+
   def test_render_partial_without_object_does_not_put_partial_name_to_local_assigns
     assert_equal "false", @view.render(partial: "test/partial_name_in_local_assigns")
   end

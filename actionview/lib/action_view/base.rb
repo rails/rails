@@ -273,11 +273,15 @@ module ActionView #:nodoc:
     end
 
     def compiled_method_container
-      raise NotImplementedError, <<~msg
-        Subclasses of ActionView::Base must implement `compiled_method_container`
-        or use the class method `with_empty_template_cache` for constructing
-        an ActionView::Base subclass that has an empty cache.
-      msg
+      if self.class == ActionView::Base
+        ActiveSupport::Deprecation.warn <<~eowarn
+          ActionView::Base instances must implement `compiled_method_container`
+          or use the class method `with_empty_template_cache` for constructing
+          an ActionView::Base instances that has an empty cache.
+        eowarn
+      end
+
+      self.class
     end
 
     def in_context(options, locals)
