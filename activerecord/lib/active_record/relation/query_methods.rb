@@ -1157,14 +1157,20 @@ module ActiveRecord
         order_args.map! do |arg|
           case arg
           when Symbol
-            arel_attribute(arg).asc
+            field = arg.to_s
+            arel_column(field) {
+              Arel.sql(connection.quote_table_name(field))
+            }.asc
           when Hash
             arg.map { |field, dir|
               case field
               when Arel::Nodes::SqlLiteral
                 field.send(dir.downcase)
               else
-                arel_attribute(field).send(dir.downcase)
+                field = field.to_s
+                arel_column(field) {
+                  Arel.sql(connection.quote_table_name(field))
+                }.send(dir.downcase)
               end
             }
           else

@@ -1852,6 +1852,13 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal contract.metadata, company.metadata
   end
 
+  test "joins with order by custom attribute" do
+    companies = Company.create!([{ name: "test1" }, { name: "test2" }])
+    companies.each { |company| company.contracts.create! }
+    assert_equal companies, Company.joins(:contracts).order(:metadata)
+    assert_equal companies.reverse, Company.joins(:contracts).order(metadata: :desc)
+  end
+
   test "delegations do not leak to other classes" do
     Topic.all.by_lifo
     assert Topic.all.class.method_defined?(:by_lifo)
