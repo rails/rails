@@ -74,10 +74,8 @@ module ActiveRecord
             fk_to_table == table && options.all? { |k, v| fk.options[k].to_s == v.to_s }
           end || raise(ArgumentError, "Table '#{from_table}' has no foreign key for #{to_table}")
 
-          alter_table(from_table, foreign_keys) do |definition|
-            fk_to_table = strip_table_name_prefix_and_suffix(fkey.to_table)
-            definition.foreign_keys.delete([fk_to_table, fkey.options])
-          end
+          foreign_keys.delete(fkey)
+          alter_table(from_table, foreign_keys)
         end
 
         def create_schema_dumper(options)
