@@ -1,3 +1,7 @@
+*   SQLite3: Implement `add_foreign_key` and `remove_foreign_key`.
+
+    *Ryuta Kamizono*
+
 *   Deprecate using class level querying methods if the receiver scope
     regarded as leaked. Use `klass.unscoped` to avoid the leaking scope.
 
