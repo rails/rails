@@ -783,7 +783,7 @@ class CachedCollectionViewRenderTest < ActiveSupport::TestCase
 
   private
     def cache_key(*names, virtual_path)
-      digest = ActionView::Digestor.digest name: virtual_path, finder: @view.lookup_context, dependencies: []
+      digest = ActionView::Digestor.digest name: virtual_path, format: :html, finder: @view.lookup_context, dependencies: []
       @view.combined_fragment_cache_key([ "#{virtual_path}:#{digest}", *names ])
     end
 end

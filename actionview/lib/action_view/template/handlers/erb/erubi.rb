@@ -27,7 +27,7 @@ module ActionView
               include action_view_erb_handler_context._routes.url_helpers
               class_eval("define_method(:_template) { |local_assigns, output_buffer| #{src} }", @filename || "(erubi)", 0)
             }.empty
-            view.run(:_template, {}, ActionView::OutputBuffer.new)
+            view.run(:_template, nil, {}, ActionView::OutputBuffer.new)
           end
 
         private

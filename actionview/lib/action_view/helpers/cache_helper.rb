@@ -216,13 +216,13 @@ module ActionView
         end
       end
 
-      def digest_path_from_virtual(virtual_path) # :nodoc:
-        digest = Digestor.digest(name: virtual_path, finder: lookup_context, dependencies: view_cache_dependencies)
+      def digest_path_from_template(template) # :nodoc:
+        digest = Digestor.digest(name: template.virtual_path, format: template.formats.first, finder: lookup_context, dependencies: view_cache_dependencies)
 
         if digest.present?
-          "#{virtual_path}:#{digest}"
+          "#{template.virtual_path}:#{digest}"
         else
-          virtual_path
+          template.virtual_path
         end
       end
 
@@ -234,7 +234,7 @@ module ActionView
         if virtual_path || digest_path
           name = controller.url_for(name).split("://").last if name.is_a?(Hash)
 
-          digest_path ||= digest_path_from_virtual(virtual_path)
+          digest_path ||= digest_path_from_template(@current_template)
 
           [ digest_path, name ]
         else

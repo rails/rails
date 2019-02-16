@@ -18,11 +18,11 @@ module ActionView
       # * <tt>name</tt>   - Template name
       # * <tt>finder</tt>  - An instance of <tt>ActionView::LookupContext</tt>
       # * <tt>dependencies</tt>  - An array of dependent views
-      def digest(name:, finder:, dependencies: nil)
+      def digest(name:, format:, finder:, dependencies: nil)
         if dependencies.nil? || dependencies.empty?
-          cache_key = "#{name}.#{finder.rendered_format}"
+          cache_key = "#{name}.#{format}"
         else
-          cache_key = [ name, finder.rendered_format, dependencies ].flatten.compact.join(".")
+          cache_key = [ name, format, dependencies ].flatten.compact.join(".")
         end
 
         # this is a correctly done double-checked locking idiom
@@ -73,9 +73,7 @@ module ActionView
       private
         def find_template(finder, name, prefixes, partial, keys)
           finder.disable_cache do
-            format = finder.rendered_format
-            result = finder.find_all(name, prefixes, partial, keys, formats: [format]).first if format
-            result || finder.find_all(name, prefixes, partial, keys).first
+            finder.find_all(name, prefixes, partial, keys).first
           end
         end
     end
