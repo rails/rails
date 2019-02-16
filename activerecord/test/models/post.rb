@@ -328,6 +328,10 @@ class FakeKlass
       # noop
     end
 
+    def columns_hash
+      { "name" => nil }
+    end
+
     def arel_table
       Post.arel_table
     end
