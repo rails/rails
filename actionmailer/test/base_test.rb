@@ -914,20 +914,18 @@ class BaseTest < ActiveSupport::TestCase
   end
 
   test "notification for deliver" do
-    begin
-      events = []
-      ActiveSupport::Notifications.subscribe("deliver.action_mailer") do |*args|
-        events << ActiveSupport::Notifications::Event.new(*args)
-      end
-
-      BaseMailer.welcome(body: "Hello there").deliver_now
-
-      assert_equal 1, events.length
-      assert_equal "deliver.action_mailer", events[0].name
-      assert_not_nil events[0].payload[:message_id]
-    ensure
-      ActiveSupport::Notifications.unsubscribe "deliver.action_mailer"
+    events = []
+    ActiveSupport::Notifications.subscribe("deliver.action_mailer") do |*args|
+      events << ActiveSupport::Notifications::Event.new(*args)
     end
+
+    BaseMailer.welcome(body: "Hello there").deliver_now
+
+    assert_equal 1, events.length
+    assert_equal "deliver.action_mailer", events[0].name
+    assert_not_nil events[0].payload[:message_id]
+  ensure
+    ActiveSupport::Notifications.unsubscribe "deliver.action_mailer"
   end
 
   private
