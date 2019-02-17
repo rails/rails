@@ -144,10 +144,35 @@ class GeneratedAttributeTest < Rails::Generators::TestCase
     assert_equal "post_id", create_generated_attribute("belongs_to", "post").column_name
   end
 
-  def test_parse_required_attribute_with_index
+  def test_parse_braced_required_attribute_with_index
     att = Rails::Generators::GeneratedAttribute.parse("supplier:references{required}:index")
     assert_equal "supplier", att.name
     assert_equal :references, att.type
+    assert_predicate att, :has_index?
+    assert_predicate att, :required?
+  end
+
+  def test_parse_required_attribute_with_index
+    att = Rails::Generators::GeneratedAttribute.parse("supplier:references:required:index")
+    assert_equal "supplier", att.name
+    assert_equal :references, att.type
+    assert_predicate att, :has_index?
+    assert_predicate att, :required?
+  end
+
+  def test_parse_required_integer_attribute_with_unique_index
+    att = Rails::Generators::GeneratedAttribute.parse("supplier_id:integer{8}:required:uniq")
+    assert_equal "supplier_id", att.name
+    assert_equal :integer, att.type
+    assert_predicate att, :has_index?
+    assert_predicate att, :has_uniq_index?
+    assert_predicate att, :required?
+  end
+
+  def test_parse_required_string_attribute_with_index
+    att = Rails::Generators::GeneratedAttribute.parse("attr_name:required:index")
+    assert_equal "attr_name", att.name
+    assert_equal :string, att.type
     assert_predicate att, :has_index?
     assert_predicate att, :required?
   end

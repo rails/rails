@@ -5,7 +5,7 @@ require "rails/generators/active_record"
 module ActiveRecord
   module Generators # :nodoc:
     class MigrationGenerator < Base # :nodoc:
-      argument :attributes, type: :array, default: [], banner: "field[:type][:index] field[:type][:index]"
+      argument :attributes, type: :array, default: [], banner: "field[:type][:required][:index] field[:type][:required][:index]"
 
       class_option :primary_key_type, type: :string, desc: "The type for primary key"
       class_option :database, type: :string, aliases: %i(db), desc: "The database for your migration. By default, the current environment's primary database is used."

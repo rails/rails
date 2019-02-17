@@ -19,11 +19,11 @@ class ModelGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_model_with_missing_attribute_type
-    run_generator ["post", "title", "body:text", "author"]
+    run_generator ["post", "title:required", "body:text", "author"]
 
     assert_migration "db/migrate/create_posts.rb" do |m|
       assert_method :change, m do |up|
-        assert_match(/t\.string :title/, up)
+        assert_match(/t\.string :title, null: false/, up)
         assert_match(/t\.text :body/, up)
         assert_match(/t\.string :author/, up)
       end
@@ -228,6 +228,12 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     assert_migration "db2/migrate/create_accounts.rb", /class CreateAccounts < ActiveRecord::Migration\[[0-9.]+\]/
   ensure
     Rails.application.config.paths["db/migrate"] = old_paths
+  end
+
+  def test_model_with_required_attribute_generates_presence_validations
+    run_generator ["user", "name:string:required", "age:integer:required"]
+    assert_file "app/models/user.rb", /validates :name, presence: true/
+    assert_file "app/models/user.rb", /validates :age, presence: true/
   end
 
   def test_model_with_references_attribute_generates_belongs_to_associations

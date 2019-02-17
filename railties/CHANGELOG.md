@@ -1,3 +1,7 @@
+*   Available required option for all types with model/migration generator.
+
+    *Yoshiyuki Hirano*
+
 *   Fix non-symbol access to nested hashes returned from `Rails::Application.config_for`
     being broken by allowing non-symbol access with a deprecation notice.
 

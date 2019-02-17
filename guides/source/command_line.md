@@ -234,7 +234,7 @@ Rails comes with a generator for data models too.
 ```bash
 $ rails generate model
 Usage:
-  rails generate model NAME [field[:type][:index] field[:type][:index]] [options]
+  rails generate model NAME [field[:type][:required][:index] field[:type][:required][:index]] [options]
 
 ...
 

@@ -86,6 +86,18 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_remove_migration_with_attributes_and_required_option
+    migration = "remove_title_body_from_posts"
+    run_generator [migration, "title:string:required", "body:text:required"]
+
+    assert_migration "db/migrate/#{migration}.rb" do |content|
+      assert_method :change, content do |change|
+        assert_match(/remove_column :posts, :title, :string, null: false/, change)
+        assert_match(/remove_column :posts, :body, :text, null: false/, change)
+      end
+    end
+  end
+
   def test_remove_migration_with_table_having_to_in_title
     migration = "remove_email_address_from_sent_to_user"
     run_generator [migration, "email_address:string"]
@@ -177,6 +189,23 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
         assert_match(/add_column :books, :content, :string, limit: 255/, change)
         assert_match(/add_column :books, :price, :decimal, precision: 1, scale: 2/, change)
         assert_match(/add_column :books, :discount, :decimal, precision: 3, scale: 4/, change)
+      end
+      assert_match(/add_index :books, :title/, content)
+      assert_match(/add_index :books, :price/, content)
+      assert_match(/add_index :books, :discount, unique: true/, content)
+    end
+  end
+
+  def test_add_migration_with_attributes_index_declaration_and_attributes_required_declaration_and_attribute_options
+    migration = "add_title_and_content_to_books"
+    run_generator [migration, "title:string{40}:required:index", "content:string{255}:required", "price:decimal{1,2}:index:required", "discount:decimal{3.4}:required:uniq"]
+
+    assert_migration "db/migrate/#{migration}.rb" do |content|
+      assert_method :change, content do |change|
+        assert_match(/add_column :books, :title, :string, limit: 40, null: false/, change)
+        assert_match(/add_column :books, :content, :string, limit: 255, null: false/, change)
+        assert_match(/add_column :books, :price, :decimal, precision: 1, scale: 2, null: false/, change)
+        assert_match(/add_column :books, :discount, :decimal, precision: 3, scale: 4, null: false/, change)
       end
       assert_match(/add_index :books, :title/, content)
       assert_match(/add_index :books, :price/, content)
