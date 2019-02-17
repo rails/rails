@@ -3,6 +3,7 @@
 module ActiveModel
   module Type
     class Time < Value # :nodoc:
+      include Helpers::Timezone
       include Helpers::TimeValue
       include Helpers::AcceptsMultiparameterTime.new(
         defaults: { 1 => 2000, 2 => 1, 3 => 1, 4 => 0, 5 => 0 }
