@@ -50,6 +50,13 @@ module ActiveModel
         assert_equal 7200, type.cast(2.hours)
       end
 
+      test "casting empty string" do
+        type = Type::Integer.new
+        assert_nil type.cast("")
+        assert_nil type.serialize("")
+        assert_equal 0, type.deserialize("")
+      end
+
       test "changed?" do
         type = Type::Integer.new
 
