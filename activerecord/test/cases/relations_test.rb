@@ -291,7 +291,16 @@ class RelationTest < ActiveRecord::TestCase
       Topic.order(Arel.sql("title NULLS FIRST")).reverse_order
     end
     assert_raises(ActiveRecord::IrreversibleOrderError) do
+      Topic.order(Arel.sql("title  NULLS  FIRST")).reverse_order
+    end
+    assert_raises(ActiveRecord::IrreversibleOrderError) do
       Topic.order(Arel.sql("title nulls last")).reverse_order
+    end
+    assert_raises(ActiveRecord::IrreversibleOrderError) do
+      Topic.order(Arel.sql("title NULLS FIRST, author_name")).reverse_order
+    end
+    assert_raises(ActiveRecord::IrreversibleOrderError) do
+      Topic.order(Arel.sql("author_name, title nulls last")).reverse_order
     end
   end
 

@@ -1111,7 +1111,7 @@ module ActiveRecord
         # Uses SQL function with multiple arguments.
         (order.include?(",") && order.split(",").find { |section| section.count("(") != section.count(")") }) ||
           # Uses "nulls first" like construction.
-          /nulls (first|last)\Z/i.match?(order)
+          /\bnulls\s+(?:first|last)\b/i.match?(order)
       end
 
       def build_order(arel)
