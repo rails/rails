@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Rails
   module Autoloaders # :nodoc:
     class << self
