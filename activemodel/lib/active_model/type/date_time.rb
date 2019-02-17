@@ -13,10 +13,6 @@ module ActiveModel
         :datetime
       end
 
-      def serialize(value)
-        super(cast(value))
-      end
-
       private
 
         def cast_value(value)

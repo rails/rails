@@ -10,10 +10,6 @@ module ActiveModel
         :date
       end
 
-      def serialize(value)
-        cast(value)
-      end
-
       def type_cast_for_schema(value)
         value.to_s(:db).inspect
       end

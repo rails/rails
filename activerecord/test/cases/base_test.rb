@@ -685,6 +685,9 @@ class BasicsTest < ActiveRecord::TestCase
       topic = Topic.find(1)
       topic.attributes = attributes
       assert_equal Time.local(2000, 1, 1, 5, 42, 0), topic.bonus_time
+
+      topic.save!
+      assert_equal topic, Topic.find_by(attributes)
     end
   end
 

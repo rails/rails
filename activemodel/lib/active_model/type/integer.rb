@@ -24,7 +24,7 @@ module ActiveModel
       end
 
       def serialize(value)
-        result = cast(value)
+        result = super
         if result
           ensure_in_range(result)
         end
@@ -35,12 +35,7 @@ module ActiveModel
         attr_reader :range
 
         def cast_value(value)
-          case value
-          when true then 1
-          when false then 0
-          else
-            value.to_i rescue nil
-          end
+          value.to_i rescue nil
         end
 
         def ensure_in_range(value)

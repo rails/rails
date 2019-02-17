@@ -13,6 +13,10 @@ module ActiveModel
         :time
       end
 
+      def serialize(value)
+        super || value
+      end
+
       def user_input_in_time_zone(value)
         return unless value.present?
 
