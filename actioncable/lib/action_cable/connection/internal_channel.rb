@@ -33,6 +33,9 @@ module ActionCable
           when "disconnect"
             logger.info "Removing connection (#{connection_identifier})"
             websocket.close
+          when "unsubscribe"
+            logger.info "Unsubscribing connection #{connection_identifier} from #{message['channel_identifier']}"
+            subscriptions.remove("identifier" => message["channel_identifier"])
           end
         rescue Exception => e
           logger.error "There was an exception - #{e.class}(#{e.message})"

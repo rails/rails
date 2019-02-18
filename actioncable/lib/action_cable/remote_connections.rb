@@ -43,6 +43,11 @@ module ActionCable
           set_identifier_instance_vars(ids)
         end
 
+        # Uses the internal channel to unsubscribe a connection from a given channel
+        def unsubscribe(channel_identifier)
+          server.broadcast internal_channel, type: "unsubscribe", channel_identifier: channel_identifier
+        end
+
         # Uses the internal channel to disconnect the connection.
         def disconnect
           server.broadcast internal_channel, type: "disconnect"
