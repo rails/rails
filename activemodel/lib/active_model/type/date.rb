@@ -46,7 +46,7 @@ module ActiveModel
 
         def value_from_multiparameter_assignment(*)
           time = super
-          time && time.to_date
+          time && new_date(time.year, time.mon, time.mday)
         end
     end
   end

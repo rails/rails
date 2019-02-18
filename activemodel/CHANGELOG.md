@@ -1,4 +1,21 @@
-*   Fix year value when casting a multiparameter time hash
+*   Fix date value when casting a multiparameter date hash to not convert
+    from Gregorian date to Julian date.
+
+    Before:
+
+        Day.new({"day(1i)"=>"1", "day(2i)"=>"1", "day(3i)"=>"1"})
+        => #<Day id: nil, day: "0001-01-03", created_at: nil, updated_at: nil>
+
+    After:
+
+        Day.new({"day(1i)"=>"1", "day(2i)"=>"1", "day(3i)"=>"1"})
+        => #<Day id: nil, day: "0001-01-01", created_at: nil, updated_at: nil>
+
+    Fixes #28521.
+
+    *Sayan Chakraborty*
+
+*   Fix year value when casting a multiparameter time hash.
 
     When assigning a hash to a time attribute that's missing a year component
     (e.g. a `time_select` with `:ignore_date` set to `true`) then the year
