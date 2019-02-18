@@ -194,7 +194,7 @@ module ActionDispatch
       #   Adds request headers characteristic of XMLHttpRequest e.g. HTTP_X_REQUESTED_WITH.
       #   The headers will be merged into the Rack env hash.
       # - +as+: Used for encoding the request with different content type.
-      #   Supports `:json` by default and will set the approriate request headers.
+      #   Supports `:json` by default and will set the appropriate request headers.
       #   The headers will be merged into the Rack env hash.
       #
       # This method is rarely used directly. Use +#get+, +#post+, or other standard
