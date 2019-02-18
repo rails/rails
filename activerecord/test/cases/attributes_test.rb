@@ -21,25 +21,6 @@ class UnoverloadedType < ActiveRecord::Base
   self.table_name = "overloaded_types"
 end
 
-class SkipAttributesFromSchemaModel < ActiveRecord::Base
-  self.table_name = "cars"
-  self.define_attributes_from_schema = false
-
-  attribute :id, :integer
-  attribute :name, :string
-  attribute :engines_count, :integer
-  attribute :lock_version, :integer
-  attribute :created_at, :datetime
-  attribute :updated_at, :datetime
-end
-
-class SkipAttributesFromSchemaModelWithoutPrimaryKey < ActiveRecord::Base
-  self.table_name = "speedometers"
-  self.define_attributes_from_schema = false
-
-  attribute :name, :string
-end
-
 module ActiveRecord
   class CustomPropertiesTest < ActiveRecord::TestCase
     test "overloading types" do
@@ -303,39 +284,79 @@ module ActiveRecord
     end
   end
 
-  class SkipAttributesFromSchemaModelTest < ActiveRecord::TestCase
+  class DefineAttributesFromSchemaFalseTest < ActiveRecord::TestCase
     test "#column_names only includes manually defined attributes" do
-      assert_equal manual_attributes.to_set, SkipAttributesFromSchemaModel.column_names.to_set
+      assert_equal %w{id name salary}, OnlyAttributedDeveloper.column_names
     end
 
-    test "model does not respond to attributes that are not explicitly defined" do
-      model = SkipAttributesFromSchemaModel.new
-      refute model.respond_to?(:wheels_count)
-      refute model.respond_to?(:wheels_count=)
-      assert_equal manual_attributes.to_set, model.attributes.keys.to_set
+    test "new model does not respond to attributes that are not explicitly defined" do
+      model = OnlyAttributedDeveloper.new
+      assert_not model.respond_to?(:mentor_id)
+      assert_not model.respond_to?(:mentor_id=)
+      assert_not model.respond_to?(:mentor_id?)
+      assert_equal %w{id name salary}, model.attributes.keys
+    end
+
+    test "saved model does not respond to attributes that are not explicitly defined" do
+      model = OnlyAttributedDeveloper.create!
+      assert_not model.respond_to?(:mentor_id)
+      assert_not model.respond_to?(:mentor_id=)
+      assert_not model.respond_to?(:mentor_id?)
+      assert_equal %w{id name salary}, model.attributes.keys
+    end
+
+    test "reloaded model does not respond to attributes that are not explicitly defined" do
+      model = OnlyAttributedDeveloper.create!.reload
+      assert_not model.respond_to?(:mentor_id)
+      assert_not model.respond_to?(:mentor_id=)
+      assert_not model.respond_to?(:mentor_id?)
+      assert_equal %w{id name salary}, model.attributes.keys
+    end
+
+    test "Records found with AR::R.select will still respond to the attribute even if it wasn't an explicitly defined attribute" do
+      developer = Developer.create!(name: "David", mentor_id: 7)
+      model = OnlyAttributedDeveloper.select("mentor_id").find(developer.id)
+      assert_equal 7, model.mentor_id
+      assert_equal %w{id mentor_id}, model.attributes.keys
+      assert_equal %w{id name salary}, OnlyAttributedDeveloper.column_names
+
+      # writing to this attribute doesn't modify the database
+      model.update!(mentor_id: 10)
+      assert_equal 7, developer.reload.mentor_id
+      assert_equal 10, model.mentor_id
+    end
+
+    test "The primary key doesn't get ignored" do
+      model = OnlyAttributedDeveloperWithNoId.create!
+      assert_not_nil model.id
+      assert model.respond_to?(:id)
+      assert model.respond_to?(:id=)
+      assert model.respond_to?(:id?)
+      assert_equal %w{id name salary}, model.attributes.keys
+    end
+
+    test "when not using AR::R.select, the columns are specified, rather than relying on star" do
+      assert_not_includes OnlyAttributedDeveloper.all.to_sql, "*"
+    end
+
+    test "Inspect only includes columns defined as attributes" do
+      assert_equal "OnlyAttributedDeveloper(id: integer, name: string, salary: integer)",
+        OnlyAttributedDeveloper.inspect
+    end
+
+    test "An ignored column can have an unpersisted attribute with the same name" do
+      model = OnlyAttributedDeveloperWithIgnoredColumn.new
+      assert model.respond_to?(:name=)
+      model.name = "David"
+      assert_equal "David", model.name # local attribute can be set
       model.save!
-      refute model.respond_to?(:wheels_count)
-      refute model.respond_to?(:wheels_count=)
+      assert_equal "David", model.name # it's not cleared when saving
+      assert_nil model.reload.name # it is cleared when reloading
     end
 
-    test "cannot be used with ignored_columns" do
-      error = assert_raises(ArgumentError) do
-        SkipAttributesFromSchemaModel.ignored_columns = ["name"]
-      end
-      assert_equal "can't use `ignored_columns` with `define_attributes_from_schema` set to false", error.to_s
+    test "The database default for an attribute is used even without setting it using the attributes api" do
+      model = OnlyAttributedDeveloper.new
+      assert_equal model.salary, 70000 # the default from the schema
     end
-
-    test "model with ignored_columns cannot disable `define_attributes_from_schema`" do
-      error = assert_raises(ArgumentError) do
-        Developer.define_attributes_from_schema = false
-      end
-      assert_equal "can't set `define_attributes_from_schema` to false and use `ignored_columns` at the same time", error.to_s
-    end
-
-    private
-
-      def manual_attributes
-        ["id", "name", "engines_count", "lock_version", "created_at", "updated_at"]
-      end
   end
 end

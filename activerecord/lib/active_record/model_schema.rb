@@ -136,7 +136,7 @@ module ActiveRecord
     # Example:
     #
     #   class Project < ActiveRecord::Base
-    #     self.define_attributes_from_schema = true
+    #     self.define_attributes_from_schema = false
     #
     #     attribute :name, :string
     #     attribute :members_count, :integer
@@ -298,17 +298,6 @@ module ActiveRecord
         (@inheritance_column ||= nil) || superclass.inheritance_column
       end
 
-      def ignored_columns
-        @ignored_columns || superclass.ignored_columns
-      end
-
-      def ignored_columns=(value)
-        if value.any? && !define_attributes_from_schema
-          raise ArgumentError, "can't use `ignored_columns` with `define_attributes_from_schema` set to false"
-        end
-        @ignored_columns = value
-      end
-
       def define_attributes_from_schema
         if defined?(@define_attributes_from_schema)
           @define_attributes_from_schema
@@ -318,9 +307,6 @@ module ActiveRecord
       end
 
       def define_attributes_from_schema=(value)
-        if ignored_columns.any? && !value
-          raise ArgumentError, "can't set `define_attributes_from_schema` to false and use `ignored_columns` at the same time"
-        end
         @define_attributes_from_schema = value
       end
 
@@ -541,12 +527,9 @@ module ActiveRecord
         def load_schema!
           @columns_hash = connection.schema_cache.columns_hash(table_name)
 
-          unless define_attributes_from_schema
-            @columns_hash = @columns_hash.slice(*attributes_to_define_after_schema_loads.keys)
-            return
-          end
-
           @columns_hash = @columns_hash.except(*ignored_columns)
+          @columns_hash = @columns_hash.slice(primary_key, *attributes_to_define_after_schema_loads.keys) unless define_attributes_from_schema
+
           @columns_hash.each do |name, column|
             define_attribute(
               name,

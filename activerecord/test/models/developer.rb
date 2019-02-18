@@ -294,3 +294,38 @@ class AttributedDeveloper < ActiveRecord::Base
 
   self.ignored_columns += ["name"]
 end
+
+class OnlyAttributedDeveloper < ActiveRecord::Base
+  self.table_name = "developers"
+  self.define_attributes_from_schema = false
+
+  attribute :id, :integer
+  attribute :name, :string
+  attribute :salary, :integer
+end
+
+class OnlyAttributedDeveloperWithOverriddenDefault < ActiveRecord::Base
+  self.table_name = "developers"
+  self.define_attributes_from_schema = false
+
+  attribute :id, :integer
+  attribute :name, :string
+  attribute :salary, :integer, default: 10
+end
+
+class OnlyAttributedDeveloperWithNoId < ActiveRecord::Base
+  self.table_name = "developers"
+  self.define_attributes_from_schema = false
+
+  attribute :name, :string
+  attribute :salary, :integer
+end
+
+class OnlyAttributedDeveloperWithIgnoredColumn < ActiveRecord::Base
+  self.table_name = "developers"
+  self.define_attributes_from_schema = false
+  self.ignored_columns = ["name"]
+
+  attribute :id, :integer
+  attribute :name, :string
+end
