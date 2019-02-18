@@ -1,3 +1,9 @@
+*   Don't allow `where` with invalid value matches to nil values.
+
+    Fixes #33624.
+
+    *Ryuta Kamizono*
+
 *   SQLite3: Implement `add_foreign_key` and `remove_foreign_key`.
 
     *Ryuta Kamizono*
