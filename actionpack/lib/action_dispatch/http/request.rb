@@ -76,9 +76,11 @@ module ActionDispatch
     }
 
     def controller_class
-      params = path_parameters
-      params[:action] ||= "index"
-      controller_class_for(params[:controller])
+      controller_class_for(path_parameters[:controller])
+    end
+
+    def action_name
+      path_parameters[:action] ||= "index"
     end
 
     def controller_class_for(name)

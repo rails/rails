@@ -27,10 +27,10 @@ module ActionDispatch
         def dispatcher?; true; end
 
         def serve(req)
-          params     = req.path_parameters
           controller = controller req
+          action     = req.action_name
           res        = controller.make_response! req
-          dispatch(controller, params[:action], req, res)
+          dispatch(controller, action, req, res)
         rescue ActionController::RoutingError
           if @raise_on_name_error
             raise
@@ -868,6 +868,7 @@ module ActionDispatch
           if app.matches?(req) && app.dispatcher?
             begin
               req.controller_class
+              req.action_name
             rescue NameError
               raise ActionController::RoutingError, "A route matches #{path.inspect}, but references missing controller: #{params[:controller].camelize}Controller"
             end
