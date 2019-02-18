@@ -138,4 +138,24 @@ module ActionView
   end
 
   TemplateError = Template::Error
+
+  class SyntaxErrorInTemplate < TemplateError #:nodoc
+    def initialize(template, offending_code_string)
+      @offending_code_string = offending_code_string
+      super(template)
+    end
+
+    def message
+      <<~MESSAGE
+        Encountered a syntax error while rendering template: check #{@offending_code_string}
+      MESSAGE
+    end
+
+    def annoted_source_code
+      @offending_code_string.split("\n").map.with_index(1) { |line, index|
+        indentation = " " * 4
+        "#{index}:#{indentation}#{line}"
+      }
+    end
+  end
 end
