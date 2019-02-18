@@ -48,8 +48,6 @@ module ActionView
         logical_name = name.gsub(%r|/_|, "/")
 
         if template = find_template(finder, logical_name, [], partial, [])
-          finder.rendered_format ||= template.formats.first
-
           if node = seen[template.identifier] # handle cycles in the tree
             node
           else
