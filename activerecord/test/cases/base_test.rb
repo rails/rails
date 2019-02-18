@@ -438,12 +438,6 @@ class BasicsTest < ActiveRecord::TestCase
     Post.reset_table_name
   end
 
-  if current_adapter?(:Mysql2Adapter)
-    def test_update_all_with_order_and_limit
-      assert_equal 1, Topic.limit(1).order("id DESC").update_all(content: "bulk updated!")
-    end
-  end
-
   def test_null_fields
     assert_nil Topic.find(1).parent_id
     assert_nil Topic.create("title" => "Hey you").parent_id
