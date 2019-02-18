@@ -507,6 +507,32 @@ module ActiveRecord
       affected
     end
 
+    # Finds and destroys all records matching the specified conditions.
+    # This is short-hand for <tt>relation.where(condition).destroy_all</tt>.
+    # Returns the collection of objects that were destroyed.
+    #
+    # If no record is found, returns empty array.
+    #
+    #   Person.destroy_by(id: 13)
+    #   Person.destroy_by(name: 'Spartacus', rating: 4)
+    #   Person.destroy_by("published_at < ?", 2.weeks.ago)
+    def destroy_by(*args)
+      where(*args).destroy_all
+    end
+
+    # Finds and deletes all records matching the specified conditions.
+    # This is short-hand for <tt>relation.where(condition).delete_all</tt>.
+    # Returns the number of rows affected.
+    #
+    # If no record is found, returns <tt>0</tt> as zero rows were affected.
+    #
+    #   Person.delete_by(id: 13)
+    #   Person.delete_by(name: 'Spartacus', rating: 4)
+    #   Person.delete_by("published_at < ?", 2.weeks.ago)
+    def delete_by(*args)
+      where(*args).delete_all
+    end
+
     # Causes the records to be loaded from the database if they have not
     # been loaded already. You can use this if for some reason you need
     # to explicitly load some records before actually using them. The

@@ -1,3 +1,29 @@
+*   Introduces ActiveRecord::Relation#delete_by and ActiveRecord::Relation#destroy_by.
+
+    `destroy_by` allows relation to find all the records matching the condition and perform
+    `destroy_all` on the matched records.
+
+    Example:
+
+        Person.destroy_by(name: 'David')
+        Person.destroy_by(name: 'David', rating: 4)
+
+        david = Person.find_by(name: 'David')
+        david.posts.destroy_by(id: [1, 2, 3])
+
+    `delete_by` allows relation to find all the records matching the condition and perform
+    `delete_all` on the matched records.
+
+    Example:
+
+        Person.delete_by(name: 'David')
+        Person.delete_by(name: 'David', rating: 4)
+
+        david = Person.find_by(name: 'David')
+        david.posts.delete_by(id: [1, 2, 3])
+
+    *Abhay Nikam*
+
 *   Don't allow `where` with invalid value matches to nil values.
 
     Fixes #33624.
