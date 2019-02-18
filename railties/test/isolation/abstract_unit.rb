@@ -458,12 +458,19 @@ module TestHelpers
       end
     end
   end
+
+  module Reload
+    def reload
+      ActiveSupport::Dependencies.clear
+    end
+  end
 end
 
 class ActiveSupport::TestCase
   include TestHelpers::Paths
   include TestHelpers::Rack
   include TestHelpers::Generation
+  include TestHelpers::Reload
   include ActiveSupport::Testing::Stream
   include ActiveSupport::Testing::MethodCallAssertions
 end

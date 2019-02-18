@@ -31,6 +31,10 @@ module ActiveSupport
           l = verbose ? (logger || Rails.logger).method(:debug) : nil
           Rails.autoloaders.each { |autoloader| autoloader.logger = l }
         end
+
+        def unhook!
+          :no_op
+        end
       end
 
       class << self
@@ -69,6 +73,7 @@ module ActiveSupport
           end
 
           def decorate_dependencies
+            Dependencies.unhook!
             Dependencies.singleton_class.prepend(Decorations)
             Object.class_eval { alias_method :require_dependency, :require }
           end

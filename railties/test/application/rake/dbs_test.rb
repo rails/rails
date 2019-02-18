@@ -179,9 +179,10 @@ module ApplicationTests
       def db_fixtures_load(expected_database)
         Dir.chdir(app_path) do
           rails "generate", "model", "book", "title:string"
+          reload
           rails "db:migrate", "db:fixtures:load"
+
           assert_match expected_database, ActiveRecord::Base.connection_config[:database]
-          require "#{app_path}/app/models/book"
           assert_equal 2, Book.count
         end
       end
@@ -201,8 +202,9 @@ module ApplicationTests
         require "#{app_path}/config/environment"
 
         rails "generate", "model", "admin::book", "title:string"
+        reload
         rails "db:migrate", "db:fixtures:load"
-        require "#{app_path}/app/models/admin/book"
+
         assert_equal 2, Admin::Book.count
       end
 
