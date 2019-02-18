@@ -1,3 +1,20 @@
+*   Fix date value when casting a multiparameter date hash to not convert
+    from Gregorian date to Julian date.
+
+    Before:
+
+        Day.new({"day(1i)"=>"1", "day(2i)"=>"1", "day(3i)"=>"1"})
+        => #<Day id: nil, day: "0001-01-03", created_at: nil, updated_at: nil>
+
+    After:
+
+        Day.new({"day(1i)"=>"1", "day(2i)"=>"1", "day(3i)"=>"1"})
+        => #<Day id: nil, day: "0001-01-01", created_at: nil, updated_at: nil>
+
+    Fixes #28521.
+
+    *Sayan Chakraborty*
+
 *   Fix numericality equality validation of `BigDecimal` and `Float`
     by casting to `BigDecimal` on both ends of the validation.
 
