@@ -2,6 +2,8 @@
 
 module Rails
   class Conductor::ActionMailbox::InboundEmailsController < Rails::Conductor::BaseController
+    rescue_from ActiveRecord::StatementInvalid, with: :setup_instruction_warning
+
     def index
       @inbound_emails = ActionMailbox::InboundEmail.order(created_at: :desc)
     end
@@ -19,6 +21,10 @@ module Rails
     end
 
     private
+      def setup_instruction_warning
+        render plain: 'Please follow the setup instructions for Action Mailbox'
+      end
+
       def new_mail
         Mail.new(params.require(:mail).permit(:from, :to, :cc, :bcc, :in_reply_to, :subject, :body).to_h).tap do |mail|
           params[:mail][:attachments].to_a.each do |attachment|
