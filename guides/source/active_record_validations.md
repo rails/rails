@@ -934,7 +934,7 @@ end
 
 ### Using a Proc with `:if` and `:unless`
 
-Finally, it's possible to associate `:if` and `:unless` with a `Proc` object
+It is possible to associate `:if` and `:unless` with a `Proc` object
 which will be called. Using a `Proc` object gives you the ability to write an
 inline condition instead of a separate method. This option is best suited for
 one-liners.
