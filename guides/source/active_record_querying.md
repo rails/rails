@@ -43,7 +43,6 @@ class Book < ApplicationRecord
   scope :in_print, -> { where(out_of_print: false) }
   scope :out_of_print, -> { where(out_of_print: true) }
 
-  scope :recent, -> { where('year_published >= ?', Date.current.year - 50 )}
   scope :old, -> { where('year_published < ?', Date.current.year - 50 )}
 
   scope :out_of_print_and_expensive, -> { out_of_print.where('price > 500') }
@@ -55,8 +54,6 @@ end
 class Customer < ApplicationRecord
   has_many :orders
   has_many :reviews
-
-  scope :frequent_buyers, -> { where 'orders_count > 150' }
 
   # The reviews_to_publish method below is expected to return a Relation.
   # It might be called like this:
