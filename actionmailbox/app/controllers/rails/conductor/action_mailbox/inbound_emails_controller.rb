@@ -22,7 +22,7 @@ module Rails
 
     private
       def setup_instruction_warning
-        render plain: 'Please follow the setup instructions for Action Mailbox'
+        render plain: "Please follow the setup instructions for Action Mailbox"
       end
 
       def new_mail
