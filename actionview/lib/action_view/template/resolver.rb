@@ -407,7 +407,8 @@ module ActionView
       DETAILS_REGEX_CACHE = Concurrent::Map.new
 
       def regex_for_details(details)
-        DETAILS_REGEX_CACHE[details] ||=
+        details_cache_key = ActionView::LookupContext::DetailsKey.digest_cache(details)
+        DETAILS_REGEX_CACHE[details_cache_key] ||=
           %r{\A#{
             EXTENSIONS.map do |ext, prefix|
               match =
