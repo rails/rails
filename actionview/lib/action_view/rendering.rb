@@ -109,10 +109,15 @@ module ActionView
         context = view_context
 
         context.assign assigns if assigns
-        lookup_context.rendered_format = nil if options[:formats]
         lookup_context.variants = variant if variant
 
-        context.view_renderer.render(context, options)
+        rendered_template = context.in_rendering_context(options) do |renderer|
+          renderer.render_to_object(context, options)
+        end
+
+        lookup_context.rendered_format = rendered_template.format || lookup_context.formats.first
+
+        rendered_template.body
       end
 
       # Assign the rendered format to look up context.

@@ -69,11 +69,6 @@ module RenderTestCases
     assert_match "<error>No Comment</error>", @view.render(template: "comments/empty", formats: [:xml])
   end
 
-  def test_rendered_format_without_format
-    @view.render(inline: "test")
-    assert_equal :html, @view.lookup_context.rendered_format
-  end
-
   def test_render_partial_implicitly_use_format_of_the_rendered_template
     @view.lookup_context.formats = [:json]
     assert_equal "Hello world", @view.render(template: "test/one", formats: [:html])
@@ -743,8 +738,15 @@ class CachedCollectionViewRenderTest < ActiveSupport::TestCase
   end
 
   teardown do
-    GC.start
     I18n.reload!
+  end
+
+  test "template body written to cache" do
+    customer = Customer.new("david", 1)
+    key = cache_key(customer, "test/_customer")
+    assert_nil ActionView::PartialRenderer.collection_cache.read(key)
+    @view.render(partial: "test/customer", collection: [customer], cached: true)
+    assert_equal "Hello: david", ActionView::PartialRenderer.collection_cache.read(key)
   end
 
   test "collection caching does not cache by default" do
