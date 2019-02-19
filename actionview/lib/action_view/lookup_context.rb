@@ -16,6 +16,8 @@ module ActionView
   # only once during the request, it speeds up all cache accesses.
   class LookupContext #:nodoc:
     attr_accessor :prefixes, :rendered_format
+    deprecate :rendered_format
+    deprecate :rendered_format=
 
     mattr_accessor :fallbacks, default: FallbackFileSystemResolver.instances
 
@@ -250,7 +252,6 @@ module ActionView
       @digest_cache = nil
       @cache = true
       @prefixes = prefixes
-      @rendered_format = nil
 
       @details = initialize_details({}, details)
       @view_paths = build_view_paths(view_paths)
