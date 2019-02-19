@@ -61,7 +61,7 @@ module ActionView
         else
           content
         end
-        build_rendered_template(body, layout, template)
+        build_rendered_template(body, template, layout)
       end
 
       # This is the method which actually finds the layout using details in the lookup

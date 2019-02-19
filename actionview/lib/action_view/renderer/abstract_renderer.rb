@@ -90,12 +90,12 @@ module ActionView
         @lookup_context.formats = formats | @lookup_context.formats
       end
 
-      def build_rendered_template(content, layout, template)
+      def build_rendered_template(content, template, layout = nil)
         RenderedTemplate.new content, layout, template
       end
 
       def build_rendered_collection(templates, spacer)
-        RenderedCollection.new(templates, spacer)
+        RenderedCollection.new templates, spacer
       end
   end
 end

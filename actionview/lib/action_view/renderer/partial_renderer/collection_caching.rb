@@ -84,7 +84,7 @@ module ActionView
       def fetch_or_cache_partial(cached_partials, template, order_by:)
         order_by.map do |cache_key|
           if content = cached_partials[cache_key]
-            build_rendered_template(content, nil, template)
+            build_rendered_template(content, template)
           else
             yield.tap do |rendered_partial|
               collection_cache.write(cache_key, rendered_partial.body)

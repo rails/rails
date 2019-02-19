@@ -330,7 +330,7 @@ module ActionView
 
           spacer = if @options.key?(:spacer_template)
             spacer_template = find_template(@options[:spacer_template], @locals.keys)
-            build_rendered_template(spacer_template.render(view, @locals), nil, spacer_template)
+            build_rendered_template(spacer_template.render(view, @locals), spacer_template)
           else
             RenderedTemplate::EMPTY_SPACER
           end
@@ -364,7 +364,7 @@ module ActionView
 
           content = layout.render(view, locals) { content } if layout
           payload[:cache_hit] = view.view_renderer.cache_hits[template.virtual_path]
-          build_rendered_template(content, layout, template)
+          build_rendered_template(content, template, layout)
         end
       end
 
@@ -455,7 +455,7 @@ module ActionView
           content = template.render(view, locals)
           content = layout.render(view, locals) { content } if layout
           partial_iteration.iterate!
-          build_rendered_template(content, layout, template)
+          build_rendered_template(content, template, layout)
         end
       end
 
@@ -477,7 +477,7 @@ module ActionView
           template = (cache[path] ||= find_template(path, keys + [as, counter, iteration]))
           content = template.render(view, locals)
           partial_iteration.iterate!
-          build_rendered_template(content, nil, template)
+          build_rendered_template(content, template)
         end
       end
 
