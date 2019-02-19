@@ -50,8 +50,12 @@ module ActiveRecord
       assert_equal [chef], chefs.to_a
     end
 
-    def test_where_with_casted_value_is_nil
-      assert_equal 4, Topic.where(last_read: "").count
+    def test_where_with_invalid_value
+      topics(:first).update!(written_on: nil, bonus_time: nil, last_read: nil)
+      assert_empty Topic.where(parent_id: Object.new)
+      assert_empty Topic.where(written_on: "")
+      assert_empty Topic.where(bonus_time: "")
+      assert_empty Topic.where(last_read: "")
     end
 
     def test_rewhere_on_root
