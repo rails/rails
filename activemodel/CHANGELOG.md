@@ -1,3 +1,13 @@
+*   Autoscale `has_secure_password` cost over time.
+
+    Scales up password hashing cost over time to keep up with attackers'
+    offline cracking capability. Increase current default BCrypt cost
+    from 12 to 13, targeting at least 100ms to check a password.
+
+    Rehashes passwords with newer cost when they're authenticated.
+
+    *Jeremy Daer*
+
 *   Fix date value when casting a multiparameter date hash to not convert
     from Gregorian date to Julian date.
 

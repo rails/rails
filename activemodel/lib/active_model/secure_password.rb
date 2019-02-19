@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "date"
+
 module ActiveModel
   module SecurePassword
     extend ActiveSupport::Concern
@@ -11,8 +13,26 @@ module ActiveModel
 
     class << self
       attr_accessor :min_cost # :nodoc:
+      attr_writer :cost # :nodoc:
+
+      def cost # :nodoc:
+        min_cost ? BCrypt::Engine::MIN_COST : @cost
+      end
+
+      # Start with cost factor 13 at <400ms compute time in Feb 2019.
+      # Estimating 14% yearly single-core perf growth, double compute cost
+      # (increase cost factor by 1) every ~5.3 years.
+      def default_cost # :nodoc:
+        initial_cost = 13
+
+        elapsed = Date.today.jd - 2458485 # 2019-01-01
+        doubling_period = Math.log(2) / Math.log(1.14)
+
+        initial_cost + elapsed.div(doubling_period)
+      end
     end
     self.min_cost = false
+    self.cost = default_cost
 
     module ClassMethods
       # Adds methods to set and authenticate against a BCrypt password.
@@ -28,6 +48,13 @@ module ActiveModel
       # value for +XXX_confirmation+ (i.e. don't provide a form field for
       # it). When this attribute has a +nil+ value, the validation will not be
       # triggered.
+      #
+      # Passwords get easier to crack as CPUs get faster and faster. The
+      # default cost factor is bumped every ~5 years to scale with attacker
+      # CPU power. When a password is authenticated and found to have an old
+      # cost factor, it's automatically updated to the current cost,
+      # ensuring that passwords set years ago remain hard to crack so long
+      # as they are regularly authenticated.
       #
       # For further customizability, it is possible to suppress the default
       # validations by passing <tt>validations: false</tt> as an argument.
@@ -76,8 +103,7 @@ module ActiveModel
             self.send("#{attribute}_digest=", nil)
           elsif !unencrypted_password.empty?
             instance_variable_set("@#{attribute}", unencrypted_password)
-            cost = ActiveModel::SecurePassword.min_cost ? BCrypt::Engine::MIN_COST : BCrypt::Engine.cost
-            self.send("#{attribute}_digest=", BCrypt::Password.create(unencrypted_password, cost: cost))
+            self.send("#{attribute}_digest=", BCrypt::Password.create(unencrypted_password, cost: ActiveModel::SecurePassword.cost))
           end
         end
 
@@ -97,7 +123,20 @@ module ActiveModel
         #   user.authenticate_password('mUc3m00RsqyRe') # => user
         define_method("authenticate_#{attribute}") do |unencrypted_password|
           attribute_digest = send("#{attribute}_digest")
-          BCrypt::Password.new(attribute_digest).is_password?(unencrypted_password) && self
+          password = BCrypt::Password.new(attribute_digest)
+          if password.is_password?(unencrypted_password)
+            if password.cost < ActiveModel::SecurePassword.cost
+              rehashed_password = BCrypt::Password.create(unencrypted_password, cost: ActiveModel::SecurePassword.cost)
+              if respond_to? :update_column
+                update_column "#{attribute}_digest", rehashed_password
+              else
+                send "#{attribute}_digest=", rehashed_password
+              end
+            end
+            self
+          else
+            false
+          end
         end
 
         alias_method :authenticate, :authenticate_password if attribute == :password

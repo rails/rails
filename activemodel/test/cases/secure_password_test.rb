@@ -198,22 +198,20 @@ class SecurePasswordTest < ActiveModel::TestCase
     assert_equal @user, @user.authenticate_recovery_password("42password")
   end
 
-  test "Password digest cost defaults to bcrypt default cost when min_cost is false" do
+  test "authenticate updates outdated cost factor" do
+    @user.password = "secret"
     ActiveModel::SecurePassword.min_cost = false
 
-    @user.password = "secret"
-    assert_equal BCrypt::Engine::DEFAULT_COST, @user.password_digest.cost
+    assert_not_equal ActiveModel::SecurePassword.cost, @user.password_digest.cost
+    assert_equal @user, @user.authenticate("secret")
+    assert_equal ActiveModel::SecurePassword.cost, @user.password_digest.cost
   end
 
-  test "Password digest cost honors bcrypt cost attribute when min_cost is false" do
-    original_bcrypt_cost = BCrypt::Engine.cost
+  test "Password digest cost uses default when min_cost is false" do
     ActiveModel::SecurePassword.min_cost = false
-    BCrypt::Engine.cost = 5
 
     @user.password = "secret"
-    assert_equal BCrypt::Engine.cost, @user.password_digest.cost
-  ensure
-    BCrypt::Engine.cost = original_bcrypt_cost
+    assert_equal ActiveModel::SecurePassword.cost, @user.password_digest.cost
   end
 
   test "Password digest cost can be set to bcrypt min cost to speed up tests" do
