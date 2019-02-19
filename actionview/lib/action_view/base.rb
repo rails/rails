@@ -257,6 +257,7 @@ module ActionView #:nodoc:
       end
 
       @view_renderer = ActionView::Renderer.new @lookup_context
+      @current_template = nil
 
       @cache_hit = {}
       assign(assigns)
@@ -264,12 +265,13 @@ module ActionView #:nodoc:
       _prepare_context
     end
 
-    def run(method, locals, buffer, &block)
-      _old_output_buffer, _old_virtual_path = @output_buffer, @virtual_path
+    def run(method, template, locals, buffer, &block)
+      _old_output_buffer, _old_virtual_path, _old_template = @output_buffer, @virtual_path, @current_template
+      @current_template = template
       @output_buffer = buffer
       send(method, locals, buffer, &block)
     ensure
-      @output_buffer, @virtual_path = _old_output_buffer, _old_virtual_path
+      @output_buffer, @virtual_path, @current_template = _old_output_buffer, _old_virtual_path, _old_template
     end
 
     def compiled_method_container

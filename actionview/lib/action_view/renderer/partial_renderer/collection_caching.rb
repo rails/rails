@@ -54,7 +54,7 @@ module ActionView
       def collection_by_cache_keys(view, template)
         seed = callable_cache_key? ? @options[:cached] : ->(i) { i }
 
-        digest_path = view.digest_path_from_virtual(template.virtual_path)
+        digest_path = view.digest_path_from_template(template)
 
         @collection.each_with_object({}) do |item, hash|
           hash[expanded_cache_key(seed.call(item), view, template, digest_path)] = item
