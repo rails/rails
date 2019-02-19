@@ -1,3 +1,17 @@
+*   Fix query attribute method on user-defined attribute to be aware of typecasted value.
+
+    For example the following code no longer return false as casted non-empty string.
+
+    ```
+    class Post < ActiveRecord::Base
+      attribute :user_defined_text, :text
+    end
+
+    Post.new(user_defined_text: "false").user_defined_text? # => true
+    ```
+
+    *Yuji Kamijima*
+
 *   Quote empty ranges like other empty enumerables.
 
     *Patrick Rebsch*
