@@ -340,7 +340,7 @@ end
 
 ### Combining Callback Conditions
 
-When multiple conditions define whether or not a callback should execute, an `Array` can be used. Moreover, you can apply both `:if` and `:unless` to the same callback.
+When multiple conditions define whether or not a callback should happen, an `Array` can be used. Moreover, you can apply both `:if` and `:unless` to the same callback.
 
 ```ruby
 class Comment < ApplicationRecord
