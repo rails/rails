@@ -24,7 +24,7 @@ module ActiveModel
       end
 
       def serialize(value)
-        result = super
+        result = cast(value)
         if result
           ensure_in_range(result)
         end
@@ -40,7 +40,12 @@ module ActiveModel
       private
 
         def cast_value(value)
-          value.to_i rescue nil
+          case value
+          when true then 1
+          when false then 0
+          else
+            value.to_i rescue nil
+          end
         end
 
         def ensure_in_range(value)

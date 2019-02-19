@@ -4,10 +4,6 @@ module ActiveModel
   module Type
     module Helpers # :nodoc: all
       module Numeric
-        def serialize(value)
-          cast(value)
-        end
-
         def cast(value)
           value = \
             case value
