@@ -45,7 +45,7 @@ class Date
   #   Date::DATE_FORMATS[:short_ordinal] = ->(date) { date.strftime("%B #{date.day.ordinalize}") }
   def to_formatted_s(format = :default)
     if formatter = DATE_FORMATS[format]
-      if formatter.respond_to?(:call)
+      if formatter.respond_to?(:call) && formatter.is_a?(Proc)
         formatter.call(self).to_s
       else
         strftime(formatter)
