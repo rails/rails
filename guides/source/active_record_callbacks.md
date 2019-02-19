@@ -338,6 +338,20 @@ class Comment < ApplicationRecord
 end
 ```
 
+### Combining Callback Conditions
+
+When multiple conditions define whether or not a callback should happen, an `Array` can be used. Moreover, you can apply both `:if` and `:unless` to the same callback.
+
+```ruby
+class Comment < ApplicationRecord
+  after_create :send_email_to_author,
+    if: [Proc.new { |c| c.user.allow_send_email? }, :author_wants_emails?],
+    unless: Proc.new { |c| c.article.ignore_comments? }
+end
+```
+
+The callback only runs when all the `:if` conditions and none of the `:unless` conditions are evaluated to `true`.
+
 Callback Classes
 ----------------
 
