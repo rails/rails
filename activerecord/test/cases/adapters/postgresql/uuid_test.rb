@@ -114,6 +114,12 @@ class PostgresqlUUIDTest < ActiveRecord::PostgreSQLTestCase
     assert_equal "foobar", uuid.guid_before_type_cast
   end
 
+  def test_invalid_uuid_dont_match_to_nil
+    UUIDType.create!
+    assert_empty UUIDType.where(guid: "")
+    assert_empty UUIDType.where(guid: "foobar")
+  end
+
   def test_acceptable_uuid_regex
     # Valid uuids
     ["A0EEBC99-9C0B-4EF8-BB6D-6BB9BD380A11",

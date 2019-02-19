@@ -1,3 +1,9 @@
+*   Don't allow `where` with invalid value matches to nil values.
+
+    Fixes #33624.
+
+    *Ryuta Kamizono*
+
 *   Restore an ability that class level `update` without giving ids.
 
     Fixes #34743.
