@@ -99,7 +99,7 @@ class Topic < ActiveRecord::Base
     end
 
     def destroy_children
-      self.class.where("parent_id = #{id}").delete_all
+      self.class.delete_by(parent_id: id)
     end
 
     def set_email_address

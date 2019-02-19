@@ -95,7 +95,7 @@ module ActiveRecord
   #
   #     private
   #       def delete_parents
-  #         self.class.where(parent_id: id).delete_all
+  #         self.class.delete_by(parent_id: id)
   #       end
   #   end
   #
