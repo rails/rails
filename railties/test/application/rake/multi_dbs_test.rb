@@ -170,6 +170,7 @@ module ApplicationTests
         rails "generate", "model", "book", "title:string"
         rails "generate", "model", "dog", "name:string"
         write_models_for_animals
+        reload
       end
 
       test "db:create and db:drop works on all databases for env" do
