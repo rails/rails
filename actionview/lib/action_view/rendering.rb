@@ -26,6 +26,13 @@ module ActionView
     extend ActiveSupport::Concern
     include ActionView::ViewPaths
 
+    attr_reader :rendered_format
+
+    def initialize
+      @rendered_format = nil
+      super
+    end
+
     # Overwrite process to setup I18n proxy.
     def process(*) #:nodoc:
       old_config, I18n.config = I18n.config, I18nProxy.new(I18n.config, lookup_context)
@@ -96,10 +103,6 @@ module ActionView
       _render_template(options)
     end
 
-    def rendered_format
-      Template::Types[lookup_context.rendered_format]
-    end
-
     private
 
       # Find and render a template based on the options given.
@@ -115,7 +118,8 @@ module ActionView
           renderer.render_to_object(context, options)
         end
 
-        lookup_context.rendered_format = rendered_template.format || lookup_context.formats.first
+        rendered_format = rendered_template.format || lookup_context.formats.first
+        @rendered_format = Template::Types[rendered_format]
 
         rendered_template.body
       end
@@ -124,7 +128,6 @@ module ActionView
       def _process_format(format)
         super
         lookup_context.formats = [format.to_sym]
-        lookup_context.rendered_format = lookup_context.formats.first
       end
 
       # Normalize args by converting render "foo" to render :action => "foo" and
