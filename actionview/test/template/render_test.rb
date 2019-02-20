@@ -360,6 +360,10 @@ module RenderTestCases
     assert_deprecated do
       ActionView::Base.new ["/a"]
     end
+
+    assert_deprecated do
+      ActionView::Base.new ActionView::PathSet.new ["/a"]
+    end
   end
 
   def test_without_compiled_method_container_is_deprecated
