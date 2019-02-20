@@ -28,7 +28,7 @@ module ActionView
     end
 
     class RenderedCollection # :nodoc:
-      attr_reader :rendered_templates
+      attr_reader :rendered_templates, :spacer
 
       def initialize(rendered_templates, spacer)
         @rendered_templates = rendered_templates
@@ -36,7 +36,7 @@ module ActionView
       end
 
       def body
-        @rendered_templates.map(&:body).join(@spacer.body).html_safe
+        rendered_templates.map(&:body).join(spacer.body).html_safe
       end
 
       def format
