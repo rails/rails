@@ -253,7 +253,7 @@ module ActionView #:nodoc:
       else
         ActiveSupport::Deprecation.warn <<~eowarn
         ActionView::Base instances should be constructed with a lookup context,
-        assigments, and a controller.
+        assignments, and a controller.
         eowarn
         @lookup_context = self.class.build_lookup_context(lookup_context)
       end
