@@ -50,7 +50,7 @@ module ActiveRecord
       :first_or_create, :first_or_create!, :first_or_initialize,
       :find_or_create_by, :find_or_create_by!, :create_or_find_by, :create_or_find_by!, :find_or_initialize_by,
       :find_by, :find_by!,
-      :destroy_all, :delete_all, :update_all,
+      :destroy_all, :delete_all, :update_all, :delete_by, :destroy_by,
       :find_each, :find_in_batches, :in_batches,
       :select, :group, :order, :except, :reorder, :limit, :offset, :joins, :left_joins, :left_outer_joins, :or,
       :where, :rewhere, :preload, :eager_load, :includes, :from, :lock, :readonly, :extending,
