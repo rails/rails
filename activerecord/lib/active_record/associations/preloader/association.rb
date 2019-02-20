@@ -115,7 +115,7 @@ module ActiveRecord
           def build_scope
             scope = klass.scope_for_association
 
-            if reflection.type
+            if reflection.type && !reflection.through_reflection?
               scope.where!(reflection.type => model.polymorphic_name)
             end
 
