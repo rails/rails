@@ -161,7 +161,7 @@ module ActiveRecord
       #   # Delete multiple rows
       #   Todo.delete([2,3,4])
       def delete(id_or_array)
-        where(primary_key => id_or_array).delete_all
+        delete_by(primary_key => id_or_array)
       end
 
       def _insert_record(values) # :nodoc:

@@ -314,7 +314,7 @@ method:
 
 ```ruby
 # find and delete all users named David
-User.where(name: 'David').destroy_all
+User.destroy_by(name: 'David')
 
 # delete all users
 User.destroy_all
