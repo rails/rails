@@ -26,6 +26,7 @@
 require "active_record"
 require "active_support"
 require "active_support/rails"
+require "active_support/core_ext/numeric/time"
 
 require "active_storage/version"
 require "active_storage/errors"
