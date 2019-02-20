@@ -309,8 +309,8 @@ user = User.find_by(name: 'David')
 user.destroy
 ```
 
-If you'd like to delete several records in bulk, you may use `destroy_all`
-method:
+If you'd like to delete several records in bulk, you may use `destroy_by`
+or `destroy_all` method:
 
 ```ruby
 # find and delete all users named David
