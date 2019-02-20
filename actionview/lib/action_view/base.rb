@@ -213,6 +213,8 @@ module ActionView #:nodoc:
         context.lookup_context
       when Array
         ActionView::LookupContext.new(context)
+      when ActionView::PathSet
+        ActionView::LookupContext.new(context)
       when nil
         ActionView::LookupContext.new([])
       else
