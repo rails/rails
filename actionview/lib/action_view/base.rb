@@ -247,6 +247,7 @@ module ActionView #:nodoc:
         eowarn
       end
 
+      
       case lookup_context
       when ActionView::LookupContext
         @lookup_context = lookup_context
