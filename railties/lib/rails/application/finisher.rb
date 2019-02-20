@@ -73,6 +73,9 @@ module Rails
       initializer :eager_load! do
         if config.eager_load
           ActiveSupport.run_load_hooks(:before_eager_load, self)
+          # Checks defined?(Zeitwerk) instead of zeitwerk_enabled? because we
+          # want to eager load any dependency managed by Zeitwerk regardless of
+          # the autoloading mode of the application.
           Zeitwerk::Loader.eager_load_all if defined?(Zeitwerk)
           config.eager_load_namespaces.each(&:eager_load!)
         end
