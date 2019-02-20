@@ -364,7 +364,7 @@ module ActionView
 
           content = layout.render(view, locals) { content } if layout
           payload[:cache_hit] = view.view_renderer.cache_hits[template.virtual_path]
-          build_rendered_template(content, template, layout)
+          build_rendered_template(content, template)
         end
       end
 
@@ -455,7 +455,7 @@ module ActionView
           content = template.render(view, locals)
           content = layout.render(view, locals) { content } if layout
           partial_iteration.iterate!
-          build_rendered_template(content, template, layout)
+          build_rendered_template(content, template)
         end
       end
 
