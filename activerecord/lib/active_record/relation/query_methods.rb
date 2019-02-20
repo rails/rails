@@ -1055,7 +1055,13 @@ module ActiveRecord
           case field
           when Symbol
             field = field.to_s
-            arel_column(field) { connection.quote_table_name(field) }
+            arel_column(field) do
+              table, sep, column = field.to_s.rpartition(".")
+              if table.present?
+                table = connection.quote_table_name(table)
+              end
+              "#{table}#{sep}#{connection.quote_column_name(column)}"
+            end
           when String
             arel_column(field) { field }
           when Proc
