@@ -24,6 +24,11 @@ module Rails
         end
       end
 
+      def logger=(logger)
+        callable_or_nil = logger.respond_to?(:debug) ? logger.method(:debug) : logger
+        each { |loader| loader.logger = callable_or_nil }
+      end
+
       def zeitwerk_enabled?
         Rails.configuration.autoloader == :zeitwerk
       end

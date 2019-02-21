@@ -206,4 +206,27 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
     assert_equal Module, Module.method(:const_missing).owner
     assert_equal :no_op, deps.unhook!
   end
+
+  test "autoloaders.logger=" do
+    boot
+
+    logger = ->(_msg) { }
+    Rails.autoloaders.logger = logger
+
+    Rails.autoloaders.each do |autoloader|
+      assert_equal logger, autoloader.logger
+    end
+
+    Rails.autoloaders.logger = Rails.logger
+
+    Rails.autoloaders.each do |autoloader|
+      assert_equal Rails.logger.method(:debug), autoloader.logger
+    end
+
+    Rails.autoloaders.logger = nil
+
+    Rails.autoloaders.each do |autoloader|
+      assert_nil autoloader.logger
+    end
+  end
 end
