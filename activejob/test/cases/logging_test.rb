@@ -201,4 +201,17 @@ class LoggingTest < ActiveSupport::TestCase
       assert_match(/Discarded RetryJob due to a DiscardableError\./, @logger.messages)
     end
   end
+
+  def test_performance_data
+    person = Person.new(123)
+    perform_enqueued_jobs do
+      ActiveSupport::Notifications.subscribe "perform.active_job" do |*args|
+        event = ActiveSupport::Notifications::Event.new *args
+        payload = event.payload
+        assert_equal(payload[:db_query_time], 0)
+        assert_operator(payload[:job_runtime], :>, 0)
+      end
+      LoggingJob.perform_later person
+    end
+  end
 end

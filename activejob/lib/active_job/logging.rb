@@ -3,6 +3,8 @@
 require "active_support/core_ext/string/filters"
 require "active_support/tagged_logging"
 require "active_support/logger"
+require "active_record/log_subscriber"
+require "active_record/runtime_registry"
 
 module ActiveJob
   module Logging #:nodoc:
@@ -21,8 +23,10 @@ module ActiveJob
         tag_logger(job.class.name, job.job_id) do
           payload = { adapter: job.class.queue_adapter, job: job }
           ActiveSupport::Notifications.instrument("perform_start.active_job", payload.dup)
-          ActiveSupport::Notifications.instrument("perform.active_job", payload) do
+          start_timing
+          ActiveSupport::Notifications.instrument("perform.active_job", payload) do |payload|
             block.call
+            append_performance_data(payload)
           end
         end
       end
@@ -50,6 +54,26 @@ module ActiveJob
 
       def logger_tagged_by_active_job?
         logger.formatter.current_tags.include?("ActiveJob")
+      end
+
+      def start_timing
+        @job_start_time = current_time
+        # Ensure we are logging db runtime from 0, this will ensure no middleware affects
+        # our stats
+        ActiveRecord::LogSubscriber.reset_runtime
+      end
+
+      def current_time
+        Time.now
+      end
+
+      def execution_duration_in_milliseconds
+        (current_time - @job_start_time) * 1_000
+      end
+
+      def append_performance_data(payload)
+        payload[:db_query_time] = ActiveRecord::LogSubscriber.runtime
+        payload[:job_runtime] = execution_duration_in_milliseconds
       end
 
       class LogSubscriber < ActiveSupport::LogSubscriber #:nodoc:
