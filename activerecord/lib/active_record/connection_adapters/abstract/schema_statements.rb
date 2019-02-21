@@ -584,7 +584,7 @@ module ActiveRecord
       #  # Defines a column with a database-specific type.
       #  add_column(:shapes, :triangle, 'polygon')
       #  # ALTER TABLE "shapes" ADD "triangle" polygon
-      def add_column(table_name, column_name, type, options = {})
+      def add_column(table_name, column_name, type, **options)
         at = create_alter_table table_name
         at.add_column(column_name, type, options)
         execute schema_creation.accept at

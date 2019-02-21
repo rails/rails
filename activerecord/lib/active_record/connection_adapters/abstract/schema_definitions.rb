@@ -208,7 +208,7 @@ module ActiveRecord
 
       ##
       # :method: column
-      # :call-seq: column(name, type, options = {})
+      # :call-seq: column(name, type, **options)
       #
       # Appends a column or columns of a specified type.
       #
@@ -364,7 +364,7 @@ module ActiveRecord
       #     t.references :tagger, polymorphic: true
       #     t.references :taggable, polymorphic: { default: 'Photo' }, index: false
       #   end
-      def column(name, type, options = {})
+      def column(name, type, **options)
         name = name.to_s
         type = type.to_sym if type
         options = options.dup
@@ -541,7 +541,7 @@ module ActiveRecord
       #  t.column(:name, :string)
       #
       # See TableDefinition#column for details of the options you can use.
-      def column(column_name, type, options = {})
+      def column(column_name, type, **options)
         index_options = options.delete(:index)
         @base.add_column(name, column_name, type, options)
         index(column_name, index_options.is_a?(Hash) ? index_options : {}) if index_options
