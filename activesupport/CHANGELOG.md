@@ -1,3 +1,6 @@
+*   Add `Bahia => America/Bahia`, and `Manaus => America/Manaus` to TimeZone.MAPPING.
+
+    *Gabriel Fontoura Dos Santos*
 *   New autoloading based on [Zeitwerk](https://github.com/fxn/zeitwerk).
 
     *Xavier Noria*
