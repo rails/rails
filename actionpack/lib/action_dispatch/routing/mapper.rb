@@ -1440,6 +1440,9 @@ module ActionDispatch
         #   Allows you to specify the default value for optional +format+
         #   segment or disable it by supplying +false+.
         #
+        # [:param]
+        #   Allows you to override the default param name of +:id+ in the URL.
+        #
         # === Examples
         #
         #   # routes call <tt>Admin::PostsController</tt>
