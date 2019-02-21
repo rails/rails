@@ -1,3 +1,7 @@
+*   Don't allow `where` with non numeric string matches to 0 values.
+
+    *Ryuta Kamizono*
+
 *   Introduce `ActiveRecord::Relation#destroy_by` and `ActiveRecord::Relation#delete_by`.
 
     `destroy_by` allows relation to find all the records matching the condition and perform

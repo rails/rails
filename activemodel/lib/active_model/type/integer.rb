@@ -19,11 +19,8 @@ module ActiveModel
       end
 
       def serialize(value)
-        result = super
-        if result
-          ensure_in_range(result)
-        end
-        result
+        return if value.is_a?(::String) && non_numeric_string?(value)
+        ensure_in_range(super)
       end
 
       private
@@ -34,9 +31,10 @@ module ActiveModel
         end
 
         def ensure_in_range(value)
-          unless range.cover?(value)
+          if value && !range.cover?(value)
             raise ActiveModel::RangeError, "#{value} is out of range for #{self.class} with limit #{_limit} bytes"
           end
+          value
         end
 
         def max_value
