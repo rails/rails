@@ -1157,9 +1157,9 @@ module ActiveRecord
         order_args.map! do |arg|
           case arg
           when Symbol
-            field = arg.to_s
-            arel_column(field) {
-              Arel.sql(connection.quote_table_name(field))
+            arg = arg.to_s
+            arel_column(arg) {
+              Arel.sql(connection.quote_table_name(arg))
             }.asc
           when Hash
             arg.map { |field, dir|
