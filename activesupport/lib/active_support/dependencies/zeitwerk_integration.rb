@@ -28,7 +28,7 @@ module ActiveSupport
         end
 
         def verbose=(verbose)
-          l = verbose ? (logger || Rails.logger).method(:debug) : nil
+          l = verbose ? logger || Rails.logger : nil
           Rails.autoloaders.each { |autoloader| autoloader.logger = l }
         end
 
