@@ -1068,8 +1068,10 @@ module ActiveRecord
 
       def arel_column(field)
         field = klass.attribute_alias(field) if klass.attribute_alias?(field)
+        from = from_clause.name || from_clause.value
 
-        if klass.columns_hash.key?(field) && !from_clause.value
+        if klass.columns_hash.key?(field) &&
+            (!from || from == table.name || from == connection.quote_table_name(table.name))
           arel_attribute(field)
         else
           yield
