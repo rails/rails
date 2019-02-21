@@ -54,7 +54,7 @@ module ActiveModel
         type = Type::Integer.new
         assert_nil type.cast("")
         assert_nil type.serialize("")
-        assert_equal 0, type.deserialize("")
+        assert_nil type.deserialize("")
       end
 
       test "changed?" do

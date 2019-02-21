@@ -18,11 +18,6 @@ module ActiveModel
         :integer
       end
 
-      def deserialize(value)
-        return if value.nil?
-        value.to_i
-      end
-
       def serialize(value)
         result = super
         if result
