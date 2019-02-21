@@ -372,6 +372,12 @@ module ActiveRecord
       stmt.wheres = arel.constraints
 
       if updates.is_a?(Hash)
+        if klass.locking_enabled? &&
+            !updates.key?(klass.locking_column) &&
+            !updates.key?(klass.locking_column.to_sym)
+          attr = arel_attribute(klass.locking_column)
+          updates[attr.name] = _increment_attribute(attr)
+        end
         stmt.set _substitute_values(updates)
       else
         stmt.set Arel.sql(klass.sanitize_sql_for_assignment(updates, table.name))
@@ -394,10 +400,7 @@ module ActiveRecord
       updates = {}
       counters.each do |counter_name, value|
         attr = arel_attribute(counter_name)
-        bind = predicate_builder.build_bind_attribute(attr.name, value.abs)
-        expr = table.coalesce(Arel::Nodes::UnqualifiedColumn.new(attr), 0)
-        expr = value < 0 ? expr - bind : expr + bind
-        updates[counter_name] = expr.expr
+        updates[attr.name] = _increment_attribute(attr, value)
       end
 
       if touch
@@ -433,12 +436,7 @@ module ActiveRecord
     #   Person.where(name: 'David').touch_all
     #   # => "UPDATE \"people\" SET \"updated_at\" = '2018-01-04 22:55:23.132670' WHERE \"people\".\"name\" = 'David'"
     def touch_all(*names, time: nil)
-      if klass.locking_enabled?
-        names << { time: time }
-        update_counters(klass.locking_column => 1, touch: names)
-      else
-        update_all klass.touch_attributes_with_time(*names, time: time)
-      end
+      update_all klass.touch_attributes_with_time(*names, time: time)
     end
 
     # Destroys the records by instantiating each
@@ -707,6 +705,13 @@ module ActiveRecord
           end
           [attr, value]
         end
+      end
+
+      def _increment_attribute(attribute, value = 1)
+        bind = predicate_builder.build_bind_attribute(attribute.name, value.abs)
+        expr = table.coalesce(Arel::Nodes::UnqualifiedColumn.new(attribute), 0)
+        expr = value < 0 ? expr - bind : expr + bind
+        expr.expr
       end
 
       def exec_queries(&block)
