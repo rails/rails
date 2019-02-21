@@ -214,13 +214,13 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
     Rails.autoloaders.logger = logger
 
     Rails.autoloaders.each do |autoloader|
-      assert_equal logger, autoloader.logger
+      assert_same logger, autoloader.logger
     end
 
     Rails.autoloaders.logger = Rails.logger
 
     Rails.autoloaders.each do |autoloader|
-      assert_equal Rails.logger.method(:debug), autoloader.logger
+      assert_same Rails.logger, autoloader.logger
     end
 
     Rails.autoloaders.logger = nil

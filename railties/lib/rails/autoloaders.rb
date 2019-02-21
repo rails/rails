@@ -25,8 +25,7 @@ module Rails
       end
 
       def logger=(logger)
-        callable_or_nil = logger.respond_to?(:debug) ? logger.method(:debug) : logger
-        each { |loader| loader.logger = callable_or_nil }
+        each { |loader| loader.logger = logger }
       end
 
       def zeitwerk_enabled?
