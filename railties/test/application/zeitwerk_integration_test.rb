@@ -164,7 +164,7 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
     assert_equal %i(main_autoloader), $zeitwerk_integration_reload_test
   end
 
-  test "verbose = true sets the debug method of the dependencies logger if present" do
+  test "verbose = true sets the dependencies logger if present" do
     boot
 
     logger = Logger.new(File::NULL)
@@ -172,17 +172,17 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
     ActiveSupport::Dependencies.verbose = true
 
     Rails.autoloaders.each do |autoloader|
-      assert_equal logger.method(:debug), autoloader.logger
+      assert_same logger, autoloader.logger
     end
   end
 
-  test "verbose = true sets the debug method of the Rails logger as fallback" do
+  test "verbose = true sets the Rails logger as fallback" do
     boot
 
     ActiveSupport::Dependencies.verbose = true
 
     Rails.autoloaders.each do |autoloader|
-      assert_equal Rails.logger.method(:debug), autoloader.logger
+      assert_same Rails.logger, autoloader.logger
     end
   end
 
@@ -214,13 +214,13 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
     Rails.autoloaders.logger = logger
 
     Rails.autoloaders.each do |autoloader|
-      assert_equal logger, autoloader.logger
+      assert_same logger, autoloader.logger
     end
 
     Rails.autoloaders.logger = Rails.logger
 
     Rails.autoloaders.each do |autoloader|
-      assert_equal Rails.logger.method(:debug), autoloader.logger
+      assert_same Rails.logger, autoloader.logger
     end
 
     Rails.autoloaders.logger = nil
