@@ -22,6 +22,7 @@ class EnumTest < ActiveRecord::TestCase
     assert_predicate @book, :illustrator_visibility_visible?
     assert_predicate @book, :with_medium_font_size?
     assert_predicate @book, :medium_to_read?
+    assert_predicate @book, :hard?
   end
 
   test "query state with strings" do
@@ -31,6 +32,7 @@ class EnumTest < ActiveRecord::TestCase
     assert_equal "visible", @book.author_visibility
     assert_equal "visible", @book.illustrator_visibility
     assert_equal "medium", @book.difficulty
+    assert_equal "hard", @book.cover
   end
 
   test "find via scope" do
@@ -40,6 +42,7 @@ class EnumTest < ActiveRecord::TestCase
     assert_equal @book, Book.author_visibility_visible.first
     assert_equal @book, Book.illustrator_visibility_visible.first
     assert_equal @book, Book.medium_to_read.first
+    assert_equal @book, Book.hard.first
     assert_equal books(:ddd), Book.forgotten.first
     assert_equal books(:rfr), authors(:david).unpublished_books.first
   end
@@ -53,6 +56,7 @@ class EnumTest < ActiveRecord::TestCase
     assert_not_equal @book, Book.where(status: [written]).first
     assert_not_equal @book, Book.where("status <> ?", published).first
     assert_equal @book, Book.where("status <> ?", written).first
+    assert_equal @book, Book.where("cover <> ?", Book.covers[:soft]).first
   end
 
   test "find via where with symbols" do
@@ -62,6 +66,7 @@ class EnumTest < ActiveRecord::TestCase
     assert_not_equal @book, Book.where(status: [:written]).first
     assert_not_equal @book, Book.where.not(status: :published).first
     assert_equal @book, Book.where.not(status: :written).first
+    assert_equal @book, Book.where.not(cover: :soft).first
     assert_equal books(:ddd), Book.where(read_status: :forgotten).first
   end
 
@@ -72,12 +77,15 @@ class EnumTest < ActiveRecord::TestCase
     assert_not_equal @book, Book.where(status: ["written"]).first
     assert_not_equal @book, Book.where.not(status: "published").first
     assert_equal @book, Book.where.not(status: "written").first
+    assert_equal @book, Book.where.not(cover: "soft").first
     assert_equal books(:ddd), Book.where(read_status: "forgotten").first
   end
 
   test "build from scope" do
     assert_predicate Book.written.build, :written?
     assert_not_predicate Book.written.build, :proposed?
+    assert_predicate Book.hard.build, :hard?
+    assert_not_predicate Book.hard.build, :soft?
   end
 
   test "build from where" do
@@ -87,6 +95,8 @@ class EnumTest < ActiveRecord::TestCase
     assert_not_predicate Book.where(status: :written).build, :proposed?
     assert_predicate Book.where(status: "written").build, :written?
     assert_not_predicate Book.where(status: "written").build, :proposed?
+    assert_predicate Book.where(cover: "hard").build, :hard?
+    assert_not_predicate Book.where(cover: "hard").build, :soft?
   end
 
   test "update by declaration" do
@@ -96,11 +106,15 @@ class EnumTest < ActiveRecord::TestCase
     assert_predicate @book, :in_english?
     @book.author_visibility_visible!
     assert_predicate @book, :author_visibility_visible?
+    @book.soft!
+    assert_predicate @book, :soft?
   end
 
   test "update by setter" do
     @book.update! status: :written
     assert_predicate @book, :written?
+    @book.update! cover: :soft
+    assert_predicate @book, :soft?
   end
 
   test "enum methods are overwritable" do
@@ -111,70 +125,93 @@ class EnumTest < ActiveRecord::TestCase
   test "direct assignment" do
     @book.status = :written
     assert_predicate @book, :written?
+    @book.cover = :soft
+    assert_predicate @book, :soft?
   end
 
   test "assign string value" do
     @book.status = "written"
     assert_predicate @book, :written?
+    @book.cover = "soft"
+    assert_predicate @book, :soft?
   end
 
   test "enum changed attributes" do
     old_status = @book.status
     old_language = @book.language
+    old_cover = @book.cover
     @book.status = :proposed
     @book.language = :spanish
+    @book.cover = :soft
     assert_equal old_status, @book.changed_attributes[:status]
     assert_equal old_language, @book.changed_attributes[:language]
+    assert_equal old_cover, @book.changed_attributes[:cover]
   end
 
   test "enum changes" do
     old_status = @book.status
     old_language = @book.language
+    old_cover = @book.cover
     @book.status = :proposed
     @book.language = :spanish
+    @book.cover = :soft
     assert_equal [old_status, "proposed"], @book.changes[:status]
     assert_equal [old_language, "spanish"], @book.changes[:language]
+    assert_equal [old_cover, "soft"], @book.changes[:cover]
   end
 
   test "enum attribute was" do
     old_status = @book.status
     old_language = @book.language
+    old_cover = @book.cover
     @book.status = :published
     @book.language = :spanish
+    @book.cover = :soft
     assert_equal old_status, @book.attribute_was(:status)
     assert_equal old_language, @book.attribute_was(:language)
+    assert_equal old_cover, @book.attribute_was(:cover)
   end
 
   test "enum attribute changed" do
     @book.status = :proposed
     @book.language = :french
+    @book.cover = :soft
     assert @book.attribute_changed?(:status)
     assert @book.attribute_changed?(:language)
+    assert @book.attribute_changed?(:cover)
   end
 
   test "enum attribute changed to" do
     @book.status = :proposed
     @book.language = :french
+    @book.cover = :soft
     assert @book.attribute_changed?(:status, to: "proposed")
     assert @book.attribute_changed?(:language, to: "french")
+    assert @book.attribute_changed?(:cover, to: "soft")
   end
 
   test "enum attribute changed from" do
     old_status = @book.status
     old_language = @book.language
+    old_cover = @book.cover
     @book.status = :proposed
     @book.language = :french
+    @book.cover = :soft
     assert @book.attribute_changed?(:status, from: old_status)
     assert @book.attribute_changed?(:language, from: old_language)
+    assert @book.attribute_changed?(:cover, from: old_cover)
   end
 
   test "enum attribute changed from old status to new status" do
     old_status = @book.status
     old_language = @book.language
+    old_cover = @book.cover
     @book.status = :proposed
     @book.language = :french
+    @book.cover = :soft
     assert @book.attribute_changed?(:status, from: old_status, to: "proposed")
     assert @book.attribute_changed?(:language, from: old_language, to: "french")
+    assert @book.attribute_changed?(:cover, from: old_cover, to: "soft")
   end
 
   test "enum didn't change" do
@@ -246,6 +283,7 @@ class EnumTest < ActiveRecord::TestCase
     assert_predicate Book.read.build, :read?
     assert_predicate Book.in_spanish.build, :in_spanish?
     assert_predicate Book.illustrator_visibility_invisible.build, :illustrator_visibility_invisible?
+    assert_predicate Book.hard.build, :hard?
   end
 
   test "creating new objects with enum scopes" do
@@ -253,6 +291,7 @@ class EnumTest < ActiveRecord::TestCase
     assert_predicate Book.read.create, :read?
     assert_predicate Book.in_spanish.create, :in_spanish?
     assert_predicate Book.illustrator_visibility_invisible.create, :illustrator_visibility_invisible?
+    assert_predicate Book.hard.create, :hard?
   end
 
   test "_before_type_cast" do

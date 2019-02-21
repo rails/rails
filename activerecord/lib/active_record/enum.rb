@@ -3,11 +3,14 @@
 require "active_support/core_ext/object/deep_dup"
 
 module ActiveRecord
-  # Declare an enum attribute where the values map to integers in the database,
-  # but can be queried by name. Example:
+  # Declare an enum attribute where the values map to values in the database,
+  # but can be queried by name.
+  #
+  # Example:
   #
   #   class Conversation < ActiveRecord::Base
   #     enum status: [ :active, :archived ]
+  #     enum topic: { news: "news", culture: "culture" }
   #   end
   #
   #   # conversation.update! status: 0
@@ -27,11 +30,15 @@ module ActiveRecord
   #   conversation.status.nil? # => true
   #   conversation.status      # => nil
   #
+  #   # conversation.update! topic: "culture"
+  #   conversation.culture? # => true
+  #
   # Scopes based on the allowed values of the enum field will be provided
   # as well. With the above example:
   #
   #   Conversation.active
   #   Conversation.archived
+  #   Conversation.culture
   #
   # Of course, you can also query them directly if the scopes don't fit your
   # needs:
@@ -48,10 +55,11 @@ module ActiveRecord
   # Good practice is to let the first declared status be the default.
   #
   # Finally, it's also possible to explicitly map the relation between attribute and
-  # database integer with a hash:
+  # database value with a hash:
   #
   #   class Conversation < ActiveRecord::Base
   #     enum status: { active: 0, archived: 1 }
+  #     enum topic: { news: "news", culture: "culture" }
   #   end
   #
   # Note that when an array is used, the implicit mapping from the values to database
