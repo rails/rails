@@ -166,7 +166,7 @@ module ActionDispatch
   # * <tt>:secure</tt> - Whether this cookie is only transmitted to HTTPS servers.
   #   Default is +false+.
   # * <tt>:httponly</tt> - Whether this cookie is accessible via scripting or
-  #   only HTTP. Defaults to +false+.
+  #   only HTTP. Defaults to +config.action_dispatch.cookies_httponly_default+.
   class Cookies
     HTTP_HEADER   = "Set-Cookie"
     GENERATOR_KEY = "action_dispatch.key_generator"
@@ -354,6 +354,8 @@ module ActionDispatch
 
         options[:path] ||= "/"
 
+        options[:httponly] = cookies_httponly_default unless options.key?(:httponly)
+
         if options[:domain] == :all || options[:domain] == "all"
           # If there is a provided tld length then we use it otherwise default domain regexp.
           domain_regexp = options[:tld_length] ? /([^.]+\.?){#{options[:tld_length]}}$/ : DOMAIN_REGEXP
@@ -426,6 +428,7 @@ module ActionDispatch
       end
 
       mattr_accessor :always_write_cookie, default: false
+      mattr_accessor :cookies_httponly_default, default: false
 
       private
 

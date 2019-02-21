@@ -126,6 +126,7 @@ module Rails
 
           if respond_to?(:action_dispatch)
             action_dispatch.use_cookies_with_metadata = true
+            action_dispatch.cookies_httponly_default = true
           end
 
           if respond_to?(:action_mailer)

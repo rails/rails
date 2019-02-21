@@ -1,3 +1,13 @@
+*   Set all cookies to httpOnly by default for new applications.
+
+    Add `cookies_httponly_default` configuration option. Set to `false` by default
+    but enabled for new applications. Provides secure-by-default behavior by restricting
+    script access to cookies. Session cookies are already httpOnly by default.
+
+    Fixes #1449
+
+    *Tyler Naumu*
+
 *   Make debug exceptions works in an environment where ActiveStorage is not loaded.
 
     *Tomoyuki Kurosawa*

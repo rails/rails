@@ -50,6 +50,9 @@ module ActionDispatch
       config.action_dispatch.always_write_cookie = Rails.env.development? if config.action_dispatch.always_write_cookie.nil?
       ActionDispatch::Cookies::CookieJar.always_write_cookie = config.action_dispatch.always_write_cookie
 
+      config.action_dispatch.cookies_httponly_default = false if config.action_dispatch.cookies_httponly_default.nil?
+      ActionDispatch::Cookies::CookieJar.cookies_httponly_default = config.action_dispatch.cookies_httponly_default
+
       ActionDispatch.test_app = app
     end
   end

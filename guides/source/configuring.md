@@ -502,6 +502,9 @@ Defaults to `'signed cookie'`.
 * `config.action_dispatch.use_cookies_with_metadata` enables writing
   cookies with the purpose and expiry metadata embedded. It defaults to `true`.
 
+* `config.action_dispatch.cookies_httponly_default` controls whether
+  cookies are set to httpOnly by default. It defaults to `false`.
+
 * `config.action_dispatch.perform_deep_munge` configures whether `deep_munge`
   method should be performed on the parameters. See [Security Guide](security.html#unsafe-query-generation)
   for more information. It defaults to `true`.
@@ -880,6 +883,7 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 
 - `config.action_view.default_enforce_utf8`: `false`
 - `config.action_dispatch.use_cookies_with_metadata`: `true`
+- `config.action_dispatch.cookies_httponly_default`: `true`
 - `config.action_mailer.delivery_job`: `"ActionMailer::MailDeliveryJob"`
 - `config.active_job.return_false_on_aborted_enqueue`: `true`
 - `config.active_storage.queues.analysis`: `:active_storage_analysis`

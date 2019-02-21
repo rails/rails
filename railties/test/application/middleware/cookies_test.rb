@@ -26,6 +26,22 @@ module ApplicationTests
       FileUtils.rm_rf(new_app) if File.directory?(new_app)
     end
 
+    test "cookies_httponly_default is true by default" do
+      require "rails"
+      require "#{app_path}/config/environment"
+      assert_equal true, ActionDispatch::Cookies::CookieJar.cookies_httponly_default
+    end
+
+    test "cookies_httponly_default can be overridden" do
+      add_to_config <<-RUBY
+        config.action_dispatch.cookies_httponly_default = false
+      RUBY
+
+      require "rails"
+      require "#{app_path}/config/environment"
+      assert_equal false, ActionDispatch::Cookies::CookieJar.cookies_httponly_default
+    end
+
     test "always_write_cookie is true by default in development" do
       require "rails"
       Rails.env = "development"

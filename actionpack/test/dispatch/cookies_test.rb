@@ -140,6 +140,11 @@ class CookiesTest < ActionController::TestCase
       head :ok
     end
 
+    def authenticate_with_httponly_false
+      cookies["user_name"] = { value: "david", httponly: false }
+      head :ok
+    end
+
     def authenticate_with_secure
       cookies["user_name"] = { value: "david", secure: true }
       head :ok
@@ -396,6 +401,30 @@ class CookiesTest < ActionController::TestCase
     get :authenticate_with_http_only
     assert_cookie_header "user_name=david; path=/; HttpOnly"
     assert_equal({ "user_name" => "david" }, @response.cookies)
+  end
+
+  def test_setting_cookie_with_httponly_false
+    get :authenticate_with_httponly_false
+    assert_cookie_header "user_name=david; path=/"
+    assert_equal({ "user_name" => "david" }, @response.cookies)
+  end
+
+  def test_setting_cookie_with_httponly_default
+    old_httponly, @request.cookie_jar.cookies_httponly_default = @request.cookie_jar.cookies_httponly_default, true
+    get :authenticate
+    assert_cookie_header "user_name=david; path=/; HttpOnly"
+    assert_equal({ "user_name" => "david" }, @response.cookies)
+  ensure
+    @request.cookie_jar.cookies_httponly_default = old_httponly
+  end
+
+  def test_setting_cookie_httponly_false_with_httponly_default_true
+    old_httponly, @request.cookie_jar.cookies_httponly_default = @request.cookie_jar.cookies_httponly_default, true
+    get :authenticate_with_httponly_false
+    assert_cookie_header "user_name=david; path=/"
+    assert_equal({ "user_name" => "david" }, @response.cookies)
+  ensure
+    @request.cookie_jar.cookies_httponly_default = old_httponly
   end
 
   def test_setting_cookie_with_secure
