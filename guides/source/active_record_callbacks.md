@@ -239,13 +239,12 @@ Skipping Callbacks
 
 Just as with validations, it is also possible to skip callbacks by using the following methods:
 
-* `decrement`
+* `decrement!`
 * `decrement_counter`
 * `delete`
 * `delete_all`
-* `increment`
+* `increment!`
 * `increment_counter`
-* `toggle`
 * `update_column`
 * `update_columns`
 * `update_all`
