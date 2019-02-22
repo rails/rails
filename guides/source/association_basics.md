@@ -2030,7 +2030,7 @@ The `collection.delete` method removes one or more objects from the collection b
 
 ##### `collection.destroy(object, ...)`
 
-The `collection.destroy` method removes one or more objects from the collection by deleting records in the join table. This does not destroy the objects.
+The collection.destroy method removes one or more objects from the collection by running destroy on each object.
 
 ```ruby
 @part.assemblies.destroy(@assembly1)
