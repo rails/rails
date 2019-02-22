@@ -1177,8 +1177,7 @@ Passenger makes it easy to run your application in a subdirectory. You can find 
 
 #### Using a Reverse Proxy
 
-In this case, you would need to configure the proxy server (NGINX, Apache, etc) to forward connections to your application server (Puma, Unicorn, etc.). Check your proxy server's documentation how to map subdirectories.
-
+In this case, you would need to configure the proxy server to forward connections to your application server (Puma, Unicorn, etc). Check your proxy server's documentation ([NGINX](https://docs.nginx.com/nginx/admin-guide/web-server/reverse-proxy/), [Apache](https://httpd.apache.org/docs/2.4/howto/reverse_proxy.html)) for instructions on how to map application servers to paths.
 
 Rails Environment Settings
 --------------------------
