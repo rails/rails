@@ -29,7 +29,12 @@ module ActionView
           @lookup_context.with_fallbacks.find_file(options[:file], nil, false, keys, @details)
         elsif options.key?(:inline)
           handler = Template.handler_for_extension(options[:type] || "erb")
-          Template.new(options[:inline], "inline template", handler, locals: keys)
+          format = if handler.respond_to?(:default_format)
+            handler.default_format
+          else
+            @lookup_context.formats.first
+          end
+          Template.new(options[:inline], "inline template", handler, locals: keys, format: format)
         elsif options.key?(:template)
           if options[:template].respond_to?(:render)
             options[:template]

@@ -326,7 +326,7 @@ module ActionView
       def render_collection(view, template)
         identifier = (template && template.identifier) || @path
         instrument(:collection, identifier: identifier, count: @collection.size) do |payload|
-          return RenderedCollection::EMPTY if @collection.blank?
+          return RenderedCollection.empty(@lookup_context.formats.first) if @collection.blank?
 
           spacer = if @options.key?(:spacer_template)
             spacer_template = find_template(@options[:spacer_template], @locals.keys)
