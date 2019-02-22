@@ -207,7 +207,7 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_select_with_subquery_in_from_uses_original_table_name
-    if current_adapter?(:SQLite3Adapter) && (ENV["TRAVIS"] || ENV["BUILDKITE"])
+    if current_adapter?(:SQLite3Adapter) && ENV["CI"]
       skip <<~MSG
         https://travis-ci.org/rails/rails/jobs/496726410#L1198-L1208
         https://buildkite.com/rails/rails/builds/58981#2423c707-7c56-4639-a76e-8db4fd1e5cf3/102-111
