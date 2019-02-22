@@ -102,7 +102,7 @@ module ActiveRecord
       end
 
       def self.build_read_query_regexp(*parts) # :nodoc:
-        parts = parts.map { |part| /\A\s*#{part}/i }
+        parts = parts.map { |part| /\A[\(\s]*#{part}/i }
         Regexp.union(*parts)
       end
 
