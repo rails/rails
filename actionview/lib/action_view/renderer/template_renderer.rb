@@ -88,7 +88,7 @@ module ActionView
             raise unless template_exists?(layout, nil, false, [], all_details)
           end
         when Proc
-          resolve_layout(layout.call(formats), keys, formats)
+          resolve_layout(layout.call(@lookup_context, formats), keys, formats)
         else
           layout
         end
