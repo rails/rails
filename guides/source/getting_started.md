@@ -683,7 +683,7 @@ If you look in the `db/migrate/YYYYMMDDHHMMSS_create_articles.rb` file
 (remember, yours will have a slightly different name), here's what you'll find:
 
 ```ruby
-class CreateArticles < ActiveRecord::Migration[5.0]
+class CreateArticles < ActiveRecord::Migration[6.0]
   def change
     create_table :articles do |t|
       t.string :title
@@ -1555,7 +1555,7 @@ In addition to the model, Rails has also made a migration to create the
 corresponding database table:
 
 ```ruby
-class CreateComments < ActiveRecord::Migration[5.0]
+class CreateComments < ActiveRecord::Migration[6.0]
   def change
     create_table :comments do |t|
       t.string :commenter
