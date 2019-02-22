@@ -118,8 +118,7 @@ module ActionView
           renderer.render_to_object(context, options)
         end
 
-        rendered_format = rendered_template.format || lookup_context.formats.first
-        @rendered_format = Template::Types[rendered_format]
+        @rendered_format = Template::Types[rendered_template.format]
 
         rendered_template.body
       end

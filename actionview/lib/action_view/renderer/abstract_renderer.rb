@@ -28,6 +28,10 @@ module ActionView
     end
 
     class RenderedCollection # :nodoc:
+      def self.empty(format)
+        EmptyCollection.new format
+      end
+
       attr_reader :rendered_templates
 
       def initialize(rendered_templates, spacer)
@@ -44,11 +48,14 @@ module ActionView
       end
 
       class EmptyCollection
-        def format; nil; end
+        attr_reader :format
+
+        def initialize(format)
+          @format = format
+        end
+
         def body; nil; end
       end
-
-      EMPTY = EmptyCollection.new
     end
 
     class RenderedTemplate # :nodoc:
