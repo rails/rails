@@ -1,3 +1,17 @@
+*   Add negative scopes for all enum values.
+
+    Example:
+    
+      class Post < ActiveRecord::Base
+        enum status: %i[ drafted active trashed ]
+      end
+      
+      Post.not_drafted # => where.not(status: :drafted)
+      Post.not_active  # => where.not(status: :active)
+      Post.not_trashed # => where.not(status: :trashed)
+    
+    *DHH*
+
 *   Don't allow `where` with non numeric string matches to 0 values.
 
     *Ryuta Kamizono*
