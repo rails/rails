@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/string/inflections"
+
 module ActiveSupport
   module Dependencies
     module ZeitwerkIntegration # :nodoc: all
@@ -11,11 +13,11 @@ module ActiveSupport
         end
 
         def constantize(cpath)
-          Inflector.constantize(cpath)
+          ActiveSupport::Inflector.constantize(cpath)
         end
 
         def safe_constantize(cpath)
-          Inflector.safe_constantize(cpath)
+          ActiveSupport::Inflector.safe_constantize(cpath)
         end
 
         def autoloaded_constants
@@ -37,6 +39,12 @@ module ActiveSupport
         end
       end
 
+      module Inflector
+        def self.camelize(basename, _abspath)
+          basename.camelize
+        end
+      end
+
       class << self
         def take_over
           setup_autoloaders
@@ -47,6 +55,10 @@ module ActiveSupport
         private
 
           def setup_autoloaders
+            Rails.autoloaders.each do |autoloader|
+              autoloader.inflector = Inflector
+            end
+
             Dependencies.autoload_paths.each do |autoload_path|
               # Zeitwerk only accepts existing directories in `push_dir` to
               # prevent misconfigurations.

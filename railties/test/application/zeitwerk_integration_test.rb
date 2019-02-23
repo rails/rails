@@ -47,6 +47,24 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
     assert_equal 0, Rails.autoloaders.count
   end
 
+  test "autoloaders inflect with Active Support" do
+    app_file "config/initializers/inflections.rb", <<-RUBY
+      ActiveSupport::Inflector.inflections(:en) do |inflect|
+        inflect.acronym 'RESTful'
+      end
+    RUBY
+
+    boot
+
+    basename  = "restful_controller"
+    abspath   = "#{Rails.root}/app/controllers/#{basename}.rb"
+    camelized = "RESTfulController"
+
+    Rails.autoloaders.each do |autoloader|
+      assert_equal camelized, autoloader.inflector.camelize(basename, abspath)
+    end
+  end
+
   test "constantize returns the value stored in the constant" do
     app_file "app/models/admin/user.rb", "class Admin::User; end"
     boot
