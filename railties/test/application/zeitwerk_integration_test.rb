@@ -54,6 +54,14 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
     assert_same Admin::User, deps.constantize("Admin::User")
   end
 
+  test "constantize uses the activesupport inflections to produce constant names" do
+    app_file "app/controllers/graphql_controller.rb", "class GraphQLController; end"
+    app_file "config/initializers/inflections.rb", "ActiveSupport::Inflector.inflections(:en) { |inflect| inflect.acronym \"GraphQL\" }"
+    boot
+
+    assert_same GraphQLController, deps.constantize("GraphQLController")
+  end
+
   test "constantize raises if the constant is unknown" do
     boot
 

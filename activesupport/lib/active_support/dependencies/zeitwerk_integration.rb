@@ -59,7 +59,10 @@ module ActiveSupport
               end
             end
 
-            Rails.autoloaders.each(&:setup)
+            Rails.autoloaders.each do |loader|
+              loader.inflector = ActiveSupport::Inflector
+              loader.setup
+            end
           end
 
           def autoload_once?(autoload_path)
