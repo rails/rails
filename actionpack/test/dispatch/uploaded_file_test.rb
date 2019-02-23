@@ -2,6 +2,7 @@
 
 require "abstract_unit"
 require "tempfile"
+require "stringio"
 
 module ActionDispatch
   class UploadedFileTest < ActiveSupport::TestCase
@@ -49,10 +50,10 @@ module ActionDispatch
       assert_equal tf, uf.tempfile
     end
 
-    def test_to_io_returns_tempfile
+    def test_to_io_returns_file
       tf = Tempfile.new
       uf = Http::UploadedFile.new(tempfile: tf)
-      assert_equal tf, uf.to_io
+      assert_equal tf.to_io, uf.to_io
     end
 
     def test_delegates_path_to_tempfile
@@ -114,6 +115,16 @@ module ActionDispatch
       tf = Tempfile.new
       uf = Http::UploadedFile.new(tempfile: tf)
       assert_equal tf.to_path, uf.to_path
+    end
+
+    def test_io_copy_stream
+      tf = Tempfile.new
+      tf << "thunderhorse"
+      tf.rewind
+      uf = Http::UploadedFile.new(tempfile: tf)
+      result = StringIO.new
+      IO.copy_stream(uf, result)
+      assert_equal "thunderhorse", result.string
     end
   end
 end
