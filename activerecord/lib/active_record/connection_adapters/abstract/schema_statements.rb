@@ -852,7 +852,7 @@ module ActiveRecord
       # [<tt>:null</tt>]
       #   Whether the column allows nulls. Defaults to true.
       #
-      # ====== Create a user_id bigint column without a index
+      # ====== Create a user_id bigint column without an index
       #
       #   add_reference(:products, :user, index: false)
       #
