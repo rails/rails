@@ -115,6 +115,7 @@ module ActionView
       autoload :Error
       autoload :Handlers
       autoload :HTML
+      autoload :Inline
       autoload :Text
       autoload :Types
     end
