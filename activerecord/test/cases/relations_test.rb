@@ -1941,6 +1941,17 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal p2.first.comments, comments
   end
 
+  def test_unscope_with_unknown_column
+    comment = comments(:greetings)
+    comment.update!(comments: 1)
+
+    comments = Comment.where(comments: 1).unscope(where: :unknown_column)
+    assert_equal [comment], comments
+
+    comments = Comment.where(comments: 1).unscope(where: { comments: :unknown_column })
+    assert_equal [comment], comments
+  end
+
   def test_unscope_specific_where_value
     posts = Post.where(title: "Welcome to the weblog", body: "Such a lovely day")
 
