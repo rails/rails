@@ -196,6 +196,46 @@ class NamingUsingRelativeModelNameTest < ActiveModel::TestCase
   end
 end
 
+class NamingUsingEnforcedI18nNamingTest < ActiveModel::TestCase
+  def setup
+    @original_enforce_i18n_naming = ActiveModel::Naming.enforce_i18n_naming
+    ActiveModel::Naming.enforce_i18n_naming = true
+
+    @old_load_path, @old_backend = I18n.load_path.dup, I18n.backend
+    I18n.load_path.clear
+    I18n.backend = I18n::Backend::Simple.new
+
+    @model_name = ActiveModel::Name.new(Contact)
+  end
+
+  def teardown
+    ActiveModel::Naming.enforce_i18n_naming = @original_enforce_i18n_naming
+
+    I18n.load_path.replace @old_load_path
+    I18n.backend = @old_backend
+    I18n.backend.reload!
+  end
+
+  def test_human_without_enforcing_i18n
+    ActiveModel::Naming.enforce_i18n_naming = false
+    assert_equal "Contact", @model_name.human
+  end
+
+  def test_human_with_default
+    assert_equal "<<default>>", @model_name.human(default: "<<default>>")
+  end
+
+  def test_human_without_translation
+    error = assert_raises(I18n::MissingTranslationData) { @model_name.human }
+    assert_equal "translation missing: en.activemodel.models.contact", error.message
+  end
+
+  def test_human_with_translation
+    I18n.backend.store_translations("en", activemodel: { models: { contact: "<<translation>>" } })
+    assert_equal "<<translation>>", @model_name.human
+  end
+end
+
 class NamingHelpersTest < ActiveModel::TestCase
   def setup
     @klass  = Contact

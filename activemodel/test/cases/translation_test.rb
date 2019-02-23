@@ -39,6 +39,18 @@ class ActiveModelI18nTests < ActiveModel::TestCase
     assert_equal "Name", Person.human_attribute_name("name", default: :default_name)
   end
 
+  def test_translated_model_attributes_raises_without_translation_when_translations_enforced
+    original_enforce_i18n_naming = ActiveModel::Naming.enforce_i18n_naming
+    begin
+      ActiveModel::Naming.enforce_i18n_naming = true
+
+      error = assert_raises(I18n::MissingTranslationData) { Person.human_attribute_name("name") }
+      assert_equal "translation missing: en.activemodel.attributes.person.name", error.message
+    ensure
+      ActiveModel::Naming.enforce_i18n_naming = original_enforce_i18n_naming
+    end
+  end
+
   def test_translated_model_attributes_with_symbols
     I18n.backend.store_translations "en", activemodel: { attributes: { person: { name: "person name attribute" } } }
     assert_equal "person name attribute", Person.human_attribute_name(:name)
@@ -97,6 +109,22 @@ class ActiveModelI18nTests < ActiveModel::TestCase
   def test_translated_model_names_with_ancestors_fallback
     I18n.backend.store_translations "en", activemodel: { models: { person: "person model" } }
     assert_equal "person model", Child.model_name.human
+  end
+
+  def test_translated_model_names_falling_back_to_default
+    assert_equal "Person", Person.model_name.human
+  end
+
+  def test_translated_model_names_raises_without_translation_when_translations_enforced
+    original_enforce_i18n_naming = ActiveModel::Naming.enforce_i18n_naming
+    begin
+      ActiveModel::Naming.enforce_i18n_naming = true
+
+      error = assert_raises(I18n::MissingTranslationData) { Person.model_name.human }
+      assert_equal "translation missing: en.activemodel.models.person", error.message
+    ensure
+      ActiveModel::Naming.enforce_i18n_naming = original_enforce_i18n_naming
+    end
   end
 
   def test_human_does_not_modify_options

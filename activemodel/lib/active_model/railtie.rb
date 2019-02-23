@@ -16,5 +16,9 @@ module ActiveModel
     initializer "active_model.i18n_full_message" do
       ActiveModel::Errors.i18n_full_message = config.active_model.delete(:i18n_full_message) || false
     end
+
+    initializer "active_model.enforce_i18n_naming" do
+      ActiveModel::Naming.enforce_i18n_naming = config.active_model.delete(:enforce_i18n_naming) || false
+    end
   end
 end

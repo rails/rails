@@ -306,6 +306,8 @@ All these configuration options are delegated to the `I18n` library.
 
 * `config.active_model.i18n_full_message` is a boolean value which controls whether the `full_message` error format can be overridden at the attribute or model level in the locale files. This is `false` by default.
 
+* `config.active_model.enforce_i18n_naming` prevents rails from using the model and attribute names from your code as the default translation when calling `model_name.human` and `humanized_attribute_name`, and instead will warn you of the missing translation. It is `false` by default.
+
 ### Configuring Active Record
 
 `config.active_record` includes a variety of configuration options:

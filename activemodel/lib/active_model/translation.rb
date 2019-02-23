@@ -42,7 +42,7 @@ module ActiveModel
     #
     # Specify +options+ with additional translating options.
     def human_attribute_name(attribute, options = {})
-      options   = { count: 1 }.merge!(options)
+      options   = { count: 1, raise: true }.merge!(options)
       parts     = attribute.to_s.split(".")
       attribute = parts.pop
       namespace = parts.join("/") unless parts.empty?
@@ -61,7 +61,7 @@ module ActiveModel
 
       defaults << :"attributes.#{attribute}"
       defaults << options.delete(:default) if options[:default]
-      defaults << attribute.humanize
+      defaults << attribute.humanize unless ActiveModel::Naming.enforce_i18n_naming
 
       options[:default] = defaults
       I18n.translate(defaults.shift, options)

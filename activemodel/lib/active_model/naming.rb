@@ -200,9 +200,9 @@ module ActiveModel
       end
 
       defaults << options[:default] if options[:default]
-      defaults << @human
+      defaults << @human unless ActiveModel::Naming.enforce_i18n_naming
 
-      options = { scope: [@klass.i18n_scope, :models], count: 1, default: defaults }.merge!(options.except(:default))
+      options = { scope: [@klass.i18n_scope, :models], count: 1, default: defaults, raise: true }.merge!(options.except(:default))
       I18n.translate(defaults.shift, options)
     end
 
@@ -233,6 +233,8 @@ module ActiveModel
   # is required to pass the \Active \Model Lint test. So either extending the
   # provided method below, or rolling your own is required.
   module Naming
+    mattr_accessor :enforce_i18n_naming, default: false # :nodoc:
+
     def self.extended(base) #:nodoc:
       base.silence_redefinition_of_method :model_name
       base.delegate :model_name, to: :class

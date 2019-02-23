@@ -51,4 +51,17 @@ class RailtieTest < ActiveModel::TestCase
 
     assert_equal true, ActiveModel::Errors.i18n_full_message
   end
+
+  test "enforce i18n naming defaults to false" do
+    @app.initialize!
+
+    assert_equal false, ActiveModel::Naming.enforce_i18n_naming
+  end
+
+  test "enforce i18n naming can be enabled" do
+    @app.config.active_model.enforce_i18n_naming = true
+    @app.initialize!
+
+    assert_equal true, ActiveModel::Naming.enforce_i18n_naming
+  end
 end

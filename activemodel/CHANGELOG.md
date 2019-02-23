@@ -1,3 +1,9 @@
+*   Add `config.active_model.enforce_i18n_naming` to give the option of
+    *not* using humanized model and attribute names as the default translation
+    for `model_name.human` and `human_attribute_name`. `false` by default.
+
+    *Iain Beeston*
+
 *   Fix date value when casting a multiparameter date hash to not convert
     from Gregorian date to Julian date.
 
