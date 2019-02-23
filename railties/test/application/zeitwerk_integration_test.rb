@@ -54,6 +54,11 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
       end
     RUBY
 
+    app_file "app/controllers/restful_controller.rb", <<-RUBY
+      class RESTfulController < ApplicationController
+      end
+    RUBY
+
     boot
 
     basename  = "restful_controller"
@@ -63,6 +68,8 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
     Rails.autoloaders.each do |autoloader|
       assert_equal camelized, autoloader.inflector.camelize(basename, abspath)
     end
+
+    assert RESTfulController
   end
 
   test "constantize returns the value stored in the constant" do
