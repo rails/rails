@@ -278,6 +278,18 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 3, Account.joins(:firm).distinct.order(:firm_id).limit(3).offset(2).count
   end
 
+  def test_distinct_joins_count_with_group_by
+    expected = { nil => 4, 1 => 1, 2 => 1, 4 => 1, 5 => 1, 7 => 1 }
+    assert_equal expected, Post.left_joins(:comments).group(:post_id).distinct.count(:author_id)
+    assert_equal expected, Post.left_joins(:comments).group(:post_id).distinct.select(:author_id).count
+    assert_equal expected, Post.left_joins(:comments).group(:post_id).count("DISTINCT posts.author_id")
+    assert_equal expected, Post.left_joins(:comments).group(:post_id).select("DISTINCT posts.author_id").count
+
+    expected = { nil => 6, 1 => 1, 2 => 1, 4 => 1, 5 => 1, 7 => 1 }
+    assert_equal expected, Post.left_joins(:comments).group(:post_id).distinct.count(:all)
+    assert_equal expected, Post.left_joins(:comments).group(:post_id).distinct.select(:author_id).count(:all)
+  end
+
   def test_distinct_count_with_group_by_and_order_and_limit
     assert_equal({ 6 => 2 }, Account.group(:firm_id).distinct.order("1 DESC").limit(1).count)
   end
@@ -511,8 +523,10 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_should_count_field_of_root_table_with_conflicting_group_by_column
-    assert_equal({ 1 => 1 }, Firm.joins(:accounts).group(:firm_id).count)
-    assert_equal({ 1 => 1 }, Firm.joins(:accounts).group("accounts.firm_id").count)
+    expected = { 1 => 2, 2 => 1, 4 => 5, 5 => 2, 7 => 1 }
+    assert_equal expected, Post.joins(:comments).group(:post_id).count
+    assert_equal expected, Post.joins(:comments).group("comments.post_id").count
+    assert_equal expected, Post.joins(:comments).group(:post_id).select("DISTINCT posts.author_id").count(:all)
   end
 
   def test_count_with_no_parameters_isnt_deprecated
