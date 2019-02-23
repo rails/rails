@@ -207,14 +207,9 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_select_with_subquery_in_from_uses_original_table_name
-    if current_adapter?(:SQLite3Adapter) && ENV["CI"]
-      skip <<~MSG
-        https://travis-ci.org/rails/rails/jobs/496726410#L1198-L1208
-        https://buildkite.com/rails/rails/builds/58981#2423c707-7c56-4639-a76e-8db4fd1e5cf3/102-111
-      MSG
-    end
     relation = Comment.joins(:post).select(:id).order(:id)
-    subquery = Comment.from(Comment.all, Comment.quoted_table_name).joins(:post).select(:id).order(:id)
+    # Avoid subquery flattening by adding distinct to work with SQLite < 3.20.0.
+    subquery = Comment.from(Comment.all.distinct, Comment.quoted_table_name).joins(:post).select(:id).order(:id)
     assert_equal relation.map(&:id), subquery.map(&:id)
   end
 
