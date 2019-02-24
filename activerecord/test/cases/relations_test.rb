@@ -1941,6 +1941,19 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal p2.first.comments, comments
   end
 
+  def test_unscope_with_merge
+    p0 = Post.where(author_id: 0)
+    p1 = Post.where(author_id: 1, comments_count: 1)
+
+    assert_equal [posts(:authorless)], p0
+    assert_equal [posts(:thinking)], p1
+
+    comments = Comment.merge(p0).unscope(where: :author_id).where(post: p1)
+
+    assert_not_equal p0.first.comments, comments
+    assert_equal p1.first.comments, comments
+  end
+
   def test_unscope_with_unknown_column
     comment = comments(:greetings)
     comment.update!(comments: 1)
