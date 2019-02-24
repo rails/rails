@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "pathname"
+require "securerandom"
 require "tmpdir"
 require "active_support/message_encryptor"
 
