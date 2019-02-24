@@ -273,7 +273,7 @@ module ActionView
       # (proc or otherwise).
       def compute_asset_host(source = "", options = {})
         request = self.request if respond_to?(:request)
-        host = options[:host]
+        host = options.fetch(:host, nil) || options.fetch("host", nil)
         host ||= config.asset_host if defined? config.asset_host
 
         if host

@@ -153,7 +153,7 @@ class AssetTagHelperTest < ActionView::TestCase
     %(stylesheet_link_tag("subdir/subdir")) => %(<link href="/stylesheets/subdir/subdir.css" media="screen" rel="stylesheet" />),
     %(stylesheet_link_tag("bank", :media => "all")) => %(<link href="/stylesheets/bank.css" media="all" rel="stylesheet" />),
     %(stylesheet_link_tag("bank", :host => "assets.example.com")) => %(<link href="http://assets.example.com/stylesheets/bank.css" media="screen" rel="stylesheet" />),
-
+    %(stylesheet_link_tag("bank", host: "assets.example.com")) => %(<link href="http://assets.example.com/stylesheets/bank.css" media="screen" rel="stylesheet" />),
     %(stylesheet_link_tag("http://www.example.com/styles/style")) => %(<link href="http://www.example.com/styles/style" media="screen" rel="stylesheet" />),
     %(stylesheet_link_tag("http://www.example.com/styles/style.css")) => %(<link href="http://www.example.com/styles/style.css" media="screen" rel="stylesheet" />),
     %(stylesheet_link_tag("//www.example.com/styles/style.css")) => %(<link href="//www.example.com/styles/style.css" media="screen" rel="stylesheet" />),
@@ -489,6 +489,11 @@ class AssetTagHelperTest < ActionView::TestCase
     @controller.config.asset_host = "assets.example.com"
     @controller.config.default_asset_host_protocol = :relative
     assert_dom_equal %(<link href="//assets.example.com/stylesheets/wellington.css" media="screen" rel="stylesheet" />), stylesheet_link_tag("wellington")
+  end
+
+  def test_stylesheet_link_tag_with_host_as_option
+    @controller.config.asset_host = "assets.example.com"
+    assert_dom_equal %(<link href="//external-cdn.example.com/stylesheets/wellington.css" media="screen" rel="stylesheet" />), stylesheet_link_tag("wellington", host: "external-cdn.example.com", protocol: :relative)
   end
 
   def test_javascript_include_tag_without_request
