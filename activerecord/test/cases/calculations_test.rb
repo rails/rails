@@ -19,6 +19,7 @@ require "models/developer"
 require "models/post"
 require "models/comment"
 require "models/rating"
+require "support/stubs/strong_parameters"
 
 class CalculationsTest < ActiveRecord::TestCase
   fixtures :companies, :accounts, :topics, :speedometers, :minivans, :books, :posts, :comments
@@ -897,26 +898,7 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_having_with_strong_parameters
-    protected_params = Class.new do
-      attr_reader :permitted
-      alias :permitted? :permitted
-
-      def initialize(parameters)
-        @parameters = parameters
-        @permitted = false
-      end
-
-      def to_h
-        @parameters
-      end
-
-      def permit!
-        @permitted = true
-        self
-      end
-    end
-
-    params = protected_params.new(credit_limit: "50")
+    params = ProtectedParams.new(credit_limit: "50")
 
     assert_raises(ActiveModel::ForbiddenAttributesError) do
       Account.group(:id).having(params)
