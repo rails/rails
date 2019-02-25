@@ -154,7 +154,7 @@ module ActionView
       @compile_mutex     = Mutex.new
     end
 
-    def formats=
+    def formats=(_)
     end
     deprecate :formats=
 
