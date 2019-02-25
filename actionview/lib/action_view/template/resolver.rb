@@ -196,7 +196,6 @@ module ActionView
       cached = nil
       templates.each do |t|
         t.locals         = locals
-        t.variants       = details[:variants] || []      if t.variants.empty?
         t.virtual_path ||= (cached ||= build_path(*path_info))
       end
     end
