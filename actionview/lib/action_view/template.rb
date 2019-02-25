@@ -122,15 +122,20 @@ module ActionView
 
     extend Template::Handlers
 
-    attr_accessor :locals, :virtual_path
+    attr_accessor :virtual_path
 
     attr_reader :source, :identifier, :handler, :original_encoding, :updated_at
-    attr_reader :variable, :format, :variant
+    attr_reader :variable, :format, :variant, :locals
 
-    def initialize(source, identifier, handler, format: nil, variant: nil, **details)
+    def initialize(source, identifier, handler, format: nil, variant: nil, locals: nil, **details)
       unless format
         ActiveSupport::Deprecation.warn "ActionView::Template#initialize requires a format parameter"
         format = :html
+      end
+
+      unless locals
+        ActiveSupport::Deprecation.warn "ActionView::Template#initialize requires a locals parameter"
+        locals = []
       end
 
       @source            = source
@@ -138,7 +143,7 @@ module ActionView
       @handler           = handler
       @compiled          = false
       @original_encoding = nil
-      @locals            = details[:locals] || []
+      @locals            = locals
       @virtual_path      = details[:virtual_path]
 
       @variable = if @virtual_path
@@ -153,6 +158,7 @@ module ActionView
       @compile_mutex     = Mutex.new
     end
 
+    deprecate def locals=(_); end
     deprecate def formats=(_); end
     deprecate def formats; Array(format); end
     deprecate def variants=(_); end
