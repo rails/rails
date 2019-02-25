@@ -207,7 +207,7 @@ module ActionView
     end
 
     def inspect
-      "#<#{self.class.name} #{short_identifier}>"
+      "#<#{self.class.name} #{short_identifier} locals=#{@locals.inspect}>"
     end
 
     # This method is responsible for properly setting the encoding of the
