@@ -1,3 +1,7 @@
+*   Fix prepared statements caching to be enabled even when query caching is enabled.
+
+    *Ryuta Kamizono*
+
 *   Ensure `update_all` series cares about optimistic locking.
 
     *Ryuta Kamizono*
