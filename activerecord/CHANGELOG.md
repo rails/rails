@@ -1,3 +1,7 @@
+*   Ensure `update_all` series cares about optimistic locking.
+
+    *Ryuta Kamizono*
+
 *   Don't allow `where` with non numeric string matches to 0 values.
 
     *Ryuta Kamizono*
