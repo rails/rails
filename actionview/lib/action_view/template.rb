@@ -202,8 +202,12 @@ module ActionView
       end
     end
 
+    def short_identifier
+      @short_identifier ||= defined?(Rails.root) ? identifier.sub("#{Rails.root}/", "") : identifier
+    end
+
     def inspect
-      @inspect ||= defined?(Rails.root) ? identifier.sub("#{Rails.root}/", "") : identifier
+      "#<#{self.class.name} #{short_identifier}>"
     end
 
     # This method is responsible for properly setting the encoding of the
@@ -377,7 +381,7 @@ module ActionView
       end
 
       def identifier_method_name
-        inspect.tr("^a-z_", "_")
+        short_identifier.tr("^a-z_", "_")
       end
 
       def instrument(action, &block) # :doc:
