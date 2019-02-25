@@ -215,4 +215,14 @@ class TestERBTemplate < ActiveSupport::TestCase
   ensure
     silence_warnings { Encoding.default_external = old }
   end
+
+  def test_short_identifier
+    @template = new_template("hello")
+    assert_equal "hello template", @template.short_identifier
+  end
+
+  def test_template_inspect
+    @template = new_template("hello")
+    assert_equal "#<ActionView::Template hello template locals=[]>", @template.inspect
+  end
 end
