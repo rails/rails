@@ -44,7 +44,7 @@ module Rails
           paths.add "app/channels",        eager_load: true, glob: "**/*_channel.rb"
           paths.add "app/helpers",         eager_load: true
           paths.add "app/models",          eager_load: true
-          paths.add "app/mailers",         eager_load: true
+          paths.add "app/mailers"
           paths.add "app/views"
 
           paths.add "lib",                 load_path: true
