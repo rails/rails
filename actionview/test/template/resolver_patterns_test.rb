@@ -19,7 +19,7 @@ class ResolverPatternsTest < ActiveSupport::TestCase
     assert_equal 1, templates.size, "expected one template"
     assert_equal "Hello custom patterns!", templates.first.source
     assert_equal "custom_pattern/path",    templates.first.virtual_path
-    assert_equal [:html],                  templates.first.formats
+    assert_equal :html,                    templates.first.format
   end
 
   def test_should_return_all_templates_when_ambiguous_pattern

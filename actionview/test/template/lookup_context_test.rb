@@ -125,7 +125,7 @@ class LookupContextTest < ActiveSupport::TestCase
     assert_called(ActionView::Template::Handlers::Builder, :default_format, returns: nil) do
       @lookup_context.formats = [:text]
       template = @lookup_context.find("hello", %w(test))
-      assert_equal [:text], template.formats
+      assert_equal :text, template.format
     end
   end
 

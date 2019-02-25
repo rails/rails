@@ -144,7 +144,7 @@ class ViewLoadPathsTest < ActionController::TestCase
             template.identifier,
             template.handler,
               virtual_path: template.virtual_path,
-              format: template.formats
+              format: template.format
           )
         end
       end
