@@ -1,3 +1,7 @@
+*   Fix prepared statements caching to be enabled even when query caching is enabled.
+
+    *Ryuta Kamizono*
+
 *   Don't allow `where` with invalid value matches to nil values.
 
     Fixes #33624.

@@ -97,9 +97,8 @@ module ActiveRecord
           arel = arel_from_relation(arel)
           sql, binds = to_sql_and_binds(arel, binds)
 
-          if binds.length > bind_params_length
-            sql, binds = unprepared_statement { to_sql_and_binds(arel) }
-            preparable = false
+          if preparable.nil?
+            preparable = prepared_statements ? visitor.preparable : false
           end
 
           cache_sql(sql, name, binds) { super(sql, name, binds, preparable: preparable) }

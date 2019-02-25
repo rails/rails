@@ -20,9 +20,22 @@ module ActiveRecord
             raise "Passing bind parameters with an arel AST is forbidden. " \
               "The values must be stored on the AST directly"
           end
-          sql, binds = visitor.accept(arel_or_sql_string.ast, collector).value
-          [sql.freeze, binds || []]
+
+          if prepared_statements
+            sql, binds = visitor.accept(arel_or_sql_string.ast, collector).value
+
+            if binds.length > bind_params_length
+              unprepared_statement do
+                sql, binds = to_sql_and_binds(arel_or_sql_string)
+                visitor.preparable = false
+              end
+            end
+          else
+            sql = visitor.accept(arel_or_sql_string.ast, collector).value
+          end
+          [sql.freeze, binds]
         else
+          visitor.preparable = false if prepared_statements
           [arel_or_sql_string.dup.freeze, binds]
         end
       end
@@ -47,13 +60,8 @@ module ActiveRecord
         arel = arel_from_relation(arel)
         sql, binds = to_sql_and_binds(arel, binds)
 
-        if !prepared_statements || (arel.is_a?(String) && preparable.nil?)
-          preparable = false
-        elsif binds.length > bind_params_length
-          sql, binds = unprepared_statement { to_sql_and_binds(arel) }
-          preparable = false
-        else
-          preparable = visitor.preparable
+        if preparable.nil?
+          preparable = prepared_statements ? visitor.preparable : false
         end
 
         if prepared_statements && preparable
