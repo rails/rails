@@ -149,7 +149,7 @@ module ActionView
       end
 
       @updated_at        = details[:updated_at] || Time.now
-      @formats           = Array(format).map { |f| f.respond_to?(:ref) ? f.ref : f  }
+      @formats           = Array(format)
       @variants          = [details[:variant]]
       @compile_mutex     = Mutex.new
     end

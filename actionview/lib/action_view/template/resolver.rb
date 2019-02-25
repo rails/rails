@@ -300,7 +300,7 @@ module ActionView
         handler = Template.handler_for_extension(extension)
         format, variant = pieces.last.split(EXTENSIONS[:variants], 2) if pieces.last
         format = if format
-          Template::Types[format]
+          Template::Types[format]&.ref
         else
           if handler.respond_to?(:default_format) # default_format can return nil
             handler.default_format
