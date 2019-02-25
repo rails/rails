@@ -290,10 +290,13 @@ module ApplicationTests
 
       app "development"
 
-      assert_nil PostsMailer.instance_variable_get(:@action_methods)
+      error = assert_raise(NameError) do
+        PostsMailer
+      end
+      assert_match(/uninitialized constant ApplicationTests::ConfigurationTest::PostsMailer/, error.message)
     end
 
-    test "eager loads mailer actions in production" do
+    test "does not eager loads mailer actions in production" do
       app_file "app/mailers/posts_mailer.rb", <<-RUBY
         class PostsMailer < ActionMailer::Base
           def noop_email;end
@@ -307,7 +310,10 @@ module ApplicationTests
 
       app "production"
 
-      assert_equal %w(noop_email).to_set, PostsMailer.instance_variable_get(:@action_methods)
+      error = assert_raise(NameError) do
+        PostsMailer
+      end
+      assert_match(/uninitialized constant ApplicationTests::ConfigurationTest::PostsMailer/, error.message)
     end
 
     test "does not eager load attribute methods in development" do
