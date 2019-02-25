@@ -161,7 +161,7 @@ module ActiveRecord
         return super if block_given? ||
                         primary_key.nil? ||
                         scope_attributes? ||
-                        columns_hash.include?(inheritance_column)
+                        columns_hash.key?(inheritance_column) && !base_class?
 
         id = ids.first
 
