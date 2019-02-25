@@ -39,7 +39,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     def call(env)
       env["action_dispatch.show_detailed_exceptions"] = @detailed
       req = ActionDispatch::Request.new(env)
-      template = ActionView::Template.new(File.read(__FILE__), __FILE__, ActionView::Template::Handlers::Raw.new, {})
+      template = ActionView::Template.new(File.read(__FILE__), __FILE__, ActionView::Template::Handlers::Raw.new, format: :html)
 
       case req.path
       when "/pass"

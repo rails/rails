@@ -38,7 +38,8 @@ class TestERBTemplate < ActiveSupport::TestCase
         "<%= @virtual_path %>",
         "partial",
         ERBHandler,
-        virtual_path: "partial"
+        virtual_path: "partial",
+        format: :html
       )
     end
 
@@ -55,7 +56,8 @@ class TestERBTemplate < ActiveSupport::TestCase
     end
   end
 
-  def new_template(body = "<%= hello %>", details = { format: :html })
+  def new_template(body = "<%= hello %>", details = {})
+    details = { format: :html }.merge details
     ActionView::Template.new(body.dup, "hello template", details.fetch(:handler) { ERBHandler }, { virtual_path: "hello" }.merge!(details))
   end
 

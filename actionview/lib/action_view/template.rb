@@ -122,14 +122,17 @@ module ActionView
 
     extend Template::Handlers
 
-    attr_accessor :locals, :formats, :variants, :virtual_path
+    attr_accessor :locals, :variants, :virtual_path
 
     attr_reader :source, :identifier, :handler, :original_encoding, :updated_at
 
-    attr_reader :variable
+    attr_reader :variable, :formats
 
-    def initialize(source, identifier, handler, details)
-      format = details[:format] || (handler.default_format if handler.respond_to?(:default_format))
+    def initialize(source, identifier, handler, format: nil, **details)
+      unless format
+        ActiveSupport::Deprecation.warn "ActionView::Template#initialize requires a format parameter"
+        format = :html
+      end
 
       @source            = source
       @identifier        = identifier
@@ -146,10 +149,14 @@ module ActionView
       end
 
       @updated_at        = details[:updated_at] || Time.now
-      @formats           = Array(format).map { |f| f.respond_to?(:ref) ? f.ref : f  }
+      @formats           = Array(format)
       @variants          = [details[:variant]]
       @compile_mutex     = Mutex.new
     end
+
+    def formats=(_)
+    end
+    deprecate :formats=
 
     # Returns whether the underlying handler supports streaming. If so,
     # a streaming buffer *may* be passed when it starts rendering.
