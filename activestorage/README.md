@@ -104,6 +104,31 @@ Variation of image attachment:
 <%= image_tag user.avatar.variant(resize_to_limit: [100, 100]) %>
 ```
 
+## Validations
+
+Active Storage supports attachment validations on the following properties:
+
+* Size
+* Content Type
+
+```ruby
+class User < ActiveRecord::Base
+  has_one_attached :avatar
+
+  # Validating Size
+  # Accepts options for: `:in`, `:minimum`, `:maximum`
+  validates :avatar, attachment_size: { in: 0..1.megabyte }
+  validates :avatar, attachment_size: 0..1.megabyte
+
+  # Validating Content Type
+  # Accepts options for: `:in`, `:not`
+  validates :avatar, attachment_content_type: { in: %w[image/jpeg image/png] }
+  validates :avatar, attachment_content_type: "image/jpeg"
+end
+```
+
+See the [rails guides](https://edgeguides.rubyonrails.org/active_storage_overview.html#validations) for more information.
+
 ## Direct uploads
 
 Active Storage, with its included JavaScript library, supports uploading directly from the client to the cloud.

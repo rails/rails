@@ -40,6 +40,7 @@ module ActiveStorage
   autoload :Service
   autoload :Previewer
   autoload :Analyzer
+  autoload :Validations
 
   mattr_accessor :logger
   mattr_accessor :verifier
@@ -62,4 +63,8 @@ module ActiveStorage
     autoload :ImageProcessingTransformer
     autoload :MiniMagickTransformer
   end
+end
+
+ActiveSupport.on_load(:i18n) do
+  I18n.load_path << File.expand_path("active_storage/locale/en.yml", __dir__)
 end

@@ -9,6 +9,7 @@ After reading this guide, you will know:
 
 * How to attach one or many files to a record.
 * How to delete an attached file.
+* How to validate an attached file.
 * How to link to an attached file.
 * How to use variants to transform images.
 * How to generate an image representation of a non-image file, such as a PDF or a video.
@@ -366,6 +367,56 @@ user.avatar.purge
 user.avatar.purge_later
 ```
 
+Validating Files
+----------------
+
+Active Storage supports attachment validations on the following properties:
+
+* Size
+* Content Type
+
+### Size
+
+Validates the size (in bytes) of the attached `Blob` object:
+
+    ```ruby
+    validates :avatar, attachment_size: { in: 0..1.megabyte }
+    validates :avatar, attachment_size: { minimum: 17.kilobytes }
+    validates :avatar, attachment_size: { maximum: 38.megabytes }
+    ```
+
+Also accepts a `Range` as a shortcut option for `:in`:
+
+    ```ruby
+    validates :avatar, attachment_size: 0..1.megabyte
+    ```
+
+### Content Type
+
+Validates the content type of the attached `Blob` object:
+
+    ```ruby
+    validates :avatar, attachment_content_type: { in: %w[image/jpeg image/png] }
+    validates :avatar, attachment_content_type: { not: %w[application/pdf] }
+    ```
+
+Also accepts a `Array` or `String` as a shortcut option for `:in`:
+
+    ```ruby
+    validates :avatar, attachment_content_type: %w[image/jpeg image/png]
+    validates :avatar, attachment_content_type: "image/jpeg"
+    ```
+
+### Validation Helper
+
+Active Storage also provides a more readable validation helper named
+`validates_attachment()` which provides the same functionality as `validates()`
+but does not require the `attachment_` prefix on keys:
+
+    ```ruby
+    validates_attachment :avatar, size: { in: 0..1.megabyte }, content_type: "image/jpeg"
+    ```
+
 Linking to Files
 ----------------
 
@@ -467,7 +518,6 @@ video and muPDF for PDFs, and on macOS also XQuartz and Poppler.
 These libraries are not provided by Rails. You must install them yourself to
 use the built-in previewers. Before you install and use third-party software,
 make sure you understand the licensing implications of doing so.
-
 
 Direct Uploads
 --------------

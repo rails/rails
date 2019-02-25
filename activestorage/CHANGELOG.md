@@ -1,5 +1,9 @@
 ## Rails 6.0.0.beta1 (January 18, 2019) ##
 
+*   Add Active Storage Validations for Size and Content Type
+
+    *Abhishek Chandrasekhar*
+
 *   [Rename npm package](https://github.com/rails/rails/pull/34905) from
     [`activestorage`](https://www.npmjs.com/package/activestorage) to
     [`@rails/activestorage`](https://www.npmjs.com/package/@rails/activestorage).
