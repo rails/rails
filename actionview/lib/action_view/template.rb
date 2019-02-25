@@ -122,10 +122,10 @@ module ActionView
 
     extend Template::Handlers
 
-    attr_accessor :locals, :variants, :virtual_path
+    attr_accessor :locals, :virtual_path
 
     attr_reader :source, :identifier, :handler, :original_encoding, :updated_at
-    attr_reader :variable, :format
+    attr_reader :variable, :format, :variant
 
     def initialize(source, identifier, handler, format: nil, variant: nil, **details)
       unless format
@@ -149,15 +149,14 @@ module ActionView
 
       @updated_at        = details[:updated_at] || Time.now
       @format            = format
-      @variants          = [variant]
+      @variant           = variant
       @compile_mutex     = Mutex.new
     end
 
-    def formats=(_)
-    end
-    deprecate :formats=
-
+    deprecate def formats=(_); end
     deprecate def formats; Array(format); end
+    deprecate def variants=(_); end
+    deprecate def variants; [variant]; end
 
     # Returns whether the underlying handler supports streaming. If so,
     # a streaming buffer *may* be passed when it starts rendering.
@@ -258,11 +257,11 @@ module ActionView
     # to ensure that references to the template object can be marshalled as well. This means forgoing
     # the marshalling of the compiler mutex and instantiating that again on unmarshalling.
     def marshal_dump # :nodoc:
-      [ @source, @identifier, @handler, @compiled, @original_encoding, @locals, @virtual_path, @updated_at, @format, @variants ]
+      [ @source, @identifier, @handler, @compiled, @original_encoding, @locals, @virtual_path, @updated_at, @format, @variant ]
     end
 
     def marshal_load(array) # :nodoc:
-      @source, @identifier, @handler, @compiled, @original_encoding, @locals, @virtual_path, @updated_at, @format, @variants = *array
+      @source, @identifier, @handler, @compiled, @original_encoding, @locals, @virtual_path, @updated_at, @format, @variant = *array
       @compile_mutex = Mutex.new
     end
 
