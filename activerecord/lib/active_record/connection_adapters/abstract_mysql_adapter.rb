@@ -431,30 +431,6 @@ module ActiveRecord
         table_options
       end
 
-      # Maps logical Rails types to MySQL-specific data types.
-      def type_to_sql(type, limit: nil, precision: nil, scale: nil, unsigned: nil, **) # :nodoc:
-        sql = \
-          case type.to_s
-          when "integer"
-            integer_to_sql(limit)
-          when "text"
-            text_to_sql(limit)
-          when "blob"
-            binary_to_sql(limit)
-          when "binary"
-            if (0..0xfff) === limit
-              "varbinary(#{limit})"
-            else
-              binary_to_sql(limit)
-            end
-          else
-            super
-          end
-
-        sql = "#{sql} unsigned" if unsigned && type != :primary_key
-        sql
-      end
-
       # SHOW VARIABLES LIKE 'name'
       def show_variable(name)
         query_value("SELECT @@#{name}", "SCHEMA")
@@ -816,37 +792,6 @@ module ActiveRecord
           end
 
           MismatchedForeignKey.new(options)
-        end
-
-        def integer_to_sql(limit) # :nodoc:
-          case limit
-          when 1; "tinyint"
-          when 2; "smallint"
-          when 3; "mediumint"
-          when nil, 4; "int"
-          when 5..8; "bigint"
-          else raise(ActiveRecordError, "No integer type has byte size #{limit}. Use a decimal with scale 0 instead.")
-          end
-        end
-
-        def text_to_sql(limit) # :nodoc:
-          case limit
-          when 0..0xff;               "tinytext"
-          when nil, 0x100..0xffff;    "text"
-          when 0x10000..0xffffff;     "mediumtext"
-          when 0x1000000..0xffffffff; "longtext"
-          else raise(ActiveRecordError, "No text type has byte length #{limit}")
-          end
-        end
-
-        def binary_to_sql(limit) # :nodoc:
-          case limit
-          when 0..0xff;               "tinyblob"
-          when nil, 0x100..0xffff;    "blob"
-          when 0x10000..0xffffff;     "mediumblob"
-          when 0x1000000..0xffffffff; "longblob"
-          else raise(ActiveRecordError, "No binary type has byte length #{limit}")
-          end
         end
 
         def version_string

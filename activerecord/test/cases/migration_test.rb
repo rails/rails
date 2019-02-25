@@ -600,6 +600,18 @@ class MigrationTest < ActiveRecord::TestCase
     end
   end
 
+  def test_decimal_scale_without_precision_should_raise
+    e = assert_raise(ArgumentError) do
+      Person.connection.create_table :test_decimal_scales, force: true do |t|
+        t.decimal :scaleonly, scale: 10
+      end
+    end
+
+    assert_equal "Error adding decimal column: precision cannot be empty if scale is specified", e.message
+  ensure
+    Person.connection.drop_table :test_decimal_scales, if_exists: true
+  end
+
   if current_adapter?(:Mysql2Adapter, :PostgreSQLAdapter)
     def test_out_of_range_integer_limit_should_raise
       e = assert_raise(ActiveRecord::ActiveRecordError, "integer limit didn't raise") do
@@ -608,13 +620,11 @@ class MigrationTest < ActiveRecord::TestCase
         end
       end
 
-      assert_match(/No integer type has byte size 10/, e.message)
+      assert_includes e.message, "No integer type has byte size 10"
     ensure
       Person.connection.drop_table :test_integer_limits, if_exists: true
     end
-  end
 
-  if current_adapter?(:Mysql2Adapter)
     def test_out_of_range_text_limit_should_raise
       e = assert_raise(ActiveRecord::ActiveRecordError, "text limit didn't raise") do
         Person.connection.create_table :test_text_limits, force: true do |t|
@@ -622,11 +632,25 @@ class MigrationTest < ActiveRecord::TestCase
         end
       end
 
-      assert_match(/No text type has byte length #{0xfffffffff}/, e.message)
+      assert_includes e.message, "No text type has byte size #{0xfffffffff}"
     ensure
       Person.connection.drop_table :test_text_limits, if_exists: true
     end
 
+    def test_out_of_range_binary_limit_should_raise
+      e = assert_raise(ActiveRecord::ActiveRecordError) do
+        Person.connection.create_table :test_text_limits, force: true do |t|
+          t.binary :bigbinary, limit: 0xfffffffff
+        end
+      end
+
+      assert_includes e.message, "No binary type has byte size #{0xfffffffff}"
+    ensure
+      Person.connection.drop_table :test_text_limits, if_exists: true
+    end
+  end
+
+  if current_adapter?(:Mysql2Adapter)
     def test_invalid_text_size_should_raise
       e = assert_raise(ArgumentError) do
         Person.connection.create_table :test_text_sizes, force: true do |t|
@@ -634,7 +658,7 @@ class MigrationTest < ActiveRecord::TestCase
         end
       end
 
-      assert_match(/#{0xfffffffff} is invalid :size value\. Only :tiny, :medium, and :long are allowed\./, e.message)
+      assert_equal "#{0xfffffffff} is invalid :size value. Only :tiny, :medium, and :long are allowed.", e.message
     ensure
       Person.connection.drop_table :test_text_sizes, if_exists: true
     end

@@ -97,6 +97,30 @@ module ActiveRecord
           MySQL::SchemaDumper.create(self, options)
         end
 
+        # Maps logical Rails types to MySQL-specific data types.
+        def type_to_sql(type, limit: nil, precision: nil, scale: nil, size: limit_to_size(limit, type), unsigned: nil, **)
+          sql =
+            case type.to_s
+            when "integer"
+              integer_to_sql(limit)
+            when "text"
+              type_with_size_to_sql("text", size)
+            when "blob"
+              type_with_size_to_sql("blob", size)
+            when "binary"
+              if (0..0xfff) === limit
+                "varbinary(#{limit})"
+              else
+                type_with_size_to_sql("blob", size)
+              end
+            else
+              super
+            end
+
+          sql = "#{sql} unsigned" if unsigned && type != :primary_key
+          sql
+        end
+
         private
           CHARSETS_OF_4BYTES_MAXLEN = ["utf8mb4", "utf16", "utf16le", "utf32"]
 
@@ -196,6 +220,40 @@ module ActiveRecord
             schema, name = string.to_s.scan(/[^`.\s]+|`[^`]*`/)
             schema, name = nil, schema unless name
             [schema, name]
+          end
+
+          def type_with_size_to_sql(type, size)
+            case size&.to_s
+            when nil, "tiny", "medium", "long"
+              "#{size}#{type}"
+            else
+              raise ArgumentError,
+                "#{size.inspect} is invalid :size value. Only :tiny, :medium, and :long are allowed."
+            end
+          end
+
+          def limit_to_size(limit, type)
+            case type.to_s
+            when "text", "blob", "binary"
+              case limit
+              when 0..0xff;               "tiny"
+              when nil, 0x100..0xffff;    nil
+              when 0x10000..0xffffff;     "medium"
+              when 0x1000000..0xffffffff; "long"
+              else raise ActiveRecordError, "No #{type} type has byte size #{limit}"
+              end
+            end
+          end
+
+          def integer_to_sql(limit)
+            case limit
+            when 1; "tinyint"
+            when 2; "smallint"
+            when 3; "mediumint"
+            when nil, 4; "int"
+            when 5..8; "bigint"
+            else raise ActiveRecordError, "No integer type has byte size #{limit}. Use a decimal with scale 0 instead."
+            end
           end
       end
     end
