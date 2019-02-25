@@ -3,7 +3,7 @@
 module ActiveRecord
   module ConnectionAdapters
     module DetermineIfPreparableVisitor
-      attr_reader :preparable
+      attr_accessor :preparable
 
       def accept(*)
         @preparable = true
