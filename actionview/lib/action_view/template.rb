@@ -122,11 +122,11 @@ module ActionView
 
     extend Template::Handlers
 
-    attr_accessor :locals, :formats, :variants, :virtual_path
+    attr_accessor :locals, :variants, :virtual_path
 
     attr_reader :source, :identifier, :handler, :original_encoding, :updated_at
 
-    attr_reader :variable
+    attr_reader :variable, :formats
 
     def initialize(source, identifier, handler, format: nil, **details)
       unless format
@@ -153,6 +153,10 @@ module ActionView
       @variants          = [details[:variant]]
       @compile_mutex     = Mutex.new
     end
+
+    def formats=
+    end
+    deprecate :formats=
 
     # Returns whether the underlying handler supports streaming. If so,
     # a streaming buffer *may* be passed when it starts rendering.
