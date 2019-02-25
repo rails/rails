@@ -196,7 +196,6 @@ module ActionView
       cached = nil
       templates.each do |t|
         t.locals         = locals
-        t.formats        = details[:formats]  || [:html] if t.formats.empty?
         t.variants       = details[:variants] || []      if t.variants.empty?
         t.virtual_path ||= (cached ||= build_path(*path_info))
       end
@@ -225,7 +224,7 @@ module ActionView
         template_paths = reject_files_external_to_app(template_paths) unless outside_app_allowed
 
         template_paths.map do |template|
-          handler, format, variant = extract_handler_and_format_and_variant(template)
+          handler, format, variant = extract_handler_and_format_and_variant(template, formats.first)
 
           FileTemplate.new(File.expand_path(template), handler,
             virtual_path: path.virtual,
@@ -292,7 +291,7 @@ module ActionView
       # Extract handler, formats and variant from path. If a format cannot be found neither
       # from the path, or the handler, we should return the array of formats given
       # to the resolver.
-      def extract_handler_and_format_and_variant(path)
+      def extract_handler_and_format_and_variant(path, query_format)
         pieces = File.basename(path).split(".")
         pieces.shift
 
@@ -300,9 +299,18 @@ module ActionView
 
         handler = Template.handler_for_extension(extension)
         format, variant = pieces.last.split(EXTENSIONS[:variants], 2) if pieces.last
-        format &&= Template::Types[format]
+        format = if format
+          Template::Types[format]
+        else
+          if handler.respond_to?(:default_format) # default_format can return nil
+            handler.default_format
+          else
+            query_format
+          end
+        end
 
-        [handler, format, variant]
+        # Template::Types[format] and handler.default_format can return nil
+        [handler, format || query_format, variant]
       end
   end
 

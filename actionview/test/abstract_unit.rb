@@ -60,7 +60,7 @@ module RenderERBUtils
       string.strip,
       "test template",
       ActionView::Template.handler_for_extension(:erb),
-      {})
+      format: :html)
 
     view = ActionView::Base.with_empty_template_cache
     template.render(view.empty, {}).strip

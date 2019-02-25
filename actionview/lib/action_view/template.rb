@@ -128,8 +128,11 @@ module ActionView
 
     attr_reader :variable
 
-    def initialize(source, identifier, handler, details)
-      format = details[:format] || (handler.default_format if handler.respond_to?(:default_format))
+    def initialize(source, identifier, handler, format: nil, **details)
+      unless format
+        ActiveSupport::Deprecation.warn "ActionView::Template#initialize requires a format parameter"
+        format = :html
+      end
 
       @source            = source
       @identifier        = identifier
