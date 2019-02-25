@@ -217,7 +217,7 @@ module ActionView
       end
 
       def digest_path_from_template(template) # :nodoc:
-        digest = Digestor.digest(name: template.virtual_path, format: template.formats.first, finder: lookup_context, dependencies: view_cache_dependencies)
+        digest = Digestor.digest(name: template.virtual_path, format: template.format, finder: lookup_context, dependencies: view_cache_dependencies)
 
         if digest.present?
           "#{template.virtual_path}:#{digest}"

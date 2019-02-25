@@ -22,11 +22,11 @@ module ActionView
     # to ensure that references to the template object can be marshalled as well. This means forgoing
     # the marshalling of the compiler mutex and instantiating that again on unmarshalling.
     def marshal_dump # :nodoc:
-      [ @identifier, @handler, @compiled, @original_encoding, @locals, @virtual_path, @updated_at, @formats, @variants ]
+      [ @identifier, @handler, @compiled, @original_encoding, @locals, @virtual_path, @updated_at, @format, @variants ]
     end
 
     def marshal_load(array) # :nodoc:
-      @identifier, @handler, @compiled, @original_encoding, @locals, @virtual_path, @updated_at, @formats, @variants = *array
+      @identifier, @handler, @compiled, @original_encoding, @locals, @virtual_path, @updated_at, @format, @variants = *array
       @compile_mutex = Mutex.new
     end
   end

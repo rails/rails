@@ -125,8 +125,7 @@ module ActionView
     attr_accessor :locals, :variants, :virtual_path
 
     attr_reader :source, :identifier, :handler, :original_encoding, :updated_at
-
-    attr_reader :variable, :formats
+    attr_reader :variable, :format
 
     def initialize(source, identifier, handler, format: nil, **details)
       unless format
@@ -149,7 +148,7 @@ module ActionView
       end
 
       @updated_at        = details[:updated_at] || Time.now
-      @formats           = Array(format)
+      @format            = format
       @variants          = [details[:variant]]
       @compile_mutex     = Mutex.new
     end
@@ -157,6 +156,8 @@ module ActionView
     def formats=(_)
     end
     deprecate :formats=
+
+    deprecate def formats; Array(format); end
 
     # Returns whether the underlying handler supports streaming. If so,
     # a streaming buffer *may* be passed when it starts rendering.
@@ -180,7 +181,7 @@ module ActionView
     end
 
     def type
-      @type ||= Types[@formats.first] if @formats.first
+      @type ||= Types[format]
     end
 
     # Receives a view object and return a template similar to self by using @virtual_path.
@@ -257,11 +258,11 @@ module ActionView
     # to ensure that references to the template object can be marshalled as well. This means forgoing
     # the marshalling of the compiler mutex and instantiating that again on unmarshalling.
     def marshal_dump # :nodoc:
-      [ @source, @identifier, @handler, @compiled, @original_encoding, @locals, @virtual_path, @updated_at, @formats, @variants ]
+      [ @source, @identifier, @handler, @compiled, @original_encoding, @locals, @virtual_path, @updated_at, @format, @variants ]
     end
 
     def marshal_load(array) # :nodoc:
-      @source, @identifier, @handler, @compiled, @original_encoding, @locals, @virtual_path, @updated_at, @formats, @variants = *array
+      @source, @identifier, @handler, @compiled, @original_encoding, @locals, @virtual_path, @updated_at, @format, @variants = *array
       @compile_mutex = Mutex.new
     end
 
