@@ -127,7 +127,7 @@ module ActionView
     attr_reader :source, :identifier, :handler, :original_encoding, :updated_at
     attr_reader :variable, :format
 
-    def initialize(source, identifier, handler, format: nil, **details)
+    def initialize(source, identifier, handler, format: nil, variant: nil, **details)
       unless format
         ActiveSupport::Deprecation.warn "ActionView::Template#initialize requires a format parameter"
         format = :html
@@ -149,7 +149,7 @@ module ActionView
 
       @updated_at        = details[:updated_at] || Time.now
       @format            = format
-      @variants          = [details[:variant]]
+      @variants          = [variant]
       @compile_mutex     = Mutex.new
     end
 
