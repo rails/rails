@@ -15,47 +15,49 @@ module ActionMailer
     end
 
     initializer "action_mailer.set_configs" do |app|
-      paths   = app.config.paths
-      options = app.config.action_mailer
+      ActiveSupport.on_load(:after_initialize) do
+        paths   = app.config.paths
+        options = app.config.action_mailer
 
-      if app.config.force_ssl
-        options.default_url_options ||= {}
-        options.default_url_options[:protocol] ||= "https"
-      end
-
-      options.assets_dir      ||= paths["public"].first
-      options.javascripts_dir ||= paths["public/javascripts"].first
-      options.stylesheets_dir ||= paths["public/stylesheets"].first
-      options.show_previews = Rails.env.development? if options.show_previews.nil?
-      options.cache_store ||= Rails.cache
-
-      if options.show_previews
-        options.preview_path ||= defined?(Rails.root) ? "#{Rails.root}/test/mailers/previews" : nil
-      end
-
-      # make sure readers methods get compiled
-      options.asset_host          ||= app.config.asset_host
-      options.relative_url_root   ||= app.config.relative_url_root
-
-      ActiveSupport.on_load(:action_mailer) do
-        include AbstractController::UrlFor
-        extend ::AbstractController::Railties::RoutesHelpers.with(app.routes, false)
-        include app.routes.mounted_helpers
-
-        register_interceptors(options.delete(:interceptors))
-        register_preview_interceptors(options.delete(:preview_interceptors))
-        register_observers(options.delete(:observers))
-
-        if delivery_job = options.delete(:delivery_job)
-          self.delivery_job = delivery_job.constantize
+        if app.config.force_ssl
+          options.default_url_options ||= {}
+          options.default_url_options[:protocol] ||= "https"
         end
 
-        options.each { |k, v| send("#{k}=", v) }
-      end
+        options.assets_dir      ||= paths["public"].first
+        options.javascripts_dir ||= paths["public/javascripts"].first
+        options.stylesheets_dir ||= paths["public/stylesheets"].first
+        options.show_previews = Rails.env.development? if options.show_previews.nil?
+        options.cache_store ||= Rails.cache
 
-      ActiveSupport.on_load(:action_dispatch_integration_test) do
-        include ActionMailer::TestHelper
-        include ActionMailer::TestCase::ClearTestDeliveries
+        if options.show_previews
+          options.preview_path ||= defined?(Rails.root) ? "#{Rails.root}/test/mailers/previews" : nil
+        end
+
+        # make sure readers methods get compiled
+        options.asset_host          ||= app.config.asset_host
+        options.relative_url_root   ||= app.config.relative_url_root
+
+        ActiveSupport.on_load(:action_mailer) do
+          include AbstractController::UrlFor
+          extend ::AbstractController::Railties::RoutesHelpers.with(app.routes, false)
+          include app.routes.mounted_helpers
+
+          register_interceptors(options.delete(:interceptors))
+          register_preview_interceptors(options.delete(:preview_interceptors))
+          register_observers(options.delete(:observers))
+
+          if delivery_job = options.delete(:delivery_job)
+            self.delivery_job = delivery_job.constantize
+          end
+
+          options.each { |k, v| send("#{k}=", v) }
+        end
+
+        ActiveSupport.on_load(:action_dispatch_integration_test) do
+          include ActionMailer::TestHelper
+          include ActionMailer::TestCase::ClearTestDeliveries
+        end
       end
     end
 
