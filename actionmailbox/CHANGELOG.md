@@ -1,3 +1,5 @@
+## Rails 6.0.0.beta2 (February 25, 2019) ##
+
 *   Allow skipping incineration of processed emails.
 
     This can be done by setting `config.action_mailbox.incinerate` to `false`.

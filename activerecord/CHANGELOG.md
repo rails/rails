@@ -1,3 +1,5 @@
+## Rails 6.0.0.beta2 (February 25, 2019) ##
+
 *   Fix prepared statements caching to be enabled even when query caching is enabled.
 
     *Ryuta Kamizono*
