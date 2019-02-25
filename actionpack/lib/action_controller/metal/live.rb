@@ -146,7 +146,7 @@ module ActionController
 
       def write(string)
         unless @response.committed?
-          @response.set_header "Cache-Control", "no-cache"
+          @response.headers["Cache-Control"] ||= "no-cache"
           @response.delete_header "Content-Length"
         end
 
