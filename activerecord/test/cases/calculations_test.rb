@@ -473,6 +473,24 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 6, Account.select("DISTINCT accounts.id").includes(:firm).count
   end
 
+  def test_should_count_manual_select_with_count_all
+    assert_equal 5, Account.select("DISTINCT accounts.firm_id").count(:all)
+  end
+
+  def test_should_count_with_manual_distinct_select_and_distinct
+    assert_equal 4, Account.select("DISTINCT accounts.firm_id").distinct(true).count
+  end
+
+  def test_should_count_manual_select_with_group_with_count_all
+    expected = { nil => 1, 1 => 1, 2 => 1, 6 => 2, 9 => 1 }
+    actual = Account.select("DISTINCT accounts.firm_id").group("accounts.firm_id").count(:all)
+    assert_equal expected, actual
+  end
+
+  def test_should_count_manual_with_count_all
+    assert_equal 6, Account.count(:all)
+  end
+
   def test_count_selected_arel_attribute
     assert_equal 5, Account.select(Account.arel_table[:firm_id]).count
     assert_equal 4, Account.distinct.select(Account.arel_table[:firm_id]).count
