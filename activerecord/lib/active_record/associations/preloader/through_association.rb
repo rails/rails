@@ -14,6 +14,7 @@ module ActiveRecord
 
           owners.each do |owner|
             through_records = Array(owner.association(through_reflection.name).target)
+
             if already_loaded
               if source_type = reflection.options[:source_type]
                 through_records = through_records.select do |record|
@@ -23,17 +24,20 @@ module ActiveRecord
             else
               owner.association(through_reflection.name).reset if through_scope
             end
+
             result = through_records.flat_map do |record|
               record.association(source_reflection.name).target
             end
+
             result.compact!
             result.sort_by! { |rhs| preload_index[rhs] } if scope.order_values.any?
             result.uniq! if scope.distinct_value
             associate_records_to_owner(owner, result)
           end
+
           unless scope.empty_scope?
             middle_records.each do |owner|
-              owner.association(source_reflection.name).reset
+              owner.association(source_reflection.name).reset if owner
             end
           end
         end

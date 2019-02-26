@@ -55,6 +55,15 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal preloaded, Marshal.load(Marshal.dump(preloaded))
   end
 
+  def test_preload_with_nested_association
+    posts = Post.preload(:author, :author_favorites).to_a
+
+    assert_no_queries do
+      posts.each(&:author)
+      posts.each(&:author_favorites)
+    end
+  end
+
   def test_preload_sti_rhs_class
     developers = Developer.includes(:firms).all.to_a
     assert_no_queries do
