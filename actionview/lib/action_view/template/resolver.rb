@@ -146,7 +146,7 @@ module ActionView
       locals = locals.map(&:to_s).sort!.freeze
 
       cached(key, [name, prefix, partial], details, locals) do
-        find_templates(name, prefix, partial, details, locals)
+        find_templates(name, prefix, partial, details, false, locals)
       end
     end
 
