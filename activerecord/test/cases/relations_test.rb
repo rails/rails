@@ -1490,10 +1490,10 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal [posts(:welcome)], relation.to_a
 
     author_posts = relation.except(:order, :limit)
-    assert_equal Post.where(author_id: 1).to_a, author_posts.to_a
+    assert_equal Post.where(author_id: 1).sort_by(&:id), author_posts.sort_by(&:id)
 
     all_posts = relation.except(:where, :order, :limit)
-    assert_equal Post.all, all_posts
+    assert_equal Post.all.sort_by(&:id), all_posts.sort_by(&:id)
   end
 
   def test_only
@@ -1501,10 +1501,10 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal [posts(:welcome)], relation.to_a
 
     author_posts = relation.only(:where)
-    assert_equal Post.where(author_id: 1).to_a, author_posts.to_a
+    assert_equal Post.where(author_id: 1).sort_by(&:id), author_posts.sort_by(&:id)
 
-    all_posts = relation.only(:limit)
-    assert_equal Post.limit(1).to_a, all_posts.to_a
+    all_posts = relation.only(:order)
+    assert_equal Post.order("id ASC").to_a, all_posts.to_a
   end
 
   def test_anonymous_extension
