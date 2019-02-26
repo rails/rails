@@ -126,11 +126,6 @@ module ActionView
     attr_reader :variable, :format, :variant, :locals, :virtual_path
 
     def initialize(source, identifier, handler, format: nil, variant: nil, locals: nil, virtual_path: nil, updated_at: Time.now)
-      unless format
-        ActiveSupport::Deprecation.warn "ActionView::Template#initialize requires a format parameter"
-        format = :html
-      end
-
       unless locals
         ActiveSupport::Deprecation.warn "ActionView::Template#initialize requires a locals parameter"
         locals = []
