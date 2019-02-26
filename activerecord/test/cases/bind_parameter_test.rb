@@ -2,6 +2,7 @@
 
 require "cases/helper"
 require "models/topic"
+require "models/reply"
 require "models/author"
 require "models/post"
 
@@ -53,12 +54,17 @@ if ActiveRecord::Base.connection.prepared_statements
         @connection.disable_query_cache!
       end
 
-      def test_statement_cache_with_find
+      def test_statement_cache_with_find_by
         @connection.clear_cache!
 
-        topics = Topic.where(id: 1).limit(1)
-        assert_equal 1, Topic.find(1).id
-        assert_includes statement_cache, to_sql_key(topics.arel)
+        assert_equal 1, Topic.find_by!(id: 1).id
+        assert_equal 2, Reply.find_by!(id: 2).id
+
+        topic_sql = cached_statement(Topic, [:id])
+        assert_includes statement_cache, to_sql_key(topic_sql)
+
+        e = assert_raise { cached_statement(Reply, [:id]) }
+        assert_equal "Reply has no cached statement by [:id]", e.message
       end
 
       def test_statement_cache_with_in_clause
@@ -137,6 +143,13 @@ if ActiveRecord::Base.connection.prepared_statements
         def to_sql_key(arel)
           sql = @connection.to_sql(arel)
           @connection.respond_to?(:sql_key, true) ? @connection.send(:sql_key, sql) : sql
+        end
+
+        def cached_statement(klass, key)
+          cache = klass.send(:cached_find_by_statement, key) do
+            raise "#{klass} has no cached statement by #{key.inspect}"
+          end
+          cache.send(:query_builder).instance_variable_get(:@sql)
         end
 
         def statement_cache
