@@ -210,8 +210,8 @@ module ActionDispatch
   # === +assert_routing+
   #
   #   def test_movie_route_properly_splits
-  #    opts = {controller: "plugin", action: "checkout", id: "2"}
-  #    assert_routing "plugin/checkout/2", opts
+  #     opts = {controller: "plugin", action: "checkout", id: "2"}
+  #     assert_routing "plugin/checkout/2", opts
   #   end
   #
   # +assert_routing+ lets you test whether or not the route properly resolves into options.
@@ -219,8 +219,8 @@ module ActionDispatch
   # === +assert_recognizes+
   #
   #   def test_route_has_options
-  #    opts = {controller: "plugin", action: "show", id: "12"}
-  #    assert_recognizes opts, "/plugins/show/12"
+  #     opts = {controller: "plugin", action: "show", id: "12"}
+  #     assert_recognizes opts, "/plugins/show/12"
   #   end
   #
   # Note the subtle difference between the two: +assert_routing+ tests that
