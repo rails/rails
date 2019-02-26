@@ -143,14 +143,18 @@ module ActionView
 
     # Normalizes the arguments and passes it on to find_templates.
     def find_all(name, prefix = nil, partial = false, details = {}, key = nil, locals = [])
+      locals = locals.map(&:to_s).sort!.freeze
+
       cached(key, [name, prefix, partial], details, locals) do
-        find_templates(name, prefix, partial, details)
+        find_templates(name, prefix, partial, details, false, locals)
       end
     end
 
     def find_all_anywhere(name, prefix, partial = false, details = {}, key = nil, locals = [])
+      locals = locals.map(&:to_s).sort!.freeze
+
       cached(key, [name, prefix, partial], details, locals) do
-        find_templates(name, prefix, partial, details, true)
+        find_templates(name, prefix, partial, details, true, locals)
       end
     end
 
@@ -165,13 +169,8 @@ module ActionView
     # This is what child classes implement. No defaults are needed
     # because Resolver guarantees that the arguments are present and
     # normalized.
-    def find_templates(name, prefix, partial, details, outside_app_allowed = false)
-      raise NotImplementedError, "Subclasses must implement a find_templates(name, prefix, partial, details, outside_app_allowed = false) method"
-    end
-
-    # Helpers that builds a path. Useful for building virtual paths.
-    def build_path(name, prefix, partial)
-      Path.build(name, prefix, partial)
+    def find_templates(name, prefix, partial, details, outside_app_allowed = false, locals = [])
+      raise NotImplementedError, "Subclasses must implement a find_templates(name, prefix, partial, details, outside_app_allowed = false, locals = []) method"
     end
 
     # Handles templates caching. If a key is given and caching is on
@@ -180,23 +179,13 @@ module ActionView
     # resolver is fresher before returning it.
     def cached(key, path_info, details, locals)
       name, prefix, partial = path_info
-      locals = locals.map(&:to_s).sort!
 
       if key
         @cache.cache(key, name, prefix, partial, locals) do
-          decorate(yield, path_info, details, locals)
+          yield
         end
       else
-        decorate(yield, path_info, details, locals)
-      end
-    end
-
-    # Ensures all the resolver information is set in the template.
-    def decorate(templates, path_info, details, locals)
-      cached = nil
-      templates.each do |t|
-        t.locals         = locals
-        t.virtual_path ||= (cached ||= build_path(*path_info))
+        yield
       end
     end
   end
@@ -213,12 +202,12 @@ module ActionView
 
     private
 
-      def find_templates(name, prefix, partial, details, outside_app_allowed = false)
+      def find_templates(name, prefix, partial, details, outside_app_allowed = false, locals)
         path = Path.build(name, prefix, partial)
-        query(path, details, details[:formats], outside_app_allowed)
+        query(path, details, details[:formats], outside_app_allowed, locals)
       end
 
-      def query(path, details, formats, outside_app_allowed)
+      def query(path, details, formats, outside_app_allowed, locals)
         template_paths = find_template_paths_from_details(path, details)
         template_paths = reject_files_external_to_app(template_paths) unless outside_app_allowed
 
@@ -229,6 +218,7 @@ module ActionView
             virtual_path: path.virtual,
             format: format,
             variant: variant,
+            locals: locals,
             updated_at: mtime(template)
           )
         end
@@ -428,10 +418,6 @@ module ActionView
   class FallbackFileSystemResolver < FileSystemResolver #:nodoc:
     def self.instances
       [new(""), new("/")]
-    end
-
-    def decorate(*)
-      super.each { |t| t.virtual_path = nil }
     end
   end
 end

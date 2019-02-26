@@ -122,24 +122,26 @@ module ActionView
 
     extend Template::Handlers
 
-    attr_accessor :locals, :virtual_path
-
     attr_reader :source, :identifier, :handler, :original_encoding, :updated_at
-    attr_reader :variable, :format, :variant
+    attr_reader :variable, :format, :variant, :locals, :virtual_path
 
-    def initialize(source, identifier, handler, format: nil, variant: nil, **details)
+    def initialize(source, identifier, handler, format: nil, variant: nil, locals: nil, virtual_path: nil, updated_at: Time.now)
       unless format
         ActiveSupport::Deprecation.warn "ActionView::Template#initialize requires a format parameter"
         format = :html
+      end
+
+      unless locals
+        ActiveSupport::Deprecation.warn "ActionView::Template#initialize requires a locals parameter"
+        locals = []
       end
 
       @source            = source
       @identifier        = identifier
       @handler           = handler
       @compiled          = false
-      @original_encoding = nil
-      @locals            = details[:locals] || []
-      @virtual_path      = details[:virtual_path]
+      @locals            = locals
+      @virtual_path      = virtual_path
 
       @variable = if @virtual_path
         base = @virtual_path[-1] == "/" ? "" : File.basename(@virtual_path)
@@ -147,12 +149,15 @@ module ActionView
         $1.to_sym
       end
 
-      @updated_at        = details[:updated_at] || Time.now
+      @updated_at        = updated_at
       @format            = format
       @variant           = variant
       @compile_mutex     = Mutex.new
     end
 
+    deprecate :original_encoding
+    deprecate def virtual_path=(_); end
+    deprecate def locals=(_); end
     deprecate def formats=(_); end
     deprecate def formats; Array(format); end
     deprecate def variants=(_); end
@@ -261,11 +266,11 @@ module ActionView
     # to ensure that references to the template object can be marshalled as well. This means forgoing
     # the marshalling of the compiler mutex and instantiating that again on unmarshalling.
     def marshal_dump # :nodoc:
-      [ @source, @identifier, @handler, @compiled, @original_encoding, @locals, @virtual_path, @updated_at, @format, @variant ]
+      [ @source, @identifier, @handler, @compiled, @locals, @virtual_path, @updated_at, @format, @variant ]
     end
 
     def marshal_load(array) # :nodoc:
-      @source, @identifier, @handler, @compiled, @original_encoding, @locals, @virtual_path, @updated_at, @format, @variant = *array
+      @source, @identifier, @handler, @compiled, @locals, @virtual_path, @updated_at, @format, @variant = *array
       @compile_mutex = Mutex.new
     end
 
