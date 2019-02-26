@@ -22,10 +22,11 @@ module ActiveModel
         end
 
         def apply_seconds_precision(value)
-          if precision && precision < 6 && value.respond_to?(:usec) && value.usec.positive?
+          if precision && value.respond_to?(:usec) && value.usec.positive?
             number_of_insignificant_digits = 6 - precision
             round_power = 10**number_of_insignificant_digits
-            value.change(usec: value.usec - value.usec % round_power)
+            updated_usec = value.usec - value.usec % round_power
+            value.change(usec: updated_usec) if updated_usec != value.usec
           else
             value
           end
