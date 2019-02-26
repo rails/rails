@@ -299,13 +299,13 @@ Calls to the `render` method generally accept five options:
 
 ##### The `:content_type` Option
 
-By default, Rails will serve the results of a rendering operation with the MIME content-type of `text/html`. There are times when you might like to change this, and you can do so by setting the `:content_type` option:
+You can use the :content_type option to set the MIME content-type
 
 ```ruby
 render file: filename, content_type: "application/rss"
 ```
 
-TIP: Depending on the rendering content, Rails may change the default.
+TIP: Depending on the rendering content, Rails may change the default. For example, application/json if you use the `:json` option, application/xml  if you use the `:xml` option.
 
 ##### The `:layout` Option
 
