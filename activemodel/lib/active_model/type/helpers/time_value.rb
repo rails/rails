@@ -27,9 +27,9 @@ module ActiveModel
             round_power = 10**number_of_insignificant_digits
             updated_usec = value.usec - value.usec % round_power
             value.change(usec: updated_usec) if updated_usec != value.usec
-          else
-            value
           end
+
+          value
         end
 
         def type_cast_for_schema(value)
