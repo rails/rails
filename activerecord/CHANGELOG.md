@@ -2,13 +2,13 @@
 
     Example:
     
-      class Post < ActiveRecord::Base
-        enum status: %i[ drafted active trashed ]
-      end
-      
-      Post.not_drafted # => where.not(status: :drafted)
-      Post.not_active  # => where.not(status: :active)
-      Post.not_trashed # => where.not(status: :trashed)
+        class Post < ActiveRecord::Base
+          enum status: %i[ drafted active trashed ]
+        end
+  
+        Post.not_drafted # => where.not(status: :drafted)
+        Post.not_active  # => where.not(status: :active)
+        Post.not_trashed # => where.not(status: :trashed)
     
     *DHH*
 
