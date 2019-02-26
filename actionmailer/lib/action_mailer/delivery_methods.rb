@@ -36,6 +36,8 @@ module ActionMailer
       add_delivery_method :test, Mail::TestMailer
     end
 
+    DELIVERY_METHOD_SETTINGS = /^(.+)_settings=$/
+
     # Helpers for creating and wrapping delivery behavior, used by DeliveryMethods.
     module ClassMethods
       # Provides a list of emails that have been delivered by Mail::TestMailer
@@ -48,9 +50,24 @@ module ActionMailer
       #     location:  '/usr/sbin/sendmail',
       #     arguments: '-i'
       def add_delivery_method(symbol, klass, default_options = {})
-        class_attribute(:"#{symbol}_settings") unless respond_to?(:"#{symbol}_settings")
-        send(:"#{symbol}_settings=", default_options)
+        settings = :"#{symbol}_settings"
+        send(:"#{settings}=", default_options.merge(respond_to?(settings) ? send(settings) : {}))
         self.delivery_methods = delivery_methods.merge(symbol.to_sym => klass).freeze
+      end
+
+      def respond_to_missing?(sym, *)
+        DELIVERY_METHOD_SETTINGS.match?(sym) || super
+      end
+
+      def method_missing(method_name, *args, &block)
+        settings_match = DELIVERY_METHOD_SETTINGS.match method_name
+
+        if settings_match
+          class_attribute(:"#{settings_match[1]}_settings")
+          send(method_name, *args)
+        else
+          super
+        end
       end
 
       def wrap_delivery_behavior(mail, method = nil, options = nil) # :nodoc:
