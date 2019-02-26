@@ -1,3 +1,9 @@
+*   Fix different `count` calculation when using `size` with manual `select` with DISTINCT.
+
+    Fixes #35214.
+
+    *Juani Villarejo*
+
 *   Fix prepared statements caching to be enabled even when query caching is enabled.
 
     *Ryuta Kamizono*
