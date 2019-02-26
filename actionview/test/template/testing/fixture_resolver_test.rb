@@ -15,6 +15,6 @@ class FixtureResolverTest < ActiveSupport::TestCase
     assert_equal 1, templates.size, "expected one template"
     assert_equal "this text",      templates.first.source
     assert_equal "arbitrary/path", templates.first.virtual_path
-    assert_equal :html,            templates.first.format
+    assert_nil templates.first.format
   end
 end

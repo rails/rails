@@ -973,10 +973,11 @@ module ActionMailer
         templates_name = headers[:template_name] || action_name
 
         each_template(Array(templates_path), templates_name).map do |template|
-          self.formats = [template.format]
+          format = template.format || self.formats.first
+          self.formats = [format]
           {
             body: render(template: template),
-            content_type: template.type.to_s
+            content_type: Mime[format].to_s
           }
         end
       end

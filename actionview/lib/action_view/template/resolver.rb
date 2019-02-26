@@ -294,12 +294,12 @@ module ActionView
           if handler.respond_to?(:default_format) # default_format can return nil
             handler.default_format
           else
-            query_format
+            nil
           end
         end
 
         # Template::Types[format] and handler.default_format can return nil
-        [handler, format || query_format, variant]
+        [handler, format, variant]
       end
   end
 
