@@ -68,7 +68,7 @@ module ActionView
       end
 
       def format
-        template.formats.first
+        template.format
       end
 
       EMPTY_SPACER = Struct.new(:body).new

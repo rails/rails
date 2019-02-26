@@ -8,7 +8,7 @@ module ActionView
       @details = extract_details(options)
       template = determine_template(options)
 
-      prepend_formats(template.formats)
+      prepend_formats(template.format)
 
       render_template(context, template, options[:layout], options[:locals] || {})
     end

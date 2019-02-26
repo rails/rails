@@ -12,6 +12,23 @@
     
     *DHH*
 
+*   Fix different `count` calculation when using `size` with manual `select` with DISTINCT.
+
+    Fixes #35214.
+
+    *Juani Villarejo*
+
+
+## Rails 6.0.0.beta2 (February 25, 2019) ##
+
+*   Fix prepared statements caching to be enabled even when query caching is enabled.
+
+    *Ryuta Kamizono*
+
+*   Ensure `update_all` series cares about optimistic locking.
+
+    *Ryuta Kamizono*
+
 *   Don't allow `where` with non numeric string matches to 0 values.
 
     *Ryuta Kamizono*

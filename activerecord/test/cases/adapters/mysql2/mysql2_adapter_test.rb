@@ -204,6 +204,14 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
     end
   end
 
+  def test_doesnt_error_when_a_read_query_with_leading_chars_is_called_while_preventing_writes
+    @conn.execute("INSERT INTO `engines` (`car_id`) VALUES ('138853948594')")
+
+    @conn.while_preventing_writes do
+      assert_equal 1, @conn.execute("(\n( SELECT `engines`.* FROM `engines` WHERE `engines`.`car_id` = '138853948594' ) )").entries.count
+    end
+  end
+
   private
 
     def with_example_table(definition = "id int auto_increment primary key, number int, data varchar(255)", &block)

@@ -122,22 +122,26 @@ module ActionView
 
     extend Template::Handlers
 
-    attr_accessor :locals, :formats, :variants, :virtual_path
-
     attr_reader :source, :identifier, :handler, :original_encoding, :updated_at
+    attr_reader :variable, :format, :variant, :locals, :virtual_path
 
-    attr_reader :variable
+    def initialize(source, identifier, handler, format: nil, variant: nil, locals: nil, virtual_path: nil, updated_at: Time.now)
+      unless format
+        ActiveSupport::Deprecation.warn "ActionView::Template#initialize requires a format parameter"
+        format = :html
+      end
 
-    def initialize(source, identifier, handler, details)
-      format = details[:format] || (handler.default_format if handler.respond_to?(:default_format))
+      unless locals
+        ActiveSupport::Deprecation.warn "ActionView::Template#initialize requires a locals parameter"
+        locals = []
+      end
 
       @source            = source
       @identifier        = identifier
       @handler           = handler
       @compiled          = false
-      @original_encoding = nil
-      @locals            = details[:locals] || []
-      @virtual_path      = details[:virtual_path]
+      @locals            = locals
+      @virtual_path      = virtual_path
 
       @variable = if @virtual_path
         base = @virtual_path[-1] == "/" ? "" : File.basename(@virtual_path)
@@ -145,11 +149,19 @@ module ActionView
         $1.to_sym
       end
 
-      @updated_at        = details[:updated_at] || Time.now
-      @formats           = Array(format).map { |f| f.respond_to?(:ref) ? f.ref : f  }
-      @variants          = [details[:variant]]
+      @updated_at        = updated_at
+      @format            = format
+      @variant           = variant
       @compile_mutex     = Mutex.new
     end
+
+    deprecate :original_encoding
+    deprecate def virtual_path=(_); end
+    deprecate def locals=(_); end
+    deprecate def formats=(_); end
+    deprecate def formats; Array(format); end
+    deprecate def variants=(_); end
+    deprecate def variants; [variant]; end
 
     # Returns whether the underlying handler supports streaming. If so,
     # a streaming buffer *may* be passed when it starts rendering.
@@ -173,7 +185,7 @@ module ActionView
     end
 
     def type
-      @type ||= Types[@formats.first] if @formats.first
+      @type ||= Types[format]
     end
 
     # Receives a view object and return a template similar to self by using @virtual_path.
@@ -195,8 +207,12 @@ module ActionView
       end
     end
 
+    def short_identifier
+      @short_identifier ||= defined?(Rails.root) ? identifier.sub("#{Rails.root}/", "") : identifier
+    end
+
     def inspect
-      @inspect ||= defined?(Rails.root) ? identifier.sub("#{Rails.root}/", "") : identifier
+      "#<#{self.class.name} #{short_identifier} locals=#{@locals.inspect}>"
     end
 
     # This method is responsible for properly setting the encoding of the
@@ -250,11 +266,11 @@ module ActionView
     # to ensure that references to the template object can be marshalled as well. This means forgoing
     # the marshalling of the compiler mutex and instantiating that again on unmarshalling.
     def marshal_dump # :nodoc:
-      [ @source, @identifier, @handler, @compiled, @original_encoding, @locals, @virtual_path, @updated_at, @formats, @variants ]
+      [ @source, @identifier, @handler, @compiled, @locals, @virtual_path, @updated_at, @format, @variant ]
     end
 
     def marshal_load(array) # :nodoc:
-      @source, @identifier, @handler, @compiled, @original_encoding, @locals, @virtual_path, @updated_at, @formats, @variants = *array
+      @source, @identifier, @handler, @compiled, @locals, @virtual_path, @updated_at, @format, @variant = *array
       @compile_mutex = Mutex.new
     end
 
@@ -370,7 +386,7 @@ module ActionView
       end
 
       def identifier_method_name
-        inspect.tr("^a-z_", "_")
+        short_identifier.tr("^a-z_", "_")
       end
 
       def instrument(action, &block) # :doc:

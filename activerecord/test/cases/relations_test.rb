@@ -972,6 +972,13 @@ class RelationTest < ActiveRecord::TestCase
     assert_queries(1) { assert_equal 11, posts.load.size }
   end
 
+  def test_size_with_eager_loading_and_manual_distinct_select_and_custom_order
+    accounts = Account.select("DISTINCT accounts.firm_id").order("accounts.firm_id")
+
+    assert_queries(1) { assert_equal 5, accounts.size }
+    assert_queries(1) { assert_equal 5, accounts.load.size }
+  end
+
   def test_count_explicit_columns
     Post.update_all(comments_count: nil)
     posts = Post.all
@@ -1483,10 +1490,10 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal [posts(:welcome)], relation.to_a
 
     author_posts = relation.except(:order, :limit)
-    assert_equal Post.where(author_id: 1).to_a, author_posts.to_a
+    assert_equal Post.where(author_id: 1).sort_by(&:id), author_posts.sort_by(&:id)
 
     all_posts = relation.except(:where, :order, :limit)
-    assert_equal Post.all, all_posts
+    assert_equal Post.all.sort_by(&:id), all_posts.sort_by(&:id)
   end
 
   def test_only
@@ -1494,10 +1501,10 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal [posts(:welcome)], relation.to_a
 
     author_posts = relation.only(:where)
-    assert_equal Post.where(author_id: 1).to_a, author_posts.to_a
+    assert_equal Post.where(author_id: 1).sort_by(&:id), author_posts.sort_by(&:id)
 
-    all_posts = relation.only(:limit)
-    assert_equal Post.limit(1).to_a, all_posts.to_a
+    all_posts = relation.only(:order)
+    assert_equal Post.order("id ASC").to_a, all_posts.to_a
   end
 
   def test_anonymous_extension
@@ -1939,6 +1946,30 @@ class RelationTest < ActiveRecord::TestCase
 
     assert_not_equal p1.first.comments, comments
     assert_equal p2.first.comments, comments
+  end
+
+  def test_unscope_with_merge
+    p0 = Post.where(author_id: 0)
+    p1 = Post.where(author_id: 1, comments_count: 1)
+
+    assert_equal [posts(:authorless)], p0
+    assert_equal [posts(:thinking)], p1
+
+    comments = Comment.merge(p0).unscope(where: :author_id).where(post: p1)
+
+    assert_not_equal p0.first.comments, comments
+    assert_equal p1.first.comments, comments
+  end
+
+  def test_unscope_with_unknown_column
+    comment = comments(:greetings)
+    comment.update!(comments: 1)
+
+    comments = Comment.where(comments: 1).unscope(where: :unknown_column)
+    assert_equal [comment], comments
+
+    comments = Comment.where(comments: 1).unscope(where: { comments: :unknown_column })
+    assert_equal [comment], comments
   end
 
   def test_unscope_specific_where_value

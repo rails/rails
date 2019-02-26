@@ -40,7 +40,7 @@ module ActiveJob
     # Timezone to be used during the job.
     attr_accessor :timezone
 
-    # Track when a job was enqueded
+    # Track when a job was enqueued
     attr_accessor :enqueued_at
 
     # These methods will be included into any Active Job object, adding

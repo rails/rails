@@ -2,6 +2,7 @@
 
 require "cases/helper"
 require "models/topic"
+require "models/reply"
 require "models/author"
 require "models/post"
 
@@ -34,6 +35,54 @@ if ActiveRecord::Base.connection.prepared_statements
         ActiveSupport::Notifications.unsubscribe(@subscription)
       end
 
+      def test_statement_cache
+        @connection.clear_cache!
+
+        topics = Topic.where(id: 1)
+        assert_equal [1], topics.map(&:id)
+        assert_includes statement_cache, to_sql_key(topics.arel)
+      end
+
+      def test_statement_cache_with_query_cache
+        @connection.enable_query_cache!
+        @connection.clear_cache!
+
+        topics = Topic.where(id: 1)
+        assert_equal [1], topics.map(&:id)
+        assert_includes statement_cache, to_sql_key(topics.arel)
+      ensure
+        @connection.disable_query_cache!
+      end
+
+      def test_statement_cache_with_find_by
+        @connection.clear_cache!
+
+        assert_equal 1, Topic.find_by!(id: 1).id
+        assert_equal 2, Reply.find_by!(id: 2).id
+
+        topic_sql = cached_statement(Topic, [:id])
+        assert_includes statement_cache, to_sql_key(topic_sql)
+
+        e = assert_raise { cached_statement(Reply, [:id]) }
+        assert_equal "Reply has no cached statement by [:id]", e.message
+      end
+
+      def test_statement_cache_with_in_clause
+        @connection.clear_cache!
+
+        topics = Topic.where(id: [1, 3])
+        assert_equal [1, 3], topics.map(&:id)
+        assert_not_includes statement_cache, to_sql_key(topics.arel)
+      end
+
+      def test_statement_cache_with_sql_string_literal
+        @connection.clear_cache!
+
+        topics = Topic.where("topics.id = ?", 1)
+        assert_equal [1], topics.map(&:id)
+        assert_not_includes statement_cache, to_sql_key(topics.arel)
+      end
+
       def test_too_many_binds
         bind_params_length = @connection.send(:bind_params_length)
 
@@ -45,7 +94,8 @@ if ActiveRecord::Base.connection.prepared_statements
       end
 
       def test_too_many_binds_with_query_cache
-        Topic.connection.enable_query_cache!
+        @connection.enable_query_cache!
+
         bind_params_length = @connection.send(:bind_params_length)
         topics = Topic.where(id: (1 .. bind_params_length + 1).to_a)
         assert_equal Topic.count, topics.count
@@ -53,7 +103,7 @@ if ActiveRecord::Base.connection.prepared_statements
         topics = Topic.where.not(id: (1 .. bind_params_length + 1).to_a)
         assert_equal 0, topics.count
       ensure
-        Topic.connection.disable_query_cache!
+        @connection.disable_query_cache!
       end
 
       def test_bind_from_join_in_subquery
@@ -90,6 +140,22 @@ if ActiveRecord::Base.connection.prepared_statements
       end
 
       private
+        def to_sql_key(arel)
+          sql = @connection.to_sql(arel)
+          @connection.respond_to?(:sql_key, true) ? @connection.send(:sql_key, sql) : sql
+        end
+
+        def cached_statement(klass, key)
+          cache = klass.send(:cached_find_by_statement, key) do
+            raise "#{klass} has no cached statement by #{key.inspect}"
+          end
+          cache.send(:query_builder).instance_variable_get(:@sql)
+        end
+
+        def statement_cache
+          @connection.instance_variable_get(:@statements).send(:cache)
+        end
+
         def assert_logs_binds(binds)
           payload = {
             name: "SQL",

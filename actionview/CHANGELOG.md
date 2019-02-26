@@ -1,3 +1,5 @@
+## Rails 6.0.0.beta2 (February 25, 2019) ##
+
 *   ActionView::Template.finalize_compiled_template_methods is deprecated with
     no replacement.
 

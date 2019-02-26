@@ -14,6 +14,7 @@ require "models/price_estimate"
 require "models/topic"
 require "models/treasure"
 require "models/vertex"
+require "support/stubs/strong_parameters"
 
 module ActiveRecord
   class WhereTest < ActiveRecord::TestCase
@@ -339,27 +340,8 @@ module ActiveRecord
     end
 
     def test_where_with_strong_parameters
-      protected_params = Class.new do
-        attr_reader :permitted
-        alias :permitted? :permitted
-
-        def initialize(parameters)
-          @parameters = parameters
-          @permitted = false
-        end
-
-        def to_h
-          @parameters
-        end
-
-        def permit!
-          @permitted = true
-          self
-        end
-      end
-
       author = authors(:david)
-      params = protected_params.new(name: author.name)
+      params = ProtectedParams.new(name: author.name)
       assert_raises(ActiveModel::ForbiddenAttributesError) { Author.where(params) }
       assert_equal author, Author.where(params.permit!).first
     end

@@ -623,6 +623,8 @@ To select only a subset of fields from the result set, you can specify the subse
 For example, to select only `viewable_by` and `locked` columns:
 
 ```ruby
+Client.select(:viewable_by, :locked)
+# OR
 Client.select("viewable_by, locked")
 ```
 

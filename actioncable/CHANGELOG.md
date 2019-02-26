@@ -1,3 +1,5 @@
+## Rails 6.0.0.beta2 (February 25, 2019) ##
+
 *   PostgreSQL subscription adapters now support `channel_prefix` option in cable.yml
 
     Avoids channel name collisions when multiple apps use the same database for Action Cable.
