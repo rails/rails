@@ -187,18 +187,10 @@ module ActionView
 
       if key
         @cache.cache(key, name, prefix, partial, locals) do
-          decorate(yield, path_info, details, locals)
+          yield
         end
       else
-        decorate(yield, path_info, details, locals)
-      end
-    end
-
-    # Ensures all the resolver information is set in the template.
-    def decorate(templates, path_info, details, locals)
-      cached = nil
-      templates.each do |t|
-        t.virtual_path ||= (cached ||= build_path(*path_info))
+        yield
       end
     end
   end
@@ -431,10 +423,6 @@ module ActionView
   class FallbackFileSystemResolver < FileSystemResolver #:nodoc:
     def self.instances
       [new(""), new("/")]
-    end
-
-    def decorate(*)
-      super.each { |t| t.virtual_path = nil }
     end
   end
 end

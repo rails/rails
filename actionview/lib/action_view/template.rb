@@ -122,10 +122,8 @@ module ActionView
 
     extend Template::Handlers
 
-    attr_accessor :virtual_path
-
     attr_reader :source, :identifier, :handler, :original_encoding, :updated_at
-    attr_reader :variable, :format, :variant, :locals
+    attr_reader :variable, :format, :variant, :locals, :virtual_path
 
     def initialize(source, identifier, handler, format: nil, variant: nil, locals: nil, **details)
       unless format
@@ -158,6 +156,7 @@ module ActionView
       @compile_mutex     = Mutex.new
     end
 
+    deprecate def virtual_path=(_); end
     deprecate def locals=(_); end
     deprecate def formats=(_); end
     deprecate def formats; Array(format); end
