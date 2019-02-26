@@ -506,10 +506,12 @@ class InheritanceComputeTypeTest < ActiveRecord::TestCase
 
       # Should fail without FirmOnTheFly in the type condition.
       assert_raise(ActiveRecord::RecordNotFound) { Firm.find(foo.id) }
+      assert_raise(ActiveRecord::RecordNotFound) { Firm.find_by!(id: foo.id) }
 
       # Nest FirmOnTheFly in the test case where Dependencies won't see it.
       self.class.const_set :FirmOnTheFly, Class.new(Firm)
       assert_raise(ActiveRecord::SubclassNotFound) { Firm.find(foo.id) }
+      assert_raise(ActiveRecord::SubclassNotFound) { Firm.find_by!(id: foo.id) }
 
       # Nest FirmOnTheFly in Firm where Dependencies will see it.
       # This is analogous to nesting models in a migration.
@@ -518,6 +520,7 @@ class InheritanceComputeTypeTest < ActiveRecord::TestCase
       # And instantiate will find the existing constant rather than trying
       # to require firm_on_the_fly.
       assert_nothing_raised { assert_kind_of Firm::FirmOnTheFly, Firm.find(foo.id) }
+      assert_nothing_raised { assert_kind_of Firm::FirmOnTheFly, Firm.find_by!(id: foo.id) }
     end
   end
 
