@@ -170,12 +170,7 @@ module ActionView
     # because Resolver guarantees that the arguments are present and
     # normalized.
     def find_templates(name, prefix, partial, details, outside_app_allowed = false, locals = [])
-      raise NotImplementedError, "Subclasses must implement a find_templates(name, prefix, partial, details, outside_app_allowed = false) method"
-    end
-
-    # Helpers that builds a path. Useful for building virtual paths.
-    def build_path(name, prefix, partial)
-      Path.build(name, prefix, partial)
+      raise NotImplementedError, "Subclasses must implement a find_templates(name, prefix, partial, details, outside_app_allowed = false, locals = []) method"
     end
 
     # Handles templates caching. If a key is given and caching is on
