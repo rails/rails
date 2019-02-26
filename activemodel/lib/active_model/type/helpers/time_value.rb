@@ -26,7 +26,7 @@ module ActiveModel
             number_of_insignificant_digits = 6 - precision
             round_power = 10**number_of_insignificant_digits
             updated_usec = value.usec - value.usec % round_power
-            value.change(usec: updated_usec) if updated_usec != value.usec
+            return value.change(usec: updated_usec) if updated_usec != value.usec
           end
 
           value
