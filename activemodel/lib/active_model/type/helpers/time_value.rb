@@ -22,10 +22,13 @@ module ActiveModel
         end
 
         def apply_seconds_precision(value)
-          return value unless precision && precision < 6 && value.respond_to?(:usec) && value.usec.positive?
-          number_of_insignificant_digits = 6 - precision
-          round_power = 10**number_of_insignificant_digits
-          value.change(usec: value.usec - value.usec % round_power)
+          if precision && precision < 6 && value.respond_to?(:usec) && value.usec.positive?
+            number_of_insignificant_digits = 6 - precision
+            round_power = 10**number_of_insignificant_digits
+            value.change(usec: value.usec - value.usec % round_power)
+          else
+            value
+          end
         end
 
         def type_cast_for_schema(value)
