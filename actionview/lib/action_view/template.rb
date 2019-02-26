@@ -140,7 +140,6 @@ module ActionView
       @identifier        = identifier
       @handler           = handler
       @compiled          = false
-      @original_encoding = nil
       @locals            = locals
       @virtual_path      = virtual_path
 
@@ -156,6 +155,7 @@ module ActionView
       @compile_mutex     = Mutex.new
     end
 
+    deprecate :original_encoding
     deprecate def virtual_path=(_); end
     deprecate def locals=(_); end
     deprecate def formats=(_); end
@@ -266,11 +266,11 @@ module ActionView
     # to ensure that references to the template object can be marshalled as well. This means forgoing
     # the marshalling of the compiler mutex and instantiating that again on unmarshalling.
     def marshal_dump # :nodoc:
-      [ @source, @identifier, @handler, @compiled, @original_encoding, @locals, @virtual_path, @updated_at, @format, @variant ]
+      [ @source, @identifier, @handler, @compiled, @locals, @virtual_path, @updated_at, @format, @variant ]
     end
 
     def marshal_load(array) # :nodoc:
-      @source, @identifier, @handler, @compiled, @original_encoding, @locals, @virtual_path, @updated_at, @format, @variant = *array
+      @source, @identifier, @handler, @compiled, @locals, @virtual_path, @updated_at, @format, @variant = *array
       @compile_mutex = Mutex.new
     end
 
