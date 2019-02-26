@@ -43,6 +43,11 @@ class EnumTest < ActiveRecord::TestCase
     assert_equal books(:ddd), Book.forgotten.first
     assert_equal books(:rfr), authors(:david).unpublished_books.first
   end
+  
+  test "find via negative scope" do
+    assert Book.not_published.exclude?(@book)
+    assert Book.not_proposed.include?(@book)
+  end
 
   test "find via where with values" do
     published, written = Book.statuses[:published], Book.statuses[:written]
