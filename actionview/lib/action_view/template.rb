@@ -125,7 +125,7 @@ module ActionView
     attr_reader :source, :identifier, :handler, :original_encoding, :updated_at
     attr_reader :variable, :format, :variant, :locals, :virtual_path
 
-    def initialize(source, identifier, handler, format: nil, variant: nil, locals: nil, **details)
+    def initialize(source, identifier, handler, format: nil, variant: nil, locals: nil, virtual_path: nil, updated_at: Time.now)
       unless format
         ActiveSupport::Deprecation.warn "ActionView::Template#initialize requires a format parameter"
         format = :html
@@ -142,7 +142,7 @@ module ActionView
       @compiled          = false
       @original_encoding = nil
       @locals            = locals
-      @virtual_path      = details[:virtual_path]
+      @virtual_path      = virtual_path
 
       @variable = if @virtual_path
         base = @virtual_path[-1] == "/" ? "" : File.basename(@virtual_path)
@@ -150,7 +150,7 @@ module ActionView
         $1.to_sym
       end
 
-      @updated_at        = details[:updated_at] || Time.now
+      @updated_at        = updated_at
       @format            = format
       @variant           = variant
       @compile_mutex     = Mutex.new
