@@ -30,6 +30,7 @@ module ActionText
           end
 
           def #{name}=(body)
+            super
             self.#{name}.body = body
           end
         CODE

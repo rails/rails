@@ -53,4 +53,22 @@ class ActionText::ModelTest < ActiveSupport::TestCase
     message = Message.create(subject: "Greetings", body: "<h1>Hello world</h1>")
     assert_equal "Hello world", message.body.to_plain_text
   end
+
+  test "update content" do
+    message = Message.create!(subject: "Greetings", content: "<h1>Hello world</h1>")
+    assert_equal "Hello world", message.content.to_plain_text
+
+    message.update!(content: "<h1>Yay! You’re on Rails!</h1>")
+    assert_equal "Yay! You’re on Rails!", message.content.to_plain_text
+  end
+
+  test "create/update nested attributes content" do
+    david = Person.create!(name: "David", post_attributes: { content: "<h1>Hello world</h1>" })
+    post = david.post
+
+    assert_equal "Hello world", post.content.to_plain_text
+
+    david.update!(post_attributes: { content: "<h1>Yay! You’re on Rails!</h1>", id: post.id })
+    assert_equal "Yay! You’re on Rails!", post.reload.content.to_plain_text
+  end
 end
