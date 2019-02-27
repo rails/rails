@@ -207,6 +207,7 @@ end
 class MultiplePoorDeveloperCalledJamis < ActiveRecord::Base
   self.table_name = "developers"
 
+  default_scope { }
   default_scope -> { where(name: "Jamis") }
   default_scope -> { where(salary: 50000) }
 end
