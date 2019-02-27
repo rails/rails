@@ -615,6 +615,10 @@ Please refer to the [Changelog][active-record] for detailed changes.
     the parent class was getting deleted when the child was not.
     ([Commit](https://github.com/rails/rails/commit/b0fc04aa3af338d5a90608bf37248668d59fc881))
 
+*   Idle database connections (previously just orphaned connections) are now
+    periodically reaped by the connection pool reaper.
+    ([Commit](https://github.com/rails/rails/pull/31221/commits/9027fafff6da932e6e64ddb828665f4b01fc8902))
+
 Active Model
 ------------
 
