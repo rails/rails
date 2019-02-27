@@ -155,8 +155,8 @@ module ActionView
 
         if block_given?
           ActiveSupport::Deprecation.warn <<~eowarn
-          Calling `with_fallbacks` with a block is deprecated.  Call methods on
-          the lookup context returned by `with_fallbacks` instead.
+            Calling `with_fallbacks` with a block is deprecated. Call methods on
+            the lookup context returned by `with_fallbacks` instead.
           eowarn
 
           begin
