@@ -56,11 +56,11 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_preload_with_nested_association
-    posts = Post.preload(:author, :author_favorites).to_a
+    posts = Post.preload(:author, :author_favorites_with_scope).to_a
 
     assert_no_queries do
       posts.each(&:author)
-      posts.each(&:author_favorites)
+      posts.each(&:author_favorites_with_scope)
     end
   end
 

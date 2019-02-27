@@ -217,6 +217,13 @@ class AuthorAddress < ActiveRecord::Base
 end
 
 class AuthorFavorite < ActiveRecord::Base
+  belongs_to :author
+  belongs_to :favorite_author, class_name: "Author"
+end
+
+class AuthorFavoriteWithScope < ActiveRecord::Base
+  self.table_name = "author_favorites"
+
   default_scope { order(id: :asc) }
 
   belongs_to :author
