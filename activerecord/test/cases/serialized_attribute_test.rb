@@ -2,27 +2,30 @@
 
 require "cases/helper"
 require "models/topic"
-require "models/reply"
 require "models/person"
 require "models/traffic_light"
 require "models/post"
 require "bcrypt"
 
 class SerializedAttributeTest < ActiveRecord::TestCase
-  fixtures :topics, :posts
+  fixtures :posts
 
   MyObject = Struct.new :attribute1, :attribute2
 
-  # NOTE: Use a duplicate of Topic so attribute
-  # changes don't bleed into other tests
-  Topic = ::Topic.dup
+  class Topic < ActiveRecord::Base
+    serialize :content
+  end
+
+  class ImportantTopic < Topic
+    serialize :important, Hash
+  end
 
   teardown do
     Topic.serialize("content")
   end
 
   def test_serialize_does_not_eagerly_load_columns
-    reset_column_information_of(Topic)
+    Topic.reset_column_information
     assert_no_queries do
       Topic.serialize(:content)
     end
@@ -53,10 +56,10 @@ class SerializedAttributeTest < ActiveRecord::TestCase
   def test_serialized_attributes_from_database_on_subclass
     Topic.serialize :content, Hash
 
-    t = Reply.new(content: { foo: :bar })
+    t = ImportantTopic.new(content: { foo: :bar })
     assert_equal({ foo: :bar }, t.content)
     t.save!
-    t = Reply.last
+    t = ImportantTopic.last
     assert_equal({ foo: :bar }, t.content)
   end
 
@@ -371,14 +374,13 @@ class SerializedAttributeTest < ActiveRecord::TestCase
   end
 
   def test_serialized_attribute_works_under_concurrent_initial_access
-    model = ::Topic.dup
+    model = Topic.dup
 
-    topic = model.last
+    topic = model.create!
     topic.update group: "1"
 
     model.serialize :group, JSON
-
-    reset_column_information_of(model)
+    model.reset_column_information
 
     # This isn't strictly necessary for the test, but a little bit of
     # knowledge of internals allows us to make failures far more likely.
@@ -398,12 +400,4 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     # raw string ("1"), or raise an exception.
     assert_equal [1] * threads.size, threads.map(&:value)
   end
-
-  private
-
-    def reset_column_information_of(topic_class)
-      topic_class.reset_column_information
-      # reset original topic to undefine attribute methods
-      ::Topic.reset_column_information
-    end
 end

@@ -119,10 +119,6 @@ class Topic < ActiveRecord::Base
     end
 end
 
-class ImportantTopic < Topic
-  serialize :important, Hash
-end
-
 class DefaultRejectedTopic < Topic
   default_scope -> { where(approved: false) }
 end
