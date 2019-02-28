@@ -22,14 +22,14 @@ module ActiveModel
         end
 
         def apply_seconds_precision(value)
-          if precision && value.respond_to?(:usec) && value.usec.positive?
+          if precision && value_is_rounding_candidate?(value)
             number_of_insignificant_digits = 6 - precision
             round_power = 10**number_of_insignificant_digits
             updated_usec = value.usec - value.usec % round_power
-            return value.change(usec: updated_usec) if updated_usec != value.usec
+            value.change(usec: updated_usec)
+          else
+            value
           end
-
-          value
         end
 
         def type_cast_for_schema(value)
@@ -41,6 +41,11 @@ module ActiveModel
         end
 
         private
+
+          def value_is_rounding_candidate?(value)
+            value.respond_to?(:usec) &&
+              (value.usec.positive? || value.respond_to?(:nsec) && (value.nsec % 1000).positive?)
+          end
 
           def new_time(year, mon, mday, hour, min, sec, microsec, offset = nil)
             # Treat 0000-00-00 00:00:00 as nil.
