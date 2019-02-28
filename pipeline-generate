@@ -6,7 +6,8 @@ require "net/http"
 require "pathname"
 require "yaml"
 
-IMAGE_BASE = "973266071021.dkr.ecr.us-east-1.amazonaws.com/builds"
+QUEUE = ENV["BUILDKITE_AGENT_META_DATA_QUEUE"] || "default"
+IMAGE_BASE = "973266071021.dkr.ecr.us-east-1.amazonaws.com/#{"#{QUEUE}-" unless QUEUE == 'default'}builds"
 
 BASE_BRANCH = ([ENV["BUILDKITE_PULL_REQUEST_BASE_BRANCH"], ENV["BUILDKITE_BRANCH"], "master"] - [""]).first
 LOCAL_BRANCH = ([ENV["BUILDKITE_BRANCH"], "master"] - [""]).first
@@ -110,6 +111,7 @@ def step_for(subdirectory, rake_task, ruby: nil, service: "default")
     },
     "timeout_in_minutes" => timeout,
     "soft_fail" => ruby == TRUNK_RUBY,
+    "agents" => { "queue" => QUEUE },
   }
 
   yield hash if block_given?
@@ -230,6 +232,7 @@ puts YAML.dump("steps" => [
           },
           "timeout_in_minutes" => 15,
           "soft_fail" => ruby == TRUNK_RUBY,
+          "agents" => { "queue" => QUEUE },
         }
       end,
     ],
