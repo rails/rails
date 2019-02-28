@@ -20,7 +20,7 @@ module Rails
 
     private
       def new_mail
-        Mail.new(params.require(:mail).permit(:from, :to, :cc, :bcc, :in_reply_to, :subject, :body).to_h).tap do |mail|
+        Mail.new(params.require(:mail).permit(:from, :to, :cc, :bcc, :in_reply_to, :subject, :body, attachments: []).to_h).tap do |mail|
           params[:mail][:attachments].to_a.each do |attachment|
             mail.add_file(filename: attachment.path, content: attachment.read)
           end
