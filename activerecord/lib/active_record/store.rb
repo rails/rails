@@ -37,13 +37,20 @@ module ActiveRecord
   #     store :settings, accessors: [ :login_retry ], suffix: :config
   #   end
   #
-  #   u = User.new(color: 'black', homepage: '37signals.com', parent_name: 'Mary', partner_name: 'Lily')
-  #   u.color                          # Accessor stored attribute
-  #   u.parent_name                    # Accessor stored attribute with prefix
-  #   u.partner_name                   # Accessor stored attribute with custom prefix
-  #   u.two_factor_auth_settings       # Accessor stored attribute with suffix
-  #   u.login_retry_config             # Accessor stored attribute with custom suffix
-  #   u.settings[:country] = 'Denmark' # Any attribute, even if not specified with an accessor
+  #   u = User.new(
+  #                color:        'black',
+  #                homepage:     '37signals.com',
+  #                parent_name:  'Mary',
+  #                partner_name: 'Lily',
+  #                two_factor_auth_settings: 'two_factor'
+  #                login_retry_config: 'login_retry'
+  #       )
+  #   u.color                          # => 'black' # Accessor stored attribute
+  #   u.parent_name                    # => 'Mary' # Accessor stored attribute with prefix
+  #   u.partner_name                   # => 'Lily' # Accessor stored attribute with custom prefix
+  #   u.two_factor_auth_settings       # => 'two_factor' # Accessor stored attribute with suffix
+  #   u.login_retry_config             # => 'login_retry' # Accessor stored attribute with custom suffix
+  #   u.settings[:country] = 'Denmark' # => 'Denmark' # Any attribute, even if not specified with an accessor
   #
   #   # There is no difference between strings and symbols for accessing custom attributes
   #   u.settings[:country]  # => 'Denmark'
