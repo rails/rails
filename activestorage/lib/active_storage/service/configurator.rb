@@ -1,6 +1,9 @@
 # frozen_string_literal: true
 
 module ActiveStorage
+  class MissingAdapterError < StandardError
+  end
+
   class Service::Configurator #:nodoc:
     attr_reader :configurations
 
@@ -27,8 +30,6 @@ module ActiveStorage
       def resolve(class_name)
         require "active_storage/service/#{class_name.to_s.underscore}_service"
         ActiveStorage::Service.const_get(:"#{class_name.camelize}Service")
-      rescue LoadError
-        raise "Missing service adapter for #{class_name.inspect}"
       end
   end
 end

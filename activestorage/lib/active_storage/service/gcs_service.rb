@@ -1,7 +1,16 @@
 # frozen_string_literal: true
 
-gem "google-cloud-storage", "~> 1.11"
-require "google/cloud/storage"
+begin
+  gem "google-cloud-storage", "~> 1.11"
+  require "google/cloud/storage"
+rescue LoadError, Gem::LoadError
+  raise(
+    ActiveStorage::MissingAdapterError,
+    "Add the google-cloud-storage (~> 1.11) gem to your Gemfile " \
+    "in order to use the GCS service:\n\n" \
+    "  gem \"google-cloud-storage\", \"~> 1.11\", require: false"
+  )
+end
 
 module ActiveStorage
   # Wraps the Google Cloud Storage as an Active Storage service. See ActiveStorage::Service for the generic API

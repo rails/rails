@@ -1,8 +1,18 @@
 # frozen_string_literal: true
 
 require "active_support/core_ext/numeric/bytes"
-require "azure/storage"
-require "azure/storage/core/auth/shared_access_signature"
+
+begin
+  require "azure/storage"
+  require "azure/storage/core/auth/shared_access_signature"
+rescue LoadError
+  raise(
+    ActiveStorage::MissingAdapterError,
+    "Add the azure-storage gem to your Gemfile " \
+    "in order to use the Azure Storage service:\n\n" \
+    "  gem \"azure-storage\", require: false"
+  )
+end
 
 module ActiveStorage
   # Wraps the Microsoft Azure Storage Blob Service as an Active Storage service.

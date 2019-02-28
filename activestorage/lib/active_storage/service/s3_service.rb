@@ -1,6 +1,16 @@
 # frozen_string_literal: true
 
-require "aws-sdk-s3"
+begin
+  require "aws-sdk-s3"
+rescue LoadError
+  raise(
+    ActiveStorage::MissingAdapterError,
+    "Add the aws-sdk-s3 gem to your Gemfile " \
+    "in order to use the S3 service:\n\n" \
+    "  gem \"aws-sdk-s3\", require: false"
+  )
+end
+
 require "active_support/core_ext/numeric/bytes"
 
 module ActiveStorage
