@@ -7,7 +7,7 @@ require "pathname"
 require "yaml"
 
 QUEUE = ENV["BUILDKITE_AGENT_META_DATA_QUEUE"] || "default"
-IMAGE_BASE = "973266071021.dkr.ecr.us-east-1.amazonaws.com/#{"#{QUEUE}-" unless QUEUE == 'default'}builds"
+IMAGE_BASE = ENV["DOCKER_IMAGE"] || "973266071021.dkr.ecr.us-east-1.amazonaws.com/#{"#{QUEUE}-" unless QUEUE == 'default'}builds"
 
 BASE_BRANCH = ([ENV["BUILDKITE_PULL_REQUEST_BASE_BRANCH"], ENV["BUILDKITE_BRANCH"], "master"] - [""]).first
 LOCAL_BRANCH = ([ENV["BUILDKITE_BRANCH"], "master"] - [""]).first
