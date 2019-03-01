@@ -374,7 +374,7 @@ class SerializedAttributeTest < ActiveRecord::TestCase
   end
 
   def test_serialized_attribute_works_under_concurrent_initial_access
-    model = Topic.dup
+    model = Class.new(Topic)
 
     topic = model.create!
     topic.update group: "1"
