@@ -54,17 +54,36 @@ if ActiveRecord::Base.connection.prepared_statements
         @connection.disable_query_cache!
       end
 
+      def test_statement_cache_with_find
+        @connection.clear_cache!
+
+        assert_equal 1, Topic.find(1).id
+        assert_raises(RecordNotFound) { SillyReply.find(2) }
+
+        topic_sql = cached_statement(Topic, Topic.primary_key)
+        assert_includes statement_cache, to_sql_key(topic_sql)
+
+        e = assert_raise { cached_statement(SillyReply, SillyReply.primary_key) }
+        assert_equal "SillyReply has no cached statement by \"id\"", e.message
+
+        replies = SillyReply.where(id: 2).limit(1)
+        assert_includes statement_cache, to_sql_key(replies.arel)
+      end
+
       def test_statement_cache_with_find_by
         @connection.clear_cache!
 
         assert_equal 1, Topic.find_by!(id: 1).id
-        assert_equal 2, Reply.find_by!(id: 2).id
+        assert_raises(RecordNotFound) { SillyReply.find_by!(id: 2) }
 
         topic_sql = cached_statement(Topic, [:id])
         assert_includes statement_cache, to_sql_key(topic_sql)
 
-        e = assert_raise { cached_statement(Reply, [:id]) }
-        assert_equal "Reply has no cached statement by [:id]", e.message
+        e = assert_raise { cached_statement(SillyReply, [:id]) }
+        assert_equal "SillyReply has no cached statement by [:id]", e.message
+
+        replies = SillyReply.where(id: 2).limit(1)
+        assert_includes statement_cache, to_sql_key(replies.arel)
       end
 
       def test_statement_cache_with_in_clause
