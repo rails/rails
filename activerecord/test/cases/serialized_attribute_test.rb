@@ -8,7 +8,7 @@ require "models/post"
 require "bcrypt"
 
 class SerializedAttributeTest < ActiveRecord::TestCase
-  fixtures :posts
+  fixtures :topics, :posts
 
   MyObject = Struct.new :attribute1, :attribute2
 
