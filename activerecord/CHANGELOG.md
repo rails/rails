@@ -382,6 +382,12 @@
 
     *Federico Martinez*
 
+*   Add `reselect` method. This is a short-hand for `unscope(:select).select(fields)`.
+
+    Fixes #27340.
+
+    *Willian Gustavo Veiga*
+
 *   Add basic API for connection switching to support multiple databases.
 
     1) Adds a `connects_to` method for models to connect to multiple databases. Example:
