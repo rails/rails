@@ -384,6 +384,23 @@ class DeprecationTest < ActiveSupport::TestCase
     assert_difference("deprecator.messages.size") { klass.new.old_request.to_s }
   end
 
+  def test_deprecated_instance_variable_with_given_message
+    deprecator = deprecator_with_messages
+
+    klass = Class.new do
+      define_method(:initialize) do
+        @request = ActiveSupport::Deprecation::DeprecatedInstanceVariableProxy.new(self, :request, :@request, deprecator, "Do not use this instance variable.")
+        @_request = :a_request
+      end
+      def request; @_request end
+      def old_request; @request end
+    end
+
+    klass.new.old_request.to_s
+    assert_match(/Do not use this instance variable./, deprecator.messages.last)
+  end
+
+
   def test_delegate_deprecator_instance
     klass = Class.new do
       attr_reader :last_message

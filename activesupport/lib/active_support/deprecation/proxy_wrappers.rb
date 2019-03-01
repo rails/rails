@@ -86,11 +86,12 @@ module ActiveSupport
     #   example.request.to_s
     #   # => "special_request"
     class DeprecatedInstanceVariableProxy < DeprecationProxy
-      def initialize(instance, method, var = "@#{method}", deprecator = ActiveSupport::Deprecation.instance)
+      def initialize(instance, method, var = "@#{method}", deprecator = ActiveSupport::Deprecation.instance, message = nil)
         @instance = instance
         @method = method
         @var = var
         @deprecator = deprecator
+        @message = message
       end
 
       private
@@ -99,7 +100,10 @@ module ActiveSupport
         end
 
         def warn(callstack, called, args)
-          @deprecator.warn("#{@var} is deprecated! Call #{@method}.#{called} instead of #{@var}.#{called}. Args: #{args.inspect}", callstack)
+          message = @message || "#{@var} is deprecated! Call #{@method}.#{called} instead of #{@var}.#{called}."
+          message = [message, "Args: #{args.inspect}"].join(" ")
+
+          @deprecator.warn(message, callstack)
         end
     end
 
