@@ -1,11 +1,9 @@
 # frozen_string_literal: true
 
 require "cases/helper"
-require "models/topic"
 require "models/person"
 require "models/traffic_light"
 require "models/post"
-require "bcrypt"
 
 class SerializedAttributeTest < ActiveRecord::TestCase
   fixtures :topics, :posts
