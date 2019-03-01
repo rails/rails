@@ -121,11 +121,11 @@ class LookupContextTest < ActiveSupport::TestCase
     assert_equal "Hello texty phone!", template.source
   end
 
-  test "found templates respects given formats if one cannot be found from template or handler" do
+  test "found templates have nil format if one cannot be found from template or handler" do
     assert_called(ActionView::Template::Handlers::Builder, :default_format, returns: nil) do
       @lookup_context.formats = [:text]
       template = @lookup_context.find("hello", %w(test))
-      assert_equal :text, template.format
+      assert_nil template.format
     end
   end
 
