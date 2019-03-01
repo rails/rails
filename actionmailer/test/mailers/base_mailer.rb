@@ -62,6 +62,10 @@ class BaseMailer < ActionMailer::Base
     mail(hash)
   end
 
+  def implicit_multipart_formats(hash = {})
+    mail(hash)
+  end
+
   def implicit_with_locale(hash = {})
     mail(hash)
   end
