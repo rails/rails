@@ -974,9 +974,8 @@ module ActionMailer
 
         each_template(Array(templates_path), templates_name).map do |template|
           format = template.format || self.formats.first
-          self.formats = [format]
           {
-            body: render(template: template),
+            body: render(template: template, formats: [format]),
             content_type: Mime[format].to_s
           }
         end
