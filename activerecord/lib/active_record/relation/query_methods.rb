@@ -1091,12 +1091,15 @@ module ActiveRecord
         field = klass.attribute_alias(field) if klass.attribute_alias?(field)
         from = from_clause.name || from_clause.value
 
-        if klass.columns_hash.key?(field) &&
-            (!from || from == table.name || from == connection.quote_table_name(table.name))
+        if klass.columns_hash.key?(field) && (!from || table_name_matches?(from))
           arel_attribute(field)
         else
           yield
         end
+      end
+
+      def table_name_matches?(from)
+        /(?:\A|(?<!FROM)\s)(?:\b#{table.name}\b|#{connection.quote_table_name(table.name)})(?!\.)/i.match?(from.to_s)
       end
 
       def reverse_sql_order(order_query)

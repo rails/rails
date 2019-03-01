@@ -182,27 +182,27 @@ class RelationTest < ActiveRecord::TestCase
     end
   end
 
-  def test_select_with_original_table_name_in_from
+  def test_select_with_from_includes_original_table_name
     relation = Comment.joins(:post).select(:id).order(:id)
-    subquery = Comment.from(Comment.table_name).joins(:post).select(:id).order(:id)
+    subquery = Comment.from("#{Comment.table_name} /*! USE INDEX (PRIMARY) */").joins(:post).select(:id).order(:id)
     assert_equal relation.map(&:id), subquery.map(&:id)
   end
 
-  def test_pluck_with_original_table_name_in_from
+  def test_pluck_with_from_includes_original_table_name
     relation = Comment.joins(:post).order(:id)
-    subquery = Comment.from(Comment.table_name).joins(:post).order(:id)
+    subquery = Comment.from("#{Comment.table_name} /*! USE INDEX (PRIMARY) */").joins(:post).order(:id)
     assert_equal relation.pluck(:id), subquery.pluck(:id)
   end
 
-  def test_select_with_quoted_original_table_name_in_from
+  def test_select_with_from_includes_quoted_original_table_name
     relation = Comment.joins(:post).select(:id).order(:id)
-    subquery = Comment.from(Comment.quoted_table_name).joins(:post).select(:id).order(:id)
+    subquery = Comment.from("#{Comment.quoted_table_name} /*! USE INDEX (PRIMARY) */").joins(:post).select(:id).order(:id)
     assert_equal relation.map(&:id), subquery.map(&:id)
   end
 
-  def test_pluck_with_quoted_original_table_name_in_from
+  def test_pluck_with_from_includes_quoted_original_table_name
     relation = Comment.joins(:post).order(:id)
-    subquery = Comment.from(Comment.quoted_table_name).joins(:post).order(:id)
+    subquery = Comment.from("#{Comment.quoted_table_name} /*! USE INDEX (PRIMARY) */").joins(:post).order(:id)
     assert_equal relation.pluck(:id), subquery.pluck(:id)
   end
 
@@ -221,13 +221,25 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_select_with_subquery_in_from_does_not_use_original_table_name
     relation = Comment.group(:type).select("COUNT(post_id) AS post_count, type")
-    subquery = Comment.from(relation).select("type", "post_count")
+    subquery = Comment.from(relation, "grouped_#{Comment.table_name}").select("type", "post_count")
     assert_equal(relation.map(&:post_count).sort, subquery.map(&:post_count).sort)
   end
 
   def test_group_with_subquery_in_from_does_not_use_original_table_name
     relation = Comment.group(:type).select("COUNT(post_id) AS post_count,type")
-    subquery = Comment.from(relation).group("type").average("post_count")
+    subquery = Comment.from(relation, "grouped_#{Comment.table_name}").group("type").average("post_count")
+    assert_equal(relation.map(&:post_count).sort, subquery.values.sort)
+  end
+
+  def test_select_with_subquery_string_in_from_does_not_use_original_table_name
+    relation = Comment.group(:type).select("COUNT(post_id) AS post_count, type")
+    subquery = Comment.from("(#{relation.to_sql}) #{Comment.table_name}_grouped").select("type", "post_count")
+    assert_equal(relation.map(&:post_count).sort, subquery.map(&:post_count).sort)
+  end
+
+  def test_group_with_subquery_string_in_from_does_not_use_original_table_name
+    relation = Comment.group(:type).select("COUNT(post_id) AS post_count,type")
+    subquery = Comment.from("(#{relation.to_sql}) #{Comment.table_name}_grouped").group("type").average("post_count")
     assert_equal(relation.map(&:post_count).sort, subquery.values.sort)
   end
 
