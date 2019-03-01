@@ -3338,6 +3338,26 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal "0c0c0b68-d24b-11e1-a861-001ff3fffe6f", @request.params[:download]
   end
 
+  def test_explicit_custom_param
+    draw do
+      resources :profiles, param: :profile_username do
+        get :details, on: :member
+        resources :messages
+      end
+    end
+
+    get "/profiles/bob"
+    assert_equal "profiles#show", @response.body
+    assert_equal "bob", @request.params[:profile_username]
+
+    get "/profiles/bob/details"
+    assert_equal "bob", @request.params[:profile_username]
+
+    get "/profiles/bob/messages/34"
+    assert_equal "bob", @request.params[:profile_username]
+    assert_equal "34", @request.params[:id]
+  end
+
   def test_action_from_path_is_not_frozen
     draw do
       get "search" => "search"

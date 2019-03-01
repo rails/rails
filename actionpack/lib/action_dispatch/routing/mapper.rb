@@ -1214,6 +1214,7 @@ module ActionDispatch
           end
 
           def nested_param
+            return param if param.to_s.start_with?("#{singular}_")
             :"#{singular}_#{param}"
           end
 
