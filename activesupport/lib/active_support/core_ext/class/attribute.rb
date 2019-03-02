@@ -102,9 +102,7 @@ class Class
 
       singleton_class.silence_redefinition_of_method("#{name}=")
       define_singleton_method("#{name}=") do |val|
-        singleton_class.class_eval do
-          redefine_method(name) { val }
-        end
+        redefine_singleton_method(name) { val }
 
         if singleton_class?
           class_eval do
