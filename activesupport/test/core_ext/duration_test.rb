@@ -66,6 +66,12 @@ class DurationTest < ActiveSupport::TestCase
     assert_equal "1 month and 1 day",               (1.month + 1.day).inspect
     assert_equal "6 months and -2 days",            (6.months - 2.days).inspect
     assert_equal "10 seconds",                      10.seconds.inspect
+    assert_equal "6 minutes and 40 seconds",        (5.minutes + 100.seconds).inspect
+    assert_equal "6 hours and 40 minutes",          (5.hours + 100.minutes).inspect
+    assert_equal "1 day and 1 hour",                25.hours.inspect
+    assert_equal "1 day, 1 minute, and 40 seconds", (1.day + 100.seconds).inspect
+    assert_equal "1 hour, 1 minute, and 5 seconds", (1.hour + 65.seconds).inspect
+    assert_equal "1 year and 2 months",             14.months.inspect
     assert_equal "10 years, 2 months, and 1 day",   (10.years + 2.months + 1.day).inspect
     assert_equal "10 years, 2 months, and 1 day",   (10.years + 1.month  + 1.day + 1.month).inspect
     assert_equal "10 years, 2 months, and 1 day",   (1.day + 10.years + 2.months).inspect

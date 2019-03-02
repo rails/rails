@@ -122,6 +122,13 @@ module ActiveSupport
       years:   SECONDS_PER_YEAR
     }.freeze
 
+    TIME_MODULOS = {
+      months: 12,
+      hours: 24,
+      minutes: 60,
+      seconds: 60
+    }.freeze
+
     PARTS = [:years, :months, :weeks, :days, :hours, :minutes, :seconds].freeze
 
     attr_accessor :value, :parts
@@ -374,7 +381,7 @@ module ActiveSupport
     def inspect #:nodoc:
       return "0 seconds" if parts.empty?
 
-      parts.
+      rounded_parts.
         sort_by { |unit,  _ | PARTS.index(unit) }.
         map     { |unit, val| "#{val} #{val == 1 ? unit.to_s.chop : unit.to_s}" }.
         to_sentence(locale: ::I18n.default_locale)
@@ -416,6 +423,29 @@ module ActiveSupport
             raise ::ArgumentError, "expected a time or date, got #{time.inspect}"
           end
         end
+      end
+
+      def rounded_parts
+        parts = self.parts.dup
+        overflow = 0
+
+        PARTS.reverse_each do |part|
+          if overflow != 0
+            parts[part] ||= 0
+            parts[part] += overflow
+            overflow = 0
+          end
+
+          part_value = parts[part].to_i
+          part_modulo = TIME_MODULOS[part]
+
+          if part_value != 0 && part_modulo
+            overflow = part_value / part_modulo
+            parts[part] = part_value % part_modulo
+          end
+        end
+
+        parts
       end
 
       def respond_to_missing?(method, _)
