@@ -1,3 +1,7 @@
+*   Quote empty ranges like other empty enumerables.
+
+    *Patrick Rebsch*
+
 *   Add `insert_all`/`insert_all!`/`upsert_all` methods to `ActiveRecord::Persistence`,
     allowing bulk inserts akin to the bulk updates provided by `update_all` and
     bulk deletes by `delete_all`.
