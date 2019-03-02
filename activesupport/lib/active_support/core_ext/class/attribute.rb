@@ -94,7 +94,7 @@ class Class
   )
     attrs.each do |name|
       singleton_class.silence_redefinition_of_method(name)
-      define_singleton_method(name) { nil }
+      define_singleton_method(name) { default }
 
       singleton_class.silence_redefinition_of_method("#{name}?")
       define_singleton_method("#{name}?") { !!public_send(name) } if instance_predicate
@@ -135,10 +135,6 @@ class Class
         redefine_method("#{name}=") do |val|
           instance_variable_set ivar, val
         end
-      end
-
-      unless default.nil?
-        self.send("#{name}=", default)
       end
     end
   end
