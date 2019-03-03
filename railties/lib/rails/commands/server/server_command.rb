@@ -6,6 +6,7 @@ require "rails"
 require "active_support/deprecation"
 require "active_support/core_ext/string/filters"
 require "rails/dev_caching"
+require "rails/command/environment_argument"
 
 module Rails
   class Server < ::Rack::Server
@@ -91,6 +92,8 @@ module Rails
 
   module Command
     class ServerCommand < Base # :nodoc:
+      include EnvironmentArgument
+
       # Hard-coding a bunch of handlers here as we don't have a public way of
       # querying them from the Rack::Handler registry.
       RACK_SERVERS = %w(cgi fastcgi webrick lsws scgi thin puma unicorn)
@@ -109,8 +112,6 @@ module Rails
         desc: "Uses a custom rackup configuration.", banner: :file
       class_option :daemon, aliases: "-d", type: :boolean, default: false,
         desc: "Runs server as a Daemon."
-      class_option :environment, aliases: "-e", type: :string,
-        desc: "Specifies the environment to run this server under (development/test/production).", banner: :name
       class_option :using, aliases: "-u", type: :string,
         desc: "Specifies the Rack server used to run the application (thin/puma/webrick).", banner: :name
       class_option :pid, aliases: "-P", type: :string, default: DEFAULT_PID_PATH,
@@ -130,6 +131,7 @@ module Rails
       end
 
       def perform
+        extract_environment_option_from_argument
         set_application_directory!
         prepare_restart
 
