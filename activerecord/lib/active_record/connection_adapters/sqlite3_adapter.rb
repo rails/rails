@@ -96,8 +96,7 @@ module ActiveRecord
       def initialize(connection, logger, connection_options, config)
         super(connection, logger, config)
 
-        @active     = true
-        @statements = StatementPool.new(self.class.type_cast_config_to_integer(config[:statement_limit]))
+        @active = true
         configure_connection
       end
 
@@ -154,11 +153,6 @@ module ActiveRecord
         super
         @active = false
         @connection.close rescue nil
-      end
-
-      # Clears the prepared statements cache.
-      def clear_cache!
-        @statements.clear
       end
 
       def truncate(table_name, name = nil)
@@ -611,6 +605,10 @@ module ActiveRecord
 
         def arel_visitor
           Arel::Visitors::SQLite.new(self)
+        end
+
+        def build_statement_pool
+          StatementPool.new(self.class.type_cast_config_to_integer(@config[:statement_limit]))
         end
 
         def configure_connection

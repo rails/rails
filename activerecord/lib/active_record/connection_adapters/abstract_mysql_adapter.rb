@@ -53,8 +53,6 @@ module ActiveRecord
 
       def initialize(connection, logger, connection_options, config)
         super(connection, logger, config)
-
-        @statements = StatementPool.new(self.class.type_cast_config_to_integer(config[:statement_limit]))
       end
 
       def version #:nodoc:
@@ -162,10 +160,9 @@ module ActiveRecord
 
       # CONNECTION MANAGEMENT ====================================
 
-      # Clears the prepared statements cache.
-      def clear_cache!
+      def clear_cache! # :nodoc:
         reload_type_map
-        @statements.clear
+        super
       end
 
       #--
@@ -804,6 +801,10 @@ module ActiveRecord
 
         def arel_visitor
           Arel::Visitors::MySQL.new(self)
+        end
+
+        def build_statement_pool
+          StatementPool.new(self.class.type_cast_config_to_integer(@config[:statement_limit]))
         end
 
         def mismatched_foreign_key(message, sql:, binds:)
