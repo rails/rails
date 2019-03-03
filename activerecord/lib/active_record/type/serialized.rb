@@ -30,11 +30,8 @@ module ActiveRecord
         Kernel.instance_method(:inspect).bind(self).call
       end
 
-      def changed_in_place?(raw_old_value, value)
-        return false if value.nil?
-        raw_new_value = encoded(value)
-        raw_old_value.nil? != raw_new_value.nil? ||
-          subtype.changed_in_place?(raw_old_value, raw_new_value)
+      def changed_in_place?(raw_old_value, new_value)
+        deserialize(raw_old_value) != new_value
       end
 
       def accessor
