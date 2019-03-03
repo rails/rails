@@ -20,10 +20,8 @@ module ActiveRecord
       end
 
       def serialize(value)
-        return if value.nil?
-        unless default_value?(value)
-          super coder.dump(value)
-        end
+        return if null_equivalent?(value)
+        super coder.dump(value)
       end
 
       def inspect
@@ -50,8 +48,8 @@ module ActiveRecord
 
       private
 
-        def default_value?(value)
-          value == coder.load(nil)
+        def null_equivalent?(value)
+          value.nil? || value == coder.load(nil)
         end
 
         def encoded(value)
