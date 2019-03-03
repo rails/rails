@@ -24,7 +24,8 @@ module ActiveRecord
         # Otherwise SerializationTypeMismatch will be raised.
         #
         # Empty objects as <tt>{}</tt>, in the case of +Hash+, or <tt>[]</tt>, in the case of
-        # +Array+, will always be persisted as null.
+        # +Array+, will always be persisted as null. Therefore, database schema must allow null
+        # as default.
         #
         # Keep in mind that database adapters handle certain serialization tasks
         # for you. For instance: +json+ and +jsonb+ types in PostgreSQL will be
