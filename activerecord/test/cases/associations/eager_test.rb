@@ -1271,12 +1271,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
   def test_include_has_many_using_primary_key
     expected = Firm.find(1).clients_using_primary_key.sort_by(&:name)
-    # Oracle adapter truncates alias to 30 characters
-    if current_adapter?(:OracleAdapter)
-      firm = Firm.all.merge!(includes: :clients_using_primary_key, order: "clients_using_primary_keys_companies"[0, 30] + ".name").find(1)
-    else
-      firm = Firm.all.merge!(includes: :clients_using_primary_key, order: "clients_using_primary_keys_companies.name").find(1)
-    end
+    firm = Firm.all.merge!(includes: :clients_using_primary_key, order: "clients_using_primary_keys_companies.name").find(1)
     assert_no_queries do
       assert_equal expected, firm.clients_using_primary_key
     end
