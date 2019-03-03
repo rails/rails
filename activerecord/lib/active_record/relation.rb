@@ -338,6 +338,8 @@ module ActiveRecord
     # trigger Active Record callbacks or validations. However, values passed to #update_all will still go through
     # Active Record's normal type casting and serialization.
     #
+    # Note: As Active Record callbacks are not triggered, this method will not automatically update +updated_at+/+updated_on+ columns.
+    #
     # ==== Parameters
     #
     # * +updates+ - A string, array, or hash representing the SET part of an SQL statement.
