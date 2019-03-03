@@ -51,12 +51,6 @@ module ActiveRecord
         def null_equivalent?(value)
           value.nil? || value == coder.load(nil)
         end
-
-        def encoded(value)
-          unless default_value?(value)
-            coder.dump(value)
-          end
-        end
     end
   end
 end
