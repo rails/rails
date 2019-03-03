@@ -868,7 +868,6 @@ module ActionDispatch
           if app.matches?(req) && app.dispatcher?
             begin
               req.controller_class
-              req.action_name
             rescue NameError
               raise ActionController::RoutingError, "A route matches #{path.inspect}, but references missing controller: #{params[:controller].camelize}Controller"
             end
