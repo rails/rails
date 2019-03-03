@@ -56,7 +56,7 @@ module ActiveRecord
       :where, :rewhere, :preload, :eager_load, :includes, :from, :lock, :readonly, :extending,
       :having, :create_with, :distinct, :references, :none, :unscope, :merge,
       :count, :average, :minimum, :maximum, :sum, :calculate,
-      :pluck, :pick, :ids,
+      :pluck, :pick, :ids, :reselect,
     ]
 
     def test_delegate_querying_methods

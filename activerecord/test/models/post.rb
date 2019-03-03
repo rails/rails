@@ -212,6 +212,12 @@ class FirstPost < ActiveRecord::Base
   has_one  :comment,  foreign_key: :post_id
 end
 
+class PostWithDefaultSelect < ActiveRecord::Base
+  self.table_name = "posts"
+
+  default_scope { select(:author_id) }
+end
+
 class TaggedPost < Post
   has_many :taggings, -> { rewhere(taggable_type: "TaggedPost") }, as: :taggable
   has_many :tags, through: :taggings

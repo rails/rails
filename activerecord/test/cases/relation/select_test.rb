@@ -16,5 +16,12 @@ module ActiveRecord
       expected = Post.select(:title).to_sql
       assert_equal expected, Post.select(:title, :body).reselect(:title).to_sql
     end
+
+    def test_reselect_with_default_scope_select
+      expected = Post.select(:title).to_sql
+      actual   = PostWithDefaultSelect.reselect(:title).to_sql
+
+      assert_equal expected, actual
+    end
   end
 end
