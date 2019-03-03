@@ -16,11 +16,7 @@ module ActiveRecord
       end
 
       def deserialize(value)
-        if default_value?(value)
-          value
-        else
-          coder.load(super)
-        end
+        coder.load(super)
       end
 
       def serialize(value)
