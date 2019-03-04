@@ -106,17 +106,17 @@ module ActionView
         I18n.with_options locale: options[:locale], scope: options[:scope] do |locale|
           case distance_in_minutes
           when 0..1
-            return distance_in_minutes == 0 ?
-                   locale.t(:less_than_x_minutes, count: 1) :
-                   locale.t(:x_minutes, count: distance_in_minutes) unless options[:include_seconds]
-
-            case distance_in_seconds
-            when 0..4   then locale.t :less_than_x_seconds, count: 5
-            when 5..9   then locale.t :less_than_x_seconds, count: 10
-            when 10..19 then locale.t :less_than_x_seconds, count: 20
-            when 20..39 then locale.t :half_a_minute
-            when 40..59 then locale.t :less_than_x_minutes, count: 1
-            else             locale.t :x_minutes,           count: 1
+            if options[:include_seconds]
+              case distance_in_seconds
+              when 0..4   then locale.t :less_than_x_seconds, count: 5
+              when 5..9   then locale.t :less_than_x_seconds, count: 10
+              when 10..19 then locale.t :less_than_x_seconds, count: 20
+              when 20..39 then locale.t :half_a_minute
+              when 40..59 then locale.t :less_than_x_minutes, count: 1
+              else             locale.t :x_minutes,           count: 1
+              end
+            else
+              return(distance_in_minutes == 0 ? locale.t(:less_than_x_minutes, count: 1) : locale.t(:x_minutes, count: distance_in_minutes))
             end
 
           when 2...45           then locale.t :x_minutes,      count: distance_in_minutes
