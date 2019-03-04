@@ -1,15 +1,21 @@
+*   Add `reselect` method. This is a short-hand for `unscope(:select).select(fields)`.
+
+    Fixes #27340.
+
+    *Willian Gustavo Veiga*
+
 *   Add negative scopes for all enum values.
 
     Example:
-    
+
         class Post < ActiveRecord::Base
           enum status: %i[ drafted active trashed ]
         end
-  
+
         Post.not_drafted # => where.not(status: :drafted)
         Post.not_active  # => where.not(status: :active)
         Post.not_trashed # => where.not(status: :trashed)
-    
+
     *DHH*
 
 *   Fix different `count` calculation when using `size` with manual `select` with DISTINCT.
@@ -381,12 +387,6 @@
     Fixes #33056.
 
     *Federico Martinez*
-
-*   Add `reselect` method. This is a short-hand for `unscope(:select).select(fields)`.
-
-    Fixes #27340.
-
-    *Willian Gustavo Veiga*
 
 *   Add basic API for connection switching to support multiple databases.
 
