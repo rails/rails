@@ -122,15 +122,15 @@ module ActionView
           when 2...45           then locale.t :x_minutes,      count: distance_in_minutes
           when 45...90          then locale.t :about_x_hours,  count: 1
             # 90 mins up to 24 hours
-          when 90...1440        then locale.t :about_x_hours,  count: (distance_in_minutes.to_f / 60.0).round
+          when 90...1440        then locale.t :about_x_hours,  count: (distance_in_minutes / 60.0).round
             # 24 hours up to 42 hours
           when 1440...2520      then locale.t :x_days,         count: 1
             # 42 hours up to 30 days
-          when 2520...43200     then locale.t :x_days,         count: (distance_in_minutes.to_f / 1440.0).round
+          when 2520...43200     then locale.t :x_days,         count: (distance_in_minutes / 1440.0).round
             # 30 days up to 60 days
-          when 43200...86400    then locale.t :about_x_months, count: (distance_in_minutes.to_f / 43200.0).round
+          when 43200...86400    then locale.t :about_x_months, count: (distance_in_minutes / 43200.0).round
             # 60 days up to 365 days
-          when 86400...525600   then locale.t :x_months,       count: (distance_in_minutes.to_f / 43200.0).round
+          when 86400...525600   then locale.t :x_months,       count: (distance_in_minutes / 43200.0).round
           else
             from_year = from_time.year
             from_year += 1 if from_time.month >= 3
