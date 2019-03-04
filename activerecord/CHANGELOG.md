@@ -1,4 +1,4 @@
-*   Deprecate mismatched collation comparison for uniquness validator.
+*   Deprecate mismatched collation comparison for uniqueness validator.
 
     Uniqueness validator will no longer enforce case sensitive comparison in Rails 6.1.
     To continue case sensitive comparison on the case insensitive column,
