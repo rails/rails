@@ -66,6 +66,11 @@ db_namespace = namespace :db do
     end
   end
 
+  # desc "Truncates tables of each database for current environment"
+  task truncate_all: [:load_config, :check_protected_environments] do
+    ActiveRecord::Tasks::DatabaseTasks.truncate_all
+  end
+
   # desc "Empty the database from DATABASE_URL or config/database.yml for the current RAILS_ENV (use db:purge:all to purge all databases in the config). Without RAILS_ENV it defaults to purging the development and test databases."
   task purge: [:load_config, :check_protected_environments] do
     ActiveRecord::Tasks::DatabaseTasks.purge_current
@@ -221,6 +226,11 @@ db_namespace = namespace :db do
   task seed: :load_config do
     db_namespace["abort_if_pending_migrations"].invoke
     ActiveRecord::Tasks::DatabaseTasks.load_seed
+  end
+
+  namespace :seed do
+    desc "Truncates tables of each database for current environment and loads the seeds"
+    task replant: [:load_config, :truncate_all, :seed]
   end
 
   namespace :fixtures do

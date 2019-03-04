@@ -182,6 +182,24 @@ module ActiveRecord
         }
       end
 
+      def truncate_tables(configuration)
+        ActiveRecord::Base.connected_to(database: { truncation: configuration }) do
+          table_names = ActiveRecord::Base.connection.tables
+          internal_table_names = [
+            ActiveRecord::Base.schema_migrations_table_name,
+            ActiveRecord::Base.internal_metadata_table_name
+          ]
+
+          class_for_adapter(configuration["adapter"]).new(configuration).truncate_tables(*table_names.without(*internal_table_names))
+        end
+      end
+
+      def truncate_all(environment = env)
+        ActiveRecord::Base.configurations.configs_for(env_name: environment).each do |db_config|
+          truncate_tables db_config.config
+        end
+      end
+
       def migrate
         check_target_version
 

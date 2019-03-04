@@ -1,3 +1,12 @@
+*   Add `rails db:seed:replant` that truncates tables of each database
+    for current environment and loads the seeds.
+
+    *bogdanvlviv*, *DHH*
+
+*   Add `ActiveRecord::Base.connection.truncate` for SQLite3 adapter.
+
+    *bogdanvlviv*
+
 *   Deprecate mismatched collation comparison for uniqueness validator.
 
     Uniqueness validator will no longer enforce case sensitive comparison in Rails 6.1.

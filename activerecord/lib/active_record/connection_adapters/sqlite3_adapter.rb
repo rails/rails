@@ -154,6 +154,10 @@ module ActiveRecord
         @statements.clear
       end
 
+      def truncate(table_name, name = nil)
+        execute "DELETE FROM #{quote_table_name(table_name)}", name
+      end
+
       def supports_index_sort_order?
         true
       end
