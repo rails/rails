@@ -453,6 +453,20 @@ module ActiveRecord
         SQL
       end
 
+      def default_uniqueness_comparison(attribute, value, klass) # :nodoc:
+        column = column_for_attribute(attribute)
+
+        if column.collation && !column.case_sensitive?
+          ActiveSupport::Deprecation.warn(<<~MSG.squish)
+            Uniqueness validator will no longer enforce case sensitive comparison in Rails 6.1.
+            To continue case sensitive comparison on the :#{attribute.name} attribute in #{klass} model,
+            pass `case_sensitive: true` option explicitly to the uniqueness validator.
+          MSG
+        end
+
+        super
+      end
+
       def case_sensitive_comparison(attribute, value) # :nodoc:
         column = column_for_attribute(attribute)
 

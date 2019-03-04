@@ -1,3 +1,11 @@
+*   Deprecate mismatched collation comparison for uniquness validator.
+
+    Uniqueness validator will no longer enforce case sensitive comparison in Rails 6.1.
+    To continue case sensitive comparison on the case insensitive column,
+    pass `case_sensitive: true` option explicitly to the uniqueness validator.
+
+    *Ryuta Kamizono*
+
 *   Add `reselect` method. This is a short-hand for `unscope(:select).select(fields)`.
 
     Fixes #27340.

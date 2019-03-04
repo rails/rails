@@ -506,7 +506,7 @@ module ActiveRecord
         @connection
       end
 
-      def default_uniqueness_comparison(attribute, value) # :nodoc:
+      def default_uniqueness_comparison(attribute, value, klass) # :nodoc:
         case_sensitive_comparison(attribute, value)
       end
 
