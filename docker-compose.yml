@@ -14,6 +14,8 @@ services:
       CI:
       BUILDKITE_PARALLEL_JOB:
       BUILDKITE_PARALLEL_JOB_COUNT:
+      encrypted_0fb9444d0374_key:
+      encrypted_0fb9444d0374_iv:
 
       # Sauce Labs username and access key. Obfuscated, purposefully not encrypted.
       ENCODED: "U0FVQ0VfQUNDRVNTX0tFWT1hMDM1MzQzZi1lOTIyLTQwYjMtYWEzYy0wNmIzZWE2MzVjNDggU0FVQ0VfVVNFUk5BTUU9cnVieW9ucmFpbHM="

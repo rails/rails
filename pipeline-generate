@@ -229,6 +229,8 @@ puts YAML.dump("steps" => [
           ],
           "env" => {
             "RUBY_IMAGE" => ruby,
+            "encrypted_0fb9444d0374_key" => nil,
+            "encrypted_0fb9444d0374_iv" => nil,
           },
           "timeout_in_minutes" => 15,
           "soft_fail" => ruby == TRUNK_RUBY,
