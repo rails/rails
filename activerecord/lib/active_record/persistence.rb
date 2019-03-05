@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_record/insert_all"
+
 module ActiveRecord
   # = Active Record \Persistence
   module Persistence
@@ -53,6 +55,201 @@ module ActiveRecord
           object.save!
           object
         end
+      end
+
+      # Inserts a single record into the databases. This method constructs a single SQL INSERT
+      # statement and sends it straight to the database. It does not instantiate the involved
+      # models and it does not trigger Active Record callbacks or validations. However, values
+      # passed to #insert will still go through Active Record's normal type casting and
+      # serialization.
+      #
+      # See <tt>ActiveRecord::Persistence#insert_all</tt> for documentation.
+      def insert(attributes, returning: nil, unique_by: nil)
+        insert_all([ attributes ], returning: returning, unique_by: unique_by)
+      end
+
+      # Inserts multiple records into the database. This method constructs a single SQL INSERT
+      # statement and sends it straight to the database. It does not instantiate the involved
+      # models and it does not trigger Active Record callbacks or validations. However, values
+      # passed to #insert_all will still go through Active Record's normal type casting and
+      # serialization.
+      #
+      # The +attributes+ parameter is an Array of Hashes. These Hashes describe the
+      # attributes on the objects that are to be created. All of the Hashes must have
+      # same keys.
+      #
+      # Records that would violate a unique constraint on the table are skipped.
+      #
+      # Returns an <tt>ActiveRecord::Result</tt>. The contents of the result depend on the
+      # value of <tt>:returning</tt> (see below).
+      #
+      # ==== Options
+      #
+      # [:returning]
+      #   (Postgres-only) An array of attributes that should be returned for all successfully
+      #   inserted records. For databases that support <tt>INSERT ... RETURNING</tt>, this will default
+      #   to returning the primary keys of the successfully inserted records. Pass
+      #   <tt>returning: %w[ id name ]</tt> to return the id and name of every successfully inserted
+      #   record or pass <tt>returning: false</tt> to omit the clause.
+      #
+      # [:unique_by]
+      #   (Postgres and SQLite only) In a table with more than one unique constaint or index,
+      #   new records may considered duplicates according to different criteria. By default,
+      #   new rows will be skipped if they violate _any_ unique constraint/index. By defining
+      #   <tt>:unique_by</tt>, you can skip rows that would create duplicates according to the given
+      #   constraint but raise <tt>ActiveRecord::RecordNotUnique</tt> if rows violate other constraints.
+      #
+      #   (For example, maybe you assume a client will try to import the same ISBNs more than
+      #   once and want to silently ignore the duplicate records, but you don't except any of
+      #   your code to attempt to create two rows with the same primary key and would appreciate
+      #   an exception report in that scenario.)
+      #
+      #   Indexes can be identified by an array of columns:
+      #
+      #     unique_by: { columns: %w[ isbn ] }
+      #
+      #   Partial indexes can be identified by an array of columns and a <tt>:where</tt> condition:
+      #
+      #     unique_by: { columns: %w[ isbn ], where: "published_on IS NOT NULL" }
+      #
+      # ==== Example
+      #
+      #   # Insert multiple records and skip duplicates
+      #   # ('Eloquent Ruby' will be skipped because its id is duplicate)
+      #   Book.insert_all([
+      #     { id: 1, title: 'Rework', author: 'David' },
+      #     { id: 1, title: 'Eloquent Ruby', author: 'Russ' }
+      #   ])
+      #
+      def insert_all(attributes, returning: nil, unique_by: nil)
+        InsertAll.new(self, attributes, on_duplicate: :skip, returning: returning, unique_by: unique_by).execute
+      end
+
+      # Inserts a single record into the databases. This method constructs a single SQL INSERT
+      # statement and sends it straight to the database. It does not instantiate the involved
+      # models and it does not trigger Active Record callbacks or validations. However, values
+      # passed to #insert! will still go through Active Record's normal type casting and
+      # serialization.
+      #
+      # See <tt>ActiveRecord::Persistence#insert_all!</tt> for documentation.
+      def insert!(attributes, returning: nil)
+        insert_all!([ attributes ], returning: returning)
+      end
+
+      # Inserts multiple records into the database. This method constructs a single SQL INSERT
+      # statement and sends it straight to the database. It does not instantiate the involved
+      # models and it does not trigger Active Record callbacks or validations. However, values
+      # passed to #insert_all! will still go through Active Record's normal type casting and
+      # serialization.
+      #
+      # The +attributes+ parameter is an Array of Hashes. These Hashes describe the
+      # attributes on the objects that are to be created. All of the Hashes must have
+      # same keys.
+      #
+      # #insert_all! will raise <tt>ActiveRecord::RecordNotUnique</tt> if any of the records being
+      # inserts would violate a unique constraint on the table. In that case, no records
+      # would be inserted.
+      #
+      # To skip duplicate records, see <tt>ActiveRecord::Persistence#insert_all</tt>.
+      # To replace them, see <tt>ActiveRecord::Persistence#upsert_all</tt>.
+      #
+      # Returns an <tt>ActiveRecord::Result</tt>. The contents of the result depend on the
+      # value of <tt>:returning</tt> (see below).
+      #
+      # ==== Options
+      #
+      # [:returning]
+      #   (Postgres-only) An array of attributes that should be returned for all successfully
+      #   inserted records. For databases that support <tt>INSERT ... RETURNING</tt>, this will default
+      #   to returning the primary keys of the successfully inserted records. Pass
+      #   <tt>returning: %w[ id name ]</tt> to return the id and name of every successfully inserted
+      #   record or pass <tt>returning: false</tt> to omit the clause.
+      #
+      # ==== Examples
+      #
+      #   # Insert multiple records
+      #   Book.insert_all!([
+      #     { title: 'Rework', author: 'David' },
+      #     { title: 'Eloquent Ruby', author: 'Russ' }
+      #   ])
+      #
+      #   # raises ActiveRecord::RecordNotUnique beacuse 'Eloquent Ruby'
+      #   # does not have a unique ID
+      #   Book.insert_all!([
+      #     { id: 1, title: 'Rework', author: 'David' },
+      #     { id: 1, title: 'Eloquent Ruby', author: 'Russ' }
+      #   ])
+      #
+      def insert_all!(attributes, returning: nil)
+        InsertAll.new(self, attributes, on_duplicate: :raise, returning: returning).execute
+      end
+
+      # Upserts (inserts-or-creates) a single record into the databases. This method constructs
+      # a single SQL INSERT statement and sends it straight to the database. It does not
+      # instantiate the involved models and it does not trigger Active Record callbacks or
+      # validations. However, values passed to #upsert will still go through Active Record's
+      # normal type casting and serialization.
+      #
+      # See <tt>ActiveRecord::Persistence#upsert_all</tt> for documentation.
+      def upsert(attributes, returning: nil, unique_by: nil)
+        upsert_all([ attributes ], returning: returning, unique_by: unique_by)
+      end
+
+      # Upserts (creates-or-updates) multiple records into the database. This method constructs
+      # a single SQL INSERT statement and sends it straight to the database. It does not
+      # instantiate the involved models and it does not trigger Active Record callbacks or
+      # validations. However, values passed to #upsert_all will still go through Active Record's
+      # normal type casting and serialization.
+      #
+      # The +attributes+ parameter is an Array of Hashes. These Hashes describe the
+      # attributes on the objects that are to be created. All of the Hashes must have
+      # same keys.
+      #
+      # Returns an <tt>ActiveRecord::Result</tt>. The contents of the result depend on the
+      # value of <tt>:returning</tt> (see below).
+      #
+      # ==== Options
+      #
+      # [:returning]
+      #   (Postgres-only) An array of attributes that should be returned for all successfully
+      #   inserted records. For databases that support <tt>INSERT ... RETURNING</tt>, this will default
+      #   to returning the primary keys of the successfully inserted records. Pass
+      #   <tt>returning: %w[ id name ]</tt> to return the id and name of every successfully inserted
+      #   record or pass <tt>returning: false</tt> to omit the clause.
+      #
+      # [:unique_by]
+      #   (Postgres and SQLite only) In a table with more than one unique constaint or index,
+      #   new records may considered duplicates according to different criteria. For MySQL,
+      #   an upsert will take place if a new record violates _any_ unique constraint. For
+      #   Postgres and SQLite, new rows will replace existing rows when the new row has the
+      #   same primary key as the existing row. By defining <tt>:unique_by</tt>, you can supply
+      #   a different key for matching new records to existing ones than the primary key.
+      #
+      #   (For example, if you have a unique index on the ISBN column and use that as
+      #   the <tt>:unique_by</tt>, a new record with the same ISBN as an existing record
+      #   will replace the existing record but a new record with the same primary key
+      #   as an existing record will raise <tt>ActiveRecord::RecordNotUnique</tt>.)
+      #
+      #   Indexes can be identified by an array of columns:
+      #
+      #     unique_by: { columns: %w[ isbn ] }
+      #
+      #   Partial indexes can be identified by an array of columns and a <tt>:where</tt> condition:
+      #
+      #     unique_by: { columns: %w[ isbn ], where: "published_on IS NOT NULL" }
+      #
+      # ==== Examples
+      #
+      #   # Insert multiple records, performing an upsert when records have duplicate ISBNs
+      #   # ('Eloquent Ruby' will overwrite 'Rework' because its ISBN is duplicate)
+      #   Book.upsert_all([
+      #     { title: 'Rework', author: 'David', isbn: '1' },
+      #     { title: 'Eloquent Ruby', author: 'Russ', isbn: '1' }
+      #   ],
+      #      unique_by: { columns: %w[ isbn ] })
+      #
+      def upsert_all(attributes, returning: nil, unique_by: nil)
+        InsertAll.new(self, attributes, on_duplicate: :update, returning: returning, unique_by: unique_by).execute
       end
 
       # Given an attributes hash, +instantiate+ returns a new instance of

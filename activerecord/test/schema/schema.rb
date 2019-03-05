@@ -114,6 +114,10 @@ ActiveRecord::Schema.define do
     t.column :font_size, :integer, **default_zero
     t.column :difficulty, :integer, **default_zero
     t.column :cover, :string, default: "hard"
+    t.string :isbn
+    t.datetime :published_on
+    t.index [:author_id, :name], unique: true
+    t.index :isbn, where: "published_on IS NOT NULL", unique: true
   end
 
   create_table :booleans, force: true do |t|

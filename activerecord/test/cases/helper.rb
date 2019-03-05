@@ -57,8 +57,17 @@ def supports_default_expression?
   end
 end
 
-def supports_savepoints?
-  ActiveRecord::Base.connection.supports_savepoints?
+%w[
+  supports_savepoints?
+  supports_partial_index?
+  supports_insert_returning?
+  supports_insert_on_duplicate_skip?
+  supports_insert_on_duplicate_update?
+  supports_insert_conflict_target?
+].each do |method_name|
+  define_method method_name do
+    ActiveRecord::Base.connection.public_send(method_name)
+  end
 end
 
 def with_env_tz(new_tz = "US/Eastern")
