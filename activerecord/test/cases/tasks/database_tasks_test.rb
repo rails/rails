@@ -1016,7 +1016,7 @@ module ActiveRecord
       end
     end
 
-    def test_truncate_all_development_databases_when_env_was_no_specified
+    def test_truncate_all_development_databases_when_env_is_not_specified
       with_stubbed_configurations do
         assert_called_with(
           ActiveRecord::Tasks::DatabaseTasks,
