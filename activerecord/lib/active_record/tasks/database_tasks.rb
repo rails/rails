@@ -142,7 +142,7 @@ module ActiveRecord
       end
 
       def for_each
-        databases = Rails.application.config.database_configuration
+        databases = Rails.application.config.load_database_yaml
         database_configs = ActiveRecord::DatabaseConfigurations.new(databases).configs_for(env_name: Rails.env)
 
         # if this is a single database application we don't want tasks for each primary database
