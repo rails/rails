@@ -327,6 +327,7 @@ module ActiveRecord
         unless valid = record.valid?(context)
           if reflection.options[:autosave]
             indexed_attribute = !index.nil? && (reflection.options[:index_errors] || ActiveRecord::Base.index_nested_attribute_errors)
+            index = record.public_send(reflection.options[:index_errors]) if reflection.options[:index_errors].is_a?(Symbol)
 
             record.errors.group_by_attribute.each { |attribute, errors|
               attribute = normalize_reflection_attribute(indexed_attribute, reflection, index, attribute)
