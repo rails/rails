@@ -106,7 +106,7 @@ class ActiveStorage::Variant
     end
 
     def upload(file)
-      service.upload(key, file)
+      service.upload(key, file, content_type: content_type)
     end
 
 
