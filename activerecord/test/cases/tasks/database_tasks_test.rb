@@ -951,6 +951,10 @@ module ActiveRecord
 
       fixtures :authors, :author_addresses
 
+      def teardown
+        ActiveRecord::Base.connection_handlers = { writing: ActiveRecord::Base.default_connection_handler }
+      end
+
       def test_truncate_tables
         assert_operator Author.count, :>, 0
         assert_operator AuthorAddress.count, :>, 0
