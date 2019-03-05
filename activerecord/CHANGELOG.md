@@ -1,3 +1,11 @@
+*   Add class method `.indexes` to `ActiveRecord::Base`
+
+    Example:
+
+    `Post.indexes` as a shortcut for `ActiveRecord::Base.connection.indexes(:posts)`
+
+    *lxxxvi*
+
 *   Add support for `belongs_to` to `has_many` inversing.
 
     *Gannon McGibbon*

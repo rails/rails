@@ -291,6 +291,11 @@ module ActiveRecord
         @ignored_columns = columns.map(&:to_s)
       end
 
+      # The list of indexes associated with the model
+      def indexes
+        connection.indexes(table_name)
+      end
+
       def sequence_name
         if base_class?
           @sequence_name ||= reset_sequence_name

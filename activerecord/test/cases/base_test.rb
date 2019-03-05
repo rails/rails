@@ -26,6 +26,7 @@ require "models/joke"
 require "models/bird"
 require "models/car"
 require "models/bulb"
+require "models/teacup"
 require "concurrent/atomic/count_down_latch"
 
 class FirstAbstractClass < ActiveRecord::Base
@@ -298,6 +299,11 @@ class BasicsTest < ActiveRecord::TestCase
     # This mutator is protected in the class definition
     topic.send(:approved=, true)
     assert topic.instance_variable_get("@custom_approved")
+  end
+
+  def test_indexes
+    assert_equal 1, Teacup.indexes.count
+    assert_equal "index_teacups_names", Teacup.indexes[0].name
   end
 
   def test_initialize_with_attributes

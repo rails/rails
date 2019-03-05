@@ -916,6 +916,11 @@ ActiveRecord::Schema.define do
     t.datetime :ending
   end
 
+  create_table :teacups, force: true do |t|
+    t.string :name
+    t.index [:name], name: "index_teacups_names"
+  end
+
   create_table :topics, force: true do |t|
     t.string   :title, limit: 250, **case_sensitive_options
     t.string   :author_name, **case_sensitive_options
