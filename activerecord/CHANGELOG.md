@@ -1,3 +1,30 @@
+*   Add a way to index nested models' validation errors by their attribute.
+
+    Example:
+
+        class Violin < ActiveRecord::Base
+          has_many :tuning_pegs, index_errors: :string
+          accepts_nested_attributes_for :tuning_pegs
+        end
+
+        class TuningPeg < ActiveRecord::Base
+          belongs_to :violin
+          validates_numericality_of :pitch
+        end
+
+        violin = Violin.new(
+          tuning_pegs_attributes: [
+            { string: 1 },
+            { string: 2, pitch: 450.0 },
+            { string: 3, pitch: 440.0 },
+            { string: 4 }
+          ]
+        )
+        violin.valid? # => false
+        violin.errors.to_json # => {"tuning_pegs[1].pitch":["is not a number"],"tuning_pegs[4].pitch":["is not a number"]}
+
+    *Felix Borzik*
+
 *   Deprecate `DatabaseConfigurations#to_h`. These connection hashes are still available via `ActiveRecord::Base.configurations.configs_for`.
 
     *Eileen Uchitelle*, *John Crepezzi*
