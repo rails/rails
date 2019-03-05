@@ -1652,7 +1652,7 @@ controller. Again, we'll use the same generator we used before:
 $ rails generate controller Comments
 ```
 
-This creates five files and one empty directory:
+This creates four files and one empty directory:
 
 | File/Directory                               | Purpose                                  |
 | -------------------------------------------- | ---------------------------------------- |
