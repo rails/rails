@@ -41,6 +41,10 @@ if ActiveRecord::Base.connection.prepared_statements
         topics = Topic.where(id: 1)
         assert_equal [1], topics.map(&:id)
         assert_includes statement_cache, to_sql_key(topics.arel)
+
+        @connection.clear_cache!
+
+        assert_not_includes statement_cache, to_sql_key(topics.arel)
       end
 
       def test_statement_cache_with_query_cache

@@ -120,6 +120,7 @@ module ActiveRecord
         @quoted_column_names, @quoted_table_names = {}, {}
         @prevent_writes = false
         @visitor = arel_visitor
+        @statements = build_statement_pool
         @lock = ActiveSupport::Concurrency::LoadInterlockAwareMonitor.new
 
         if self.class.type_cast_config_to_boolean(config.fetch(:prepared_statements) { true })
@@ -492,11 +493,9 @@ module ActiveRecord
         # this should be overridden by concrete adapters
       end
 
-      ###
-      # Clear any caching the database adapter may be doing, for example
-      # clearing the prepared statement cache. This is database specific.
+      # Clear any caching the database adapter may be doing.
       def clear_cache!
-        # this should be overridden by concrete adapters
+        @lock.synchronize { @statements.clear } if @statements
       end
 
       # Returns true if its required to reload the connection between requests for development mode.
@@ -717,6 +716,9 @@ module ActiveRecord
 
         def arel_visitor
           Arel::Visitors::ToSql.new(self)
+        end
+
+        def build_statement_pool
         end
     end
   end
