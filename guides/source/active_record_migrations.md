@@ -484,7 +484,7 @@ add_foreign_key :articles, :authors
 
 This adds a new foreign key to the `author_id` column of the `articles`
 table. The key references the `id` column of the `authors` table. If the
-column names can not be derived from the table names, you can use the
+column names cannot be derived from the table names, you can use the
 `:column` and `:primary_key` options.
 
 Rails will generate a name for every foreign key starting with

@@ -68,7 +68,7 @@ module ActiveRecord
 
   # Raised by {ActiveRecord::Base#save!}[rdoc-ref:Persistence#save!] and
   # {ActiveRecord::Base.create!}[rdoc-ref:Persistence::ClassMethods#create!]
-  # methods when a record is invalid and can not be saved.
+  # methods when a record is invalid and cannot be saved.
   class RecordNotSaved < ActiveRecordError
     attr_reader :record
 
