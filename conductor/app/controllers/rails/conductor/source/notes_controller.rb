@@ -2,7 +2,7 @@
 
 require "rails/code_statistics"
 
-class Rails::Conductor::NotesController < Rails::Conductor::CommandController
+class Rails::Conductor::Source::NotesController < Rails::Conductor::CommandController
   def show
     @notes = extract_notes
   end

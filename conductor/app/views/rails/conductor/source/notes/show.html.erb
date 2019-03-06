@@ -1,0 +1,11 @@
+<% provide :title, "Source Notes" %>
+
+<h1>Source Notes</h1>
+
+<p>
+  <%= link_to "All", main_app.rails_conductor_source_notes_path %> |
+  <%= link_to "Only TODOs", main_app.rails_conductor_source_notes_path(tag: "TODO") %> |
+  <%= link_to "Only FIXMEs", main_app.rails_conductor_source_notes_path(tag: "FIXME") %>
+</p>
+
+<pre><%= @notes %></pre>

@@ -2,7 +2,7 @@
 
 require "rails/code_statistics"
 
-class Rails::Conductor::StatisticsController < Rails::Conductor::CommandController
+class Rails::Conductor::Source::StatisticsController < Rails::Conductor::CommandController
   def show
     @statistics = compute_statistics
   end
