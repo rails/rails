@@ -1172,7 +1172,7 @@ end
 
 Using `Class#class_eval` is great for simple adjustments, but for more complex
 class modifications, you might want to consider using [`ActiveSupport::Concern`]
-(http://api.rubyonrails.org/classes/ActiveSupport/Concern.html).
+(https://api.rubyonrails.org/classes/ActiveSupport/Concern.html).
 ActiveSupport::Concern manages load order of interlinked dependent modules and
 classes at run time allowing you to significantly modularize your code.
 

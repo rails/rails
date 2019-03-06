@@ -29,7 +29,7 @@ Object Relational Mapping system.
 
 ### The Active Record Pattern
 
-[Active Record was described by Martin Fowler](http://www.martinfowler.com/eaaCatalog/activeRecord.html)
+[Active Record was described by Martin Fowler](https://www.martinfowler.com/eaaCatalog/activeRecord.html)
 in his book _Patterns of Enterprise Application Architecture_. In
 Active Record, objects carry both persistent data and behavior which
 operates on that data. Active Record takes the opinion that ensuring
@@ -117,10 +117,10 @@ to Active Record instances:
 * `updated_at` - Automatically gets set to the current date and time whenever
   the record is created or updated.
 * `lock_version` - Adds [optimistic
-  locking](http://api.rubyonrails.org/classes/ActiveRecord/Locking.html) to
+  locking](https://api.rubyonrails.org/classes/ActiveRecord/Locking.html) to
   a model.
 * `type` - Specifies that the model uses [Single Table
-  Inheritance](http://api.rubyonrails.org/classes/ActiveRecord/Base.html#class-ActiveRecord::Base-label-Single+table+inheritance).
+  Inheritance](https://api.rubyonrails.org/classes/ActiveRecord/Base.html#class-ActiveRecord::Base-label-Single+table+inheritance).
 * `(association_name)_type` - Stores the type for
   [polymorphic associations](association_basics.html#polymorphic-associations).
 * `(table_name)_count` - Used to cache the number of belonging objects on

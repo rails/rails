@@ -92,12 +92,12 @@ limitations of it:
 * Rails encrypts cookies by default. The client cannot read or edit the contents of the cookie, without breaking encryption. If you take appropriate care of your secrets, you can consider your cookies to be generally secured.
 
 The `CookieStore` uses the
-[encrypted](http://api.rubyonrails.org/classes/ActionDispatch/Cookies/ChainedCookieJars.html#method-i-encrypted)
+[encrypted](https://api.rubyonrails.org/classes/ActionDispatch/Cookies/ChainedCookieJars.html#method-i-encrypted)
 cookie jar to provide a secure, encrypted location to store session
 data. Cookie-based sessions thus provide both integrity as well as
 confidentiality to their contents. The encryption key, as well as the
 verification key used for
-[signed](http://api.rubyonrails.org/classes/ActionDispatch/Cookies/ChainedCookieJars.html#method-i-signed)
+[signed](https://api.rubyonrails.org/classes/ActionDispatch/Cookies/ChainedCookieJars.html#method-i-signed)
 cookies, is derived from the `secret_key_base` configuration value.
 
 TIP: Secrets must be long and random. Use `rails secret` to get new unique secrets.
@@ -155,9 +155,9 @@ rotations going at any one time.
 For more details on key rotation with encrypted and signed messages as
 well as the various options the `rotate` method accepts, please refer to
 the
-[MessageEncryptor API](http://api.rubyonrails.org/classes/ActiveSupport/MessageEncryptor.html)
+[MessageEncryptor API](https://api.rubyonrails.org/classes/ActiveSupport/MessageEncryptor.html)
 and
-[MessageVerifier API](http://api.rubyonrails.org/classes/ActiveSupport/MessageVerifier.html)
+[MessageVerifier API](https://api.rubyonrails.org/classes/ActiveSupport/MessageVerifier.html)
 documentation.
 
 ### Replay Attacks for CookieStore Sessions
@@ -1151,7 +1151,7 @@ The same works with `javascript_include_tag`:
 <%= javascript_include_tag "script", nonce: true %>
 ```
 
-Use [`csp_meta_tag`](http://api.rubyonrails.org/classes/ActionView/Helpers/CspHelper.html#method-i-csp_meta_tag)
+Use [`csp_meta_tag`](https://api.rubyonrails.org/classes/ActionView/Helpers/CspHelper.html#method-i-csp_meta_tag)
 helper to create a meta tag "csp-nonce" with the per-session nonce value
 for allowing inline `<script>` tags.
 
