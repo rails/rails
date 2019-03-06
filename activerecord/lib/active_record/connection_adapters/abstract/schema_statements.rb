@@ -1002,10 +1002,10 @@ module ActiveRecord
       # with an addition of
       # [<tt>:to_table</tt>]
       #   The name of the table that contains the referenced primary key.
-      def remove_foreign_key(from_table, options_or_to_table = {})
+      def remove_foreign_key(from_table, to_table = nil, **options)
         return unless supports_foreign_keys?
 
-        fk_name_to_delete = foreign_key_for!(from_table, options_or_to_table).name
+        fk_name_to_delete = foreign_key_for!(from_table, to_table: to_table, **options).name
 
         at = create_alter_table from_table
         at.drop_foreign_key fk_name_to_delete
@@ -1024,8 +1024,8 @@ module ActiveRecord
       #   # Checks to see if a foreign key with a custom name exists.
       #   foreign_key_exists?(:accounts, name: "special_fk_name")
       #
-      def foreign_key_exists?(from_table, options_or_to_table = {})
-        foreign_key_for(from_table, options_or_to_table).present?
+      def foreign_key_exists?(from_table, to_table = nil, **options)
+        foreign_key_for(from_table, to_table: to_table, **options).present?
       end
 
       def foreign_key_column_for(table_name) # :nodoc:
@@ -1341,14 +1341,14 @@ module ActiveRecord
           end
         end
 
-        def foreign_key_for(from_table, options_or_to_table = {})
+        def foreign_key_for(from_table, **options)
           return unless supports_foreign_keys?
-          foreign_keys(from_table).detect { |fk| fk.defined_for? options_or_to_table }
+          foreign_keys(from_table).detect { |fk| fk.defined_for?(options) }
         end
 
-        def foreign_key_for!(from_table, options_or_to_table = {})
-          foreign_key_for(from_table, options_or_to_table) || \
-            raise(ArgumentError, "Table '#{from_table}' has no foreign key for #{options_or_to_table}")
+        def foreign_key_for!(from_table, to_table: nil, **options)
+          foreign_key_for(from_table, to_table: to_table, **options) ||
+            raise(ArgumentError, "Table '#{from_table}' has no foreign key for #{to_table || options}")
         end
 
         def extract_foreign_key_action(specifier)

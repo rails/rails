@@ -623,10 +623,10 @@ module ActiveRecord
         #   validate_foreign_key :accounts, name: :special_fk_name
         #
         # The +options+ hash accepts the same keys as SchemaStatements#add_foreign_key.
-        def validate_foreign_key(from_table, options_or_to_table = {})
+        def validate_foreign_key(from_table, to_table = nil, **options)
           return unless supports_validate_constraints?
 
-          fk_name_to_validate = foreign_key_for!(from_table, options_or_to_table).name
+          fk_name_to_validate = foreign_key_for!(from_table, to_table: to_table, **options).name
 
           validate_constraint from_table, fk_name_to_validate
         end

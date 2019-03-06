@@ -385,6 +385,18 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
           assert_equal "Table 'astronauts' has no foreign key for rockets", e.message
         end
 
+        def test_remove_foreign_key_by_the_select_one_on_the_same_table
+          @connection.add_foreign_key :astronauts, :rockets
+          @connection.add_reference :astronauts, :myrocket, foreign_key: { to_table: :rockets }
+
+          assert_equal 2, @connection.foreign_keys("astronauts").size
+
+          @connection.remove_foreign_key :astronauts, :rockets, column: "myrocket_id"
+
+          assert_equal [["astronauts", "rockets", "rocket_id"]],
+            @connection.foreign_keys("astronauts").map { |fk| [fk.from_table, fk.to_table, fk.column] }
+        end
+
         if ActiveRecord::Base.connection.supports_validate_constraints?
           def test_add_invalid_foreign_key
             @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id", validate: false
