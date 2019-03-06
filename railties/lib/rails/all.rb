@@ -14,6 +14,7 @@ require "rails"
   action_cable/engine
   action_mailbox/engine
   action_text/engine
+  conductor/engine
   rails/test_unit/railtie
   sprockets/railtie
 ).each do |railtie|
