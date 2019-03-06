@@ -1,6 +1,6 @@
 <html>
 <head>
-  <title>Rails Conductor: <%= yield :title %></title>
+  <title><%= [ "Rails Conductor", yield(:title).presence ].compact.join(": ") %></title>
 </head>
 <body>
 <%= yield %>
