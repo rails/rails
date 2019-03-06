@@ -2,7 +2,7 @@
 
 require "rails/code_statistics"
 
-class Rails::Conductor::StatisticsController < Rails::Conductor::BaseController
+class Rails::Conductor::StatisticsController < Rails::Conductor::CommandController
   def show
     @statistics = compute_statistics
   end
@@ -10,14 +10,6 @@ class Rails::Conductor::StatisticsController < Rails::Conductor::BaseController
   private
     def compute_statistics
       capture_stdout { CodeStatistics.new(*statistics_directories).to_s }
-    end
-
-    def capture_stdout
-      original_stdout, $stdout = $stdout, StringIO.new
-      yield
-      $stdout.string
-    ensure
-      $stdout = original_stdout
     end
 
     def statistics_directories
