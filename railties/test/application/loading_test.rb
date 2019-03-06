@@ -34,6 +34,22 @@ class LoadingTest < ActiveSupport::TestCase
     assert_equal "omg", p.title
   end
 
+  test "constants without a matching file raise NameError" do
+    app_file "app/models/post.rb", <<-RUBY
+      class Post
+        NON_EXISTING_CONSTANT
+      end
+    RUBY
+
+    boot_app
+
+    e = assert_raise(NameError) { User }
+    assert_equal "uninitialized constant #{self.class}::User", e.message
+
+    e = assert_raise(NameError) { Post }
+    assert_equal "uninitialized constant Post::NON_EXISTING_CONSTANT", e.message
+  end
+
   test "concerns in app are autoloaded" do
     app_file "app/controllers/concerns/trackable.rb", <<-CONCERN
       module Trackable

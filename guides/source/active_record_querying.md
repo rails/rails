@@ -623,6 +623,8 @@ To select only a subset of fields from the result set, you can specify the subse
 For example, to select only `viewable_by` and `locked` columns:
 
 ```ruby
+Client.select(:viewable_by, :locked)
+# OR
 Client.select("viewable_by, locked")
 ```
 
@@ -803,6 +805,32 @@ SELECT * FROM articles WHERE id > 10 ORDER BY id DESC
 # Original query without `only`
 SELECT * FROM articles WHERE id > 10 ORDER BY id DESC LIMIT 20
 
+```
+
+### `reselect`
+
+The `reselect` method overrides an existing select statement. For example:
+
+```ruby
+Post.select(:title, :body).reselect(:created_at)
+```
+
+The SQL that would be executed:
+
+```sql
+SELECT `posts.created_at` FROM `posts`
+```
+
+In case the `reselect` clause is not used,
+
+```ruby
+Post.select(:title, :body)
+```
+
+the SQL executed would be:
+
+```sql
+SELECT `posts.title`, `posts.body` FROM `posts`
 ```
 
 ### `reorder`

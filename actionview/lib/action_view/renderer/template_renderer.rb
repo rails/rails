@@ -8,9 +8,7 @@ module ActionView
       @details = extract_details(options)
       template = determine_template(options)
 
-      prepend_formats(template.formats)
-
-      @lookup_context.rendered_format ||= (template.formats.first || formats.first)
+      prepend_formats(template.format)
 
       render_template(context, template, options[:layout], options[:locals] || {})
     end
@@ -31,7 +29,12 @@ module ActionView
           @lookup_context.with_fallbacks.find_file(options[:file], nil, false, keys, @details)
         elsif options.key?(:inline)
           handler = Template.handler_for_extension(options[:type] || "erb")
-          Template.new(options[:inline], "inline template", handler, locals: keys)
+          format = if handler.respond_to?(:default_format)
+            handler.default_format
+          else
+            @lookup_context.formats.first
+          end
+          Template::Inline.new(options[:inline], "inline template", handler, locals: keys, format: format)
         elsif options.key?(:template)
           if options[:template].respond_to?(:render)
             options[:template]
@@ -46,23 +49,24 @@ module ActionView
       # Renders the given template. A string representing the layout can be
       # supplied as well.
       def render_template(view, template, layout_name, locals)
-        render_with_layout(view, layout_name, locals) do |layout|
+        render_with_layout(view, layout_name, template, locals) do |layout|
           instrument(:template, identifier: template.identifier, layout: layout.try(:virtual_path)) do
             template.render(view, locals) { |*name| view._layout_for(*name) }
           end
         end
       end
 
-      def render_with_layout(view, path, locals)
+      def render_with_layout(view, path, template, locals)
         layout  = path && find_layout(path, locals.keys, [formats.first])
         content = yield(layout)
 
-        if layout
+        body = if layout
           view.view_flow.set(:layout, content)
           layout.render(view, locals) { |*name| view._layout_for(*name) }
         else
           content
         end
+        build_rendered_template(body, template, layout)
       end
 
       # This is the method which actually finds the layout using details in the lookup
@@ -89,7 +93,7 @@ module ActionView
             raise unless template_exists?(layout, nil, false, [], all_details)
           end
         when Proc
-          resolve_layout(layout.call(formats), keys, formats)
+          resolve_layout(layout.call(@lookup_context, formats), keys, formats)
         else
           layout
         end

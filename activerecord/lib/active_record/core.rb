@@ -125,6 +125,10 @@ module ActiveRecord
 
       mattr_accessor :connection_handlers, instance_accessor: false, default: {}
 
+      mattr_accessor :writing_role, instance_accessor: false, default: :writing
+
+      mattr_accessor :reading_role, instance_accessor: false, default: :reading
+
       class_attribute :default_connection_handler, instance_writer: false
 
       self.filter_attributes = []
@@ -138,7 +142,6 @@ module ActiveRecord
       end
 
       self.default_connection_handler = ConnectionAdapters::ConnectionHandler.new
-      self.connection_handlers = { writing: ActiveRecord::Base.default_connection_handler }
     end
 
     module ClassMethods
@@ -158,7 +161,7 @@ module ActiveRecord
         return super if block_given? ||
                         primary_key.nil? ||
                         scope_attributes? ||
-                        columns_hash.include?(inheritance_column)
+                        columns_hash.key?(inheritance_column) && !base_class?
 
         id = ids.first
 
@@ -179,7 +182,8 @@ module ActiveRecord
       end
 
       def find_by(*args) # :nodoc:
-        return super if scope_attributes? || reflect_on_all_aggregations.any?
+        return super if scope_attributes? || reflect_on_all_aggregations.any? ||
+                        columns_hash.key?(inheritance_column) && !base_class?
 
         hash = args.first
 
@@ -472,6 +476,14 @@ module ActiveRecord
       else
         super
       end
+    end
+
+    def present? # :nodoc:
+      true
+    end
+
+    def blank? # :nodoc:
+      false
     end
 
     # Returns +true+ if the record is read only. Records loaded through joins with piggy-back

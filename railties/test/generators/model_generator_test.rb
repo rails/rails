@@ -104,7 +104,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     ActiveRecord::Base.pluralize_table_names = true
   end
 
-  def test_migration_with_namespaces_in_model_name_without_plurization
+  def test_migration_with_namespaces_in_model_name_without_pluralization
     ActiveRecord::Base.pluralize_table_names = false
     run_generator ["Gallery::Image"]
     assert_migration "db/migrate/create_gallery_image", /class CreateGalleryImage < ActiveRecord::Migration\[[0-9.]+\]/

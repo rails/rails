@@ -87,11 +87,10 @@ module RailtiesTest
         end
       RUBY
 
+      restrict_frameworks
       boot_rails
 
       Dir.chdir(app_path) do
-        # Install Active Storage, Action Mailbox, and Action Text migration files first so as not to affect test.
-        `bundle exec rake active_storage:install action_mailbox:install action_text:install`
         output = `bundle exec rake bukkits:install:migrations`
 
         ["CreateUsers", "AddLastNameToUsers", "CreateSessions"].each do |migration_name|
@@ -174,11 +173,10 @@ module RailtiesTest
         class CreateKeys < ActiveRecord::Migration::Current; end
       RUBY
 
+      restrict_frameworks
       boot_rails
 
       Dir.chdir(app_path) do
-        # Install Active Storage, Action Mailbox, and Action Text migrations first so as not to affect test.
-        `bundle exec rake active_storage:install action_mailbox:install action_text:install`
         output = `bundle exec rake railties:install:migrations`.split("\n")
 
         assert_match(/Copied migration \d+_create_users\.core_engine\.rb from core_engine/, output.first)
@@ -706,25 +704,27 @@ YAML
       RUBY
 
       @plugin.write "app/controllers/bukkits/foo_controller.rb", <<-RUBY
-        class Bukkits::FooController < ActionController::Base
-          def index
-            render inline: "<%= help_the_engine %>"
-          end
+        module Bukkits
+          class FooController < ActionController::Base
+            def index
+              render inline: "<%= help_the_engine %>"
+            end
 
-          def show
-            render plain: foo_path
-          end
+            def show
+              render plain: foo_path
+            end
 
-          def from_app
-            render inline: "<%= (self.respond_to?(:bar_path) || self.respond_to?(:something)) %>"
-          end
+            def from_app
+              render inline: "<%= (self.respond_to?(:bar_path) || self.respond_to?(:something)) %>"
+            end
 
-          def routes_helpers_in_view
-            render inline: "<%= foo_path %>, <%= main_app.bar_path %>"
-          end
+            def routes_helpers_in_view
+              render inline: "<%= foo_path %>, <%= main_app.bar_path %>"
+            end
 
-          def polymorphic_path_without_namespace
-            render plain: polymorphic_path(Post.new)
+            def polymorphic_path_without_namespace
+              render plain: polymorphic_path(Post.new)
+            end
           end
         end
       RUBY
@@ -1508,6 +1508,26 @@ YAML
   private
     def app
       Rails.application
+    end
+
+    # Restrict frameworks to load in order to avoid engine frameworks affect tests.
+    def restrict_frameworks
+      remove_from_config("require 'rails/all'")
+      remove_from_config("require_relative 'boot'")
+      remove_from_env_config("development", "config.active_storage.*")
+      frameworks = <<~RUBY
+        require "rails"
+        require "active_model/railtie"
+        require "active_job/railtie"
+        require "active_record/railtie"
+        require "action_controller/railtie"
+        require "action_mailer/railtie"
+        require "action_view/railtie"
+        require "sprockets/railtie"
+        require "rails/test_unit/railtie"
+      RUBY
+      environment = File.read("#{app_path}/config/application.rb")
+      File.open("#{app_path}/config/application.rb", "w") { |f| f.puts frameworks + "\n" + environment }
     end
   end
 end

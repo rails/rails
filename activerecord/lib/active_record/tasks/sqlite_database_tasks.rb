@@ -33,6 +33,16 @@ module ActiveRecord
         create
       end
 
+      def truncate_tables(*table_names)
+        return if table_names.empty?
+
+        ActiveRecord::Base.connection.disable_referential_integrity do
+          table_names.each do |table_name|
+            ActiveRecord::Base.connection.truncate(table_name)
+          end
+        end
+      end
+
       def charset
         connection.encoding
       end

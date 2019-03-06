@@ -53,7 +53,7 @@ module ActiveSupport
   #   crypt.encrypt_and_sign(parcel, expires_in: 1.month)
   #   crypt.encrypt_and_sign(doowad, expires_at: Time.now.end_of_year)
   #
-  # Then the messages can be verified and returned upto the expire time.
+  # Then the messages can be verified and returned up to the expire time.
   # Thereafter, verifying returns +nil+.
   #
   # === Rotating keys

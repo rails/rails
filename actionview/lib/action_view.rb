@@ -35,7 +35,6 @@ module ActionView
   eager_autoload do
     autoload :Base
     autoload :Context
-    autoload :CompiledTemplates, "action_view/context"
     autoload :Digestor
     autoload :Helpers
     autoload :LookupContext
@@ -45,6 +44,7 @@ module ActionView
     autoload :Rendering
     autoload :RoutingUrlFor
     autoload :Template
+    autoload :FileTemplate
     autoload :ViewPaths
 
     autoload_under "renderer" do

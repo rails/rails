@@ -140,11 +140,7 @@ module ActiveRecord
 
         def except_predicates(columns)
           predicates.reject do |node|
-            case node
-            when Arel::Nodes::Between, Arel::Nodes::In, Arel::Nodes::NotIn, Arel::Nodes::Equality, Arel::Nodes::NotEqual, Arel::Nodes::LessThan, Arel::Nodes::LessThanOrEqual, Arel::Nodes::GreaterThan, Arel::Nodes::GreaterThanOrEqual
-              subrelation = (node.left.kind_of?(Arel::Attributes::Attribute) ? node.left : node.right)
-              columns.include?(subrelation.name.to_s)
-            end
+            Arel.fetch_attribute(node) { |attr| columns.include?(attr.name.to_s) }
           end
         end
 

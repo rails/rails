@@ -1,9 +1,48 @@
+*   Allow Array#excluding and Enumerable#excluding to deal with a passed array gracefully.
+
+        [ 1, 2, 3, 4, 5 ].excluding([4, 5]) => [ 1, 2, 3 ]
+
+    *DHH*
+
+*   Renamed Array#without and Enumerable#without to Array#excluding and Enumerable#excluding, to create parity with 
+    Array#including and Enumerable#including. Retained the old names as aliases.
+
+    *DHH*
+
+*   Added Array#including and Enumerable#including to conveniently enlarge a collection with more members using a method rather than an operator:
+    
+        [ 1, 2, 3 ].including(4, 5) => [ 1, 2, 3, 4, 5 ]
+        post.authors.including(Current.person) => All the authors plus the current person!
+
+    *DHH*
+
+## Rails 6.0.0.beta2 (February 25, 2019) ##
+
+*   New autoloading based on [Zeitwerk](https://github.com/fxn/zeitwerk).
+
+    *Xavier Noria*
+
+*   Revise `ActiveSupport::Notifications.unsubscribe` to correctly handle Regex or other multiple-pattern subscribers.
+
+    *Zach Kemp*
+
+*   Add `before_reset` callback to `CurrentAttributes` and define `after_reset` as an alias of `resets` for symmetry.
+
+    *Rosa Gutierrez*
+
+*   Remove the `` Kernel#` `` override that suppresses ENOENT and accidentally returns nil on Unix systems.
+
+    *Akinori Musha*
+
 *   Add `ActiveSupport::HashWithIndifferentAccess#assoc`.
 
     `assoc` can now be called with either a string or a symbol.
 
     *Stefan Schüßler*
 
+*   Add `Hash#deep_transform_values`, and `Hash#deep_transform_values!`.
+
+    *Guillermo Iguaran*
 
 ## Rails 6.0.0.beta1 (January 18, 2019) ##
 

@@ -7,11 +7,12 @@ module ActiveRecord
     delegate :first_or_create, :first_or_create!, :first_or_initialize, to: :all
     delegate :find_or_create_by, :find_or_create_by!, :create_or_find_by, :create_or_find_by!, :find_or_initialize_by, to: :all
     delegate :find_by, :find_by!, to: :all
-    delegate :destroy_all, :delete_all, :update_all, to: :all
+    delegate :destroy_all, :delete_all, :update_all, :destroy_by, :delete_by, to: :all
     delegate :find_each, :find_in_batches, :in_batches, to: :all
     delegate :select, :group, :order, :except, :reorder, :limit, :offset, :joins, :left_joins, :left_outer_joins, :or,
              :where, :rewhere, :preload, :eager_load, :includes, :from, :lock, :readonly, :extending,
-             :having, :create_with, :distinct, :references, :none, :unscope, :merge, to: :all
+             :having, :create_with, :distinct, :references, :none, :unscope, :merge,
+             :reselect, to: :all
     delegate :count, :average, :minimum, :maximum, :sum, :calculate, to: :all
     delegate :pluck, :pick, :ids, to: :all
 
@@ -40,8 +41,7 @@ module ActiveRecord
     def find_by_sql(sql, binds = [], preparable: nil, &block)
       result_set = connection.select_all(sanitize_sql(sql), "#{name} Load", binds, preparable: preparable)
       column_types = result_set.column_types.dup
-      cached_columns_hash = connection.schema_cache.columns_hash(table_name)
-      cached_columns_hash.each_key { |k| column_types.delete k }
+      attribute_types.each_key { |k| column_types.delete k }
       message_bus = ActiveSupport::Notifications.instrumenter
 
       payload = {

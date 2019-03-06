@@ -3,6 +3,7 @@
 module ActiveModel
   module Type
     class DateTime < Value # :nodoc:
+      include Helpers::Timezone
       include Helpers::TimeValue
       include Helpers::AcceptsMultiparameterTime.new(
         defaults: { 4 => 0, 5 => 0 }
@@ -10,10 +11,6 @@ module ActiveModel
 
       def type
         :datetime
-      end
-
-      def serialize(value)
-        super(cast(value))
       end
 
       private

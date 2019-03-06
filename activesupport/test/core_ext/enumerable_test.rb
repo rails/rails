@@ -217,11 +217,17 @@ class EnumerableTests < ActiveSupport::TestCase
     assert_equal false, GenericEnumerable.new([ 1 ]).exclude?(1)
   end
 
+  def test_excluding
+    assert_equal [1, 2, 4], GenericEnumerable.new((1..5).to_a).excluding(3, 5)
+    assert_equal [3, 4, 5], GenericEnumerable.new((1..5).to_a).excluding([1, 2])
+    assert_equal [1, 2, 4], (1..5).to_a.excluding(3, 5)
+    assert_equal [1, 2, 4], (1..5).to_set.excluding(3, 5)
+    assert_equal({ foo: 1, baz: 3 }, { foo: 1, bar: 2, baz: 3 }.excluding(:bar))
+  end
+
   def test_without
     assert_equal [1, 2, 4], GenericEnumerable.new((1..5).to_a).without(3, 5)
-    assert_equal [1, 2, 4], (1..5).to_a.without(3, 5)
-    assert_equal [1, 2, 4], (1..5).to_set.without(3, 5)
-    assert_equal({ foo: 1, baz: 3 }, { foo: 1, bar: 2, baz: 3 }.without(:bar))
+    assert_equal [3, 4, 5], GenericEnumerable.new((1..5).to_a).without([1, 2])
   end
 
   def test_pluck

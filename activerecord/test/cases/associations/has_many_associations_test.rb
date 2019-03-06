@@ -996,9 +996,10 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     assert_predicate companies(:first_firm).clients_of_firm, :loaded?
 
-    companies(:first_firm).clients_of_firm.concat([Client.new("name" => "Natural Company"), Client.new("name" => "Apple")])
+    result = companies(:first_firm).clients_of_firm.concat([Client.new("name" => "Natural Company"), Client.new("name" => "Apple")])
     assert_equal 4, companies(:first_firm).clients_of_firm.size
     assert_equal 4, companies(:first_firm).clients_of_firm.reload.size
+    assert_equal companies(:first_firm).clients_of_firm, result
   end
 
   def test_transactions_when_adding_to_persisted
@@ -1224,7 +1225,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_has_many_without_counter_cache_option
     # Ship has a conventionally named `treasures_count` column, but the counter_cache
     # option is not given on the association.
-    ship = Ship.create(name: "Countless", treasures_count: 10)
+    ship = Ship.create!(name: "Countless", treasures_count: 10)
 
     assert_not_predicate Ship.reflect_on_association(:treasures), :has_cached_counter?
 
@@ -1737,6 +1738,14 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_nil posts.first
   end
 
+  def test_destroy_all_on_desynced_counter_cache_association
+    category = categories(:general)
+    assert_operator category.categorizations.count, :>, 0
+
+    category.categorizations.destroy_all
+    assert_equal 0, category.categorizations.count
+  end
+
   def test_destroy_on_association_clears_scope
     author = Author.create!(name: "Gannon")
     posts = author.posts
@@ -1988,7 +1997,22 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_counter_cache_on_unloaded_association
     car = Car.create(name: "My AppliCar")
-    assert_equal car.engines.size, 0
+    assert_equal 0, car.engines.size
+  end
+
+  def test_ids_reader_cache_not_used_for_size_when_association_is_dirty
+    firm = Firm.create!(name: "Startup")
+    assert_equal 0, firm.client_ids.size
+    firm.clients.build
+    assert_equal 1, firm.clients.size
+  end
+
+  def test_ids_reader_cache_should_be_cleared_when_collection_is_deleted
+    firm = companies(:first_firm)
+    assert_equal [2, 3, 11], firm.client_ids
+    client = firm.clients.first
+    firm.clients.delete(client)
+    assert_equal [3, 11], firm.client_ids
   end
 
   def test_get_ids_ignores_include_option
@@ -2049,10 +2073,12 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_associations_order_should_be_priority_over_throughs_order
-    david = authors(:david)
+    original = authors(:david)
     expected = [12, 10, 9, 8, 7, 6, 5, 3, 2, 1]
-    assert_equal expected, david.comments_desc.map(&:id)
-    assert_equal expected, Author.includes(:comments_desc).find(david.id).comments_desc.map(&:id)
+    assert_equal expected, original.comments_desc.map(&:id)
+    preloaded = Author.includes(:comments_desc).find(original.id)
+    assert_equal expected, preloaded.comments_desc.map(&:id)
+    assert_equal original.posts_sorted_by_id.first.comments.map(&:id), preloaded.posts_sorted_by_id.first.comments.map(&:id)
   end
 
   def test_dynamic_find_should_respect_association_order_for_through

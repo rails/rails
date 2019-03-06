@@ -593,6 +593,7 @@ module ActionMailer
     private
 
       def set_payload_for_mail(payload, mail)
+        payload[:mail]               = mail.encoded
         payload[:mailer]             = name
         payload[:message_id]         = mail.message_id
         payload[:subject]            = mail.subject
@@ -601,7 +602,6 @@ module ActionMailer
         payload[:bcc]                = mail.bcc if mail.bcc.present?
         payload[:cc]                 = mail.cc  if mail.cc.present?
         payload[:date]               = mail.date
-        payload[:mail]               = mail.encoded
         payload[:perform_deliveries] = mail.perform_deliveries
       end
 
@@ -973,10 +973,10 @@ module ActionMailer
         templates_name = headers[:template_name] || action_name
 
         each_template(Array(templates_path), templates_name).map do |template|
-          self.formats = template.formats
+          format = template.format || self.formats.first
           {
-            body: render(template: template),
-            content_type: template.type.to_s
+            body: render(template: template, formats: [format]),
+            content_type: Mime[format].to_s
           }
         end
       end
@@ -986,7 +986,7 @@ module ActionMailer
         if templates.empty?
           raise ActionView::MissingTemplate.new(paths, name, paths, false, "mailer")
         else
-          templates.uniq(&:formats).each(&block)
+          templates.uniq(&:format).each(&block)
         end
       end
 

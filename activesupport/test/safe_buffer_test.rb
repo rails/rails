@@ -151,7 +151,7 @@ class SafeBufferTest < ActiveSupport::TestCase
     assert_equal "", ActiveSupport::SafeBuffer.new("foo").clone_empty
   end
 
-  test "clone_empty keeps the original dirtyness" do
+  test "clone_empty keeps the original dirtiness" do
     assert_predicate @buffer.clone_empty, :html_safe?
     assert_not_predicate @buffer.gsub!("", "").clone_empty, :html_safe?
   end

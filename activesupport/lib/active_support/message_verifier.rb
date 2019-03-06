@@ -71,7 +71,7 @@ module ActiveSupport
   #   @verifier.generate(parcel, expires_in: 1.month)
   #   @verifier.generate(doowad, expires_at: Time.now.end_of_year)
   #
-  # Then the messages can be verified and returned upto the expire time.
+  # Then the messages can be verified and returned up to the expire time.
   # Thereafter, the +verified+ method returns +nil+ while +verify+ raises
   # <tt>ActiveSupport::MessageVerifier::InvalidSignature</tt>.
   #

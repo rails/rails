@@ -433,6 +433,10 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     end
 
     assert_equal true, Topic.new(author_name: "Name").author_name?
+
+    ActiveModel::Type::Boolean::FALSE_VALUES.each do |value|
+      assert_predicate Topic.new(author_name: value), :author_name?
+    end
   end
 
   test "number attribute predicate" do
@@ -711,6 +715,10 @@ class AttributeMethodsTest < ActiveRecord::TestCase
       record.written_on = "Jan 01 00:00:00 2014"
       assert_equal record, YAML.load(YAML.dump(record))
     end
+  ensure
+    # NOTE: Reset column info because global topics
+    # don't have tz-aware attributes by default.
+    Topic.reset_column_information
   end
 
   test "setting a time zone-aware time in the current time zone" do

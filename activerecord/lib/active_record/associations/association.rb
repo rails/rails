@@ -17,6 +17,23 @@ module ActiveRecord
     #     CollectionAssociation
     #       HasManyAssociation + ForeignAssociation
     #         HasManyThroughAssociation + ThroughAssociation
+    #
+    # Associations in Active Record are middlemen between the object that
+    # holds the association, known as the <tt>owner</tt>, and the associated
+    # result set, known as the <tt>target</tt>. Association metadata is available in
+    # <tt>reflection</tt>, which is an instance of <tt>ActiveRecord::Reflection::AssociationReflection</tt>.
+    #
+    # For example, given
+    #
+    #   class Blog < ActiveRecord::Base
+    #     has_many :posts
+    #   end
+    #
+    #   blog = Blog.first
+    #
+    # The association of <tt>blog.posts</tt> has the object +blog+ as its
+    # <tt>owner</tt>, the collection of its posts as <tt>target</tt>, and
+    # the <tt>reflection</tt> object represents a <tt>:has_many</tt> macro.
     class Association #:nodoc:
       attr_reader :owner, :target, :reflection
 

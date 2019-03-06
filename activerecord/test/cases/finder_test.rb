@@ -226,14 +226,14 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_exists_with_strong_parameters
-    assert_equal false, Subscriber.exists?(Parameters.new(nick: "foo").permit!)
+    assert_equal false, Subscriber.exists?(ProtectedParams.new(nick: "foo").permit!)
 
     Subscriber.create!(nick: "foo")
 
-    assert_equal true, Subscriber.exists?(Parameters.new(nick: "foo").permit!)
+    assert_equal true, Subscriber.exists?(ProtectedParams.new(nick: "foo").permit!)
 
     assert_raises(ActiveModel::ForbiddenAttributesError) do
-      Subscriber.exists?(Parameters.new(nick: "foo"))
+      Subscriber.exists?(ProtectedParams.new(nick: "foo"))
     end
   end
 
@@ -269,6 +269,16 @@ class FinderTest < ActiveRecord::TestCase
 
   def test_exists_with_empty_hash_arg
     assert_equal true, Topic.exists?({})
+  end
+
+  def test_exists_with_distinct_and_offset_and_joins
+    assert Post.left_joins(:comments).distinct.offset(10).exists?
+    assert_not Post.left_joins(:comments).distinct.offset(11).exists?
+  end
+
+  def test_exists_with_distinct_and_offset_and_select
+    assert Post.select(:body).distinct.offset(3).exists?
+    assert_not Post.select(:body).distinct.offset(4).exists?
   end
 
   # Ensure +exists?+ runs without an error by excluding distinct value.

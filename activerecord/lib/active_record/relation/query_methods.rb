@@ -240,6 +240,27 @@ module ActiveRecord
       self
     end
 
+    # Allows you to change a previously set select statement.
+    #
+    #   Post.select(:title, :body)
+    #   # SELECT `posts.title`, `posts.body` FROM `posts`
+    #
+    #   Post.select(:title, :body).reselect(:created_at)
+    #   # SELECT `posts.created_at` FROM `posts`
+    #
+    # This is short-hand for <tt>unscope(:select).select(fields)</tt>.
+    # Note that we're unscoping the entire select statement.
+    def reselect(*args)
+      check_if_method_has_arguments!(:reselect, args)
+      spawn.reselect!(*args)
+    end
+
+    # Same as #reselect but operates on relation in-place instead of copying.
+    def reselect!(*args) # :nodoc:
+      self.select_values = args
+      self
+    end
+
     # Allows to specify a group attribute:
     #
     #   User.group(:name)
@@ -1052,16 +1073,33 @@ module ActiveRecord
 
       def arel_columns(columns)
         columns.flat_map do |field|
-          if (Symbol === field || String === field) && (klass.has_attribute?(field) || klass.attribute_alias?(field)) && !from_clause.value
-            arel_attribute(field)
-          elsif Symbol === field
-            connection.quote_table_name(field.to_s)
-          elsif Proc === field
+          case field
+          when Symbol
+            field = field.to_s
+            arel_column(field) { connection.quote_table_name(field) }
+          when String
+            arel_column(field) { field }
+          when Proc
             field.call
           else
             field
           end
         end
+      end
+
+      def arel_column(field)
+        field = klass.attribute_alias(field) if klass.attribute_alias?(field)
+        from = from_clause.name || from_clause.value
+
+        if klass.columns_hash.key?(field) && (!from || table_name_matches?(from))
+          arel_attribute(field)
+        else
+          yield
+        end
+      end
+
+      def table_name_matches?(from)
+        /(?:\A|(?<!FROM)\s)(?:\b#{table.name}\b|#{connection.quote_table_name(table.name)})(?!\.)/i.match?(from.to_s)
       end
 
       def reverse_sql_order(order_query)
@@ -1099,7 +1137,7 @@ module ActiveRecord
         # Uses SQL function with multiple arguments.
         (order.include?(",") && order.split(",").find { |section| section.count("(") != section.count(")") }) ||
           # Uses "nulls first" like construction.
-          /nulls (first|last)\Z/i.match?(order)
+          /\bnulls\s+(?:first|last)\b/i.match?(order)
       end
 
       def build_order(arel)
@@ -1145,14 +1183,20 @@ module ActiveRecord
         order_args.map! do |arg|
           case arg
           when Symbol
-            arel_attribute(arg).asc
+            arg = arg.to_s
+            arel_column(arg) {
+              Arel.sql(connection.quote_table_name(arg))
+            }.asc
           when Hash
             arg.map { |field, dir|
               case field
               when Arel::Nodes::SqlLiteral
                 field.send(dir.downcase)
               else
-                arel_attribute(field).send(dir.downcase)
+                field = field.to_s
+                arel_column(field) {
+                  Arel.sql(connection.quote_table_name(field))
+                }.send(dir.downcase)
               end
             }
           else

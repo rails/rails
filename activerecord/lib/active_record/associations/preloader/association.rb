@@ -42,11 +42,10 @@ module ActiveRecord
 
           def associate_records_to_owner(owner, records)
             association = owner.association(reflection.name)
-            association.loaded!
             if reflection.collection?
-              association.target.concat(records)
+              association.target = records
             else
-              association.target = records.first unless records.empty?
+              association.target = records.first
             end
           end
 
@@ -116,7 +115,7 @@ module ActiveRecord
           def build_scope
             scope = klass.scope_for_association
 
-            if reflection.type
+            if reflection.type && !reflection.through_reflection?
               scope.where!(reflection.type => model.polymorphic_name)
             end
 

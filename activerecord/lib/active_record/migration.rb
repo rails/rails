@@ -308,7 +308,7 @@ module ActiveRecord
   #   named +column_name+ from the table called +table_name+.
   # * <tt>remove_columns(table_name, *column_names)</tt>: Removes the given
   #   columns from the table definition.
-  # * <tt>remove_foreign_key(from_table, options_or_to_table)</tt>: Removes the
+  # * <tt>remove_foreign_key(from_table, to_table = nil, **options)</tt>: Removes the
   #   given foreign key from the table called +table_name+.
   # * <tt>remove_index(table_name, column: column_names)</tt>: Removes the index
   #   specified by +column_names+.
@@ -1323,7 +1323,7 @@ module ActiveRecord
       def record_version_state_after_migrating(version)
         if down?
           migrated.delete(version)
-          ActiveRecord::SchemaMigration.where(version: version.to_s).delete_all
+          ActiveRecord::SchemaMigration.delete_by(version: version.to_s)
         else
           migrated << version
           ActiveRecord::SchemaMigration.create!(version: version.to_s)

@@ -176,6 +176,15 @@ module ActiveRecord
       config_hash
     end
 
+    # Clears the query cache for all connections associated with the current thread.
+    def clear_query_caches_for_current_thread
+      ActiveRecord::Base.connection_handlers.each_value do |handler|
+        handler.connection_pool_list.each do |pool|
+          pool.connection.clear_query_cache if pool.active_connection?
+        end
+      end
+    end
+
     # Returns the connection currently associated with the class. This can
     # also be used to "borrow" the connection to do database work unrelated
     # to any of the specific Active Records.

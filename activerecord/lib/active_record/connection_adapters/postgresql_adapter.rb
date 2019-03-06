@@ -196,6 +196,17 @@ module ActiveRecord
         true
       end
 
+      def supports_insert_returning?
+        true
+      end
+
+      def supports_insert_on_conflict?
+        postgresql_version >= 90500
+      end
+      alias supports_insert_on_duplicate_skip? supports_insert_on_conflict?
+      alias supports_insert_on_duplicate_update? supports_insert_on_conflict?
+      alias supports_insert_conflict_target? supports_insert_on_conflict?
+
       def index_algorithms
         { concurrently: "CONCURRENTLY" }
       end
@@ -242,22 +253,12 @@ module ActiveRecord
 
         configure_connection
         add_pg_encoders
-        @statements = StatementPool.new @connection,
-                                        self.class.type_cast_config_to_integer(config[:statement_limit])
-
         add_pg_decoders
 
         @type_map = Type::HashLookupTypeMap.new
         initialize_type_map
         @local_tz = execute("SHOW TIME ZONE", "SCHEMA").first["TimeZone"]
         @use_insert_returning = @config.key?(:insert_returning) ? self.class.type_cast_config_to_boolean(@config[:insert_returning]) : true
-      end
-
-      # Clears the prepared statements cache.
-      def clear_cache!
-        @lock.synchronize do
-          @statements.clear
-        end
       end
 
       def truncate(table_name, name = nil)
@@ -423,6 +424,20 @@ module ActiveRecord
 
       def default_index_type?(index) # :nodoc:
         index.using == :btree || super
+      end
+
+      def build_insert_sql(insert) # :nodoc:
+        sql = +"INSERT #{insert.into} #{insert.values_list}"
+
+        if insert.skip_duplicates?
+          sql << " ON CONFLICT #{insert.conflict_target} DO NOTHING"
+        elsif insert.update_duplicates?
+          sql << " ON CONFLICT #{insert.conflict_target} DO UPDATE SET "
+          sql << insert.updatable_columns.map { |column| "#{column}=excluded.#{column}" }.join(",")
+        end
+
+        sql << " RETURNING #{insert.returning}" if insert.returning
+        sql
       end
 
       private
@@ -801,6 +816,10 @@ module ActiveRecord
 
         def arel_visitor
           Arel::Visitors::PostgreSQL.new(self)
+        end
+
+        def build_statement_pool
+          StatementPool.new(@connection, self.class.type_cast_config_to_integer(@config[:statement_limit]))
         end
 
         def can_perform_case_insensitive_comparison_for?(column)

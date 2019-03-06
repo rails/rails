@@ -205,9 +205,12 @@ module ActiveRecord
                                        run_commit_callbacks: run_commit_callbacks)
             end
 
-          transaction.materialize! unless @connection.supports_lazy_transactions? && lazy_transactions_enabled?
+          if @connection.supports_lazy_transactions? && lazy_transactions_enabled? && options[:_lazy] != false
+            @has_unmaterialized_transactions = true
+          else
+            transaction.materialize!
+          end
           @stack.push(transaction)
-          @has_unmaterialized_transactions = true if @connection.supports_lazy_transactions?
           transaction
         end
       end

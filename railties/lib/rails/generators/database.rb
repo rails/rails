@@ -15,6 +15,7 @@ module Rails
         case database
         when "mysql"          then ["mysql2", [">= 0.4.4"]]
         when "postgresql"     then ["pg", [">= 0.18", "< 2.0"]]
+        when "sqlite3"        then ["sqlite3", ["~> 1.3", ">= 1.3.6"]]
         when "oracle"         then ["activerecord-oracle_enhanced-adapter", nil]
         when "frontbase"      then ["ruby-frontbase", nil]
         when "sqlserver"      then ["activerecord-sqlserver-adapter", nil]

@@ -11,6 +11,10 @@ module ActiveRecord
       @session = ActiveRecord::Middleware::DatabaseSelector::Resolver::Session.new(@session_store)
     end
 
+    teardown do
+      ActiveRecord::Base.connection_handlers = { writing: ActiveRecord::Base.default_connection_handler }
+    end
+
     def test_empty_session
       assert_equal Time.at(0), @session.last_write_timestamp
     end
@@ -93,6 +97,54 @@ module ActiveRecord
 
       # and be populated by the last write time
       assert @session_store[:last_write]
+    end
+
+    def test_read_from_primary_with_options
+      resolver = ActiveRecord::Middleware::DatabaseSelector::Resolver.new(@session, delay: 5.seconds)
+
+      # Session should start empty
+      assert_nil @session_store[:last_write]
+
+      called = false
+      resolver.write do
+        assert ActiveRecord::Base.connected_to?(role: :writing)
+        called = true
+      end
+      assert called
+
+      # and be populated by the last write time
+      assert @session_store[:last_write]
+
+      read = false
+      resolver.read do
+        assert ActiveRecord::Base.connected_to?(role: :writing)
+        read = true
+      end
+      assert read
+    end
+
+    def test_read_from_replica_with_no_delay
+      resolver = ActiveRecord::Middleware::DatabaseSelector::Resolver.new(@session, delay: 0.seconds)
+
+      # Session should start empty
+      assert_nil @session_store[:last_write]
+
+      called = false
+      resolver.write do
+        assert ActiveRecord::Base.connected_to?(role: :writing)
+        called = true
+      end
+      assert called
+
+      # and be populated by the last write time
+      assert @session_store[:last_write]
+
+      read = false
+      resolver.read do
+        assert ActiveRecord::Base.connected_to?(role: :reading)
+        read = true
+      end
+      assert read
     end
 
     def test_the_middleware_chooses_writing_role_with_POST_request

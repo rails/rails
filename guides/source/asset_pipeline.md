@@ -745,7 +745,7 @@ mapping requests back to Sprockets. A typical manifest file looks like:
 The default location for the manifest is the root of the location specified in
 `config.assets.prefix` ('/assets' by default).
 
-NOTE: If there are missing precompiled files in production you will get an
+NOTE: If there are missing precompiled files in production you will get a
 `Sprockets::Helpers::RailsHelper::AssetPaths::AssetNotPrecompiledError`
 exception indicating the name of the missing file(s).
 

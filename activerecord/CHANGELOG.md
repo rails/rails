@@ -1,3 +1,112 @@
+*   Add `insert_all`/`insert_all!`/`upsert_all` methods to `ActiveRecord::Persistence`,
+    allowing bulk inserts akin to the bulk updates provided by `update_all` and
+    bulk deletes by `delete_all`.
+
+    Supports skipping or upserting duplicates through the `ON CONFLICT` syntax
+    for Postgres (9.5+) and Sqlite (3.24+) and `ON DUPLICATE KEY UPDATE` syntax
+    for MySQL.
+
+    *Bob Lail*
+
+*   Add `rails db:seed:replant` that truncates tables of each database
+    for current environment and loads the seeds.
+
+    *bogdanvlviv*, *DHH*
+
+*   Add `ActiveRecord::Base.connection.truncate` for SQLite3 adapter.
+
+    *bogdanvlviv*
+
+*   Deprecate mismatched collation comparison for uniqueness validator.
+
+    Uniqueness validator will no longer enforce case sensitive comparison in Rails 6.1.
+    To continue case sensitive comparison on the case insensitive column,
+    pass `case_sensitive: true` option explicitly to the uniqueness validator.
+
+    *Ryuta Kamizono*
+
+*   Add `reselect` method. This is a short-hand for `unscope(:select).select(fields)`.
+
+    Fixes #27340.
+
+    *Willian Gustavo Veiga*
+
+*   Add negative scopes for all enum values.
+
+    Example:
+
+        class Post < ActiveRecord::Base
+          enum status: %i[ drafted active trashed ]
+        end
+
+        Post.not_drafted # => where.not(status: :drafted)
+        Post.not_active  # => where.not(status: :active)
+        Post.not_trashed # => where.not(status: :trashed)
+
+    *DHH*
+
+*   Fix different `count` calculation when using `size` with manual `select` with DISTINCT.
+
+    Fixes #35214.
+
+    *Juani Villarejo*
+
+
+## Rails 6.0.0.beta2 (February 25, 2019) ##
+
+*   Fix prepared statements caching to be enabled even when query caching is enabled.
+
+    *Ryuta Kamizono*
+
+*   Ensure `update_all` series cares about optimistic locking.
+
+    *Ryuta Kamizono*
+
+*   Don't allow `where` with non numeric string matches to 0 values.
+
+    *Ryuta Kamizono*
+
+*   Introduce `ActiveRecord::Relation#destroy_by` and `ActiveRecord::Relation#delete_by`.
+
+    `destroy_by` allows relation to find all the records matching the condition and perform
+    `destroy_all` on the matched records.
+
+    Example:
+
+        Person.destroy_by(name: 'David')
+        Person.destroy_by(name: 'David', rating: 4)
+
+        david = Person.find_by(name: 'David')
+        david.posts.destroy_by(id: [1, 2, 3])
+
+    `delete_by` allows relation to find all the records matching the condition and perform
+    `delete_all` on the matched records.
+
+    Example:
+
+        Person.delete_by(name: 'David')
+        Person.delete_by(name: 'David', rating: 4)
+
+        david = Person.find_by(name: 'David')
+        david.posts.delete_by(id: [1, 2, 3])
+
+    *Abhay Nikam*
+
+*   Don't allow `where` with invalid value matches to nil values.
+
+    Fixes #33624.
+
+    *Ryuta Kamizono*
+
+*   SQLite3: Implement `add_foreign_key` and `remove_foreign_key`.
+
+    *Ryuta Kamizono*
+
+*   Deprecate using class level querying methods if the receiver scope
+    regarded as leaked. Use `klass.unscoped` to avoid the leaking scope.
+
+    *Ryuta Kamizono*
+
 *   Allow applications to automatically switch connections.
 
     Adds a middleware and configuration options that can be used in your
@@ -17,7 +126,7 @@
     ```
     config.active_record.database_selector = { delay: 2.seconds }
     config.active_record.database_resolver = ActiveRecord::Middleware::DatabaseSelector::Resolver
-    config.active_record.database_operations = ActiveRecord::Middleware::DatabaseSelector::Resolver::Session
+    config.active_record.database_resolver_context = ActiveRecord::Middleware::DatabaseSelector::Resolver::Session
     ```
 
     To change the database selection strategy, pass a custom class to the
@@ -26,7 +135,7 @@
     ```
     config.active_record.database_selector = { delay: 10.seconds }
     config.active_record.database_resolver = MyResolver
-    config.active_record.database_operations = MyResolver::MyCookies
+    config.active_record.database_resolver_context = MyResolver::MyCookies
     ```
 
     *Eileen M. Uchitelle*
@@ -496,8 +605,8 @@
 
     Iterating over the database configurations has also changed. Instead of
     calling hash methods on the `configurations` hash directly, a new method `configs_for` has
-    been provided that allows you to select the correct configuration. `env_name`, and
-    `spec_name` arguments are optional. For example these return an array of
+    been provided that allows you to select the correct configuration. `env_name` and
+    `spec_name` arguments are optional. For example, these return an array of
     database config objects for the requested environment and a single database config object
     will be returned for the requested environment and specification name respectively.
 

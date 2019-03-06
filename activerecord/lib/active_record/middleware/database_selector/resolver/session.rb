@@ -10,7 +10,7 @@ module ActiveRecord
         # The last_write is used to determine whether it's safe to read
         # from the replica or the request needs to be sent to the primary.
         class Session # :nodoc:
-          def self.build(request)
+          def self.call(request)
             new(request.session)
           end
 

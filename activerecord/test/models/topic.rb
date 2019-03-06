@@ -88,6 +88,10 @@ class Topic < ActiveRecord::Base
     write_attribute(:approved, val)
   end
 
+  def self.nested_scoping(scope)
+    scope.base
+  end
+
   private
 
     def default_written_on
@@ -95,7 +99,7 @@ class Topic < ActiveRecord::Base
     end
 
     def destroy_children
-      self.class.where("parent_id = #{id}").delete_all
+      self.class.delete_by(parent_id: id)
     end
 
     def set_email_address
@@ -113,10 +117,6 @@ class Topic < ActiveRecord::Base
     def change_approved_callback
       self.approved = change_approved_before_save unless change_approved_before_save.nil?
     end
-end
-
-class ImportantTopic < Topic
-  serialize :important, Hash
 end
 
 class DefaultRejectedTopic < Topic

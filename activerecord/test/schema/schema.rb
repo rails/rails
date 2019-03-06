@@ -8,6 +8,13 @@ ActiveRecord::Schema.define do
   #                                                                     #
   # ------------------------------------------------------------------- #
 
+  case_sensitive_options =
+    if current_adapter?(:Mysql2Adapter)
+      { collation: "utf8mb4_bin" }
+    else
+      {}
+    end
+
   create_table :accounts, force: true do |t|
     t.references :firm, index: false
     t.string  :firm_name
@@ -94,18 +101,23 @@ ActiveRecord::Schema.define do
   end
 
   create_table :books, id: :integer, force: true do |t|
+    default_zero = { default: 0 }
     t.references :author
     t.string :format
     t.column :name, :string
-    t.column :status, :integer, default: 0
-    t.column :read_status, :integer, default: 0
+    t.column :status, :integer, **default_zero
+    t.column :read_status, :integer, **default_zero
     t.column :nullable_status, :integer
-    t.column :language, :integer, default: 0
-    t.column :author_visibility, :integer, default: 0
-    t.column :illustrator_visibility, :integer, default: 0
-    t.column :font_size, :integer, default: 0
-    t.column :difficulty, :integer, default: 0
+    t.column :language, :integer, **default_zero
+    t.column :author_visibility, :integer, **default_zero
+    t.column :illustrator_visibility, :integer, **default_zero
+    t.column :font_size, :integer, **default_zero
+    t.column :difficulty, :integer, **default_zero
     t.column :cover, :string, default: "hard"
+    t.string :isbn
+    t.datetime :published_on
+    t.index [:author_id, :name], unique: true
+    t.index :isbn, where: "published_on IS NOT NULL", unique: true
   end
 
   create_table :booleans, force: true do |t|
@@ -247,6 +259,7 @@ ActiveRecord::Schema.define do
   create_table :contracts, force: true do |t|
     t.references :developer, index: false
     t.references :company, index: false
+    t.string :metadata
   end
 
   create_table :customers, force: true do |t|
@@ -264,7 +277,7 @@ ActiveRecord::Schema.define do
   end
 
   create_table :dashboards, force: true, id: false do |t|
-    t.string :dashboard_id
+    t.string :dashboard_id, **case_sensitive_options
     t.string :name
   end
 
@@ -328,7 +341,7 @@ ActiveRecord::Schema.define do
   end
 
   create_table :essays, force: true do |t|
-    t.string :name
+    t.string :name, **case_sensitive_options
     t.string :writer_id
     t.string :writer_type
     t.string :category_id
@@ -336,7 +349,7 @@ ActiveRecord::Schema.define do
   end
 
   create_table :events, force: true do |t|
-    t.string :title, limit: 5
+    t.string :title, limit: 5, **case_sensitive_options
   end
 
   create_table :eyes, force: true do |t|
@@ -378,7 +391,7 @@ ActiveRecord::Schema.define do
   end
 
   create_table :guids, force: true do |t|
-    t.column :key, :string
+    t.column :key, :string, **case_sensitive_options
   end
 
   create_table :guitars, force: true do |t|
@@ -386,8 +399,8 @@ ActiveRecord::Schema.define do
   end
 
   create_table :inept_wizards, force: true do |t|
-    t.column :name, :string, null: false
-    t.column :city, :string, null: false
+    t.column :name, :string, null: false, **case_sensitive_options
+    t.column :city, :string, null: false, **case_sensitive_options
     t.column :type, :string
   end
 
@@ -874,8 +887,8 @@ ActiveRecord::Schema.define do
   end
 
   create_table :topics, force: true do |t|
-    t.string   :title, limit: 250
-    t.string   :author_name
+    t.string   :title, limit: 250, **case_sensitive_options
+    t.string   :author_name, **case_sensitive_options
     t.string   :author_email_address
     if subsecond_precision_supported?
       t.datetime :written_on, precision: 6
@@ -887,10 +900,10 @@ ActiveRecord::Schema.define do
     # use VARCHAR2(4000) instead of CLOB datatype as CLOB data type has many limitations in
     # Oracle SELECT WHERE clause which causes many unit test failures
     if current_adapter?(:OracleAdapter)
-      t.string   :content, limit: 4000
+      t.string   :content, limit: 4000, **case_sensitive_options
       t.string   :important, limit: 4000
     else
-      t.text     :content
+      t.text     :content, **case_sensitive_options
       t.text     :important
     end
     t.boolean  :approved, default: true

@@ -260,7 +260,7 @@ In each of these cases, the named routes remain the same as if you did not use `
 | PATCH/PUT | /admin/articles/:id      | articles#update      | article_path(:id)      |
 | DELETE    | /admin/articles/:id      | articles#destroy     | article_path(:id)      |
 
-TIP: _If you need to use a different controller namespace inside a `namespace` block you can specify an absolute controller path, e.g: `get '/foo' => '/foo#index'`._
+TIP: _If you need to use a different controller namespace inside a `namespace` block you can specify an absolute controller path, e.g: `get '/foo', to: '/foo#index'`._
 
 ### Nested Resources
 

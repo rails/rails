@@ -20,7 +20,7 @@ module ActionDispatch
         # * [+inline+]              Display the screenshot in the terminal using the
         #                           iTerm image protocol (https://iterm2.com/documentation-images.html).
         # * [+artifact+]            Display the screenshot in the terminal, using the terminal
-        #                           artifact format (https://buildkite.github.io/terminal/inline-images/).
+        #                           artifact format (https://buildkite.github.io/terminal-to-html/inline-images/).
         def take_screenshot
           save_image
           puts display_image

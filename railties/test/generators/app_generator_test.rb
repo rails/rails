@@ -199,7 +199,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_new_application_use_json_serialzier
+  def test_new_application_use_json_serializer
     run_generator
 
     assert_file("config/initializers/cookies_serializer.rb", /Rails\.application\.config\.action_dispatch\.cookies_serializer = :json/)
@@ -526,7 +526,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     if defined?(JRUBY_VERSION)
       assert_gem "activerecord-jdbcsqlite3-adapter"
     else
-      assert_gem "sqlite3"
+      assert_gem "sqlite3", "'~> 1.3', '>= 1.3.6'"
     end
   end
 

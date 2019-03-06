@@ -352,7 +352,7 @@ class DirtyTest < ActiveRecord::TestCase
       Person.where(id: person.id).update_all(first_name: "baz")
     end
 
-    old_lock_version = person.lock_version
+    old_lock_version = person.lock_version + 1
 
     with_partial_writes Person, true do
       assert_no_queries { 2.times { person.save! } }

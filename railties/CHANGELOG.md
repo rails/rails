@@ -1,3 +1,10 @@
+## Rails 6.0.0.beta2 (February 25, 2019) ##
+
+*   Fix non-symbol access to nested hashes returned from `Rails::Application.config_for`
+    being broken by allowing non-symbol access with a deprecation notice.
+
+    *Ufuk Kayserilioglu*
+
 *   Fix deeply nested namespace command printing.
 
     *Gannon McGibbon*
@@ -75,7 +82,7 @@
 
     In other environments `Rails.application.config.hosts` is empty and no
     `Host` header checks will be done. If you want to guard against header
-    attacks on production, you have to manually whitelist the allowed hosts
+    attacks on production, you have to manually permit the allowed hosts
     with:
 
         Rails.application.config.hosts << "product.com"
@@ -88,7 +95,7 @@
         # `beta1.product.com`.
         Rails.application.config.hosts << /.*\.product\.com/
 
-    A special case is supported that allows you to whitelist all sub-domains:
+    A special case is supported that allows you to permit all sub-domains:
 
         # Allow requests from subdomains like `www.product.com` and
         # `beta1.product.com`.

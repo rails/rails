@@ -3,13 +3,18 @@
 require "abstract_unit"
 
 class CurrentAttributesTest < ActiveSupport::TestCase
-  Person = Struct.new(:name, :time_zone)
+  Person = Struct.new(:id, :name, :time_zone)
 
   class Current < ActiveSupport::CurrentAttributes
     attribute :world, :account, :person, :request
     delegate :time_zone, to: :person
 
-    resets { Time.zone = "UTC" }
+    before_reset { Session.previous = person.try(:id) }
+
+    resets do
+      Time.zone = "UTC"
+      Session.current = nil
+    end
 
     def account=(account)
       super
@@ -19,6 +24,7 @@ class CurrentAttributesTest < ActiveSupport::TestCase
     def person=(person)
       super
       Time.zone = person.try(:time_zone)
+      Session.current = person.try(:id)
     end
 
     def request
@@ -30,9 +36,14 @@ class CurrentAttributesTest < ActiveSupport::TestCase
     end
   end
 
+  class Session < ActiveSupport::CurrentAttributes
+    attribute :current, :previous
+  end
+
   setup do
     @original_time_zone = Time.zone
     Current.reset
+    Session.reset
   end
 
   teardown do
@@ -56,16 +67,28 @@ class CurrentAttributesTest < ActiveSupport::TestCase
   end
 
   test "set auxiliary class via overwritten method" do
-    Current.person = Person.new("David", "Central Time (US & Canada)")
+    Current.person = Person.new(42, "David", "Central Time (US & Canada)")
     assert_equal "Central Time (US & Canada)", Time.zone.name
+    assert_equal 42, Session.current
   end
 
-  test "resets auxiliary class via callback" do
-    Current.person = Person.new("David", "Central Time (US & Canada)")
+  test "resets auxiliary classes via callback" do
+    Current.person = Person.new(42, "David", "Central Time (US & Canada)")
     assert_equal "Central Time (US & Canada)", Time.zone.name
 
     Current.reset
     assert_equal "UTC", Time.zone.name
+    assert_nil Session.current
+  end
+
+  test "set auxiliary class based on current attributes via before callback" do
+    Current.person = Person.new(42, "David", "Central Time (US & Canada)")
+    assert_nil Session.previous
+    assert_equal 42, Session.current
+
+    Current.reset
+    assert_equal 42, Session.previous
+    assert_nil Session.current
   end
 
   test "set attribute only via scope" do
@@ -92,13 +115,13 @@ class CurrentAttributesTest < ActiveSupport::TestCase
   end
 
   test "delegation" do
-    Current.person = Person.new("David", "Central Time (US & Canada)")
+    Current.person = Person.new(42, "David", "Central Time (US & Canada)")
     assert_equal "Central Time (US & Canada)", Current.time_zone
     assert_equal "Central Time (US & Canada)", Current.instance.time_zone
   end
 
   test "all methods forward to the instance" do
-    Current.person = Person.new("David", "Central Time (US & Canada)")
+    Current.person = Person.new(42, "David", "Central Time (US & Canada)")
     assert_equal "David, in Central Time (US & Canada)", Current.intro
     assert_equal "David, in Central Time (US & Canada)", Current.instance.intro
   end

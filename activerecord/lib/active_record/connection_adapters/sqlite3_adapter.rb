@@ -9,7 +9,7 @@ require "active_record/connection_adapters/sqlite3/schema_definitions"
 require "active_record/connection_adapters/sqlite3/schema_dumper"
 require "active_record/connection_adapters/sqlite3/schema_statements"
 
-gem "sqlite3", "~> 1.3.6"
+gem "sqlite3", "~> 1.3", ">= 1.3.6"
 require "sqlite3"
 
 module ActiveRecord
@@ -96,8 +96,7 @@ module ActiveRecord
       def initialize(connection, logger, connection_options, config)
         super(connection, logger, config)
 
-        @active     = true
-        @statements = StatementPool.new(self.class.type_cast_config_to_integer(config[:statement_limit]))
+        @active = true
         configure_connection
       end
 
@@ -121,7 +120,7 @@ module ActiveRecord
         true
       end
 
-      def supports_foreign_keys_in_create?
+      def supports_foreign_keys?
         true
       end
 
@@ -137,6 +136,13 @@ module ActiveRecord
         true
       end
 
+      def supports_insert_on_conflict?
+        sqlite_version >= "3.24.0"
+      end
+      alias supports_insert_on_duplicate_skip? supports_insert_on_conflict?
+      alias supports_insert_on_duplicate_update? supports_insert_on_conflict?
+      alias supports_insert_conflict_target? supports_insert_on_conflict?
+
       def active?
         @active
       end
@@ -149,9 +155,8 @@ module ActiveRecord
         @connection.close rescue nil
       end
 
-      # Clears the prepared statements cache.
-      def clear_cache!
-        @statements.clear
+      def truncate(table_name, name = nil)
+        execute "DELETE FROM #{quote_table_name(table_name)}", name
       end
 
       def supports_index_sort_order?
@@ -320,6 +325,9 @@ module ActiveRecord
       def remove_column(table_name, column_name, type = nil, options = {}) #:nodoc:
         alter_table(table_name) do |definition|
           definition.remove_column column_name
+          definition.foreign_keys.delete_if do |_, fk_options|
+            fk_options[:column] == column_name.to_s
+          end
         end
       end
 
@@ -390,6 +398,19 @@ module ActiveRecord
         end
       end
 
+      def build_insert_sql(insert) # :nodoc:
+        sql = +"INSERT #{insert.into} #{insert.values_list}"
+
+        if insert.skip_duplicates?
+          sql << " ON CONFLICT #{insert.conflict_target} DO NOTHING"
+        elsif insert.update_duplicates?
+          sql << " ON CONFLICT #{insert.conflict_target} DO UPDATE SET "
+          sql << insert.updatable_columns.map { |column| "#{column}=excluded.#{column}" }.join(",")
+        end
+
+        sql
+      end
+
       private
         # See https://www.sqlite.org/limits.html,
         # the default value is 999 when not configured.
@@ -421,9 +442,8 @@ module ActiveRecord
           type.to_sym == :primary_key || options[:primary_key]
         end
 
-        def alter_table(table_name, options = {})
+        def alter_table(table_name, foreign_keys = foreign_keys(table_name), **options)
           altered_table_name = "a#{table_name}"
-          foreign_keys = foreign_keys(table_name)
 
           caller = lambda do |definition|
             rename = options[:rename] || {}
@@ -431,7 +451,8 @@ module ActiveRecord
               if column = rename[fk.options[:column]]
                 fk.options[:column] = column
               end
-              definition.foreign_key(fk.to_table, fk.options)
+              to_table = strip_table_name_prefix_and_suffix(fk.to_table)
+              definition.foreign_key(to_table, fk.options)
             end
 
             yield definition if block_given?
@@ -584,6 +605,10 @@ module ActiveRecord
 
         def arel_visitor
           Arel::Visitors::SQLite.new(self)
+        end
+
+        def build_statement_pool
+          StatementPool.new(self.class.type_cast_config_to_integer(@config[:statement_limit]))
         end
 
         def configure_connection

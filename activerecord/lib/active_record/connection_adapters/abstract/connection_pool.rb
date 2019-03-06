@@ -185,7 +185,7 @@ module ActiveRecord
           def wait_poll(timeout)
             @num_waiting += 1
 
-            t0 = Time.now
+            t0 = Concurrent.monotonic_time
             elapsed = 0
             loop do
               ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
@@ -194,7 +194,7 @@ module ActiveRecord
 
               return remove if any?
 
-              elapsed = Time.now - t0
+              elapsed = Concurrent.monotonic_time - t0
               if elapsed >= timeout
                 msg = "could not obtain a connection from the pool within %0.3f seconds (waited %0.3f seconds); all pooled connections were in use" %
                   [timeout, elapsed]
@@ -686,13 +686,13 @@ module ActiveRecord
           end
 
           newly_checked_out = []
-          timeout_time      = Time.now + (@checkout_timeout * 2)
+          timeout_time      = Concurrent.monotonic_time + (@checkout_timeout * 2)
 
           @available.with_a_bias_for(Thread.current) do
             loop do
               synchronize do
                 return if collected_conns.size == @connections.size && @now_connecting == 0
-                remaining_timeout = timeout_time - Time.now
+                remaining_timeout = timeout_time - Concurrent.monotonic_time
                 remaining_timeout = 0 if remaining_timeout < 0
                 conn = checkout_for_exclusive_access(remaining_timeout)
                 collected_conns   << conn
@@ -915,6 +915,16 @@ module ActiveRecord
     # about the model. The model needs to pass a specification name to the handler,
     # in order to look up the correct connection pool.
     class ConnectionHandler
+      def self.create_owner_to_pool # :nodoc:
+        Concurrent::Map.new(initial_capacity: 2) do |h, k|
+          # Discard the parent's connection pools immediately; we have no need
+          # of them
+          discard_unowned_pools(h)
+
+          h[k] = Concurrent::Map.new(initial_capacity: 2)
+        end
+      end
+
       def self.unowned_pool_finalizer(pid_map) # :nodoc:
         lambda do |_|
           discard_unowned_pools(pid_map)
@@ -929,13 +939,7 @@ module ActiveRecord
 
       def initialize
         # These caches are keyed by spec.name (ConnectionSpecification#name).
-        @owner_to_pool = Concurrent::Map.new(initial_capacity: 2) do |h, k|
-          # Discard the parent's connection pools immediately; we have no need
-          # of them
-          ConnectionHandler.discard_unowned_pools(h)
-
-          h[k] = Concurrent::Map.new(initial_capacity: 2)
-        end
+        @owner_to_pool = ConnectionHandler.create_owner_to_pool
 
         # Backup finalizer: if the forked child never needed a pool, the above
         # early discard has not occurred

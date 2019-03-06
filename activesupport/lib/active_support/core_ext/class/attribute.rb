@@ -84,16 +84,17 @@ class Class
   # To set a default value for the attribute, pass <tt>default:</tt>, like so:
   #
   #   class_attribute :settings, default: {}
-  def class_attribute(*attrs)
-    options = attrs.extract_options!
-    instance_reader    = options.fetch(:instance_accessor, true) && options.fetch(:instance_reader, true)
-    instance_writer    = options.fetch(:instance_accessor, true) && options.fetch(:instance_writer, true)
-    instance_predicate = options.fetch(:instance_predicate, true)
-    default_value      = options.fetch(:default, nil)
-
+  def class_attribute(
+    *attrs,
+    instance_accessor: true,
+    instance_reader: instance_accessor,
+    instance_writer: instance_accessor,
+    instance_predicate: true,
+    default: nil
+  )
     attrs.each do |name|
       singleton_class.silence_redefinition_of_method(name)
-      define_singleton_method(name) { nil }
+      define_singleton_method(name) { default }
 
       singleton_class.silence_redefinition_of_method("#{name}?")
       define_singleton_method("#{name}?") { !!public_send(name) } if instance_predicate
@@ -102,9 +103,7 @@ class Class
 
       singleton_class.silence_redefinition_of_method("#{name}=")
       define_singleton_method("#{name}=") do |val|
-        singleton_class.class_eval do
-          redefine_method(name) { val }
-        end
+        redefine_singleton_method(name) { val }
 
         if singleton_class?
           class_eval do
@@ -136,10 +135,6 @@ class Class
         redefine_method("#{name}=") do |val|
           instance_variable_set ivar, val
         end
-      end
-
-      unless default_value.nil?
-        self.send("#{name}=", default_value)
       end
     end
   end

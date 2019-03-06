@@ -95,7 +95,7 @@ module ActiveRecord
   #
   #     private
   #       def delete_parents
-  #         self.class.where(parent_id: id).delete_all
+  #         self.class.delete_by(parent_id: id)
   #       end
   #   end
   #
@@ -324,7 +324,7 @@ module ActiveRecord
 
   private
 
-    def create_or_update(*)
+    def create_or_update(**)
       _run_save_callbacks { super }
     end
 
@@ -332,7 +332,7 @@ module ActiveRecord
       _run_create_callbacks { super }
     end
 
-    def _update_record(*)
+    def _update_record
       _run_update_callbacks { super }
     end
   end

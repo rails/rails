@@ -5,7 +5,7 @@ require "models/post"
 require "models/comment"
 
 module ActiveRecord
-  module ArrayDelegationTests
+  module DelegationTests
     ARRAY_DELEGATES = [
       :+, :-, :|, :&, :[], :shuffle,
       :all?, :collect, :compact, :detect, :each, :each_cons, :each_with_index,
@@ -21,10 +21,14 @@ module ActiveRecord
         assert_respond_to target, method
       end
     end
+
+    def test_not_respond_to_arel_method
+      assert_not_respond_to target, :exists
+    end
   end
 
   class DelegationAssociationTest < ActiveRecord::TestCase
-    include ArrayDelegationTests
+    include DelegationTests
 
     def target
       Post.new.comments
@@ -32,7 +36,7 @@ module ActiveRecord
   end
 
   class DelegationRelationTest < ActiveRecord::TestCase
-    include ArrayDelegationTests
+    include DelegationTests
 
     def target
       Comment.all
@@ -46,13 +50,13 @@ module ActiveRecord
       :first_or_create, :first_or_create!, :first_or_initialize,
       :find_or_create_by, :find_or_create_by!, :create_or_find_by, :create_or_find_by!, :find_or_initialize_by,
       :find_by, :find_by!,
-      :destroy_all, :delete_all, :update_all,
+      :destroy_all, :delete_all, :update_all, :delete_by, :destroy_by,
       :find_each, :find_in_batches, :in_batches,
       :select, :group, :order, :except, :reorder, :limit, :offset, :joins, :left_joins, :left_outer_joins, :or,
       :where, :rewhere, :preload, :eager_load, :includes, :from, :lock, :readonly, :extending,
       :having, :create_with, :distinct, :references, :none, :unscope, :merge,
       :count, :average, :minimum, :maximum, :sum, :calculate,
-      :pluck, :pick, :ids,
+      :pluck, :pick, :ids, :reselect,
     ]
 
     def test_delegate_querying_methods

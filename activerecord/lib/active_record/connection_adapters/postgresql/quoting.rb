@@ -138,7 +138,7 @@ module ActiveRecord
           end
 
           def encode_range(range)
-            "[#{type_cast_range_value(range.first)},#{type_cast_range_value(range.last)}#{range.exclude_end? ? ')' : ']'}"
+            "[#{type_cast_range_value(range.begin)},#{type_cast_range_value(range.end)}#{range.exclude_end? ? ')' : ']'}"
           end
 
           def determine_encoding_of_strings_in_array(value)
