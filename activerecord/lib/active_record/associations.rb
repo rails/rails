@@ -1289,6 +1289,7 @@ module ActiveRecord
         #   similar callbacks may affect the <tt>:dependent</tt> behavior, and the
         #   <tt>:dependent</tt> behavior may affect other callbacks.
         #
+        #   * <tt>nil</tt> do nothing (default).
         #   * <tt>:destroy</tt> causes all the associated objects to also be destroyed.
         #   * <tt>:delete_all</tt> causes all the associated objects to be deleted directly from the database (so callbacks will not be executed).
         #   * <tt>:nullify</tt> causes the foreign keys to be set to +NULL+. Polymorphic type will also be nullified
