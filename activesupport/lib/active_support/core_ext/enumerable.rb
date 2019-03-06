@@ -97,21 +97,41 @@ module Enumerable
     end
   end
 
+  # Returns a new array that includes the passed elements.
+  #
+  #   [ 1, 2, 3 ].including(4, 5)
+  #   # => [ 1, 2, 3, 4, 5 ]
+  #
+  #   ["David", "Rafael"].including %w[ Aaron Todd ]
+  #   # => ["David", "Rafael", "Aaron", "Todd"]
+  def including(*elements)
+    to_a.including(*elements)
+  end
+
   # The negative of the <tt>Enumerable#include?</tt>. Returns +true+ if the
   # collection does not include the object.
   def exclude?(object)
     !include?(object)
   end
 
-  # Returns a copy of the enumerable without the specified elements.
+  # Returns a copy of the enumerable excluding the specified elements.
   #
-  #   ["David", "Rafael", "Aaron", "Todd"].without "Aaron", "Todd"
+  #   ["David", "Rafael", "Aaron", "Todd"].excluding "Aaron", "Todd"
   #   # => ["David", "Rafael"]
   #
-  #   {foo: 1, bar: 2, baz: 3}.without :bar
+  #   ["David", "Rafael", "Aaron", "Todd"].excluding %w[ Aaron Todd ]
+  #   # => ["David", "Rafael"]
+  #
+  #   {foo: 1, bar: 2, baz: 3}.excluding :bar
   #   # => {foo: 1, baz: 3}
-  def without(*elements)
+  def excluding(*elements)
+    elements.flatten!
     reject { |element| elements.include?(element) }
+  end
+
+  # Alias for #excluding.
+  def without(*elements)
+    excluding(*elements)
   end
 
   # Convert an enumerable to an array based on the given key.
