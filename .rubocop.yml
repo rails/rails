@@ -237,5 +237,8 @@ Performance/EndWith:
 Performance/RegexpMatch:
   Enabled: true
 
+Performance/ReverseEach:
+  Enabled: true
+
 Performance/UnfreezeString:
   Enabled: true
