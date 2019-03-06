@@ -7,7 +7,7 @@ class ReadonlyNameBook < Book
   attr_readonly :name
 end
 
-class PersistenceTest < ActiveRecord::TestCase
+class InsertAllTest < ActiveRecord::TestCase
   fixtures :books
 
   def test_insert
