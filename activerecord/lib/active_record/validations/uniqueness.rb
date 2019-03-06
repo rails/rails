@@ -60,9 +60,7 @@ module ActiveRecord
         comparison = relation.bind_attribute(attribute, value) do |attr, bind|
           return relation.none! if bind.unboundable?
 
-          if bind.nil?
-            attr.eq(bind)
-          elsif !options.key?(:case_sensitive)
+          if !options.key?(:case_sensitive) || bind.nil?
             klass.connection.default_uniqueness_comparison(attr, bind, klass)
           elsif options[:case_sensitive]
             klass.connection.case_sensitive_comparison(attr, bind)

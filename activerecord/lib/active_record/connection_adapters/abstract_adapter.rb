@@ -522,7 +522,7 @@ module ActiveRecord
       end
 
       def default_uniqueness_comparison(attribute, value, klass) # :nodoc:
-        case_sensitive_comparison(attribute, value)
+        attribute.eq(value)
       end
 
       def case_sensitive_comparison(attribute, value) # :nodoc:
