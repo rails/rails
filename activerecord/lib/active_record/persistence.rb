@@ -173,7 +173,7 @@ module ActiveRecord
       #     { title: 'Eloquent Ruby', author: 'Russ' }
       #   ])
       #
-      #   # raises ActiveRecord::RecordNotUnique beacuse 'Eloquent Ruby'
+      #   # raises ActiveRecord::RecordNotUnique because 'Eloquent Ruby'
       #   # does not have a unique ID
       #   Book.insert_all!([
       #     { id: 1, title: 'Rework', author: 'David' },
