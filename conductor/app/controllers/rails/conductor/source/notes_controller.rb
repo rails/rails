@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "rails/code_statistics"
-
 class Rails::Conductor::Source::NotesController < Rails::Conductor::CommandController
   def show
     @notes = extract_notes
