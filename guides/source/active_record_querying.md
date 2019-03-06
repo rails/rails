@@ -1552,7 +1552,7 @@ book.available?   # => false
 ```
 
 Read the full documentation about enums
-[in the Rails API docs](http://api.rubyonrails.org/classes/ActiveRecord/Enum.html).
+[in the Rails API docs](https://api.rubyonrails.org/classes/ActiveRecord/Enum.html).
 
 Understanding The Method Chaining
 ---------------------------------
@@ -2063,9 +2063,9 @@ under MySQL and MariaDB.
 Interpretation of the output of EXPLAIN is beyond the scope of this guide. The
 following pointers may be helpful:
 
-* SQLite3: [EXPLAIN QUERY PLAN](http://www.sqlite.org/eqp.html)
+* SQLite3: [EXPLAIN QUERY PLAN](https://www.sqlite.org/eqp.html)
 
-* MySQL: [EXPLAIN Output Format](http://dev.mysql.com/doc/refman/5.7/en/explain-output.html)
+* MySQL: [EXPLAIN Output Format](https://dev.mysql.com/doc/refman/5.7/en/explain-output.html)
 
 * MariaDB: [EXPLAIN](https://mariadb.com/kb/en/mariadb/explain/)
 
