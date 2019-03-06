@@ -44,7 +44,7 @@ module ActiveModel
 
           def value_is_rounding_candidate?(value)
             value.respond_to?(:usec) &&
-              (value.usec.positive? || value.respond_to?(:nsec) && (value.nsec % 1000).positive?)
+              (value.usec.positive? || value.respond_to?(:nsec) && value.nsec.positive?)
           end
 
           def new_time(year, mon, mday, hour, min, sec, microsec, offset = nil)
