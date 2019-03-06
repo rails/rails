@@ -34,7 +34,7 @@ class PersistenceTest < ActiveRecord::TestCase
   end
 
   def test_insert_all_should_handle_empty_arrays
-    assert_no_difference "Book.count" do
+    assert_raise ArgumentError do
       Book.insert_all! []
     end
   end
