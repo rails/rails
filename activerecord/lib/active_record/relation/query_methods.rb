@@ -1117,7 +1117,7 @@ module ActiveRecord
             o.reverse
           when String
             if does_not_support_reverse?(o)
-              raise IrreversibleOrderError, "Order #{o.inspect} can not be reversed automatically"
+              raise IrreversibleOrderError, "Order #{o.inspect} cannot be reversed automatically"
             end
             o.split(",").map! do |s|
               s.strip!
