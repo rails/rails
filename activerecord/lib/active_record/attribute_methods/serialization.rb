@@ -23,9 +23,10 @@ module ActiveRecord
         # serialized object must be of that class on assignment and retrieval.
         # Otherwise SerializationTypeMismatch will be raised.
         #
-        # Empty objects as <tt>{}</tt>, in the case of +Hash+, or <tt>[]</tt>, in the case of
-        # +Array+, will always be persisted as null. Therefore, database schema must allow null
-        # as default.
+        # With default YAMLColumn coder, empty objects as <tt>{}</tt>, in the case of +Hash+,
+        # or <tt>[]</tt>, in the case of +Array+, will always be persisted as null.
+        # This is applicable to any class which responds to +#empty?+.
+        # Therefore, database schema must allow null as default.
         #
         # Keep in mind that database adapters handle certain serialization tasks
         # for you. For instance: +json+ and +jsonb+ types in PostgreSQL will be

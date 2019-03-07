@@ -15,6 +15,7 @@ module ActiveRecord
 
       def dump(obj)
         return if obj.nil?
+        return if obj.respond_to?(:empty?) && obj.empty?
 
         assert_valid_value(obj, action: "dump")
         YAML.dump obj

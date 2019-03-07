@@ -20,7 +20,6 @@ module ActiveRecord
       end
 
       def serialize(value)
-        return if null_equivalent?(value)
         super coder.dump(value)
       end
 
@@ -45,12 +44,6 @@ module ActiveRecord
       def force_equality?(value)
         coder.respond_to?(:object_class) && value.is_a?(coder.object_class)
       end
-
-      private
-
-        def null_equivalent?(value)
-          value.nil? || value == coder.load(nil)
-        end
     end
   end
 end
