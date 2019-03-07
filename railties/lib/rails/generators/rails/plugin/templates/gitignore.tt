@@ -16,3 +16,4 @@ pkg/
 <% end -%>
 <%= dummy_path %>/tmp/
 <% end -%>
+*.gem
