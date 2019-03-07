@@ -93,7 +93,7 @@ module ActiveRecord
       #   record or pass <tt>returning: false</tt> to omit the clause.
       #
       # [:unique_by]
-      #   (Postgres and SQLite only) In a table with more than one unique constaint or index,
+      #   (Postgres and SQLite only) In a table with more than one unique constraint or index,
       #   new records may considered duplicates according to different criteria. By default,
       #   new rows will be skipped if they violate _any_ unique constraint/index. By defining
       #   <tt>:unique_by</tt>, you can skip rows that would create duplicates according to the given
@@ -218,7 +218,7 @@ module ActiveRecord
       #   record or pass <tt>returning: false</tt> to omit the clause.
       #
       # [:unique_by]
-      #   (Postgres and SQLite only) In a table with more than one unique constaint or index,
+      #   (Postgres and SQLite only) In a table with more than one unique constraint or index,
       #   new records may considered duplicates according to different criteria. For MySQL,
       #   an upsert will take place if a new record violates _any_ unique constraint. For
       #   Postgres and SQLite, new rows will replace existing rows when the new row has the
