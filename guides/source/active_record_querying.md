@@ -819,19 +819,19 @@ Post.select(:title, :body).reselect(:created_at)
 The SQL that would be executed:
 
 ```sql
-SELECT `posts.created_at` FROM `posts`
+SELECT `posts`.`created_at` FROM `posts`
 ```
 
 In case the `reselect` clause is not used,
 
 ```ruby
-Post.select(:title, :body)
+Post.select(:title, :body).select(:created_at)
 ```
 
 the SQL executed would be:
 
 ```sql
-SELECT `posts.title`, `posts.body` FROM `posts`
+SELECT `posts`.`title`, `posts`.`body`, `posts`.`created_at` FROM `posts`
 ```
 
 ### `reorder`

@@ -243,10 +243,10 @@ module ActiveRecord
     # Allows you to change a previously set select statement.
     #
     #   Post.select(:title, :body)
-    #   # SELECT `posts.title`, `posts.body` FROM `posts`
+    #   # SELECT `posts`.`title`, `posts`.`body` FROM `posts`
     #
     #   Post.select(:title, :body).reselect(:created_at)
-    #   # SELECT `posts.created_at` FROM `posts`
+    #   # SELECT `posts`.`created_at` FROM `posts`
     #
     # This is short-hand for <tt>unscope(:select).select(fields)</tt>.
     # Note that we're unscoping the entire select statement.
