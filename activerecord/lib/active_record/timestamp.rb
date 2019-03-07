@@ -83,6 +83,22 @@ module ActiveRecord
         def current_time_from_proper_timezone
           default_timezone == :utc ? Time.now.utc : Time.now
         end
+
+        def _insert_defaults
+          if record_timestamps
+            super.merge(touch_attributes_with_time(*timestamp_attributes_for_create_in_model))
+          else
+            super
+          end
+        end
+
+        def _upsert_defaults
+          if record_timestamps
+            super.merge(touch_attributes_with_time(*timestamp_attributes_for_update_in_model))
+          else
+            super
+          end
+        end
     end
 
   private

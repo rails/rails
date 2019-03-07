@@ -2,13 +2,14 @@
 
 require "cases/helper"
 require "models/book"
+require "models/topic"
 
 class ReadonlyNameBook < Book
   attr_readonly :name
 end
 
 class InsertAllTest < ActiveRecord::TestCase
-  fixtures :books
+  fixtures :books, :topics
 
   def test_insert
     assert_difference "Book.count", +1 do
@@ -141,5 +142,63 @@ class InsertAllTest < ActiveRecord::TestCase
     assert_raise ActiveRecord::UnknownAttributeError do
       Book.insert_all! [{ unknown_attribute: "Test" }]
     end
+  end
+
+  def test_insert_all_with_default_timestamp
+    skip unless supports_insert_on_duplicate_skip?
+
+    assert_difference "Topic.count", +2 do
+      Topic.insert_all([
+        { title: "Zeitwerk integration in Rails 6" },
+        { title: "What is new in Rails 6.0" }
+      ])
+    end
+
+    topic = Topic.find_by(title: "Zeitwerk integration in Rails 6")
+
+    assert_not_nil topic.created_at
+    assert_not_nil topic.updated_at
+  end
+
+  def test_insert_all_to_not_overide_given_timestamp_with_default
+    skip unless supports_insert_on_duplicate_skip?
+
+    yesterdays_timestamp = Time.now.yesterday.utc
+
+    assert_difference "Topic.count", +2 do
+      Topic.insert_all([
+        { title: "Zeitwerk integration in Rails 6", created_at: yesterdays_timestamp  },
+        { title: "What is new in Rails 6.0", created_at: yesterdays_timestamp }
+      ])
+    end
+
+    topic = Topic.find_by(title: "Zeitwerk integration in Rails 6")
+
+    assert_equal yesterdays_timestamp.to_i, topic.created_at.to_i
+    assert_not_equal yesterdays_timestamp.to_i, topic.updated_at.to_i
+  end
+
+  def test_insert_with_default_timestamp
+    assert_difference "Topic.count", +1 do
+      Topic.insert!(title: "Zeitwerk integration in Rails 6")
+    end
+
+    topic = Topic.find_by(title: "Zeitwerk integration in Rails 6")
+
+    assert_not_nil topic.created_at
+    assert_not_nil topic.updated_at
+  end
+
+  def test_upsert_all_to_update_the_timestamp
+    skip unless supports_insert_on_duplicate_update?
+
+    yesterdays_timestamp = Time.now.yesterday.utc
+    first_topic = Topic.create!(created_at: yesterdays_timestamp, updated_at: yesterdays_timestamp)
+
+    Topic.upsert_all [{ id: first_topic.id, title: "Zeitwerk integration in Rails 6" }]
+
+    topic = Topic.find_by(title: "Zeitwerk integration in Rails 6")
+
+    assert_not_equal first_topic.updated_at.to_i, topic.updated_at.to_i
   end
 end

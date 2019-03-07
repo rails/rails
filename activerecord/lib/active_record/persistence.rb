@@ -122,7 +122,7 @@ module ActiveRecord
       #   ])
       #
       def insert_all(attributes, returning: nil, unique_by: nil)
-        InsertAll.new(self, attributes, on_duplicate: :skip, returning: returning, unique_by: unique_by).execute
+        InsertAll.new(self, attributes, defaults: _insert_defaults, on_duplicate: :skip, returning: returning, unique_by: unique_by).execute
       end
 
       # Inserts a single record into the database. This method constructs a single SQL INSERT
@@ -181,7 +181,7 @@ module ActiveRecord
       #   ])
       #
       def insert_all!(attributes, returning: nil)
-        InsertAll.new(self, attributes, on_duplicate: :raise, returning: returning).execute
+        InsertAll.new(self, attributes, defaults: _insert_defaults, on_duplicate: :raise, returning: returning).execute
       end
 
       # Upserts (updates or inserts) a single record into the database. This method constructs
@@ -255,7 +255,7 @@ module ActiveRecord
       #   ], unique_by: { columns: %w[ isbn ] })
       #
       def upsert_all(attributes, returning: nil, unique_by: nil)
-        InsertAll.new(self, attributes, on_duplicate: :update, returning: returning, unique_by: unique_by).execute
+        InsertAll.new(self, attributes, defaults: _upsert_defaults, on_duplicate: :update, returning: returning, unique_by: unique_by).execute
       end
 
       # Given an attributes hash, +instantiate+ returns a new instance of
@@ -407,6 +407,14 @@ module ActiveRecord
         dm.wheres = constraints
 
         connection.delete(dm, "#{self} Destroy")
+      end
+
+      def _insert_defaults
+        {}
+      end
+
+      def _upsert_defaults
+        {}
       end
 
       private
