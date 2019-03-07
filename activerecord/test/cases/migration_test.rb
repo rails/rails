@@ -26,6 +26,10 @@ class Reminder < ActiveRecord::Base; end
 
 class Thing < ActiveRecord::Base; end
 
+module ActiveRecord::ConnectionAdapters::SchemaStatements
+  public(*self.private_instance_methods(false))
+end
+
 class MigrationTest < ActiveRecord::TestCase
   self.use_transactional_tests = false
 
@@ -76,6 +80,20 @@ class MigrationTest < ActiveRecord::TestCase
     assert_deprecated do
       ActiveRecord::Base.connection.assume_migrated_upto_version(0, [])
     end
+  end
+
+  def test_inserting_string_version_to_insert_versions_sql
+    ActiveRecord::SchemaMigration.create_table
+    sm_table = ActiveRecord::Base.connection.quote_table_name(ActiveRecord::SchemaMigration.table_name)
+
+    assert_equal(ActiveRecord::Base.connection.insert_versions_sql(1), "INSERT INTO #{sm_table} (version) VALUES (#{ActiveRecord::Base.connection.quote('1')});")
+  end
+
+  def test_multi_inserting_string_version_to_insert_versions_sql
+    ActiveRecord::SchemaMigration.create_table
+    versions = [1, 2]
+
+    assert_includes(ActiveRecord::Base.connection.insert_versions_sql(versions), "VALUES\n#{versions.map { |v| "(#{ActiveRecord::Base.connection.quote(v.to_s)})" }.join(",\n")};")
   end
 
   def test_migration_version_matches_component_version

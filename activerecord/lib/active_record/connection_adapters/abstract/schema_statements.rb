@@ -1057,13 +1057,12 @@ module ActiveRecord
         end
 
         version = version.to_i
-        sm_table = quote_table_name(ActiveRecord::SchemaMigration.table_name)
 
         migrated = migration_context.get_all_versions
         versions = migration_context.migrations.map(&:version)
 
         unless migrated.include?(version)
-          execute "INSERT INTO #{sm_table} (version) VALUES (#{quote(version)})"
+          execute insert_versions_sql(version)
         end
 
         inserting = (versions - migrated).select { |v| v < version }
@@ -1398,11 +1397,11 @@ module ActiveRecord
 
           if versions.is_a?(Array)
             sql = +"INSERT INTO #{sm_table} (version) VALUES\n"
-            sql << versions.map { |v| "(#{quote(v)})" }.join(",\n")
+            sql << versions.map { |v| "(#{quote(v.to_s)})" }.join(",\n")
             sql << ";\n\n"
             sql
           else
-            "INSERT INTO #{sm_table} (version) VALUES (#{quote(versions)});"
+            "INSERT INTO #{sm_table} (version) VALUES (#{quote(versions.to_s)});"
           end
         end
 
