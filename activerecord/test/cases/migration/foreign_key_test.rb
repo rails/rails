@@ -20,7 +20,9 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
         end
       end
 
-      module ForeignKeyChangeColumnSharedTest
+      class ForeignKeyChangeColumnTest < ActiveRecord::TestCase
+        self.use_transactional_tests = false
+
         class Rocket < ActiveRecord::Base
           has_many :astronauts
         end
@@ -141,17 +143,7 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
         end
       end
 
-      class ForeignKeyChangeColumnTest < ActiveRecord::TestCase
-        include ForeignKeyChangeColumnSharedTest
-
-        self.use_transactional_tests = false
-      end
-
-      class ForeignKeyChangeColumnWithPrefixTest < ActiveRecord::TestCase
-        include ForeignKeyChangeColumnSharedTest
-
-        self.use_transactional_tests = false
-
+      class ForeignKeyChangeColumnWithPrefixTest < ForeignKeyChangeColumnTest
         setup do
           ActiveRecord::Base.table_name_prefix = "p_"
         end
@@ -161,11 +153,7 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
         end
       end
 
-      class ForeignKeyChangeColumnWithSuffixTest < ActiveRecord::TestCase
-        include ForeignKeyChangeColumnSharedTest
-
-        self.use_transactional_tests = false
-
+      class ForeignKeyChangeColumnWithSuffixTest < ForeignKeyChangeColumnTest
         setup do
           ActiveRecord::Base.table_name_suffix = "_p"
         end
