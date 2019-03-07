@@ -128,11 +128,7 @@ module Enumerable
     elements.flatten!(1)
     reject { |element| elements.include?(element) }
   end
-
-  # Alias for #excluding.
-  def without(*elements)
-    excluding(*elements)
-  end
+  alias :without :excluding
 
   # Convert an enumerable to an array based on the given key.
   #

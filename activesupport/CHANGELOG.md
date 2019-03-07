@@ -1,16 +1,16 @@
-*   Allow Array#excluding and Enumerable#excluding to deal with a passed array gracefully.
+*   Allow `Array#excluding` and `Enumerable#excluding` to deal with a passed array gracefully.
 
         [ 1, 2, 3, 4, 5 ].excluding([4, 5]) => [ 1, 2, 3 ]
 
     *DHH*
 
-*   Renamed Array#without and Enumerable#without to Array#excluding and Enumerable#excluding, to create parity with 
-    Array#including and Enumerable#including. Retained the old names as aliases.
+*   Renamed `Array#without` and `Enumerable#without` to `Array#excluding` and `Enumerable#excluding`, to create parity with
+    `Array#including` and `Enumerable#including`. Retained the old names as aliases.
 
     *DHH*
 
-*   Added Array#including and Enumerable#including to conveniently enlarge a collection with more members using a method rather than an operator:
-    
+*   Added `Array#including` and `Enumerable#including` to conveniently enlarge a collection with more members using a method rather than an operator:
+
         [ 1, 2, 3 ].including(4, 5) => [ 1, 2, 3, 4, 5 ]
         post.authors.including(Current.person) => All the authors plus the current person!
 
