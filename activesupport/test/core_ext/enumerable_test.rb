@@ -220,6 +220,7 @@ class EnumerableTests < ActiveSupport::TestCase
   def test_excluding
     assert_equal [1, 2, 4], GenericEnumerable.new((1..5).to_a).excluding(3, 5)
     assert_equal [3, 4, 5], GenericEnumerable.new((1..5).to_a).excluding([1, 2])
+    assert_equal [[0, 1]], GenericEnumerable.new([[0, 1], [1, 0]]).excluding([[1, 0]])
     assert_equal [1, 2, 4], (1..5).to_a.excluding(3, 5)
     assert_equal [1, 2, 4], (1..5).to_set.excluding(3, 5)
     assert_equal({ foo: 1, baz: 3 }, { foo: 1, bar: 2, baz: 3 }.excluding(:bar))
