@@ -48,7 +48,7 @@ module ActiveRecord
       ActiveRecord::Batches.public_instance_methods(false) +
       ActiveRecord::Calculations.public_instance_methods(false) +
       ActiveRecord::FinderMethods.public_instance_methods(false) - [:raise_record_not_found_exception!] +
-      ActiveRecord::SpawnMethods.public_instance_methods(false) - [:spawn, :merge!, :only] +
+      ActiveRecord::SpawnMethods.public_instance_methods(false) - [:spawn, :merge!] +
       ActiveRecord::QueryMethods.public_instance_methods(false).reject { |method|
         method.to_s.end_with?("=", "!", "value", "values", "clause")
       } - [:reverse_order, :arel, :extensions] + [
