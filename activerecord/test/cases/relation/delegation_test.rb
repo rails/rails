@@ -44,25 +44,27 @@ module ActiveRecord
   end
 
   class QueryingMethodsDelegationTest < ActiveRecord::TestCase
-    QUERYING_METHODS = [
-      :find, :take, :take!, :first, :first!, :last, :last!, :exists?, :any?, :many?, :none?, :one?,
-      :second, :second!, :third, :third!, :fourth, :fourth!, :fifth, :fifth!, :forty_two, :forty_two!, :third_to_last, :third_to_last!, :second_to_last, :second_to_last!,
-      :first_or_create, :first_or_create!, :first_or_initialize,
-      :find_or_create_by, :find_or_create_by!, :create_or_find_by, :create_or_find_by!, :find_or_initialize_by,
-      :find_by, :find_by!,
-      :destroy_all, :delete_all, :update_all, :delete_by, :destroy_by,
-      :find_each, :find_in_batches, :in_batches,
-      :select, :group, :order, :except, :reorder, :limit, :offset, :joins, :left_joins, :left_outer_joins, :or,
-      :where, :rewhere, :preload, :eager_load, :includes, :from, :lock, :readonly, :extending,
-      :having, :create_with, :distinct, :references, :none, :unscope, :merge,
-      :count, :average, :minimum, :maximum, :sum, :calculate,
-      :pluck, :pick, :ids, :reselect,
-    ]
+    QUERYING_METHODS =
+      ActiveRecord::Batches.public_instance_methods(false) +
+      ActiveRecord::Calculations.public_instance_methods(false) +
+      ActiveRecord::FinderMethods.public_instance_methods(false) - [:raise_record_not_found_exception!] +
+      ActiveRecord::SpawnMethods.public_instance_methods(false) - [:spawn, :merge!, :only] +
+      ActiveRecord::QueryMethods.public_instance_methods(false).reject { |method|
+        method.to_s.end_with?("=", "!", "value", "values", "clause")
+      } - [:reverse_order, :arel, :extensions] + [
+        :any?, :many?, :none?, :one?,
+        :first_or_create, :first_or_create!, :first_or_initialize,
+        :find_or_create_by, :find_or_create_by!, :find_or_initialize_by,
+        :create_or_find_by, :create_or_find_by!,
+        :destroy_all, :delete_all, :update_all, :delete_by, :destroy_by
+      ]
 
     def test_delegate_querying_methods
       klass = Class.new(ActiveRecord::Base) do
         self.table_name = "posts"
       end
+
+      assert_equal QUERYING_METHODS.sort, ActiveRecord::Querying::QUERYING_METHODS.sort
 
       QUERYING_METHODS.each do |method|
         assert_respond_to klass.all, method
