@@ -2789,10 +2789,10 @@ Regexp.new('.', Regexp::MULTILINE).multiline? # => true
 Rails uses this method in a single place, also in the routing code. Multiline regexps are disallowed for route requirements and this flag eases enforcing that constraint.
 
 ```ruby
-def assign_route_options(segments, defaults, requirements)
+def verify_regexp_requirements(requirements)
   ...
   if requirement.multiline?
-    raise ArgumentError, "Regexp multiline option not allowed in routing requirements: #{requirement.inspect}"
+    raise ArgumentError, "Regexp multiline option is not allowed in routing requirements: #{requirement.inspect}"
   end
   ...
 end
