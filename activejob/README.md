@@ -22,7 +22,7 @@ switch between them without having to rewrite your jobs.
 
 To learn how to use your preferred queuing backend see its adapter
 documentation at
-[ActiveJob::QueueAdapters](http://api.rubyonrails.org/classes/ActiveJob/QueueAdapters.html).
+[ActiveJob::QueueAdapters](https://api.rubyonrails.org/classes/ActiveJob/QueueAdapters.html).
 
 Declare a job like so:
 
@@ -86,7 +86,7 @@ by default has been mixed into Active Record classes.
 
 Active Job has built-in adapters for multiple queuing backends (Sidekiq,
 Resque, Delayed Job and others). To get an up-to-date list of the adapters
-see the API Documentation for [ActiveJob::QueueAdapters](http://api.rubyonrails.org/classes/ActiveJob/QueueAdapters.html).
+see the API Documentation for [ActiveJob::QueueAdapters](https://api.rubyonrails.org/classes/ActiveJob/QueueAdapters.html).
 
 **Please note:** We are not accepting pull requests for new adapters. We
 encourage library authors to provide an ActiveJob adapter as part of
@@ -121,7 +121,7 @@ Active Job is released under the MIT license:
 
 API documentation is at:
 
-* http://api.rubyonrails.org
+* https://api.rubyonrails.org
 
 Bug reports for the Ruby on Rails project can be filed here:
 
