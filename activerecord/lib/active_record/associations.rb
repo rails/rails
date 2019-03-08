@@ -703,8 +703,9 @@ module ActiveRecord
       # #belongs_to associations.
       #
       # Extra options on the associations, as defined in the
-      # <tt>AssociationReflection::INVALID_AUTOMATIC_INVERSE_OPTIONS</tt> constant, will
-      # also prevent the association's inverse from being found automatically.
+      # <tt>AssociationReflection::INVALID_AUTOMATIC_INVERSE_OPTIONS</tt>
+      # constant, or a custom scope, will also prevent the association's inverse
+      # from being found automatically.
       #
       # The automatic guessing of the inverse association uses a heuristic based
       # on the name of the class, so it may not work for all associations,
