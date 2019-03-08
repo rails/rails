@@ -6,6 +6,6 @@
     "activetext": "file:../.."
   },
   "devDependencies": {
-    "webpack-dev-server": "^2.11.1"
+    "webpack-dev-server": "^3.2.1"
   }
 }
