@@ -7,13 +7,19 @@ module Rails
 
       def main
         if zeitwerk_enabled?
-          @main ||= Zeitwerk::Loader.new.tap { |loader| loader.tag = "rails.main" }
+          @main ||= Zeitwerk::Loader.new.tap do |loader|
+            loader.tag = "rails.main"
+            loader.inflector = ActiveSupport::Dependencies::ZeitwerkIntegration::Inflector
+          end
         end
       end
 
       def once
         if zeitwerk_enabled?
-          @once ||= Zeitwerk::Loader.new.tap { |loader| loader.tag = "rails.once" }
+          @once ||= Zeitwerk::Loader.new.tap do |loader|
+            loader.tag = "rails.once"
+            loader.inflector = ActiveSupport::Dependencies::ZeitwerkIntegration::Inflector
+          end
         end
       end
 
