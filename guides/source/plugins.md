@@ -459,16 +459,16 @@ When the gem is ready to be shared as a formal release, it can be published to [
 Alternatively, you can benefit from Bundler's Rake tasks. You can see a full list with the following:
 
 ```
-rake -T
+bundle exec rake -T
 
-rake build
-# Build yaffle-0.0.1.gem into the pkg directory
+bundle exec rake build
+# Build yaffle-0.1.0.gem into the pkg directory
 
-rake install
-# Build and install yaffle-0.0.1.gem into system gems
+bundle exec rake install
+# Build and install yaffle-0.1.0.gem into system gems
 
-rake release
-# Create tag v0.0.1 and build and push yaffle-0.0.1.gem to Rubygems
+bundle exec rake release
+# Create tag v0.1.0 and build and push yaffle-0.1.0.gem to Rubygems
 ```
 
 For more information about publishing gems to RubyGems, see: [Publishing your gem](https://guides.rubygems.org/publishing).
