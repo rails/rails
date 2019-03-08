@@ -168,7 +168,7 @@ view and sending it over the HTTP protocol, they are just sending it out through
 the email protocols instead. Due to this, it makes sense to just have your
 controller tell the Mailer to send an email when a user is successfully created.
 
-Setting this up is painfully simple.
+Setting this up is simple.
 
 First, let's create a simple `User` scaffold:
 
