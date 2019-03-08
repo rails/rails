@@ -240,11 +240,15 @@ module ActiveRecord
       #
       # ==== Examples
       #
-      #   # Insert multiple records, performing an upsert when records have duplicate ISBNs
+      #   # Given a Unique Index on books.isbn and the following record:
+      #   Book.create!(title: 'Rework', author: 'David', isbn: '1')
+      #
+      #   # Insert multiple records, allowing new records with the same ISBN
+      #   # as an existing record to overwrite the existing record.
       #   # ('Eloquent Ruby' will overwrite 'Rework' because its ISBN is duplicate)
       #   Book.upsert_all([
-      #     { title: 'Rework', author: 'David', isbn: '1' },
-      #     { title: 'Eloquent Ruby', author: 'Russ', isbn: '1' }
+      #     { title: 'Eloquent Ruby', author: 'Russ', isbn: '1' },
+      #     { title: 'Clean Code', author: 'Robert', isbn: '2' }
       #   ],
       #      unique_by: { columns: %w[ isbn ] })
       #
