@@ -588,7 +588,7 @@ DEPENDENCIES
   w3c_validators
   wdm (>= 0.1.0)
   webmock
-  webpacker (~> 4.0.0)
+  webpacker (~> 4.0)
   websocket-client-simple!
 
 BUNDLED WITH
