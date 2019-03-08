@@ -55,10 +55,6 @@ module ActiveSupport
         private
 
           def setup_autoloaders
-            Rails.autoloaders.each do |autoloader|
-              autoloader.inflector = Inflector
-            end
-
             Dependencies.autoload_paths.each do |autoload_path|
               # Zeitwerk only accepts existing directories in `push_dir` to
               # prevent misconfigurations.

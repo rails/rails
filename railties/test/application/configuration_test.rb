@@ -1167,6 +1167,8 @@ module ApplicationTests
       assert_instance_of Zeitwerk::Loader, Rails.autoloaders.once
       assert_equal "rails.once", Rails.autoloaders.once.tag
       assert_equal [Rails.autoloaders.main, Rails.autoloaders.once], Rails.autoloaders.to_a
+      assert_equal ActiveSupport::Dependencies::ZeitwerkIntegration::Inflector, Rails.autoloaders.main.inflector
+      assert_equal ActiveSupport::Dependencies::ZeitwerkIntegration::Inflector, Rails.autoloaders.once.inflector
 
       config.autoloader = :classic
       assert_not Rails.autoloaders.zeitwerk_enabled?
@@ -1181,6 +1183,8 @@ module ApplicationTests
       assert_instance_of Zeitwerk::Loader, Rails.autoloaders.once
       assert_equal "rails.once", Rails.autoloaders.once.tag
       assert_equal [Rails.autoloaders.main, Rails.autoloaders.once], Rails.autoloaders.to_a
+      assert_equal ActiveSupport::Dependencies::ZeitwerkIntegration::Inflector, Rails.autoloaders.main.inflector
+      assert_equal ActiveSupport::Dependencies::ZeitwerkIntegration::Inflector, Rails.autoloaders.once.inflector
 
       assert_raises(ArgumentError) { config.autoloader = :unknown }
     end
