@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_support/dependencies/zeitwerk_integration"
+
 module Rails
   module Autoloaders # :nodoc:
     class << self
