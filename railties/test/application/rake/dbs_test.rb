@@ -131,7 +131,7 @@ module ApplicationTests
         end
       end
 
-      test "db:truncate_all truncates all not internal tables" do
+      test "db:truncate_all truncates all non-internal tables" do
         Dir.chdir(app_path) do
           rails "generate", "model", "book", "title:string"
           rails "db:migrate"
@@ -433,7 +433,7 @@ module ApplicationTests
         assert_equal "test", test_environment.call
       end
 
-      test "db:seed:replant truncates all not internal tables and loads the seeds" do
+      test "db:seed:replant truncates all non-internal tables and loads the seeds" do
         Dir.chdir(app_path) do
           rails "generate", "model", "book", "title:string"
           rails "db:migrate"
