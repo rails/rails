@@ -9,7 +9,7 @@ gemfile(true) do
   source 'https://rubygems.org'
   gem 'rails', github: 'rails/rails', branch: '5-0-stable'
   gem 'arel', github: 'rails/arel', branch: '7-1-stable'
-  gem 'sqlite3'
+  gem 'sqlite3', '~> 1.3.6'
 end
 
 require 'active_record'
