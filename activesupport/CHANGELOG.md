@@ -1,3 +1,8 @@
+*   Calling test methods with `with_info_handler` method to allow minitest-hooks
+    plugin to work.
+
+    *Mauri Mustonen*
+
 *   The Zeitwerk compatibility interface for `ActiveSupport::Dependencies` no
     longer implements `autoloaded_constants` or `autoloaded?` (undocumented,
     anyway). Experience shows introspection does not have many use cases, and
