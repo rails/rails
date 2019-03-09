@@ -1806,7 +1806,7 @@ class TestAutosaveAssociationOnAHasManyAssociationWithInverse < ActiveRecord::Te
 end
 
 class TestAutosaveAssociationOnAHasManyAssociationDefinedInSubclassWithAcceptsNestedAttributes < ActiveRecord::TestCase
-  def test_should_update_children_when_asssociation_redefined_in_subclass
+  def test_should_update_children_when_association_redefined_in_subclass
     agency = Agency.create!(name: "Agency")
     valid_project = Project.create!(firm: agency, name: "Initial")
     agency.update!(
