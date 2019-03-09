@@ -46,9 +46,9 @@ module ActionDispatch
 
       ActionDispatch::ExceptionWrapper.rescue_responses.merge!(config.action_dispatch.rescue_responses)
       ActionDispatch::ExceptionWrapper.rescue_templates.merge!(config.action_dispatch.rescue_templates)
-
-      config.action_dispatch.always_write_cookie = Rails.env.development? if config.action_dispatch.always_write_cookie.nil?
-      ActionDispatch::Cookies::CookieJar.always_write_cookie = config.action_dispatch.always_write_cookie
+      if !config.action_dispatch.always_write_cookie.nil?
+        ActionDispatch::Cookies::CookieJar.always_write_cookie = config.action_dispatch.always_write_cookie
+      end
 
       ActionDispatch.test_app = app
     end

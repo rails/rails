@@ -532,6 +532,9 @@ Defaults to `'signed cookie'`.
 
   Any exceptions that are not configured will be mapped to 500 Internal Server Error.
 
+* `config.action_dispatch.always_write_cookie` enables writing
+  secure flagged cookies although running app with non-ssl mode. It defaults to `false`.
+
 * `ActionDispatch::Callbacks.before` takes a block of code to run before the request.
 
 * `ActionDispatch::Callbacks.after` takes a block of code to run after the request.

@@ -26,29 +26,21 @@ module ApplicationTests
       FileUtils.rm_rf(new_app) if File.directory?(new_app)
     end
 
-    test "always_write_cookie is true by default in development" do
+    test "always_write_cookie is false by default" do
       require "rails"
       Rails.env = "development"
       require "#{app_path}/config/environment"
-      assert_equal true, ActionDispatch::Cookies::CookieJar.always_write_cookie
-    end
-
-    test "always_write_cookie is false by default in production" do
-      require "rails"
-      Rails.env = "production"
-      require "#{app_path}/config/environment"
-      assert_equal false, ActionDispatch::Cookies::CookieJar.always_write_cookie
+      assert_equal false,  ActionDispatch::Cookies::CookieJar.always_write_cookie
     end
 
     test "always_write_cookie can be overridden" do
       add_to_config <<-RUBY
-        config.action_dispatch.always_write_cookie = false
+        config.action_dispatch.always_write_cookie = true
       RUBY
 
       require "rails"
-      Rails.env = "development"
       require "#{app_path}/config/environment"
-      assert_equal false, ActionDispatch::Cookies::CookieJar.always_write_cookie
+      assert_equal true, ActionDispatch::Cookies::CookieJar.always_write_cookie
     end
 
     test "signed cookies with SHA512 digest and rotated out SHA256 and SHA1 digests" do
