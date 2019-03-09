@@ -29,7 +29,7 @@ Railties is released under the MIT license:
 
 API documentation is at
 
-* http://api.rubyonrails.org
+* https://api.rubyonrails.org
 
 Bug reports can be filed for the Ruby on Rails project here:
 
