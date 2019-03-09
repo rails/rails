@@ -1,3 +1,8 @@
+*   Calling test methods with `with_info_handler` method to allow minitest-hooks
+    plugin to work.
+
+    *Mauri Mustonen*
+
 *   Add support for supplying `locale` to `transliterate` and `parameterize`.
 
         I18n.backend.store_translations(:de, i18n: { transliterate: { rule: { "ü" => "ue" } } })

@@ -79,7 +79,9 @@ module ActiveSupport
               klass    = job[0]
               method   = job[1]
               reporter = job[2]
-              result   = Minitest.run_one_method(klass, method)
+              result = klass.with_info_handler reporter do
+                Minitest.run_one_method(klass, method)
+              end
 
               begin
                 queue.record(reporter, result)
