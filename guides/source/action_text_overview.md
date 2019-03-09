@@ -49,7 +49,9 @@ Run `rails action_text:install` to add the Yarn package and copy over the necess
 
 ## Examples
 
-Adding a rich text field to an existing model:
+Add a rich text field to an existing model.
+
+Note that rich text field can be added on the database column of the model or on a model attribute. In the following example, `content` can be database column for model `Message` or an model attribute accessor.
 
 ```ruby
 # app/models/message.rb
