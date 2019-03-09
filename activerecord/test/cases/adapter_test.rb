@@ -456,15 +456,15 @@ module ActiveRecord
       @connection = ActiveRecord::Base.connection
     end
 
-    test "reconnect after a disconnect" do
-      assert_predicate @connection, :active?
-      @connection.disconnect!
-      assert_not_predicate @connection, :active?
-      @connection.reconnect!
-      assert_predicate @connection, :active?
-    end
-
     unless in_memory_db?
+      test "reconnect after a disconnect" do
+        assert_predicate @connection, :active?
+        @connection.disconnect!
+        assert_not_predicate @connection, :active?
+        @connection.reconnect!
+        assert_predicate @connection, :active?
+      end
+
       test "transaction state is reset after a reconnect" do
         @connection.begin_transaction
         assert_predicate @connection, :transaction_open?
