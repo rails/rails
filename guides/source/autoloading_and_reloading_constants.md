@@ -798,7 +798,7 @@ to load a file using the current [loading mechanism](#loading-mechanism), and
 keeping track of constants defined in that file as if they were autoloaded to
 have them reloaded as needed.
 
-`require_dependency` is rarely needed, but see a couple of use-cases in
+`require_dependency` is rarely needed, but see a couple of use cases in
 [Autoloading and STI](#autoloading-and-sti) and [When Constants aren't
 Triggered](#when-constants-aren-t-missed).
 
