@@ -14,6 +14,7 @@ module ActiveRecord
       @returning = (connection.supports_insert_returning? ? primary_keys : false) if @returning.nil?
       @returning = false if @returning == []
 
+      @unique_by = find_unique_index_for(unique_by) if unique_by
       @on_duplicate = :skip if @on_duplicate == :update && updatable_columns.empty?
 
       ensure_valid_options_for_connection!
@@ -26,6 +27,11 @@ module ActiveRecord
     def updatable_columns
       keys - readonly_columns - unique_by_columns
     end
+
+    def primary_keys
+      Array(model.primary_key)
+    end
+
 
     def skip_duplicates?
       on_duplicate == :skip
@@ -47,6 +53,21 @@ module ActiveRecord
     end
 
     private
+      def find_unique_index_for(unique_by)
+        match = Array(unique_by).map(&:to_s)
+
+        if index = unique_indexes.find { |i| match.include?(i.name) || i.columns == match }
+          index
+        else
+          raise ArgumentError, "No unique index found for #{unique_by}"
+        end
+      end
+
+      def unique_indexes
+        connection.schema_cache.indexes(model.table_name).select(&:unique)
+      end
+
+
       def ensure_valid_options_for_connection!
         if returning && !connection.supports_insert_returning?
           raise ArgumentError, "#{connection.class} does not support :returning"
@@ -69,21 +90,20 @@ module ActiveRecord
         end
       end
 
+
       def to_sql
         connection.build_insert_sql(ActiveRecord::InsertAll::Builder.new(self))
       end
+
 
       def readonly_columns
         primary_keys + model.readonly_attributes.to_a
       end
 
       def unique_by_columns
-        unique_by ? unique_by.fetch(:columns).map(&:to_s) : []
+        Array(unique_by&.columns)
       end
 
-      def primary_keys
-        Array.wrap(model.primary_key)
-      end
 
       def verify_attributes(attributes)
         if keys != attributes.keys.to_set
@@ -121,10 +141,13 @@ module ActiveRecord
         end
 
         def conflict_target
-          return unless conflict_columns
-          sql = +"(#{quote_columns(conflict_columns).join(',')})"
-          sql << " WHERE #{where}" if where
-          sql
+          if index = insert_all.unique_by
+            sql = +"(#{quote_columns(index.columns).join(',')})"
+            sql << " WHERE #{index.where}" if index.where
+            sql
+          elsif update_duplicates?
+            "(#{quote_columns(insert_all.primary_keys).join(',')})"
+          end
         end
 
         def updatable_columns
@@ -149,18 +172,6 @@ module ActiveRecord
 
           def quote_columns(columns)
             columns.map(&connection.method(:quote_column_name))
-          end
-
-          def conflict_columns
-            @conflict_columns ||= begin
-              conflict_columns = insert_all.unique_by.fetch(:columns) if insert_all.unique_by
-              conflict_columns ||= Array.wrap(model.primary_key) if update_duplicates?
-              conflict_columns
-            end
-          end
-
-          def where
-            insert_all.unique_by && insert_all.unique_by[:where]
           end
       end
   end
