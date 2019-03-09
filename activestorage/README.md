@@ -6,6 +6,8 @@ Files can be uploaded from the server to the cloud or directly from the client t
 
 Image files can furthermore be transformed using on-demand variants for quality, aspect ratio, size, or any other [MiniMagick](https://github.com/minimagick/minimagick) or [Vips](http://www.rubydoc.info/gems/ruby-vips/Vips/Image) supported transformation.
 
+You can read more about Active Storage in the [Active Storage Overview](https://edgeguides.rubyonrails.org/active_storage_overview.html) guide.
+
 ## Compared to other storage solutions
 
 A key difference to how Active Storage works compared to other attachment solutions in Rails is through the use of built-in [Blob](https://github.com/rails/rails/blob/master/activestorage/app/models/active_storage/blob.rb) and [Attachment](https://github.com/rails/rails/blob/master/activestorage/app/models/active_storage/attachment.rb) models (backed by Active Record). This means existing application models do not need to be modified with additional columns to associate with files. Active Storage uses polymorphic associations via the `Attachment` join model, which then connects to the actual `Blob`.
