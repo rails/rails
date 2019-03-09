@@ -13,6 +13,7 @@ module ActiveRecord
         @columns_hash = {}
         @primary_keys = {}
         @data_sources = {}
+        @indexes      = {}
       end
 
       def initialize_dup(other)
@@ -21,22 +22,25 @@ module ActiveRecord
         @columns_hash = @columns_hash.dup
         @primary_keys = @primary_keys.dup
         @data_sources = @data_sources.dup
+        @indexes      = @indexes.dup
       end
 
       def encode_with(coder)
-        coder["columns"] = @columns
+        coder["columns"]      = @columns
         coder["columns_hash"] = @columns_hash
         coder["primary_keys"] = @primary_keys
         coder["data_sources"] = @data_sources
-        coder["version"] = connection.migration_context.current_version
+        coder["indexes"]      = @indexes
+        coder["version"]      = connection.migration_context.current_version
       end
 
       def init_with(coder)
-        @columns = coder["columns"]
+        @columns      = coder["columns"]
         @columns_hash = coder["columns_hash"]
         @primary_keys = coder["primary_keys"]
         @data_sources = coder["data_sources"]
-        @version = coder["version"]
+        @indexes      = coder["indexes"] || {}
+        @version      = coder["version"]
       end
 
       def primary_keys(table_name)
@@ -57,6 +61,7 @@ module ActiveRecord
           primary_keys(table_name)
           columns(table_name)
           columns_hash(table_name)
+          indexes(table_name)
         end
       end
 
@@ -82,12 +87,17 @@ module ActiveRecord
         @columns_hash.key?(table_name)
       end
 
+      def indexes(table_name)
+        @indexes[table_name] ||= connection.indexes(table_name)
+      end
+
       # Clears out internal caches
       def clear!
         @columns.clear
         @columns_hash.clear
         @primary_keys.clear
         @data_sources.clear
+        @indexes.clear
         @version = nil
       end
 
@@ -101,10 +111,10 @@ module ActiveRecord
         @columns_hash.delete name
         @primary_keys.delete name
         @data_sources.delete name
+        @indexes.delete name
       end
 
       private
-
         def prepare_data_sources
           connection.data_sources.each { |source| @data_sources[source] = true }
         end
