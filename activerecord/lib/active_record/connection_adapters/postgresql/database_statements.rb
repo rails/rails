@@ -143,6 +143,12 @@ module ActiveRecord
           end
         end
 
+        def truncate_tables(*table_names) # :nodoc:
+          unless table_names.empty?
+            execute "TRUNCATE TABLE #{table_names.map(&method(:quote_table_name)).join(", ")}"
+          end
+        end
+
         # Begins a transaction.
         def begin_db_transaction
           execute "BEGIN"

@@ -259,10 +259,6 @@ module ActiveRecord
         @use_insert_returning = @config.key?(:insert_returning) ? self.class.type_cast_config_to_boolean(@config[:insert_returning]) : true
       end
 
-      def truncate(table_name, name = nil)
-        exec_query "TRUNCATE TABLE #{quote_table_name(table_name)}", name, []
-      end
-
       # Is this connection alive and ready for queries?
       def active?
         @lock.synchronize do

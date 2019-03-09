@@ -155,10 +155,6 @@ module ActiveRecord
         @connection.close rescue nil
       end
 
-      def truncate(table_name, name = nil)
-        execute "DELETE FROM #{quote_table_name(table_name)}", name
-      end
-
       def supports_index_sort_order?
         true
       end
@@ -277,6 +273,10 @@ module ActiveRecord
             @connection.execute(sql)
           end
         end
+      end
+
+      def truncate(table_name, name = nil) # :nodoc:
+        execute "DELETE FROM #{quote_table_name(table_name)}", name
       end
 
       def begin_db_transaction #:nodoc:

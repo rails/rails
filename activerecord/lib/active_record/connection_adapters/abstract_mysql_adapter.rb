@@ -274,10 +274,6 @@ module ActiveRecord
         show_variable "collation_database"
       end
 
-      def truncate(table_name, name = nil)
-        execute "TRUNCATE TABLE #{quote_table_name(table_name)}", name
-      end
-
       def table_comment(table_name) # :nodoc:
         scope = quoted_scope(table_name)
 

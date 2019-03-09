@@ -452,6 +452,8 @@ module ActiveRecord
   class AdapterTestWithoutTransaction < ActiveRecord::TestCase
     self.use_transactional_tests = false
 
+    fixtures :posts, :authors, :author_addresses
+
     def setup
       @connection = ActiveRecord::Base.connection
     end
@@ -480,6 +482,26 @@ module ActiveRecord
       ensure
         @connection.reconnect!
       end
+    end
+
+    def test_truncate
+      assert_operator @connection.query_value("SELECT COUNT(*) FROM posts"), :>, 0
+
+      @connection.truncate("posts")
+
+      assert_equal 0, @connection.query_value("SELECT COUNT(*) FROM posts")
+    end
+
+    def test_truncate_tables
+      assert_operator @connection.query_value("SELECT COUNT(*) FROM authors"), :>, 0
+      assert_operator @connection.query_value("SELECT COUNT(*) FROM author_addresses"), :>, 0
+
+      @connection.disable_referential_integrity do
+        @connection.truncate_tables("author_addresses", "authors")
+      end
+
+      assert_equal 0, @connection.query_value("SELECT COUNT(*) FROM authors")
+      assert_equal 0, @connection.query_value("SELECT COUNT(*) FROM author_addresses")
     end
 
     # test resetting sequences in odd tables in PostgreSQL

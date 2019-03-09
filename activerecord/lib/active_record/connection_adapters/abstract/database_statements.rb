@@ -144,7 +144,11 @@ module ActiveRecord
 
       # Executes the truncate statement.
       def truncate(table_name, name = nil)
-        raise NotImplementedError
+        execute "TRUNCATE TABLE #{quote_table_name(table_name)}", name
+      end
+
+      def truncate_tables(*table_names) # :nodoc:
+        table_names.each { |table_name| truncate(table_name) }
       end
 
       # Executes update +sql+ statement in the context of this connection using
