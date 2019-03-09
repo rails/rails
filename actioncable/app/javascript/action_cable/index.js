@@ -30,12 +30,8 @@ export function getConfig(name) {
 }
 
 export function createWebSocketURL(url) {
-  let webSocketURL
-  if (typeof url === 'function') {
-    webSocketURL = url()
-  } else {
-    webSocketURL = url
-  }
+  const webSocketURL = typeof url === 'function' ? url() : url;
+
   if (webSocketURL && !/^wss?:/i.test(webSocketURL)) {
     const a = document.createElement("a")
     a.href = webSocketURL
