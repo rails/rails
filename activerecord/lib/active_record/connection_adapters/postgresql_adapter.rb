@@ -740,6 +740,8 @@ module ActiveRecord
         def connect
           @connection = PG.connect(@connection_parameters)
           configure_connection
+          add_pg_encoders
+          add_pg_decoders
         end
 
         # Configures the encoding, verbosity, schema search path, and time zone of the connection.
