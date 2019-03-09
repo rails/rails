@@ -36,8 +36,6 @@ module ActiveRecord
         config.merge(results_as_hash: true)
       )
 
-      db.busy_timeout(ConnectionAdapters::SQLite3Adapter.type_cast_config_to_integer(config[:timeout])) if config[:timeout]
-
       ConnectionAdapters::SQLite3Adapter.new(db, logger, nil, config)
     rescue Errno::ENOENT => error
       if error.message.include?("No such file or directory")
@@ -622,6 +620,8 @@ module ActiveRecord
         end
 
         def configure_connection
+          @connection.busy_timeout(self.class.type_cast_config_to_integer(@config[:timeout])) if @config[:timeout]
+
           execute("PRAGMA foreign_keys = ON", "SCHEMA")
         end
 
