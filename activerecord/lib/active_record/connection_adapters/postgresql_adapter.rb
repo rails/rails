@@ -281,6 +281,8 @@ module ActiveRecord
           super
           @connection.reset
           configure_connection
+        rescue PG::ConnectionBad
+          connect
         end
       end
 
