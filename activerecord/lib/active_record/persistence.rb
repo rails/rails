@@ -243,7 +243,7 @@ module ActiveRecord
       #
       # ==== Examples
       #
-      #   # Given a Unique Index on books.isbn and the following record:
+      #   # Given a unique index on <tt>books.isbn</tt> and the following record:
       #   Book.create!(title: 'Rework', author: 'David', isbn: '1')
       #
       #   # Insert multiple records, allowing new records with the same ISBN
@@ -252,8 +252,7 @@ module ActiveRecord
       #   Book.upsert_all([
       #     { title: 'Eloquent Ruby', author: 'Russ', isbn: '1' },
       #     { title: 'Clean Code', author: 'Robert', isbn: '2' }
-      #   ],
-      #      unique_by: { columns: %w[ isbn ] })
+      #   ], unique_by: { columns: %w[ isbn ] })
       #
       def upsert_all(attributes, returning: nil, unique_by: nil)
         InsertAll.new(self, attributes, on_duplicate: :update, returning: returning, unique_by: unique_by).execute
