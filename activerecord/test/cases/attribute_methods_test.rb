@@ -458,6 +458,69 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     end
   end
 
+  test "user-defined text attribute predicate" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = Topic.table_name
+
+      attribute :user_defined_text, :text
+    end
+
+    topic = klass.new(user_defined_text: "text")
+    assert_predicate topic, :user_defined_text?
+
+    ActiveModel::Type::Boolean::FALSE_VALUES.each do |value|
+      topic = klass.new(user_defined_text: value)
+      assert_predicate topic, :user_defined_text?
+    end
+  end
+
+  test "user-defined date attribute predicate" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = Topic.table_name
+
+      attribute :user_defined_date, :date
+    end
+
+    topic = klass.new(user_defined_date: Date.current)
+    assert_predicate topic, :user_defined_date?
+  end
+
+  test "user-defined datetime attribute predicate" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = Topic.table_name
+
+      attribute :user_defined_datetime, :datetime
+    end
+
+    topic = klass.new(user_defined_datetime: Time.current)
+    assert_predicate topic, :user_defined_datetime?
+  end
+
+  test "user-defined time attribute predicate" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = Topic.table_name
+
+      attribute :user_defined_time, :time
+    end
+
+    topic = klass.new(user_defined_time: Time.current)
+    assert_predicate topic, :user_defined_time?
+  end
+
+  test "user-defined json attribute predicate" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = Topic.table_name
+
+      attribute :user_defined_json, :json
+    end
+
+    topic = klass.new(user_defined_json: { key: "value" })
+    assert_predicate topic, :user_defined_json?
+
+    topic = klass.new(user_defined_json: {})
+    assert_not_predicate topic, :user_defined_json?
+  end
+
   test "custom field attribute predicate" do
     object = Company.find_by_sql(<<~SQL).first
       SELECT c1.*, c2.type as string_value, c2.rating as int_value
