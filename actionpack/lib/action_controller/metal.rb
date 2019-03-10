@@ -26,10 +26,10 @@ module ActionController
       end
     end
 
-    def build(action, app = Proc.new)
+    def build(action, app = nil, &block)
       action = action.to_s
 
-      middlewares.reverse.inject(app) do |a, middleware|
+      middlewares.reverse.inject(app || block) do |a, middleware|
         middleware.valid?(action) ? middleware.build(a) : a
       end
     end

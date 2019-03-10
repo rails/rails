@@ -87,8 +87,8 @@ module ActiveRecord
       end
     end
 
-    def self.create(connection, block = Proc.new)
-      relation = block.call Params.new
+    def self.create(connection, callable = nil, &block)
+      relation = (callable || block).call Params.new
       query_builder, binds = connection.cacheable_query(self, relation.arel)
       bind_map = BindMap.new(binds)
       new(query_builder, bind_map, relation.klass)
