@@ -93,6 +93,8 @@ Trying to report a possible security vulnerability in Rails? Please
 check out our [security policy](https://rubyonrails.org/security/) for
 guidelines about how to proceed.
 
+If you'd like feedback on an idea for a feature before doing the work to make a patch, please send an email to the [rails-core mailing](https://groups.google.com/forum/?fromgroups#!forum/rubyonrails-core) list.
+
 Everyone interacting in Rails and its sub-projects' codebases, issue trackers, chat rooms, and mailing lists is expected to follow the Rails [code of conduct](https://rubyonrails.org/conduct/).
 
 ## Code Status
