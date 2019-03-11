@@ -7,6 +7,7 @@ require "generators/shared_generator_tests"
 DEFAULT_APP_FILES = %w(
   .gitignore
   .ruby-version
+  Procfile
   README.md
   Gemfile
   Rakefile
@@ -122,6 +123,24 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file("app/views/layouts/application.html.erb", /javascript_pack_tag\s+'application', 'data-turbolinks-track': 'reload'/)
     assert_file("app/assets/stylesheets/application.css")
     assert_file("app/javascript/packs/application.js")
+  end
+
+  def test_procfile
+    run_generator
+
+    assert_file "Procfile" do |content|
+      assert_match(/web: bundle exec bin\/rails server/, content)
+      assert_match(/release: bundle exec bin\/rails db:migrate/, content)
+    end
+  end
+
+  def test_generator_skips_release_phase_in_procfile_when_active_record_is_skipped
+    run_generator [destination_root, "--skip-active-record"]
+
+    assert_file "Procfile" do |content|
+      assert_match(/web: bundle exec bin\/rails server/, content)
+      assert_no_match(/release:/, content)
+    end
   end
 
   def test_application_job_file_present

@@ -66,6 +66,10 @@ module Rails
       template "gitignore", ".gitignore"
     end
 
+    def procfile
+      template "Procfile"
+    end
+
     def version_control
       if !options[:skip_git] && !options[:pretend]
         run "git init", capture: options[:quiet]
@@ -288,6 +292,7 @@ module Rails
         build(:rakefile)
         build(:ruby_version)
         build(:configru)
+        build(:procfile)
         build(:gitignore)   unless options[:skip_git]
         build(:gemfile)     unless options[:skip_gemfile]
         build(:version_control)

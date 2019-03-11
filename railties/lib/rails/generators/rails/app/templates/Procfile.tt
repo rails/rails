@@ -1,0 +1,4 @@
+web: bundle exec bin/rails server
+<% unless options.skip_active_record? -%>
+release: bundle exec bin/rails db:migrate
+<% end %>

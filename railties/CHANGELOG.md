@@ -1,3 +1,7 @@
+*   Generate a default Procfile that includes a `web` and `release` command which tell platforms how to boot the server and migrate the database.
+
+    *Richard Schneeman*
+
 ## Rails 6.0.0.beta2 (February 25, 2019) ##
 
 *   Fix non-symbol access to nested hashes returned from `Rails::Application.config_for`
