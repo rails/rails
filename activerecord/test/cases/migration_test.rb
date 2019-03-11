@@ -567,39 +567,6 @@ class MigrationTest < ActiveRecord::TestCase
     end
   end
 
-  if current_adapter? :OracleAdapter
-    def test_create_table_with_custom_sequence_name
-      # table name is 29 chars, the standard sequence name will
-      # be 33 chars and should be shortened
-      assert_nothing_raised do
-        Person.connection.create_table :table_with_name_thats_just_ok do |t|
-          t.column :foo, :string, null: false
-        end
-      ensure
-        Person.connection.drop_table :table_with_name_thats_just_ok rescue nil
-      end
-
-      # should be all good w/ a custom sequence name
-      assert_nothing_raised do
-        Person.connection.create_table :table_with_name_thats_just_ok,
-          sequence_name: "suitably_short_seq" do |t|
-          t.column :foo, :string, null: false
-        end
-
-        Person.connection.execute("select suitably_short_seq.nextval from dual")
-
-      ensure
-        Person.connection.drop_table :table_with_name_thats_just_ok,
-          sequence_name: "suitably_short_seq" rescue nil
-      end
-
-      # confirm the custom sequence got dropped
-      assert_raise(ActiveRecord::StatementInvalid) do
-        Person.connection.execute("select suitably_short_seq.nextval from dual")
-      end
-    end
-  end
-
   def test_decimal_scale_without_precision_should_raise
     e = assert_raise(ArgumentError) do
       Person.connection.create_table :test_decimal_scales, force: true do |t|
