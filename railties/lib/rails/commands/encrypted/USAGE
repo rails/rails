@@ -6,7 +6,7 @@ See the `Rails.application.encrypted` documentation for using them in your app.
 === Encryption Keys
 
 By default, Rails looks for the encryption key in `config/master.key` or
-`ENV["RAILS_MASTER_KEY"]`, but that lookup can be overriden with `--key`:
+`ENV["RAILS_MASTER_KEY"]`, but that lookup can be overridden with `--key`:
 
    rails encrypted:edit config/encrypted_file.yml.enc --key config/encrypted_file.key
 
