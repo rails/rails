@@ -30,14 +30,16 @@ export function getConfig(name) {
 }
 
 export function createWebSocketURL(url) {
-  if (url && !/^wss?:/i.test(url)) {
+  const webSocketURL = typeof url === 'function' ? url() : url;
+
+  if (webSocketURL && !/^wss?:/i.test(webSocketURL)) {
     const a = document.createElement("a")
-    a.href = url
+    a.href = webSocketURL
     // Fix populating Location properties in IE. Otherwise, protocol will be blank.
     a.href = a.href
     a.protocol = a.protocol.replace("http", "ws")
     return a.href
   } else {
-    return url
+    return webSocketURL
   }
 }
