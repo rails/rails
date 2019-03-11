@@ -56,9 +56,15 @@ connections:
       username: rails
       encoding: utf8
       collation: utf8_unicode_ci
+<% if ENV['MYSQL_HOST'] %>
+      host: <%= ENV['MYSQL_HOST'] %>
+<% end %>
     arunit2:
       username: rails
       encoding: utf8
+<% if ENV['MYSQL_HOST'] %>
+      host: <%= ENV['MYSQL_HOST'] %>
+<% end %>
 
   oracle:
      arunit:
