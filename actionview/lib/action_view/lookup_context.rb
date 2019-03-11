@@ -154,7 +154,7 @@ module ActionView
         view_paths = build_view_paths((@view_paths.paths + self.class.fallbacks).uniq)
 
         if block_given?
-          ActiveSupport::Deprecation.warn <<~eowarn
+          ActiveSupport::Deprecation.warn <<~eowarn.squish
           Calling `with_fallbacks` with a block is deprecated.  Call methods on
           the lookup context returned by `with_fallbacks` instead.
           eowarn

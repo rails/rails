@@ -264,7 +264,7 @@ module Rails
 
         def deprecate_positional_rack_server_and_rewrite_to_option(original_options)
           if using
-            ActiveSupport::Deprecation.warn(<<~MSG)
+            ActiveSupport::Deprecation.warn(<<~MSG.squish)
               Passing the Rack server name as a regular argument is deprecated
               and will be removed in the next Rails version. Please, use the -u
               option instead.

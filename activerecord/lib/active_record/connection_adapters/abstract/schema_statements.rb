@@ -1051,7 +1051,7 @@ module ActiveRecord
 
       def assume_migrated_upto_version(version, migrations_paths = nil)
         unless migrations_paths.nil?
-          ActiveSupport::Deprecation.warn(<<~MSG)
+          ActiveSupport::Deprecation.warn(<<~MSG.squish)
             Passing migrations_paths to #assume_migrated_upto_version is deprecated and will be removed in Rails 6.1.
           MSG
         end
