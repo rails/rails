@@ -242,7 +242,7 @@ module ActionView #:nodoc:
       @_config = ActiveSupport::InheritableOptions.new
 
       unless formats == NULL
-        ActiveSupport::Deprecation.warn <<~eowarn
+        ActiveSupport::Deprecation.warn <<~eowarn.squish
         Passing formats to ActionView::Base.new is deprecated
         eowarn
       end
@@ -251,7 +251,7 @@ module ActionView #:nodoc:
       when ActionView::LookupContext
         @lookup_context = lookup_context
       else
-        ActiveSupport::Deprecation.warn <<~eowarn
+        ActiveSupport::Deprecation.warn <<~eowarn.squish
         ActionView::Base instances should be constructed with a lookup context,
         assignments, and a controller.
         eowarn
@@ -278,7 +278,7 @@ module ActionView #:nodoc:
 
     def compiled_method_container
       if self.class == ActionView::Base
-        ActiveSupport::Deprecation.warn <<~eowarn
+        ActiveSupport::Deprecation.warn <<~eowarn.squish
           ActionView::Base instances must implement `compiled_method_container`
           or use the class method `with_empty_template_cache` for constructing
           an ActionView::Base instances that has an empty cache.
