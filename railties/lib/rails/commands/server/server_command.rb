@@ -255,7 +255,7 @@ module Rails
         end
 
         def self.banner(*)
-          "rails server [thin/puma/webrick] [options]"
+          "rails server -u [thin/puma/webrick] [options]"
         end
 
         def prepare_restart
