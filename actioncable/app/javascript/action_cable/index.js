@@ -30,7 +30,7 @@ export function getConfig(name) {
 }
 
 export function createWebSocketURL(url) {
-  const webSocketURL = typeof url === 'function' ? url() : url;
+  const webSocketURL = typeof url === "function" ? url() : url
 
   if (webSocketURL && !/^wss?:/i.test(webSocketURL)) {
     const a = document.createElement("a")

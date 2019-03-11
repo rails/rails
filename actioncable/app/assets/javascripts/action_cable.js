@@ -465,14 +465,15 @@
     }
   }
   function createWebSocketURL(url) {
-    if (url && !/^wss?:/i.test(url)) {
+    var webSocketURL = typeof url === "function" ? url() : url;
+    if (webSocketURL && !/^wss?:/i.test(webSocketURL)) {
       var a = document.createElement("a");
-      a.href = url;
+      a.href = webSocketURL;
       a.href = a.href;
       a.protocol = a.protocol.replace("http", "ws");
       return a.href;
     } else {
-      return url;
+      return webSocketURL;
     }
   }
   exports.Connection = Connection;
