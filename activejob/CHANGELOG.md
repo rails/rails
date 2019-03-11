@@ -1,3 +1,8 @@
+## Rails 5.2.2.1 (March 11, 2019) ##
+
+*   No changes.
+
+
 ## Rails 5.2.2 (December 04, 2018) ##
 
 *   Make sure `assert_enqueued_with()` & `assert_performed_with()` work reliably with hash arguments.
