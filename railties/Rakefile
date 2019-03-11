@@ -8,18 +8,74 @@ task :test => 'test:isolated'
 
 namespace :test do
   task :isolated do
+    dash_i = [
+      "test",
+      "lib",
+      "../activesupport/lib",
+      "../actionpack/lib",
+      "../actionview/lib",
+      "../activemodel/lib"
+    ].map { |dir| File.expand_path(dir, File.dirname(__FILE__)) }
+
+    dash_i.reverse_each do |x|
+      $:.unshift(x) unless $:.include?(x)
+    end
+    $-w = true
+
+    require "bundler/setup" unless defined?(Bundler)
+    require "active_support"
+
+    failing_files = []
+
     dirs = (ENV["TEST_DIR"] || ENV["TEST_DIRS"] || "**").split(",")
-    test_files = dirs.map { |dir| "test/#{dir}/*_test.rb" }
-    Dir[*test_files].each do |file|
-      next true if file.include?("fixtures")
-      dash_i = [
-        'test',
-        'lib',
-        "#{File.dirname(__FILE__)}/../activesupport/lib",
-        "#{File.dirname(__FILE__)}/../actionpack/lib",
-        "#{File.dirname(__FILE__)}/../activemodel/lib"
-      ]
-      ruby "-w", "-I#{dash_i.join ':'}", file
+    test_patterns = dirs.map { |dir| "test/#{dir}/*_test.rb" }
+    test_files = Dir[*test_patterns].select do |file|
+      !file.start_with?("test/fixtures/")
+    end.sort
+
+    if ENV["BUILDKITE_PARALLEL_JOB_COUNT"]
+      n = ENV["BUILDKITE_PARALLEL_JOB"].to_i
+      m = ENV["BUILDKITE_PARALLEL_JOB_COUNT"].to_i
+
+      test_files = test_files.each_slice(m).map { |slice| slice[n] }.compact
+    end
+
+    test_files.each do |file|
+      puts "--- #{file}"
+      fake_command = Shellwords.join([
+        FileUtils::RUBY,
+        "-w",
+        *dash_i.map { |dir| "-I#{Pathname.new(dir).relative_path_from(Pathname.pwd)}" },
+        file,
+      ])
+      puts fake_command
+
+      # We could run these in parallel, but pretty much all of the
+      # railties tests already run in parallel, so ¯\_(⊙︿⊙)_/¯
+      Process.waitpid fork {
+        ARGV.clear
+        Rake.application = nil
+
+        load file
+      }
+
+      unless $?.success?
+        failing_files << file
+        puts "^^^ +++"
+      end
+    end
+
+    puts "--- All tests completed"
+    unless failing_files.empty?
+      puts "^^^ +++"
+      puts
+      puts "Failed in:"
+      failing_files.each do |file|
+        puts "  #{file}"
+      end
+      puts
+
+      exit 1
     end
   end
 end
