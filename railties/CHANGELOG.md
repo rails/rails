@@ -268,9 +268,9 @@
 
     *Jose Luis Duran*
 
-*   Deprecate support for using the `HOST` environment to specify the server IP.
+*   Deprecate support for using the `HOST` environment variable to specify the server IP.
 
-    The `BINDING` environment should be used instead.
+    The `BINDING` environment variable should be used instead.
 
     Fixes #29516.
 
