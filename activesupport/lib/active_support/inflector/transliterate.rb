@@ -90,7 +90,7 @@ module ActiveSupport
     #
     def parameterize(string, separator: "-", preserve_case: false, locale: nil)
       # Replace accented chars with their ASCII equivalents.
-      parameterized_string = transliterate(string, locale)
+      parameterized_string = transliterate(string, locale: locale)
 
       # Turn unwanted chars into the separator.
       parameterized_string.gsub!(/[^a-z0-9\-_]+/i, separator)
