@@ -30,16 +30,18 @@ export function getConfig(name) {
 }
 
 export function createWebSocketURL(url) {
-  const webSocketURL = typeof url === "function" ? url() : url
+  return function () {
+    const webSocketURL = typeof url === "function" ? url() : url
 
-  if (webSocketURL && !/^wss?:/i.test(webSocketURL)) {
-    const a = document.createElement("a")
-    a.href = webSocketURL
-    // Fix populating Location properties in IE. Otherwise, protocol will be blank.
-    a.href = a.href
-    a.protocol = a.protocol.replace("http", "ws")
-    return a.href
-  } else {
-    return webSocketURL
+    if (webSocketURL && !/^wss?:/i.test(webSocketURL)) {
+      const a = document.createElement("a")
+      a.href = webSocketURL
+      // Fix populating Location properties in IE. Otherwise, protocol will be blank.
+      a.href = a.href
+      a.protocol = a.protocol.replace("http", "ws")
+      return a.href
+    } else {
+      return webSocketURL
+    }
   }
 }

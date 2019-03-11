@@ -28,10 +28,14 @@ import Subscriptions from "./subscriptions"
 // automatically resubscribe.
 
 export default class Consumer {
-  constructor(url) {
-    this.url = url
+  constructor(dynamicUrl) {
+    this.dynamicUrl = dynamicUrl
     this.subscriptions = new Subscriptions(this)
     this.connection = new Connection(this)
+  }
+
+  get url() {
+    return this.dynamicUrl()
   }
 
   send(data) {
