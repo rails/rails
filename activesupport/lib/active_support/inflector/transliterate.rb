@@ -51,19 +51,18 @@ module ActiveSupport
     #
     # Now you can have different transliterations for each locale:
     #
-    #   I18n.locale = :en
-    #   transliterate('Jürgen')
+    #   transliterate('Jürgen', locale: :en)
     #   # => "Jurgen"
     #
-    #   I18n.locale = :de
-    #   transliterate('Jürgen')
+    #   transliterate('Jürgen', locale: :de)
     #   # => "Juergen"
-    def transliterate(string, replacement = "?")
+    def transliterate(string, replacement = "?", locale: nil)
       raise ArgumentError, "Can only transliterate strings. Received #{string.class.name}" unless string.is_a?(String)
 
       I18n.transliterate(
         ActiveSupport::Multibyte::Unicode.tidy_bytes(string).unicode_normalize(:nfc),
-        replacement: replacement
+        replacement: replacement,
+        locale: locale
       )
     end
 
@@ -89,9 +88,9 @@ module ActiveSupport
     #  parameterize("^très|Jolie-- ", separator: "_") # => "tres_jolie--"
     #  parameterize("^très_Jolie-- ", separator: ".") # => "tres_jolie--"
     #
-    def parameterize(string, separator: "-", preserve_case: false)
+    def parameterize(string, separator: "-", preserve_case: false, locale: nil)
       # Replace accented chars with their ASCII equivalents.
-      parameterized_string = transliterate(string)
+      parameterized_string = transliterate(string, locale)
 
       # Turn unwanted chars into the separator.
       parameterized_string.gsub!(/[^a-z0-9\-_]+/i, separator)
