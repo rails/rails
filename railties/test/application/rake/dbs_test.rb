@@ -53,6 +53,7 @@ module ApplicationTests
 
       test "db:create and db:drop respect environment setting" do
         app_file "config/database.yml", <<-YAML
+          <% 1 %>
           development:
             database: <%= Rails.application.config.database %>
             adapter: sqlite3
