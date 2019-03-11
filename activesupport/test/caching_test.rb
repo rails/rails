@@ -1023,8 +1023,9 @@ class MemCacheStoreTest < ActiveSupport::TestCase
   require 'dalli'
 
   begin
-    ss = Dalli::Client.new('localhost:11211').stats
-    raise Dalli::DalliError unless ss['localhost:11211']
+    servers = ENV["MEMCACHE_SERVERS"] || "localhost:11211"
+    ss = Dalli::Client.new(servers).stats
+    raise Dalli::DalliError unless ss[servers]
 
     MEMCACHE_UP = true
   rescue Dalli::DalliError
@@ -1035,8 +1036,8 @@ class MemCacheStoreTest < ActiveSupport::TestCase
   def setup
     skip "memcache server is not up" unless MEMCACHE_UP
 
-    @cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, :expires_in => 60)
-    @peek = ActiveSupport::Cache.lookup_store(:mem_cache_store)
+    @cache = ActiveSupport::Cache.lookup_store(*store, :expires_in => 60)
+    @peek = ActiveSupport::Cache.lookup_store(*store)
     @data = @cache.instance_variable_get(:@data)
     @cache.clear
     @cache.silence!
@@ -1050,21 +1051,21 @@ class MemCacheStoreTest < ActiveSupport::TestCase
   include AutoloadingCacheBehavior
 
   def test_raw_values
-    cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, :raw => true)
+    cache = ActiveSupport::Cache.lookup_store(*store, :raw => true)
     cache.clear
     cache.write("foo", 2)
     assert_equal "2", cache.read("foo")
   end
 
   def test_raw_values_with_marshal
-    cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, :raw => true)
+    cache = ActiveSupport::Cache.lookup_store(*store, :raw => true)
     cache.clear
     cache.write("foo", Marshal.dump([]))
     assert_equal [], cache.read("foo")
   end
 
   def test_local_cache_raw_values
-    cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, :raw => true)
+    cache = ActiveSupport::Cache.lookup_store(*store, :raw => true)
     cache.clear
     cache.with_local_cache do
       cache.write("foo", 2)
@@ -1073,7 +1074,7 @@ class MemCacheStoreTest < ActiveSupport::TestCase
   end
 
   def test_local_cache_raw_values_with_marshal
-    cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, :raw => true)
+    cache = ActiveSupport::Cache.lookup_store(*store, :raw => true)
     cache.clear
     cache.with_local_cache do
       cache.write("foo", Marshal.dump([]))
@@ -1094,6 +1095,11 @@ class MemCacheStoreTest < ActiveSupport::TestCase
       assert_equal 111, @cache.send(:escape_key, 111)
     end
   end
+
+  private
+    def store
+      [:mem_cache_store, ENV["MEMCACHE_SERVERS"] || "localhost:11211"]
+    end
 end
 
 class NullStoreTest < ActiveSupport::TestCase

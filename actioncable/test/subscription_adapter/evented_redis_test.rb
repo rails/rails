@@ -50,6 +50,6 @@ class EventedRedisAdapterTest < ActionCable::TestCase
   end
 
   def cable_config
-    { adapter: 'evented_redis', url: 'redis://127.0.0.1:6379/12' }
+    { adapter: 'evented_redis', url: ENV["REDIS_URL"] || 'redis://127.0.0.1:6379/12' }
   end
 end

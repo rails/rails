@@ -1,3 +1,4 @@
+require 'base64'
 require 'rake/testtask'
 require 'pathname'
 require 'action_cable'
@@ -24,6 +25,10 @@ namespace :test do
   end
 
   task :javascript do
+    Base64.decode64(ENV.fetch("ENCODED", "")).split(/[ =]/).each_slice(2) do |k, v|
+      ENV[k] = v
+    end
+
     require "blade"
     Blade.start(interface: :runner)
   end
