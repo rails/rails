@@ -1195,22 +1195,22 @@ You can also use the `--expanded` option to turn on the expanded table formattin
 ```
 $ rails routes --expanded
 
---[ Route 1 ]-----------------------------------------------------------------
+--[ Route 1 ]----------------------------------------------------
 Prefix            | users
 Verb              | GET
 URI               | /users(.:format)
 Controller#Action | users#index
---[ Route 2 ]-----------------------------------------------------------------
+--[ Route 2 ]----------------------------------------------------
 Prefix            |
 Verb              | POST
 URI               | /users(.:format)
 Controller#Action | users#create
---[ Route 3 ]-----------------------------------------------------------------
+--[ Route 3 ]----------------------------------------------------
 Prefix            | new_user
 Verb              | GET
 URI               | /users/new(.:format)
 Controller#Action | users#new
---[ Route 4 ]-----------------------------------------------------------------
+--[ Route 4 ]----------------------------------------------------
 Prefix            | edit_user
 Verb              | GET
 URI               | /users/:id/edit(.:format)
