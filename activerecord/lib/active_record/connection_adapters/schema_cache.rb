@@ -92,7 +92,7 @@ module ActiveRecord
       end
 
       def size
-        [@columns, @columns_hash, @primary_keys, @data_sources].map(&:size).inject :+
+        [@columns, @columns_hash, @primary_keys, @data_sources].sum(&:size)
       end
 
       # Clear out internal caches for the data source +name+.
