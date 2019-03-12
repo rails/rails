@@ -1,3 +1,13 @@
+*   Add support for supplying `locale` to `transliterate` and `parameterize`.
+
+        I18n.backend.store_translations(:de, i18n: { transliterate: { rule: { "ü" => "ue" } } })
+
+        ActiveSupport::Inflector.transliterate("ü", locale: :de) => "ue"
+        "Fünf autos".parameterize(locale: :de) => "fuenf-autos"
+        ActiveSupport::Inflector.parameterize("Fünf autos", locale: :de) => "fuenf-autos"
+
+    *Kaan Ozkan*, *Sharang Dashputre*
+
 *   Allow Array#excluding and Enumerable#excluding to deal with a passed array gracefully.
 
         [ 1, 2, 3, 4, 5 ].excluding([4, 5]) => [ 1, 2, 3 ]
@@ -10,11 +20,12 @@
     *DHH*
 
 *   Added Array#including and Enumerable#including to conveniently enlarge a collection with more members using a method rather than an operator:
-    
+
         [ 1, 2, 3 ].including(4, 5) => [ 1, 2, 3, 4, 5 ]
         post.authors.including(Current.person) => All the authors plus the current person!
 
     *DHH*
+
 
 ## Rails 6.0.0.beta2 (February 25, 2019) ##
 
@@ -43,6 +54,7 @@
 *   Add `Hash#deep_transform_values`, and `Hash#deep_transform_values!`.
 
     *Guillermo Iguaran*
+
 
 ## Rails 6.0.0.beta1 (January 18, 2019) ##
 

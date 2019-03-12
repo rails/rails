@@ -36,8 +36,6 @@ module ActiveRecord
         config.merge(results_as_hash: true)
       )
 
-      db.busy_timeout(ConnectionAdapters::SQLite3Adapter.type_cast_config_to_integer(config[:timeout])) if config[:timeout]
-
       ConnectionAdapters::SQLite3Adapter.new(db, logger, nil, config)
     rescue Errno::ENOENT => error
       if error.message.include?("No such file or directory")
@@ -95,8 +93,6 @@ module ActiveRecord
 
       def initialize(connection, logger, connection_options, config)
         super(connection, logger, config)
-
-        @active = true
         configure_connection
       end
 
@@ -144,14 +140,18 @@ module ActiveRecord
       alias supports_insert_conflict_target? supports_insert_on_conflict?
 
       def active?
-        @active
+        !@connection.closed?
+      end
+
+      def reconnect!
+        super
+        connect if @connection.closed?
       end
 
       # Disconnects from the database if already connected. Otherwise, this
       # method does nothing.
       def disconnect!
         super
-        @active = false
         @connection.close rescue nil
       end
 
@@ -611,7 +611,17 @@ module ActiveRecord
           StatementPool.new(self.class.type_cast_config_to_integer(@config[:statement_limit]))
         end
 
+        def connect
+          @connection = ::SQLite3::Database.new(
+            @config[:database].to_s,
+            @config.merge(results_as_hash: true)
+          )
+          configure_connection
+        end
+
         def configure_connection
+          @connection.busy_timeout(self.class.type_cast_config_to_integer(@config[:timeout])) if @config[:timeout]
+
           execute("PRAGMA foreign_keys = ON", "SCHEMA")
         end
 

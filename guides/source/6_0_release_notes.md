@@ -207,7 +207,7 @@ Credits
 -------
 
 See the
-[full list of contributors to Rails](http://contributors.rubyonrails.org/)
+[full list of contributors to Rails](https://contributors.rubyonrails.org/)
 for the many people who spent many hours making Rails, the stable and robust
 framework it is. Kudos to all of them.
 

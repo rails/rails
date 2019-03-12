@@ -243,10 +243,10 @@ module ActiveRecord
     # Allows you to change a previously set select statement.
     #
     #   Post.select(:title, :body)
-    #   # SELECT `posts.title`, `posts.body` FROM `posts`
+    #   # SELECT `posts`.`title`, `posts`.`body` FROM `posts`
     #
     #   Post.select(:title, :body).reselect(:created_at)
-    #   # SELECT `posts.created_at` FROM `posts`
+    #   # SELECT `posts`.`created_at` FROM `posts`
     #
     # This is short-hand for <tt>unscope(:select).select(fields)</tt>.
     # Note that we're unscoping the entire select statement.
@@ -1117,7 +1117,7 @@ module ActiveRecord
             o.reverse
           when String
             if does_not_support_reverse?(o)
-              raise IrreversibleOrderError, "Order #{o.inspect} can not be reversed automatically"
+              raise IrreversibleOrderError, "Order #{o.inspect} cannot be reversed automatically"
             end
             o.split(",").map! do |s|
               s.strip!

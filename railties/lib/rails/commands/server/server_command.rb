@@ -221,8 +221,8 @@ module Rails
 
             if ENV["HOST"] && !ENV["BINDING"]
               ActiveSupport::Deprecation.warn(<<-MSG.squish)
-                Using the `HOST` environment to specify the IP is deprecated and will be removed in Rails 6.1.
-                Please use `BINDING` environment instead.
+                Using the `HOST` environment variable to specify the IP is deprecated and will be removed in Rails 6.1.
+                Please use `BINDING` environment variable instead.
               MSG
 
               return ENV["HOST"]
@@ -255,7 +255,7 @@ module Rails
         end
 
         def self.banner(*)
-          "rails server [thin/puma/webrick] [options]"
+          "rails server -u [thin/puma/webrick] [options]"
         end
 
         def prepare_restart
@@ -264,7 +264,7 @@ module Rails
 
         def deprecate_positional_rack_server_and_rewrite_to_option(original_options)
           if using
-            ActiveSupport::Deprecation.warn(<<~MSG)
+            ActiveSupport::Deprecation.warn(<<~MSG.squish)
               Passing the Rack server name as a regular argument is deprecated
               and will be removed in the next Rails version. Please, use the -u
               option instead.

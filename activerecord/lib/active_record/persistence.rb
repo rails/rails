@@ -57,7 +57,7 @@ module ActiveRecord
         end
       end
 
-      # Inserts a single record into the databases. This method constructs a single SQL INSERT
+      # Inserts a single record into the database. This method constructs a single SQL INSERT
       # statement and sends it straight to the database. It does not instantiate the involved
       # models and it does not trigger Active Record callbacks or validations. However, values
       # passed to #insert will still go through Active Record's normal type casting and
@@ -93,9 +93,9 @@ module ActiveRecord
       #   record or pass <tt>returning: false</tt> to omit the clause.
       #
       # [:unique_by]
-      #   (Postgres and SQLite only) In a table with more than one unique constaint or index,
-      #   new records may considered duplicates according to different criteria. By default,
-      #   new rows will be skipped if they violate _any_ unique constraint/index. By defining
+      #   (Postgres and SQLite only) In a table with more than one unique constraint or index,
+      #   new records may be considered duplicates according to different criteria. By default,
+      #   new rows will be skipped if they violate _any_ unique constraint or index. By defining
       #   <tt>:unique_by</tt>, you can skip rows that would create duplicates according to the given
       #   constraint but raise <tt>ActiveRecord::RecordNotUnique</tt> if rows violate other constraints.
       #
@@ -125,7 +125,7 @@ module ActiveRecord
         InsertAll.new(self, attributes, on_duplicate: :skip, returning: returning, unique_by: unique_by).execute
       end
 
-      # Inserts a single record into the databases. This method constructs a single SQL INSERT
+      # Inserts a single record into the database. This method constructs a single SQL INSERT
       # statement and sends it straight to the database. It does not instantiate the involved
       # models and it does not trigger Active Record callbacks or validations. However, values
       # passed to #insert! will still go through Active Record's normal type casting and
@@ -173,7 +173,7 @@ module ActiveRecord
       #     { title: 'Eloquent Ruby', author: 'Russ' }
       #   ])
       #
-      #   # raises ActiveRecord::RecordNotUnique beacuse 'Eloquent Ruby'
+      #   # Raises ActiveRecord::RecordNotUnique because 'Eloquent Ruby'
       #   # does not have a unique ID
       #   Book.insert_all!([
       #     { id: 1, title: 'Rework', author: 'David' },
@@ -184,7 +184,7 @@ module ActiveRecord
         InsertAll.new(self, attributes, on_duplicate: :raise, returning: returning).execute
       end
 
-      # Upserts (inserts-or-creates) a single record into the databases. This method constructs
+      # Upserts (updates or inserts) a single record into the database. This method constructs
       # a single SQL INSERT statement and sends it straight to the database. It does not
       # instantiate the involved models and it does not trigger Active Record callbacks or
       # validations. However, values passed to #upsert will still go through Active Record's
@@ -195,7 +195,7 @@ module ActiveRecord
         upsert_all([ attributes ], returning: returning, unique_by: unique_by)
       end
 
-      # Upserts (creates-or-updates) multiple records into the database. This method constructs
+      # Upserts (updates or inserts) multiple records into the database. This method constructs
       # a single SQL INSERT statement and sends it straight to the database. It does not
       # instantiate the involved models and it does not trigger Active Record callbacks or
       # validations. However, values passed to #upsert_all will still go through Active Record's
@@ -218,12 +218,15 @@ module ActiveRecord
       #   record or pass <tt>returning: false</tt> to omit the clause.
       #
       # [:unique_by]
-      #   (Postgres and SQLite only) In a table with more than one unique constaint or index,
-      #   new records may considered duplicates according to different criteria. For MySQL,
+      #   (Postgres and SQLite only) In a table with more than one unique constraint or index,
+      #   new records may be considered duplicates according to different criteria. For MySQL,
       #   an upsert will take place if a new record violates _any_ unique constraint. For
       #   Postgres and SQLite, new rows will replace existing rows when the new row has the
-      #   same primary key as the existing row. By defining <tt>:unique_by</tt>, you can supply
-      #   a different key for matching new records to existing ones than the primary key.
+      #   same primary key as the existing row. In case of SQLite, an upsert operation causes
+      #   an insert to behave as an update or a no-op if the insert would violate
+      #   a uniqueness constraint. By defining <tt>:unique_by</tt>, you can supply
+      #   a different unique constraint for matching new records to existing ones than the
+      #   primary key.
       #
       #   (For example, if you have a unique index on the ISBN column and use that as
       #   the <tt>:unique_by</tt>, a new record with the same ISBN as an existing record
@@ -240,13 +243,16 @@ module ActiveRecord
       #
       # ==== Examples
       #
-      #   # Insert multiple records, performing an upsert when records have duplicate ISBNs
+      #   # Given a unique index on <tt>books.isbn</tt> and the following record:
+      #   Book.create!(title: 'Rework', author: 'David', isbn: '1')
+      #
+      #   # Insert multiple records, allowing new records with the same ISBN
+      #   # as an existing record to overwrite the existing record.
       #   # ('Eloquent Ruby' will overwrite 'Rework' because its ISBN is duplicate)
       #   Book.upsert_all([
-      #     { title: 'Rework', author: 'David', isbn: '1' },
-      #     { title: 'Eloquent Ruby', author: 'Russ', isbn: '1' }
-      #   ],
-      #      unique_by: { columns: %w[ isbn ] })
+      #     { title: 'Eloquent Ruby', author: 'Russ', isbn: '1' },
+      #     { title: 'Clean Code', author: 'Robert', isbn: '2' }
+      #   ], unique_by: { columns: %w[ isbn ] })
       #
       def upsert_all(attributes, returning: nil, unique_by: nil)
         InsertAll.new(self, attributes, on_duplicate: :update, returning: returning, unique_by: unique_by).execute

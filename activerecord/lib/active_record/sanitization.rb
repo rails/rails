@@ -165,10 +165,11 @@ module ActiveRecord
 
         def quote_bound_value(value, c = connection)
           if value.respond_to?(:map) && !value.acts_like?(:string)
-            if value.respond_to?(:empty?) && value.empty?
+            quoted = value.map { |v| c.quote(v) }
+            if quoted.empty?
               c.quote(nil)
             else
-              value.map { |v| c.quote(v) }.join(",")
+              quoted.join(",")
             end
           else
             c.quote(value)

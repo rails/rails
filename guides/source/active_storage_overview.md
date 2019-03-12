@@ -421,7 +421,7 @@ Transforming Images
 To create a variation of the image, call `variant` on the `Blob`. You can pass
 any transformation to the method supported by the processor. The default
 processor is [MiniMagick](https://github.com/minimagick/minimagick), but you
-can also use [Vips](http://www.rubydoc.info/gems/ruby-vips/Vips/Image).
+can also use [Vips](https://www.rubydoc.info/gems/ruby-vips/Vips/Image).
 
 To enable variants, add the `image_processing` gem to your `Gemfile`:
 

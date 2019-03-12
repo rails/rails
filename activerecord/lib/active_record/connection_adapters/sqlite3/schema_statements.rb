@@ -72,7 +72,7 @@ module ActiveRecord
             table = strip_table_name_prefix_and_suffix(table)
             fk_to_table = strip_table_name_prefix_and_suffix(fk.to_table)
             fk_to_table == table && options.all? { |k, v| fk.options[k].to_s == v.to_s }
-          end || raise(ArgumentError, "Table '#{from_table}' has no foreign key for #{to_table}")
+          end || raise(ArgumentError, "Table '#{from_table}' has no foreign key for #{to_table || options}")
 
           foreign_keys.delete(fkey)
           alter_table(from_table, foreign_keys)

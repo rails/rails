@@ -7,7 +7,7 @@ module ActiveRecord
     ONE_AS_ONE = "1 AS one"
 
     # Find by id - This can either be a specific id (1), a list of ids (1, 5, 6), or an array of ids ([5, 6, 10]).
-    # If one or more records can not be found for the requested ids, then ActiveRecord::RecordNotFound will be raised.
+    # If one or more records cannot be found for the requested ids, then ActiveRecord::RecordNotFound will be raised.
     # If the primary key is an integer, find by id coerces its arguments by using +to_i+.
     #
     #   Person.find(1)          # returns the object for ID = 1

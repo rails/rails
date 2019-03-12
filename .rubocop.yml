@@ -179,6 +179,12 @@ Layout/TrailingWhitespace:
 Style/UnneededPercentQ:
   Enabled: true
 
+Lint/AmbiguousOperator:
+  Enabled: true
+
+Lint/AmbiguousRegexpLiteral:
+  Enabled: true
+
 Lint/ErbNewArguments:
   Enabled: true
 
@@ -235,6 +241,9 @@ Performance/EndWith:
   Enabled: true
 
 Performance/RegexpMatch:
+  Enabled: true
+
+Performance/ReverseEach:
   Enabled: true
 
 Performance/UnfreezeString:

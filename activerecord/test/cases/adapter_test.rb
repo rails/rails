@@ -452,19 +452,19 @@ module ActiveRecord
   class AdapterTestWithoutTransaction < ActiveRecord::TestCase
     self.use_transactional_tests = false
 
-    class Klass < ActiveRecord::Base
-    end
-
     def setup
-      Klass.establish_connection :arunit
-      @connection = Klass.connection
-    end
-
-    teardown do
-      Klass.remove_connection
+      @connection = ActiveRecord::Base.connection
     end
 
     unless in_memory_db?
+      test "reconnect after a disconnect" do
+        assert_predicate @connection, :active?
+        @connection.disconnect!
+        assert_not_predicate @connection, :active?
+        @connection.reconnect!
+        assert_predicate @connection, :active?
+      end
+
       test "transaction state is reset after a reconnect" do
         @connection.begin_transaction
         assert_predicate @connection, :transaction_open?
@@ -477,6 +477,8 @@ module ActiveRecord
         assert_predicate @connection, :transaction_open?
         @connection.disconnect!
         assert_not_predicate @connection, :transaction_open?
+      ensure
+        @connection.reconnect!
       end
     end
 

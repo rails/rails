@@ -488,7 +488,14 @@ Module.new do
     f.puts "require 'rails/all'"
   end
 
+  unless File.exist?("#{RAILS_FRAMEWORK_ROOT}/actionview/lib/assets/compiled/rails-ujs.js")
+    Dir.chdir("#{RAILS_FRAMEWORK_ROOT}/actionview") { `yarn build` }
+  end
+
   assets_path = "#{RAILS_FRAMEWORK_ROOT}/railties/test/isolation/assets"
+  unless Dir.exist?("#{assets_path}/node_modules")
+    Dir.chdir(assets_path) { `yarn install` }
+  end
   FileUtils.cp("#{assets_path}/package.json", "#{app_template_path}/package.json")
   FileUtils.cp("#{assets_path}/config/webpacker.yml", "#{app_template_path}/config/webpacker.yml")
   FileUtils.cp_r("#{assets_path}/config/webpack", "#{app_template_path}/config/webpack")

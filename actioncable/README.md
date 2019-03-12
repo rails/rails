@@ -13,7 +13,7 @@ You can read more about Action Cable in the [Action Cable Overview](https://edge
 
 API documentation is at:
 
-* http://api.rubyonrails.org
+* https://api.rubyonrails.org
 
 Bug reports for the Ruby on Rails project can be filed here:
 

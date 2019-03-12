@@ -44,7 +44,9 @@
         gsub  Gemfile
     ```
 
-    The change command copies a template `config/database.yml` with the target database adapter into your app, and replaces your database gem with the target database gem.
+    The change command copies a template `config/database.yml` with
+    the target database adapter into your app, and replaces your database gem
+    with the target database gem.
 
     *Gannon McGibbon*
 
@@ -178,7 +180,7 @@
     The encryption key can be in `ENV["RAILS_MASTER_KEY"]` or `config/credentials/production.key`.
 
     Environment credentials overrides can be edited with `rails credentials:edit --environment production`.
-    If no override is setup for the passed environment, it will be created.
+    If no override is set up for the passed environment, it will be created.
 
     Additionally, the default lookup paths can be overwritten with these configs:
 
@@ -268,9 +270,9 @@
 
     *Jose Luis Duran*
 
-*   Deprecate support for using the `HOST` environment to specify the server IP.
+*   Deprecate support for using the `HOST` environment variable to specify the server IP.
 
-    The `BINDING` environment should be used instead.
+    The `BINDING` environment variable should be used instead.
 
     Fixes #29516.
 

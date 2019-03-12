@@ -105,13 +105,9 @@ module ActiveRecord
         !ActiveRecord::SchemaDumper.fk_ignore_pattern.match?(name) if name
       end
 
-      def defined_for?(to_table_ord = nil, to_table: nil, **options)
-        if to_table_ord
-          self.to_table == to_table_ord.to_s
-        else
-          (to_table.nil? || to_table.to_s == self.to_table) &&
-            options.all? { |k, v| self.options[k].to_s == v.to_s }
-        end
+      def defined_for?(to_table: nil, **options)
+        (to_table.nil? || to_table.to_s == self.to_table) &&
+          options.all? { |k, v| self.options[k].to_s == v.to_s }
       end
 
       private

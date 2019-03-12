@@ -125,7 +125,7 @@ module Enumerable
   #   {foo: 1, bar: 2, baz: 3}.excluding :bar
   #   # => {foo: 1, baz: 3}
   def excluding(*elements)
-    elements.flatten!
+    elements.flatten!(1)
     reject { |element| elements.include?(element) }
   end
 

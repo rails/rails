@@ -3,6 +3,7 @@
 require "cases/helper"
 require "models/post"
 require "models/author"
+require "models/account"
 require "models/categorization"
 require "models/comment"
 require "models/company"
@@ -461,14 +462,14 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_find_by_association_subquery
-    author = authors(:david)
-    assert_equal author.post, Post.find_by(author: Author.where(id: author))
-    assert_equal author.post, Post.find_by(author_id: Author.where(id: author))
+    firm = companies(:first_firm)
+    assert_equal firm.account, Account.find_by(firm: Firm.where(id: firm))
+    assert_equal firm.account, Account.find_by(firm_id: Firm.where(id: firm))
   end
 
   def test_find_by_and_where_consistency_with_active_record_instance
-    author = authors(:david)
-    assert_equal Post.where(author_id: author).take, Post.find_by(author_id: author)
+    firm = companies(:first_firm)
+    assert_equal Account.where(firm_id: firm).take, Account.find_by(firm_id: firm)
   end
 
   def test_take

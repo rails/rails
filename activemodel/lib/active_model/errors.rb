@@ -479,6 +479,14 @@ module ActiveModel
     # * <tt>errors.messages.blank</tt>
     def generate_message(attribute, type = :invalid, options = {})
       type = options.delete(:message) if options[:message].is_a?(Symbol)
+      value = (attribute != :base ? @base.send(:read_attribute_for_validation, attribute) : nil)
+
+      options = {
+        model: @base.model_name.human,
+        attribute: @base.class.human_attribute_name(attribute),
+        value: value,
+        object: @base
+      }.merge!(options)
 
       if @base.class.respond_to?(:i18n_scope)
         i18n_scope = @base.class.i18n_scope.to_s
@@ -487,6 +495,11 @@ module ActiveModel
             :"#{i18n_scope}.errors.models.#{klass.model_name.i18n_key}.#{type}" ]
         end
         defaults << :"#{i18n_scope}.errors.messages.#{type}"
+
+        catch(:exception) do
+          translation = I18n.translate(defaults.first, options.merge(default: defaults.drop(1), throw: true))
+          return translation unless translation.nil?
+        end unless options[:message]
       else
         defaults = []
       end
@@ -496,15 +509,7 @@ module ActiveModel
 
       key = defaults.shift
       defaults = options.delete(:message) if options[:message]
-      value = (attribute != :base ? @base.send(:read_attribute_for_validation, attribute) : nil)
-
-      options = {
-        default: defaults,
-        model: @base.model_name.human,
-        attribute: @base.class.human_attribute_name(attribute),
-        value: value,
-        object: @base
-      }.merge!(options)
+      options[:default] = defaults
 
       I18n.translate(key, options)
     end

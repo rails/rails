@@ -106,7 +106,7 @@ application. Accepts a valid week day symbol (e.g. `:monday`).
 you don't want shown in the logs, such as passwords or credit card
 numbers. It also filters out sensitive values of database columns when call `#inspect` on an Active Record object. By default, Rails filters out passwords by adding `Rails.application.config.filter_parameters += [:password]` in `config/initializers/filter_parameter_logging.rb`. Parameters filter works by partial matching regular expression.
 
-* `config.force_ssl` forces all requests to be served over HTTPS by using the `ActionDispatch::SSL` middleware, and sets `config.action_mailer.default_url_options` to be `{ protocol: 'https' }`. This can be configured by setting `config.ssl_options` - see the [ActionDispatch::SSL documentation](http://api.rubyonrails.org/classes/ActionDispatch/SSL.html) for details.
+* `config.force_ssl` forces all requests to be served over HTTPS by using the `ActionDispatch::SSL` middleware, and sets `config.action_mailer.default_url_options` to be `{ protocol: 'https' }`. This can be configured by setting `config.ssl_options` - see the [ActionDispatch::SSL documentation](https://api.rubyonrails.org/classes/ActionDispatch/SSL.html) for details.
 
 * `config.log_formatter` defines the formatter of the Rails logger. This option defaults to an instance of `ActiveSupport::Logger::SimpleFormatter` for all modes. If you are setting a value for `config.logger` you must manually pass the value of your formatter to your logger before it is wrapped in an `ActiveSupport::TaggedLogging` instance, Rails will not do it for you.
 
@@ -134,6 +134,10 @@ defaults to `:debug` for all environments. The available log levels are: `:debug
 * `config.middleware` allows you to configure the application's middleware. This is covered in depth in the [Configuring Middleware](#configuring-middleware) section below.
 
 * `config.reload_classes_only_on_change` enables or disables reloading of classes only when tracked files change. By default tracks everything on autoload paths and is set to `true`. If `config.cache_classes` is `true`, this option is ignored.
+
+* `config.credentials.content_path` configures lookup path for encrypted credentials.
+
+* `config.credentials.key_path` configures lookup path for encryption key.
 
 * `secret_key_base` is used for specifying a key which allows sessions for the application to be verified against a known secure key to prevent tampering. Applications get a random generated key in test and development environments, other environments should set one in `config/credentials.yml.enc`.
 
@@ -727,7 +731,7 @@ There are a few configuration options available in Active Support:
 
 `config.active_job` provides the following configuration options:
 
-* `config.active_job.queue_adapter` sets the adapter for the queuing backend. The default adapter is `:async`. For an up-to-date list of built-in adapters see the [ActiveJob::QueueAdapters API documentation](http://api.rubyonrails.org/classes/ActiveJob/QueueAdapters.html).
+* `config.active_job.queue_adapter` sets the adapter for the queuing backend. The default adapter is `:async`. For an up-to-date list of built-in adapters see the [ActiveJob::QueueAdapters API documentation](https://api.rubyonrails.org/classes/ActiveJob/QueueAdapters.html).
 
     ```ruby
     # Be sure to have the adapter's gem in your Gemfile

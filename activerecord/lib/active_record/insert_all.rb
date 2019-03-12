@@ -5,24 +5,24 @@ module ActiveRecord
     attr_reader :model, :connection, :inserts, :on_duplicate, :returning, :unique_by
 
     def initialize(model, inserts, on_duplicate:, returning: nil, unique_by: nil)
+      raise ArgumentError, "Empty list of attributes passed" if inserts.blank?
+
       @model, @connection, @inserts, @on_duplicate, @returning, @unique_by = model, model.connection, inserts, on_duplicate, returning, unique_by
+
       @returning = (connection.supports_insert_returning? ? primary_keys : false) if @returning.nil?
       @returning = false if @returning == []
+
       @on_duplicate = :skip if @on_duplicate == :update && updatable_columns.empty?
 
       ensure_valid_options_for_connection!
     end
 
     def execute
-      if inserts.present?
-        connection.exec_query to_sql, "Bulk Insert"
-      else
-        ActiveRecord::Result.new([], [])
-      end
+      connection.exec_query to_sql, "Bulk Insert"
     end
 
     def keys
-      inserts.present? ? inserts.first.keys.map(&:to_s) : []
+      inserts.first.keys.map(&:to_s)
     end
 
     def updatable_columns

@@ -41,5 +41,13 @@ module("ActionCable", () => {
 
       assert.equal(consumer.url, testURL)
     })
+
+    test("uses function to generate URL", assert => {
+      const generateURL = () => {
+        return testURL
+      }
+      const consumer = ActionCable.createConsumer(generateURL)
+      assert.equal(consumer.url, testURL)
+    })
   })
 })

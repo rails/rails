@@ -53,27 +53,19 @@ module ApplicationTests
 
       test "db:create and db:drop respect environment setting" do
         app_file "config/database.yml", <<-YAML
+          <% 1 %>
           development:
-            database: db/development.sqlite3
+            database: <%= Rails.application.config.database %>
             adapter: sqlite3
         YAML
 
         app_file "config/environments/development.rb", <<-RUBY
           Rails.application.configure do
-            config.read_encrypted_secrets = true
+            config.database = "db/development.sqlite3"
           end
         RUBY
 
-        app_file "lib/tasks/check_env.rake", <<-RUBY
-          Rake::Task["db:create"].enhance do
-            File.write("tmp/config_value", Rails.application.config.read_encrypted_secrets)
-          end
-        RUBY
-
-        db_create_and_drop("db/development.sqlite3", environment_loaded: false) do
-          assert File.exist?("tmp/config_value")
-          assert_equal "true", File.read("tmp/config_value")
-        end
+        db_create_and_drop("db/development.sqlite3", environment_loaded: false)
       end
 
       def with_database_existing
@@ -140,7 +132,7 @@ module ApplicationTests
         end
       end
 
-      test "db:truncate_all truncates all not internal tables" do
+      test "db:truncate_all truncates all non-internal tables" do
         Dir.chdir(app_path) do
           rails "generate", "model", "book", "title:string"
           rails "db:migrate"
@@ -442,7 +434,7 @@ module ApplicationTests
         assert_equal "test", test_environment.call
       end
 
-      test "db:seed:replant truncates all not internal tables and loads the seeds" do
+      test "db:seed:replant truncates all non-internal tables and loads the seeds" do
         Dir.chdir(app_path) do
           rails "generate", "model", "book", "title:string"
           rails "db:migrate"
