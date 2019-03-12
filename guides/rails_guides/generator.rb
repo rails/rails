@@ -150,7 +150,7 @@ module RailsGuides
         puts "Generating #{guide} as #{output_file}"
         layout = @kindle ? "kindle/layout" : "layout"
 
-        view = ActionView::Base.with_view_paths(
+        view = ActionView::Base.with_empty_template_cache.with_view_paths(
           [@source_dir],
           edge:     @edge,
           version:  @version,
