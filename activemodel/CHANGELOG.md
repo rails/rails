@@ -1,10 +1,9 @@
-
-*   Changed how validation error translation strings are fetched: The new behaviour
+*   Change how validation error translation strings are fetched: The new behavior
     will first try the more specific keys, including doing locale fallback, then try
     the less specific ones.
     
-    For example this is the order keys will now be tried for a `blank` error on a
-    `product`'s `title` attribute with current locale set to `en-US`:
+    For example, this is the order in which keys will now be tried for a `blank`
+    error on a `product`'s `title` attribute with current locale set to `en-US`:
  
         en-US.activerecord.errors.models.product.attributes.title.blank
         en-US.activerecord.errors.models.product.blank
