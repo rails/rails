@@ -2350,6 +2350,17 @@ end
 
 If a `before_add` callback throws an exception, the object does not get added to the collection. Similarly, if a `before_remove` callback throws an exception, the object does not get removed from the collection.
 
+NOTE: These callbacks are called only when the associated objects are added or removed through the association collection:
+
+```ruby
+# Triggers `before_add` callback
+author.books << book    
+author.books = [book, book2]
+
+# Does not trigger the `before_add` callback
+book.update(author_id: 1) 
+```
+
 ### Association Extensions
 
 You're not limited to the functionality that Rails automatically builds into association proxy objects. You can also extend these objects through anonymous modules, adding new finders, creators, or other methods. For example:
