@@ -119,7 +119,7 @@ npm user (`npm whoami`) is listed as an owner (`npm owner ls <pkg>`) of each
 package. Do not release until you're set up with npm!
 
 The release task will sign the release tag. If you haven't got commit signing
-set up, use https://git-scm.com/book/tr/v2/Git-Tools-Signing-Your-Work as a
+set up, use https://git-scm.com/book/en/v2/Git-Tools-Signing-Your-Work as a
 guide. You can generate keys with the GPG suite from here: https://gpgtools.org.
 
 Run `rake changelog:header` to put a header with the new version in every
