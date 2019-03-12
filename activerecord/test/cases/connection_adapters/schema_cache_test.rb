@@ -6,8 +6,8 @@ module ActiveRecord
   module ConnectionAdapters
     class SchemaCacheTest < ActiveRecord::TestCase
       def setup
-        connection = ActiveRecord::Base.connection
-        @cache     = SchemaCache.new connection
+        @connection = ActiveRecord::Base.connection
+        @cache      = SchemaCache.new @connection
       end
 
       def test_primary_key
@@ -19,6 +19,7 @@ module ActiveRecord
         @cache.columns_hash("posts")
         @cache.data_sources("posts")
         @cache.primary_keys("posts")
+        @cache.indexes("posts")
 
         new_cache = YAML.load(YAML.dump(@cache))
         assert_no_queries do
@@ -26,19 +27,32 @@ module ActiveRecord
           assert_equal 12, new_cache.columns_hash("posts").size
           assert new_cache.data_sources("posts")
           assert_equal "id", new_cache.primary_keys("posts")
+          assert_equal 1, new_cache.indexes("posts").size
         end
       end
 
       def test_yaml_loads_5_1_dump
-        body = File.open(schema_dump_path).read
-        cache = YAML.load(body)
+        @cache = YAML.load(File.read(schema_dump_path))
 
         assert_no_queries do
-          assert_equal 11, cache.columns("posts").size
-          assert_equal 11, cache.columns_hash("posts").size
-          assert cache.data_sources("posts")
-          assert_equal "id", cache.primary_keys("posts")
+          assert_equal 11, @cache.columns("posts").size
+          assert_equal 11, @cache.columns_hash("posts").size
+          assert @cache.data_sources("posts")
+          assert_equal "id", @cache.primary_keys("posts")
         end
+      end
+
+      def test_yaml_loads_5_1_dump_without_indexes_still_queries_for_indexes
+        @cache = YAML.load(File.read(schema_dump_path))
+
+        # Simulate assignment in railtie after loading the cache.
+        old_cache, @connection.schema_cache = @connection.schema_cache, @cache
+
+        assert_queries :any, ignore_none: true do
+          assert_equal 1, @cache.indexes("posts").size
+        end
+      ensure
+        @connection.schema_cache = old_cache
       end
 
       def test_primary_key_for_non_existent_table
@@ -55,11 +69,17 @@ module ActiveRecord
         assert_equal columns_hash, @cache.columns_hash("posts")
       end
 
+      def test_caches_indexes
+        indexes = @cache.indexes("posts")
+        assert_equal indexes, @cache.indexes("posts")
+      end
+
       def test_clearing
         @cache.columns("posts")
         @cache.columns_hash("posts")
         @cache.data_sources("posts")
         @cache.primary_keys("posts")
+        @cache.indexes("posts")
 
         @cache.clear!
 
@@ -92,7 +112,6 @@ module ActiveRecord
       end
 
       private
-
         def schema_dump_path
           "test/assets/schema_dump_5_1.yml"
         end
