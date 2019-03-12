@@ -237,18 +237,6 @@ module Arel # :nodoc: all
       @ctx.source
     end
 
-    class Row < Struct.new(:data) # :nodoc:
-      def id
-        data["id"]
-      end
-
-      def method_missing(name, *args)
-        name = name.to_s
-        return data[name] if data.key?(name)
-        super
-      end
-    end
-
     private
       def collapse(exprs)
         exprs = exprs.compact
