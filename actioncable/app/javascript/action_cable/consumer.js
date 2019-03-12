@@ -28,14 +28,14 @@ import Subscriptions from "./subscriptions"
 // automatically resubscribe.
 
 export default class Consumer {
-  constructor(dynamicUrl) {
-    this.dynamicUrl = dynamicUrl
+  constructor(url) {
+    this._url = url
     this.subscriptions = new Subscriptions(this)
     this.connection = new Connection(this)
   }
 
   get url() {
-    return this.dynamicUrl()
+    return createWebSocketURL(this._url)
   }
 
   send(data) {
@@ -54,5 +54,20 @@ export default class Consumer {
     if (!this.connection.isActive()) {
       return this.connection.open()
     }
+  }
+}
+
+export function createWebSocketURL(url) {
+  const webSocketURL = typeof url === "function" ? url() : url
+
+  if (webSocketURL && !/^wss?:/i.test(webSocketURL)) {
+    const a = document.createElement("a")
+    a.href = webSocketURL
+    // Fix populating Location properties in IE. Otherwise, protocol will be blank.
+    a.href = a.href
+    a.protocol = a.protocol.replace("http", "ws")
+    return a.href
+  } else {
+    return webSocketURL
   }
 }
