@@ -103,16 +103,6 @@ module ActiveRecord
         @data_sources.delete name
       end
 
-      def marshal_dump
-        # if we get current version during initialization, it happens stack over flow.
-        @version = connection.migration_context.current_version
-        [@version, @columns, @columns_hash, @primary_keys, @data_sources]
-      end
-
-      def marshal_load(array)
-        @version, @columns, @columns_hash, @primary_keys, @data_sources = array
-      end
-
       private
 
         def prepare_data_sources
