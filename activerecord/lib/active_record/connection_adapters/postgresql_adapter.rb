@@ -247,8 +247,6 @@ module ActiveRecord
 
         # @local_tz is initialized as nil to avoid warnings when connect tries to use it
         @local_tz = nil
-        @default_timezone = nil
-        @timestamp_decoder = nil
         @max_identifier_length = nil
 
         configure_connection
@@ -869,6 +867,9 @@ module ActiveRecord
         end
 
         def add_pg_decoders
+          @default_timezone = nil
+          @timestamp_decoder = nil
+
           coders_by_name = {
             "int2" => PG::TextDecoder::Integer,
             "int4" => PG::TextDecoder::Integer,
