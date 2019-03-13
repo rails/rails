@@ -68,6 +68,9 @@ module ActiveSupport
                 Rails.autoloaders.once.push_dir(autoload_path)
               else
                 Rails.autoloaders.main.push_dir(autoload_path)
+                unless Rails.application.config.eager_load_paths.include?(autoload_path)
+                  Rails.autoloaders.main.do_not_eager_load(autoload_path)
+                end
               end
             end
 
