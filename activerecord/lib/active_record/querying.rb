@@ -14,7 +14,7 @@ module ActiveRecord
       :find_each, :find_in_batches, :in_batches,
       :select, :reselect, :order, :reorder, :group, :limit, :offset, :joins, :left_joins, :left_outer_joins,
       :where, :rewhere, :preload, :eager_load, :includes, :from, :lock, :readonly, :extending, :or,
-      :having, :create_with, :distinct, :references, :none, :unscope, :merge, :except, :only,
+      :having, :create_with, :distinct, :references, :none, :unscope, :optimizer_hints, :merge, :except, :only,
       :count, :average, :minimum, :maximum, :sum, :calculate,
       :pluck, :pick, :ids
     ].freeze # :nodoc:

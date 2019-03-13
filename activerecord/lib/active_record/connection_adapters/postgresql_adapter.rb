@@ -351,6 +351,13 @@ module ActiveRecord
         postgresql_version >= 90400
       end
 
+      def supports_optimizer_hints?
+        unless defined?(@has_pg_hint_plan)
+          @has_pg_hint_plan = extension_available?("pg_hint_plan")
+        end
+        @has_pg_hint_plan
+      end
+
       def supports_lazy_transactions?
         true
       end
@@ -381,9 +388,12 @@ module ActiveRecord
         }
       end
 
+      def extension_available?(name)
+        query_value("SELECT true FROM pg_available_extensions WHERE name = #{quote(name)}", "SCHEMA")
+      end
+
       def extension_enabled?(name)
-        res = exec_query("SELECT EXISTS(SELECT * FROM pg_available_extensions WHERE name = '#{name}' AND installed_version IS NOT NULL) as enabled", "SCHEMA")
-        res.cast_values.first
+        query_value("SELECT installed_version IS NOT NULL FROM pg_available_extensions WHERE name = #{quote(name)}", "SCHEMA")
       end
 
       def extensions

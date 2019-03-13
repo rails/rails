@@ -82,6 +82,7 @@ module Arel # :nodoc: all
         alias :visit_Arel_Nodes_Offset            :unary
         alias :visit_Arel_Nodes_On                :unary
         alias :visit_Arel_Nodes_UnqualifiedColumn :unary
+        alias :visit_Arel_Nodes_OptimizerHints    :unary
         alias :visit_Arel_Nodes_Preceding         :unary
         alias :visit_Arel_Nodes_Following         :unary
         alias :visit_Arel_Nodes_Rows              :unary

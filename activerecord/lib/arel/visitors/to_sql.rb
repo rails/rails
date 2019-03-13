@@ -219,6 +219,7 @@ module Arel # :nodoc: all
         def visit_Arel_Nodes_SelectCore(o, collector)
           collector << "SELECT"
 
+          collector = collect_optimizer_hints(o, collector)
           collector = maybe_visit o.set_quantifier, collector
 
           collect_nodes_for o.projections, collector, SPACE
@@ -234,6 +235,10 @@ module Arel # :nodoc: all
           collect_nodes_for o.windows, collector, WINDOW
 
           collector
+        end
+
+        def visit_Arel_Nodes_OptimizerHints(o, collector)
+          collector << "/*+ #{sanitize_as_sql_comment(o).join(" ")} */"
         end
 
         def collect_nodes_for(nodes, collector, spacer, connector = COMMA)
@@ -797,6 +802,14 @@ module Arel # :nodoc: all
         def quote_column_name(name)
           return name if Arel::Nodes::SqlLiteral === name
           @connection.quote_column_name(name)
+        end
+
+        def sanitize_as_sql_comment(o)
+          o.expr.map { |v| v.gsub(%r{ /\*\+?\s* | \s*\*/ }x, "") }
+        end
+
+        def collect_optimizer_hints(o, collector)
+          maybe_visit o.optimizer_hints, collector
         end
 
         def maybe_visit(thing, collector)

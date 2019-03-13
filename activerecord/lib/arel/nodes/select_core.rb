@@ -4,7 +4,7 @@ module Arel # :nodoc: all
   module Nodes
     class SelectCore < Arel::Nodes::Node
       attr_accessor :projections, :wheres, :groups, :windows
-      attr_accessor :havings, :source, :set_quantifier
+      attr_accessor :havings, :source, :set_quantifier, :optimizer_hints
 
       def initialize
         super()
@@ -42,7 +42,7 @@ module Arel # :nodoc: all
 
       def hash
         [
-          @source, @set_quantifier, @projections,
+          @source, @set_quantifier, @projections, @optimizer_hints,
           @wheres, @groups, @havings, @windows
         ].hash
       end
@@ -51,6 +51,7 @@ module Arel # :nodoc: all
         self.class == other.class &&
           self.source == other.source &&
           self.set_quantifier == other.set_quantifier &&
+          self.optimizer_hints == other.optimizer_hints &&
           self.projections == other.projections &&
           self.wheres == other.wheres &&
           self.groups == other.groups &&

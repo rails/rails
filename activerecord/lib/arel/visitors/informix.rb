@@ -42,10 +42,15 @@ module Arel # :nodoc: all
           collector
         end
 
+        def visit_Arel_Nodes_OptimizerHints(o, collector)
+          collector << "/*+ #{sanitize_as_sql_comment(o).join(", ")} */"
+        end
+
         def visit_Arel_Nodes_Offset(o, collector)
           collector << "SKIP "
           visit o.expr, collector
         end
+
         def visit_Arel_Nodes_Limit(o, collector)
           collector << "FIRST "
           visit o.expr, collector

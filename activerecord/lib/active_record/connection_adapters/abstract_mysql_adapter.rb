@@ -103,6 +103,11 @@ module ActiveRecord
         mariadb? || version >= "5.7.5"
       end
 
+      # See https://dev.mysql.com/doc/refman/8.0/en/optimizer-hints.html for more details.
+      def supports_optimizer_hints?
+        !mariadb? && version >= "5.7.7"
+      end
+
       def supports_advisory_locks?
         true
       end

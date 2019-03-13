@@ -76,6 +76,15 @@ module Arel # :nodoc: all
           end
         end
 
+        def visit_Arel_Nodes_SelectCore(o, collector)
+          collector = super
+          maybe_visit o.optimizer_hints, collector
+        end
+
+        def visit_Arel_Nodes_OptimizerHints(o, collector)
+          collector << "OPTION (#{sanitize_as_sql_comment(o).join(", ")})"
+        end
+
         def get_offset_limit_clause(o)
           first_row = o.offset ? o.offset.expr.to_i + 1 : 1
           last_row  = o.limit ? o.limit.expr.to_i - 1 + first_row : nil
@@ -101,6 +110,10 @@ module Arel # :nodoc: all
           else
             collector
           end
+        end
+
+        def collect_optimizer_hints(o, collector)
+          collector
         end
 
         def determine_order_by(orders, x)
