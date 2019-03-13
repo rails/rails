@@ -1,3 +1,8 @@
+## Rails 4.2.11.1 (March 11, 2019) ##
+
+*   No changes.
+
+
 ## Rails 4.2.11 (November 27, 2018) ##
 
 *   No changes.

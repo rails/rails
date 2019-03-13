@@ -61,7 +61,7 @@ module ActionDispatch
                               false
                             end
 
-          if params_readable
+          v = if params_readable
             Array(Mime[parameters[:format]])
           elsif use_accept_header && valid_accept_header
             accepts
@@ -69,6 +69,10 @@ module ActionDispatch
             [Mime::JS]
           else
             [Mime::HTML]
+          end
+
+          v.select do |format|
+            format.symbol || format.ref == "*/*"
           end
         end
       end
