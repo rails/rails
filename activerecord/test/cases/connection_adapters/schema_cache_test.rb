@@ -86,6 +86,24 @@ module ActiveRecord
         assert_equal 0, @cache.size
       end
 
+      def test_dump_and_load
+        @cache.columns("posts")
+        @cache.columns_hash("posts")
+        @cache.data_sources("posts")
+        @cache.primary_keys("posts")
+        @cache.indexes("posts")
+
+        @cache = Marshal.load(Marshal.dump(@cache))
+
+        assert_no_queries do
+          assert_equal 12, @cache.columns("posts").size
+          assert_equal 12, @cache.columns_hash("posts").size
+          assert @cache.data_sources("posts")
+          assert_equal "id", @cache.primary_keys("posts")
+          assert_equal 1, @cache.indexes("posts").size
+        end
+      end
+
       def test_data_source_exist
         assert @cache.data_source_exists?("posts")
         assert_not @cache.data_source_exists?("foo")
