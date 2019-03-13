@@ -68,7 +68,9 @@ module ApplicationTests
 
     private
       def spawn_dbconsole(fd, options = nil)
-        Process.spawn("#{app_path}/bin/rails dbconsole #{options}", in: fd, out: fd, err: fd)
+        Dir.chdir(app_path) do
+          Process.spawn("bin/rails dbconsole #{options}", in: fd, out: fd, err: fd)
+        end
       end
   end
 end

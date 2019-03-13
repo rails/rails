@@ -107,7 +107,10 @@ class FullStackConsoleTest < ActiveSupport::TestCase
       class Post < ActiveRecord::Base
       end
     CODE
-    system "#{app_path}/bin/rails runner 'Post.connection.create_table :posts'"
+
+    Dir.chdir(app_path) do
+      system "bin/rails runner 'Post.connection.create_table :posts'"
+    end
 
     @primary, @replica = PTY.open
   end
@@ -125,7 +128,7 @@ class FullStackConsoleTest < ActiveSupport::TestCase
 
   def spawn_console(options, wait_for_prompt: true)
     pid = Process.spawn(
-      "#{app_path}/bin/rails console #{options}",
+      "bin/rails console #{options}",
       in: @replica, out: @replica, err: @replica
     )
 
