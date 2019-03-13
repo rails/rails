@@ -197,6 +197,10 @@ module ActiveRecord
     #   if a DELETE between those two statements is run by another client. But for most applications,
     #   that's a significantly less likely condition to hit.
     # * It relies on exception handling to handle control flow, which may be marginally slower.
+    # * The primary key may auto-increment on each create, even if it fails. This can accelerate
+    #   the problem of running out of integers, if the underlying table is still stuck on a primary
+    #   key of type int (note: All Rails apps since 5.0+ have defaulted to bigint, which is not liable
+    #   to this problem).
     #
     # This method will return a record if all given attributes are covered by unique constraints
     # (unless the INSERT -> DELETE -> SELECT race condition is triggered), but if creation was attempted
