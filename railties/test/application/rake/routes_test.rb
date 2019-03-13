@@ -23,6 +23,8 @@ module ApplicationTests
                                 rails_conductor GET    /rails/conductor(.:format)                                                               rails/conductor/panels#show
               rails_conductor_source_statistics GET    /rails/conductor/source/statistics(.:format)                                             rails/conductor/source/statistics#show
                    rails_conductor_source_notes GET    /rails/conductor/source/notes(.:format)                                                  rails/conductor/source/notes#show
+                   rails_conductor_initializers GET    /rails/conductor/initializers(.:format)                                                  rails/conductor/initializers#show
+                    rails_conductor_middlewares GET    /rails/conductor/middlewares(.:format)                                                   rails/conductor/middlewares#show
                     rails_amazon_inbound_emails POST   /rails/action_mailbox/amazon/inbound_emails(.:format)                                    action_mailbox/ingresses/amazon/inbound_emails#create
                   rails_mandrill_inbound_emails POST   /rails/action_mailbox/mandrill/inbound_emails(.:format)                                  action_mailbox/ingresses/mandrill/inbound_emails#create
                   rails_postmark_inbound_emails POST   /rails/action_mailbox/postmark/inbound_emails(.:format)                                  action_mailbox/ingresses/postmark/inbound_emails#create
