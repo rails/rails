@@ -13,6 +13,11 @@
     *Ryuta Kamizono*
 
 
+## Rails 5.1.6.2 (March 11, 2019) ##
+
+*   No changes.
+
+
 ## Rails 5.1.6.1 (November 27, 2018) ##
 
 *   No changes.
