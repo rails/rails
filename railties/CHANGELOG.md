@@ -1,3 +1,8 @@
+## Rails 6.0.0.beta3 (March 11, 2019) ##
+
+*   No changes.
+
+
 ## Rails 6.0.0.beta2 (February 25, 2019) ##
 
 *   Fix non-symbol access to nested hashes returned from `Rails::Application.config_for`

@@ -1,25 +1,31 @@
 *   Change how validation error translation strings are fetched: The new behavior
     will first try the more specific keys, including doing locale fallback, then try
     the less specific ones.
-    
+
     For example, this is the order in which keys will now be tried for a `blank`
     error on a `product`'s `title` attribute with current locale set to `en-US`:
- 
+
         en-US.activerecord.errors.models.product.attributes.title.blank
         en-US.activerecord.errors.models.product.blank
         en-US.activerecord.errors.messages.blank
-        
+
         en.activerecord.errors.models.product.attributes.title.blank
         en.activerecord.errors.models.product.blank
         en.activerecord.errors.messages.blank
-        
+
         en-US.errors.attributes.title.blank
         en-US.errors.messages.blank
-        
+
         en.errors.attributes.title.blank
         en.errors.messages.blank
- 
+
     *Hugo Vacher*
+
+
+## Rails 6.0.0.beta3 (March 11, 2019) ##
+
+*   No changes.
+
 
 ## Rails 6.0.0.beta2 (February 25, 2019) ##
 
