@@ -1,3 +1,8 @@
+## Rails 5.0.7.2 (March 11, 2019) ##
+
+*   No changes.
+
+
 ## Rails 5.0.7.1 (November 27, 2018) ##
 
 *   No changes.
