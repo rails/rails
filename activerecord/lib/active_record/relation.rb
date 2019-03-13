@@ -166,14 +166,18 @@ module ActiveRecord
     #
     # If this might be a problem for your application, please see #create_or_find_by.
     def find_or_create_by(attributes, &block)
-      find_by(attributes) || create(attributes, &block)
+      find_by(attributes) || transaction(requires_new: true) { create(attributes, &block) }
+    rescue ActiveRecord::RecordNotUnique
+      find_by!(attributes)
     end
 
     # Like #find_or_create_by, but calls
     # {create!}[rdoc-ref:Persistence::ClassMethods#create!] so an exception
     # is raised if the created record is invalid.
     def find_or_create_by!(attributes, &block)
-      find_by(attributes) || create!(attributes, &block)
+      find_by(attributes) || transaction(requires_new: true) { create!(attributes, &block) }
+    rescue ActiveRecord::RecordNotUnique
+      find_by!(attributes)
     end
 
     # Attempts to create a record with the given attributes in a table that has a unique constraint
