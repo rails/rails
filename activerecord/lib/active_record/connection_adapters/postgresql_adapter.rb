@@ -233,7 +233,7 @@ module ActiveRecord
           end
 
           def connection_active?
-            @connection.status == PG::CONNECTION_OK
+            @connection && @connection.status == PG::CONNECTION_OK
           rescue PG::Error
             false
           end
