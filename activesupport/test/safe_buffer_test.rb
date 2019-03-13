@@ -112,6 +112,38 @@ class SafeBufferTest < ActiveSupport::TestCase
     end
   end
 
+  test "can assign value into zero-index" do
+    buffer = ActiveSupport::SafeBuffer.new("012345")
+
+    buffer[0] = "<"
+
+    assert_equal "&lt;12345", buffer
+  end
+
+  test "can assign value into non zero-index" do
+    buffer = ActiveSupport::SafeBuffer.new("012345")
+
+    buffer[2] = "<"
+
+    assert_equal "01&lt;345", buffer
+  end
+
+  test "can assign value into slice" do
+    buffer = ActiveSupport::SafeBuffer.new("012345")
+
+    buffer[0, 3] = "<"
+
+    assert_equal "&lt;345", buffer
+  end
+
+  test "can assign value into offset slice" do
+    buffer = ActiveSupport::SafeBuffer.new("012345")
+
+    buffer[1, 3] = "<"
+
+    assert_equal "0&lt;45", buffer
+  end
+
   test "Should escape dirty buffers on add" do
     clean = "hello".html_safe
     @buffer.gsub!("", "<>")
