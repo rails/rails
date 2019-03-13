@@ -113,7 +113,7 @@ RUN rm -f .empty */.empty \
     fi
 
 ADD */*.gemspec tmp/
-ADD railties/exe/ railties/exe/
+ADD .buildkite/.empty railties/exe/* railties/exe/
 ADD Gemfile Gemfile.lock RAILS_VERSION rails.gemspec ./
 
 RUN echo "--- :bundler: Installing Ruby deps" \
