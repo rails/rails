@@ -5,6 +5,12 @@ require "active_support/core_ext/object/duplicable"
 module ActiveModel
   class Attribute # :nodoc:
     class << self
+      private :new
+
+      def inherited(subclass)
+        subclass.singleton_class.send(:public, :new)
+      end
+
       def from_database(name, value, type)
         FromDatabase.new(name, value, type)
       end
