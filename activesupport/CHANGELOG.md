@@ -263,7 +263,7 @@
 
     *Kasper Timm Hansen*
 
-*   Fix bug where `ActiveSupport::Timezone.all` would fail when tzinfo data for
+*   Fix bug where `ActiveSupport::TimeZone.all` would fail when tzinfo data for
     any timezone defined in `ActiveSupport::TimeZone::MAPPING` is missing.
 
     *Dominik Sander*
