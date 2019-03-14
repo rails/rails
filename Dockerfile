@@ -21,6 +21,9 @@ RUN echo "--- :ruby: Updating RubyGems and Bundler" \
     # Yarn apt sources
     && curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=1 apt-key add - \
     && echo "deb http://dl.yarnpkg.com/debian/ stable main" > /etc/apt/sources.list.d/yarn.list \
+    # Backports source
+    && (grep -qe -backports /etc/apt/sources.list \
+        || sed -ne '/-updates/s//-backports/p' /etc/apt/sources.list > /etc/apt/sources.list.d/backports.list) \
     # Install all the things
     && apt-get update \
     #  buildpack-deps
@@ -78,9 +81,7 @@ RUN echo "--- :ruby: Updating RubyGems and Bundler" \
     && apt-get install -y --no-install-recommends \
         postgresql-client mysql-client sqlite3 \
         git nodejs yarn lsof \
-    #  optional dependencies
-    && (apt-get install -y --no-install-recommends \
-        ffmpeg mupdf mupdf-tools poppler-utils || true) \
+        ffmpeg mupdf mupdf-tools poppler-utils \
     # await (for waiting on dependent services)
     && curl -fLsS -o /tmp/await-linux-amd64 https://github.com/betalo-sweden/await/releases/download/v0.4.0/await-linux-amd64 \
     && install /tmp/await-linux-amd64 /usr/local/bin/await \
@@ -110,6 +111,9 @@ RUN rm -f .empty */.empty \
         echo "--- :javascript: Installing JavaScript deps" \
         && yarn install \
         && yarn cache clean; \
+    elif [ -f actionview/package.json ]; then \
+        echo "--- :javascript: Installing JavaScript deps" \
+        && (cd actionview && npm install); \
     fi
 
 ADD */*.gemspec tmp/
