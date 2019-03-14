@@ -244,6 +244,15 @@ module Arel # :nodoc: all
       @ctx.source
     end
 
+    def comment(*values)
+      @ctx.comment = Nodes::Comment.new(values)
+      self
+    end
+
+    def comment_node
+      @ctx.comment
+    end
+
     private
       def collapse(exprs)
         exprs = exprs.compact

@@ -3,7 +3,7 @@
 module Arel # :nodoc: all
   module Nodes
     class SelectCore < Arel::Nodes::Node
-      attr_accessor :projections, :wheres, :groups, :windows
+      attr_accessor :projections, :wheres, :groups, :windows, :comment
       attr_accessor :havings, :source, :set_quantifier, :optimizer_hints
 
       def initialize
@@ -18,6 +18,7 @@ module Arel # :nodoc: all
         @groups          = []
         @havings         = []
         @windows         = []
+        @comment         = nil
       end
 
       def from
@@ -39,12 +40,13 @@ module Arel # :nodoc: all
         @groups      = @groups.clone
         @havings     = @havings.clone
         @windows     = @windows.clone
+        @comment     = @comment.clone if @comment
       end
 
       def hash
         [
           @source, @set_quantifier, @projections, @optimizer_hints,
-          @wheres, @groups, @havings, @windows
+          @wheres, @groups, @havings, @windows, @comment
         ].hash
       end
 
@@ -57,7 +59,8 @@ module Arel # :nodoc: all
           self.wheres == other.wheres &&
           self.groups == other.groups &&
           self.havings == other.havings &&
-          self.windows == other.windows
+          self.windows == other.windows &&
+          self.comment == other.comment
       end
       alias :== :eql?
     end

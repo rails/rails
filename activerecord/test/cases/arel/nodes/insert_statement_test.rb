@@ -23,9 +23,11 @@ describe Arel::Nodes::InsertStatement do
       statement1 = Arel::Nodes::InsertStatement.new
       statement1.columns = %w[a b c]
       statement1.values  = %w[x y z]
+      statement1.comment = Arel::Nodes::Comment.new(["comment"])
       statement2 = Arel::Nodes::InsertStatement.new
       statement2.columns = %w[a b c]
       statement2.values  = %w[x y z]
+      statement2.comment = Arel::Nodes::Comment.new(["comment"])
       array = [statement1, statement2]
       assert_equal 1, array.uniq.size
     end
@@ -34,9 +36,15 @@ describe Arel::Nodes::InsertStatement do
       statement1 = Arel::Nodes::InsertStatement.new
       statement1.columns = %w[a b c]
       statement1.values  = %w[x y z]
+      statement1.comment = Arel::Nodes::Comment.new(["comment"])
       statement2 = Arel::Nodes::InsertStatement.new
       statement2.columns = %w[a b c]
       statement2.values  = %w[1 2 3]
+      statement2.comment = Arel::Nodes::Comment.new(["comment"])
+      array = [statement1, statement2]
+      assert_equal 2, array.uniq.size
+      statement2.values  = %w[x y z]
+      statement2.comment = Arel::Nodes::Comment.new("other")
       array = [statement1, statement2]
       assert_equal 2, array.uniq.size
     end

@@ -181,6 +181,10 @@ module Arel # :nodoc: all
           visit o.limit
         end
 
+        def visit_Arel_Nodes_Comment(o)
+          visit o.values
+        end
+
         def visit_Array(o)
           o.each { |i| visit i }
         end
