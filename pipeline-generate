@@ -174,7 +174,7 @@ end
 step_for("activerecord", "sqlite3_mem:test", service: "default")
 step_for("activerecord", "mysql2:test", service: "mysqldb") do |x|
   x["label"] += " [mariadb]"
-  x["env"]["MYSQL_SERVICE"] = "mariadb"
+  x["env"]["MYSQL_IMAGE"] = "mariadb:latest"
 end
 steps_for("actioncable", "test:integration", service: "default") do |x|
   x["retry"] = { "automatic" => { "limit" => 3 } }
