@@ -190,8 +190,7 @@ module ActionView
             virtual_path: path.virtual,
             format: format,
             variant: variant,
-            locals: locals,
-            updated_at: mtime(template)
+            locals: locals
           )
         end
       end
@@ -242,11 +241,6 @@ module ActionView
 
       def escape_entry(entry)
         entry.gsub(/[*?{}\[\]]/, '\\\\\\&')
-      end
-
-      # Returns the file mtime from the filesystem.
-      def mtime(p)
-        File.mtime(p)
       end
 
       # Extract handler, formats and variant from path. If a format cannot be found neither
