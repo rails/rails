@@ -98,7 +98,7 @@ services:
       - "./mysql-initdb.d:/docker-entrypoint-initdb.d"
 
   postgres:
-    image: postgres:alpine
+    image: "${POSTGRES_IMAGE-postgres:alpine}"
 
   rabbitmq:
     image: rabbitmq:alpine

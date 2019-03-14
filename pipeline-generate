@@ -98,6 +98,10 @@ def step_for(subdirectory, rake_task, ruby: nil, service: "default")
     env["MYSQL_IMAGE"] = "mysql:5.7"
   end
 
+  if RAILS_VERSION < Gem::Version.new("5.2.x")
+    env["POSTGRES_IMAGE"] = "postgres:9.6-alpine"
+  end
+
   hash = {
     "label" => label,
     "command" => command,
