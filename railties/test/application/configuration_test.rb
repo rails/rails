@@ -518,6 +518,9 @@ module ApplicationTests
         Rails.application.credentials.secret_key_base = nil
       RUBY
 
+      # For test that works even if tmp dir does not exist.
+      Dir.chdir(app_path) { FileUtils.remove_dir("tmp") }
+
       app "development"
 
       assert_not_nil app.secrets.secret_key_base

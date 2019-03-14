@@ -594,6 +594,7 @@ module Rails
 
           if !File.exist?(key_file)
             random_key = SecureRandom.hex(64)
+            FileUtils.mkdir_p(key_file.dirname)
             File.binwrite(key_file, random_key)
           end
 
