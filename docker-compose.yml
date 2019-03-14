@@ -91,7 +91,7 @@ services:
     image: redis:alpine
 
   mysql: &mysql
-    image: mysql:latest
+    image: "${MYSQL_IMAGE-mysql:latest}"
     command: "--default-authentication-plugin=mysql_native_password"
     environment:
       MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
