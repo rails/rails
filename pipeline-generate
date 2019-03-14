@@ -174,7 +174,12 @@ end
 step_for("activerecord", "sqlite3_mem:test", service: "default")
 step_for("activerecord", "mysql2:test", service: "mysqldb") do |x|
   x["label"] += " [mariadb]"
-  x["env"]["MYSQL_IMAGE"] = "mariadb:latest"
+  x["env"]["MYSQL_IMAGE"] =
+    if RAILS_VERSION < Gem::Version.new("6.x")
+      "mariadb:10.2"
+    else
+      "mariadb:latest"
+    end
 end
 steps_for("actioncable", "test:integration", service: "default") do |x|
   x["retry"] = { "automatic" => { "limit" => 3 } }
