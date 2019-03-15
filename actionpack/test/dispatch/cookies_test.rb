@@ -341,7 +341,7 @@ class CookiesTest < ActionController::TestCase
   SECRET_KEY_BASE = "b3c631c314c0bbca50c1b2843150fe33"
   SIGNED_COOKIE_SALT = "signed cookie"
   ENCRYPTED_COOKIE_SALT = "encrypted cookie"
-  ENCRYPTED_SIGNED_COOKIE_SALT = "sigend encrypted cookie"
+  ENCRYPTED_SIGNED_COOKIE_SALT = "signed encrypted cookie"
   AUTHENTICATED_ENCRYPTED_COOKIE_SALT = "authenticated encrypted cookie"
 
   def setup
