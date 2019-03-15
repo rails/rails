@@ -142,4 +142,26 @@ class InsertAllTest < ActiveRecord::TestCase
       Book.insert_all! [{ unknown_attribute: "Test" }]
     end
   end
+
+  def test_insert_all_defaults
+    skip unless supports_insert_on_duplicate_skip?
+
+    defaults = { published_on: Date.new(1938, 4, 1) }
+    Book.insert_all([{ name: "Out of the Silent Planet", author_id: 7, isbn: "1974522598" }], defaults: defaults)
+
+    book = Book.find_by(name: "Out of the Silent Planet")
+    assert_equal defaults[:published_on], book.published_on
+  end
+
+  def test_insert_all_defaults_not_used_when_specified
+    skip unless supports_insert_on_duplicate_skip?
+
+    defaults = { published_on: Date.new(1938, 4, 1) }
+    published_on = Date.new(1940, 4, 1)
+    Book.insert_all([{ name: "Out of the Silent Planet", author_id: 7, isbn: "1974522598", published_on: published_on }], defaults: defaults)
+
+    book = Book.find_by(name: "Out of the Silent Planet")
+    assert_not_equal defaults[:published_on], book.published_on
+    assert_equal published_on, book.published_on
+  end
 end

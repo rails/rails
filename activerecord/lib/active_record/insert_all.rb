@@ -2,12 +2,12 @@
 
 module ActiveRecord
   class InsertAll
-    attr_reader :model, :connection, :inserts, :on_duplicate, :returning, :unique_by
+    attr_reader :model, :connection, :inserts, :on_duplicate, :returning, :unique_by, :defaults
 
-    def initialize(model, inserts, on_duplicate:, returning: nil, unique_by: nil)
+    def initialize(model, inserts, on_duplicate:, returning: nil, unique_by: nil, defaults: {})
       raise ArgumentError, "Empty list of attributes passed" if inserts.blank?
 
-      @model, @connection, @inserts, @on_duplicate, @returning, @unique_by = model, model.connection, inserts, on_duplicate, returning, unique_by
+      @model, @connection, @inserts, @on_duplicate, @returning, @unique_by, @defaults = model, model.connection, inserts, on_duplicate, returning, unique_by, defaults.stringify_keys
 
       @returning = (connection.supports_insert_returning? ? primary_keys : false) if @returning.nil?
       @returning = false if @returning == []
@@ -22,7 +22,7 @@ module ActiveRecord
     end
 
     def keys
-      inserts.first.keys.map(&:to_s)
+      inserts.first.keys.map(&:to_s) | defaults.keys
     end
 
     def updatable_columns
@@ -80,7 +80,7 @@ module ActiveRecord
       class Builder
         attr_reader :model
 
-        delegate :skip_duplicates?, :update_duplicates?, to: :insert_all
+        delegate :skip_duplicates?, :update_duplicates?, :defaults, to: :insert_all
 
         def initialize(insert_all)
           @insert_all, @model, @connection = insert_all, insert_all.model, insert_all.connection
@@ -105,13 +105,14 @@ module ActiveRecord
 
           values_list = insert_all.inserts.map do |attributes|
             attributes = attributes.stringify_keys
+            attributes_keys_with_defaults = attributes.keys | defaults.keys
 
-            unless attributes.keys.to_set == keys
+            unless attributes_keys_with_defaults.to_set == keys
               raise ArgumentError, "All objects being inserted must have the same keys"
             end
 
             keys.map do |key|
-              bind = Relation::QueryAttribute.new(key, attributes[key], types[key])
+              bind = Relation::QueryAttribute.new(key, attributes[key] || defaults[key], types[key])
               connection.with_yaml_fallback(bind.value_for_database)
             end
           end
