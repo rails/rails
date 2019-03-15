@@ -6,12 +6,6 @@ module ActionView
   class Digestor
     @@digest_mutex = Mutex.new
 
-    module PerExecutionDigestCacheExpiry
-      def self.before(target)
-        ActionView::LookupContext::DetailsKey.clear
-      end
-    end
-
     class << self
       # Supported options:
       #

@@ -81,6 +81,7 @@ module ActionView
     end
   end
 
+  autoload :CacheExpiry
   autoload :TestCase
 
   def self.eager_load!
