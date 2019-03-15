@@ -91,6 +91,9 @@ module ActiveRecord
       #   or <tt>returning: false</tt> to omit the underlying <tt>RETURNING</tt> SQL
       #   clause entirely.
       #
+      #   You can also pass an SQL string if you need more control on the return values
+      #   (for example, <tt>returning: "id, name as new_name"</tt>).
+      #
       # [:unique_by]
       #   (PostgreSQL and SQLite only) By default rows are considered to be unique
       #   by every unique index on the table. Any duplicate rows are skipped.
@@ -168,6 +171,9 @@ module ActiveRecord
       #   or <tt>returning: false</tt> to omit the underlying <tt>RETURNING</tt> SQL
       #   clause entirely.
       #
+      #   You can also pass an SQL string if you need more control on the return values
+      #   (for example, <tt>returning: "id, name as new_name"</tt>).
+      #
       # ==== Examples
       #
       #   # Insert multiple records
@@ -215,6 +221,9 @@ module ActiveRecord
       #   Pass <tt>returning: %w[ id name ]</tt> for both id and name
       #   or <tt>returning: false</tt> to omit the underlying <tt>RETURNING</tt> SQL
       #   clause entirely.
+      #
+      #   You can also pass an SQL string if you need more control on the return values
+      #   (for example, <tt>returning: "id, name as new_name"</tt>).
       #
       # [:unique_by]
       #   (PostgreSQL and SQLite only) By default rows are considered to be unique

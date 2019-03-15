@@ -151,7 +151,13 @@ module ActiveRecord
         end
 
         def returning
-          format_columns(insert_all.returning) if insert_all.returning
+          return unless insert_all.returning
+
+          if insert_all.returning.is_a?(String)
+            insert_all.returning
+          else
+            format_columns(insert_all.returning)
+          end
         end
 
         def conflict_target

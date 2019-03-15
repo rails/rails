@@ -1,3 +1,18 @@
+*   Allow passing raw SQL as `returning` statement to `#upsert_all`:
+
+    ```ruby
+    Article.insert_all(
+    [
+        {title: "Article 1", slug: "article-1", published: false},
+        {title: "Article 2", slug: "article-2", published: false}
+      ],
+      # Some PostgreSQL magic here to detect which rows have been actually inserted
+      returning: "id, (xmax = '0') as inserted, name as new_name"
+    )
+    ```
+
+    *Vladimir Dementyev*
+
 *   Deprecate `legacy_connection_handling`.
 
     *Eileen M. Uchitelle*

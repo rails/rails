@@ -109,6 +109,13 @@ class InsertAllTest < ActiveRecord::TestCase
     assert_equal %w[ Rework ], result.pluck("name")
   end
 
+  def test_insert_all_returns_requested_sql_fields
+    skip unless supports_insert_returning?
+
+    result = Book.insert_all! [{ name: "Rework", author_id: 1 }], returning: "UPPER(name) as name"
+    assert_equal %w[ REWORK ], result.pluck("name")
+  end
+
   def test_insert_all_can_skip_duplicate_records
     skip unless supports_insert_on_duplicate_skip?
 
