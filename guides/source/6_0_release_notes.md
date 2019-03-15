@@ -77,9 +77,250 @@ Please refer to the [Changelog][railties] for detailed changes.
 
 ### Removals
 
+*   Removed deprecated `after_bundle` helper inside plugins templates.
+    ([commit](https://github.com/rails/rails/commit/4d51efe24e461a2a3ed562787308484cd48370c7))
+
+*   Removed deprecated support to old `config.ru` that use the application class as argument of `run`.
+    ([commit](https://github.com/rails/rails/commit/553b86fc751c751db504bcbe2d033eb2bb5b6a0b))
+
+*   Removed deprecated `environment` argument from the rails commands. Use the `-e` option instead.
+    ([commit](https://github.com/rails/rails/commit/e20589c9be09c7272d73492d4b0f7b24e5595571))
+
+*   Removed deprecated `capify!`.
+    ([commit](https://github.com/rails/rails/commit/9d39f81d512e0d16a27e2e864ea2dd0e8dc41b17))
+
+*   Removed deprecated `config.secret_token`. Use `config.secret_key_base`.
+    ([commit](https://github.com/rails/rails/commit/46ac5fe69a20d4539a15929fe48293e1809a26b0))
+
+*   Removed redundant suffixes on generated helpers.
+    ([commit](https://github.com/rails/rails/commit/886ac1c3087f8ac06bee371af54758fb02760e63))
+
+*   Removed redundant suffixes on generated integration tests.
+    ([commit](https://github.com/rails/rails/commit/9bf5545ef7ce13cfc55b35f7d160897dee5cbe0e))
+
+*   Removed redundant suffixes on generated system tests.
+    ([commit](https://github.com/rails/rails/commit/b93fc47c72c6767655486960dffb41434633c51b))
+
 ### Deprecations
 
+*   Deprecate `rake routes` in favor of `rails routes`.
+
+    *Yuji Yaginuma*
+
+*   Deprecate `rake initializers` in favor of `rails initializers`.
+
+    *Annie-Claude Côté*
+
+*   Deprecate `rake dev:cache` in favor of `rails dev:cache`.
+
+    *Annie-Claude Côté*
+
+*   Deprecate `rails notes` subcommands in favor of passing an `annotations` argument to `rails notes`.
+
+    The following subcommands are replaced by passing `--annotations` or `-a` to `rails notes`:
+    - `rails notes:custom ANNOTATION=custom` is deprecated in favor of using `rails notes -a custom`.
+    - `rails notes:optimize` is deprecated in favor of using `rails notes -a OPTIMIZE`.
+    - `rails notes:todo` is deprecated in favor of  using`rails notes -a TODO`.
+    - `rails notes:fixme` is deprecated in favor of using `rails notes -a FIXME`.
+
+    *Annie-Claude Côté*
+
+*   Deprecate `SOURCE_ANNOTATION_DIRECTORIES` environment variable used by `rails notes`
+    through `Rails::SourceAnnotationExtractor::Annotation` in favor of using `config.annotations.register_directories`.
+
+    *Annie-Claude Côté*
+
+*   Deprecate `rake notes` in favor of `rails notes`.
+
+    *Annie-Claude Côté*
+
+*   Deprecate support for using the `HOST` environment variable to specify the server IP.
+
+    The `BINDING` environment variable should be used instead.
+
+    Fixes #29516.
+
+    *Yuji Yaginuma*
+
+*   Deprecate passing Rack server name as a regular argument to `rails server`.
+
+    Previously:
+
+        $ bin/rails server thin
+
+    There wasn't an explicit option for the Rack server to use, now we have the
+    `--using` option with the `-u` short switch.
+
+    Now:
+
+        $ bin/rails server -u thin
+
+    This change also improves the error message if a missing or mistyped rack
+    server is given.
+
+    *Genadi Samokovarov*
+
+
 ### Notable changes
+
+*   Added `rails db:system:change` command for changing databases.
+    ([Pull Request](https://github.com/rails/rails/pull/34832))
+
+*   Added `rails test:channels`.
+    ([Pull Request](https://github.com/rails/rails/pull/34947))
+
+*   Added the use of original `bundler` environment variables during the process of generating a new rails project.
+    ([Pull Request](https://github.com/rails/rails/pull/34755))
+
+*   Send Active Storage `analysis` and `purge` jobs to dedicated queues by default.
+    ([Pull Request](https://github.com/rails/rails/pull/34863))
+
+*   Add `rails test:mailboxes`.
+    ([commit](https://github.com/rails/rails/pull/34828/commits/d309ee96fb7ba61cdb0588ebb129888e28a5bc7c))
+
+*   Introduce guard against DNS rebinding attacks
+    ([Pull Request](https://github.com/rails/rails/pull/33145))
+
+*   Add an `abort_on_failure` boolean option to the generator method that shell
+    out (`generate`, `rake`, `rails_command`) to abort the generator if the
+    command fails.
+
+    *David Rodríguez*
+
+*   Remove `app/assets` and `app/javascript` from `eager_load_paths` and `autoload_paths`.
+
+    *Gannon McGibbon*
+
+*   Use Ids instead of memory addresses when displaying references in scaffold views.
+
+    Fixes #29200.
+
+    *Rasesh Patel*
+
+*   Adds support for multiple databases to `rails db:migrate:status`.
+    Subtasks are also added to get the status of individual databases (eg. `rails db:migrate:status:animals`).
+
+    *Gannon McGibbon*
+
+*   Use Webpacker by default to manage app-level JavaScript through the new app/javascript directory.
+    Sprockets is now solely in charge, by default, of compiling CSS and other static assets.
+    Action Cable channel generators will create ES6 stubs rather than use CoffeeScript.
+    Active Storage, Action Cable, Turbolinks, and Rails-UJS are loaded by a new application.js pack.
+    Generators no longer generate JavaScript stubs.
+
+    *DHH*, *Lachlan Sylvester*
+
+*   Add `database` (aliased as `db`) option to model generator to allow
+    setting the database. This is useful for applications that use
+    multiple databases and put migrations per database in their own directories.
+
+    ```
+    bin/rails g model Room capacity:integer --database=kingston
+          invoke  active_record
+          create    db/kingston_migrate/20180830151055_create_rooms.rb
+    ```
+
+    Because rails scaffolding uses the model generator, you can
+    also specify a database with the scaffold generator.
+
+    *Gannon McGibbon*
+
+*   Raise an error when "recyclable cache keys" are being used by a cache store
+    that does not explicitly support it. Custom cache keys that do support this feature
+    can bypass this error by implementing the `supports_cache_versioning?` method on their
+    class and returning a truthy value.
+
+    *Richard Schneeman*
+
+*   Support environment specific credentials overrides.
+
+    So any environment will look for `config/credentials/#{Rails.env}.yml.enc` and fall back
+    to `config/credentials.yml.enc`.
+
+    The encryption key can be in `ENV["RAILS_MASTER_KEY"]` or `config/credentials/production.key`.
+
+    Environment credentials overrides can be edited with `rails credentials:edit --environment production`.
+    If no override is set up for the passed environment, it will be created.
+
+    Additionally, the default lookup paths can be overwritten with these configs:
+
+    - `config.credentials.content_path`
+    - `config.credentials.key_path`
+
+    *Wojciech Wnętrzak*
+
+*   Make `ActiveSupport::Cache::NullStore` the default cache store in the test environment.
+
+    *Michael C. Nelson*
+
+*   Emit warning for unknown inflection rule when generating model.
+
+    *Yoshiyuki Kinjo*
+
+*   Add `database` (aliased as `db`) option to migration generator.
+
+    If you're using multiple databases and have a folder for each database
+    for migrations (ex db/migrate and db/new_db_migrate) you can now pass the
+    `--database` option to the generator to make sure the the migration
+    is inserted into the correct folder.
+
+    ```
+    rails g migration CreateHouses --database=kingston
+      invoke  active_record
+      create    db/kingston_migrate/20180830151055_create_houses.rb
+    ```
+
+    *Eileen M. Uchitelle*
+
+*   Don't generate unused files in `app:update` task.
+
+    Skip the assets' initializer when sprockets isn't loaded.
+
+    Skip `config/spring.rb` when spring isn't loaded.
+
+    Skip yarn's contents when yarn integration isn't used.
+
+    *Tsukuru Tanimichi*
+
+*   Make the master.key file read-only for the owner upon generation on
+    POSIX-compliant systems.
+
+    Previously:
+
+        $ ls -l config/master.key
+        -rw-r--r--   1 owner  group      32 Jan 1 00:00 master.key
+
+    Now:
+
+        $ ls -l config/master.key
+        -rw-------   1 owner  group      32 Jan 1 00:00 master.key
+
+    Fixes #32604.
+
+    *Jose Luis Duran*
+
+*   Add "rails routes --expanded" option to output routes in expanded mode like
+    "psql --expanded". Result looks like:
+
+    ```
+    $ rails routes --expanded
+    --[ Route 1 ]------------------------------------------------------------
+    Prefix            | high_scores
+    Verb              | GET
+    URI               | /high_scores(.:format)
+    Controller#Action | high_scores#index
+    --[ Route 2 ]------------------------------------------------------------
+    Prefix            | new_high_score
+    Verb              | GET
+    URI               | /high_scores/new(.:format)
+    Controller#Action | high_scores#new
+    ```
+
+    *Benoit Tigeot*
+
+*   Rails 6 requires Ruby 2.5.0 or newer.
+
+    *Jeremy Daer*, *Kasper Timm Hansen*
 
 Action Cable
 ------------
