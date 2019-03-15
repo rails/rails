@@ -74,8 +74,8 @@ module ActiveSupport
     #
     # To use a custom separator, override the +separator+ argument.
     #
-    #  parameterize("Donald E. Knuth", separator: '_') # => "donald_e_knuth"
-    #  parameterize("^très|Jolie__ ", separator: '_')  # => "tres_jolie"
+    #   parameterize("Donald E. Knuth", separator: '_') # => "donald_e_knuth"
+    #   parameterize("^très|Jolie__ ", separator: '_')  # => "tres_jolie"
     #
     # To preserve the case of the characters in a string, use the +preserve_case+ argument.
     #
@@ -84,10 +84,14 @@ module ActiveSupport
     #
     # It preserves dashes and underscores unless they are used as separators:
     #
-    #  parameterize("^très|Jolie__ ")                 # => "tres-jolie__"
-    #  parameterize("^très|Jolie-- ", separator: "_") # => "tres_jolie--"
-    #  parameterize("^très_Jolie-- ", separator: ".") # => "tres_jolie--"
+    #   parameterize("^très|Jolie__ ")                 # => "tres-jolie__"
+    #   parameterize("^très|Jolie-- ", separator: "_") # => "tres_jolie--"
+    #   parameterize("^très_Jolie-- ", separator: ".") # => "tres_jolie--"
     #
+    # If the optional parameter +locale+ is specified,
+    # the word will be parameterized as a word of that language.
+    # By default, this parameter is set to <tt>nil</tt> and it will use
+    # the configured <tt>I18n.locale<tt>.
     def parameterize(string, separator: "-", preserve_case: false, locale: nil)
       # Replace accented chars with their ASCII equivalents.
       parameterized_string = transliterate(string, locale: locale)
