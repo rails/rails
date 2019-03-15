@@ -1,3 +1,7 @@
+*   In Zeitwerk mode, engines are now managed by the `main` autoloader. Engines may reference application constants, if the application is reloaded and we do not reload engines, they won't use the reloaded application code.
+
+    *Xavier Noria*
+
 *   Add support for supplying `locale` to `transliterate` and `parameterize`.
 
         I18n.backend.store_translations(:de, i18n: { transliterate: { rule: { "ü" => "ue" } } })

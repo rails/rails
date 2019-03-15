@@ -71,8 +71,7 @@ module ActiveSupport
           end
 
           def autoload_once?(autoload_path)
-            Dependencies.autoload_once_paths.include?(autoload_path) ||
-            Gem.path.any? { |gem_path| autoload_path.to_s.start_with?(gem_path) }
+            Dependencies.autoload_once_paths.include?(autoload_path)
           end
 
           def freeze_autoload_paths

@@ -149,22 +149,27 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
     assert $zeitwerk_integration_test_extras
   end
 
-  test "autoload paths that are below Gem.path go to the once autoloader" do
-    app_dir "extras"
-    add_to_config 'config.autoload_paths << "#{Rails.root}/extras"'
-
-    # Mocks Gem.path to include the extras directory.
-    Gem.singleton_class.prepend(
-      Module.new do
-        def path
-          super + ["#{Rails.root}/extras"]
-        end
-      end
-    )
+  test "autoload_paths are set as root dirs of main, and in the same order" do
     boot
 
-    assert_not_includes Rails.autoloaders.main.dirs, "#{app_path}/extras"
-    assert_includes Rails.autoloaders.once.dirs, "#{app_path}/extras"
+    existing_autoload_paths = deps.autoload_paths.select { |dir| File.directory?(dir) }
+    assert_equal existing_autoload_paths, Rails.autoloaders.main.dirs
+  end
+
+  test "autoload_once_paths go to the once autoloader, and in the same order" do
+    extras = %w(e1 e2 e3)
+    extras.each do |extra|
+      app_dir extra
+      add_to_config %(config.autoload_once_paths << "\#{Rails.root}/#{extra}")
+    end
+
+    boot
+
+    extras = extras.map { |extra| "#{app_path}/#{extra}" }
+    extras.each do |extra|
+      assert_not_includes Rails.autoloaders.main.dirs, extra
+    end
+    assert_equal extras, Rails.autoloaders.once.dirs
   end
 
   test "clear reloads the main autoloader, and does not reload the once one" do
