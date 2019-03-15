@@ -2,9 +2,9 @@
 
 module ActiveRecord
   class InsertAll
-    attr_reader :model, :connection, :inserts, :on_duplicate, :returning, :unique_by
+    attr_reader :model, :connection, :inserts, :on_duplicate, :returning, :unique_by, :updatable_columns
 
-    def initialize(model, inserts, on_duplicate:, returning: nil, unique_by: nil)
+    def initialize(model, inserts, on_duplicate:, returning: nil, unique_by: nil, updatable_columns: nil)
       raise ArgumentError, "Empty list of attributes passed" if inserts.blank?
 
       @model, @connection, @inserts, @on_duplicate, @returning, @unique_by = model, model.connection, inserts, on_duplicate, returning, unique_by
@@ -12,7 +12,9 @@ module ActiveRecord
       @returning = (connection.supports_insert_returning? ? primary_keys : false) if @returning.nil?
       @returning = false if @returning == []
 
-      @on_duplicate = :skip if @on_duplicate == :update && updatable_columns.empty?
+      @updatable_columns = updatable_columns || default_updatable_columns
+
+      @on_duplicate = :skip if @on_duplicate == :update && @updatable_columns.empty?
 
       ensure_valid_options_for_connection!
     end
@@ -25,7 +27,7 @@ module ActiveRecord
       inserts.first.keys.map(&:to_s)
     end
 
-    def updatable_columns
+    def default_updatable_columns
       keys - readonly_columns - unique_by_columns
     end
 

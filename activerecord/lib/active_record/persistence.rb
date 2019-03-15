@@ -191,8 +191,8 @@ module ActiveRecord
       # normal type casting and serialization.
       #
       # See <tt>ActiveRecord::Persistence#upsert_all</tt> for documentation.
-      def upsert(attributes, returning: nil, unique_by: nil)
-        upsert_all([ attributes ], returning: returning, unique_by: unique_by)
+      def upsert(attributes, returning: nil, unique_by: nil, updatable_columns: nil)
+        upsert_all([ attributes ], returning: returning, unique_by: unique_by, updatable_columns: updatable_columns)
       end
 
       # Upserts (updates or inserts) multiple records into the database. This method constructs
@@ -254,8 +254,8 @@ module ActiveRecord
       #     { title: 'Clean Code', author: 'Robert', isbn: '2' }
       #   ], unique_by: { columns: %w[ isbn ] })
       #
-      def upsert_all(attributes, returning: nil, unique_by: nil)
-        InsertAll.new(self, attributes, on_duplicate: :update, returning: returning, unique_by: unique_by).execute
+      def upsert_all(attributes, returning: nil, unique_by: nil, updatable_columns: nil)
+        InsertAll.new(self, attributes, on_duplicate: :update, returning: returning, unique_by: unique_by, updatable_columns: updatable_columns).execute
       end
 
       # Given an attributes hash, +instantiate+ returns a new instance of

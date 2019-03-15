@@ -142,4 +142,24 @@ class InsertAllTest < ActiveRecord::TestCase
       Book.insert_all! [{ unknown_attribute: "Test" }]
     end
   end
+
+  def test_upsert_all_updates_only_defined_columns
+    skip unless supports_insert_on_duplicate_update? && supports_insert_conflict_target?
+
+    yesterday = DateTime.new(2012, 8, 28, 22, 35, 0)
+    now = DateTime.new(2012, 8, 29, 22, 35, 0)
+
+    assert_difference "Book.count", +1 do
+      Book.upsert_all([{ name: "Mysterious book", author_id: 7, published_on: yesterday, format: "E-Book" }],
+                      unique_by: { columns: %i{author_id name} },
+                      updatable_columns: [:format])
+
+      Book.upsert_all([{ name: "Mysterious book", author_id: 7, published_on: now, format: "Paperback" }],
+                      unique_by: { columns: %i{author_id name} },
+                      updatable_columns: [:format])
+    end
+
+    book = Book.find_by(name: "Mysterious book")
+    assert_equal yesterday, book.published_on
+  end
 end
