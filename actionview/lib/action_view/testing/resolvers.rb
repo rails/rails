@@ -31,16 +31,14 @@ module ActionView #:nodoc:
         query = /^(#{Regexp.escape(path)})#{query}$/
 
         templates = []
-        @hash.each do |_path, array|
-          source, updated_at = array
+        @hash.each do |_path, source|
           next unless query.match?(_path)
           handler, format, variant = extract_handler_and_format_and_variant(_path)
           templates << Template.new(source, _path, handler,
             virtual_path: path.virtual,
             format: format,
             variant: variant,
-            locals: locals,
-            updated_at: updated_at
+            locals: locals
           )
         end
 

@@ -63,26 +63,11 @@ module ActionView
 
       # Cache the templates returned by the block
       def cache(key, name, prefix, partial, locals)
-        if Resolver.caching?
-          @data[key][name][prefix][partial][locals] ||= canonical_no_templates(yield)
-        else
-          fresh_templates  = yield
-          cached_templates = @data[key][name][prefix][partial][locals]
-
-          if templates_have_changed?(cached_templates, fresh_templates)
-            @data[key][name][prefix][partial][locals] = canonical_no_templates(fresh_templates)
-          else
-            cached_templates || NO_TEMPLATES
-          end
-        end
+        @data[key][name][prefix][partial][locals] ||= canonical_no_templates(yield)
       end
 
       def cache_query(query) # :nodoc:
-        if Resolver.caching?
-          @query_cache[query] ||= canonical_no_templates(yield)
-        else
-          yield
-        end
+        @query_cache[query] ||= canonical_no_templates(yield)
       end
 
       def clear
@@ -111,19 +96,6 @@ module ActionView
 
         def canonical_no_templates(templates)
           templates.empty? ? NO_TEMPLATES : templates
-        end
-
-        def templates_have_changed?(cached_templates, fresh_templates)
-          # if either the old or new template list is empty, we don't need to (and can't)
-          # compare modification times, and instead just check whether the lists are different
-          if cached_templates.blank? || fresh_templates.blank?
-            return fresh_templates.blank? != cached_templates.blank?
-          end
-
-          cached_templates_max_updated_at = cached_templates.map(&:updated_at).max
-
-          # if a template has changed, it will be now be newer than all the cached templates
-          fresh_templates.any? { |t| t.updated_at > cached_templates_max_updated_at }
         end
     end
 
@@ -218,8 +190,7 @@ module ActionView
             virtual_path: path.virtual,
             format: format,
             variant: variant,
-            locals: locals,
-            updated_at: mtime(template)
+            locals: locals
           )
         end
       end
@@ -270,11 +241,6 @@ module ActionView
 
       def escape_entry(entry)
         entry.gsub(/[*?{}\[\]]/, '\\\\\\&')
-      end
-
-      # Returns the file mtime from the filesystem.
-      def mtime(p)
-        File.mtime(p)
       end
 
       # Extract handler, formats and variant from path. If a format cannot be found neither
