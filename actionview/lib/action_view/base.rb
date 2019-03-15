@@ -267,7 +267,7 @@ module ActionView #:nodoc:
       _prepare_context
     end
 
-    def run(method, template, locals, buffer, &block)
+    def _run(method, template, locals, buffer, &block)
       _old_output_buffer, _old_virtual_path, _old_template = @output_buffer, @virtual_path, @current_template
       @current_template = template
       @output_buffer = buffer

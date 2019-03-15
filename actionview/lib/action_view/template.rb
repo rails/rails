@@ -173,7 +173,7 @@ module ActionView
     def render(view, locals, buffer = ActionView::OutputBuffer.new, &block)
       instrument_render_template do
         compile!(view)
-        view.run(method_name, self, locals, buffer, &block)
+        view._run(method_name, self, locals, buffer, &block)
       end
     rescue => e
       handle_render_error(view, e)
