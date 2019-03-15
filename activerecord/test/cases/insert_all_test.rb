@@ -268,6 +268,17 @@ class InsertAllTest < ActiveRecord::TestCase
     end
   end
 
+  def test_upsert_all_updates_using_provided_sql
+    skip unless supports_insert_on_duplicate_update?
+
+    Book.upsert_all(
+      [{ id: 1, status: 1 }, { id: 2, status: 1 }],
+      update_sql: "status = GREATEST(books.status, 1)"
+    )
+    assert_equal "published", Book.find(1).status
+    assert_equal "written", Book.find(2).status
+  end
+
   private
     def capture_log_output
       output = StringIO.new

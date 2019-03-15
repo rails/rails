@@ -502,10 +502,14 @@ module ActiveRecord
           sql << " ON DUPLICATE KEY UPDATE #{no_op_column}=#{no_op_column}"
         elsif insert.update_duplicates?
           sql << " ON DUPLICATE KEY UPDATE "
-          sql << insert.updatable_columns.map { |column| "#{column}=VALUES(#{column})" }.join(",")
+          sql << insert.update_sql
         end
 
         sql
+      end
+
+      def build_update_columns_sql(columns)
+        columns.map { |column| "#{column}=VALUES(#{column})" }.join(",")
       end
 
       def check_version # :nodoc:

@@ -3,13 +3,13 @@
 module ActiveRecord
   class InsertAll # :nodoc:
     attr_reader :model, :connection, :inserts, :keys
-    attr_reader :on_duplicate, :returning, :unique_by
+    attr_reader :on_duplicate, :returning, :unique_by, :update_sql
 
-    def initialize(model, inserts, on_duplicate:, returning: nil, unique_by: nil)
+    def initialize(model, inserts, on_duplicate:, returning: nil, unique_by: nil, update_sql: nil)
       raise ArgumentError, "Empty list of attributes passed" if inserts.blank?
 
       @model, @connection, @inserts, @keys = model, model.connection, inserts, inserts.first.keys.map(&:to_s).to_set
-      @on_duplicate, @returning, @unique_by = on_duplicate, returning, unique_by
+      @on_duplicate, @returning, @unique_by, @update_sql = on_duplicate, returning, unique_by, update_sql
 
       @returning = (connection.supports_insert_returning? ? primary_keys : false) if @returning.nil?
       @returning = false if @returning == []
@@ -154,8 +154,12 @@ module ActiveRecord
           end
         end
 
-        def updatable_columns
-          quote_columns(insert_all.updatable_columns)
+        def update_sql
+          if insert_all.update_sql
+            insert_all.update_sql
+          else
+            build_update_sql(quote_columns(insert_all.updatable_columns))
+          end
         end
 
         private
@@ -180,6 +184,10 @@ module ActiveRecord
 
           def quote_columns(columns)
             columns.map(&connection.method(:quote_column_name))
+          end
+
+          def build_update_sql(columns)
+            connection.build_update_columns_sql(columns)
           end
       end
   end

@@ -305,10 +305,14 @@ module ActiveRecord
           sql << " ON CONFLICT #{insert.conflict_target} DO NOTHING"
         elsif insert.update_duplicates?
           sql << " ON CONFLICT #{insert.conflict_target} DO UPDATE SET "
-          sql << insert.updatable_columns.map { |column| "#{column}=excluded.#{column}" }.join(",")
+          sql << insert.update_sql
         end
 
         sql
+      end
+
+      def build_update_columns_sql(columns)
+        columns.map { |column| "#{column}=excluded.#{column}" }.join(",")
       end
 
       def get_database_version # :nodoc:
