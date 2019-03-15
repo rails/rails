@@ -2,13 +2,14 @@
 
 require "cases/helper"
 require "models/book"
+require "models/author"
 
 class ReadonlyNameBook < Book
   attr_readonly :name
 end
 
 class InsertAllTest < ActiveRecord::TestCase
-  fixtures :books
+  fixtures :books, :authors
 
   def test_insert
     assert_difference "Book.count", +1 do
@@ -30,6 +31,17 @@ class InsertAllTest < ActiveRecord::TestCase
         { name: "About Face", author_id: 1 },
         { name: "Eloquent Ruby", author_id: 1 },
       ]
+    end
+  end
+
+  def test_relation_insert_all
+    @david = authors(:david)
+
+    assert_difference "Book.count", +2 do
+      @david.books.insert_all!([
+        { name: "Rework" },
+        { name: "Patterns of Enterprise Application Architecture" }
+      ])
     end
   end
 

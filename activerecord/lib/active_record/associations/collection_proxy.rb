@@ -317,6 +317,12 @@ module ActiveRecord
       end
       alias_method :new, :build
 
+      def insert_all(attributes, returning: nil, unique_by: nil)
+        attributes = @association.insert_all_attributes(attributes)
+
+        super
+      end
+
       # Returns a new object of the collection type that has been instantiated with
       # attributes, linked to this object and that has already been saved (if it
       # passes the validations).

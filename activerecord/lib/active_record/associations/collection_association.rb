@@ -301,6 +301,10 @@ module ActiveRecord
           target.any? { |record| record.new_record? || record.changed? }
       end
 
+      def insert_all_attributes(attributes)
+        attributes.map { |a| a.merge(creation_attributes) }
+      end
+
       private
         # We have some records loaded from the database (persisted) and some that are
         # in-memory (memory). The same record may be represented in the persisted array
