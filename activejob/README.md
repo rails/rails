@@ -21,7 +21,7 @@ You can read more about Active Job in the [Active Job Basics](https://edgeguides
 
 ## Usage
 
-To learn how to use your preferred queuing backend see its adapter
+To learn how to use your preferred queuing backend, see its adapter
 documentation at
 [ActiveJob::QueueAdapters](https://api.rubyonrails.org/classes/ActiveJob/QueueAdapters.html).
 
