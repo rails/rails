@@ -35,6 +35,7 @@ module Arel # :nodoc: all
         alias :visit_Arel_Nodes_Ascending         :unary
         alias :visit_Arel_Nodes_Descending        :unary
         alias :visit_Arel_Nodes_UnqualifiedColumn :unary
+        alias :visit_Arel_Nodes_OptimizerHints    :unary
 
         def function(o)
           visit o.expressions

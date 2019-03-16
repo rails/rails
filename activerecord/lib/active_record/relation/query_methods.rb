@@ -901,6 +901,29 @@ module ActiveRecord
       self
     end
 
+    # Specify optimizer hints to be used in the SELECT statement.
+    #
+    # Example (for MySQL):
+    #
+    #   Topic.optimizer_hints("MAX_EXECUTION_TIME(50000)", "NO_INDEX_MERGE(topics)")
+    #   # SELECT /*+ MAX_EXECUTION_TIME(50000) NO_INDEX_MERGE(topics) */ `topics`.* FROM `topics`
+    #
+    # Example (for PostgreSQL with pg_hint_plan):
+    #
+    #   Topic.optimizer_hints("SeqScan(topics)", "Parallel(topics 8)")
+    #   # SELECT /*+ SeqScan(topics) Parallel(topics 8) */ "topics".* FROM "topics"
+    def optimizer_hints(*args)
+      check_if_method_has_arguments!(:optimizer_hints, args)
+      spawn.optimizer_hints!(*args)
+    end
+
+    def optimizer_hints!(*args) # :nodoc:
+      args.flatten!
+
+      self.optimizer_hints_values += args
+      self
+    end
+
     # Reverse the existing order clause on the relation.
     #
     #   User.order('name ASC').reverse_order # generated SQL has 'ORDER BY name DESC'
@@ -977,6 +1000,7 @@ module ActiveRecord
 
         build_select(arel)
 
+        arel.optimizer_hints(*optimizer_hints_values) unless optimizer_hints_values.empty?
         arel.distinct(distinct_value)
         arel.from(build_from) unless from_clause.empty?
         arel.lock(lock_value) if lock_value

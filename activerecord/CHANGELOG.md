@@ -1,3 +1,28 @@
+*   Support Optimizer Hints.
+
+    In most databases, there is a way to control the optimizer is by using optimizer hints,
+    which can be specified within individual statements.
+
+    Example (for MySQL):
+
+        Topic.optimizer_hints("MAX_EXECUTION_TIME(50000)", "NO_INDEX_MERGE(topics)")
+        # SELECT /*+ MAX_EXECUTION_TIME(50000) NO_INDEX_MERGE(topics) */ `topics`.* FROM `topics`
+
+    Example (for PostgreSQL with pg_hint_plan):
+
+        Topic.optimizer_hints("SeqScan(topics)", "Parallel(topics 8)")
+        # SELECT /*+ SeqScan(topics) Parallel(topics 8) */ "topics".* FROM "topics"
+
+    See also:
+
+    * https://dev.mysql.com/doc/refman/8.0/en/optimizer-hints.html
+    * https://pghintplan.osdn.jp/pg_hint_plan.html
+    * https://docs.oracle.com/en/database/oracle/oracle-database/12.2/tgsql/influencing-the-optimizer.html
+    * https://docs.microsoft.com/en-us/sql/t-sql/queries/hints-transact-sql-query?view=sql-server-2017
+    * https://www.ibm.com/support/knowledgecenter/en/SSEPGG_11.1.0/com.ibm.db2.luw.admin.perf.doc/doc/c0070117.html
+
+    *Ryuta Kamizono*
+
 *   Fix query attribute method on user-defined attribute to be aware of typecasted value.
 
     For example, the following code no longer return false as casted non-empty string:

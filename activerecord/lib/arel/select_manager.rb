@@ -146,6 +146,13 @@ module Arel # :nodoc: all
       @ctx.projections = projections
     end
 
+    def optimizer_hints(*hints)
+      unless hints.empty?
+        @ctx.optimizer_hints = Arel::Nodes::OptimizerHints.new(hints)
+      end
+      self
+    end
+
     def distinct(value = true)
       if value
         @ctx.set_quantifier = Arel::Nodes::Distinct.new

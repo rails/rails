@@ -384,6 +384,11 @@ module ActiveRecord
         false
       end
 
+      # Does this adapter support optimizer hints?
+      def supports_optimizer_hints?
+        false
+      end
+
       def supports_lazy_transactions?
         false
       end
