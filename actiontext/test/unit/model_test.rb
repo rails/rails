@@ -53,4 +53,15 @@ class ActionText::ModelTest < ActiveSupport::TestCase
     message = Message.create(subject: "Greetings", body: "<h1>Hello world</h1>")
     assert_equal "Hello world", message.body.to_plain_text
   end
+
+  test "save content after nested attributes update" do
+    message = Message.create(subject: "Greetings", body: "<h1>Hello world</h1>")
+    post = message.create_post!
+
+    message.update!(post_attributes: { content: "Test content", id: post.id })
+
+    message.reload
+
+    assert_equal "Test content", message.post.content.to_plain_text
+  end
 end

@@ -31,8 +31,10 @@ module ActionText
 
           def #{name}=(body)
             self.#{name}.body = body
+            public_send(:#{name}).save if public_send(:#{name}).changed?
           end
         CODE
+
 
         has_one :"rich_text_#{name}", -> { where(name: name) }, class_name: "ActionText::RichText", as: :record, inverse_of: :record, dependent: :destroy
 
