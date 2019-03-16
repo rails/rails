@@ -1538,7 +1538,6 @@ module ActionView
           # responsibility of the caller to escape all the values.
           html_options[:action] = url_for(url_for_options || {})
           html_options[:"accept-charset"] = "UTF-8"
-          
           # local: true will disable ajax remote form
           html_options[:"data-remote"] = true unless local == true
 
