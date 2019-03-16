@@ -1,3 +1,7 @@
+*   Add `-e/--environment` option to `rails initializers`.
+
+    *Yuji Yaginuma*
+
 ## Rails 6.0.0.beta3 (March 11, 2019) ##
 
 *   No changes.
