@@ -493,13 +493,13 @@ module ActiveRecord
     end
 
     def test_truncate_tables
+      assert_operator @connection.query_value("SELECT COUNT(*) FROM posts"), :>, 0
       assert_operator @connection.query_value("SELECT COUNT(*) FROM authors"), :>, 0
       assert_operator @connection.query_value("SELECT COUNT(*) FROM author_addresses"), :>, 0
 
-      @connection.disable_referential_integrity do
-        @connection.truncate_tables("author_addresses", "authors")
-      end
+      @connection.truncate_tables("author_addresses", "authors", "posts")
 
+      assert_equal 0, @connection.query_value("SELECT COUNT(*) FROM posts")
       assert_equal 0, @connection.query_value("SELECT COUNT(*) FROM authors")
       assert_equal 0, @connection.query_value("SELECT COUNT(*) FROM author_addresses")
     end

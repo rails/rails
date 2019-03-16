@@ -68,6 +68,14 @@ module ActiveRecord
         end
         alias :exec_update :exec_delete
 
+        def insert_fixtures_set(fixture_set, tables_to_delete = []) # :nodoc:
+          super { discard_remaining_results }
+        end
+
+        def truncate_tables(*table_names) # :nodoc:
+          super { discard_remaining_results }
+        end
+
         private
           def default_insert_value(column)
             Arel.sql("DEFAULT") unless column.auto_increment?
@@ -83,6 +91,14 @@ module ActiveRecord
 
           def supports_set_server_option?
             @connection.respond_to?(:set_server_option)
+          end
+
+          def build_truncate_statements(*table_names)
+            if table_names.size == 1
+              super.first
+            else
+              super
+            end
           end
 
           def multi_statements_enabled?(flags)
@@ -114,6 +130,36 @@ module ActiveRecord
                 @config[:flags] = previous_flags
                 reconnect!
               end
+            end
+          end
+
+          def combine_multi_statements(total_sql)
+            total_sql.each_with_object([]) do |sql, total_sql_chunks|
+              previous_packet = total_sql_chunks.last
+              if max_allowed_packet_reached?(sql, previous_packet)
+                total_sql_chunks << +sql
+              else
+                previous_packet << ";\n"
+                previous_packet << sql
+              end
+            end
+          end
+
+          def max_allowed_packet_reached?(current_packet, previous_packet)
+            if current_packet.bytesize > max_allowed_packet
+              raise ActiveRecordError,
+                "Fixtures set is too large #{current_packet.bytesize}. Consider increasing the max_allowed_packet variable."
+            elsif previous_packet.nil?
+              true
+            else
+              (current_packet.bytesize + previous_packet.bytesize) > max_allowed_packet
+            end
+          end
+
+          def max_allowed_packet
+            @max_allowed_packet ||= begin
+              bytes_margin = 2
+              show_variable("max_allowed_packet") - bytes_margin
             end
           end
 

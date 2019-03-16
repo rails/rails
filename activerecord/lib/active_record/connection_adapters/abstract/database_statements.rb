@@ -144,11 +144,20 @@ module ActiveRecord
 
       # Executes the truncate statement.
       def truncate(table_name, name = nil)
-        execute "TRUNCATE TABLE #{quote_table_name(table_name)}", name
+        execute(build_truncate_statements(table_name), name)
       end
 
       def truncate_tables(*table_names) # :nodoc:
-        table_names.each { |table_name| truncate(table_name) }
+        unless table_names.empty?
+          with_multi_statements do
+            disable_referential_integrity do
+              Array(build_truncate_statements(*table_names)).each do |sql|
+                execute_batch(sql, "Truncate Tables")
+                yield if block_given?
+              end
+            end
+          end
+        end
       end
 
       # Executes update +sql+ statement in the context of this connection using
@@ -378,13 +387,15 @@ module ActiveRecord
         end.compact
 
         table_deletes = tables_to_delete.map { |table| +"DELETE FROM #{quote_table_name table}" }
-        total_sql = Array.wrap(combine_multi_statements(table_deletes + fixture_inserts))
+        total_sql = Array(combine_multi_statements(table_deletes + fixture_inserts))
 
-        disable_referential_integrity do
-          transaction(requires_new: true) do
-            total_sql.each do |sql|
-              execute sql, "Fixtures Load"
-              yield if block_given?
+        with_multi_statements do
+          disable_referential_integrity do
+            transaction(requires_new: true) do
+              total_sql.each do |sql|
+                execute_batch(sql, "Fixtures Load")
+                yield if block_given?
+              end
             end
           end
         end
@@ -420,6 +431,10 @@ module ActiveRecord
       end
 
       private
+        def execute_batch(sql, name = nil)
+          execute(sql, name)
+        end
+
         def default_insert_value(column)
           Arel.sql("DEFAULT")
         end
@@ -453,6 +468,17 @@ module ActiveRecord
           manager.values = manager.create_values_list(values)
 
           manager.to_sql
+        end
+
+        def build_truncate_statements(*table_names)
+          truncate_tables = table_names.map do |table_name|
+            "TRUNCATE TABLE #{quote_table_name(table_name)}"
+          end
+          combine_multi_statements(truncate_tables)
+        end
+
+        def with_multi_statements
+          yield
         end
 
         def combine_multi_statements(total_sql)

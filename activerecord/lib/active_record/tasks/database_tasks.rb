@@ -190,9 +190,7 @@ module ActiveRecord
             ActiveRecord::Base.internal_metadata_table_name
           ]
 
-          ActiveRecord::Base.connection.disable_referential_integrity do
-            ActiveRecord::Base.connection.truncate_tables(*table_names)
-          end unless table_names.empty?
+          ActiveRecord::Base.connection.truncate_tables(*table_names) unless table_names.empty?
         end
       end
       private :truncate_tables

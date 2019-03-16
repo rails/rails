@@ -209,7 +209,7 @@ class FixturesTest < ActiveRecord::TestCase
       conn = ActiveRecord::Base.connection
       mysql_margin = 2
       packet_size = 1024
-      bytes_needed_to_have_a_1024_bytes_fixture = 858
+      bytes_needed_to_have_a_1024_bytes_fixture = 860
       fixtures = {
         "traffic_lights" => [
           { "location" => "US", "state" => ["NY"], "long_state" => ["a" * bytes_needed_to_have_a_1024_bytes_fixture] },

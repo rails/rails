@@ -143,12 +143,6 @@ module ActiveRecord
           end
         end
 
-        def truncate_tables(*table_names) # :nodoc:
-          unless table_names.empty?
-            execute "TRUNCATE TABLE #{table_names.map(&method(:quote_table_name)).join(", ")}"
-          end
-        end
-
         # Begins a transaction.
         def begin_db_transaction
           execute "BEGIN"
@@ -170,6 +164,10 @@ module ActiveRecord
         end
 
         private
+          def build_truncate_statements(*table_names)
+            "TRUNCATE TABLE #{table_names.map(&method(:quote_table_name)).join(", ")}"
+          end
+
           # Returns the current ID of a table's sequence.
           def last_insert_id_result(sequence_name)
             exec_query("SELECT currval(#{quote(sequence_name)})", "SQL")

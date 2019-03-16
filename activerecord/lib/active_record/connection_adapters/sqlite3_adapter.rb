@@ -4,6 +4,7 @@ require "active_record/connection_adapters/abstract_adapter"
 require "active_record/connection_adapters/statement_pool"
 require "active_record/connection_adapters/sqlite3/explain_pretty_printer"
 require "active_record/connection_adapters/sqlite3/quoting"
+require "active_record/connection_adapters/sqlite3/database_statements"
 require "active_record/connection_adapters/sqlite3/schema_creation"
 require "active_record/connection_adapters/sqlite3/schema_definitions"
 require "active_record/connection_adapters/sqlite3/schema_dumper"
@@ -58,6 +59,7 @@ module ActiveRecord
 
       include SQLite3::Quoting
       include SQLite3::SchemaStatements
+      include SQLite3::DatabaseStatements
 
       NATIVE_DATABASE_TYPES = {
         primary_key:  "integer PRIMARY KEY AUTOINCREMENT NOT NULL",
@@ -273,10 +275,6 @@ module ActiveRecord
             @connection.execute(sql)
           end
         end
-      end
-
-      def truncate(table_name, name = nil) # :nodoc:
-        execute "DELETE FROM #{quote_table_name(table_name)}", name
       end
 
       def begin_db_transaction #:nodoc:

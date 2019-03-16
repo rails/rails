@@ -512,12 +512,6 @@ module ActiveRecord
         index.using == :btree || super
       end
 
-      def insert_fixtures_set(fixture_set, tables_to_delete = [])
-        with_multi_statements do
-          super { discard_remaining_results }
-        end
-      end
-
       def build_insert_sql(insert) # :nodoc:
         sql = +"INSERT #{insert.into} #{insert.values_list}"
 
@@ -537,33 +531,6 @@ module ActiveRecord
           if version < "5.5.8"
             raise "Your version of MySQL (#{version_string}) is too old. Active Record supports MySQL >= 5.5.8."
           end
-        end
-
-        def combine_multi_statements(total_sql)
-          total_sql.each_with_object([]) do |sql, total_sql_chunks|
-            previous_packet = total_sql_chunks.last
-            sql << ";\n"
-            if max_allowed_packet_reached?(sql, previous_packet) || total_sql_chunks.empty?
-              total_sql_chunks << sql
-            else
-              previous_packet << sql
-            end
-          end
-        end
-
-        def max_allowed_packet_reached?(current_packet, previous_packet)
-          if current_packet.bytesize > max_allowed_packet
-            raise ActiveRecordError, "Fixtures set is too large #{current_packet.bytesize}. Consider increasing the max_allowed_packet variable."
-          elsif previous_packet.nil?
-            false
-          else
-            (current_packet.bytesize + previous_packet.bytesize) > max_allowed_packet
-          end
-        end
-
-        def max_allowed_packet
-          bytes_margin = 2
-          @max_allowed_packet ||= (show_variable("max_allowed_packet") - bytes_margin)
         end
 
         def initialize_type_map(m = type_map)
