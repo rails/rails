@@ -1524,6 +1524,8 @@ module ActionView
       end
 
       private
+        # local: true will turn off ajax
+        # missing form_with_generates_remote_forms will make local: false (turn on remote)
         def html_options_for_form_with(url_for_options = nil, model = nil, html: {}, local: !form_with_generates_remote_forms,
           skip_enforcing_utf8: nil, **options)
           html_options = options.slice(:id, :class, :multipart, :method, :data).merge(html)
@@ -1536,7 +1538,9 @@ module ActionView
           # responsibility of the caller to escape all the values.
           html_options[:action] = url_for(url_for_options || {})
           html_options[:"accept-charset"] = "UTF-8"
-          html_options[:"data-remote"] = true unless local
+          
+          # local: true will disable ajax remote form
+          html_options[:"data-remote"] = true unless local == true
 
           html_options[:authenticity_token] = options.delete(:authenticity_token)
 
