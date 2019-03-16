@@ -144,22 +144,17 @@ class InsertAllTest < ActiveRecord::TestCase
   end
 
   def test_upsert_all_updates_only_defined_columns
-    skip unless supports_insert_on_duplicate_update? && supports_insert_conflict_target?
+    skip unless supports_insert_on_duplicate_update?
 
     yesterday = DateTime.new(2012, 8, 28, 22, 35, 0)
     now = DateTime.new(2012, 8, 29, 22, 35, 0)
+    book = Book.create(name: "Mysterious book", format: "E-Book", published_on: yesterday)
 
-    assert_difference "Book.count", +1 do
-      Book.upsert_all([{ name: "Mysterious book", author_id: 7, published_on: yesterday, format: "E-Book" }],
-                      unique_by: { columns: %i{author_id name} },
-                      updatable_columns: [:format])
-
-      Book.upsert_all([{ name: "Mysterious book", author_id: 7, published_on: now, format: "Paperback" }],
-                      unique_by: { columns: %i{author_id name} },
-                      updatable_columns: [:format])
-    end
+    Book.upsert_all([{ id: book.id, name: "Mysterious book", published_on: now, format: "Paperback" }],
+                    update: [:format])
 
     book = Book.find_by(name: "Mysterious book")
     assert_equal yesterday, book.published_on
+    assert_equal "Paperback", book.format
   end
 end

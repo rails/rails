@@ -4,7 +4,7 @@ module ActiveRecord
   class InsertAll
     attr_reader :model, :connection, :inserts, :on_duplicate, :returning, :unique_by, :updatable_columns
 
-    def initialize(model, inserts, on_duplicate:, returning: nil, unique_by: nil, updatable_columns: nil)
+    def initialize(model, inserts, on_duplicate:, returning: nil, unique_by: nil, update: nil)
       raise ArgumentError, "Empty list of attributes passed" if inserts.blank?
 
       @model, @connection, @inserts, @on_duplicate, @returning, @unique_by = model, model.connection, inserts, on_duplicate, returning, unique_by
@@ -12,7 +12,7 @@ module ActiveRecord
       @returning = (connection.supports_insert_returning? ? primary_keys : false) if @returning.nil?
       @returning = false if @returning == []
 
-      @updatable_columns = updatable_columns || default_updatable_columns
+      @updatable_columns = update || default_updatable_columns
 
       @on_duplicate = :skip if @on_duplicate == :update && @updatable_columns.empty?
 
