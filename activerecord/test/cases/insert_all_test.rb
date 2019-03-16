@@ -136,4 +136,10 @@ class InsertAllTest < ActiveRecord::TestCase
 
     assert_equal ["Out of the Silent Planet", "Perelandra"], Book.where(isbn: "1974522598").order(:name).pluck(:name)
   end
+
+  def test_insert_all_raises_on_unknown_attribute
+    assert_raise ActiveRecord::UnknownAttributeError do
+      Book.insert_all! [{ unknown_attribute: "Test" }]
+    end
+  end
 end

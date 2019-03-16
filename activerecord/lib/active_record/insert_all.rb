@@ -92,7 +92,15 @@ module ActiveRecord
 
         def values_list
           columns = connection.schema_cache.columns_hash(model.table_name)
+
+          column_names = columns.keys.to_set
           keys = insert_all.keys.to_set
+          unknown_columns = keys - column_names
+
+          unless unknown_columns.empty?
+            raise UnknownAttributeError.new(model.new, unknown_columns.first)
+          end
+
           types = keys.map { |key| [ key, connection.lookup_cast_type_from_column(columns[key]) ] }.to_h
 
           values_list = insert_all.inserts.map do |attributes|
