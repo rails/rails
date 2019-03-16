@@ -10,6 +10,7 @@ module Arel # :nodoc: all
         super()
         @source         = JoinSource.new nil
 
+        @optimizer_hints = nil
         # https://ronsavage.github.io/SQL/sql-92.bnf.html#set%20quantifier
         @set_quantifier = nil
         @projections    = []
