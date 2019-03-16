@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "models/author"
 require "models/book"
 require "models/speedometer"
 
@@ -279,7 +280,29 @@ class InsertAllTest < ActiveRecord::TestCase
     end
   end
 
+  def test_insert_all_on_relation
+    skip unless supports_insert_on_duplicate_skip?
+
+    author = Author.create!(name: "Jimmy")
+
+    assert_difference "author.books.count", +1 do
+      author.books.insert_all([{ name: "My little book", isbn: "1974522598" }])
+    end
+  end
+
+  def test_insert_all_on_relation_precedence
+    skip unless supports_insert_on_duplicate_skip?
+
+    author = Author.create!(name: "Jimmy")
+    second_author = Author.create!(name: "Bob")
+
+    assert_difference "author.books.count", +1 do
+      author.books.insert_all([{ name: "My little book", isbn: "1974522598", author_id: second_author.id }])
+    end
+  end
+
   private
+
     def capture_log_output
       output = StringIO.new
       old_logger, ActiveRecord::Base.logger = ActiveRecord::Base.logger, ActiveSupport::Logger.new(output)

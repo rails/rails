@@ -121,7 +121,7 @@ module ActiveRecord
       #     { id: 1, title: "Eloquent Ruby", author: "Russ" }
       #   ])
       def insert_all(attributes, returning: nil, unique_by: nil)
-        InsertAll.new(self, attributes, on_duplicate: :skip, returning: returning, unique_by: unique_by).execute
+        InsertAll.new(scope_for_association, attributes, on_duplicate: :skip, returning: returning, unique_by: unique_by).execute
       end
 
       # Inserts a single record into the database in a single SQL INSERT
@@ -175,7 +175,7 @@ module ActiveRecord
       #     { id: 1, title: "Eloquent Ruby", author: "Russ" }
       #   ])
       def insert_all!(attributes, returning: nil)
-        InsertAll.new(self, attributes, on_duplicate: :raise, returning: returning).execute
+        InsertAll.new(scope_for_association, attributes, on_duplicate: :raise, returning: returning).execute
       end
 
       # Updates or inserts (upserts) a single record into the database in a
@@ -240,7 +240,7 @@ module ActiveRecord
       #
       #   Book.find_by(isbn: "1").title # => "Eloquent Ruby"
       def upsert_all(attributes, returning: nil, unique_by: nil)
-        InsertAll.new(self, attributes, on_duplicate: :update, returning: returning, unique_by: unique_by).execute
+        InsertAll.new(scope_for_association, attributes, on_duplicate: :update, returning: returning, unique_by: unique_by).execute
       end
 
       # Given an attributes hash, +instantiate+ returns a new instance of

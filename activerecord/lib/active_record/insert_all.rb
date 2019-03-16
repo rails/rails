@@ -2,13 +2,17 @@
 
 module ActiveRecord
   class InsertAll # :nodoc:
-    attr_reader :model, :connection, :inserts, :keys
+    attr_reader :model, :connection, :inserts, :keys, :scope_for_create
     attr_reader :on_duplicate, :returning, :unique_by
 
-    def initialize(model, inserts, on_duplicate:, returning: nil, unique_by: nil)
+    def initialize(scope, inserts, on_duplicate:, returning: nil, unique_by: nil)
       raise ArgumentError, "Empty list of attributes passed" if inserts.blank?
 
-      @model, @connection, @inserts, @keys = model, model.connection, inserts, inserts.first.keys.map(&:to_s).to_set
+      @model = scope.model
+      @scope_for_create = scope.scope_for_create
+
+      @keys = (scope_for_create.keys | inserts.first.keys.map(&:to_s)).to_set
+      @connection, @inserts = model.connection, inserts
       @on_duplicate, @returning, @unique_by = on_duplicate, returning, unique_by
 
       @returning = (connection.supports_insert_returning? ? primary_keys : false) if @returning.nil?
@@ -46,7 +50,7 @@ module ActiveRecord
 
     def map_key_with_value
       inserts.map do |attributes|
-        attributes = attributes.stringify_keys
+        attributes = attributes.stringify_keys.merge(scope_for_create)
         verify_attributes(attributes)
 
         keys.map do |key|
