@@ -528,6 +528,24 @@ class ErrorsTest < ActiveModel::TestCase
     assert_equal({ name: [{ error: :invalid }] }, person.errors.details)
   end
 
+  test "details retains original type as error" do
+    errors = ActiveModel::Errors.new(Person.new)
+    errors.add(:name, "cannot be nil")
+    errors.add("foo", "bar")
+    errors.add(:baz, nil)
+    errors.add(:age, :invalid, count: 3, message: "%{count} is too low")
+
+    assert_equal(
+      {
+        name: [{ error: "cannot be nil" }],
+        foo: [{ error: "bar" }],
+        baz: [{ error: nil }],
+        age: [{ error: :invalid, count: 3 }]
+      },
+      errors.details
+    )
+  end
+
   test "group_by_attribute" do
     person = Person.new
     error = person.errors.add(:name, :invalid, message: "is bad")
