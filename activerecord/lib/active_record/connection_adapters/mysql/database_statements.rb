@@ -68,25 +68,18 @@ module ActiveRecord
         end
         alias :exec_update :exec_delete
 
-        def insert_fixtures_set(fixture_set, tables_to_delete = []) # :nodoc:
-          super { discard_remaining_results }
-        end
-
-        def truncate_tables(*table_names) # :nodoc:
-          super { discard_remaining_results }
-        end
-
         private
+          def execute_batch(sql, name = nil)
+            super
+            @connection.abandon_results!
+          end
+
           def default_insert_value(column)
             Arel.sql("DEFAULT") unless column.auto_increment?
           end
 
           def last_inserted_id(result)
             @connection.last_id
-          end
-
-          def discard_remaining_results
-            @connection.abandon_results!
           end
 
           def supports_set_server_option?

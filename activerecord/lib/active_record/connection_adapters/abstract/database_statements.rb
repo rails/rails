@@ -153,7 +153,6 @@ module ActiveRecord
             disable_referential_integrity do
               Array(build_truncate_statements(*table_names)).each do |sql|
                 execute_batch(sql, "Truncate Tables")
-                yield if block_given?
               end
             end
           end
@@ -394,7 +393,6 @@ module ActiveRecord
             transaction(requires_new: true) do
               total_sql.each do |sql|
                 execute_batch(sql, "Fixtures Load")
-                yield if block_given?
               end
             end
           end
