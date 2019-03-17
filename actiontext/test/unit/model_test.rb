@@ -49,8 +49,22 @@ class ActionText::ModelTest < ActiveSupport::TestCase
     assert_equal "Hello world", message.content.to_plain_text
   end
 
-  test "save body" do
+  test "saving body" do
     message = Message.create(subject: "Greetings", body: "<h1>Hello world</h1>")
     assert_equal "Hello world", message.body.to_plain_text
+  end
+
+  test "saving content via nested attributes" do
+    message = Message.create! subject: "Greetings", content: "<h1>Hello world</h1>",
+      review_attributes: { author_name: "Marcia", content: "Nice work!" }
+    assert_equal "Nice work!", message.review.content.to_plain_text
+  end
+
+  test "updating content via nested attributes" do
+    message = Message.create! subject: "Greetings", content: "<h1>Hello world</h1>",
+      review_attributes: { author_name: "Marcia", content: "Nice work!" }
+
+    message.update! review_attributes: { id: message.review.id, content: "Great work!" }
+    assert_equal "Great work!", message.review.reload.content.to_plain_text
   end
 end
