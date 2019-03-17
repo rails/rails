@@ -11,7 +11,7 @@ module ActiveRecord
           else
             super
           end
-          discard_remaining_results
+          @connection.abandon_results!
           result
         end
 
