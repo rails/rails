@@ -190,7 +190,7 @@ module ActiveRecord
             ActiveRecord::Base.internal_metadata_table_name
           ]
 
-          ActiveRecord::Base.connection.truncate_tables(*table_names) unless table_names.empty?
+          ActiveRecord::Base.connection.truncate_tables(*table_names)
         end
       end
       private :truncate_tables

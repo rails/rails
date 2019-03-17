@@ -142,23 +142,6 @@ module ActiveRecord
         exec_query(sql, name, binds)
       end
 
-      # Executes the truncate statement.
-      def truncate(table_name, name = nil)
-        execute(build_truncate_statements(table_name), name)
-      end
-
-      def truncate_tables(*table_names) # :nodoc:
-        unless table_names.empty?
-          with_multi_statements do
-            disable_referential_integrity do
-              Array(build_truncate_statements(*table_names)).each do |sql|
-                execute_batch(sql, "Truncate Tables")
-              end
-            end
-          end
-        end
-      end
-
       # Executes update +sql+ statement in the context of this connection using
       # +binds+ as the bind substitutes. +name+ is logged along with
       # the executed +sql+ statement.
@@ -191,6 +174,23 @@ module ActiveRecord
       def delete(arel, name = nil, binds = [])
         sql, binds = to_sql_and_binds(arel, binds)
         exec_delete(sql, name, binds)
+      end
+
+      # Executes the truncate statement.
+      def truncate(table_name, name = nil)
+        execute(build_truncate_statements(table_name), name)
+      end
+
+      def truncate_tables(*table_names) # :nodoc:
+        return if table_names.empty?
+
+        with_multi_statements do
+          disable_referential_integrity do
+            Array(build_truncate_statements(*table_names)).each do |sql|
+              execute_batch(sql, "Truncate Tables")
+            end
+          end
+        end
       end
 
       # Runs the given block in a database transaction, and returns the result
