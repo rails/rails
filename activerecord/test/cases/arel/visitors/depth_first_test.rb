@@ -33,6 +33,7 @@ module Arel
         Arel::Nodes::Ordering,
         Arel::Nodes::StringJoin,
         Arel::Nodes::UnqualifiedColumn,
+        Arel::Nodes::ValuesList,
         Arel::Nodes::Limit,
         Arel::Nodes::Else,
       ].each do |klass|
@@ -116,7 +117,6 @@ module Arel
         Arel::Nodes::NotIn,
         Arel::Nodes::Or,
         Arel::Nodes::TableAlias,
-        Arel::Nodes::Values,
         Arel::Nodes::As,
         Arel::Nodes::DeleteStatement,
         Arel::Nodes::JoinSource,
