@@ -353,39 +353,12 @@ module ActiveRecord
       # We keep this method to provide fallback
       # for databases like sqlite that do not support bulk inserts.
       def insert_fixture(fixture, table_name)
-        fixture = fixture.stringify_keys
-
-        columns = schema_cache.columns_hash(table_name)
-        binds = fixture.map do |name, value|
-          if column = columns[name]
-            type = lookup_cast_type_from_column(column)
-            Relation::QueryAttribute.new(name, value, type)
-          else
-            raise Fixture::FixtureError, %(table "#{table_name}" has no column named #{name.inspect}.)
-          end
-        end
-
-        table = Arel::Table.new(table_name)
-
-        values = binds.map do |bind|
-          value = with_yaml_fallback(bind.value_for_database)
-          [table[bind.name], value]
-        end
-
-        manager = Arel::InsertManager.new
-        manager.into(table)
-        manager.insert(values)
-        execute manager.to_sql, "Fixture Insert"
+        execute(build_fixture_sql(Array.wrap(fixture), table_name), "Fixture Insert")
       end
 
       def insert_fixtures_set(fixture_set, tables_to_delete = [])
-        fixture_inserts = fixture_set.map do |table_name, fixtures|
-          next if fixtures.empty?
-
-          build_fixture_sql(fixtures, table_name)
-        end.compact
-
-        table_deletes = tables_to_delete.map { |table| +"DELETE FROM #{quote_table_name table}" }
+        fixture_inserts = build_fixture_statements(fixture_set)
+        table_deletes = tables_to_delete.map { |table| "DELETE FROM #{quote_table_name(table)}" }
         total_sql = Array(combine_multi_statements(table_deletes + fixture_inserts))
 
         with_multi_statements do
@@ -433,14 +406,17 @@ module ActiveRecord
           execute(sql, name)
         end
 
+        DEFAULT_INSERT_VALUE = Arel.sql("DEFAULT").freeze
+        private_constant :DEFAULT_INSERT_VALUE
+
         def default_insert_value(column)
-          Arel.sql("DEFAULT")
+          DEFAULT_INSERT_VALUE
         end
 
         def build_fixture_sql(fixtures, table_name)
           columns = schema_cache.columns_hash(table_name)
 
-          values = fixtures.map do |fixture|
+          values_list = fixtures.map do |fixture|
             fixture = fixture.stringify_keys
 
             unknown_columns = fixture.keys - columns.keys
@@ -462,10 +438,30 @@ module ActiveRecord
           table = Arel::Table.new(table_name)
           manager = Arel::InsertManager.new
           manager.into(table)
-          columns.each_key { |column| manager.columns << table[column] }
-          manager.values = manager.create_values_list(values)
 
+          if values_list.size == 1
+            values = values_list.shift
+            new_values = []
+            columns.each_key.with_index { |column, i|
+              unless values[i].equal?(DEFAULT_INSERT_VALUE)
+                new_values << values[i]
+                manager.columns << table[column]
+              end
+            }
+            values_list << new_values
+          else
+            columns.each_key { |column| manager.columns << table[column] }
+          end
+
+          manager.values = manager.create_values_list(values_list)
           manager.to_sql
+        end
+
+        def build_fixture_statements(fixture_set)
+          fixture_set.map do |table_name, fixtures|
+            next if fixtures.empty?
+            build_fixture_sql(fixtures, table_name)
+          end.compact
         end
 
         def build_truncate_statements(*table_names)

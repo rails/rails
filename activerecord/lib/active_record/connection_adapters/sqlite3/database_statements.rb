@@ -19,6 +19,13 @@ module ActiveRecord
             end
           end
 
+          def build_fixture_statements(fixture_set)
+            fixture_set.flat_map do |table_name, fixtures|
+              next if fixtures.empty?
+              fixtures.map { |fixture| build_fixture_sql([fixture], table_name) }
+            end.compact
+          end
+
           def build_truncate_statements(*table_names)
             truncate_tables = table_names.map do |table_name|
               "DELETE FROM #{quote_table_name(table_name)}"

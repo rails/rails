@@ -75,7 +75,7 @@ module ActiveRecord
           end
 
           def default_insert_value(column)
-            Arel.sql("DEFAULT") unless column.auto_increment?
+            super unless column.auto_increment?
           end
 
           def last_inserted_id(result)
