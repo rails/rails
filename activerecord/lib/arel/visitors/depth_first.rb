@@ -36,6 +36,7 @@ module Arel # :nodoc: all
         alias :visit_Arel_Nodes_Descending        :unary
         alias :visit_Arel_Nodes_UnqualifiedColumn :unary
         alias :visit_Arel_Nodes_OptimizerHints    :unary
+        alias :visit_Arel_Nodes_ValuesList        :unary
 
         def function(o)
           visit o.expressions
@@ -103,7 +104,6 @@ module Arel # :nodoc: all
         alias :visit_Arel_Nodes_Regexp             :binary
         alias :visit_Arel_Nodes_RightOuterJoin     :binary
         alias :visit_Arel_Nodes_TableAlias         :binary
-        alias :visit_Arel_Nodes_Values             :binary
         alias :visit_Arel_Nodes_When               :binary
 
         def visit_Arel_Nodes_StringJoin(o)

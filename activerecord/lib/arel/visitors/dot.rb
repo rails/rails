@@ -46,8 +46,8 @@ module Arel # :nodoc: all
           visit_edge o, "distinct"
         end
 
-        def visit_Arel_Nodes_Values(o)
-          visit_edge o, "expressions"
+        def visit_Arel_Nodes_ValuesList(o)
+          visit_edge o, "rows"
         end
 
         def visit_Arel_Nodes_StringJoin(o)

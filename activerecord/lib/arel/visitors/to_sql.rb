@@ -159,7 +159,7 @@ module Arel # :nodoc: all
               when Nodes::SqlLiteral, Nodes::BindParam
                 collector = visit(value, collector)
               else
-                collector << quote(value)
+                collector << quote(value).to_s
               end
               collector << COMMA unless k == row_len
             end
@@ -167,25 +167,6 @@ module Arel # :nodoc: all
             collector << COMMA unless i == len
           }
           collector
-        end
-
-        def visit_Arel_Nodes_Values(o, collector)
-          collector << "VALUES ("
-
-          len = o.expressions.length - 1
-          o.expressions.each_with_index { |value, i|
-            case value
-            when Nodes::SqlLiteral, Nodes::BindParam
-              collector = visit value, collector
-            else
-              collector << quote(value).to_s
-            end
-            unless i == len
-              collector << COMMA
-            end
-          }
-
-          collector << ")"
         end
 
         def visit_Arel_Nodes_SelectStatement(o, collector)
