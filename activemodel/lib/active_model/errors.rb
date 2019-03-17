@@ -631,6 +631,7 @@ module ActiveModel
     def []=(attribute, value)
       ActiveSupport::Deprecation.warn("Calling `[]=` to an ActiveModel::Errors is deprecated. Please call `ActiveModel::Errors#add` instead.")
 
+      @errors.delete(attribute)
       Array(value).each do |message|
         @errors.add(attribute, message)
       end
