@@ -23,6 +23,12 @@ if supports_optimizer_hints?
         posts = posts.select(:id).where(author_id: [0, 1])
         assert_includes posts.explain, "Seq Scan on posts"
       end
+
+      assert_sql(%r{\ASELECT "posts"\."id"}) do
+        posts = Post.optimizer_hints("/*+ SeqScan(posts) */")
+        posts = posts.select(:id).where(author_id: [0, 1])
+        posts.unscope(:optimizer_hints).load
+      end
     end
   end
 end
