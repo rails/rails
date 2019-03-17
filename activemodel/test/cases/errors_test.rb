@@ -576,6 +576,12 @@ class ErrorsTest < ActiveModel::TestCase
     assert_equal [:name], person.errors.details.keys
   end
 
+  test "details returns empty array when accessed with non-existent attribute" do
+    errors = ActiveModel::Errors.new(Person.new)
+
+    assert_equal [], errors.details[:foo]
+  end
+
   test "copy errors" do
     errors = ActiveModel::Errors.new(Person.new)
     errors.add(:name, :invalid)
