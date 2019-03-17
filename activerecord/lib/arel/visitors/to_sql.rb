@@ -805,7 +805,9 @@ module Arel # :nodoc: all
         end
 
         def sanitize_as_sql_comment(o)
-          o.expr.map { |v| v.gsub(%r{ /\*\+?\s* | \s*\*/ }x, "") }
+          o.expr.map { |v|
+            v.gsub(%r{ (/ (?: | \g<1>) \*) \+? \s* | \s* (\* (?: | \g<2>) /) }x, "")
+          }
         end
 
         def collect_optimizer_hints(o, collector)
