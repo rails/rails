@@ -35,6 +35,17 @@ module ActiveRecord
       on_duplicate == :update
     end
 
+    def map_key_with_value
+      inserts.map do |attributes|
+        attributes = attributes.stringify_keys
+        verify_attributes(attributes)
+
+        keys.map do |key|
+          yield key, attributes[key]
+        end
+      end
+    end
+
     private
       def ensure_valid_options_for_connection!
         if returning && !connection.supports_insert_returning?
@@ -74,6 +85,12 @@ module ActiveRecord
         Array.wrap(model.primary_key)
       end
 
+      def verify_attributes(attributes)
+        if keys != attributes.keys.to_set
+          raise ArgumentError, "All objects being inserted must have the same keys"
+        end
+      end
+
 
       class Builder
         attr_reader :model
@@ -89,23 +106,11 @@ module ActiveRecord
         end
 
         def values_list
-          columns = connection.schema_cache.columns_hash(model.table_name)
-          keys    = insert_all.keys
-          verify_columns_exist_for(keys, columns)
+          types = extract_types_from_columns_on(model.table_name, keys: insert_all.keys)
 
-          types = keys.map { |key| [ key, connection.lookup_cast_type_from_column(columns[key]) ] }.to_h
-
-          values_list = insert_all.inserts.map do |attributes|
-            attributes = attributes.stringify_keys
-
-            unless attributes.keys.to_set == keys
-              raise ArgumentError, "All objects being inserted must have the same keys"
-            end
-
-            keys.map do |key|
-              bind = Relation::QueryAttribute.new(key, attributes[key], types[key])
-              connection.with_yaml_fallback(bind.value_for_database)
-            end
+          values_list = insert_all.map_key_with_value do |key, value|
+            bind = Relation::QueryAttribute.new(key, value, types[key])
+            connection.with_yaml_fallback(bind.value_for_database)
           end
 
           Arel::InsertManager.new.create_values_list(values_list).to_sql
@@ -133,16 +138,17 @@ module ActiveRecord
             quote_columns(insert_all.keys).join(",")
           end
 
-          def quote_columns(columns)
-            columns.map(&connection.method(:quote_column_name))
+          def extract_types_from_columns_on(table_name, keys:)
+            columns = connection.schema_cache.columns_hash(table_name)
+
+            unknown_column = (keys - columns.keys).first
+            raise UnknownAttributeError.new(model.new, unknown_column) if unknown_column
+
+            keys.map { |key| [ key, connection.lookup_cast_type_from_column(columns[key]) ] }.to_h
           end
 
-          def verify_columns_exist_for(keys, columns)
-            unknown_columns = keys - columns.keys
-
-            if unknown_columns.any?
-              raise UnknownAttributeError.new(model.new, unknown_columns.first)
-            end
+          def quote_columns(columns)
+            columns.map(&connection.method(:quote_column_name))
           end
 
           def conflict_columns
