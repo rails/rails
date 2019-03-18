@@ -138,15 +138,15 @@ module ActiveRecord
         "'#{quote_string(value.to_s)}'"
       end
 
-      def type_casted_binds(binds) # :nodoc:
-        if binds.first.is_a?(Array)
-          binds.map { |column, value| type_cast(value, column) }
-        else
-          binds.map { |attr| type_cast(attr.value_for_database) }
-        end
-      end
-
       private
+        def type_casted_binds(binds)
+          if binds.first.is_a?(Array)
+            binds.map { |column, value| type_cast(value, column) }
+          else
+            binds.map { |attr| type_cast(attr.value_for_database) }
+          end
+        end
+
         def lookup_cast_type(sql_type)
           type_map.lookup(sql_type)
         end
