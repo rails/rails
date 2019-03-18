@@ -106,7 +106,7 @@ module ActiveRecord
 
         build_db_config = configs.each_pair.flat_map do |env_name, config|
           walk_configs(env_name.to_s, "primary", config)
-        end.compact
+        end.flatten.compact
 
         if url = ENV["DATABASE_URL"]
           build_url_config(url, build_db_config)
