@@ -80,6 +80,14 @@ class LookupContextTest < ActiveSupport::TestCase
     assert_equal [:js, :html], @lookup_context.formats
   end
 
+  test "raises on invalid format assignment" do
+    ex = assert_raises ArgumentError do
+      @lookup_context.formats = [:html, :javascript]
+    end
+
+    assert_equal "Invalid formats: :javascript", ex.message
+  end
+
   test "provides getters and setters for locale" do
     @lookup_context.locale = :pt
     assert_equal :pt, @lookup_context.locale
