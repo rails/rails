@@ -1,3 +1,17 @@
+*   Fix `Time#advance` to work with dates before 1001-03-07
+
+    Before:
+    
+        Time.utc(1001, 3, 6).advance(years: -1) # => 1000-03-05 00:00:00 UTC
+    
+    After
+    
+        Time.utc(1001, 3, 6).advance(years: -1) # => 1000-03-06 00:00:00 UTC
+
+    Note that this doesn't affect `DateTime#advance` as that doesn't use a proleptic calendar.
+
+    *Andrew White*
+
 *   In Zeitwerk mode, engines are now managed by the `main` autoloader. Engines may reference application constants, if the application is reloaded and we do not reload engines, they won't use the reloaded application code.
 
     *Xavier Noria*
