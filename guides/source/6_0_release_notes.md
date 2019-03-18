@@ -77,9 +77,72 @@ Please refer to the [Changelog][railties] for detailed changes.
 
 ### Removals
 
+*   Remove deprecated `after_bundle` helper inside plugins templates.
+    ([Commit](https://github.com/rails/rails/commit/4d51efe24e461a2a3ed562787308484cd48370c7))
+
+*   Remove deprecated support to `config.ru` that uses the application
+    class as argument of `run`.
+    ([Commit](https://github.com/rails/rails/commit/553b86fc751c751db504bcbe2d033eb2bb5b6a0b))
+
+*   Remove deprecated `environment` argument from the rails commands.
+    ([Commit](https://github.com/rails/rails/commit/e20589c9be09c7272d73492d4b0f7b24e5595571))
+
+*   Remove deprecated `capify!` method in generators and templates.
+    ([Commit](https://github.com/rails/rails/commit/9d39f81d512e0d16a27e2e864ea2dd0e8dc41b17))
+
+*   Remove deprecated `config.secret_token`.
+    ([Commit](https://github.com/rails/rails/commit/46ac5fe69a20d4539a15929fe48293e1809a26b0))
+
 ### Deprecations
 
+*   Deprecate passing Rack server name as a regular argument to `rails server`.
+    ([Pull Request](https://github.com/rails/rails/pull/32058))
+
+*   Deprecate support for using `HOST` environment to specify server IP.
+    ([Pull Request](https://github.com/rails/rails/pull/32540))
+
+*   Deprecate accessing hashes returned by `config_for` by non-symbol keys.
+    ([Pull Request](https://github.com/rails/rails/pull/35198))
+
 ### Notable changes
+
+*   Add an explicit option `--using` or `-u` for specifying the server for the
+    `rails server` command.
+    ([Pull Request](https://github.com/rails/rails/pull/32058))
+
+*   Add ability to see the output of `rails routes` in expanded format.
+    ([Pull Request](https://github.com/rails/rails/pull/32130))
+
+*   Run the seed database task using inline Active Job adapter.
+    ([Pull Request](https://github.com/rails/rails/pull/34953))
+
+*   Add a command `rails db:system:change` to change the database of the application.
+    ([Pull Request](https://github.com/rails/rails/pull/34832))
+
+*   Add `rails test:channels` command to test only Action Cable channels.
+    ([Pull Request](https://github.com/rails/rails/pull/34947))
+
+*   Introduce guard against DNS rebinding attacks.
+    ([Pull Request](https://github.com/rails/rails/pull/33145))
+
+*   Add ability to abort on failure while running generator commands.
+    ([Pull Request](https://github.com/rails/rails/pull/34420))
+
+*   Make Webpacker the default JavaScript compiler for Rails 6.
+    ([Pull Request](https://github.com/rails/rails/pull/33079))
+
+*   Add multiple database support for `rails db:migrate:status` command.
+    ([Pull Request](https://github.com/rails/rails/pull/34137))
+
+*   Add ability to use different migration paths from multiple databases in
+    the generators.
+    ([Pull Request](https://github.com/rails/rails/pull/34021))
+
+*   Add support for multi environment credentials=.
+    ([Pull Request](https://github.com/rails/rails/pull/33521))
+
+*   Make `null_store` as default cache store in test environment.
+    ([Pull Request](https://github.com/rails/rails/pull/33773))
 
 Action Cable
 ------------

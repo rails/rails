@@ -79,9 +79,9 @@
 
     *George Claghorn*
 
-*   Introduce guard against DNS rebinding attacks
+*   Introduce guard against DNS rebinding attacks.
 
-    The `ActionDispatch::HostAuthorization` is a new middleware that prevent
+    The `ActionDispatch::HostAuthorization` is a new middleware that prevents
     against DNS rebinding and other `Host` header attacks. It is included in
     the development environment by default with the following configuration:
 
