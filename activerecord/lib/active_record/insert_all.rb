@@ -2,12 +2,14 @@
 
 module ActiveRecord
   class InsertAll
-    attr_reader :model, :connection, :inserts, :on_duplicate, :returning, :unique_by
+    attr_reader :model, :connection, :inserts, :keys
+    attr_reader :on_duplicate, :returning, :unique_by
 
     def initialize(model, inserts, on_duplicate:, returning: nil, unique_by: nil)
       raise ArgumentError, "Empty list of attributes passed" if inserts.blank?
 
-      @model, @connection, @inserts, @on_duplicate, @returning, @unique_by = model, model.connection, inserts, on_duplicate, returning, unique_by
+      @model, @connection, @inserts, @keys = model, model.connection, inserts, inserts.first.keys.map(&:to_s).to_set
+      @on_duplicate, @returning, @unique_by = on_duplicate, returning, unique_by
 
       @returning = (connection.supports_insert_returning? ? primary_keys : false) if @returning.nil?
       @returning = false if @returning == []
@@ -19,10 +21,6 @@ module ActiveRecord
 
     def execute
       connection.exec_query to_sql, "Bulk Insert"
-    end
-
-    def keys
-      inserts.first.keys.map(&:to_s)
     end
 
     def updatable_columns
@@ -92,14 +90,8 @@ module ActiveRecord
 
         def values_list
           columns = connection.schema_cache.columns_hash(model.table_name)
-
-          column_names = columns.keys.to_set
-          keys = insert_all.keys.to_set
-          unknown_columns = keys - column_names
-
-          unless unknown_columns.empty?
-            raise UnknownAttributeError.new(model.new, unknown_columns.first)
-          end
+          keys    = insert_all.keys
+          verify_columns_exist_for(keys, columns)
 
           types = keys.map { |key| [ key, connection.lookup_cast_type_from_column(columns[key]) ] }.to_h
 
@@ -143,6 +135,14 @@ module ActiveRecord
 
           def quote_columns(columns)
             columns.map(&connection.method(:quote_column_name))
+          end
+
+          def verify_columns_exist_for(keys, columns)
+            unknown_columns = keys - columns.keys
+
+            if unknown_columns.any?
+              raise UnknownAttributeError.new(model.new, unknown_columns.first)
+            end
           end
 
           def conflict_columns
