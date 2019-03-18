@@ -123,6 +123,8 @@ module TestHelpers
             adapter: sqlite3
             pool: 5
             timeout: 5000
+            variables:
+              statement_timeout: 1000
           development:
             primary:
               <<: *default
