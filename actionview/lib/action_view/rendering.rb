@@ -127,7 +127,7 @@ module ActionView
       # Assign the rendered format to look up context.
       def _process_format(format)
         super
-        lookup_context.formats = [format.to_sym]
+        lookup_context.formats = [format.to_sym] if format.to_sym
       end
 
       # Normalize args by converting render "foo" to render :action => "foo" and
