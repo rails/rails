@@ -184,15 +184,19 @@ module ActionView
         template_paths = reject_files_external_to_app(template_paths) unless outside_app_allowed
 
         template_paths.map do |template|
-          handler, format, variant = extract_handler_and_format_and_variant(template)
-
-          FileTemplate.new(File.expand_path(template), handler,
-            virtual_path: path.virtual,
-            format: format,
-            variant: variant,
-            locals: locals
-          )
+          build_template(template, path.virtual, locals)
         end
+      end
+
+      def build_template(template, virtual_path, locals)
+        handler, format, variant = extract_handler_and_format_and_variant(template)
+
+        FileTemplate.new(File.expand_path(template), handler,
+          virtual_path: virtual_path,
+          format: format,
+          variant: variant,
+          locals: locals
+        )
       end
 
       def reject_files_external_to_app(files)
@@ -384,6 +388,10 @@ module ActionView
   class FallbackFileSystemResolver < FileSystemResolver #:nodoc:
     def self.instances
       [new(""), new("/")]
+    end
+
+    def build_template(template, virtual_path, locals)
+      super(template, nil, locals)
     end
   end
 end
