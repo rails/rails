@@ -219,7 +219,8 @@ module Arel # :nodoc: all
         end
 
         def visit_Arel_Nodes_OptimizerHints(o, collector)
-          collector << "/*+ #{sanitize_as_sql_comment(o).join(" ")} */"
+          hints = o.expr.map { |v| sanitize_as_sql_comment(v) }.join(" ")
+          collector << "/*+ #{hints} */"
         end
 
         def collect_nodes_for(nodes, collector, spacer, connector = COMMA)
@@ -785,10 +786,9 @@ module Arel # :nodoc: all
           @connection.quote_column_name(name)
         end
 
-        def sanitize_as_sql_comment(o)
-          o.expr.map { |v|
-            v.gsub(%r{ (/ (?: | \g<1>) \*) \+? \s* | \s* (\* (?: | \g<2>) /) }x, "")
-          }
+        def sanitize_as_sql_comment(value)
+          return value if Arel::Nodes::SqlLiteral === value
+          @connection.sanitize_as_sql_comment(value)
         end
 
         def collect_optimizer_hints(o, collector)

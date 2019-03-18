@@ -82,7 +82,8 @@ module Arel # :nodoc: all
         end
 
         def visit_Arel_Nodes_OptimizerHints(o, collector)
-          collector << "OPTION (#{sanitize_as_sql_comment(o).join(", ")})"
+          hints = o.expr.map { |v| sanitize_as_sql_comment(v) }.join(", ")
+          collector << "OPTION (#{hints})"
         end
 
         def get_offset_limit_clause(o)
