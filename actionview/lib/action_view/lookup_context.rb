@@ -282,6 +282,8 @@ module ActionView
       if values
         values = values.compact
         values.concat(default_formats) if values.delete "*/*"
+        values.uniq!
+
         if values == [:js]
           values << :html
           @html_fallback_for_js = true
