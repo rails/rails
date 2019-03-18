@@ -280,6 +280,7 @@ module ActionView
     # add :html as fallback to :js.
     def formats=(values)
       if values
+        values = values.compact
         values.concat(default_formats) if values.delete "*/*"
         if values == [:js]
           values << :html
