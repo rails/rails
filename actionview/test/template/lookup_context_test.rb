@@ -82,10 +82,10 @@ class LookupContextTest < ActiveSupport::TestCase
 
   test "raises on invalid format assignment" do
     ex = assert_raises ArgumentError do
-      @lookup_context.formats = [:html, :javascript]
+      @lookup_context.formats = [:html, :invalid, "also bad"]
     end
 
-    assert_equal "Invalid formats: :javascript", ex.message
+    assert_equal 'Invalid formats: :invalid, "also bad"', ex.message
   end
 
   test "provides getters and setters for locale" do
