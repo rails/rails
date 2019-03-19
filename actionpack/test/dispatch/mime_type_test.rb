@@ -174,4 +174,36 @@ class MimeTypeTest < ActiveSupport::TestCase
     assert_not (Mime[:js] !~ "application/javascript")
     assert Mime[:html] =~ "application/xhtml+xml"
   end
+
+  test "can be initialized with wildcards" do
+    assert_equal "*/*", Mime::Type.new("*/*").to_s
+    assert_equal "text/*", Mime::Type.new("text/*").to_s
+    assert_equal "video/*", Mime::Type.new("video/*").to_s
+  end
+
+  test "invalid mime types raise error" do
+    assert_raises Mime::Type::InvalidMimeType do
+      Mime::Type.new("too/many/slash")
+    end
+
+    assert_raises Mime::Type::InvalidMimeType do
+      Mime::Type.new("missingslash")
+    end
+
+    assert_raises Mime::Type::InvalidMimeType do
+      Mime::Type.new("text/html, text/plain")
+    end
+
+    assert_raises Mime::Type::InvalidMimeType do
+      Mime::Type.new("*/html")
+    end
+
+    assert_raises Mime::Type::InvalidMimeType do
+      Mime::Type.new("")
+    end
+
+    assert_raises Mime::Type::InvalidMimeType do
+      Mime::Type.new(nil)
+    end
+  end
 end
