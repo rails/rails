@@ -67,6 +67,7 @@ module RenderTestCases
   def test_render_template_with_format
     assert_match "<h1>No Comment</h1>", @view.render(template: "comments/empty", formats: [:html])
     assert_match "<error>No Comment</error>", @view.render(template: "comments/empty", formats: [:xml])
+    assert_match "<error>No Comment</error>", @view.render(template: "comments/empty", formats: :xml)
   end
 
   def test_render_partial_implicitly_use_format_of_the_rendered_template
@@ -124,7 +125,7 @@ module RenderTestCases
 
   def test_render_raw_is_html_safe_and_does_not_escape_output
     buffer = ActiveSupport::SafeBuffer.new
-    buffer << @view.render(file: "plain_text")
+    buffer << @view.render(template: "plain_text")
     assert_equal true, buffer.html_safe?
     assert_equal buffer, "<%= hello_world %>\n"
   end
@@ -137,22 +138,22 @@ module RenderTestCases
     assert_equal "4", @view.render(inline: "(2**2).to_s", type: :ruby)
   end
 
-  def test_render_file_with_localization_on_context_level
+  def test_render_template_with_localization_on_context_level
     old_locale, @view.locale = @view.locale, :da
-    assert_equal "Hey verden", @view.render(file: "test/hello_world")
+    assert_equal "Hey verden", @view.render(template: "test/hello_world")
   ensure
     @view.locale = old_locale
   end
 
-  def test_render_file_with_dashed_locale
+  def test_render_template_with_dashed_locale
     old_locale, @view.locale = @view.locale, :"pt-BR"
-    assert_equal "Ola mundo", @view.render(file: "test/hello_world")
+    assert_equal "Ola mundo", @view.render(template: "test/hello_world")
   ensure
     @view.locale = old_locale
   end
 
-  def test_render_file_at_top_level
-    assert_equal "Elastica", @view.render(file: "/shared")
+  def test_render_template_at_top_level
+    assert_equal "Elastica", @view.render(template: "/shared")
   end
 
   def test_render_file_with_full_path
@@ -369,7 +370,7 @@ module RenderTestCases
   def test_without_compiled_method_container_is_deprecated
     view = ActionView::Base.with_view_paths(ActionController::Base.view_paths)
     assert_deprecated("ActionView::Base instances must implement `compiled_method_container`") do
-      assert_equal "Hello world!", view.render(file: "test/hello_world")
+      assert_equal "Hello world!", view.render(template: "test/hello_world")
     end
   end
 
@@ -549,28 +550,28 @@ module RenderTestCases
   def test_render_ignores_templates_with_malformed_template_handlers
     %w(malformed malformed.erb malformed.html.erb malformed.en.html.erb).each do |name|
       assert File.exist?(File.expand_path("#{FIXTURE_LOAD_PATH}/test/malformed/#{name}~")), "Malformed file (#{name}~) which should be ignored does not exists"
-      assert_raises(ActionView::MissingTemplate) { @view.render(file: "test/malformed/#{name}") }
+      assert_raises(ActionView::MissingTemplate) { @view.render(template: "test/malformed/#{name}") }
     end
   end
 
   def test_render_with_layout
     assert_equal %(<title></title>\nHello world!\n),
-      @view.render(file: "test/hello_world", layout: "layouts/yield")
+      @view.render(template: "test/hello_world", layout: "layouts/yield")
   end
 
   def test_render_with_layout_which_has_render_inline
     assert_equal %(welcome\nHello world!\n),
-      @view.render(file: "test/hello_world", layout: "layouts/yield_with_render_inline_inside")
+      @view.render(template: "test/hello_world", layout: "layouts/yield_with_render_inline_inside")
   end
 
   def test_render_with_layout_which_renders_another_partial
     assert_equal %(partial html\nHello world!\n),
-      @view.render(file: "test/hello_world", layout: "layouts/yield_with_render_partial_inside")
+      @view.render(template: "test/hello_world", layout: "layouts/yield_with_render_partial_inside")
   end
 
   def test_render_partial_with_html_only_extension
     assert_equal %(<h1>partial html</h1>\nHello world!\n),
-      @view.render(file: "test/hello_world", layout: "layouts/render_partial_html")
+      @view.render(template: "test/hello_world", layout: "layouts/render_partial_html")
   end
 
   def test_render_layout_with_block_and_yield
@@ -625,17 +626,17 @@ module RenderTestCases
 
   def test_render_with_nested_layout
     assert_equal %(<title>title</title>\n\n<div id="column">column</div>\n<div id="content">content</div>\n),
-      @view.render(file: "test/nested_layout", layout: "layouts/yield")
+      @view.render(template: "test/nested_layout", layout: "layouts/yield")
   end
 
   def test_render_with_file_in_layout
     assert_equal %(\n<title>title</title>\n\n),
-      @view.render(file: "test/layout_render_file")
+      @view.render(template: "test/layout_render_file")
   end
 
   def test_render_layout_with_object
     assert_equal %(<title>David</title>),
-      @view.render(file: "test/layout_render_object")
+      @view.render(template: "test/layout_render_object")
   end
 
   def test_render_with_passing_couple_extensions_to_one_register_template_handler_function_call
@@ -687,7 +688,7 @@ class LazyViewRenderTest < ActiveSupport::TestCase
 
   def test_render_utf8_template_with_magic_comment
     with_external_encoding Encoding::ASCII_8BIT do
-      result = @view.render(file: "test/utf8_magic", formats: [:html], layouts: "layouts/yield")
+      result = @view.render(template: "test/utf8_magic", formats: [:html], layouts: "layouts/yield")
       assert_equal Encoding::UTF_8, result.encoding
       assert_equal "\nРусский \nтекст\n\nUTF-8\nUTF-8\nUTF-8\n", result
     end
@@ -695,7 +696,7 @@ class LazyViewRenderTest < ActiveSupport::TestCase
 
   def test_render_utf8_template_with_default_external_encoding
     with_external_encoding Encoding::UTF_8 do
-      result = @view.render(file: "test/utf8", formats: [:html], layouts: "layouts/yield")
+      result = @view.render(template: "test/utf8", formats: [:html], layouts: "layouts/yield")
       assert_equal Encoding::UTF_8, result.encoding
       assert_equal "Русский текст\n\nUTF-8\nUTF-8\nUTF-8\n", result
     end
@@ -703,14 +704,14 @@ class LazyViewRenderTest < ActiveSupport::TestCase
 
   def test_render_utf8_template_with_incompatible_external_encoding
     with_external_encoding Encoding::SHIFT_JIS do
-      e = assert_raises(ActionView::Template::Error) { @view.render(file: "test/utf8", formats: [:html], layouts: "layouts/yield") }
+      e = assert_raises(ActionView::Template::Error) { @view.render(template: "test/utf8", formats: [:html], layouts: "layouts/yield") }
       assert_match "Your template was not saved as valid Shift_JIS", e.cause.message
     end
   end
 
   def test_render_utf8_template_with_partial_with_incompatible_encoding
     with_external_encoding Encoding::SHIFT_JIS do
-      e = assert_raises(ActionView::Template::Error) { @view.render(file: "test/utf8_magic_with_bare_partial", formats: [:html], layouts: "layouts/yield") }
+      e = assert_raises(ActionView::Template::Error) { @view.render(template: "test/utf8_magic_with_bare_partial", formats: [:html], layouts: "layouts/yield") }
       assert_match "Your template was not saved as valid Shift_JIS", e.cause.message
     end
   end
