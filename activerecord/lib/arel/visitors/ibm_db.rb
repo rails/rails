@@ -10,7 +10,8 @@ module Arel # :nodoc: all
         end
 
         def visit_Arel_Nodes_OptimizerHints(o, collector)
-          collector << "/* <OPTGUIDELINES>#{sanitize_as_sql_comment(o).join}</OPTGUIDELINES> */"
+          hints = o.expr.map { |v| sanitize_as_sql_comment(v) }.join
+          collector << "/* <OPTGUIDELINES>#{hints}</OPTGUIDELINES> */"
         end
 
         def visit_Arel_Nodes_Limit(o, collector)
