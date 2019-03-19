@@ -9,16 +9,6 @@ module Arel # :nodoc: all
     end
 
     class ToSql < Arel::Visitors::Visitor
-      WHERE    = " WHERE "    # :nodoc:
-      SPACE    = " "          # :nodoc:
-      COMMA    = ", "         # :nodoc:
-      GROUP_BY = " GROUP BY " # :nodoc:
-      ORDER_BY = " ORDER BY " # :nodoc:
-      WINDOW   = " WINDOW "   # :nodoc:
-      AND      = " AND "      # :nodoc:
-
-      DISTINCT = "DISTINCT"   # :nodoc:
-
       def initialize(connection)
         super()
         @connection = connection

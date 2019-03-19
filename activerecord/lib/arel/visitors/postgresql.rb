@@ -3,11 +3,6 @@
 module Arel # :nodoc: all
   module Visitors
     class PostgreSQL < Arel::Visitors::ToSql
-      CUBE = "CUBE"
-      ROLLUP = "ROLLUP"
-      GROUPING_SETS = "GROUPING SETS"
-      LATERAL = "LATERAL"
-
       private
 
         def visit_Arel_Nodes_Matches(o, collector)
