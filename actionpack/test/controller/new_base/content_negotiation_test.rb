@@ -25,7 +25,7 @@ module ContentNegotiation
       assert_body "Hello world text/html!"
     end
 
-    test "A js or */* Accept header on xhr will return HTML" do
+    test "A js or */* Accept header on xhr will return JavaScript" do
       get "/content_negotiation/basic/hello", headers: { "HTTP_ACCEPT" => "text/javascript, */*" }, xhr: true
       assert_body "Hello world text/javascript!"
     end
