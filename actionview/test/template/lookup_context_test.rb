@@ -65,11 +65,6 @@ class LookupContextTest < ActiveSupport::TestCase
     assert_equal Mime::SET.to_a, @lookup_context.formats
   end
 
-  test "ignores nil format" do
-    @lookup_context.formats = [:html, nil, :text]
-    assert_equal [:html, :text], @lookup_context.formats
-  end
-
   test "handles explicitly defined */* formats fallback to :js" do
     @lookup_context.formats = [:js, Mime::ALL]
     assert_equal [:js, *Mime::SET.symbols].uniq, @lookup_context.formats
