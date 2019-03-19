@@ -21,7 +21,11 @@ module ActiveSupport
         end
 
         def autoloaded_constants
-          (Rails.autoloaders.main.loaded + Rails.autoloaders.once.loaded).to_a
+          cpaths = []
+          Rails.autoloaders.each do |autoloader|
+            cpaths.concat(autoloader.loaded_cpaths.to_a)
+          end
+          cpaths
         end
 
         def autoloaded?(object)
