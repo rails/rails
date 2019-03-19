@@ -425,7 +425,8 @@ module ApplicationTests
     test "enhancements to assets:precompile should only run once" do
       app_file "lib/tasks/enhance.rake", "Rake::Task['assets:precompile'].enhance { puts 'enhancement' }"
       output = precompile!
-      assert_equal 1, output.scan("enhancement").size
+      n_matches = output.scan("enhancement").size
+      assert_equal 1, n_matches, "Expected output to include 'enhancement' once, but was matched #{n_matches} times in\nOUTPUT_BEGIN\n#{output}\nOUTPUT_END"
     end
 
     test "digested assets are not mistakenly removed" do
