@@ -107,7 +107,7 @@ module Arel # :nodoc: all
           collector = visit o.relation, collector
           if o.wheres.any?
             collector << " WHERE "
-            inject_join o.wheres, collector, AND
+            inject_join o.wheres, collector, " AND "
           else
             collector
           end
