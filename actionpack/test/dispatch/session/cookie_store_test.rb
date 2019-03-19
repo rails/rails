@@ -382,16 +382,12 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
 
     # Overwrite get to send SessionSecret in env hash
     def get(path, *args)
-      args[0] ||= {}
-      args[0][:headers] ||= {}
-      args[0][:headers].tap do |config|
-        config["action_dispatch.secret_key_base"] = SessionSecret
-        config["action_dispatch.authenticated_encrypted_cookie_salt"] = SessionSalt
-        config["action_dispatch.use_authenticated_cookie_encryption"] = true
+      request.env["action_dispatch.secret_key_base"] = SessionSecret
+      request.env["action_dispatch.authenticated_encrypted_cookie_salt"] = SessionSalt
+      request.env["action_dispatch.use_authenticated_cookie_encryption"] = true
 
-        config["action_dispatch.key_generator"] ||= Generator
-        config["action_dispatch.cookies_rotations"] ||= Rotations
-      end
+      request.env["action_dispatch.key_generator"] ||= Generator
+      request.env["action_dispatch.cookies_rotations"] ||= Rotations
 
       super(path, *args)
     end

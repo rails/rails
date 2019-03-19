@@ -3,6 +3,8 @@
 require "abstract_unit"
 require "controller/fake_controllers"
 require "rails/engine"
+require "active_support/key_generator"
+require "active_support/messages/rotation_configuration"
 
 class SessionTest < ActiveSupport::TestCase
   StubApp = lambda { |env|
@@ -209,6 +211,10 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
       render plain: cookies["foo"]
     end
 
+    def read_encrypted_cookie
+      render plain: cookies.encrypted[:my_secret_id]
+    end
+
     def redirect
       redirect_to action_url("get")
     end
@@ -275,7 +281,7 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
       cookies["cookie_2"] = "oatmeal"
       get "/cookie_monster"
       assert_equal "cookie_1=; path=/\ncookie_3=chocolate; path=/", headers["Set-Cookie"]
-      assert_equal({ "cookie_1" => "", "cookie_2" => "oatmeal", "cookie_3" => "chocolate" }, cookies.to_hash)
+      assert_equal({ "cookie_1" => nil, "cookie_2" => "oatmeal", "cookie_3" => "chocolate" }, cookies.to_hash)
     end
   end
 
@@ -312,6 +318,32 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
 
       assert_nil headers["Set-Cookie"]
       assert_equal({ "foo" => "bar" }, cookies.to_hash)
+    end
+  end
+
+  test "encrypted cookies can be set and read" do
+    with_test_route_set do
+      SECRET_KEY_BASE = "b3c631c314c0bbca50c1b2843150fe33"
+      SIGNED_COOKIE_SALT = "signed cookie"
+      ENCRYPTED_COOKIE_SALT = "encrypted cookie"
+      ENCRYPTED_SIGNED_COOKIE_SALT = "sigend encrypted cookie"
+      AUTHENTICATED_ENCRYPTED_COOKIE_SALT = "authenticated encrypted cookie"
+
+      request.env["action_dispatch.key_generator"] = ActiveSupport::KeyGenerator.new(SECRET_KEY_BASE, iterations: 2)
+      request.env["action_dispatch.cookies_rotations"] = ActiveSupport::Messages::RotationConfiguration.new
+
+      request.env["action_dispatch.secret_key_base"] = SECRET_KEY_BASE
+      request.env["action_dispatch.use_authenticated_cookie_encryption"] = true
+
+      request.env["action_dispatch.signed_cookie_salt"] = SIGNED_COOKIE_SALT
+      request.env["action_dispatch.encrypted_cookie_salt"] = ENCRYPTED_COOKIE_SALT
+      request.env["action_dispatch.encrypted_signed_cookie_salt"] = ENCRYPTED_SIGNED_COOKIE_SALT
+      request.env["action_dispatch.authenticated_encrypted_cookie_salt"] = AUTHENTICATED_ENCRYPTED_COOKIE_SALT
+
+      cookies.encrypted[:my_secret_id] = "foo bar secret"
+      get "/read_encrypted_cookie"
+      assert_response :success
+      assert_equal "foo bar secret", body
     end
   end
 

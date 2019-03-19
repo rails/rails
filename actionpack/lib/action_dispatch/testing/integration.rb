@@ -93,12 +93,6 @@ module ActionDispatch
       # The Accept header to send.
       attr_accessor :accept
 
-      # A map of the cookies returned by the last response, and which will be
-      # sent with the next request.
-      def cookies
-        _mock_session.cookie_jar
-      end
-
       # A reference to the controller instance used by the last request.
       attr_reader :controller
 
@@ -140,7 +134,9 @@ module ActionDispatch
       #   session.reset!
       def reset!
         @https = false
-        @controller = @request = @response = nil
+        env = Rails.application.env_config if defined?(Rails.application) && Rails.application
+        @request = ActionDispatch::Request.new(env || {})
+        @controller = @response = nil
         @_mock_session = nil
         @request_count = 0
         @url_options = nil
@@ -259,9 +255,17 @@ module ActionDispatch
         if wrapped_headers.present?
           Http::Headers.from_hash(request_env).merge!(wrapped_headers)
         end
+
         if env.present?
           Http::Headers.from_hash(request_env).merge!(env)
         end
+
+        %w(key_generator cookies_rotations secret_key_base use_authenticated_cookie_encryption signed_cookie_salt
+           encrypted_cookie_salt encrypted_signed_cookie_salt authenticated_encrypted_cookie_salt).each do |key|
+          request_env["action_dispatch.#{key}"] = request.env["action_dispatch.#{key}"]
+        end
+
+        request_env["HTTP_COOKIE"] = cookies.to_header
 
         session = Rack::Test::Session.new(_mock_session)
 
@@ -274,6 +278,13 @@ module ActionDispatch
         response = _mock_session.last_response
         @response = ActionDispatch::TestResponse.from_response(response)
         @response.request = @request
+
+        cookies.update(@_mock_session.cookie_jar.to_hash)
+
+        if @request.have_cookie_jar?
+          cookies.update(@request.cookie_jar.instance_variable_get(:@cookies))
+        end
+
         @html_document = nil
         @url_options = nil
 
