@@ -872,48 +872,64 @@ class RenderTest < ActionController::TestCase
 
   # :ported:
   def test_render_file_with_instance_variables
-    get :render_file_with_instance_variables
+    assert_deprecated do
+      get :render_file_with_instance_variables
+    end
     assert_equal "The secret is in the sauce\n", @response.body
   end
 
   def test_render_file
-    get :hello_world_file
+    assert_deprecated do
+      get :hello_world_file
+    end
     assert_equal "Hello world!", @response.body
   end
 
   # :ported:
   def test_render_file_not_using_full_path
-    get :render_file_not_using_full_path
+    assert_deprecated do
+      get :render_file_not_using_full_path
+    end
     assert_equal "The secret is in the sauce\n", @response.body
   end
 
   # :ported:
   def test_render_file_not_using_full_path_with_dot_in_path
-    get :render_file_not_using_full_path_with_dot_in_path
+    assert_deprecated do
+      get :render_file_not_using_full_path_with_dot_in_path
+    end
     assert_equal "The secret is in the sauce\n", @response.body
   end
 
   # :ported:
   def test_render_file_using_pathname
-    get :render_file_using_pathname
+    assert_deprecated do
+      get :render_file_using_pathname
+    end
     assert_equal "The secret is in the sauce\n", @response.body
   end
 
   # :ported:
   def test_render_file_with_locals
-    get :render_file_with_locals
+    assert_deprecated do
+      get :render_file_with_locals
+    end
     assert_equal "The secret is in the sauce\n", @response.body
   end
 
   # :ported:
   def test_render_file_as_string_with_locals
-    get :render_file_as_string_with_locals
+    assert_deprecated do
+      get :render_file_as_string_with_locals
+    end
     assert_equal "The secret is in the sauce\n", @response.body
   end
 
   # :assessed:
   def test_render_file_from_template
-    get :render_file_from_template
+    assert_deprecated do
+      get :render_file_from_template
+    end
     assert_equal "The secret is in the sauce\n", @response.body
   end
 
@@ -1133,11 +1149,19 @@ class RenderTest < ActionController::TestCase
   end
 
   def test_bad_render_to_string_still_throws_exception
-    assert_raise(ActionView::MissingTemplate) { get :render_to_string_with_exception }
+    assert_deprecated do
+      assert_raise(ActionView::MissingTemplate) do
+        get :render_to_string_with_exception
+      end
+    end
   end
 
   def test_render_to_string_that_throws_caught_exception_doesnt_break_assigns
-    assert_nothing_raised { get :render_to_string_with_caught_exception }
+    assert_deprecated do
+      assert_nothing_raised do
+        get :render_to_string_with_caught_exception
+      end
+    end
     assert_equal "i'm before the render", @controller.instance_variable_get(:@before)
     assert_equal "i'm after the render", @controller.instance_variable_get(:@after)
   end

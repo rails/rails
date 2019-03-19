@@ -26,6 +26,11 @@ module ActionView
         elsif options.key?(:html)
           Template::HTML.new(options[:html], formats.first)
         elsif options.key?(:file)
+          ActiveSupport::Deprecation.warn <<~eowarn.squish
+          `render file:` is deprecated and will be removed from Rails 6.1.
+          This was usually to return a file outside the view path. Please use
+          `render html: File.read(...).html_safe` instead.
+          eowarn
           @lookup_context.with_fallbacks.find_file(options[:file], nil, false, keys, @details)
         elsif options.key?(:inline)
           handler = Template.handler_for_extension(options[:type] || "erb")
