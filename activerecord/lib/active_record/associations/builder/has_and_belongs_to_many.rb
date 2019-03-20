@@ -20,6 +20,10 @@ module ActiveRecord::Associations::Builder # :nodoc:
           attr_accessor :right_reflection
         end
 
+        def self.primary_key_prefix_type
+          nil
+        end
+
         def self.table_name
           # Table name needs to be resolved lazily
           # because RHS class might not have been loaded
