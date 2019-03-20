@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "models/author"
 require "models/bird"
 require "models/post"
 require "models/comment"
@@ -1319,21 +1320,45 @@ end
 class TestAutosaveAssociationOnAHasOneThroughAssociation < ActiveRecord::TestCase
   self.use_transactional_tests = false unless supports_savepoints?
 
-  def setup
-    super
+  def create_member_with_organization
     organization = Organization.create
-    @member = Member.create
-    MemberDetail.create(organization: organization, member: @member)
+    member = Member.create
+    MemberDetail.create(organization: organization, member: member)
+
+    member
   end
 
   def test_should_not_has_one_through_model
-    class << @member.organization
+    member = create_member_with_organization
+
+    class << member.organization
       def save(*args)
         super
         raise "Oh noes!"
       end
     end
-    assert_nothing_raised { @member.save }
+    assert_nothing_raised { member.save }
+  end
+
+  def create_author_with_post_with_comment
+    Author.create! name: "David" # make comment_id not match author_id
+    author = Author.create! name: "Sergiy"
+    post = Post.create! author: author, title: "foo", body: "bar"
+    Comment.create! post: post, body: "cool comment"
+
+    author
+  end
+
+  def test_should_not_reversed_has_one_through_model
+    author = create_author_with_post_with_comment
+
+    class << author.comment_on_first_post
+      def save(*args)
+        super
+        raise "Oh noes!"
+      end
+    end
+    assert_nothing_raised { author.save }
   end
 end
 
