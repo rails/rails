@@ -889,25 +889,25 @@ SELECT * FROM books WHERE id > 10 ORDER BY id DESC LIMIT 20
 The `reselect` method overrides an existing select statement. For example:
 
 ```ruby
-Post.select(:title, :body).reselect(:created_at)
+Book.select(:title, :isbn).reselect(:created_at)
 ```
 
 The SQL that would be executed:
 
 ```sql
-SELECT `posts`.`created_at` FROM `posts`
+SELECT `books`.`created_at` FROM `books`
 ```
 
-In case the `reselect` clause is not used,
+Compare this to the case where the `reselect` clause is not used:
 
 ```ruby
-Post.select(:title, :body).select(:created_at)
+Book.select(:title, :isbn).select(:created_at)
 ```
 
 the SQL executed would be:
 
 ```sql
-SELECT `posts`.`title`, `posts`.`body`, `posts`.`created_at` FROM `posts`
+SELECT `books`.`title`, `books`.`isbn`, `books`.`created_at` FROM `books`
 ```
 
 ### `reorder`
@@ -1176,7 +1176,7 @@ Author.joins("INNER JOIN books ON books.author_id = authors.id AND books.out_of_
 This will result in the following SQL:
 
 ```sql
-SELECT authors.* FROM authors INNER JOIN posts ON posts.author_id = authors.id AND books.out_of_print = FALSE
+SELECT authors.* FROM authors INNER JOIN books ON books.author_id = authors.id AND books.out_of_print = FALSE
 ```
 
 #### Using Array/Hash of Named Associations
