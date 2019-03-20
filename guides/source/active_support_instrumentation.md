@@ -203,6 +203,15 @@ INFO. Additional keys may be added by the caller.
 | ------- | ---------------- |
 | `:keys` | Unpermitted keys |
 
+Action Dispatch
+---------------
+
+### process_middleware.action_dispatch
+
+| Key           | Value                  |
+| ------------- | ---------------------- |
+| `:middleware` | Name of the middleware |
+
 Action View
 -----------
 
@@ -424,7 +433,7 @@ INFO. Cache stores may add their own keys
 ```
 
 Active Job
---------
+----------
 
 ### enqueue_at.active_job
 
