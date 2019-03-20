@@ -280,7 +280,15 @@ module ActionView
     # add :html as fallback to :js.
     def formats=(values)
       if values
+        values = values.dup
         values.concat(default_formats) if values.delete "*/*"
+        values.uniq!
+
+        invalid_values = (values - Template::Types.symbols)
+        unless invalid_values.empty?
+          raise ArgumentError, "Invalid formats: #{invalid_values.map(&:inspect).join(", ")}"
+        end
+
         if values == [:js]
           values << :html
           @html_fallback_for_js = true

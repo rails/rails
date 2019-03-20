@@ -67,12 +67,20 @@ class LookupContextTest < ActiveSupport::TestCase
 
   test "handles explicitly defined */* formats fallback to :js" do
     @lookup_context.formats = [:js, Mime::ALL]
-    assert_equal [:js, *Mime::SET.symbols], @lookup_context.formats
+    assert_equal [:js, *Mime::SET.symbols].uniq, @lookup_context.formats
   end
 
   test "adds :html fallback to :js formats" do
     @lookup_context.formats = [:js]
     assert_equal [:js, :html], @lookup_context.formats
+  end
+
+  test "raises on invalid format assignment" do
+    ex = assert_raises ArgumentError do
+      @lookup_context.formats = [:html, :invalid, "also bad"]
+    end
+
+    assert_equal 'Invalid formats: :invalid, "also bad"', ex.message
   end
 
   test "provides getters and setters for locale" do
