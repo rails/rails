@@ -166,6 +166,21 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 1, country.treaties.count
   end
 
+  def test_join_table_ignores_primary_key_prefix_type
+    old_primary_key_prefix_type = ActiveRecord::Base.primary_key_prefix_type
+
+    ActiveRecord::Base.primary_key_prefix_type = :table_name_with_underscore
+
+    load "models/country.rb"
+    load "models/treaty.rb"
+    setup_data_for_habtm_case
+
+    country = Country.first
+    assert_equal 1, country.treaties.count
+  ensure
+    ActiveRecord::Base.primary_key_prefix_type = old_primary_key_prefix_type
+  end
+
   def test_join_table_composite_primary_key_should_not_warn
     country = Country.new(name: "India")
     country.country_id = "c1"
