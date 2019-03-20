@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module ActiveRecord
-  class InsertAll
+  class InsertAll # :nodoc:
     attr_reader :model, :connection, :inserts, :keys
     attr_reader :on_duplicate, :returning, :unique_by
 
