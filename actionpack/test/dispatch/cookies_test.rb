@@ -123,6 +123,11 @@ class CookiesTest < ActionController::TestCase
       head :ok
     end
 
+    def set_cookie_if_not_present
+      cookies["user_name"] = "alice" unless cookies["user_name"].present?
+      head :ok
+    end
+
     def logout
       cookies.delete("user_name")
       head :ok
@@ -1126,6 +1131,14 @@ class CookiesTest < ActionController::TestCase
     cookies.encrypted["foo"] = "bar"
     get :noop
     assert_equal "bar", @controller.encrypted_cookie
+  end
+
+  def test_cookie_override
+    get :set_cookie_if_not_present
+    assert_equal "alice", cookies["user_name"]
+    cookies["user_name"] = "bob"
+    get :set_cookie_if_not_present
+    assert_equal "bob", cookies["user_name"]
   end
 
   def test_signed_cookie_with_expires_set_relatively
