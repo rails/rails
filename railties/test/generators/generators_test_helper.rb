@@ -79,7 +79,11 @@ module GeneratorsTestHelper
   end
 
   def evaluate_template(file, locals = {})
-    erb = ERB.new(File.read(file), nil, "-", "@output_buffer")
+    erb = if ERB.instance_method(:initialize).parameters.assoc(:key) # Ruby 2.6+
+      ERB.new(File.read(file), trim_mode: "-", eoutvar: "@output_buffer")
+    else
+      ERB.new(File.read(file), nil, "-", "@output_buffer")
+    end
     context = Class.new do
       locals.each do |local, value|
         class_attribute local, default: value

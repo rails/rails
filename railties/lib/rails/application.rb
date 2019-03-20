@@ -7,6 +7,7 @@ require "active_support/key_generator"
 require "active_support/message_verifier"
 require "active_support/encrypted_configuration"
 require "active_support/deprecation"
+require "active_support/hash_with_indifferent_access"
 require "rails/engine"
 require "rails/secrets"
 
@@ -230,8 +231,8 @@ module Rails
         config = YAML.load(ERB.new(yaml.read).result) || {}
         config = (config["shared"] || {}).merge(config[env] || {})
 
-        ActiveSupport::OrderedOptions.new.tap do |config_as_ordered_options|
-          config_as_ordered_options.update(config.deep_symbolize_keys)
+        ActiveSupport::OrderedOptions.new.tap do |options|
+          options.update(NonSymbolAccessDeprecatedHash.new(config))
         end
       else
         raise "Could not load configuration. No such file - #{yaml}"
@@ -414,8 +415,8 @@ module Rails
     # then credentials.secret_key_base, and finally secrets.secret_key_base. For most applications,
     # the correct place to store it is in the encrypted credentials file.
     def secret_key_base
-      if Rails.env.test? || Rails.env.development?
-        secrets.secret_key_base || Digest::MD5.hexdigest(self.class.name)
+      if Rails.env.development? || Rails.env.test?
+        secrets.secret_key_base ||= generate_development_secret
       else
         validate_secret_key_base(
           ENV["SECRET_KEY_BASE"] || credentials.secret_key_base || secrets.secret_key_base
@@ -580,6 +581,22 @@ module Rails
 
     private
 
+      def generate_development_secret
+        if secrets.secret_key_base.nil?
+          key_file = Rails.root.join("tmp/development_secret.txt")
+
+          if !File.exist?(key_file)
+            random_key = SecureRandom.hex(64)
+            FileUtils.mkdir_p(key_file.dirname)
+            File.binwrite(key_file, random_key)
+          end
+
+          secrets.secret_key_base = File.binread(key_file)
+        end
+
+        secrets.secret_key_base
+      end
+
       def build_request(env)
         req = super
         env["ORIGINAL_FULLPATH"] = req.fullpath
@@ -589,6 +606,53 @@ module Rails
 
       def build_middleware
         config.app_middleware + super
+      end
+
+      class NonSymbolAccessDeprecatedHash < HashWithIndifferentAccess # :nodoc:
+        def initialize(value = nil)
+          if value.is_a?(Hash)
+            value.each_pair { |k, v| self[k] = v }
+          else
+            super
+          end
+        end
+
+        def []=(key, value)
+          regular_writer(key.to_sym, convert_value(value, for: :assignment))
+        end
+
+        private
+
+          def convert_key(key)
+            unless key.kind_of?(Symbol)
+              ActiveSupport::Deprecation.warn(<<~MESSAGE.squish)
+                Accessing hashes returned from config_for by non-symbol keys
+                is deprecated and will be removed in Rails 6.1.
+                Use symbols for access instead.
+              MESSAGE
+
+              key = key.to_sym
+            end
+
+            key
+          end
+
+          def convert_value(value, options = {}) # :doc:
+            if value.is_a? Hash
+              if options[:for] == :to_hash
+                value.to_hash
+              else
+                self.class.new(value)
+              end
+            elsif value.is_a?(Array)
+              if options[:for] != :assignment || value.frozen?
+                value = value.dup
+              end
+              value.map! { |e| convert_value(e, options) }
+            else
+              value
+            end
+          end
       end
   end
 end

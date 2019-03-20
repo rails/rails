@@ -138,11 +138,13 @@ The methods are:
 * `lock`
 * `none`
 * `offset`
+* `optimizer_hints`
 * `order`
 * `preload`
 * `readonly`
 * `references`
 * `reorder`
+* `reselect`
 * `reverse_order`
 * `select`
 * `where`
@@ -676,7 +678,8 @@ If you want to call `order` multiple times, subsequent orders will be appended t
 Customer.order("orders_count ASC").order("created_at DESC")
 # SELECT * FROM customers ORDER BY orders_count ASC, created_at DESC
 ```
-WARNING: If you are using **MySQL 5.7.5** and above, then on selecting fields from a result set using methods like `select`, `pluck` and `ids`; the `order` method will raise an `ActiveRecord::StatementInvalid` exception unless the field(s) used in `order` clause are included in the select list. See the next section for selecting fields from the result set.
+
+WARNING: In most database systems, on selecting fields with `distinct` from a result set using methods like `select`, `pluck` and `ids`; the `order` method will raise an `ActiveRecord::StatementInvalid` exception unless the field(s) used in `order` clause are included in the select list. See the next section for selecting fields from the result set.
 
 Selecting Specific Fields
 -------------------------
@@ -688,6 +691,8 @@ To select only a subset of fields from the result set, you can specify the subse
 For example, to select only `isbn` and `out_of_print` columns:
 
 ```ruby
+Book.select(:isbn, :out_of_print)
+# OR
 Book.select("isbn, out_of_print")
 ```
 
@@ -877,6 +882,32 @@ SELECT * FROM books WHERE id > 10 ORDER BY id DESC
 # Original query without `only`
 SELECT * FROM books WHERE id > 10 ORDER BY id DESC LIMIT 20
 
+```
+
+### `reselect`
+
+The `reselect` method overrides an existing select statement. For example:
+
+```ruby
+Post.select(:title, :body).reselect(:created_at)
+```
+
+The SQL that would be executed:
+
+```sql
+SELECT `posts`.`created_at` FROM `posts`
+```
+
+In case the `reselect` clause is not used,
+
+```ruby
+Post.select(:title, :body).select(:created_at)
+```
+
+the SQL executed would be:
+
+```sql
+SELECT `posts`.`title`, `posts`.`body`, `posts`.`created_at` FROM `posts`
 ```
 
 ### `reorder`
@@ -1675,7 +1706,7 @@ order.cancelled!
 Consistent with the Ruby convention for methods ending in "!", these all change a value in place.
 
 Read the full documentation about enums
-[in the Rails API docs](http://api.rubyonrails.org/classes/ActiveRecord/Enum.html).
+[in the Rails API docs](https://api.rubyonrails.org/classes/ActiveRecord/Enum.html).
 
 
 Understanding Method Chaining
@@ -1851,7 +1882,10 @@ Customer.find_by_sql("SELECT * FROM customers
 
 ### `select_all`
 
-`find_by_sql` has a close relative called `connection#select_all`. `select_all` will retrieve objects from the database using custom SQL just like `find_by_sql` but will not instantiate them. This method will return an instance of `ActiveRecord::Result` class and calling `to_hash` on this object would return you an array of hashes where each hash indicates a record.
+`find_by_sql` has a close relative called `connection#select_all`. `select_all` will retrieve
+objects from the database using custom SQL just like `find_by_sql` but will not instantiate them.
+This method will return an instance of `ActiveRecord::Result` class and calling `to_a` on this
+object would return you an array of hashes where each hash indicates a record.
 
 ```ruby
 Customer.connection.select_all("SELECT first_name, created_at FROM customers WHERE id < '3'").to_hash
@@ -2199,9 +2233,9 @@ and may yield this for PostgreSQL:
 Interpretation of the output of EXPLAIN is beyond the scope of this guide. The
 following pointers may be helpful:
 
-* SQLite3: [EXPLAIN QUERY PLAN](http://www.sqlite.org/eqp.html)
+* SQLite3: [EXPLAIN QUERY PLAN](https://www.sqlite.org/eqp.html)
 
-* MySQL: [EXPLAIN Output Format](http://dev.mysql.com/doc/refman/5.7/en/explain-output.html)
+* MySQL: [EXPLAIN Output Format](https://dev.mysql.com/doc/refman/5.7/en/explain-output.html)
 
 * MariaDB: [EXPLAIN](https://mariadb.com/kb/en/mariadb/explain/)
 

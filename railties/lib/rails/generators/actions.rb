@@ -222,6 +222,7 @@ module Rails
         log :generate, what
 
         options = args.extract_options!
+        options[:without_rails_env] = true
         argument = args.flat_map(&:to_s).join(" ")
 
         execute_command :rails, "generate #{what} #{argument}", options
@@ -284,14 +285,15 @@ module Rails
         # based on the executor parameter provided.
         def execute_command(executor, command, options = {}) # :doc:
           log executor, command
-          env  = options[:env] || ENV["RAILS_ENV"] || "development"
+          env = options[:env] || ENV["RAILS_ENV"] || "development"
+          rails_env = " RAILS_ENV=#{env}" unless options[:without_rails_env]
           sudo = options[:sudo] && !Gem.win_platform? ? "sudo " : ""
           config = { verbose: false }
 
           config[:capture] = options[:capture] if options[:capture]
           config[:abort_on_failure] = options[:abort_on_failure] if options[:abort_on_failure]
 
-          in_root { run("#{sudo}#{extify(executor)} #{command} RAILS_ENV=#{env}", config) }
+          in_root { run("#{sudo}#{extify(executor)} #{command}#{rails_env}", config) }
         end
 
         # Add an extension to the given name based on the platform.

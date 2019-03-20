@@ -1,3 +1,84 @@
+*   Fix `Time#advance` to work with dates before 1001-03-07
+
+    Before:
+    
+        Time.utc(1001, 3, 6).advance(years: -1) # => 1000-03-05 00:00:00 UTC
+    
+    After
+    
+        Time.utc(1001, 3, 6).advance(years: -1) # => 1000-03-06 00:00:00 UTC
+
+    Note that this doesn't affect `DateTime#advance` as that doesn't use a proleptic calendar.
+
+    *Andrew White*
+
+*   In Zeitwerk mode, engines are now managed by the `main` autoloader. Engines may reference application constants, if the application is reloaded and we do not reload engines, they won't use the reloaded application code.
+
+    *Xavier Noria*
+
+*   Add support for supplying `locale` to `transliterate` and `parameterize`.
+
+        I18n.backend.store_translations(:de, i18n: { transliterate: { rule: { "ü" => "ue" } } })
+
+        ActiveSupport::Inflector.transliterate("ü", locale: :de) => "ue"
+        "Fünf autos".parameterize(locale: :de) => "fuenf-autos"
+        ActiveSupport::Inflector.parameterize("Fünf autos", locale: :de) => "fuenf-autos"
+
+    *Kaan Ozkan*, *Sharang Dashputre*
+
+*   Allow Array#excluding and Enumerable#excluding to deal with a passed array gracefully.
+
+        [ 1, 2, 3, 4, 5 ].excluding([4, 5]) => [ 1, 2, 3 ]
+
+    *DHH*
+
+*   Renamed Array#without and Enumerable#without to Array#excluding and Enumerable#excluding, to create parity with 
+    Array#including and Enumerable#including. Retained the old names as aliases.
+
+    *DHH*
+
+*   Added Array#including and Enumerable#including to conveniently enlarge a collection with more members using a method rather than an operator:
+
+        [ 1, 2, 3 ].including(4, 5) => [ 1, 2, 3, 4, 5 ]
+        post.authors.including(Current.person) => All the authors plus the current person!
+
+    *DHH*
+
+
+## Rails 6.0.0.beta3 (March 11, 2019) ##
+
+*   No changes.
+
+
+## Rails 6.0.0.beta2 (February 25, 2019) ##
+
+*   New autoloading based on [Zeitwerk](https://github.com/fxn/zeitwerk).
+
+    *Xavier Noria*
+
+*   Revise `ActiveSupport::Notifications.unsubscribe` to correctly handle Regex or other multiple-pattern subscribers.
+
+    *Zach Kemp*
+
+*   Add `before_reset` callback to `CurrentAttributes` and define `after_reset` as an alias of `resets` for symmetry.
+
+    *Rosa Gutierrez*
+
+*   Remove the `` Kernel#` `` override that suppresses ENOENT and accidentally returns nil on Unix systems.
+
+    *Akinori Musha*
+
+*   Add `ActiveSupport::HashWithIndifferentAccess#assoc`.
+
+    `assoc` can now be called with either a string or a symbol.
+
+    *Stefan Schüßler*
+
+*   Add `Hash#deep_transform_values`, and `Hash#deep_transform_values!`.
+
+    *Guillermo Iguaran*
+
+
 ## Rails 6.0.0.beta1 (January 18, 2019) ##
 
 *   Remove deprecated `Module#reachable?` method.
@@ -205,7 +286,7 @@
 
     *Kasper Timm Hansen*
 
-*   Fix bug where `ActiveSupport::Timezone.all` would fail when tzinfo data for
+*   Fix bug where `ActiveSupport::TimeZone.all` would fail when tzinfo data for
     any timezone defined in `ActiveSupport::TimeZone::MAPPING` is missing.
 
     *Dominik Sander*

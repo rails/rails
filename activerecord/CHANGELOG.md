@@ -1,3 +1,202 @@
+*   Support Optimizer Hints.
+
+    In most databases, there is a way to control the optimizer is by using optimizer hints,
+    which can be specified within individual statements.
+
+    Example (for MySQL):
+
+        Topic.optimizer_hints("MAX_EXECUTION_TIME(50000)", "NO_INDEX_MERGE(topics)")
+        # SELECT /*+ MAX_EXECUTION_TIME(50000) NO_INDEX_MERGE(topics) */ `topics`.* FROM `topics`
+
+    Example (for PostgreSQL with pg_hint_plan):
+
+        Topic.optimizer_hints("SeqScan(topics)", "Parallel(topics 8)")
+        # SELECT /*+ SeqScan(topics) Parallel(topics 8) */ "topics".* FROM "topics"
+
+    See also:
+
+    * https://dev.mysql.com/doc/refman/8.0/en/optimizer-hints.html
+    * https://pghintplan.osdn.jp/pg_hint_plan.html
+    * https://docs.oracle.com/en/database/oracle/oracle-database/12.2/tgsql/influencing-the-optimizer.html
+    * https://docs.microsoft.com/en-us/sql/t-sql/queries/hints-transact-sql-query?view=sql-server-2017
+    * https://www.ibm.com/support/knowledgecenter/en/SSEPGG_11.1.0/com.ibm.db2.luw.admin.perf.doc/doc/c0070117.html
+
+    *Ryuta Kamizono*
+
+*   Fix query attribute method on user-defined attribute to be aware of typecasted value.
+
+    For example, the following code no longer return false as casted non-empty string:
+
+    ```
+    class Post < ActiveRecord::Base
+      attribute :user_defined_text, :text
+    end
+
+    Post.new(user_defined_text: "false").user_defined_text? # => true
+    ```
+
+    *Yuji Kamijima*
+
+*   Quote empty ranges like other empty enumerables.
+
+    *Patrick Rebsch*
+
+*   Add `insert_all`/`insert_all!`/`upsert_all` methods to `ActiveRecord::Persistence`,
+    allowing bulk inserts akin to the bulk updates provided by `update_all` and
+    bulk deletes by `delete_all`.
+
+    Supports skipping or upserting duplicates through the `ON CONFLICT` syntax
+    for Postgres (9.5+) and Sqlite (3.24+) and `ON DUPLICATE KEY UPDATE` syntax
+    for MySQL.
+
+    *Bob Lail*
+
+*   Add `rails db:seed:replant` that truncates tables of each database
+    for current environment and loads the seeds.
+
+    *bogdanvlviv*, *DHH*
+
+*   Add `ActiveRecord::Base.connection.truncate` for SQLite3 adapter.
+
+    *bogdanvlviv*
+
+*   Deprecate mismatched collation comparison for uniqueness validator.
+
+    Uniqueness validator will no longer enforce case sensitive comparison in Rails 6.1.
+    To continue case sensitive comparison on the case insensitive column,
+    pass `case_sensitive: true` option explicitly to the uniqueness validator.
+
+    *Ryuta Kamizono*
+
+*   Add `reselect` method. This is a short-hand for `unscope(:select).select(fields)`.
+
+    Fixes #27340.
+
+    *Willian Gustavo Veiga*
+
+*   Add negative scopes for all enum values.
+
+    Example:
+
+        class Post < ActiveRecord::Base
+          enum status: %i[ drafted active trashed ]
+        end
+
+        Post.not_drafted # => where.not(status: :drafted)
+        Post.not_active  # => where.not(status: :active)
+        Post.not_trashed # => where.not(status: :trashed)
+
+    *DHH*
+
+*   Fix different `count` calculation when using `size` with manual `select` with DISTINCT.
+
+    Fixes #35214.
+
+    *Juani Villarejo*
+
+
+## Rails 6.0.0.beta3 (March 11, 2019) ##
+
+*   No changes.
+
+
+## Rails 6.0.0.beta2 (February 25, 2019) ##
+
+*   Fix prepared statements caching to be enabled even when query caching is enabled.
+
+    *Ryuta Kamizono*
+
+*   Ensure `update_all` series cares about optimistic locking.
+
+    *Ryuta Kamizono*
+
+*   Don't allow `where` with non numeric string matches to 0 values.
+
+    *Ryuta Kamizono*
+
+*   Introduce `ActiveRecord::Relation#destroy_by` and `ActiveRecord::Relation#delete_by`.
+
+    `destroy_by` allows relation to find all the records matching the condition and perform
+    `destroy_all` on the matched records.
+
+    Example:
+
+        Person.destroy_by(name: 'David')
+        Person.destroy_by(name: 'David', rating: 4)
+
+        david = Person.find_by(name: 'David')
+        david.posts.destroy_by(id: [1, 2, 3])
+
+    `delete_by` allows relation to find all the records matching the condition and perform
+    `delete_all` on the matched records.
+
+    Example:
+
+        Person.delete_by(name: 'David')
+        Person.delete_by(name: 'David', rating: 4)
+
+        david = Person.find_by(name: 'David')
+        david.posts.delete_by(id: [1, 2, 3])
+
+    *Abhay Nikam*
+
+*   Don't allow `where` with invalid value matches to nil values.
+
+    Fixes #33624.
+
+    *Ryuta Kamizono*
+
+*   SQLite3: Implement `add_foreign_key` and `remove_foreign_key`.
+
+    *Ryuta Kamizono*
+
+*   Deprecate using class level querying methods if the receiver scope
+    regarded as leaked. Use `klass.unscoped` to avoid the leaking scope.
+
+    *Ryuta Kamizono*
+
+*   Allow applications to automatically switch connections.
+
+    Adds a middleware and configuration options that can be used in your
+    application to automatically switch between the writing and reading
+    database connections.
+
+    `GET` and `HEAD` requests will read from the replica unless there was
+    a write in the last 2 seconds, otherwise they will read from the primary.
+    Non-get requests will always write to the primary. The middleware accepts
+    an argument for a Resolver class and a Operations class where you are able
+    to change how the auto-switcher works to be most beneficial for your
+    application.
+
+    To use the middleware in your application you can use the following
+    configuration options:
+
+    ```
+    config.active_record.database_selector = { delay: 2.seconds }
+    config.active_record.database_resolver = ActiveRecord::Middleware::DatabaseSelector::Resolver
+    config.active_record.database_resolver_context = ActiveRecord::Middleware::DatabaseSelector::Resolver::Session
+    ```
+
+    To change the database selection strategy, pass a custom class to the
+    configuration options:
+
+    ```
+    config.active_record.database_selector = { delay: 10.seconds }
+    config.active_record.database_resolver = MyResolver
+    config.active_record.database_resolver_context = MyResolver::MyCookies
+    ```
+
+    *Eileen M. Uchitelle*
+
+*   MySQL: Support `:size` option to change text and blob size.
+
+    *Ryuta Kamizono*
+
+*   Make `t.timestamps` with precision by default.
+
+    *Ryuta Kamizono*
+
+
 ## Rails 6.0.0.beta1 (January 18, 2019) ##
 
 *   Remove deprecated `#set_state` from the transaction object.
@@ -454,8 +653,8 @@
 
     Iterating over the database configurations has also changed. Instead of
     calling hash methods on the `configurations` hash directly, a new method `configs_for` has
-    been provided that allows you to select the correct configuration. `env_name`, and
-    `spec_name` arguments are optional. For example these return an array of
+    been provided that allows you to select the correct configuration. `env_name` and
+    `spec_name` arguments are optional. For example, these return an array of
     database config objects for the requested environment and a single database config object
     will be returned for the requested environment and specification name respectively.
 

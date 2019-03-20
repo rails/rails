@@ -548,14 +548,14 @@ module ActiveRecord
               # The hard limit is 1GB, because of a 32-bit size field, and TOAST.
               case limit
               when nil, 0..0x3fffffff; super(type)
-              else raise(ActiveRecordError, "No binary type has byte size #{limit}.")
+              else raise ActiveRecordError, "No binary type has byte size #{limit}. The limit on binary can be at most 1GB - 1byte."
               end
             when "text"
               # PostgreSQL doesn't support limits on text columns.
               # The hard limit is 1GB, according to section 8.3 in the manual.
               case limit
               when nil, 0..0x3fffffff; super(type)
-              else raise(ActiveRecordError, "The limit on text can be at most 1GB - 1byte.")
+              else raise ActiveRecordError, "No text type has byte size #{limit}. The limit on text can be at most 1GB - 1byte."
               end
             when "integer"
               case limit
@@ -623,10 +623,10 @@ module ActiveRecord
         #   validate_foreign_key :accounts, name: :special_fk_name
         #
         # The +options+ hash accepts the same keys as SchemaStatements#add_foreign_key.
-        def validate_foreign_key(from_table, options_or_to_table = {})
+        def validate_foreign_key(from_table, to_table = nil, **options)
           return unless supports_validate_constraints?
 
-          fk_name_to_validate = foreign_key_for!(from_table, options_or_to_table).name
+          fk_name_to_validate = foreign_key_for!(from_table, to_table: to_table, **options).name
 
           validate_constraint from_table, fk_name_to_validate
         end
@@ -637,7 +637,7 @@ module ActiveRecord
           end
 
           def create_table_definition(*args)
-            PostgreSQL::TableDefinition.new(*args)
+            PostgreSQL::TableDefinition.new(self, *args)
           end
 
           def create_alter_table(name)
@@ -716,6 +716,12 @@ module ActiveRecord
           end
 
           def add_timestamps_for_alter(table_name, options = {})
+            options[:null] = false if options[:null].nil?
+
+            if !options.key?(:precision) && supports_datetime_with_precision?
+              options[:precision] = 6
+            end
+
             [add_column_for_alter(table_name, :created_at, :datetime, options), add_column_for_alter(table_name, :updated_at, :datetime, options)]
           end
 

@@ -99,15 +99,16 @@ module ShowExceptions
   class ShowFailsafeExceptionsTest < ActionDispatch::IntegrationTest
     def test_render_failsafe_exception
       @app = ShowExceptionsOverriddenController.action(:boom)
-      @exceptions_app = @app.instance_variable_get(:@exceptions_app)
-      @app.instance_variable_set(:@exceptions_app, nil)
+      middleware = @app.instance_variable_get(:@middleware)
+      @exceptions_app = middleware.instance_variable_get(:@exceptions_app)
+      middleware.instance_variable_set(:@exceptions_app, nil)
       $stderr = StringIO.new
 
       get "/", headers: { "HTTP_ACCEPT" => "text/json" }
       assert_response :internal_server_error
       assert_equal "text/plain", response.content_type.to_s
     ensure
-      @app.instance_variable_set(:@exceptions_app, @exceptions_app)
+      middleware.instance_variable_set(:@exceptions_app, @exceptions_app)
       $stderr = STDERR
     end
   end

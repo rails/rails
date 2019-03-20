@@ -180,7 +180,7 @@ class BroadcastsTestChannel < ActionCable::Channel::Base
   def broadcast_to_user(data)
     user = User.new user_id
 
-    self.class.broadcast_to user, text: data["message"]
+    broadcast_to user, text: data["message"]
   end
 end
 

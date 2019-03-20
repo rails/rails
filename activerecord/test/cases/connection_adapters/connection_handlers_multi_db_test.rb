@@ -126,6 +126,30 @@ module ActiveRecord
           ENV["RAILS_ENV"] = previous_env
         end
 
+        def test_establish_connection_using_3_levels_config_with_non_default_handlers
+          previous_env, ENV["RAILS_ENV"] = ENV["RAILS_ENV"], "default_env"
+
+          config = {
+            "default_env" => {
+              "readonly" => { "adapter" => "sqlite3", "database" => "db/readonly.sqlite3" },
+              "primary"  => { "adapter" => "sqlite3", "database" => "db/primary.sqlite3" }
+            }
+          }
+          @prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, config
+
+          ActiveRecord::Base.connects_to(database: { default: :primary, readonly: :readonly })
+
+          assert_not_nil pool = ActiveRecord::Base.connection_handlers[:default].retrieve_connection_pool("primary")
+          assert_equal "db/primary.sqlite3", pool.spec.config[:database]
+
+          assert_not_nil pool = ActiveRecord::Base.connection_handlers[:readonly].retrieve_connection_pool("primary")
+          assert_equal "db/readonly.sqlite3", pool.spec.config[:database]
+        ensure
+          ActiveRecord::Base.configurations = @prev_configs
+          ActiveRecord::Base.establish_connection(:arunit)
+          ENV["RAILS_ENV"] = previous_env
+        end
+
         def test_switching_connections_with_database_url
           previous_env, ENV["RAILS_ENV"] = ENV["RAILS_ENV"], "default_env"
           previous_url, ENV["DATABASE_URL"] = ENV["DATABASE_URL"], "postgres://localhost/foo"
@@ -336,13 +360,31 @@ module ActiveRecord
       end
 
       def test_calling_connected_to_on_a_non_existent_handler_raises
-        error = assert_raises ArgumentError do
+        error = assert_raises ActiveRecord::ConnectionNotEstablished do
           ActiveRecord::Base.connected_to(role: :reading) do
-            yield
+            Person.first
           end
         end
 
-        assert_equal "The reading role does not exist. Add it by establishing a connection with `connects_to` or use an existing role (writing).", error.message
+        assert_equal "No connection pool with 'primary' found for the 'reading' role.", error.message
+      end
+
+      def test_default_handlers_are_writing_and_reading
+        assert_equal :writing, ActiveRecord::Base.writing_role
+        assert_equal :reading, ActiveRecord::Base.reading_role
+      end
+
+      def test_an_application_can_change_the_default_handlers
+        old_writing = ActiveRecord::Base.writing_role
+        old_reading = ActiveRecord::Base.reading_role
+        ActiveRecord::Base.writing_role = :default
+        ActiveRecord::Base.reading_role = :readonly
+
+        assert_equal :default, ActiveRecord::Base.writing_role
+        assert_equal :readonly, ActiveRecord::Base.reading_role
+      ensure
+        ActiveRecord::Base.writing_role = old_writing
+        ActiveRecord::Base.reading_role = old_reading
       end
     end
   end

@@ -158,10 +158,6 @@ module ActiveRecord
     end
 
     def with_handler(handler_key, &blk) # :nodoc:
-      unless ActiveRecord::Base.connection_handlers.keys.include?(handler_key)
-        raise ArgumentError, "The #{handler_key} role does not exist. Add it by establishing a connection with `connects_to` or use an existing role (#{ActiveRecord::Base.connection_handlers.keys.join(", ")})."
-      end
-
       handler = lookup_connection_handler(handler_key)
       swap_connection_handler(handler, &blk)
     end
@@ -178,6 +174,15 @@ module ActiveRecord
       config_hash[:name] = pool_name
 
       config_hash
+    end
+
+    # Clears the query cache for all connections associated with the current thread.
+    def clear_query_caches_for_current_thread
+      ActiveRecord::Base.connection_handlers.each_value do |handler|
+        handler.connection_pool_list.each do |pool|
+          pool.connection.clear_query_cache if pool.active_connection?
+        end
+      end
     end
 
     # Returns the connection currently associated with the class. This can

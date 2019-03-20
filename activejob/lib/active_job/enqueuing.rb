@@ -67,7 +67,7 @@ module ActiveJob
           false
         else
           ActiveSupport::Deprecation.warn(
-            "Rails 6.0 will return false when the enqueing is aborted. Make sure your code doesn't depend on it" \
+            "Rails 6.0 will return false when the enqueuing is aborted. Make sure your code doesn't depend on it" \
             " returning the instance of the job and set `config.active_job.return_false_on_aborted_enqueue = true`" \
             " to remove the deprecations."
           )

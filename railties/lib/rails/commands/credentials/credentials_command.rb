@@ -2,14 +2,15 @@
 
 require "active_support"
 require "rails/command/helpers/editor"
+require "rails/command/environment_argument"
 
 module Rails
   module Command
     class CredentialsCommand < Rails::Command::Base # :nodoc:
       include Helpers::Editor
+      include EnvironmentArgument
 
-      class_option :environment, aliases: "-e", type: :string,
-        desc: "Uses credentials from config/credentials/:environment.yml.enc encrypted by config/credentials/:environment.key key"
+      self.environment_desc = "Uses credentials from config/credentials/:environment.yml.enc encrypted by config/credentials/:environment.key key"
 
       no_commands do
         def help
@@ -20,7 +21,8 @@ module Rails
       end
 
       def edit
-        require_application_and_environment!
+        extract_environment_option_from_argument(default_environment: nil)
+        require_application!
 
         ensure_editor_available(command: "bin/rails credentials:edit") || (return)
 
@@ -37,7 +39,8 @@ module Rails
       end
 
       def show
-        require_application_and_environment!
+        extract_environment_option_from_argument(default_environment: nil)
+        require_application!
 
         say credentials.read.presence || missing_credentials_message
       end

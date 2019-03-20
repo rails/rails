@@ -27,6 +27,7 @@ ActiveRecord::Schema.define do
   create_table :binary_fields, force: true do |t|
     t.binary :var_binary, limit: 255
     t.binary :var_binary_large, limit: 4095
+
     t.tinyblob   :tiny_blob
     t.blob       :normal_blob
     t.mediumblob :medium_blob
@@ -35,6 +36,13 @@ ActiveRecord::Schema.define do
     t.text       :normal_text
     t.mediumtext :medium_text
     t.longtext   :long_text
+
+    t.binary :tiny_blob_2, size: :tiny
+    t.binary :medium_blob_2, size: :medium
+    t.binary :long_blob_2, size: :long
+    t.text :tiny_text_2, size: :tiny
+    t.text :medium_text_2, size: :medium
+    t.text :long_text_2, size: :long
 
     t.index :var_binary
   end

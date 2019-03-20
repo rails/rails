@@ -28,8 +28,8 @@ module ActionView
 
         ENCODING_TAG = Regexp.new("\\A(<%#{ENCODING_FLAG}-?%>)[ \\t]*")
 
-        def self.call(template)
-          new.call(template)
+        def self.call(template, source)
+          new.call(template, source)
         end
 
         def supports_streaming?
@@ -40,17 +40,17 @@ module ActionView
           true
         end
 
-        def call(template)
+        def call(template, source)
           # First, convert to BINARY, so in case the encoding is
           # wrong, we can still find an encoding tag
           # (<%# encoding %>) inside the String using a regular
           # expression
-          template_source = template.source.dup.force_encoding(Encoding::ASCII_8BIT)
+          template_source = source.dup.force_encoding(Encoding::ASCII_8BIT)
 
           erb = template_source.gsub(ENCODING_TAG, "")
           encoding = $2
 
-          erb.force_encoding valid_encoding(template.source.dup, encoding)
+          erb.force_encoding valid_encoding(source.dup, encoding)
 
           # Always make sure we return a String in the default_internal
           erb.encode!

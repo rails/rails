@@ -123,6 +123,8 @@ module TestHelpers
             adapter: sqlite3
             pool: 5
             timeout: 5000
+            variables:
+              statement_timeout: 1000
           development:
             primary:
               <<: *default
@@ -226,6 +228,7 @@ module TestHelpers
       @app.config.session_store :cookie_store, key: "_myapp_session"
       @app.config.active_support.deprecation = :log
       @app.config.log_level = :info
+      @app.secrets.secret_key_base = "b3c631c314c0bbca50c1b2843150fe33"
 
       yield @app if block_given?
       @app.initialize!
@@ -421,6 +424,10 @@ module TestHelpers
       file_name
     end
 
+    def app_dir(path)
+      FileUtils.mkdir_p("#{app_path}/#{path}")
+    end
+
     def remove_file(path)
       FileUtils.rm_rf "#{app_path}/#{path}"
     end
@@ -454,12 +461,19 @@ module TestHelpers
       end
     end
   end
+
+  module Reload
+    def reload
+      ActiveSupport::Dependencies.clear
+    end
+  end
 end
 
 class ActiveSupport::TestCase
   include TestHelpers::Paths
   include TestHelpers::Rack
   include TestHelpers::Generation
+  include TestHelpers::Reload
   include ActiveSupport::Testing::Stream
   include ActiveSupport::Testing::MethodCallAssertions
 end
@@ -472,21 +486,24 @@ Module.new do
   FileUtils.rm_rf(app_template_path)
   FileUtils.mkdir_p(app_template_path)
 
-  Dir.chdir "#{RAILS_FRAMEWORK_ROOT}/actionview" do
-    `yarn build`
-  end
-
-  `#{Gem.ruby} #{RAILS_FRAMEWORK_ROOT}/railties/exe/rails new #{app_template_path} --skip-bundle --skip-listen --no-rc`
+  `#{Gem.ruby} #{RAILS_FRAMEWORK_ROOT}/railties/exe/rails new #{app_template_path} --skip-bundle --skip-listen --no-rc --skip-webpack-install`
   File.open("#{app_template_path}/config/boot.rb", "w") do |f|
     f.puts "require 'rails/all'"
   end
 
-  Dir.chdir(app_template_path) { `yarn add https://github.com/rails/webpacker.git` } # Use the latest version.
+  unless File.exist?("#{RAILS_FRAMEWORK_ROOT}/actionview/lib/assets/compiled/rails-ujs.js")
+    Dir.chdir("#{RAILS_FRAMEWORK_ROOT}/actionview") { `yarn build` }
+  end
 
-  # Manually install `webpack` as bin symlinks are not created for subdependencies
-  # in workspaces. See https://github.com/yarnpkg/yarn/issues/4964
-  Dir.chdir(app_template_path) { `yarn add webpack@4.17.1 --tilde` }
-  Dir.chdir(app_template_path) { `yarn add webpack-cli` }
+  assets_path = "#{RAILS_FRAMEWORK_ROOT}/railties/test/isolation/assets"
+  unless Dir.exist?("#{assets_path}/node_modules")
+    Dir.chdir(assets_path) { `yarn install` }
+  end
+  FileUtils.cp("#{assets_path}/package.json", "#{app_template_path}/package.json")
+  FileUtils.cp("#{assets_path}/config/webpacker.yml", "#{app_template_path}/config/webpacker.yml")
+  FileUtils.cp_r("#{assets_path}/config/webpack", "#{app_template_path}/config/webpack")
+  FileUtils.ln_s("#{assets_path}/node_modules", "#{app_template_path}/node_modules")
+  FileUtils.chdir(app_template_path) { `bin/rails webpacker:binstubs` }
 
   # Fake 'Bundler.require' -- we run using the repo's Gemfile, not an
   # app-specific one: we don't want to require every gem that lists.
@@ -504,6 +521,8 @@ Module.new do
   require "action_view"
   require "active_storage"
   require "action_cable"
+  require "action_mailbox"
+  require "action_text"
   require "sprockets"
 
   require "action_view/helpers"

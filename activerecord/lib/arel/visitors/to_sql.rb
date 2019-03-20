@@ -9,59 +9,6 @@ module Arel # :nodoc: all
     end
 
     class ToSql < Arel::Visitors::Visitor
-      ##
-      # This is some roflscale crazy stuff.  I'm roflscaling this because
-      # building SQL queries is a hotspot.  I will explain the roflscale so that
-      # others will not rm this code.
-      #
-      # In YARV, string literals in a method body will get duped when the byte
-      # code is executed.  Let's take a look:
-      #
-      # > puts RubyVM::InstructionSequence.new('def foo; "bar"; end').disasm
-      #
-      #   == disasm: <RubyVM::InstructionSequence:foo@<compiled>>=====
-      #    0000 trace            8
-      #    0002 trace            1
-      #    0004 putstring        "bar"
-      #    0006 trace            16
-      #    0008 leave
-      #
-      # The `putstring` bytecode will dup the string and push it on the stack.
-      # In many cases in our SQL visitor, that string is never mutated, so there
-      # is no need to dup the literal.
-      #
-      # If we change to a constant lookup, the string will not be duped, and we
-      # can reduce the objects in our system:
-      #
-      # > puts RubyVM::InstructionSequence.new('BAR = "bar"; def foo; BAR; end').disasm
-      #
-      #  == disasm: <RubyVM::InstructionSequence:foo@<compiled>>========
-      #  0000 trace            8
-      #  0002 trace            1
-      #  0004 getinlinecache   11, <ic:0>
-      #  0007 getconstant      :BAR
-      #  0009 setinlinecache   <ic:0>
-      #  0011 trace            16
-      #  0013 leave
-      #
-      # `getconstant` should be a hash lookup, and no object is duped when the
-      # value of the constant is pushed on the stack.  Hence the crazy
-      # constants below.
-      #
-      # `matches` and `doesNotMatch` operate case-insensitively via Visitor subclasses
-      # specialized for specific databases when necessary.
-      #
-
-      WHERE    = " WHERE "    # :nodoc:
-      SPACE    = " "          # :nodoc:
-      COMMA    = ", "         # :nodoc:
-      GROUP_BY = " GROUP BY " # :nodoc:
-      ORDER_BY = " ORDER BY " # :nodoc:
-      WINDOW   = " WINDOW "   # :nodoc:
-      AND      = " AND "      # :nodoc:
-
-      DISTINCT = "DISTINCT"   # :nodoc:
-
       def initialize(connection)
         super()
         @connection = connection
@@ -159,39 +106,20 @@ module Arel # :nodoc: all
               when Nodes::SqlLiteral, Nodes::BindParam
                 collector = visit(value, collector)
               else
-                collector << quote(value)
+                collector << quote(value).to_s
               end
-              collector << COMMA unless k == row_len
+              collector << ", " unless k == row_len
             end
             collector << ")"
-            collector << COMMA unless i == len
+            collector << ", " unless i == len
           }
           collector
-        end
-
-        def visit_Arel_Nodes_Values(o, collector)
-          collector << "VALUES ("
-
-          len = o.expressions.length - 1
-          o.expressions.each_with_index { |value, i|
-            case value
-            when Nodes::SqlLiteral, Nodes::BindParam
-              collector = visit value, collector
-            else
-              collector << quote(value).to_s
-            end
-            unless i == len
-              collector << COMMA
-            end
-          }
-
-          collector << ")"
         end
 
         def visit_Arel_Nodes_SelectStatement(o, collector)
           if o.with
             collector = visit o.with, collector
-            collector << SPACE
+            collector << " "
           end
 
           collector = o.cores.inject(collector) { |c, x|
@@ -199,11 +127,11 @@ module Arel # :nodoc: all
           }
 
           unless o.orders.empty?
-            collector << ORDER_BY
+            collector << " ORDER BY "
             len = o.orders.length - 1
             o.orders.each_with_index { |x, i|
               collector = visit(x, collector)
-              collector << COMMA unless len == i
+              collector << ", " unless len == i
             }
           end
 
@@ -219,24 +147,30 @@ module Arel # :nodoc: all
         def visit_Arel_Nodes_SelectCore(o, collector)
           collector << "SELECT"
 
+          collector = collect_optimizer_hints(o, collector)
           collector = maybe_visit o.set_quantifier, collector
 
-          collect_nodes_for o.projections, collector, SPACE
+          collect_nodes_for o.projections, collector, " "
 
           if o.source && !o.source.empty?
             collector << " FROM "
             collector = visit o.source, collector
           end
 
-          collect_nodes_for o.wheres, collector, WHERE, AND
-          collect_nodes_for o.groups, collector, GROUP_BY
-          collect_nodes_for o.havings, collector, " HAVING ", AND
-          collect_nodes_for o.windows, collector, WINDOW
+          collect_nodes_for o.wheres, collector, " WHERE ", " AND "
+          collect_nodes_for o.groups, collector, " GROUP BY "
+          collect_nodes_for o.havings, collector, " HAVING ", " AND "
+          collect_nodes_for o.windows, collector, " WINDOW "
 
           collector
         end
 
-        def collect_nodes_for(nodes, collector, spacer, connector = COMMA)
+        def visit_Arel_Nodes_OptimizerHints(o, collector)
+          hints = o.expr.map { |v| sanitize_as_sql_comment(v) }.join(" ")
+          collector << "/*+ #{hints} */"
+        end
+
+        def collect_nodes_for(nodes, collector, spacer, connector = ", ")
           unless nodes.empty?
             collector << spacer
             inject_join nodes, collector, connector
@@ -248,7 +182,7 @@ module Arel # :nodoc: all
         end
 
         def visit_Arel_Nodes_Distinct(o, collector)
-          collector << DISTINCT
+          collector << "DISTINCT"
         end
 
         def visit_Arel_Nodes_DistinctOn(o, collector)
@@ -257,12 +191,12 @@ module Arel # :nodoc: all
 
         def visit_Arel_Nodes_With(o, collector)
           collector << "WITH "
-          inject_join o.children, collector, COMMA
+          inject_join o.children, collector, ", "
         end
 
         def visit_Arel_Nodes_WithRecursive(o, collector)
           collector << "WITH RECURSIVE "
-          inject_join o.children, collector, COMMA
+          inject_join o.children, collector, ", "
         end
 
         def visit_Arel_Nodes_Union(o, collector)
@@ -295,13 +229,13 @@ module Arel # :nodoc: all
           collect_nodes_for o.partitions, collector, "PARTITION BY "
 
           if o.orders.any?
-            collector << SPACE if o.partitions.any?
+            collector << " " if o.partitions.any?
             collector << "ORDER BY "
             collector = inject_join o.orders, collector, ", "
           end
 
           if o.framing
-            collector << SPACE if o.partitions.any? || o.orders.any?
+            collector << " " if o.partitions.any? || o.orders.any?
             collector = visit o.framing, collector
           end
 
@@ -506,8 +440,8 @@ module Arel # :nodoc: all
             collector = visit o.left, collector
           end
           if o.right.any?
-            collector << SPACE if o.left
-            collector = inject_join o.right, collector, SPACE
+            collector << " " if o.left
+            collector = inject_join o.right, collector, " "
           end
           collector
         end
@@ -527,7 +461,7 @@ module Arel # :nodoc: all
         def visit_Arel_Nodes_FullOuterJoin(o, collector)
           collector << "FULL OUTER JOIN "
           collector = visit o.left, collector
-          collector << SPACE
+          collector << " "
           visit o.right, collector
         end
 
@@ -541,7 +475,7 @@ module Arel # :nodoc: all
         def visit_Arel_Nodes_RightOuterJoin(o, collector)
           collector << "RIGHT OUTER JOIN "
           collector = visit o.left, collector
-          collector << SPACE
+          collector << " "
           visit o.right, collector
         end
 
@@ -549,7 +483,7 @@ module Arel # :nodoc: all
           collector << "INNER JOIN "
           collector = visit o.left, collector
           if o.right
-            collector << SPACE
+            collector << " "
             visit(o.right, collector)
           else
             collector
@@ -797,6 +731,15 @@ module Arel # :nodoc: all
         def quote_column_name(name)
           return name if Arel::Nodes::SqlLiteral === name
           @connection.quote_column_name(name)
+        end
+
+        def sanitize_as_sql_comment(value)
+          return value if Arel::Nodes::SqlLiteral === value
+          @connection.sanitize_as_sql_comment(value)
+        end
+
+        def collect_optimizer_hints(o, collector)
+          maybe_visit o.optimizer_hints, collector
         end
 
         def maybe_visit(thing, collector)

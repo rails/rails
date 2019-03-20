@@ -146,6 +146,13 @@ module Arel # :nodoc: all
       @ctx.projections = projections
     end
 
+    def optimizer_hints(*hints)
+      unless hints.empty?
+        @ctx.optimizer_hints = Arel::Nodes::OptimizerHints.new(hints)
+      end
+      self
+    end
+
     def distinct(value = true)
       if value
         @ctx.set_quantifier = Arel::Nodes::Distinct.new
@@ -235,18 +242,6 @@ module Arel # :nodoc: all
 
     def source
       @ctx.source
-    end
-
-    class Row < Struct.new(:data) # :nodoc:
-      def id
-        data["id"]
-      end
-
-      def method_missing(name, *args)
-        name = name.to_s
-        return data[name] if data.key?(name)
-        super
-      end
     end
 
     private

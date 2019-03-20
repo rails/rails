@@ -48,7 +48,8 @@ module RenderERBUtils
     @view ||= begin
       path = ActionView::FileSystemResolver.new(FIXTURE_LOAD_PATH)
       view_paths = ActionView::PathSet.new([path])
-      ActionView::Base.new(view_paths)
+      view = ActionView::Base.with_empty_template_cache
+      view.with_view_paths(view_paths)
     end
   end
 
@@ -58,10 +59,11 @@ module RenderERBUtils
     template = ActionView::Template.new(
       string.strip,
       "test template",
-      ActionView::Template::Handlers::ERB,
-      {})
+      ActionView::Template.handler_for_extension(:erb),
+      format: :html, locals: [])
 
-    template.render(self, {}).strip
+    view = ActionView::Base.with_empty_template_cache
+    template.render(view.empty, {}).strip
   end
 end
 

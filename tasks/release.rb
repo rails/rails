@@ -218,7 +218,7 @@ namespace :all do
 
       <p>
         <% if @user.avatar.attached? -%>
-          <%= image_tag @user.avatar.representation(resize_to_fit: [500, 500]) %>
+          <%= image_tag @user.avatar.representation(resize_to_limit: [500, 500]) %>
         <% end -%>
       </p>
     CODE
@@ -314,8 +314,7 @@ task :announce do
     require "erb"
     template = File.read("../tasks/release_announcement_draft.erb")
 
-    match = ERB.version.match(/\Aerb\.rb \[(?<version>[^ ]+) /)
-    if match && match[:version] >= "2.2.0" # Ruby 2.6+
+    if ERB.instance_method(:initialize).parameters.assoc(:key) # Ruby 2.6+
       puts ERB.new(template, trim_mode: "<>").result(binding)
     else
       puts ERB.new(template, nil, "<>").result(binding)

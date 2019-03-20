@@ -1,4 +1,20 @@
+## Rails 6.0.0.beta3 (March 11, 2019) ##
+
+*   No changes.
+
+
+## Rails 6.0.0.beta2 (February 25, 2019) ##
+
+*   No changes.
+
+
 ## Rails 6.0.0.beta1 (January 18, 2019) ##
+
+*   [Rename npm package](https://github.com/rails/rails/pull/34905) from
+    [`activestorage`](https://www.npmjs.com/package/activestorage) to
+    [`@rails/activestorage`](https://www.npmjs.com/package/@rails/activestorage).
+
+    *Javan Makhmali*
 
 *   Replace `config.active_storage.queue` with two options that indicate which
     queues analysis and purge jobs should use, respectively:

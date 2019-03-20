@@ -9,6 +9,6 @@ class ActiveStorage::BlobsController < ActiveStorage::BaseController
 
   def show
     expires_in ActiveStorage.service_urls_expire_in
-    redirect_to @blob.service_url(disposition: params[:disposition]), allow_other_host: true
+    redirect_to @blob.service_url(disposition: params[:disposition])
   end
 end

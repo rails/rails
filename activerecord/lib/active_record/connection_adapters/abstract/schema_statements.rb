@@ -130,11 +130,11 @@ module ActiveRecord
       #   column_exists?(:suppliers, :name, :string, null: false)
       #   column_exists?(:suppliers, :tax, :decimal, precision: 8, scale: 2)
       #
-      def column_exists?(table_name, column_name, type = nil, options = {})
+      def column_exists?(table_name, column_name, type = nil, **options)
         column_name = column_name.to_s
         checks = []
         checks << lambda { |c| c.name == column_name }
-        checks << lambda { |c| c.type == type } if type
+        checks << lambda { |c| c.type == type.to_sym rescue nil } if type
         column_options_keys.each do |attr|
           checks << lambda { |c| c.send(attr) == options[attr] } if options.key?(attr)
         end
@@ -584,7 +584,7 @@ module ActiveRecord
       #  # Defines a column with a database-specific type.
       #  add_column(:shapes, :triangle, 'polygon')
       #  # ALTER TABLE "shapes" ADD "triangle" polygon
-      def add_column(table_name, column_name, type, options = {})
+      def add_column(table_name, column_name, type, **options)
         at = create_alter_table table_name
         at.add_column(column_name, type, options)
         execute schema_creation.accept at
@@ -852,7 +852,7 @@ module ActiveRecord
       # [<tt>:null</tt>]
       #   Whether the column allows nulls. Defaults to true.
       #
-      # ====== Create a user_id bigint column without a index
+      # ====== Create a user_id bigint column without an index
       #
       #   add_reference(:products, :user, index: false)
       #
@@ -1002,10 +1002,10 @@ module ActiveRecord
       # with an addition of
       # [<tt>:to_table</tt>]
       #   The name of the table that contains the referenced primary key.
-      def remove_foreign_key(from_table, options_or_to_table = {})
+      def remove_foreign_key(from_table, to_table = nil, **options)
         return unless supports_foreign_keys?
 
-        fk_name_to_delete = foreign_key_for!(from_table, options_or_to_table).name
+        fk_name_to_delete = foreign_key_for!(from_table, to_table: to_table, **options).name
 
         at = create_alter_table from_table
         at.drop_foreign_key fk_name_to_delete
@@ -1024,14 +1024,12 @@ module ActiveRecord
       #   # Checks to see if a foreign key with a custom name exists.
       #   foreign_key_exists?(:accounts, name: "special_fk_name")
       #
-      def foreign_key_exists?(from_table, options_or_to_table = {})
-        foreign_key_for(from_table, options_or_to_table).present?
+      def foreign_key_exists?(from_table, to_table = nil, **options)
+        foreign_key_for(from_table, to_table: to_table, **options).present?
       end
 
       def foreign_key_column_for(table_name) # :nodoc:
-        prefix = Base.table_name_prefix
-        suffix = Base.table_name_suffix
-        name = table_name.to_s =~ /#{prefix}(.+)#{suffix}/ ? $1 : table_name.to_s
+        name = strip_table_name_prefix_and_suffix(table_name)
         "#{name.singularize}_id"
       end
 
@@ -1053,7 +1051,7 @@ module ActiveRecord
 
       def assume_migrated_upto_version(version, migrations_paths = nil)
         unless migrations_paths.nil?
-          ActiveSupport::Deprecation.warn(<<~MSG)
+          ActiveSupport::Deprecation.warn(<<~MSG.squish)
             Passing migrations_paths to #assume_migrated_upto_version is deprecated and will be removed in Rails 6.1.
           MSG
         end
@@ -1128,6 +1126,10 @@ module ActiveRecord
       #
       def add_timestamps(table_name, options = {})
         options[:null] = false if options[:null].nil?
+
+        if !options.key?(:precision) && supports_datetime_with_precision?
+          options[:precision] = 6
+        end
 
         add_column table_name, :created_at, :datetime, options
         add_column table_name, :updated_at, :datetime, options
@@ -1290,7 +1292,7 @@ module ActiveRecord
         end
 
         def create_table_definition(*args)
-          TableDefinition.new(*args)
+          TableDefinition.new(self, *args)
         end
 
         def create_alter_table(name)
@@ -1324,6 +1326,12 @@ module ActiveRecord
           { column: column_names }
         end
 
+        def strip_table_name_prefix_and_suffix(table_name)
+          prefix = Base.table_name_prefix
+          suffix = Base.table_name_suffix
+          table_name.to_s =~ /#{prefix}(.+)#{suffix}/ ? $1 : table_name.to_s
+        end
+
         def foreign_key_name(table_name, options)
           options.fetch(:name) do
             identifier = "#{table_name}_#{options.fetch(:column)}_fk"
@@ -1333,14 +1341,14 @@ module ActiveRecord
           end
         end
 
-        def foreign_key_for(from_table, options_or_to_table = {})
+        def foreign_key_for(from_table, **options)
           return unless supports_foreign_keys?
-          foreign_keys(from_table).detect { |fk| fk.defined_for? options_or_to_table }
+          foreign_keys(from_table).detect { |fk| fk.defined_for?(options) }
         end
 
-        def foreign_key_for!(from_table, options_or_to_table = {})
-          foreign_key_for(from_table, options_or_to_table) || \
-            raise(ArgumentError, "Table '#{from_table}' has no foreign key for #{options_or_to_table}")
+        def foreign_key_for!(from_table, to_table: nil, **options)
+          foreign_key_for(from_table, to_table: to_table, **options) ||
+            raise(ArgumentError, "Table '#{from_table}' has no foreign key for #{to_table || options}")
         end
 
         def extract_foreign_key_action(specifier)

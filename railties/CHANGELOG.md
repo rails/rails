@@ -1,3 +1,24 @@
+*   Add `-e/--environment` option to `rails initializers`.
+
+    *Yuji Yaginuma*
+
+## Rails 6.0.0.beta3 (March 11, 2019) ##
+
+*   No changes.
+
+
+## Rails 6.0.0.beta2 (February 25, 2019) ##
+
+*   Fix non-symbol access to nested hashes returned from `Rails::Application.config_for`
+    being broken by allowing non-symbol access with a deprecation notice.
+
+    *Ufuk Kayserilioglu*
+
+*   Fix deeply nested namespace command printing.
+
+    *Gannon McGibbon*
+
+
 ## Rails 6.0.0.beta1 (January 18, 2019) ##
 
 *   Remove deprecated `after_bundle` helper inside plugins templates.
@@ -32,7 +53,9 @@
         gsub  Gemfile
     ```
 
-    The change command copies a template `config/database.yml` with the target database adapter into your app, and replaces your database gem with the target database gem.
+    The change command copies a template `config/database.yml` with
+    the target database adapter into your app, and replaces your database gem
+    with the target database gem.
 
     *Gannon McGibbon*
 
@@ -56,9 +79,9 @@
 
     *George Claghorn*
 
-*   Introduce guard against DNS rebinding attacks
+*   Introduce guard against DNS rebinding attacks.
 
-    The `ActionDispatch::HostAuthorization` is a new middleware that prevent
+    The `ActionDispatch::HostAuthorization` is a new middleware that prevents
     against DNS rebinding and other `Host` header attacks. It is included in
     the development environment by default with the following configuration:
 
@@ -70,7 +93,7 @@
 
     In other environments `Rails.application.config.hosts` is empty and no
     `Host` header checks will be done. If you want to guard against header
-    attacks on production, you have to manually whitelist the allowed hosts
+    attacks on production, you have to manually permit the allowed hosts
     with:
 
         Rails.application.config.hosts << "product.com"
@@ -83,7 +106,7 @@
         # `beta1.product.com`.
         Rails.application.config.hosts << /.*\.product\.com/
 
-    A special case is supported that allows you to whitelist all sub-domains:
+    A special case is supported that allows you to permit all sub-domains:
 
         # Allow requests from subdomains like `www.product.com` and
         # `beta1.product.com`.
@@ -166,7 +189,7 @@
     The encryption key can be in `ENV["RAILS_MASTER_KEY"]` or `config/credentials/production.key`.
 
     Environment credentials overrides can be edited with `rails credentials:edit --environment production`.
-    If no override is setup for the passed environment, it will be created.
+    If no override is set up for the passed environment, it will be created.
 
     Additionally, the default lookup paths can be overwritten with these configs:
 
@@ -256,9 +279,9 @@
 
     *Jose Luis Duran*
 
-*   Deprecate support for using the `HOST` environment to specify the server IP.
+*   Deprecate support for using the `HOST` environment variable to specify the server IP.
 
-    The `BINDING` environment should be used instead.
+    The `BINDING` environment variable should be used instead.
 
     Fixes #29516.
 

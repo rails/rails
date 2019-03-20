@@ -2,4 +2,5 @@
 /test/500.html
 /test/fixtures/tmp/
 /test/initializer/root/log/
+/test/isolation/assets/yarn.lock
 /tmp/

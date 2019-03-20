@@ -31,6 +31,7 @@ class Post < ActiveRecord::Base
 
   belongs_to :author_with_posts, -> { includes(:posts) }, class_name: "Author", foreign_key: :author_id
   belongs_to :author_with_address, -> { includes(:author_address) }, class_name: "Author", foreign_key: :author_id
+  belongs_to :author_with_select, -> { select(:id) }, class_name: "Author", foreign_key: :author_id
 
   def first_comment
     super.body
@@ -77,6 +78,7 @@ class Post < ActiveRecord::Base
   has_many :comments_with_extend_2, extend: [NamedExtension, NamedExtension2], class_name: "Comment", foreign_key: "post_id"
 
   has_many :author_favorites, through: :author
+  has_many :author_favorites_with_scope, through: :author, class_name: "AuthorFavoriteWithScope", source: "author_favorites"
   has_many :author_categorizations, through: :author, source: :categorizations
   has_many :author_addresses, through: :author
   has_many :author_address_extra_with_address,
@@ -210,6 +212,12 @@ class FirstPost < ActiveRecord::Base
   has_one  :comment,  foreign_key: :post_id
 end
 
+class PostWithDefaultSelect < ActiveRecord::Base
+  self.table_name = "posts"
+
+  default_scope { select(:author_id) }
+end
+
 class TaggedPost < Post
   has_many :taggings, -> { rewhere(taggable_type: "TaggedPost") }, as: :taggable
   has_many :tags, through: :taggings
@@ -325,6 +333,10 @@ class FakeKlass
 
     def disallow_raw_sql!(*args)
       # noop
+    end
+
+    def columns_hash
+      { "name" => nil }
     end
 
     def arel_table

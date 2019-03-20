@@ -1,4 +1,33 @@
+## Rails 6.0.0.beta3 (March 11, 2019) ##
+
+*   No changes.
+
+
+## Rails 6.0.0.beta2 (February 25, 2019) ##
+
+*   ActionView::Template.finalize_compiled_template_methods is deprecated with
+    no replacement.
+
+    *tenderlove*
+
+*   config.action_view.finalize_compiled_template_methods is deprecated with
+    no replacement.
+
+    *tenderlove*
+
+*   Ensure unique DOM IDs for collection inputs with float values.
+    Fixes #34974
+
+    *Mark Edmondson*
+
+
 ## Rails 6.0.0.beta1 (January 18, 2019) ##
+
+*   [Rename npm package](https://github.com/rails/rails/pull/34905) from
+    [`rails-ujs`](https://www.npmjs.com/package/rails-ujs) to
+    [`@rails/ujs`](https://www.npmjs.com/package/@rails/ujs).
+
+    *Javan Makhmali*
 
 *   Remove deprecated `image_alt` helper.
 

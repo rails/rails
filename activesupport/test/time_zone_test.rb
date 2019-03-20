@@ -32,7 +32,7 @@ class TimeZoneTest < ActiveSupport::TestCase
     end
   end
 
-  def test_period_for_local_with_ambigiuous_time
+  def test_period_for_local_with_ambiguous_time
     zone = ActiveSupport::TimeZone["Moscow"]
     period = zone.period_for_local(Time.utc(2015, 1, 1))
     assert_equal period, zone.period_for_local(Time.utc(2014, 10, 26, 1, 0, 0))

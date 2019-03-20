@@ -63,6 +63,22 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
     end
   end
 
+  test "edit command properly expand environment option" do
+    assert_match(/access_key_id: 123/, run_edit_command(environment: "prod"))
+    Dir.chdir(app_path) do
+      assert File.exist?("config/credentials/production.key")
+      assert File.exist?("config/credentials/production.yml.enc")
+    end
+  end
+
+  test "edit command does not raise when an initializer tries to access non-existent credentials" do
+    app_file "config/initializers/raise_when_loaded.rb", <<-RUBY
+      Rails.application.credentials.missing_key!
+    RUBY
+
+    assert_match(/access_key_id: 123/, run_edit_command(environment: "qa"))
+  end
+
   test "show credentials" do
     assert_match(/access_key_id: 123/, run_show_command)
   end
@@ -85,6 +101,12 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
     run_edit_command(environment: "production")
 
     assert_match(/access_key_id: 123/, run_show_command(environment: "production"))
+  end
+
+  test "show command properly expand environment option" do
+    run_edit_command(environment: "production")
+
+    assert_match(/access_key_id: 123/, run_show_command(environment: "prod"))
   end
 
   private

@@ -26,7 +26,7 @@ if APPLICATION_PACK_PATH.exist?
     line = %[require("#{name}")]
     unless APPLICATION_PACK_PATH.read.include? line
       say "Adding #{name} to #{APPLICATION_PACK_PATH}"
-      append_to_file APPLICATION_PACK_PATH, "#{line}\n"
+      append_to_file APPLICATION_PACK_PATH, "\n#{line}"
     end
   end
 end

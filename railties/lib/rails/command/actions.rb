@@ -11,10 +11,20 @@ module Rails
       end
 
       def require_application_and_environment!
+        require_application!
+        require_environment!
+      end
+
+      def require_application!
         require ENGINE_PATH if defined?(ENGINE_PATH)
 
         if defined?(APP_PATH)
           require APP_PATH
+        end
+      end
+
+      def require_environment!
+        if defined?(APP_PATH)
           Rails.application.require_environment!
         end
       end

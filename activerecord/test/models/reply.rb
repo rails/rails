@@ -7,6 +7,8 @@ class Reply < Topic
   belongs_to :topic_with_primary_key, class_name: "Topic", primary_key: "title", foreign_key: "parent_title", counter_cache: "replies_count", touch: true
   has_many :replies, class_name: "SillyReply", dependent: :destroy, foreign_key: "parent_id"
   has_many :silly_unique_replies, dependent: :destroy, foreign_key: "parent_id"
+
+  scope :ordered, -> { Reply.order(:id) }
 end
 
 class SillyReply < Topic

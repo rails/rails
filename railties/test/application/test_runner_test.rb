@@ -16,7 +16,7 @@ module ApplicationTests
       teardown_app
     end
 
-    def test_run_via_backwardscompatibility
+    def test_run_via_backwards_compatibility
       require "minitest/rails_plugin"
 
       assert_nothing_raised do
@@ -742,6 +742,7 @@ module ApplicationTests
     def test_reset_sessions_before_rollback_on_system_tests
       app_file "test/system/reset_session_before_rollback_test.rb", <<-RUBY
         require "application_system_test_case"
+        require "selenium/webdriver"
 
         class ResetSessionBeforeRollbackTest < ApplicationSystemTestCase
           def teardown_fixtures
@@ -770,6 +771,7 @@ module ApplicationTests
     def test_reset_sessions_on_failed_system_test_screenshot
       app_file "test/system/reset_sessions_on_failed_system_test_screenshot_test.rb", <<~RUBY
         require "application_system_test_case"
+        require "selenium/webdriver"
 
         class ResetSessionsOnFailedSystemTestScreenshotTest < ApplicationSystemTestCase
           ActionDispatch::SystemTestCase.class_eval do
@@ -826,6 +828,7 @@ module ApplicationTests
     def test_system_tests_are_run_through_rake_test_when_given_in_TEST
       app_file "test/system/dummy_test.rb", <<-RUBY
         require "application_system_test_case"
+        require "selenium/webdriver"
 
         class DummyTest < ApplicationSystemTestCase
           test "something" do

@@ -18,8 +18,9 @@ class TestERBTemplate < ActiveSupport::TestCase
     attr_accessor :formats
   end
 
-  class Context
-    def initialize
+  class Context < ActionView::Base
+    def initialize(*)
+      super
       @output_buffer = "original"
       @virtual_path = nil
     end
@@ -37,7 +38,9 @@ class TestERBTemplate < ActiveSupport::TestCase
         "<%= @virtual_path %>",
         "partial",
         ERBHandler,
-        virtual_path: "partial"
+        virtual_path: "partial",
+        format: :html,
+        locals: []
       )
     end
 
@@ -54,8 +57,9 @@ class TestERBTemplate < ActiveSupport::TestCase
     end
   end
 
-  def new_template(body = "<%= hello %>", details = { format: :html })
-    ActionView::Template.new(body.dup, "hello template", details.fetch(:handler) { ERBHandler }, { virtual_path: "hello" }.merge!(details))
+  def new_template(body = "<%= hello %>", details = {})
+    details = { format: :html, locals: [] }.merge details
+    ActionView::Template.new(body.dup, "hello template", details.delete(:handler) || ERBHandler, { virtual_path: "hello" }.merge!(details))
   end
 
   def render(locals = {})
@@ -63,7 +67,8 @@ class TestERBTemplate < ActiveSupport::TestCase
   end
 
   def setup
-    @context = Context.new
+    @context = Context.with_empty_template_cache.empty
+    super
   end
 
   def test_basic_template
@@ -99,8 +104,7 @@ class TestERBTemplate < ActiveSupport::TestCase
   end
 
   def test_locals
-    @template = new_template("<%= my_local %>")
-    @template.locals = [:my_local]
+    @template = new_template("<%= my_local %>", locals: [:my_local])
     assert_equal "I am a local", render(my_local: "I am a local")
   end
 
@@ -118,16 +122,14 @@ class TestERBTemplate < ActiveSupport::TestCase
   end
 
   def test_refresh_with_templates
-    @template = new_template("Hello", virtual_path: "test/foo/bar")
-    @template.locals = [:key]
+    @template = new_template("Hello", virtual_path: "test/foo/bar", locals: [:key])
     assert_called_with(@context.lookup_context, :find_template, ["bar", %w(test/foo), false, [:key]], returns: "template") do
       assert_equal "template", @template.refresh(@context)
     end
   end
 
   def test_refresh_with_partials
-    @template = new_template("Hello", virtual_path: "test/_foo")
-    @template.locals = [:key]
+    @template = new_template("Hello", virtual_path: "test/_foo", locals: [:key])
     assert_called_with(@context.lookup_context, :find_template, ["foo", %w(test), true, [:key]], returns: "partial") do
       assert_equal "partial", @template.refresh(@context)
     end
@@ -210,5 +212,15 @@ class TestERBTemplate < ActiveSupport::TestCase
     yield
   ensure
     silence_warnings { Encoding.default_external = old }
+  end
+
+  def test_short_identifier
+    @template = new_template("hello")
+    assert_equal "hello template", @template.short_identifier
+  end
+
+  def test_template_inspect
+    @template = new_template("hello")
+    assert_equal "#<ActionView::Template hello template locals=[]>", @template.inspect
   end
 end

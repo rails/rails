@@ -438,12 +438,6 @@ class BasicsTest < ActiveRecord::TestCase
     Post.reset_table_name
   end
 
-  if current_adapter?(:Mysql2Adapter)
-    def test_update_all_with_order_and_limit
-      assert_equal 1, Topic.limit(1).order("id DESC").update_all(content: "bulk updated!")
-    end
-  end
-
   def test_null_fields
     assert_nil Topic.find(1).parent_id
     assert_nil Topic.create("title" => "Hey you").parent_id
@@ -691,6 +685,9 @@ class BasicsTest < ActiveRecord::TestCase
       topic = Topic.find(1)
       topic.attributes = attributes
       assert_equal Time.local(2000, 1, 1, 5, 42, 0), topic.bonus_time
+
+      topic.save!
+      assert_equal topic, Topic.find_by(attributes)
     end
   end
 
@@ -1058,23 +1055,23 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_find_ordered_last
-    last = Developer.all.merge!(order: "developers.salary ASC").last
-    assert_equal last, Developer.all.merge!(order: "developers.salary ASC").to_a.last
+    last = Developer.order("developers.salary ASC").last
+    assert_equal last, Developer.order("developers.salary": "ASC").to_a.last
   end
 
   def test_find_reverse_ordered_last
-    last = Developer.all.merge!(order: "developers.salary DESC").last
-    assert_equal last, Developer.all.merge!(order: "developers.salary DESC").to_a.last
+    last = Developer.order("developers.salary DESC").last
+    assert_equal last, Developer.order("developers.salary": "DESC").to_a.last
   end
 
   def test_find_multiple_ordered_last
-    last = Developer.all.merge!(order: "developers.name, developers.salary DESC").last
-    assert_equal last, Developer.all.merge!(order: "developers.name, developers.salary DESC").to_a.last
+    last = Developer.order("developers.name, developers.salary DESC").last
+    assert_equal last, Developer.order(:"developers.name", "developers.salary": "DESC").to_a.last
   end
 
   def test_find_keeps_multiple_order_values
-    combined = Developer.all.merge!(order: "developers.name, developers.salary").to_a
-    assert_equal combined, Developer.all.merge!(order: ["developers.name", "developers.salary"]).to_a
+    combined = Developer.order("developers.name, developers.salary").to_a
+    assert_equal combined, Developer.order(:"developers.name", :"developers.salary").to_a
   end
 
   def test_find_keeps_multiple_group_values
@@ -1226,14 +1223,15 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_attribute_names
-    assert_equal ["id", "type", "firm_id", "firm_name", "name", "client_of", "rating", "account_id", "description"],
-                 Company.attribute_names
+    expected = ["id", "type", "firm_id", "firm_name", "name", "client_of", "rating", "account_id", "description", "metadata"]
+    assert_equal expected, Company.attribute_names
   end
 
   def test_has_attribute
     assert Company.has_attribute?("id")
     assert Company.has_attribute?("type")
     assert Company.has_attribute?("name")
+    assert Company.has_attribute?("metadata")
     assert_not Company.has_attribute?("lastname")
     assert_not Company.has_attribute?("age")
   end

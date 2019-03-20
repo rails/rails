@@ -88,4 +88,15 @@ HELP
   end
 end
 
+task :test do
+  templates = Dir.glob("bug_report_templates/*.rb")
+  counter = templates.count do |file|
+    puts "--- Running #{file}"
+    Bundler.clean_system(Gem.ruby, "-w", file) ||
+      puts("+++ 💥 FAILED (exit #{$?.exitstatus})")
+  end
+  puts "+++ #{counter} / #{templates.size} templates executed successfully"
+  exit 1 if counter < templates.size
+end
+
 task default: "guides:help"

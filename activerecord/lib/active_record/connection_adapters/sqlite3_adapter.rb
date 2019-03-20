@@ -4,12 +4,13 @@ require "active_record/connection_adapters/abstract_adapter"
 require "active_record/connection_adapters/statement_pool"
 require "active_record/connection_adapters/sqlite3/explain_pretty_printer"
 require "active_record/connection_adapters/sqlite3/quoting"
+require "active_record/connection_adapters/sqlite3/database_statements"
 require "active_record/connection_adapters/sqlite3/schema_creation"
 require "active_record/connection_adapters/sqlite3/schema_definitions"
 require "active_record/connection_adapters/sqlite3/schema_dumper"
 require "active_record/connection_adapters/sqlite3/schema_statements"
 
-gem "sqlite3", "~> 1.3.6"
+gem "sqlite3", "~> 1.3", ">= 1.3.6"
 require "sqlite3"
 
 module ActiveRecord
@@ -36,8 +37,6 @@ module ActiveRecord
         config.merge(results_as_hash: true)
       )
 
-      db.busy_timeout(ConnectionAdapters::SQLite3Adapter.type_cast_config_to_integer(config[:timeout])) if config[:timeout]
-
       ConnectionAdapters::SQLite3Adapter.new(db, logger, nil, config)
     rescue Errno::ENOENT => error
       if error.message.include?("No such file or directory")
@@ -60,6 +59,7 @@ module ActiveRecord
 
       include SQLite3::Quoting
       include SQLite3::SchemaStatements
+      include SQLite3::DatabaseStatements
 
       NATIVE_DATABASE_TYPES = {
         primary_key:  "integer PRIMARY KEY AUTOINCREMENT NOT NULL",
@@ -95,9 +95,6 @@ module ActiveRecord
 
       def initialize(connection, logger, connection_options, config)
         super(connection, logger, config)
-
-        @active     = true
-        @statements = StatementPool.new(self.class.type_cast_config_to_integer(config[:statement_limit]))
         configure_connection
       end
 
@@ -121,7 +118,7 @@ module ActiveRecord
         true
       end
 
-      def supports_foreign_keys_in_create?
+      def supports_foreign_keys?
         true
       end
 
@@ -137,21 +134,27 @@ module ActiveRecord
         true
       end
 
+      def supports_insert_on_conflict?
+        sqlite_version >= "3.24.0"
+      end
+      alias supports_insert_on_duplicate_skip? supports_insert_on_conflict?
+      alias supports_insert_on_duplicate_update? supports_insert_on_conflict?
+      alias supports_insert_conflict_target? supports_insert_on_conflict?
+
       def active?
-        @active
+        !@connection.closed?
+      end
+
+      def reconnect!
+        super
+        connect if @connection.closed?
       end
 
       # Disconnects from the database if already connected. Otherwise, this
       # method does nothing.
       def disconnect!
         super
-        @active = false
         @connection.close rescue nil
-      end
-
-      # Clears the prepared statements cache.
-      def clear_cache!
-        @statements.clear
       end
 
       def supports_index_sort_order?
@@ -320,6 +323,9 @@ module ActiveRecord
       def remove_column(table_name, column_name, type = nil, options = {}) #:nodoc:
         alter_table(table_name) do |definition|
           definition.remove_column column_name
+          definition.foreign_keys.delete_if do |_, fk_options|
+            fk_options[:column] == column_name.to_s
+          end
         end
       end
 
@@ -378,16 +384,17 @@ module ActiveRecord
         end
       end
 
-      def insert_fixtures_set(fixture_set, tables_to_delete = [])
-        disable_referential_integrity do
-          transaction(requires_new: true) do
-            tables_to_delete.each { |table| delete "DELETE FROM #{quote_table_name(table)}", "Fixture Delete" }
+      def build_insert_sql(insert) # :nodoc:
+        sql = +"INSERT #{insert.into} #{insert.values_list}"
 
-            fixture_set.each do |table_name, rows|
-              rows.each { |row| insert_fixture(row, table_name) }
-            end
-          end
+        if insert.skip_duplicates?
+          sql << " ON CONFLICT #{insert.conflict_target} DO NOTHING"
+        elsif insert.update_duplicates?
+          sql << " ON CONFLICT #{insert.conflict_target} DO UPDATE SET "
+          sql << insert.updatable_columns.map { |column| "#{column}=excluded.#{column}" }.join(",")
         end
+
+        sql
       end
 
       private
@@ -421,9 +428,8 @@ module ActiveRecord
           type.to_sym == :primary_key || options[:primary_key]
         end
 
-        def alter_table(table_name, options = {})
+        def alter_table(table_name, foreign_keys = foreign_keys(table_name), **options)
           altered_table_name = "a#{table_name}"
-          foreign_keys = foreign_keys(table_name)
 
           caller = lambda do |definition|
             rename = options[:rename] || {}
@@ -431,7 +437,8 @@ module ActiveRecord
               if column = rename[fk.options[:column]]
                 fk.options[:column] = column
               end
-              definition.foreign_key(fk.to_table, fk.options)
+              to_table = strip_table_name_prefix_and_suffix(fk.to_table)
+              definition.foreign_key(to_table, fk.options)
             end
 
             yield definition if block_given?
@@ -586,7 +593,21 @@ module ActiveRecord
           Arel::Visitors::SQLite.new(self)
         end
 
+        def build_statement_pool
+          StatementPool.new(self.class.type_cast_config_to_integer(@config[:statement_limit]))
+        end
+
+        def connect
+          @connection = ::SQLite3::Database.new(
+            @config[:database].to_s,
+            @config.merge(results_as_hash: true)
+          )
+          configure_connection
+        end
+
         def configure_connection
+          @connection.busy_timeout(self.class.type_cast_config_to_integer(@config[:timeout])) if @config[:timeout]
+
           execute("PRAGMA foreign_keys = ON", "SCHEMA")
         end
 

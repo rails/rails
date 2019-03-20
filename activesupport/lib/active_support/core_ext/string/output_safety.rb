@@ -199,8 +199,12 @@ module ActiveSupport #:nodoc:
       super(html_escape_interpolated_argument(value))
     end
 
-    def []=(index, value)
-      super(index, html_escape_interpolated_argument(value))
+    def []=(*args)
+      if args.count == 3
+        super(args[0], args[1], html_escape_interpolated_argument(args[2]))
+      else
+        super(args[0], html_escape_interpolated_argument(args[1]))
+      end
     end
 
     def +(other)
