@@ -156,6 +156,18 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
     assert_equal existing_autoload_paths, Rails.autoloaders.main.dirs
   end
 
+  test "autoload_paths not present in eager_load_paths are set as root dirs of main, and in the same order" do
+    add_to_config %(
+      config.autoload_paths << "\#{Rails.root}/lib"
+      config.autoload_paths << "\#{Rails.root}/eagerlib"
+      config.eager_load_paths << "\#{Rails.root}/eagerlib"
+    )
+    boot
+
+    assert_includes Rails.autoloaders.main.eager_load_exclusions, Rails.root.join('lib').to_s
+    refute_includes Rails.autoloaders.main.eager_load_exclusions, Rails.root.join('eagerlib').to_s
+  end
+
   test "autoload_once_paths go to the once autoloader, and in the same order" do
     extras = %w(e1 e2 e3)
     extras.each do |extra|
