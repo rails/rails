@@ -63,8 +63,8 @@ module ActiveRecord
       # go through Active Record's type casting and serialization.
       #
       # See <tt>ActiveRecord::Persistence#insert_all</tt> for documentation.
-      def insert(attributes, returning: nil, unique_by: nil)
-        insert_all([ attributes ], returning: returning, unique_by: unique_by)
+      def insert(attributes, upsert: false, returning: nil, unique_by: nil)
+        insert_all([ attributes ], upsert: upsert, returning: returning, unique_by: unique_by)
       end
 
       # Inserts multiple records into the database in a single SQL INSERT
@@ -83,6 +83,10 @@ module ActiveRecord
       # <tt>:returning</tt> (see below).
       #
       # ==== Options
+      #
+      # [:upsert] By default <tt>insert_all</tt> skips inserting any duplicate
+      #   rows. Pass <tt>upsert: true</tt> to update every attribute in
+      #   +attributes+ for any duplicate row.
       #
       # [:returning]
       #   (Postgres-only) An array of attributes to return for all successfully
@@ -120,8 +124,8 @@ module ActiveRecord
       #     { id: 1, title: "Rework", author: "David" },
       #     { id: 1, title: "Eloquent Ruby", author: "Russ" }
       #   ])
-      def insert_all(attributes, returning: nil, unique_by: nil)
-        InsertAll.new(self, attributes, on_duplicate: :skip, returning: returning, unique_by: unique_by).execute
+      def insert_all(attributes, upsert: false, returning: nil, unique_by: nil)
+        InsertAll.new(self, attributes, upsert: upsert, returning: returning, unique_by: unique_by).execute
       end
 
       # Inserts a single record into the database in a single SQL INSERT
@@ -175,72 +179,7 @@ module ActiveRecord
       #     { id: 1, title: "Eloquent Ruby", author: "Russ" }
       #   ])
       def insert_all!(attributes, returning: nil)
-        InsertAll.new(self, attributes, on_duplicate: :raise, returning: returning).execute
-      end
-
-      # Updates or inserts (upserts) multiple records into the database in a
-      # single SQL INSERT statement. It does not instantiate any models nor does
-      # it trigger Active Record callbacks or validations. Though passed values
-      # go through Active Record's type casting and serialization.
-      #
-      # See <tt>ActiveRecord::Persistence#upsert_all</tt> for documentation.
-      def upsert(attributes, returning: nil, unique_by: nil)
-        upsert_all([ attributes ], returning: returning, unique_by: unique_by)
-      end
-
-      # Updates or inserts (upserts) multiple records into the database in a
-      # single SQL INSERT statement. It does not instantiate any models nor does
-      # it trigger Active Record callbacks or validations. Though passed values
-      # go through Active Record's type casting and serialization.
-      #
-      # The +attributes+ parameter is an Array of Hashes. Every Hash determines
-      # the attributes for a single row and must have the same keys.
-      #
-      # Returns an <tt>ActiveRecord::Result</tt> with its contents based on
-      # <tt>:returning</tt> (see below).
-      #
-      # ==== Options
-      #
-      # [:returning]
-      #   (Postgres-only) An array of attributes to return for all successfully
-      #   inserted records, which by default is the primary key.
-      #   Pass <tt>returning: %w[ id name ]</tt> for both id and name
-      #   or <tt>returning: false</tt> to omit the underlying RETURNING SQL
-      #   clause entirely.
-      #
-      # [:unique_by]
-      #   (Postgres and SQLite only) By default rows are considered to be unique
-      #   by every unique index on the table. Any duplicate rows are skipped.
-      #
-      #   To skip rows according to just one unique index pass <tt>:unique_by</tt>.
-      #
-      #   Consider a Book model where no duplicate ISBNs make sense, but if any
-      #   row has an existing id, or is not unique by another unique index,
-      #   <tt>ActiveRecord::RecordNotUnique</tt> is raised.
-      #
-      #   Unique indexes can be identified by columns or name:
-      #
-      #     unique_by: :isbn
-      #     unique_by: %i[ author_id name ]
-      #     unique_by: :index_books_on_isbn
-      #
-      #  Because it relies on the index information from the database
-      #  <tt>:unique_by</tt> is recommended to be paired with
-      #  Active Record's schema_cache.
-      #
-      # ==== Examples
-      #
-      #   # Inserts multiple records, performing an upsert when records have duplicate ISBNs.
-      #   # Here "Eloquent Ruby" overwrites "Rework" because its ISBN is duplicate.
-      #
-      #   Book.upsert_all([
-      #     { title: "Rework", author: "David", isbn: "1" },
-      #     { title: "Eloquent Ruby", author: "Russ", isbn: "1" }
-      #   ], unique_by: :isbn)
-      #
-      #  Book.find_by(isbn: "1").title # => "Eloquent Ruby"
-      def upsert_all(attributes, returning: nil, unique_by: nil)
-        InsertAll.new(self, attributes, on_duplicate: :update, returning: returning, unique_by: unique_by).execute
+        InsertAll.new(self, attributes, returning: returning, raise: true).execute
       end
 
       # Given an attributes hash, +instantiate+ returns a new instance of

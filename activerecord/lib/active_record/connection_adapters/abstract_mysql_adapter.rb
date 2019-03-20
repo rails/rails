@@ -520,7 +520,7 @@ module ActiveRecord
           sql << " ON DUPLICATE KEY UPDATE #{any_column}=#{any_column}"
         elsif insert.update_duplicates?
           sql << " ON DUPLICATE KEY UPDATE "
-          sql << insert.updatable_columns.map { |column| "#{column}=VALUES(#{column})" }.join(",")
+          sql << insert.upsert_sql { |column| "#{column}=VALUES(#{column})" }
         end
 
         sql

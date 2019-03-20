@@ -3,19 +3,21 @@
 module ActiveRecord
   class InsertAll
     attr_reader :model, :connection, :inserts, :keys
-    attr_reader :on_duplicate, :returning, :unique_by
+    attr_reader :returning, :unique_by, :upsert
 
-    def initialize(model, inserts, on_duplicate:, returning: nil, unique_by: nil)
+    def initialize(model, inserts, returning: nil, unique_by: nil, raise: false, upsert: false)
       raise ArgumentError, "Empty list of attributes passed" if inserts.blank?
 
       @model, @connection, @inserts, @keys = model, model.connection, inserts, inserts.first.keys.map(&:to_s).to_set
-      @on_duplicate, @returning, @unique_by = on_duplicate, returning, unique_by
+      @returning, @unique_by = returning, unique_by
 
       @returning = (connection.supports_insert_returning? ? primary_keys : false) if @returning.nil?
       @returning = false if @returning == []
 
       @unique_by = find_unique_index_for(unique_by) if unique_by
-      @on_duplicate = :skip if @on_duplicate == :update && updatable_columns.empty?
+
+      @raise  = raise
+      @upsert = upsert && updatable_columns.any?
 
       ensure_valid_options_for_connection!
     end
@@ -34,11 +36,11 @@ module ActiveRecord
 
 
     def skip_duplicates?
-      on_duplicate == :skip
+      !@raise && !@upsert
     end
 
     def update_duplicates?
-      on_duplicate == :update
+      @upsert
     end
 
     def map_key_with_value
@@ -73,15 +75,11 @@ module ActiveRecord
           raise ArgumentError, "#{connection.class} does not support :returning"
         end
 
-        unless %i{ raise skip update }.member?(on_duplicate)
-          raise NotImplementedError, "#{on_duplicate.inspect} is an unknown value for :on_duplicate. Valid values are :raise, :skip, and :update"
-        end
-
-        if on_duplicate == :skip && !connection.supports_insert_on_duplicate_skip?
+        if skip_duplicates? && !connection.supports_insert_on_duplicate_skip?
           raise ArgumentError, "#{connection.class} does not support skipping duplicates"
         end
 
-        if on_duplicate == :update && !connection.supports_insert_on_duplicate_update?
+        if update_duplicates? && !connection.supports_insert_on_duplicate_update?
           raise ArgumentError, "#{connection.class} does not support upsert"
         end
 
@@ -150,8 +148,11 @@ module ActiveRecord
           end
         end
 
-        def updatable_columns
-          quote_columns(insert_all.updatable_columns)
+        def upsert_sql(&block)
+          case insert_all.upsert
+          when true
+            quote_columns(insert_all.updatable_columns).map(&block).join(",")
+          end
         end
 
         private

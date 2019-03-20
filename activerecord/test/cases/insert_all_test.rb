@@ -11,6 +11,18 @@ class InsertAllTest < ActiveRecord::TestCase
   fixtures :books
 
   def test_insert
+    id = 1_000_000
+
+    assert_difference "Book.count", +1 do
+      Book.insert(id: id, name: "Rework", author_id: 1)
+    end
+
+    Book.insert({ id: id, name: "Remote", author_id: 1 }, { upsert: true })
+
+    assert_equal "Remote", Book.find(id).name
+  end
+
+  def test_insert!
     assert_difference "Book.count", +1 do
       Book.insert! name: "Rework", author_id: 1
     end
@@ -109,7 +121,7 @@ class InsertAllTest < ActiveRecord::TestCase
     end
 
     assert_raise ActiveRecord::RecordNotUnique do
-      Book.upsert_all [{ name: "Rework", author_id: 1 }], unique_by: :isbn
+      Book.insert_all [{ name: "Rework", author_id: 1 }], unique_by: :isbn, upsert: true
     end
   end
 
@@ -123,7 +135,7 @@ class InsertAllTest < ActiveRecord::TestCase
       assert_match "No unique index", error.message
 
       error = assert_raises ArgumentError do
-        Book.upsert_all [{ name: "Rework", author_id: 1 }], unique_by: missing_or_non_unique_by
+        Book.insert_all [{ name: "Rework", author_id: 1 }], unique_by: missing_or_non_unique_by, upsert: true
       end
       assert_match "No unique index", error.message
     end
@@ -133,7 +145,7 @@ class InsertAllTest < ActiveRecord::TestCase
     skip unless supports_insert_on_duplicate_update?
 
     new_name = "Agile Web Development with Rails, 4th Edition"
-    Book.upsert_all [{ id: 1, name: new_name }]
+    Book.insert_all [{ id: 1, name: new_name }], upsert: true
     assert_equal new_name, Book.find(1).name
   end
 
@@ -141,15 +153,15 @@ class InsertAllTest < ActiveRecord::TestCase
     skip unless supports_insert_on_duplicate_update?
 
     new_name = "Agile Web Development with Rails, 4th Edition"
-    ReadonlyNameBook.upsert_all [{ id: 1, name: new_name }]
+    ReadonlyNameBook.insert_all [{ id: 1, name: new_name }], upsert: true
     assert_not_equal new_name, Book.find(1).name
   end
 
   def test_upsert_all_does_not_update_primary_keys
     skip unless supports_insert_on_duplicate_update? && supports_insert_conflict_target?
 
-    Book.upsert_all [{ id: 101, name: "Perelandra", author_id: 7 }]
-    Book.upsert_all [{ id: 103, name: "Perelandra", author_id: 7, isbn: "1974522598" }],
+    Book.insert_all [{ id: 101, name: "Perelandra", author_id: 7 }], upsert: true
+    Book.insert_all [{ id: 103, name: "Perelandra", author_id: 7, isbn: "1974522598" }], upsert: true,
       unique_by: :index_books_on_author_id_and_name
 
     book = Book.find_by(name: "Perelandra")
@@ -160,8 +172,8 @@ class InsertAllTest < ActiveRecord::TestCase
   def test_upsert_all_does_not_perform_an_upsert_if_a_partial_index_doesnt_apply
     skip unless supports_insert_on_duplicate_update? && supports_insert_conflict_target? && supports_partial_index?
 
-    Book.upsert_all [{ name: "Out of the Silent Planet", author_id: 7, isbn: "1974522598", published_on: Date.new(1938, 4, 1) }]
-    Book.upsert_all [{ name: "Perelandra", author_id: 7, isbn: "1974522598" }],
+    Book.insert_all [{ name: "Out of the Silent Planet", author_id: 7, isbn: "1974522598", published_on: Date.new(1938, 4, 1) }], upsert: true
+    Book.insert_all [{ name: "Perelandra", author_id: 7, isbn: "1974522598" }], upsert: true,
       unique_by: :index_books_on_isbn
 
     assert_equal ["Out of the Silent Planet", "Perelandra"], Book.where(isbn: "1974522598").order(:name).pluck(:name)
