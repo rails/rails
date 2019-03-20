@@ -265,6 +265,17 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_database_puts_migrations_in_configured_folder_with_aliases
+    with_secondary_database_configuration do
+      run_generator ["create_books", "--db=secondary"]
+      assert_migration "db/secondary_migrate/create_books.rb" do |content|
+        assert_method :change, content do |change|
+          assert_match(/create_table :books/, change)
+        end
+      end
+    end
+  end
+
   def test_should_create_empty_migrations_if_name_not_start_with_add_or_remove_or_create
     migration = "delete_books"
     run_generator [migration, "title:string", "content:text"]
