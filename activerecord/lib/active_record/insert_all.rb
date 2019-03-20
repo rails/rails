@@ -137,16 +137,16 @@ module ActiveRecord
         end
 
         def returning
-          quote_columns(insert_all.returning).join(",") if insert_all.returning
+          format_columns(insert_all.returning) if insert_all.returning
         end
 
         def conflict_target
           if index = insert_all.unique_by
-            sql = +"(#{quote_columns(index.columns).join(',')})"
+            sql = +"(#{format_columns(index.columns)})"
             sql << " WHERE #{index.where}" if index.where
             sql
           elsif update_duplicates?
-            "(#{quote_columns(insert_all.primary_keys).join(',')})"
+            "(#{format_columns(insert_all.primary_keys)})"
           end
         end
 
@@ -158,7 +158,7 @@ module ActiveRecord
           attr_reader :connection, :insert_all
 
           def columns_list
-            quote_columns(insert_all.keys).join(",")
+            format_columns(insert_all.keys)
           end
 
           def extract_types_from_columns_on(table_name, keys:)
@@ -168,6 +168,10 @@ module ActiveRecord
             raise UnknownAttributeError.new(model.new, unknown_column) if unknown_column
 
             keys.map { |key| [ key, connection.lookup_cast_type_from_column(columns[key]) ] }.to_h
+          end
+
+          def format_columns(columns)
+            quote_columns(columns).join(",")
           end
 
           def quote_columns(columns)
