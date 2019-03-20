@@ -1083,7 +1083,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
   test "generated attribute methods ancestors have correct class" do
     mod = Topic.send(:generated_attribute_methods)
-    assert_match %r(GeneratedAttributeMethods), mod.inspect
+    assert_match %r(Topic::GeneratedAttributeMethods), mod.inspect
   end
 
   private
