@@ -824,6 +824,11 @@ module ActiveRecord
             end
         end
 
+        ActiveRecord::Type.register(:datetime, adapter: :mysql2) do |**options|
+          options[:precision] ||= 0
+          Type::DateTime.new(**options)
+        end
+
         ActiveRecord::Type.register(:string, MysqlString, adapter: :mysql2)
         ActiveRecord::Type.register(:unsigned_integer, Type::UnsignedInteger, adapter: :mysql2)
     end
