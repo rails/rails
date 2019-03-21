@@ -17,22 +17,22 @@ module ActiveRecord
     end
 
     # Collects the configs for the environment and optionally the specification
-    # name passed in. To include replica configurations pass `include_replicas: true`.
+    # name passed in. To include replica configurations pass <tt>include_replicas: true</tt>.
     #
     # If a spec name is provided a single DatabaseConfig object will be
     # returned, otherwise an array of DatabaseConfig objects will be
     # returned that corresponds with the environment and type requested.
     #
-    # Options:
+    # ==== Options
     #
-    # <tt>env_name:</tt> The environment name. Defaults to +nil+ which will collect
-    # configs for all environments.
-    # <tt>spec_name:</tt> The specification name (i.e. primary, animals, etc.). Defaults
-    # to +nil+.
-    # <tt>include_replicas:</tt> Determines whether to include replicas in
-    # the returned list. Most of the time we're only iterating over the write
-    # connection (i.e. migrations don't need to run for the write and read connection).
-    # Defaults to +false+.
+    # * <tt>env_name:</tt> The environment name. Defaults to +nil+ which will collect
+    #   configs for all environments.
+    # * <tt>spec_name:</tt> The specification name (i.e. primary, animals, etc.). Defaults
+    #   to +nil+.
+    # * <tt>include_replicas:</tt> Determines whether to include replicas in
+    #   the returned list. Most of the time we're only iterating over the write
+    #   connection (i.e. migrations don't need to run for the write and read connection).
+    #   Defaults to +false+.
     def configs_for(env_name: nil, spec_name: nil, include_replicas: false)
       configs = env_with_configs(env_name)
 
@@ -53,7 +53,7 @@ module ActiveRecord
 
     # Returns the config hash that corresponds with the environment
     #
-    # If the application has multiple databases `default_hash` will
+    # If the application has multiple databases +default_hash+ will
     # return the first config hash for the environment.
     #
     #   { database: "my_db", adapter: "mysql2" }
@@ -65,7 +65,7 @@ module ActiveRecord
 
     # Returns a single DatabaseConfig object based on the requested environment.
     #
-    # If the application has multiple databases `find_db_config` will return
+    # If the application has multiple databases +find_db_config+ will return
     # the first DatabaseConfig for the environment.
     def find_db_config(env)
       configurations.find do |db_config|
