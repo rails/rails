@@ -1,3 +1,8 @@
+*   The `connection` option of `rails dbconsole` command is deprecated in
+    favor of `database` option.
+
+    *Yuji Yaginuma*
+
 *   Replace `chromedriver-helper` gem with `webdrivers` in default Gemfile.
    `chromedriver-helper` is deprecated as of March 31, 2019 and won't
    recieve any further updates.
