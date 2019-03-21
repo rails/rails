@@ -8,16 +8,16 @@ module Arel # :nodoc: all
 
       def initialize
         super()
-        @source         = JoinSource.new nil
+        @source = JoinSource.new nil
 
-        @optimizer_hints = nil
         # https://ronsavage.github.io/SQL/sql-92.bnf.html#set%20quantifier
-        @set_quantifier = nil
-        @projections    = []
-        @wheres         = []
-        @groups         = []
-        @havings        = []
-        @windows        = []
+        @set_quantifier  = nil
+        @optimizer_hints = nil
+        @projections     = []
+        @wheres          = []
+        @groups          = []
+        @havings         = []
+        @windows         = []
       end
 
       def from

@@ -32,7 +32,7 @@ module ContentNegotiation
 
     test "Unregistered mimes are ignored" do
       get "/content_negotiation/basic/all", headers: { "HTTP_ACCEPT" => "text/plain, mime/another" }
-      assert_body '[:text]'
+      assert_body "[:text]"
     end
   end
 end
