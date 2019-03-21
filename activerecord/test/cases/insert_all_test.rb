@@ -11,6 +11,8 @@ class InsertAllTest < ActiveRecord::TestCase
   fixtures :books
 
   def test_insert
+    skip unless supports_insert_on_duplicate_skip?
+
     id = 1_000_000
 
     assert_difference "Book.count", +1 do
