@@ -1,3 +1,5 @@
+## Rails 5.2.3.rc1 (March 21, 2019) ##
+
 *   Fix date value when casting a multiparameter date hash to not convert
     from Gregorian date to Julian date.
 

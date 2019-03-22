@@ -1,3 +1,5 @@
+## Rails 5.2.3.rc1 (March 21, 2019) ##
+
 *   Add `ActiveSupport::HashWithIndifferentAccess#assoc`.
 
     `assoc` can now be called with either a string or a symbol.

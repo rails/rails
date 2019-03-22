@@ -1,3 +1,5 @@
+## Rails 5.2.3.rc1 (March 21, 2019) ##
+
 *   Seed database with inline ActiveJob job adapter.
 
     *Gannon McGibbon*
