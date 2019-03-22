@@ -581,6 +581,33 @@ class EnqueuedJobsTest < ActiveJob::TestCase
     end
   end
 
+  def test_assert_enqueued_with_time
+    now = Time.now
+    args = [{ argument1: [now] }]
+
+    assert_enqueued_with(job: MultipleKwargsJob, args: args) do
+      MultipleKwargsJob.perform_later(argument1: [now])
+    end
+  end
+
+  def test_assert_enqueued_with_date_time
+    now = DateTime.now
+    args = [{ argument1: [now] }]
+
+    assert_enqueued_with(job: MultipleKwargsJob, args: args) do
+      MultipleKwargsJob.perform_later(argument1: [now])
+    end
+  end
+
+  def test_assert_enqueued_with_time_with_zone
+    now = Time.now.in_time_zone("Tokyo")
+    args = [{ argument1: [now] }]
+
+    assert_enqueued_with(job: MultipleKwargsJob, args: args) do
+      MultipleKwargsJob.perform_later(argument1: [now])
+    end
+  end
+
   def test_assert_enqueued_with_with_no_block_args
     assert_raise ArgumentError do
       NestedJob.set(wait_until: Date.tomorrow.noon).perform_later
@@ -1678,6 +1705,33 @@ class PerformedJobsTest < ActiveJob::TestCase
       assert_performed_with(job: MultipleKwargsJob, args: args) do
         MultipleKwargsJob.perform_later(argument2: { b: 2, a: 1 }, argument1: 1)
       end
+    end
+  end
+
+  def test_assert_performed_with_time
+    now = Time.now
+    args = [{ argument1: { now: now } }]
+
+    assert_enqueued_with(job: MultipleKwargsJob, args: args) do
+      MultipleKwargsJob.perform_later(argument1: { now: now })
+    end
+  end
+
+  def test_assert_performed_with_date_time
+    now = DateTime.now
+    args = [{ argument1: { now: now } }]
+
+    assert_enqueued_with(job: MultipleKwargsJob, args: args) do
+      MultipleKwargsJob.perform_later(argument1: { now: now })
+    end
+  end
+
+  def test_assert_performed_with_time_with_zone
+    now = Time.now.in_time_zone("Tokyo")
+    args = [{ argument1: { now: now } }]
+
+    assert_enqueued_with(job: MultipleKwargsJob, args: args) do
+      MultipleKwargsJob.perform_later(argument1: { now: now })
     end
   end
 
