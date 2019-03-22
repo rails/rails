@@ -169,11 +169,7 @@ module Rails
           app.reloader.check = lambda do
             app.reloaders.map(&:updated?).any?
           end
-        else
-          app.reloader.check = lambda { true }
-        end
 
-        if config.reload_classes_only_on_change
           reloader = config.file_watcher.new(*watchable_args, &callback)
           reloaders << reloader
 
@@ -190,6 +186,8 @@ module Rails
             end
           end
         else
+          app.reloader.check = lambda { true }
+
           app.reloader.to_complete do
             class_unload!(&callback)
           end
