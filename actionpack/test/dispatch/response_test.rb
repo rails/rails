@@ -539,38 +539,4 @@ class ResponseIntegrationTest < ActionDispatch::IntegrationTest
     assert_equal('"202cb962ac59075b964b07152d234b70"', @response.headers["ETag"])
     assert_equal('"202cb962ac59075b964b07152d234b70"', @response.etag)
   end
-
-  test "response Content-Type with optional parameters" do
-    @app = lambda { |env|
-      [
-        200,
-        { "Content-Type" => "text/csv; charset=utf-16; header=present" },
-        ["Hello"]
-      ]
-    }
-
-    get "/"
-    assert_response :success
-
-    assert_equal("text/csv; charset=utf-16; header=present", @response.headers["Content-Type"])
-    assert_equal("text/csv", @response.content_type)
-    assert_equal("utf-16", @response.charset)
-  end
-
-  test "response Content-Type with quoted-string" do
-    @app = lambda { |env|
-      [
-        200,
-        { "Content-Type" => 'text/csv; header=present; charset="utf-16"' },
-        ["Hello"]
-      ]
-    }
-
-    get "/"
-    assert_response :success
-
-    assert_equal('text/csv; header=present; charset="utf-16"', @response.headers["Content-Type"])
-    assert_equal("text/csv", @response.content_type)
-    assert_equal("utf-16", @response.charset)
-  end
 end

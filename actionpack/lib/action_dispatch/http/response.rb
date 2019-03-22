@@ -82,7 +82,6 @@ module ActionDispatch # :nodoc:
     SET_COOKIE   = "Set-Cookie".freeze
     LOCATION     = "Location".freeze
     NO_CONTENT_CODES = [100, 101, 102, 204, 205, 304]
-    CONTENT_TYPE_PARSER = /\A(?<type>[^;\s]+)?(?:.*;\s*charset=(?<quote>"?)(?<charset>[^;\s]+)\k<quote>)?/ # :nodoc:
 
     cattr_accessor :default_charset, default: "utf-8"
     cattr_accessor :default_headers
@@ -410,8 +409,10 @@ module ActionDispatch # :nodoc:
     NullContentTypeHeader = ContentTypeHeader.new nil, nil
 
     def parse_content_type(content_type)
-      if content_type && match = CONTENT_TYPE_PARSER.match(content_type)
-        ContentTypeHeader.new(match[:type], match[:charset])
+      if content_type
+        type, charset = content_type.split(/;\s*charset=/)
+        type = nil if type && type.empty?
+        ContentTypeHeader.new(type, charset)
       else
         NullContentTypeHeader
       end
