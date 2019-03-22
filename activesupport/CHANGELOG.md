@@ -1,3 +1,10 @@
+*   Update `ActiveSupport::Notifications::Instrumenter#instrument to make
+    passing a block optional. This will let users use
+    `ActiveSupport::Notifications` messaging features outside of
+    instrumentation.
+
+    *Ali Ibrahim*
+
 *   Fix `Time#advance` to work with dates before 1001-03-07
 
     Before:

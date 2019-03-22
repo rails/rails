@@ -13,14 +13,15 @@ module ActiveSupport
         @notifier = notifier
       end
 
-      # Instrument the given block by measuring the time taken to execute it
-      # and publish it. Notice that events get sent even if an error occurs
-      # in the passed-in block.
+      # Given a block, instrument it by measuring the time taken to execute
+      # and publish it. Without a block, simply send a message via the
+      # notifier. Notice that events get sent even if an error occurs in the
+      # passed-in block.
       def instrument(name, payload = {})
         # some of the listeners might have state
         listeners_state = start name, payload
         begin
-          yield payload
+          yield payload if block_given?
         rescue Exception => e
           payload[:exception] = [e.class.name, e.message]
           payload[:exception_object] = e
