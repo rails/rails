@@ -692,5 +692,16 @@ ActiveSupport::Notifications.subscribe "my.custom.event" do |name, started, fini
 end
 ```
 
+You also have the option to call instrument without passing a block. This lets you leverage the
+instrumentation infrastructure for other messaging uses.
+
+```ruby
+ActiveSupport::Notifications.instrument "my.custom.event", this: :data
+
+ActiveSupport::Notifications.subscribe "my.custom.event" do |name, started, finished, unique_id, data|
+  puts data.inspect # {:this=>:data}
+end
+```
+
 You should follow Rails conventions when defining your own events. The format is: `event.library`.
 If your application is sending Tweets, you should create an event named `tweet.twitter`.
