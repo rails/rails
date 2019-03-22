@@ -20,7 +20,7 @@ module ActiveSupport
         # some of the listeners might have state
         listeners_state = start name, payload
         begin
-          yield payload
+          yield payload if block_given?
         rescue Exception => e
           payload[:exception] = [e.class.name, e.message]
           payload[:exception_object] = e
