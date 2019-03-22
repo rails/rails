@@ -61,11 +61,15 @@ module ActiveRecord
             scope = through_reflection.klass.unscoped
             options = reflection.options
 
+            values = reflection_scope.values
+            if annotations = values[:annotate]
+              scope.annotate!(*annotations)
+            end
+
             if options[:source_type]
               scope.where! reflection.foreign_type => options[:source_type]
             elsif !reflection_scope.where_clause.empty?
               scope.where_clause = reflection_scope.where_clause
-              values = reflection_scope.values
 
               if includes = values[:includes]
                 scope.includes!(source_reflection.name => includes)

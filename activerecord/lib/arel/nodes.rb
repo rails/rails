@@ -61,6 +61,8 @@ require "arel/nodes/outer_join"
 require "arel/nodes/right_outer_join"
 require "arel/nodes/string_join"
 
+require "arel/nodes/comment"
+
 require "arel/nodes/sql_literal"
 
 require "arel/nodes/casted"

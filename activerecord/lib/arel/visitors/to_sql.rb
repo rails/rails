@@ -35,6 +35,7 @@ module Arel # :nodoc: all
           collect_nodes_for o.wheres, collector, " WHERE ", " AND "
           collect_nodes_for o.orders, collector, " ORDER BY "
           maybe_visit o.limit, collector
+          maybe_visit o.comment, collector
         end
 
         def visit_Arel_Nodes_UpdateStatement(o, collector)
@@ -47,6 +48,7 @@ module Arel # :nodoc: all
           collect_nodes_for o.wheres, collector, " WHERE ", " AND "
           collect_nodes_for o.orders, collector, " ORDER BY "
           maybe_visit o.limit, collector
+          maybe_visit o.comment, collector
         end
 
         def visit_Arel_Nodes_InsertStatement(o, collector)
@@ -62,9 +64,9 @@ module Arel # :nodoc: all
             maybe_visit o.values, collector
           elsif o.select
             maybe_visit o.select, collector
-          else
-            collector
           end
+
+          maybe_visit o.comment, collector
         end
 
         def visit_Arel_Nodes_Exists(o, collector)
@@ -162,12 +164,16 @@ module Arel # :nodoc: all
           collect_nodes_for o.havings, collector, " HAVING ", " AND "
           collect_nodes_for o.windows, collector, " WINDOW "
 
-          collector
+          maybe_visit o.comment, collector
         end
 
         def visit_Arel_Nodes_OptimizerHints(o, collector)
           hints = o.expr.map { |v| sanitize_as_sql_comment(v) }.join(" ")
           collector << "/*+ #{hints} */"
+        end
+
+        def visit_Arel_Nodes_Comment(o, collector)
+          collector << o.values.map { |v| "/* #{sanitize_as_sql_comment(v)} */" }.join(" ")
         end
 
         def collect_nodes_for(nodes, collector, spacer, connector = ", ")

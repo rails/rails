@@ -1,3 +1,16 @@
+*   Add `ActiveRecord::Relation#annotate` for adding SQL comments to its queries.
+
+    For example:
+
+    ```
+    Post.where(id: 123).annotate("this is a comment").to_sql
+    # SELECT "posts".* FROM "posts" WHERE "posts"."id" = 123 /* this is a comment */
+    ```
+
+    This can be useful in instrumentation or other analysis of issued queries.
+
+    *Matt Yoho*
+
 *   Support Optimizer Hints.
 
     In most databases, there is a way to control the optimizer is by using optimizer hints,

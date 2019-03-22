@@ -3,7 +3,7 @@
 module Arel # :nodoc: all
   module Nodes
     class DeleteStatement < Arel::Nodes::Node
-      attr_accessor :left, :right, :orders, :limit, :offset, :key
+      attr_accessor :left, :right, :orders, :limit, :offset, :key, :comment
 
       alias :relation :left
       alias :relation= :left=
@@ -18,16 +18,18 @@ module Arel # :nodoc: all
         @limit = nil
         @offset = nil
         @key = nil
+        @comment = nil
       end
 
       def initialize_copy(other)
         super
         @left  = @left.clone if @left
         @right = @right.clone if @right
+        @comment = @comment.clone if @comment
       end
 
       def hash
-        [self.class, @left, @right, @orders, @limit, @offset, @key].hash
+        [self.class, @left, @right, @orders, @limit, @offset, @key, @comment].hash
       end
 
       def eql?(other)
@@ -37,7 +39,8 @@ module Arel # :nodoc: all
           self.orders == other.orders &&
           self.limit == other.limit &&
           self.offset == other.offset &&
-          self.key == other.key
+          self.key == other.key &&
+          self.comment == other.comment
       end
       alias :== :eql?
     end

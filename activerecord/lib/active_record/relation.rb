@@ -5,7 +5,7 @@ module ActiveRecord
   class Relation
     MULTI_VALUE_METHODS  = [:includes, :eager_load, :preload, :select, :group,
                             :order, :joins, :left_outer_joins, :references,
-                            :extending, :unscope, :optimizer_hints]
+                            :extending, :unscope, :optimizer_hints, :annotate]
 
     SINGLE_VALUE_METHODS = [:limit, :offset, :lock, :readonly, :reordering,
                             :reverse_order, :distinct, :create_with, :skip_query_cache]
@@ -389,6 +389,8 @@ module ActiveRecord
         stmt.set Arel.sql(klass.sanitize_sql_for_assignment(updates, table.name))
       end
 
+      stmt.comment(*arel.comment_node.values) if arel.comment_node
+
       @klass.connection.update stmt, "#{@klass} Update All"
     end
 
@@ -504,6 +506,7 @@ module ActiveRecord
       stmt.offset(arel.offset)
       stmt.order(*arel.orders)
       stmt.wheres = arel.constraints
+      stmt.comment(*arel.comment_node.values) if arel.comment_node
 
       affected = @klass.connection.delete(stmt, "#{@klass} Destroy")
 

@@ -99,4 +99,23 @@ class DeleteAllTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::RecordNotFound) { posts(:thinking) }
     assert posts(:welcome)
   end
+
+  def test_delete_all_with_annotation_includes_a_query_comment
+    davids = Author.where(name: "David").annotate("deleting all")
+
+    assert_sql(%r{/\* deleting all \*/}) do
+      assert_difference("Author.count", -1) { davids.delete_all }
+    end
+  end
+
+  def test_delete_all_without_annotation_does_not_include_an_empty_comment
+    davids = Author.where(name: "David")
+
+    log = capture_sql do
+      assert_difference("Author.count", -1) { davids.delete_all }
+    end
+
+    assert_not_predicate log, :empty?
+    assert_predicate log.select { |query| query.match?(%r{/\*}) }, :empty?
+  end
 end
