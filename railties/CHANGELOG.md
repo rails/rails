@@ -4,7 +4,17 @@
 
 ## Rails 6.0.0.beta3 (March 11, 2019) ##
 
-*   No changes.
+*   Generate random development secrets
+
+    A random development secret is now generated to tmp/development_secret.txt
+
+    This avoids an issue where development mode servers were vulnerable to
+    remote code execution.
+
+    Fixes CVE-2019-5420
+
+    *Eileen M. Uchitelle*, *Aaron Patterson*, *John Hawthorn*
+
 
 
 ## Rails 6.0.0.beta2 (February 25, 2019) ##
