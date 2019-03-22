@@ -1,3 +1,8 @@
+## Rails 5.1.7.rc1 (March 22, 2019) ##
+
+*   No changes.
+
+
 ## Rails 5.1.6.2 (March 11, 2019) ##
 
 *   No changes.

@@ -1,3 +1,5 @@
+## Rails 5.1.7.rc1 (March 22, 2019) ##
+
 *   Fix issue with `button_to`'s `to_form_params`
 
     `button_to` was throwing exception when invoked with `params` hash that
