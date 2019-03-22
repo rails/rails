@@ -347,8 +347,8 @@ GEM
     powerpack (0.1.1)
     psych (2.2.4)
     public_suffix (3.0.2)
-    puma (3.11.4)
-    puma (3.11.4-java)
+    puma (3.12.1)
+    puma (3.12.1-java)
     que (0.14.3)
     qunit-selenium (0.0.4)
       selenium-webdriver

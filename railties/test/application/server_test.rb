@@ -44,13 +44,13 @@ module ApplicationTests
       pid = nil
 
       begin
-        pid = Process.spawn("#{app_path}/bin/rails server -P tmp/dummy.pid", in: slave, out: slave, err: slave)
+        pid = Process.spawn("#{app_path}/bin/rails server -b localhost -P tmp/dummy.pid", in: slave, out: slave, err: slave)
         assert_output("Listening", master)
 
         rails("restart")
 
         assert_output("Restarting", master)
-        assert_output("Inherited", master)
+        assert_output("tcp://localhost:3000", master)
       ensure
         kill(pid) if pid
       end
