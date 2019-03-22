@@ -1,4 +1,4 @@
-*   Update `ActiveSupport::Notifications::Instrumenter#instrument to make
+*   Update `ActiveSupport::Notifications::Instrumenter#instrument` to make
     passing a block optional. This will let users use
     `ActiveSupport::Notifications` messaging features outside of
     instrumentation.
