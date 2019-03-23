@@ -457,8 +457,14 @@ module ActiveRecord
       # If the record is new or it has changed, returns true.
       def record_changed?(reflection, record, key)
         record.new_record? ||
-          (record.has_attribute?(reflection.foreign_key) && record[reflection.foreign_key] != key) ||
+          association_foreign_key_changed?(reflection, record, key) ||
           record.will_save_change_to_attribute?(reflection.foreign_key)
+      end
+
+      def association_foreign_key_changed?(reflection, record, key)
+        return false if reflection.through_reflection?
+
+        record.has_attribute?(reflection.foreign_key) && record[reflection.foreign_key] != key
       end
 
       # Saves the associated record if it's new or <tt>:autosave</tt> is enabled.
