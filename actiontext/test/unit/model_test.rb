@@ -67,4 +67,12 @@ class ActionText::ModelTest < ActiveSupport::TestCase
     message.update! review_attributes: { id: message.review.id, content: "Great work!" }
     assert_equal "Great work!", message.review.reload.content.to_plain_text
   end
+
+  test "building content lazily on existing record" do
+    message = Message.create!(subject: "Greetings")
+
+    assert_no_difference -> { ActionText::RichText.count } do
+      assert_kind_of ActionText::RichText, message.content
+    end
+  end
 end

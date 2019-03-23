@@ -26,7 +26,7 @@ module ActionText
       def has_rich_text(name)
         class_eval <<-CODE, __FILE__, __LINE__ + 1
           def #{name}
-            self.rich_text_#{name} ||= ActionText::RichText.new(name: "#{name}", record: self)
+            rich_text_#{name} || build_rich_text_#{name}
           end
 
           def #{name}=(body)
