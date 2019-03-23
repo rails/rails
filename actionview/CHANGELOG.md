@@ -15,7 +15,16 @@
 
 ## Rails 5.2.2.1 (March 11, 2019) ##
 
-*   No changes.
+*   Only accept formats from registered mime types
+
+    A lack of filtering on mime types could allow an attacker to read
+    arbitrary files on the target server or to perform a denial of service
+    attack.
+
+    Fixes CVE-2019-5418
+    Fixes CVE-2019-5419
+
+    *John Hawthorn*, *Eileen M. Uchitelle*, *Aaron Patterson*
 
 
 ## Rails 5.2.2 (December 04, 2018) ##
