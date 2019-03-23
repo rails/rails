@@ -581,7 +581,7 @@ Defaults to `'signed cookie'`.
     The default setting is `true`, which uses the partial at `/admin/articles/_article.erb`. Setting the value to `false` would render `/articles/_article.erb`, which is the same behavior as rendering from a non-namespaced controller such as `ArticlesController`.
 
 * `config.action_view.raise_on_missing_translations` determines whether an
-  error should be raised for missing translations.
+  error should be raised for missing translations. This defaults to `false`.
 
 * `config.action_view.automatically_disable_submit_tag` determines whether
   `submit_tag` should automatically disable on click, this defaults to `true`.
