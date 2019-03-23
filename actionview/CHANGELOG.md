@@ -2,7 +2,7 @@
 
 *   Only accept formats from registered mime types
 
-    A lack of filtering on mime types could allow an a attacker to read
+    A lack of filtering on mime types could allow an attacker to read
     arbitrary files on the target server or to perform a denial of service
     attack.
 
