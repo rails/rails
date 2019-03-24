@@ -72,6 +72,8 @@ class SubscriberTest < ActiveSupport::TestCase
   def test_deattaches_subscribers
     TestSubscriber.deattach_from :doodle
 
+    sleep(60 * 2)
+
     ActiveSupport::Notifications.instrument("open_party.doodle")
 
     assert_empty TestSubscriber.events
