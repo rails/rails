@@ -86,7 +86,7 @@ application. Accepts a valid week day symbol (e.g. `:monday`).
     end
     ```
 
-* `config.disable_sandbox` controls whether or not someone could start a console in sandbox mode, as a long session of sandbox console could lead database server to run out of memory.
+* `config.disable_sandbox` controls whether or not someone can start a console in sandbox mode. This is helpful to avoid a long running session of sandbox console, that could lead a database server to run out of memory. Defaults to false.
 
 * `config.eager_load` when `true`, eager loads all registered `config.eager_load_namespaces`. This includes your application, engines, Rails frameworks, and any other registered namespace.
 
