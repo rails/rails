@@ -27,10 +27,14 @@ class HashExtTest < ActiveSupport::TestCase
     @symbol_array_of_hashes = { a: [ { b: 2 }, { c: 3 }, 4 ] }
     @mixed_array_of_hashes = { a: [ { b: 2 }, { "c" => 3 }, 4 ] }
     @upcase_array_of_hashes = { "A" => [ { "B" => 2 }, { "C" => 3 }, 4 ] }
+    @mixed_snake_case = { first_name: "John", "last_name" => "Doe" }
+    @nested_mixed_snake_case = { my_profile: { first_name: "John", "last_name" => "Doe" } }
   end
 
   def test_methods
     h = {}
+    assert_respond_to h, :camelize_keys
+    assert_respond_to h, :deep_camelize_keys
     assert_respond_to h, :deep_transform_keys
     assert_respond_to h, :deep_transform_keys!
     assert_respond_to h, :deep_transform_values
@@ -47,6 +51,23 @@ class HashExtTest < ActiveSupport::TestCase
     assert_respond_to h, :to_options!
     assert_respond_to h, :except
     assert_respond_to h, :except!
+  end
+
+  def test_camelize_keys
+    assert_equal @strings, @strings.camelize_keys
+    assert_equal @symbols, @symbols.camelize_keys
+    assert_equal @integers, @integers.camelize_keys
+    assert_equal @illegal_symbols, @illegal_symbols.camelize_keys
+    assert_equal({ firstName: "John", "lastName" => "Doe" }, @mixed_snake_case.camelize_keys)
+  end
+
+  def test_deep_camelize_keys
+      assert_equal @strings, @strings.deep_camelize_keys
+      assert_equal @symbols, @symbols.deep_camelize_keys
+      assert_equal @integers, @integers.deep_camelize_keys
+      assert_equal @illegal_symbols, @illegal_symbols.deep_camelize_keys
+      assert_equal({ firstName: "John", "lastName" => "Doe" }, @mixed_snake_case.deep_camelize_keys)
+      assert_equal({ myProfile: { firstName: "John", "lastName" => "Doe" } }, @nested_mixed_snake_case.deep_camelize_keys)
   end
 
   def test_deep_transform_keys

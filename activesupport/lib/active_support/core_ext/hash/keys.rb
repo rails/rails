@@ -54,6 +54,28 @@ class Hash
     end
   end
 
+  # Returns a new hash with all keys converted to camelCase.
+  # The key type is preserved.
+  #
+  #  hash = { first_name: 'Willian', 'last_name' => 'Veiga' }
+  #  hash.camelize_keys
+  #  # => { firstName: 'Willian', 'lastName' => 'Veiga' }
+  def camelize_keys
+    transform_keys { |key| _camelize_key(key) }
+  end
+
+  # Returns a new hash with all keys converted to camelCase.
+  # The key type is preserved.
+  # This includes the keys from the root hash and from all
+  # nested hashes and arrays.
+  #
+  #  hash = { my_profile: { first_name: 'Willian', 'last_name' => 'Veiga' } }
+  #  hash.camelize_keys
+  #  # => { myProfile: { firstName: 'Willian', 'lastName' => 'Veiga' } }
+  def deep_camelize_keys
+    deep_transform_keys { |key| _camelize_key(key) }
+  end
+
   # Returns a new hash with all keys converted by the block operation.
   # This includes the keys from the root hash and from all
   # nested hashes and arrays.
@@ -112,6 +134,12 @@ class Hash
   end
 
   private
+    def _camelize_key(key)
+      return key.to_s.camelize(:lower).to_sym if key.is_a?(Symbol)
+      return key.camelize(:lower) if key.is_a?(String)
+      key
+    end
+
     # support methods for deep transforming nested hashes and arrays
     def _deep_transform_keys_in_object(object, &block)
       case object
