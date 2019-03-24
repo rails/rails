@@ -51,7 +51,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
       end
 
       assert_instance_method :destroy, content do |m|
-        assert_match(/@product_line\.destroy/, m)
+        assert_match(/@product_line\.destroy!/, m)
       end
 
       assert_instance_method :set_product_line, content do |m|
@@ -141,7 +141,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
       end
 
       assert_instance_method :destroy, content do |m|
-        assert_match(/@product_line\.destroy/, m)
+        assert_match(/@product_line\.destroy!/, m)
       end
     end
 
@@ -266,7 +266,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
       end
 
       assert_instance_method :destroy, content do |m|
-        assert_match(/@admin_role\.destroy/, m)
+        assert_match(/@admin_role\.destroy!/, m)
       end
 
       assert_instance_method :set_admin_role, content do |m|
