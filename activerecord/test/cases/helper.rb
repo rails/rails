@@ -202,3 +202,5 @@ module InTimeZone
       ActiveRecord::Base.time_zone_aware_attributes = old_tz
     end
 end
+
+require_relative "../../../tools/test_common"
