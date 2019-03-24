@@ -79,6 +79,15 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
     assert_match(/access_key_id: 123/, run_edit_command(environment: "qa"))
   end
 
+  test "edit command generate template file when the file does not exist" do
+    FileUtils.rm("#{app_path}/config/credentials.yml.enc")
+    run_edit_command
+
+    output = run_show_command
+    assert_match(/access_key_id: 123/, output)
+    assert_match(/secret_key_base/, output)
+  end
+
   test "show credentials" do
     assert_match(/access_key_id: 123/, run_show_command)
   end
@@ -106,7 +115,9 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
   test "show command properly expand environment option" do
     run_edit_command(environment: "production")
 
-    assert_match(/access_key_id: 123/, run_show_command(environment: "prod"))
+    output = run_show_command(environment: "prod")
+    assert_match(/access_key_id: 123/, output)
+    assert_no_match(/secret_key_base/, output)
   end
 
   private
