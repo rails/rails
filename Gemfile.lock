@@ -110,8 +110,6 @@ GEM
     addressable (2.5.2)
       public_suffix (>= 2.0.2, < 4.0)
     amq-protocol (2.3.0)
-    archive-zip (0.11.0)
-      io-like (~> 0.3.0)
     ast (2.4.0)
     aws-eventstream (1.0.1)
     aws-partitions (1.111.0)
@@ -185,9 +183,6 @@ GEM
       xpath (~> 3.2)
     childprocess (0.9.0)
       ffi (~> 1.0, >= 1.0.11)
-    chromedriver-helper (2.1.0)
-      archive-zip (~> 0.10)
-      nokogiri (~> 1.8)
     coffee-script (2.4.1)
       coffee-script-source
       execjs
@@ -282,7 +277,6 @@ GEM
     image_processing (1.7.1)
       mini_magick (~> 4.0)
       ruby-vips (>= 2.0.13, < 3)
-    io-like (0.3.0)
     jaro_winkler (1.5.2)
     jaro_winkler (1.5.2-java)
     jdbc-mysql (5.1.46)
@@ -336,6 +330,7 @@ GEM
     mysql2 (0.5.2)
     mysql2 (0.5.2-x64-mingw32)
     mysql2 (0.5.2-x86-mingw32)
+    net_http_ssl_fix (0.0.10)
     nio4r (2.3.1)
     nio4r (2.3.1-java)
     nokogiri (1.9.1)
@@ -501,6 +496,11 @@ GEM
       json (>= 1.8)
       nokogiri (~> 1.6)
     wdm (0.1.1)
+    webdrivers (3.7.0)
+      net_http_ssl_fix
+      nokogiri (~> 1.6)
+      rubyzip (~> 1.0)
+      selenium-webdriver (~> 3.0)
     webmock (3.4.2)
       addressable (>= 2.3.6)
       crack (>= 0.3.2)
@@ -540,7 +540,6 @@ DEPENDENCIES
   bootsnap (>= 1.4.0)
   byebug
   capybara (>= 2.15)
-  chromedriver-helper
   connection_pool
   dalli
   delayed_job
@@ -587,6 +586,7 @@ DEPENDENCIES
   uglifier (>= 1.3.0)
   w3c_validators
   wdm (>= 0.1.0)
+  webdrivers
   webmock
   webpacker (~> 4.0)
   websocket-client-simple!
