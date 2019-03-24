@@ -49,14 +49,14 @@ module ActionView
       # Renders the given template. A string representing the layout can be
       # supplied as well.
       def render_template(view, template, layout_name, locals)
-        render_with_layout(view, layout_name, template, locals) do |layout|
+        render_with_layout(view, template, layout_name, locals) do |layout|
           instrument(:template, identifier: template.identifier, layout: layout.try(:virtual_path)) do
             template.render(view, locals) { |*name| view._layout_for(*name) }
           end
         end
       end
 
-      def render_with_layout(view, path, template, locals)
+      def render_with_layout(view, template, path, locals)
         layout  = path && find_layout(path, locals.keys, [formats.first])
         content = yield(layout)
 
