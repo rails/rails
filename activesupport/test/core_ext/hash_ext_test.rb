@@ -62,12 +62,12 @@ class HashExtTest < ActiveSupport::TestCase
   end
 
   def test_deep_camelize_keys
-      assert_equal @strings, @strings.deep_camelize_keys
-      assert_equal @symbols, @symbols.deep_camelize_keys
-      assert_equal @integers, @integers.deep_camelize_keys
-      assert_equal @illegal_symbols, @illegal_symbols.deep_camelize_keys
-      assert_equal({ firstName: "John", "lastName" => "Doe" }, @mixed_snake_case.deep_camelize_keys)
-      assert_equal({ myProfile: { firstName: "John", "lastName" => "Doe" } }, @nested_mixed_snake_case.deep_camelize_keys)
+    assert_equal @strings, @strings.deep_camelize_keys
+    assert_equal @symbols, @symbols.deep_camelize_keys
+    assert_equal @integers, @integers.deep_camelize_keys
+    assert_equal @illegal_symbols, @illegal_symbols.deep_camelize_keys
+    assert_equal({ firstName: "John", "lastName" => "Doe" }, @mixed_snake_case.deep_camelize_keys)
+    assert_equal({ myProfile: { firstName: "John", "lastName" => "Doe" } }, @nested_mixed_snake_case.deep_camelize_keys)
   end
 
   def test_deep_transform_keys
