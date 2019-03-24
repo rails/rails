@@ -1,3 +1,11 @@
+*   Add `config.disable_sandbox` option to Rails console.
+
+    This setting will disable `rails console --sandbox` mode, preventing
+    developer from accidentally starting a sandbox console, left it inactive,
+    and cause the database server to run out of memory.
+
+    *Prem Sichanugrist*
+
 *   Add `-e/--environment` option to `rails initializers`.
 
     *Yuji Yaginuma*
