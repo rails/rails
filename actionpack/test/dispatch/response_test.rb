@@ -318,7 +318,6 @@ class ResponseTest < ActiveSupport::TestCase
         "X-Frame-Options" => "DENY",
         "X-Content-Type-Options" => "nosniff",
         "X-XSS-Protection" => "1;",
-        "X-Download-Options" => "noopen",
         "X-Permitted-Cross-Domain-Policies" => "none",
         "Referrer-Policy" => "strict-origin-when-cross-origin"
       }
@@ -330,7 +329,6 @@ class ResponseTest < ActiveSupport::TestCase
       assert_equal("DENY", resp.headers["X-Frame-Options"])
       assert_equal("nosniff", resp.headers["X-Content-Type-Options"])
       assert_equal("1;", resp.headers["X-XSS-Protection"])
-      assert_equal("noopen", resp.headers["X-Download-Options"])
       assert_equal("none", resp.headers["X-Permitted-Cross-Domain-Policies"])
       assert_equal("strict-origin-when-cross-origin", resp.headers["Referrer-Policy"])
     ensure
