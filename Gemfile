@@ -92,7 +92,7 @@ gem "webmock"
 
 group :ujs do
   gem "qunit-selenium"
-  gem "chromedriver-helper"
+  gem "webdrivers"
 end
 
 # Add your own local bundler stuff.
