@@ -88,7 +88,7 @@ module ActiveRecord
       #   (Postgres-only) An array of attributes to return for all successfully
       #   inserted records, which by default is the primary key.
       #   Pass <tt>returning: %w[ id name ]</tt> for both id and name
-      #   or <tt>returning: false</tt> to omit the underlying RETURNING SQL
+      #   or <tt>returning: false</tt> to omit the underlying <tt>RETURNING</tt> SQL
       #   clause entirely.
       #
       # [:unique_by]
@@ -157,7 +157,7 @@ module ActiveRecord
       #   (Postgres-only) An array of attributes to return for all successfully
       #   inserted records, which by default is the primary key.
       #   Pass <tt>returning: %w[ id name ]</tt> for both id and name
-      #   or <tt>returning: false</tt> to omit the underlying RETURNING SQL
+      #   or <tt>returning: false</tt> to omit the underlying <tt>RETURNING</tt> SQL
       #   clause entirely.
       #
       # ==== Examples
@@ -205,7 +205,7 @@ module ActiveRecord
       #   (Postgres-only) An array of attributes to return for all successfully
       #   inserted records, which by default is the primary key.
       #   Pass <tt>returning: %w[ id name ]</tt> for both id and name
-      #   or <tt>returning: false</tt> to omit the underlying RETURNING SQL
+      #   or <tt>returning: false</tt> to omit the underlying <tt>RETURNING</tt> SQL
       #   clause entirely.
       #
       # [:unique_by]
