@@ -1,3 +1,7 @@
+*   Remove X-Download-Options from default headers set.
+
+    *Ashish Gaur*
+
 ## Rails 6.0.0.beta3 (March 11, 2019) ##
 
 *   No changes.
