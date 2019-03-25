@@ -1,4 +1,4 @@
-*   Remove X-Download-Options from default headers set.
+*   Remove `X-Download-Options` from default headers set.
 
     *Ashish Gaur*
 
