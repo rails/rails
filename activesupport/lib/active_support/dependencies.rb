@@ -363,13 +363,13 @@ module ActiveSupport #:nodoc:
         # Maybe it got loaded while we were waiting for our lock:
         return if loaded.include?(expanded)
 
-        # Record that we've seen this file *before* loading it to avoid an
-        # infinite loop with mutual dependencies.
-        loaded << expanded
-        loading << expanded
+        if load?
+          # Record that we've seen this file *before* loading it to avoid an
+          # infinite loop with mutual dependencies.
+          loaded << expanded
+          loading << expanded
 
-        begin
-          if load?
+          begin
             # Enable warnings if this file has not been loaded before and
             # warnings_on_first_load is set.
             load_args = ["#{file_name}.rb"]
@@ -380,18 +380,19 @@ module ActiveSupport #:nodoc:
             else
               enable_warnings { result = load_file(*load_args) }
             end
-          else
-            result = require file_name
+
+            # Record history *after* loading so first load gets warnings.
+            history << expanded
+          rescue Exception
+            loaded.delete expanded
+            raise
+          ensure
+            loading.pop
           end
-        rescue Exception
-          loaded.delete expanded
-          raise
-        ensure
-          loading.pop
+        else
+          result = require file_name
         end
 
-        # Record history *after* loading so first load gets warnings.
-        history << expanded
         result
       end
     end
