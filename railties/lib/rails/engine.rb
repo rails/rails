@@ -472,6 +472,11 @@ module Rails
     # Eager load the application by loading all ruby
     # files inside eager_load paths.
     def eager_load!
+      # Checks defined?(Zeitwerk) instead of zeitwerk_enabled? because we
+      # want to eager load any dependency managed by Zeitwerk regardless of
+      # the autoloading mode of the application.
+      Zeitwerk::Loader.eager_load_all if defined?(Zeitwerk)
+
       if Rails.autoloaders.zeitwerk_enabled?
         eager_load_with_zeitwerk!
       else
