@@ -727,7 +727,7 @@ There are a few configuration options available in Active Support:
 
 * `ActiveSupport::Deprecation.silence` takes a block in which all deprecation warnings are silenced.
 
-* `ActiveSupport::Deprecation.silenced` sets whether or not to display deprecation warnings.
+* `ActiveSupport::Deprecation.silenced` sets whether or not to display deprecation warnings. The default is `false`.
 
 ### Configuring Active Job
 
