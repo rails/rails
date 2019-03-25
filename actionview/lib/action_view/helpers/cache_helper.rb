@@ -130,39 +130,6 @@ module ActionView
       #   <%= some_helper_method(person) %>
       #
       # Now all you have to do is change that timestamp when the helper method changes.
-      #
-      # === Collection Caching
-      #
-      # When rendering a collection of objects that each use the same partial, a <tt>:cached</tt>
-      # option can be passed.
-      #
-      # For collections rendered such:
-      #
-      #   <%= render partial: 'projects/project', collection: @projects, cached: true %>
-      #
-      # The <tt>cached: true</tt> will make Action View's rendering read several templates
-      # from cache at once instead of one call per template.
-      #
-      # Templates in the collection not already cached are written to cache.
-      #
-      # Works great alongside individual template fragment caching.
-      # For instance if the template the collection renders is cached like:
-      #
-      #   # projects/_project.html.erb
-      #   <% cache project do %>
-      #     <%# ... %>
-      #   <% end %>
-      #
-      # Any collection renders will find those cached templates when attempting
-      # to read multiple templates at once.
-      #
-      # If your collection cache depends on multiple sources (try to avoid this to keep things simple),
-      # you can name all these dependencies as part of a block that returns an array:
-      #
-      #   <%= render partial: 'projects/project', collection: @projects, cached: -> project { [ project, current_user ] } %>
-      #
-      # This will include both records as part of the cache key and updating either of them will
-      # expire the cache.
       def cache(name = {}, options = {}, &block)
         if controller.respond_to?(:perform_caching) && controller.perform_caching
           name_options = options.slice(:skip_digest, :virtual_path)
