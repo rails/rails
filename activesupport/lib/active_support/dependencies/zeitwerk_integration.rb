@@ -86,6 +86,7 @@ module ActiveSupport
           def decorate_dependencies
             Dependencies.unhook!
             Dependencies.singleton_class.prepend(Decorations)
+            $LOADED_FEATURES.concat(Dependencies.loaded.map { |path| "#{path}.rb" })
             Object.class_eval { alias_method :require_dependency, :require }
           end
       end
