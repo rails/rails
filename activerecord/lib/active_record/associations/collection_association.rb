@@ -292,6 +292,8 @@ module ActiveRecord
       end
 
       def null_scope?
+        return false if reflection.has_inverse? && reflection.inverse_of.options[:optional]
+
         owner.new_record? && !foreign_key_present?
       end
 
