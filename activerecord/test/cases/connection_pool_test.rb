@@ -515,6 +515,28 @@ module ActiveRecord
         pool.checkin connection
       end
 
+      def test_pool_checks_database_version
+        connection = ActiveRecord::Base.send(pool.spec.adapter_method, pool.spec.config)
+
+        ActiveRecord::Base.stub(pool.spec.adapter_method, connection) do
+          connection.stub(:check_version!, -> { raise "Bad version" }) do
+            assert_raises { pool.checkout }
+          end
+        end
+      end
+
+      def test_pool_does_not_check_database_version_when_cached
+        pool.schema_cache = SchemaCache.new(nil)
+        pool.schema_cache.database_version_checked = true
+        connection = ActiveRecord::Base.send(pool.spec.adapter_method, pool.spec.config)
+
+        ActiveRecord::Base.stub(pool.spec.adapter_method, connection) do
+          connection.stub(:check_version!, -> { raise "Bad version" }) do
+            assert_nothing_raised { pool.checkout }
+          end
+        end
+      end
+
       def test_concurrent_connection_establishment
         assert_operator @pool.connections.size, :<=, 1
 

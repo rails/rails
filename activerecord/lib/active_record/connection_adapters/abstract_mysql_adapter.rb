@@ -526,12 +526,15 @@ module ActiveRecord
         sql
       end
 
-      private
-        def check_version
-          if version < "5.5.8"
-            raise "Your version of MySQL (#{version_string}) is too old. Active Record supports MySQL >= 5.5.8."
-          end
+      def check_version!
+        if version < "5.5.8"
+          raise "Your version of MySQL (#{version_string}) is too old. Active Record supports MySQL >= 5.5.8."
+        else
+          schema_cache.database_version_checked = true
         end
+      end
+
+      private
 
         def initialize_type_map(m = type_map)
           super

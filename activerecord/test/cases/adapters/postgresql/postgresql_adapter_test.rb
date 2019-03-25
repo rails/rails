@@ -442,6 +442,18 @@ module ActiveRecord
         end
       end
 
+      def test_check_version_updates_schema_cache
+        @connection.check_version!
+
+        assert @connection.schema_cache.database_version_checked
+      end
+
+      def test_check_version_raises_for_unsupported_versions
+        @connection.stub(:postgresql_version, 1_000) do
+          assert_raises { @connection.check_version! }
+        end
+      end
+
       private
 
         def with_example_table(definition = "id serial primary key, number integer, data character varying(255)", &block)

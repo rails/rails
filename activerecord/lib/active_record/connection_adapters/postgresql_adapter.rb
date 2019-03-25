@@ -446,12 +446,15 @@ module ActiveRecord
         sql
       end
 
-      private
-        def check_version
-          if postgresql_version < 90300
-            raise "Your version of PostgreSQL (#{postgresql_version}) is too old. Active Record supports PostgreSQL >= 9.3."
-          end
+      def check_version!
+        if postgresql_version < 90300
+          raise "Your version of PostgreSQL (#{postgresql_version}) is too old. Active Record supports PostgreSQL >= 9.3."
+        else
+          schema_cache.database_version_checked = true
         end
+      end
+
+      private
 
         # See https://www.postgresql.org/docs/current/static/errcodes-appendix.html
         VALUE_LIMIT_VIOLATION = "22001"

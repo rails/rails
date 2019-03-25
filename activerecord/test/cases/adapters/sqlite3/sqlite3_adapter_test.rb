@@ -635,6 +635,18 @@ module ActiveRecord
         end
       end
 
+      def test_check_version_updates_schema_cache
+        @conn.check_version!
+
+        assert @conn.schema_cache.database_version_checked
+      end
+
+      def test_check_version_raises_for_unsupported_versions
+        @conn.stub(:sqlite_version, "1") do
+          assert_raises { @conn.check_version! }
+        end
+      end
+
       private
 
         def assert_logged(logs)

@@ -212,6 +212,18 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
     end
   end
 
+  def test_check_version_updates_schema_cache
+    @conn.check_version!
+
+    assert @conn.schema_cache.database_version_checked
+  end
+
+  def test_check_version_raises_for_unsupported_versions
+    @conn.stub(:version, "1") do
+      assert_raises { @conn.check_version! }
+    end
+  end
+
   private
 
     def with_example_table(definition = "id int auto_increment primary key, number int, data varchar(255)", &block)

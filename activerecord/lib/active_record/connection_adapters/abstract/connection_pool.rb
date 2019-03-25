@@ -852,7 +852,9 @@ module ActiveRecord
 
         def checkout_new_connection
           raise ConnectionNotEstablished unless @automatic_reconnect
-          new_connection
+          connection = new_connection
+          connection.check_version! unless connection.version_checked?
+          connection
         end
 
         def checkout_and_verify(c)
