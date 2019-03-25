@@ -136,6 +136,17 @@ class StoreTest < ActiveRecord::TestCase
     assert_equal ["Dallas", "Lena"], @john.partner_name_change
   end
 
+  test "saved changes tracking for accessors" do
+    @john.spouse[:name] = "Lena"
+    assert @john.partner_name_changed?
+
+    @john.save!
+    assert_not @john.partner_name_change
+    assert @john.saved_change_to_partner_name?
+    assert_equal ["Dallas", "Lena"], @john.saved_change_to_partner_name
+    assert_equal "Dallas", @john.partner_name_before_last_save
+  end
+
   test "object initialization with not nullable column" do
     assert_equal true, @john.remember_login
   end

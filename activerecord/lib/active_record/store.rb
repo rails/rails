@@ -11,7 +11,9 @@ module ActiveRecord
   # of the model. This is very helpful for easily exposing store keys to a form or elsewhere that's
   # already built around just accessing attributes on the model.
   #
-  # Every accessor comes with dirty tracking methods (+key_changed?+, +key_was+ and +key_change+).
+  # Every accessor comes with dirty tracking methods (+key_changed?+, +key_was+ and +key_change+) and
+  # methods to access the changes made during the last save (+saved_change_to_key?+, +saved_change_to_key+ and
+  # +key_before_last_save+).
   #
   # NOTE: There is no +key_will_change!+ method for accessors, use +store_will_change!+ instead.
   #
@@ -153,6 +155,24 @@ module ActiveRecord
             define_method("#{accessor_key}_was") do
               return unless attribute_changed?(store_attribute)
               prev_store, _new_store = changes[store_attribute]
+              prev_store&.dig(key)
+            end
+
+            define_method("saved_change_to_#{accessor_key}?") do
+              return false unless saved_change_to_attribute?(store_attribute)
+              prev_store, new_store = saved_change_to_attribute(store_attribute)
+              prev_store&.dig(key) != new_store&.dig(key)
+            end
+
+            define_method("saved_change_to_#{accessor_key}") do
+              return unless saved_change_to_attribute?(store_attribute)
+              prev_store, new_store = saved_change_to_attribute(store_attribute)
+              [prev_store&.dig(key), new_store&.dig(key)]
+            end
+
+            define_method("#{accessor_key}_before_last_save") do
+              return unless saved_change_to_attribute?(store_attribute)
+              prev_store, _new_store = saved_change_to_attribute(store_attribute)
               prev_store&.dig(key)
             end
           end
