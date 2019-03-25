@@ -60,7 +60,11 @@ module ActionDispatch
         log_error(request, wrapper)
 
         if request.get_header("action_dispatch.show_detailed_exceptions")
-          content_type = request.formats.first
+          begin
+            content_type = request.formats.first
+          rescue Mime::Type::InvalidMimeType
+            render_for_api_request(Mime[:text], wrapper)
+          end
 
           if api_request?(content_type)
             render_for_api_request(content_type, wrapper)
