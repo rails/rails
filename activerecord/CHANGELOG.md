@@ -13,7 +13,7 @@
 
 *   Support Optimizer Hints.
 
-    In most databases, there is a way to control the optimizer is by using optimizer hints,
+    In most databases, a way to control the optimizer is by using optimizer hints,
     which can be specified within individual statements.
 
     Example (for MySQL):
