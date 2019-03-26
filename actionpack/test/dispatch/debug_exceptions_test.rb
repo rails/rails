@@ -58,6 +58,8 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
         raise ActionController::NotImplemented
       when "/unprocessable_entity"
         raise ActionController::InvalidAuthenticityToken
+      when "/invalid_mimetype"
+        raise Mime::Type::InvalidMimeType
       when "/not_found_original_exception"
         begin
           raise AbstractController::ActionNotFound.new
@@ -178,6 +180,10 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     get "/parameter_missing", headers: { "action_dispatch.show_exceptions" => true }
     assert_response 400
     assert_match(/ActionController::ParameterMissing/, body)
+
+    get "/invalid_mimetype", headers: { "Accept" => "text/html,*", "action_dispatch.show_exceptions" => true }
+    assert_response 406
+    assert_match(/Mime::Type::InvalidMimeType/, body)
   end
 
   test "rescue with text error for xhr request" do
