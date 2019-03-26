@@ -167,6 +167,8 @@ GEM
       selenium-webdriver
     bootsnap (1.4.2)
       msgpack (~> 1.0)
+    bootsnap (1.4.2-java)
+      msgpack (~> 1.0)
     builder (3.2.3)
     bunny (2.13.0)
       amq-protocol (~> 2.3, >= 2.3.0)
