@@ -1,3 +1,8 @@
+*   Applications running in `:zeitwerk` mode that use `bootsnap` need
+    to upgrade `bootsnap` to at least 1.4.2.
+
+    *Xavier Noria*
+
 *   Add `config.disable_sandbox` option to Rails console.
 
     This setting will disable `rails console --sandbox` mode, preventing
