@@ -86,7 +86,7 @@ application. Accepts a valid week day symbol (e.g. `:monday`).
     end
     ```
 
-* `config.disable_sandbox` controls whether or not someone can start a console in sandbox mode. This is helpful to avoid a long running session of sandbox console, that could lead a database server to run out of memory. Defaults to false.
+* `config.disable_sandbox` controls whether or not someone can start a console in sandbox mode. This is helpful to avoid a long running session of sandbox console, that could lead a database server to run out of memory. Defaults to `false`.
 
 * `config.eager_load` when `true`, eager loads all registered `config.eager_load_namespaces`. This includes your application, engines, Rails frameworks, and any other registered namespace.
 
@@ -94,7 +94,7 @@ application. Accepts a valid week day symbol (e.g. `:monday`).
 
 * `config.eager_load_paths` accepts an array of paths from which Rails will eager load on boot if cache classes is enabled. Defaults to every folder in the `app` directory of the application.
 
-* `config.enable_dependency_loading`: when true, enables autoloading, even if the application is eager loaded and `config.cache_classes` is set as true. Defaults to false.
+* `config.enable_dependency_loading`: when true, enables autoloading, even if the application is eager loaded and `config.cache_classes` is set as true. Defaults to `false`.
 
 * `config.encoding` sets up the application-wide encoding. Defaults to UTF-8.
 
@@ -135,7 +135,7 @@ defaults to `:debug` for all environments. The available log levels are: `:debug
 
 * `config.middleware` allows you to configure the application's middleware. This is covered in depth in the [Configuring Middleware](#configuring-middleware) section below.
 
-* `config.reload_classes_only_on_change` enables or disables reloading of classes only when tracked files change. By default tracks everything on autoload paths and is set to `true`. If `config.cache_classes` is `true`, this option is ignored.
+* `config.reload_classes_only_on_change` enables or disables reloading of classes only when tracked files change. By default, tracks everything on autoload paths and is set to `true`. If `config.cache_classes` is `true`, this option is ignored.
 
 * `config.credentials.content_path` configures lookup path for encrypted credentials.
 
@@ -419,13 +419,13 @@ The schema dumper adds two additional configuration options:
 
 * `config.action_controller.request_forgery_protection_token` sets the token parameter name for RequestForgery. Calling `protect_from_forgery` sets it to `:authenticity_token` by default.
 
-* `config.action_controller.allow_forgery_protection` enables or disables CSRF protection. By default this is `false` in test mode and `true` in all other modes.
+* `config.action_controller.allow_forgery_protection` enables or disables CSRF protection. By default, this is `false` in test mode and `true` in all other modes.
 
 * `config.action_controller.forgery_protection_origin_check` configures whether the HTTP `Origin` header should be checked against the site's origin as an additional CSRF defense.
 
 * `config.action_controller.per_form_csrf_tokens` configures whether CSRF tokens are only valid for the method/action they were generated for.
 
-* `config.action_controller.default_protect_from_forgery` determines whether forgery protection is added on `ActionController:Base`. This is false by default.
+* `config.action_controller.default_protect_from_forgery` determines whether forgery protection is added on `ActionController:Base`. This is `false` by default.
 
 * `config.action_controller.relative_url_root` can be used to tell Rails that you are [deploying to a subdirectory](configuring.html#deploy-to-a-subdirectory-relative-url-root). The default is `ENV['RAILS_RELATIVE_URL_ROOT']`.
 
@@ -444,7 +444,7 @@ The schema dumper adds two additional configuration options:
     Rendered recordings/threads/_thread.html.erb in 1.5 ms [cache miss]
     ```
 
-  By default it is set to `false` which results in following output:
+  By default, it is set to `false` which results in following output:
 
     ```
     Rendered messages/_message.html.erb in 1.2 ms [cache hit]
@@ -567,7 +567,7 @@ Defaults to `'signed cookie'`.
 
 * `config.action_view.embed_authenticity_token_in_remote_forms` allows you to
   set the default behavior for `authenticity_token` in forms with `remote:
-  true`. By default it's set to `false`, which means that remote forms will not
+  true`. By default, it is set to `false`, which means that remote forms will not
   include `authenticity_token`, which is helpful when you're fragment-caching
   the form. Remote forms get the authenticity from the `meta` tag, so embedding
   is unnecessary unless you support browsers without JavaScript. In such case
@@ -644,7 +644,7 @@ There are a number of settings available on `config.action_mailer`:
 
 * `config.action_mailer.delivery_method` defines the delivery method and defaults to `:smtp`. See the [configuration section in the Action Mailer guide](action_mailer_basics.html#action-mailer-configuration) for more info.
 
-* `config.action_mailer.perform_deliveries` specifies whether mail will actually be delivered and is true by default. It can be convenient to set it to `false` for testing.
+* `config.action_mailer.perform_deliveries` specifies whether mail will actually be delivered and is `true` by default. It can be convenient to set it to `false` for testing.
 
 * `config.action_mailer.default_options` configures Action Mailer defaults. Use to set options like `from` or `reply_to` for every mailer. These default to:
 
@@ -687,16 +687,16 @@ There are a number of settings available on `config.action_mailer`:
     config.action_mailer.preview_path = "#{Rails.root}/lib/mailer_previews"
     ```
 
-* `config.action_mailer.show_previews` enable or disable mailer previews. By default this is `true` in development.
+* `config.action_mailer.show_previews` enable or disable mailer previews. By default, this is `true` in development.
 
     ```ruby
     config.action_mailer.show_previews = false
     ```
 
 * `config.action_mailer.deliver_later_queue_name` specifies the queue name for
-  mailers. By default this is `mailers`.
+  mailers. By default, this is `mailers`.
 
-* `config.action_mailer.perform_caching` specifies whether the mailer templates should perform fragment caching or not. By default this is `false` in all environments.
+* `config.action_mailer.perform_caching` specifies whether the mailer templates should perform fragment caching or not. By default, this is `false` in all environments.
 
 * `config.action_mailer.delivery_job` specifies delivery job for mail. Defaults to `ActionMailer::DeliveryJob`.
 
@@ -715,9 +715,9 @@ There are a few configuration options available in Active Support:
 
 * `config.active_support.time_precision` sets the precision of JSON encoded time values. Defaults to `3`.
 
-* `config.active_support.use_sha1_digests` specifies whether to use SHA-1 instead of MD5 to generate non-sensitive digests, such as the ETag header. Defaults to false.
+* `config.active_support.use_sha1_digests` specifies whether to use SHA-1 instead of MD5 to generate non-sensitive digests, such as the ETag header. Defaults to `false`.
 
-* `config.active_support.use_authenticated_message_encryption` specifies whether to use AES-256-GCM authenticated encryption as the default cipher for encrypting messages instead of AES-256-CBC. This is false by default.
+* `config.active_support.use_authenticated_message_encryption` specifies whether to use AES-256-GCM authenticated encryption as the default cipher for encrypting messages instead of AES-256-CBC. This is `false` by default.
 
 * `ActiveSupport::Logger.silencer` is set to `false` to disable the ability to silence logging in a block. The default is `true`.
 
@@ -742,13 +742,13 @@ There are a few configuration options available in Active Support:
     config.active_job.queue_adapter = :sidekiq
     ```
 
-* `config.active_job.default_queue_name` can be used to change the default queue name. By default this is `"default"`.
+* `config.active_job.default_queue_name` can be used to change the default queue name. By default, this is `"default"`.
 
     ```ruby
     config.active_job.default_queue_name = :medium_priority
     ```
 
-* `config.active_job.queue_name_prefix` allows you to set an optional, non-blank, queue name prefix for all jobs. By default it is blank and not used.
+* `config.active_job.queue_name_prefix` allows you to set an optional, non-blank, queue name prefix for all jobs. By default, it is blank and not used.
 
     The following configuration would queue the given job on the `production_high_priority` queue when run in production:
 
@@ -1097,7 +1097,7 @@ development:
   pool: 5
 ```
 
-By default Active Record uses database features like prepared statements and advisory locks. You might need to disable those features if you're using an external connection pooler like PgBouncer:
+By default, Active Record uses database features like prepared statements and advisory locks. You might need to disable those features if you're using an external connection pooler like PgBouncer:
 
 ```yaml
 production:
@@ -1155,7 +1155,7 @@ Change the username and password in the `development` section as appropriate.
 
 ### Creating Rails Environments
 
-By default Rails ships with three environments: "development", "test", and "production". While these are sufficient for most use cases, there are circumstances when you want more environments.
+By default, Rails ships with three environments: "development", "test", and "production". While these are sufficient for most use cases, there are circumstances when you want more environments.
 
 Imagine you have a server which mirrors the production environment but is only used for testing. Such a server is commonly called a "staging server". To define an environment called "staging" for this server, just create a file called `config/environments/staging.rb`. Please use the contents of any existing file in `config/environments` as a starting point and make the necessary changes from there.
 
@@ -1164,7 +1164,7 @@ That environment is no different than the default ones, start a server with `rai
 
 ### Deploy to a subdirectory (relative url root)
 
-By default Rails expects that your application is running at the root
+By default, Rails expects that your application is running at the root
 (eg. `/`). This section explains how to run your application inside a directory.
 
 Let's assume we want to deploy our application to "/app1". Rails needs to know
@@ -1191,7 +1191,7 @@ Many modern web servers can be used as a proxy server to balance third-party ele
 
 One such application server you can use is [Unicorn](https://bogomips.org/unicorn/) to run behind a reverse proxy.
 
-In this case, you would need to configure the proxy server (NGINX, Apache, etc) to accept connections from your application server (Unicorn). By default Unicorn will listen for TCP connections on port 8080, but you can change the port or configure it to use sockets instead.
+In this case, you would need to configure the proxy server (NGINX, Apache, etc) to accept connections from your application server (Unicorn). By default, Unicorn will listen for TCP connections on port 8080, but you can change the port or configure it to use sockets instead.
 
 You can find more information in the [Unicorn readme](https://bogomips.org/unicorn/README.html) and understand the [philosophy](https://bogomips.org/unicorn/PHILOSOPHY.html) behind it.
 
