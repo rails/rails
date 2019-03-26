@@ -168,7 +168,12 @@ module ActionView
     DEFAULT_PATTERN = ":prefix/:action{.:locale,}{.:formats,}{+:variants,}{.:handlers,}"
 
     def initialize(pattern = nil)
-      @pattern = pattern || DEFAULT_PATTERN
+      if pattern
+        ActiveSupport::Deprecation.warn "Specifying a custom path for #{self.class} is deprecated. Implement a custom Resolver subclass instead."
+        @pattern = pattern
+      else
+        @pattern = DEFAULT_PATTERN
+      end
       super()
     end
 
@@ -273,44 +278,7 @@ module ActionView
       end
   end
 
-  # A resolver that loads files from the filesystem. It allows setting your own
-  # resolving pattern. Such pattern can be a glob string supported by some variables.
-  #
-  # ==== Examples
-  #
-  # Default pattern, loads views the same way as previous versions of rails, eg. when you're
-  # looking for <tt>users/new</tt> it will produce query glob: <tt>users/new{.{en},}{.{html,js},}{.{erb,haml},}</tt>
-  #
-  #   FileSystemResolver.new("/path/to/views", ":prefix/:action{.:locale,}{.:formats,}{+:variants,}{.:handlers,}")
-  #
-  # This one allows you to keep files with different formats in separate subdirectories,
-  # eg. <tt>users/new.html</tt> will be loaded from <tt>users/html/new.erb</tt> or <tt>users/new.html.erb</tt>,
-  # <tt>users/new.js</tt> from <tt>users/js/new.erb</tt> or <tt>users/new.js.erb</tt>, etc.
-  #
-  #   FileSystemResolver.new("/path/to/views", ":prefix/{:formats/,}:action{.:locale,}{.:formats,}{+:variants,}{.:handlers,}")
-  #
-  # If you don't specify a pattern then the default will be used.
-  #
-  # In order to use any of the customized resolvers above in a Rails application, you just need
-  # to configure ActionController::Base.view_paths in an initializer, for example:
-  #
-  #   ActionController::Base.view_paths = FileSystemResolver.new(
-  #     Rails.root.join("app/views"),
-  #     ":prefix/:action{.:locale,}{.:formats,}{+:variants,}{.:handlers,}",
-  #   )
-  #
-  # ==== Pattern format and variables
-  #
-  # Pattern has to be a valid glob string, and it allows you to use the
-  # following variables:
-  #
-  # * <tt>:prefix</tt> - usually the controller path
-  # * <tt>:action</tt> - name of the action
-  # * <tt>:locale</tt> - possible locale versions
-  # * <tt>:formats</tt> - possible request formats (for example html, json, xml...)
-  # * <tt>:variants</tt> - possible request variants (for example phone, tablet...)
-  # * <tt>:handlers</tt> - possible handlers (for example erb, haml, builder...)
-  #
+  # A resolver that loads files from the filesystem.
   class FileSystemResolver < PathResolver
     def initialize(path, pattern = nil)
       raise ArgumentError, "path already is a Resolver class" if path.is_a?(Resolver)
@@ -331,6 +299,10 @@ module ActionView
 
   # An Optimized resolver for Rails' most common case.
   class OptimizedFileSystemResolver < FileSystemResolver #:nodoc:
+    def initialize(path)
+      super(path)
+    end
+
     private
 
       def find_template_paths_from_details(path, details)
