@@ -1,3 +1,8 @@
+*   Use weak references in descendants tracker to allow anonymous subclasses to
+    be garbage collected.
+
+    *Edgars Beigarts*
+
 *   Update `ActiveSupport::Notifications::Instrumenter#instrument` to make
     passing a block optional. This will let users use
     `ActiveSupport::Notifications` messaging features outside of
