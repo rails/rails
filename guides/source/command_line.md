@@ -606,7 +606,7 @@ $ rails "task_name[value 1]" # entire argument string should be quoted
 $ rails db:nothing
 ```
 
-NOTE: If your need to interact with your application models, perform database queries, and so on, your task should depend on the `environment` task, which will load your application code.
+NOTE: If you need to interact with your application models, perform database queries, and so on, your task should depend on the `environment` task, which will load your application code.
 
 The Rails Advanced Command Line
 -------------------------------
