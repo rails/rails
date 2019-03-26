@@ -138,7 +138,7 @@ Please refer to the [Changelog][railties] for detailed changes.
     the generators.
     ([Pull Request](https://github.com/rails/rails/pull/34021))
 
-*   Add support for multi environment credentials=.
+*   Add support for multi environment credentials.
     ([Pull Request](https://github.com/rails/rails/pull/33521))
 
 *   Make `null_store` as default cache store in test environment.
