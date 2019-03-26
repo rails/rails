@@ -121,7 +121,7 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
     assert reply.save
 
     topics = Topic.all.merge!(includes: :replies, order: ["topics.id", "replies_topics.id"]).to_a
-    assert_no_queries do
+    assert_queries(0) do
       assert_equal 2, topics[0].replies.size
       assert_equal 0, topics[1].replies.size
     end
