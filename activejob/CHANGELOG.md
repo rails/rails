@@ -1,3 +1,13 @@
+*   Make job argument assertions with `Time`, `ActiveSupport::TimeWithZone`, and `DateTime` work by dropping microseconds. Microsecond precision is lost during serialization.
+
+    *Gannon McGibbon*
+
+
+## Rails 6.0.0.beta3 (March 11, 2019) ##
+
+*   No changes.
+
+
 ## Rails 6.0.0.beta2 (February 25, 2019) ##
 
 *   No changes.

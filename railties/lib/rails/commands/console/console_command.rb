@@ -26,6 +26,12 @@ module Rails
       @options = options
 
       app.sandbox = sandbox?
+
+      if sandbox? && app.config.disable_sandbox
+        puts "Error: Unable to start console in sandbox mode as sandbox mode is disabled (config.disable_sandbox is true)."
+        exit 1
+      end
+
       app.load_console
 
       @console = app.config.console || IRB

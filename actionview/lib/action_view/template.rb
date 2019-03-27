@@ -125,7 +125,7 @@ module ActionView
     attr_reader :source, :identifier, :handler, :original_encoding, :updated_at
     attr_reader :variable, :format, :variant, :locals, :virtual_path
 
-    def initialize(source, identifier, handler, format: nil, variant: nil, locals: nil, virtual_path: nil, updated_at: Time.now)
+    def initialize(source, identifier, handler, format: nil, variant: nil, locals: nil, virtual_path: nil, updated_at: nil)
       unless locals
         ActiveSupport::Deprecation.warn "ActionView::Template#initialize requires a locals parameter"
         locals = []
@@ -144,13 +144,19 @@ module ActionView
         $1.to_sym
       end
 
-      @updated_at        = updated_at
+      if updated_at
+        ActiveSupport::Deprecation.warn "ActionView::Template#updated_at is deprecated"
+        @updated_at        = updated_at
+      else
+        @updated_at        = Time.now
+      end
       @format            = format
       @variant           = variant
       @compile_mutex     = Mutex.new
     end
 
     deprecate :original_encoding
+    deprecate :updated_at
     deprecate def virtual_path=(_); end
     deprecate def locals=(_); end
     deprecate def formats=(_); end
@@ -173,7 +179,7 @@ module ActionView
     def render(view, locals, buffer = ActionView::OutputBuffer.new, &block)
       instrument_render_template do
         compile!(view)
-        view.run(method_name, self, locals, buffer, &block)
+        view._run(method_name, self, locals, buffer, &block)
       end
     rescue => e
       handle_render_error(view, e)

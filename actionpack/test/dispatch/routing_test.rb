@@ -3338,6 +3338,16 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal "0c0c0b68-d24b-11e1-a861-001ff3fffe6f", @request.params[:download]
   end
 
+  def test_colon_containing_custom_param
+    ex = assert_raises(ArgumentError) {
+      draw do
+        resources :profiles, param: "username/:is_admin"
+      end
+    }
+
+    assert_match(/:param option can't contain colon/, ex.message)
+  end
+
   def test_action_from_path_is_not_frozen
     draw do
       get "search" => "search"

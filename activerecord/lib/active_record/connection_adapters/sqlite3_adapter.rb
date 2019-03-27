@@ -4,6 +4,7 @@ require "active_record/connection_adapters/abstract_adapter"
 require "active_record/connection_adapters/statement_pool"
 require "active_record/connection_adapters/sqlite3/explain_pretty_printer"
 require "active_record/connection_adapters/sqlite3/quoting"
+require "active_record/connection_adapters/sqlite3/database_statements"
 require "active_record/connection_adapters/sqlite3/schema_creation"
 require "active_record/connection_adapters/sqlite3/schema_definitions"
 require "active_record/connection_adapters/sqlite3/schema_dumper"
@@ -58,6 +59,7 @@ module ActiveRecord
 
       include SQLite3::Quoting
       include SQLite3::SchemaStatements
+      include SQLite3::DatabaseStatements
 
       NATIVE_DATABASE_TYPES = {
         primary_key:  "integer PRIMARY KEY AUTOINCREMENT NOT NULL",
@@ -153,10 +155,6 @@ module ActiveRecord
       def disconnect!
         super
         @connection.close rescue nil
-      end
-
-      def truncate(table_name, name = nil)
-        execute "DELETE FROM #{quote_table_name(table_name)}", name
       end
 
       def supports_index_sort_order?
@@ -383,18 +381,6 @@ module ActiveRecord
             on_update: extract_foreign_key_action(row["on_update"])
           }
           ForeignKeyDefinition.new(table_name, row["table"], options)
-        end
-      end
-
-      def insert_fixtures_set(fixture_set, tables_to_delete = [])
-        disable_referential_integrity do
-          transaction(requires_new: true) do
-            tables_to_delete.each { |table| delete "DELETE FROM #{quote_table_name(table)}", "Fixture Delete" }
-
-            fixture_set.each do |table_name, rows|
-              rows.each { |row| insert_fixture(row, table_name) }
-            end
-          end
         end
       end
 

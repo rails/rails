@@ -44,7 +44,7 @@ gem "libxml-ruby", platforms: :ruby
 gem "connection_pool", require: false
 
 # for railties app_generator_test
-gem "bootsnap", ">= 1.4.0", require: false
+gem "bootsnap", ">= 1.4.2", require: false
 
 # Active Job
 group :job do
@@ -92,7 +92,7 @@ gem "webmock"
 
 group :ujs do
   gem "qunit-selenium"
-  gem "chromedriver-helper"
+  gem "webdrivers"
 end
 
 # Add your own local bundler stuff.

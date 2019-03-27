@@ -12,7 +12,7 @@ end
 class DummyCompiler < ERB::Compiler # :nodoc:
   def compile_content(stag, out)
     case stag
-    when '<%='
+    when "<%="
       out.push "_erbout << 'dummy_compiler'"
     end
   end

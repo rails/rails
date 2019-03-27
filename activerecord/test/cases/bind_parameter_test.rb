@@ -184,7 +184,7 @@ if ActiveRecord::Base.connection.prepared_statements
             name: "SQL",
             sql: "select * from topics where id = ?",
             binds: binds,
-            type_casted_binds: @connection.type_casted_binds(binds)
+            type_casted_binds: @connection.send(:type_casted_binds, binds)
           }
 
           event = ActiveSupport::Notifications::Event.new(

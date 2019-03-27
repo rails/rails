@@ -24,7 +24,7 @@ class Module
   #   end
   #   # => NameError: invalid attribute name: 1_Badname
   #
-  # If you want to opt out the creation on the instance reader method, pass
+  # To omit the instance reader method, pass
   # <tt>instance_reader: false</tt> or <tt>instance_accessor: false</tt>.
   #
   #   module HairColors
@@ -91,7 +91,7 @@ class Module
   #   Person.new.hair_colors = [:blonde, :red]
   #   HairColors.class_variable_get("@@hair_colors") # => [:blonde, :red]
   #
-  # If you want to opt out the instance writer method, pass
+  # To omit the instance writer method, pass
   # <tt>instance_writer: false</tt> or <tt>instance_accessor: false</tt>.
   #
   #   module HairColors
@@ -166,8 +166,8 @@ class Module
   #   Citizen.new.hair_colors << :blue
   #   Person.new.hair_colors # => [:brown, :black, :blonde, :red, :blue]
   #
-  # To opt out of the instance writer method, pass <tt>instance_writer: false</tt>.
-  # To opt out of the instance reader method, pass <tt>instance_reader: false</tt>.
+  # To omit the instance writer method, pass <tt>instance_writer: false</tt>.
+  # To omit the instance reader method, pass <tt>instance_reader: false</tt>.
   #
   #   module HairColors
   #     mattr_accessor :hair_colors, instance_writer: false, instance_reader: false
@@ -180,7 +180,7 @@ class Module
   #   Person.new.hair_colors = [:brown]  # => NoMethodError
   #   Person.new.hair_colors             # => NoMethodError
   #
-  # Or pass <tt>instance_accessor: false</tt>, to opt out both instance methods.
+  # Or pass <tt>instance_accessor: false</tt>, to omit both instance methods.
   #
   #   module HairColors
   #     mattr_accessor :hair_colors, instance_accessor: false

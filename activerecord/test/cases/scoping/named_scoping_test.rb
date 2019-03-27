@@ -602,4 +602,14 @@ class NamedScopingTest < ActiveRecord::TestCase
     Topic.create!
     assert_predicate Topic, :one?
   end
+
+  def test_scope_with_annotation
+    Topic.class_eval do
+      scope :including_annotate_in_scope, Proc.new { annotate("from-scope") }
+    end
+
+    assert_sql(%r{/\* from-scope \*/}) do
+      assert Topic.including_annotate_in_scope.to_a, Topic.all.to_a
+    end
+  end
 end

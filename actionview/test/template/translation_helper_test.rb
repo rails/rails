@@ -127,20 +127,20 @@ class TranslationHelperTest < ActiveSupport::TestCase
   end
 
   def test_finds_translation_scoped_by_partial
-    assert_equal "Foo", view.render(file: "translations/templates/found").strip
+    assert_equal "Foo", view.render(template: "translations/templates/found").strip
   end
 
   def test_finds_array_of_translations_scoped_by_partial
-    assert_equal "Foo Bar", @view.render(file: "translations/templates/array").strip
+    assert_equal "Foo Bar", @view.render(template: "translations/templates/array").strip
   end
 
   def test_default_lookup_scoped_by_partial
-    assert_equal "Foo", view.render(file: "translations/templates/default").strip
+    assert_equal "Foo", view.render(template: "translations/templates/default").strip
   end
 
   def test_missing_translation_scoped_by_partial
     expected = '<span class="translation_missing" title="translation missing: en.translations.templates.missing.missing">Missing</span>'
-    assert_equal expected, view.render(file: "translations/templates/missing").strip
+    assert_equal expected, view.render(template: "translations/templates/missing").strip
   end
 
   def test_translate_does_not_mark_plain_text_as_safe_html

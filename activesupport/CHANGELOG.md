@@ -1,3 +1,33 @@
+*   Use weak references in descendants tracker to allow anonymous subclasses to
+    be garbage collected.
+
+    *Edgars Beigarts*
+
+*   Update `ActiveSupport::Notifications::Instrumenter#instrument` to make
+    passing a block optional. This will let users use
+    `ActiveSupport::Notifications` messaging features outside of
+    instrumentation.
+
+    *Ali Ibrahim*
+
+*   Fix `Time#advance` to work with dates before 1001-03-07
+
+    Before:
+    
+        Time.utc(1001, 3, 6).advance(years: -1) # => 1000-03-05 00:00:00 UTC
+    
+    After
+    
+        Time.utc(1001, 3, 6).advance(years: -1) # => 1000-03-06 00:00:00 UTC
+
+    Note that this doesn't affect `DateTime#advance` as that doesn't use a proleptic calendar.
+
+    *Andrew White*
+
+*   In Zeitwerk mode, engines are now managed by the `main` autoloader. Engines may reference application constants, if the application is reloaded and we do not reload engines, they won't use the reloaded application code.
+
+    *Xavier Noria*
+
 *   Add support for supplying `locale` to `transliterate` and `parameterize`.
 
         I18n.backend.store_translations(:de, i18n: { transliterate: { rule: { "ü" => "ue" } } })
@@ -25,6 +55,11 @@
         post.authors.including(Current.person) => All the authors plus the current person!
 
     *DHH*
+
+
+## Rails 6.0.0.beta3 (March 11, 2019) ##
+
+*   No changes.
 
 
 ## Rails 6.0.0.beta2 (February 25, 2019) ##
@@ -263,7 +298,7 @@
 
     *Kasper Timm Hansen*
 
-*   Fix bug where `ActiveSupport::Timezone.all` would fail when tzinfo data for
+*   Fix bug where `ActiveSupport::TimeZone.all` would fail when tzinfo data for
     any timezone defined in `ActiveSupport::TimeZone::MAPPING` is missing.
 
     *Dominik Sander*

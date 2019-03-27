@@ -59,6 +59,7 @@ To retrieve objects from the database, Active Record provides several finder met
 
 The methods are:
 
+* `annotate`
 * `find`
 * `create_with`
 * `distinct`
@@ -74,11 +75,13 @@ The methods are:
 * `lock`
 * `none`
 * `offset`
+* `optimizer_hints`
 * `order`
 * `preload`
 * `readonly`
 * `references`
 * `reorder`
+* `reselect`
 * `reverse_order`
 * `select`
 * `where`
@@ -1731,10 +1734,13 @@ Client.find_by_sql("SELECT * FROM clients
 
 ### `select_all`
 
-`find_by_sql` has a close relative called `connection#select_all`. `select_all` will retrieve objects from the database using custom SQL just like `find_by_sql` but will not instantiate them. This method will return an instance of `ActiveRecord::Result` class and calling `to_hash` on this object would return you an array of hashes where each hash indicates a record.
+`find_by_sql` has a close relative called `connection#select_all`. `select_all` will retrieve
+objects from the database using custom SQL just like `find_by_sql` but will not instantiate them.
+This method will return an instance of `ActiveRecord::Result` class and calling `to_a` on this
+object would return you an array of hashes where each hash indicates a record.
 
 ```ruby
-Client.connection.select_all("SELECT first_name, created_at FROM clients WHERE id = '1'").to_hash
+Client.connection.select_all("SELECT first_name, created_at FROM clients WHERE id = '1'").to_a
 # => [
 #   {"first_name"=>"Rafael", "created_at"=>"2012-11-10 23:23:45.281189"},
 #   {"first_name"=>"Eileen", "created_at"=>"2013-12-09 11:22:35.221282"}

@@ -23,9 +23,9 @@ module Arel
         sql.must_be_like "?"
       end
 
-      it "does not quote BindParams used as part of a Values" do
+      it "does not quote BindParams used as part of a ValuesList" do
         bp = Nodes::BindParam.new(1)
-        values = Nodes::Values.new([bp])
+        values = Nodes::ValuesList.new([[bp]])
         sql = compile values
         sql.must_be_like "VALUES (?)"
       end

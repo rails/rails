@@ -617,7 +617,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     assert_no_gem "capybara"
     assert_no_gem "selenium-webdriver"
-    assert_no_gem "chromedriver-helper"
+    assert_no_gem "webdrivers"
 
     assert_no_directory("test")
   end
@@ -626,7 +626,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator [destination_root, "--skip-system-test"]
     assert_no_gem "capybara"
     assert_no_gem "selenium-webdriver"
-    assert_no_gem "chromedriver-helper"
+    assert_no_gem "webdrivers"
 
     assert_directory("test")
 

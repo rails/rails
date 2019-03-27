@@ -86,6 +86,8 @@ application. Accepts a valid week day symbol (e.g. `:monday`).
     end
     ```
 
+* `config.disable_sandbox` controls whether or not someone can start a console in sandbox mode. This is helpful to avoid a long running session of sandbox console, that could lead a database server to run out of memory. Defaults to false.
+
 * `config.eager_load` when `true`, eager loads all registered `config.eager_load_namespaces`. This includes your application, engines, Rails frameworks, and any other registered namespace.
 
 * `config.eager_load_namespaces` registers namespaces that are eager loaded when `config.eager_load` is `true`. All namespaces in the list must respond to the `eager_load!` method.
@@ -581,7 +583,7 @@ Defaults to `'signed cookie'`.
     The default setting is `true`, which uses the partial at `/admin/articles/_article.erb`. Setting the value to `false` would render `/articles/_article.erb`, which is the same behavior as rendering from a non-namespaced controller such as `ArticlesController`.
 
 * `config.action_view.raise_on_missing_translations` determines whether an
-  error should be raised for missing translations.
+  error should be raised for missing translations. This defaults to `false`.
 
 * `config.action_view.automatically_disable_submit_tag` determines whether
   `submit_tag` should automatically disable on click, this defaults to `true`.
@@ -725,7 +727,7 @@ There are a few configuration options available in Active Support:
 
 * `ActiveSupport::Deprecation.silence` takes a block in which all deprecation warnings are silenced.
 
-* `ActiveSupport::Deprecation.silenced` sets whether or not to display deprecation warnings.
+* `ActiveSupport::Deprecation.silenced` sets whether or not to display deprecation warnings. The default is `false`.
 
 ### Configuring Active Job
 

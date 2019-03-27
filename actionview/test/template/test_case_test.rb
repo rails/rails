@@ -284,7 +284,7 @@ module ActionView
       @controller.controller_path = "test"
 
       @customers = [DeveloperStruct.new("Eloy"), DeveloperStruct.new("Manfred")]
-      assert_match(/Hello: EloyHello: Manfred/, render(file: "test/list"))
+      assert_match(/Hello: EloyHello: Manfred/, render(template: "test/list"))
     end
 
     test "is able to render partials from templates and also use instance variables after view has been referenced" do
@@ -293,7 +293,7 @@ module ActionView
       view
 
       @customers = [DeveloperStruct.new("Eloy"), DeveloperStruct.new("Manfred")]
-      assert_match(/Hello: EloyHello: Manfred/, render(file: "test/list"))
+      assert_match(/Hello: EloyHello: Manfred/, render(template: "test/list"))
     end
 
     test "is able to use helpers that depend on the view flow" do

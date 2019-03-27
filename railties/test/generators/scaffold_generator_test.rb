@@ -479,6 +479,14 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_scaffold_generator_database_with_aliases
+    with_secondary_database_configuration do
+      run_generator ["posts", "--db=secondary"]
+
+      assert_migration "db/secondary_migrate/create_posts.rb"
+    end
+  end
+
   def test_scaffold_generator_password_digest
     run_generator ["user", "name", "password:digest"]
 

@@ -131,7 +131,7 @@ module ActiveStorage
       end
 
       def bucket
-        @bucket ||= client.bucket(config.fetch(:bucket))
+        @bucket ||= client.bucket(config.fetch(:bucket), skip_lookup: true)
       end
 
       def client

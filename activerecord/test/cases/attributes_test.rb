@@ -56,6 +56,17 @@ module ActiveRecord
       assert_equal 255, UnoverloadedType.type_for_attribute("overloaded_string_with_limit").limit
     end
 
+    test "extra options are forwarded to the type caster constructor" do
+      klass = Class.new(OverloadedType) do
+        attribute :starts_at, :datetime, precision: 3, limit: 2, scale: 1
+      end
+
+      starts_at_type = klass.type_for_attribute(:starts_at)
+      assert_equal 3, starts_at_type.precision
+      assert_equal 2, starts_at_type.limit
+      assert_equal 1, starts_at_type.scale
+    end
+
     test "nonexistent attribute" do
       data = OverloadedType.new(non_existent_decimal: 1)
 

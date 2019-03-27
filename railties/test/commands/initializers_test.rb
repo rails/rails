@@ -25,8 +25,24 @@ class Rails::Command::InitializersTest < ActiveSupport::TestCase
     assert final_output.include?("set_added_test_module")
   end
 
+
+  test "prints out initializers only specified in environment option" do
+    add_to_config <<-RUBY
+      initializer(:set_added_development_module) { } if Rails.env.development?
+      initializer(:set_added_production_module) { } if Rails.env.production?
+    RUBY
+
+    output = run_initializers_command.split("\n")
+    assert_includes output, "AppTemplate::Application.set_added_development_module"
+    assert_not_includes output, "AppTemplate::Application.set_added_production_module"
+
+    output = run_initializers_command(["-e", "production"]).split("\n")
+    assert_not_includes output, "AppTemplate::Application.set_added_development_module"
+    assert_includes output, "AppTemplate::Application.set_added_production_module"
+  end
+
   private
-    def run_initializers_command
-      rails "initializers"
+    def run_initializers_command(args = [])
+      rails "initializers", args
     end
 end

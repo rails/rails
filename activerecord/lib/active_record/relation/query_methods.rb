@@ -349,8 +349,8 @@ module ActiveRecord
     end
 
     VALID_UNSCOPING_VALUES = Set.new([:where, :select, :group, :order, :lock,
-                                     :limit, :offset, :joins, :left_outer_joins,
-                                     :includes, :from, :readonly, :having])
+                                     :limit, :offset, :joins, :left_outer_joins, :annotate,
+                                     :includes, :from, :readonly, :having, :optimizer_hints])
 
     # Removes an unwanted relation that is already defined on a chain of relations.
     # This is useful when passing around chains of relations and would like to
@@ -901,6 +901,29 @@ module ActiveRecord
       self
     end
 
+    # Specify optimizer hints to be used in the SELECT statement.
+    #
+    # Example (for MySQL):
+    #
+    #   Topic.optimizer_hints("MAX_EXECUTION_TIME(50000)", "NO_INDEX_MERGE(topics)")
+    #   # SELECT /*+ MAX_EXECUTION_TIME(50000) NO_INDEX_MERGE(topics) */ `topics`.* FROM `topics`
+    #
+    # Example (for PostgreSQL with pg_hint_plan):
+    #
+    #   Topic.optimizer_hints("SeqScan(topics)", "Parallel(topics 8)")
+    #   # SELECT /*+ SeqScan(topics) Parallel(topics 8) */ "topics".* FROM "topics"
+    def optimizer_hints(*args)
+      check_if_method_has_arguments!(:optimizer_hints, args)
+      spawn.optimizer_hints!(*args)
+    end
+
+    def optimizer_hints!(*args) # :nodoc:
+      args.flatten!
+
+      self.optimizer_hints_values += args
+      self
+    end
+
     # Reverse the existing order clause on the relation.
     #
     #   User.order('name ASC').reverse_order # generated SQL has 'ORDER BY name DESC'
@@ -922,6 +945,26 @@ module ActiveRecord
 
     def skip_preloading! # :nodoc:
       self.skip_preloading_value = true
+      self
+    end
+
+    # Adds an SQL comment to queries generated from this relation. For example:
+    #
+    #   User.annotate("selecting user names").select(:name)
+    #   # SELECT "users"."name" FROM "users" /* selecting user names */
+    #
+    #   User.annotate("selecting", "user", "names").select(:name)
+    #   # SELECT "users"."name" FROM "users" /* selecting */ /* user */ /* names */
+    #
+    # The SQL block comment delimiters, "/*" and "*/", will be added automatically.
+    def annotate(*args)
+      check_if_method_has_arguments!(:annotate, args)
+      spawn.annotate!(*args)
+    end
+
+    # Like #annotate, but modifies relation in place.
+    def annotate!(*args) # :nodoc:
+      self.annotate_values += args
       self
     end
 
@@ -977,9 +1020,11 @@ module ActiveRecord
 
         build_select(arel)
 
+        arel.optimizer_hints(*optimizer_hints_values) unless optimizer_hints_values.empty?
         arel.distinct(distinct_value)
         arel.from(build_from) unless from_clause.empty?
         arel.lock(lock_value) if lock_value
+        arel.comment(*annotate_values) unless annotate_values.empty?
 
         arel
       end

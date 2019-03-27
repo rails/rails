@@ -596,6 +596,30 @@ module ApplicationTests
       assert_equal "some_value", verifier.verify(message)
     end
 
+    test "application will generate secret_key_base in tmp file if blank in development" do
+      app_file "config/initializers/secret_token.rb", <<-RUBY
+        Rails.application.credentials.secret_key_base = nil
+      RUBY
+
+      # For test that works even if tmp dir does not exist.
+      Dir.chdir(app_path) { FileUtils.remove_dir("tmp") }
+
+      app "development"
+
+      assert_not_nil app.secrets.secret_key_base
+      assert File.exist?(app_path("tmp/development_secret.txt"))
+    end
+
+    test "application will not generate secret_key_base in tmp file if blank in production" do
+      app_file "config/initializers/secret_token.rb", <<-RUBY
+        Rails.application.credentials.secret_key_base = nil
+      RUBY
+
+      assert_raises ArgumentError do
+        app "production"
+      end
+    end
+
     test "raises when secret_key_base is blank" do
       app_file "config/initializers/secret_token.rb", <<-RUBY
         Rails.application.credentials.secret_key_base = nil
@@ -619,7 +643,6 @@ module ApplicationTests
 
     test "application verifier can build different verifiers" do
       make_basic_app do |application|
-        application.credentials.secret_key_base = "b3c631c314c0bbca50c1b2843150fe33"
         application.config.session_store :disabled
       end
 
@@ -2451,6 +2474,22 @@ module ApplicationTests
     test "hosts include .localhost in development" do
       app "development"
       assert_includes Rails.application.config.hosts, ".localhost"
+    end
+
+    test "disable_sandbox is false by default" do
+      app "development"
+
+      assert_equal false, Rails.configuration.disable_sandbox
+    end
+
+    test "disable_sandbox can be overridden" do
+      add_to_config <<-RUBY
+        config.disable_sandbox = true
+      RUBY
+
+      app "development"
+
+      assert Rails.configuration.disable_sandbox
     end
 
     private

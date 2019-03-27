@@ -1,3 +1,35 @@
+*   Applications running in `:zeitwerk` mode that use `bootsnap` need
+    to upgrade `bootsnap` to at least 1.4.2.
+
+    *Xavier Noria*
+
+*   Add `config.disable_sandbox` option to Rails console.
+
+    This setting will disable `rails console --sandbox` mode, preventing
+    developer from accidentally starting a sandbox console, 
+    which when left inactive, can cause the database server to run out of memory.
+
+    *Prem Sichanugrist*
+
+*   Add `-e/--environment` option to `rails initializers`.
+
+    *Yuji Yaginuma*
+
+## Rails 6.0.0.beta3 (March 11, 2019) ##
+
+*   Generate random development secrets
+
+    A random development secret is now generated to tmp/development_secret.txt
+
+    This avoids an issue where development mode servers were vulnerable to
+    remote code execution.
+
+    Fixes CVE-2019-5420
+
+    *Eileen M. Uchitelle*, *Aaron Patterson*, *John Hawthorn*
+
+
+
 ## Rails 6.0.0.beta2 (February 25, 2019) ##
 
 *   Fix non-symbol access to nested hashes returned from `Rails::Application.config_for`
@@ -70,9 +102,9 @@
 
     *George Claghorn*
 
-*   Introduce guard against DNS rebinding attacks
+*   Introduce guard against DNS rebinding attacks.
 
-    The `ActionDispatch::HostAuthorization` is a new middleware that prevent
+    The `ActionDispatch::HostAuthorization` is a new middleware that prevents
     against DNS rebinding and other `Host` header attacks. It is included in
     the development environment by default with the following configuration:
 

@@ -185,14 +185,15 @@ module ActiveRecord
       def truncate_tables(configuration)
         ActiveRecord::Base.connected_to(database: { truncation: configuration }) do
           table_names = ActiveRecord::Base.connection.tables
-          internal_table_names = [
+          table_names -= [
             ActiveRecord::Base.schema_migrations_table_name,
             ActiveRecord::Base.internal_metadata_table_name
           ]
 
-          class_for_adapter(configuration["adapter"]).new(configuration).truncate_tables(*table_names.without(*internal_table_names))
+          ActiveRecord::Base.connection.truncate_tables(*table_names)
         end
       end
+      private :truncate_tables
 
       def truncate_all(environment = env)
         ActiveRecord::Base.configurations.configs_for(env_name: environment).each do |db_config|
