@@ -70,7 +70,7 @@ class Hash
   # nested hashes and arrays.
   #
   #  hash = { my_profile: { first_name: 'Willian', 'last_name' => 'Veiga' } }
-  #  hash.camelize_keys
+  #  hash.deep_camelize_keys
   #  # => { myProfile: { firstName: 'Willian', 'lastName' => 'Veiga' } }
   def deep_camelize_keys
     deep_transform_keys { |key| _camelize_key(key) }
