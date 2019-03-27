@@ -184,6 +184,34 @@
 
 *   Matches behavior of `Hash#each` in `ActionController::Parameters#each`.
 
+    Rails 5.0 introduced a bug when looping through controller params using an each block. The value would be returned as a string e.g.
+
+        # Parameters: {"param"=>"1", "param_two"=>"2"}
+        def index
+          params.each do |name|
+            puts name
+          end
+        end
+
+        # Prints
+        # param
+        # param_two
+
+    In Rails 5.2 the bug has been fixed and name will be an array (which was the behaviour for all versions prior to 5.0), instead of a string.
+
+    To fix the code above simply change as per example below:
+
+        # Parameters: {"param"=>"1", "param_two"=>"2"}
+        def index
+          params.each do |name, value|
+            puts name
+          end
+        end
+
+        # Prints
+        # param
+        # param_two
+
     *Dominic Cleal*
 
 *   Add `Referrer-Policy` header to default headers set.
