@@ -154,6 +154,40 @@ If you require your cookies to be read by 5.1 and older, or you are still valida
 to allow you to rollback set
 `Rails.application.config.action_dispatch.use_authenticated_cookie_encryption` to `false`.
 
+### Change in Parameters iteration
+
+In Rails 5.1 looping through controller params using an each block with a single token would return the value as a string e.g.
+
+```ruby
+# Parameters: {"param"=>"1", "param_two"=>"2"}
+def index
+  params.each do |name|
+    puts name
+  end
+end
+
+# Prints
+# param
+# param_two
+```
+
+In Rails 5.2 the behaviour has changed and name will be an array instead of a string.
+
+To retain the old behaviour simply change the code as per example below:
+
+```ruby
+# Parameters: {"param"=>"1", "param_two"=>"2"}
+def index
+  params.each do |name, value|
+    puts name
+  end
+end
+
+# Prints
+# param
+# param_two
+```
+
 Upgrading from Rails 5.0 to Rails 5.1
 -------------------------------------
 
