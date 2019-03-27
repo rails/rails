@@ -225,9 +225,10 @@ db_namespace = namespace :db do
   desc "Setup database if doesn’t exist already and run migrations"
   task prepare: :load_config do
     ActiveRecord::Base.connection
-    db_namespace["migrate"].invoke
   rescue ActiveRecord::NoDatabaseError
     db_namespace["setup"].invoke
+  else
+    db_namespace["migrate"].invoke
   end
 
   desc "Loads the seed data from db/seeds.rb"
