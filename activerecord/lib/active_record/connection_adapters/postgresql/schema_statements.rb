@@ -83,23 +83,11 @@ module ActiveRecord
 
         # Returns an array of indexes for the given table.
         def indexes(table_name) # :nodoc:
-          scope = quoted_scope(table_name)
+          new_indexes_from_fields(index_definitions(table_name), table_name)
+        end
 
-          result = query(<<~SQL, "SCHEMA")
-            SELECT distinct i.relname, d.indisunique, d.indkey, pg_get_indexdef(d.indexrelid), t.oid,
-                            pg_catalog.obj_description(i.oid, 'pg_class') AS comment
-            FROM pg_class t
-            INNER JOIN pg_index d ON t.oid = d.indrelid
-            INNER JOIN pg_class i ON d.indexrelid = i.oid
-            LEFT JOIN pg_namespace n ON n.oid = i.relnamespace
-            WHERE i.relkind = 'i'
-              AND d.indisprimary = 'f'
-              AND t.relname = #{scope[:name]}
-              AND n.nspname = #{scope[:schema]}
-            ORDER BY i.relname
-          SQL
-
-          result.map do |row|
+        def new_indexes_from_fields(fields, table_name)
+          fields.map do |row|
             index_name = row[0]
             unique = row[1]
             indkey = row[2].split(" ").map(&:to_i)

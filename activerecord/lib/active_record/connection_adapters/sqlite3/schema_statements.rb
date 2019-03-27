@@ -6,9 +6,11 @@ module ActiveRecord
       module SchemaStatements # :nodoc:
         # Returns an array of indexes for the given table.
         def indexes(table_name)
-          exec_query("PRAGMA index_list(#{quote_table_name(table_name)})", "SCHEMA").map do |row|
-            # Indexes SQLite creates implicitly for internal use start with "sqlite_".
-            # See https://www.sqlite.org/fileformat2.html#intschema
+          new_indexes_from_fields(index_definitions(table_name), table_name)
+        end
+
+        def new_indexes_from_fields(fields, table_name)
+          fields.map do |row|
             next if row["name"].starts_with?("sqlite_")
 
             index_sql = query_value(<<~SQL, "SCHEMA")

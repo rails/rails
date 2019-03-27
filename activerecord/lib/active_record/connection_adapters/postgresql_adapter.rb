@@ -451,6 +451,24 @@ module ActiveRecord
         end
       end
 
+      def index_definitions(table_name)
+        scope = quoted_scope(table_name)
+
+        query(<<~SQL, "SCHEMA")
+            SELECT distinct i.relname, d.indisunique, d.indkey, pg_get_indexdef(d.indexrelid), t.oid,
+                            pg_catalog.obj_description(i.oid, 'pg_class') AS comment
+            FROM pg_class t
+            INNER JOIN pg_index d ON t.oid = d.indrelid
+            INNER JOIN pg_class i ON d.indexrelid = i.oid
+            LEFT JOIN pg_namespace n ON n.oid = i.relnamespace
+            WHERE i.relkind = 'i'
+              AND d.indisprimary = 'f'
+              AND t.relname = #{scope[:name]}
+              AND n.nspname = #{scope[:schema]}
+            ORDER BY i.relname
+          SQL
+      end
+
       private
 
         # See https://www.postgresql.org/docs/current/static/errcodes-appendix.html

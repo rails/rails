@@ -532,6 +532,12 @@ module ActiveRecord
         end
       end
 
+      def index_definitions(table_name)
+        execute_and_free("SHOW KEYS FROM #{quote_table_name(table_name)}", "SCHEMA") do |result|
+          each_hash(result)
+        end
+      end
+
       private
 
         def initialize_type_map(m = type_map)

@@ -407,6 +407,10 @@ module ActiveRecord
         end
       end
 
+      def index_definitions(table_name)
+        exec_query("PRAGMA index_list(#{quote_table_name(table_name)})", "SCHEMA")
+      end
+
       private
         # See https://www.sqlite.org/limits.html,
         # the default value is 999 when not configured.
