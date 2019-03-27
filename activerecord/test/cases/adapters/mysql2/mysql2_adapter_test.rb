@@ -200,7 +200,7 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
 
   def test_doesnt_error_when_a_set_query_is_called_while_preventing_writes
     @conn.while_preventing_writes do
-      assert_nil @conn.execute("SET NAMES utf8")
+      assert_nil @conn.execute("SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci")
     end
   end
 
