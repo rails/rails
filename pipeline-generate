@@ -261,7 +261,7 @@ puts YAML.dump("steps" => [
           },
           "timeout_in_minutes" => 15,
           "soft_fail" => ruby == TRUNK_RUBY,
-          "agents" => { "queue" => QUEUE },
+          "agents" => { "queue" => ENV["BUILD_QUEUE"] || QUEUE },
         }
       end,
     ],
