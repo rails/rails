@@ -7,11 +7,19 @@ RUN echo "--- :ruby: Updating RubyGems and Bundler" \
     && gem install bundler -v '< 2' \
     && ruby --version && gem --version && bundle --version \
     && echo "--- :package: Installing system deps" \
-    # Pre-requirements
-    && apt-get update \
-    && apt-get install -y --no-install-recommends \
-        gnupg curl \
     && codename="$(. /etc/os-release; x="${VERSION_CODENAME-${VERSION#*(}}"; echo "${x%%[ )]*}")" \
+    && if [ "$codename" = jessie ]; then \
+        # jessie-updates is gone
+        sed -i -e '/jessie-updates/d' /etc/apt/sources.list \
+        && echo 'deb http://archive.debian.org/debian jessie-backports main' > /etc/apt/sources.list.d/backports.list \
+        && echo 'Acquire::Check-Valid-Until "false";' > /etc/apt/apt.conf.d/backports-is-unsupported; \
+    fi \
+    # Pre-requirements
+    && if ! which gpg || ! which curl; then \
+        apt-get update \
+        && apt-get install -y --no-install-recommends \
+            gnupg curl; \
+    fi \
     # Postgres apt sources
     && curl -sS https://www.postgresql.org/media/keys/ACCC4CF8.asc | APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=1 apt-key add - \
     && echo "deb http://apt.postgresql.org/pub/repos/apt/ ${codename}-pgdg main" > /etc/apt/sources.list.d/pgdg.list \
@@ -21,9 +29,6 @@ RUN echo "--- :ruby: Updating RubyGems and Bundler" \
     # Yarn apt sources
     && curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=1 apt-key add - \
     && echo "deb http://dl.yarnpkg.com/debian/ stable main" > /etc/apt/sources.list.d/yarn.list \
-    # Backports source
-    && (grep -qe -backports /etc/apt/sources.list \
-        || sed -ne '/-updates/s//-backports/p' /etc/apt/sources.list > /etc/apt/sources.list.d/backports.list) \
     # Install all the things
     && apt-get update \
     #  buildpack-deps
