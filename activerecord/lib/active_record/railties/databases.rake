@@ -222,7 +222,7 @@ db_namespace = namespace :db do
   desc "Creates the database, loads the schema, and initializes with the seed data (use db:reset to also drop the database first)"
   task setup: ["db:schema:load_if_ruby", "db:structure:load_if_sql", :seed]
 
-  desc "Creates the database, loads the schema, run the migrations and initializes with the seed data (use db:reset to also drop the database first)"
+  desc "Setup database if doesn’t exist already and run migrations"
   task prepare: :load_config do
     ActiveRecord::Base.connection
     db_namespace["migrate"].invoke
