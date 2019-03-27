@@ -184,7 +184,7 @@
 
 *   Matches behavior of `Hash#each` in `ActionController::Parameters#each`.
 
-    Rails 5.0 introduced a bug when looping through controller params using an each block. The value would be returned as a string e.g.
+    Rails 5.0 introduced a bug when looping through controller params using `each`. Only the keys of params hash were passed to the block, e.g.
 
         # Parameters: {"param"=>"1", "param_two"=>"2"}
         def index
@@ -197,7 +197,7 @@
         # param
         # param_two
 
-    In Rails 5.2 the bug has been fixed and name will be an array (which was the behaviour for all versions prior to 5.0), instead of a string.
+    In Rails 5.2 the bug has been fixed and name will be an array (which was the behavior for all versions prior to 5.0), instead of a string.
 
     To fix the code above simply change as per example below:
 
