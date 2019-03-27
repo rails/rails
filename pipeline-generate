@@ -28,24 +28,42 @@ MIN_RUBY = Gem::Version.new($1 || "2.0")
 
 RAILS_VERSION = Gem::Version.new(File.read(REPO_ROOT.join("RAILS_VERSION")))
 
+MAX_RUBY =
+  case RAILS_VERSION
+  when Gem::Requirement.new("< 5.1")
+    Gem::Version.new("2.4")
+  when Gem::Requirement.new("< 5.2")
+    Gem::Version.new("2.5")
+  end
+
 def available_tags_for_image(image)
   uri = URI("https://registry.hub.docker.com/v1/repositories/#{image}/tags")
   json = Net::HTTP.get(uri)
   JSON.parse(json).map { |x| x["name"] }
 end
 
-RUBIES =
-  available_tags_for_image("ruby").
+RUBIES = []
+SOFT_FAIL = []
+
+available_tags_for_image("ruby").
   grep(/\A[0-9]+\.[0-9]+\z/).
   map { |s| Gem::Version.new(s) }.
   select { |v| v >= MIN_RUBY }.
   sort.
-  map { |v| "ruby:#{v}" }
+  each do |v|
 
-ONE_RUBY = RUBIES.last
+  image = "ruby:#{v}"
+
+  RUBIES << image
+  SOFT_FAIL << image if MAX_RUBY && v > MAX_RUBY && !(MAX_RUBY.approximate_recommendation === v)
+end
+
+ONE_RUBY = (RUBIES - SOFT_FAIL).last || RUBIES.last
 
 TRUNK_RUBY = "rubylang/ruby:trunk-nightly-bionic"
 RUBIES << TRUNK_RUBY
+SOFT_FAIL << TRUNK_RUBY
+
 
 STEPS = []
 
@@ -123,7 +141,7 @@ def step_for(subdirectory, rake_task, ruby: nil, service: "default")
     ],
     "env" => env,
     "timeout_in_minutes" => timeout,
-    "soft_fail" => ruby == TRUNK_RUBY,
+    "soft_fail" => SOFT_FAIL.include?(ruby),
     "agents" => { "queue" => QUEUE },
   }
 
@@ -260,7 +278,7 @@ puts YAML.dump("steps" => [
             "encrypted_0fb9444d0374_iv" => nil,
           },
           "timeout_in_minutes" => 15,
-          "soft_fail" => ruby == TRUNK_RUBY,
+          "soft_fail" => SOFT_FAIL.include?(ruby),
           "agents" => { "queue" => QUEUE },
         }
       end,
