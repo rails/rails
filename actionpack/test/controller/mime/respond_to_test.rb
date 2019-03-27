@@ -158,6 +158,12 @@ class RespondToController < ActionController::Base
     end
   end
 
+  def handle_any_with_template
+    respond_to do |type|
+      type.any { render "test/hello_world" }
+    end
+  end
+
   def all_types_with_layout
     respond_to do |type|
       type.html
@@ -570,6 +576,13 @@ class RespondToControllerTest < ActionController::TestCase
     @request.accept = "application/json, application/xml, */*"
     get :json_xml_or_html
     assert_equal "HTML", @response.body
+  end
+
+  def test_handle_any_with_template
+    @request.accept = "*/*"
+
+    get :handle_any_with_template
+    assert_equal "Hello world!", @response.body
   end
 
   def test_html_type_with_layout
