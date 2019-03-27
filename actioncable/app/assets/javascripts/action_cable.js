@@ -362,7 +362,9 @@
       this.subscriptions.push(subscription);
       this.consumer.ensureActiveConnection();
       this.notify(subscription, "initialized");
-      this.sendCommand(subscription, "subscribe");
+      if (this.findAll(subscription.identifier).length === 1) {
+        this.sendCommand(subscription, "subscribe");
+      }
       return subscription;
     };
     Subscriptions.prototype.remove = function remove(subscription) {
