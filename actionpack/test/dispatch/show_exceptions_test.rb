@@ -9,8 +9,6 @@ class ShowExceptionsTest < ActionDispatch::IntegrationTest
       case req.path
       when "/not_found"
         raise AbstractController::ActionNotFound
-      when "/invalid_mimetype"
-        raise Mime::Type::InvalidMimeType
       when "/bad_params", "/bad_params.json"
         begin
           raise StandardError.new
@@ -67,7 +65,15 @@ class ShowExceptionsTest < ActionDispatch::IntegrationTest
 
     get "/invalid_mimetype", headers: { "Accept" => "text/html,*", "action_dispatch.show_exceptions" => true }
     assert_response 406
-    assert_equal "", body
+    assert_equal '"*" is not a valid MIME type', body
+  end
+
+  test "rescue Mime::Type::InvalidMimeType error when using a custom exception_app" do
+    @app = ActionDispatch::ShowExceptions.new(Boomer.new, ->(env) { ActionDispatch::Request.new(env).formats })
+
+    get "/invalid_mimetype", headers: { "Accept" => "text/html,*", "action_dispatch.show_exceptions" => true }
+    assert_response 406
+    assert_equal '"*" is not a valid MIME type', body
   end
 
   test "localize rescue error page" do

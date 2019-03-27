@@ -50,6 +50,8 @@ module ActionDispatch
         request.path_info = "/#{status}"
         response = @exceptions_app.call(request.env)
         response[1]["X-Cascade"] == "pass" ? pass_response(status) : response
+      rescue Mime::Type::InvalidMimeType => e
+        [406, { "Content-Type" => "text/plain" }, [e.message]]
       rescue Exception => failsafe_error
         $stderr.puts "Error during failsafe response: #{failsafe_error}\n  #{failsafe_error.backtrace * "\n  "}"
         FAILSAFE_RESPONSE
