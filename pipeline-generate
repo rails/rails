@@ -79,7 +79,7 @@ def step_for(subdirectory, rake_task, ruby: nil, service: "default")
     rake_task = "db:postgresql:rebuild #{rake_task}"
   end
 
-  command = "echo; echo \"+++ #{subdirectory}: rake #{rake_task}\"; cd #{subdirectory} && bundle exec rake #{rake_task}"
+  command = "rake #{rake_task}"
 
   timeout = 30
 
@@ -117,6 +117,7 @@ def step_for(subdirectory, rake_task, ruby: nil, service: "default")
           "run" => service,
           "pull" => service,
           "config" => ".buildkite/docker-compose.yml",
+          "shell" => ["runner", subdirectory],
         },
       },
     ],
