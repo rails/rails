@@ -194,7 +194,9 @@ end
 
 # GROUP 3: Special cases
 
-step_for("activerecord", "sqlite3_mem:test", service: "default")
+if RAILS_VERSION >= Gem::Version.new("5.1.x")
+  step_for("activerecord", "sqlite3_mem:test", service: "default")
+end
 step_for("activerecord", "mysql2:test", service: "mysqldb") do |x|
   x["label"] += " [mariadb]"
   x["env"]["MYSQL_IMAGE"] =
