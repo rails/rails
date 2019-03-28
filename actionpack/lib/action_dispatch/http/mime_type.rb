@@ -315,7 +315,7 @@ module Mime
     include Singleton
 
     def initialize
-      super "*/*", :all
+      super "*/*", nil
     end
 
     def all?; true; end
