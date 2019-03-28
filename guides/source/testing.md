@@ -1404,7 +1404,7 @@ If you find your helpers are cluttering `test_helper.rb`, you can extract them i
 ```ruby
 # lib/test/multiple_assertions.rb
 module MultipleAssertions
-  def assert_multiple_of_fourty_two(number)
+  def assert_multiple_of_forty_two(number)
     assert (number % 42 == 0), 'expected #{number} to be a multiple of 42'
   end
 end
@@ -1419,8 +1419,8 @@ require 'test/multiple_assertions'
 class NumberTest < ActiveSupport::TestCase
   include MultipleAssertions
 
-  test '420 is a multiple of fourty two' do
-    assert_multiple_of_fourty_two 420
+  test '420 is a multiple of forty two' do
+    assert_multiple_of_forty_two 420
   end
 end
 ```
