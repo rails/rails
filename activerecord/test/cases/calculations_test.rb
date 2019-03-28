@@ -243,6 +243,12 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_queries(1) { assert_equal 11, posts.count(:all) }
   end
 
+  def test_count_with_eager_loading_and_custom_select_and_order
+    posts = Post.includes(:comments).order("comments.id").select(:type)
+    assert_queries(1) { assert_equal 11, posts.count }
+    assert_queries(1) { assert_equal 11, posts.count(:all) }
+  end
+
   def test_count_with_eager_loading_and_custom_order_and_distinct
     posts = Post.includes(:comments).order("comments.id").distinct
     assert_queries(1) { assert_equal 11, posts.count }
