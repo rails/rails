@@ -154,10 +154,10 @@ module ActiveRecord
       self
     end
 
-    # Extracts a named +association+ from the relation. The named association is first preloaded, 
+    # Extracts a named +association+ from the relation. The named association is first preloaded,
     # then the individual association records are collected from the relation. Like so:
     #
-    #   account.memberships.extract_associated(:user) 
+    #   account.memberships.extract_associated(:user)
     #   # => Returns collection of User records
     #
     # This is short-hand for:
