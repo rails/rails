@@ -603,7 +603,7 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_extracted_association
-    authors = Post.all.extract_associated(:author)
+    authors = assert_queries(2) { Post.all.extract_associated(:author) }
     assert_equal Post.all.collect(&:author), authors
   end
 
