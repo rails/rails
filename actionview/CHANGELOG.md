@@ -1,4 +1,4 @@
-## Rails 5.1.7.rc1 (March 22, 2019) ##
+## Rails 5.1.7 (March 27, 2019) ##
 
 *   Fix issue with `button_to`'s `to_form_params`
 
