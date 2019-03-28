@@ -259,6 +259,12 @@ module RenderTestCases
       "and is followed by any combination of letters, numbers and underscores.", e.message
   end
 
+  def test_render_template_with_syntax_error
+    e = assert_raises(ActionView::Template::Error) { @view.render(template: "test/syntax_error") }
+    assert_match %r!syntax!, e.message
+    assert_equal "1:    <%= foo(", e.annoted_source_code[0].strip
+  end
+
   def test_render_partial_with_errors
     e = assert_raises(ActionView::Template::Error) { @view.render(partial: "test/raise") }
     assert_match %r!method.*doesnt_exist!, e.message
