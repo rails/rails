@@ -499,6 +499,23 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     assert_file "app/models/user.rb", expected_file
   end
 
+  def test_model_with_rich_text_attribute_adds_has_rich_text
+    run_generator ["message", "content:rich_text"]
+    expected_file = <<~FILE
+      class Message < ApplicationRecord
+        has_rich_text :content
+      end
+    FILE
+    assert_file "app/models/message.rb", expected_file
+  end
+
+  def test_skip_virtual_fields_in_fixtures
+    run_generator ["message", "content:rich_text"]
+
+    assert_generated_fixture("test/fixtures/messages.yml",
+                             "one" => nil, "two" => nil)
+  end
+
   private
     def assert_generated_fixture(path, parsed_contents)
       fixture_file = File.new File.expand_path(path, destination_root)

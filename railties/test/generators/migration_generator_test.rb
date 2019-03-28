@@ -366,6 +366,38 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
     Rails.application.config.paths["db/migrate"] = old_paths
   end
 
+  def test_add_migration_ignores_virtual_attributes
+    migration = "add_rich_text_content_to_messages"
+    run_generator [migration, "content:rich_text"]
+
+    assert_migration "db/migrate/#{migration}.rb" do |content|
+      assert_method :change, content do |change|
+        assert_no_match(/add_column :messages, :content, :rich_text/, change)
+      end
+    end
+  end
+
+  def test_create_table_migration_ignores_virtual_attributes
+    run_generator ["create_messages", "content:rich_text"]
+    assert_migration "db/migrate/create_messages.rb" do |content|
+      assert_method :change, content do |change|
+        assert_match(/create_table :messages/, change)
+        assert_no_match(/  t\.rich_text :content/, change)
+      end
+    end
+  end
+
+  def test_remove_migration_with_virtual_attributes
+    migration = "remove_content_from_messages"
+    run_generator [migration, "content:rich_text"]
+
+    assert_migration "db/migrate/#{migration}.rb" do |content|
+      assert_method :change, content do |change|
+        assert_no_match(/remove_column :messages, :content, :rich_text/, change)
+      end
+    end
+  end
+
   private
 
     def with_singular_table_name
