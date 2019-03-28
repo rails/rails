@@ -152,12 +152,72 @@ module ActiveRecord
   class DatabaseTasksDumpSchemaCacheTest < ActiveRecord::TestCase
     def test_dump_schema_cache
       path = "/tmp/my_schema_cache.yml"
-      ActiveRecord::Tasks::DatabaseTasks.dump_schema_cache(ActiveRecord::Base.connection, path)
-      assert File.file?(path)
-    ensure
-      ActiveRecord::Base.clear_cache!
-      FileUtils.rm_rf(path)
+
+      reset_schema_cache do
+        ActiveRecord::Tasks::DatabaseTasks.dump_schema_cache(ActiveRecord::Base.connection, path)
+        assert File.file?(path)
+      ensure
+        FileUtils.rm_rf(path)
+      end
     end
+
+    def test_load_and_dump_schema_cache
+      connection = ActiveRecord::Base.connection
+      filepath = "/tmp/my_schema_cache.yml"
+
+      reset_schema_cache do |previous_schema_cache|
+        ActiveRecord::Tasks::DatabaseTasks.dump_schema_cache(ActiveRecord::Base.connection, filepath)
+        assert_not connection.schema_cache.columns_hash?("accounts")
+
+        ActiveRecord::Tasks::DatabaseTasks.load_schema_cache(
+          ActiveRecord::Base.connection,
+          filepath,
+          ActiveRecord::Migrator.current_version
+        )
+
+        assert_no_queries do
+          assert connection.schema_cache.columns("accounts")
+        end
+      ensure
+        FileUtils.rm_rf(filepath)
+      end
+    end
+
+    def test_load_schema_cache_output_a_deprecation_warning_when_cache_was_dumped_with_psych
+      reset_schema_cache do
+        filepath = "test/assets/schema_dump_5_1.yml"
+
+        assert_deprecated(/The Schema cache was dumped with Psych/) do
+          ActiveRecord::Tasks::DatabaseTasks.load_schema_cache(
+            ActiveRecord::Base.connection,
+            filepath,
+            ActiveRecord::Migrator.current_version
+          )
+        end
+      end
+    end
+
+    def test_load_schema_cache_returns_prematurely_if_file_does_not_exist
+      filepath = "/inexisting/path/to/file.yml"
+      previous_schema_cache = ActiveRecord::Base.connection.schema_cache
+
+      ActiveRecord::Tasks::DatabaseTasks.load_schema_cache(
+        ActiveRecord::Base.connection,
+        filepath,
+        ActiveRecord::Migrator.current_version
+      )
+
+      assert_equal previous_schema_cache, ActiveRecord::Base.connection.schema_cache
+    end
+
+    private
+      def reset_schema_cache
+        previous_schema_cache = ActiveRecord::Base.connection.schema_cache.dup
+        yield(previous_schema_cache)
+      ensure
+        ActiveRecord::Base.clear_cache!
+        ActiveRecord::Base.connection.schema_cache = previous_schema_cache
+      end
   end
 
   class DatabaseTasksCreateAllTest < ActiveRecord::TestCase

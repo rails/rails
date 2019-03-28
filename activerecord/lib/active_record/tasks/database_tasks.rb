@@ -372,9 +372,32 @@ module ActiveRecord
       # ==== Examples:
       #   ActiveRecord::Tasks::DatabaseTasks.dump_schema_cache(ActiveRecord::Base.connection, "tmp/schema_dump.yaml")
       def dump_schema_cache(conn, filename)
-        conn.schema_cache.clear!
-        conn.data_sources.each { |table| conn.schema_cache.add(table) }
-        open(filename, "wb") { |f| f.write(YAML.dump(conn.schema_cache)) }
+        serialized_schema = conn.schema_cache_serializer.serialize
+
+        open(filename, "wb") { |f| f.write(YAML.dump(serialized_schema)) }
+      end
+
+      def load_schema_cache(conn, filepath, current_version)
+        deserialized_schema = conn.schema_cache_serializer.deserialize(filepath)
+        return if deserialized_schema.nil?
+
+        schema_cache = if deserialized_schema.is_a?(ActiveRecord::ConnectionAdapters::SchemaCache)
+          ActiveSupport::Deprecation.warn(<<~EOM)
+            The Schema cache was dumped with Psych. This format is now deprecated and won't be supported in Rails 6.1.
+            Rais now serialize/deserialize the SchemaCache manually for performance reasons.
+            To discard this warning, re-dump the SchemaCache using the `bin/rails db:cache:dump` command.
+          EOM
+          deserialized_schema
+        else
+          ActiveRecord::ConnectionAdapters::SchemaCache.new(conn).tap { |sc| sc.load(deserialized_schema) }
+        end
+
+        if schema_cache.version == current_version
+          conn.schema_cache = schema_cache
+          conn.pool.schema_cache = schema_cache.dup
+        else
+          warn "Ignoring db/schema_cache.yml because it has expired. The current schema version is #{current_version}, but the one in the cache is #{schema_cache.version}."
+        end
       end
 
       private
