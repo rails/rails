@@ -1,3 +1,5 @@
+## Rails 5.1.7 (March 27, 2019) ##
+
 *   Fix `touch` option to behave consistently with `Persistence#touch` method.
 
     *Ryuta Kamizono*
