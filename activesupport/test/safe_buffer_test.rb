@@ -248,4 +248,22 @@ class SafeBufferTest < ActiveSupport::TestCase
     x = "Hello".html_safe
     assert_nil x[/a/, 1]
   end
+
+  test "Should set back references" do
+    a = "foo123".html_safe
+    a2 = a.sub(/([a-z]+)([0-9]+)/) { $2 + $1 }
+    assert_equal "123foo", a2
+    assert_not_predicate a2, :html_safe?
+    a.sub!(/([a-z]+)([0-9]+)/) { $2 + $1 }
+    assert_equal "123foo", a
+    assert_not_predicate a, :html_safe?
+
+    b = "foo123 bar456".html_safe
+    b2 = b.gsub(/([a-z]+)([0-9]+)/) { $2 + $1 }
+    assert_equal "123foo 456bar", b2
+    assert_not_predicate b2, :html_safe?
+    b.gsub!(/([a-z]+)([0-9]+)/) { $2 + $1 }
+    assert_equal "123foo 456bar", b
+    assert_not_predicate b, :html_safe?
+  end
 end
