@@ -1,4 +1,4 @@
-## Rails 5.2.3.rc1 (March 21, 2019) ##
+## Rails 5.2.3 (March 27, 2019) ##
 
 *   Fix different `count` calculation when using `size` with manual `select` with DISTINCT.
 

@@ -1,4 +1,4 @@
-## Rails 5.2.3.rc1 (March 21, 2019) ##
+## Rails 5.2.3 (March 27, 2019) ##
 
 *   Prevent non-primary mouse keys from triggering Rails UJS click handlers.
     Firefox fires click events even if the click was triggered by non-primary mouse keys such as right- or scroll-wheel-clicks.
