@@ -193,17 +193,18 @@ class ActiveStorage::Blob < ActiveRecord::Base
   #
   # The tempfile's name is prefixed with +ActiveStorage-+ and the blob's ID. Its extension matches that of the blob.
   #
-  # By default, the tempfile is created in <tt>Dir.tmpdir</tt>. Pass +tempdir:+ to create it in a different directory:
+  # By default, the tempfile is created in <tt>Dir.tmpdir</tt>. Pass +tmpdir:+ to create it in a different directory:
   #
-  #   blob.open(tempdir: "/path/to/tmp") do |file|
+  #   blob.open(tmpdir: "/path/to/tmp") do |file|
   #     # ...
   #   end
   #
   # The tempfile is automatically closed and unlinked after the given block is executed.
   #
   # Raises ActiveStorage::IntegrityError if the downloaded data does not match the blob's checksum.
-  def open(tempdir: nil, &block)
-    ActiveStorage::Downloader.new(self, tempdir: tempdir).download_blob_to_tempfile(&block)
+  def open(tmpdir: nil, &block)
+    service.open key, checksum: checksum,
+      name: [ "ActiveStorage-#{id}-", filename.extension_with_delimiter ], tmpdir: tmpdir, &block
   end
 
 
