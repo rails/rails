@@ -9,8 +9,8 @@ module ActiveSupport
   module VERSION
     MAJOR = 5
     MINOR = 2
-    TINY  = 2
-    PRE   = "1"
+    TINY  = 3
+    PRE   = nil
 
     STRING = [MAJOR, MINOR, TINY, PRE].compact.join(".")
   end
