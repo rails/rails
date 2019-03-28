@@ -3,9 +3,10 @@
 module ActiveSupport
   module CompareWithRange
     # Extends the default Range#=== to support range comparisons.
-    #  (1..5) === (1..5) # => true
-    #  (1..5) === (2..3) # => true
-    #  (1..5) === (2..6) # => false
+    #  (1..5) === (1..5)  # => true
+    #  (1..5) === (2..3)  # => true
+    #  (1..5) === (1...6) # => true
+    #  (1..5) === (2..6)  # => false
     #
     # The native Range#=== behavior is untouched.
     #  ('a'..'f') === ('c') # => true
@@ -13,17 +14,20 @@ module ActiveSupport
     def ===(value)
       if value.is_a?(::Range)
         # 1...10 includes 1..9 but it does not include 1..10.
+        # 1..10 includes 1...11 but it does not include 1...12.
         operator = exclude_end? && !value.exclude_end? ? :< : :<=
-        super(value.first) && value.last.send(operator, last)
+        value_max = !exclude_end? && value.exclude_end? ? value.max : value.last
+        super(value.first) && value_max.send(operator, last)
       else
         super
       end
     end
 
     # Extends the default Range#include? to support range comparisons.
-    #  (1..5).include?(1..5) # => true
-    #  (1..5).include?(2..3) # => true
-    #  (1..5).include?(2..6) # => false
+    #  (1..5).include?(1..5)  # => true
+    #  (1..5).include?(2..3)  # => true
+    #  (1..5).include?(1...6) # => true
+    #  (1..5).include?(2..6)  # => false
     #
     # The native Range#include? behavior is untouched.
     #  ('a'..'f').include?('c') # => true
@@ -31,17 +35,20 @@ module ActiveSupport
     def include?(value)
       if value.is_a?(::Range)
         # 1...10 includes 1..9 but it does not include 1..10.
+        # 1..10 includes 1...11 but it does not include 1...12.
         operator = exclude_end? && !value.exclude_end? ? :< : :<=
-        super(value.first) && value.last.send(operator, last)
+        value_max = !exclude_end? && value.exclude_end? ? value.max : value.last
+        super(value.first) && value_max.send(operator, last)
       else
         super
       end
     end
 
     # Extends the default Range#cover? to support range comparisons.
-    #  (1..5).cover?(1..5) # => true
-    #  (1..5).cover?(2..3) # => true
-    #  (1..5).cover?(2..6) # => false
+    #  (1..5).cover?(1..5)  # => true
+    #  (1..5).cover?(2..3)  # => true
+    #  (1..5).cover?(1...6) # => true
+    #  (1..5).cover?(2..6)  # => false
     #
     # The native Range#cover? behavior is untouched.
     #  ('a'..'f').cover?('c') # => true
@@ -49,8 +56,10 @@ module ActiveSupport
     def cover?(value)
       if value.is_a?(::Range)
         # 1...10 covers 1..9 but it does not cover 1..10.
+        # 1..10 covers 1...11 but it does not cover 1...12.
         operator = exclude_end? && !value.exclude_end? ? :< : :<=
-        super(value.first) && value.last.send(operator, last)
+        value_max = !exclude_end? && value.exclude_end? ? value.max : value.last
+        super(value.first) && value_max.send(operator, last)
       else
         super
       end

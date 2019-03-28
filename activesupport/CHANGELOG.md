@@ -1,3 +1,17 @@
+*   Fix bug in Range comparisons when comparing to an excluded-end Range
+
+    Before:
+
+        (1..10).cover?(1...11) => false
+
+    After:
+
+        (1..10).cover?(1...11) => true
+
+    With the same change for `Range#include?` and `Range#===`.
+
+     *Owen Stephens*
+
 *   Use weak references in descendants tracker to allow anonymous subclasses to
     be garbage collected.
 
