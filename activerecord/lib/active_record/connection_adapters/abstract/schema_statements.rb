@@ -1198,6 +1198,10 @@ module ActiveRecord
         SchemaDumper.create(self, options)
       end
 
+      def schema_cache_serializer
+        SchemaCacheSerializer.new(self)
+      end
+
       private
         def column_options_keys
           [:limit, :precision, :scale, :default, :null, :collation, :comment]

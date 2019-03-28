@@ -62,6 +62,7 @@ module ActiveRecord
   autoload :Sanitization
   autoload :Schema
   autoload :SchemaDumper
+  autoload :SchemaCacheSerializer
   autoload :SchemaMigration
   autoload :Scoping
   autoload :Serialization

@@ -381,6 +381,11 @@ All these configuration options are delegated to the `I18n` library.
   having to send a query to the database to get this information.
   Defaults to `true`.
 
+* `config.active_record.schema_cache_tables_to_skip` allows to filter out tables that shouldn't
+  be part of the dumped schema cache. This is useful if you have tables that are for exemple
+  used to keep track of schema changes (like the internal `ar_internal_metadata` but it could be other
+  tables if you use LHMS for instance).
+
 The MySQL adapter adds one additional configuration option:
 
 * `ActiveRecord::ConnectionAdapters::Mysql2Adapter.emulate_booleans` controls whether Active Record will consider all `tinyint(1)` columns as booleans. Defaults to `true`.

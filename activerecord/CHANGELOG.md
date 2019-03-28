@@ -1,3 +1,9 @@
+*   Make SchemaCache loading faster. This changes deprecate loading the SchemaCache from
+    a Psych dump as it's relatively slow. The SchemaCache dump is now serialized/deserialized
+    "manually".
+
+    *Edouard Chin*
+
 *   Fix circular `autosave: true` causes invalid records to be saved.
 
     Prior to the fix, when there was a circular series of `autosave: true`

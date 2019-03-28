@@ -132,6 +132,15 @@ module ActiveRecord
         @indexes = @indexes || {}
       end
 
+      def load(cache)
+        @version = cache[:version]
+        @columns = cache[:columns]
+        @columns_hash = cache[:columns_hash]
+        @primary_keys = cache[:primary_keys]
+        @data_sources = cache[:data_sources]
+        @indexes = cache[:indexes]
+      end
+
       private
         def prepare_data_sources
           connection.data_sources.each { |source| @data_sources[source] = true }

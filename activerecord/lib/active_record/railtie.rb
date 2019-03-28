@@ -31,6 +31,8 @@ module ActiveRecord
     config.active_record.sqlite3 = ActiveSupport::OrderedOptions.new
     config.active_record.sqlite3.represent_boolean_as_integer = nil
 
+    config.active_record.schema_cache_tables_to_skip = []
+
     config.eager_load_namespaces << ActiveRecord
 
     rake_tasks do
@@ -118,6 +120,14 @@ end_error
             end
           end
         end
+      end
+    end
+
+    initializer "active_record.schema_cache_serializer_tables_to_skip" do
+      tables_to_skip = config.active_record.delete(:schema_cache_tables_to_skip)
+
+      ActiveSupport.on_load(:active_record) do
+        SchemaCacheSerializer.tables_to_skip.concat(tables_to_skip)
       end
     end
 
