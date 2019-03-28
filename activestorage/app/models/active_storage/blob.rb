@@ -273,6 +273,6 @@ class ActiveStorage::Blob < ActiveRecord::Base
         { content_type: content_type }
       end
     end
-
-    ActiveSupport.run_load_hooks(:active_storage_blob, self)
 end
+
+ActiveSupport.run_load_hooks :active_storage_blob, ActiveStorage::Blob

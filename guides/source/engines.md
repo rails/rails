@@ -1518,6 +1518,7 @@ To hook into the initialization process of one of the following classes use the 
 | `ActiveJob::Base`                 | `active_job`                         |
 | `ActiveJob::TestCase`             | `active_job_test_case`               |
 | `ActiveRecord::Base`              | `active_record`                      |
+| `ActiveStorage::Attachment`       | `active_storage_attachment`          |
 | `ActiveStorage::Blob`             | `active_storage_blob`                |
 | `ActiveSupport::TestCase`         | `active_support_test_case`           |
 | `i18n`                            | `i18n`                               |
