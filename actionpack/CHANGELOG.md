@@ -1,10 +1,10 @@
 ## Rails 5.2.3 (March 27, 2019) ##
 
-*   Allow using combine the Cache Control `public` and `no-cache` headers.
+*   Allow using `public` and `no-cache` together in the the Cache Control header.
 
-    Before this change, even if `public` was specified for Cache Control header,
-    it was excluded when `no-cache` was included. This fixed to keep `public`
-    header as is.
+    Before this change, even if `public` was specified in the Cache Control header,
+    it was excluded when `no-cache` was included. This change preserves the
+    `public` value as is.
 
     Fixes #34780.
 
