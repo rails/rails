@@ -12,6 +12,7 @@ services:
     image: "${IMAGE_NAME-buildkite_base}"
     environment:
       CI:
+      BUILDKITE:
       BUILDKITE_BUILD_ID:
       BUILDKITE_JOB_ID:
       BUILDKITE_PARALLEL_JOB:
