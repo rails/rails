@@ -1,3 +1,12 @@
+*   Add `ActiveRecord::Relation#extract_associated` for extracting associated records from a relation. 
+
+    ```
+    account.memberships.extract_associated(:user)
+    # => Returns collection of User records
+    ```
+
+    *DHH*
+
 *   Add `ActiveRecord::Relation#annotate` for adding SQL comments to its queries.
 
     For example:

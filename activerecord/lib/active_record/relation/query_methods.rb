@@ -154,6 +154,19 @@ module ActiveRecord
       self
     end
 
+    # Extracts a named +association+ from the relation. The named association is first preloaded,
+    # then the individual association records are collected from the relation. Like so:
+    #
+    #   account.memberships.extract_associated(:user)
+    #   # => Returns collection of User records
+    #
+    # This is short-hand for:
+    #
+    #   account.memberships.preload(:user).collect(&:user)
+    def extract_associated(association)
+      preload(association).collect(&association)
+    end
+
     # Use to indicate that the given +table_names+ are referenced by an SQL string,
     # and should therefore be JOINed in any query rather than loaded separately.
     # This method only works in conjunction with #includes.

@@ -602,6 +602,13 @@ class RelationTest < ActiveRecord::TestCase
     end
   end
 
+  def test_extracted_association
+    relation_authors = assert_queries(2) { Post.all.extract_associated(:author) }
+    root_authors = assert_queries(2) { Post.extract_associated(:author) }
+    assert_equal relation_authors, root_authors
+    assert_equal Post.all.collect(&:author), relation_authors
+  end
+
   def test_find_with_included_associations
     assert_queries(2) do
       posts = Post.includes(:comments).order("posts.id")
