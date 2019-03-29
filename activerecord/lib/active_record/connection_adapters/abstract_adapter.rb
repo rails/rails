@@ -133,8 +133,6 @@ module ActiveRecord
         @advisory_locks_enabled = self.class.type_cast_config_to_boolean(
           config.fetch(:advisory_locks, true)
         )
-
-        check_version
       end
 
       def replica?
@@ -575,9 +573,17 @@ module ActiveRecord
         "INSERT #{insert.into} #{insert.values_list}"
       end
 
+      def get_database_version # :nodoc:
+      end
+
+      def database_version # :nodoc:
+        schema_cache.database_version
+      end
+
+      def check_version # :nodoc:
+      end
+
       private
-        def check_version
-        end
 
         def type_map
           @type_map ||= Type::TypeMap.new.tap do |mapping|

@@ -810,6 +810,7 @@ module ActiveRecord
         def new_connection
           Base.send(spec.adapter_method, spec.config).tap do |conn|
             conn.schema_cache = schema_cache.dup if schema_cache
+            conn.check_version
           end
         end
 
