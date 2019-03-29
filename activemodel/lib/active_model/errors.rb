@@ -63,9 +63,9 @@ module ActiveModel
     MESSAGE_OPTIONS = [:message]
 
     class << self
-      attr_accessor :i18n_full_message # :nodoc:
+      attr_accessor :i18n_customize_full_message # :nodoc:
     end
-    self.i18n_full_message = false
+    self.i18n_customize_full_message = false
 
     attr_reader :messages, :details
 
@@ -413,7 +413,7 @@ module ActiveModel
       return message if attribute == :base
       attribute = attribute.to_s
 
-      if self.class.i18n_full_message && @base.class.respond_to?(:i18n_scope)
+      if self.class.i18n_customize_full_message && @base.class.respond_to?(:i18n_scope)
         attribute = attribute.remove(/\[\d\]/)
         parts = attribute.split(".")
         attribute_name = parts.pop
