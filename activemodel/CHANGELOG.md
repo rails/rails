@@ -1,3 +1,10 @@
+*   Type cast falsy boolean symbols on boolean attribute as false.
+
+    Fixes #35676.
+
+    *Ryuta Kamizono*
+
+
 ## Rails 5.2.3 (March 27, 2019) ##
 
 *   Fix date value when casting a multiparameter date hash to not convert
