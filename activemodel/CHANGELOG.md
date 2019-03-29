@@ -130,7 +130,7 @@
 
     *Unathi Chonco*
 
-*   Add `config.active_model.i18n_full_message` in order to control whether
+*   Add `config.active_model.i18n_customize_full_message` in order to control whether
     the `full_message` error format can be overridden at the attribute or model
     level in the locale files. This is `false` by default.
 
