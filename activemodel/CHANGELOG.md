@@ -1,3 +1,9 @@
+*   Type cast falsy boolean symbols on boolean attribute as false.
+
+    Fixes #35676.
+
+    *Ryuta Kamizono*
+
 *   Change how validation error translation strings are fetched: The new behavior
     will first try the more specific keys, including doing locale fallback, then try
     the less specific ones.
