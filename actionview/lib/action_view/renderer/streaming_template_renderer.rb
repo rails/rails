@@ -34,7 +34,7 @@ module ActionView
           return unless logger
 
           message = +"\n#{exception.class} (#{exception.message}):\n"
-          message << exception.annoted_source_code.to_s if exception.respond_to?(:annoted_source_code)
+          message << exception.annotated_source_code.to_s if exception.respond_to?(:annotated_source_code)
           message << "  " << exception.backtrace.join("\n  ")
           logger.fatal("#{message}\n\n")
         end

@@ -109,7 +109,7 @@ module ActionView
           end
       end
 
-      def annoted_source_code
+      def annotated_source_code
         source_extract(4)
       end
 
@@ -151,7 +151,7 @@ module ActionView
       MESSAGE
     end
 
-    def annoted_source_code
+    def annotated_source_code
       @offending_code_string.split("\n").map.with_index(1) { |line, index|
         indentation = " " * 4
         "#{index}:#{indentation}#{line}"
