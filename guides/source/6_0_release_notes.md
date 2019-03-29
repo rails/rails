@@ -237,6 +237,18 @@ Please refer to the [Changelog][active-model] for detailed changes.
 
 ### Notable changes
 
+*   Add a configuration option to customize format of the `ActiveModel::Errors#full_message`.
+    ([Pull Request](https://github.com/rails/rails/pull/32956))
+
+*   Add support for configuring attribute name for `has_secure_password`.
+    ([Pull Request](https://github.com/rails/rails/pull/26764))
+
+*   Add `#slice!` method to `ActiveModel::Errors`.
+    ([Pull Request](https://github.com/rails/rails/pull/34489))
+
+*   Add `ActiveModel::Errors#of_kind?` to check presence of a specific error.
+    ([Pull Request](https://github.com/rails/rails/pull/34866))
+
 Active Support
 --------------
 
