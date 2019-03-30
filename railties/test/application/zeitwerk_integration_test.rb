@@ -163,7 +163,7 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
     assert $zeitwerk_integration_test_extras
   end
 
-  test "autoload directores not present in eager load paths are not eager loaded" do
+  test "autoload directories not present in eager load paths are not eager loaded" do
     $zeitwerk_integration_test_user = false
     app_file "app/models/user.rb", "class User; end; $zeitwerk_integration_test_user = true"
 
