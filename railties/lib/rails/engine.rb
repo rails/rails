@@ -567,10 +567,13 @@ module Rails
       ActiveSupport::Dependencies.autoload_paths.unshift(*_all_autoload_paths)
       ActiveSupport::Dependencies.autoload_once_paths.unshift(*_all_autoload_once_paths)
 
-      # Freeze so future modifications will fail rather than do nothing mysteriously
       config.autoload_paths.freeze
-      config.eager_load_paths.freeze
       config.autoload_once_paths.freeze
+    end
+
+    initializer :set_eager_load_paths, before: :bootstrap_hook do
+      ActiveSupport::Dependencies._eager_load_paths.merge(config.eager_load_paths)
+      config.eager_load_paths.freeze
     end
 
     initializer :add_routing_paths do |app|

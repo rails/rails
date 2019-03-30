@@ -1,3 +1,12 @@
+*   In `:zeitwerk` mode, eager load directories in engines and applications only
+    if present in their respective `config.eager_load_paths`.
+
+    A common use case for this is adding `lib` to `config.autoload_paths`, but
+    not to `config.eager_load_paths`. In that configuration, for example, files
+    in the `lib` directory should not be eager loaded.
+
+    *Xavier Noria*
+
 *   Fix bug in Range comparisons when comparing to an excluded-end Range
 
     Before:

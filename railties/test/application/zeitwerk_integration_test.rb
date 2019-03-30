@@ -149,6 +149,34 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
     assert $zeitwerk_integration_test_extras
   end
 
+  test "autoload directores not present in eager load paths are not eager loaded" do
+    $zeitwerk_integration_test_user = false
+    app_file "app/models/user.rb", "class User; end; $zeitwerk_integration_test_user = true"
+
+    $zeitwerk_integration_test_lib = false
+    app_dir "lib"
+    app_file "lib/webhook_hacks.rb", "WebhookHacks = 1; $zeitwerk_integration_test_lib = true"
+
+    $zeitwerk_integration_test_extras = false
+    app_dir "extras"
+    app_file "extras/websocket_hacks.rb", "WebsocketHacks = 1; $zeitwerk_integration_test_extras = true"
+
+    add_to_config "config.autoload_paths      << '#{app_path}/lib'"
+    add_to_config "config.autoload_once_paths << '#{app_path}/extras'"
+
+    boot("production")
+
+    assert $zeitwerk_integration_test_user
+    assert !$zeitwerk_integration_test_lib
+    assert !$zeitwerk_integration_test_extras
+
+    assert WebhookHacks
+    assert WebsocketHacks
+
+    assert $zeitwerk_integration_test_lib
+    assert $zeitwerk_integration_test_extras
+  end
+
   test "autoload_paths are set as root dirs of main, and in the same order" do
     boot
 

@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "set"
 require "active_support/core_ext/string/inflections"
 
 module ActiveSupport
@@ -52,7 +53,7 @@ module ActiveSupport
       class << self
         def take_over
           setup_autoloaders
-          freeze_autoload_paths
+          freeze_paths
           decorate_dependencies
         end
 
@@ -64,11 +65,11 @@ module ActiveSupport
               # prevent misconfigurations.
               next unless File.directory?(autoload_path)
 
-              if autoload_once?(autoload_path)
-                Rails.autoloaders.once.push_dir(autoload_path)
-              else
-                Rails.autoloaders.main.push_dir(autoload_path)
-              end
+              autoloader = \
+                autoload_once?(autoload_path) ? Rails.autoloaders.once : Rails.autoloaders.main
+
+              autoloader.push_dir(autoload_path)
+              autoloader.do_not_eager_load(autoload_path) unless eager_load?(autoload_path)
             end
 
             Rails.autoloaders.each(&:setup)
@@ -78,9 +79,14 @@ module ActiveSupport
             Dependencies.autoload_once_paths.include?(autoload_path)
           end
 
-          def freeze_autoload_paths
+          def eager_load?(autoload_path)
+            Dependencies._eager_load_paths.member?(autoload_path)
+          end
+
+          def freeze_paths
             Dependencies.autoload_paths.freeze
             Dependencies.autoload_once_paths.freeze
+            Dependencies._eager_load_paths.freeze
           end
 
           def decorate_dependencies
