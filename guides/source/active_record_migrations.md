@@ -465,7 +465,6 @@ number of digits after the decimal point.
 * `default`      Allows to set a default value on the column. Note that if you
 are using a dynamic value (such as a date), the default will only be calculated
 the first time (i.e. on the date the migration is applied).
-* `index`        Adds an index for the column.
 * `comment`      Adds a comment for the column.
 
 Some adapters may support additional options; see the adapter specific API docs
