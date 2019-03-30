@@ -1,3 +1,7 @@
+*   Add `after_save_commit` callback as shortcut for `after_commit :hook, on: [ :create, :update ]`.
+
+    *DHH*
+
 *   Add `ActiveRecord::Relation#extract_associated` for extracting associated records from a relation. 
 
     ```

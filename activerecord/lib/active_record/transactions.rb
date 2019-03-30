@@ -234,6 +234,12 @@ module ActiveRecord
         set_callback(:commit, :after, *args, &block)
       end
 
+      # Shortcut for <tt>after_commit :hook, on: [ :create, :update ]</tt>.
+      def after_save_commit(*args, &block)
+        set_options_for_callbacks!(args, on: [ :create, :update ])
+        set_callback(:commit, :after, *args, &block)
+      end
+
       # Shortcut for <tt>after_commit :hook, on: :create</tt>.
       def after_create_commit(*args, &block)
         set_options_for_callbacks!(args, on: :create)
