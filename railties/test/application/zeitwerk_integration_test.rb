@@ -124,10 +124,24 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
 
     app_file "app/models/user.rb", "class User; end; $zeitwerk_integration_test_user = true"
     app_file "app/models/post.rb", "class Post; end; $zeitwerk_integration_test_post = true"
+
     boot("production")
 
     assert $zeitwerk_integration_test_user
     assert $zeitwerk_integration_test_post
+  end
+
+  test "eager loading loads code in engines" do
+    $test_blog_engine_eager_loaded = false
+
+    engine("blog") do |bukkit|
+      bukkit.write("lib/blog.rb", "class BlogEngine < Rails::Engine; end")
+      bukkit.write("app/models/post.rb", "Post = $test_blog_engine_eager_loaded = true")
+    end
+
+    boot("production")
+
+    assert $test_blog_engine_eager_loaded
   end
 
   test "eager loading loads anything managed by Zeitwerk" do

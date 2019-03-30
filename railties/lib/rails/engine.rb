@@ -469,13 +469,16 @@ module Rails
       self
     end
 
-    # Eager load the application by loading all ruby
-    # files inside eager_load paths.
     def eager_load!
-      if Rails.autoloaders.zeitwerk_enabled?
-        eager_load_with_zeitwerk!
-      else
-        eager_load_with_dependencies!
+      # Already done by Zeitwerk::Loader.eager_load_all in the finisher.
+      return if Rails.autoloaders.zeitwerk_enabled?
+
+      config.eager_load_paths.each do |load_path|
+        # Starts after load_path plus a slash, ends before ".rb".
+        relname_range = (load_path.to_s.length + 1)...-3
+        Dir.glob("#{load_path}/**/*.rb").sort.each do |file|
+          require_dependency file[relname_range]
+        end
       end
     end
 
@@ -653,22 +656,6 @@ module Rails
       end
 
     private
-
-      def eager_load_with_zeitwerk!
-        (config.eager_load_paths - Zeitwerk::Loader.all_dirs).each do |path|
-          Dir.glob("#{path}/**/*.rb").sort.each { |file| require file }
-        end
-      end
-
-      def eager_load_with_dependencies!
-        config.eager_load_paths.each do |load_path|
-          # Starts after load_path plus a slash, ends before ".rb".
-          relname_range = (load_path.to_s.length + 1)...-3
-          Dir.glob("#{load_path}/**/*.rb").sort.each do |file|
-            require_dependency file[relname_range]
-          end
-        end
-      end
 
       def load_config_initializer(initializer) # :doc:
         ActiveSupport::Notifications.instrument("load_config_initializer.railties", initializer: initializer) do
