@@ -42,23 +42,23 @@ module ActiveRecord
         configure_connection
       end
 
-      def supports_json?
+      def supports_json? #:nodoc:
         !mariadb? && database_version >= "5.7.8"
       end
 
-      def supports_comments?
+      def supports_comments? #:nodoc:
         true
       end
 
-      def supports_comments_in_create?
+      def supports_comments_in_create? #:nodoc:
         true
       end
 
-      def supports_savepoints?
+      def supports_savepoints? #:nodoc:
         true
       end
 
-      def supports_lazy_transactions?
+      def supports_lazy_transactions? #:nodoc:
         true
       end
 

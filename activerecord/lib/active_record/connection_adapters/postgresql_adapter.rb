@@ -148,64 +148,64 @@ module ActiveRecord
       include PostgreSQL::SchemaStatements
       include PostgreSQL::DatabaseStatements
 
-      def supports_bulk_alter?
+      def supports_bulk_alter? #:nodoc:
         true
       end
 
-      def supports_index_sort_order?
+      def supports_index_sort_order? #:nodoc:
         true
       end
 
-      def supports_partial_index?
+      def supports_partial_index? #:nodoc:
         true
       end
 
-      def supports_expression_index?
+      def supports_expression_index? #:nodoc:
         true
       end
 
-      def supports_transaction_isolation?
+      def supports_transaction_isolation? #:nodoc:
         true
       end
 
-      def supports_foreign_keys?
+      def supports_foreign_keys? #:nodoc:
         true
       end
 
-      def supports_validate_constraints?
+      def supports_validate_constraints? #:nodoc:
         true
       end
 
-      def supports_views?
+      def supports_views? #:nodoc:
         true
       end
 
-      def supports_datetime_with_precision?
+      def supports_datetime_with_precision? #:nodoc:
         true
       end
 
-      def supports_json?
+      def supports_json? #:nodoc:
         true
       end
 
-      def supports_comments?
+      def supports_comments? #:nodoc:
         true
       end
 
-      def supports_savepoints?
+      def supports_savepoints? #:nodoc:
         true
       end
 
-      def supports_insert_returning?
+      def supports_insert_returning? #:nodoc:
         true
       end
 
-      def supports_insert_on_conflict?
+      def supports_insert_on_conflict? #:nodoc:
         database_version >= 90500
       end
-      alias supports_insert_on_duplicate_skip? supports_insert_on_conflict?
-      alias supports_insert_on_duplicate_update? supports_insert_on_conflict?
-      alias supports_insert_conflict_target? supports_insert_on_conflict?
+      alias supports_insert_on_duplicate_skip? supports_insert_on_conflict? #:nodoc:
+      alias supports_insert_on_duplicate_update? supports_insert_on_conflict? #:nodoc:
+      alias supports_insert_conflict_target? supports_insert_on_conflict? #:nodoc:
 
       def index_algorithms
         { concurrently: "CONCURRENTLY" }
@@ -314,32 +314,32 @@ module ActiveRecord
         execute("SET standard_conforming_strings = on", "SCHEMA")
       end
 
-      def supports_ddl_transactions?
+      def supports_ddl_transactions? #:nodoc:
         true
       end
 
-      def supports_advisory_locks?
+      def supports_advisory_locks? #:nodoc:
         true
       end
 
-      def supports_explain?
+      def supports_explain? #:nodoc:
         true
       end
 
-      def supports_extensions?
+      def supports_extensions? #:nodoc:
         true
       end
 
-      def supports_ranges?
+      def supports_ranges? #:nodoc:
         true
       end
       deprecate :supports_ranges?
 
-      def supports_materialized_views?
+      def supports_materialized_views? #:nodoc:
         true
       end
 
-      def supports_foreign_tables?
+      def supports_foreign_tables? #:nodoc:
         true
       end
 
@@ -347,14 +347,14 @@ module ActiveRecord
         database_version >= 90400
       end
 
-      def supports_optimizer_hints?
+      def supports_optimizer_hints? #:nodoc:
         unless defined?(@has_pg_hint_plan)
           @has_pg_hint_plan = extension_available?("pg_hint_plan")
         end
         @has_pg_hint_plan
       end
 
-      def supports_lazy_transactions?
+      def supports_lazy_transactions? #:nodoc:
         true
       end
 

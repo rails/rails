@@ -67,56 +67,56 @@ module ActiveRecord
         true
       end
 
-      def supports_index_sort_order?
+      def supports_index_sort_order? #:nodoc:
         !mariadb? && database_version >= "8.0.1"
       end
 
-      def supports_expression_index?
+      def supports_expression_index? #:nodoc:
         !mariadb? && database_version >= "8.0.13"
       end
 
-      def supports_transaction_isolation?
+      def supports_transaction_isolation? #:nodoc:
         true
       end
 
-      def supports_explain?
+      def supports_explain? #:nodoc:
         true
       end
 
-      def supports_indexes_in_create?
+      def supports_indexes_in_create? #:nodoc:
         true
       end
 
-      def supports_foreign_keys?
+      def supports_foreign_keys? #:nodoc:
         true
       end
 
-      def supports_views?
+      def supports_views? #:nodoc:
         true
       end
 
-      def supports_datetime_with_precision?
+      def supports_datetime_with_precision? #:nodoc:
         mariadb? || database_version >= "5.6.4"
       end
 
-      def supports_virtual_columns?
+      def supports_virtual_columns? #:nodoc:
         mariadb? || database_version >= "5.7.5"
       end
 
       # See https://dev.mysql.com/doc/refman/8.0/en/optimizer-hints.html for more details.
-      def supports_optimizer_hints?
+      def supports_optimizer_hints? #:nodoc:
         !mariadb? && database_version >= "5.7.7"
       end
 
-      def supports_advisory_locks?
+      def supports_advisory_locks? #:nodoc:
         true
       end
 
-      def supports_insert_on_duplicate_skip?
+      def supports_insert_on_duplicate_skip? #:nodoc:
         true
       end
 
-      def supports_insert_on_duplicate_update?
+      def supports_insert_on_duplicate_update? #:nodoc:
         true
       end
 

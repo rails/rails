@@ -98,19 +98,19 @@ module ActiveRecord
         configure_connection
       end
 
-      def supports_ddl_transactions?
+      def supports_ddl_transactions? #:nodoc:
         true
       end
 
-      def supports_savepoints?
+      def supports_savepoints? #:nodoc:
         true
       end
 
-      def supports_partial_index?
+      def supports_partial_index? #:nodoc:
         true
       end
 
-      def supports_expression_index?
+      def supports_expression_index? #:nodoc:
         database_version >= "3.9.0"
       end
 
@@ -118,28 +118,28 @@ module ActiveRecord
         true
       end
 
-      def supports_foreign_keys?
+      def supports_foreign_keys? #:nodoc:
         true
       end
 
-      def supports_views?
+      def supports_views? #:nodoc:
         true
       end
 
-      def supports_datetime_with_precision?
+      def supports_datetime_with_precision? #:nodoc:
         true
       end
 
-      def supports_json?
+      def supports_json? #:nodoc:
         true
       end
 
-      def supports_insert_on_conflict?
+      def supports_insert_on_conflict? #:nodoc:
         database_version >= "3.24.0"
       end
-      alias supports_insert_on_duplicate_skip? supports_insert_on_conflict?
-      alias supports_insert_on_duplicate_update? supports_insert_on_conflict?
-      alias supports_insert_conflict_target? supports_insert_on_conflict?
+      alias supports_insert_on_duplicate_skip? supports_insert_on_conflict? #:nodoc:
+      alias supports_insert_on_duplicate_update? supports_insert_on_conflict? #:nodoc:
+      alias supports_insert_conflict_target? supports_insert_on_conflict? #:nodoc:
 
       def active?
         !@connection.closed?
@@ -157,7 +157,7 @@ module ActiveRecord
         @connection.close rescue nil
       end
 
-      def supports_index_sort_order?
+      def supports_index_sort_order? #:nodoc:
         true
       end
 
@@ -177,11 +177,11 @@ module ActiveRecord
         @connection.encoding.to_s
       end
 
-      def supports_explain?
+      def supports_explain? #:nodoc:
         true
       end
 
-      def supports_lazy_transactions?
+      def supports_lazy_transactions? #:nodoc:
         true
       end
 
