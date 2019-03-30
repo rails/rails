@@ -63,6 +63,7 @@ PATH
       activesupport (= 6.0.0.beta3)
     activestorage (6.0.0.beta3)
       actionpack (= 6.0.0.beta3)
+      activejob (= 6.0.0.beta3)
       activerecord (= 6.0.0.beta3)
       marcel (~> 0.3.1)
     activesupport (6.0.0.beta3)
