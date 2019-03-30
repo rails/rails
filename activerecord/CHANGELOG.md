@@ -1,3 +1,11 @@
+*   Assign all attributes before calling `build` to ensure the child record is visible in
+    `before_add` and `after_add` callbacks for `has_many :through` associations.
+
+    Fixes #33249.
+
+    *Ryan H. Kerr*
+
+
 ## Rails 5.2.3 (March 27, 2019) ##
 
 *   Fix different `count` calculation when using `size` with manual `select` with DISTINCT.
