@@ -51,9 +51,20 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
     def @view.combined_fragment_cache_key(*); "ahoy `controller` dependency"; end
   end
 
+  def test_render_template_template
+    Rails.stub(:root, File.expand_path(FIXTURE_LOAD_PATH)) do
+      @view.render(template: "test/hello_world")
+      wait
+
+      assert_equal 2, @logger.logged(:info).size
+      assert_match(/Rendering test\/hello_world\.erb/, @logger.logged(:info).first)
+      assert_match(/Rendered test\/hello_world\.erb/, @logger.logged(:info).last)
+    end
+  end
+
   def test_render_file_template
     Rails.stub(:root, File.expand_path(FIXTURE_LOAD_PATH)) do
-      @view.render(file: "test/hello_world")
+      @view.render(file: "#{FIXTURE_LOAD_PATH}/test/hello_world.erb")
       wait
 
       assert_equal 2, @logger.logged(:info).size

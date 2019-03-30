@@ -11,7 +11,7 @@ module ActionView
     end
 
     def source
-      File.binread @filename
+      ::File.binread @filename
     end
 
     def refresh(_)
