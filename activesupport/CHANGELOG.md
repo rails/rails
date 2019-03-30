@@ -11,15 +11,15 @@
 
     Before:
 
-        (1..10).cover?(1...11) => false
+        (1..10).cover?(1...11) # => false
 
     After:
 
-        (1..10).cover?(1...11) => true
+        (1..10).cover?(1...11) # => true
 
     With the same change for `Range#include?` and `Range#===`.
 
-     *Owen Stephens*
+    *Owen Stephens*
 
 *   Use weak references in descendants tracker to allow anonymous subclasses to
     be garbage collected.
@@ -36,11 +36,11 @@
 *   Fix `Time#advance` to work with dates before 1001-03-07
 
     Before:
-    
+
         Time.utc(1001, 3, 6).advance(years: -1) # => 1000-03-05 00:00:00 UTC
-    
+
     After
-    
+
         Time.utc(1001, 3, 6).advance(years: -1) # => 1000-03-06 00:00:00 UTC
 
     Note that this doesn't affect `DateTime#advance` as that doesn't use a proleptic calendar.
@@ -55,27 +55,27 @@
 
         I18n.backend.store_translations(:de, i18n: { transliterate: { rule: { "ü" => "ue" } } })
 
-        ActiveSupport::Inflector.transliterate("ü", locale: :de) => "ue"
-        "Fünf autos".parameterize(locale: :de) => "fuenf-autos"
-        ActiveSupport::Inflector.parameterize("Fünf autos", locale: :de) => "fuenf-autos"
+        ActiveSupport::Inflector.transliterate("ü", locale: :de) # => "ue"
+        "Fünf autos".parameterize(locale: :de) # => "fuenf-autos"
+        ActiveSupport::Inflector.parameterize("Fünf autos", locale: :de) # => "fuenf-autos"
 
     *Kaan Ozkan*, *Sharang Dashputre*
 
 *   Allow Array#excluding and Enumerable#excluding to deal with a passed array gracefully.
 
-        [ 1, 2, 3, 4, 5 ].excluding([4, 5]) => [ 1, 2, 3 ]
+        [ 1, 2, 3, 4, 5 ].excluding([4, 5]) # => [ 1, 2, 3 ]
 
     *DHH*
 
-*   Renamed Array#without and Enumerable#without to Array#excluding and Enumerable#excluding, to create parity with 
-    Array#including and Enumerable#including. Retained the old names as aliases.
+*   Renamed `Array#without` and `Enumerable#without` to `Array#excluding` and `Enumerable#excluding`, to create parity with
+    `Array#including` and `Enumerable#including`. Retained the old names as aliases.
 
     *DHH*
 
-*   Added Array#including and Enumerable#including to conveniently enlarge a collection with more members using a method rather than an operator:
+*   Added `Array#including` and `Enumerable#including` to conveniently enlarge a collection with more members using a method rather than an operator:
 
-        [ 1, 2, 3 ].including(4, 5) => [ 1, 2, 3, 4, 5 ]
-        post.authors.including(Current.person) => All the authors plus the current person!
+        [ 1, 2, 3 ].including(4, 5) # => [ 1, 2, 3, 4, 5 ]
+        post.authors.including(Current.person) # => All the authors plus the current person!
 
     *DHH*
 
