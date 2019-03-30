@@ -101,6 +101,7 @@ module ActiveRecord
       # environment where dumping schema is rarely needed.
       mattr_accessor :dump_schema_after_migration, instance_writer: false, default: true
 
+      mattr_accessor :database_selector, instance_writer: false
       ##
       # :singleton-method:
       # Specifies which database schemas to dump when calling db:structure:dump.
@@ -124,6 +125,10 @@ module ActiveRecord
 
       mattr_accessor :connection_handlers, instance_accessor: false, default: {}
 
+      mattr_accessor :writing_role, instance_accessor: false, default: :writing
+
+      mattr_accessor :reading_role, instance_accessor: false, default: :reading
+
       class_attribute :default_connection_handler, instance_writer: false
 
       self.filter_attributes = []
@@ -137,7 +142,6 @@ module ActiveRecord
       end
 
       self.default_connection_handler = ConnectionAdapters::ConnectionHandler.new
-      self.connection_handlers = { writing: ActiveRecord::Base.default_connection_handler }
     end
 
     module ClassMethods
@@ -157,7 +161,7 @@ module ActiveRecord
         return super if block_given? ||
                         primary_key.nil? ||
                         scope_attributes? ||
-                        columns_hash.include?(inheritance_column)
+                        columns_hash.key?(inheritance_column) && !base_class?
 
         id = ids.first
 
@@ -169,19 +173,17 @@ module ActiveRecord
           where(key => params.bind).limit(1)
         }
 
-        record = statement.execute([id], connection).first
+        record = statement.execute([id], connection)&.first
         unless record
           raise RecordNotFound.new("Couldn't find #{name} with '#{primary_key}'=#{id}",
                                    name, primary_key, id)
         end
         record
-      rescue ::RangeError
-        raise RecordNotFound.new("Couldn't find #{name} with an out of range value for '#{primary_key}'",
-                                 name, primary_key)
       end
 
       def find_by(*args) # :nodoc:
-        return super if scope_attributes? || reflect_on_all_aggregations.any?
+        return super if scope_attributes? || reflect_on_all_aggregations.any? ||
+                        columns_hash.key?(inheritance_column) && !base_class?
 
         hash = args.first
 
@@ -201,11 +203,9 @@ module ActiveRecord
           where(wheres).limit(1)
         }
         begin
-          statement.execute(hash.values, connection).first
+          statement.execute(hash.values, connection)&.first
         rescue TypeError
           raise ActiveRecord::StatementInvalid
-        rescue ::RangeError
-          nil
         end
       end
 
@@ -476,6 +476,14 @@ module ActiveRecord
       else
         super
       end
+    end
+
+    def present? # :nodoc:
+      true
+    end
+
+    def blank? # :nodoc:
+      false
     end
 
     # Returns +true+ if the record is read only. Records loaded through joins with piggy-back

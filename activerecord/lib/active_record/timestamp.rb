@@ -101,8 +101,8 @@ module ActiveRecord
       super
     end
 
-    def _update_record(*args, touch: true, **options)
-      if touch && should_record_timestamps?
+    def _update_record
+      if @_touch_record && should_record_timestamps?
         current_time = current_time_from_proper_timezone
 
         timestamp_attributes_for_update_in_model.each do |column|
@@ -110,7 +110,13 @@ module ActiveRecord
           _write_attribute(column, current_time)
         end
       end
-      super(*args)
+
+      super
+    end
+
+    def create_or_update(touch: true, **)
+      @_touch_record = touch
+      super
     end
 
     def should_record_timestamps?
@@ -133,11 +139,10 @@ module ActiveRecord
       self.class.send(:current_time_from_proper_timezone)
     end
 
-    def max_updated_column_timestamp(timestamp_names = timestamp_attributes_for_update_in_model)
-      timestamp_names
-        .map { |attr| self[attr] }
+    def max_updated_column_timestamp
+      timestamp_attributes_for_update_in_model
+        .map { |attr| self[attr]&.to_time }
         .compact
-        .map(&:to_time)
         .max
     end
 

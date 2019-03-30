@@ -249,7 +249,7 @@ module ActiveRecord
           sti_column = arel_attribute(inheritance_column, table)
           sti_names  = ([self] + descendants).map(&:sti_name)
 
-          sti_column.in(sti_names)
+          predicate_builder.build(sti_column, sti_names)
         end
 
         # Detect the subclass from the inheritance column of attrs. If the inheritance column value

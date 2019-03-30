@@ -12,4 +12,11 @@ namespace :active_storage do
       Rake::Task["app:active_storage:install:migrations"].invoke
     end
   end
+
+  # desc "Copy over the migrations needed to the application upgrading"
+  task update: :environment do
+    ENV["MIGRATIONS_PATH"] = "db/update_migrate"
+
+    Rake::Task["active_storage:install"].invoke
+  end
 end

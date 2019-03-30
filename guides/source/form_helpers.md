@@ -17,7 +17,7 @@ After reading this guide, you will know:
 
 --------------------------------------------------------------------------------
 
-NOTE: This guide is not intended to be a complete documentation of available form helpers and their arguments. Please visit [the Rails API documentation](http://api.rubyonrails.org/) for a complete reference.
+NOTE: This guide is not intended to be a complete documentation of available form helpers and their arguments. Please visit [the Rails API documentation](https://api.rubyonrails.org/) for a complete reference.
 
 Dealing with Basic Forms
 ------------------------
@@ -89,7 +89,7 @@ value entered by the user for that field. For example, if the form contains
 `<%= text_field_tag(:query) %>`, then you would be able to get the value of this
 field in the controller with `params[:query]`.
 
-When naming inputs, Rails uses certain conventions that make it possible to submit parameters with non-scalar values such as arrays or hashes, which will also be accessible in `params`. You can read more about them in chapter [Understanding Parameter Naming Conventions](#understanding-parameter-naming-conventions) of this guide. For details on the precise usage of these helpers, please refer to the [API documentation](http://api.rubyonrails.org/classes/ActionView/Helpers/FormTagHelper.html).
+When naming inputs, Rails uses certain conventions that make it possible to submit parameters with non-scalar values such as arrays or hashes, which will also be accessible in `params`. You can read more about them in chapter [Understanding Parameter Naming Conventions](#understanding-parameter-naming-conventions) of this guide. For details on the precise usage of these helpers, please refer to the [API documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/FormTagHelper.html).
 
 #### Checkboxes
 
@@ -527,13 +527,13 @@ NOTE: Pairs passed to `options_for_select` should have the text first and the va
 
 ### Time Zone and Country Select
 
-To leverage time zone support in Rails, you have to ask your users what time zone they are in. Doing so would require generating select options from a list of pre-defined [`ActiveSupport::TimeZone`](http://api.rubyonrails.org/classes/ActiveSupport/TimeZone.html) objects using `collection_select`, but you can simply use the `time_zone_select` helper that already wraps this:
+To leverage time zone support in Rails, you have to ask your users what time zone they are in. Doing so would require generating select options from a list of pre-defined [`ActiveSupport::TimeZone`](https://api.rubyonrails.org/classes/ActiveSupport/TimeZone.html) objects using `collection_select`, but you can simply use the `time_zone_select` helper that already wraps this:
 
 ```erb
 <%= time_zone_select(:person, :time_zone) %>
 ```
 
-There is also `time_zone_options_for_select` helper for a more manual (therefore more customizable) way of doing this. Read the [API documentation](http://api.rubyonrails.org/classes/ActionView/Helpers/FormOptionsHelper.html#method-i-time_zone_options_for_select) to learn about the possible arguments for these two methods.
+There is also `time_zone_options_for_select` helper for a more manual (therefore more customizable) way of doing this. Read the [API documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/FormOptionsHelper.html#method-i-time_zone_options_for_select) to learn about the possible arguments for these two methods.
 
 Rails _used_ to have a `country_select` helper for choosing countries, but this has been extracted to the [country_select plugin](https://github.com/stefanpenner/country_select).
 
@@ -604,7 +604,7 @@ When this is passed to `Person.new` (or `update`), Active Record spots that thes
 
 ### Common Options
 
-Both families of helpers use the same core set of functions to generate the individual select tags and so both accept largely the same options. In particular, by default Rails will generate year options 5 years either side of the current year. If this is not an appropriate range, the `:start_year` and `:end_year` options override this. For an exhaustive list of the available options, refer to the [API documentation](http://api.rubyonrails.org/classes/ActionView/Helpers/DateHelper.html).
+Both families of helpers use the same core set of functions to generate the individual select tags and so both accept largely the same options. In particular, by default Rails will generate year options 5 years either side of the current year. If this is not an appropriate range, the `:start_year` and `:end_year` options override this. For an exhaustive list of the available options, refer to the [API documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/DateHelper.html).
 
 As a rule of thumb you should be using `date_select` when working with model objects and `select_date` in other cases, such as a search form which filters results by date.
 
@@ -642,7 +642,7 @@ Rails provides the usual pair of helpers: the barebones `file_field_tag` and the
 
 ### What Gets Uploaded
 
-The object in the `params` hash is an instance of [`ActionDispatch::Http::UploadedFile`](http://api.rubyonrails.org/classes/ActionDispatch/Http/UploadedFile.html). The following snippet saves the uploaded file in `#{Rails.root}/public/uploads` under the same name as the original file.
+The object in the `params` hash is an instance of [`ActionDispatch::Http::UploadedFile`](https://api.rubyonrails.org/classes/ActionDispatch/Http/UploadedFile.html). The following snippet saves the uploaded file in `#{Rails.root}/public/uploads` under the same name as the original file.
 
 ```ruby
 def upload
@@ -658,7 +658,7 @@ Once a file has been uploaded, there are a multitude of potential tasks, ranging
 Customizing Form Builders
 -------------------------
 
-The object yielded by `form_with` and `fields_for` is an instance of [`ActionView::Helpers::FormBuilder`](http://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html). Form builders encapsulate the notion of displaying form elements for a single object. While you can write helpers for your forms in the usual way, you can also create subclass `ActionView::Helpers::FormBuilder` and add the helpers there. For example:
+The object yielded by `form_with` and `fields_for` is an instance of [`ActionView::Helpers::FormBuilder`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html). Form builders encapsulate the notion of displaying form elements for a single object. While you can write helpers for your forms in the usual way, you can also create subclass `ActionView::Helpers::FormBuilder` and add the helpers there. For example:
 
 ```erb
 <%= form_with model: @person do |f| %>

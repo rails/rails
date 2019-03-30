@@ -67,6 +67,10 @@ module ActionText
       super.merge(attachable_sgid: attachable_sgid)
     end
 
+    def to_trix_content_attachment_partial_path
+      to_partial_path
+    end
+
     def to_rich_text_attributes(attributes = {})
       attributes.dup.tap do |attrs|
         attrs[:sgid] = attachable_sgid

@@ -41,15 +41,13 @@ module ActiveRecord
     def count(column_name = nil)
       if block_given?
         unless column_name.nil?
-          ActiveSupport::Deprecation.warn \
-            "When `count' is called with a block, it ignores other arguments. " \
-            "This behavior is now deprecated and will result in an ArgumentError in Rails 6.0."
+          raise ArgumentError, "Column name argument is not supported when a block is passed."
         end
 
-        return super()
+        super()
+      else
+        calculate(:count, column_name)
       end
-
-      calculate(:count, column_name)
     end
 
     # Calculates the average value on a given column. Returns +nil+ if there's
@@ -86,15 +84,13 @@ module ActiveRecord
     def sum(column_name = nil)
       if block_given?
         unless column_name.nil?
-          ActiveSupport::Deprecation.warn \
-            "When `sum' is called with a block, it ignores other arguments. " \
-            "This behavior is now deprecated and will result in an ArgumentError in Rails 6.0."
+          raise ArgumentError, "Column name argument is not supported when a block is passed."
         end
 
-        return super()
+        super()
+      else
+        calculate(:sum, column_name)
       end
-
-      calculate(:sum, column_name)
     end
 
     # This calculates aggregate values in the given column. Methods for #count, #sum, #average,
@@ -190,11 +186,9 @@ module ActiveRecord
         relation = apply_join_dependency
         relation.pluck(*column_names)
       else
-        disallow_raw_sql!(column_names)
+        klass.disallow_raw_sql!(column_names)
         relation = spawn
-        relation.select_values = column_names.map { |cn|
-          @klass.has_attribute?(cn) || @klass.attribute_alias?(cn) ? arel_attribute(cn) : cn
-        }
+        relation.select_values = column_names
         result = skip_query_cache_if_necessary { klass.connection.select_all(relation.arel, nil) }
         result.cast_values(klass.attribute_types)
       end
@@ -227,7 +221,6 @@ module ActiveRecord
     end
 
     private
-
       def has_include?(column_name)
         eager_loading? || (includes_values.present? && column_name && column_name != :all)
       end
@@ -242,10 +235,12 @@ module ActiveRecord
         if operation == "count"
           column_name ||= select_for_count
           if column_name == :all
-            if distinct && (group_values.any? || select_values.empty? && order_values.empty?)
+            if !distinct
+              distinct = distinct_select?(select_for_count) if group_values.empty?
+            elsif group_values.any? || select_values.empty? && order_values.empty?
               column_name = primary_key
             end
-          elsif column_name.is_a?(::String) && /\bDISTINCT[\s(]/i.match?(column_name)
+          elsif distinct_select?(column_name)
             distinct = nil
           end
         end
@@ -255,6 +250,10 @@ module ActiveRecord
         else
           execute_simple_calculation(operation, column_name, distinct)
         end
+      end
+
+      def distinct_select?(column_name)
+        column_name.is_a?(::String) && /\bDISTINCT[\s(]/i.match?(column_name)
       end
 
       def aggregate_column(column_name)

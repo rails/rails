@@ -1,3 +1,23 @@
+## Rails 6.0.0.beta3 (March 11, 2019) ##
+
+*   No changes.
+
+
+## Rails 6.0.0.beta2 (February 25, 2019) ##
+
+*   No changes.
+
+
+## Rails 6.0.0.beta1 (January 18, 2019) ##
+
+*   Add "Action Text Overview" Guide.
+
+    *DHH*
+
+*   Add "Action Mailbox Basics" Guide.
+
+    *DHH*
+
 *   New section _Troubleshooting_ in the _Autoloading and Reloading Constants_ guide.
 
     *Xavier Noria*

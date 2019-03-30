@@ -38,7 +38,7 @@ class ShareLockTest < ActiveSupport::TestCase
     end
   end
 
-  def test_multiple_exlusives_are_able_to_progress
+  def test_multiple_exclusives_are_able_to_progress
     with_thread_waiting_in_lock_section(:sharing) do |sharing_thread_release_latch|
       exclusive_threads = (1..2).map do
         Thread.new do

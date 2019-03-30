@@ -40,8 +40,7 @@ In a conventional Rails application that uses the asset pipeline, require `rails
 If you're using the Webpacker gem or some other JavaScript bundler, add the following to your main JS file:
 
 ```javascript
-import Rails from "@rails/ujs"
-Rails.start()
+require("@rails/ujs").start()
 ```
 
 ## How to run tests
@@ -53,5 +52,5 @@ Run `bundle exec rake ujs:server` first, and then run the web tests by visiting 
 rails-ujs is released under the [MIT License](MIT-LICENSE).
 
 [data]: https://www.w3.org/TR/html5/dom.html#embedding-custom-non-visible-data-with-the-data-attributes "Embedding custom non-visible data with the data-* attributes"
-[validator]: http://validator.w3.org/
-[csrf]: http://api.rubyonrails.org/classes/ActionController/RequestForgeryProtection.html
+[validator]: https://validator.w3.org/
+[csrf]: https://api.rubyonrails.org/classes/ActionController/RequestForgeryProtection.html

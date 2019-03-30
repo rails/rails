@@ -3,6 +3,7 @@
 require "abstract_unit"
 require "action_dispatch/system_testing/test_helpers/screenshot_helper"
 require "capybara/dsl"
+require "selenium/webdriver"
 
 class ScreenshotHelperTest < ActiveSupport::TestCase
   test "image path is saved in tmp directory" do

@@ -1,7 +1,52 @@
+*   Raise an `ArgumentError` if a resource custom param contains a colon (`:`).
+
+    After this change it's not possible anymore to configure routes like this:
+
+    ```
+    routes.draw do
+      resources :users, param: 'name/:sneaky'
+    end
+    ```
+
+    Fixes #30467.
+
+    *Josua Schmid*
+
+
+## Rails 6.0.0.beta3 (March 11, 2019) ##
+
+*   No changes.
+
+
+## Rails 6.0.0.beta2 (February 25, 2019) ##
+
+*   Make debug exceptions works in an environment where ActiveStorage is not loaded.
+
+    *Tomoyuki Kurosawa*
+
+*   `ActionDispatch::SystemTestCase.driven_by` can now be called with a block
+    to define specific browser capabilities.
+
+    *Edouard Chin*
+
+
+## Rails 6.0.0.beta1 (January 18, 2019) ##
+
+*   Remove deprecated `fragment_cache_key` helper in favor of `combined_fragment_cache_key`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated methods in `ActionDispatch::TestResponse`.
+
+    `#success?`, `missing?` and `error?` were deprecated in Rails 5.2 in favor of
+    `#successful?`, `not_found?` and `server_error?`.
+
+    *Rafael Mendonça França*
+
 *   Introduce ActionDispatch::HostAuthorization
 
     This is a new middleware that guards against DNS rebinding attacks by
-    white-listing the allowed hosts a request can be made to.
+    explicitly permitting the hosts a request can be made to.
 
     Each host is checked with the case operator (`#===`) to support `RegExp`,
     `Proc`, `IPAddr` and custom objects as host allowances.
@@ -63,7 +108,7 @@
 *   Apply mapping to symbols returned from dynamic CSP sources
 
     Previously if a dynamic source returned a symbol such as :self it
-    would be converted to a string implicity, e.g:
+    would be converted to a string implicitly, e.g:
 
         policy.default_src -> { :self }
 
@@ -116,7 +161,7 @@
 
     *Assain Jaleel*
 
-*   Raises `ActionController::RespondToMismatchError` with confliciting `respond_to` invocations.
+*   Raises `ActionController::RespondToMismatchError` with conflicting `respond_to` invocations.
 
     `respond_to` can match multiple types and lead to undefined behavior when
     multiple invocations are made and the types do not match:
@@ -141,7 +186,7 @@
 
     *Aaron Kromer*
 
-*   Pass along arguments to underlying `get` method in `follow_redirect!`.
+*   Pass along arguments to underlying `get` method in `follow_redirect!`
 
     Now all arguments passed to `follow_redirect!` are passed to the underlying
     `get` method. This for example allows to set custom headers for the

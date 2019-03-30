@@ -187,7 +187,7 @@ module ActiveSupport::Cache::RedisCacheStoreTests
     private
 
       def store
-        :redis_cache_store
+        [:redis_cache_store]
       end
 
       def emulating_latency
@@ -204,7 +204,7 @@ module ActiveSupport::Cache::RedisCacheStoreTests
   class RedisDistributedConnectionPoolBehaviourTest < ConnectionPoolBehaviourTest
     private
       def store_options
-        { url: %w[ redis://localhost:6379/0 redis://localhost:6379/0 ] }
+        { url: [ENV["REDIS_URL"] || "redis://localhost:6379/0"] * 2 }
       end
   end
 

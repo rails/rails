@@ -1141,6 +1141,10 @@ module ActionDispatch
           attr_reader :controller, :path, :param
 
           def initialize(entities, api_only, shallow, options = {})
+            if options[:param].to_s.include?(":")
+              raise ArgumentError, ":param option can't contain colons"
+            end
+
             @name       = entities.to_s
             @path       = (options[:path] || @name).to_s
             @controller = (options[:controller] || @name).to_s
@@ -1439,6 +1443,9 @@ module ActionDispatch
         # [:format]
         #   Allows you to specify the default value for optional +format+
         #   segment or disable it by supplying +false+.
+        #
+        # [:param]
+        #   Allows you to override the default param name of +:id+ in the URL.
         #
         # === Examples
         #

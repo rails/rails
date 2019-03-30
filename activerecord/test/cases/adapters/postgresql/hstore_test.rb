@@ -2,6 +2,7 @@
 
 require "cases/helper"
 require "support/schema_dumping_helper"
+require "support/stubs/strong_parameters"
 
 class PostgresqlHstoreTest < ActiveRecord::PostgreSQLTestCase
   include SchemaDumpingHelper
@@ -9,12 +10,6 @@ class PostgresqlHstoreTest < ActiveRecord::PostgreSQLTestCase
     self.table_name = "hstores"
 
     store_accessor :settings, :language, :timezone
-  end
-
-  class FakeParameters
-    def to_unsafe_h
-      { "hi" => "hi" }
-    end
   end
 
   def setup
@@ -344,7 +339,7 @@ class PostgresqlHstoreTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_supports_to_unsafe_h_values
-    assert_equal("\"hi\"=>\"hi\"", @type.serialize(FakeParameters.new))
+    assert_equal "\"hi\"=>\"hi\"", @type.serialize(ProtectedParams.new("hi" => "hi"))
   end
 
   private

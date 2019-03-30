@@ -148,6 +148,19 @@ class SanitizeTest < ActiveRecord::TestCase
     assert_equal "foo in (#{quoted_nil})", bind("foo in (?)", [])
   end
 
+  def test_bind_range
+    quoted_abc = %(#{ActiveRecord::Base.connection.quote('a')},#{ActiveRecord::Base.connection.quote('b')},#{ActiveRecord::Base.connection.quote('c')})
+    assert_equal "0", bind("?", 0..0)
+    assert_equal "1,2,3", bind("?", 1..3)
+    assert_equal quoted_abc, bind("?", "a"..."d")
+  end
+
+  def test_bind_empty_range
+    quoted_nil = ActiveRecord::Base.connection.quote(nil)
+    assert_equal quoted_nil, bind("?", 0...0)
+    assert_equal quoted_nil, bind("?", "a"..."a")
+  end
+
   def test_bind_empty_string
     quoted_empty = ActiveRecord::Base.connection.quote("")
     assert_equal quoted_empty, bind("?", "")
@@ -166,12 +179,6 @@ class SanitizeTest < ActiveRecord::TestCase
     l = Proc.new { bind(":a::integer '2009-01-01'::date", a: "10") }
     assert_nothing_raised(&l)
     assert_equal "#{ActiveRecord::Base.connection.quote('10')}::integer '2009-01-01'::date", l.call
-  end
-
-  def test_deprecated_expand_hash_conditions_for_aggregates
-    assert_deprecated do
-      assert_equal({ "balance" => 50 }, Customer.send(:expand_hash_conditions_for_aggregates, balance: Money.new(50)))
-    end
   end
 
   private

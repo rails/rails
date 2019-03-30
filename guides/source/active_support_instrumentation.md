@@ -203,6 +203,15 @@ INFO. Additional keys may be added by the caller.
 | ------- | ---------------- |
 | `:keys` | Unpermitted keys |
 
+Action Dispatch
+---------------
+
+### process_middleware.action_dispatch
+
+| Key           | Value                  |
+| ------------- | ---------------------- |
+| `:middleware` | Name of the middleware |
+
 Action View
 -----------
 
@@ -424,7 +433,7 @@ INFO. Cache stores may add their own keys
 ```
 
 Active Job
---------
+----------
 
 ### enqueue_at.active_job
 
@@ -678,6 +687,17 @@ end
 Now you can listen to this event with:
 
 ```ruby
+ActiveSupport::Notifications.subscribe "my.custom.event" do |name, started, finished, unique_id, data|
+  puts data.inspect # {:this=>:data}
+end
+```
+
+You also have the option to call instrument without passing a block. This lets you leverage the
+instrumentation infrastructure for other messaging uses.
+
+```ruby
+ActiveSupport::Notifications.instrument "my.custom.event", this: :data
+
 ActiveSupport::Notifications.subscribe "my.custom.event" do |name, started, finished, unique_id, data|
   puts data.inspect # {:this=>:data}
 end

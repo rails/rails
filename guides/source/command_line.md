@@ -248,7 +248,7 @@ Description:
     Create rails files for model generator.
 ```
 
-NOTE: For a list of available field types for the `type` parameter, refer to the [API documentation](http://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-add_column) for the add_column method for the `SchemaStatements` module. The `index` parameter generates a corresponding index for the column.
+NOTE: For a list of available field types for the `type` parameter, refer to the [API documentation](https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-add_column) for the add_column method for the `SchemaStatements` module. The `index` parameter generates a corresponding index for the column.
 
 But instead of generating a model directly (which we'll be doing later), let's set up a scaffold. A **scaffold** in Rails is a full set of model, database migration for that model, controller to manipulate it, views to view and manipulate the data, and a test suite for each of the above.
 
@@ -606,7 +606,7 @@ $ rails "task_name[value 1]" # entire argument string should be quoted
 $ rails db:nothing
 ```
 
-NOTE: If your need to interact with your application models, perform database queries, and so on, your task should depend on the `environment` task, which will load your application code.
+NOTE: If you need to interact with your application models, perform database queries, and so on, your task should depend on the `environment` task, which will load your application code.
 
 The Rails Advanced Command Line
 -------------------------------

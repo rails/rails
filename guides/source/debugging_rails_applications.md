@@ -147,7 +147,7 @@ TIP: The default Rails log level is `debug` in all environments.
 
 ### Sending Messages
 
-To write in the current log use the `logger.(debug|info|warn|error|fatal)` method from within a controller, model, or mailer:
+To write in the current log use the `logger.(debug|info|warn|error|fatal|unknown)` method from within a controller, model, or mailer:
 
 ```ruby
 logger.debug "Person attributes hash: #{@person.attributes.inspect}"

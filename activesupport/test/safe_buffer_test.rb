@@ -112,6 +112,38 @@ class SafeBufferTest < ActiveSupport::TestCase
     end
   end
 
+  test "can assign value into zero-index" do
+    buffer = ActiveSupport::SafeBuffer.new("012345")
+
+    buffer[0] = "<"
+
+    assert_equal "&lt;12345", buffer
+  end
+
+  test "can assign value into non zero-index" do
+    buffer = ActiveSupport::SafeBuffer.new("012345")
+
+    buffer[2] = "<"
+
+    assert_equal "01&lt;345", buffer
+  end
+
+  test "can assign value into slice" do
+    buffer = ActiveSupport::SafeBuffer.new("012345")
+
+    buffer[0, 3] = "<"
+
+    assert_equal "&lt;345", buffer
+  end
+
+  test "can assign value into offset slice" do
+    buffer = ActiveSupport::SafeBuffer.new("012345")
+
+    buffer[1, 3] = "<"
+
+    assert_equal "0&lt;45", buffer
+  end
+
   test "Should escape dirty buffers on add" do
     clean = "hello".html_safe
     @buffer.gsub!("", "<>")
@@ -151,7 +183,7 @@ class SafeBufferTest < ActiveSupport::TestCase
     assert_equal "", ActiveSupport::SafeBuffer.new("foo").clone_empty
   end
 
-  test "clone_empty keeps the original dirtyness" do
+  test "clone_empty keeps the original dirtiness" do
     assert_predicate @buffer.clone_empty, :html_safe?
     assert_not_predicate @buffer.gsub!("", "").clone_empty, :html_safe?
   end
@@ -215,5 +247,23 @@ class SafeBufferTest < ActiveSupport::TestCase
   test "Should not affect frozen objects when accessing characters" do
     x = "Hello".html_safe
     assert_nil x[/a/, 1]
+  end
+
+  test "Should set back references" do
+    a = "foo123".html_safe
+    a2 = a.sub(/([a-z]+)([0-9]+)/) { $2 + $1 }
+    assert_equal "123foo", a2
+    assert_not_predicate a2, :html_safe?
+    a.sub!(/([a-z]+)([0-9]+)/) { $2 + $1 }
+    assert_equal "123foo", a
+    assert_not_predicate a, :html_safe?
+
+    b = "foo123 bar456".html_safe
+    b2 = b.gsub(/([a-z]+)([0-9]+)/) { $2 + $1 }
+    assert_equal "123foo 456bar", b2
+    assert_not_predicate b2, :html_safe?
+    b.gsub!(/([a-z]+)([0-9]+)/) { $2 + $1 }
+    assert_equal "123foo 456bar", b
+    assert_not_predicate b, :html_safe?
   end
 end

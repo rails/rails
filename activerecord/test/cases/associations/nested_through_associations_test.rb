@@ -548,6 +548,15 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_through_association_preload_doesnt_reset_source_association_if_already_preloaded
+    blue = tags(:blue)
+    authors = Author.preload(posts: :first_blue_tags_2, misc_post_first_blue_tags_2: {}).to_a.sort_by(&:id)
+
+    assert_no_queries do
+      assert_equal [blue], authors[2].posts.first.first_blue_tags_2
+    end
+  end
+
   def test_nested_has_many_through_with_conditions_on_source_associations_preload_via_joins
     # Pointless condition to force single-query loading
     assert_includes_and_joins_equal(
@@ -608,6 +617,12 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
     hotel = Hotel.create!(departments: [department])
 
     assert_equal hotel, Hotel.joins(:cake_designers, :drink_designers).take
+  end
+
+  def test_has_many_through_reset_source_reflection_after_loading_is_complete
+    preloaded = Category.preload(:ordered_post_comments).find(1, 2).last
+    original = Category.find(2)
+    assert_equal original.ordered_post_comments.ids, preloaded.ordered_post_comments.ids
   end
 
   private

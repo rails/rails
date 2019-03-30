@@ -32,7 +32,8 @@ class ActionText::AttachmentTest < ActiveSupport::TestCase
     assert_equal attachable.byte_size, trix_attachment.attributes["filesize"]
     assert_equal "Captioned", trix_attachment.attributes["caption"]
 
-    assert_nil trix_attachment.attributes["content"]
+    assert_not_nil attachable.to_trix_content_attachment_partial_path
+    assert_not_nil trix_attachment.attributes["content"]
   end
 
   test "converts to TrixAttachment with content" do
@@ -47,6 +48,11 @@ class ActionText::AttachmentTest < ActiveSupport::TestCase
 
     assert_not_nil attachable.to_trix_content_attachment_partial_path
     assert_not_nil trix_attachment.attributes["content"]
+  end
+
+  test "defaults trix partial to model partial" do
+    attachable = Page.create! title: "Homepage"
+    assert_equal "pages/page", attachable.to_trix_content_attachment_partial_path
   end
 
   private

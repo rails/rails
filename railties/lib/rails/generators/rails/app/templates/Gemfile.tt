@@ -18,17 +18,17 @@ ruby <%= "'#{RUBY_VERSION}'" -%>
 <% end -%>
 <% end -%>
 
-# Use ActiveModel has_secure_password
+# Use Active Model has_secure_password
 # gem 'bcrypt', '~> 3.1.7'
 <% unless skip_active_storage? -%>
 
-# Use ActiveStorage variant
+# Use Active Storage variant
 # gem 'image_processing', '~> 1.2'
 <% end -%>
 
 <% if depend_on_bootsnap? -%>
 # Reduces boot times through caching; required in config/boot.rb
-gem 'bootsnap', '>= 1.1.0', require: false
+gem 'bootsnap', '>= 1.4.2', require: false
 
 <%- end -%>
 <%- if options.api? -%>
@@ -69,8 +69,8 @@ group :test do
   # Adds support for Capybara system testing and selenium driver
   gem 'capybara', '>= 2.15'
   gem 'selenium-webdriver'
-  # Easy installation and use of chromedriver to run system tests with Chrome
-  gem 'chromedriver-helper'
+  # Easy installation and use of web drivers to run system tests with browsers
+  gem 'webdrivers'
 end
 <%- end -%>
 

@@ -1,15 +1,21 @@
 # frozen_string_literal: true
 
+require "active_support/deprecation"
+
 module ActionView #:nodoc:
   # = Action View HTML Template
   class Template #:nodoc:
     class HTML #:nodoc:
-      attr_accessor :type
+      attr_reader :type
 
       def initialize(string, type = nil)
+        unless type
+          ActiveSupport::Deprecation.warn "ActionView::Template::HTML#initialize requires a type parameter"
+          type = :html
+        end
+
         @string = string.to_s
-        @type   = Types[type] || type if type
-        @type ||= Types[:html]
+        @type   = type
       end
 
       def identifier
@@ -26,9 +32,12 @@ module ActionView #:nodoc:
         to_str
       end
 
-      def formats
-        [@type.respond_to?(:ref) ? @type.ref : @type.to_s]
+      def format
+        @type
       end
+
+      def formats; Array(format); end
+      deprecate :formats
     end
   end
 end

@@ -2,7 +2,7 @@
 
 module Arel # :nodoc: all
   module Nodes
-    class Case < Arel::Nodes::Node
+    class Case < Arel::Nodes::NodeExpression
       attr_accessor :case, :conditions, :default
 
       def initialize(expression = nil, default = nil)

@@ -2,14 +2,22 @@
 
 require "active_support/core_ext/object/try"
 require "active_support/core_ext/kernel/singleton_class"
+require "active_support/deprecation"
 require "thread"
+require "delegate"
 
 module ActionView
   # = Action View Template
   class Template
     extend ActiveSupport::Autoload
 
-    mattr_accessor :finalize_compiled_template_methods, default: true
+    def self.finalize_compiled_template_methods
+      ActiveSupport::Deprecation.warn "ActionView::Template.finalize_compiled_template_methods is deprecated and has no effect"
+    end
+
+    def self.finalize_compiled_template_methods=(_)
+      ActiveSupport::Deprecation.warn "ActionView::Template.finalize_compiled_template_methods= is deprecated and has no effect"
+    end
 
     # === Encodings in ActionView::Template
     #
@@ -107,41 +115,54 @@ module ActionView
       autoload :Error
       autoload :Handlers
       autoload :HTML
+      autoload :Inline
       autoload :Text
       autoload :Types
     end
 
     extend Template::Handlers
 
-    attr_accessor :locals, :formats, :variants, :virtual_path
-
     attr_reader :source, :identifier, :handler, :original_encoding, :updated_at
+    attr_reader :variable, :format, :variant, :locals, :virtual_path
 
-    # This finalizer is needed (and exactly with a proc inside another proc)
-    # otherwise templates leak in development.
-    Finalizer = proc do |method_name, mod| # :nodoc:
-      proc do
-        mod.module_eval do
-          remove_possible_method method_name
-        end
+    def initialize(source, identifier, handler, format: nil, variant: nil, locals: nil, virtual_path: nil, updated_at: nil)
+      unless locals
+        ActiveSupport::Deprecation.warn "ActionView::Template#initialize requires a locals parameter"
+        locals = []
       end
-    end
-
-    def initialize(source, identifier, handler, details)
-      format = details[:format] || (handler.default_format if handler.respond_to?(:default_format))
 
       @source            = source
       @identifier        = identifier
       @handler           = handler
       @compiled          = false
-      @original_encoding = nil
-      @locals            = details[:locals] || []
-      @virtual_path      = details[:virtual_path]
-      @updated_at        = details[:updated_at] || Time.now
-      @formats           = Array(format).map { |f| f.respond_to?(:ref) ? f.ref : f  }
-      @variants          = [details[:variant]]
+      @locals            = locals
+      @virtual_path      = virtual_path
+
+      @variable = if @virtual_path
+        base = @virtual_path[-1] == "/" ? "" : File.basename(@virtual_path)
+        base =~ /\A_?(.*?)(?:\.\w+)*\z/
+        $1.to_sym
+      end
+
+      if updated_at
+        ActiveSupport::Deprecation.warn "ActionView::Template#updated_at is deprecated"
+        @updated_at        = updated_at
+      else
+        @updated_at        = Time.now
+      end
+      @format            = format
+      @variant           = variant
       @compile_mutex     = Mutex.new
     end
+
+    deprecate :original_encoding
+    deprecate :updated_at
+    deprecate def virtual_path=(_); end
+    deprecate def locals=(_); end
+    deprecate def formats=(_); end
+    deprecate def formats; Array(format); end
+    deprecate def variants=(_); end
+    deprecate def variants; [variant]; end
 
     # Returns whether the underlying handler supports streaming. If so,
     # a streaming buffer *may* be passed when it starts rendering.
@@ -155,17 +176,17 @@ module ActionView
     # This method is instrumented as "!render_template.action_view". Notice that
     # we use a bang in this instrumentation because you don't want to
     # consume this in production. This is only slow if it's being listened to.
-    def render(view, locals, buffer = nil, &block)
+    def render(view, locals, buffer = ActionView::OutputBuffer.new, &block)
       instrument_render_template do
         compile!(view)
-        view.send(method_name, locals, buffer, &block)
+        view._run(method_name, self, locals, buffer, &block)
       end
     rescue => e
       handle_render_error(view, e)
     end
 
     def type
-      @type ||= Types[@formats.first] if @formats.first
+      @type ||= Types[format]
     end
 
     # Receives a view object and return a template similar to self by using @virtual_path.
@@ -187,8 +208,12 @@ module ActionView
       end
     end
 
+    def short_identifier
+      @short_identifier ||= defined?(Rails.root) ? identifier.sub("#{Rails.root}/", "") : identifier
+    end
+
     def inspect
-      @inspect ||= defined?(Rails.root) ? identifier.sub("#{Rails.root}/", "") : identifier
+      "#<#{self.class.name} #{short_identifier} locals=#{@locals.inspect}>"
     end
 
     # This method is responsible for properly setting the encoding of the
@@ -202,7 +227,9 @@ module ActionView
     # before passing the source on to the template engine, leaving a
     # blank line in its stead.
     def encode!
-      return unless source.encoding == Encoding::BINARY
+      source = self.source
+
+      return source unless source.encoding == Encoding::BINARY
 
       # Look for # encoding: *. If we find one, we'll encode the
       # String in that encoding, otherwise, we'll use the
@@ -240,11 +267,11 @@ module ActionView
     # to ensure that references to the template object can be marshalled as well. This means forgoing
     # the marshalling of the compiler mutex and instantiating that again on unmarshalling.
     def marshal_dump # :nodoc:
-      [ @source, @identifier, @handler, @compiled, @original_encoding, @locals, @virtual_path, @updated_at, @formats, @variants ]
+      [ @source, @identifier, @handler, @compiled, @locals, @virtual_path, @updated_at, @format, @variant ]
     end
 
     def marshal_load(array) # :nodoc:
-      @source, @identifier, @handler, @compiled, @original_encoding, @locals, @virtual_path, @updated_at, @formats, @variants = *array
+      @source, @identifier, @handler, @compiled, @locals, @virtual_path, @updated_at, @format, @variant = *array
       @compile_mutex = Mutex.new
     end
 
@@ -264,11 +291,7 @@ module ActionView
           # re-compilation
           return if @compiled
 
-          if view.is_a?(ActionView::CompiledTemplates)
-            mod = ActionView::CompiledTemplates
-          else
-            mod = view.singleton_class
-          end
+          mod = view.compiled_method_container
 
           instrument("!compile_template") do
             compile(mod)
@@ -278,6 +301,15 @@ module ActionView
           # means we can get the template back.
           @source = nil if @virtual_path
           @compiled = true
+        end
+      end
+
+      class LegacyTemplate < DelegateClass(Template) # :nodoc:
+        attr_reader :source
+
+        def initialize(template, source)
+          super(template)
+          @source = source
         end
       end
 
@@ -294,16 +326,15 @@ module ActionView
       # In general, this means that templates will be UTF-8 inside of Rails,
       # regardless of the original source encoding.
       def compile(mod)
-        encode!
-        code = @handler.call(self)
+        source = encode!
+        code = @handler.call(self, source)
 
         # Make sure that the resulting String to be eval'd is in the
         # encoding of the code
+        original_source = source
         source = +<<-end_src
           def #{method_name}(local_assigns, output_buffer)
-            _old_virtual_path, @virtual_path = @virtual_path, #{@virtual_path.inspect};_old_output_buffer = @output_buffer;#{locals_code};#{code}
-          ensure
-            @virtual_path, @output_buffer = _old_virtual_path, _old_output_buffer
+            @virtual_path = #{@virtual_path.inspect};#{locals_code};#{code}
           end
         end_src
 
@@ -318,12 +349,16 @@ module ActionView
         # handler is valid in the default_internal. This is for handlers
         # that handle encoding but screw up
         unless source.valid_encoding?
-          raise WrongEncodingError.new(@source, Encoding.default_internal)
+          raise WrongEncodingError.new(source, Encoding.default_internal)
         end
 
-        mod.module_eval(source, identifier, 0)
-        if finalize_compiled_template_methods
-          ObjectSpace.define_finalizer(self, Finalizer[method_name, mod])
+        begin
+          mod.module_eval(source, identifier, 0)
+        rescue SyntaxError
+          # Account for when code in the template is not syntactically valid; e.g. if we're using
+          # ERB and the user writes <%= foo( %>, attempting to call a helper `foo` and interpolate
+          # the result into the template, but missing an end parenthesis.
+          raise SyntaxErrorInTemplate.new(self, original_source)
         end
       end
 
@@ -360,7 +395,7 @@ module ActionView
       end
 
       def identifier_method_name
-        inspect.tr("^a-z_", "_")
+        short_identifier.tr("^a-z_", "_")
       end
 
       def instrument(action, &block) # :doc:

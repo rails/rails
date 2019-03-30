@@ -63,26 +63,11 @@ module ActionView
 
       # Cache the templates returned by the block
       def cache(key, name, prefix, partial, locals)
-        if Resolver.caching?
-          @data[key][name][prefix][partial][locals] ||= canonical_no_templates(yield)
-        else
-          fresh_templates  = yield
-          cached_templates = @data[key][name][prefix][partial][locals]
-
-          if templates_have_changed?(cached_templates, fresh_templates)
-            @data[key][name][prefix][partial][locals] = canonical_no_templates(fresh_templates)
-          else
-            cached_templates || NO_TEMPLATES
-          end
-        end
+        @data[key][name][prefix][partial][locals] ||= canonical_no_templates(yield)
       end
 
       def cache_query(query) # :nodoc:
-        if Resolver.caching?
-          @query_cache[query] ||= canonical_no_templates(yield)
-        else
-          yield
-        end
+        @query_cache[query] ||= canonical_no_templates(yield)
       end
 
       def clear
@@ -112,19 +97,6 @@ module ActionView
         def canonical_no_templates(templates)
           templates.empty? ? NO_TEMPLATES : templates
         end
-
-        def templates_have_changed?(cached_templates, fresh_templates)
-          # if either the old or new template list is empty, we don't need to (and can't)
-          # compare modification times, and instead just check whether the lists are different
-          if cached_templates.blank? || fresh_templates.blank?
-            return fresh_templates.blank? != cached_templates.blank?
-          end
-
-          cached_templates_max_updated_at = cached_templates.map(&:updated_at).max
-
-          # if a template has changed, it will be now be newer than all the cached templates
-          fresh_templates.any? { |t| t.updated_at > cached_templates_max_updated_at }
-        end
     end
 
     cattr_accessor :caching, default: true
@@ -143,14 +115,18 @@ module ActionView
 
     # Normalizes the arguments and passes it on to find_templates.
     def find_all(name, prefix = nil, partial = false, details = {}, key = nil, locals = [])
+      locals = locals.map(&:to_s).sort!.freeze
+
       cached(key, [name, prefix, partial], details, locals) do
-        find_templates(name, prefix, partial, details)
+        find_templates(name, prefix, partial, details, false, locals)
       end
     end
 
     def find_all_anywhere(name, prefix, partial = false, details = {}, key = nil, locals = [])
+      locals = locals.map(&:to_s).sort!.freeze
+
       cached(key, [name, prefix, partial], details, locals) do
-        find_templates(name, prefix, partial, details, true)
+        find_templates(name, prefix, partial, details, true, locals)
       end
     end
 
@@ -165,13 +141,8 @@ module ActionView
     # This is what child classes implement. No defaults are needed
     # because Resolver guarantees that the arguments are present and
     # normalized.
-    def find_templates(name, prefix, partial, details, outside_app_allowed = false)
-      raise NotImplementedError, "Subclasses must implement a find_templates(name, prefix, partial, details, outside_app_allowed = false) method"
-    end
-
-    # Helpers that builds a path. Useful for building virtual paths.
-    def build_path(name, prefix, partial)
-      Path.build(name, prefix, partial)
+    def find_templates(name, prefix, partial, details, outside_app_allowed = false, locals = [])
+      raise NotImplementedError, "Subclasses must implement a find_templates(name, prefix, partial, details, outside_app_allowed = false, locals = []) method"
     end
 
     # Handles templates caching. If a key is given and caching is on
@@ -180,25 +151,13 @@ module ActionView
     # resolver is fresher before returning it.
     def cached(key, path_info, details, locals)
       name, prefix, partial = path_info
-      locals = locals.map(&:to_s).sort!
 
       if key
         @cache.cache(key, name, prefix, partial, locals) do
-          decorate(yield, path_info, details, locals)
+          yield
         end
       else
-        decorate(yield, path_info, details, locals)
-      end
-    end
-
-    # Ensures all the resolver information is set in the template.
-    def decorate(templates, path_info, details, locals)
-      cached = nil
-      templates.each do |t|
-        t.locals         = locals
-        t.formats        = details[:formats]  || [:html] if t.formats.empty?
-        t.variants       = details[:variants] || []      if t.variants.empty?
-        t.virtual_path ||= (cached ||= build_path(*path_info))
+        yield
       end
     end
   end
@@ -209,32 +168,40 @@ module ActionView
     DEFAULT_PATTERN = ":prefix/:action{.:locale,}{.:formats,}{+:variants,}{.:handlers,}"
 
     def initialize(pattern = nil)
-      @pattern = pattern || DEFAULT_PATTERN
+      if pattern
+        ActiveSupport::Deprecation.warn "Specifying a custom path for #{self.class} is deprecated. Implement a custom Resolver subclass instead."
+        @pattern = pattern
+      else
+        @pattern = DEFAULT_PATTERN
+      end
       super()
     end
 
     private
 
-      def find_templates(name, prefix, partial, details, outside_app_allowed = false)
+      def find_templates(name, prefix, partial, details, outside_app_allowed = false, locals)
         path = Path.build(name, prefix, partial)
-        query(path, details, details[:formats], outside_app_allowed)
+        query(path, details, details[:formats], outside_app_allowed, locals)
       end
 
-      def query(path, details, formats, outside_app_allowed)
+      def query(path, details, formats, outside_app_allowed, locals)
         template_paths = find_template_paths_from_details(path, details)
         template_paths = reject_files_external_to_app(template_paths) unless outside_app_allowed
 
         template_paths.map do |template|
-          handler, format, variant = extract_handler_and_format_and_variant(template)
-          contents = File.binread(template)
-
-          Template.new(contents, File.expand_path(template), handler,
-            virtual_path: path.virtual,
-            format: format,
-            variant: variant,
-            updated_at: mtime(template)
-          )
+          build_template(template, path.virtual, locals)
         end
+      end
+
+      def build_template(template, virtual_path, locals)
+        handler, format, variant = extract_handler_and_format_and_variant(template)
+
+        FileTemplate.new(File.expand_path(template), handler,
+          virtual_path: virtual_path,
+          format: format,
+          variant: variant,
+          locals: locals
+        )
       end
 
       def reject_files_external_to_app(files)
@@ -285,11 +252,6 @@ module ActionView
         entry.gsub(/[*?{}\[\]]/, '\\\\\\&')
       end
 
-      # Returns the file mtime from the filesystem.
-      def mtime(p)
-        File.mtime(p)
-      end
-
       # Extract handler, formats and variant from path. If a format cannot be found neither
       # from the path, or the handler, we should return the array of formats given
       # to the resolver.
@@ -301,50 +263,22 @@ module ActionView
 
         handler = Template.handler_for_extension(extension)
         format, variant = pieces.last.split(EXTENSIONS[:variants], 2) if pieces.last
-        format &&= Template::Types[format]
+        format = if format
+          Template::Types[format]&.ref
+        else
+          if handler.respond_to?(:default_format) # default_format can return nil
+            handler.default_format
+          else
+            nil
+          end
+        end
 
+        # Template::Types[format] and handler.default_format can return nil
         [handler, format, variant]
       end
   end
 
-  # A resolver that loads files from the filesystem. It allows setting your own
-  # resolving pattern. Such pattern can be a glob string supported by some variables.
-  #
-  # ==== Examples
-  #
-  # Default pattern, loads views the same way as previous versions of rails, eg. when you're
-  # looking for <tt>users/new</tt> it will produce query glob: <tt>users/new{.{en},}{.{html,js},}{.{erb,haml},}</tt>
-  #
-  #   FileSystemResolver.new("/path/to/views", ":prefix/:action{.:locale,}{.:formats,}{+:variants,}{.:handlers,}")
-  #
-  # This one allows you to keep files with different formats in separate subdirectories,
-  # eg. <tt>users/new.html</tt> will be loaded from <tt>users/html/new.erb</tt> or <tt>users/new.html.erb</tt>,
-  # <tt>users/new.js</tt> from <tt>users/js/new.erb</tt> or <tt>users/new.js.erb</tt>, etc.
-  #
-  #   FileSystemResolver.new("/path/to/views", ":prefix/{:formats/,}:action{.:locale,}{.:formats,}{+:variants,}{.:handlers,}")
-  #
-  # If you don't specify a pattern then the default will be used.
-  #
-  # In order to use any of the customized resolvers above in a Rails application, you just need
-  # to configure ActionController::Base.view_paths in an initializer, for example:
-  #
-  #   ActionController::Base.view_paths = FileSystemResolver.new(
-  #     Rails.root.join("app/views"),
-  #     ":prefix/:action{.:locale,}{.:formats,}{+:variants,}{.:handlers,}",
-  #   )
-  #
-  # ==== Pattern format and variables
-  #
-  # Pattern has to be a valid glob string, and it allows you to use the
-  # following variables:
-  #
-  # * <tt>:prefix</tt> - usually the controller path
-  # * <tt>:action</tt> - name of the action
-  # * <tt>:locale</tt> - possible locale versions
-  # * <tt>:formats</tt> - possible request formats (for example html, json, xml...)
-  # * <tt>:variants</tt> - possible request variants (for example phone, tablet...)
-  # * <tt>:handlers</tt> - possible handlers (for example erb, haml, builder...)
-  #
+  # A resolver that loads files from the filesystem.
   class FileSystemResolver < PathResolver
     def initialize(path, pattern = nil)
       raise ArgumentError, "path already is a Resolver class" if path.is_a?(Resolver)
@@ -365,6 +299,10 @@ module ActionView
 
   # An Optimized resolver for Rails' most common case.
   class OptimizedFileSystemResolver < FileSystemResolver #:nodoc:
+    def initialize(path)
+      super(path)
+    end
+
     private
 
       def find_template_paths_from_details(path, details)
@@ -424,8 +362,8 @@ module ActionView
       [new(""), new("/")]
     end
 
-    def decorate(*)
-      super.each { |t| t.virtual_path = nil }
+    def build_template(template, virtual_path, locals)
+      super(template, nil, locals)
     end
   end
 end

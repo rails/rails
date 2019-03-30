@@ -1,6 +1,10 @@
 # frozen_string_literal: true
 
 require "rails"
+require "action_controller/railtie"
+require "active_job/railtie"
+require "active_record/railtie"
+
 require "active_storage"
 
 require "active_storage/previewer/poppler_pdf_previewer"

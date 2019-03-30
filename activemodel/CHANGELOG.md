@@ -1,3 +1,87 @@
+*   Type cast falsy boolean symbols on boolean attribute as false.
+
+    Fixes #35676.
+
+    *Ryuta Kamizono*
+
+*   Change how validation error translation strings are fetched: The new behavior
+    will first try the more specific keys, including doing locale fallback, then try
+    the less specific ones.
+
+    For example, this is the order in which keys will now be tried for a `blank`
+    error on a `product`'s `title` attribute with current locale set to `en-US`:
+
+        en-US.activerecord.errors.models.product.attributes.title.blank
+        en-US.activerecord.errors.models.product.blank
+        en-US.activerecord.errors.messages.blank
+
+        en.activerecord.errors.models.product.attributes.title.blank
+        en.activerecord.errors.models.product.blank
+        en.activerecord.errors.messages.blank
+
+        en-US.errors.attributes.title.blank
+        en-US.errors.messages.blank
+
+        en.errors.attributes.title.blank
+        en.errors.messages.blank
+
+    *Hugo Vacher*
+
+
+## Rails 6.0.0.beta3 (March 11, 2019) ##
+
+*   No changes.
+
+
+## Rails 6.0.0.beta2 (February 25, 2019) ##
+
+*   Fix date value when casting a multiparameter date hash to not convert
+    from Gregorian date to Julian date.
+
+    Before:
+
+        Day.new({"day(1i)"=>"1", "day(2i)"=>"1", "day(3i)"=>"1"})
+        => #<Day id: nil, day: "0001-01-03", created_at: nil, updated_at: nil>
+
+    After:
+
+        Day.new({"day(1i)"=>"1", "day(2i)"=>"1", "day(3i)"=>"1"})
+        => #<Day id: nil, day: "0001-01-01", created_at: nil, updated_at: nil>
+
+    Fixes #28521.
+
+    *Sayan Chakraborty*
+
+*   Fix year value when casting a multiparameter time hash.
+
+    When assigning a hash to a time attribute that's missing a year component
+    (e.g. a `time_select` with `:ignore_date` set to `true`) then the year
+    defaults to 1970 instead of the expected 2000. This results in the attribute
+    changing as a result of the save.
+
+    Before:
+    ```
+    event = Event.new(start_time: { 4 => 20, 5 => 30 })
+    event.start_time # => 1970-01-01 20:30:00 UTC
+    event.save
+    event.reload
+    event.start_time # => 2000-01-01 20:30:00 UTC
+    ```
+
+    After:
+    ```
+    event = Event.new(start_time: { 4 => 20, 5 => 30 })
+    event.start_time # => 2000-01-01 20:30:00 UTC
+    event.save
+    event.reload
+    event.start_time # => 2000-01-01 20:30:00 UTC
+    ```
+
+    *Andrew White*
+
+
+## Rails 6.0.0.beta1 (January 18, 2019) ##
+
 *   Add `ActiveModel::Errors#of_kind?`.
 
     *bogdanvlviv*, *Rafael Mendonça França*
@@ -52,7 +136,7 @@
 
     *Unathi Chonco*
 
-*   Add `config.active_model.i18n_full_message` in order to control whether
+*   Add `config.active_model.i18n_customize_full_message` in order to control whether
     the `full_message` error format can be overridden at the attribute or model
     level in the locale files. This is `false` by default.
 

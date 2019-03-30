@@ -74,8 +74,8 @@ module ActionDispatch
   # For routes that don't fit the <tt>resources</tt> mold, you can use the HTTP helper
   # methods <tt>get</tt>, <tt>post</tt>, <tt>patch</tt>, <tt>put</tt> and <tt>delete</tt>.
   #
-  #   get 'post/:id' => 'posts#show'
-  #   post 'post/:id' => 'posts#create_comment'
+  #   get 'post/:id', to: 'posts#show'
+  #   post 'post/:id', to: 'posts#create_comment'
   #
   # Now, if you POST to <tt>/posts/:id</tt>, it will route to the <tt>create_comment</tt> action. A GET on the same
   # URL will route to the <tt>show</tt> action.
@@ -83,7 +83,7 @@ module ActionDispatch
   # If your route needs to respond to more than one HTTP method (or all methods) then using the
   # <tt>:via</tt> option on <tt>match</tt> is preferable.
   #
-  #   match 'post/:id' => 'posts#show', via: [:get, :post]
+  #   match 'post/:id', to: 'posts#show', via: [:get, :post]
   #
   # == Named routes
   #
@@ -94,7 +94,7 @@ module ActionDispatch
   # Example:
   #
   #   # In config/routes.rb
-  #   get '/login' => 'accounts#login', as: 'login'
+  #   get '/login', to: 'accounts#login', as: 'login'
   #
   #   # With render, redirect_to, tests, etc.
   #   redirect_to login_url
@@ -120,9 +120,9 @@ module ActionDispatch
   #
   #   # In config/routes.rb
   #   controller :blog do
-  #     get 'blog/show'     => :list
-  #     get 'blog/delete'   => :delete
-  #     get 'blog/edit'     => :edit
+  #     get 'blog/show',    to: :list
+  #     get 'blog/delete',  to: :delete
+  #     get 'blog/edit',    to: :edit
   #   end
   #
   #   # provides named routes for show, delete, and edit
@@ -132,7 +132,7 @@ module ActionDispatch
   #
   # Routes can generate pretty URLs. For example:
   #
-  #   get '/articles/:year/:month/:day' => 'articles#find_by_id', constraints: {
+  #   get '/articles/:year/:month/:day', to: 'articles#find_by_id', constraints: {
   #     year:       /\d{4}/,
   #     month:      /\d{1,2}/,
   #     day:        /\d{1,2}/
@@ -147,7 +147,7 @@ module ActionDispatch
   # You can specify a regular expression to define a format for a parameter.
   #
   #   controller 'geocode' do
-  #     get 'geocode/:postalcode' => :show, constraints: {
+  #     get 'geocode/:postalcode', to: :show, constraints: {
   #       postalcode: /\d{5}(-\d{4})?/
   #     }
   #   end
@@ -156,13 +156,13 @@ module ActionDispatch
   # expression modifiers:
   #
   #   controller 'geocode' do
-  #     get 'geocode/:postalcode' => :show, constraints: {
+  #     get 'geocode/:postalcode', to: :show, constraints: {
   #       postalcode: /hx\d\d\s\d[a-z]{2}/i
   #     }
   #   end
   #
   #   controller 'geocode' do
-  #     get 'geocode/:postalcode' => :show, constraints: {
+  #     get 'geocode/:postalcode', to: :show, constraints: {
   #       postalcode: /# Postalcode format
   #          \d{5} #Prefix
   #          (-\d{4})? #Suffix
@@ -178,13 +178,13 @@ module ActionDispatch
   #
   # You can redirect any path to another path using the redirect helper in your router:
   #
-  #   get "/stories" => redirect("/posts")
+  #   get "/stories", to: redirect("/posts")
   #
   # == Unicode character routes
   #
   # You can specify unicode character routes in your router:
   #
-  #   get "こんにちは" => "welcome#index"
+  #   get "こんにちは", to: "welcome#index"
   #
   # == Routing to Rack Applications
   #
@@ -192,7 +192,7 @@ module ActionDispatch
   # index action in the PostsController, you can specify any Rack application
   # as the endpoint for a matcher:
   #
-  #   get "/application.js" => Sprockets
+  #   get "/application.js", to: Sprockets
   #
   # == Reloading routes
   #
@@ -210,8 +210,8 @@ module ActionDispatch
   # === +assert_routing+
   #
   #   def test_movie_route_properly_splits
-  #    opts = {controller: "plugin", action: "checkout", id: "2"}
-  #    assert_routing "plugin/checkout/2", opts
+  #     opts = {controller: "plugin", action: "checkout", id: "2"}
+  #     assert_routing "plugin/checkout/2", opts
   #   end
   #
   # +assert_routing+ lets you test whether or not the route properly resolves into options.
@@ -219,8 +219,8 @@ module ActionDispatch
   # === +assert_recognizes+
   #
   #   def test_route_has_options
-  #    opts = {controller: "plugin", action: "show", id: "12"}
-  #    assert_recognizes opts, "/plugins/show/12"
+  #     opts = {controller: "plugin", action: "show", id: "12"}
+  #     assert_recognizes opts, "/plugins/show/12"
   #   end
   #
   # Note the subtle difference between the two: +assert_routing+ tests that

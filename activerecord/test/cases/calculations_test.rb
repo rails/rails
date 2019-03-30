@@ -19,6 +19,7 @@ require "models/developer"
 require "models/post"
 require "models/comment"
 require "models/rating"
+require "support/stubs/strong_parameters"
 
 class CalculationsTest < ActiveRecord::TestCase
   fixtures :companies, :accounts, :topics, :speedometers, :minivans, :books, :posts, :comments
@@ -278,6 +279,18 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 3, Account.joins(:firm).distinct.order(:firm_id).limit(3).offset(2).count
   end
 
+  def test_distinct_joins_count_with_group_by
+    expected = { nil => 4, 1 => 1, 2 => 1, 4 => 1, 5 => 1, 7 => 1 }
+    assert_equal expected, Post.left_joins(:comments).group(:post_id).distinct.count(:author_id)
+    assert_equal expected, Post.left_joins(:comments).group(:post_id).distinct.select(:author_id).count
+    assert_equal expected, Post.left_joins(:comments).group(:post_id).count("DISTINCT posts.author_id")
+    assert_equal expected, Post.left_joins(:comments).group(:post_id).select("DISTINCT posts.author_id").count
+
+    expected = { nil => 6, 1 => 1, 2 => 1, 4 => 1, 5 => 1, 7 => 1 }
+    assert_equal expected, Post.left_joins(:comments).group(:post_id).distinct.count(:all)
+    assert_equal expected, Post.left_joins(:comments).group(:post_id).distinct.select(:author_id).count(:all)
+  end
+
   def test_distinct_count_with_group_by_and_order_and_limit
     assert_equal({ 6 => 2 }, Account.group(:firm_id).distinct.order("1 DESC").limit(1).count)
   end
@@ -460,6 +473,24 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 6, Account.select("DISTINCT accounts.id").includes(:firm).count
   end
 
+  def test_should_count_manual_select_with_count_all
+    assert_equal 5, Account.select("DISTINCT accounts.firm_id").count(:all)
+  end
+
+  def test_should_count_with_manual_distinct_select_and_distinct
+    assert_equal 4, Account.select("DISTINCT accounts.firm_id").distinct(true).count
+  end
+
+  def test_should_count_manual_select_with_group_with_count_all
+    expected = { nil => 1, 1 => 1, 2 => 1, 6 => 2, 9 => 1 }
+    actual = Account.select("DISTINCT accounts.firm_id").group("accounts.firm_id").count(:all)
+    assert_equal expected, actual
+  end
+
+  def test_should_count_manual_with_count_all
+    assert_equal 6, Account.count(:all)
+  end
+
   def test_count_selected_arel_attribute
     assert_equal 5, Account.select(Account.arel_table[:firm_id]).count
     assert_equal 4, Account.distinct.select(Account.arel_table[:firm_id]).count
@@ -511,8 +542,10 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_should_count_field_of_root_table_with_conflicting_group_by_column
-    assert_equal({ 1 => 1 }, Firm.joins(:accounts).group(:firm_id).count)
-    assert_equal({ 1 => 1 }, Firm.joins(:accounts).group("accounts.firm_id").count)
+    expected = { 1 => 2, 2 => 1, 4 => 5, 5 => 2, 7 => 1 }
+    assert_equal expected, Post.joins(:comments).group(:post_id).count
+    assert_equal expected, Post.joins(:comments).group("comments.post_id").count
+    assert_equal expected, Post.joins(:comments).group(:post_id).select("DISTINCT posts.author_id").count(:all)
   end
 
   def test_count_with_no_parameters_isnt_deprecated
@@ -690,8 +723,9 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_pluck_not_auto_table_name_prefix_if_column_joined
-    Company.create!(name: "test", contracts: [Contract.new(developer_id: 7)])
-    assert_equal [7], Company.joins(:contracts).pluck(:developer_id)
+    company = Company.create!(name: "test", contracts: [Contract.new(developer_id: 7)])
+    metadata = company.contracts.first.metadata
+    assert_equal [metadata], Company.joins(:contracts).pluck(:metadata)
   end
 
   def test_pluck_with_selection_clause
@@ -838,13 +872,13 @@ class CalculationsTest < ActiveRecord::TestCase
   def test_pick_one
     assert_equal "The First Topic", Topic.order(:id).pick(:heading)
     assert_nil Topic.none.pick(:heading)
-    assert_nil Topic.where("1=0").pick(:heading)
+    assert_nil Topic.where(id: 9999999999999999999).pick(:heading)
   end
 
   def test_pick_two
     assert_equal ["David", "david@loudthinking.com"], Topic.order(:id).pick(:author_name, :author_email_address)
     assert_nil Topic.none.pick(:author_name, :author_email_address)
-    assert_nil Topic.where("1=0").pick(:author_name, :author_email_address)
+    assert_nil Topic.where(id: 9999999999999999999).pick(:author_name, :author_email_address)
   end
 
   def test_pick_delegate_to_all
@@ -882,26 +916,7 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_having_with_strong_parameters
-    protected_params = Class.new do
-      attr_reader :permitted
-      alias :permitted? :permitted
-
-      def initialize(parameters)
-        @parameters = parameters
-        @permitted = false
-      end
-
-      def to_h
-        @parameters
-      end
-
-      def permit!
-        @permitted = true
-        self
-      end
-    end
-
-    params = protected_params.new(credit_limit: "50")
+    params = ProtectedParams.new(credit_limit: "50")
 
     assert_raises(ActiveModel::ForbiddenAttributesError) do
       Account.group(:id).having(params)
@@ -917,15 +932,15 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal({ "proposed" => 2, "published" => 2 }, Book.group(:status).count)
   end
 
-  def test_deprecate_count_with_block_and_column_name
-    assert_deprecated do
-      assert_equal 6, Account.count(:firm_id) { true }
+  def test_count_with_block_and_column_name_raises_an_error
+    assert_raises(ArgumentError) do
+      Account.count(:firm_id) { true }
     end
   end
 
-  def test_deprecate_sum_with_block_and_column_name
-    assert_deprecated do
-      assert_equal 6, Account.sum(:firm_id) { 1 }
+  def test_sum_with_block_and_column_name_raises_an_error
+    assert_raises(ArgumentError) do
+      Account.sum(:firm_id) { 1 }
     end
   end
 

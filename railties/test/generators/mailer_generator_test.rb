@@ -119,7 +119,7 @@ class MailerGeneratorTest < Rails::Generators::TestCase
     assert_match(/haml \[not found\]/, content)
   end
 
-  def test_mailer_with_namedspaced_mailer
+  def test_mailer_with_namespaced_mailer
     run_generator ["Farm::Animal", "moos"]
     assert_file "app/mailers/farm/animal_mailer.rb" do |mailer|
       assert_match(/class Farm::AnimalMailer < ApplicationMailer/, mailer)

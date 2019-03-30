@@ -70,6 +70,11 @@ module ActiveSupport #:nodoc:
     # only once. All directories in this set must also be present in +autoload_paths+.
     mattr_accessor :autoload_once_paths, default: []
 
+    # This is a private set that collects all eager load paths during bootstrap.
+    # Useful for Zeitwerk integration. Its public interface is the config.* path
+    # accessors of each engine.
+    mattr_accessor :_eager_load_paths, default: Set.new
+
     # An array of qualified constant names that have been loaded. Adding a name
     # to this array will cause it to be unloaded the next time Dependencies are
     # cleared.

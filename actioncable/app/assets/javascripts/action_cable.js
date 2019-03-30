@@ -3,8 +3,8 @@
 })(this, function(exports) {
   "use strict";
   var adapters = {
-    logger: window.console,
-    WebSocket: window.WebSocket
+    logger: self.console,
+    WebSocket: self.WebSocket
   };
   var logger = {
     log: function log() {
@@ -49,7 +49,7 @@
         this.startedAt = now();
         delete this.stoppedAt;
         this.startPolling();
-        document.addEventListener("visibilitychange", this.visibilityDidChange);
+        addEventListener("visibilitychange", this.visibilityDidChange);
         logger.log("ConnectionMonitor started. pollInterval = " + this.getPollInterval() + " ms");
       }
     };
@@ -57,7 +57,7 @@
       if (this.isRunning()) {
         this.stoppedAt = now();
         this.stopPolling();
-        document.removeEventListener("visibilitychange", this.visibilityDidChange);
+        removeEventListener("visibilitychange", this.visibilityDidChange);
         logger.log("ConnectionMonitor stopped");
       }
     };
@@ -465,14 +465,15 @@
     }
   }
   function createWebSocketURL(url) {
-    if (url && !/^wss?:/i.test(url)) {
+    var webSocketURL = typeof url === "function" ? url() : url;
+    if (webSocketURL && !/^wss?:/i.test(webSocketURL)) {
       var a = document.createElement("a");
-      a.href = url;
+      a.href = webSocketURL;
       a.href = a.href;
       a.protocol = a.protocol.replace("http", "ws");
       return a.href;
     } else {
-      return url;
+      return webSocketURL;
     }
   }
   exports.Connection = Connection;

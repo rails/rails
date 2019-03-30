@@ -84,6 +84,39 @@ module ActiveSupport
           [:finish, "hi", 1, {}]
         ], listener.events
       end
+
+      def test_listen_to_regexp
+        notifier = Fanout.new
+        listener = Listener.new
+        notifier.subscribe(/[a-z]*.world/, listener)
+        notifier.start("hi.world", 1, {})
+        notifier.finish("hi.world", 2, {})
+        notifier.start("hello.world", 1, {})
+        notifier.finish("hello.world", 2, {})
+
+        assert_equal [
+          [:start, "hi.world", 1, {}],
+          [:finish, "hi.world", 2, {}],
+          [:start, "hello.world", 1, {}],
+          [:finish, "hello.world", 2, {}]
+        ], listener.events
+      end
+
+      def test_listen_to_regexp_with_exclusions
+        notifier = Fanout.new
+        listener = Listener.new
+        notifier.subscribe(/[a-z]*.world/, listener)
+        notifier.unsubscribe("hi.world")
+        notifier.start("hi.world", 1, {})
+        notifier.finish("hi.world", 2, {})
+        notifier.start("hello.world", 1, {})
+        notifier.finish("hello.world", 2, {})
+
+        assert_equal [
+          [:start, "hello.world", 1, {}],
+          [:finish, "hello.world", 2, {}]
+        ], listener.events
+      end
     end
   end
 end

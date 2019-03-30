@@ -44,6 +44,12 @@ module ActiveSupport
         assert_equal Hash[result: 2], payload
       end
 
+      def test_instrument_works_without_a_block
+        instrumenter.instrument("no.block", payload)
+        assert_equal 1, notifier.finishes.size
+        assert_equal "no.block", notifier.finishes.first.first
+      end
+
       def test_start
         instrumenter.start("foo", payload)
         assert_equal [["foo", instrumenter.id, payload]], notifier.starts

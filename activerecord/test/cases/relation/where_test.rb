@@ -14,6 +14,7 @@ require "models/price_estimate"
 require "models/topic"
 require "models/treasure"
 require "models/vertex"
+require "support/stubs/strong_parameters"
 
 module ActiveRecord
   class WhereTest < ActiveRecord::TestCase
@@ -50,8 +51,13 @@ module ActiveRecord
       assert_equal [chef], chefs.to_a
     end
 
-    def test_where_with_casted_value_is_nil
-      assert_equal 4, Topic.where(last_read: "").count
+    def test_where_with_invalid_value
+      topics(:first).update!(parent_id: 0, written_on: nil, bonus_time: nil, last_read: nil)
+      assert_empty Topic.where(parent_id: Object.new)
+      assert_empty Topic.where(parent_id: "not-a-number")
+      assert_empty Topic.where(written_on: "")
+      assert_empty Topic.where(bonus_time: "")
+      assert_empty Topic.where(last_read: "")
     end
 
     def test_rewhere_on_root
@@ -334,29 +340,20 @@ module ActiveRecord
     end
 
     def test_where_with_strong_parameters
-      protected_params = Class.new do
-        attr_reader :permitted
-        alias :permitted? :permitted
-
-        def initialize(parameters)
-          @parameters = parameters
-          @permitted = false
-        end
-
-        def to_h
-          @parameters
-        end
-
-        def permit!
-          @permitted = true
-          self
-        end
-      end
-
       author = authors(:david)
-      params = protected_params.new(name: author.name)
+      params = ProtectedParams.new(name: author.name)
       assert_raises(ActiveModel::ForbiddenAttributesError) { Author.where(params) }
       assert_equal author, Author.where(params.permit!).first
+    end
+
+    def test_where_with_large_number
+      assert_equal [authors(:bob)], Author.where(id: [3, 9223372036854775808])
+      assert_equal [authors(:bob)], Author.where(id: 3..9223372036854775808)
+    end
+
+    def test_to_sql_with_large_number
+      assert_equal [authors(:bob)], Author.find_by_sql(Author.where(id: [3, 9223372036854775808]).to_sql)
+      assert_equal [authors(:bob)], Author.find_by_sql(Author.where(id: 3..9223372036854775808).to_sql)
     end
 
     def test_where_with_unsupported_arguments

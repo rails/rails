@@ -1172,7 +1172,7 @@ end
 
 Using `Class#class_eval` is great for simple adjustments, but for more complex
 class modifications, you might want to consider using [`ActiveSupport::Concern`]
-(http://api.rubyonrails.org/classes/ActiveSupport/Concern.html).
+(https://api.rubyonrails.org/classes/ActiveSupport/Concern.html).
 ActiveSupport::Concern manages load order of interlinked dependent modules and
 classes at run time allowing you to significantly modularize your code.
 
@@ -1497,6 +1497,8 @@ To hook into the initialization process of one of the following classes use the 
 | Class                             | Available Hooks                      |
 | --------------------------------- | ------------------------------------ |
 | `ActionCable`                     | `action_cable`                       |
+| `ActionCable::Channel::Base`      | `action_cable_channel`               |
+| `ActionCable::Connection::Base`   | `action_cable_connection`            |
 | `ActionController::API`           | `action_controller_api`              |
 | `ActionController::API`           | `action_controller`                  |
 | `ActionController::Base`          | `action_controller_base`             |
@@ -1516,6 +1518,7 @@ To hook into the initialization process of one of the following classes use the 
 | `ActiveJob::Base`                 | `active_job`                         |
 | `ActiveJob::TestCase`             | `active_job_test_case`               |
 | `ActiveRecord::Base`              | `active_record`                      |
+| `ActiveStorage::Attachment`       | `active_storage_attachment`          |
 | `ActiveStorage::Blob`             | `active_storage_blob`                |
 | `ActiveSupport::TestCase`         | `active_support_test_case`           |
 | `i18n`                            | `i18n`                               |

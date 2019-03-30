@@ -322,7 +322,7 @@ module ActionView
           end
 
         class_eval <<-RUBY, __FILE__, __LINE__ + 1
-          def _layout(formats)
+          def _layout(lookup_context, formats)
             if _conditional_layout?
               #{layout_definition}
             else
@@ -388,8 +388,8 @@ module ActionView
       case name
       when String     then _normalize_layout(name)
       when Proc       then name
-      when true       then Proc.new { |formats| _default_layout(formats, true)  }
-      when :default   then Proc.new { |formats| _default_layout(formats, false) }
+      when true       then Proc.new { |lookup_context, formats| _default_layout(lookup_context, formats, true)  }
+      when :default   then Proc.new { |lookup_context, formats| _default_layout(lookup_context, formats, false) }
       when false, nil then nil
       else
         raise ArgumentError,
@@ -411,9 +411,9 @@ module ActionView
     #
     # ==== Returns
     # * <tt>template</tt> - The template object for the default layout (or +nil+)
-    def _default_layout(formats, require_layout = false)
+    def _default_layout(lookup_context, formats, require_layout = false)
       begin
-        value = _layout(formats) if action_has_layout?
+        value = _layout(lookup_context, formats) if action_has_layout?
       rescue NameError => e
         raise e, "Could not render layout: #{e.message}"
       end

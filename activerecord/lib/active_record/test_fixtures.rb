@@ -122,7 +122,7 @@ module ActiveRecord
         # Begin transactions for connections already established
         @fixture_connections = enlist_fixture_connections
         @fixture_connections.each do |connection|
-          connection.begin_transaction joinable: false
+          connection.begin_transaction joinable: false, _lazy: false
           connection.pool.lock_thread = true if lock_threads
         end
 
@@ -138,7 +138,7 @@ module ActiveRecord
             end
 
             if connection && !@fixture_connections.include?(connection)
-              connection.begin_transaction joinable: false
+              connection.begin_transaction joinable: false, _lazy: false
               connection.pool.lock_thread = true if lock_threads
               @fixture_connections << connection
             end

@@ -78,16 +78,6 @@ class MigrationTest < ActiveRecord::TestCase
     end
   end
 
-  def test_migrator_migrations_path_is_deprecated
-    assert_deprecated do
-      ActiveRecord::Migrator.migrations_path = "/whatever"
-    end
-  ensure
-    assert_deprecated do
-      ActiveRecord::Migrator.migrations_path = "db/migrate"
-    end
-  end
-
   def test_migration_version_matches_component_version
     assert_equal ActiveRecord::VERSION::STRING.to_f, ActiveRecord::Migration.current_version
   end
@@ -577,37 +567,16 @@ class MigrationTest < ActiveRecord::TestCase
     end
   end
 
-  if current_adapter? :OracleAdapter
-    def test_create_table_with_custom_sequence_name
-      # table name is 29 chars, the standard sequence name will
-      # be 33 chars and should be shortened
-      assert_nothing_raised do
-        Person.connection.create_table :table_with_name_thats_just_ok do |t|
-          t.column :foo, :string, null: false
-        end
-      ensure
-        Person.connection.drop_table :table_with_name_thats_just_ok rescue nil
-      end
-
-      # should be all good w/ a custom sequence name
-      assert_nothing_raised do
-        Person.connection.create_table :table_with_name_thats_just_ok,
-          sequence_name: "suitably_short_seq" do |t|
-          t.column :foo, :string, null: false
-        end
-
-        Person.connection.execute("select suitably_short_seq.nextval from dual")
-
-      ensure
-        Person.connection.drop_table :table_with_name_thats_just_ok,
-          sequence_name: "suitably_short_seq" rescue nil
-      end
-
-      # confirm the custom sequence got dropped
-      assert_raise(ActiveRecord::StatementInvalid) do
-        Person.connection.execute("select suitably_short_seq.nextval from dual")
+  def test_decimal_scale_without_precision_should_raise
+    e = assert_raise(ArgumentError) do
+      Person.connection.create_table :test_decimal_scales, force: true do |t|
+        t.decimal :scaleonly, scale: 10
       end
     end
+
+    assert_equal "Error adding decimal column: precision cannot be empty if scale is specified", e.message
+  ensure
+    Person.connection.drop_table :test_decimal_scales, if_exists: true
   end
 
   if current_adapter?(:Mysql2Adapter, :PostgreSQLAdapter)
@@ -618,13 +587,11 @@ class MigrationTest < ActiveRecord::TestCase
         end
       end
 
-      assert_match(/No integer type has byte size 10/, e.message)
+      assert_includes e.message, "No integer type has byte size 10"
     ensure
       Person.connection.drop_table :test_integer_limits, if_exists: true
     end
-  end
 
-  if current_adapter?(:Mysql2Adapter)
     def test_out_of_range_text_limit_should_raise
       e = assert_raise(ActiveRecord::ActiveRecordError, "text limit didn't raise") do
         Person.connection.create_table :test_text_limits, force: true do |t|
@@ -632,9 +599,35 @@ class MigrationTest < ActiveRecord::TestCase
         end
       end
 
-      assert_match(/No text type has byte length #{0xfffffffff}/, e.message)
+      assert_includes e.message, "No text type has byte size #{0xfffffffff}"
     ensure
       Person.connection.drop_table :test_text_limits, if_exists: true
+    end
+
+    def test_out_of_range_binary_limit_should_raise
+      e = assert_raise(ActiveRecord::ActiveRecordError) do
+        Person.connection.create_table :test_text_limits, force: true do |t|
+          t.binary :bigbinary, limit: 0xfffffffff
+        end
+      end
+
+      assert_includes e.message, "No binary type has byte size #{0xfffffffff}"
+    ensure
+      Person.connection.drop_table :test_text_limits, if_exists: true
+    end
+  end
+
+  if current_adapter?(:Mysql2Adapter)
+    def test_invalid_text_size_should_raise
+      e = assert_raise(ArgumentError) do
+        Person.connection.create_table :test_text_sizes, force: true do |t|
+          t.text :bigtext, size: 0xfffffffff
+        end
+      end
+
+      assert_equal "#{0xfffffffff} is invalid :size value. Only :tiny, :medium, and :long are allowed.", e.message
+    ensure
+      Person.connection.drop_table :test_text_sizes, if_exists: true
     end
   end
 

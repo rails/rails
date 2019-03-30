@@ -469,13 +469,15 @@ module Rails
       self
     end
 
-    # Eager load the application by loading all ruby
-    # files inside eager_load paths.
     def eager_load!
+      # Already done by Zeitwerk::Loader.eager_load_all in the finisher.
+      return if Rails.autoloaders.zeitwerk_enabled?
+
       config.eager_load_paths.each do |load_path|
-        matcher = /\A#{Regexp.escape(load_path.to_s)}\/(.*)\.rb\Z/
+        # Starts after load_path plus a slash, ends before ".rb".
+        relname_range = (load_path.to_s.length + 1)...-3
         Dir.glob("#{load_path}/**/*.rb").sort.each do |file|
-          require_dependency file.sub(matcher, '\1')
+          require_dependency file[relname_range]
         end
       end
     end
@@ -531,9 +533,9 @@ module Rails
 
     # Defines the routes for this engine. If a block is given to
     # routes, it is appended to the engine.
-    def routes
+    def routes(&block)
       @routes ||= ActionDispatch::Routing::RouteSet.new_with_config(config)
-      @routes.append(&Proc.new) if block_given?
+      @routes.append(&block) if block_given?
       @routes
     end
 
@@ -548,7 +550,7 @@ module Rails
     # Blog::Engine.load_seed
     def load_seed
       seed_file = paths["db/seeds.rb"].existent.first
-      load(seed_file) if seed_file
+      with_inline_jobs { load(seed_file) } if seed_file
     end
 
     # Add configured load paths to Ruby's load path, and remove duplicate entries.
@@ -568,10 +570,13 @@ module Rails
       ActiveSupport::Dependencies.autoload_paths.unshift(*_all_autoload_paths)
       ActiveSupport::Dependencies.autoload_once_paths.unshift(*_all_autoload_once_paths)
 
-      # Freeze so future modifications will fail rather than do nothing mysteriously
       config.autoload_paths.freeze
-      config.eager_load_paths.freeze
       config.autoload_once_paths.freeze
+    end
+
+    initializer :set_eager_load_paths, before: :bootstrap_hook do
+      ActiveSupport::Dependencies._eager_load_paths.merge(config.eager_load_paths)
+      config.eager_load_paths.freeze
     end
 
     initializer :add_routing_paths do |app|
@@ -655,6 +660,18 @@ module Rails
       def load_config_initializer(initializer) # :doc:
         ActiveSupport::Notifications.instrument("load_config_initializer.railties", initializer: initializer) do
           load(initializer)
+        end
+      end
+
+      def with_inline_jobs
+        queue_adapter = config.active_job.queue_adapter
+        ActiveSupport.on_load(:active_job) do
+          self.queue_adapter = :inline
+        end
+        yield
+      ensure
+        ActiveSupport.on_load(:active_job) do
+          self.queue_adapter = queue_adapter
         end
       end
 

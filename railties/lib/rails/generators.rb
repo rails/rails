@@ -23,6 +23,8 @@ module Rails
     autoload :ActiveModel,     "rails/generators/active_model"
     autoload :Base,            "rails/generators/base"
     autoload :Migration,       "rails/generators/migration"
+    autoload :Database,        "rails/generators/database"
+    autoload :AppName,         "rails/generators/app_name"
     autoload :NamedBase,       "rails/generators/named_base"
     autoload :ResourceHelpers, "rails/generators/resource_helpers"
     autoload :TestCase,        "rails/generators/test_case"
@@ -218,6 +220,7 @@ module Rails
         rails.delete("encryption_key_file")
         rails.delete("master_key")
         rails.delete("credentials")
+        rails.delete("db:system:change")
 
         hidden_namespaces.each { |n| groups.delete(n.to_s) }
 
