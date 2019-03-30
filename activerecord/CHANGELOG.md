@@ -1,3 +1,10 @@
+*   Assign all attributes before calling `build` to ensure the child record is visible in
+    `before_add` and `after_add` callbacks for `has_many :through` associations.
+
+    Fixes #33249.
+
+    *Ryan H. Kerr*
+
 *   Add `ActiveRecord::Relation#extract_associated` for extracting associated records from a relation. 
 
     ```
