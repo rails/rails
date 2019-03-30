@@ -368,32 +368,38 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
 
   def test_add_migration_ignores_virtual_attributes
     migration = "add_rich_text_content_to_messages"
-    run_generator [migration, "content:rich_text"]
+    run_generator [migration, "content:rich_text", "video:attachment", "photos:attachments"]
 
     assert_migration "db/migrate/#{migration}.rb" do |content|
       assert_method :change, content do |change|
         assert_no_match(/add_column :messages, :content, :rich_text/, change)
+        assert_no_match(/add_column :messages, :video, :attachment/, change)
+        assert_no_match(/add_column :messages, :photos, :attachments/, change)
       end
     end
   end
 
   def test_create_table_migration_ignores_virtual_attributes
-    run_generator ["create_messages", "content:rich_text"]
+    run_generator ["create_messages", "content:rich_text", "video:attachment", "photos:attachments"]
     assert_migration "db/migrate/create_messages.rb" do |content|
       assert_method :change, content do |change|
         assert_match(/create_table :messages/, change)
         assert_no_match(/  t\.rich_text :content/, change)
+        assert_no_match(/  t\.attachment :video/, change)
+        assert_no_match(/  t\.attachments :photos/, change)
       end
     end
   end
 
   def test_remove_migration_with_virtual_attributes
     migration = "remove_content_from_messages"
-    run_generator [migration, "content:rich_text"]
+    run_generator [migration, "content:rich_text", "video:attachment", "photos:attachments"]
 
     assert_migration "db/migrate/#{migration}.rb" do |content|
       assert_method :change, content do |change|
         assert_no_match(/remove_column :messages, :content, :rich_text/, change)
+        assert_no_match(/remove_column :messages, :video, :attachment/, change)
+        assert_no_match(/remove_column :messages, :photos, :attachments/, change)
       end
     end
   end
