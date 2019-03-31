@@ -98,6 +98,12 @@ end
 group :storage do
   gem "aws-sdk-s3", require: false
   gem "google-cloud-storage", "~> 1.8", require: false
+  if RUBY_VERSION < "2.3.0"
+    # google-auth-library-ruby 0.8.1 needs Ruby 2.3
+    # If Ruby version is 2.3.0 or higher, let google-cloud-storage find
+    # the googleauth gem version.
+    gem "googleauth", "<= 0.8.0", require: false
+  end
   gem "azure-storage", require: false
 
   gem "mini_magick"
