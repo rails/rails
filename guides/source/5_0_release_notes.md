@@ -150,7 +150,7 @@ The type of an attribute is given the opportunity to change how dirty
 tracking is performed.
 
 See its
-[documentation](http://api.rubyonrails.org/v5.0.1/classes/ActiveRecord/Attributes/ClassMethods.html)
+[documentation](https://api.rubyonrails.org/v5.0.1/classes/ActiveRecord/Attributes/ClassMethods.html)
 for a detailed write up.
 
 
@@ -1081,7 +1081,7 @@ Credits
 -------
 
 See the
-[full list of contributors to Rails](http://contributors.rubyonrails.org/) for
+[full list of contributors to Rails](https://contributors.rubyonrails.org/) for
 the many people who spent many hours making Rails, the stable and robust
 framework it is. Kudos to all of them.
 

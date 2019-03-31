@@ -23,6 +23,7 @@ module UJS
     config.public_file_server.enabled = true
     config.logger = Logger.new(STDOUT)
     config.log_level = :error
+    config.hosts << proc { true }
 
     config.content_security_policy do |policy|
       policy.default_src :self, :https

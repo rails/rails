@@ -135,6 +135,7 @@ Style/FrozenStringLiteralComment:
     - 'actionpack/test/**/*.builder'
     - 'actionpack/test/**/*.ruby'
     - 'activestorage/db/migrate/**/*.rb'
+    - 'activestorage/db/update_migrate/**/*.rb'
     - 'actionmailbox/db/migrate/**/*.rb'
     - 'actiontext/db/migrate/**/*.rb'
 
@@ -176,6 +177,15 @@ Layout/TrailingWhitespace:
 
 # Use quotes for string literals when they are enough.
 Style/UnneededPercentQ:
+  Enabled: true
+
+Lint/AmbiguousOperator:
+  Enabled: true
+
+Lint/AmbiguousRegexpLiteral:
+  Enabled: true
+
+Lint/ErbNewArguments:
   Enabled: true
 
 # Use my_method(my_arg) not my_method( my_arg ) or my_method my_arg.
@@ -231,6 +241,9 @@ Performance/EndWith:
   Enabled: true
 
 Performance/RegexpMatch:
+  Enabled: true
+
+Performance/ReverseEach:
   Enabled: true
 
 Performance/UnfreezeString:

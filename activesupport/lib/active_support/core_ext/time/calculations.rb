@@ -170,8 +170,7 @@ class Time
       options[:hours] = options.fetch(:hours, 0) + 24 * partial_days
     end
 
-    d = to_date.advance(options)
-    d = d.gregorian if d.julian?
+    d = to_date.gregorian.advance(options)
     time_advanced_by_date = change(year: d.year, month: d.month, day: d.day)
     seconds_to_advance = \
       options.fetch(:seconds, 0) +

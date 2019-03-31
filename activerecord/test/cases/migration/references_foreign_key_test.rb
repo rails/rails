@@ -2,7 +2,7 @@
 
 require "cases/helper"
 
-if ActiveRecord::Base.connection.supports_foreign_keys_in_create?
+if ActiveRecord::Base.connection.supports_foreign_keys?
   module ActiveRecord
     class Migration
       class ReferencesForeignKeyInCreateTest < ActiveRecord::TestCase
@@ -65,9 +65,7 @@ if ActiveRecord::Base.connection.supports_foreign_keys_in_create?
       end
     end
   end
-end
 
-if ActiveRecord::Base.connection.supports_foreign_keys?
   module ActiveRecord
     class Migration
       class ReferencesForeignKeyTest < ActiveRecord::TestCase
@@ -172,12 +170,17 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
         end
 
         class CreateDogsMigration < ActiveRecord::Migration::Current
-          def change
+          def up
             create_table :dog_owners
 
             create_table :dogs do |t|
               t.references :dog_owner, foreign_key: true
             end
+          end
+
+          def down
+            drop_table :dogs, if_exists: true
+            drop_table :dog_owners, if_exists: true
           end
         end
 
@@ -230,26 +233,6 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
           assert_equal([["testings", "testing_parents", "parent2_id"]], fk_definitions)
         end
       end
-    end
-  end
-else
-  class ReferencesWithoutForeignKeySupportTest < ActiveRecord::TestCase
-    setup do
-      @connection = ActiveRecord::Base.connection
-      @connection.create_table(:testing_parents, force: true)
-    end
-
-    teardown do
-      @connection.drop_table("testings", if_exists: true)
-      @connection.drop_table("testing_parents", if_exists: true)
-    end
-
-    test "ignores foreign keys defined with the table" do
-      @connection.create_table :testings do |t|
-        t.references :testing_parent, foreign_key: true
-      end
-
-      assert_includes @connection.data_sources, "testings"
     end
   end
 end

@@ -130,6 +130,44 @@ class RelationScopingTest < ActiveRecord::TestCase
     end
   end
 
+  def test_scoped_find_with_annotation
+    Developer.annotate("scoped").scoping do
+      developer = nil
+      assert_sql(%r{/\* scoped \*/}) do
+        developer = Developer.where("name = 'David'").first
+      end
+      assert_equal "David", developer.name
+    end
+  end
+
+  def test_find_with_annotation_unscoped
+    Developer.annotate("scoped").unscoped do
+      developer = nil
+      log = capture_sql do
+        developer = Developer.where("name = 'David'").first
+      end
+
+      assert_not_predicate log, :empty?
+      assert_predicate log.select { |query| query.match?(%r{/\* scoped \*/}) }, :empty?
+
+      assert_equal "David", developer.name
+    end
+  end
+
+  def test_find_with_annotation_unscope
+    developer = nil
+    log = capture_sql do
+      developer = Developer.annotate("unscope").
+        where("name = 'David'").
+        unscope(:annotate).first
+    end
+
+    assert_not_predicate log, :empty?
+    assert_predicate log.select { |query| query.match?(%r{/\* unscope \*/}) }, :empty?
+
+    assert_equal "David", developer.name
+  end
+
   def test_scoped_find_include
     # with the include, will retrieve only developers for the given project
     scoped_developers = Developer.includes(:projects).scoping do

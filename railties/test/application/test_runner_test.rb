@@ -16,7 +16,7 @@ module ApplicationTests
       teardown_app
     end
 
-    def test_run_via_backwardscompatibility
+    def test_run_via_backwards_compatibility
       require "minitest/rails_plugin"
 
       assert_nothing_raised do
@@ -98,6 +98,17 @@ module ApplicationTests
       end
     end
 
+    def test_run_channels
+      create_test_file :channels, "foo_channel"
+      create_test_file :channels, "bar_channel"
+
+      rails("test:channels").tap do |output|
+        assert_match "FooChannelTest", output
+        assert_match "BarChannelTest", output
+        assert_match "2 runs, 2 assertions, 0 failures", output
+      end
+    end
+
     def test_run_controllers
       create_test_file :controllers, "foo_controller"
       create_test_file :controllers, "bar_controller"
@@ -167,11 +178,11 @@ module ApplicationTests
     end
 
     def test_run_all_suites
-      suites = [:models, :helpers, :unit, :controllers, :mailers, :functional, :integration, :jobs, :mailboxes]
+      suites = [:models, :helpers, :unit, :channels, :controllers, :mailers, :functional, :integration, :jobs, :mailboxes]
       suites.each { |suite| create_test_file suite, "foo_#{suite}" }
       run_test_command("") .tap do |output|
         suites.each { |suite| assert_match "Foo#{suite.to_s.camelize}Test", output }
-        assert_match "9 runs, 9 assertions, 0 failures", output
+        assert_match "10 runs, 10 assertions, 0 failures", output
       end
     end
 
@@ -731,6 +742,7 @@ module ApplicationTests
     def test_reset_sessions_before_rollback_on_system_tests
       app_file "test/system/reset_session_before_rollback_test.rb", <<-RUBY
         require "application_system_test_case"
+        require "selenium/webdriver"
 
         class ResetSessionBeforeRollbackTest < ApplicationSystemTestCase
           def teardown_fixtures
@@ -759,6 +771,7 @@ module ApplicationTests
     def test_reset_sessions_on_failed_system_test_screenshot
       app_file "test/system/reset_sessions_on_failed_system_test_screenshot_test.rb", <<~RUBY
         require "application_system_test_case"
+        require "selenium/webdriver"
 
         class ResetSessionsOnFailedSystemTestScreenshotTest < ApplicationSystemTestCase
           ActionDispatch::SystemTestCase.class_eval do
@@ -815,6 +828,7 @@ module ApplicationTests
     def test_system_tests_are_run_through_rake_test_when_given_in_TEST
       app_file "test/system/dummy_test.rb", <<-RUBY
         require "application_system_test_case"
+        require "selenium/webdriver"
 
         class DummyTest < ApplicationSystemTestCase
           test "something" do

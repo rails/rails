@@ -10,11 +10,12 @@ gemspec
 gem "rake", ">= 11.1"
 
 gem "capybara", ">= 2.15"
+gem "selenium-webdriver", ">= 3.5.0", "< 3.13.0"
 
 gem "rack-cache", "~> 1.2"
 gem "sass-rails"
 gem "turbolinks", "~> 5"
-gem "webpacker", github: "rails/webpacker", require: ENV["SKIP_REQUIRE_WEBPACKER"] != "true"
+gem "webpacker", "~> 4.0", require: ENV["SKIP_REQUIRE_WEBPACKER"] != "true"
 # require: false so bcrypt is loaded only when has_secure_password is used.
 # This is to avoid Active Model (and by extension the entire framework)
 # being dependent on a binary library.
@@ -43,7 +44,7 @@ gem "libxml-ruby", platforms: :ruby
 gem "connection_pool", require: false
 
 # for railties app_generator_test
-gem "bootsnap", ">= 1.1.0", require: false
+gem "bootsnap", ">= 1.4.2", require: false
 
 # Active Job
 group :job do
@@ -52,7 +53,7 @@ group :job do
   gem "sidekiq", require: false
   gem "sucker_punch", require: false
   gem "delayed_job", require: false
-  gem "queue_classic", github: "rafaelfranca/queue_classic", branch: "update-pg", require: false, platforms: :ruby
+  gem "queue_classic", github: "QueueClassic/queue_classic", require: false, platforms: :ruby
   gem "sneakers", require: false
   gem "que", require: false
   gem "backburner", require: false
@@ -91,7 +92,7 @@ gem "webmock"
 
 group :ujs do
   gem "qunit-selenium"
-  gem "chromedriver-helper"
+  gem "webdrivers"
 end
 
 # Add your own local bundler stuff.
@@ -117,7 +118,7 @@ platforms :ruby, :mswin, :mswin64, :mingw, :x64_mingw do
   gem "racc", ">=1.4.6", require: false
 
   # Active Record.
-  gem "sqlite3", "~> 1.3.6"
+  gem "sqlite3", "~> 1.3", ">= 1.3.6"
 
   group :db do
     gem "pg", ">= 0.18.0"

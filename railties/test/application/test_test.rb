@@ -234,7 +234,7 @@ module ApplicationTests
 
     # TODO: would be nice if we could detect the schema change automatically.
     # For now, the user has to synchronize the schema manually.
-    # This test-case serves as a reminder for this use-case.
+    # This test case serves as a reminder for this use case.
     test "manually synchronize test schema after rollback" do
       output  = rails("generate", "model", "user", "name:string")
       version = output.match(/(\d+)_create_users\.rb/)[1]

@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "abstract_unit"
+require "selenium/webdriver"
 
 class SetDriverToRackTestTest < DrivenByRackTest
   test "uses rack_test" do

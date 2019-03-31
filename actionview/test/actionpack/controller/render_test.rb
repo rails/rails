@@ -174,6 +174,10 @@ class TestController < ActionController::Base
     render inline: "<%= controller_name %>"
   end
 
+  def inline_rendered_format_without_format
+    render inline: "test"
+  end
+
   # :ported:
   def render_custom_code
     render plain: "hello world", status: 404
@@ -485,8 +489,8 @@ class TestController < ActionController::Base
     render partial: "customer", locals: { customer: Customer.new("david") }
   end
 
-  def partial_with_string_locals
-    render partial: "customer", locals: { "customer" => Customer.new("david") }
+  def partial_with_hashlike_locals
+    render partial: "customer", locals: ActionController::Parameters.new(customer: Customer.new("david"))
   end
 
   def partial_with_form_builder
@@ -659,6 +663,7 @@ class RenderTest < ActionController::TestCase
     get :hello_world_from_rxml_using_action, to: "test#hello_world_from_rxml_using_action"
     get :hello_world_from_rxml_using_template, to: "test#hello_world_from_rxml_using_template"
     get :hello_world_with_layout_false, to: "test#hello_world_with_layout_false"
+    get :inline_rendered_format_without_format, to: "test#inline_rendered_format_without_format"
     get :layout_overriding_layout, to: "test#layout_overriding_layout"
     get :layout_test, to: "test#layout_test"
     get :layout_test_with_different_layout, to: "test#layout_test_with_different_layout"
@@ -691,7 +696,7 @@ class RenderTest < ActionController::TestCase
     get :partial_with_locals, to: "test#partial_with_locals"
     get :partial_with_nested_object, to: "test#partial_with_nested_object"
     get :partial_with_nested_object_shorthand, to: "test#partial_with_nested_object_shorthand"
-    get :partial_with_string_locals, to: "test#partial_with_string_locals"
+    get :partial_with_hashlike_locals, to: "test#partial_with_hashlike_locals"
     get :partials_list, to: "test#partials_list"
     get :render_action_hello_world, to: "test#render_action_hello_world"
     get :render_action_hello_world_as_string, to: "test#render_action_hello_world_as_string"
@@ -867,48 +872,64 @@ class RenderTest < ActionController::TestCase
 
   # :ported:
   def test_render_file_with_instance_variables
-    get :render_file_with_instance_variables
+    assert_deprecated do
+      get :render_file_with_instance_variables
+    end
     assert_equal "The secret is in the sauce\n", @response.body
   end
 
   def test_render_file
-    get :hello_world_file
+    assert_deprecated do
+      get :hello_world_file
+    end
     assert_equal "Hello world!", @response.body
   end
 
   # :ported:
   def test_render_file_not_using_full_path
-    get :render_file_not_using_full_path
+    assert_deprecated do
+      get :render_file_not_using_full_path
+    end
     assert_equal "The secret is in the sauce\n", @response.body
   end
 
   # :ported:
   def test_render_file_not_using_full_path_with_dot_in_path
-    get :render_file_not_using_full_path_with_dot_in_path
+    assert_deprecated do
+      get :render_file_not_using_full_path_with_dot_in_path
+    end
     assert_equal "The secret is in the sauce\n", @response.body
   end
 
   # :ported:
   def test_render_file_using_pathname
-    get :render_file_using_pathname
+    assert_deprecated do
+      get :render_file_using_pathname
+    end
     assert_equal "The secret is in the sauce\n", @response.body
   end
 
   # :ported:
   def test_render_file_with_locals
-    get :render_file_with_locals
+    assert_deprecated do
+      get :render_file_with_locals
+    end
     assert_equal "The secret is in the sauce\n", @response.body
   end
 
   # :ported:
   def test_render_file_as_string_with_locals
-    get :render_file_as_string_with_locals
+    assert_deprecated do
+      get :render_file_as_string_with_locals
+    end
     assert_equal "The secret is in the sauce\n", @response.body
   end
 
   # :assessed:
   def test_render_file_from_template
-    get :render_file_from_template
+    assert_deprecated do
+      get :render_file_from_template
+    end
     assert_equal "The secret is in the sauce\n", @response.body
   end
 
@@ -1013,6 +1034,12 @@ class RenderTest < ActionController::TestCase
   def test_render_xml_with_layouts
     get :builder_layout_test
     assert_equal "<wrapper>\n<html>\n  <p>Hello </p>\n<p>This is grand!</p>\n</html>\n</wrapper>\n", @response.body
+  end
+
+  def test_rendered_format_without_format
+    get :inline_rendered_format_without_format
+    assert_equal "test", @response.body
+    assert_equal "text/html", @response.content_type
   end
 
   def test_partials_list
@@ -1122,11 +1149,19 @@ class RenderTest < ActionController::TestCase
   end
 
   def test_bad_render_to_string_still_throws_exception
-    assert_raise(ActionView::MissingTemplate) { get :render_to_string_with_exception }
+    assert_deprecated do
+      assert_raise(ActionView::MissingTemplate) do
+        get :render_to_string_with_exception
+      end
+    end
   end
 
   def test_render_to_string_that_throws_caught_exception_doesnt_break_assigns
-    assert_nothing_raised { get :render_to_string_with_caught_exception }
+    assert_deprecated do
+      assert_nothing_raised do
+        get :render_to_string_with_caught_exception
+      end
+    end
     assert_equal "i'm before the render", @controller.instance_variable_get(:@before)
     assert_equal "i'm after the render", @controller.instance_variable_get(:@after)
   end
@@ -1292,8 +1327,8 @@ class RenderTest < ActionController::TestCase
     assert_equal "Hello: david", @response.body
   end
 
-  def test_partial_with_string_locals
-    get :partial_with_string_locals
+  def test_partial_with_hashlike_locals
+    get :partial_with_hashlike_locals
     assert_equal "Hello: david", @response.body
   end
 

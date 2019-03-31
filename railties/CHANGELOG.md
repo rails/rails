@@ -1,3 +1,91 @@
+*   Applications running in `:zeitwerk` mode that use `bootsnap` need
+    to upgrade `bootsnap` to at least 1.4.2.
+
+    *Xavier Noria*
+
+*   Add `config.disable_sandbox` option to Rails console.
+
+    This setting will disable `rails console --sandbox` mode, preventing
+    developer from accidentally starting a sandbox console,
+    which when left inactive, can cause the database server to run out of memory.
+
+    *Prem Sichanugrist*
+
+*   Add `-e/--environment` option to `rails initializers`.
+
+    *Yuji Yaginuma*
+
+
+## Rails 6.0.0.beta3 (March 11, 2019) ##
+
+*   Generate random development secrets
+
+    A random development secret is now generated to tmp/development_secret.txt
+
+    This avoids an issue where development mode servers were vulnerable to
+    remote code execution.
+
+    Fixes CVE-2019-5420
+
+    *Eileen M. Uchitelle*, *Aaron Patterson*, *John Hawthorn*
+
+
+## Rails 6.0.0.beta2 (February 25, 2019) ##
+
+*   Fix non-symbol access to nested hashes returned from `Rails::Application.config_for`
+    being broken by allowing non-symbol access with a deprecation notice.
+
+    *Ufuk Kayserilioglu*
+
+*   Fix deeply nested namespace command printing.
+
+    *Gannon McGibbon*
+
+
+## Rails 6.0.0.beta1 (January 18, 2019) ##
+
+*   Remove deprecated `after_bundle` helper inside plugins templates.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated support to old `config.ru` that use the application class as argument of `run`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `environment` argument from the rails commands.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `capify!`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `config.secret_token`.
+
+    *Rafael Mendonça França*
+
+*   Seed database with inline ActiveJob job adapter.
+
+    *Gannon McGibbon*
+
+*   Add `rails db:system:change` command for changing databases.
+
+    ```
+    bin/rails db:system:change --to=postgresql
+       force  config/database.yml
+        gsub  Gemfile
+    ```
+
+    The change command copies a template `config/database.yml` with
+    the target database adapter into your app, and replaces your database gem
+    with the target database gem.
+
+    *Gannon McGibbon*
+
+*   Add `rails test:channels`.
+
+    *bogdanvlviv*
+
 *   Use original `bundler` environment variables during the process of generating a new rails project.
 
     *Marco Costa*
@@ -14,9 +102,9 @@
 
     *George Claghorn*
 
-*   Introduce guard against DNS rebinding attacks
+*   Introduce guard against DNS rebinding attacks.
 
-    The `ActionDispatch::HostAuthorization` is a new middleware that prevent
+    The `ActionDispatch::HostAuthorization` is a new middleware that prevents
     against DNS rebinding and other `Host` header attacks. It is included in
     the development environment by default with the following configuration:
 
@@ -28,7 +116,7 @@
 
     In other environments `Rails.application.config.hosts` is empty and no
     `Host` header checks will be done. If you want to guard against header
-    attacks on production, you have to manually whitelist the allowed hosts
+    attacks on production, you have to manually permit the allowed hosts
     with:
 
         Rails.application.config.hosts << "product.com"
@@ -41,7 +129,7 @@
         # `beta1.product.com`.
         Rails.application.config.hosts << /.*\.product\.com/
 
-    A special case is supported that allows you to whitelist all sub-domains:
+    A special case is supported that allows you to permit all sub-domains:
 
         # Allow requests from subdomains like `www.product.com` and
         # `beta1.product.com`.
@@ -124,7 +212,7 @@
     The encryption key can be in `ENV["RAILS_MASTER_KEY"]` or `config/credentials/production.key`.
 
     Environment credentials overrides can be edited with `rails credentials:edit --environment production`.
-    If no override is setup for the passed environment, it will be created.
+    If no override is set up for the passed environment, it will be created.
 
     Additionally, the default lookup paths can be overwritten with these configs:
 
@@ -214,9 +302,9 @@
 
     *Jose Luis Duran*
 
-*   Deprecate support for using the `HOST` environment to specify the server IP.
+*   Deprecate support for using the `HOST` environment variable to specify the server IP.
 
-    The `BINDING` environment should be used instead.
+    The `BINDING` environment variable should be used instead.
 
     Fixes #29516.
 

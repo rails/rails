@@ -308,6 +308,8 @@ module ActiveRecord
         migration2 = DisableExtension1.new
         migration3 = DisableExtension2.new
 
+        assert_equal true, Horse.connection.extension_available?("hstore")
+
         migration1.migrate(:up)
         migration2.migrate(:up)
         assert_equal true, Horse.connection.extension_enabled?("hstore")

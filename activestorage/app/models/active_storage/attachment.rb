@@ -46,3 +46,5 @@ class ActiveStorage::Attachment < ActiveRecord::Base
       record.attachment_reflections[name]&.options[:dependent]
     end
 end
+
+ActiveSupport.run_load_hooks :active_storage_attachment, ActiveStorage::Attachment

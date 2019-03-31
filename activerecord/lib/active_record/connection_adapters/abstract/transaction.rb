@@ -40,24 +40,6 @@ module ActiveRecord
         committed? || rolledback?
       end
 
-      def set_state(state)
-        ActiveSupport::Deprecation.warn(<<-MSG.squish)
-          The set_state method is deprecated and will be removed in
-          Rails 6.0. Please use rollback! or commit! to set transaction
-          state directly.
-        MSG
-        case state
-        when :rolledback
-          rollback!
-        when :committed
-          commit!
-        when nil
-          nullify!
-        else
-          raise ArgumentError, "Invalid transaction state: #{state}"
-        end
-      end
-
       def rollback!
         @children.each { |c| c.rollback! }
         @state = :rolledback
@@ -223,9 +205,12 @@ module ActiveRecord
                                        run_commit_callbacks: run_commit_callbacks)
             end
 
-          transaction.materialize! unless @connection.supports_lazy_transactions? && lazy_transactions_enabled?
+          if @connection.supports_lazy_transactions? && lazy_transactions_enabled? && options[:_lazy] != false
+            @has_unmaterialized_transactions = true
+          else
+            transaction.materialize!
+          end
           @stack.push(transaction)
-          @has_unmaterialized_transactions = true if @connection.supports_lazy_transactions?
           transaction
         end
       end

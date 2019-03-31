@@ -1,10 +1,56 @@
+## Rails 6.0.0.beta3 (March 11, 2019) ##
+
+*   Only accept formats from registered mime types
+
+    A lack of filtering on mime types could allow an attacker to read
+    arbitrary files on the target server or to perform a denial of service
+    attack.
+
+    Fixes CVE-2019-5418
+    Fixes CVE-2019-5419
+
+    *John Hawthorn*, *Eileen M. Uchitelle*, *Aaron Patterson*
+
+
+## Rails 6.0.0.beta2 (February 25, 2019) ##
+
+*   `ActionView::Template.finalize_compiled_template_methods` is deprecated with
+    no replacement.
+
+    *tenderlove*
+
+*   `config.action_view.finalize_compiled_template_methods` is deprecated with
+    no replacement.
+
+    *tenderlove*
+
+*   Ensure unique DOM IDs for collection inputs with float values.
+
+    Fixes #34974.
+
+    *Mark Edmondson*
+
+
+## Rails 6.0.0.beta1 (January 18, 2019) ##
+
+*   [Rename npm package](https://github.com/rails/rails/pull/34905) from
+    [`rails-ujs`](https://www.npmjs.com/package/rails-ujs) to
+    [`@rails/ujs`](https://www.npmjs.com/package/@rails/ujs).
+
+    *Javan Makhmali*
+
+*   Remove deprecated `image_alt` helper.
+
+    *Rafael Mendonça França*
+
 *   Fix the need of `#protect_against_forgery?` method defined in
     `ActionView::Base` subclasses. This prevents the use of forms and buttons.
 
     *Genadi Samokovarov*
 
 *   Fix UJS permanently showing disabled text in a[data-remote][data-disable-with] elements within forms.
-    Fixes #33889
+
+    Fixes #33889.
 
     *Wolfgang Hobmaier*
 
@@ -16,7 +62,7 @@
     <%= link_to 'Remote', remote_path, class: 'remote', remote: true, data: { type: :json } %>
     ```
 
-    Fixes #34541
+    Fixes #34541.
 
     *Wolfgang Hobmaier*
 
@@ -33,7 +79,7 @@
 
     Calling `word_wrap` should not trim the indents on the first and last lines.
 
-    Fixes #34487
+    Fixes #34487.
 
     *Lyle Mullican*
 

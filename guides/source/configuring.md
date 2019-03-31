@@ -86,6 +86,8 @@ application. Accepts a valid week day symbol (e.g. `:monday`).
     end
     ```
 
+* `config.disable_sandbox` controls whether or not someone can start a console in sandbox mode. This is helpful to avoid a long running session of sandbox console, that could lead a database server to run out of memory. Defaults to false.
+
 * `config.eager_load` when `true`, eager loads all registered `config.eager_load_namespaces`. This includes your application, engines, Rails frameworks, and any other registered namespace.
 
 * `config.eager_load_namespaces` registers namespaces that are eager loaded when `config.eager_load` is `true`. All namespaces in the list must respond to the `eager_load!` method.
@@ -106,7 +108,7 @@ application. Accepts a valid week day symbol (e.g. `:monday`).
 you don't want shown in the logs, such as passwords or credit card
 numbers. It also filters out sensitive values of database columns when call `#inspect` on an Active Record object. By default, Rails filters out passwords by adding `Rails.application.config.filter_parameters += [:password]` in `config/initializers/filter_parameter_logging.rb`. Parameters filter works by partial matching regular expression.
 
-* `config.force_ssl` forces all requests to be served over HTTPS by using the `ActionDispatch::SSL` middleware, and sets `config.action_mailer.default_url_options` to be `{ protocol: 'https' }`. This can be configured by setting `config.ssl_options` - see the [ActionDispatch::SSL documentation](http://api.rubyonrails.org/classes/ActionDispatch/SSL.html) for details.
+* `config.force_ssl` forces all requests to be served over HTTPS by using the `ActionDispatch::SSL` middleware, and sets `config.action_mailer.default_url_options` to be `{ protocol: 'https' }`. This can be configured by setting `config.ssl_options` - see the [ActionDispatch::SSL documentation](https://api.rubyonrails.org/classes/ActionDispatch/SSL.html) for details.
 
 * `config.log_formatter` defines the formatter of the Rails logger. This option defaults to an instance of `ActiveSupport::Logger::SimpleFormatter` for all modes. If you are setting a value for `config.logger` you must manually pass the value of your formatter to your logger before it is wrapped in an `ActiveSupport::TaggedLogging` instance, Rails will not do it for you.
 
@@ -134,6 +136,10 @@ defaults to `:debug` for all environments. The available log levels are: `:debug
 * `config.middleware` allows you to configure the application's middleware. This is covered in depth in the [Configuring Middleware](#configuring-middleware) section below.
 
 * `config.reload_classes_only_on_change` enables or disables reloading of classes only when tracked files change. By default tracks everything on autoload paths and is set to `true`. If `config.cache_classes` is `true`, this option is ignored.
+
+* `config.credentials.content_path` configures lookup path for encrypted credentials.
+
+* `config.credentials.key_path` configures lookup path for encryption key.
 
 * `secret_key_base` is used for specifying a key which allows sessions for the application to be verified against a known secure key to prevent tampering. Applications get a random generated key in test and development environments, other environments should set one in `config/credentials.yml.enc`.
 
@@ -304,7 +310,7 @@ All these configuration options are delegated to the `I18n` library.
 
 ### Configuring Active Model
 
-* `config.active_model.i18n_full_message` is a boolean value which controls whether the `full_message` error format can be overridden at the attribute or model level in the locale files. This is `false` by default.
+* `config.active_model.i18n_customize_full_message` is a boolean value which controls whether the `full_message` error format can be overridden at the attribute or model level in the locale files. This is `false` by default.
 
 ### Configuring Active Record
 
@@ -386,28 +392,6 @@ The PostgreSQL adapter adds one additional configuration option:
   up performance but adds a risk of data loss if the database crashes. It is
   highly recommended that you do not enable this in a production environment.
   Defaults to `false` in all environments.
-
-The SQLite3Adapter adapter adds one additional configuration option:
-
-* `ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer`
-indicates whether boolean values are stored in sqlite3 databases as 1 and 0 or
-'t' and 'f'. Leaving `ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer`
-set to false is deprecated. SQLite databases have used 't' and 'f' to serialize
-boolean values and must have old data converted to 1 and 0 (its native boolean
-serialization) before setting this flag to true. Conversion can be accomplished
-by setting up a Rake task which runs
-
-    ```ruby
-    ExampleModel.where("boolean_column = 't'").update_all(boolean_column: 1)
-    ExampleModel.where("boolean_column = 'f'").update_all(boolean_column: 0)
-    ```
-
-  for all models and all boolean columns, after which the flag must be set to true
-by adding the following to your `application.rb` file:
-
-    ```ruby
-    Rails.application.config.active_record.sqlite3.represent_boolean_as_integer = true
-    ```
 
 The schema dumper adds two additional configuration options:
 
@@ -599,7 +583,7 @@ Defaults to `'signed cookie'`.
     The default setting is `true`, which uses the partial at `/admin/articles/_article.erb`. Setting the value to `false` would render `/articles/_article.erb`, which is the same behavior as rendering from a non-namespaced controller such as `ArticlesController`.
 
 * `config.action_view.raise_on_missing_translations` determines whether an
-  error should be raised for missing translations.
+  error should be raised for missing translations. This defaults to `false`.
 
 * `config.action_view.automatically_disable_submit_tag` determines whether
   `submit_tag` should automatically disable on click, this defaults to `true`.
@@ -611,13 +595,6 @@ Defaults to `'signed cookie'`.
 * `config.action_view.form_with_generates_ids` determines whether `form_with` generates ids on inputs. This defaults to `true`.
 
 * `config.action_view.default_enforce_utf8` determines whether forms are generated with a hidden tag that forces older versions of Internet Explorer to submit forms encoded in UTF-8. This defaults to `false`.
-
-* `config.action_view.finalize_compiled_template_methods` determines
-  whether the methods on `ActionView::CompiledTemplates` that templates
-  compile themselves to are removed when template instances are
-  destroyed by the garbage collector. This helps prevent memory leaks in
-  development mode, but for large test suites, disabling this option in
-  the test environment can improve performance. This defaults to `true`.
 
 
 ### Configuring Action Mailbox
@@ -750,13 +727,13 @@ There are a few configuration options available in Active Support:
 
 * `ActiveSupport::Deprecation.silence` takes a block in which all deprecation warnings are silenced.
 
-* `ActiveSupport::Deprecation.silenced` sets whether or not to display deprecation warnings.
+* `ActiveSupport::Deprecation.silenced` sets whether or not to display deprecation warnings. The default is `false`.
 
 ### Configuring Active Job
 
 `config.active_job` provides the following configuration options:
 
-* `config.active_job.queue_adapter` sets the adapter for the queuing backend. The default adapter is `:async`. For an up-to-date list of built-in adapters see the [ActiveJob::QueueAdapters API documentation](http://api.rubyonrails.org/classes/ActiveJob/QueueAdapters.html).
+* `config.active_job.queue_adapter` sets the adapter for the queuing backend. The default adapter is `:async`. For an up-to-date list of built-in adapters see the [ActiveJob::QueueAdapters API documentation](https://api.rubyonrails.org/classes/ActiveJob/QueueAdapters.html).
 
     ```ruby
     # Be sure to have the adapter's gem in your Gemfile
@@ -819,6 +796,9 @@ main application.
   Cable, as part of the main server process. Defaults to `/cable`.
 You can set this as nil to not mount Action Cable as part of your
 normal Rails server.
+
+You can find more detailed configuration options in the
+[Action Cable Overview](action_cable_overview.html#configuration).
 
 
 ### Configuring Active Storage
@@ -896,7 +876,6 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 #### With '5.2':
 
 - `config.active_record.cache_versioning`: `true`
-- `ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer`: `true`
 - `action_dispatch.use_authenticated_cookie_encryption`: `true`
 - `config.active_support.use_authenticated_message_encryption`: `true`
 - `config.active_support.use_sha1_digests`: `true`
@@ -1261,6 +1240,8 @@ Using Initializer Files
 -----------------------
 
 After loading the framework and any gems in your application, Rails turns to loading initializers. An initializer is any Ruby file stored under `config/initializers` in your application. You can use initializers to hold configuration settings that should be made after all of the frameworks and gems are loaded, such as options to configure settings for these parts.
+
+NOTE: There is no guarantee that your initializers will run after all the gem initializers, so any initialization code that depends on a given gem having been initialized should go into a `config.after_initialize` block.
 
 NOTE: You can use subfolders to organize your initializers if you like, because Rails will look into the whole file hierarchy from the initializers folder on down.
 

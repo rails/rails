@@ -76,7 +76,7 @@ Handled at the middleware layer:
 - Conditional GETs: Rails handles conditional `GET` (`ETag` and `Last-Modified`)
   processing request headers and returning the correct response headers and status
   code. All you need to do is use the
-  [`stale?`](http://api.rubyonrails.org/classes/ActionController/ConditionalGet.html#method-i-stale-3F)
+  [`stale?`](https://api.rubyonrails.org/classes/ActionController/ConditionalGet.html#method-i-stale-3F)
   check in your controller, and Rails will handle all of the HTTP details for you.
 - HEAD requests: Rails will transparently convert `HEAD` requests into `GET` ones,
   and return just the headers on the way out. This makes `HEAD` work reliably in
@@ -287,7 +287,7 @@ environment's configuration file.
 
 You can learn more about how to use `Rack::Sendfile` with popular
 front-ends in [the Rack::Sendfile
-documentation](http://rubydoc.info/github/rack/rack/master/Rack/Sendfile).
+documentation](https://www.rubydoc.info/github/rack/rack/master/Rack/Sendfile).
 
 Here are some values for this header for some popular servers, once these servers are configured to support
 accelerated file sending:
@@ -374,7 +374,7 @@ controller modules by default:
 - `ActionController::Renderers::All`: Support for `render :json` and friends.
 - `ActionController::ConditionalGet`: Support for `stale?`.
 - `ActionController::BasicImplicitRender`: Makes sure to return an empty response, if there isn't an explicit one.
-- `ActionController::StrongParameters`: Support for parameters white-listing in combination with Active Model mass assignment.
+- `ActionController::StrongParameters`: Support for parameters filtering in combination with Active Model mass assignment.
 - `ActionController::DataStreaming`: Support for `send_file` and `send_data`.
 - `AbstractController::Callbacks`: Support for `before_action` and
   similar helpers.

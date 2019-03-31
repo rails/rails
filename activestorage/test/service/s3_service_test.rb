@@ -59,6 +59,24 @@ if SERVICE_CONFIGURATIONS[:s3]
         service.delete key
       end
     end
+
+    test "upload with content type" do
+      key          = SecureRandom.base58(24)
+      data         = "Something else entirely!"
+      content_type = "text/plain"
+
+      @service.upload(
+        key,
+        StringIO.new(data),
+        checksum: Digest::MD5.base64digest(data),
+        filename: "cool_data.txt",
+        content_type: content_type
+      )
+
+      assert_equal content_type, @service.bucket.object(key).content_type
+    ensure
+      @service.delete key
+    end
   end
 else
   puts "Skipping S3 Service tests because no S3 configuration was supplied"

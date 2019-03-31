@@ -548,14 +548,14 @@ module ActiveRecord
               # The hard limit is 1GB, because of a 32-bit size field, and TOAST.
               case limit
               when nil, 0..0x3fffffff; super(type)
-              else raise(ActiveRecordError, "No binary type has byte size #{limit}.")
+              else raise ActiveRecordError, "No binary type has byte size #{limit}. The limit on binary can be at most 1GB - 1byte."
               end
             when "text"
               # PostgreSQL doesn't support limits on text columns.
               # The hard limit is 1GB, according to section 8.3 in the manual.
               case limit
               when nil, 0..0x3fffffff; super(type)
-              else raise(ActiveRecordError, "The limit on text can be at most 1GB - 1byte.")
+              else raise ActiveRecordError, "No text type has byte size #{limit}. The limit on text can be at most 1GB - 1byte."
               end
             when "integer"
               case limit
@@ -623,10 +623,10 @@ module ActiveRecord
         #   validate_foreign_key :accounts, name: :special_fk_name
         #
         # The +options+ hash accepts the same keys as SchemaStatements#add_foreign_key.
-        def validate_foreign_key(from_table, options_or_to_table = {})
+        def validate_foreign_key(from_table, to_table = nil, **options)
           return unless supports_validate_constraints?
 
-          fk_name_to_validate = foreign_key_for!(from_table, options_or_to_table).name
+          fk_name_to_validate = foreign_key_for!(from_table, to_table: to_table, **options).name
 
           validate_constraint from_table, fk_name_to_validate
         end
@@ -637,7 +637,7 @@ module ActiveRecord
           end
 
           def create_table_definition(*args)
-            PostgreSQL::TableDefinition.new(*args)
+            PostgreSQL::TableDefinition.new(self, *args)
           end
 
           def create_alter_table(name)
@@ -683,38 +683,20 @@ module ActiveRecord
             end
           end
 
-          def change_column_sql(table_name, column_name, type, options = {})
-            quoted_column_name = quote_column_name(column_name)
-            sql_type = type_to_sql(type, options)
-            sql = +"ALTER COLUMN #{quoted_column_name} TYPE #{sql_type}"
-            if options[:collation]
-              sql << " COLLATE \"#{options[:collation]}\""
-            end
-            if options[:using]
-              sql << " USING #{options[:using]}"
-            elsif options[:cast_as]
-              cast_as_type = type_to_sql(options[:cast_as], options)
-              sql << " USING CAST(#{quoted_column_name} AS #{cast_as_type})"
-            end
-
-            sql
-          end
-
           def add_column_for_alter(table_name, column_name, type, options = {})
             return super unless options.key?(:comment)
             [super, Proc.new { change_column_comment(table_name, column_name, options[:comment]) }]
           end
 
           def change_column_for_alter(table_name, column_name, type, options = {})
-            sqls = [change_column_sql(table_name, column_name, type, options)]
-            sqls << change_column_default_for_alter(table_name, column_name, options[:default]) if options.key?(:default)
-            sqls << change_column_null_for_alter(table_name, column_name, options[:null], options[:default]) if options.key?(:null)
+            td = create_table_definition(table_name)
+            cd = td.new_column_definition(column_name, type, options)
+            sqls = [schema_creation.accept(ChangeColumnDefinition.new(cd, column_name))]
             sqls << Proc.new { change_column_comment(table_name, column_name, options[:comment]) } if options.key?(:comment)
             sqls
           end
 
-          # Changes the default value of a table column.
-          def change_column_default_for_alter(table_name, column_name, default_or_changes) # :nodoc:
+          def change_column_default_for_alter(table_name, column_name, default_or_changes)
             column = column_for(table_name, column_name)
             return unless column
 
@@ -729,11 +711,17 @@ module ActiveRecord
             end
           end
 
-          def change_column_null_for_alter(table_name, column_name, null, default = nil) #:nodoc:
-            "ALTER #{quote_column_name(column_name)} #{null ? 'DROP' : 'SET'} NOT NULL"
+          def change_column_null_for_alter(table_name, column_name, null, default = nil)
+            "ALTER COLUMN #{quote_column_name(column_name)} #{null ? 'DROP' : 'SET'} NOT NULL"
           end
 
           def add_timestamps_for_alter(table_name, options = {})
+            options[:null] = false if options[:null].nil?
+
+            if !options.key?(:precision) && supports_datetime_with_precision?
+              options[:precision] = 6
+            end
+
             [add_column_for_alter(table_name, :created_at, :datetime, options), add_column_for_alter(table_name, :updated_at, :datetime, options)]
           end
 

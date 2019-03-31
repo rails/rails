@@ -37,6 +37,7 @@ module Arel
         Arel::Nodes::Offset,
         Arel::Nodes::Ordering,
         Arel::Nodes::UnqualifiedColumn,
+        Arel::Nodes::ValuesList,
         Arel::Nodes::Limit,
       ].each do |klass|
         define_method("test_#{klass.name.gsub('::', '_')}") do
@@ -61,7 +62,6 @@ module Arel
         Arel::Nodes::NotIn,
         Arel::Nodes::Or,
         Arel::Nodes::TableAlias,
-        Arel::Nodes::Values,
         Arel::Nodes::As,
         Arel::Nodes::DeleteStatement,
         Arel::Nodes::JoinSource,

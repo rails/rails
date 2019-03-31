@@ -119,10 +119,16 @@ module ActiveSupport
         end
       end
 
+      # Calls this block before #reset is called on the instance. Used for resetting external collaborators that depend on current values.
+      def before_reset(&block)
+        set_callback :reset, :before, &block
+      end
+
       # Calls this block after #reset is called on the instance. Used for resetting external collaborators, like Time.zone.
       def resets(&block)
         set_callback :reset, :after, &block
       end
+      alias_method :after_reset, :resets
 
       delegate :set, :reset, to: :instance
 

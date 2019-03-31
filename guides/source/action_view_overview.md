@@ -91,7 +91,7 @@ Here are some basic examples:
 ```ruby
 xml.em("emphasized")
 xml.em { xml.b("emph & bold") }
-xml.a("A Link", "href" => "http://rubyonrails.org")
+xml.a("A Link", "href" => "https://rubyonrails.org")
 xml.target("name" => "compile", "option" => "fast")
 ```
 
@@ -100,7 +100,7 @@ which would produce:
 ```html
 <em>emphasized</em>
 <em><b>emph &amp; bold</b></em>
-<a href="http://rubyonrails.org">A link</a>
+<a href="https://rubyonrails.org">A link</a>
 <target option="fast" name="compile" />
 ```
 
@@ -402,9 +402,9 @@ This will add `app/views/direct` to the end of the lookup paths.
 Overview of helpers provided by Action View
 -------------------------------------------
 
-WIP: Not all the helpers are listed here. For a full list see the [API documentation](http://api.rubyonrails.org/classes/ActionView/Helpers.html)
+WIP: Not all the helpers are listed here. For a full list see the [API documentation](https://api.rubyonrails.org/classes/ActionView/Helpers.html)
 
-The following is only a brief overview summary of the helpers available in Action View. It's recommended that you review the [API Documentation](http://api.rubyonrails.org/classes/ActionView/Helpers.html), which covers all of the helpers in more detail, but this should serve as a good starting point.
+The following is only a brief overview summary of the helpers available in Action View. It's recommended that you review the [API Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers.html), which covers all of the helpers in more detail, but this should serve as a good starting point.
 
 ### AssetTagHelper
 
@@ -1446,7 +1446,7 @@ Sanitizes a block of CSS code.
 Strips all link tags from text leaving just the link text.
 
 ```ruby
-strip_links('<a href="http://rubyonrails.org">Ruby on Rails</a>')
+strip_links('<a href="https://rubyonrails.org">Ruby on Rails</a>')
 # => Ruby on Rails
 ```
 

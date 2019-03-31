@@ -3338,6 +3338,16 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal "0c0c0b68-d24b-11e1-a861-001ff3fffe6f", @request.params[:download]
   end
 
+  def test_colon_containing_custom_param
+    ex = assert_raises(ArgumentError) {
+      draw do
+        resources :profiles, param: "username/:is_admin"
+      end
+    }
+
+    assert_match(/:param option can't contain colon/, ex.message)
+  end
+
   def test_action_from_path_is_not_frozen
     draw do
       get "search" => "search"
@@ -4991,8 +5001,12 @@ end
 
 class FlashRedirectTest < ActionDispatch::IntegrationTest
   SessionKey = "_myapp_session"
-  Generator  = ActiveSupport::LegacyKeyGenerator.new("b3c631c314c0bbca50c1b2843150fe33")
-  Rotations  = ActiveSupport::Messages::RotationConfiguration.new
+  Generator = ActiveSupport::CachingKeyGenerator.new(
+    ActiveSupport::KeyGenerator.new("b3c631c314c0bbca50c1b2843150fe33", iterations: 1000)
+  )
+  Rotations = ActiveSupport::Messages::RotationConfiguration.new
+  SIGNED_COOKIE_SALT = "signed cookie"
+  ENCRYPTED_SIGNED_COOKIE_SALT = "sigend encrypted cookie"
 
   class KeyGeneratorMiddleware
     def initialize(app)
@@ -5002,6 +5016,8 @@ class FlashRedirectTest < ActionDispatch::IntegrationTest
     def call(env)
       env["action_dispatch.key_generator"] ||= Generator
       env["action_dispatch.cookies_rotations"] ||= Rotations
+      env["action_dispatch.signed_cookie_salt"] = SIGNED_COOKIE_SALT
+      env["action_dispatch.encrypted_signed_cookie_salt"] = ENCRYPTED_SIGNED_COOKIE_SALT
 
       @app.call(env)
     end

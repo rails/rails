@@ -8,6 +8,8 @@ require "digest/sha1"
 module ActionCable
   module SubscriptionAdapter
     class PostgreSQL < Base # :nodoc:
+      prepend ChannelPrefix
+
       def initialize(*)
         super
         @listener = nil

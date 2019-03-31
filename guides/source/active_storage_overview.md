@@ -421,7 +421,7 @@ Transforming Images
 To create a variation of the image, call `variant` on the `Blob`. You can pass
 any transformation to the method supported by the processor. The default
 processor is [MiniMagick](https://github.com/minimagick/minimagick), but you
-can also use [Vips](http://www.rubydoc.info/gems/ruby-vips/Vips/Image).
+can also use [Vips](https://www.rubydoc.info/gems/ruby-vips/Vips/Image).
 
 To enable variants, add the `image_processing` gem to your `Gemfile`:
 
@@ -434,7 +434,7 @@ original blob into the specified format and redirect to its new service
 location.
 
 ```erb
-<%= image_tag user.avatar.variant(resize_to_fit: [100, 100]) %>
+<%= image_tag user.avatar.variant(resize_to_limit: [100, 100]) %>
 ```
 
 To switch to the Vips processor, you would add the following to
@@ -489,8 +489,7 @@ directly from the client to the cloud.
     Using the npm package:
 
     ```js
-    import * as ActiveStorage from "@rails/activestorage"
-    ActiveStorage.start()
+    require("@rails/activestorage").start()
     ```
 
 2. Annotate file inputs with the direct upload URL.

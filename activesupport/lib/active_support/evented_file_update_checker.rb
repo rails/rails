@@ -131,7 +131,9 @@ module ActiveSupport
           ext = @ph.normalize_extension(file.extname)
 
           file.dirname.ascend do |dir|
-            if @dirs.fetch(dir, []).include?(ext)
+            matching = @dirs[dir]
+
+            if matching && (matching.empty? || matching.include?(ext))
               break true
             elsif dir == @lcsp || dir.root?
               break false

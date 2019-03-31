@@ -29,7 +29,7 @@ module ActiveRecord
       NATIVE_DATABASE_TYPES = {
         primary_key: "bigint auto_increment PRIMARY KEY",
         string:      { name: "varchar", limit: 255 },
-        text:        { name: "text", limit: 65535 },
+        text:        { name: "text" },
         integer:     { name: "int", limit: 4 },
         float:       { name: "float", limit: 24 },
         decimal:     { name: "decimal" },
@@ -37,7 +37,8 @@ module ActiveRecord
         timestamp:   { name: "timestamp" },
         time:        { name: "time" },
         date:        { name: "date" },
-        binary:      { name: "blob", limit: 65535 },
+        binary:      { name: "blob" },
+        blob:        { name: "blob" },
         boolean:     { name: "tinyint", limit: 1 },
         json:        { name: "json" },
       }
@@ -52,8 +53,6 @@ module ActiveRecord
 
       def initialize(connection, logger, connection_options, config)
         super(connection, logger, config)
-
-        @statements = StatementPool.new(self.class.type_cast_config_to_integer(config[:statement_limit]))
       end
 
       def version #:nodoc:
@@ -104,7 +103,20 @@ module ActiveRecord
         mariadb? || version >= "5.7.5"
       end
 
+      # See https://dev.mysql.com/doc/refman/8.0/en/optimizer-hints.html for more details.
+      def supports_optimizer_hints?
+        !mariadb? && version >= "5.7.7"
+      end
+
       def supports_advisory_locks?
+        true
+      end
+
+      def supports_insert_on_duplicate_skip?
+        true
+      end
+
+      def supports_insert_on_duplicate_update?
         true
       end
 
@@ -153,10 +165,9 @@ module ActiveRecord
 
       # CONNECTION MANAGEMENT ====================================
 
-      # Clears the prepared statements cache.
-      def clear_cache!
+      def clear_cache! # :nodoc:
         reload_type_map
-        @statements.clear
+        super
       end
 
       #--
@@ -165,9 +176,9 @@ module ActiveRecord
 
       def explain(arel, binds = [])
         sql     = "EXPLAIN #{to_sql(arel, binds)}"
-        start   = Time.now
+        start   = Concurrent.monotonic_time
         result  = exec_query(sql, "EXPLAIN", binds)
-        elapsed = Time.now - start
+        elapsed = Concurrent.monotonic_time - start
 
         MySQL::ExplainPrettyPrinter.new.pp(result, elapsed)
       end
@@ -261,10 +272,6 @@ module ActiveRecord
       # Returns the database collation strategy.
       def collation
         show_variable "collation_database"
-      end
-
-      def truncate(table_name, name = nil)
-        execute "TRUNCATE TABLE #{quote_table_name(table_name)}", name
       end
 
       def table_comment(table_name) # :nodoc:
@@ -430,30 +437,6 @@ module ActiveRecord
         table_options
       end
 
-      # Maps logical Rails types to MySQL-specific data types.
-      def type_to_sql(type, limit: nil, precision: nil, scale: nil, unsigned: nil, **) # :nodoc:
-        sql = \
-          case type.to_s
-          when "integer"
-            integer_to_sql(limit)
-          when "text"
-            text_to_sql(limit)
-          when "blob"
-            binary_to_sql(limit)
-          when "binary"
-            if (0..0xfff) === limit
-              "varbinary(#{limit})"
-            else
-              binary_to_sql(limit)
-            end
-          else
-            super
-          end
-
-        sql = "#{sql} unsigned" if unsigned && type != :primary_key
-        sql
-      end
-
       # SHOW VARIABLES LIKE 'name'
       def show_variable(name)
         query_value("SELECT @@#{name}", "SCHEMA")
@@ -474,6 +457,21 @@ module ActiveRecord
             AND table_name = #{scope[:name]}
           ORDER BY ordinal_position
         SQL
+      end
+
+      def default_uniqueness_comparison(attribute, value, klass) # :nodoc:
+        column = column_for_attribute(attribute)
+
+        if column.collation && !column.case_sensitive? && !value.nil?
+          ActiveSupport::Deprecation.warn(<<~MSG.squish)
+            Uniqueness validator will no longer enforce case sensitive comparison in Rails 6.1.
+            To continue case sensitive comparison on the :#{attribute.name} attribute in #{klass} model,
+            pass `case_sensitive: true` option explicitly to the uniqueness validator.
+          MSG
+          attribute.eq(Arel::Nodes::Bin.new(value))
+        else
+          super
+        end
       end
 
       def case_sensitive_comparison(attribute, value) # :nodoc:
@@ -514,10 +512,18 @@ module ActiveRecord
         index.using == :btree || super
       end
 
-      def insert_fixtures_set(fixture_set, tables_to_delete = [])
-        with_multi_statements do
-          super { discard_remaining_results }
+      def build_insert_sql(insert) # :nodoc:
+        sql = +"INSERT #{insert.into} #{insert.values_list}"
+
+        if insert.skip_duplicates?
+          any_column = quote_column_name(insert.model.columns.first.name)
+          sql << " ON DUPLICATE KEY UPDATE #{any_column}=#{any_column}"
+        elsif insert.update_duplicates?
+          sql << " ON DUPLICATE KEY UPDATE "
+          sql << insert.updatable_columns.map { |column| "#{column}=VALUES(#{column})" }.join(",")
         end
+
+        sql
       end
 
       private
@@ -525,33 +531,6 @@ module ActiveRecord
           if version < "5.5.8"
             raise "Your version of MySQL (#{version_string}) is too old. Active Record supports MySQL >= 5.5.8."
           end
-        end
-
-        def combine_multi_statements(total_sql)
-          total_sql.each_with_object([]) do |sql, total_sql_chunks|
-            previous_packet = total_sql_chunks.last
-            sql << ";\n"
-            if max_allowed_packet_reached?(sql, previous_packet) || total_sql_chunks.empty?
-              total_sql_chunks << sql
-            else
-              previous_packet << sql
-            end
-          end
-        end
-
-        def max_allowed_packet_reached?(current_packet, previous_packet)
-          if current_packet.bytesize > max_allowed_packet
-            raise ActiveRecordError, "Fixtures set is too large #{current_packet.bytesize}. Consider increasing the max_allowed_packet variable."
-          elsif previous_packet.nil?
-            false
-          else
-            (current_packet.bytesize + previous_packet.bytesize) > max_allowed_packet
-          end
-        end
-
-        def max_allowed_packet
-          bytes_margin = 2
-          @max_allowed_packet ||= (show_variable("max_allowed_packet") - bytes_margin)
         end
 
         def initialize_type_map(m = type_map)
@@ -627,6 +606,7 @@ module ActiveRecord
         ER_LOCK_WAIT_TIMEOUT    = 1205
         ER_QUERY_INTERRUPTED    = 1317
         ER_QUERY_TIMEOUT        = 3024
+        ER_FK_INCOMPATIBLE_COLUMNS = 3780
 
         def translate_exception(exception, message:, sql:, binds:)
           case error_number(exception)
@@ -634,7 +614,7 @@ module ActiveRecord
             RecordNotUnique.new(message, sql: sql, binds: binds)
           when ER_NO_REFERENCED_ROW, ER_ROW_IS_REFERENCED, ER_ROW_IS_REFERENCED_2, ER_NO_REFERENCED_ROW_2
             InvalidForeignKey.new(message, sql: sql, binds: binds)
-          when ER_CANNOT_ADD_FOREIGN
+          when ER_CANNOT_ADD_FOREIGN, ER_FK_INCOMPATIBLE_COLUMNS
             mismatched_foreign_key(message, sql: sql, binds: binds)
           when ER_CANNOT_CREATE_TABLE
             if message.include?("errno: 150")
@@ -708,6 +688,12 @@ module ActiveRecord
         end
 
         def add_timestamps_for_alter(table_name, options = {})
+          options[:null] = false if options[:null].nil?
+
+          if !options.key?(:precision) && supports_datetime_with_precision?
+            options[:precision] = 6
+          end
+
           [add_column_for_alter(table_name, :created_at, :datetime, options), add_column_for_alter(table_name, :updated_at, :datetime, options)]
         end
 
@@ -786,49 +772,32 @@ module ActiveRecord
           Arel::Visitors::MySQL.new(self)
         end
 
+        def build_statement_pool
+          StatementPool.new(self.class.type_cast_config_to_integer(@config[:statement_limit]))
+        end
+
         def mismatched_foreign_key(message, sql:, binds:)
-          parts = sql.scan(/`(\w+)`[ $)]/).flatten
-          MismatchedForeignKey.new(
-            self,
+          match = %r/
+            (?:CREATE|ALTER)\s+TABLE\s*(?:`?\w+`?\.)?`?(?<table>\w+)`?.+?
+            FOREIGN\s+KEY\s*\(`?(?<foreign_key>\w+)`?\)\s*
+            REFERENCES\s*(`?(?<target_table>\w+)`?)\s*\(`?(?<primary_key>\w+)`?\)
+          /xmi.match(sql)
+
+          options = {
             message: message,
             sql: sql,
             binds: binds,
-            table: parts[0],
-            foreign_key: parts[1],
-            target_table: parts[2],
-            primary_key: parts[3],
-          )
-        end
+          }
 
-        def integer_to_sql(limit) # :nodoc:
-          case limit
-          when 1; "tinyint"
-          when 2; "smallint"
-          when 3; "mediumint"
-          when nil, 4; "int"
-          when 5..8; "bigint"
-          else raise(ActiveRecordError, "No integer type has byte size #{limit}. Use a decimal with scale 0 instead.")
+          if match
+            options[:table] = match[:table]
+            options[:foreign_key] = match[:foreign_key]
+            options[:target_table] = match[:target_table]
+            options[:primary_key] = match[:primary_key]
+            options[:primary_key_column] = column_for(match[:target_table], match[:primary_key])
           end
-        end
 
-        def text_to_sql(limit) # :nodoc:
-          case limit
-          when 0..0xff;               "tinytext"
-          when nil, 0x100..0xffff;    "text"
-          when 0x10000..0xffffff;     "mediumtext"
-          when 0x1000000..0xffffffff; "longtext"
-          else raise(ActiveRecordError, "No text type has byte length #{limit}")
-          end
-        end
-
-        def binary_to_sql(limit) # :nodoc:
-          case limit
-          when 0..0xff;               "tinyblob"
-          when nil, 0x100..0xffff;    "blob"
-          when 0x10000..0xffffff;     "mediumblob"
-          when 0x1000000..0xffffffff; "longblob"
-          else raise(ActiveRecordError, "No binary type has byte length #{limit}")
-          end
+          MismatchedForeignKey.new(options)
         end
 
         def version_string

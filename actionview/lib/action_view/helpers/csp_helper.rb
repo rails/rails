@@ -14,9 +14,11 @@ module ActionView
       # This is used by the Rails UJS helper to create dynamically
       # loaded inline <script> elements.
       #
-      def csp_meta_tag
+      def csp_meta_tag(**options)
         if content_security_policy?
-          tag("meta", name: "csp-nonce", content: content_security_policy_nonce)
+          options[:name] = "csp-nonce"
+          options[:content] = content_security_policy_nonce
+          tag("meta", options)
         end
       end
     end

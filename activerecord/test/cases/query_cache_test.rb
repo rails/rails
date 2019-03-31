@@ -502,6 +502,44 @@ class QueryCacheTest < ActiveRecord::TestCase
     }.call({})
   end
 
+  def test_clear_query_cache_is_called_on_all_connections
+    skip "with in memory db, reading role won't be able to see database on writing role" if in_memory_db?
+    with_temporary_connection_pool do
+      ActiveRecord::Base.connection_handlers = {
+        writing: ActiveRecord::Base.default_connection_handler,
+        reading: ActiveRecord::ConnectionAdapters::ConnectionHandler.new
+      }
+
+      ActiveRecord::Base.connected_to(role: :reading) do
+        ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations["arunit"])
+      end
+
+      mw = middleware { |env|
+        ActiveRecord::Base.connected_to(role: :reading) do
+          @topic = Topic.first
+        end
+
+        assert @topic
+
+        ActiveRecord::Base.connected_to(role: :writing) do
+          @topic.title = "It doesn't have to be crazy at work"
+          @topic.save!
+        end
+
+        assert_equal "It doesn't have to be crazy at work", @topic.title
+
+        ActiveRecord::Base.connected_to(role: :reading) do
+          @topic = Topic.first
+          assert_equal "It doesn't have to be crazy at work", @topic.title
+        end
+      }
+
+      mw.call({})
+    end
+  ensure
+    ActiveRecord::Base.connection_handlers = { writing: ActiveRecord::Base.default_connection_handler }
+  end
+
   private
 
     def with_temporary_connection_pool

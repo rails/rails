@@ -265,6 +265,17 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_database_puts_migrations_in_configured_folder_with_aliases
+    with_secondary_database_configuration do
+      run_generator ["create_books", "--db=secondary"]
+      assert_migration "db/secondary_migrate/create_books.rb" do |content|
+        assert_method :change, content do |change|
+          assert_match(/create_table :books/, change)
+        end
+      end
+    end
+  end
+
   def test_should_create_empty_migrations_if_name_not_start_with_add_or_remove_or_create
     migration = "delete_books"
     run_generator [migration, "title:string", "content:text"]
@@ -353,6 +364,38 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
     assert_migration "db2/migrate/#{migration}.rb", /.*/
   ensure
     Rails.application.config.paths["db/migrate"] = old_paths
+  end
+
+  def test_add_migration_ignores_virtual_attributes
+    migration = "add_rich_text_content_to_messages"
+    run_generator [migration, "content:rich_text"]
+
+    assert_migration "db/migrate/#{migration}.rb" do |content|
+      assert_method :change, content do |change|
+        assert_no_match(/add_column :messages, :content, :rich_text/, change)
+      end
+    end
+  end
+
+  def test_create_table_migration_ignores_virtual_attributes
+    run_generator ["create_messages", "content:rich_text"]
+    assert_migration "db/migrate/create_messages.rb" do |content|
+      assert_method :change, content do |change|
+        assert_match(/create_table :messages/, change)
+        assert_no_match(/  t\.rich_text :content/, change)
+      end
+    end
+  end
+
+  def test_remove_migration_with_virtual_attributes
+    migration = "remove_content_from_messages"
+    run_generator [migration, "content:rich_text"]
+
+    assert_migration "db/migrate/#{migration}.rb" do |content|
+      assert_method :change, content do |change|
+        assert_no_match(/remove_column :messages, :content, :rich_text/, change)
+      end
+    end
   end
 
   private

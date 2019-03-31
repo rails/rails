@@ -1,6 +1,6 @@
 {
   "name": "@rails/actiontext",
-  "version": "6.0.0-alpha",
+  "version": "6.0.0-beta3",
   "description": "Edit and display rich text in Rails applications",
   "main": "app/javascript/actiontext/index.js",
   "files": [
@@ -21,7 +21,9 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "trix": "^1.0.0",
     "@rails/activestorage": "^6.0.0-alpha"
+  },
+  "peerDependencies": {
+    "trix": "^1.0.0"
   }
 }

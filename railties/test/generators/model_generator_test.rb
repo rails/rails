@@ -104,7 +104,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     ActiveRecord::Base.pluralize_table_names = true
   end
 
-  def test_migration_with_namespaces_in_model_name_without_plurization
+  def test_migration_with_namespaces_in_model_name_without_pluralization
     ActiveRecord::Base.pluralize_table_names = false
     run_generator ["Gallery::Image"]
     assert_migration "db/migrate/create_gallery_image", /class CreateGalleryImage < ActiveRecord::Migration\[[0-9.]+\]/
@@ -403,6 +403,17 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_database_puts_migrations_in_configured_folder_with_aliases
+    with_secondary_database_configuration do
+      run_generator ["account", "--db=secondary"]
+      assert_migration "db/secondary_migrate/create_accounts.rb" do |content|
+        assert_method :change, content do |change|
+          assert_match(/create_table :accounts/, change)
+        end
+      end
+    end
+  end
+
   def test_required_belongs_to_adds_required_association
     run_generator ["account", "supplier:references{required}"]
 
@@ -486,6 +497,23 @@ class ModelGeneratorTest < Rails::Generators::TestCase
       end
     FILE
     assert_file "app/models/user.rb", expected_file
+  end
+
+  def test_model_with_rich_text_attribute_adds_has_rich_text
+    run_generator ["message", "content:rich_text"]
+    expected_file = <<~FILE
+      class Message < ApplicationRecord
+        has_rich_text :content
+      end
+    FILE
+    assert_file "app/models/message.rb", expected_file
+  end
+
+  def test_skip_virtual_fields_in_fixtures
+    run_generator ["message", "content:rich_text"]
+
+    assert_generated_fixture("test/fixtures/messages.yml",
+                             "one" => nil, "two" => nil)
   end
 
   private

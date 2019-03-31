@@ -2,10 +2,10 @@
   "name": "dummy",
   "private": true,
   "dependencies": {
-    "@rails/webpacker": "^3.2.2",
+    "@rails/webpacker": "^4.0.2",
     "activetext": "file:../.."
   },
   "devDependencies": {
-    "webpack-dev-server": "^2.11.1"
+    "webpack-dev-server": "^3.2.1"
   }
 }

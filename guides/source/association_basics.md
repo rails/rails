@@ -1257,7 +1257,7 @@ Controls what happens to the associated object when its owner is destroyed:
 
 * `:destroy` causes the associated object to also be destroyed
 * `:delete` causes the associated object to be deleted directly from the database (so callbacks will not execute)
-* `:nullify` causes the foreign key to be set to `NULL`. Callbacks are not executed.
+* `:nullify` causes the foreign key to be set to `NULL`. Polymorphic type column is also nullified on polymorphic associations. Callbacks are not executed.
 * `:restrict_with_exception` causes an `ActiveRecord::DeleteRestrictionError` exception to be raised if there is an associated record
 * `:restrict_with_error` causes an error to be added to the owner if there is an associated object
 
@@ -1544,7 +1544,7 @@ The `collection.size` method returns the number of objects in the collection.
 ##### `collection.find(...)`
 
 The `collection.find` method finds objects within the collection. It uses the same syntax and options as
-[`ActiveRecord::Base.find`](http://api.rubyonrails.org/classes/ActiveRecord/FinderMethods.html#method-i-find).
+[`ActiveRecord::Base.find`](https://api.rubyonrails.org/classes/ActiveRecord/FinderMethods.html#method-i-find).
 
 ```ruby
 @available_book = @author.books.find(1)
@@ -1563,7 +1563,7 @@ The `collection.where` method finds objects within the collection based on the c
 
 The `collection.exists?` method checks whether an object meeting the supplied
 conditions exists in the collection. It uses the same syntax and options as
-[`ActiveRecord::Base.exists?`](http://api.rubyonrails.org/classes/ActiveRecord/FinderMethods.html#method-i-exists-3F).
+[`ActiveRecord::Base.exists?`](https://api.rubyonrails.org/classes/ActiveRecord/FinderMethods.html#method-i-exists-3F).
 
 ##### `collection.build(attributes = {}, ...)`
 
@@ -1658,7 +1658,7 @@ Controls what happens to the associated objects when their owner is destroyed:
 
 * `:destroy` causes all the associated objects to also be destroyed
 * `:delete_all` causes all the associated objects to be deleted directly from the database (so callbacks will not execute)
-* `:nullify` causes the foreign keys to be set to `NULL`. Callbacks are not executed.
+* `:nullify` causes the foreign key to be set to `NULL`. Polymorphic type column is also nullified on polymorphic associations. Callbacks are not executed.
 * `:restrict_with_exception` causes an `ActiveRecord::DeleteRestrictionError` exception to be raised if there are any associated records
 * `:restrict_with_error` causes an error to be added to the owner if there are any associated objects
 
@@ -2077,7 +2077,7 @@ The `collection.size` method returns the number of objects in the collection.
 ##### `collection.find(...)`
 
 The `collection.find` method finds objects within the collection. It uses the same syntax and options as
-[`ActiveRecord::Base.find`](http://api.rubyonrails.org/classes/ActiveRecord/FinderMethods.html#method-i-find).
+[`ActiveRecord::Base.find`](https://api.rubyonrails.org/classes/ActiveRecord/FinderMethods.html#method-i-find).
 
 ```ruby
 @assembly = @part.assemblies.find(1)
@@ -2095,7 +2095,7 @@ The `collection.where` method finds objects within the collection based on the c
 
 The `collection.exists?` method checks whether an object meeting the supplied
 conditions exists in the collection. It uses the same syntax and options as
-[`ActiveRecord::Base.exists?`](http://api.rubyonrails.org/classes/ActiveRecord/FinderMethods.html#method-i-exists-3F).
+[`ActiveRecord::Base.exists?`](https://api.rubyonrails.org/classes/ActiveRecord/FinderMethods.html#method-i-exists-3F).
 
 ##### `collection.build(attributes = {})`
 
@@ -2349,6 +2349,17 @@ end
 ```
 
 If a `before_add` callback throws an exception, the object does not get added to the collection. Similarly, if a `before_remove` callback throws an exception, the object does not get removed from the collection.
+
+NOTE: These callbacks are called only when the associated objects are added or removed through the association collection:
+
+```ruby
+# Triggers `before_add` callback
+author.books << book    
+author.books = [book, book2]
+
+# Does not trigger the `before_add` callback
+book.update(author_id: 1) 
+```
 
 ### Association Extensions
 

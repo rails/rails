@@ -40,7 +40,7 @@ module ActionController
           protocol: "https://",
           host: request.host,
           path: request.fullpath,
-          status: :moved_permanently
+          status: :moved_permanently,
         }
 
         if host_or_options.is_a?(Hash)
