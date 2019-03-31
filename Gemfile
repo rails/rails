@@ -98,6 +98,7 @@ end
 group :storage do
   gem "aws-sdk-s3", require: false
   gem "google-cloud-storage", "~> 1.8", require: false
+  gem "googleauth", "<= 0.8.0", require: false
   gem "azure-storage", require: false
 
   gem "mini_magick"
