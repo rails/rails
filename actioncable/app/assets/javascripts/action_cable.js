@@ -28,6 +28,22 @@
       throw new TypeError("Cannot call a class as a function");
     }
   };
+  var createClass = function() {
+    function defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];
+        descriptor.enumerable = descriptor.enumerable || false;
+        descriptor.configurable = true;
+        if ("value" in descriptor) descriptor.writable = true;
+        Object.defineProperty(target, descriptor.key, descriptor);
+      }
+    }
+    return function(Constructor, protoProps, staticProps) {
+      if (protoProps) defineProperties(Constructor.prototype, protoProps);
+      if (staticProps) defineProperties(Constructor, staticProps);
+      return Constructor;
+    };
+  }();
   var now = function now() {
     return new Date().getTime();
   };
@@ -432,7 +448,7 @@
   var Consumer = function() {
     function Consumer(url) {
       classCallCheck(this, Consumer);
-      this.url = url;
+      this._url = url;
       this.subscriptions = new Subscriptions(this);
       this.connection = new Connection(this);
     }
@@ -452,18 +468,14 @@
         return this.connection.open();
       }
     };
+    createClass(Consumer, [ {
+      key: "url",
+      get: function get$$1() {
+        return createWebSocketURL(this._url);
+      }
+    } ]);
     return Consumer;
   }();
-  function createConsumer() {
-    var url = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : getConfig("url") || INTERNAL.default_mount_path;
-    return new Consumer(createWebSocketURL(url));
-  }
-  function getConfig(name) {
-    var element = document.head.querySelector("meta[name='action-cable-" + name + "']");
-    if (element) {
-      return element.getAttribute("content");
-    }
-  }
   function createWebSocketURL(url) {
     var webSocketURL = typeof url === "function" ? url() : url;
     if (webSocketURL && !/^wss?:/i.test(webSocketURL)) {
@@ -476,6 +488,16 @@
       return webSocketURL;
     }
   }
+  function createConsumer() {
+    var url = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : getConfig("url") || INTERNAL.default_mount_path;
+    return new Consumer(url);
+  }
+  function getConfig(name) {
+    var element = document.head.querySelector("meta[name='action-cable-" + name + "']");
+    if (element) {
+      return element.getAttribute("content");
+    }
+  }
   exports.Connection = Connection;
   exports.ConnectionMonitor = ConnectionMonitor;
   exports.Consumer = Consumer;
@@ -484,9 +506,9 @@
   exports.Subscriptions = Subscriptions;
   exports.adapters = adapters;
   exports.logger = logger;
+  exports.createWebSocketURL = createWebSocketURL;
   exports.createConsumer = createConsumer;
   exports.getConfig = getConfig;
-  exports.createWebSocketURL = createWebSocketURL;
   Object.defineProperty(exports, "__esModule", {
     value: true
   });
