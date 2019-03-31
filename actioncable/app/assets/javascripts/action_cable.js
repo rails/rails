@@ -507,8 +507,8 @@
   exports.Subscription = Subscription;
   exports.Subscriptions = Subscriptions;
   exports.adapters = adapters;
-  exports.logger = logger;
   exports.createWebSocketURL = createWebSocketURL;
+  exports.logger = logger;
   exports.createConsumer = createConsumer;
   exports.getConfig = getConfig;
   Object.defineProperty(exports, "__esModule", {
