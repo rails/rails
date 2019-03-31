@@ -179,6 +179,7 @@ class I18nValidationTest < ActiveModel::TestCase
       call = [:title_confirmation, :confirmation, generate_message_options.merge(attribute: "Title")]
       assert_called_with(@person.errors, :generate_message, call) do
         @person.valid?
+        @person.errors.messages
       end
     end
   end
@@ -189,6 +190,7 @@ class I18nValidationTest < ActiveModel::TestCase
       call = [:title, :accepted, generate_message_options]
       assert_called_with(@person.errors, :generate_message, call) do
         @person.valid?
+        @person.errors.messages
       end
     end
   end
@@ -199,6 +201,7 @@ class I18nValidationTest < ActiveModel::TestCase
       call = [:title, :blank, generate_message_options]
       assert_called_with(@person.errors, :generate_message, call) do
         @person.valid?
+        @person.errors.messages
       end
     end
   end
@@ -209,6 +212,7 @@ class I18nValidationTest < ActiveModel::TestCase
       call = [:title, :too_short, generate_message_options.merge(count: 3)]
       assert_called_with(@person.errors, :generate_message, call) do
         @person.valid?
+        @person.errors.messages
       end
     end
   end
@@ -220,6 +224,7 @@ class I18nValidationTest < ActiveModel::TestCase
       call = [:title, :too_long, generate_message_options.merge(count: 5)]
       assert_called_with(@person.errors, :generate_message, call) do
         @person.valid?
+        @person.errors.messages
       end
     end
   end
@@ -230,6 +235,7 @@ class I18nValidationTest < ActiveModel::TestCase
       call = [:title, :wrong_length, generate_message_options.merge(count: 5)]
       assert_called_with(@person.errors, :generate_message, call) do
         @person.valid?
+        @person.errors.messages
       end
     end
   end
@@ -241,6 +247,7 @@ class I18nValidationTest < ActiveModel::TestCase
       call = [:title, :invalid, generate_message_options.merge(value: "72x")]
       assert_called_with(@person.errors, :generate_message, call) do
         @person.valid?
+        @person.errors.messages
       end
     end
   end
@@ -252,6 +259,7 @@ class I18nValidationTest < ActiveModel::TestCase
       call = [:title, :inclusion, generate_message_options.merge(value: "z")]
       assert_called_with(@person.errors, :generate_message, call) do
         @person.valid?
+        @person.errors.messages
       end
     end
   end
@@ -263,6 +271,7 @@ class I18nValidationTest < ActiveModel::TestCase
       call = [:title, :inclusion, generate_message_options.merge(value: "z")]
       assert_called_with(@person.errors, :generate_message, call) do
         @person.valid?
+        @person.errors.messages
       end
     end
   end
@@ -274,6 +283,7 @@ class I18nValidationTest < ActiveModel::TestCase
       call = [:title, :exclusion, generate_message_options.merge(value: "a")]
       assert_called_with(@person.errors, :generate_message, call) do
         @person.valid?
+        @person.errors.messages
       end
     end
   end
@@ -285,6 +295,7 @@ class I18nValidationTest < ActiveModel::TestCase
       call = [:title, :exclusion, generate_message_options.merge(value: "a")]
       assert_called_with(@person.errors, :generate_message, call) do
         @person.valid?
+        @person.errors.messages
       end
     end
   end
@@ -296,6 +307,7 @@ class I18nValidationTest < ActiveModel::TestCase
       call = [:title, :not_a_number, generate_message_options.merge(value: "a")]
       assert_called_with(@person.errors, :generate_message, call) do
         @person.valid?
+        @person.errors.messages
       end
     end
   end
@@ -307,6 +319,7 @@ class I18nValidationTest < ActiveModel::TestCase
       call = [:title, :not_an_integer, generate_message_options.merge(value: "0.0")]
       assert_called_with(@person.errors, :generate_message, call) do
         @person.valid?
+        @person.errors.messages
       end
     end
   end
@@ -318,6 +331,7 @@ class I18nValidationTest < ActiveModel::TestCase
       call = [:title, :odd, generate_message_options.merge(value: 0)]
       assert_called_with(@person.errors, :generate_message, call) do
         @person.valid?
+        @person.errors.messages
       end
     end
   end
@@ -329,6 +343,7 @@ class I18nValidationTest < ActiveModel::TestCase
       call = [:title, :less_than, generate_message_options.merge(value: 1, count: 0)]
       assert_called_with(@person.errors, :generate_message, call) do
         @person.valid?
+        @person.errors.messages
       end
     end
   end
