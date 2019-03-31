@@ -73,15 +73,11 @@ module ActiveRecord
           raise ArgumentError, "#{connection.class} does not support :returning"
         end
 
-        unless %i{ raise skip update }.member?(on_duplicate)
-          raise NotImplementedError, "#{on_duplicate.inspect} is an unknown value for :on_duplicate. Valid values are :raise, :skip, and :update"
-        end
-
-        if on_duplicate == :skip && !connection.supports_insert_on_duplicate_skip?
+        if skip_duplicates? && !connection.supports_insert_on_duplicate_skip?
           raise ArgumentError, "#{connection.class} does not support skipping duplicates"
         end
 
-        if on_duplicate == :update && !connection.supports_insert_on_duplicate_update?
+        if update_duplicates? && !connection.supports_insert_on_duplicate_update?
           raise ArgumentError, "#{connection.class} does not support upsert"
         end
 
