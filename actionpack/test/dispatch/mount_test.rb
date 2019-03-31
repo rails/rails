@@ -80,6 +80,12 @@ class TestRoutingMount < ActionDispatch::IntegrationTest
     assert_equal "/shorthand -- /omg", response.body
   end
 
+  def test_mounting_does_not_match_similar_paths
+    get "/shorthandomg"
+    assert_not_equal "/shorthand -- /omg", response.body
+    assert_equal " -- /shorthandomg", response.body
+  end
+
   def test_mounting_works_with_via
     get "/getfake"
     assert_equal "OK", response.body

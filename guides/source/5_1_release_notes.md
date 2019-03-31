@@ -350,9 +350,9 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 
 *   Removed deprecated methods related to controller filters.
     ([Commit](https://github.com/rails/rails/commit/d7be30e8babf5e37a891522869e7b0191b79b757))
-    
+
 *   Removed deprecated support to `:text` and `:nothing` in `render`.
-    ([Commit](https://github.com/rails/rails/commit/79a5ea9eadb4d43b62afacedc0706cbe88c54496), 
+    ([Commit](https://github.com/rails/rails/commit/79a5ea9eadb4d43b62afacedc0706cbe88c54496),
     [Commit](https://github.com/rails/rails/commit/57e1c99a280bdc1b324936a690350320a1cd8111))
 
 *   Removed deprecated support for calling `HashWithIndifferentAccess` methods on `ActionController::Parameters`.
@@ -644,7 +644,7 @@ Credits
 -------
 
 See the
-[full list of contributors to Rails](http://contributors.rubyonrails.org/) for
+[full list of contributors to Rails](https://contributors.rubyonrails.org/) for
 the many people who spent many hours making Rails, the stable and robust
 framework it is. Kudos to all of them.
 

@@ -31,7 +31,9 @@ module ActiveRecord
   # as well. With the above example:
   #
   #   Conversation.active
+  #   Conversation.not_active
   #   Conversation.archived
+  #   Conversation.not_archived
   #
   # Of course, you can also query them directly if the scopes don't fit your
   # needs:
@@ -196,9 +198,13 @@ module ActiveRecord
             define_method("#{value_method_name}!") { update!(attr => value) }
 
             # scope :active, -> { where(status: 0) }
+            # scope :not_active, -> { where.not(status: 0) }
             if enum_scopes != false
               klass.send(:detect_enum_conflict!, name, value_method_name, true)
               klass.scope value_method_name, -> { where(attr => value) }
+
+              klass.send(:detect_enum_conflict!, name, "not_#{value_method_name}", true)
+              klass.scope "not_#{value_method_name}", -> { where.not(attr => value) }
             end
           end
         end

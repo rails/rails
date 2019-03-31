@@ -260,7 +260,7 @@ In each of these cases, the named routes remain the same as if you did not use `
 | PATCH/PUT | /admin/articles/:id      | articles#update      | article_path(:id)      |
 | DELETE    | /admin/articles/:id      | articles#destroy     | article_path(:id)      |
 
-TIP: _If you need to use a different controller namespace inside a `namespace` block you can specify an absolute controller path, e.g: `get '/foo' => '/foo#index'`._
+TIP: _If you need to use a different controller namespace inside a `namespace` block you can specify an absolute controller path, e.g: `get '/foo', to: '/foo#index'`._
 
 ### Nested Resources
 
@@ -1190,6 +1190,33 @@ For example, here's a small section of the `rails routes` output for a RESTful r
 edit_user GET    /users/:id/edit(.:format) users#edit
 ```
 
+You can also use the `--expanded` option to turn on the expanded table formatting mode.
+
+```
+$ rails routes --expanded
+
+--[ Route 1 ]----------------------------------------------------
+Prefix            | users
+Verb              | GET
+URI               | /users(.:format)
+Controller#Action | users#index
+--[ Route 2 ]----------------------------------------------------
+Prefix            |
+Verb              | POST
+URI               | /users(.:format)
+Controller#Action | users#create
+--[ Route 3 ]----------------------------------------------------
+Prefix            | new_user
+Verb              | GET
+URI               | /users/new(.:format)
+Controller#Action | users#new
+--[ Route 4 ]----------------------------------------------------
+Prefix            | edit_user
+Verb              | GET
+URI               | /users/:id/edit(.:format)
+Controller#Action | users#edit
+```
+
 You can search through your routes with the grep option: -g. This outputs any routes that partially match the URL helper method name, the HTTP verb, or the URL path.
 
 ```
@@ -1207,11 +1234,11 @@ $ rails routes -c Comments
 $ rails routes -c Articles::CommentsController
 ```
 
-TIP: You'll find that the output from `rails routes` is much more readable if you widen your terminal window until the output lines don't wrap. You can also use --expanded option to turn on the expanded table formatting mode.
+TIP: You'll find that the output from `rails routes` is much more readable if you widen your terminal window until the output lines don't wrap.
 
 ### Testing Routes
 
-Routes should be included in your testing strategy (just like the rest of your application). Rails offers three [built-in assertions](http://api.rubyonrails.org/classes/ActionDispatch/Assertions/RoutingAssertions.html) designed to make testing routes simpler:
+Routes should be included in your testing strategy (just like the rest of your application). Rails offers three [built-in assertions](https://api.rubyonrails.org/classes/ActionDispatch/Assertions/RoutingAssertions.html) designed to make testing routes simpler:
 
 * `assert_generates`
 * `assert_recognizes`

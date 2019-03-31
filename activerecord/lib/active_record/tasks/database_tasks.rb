@@ -142,7 +142,7 @@ module ActiveRecord
       end
 
       def for_each
-        databases = Rails.application.config.database_configuration
+        databases = Rails.application.config.load_database_yaml
         database_configs = ActiveRecord::DatabaseConfigurations.new(databases).configs_for(env_name: Rails.env)
 
         # if this is a single database application we don't want tasks for each primary database
@@ -180,6 +180,25 @@ module ActiveRecord
         each_current_configuration(environment) { |configuration|
           drop configuration
         }
+      end
+
+      def truncate_tables(configuration)
+        ActiveRecord::Base.connected_to(database: { truncation: configuration }) do
+          table_names = ActiveRecord::Base.connection.tables
+          table_names -= [
+            ActiveRecord::Base.schema_migrations_table_name,
+            ActiveRecord::Base.internal_metadata_table_name
+          ]
+
+          ActiveRecord::Base.connection.truncate_tables(*table_names)
+        end
+      end
+      private :truncate_tables
+
+      def truncate_all(environment = env)
+        ActiveRecord::Base.configurations.configs_for(env_name: environment).each do |db_config|
+          truncate_tables db_config.config
+        end
       end
 
       def migrate

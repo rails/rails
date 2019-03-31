@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "active_record/associations/join_dependency/join_part"
+require "active_support/core_ext/array/extract"
 
 module ActiveRecord
   module Associations
@@ -30,17 +31,21 @@ module ActiveRecord
             table = tables[-i]
             klass = reflection.klass
 
-            constraint = reflection.build_join_constraint(table, foreign_table)
+            join_scope = reflection.join_scope(table, foreign_table, foreign_klass)
 
-            joins << table.create_join(table, table.create_on(constraint), join_type)
-
-            join_scope = reflection.join_scope(table, foreign_klass)
             arel = join_scope.arel(alias_tracker.aliases)
+            nodes = arel.constraints.first
 
-            if arel.constraints.any?
+            others = nodes.children.extract! do |node|
+              Arel.fetch_attribute(node) { |attr| attr.relation.name != table.name }
+            end
+
+            joins << table.create_join(table, table.create_on(nodes), join_type)
+
+            unless others.empty?
               joins.concat arel.join_sources
               right = joins.last.right
-              right.expr = right.expr.and(arel.constraints)
+              right.expr.children.concat(others)
             end
 
             # The current table in this iteration becomes the foreign table in the next

@@ -150,8 +150,8 @@ module RailsGuides
         puts "Generating #{guide} as #{output_file}"
         layout = @kindle ? "kindle/layout" : "layout"
 
-        view = ActionView::Base.new(
-          @source_dir,
+        view = ActionView::Base.with_empty_template_cache.with_view_paths(
+          [@source_dir],
           edge:     @edge,
           version:  @version,
           mobi:     "kindle/#{mobi}",
@@ -164,7 +164,7 @@ module RailsGuides
 
           # Generate the special pages like the home.
           # Passing a template handler in the template name is deprecated. So pass the file name without the extension.
-          result = view.render(layout: layout, formats: [$1], file: $`)
+          result = view.render(layout: layout, formats: [$1.to_sym], file: $`)
         else
           body = File.read("#{@source_dir}/#{guide}")
           result = RailsGuides::Markdown.new(

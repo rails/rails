@@ -7,8 +7,8 @@ module ActiveRecord
     ONE_AS_ONE = "1 AS one"
 
     # Find by id - This can either be a specific id (1), a list of ids (1, 5, 6), or an array of ids ([5, 6, 10]).
-    # If one or more records can not be found for the requested ids, then RecordNotFound will be raised. If the primary key
-    # is an integer, find by id coerces its arguments using +to_i+.
+    # If one or more records cannot be found for the requested ids, then ActiveRecord::RecordNotFound will be raised.
+    # If the primary key is an integer, find by id coerces its arguments by using +to_i+.
     #
     #   Person.find(1)          # returns the object for ID = 1
     #   Person.find("1")        # returns the object for ID = 1
@@ -79,17 +79,12 @@ module ActiveRecord
     #   Post.find_by "published_at < ?", 2.weeks.ago
     def find_by(arg, *args)
       where(arg, *args).take
-    rescue ::RangeError
-      nil
     end
 
     # Like #find_by, except that if no record is found, raises
     # an ActiveRecord::RecordNotFound error.
     def find_by!(arg, *args)
       where(arg, *args).take!
-    rescue ::RangeError
-      raise RecordNotFound.new("Couldn't find #{@klass.name} with an out of range value",
-                               @klass.name, @klass.primary_key)
     end
 
     # Gives a record (or N records if a parameter is supplied) without any implied
@@ -312,8 +307,6 @@ module ActiveRecord
 
       return false if !conditions || limit_value == 0
 
-      conditions = sanitize_forbidden_attributes(conditions)
-
       if eager_loading?
         relation = apply_join_dependency(eager_loading: false)
         return relation.exists?(conditions)
@@ -321,9 +314,7 @@ module ActiveRecord
 
       relation = construct_relation_for_exists(conditions)
 
-      skip_query_cache_if_necessary { connection.select_value(relation.arel, "#{name} Exists") } ? true : false
-    rescue ::RangeError
-      false
+      skip_query_cache_if_necessary { connection.select_one(relation.arel, "#{name} Exists") } ? true : false
     end
 
     # This method is called whenever no records are found with either a single
@@ -361,7 +352,13 @@ module ActiveRecord
       end
 
       def construct_relation_for_exists(conditions)
-        relation = except(:select, :distinct, :order)._select!(ONE_AS_ONE).limit!(1)
+        conditions = sanitize_forbidden_attributes(conditions)
+
+        if distinct_value && offset_value
+          relation = limit(1)
+        else
+          relation = except(:select, :distinct, :order)._select!(ONE_AS_ONE).limit!(1)
+        end
 
         case conditions
         when Array, Hash
@@ -434,9 +431,6 @@ module ActiveRecord
         else
           find_some(ids)
         end
-      rescue ::RangeError
-        error_message = "Couldn't find #{model_name} with an out of range ID"
-        raise RecordNotFound.new(error_message, model_name, primary_key, ids)
       end
 
       def find_one(id)

@@ -145,8 +145,8 @@ module ApplicationTests
       # loading a specific fixture
       rails "db:fixtures:load", "FIXTURES=products"
 
-      assert_equal 2, ::AppTemplate::Application::Product.count
-      assert_equal 0, ::AppTemplate::Application::User.count
+      assert_equal 2, Product.count
+      assert_equal 0, User.count
     end
 
     def test_loading_only_yml_fixtures

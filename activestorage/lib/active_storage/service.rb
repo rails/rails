@@ -45,7 +45,7 @@ module ActiveStorage
       # Configure an Active Storage service by name from a set of configurations,
       # typically loaded from a YAML file. The Active Storage engine uses this
       # to set the global Active Storage service when the app boots.
-      def configure(service_name, configurations)
+      def configure(service_name, configurations = ActiveStorage.service_configurations)
         Configurator.build(service_name, configurations)
       end
 
@@ -80,6 +80,10 @@ module ActiveStorage
     # Return the partial content in the byte +range+ of the file at the +key+.
     def download_chunk(key, range)
       raise NotImplementedError
+    end
+
+    def open(*args, &block)
+      ActiveStorage::Downloader.new(self).open(*args, &block)
     end
 
     # Delete the file at the +key+.

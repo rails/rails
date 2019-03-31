@@ -15,7 +15,7 @@ class HostAuthorizationTest < ActionDispatch::IntegrationTest
     assert_match "Blocked host: www.example.com", response.body
   end
 
-  test "passes all requests to if the whitelist is empty" do
+  test "allows all requests if hosts is empty" do
     @app = ActionDispatch::HostAuthorization.new(App, nil)
 
     get "/"
@@ -24,7 +24,7 @@ class HostAuthorizationTest < ActionDispatch::IntegrationTest
     assert_equal "Success", body
   end
 
-  test "passes requests to allowed host" do
+  test "hosts can be a single element array" do
     @app = ActionDispatch::HostAuthorization.new(App, %w(www.example.com))
 
     get "/"
@@ -33,7 +33,7 @@ class HostAuthorizationTest < ActionDispatch::IntegrationTest
     assert_equal "Success", body
   end
 
-  test "the whitelist could be a single element" do
+  test "hosts can be a string" do
     @app = ActionDispatch::HostAuthorization.new(App, "www.example.com")
 
     get "/"

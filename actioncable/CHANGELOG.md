@@ -1,3 +1,79 @@
+## Rails 6.0.0.beta3 (March 11, 2019) ##
+
+*   No changes.
+
+
+## Rails 6.0.0.beta2 (February 25, 2019) ##
+
+*   PostgreSQL subscription adapters now support `channel_prefix` option in cable.yml
+
+    Avoids channel name collisions when multiple apps use the same database for Action Cable.
+
+    *Vladimir Dementyev*
+
+*   Allow passing custom configuration to `ActionCable::Server::Base`.
+
+    You can now create a standalone Action Cable server with a custom configuration
+    (e.g. to run it in isolation from the default one):
+
+    ```ruby
+    config = ActionCable::Server::Configuration.new
+    config.cable = { adapter: "redis", channel_prefix: "custom_" }
+
+    CUSTOM_CABLE = ActionCable::Server::Base.new(config: config)
+    ```
+
+    Then you can mount it in the `routes.rb` file:
+
+    ```ruby
+    Rails.application.routes.draw do
+      mount CUSTOM_CABLE => "/custom_cable"
+      # ...
+    end
+    ```
+
+    *Vladimir Dementyev*
+
+*   Add `:action_cable_connection` and `:action_cable_channel` load hooks.
+
+    You can use them to extend `ActionCable::Connection::Base` and `ActionCable::Channel::Base`
+    functionality:
+
+    ```ruby
+    ActiveSupport.on_load(:action_cable_channel) do
+      # do something in the context of ActionCable::Channel::Base
+    end
+    ```
+
+    *Vladimir Dementyev*
+
+*   Add `Channel::Base#broadcast_to`.
+
+    You can now call `broadcast_to` within a channel action, which equals to
+    the `self.class.broadcast_to`.
+
+    *Vladimir Dementyev*
+
+*   Make `Channel::Base.broadcasting_for` a public API.
+
+    You can use `.broadcasting_for` to generate a unique stream identifier within
+    a channel for the specified target (e.g. Active Record model):
+
+    ```ruby
+    ChatChannel.broadcasting_for(model) # => "chat:<model.to_gid_param>"
+    ```
+
+    *Vladimir Dementyev*
+
+
+## Rails 6.0.0.beta1 (January 18, 2019) ##
+
+*   [Rename npm package](https://github.com/rails/rails/pull/34905) from
+    [`actioncable`](https://www.npmjs.com/package/actioncable) to
+    [`@rails/actioncable`](https://www.npmjs.com/package/@rails/actioncable).
+
+    *Javan Makhmali*
+
 *   Merge [`action-cable-testing`](https://github.com/palkan/action-cable-testing) to Rails.
 
     *Vladimir Dementyev*

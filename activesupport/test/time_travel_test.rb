@@ -148,7 +148,7 @@ class TimeTravelTest < ActiveSupport::TestCase
     end
   end
 
-  def test_travel_to_will_reset_the_usec_to_avoid_mysql_rouding
+  def test_travel_to_will_reset_the_usec_to_avoid_mysql_rounding
     Time.stub(:now, Time.now) do
       travel_to Time.utc(2014, 10, 10, 10, 10, 50, 999999) do
         assert_equal 50, Time.now.sec

@@ -13,14 +13,15 @@ module Rails
                     :cache_classes, :cache_store, :consider_all_requests_local, :console,
                     :eager_load, :exceptions_app, :file_watcher, :filter_parameters,
                     :force_ssl, :helpers_paths, :hosts, :logger, :log_formatter, :log_tags,
-                    :railties_order, :relative_url_root, :secret_key_base, :secret_token,
+                    :railties_order, :relative_url_root, :secret_key_base,
                     :ssl_options, :public_file_server,
                     :session_options, :time_zone, :reload_classes_only_on_change,
                     :beginning_of_week, :filter_redirect, :x, :enable_dependency_loading,
                     :read_encrypted_secrets, :log_level, :content_security_policy_report_only,
-                    :content_security_policy_nonce_generator, :require_master_key, :credentials
+                    :content_security_policy_nonce_generator, :require_master_key, :credentials,
+                    :disable_sandbox
 
-      attr_reader :encoding, :api_only, :loaded_config_version
+      attr_reader :encoding, :api_only, :loaded_config_version, :autoloader
 
       def initialize(*)
         super
@@ -30,7 +31,7 @@ module Rails
         @filter_parameters                       = []
         @filter_redirect                         = []
         @helpers_paths                           = []
-        @hosts                                   = Array(([IPAddr.new("0.0.0.0/0"), IPAddr.new("::/0"), "localhost"] if Rails.env.development?))
+        @hosts                                   = Array(([IPAddr.new("0.0.0.0/0"), IPAddr.new("::/0"), ".localhost"] if Rails.env.development?))
         @public_file_server                      = ActiveSupport::OrderedOptions.new
         @public_file_server.enabled              = true
         @public_file_server.index_name           = "index"
@@ -50,7 +51,6 @@ module Rails
         @autoflush_log                           = true
         @log_formatter                           = ActiveSupport::Logger::SimpleFormatter.new
         @eager_load                              = nil
-        @secret_token                            = nil
         @secret_key_base                         = nil
         @api_only                                = false
         @debug_exception_response_format         = nil
@@ -65,6 +65,8 @@ module Rails
         @credentials                             = ActiveSupport::OrderedOptions.new
         @credentials.content_path                = default_credentials_content_path
         @credentials.key_path                    = default_credentials_key_path
+        @autoloader                              = :classic
+        @disable_sandbox                         = false
       end
 
       def load_defaults(target_version)
@@ -97,10 +99,6 @@ module Rails
 
           if respond_to?(:active_record)
             active_record.cache_versioning = true
-            # Remove the temporary load hook from SQLite3Adapter when this is removed
-            ActiveSupport.on_load(:active_record_sqlite3adapter) do
-              ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer = true
-            end
           end
 
           if respond_to?(:action_dispatch)
@@ -121,6 +119,8 @@ module Rails
           end
         when "6.0"
           load_defaults "5.2"
+
+          self.autoloader = :zeitwerk if RUBY_ENGINE == "ruby"
 
           if respond_to?(:action_view)
             action_view.default_enforce_utf8 = false
@@ -183,6 +183,26 @@ module Rails
           paths.add "public/stylesheets"
           paths.add "tmp"
           paths
+        end
+      end
+
+      # Load the database YAML without evaluating ERB. This allows us to
+      # create the rake tasks for multiple databases without filling in the
+      # configuration values or loading the environment. Do not use this
+      # method.
+      #
+      # This uses a DummyERB custom compiler so YAML can ignore the ERB
+      # tags and load the database.yml for the rake tasks.
+      def load_database_yaml # :nodoc:
+        if path = paths["config/database"].existent.first
+          require "rails/application/dummy_erb_compiler"
+
+          yaml = Pathname.new(path)
+          erb = DummyERB.new(yaml.read)
+
+          YAML.load(erb.result)
+        else
+          {}
         end
       end
 
@@ -269,6 +289,18 @@ module Rails
           @content_security_policy = ActionDispatch::ContentSecurityPolicy.new(&block)
         else
           @content_security_policy
+        end
+      end
+
+      def autoloader=(autoloader)
+        case autoloader
+        when :classic
+          @autoloader = autoloader
+        when :zeitwerk
+          require "zeitwerk"
+          @autoloader = autoloader
+        else
+          raise ArgumentError, "config.autoloader may be :classic or :zeitwerk, got #{autoloader.inspect} instead"
         end
       end
 

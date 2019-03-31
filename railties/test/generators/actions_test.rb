@@ -320,6 +320,12 @@ class ActionsTest < Rails::Generators::TestCase
     assert_no_file "app/models/my_model.rb"
   end
 
+  def test_generate_should_run_command_without_env
+    assert_called_with(generator, :run, ["rails generate model MyModel name:string", verbose: false]) do
+      action :generate, "model", "MyModel", "name:string"
+    end
+  end
+
   def test_rake_should_run_rake_command_with_default_env
     assert_called_with(generator, :run, ["rake log:clear RAILS_ENV=development", verbose: false]) do
       with_rails_env nil do
@@ -410,15 +416,6 @@ class ActionsTest < Rails::Generators::TestCase
         action :rails_command, "log:clear", capture: true
       end
     end
-  end
-
-  def test_capify_should_run_the_capify_command
-    content = capture(:stderr) do
-      assert_called_with(generator, :run, ["capify .", verbose: false]) do
-        action :capify!
-      end
-    end
-    assert_match(/DEPRECATION WARNING: `capify!` is deprecated/, content)
   end
 
   def test_route_should_add_data_to_the_routes_block_in_config_routes

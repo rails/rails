@@ -16,6 +16,9 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     @user.highlights.attach create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg")
     assert_equal "funky.jpg", @user.highlights.first.filename.to_s
     assert_equal "town.jpg", @user.highlights.second.filename.to_s
+
+    assert_not_empty @user.highlights_attachments
+    assert_equal @user.highlights_blobs.count, 2
   end
 
   test "attaching existing blobs from signed IDs to an existing record" do

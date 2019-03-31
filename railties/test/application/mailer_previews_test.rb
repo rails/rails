@@ -85,6 +85,7 @@ module ApplicationTests
     end
 
     test "mailer previews are loaded from a custom preview_path" do
+      app_dir "lib/mailer_previews"
       add_to_config "config.action_mailer.preview_path = '#{app_path}/lib/mailer_previews'"
 
       mailer "notifier", <<-RUBY
@@ -254,6 +255,7 @@ module ApplicationTests
     end
 
     test "mailer previews are reloaded from a custom preview_path" do
+      app_dir "lib/mailer_previews"
       add_to_config "config.action_mailer.preview_path = '#{app_path}/lib/mailer_previews'"
 
       app("development")
@@ -818,6 +820,7 @@ module ApplicationTests
       def build_app
         super
         app_file "config/routes.rb", "Rails.application.routes.draw do; end"
+        app_dir "test/mailers/previews"
       end
 
       def mailer(name, contents)

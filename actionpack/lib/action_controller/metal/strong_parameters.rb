@@ -795,7 +795,7 @@ module ActionController
         @permitted  = coder.map["ivars"][:@permitted]
       when "!ruby/object:ActionController::Parameters"
         # YAML's Object format. Only needed because of the format
-        # backwardscompability above, otherwise equivalent to YAML's initialization.
+        # backwards compatibility above, otherwise equivalent to YAML's initialization.
         @parameters, @permitted = coder.map["parameters"], coder.map["permitted"]
       end
     end

@@ -57,7 +57,7 @@ class RangeTest < ActiveSupport::TestCase
   end
 
   def test_should_include_other_with_exclusive_end
-    assert((1..10).include?(1...10))
+    assert((1..10).include?(1...11))
   end
 
   def test_should_compare_identical_inclusive
@@ -69,7 +69,7 @@ class RangeTest < ActiveSupport::TestCase
   end
 
   def test_should_compare_other_with_exclusive_end
-    assert((1..10) === (1...10))
+    assert((1..10) === (1...11))
   end
 
   def test_exclusive_end_should_not_include_identical_with_inclusive_end
@@ -91,6 +91,10 @@ class RangeTest < ActiveSupport::TestCase
   def test_cover_is_not_override
     range = (1..3)
     assert range.method(:include?) != range.method(:cover?)
+  end
+
+  def test_should_cover_other_with_exclusive_end
+    assert((1..10).cover?(1...11))
   end
 
   def test_overlaps_on_time

@@ -24,6 +24,11 @@ module ActionView
     DeveloperStruct = Struct.new(:name)
 
     module SharedTests
+      def setup
+        ActionView::LookupContext::DetailsKey.clear
+        super
+      end
+
       def self.included(test_case)
         test_case.class_eval do
           test "helpers defined on ActionView::TestCase are available" do
@@ -52,7 +57,7 @@ module ActionView
     end
 
     test "retrieve non existing config values" do
-      assert_nil ActionView::Base.new.config.something_odd
+      assert_nil ActionView::Base.empty.config.something_odd
     end
 
     test "works without testing a helper module" do
@@ -279,7 +284,7 @@ module ActionView
       @controller.controller_path = "test"
 
       @customers = [DeveloperStruct.new("Eloy"), DeveloperStruct.new("Manfred")]
-      assert_match(/Hello: EloyHello: Manfred/, render(file: "test/list"))
+      assert_match(/Hello: EloyHello: Manfred/, render(template: "test/list"))
     end
 
     test "is able to render partials from templates and also use instance variables after view has been referenced" do
@@ -288,7 +293,7 @@ module ActionView
       view
 
       @customers = [DeveloperStruct.new("Eloy"), DeveloperStruct.new("Manfred")]
-      assert_match(/Hello: EloyHello: Manfred/, render(file: "test/list"))
+      assert_match(/Hello: EloyHello: Manfred/, render(template: "test/list"))
     end
 
     test "is able to use helpers that depend on the view flow" do

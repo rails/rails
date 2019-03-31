@@ -138,14 +138,6 @@ class UpdateAllTest < ActiveRecord::TestCase
     assert_equal new_time, developer.updated_at
   end
 
-  def test_touch_all_updates_locking_column
-    person = people(:david)
-
-    assert_difference -> { person.reload.lock_version }, +1 do
-      Person.where(first_name: "David").touch_all
-    end
-  end
-
   def test_update_on_relation
     topic1 = TopicWithCallbacks.create! title: "arel", author_name: nil
     topic2 = TopicWithCallbacks.create! title: "activerecord", author_name: nil
@@ -184,6 +176,96 @@ class UpdateAllTest < ActiveRecord::TestCase
     assert_raises(ArgumentError) do
       Topic.where(id: topic.id).update(topic, title: "Bar")
     end
+  end
+
+  def test_update_all_cares_about_optimistic_locking
+    david = people(:david)
+
+    travel 5.seconds do
+      now = Time.now.utc
+      assert_not_equal now, david.updated_at
+
+      people = Person.where(id: people(:michael, :david, :susan))
+      expected = people.pluck(:lock_version)
+      expected.map! { |version| version + 1 }
+      people.update_all(updated_at: now)
+
+      assert_equal [now] * 3, people.pluck(:updated_at)
+      assert_equal expected, people.pluck(:lock_version)
+
+      assert_raises(ActiveRecord::StaleObjectError) do
+        david.touch(time: now)
+      end
+    end
+  end
+
+  def test_update_counters_cares_about_optimistic_locking
+    david = people(:david)
+
+    travel 5.seconds do
+      now = Time.now.utc
+      assert_not_equal now, david.updated_at
+
+      people = Person.where(id: people(:michael, :david, :susan))
+      expected = people.pluck(:lock_version)
+      expected.map! { |version| version + 1 }
+      people.update_counters(touch: [time: now])
+
+      assert_equal [now] * 3, people.pluck(:updated_at)
+      assert_equal expected, people.pluck(:lock_version)
+
+      assert_raises(ActiveRecord::StaleObjectError) do
+        david.touch(time: now)
+      end
+    end
+  end
+
+  def test_touch_all_cares_about_optimistic_locking
+    david = people(:david)
+
+    travel 5.seconds do
+      now = Time.now.utc
+      assert_not_equal now, david.updated_at
+
+      people = Person.where(id: people(:michael, :david, :susan))
+      expected = people.pluck(:lock_version)
+      expected.map! { |version| version + 1 }
+      people.touch_all(time: now)
+
+      assert_equal [now] * 3, people.pluck(:updated_at)
+      assert_equal expected, people.pluck(:lock_version)
+
+      assert_raises(ActiveRecord::StaleObjectError) do
+        david.touch(time: now)
+      end
+    end
+  end
+
+  def test_update_all_with_annotation_includes_a_query_comment
+    tag = Tag.first
+
+    assert_sql(%r{/\* updating all \*/}) do
+      Post.tagged_with(tag.id).annotate("updating all").update_all(title: "rofl")
+    end
+
+    posts = Post.tagged_with(tag.id).all.to_a
+    assert_operator posts.length, :>, 0
+    posts.each { |post| assert_equal "rofl", post.title }
+  end
+
+  def test_update_all_without_annotation_does_not_include_an_empty_comment
+    tag = Tag.first
+
+    log = capture_sql do
+      Post.tagged_with(tag.id).update_all(title: "rofl")
+    end
+
+    assert_not_predicate log, :empty?
+    assert_predicate log.select { |query| query.match?(%r{/\*}) }, :empty?
+
+    posts = Post.tagged_with(tag.id).all.to_a
+    assert_operator posts.length, :>, 0
+    posts.each { |post| assert_equal "rofl", post.title }
   end
 
   # Oracle UPDATE does not support ORDER BY

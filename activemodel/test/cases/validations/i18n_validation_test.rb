@@ -13,8 +13,8 @@ class I18nValidationTest < ActiveModel::TestCase
     I18n.backend = I18n::Backend::Simple.new
     I18n.backend.store_translations("en", errors: { messages: { custom: nil } })
 
-    @original_i18n_full_message = ActiveModel::Errors.i18n_full_message
-    ActiveModel::Errors.i18n_full_message = true
+    @original_i18n_customize_full_message = ActiveModel::Errors.i18n_customize_full_message
+    ActiveModel::Errors.i18n_customize_full_message = true
   end
 
   def teardown
@@ -22,7 +22,7 @@ class I18nValidationTest < ActiveModel::TestCase
     I18n.load_path.replace @old_load_path
     I18n.backend = @old_backend
     I18n.backend.reload!
-    ActiveModel::Errors.i18n_full_message = @original_i18n_full_message
+    ActiveModel::Errors.i18n_customize_full_message = @original_i18n_customize_full_message
   end
 
   def test_full_message_encoding
@@ -47,7 +47,7 @@ class I18nValidationTest < ActiveModel::TestCase
   end
 
   def test_errors_full_messages_doesnt_use_attribute_format_without_config
-    ActiveModel::Errors.i18n_full_message = false
+    ActiveModel::Errors.i18n_customize_full_message = false
 
     I18n.backend.store_translations("en", activemodel: {
       errors: { models: { person: { attributes: { name: { format: "%{message}" } } } } } })
@@ -58,7 +58,7 @@ class I18nValidationTest < ActiveModel::TestCase
   end
 
   def test_errors_full_messages_uses_attribute_format
-    ActiveModel::Errors.i18n_full_message = true
+    ActiveModel::Errors.i18n_customize_full_message = true
 
     I18n.backend.store_translations("en", activemodel: {
       errors: { models: { person: { attributes: { name: { format: "%{message}" } } } } } })
@@ -69,7 +69,7 @@ class I18nValidationTest < ActiveModel::TestCase
   end
 
   def test_errors_full_messages_uses_model_format
-    ActiveModel::Errors.i18n_full_message = true
+    ActiveModel::Errors.i18n_customize_full_message = true
 
     I18n.backend.store_translations("en", activemodel: {
       errors: { models: { person: { format: "%{message}" } } } })
@@ -80,7 +80,7 @@ class I18nValidationTest < ActiveModel::TestCase
   end
 
   def test_errors_full_messages_uses_deeply_nested_model_attributes_format
-    ActiveModel::Errors.i18n_full_message = true
+    ActiveModel::Errors.i18n_customize_full_message = true
 
     I18n.backend.store_translations("en", activemodel: {
       errors: { models: { 'person/contacts/addresses': { attributes: { street: { format: "%{message}" } } } } } })
@@ -91,7 +91,7 @@ class I18nValidationTest < ActiveModel::TestCase
   end
 
   def test_errors_full_messages_uses_deeply_nested_model_model_format
-    ActiveModel::Errors.i18n_full_message = true
+    ActiveModel::Errors.i18n_customize_full_message = true
 
     I18n.backend.store_translations("en", activemodel: {
       errors: { models: { 'person/contacts/addresses': { format: "%{message}" } } } })
@@ -102,7 +102,7 @@ class I18nValidationTest < ActiveModel::TestCase
   end
 
   def test_errors_full_messages_with_indexed_deeply_nested_attributes_and_attributes_format
-    ActiveModel::Errors.i18n_full_message = true
+    ActiveModel::Errors.i18n_customize_full_message = true
 
     I18n.backend.store_translations("en", activemodel: {
       errors: { models: { 'person/contacts/addresses': { attributes: { street: { format: "%{message}" } } } } } })
@@ -113,7 +113,7 @@ class I18nValidationTest < ActiveModel::TestCase
   end
 
   def test_errors_full_messages_with_indexed_deeply_nested_attributes_and_model_format
-    ActiveModel::Errors.i18n_full_message = true
+    ActiveModel::Errors.i18n_customize_full_message = true
 
     I18n.backend.store_translations("en", activemodel: {
       errors: { models: { 'person/contacts/addresses': { format: "%{message}" } } } })
@@ -124,7 +124,7 @@ class I18nValidationTest < ActiveModel::TestCase
   end
 
   def test_errors_full_messages_with_indexed_deeply_nested_attributes_and_i18n_attribute_name
-    ActiveModel::Errors.i18n_full_message = true
+    ActiveModel::Errors.i18n_customize_full_message = true
 
     I18n.backend.store_translations("en", activemodel: {
       attributes: { 'person/contacts/addresses': { country: "Country" } }
@@ -136,7 +136,7 @@ class I18nValidationTest < ActiveModel::TestCase
   end
 
   def test_errors_full_messages_with_indexed_deeply_nested_attributes_without_i18n_config
-    ActiveModel::Errors.i18n_full_message = false
+    ActiveModel::Errors.i18n_customize_full_message = false
 
     I18n.backend.store_translations("en", activemodel: {
       errors: { models: { 'person/contacts/addresses': { attributes: { street: { format: "%{message}" } } } } } })
@@ -147,7 +147,7 @@ class I18nValidationTest < ActiveModel::TestCase
   end
 
   def test_errors_full_messages_with_i18n_attribute_name_without_i18n_config
-    ActiveModel::Errors.i18n_full_message = false
+    ActiveModel::Errors.i18n_customize_full_message = false
 
     I18n.backend.store_translations("en", activemodel: {
       attributes: { 'person/contacts[0]/addresses[0]': { country: "Country" } }

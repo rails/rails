@@ -104,14 +104,12 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     end
   end
 
-  test "open in a custom tempdir" do
-    tempdir = Dir.mktmpdir
-
-    create_file_blob(filename: "racecar.jpg").open(tempdir: tempdir) do |file|
+  test "open in a custom tmpdir" do
+    create_file_blob(filename: "racecar.jpg").open(tmpdir: tmpdir = Dir.mktmpdir) do |file|
       assert file.binmode?
       assert_equal 0, file.pos
       assert_match(/\.jpg\z/, file.path)
-      assert file.path.starts_with?(tempdir)
+      assert file.path.starts_with?(tmpdir)
       assert_equal file_fixture("racecar.jpg").binread, file.read, "Expected downloaded file to match fixture file"
     end
   end

@@ -16,7 +16,7 @@ After reading this guide, you will know:
 Ruby on Rails is not "someone else's framework." Over the years, thousands of people have contributed to Ruby on Rails ranging from a single character to massive architectural changes or significant documentation - all with the goal of making Ruby on Rails better for everyone. Even if you don't feel up to writing code or documentation yet, there are a variety of other ways that you can contribute, from reporting issues to testing patches.
 
 As mentioned in [Rails'
-README](https://github.com/rails/rails/blob/master/README.md), everyone interacting in Rails and its sub-projects' codebases, issue trackers, chat rooms, and mailing lists is expected to follow the Rails [code of conduct](http://rubyonrails.org/conduct/).
+README](https://github.com/rails/rails/blob/master/README.md), everyone interacting in Rails and its sub-projects' codebases, issue trackers, chat rooms, and mailing lists is expected to follow the Rails [code of conduct](https://rubyonrails.org/conduct/).
 
 --------------------------------------------------------------------------------
 
@@ -53,7 +53,7 @@ You can then share your executable test case as a [gist](https://gist.github.com
 
 ### Special Treatment for Security Issues
 
-WARNING: Please do not report security vulnerabilities with public GitHub issue reports. The [Rails security policy page](http://rubyonrails.org/security) details the procedure to follow for security issues.
+WARNING: Please do not report security vulnerabilities with public GitHub issue reports. The [Rails security policy page](https://rubyonrails.org/security) details the procedure to follow for security issues.
 
 ### What about Feature Requests?
 
@@ -684,4 +684,4 @@ And then... think about your next contribution!
 Rails Contributors
 ------------------
 
-All contributions get credit in [Rails Contributors](http://contributors.rubyonrails.org).
+All contributions get credit in [Rails Contributors](https://contributors.rubyonrails.org).

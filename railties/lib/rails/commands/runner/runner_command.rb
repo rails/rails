@@ -1,11 +1,13 @@
 # frozen_string_literal: true
 
+require "rails/command/environment_argument"
+
 module Rails
   module Command
     class RunnerCommand < Base # :nodoc:
-      class_option :environment, aliases: "-e", type: :string,
-        default: Rails::Command.environment.dup,
-        desc: "The environment for the runner to operate under (test/development/production)"
+      include EnvironmentArgument
+
+      self.environment_desc = "The environment for the runner to operate under (test/development/production)"
 
       no_commands do
         def help
@@ -19,6 +21,8 @@ module Rails
       end
 
       def perform(code_or_file = nil, *command_argv)
+        extract_environment_option_from_argument
+
         unless code_or_file
           help
           exit 1

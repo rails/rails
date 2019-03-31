@@ -74,6 +74,7 @@ module ActiveRecord
   autoload :Translation
   autoload :Validations
   autoload :SecureToken
+  autoload :DatabaseSelector, "active_record/middleware/database_selector"
 
   eager_autoload do
     autoload :ActiveRecordError, "active_record/errors"
@@ -151,6 +152,12 @@ module ActiveRecord
       autoload :Named
       autoload :Default
     end
+  end
+
+  module Middleware
+    extend ActiveSupport::Autoload
+
+    autoload :DatabaseSelector, "active_record/middleware/database_selector"
   end
 
   module Tasks

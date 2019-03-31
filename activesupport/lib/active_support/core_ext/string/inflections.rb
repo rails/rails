@@ -162,6 +162,11 @@ class String
 
   # Replaces special characters in a string so that it may be used as part of a 'pretty' URL.
   #
+  # If the optional parameter +locale+ is specified,
+  # the word will be parameterized as a word of that language.
+  # By default, this parameter is set to <tt>nil</tt> and it will use
+  # the configured <tt>I18n.locale</tt>.
+  #
   #   class Person
   #     def to_param
   #       "#{id}-#{name.parameterize}"
@@ -187,8 +192,8 @@ class String
   #
   #   <%= link_to(@person.name, person_path) %>
   #   # => <a href="/person/1-Donald-E-Knuth">Donald E. Knuth</a>
-  def parameterize(separator: "-", preserve_case: false)
-    ActiveSupport::Inflector.parameterize(self, separator: separator, preserve_case: preserve_case)
+  def parameterize(separator: "-", preserve_case: false, locale: nil)
+    ActiveSupport::Inflector.parameterize(self, separator: separator, preserve_case: preserve_case, locale: locale)
   end
 
   # Creates the name of a table like Rails does for models to table names. This method

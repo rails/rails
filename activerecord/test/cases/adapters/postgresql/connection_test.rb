@@ -25,14 +25,6 @@ module ActiveRecord
       super
     end
 
-    def test_truncate
-      count = ActiveRecord::Base.connection.execute("select count(*) from comments").first["count"].to_i
-      assert_operator count, :>, 0
-      ActiveRecord::Base.connection.truncate("comments")
-      count = ActiveRecord::Base.connection.execute("select count(*) from comments").first["count"].to_i
-      assert_equal 0, count
-    end
-
     def test_encoding
       assert_queries(1) do
         assert_not_nil @connection.encoding

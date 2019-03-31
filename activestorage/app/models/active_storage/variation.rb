@@ -6,7 +6,7 @@
 # In case you do need to use this directly, it's instantiated using a hash of transformations where
 # the key is the command and the value is the arguments. Example:
 #
-#   ActiveStorage::Variation.new(resize_to_fit: [100, 100], monochrome: true, trim: true, rotate: "-90")
+#   ActiveStorage::Variation.new(resize_to_limit: [100, 100], monochrome: true, trim: true, rotate: "-90")
 #
 # The options map directly to {ImageProcessing}[https://github.com/janko-m/image_processing] commands.
 class ActiveStorage::Variation
@@ -79,7 +79,7 @@ class ActiveStorage::Variation
         begin
           require "image_processing"
         rescue LoadError
-          ActiveSupport::Deprecation.warn <<~WARNING
+          ActiveSupport::Deprecation.warn <<~WARNING.squish
             Generating image variants will require the image_processing gem in Rails 6.1.
             Please add `gem 'image_processing', '~> 1.2'` to your Gemfile.
           WARNING

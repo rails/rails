@@ -514,6 +514,8 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal Time.local(1582, 10, 15, 15, 15, 10), Time.local(1582, 10, 14, 15, 15, 10).advance(days: 1)
     assert_equal Time.local(1582, 10, 5, 15, 15, 10), Time.local(1582, 10, 4, 15, 15, 10).advance(days: 1)
     assert_equal Time.local(1582, 10, 4, 15, 15, 10), Time.local(1582, 10, 5, 15, 15, 10).advance(days: -1)
+    assert_equal Time.local(999, 10, 4, 15, 15, 10), Time.local(1000, 10, 4, 15, 15, 10).advance(years: -1)
+    assert_equal Time.local(1000, 10, 4, 15, 15, 10), Time.local(999, 10, 4, 15, 15, 10).advance(years: 1)
   end
 
   def test_last_week

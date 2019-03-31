@@ -329,14 +329,14 @@ module ActionView
       #   image_tag("pic.jpg", srcset: [["pic_1024.jpg", "1024w"], ["pic_1980.jpg", "1980w"]], sizes: "100vw")
       #   # => <img src="/assets/pic.jpg" srcset="/assets/pic_1024.jpg 1024w, /assets/pic_1980.jpg 1980w" sizes="100vw">
       #
-      # Active Storage (images that are uploaded by the users of your app):
+      # Active Storage blobs (images that are uploaded by the users of your app):
       #
       #   image_tag(user.avatar)
       #   # => <img src="/rails/active_storage/blobs/.../tiger.jpg" />
-      #   image_tag(user.avatar.variant(resize_to_fit: [100, 100]))
-      #   # => <img src="/rails/active_storage/variants/.../tiger.jpg" />
-      #   image_tag(user.avatar.variant(resize_to_fit: [100, 100]), size: '100')
-      #   # => <img width="100" height="100" src="/rails/active_storage/variants/.../tiger.jpg" />
+      #   image_tag(user.avatar.variant(resize_to_limit: [100, 100]))
+      #   # => <img src="/rails/active_storage/representations/.../tiger.jpg" />
+      #   image_tag(user.avatar.variant(resize_to_limit: [100, 100]), size: '100')
+      #   # => <img width="100" height="100" src="/rails/active_storage/representations/.../tiger.jpg" />
       def image_tag(source, options = {})
         options = options.symbolize_keys
         check_for_image_tag_errors(options)
@@ -353,29 +353,6 @@ module ActionView
 
         options[:width], options[:height] = extract_dimensions(options.delete(:size)) if options[:size]
         tag("img", options)
-      end
-
-      # Returns a string suitable for an HTML image tag alt attribute.
-      # The +src+ argument is meant to be an image file path.
-      # The method removes the basename of the file path and the digest,
-      # if any. It also removes hyphens and underscores from file names and
-      # replaces them with spaces, returning a space-separated, titleized
-      # string.
-      #
-      # ==== Examples
-      #
-      #   image_alt('rails.png')
-      #   # => Rails
-      #
-      #   image_alt('hyphenated-file-name.png')
-      #   # => Hyphenated file name
-      #
-      #   image_alt('underscored_file_name.png')
-      #   # => Underscored file name
-      def image_alt(src)
-        ActiveSupport::Deprecation.warn("image_alt is deprecated and will be removed from Rails 6.0. You must explicitly set alt text on images.")
-
-        File.basename(src, ".*").sub(/-[[:xdigit:]]{32,64}\z/, "").tr("-_", " ").capitalize
       end
 
       # Returns an HTML video tag for the +sources+. If +sources+ is a string,
