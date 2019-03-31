@@ -79,6 +79,74 @@ class StoreTest < ActiveRecord::TestCase
     assert_not_predicate @john, :settings_changed?
   end
 
+  test "updating the store will mark accessor as changed" do
+    @john.color = "red"
+    assert @john.color_changed?
+  end
+
+  test "new record and no accessors changes" do
+    user = Admin::User.new
+    assert_not user.color_changed?
+    assert_nil user.color_was
+    assert_nil user.color_change
+
+    user.color = "red"
+    assert user.color_changed?
+    assert_nil user.color_was
+    assert_equal "red", user.color_change[1]
+  end
+
+  test "updating the store won't mark accessor as changed if the whole store was updated" do
+    @john.settings = { color: @john.color, some: "thing" }
+    assert @john.settings_changed?
+    assert_not @john.color_changed?
+  end
+
+  test "updating the store populates the accessor changed array correctly" do
+    @john.color = "red"
+    assert_equal "black", @john.color_was
+    assert_equal "black", @john.color_change[0]
+    assert_equal "red", @john.color_change[1]
+  end
+
+  test "updating the store won't mark accessor as changed if the value isn't changed" do
+    @john.color = @john.color
+    assert_not @john.color_changed?
+  end
+
+  test "nullifying the store mark accessor as changed" do
+    color = @john.color
+    @john.settings = nil
+    assert @john.color_changed?
+    assert_equal color, @john.color_was
+    assert_equal [color, nil], @john.color_change
+  end
+
+  test "dirty methods for suffixed accessors" do
+    @john.configs[:two_factor_auth] = true
+    assert @john.two_factor_auth_configs_changed?
+    assert_nil @john.two_factor_auth_configs_was
+    assert_equal [nil, true], @john.two_factor_auth_configs_change
+  end
+
+  test "dirty methods for prefixed accessors" do
+    @john.spouse[:name] = "Lena"
+    assert @john.partner_name_changed?
+    assert_equal "Dallas", @john.partner_name_was
+    assert_equal ["Dallas", "Lena"], @john.partner_name_change
+  end
+
+  test "saved changes tracking for accessors" do
+    @john.spouse[:name] = "Lena"
+    assert @john.partner_name_changed?
+
+    @john.save!
+    assert_not @john.partner_name_change
+    assert @john.saved_change_to_partner_name?
+    assert_equal ["Dallas", "Lena"], @john.saved_change_to_partner_name
+    assert_equal "Dallas", @john.partner_name_before_last_save
+  end
+
   test "object initialization with not nullable column" do
     assert_equal true, @john.remember_login
   end

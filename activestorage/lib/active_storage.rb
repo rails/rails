@@ -41,25 +41,19 @@ module ActiveStorage
   autoload :Previewer
   autoload :Analyzer
 
-  mattr_accessor :service_configurations, default: {}
-  mattr_accessor :service
-
-  mattr_accessor :queues,            default: {}
-  mattr_accessor :previewers,        default: []
-  mattr_accessor :analyzers,         default: []
-  mattr_accessor :variant_processor, default: :mini_magick
-  mattr_accessor :paths,             default: {}
-
-  mattr_accessor :variable_content_types,           default: []
-  mattr_accessor :content_types_to_serve_as_binary, default: []
-  mattr_accessor :content_types_allowed_inline,     default: []
-  mattr_accessor :binary_content_type,              default: "application/octet-stream"
-
-  mattr_accessor :service_urls_expire_in, default: 5.minutes
-  mattr_accessor :routes_prefix,          default: "/rails/active_storage"
-
   mattr_accessor :logger
   mattr_accessor :verifier
+  mattr_accessor :queues, default: {}
+  mattr_accessor :previewers, default: []
+  mattr_accessor :analyzers, default: []
+  mattr_accessor :variant_processor, default: :mini_magick
+  mattr_accessor :paths, default: {}
+  mattr_accessor :variable_content_types, default: []
+  mattr_accessor :content_types_to_serve_as_binary, default: []
+  mattr_accessor :content_types_allowed_inline, default: []
+  mattr_accessor :binary_content_type, default: "application/octet-stream"
+  mattr_accessor :service_urls_expire_in, default: 5.minutes
+  mattr_accessor :routes_prefix, default: "/rails/active_storage"
 
   module Transformers
     extend ActiveSupport::Autoload
