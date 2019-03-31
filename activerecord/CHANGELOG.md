@@ -348,7 +348,7 @@
 
     *Gannon McGibbon*
 
-*   Cached columns_hash fields should be excluded from ResultSet#column_types
+*   Cached `columns_hash` fields should be excluded from `ResultSet#column_types`.
 
     PR #34528 addresses the inconsistent behaviour when attribute is defined for an ignored column. The following test
     was passing for SQLite and MySQL, but failed for PostgreSQL:
@@ -379,12 +379,12 @@
 
 *   Make the implicit order column configurable.
 
-    When calling ordered finder methods such as +first+ or +last+ without an
+    When calling ordered finder methods such as `first` or `last` without an
     explicit order clause, ActiveRecord sorts records by primary key. This can
     result in unpredictable and surprising behaviour when the primary key is
     not an auto-incrementing integer, for example when it's a UUID. This change
     makes it possible to override the column used for implicit ordering such
-    that +first+ and +last+ will return more predictable results.
+    that `first` and `last` will return more predictable results.
 
     Example:
 
@@ -530,10 +530,10 @@
 
 *   Enum raises on invalid definition values
 
-    When defining a Hash enum it can be easy to use [] instead of {}. This
+    When defining a Hash enum it can be easy to use `[]` instead of `{}`. This
     commit checks that only valid definition values are provided, those can
     be a Hash, an array of Symbols or an array of Strings. Otherwise it
-    raises an ArgumentError.
+    raises an `ArgumentError`.
 
     Fixes #33961
 

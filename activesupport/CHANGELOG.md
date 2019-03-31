@@ -61,7 +61,7 @@
 
     *Kaan Ozkan*, *Sharang Dashputre*
 
-*   Allow Array#excluding and Enumerable#excluding to deal with a passed array gracefully.
+*   Allow `Array#excluding` and `Enumerable#excluding` to deal with a passed array gracefully.
 
         [ 1, 2, 3, 4, 5 ].excluding([4, 5]) # => [ 1, 2, 3 ]
 
