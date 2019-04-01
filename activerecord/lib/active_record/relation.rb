@@ -389,8 +389,6 @@ module ActiveRecord
         stmt.set Arel.sql(klass.sanitize_sql_for_assignment(updates, table.name))
       end
 
-      stmt.comment(*arel.comment_node.values) if arel.comment_node
-
       @klass.connection.update stmt, "#{@klass} Update All"
     end
 
@@ -506,7 +504,6 @@ module ActiveRecord
       stmt.offset(arel.offset)
       stmt.order(*arel.orders)
       stmt.wheres = arel.constraints
-      stmt.comment(*arel.comment_node.values) if arel.comment_node
 
       affected = @klass.connection.delete(stmt, "#{@klass} Destroy")
 
