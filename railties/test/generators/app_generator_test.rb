@@ -968,6 +968,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
       else
         assert_match(/#{RUBY_ENGINE}-#{RUBY_ENGINE_VERSION}/, content)
       end
+
+      assert content.end_with?("\n"), "expected .ruby-version to end with newline"
     end
   end
 
