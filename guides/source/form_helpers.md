@@ -248,7 +248,7 @@ There are a few things to note here:
 * `@article` is the actual object being edited.
 * There is a single hash of options. HTML options (except `id` and `class`) are passed in the `:html` hash. Also you can provide a `:namespace` option for your form to ensure uniqueness of id attributes on form elements. The scope attribute will be prefixed with underscore on the generated HTML id.
 * The `form_with` method yields a **form builder** object (the `f` variable).
-* If you wish to direct your form request to a particular url, you would use `form_with url: my_nifty_url_path` instead. To see more in depth options on what `form_with` accepts be sure to [check out the API documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/FormHelper.html#method-i-form_with).
+* If you wish to direct your form request to a particular URL, you would use `form_with url: my_nifty_url_path` instead. To see more in depth options on what `form_with` accepts be sure to [check out the API documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/FormHelper.html#method-i-form_with).
 * Methods to create form controls are called **on** the form builder object `f`.
 
 The resulting HTML is:

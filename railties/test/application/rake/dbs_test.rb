@@ -40,12 +40,12 @@ module ApplicationTests
         end
       end
 
-      test "db:create and db:drop without database url" do
+      test "db:create and db:drop without database URL" do
         require "#{app_path}/config/environment"
         db_create_and_drop ActiveRecord::Base.configurations[Rails.env]["database"]
       end
 
-      test "db:create and db:drop with database url" do
+      test "db:create and db:drop with database URL" do
         require "#{app_path}/config/environment"
         set_database_url
         db_create_and_drop database_url_db_name

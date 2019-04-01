@@ -5,7 +5,7 @@
 
     *Ryan H. Kerr*
 
-*   Add `ActiveRecord::Relation#extract_associated` for extracting associated records from a relation. 
+*   Add `ActiveRecord::Relation#extract_associated` for extracting associated records from a relation.
 
     ```
     account.memberships.extract_associated(:user)
@@ -454,7 +454,7 @@
 
     *Sean Griffin*
 
-*   Add support for hash and url configs in database hash of `ActiveRecord::Base.connected_to`.
+*   Add support for hash and URL configs in database hash of `ActiveRecord::Base.connected_to`.
 
     ````
     User.connected_to(database: { writing: "postgres://foo" }) do
