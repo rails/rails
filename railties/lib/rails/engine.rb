@@ -230,7 +230,7 @@ module Rails
   #
   # If +MyEngine+ is isolated, The routes above will point to
   # <tt>MyEngine::ArticlesController</tt>. You also don't need to use longer
-  # url helpers like +my_engine_articles_path+. Instead, you should simply use
+  # URL helpers like +my_engine_articles_path+. Instead, you should simply use
   # +articles_path+, like you would do with your main application.
   #
   # To make this behavior consistent with other parts of the framework,
@@ -238,7 +238,7 @@ module Rails
   # normal Rails app, when you use a namespaced model such as
   # <tt>Namespace::Article</tt>, <tt>ActiveModel::Naming</tt> will generate
   # names with the prefix "namespace". In an isolated engine, the prefix will
-  # be omitted in url helpers and form fields, for convenience.
+  # be omitted in URL helpers and form fields, for convenience.
   #
   #   polymorphic_url(MyEngine::Article.new)
   #   # => "articles_path" # not "my_engine_articles_path"
@@ -286,11 +286,11 @@ module Rails
   # Note that the <tt>:as</tt> option given to mount takes the <tt>engine_name</tt> as default, so most of the time
   # you can simply omit it.
   #
-  # Finally, if you want to generate a url to an engine's route using
+  # Finally, if you want to generate a URL to an engine's route using
   # <tt>polymorphic_url</tt>, you also need to pass the engine helper. Let's
   # say that you want to create a form pointing to one of the engine's routes.
   # All you need to do is pass the helper as the first element in array with
-  # attributes for url:
+  # attributes for URL:
   #
   #   form_for([my_engine, @user])
   #

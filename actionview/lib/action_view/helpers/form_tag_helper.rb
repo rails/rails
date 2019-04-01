@@ -24,7 +24,7 @@ module ActionView
 
       mattr_accessor :default_enforce_utf8, default: true
 
-      # Starts a form tag that points the action to a url configured with <tt>url_for_options</tt> just like
+      # Starts a form tag that points the action to a URL configured with <tt>url_for_options</tt> just like
       # ActionController::Base#url_for. The method for the form defaults to POST.
       #
       # ==== Options

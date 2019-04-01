@@ -7,7 +7,7 @@ require "active_record/database_configurations/url_config"
 module ActiveRecord
   # ActiveRecord::DatabaseConfigurations returns an array of DatabaseConfig
   # objects (either a HashConfig or UrlConfig) that are constructed from the
-  # application's database configuration hash or url string.
+  # application's database configuration hash or URL string.
   class DatabaseConfigurations
     attr_reader :configurations
     delegate :any?, to: :configurations

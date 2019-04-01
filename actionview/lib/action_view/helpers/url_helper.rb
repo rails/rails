@@ -553,7 +553,7 @@ module ActionView
         url_string = URI.parser.unescape(url_for(options)).force_encoding(Encoding::BINARY)
 
         # We ignore any extra parameters in the request_uri if the
-        # submitted url doesn't have any either. This lets the function
+        # submitted URL doesn't have any either. This lets the function
         # work with things like ?order=asc
         # the behaviour can be disabled with check_parameters: true
         request_uri = url_string.index("?") || check_parameters ? request.fullpath : request.path
