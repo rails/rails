@@ -341,7 +341,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     assert_match %r{NameError}, body
   end
 
-  test "named urls missing keys raise 500 level error" do
+  test "named URLs missing keys raise 500 level error" do
     @app = DevelopmentApp
 
     get "/missing_keys", headers: { "action_dispatch.show_exceptions" => true }

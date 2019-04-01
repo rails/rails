@@ -4392,7 +4392,7 @@ class TestNamedRouteUrlHelpers < ActionDispatch::IntegrationTest
 
   include Routes.url_helpers
 
-  test "url helpers do not ignore nil parameters when using non-optimized routes" do
+  test "URL helpers do not ignore nil parameters when using non-optimized routes" do
     Routes.stub :optimize_routes_generation?, false do
       get "/categories/1"
       assert_response :success
@@ -4764,7 +4764,7 @@ class TestUrlGenerationErrors < ActionDispatch::IntegrationTest
 
   include Routes.url_helpers
 
-  test "url helpers raise a 'missing keys' error for a nil param with optimized helpers" do
+  test "URL helpers raise a 'missing keys' error for a nil param with optimized helpers" do
     url, missing = { action: "show", controller: "products", id: nil }, [:id]
     message = "No route matches #{url.inspect}, missing required keys: #{missing.inspect}"
 
@@ -4772,7 +4772,7 @@ class TestUrlGenerationErrors < ActionDispatch::IntegrationTest
     assert_equal message, error.message
   end
 
-  test "url helpers raise a 'constraint failure' error for a nil param with non-optimized helpers" do
+  test "URL helpers raise a 'constraint failure' error for a nil param with non-optimized helpers" do
     url, missing = { action: "show", controller: "products", id: nil }, [:id]
     message = "No route matches #{url.inspect}, possible unmatched constraints: #{missing.inspect}"
 
@@ -4780,15 +4780,15 @@ class TestUrlGenerationErrors < ActionDispatch::IntegrationTest
     assert_equal message, error.message
   end
 
-  test "url helpers raise message with mixed parameters when generation fails" do
+  test "URL helpers raise message with mixed parameters when generation fails" do
     url, missing = { action: "show", controller: "products", id: nil, "id" => "url-tested" }, [:id]
     message = "No route matches #{url.inspect}, possible unmatched constraints: #{missing.inspect}"
 
-    # Optimized url helper
+    # Optimized URL helper
     error = assert_raises(ActionController::UrlGenerationError) { product_path(nil, "id" => "url-tested") }
     assert_equal message, error.message
 
-    # Non-optimized url helper
+    # Non-optimized URL helper
     error = assert_raises(ActionController::UrlGenerationError, message) { product_path(id: nil, "id" => "url-tested") }
     assert_equal message, error.message
   end
