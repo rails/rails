@@ -5006,7 +5006,7 @@ class FlashRedirectTest < ActionDispatch::IntegrationTest
   )
   Rotations = ActiveSupport::Messages::RotationConfiguration.new
   SIGNED_COOKIE_SALT = "signed cookie"
-  ENCRYPTED_SIGNED_COOKIE_SALT = "sigend encrypted cookie"
+  ENCRYPTED_SIGNED_COOKIE_SALT = "signed encrypted cookie"
 
   class KeyGeneratorMiddleware
     def initialize(app)

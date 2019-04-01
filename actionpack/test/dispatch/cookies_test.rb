@@ -317,7 +317,7 @@ class CookiesTest < ActionController::TestCase
     end
 
     def rails_5_2_stable_encrypted_cookie_with_authenticated_encryption_flag_off
-      cookies[:favorite] = "Wmg4amgvcVVvWGcwK3c4WjJEbTdRQUgrWXhBdDliUTR0cVNidXpmVTMrc2RjcitwUzVsWWEwZGtuVGtFUjJwNi0tcVhVMTFMOTQ1d0hIVE1FK0pJc05SQT09--8b2a55c375049a50f7a959b9d42b31ef0b2bb594"
+      cookies[:favorite] = "rTG4zs5UufEFAr+ppKwh+MDMymKyAUMOSaWyYa3uUVmD8sMQqyiyQBxgYeAncDHVZIlo4y+kDVSzp66u1/7BNYpnmFe8ES/YT2m8ckNA23jBDmnRZ9CTNfMIRXjFtfxO9YxEOzzhn0ZiA0/zFtr5wkluXtxplOz959Q7MgLOyvTze2h9p8A=--QHOS3rAEGq/HCxXs--xQNra8dk24Idc2qBtpMLpg=="
 
       head :ok
     end
@@ -341,7 +341,7 @@ class CookiesTest < ActionController::TestCase
   SECRET_KEY_BASE = "b3c631c314c0bbca50c1b2843150fe33"
   SIGNED_COOKIE_SALT = "signed cookie"
   ENCRYPTED_COOKIE_SALT = "encrypted cookie"
-  ENCRYPTED_SIGNED_COOKIE_SALT = "sigend encrypted cookie"
+  ENCRYPTED_SIGNED_COOKIE_SALT = "signed encrypted cookie"
   AUTHENTICATED_ENCRYPTED_COOKIE_SALT = "authenticated encrypted cookie"
 
   def setup
