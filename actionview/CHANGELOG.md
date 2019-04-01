@@ -2,9 +2,10 @@
 
     To speed up development mode, view caches are only cleared when files in
     the view paths have changed. Applications which have implemented custom
-    ActionView::Resolver subclasses may need to add their own cache clearing.
+    `ActionView::Resolver` subclasses may need to add their own cache clearing.
 
     *John Hawthorn*
+
 
 ## Rails 6.0.0.beta3 (March 11, 2019) ##
 
