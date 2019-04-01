@@ -10,6 +10,7 @@ module ActiveRecord
       end
 
       def deserialize(value)
+        value = '{}' if value.is_a?(::NilClass)
         return value unless value.is_a?(::String)
         ActiveSupport::JSON.decode(value) rescue nil
       end
