@@ -3,7 +3,7 @@
 module ActionView #:nodoc:
   # = Action View File Template
   class Template #:nodoc:
-    class File #:nodoc:
+    class RawFile #:nodoc:
       attr_accessor :type, :format
 
       def initialize(filename)
