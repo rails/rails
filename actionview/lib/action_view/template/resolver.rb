@@ -280,6 +280,8 @@ module ActionView
 
   # A resolver that loads files from the filesystem.
   class FileSystemResolver < PathResolver
+    attr_reader :path
+
     def initialize(path, pattern = nil)
       raise ArgumentError, "path already is a Resolver class" if path.is_a?(Resolver)
       super(pattern)
