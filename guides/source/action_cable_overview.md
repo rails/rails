@@ -190,15 +190,15 @@ This will ready a consumer that'll connect against `/cable` on your server by de
 The connection won't be established until you've also specified at least one subscription
 you're interested in having.
 
-The consumer can optionally take an argument that specifies the url to connect to. This
+The consumer can optionally take an argument that specifies the URL to connect to. This
 can be a string, or a function that returns a string that will be called when the
 WebSocket is opened.
 
 ```js
-// Specify a different url to connect to
+// Specify a different URL to connect to
 createConsumer('https://ws.example.com/cable')
 
-// Use a function to dynamically generate the url
+// Use a function to dynamically generate the URL
 createConsumer(getWebSocketURL)
 
 function getWebSocketURL {
