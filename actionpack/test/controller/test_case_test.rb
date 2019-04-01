@@ -952,7 +952,7 @@ XML
     get :create
     assert_response :created
 
-    # Redirect url doesn't care that it wasn't a :redirect response.
+    # Redirect URL doesn't care that it wasn't a :redirect response.
     assert_equal "/resource", @response.redirect_url
     assert_equal @response.redirect_url, redirect_to_url
 
