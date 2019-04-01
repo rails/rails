@@ -249,10 +249,6 @@ module Arel # :nodoc: all
       self
     end
 
-    def comment_node
-      @ctx.comment
-    end
-
     private
       def collapse(exprs)
         exprs = exprs.compact

@@ -241,33 +241,6 @@ class UpdateAllTest < ActiveRecord::TestCase
     end
   end
 
-  def test_update_all_with_annotation_includes_a_query_comment
-    tag = Tag.first
-
-    assert_sql(%r{/\* updating all \*/}) do
-      Post.tagged_with(tag.id).annotate("updating all").update_all(title: "rofl")
-    end
-
-    posts = Post.tagged_with(tag.id).all.to_a
-    assert_operator posts.length, :>, 0
-    posts.each { |post| assert_equal "rofl", post.title }
-  end
-
-  def test_update_all_without_annotation_does_not_include_an_empty_comment
-    tag = Tag.first
-
-    log = capture_sql do
-      Post.tagged_with(tag.id).update_all(title: "rofl")
-    end
-
-    assert_not_predicate log, :empty?
-    assert_predicate log.select { |query| query.match?(%r{/\*}) }, :empty?
-
-    posts = Post.tagged_with(tag.id).all.to_a
-    assert_operator posts.length, :>, 0
-    posts.each { |post| assert_equal "rofl", post.title }
-  end
-
   # Oracle UPDATE does not support ORDER BY
   unless current_adapter?(:OracleAdapter)
     def test_update_all_ignores_order_without_limit_from_association

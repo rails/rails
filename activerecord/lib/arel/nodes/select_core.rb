@@ -40,7 +40,6 @@ module Arel # :nodoc: all
         @groups      = @groups.clone
         @havings     = @havings.clone
         @windows     = @windows.clone
-        @comment     = @comment.clone if @comment
       end
 
       def hash
