@@ -344,7 +344,7 @@ irb(main):001:0>
 
 Inside the `rails console` you have access to the `app` and `helper` instances.
 
-With the `app` method you can access url and path helpers, as well as do requests.
+With the `app` method you can access URL and path helpers, as well as do requests.
 
 ```bash
 >> app.root_path

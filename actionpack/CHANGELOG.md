@@ -43,7 +43,7 @@
 
     *Rafael Mendonça França*
 
-*   Introduce ActionDispatch::HostAuthorization
+*   Introduce `ActionDispatch::HostAuthorization`.
 
     This is a new middleware that guards against DNS rebinding attacks by
     explicitly permitting the hosts a request can be made to.
@@ -73,7 +73,7 @@
 
 *   Raise an error on root route naming conflicts.
 
-    Raises an ArgumentError when multiple root routes are defined in the
+    Raises an `ArgumentError` when multiple root routes are defined in the
     same context instead of assigning nil names to subsequent roots.
 
     *Gannon McGibbon*

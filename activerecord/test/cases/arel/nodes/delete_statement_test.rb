@@ -18,10 +18,8 @@ describe Arel::Nodes::DeleteStatement do
     it "is equal with equal ivars" do
       statement1 = Arel::Nodes::DeleteStatement.new
       statement1.wheres = %w[a b c]
-      statement1.comment = Arel::Nodes::Comment.new(["comment"])
       statement2 = Arel::Nodes::DeleteStatement.new
       statement2.wheres = %w[a b c]
-      statement2.comment = Arel::Nodes::Comment.new(["comment"])
       array = [statement1, statement2]
       assert_equal 1, array.uniq.size
     end
@@ -29,14 +27,8 @@ describe Arel::Nodes::DeleteStatement do
     it "is not equal with different ivars" do
       statement1 = Arel::Nodes::DeleteStatement.new
       statement1.wheres = %w[a b c]
-      statement1.comment = Arel::Nodes::Comment.new(["comment"])
       statement2 = Arel::Nodes::DeleteStatement.new
       statement2.wheres = %w[1 2 3]
-      statement2.comment = Arel::Nodes::Comment.new(["comment"])
-      array = [statement1, statement2]
-      assert_equal 2, array.uniq.size
-      statement2.wheres = %w[a b c]
-      statement2.comment = Arel::Nodes::Comment.new(["other"])
       array = [statement1, statement2]
       assert_equal 2, array.uniq.size
     end

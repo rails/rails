@@ -60,7 +60,7 @@ module ApplicationTests
       assert_equal "YOU FAILED", last_response.body
     end
 
-    test "url generation error when action_dispatch.show_exceptions is set raises an exception" do
+    test "URL generation error when action_dispatch.show_exceptions is set raises an exception" do
       controller :foo, <<-RUBY
         class FooController < ActionController::Base
           def index

@@ -1402,6 +1402,8 @@ module ActionDispatch
         #   as a comment on a blog post like <tt>/posts/a-long-permalink/comments/1234</tt>
         #   to be shortened to just <tt>/comments/1234</tt>.
         #
+        #   Set shallow: false on a child resource to ignore a parent's shallow parameter.
+        #
         # [:shallow_path]
         #   Prefixes nested shallow routes with the specified path.
         #
@@ -1672,7 +1674,8 @@ module ActionDispatch
               return true
             end
 
-            if options.delete(:shallow)
+            if options[:shallow]
+              options.delete(:shallow)
               shallow do
                 send(method, resources.pop, options, &block)
               end

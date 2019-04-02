@@ -1162,7 +1162,7 @@ Imagine you have a server which mirrors the production environment but is only u
 That environment is no different than the default ones, start a server with `rails server -e staging`, a console with `rails console -e staging`, `Rails.env.staging?` works, etc.
 
 
-### Deploy to a subdirectory (relative url root)
+### Deploy to a subdirectory (relative URL root)
 
 By default Rails expects that your application is running at the root
 (eg. `/`). This section explains how to run your application inside a directory.

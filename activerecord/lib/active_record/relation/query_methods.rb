@@ -100,7 +100,7 @@ module ActiveRecord
     #
     # === conditions
     #
-    # If you want to add conditions to your included models you'll have
+    # If you want to add string conditions to your included models, you'll have
     # to explicitly reference them. For example:
     #
     #   User.includes(:posts).where('posts.name = ?', 'example')
@@ -111,6 +111,12 @@ module ActiveRecord
     #
     # Note that #includes works with association names while #references needs
     # the actual table name.
+    #
+    # If you pass the conditions via hash, you don't need to call #references
+    # explicitly, as #where references the tables for you. For example, this
+    # will work correctly:
+    #
+    #   User.includes(:posts).where(posts: { name: 'example' })
     def includes(*args)
       check_if_method_has_arguments!(:includes, args)
       spawn.includes!(*args)

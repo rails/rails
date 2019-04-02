@@ -333,7 +333,7 @@ module ActionDispatch
           end
       end
 
-      # strategy for building urls to send to the client
+      # strategy for building URLs to send to the client
       PATH    = ->(options) { ActionDispatch::Http::URL.path_for(options) }
       UNKNOWN = ->(options) { ActionDispatch::Http::URL.url_for(options) }
 

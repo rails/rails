@@ -34,7 +34,7 @@
 
     *Edouard Chin*
 
-*   Restore HashWithIndifferentAccess support to ActiveJob::Arguments.deserialize.
+*   Restore `HashWithIndifferentAccess` support to `ActiveJob::Arguments.deserialize`.
 
     *Gannon McGibbon*
 

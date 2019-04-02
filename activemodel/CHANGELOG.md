@@ -41,12 +41,12 @@
     Before:
 
         Day.new({"day(1i)"=>"1", "day(2i)"=>"1", "day(3i)"=>"1"})
-        => #<Day id: nil, day: "0001-01-03", created_at: nil, updated_at: nil>
+        # => #<Day id: nil, day: "0001-01-03", created_at: nil, updated_at: nil>
 
     After:
 
         Day.new({"day(1i)"=>"1", "day(2i)"=>"1", "day(3i)"=>"1"})
-        => #<Day id: nil, day: "0001-01-01", created_at: nil, updated_at: nil>
+        # => #<Day id: nil, day: "0001-01-01", created_at: nil, updated_at: nil>
 
     Fixes #28521.
 

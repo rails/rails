@@ -1,3 +1,12 @@
+*   Only clear ActionView cache in development on file changes
+
+    To speed up development mode, view caches are only cleared when files in
+    the view paths have changed. Applications which have implemented custom
+    `ActionView::Resolver` subclasses may need to add their own cache clearing.
+
+    *John Hawthorn*
+
+
 ## Rails 6.0.0.beta3 (March 11, 2019) ##
 
 *   Only accept formats from registered mime types
@@ -14,18 +23,19 @@
 
 ## Rails 6.0.0.beta2 (February 25, 2019) ##
 
-*   ActionView::Template.finalize_compiled_template_methods is deprecated with
+*   `ActionView::Template.finalize_compiled_template_methods` is deprecated with
     no replacement.
 
     *tenderlove*
 
-*   config.action_view.finalize_compiled_template_methods is deprecated with
+*   `config.action_view.finalize_compiled_template_methods` is deprecated with
     no replacement.
 
     *tenderlove*
 
 *   Ensure unique DOM IDs for collection inputs with float values.
-    Fixes #34974
+
+    Fixes #34974.
 
     *Mark Edmondson*
 

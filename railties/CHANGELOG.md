@@ -1,3 +1,14 @@
+*   The `connection` option of `rails dbconsole` command is deprecated in
+    favor of `database` option.
+
+    *Yuji Yaginuma*
+
+*   Replace `chromedriver-helper` gem with `webdrivers` in default Gemfile.
+    `chromedriver-helper` is deprecated as of March 31, 2019 and won't
+    receive any further updates.
+
+    *Guillermo Iguaran‮*
+
 *   Applications running in `:zeitwerk` mode that use `bootsnap` need
     to upgrade `bootsnap` to at least 1.4.2.
 
@@ -6,7 +17,7 @@
 *   Add `config.disable_sandbox` option to Rails console.
 
     This setting will disable `rails console --sandbox` mode, preventing
-    developer from accidentally starting a sandbox console, 
+    developer from accidentally starting a sandbox console,
     which when left inactive, can cause the database server to run out of memory.
 
     *Prem Sichanugrist*
@@ -14,6 +25,7 @@
 *   Add `-e/--environment` option to `rails initializers`.
 
     *Yuji Yaginuma*
+
 
 ## Rails 6.0.0.beta3 (March 11, 2019) ##
 
@@ -27,7 +39,6 @@
     Fixes CVE-2019-5420
 
     *Eileen M. Uchitelle*, *Aaron Patterson*, *John Hawthorn*
-
 
 
 ## Rails 6.0.0.beta2 (February 25, 2019) ##

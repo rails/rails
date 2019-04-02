@@ -240,7 +240,7 @@ Action Pack
 
 * Added `config.action_controller.include_all_helpers`. By default `helper :all` is done in `ActionController::Base`, which includes all the helpers by default. Setting `include_all_helpers` to `false` will result in including only application_helper and the helper corresponding to controller (like foo_helper for foo_controller).
 
-* `url_for` and named url helpers now accept `:subdomain` and `:domain` as options.
+* `url_for` and named URL helpers now accept `:subdomain` and `:domain` as options.
 
 * Added `Base.http_basic_authenticate_with` to do simple http basic authentication with a single class method call.
 
@@ -293,7 +293,7 @@ Action Pack
 
     You can restrict it to some actions by using `:only` or `:except`. Please read the docs at [`ActionController::Streaming`](https://api.rubyonrails.org/v3.1.0/classes/ActionController/Streaming.html) for more information.
 
-* The redirect route method now also accepts a hash of options which will only change the parts of the url in question, or an object which responds to call, allowing for redirects to be reused.
+* The redirect route method now also accepts a hash of options which will only change the parts of the URL in question, or an object which responds to call, allowing for redirects to be reused.
 
 ### Action Dispatch
 

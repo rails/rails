@@ -225,8 +225,8 @@ module ActiveSupport
     #   hash[:a] = 'x'
     #   hash[:b] = 'y'
     #   hash.values_at('a', 'b') # => ["x", "y"]
-    def values_at(*indices)
-      indices.collect { |key| self[convert_key(key)] }
+    def values_at(*keys)
+      super(*keys.map { |key| convert_key(key) })
     end
 
     # Returns an array of the values at the specified indices, but also
@@ -239,7 +239,7 @@ module ActiveSupport
     #   hash.fetch_values('a', 'c') { |key| 'z' } # => ["x", "z"]
     #   hash.fetch_values('a', 'c') # => KeyError: key not found: "c"
     def fetch_values(*indices, &block)
-      indices.collect { |key| fetch(key, &block) }
+      super(*indices.map { |key| convert_key(key) }, &block)
     end
 
     # Returns a shallow copy of the hash.
@@ -293,6 +293,9 @@ module ActiveSupport
       super(convert_key(key))
     end
 
+    def except(*keys)
+      slice(*self.keys - keys.map { |key| convert_key(key) })
+    end
     alias_method :without, :except
 
     def stringify_keys!; self end

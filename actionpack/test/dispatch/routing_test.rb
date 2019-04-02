@@ -2200,6 +2200,37 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal "cards#destroy", @response.body
   end
 
+  def test_shallow_false_inside_nested_shallow_resource
+    draw do
+      resources :blogs, shallow: true do
+        resources :posts do
+          resources :comments, shallow: false
+          resources :tags
+        end
+      end
+    end
+
+    get '/posts/1/comments'
+    assert_equal 'comments#index', @response.body
+    assert_equal '/posts/1/comments', post_comments_path('1')
+
+    get '/posts/1/comments/new'
+    assert_equal 'comments#new', @response.body
+    assert_equal '/posts/1/comments/new', new_post_comment_path('1')
+
+    get '/posts/1/comments/2'
+    assert_equal 'comments#show', @response.body
+    assert_equal '/posts/1/comments/2', post_comment_path('1', '2')
+
+    get '/posts/1/comments/2/edit'
+    assert_equal 'comments#edit', @response.body
+    assert_equal '/posts/1/comments/2/edit', edit_post_comment_path('1', '2')
+
+    get '/tags/3'
+    assert_equal 'tags#show', @response.body
+    assert_equal '/tags/3', tag_path('3')
+  end
+
   def test_shallow_deeply_nested_resources
     draw do
       resources :blogs do
@@ -4392,7 +4423,7 @@ class TestNamedRouteUrlHelpers < ActionDispatch::IntegrationTest
 
   include Routes.url_helpers
 
-  test "url helpers do not ignore nil parameters when using non-optimized routes" do
+  test "URL helpers do not ignore nil parameters when using non-optimized routes" do
     Routes.stub :optimize_routes_generation?, false do
       get "/categories/1"
       assert_response :success
@@ -4764,7 +4795,7 @@ class TestUrlGenerationErrors < ActionDispatch::IntegrationTest
 
   include Routes.url_helpers
 
-  test "url helpers raise a 'missing keys' error for a nil param with optimized helpers" do
+  test "URL helpers raise a 'missing keys' error for a nil param with optimized helpers" do
     url, missing = { action: "show", controller: "products", id: nil }, [:id]
     message = "No route matches #{url.inspect}, missing required keys: #{missing.inspect}"
 
@@ -4772,7 +4803,7 @@ class TestUrlGenerationErrors < ActionDispatch::IntegrationTest
     assert_equal message, error.message
   end
 
-  test "url helpers raise a 'constraint failure' error for a nil param with non-optimized helpers" do
+  test "URL helpers raise a 'constraint failure' error for a nil param with non-optimized helpers" do
     url, missing = { action: "show", controller: "products", id: nil }, [:id]
     message = "No route matches #{url.inspect}, possible unmatched constraints: #{missing.inspect}"
 
@@ -4780,15 +4811,15 @@ class TestUrlGenerationErrors < ActionDispatch::IntegrationTest
     assert_equal message, error.message
   end
 
-  test "url helpers raise message with mixed parameters when generation fails" do
+  test "URL helpers raise message with mixed parameters when generation fails" do
     url, missing = { action: "show", controller: "products", id: nil, "id" => "url-tested" }, [:id]
     message = "No route matches #{url.inspect}, possible unmatched constraints: #{missing.inspect}"
 
-    # Optimized url helper
+    # Optimized URL helper
     error = assert_raises(ActionController::UrlGenerationError) { product_path(nil, "id" => "url-tested") }
     assert_equal message, error.message
 
-    # Non-optimized url helper
+    # Non-optimized URL helper
     error = assert_raises(ActionController::UrlGenerationError, message) { product_path(id: nil, "id" => "url-tested") }
     assert_equal message, error.message
   end
@@ -5006,7 +5037,7 @@ class FlashRedirectTest < ActionDispatch::IntegrationTest
   )
   Rotations = ActiveSupport::Messages::RotationConfiguration.new
   SIGNED_COOKIE_SALT = "signed cookie"
-  ENCRYPTED_SIGNED_COOKIE_SALT = "sigend encrypted cookie"
+  ENCRYPTED_SIGNED_COOKIE_SALT = "signed encrypted cookie"
 
   class KeyGeneratorMiddleware
     def initialize(app)
