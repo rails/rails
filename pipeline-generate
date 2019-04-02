@@ -124,6 +124,7 @@ def step_for(subdirectory, rake_task, ruby: nil, service: "default")
     "timeout_in_minutes" => timeout,
     "soft_fail" => ruby == TRUNK_RUBY,
     "agents" => { "queue" => QUEUE },
+    "artifact_paths" => ["test-reports/*/*.xml"],
   }
 
   yield hash if block_given?

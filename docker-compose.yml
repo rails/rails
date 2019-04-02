@@ -44,6 +44,9 @@ services:
 
     entrypoint: await-all
 
+    volumes:
+      - ../test-reports:/rails/test-reports
+
     depends_on:
       - redis
       - memcached
