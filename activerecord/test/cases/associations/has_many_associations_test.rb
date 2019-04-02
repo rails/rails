@@ -2461,6 +2461,15 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal post, tagging.taggable
   end
 
+  def test_build_from_polymorphic_has_many_custom_primary_key
+    post = Post.create!(code: 100, title: "fooo", body: "baa")
+    tagging = post.tagging_using_primary_key.build
+    tagging.save
+    assert post.tagging_using_primary_key.present?
+    post.reload
+    assert post.tagging_using_primary_key.present?
+  end
+
   def test_dont_call_save_callbacks_twice_on_has_many
     firm = companies(:first_firm)
     contract = firm.contracts.create!

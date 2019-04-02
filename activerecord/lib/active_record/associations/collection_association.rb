@@ -105,7 +105,10 @@ module ActiveRecord
         if attributes.is_a?(Array)
           attributes.collect { |attr| build(attr, &block) }
         else
-          add_to_target(build_record(attributes, &block))
+          record = build_record(attributes, &block)
+          add_to_target(record) do
+            set_owner_attributes(record)
+          end
         end
       end
 
