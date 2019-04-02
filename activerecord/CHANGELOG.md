@@ -1,3 +1,10 @@
+*   Assign correct primary key when calling `build` of has many association with
+    custom primary key.
+
+    Fixes #35803.
+
+    *Shojiro Yanagisawa*
+
 *   Assign all attributes before calling `build` to ensure the child record is visible in
     `before_add` and `after_add` callbacks for `has_many :through` associations.
 
