@@ -6,7 +6,7 @@ require "active_support/core_ext/module/delegation"
 # but it is possible to associate many different records with the same blob. A foreign-key constraint
 # on the attachments table prevents blobs from being purged if they’re still attached to any records.
 class ActiveStorage::Attachment < ActiveRecord::Base
-  self.table_name = "active_storage_attachments"
+  self.table_name = "#{table_name_prefix}active_storage_attachments#{table_name_suffix}"
 
   belongs_to :record, polymorphic: true, touch: true
   belongs_to :blob, class_name: "ActiveStorage::Blob"

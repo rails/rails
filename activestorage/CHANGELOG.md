@@ -1,3 +1,10 @@
+*   Use the `table_name_prefix` and `table_name_suffix` config options
+    while calculating name of the Active Storage related tables.
+
+    Fixes #35811.
+
+    *Prathamesh Sonpatki*
+
 ## Rails 6.0.0.beta3 (March 11, 2019) ##
 
 *   No changes.

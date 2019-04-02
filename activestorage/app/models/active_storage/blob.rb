@@ -24,7 +24,7 @@ class ActiveStorage::Blob < ActiveRecord::Base
   include Identifiable
   include Representable
 
-  self.table_name = "active_storage_blobs"
+  self.table_name = "#{table_name_prefix}active_storage_blobs#{table_name_suffix}"
 
   has_secure_token :key
   store :metadata, accessors: [ :analyzed, :identified ], coder: ActiveRecord::Coders::JSON
