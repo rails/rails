@@ -112,7 +112,7 @@ module RenderTemplate
     end
 
     test "rendering a builder template" do
-      get :builder_template, params: { "format" => "xml" }
+      get :builder_template, params: { format: :xml }
       assert_response "<html>\n  <p>Hello</p>\n</html>\n"
     end
 
@@ -127,7 +127,7 @@ module RenderTemplate
       assert_body "Hello <strong>this is also raw</strong> in an html template"
       assert_status 200
 
-      get :with_implicit_raw, params: { format: "text" }
+      get :with_implicit_raw, params: { format: :text }
 
       assert_body "Hello <strong>this is also raw</strong> in a text template"
       assert_status 200

@@ -615,7 +615,7 @@ An incoming path of `/photos/1?user_id=2` will be dispatched to the `show` actio
 You can define defaults in a route by supplying a hash for the `:defaults` option. This even applies to parameters that you do not specify as dynamic segments. For example:
 
 ```ruby
-get 'photos/:id', to: 'photos#show', defaults: { format: 'jpg' }
+get 'photos/:id', to: 'photos#show', defaults: { format: :jpg }
 ```
 
 Rails would match `photos/12` to the `show` action of `PhotosController`, and set `params[:format]` to `"jpg"`.

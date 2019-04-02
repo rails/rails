@@ -13,7 +13,7 @@ end
 class StarStarMimeControllerTest < ActionController::TestCase
   def test_javascript_with_format
     @request.accept = "text/javascript"
-    get :index, format: "js"
+    get :index, format: :js
     assert_match "function addition(a,b){ return a+b; }", @response.body
   end
 

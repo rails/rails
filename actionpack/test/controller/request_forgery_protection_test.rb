@@ -352,7 +352,7 @@ module RequestForgeryProtectionTests
   end
 
   def test_should_not_allow_post_without_token_irrespective_of_format
-    assert_blocked { post :index, format: "xml" }
+    assert_blocked { post :index, format: :xml }
   end
 
   def test_should_not_allow_patch_without_token
@@ -515,7 +515,7 @@ module RequestForgeryProtectionTests
 
   def test_should_only_allow_same_origin_js_get_with_xhr_header
     assert_cross_origin_blocked { get :same_origin_js }
-    assert_cross_origin_blocked { get :same_origin_js, format: "js" }
+    assert_cross_origin_blocked { get :same_origin_js, format: :js }
     assert_cross_origin_blocked do
       @request.accept = "text/javascript"
       get :negotiate_same_origin
@@ -527,7 +527,7 @@ module RequestForgeryProtectionTests
     end
 
     assert_cross_origin_not_blocked { get :same_origin_js, xhr: true }
-    assert_cross_origin_not_blocked { get :same_origin_js, xhr: true, format: "js" }
+    assert_cross_origin_not_blocked { get :same_origin_js, xhr: true, format: :js }
     assert_cross_origin_not_blocked do
       @request.accept = "text/javascript"
       get :negotiate_same_origin, xhr: true
@@ -569,7 +569,7 @@ module RequestForgeryProtectionTests
   def test_should_allow_non_get_js_without_xhr_header
     session[:_csrf_token] = @token
     assert_cross_origin_not_blocked { post :same_origin_js, params: { custom_authenticity_token: @token } }
-    assert_cross_origin_not_blocked { post :same_origin_js, params: { format: "js", custom_authenticity_token: @token } }
+    assert_cross_origin_not_blocked { post :same_origin_js, params: { format: :js, custom_authenticity_token: @token } }
     assert_cross_origin_not_blocked do
       @request.accept = "text/javascript"
       post :negotiate_same_origin, params: { custom_authenticity_token: @token }
@@ -578,14 +578,14 @@ module RequestForgeryProtectionTests
 
   def test_should_only_allow_cross_origin_js_get_without_xhr_header_if_protection_disabled
     assert_cross_origin_not_blocked { get :cross_origin_js }
-    assert_cross_origin_not_blocked { get :cross_origin_js, format: "js" }
+    assert_cross_origin_not_blocked { get :cross_origin_js, format: :js }
     assert_cross_origin_not_blocked do
       @request.accept = "text/javascript"
       get :negotiate_cross_origin
     end
 
     assert_cross_origin_not_blocked { get :cross_origin_js, xhr: true }
-    assert_cross_origin_not_blocked { get :cross_origin_js, xhr: true, format: "js" }
+    assert_cross_origin_not_blocked { get :cross_origin_js, xhr: true, format: :js }
     assert_cross_origin_not_blocked do
       @request.accept = "text/javascript"
       get :negotiate_cross_origin, xhr: true

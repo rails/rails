@@ -23,7 +23,7 @@ class AlwaysPermittedParametersTest < ActiveSupport::TestCase
   test "allows both explicitly listed and always-permitted parameters" do
     params = ActionController::Parameters.new(
       book: { pages: 65 },
-      format: "json")
+      format: :json)
     permitted = params.permit book: [:pages]
     assert_predicate permitted, :permitted?
   end

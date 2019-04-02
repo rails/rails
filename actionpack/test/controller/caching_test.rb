@@ -225,7 +225,7 @@ CACHED
   end
 
   def test_skipping_fragment_cache_digesting
-    get :fragment_cached_without_digest, format: "html"
+    get :fragment_cached_without_digest, format: :html
     assert_response :success
     expected_body = "<body>\n<p>ERB</p>\n</body>\n"
 

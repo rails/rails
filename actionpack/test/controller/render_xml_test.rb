@@ -96,7 +96,7 @@ class RenderXmlTest < ActionController::TestCase
   end
 
   def test_should_use_implicit_content_type
-    get :implicit_content_type, format: "atom"
+    get :implicit_content_type, format: :atom
     assert_equal Mime[:atom], @response.content_type
   end
 end

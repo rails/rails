@@ -707,7 +707,7 @@ class ImplicitRenderTest < ActionController::TestCase
 
   def test_implicit_unknown_format_response
     assert_raises(ActionController::UnknownFormat) do
-      get :empty_action_with_template, format: "json"
+      get :empty_action_with_template, format: :json
     end
   end
 end

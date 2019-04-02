@@ -119,7 +119,7 @@ module TestUrlGeneration
     test "generating URLs with trailing slashes" do
       assert_equal "/bars.json", bars_path(
         trailing_slash: true,
-        format: "json"
+        format: :json
       )
     end
 
@@ -127,14 +127,14 @@ module TestUrlGeneration
       assert_equal "/bars.json?a=b", bars_path(
         trailing_slash: true,
         a: "b",
-        format: "json"
+        format: :json
       )
     end
 
     test "generating URLS with empty querystring" do
       assert_equal "/bars.json", bars_path(
         a: {},
-        format: "json"
+        format: :json
       )
     end
   end
