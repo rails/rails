@@ -113,7 +113,7 @@ module ActionView
 
     eager_autoload do
       autoload :Error
-      autoload :File
+      autoload :RawFile
       autoload :Handlers
       autoload :HTML
       autoload :Inline
