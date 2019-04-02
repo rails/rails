@@ -106,9 +106,7 @@ module ActiveRecord
           attributes.collect { |attr| build(attr, &block) }
         else
           record = build_record(attributes, &block)
-          add_to_target(record) do
-            set_owner_attributes(record)
-          end
+          add_to_target(record)
         end
       end
 

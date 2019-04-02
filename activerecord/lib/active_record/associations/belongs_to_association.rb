@@ -101,7 +101,12 @@ module ActiveRecord
         end
 
         def primary_key(klass)
-          reflection.association_primary_key(klass)
+          inverse = inverse_reflection_for(klass)
+          inverse && inverse.options[:primary_key] || reflection.association_primary_key(klass)
+        end
+
+        def has_many_reflection
+          klass.reflections.values.find { |reflection| reflection.polymorphic_inverse_of(owner.class) }
         end
 
         def foreign_key_present?
@@ -111,7 +116,7 @@ module ActiveRecord
         # NOTE - for now, we're only supporting inverse setting from belongs_to back onto
         # has_one associations.
         def invertible_for?(record)
-          inverse = inverse_reflection_for(record)
+          inverse = inverse_reflection_for(record.class)
           inverse && inverse.has_one?
         end
 

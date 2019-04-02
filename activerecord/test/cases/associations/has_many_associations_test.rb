@@ -39,6 +39,7 @@ require "models/tyre"
 require "models/subscriber"
 require "models/subscription"
 require "models/zine"
+require "models/man"
 require "models/interest"
 
 class HasManyAssociationsTestForReorderWithJoinDependency < ActiveRecord::TestCase
@@ -2462,12 +2463,12 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_build_from_polymorphic_has_many_custom_primary_key
-    post = Post.create!(code: 100, title: "fooo", body: "baa")
-    tagging = post.tagging_using_primary_key.build
-    tagging.save
-    assert post.tagging_using_primary_key.present?
-    post.reload
-    assert post.tagging_using_primary_key.present?
+    man = Man.create!(name: "foo", number: 100)
+    interest = man.polymorphic_interests_with_primary_key.build
+    interest.save
+    assert man.polymorphic_interests_with_primary_key.present?
+    man.reload
+    assert man.polymorphic_interests_with_primary_key.present?
   end
 
   def test_dont_call_save_callbacks_twice_on_has_many

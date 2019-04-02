@@ -715,7 +715,6 @@ ActiveRecord::Schema.define do
       t.text    :body, null: false
     end
     t.string  :type
-    t.integer :code
     t.integer :comments_count, default: 0
     t.integer :taggings_with_delete_all_count, default: 0
     t.integer :taggings_with_destroy_count, default: 0
@@ -959,6 +958,7 @@ ActiveRecord::Schema.define do
 
   create_table :men, force: true do |t|
     t.string  :name
+    t.integer :number
   end
 
   create_table :faces, force: true do |t|
@@ -978,6 +978,8 @@ ActiveRecord::Schema.define do
     t.integer :man_id
     t.integer :polymorphic_man_id
     t.string :polymorphic_man_type
+    t.integer :polymorphic_man_with_primary_key_id
+    t.string :polymorphic_man_with_primary_key_type
     t.integer :zine_id
   end
 
