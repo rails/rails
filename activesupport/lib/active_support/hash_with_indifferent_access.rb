@@ -225,8 +225,8 @@ module ActiveSupport
     #   hash[:a] = 'x'
     #   hash[:b] = 'y'
     #   hash.values_at('a', 'b') # => ["x", "y"]
-    def values_at(*indices)
-      indices.collect { |key| self[convert_key(key)] }
+    def values_at(*keys)
+      super(*keys.map { |key| convert_key(key) })
     end
 
     # Returns an array of the values at the specified indices, but also
