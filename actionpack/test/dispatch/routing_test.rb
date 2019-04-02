@@ -2210,25 +2210,25 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       end
     end
 
-    get '/posts/1/comments'
-    assert_equal 'comments#index', @response.body
-    assert_equal '/posts/1/comments', post_comments_path('1')
+    get "/posts/1/comments"
+    assert_equal "comments#index", @response.body
+    assert_equal "/posts/1/comments", post_comments_path("1")
 
-    get '/posts/1/comments/new'
-    assert_equal 'comments#new', @response.body
-    assert_equal '/posts/1/comments/new', new_post_comment_path('1')
+    get "/posts/1/comments/new"
+    assert_equal "comments#new", @response.body
+    assert_equal "/posts/1/comments/new", new_post_comment_path("1")
 
-    get '/posts/1/comments/2'
-    assert_equal 'comments#show', @response.body
-    assert_equal '/posts/1/comments/2', post_comment_path('1', '2')
+    get "/posts/1/comments/2"
+    assert_equal "comments#show", @response.body
+    assert_equal "/posts/1/comments/2", post_comment_path("1", "2")
 
-    get '/posts/1/comments/2/edit'
-    assert_equal 'comments#edit', @response.body
-    assert_equal '/posts/1/comments/2/edit', edit_post_comment_path('1', '2')
+    get "/posts/1/comments/2/edit"
+    assert_equal "comments#edit", @response.body
+    assert_equal "/posts/1/comments/2/edit", edit_post_comment_path("1", "2")
 
-    get '/tags/3'
-    assert_equal 'tags#show', @response.body
-    assert_equal '/tags/3', tag_path('3')
+    get "/tags/3"
+    assert_equal "tags#show", @response.body
+    assert_equal "/tags/3", tag_path("3")
   end
 
   def test_shallow_deeply_nested_resources

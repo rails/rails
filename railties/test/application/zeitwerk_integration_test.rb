@@ -181,8 +181,8 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
     boot("production")
 
     assert $zeitwerk_integration_test_user
-    assert !$zeitwerk_integration_test_lib
-    assert !$zeitwerk_integration_test_extras
+    assert_not $zeitwerk_integration_test_lib
+    assert_not $zeitwerk_integration_test_extras
 
     assert WebhookHacks
     assert WebsocketHacks
