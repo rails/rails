@@ -553,6 +553,15 @@ module ApplicationTests
           end
         end
       end
+
+      test "db:prepare setup the database" do
+        Dir.chdir(app_path) do
+          rails "generate", "model", "book", "title:string"
+          output = rails("db:prepare")
+
+          assert_match /CreateBooks: migrated/, output
+        end
+      end
     end
   end
 end

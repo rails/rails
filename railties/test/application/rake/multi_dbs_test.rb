@@ -137,6 +137,21 @@ module ApplicationTests
         end
       end
 
+      def db_prepare
+        Dir.chdir(app_path) do
+          generate_models_for_animals
+          output = rails("db:prepare")
+
+          ActiveRecord::Base.configurations.configs_for(env_name: Rails.env).each do |db_config|
+            if db_config.spec_name == "primary"
+              assert_match(/CreateBooks: migrated/, output)
+            else
+              assert_match(/CreateDogs: migrated/, output)
+            end
+          end
+        end
+      end
+
       def write_models_for_animals
         # make a directory for the animals migration
         FileUtils.mkdir_p("#{app_path}/db/animals_migrate")
@@ -175,6 +190,7 @@ module ApplicationTests
 
       test "db:create and db:drop works on all databases for env" do
         require "#{app_path}/config/environment"
+
         ActiveRecord::Base.configurations.configs_for(env_name: Rails.env).each do |db_config|
           db_create_and_drop db_config.spec_name, db_config.config["database"]
         end
@@ -225,6 +241,11 @@ module ApplicationTests
       test "db:schema:cache:clear works on all databases" do
         require "#{app_path}/config/environment"
         db_migrate_and_schema_cache_dump_and_schema_cache_clear
+      end
+
+      test "db:prepare works on all databases" do
+        require "#{app_path}/config/environment"
+        db_prepare
       end
     end
   end
