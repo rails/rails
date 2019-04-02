@@ -1,6 +1,6 @@
 *   Replace `chromedriver-helper` gem with `webdrivers` in default Gemfile.
-   `chromedriver-helper` is deprecated as of March 31, 2019 and won't
-   recieve any further updates.
+    `chromedriver-helper` is deprecated as of March 31, 2019 and won't
+    receive any further updates.
 
     *Guillermo Iguaran‮*
 
