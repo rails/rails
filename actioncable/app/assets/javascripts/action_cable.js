@@ -477,15 +477,17 @@
     return Consumer;
   }();
   function createWebSocketURL(url) {
-    var webSocketURL = typeof url === "function" ? url() : url;
-    if (webSocketURL && !/^wss?:/i.test(webSocketURL)) {
+    if (typeof url === "function") {
+      url = url();
+    }
+    if (url && !/^wss?:/i.test(url)) {
       var a = document.createElement("a");
-      a.href = webSocketURL;
+      a.href = url;
       a.href = a.href;
       a.protocol = a.protocol.replace("http", "ws");
       return a.href;
     } else {
-      return webSocketURL;
+      return url;
     }
   }
   function createConsumer() {
@@ -505,8 +507,8 @@
   exports.Subscription = Subscription;
   exports.Subscriptions = Subscriptions;
   exports.adapters = adapters;
-  exports.logger = logger;
   exports.createWebSocketURL = createWebSocketURL;
+  exports.logger = logger;
   exports.createConsumer = createConsumer;
   exports.getConfig = getConfig;
   Object.defineProperty(exports, "__esModule", {
