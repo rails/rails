@@ -225,12 +225,10 @@ db_namespace = namespace :db do
   desc "Runs setup if database does not exist, or runs migrations if it does"
   task prepare: :load_config do
     ActiveRecord::Base.configurations.configs_for(env_name: Rails.env).each do |db_config|
-      begin
-        ActiveRecord::Base.establish_connection(db_config.config)
-        db_namespace["migrate"].invoke
-      rescue ActiveRecord::NoDatabaseError
-        db_namespace["setup"].invoke
-      end
+      ActiveRecord::Base.establish_connection(db_config.config)
+      db_namespace["migrate"].invoke
+    rescue ActiveRecord::NoDatabaseError
+      db_namespace["setup"].invoke
     end
   end
 

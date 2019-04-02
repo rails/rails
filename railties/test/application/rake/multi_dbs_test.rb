@@ -190,7 +190,6 @@ module ApplicationTests
 
       test "db:create and db:drop works on all databases for env" do
         require "#{app_path}/config/environment"
-
         ActiveRecord::Base.configurations.configs_for(env_name: Rails.env).each do |db_config|
           db_create_and_drop db_config.spec_name, db_config.config["database"]
         end

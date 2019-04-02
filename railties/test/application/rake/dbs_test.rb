@@ -559,7 +559,7 @@ module ApplicationTests
           rails "generate", "model", "book", "title:string"
           output = rails("db:prepare")
 
-          assert_match /CreateBooks: migrated/, output
+          assert_match(/CreateBooks: migrated/, output)
         end
       end
     end
