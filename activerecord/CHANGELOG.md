@@ -5,6 +5,16 @@
 
     *Shojiro Yanagisawa*
 
+*   Add `rails db:prepare` to migrate or setup a database.
+
+    Runs `db:migrate` if the database exists or `db:setup` if it doesn't.
+
+    *Roberto Miranda*
+
+*   Add `after_save_commit` callback as shortcut for `after_commit :hook, on: [ :create, :update ]`.
+
+    *DHH*
+
 *   Assign all attributes before calling `build` to ensure the child record is visible in
     `before_add` and `after_add` callbacks for `has_many :through` associations.
 
@@ -82,7 +92,7 @@
     bulk deletes by `delete_all`.
 
     Supports skipping or upserting duplicates through the `ON CONFLICT` syntax
-    for Postgres (9.5+) and Sqlite (3.24+) and `ON DUPLICATE KEY UPDATE` syntax
+    for PostgreSQL (9.5+) and SQLite (3.24+) and `ON DUPLICATE KEY UPDATE` syntax
     for MySQL.
 
     *Bob Lail*

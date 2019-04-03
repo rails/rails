@@ -180,7 +180,7 @@ module ActiveRecord
       #   raw_timestamp_to_cache_version(timestamp)
       #   # => "20181015200215266505"
       #
-      # Postgres truncates trailing zeros,
+      # PostgreSQL truncates trailing zeros,
       # https://github.com/postgres/postgres/commit/3e1beda2cde3495f41290e1ece5d544525810214
       # to account for this we pad the output with zeros
       def raw_timestamp_to_cache_version(timestamp)

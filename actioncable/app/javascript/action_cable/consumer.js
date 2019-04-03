@@ -58,16 +58,18 @@ export default class Consumer {
 }
 
 export function createWebSocketURL(url) {
-  const webSocketURL = typeof url === "function" ? url() : url
+  if (typeof url === "function") {
+    url = url()
+  }
 
-  if (webSocketURL && !/^wss?:/i.test(webSocketURL)) {
+  if (url && !/^wss?:/i.test(url)) {
     const a = document.createElement("a")
-    a.href = webSocketURL
+    a.href = url
     // Fix populating Location properties in IE. Otherwise, protocol will be blank.
     a.href = a.href
     a.protocol = a.protocol.replace("http", "ws")
     return a.href
   } else {
-    return webSocketURL
+    return url
   }
 }

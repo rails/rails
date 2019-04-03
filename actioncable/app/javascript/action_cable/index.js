@@ -15,8 +15,8 @@ export {
   Subscription,
   Subscriptions,
   adapters,
-  logger,
   createWebSocketURL,
+  logger,
 }
 
 export function createConsumer(url = getConfig("url") || INTERNAL.default_mount_path) {
