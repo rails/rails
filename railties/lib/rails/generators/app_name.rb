@@ -7,11 +7,11 @@ module Rails
 
       private
         def app_name
-          @app_name ||= original_app_name.tr("-", "_")
+          @app_name ||= original_app_name.tr('\\', "").tr("-. ", "_")
         end
 
         def original_app_name
-          @original_app_name ||= (defined_app_const_base? ? defined_app_name : File.basename(destination_root)).tr('\\', "").tr(". ", "_")
+          @original_app_name ||= defined_app_const_base? ? defined_app_name : File.basename(destination_root)
         end
 
         def defined_app_name
