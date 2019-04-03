@@ -105,10 +105,6 @@ module ActiveRecord
           inverse && inverse.options[:primary_key] || reflection.association_primary_key(klass)
         end
 
-        def has_many_reflection
-          klass.reflections.values.find { |reflection| reflection.polymorphic_inverse_of(owner.class) }
-        end
-
         def foreign_key_present?
           owner._read_attribute(reflection.foreign_key)
         end
