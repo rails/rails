@@ -1305,6 +1305,21 @@ The `:source` option specifies the source association name for a `has_one :throu
 
 The `:source_type` option specifies the source association type for a `has_one :through` association that proceeds through a polymorphic association.
 
+```ruby
+class Book < ApplicationRecord
+  has_one :format, polymorphic: true
+  has_one :dust_jacket, through: :format, source: :dust_jacket, source_type: "Hardback"
+end
+
+class Paperback < ApplicationRecord; end
+
+class Hardback < ApplicationRecord
+  has_one :dust_jacket
+end
+
+class DustJacket < ApplicationRecord; end
+```
+
 ##### `:through`
 
 The `:through` option specifies a join model through which to perform the query. `has_one :through` associations were discussed in detail [earlier in this guide](#the-has-one-through-association).
@@ -1716,6 +1731,20 @@ The `:source` option specifies the source association name for a `has_many :thro
 ##### `:source_type`
 
 The `:source_type` option specifies the source association type for a `has_many :through` association that proceeds through a polymorphic association.
+
+```ruby
+class Author < ApplicationRecord
+  has_many :books
+  has_many :paperbacks, through: :books, source: :format, source_type: "Paperback"
+end
+
+class Book < ApplicationRecord
+  has_one :format, polymorphic: true
+end
+
+class Hardback < ApplicationRecord; end
+class Paperback < ApplicationRecord; end
+```
 
 ##### `:through`
 
