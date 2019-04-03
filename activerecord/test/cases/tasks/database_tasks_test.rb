@@ -50,6 +50,8 @@ module ActiveRecord
       protected_environments = ActiveRecord::Base.protected_environments
       current_env            = ActiveRecord::Base.connection.migration_context.current_environment
 
+      InternalMetadata[:environment] = current_env
+
       assert_called_on_instance_of(
         ActiveRecord::MigrationContext,
         :current_version,
@@ -73,6 +75,9 @@ module ActiveRecord
     def test_raises_an_error_when_called_with_protected_environment_which_name_is_a_symbol
       protected_environments = ActiveRecord::Base.protected_environments
       current_env            = ActiveRecord::Base.connection.migration_context.current_environment
+
+      InternalMetadata[:environment] = current_env
+
       assert_called_on_instance_of(
         ActiveRecord::MigrationContext,
         :current_version,
@@ -951,11 +956,22 @@ module ActiveRecord
 
       fixtures :authors, :author_addresses
 
+      def setup
+        SchemaMigration.create_table
+        SchemaMigration.create!(version: "foo")
+        InternalMetadata.create_table
+        InternalMetadata.create!(key: "foo", value: "bar")
+      end
+
       def teardown
+        SchemaMigration.drop_table
+        InternalMetadata.drop_table
         ActiveRecord::Base.connection_handlers = { writing: ActiveRecord::Base.default_connection_handler }
       end
 
       def test_truncate_tables
+        assert_operator SchemaMigration.count, :>, 0
+        assert_operator InternalMetadata.count, :>, 0
         assert_operator Author.count, :>, 0
         assert_operator AuthorAddress.count, :>, 0
 
@@ -969,10 +985,52 @@ module ActiveRecord
           )
         end
 
+        assert_operator SchemaMigration.count, :>, 0
+        assert_operator InternalMetadata.count, :>, 0
         assert_equal 0, Author.count
         assert_equal 0, AuthorAddress.count
       ensure
         ActiveRecord::Base.configurations = old_configurations
+      end
+    end
+
+    class DatabaseTasksTruncateAllWithPrefixTest < DatabaseTasksTruncateAllTest
+      setup do
+        ActiveRecord::Base.table_name_prefix = "p_"
+
+        SchemaMigration.reset_table_name
+        SchemaMigration.reset_column_information
+        InternalMetadata.reset_table_name
+        InternalMetadata.reset_column_information
+      end
+
+      teardown do
+        ActiveRecord::Base.table_name_prefix = nil
+
+        SchemaMigration.reset_table_name
+        SchemaMigration.reset_column_information
+        InternalMetadata.reset_table_name
+        InternalMetadata.reset_column_information
+      end
+    end
+
+    class DatabaseTasksTruncateAllWithSuffixTest < DatabaseTasksTruncateAllTest
+      setup do
+        ActiveRecord::Base.table_name_suffix = "_s"
+
+        SchemaMigration.reset_table_name
+        SchemaMigration.reset_column_information
+        InternalMetadata.reset_table_name
+        InternalMetadata.reset_column_information
+      end
+
+      teardown do
+        ActiveRecord::Base.table_name_suffix = nil
+
+        SchemaMigration.reset_table_name
+        SchemaMigration.reset_column_information
+        InternalMetadata.reset_table_name
+        InternalMetadata.reset_column_information
       end
     end
   end
