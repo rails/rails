@@ -2466,9 +2466,9 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     man = Man.create!(name: "foo", number: 100)
     interest = man.polymorphic_interests_with_primary_key.build
     interest.save
-    assert man.polymorphic_interests_with_primary_key.present?
+    assert_predicate man.polymorphic_interests_with_primary_key, :present?
     man.reload
-    assert man.polymorphic_interests_with_primary_key.present?
+    assert_predicate man.polymorphic_interests_with_primary_key, :present?
   end
 
   def test_dont_call_save_callbacks_twice_on_has_many
