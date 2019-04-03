@@ -107,9 +107,9 @@ module ActiveRecord
       #     unique_by: %i[ author_id name ]
       #     unique_by: :index_books_on_isbn
       #
-      #  Because it relies on the index information from the database
-      #  <tt>:unique_by</tt> is recommended to be paired with
-      #  Active Record's schema_cache.
+      # Because it relies on the index information from the database
+      # <tt>:unique_by</tt> is recommended to be paired with
+      # Active Record's schema_cache.
       #
       # ==== Example
       #
@@ -224,9 +224,9 @@ module ActiveRecord
       #     unique_by: %i[ author_id name ]
       #     unique_by: :index_books_on_isbn
       #
-      #  Because it relies on the index information from the database
-      #  <tt>:unique_by</tt> is recommended to be paired with
-      #  Active Record's schema_cache.
+      # Because it relies on the index information from the database
+      # <tt>:unique_by</tt> is recommended to be paired with
+      # Active Record's schema_cache.
       #
       # ==== Examples
       #
@@ -238,7 +238,7 @@ module ActiveRecord
       #     { title: "Eloquent Ruby", author: "Russ", isbn: "1" }
       #   ], unique_by: :isbn)
       #
-      #  Book.find_by(isbn: "1").title # => "Eloquent Ruby"
+      #   Book.find_by(isbn: "1").title # => "Eloquent Ruby"
       def upsert_all(attributes, returning: nil, unique_by: nil)
         InsertAll.new(self, attributes, on_duplicate: :update, returning: returning, unique_by: unique_by).execute
       end
