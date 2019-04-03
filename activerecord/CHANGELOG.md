@@ -1,3 +1,7 @@
+*   Add `rake db:prepare` runs setup if database does not exist, or runs migrations if it does.
+
+    *Roberto Miranda*
+
 *   Add `after_save_commit` callback as shortcut for `after_commit :hook, on: [ :create, :update ]`.
 
     *DHH*
