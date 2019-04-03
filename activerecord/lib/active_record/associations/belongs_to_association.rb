@@ -97,12 +97,20 @@ module ActiveRecord
         end
 
         def replace_keys(record)
-          owner[reflection.foreign_key] = record ? record._read_attribute(primary_key(record.class)) : nil
+          owner[reflection.foreign_key] = record ? record._read_attribute(inverse_primary_key(record) || primary_key(record.class)) : nil
+        end
+
+        def inverse_primary_key(record)
+          inverse = inverse_reflection_for(record) || reverse_inverse_reflection_for(record)
+          inverse && inverse.options[:primary_key]
+        end
+
+        def reverse_inverse_reflection_for(record)
+          record._reflections.values.find { |record_reflection| record_reflection.options[:inverse_of] == reflection.name }
         end
 
         def primary_key(klass)
-          inverse = inverse_reflection_for(klass)
-          inverse && inverse.options[:primary_key] || reflection.association_primary_key(klass)
+          reflection.association_primary_key(klass)
         end
 
         def foreign_key_present?
@@ -112,7 +120,7 @@ module ActiveRecord
         # NOTE - for now, we're only supporting inverse setting from belongs_to back onto
         # has_one associations.
         def invertible_for?(record)
-          inverse = inverse_reflection_for(record.class)
+          inverse = inverse_reflection_for(record)
           inverse && inverse.has_one?
         end
 

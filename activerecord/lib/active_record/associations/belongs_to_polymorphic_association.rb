@@ -19,8 +19,8 @@ module ActiveRecord
           owner[reflection.foreign_type] = record ? record.class.polymorphic_name : nil
         end
 
-        def inverse_reflection_for(klass)
-          reflection.polymorphic_inverse_of(klass)
+        def inverse_reflection_for(record)
+          reflection.polymorphic_inverse_of(record.class)
         end
 
         def raise_on_type_mismatch!(record)

@@ -283,21 +283,21 @@ module ActiveRecord
 
         def inverse_association_for(record)
           if invertible_for?(record)
-            record.association(inverse_reflection_for(record.class).name)
+            record.association(inverse_reflection_for(record).name)
           end
         end
 
         # Can be redefined by subclasses, notably polymorphic belongs_to
-        # The klass parameter is necessary to support polymorphic inverses as we must check for
-        # the association in the specific class.
-        def inverse_reflection_for(klass)
+        # The record parameter is necessary to support polymorphic inverses as we must check for
+        # the association in the specific class of the record.
+        def inverse_reflection_for(record)
           reflection.inverse_of
         end
 
         # Returns true if inverse association on the given record needs to be set.
         # This method is redefined by subclasses.
         def invertible_for?(record)
-          foreign_key_for?(record) && inverse_reflection_for(record.class)
+          foreign_key_for?(record) && inverse_reflection_for(record)
         end
 
         # Returns true if record contains the foreign_key
