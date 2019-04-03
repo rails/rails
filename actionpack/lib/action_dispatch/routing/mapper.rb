@@ -115,9 +115,9 @@ module ActionDispatch
           @defaults = defaults
           @set = set
 
-          @to                 = to
-          @default_controller = controller
-          @default_action     = default_action
+          @to                 = intern(to)
+          @default_controller = intern(controller)
+          @default_action     = intern(default_action)
           @ast                = ast
           @anchor             = anchor
           @via                = via
@@ -222,6 +222,10 @@ module ActionDispatch
         private :build_path
 
         private
+          def intern(object)
+            object.is_a?(String) ? -object : object
+          end
+
           def add_wildcard_options(options, formatted, path_ast)
             # Add a constraint for wildcard route to make it non-greedy and match the
             # optional format part of the route by default.

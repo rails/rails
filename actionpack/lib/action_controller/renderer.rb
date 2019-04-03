@@ -116,7 +116,7 @@ module ActionController
 
       RACK_VALUE_TRANSLATION = {
         https: ->(v) { v ? "on" : "off" },
-        method: ->(v) { v.upcase },
+        method: ->(v) { -v.upcase },
       }
 
       def rack_key_for(key)

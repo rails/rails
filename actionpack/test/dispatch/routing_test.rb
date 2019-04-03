@@ -3379,13 +3379,13 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_match(/:param option can't contain colon/, ex.message)
   end
 
-  def test_action_from_path_is_not_frozen
+  def test_action_from_path_is_frozen
     draw do
       get "search" => "search"
     end
 
     get "/search"
-    assert_not_predicate @request.params[:action], :frozen?
+    assert_predicate @request.params[:action], :frozen?
   end
 
   def test_multiple_positional_args_with_the_same_name
