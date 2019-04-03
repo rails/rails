@@ -85,14 +85,14 @@ module ActiveRecord
       # ==== Options
       #
       # [:returning]
-      #   (Postgres-only) An array of attributes to return for all successfully
+      #   (PostgreSQL only) An array of attributes to return for all successfully
       #   inserted records, which by default is the primary key.
       #   Pass <tt>returning: %w[ id name ]</tt> for both id and name
       #   or <tt>returning: false</tt> to omit the underlying <tt>RETURNING</tt> SQL
       #   clause entirely.
       #
       # [:unique_by]
-      #   (Postgres and SQLite only) By default rows are considered to be unique
+      #   (PostgreSQL and SQLite only) By default rows are considered to be unique
       #   by every unique index on the table. Any duplicate rows are skipped.
       #
       #   To skip rows according to just one unique index pass <tt>:unique_by</tt>.
@@ -154,7 +154,7 @@ module ActiveRecord
       # ==== Options
       #
       # [:returning]
-      #   (Postgres-only) An array of attributes to return for all successfully
+      #   (PostgreSQL only) An array of attributes to return for all successfully
       #   inserted records, which by default is the primary key.
       #   Pass <tt>returning: %w[ id name ]</tt> for both id and name
       #   or <tt>returning: false</tt> to omit the underlying <tt>RETURNING</tt> SQL
@@ -202,14 +202,14 @@ module ActiveRecord
       # ==== Options
       #
       # [:returning]
-      #   (Postgres-only) An array of attributes to return for all successfully
+      #   (PostgreSQL only) An array of attributes to return for all successfully
       #   inserted records, which by default is the primary key.
       #   Pass <tt>returning: %w[ id name ]</tt> for both id and name
       #   or <tt>returning: false</tt> to omit the underlying <tt>RETURNING</tt> SQL
       #   clause entirely.
       #
       # [:unique_by]
-      #   (Postgres and SQLite only) By default rows are considered to be unique
+      #   (PostgreSQL and SQLite only) By default rows are considered to be unique
       #   by every unique index on the table. Any duplicate rows are skipped.
       #
       #   To skip rows according to just one unique index pass <tt>:unique_by</tt>.

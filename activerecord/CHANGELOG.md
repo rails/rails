@@ -79,7 +79,7 @@
     bulk deletes by `delete_all`.
 
     Supports skipping or upserting duplicates through the `ON CONFLICT` syntax
-    for Postgres (9.5+) and Sqlite (3.24+) and `ON DUPLICATE KEY UPDATE` syntax
+    for PostgreSQL (9.5+) and SQLite (3.24+) and `ON DUPLICATE KEY UPDATE` syntax
     for MySQL.
 
     *Bob Lail*
