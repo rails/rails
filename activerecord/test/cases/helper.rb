@@ -53,7 +53,7 @@ def supports_default_expression?
     true
   elsif current_adapter?(:Mysql2Adapter)
     conn = ActiveRecord::Base.connection
-    !conn.mariadb? && conn.version >= "8.0.13"
+    !conn.mariadb? && conn.database_version >= "8.0.13"
   end
 end
 

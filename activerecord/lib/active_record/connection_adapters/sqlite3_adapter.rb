@@ -111,7 +111,7 @@ module ActiveRecord
       end
 
       def supports_expression_index?
-        sqlite_version >= "3.9.0"
+        database_version >= "3.9.0"
       end
 
       def requires_reloading?
@@ -135,7 +135,7 @@ module ActiveRecord
       end
 
       def supports_insert_on_conflict?
-        sqlite_version >= "3.24.0"
+        database_version >= "3.24.0"
       end
       alias supports_insert_on_duplicate_skip? supports_insert_on_conflict?
       alias supports_insert_on_duplicate_update? supports_insert_on_conflict?
@@ -397,17 +397,21 @@ module ActiveRecord
         sql
       end
 
+      def get_database_version # :nodoc:
+        SQLite3Adapter::Version.new(query_value("SELECT sqlite_version(*)"))
+      end
+
+      def check_version # :nodoc:
+        if database_version < "3.8.0"
+          raise "Your version of SQLite (#{database_version}) is too old. Active Record supports SQLite >= 3.8."
+        end
+      end
+
       private
         # See https://www.sqlite.org/limits.html,
         # the default value is 999 when not configured.
         def bind_params_length
           999
-        end
-
-        def check_version
-          if sqlite_version < "3.8.0"
-            raise "Your version of SQLite (#{sqlite_version}) is too old. Active Record supports SQLite >= 3.8."
-          end
         end
 
         def initialize_type_map(m = type_map)
@@ -525,10 +529,6 @@ module ActiveRecord
 
           exec_query("INSERT INTO #{quote_table_name(to)} (#{quoted_columns})
                      SELECT #{quoted_from_columns} FROM #{quote_table_name(from)}")
-        end
-
-        def sqlite_version
-          @sqlite_version ||= SQLite3Adapter::Version.new(query_value("SELECT sqlite_version(*)"))
         end
 
         def translate_exception(exception, message:, sql:, binds:)
