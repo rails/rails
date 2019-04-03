@@ -50,6 +50,7 @@ module ActiveRecord
       protected_environments = ActiveRecord::Base.protected_environments
       current_env            = ActiveRecord::Base.connection.migration_context.current_environment
 
+      InternalMetadata.create_table
       InternalMetadata[:environment] = current_env
 
       assert_called_on_instance_of(
@@ -76,6 +77,7 @@ module ActiveRecord
       protected_environments = ActiveRecord::Base.protected_environments
       current_env            = ActiveRecord::Base.connection.migration_context.current_environment
 
+      InternalMetadata.create_table
       InternalMetadata[:environment] = current_env
 
       assert_called_on_instance_of(
@@ -958,9 +960,9 @@ module ActiveRecord
 
       def setup
         SchemaMigration.create_table
-        SchemaMigration.create!(version: "foo")
+        SchemaMigration.create!(version: SchemaMigration.table_name)
         InternalMetadata.create_table
-        InternalMetadata.create!(key: "foo", value: "bar")
+        InternalMetadata.create!(key: InternalMetadata.table_name)
       end
 
       def teardown
