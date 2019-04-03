@@ -1001,18 +1001,14 @@ module ActiveRecord
         ActiveRecord::Base.table_name_prefix = "p_"
 
         SchemaMigration.reset_table_name
-        SchemaMigration.reset_column_information
         InternalMetadata.reset_table_name
-        InternalMetadata.reset_column_information
       end
 
       teardown do
         ActiveRecord::Base.table_name_prefix = nil
 
         SchemaMigration.reset_table_name
-        SchemaMigration.reset_column_information
         InternalMetadata.reset_table_name
-        InternalMetadata.reset_column_information
       end
     end
 
@@ -1021,18 +1017,14 @@ module ActiveRecord
         ActiveRecord::Base.table_name_suffix = "_s"
 
         SchemaMigration.reset_table_name
-        SchemaMigration.reset_column_information
         InternalMetadata.reset_table_name
-        InternalMetadata.reset_column_information
       end
 
       teardown do
         ActiveRecord::Base.table_name_suffix = nil
 
         SchemaMigration.reset_table_name
-        SchemaMigration.reset_column_information
         InternalMetadata.reset_table_name
-        InternalMetadata.reset_column_information
       end
     end
   end
