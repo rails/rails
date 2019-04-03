@@ -1,4 +1,6 @@
-*   Add `rake db:prepare` runs setup if database does not exist, or runs migrations if it does.
+*   Add `rails db:prepare` to migrate or setup a database.
+
+    Runs `db:migrate` if the database exists or `db:setup` if it doesn't.
 
     *Roberto Miranda*
 
