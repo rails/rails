@@ -992,6 +992,12 @@ module ActiveRecord
       @arel ||= build_arel(aliases)
     end
 
+    def construct_join_dependency(associations) # :nodoc:
+      ActiveRecord::Associations::JoinDependency.new(
+        klass, table, associations
+      )
+    end
+
     protected
       def build_subquery(subquery_alias, select_value) # :nodoc:
         subquery = except(:optimizer_hints).arel.as(subquery_alias)
@@ -1021,8 +1027,11 @@ module ActiveRecord
       def build_arel(aliases)
         arel = Arel::SelectManager.new(table)
 
-        aliases = build_joins(arel, joins_values.flatten, aliases) unless joins_values.empty?
-        build_left_outer_joins(arel, left_outer_joins_values.flatten, aliases) unless left_outer_joins_values.empty?
+        if !joins_values.empty?
+          build_joins(arel, joins_values.flatten, aliases)
+        elsif !left_outer_joins_values.empty?
+          build_left_outer_joins(arel, left_outer_joins_values.flatten, aliases)
+        end
 
         arel.where(where_clause.ast) unless where_clause.empty?
         arel.having(having_clause.ast) unless having_clause.empty?
@@ -1072,22 +1081,28 @@ module ActiveRecord
         end
       end
 
-      def build_left_outer_joins(manager, outer_joins, aliases)
-        buckets = outer_joins.group_by do |join|
-          case join
+      def valid_association_list(associations)
+        associations.each do |association|
+          case association
           when Hash, Symbol, Array
-            :association_join
-          when ActiveRecord::Associations::JoinDependency
-            :stashed_join
+            # valid
           else
             raise ArgumentError, "only Hash, Symbol and Array are allowed"
           end
         end
+      end
 
+      def build_left_outer_joins(manager, outer_joins, aliases)
+        buckets = { association_join: valid_association_list(outer_joins) }
         build_join_query(manager, buckets, Arel::Nodes::OuterJoin, aliases)
       end
 
       def build_joins(manager, joins, aliases)
+        unless left_outer_joins_values.empty?
+          left_joins = valid_association_list(left_outer_joins_values.flatten)
+          joins << construct_join_dependency(left_joins)
+        end
+
         buckets = joins.group_by do |join|
           case join
           when String
