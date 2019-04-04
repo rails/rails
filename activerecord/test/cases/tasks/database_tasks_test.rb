@@ -50,7 +50,6 @@ module ActiveRecord
       protected_environments = ActiveRecord::Base.protected_environments
       current_env            = ActiveRecord::Base.connection.migration_context.current_environment
 
-      InternalMetadata.create_table
       InternalMetadata[:environment] = current_env
 
       assert_called_on_instance_of(
@@ -77,7 +76,6 @@ module ActiveRecord
       protected_environments = ActiveRecord::Base.protected_environments
       current_env            = ActiveRecord::Base.connection.migration_context.current_environment
 
-      InternalMetadata.create_table
       InternalMetadata[:environment] = current_env
 
       assert_called_on_instance_of(
@@ -966,8 +964,8 @@ module ActiveRecord
       end
 
       def teardown
-        SchemaMigration.drop_table
-        InternalMetadata.drop_table
+        SchemaMigration.delete_all
+        InternalMetadata.delete_all
         ActiveRecord::Base.connection_handlers = { writing: ActiveRecord::Base.default_connection_handler }
       end
 
