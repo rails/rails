@@ -317,6 +317,51 @@ module ActiveRecord
       @cache_keys[timestamp_column] ||= @klass.collection_cache_key(self, timestamp_column)
     end
 
+    def compute_cache_key(timestamp_column = :updated_at) # :nodoc:
+      query_signature = ActiveSupport::Digest.hexdigest(to_sql)
+      key = "#{klass.model_name.cache_key}/query-#{query_signature}"
+
+      if loaded? || distinct_value
+        size = records.size
+        if size > 0
+          timestamp = max_by(&timestamp_column)._read_attribute(timestamp_column)
+        end
+      else
+        collection = eager_loading? ? apply_join_dependency : self
+
+        column = connection.visitor.compile(arel_attribute(timestamp_column))
+        select_values = "COUNT(*) AS #{connection.quote_column_name("size")}, MAX(%s) AS timestamp"
+
+        if collection.has_limit_or_offset?
+          query = collection.select("#{column} AS collection_cache_key_timestamp")
+          subquery_alias = "subquery_for_cache_key"
+          subquery_column = "#{subquery_alias}.collection_cache_key_timestamp"
+          arel = query.build_subquery(subquery_alias, select_values % subquery_column)
+        else
+          query = collection.unscope(:order)
+          query.select_values = [select_values % column]
+          arel = query.arel
+        end
+
+        result = connection.select_one(arel, nil)
+
+        if result
+          column_type = klass.type_for_attribute(timestamp_column)
+          timestamp = column_type.deserialize(result["timestamp"])
+          size = result["size"]
+        else
+          timestamp = nil
+          size = 0
+        end
+      end
+
+      if timestamp
+        "#{key}-#{size}-#{timestamp.utc.to_s(cache_timestamp_format)}"
+      else
+        "#{key}-#{size}"
+      end
+    end
+
     # Scope all queries to the current scope.
     #
     #   Comment.where(post_id: 1).scoping do
