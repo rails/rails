@@ -992,6 +992,15 @@ module ActiveRecord
       @arel ||= build_arel(aliases)
     end
 
+    protected
+      def build_subquery(subquery_alias, select_value) # :nodoc:
+        subquery = except(:optimizer_hints).arel.as(subquery_alias)
+
+        Arel::SelectManager.new(subquery).project(select_value).tap do |arel|
+          arel.optimizer_hints(*optimizer_hints_values) unless optimizer_hints_values.empty?
+        end
+      end
+
     private
       # Returns a relation value with a given name
       def get_value(name)

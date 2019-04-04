@@ -23,8 +23,7 @@ module ActiveRecord
           query = collection.select("#{column} AS collection_cache_key_timestamp")
           subquery_alias = "subquery_for_cache_key"
           subquery_column = "#{subquery_alias}.collection_cache_key_timestamp"
-          subquery = query.arel.as(subquery_alias)
-          arel = Arel::SelectManager.new(subquery).project(select_values % subquery_column)
+          arel = query.send(:build_subquery, subquery_alias, select_values % subquery_column)
         else
           query = collection.unscope(:order)
           query.select_values = [select_values % column]
