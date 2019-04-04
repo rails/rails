@@ -420,7 +420,7 @@ If a template with the specified format does not exist an `ActionView::MissingTe
 
 ##### The `:variants` Option
 
-This tells rails to look for template variations of the same format.
+This tells Rails to look for template variations of the same format.
 You can specify a list of variants by passing the `:variants` option with a symbol or an array. 
 
 An example of use would be this.
