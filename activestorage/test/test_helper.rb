@@ -101,3 +101,5 @@ end
 class Group < ActiveRecord::Base
   has_one_attached :avatar
 end
+
+require_relative "../../tools/test_common"
