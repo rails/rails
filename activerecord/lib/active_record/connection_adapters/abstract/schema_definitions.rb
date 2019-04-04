@@ -20,10 +20,14 @@ module ActiveRecord
         using: nil,
         comment: nil
       )
-        @table = table
-        @name = name
+        @table = intern(table)
+        @name = intern(name)
         @unique = unique
-        @columns = columns
+        @columns = if columns.is_a?(Array)
+          columns.map { |c| intern(c) }.freeze
+        else
+          intern(columns)
+        end
         @lengths = concise_options(lengths)
         @orders = concise_options(orders)
         @opclasses = concise_options(opclasses)
@@ -40,6 +44,10 @@ module ActiveRecord
           else
             options
           end
+        end
+
+        def intern(value)
+          value.is_a?(String) ? -value : value
         end
     end
 

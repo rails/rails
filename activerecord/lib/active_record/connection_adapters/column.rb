@@ -16,14 +16,14 @@ module ActiveRecord
       # +sql_type_metadata+ is various information about the type of the column
       # +null+ determines if this column allows +NULL+ values.
       def initialize(name, default, sql_type_metadata = nil, null = true, table_name = nil, default_function = nil, collation = nil, comment: nil, **)
-        @name = name.freeze
-        @table_name = table_name
+        @name = intern(name)
+        @table_name = intern(table_name)
         @sql_type_metadata = sql_type_metadata
         @null = null
-        @default = default
-        @default_function = default_function
-        @collation = collation
-        @comment = comment
+        @default = intern(default)
+        @default_function = intern(default_function)
+        @collation = intern(collation)
+        @comment = intern(comment)
       end
 
       def has_default?
@@ -43,14 +43,14 @@ module ActiveRecord
       end
 
       def init_with(coder)
-        @name = coder["name"]
-        @table_name = coder["table_name"]
+        @name = intern(coder["name"])
+        @table_name = intern(coder["table_name"])
         @sql_type_metadata = coder["sql_type_metadata"]
         @null = coder["null"]
-        @default = coder["default"]
-        @default_function = coder["default_function"]
-        @collation = coder["collation"]
-        @comment = coder["comment"]
+        @default = intern(coder["default"])
+        @default_function = intern(coder["default_function"])
+        @collation = intern(coder["collation"])
+        @comment = intern(coder["comment"])
       end
 
       def encode_with(coder)
@@ -78,6 +78,12 @@ module ActiveRecord
 
         def attributes_for_hash
           [self.class, name, default, sql_type_metadata, null, table_name, default_function, collation]
+        end
+
+      private
+
+        def intern(value)
+          value.is_a?(String) ? -value : value
         end
     end
 

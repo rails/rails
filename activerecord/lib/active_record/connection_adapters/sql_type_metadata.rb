@@ -7,7 +7,7 @@ module ActiveRecord
       attr_reader :sql_type, :type, :limit, :precision, :scale
 
       def initialize(sql_type: nil, type: nil, limit: nil, precision: nil, scale: nil)
-        @sql_type = sql_type
+        @sql_type = intern(sql_type)
         @type = type
         @limit = limit
         @precision = precision
@@ -28,6 +28,12 @@ module ActiveRecord
 
         def attributes_for_hash
           [self.class, sql_type, type, limit, precision, scale]
+        end
+
+      private
+
+        def intern(value)
+          value.is_a?(String) ? -value : value
         end
     end
   end

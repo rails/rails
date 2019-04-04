@@ -11,7 +11,7 @@ module ActiveRecord
         def initialize(type_metadata, extra: "")
           super(type_metadata)
           @type_metadata = type_metadata
-          @extra = extra
+          @extra = -extra
         end
 
         def ==(other)
