@@ -111,7 +111,7 @@ module ActiveRecord
       class Builder
         attr_reader :model
 
-        delegate :skip_duplicates?, :update_duplicates?, to: :insert_all
+        delegate :skip_duplicates?, :update_duplicates?, :keys, to: :insert_all
 
         def initialize(insert_all)
           @insert_all, @model, @connection = insert_all, insert_all.model, insert_all.connection
@@ -122,7 +122,7 @@ module ActiveRecord
         end
 
         def values_list
-          types = extract_types_from_columns_on(model.table_name, keys: insert_all.keys)
+          types = extract_types_from_columns_on(model.table_name, keys: keys)
 
           values_list = insert_all.map_key_with_value do |key, value|
             bind = Relation::QueryAttribute.new(key, value, types[key])

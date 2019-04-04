@@ -516,8 +516,8 @@ module ActiveRecord
         sql = +"INSERT #{insert.into} #{insert.values_list}"
 
         if insert.skip_duplicates?
-          any_column = quote_column_name(insert.model.columns.first.name)
-          sql << " ON DUPLICATE KEY UPDATE #{any_column}=#{any_column}"
+          no_op_column = quote_column_name(insert.keys.first)
+          sql << " ON DUPLICATE KEY UPDATE #{no_op_column}=#{no_op_column}"
         elsif insert.update_duplicates?
           sql << " ON DUPLICATE KEY UPDATE "
           sql << insert.updatable_columns.map { |column| "#{column}=VALUES(#{column})" }.join(",")
