@@ -165,6 +165,7 @@ module ActionView
     deprecate def formats; Array(format); end
     deprecate def variants=(_); end
     deprecate def variants; [variant]; end
+    deprecate def refresh(_); self; end
 
     # Returns whether the underlying handler supports streaming. If so,
     # a streaming buffer *may* be passed when it starts rendering.
@@ -189,25 +190,6 @@ module ActionView
 
     def type
       @type ||= Types[format]
-    end
-
-    # Receives a view object and return a template similar to self by using @virtual_path.
-    #
-    # This method is useful if you have a template object but it does not contain its source
-    # anymore since it was already compiled. In such cases, all you need to do is to call
-    # refresh passing in the view object.
-    #
-    # Notice this method raises an error if the template to be refreshed does not have a
-    # virtual path set (true just for inline templates).
-    def refresh(view)
-      raise "A template needs to have a virtual path in order to be refreshed" unless @virtual_path
-      lookup  = view.lookup_context
-      pieces  = @virtual_path.split("/")
-      name    = pieces.pop
-      partial = !!name.sub!(/^_/, "")
-      lookup.disable_cache do
-        lookup.find_template(name, [ pieces.join("/") ], partial, @locals)
-      end
     end
 
     def short_identifier

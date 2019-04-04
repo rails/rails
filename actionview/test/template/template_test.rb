@@ -121,24 +121,10 @@ class TestERBTemplate < ActiveSupport::TestCase
     assert_equal "hellopartialhello", render
   end
 
-  def test_refresh_with_templates
+  def test_refresh_is_deprecated
     @template = new_template("Hello", virtual_path: "test/foo/bar", locals: [:key])
-    assert_called_with(@context.lookup_context, :find_template, ["bar", %w(test/foo), false, [:key]], returns: "template") do
-      assert_equal "template", @template.refresh(@context)
-    end
-  end
-
-  def test_refresh_with_partials
-    @template = new_template("Hello", virtual_path: "test/_foo", locals: [:key])
-    assert_called_with(@context.lookup_context, :find_template, ["foo", %w(test), true, [:key]], returns: "partial") do
-      assert_equal "partial", @template.refresh(@context)
-    end
-  end
-
-  def test_refresh_raises_an_error_without_virtual_path
-    @template = new_template("Hello", virtual_path: nil)
-    assert_raise RuntimeError do
-      @template.refresh(@context)
+    assert_deprecated do
+      assert_same @template, @template.refresh(@context)
     end
   end
 
