@@ -51,7 +51,7 @@ module ActiveRecord
       ActiveRecord::SpawnMethods.public_instance_methods(false) - [:spawn, :merge!] +
       ActiveRecord::QueryMethods.public_instance_methods(false).reject { |method|
         method.to_s.end_with?("=", "!", "value", "values", "clause")
-      } - [:reverse_order, :arel, :extensions] + [
+      } - [:reverse_order, :arel, :extensions, :construct_join_dependency] + [
         :any?, :many?, :none?, :one?,
         :first_or_create, :first_or_create!, :first_or_initialize,
         :find_or_create_by, :find_or_create_by!, :find_or_initialize_by,
