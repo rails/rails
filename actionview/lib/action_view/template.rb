@@ -365,12 +365,7 @@ module ActionView
           e.sub_template_of(self)
           raise e
         else
-          template = self
-          unless template.source
-            template = refresh(view)
-            template.encode!
-          end
-          raise Template::Error.new(template)
+          raise Template::Error.new(self)
         end
       end
 
