@@ -69,38 +69,42 @@ module ActiveModel
           raise
         end
 
-        attr_reader attribute
+        mod = Module.new do
+          attr_reader attribute
 
-        define_method("#{attribute}=") do |unencrypted_password|
-          if unencrypted_password.nil?
-            self.send("#{attribute}_digest=", nil)
-          elsif !unencrypted_password.empty?
-            instance_variable_set("@#{attribute}", unencrypted_password)
-            cost = ActiveModel::SecurePassword.min_cost ? BCrypt::Engine::MIN_COST : BCrypt::Engine.cost
-            self.send("#{attribute}_digest=", BCrypt::Password.create(unencrypted_password, cost: cost))
+          define_method("#{attribute}=") do |unencrypted_password|
+            if unencrypted_password.nil?
+              self.send("#{attribute}_digest=", nil)
+            elsif !unencrypted_password.empty?
+              instance_variable_set("@#{attribute}", unencrypted_password)
+              cost = ActiveModel::SecurePassword.min_cost ? BCrypt::Engine::MIN_COST : BCrypt::Engine.cost
+              self.send("#{attribute}_digest=", BCrypt::Password.create(unencrypted_password, cost: cost))
+            end
           end
+
+          define_method("#{attribute}_confirmation=") do |unencrypted_password|
+            instance_variable_set("@#{attribute}_confirmation", unencrypted_password)
+          end
+
+          # Returns +self+ if the password is correct, otherwise +false+.
+          #
+          #   class User < ActiveRecord::Base
+          #     has_secure_password validations: false
+          #   end
+          #
+          #   user = User.new(name: 'david', password: 'mUc3m00RsqyRe')
+          #   user.save
+          #   user.authenticate_password('notright')      # => false
+          #   user.authenticate_password('mUc3m00RsqyRe') # => user
+          define_method("authenticate_#{attribute}") do |unencrypted_password|
+            attribute_digest = send("#{attribute}_digest")
+            BCrypt::Password.new(attribute_digest).is_password?(unencrypted_password) && self
+          end
+
+          alias_method :authenticate, :authenticate_password if attribute == :password
         end
 
-        define_method("#{attribute}_confirmation=") do |unencrypted_password|
-          instance_variable_set("@#{attribute}_confirmation", unencrypted_password)
-        end
-
-        # Returns +self+ if the password is correct, otherwise +false+.
-        #
-        #   class User < ActiveRecord::Base
-        #     has_secure_password validations: false
-        #   end
-        #
-        #   user = User.new(name: 'david', password: 'mUc3m00RsqyRe')
-        #   user.save
-        #   user.authenticate_password('notright')      # => false
-        #   user.authenticate_password('mUc3m00RsqyRe') # => user
-        define_method("authenticate_#{attribute}") do |unencrypted_password|
-          attribute_digest = send("#{attribute}_digest")
-          BCrypt::Password.new(attribute_digest).is_password?(unencrypted_password) && self
-        end
-
-        alias_method :authenticate, :authenticate_password if attribute == :password
+        include mod
 
         if validations
           include ActiveModel::Validations
