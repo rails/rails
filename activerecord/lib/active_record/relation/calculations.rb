@@ -133,11 +133,12 @@ module ActiveRecord
         relation = apply_join_dependency
 
         if operation.to_s.downcase == "count"
-          relation.distinct!
-          # PostgreSQL: ORDER BY expressions must appear in SELECT list when using DISTINCT
-          if (column_name == :all || column_name.nil?) && select_values.empty?
-            relation.order_values = []
+          unless distinct_value || distinct_select?(column_name || select_for_count)
+            relation.distinct!
+            relation.select_values = [ klass.primary_key || table[Arel.star] ]
           end
+          # PostgreSQL: ORDER BY expressions must appear in SELECT list when using DISTINCT
+          relation.order_values = []
         end
 
         relation.calculate(operation, column_name)
