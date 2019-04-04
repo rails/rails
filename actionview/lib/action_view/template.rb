@@ -117,13 +117,14 @@ module ActionView
       autoload :Handlers
       autoload :HTML
       autoload :Inline
+      autoload :Sources
       autoload :Text
       autoload :Types
     end
 
     extend Template::Handlers
 
-    attr_reader :source, :identifier, :handler, :original_encoding, :updated_at
+    attr_reader :identifier, :handler, :original_encoding, :updated_at
     attr_reader :variable, :format, :variant, :locals, :virtual_path
 
     def initialize(source, identifier, handler, format: nil, variant: nil, locals: nil, virtual_path: nil, updated_at: nil)
@@ -215,6 +216,10 @@ module ActionView
 
     def inspect
       "#<#{self.class.name} #{short_identifier} locals=#{@locals.inspect}>"
+    end
+
+    def source
+      @source.to_s
     end
 
     # This method is responsible for properly setting the encoding of the
