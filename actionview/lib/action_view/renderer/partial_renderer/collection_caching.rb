@@ -17,13 +17,13 @@ module ActionView
         # Result is a hash with the key represents the
         # key used for cache lookup and the value is the item
         # on which the partial is being rendered
-        keyed_collection = collection_by_cache_keys(view, template)
+        keyed_collection, ordered_keys = collection_by_cache_keys(view, template)
 
         # Pull all partials from cache
         # Result is a hash, key matches the entry in
         # `keyed_collection` where the cache was retrieved and the
         # value is the value that was present in the cache
-        cached_partials  = collection_cache.read_multi(*keyed_collection.keys)
+        cached_partials = collection_cache.read_multi(*keyed_collection.keys)
         instrumentation_payload[:cache_hits] = cached_partials.size
 
         # Extract the items for the keys that are not found
@@ -40,10 +40,14 @@ module ActionView
         rendered_partials = @collection.empty? ? [] : yield
 
         index = 0
-        fetch_or_cache_partial(cached_partials, template, order_by: keyed_collection.each_key) do
+        keyed_partials = fetch_or_cache_partial(cached_partials, template, order_by: keyed_collection.each_key) do
           # This block is called once
           # for every cache miss while preserving order.
           rendered_partials[index].tap { index += 1 }
+        end
+
+        ordered_keys.map do |key|
+          keyed_partials[key]
         end
       end
 
@@ -56,8 +60,10 @@ module ActionView
 
         digest_path = view.digest_path_from_template(template)
 
-        @collection.each_with_object({}) do |item, hash|
-          hash[expanded_cache_key(seed.call(item), view, template, digest_path)] = item
+        @collection.each_with_object([{}, []]) do |item, (hash, ordered_keys)|
+          key = expanded_cache_key(seed.call(item), view, template, digest_path)
+          ordered_keys << key
+          hash[key] = item
         end
       end
 
@@ -82,15 +88,16 @@ module ActionView
       # If the partial is not already cached it will also be
       # written back to the underlying cache store.
       def fetch_or_cache_partial(cached_partials, template, order_by:)
-        order_by.map do |cache_key|
-          if content = cached_partials[cache_key]
-            build_rendered_template(content, template)
-          else
-            yield.tap do |rendered_partial|
-              collection_cache.write(cache_key, rendered_partial.body)
-            end
+        order_by.each_with_object({}) do |cache_key, hash|
+            hash[cache_key] =
+              if content = cached_partials[cache_key]
+                build_rendered_template(content, template)
+              else
+                yield.tap do |rendered_partial|
+                  collection_cache.write(cache_key, rendered_partial.body)
+                end
+              end
           end
-        end
       end
   end
 end
