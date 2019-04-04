@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 if ENV["BUILDKITE"]
   require "minitest/reporters"
   require "fileutils"
