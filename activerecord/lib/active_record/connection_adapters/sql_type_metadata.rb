@@ -1,9 +1,13 @@
 # frozen_string_literal: true
 
+require "active_record/connection_adapters/metadata_registry"
+
 module ActiveRecord
   # :stopdoc:
   module ConnectionAdapters
     class SqlTypeMetadata
+      extend MetadataRegistry::Concern
+
       attr_reader :sql_type, :type, :limit, :precision, :scale
 
       def initialize(sql_type: nil, type: nil, limit: nil, precision: nil, scale: nil)
