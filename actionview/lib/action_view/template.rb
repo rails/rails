@@ -298,9 +298,6 @@ module ActionView
             compile(mod)
           end
 
-          # Just discard the source if we have a virtual path. This
-          # means we can get the template back.
-          @source = nil if @virtual_path
           @compiled = true
         end
       end

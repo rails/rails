@@ -91,10 +91,10 @@ class TestERBTemplate < ActiveSupport::TestCase
     assert_equal "<%= hello %>", render
   end
 
-  def test_template_loses_its_source_after_rendering
+  def test_template_does_not_lose_its_source_after_rendering
     @template = new_template
     render
-    assert_nil @template.source
+    assert_equal "<%= hello %>", @template.source
   end
 
   def test_template_does_not_lose_its_source_after_rendering_if_it_does_not_have_a_virtual_path
