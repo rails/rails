@@ -784,7 +784,7 @@ There are a few configuration options available in Active Support:
 
 * `config.active_job.custom_serializers` allows to set custom argument serializers. Defaults to `[]`.
 
-* `config.active_job.return_false_on_aborted_enqueue` change the return value of `#enqueue` to false instead of the job instance when the enqueuing is aborted. Defaults to `true`.
+* `config.active_job.return_false_on_aborted_enqueue` change the return value of `#enqueue` to false instead of the job instance when the enqueuing is aborted. Defaults to `false`.
 
 ### Configuring Action Cable
 
