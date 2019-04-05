@@ -9,6 +9,14 @@ module ActiveJob
 
     included do
       class_attribute :retry_jitter, instance_accessor: false, instance_predicate: false, default: 0.15
+
+      around_perform do |_, block|
+        instrument_unhandled_error!(&block)
+      end
+
+      around_enqueue do |_, block|
+        instrument_unhandled_error!(&block)
+      end
     end
 
     module ClassMethods
@@ -152,6 +160,16 @@ module ActiveJob
       def determine_jitter_for_delay(delay, jitter)
         return 0.0 if jitter.zero?
         Kernel.rand(delay * jitter)
+      end
+
+      def instrument_unhandled_error!
+        yield
+      rescue => error
+        raise if handler_for_rescue(error)
+
+        instrument :unhandled_error, error: error do
+          raise # allow exception to be automatically added to payload
+        end
       end
 
       def executions_for(exceptions)

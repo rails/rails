@@ -567,6 +567,14 @@ Active Job
 | `:job`       | Job object                             |
 | `:error`     | The error that caused the discard      |
 
+### unhandled_error.active_job
+
+| Key          | Value                                  |
+| ------------ | -------------------------------------- |
+| `:adapter`   | QueueAdapter object processing the job |
+| `:job`       | Job object                             |
+| `:error`     | The unhandled error                    |
+
 Action Cable
 ------------
 

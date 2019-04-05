@@ -1,3 +1,7 @@
+*   Instrument unhandled errors in perform and enqueue.
+
+    *Kaleb Lape*
+
 *   Don't run `after_enqueue` and `after_perform` callbacks if the callback chain is halted.
 
         class MyJob < ApplicationJob
