@@ -108,7 +108,7 @@ GEM
     activerecord-jdbcsqlite3-adapter (52.1-java)
       activerecord-jdbc-adapter (= 52.1)
       jdbc-sqlite3 (~> 3.8, < 3.30)
-    addressable (2.5.2)
+    addressable (2.6.0)
       public_suffix (>= 2.0.2, < 4.0)
     amq-protocol (2.3.0)
     ansi (1.5.0)
