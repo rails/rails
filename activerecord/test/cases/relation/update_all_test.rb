@@ -241,6 +241,38 @@ class UpdateAllTest < ActiveRecord::TestCase
     end
   end
 
+  def test_klass_level_update_all
+    travel 5.seconds do
+      now = Time.now.utc
+
+      Person.all.each do |person|
+        assert_not_equal now, person.updated_at
+      end
+
+      Person.update_all(updated_at: now)
+
+      Person.all.each do |person|
+        assert_equal now, person.updated_at
+      end
+    end
+  end
+
+  def test_klass_level_touch_all
+    travel 5.seconds do
+      now = Time.now.utc
+
+      Person.all.each do |person|
+        assert_not_equal now, person.updated_at
+      end
+
+      Person.touch_all(time: now)
+
+      Person.all.each do |person|
+        assert_equal now, person.updated_at
+      end
+    end
+  end
+
   # Oracle UPDATE does not support ORDER BY
   unless current_adapter?(:OracleAdapter)
     def test_update_all_ignores_order_without_limit_from_association
