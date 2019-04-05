@@ -28,9 +28,3 @@ engines:
 ratings:
   paths:
   - "**.rb"
-
-exclude_paths:
-  - ci/
-  - guides/
-  - tasks/
-  - tools/
