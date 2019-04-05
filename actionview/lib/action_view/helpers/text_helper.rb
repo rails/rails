@@ -276,7 +276,7 @@ module ActionView
       # ==== Options
       # * <tt>:sanitize</tt> - If +false+, does not sanitize +text+.
       # * <tt>:wrapper_tag</tt> - String representing the wrapper tag, defaults to <tt>"p"</tt>
-      #
+      # * <tt>:blank_line</tt> - If +true+, add <br /> for blank line. default false
       # ==== Examples
       #   my_text = "Here is some basic text...\n...with a line break."
       #
@@ -291,6 +291,9 @@ module ActionView
       #   simple_format(more_text)
       #   # => "<p>We want to put a paragraph...</p>\n\n<p>...right there.</p>"
       #
+      #   simple_format(more_text, {}, blank_line: true)
+      #   # => "<p>We want to put a paragraph...\n<br /><br />...right there.</p>"
+      #
       #   simple_format("Look ma! A class!", class: 'description')
       #   # => "<p class='description'>Look ma! A class!</p>"
       #
@@ -303,6 +306,7 @@ module ActionView
         wrapper_tag = options.fetch(:wrapper_tag, :p)
 
         text = sanitize(text) if options.fetch(:sanitize, true)
+        text = text.gsub(/\r\n\r\n|\n\n/, "\n<br />") if options.fetch(:blank_line, false)
         paragraphs = split_paragraphs(text)
 
         if paragraphs.empty?

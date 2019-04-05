@@ -65,6 +65,10 @@ class TextHelperTest < ActionView::TestCase
     assert_equal "<div>We want to put a wrapper...</div>\n\n<div>...right there.</div>", simple_format("We want to put a wrapper...\n\n...right there.", {}, { wrapper_tag: "div" })
   end
 
+  def test_simple_format_with_blank_line_and_multi_line_breaks
+    assert_equal "<p>We want to put a br...\n<br /><br />..right there.</p>", simple_format("We want to put a br...\n\n..right there.", {}, { blank_line: true })
+  end
+
   def test_simple_format_should_not_change_the_text_passed
     text = "<b>Ok</b><script>code!</script>"
     text_clone = text.dup
@@ -80,7 +84,7 @@ class TextHelperTest < ActionView::TestCase
   end
 
   def test_simple_format_does_not_modify_the_options_hash
-    options = { wrapper_tag: :div, sanitize: false }
+    options = { wrapper_tag: :div, sanitize: false, blank_line: true }
     passed_options = options.dup
     simple_format("some text", {}, passed_options)
     assert_equal options, passed_options

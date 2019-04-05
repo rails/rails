@@ -1,3 +1,7 @@
+*   Add blank_line option to simple_format
+
+    *Hiroaki Osawa*
+
 *   Only clear ActionView cache in development on file changes
 
     To speed up development mode, view caches are only cleared when files in
