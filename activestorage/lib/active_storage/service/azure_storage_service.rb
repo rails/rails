@@ -20,7 +20,7 @@ module ActiveStorage
     def upload(key, io, checksum: nil, **)
       instrument :upload, key: key, checksum: checksum do
         handle_errors do
-          blobs.create_block_blob(container, key, IO.try_convert(io) || io, content_md5: checksum)
+          upload_chunked(container, key, IO.try_convert(io) || io, checksum)
         end
       end
     end
@@ -160,6 +160,24 @@ module ActiveStorage
         else
           raise
         end
+      end
+
+      def upload_chunked(container, key, io, checksum)
+        block_size = 4.megabytes
+        blocks = []
+        while (file_bytes = io.read(block_size))
+          block_id = Base64.strict_encode64(random_block_name)
+          blobs.put_blob_block(container, key, block_id, file_bytes)
+          blocks << [block_id]
+        end
+
+        blobs.commit_blob_blocks(
+          container, key, blocks, blob_content_md5: checksum
+        )
+      end
+
+      def random_block_name
+        (0...8).map { ('a'..'z').to_a[rand(26)] }.join
       end
   end
 end
