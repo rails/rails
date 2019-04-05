@@ -136,6 +136,10 @@
 
     *Ryuta Kamizono*
 
+*   Add `touch` option to `has_one` association.
+
+    *Abhay Nikam*
+
 *   Add `rails db:prepare` to migrate or setup a database.
 
     Runs `db:migrate` if the database exists or `db:setup` if it doesn't.
