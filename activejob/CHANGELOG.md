@@ -1,3 +1,7 @@
+*   Instrument unhandled errors in perform and enqueue.
+
+    *Kaleb Lape*
+
 *   Make job argument assertions with `Time`, `ActiveSupport::TimeWithZone`, and `DateTime` work by dropping microseconds. Microsecond precision is lost during serialization.
 
     *Gannon McGibbon*

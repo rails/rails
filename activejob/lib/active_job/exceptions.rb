@@ -122,6 +122,16 @@ module ActiveJob
       end
     end
 
+    included do
+      around_perform do |_, block|
+        instrument_unhandled_error!(&block)
+      end
+
+      around_enqueue do |_, block|
+        instrument_unhandled_error!(&block)
+      end
+    end
+
     private
       def determine_delay(seconds_or_duration_or_algorithm)
         case seconds_or_duration_or_algorithm
@@ -138,6 +148,16 @@ module ActiveJob
           algorithm.call(executions)
         else
           raise "Couldn't determine a delay based on #{seconds_or_duration_or_algorithm.inspect}"
+        end
+      end
+
+      def instrument_unhandled_error!
+        yield
+      rescue => error
+        raise if handler_for_rescue(error)
+
+        instrument :unhandled_error, error: error do
+          raise # allow exception to be automatically added to payload
         end
       end
 
