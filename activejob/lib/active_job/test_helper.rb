@@ -353,7 +353,7 @@ module ActiveJob
     #
     #
     # The +args+ argument also accepts a proc which will get passed the actual
-    # job's arguments. Your proc needs to returns a boolean value determining if
+    # job's arguments. Your proc needs to return a boolean value determining if
     # the job's arguments matches your expectation. This is useful to check only
     # for a subset of arguments.
     #
@@ -426,7 +426,7 @@ module ActiveJob
     #   end
     #
     # The +args+ argument also accepts a proc which will get passed the actual
-    # job's arguments. Your proc needs to returns a boolean value determining if
+    # job's arguments. Your proc needs to return a boolean value determining if
     # the job's arguments matches your expectation. This is useful to check only
     # for a subset of arguments.
     #
