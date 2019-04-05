@@ -203,26 +203,53 @@ module ActiveRecord
           assert_equal "must provide a `database` or a `role`.", error.message
         end
 
-        def test_switching_connections_with_database_symbol
+        def test_switching_connections_with_database_symbol_uses_default_role
           previous_env, ENV["RAILS_ENV"] = ENV["RAILS_ENV"], "default_env"
 
           config = {
             "default_env" => {
-              "readonly" => { adapter: "sqlite3", database: "db/readonly.sqlite3" },
+              "animals" => { adapter: "sqlite3", database: "db/animals.sqlite3" },
               "primary"  => { adapter: "sqlite3", database: "db/primary.sqlite3" }
             }
           }
           @prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, config
 
-          ActiveRecord::Base.connected_to(database: :readonly) do
-            assert_equal :readonly, ActiveRecord::Base.current_role
-            assert ActiveRecord::Base.connected_to?(role: :readonly)
+          ActiveRecord::Base.connected_to(database: :animals) do
+            assert_equal :writing, ActiveRecord::Base.current_role
+            assert ActiveRecord::Base.connected_to?(role: :writing)
 
             handler = ActiveRecord::Base.connection_handler
-            assert_equal handler, ActiveRecord::Base.connection_handlers[:readonly]
+            assert_equal handler, ActiveRecord::Base.connection_handlers[:writing]
 
             assert_not_nil pool = handler.retrieve_connection_pool("primary")
-            assert_equal(config["default_env"]["readonly"], pool.spec.config)
+            assert_equal(config["default_env"]["animals"], pool.spec.config)
+          end
+        ensure
+          ActiveRecord::Base.configurations = @prev_configs
+          ActiveRecord::Base.establish_connection(:arunit)
+          ENV["RAILS_ENV"] = previous_env
+        end
+
+        def test_switching_connections_with_database_hash_uses_passed_role_and_database
+          previous_env, ENV["RAILS_ENV"] = ENV["RAILS_ENV"], "default_env"
+
+          config = {
+            "default_env" => {
+              "animals" => { adapter: "sqlite3", database: "db/animals.sqlite3" },
+              "primary"  => { adapter: "sqlite3", database: "db/primary.sqlite3" }
+            }
+          }
+          @prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, config
+
+          ActiveRecord::Base.connected_to(database: { writing: :primary }) do
+            assert_equal :writing, ActiveRecord::Base.current_role
+            assert ActiveRecord::Base.connected_to?(role: :writing)
+
+            handler = ActiveRecord::Base.connection_handler
+            assert_equal handler, ActiveRecord::Base.connection_handlers[:writing]
+
+            assert_not_nil pool = handler.retrieve_connection_pool("primary")
+            assert_equal(config["default_env"]["primary"], pool.spec.config)
           end
         ensure
           ActiveRecord::Base.configurations = @prev_configs
