@@ -63,19 +63,24 @@ module ActiveRecord
 
       def ==(other)
         other.is_a?(Column) &&
-          attributes_for_hash == other.attributes_for_hash
+          name == other.name &&
+          default == other.default &&
+          sql_type_metadata == other.sql_type_metadata &&
+          null == other.null &&
+          default_function == other.default_function &&
+          collation == other.collation
       end
       alias :eql? :==
 
       def hash
-        attributes_for_hash.hash
+        Column.hash ^
+          name.hash ^
+          default.hash ^
+          sql_type_metadata.hash ^
+          null.hash ^
+          default_function.hash ^
+          collation.hash
       end
-
-      protected
-
-        def attributes_for_hash
-          [self.class, name, default, sql_type_metadata, null, default_function, collation, comment]
-        end
     end
 
     class NullColumn < Column
