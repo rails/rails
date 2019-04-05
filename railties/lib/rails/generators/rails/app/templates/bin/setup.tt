@@ -27,13 +27,8 @@ FileUtils.chdir APP_ROOT do
   #   FileUtils.cp 'config/database.yml.sample', 'config/database.yml'
   # end
 
-  if system 'bin/rails db:version', %i(out err) => File::NULL
-    puts "\n== Updating database =="
-    system! 'bin/rails db:migrate'
-  else
-    puts "\n== Preparing database =="
-    system! 'bin/rails db:setup'
-  end
+  puts "\n== Preparing database =="
+  system! 'bin/rails db:prepare'
 <% end -%>
 
   puts "\n== Removing old logs and tempfiles =="
