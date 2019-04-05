@@ -56,7 +56,6 @@ module ActionDispatch
       end
 
       def simulator
-        return if ast.nil?
         @simulator ||= begin
           gtg = GTG::Builder.new(ast).transition_table
           GTG::Simulator.new(gtg)
