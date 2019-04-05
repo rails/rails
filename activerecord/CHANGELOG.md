@@ -1,3 +1,30 @@
+*   Association loading isn't to be affected by scoping consistently
+    whether preloaded / eager loaded or not, with the exception of `unscoped`.
+
+    Before:
+
+    ```ruby
+    Post.where("1=0").scoping do
+      Comment.find(1).post                   # => nil
+      Comment.preload(:post).find(1).post    # => #<Post id: 1, ...>
+      Comment.eager_load(:post).find(1).post # => #<Post id: 1, ...>
+    end
+    ```
+
+    After:
+
+    ```ruby
+    Post.where("1=0").scoping do
+      Comment.find(1).post                   # => #<Post id: 1, ...>
+      Comment.preload(:post).find(1).post    # => #<Post id: 1, ...>
+      Comment.eager_load(:post).find(1).post # => #<Post id: 1, ...>
+    end
+    ```
+
+    Fixes #34638, #35398.
+
+    *Ryuta Kamizono*
+
 *   Add `rails db:prepare` to migrate or setup a database.
 
     Runs `db:migrate` if the database exists or `db:setup` if it doesn't.
