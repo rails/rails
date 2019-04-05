@@ -94,7 +94,7 @@ Here is a list with all the available Active Record callbacks, listed in the sam
 * `around_create`
 * `after_create`
 * `after_save`
-* `after_commit/after_rollback`
+* `after_commit/after_rollback/after_save_commit`
 
 ### Updating an Object
 
@@ -106,7 +106,7 @@ Here is a list with all the available Active Record callbacks, listed in the sam
 * `around_update`
 * `after_update`
 * `after_save`
-* `after_commit/after_rollback`
+* `after_commit/after_rollback/after_save_commit`
 
 ### Destroying an Object
 
