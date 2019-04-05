@@ -2,7 +2,7 @@
 
 module ActiveRecord
   # = Active Record Touch Later
-  module TouchLater
+  module TouchLater # :nodoc:
     extend ActiveSupport::Concern
 
     included do
