@@ -689,7 +689,7 @@ module ActiveRecord
     end
 
     def empty_scope? # :nodoc:
-      !null_relation? && @values == klass.unscoped.values
+      @values == klass.unscoped.values
     end
 
     def has_limit_or_offset? # :nodoc:

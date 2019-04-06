@@ -101,6 +101,9 @@ module ActiveRecord
 
       relation.merge!(relation)
       assert_predicate relation, :empty_scope?
+
+      assert_not_predicate NullPost.all, :empty_scope?
+      assert_not_predicate FirstPost.all, :empty_scope?
     end
 
     def test_bad_constants_raise_errors
