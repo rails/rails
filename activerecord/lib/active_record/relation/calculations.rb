@@ -308,25 +308,23 @@ module ActiveRecord
       end
 
       def execute_grouped_calculation(operation, column_name, distinct) #:nodoc:
-        group_attrs = group_values
+        group_fields = group_values
 
-        if group_attrs.first.respond_to?(:to_sym)
-          association  = @klass._reflect_on_association(group_attrs.first)
-          associated   = group_attrs.size == 1 && association && association.belongs_to? # only count belongs_to associations
-          group_fields = Array(associated ? association.foreign_key : group_attrs)
-        else
-          group_fields = group_attrs
+        if group_fields.size == 1 && group_fields.first.respond_to?(:to_sym)
+          association  = klass._reflect_on_association(group_fields.first)
+          associated   = association && association.belongs_to? # only count belongs_to associations
+          group_fields = Array(association.foreign_key) if associated
         end
         group_fields = arel_columns(group_fields)
 
-        group_aliases = group_fields.map { |field| column_alias_for(field) }
+        group_aliases = group_fields.map { |field|
+          field = connection.visitor.compile(field) if Arel.arel_node?(field)
+          column_alias_for(field)
+        }
         group_columns = group_aliases.zip(group_fields)
 
-        if operation == "count" && column_name == :all
-          aggregate_alias = "count_all"
-        else
-          aggregate_alias = column_alias_for([operation, column_name].join(" "))
-        end
+        aggregate_alias = "#{operation}_#{column_name.to_s.downcase}"
+        aggregate_alias = column_alias_for(aggregate_alias) unless aggregate_alias.match?(/\A\w+\z/)
 
         select_values = [
           operation_over_aggregate_column(
@@ -345,7 +343,7 @@ module ActiveRecord
         }
 
         relation = except(:group).distinct!(false)
-        relation.group_values  = group_fields
+        relation.group_values  = group_aliases
         relation.select_values = select_values
 
         calculated_data = skip_query_cache_if_necessary { @klass.connection.select_all(relation.arel, nil) }
@@ -378,18 +376,14 @@ module ActiveRecord
       #   column_alias_for("sum(id)")                  # => "sum_id"
       #   column_alias_for("count(distinct users.id)") # => "count_distinct_users_id"
       #   column_alias_for("count(*)")                 # => "count_all"
-      def column_alias_for(keys)
-        if keys.respond_to? :name
-          keys = "#{keys.relation.name}.#{keys.name}"
-        end
+      def column_alias_for(field)
+        column_alias = field.to_s.downcase
+        column_alias.gsub!(/\*/, "all")
+        column_alias.gsub!(/\W+/, " ")
+        column_alias.strip!
+        column_alias.gsub!(/ +/, "_")
 
-        table_name = keys.to_s.downcase
-        table_name.gsub!(/\*/, "all")
-        table_name.gsub!(/\W+/, " ")
-        table_name.strip!
-        table_name.gsub!(/ +/, "_")
-
-        @klass.connection.table_alias_for(table_name)
+        connection.table_alias_for(column_alias)
       end
 
       def type_for(field, &block)
