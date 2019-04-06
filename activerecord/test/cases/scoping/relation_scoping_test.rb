@@ -421,6 +421,18 @@ class HasManyScopingTest < ActiveRecord::TestCase
     end
   end
 
+  def test_none_scoping
+    Comment.none.scoping do
+      assert_equal 2, @welcome.comments.count
+      assert_equal "a comment...", @welcome.comments.what_are_you
+    end
+
+    Comment.where("1=1").scoping do
+      assert_equal 2, @welcome.comments.count
+      assert_equal "a comment...", @welcome.comments.what_are_you
+    end
+  end
+
   def test_should_maintain_default_scope_on_associations
     magician = BadReference.find(1)
     assert_equal [magician], people(:michael).bad_references
@@ -452,6 +464,18 @@ class HasAndBelongsToManyScopingTest < ActiveRecord::TestCase
 
   def test_nested_scope_finder
     Category.where("1=0").scoping do
+      assert_equal 2, @welcome.categories.count
+      assert_equal "a category...", @welcome.categories.what_are_you
+    end
+
+    Category.where("1=1").scoping do
+      assert_equal 2, @welcome.categories.count
+      assert_equal "a category...", @welcome.categories.what_are_you
+    end
+  end
+
+  def test_none_scoping
+    Category.none.scoping do
       assert_equal 2, @welcome.categories.count
       assert_equal "a category...", @welcome.categories.what_are_you
     end

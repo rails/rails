@@ -689,7 +689,7 @@ module ActiveRecord
     end
 
     def empty_scope? # :nodoc:
-      @values == klass.unscoped.values
+      !null_relation? && @values == klass.unscoped.values
     end
 
     def has_limit_or_offset? # :nodoc:
@@ -719,6 +719,10 @@ module ActiveRecord
       def load_records(records)
         @records = records.freeze
         @loaded = true
+      end
+
+      def null_relation? # :nodoc:
+        is_a?(NullRelation)
       end
 
     private
@@ -770,7 +774,7 @@ module ActiveRecord
           @records =
             if eager_loading?
               apply_join_dependency do |relation, join_dependency|
-                if ActiveRecord::NullRelation === relation
+                if relation.null_relation?
                   []
                 else
                   relation = join_dependency.apply_column_aliases(relation)
