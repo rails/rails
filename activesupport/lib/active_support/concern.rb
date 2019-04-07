@@ -110,7 +110,7 @@ module ActiveSupport
       base.instance_variable_set(:@_dependencies, [])
     end
 
-    def append_features(base)
+    def append_features(base) #:nodoc:
       if base.instance_variable_defined?(:@_dependencies)
         base.instance_variable_get(:@_dependencies) << self
         false
