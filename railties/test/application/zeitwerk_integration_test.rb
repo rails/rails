@@ -131,6 +131,20 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
     assert $zeitwerk_integration_test_post
   end
 
+  test "reloading is enabled if config.cache_classes is false" do
+    boot
+
+    assert     Rails.autoloaders.main.reloading_enabled?
+    assert_not Rails.autoloaders.once.reloading_enabled?
+  end
+
+  test "reloading is disabled if config.cache_classes is true" do
+    boot("production")
+
+    assert_not Rails.autoloaders.main.reloading_enabled?
+    assert_not Rails.autoloaders.once.reloading_enabled?
+  end
+
   test "eager loading loads code in engines" do
     $test_blog_engine_eager_loaded = false
 
