@@ -29,6 +29,6 @@ class ActiveStorage::ReflectionTest < ActiveSupport::TestCase
     assert_equal [ User ], reflections.collect(&:active_record).uniq
     assert_equal %i[ avatar cover_photo highlights proxied_image vlogs ], reflections.collect(&:name)
     assert_equal %i[ has_one_attached has_one_attached has_many_attached has_one_attached has_many_attached ], reflections.collect(&:macro)
-    assert_equal [ :purge_later, false, :purge_later, :purge_later, :purge_later, false ], reflections.collect { |reflection| reflection.options[:dependent] }
+    assert_equal [ :purge_later, false, :purge_later, :purge_later, false ], reflections.collect { |reflection| reflection.options[:dependent] }
   end
 end
