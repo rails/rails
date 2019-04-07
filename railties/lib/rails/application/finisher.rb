@@ -24,7 +24,7 @@ module Rails
       initializer :let_zeitwerk_take_over do
         if config.autoloader == :zeitwerk
           require "active_support/dependencies/zeitwerk_integration"
-          ActiveSupport::Dependencies::ZeitwerkIntegration.take_over
+          ActiveSupport::Dependencies::ZeitwerkIntegration.take_over(enable_reloading: !config.cache_classes)
         end
       end
 

@@ -1,3 +1,9 @@
+*   Depends on Zeitwerk 2, which stores less metadata if reloading is disabled
+    and hence uses less memory when `config.cache_classes` is `true`, a standard
+    setup in production.
+
+    *Xavier Noria*
+
 *   In `:zeitwerk` mode, eager load directories in engines and applications only
     if present in their respective `config.eager_load_paths`.
 
