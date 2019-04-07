@@ -150,7 +150,6 @@ module ActiveRecord
         def grouped_records(association, records, polymorphic_parent)
           h = {}
           records.each do |record|
-            next unless record
             reflection = record.class._reflect_on_association(association)
             next if polymorphic_parent && !reflection || !record.association(association).klass
             (h[reflection] ||= []) << record

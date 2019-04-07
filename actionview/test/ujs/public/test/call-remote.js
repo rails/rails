@@ -53,7 +53,7 @@ asyncTest('form default method is GET', 1, function() {
   })
 })
 
-asyncTest('form url is picked up from "action"', 1, function() {
+asyncTest('form URL is picked up from "action"', 1, function() {
   buildForm({ method: 'post' })
 
   submit(function(e, data, status, xhr) {
@@ -61,7 +61,7 @@ asyncTest('form url is picked up from "action"', 1, function() {
   })
 })
 
-asyncTest('form url is read from "action" not "href"', 1, function() {
+asyncTest('form URL is read from "action" not "href"', 1, function() {
   buildForm({ method: 'post', href: '/echo2' })
 
   submit(function(e, data, status, xhr) {
@@ -69,7 +69,7 @@ asyncTest('form url is read from "action" not "href"', 1, function() {
   })
 })
 
-asyncTest('form url is read from submit button "formaction" if submit is triggered by that button', 1, function() {
+asyncTest('form URL is read from submit button "formaction" if submit is triggered by that button', 1, function() {
   var submitButton = $('<input type="submit" formaction="/echo">')
   buildForm({ method: 'post', href: '/echo2' })
 

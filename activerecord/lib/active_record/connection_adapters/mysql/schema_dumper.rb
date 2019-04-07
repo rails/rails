@@ -64,7 +64,7 @@ module ActiveRecord
           end
 
           def extract_expression_for_virtual_column(column)
-            if @connection.mariadb? && @connection.version < "10.2.5"
+            if @connection.mariadb? && @connection.database_version < "10.2.5"
               create_table_info = @connection.send(:create_table_info, column.table_name)
               column_name = @connection.quote_column_name(column.name)
               if %r/#{column_name} #{Regexp.quote(column.sql_type)}(?: COLLATE \w+)? AS \((?<expression>.+?)\) #{column.extra}/ =~ create_table_info

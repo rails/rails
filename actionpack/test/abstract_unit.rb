@@ -382,3 +382,5 @@ end
 class DrivenBySeleniumWithHeadlessFirefox < ActionDispatch::SystemTestCase
   driven_by :selenium, using: :headless_firefox
 end
+
+require_relative "../../tools/test_common"

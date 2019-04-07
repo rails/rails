@@ -102,6 +102,7 @@ instance_eval File.read local_gemfile if File.exist? local_gemfile
 group :test do
   gem "minitest-bisect"
   gem "minitest-retry"
+  gem "minitest-reporters"
 
   platforms :mri do
     gem "stackprof"
@@ -118,7 +119,7 @@ platforms :ruby, :mswin, :mswin64, :mingw, :x64_mingw do
   gem "racc", ">=1.4.6", require: false
 
   # Active Record.
-  gem "sqlite3", "~> 1.3", ">= 1.3.6"
+  gem "sqlite3", "~> 1.4"
 
   group :db do
     gem "pg", ">= 0.18.0"

@@ -1,3 +1,8 @@
+*   Added documentation about the `variants` option to `render`
+
+    *Edward Rudd*
+
+
 ## Rails 6.0.0.beta3 (March 11, 2019) ##
 
 *   No changes.

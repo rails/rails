@@ -145,15 +145,12 @@ module ActiveRecord
             elsif previous_packet.nil?
               true
             else
-              (current_packet.bytesize + previous_packet.bytesize) > max_allowed_packet
+              (current_packet.bytesize + previous_packet.bytesize + 2) > max_allowed_packet
             end
           end
 
           def max_allowed_packet
-            @max_allowed_packet ||= begin
-              bytes_margin = 2
-              show_variable("max_allowed_packet") - bytes_margin
-            end
+            @max_allowed_packet ||= show_variable("max_allowed_packet")
           end
 
           def exec_stmt_and_free(sql, name, binds, cache_stmt: false)

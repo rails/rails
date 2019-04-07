@@ -216,22 +216,22 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
     end
   end
 
-  def test_specifying_a_custom_connection_and_environment
+  def test_specifying_a_custom_database_and_environment
     stub_available_environments(["development"]) do
-      dbconsole = parse_arguments(["-c", "custom", "-e", "development"])
+      dbconsole = parse_arguments(["--db", "custom", "-e", "development"])
 
       assert_equal "development", dbconsole[:environment]
-      assert_equal "custom", dbconsole.connection
+      assert_equal "custom", dbconsole.database
     end
   end
 
-  def test_specifying_a_missing_connection
+  def test_specifying_a_missing_database
     app_db_config({}) do
       e = assert_raises(ActiveRecord::AdapterNotSpecified) do
-        Rails::Command.invoke(:dbconsole, ["-c", "i_do_not_exist"])
+        Rails::Command.invoke(:dbconsole, ["--db", "i_do_not_exist"])
       end
 
-      assert_includes e.message, "'i_do_not_exist' connection is not configured."
+      assert_includes e.message, "'i_do_not_exist' database is not configured."
     end
   end
 
@@ -243,6 +243,18 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
 
       assert_includes e.message, "'test' database is not configured."
     end
+  end
+
+  def test_connection_options_is_deprecate
+    command = Rails::Command::DbconsoleCommand.new([], ["-c", "custom"])
+    Rails::DBConsole.stub(:start, nil) do
+      assert_deprecated("`connection` option is deprecated") do
+        command.perform
+      end
+    end
+
+    assert_equal "custom", command.options["connection"]
+    assert_equal "custom", command.options["database"]
   end
 
   def test_print_help_short

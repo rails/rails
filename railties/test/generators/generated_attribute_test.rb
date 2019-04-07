@@ -42,6 +42,12 @@ class GeneratedAttributeTest < Rails::Generators::TestCase
     assert_field_type :rich_text, :rich_text_area
   end
 
+  def test_field_type_returns_file_field
+    %w(attachment attachments).each do |attribute_type|
+      assert_field_type attribute_type, :file_field
+    end
+  end
+
   def test_field_type_with_unknown_type_returns_text_field
     %w(foo bar baz).each do |attribute_type|
       assert_field_type attribute_type, :text_field
@@ -88,7 +94,7 @@ class GeneratedAttributeTest < Rails::Generators::TestCase
   end
 
   def test_default_value_is_nil
-    %w(references belongs_to rich_text).each do |attribute_type|
+    %w(references belongs_to rich_text attachment attachments).each do |attribute_type|
       assert_field_default_value attribute_type, nil
     end
   end

@@ -38,6 +38,7 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
 
     before_commit { |record| record.do_before_commit(nil) }
     after_commit { |record| record.do_after_commit(nil) }
+    after_save_commit { |record| record.do_after_commit(:save) }
     after_create_commit { |record| record.do_after_commit(:create) }
     after_update_commit { |record| record.do_after_commit(:update) }
     after_destroy_commit { |record| record.do_after_commit(:destroy) }
@@ -108,6 +109,17 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
 
     @first.save!
     assert_equal [:after_commit], @first.history
+  end
+
+  def test_only_call_after_commit_on_save_after_transaction_commits_for_saving_record
+    record = TopicWithCallbacks.new(title: "New topic", written_on: Date.today)
+    record.after_commit_block(:save) { |r| r.history << :after_save }
+
+    record.save!
+    assert_equal [:after_save], record.history
+
+    record.update!(title: "Another topic")
+    assert_equal [:after_save, :after_save], record.history
   end
 
   def test_only_call_after_commit_on_update_after_transaction_commits_for_existing_record

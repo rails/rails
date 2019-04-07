@@ -186,8 +186,8 @@ module ActiveRecord
         ActiveRecord::Base.connected_to(database: { truncation: configuration }) do
           table_names = ActiveRecord::Base.connection.tables
           table_names -= [
-            ActiveRecord::Base.schema_migrations_table_name,
-            ActiveRecord::Base.internal_metadata_table_name
+            SchemaMigration.table_name,
+            InternalMetadata.table_name
           ]
 
           ActiveRecord::Base.connection.truncate_tables(*table_names)

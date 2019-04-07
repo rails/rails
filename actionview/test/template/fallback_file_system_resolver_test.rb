@@ -4,7 +4,7 @@ require "abstract_unit"
 
 class FallbackFileSystemResolverTest < ActiveSupport::TestCase
   def setup
-    @root_resolver = ActionView::FallbackFileSystemResolver.new("/")
+    @root_resolver = ActionView::FallbackFileSystemResolver.send(:new, "/")
   end
 
   def test_should_have_no_virtual_path

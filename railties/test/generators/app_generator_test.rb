@@ -526,7 +526,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     if defined?(JRUBY_VERSION)
       assert_gem "activerecord-jdbcsqlite3-adapter"
     else
-      assert_gem "sqlite3", "'~> 1.3', '>= 1.3.6'"
+      assert_gem "sqlite3", "'~> 1.4'"
     end
   end
 
@@ -676,6 +676,21 @@ class AppGeneratorTest < Rails::Generators::TestCase
     else
       assert_no_listen_related_configuration
     end
+  end
+
+  def test_inclusion_of_listen_related_configuration_on_other_rubies
+    ruby_engine = Object.send(:remove_const, :RUBY_ENGINE)
+    Object.const_set(:RUBY_ENGINE, "MyRuby")
+
+    run_generator
+    if RbConfig::CONFIG["host_os"] =~ /darwin|linux/
+      assert_listen_related_configuration
+    else
+      assert_no_listen_related_configuration
+    end
+  ensure
+    Object.send(:remove_const, :RUBY_ENGINE)
+    Object.const_set(:RUBY_ENGINE, ruby_engine)
   end
 
   def test_non_inclusion_of_listen_related_configuration_if_skip_listen
@@ -968,6 +983,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
       else
         assert_match(/#{RUBY_ENGINE}-#{RUBY_ENGINE_VERSION}/, content)
       end
+
+      assert content.end_with?("\n"), "expected .ruby-version to end with newline"
     end
   end
 

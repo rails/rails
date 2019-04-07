@@ -203,6 +203,10 @@ end
 
 class SubAbstractStiPost < AbstractStiPost; end
 
+class NullPost < Post
+  default_scope { none }
+end
+
 class FirstPost < ActiveRecord::Base
   self.inheritance_column = :disabled
   self.table_name = "posts"

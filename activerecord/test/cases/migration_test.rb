@@ -385,6 +385,7 @@ class MigrationTest < ActiveRecord::TestCase
     assert_equal "changed", ActiveRecord::SchemaMigration.table_name
   ensure
     ActiveRecord::Base.schema_migrations_table_name = original_schema_migrations_table_name
+    ActiveRecord::SchemaMigration.reset_table_name
     Reminder.reset_table_name
   end
 
@@ -405,6 +406,7 @@ class MigrationTest < ActiveRecord::TestCase
     assert_equal "changed", ActiveRecord::InternalMetadata.table_name
   ensure
     ActiveRecord::Base.internal_metadata_table_name = original_internal_metadata_table_name
+    ActiveRecord::InternalMetadata.reset_table_name
     Reminder.reset_table_name
   end
 

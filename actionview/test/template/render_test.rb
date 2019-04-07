@@ -811,6 +811,28 @@ class CachedCollectionViewRenderTest < ActiveSupport::TestCase
     end
   end
 
+  test "collection caching with repeated collection" do
+    sets = [
+        [1, 2, 3, 4, 5],
+        [1, 2, 3, 4, 4],
+        [1, 2, 3, 4, 5],
+        [1, 2, 3, 4, 4],
+        [1, 2, 3, 4, 6]
+    ]
+
+    result = @view.render(partial: "test/cached_set", collection: sets, cached: true)
+
+    splited_result = result.split("\n")
+    assert_equal 5, splited_result.count
+    assert_equal [
+      "1 | 2 | 3 | 4 | 5",
+      "1 | 2 | 3 | 4 | 4",
+      "1 | 2 | 3 | 4 | 5",
+      "1 | 2 | 3 | 4 | 4",
+      "1 | 2 | 3 | 4 | 6"
+    ], splited_result
+  end
+
   private
     def cache_key(*names, virtual_path)
       digest = ActionView::Digestor.digest name: virtual_path, format: :html, finder: @view.lookup_context, dependencies: []

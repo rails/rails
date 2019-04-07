@@ -14,7 +14,7 @@ module ActiveRecord
 
             log(sql, name) do
               ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
-                @connection.execute_batch(sql)
+                @connection.execute_batch2(sql)
               end
             end
           end

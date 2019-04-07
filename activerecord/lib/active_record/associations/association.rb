@@ -225,7 +225,7 @@ module ActiveRecord
         # Can be overridden (i.e. in ThroughAssociation) to merge in other scopes (i.e. the
         # through association's scope)
         def target_scope
-          AssociationRelation.create(klass, self).merge!(klass.all)
+          AssociationRelation.create(klass, self).merge!(klass.scope_for_association)
         end
 
         def scope_for_create

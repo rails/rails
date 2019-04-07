@@ -317,6 +317,51 @@ module ActiveRecord
       @cache_keys[timestamp_column] ||= @klass.collection_cache_key(self, timestamp_column)
     end
 
+    def compute_cache_key(timestamp_column = :updated_at) # :nodoc:
+      query_signature = ActiveSupport::Digest.hexdigest(to_sql)
+      key = "#{klass.model_name.cache_key}/query-#{query_signature}"
+
+      if loaded? || distinct_value
+        size = records.size
+        if size > 0
+          timestamp = max_by(&timestamp_column)._read_attribute(timestamp_column)
+        end
+      else
+        collection = eager_loading? ? apply_join_dependency : self
+
+        column = connection.visitor.compile(arel_attribute(timestamp_column))
+        select_values = "COUNT(*) AS #{connection.quote_column_name("size")}, MAX(%s) AS timestamp"
+
+        if collection.has_limit_or_offset?
+          query = collection.select("#{column} AS collection_cache_key_timestamp")
+          subquery_alias = "subquery_for_cache_key"
+          subquery_column = "#{subquery_alias}.collection_cache_key_timestamp"
+          arel = query.build_subquery(subquery_alias, select_values % subquery_column)
+        else
+          query = collection.unscope(:order)
+          query.select_values = [select_values % column]
+          arel = query.arel
+        end
+
+        result = connection.select_one(arel, nil)
+
+        if result
+          column_type = klass.type_for_attribute(timestamp_column)
+          timestamp = column_type.deserialize(result["timestamp"])
+          size = result["size"]
+        else
+          timestamp = nil
+          size = 0
+        end
+      end
+
+      if timestamp
+        "#{key}-#{size}-#{timestamp.utc.to_s(cache_timestamp_format)}"
+      else
+        "#{key}-#{size}"
+      end
+    end
+
     # Scope all queries to the current scope.
     #
     #   Comment.where(post_id: 1).scoping do
@@ -388,8 +433,6 @@ module ActiveRecord
       else
         stmt.set Arel.sql(klass.sanitize_sql_for_assignment(updates, table.name))
       end
-
-      stmt.comment(*arel.comment_node.values) if arel.comment_node
 
       @klass.connection.update stmt, "#{@klass} Update All"
     end
@@ -506,7 +549,6 @@ module ActiveRecord
       stmt.offset(arel.offset)
       stmt.order(*arel.orders)
       stmt.wheres = arel.constraints
-      stmt.comment(*arel.comment_node.values) if arel.comment_node
 
       affected = @klass.connection.delete(stmt, "#{@klass} Destroy")
 
@@ -679,6 +721,10 @@ module ActiveRecord
         @loaded = true
       end
 
+      def null_relation? # :nodoc:
+        is_a?(NullRelation)
+      end
+
     private
       def already_in_scope?
         @delegate_to_klass && begin
@@ -728,7 +774,7 @@ module ActiveRecord
           @records =
             if eager_loading?
               apply_join_dependency do |relation, join_dependency|
-                if ActiveRecord::NullRelation === relation
+                if relation.null_relation?
                   []
                 else
                   relation = join_dependency.apply_column_aliases(relation)

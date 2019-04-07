@@ -3,7 +3,7 @@
 module Arel # :nodoc: all
   module Nodes
     class UpdateStatement < Arel::Nodes::Node
-      attr_accessor :relation, :wheres, :values, :orders, :limit, :offset, :key, :comment
+      attr_accessor :relation, :wheres, :values, :orders, :limit, :offset, :key
 
       def initialize
         @relation = nil
@@ -13,18 +13,16 @@ module Arel # :nodoc: all
         @limit    = nil
         @offset   = nil
         @key      = nil
-        @comment  = nil
       end
 
       def initialize_copy(other)
         super
         @wheres = @wheres.clone
         @values = @values.clone
-        @comment = @comment.clone if @comment
       end
 
       def hash
-        [@relation, @wheres, @values, @orders, @limit, @offset, @key, @comment].hash
+        [@relation, @wheres, @values, @orders, @limit, @offset, @key].hash
       end
 
       def eql?(other)
@@ -35,8 +33,7 @@ module Arel # :nodoc: all
           self.orders == other.orders &&
           self.limit == other.limit &&
           self.offset == other.offset &&
-          self.key == other.key &&
-          self.comment == other.comment
+          self.key == other.key
       end
       alias :== :eql?
     end

@@ -19,6 +19,14 @@ if supports_optimizer_hints?
       end
     end
 
+    def test_optimizer_hints_with_count_subquery
+      assert_sql(%r{\ASELECT /\*\+ SeqScan\(posts\) \*/}) do
+        posts = Post.optimizer_hints("SeqScan(posts)")
+        posts = posts.select(:id).where(author_id: [0, 1]).limit(5)
+        assert_equal 5, posts.count
+      end
+    end
+
     def test_optimizer_hints_is_sanitized
       assert_sql(%r{\ASELECT /\*\+ SeqScan\(posts\) \*/}) do
         posts = Post.optimizer_hints("/*+ SeqScan(posts) */")

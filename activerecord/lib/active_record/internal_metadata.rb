@@ -17,7 +17,7 @@ module ActiveRecord
       end
 
       def table_name
-        "#{table_name_prefix}#{ActiveRecord::Base.internal_metadata_table_name}#{table_name_suffix}"
+        "#{table_name_prefix}#{internal_metadata_table_name}#{table_name_suffix}"
       end
 
       def []=(key, value)
@@ -43,6 +43,10 @@ module ActiveRecord
             t.timestamps
           end
         end
+      end
+
+      def drop_table
+        connection.drop_table table_name, if_exists: true
       end
     end
   end

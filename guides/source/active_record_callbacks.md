@@ -473,10 +473,33 @@ end
 => User was saved to database
 ```
 
-To register callbacks for both create and update actions, use `after_commit` instead.
+There is also an alias for using the `after_commit` callback for both create and update together:
+
+* `after_save_commit`
 
 ```ruby
 class User < ApplicationRecord
-  after_commit :log_user_saved_to_db, on: [:create, :update]
+  after_save_commit :log_user_saved_to_db
+
+  private
+  def log_user_saved_to_db
+    puts 'User was saved to database'
+  end
+end
+
+# creating a User
+>> @user = User.create
+=> User was saved to database
+
+# updating @user
+>> @user.save
+=> User was saved to database
+```
+
+To register callbacks for both create and destroy actions, use `after_commit` instead.
+
+```ruby
+class User < ApplicationRecord
+  after_commit :log_user_saved_to_db, on: [:create, :destroy]
 end
 ```
