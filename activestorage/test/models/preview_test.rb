@@ -44,6 +44,5 @@ class ActiveStorage::PreviewTest < ActiveSupport::TestCase
 
     assert_equal preview.deliver(:redirect), Rails.application.routes.url_helpers.route_for(:rails_blob_representation, blob.signed_id, preview.variation.key, blob.filename, only_path: true)
     assert_equal preview.deliver(:proxy), Rails.application.routes.url_helpers.route_for(:rails_blob_representation_proxy, blob.signed_id, preview.variation.key, blob.filename, only_path: true)
-    assert_equal preview.deliver(:direct)[0..200], preview.service_url[0..200]
   end
 end

@@ -49,8 +49,6 @@ class ActiveStorage::Variation
       Rails.application.routes.url_helpers.route_for(
         :rails_blob_representation_proxy, representation.blob.signed_id, key, representation.blob.filename, only_path: true
       )
-    when :direct
-      representation.service_url
     end
   end
 

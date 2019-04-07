@@ -198,7 +198,6 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
 
     assert_equal blob.deliver(:redirect), Rails.application.routes.url_helpers.route_for(:rails_service_blob, blob.signed_id, blob.filename, only_path: true)
     assert_equal blob.deliver(:proxy), Rails.application.routes.url_helpers.route_for(:rails_blob_proxy, blob.signed_id, blob.filename, only_path: true)
-    assert_equal blob.deliver(:direct)[0..200], blob.service_url[0..200]
   end
 
   private

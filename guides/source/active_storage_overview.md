@@ -433,7 +433,7 @@ The delivery method can be configured to meet the needs of your application. The
     Links directly to the temporary service URL. Useful for reducing the load on your application server for pages that are image heavy.
 
 ### Changing delivery method
-The delivery method can be changed globally by setting `config.active_storage.delivery_method = :proxy`. You can also change the delivery method in the model `has_one_attached :avatar, delivery_method: :direct` and view `user.avatar.variant(resize: "100x100").deliver(:redirect)`.
+The delivery method can be changed globally by setting `config.active_storage.delivery_method = :proxy`. You can also change the delivery method in the model `has_one_attached :avatar, delivery_method: :proxy` and view `user.avatar.variant(resize: "100x100").deliver(:proxy)`.
     
 
 Transforming Images

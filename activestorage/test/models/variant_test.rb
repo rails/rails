@@ -184,6 +184,5 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
 
     assert_equal variant.deliver(:redirect), Rails.application.routes.url_helpers.route_for(:rails_blob_representation, blob.signed_id, variant.variation.key, blob.filename, only_path: true)
     assert_equal variant.deliver(:proxy), Rails.application.routes.url_helpers.route_for(:rails_blob_representation_proxy, blob.signed_id, variant.variation.key, blob.filename, only_path: true)
-    assert_equal variant.deliver(:direct)[0..200], variant.service_url[0..200]
   end
 end

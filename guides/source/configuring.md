@@ -867,7 +867,6 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
   The default is `:redirect` Can include any of these options:
     * `:redirect` - Redirect files to temporary service URL.
     * `:proxy` - Proxy assets from service so they can be delivered from your application.
-    * `:direct` - Direct link to service URL.
   
 * `config.active_storage.proxy_urls_expire_in` sets the expiration time for proxied requests
 

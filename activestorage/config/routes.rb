@@ -27,8 +27,6 @@ Rails.application.routes.draw do
       route_for(:rails_blob_representation, signed_blob_id, variation_key, filename, options)
     when :proxy
       route_for(:rails_blob_representation_proxy, signed_blob_id, variation_key, filename, options)
-    when :direct
-      representation.processed.service_url
     end
   end
 
@@ -41,8 +39,6 @@ Rails.application.routes.draw do
       instance.route_for(:rails_service_blob, blob.signed_id, blob.filename, options)
     when :proxy
       instance.route_for(:rails_blob_proxy, blob.signed_id, blob.filename, options)
-    when :direct
-      blob.service_url
     end
   }
 
