@@ -573,7 +573,7 @@ web addresses. Thus, you should always use the "_url" variant of named route
 helpers.
 
 If you did not configure the `:host` option globally make sure to pass it to the
-url helper.
+URL helper.
 
 ```erb
 <%= user_url(@user, host: 'example.com') %>

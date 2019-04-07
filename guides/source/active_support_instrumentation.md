@@ -580,7 +580,7 @@ Active Storage
 | ------------ | ------------------- |
 | `:key`       | Secure token        |
 | `:service`   | Name of the service |
-| `:url`       | Generated url       |
+| `:url`       | Generated URL       |
 
 Railties
 --------

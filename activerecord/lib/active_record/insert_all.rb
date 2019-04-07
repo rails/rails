@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module ActiveRecord
-  class InsertAll
+  class InsertAll # :nodoc:
     attr_reader :model, :connection, :inserts, :keys
     attr_reader :on_duplicate, :returning, :unique_by
 
@@ -73,15 +73,11 @@ module ActiveRecord
           raise ArgumentError, "#{connection.class} does not support :returning"
         end
 
-        unless %i{ raise skip update }.member?(on_duplicate)
-          raise NotImplementedError, "#{on_duplicate.inspect} is an unknown value for :on_duplicate. Valid values are :raise, :skip, and :update"
-        end
-
-        if on_duplicate == :skip && !connection.supports_insert_on_duplicate_skip?
+        if skip_duplicates? && !connection.supports_insert_on_duplicate_skip?
           raise ArgumentError, "#{connection.class} does not support skipping duplicates"
         end
 
-        if on_duplicate == :update && !connection.supports_insert_on_duplicate_update?
+        if update_duplicates? && !connection.supports_insert_on_duplicate_update?
           raise ArgumentError, "#{connection.class} does not support upsert"
         end
 
@@ -137,16 +133,16 @@ module ActiveRecord
         end
 
         def returning
-          quote_columns(insert_all.returning).join(",") if insert_all.returning
+          format_columns(insert_all.returning) if insert_all.returning
         end
 
         def conflict_target
           if index = insert_all.unique_by
-            sql = +"(#{quote_columns(index.columns).join(',')})"
+            sql = +"(#{format_columns(index.columns)})"
             sql << " WHERE #{index.where}" if index.where
             sql
           elsif update_duplicates?
-            "(#{quote_columns(insert_all.primary_keys).join(',')})"
+            "(#{format_columns(insert_all.primary_keys)})"
           end
         end
 
@@ -158,7 +154,7 @@ module ActiveRecord
           attr_reader :connection, :insert_all
 
           def columns_list
-            quote_columns(insert_all.keys).join(",")
+            format_columns(insert_all.keys)
           end
 
           def extract_types_from_columns_on(table_name, keys:)
@@ -168,6 +164,10 @@ module ActiveRecord
             raise UnknownAttributeError.new(model.new, unknown_column) if unknown_column
 
             keys.map { |key| [ key, connection.lookup_cast_type_from_column(columns[key]) ] }.to_h
+          end
+
+          def format_columns(columns)
+            quote_columns(columns).join(",")
           end
 
           def quote_columns(columns)

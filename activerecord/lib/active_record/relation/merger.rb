@@ -117,16 +117,14 @@ module ActiveRecord
           if other.klass == relation.klass
             relation.joins!(*other.joins_values)
           else
-            joins_dependency = other.joins_values.map do |join|
+            associations, others = other.joins_values.partition do |join|
               case join
-              when Hash, Symbol, Array
-                other.send(:construct_join_dependency, join)
-              else
-                join
+              when Hash, Symbol, Array; true
               end
             end
 
-            relation.joins!(*joins_dependency)
+            join_dependency = other.construct_join_dependency(associations)
+            relation.joins!(join_dependency, *others)
           end
         end
 
@@ -136,16 +134,9 @@ module ActiveRecord
           if other.klass == relation.klass
             relation.left_outer_joins!(*other.left_outer_joins_values)
           else
-            joins_dependency = other.left_outer_joins_values.map do |join|
-              case join
-              when Hash, Symbol, Array
-                other.send(:construct_join_dependency, join)
-              else
-                join
-              end
-            end
-
-            relation.left_outer_joins!(*joins_dependency)
+            associations = other.left_outer_joins_values
+            join_dependency = other.construct_join_dependency(associations)
+            relation.joins!(join_dependency)
           end
         end
 

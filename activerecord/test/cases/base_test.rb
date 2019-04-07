@@ -1035,11 +1035,6 @@ class BasicsTest < ActiveRecord::TestCase
     end
   end
 
-  def test_find_last
-    last = Developer.last
-    assert_equal last, Developer.all.merge!(order: "id desc").first
-  end
-
   def test_last
     assert_equal Developer.all.merge!(order: "id desc").first, Developer.last
   end

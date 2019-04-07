@@ -201,7 +201,7 @@ module ActiveRecord
       end
 
       def supports_insert_on_conflict?
-        postgresql_version >= 90500
+        database_version >= 90500
       end
       alias supports_insert_on_duplicate_skip? supports_insert_on_conflict?
       alias supports_insert_on_duplicate_update? supports_insert_on_conflict?
@@ -344,7 +344,7 @@ module ActiveRecord
       end
 
       def supports_pgcrypto_uuid?
-        postgresql_version >= 90400
+        database_version >= 90400
       end
 
       def supports_optimizer_hints?
@@ -424,7 +424,7 @@ module ActiveRecord
       }
 
       # Returns the version of the connected PostgreSQL server.
-      def postgresql_version
+      def get_database_version
         @connection.server_version
       end
 
@@ -446,12 +446,13 @@ module ActiveRecord
         sql
       end
 
-      private
-        def check_version
-          if postgresql_version < 90300
-            raise "Your version of PostgreSQL (#{postgresql_version}) is too old. Active Record supports PostgreSQL >= 9.3."
-          end
+      def check_version # :nodoc:
+        if database_version < 90300
+          raise "Your version of PostgreSQL (#{database_version}) is too old. Active Record supports PostgreSQL >= 9.3."
         end
+      end
+
+      private
 
         # See https://www.postgresql.org/docs/current/static/errcodes-appendix.html
         VALUE_LIMIT_VIOLATION = "22001"

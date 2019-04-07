@@ -55,8 +55,8 @@ module ActiveRecord
         super(connection, logger, config)
       end
 
-      def version #:nodoc:
-        @version ||= Version.new(version_string)
+      def get_database_version #:nodoc:
+        Version.new(version_string)
       end
 
       def mariadb? # :nodoc:
@@ -68,11 +68,11 @@ module ActiveRecord
       end
 
       def supports_index_sort_order?
-        !mariadb? && version >= "8.0.1"
+        !mariadb? && database_version >= "8.0.1"
       end
 
       def supports_expression_index?
-        !mariadb? && version >= "8.0.13"
+        !mariadb? && database_version >= "8.0.13"
       end
 
       def supports_transaction_isolation?
@@ -96,16 +96,16 @@ module ActiveRecord
       end
 
       def supports_datetime_with_precision?
-        mariadb? || version >= "5.6.4"
+        mariadb? || database_version >= "5.6.4"
       end
 
       def supports_virtual_columns?
-        mariadb? || version >= "5.7.5"
+        mariadb? || database_version >= "5.7.5"
       end
 
       # See https://dev.mysql.com/doc/refman/8.0/en/optimizer-hints.html for more details.
       def supports_optimizer_hints?
-        !mariadb? && version >= "5.7.7"
+        !mariadb? && database_version >= "5.7.7"
       end
 
       def supports_advisory_locks?
@@ -526,12 +526,13 @@ module ActiveRecord
         sql
       end
 
-      private
-        def check_version
-          if version < "5.5.8"
-            raise "Your version of MySQL (#{version_string}) is too old. Active Record supports MySQL >= 5.5.8."
-          end
+      def check_version # :nodoc:
+        if database_version < "5.5.8"
+          raise "Your version of MySQL (#{database_version}) is too old. Active Record supports MySQL >= 5.5.8."
         end
+      end
+
+      private
 
         def initialize_type_map(m = type_map)
           super
@@ -702,7 +703,7 @@ module ActiveRecord
         end
 
         def supports_rename_index?
-          mariadb? ? false : version >= "5.7.6"
+          mariadb? ? false : database_version >= "5.7.6"
         end
 
         def configure_connection

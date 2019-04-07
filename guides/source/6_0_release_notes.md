@@ -267,9 +267,55 @@ Please refer to the [Changelog][active-job] for detailed changes.
 
 ### Removals
 
+*   Remove support for Qu gem.
+    ([Pull Request](https://github.com/rails/rails/pull/32300))
+
 ### Deprecations
 
 ### Notable changes
+
+*   Add support for custom serializers for Active Job arguments.
+    ([Pull Request](https://github.com/rails/rails/pull/30941))
+
+*   Add support for executing Active Jobs in the timezone in which
+    they were enqueued.
+    ([Pull Request](https://github.com/rails/rails/pull/32085))
+
+*   Allow passing multiple exceptions to `retry_on`/`discard_on`.
+    ([Commit](https://github.com/rails/rails/commit/3110caecbebdad7300daaf26bfdff39efda99e25))
+
+*   Allow calling `assert_enqueued_with` and `assert_enqueued_email_with` without a block.
+    ([Pull Request](https://github.com/rails/rails/pull/33258))
+
+*   Wrap the notifications for `enqueue` and `enqueue_at` in the `around_enqueue`
+    callback instead of `after_enqueue` callback.
+    ([Pull Request](https://github.com/rails/rails/pull/33171))
+
+*   Allow calling `perform_enqueued_jobs` without a block.
+    ([Pull Request](https://github.com/rails/rails/pull/33626))
+
+*   Allow calling `assert_performed_with` without a block.
+    ([Pull Request](https://github.com/rails/rails/pull/33635))
+
+*   Add `:queue` option to job assertions and helpers.
+    ([Pull Request](https://github.com/rails/rails/pull/33635))
+
+*   Add hooks to Active Job around retries and discards.
+    ([Pull Request](https://github.com/rails/rails/pull/33751))
+
+*   Add a way to test for subset of arguments when performing jobs.
+    ([Pull Request](https://github.com/rails/rails/pull/33995))
+
+*   Include deserialized arguments in jobs returned by Active Job
+    test helpers.
+    ([Pull Request](https://github.com/rails/rails/pull/34204))
+
+*   Allow Active Job assertion helpers to accept Proc for `only`
+    keyword.
+    ([Pull Request](https://github.com/rails/rails/pull/34339))
+
+*   Drop microseconds and nanoseconds from the job arguments in assertion helpers.
+    ([Pull Request](https://github.com/rails/rails/pull/35713))
 
 Ruby on Rails Guides
 --------------------

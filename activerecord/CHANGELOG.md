@@ -1,3 +1,40 @@
+*   Association loading isn't to be affected by scoping consistently
+    whether preloaded / eager loaded or not, with the exception of `unscoped`.
+
+    Before:
+
+    ```ruby
+    Post.where("1=0").scoping do
+      Comment.find(1).post                   # => nil
+      Comment.preload(:post).find(1).post    # => #<Post id: 1, ...>
+      Comment.eager_load(:post).find(1).post # => #<Post id: 1, ...>
+    end
+    ```
+
+    After:
+
+    ```ruby
+    Post.where("1=0").scoping do
+      Comment.find(1).post                   # => #<Post id: 1, ...>
+      Comment.preload(:post).find(1).post    # => #<Post id: 1, ...>
+      Comment.eager_load(:post).find(1).post # => #<Post id: 1, ...>
+    end
+    ```
+
+    Fixes #34638, #35398.
+
+    *Ryuta Kamizono*
+
+*   Add `rails db:prepare` to migrate or setup a database.
+
+    Runs `db:migrate` if the database exists or `db:setup` if it doesn't.
+
+    *Roberto Miranda*
+
+*   Add `after_save_commit` callback as shortcut for `after_commit :hook, on: [ :create, :update ]`.
+
+    *DHH*
+
 *   Assign all attributes before calling `build` to ensure the child record is visible in
     `before_add` and `after_add` callbacks for `has_many :through` associations.
 
@@ -5,7 +42,7 @@
 
     *Ryan H. Kerr*
 
-*   Add `ActiveRecord::Relation#extract_associated` for extracting associated records from a relation. 
+*   Add `ActiveRecord::Relation#extract_associated` for extracting associated records from a relation.
 
     ```
     account.memberships.extract_associated(:user)
@@ -75,7 +112,7 @@
     bulk deletes by `delete_all`.
 
     Supports skipping or upserting duplicates through the `ON CONFLICT` syntax
-    for Postgres (9.5+) and Sqlite (3.24+) and `ON DUPLICATE KEY UPDATE` syntax
+    for PostgreSQL (9.5+) and SQLite (3.24+) and `ON DUPLICATE KEY UPDATE` syntax
     for MySQL.
 
     *Bob Lail*
@@ -454,7 +491,7 @@
 
     *Sean Griffin*
 
-*   Add support for hash and url configs in database hash of `ActiveRecord::Base.connected_to`.
+*   Add support for hash and URL configs in database hash of `ActiveRecord::Base.connected_to`.
 
     ````
     User.connected_to(database: { writing: "postgres://foo" }) do

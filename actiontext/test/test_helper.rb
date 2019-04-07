@@ -31,3 +31,5 @@ class ActiveSupport::TestCase
       ActiveStorage::Blob.create_after_upload! io: file_fixture(filename).open, filename: filename, content_type: content_type, metadata: metadata
     end
 end
+
+require_relative "../../tools/test_common"

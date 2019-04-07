@@ -19,7 +19,7 @@ module ActiveRecord
       end
 
       def table_name
-        "#{table_name_prefix}#{ActiveRecord::Base.schema_migrations_table_name}#{table_name_suffix}"
+        "#{table_name_prefix}#{schema_migrations_table_name}#{table_name_suffix}"
       end
 
       def table_exists?

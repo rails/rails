@@ -129,11 +129,12 @@ module ActiveRecord
         relation = apply_join_dependency
 
         if operation.to_s.downcase == "count"
-          relation.distinct!
-          # PostgreSQL: ORDER BY expressions must appear in SELECT list when using DISTINCT
-          if (column_name == :all || column_name.nil?) && select_values.empty?
-            relation.order_values = []
+          unless distinct_value || distinct_select?(column_name || select_for_count)
+            relation.distinct!
+            relation.select_values = [ klass.primary_key || table[Arel.star] ]
           end
+          # PostgreSQL: ORDER BY expressions must appear in SELECT list when using DISTINCT
+          relation.order_values = []
         end
 
         relation.calculate(operation, column_name)
@@ -307,25 +308,23 @@ module ActiveRecord
       end
 
       def execute_grouped_calculation(operation, column_name, distinct) #:nodoc:
-        group_attrs = group_values
+        group_fields = group_values
 
-        if group_attrs.first.respond_to?(:to_sym)
-          association  = @klass._reflect_on_association(group_attrs.first)
-          associated   = group_attrs.size == 1 && association && association.belongs_to? # only count belongs_to associations
-          group_fields = Array(associated ? association.foreign_key : group_attrs)
-        else
-          group_fields = group_attrs
+        if group_fields.size == 1 && group_fields.first.respond_to?(:to_sym)
+          association  = klass._reflect_on_association(group_fields.first)
+          associated   = association && association.belongs_to? # only count belongs_to associations
+          group_fields = Array(association.foreign_key) if associated
         end
         group_fields = arel_columns(group_fields)
 
-        group_aliases = group_fields.map { |field| column_alias_for(field) }
+        group_aliases = group_fields.map { |field|
+          field = connection.visitor.compile(field) if Arel.arel_node?(field)
+          column_alias_for(field)
+        }
         group_columns = group_aliases.zip(group_fields)
 
-        if operation == "count" && column_name == :all
-          aggregate_alias = "count_all"
-        else
-          aggregate_alias = column_alias_for([operation, column_name].join(" "))
-        end
+        aggregate_alias = "#{operation}_#{column_name.to_s.downcase}"
+        aggregate_alias = column_alias_for(aggregate_alias) unless aggregate_alias.match?(/\A\w+\z/)
 
         select_values = [
           operation_over_aggregate_column(
@@ -344,7 +343,7 @@ module ActiveRecord
         }
 
         relation = except(:group).distinct!(false)
-        relation.group_values  = group_fields
+        relation.group_values  = group_aliases
         relation.select_values = select_values
 
         calculated_data = skip_query_cache_if_necessary { @klass.connection.select_all(relation.arel, nil) }
@@ -377,18 +376,14 @@ module ActiveRecord
       #   column_alias_for("sum(id)")                  # => "sum_id"
       #   column_alias_for("count(distinct users.id)") # => "count_distinct_users_id"
       #   column_alias_for("count(*)")                 # => "count_all"
-      def column_alias_for(keys)
-        if keys.respond_to? :name
-          keys = "#{keys.relation.name}.#{keys.name}"
-        end
+      def column_alias_for(field)
+        column_alias = field.to_s.downcase
+        column_alias.gsub!(/\*/, "all")
+        column_alias.gsub!(/\W+/, " ")
+        column_alias.strip!
+        column_alias.gsub!(/ +/, "_")
 
-        table_name = keys.to_s.downcase
-        table_name.gsub!(/\*/, "all")
-        table_name.gsub!(/\W+/, " ")
-        table_name.strip!
-        table_name.gsub!(/ +/, "_")
-
-        @klass.connection.table_alias_for(table_name)
+        connection.table_alias_for(column_alias)
       end
 
       def type_for(field, &block)
@@ -416,16 +411,17 @@ module ActiveRecord
 
       def build_count_subquery(relation, column_name, distinct)
         if column_name == :all
+          column_alias = Arel.star
           relation.select_values = [ Arel.sql(FinderMethods::ONE_AS_ONE) ] unless distinct
         else
           column_alias = Arel.sql("count_column")
           relation.select_values = [ aggregate_column(column_name).as(column_alias) ]
         end
 
-        subquery = relation.arel.as(Arel.sql("subquery_for_count"))
-        select_value = operation_over_aggregate_column(column_alias || Arel.star, "count", false)
+        subquery_alias = Arel.sql("subquery_for_count")
+        select_value = operation_over_aggregate_column(column_alias, "count", false)
 
-        Arel::SelectManager.new(subquery).project(select_value)
+        relation.build_subquery(subquery_alias, select_value)
       end
   end
 end

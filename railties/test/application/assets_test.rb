@@ -450,7 +450,7 @@ module ApplicationTests
       assert_equal 0, files.length, "Expected application.js asset to be removed, but still exists"
     end
 
-    test "asset urls should use the request's protocol by default" do
+    test "asset URLs should use the request's protocol by default" do
       app_with_assets_in_view
       add_to_config "config.asset_host = 'example.com'"
       add_to_env_config "development", "config.assets.digest = false"
@@ -466,7 +466,7 @@ module ApplicationTests
       assert_match('src="https://example.com/assets/application.self.js', last_response.body)
     end
 
-    test "asset urls should be protocol-relative if no request is in scope" do
+    test "asset URLs should be protocol-relative if no request is in scope" do
       app_file "app/assets/images/rails.png", "notreallyapng"
       app_file "app/assets/javascripts/image_loader.js.erb", "var src='<%= image_path('rails.png') %>';"
       add_to_config "config.assets.precompile = %w{rails.png image_loader.js}"

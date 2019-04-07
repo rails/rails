@@ -95,7 +95,7 @@ module ApplicationTests
       end
     end
 
-    test "public url methods are not over-written by the asset pipeline" do
+    test "public URL methods are not over-written by the asset pipeline" do
       contents = "doesnotexist"
       cases = {
         asset_url:       %r{http://example.org/#{contents}},

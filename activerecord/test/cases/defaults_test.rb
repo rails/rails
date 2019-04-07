@@ -89,7 +89,7 @@ if current_adapter?(:PostgreSQLAdapter)
 
     test "schema dump includes default expression" do
       output = dump_table_schema("defaults")
-      if ActiveRecord::Base.connection.postgresql_version >= 100000
+      if ActiveRecord::Base.connection.database_version >= 100000
         assert_match %r/t\.date\s+"modified_date",\s+default: -> { "CURRENT_DATE" }/, output
         assert_match %r/t\.datetime\s+"modified_time",\s+default: -> { "CURRENT_TIMESTAMP" }/, output
       else

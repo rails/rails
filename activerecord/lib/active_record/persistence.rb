@@ -85,14 +85,14 @@ module ActiveRecord
       # ==== Options
       #
       # [:returning]
-      #   (Postgres-only) An array of attributes to return for all successfully
+      #   (PostgreSQL only) An array of attributes to return for all successfully
       #   inserted records, which by default is the primary key.
       #   Pass <tt>returning: %w[ id name ]</tt> for both id and name
       #   or <tt>returning: false</tt> to omit the underlying <tt>RETURNING</tt> SQL
       #   clause entirely.
       #
       # [:unique_by]
-      #   (Postgres and SQLite only) By default rows are considered to be unique
+      #   (PostgreSQL and SQLite only) By default rows are considered to be unique
       #   by every unique index on the table. Any duplicate rows are skipped.
       #
       #   To skip rows according to just one unique index pass <tt>:unique_by</tt>.
@@ -107,9 +107,9 @@ module ActiveRecord
       #     unique_by: %i[ author_id name ]
       #     unique_by: :index_books_on_isbn
       #
-      #  Because it relies on the index information from the database
-      #  <tt>:unique_by</tt> is recommended to be paired with
-      #  Active Record's schema_cache.
+      # Because it relies on the index information from the database
+      # <tt>:unique_by</tt> is recommended to be paired with
+      # Active Record's schema_cache.
       #
       # ==== Example
       #
@@ -154,7 +154,7 @@ module ActiveRecord
       # ==== Options
       #
       # [:returning]
-      #   (Postgres-only) An array of attributes to return for all successfully
+      #   (PostgreSQL only) An array of attributes to return for all successfully
       #   inserted records, which by default is the primary key.
       #   Pass <tt>returning: %w[ id name ]</tt> for both id and name
       #   or <tt>returning: false</tt> to omit the underlying <tt>RETURNING</tt> SQL
@@ -202,14 +202,14 @@ module ActiveRecord
       # ==== Options
       #
       # [:returning]
-      #   (Postgres-only) An array of attributes to return for all successfully
+      #   (PostgreSQL only) An array of attributes to return for all successfully
       #   inserted records, which by default is the primary key.
       #   Pass <tt>returning: %w[ id name ]</tt> for both id and name
       #   or <tt>returning: false</tt> to omit the underlying <tt>RETURNING</tt> SQL
       #   clause entirely.
       #
       # [:unique_by]
-      #   (Postgres and SQLite only) By default rows are considered to be unique
+      #   (PostgreSQL and SQLite only) By default rows are considered to be unique
       #   by every unique index on the table. Any duplicate rows are skipped.
       #
       #   To skip rows according to just one unique index pass <tt>:unique_by</tt>.
@@ -224,9 +224,9 @@ module ActiveRecord
       #     unique_by: %i[ author_id name ]
       #     unique_by: :index_books_on_isbn
       #
-      #  Because it relies on the index information from the database
-      #  <tt>:unique_by</tt> is recommended to be paired with
-      #  Active Record's schema_cache.
+      # Because it relies on the index information from the database
+      # <tt>:unique_by</tt> is recommended to be paired with
+      # Active Record's schema_cache.
       #
       # ==== Examples
       #
@@ -238,7 +238,7 @@ module ActiveRecord
       #     { title: "Eloquent Ruby", author: "Russ", isbn: "1" }
       #   ], unique_by: :isbn)
       #
-      #  Book.find_by(isbn: "1").title # => "Eloquent Ruby"
+      #   Book.find_by(isbn: "1").title # => "Eloquent Ruby"
       def upsert_all(attributes, returning: nil, unique_by: nil)
         InsertAll.new(self, attributes, on_duplicate: :update, returning: returning, unique_by: unique_by).execute
       end
@@ -568,7 +568,6 @@ module ActiveRecord
       became.send(:initialize)
       became.instance_variable_set("@attributes", @attributes)
       became.instance_variable_set("@mutations_from_database", @mutations_from_database ||= nil)
-      became.instance_variable_set("@changed_attributes", attributes_changed_by_setter)
       became.instance_variable_set("@new_record", new_record?)
       became.instance_variable_set("@destroyed", destroyed?)
       became.errors.copy!(errors)

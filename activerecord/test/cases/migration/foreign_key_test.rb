@@ -155,7 +155,7 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
 
       class ForeignKeyChangeColumnWithSuffixTest < ForeignKeyChangeColumnTest
         setup do
-          ActiveRecord::Base.table_name_suffix = "_p"
+          ActiveRecord::Base.table_name_suffix = "_s"
         end
 
         teardown do

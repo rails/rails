@@ -176,7 +176,7 @@ module ActionCable
         #
         # Accepts request path as the first argument and the following request options:
         #
-        # - params – url parameters (Hash)
+        # - params – URL parameters (Hash)
         # - headers – request headers (Hash)
         # - session – session data (Hash)
         # - env – additional Rack env configuration (Hash)

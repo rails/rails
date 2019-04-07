@@ -485,23 +485,51 @@ module ActiveRecord
     end
 
     def test_truncate
-      assert_operator @connection.query_value("SELECT COUNT(*) FROM posts"), :>, 0
+      assert_operator Post.count, :>, 0
 
       @connection.truncate("posts")
 
-      assert_equal 0, @connection.query_value("SELECT COUNT(*) FROM posts")
+      assert_equal 0, Post.count
+    end
+
+    def test_truncate_with_query_cache
+      @connection.enable_query_cache!
+
+      assert_operator Post.count, :>, 0
+
+      @connection.truncate("posts")
+
+      assert_equal 0, Post.count
+    ensure
+      @connection.disable_query_cache!
     end
 
     def test_truncate_tables
-      assert_operator @connection.query_value("SELECT COUNT(*) FROM posts"), :>, 0
-      assert_operator @connection.query_value("SELECT COUNT(*) FROM authors"), :>, 0
-      assert_operator @connection.query_value("SELECT COUNT(*) FROM author_addresses"), :>, 0
+      assert_operator Post.count, :>, 0
+      assert_operator Author.count, :>, 0
+      assert_operator AuthorAddress.count, :>, 0
 
       @connection.truncate_tables("author_addresses", "authors", "posts")
 
-      assert_equal 0, @connection.query_value("SELECT COUNT(*) FROM posts")
-      assert_equal 0, @connection.query_value("SELECT COUNT(*) FROM authors")
-      assert_equal 0, @connection.query_value("SELECT COUNT(*) FROM author_addresses")
+      assert_equal 0, Post.count
+      assert_equal 0, Author.count
+      assert_equal 0, AuthorAddress.count
+    end
+
+    def test_truncate_tables_with_query_cache
+      @connection.enable_query_cache!
+
+      assert_operator Post.count, :>, 0
+      assert_operator Author.count, :>, 0
+      assert_operator AuthorAddress.count, :>, 0
+
+      @connection.truncate_tables("author_addresses", "authors", "posts")
+
+      assert_equal 0, Post.count
+      assert_equal 0, Author.count
+      assert_equal 0, AuthorAddress.count
+    ensure
+      @connection.disable_query_cache!
     end
 
     # test resetting sequences in odd tables in PostgreSQL

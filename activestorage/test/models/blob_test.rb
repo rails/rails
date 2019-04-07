@@ -114,7 +114,7 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     end
   end
 
-  test "urls expiring in 5 minutes" do
+  test "URLs expiring in 5 minutes" do
     blob = create_blob
 
     freeze_time do
@@ -123,7 +123,7 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     end
   end
 
-  test "urls force content_type to binary and attachment as content disposition for content types served as binary" do
+  test "URLs force content_type to binary and attachment as content disposition for content types served as binary" do
     blob = create_blob(content_type: "text/html")
 
     freeze_time do
@@ -132,7 +132,7 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     end
   end
 
-  test "urls force attachment as content disposition when the content type is not allowed inline" do
+  test "URLs force attachment as content disposition when the content type is not allowed inline" do
     blob = create_blob(content_type: "application/zip")
 
     freeze_time do
@@ -141,7 +141,7 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     end
   end
 
-  test "urls allow for custom filename" do
+  test "URLs allow for custom filename" do
     blob = create_blob(filename: "original.txt")
     new_filename = ActiveStorage::Filename.new("new.txt")
 
@@ -153,7 +153,7 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     end
   end
 
-  test "urls allow for custom options" do
+  test "URLs allow for custom options" do
     blob = create_blob(filename: "original.txt")
 
     arguments = [

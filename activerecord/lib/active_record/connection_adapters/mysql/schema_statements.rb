@@ -126,9 +126,9 @@ module ActiveRecord
 
           def row_format_dynamic_by_default?
             if mariadb?
-              version >= "10.2.2"
+              database_version >= "10.2.2"
             else
-              version >= "5.7.9"
+              database_version >= "5.7.9"
             end
           end
 
