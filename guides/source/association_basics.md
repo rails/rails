@@ -384,7 +384,7 @@ end
 The corresponding migration might look like this:
 
 ```ruby
-class CreateSuppliers < ActiveRecord::Migration[5.0]
+class CreateSuppliers < ActiveRecord::Migration[5.2]
   def change
     create_table :suppliers do |t|
       t.string :name
@@ -392,7 +392,7 @@ class CreateSuppliers < ActiveRecord::Migration[5.0]
     end
 
     create_table :accounts do |t|
-      t.integer :supplier_id
+      t.bigint  :supplier_id
       t.string  :account_number
       t.timestamps
     end
@@ -402,7 +402,7 @@ class CreateSuppliers < ActiveRecord::Migration[5.0]
 end
 ```
 
-NOTE: Using `t.integer :supplier_id` makes the foreign key naming obvious and explicit. In current versions of Rails, you can abstract away this implementation detail by using `t.references :supplier` instead.
+NOTE: Using `t.bigint :supplier_id` makes the foreign key naming obvious and explicit. In current versions of Rails, you can abstract away this implementation detail by using `t.references :supplier` instead.
 
 ### Choosing Between `has_many :through` and `has_and_belongs_to_many`
 
@@ -466,11 +466,11 @@ Similarly, you can retrieve `@product.pictures`.
 If you have an instance of the `Picture` model, you can get to its parent via `@picture.imageable`. To make this work, you need to declare both a foreign key column and a type column in the model that declares the polymorphic interface:
 
 ```ruby
-class CreatePictures < ActiveRecord::Migration[5.0]
+class CreatePictures < ActiveRecord::Migration[5.2]
   def change
     create_table :pictures do |t|
       t.string  :name
-      t.integer :imageable_id
+      t.bigint  :imageable_id
       t.string  :imageable_type
       t.timestamps
     end
@@ -619,11 +619,11 @@ end
 These need to be backed up by a migration to create the `assemblies_parts` table. This table should be created without a primary key:
 
 ```ruby
-class CreateAssembliesPartsJoinTable < ActiveRecord::Migration[5.0]
+class CreateAssembliesPartsJoinTable < ActiveRecord::Migration[5.2]
   def change
     create_table :assemblies_parts, id: false do |t|
-      t.integer :assembly_id
-      t.integer :part_id
+      t.bigint :assembly_id
+      t.bigint :part_id
     end
 
     add_index :assemblies_parts, :assembly_id
