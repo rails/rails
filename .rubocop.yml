@@ -10,7 +10,7 @@ AllCops:
     - 'railties/test/fixtures/tmp/**/*'
     - 'actionmailbox/test/dummy/**/*'
     - 'actiontext/test/dummy/**/*'
-    - 'node_modules/**/*'
+    - '**/node_modules/**/*'
 
 Performance:
   Exclude:
