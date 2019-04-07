@@ -51,15 +51,15 @@ module ActiveSupport
       end
 
       class << self
-        def take_over
-          setup_autoloaders
+        def take_over(enable_reloading:)
+          setup_autoloaders(enable_reloading)
           freeze_paths
           decorate_dependencies
         end
 
         private
 
-          def setup_autoloaders
+          def setup_autoloaders(enable_reloading)
             Dependencies.autoload_paths.each do |autoload_path|
               # Zeitwerk only accepts existing directories in `push_dir` to
               # prevent misconfigurations.
@@ -72,6 +72,7 @@ module ActiveSupport
               autoloader.do_not_eager_load(autoload_path) unless eager_load?(autoload_path)
             end
 
+            Rails.autoloaders.main.enable_reloading if enable_reloading
             Rails.autoloaders.each(&:setup)
           end
 
