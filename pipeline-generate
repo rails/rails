@@ -101,7 +101,7 @@ def step_for(subdirectory, rake_task, ruby: nil, service: "default")
     label << " (#{short_ruby})"
   end
 
-  if rake_task.start_with?("mysql2:")
+  if rake_task.start_with?("mysql2:") || rake_task.start_with?("mysql:")
     rake_task = "db:mysql:rebuild #{rake_task}"
   elsif rake_task.start_with?("postgresql:")
     rake_task = "db:postgresql:rebuild #{rake_task}"
