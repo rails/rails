@@ -35,7 +35,7 @@ BUNDLER =
 RUBYGEMS =
   case RAILS_VERSION
   when Gem::Requirement.new("< 5.0")
-    "2.6.14"
+    "2.6.13"
   end
 
 MAX_RUBY =
