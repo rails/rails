@@ -104,6 +104,44 @@ class InsertAllTest < ActiveRecord::TestCase
     end
   end
 
+  def test_insert_all_with_skip_duplicates_and_autonumber_id_not_given
+    skip unless supports_insert_on_duplicate_skip?
+
+    assert_difference "Book.count", 1 do
+      # These two books are duplicates according to an index on %i[author_id name]
+      # but their IDs are not specified so they will be assigned different IDs
+      # by autonumber. We will get an exception from MySQL if we attempt to skip
+      # one of these records by assigning its ID.
+      Book.insert_all [
+        { author_id: 8, name: "Refactoring" },
+        { author_id: 8, name: "Refactoring" }
+      ]
+    end
+  end
+
+  def test_insert_all_with_skip_duplicates_and_autonumber_id_given
+    skip unless supports_insert_on_duplicate_skip?
+
+    assert_difference "Book.count", 1 do
+      Book.insert_all [
+        { id: 200, author_id: 8, name: "Refactoring" },
+        { id: 201, author_id: 8, name: "Refactoring" }
+      ]
+    end
+  end
+
+  def test_skip_duplicates_strategy_does_not_secretly_upsert
+    skip unless supports_insert_on_duplicate_skip?
+
+    book = Book.create!(author_id: 8, name: "Refactoring", format: "EXPECTED")
+
+    assert_no_difference "Book.count" do
+      Book.insert(author_id: 8, name: "Refactoring", format: "UNEXPECTED")
+    end
+
+    assert_equal "EXPECTED", book.reload.format
+  end
+
   def test_insert_all_will_raise_if_duplicates_are_skipped_only_for_a_certain_conflict_target
     skip unless supports_insert_on_duplicate_skip? && supports_insert_conflict_target?
 
