@@ -211,9 +211,236 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 ### Removals
 
+*   Remove deprecated `#set_state` from the transaction object.
+    ([Commit](https://github.com/rails/rails/commit/6c745b0c5152a4437163a67707e02f4464493983))
+
+*   Remove deprecated `#supports_statement_cache?` from the database adapters.
+    ([Commit](https://github.com/rails/rails/commit/5f3ed8784383fb4eb0f9959f31a9c28a991b7553))
+
+*   Remove deprecated `#insert_fixtures` from the database adapters.
+    ([Commit](https://github.com/rails/rails/commit/400ba786e1d154448235f5f90183e48a1043eece))
+
+*   Remove deprecated `ActiveRecord::ConnectionAdapters::SQLite3Adapter#valid_alter_table_type?`.
+    ([Commit](https://github.com/rails/rails/commit/45b4d5f81f0c0ca72c18d0dea4a3a7b2ecc589bf))
+
+*   Remove support for passing the column name to `sum` when a block is passed.
+    ([Commit](https://github.com/rails/rails/commit/91ddb30083430622188d76eb9f29b78131df67f9))
+
+*   Remove support for passing the column name to `count` when a block is passed.
+    ([Commit](https://github.com/rails/rails/commit/67356f2034ab41305af7218f7c8b2fee2d614129))
+
+*   Remove support for delegation of missing methods in a relation to arel.
+    ([Commit](https://github.com/rails/rails/commit/d97980a16d76ad190042b4d8578109714e9c53d0))
+
+*   Remove support for delegating missing methods in a relation to private methods of the class.
+    ([Commit](https://github.com/rails/rails/commit/a7becf147afc85c354e5cfa519911a948d25fc4d))
+
+*   Remove support for specifying a timestamp name for `#cache_key`.
+    ([Commit](https://github.com/rails/rails/commit/0bef23e630f62e38f20b5ae1d1d5dbfb087050ea))
+
+*   Remove deprecated `ActiveRecord::Migrator.migrations_path=`.
+    ([Commit](https://github.com/rails/rails/commit/90d7842186591cae364fab3320b524e4d31a7d7d))
+
+*   Remove deprecated `expand_hash_conditions_for_aggregates`.
+    ([Commit](https://github.com/rails/rails/commit/27b252d6a85e300c7236d034d55ec8e44f57a83e))
+
+
 ### Deprecations
 
+*   Deprecate mismatched case-sensitivity collation comparisons for uniqueness validator.
+    ([Commit](https://github.com/rails/rails/commit/9def05385f1cfa41924bb93daa187615e88c95b9))
+
+*   Deprecate using class level querying methods if the receiver scope has leaked.
+    ([Pull Request](https://github.com/rails/rails/pull/35280))
+
+*   Deprecate `config.activerecord.sqlite3.represent_boolean_as_integer`.
+    ([Commit](https://github.com/rails/rails/commit/f59b08119bc0c01a00561d38279b124abc82561b))
+
+*   Deprecate passing `migrations_paths` to `connection.assume_migrated_upto_version`.
+    ([Commit](https://github.com/rails/rails/commit/c1b14aded27e063ead32fa911aa53163d7cfc21a))
+
+*   Deprecate `ActiveRecord::Result#to_hash` in favor of `ActiveRecord::Result#to_a`.
+    ([Commit](https://github.com/rails/rails/commit/16510d609c601aa7d466809f3073ec3313e08937))
+
+*   Deprecate methods in `DatabaseLimits`: `column_name_length`, `table_name_length`,
+    `columns_per_table`, `indexes_per_table`, `columns_per_multicolumn_index`,
+    `sql_query_length`, and `joins_per_query`.
+    ([Commit](https://github.com/rails/rails/commit/e0a1235f7df0fa193c7e299a5adee88db246b44f))
+
+*   Deprecate `update_attributes`/`!` in favor of `update`/`!`.
+    ([Commit](https://github.com/rails/rails/commit/5645149d3a27054450bd1130ff5715504638a5f5))
+
 ### Notable changes
+
+*   Bump the minimum sqlite3 version to 1.4.
+    ([Pull Request](https://github.com/rails/rails/pull/35844))
+
+*   Add `rails db:prepare` to create a database if it doesn't exist, and run its migrations.
+    ([Pull Request](https://github.com/rails/rails/pull/35768))
+
+*   Add `after_save_commit` callback as shortcut for `after_commit :hook, on: [ :create, :update ]`.
+    ([Pull Request](https://github.com/rails/rails/pull/35804))
+
+*   Add `ActiveRecord::Relation#extract_associated` for extracting associated records from a relation.
+    ([Pull Request](https://github.com/rails/rails/pull/35784))
+
+*   Add `ActiveRecord::Relation#annotate` for adding SQL comments to ActiveRecord::Relation queries.
+    ([Pull Request](https://github.com/rails/rails/pull/35617))
+
+*   Add support for setting Optimizer Hints on databases.
+    ([Pull Request](https://github.com/rails/rails/pull/35615))
+
+*   Add `insert_all`/`insert_all!`/`upsert_all` methods for doing bulk inserts.
+    ([Pull Request](https://github.com/rails/rails/pull/35631))
+
+*   Add `rails db:seed:replant` that truncates tables of each database
+    for ther current environment and loads the seeds.
+    ([Pull Request](https://github.com/rails/rails/pull/34779))
+
+*   Add `reselect` method, which is a short-hand for `unscope(:select).select(fields)`.
+    ([Pull Request](https://github.com/rails/rails/pull/33611))
+
+*   Add negative scopes for all enum values.
+    ([Pull Request](https://github.com/rails/rails/pull/35381))
+
+*   Add `#destroy_by` and `#delete_by` for conditional removals.
+    ([Pull Request](https://github.com/rails/rails/pull/35316))
+
+*   Add the ability to automatically switch database connections.
+    ([Pull Request](https://github.com/rails/rails/pull/35073))
+
+*   Add the ability to prevent writes to a database for the duration of a block.
+    ([Pull Request](https://github.com/rails/rails/pull/34505))
+
+*   Add an API for switching connections to support multiple databases.
+    ([Pull Request](https://github.com/rails/rails/pull/34052))
+
+*   Make timestamps with precision the default for migrations.
+    ([Pull Request](https://github.com/rails/rails/pull/34970))
+
+*   Support `:size` option to change text and blob size in MySQL.
+    ([Pull Request](https://github.com/rails/rails/pull/35071))
+
+*   Set both the foreign key and the foreign type columns to NULL for
+    polymorphic associations on `dependent: :nullify` strategy.
+    ([Pull Request](https://github.com/rails/rails/pull/28078))
+
+*   Allow a permitted instance of `ActionController::Parameters` to be passed as an
+    argument to `ActiveRecord::Relation#exists?`.
+    ([Pull Request](https://github.com/rails/rails/pull/34891))
+
+*   Add support in `#where` for endless ranges introduced in Ruby 2.6.
+    ([Pull Request](https://github.com/rails/rails/pull/34906))
+
+*   Make `ROW_FORMAT=DYNAMIC` a default create table option for MySQL.
+    ([Pull Request](https://github.com/rails/rails/pull/34742))
+
+*   Add the ability to disable scopes generated by `ActiveRecord.enum`.
+    ([Pull Request](https://github.com/rails/rails/pull/34605/files))
+
+*   Make implicit ordering configurable for a column.
+    ([Pull Request](https://github.com/rails/rails/pull/34480))
+
+*   Bump the minimum PostgreSQL version to 9.3, dropping support for 9.1 and 9.2.
+    ([Pull Request](https://github.com/rails/rails/pull/34520))
+
+*   Make the values of an enum frozen, raising an error when attempting to modify them.
+    ([Pull Request](https://github.com/rails/rails/pull/34517))
+
+*   Make the SQL of `ActiveRecord::StatementInvalid` errors its own error property
+    and include SQL binds as a separate error property.
+    ([Pull Request](https://github.com/rails/rails/pull/34468))
+
+*   Add an `:if_not_exists` option to `create_table`.
+    ([Pull Request](https://github.com/rails/rails/pull/31382))
+
+*   Add support for multiple databases to `rails db:schema:cache:dump`
+    and `rails db:schema:cache:clear`.
+    ([Pull Request](https://github.com/rails/rails/pull/34181))
+
+*   Add support for hash and url configs in database hash of `ActiveRecord::Base.connected_to`.
+    ([Pull Request](https://github.com/rails/rails/pull/34196))
+
+*   Add support for default expressions and expression indexes for MySQL.
+    ([Pull Request](https://github.com/rails/rails/pull/34307))
+
+*   Add an `index` option for `change_table` migration helpers.
+    ([Pull Request](https://github.com/rails/rails/pull/23593))
+
+*   Fix `transaction` reverting for migrations. Previously, commands inside of a `transaction`
+    in a reverted migration ran uninverted. This change fixes that.
+    ([Pull Request](https://github.com/rails/rails/pull/31604))
+
+*   Allow `ActiveRecord::Base.configurations=` to be set with a symbolized hash.
+    ([Pull Request](https://github.com/rails/rails/pull/33968))
+
+*   Fix the counter cache to only update if the record is actually saved.
+    ([Pull Request](https://github.com/rails/rails/pull/33913))
+
+*   Add expression indexes support for the SQLite adapter.
+    ([Pull Request](https://github.com/rails/rails/pull/33874))
+
+*   Allow subclasses to redefine autosave callbacks for associated records.
+    ([Pull Request](https://github.com/rails/rails/pull/33378))
+
+*   Bump the minimum MySQL version to 5.5.8.
+    ([Pull Request](https://github.com/rails/rails/pull/33853))
+
+*   Use the utf8mb4 character set by default in MySQL.
+    ([Pull Request](https://github.com/rails/rails/pull/33608))
+
+*   Add the ability to filter out sensitive data in `#inspect`
+    ([Pull Request](https://github.com/rails/rails/pull/33756), [Pull Request](https://github.com/rails/rails/pull/34208))
+
+*   Change `ActiveRecord::Base.configurations` to return an object instead of a hash.
+    ([Pull Request](https://github.com/rails/rails/pull/33637))
+
+*   Add database configuration to disable advisory locks.
+    ([Pull Request](https://github.com/rails/rails/pull/33691))
+
+*   Update SQLite3 adapter `alter_table` method to restore foreign keys.
+    ([Pull Request](https://github.com/rails/rails/pull/33585))
+
+*   Allow the `:to_table` option of `remove_foreign_key` to be invertible.
+    ([Pull Request](https://github.com/rails/rails/pull/33530))
+
+*   Fix default value for mysql time types with specified precision.
+    ([Pull Request](https://github.com/rails/rails/pull/33280))
+
+*   Fix the `touch` option to behave consistently with `Persistence#touch` method.
+    ([Pull Request](https://github.com/rails/rails/pull/33107))
+
+*   Raise an exception for duplicate column definitions in Migrations.
+    ([Pull Request](https://github.com/rails/rails/pull/33029))
+
+*   Bump the minimum SQLite version to 3.8.
+    ([Pull Request](https://github.com/rails/rails/pull/32923))
+
+*   Fix parent records to not get saved with duplicate children records.
+    ([Pull Request](https://github.com/rails/rails/pull/32952))
+
+*   Ensure `Associations::CollectionAssociation#size` and `Associations::CollectionAssociation#empty?`
+    use loaded association ids if present.
+    ([Pull Request](https://github.com/rails/rails/pull/32617))
+
+*   Add support to preload associations of polymorphic associations when not all the records have the requested associations.
+    ([Commit](https://github.com/rails/rails/commit/75ef18c67c29b1b51314b6c8a963cee53394080b))
+
+*   Add `touch_all` method to `ActiveRecord::Relation`.
+    ([Pull Request](https://github.com/rails/rails/pull/31513))
+
+*   Add `ActiveRecord::Base.base_class?` predicate.
+    ([Pull Request](https://github.com/rails/rails/pull/32417))
+
+*   Add custom prefix/suffix options to `ActiveRecord::Store.store_accessor`.
+    ([Pull Request](https://github.com/rails/rails/pull/32306))
+
+*   Add `ActiveRecord::Base.create_or_find_by`/`!` to deal with the SELECT/INSERT race condition in
+    `ActiveRecord::Base.find_or_create_by`/`!` by leaning on unique constraints in the database.
+    ([Pull Request](https://github.com/rails/rails/pull/31989))
+
+*   Add `Relation#pick` as short-hand for single-value plucks.
+    ([Pull Request](https://github.com/rails/rails/pull/31941))
 
 Active Storage
 --------------
