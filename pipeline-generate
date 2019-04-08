@@ -32,6 +32,11 @@ BUNDLER =
   when Gem::Requirement.new("< 5.0")
     "< 2"
   end
+RUBYGEMS =
+  case RAILS_VERSION
+  when Gem::Requirement.new("< 5.0")
+    "2.6.14"
+  end
 
 MAX_RUBY =
   case RAILS_VERSION
@@ -115,7 +120,6 @@ def step_for(subdirectory, rake_task, ruby: nil, service: "default")
 
   env = {
     "IMAGE_NAME" => image_name_for(ruby || ONE_RUBY),
-    "BUNDLER" => BUNDLER,
   }
 
   if RAILS_VERSION < Gem::Version.new("6.x")
@@ -296,6 +300,7 @@ puts YAML.dump("steps" => [
           ],
           "env" => {
             "BUNDLER" => BUNDLER,
+            "RUBYGEMS" => RUBYGEMS,
             "RUBY_IMAGE" => ruby,
             "encrypted_0fb9444d0374_key" => nil,
             "encrypted_0fb9444d0374_iv" => nil,
