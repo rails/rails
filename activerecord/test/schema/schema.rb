@@ -19,6 +19,7 @@ ActiveRecord::Schema.define do
     t.references :firm, index: false
     t.string  :firm_name
     t.integer :credit_limit
+    t.integer "a" * max_identifier_length
   end
 
   create_table :admin_accounts, force: true do |t|

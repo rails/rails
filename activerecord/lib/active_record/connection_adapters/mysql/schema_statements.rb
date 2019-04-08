@@ -121,6 +121,10 @@ module ActiveRecord
           sql
         end
 
+        def table_alias_length
+          256 # https://dev.mysql.com/doc/refman/8.0/en/identifiers.html
+        end
+
         private
           CHARSETS_OF_4BYTES_MAXLEN = ["utf8mb4", "utf16", "utf16le", "utf32"]
 

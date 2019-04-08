@@ -319,12 +319,11 @@ module ActiveRecord
 
         group_aliases = group_fields.map { |field|
           field = connection.visitor.compile(field) if Arel.arel_node?(field)
-          column_alias_for(field)
+          column_alias_for(field.to_s.downcase)
         }
         group_columns = group_aliases.zip(group_fields)
 
-        aggregate_alias = "#{operation}_#{column_name.to_s.downcase}"
-        aggregate_alias = column_alias_for(aggregate_alias) unless aggregate_alias.match?(/\A\w+\z/)
+        aggregate_alias = column_alias_for("#{operation}_#{column_name.to_s.downcase}")
 
         select_values = [
           operation_over_aggregate_column(
@@ -369,7 +368,7 @@ module ActiveRecord
         end]
       end
 
-      # Converts the given keys to the value that the database adapter returns as
+      # Converts the given field to the value that the database adapter returns as
       # a usable column name:
       #
       #   column_alias_for("users.id")                 # => "users_id"
@@ -377,7 +376,9 @@ module ActiveRecord
       #   column_alias_for("count(distinct users.id)") # => "count_distinct_users_id"
       #   column_alias_for("count(*)")                 # => "count_all"
       def column_alias_for(field)
-        column_alias = field.to_s.downcase
+        return field if field.match?(/\A\w{,#{connection.table_alias_length}}\z/)
+
+        column_alias = +field
         column_alias.gsub!(/\*/, "all")
         column_alias.gsub!(/\W+/, " ")
         column_alias.strip!
