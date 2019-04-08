@@ -7,6 +7,8 @@ module ActiveRecord
       class TypeMetadata < DelegateClass(SqlTypeMetadata)
         undef to_yaml if method_defined?(:to_yaml)
 
+        include Deduplicable
+
         attr_reader :oid, :fmod
 
         def initialize(type_metadata, oid: nil, fmod: nil)
@@ -29,6 +31,12 @@ module ActiveRecord
             oid.hash ^
             fmod.hash
         end
+
+        private
+          def deduplicated
+            __setobj__(__getobj__.deduplicate)
+            super
+          end
       end
     end
     PostgreSQLTypeMetadata = PostgreSQL::TypeMetadata
