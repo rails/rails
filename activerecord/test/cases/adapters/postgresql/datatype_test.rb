@@ -64,7 +64,7 @@ class PostgresqlDataTypeTest < ActiveRecord::PostgreSQLTestCase
 
   def test_text_columns_are_limitless_the_upper_limit_is_one_GB
     assert_equal "text", @connection.type_to_sql(:text, limit: 100_000)
-    assert_raise ActiveRecord::ActiveRecordError do
+    assert_raise ArgumentError do
       @connection.type_to_sql(:text, limit: 4294967295)
     end
   end
