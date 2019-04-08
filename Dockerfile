@@ -4,7 +4,7 @@ FROM ${RUBY_IMAGE:-ruby:latest}
 ARG BUNDLER
 ARG RUBYGEMS
 RUN echo "--- :ruby: Updating RubyGems and Bundler" \
-    && gem update --system ${RUBYGEMS:-} \
+    && (gem update --system ${RUBYGEMS:-} || gem update --system 2.7.8) \
     && gem install bundler -v "${BUNDLER:->= 0}" \
     && ruby --version && gem --version && bundle --version \
     && echo "--- :package: Installing system deps" \
