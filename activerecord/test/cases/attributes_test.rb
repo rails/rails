@@ -232,7 +232,11 @@ module ActiveRecord
 
       parent.attribute(:foo, Type::Value.new)
 
-      assert_equal(:bar, child.new(foo: :bar).foo)
+      instance = child.new(foo: :bar)
+      assert_equal(:bar, instance.foo)
+
+      # Test that method is defined and we are not relying on method_missing
+      assert(instance.methods.include?(:foo))
     end
 
     test "attributes not backed by database columns are not dirty when unchanged" do
