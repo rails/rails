@@ -207,6 +207,7 @@ module ActiveRecord
       # methods in ActiveModel::Type::Value for more details.
       def attribute(name, cast_type = Type::Value.new, **options)
         name = name.to_s
+        ([self] + descendants).each(&:undefine_attribute_methods)
         reload_schema_from_cache
 
         self.attributes_to_define_after_schema_loads =
