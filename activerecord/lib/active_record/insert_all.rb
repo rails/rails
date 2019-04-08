@@ -21,7 +21,10 @@ module ActiveRecord
     end
 
     def execute
-      connection.exec_query to_sql, "Bulk Insert"
+      message = "#{model} "
+      message += "Bulk " if inserts.many?
+      message += (on_duplicate == :update ? "Upsert" : "Insert")
+      connection.exec_query to_sql, message
     end
 
     def updatable_columns

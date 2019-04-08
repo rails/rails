@@ -181,6 +181,42 @@ class InsertAllTest < ActiveRecord::TestCase
     end
   end
 
+  def test_insert_logs_message_including_model_name
+    skip unless supports_insert_conflict_target?
+
+    capture_log_output do |output|
+      Book.insert(name: "Rework", author_id: 1)
+      assert_match "Book Insert", output.string
+    end
+  end
+
+  def test_insert_all_logs_message_including_model_name
+    skip unless supports_insert_conflict_target?
+
+    capture_log_output do |output|
+      Book.insert_all [{ name: "Remote", author_id: 1 }, { name: "Renote", author_id: 1 }]
+      assert_match "Book Bulk Insert", output.string
+    end
+  end
+
+  def test_upsert_logs_message_including_model_name
+    skip unless supports_insert_on_duplicate_update?
+
+    capture_log_output do |output|
+      Book.upsert(name: "Remote", author_id: 1)
+      assert_match "Book Upsert", output.string
+    end
+  end
+
+  def test_upsert_all_logs_message_including_model_name
+    skip unless supports_insert_on_duplicate_update?
+
+    capture_log_output do |output|
+      Book.upsert_all [{ name: "Remote", author_id: 1 }, { name: "Renote", author_id: 1 }]
+      assert_match "Book Bulk Upsert", output.string
+    end
+  end
+
   def test_upsert_all_updates_existing_records
     skip unless supports_insert_on_duplicate_update?
 
@@ -224,4 +260,17 @@ class InsertAllTest < ActiveRecord::TestCase
       Book.insert_all! [{ unknown_attribute: "Test" }]
     end
   end
+
+  private
+
+    def capture_log_output
+      output = StringIO.new
+      old_logger, ActiveRecord::Base.logger = ActiveRecord::Base.logger, ActiveSupport::Logger.new(output)
+
+      begin
+        yield output
+      ensure
+        ActiveRecord::Base.logger = old_logger
+      end
+    end
 end
