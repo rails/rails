@@ -650,16 +650,19 @@ module ActiveRecord
             default_value = extract_value_from_default(default)
             default_function = extract_default_function(default_value, default)
 
-            PostgreSQLColumn.new(
+            if match = default_function&.match(/\Anextval\('"?(?<sequence_name>.+_(?<suffix>seq\d*))"?'::regclass\)\z/)
+              serial = sequence_name_from_parts(table_name, column_name, match[:suffix]) == match[:sequence_name]
+            end
+
+            PostgreSQL::Column.new(
               column_name,
               default_value,
               type_metadata,
               !notnull,
-              table_name,
               default_function,
-              collation,
+              collation: collation,
               comment: comment.presence,
-              max_identifier_length: max_identifier_length
+              serial: serial
             )
           end
 
@@ -673,6 +676,22 @@ module ActiveRecord
               scale: cast_type.scale,
             )
             PostgreSQLTypeMetadata.new(simple_type, oid: oid, fmod: fmod)
+          end
+
+          def sequence_name_from_parts(table_name, column_name, suffix)
+            over_length = [table_name, column_name, suffix].sum(&:length) + 2 - max_identifier_length
+
+            if over_length > 0
+              column_name_length = [(max_identifier_length - suffix.length - 2) / 2, column_name.length].min
+              over_length -= column_name.length - column_name_length
+              column_name = column_name[0, column_name_length - [over_length, 0].min]
+            end
+
+            if over_length > 0
+              table_name = table_name[0, table_name.length - over_length]
+            end
+
+            "#{table_name}_#{column_name}_#{suffix}"
           end
 
           def extract_foreign_key_action(specifier)

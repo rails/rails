@@ -47,6 +47,7 @@ module ActiveRecord
     end
 
     private
+      attr_accessor :table_name
 
       def initialize(connection, options = {})
         @connection = connection
@@ -110,6 +111,8 @@ HEADER
       def table(table, stream)
         columns = @connection.columns(table)
         begin
+          self.table_name = table
+
           tbl = StringIO.new
 
           # first dump primary key column
@@ -159,6 +162,8 @@ HEADER
           stream.puts "# Could not dump table #{table.inspect} because of following #{e.class}"
           stream.puts "#   #{e.message}"
           stream.puts
+        ensure
+          self.table_name = nil
         end
       end
 
