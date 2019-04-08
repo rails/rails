@@ -155,6 +155,20 @@ module ActiveRecord
         end
       end
 
+      def raise_for_multi_db(environment = env, command:)
+        db_configs = ActiveRecord::Base.configurations.configs_for(env_name: environment)
+
+        if db_configs.count > 1
+          dbs_list = []
+
+          db_configs.each do |db|
+            dbs_list << "#{command}:#{db.spec_name}"
+          end
+
+          raise "You're using a multiple database application. To use `#{command}` you must run the namespaced task with a VERSION. Available tasks are #{dbs_list.to_sentence}."
+        end
+      end
+
       def create_current(environment = env)
         each_current_configuration(environment) { |configuration|
           create configuration

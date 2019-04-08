@@ -24,7 +24,6 @@ module ApplicationTests
           assert_no_match(/already exists/, output)
           assert File.exist?(expected_database)
 
-
           output = rails("db:drop")
           assert_match(/Dropped database/, output)
           assert_match_namespace(namespace, output)
@@ -137,6 +136,36 @@ module ApplicationTests
         end
       end
 
+      def db_up_and_down(version, namespace = nil)
+        Dir.chdir(app_path) do
+          generate_models_for_animals
+          rails("db:migrate")
+
+          if namespace
+            down_output = rails("db:migrate:down:#{namespace}", "VERSION=#{version}")
+            up_output = rails("db:migrate:up:#{namespace}", "VERSION=#{version}")
+          else
+            assert_raises RuntimeError, /You're using a multiple database application/ do
+              down_output = rails("db:migrate:down", "VERSION=#{version}")
+            end
+
+            assert_raises RuntimeError, /You're using a multiple database application/ do
+              up_output = rails("db:migrate:up", "VERSION=#{version}")
+            end
+          end
+
+          case namespace
+          when "primary"
+            assert_match(/OneMigration: reverting/, down_output)
+            assert_match(/OneMigration: migrated/, up_output)
+          when nil
+          else
+            assert_match(/TwoMigration: reverting/, down_output)
+            assert_match(/TwoMigration: migrated/, up_output)
+          end
+        end
+      end
+
       def db_prepare
         Dir.chdir(app_path) do
           generate_models_for_animals
@@ -217,6 +246,34 @@ module ApplicationTests
         ActiveRecord::Base.configurations.configs_for(env_name: Rails.env).each do |db_config|
           db_migrate_namespaced db_config.spec_name
         end
+      end
+
+      test "db:migrate:down and db:migrate:up without a namespace raises in a multi-db application" do
+        require "#{app_path}/config/environment"
+
+        app_file "db/migrate/01_one_migration.rb", <<-MIGRATION
+          class OneMigration < ActiveRecord::Migration::Current
+          end
+        MIGRATION
+
+        db_up_and_down "01"
+      end
+
+      test "db:migrate:down:namespace and db:migrate:up:namespace works" do
+        require "#{app_path}/config/environment"
+
+        app_file "db/migrate/01_one_migration.rb", <<-MIGRATION
+          class OneMigration < ActiveRecord::Migration::Current
+          end
+        MIGRATION
+
+        app_file "db/animals_migrate/02_two_migration.rb", <<-MIGRATION
+          class TwoMigration < ActiveRecord::Migration::Current
+          end
+        MIGRATION
+
+        db_up_and_down "01", "primary"
+        db_up_and_down "02", "animals"
       end
 
       test "db:migrate:status works on all databases" do
