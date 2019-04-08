@@ -122,7 +122,9 @@ def step_for(subdirectory, rake_task, ruby: nil, service: "default")
     "IMAGE_NAME" => image_name_for(ruby || ONE_RUBY),
   }
 
-  if RAILS_VERSION < Gem::Version.new("6.x")
+  if RAILS_VERSION < Gem::Version.new("5.x")
+    env["MYSQL_IMAGE"] = "mysql:5.6"
+  elsif RAILS_VERSION < Gem::Version.new("6.x")
     env["MYSQL_IMAGE"] = "mysql:5.7"
   end
 
