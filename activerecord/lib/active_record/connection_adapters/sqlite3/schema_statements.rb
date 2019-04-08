@@ -105,7 +105,7 @@ module ActiveRecord
               end
 
             type_metadata = fetch_type_metadata(field["type"])
-            Column.new(field["name"], default, type_metadata, field["notnull"].to_i == 0, table_name, nil, field["collation"])
+            Column.new(field["name"], default, type_metadata, field["notnull"].to_i == 0, collation: field["collation"])
           end
 
           def data_source_sql(name = nil, type: nil)

@@ -174,9 +174,8 @@ module ActiveRecord
               default,
               type_metadata,
               field[:Null] == "YES",
-              table_name,
               default_function,
-              field[:Collation],
+              collation: field[:Collation],
               comment: field[:Comment].presence
             )
           end
