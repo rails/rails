@@ -1,17 +1,26 @@
 ARG RUBY_IMAGE
 FROM ${RUBY_IMAGE:-ruby:latest}
 
+ARG BUNDLER
+ARG RUBYGEMS
 RUN echo "--- :ruby: Updating RubyGems and Bundler" \
-    && (gem update --system || gem update --system 2.7.8) \
-    && (gem install bundler || true) \
-    && gem install bundler -v '< 2' \
+    && gem update --system ${RUBYGEMS:-} \
+    && gem install bundler -v "${BUNDLER:->= 0}" \
     && ruby --version && gem --version && bundle --version \
     && echo "--- :package: Installing system deps" \
-    # Pre-requirements
-    && apt-get update \
-    && apt-get install -y --no-install-recommends \
-        gnupg curl \
     && codename="$(. /etc/os-release; x="${VERSION_CODENAME-${VERSION#*(}}"; echo "${x%%[ )]*}")" \
+    && if [ "$codename" = jessie ]; then \
+        # jessie-updates is gone
+        sed -i -e '/jessie-updates/d' /etc/apt/sources.list \
+        && echo 'deb http://archive.debian.org/debian jessie-backports main' > /etc/apt/sources.list.d/backports.list \
+        && echo 'Acquire::Check-Valid-Until "false";' > /etc/apt/apt.conf.d/backports-is-unsupported; \
+    fi \
+    # Pre-requirements
+    && if ! which gpg || ! which curl; then \
+        apt-get update \
+        && apt-get install -y --no-install-recommends \
+            gnupg curl; \
+    fi \
     # Postgres apt sources
     && curl -sS https://www.postgresql.org/media/keys/ACCC4CF8.asc | APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=1 apt-key add - \
     && echo "deb http://apt.postgresql.org/pub/repos/apt/ ${codename}-pgdg main" > /etc/apt/sources.list.d/pgdg.list \
@@ -21,9 +30,6 @@ RUN echo "--- :ruby: Updating RubyGems and Bundler" \
     # Yarn apt sources
     && curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=1 apt-key add - \
     && echo "deb http://dl.yarnpkg.com/debian/ stable main" > /etc/apt/sources.list.d/yarn.list \
-    # Backports source
-    && (grep -qe -backports /etc/apt/sources.list \
-        || sed -ne '/-updates/s//-backports/p' /etc/apt/sources.list > /etc/apt/sources.list.d/backports.list) \
     # Install all the things
     && apt-get update \
     #  buildpack-deps
@@ -94,8 +100,8 @@ WORKDIR /rails
 ENV RAILS_ENV=test RACK_ENV=test
 ENV JRUBY_OPTS="--dev -J-Xmx1024M"
 
-ADD .buildkite/await-all /usr/local/bin/
-RUN chmod +x /usr/local/bin/await-all
+ADD .buildkite/await-all .buildkite/runner /usr/local/bin/
+RUN chmod +x /usr/local/bin/await-all /usr/local/bin/runner
 
 # Wildcard ignores missing files; .empty ensures ADD always has at least
 # one valid source: https://stackoverflow.com/a/46801962
@@ -106,7 +112,7 @@ ADD .buildkite/.empty activestorage/package.jso[n] activestorage/
 ADD .buildkite/.empty package.jso[n] yarn.loc[k] .yarnr[c] ./
 
 RUN rm -f .empty */.empty \
-    && find . -type d -maxdepth 1 -empty -exec rmdir '{}' '+' \
+    && find . -maxdepth 1 -type d -empty -exec rmdir '{}' '+' \
     && if [ -f package.json ]; then \
         echo "--- :javascript: Installing JavaScript deps" \
         && yarn install \
@@ -120,7 +126,9 @@ ADD */*.gemspec tmp/
 ADD .buildkite/.empty railties/exe/* railties/exe/
 ADD Gemfile Gemfile.lock RAILS_VERSION rails.gemspec ./
 
-RUN echo "--- :bundler: Installing Ruby deps" \
+RUN rm -f railties/exe/.empty \
+    && find railties/exe -maxdepth 0 -type d -empty -exec rmdir '{}' '+' \
+    && echo "--- :bundler: Installing Ruby deps" \
     && (cd tmp && for f in *.gemspec; do d="$(basename -s.gemspec "$f")"; mkdir -p "../$d" && mv "$f" "../$d/"; done) \
     && rm Gemfile.lock && bundle install -j 8 && cp Gemfile.lock tmp/Gemfile.lock.updated \
     && rm -rf /usr/local/bundle/gems/cache \
