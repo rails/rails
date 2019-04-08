@@ -13,7 +13,7 @@ module ActiveRecord
       end
 
       teardown do
-        @pool.connections.each(&:close)
+        @pool.shutdown!
       end
 
       class FakePool
@@ -22,6 +22,7 @@ module ActiveRecord
 
         def initialize
           @reaped = false
+          @shutting_down = false
         end
 
         def reap
@@ -30,6 +31,18 @@ module ActiveRecord
 
         def flush
           @flushed = true
+        end
+
+        def shutdown!
+          @shutting_down = true
+        end
+
+        def shutting_down?
+          @shutting_down
+        end
+
+        def spec
+          nil
         end
       end
 
@@ -53,6 +66,8 @@ module ActiveRecord
         end
         assert fp.reaped
         assert fp.flushed
+      ensure
+        fp.shutdown! if fp
       end
 
       def test_pool_has_reaper
@@ -64,6 +79,8 @@ module ActiveRecord
         spec.config[:reaping_frequency] = "10.01"
         pool = ConnectionPool.new spec
         assert_equal 10.01, pool.reaper.frequency
+      ensure
+        pool.shutdown! if pool
       end
 
       def test_connection_pool_starts_reaper
@@ -87,6 +104,9 @@ module ActiveRecord
           Thread.pass
         end
         assert_not_predicate conn, :in_use?
+
+      ensure
+        pool.shutdown! if pool
       end
     end
   end

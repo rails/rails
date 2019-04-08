@@ -1363,7 +1363,7 @@ class MultipleDatabaseFixturesTest < ActiveRecord::TestCase
       assert_equal rw_conn, ro_conn
     end
   ensure
-    ActiveRecord::Base.connection_handlers = { writing: ActiveRecord::Base.connection_handler }
+    ARTest.restore_default_connection_handler
   end
 
   private
@@ -1376,5 +1376,6 @@ class MultipleDatabaseFixturesTest < ActiveRecord::TestCase
       yield
     ensure
       ActiveRecord::Base.connection_handler.send(:owner_to_pool)["primary"] = old_pool
+      new_pool.shutdown! if new_pool
     end
 end

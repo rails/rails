@@ -73,7 +73,7 @@ class QueryCacheTest < ActiveRecord::TestCase
 
     mw.call({})
   ensure
-    ActiveRecord::Base.connection_handlers = { writing: ActiveRecord::Base.default_connection_handler }
+    ARTest.restore_default_connection_handler
   end
 
   def test_query_cache_across_threads
@@ -537,7 +537,7 @@ class QueryCacheTest < ActiveRecord::TestCase
       mw.call({})
     end
   ensure
-    ActiveRecord::Base.connection_handlers = { writing: ActiveRecord::Base.default_connection_handler }
+    ARTest.restore_default_connection_handler
   end
 
   private
@@ -550,6 +550,7 @@ class QueryCacheTest < ActiveRecord::TestCase
       yield
     ensure
       ActiveRecord::Base.connection_handler.send(:owner_to_pool)["primary"] = old_pool
+      new_pool.shutdown! if new_pool
     end
 
     def middleware(&app)

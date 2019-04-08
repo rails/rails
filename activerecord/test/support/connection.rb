@@ -26,4 +26,11 @@ module ARTest
     ActiveRecord::Base.establish_connection :arunit
     ARUnit2Model.establish_connection :arunit2
   end
+
+  def self.restore_default_connection_handler
+    ActiveRecord::Base.connection_handlers.each_value do |handler|
+      handler.shutdown! unless handler == ActiveRecord::Base.default_connection_handler
+    end
+    ActiveRecord::Base.connection_handlers = { writing: ActiveRecord::Base.default_connection_handler }
+  end
 end

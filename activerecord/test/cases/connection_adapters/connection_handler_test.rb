@@ -16,6 +16,11 @@ module ActiveRecord
         @pool = @handler.establish_connection(ActiveRecord::Base.configurations["arunit"])
       end
 
+      def teardown
+        @handler.shutdown!
+        super
+      end
+
       def test_default_env_fall_back_to_default_env_when_rails_env_or_rack_env_is_empty_string
         original_rails_env = ENV["RAILS_ENV"]
         original_rack_env  = ENV["RACK_ENV"]

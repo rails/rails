@@ -292,17 +292,28 @@ module ActiveRecord
         def initialize(pool, frequency)
           @pool      = pool
           @frequency = frequency
+          @thread    = nil
         end
 
         def run
           return unless frequency && frequency > 0
-          Thread.new(frequency, pool) { |t, p|
+          @thread = Thread.new(frequency, pool) { |t, p|
             loop do
+              # note: the break is racy, but the worst thing happening is shutting down a bit later
               sleep t
+              break if p.shutting_down?
+
               p.reap
               p.flush
+              break if p.shutting_down?
             end
           }
+
+          @thread.name = "Reaper:#{pool.spec&.name}"
+        end
+
+        def wakeup
+          @thread.run if @thread&.status
         end
       end
 
@@ -467,6 +478,20 @@ module ActiveRecord
             conn.discard!
           end
           @connections = @available = @thread_cached_conns = nil
+        end
+        shutdown_reaper
+      end
+
+      # Shutdown this pool: disconnect! and stop the reaper
+      def shutdown!
+        @automatic_reconnect = false
+        disconnect!
+        shutdown_reaper
+      end
+
+      def shutting_down?
+        synchronize do
+          @reaper.nil?
         end
       end
 
@@ -866,6 +891,14 @@ module ActiveRecord
           c.disconnect!
           raise
         end
+
+        def shutdown_reaper
+          synchronize do
+            the_reaper = @reaper
+            @reaper = nil
+            the_reaper&.wakeup
+          end
+        end
     end
 
     # ConnectionHandler is a collection of ConnectionPool objects. It is used
@@ -945,6 +978,11 @@ module ActiveRecord
         # Backup finalizer: if the forked child never needed a pool, the above
         # early discard has not occurred
         ObjectSpace.define_finalizer self, ConnectionHandler.unowned_pool_finalizer(@owner_to_pool)
+      end
+
+      # shuts down this handler by removing all connection pools
+      def shutdown!
+        owner_to_pool.keys.each { |name| remove_connection(name) }
       end
 
       def connection_pool_list
@@ -1037,8 +1075,7 @@ module ActiveRecord
       # re-establishing the connection.
       def remove_connection(spec_name)
         if pool = owner_to_pool.delete(spec_name)
-          pool.automatic_reconnect = false
-          pool.disconnect!
+          pool.shutdown!
           pool.spec.config
         end
       end

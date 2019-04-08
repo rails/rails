@@ -20,7 +20,9 @@ module ActiveRecord
       end
 
       def teardown
-        ActiveRecord::Base.connection_handlers = { writing: ActiveRecord::Base.default_connection_handler }
+        @handlers.each_value(&:shutdown!)
+        ARTest.restore_default_connection_handler
+        super
       end
 
       class MultiConnectionTestModel < ActiveRecord::Base
@@ -87,9 +89,9 @@ module ActiveRecord
           assert_not_nil pool = ActiveRecord::Base.connection_handlers[:reading].retrieve_connection_pool("primary")
           assert_equal "db/readonly.sqlite3", pool.spec.config[:database]
         ensure
+          ENV["RAILS_ENV"] = previous_env
           ActiveRecord::Base.configurations = @prev_configs
           ActiveRecord::Base.establish_connection(:arunit)
-          ENV["RAILS_ENV"] = previous_env
         end
 
         def test_switching_connections_via_handler
@@ -121,9 +123,9 @@ module ActiveRecord
             assert_not ActiveRecord::Base.connected_to?(role: :reading)
           end
         ensure
+          ENV["RAILS_ENV"] = previous_env
           ActiveRecord::Base.configurations = @prev_configs
           ActiveRecord::Base.establish_connection(:arunit)
-          ENV["RAILS_ENV"] = previous_env
         end
 
         def test_establish_connection_using_3_levels_config_with_non_default_handlers
@@ -145,9 +147,9 @@ module ActiveRecord
           assert_not_nil pool = ActiveRecord::Base.connection_handlers[:readonly].retrieve_connection_pool("primary")
           assert_equal "db/readonly.sqlite3", pool.spec.config[:database]
         ensure
+          ENV["RAILS_ENV"] = previous_env
           ActiveRecord::Base.configurations = @prev_configs
           ActiveRecord::Base.establish_connection(:arunit)
-          ENV["RAILS_ENV"] = previous_env
         end
 
         def test_switching_connections_with_database_url
@@ -165,9 +167,9 @@ module ActiveRecord
             assert_equal({ adapter: "postgresql", database: "bar", host: "localhost" }, pool.spec.config)
           end
         ensure
-          ActiveRecord::Base.establish_connection(:arunit)
           ENV["RAILS_ENV"] = previous_env
           ENV["DATABASE_URL"] = previous_url
+          ActiveRecord::Base.establish_connection(:arunit)
         end
 
         def test_switching_connections_with_database_config_hash
@@ -185,8 +187,8 @@ module ActiveRecord
             assert_equal(config, pool.spec.config)
           end
         ensure
-          ActiveRecord::Base.establish_connection(:arunit)
           ENV["RAILS_ENV"] = previous_env
+          ActiveRecord::Base.establish_connection(:arunit)
         end
 
         def test_switching_connections_with_database_and_role_raises
@@ -252,9 +254,9 @@ module ActiveRecord
             assert_equal(config["default_env"]["primary"], pool.spec.config)
           end
         ensure
+          ENV["RAILS_ENV"] = previous_env
           ActiveRecord::Base.configurations = @prev_configs
           ActiveRecord::Base.establish_connection(:arunit)
-          ENV["RAILS_ENV"] = previous_env
         end
 
         def test_connects_to_with_single_configuration
@@ -363,6 +365,7 @@ module ActiveRecord
         assert_not_equal reading, ActiveRecord::Base.connection_handler
         assert_equal reading, reading_handler
       ensure
+        ActiveRecord::Base.connection_handlers[:reading]&.shutdown!
         ActiveRecord::Base.connection_handlers = original_handlers
       end
 
@@ -383,6 +386,7 @@ module ActiveRecord
 
         assert_equal reading, reading_handler
       ensure
+        ActiveRecord::Base.connection_handlers[:reading]&.shutdown!
         ActiveRecord::Base.connection_handlers = original_handlers
       end
 

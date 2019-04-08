@@ -33,6 +33,11 @@ else
       Tag.destroy_all
     end
 
+    teardown do
+      Tag.remove_connection
+      Tag2.remove_connection
+    end
+
     # It is impossible to properly test read uncommitted. The SQL standard only
     # specifies what must not happen at a certain level, not what must happen. At
     # the read uncommitted level, there is nothing that must not happen.

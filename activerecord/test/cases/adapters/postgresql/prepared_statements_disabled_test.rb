@@ -12,7 +12,7 @@ class PreparedStatementsDisabledTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def teardown
-    @conn.release_connection
+    ActiveRecord::Base.remove_connection @conn.spec.name
     ActiveRecord::Base.establish_connection :arunit
   end
 

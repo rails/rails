@@ -1341,6 +1341,8 @@ class BasicsTest < ActiveRecord::TestCase
 
     assert_equal klass.connection_handler, orig_handler
     assert_equal thread_connection_handler, new_handler
+
+    new_handler.shutdown!
   end
 
   test "new threads get default the default connection handler" do
@@ -1381,6 +1383,8 @@ class BasicsTest < ActiveRecord::TestCase
 
     assert_equal after_handler, new_handler
     assert_equal orig_handler, klass.connection_handler
+
+    new_handler.shutdown!
   end
 
   # Note: This is a performance optimization for Array#uniq and Hash#[] with

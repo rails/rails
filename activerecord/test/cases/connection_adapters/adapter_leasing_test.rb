@@ -52,6 +52,8 @@ module ActiveRecord
         assert_not_predicate @adapter, :in_use?
 
         assert_equal @adapter, pool.connection
+      ensure
+        pool.shutdown! if pool
       end
     end
   end
