@@ -191,6 +191,7 @@ end
   steps_for(dir, task, service: service)
 
   next unless MAINLINE
+  next if task == "mysql:test"
 
   if dir == "activerecord"
     step_for(dir, task.sub(":test", ":isolated_test"), service: service) do |x|
