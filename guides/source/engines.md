@@ -217,8 +217,8 @@ important parts about namespacing, and is discussed later in the
 #### `app` Directory
 
 Inside the `app` directory are the standard `assets`, `controllers`, `helpers`,
-`mailers`, `models` and `views` directories that you should be familiar with
-from an application. The `helpers`, `mailers` and `models` directories are
+`jobs`, `mailers`, `models`, and `views` directories that you should be familiar with
+from an application. The `helpers`, `mailers`, and `models` directories are
 empty, so they aren't described in this section. We'll look more into models in
 a future section, when we're writing the engine.
 
