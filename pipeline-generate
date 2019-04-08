@@ -158,6 +158,10 @@ end
 
 def steps_for(subdirectory, rake_task, service: "default", &block)
   RUBIES.each do |ruby|
+    if rake_task == "mysql:test"
+      next unless ruby =~ /^ruby:(.*)/ && Gem::Version.new($1) < Gem::Version.new("2.4.x")
+    end
+
     step_for(subdirectory, rake_task, ruby: ruby, service: service, &block)
   end
 end
@@ -170,10 +174,13 @@ end
   activesupport   test                default
   actionview      test                default
   activejob       test                default
+  activerecord    mysql:test          mysqldb
   activerecord    mysql2:test         mysqldb
   activerecord    postgresql:test     postgresdb
   activerecord    sqlite3:test        default
 ).each_slice(3) do |dir, task, service|
+  next if task == "mysql:test" && RAILS_VERSION >= Gem::Version.new("5.x")
+
   steps_for(dir, task, service: service)
 
   next unless MAINLINE
@@ -203,14 +210,16 @@ end
 if RAILS_VERSION >= Gem::Version.new("5.1.x")
   step_for("activerecord", "sqlite3_mem:test", service: "default")
 end
-step_for("activerecord", "mysql2:test", service: "mysqldb") do |x|
-  x["label"] += " [mariadb]"
-  x["env"]["MYSQL_IMAGE"] =
-    if RAILS_VERSION < Gem::Version.new("6.x")
-      "mariadb:10.2"
-    else
-      "mariadb:latest"
-    end
+if RAILS_VERSION >= Gem::Version.new("5.x")
+  step_for("activerecord", "mysql2:test", service: "mysqldb") do |x|
+    x["label"] += " [mariadb]"
+    x["env"]["MYSQL_IMAGE"] =
+      if RAILS_VERSION < Gem::Version.new("6.x")
+        "mariadb:10.2"
+      else
+        "mariadb:latest"
+      end
+  end
 end
 steps_for("actioncable", "test:integration", service: "default") do |x|
   if RAILS_VERSION < Gem::Version.new("6.x")
