@@ -131,7 +131,7 @@ RUN rm -f railties/exe/.empty \
     && echo "--- :bundler: Installing Ruby deps" \
     && (cd tmp && for f in *.gemspec; do d="$(basename -s.gemspec "$f")"; mkdir -p "../$d" && mv "$f" "../$d/"; done) \
     && rm Gemfile.lock && bundle install -j 8 && cp Gemfile.lock tmp/Gemfile.lock.updated \
-    && rm -rf /usr/local/bundle/gems/cache \
+    && rm -rf /usr/local/bundle/cache \
     && echo "--- :floppy_disk: Copying repository contents"
 
 ADD . ./
