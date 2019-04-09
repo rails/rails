@@ -136,6 +136,10 @@ module ActionDispatch
             Array.new(length - 1) { |i| self[i + 1] }
           end
 
+          def named_captures
+            @names.zip(captures).to_h
+          end
+
           def [](x)
             idx = @offsets[x - 1] + x
             @match[idx]
