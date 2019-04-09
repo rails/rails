@@ -14,7 +14,7 @@ Today is mostly coordination tasks. Here are the things you must do today:
 Do not release with a Red CI. You can find the CI status here:
 
 ```
-https://travis-ci.org/rails/rails
+https://buildkite.com/rails/rails
 ```
 
 ### Is Sam Ruby happy? If not, make him happy.
