@@ -481,6 +481,22 @@ lib/school.rb:
   * [ 17] [FIXME]
 ```
 
+#### Tags
+
+You can add more default tags to search for by using `config.annotations.register_tags`. It receives a list of tags.
+
+```ruby
+config.annotations.register_tags("DEPRECATEME", "TESTME")
+```
+
+```bash
+$ rails notes
+app/controllers/admin/users_controller.rb:
+  * [ 20] [TODO] do A/B testing on this
+  * [ 42] [TESTME] this needs more functional tests
+  * [132] [DEPRECATEME] ensure this method is deprecated in next release
+```
+
 #### Directories
 
 You can add more default directories to search from by using `config.annotations.register_directories`. It receives a list of directory names.
