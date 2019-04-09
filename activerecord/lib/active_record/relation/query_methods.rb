@@ -252,9 +252,6 @@ module ActiveRecord
     def _select!(*fields) # :nodoc:
       fields.reject!(&:blank?)
       fields.flatten!
-      fields.map! do |field|
-        klass.attribute_alias?(field) ? klass.attribute_alias(field).to_sym : field
-      end
       self.select_values += fields
       self
     end
@@ -1164,9 +1161,9 @@ module ActiveRecord
           case field
           when Symbol
             field = field.to_s
-            arel_column(field) { connection.quote_table_name(field) }
+            arel_column(field, &connection.method(:quote_table_name))
           when String
-            arel_column(field) { field }
+            arel_column(field, &:itself)
           when Proc
             field.call
           else
@@ -1182,7 +1179,7 @@ module ActiveRecord
         if klass.columns_hash.key?(field) && (!from || table_name_matches?(from))
           arel_attribute(field)
         else
-          yield
+          yield field
         end
       end
 
