@@ -550,7 +550,13 @@ module Rails
     # Blog::Engine.load_seed
     def load_seed
       seed_file = paths["db/seeds.rb"].existent.first
-      with_inline_jobs { load(seed_file) } if seed_file
+      return unless seed_file
+
+      if config.active_job.queue_adapter == :async
+        with_inline_jobs { load(seed_file) }
+      else
+        load(seed_file)
+      end
     end
 
     # Add configured load paths to Ruby's load path, and remove duplicate entries.
