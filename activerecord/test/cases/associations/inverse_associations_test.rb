@@ -290,6 +290,12 @@ class InverseHasOneTests < ActiveRecord::TestCase
   def test_trying_to_use_inverses_that_dont_exist_should_raise_an_error
     assert_raise(ActiveRecord::InverseOfAssociationNotFoundError) { Man.first.dirty_face }
   end
+
+  def test_association_with_primary_key_that_dont_exist_inverse_of_association_with_primary_key_should_raise_an_error
+    error = assert_raise(ArgumentError) { Man.first.face_with_primary_key }
+    expected = "Cannot resolve primary key of inverse of assocition. Try adding :primary_key on inverse of association."
+    assert_equal expected, error.message
+  end
 end
 
 class InverseHasManyTests < ActiveRecord::TestCase
@@ -504,6 +510,12 @@ class InverseHasManyTests < ActiveRecord::TestCase
     assert_raise(ActiveRecord::InverseOfAssociationNotFoundError) { Man.first.secret_interests }
   end
 
+  def test_association_with_primary_key_that_dont_exist_inverse_of_association_with_primary_key_should_raise_an_error
+    error = assert_raise(ArgumentError) { Man.first.interests_with_primary_key }
+    expected = "Cannot resolve primary key of inverse of assocition. Try adding :primary_key on inverse of association."
+    assert_equal expected, error.message
+  end
+
   def test_child_instance_should_point_to_parent_without_saving
     man = Man.new
     i = Interest.create(topic: "Industrial Revolution Re-enactment")
@@ -625,6 +637,12 @@ class InverseBelongsToTests < ActiveRecord::TestCase
 
   def test_trying_to_use_inverses_that_dont_exist_should_raise_an_error
     assert_raise(ActiveRecord::InverseOfAssociationNotFoundError) { Face.first.horrible_man }
+  end
+
+  def test_association_with_primary_key_that_dont_exist_inverse_of_association_with_primary_key_should_raise_an_error
+    error = assert_raise(ArgumentError) { Face.first.man_with_primary_key }
+    expected = "Cannot resolve primary key of inverse of assocition. Try adding :primary_key on inverse of association."
+    assert_equal expected, error.message
   end
 end
 

@@ -242,6 +242,14 @@ module ActiveRecord
         end
       end
 
+      def check_validity_primary_key!
+        unless polymorphic?
+          if has_inverse? && inverse_of && options[:primary_key] && inverse_of.options[:primary_key].nil?
+            raise ArgumentError, "Cannot resolve primary key of inverse of assocition. Try adding :primary_key on inverse of association."
+          end
+        end
+      end
+
       # This shit is nasty. We need to avoid the following situation:
       #
       #   * An associated record is deleted via record.destroy
@@ -472,6 +480,7 @@ module ActiveRecord
 
       def check_validity!
         check_validity_of_inverse!
+        check_validity_primary_key!
       end
 
       def check_preloadable!
@@ -945,6 +954,7 @@ module ActiveRecord
         end
 
         check_validity_of_inverse!
+        check_validity_primary_key!
       end
 
       def constraints
