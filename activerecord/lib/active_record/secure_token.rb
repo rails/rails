@@ -30,7 +30,9 @@ module ActiveRecord
       # {validates_uniqueness_of}[rdoc-ref:Validations::ClassMethods#validates_uniqueness_of] can.
       # You're encouraged to add a unique index in the database to deal with this even more unlikely scenario.
       def has_secure_token(attribute = :token, length: MINIMUM_TOKEN_LENGTH)
-        raise MinimumLengthError, "Token requires a minimum length of 24 characters." if length < MINIMUM_TOKEN_LENGTH
+        if length < MINIMUM_TOKEN_LENGTH
+          raise MinimumLengthError, "Token requires a minimum length of #{MINIMUM_TOKEN_LENGTH} characters."
+        end
 
         # Load securerandom only when has_secure_token is used.
         require "active_support/core_ext/securerandom"
