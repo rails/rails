@@ -22,19 +22,20 @@ module ActiveRecord
 
       def ==(other)
         other.is_a?(PostgreSQLTypeMetadata) &&
-          attributes_for_hash == other.attributes_for_hash
+          __getobj__ == other.__getobj__ &&
+          oid == other.oid &&
+          fmod == other.fmod &&
+          array == other.array
       end
       alias eql? ==
 
       def hash
-        attributes_for_hash.hash
+        PostgreSQLTypeMetadata.hash ^
+          __getobj__.hash ^
+          oid.hash ^
+          fmod.hash ^
+          array.hash
       end
-
-      protected
-
-        def attributes_for_hash
-          [self.class, @type_metadata, oid, fmod]
-        end
     end
   end
 end
