@@ -178,7 +178,7 @@ module ActiveRecord
         InsertAll.new(self, attributes, on_duplicate: :raise, returning: returning).execute
       end
 
-      # Updates or inserts (upserts) multiple records into the database in a
+      # Updates or inserts (upserts) a single record into the database in a
       # single SQL INSERT statement. It does not instantiate any models nor does
       # it trigger Active Record callbacks or validations. Though passed values
       # go through Active Record's type casting and serialization.
