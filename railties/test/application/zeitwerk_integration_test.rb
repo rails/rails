@@ -98,24 +98,35 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
     assert_nil deps.safe_constantize("Admin")
   end
 
-  test "autoloaded_constants returns autoloaded constant paths" do
-    app_file "app/models/admin/user.rb", "class Admin::User; end"
-    app_file "app/models/post.rb", "class Post; end"
-    boot
-
-    assert Admin::User
-    assert_equal ["Admin", "Admin::User"], deps.autoloaded_constants
-  end
-
-  test "autoloaded? says if a constant has been autoloaded" do
+  test "to_unload? says if a constant would be unloaded (main)" do
     app_file "app/models/user.rb", "class User; end"
     app_file "app/models/post.rb", "class Post; end"
     boot
 
     assert Post
-    assert deps.autoloaded?("Post")
-    assert deps.autoloaded?(Post)
-    assert_not deps.autoloaded?("User")
+    assert deps.to_unload?("Post")
+    assert_not deps.to_unload?("User")
+  end
+
+  test "to_unload? says if a constant would be unloaded (once)" do
+    add_to_config 'config.autoload_once_paths << "#{Rails.root}/extras"'
+    app_file "extras/foo.rb", "class Foo; end"
+    app_file "extras/bar.rb", "class Bar; end"
+    boot
+
+    assert Foo
+    assert_not deps.to_unload?("Foo")
+    assert_not deps.to_unload?("Bar")
+  end
+
+  test "to_unload? says if a constant would be unloaded (reloading disabled)" do
+    app_file "app/models/user.rb", "class User; end"
+    app_file "app/models/post.rb", "class Post; end"
+    boot("production")
+
+    assert Post
+    assert_not deps.to_unload?("Post")
+    assert_not deps.to_unload?("User")
   end
 
   test "eager loading loads the application code" do
@@ -313,6 +324,47 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
 
     Rails.autoloaders.each do |autoloader|
       assert_nil autoloader.logger
+    end
+  end
+
+  # This is here because to guarantee classic mode works as always, Zeitwerk
+  # integration does not touch anything in classic. The descendants tracker is a
+  # very small one-liner exception. We leave its main test suite untouched, and
+  # add some minimal safety net here.
+  #
+  # When time passes, things are going to be reorganized (famous last words).
+  test "descendants tracker" do
+    class ::ZeitwerkDTIntegrationTestRoot
+      extend ActiveSupport::DescendantsTracker
+    end
+    class ::ZeitwerkDTIntegrationTestChild < ::ZeitwerkDTIntegrationTestRoot; end
+    class ::ZeitwerkDTIntegrationTestGrandchild < ::ZeitwerkDTIntegrationTestChild; end
+
+    begin
+      app_file "app/models/user.rb", "class User < ZeitwerkDTIntegrationTestRoot; end"
+      app_file "app/models/post.rb", "class Post < ZeitwerkDTIntegrationTestRoot; end"
+      app_file "app/models/tutorial.rb", "class Tutorial < Post; end"
+      boot
+
+      assert User
+      assert Tutorial
+
+      direct_descendants = [ZeitwerkDTIntegrationTestChild, User, Post].to_set
+      assert_equal direct_descendants, ZeitwerkDTIntegrationTestRoot.direct_descendants.to_set
+
+      descendants = direct_descendants.merge([ZeitwerkDTIntegrationTestGrandchild, Tutorial])
+      assert_equal descendants, ZeitwerkDTIntegrationTestRoot.descendants.to_set
+
+      ActiveSupport::DescendantsTracker.clear
+
+      direct_descendants = [ZeitwerkDTIntegrationTestChild].to_set
+      assert_equal direct_descendants, ZeitwerkDTIntegrationTestRoot.direct_descendants.to_set
+
+      descendants = direct_descendants.merge([ZeitwerkDTIntegrationTestGrandchild])
+      assert_equal descendants, ZeitwerkDTIntegrationTestRoot.descendants.to_set
+    ensure
+      Object.send(:remove_const, :ZeitwerkDTIntegrationTestRoot)
+      Object.send(:remove_const, :ZeitwerkDTIntegrationTestChild)
     end
   end
 end

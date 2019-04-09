@@ -21,17 +21,8 @@ module ActiveSupport
           ActiveSupport::Inflector.safe_constantize(cpath)
         end
 
-        def autoloaded_constants
-          cpaths = []
-          Rails.autoloaders.each do |autoloader|
-            cpaths.concat(autoloader.loaded_cpaths.to_a)
-          end
-          cpaths
-        end
-
-        def autoloaded?(object)
-          cpath = object.is_a?(Module) ? object.name : object.to_s
-          Rails.autoloaders.any? { |autoloader| autoloader.loaded?(cpath) }
+        def to_unload?(cpath)
+          Rails.autoloaders.main.to_unload?(cpath)
         end
 
         def verbose=(verbose)

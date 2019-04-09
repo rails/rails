@@ -1,3 +1,11 @@
+*   The Zeitwerk compatibility interface for `ActiveSupport::Dependencies` no
+    longer implements `autoloaded_constants` or `autoloaded?` (undocumented,
+    anyway). Experience shows introspection does not have many use cases, and
+    troubleshooting is done by logging. With this design trade-off we are able
+    to use even less memory in all environments.
+
+    *Xavier Noria*
+
 *   Depends on Zeitwerk 2, which stores less metadata if reloading is disabled
     and hence uses less memory when `config.cache_classes` is `true`, a standard
     setup in production.
