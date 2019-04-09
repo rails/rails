@@ -879,7 +879,7 @@ YAML
       assert Bukkits::Engine.config.bukkits_seeds_loaded
     end
 
-    test "jobs are ran inline while loading seeds" do
+    test "jobs are ran inline while loading seeds with async adapter configured" do
       app_file "db/seeds.rb", <<-RUBY
         Rails.application.config.seed_queue_adapter = ActiveJob::Base.queue_adapter
       RUBY
@@ -889,6 +889,19 @@ YAML
 
       assert_instance_of ActiveJob::QueueAdapters::InlineAdapter, Rails.application.config.seed_queue_adapter
       assert_instance_of ActiveJob::QueueAdapters::AsyncAdapter, ActiveJob::Base.queue_adapter
+    end
+
+    test "jobs are ran with original adapter while loading seeds with custom adapter configured" do
+      app_file "db/seeds.rb", <<-RUBY
+        Rails.application.config.seed_queue_adapter = ActiveJob::Base.queue_adapter
+      RUBY
+
+      boot_rails
+      Rails.application.config.active_job.queue_adapter = :delayed_job
+      Rails.application.load_seed
+
+      assert_instance_of ActiveJob::QueueAdapters::DelayedJobAdapter, Rails.application.config.seed_queue_adapter
+      assert_instance_of ActiveJob::QueueAdapters::DelayedJobAdapter, ActiveJob::Base.queue_adapter
     end
 
     test "skips nonexistent seed data" do

@@ -1,3 +1,7 @@
+*   Only force `:async` ActiveJob adapter to `:inline` during seeding.
+
+    *BatedUrGonnaDie*
+
 *   The `connection` option of `rails dbconsole` command is deprecated in
     favor of `database` option.
 
