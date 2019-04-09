@@ -365,6 +365,7 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
     ensure
       Object.send(:remove_const, :ZeitwerkDTIntegrationTestRoot)
       Object.send(:remove_const, :ZeitwerkDTIntegrationTestChild)
+      Object.send(:remove_const, :ZeitwerkDTIntegrationTestGrandchild)
     end
   end
 end
