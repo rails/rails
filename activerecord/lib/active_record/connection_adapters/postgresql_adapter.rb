@@ -425,6 +425,7 @@ module ActiveRecord
       def get_database_version
         @connection.server_version
       end
+      alias_method :postgresql_version, :get_database_version
 
       def default_index_type?(index) # :nodoc:
         index.using == :btree || super
