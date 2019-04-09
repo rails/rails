@@ -314,7 +314,7 @@ module ActiveRecord
 
       relation = construct_relation_for_exists(conditions)
 
-      skip_query_cache_if_necessary { connection.select_one(relation.arel, "#{name} Exists") } ? true : false
+      skip_query_cache_if_necessary { connection.select_one(relation.arel, "#{name} Exists?") } ? true : false
     end
 
     # This method is called whenever no records are found with either a single
