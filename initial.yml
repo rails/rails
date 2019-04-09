@@ -39,6 +39,7 @@ steps:
           timeout_in_minutes: 5
       NESTED
       fi
+      [ -f .buildkite/.dockerignore ] && cp .buildkite/.dockerignore .dockerignore
     plugins:
       - artifacts#v1.2.0:
           upload: ".buildkite/**/*"
