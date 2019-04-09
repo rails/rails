@@ -115,13 +115,58 @@ module ActiveRecord
       assert_equal expected.to_sql, actual.to_sql
     end
 
-    def test_polymorphic_shallow_where_not
-      treasure = treasures(:sapphire)
+    def test_where_not_polymorphic_association
+      sapphire = treasures(:sapphire)
 
-      expected = [price_estimates(:diamond), price_estimates(:honda)]
-      actual   = PriceEstimate.where.not(estimate_of: treasure)
+      all = [treasures(:diamond), sapphire, cars(:honda), sapphire]
+      assert_equal all, PriceEstimate.all.sort_by(&:id).map(&:estimate_of)
 
-      assert_equal expected.sort_by(&:id), actual.sort_by(&:id)
+      actual = PriceEstimate.where.not(estimate_of: sapphire)
+      only = PriceEstimate.where(estimate_of: sapphire)
+
+      expected = all - [sapphire]
+      assert_equal expected, actual.sort_by(&:id).map(&:estimate_of)
+      assert_equal all - expected, only.sort_by(&:id).map(&:estimate_of)
+    end
+
+    def test_where_not_polymorphic_id_and_type_as_nand
+      sapphire = treasures(:sapphire)
+
+      all = [treasures(:diamond), sapphire, cars(:honda), sapphire]
+      assert_equal all, PriceEstimate.all.sort_by(&:id).map(&:estimate_of)
+
+      actual = PriceEstimate.where.yield_self do |where_chain|
+        where_chain.stub(:not_behaves_as_nor?, false) do
+          where_chain.not(estimate_of_type: sapphire.class.polymorphic_name, estimate_of_id: sapphire.id)
+        end
+      end
+      only = PriceEstimate.where(estimate_of_type: sapphire.class.polymorphic_name, estimate_of_id: sapphire.id)
+
+      expected = all - [sapphire]
+      assert_equal expected, actual.sort_by(&:id).map(&:estimate_of)
+      assert_equal all - expected, only.sort_by(&:id).map(&:estimate_of)
+    end
+
+    def test_where_not_polymorphic_id_and_type_as_nor_is_deprecated
+      sapphire = treasures(:sapphire)
+
+      all = [treasures(:diamond), sapphire, cars(:honda), sapphire]
+      assert_equal all, PriceEstimate.all.sort_by(&:id).map(&:estimate_of)
+
+      message = <<~MSG.squish
+        NOT conditions will no longer behave as NOR in Rails 6.1.
+        To continue using NOR conditions, NOT each conditions manually
+        (`.where.not(:estimate_of_type => ...).where.not(:estimate_of_id => ...)`).
+      MSG
+      actual = assert_deprecated(message) do
+        PriceEstimate.where.not(estimate_of_type: sapphire.class.polymorphic_name, estimate_of_id: sapphire.id)
+      end
+      only = PriceEstimate.where(estimate_of_type: sapphire.class.polymorphic_name, estimate_of_id: sapphire.id)
+
+      expected = all - [sapphire]
+      # NOT (estimate_of_type = 'Treasure' OR estimate_of_id = sapphire.id) matches only `cars(:honda)` unfortunately.
+      assert_not_equal expected, actual.sort_by(&:id).map(&:estimate_of)
+      assert_equal all - expected, only.sort_by(&:id).map(&:estimate_of)
     end
 
     def test_polymorphic_nested_array_where

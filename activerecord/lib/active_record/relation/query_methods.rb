@@ -41,18 +41,31 @@ module ActiveRecord
       #
       #    User.where.not(name: %w(Ko1 Nobu))
       #    # SELECT * FROM users WHERE name NOT IN ('Ko1', 'Nobu')
-      #
-      #    User.where.not(name: "Jon", role: "admin")
-      #    # SELECT * FROM users WHERE name != 'Jon' AND role != 'admin'
       def not(opts, *rest)
         opts = sanitize_forbidden_attributes(opts)
 
         where_clause = @scope.send(:where_clause_factory).build(opts, rest)
 
         @scope.references!(PredicateBuilder.references(opts)) if Hash === opts
-        @scope.where_clause += where_clause.invert
+
+        if not_behaves_as_nor?(opts)
+          ActiveSupport::Deprecation.warn(<<~MSG.squish)
+            NOT conditions will no longer behave as NOR in Rails 6.1.
+            To continue using NOR conditions, NOT each conditions manually
+            (`#{ opts.keys.map { |key| ".where.not(#{key.inspect} => ...)" }.join }`).
+          MSG
+          @scope.where_clause += where_clause.invert(:nor)
+        else
+          @scope.where_clause += where_clause.invert
+        end
+
         @scope
       end
+
+      private
+        def not_behaves_as_nor?(opts)
+          opts.is_a?(Hash) && opts.size > 1
+        end
     end
 
     FROZEN_EMPTY_ARRAY = [].freeze
