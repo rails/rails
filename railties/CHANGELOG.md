@@ -1,3 +1,8 @@
+*   Only force `:async` ActiveJob adapter to `:inline` during seeding.
+
+    *BatedUrGonnaDie*
+
+
 ## Rails 5.2.3 (March 27, 2019) ##
 
 *   Seed database with inline ActiveJob job adapter.
