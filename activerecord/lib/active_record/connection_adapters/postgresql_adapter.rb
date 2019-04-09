@@ -422,7 +422,7 @@ module ActiveRecord
       }
 
       # Returns the version of the connected PostgreSQL server.
-      def get_database_version
+      def get_database_version # :nodoc:
         @connection.server_version
       end
 
