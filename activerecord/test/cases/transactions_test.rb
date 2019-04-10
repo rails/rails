@@ -34,20 +34,21 @@ class TransactionTest < ActiveRecord::TestCase
       end
     }
 
-    assert @first.reload
     assert_not_predicate @first, :frozen?
   end
 
   def test_successful
-    Topic.transaction do
-      @first.approved  = true
-      @second.approved = false
-      @first.save
-      @second.save
+    assert_not_called(@first, :committed!) do
+      Topic.transaction do
+        @first.approved  = true
+        @second.approved = false
+        @first.save
+        @second.save
+      end
     end
 
-    assert Topic.find(1).approved?, "First should have been approved"
-    assert_not Topic.find(2).approved?, "Second should have been unapproved"
+    assert_predicate Topic.find(1), :approved?, "First should have been approved"
+    assert_not_predicate Topic.find(2), :approved?, "Second should have been unapproved"
   end
 
   def transaction_with_return
@@ -76,11 +77,13 @@ class TransactionTest < ActiveRecord::TestCase
       end
     end
 
-    transaction_with_return
+    assert_not_called(@first, :committed!) do
+      transaction_with_return
+    end
     assert committed
 
-    assert Topic.find(1).approved?, "First should have been approved"
-    assert_not Topic.find(2).approved?, "Second should have been unapproved"
+    assert_predicate Topic.find(1), :approved?, "First should have been approved"
+    assert_not_predicate Topic.find(2), :approved?, "Second should have been unapproved"
   ensure
     Topic.connection.class_eval do
       remove_method :commit_db_transaction
@@ -99,9 +102,11 @@ class TransactionTest < ActiveRecord::TestCase
       end
     end
 
-    Topic.transaction do
-      @first.approved = true
-      @first.save!
+    assert_not_called(@first, :committed!) do
+      Topic.transaction do
+        @first.approved = true
+        @first.save!
+      end
     end
 
     assert_equal 0, num
@@ -113,19 +118,21 @@ class TransactionTest < ActiveRecord::TestCase
   end
 
   def test_successful_with_instance_method
-    @first.transaction do
-      @first.approved  = true
-      @second.approved = false
-      @first.save
-      @second.save
+    assert_not_called(@first, :committed!) do
+      @first.transaction do
+        @first.approved  = true
+        @second.approved = false
+        @first.save
+        @second.save
+      end
     end
 
-    assert Topic.find(1).approved?, "First should have been approved"
-    assert_not Topic.find(2).approved?, "Second should have been unapproved"
+    assert_predicate Topic.find(1), :approved?, "First should have been approved"
+    assert_not_predicate Topic.find(2), :approved?, "Second should have been unapproved"
   end
 
   def test_failing_on_exception
-    begin
+    assert_not_called(@first, :rolledback!) do
       Topic.transaction do
         @first.approved  = true
         @second.approved = false
@@ -137,11 +144,11 @@ class TransactionTest < ActiveRecord::TestCase
       # caught it
     end
 
-    assert @first.approved?, "First should still be changed in the objects"
-    assert_not @second.approved?, "Second should still be changed in the objects"
+    assert_predicate @first, :approved?, "First should still be changed in the objects"
+    assert_not_predicate @second, :approved?, "Second should still be changed in the objects"
 
-    assert_not Topic.find(1).approved?, "First shouldn't have been approved"
-    assert Topic.find(2).approved?, "Second should still be approved"
+    assert_not_predicate Topic.find(1), :approved?, "First shouldn't have been approved"
+    assert_predicate Topic.find(2), :approved?, "Second should still be approved"
   end
 
   def test_raising_exception_in_callback_rollbacks_in_save
@@ -150,8 +157,10 @@ class TransactionTest < ActiveRecord::TestCase
     end
 
     @first.approved = true
-    e = assert_raises(RuntimeError) { @first.save }
-    assert_equal "Make the transaction rollback", e.message
+    assert_not_called(@first, :rolledback!) do
+      e = assert_raises(RuntimeError) { @first.save }
+      assert_equal "Make the transaction rollback", e.message
+    end
     assert_not_predicate Topic.find(1), :approved?
   end
 
@@ -159,13 +168,15 @@ class TransactionTest < ActiveRecord::TestCase
     def @first.before_save_for_transaction
       raise ActiveRecord::Rollback
     end
-    assert_not @first.approved
+    assert_not_predicate @first, :approved?
 
-    Topic.transaction do
-      @first.approved = true
-      @first.save!
+    assert_not_called(@first, :rolledback!) do
+      Topic.transaction do
+        @first.approved = true
+        @first.save!
+      end
     end
-    assert_not Topic.find(@first.id).approved?, "Should not commit the approved flag"
+    assert_not_predicate Topic.find(@first.id), :approved?, "Should not commit the approved flag"
   end
 
   def test_raising_exception_in_nested_transaction_restore_state_in_save
@@ -175,11 +186,13 @@ class TransactionTest < ActiveRecord::TestCase
       raise "Make the transaction rollback"
     end
 
-    assert_raises(RuntimeError) do
-      Topic.transaction { topic.save }
+    assert_not_called(topic, :rolledback!) do
+      assert_raises(RuntimeError) do
+        Topic.transaction { topic.save }
+      end
     end
 
-    assert topic.new_record?, "#{topic.inspect} should be new record"
+    assert_predicate topic, :new_record?, "#{topic.inspect} should be new record"
   end
 
   def test_transaction_state_is_cleared_when_record_is_persisted
