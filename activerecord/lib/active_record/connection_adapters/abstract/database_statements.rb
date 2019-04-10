@@ -427,8 +427,7 @@ module ActiveRecord
             columns.map do |name, column|
               if fixture.key?(name)
                 type = lookup_cast_type_from_column(column)
-                bind = Relation::QueryAttribute.new(name, fixture[name], type)
-                with_yaml_fallback(bind.value_for_database)
+                with_yaml_fallback(type.serialize(fixture[name]))
               else
                 default_insert_value(column)
               end

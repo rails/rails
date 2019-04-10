@@ -128,8 +128,7 @@ module ActiveRecord
           types = extract_types_from_columns_on(model.table_name, keys: keys)
 
           values_list = insert_all.map_key_with_value do |key, value|
-            bind = Relation::QueryAttribute.new(key, value, types[key])
-            connection.with_yaml_fallback(bind.value_for_database)
+            connection.with_yaml_fallback(types[key].serialize(value))
           end
 
           Arel::InsertManager.new.create_values_list(values_list).to_sql
