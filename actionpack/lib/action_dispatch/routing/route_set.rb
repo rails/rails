@@ -797,7 +797,7 @@ module ActionDispatch
 
       # The +options+ argument must be a hash whose keys are *symbols*.
       def url_for(options, route_name = nil, url_strategy = UNKNOWN)
-        options = default_url_options.merge options
+        options = default_url_options.deep_merge(options)
 
         user = password = nil
 
@@ -806,7 +806,7 @@ module ActionDispatch
           password = options.delete :password
         end
 
-        recall = options.delete(:_recall) { {} }
+        recall = options.delete(:recall) { {} }
 
         original_script_name = options.delete(:original_script_name)
         script_name = find_script_name options

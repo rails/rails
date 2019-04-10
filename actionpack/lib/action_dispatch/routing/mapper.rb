@@ -673,8 +673,8 @@ module ActionDispatch
               prefix_options = options.slice(*_route.segment_keys)
               prefix_options[:relative_url_root] = ""
 
-              if options[:_recall]
-                prefix_options.reverse_merge!(options[:_recall].slice(*_route.segment_keys))
+              if options[:recall]
+                prefix_options.reverse_merge!(options[:recall].slice(*_route.segment_keys))
               end
 
               # We must actually delete prefix segment keys to avoid passing them to next url_for.

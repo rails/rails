@@ -32,8 +32,8 @@ module ActionController
         host: request.host,
         port: request.optional_port,
         protocol: request.protocol,
-        _recall: request.path_parameters
-      }.merge!(super).freeze
+        recall: request.path_parameters
+      }.deep_merge!(super).freeze
 
       if (same_origin = _routes.equal?(request.routes)) ||
          (script_name = request.engine_script_name(_routes)) ||
