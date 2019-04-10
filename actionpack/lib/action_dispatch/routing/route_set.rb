@@ -317,18 +317,16 @@ module ActionDispatch
           #
           def define_url_helper(mod, route, name, opts, route_key, url_strategy)
             helper = UrlHelper.create(route, opts, route_key, url_strategy)
-            mod.module_eval do
-              define_method(name) do |*args|
-                last = args.last
-                options = \
-                  case last
-                  when Hash
-                    args.pop
-                  when ActionController::Parameters
-                    args.pop.to_h
-                  end
-                helper.call self, args, options
-              end
+            mod.define_method(name) do |*args|
+              last = args.last
+              options = \
+                case last
+                when Hash
+                  args.pop
+                when ActionController::Parameters
+                  args.pop.to_h
+                end
+              helper.call self, args, options
             end
           end
       end
