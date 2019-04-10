@@ -144,17 +144,6 @@ task default: :test
       end
     end
 
-    def javascripts
-      return if options.skip_javascript?
-
-      if mountable?
-        template "rails/javascripts.js",
-                 "app/assets/javascripts/#{namespaced_name}/application.js"
-      elsif full?
-        empty_directory_with_keep_file "app/assets/javascripts/#{namespaced_name}"
-      end
-    end
-
     def bin(force = false)
       bin_file = engine? ? "bin/rails.tt" : "bin/test.tt"
       template bin_file, force: force do |content|
@@ -234,10 +223,6 @@ task default: :test
 
       def create_public_stylesheets_files
         build(:stylesheets) unless api?
-      end
-
-      def create_javascript_files
-        build(:javascripts) unless api?
       end
 
       def create_bin_files
