@@ -51,12 +51,20 @@ module ActiveRecord
           end
       end
 
+      class Version < AbstractAdapter::Version # :nodoc:
+        def initialize(version_string, full_version_string)
+          super
+        end
+      end
+
       def initialize(connection, logger, connection_options, config)
         super(connection, logger, config)
       end
 
       def get_database_version #:nodoc:
-        Version.new(version_string)
+        full_version_string = get_full_version
+        version_string = version_string(full_version_string)
+        Version.new(version_string, full_version_string)
       end
 
       def mariadb? # :nodoc:
@@ -801,8 +809,8 @@ module ActiveRecord
           MismatchedForeignKey.new(options)
         end
 
-        def version_string
-          full_version.match(/^(?:5\.5\.5-)?(\d+\.\d+\.\d+)/)[1]
+        def version_string(full_version_string) # :nodoc:
+          full_version_string.match(/^(?:5\.5\.5-)?(\d+\.\d+\.\d+)/)[1]
         end
 
         class MysqlString < Type::String # :nodoc:
