@@ -376,9 +376,19 @@ module ActiveRecord
     def with_transaction_returning_status
       status = nil
       self.class.transaction do
-        add_to_transaction
+        unless has_transactional_callbacks?
+          sync_with_transaction_state
+          set_transaction_state(self.class.connection.transaction_state)
+        end
+        remember_transaction_record_state
+
         status = yield
         raise ActiveRecord::Rollback unless status
+      ensure
+        if has_transactional_callbacks? &&
+            (@_new_record_before_last_commit && !new_record? || _trigger_update_callback || _trigger_destroy_callback)
+          self.class.connection.add_transaction_record(self)
+        end
       end
       status
     end

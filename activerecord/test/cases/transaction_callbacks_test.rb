@@ -111,6 +111,32 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
     assert_equal [:after_commit], @first.history
   end
 
+  def test_dont_call_any_callbacks_after_transaction_commits_for_invalid_record
+    @first.after_commit_block { |r| r.history << :after_commit }
+    @first.after_rollback_block { |r| r.history << :after_rollback }
+
+    def @first.valid?(*)
+      false
+    end
+
+    assert_not @first.save
+    assert_equal [], @first.history
+  end
+
+  def test_dont_call_any_callbacks_after_explicit_transaction_commits_for_invalid_record
+    @first.after_commit_block { |r| r.history << :after_commit }
+    @first.after_rollback_block { |r| r.history << :after_rollback }
+
+    def @first.valid?(*)
+      false
+    end
+
+    @first.transaction do
+      assert_not @first.save
+    end
+    assert_equal [], @first.history
+  end
+
   def test_only_call_after_commit_on_save_after_transaction_commits_for_saving_record
     record = TopicWithCallbacks.new(title: "New topic", written_on: Date.today)
     record.after_commit_block(:save) { |r| r.history << :after_save }
