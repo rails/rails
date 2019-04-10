@@ -68,7 +68,8 @@ module ActiveRecord
           sql_type_metadata == other.sql_type_metadata &&
           null == other.null &&
           default_function == other.default_function &&
-          collation == other.collation
+          collation == other.collation &&
+          comment == other.comment
       end
       alias :eql? :==
 
@@ -79,7 +80,8 @@ module ActiveRecord
           sql_type_metadata.hash ^
           null.hash ^
           default_function.hash ^
-          collation.hash
+          collation.hash ^
+          comment.hash
       end
     end
 
