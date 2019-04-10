@@ -466,6 +466,7 @@ module ActiveRecord
 
     # Returns +true+ if the attributes hash has been frozen.
     def frozen?
+      sync_with_transaction_state
       @attributes.frozen?
     end
 
@@ -583,7 +584,7 @@ module ActiveRecord
       end
 
       def thaw
-        if frozen?
+        if @attributes.frozen?
           @attributes = @attributes.dup
         end
       end

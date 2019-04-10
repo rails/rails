@@ -530,7 +530,6 @@ module ActiveRecord
     def destroy
       _raise_readonly_record_error if readonly?
       destroy_associations
-      self.class.connection.add_transaction_record(self)
       @_trigger_destroy_callback = if persisted?
         destroy_row > 0
       else
