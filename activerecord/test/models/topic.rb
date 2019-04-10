@@ -56,9 +56,7 @@ class Topic < ActiveRecord::Base
 
   alias_attribute :heading, :title
 
-  before_validation :before_validation_for_transaction
   before_save :before_save_for_transaction
-  before_destroy :before_destroy_for_transaction
 
   after_save :after_save_for_transaction
   after_create :after_create_for_transaction
@@ -108,9 +106,7 @@ class Topic < ActiveRecord::Base
       end
     end
 
-    def before_validation_for_transaction; end
     def before_save_for_transaction; end
-    def before_destroy_for_transaction; end
     def after_save_for_transaction; end
     def after_create_for_transaction; end
 
