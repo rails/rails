@@ -218,9 +218,7 @@ important parts about namespacing, and is discussed later in the
 
 Inside the `app` directory are the standard `assets`, `controllers`, `helpers`,
 `jobs`, `mailers`, `models`, and `views` directories that you should be familiar with
-from an application. The `helpers`, `mailers`, and `models` directories are
-empty, so they aren't described in this section. We'll look more into models in
-a future section, when we're writing the engine.
+from an application. We'll look more into models in a future section, when we're writing the engine.
 
 Within the `app/assets` directory, there are the `images`, `javascripts` and
 `stylesheets` directories which, again, you should be familiar with due to their
@@ -260,6 +258,30 @@ end
 WARNING: Don't use `require` because it will break the automatic reloading of classes
 in the development environment - using `require_dependency` ensures that classes are
 loaded and unloaded in the correct manner.
+
+Within the `app/helpers` directory there is a `blorgh` directory that
+contains a file called `application_helper.rb`. This file will provide any
+common functionality for the helpers of the engine. The `blorgh` directory
+is where the other helpers for the engine will go. By placing them within
+this namespaced directory, you prevent them from possibly clashing with
+identically-named helpers within other engines or even within the
+application.
+
+Within the `app/jobs` directory there is a `blorgh` directory that
+contains a file called `application_job.rb`. This file will provide any
+common functionality for the jobs of the engine. The `blorgh` directory
+is where the other jobs for the engine will go. By placing them within
+this namespaced directory, you prevent them from possibly clashing with
+identically-named jobs within other engines or even within the
+application.
+
+Within the `app/mailers` directory there is a `blorgh` directory that
+contains a file called `application_mailer.rb`. This file will provide any
+common functionality for the mailers of the engine. The `blorgh` directory
+is where the other mailers for the engine will go. By placing them within
+this namespaced directory, you prevent them from possibly clashing with
+identically-named mailers within other engines or even within the
+application.
 
 Lastly, the `app/views` directory contains a `layouts` folder, which contains a
 file at `blorgh/application.html.erb`. This file allows you to specify a layout
