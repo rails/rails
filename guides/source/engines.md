@@ -1129,10 +1129,11 @@ end
 ```
 
 ```ruby
-# Blorgh/app/models/article.rb
-
-class Article < ApplicationRecord
-  has_many :comments
+# Blorgh/app/models/blorgh/article.rb
+module Blorgh
+  class Article < ApplicationRecord
+    has_many :comments
+  end
 end
 ```
 
@@ -1150,12 +1151,13 @@ end
 ```
 
 ```ruby
-# Blorgh/app/models/article.rb
-
-class Article < ApplicationRecord
-  has_many :comments
-  def summary
-    "#{title}"
+# Blorgh/app/models/blorgh/article.rb
+module Blorgh
+  class Article < ApplicationRecord
+    has_many :comments
+    def summary
+      "#{title}"
+    end
   end
 end
 ```
@@ -1187,10 +1189,11 @@ end
 ```
 
 ```ruby
-# Blorgh/app/models/article.rb
-
-class Article < ApplicationRecord
-  include Blorgh::Concerns::Models::Article
+# Blorgh/app/models/blorgh/article.rb
+module Blorgh
+  class Article < ApplicationRecord
+    include Blorgh::Concerns::Models::Article
+  end
 end
 ```
 
