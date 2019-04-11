@@ -29,9 +29,7 @@ module ActiveRecord
       # <tt>reload</tt> the record and clears changed attributes.
       def reload(*)
         super.tap do
-          @previously_changed = ActiveSupport::HashWithIndifferentAccess.new
           @mutations_before_last_save = nil
-          @attributes_changed_by_setter = ActiveSupport::HashWithIndifferentAccess.new
           @mutations_from_database = nil
         end
       end
@@ -51,7 +49,7 @@ module ActiveRecord
       # +to+ When passed, this method will return false unless the value was
       # changed to the given value
       def saved_change_to_attribute?(attr_name, **options)
-        mutations_before_last_save.changed?(attr_name, **options)
+        mutations_before_last_save.changed?(attr_name.to_s, options)
       end
 
       # Returns the change to an attribute during the last save. If the
@@ -63,7 +61,7 @@ module ActiveRecord
       # invoked as +saved_change_to_name+ instead of
       # <tt>saved_change_to_attribute("name")</tt>.
       def saved_change_to_attribute(attr_name)
-        mutations_before_last_save.change_to_attribute(attr_name)
+        mutations_before_last_save.change_to_attribute(attr_name.to_s)
       end
 
       # Returns the original value of an attribute before the last save.
@@ -73,7 +71,7 @@ module ActiveRecord
       # invoked as +name_before_last_save+ instead of
       # <tt>attribute_before_last_save("name")</tt>.
       def attribute_before_last_save(attr_name)
-        mutations_before_last_save.original_value(attr_name)
+        mutations_before_last_save.original_value(attr_name.to_s)
       end
 
       # Did the last call to +save+ have any changes to change?
@@ -101,7 +99,7 @@ module ActiveRecord
       # +to+ When passed, this method will return false unless the value will be
       # changed to the given value
       def will_save_change_to_attribute?(attr_name, **options)
-        mutations_from_database.changed?(attr_name, **options)
+        mutations_from_database.changed?(attr_name.to_s, options)
       end
 
       # Returns the change to an attribute that will be persisted during the
@@ -115,7 +113,7 @@ module ActiveRecord
       # If the attribute will change, the result will be an array containing the
       # original value and the new value about to be saved.
       def attribute_change_to_be_saved(attr_name)
-        mutations_from_database.change_to_attribute(attr_name)
+        mutations_from_database.change_to_attribute(attr_name.to_s)
       end
 
       # Returns the value of an attribute in the database, as opposed to the
@@ -127,7 +125,7 @@ module ActiveRecord
       # saved. It can be invoked as +name_in_database+ instead of
       # <tt>attribute_in_database("name")</tt>.
       def attribute_in_database(attr_name)
-        mutations_from_database.original_value(attr_name)
+        mutations_from_database.original_value(attr_name.to_s)
       end
 
       # Will the next call to +save+ have any changes to persist?
