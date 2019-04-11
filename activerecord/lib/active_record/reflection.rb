@@ -21,12 +21,12 @@ module ActiveRecord
 
       def add_reflection(ar, name, reflection)
         ar.clear_reflections_cache
-        name = name.to_s
+        name = -name.to_s
         ar._reflections = ar._reflections.except(name).merge!(name => reflection)
       end
 
       def add_aggregate_reflection(ar, name, reflection)
-        ar.aggregate_reflections = ar.aggregate_reflections.merge(name.to_s => reflection)
+        ar.aggregate_reflections = ar.aggregate_reflections.merge(-name.to_s => reflection)
       end
 
       private
