@@ -9,11 +9,9 @@ module ActiveSupport
       module Decorations
         def clear
           Dependencies.unload_interlock do
-            begin
-              Rails.autoloaders.main.reload
-            rescue Zeitwerk::ReloadingDisabledError
-              raise "reloading is disabled because config.cache_classes is true"
-            end
+            Rails.autoloaders.main.reload
+          rescue Zeitwerk::ReloadingDisabledError
+            raise "reloading is disabled because config.cache_classes is true"
           end
         end
 
