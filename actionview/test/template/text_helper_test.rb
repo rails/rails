@@ -353,6 +353,10 @@ class TextHelperTest < ActionView::TestCase
                  excerpt("This is a beautiful morning", "a", separator: nil)
   end
 
+  def test_multi_excerpt
+    assert_equal("...This string is i...long string ...", multi_excerpt('This string is is a very long long long string ', 'string', radius: 5))
+  end
+
   def test_word_wrap
     assert_equal("my very very\nvery long\nstring", word_wrap("my very very very long string", line_width: 15))
   end

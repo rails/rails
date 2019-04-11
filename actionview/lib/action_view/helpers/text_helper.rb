@@ -204,6 +204,23 @@ module ActionView
         [prefix, affix, postfix].join
       end
 
+      # Returns a summary of +text+ in the form of +phrase+ excerpts
+      # <tt>:omission</tt> option (which defaults to "...") will be prepended/appended accordingly
+      #
+      #   multi_excerpt('This string is is a very long long long string ', 'string', radius: 5)
+      #   # => ...This string is i...long string ...
+      def multi_excerpt(text, phrase, options = {})
+        return unless text && phrase
+
+        radius   = options.fetch(:radius, 10)
+        omission = options.fetch(:omission, "...")
+
+        raise if phrase.is_a? Regexp
+        regex = /.{,#{radius}}#{Regexp.escape(phrase)}.{,#{radius}}/i
+        parts = text.scan(regex)
+        "#{omission}#{parts.join(omission)}#{omission}"
+      end
+
       # Attempts to pluralize the +singular+ word unless +count+ is 1. If
       # +plural+ is supplied, it will use that when count is > 1, otherwise
       # it will use the Inflector to determine the plural form for the given locale,
