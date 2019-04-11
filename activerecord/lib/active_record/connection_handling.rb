@@ -92,7 +92,7 @@ module ActiveRecord
     #     Dog.create! # throws exception because we're on a replica
     #   end
     #
-    #   ActiveRecord::Base.connected_to(role: :unknown_ode) do
+    #   ActiveRecord::Base.connected_to(role: :unknown_role) do
     #     # raises exception due to non-existent role
     #   end
     #
