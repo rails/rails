@@ -116,6 +116,9 @@ Layout/SpaceAroundOperators:
 Layout/SpaceBeforeComma:
   Enabled: true
 
+Layout/SpaceBeforeComment:
+  Enabled: true
+
 Layout/SpaceBeforeFirstArg:
   Enabled: true
 
