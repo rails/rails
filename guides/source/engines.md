@@ -1528,4 +1528,6 @@ These are the available configuration hooks. They do not hook into any particula
 
 ### Example
 
-`config.before_configuration { puts 'I am called before any initializers' }`
+```ruby
+config.before_configuration { puts 'I am called before any initializers' }
+```
