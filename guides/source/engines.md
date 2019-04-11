@@ -1393,7 +1393,7 @@ s.add_development_dependency "moo"
 
 Both kinds of dependencies will be installed when `bundle install` is run inside
 of the application. The development dependencies for the gem will only be used
-when the tests for the engine are running.
+when the development and tests for the engine are running.
 
 Note that if you want to immediately require dependencies when the engine is
 required, you should require them before the engine's initialization. For
