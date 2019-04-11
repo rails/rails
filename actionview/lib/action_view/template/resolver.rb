@@ -191,7 +191,9 @@ module ActionView
       def build_template(template, virtual_path, locals)
         handler, format, variant = extract_handler_and_format_and_variant(template)
 
-        FileTemplate.new(File.expand_path(template), handler,
+        filename = File.expand_path(template)
+        source = Template::Sources::File.new(filename)
+        Template.new(source, filename, handler,
           virtual_path: virtual_path,
           format: format,
           variant: variant,

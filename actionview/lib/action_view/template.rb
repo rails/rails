@@ -117,13 +117,14 @@ module ActionView
       autoload :Handlers
       autoload :HTML
       autoload :Inline
+      autoload :Sources
       autoload :Text
       autoload :Types
     end
 
     extend Template::Handlers
 
-    attr_reader :source, :identifier, :handler, :original_encoding, :updated_at
+    attr_reader :identifier, :handler, :original_encoding, :updated_at
     attr_reader :variable, :format, :variant, :locals, :virtual_path
 
     def initialize(source, identifier, handler, format: nil, variant: nil, locals: nil, virtual_path: nil, updated_at: nil)
@@ -164,6 +165,7 @@ module ActionView
     deprecate def formats; Array(format); end
     deprecate def variants=(_); end
     deprecate def variants; [variant]; end
+    deprecate def refresh(_); self; end
 
     # Returns whether the underlying handler supports streaming. If so,
     # a streaming buffer *may* be passed when it starts rendering.
@@ -190,31 +192,16 @@ module ActionView
       @type ||= Types[format]
     end
 
-    # Receives a view object and return a template similar to self by using @virtual_path.
-    #
-    # This method is useful if you have a template object but it does not contain its source
-    # anymore since it was already compiled. In such cases, all you need to do is to call
-    # refresh passing in the view object.
-    #
-    # Notice this method raises an error if the template to be refreshed does not have a
-    # virtual path set (true just for inline templates).
-    def refresh(view)
-      raise "A template needs to have a virtual path in order to be refreshed" unless @virtual_path
-      lookup  = view.lookup_context
-      pieces  = @virtual_path.split("/")
-      name    = pieces.pop
-      partial = !!name.sub!(/^_/, "")
-      lookup.disable_cache do
-        lookup.find_template(name, [ pieces.join("/") ], partial, @locals)
-      end
-    end
-
     def short_identifier
       @short_identifier ||= defined?(Rails.root) ? identifier.sub("#{Rails.root}/", "") : identifier
     end
 
     def inspect
       "#<#{self.class.name} #{short_identifier} locals=#{@locals.inspect}>"
+    end
+
+    def source
+      @source.to_s
     end
 
     # This method is responsible for properly setting the encoding of the
@@ -298,9 +285,6 @@ module ActionView
             compile(mod)
           end
 
-          # Just discard the source if we have a virtual path. This
-          # means we can get the template back.
-          @source = nil if @virtual_path
           @compiled = true
         end
       end
@@ -368,12 +352,7 @@ module ActionView
           e.sub_template_of(self)
           raise e
         else
-          template = self
-          unless template.source
-            template = refresh(view)
-            template.encode!
-          end
-          raise Template::Error.new(template)
+          raise Template::Error.new(self)
         end
       end
 
