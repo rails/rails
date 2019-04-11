@@ -188,6 +188,36 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_app_update_does_not_overwrite_config_routes_file
+    app_root       = File.join(destination_root, "myapp")
+    run_generator [app_root]
+    stub_rails_application(app_root) do
+      generator = Rails::Generators::AppGenerator.new ["rails"], [], destination_root: app_root, shell: @shell
+      generator.send(:app_const)
+
+      text = "Rails.application.routes.draw do\n  root to: 'welcome#index'\nend\n"
+      File.write("#{app_root}/config/routes.rb", text)
+
+      quietly { generator.send(:update_config_files) }
+      assert_file "#{app_root}/config/routes.rb", text
+    end
+  end
+
+  def test_app_update_does_not_overwrite_config_locales_en_file
+    app_root       = File.join(destination_root, "myapp")
+    run_generator [app_root]
+    stub_rails_application(app_root) do
+      generator = Rails::Generators::AppGenerator.new ["rails"], [], destination_root: app_root, shell: @shell
+      generator.send(:app_const)
+
+      text = "en:\n  hello: 'Hello'\n  goodbye: 'Goodbye'\n"
+      File.write("#{app_root}/config/locales/en.yml", text)
+
+      quietly { generator.send(:update_config_files) }
+      assert_file "#{app_root}/config/locales/en.yml", text
+    end
+  end
+
   def test_app_update_generates_correct_session_key
     app_root = File.join(destination_root, "myapp")
     run_generator [app_root]
