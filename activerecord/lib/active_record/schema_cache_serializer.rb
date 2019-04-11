@@ -2,7 +2,7 @@
 
 module ActiveRecord
   class SchemaCacheSerializer # :nodoc:
-    cattr_accessor :tables_to_skip, default: ["ar_internal_metadata"], instance_writer: false
+    cattr_accessor :tables_to_ignore, default: ["ar_internal_metadata"], instance_writer: false
 
     def initialize(connection)
       @connection = connection
@@ -13,10 +13,10 @@ module ActiveRecord
       @connection.schema_cache.clear!
 
       @connection.data_sources.each do |table|
-        next if tables_to_skip.include?(table)
+        next if tables_to_ignore.include?(table)
 
-        serialized_schema[:columns][table] = @connection.send(:column_definitions, table).to_a
-        serialized_schema[:indexes][table] = @connection.send(:index_definitions, table).to_a
+        serialized_schema[:columns][table] = @connection.column_definitions(table).to_a
+        serialized_schema[:indexes][table] = @connection.index_definitions(table).to_a
         serialized_schema[:data_sources][table] = true
         serialized_schema[:primary_keys][table] = @connection.primary_key(table)
       end
@@ -53,7 +53,7 @@ module ActiveRecord
 
         serialized_schema.each do |table, serialized_columns|
           columns[table] = serialized_columns.map do |sc|
-            @connection.send(:new_column_from_field, table, sc)
+            @connection.new_column_from_field(table, sc)
           end
 
           columns_hash[table] = Hash[columns[table].map { |col| [col.name, col] } ]
@@ -66,7 +66,7 @@ module ActiveRecord
         indexes = {}
 
         serialized_schema.each do |table, serialized_indexes|
-          indexes[table] = @connection.send(:new_indexes_from_fields, serialized_indexes, table)
+          indexes[table] = @connection.new_indexes_from_fields(serialized_indexes, table)
         end
 
         indexes

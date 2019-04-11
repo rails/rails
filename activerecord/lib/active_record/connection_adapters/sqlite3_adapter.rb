@@ -423,12 +423,13 @@ module ActiveRecord
           register_class_with_limit m, %r(int)i, SQLite3Integer
         end
 
-        def table_structure(table_name)
+        def table_structure(table_name) # :nodoc:
           structure = exec_query("PRAGMA table_info(#{quote_table_name(table_name)})", "SCHEMA")
           raise(ActiveRecord::StatementInvalid, "Could not find table '#{table_name}'") if structure.empty?
           table_structure_with_collation(table_name, structure)
         end
         alias column_definitions table_structure
+        public :column_definitions
 
         # See: https://www.sqlite.org/lang_altertable.html
         # SQLite has an additional restriction on the ALTER TABLE statement

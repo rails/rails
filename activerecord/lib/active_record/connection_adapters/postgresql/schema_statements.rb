@@ -632,7 +632,7 @@ module ActiveRecord
             PostgreSQL::AlterTable.new create_table_definition(name)
           end
 
-          def new_column_from_field(table_name, field)
+          def new_column_from_field(table_name, field) # :nodoc:
             column_name, type, default, notnull, oid, fmod, collation, comment = field
             type_metadata = fetch_type_metadata(column_name, type, oid.to_i, fmod.to_i)
             default_value = extract_value_from_default(default)
@@ -653,6 +653,7 @@ module ActiveRecord
               serial: serial
             )
           end
+          public :new_column_from_field
 
           def fetch_type_metadata(column_name, sql_type, oid, fmod)
             cast_type = get_oid_type(oid, fmod, column_name, sql_type)

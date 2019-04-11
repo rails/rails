@@ -820,7 +820,7 @@ module ActiveRecord
         # Query implementation notes:
         #  - format_type includes the column size constraint, e.g. varchar(50)
         #  - ::regclass is a function that gives the id for a table name
-        def column_definitions(table_name)
+        def column_definitions(table_name) # :nodoc:
           query(<<~SQL, "SCHEMA")
               SELECT a.attname, format_type(a.atttypid, a.atttypmod),
                      pg_get_expr(d.adbin, d.adrelid), a.attnotnull, a.atttypid, a.atttypmod,
@@ -834,6 +834,7 @@ module ActiveRecord
                ORDER BY a.attnum
           SQL
         end
+        public :column_definitions
 
         def extract_table_ref_from_insert_sql(sql)
           sql[/into\s("[A-Za-z0-9_."\[\]\s]+"|[A-Za-z0-9_."\[\]]+)\s*/im]

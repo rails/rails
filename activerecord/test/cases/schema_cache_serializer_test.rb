@@ -42,17 +42,17 @@ class SchemaCacheSerializerTest < ActiveRecord::TestCase
     assert serialized_schema[:primary_keys]["admin_accounts"]
   end
 
-  test "#serialize does not dump the `tables_to_skip` in the cache" do
-    previous_tables_to_skip = @schema_cache_serializer.tables_to_skip.dup
-    @schema_cache_serializer.class.tables_to_skip << "accounts"
-    @schema_cache_serializer.class.tables_to_skip << "admin_accounts"
+  test "#serialize does not dump the `tables_to_ignore` in the cache" do
+    previous_tables_to_ignore = @schema_cache_serializer.tables_to_ignore.dup
+    @schema_cache_serializer.class.tables_to_ignore << "accounts"
+    @schema_cache_serializer.class.tables_to_ignore << "admin_accounts"
 
     serialized_schema = @schema_cache_serializer.serialize
 
     assert_not serialized_schema[:primary_keys]["accounts"]
     assert_not serialized_schema[:primary_keys]["admin_accounts"]
   ensure
-    @schema_cache_serializer.class.tables_to_skip = previous_tables_to_skip
+    @schema_cache_serializer.class.tables_to_ignore = previous_tables_to_ignore
   end
 
   test "#deserialize works when using a SchemaCache dumped with Psych" do

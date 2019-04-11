@@ -1198,7 +1198,7 @@ module ActiveRecord
         SchemaDumper.create(self, options)
       end
 
-      def schema_cache_serializer
+      def schema_cache_serializer # :nodoc:
         SchemaCacheSerializer.new(self)
       end
 

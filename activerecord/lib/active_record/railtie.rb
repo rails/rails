@@ -31,7 +31,7 @@ module ActiveRecord
     config.active_record.sqlite3 = ActiveSupport::OrderedOptions.new
     config.active_record.sqlite3.represent_boolean_as_integer = nil
 
-    config.active_record.schema_cache_tables_to_skip = []
+    config.active_record.table_to_ignore_on_schema_cache = []
 
     config.eager_load_namespaces << ActiveRecord
 
@@ -123,11 +123,11 @@ end_error
       end
     end
 
-    initializer "active_record.schema_cache_serializer_tables_to_skip" do
-      tables_to_skip = config.active_record.delete(:schema_cache_tables_to_skip)
+    initializer "active_record.schema_cache_serializer_tables_to_ignore" do
+      tables_to_ignore = config.active_record.delete(:table_to_ignore_on_schema_cache)
 
       ActiveSupport.on_load(:active_record) do
-        SchemaCacheSerializer.tables_to_skip.concat(tables_to_skip)
+        SchemaCacheSerializer.tables_to_ignore.concat(tables_to_ignore)
       end
     end
 

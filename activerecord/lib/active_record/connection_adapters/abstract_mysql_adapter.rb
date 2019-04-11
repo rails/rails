@@ -770,6 +770,7 @@ module ActiveRecord
             each_hash(result)
           end
         end
+        public :column_definitions
 
         def create_table_info(table_name) # :nodoc:
           exec_query("SHOW CREATE TABLE #{quote_table_name(table_name)}", "SCHEMA").first["Create Table"]

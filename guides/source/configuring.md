@@ -381,7 +381,7 @@ All these configuration options are delegated to the `I18n` library.
   having to send a query to the database to get this information.
   Defaults to `true`.
 
-* `config.active_record.schema_cache_tables_to_skip` allows to filter out tables that shouldn't
+* `config.active_record.table_to_ignore_on_schema_cache` allows to filter out tables that shouldn't
   be part of the dumped schema cache. This is useful if you have tables that are for exemple
   used to keep track of schema changes (like the internal `ar_internal_metadata` but it could be other
   tables if you use LHMS for instance).

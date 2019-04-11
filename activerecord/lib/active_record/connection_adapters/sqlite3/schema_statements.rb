@@ -93,7 +93,7 @@ module ActiveRecord
             SQLite3::TableDefinition.new(self, *args)
           end
 
-          def new_column_from_field(table_name, field)
+          def new_column_from_field(table_name, field) # :nodoc:
             default = \
               case field["dflt_value"]
               when /^null$/i
@@ -109,6 +109,7 @@ module ActiveRecord
             type_metadata = fetch_type_metadata(field["type"])
             Column.new(field["name"], default, type_metadata, field["notnull"].to_i == 0, collation: field["collation"])
           end
+          public :new_column_from_field
 
           def data_source_sql(name = nil, type: nil)
             scope = quoted_scope(name, type: type)

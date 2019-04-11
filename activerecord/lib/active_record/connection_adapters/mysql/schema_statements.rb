@@ -161,7 +161,7 @@ module ActiveRecord
             MySQL::TableDefinition.new(self, *args)
           end
 
-          def new_column_from_field(table_name, field)
+          def new_column_from_field(table_name, field) # :nodoc:
             type_metadata = fetch_type_metadata(field[:Type], field[:Extra])
             default, default_function = field[:Default], nil
 
@@ -182,6 +182,7 @@ module ActiveRecord
               comment: field[:Comment].presence
             )
           end
+          public :new_column_from_field
 
           def fetch_type_metadata(sql_type, extra = "")
             MySQL::TypeMetadata.new(super(sql_type), extra: extra)
