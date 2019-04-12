@@ -118,7 +118,7 @@ module ActionView
       locals = locals.map(&:to_s).sort!.freeze
 
       cached(key, [name, prefix, partial], details, locals) do
-        find_templates(name, prefix, partial, details, locals)
+        _find_all(name, prefix, partial, details, key, locals)
       end
     end
 
@@ -130,6 +130,10 @@ module ActionView
     end
 
   private
+
+    def _find_all(name, prefix, partial, details, key, locals)
+      find_templates(name, prefix, partial, details, locals)
+    end
 
     delegate :caching?, to: :class
 
@@ -178,19 +182,11 @@ module ActionView
       super()
     end
 
-    def find_all(name, prefix = nil, partial = false, details = {}, key = nil, locals = [])
-      locals = locals.map(&:to_s).sort!.freeze
-
-      cached(key, [name, prefix, partial], details, locals) do
-        find_templates(name, prefix, partial, details, locals, cache: !!key)
-      end
-    end
-
     private
 
-      def find_templates(name, prefix, partial, details, locals, cache: true)
+      def _find_all(name, prefix, partial, details, key, locals)
         path = Path.build(name, prefix, partial)
-        query(path, details, details[:formats], locals, cache: cache)
+        query(path, details, details[:formats], locals, cache: !!key)
       end
 
       def query(path, details, formats, locals, cache:)
