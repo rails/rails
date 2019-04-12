@@ -387,7 +387,7 @@ module ActiveModel
         class AttributeMethodMatcher #:nodoc:
           attr_reader :prefix, :suffix, :method_missing_target
 
-          AttributeMethodMatch = Struct.new(:target, :attr_name, :method_name)
+          AttributeMethodMatch = Struct.new(:target, :attr_name)
 
           def initialize(options = {})
             @prefix, @suffix = options.fetch(:prefix, ""), options.fetch(:suffix, "")
@@ -398,7 +398,7 @@ module ActiveModel
 
           def match(method_name)
             if @regex =~ method_name
-              AttributeMethodMatch.new(method_missing_target, $1, method_name)
+              AttributeMethodMatch.new(method_missing_target, $1)
             end
           end
 

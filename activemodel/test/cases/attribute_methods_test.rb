@@ -264,6 +264,5 @@ class AttributeMethodsTest < ActiveModel::TestCase
 
     assert_equal "foo",            match.attr_name
     assert_equal "attribute_test", match.target
-    assert_equal "foo_test",       match.method_name
   end
 end
