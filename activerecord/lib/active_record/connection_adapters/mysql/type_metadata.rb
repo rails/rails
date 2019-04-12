@@ -10,12 +10,11 @@ module ActiveRecord
 
         def initialize(type_metadata, extra: "")
           super(type_metadata)
-          @type_metadata = type_metadata
           @extra = extra
         end
 
         def ==(other)
-          other.is_a?(MySQL::TypeMetadata) &&
+          other.is_a?(TypeMetadata) &&
             __getobj__ == other.__getobj__ &&
             extra == other.extra
         end

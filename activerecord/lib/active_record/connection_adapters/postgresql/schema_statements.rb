@@ -675,7 +675,7 @@ module ActiveRecord
               precision: cast_type.precision,
               scale: cast_type.scale,
             )
-            PostgreSQLTypeMetadata.new(simple_type, oid: oid, fmod: fmod)
+            PostgreSQL::TypeMetadata.new(simple_type, oid: oid, fmod: fmod)
           end
 
           def sequence_name_from_parts(table_name, column_name, suffix)
