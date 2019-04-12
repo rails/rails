@@ -142,8 +142,10 @@ module ActiveRecord
       end
 
       def for_each
-        databases = Rails.application.config.load_database_yaml
-        database_configs = ActiveRecord::DatabaseConfigurations.new(databases).configs_for(env_name: Rails.env)
+        databases = defined?(Rails) ? Rails.application.config.load_database_yaml : []
+        database_configs = ActiveRecord::DatabaseConfigurations.new(databases).configs_for(
+          env_name: ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
+        )
 
         # if this is a single database application we don't want tasks for each primary database
         return if database_configs.count == 1
