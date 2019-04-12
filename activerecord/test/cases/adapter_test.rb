@@ -490,6 +490,8 @@ module ActiveRecord
       @connection.truncate("posts")
 
       assert_equal 0, Post.count
+    ensure
+      reset_fixtures('posts')
     end
 
     def test_truncate_with_query_cache
@@ -501,6 +503,7 @@ module ActiveRecord
 
       assert_equal 0, Post.count
     ensure
+      reset_fixtures('posts')
       @connection.disable_query_cache!
     end
 
@@ -514,6 +517,8 @@ module ActiveRecord
       assert_equal 0, Post.count
       assert_equal 0, Author.count
       assert_equal 0, AuthorAddress.count
+    ensure
+      reset_fixtures('posts', 'authors', 'author_addresses')
     end
 
     def test_truncate_tables_with_query_cache
@@ -529,6 +534,7 @@ module ActiveRecord
       assert_equal 0, Author.count
       assert_equal 0, AuthorAddress.count
     ensure
+      reset_fixtures('posts', 'authors', 'author_addresses')
       @connection.disable_query_cache!
     end
 
@@ -551,6 +557,16 @@ module ActiveRecord
         assert_nothing_raised { sub.save! }
       end
     end
+
+    private
+
+      def reset_fixtures(*fixture_names)
+        ActiveRecord::FixtureSet.reset_cache
+
+        fixture_names.each do |fixture_name|
+          ActiveRecord::FixtureSet.create_fixtures(FIXTURES_ROOT, fixture_name)
+        end
+      end
   end
 end
 
