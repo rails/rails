@@ -125,11 +125,11 @@ module ActiveRecord
           super
         end
 
-        def full_version # :nodoc:
+        def full_version
           schema_cache.database_version.full_version_string
         end
 
-        def get_full_version # :nodoc:
+        def get_full_version
           @connection.server_info[:version]
         end
     end

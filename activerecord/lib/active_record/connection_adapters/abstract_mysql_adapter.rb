@@ -51,12 +51,6 @@ module ActiveRecord
           end
       end
 
-      class Version < AbstractAdapter::Version # :nodoc:
-        def initialize(version_string, full_version_string)
-          super
-        end
-      end
-
       def initialize(connection, logger, connection_options, config)
         super(connection, logger, config)
       end
@@ -809,7 +803,7 @@ module ActiveRecord
           MismatchedForeignKey.new(options)
         end
 
-        def version_string(full_version_string) # :nodoc:
+        def version_string(full_version_string)
           full_version_string.match(/^(?:5\.5\.5-)?(\d+\.\d+\.\d+)/)[1]
         end
 
