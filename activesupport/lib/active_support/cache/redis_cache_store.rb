@@ -361,6 +361,7 @@ module ActiveSupport
         def read_multi_mget(*names)
           options = names.extract_options!
           options = merged_options(options)
+          return {} if names == []
 
           keys = names.map { |name| normalize_key(name, options) }
 
