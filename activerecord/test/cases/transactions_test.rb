@@ -26,13 +26,15 @@ class TransactionTest < ActiveRecord::TestCase
   def test_raise_after_destroy
     assert_not_predicate @first, :frozen?
 
-    assert_raises(RuntimeError) {
-      Topic.transaction do
-        @first.destroy
-        assert_predicate @first, :frozen?
-        raise
+    assert_not_called(@first, :rolledback!) do
+      assert_raises(RuntimeError) do
+        Topic.transaction do
+          @first.destroy
+          assert_predicate @first, :frozen?
+          raise
+        end
       end
-    }
+    end
 
     assert_not_predicate @first, :frozen?
   end
