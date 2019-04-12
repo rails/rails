@@ -54,7 +54,7 @@ module ActiveJob
           self.exception_executions[exceptions.to_s] = (exception_executions[exceptions.to_s] || 0) + 1
 
           if exception_executions[exceptions.to_s] < attempts
-            retry_job wait: determine_delay(wait), queue: queue, priority: priority, error: error
+            retry_job wait: determine_delay(seconds_or_duration_or_algorithm: wait, executions: exception_executions[exceptions.to_s]), queue: queue, priority: priority, error: error
           else
             if block_given?
               instrument :retry_stopped, error: error do
@@ -123,7 +123,7 @@ module ActiveJob
     end
 
     private
-      def determine_delay(seconds_or_duration_or_algorithm)
+      def determine_delay(seconds_or_duration_or_algorithm:, executions:)
         case seconds_or_duration_or_algorithm
         when :exponentially_longer
           (executions**4) + 2

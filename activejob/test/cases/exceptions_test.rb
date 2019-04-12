@@ -140,6 +140,26 @@ class ExceptionsTest < ActiveSupport::TestCase
     ], JobBuffer.values
   end
 
+  test "use individual execution timers when calculating retry delay" do
+    travel_to Time.now
+
+    exceptions_to_raise = %w(ExponentialWaitTenAttemptsError CustomWaitTenAttemptsError ExponentialWaitTenAttemptsError CustomWaitTenAttemptsError)
+
+    RetryJob.perform_later exceptions_to_raise, 5, :log_scheduled_at
+
+    assert_equal [
+      "Raised ExponentialWaitTenAttemptsError for the 1st time",
+      "Next execution scheduled at #{(Time.now + 3.seconds).to_f}",
+      "Raised CustomWaitTenAttemptsError for the 2nd time",
+      "Next execution scheduled at #{(Time.now + 2.seconds).to_f}",
+      "Raised ExponentialWaitTenAttemptsError for the 3rd time",
+      "Next execution scheduled at #{(Time.now + 18.seconds).to_f}",
+      "Raised CustomWaitTenAttemptsError for the 4th time",
+      "Next execution scheduled at #{(Time.now + 4.seconds).to_f}",
+      "Successfully completed job"
+    ], JobBuffer.values
+  end
+
   test "successfully retry job throwing one of two retryable exceptions" do
     RetryJob.perform_later "SecondRetryableErrorOfTwo", 3
 
