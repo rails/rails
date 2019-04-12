@@ -110,11 +110,28 @@ module ResolverSharedTests
   end
 
   def test_same_template_from_different_details_is_same_object
-    with_file "test/hello_world.html.erb", "Hello plain text!"
+    with_file "test/hello_world.html.erb", "Hello HTML!"
 
     a = context.find("hello_world", "test", false, [], locale: [:en])
     b = context.find("hello_world", "test", false, [], locale: [:fr])
     assert_same a, b
+  end
+
+  def test_templates_with_optional_locale_shares_common_object
+    with_file "test/hello_world.text.erb", "Generic plain text!"
+    with_file "test/hello_world.fr.text.erb", "Texte en Francais!"
+
+    en = context.find_all("hello_world", "test", false, [], locale: [:en])
+    fr = context.find_all("hello_world", "test", false, [], locale: [:fr])
+
+    assert_equal 1, en.size
+    assert_equal 2, fr.size
+
+    assert_equal "Generic plain text!", en[0].source
+    assert_equal "Texte en Francais!",  fr[0].source
+    assert_equal "Generic plain text!", fr[1].source
+
+    assert_same en[0], fr[1]
   end
 
   def test_virtual_path_is_preserved_with_dot
