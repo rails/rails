@@ -1,3 +1,9 @@
+*   Don't call commit/rollback callbacks despite a record isn't saved.
+
+    Fixes #29747.
+
+    *Ryuta Kamizono*
+
 *   Fix circular `autosave: true` causes invalid records to be saved.
 
     Prior to the fix, when there was a circular series of `autosave: true`
