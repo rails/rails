@@ -178,36 +178,51 @@ module ActionView
       super()
     end
 
+    def find_all(name, prefix = nil, partial = false, details = {}, key = nil, locals = [])
+      locals = locals.map(&:to_s).sort!.freeze
+
+      cached(key, [name, prefix, partial], details, locals) do
+        find_templates(name, prefix, partial, details, locals, cache: !!key)
+      end
+    end
+
     private
 
-      def find_templates(name, prefix, partial, details, locals)
+      def find_templates(name, prefix, partial, details, locals, cache: true)
         path = Path.build(name, prefix, partial)
-        query(path, details, details[:formats], locals)
+        query(path, details, details[:formats], locals, cache: cache)
       end
 
-      def query(path, details, formats, locals)
+      def query(path, details, formats, locals, cache:)
         template_paths = find_template_paths_from_details(path, details)
         template_paths = reject_files_external_to_app(template_paths)
 
         template_paths.map do |template|
-          build_template(template, path.virtual, locals)
+          unbound_template =
+            if cache
+              @unbound_templates.compute_if_absent([template, path.virtual]) do
+                build_unbound_template(template, path.virtual)
+              end
+            else
+              build_unbound_template(template, path.virtual)
+            end
+
+          unbound_template.bind_locals(locals)
         end
       end
 
-      def build_template(template, virtual_path, locals)
-        @unbound_templates.compute_if_absent([template, virtual_path]) do
-          handler, format, variant = extract_handler_and_format_and_variant(template)
-          source = Template::Sources::File.new(template)
+      def build_unbound_template(template, virtual_path)
+        handler, format, variant = extract_handler_and_format_and_variant(template)
+        source = Template::Sources::File.new(template)
 
-          UnboundTemplate.new(
-            source,
-            template,
-            handler,
-            virtual_path: virtual_path,
-            format: format,
-            variant: variant,
-          )
-        end.bind_locals(locals)
+        UnboundTemplate.new(
+          source,
+          template,
+          handler,
+          virtual_path: virtual_path,
+          format: format,
+          variant: variant,
+        )
       end
 
       def reject_files_external_to_app(files)
@@ -372,8 +387,8 @@ module ActionView
       [new(""), new("/")]
     end
 
-    def build_template(template, virtual_path, locals)
-      super(template, nil, locals)
+    def build_unbound_template(template, _)
+      super(template, nil)
     end
 
     def reject_files_external_to_app(files)

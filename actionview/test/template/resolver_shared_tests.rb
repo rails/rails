@@ -95,6 +95,20 @@ module ResolverSharedTests
     assert_same a, b
   end
 
+  def test_different_templates_when_cache_disabled
+    with_file "test/hello_world.html.erb", "Hello HTML!"
+
+    a = context.find("hello_world", "test", false, [], {})
+    b = context.disable_cache { context.find("hello_world", "test", false, [], {}) }
+    c = context.find("hello_world", "test", false, [], {})
+
+    # disable_cache should give us a new object
+    refute_same a, b
+
+    # but it should not clear the cache
+    assert_same a, c
+  end
+
   def test_same_template_from_different_details_is_same_object
     with_file "test/hello_world.html.erb", "Hello plain text!"
 
