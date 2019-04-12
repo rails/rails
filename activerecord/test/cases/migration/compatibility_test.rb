@@ -242,9 +242,9 @@ module ActiveRecord
       private
         def precision_implicit_default
           if current_adapter?(:Mysql2Adapter)
-            { presicion: 0 }
+            { precision: 0 }
           else
-            { presicion: nil }
+            { precision: nil }
           end
         end
     end
