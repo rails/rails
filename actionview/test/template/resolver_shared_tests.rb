@@ -13,6 +13,10 @@ module ResolverSharedTests
     File.write(path, source)
   end
 
+  def context
+    @context ||= ActionView::LookupContext.new(resolver)
+  end
+
   def test_can_find_with_no_extensions
     with_file "test/hello_world", "Hello default!"
 
@@ -81,5 +85,31 @@ module ResolverSharedTests
 
     templates = resolver.find_all("hello_world", "test", false, locale: [], formats: [:xml], variants: :any, handlers: [:erb])
     assert_equal 0, templates.size
+  end
+
+  def test_found_template_is_cached
+    with_file "test/hello_world.html.erb", "Hello HTML!"
+
+    a = context.find("hello_world", "test", false, [], {})
+    b = context.find("hello_world", "test", false, [], {})
+    assert_same a, b
+  end
+
+  def test_same_template_from_different_details_is_same_object
+    with_file "test/hello_world.html.erb", "Hello plain text!"
+
+    a = context.find("hello_world", "test", false, [], locale: [:en])
+    b = context.find("hello_world", "test", false, [], locale: [:fr])
+    assert_same a, b
+  end
+
+  def test_virtual_path_is_preserved_with_dot
+    with_file "test/hello_world.html.erb", "Hello html!"
+
+    template = context.find("hello_world.html", "test", false, [], {})
+    assert_equal "test/hello_world.html", template.virtual_path
+
+    template = context.find("hello_world", "test", false, [], {})
+    assert_equal "test/hello_world", template.virtual_path
   end
 end

@@ -169,6 +169,12 @@ module ActionView
       else
         @pattern = DEFAULT_PATTERN
       end
+      @unbound_templates = Concurrent::Map.new
+      super()
+    end
+
+    def clear_cache
+      @unbound_templates.clear
       super()
     end
 
@@ -189,16 +195,19 @@ module ActionView
       end
 
       def build_template(template, virtual_path, locals)
-        handler, format, variant = extract_handler_and_format_and_variant(template)
+        @unbound_templates.compute_if_absent([template, virtual_path]) do
+          handler, format, variant = extract_handler_and_format_and_variant(template)
+          source = Template::Sources::File.new(template)
 
-        filename = File.expand_path(template)
-        source = Template::Sources::File.new(filename)
-        Template.new(source, filename, handler,
-          virtual_path: virtual_path,
-          format: format,
-          variant: variant,
-          locals: locals
-        )
+          UnboundTemplate.new(
+            source,
+            template,
+            handler,
+            virtual_path: virtual_path,
+            format: format,
+            variant: variant,
+          )
+        end.bind_locals(locals)
       end
 
       def reject_files_external_to_app(files)
