@@ -1,3 +1,5 @@
+version: "2"
+
 checks:
   argument-count:
     enabled: false
@@ -20,13 +22,9 @@ checks:
   identical-code:
     enabled: false
 
-engines:
+plugins:
   rubocop:
     enabled: true
     channel: rubocop-0-66
 
-ratings:
-  paths:
-  - "**.rb"
-
-exclude_paths: []
+exclude_patterns: []
