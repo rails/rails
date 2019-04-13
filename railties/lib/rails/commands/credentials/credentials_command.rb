@@ -79,11 +79,11 @@ module Rails
 
 
         def content_path
-          options[:environment] ? "config/credentials/#{options[:environment]}.yml.enc" : "config/credentials.yml.enc"
+          options[:environment] ? "config/credentials/#{options[:environment]}.yml.enc" : ActiveSupport::EncryptedConfiguration::DEFAULT_CREDENTIALS_ENC_PATH
         end
 
         def key_path
-          options[:environment] ? "config/credentials/#{options[:environment]}.key" : "config/master.key"
+          options[:environment] ? "config/credentials/#{options[:environment]}.key" : ActiveSupport::EncryptedConfiguration::DEFAULT_MASTER_KEY_PATH
         end
 
 

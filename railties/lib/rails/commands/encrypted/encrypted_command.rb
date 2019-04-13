@@ -10,7 +10,8 @@ module Rails
       include Helpers::Editor
 
       class_option :key, aliases: "-k", type: :string,
-        default: "config/master.key", desc: "The Rails.root relative path to the encryption key"
+        default: ActiveSupport::EncryptedConfiguration::DEFAULT_MASTER_KEY_PATH,
+        desc: "The Rails.root relative path to the encryption key"
 
       no_commands do
         def help

@@ -760,7 +760,7 @@ module ApplicationTests
     test "require_master_key aborts app boot when missing key" do
       skip "can't run without fork" unless Process.respond_to?(:fork)
 
-      remove_file "config/master.key"
+      remove_file ActiveSupport::EncryptedConfiguration::DEFAULT_MASTER_KEY_PATH
       add_to_config "config.require_master_key = true"
 
       error = capture(:stderr) do
@@ -772,7 +772,7 @@ module ApplicationTests
     end
 
     test "credentials does not raise error when require_master_key is false and master key does not exist" do
-      remove_file "config/master.key"
+      remove_file ActiveSupport::EncryptedConfiguration::DEFAULT_MASTER_KEY_PATH
       add_to_config "config.require_master_key = false"
       app "development"
 

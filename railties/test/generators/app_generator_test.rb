@@ -750,7 +750,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator [File.join(destination_root, "myapp")]
     output = run_generator [File.join(destination_root, "myapp"), "--force"]
     assert_match(/force/, output)
-    assert_no_match("force  config/master.key", output)
+    assert_no_match("force  #{ActiveSupport::EncryptedConfiguration::DEFAULT_MASTER_KEY_PATH}", output)
   end
 
   def test_application_name_with_spaces
@@ -1078,7 +1078,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     def test_master_key_is_only_readable_by_the_owner
       run_generator
 
-      stat = File.stat("config/master.key")
+      stat = File.stat(ActiveSupport::EncryptedConfiguration::DEFAULT_MASTER_KEY_PATH)
       assert_equal "100600", sprintf("%o", stat.mode)
     end
   end

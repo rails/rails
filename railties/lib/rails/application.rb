@@ -463,7 +463,7 @@ module Rails
     # Or to decrypt with a file, that should be version control ignored, relative to +Rails.root+:
     #
     #   Rails.application.encrypted("config/special_tokens.yml.enc", key_path: "config/special_tokens.key")
-    def encrypted(path, key_path: "config/master.key", env_key: "RAILS_MASTER_KEY")
+    def encrypted(path, key_path: ActiveSupport::EncryptedConfiguration::DEFAULT_MASTER_KEY_PATH, env_key: "RAILS_MASTER_KEY")
       ActiveSupport::EncryptedConfiguration.new(
         config_path: Rails.root.join(path),
         key_path: Rails.root.join(key_path),

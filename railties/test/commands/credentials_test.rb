@@ -45,12 +45,12 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
 
   test "edit command does not add master key when `RAILS_MASTER_KEY` env specified" do
     Dir.chdir(app_path) do
-      key = IO.binread("config/master.key").strip
-      FileUtils.rm("config/master.key")
+      key = IO.binread(ActiveSupport::EncryptedConfiguration::DEFAULT_MASTER_KEY_PATH).strip
+      FileUtils.rm(ActiveSupport::EncryptedConfiguration::DEFAULT_MASTER_KEY_PATH)
 
       switch_env("RAILS_MASTER_KEY", key) do
         assert_match(/access_key_id: 123/, run_edit_command)
-        assert_not File.exist?("config/master.key")
+        assert_not File.exist?(ActiveSupport::EncryptedConfiguration::DEFAULT_MASTER_KEY_PATH)
       end
     end
   end
@@ -80,7 +80,10 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
   end
 
   test "edit command generates template file when the file does not exist" do
-    FileUtils.rm("#{app_path}/config/credentials.yml.enc")
+    FileUtils.rm(File.join(
+      app_path,
+      ActiveSupport::EncryptedConfiguration::DEFAULT_CREDENTIALS_ENC_PATH
+    ))
     run_edit_command
 
     output = run_show_command
@@ -92,15 +95,15 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
     assert_match(/access_key_id: 123/, run_show_command)
   end
 
-  test "show command raises error when require_master_key is specified and key does not exist" do
-    remove_file "config/master.key"
+  test "show command raises error when require_master_keyais specified and key does not exist" do
+    remove_file ActiveSupport::EncryptedConfiguration::DEFAULT_MASTER_KEY_PATH
     add_to_config "config.require_master_key = true"
 
     assert_match(/Missing encryption key to decrypt file with/, run_show_command(allow_failure: true))
   end
 
   test "show command does not raise error when require_master_key is false and master key does not exist" do
-    remove_file "config/master.key"
+    remove_file ActiveSupport::EncryptedConfiguration::DEFAULT_MASTER_KEY_PATH
     add_to_config "config.require_master_key = false"
 
     assert_match(/Missing 'config\/master\.key' to decrypt credentials/, run_show_command)

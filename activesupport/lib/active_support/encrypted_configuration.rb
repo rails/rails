@@ -11,7 +11,10 @@ module ActiveSupport
     delegate :[], :fetch, to: :config
     delegate_missing_to :options
 
-    def initialize(config_path:, key_path:, env_key:, raise_if_missing_key:)
+    DEFAULT_CREDENTIALS_ENC_PATH = File.join('config', 'credentials.yml.enc')
+    DEFAULT_MASTER_KEY_PATH = File.join('config', 'master.key')
+
+    def initialize(config_path: DEFAULT_CREDENTIALS_ENC_PATH, key_path: DEFAULT_MASTER_KEY_PATH, env_key:, raise_if_missing_key:)
       super content_path: config_path, key_path: key_path,
         env_key: env_key, raise_if_missing_key: raise_if_missing_key
     end
