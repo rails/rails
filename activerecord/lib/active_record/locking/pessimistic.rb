@@ -9,6 +9,8 @@ module ActiveRecord
     # lock on the selected rows:
     #   # select * from accounts where id=1 for update
     #   Account.lock.find(1)
+    #   # select * from accounts where name="grace" for update
+    #   Account.lock.where(name: "grace").load
     #
     # Call <tt>lock('some locking clause')</tt> to use a database-specific locking clause
     # of your own such as 'LOCK IN SHARE MODE' or 'FOR UPDATE NOWAIT'. Example:
