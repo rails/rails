@@ -165,17 +165,17 @@ module ActiveModel
       mutations_from_database.changed_attribute_names
     end
 
-    # Handles <tt>*_changed?</tt> for +method_missing+.
+    # Dispatch target for <tt>*_changed?</tt> attribute methods.
     def attribute_changed?(attr_name, **options) # :nodoc:
       mutations_from_database.changed?(attr_name.to_s, options)
     end
 
-    # Handles <tt>*_was</tt> for +method_missing+.
+    # Dispatch target for <tt>*_was</tt> attribute methods.
     def attribute_was(attr_name) # :nodoc:
       mutations_from_database.original_value(attr_name.to_s)
     end
 
-    # Handles <tt>*_previously_changed?</tt> for +method_missing+.
+    # Dispatch target for <tt>*_previously_changed?</tt> attribute methods.
     def attribute_previously_changed?(attr_name) # :nodoc:
       mutations_before_last_save.changed?(attr_name.to_s)
     end
@@ -253,22 +253,22 @@ module ActiveModel
         @mutations_before_last_save ||= ActiveModel::NullMutationTracker.instance
       end
 
-      # Handles <tt>*_change</tt> for +method_missing+.
+      # Dispatch target for <tt>*_change</tt> attribute methods.
       def attribute_change(attr_name)
         mutations_from_database.change_to_attribute(attr_name.to_s)
       end
 
-      # Handles <tt>*_previous_change</tt> for +method_missing+.
+      # Dispatch target for <tt>*_previous_change</tt> attribute methods.
       def attribute_previous_change(attr_name)
         mutations_before_last_save.change_to_attribute(attr_name.to_s)
       end
 
-      # Handles <tt>*_will_change!</tt> for +method_missing+.
+      # Dispatch target for <tt>*_will_change!</tt> attribute methods.
       def attribute_will_change!(attr_name)
         mutations_from_database.force_change(attr_name.to_s)
       end
 
-      # Handles <tt>restore_*!</tt> for +method_missing+.
+      # Dispatch target for <tt>restore_*!</tt> attribute methods.
       def restore_attribute!(attr_name)
         attr_name = attr_name.to_s
         if attribute_changed?(attr_name)

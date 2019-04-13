@@ -286,12 +286,12 @@ module ActiveModel
           method_name = matcher.method_name(attr_name)
 
           unless instance_method_already_implemented?(method_name)
-            generate_method = "define_method_#{matcher.method_missing_target}"
+            generate_method = "define_method_#{matcher.target}"
 
             if respond_to?(generate_method, true)
               send(generate_method, attr_name.to_s)
             else
-              define_proxy_call true, generated_attribute_methods, method_name, matcher.method_missing_target, attr_name.to_s
+              define_proxy_call true, generated_attribute_methods, method_name, matcher.target, attr_name.to_s
             end
           end
         end
@@ -362,7 +362,7 @@ module ActiveModel
         # Define a method `name` in `mod` that dispatches to `send`
         # using the given `extra` args. This falls back on `define_method`
         # and `send` if the given names cannot be compiled.
-        def define_proxy_call(include_private, mod, name, send, *extra)
+        def define_proxy_call(include_private, mod, name, target, *extra)
           defn = if NAME_COMPILABLE_REGEXP.match?(name)
             "def #{name}(*args)"
           else
@@ -371,34 +371,34 @@ module ActiveModel
 
           extra = (extra.map!(&:inspect) << "*args").join(", ")
 
-          target = if CALL_COMPILABLE_REGEXP.match?(send)
-            "#{"self." unless include_private}#{send}(#{extra})"
+          body = if CALL_COMPILABLE_REGEXP.match?(target)
+            "#{"self." unless include_private}#{target}(#{extra})"
           else
-            "send(:'#{send}', #{extra})"
+            "send(:'#{target}', #{extra})"
           end
 
           mod.module_eval <<-RUBY, __FILE__, __LINE__ + 1
             #{defn}
-              #{target}
+              #{body}
             end
           RUBY
         end
 
         class AttributeMethodMatcher #:nodoc:
-          attr_reader :prefix, :suffix, :method_missing_target
+          attr_reader :prefix, :suffix, :target
 
           AttributeMethodMatch = Struct.new(:target, :attr_name)
 
           def initialize(options = {})
             @prefix, @suffix = options.fetch(:prefix, ""), options.fetch(:suffix, "")
             @regex = /^(?:#{Regexp.escape(@prefix)})(.*)(?:#{Regexp.escape(@suffix)})$/
-            @method_missing_target = "#{@prefix}attribute#{@suffix}"
+            @target = "#{@prefix}attribute#{@suffix}"
             @method_name = "#{prefix}%s#{suffix}"
           end
 
           def match(method_name)
             if @regex =~ method_name
-              AttributeMethodMatch.new(method_missing_target, $1)
+              AttributeMethodMatch.new(target, $1)
             end
           end
 

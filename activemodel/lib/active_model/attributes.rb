@@ -91,7 +91,7 @@ module ActiveModel
         @attributes.fetch_value(name)
       end
 
-      # Handle *= for method_missing.
+      # Dispatch target for <tt>*=</tt> attribute methods.
       def attribute=(attribute_name, value)
         write_attribute(attribute_name, value)
       end
