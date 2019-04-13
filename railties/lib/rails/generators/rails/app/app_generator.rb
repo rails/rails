@@ -101,10 +101,10 @@ module Rails
     end
 
     def config
-      empty_directory "config"
+      empty_directory "config" unless options[:update]
 
       inside "config" do
-        template "routes.rb"
+        template "routes.rb" unless options[:update]
         template "application.rb"
         template "environment.rb"
         template "cable.yml" unless options[:skip_action_cable]
@@ -114,7 +114,7 @@ module Rails
 
         directory "environments"
         directory "initializers"
-        directory "locales"
+        directory "locales" unless options[:update]
       end
     end
 
@@ -128,20 +128,18 @@ module Rails
 
       @config_target_version = Rails.application.config.loaded_config_version || "5.0"
 
-      inside "config" do
-        template "application.rb"
-        template "environment.rb"
-        template "cable.yml"   if !options[:skip_action_cable] && !action_cable_config_exist
-        template "puma.rb"     unless options[:skip_puma]
-        template "spring.rb"   if spring_install?
-        template "storage.yml" if !skip_active_storage? && !active_storage_config_exist
-
-        directory "environments"
-        directory "initializers"
-      end
+      config
 
       unless cookie_serializer_config_exist
         gsub_file "config/initializers/cookies_serializer.rb", /json(?!,)/, "marshal"
+      end
+
+      if !options[:skip_action_cable] && !action_cable_config_exist
+        template "config/cable.yml"
+      end
+
+      if !skip_active_storage? && !active_storage_config_exist
+        template "config/storage.yml"
       end
 
       if options[:skip_sprockets] && !assets_config_exist
