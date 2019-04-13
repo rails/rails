@@ -63,7 +63,7 @@ module ActiveRecord
         /mariadb/i.match?(full_version)
       end
 
-      def supports_bulk_alter? #:nodoc:
+      def supports_bulk_alter?
         true
       end
 
@@ -283,21 +283,6 @@ module ActiveRecord
           WHERE table_schema = #{scope[:schema]}
             AND table_name = #{scope[:name]}
         SQL
-      end
-
-      def bulk_change_table(table_name, operations) #:nodoc:
-        sqls = operations.flat_map do |command, args|
-          table, arguments = args.shift, args
-          method = :"#{command}_for_alter"
-
-          if respond_to?(method, true)
-            send(method, table, *arguments)
-          else
-            raise "Unknown method called : #{method}(#{arguments.inspect})"
-          end
-        end.join(", ")
-
-        execute("ALTER TABLE #{quote_table_name(table_name)} #{sqls}")
       end
 
       def change_table_comment(table_name, comment) #:nodoc:
