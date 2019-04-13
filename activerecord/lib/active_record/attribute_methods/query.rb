@@ -32,7 +32,7 @@ module ActiveRecord
       end
 
       private
-        # Handle *? for method_missing.
+        # Dispatch target for <tt>*?</tt> attribute methods.
         def attribute?(attribute_name)
           query_attribute(attribute_name)
         end

@@ -65,7 +65,7 @@ module ActiveRecord
 
       private
 
-        # Handle *_before_type_cast for method_missing.
+        # Dispatch target for <tt>*_before_type_cast</tt> attribute methods.
         def attribute_before_type_cast(attribute_name)
           read_attribute_before_type_cast(attribute_name)
         end
