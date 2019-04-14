@@ -382,8 +382,7 @@ module ActiveRecord
     end
 
     private
-      attr_reader :_committed_already_called, :_trigger_update_callback, :_trigger_destroy_callback,
-        :transaction_state
+      attr_reader :_committed_already_called, :_trigger_update_callback, :_trigger_destroy_callback
 
       # Save the new record state and id of a record so it can be restored later if a transaction fails.
       def remember_transaction_record_state
@@ -414,13 +413,14 @@ module ActiveRecord
       # Force to clear the transaction record state.
       def force_clear_transaction_record_state
         @_start_transaction_state.clear
+        @transaction_state = nil
       end
 
       # Restore the new record state and id of a record that was previously saved by a call to save_record_state.
-      def restore_transaction_record_state(force = false)
+      def restore_transaction_record_state(force_restore_state = false)
         unless @_start_transaction_state.empty?
           transaction_level = (@_start_transaction_state[:level] || 0) - 1
-          if transaction_level < 1 || force
+          if transaction_level < 1 || force_restore_state
             restore_state = @_start_transaction_state
             thaw
             @new_record = restore_state[:new_record]
@@ -472,10 +472,16 @@ module ActiveRecord
       # the TransactionState, and rolls back or commits the Active Record object
       # as appropriate.
       def sync_with_transaction_state
-        if transaction_state && transaction_state.finalized?
-          restore_transaction_record_state(transaction_state.fully_rolledback?) if transaction_state.rolledback?
-          force_clear_transaction_record_state if transaction_state.fully_committed?
-          clear_transaction_record_state if transaction_state.fully_completed?
+        if @transaction_state && @transaction_state.finalized?
+          if @transaction_state.fully_committed?
+            force_clear_transaction_record_state
+          elsif @transaction_state.committed?
+            clear_transaction_record_state
+          elsif @transaction_state.rolledback?
+            force_restore_state = @transaction_state.fully_rolledback?
+            restore_transaction_record_state(force_restore_state)
+            clear_transaction_record_state
+          end
         end
       end
   end
