@@ -1,3 +1,7 @@
+*   Autoloading during initialization is deprecated.
+
+    *Xavier Noria*
+
 *   Only force `:async` ActiveJob adapter to `:inline` during seeding.
 
     *BatedUrGonnaDie*

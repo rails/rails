@@ -1704,6 +1704,61 @@ module ApplicationTests
       end
     end
 
+    test "autoloading during initialization gets deprecation message and clearing if config.cache_classes is false" do
+      app_file "lib/c.rb", <<~EOS
+        class C
+          extend ActiveSupport::DescendantsTracker
+        end
+
+        class X < C
+        end
+      EOS
+
+      app_file "app/models/d.rb", <<~EOS
+        require "c"
+
+        class D < C
+        end
+      EOS
+
+      app_file "config/initializers/autoload.rb", "D"
+
+      app "development"
+
+      # TODO: Test deprecation message, assert_depcrecated { app "development" }
+      # does not collect it.
+
+      assert_equal [X], C.descendants
+      assert_empty ActiveSupport::Dependencies.autoloaded_constants
+    end
+
+    test "autoloading during initialization triggers nothing if config.cache_classes is true" do
+      app_file "lib/c.rb", <<~EOS
+        class C
+          extend ActiveSupport::DescendantsTracker
+        end
+
+        class X < C
+        end
+      EOS
+
+      app_file "app/models/d.rb", <<~EOS
+        require "c"
+
+        class D < C
+        end
+      EOS
+
+      app_file "config/initializers/autoload.rb", "D"
+
+      app "production"
+
+      # TODO: Test no deprecation message is issued.
+
+      assert_equal [X, D], C.descendants
+    end
+
+
     test "raises with proper error message if no database configuration found" do
       FileUtils.rm("#{app_path}/config/database.yml")
       err = assert_raises RuntimeError do
