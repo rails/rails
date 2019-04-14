@@ -366,7 +366,7 @@ module ActiveRecord
       self.class.transaction do
         unless has_transactional_callbacks?
           sync_with_transaction_state
-          set_transaction_state(self.class.connection.transaction_state)
+          @transaction_state = self.class.connection.transaction_state
         end
         remember_transaction_record_state
 
@@ -382,7 +382,8 @@ module ActiveRecord
     end
 
     private
-      attr_reader :_committed_already_called, :_trigger_update_callback, :_trigger_destroy_callback
+      attr_reader :_committed_already_called, :_trigger_update_callback, :_trigger_destroy_callback,
+        :transaction_state
 
       # Save the new record state and id of a record so it can be restored later if a transaction fails.
       def remember_transaction_record_state
@@ -453,10 +454,6 @@ module ActiveRecord
         self.class.connection.add_transaction_record(self)
       end
 
-      def set_transaction_state(state)
-        @transaction_state = state
-      end
-
       def has_transactional_callbacks?
         !_rollback_callbacks.empty? || !_commit_callbacks.empty? || !_before_commit_callbacks.empty?
       end
@@ -474,15 +471,7 @@ module ActiveRecord
       # This method checks to see if the ActiveRecord object's state reflects
       # the TransactionState, and rolls back or commits the Active Record object
       # as appropriate.
-      #
-      # Since Active Record objects can be inside multiple transactions, this
-      # method recursively goes through the parent of the TransactionState and
-      # checks if the Active Record object reflects the state of the object.
       def sync_with_transaction_state
-        update_attributes_from_transaction_state(@transaction_state)
-      end
-
-      def update_attributes_from_transaction_state(transaction_state)
         if transaction_state && transaction_state.finalized?
           restore_transaction_record_state(transaction_state.fully_rolledback?) if transaction_state.rolledback?
           force_clear_transaction_record_state if transaction_state.fully_committed?
