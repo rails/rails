@@ -624,7 +624,7 @@ class TransactionEnrollmentCallbacksTest < ActiveRecord::TestCase
         @topic.content = "foo"
         @topic.save!
       end
-      @topic.class.connection.add_transaction_record(@topic)
+      @topic.send(:add_to_transaction)
     end
     assert_equal [:before_commit, :after_commit], @topic.history
   end
@@ -634,7 +634,7 @@ class TransactionEnrollmentCallbacksTest < ActiveRecord::TestCase
       @topic.transaction(requires_new: true) do
         @topic.content = "foo"
         @topic.save!
-        @topic.class.connection.add_transaction_record(@topic)
+        @topic.send(:add_to_transaction)
       end
     end
     assert_equal [:before_commit, :after_commit], @topic.history
@@ -655,7 +655,7 @@ class TransactionEnrollmentCallbacksTest < ActiveRecord::TestCase
         @topic.content = "foo"
         @topic.save!
       end
-      @topic.class.connection.add_transaction_record(@topic)
+      @topic.send(:add_to_transaction)
       raise ActiveRecord::Rollback
     end
     assert_equal [:rollback], @topic.history

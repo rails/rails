@@ -355,18 +355,6 @@ module ActiveRecord
       clear_transaction_record_state
     end
 
-    # Add the record to the current transaction so that the #after_rollback and #after_commit callbacks
-    # can be called.
-    def add_to_transaction
-      if has_transactional_callbacks?
-        self.class.connection.add_transaction_record(self)
-      else
-        sync_with_transaction_state
-        set_transaction_state(self.class.connection.transaction_state)
-      end
-      remember_transaction_record_state
-    end
-
     # Executes +method+ within a transaction and captures its return value as a
     # status flag. If the status is true the transaction is committed, otherwise
     # a ROLLBACK is issued. In any case the status flag is returned.
@@ -387,7 +375,7 @@ module ActiveRecord
       ensure
         if has_transactional_callbacks? &&
             (@_new_record_before_last_commit && !new_record? || _trigger_update_callback || _trigger_destroy_callback)
-          self.class.connection.add_transaction_record(self)
+          add_to_transaction
         end
       end
       status
@@ -457,6 +445,12 @@ module ActiveRecord
             _trigger_destroy_callback
           end
         end
+      end
+
+      # Add the record to the current transaction so that the #after_rollback and #after_commit
+      # callbacks can be called.
+      def add_to_transaction
+        self.class.connection.add_transaction_record(self)
       end
 
       def set_transaction_state(state)
