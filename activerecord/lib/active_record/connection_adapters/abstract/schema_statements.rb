@@ -1185,12 +1185,22 @@ module ActiveRecord
       end
 
       # Changes the comment for a table or removes it if +nil+.
-      def change_table_comment(table_name, comment)
+      #
+      # Passing a hash containing +:from+ and +:to+ will make this change
+      # reversible in migration:
+      #
+      #   change_table_comment(:posts, from: "old_comment", to: "new_comment")
+      def change_table_comment(table_name, comment_or_changes)
         raise NotImplementedError, "#{self.class} does not support changing table comments"
       end
 
       # Changes the comment for a column or removes it if +nil+.
-      def change_column_comment(table_name, column_name, comment)
+      #
+      # Passing a hash containing +:from+ and +:to+ will make this change
+      # reversible in migration:
+      #
+      #   change_column_comment(:posts, :state, from: "old_comment", to: "new_comment")
+      def change_column_comment(table_name, column_name, comment_or_changes)
         raise NotImplementedError, "#{self.class} does not support changing column comments"
       end
 
@@ -1374,6 +1384,7 @@ module ActiveRecord
             default_or_changes
           end
         end
+        alias :extract_new_comment_value :extract_new_default_value
 
         def can_remove_index_by_name?(options)
           options.is_a?(Hash) && options.key?(:name) && options.except(:name, :algorithm).empty?
