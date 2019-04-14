@@ -1,3 +1,7 @@
+*   Use individual execution counters when calculating retry delay.
+
+    *Patrik Bóna*
+
 *   Make job argument assertions with `Time`, `ActiveSupport::TimeWithZone`, and `DateTime` work by dropping microseconds. Microsecond precision is lost during serialization.
 
     *Gannon McGibbon*
