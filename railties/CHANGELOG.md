@@ -1,3 +1,8 @@
+*   New applications get `config.cache_classes = false` in `config/environments/test.rb`
+    unless `--skip-spring`.
+
+    *Xavier Noria*
+
 *   Autoloading during initialization is deprecated.
 
     *Xavier Noria*
