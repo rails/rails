@@ -118,7 +118,7 @@ module ActionView
       locals = locals.map(&:to_s).sort!.freeze
 
       cached(key, [name, prefix, partial], details, locals) do
-        find_templates(name, prefix, partial, details, locals)
+        _find_all(name, prefix, partial, details, key, locals)
       end
     end
 
@@ -130,6 +130,10 @@ module ActionView
     end
 
   private
+
+    def _find_all(name, prefix, partial, details, key, locals)
+      find_templates(name, prefix, partial, details, locals)
+    end
 
     delegate :caching?, to: :class
 
@@ -169,35 +173,51 @@ module ActionView
       else
         @pattern = DEFAULT_PATTERN
       end
+      @unbound_templates = Concurrent::Map.new
+      super()
+    end
+
+    def clear_cache
+      @unbound_templates.clear
       super()
     end
 
     private
 
-      def find_templates(name, prefix, partial, details, locals)
+      def _find_all(name, prefix, partial, details, key, locals)
         path = Path.build(name, prefix, partial)
-        query(path, details, details[:formats], locals)
+        query(path, details, details[:formats], locals, cache: !!key)
       end
 
-      def query(path, details, formats, locals)
+      def query(path, details, formats, locals, cache:)
         template_paths = find_template_paths_from_details(path, details)
         template_paths = reject_files_external_to_app(template_paths)
 
         template_paths.map do |template|
-          build_template(template, path.virtual, locals)
+          unbound_template =
+            if cache
+              @unbound_templates.compute_if_absent([template, path.virtual]) do
+                build_unbound_template(template, path.virtual)
+              end
+            else
+              build_unbound_template(template, path.virtual)
+            end
+
+          unbound_template.bind_locals(locals)
         end
       end
 
-      def build_template(template, virtual_path, locals)
+      def build_unbound_template(template, virtual_path)
         handler, format, variant = extract_handler_and_format_and_variant(template)
+        source = Template::Sources::File.new(template)
 
-        filename = File.expand_path(template)
-        source = Template::Sources::File.new(filename)
-        Template.new(source, filename, handler,
+        UnboundTemplate.new(
+          source,
+          template,
+          handler,
           virtual_path: virtual_path,
           format: format,
           variant: variant,
-          locals: locals
         )
       end
 
@@ -363,8 +383,8 @@ module ActionView
       [new(""), new("/")]
     end
 
-    def build_template(template, virtual_path, locals)
-      super(template, nil, locals)
+    def build_unbound_template(template, _)
+      super(template, nil)
     end
 
     def reject_files_external_to_app(files)
