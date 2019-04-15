@@ -481,14 +481,14 @@ class AppGeneratorTest < Rails::Generators::TestCase
     app_root = File.join(destination_root, "myapp")
     run_generator [app_root, "--skip-spring"]
 
-    FileUtils.cd(destination_root) do
+    FileUtils.cd(app_root) do
       config = "config/application.rb"
       content = File.read(config)
       File.write(config, content.gsub(/config\.load_defaults #{Rails::VERSION::STRING.to_f}/, "config.load_defaults 5.1"))
       quietly { system("bin/rails app:update") }
     end
 
-    assert_file "config/application.rb", /\s+config\.load_defaults 5\.1/
+    assert_file "#{app_root}/config/application.rb", /\s+config\.load_defaults 5\.1/
   end
 
   def test_app_update_does_not_change_app_name_when_app_name_is_hyphenated_name
