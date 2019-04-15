@@ -472,13 +472,13 @@ module ActiveRecord
       # the TransactionState, and rolls back or commits the Active Record object
       # as appropriate.
       def sync_with_transaction_state
-        if @transaction_state && @transaction_state.finalized?
-          if @transaction_state.fully_committed?
+        if (transaction_state = @transaction_state)&.finalized?
+          if transaction_state.fully_committed?
             force_clear_transaction_record_state
-          elsif @transaction_state.committed?
+          elsif transaction_state.committed?
             clear_transaction_record_state
-          elsif @transaction_state.rolledback?
-            force_restore_state = @transaction_state.fully_rolledback?
+          elsif transaction_state.rolledback?
+            force_restore_state = transaction_state.fully_rolledback?
             restore_transaction_record_state(force_restore_state)
             clear_transaction_record_state
           end
