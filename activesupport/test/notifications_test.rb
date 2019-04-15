@@ -302,7 +302,7 @@ module Notifications
 
   class EventTest < TestCase
     def test_events_are_initialized_with_details
-      time = Time.now
+      time = Concurrent.monotonic_time
       event = event(:foo, time, time + 0.01, random_id, {})
 
       assert_equal :foo, event.name
@@ -310,15 +310,24 @@ module Notifications
       assert_in_delta 10.0, event.duration, 0.00001
     end
 
+    def test_event_cpu_time_and_idle_time_when_start_and_finish_is_not_called
+      time = Concurrent.monotonic_time
+      event = event(:foo, time, time + 0.01, random_id, {})
+
+      assert_equal 0, event.cpu_time
+      assert_in_delta 10.0, event.idle_time, 0.00001
+    end
+
+
     def test_events_consumes_information_given_as_payload
-      event = event(:foo, Time.now, Time.now + 1, random_id, payload: :bar)
+      event = event(:foo, Concurrent.monotonic_time, Concurrent.monotonic_time + 1, random_id, payload: :bar)
       assert_equal Hash[payload: :bar], event.payload
     end
 
     def test_event_is_parent_based_on_children
-      time = Time.utc(2009, 01, 01, 0, 0, 1)
+      time = Concurrent.monotonic_time
 
-      parent    = event(:foo, Time.utc(2009), Time.utc(2009) + 100, random_id, {})
+      parent    = event(:foo, Concurrent.monotonic_time, Concurrent.monotonic_time + 100, random_id, {})
       child     = event(:foo, time, time + 10, random_id, {})
       not_child = event(:foo, time, time + 100, random_id, {})
 
