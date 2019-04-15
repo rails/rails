@@ -478,7 +478,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_app_update_does_not_change_config_target_version
-    run_generator
+    app_root = File.join(destination_root, "myapp")
+    run_generator [app_root, "--skip-spring"]
 
     FileUtils.cd(destination_root) do
       config = "config/application.rb"
