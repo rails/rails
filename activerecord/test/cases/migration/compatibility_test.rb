@@ -220,6 +220,35 @@ module ActiveRecord
         end
       end
 
+      if ActiveRecord::Base.connection.supports_comments?
+        def test_change_column_comment_can_be_reverted
+          migration = Class.new(ActiveRecord::Migration[5.2]) {
+            def migrate(x)
+              revert do
+                change_column_comment(:testings, :foo, "comment")
+              end
+            end
+          }.new
+
+          ActiveRecord::Migrator.new(:up, [migration]).migrate
+          assert connection.column_exists?(:testings, :foo, comment: "comment")
+        end
+
+        def test_change_table_comment_can_be_reverted
+          migration = Class.new(ActiveRecord::Migration[5.2]) {
+            def migrate(x)
+              revert do
+                change_table_comment(:testings, "comment")
+              end
+            end
+          }.new
+
+          ActiveRecord::Migrator.new(:up, [migration]).migrate
+
+          assert_equal "comment", connection.table_comment("testings")
+        end
+      end
+
       if current_adapter?(:PostgreSQLAdapter)
         class Testing < ActiveRecord::Base
         end

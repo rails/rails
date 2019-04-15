@@ -27,6 +27,16 @@ module ActiveRecord
           def invert_transaction(args, &block)
             [:transaction, args, block]
           end
+
+          def invert_change_column_comment(args)
+            table_name, column_name, comment = args
+            [:change_column_comment, [table_name, column_name, from: comment, to: comment]]
+          end
+
+          def invert_change_table_comment(args)
+            table_name, comment = args
+            [:change_table_comment, [table_name, from: comment, to: comment]]
+          end
         end
 
         def create_table(table_name, **options)
