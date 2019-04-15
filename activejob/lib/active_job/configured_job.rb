@@ -3,8 +3,8 @@
 module ActiveJob
   class ConfiguredJob #:nodoc:
     def initialize(job_class, options = {})
-      @options = options
       @job_class = job_class
+      @options = options
     end
 
     def perform_now(*args)
