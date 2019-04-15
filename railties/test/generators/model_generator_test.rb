@@ -414,23 +414,12 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_required_belongs_to_adds_required_association
-    run_generator ["account", "supplier:references{required}"]
-
-    expected_file = <<~FILE
-      class Account < ApplicationRecord
-        belongs_to :supplier, required: true
-      end
-    FILE
-    assert_file "app/models/account.rb", expected_file
-  end
-
   def test_required_polymorphic_belongs_to_generages_correct_model
     run_generator ["account", "supplier:references{required,polymorphic}"]
 
     expected_file = <<~FILE
       class Account < ApplicationRecord
-        belongs_to :supplier, polymorphic: true, required: true
+        belongs_to :supplier, polymorphic: true
       end
     FILE
     assert_file "app/models/account.rb", expected_file
@@ -441,7 +430,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
 
     expected_file = <<~FILE
       class Account < ApplicationRecord
-        belongs_to :supplier, polymorphic: true, required: true
+        belongs_to :supplier, polymorphic: true
       end
     FILE
     assert_file "app/models/account.rb", expected_file
