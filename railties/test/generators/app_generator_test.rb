@@ -345,39 +345,44 @@ class AppGeneratorTest < Rails::Generators::TestCase
     app_root = File.join(destination_root, "myapp")
     run_generator [app_root, "--skip-spring"]
 
-    FileUtils.cd(app_root) do
-      quietly { system("bin/rails app:update") }
-    end
+    stub_rails_application(app_root) do
+      generator = Rails::Generators::AppGenerator.new ["rails"], { update: true, skip_spring: true }, { destination_root: app_root, shell: @shell }
+      generator.send(:app_const)
+      quietly { generator.send(:update_config_files) }
 
-    assert_no_file "#{app_root}/config/spring.rb"
+      assert_no_file "#{app_root}/config/spring.rb"
+    end
   end
 
   def test_app_update_does_not_generate_action_cable_contents_when_skip_action_cable_is_given
     app_root = File.join(destination_root, "myapp")
     run_generator [app_root, "--skip-action-cable"]
 
-    FileUtils.cd(app_root) do
-      quietly { system("bin/rails app:update") }
-    end
+    stub_rails_application(app_root) do
+      generator = Rails::Generators::AppGenerator.new ["rails"], { update: true, skip_action_cable: true }, { destination_root: app_root, shell: @shell }
+      generator.send(:app_const)
+      quietly { generator.send(:update_config_files) }
 
-    assert_no_file "#{app_root}/config/cable.yml"
-    assert_file "#{app_root}/config/environments/production.rb" do |content|
-      assert_no_match(/config\.action_cable/, content)
+      assert_no_file "#{app_root}/config/cable.yml"
+      assert_file "#{app_root}/config/environments/production.rb" do |content|
+        assert_no_match(/config\.action_cable/, content)
+      end
+      assert_no_file "#{app_root}/test/channels/application_cable/connection_test.rb"
     end
-
-    assert_no_file "#{app_root}/test/channels/application_cable/connection_test.rb"
   end
 
   def test_app_update_does_not_generate_bootsnap_contents_when_skip_bootsnap_is_given
     app_root = File.join(destination_root, "myapp")
     run_generator [app_root, "--skip-bootsnap"]
 
-    FileUtils.cd(app_root) do
-      quietly { system("bin/rails app:update") }
-    end
+    stub_rails_application(app_root) do
+      generator = Rails::Generators::AppGenerator.new ["rails"], { update: true, skip_bootsnap: true }, { destination_root: app_root, shell: @shell }
+      generator.send(:app_const)
+      quietly { generator.send(:update_config_files) }
 
-    assert_file "#{app_root}/config/boot.rb" do |content|
-      assert_no_match(/require 'bootsnap\/setup'/, content)
+      assert_file "#{app_root}/config/boot.rb" do |content|
+        assert_no_match(/require 'bootsnap\/setup'/, content)
+      end
     end
   end
 
@@ -396,46 +401,50 @@ class AppGeneratorTest < Rails::Generators::TestCase
     app_root = File.join(destination_root, "myapp")
     run_generator [app_root, "--skip-active-storage"]
 
-    FileUtils.cd(app_root) do
-      quietly { system("bin/rails app:update") }
-    end
+    stub_rails_application(app_root) do
+      generator = Rails::Generators::AppGenerator.new ["rails"], { update: true, skip_active_storage: true }, { destination_root: app_root, shell: @shell }
+      generator.send(:app_const)
+      quietly { generator.send(:update_config_files) }
 
-    assert_file "#{app_root}/config/environments/development.rb" do |content|
-      assert_no_match(/config\.active_storage/, content)
-    end
+      assert_file "#{app_root}/config/environments/development.rb" do |content|
+        assert_no_match(/config\.active_storage/, content)
+      end
 
-    assert_file "#{app_root}/config/environments/production.rb" do |content|
-      assert_no_match(/config\.active_storage/, content)
-    end
+      assert_file "#{app_root}/config/environments/production.rb" do |content|
+        assert_no_match(/config\.active_storage/, content)
+      end
 
-    assert_file "#{app_root}/config/environments/test.rb" do |content|
-      assert_no_match(/config\.active_storage/, content)
-    end
+      assert_file "#{app_root}/config/environments/test.rb" do |content|
+        assert_no_match(/config\.active_storage/, content)
+      end
 
-    assert_no_file "#{app_root}/config/storage.yml"
+      assert_no_file "#{app_root}/config/storage.yml"
+    end
   end
 
   def test_app_update_does_not_generate_active_storage_contents_when_skip_active_record_is_given
     app_root = File.join(destination_root, "myapp")
     run_generator [app_root, "--skip-active-record"]
 
-    FileUtils.cd(app_root) do
-      quietly { system("bin/rails app:update") }
-    end
+    stub_rails_application(app_root) do
+      generator = Rails::Generators::AppGenerator.new ["rails"], { update: true, skip_active_record: true }, { destination_root: app_root, shell: @shell }
+      generator.send(:app_const)
+      quietly { generator.send(:update_config_files) }
 
-    assert_file "#{app_root}/config/environments/development.rb" do |content|
-      assert_no_match(/config\.active_storage/, content)
-    end
+      assert_file "#{app_root}/config/environments/development.rb" do |content|
+        assert_no_match(/config\.active_storage/, content)
+      end
 
-    assert_file "#{app_root}/config/environments/production.rb" do |content|
-      assert_no_match(/config\.active_storage/, content)
-    end
+      assert_file "#{app_root}/config/environments/production.rb" do |content|
+        assert_no_match(/config\.active_storage/, content)
+      end
 
-    assert_file "#{app_root}/config/environments/test.rb" do |content|
-      assert_no_match(/config\.active_storage/, content)
-    end
+      assert_file "#{app_root}/config/environments/test.rb" do |content|
+        assert_no_match(/config\.active_storage/, content)
+      end
 
-    assert_no_file "#{app_root}/config/storage.yml"
+      assert_no_file "#{app_root}/config/storage.yml"
+    end
   end
 
   def test_generator_skips_action_mailbox_when_skip_action_mailbox_is_given
@@ -495,13 +504,15 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_no_match(/hyphenated-app/, content)
     end
 
-    FileUtils.cd(app_root) do
-      quietly { system("bin/rails app:update") }
-    end
+    stub_rails_application(app_root) do
+      generator = Rails::Generators::AppGenerator.new ["rails"], { update: true }, { destination_root: app_root, shell: @shell }
+      generator.send(:app_const)
+      quietly { generator.send(:update_config_files) }
 
-    assert_file "#{app_root}/config/cable.yml" do |content|
-      assert_match(/hyphenated_app/, content)
-      assert_no_match(/hyphenated-app/, content)
+      assert_file "#{app_root}/config/cable.yml" do |content|
+        assert_match(/hyphenated_app/, content)
+        assert_no_match(/hyphenated-app/, content)
+      end
     end
   end
 
