@@ -119,7 +119,8 @@ module ActionDispatch
 
         class UnanchoredRegexp < AnchoredRegexp # :nodoc:
           def accept(node)
-            %r{\A#{visit node}(?:\b|\Z)}
+            path = visit node
+            path == "/" ? %r{\A/} : %r{\A#{path}(?:\b|\Z|/)}
           end
         end
 
