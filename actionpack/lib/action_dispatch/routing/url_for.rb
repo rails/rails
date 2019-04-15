@@ -84,6 +84,20 @@ module ActionDispatch
     #
     #   User.find(1).base_uri # => "/users/1"
     #
+    # Alternatively you can call the url helper directly from ApplicationController:
+    #
+    #   class User < ActiveRecord::Base
+    #
+    #     def base_uri
+    #       ApplicationController.helpers.base_uri
+    #     end
+    #   end
+    #
+    #   User.find(1).base_uri #=> "/users/1"
+    #
+    # This avoids including all of the methods in Rails.application.routes.url_helpers
+    # inside of the model.
+    #
     module UrlFor
       extend ActiveSupport::Concern
       include PolymorphicRoutes

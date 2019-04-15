@@ -96,6 +96,18 @@ module ActionController
       instance.render_to_string(*args)
     end
 
+    def helpers # :nodoc:
+      raise "missing controller" unless controller
+
+      request = ActionDispatch::Request.new(@env)
+      request.routes = controller._routes
+
+      instance = controller.new
+      instance.set_request! request
+      instance.set_response! controller.make_response!(request)
+      instance.helpers
+    end
+
     private
       def normalize_keys(env)
         new_env = {}

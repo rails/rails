@@ -74,6 +74,22 @@ module LocalAbcHelper
   def c() end
 end
 
+
+module MetalHelper
+  def metal
+    "This test is metal"
+  end
+end
+
+class MetalHelpersController < ActionController::Metal
+  include ActionController::Helpers
+  helper MetalHelper
+
+  def render_helper
+    self.response_body = self.class.helpers.metal
+  end
+end
+
 class HelperPathsTest < ActiveSupport::TestCase
   def test_helpers_paths_priority
     responses = HelpersPathsController.action(:index).call(ActionController::TestRequest::DEFAULT_ENV.dup)
@@ -229,6 +245,11 @@ class HelperTest < ActiveSupport::TestCase
     AllHelpersController.config.my_var = "smth"
 
     assert_equal "smth", AllHelpersController.helpers.config.my_var
+  end
+
+  def test_helper_for_metal_controller
+    assert_equal "This test is metal",
+      call_controller(MetalHelpersController, "render_helper").last.body
   end
 
   private
