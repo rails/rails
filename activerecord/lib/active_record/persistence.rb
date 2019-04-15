@@ -851,7 +851,9 @@ module ActiveRecord
       end
 
       attribute_names = timestamp_attributes_for_update_in_model
-      attribute_names |= names.map(&:to_s)
+      attribute_names |= names.map!(&:to_s).map! { |name|
+        self.class.attribute_alias?(name) ? self.class.attribute_alias(name) : name
+      }
 
       unless attribute_names.empty?
         affected_rows = _touch_row(attribute_names, time)
@@ -879,8 +881,7 @@ module ActiveRecord
       time ||= current_time_from_proper_timezone
 
       attribute_names.each do |attr_name|
-        write_attribute(attr_name, time)
-        clear_attribute_change(attr_name)
+        _write_attribute(attr_name, time)
       end
 
       _update_row(attribute_names, "touch")

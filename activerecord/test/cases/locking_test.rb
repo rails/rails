@@ -182,7 +182,9 @@ class OptimisticLockingTest < ActiveRecord::TestCase
 
     p1.touch
     assert_equal 1, p1.lock_version
-    assert_not p1.changed?, "Changes should have been cleared"
+    assert_not_predicate p1, :changed?, "Changes should have been cleared"
+    assert_predicate p1, :saved_changes?
+    assert_equal ["lock_version", "updated_at"], p1.saved_changes.keys.sort
   end
 
   def test_touch_stale_object
@@ -193,6 +195,8 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     assert_raises(ActiveRecord::StaleObjectError) do
       stale_person.touch
     end
+
+    assert_not_predicate stale_person, :saved_changes?
   end
 
   def test_update_with_dirty_primary_key
@@ -296,6 +300,9 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     t1.touch
 
     assert_equal 1, t1.lock_version
+    assert_not_predicate t1, :changed?
+    assert_predicate t1, :saved_changes?
+    assert_equal ["lock_version", "updated_at"], t1.saved_changes.keys.sort
   end
 
   def test_touch_stale_object_with_lock_without_default
@@ -307,6 +314,8 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     assert_raises(ActiveRecord::StaleObjectError) do
       stale_object.touch
     end
+
+    assert_not_predicate stale_object, :saved_changes?
   end
 
   def test_lock_without_default_should_work_with_null_in_the_database

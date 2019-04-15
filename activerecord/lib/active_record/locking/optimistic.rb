@@ -71,9 +71,8 @@ module ActiveRecord
         end
 
         def _touch_row(attribute_names, time)
+          @_touch_attr_names << self.class.locking_column if locking_enabled?
           super
-        ensure
-          clear_attribute_change(self.class.locking_column) if locking_enabled?
         end
 
         def _update_row(attribute_names, attempted_action = "update")
