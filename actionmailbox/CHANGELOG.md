@@ -1,3 +1,7 @@
+*   Fix Bcc header not being included with emails from `create_inbound_email_from` test helpers.
+
+    *jduff*
+
 *   Add `ApplicationMailbox.mailbox_for` to expose mailbox routing.
 
     *James Dabbs*

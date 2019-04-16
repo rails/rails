@@ -30,6 +30,27 @@ class Rails::Conductor::ActionMailbox::InboundEmailsControllerTest < ActionDispa
     end
   end
 
+  test "create inbound email with bcc" do
+    with_rails_env("development") do
+      assert_difference -> { ActionMailbox::InboundEmail.count }, +1 do
+        post rails_conductor_inbound_emails_path, params: {
+          mail: {
+            from: "Jason Fried <jason@37signals.com>",
+            bcc: "Replies <replies@example.com>",
+            subject: "Hey there",
+            body: "How's it going?"
+          }
+        }
+      end
+
+      mail = ActionMailbox::InboundEmail.last.mail
+      assert_equal %w[ jason@37signals.com ], mail.from
+      assert_equal %w[ replies@example.com ], mail.bcc
+      assert_equal "Hey there", mail.subject
+      assert_equal "How's it going?", mail.body.decoded
+    end
+  end
+
   test "create inbound email with attachments" do
     with_rails_env("development") do
       assert_difference -> { ActionMailbox::InboundEmail.count }, +1 do
