@@ -41,7 +41,6 @@ DEFAULT_APP_FILES = %w(
   bin/rails
   bin/rake
   bin/setup
-  bin/update
   bin/yarn
   config/application.rb
   config/boot.rb
@@ -319,10 +318,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_no_file "#{app_root}/bin/yarn"
 
       assert_file "#{app_root}/bin/setup" do |content|
-        assert_no_match(/system\('bin\/yarn'\)/, content)
-      end
-
-      assert_file "#{app_root}/bin/update" do |content|
         assert_no_match(/system\('bin\/yarn'\)/, content)
       end
     end

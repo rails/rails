@@ -120,7 +120,6 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
         bin/rails
         bin/rake
         bin/setup
-        bin/update
         config/application.rb
         config/boot.rb
         config/cable.yml
