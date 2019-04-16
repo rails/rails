@@ -33,7 +33,8 @@ passing the `--skip-sprockets` option.
 rails new appname --skip-sprockets
 ```
 
-Rails automatically add the `sass-rails` gem to your `Gemfile`, which are used by Sprockets for asset compression:
+Rails automatically adds the `sass-rails` gem to your `Gemfile`, which is used
+by Sprockets for asset compression:
 
 ```ruby
 gem 'sass-rails'
@@ -430,7 +431,8 @@ one file rather than many, the load time of pages can be greatly reduced because
 the browser makes fewer requests. Compression also reduces file size, enabling
 the browser to download them faster.
 
-For example, suppose `app/assets/javascripts/application.js` file containing the following lines:
+For example, with a `app/assets/javascripts/application.js` file containing the
+following lines:
 
 ```js
 // ...
@@ -1075,7 +1077,7 @@ Possible options for JavaScript compression are `:closure`, `:uglifier` and
 `:yui`. These require the use of the `closure-compiler`, `uglifier` or
 `yui-compressor` gems, respectively.
 
-For example, `uglifier` gem.
+Take the `uglifier` gem, for example.
 This gem wraps [UglifyJS](https://github.com/mishoo/UglifyJS) (written for
 NodeJS) in Ruby. It compresses your code by removing white space and comments,
 shortening local variable names, and performing other micro-optimizations such
@@ -1222,4 +1224,3 @@ it as a preprocessor for your mime type.
 ```ruby
 Sprockets.register_preprocessor 'text/css', AddComment
 ```
-
