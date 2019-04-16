@@ -109,8 +109,8 @@ module ActiveRecord
     # a role. If you would like to use a different role you can pass a hash to database:
     #
     #   ActiveRecord::Base.connected_to(database: { readonly_slow: :animals_slow_replica }) do
-    #     Dog.run_a_long_query # runs a long query while connected to the +animals_slow_replica+
-    #       using the readonly_slow role.
+    #     # runs a long query while connected to the +animals_slow_replica+ using the readonly_slow role.
+    #     Dog.run_a_long_query
     #   end
     #
     # When using the database key a new connection will be established every time.
