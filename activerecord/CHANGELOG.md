@@ -1,9 +1,15 @@
+*   Fix dirty tracking for `touch` to track saved changes.
+
+    Fixes #33429.
+
+    *Ryuta Kamzono*
+
 *   `change_column_comment` and `change_table_comment` are invertible only if
     `to` and `from` options are specified.
 
     *Yoshiyuki Kinjo*
 
-*   Don't call commit/rollback callbacks despite a record isn't saved.
+*   Don't call commit/rollback callbacks when a record isn't saved.
 
     Fixes #29747.
 
