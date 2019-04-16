@@ -411,7 +411,7 @@ GEM
       resque (~> 1.26)
       rufus-scheduler (~> 3.2)
     retriable (3.1.2)
-    rubocop (0.66.0)
+    rubocop (0.67.2)
       jaro_winkler (~> 1.5.1)
       parallel (~> 1.10)
       parser (>= 2.5, != 2.5.1.1)
@@ -419,6 +419,8 @@ GEM
       rainbow (>= 2.2.2, < 4.0)
       ruby-progressbar (~> 1.7)
       unicode-display_width (>= 1.4.0, < 1.6)
+    rubocop-performance (1.1.0)
+      rubocop (>= 0.67.0)
     ruby-progressbar (1.10.0)
     ruby-vips (2.0.13)
       ffi (~> 1.9)
@@ -581,6 +583,7 @@ DEPENDENCIES
   resque
   resque-scheduler
   rubocop (>= 0.47)
+  rubocop-performance
   sass-rails
   sdoc (~> 1.0)
   selenium-webdriver (>= 3.5.0, < 3.13.0)
