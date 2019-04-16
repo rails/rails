@@ -1721,7 +1721,7 @@ module ApplicationTests
         end
       EOS
 
-      app_file "config/initializers/autoload.rb", "D"
+      app_file "config/initializers/autoload.rb", "D.class"
 
       app "development"
 
@@ -1749,7 +1749,7 @@ module ApplicationTests
         end
       EOS
 
-      app_file "config/initializers/autoload.rb", "D"
+      app_file "config/initializers/autoload.rb", "D.class"
 
       app "production"
 
