@@ -33,13 +33,10 @@ passing the `--skip-sprockets` option.
 rails new appname --skip-sprockets
 ```
 
-Rails automatically adds the `sass-rails`, `coffee-rails` and `uglifier`
-gems to your `Gemfile`, which are used by Sprockets for asset compression:
+Rails automatically add the `sass-rails` gem to your `Gemfile`, which are used by Sprockets for asset compression:
 
 ```ruby
 gem 'sass-rails'
-gem 'uglifier'
-gem 'coffee-rails'
 ```
 
 Using the `--skip-sprockets` option will prevent Rails from adding
@@ -176,8 +173,7 @@ in `app/assets` are never served directly in production.
 
 ### Controller Specific Assets
 
-When you generate a scaffold or a controller, Rails also generates a JavaScript
-file (or CoffeeScript file if the `coffee-rails` gem is in the `Gemfile`) and a
+When you generate a scaffold or a controller, Rails also generates a
 Cascading Style Sheet file (or SCSS file if `sass-rails` is in the `Gemfile`)
 for that controller. Additionally, when generating a scaffold, Rails generates
 the file `scaffolds.css` (or `scaffolds.scss` if `sass-rails` is in the
@@ -434,9 +430,7 @@ one file rather than many, the load time of pages can be greatly reduced because
 the browser makes fewer requests. Compression also reduces file size, enabling
 the browser to download them faster.
 
-
-For example, a new Rails application includes a default
-`app/assets/javascripts/application.js` file containing the following lines:
+For example, suppose `app/assets/javascripts/application.js` file containing the following lines:
 
 ```js
 // ...
@@ -476,8 +470,7 @@ which contains these lines:
 */
 ```
 
-Rails creates both `app/assets/javascripts/application.js` and
-`app/assets/stylesheets/application.css` regardless of whether the
+Rails create `app/assets/stylesheets/application.css` regardless of whether the
 --skip-sprockets option is used when creating a new Rails application. This is
 so you can easily add asset pipelining later if you like.
 
@@ -517,8 +510,7 @@ The file extensions used on an asset determine what preprocessing is applied.
 When a controller or a scaffold is generated with the default Rails gemset, a
 CoffeeScript file and a SCSS file are generated in place of a regular JavaScript
 and CSS file. The example used before was a controller called "projects", which
-generated an `app/assets/javascripts/projects.coffee` and an
-`app/assets/stylesheets/projects.scss` file.
+generated an `app/assets/stylesheets/projects.scss` file.
 
 In development mode, or if the asset pipeline is disabled, when these files are
 requested they are processed by the processors provided by the `coffee-script`
@@ -1083,7 +1075,7 @@ Possible options for JavaScript compression are `:closure`, `:uglifier` and
 `:yui`. These require the use of the `closure-compiler`, `uglifier` or
 `yui-compressor` gems, respectively.
 
-The default `Gemfile` includes [uglifier](https://github.com/lautis/uglifier).
+For example, `uglifier` gem.
 This gem wraps [UglifyJS](https://github.com/mishoo/UglifyJS) (written for
 NodeJS) in Ruby. It compresses your code by removing white space and comments,
 shortening local variable names, and performing other micro-optimizations such
