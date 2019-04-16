@@ -142,6 +142,10 @@ module Rails
             active_storage.queues.analysis = :active_storage_analysis
             active_storage.queues.purge    = :active_storage_purge
           end
+
+          if respond_to?(:active_record)
+            active_record.collection_cache_versioning = true
+          end
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end
