@@ -6,6 +6,15 @@ require "rails/generators/generated_attribute"
 class GeneratedAttributeTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
 
+  def setup
+    @old_belongs_to_required_by_default = Rails.application.config.active_record.belongs_to_required_by_default
+    Rails.application.config.active_record.belongs_to_required_by_default = true
+  end
+
+  def teardown
+    Rails.application.config.active_record.belongs_to_required_by_default = @old_belongs_to_required_by_default
+  end
+
   def test_field_type_returns_number_field
     assert_field_type :integer, :number_field
   end
@@ -155,10 +164,16 @@ class GeneratedAttributeTest < Rails::Generators::TestCase
   end
 
   def test_parse_required_attribute_with_index
-    att = Rails::Generators::GeneratedAttribute.parse("supplier:references{required}:index")
+    att = Rails::Generators::GeneratedAttribute.parse("supplier:references:index")
     assert_equal "supplier", att.name
     assert_equal :references, att.type
     assert_predicate att, :has_index?
     assert_predicate att, :required?
+  end
+
+  def test_parse_required_attribute_with_index_false_when_belongs_to_required_by_default_global_config_is_false
+    Rails.application.config.active_record.belongs_to_required_by_default = false
+    att = Rails::Generators::GeneratedAttribute.parse("supplier:references:index")
+    assert_not_predicate att, :required?
   end
 end
