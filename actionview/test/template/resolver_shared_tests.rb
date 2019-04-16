@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ResolverSharedTests
   attr_reader :tmpdir
 
@@ -7,7 +9,7 @@ module ResolverSharedTests
     end
   end
 
-  def with_file(filename, source="File at #{filename}")
+  def with_file(filename, source = "File at #{filename}")
     path = File.join(tmpdir, filename)
     FileUtils.mkdir_p(File.dirname(path))
     File.write(path, source)
@@ -103,7 +105,7 @@ module ResolverSharedTests
     c = context.find("hello_world", "test", false, [], {})
 
     # disable_cache should give us a new object
-    refute_same a, b
+    assert_not_same a, b
 
     # but it should not clear the cache
     assert_same a, c
