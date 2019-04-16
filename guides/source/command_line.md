@@ -257,7 +257,7 @@ We will set up a simple resource called "HighScore" that will keep track of our 
 ```bash
 $ rails generate scaffold HighScore game:string score:integer
     invoke  active_record
-    create    db/migrate/20130717151933_create_high_scores.rb
+    create    db/migrate/20190416145729_create_high_scores.rb
     create    app/models/high_score.rb
     invoke    test_unit
     create      test/models/high_score_test.rb
@@ -275,20 +275,19 @@ $ rails generate scaffold HighScore game:string score:integer
     create      app/views/high_scores/_form.html.erb
     invoke    test_unit
     create      test/controllers/high_scores_controller_test.rb
+    create      test/system/high_scores_test.rb
     invoke    helper
     create      app/helpers/high_scores_helper.rb
+    invoke      test_unit
     invoke    jbuilder
     create      app/views/high_scores/index.json.jbuilder
     create      app/views/high_scores/show.json.jbuilder
-    invoke  test_unit
-    create    test/system/high_scores_test.rb
+    create      app/views/high_scores/_high_score.json.jbuilder
     invoke  assets
-    invoke    coffee
-    create      app/assets/javascripts/high_scores.coffee
     invoke    scss
     create      app/assets/stylesheets/high_scores.scss
     invoke  scss
-   identical    app/assets/stylesheets/scaffolds.scss
+    create    app/assets/stylesheets/scaffolds.scss
 ```
 
 The generator checks that there exist the directories for models, controllers, helpers, layouts, functional and unit tests, stylesheets, creates the views, controller, model and database migration for HighScore (creating the `high_scores` table and fields), takes care of the route for the **resource**, and new tests for everything.
