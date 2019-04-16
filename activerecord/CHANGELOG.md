@@ -1,3 +1,17 @@
+*   Postgresql: Support array of pairs in WHERE IN queries
+
+    ```ruby
+    Article.where('(title, text) IN (?)', [['title1', 'text1'], ['title2','text2']])
+    ```
+
+    will generate
+
+    ```sql
+    SELECT "articles".* FROM "articles" WHERE ((title, text) IN (('title1','text1'),('title2','text2')))
+    ```
+
+    *Wolfgang Hobmaier*
+
 *   Fix dirty tracking after rollback.
 
     Fixes #15018, #30167, #33868.
