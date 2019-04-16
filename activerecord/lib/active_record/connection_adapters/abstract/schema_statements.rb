@@ -770,6 +770,17 @@ module ActiveRecord
       #   CREATE FULLTEXT INDEX index_developers_on_name ON developers (name) -- MySQL
       #
       # Note: only supported by MySQL.
+      #
+      # ====== Creating an index with a specific algorithm
+      #
+      #  add_index(:developers, :name, algorithm: :concurrently)
+      #  # CREATE INDEX CONCURRENTLY developers_on_name on developers (name)
+      #
+      # Note: only supported by PostgreSQL.
+      #
+      # Concurrently adding an index is not supported in a transaction.
+      #
+      # For more information see the {"Transactional Migrations" section}[rdoc-ref:Migration].
       def add_index(table_name, column_name, options = {})
         index_name, index_type, index_columns, index_options = add_index_options(table_name, column_name, options)
         execute "CREATE #{index_type} INDEX #{quote_column_name(index_name)} ON #{quote_table_name(table_name)} (#{index_columns})#{index_options}"
@@ -793,6 +804,15 @@ module ActiveRecord
       #
       #   remove_index :accounts, name: :by_branch_party
       #
+      # Removes the index named +by_branch_party+ in the +accounts+ table +concurrently+.
+      #
+      #   remove_index :accounts, name: :by_branch_party, algorithm: :concurrently
+      #
+      # Note: only supported by PostgreSQL.
+      #
+      # Concurrently removing an index is not supported in a transaction.
+      #
+      # For more information see the {"Transactional Migrations" section}[rdoc-ref:Migration].
       def remove_index(table_name, options = {})
         index_name = index_name_for_remove(table_name, options)
         execute "DROP INDEX #{quote_column_name(index_name)} ON #{quote_table_name(table_name)}"
