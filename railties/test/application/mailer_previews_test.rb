@@ -515,6 +515,13 @@ module ApplicationTests
       assert_match '<option selected value="locale=ja">ja', last_response.body
     end
 
+    test "preview does not leak I18n global setting changes" do
+      I18n.with_locale(:en) do
+        get "/rails/mailers/notifier/foo.txt?locale=ja"
+        assert_equal :en, I18n.locale
+      end
+    end
+
     test "mailer previews create correct links when loaded on a subdirectory" do
       mailer "notifier", <<-RUBY
         class Notifier < ActionMailer::Base
