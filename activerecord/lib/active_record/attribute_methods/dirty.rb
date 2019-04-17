@@ -156,6 +156,16 @@ module ActiveRecord
       end
 
       private
+        def mutations_from_database
+          sync_with_transaction_state
+          super
+        end
+
+        def mutations_before_last_save
+          sync_with_transaction_state
+          super
+        end
+
         def write_attribute_without_type_cast(attr_name, value)
           name = attr_name.to_s
           if self.class.attribute_alias?(name)

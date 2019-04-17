@@ -1,3 +1,9 @@
+*   Fix dirty tracking after rollback.
+
+    Fixes #15018, #30167, #33868.
+
+    *Ryuta Kamizono*
+
 *   Add `ActiveRecord::Relation#cache_version` to support recyclable cache keys via
     the versioned entries in `ActiveSupport::Cache`. This also means that
     `ActiveRecord::Relation#cache_key` will now return a stable key that does not

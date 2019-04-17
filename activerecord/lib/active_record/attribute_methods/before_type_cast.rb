@@ -46,6 +46,7 @@ module ActiveRecord
       #   task.read_attribute_before_type_cast('completed_on') # => "2012-10-21"
       #   task.read_attribute_before_type_cast(:completed_on)  # => "2012-10-21"
       def read_attribute_before_type_cast(attr_name)
+        sync_with_transaction_state
         @attributes[attr_name.to_s].value_before_type_cast
       end
 
@@ -60,6 +61,7 @@ module ActiveRecord
       #   task.attributes_before_type_cast
       #   # => {"id"=>nil, "title"=>nil, "is_done"=>true, "completed_on"=>"2012-10-21", "created_at"=>nil, "updated_at"=>nil}
       def attributes_before_type_cast
+        sync_with_transaction_state
         @attributes.values_before_type_cast
       end
 
@@ -71,6 +73,7 @@ module ActiveRecord
         end
 
         def attribute_came_from_user?(attribute_name)
+          sync_with_transaction_state
           @attributes[attribute_name].came_from_user?
         end
     end
