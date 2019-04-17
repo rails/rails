@@ -14,6 +14,14 @@ GIT
       event_emitter
       websocket
 
+GIT
+  remote: https://github.com/p8/sdoc.git
+  revision: 3f65ffdebfa440aa19f1c697a0ce31703629d31a
+  branch: without-frames
+  specs:
+    sdoc (1.0.0)
+      rdoc (>= 5.0)
+
 PATH
   remote: .
   specs:
@@ -389,7 +397,7 @@ GEM
     rb-fsevent (0.10.3)
     rb-inotify (0.10.0)
       ffi (~> 1.0)
-    rdoc (6.0.4)
+    rdoc (6.1.1)
     redcarpet (3.2.3)
     redis (4.0.3)
     redis-namespace (1.6.0)
@@ -438,8 +446,6 @@ GEM
       sprockets (>= 2.8, < 4.0)
       sprockets-rails (>= 2.0, < 4.0)
       tilt (>= 1.1, < 3)
-    sdoc (1.0.0)
-      rdoc (>= 5.0)
     selenium-webdriver (3.12.0)
       childprocess (~> 0.5)
       rubyzip (~> 1.2)
@@ -582,7 +588,7 @@ DEPENDENCIES
   resque-scheduler
   rubocop (>= 0.47)
   sass-rails
-  sdoc (~> 1.0)
+  sdoc!
   selenium-webdriver (>= 3.5.0, < 3.13.0)
   sequel
   sidekiq
