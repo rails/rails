@@ -3,8 +3,8 @@
 })(this, function(exports) {
   "use strict";
   var adapters = {
-    logger: self.console,
-    WebSocket: self.WebSocket
+    logger: console,
+    WebSocket: typeof WebSocket === "function" ? WebSocket : null
   };
   var logger = {
     log: function log() {
@@ -65,7 +65,9 @@
         this.startedAt = now();
         delete this.stoppedAt;
         this.startPolling();
-        addEventListener("visibilitychange", this.visibilityDidChange);
+        if ((typeof document === "undefined" ? "undefined" : _typeof(document)) === "object") {
+          addEventListener("visibilitychange", this.visibilityDidChange);
+        }
         logger.log("ConnectionMonitor started. pollInterval = " + this.getPollInterval() + " ms");
       }
     };
@@ -73,7 +75,9 @@
       if (this.isRunning()) {
         this.stoppedAt = now();
         this.stopPolling();
-        removeEventListener("visibilitychange", this.visibilityDidChange);
+        if ((typeof document === "undefined" ? "undefined" : _typeof(document)) === "object") {
+          removeEventListener("visibilitychange", this.visibilityDidChange);
+        }
         logger.log("ConnectionMonitor stopped");
       }
     };
@@ -480,7 +484,7 @@
     if (typeof url === "function") {
       url = url();
     }
-    if (url && !/^wss?:/i.test(url)) {
+    if ((typeof document === "undefined" ? "undefined" : _typeof(document)) === "object" && url && !/^wss?:/i.test(url)) {
       var a = document.createElement("a");
       a.href = url;
       a.href = a.href;
@@ -495,9 +499,11 @@
     return new Consumer(url);
   }
   function getConfig(name) {
-    var element = document.head.querySelector("meta[name='action-cable-" + name + "']");
-    if (element) {
-      return element.getAttribute("content");
+    if ((typeof document === "undefined" ? "undefined" : _typeof(document)) === "object") {
+      var element = document.head.querySelector("meta[name='action-cable-" + name + "']");
+      if (element) {
+        return element.getAttribute("content");
+      }
     }
   }
   exports.Connection = Connection;
