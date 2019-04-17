@@ -350,7 +350,7 @@ module ActiveModel
           @attribute_method_matchers_cache ||= Concurrent::Map.new(initial_capacity: 4)
         end
 
-        def attribute_method_matchers_matching(method_name)
+        def attribute_method_matches(method_name)
           attribute_method_matchers_cache.compute_if_absent(method_name) do
             # Must try to match prefixes/suffixes first, or else the matcher with no prefix/suffix
             # will match every time.
@@ -463,7 +463,7 @@ module ActiveModel
       # Returns a struct representing the matching attribute method.
       # The struct's attributes are prefix, base and suffix.
       def matched_attribute_method(method_name)
-        matches = self.class.send(:attribute_method_matchers_matching, method_name)
+        matches = self.class.send(:attribute_method_matches, method_name)
         matches.detect { |match| attribute_method?(match.attr_name) }
       end
 
