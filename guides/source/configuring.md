@@ -46,6 +46,9 @@ config.active_record.schema_format = :ruby
 
 Rails will use that particular setting to configure Active Record.
 
+The default values listed in the next section all assume you have the framework defaults loaded for your version of Rails.
+In a Rails 6.0 app, for example, this is set as `config.load_defaults(6.0)` in `config/application.rb`.
+
 ### Rails General Configuration
 
 These configuration methods are to be called on a `Rails::Railtie` object, such as a subclass of `Rails::Engine` or `Rails::Application`.
