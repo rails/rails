@@ -414,7 +414,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_required_polymorphic_belongs_to_generages_correct_model
+  def test_required_polymorphic_belongs_to_generates_correct_model
     run_generator ["account", "supplier:references{required,polymorphic}"]
 
     expected_file = <<~FILE
