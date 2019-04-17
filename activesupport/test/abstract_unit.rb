@@ -2,6 +2,9 @@
 
 ORIG_ARGV = ARGV.dup
 
+require 'single_cov'
+SingleCov.setup :minitest, root: File.dirname(__dir__)
+
 require "active_support/core_ext/kernel/reporting"
 
 silence_warnings do

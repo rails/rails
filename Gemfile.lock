@@ -463,6 +463,7 @@ GEM
       rack (~> 2.0)
       rack-protection (= 2.0.4)
       tilt (~> 2.0)
+    single_cov (1.3.0)
     sneakers (2.11.0)
       bunny (~> 2.12)
       concurrent-ruby (~> 1.0)
@@ -589,6 +590,7 @@ DEPENDENCIES
   selenium-webdriver (>= 3.5.0, < 3.13.0)
   sequel
   sidekiq
+  single_cov
   sneakers
   sprockets-export
   sqlite3 (~> 1.4)

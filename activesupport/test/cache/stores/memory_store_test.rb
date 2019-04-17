@@ -4,6 +4,8 @@ require "abstract_unit"
 require "active_support/cache"
 require_relative "../behaviors"
 
+SingleCov.covered! file: 'lib/active_support/cache/memory_store.rb'
+
 class MemoryStoreTest < ActiveSupport::TestCase
   def setup
     @cache = ActiveSupport::Cache.lookup_store(:memory_store, expires_in: 60)
