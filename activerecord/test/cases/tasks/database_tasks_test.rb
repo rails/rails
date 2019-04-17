@@ -46,6 +46,37 @@ module ActiveRecord
   }
 
   class DatabaseTasksUtilsTask < ActiveRecord::TestCase
+    def setup
+      @old_env = ActiveRecord::Tasks::DatabaseTasks.env
+      @old_configurations = ActiveRecord::Base.configurations
+
+      ActiveRecord::Tasks::DatabaseTasks.env = "development"
+      ActiveRecord::Base.configurations = { development: @old_configurations["arunit"] }
+    end
+
+    def teardown
+      ActiveRecord::Tasks::DatabaseTasks.env = @old_env
+      ActiveRecord::Base.configurations = @old_configurations
+    end
+
+    def test_checking_the_protected_environment_does_not_create_a_new_db_if_does_not_exist
+      configuration = { development:
+        {
+          "database" => "/db/non_existent_database.sqlite3",
+          "adapter" => "sqlite3"
+        }
+      }
+      ActiveRecord::Base.configurations = configuration
+
+      adapter = ActiveRecord::Tasks::SQLiteDatabaseTasks.new(configuration[:development])
+
+      ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!
+
+      assert_not_predicate adapter, :database_exists?
+    ensure
+      ActiveRecord::Tasks::DatabaseTasks.current_config = nil
+    end
+
     def test_raises_an_error_when_called_with_protected_environment
       protected_environments = ActiveRecord::Base.protected_environments
       current_env            = ActiveRecord::Base.connection.migration_context.current_environment

@@ -66,6 +66,12 @@ module ActiveRecord
         run_cmd("mysql", args, "loading")
       end
 
+      def database_exists?
+        !!connection
+      rescue ActiveRecord::NoDatabaseError
+        false
+      end
+
       private
 
         attr_reader :configuration

@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "pathname"
+
 module ActiveRecord
   module Tasks # :nodoc:
     class SQLiteDatabaseTasks # :nodoc:
@@ -10,20 +12,24 @@ module ActiveRecord
       end
 
       def create
-        raise DatabaseAlreadyExists if File.exist?(configuration["database"])
+        raise DatabaseAlreadyExists if database_exists?
 
         establish_connection configuration
         connection
       end
 
       def drop
-        require "pathname"
-        path = Pathname.new configuration["database"]
-        file = path.absolute? ? path.to_s : File.join(root, path)
-
-        FileUtils.rm(file)
+        FileUtils.rm(database_file)
       rescue Errno::ENOENT => error
         raise NoDatabaseError.new(error.message)
+      end
+
+      def database_exists?
+        if configuration["database"] == ":memory:"
+          true
+        else
+          File.exist?(database_file)
+        end
       end
 
       def purge
@@ -61,6 +67,11 @@ module ActiveRecord
       private
 
         attr_reader :configuration, :root
+
+        def database_file
+          path = Pathname.new configuration["database"]
+          path.absolute? ? path.to_s : File.join(root, path)
+        end
 
         def run_cmd(cmd, args, out)
           fail run_cmd_error(cmd, args) unless Kernel.system(cmd, *args, out: out)

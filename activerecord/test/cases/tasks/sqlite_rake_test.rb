@@ -23,7 +23,7 @@ if current_adapter?(:SQLite3Adapter)
 
       def test_db_checks_database_exists
         ActiveRecord::Base.stub(:establish_connection, nil) do
-          assert_called_with(File, :exist?, [@database], returns: false) do
+          assert_called_with(File, :exist?, ["/rails/root/#{@database}"], returns: false) do
             ActiveRecord::Tasks::DatabaseTasks.create @configuration, "/rails/root"
           end
         end

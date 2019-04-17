@@ -55,6 +55,8 @@ module ActiveRecord
       LOCAL_HOSTS = ["127.0.0.1", "localhost"]
 
       def check_protected_environments!
+        return unless adapter_instance(current_config).database_exists?
+
         unless ENV["DISABLE_DATABASE_ENVIRONMENT_CHECK"]
           current = ActiveRecord::Base.connection.migration_context.current_environment
           stored  = ActiveRecord::Base.connection.migration_context.last_stored_environment
@@ -67,7 +69,6 @@ module ActiveRecord
             raise ActiveRecord::EnvironmentMismatchError.new(current: current, stored: stored)
           end
         end
-      rescue ActiveRecord::NoDatabaseError
       end
 
       def register_task(pattern, task)
@@ -96,11 +97,11 @@ module ActiveRecord
       end
 
       def root
-        @root ||= Rails.root
+        @root ||= Rails.root if defined?(Rails.root)
       end
 
       def env
-        @env ||= Rails.env
+        @env ||= ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
       end
 
       def spec
@@ -414,6 +415,12 @@ module ActiveRecord
       end
 
       private
+
+        def adapter_instance(configuration, *args)
+          args = args.empty? ? configuration : args
+          class_for_adapter(configuration["adapter"]).new(args)
+        end
+
         def verbose?
           ENV["VERBOSE"] ? ENV["VERBOSE"] != "false" : true
         end

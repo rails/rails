@@ -29,7 +29,15 @@ module ActiveRecord
         end
       end
 
+      def database_exists?
+        !!connection
+      rescue ActiveRecord::NoDatabaseError
+        false
+      end
+
       def drop
+        raise ActiveRecord::NoDatabaseError unless database_exists?
+
         establish_master_connection
         connection.drop_database configuration["database"]
       end
