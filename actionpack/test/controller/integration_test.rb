@@ -522,11 +522,11 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
     with_test_route_set do
       get "/get", headers: { "Accept" => "application/json" }, xhr: true
       assert_equal "application/json", request.accept
-      assert_equal "application/json", response.content_type
+      assert_equal "application/json", response.media_type
 
       get "/get", headers: { "HTTP_ACCEPT" => "application/json" }, xhr: true
       assert_equal "application/json", request.accept
-      assert_equal "application/json", response.content_type
+      assert_equal "application/json", response.media_type
     end
   end
 
@@ -986,7 +986,7 @@ class IntegrationRequestEncodersTest < ActionDispatch::IntegrationTest
   def test_encoding_as_json
     post_to_foos as: :json do
       assert_response :success
-      assert_equal "application/json", request.content_type
+      assert_equal "application/json", request.media_type
       assert_equal "application/json", request.accepts.first.to_s
       assert_equal :json, request.format.ref
       assert_equal({ "foo" => "fighters" }, request.request_parameters)
@@ -1025,7 +1025,7 @@ class IntegrationRequestEncodersTest < ActionDispatch::IntegrationTest
     post_to_foos as: :wibble do
       assert_response :success
       assert_equal "/foos_wibble", request.path
-      assert_equal "text/wibble", request.content_type
+      assert_equal "text/wibble", request.media_type
       assert_equal "text/wibble", request.accepts.first.to_s
       assert_equal :wibble, request.format.ref
       assert_equal Hash.new, request.request_parameters # Unregistered MIME Type can't be parsed.

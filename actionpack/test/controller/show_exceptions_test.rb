@@ -76,7 +76,7 @@ module ShowExceptions
       @app = ShowExceptionsOverriddenController.action(:boom)
       get "/", headers: { "HTTP_ACCEPT" => "application/json" }
       assert_response :internal_server_error
-      assert_equal "application/json", response.content_type.to_s
+      assert_equal "application/json", response.media_type
       assert_equal({ status: 500, error: "Internal Server Error" }.to_json, response.body)
     end
 
@@ -84,7 +84,7 @@ module ShowExceptions
       @app = ShowExceptionsOverriddenController.action(:boom)
       get "/", headers: { "HTTP_ACCEPT" => "application/xml" }
       assert_response :internal_server_error
-      assert_equal "application/xml", response.content_type.to_s
+      assert_equal "application/xml", response.media_type
       assert_equal({ status: 500, error: "Internal Server Error" }.to_xml, response.body)
     end
 
@@ -92,7 +92,7 @@ module ShowExceptions
       @app = ShowExceptionsOverriddenController.action(:boom)
       get "/", headers: { "HTTP_ACCEPT" => "text/csv" }
       assert_response :internal_server_error
-      assert_equal "text/html", response.content_type.to_s
+      assert_equal "text/html", response.media_type
     end
   end
 
@@ -106,7 +106,7 @@ module ShowExceptions
 
       get "/", headers: { "HTTP_ACCEPT" => "text/json" }
       assert_response :internal_server_error
-      assert_equal "text/plain", response.content_type.to_s
+      assert_equal "text/plain", response.media_type
     ensure
       middleware.instance_variable_set(:@exceptions_app, @exceptions_app)
       $stderr = STDERR
