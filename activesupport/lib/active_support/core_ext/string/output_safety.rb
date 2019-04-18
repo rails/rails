@@ -213,6 +213,12 @@ module ActiveSupport #:nodoc:
       dup.concat(other)
     end
 
+    def *(*)
+      new_safe_buffer = super
+      new_safe_buffer.instance_variable_set(:@html_safe, @html_safe)
+      new_safe_buffer
+    end
+
     def %(args)
       case args
       when Hash

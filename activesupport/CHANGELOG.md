@@ -1,3 +1,15 @@
+*   Preserve `html_safe?` status on `ActiveSupport::SafeBuffer#*`.
+
+    Before:
+
+        ("<br />".html_safe * 2).html_safe? #=> nil
+
+    After:
+
+        ("<br />".html_safe * 2).html_safe? #=> true
+
+    *Ryo Nakamura*
+
 *   Calling test methods with `with_info_handler` method to allow minitest-hooks
     plugin to work.
 
