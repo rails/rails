@@ -402,10 +402,6 @@ module ActiveModel
           def method_name(attr_name)
             @method_name % attr_name
           end
-
-          def plain?
-            prefix.empty? && suffix.empty?
-          end
         end
     end
 
