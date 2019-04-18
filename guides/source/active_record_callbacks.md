@@ -67,13 +67,14 @@ class User < ApplicationRecord
   after_validation :set_location, on: [ :create, :update ]
 
   private
-    def normalize_name
-      self.name = name.downcase.titleize
-    end
 
-    def set_location
-      self.location = LocationService.query(self)
-    end
+  def normalize_name
+    self.name = name.downcase.titleize
+  end
+
+  def set_location
+    self.location = LocationService.query(self)
+  end
 end
 ```
 
