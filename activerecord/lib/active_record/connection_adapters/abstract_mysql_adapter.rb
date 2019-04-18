@@ -767,24 +767,40 @@ module ActiveRecord
         end
 
         def mismatched_foreign_key(message, sql:, binds:)
-          match = %r/
-            (?:CREATE|ALTER)\s+TABLE\s*(?:`?\w+`?\.)?`?(?<table>\w+)`?.+?
-            FOREIGN\s+KEY\s*\(`?(?<foreign_key>\w+)`?\)\s*
-            REFERENCES\s*(`?(?<target_table>\w+)`?)\s*\(`?(?<primary_key>\w+)`?\)
-          /xmi.match(sql)
-
           options = {
             message: message,
             sql: sql,
             binds: binds,
           }
 
-          if match
-            options[:table] = match[:table]
-            options[:foreign_key] = match[:foreign_key]
-            options[:target_table] = match[:target_table]
-            options[:primary_key] = match[:primary_key]
-            options[:primary_key_column] = column_for(match[:target_table], match[:primary_key])
+          table_name_match = %r/(?:CREATE|ALTER)\s+TABLE\s*(?:`?\w+`?\.)?`?(?<table>\w+)`?.+?/xmi.match(sql)
+          foreign_keys_scan = sql.scan(%r/
+            (
+              FOREIGN\s+KEY\s*\(`?(?<foreign_key>\w+)`?\)\s*
+              REFERENCES\s*(`?(?<target_table>\w+)`?)\s*\(`?(?<primary_key>\w+)`?\)
+            )+
+          /xmi)
+
+          if table_name_match && foreign_keys_scan.any?
+            options[:table] = table_name_match[:table]
+
+            foreign_keys_scan.each do |foreign_key, target_table, _|
+              unless table_exists?(target_table)
+                options[:foreign_key] = foreign_key
+                options[:target_table] = target_table
+                options[:target_table_exists] = false
+                break
+              end
+            end
+
+            unless options.dig(:target_table_exists) == false
+              # Fallback to the first foreign key of the SQL query (behavior introduced in commit 3ac195c5349)
+              # TODO find the foreign key that causes the mismatch instead of assuming that it's the first one of the SQL query.
+              options[:foreign_key] = foreign_keys_scan.first[0]
+              options[:target_table] = foreign_keys_scan.first[1]
+              options[:primary_key] = foreign_keys_scan.first[2]
+              options[:primary_key_column] = column_for(options[:target_table], options[:primary_key])
+            end
           end
 
           MismatchedForeignKey.new(options)

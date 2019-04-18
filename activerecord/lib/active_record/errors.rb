@@ -124,7 +124,8 @@ module ActiveRecord
   class InvalidForeignKey < WrappedDatabaseException
   end
 
-  # Raised when a foreign key constraint cannot be added because the column type does not match the referenced column type.
+  # Raised when a foreign key constraint cannot be added because the column type does not match the referenced column type
+  # or when the target table does not exist.
   class MismatchedForeignKey < StatementInvalid
     def initialize(
       message: nil,
@@ -133,21 +134,26 @@ module ActiveRecord
       table: nil,
       foreign_key: nil,
       target_table: nil,
+      target_table_exists: true,
       primary_key: nil,
       primary_key_column: nil
     )
-      if table
+      if !table
+        msg = <<~EOM.squish
+          There is a mismatch between the foreign key and primary key column types.
+          Verify that the foreign key column type and the primary key of the associated table match types.
+        EOM
+      elsif !target_table_exists
+        msg = <<~EOM.squish
+          Column `#{foreign_key}` on table `#{table}` targets table `#{target_table}`, which does not exist.
+        EOM
+      else
         type = primary_key_column.bigint? ? :bigint : primary_key_column.type
         msg = <<~EOM.squish
           Column `#{foreign_key}` on table `#{table}` does not match column `#{primary_key}` on `#{target_table}`,
           which has type `#{primary_key_column.sql_type}`.
           To resolve this issue, change the type of the `#{foreign_key}` column on `#{table}` to be :#{type}.
           (For example `t.#{type} :#{foreign_key}`).
-        EOM
-      else
-        msg = <<~EOM.squish
-          There is a mismatch between the foreign key and primary key column types.
-          Verify that the foreign key column type and the primary key of the associated table match types.
         EOM
       end
       if message
