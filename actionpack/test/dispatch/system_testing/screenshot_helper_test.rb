@@ -36,6 +36,14 @@ class ScreenshotHelperTest < ActiveSupport::TestCase
     end
   end
 
+  test "image name truncates names over 225 characters" do
+    new_test = DrivenBySeleniumWithChrome.new("x" * 400)
+
+    Rails.stub :root, Pathname.getwd do
+      assert_equal Rails.root.join("tmp/screenshots/#{"x" * 225}.png").to_s, new_test.send(:image_path)
+    end
+  end
+
   test "defaults to simple output for the screenshot" do
     new_test = DrivenBySeleniumWithChrome.new("x")
     assert_equal "simple", new_test.send(:output_type)
