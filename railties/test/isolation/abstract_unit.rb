@@ -501,11 +501,17 @@ Module.new do
   unless Dir.exist?("#{assets_path}/node_modules")
     Dir.chdir(assets_path) { `yarn install` }
   end
-  FileUtils.cp("#{assets_path}/package.json", "#{app_template_path}/package.json")
   FileUtils.cp("#{assets_path}/config/webpacker.yml", "#{app_template_path}/config/webpacker.yml")
   FileUtils.cp_r("#{assets_path}/config/webpack", "#{app_template_path}/config/webpack")
   FileUtils.ln_s("#{assets_path}/node_modules", "#{app_template_path}/node_modules")
   FileUtils.chdir(app_template_path) { `bin/rails webpacker:binstubs` }
+
+  # package.json in assets_path contains relative paths. Changing them to
+  # absolute and running `yarn install` to generate matching yarn.lock.
+  contents = File.read("#{assets_path}/package.json")
+  contents.gsub!(/file:\W*/, "file:#{RAILS_FRAMEWORK_ROOT}/")
+  File.write("#{app_template_path}/package.json", contents)
+  Dir.chdir(app_template_path) { `yarn install` }
 
   # Fake 'Bundler.require' -- we run using the repo's Gemfile, not an
   # app-specific one: we don't want to require every gem that lists.
