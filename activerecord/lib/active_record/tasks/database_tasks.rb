@@ -142,6 +142,8 @@ module ActiveRecord
       end
 
       def for_each
+        return {} unless defined?(Rails)
+
         databases = Rails.application.config.load_database_yaml
         database_configs = ActiveRecord::DatabaseConfigurations.new(databases).configs_for(env_name: Rails.env)
 
