@@ -128,6 +128,8 @@ db_namespace = namespace :db do
 
     # desc 'Runs the "up" for a given migration VERSION.'
     task up: :load_config do
+      ActiveRecord::Tasks::DatabaseTasks.raise_for_multi_db(command: "db:migrate:up")
+
       raise "VERSION is required" if !ENV["VERSION"] || ENV["VERSION"].empty?
 
       ActiveRecord::Tasks::DatabaseTasks.check_target_version
@@ -139,8 +141,30 @@ db_namespace = namespace :db do
       db_namespace["_dump"].invoke
     end
 
+    namespace :up do
+      ActiveRecord::Tasks::DatabaseTasks.for_each do |spec_name|
+        desc "up for #{spec_name}"
+        task spec_name => :load_config do
+          raise "VERSION is required" if !ENV["VERSION"] || ENV["VERSION"].empty?
+
+          db_config = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env, spec_name: spec_name)
+
+          ActiveRecord::Base.establish_connection(db_config.config)
+          ActiveRecord::Tasks::DatabaseTasks.check_target_version
+          ActiveRecord::Base.connection.migration_context.run(
+            :up,
+            ActiveRecord::Tasks::DatabaseTasks.target_version
+          )
+
+          db_namespace["_dump"].invoke
+        end
+      end
+    end
+
     # desc 'Runs the "down" for a given migration VERSION.'
     task down: :load_config do
+      ActiveRecord::Tasks::DatabaseTasks.raise_for_multi_db(command: "db:migrate:down")
+
       raise "VERSION is required - To go down one migration, use db:rollback" if !ENV["VERSION"] || ENV["VERSION"].empty?
 
       ActiveRecord::Tasks::DatabaseTasks.check_target_version
@@ -150,6 +174,25 @@ db_namespace = namespace :db do
         ActiveRecord::Tasks::DatabaseTasks.target_version
       )
       db_namespace["_dump"].invoke
+    end
+
+    namespace :down do
+      ActiveRecord::Tasks::DatabaseTasks.for_each do |spec_name|
+        task spec_name => :load_config do
+          raise "VERSION is required" if !ENV["VERSION"] || ENV["VERSION"].empty?
+
+          db_config = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env, spec_name: spec_name)
+
+          ActiveRecord::Base.establish_connection(db_config.config)
+          ActiveRecord::Tasks::DatabaseTasks.check_target_version
+          ActiveRecord::Base.connection.migration_context.run(
+            :down,
+            ActiveRecord::Tasks::DatabaseTasks.target_version
+          )
+
+          db_namespace["_dump"].invoke
+        end
+      end
     end
 
     desc "Display status of migrations"
