@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "active_support/core_ext/string/filters"
+require "active_support/deprecation"
 
 module ActiveRecord
   module Integration
@@ -162,8 +163,9 @@ module ActiveRecord
       end
 
       def collection_cache_key(collection = all, timestamp_column = :updated_at) # :nodoc:
-        collection.compute_cache_key(timestamp_column)
+        collection.send(:compute_cache_key, timestamp_column)
       end
+      deprecate :collection_cache_key
     end
 
     private

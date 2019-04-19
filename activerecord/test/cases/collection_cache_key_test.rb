@@ -13,7 +13,9 @@ module ActiveRecord
     fixtures :developers, :projects, :developers_projects, :topics, :comments, :posts
 
     test "collection_cache_key on model" do
-      assert_match(/\Adevelopers\/query-(\h+)-(\d+)-(\d+)\z/, Developer.collection_cache_key)
+      assert_deprecated do
+        assert_match(/\Adevelopers\/query-(\h+)-(\d+)-(\d+)\z/, Developer.collection_cache_key)
+      end
     end
 
     test "cache_key for relation" do

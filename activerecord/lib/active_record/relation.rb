@@ -310,7 +310,7 @@ module ActiveRecord
     #   Product.where("name like ?", "%Game%").cache_key(:last_reviewed_at)
     def cache_key(timestamp_column = :updated_at)
       @cache_keys ||= {}
-      @cache_keys[timestamp_column] ||= @klass.collection_cache_key(self, timestamp_column)
+      @cache_keys[timestamp_column] ||= compute_cache_key(timestamp_column)
     end
 
     def compute_cache_key(timestamp_column = :updated_at) # :nodoc:
@@ -323,6 +323,7 @@ module ActiveRecord
         "#{key}-#{compute_cache_version(timestamp_column)}"
       end
     end
+    private :compute_cache_key
 
     # Returns a cache version that can be used together with the cache key to form
     # a recyclable caching scheme. The cache version is built with the number of records
@@ -382,6 +383,7 @@ module ActiveRecord
         "#{size}"
       end
     end
+    private :compute_cache_version
 
     # Scope all queries to the current scope.
     #
