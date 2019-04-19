@@ -67,4 +67,14 @@ class ActionableExceptionsTest < ActionDispatch::IntegrationTest
       }
     end
   end
+
+  test "cannot dispatch Inexistent errors" do
+    assert_raise ActiveSupport::ActionableError::NonActionable do
+      post ActionDispatch::ActionableExceptions.endpoint, params: {
+        error: "",
+        action: "Inexistent action",
+        location: "/",
+      }
+    end
+  end
 end

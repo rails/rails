@@ -37,12 +37,6 @@ class ActionableErrorTest < ActiveSupport::TestCase
     end
   end
 
-  test "dispatches actions from error class as string and name" do
-    assert_changes "DispatchableError.flip2", from: false, to: true do
-      ActiveSupport::ActionableError.dispatch DispatchableError.name, "Flip 2"
-    end
-  end
-
   test "cannot dispatch missing actions" do
     err = assert_raises ActiveSupport::ActionableError::NonActionable do
       ActiveSupport::ActionableError.dispatch NonActionableError, "action"

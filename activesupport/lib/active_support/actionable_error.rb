@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "active_support/concern"
-
 module ActiveSupport
   # Actionable errors let's you define actions to resolve an error.
   #
@@ -11,14 +9,10 @@ module ActiveSupport
   module ActionableError
     extend Concern
 
-    NonActionable = Class.new(StandardError)
-
-    NoActions = Hash.new do |_, name| # :nodoc:
-      raise NonActionable, "Cannot find action \"#{name}\""
-    end
+    class NonActionable < StandardError; end
 
     included do
-      class_attribute :_actions, default: NoActions.dup
+      class_attribute :_actions, default: {}
     end
 
     def self.actions(error) # :nodoc:
@@ -26,12 +20,14 @@ module ActiveSupport
       when ActionableError, -> it { Class === it && it < ActionableError }
         error._actions
       else
-        NoActions
+        {}
       end
     end
 
     def self.dispatch(error, name) # :nodoc:
-      actions(error.is_a?(String) ? error.constantize : error)[name].call
+      actions(error).fetch(name).call
+    rescue KeyError
+      raise NonActionable, "Cannot find action \"#{name}\""
     end
 
     module ClassMethods
