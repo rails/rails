@@ -310,7 +310,7 @@ module ActiveRecord
     #   Product.where("name like ?", "%Game%").cache_key(:last_reviewed_at)
     def cache_key(timestamp_column = :updated_at)
       @cache_keys ||= {}
-      @cache_keys[timestamp_column] ||= compute_cache_key(timestamp_column)
+      @cache_keys[timestamp_column] ||= klass.collection_cache_key(self, timestamp_column)
     end
 
     def compute_cache_key(timestamp_column = :updated_at) # :nodoc:
