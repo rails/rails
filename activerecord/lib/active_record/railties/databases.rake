@@ -143,7 +143,6 @@ db_namespace = namespace :db do
 
     namespace :up do
       ActiveRecord::Tasks::DatabaseTasks.for_each do |spec_name|
-        desc "up for #{spec_name}"
         task spec_name => :load_config do
           raise "VERSION is required" if !ENV["VERSION"] || ENV["VERSION"].empty?
 
