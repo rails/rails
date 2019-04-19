@@ -4,6 +4,7 @@ require "benchmark"
 require "set"
 require "zlib"
 require "active_support/core_ext/module/attribute_accessors"
+require "active_support/actionable_error"
 
 module ActiveRecord
   class MigrationError < ActiveRecordError #:nodoc:
@@ -128,6 +129,12 @@ module ActiveRecord
   end
 
   class PendingMigrationError < MigrationError #:nodoc:
+    include ActiveSupport::ActionableError
+
+    action "Run pending migrations" do
+      ActiveRecord::Tasks::DatabaseTasks.migrate
+    end
+
     def initialize(message = nil)
       if !message && defined?(Rails.env)
         super("Migrations are pending. To resolve this issue, run:\n\n        rails db:migrate RAILS_ENV=#{::Rails.env}")
