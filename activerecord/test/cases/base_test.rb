@@ -1215,6 +1215,8 @@ class BasicsTest < ActiveRecord::TestCase
       wr.close
       assert Marshal.load rd.read
       rd.close
+    ensure
+      self.class.send(:remove_const, "Post") if self.class.const_defined?("Post", false)
     end
   end
 
