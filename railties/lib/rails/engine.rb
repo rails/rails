@@ -552,7 +552,7 @@ module Rails
       seed_file = paths["db/seeds.rb"].existent.first
       return unless seed_file
 
-      if config.active_job.queue_adapter == :async
+      if config.try(:active_job)&.queue_adapter == :async
         with_inline_jobs { load(seed_file) }
       else
         load(seed_file)
