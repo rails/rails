@@ -1441,10 +1441,8 @@ module ActiveRecord
         end
 
         def validate_index_length!(table_name, new_name, internal = false)
-          max_index_length = internal ? index_name_length : allowed_index_name_length
-
-          if new_name.length > max_index_length
-            raise ArgumentError, "Index name '#{new_name}' on table '#{table_name}' is too long; the limit is #{allowed_index_name_length} characters"
+          if new_name.length > index_name_length
+            raise ArgumentError, "Index name '#{new_name}' on table '#{table_name}' is too long; the limit is #{index_name_length} characters"
           end
         end
 

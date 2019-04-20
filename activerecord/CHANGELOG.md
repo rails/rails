@@ -1,4 +1,4 @@
-*   Deprecate `in_clause_length` in `DatabaseLimits`.
+*   Deprecate `in_clause_length` and `allowed_index_name_length` in `DatabaseLimits`.
 
     *Ryuta Kamizono*
 
