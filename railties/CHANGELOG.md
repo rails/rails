@@ -1,3 +1,9 @@
+*   Allow loading seeds without ActiveJob.
+
+    Fixes #35782
+
+    *Jeremy Weathers*
+
 *   Only force `:async` ActiveJob adapter to `:inline` during seeding.
 
     *BatedUrGonnaDie*
