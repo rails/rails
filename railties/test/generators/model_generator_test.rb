@@ -422,18 +422,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_required_polymorphic_belongs_to_generates_correct_model
-    run_generator ["account", "supplier:references{polymorphic}"]
-
-    expected_file = <<~FILE
-      class Account < ApplicationRecord
-        belongs_to :supplier, polymorphic: true
-      end
-    FILE
-    assert_file "app/models/account.rb", expected_file
-  end
-
-  def test_required_and_polymorphic_are_order_independent
+  def test_polymorphic_belongs_to_generates_correct_model
     run_generator ["account", "supplier:references{polymorphic}"]
 
     expected_file = <<~FILE
