@@ -159,59 +159,6 @@ module ActiveRecord
         end
       end
 
-      # Regexp for column names (with or without a table name prefix). Matches
-      # the following:
-      #   "#{table_name}.#{column_name}"
-      #   "#{column_name}"
-      COLUMN_NAME = /\A(?:\w+\.)?\w+\z/i
-
-      # Regexp for column names with order (with or without a table name
-      # prefix, with or without various order modifiers). Matches the following:
-      #   "#{table_name}.#{column_name}"
-      #   "#{table_name}.#{column_name} #{direction}"
-      #   "#{table_name}.#{column_name} #{direction} NULLS FIRST"
-      #   "#{table_name}.#{column_name} NULLS LAST"
-      #   "#{column_name}"
-      #   "#{column_name} #{direction}"
-      #   "#{column_name} #{direction} NULLS FIRST"
-      #   "#{column_name} NULLS LAST"
-      COLUMN_NAME_WITH_ORDER = /
-        \A
-        (?:\w+\.)?
-        \w+
-        (?:\s+asc|\s+desc)?
-        (?:\s+nulls\s+(?:first|last))?
-        \z
-      /ix
-
-      def disallow_raw_sql!(args, permit: COLUMN_NAME) # :nodoc:
-        unexpected = nil
-        args.each do |arg|
-          next if arg.is_a?(Symbol) || Arel.arel_node?(arg) ||
-            arg.to_s.split(/\s*,\s*/).all? { |part| permit.match?(part) }
-          (unexpected ||= []) << arg
-        end
-
-        return unless unexpected
-
-        if allow_unsafe_raw_sql == :deprecated
-          ActiveSupport::Deprecation.warn(
-            "Dangerous query method (method whose arguments are used as raw " \
-            "SQL) called with non-attribute argument(s): " \
-            "#{unexpected.map(&:inspect).join(", ")}. Non-attribute " \
-            "arguments will be disallowed in Rails 6.1. This method should " \
-            "not be called with user-provided values, such as request " \
-            "parameters or model attributes. Known-safe values can be passed " \
-            "by wrapping them in Arel.sql()."
-          )
-        else
-          raise(ActiveRecord::UnknownAttributeReference,
-            "Query method called with non-attribute argument(s): " +
-            unexpected.map(&:inspect).join(", ")
-          )
-        end
-      end
-
       # Returns true if the given attribute exists, otherwise false.
       #
       #   class Person < ActiveRecord::Base

@@ -61,8 +61,9 @@ module ActiveRecord
       #   # => "id ASC"
       def sanitize_sql_for_order(condition)
         if condition.is_a?(Array) && condition.first.to_s.include?("?")
-          disallow_raw_sql!([condition.first],
-            permit: AttributeMethods::ClassMethods::COLUMN_NAME_WITH_ORDER
+          disallow_raw_sql!(
+            [condition.first],
+            permit: connection.column_name_with_order_matcher
           )
 
           # Ensure we aren't dealing with a subclass of String that might
@@ -130,6 +131,34 @@ module ActiveRecord
           statement
         else
           statement % values.collect { |value| connection.quote_string(value.to_s) }
+        end
+      end
+
+      def disallow_raw_sql!(args, permit: connection.column_name_matcher) # :nodoc:
+        unexpected = nil
+        args.each do |arg|
+          next if arg.is_a?(Symbol) || Arel.arel_node?(arg) ||
+            arg.to_s.split(/\s*,\s*/).all? { |part| permit.match?(part) }
+          (unexpected ||= []) << arg
+        end
+
+        return unless unexpected
+
+        if allow_unsafe_raw_sql == :deprecated
+          ActiveSupport::Deprecation.warn(
+            "Dangerous query method (method whose arguments are used as raw " \
+            "SQL) called with non-attribute argument(s): " \
+            "#{unexpected.map(&:inspect).join(", ")}. Non-attribute " \
+            "arguments will be disallowed in Rails 6.1. This method should " \
+            "not be called with user-provided values, such as request " \
+            "parameters or model attributes. Known-safe values can be passed " \
+            "by wrapping them in Arel.sql()."
+          )
+        else
+          raise(ActiveRecord::UnknownAttributeReference,
+            "Query method called with non-attribute argument(s): " +
+            unexpected.map(&:inspect).join(", ")
+          )
         end
       end
 

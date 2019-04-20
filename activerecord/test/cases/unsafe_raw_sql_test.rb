@@ -77,11 +77,22 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
     assert_equal ids_expected, ids_disabled
   end
 
-  test "order: allows table and column name" do
+  test "order: allows table and column names" do
     ids_expected = Post.order(Arel.sql("title")).pluck(:id)
 
     ids_depr     = with_unsafe_raw_sql_deprecated { Post.order("posts.title").pluck(:id) }
     ids_disabled = with_unsafe_raw_sql_disabled   { Post.order("posts.title").pluck(:id) }
+
+    assert_equal ids_expected, ids_depr
+    assert_equal ids_expected, ids_disabled
+  end
+
+  test "order: allows quoted table and column names" do
+    ids_expected = Post.order(Arel.sql("title")).pluck(:id)
+
+    quoted_title = Post.connection.quote_table_name("posts.title")
+    ids_depr     = with_unsafe_raw_sql_deprecated { Post.order(quoted_title).pluck(:id) }
+    ids_disabled = with_unsafe_raw_sql_disabled   { Post.order(quoted_title).pluck(:id) }
 
     assert_equal ids_expected, ids_depr
     assert_equal ids_expected, ids_disabled
@@ -116,10 +127,10 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
 
     ["asc", "desc", ""].each do |direction|
       %w(first last).each do |position|
-        ids_expected = Post.order(Arel.sql("type #{direction} nulls #{position}")).pluck(:id)
+        ids_expected = Post.order(Arel.sql("type::text #{direction} nulls #{position}")).pluck(:id)
 
-        ids_depr     = with_unsafe_raw_sql_deprecated { Post.order("type #{direction} nulls #{position}").pluck(:id) }
-        ids_disabled = with_unsafe_raw_sql_disabled   { Post.order("type #{direction} nulls #{position}").pluck(:id) }
+        ids_depr     = with_unsafe_raw_sql_deprecated { Post.order("type::text #{direction} nulls #{position}").pluck(:id) }
+        ids_disabled = with_unsafe_raw_sql_disabled   { Post.order("type::text #{direction} nulls #{position}").pluck(:id) }
 
         assert_equal ids_expected, ids_depr
         assert_equal ids_expected, ids_disabled
@@ -257,6 +268,17 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
 
     titles_depr     = with_unsafe_raw_sql_deprecated { Post.pluck("posts.title") }
     titles_disabled = with_unsafe_raw_sql_disabled   { Post.pluck("posts.title") }
+
+    assert_equal titles_expected, titles_depr
+    assert_equal titles_expected, titles_disabled
+  end
+
+  test "pluck: allows quoted table and column names" do
+    titles_expected = Post.pluck(Arel.sql("title"))
+
+    quoted_title    = Post.connection.quote_table_name("posts.title")
+    titles_depr     = with_unsafe_raw_sql_deprecated { Post.pluck(quoted_title) }
+    titles_disabled = with_unsafe_raw_sql_disabled   { Post.pluck(quoted_title) }
 
     assert_equal titles_expected, titles_depr
     assert_equal titles_expected, titles_disabled

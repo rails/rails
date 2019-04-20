@@ -142,6 +142,43 @@ module ActiveRecord
         value.to_s.gsub(%r{ (/ (?: | \g<1>) \*) \+? \s* | \s* (\* (?: | \g<2>) /) }x, "")
       end
 
+      def column_name_matcher # :nodoc:
+        COLUMN_NAME
+      end
+
+      def column_name_with_order_matcher # :nodoc:
+        COLUMN_NAME_WITH_ORDER
+      end
+
+      # Regexp for column names (with or without a table name prefix).
+      # Matches the following:
+      #
+      #   "#{table_name}.#{column_name}"
+      #   "#{column_name}"
+      COLUMN_NAME = /\A(?:\w+\.)?\w+\z/i
+
+      # Regexp for column names with order (with or without a table name prefix,
+      # with or without various order modifiers). Matches the following:
+      #
+      #   "#{table_name}.#{column_name}"
+      #   "#{table_name}.#{column_name} #{direction}"
+      #   "#{table_name}.#{column_name} #{direction} NULLS FIRST"
+      #   "#{table_name}.#{column_name} NULLS LAST"
+      #   "#{column_name}"
+      #   "#{column_name} #{direction}"
+      #   "#{column_name} #{direction} NULLS FIRST"
+      #   "#{column_name} NULLS LAST"
+      COLUMN_NAME_WITH_ORDER = /
+        \A
+        (?:\w+\.)?
+        \w+
+        (?:\s+ASC|\s+DESC)?
+        (?:\s+NULLS\s+(?:FIRST|LAST))?
+        \z
+      /ix
+
+      private_constant :COLUMN_NAME, :COLUMN_NAME_WITH_ORDER
+
       private
         def type_casted_binds(binds)
           if binds.first.is_a?(Array)

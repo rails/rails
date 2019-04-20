@@ -45,6 +45,26 @@ module ActiveRecord
           0
         end
 
+        def column_name_matcher
+          COLUMN_NAME
+        end
+
+        def column_name_with_order_matcher
+          COLUMN_NAME_WITH_ORDER
+        end
+
+        COLUMN_NAME = /\A(?:("?)\w+\k<1>\.)?("?)\w+\k<2>\z/i
+
+        COLUMN_NAME_WITH_ORDER = /
+          \A
+          (?:("?)\w+\k<1>\.)?
+          ("?)\w+\k<2>
+          (?:\s+ASC|\s+DESC)?
+          \z
+        /ix
+
+        private_constant :COLUMN_NAME, :COLUMN_NAME_WITH_ORDER
+
         private
 
           def _type_cast(value)

@@ -78,6 +78,28 @@ module ActiveRecord
           type_map.lookup(column.oid, column.fmod, column.sql_type)
         end
 
+        def column_name_matcher
+          COLUMN_NAME
+        end
+
+        def column_name_with_order_matcher
+          COLUMN_NAME_WITH_ORDER
+        end
+
+        COLUMN_NAME = /\A(?:("?)\w+\k<1>\.)?("?)\w+\k<2>(?:::\w+)?\z/i
+
+        COLUMN_NAME_WITH_ORDER = /
+          \A
+          (?:("?)\w+\k<1>\.)?
+          ("?)\w+\k<2>
+          (?:::\w+)?
+          (?:\s+ASC|\s+DESC)?
+          (?:\s+NULLS\s+(?:FIRST|LAST))?
+          \z
+        /ix
+
+        private_constant :COLUMN_NAME, :COLUMN_NAME_WITH_ORDER
+
         private
           def lookup_cast_type(sql_type)
             super(query_value("SELECT #{quote(sql_type)}::regtype::oid", "SCHEMA").to_i)
