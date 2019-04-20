@@ -6,7 +6,22 @@
     "activestorage",
     "actionview"
   ],
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*.rb": [
+      "bundle exec rubocop -a",
+      "git add"
+    ]
+  },
   "dependencies": {
     "webpack": "^4.17.1"
+  },
+  "devDependencies": {
+    "husky": "^1.3.1",
+    "lint-staged": "^8.1.5"
   }
 }
