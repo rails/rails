@@ -40,7 +40,7 @@ class ActiveStorage::Variation
   end
 
   def initialize(transformations)
-    @transformations = transformations
+    @transformations = transformations.deep_symbolize_keys
   end
 
   # Accepts a File object, performs the +transformations+ against it, and

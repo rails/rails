@@ -4,6 +4,14 @@ require "test_helper"
 require "database/setup"
 
 class ActiveStorage::VariantTest < ActiveSupport::TestCase
+  test "variations have the same key for different types of the same transformation" do
+    blob = create_file_blob(filename: "racecar.jpg")
+    variant_a = blob.variant(resize: "100x100")
+    variant_b = blob.variant("resize" => "100x100")
+
+    assert_equal variant_a.key, variant_b.key
+  end
+
   test "resized variation of JPEG blob" do
     blob = create_file_blob(filename: "racecar.jpg")
     variant = blob.variant(resize: "100x100").processed
