@@ -1,3 +1,7 @@
+*   Permit generating variants of BMP images.
+
+    *Younes Serraj*
+
 ## Rails 6.0.0.beta3 (March 11, 2019) ##
 
 *   No changes.
