@@ -39,7 +39,7 @@ module ActiveRecord
       # This method exists to avoid the expensive primary_key check internally, without
       # breaking compatibility with the read_attribute API
       def _read_attribute(attr_name, &block) # :nodoc
-        sync_with_transaction_state
+        sync_with_transaction_state if @transaction_state&.finalized?
         @attributes.fetch_value(attr_name.to_s, &block)
       end
 

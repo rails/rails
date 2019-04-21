@@ -466,7 +466,7 @@ module ActiveRecord
 
     # Returns +true+ if the attributes hash has been frozen.
     def frozen?
-      sync_with_transaction_state
+      sync_with_transaction_state if @transaction_state&.finalized?
       @attributes.frozen?
     end
 

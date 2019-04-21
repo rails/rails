@@ -157,12 +157,12 @@ module ActiveRecord
 
       private
         def mutations_from_database
-          sync_with_transaction_state
+          sync_with_transaction_state if @transaction_state&.finalized?
           super
         end
 
         def mutations_before_last_save
-          sync_with_transaction_state
+          sync_with_transaction_state if @transaction_state&.finalized?
           super
         end
 
