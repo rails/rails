@@ -1,3 +1,12 @@
+*   Make system tests take a failed screenshot in a `before_teardown` hook
+    rather than an `after_teardown` hook.
+
+    This helps minimize the time gap between when an assertion fails and when
+    the screenshot is taken (reducing the time in which the page could have
+    been dynamically updated after the assertion failed).
+
+    *Richard Macklin*
+
 *   Introduce `ActionDispatch::ActionableExceptions`.
 
     The `ActionDispatch::ActionableExceptions` middleware dispatches actions
