@@ -43,14 +43,14 @@ module ActiveRecord
       # This method exists to avoid the expensive primary_key check internally, without
       # breaking compatibility with the write_attribute API
       def _write_attribute(attr_name, value) # :nodoc:
-        sync_with_transaction_state
+        sync_with_transaction_state if @transaction_state&.finalized?
         @attributes.write_from_user(attr_name.to_s, value)
         value
       end
 
       private
         def write_attribute_without_type_cast(attr_name, value)
-          sync_with_transaction_state
+          sync_with_transaction_state if @transaction_state&.finalized?
           @attributes.write_cast_value(attr_name.to_s, value)
           value
         end

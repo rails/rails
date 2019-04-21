@@ -365,7 +365,7 @@ module ActiveRecord
       status = nil
       self.class.transaction do
         unless has_transactional_callbacks?
-          sync_with_transaction_state
+          sync_with_transaction_state if @transaction_state&.finalized?
           @transaction_state = self.class.connection.transaction_state
         end
         remember_transaction_record_state
@@ -479,7 +479,7 @@ module ActiveRecord
       # the TransactionState, and rolls back or commits the Active Record object
       # as appropriate.
       def sync_with_transaction_state
-        if (transaction_state = @transaction_state)&.finalized?
+        if transaction_state = @transaction_state
           if transaction_state.fully_committed?
             force_clear_transaction_record_state
           elsif transaction_state.committed?
