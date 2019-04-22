@@ -117,6 +117,7 @@ module ActionController
       ApiRendering,
       Renderers::All,
       ConditionalGet,
+      Caching,
       BasicImplicitRender,
       StrongParameters,
 
