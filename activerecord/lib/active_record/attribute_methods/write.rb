@@ -31,9 +31,7 @@ module ActiveRecord
       # turned into +nil+.
       def write_attribute(attr_name, value)
         name = attr_name.to_s
-        if self.class.attribute_alias?(name)
-          name = self.class.attribute_alias(name)
-        end
+        name = self.class.attribute_aliases[name] || name
 
         name = @primary_key if name == "id" && @primary_key
         _write_attribute(name, value)

@@ -664,8 +664,13 @@ module ActiveRecord
       raise ActiveRecordError, "cannot update a new record" if new_record?
       raise ActiveRecordError, "cannot update a destroyed record" if destroyed?
 
+      attributes = attributes.transform_keys do |key|
+        name = key.to_s
+        self.class.attribute_aliases[name] || name
+      end
+
       attributes.each_key do |key|
-        verify_readonly_attribute(key.to_s)
+        verify_readonly_attribute(key)
       end
 
       id_in_database = self.id_in_database
@@ -853,7 +858,7 @@ module ActiveRecord
 
       attribute_names = timestamp_attributes_for_update_in_model
       attribute_names |= names.map!(&:to_s).map! { |name|
-        self.class.attribute_alias?(name) ? self.class.attribute_alias(name) : name
+        self.class.attribute_aliases[name] || name
       }
 
       unless attribute_names.empty?

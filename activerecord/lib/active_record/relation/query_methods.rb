@@ -1178,7 +1178,7 @@ module ActiveRecord
       end
 
       def arel_column(field)
-        field = klass.attribute_alias(field) if klass.attribute_alias?(field)
+        field = klass.attribute_aliases[field] || field
         from = from_clause.name || from_clause.value
 
         if klass.columns_hash.key?(field) && (!from || table_name_matches?(from))

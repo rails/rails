@@ -12,9 +12,9 @@ module ActiveRecord
 
     def resolve_column_aliases(hash)
       new_hash = hash.dup
-      hash.each do |key, _|
-        if (key.is_a?(Symbol)) && klass.attribute_alias?(key)
-          new_hash[klass.attribute_alias(key)] = new_hash.delete(key)
+      hash.each_key do |key|
+        if key.is_a?(Symbol) && new_key = klass.attribute_aliases[key.to_s]
+          new_hash[new_key] = new_hash.delete(key)
         end
       end
       new_hash

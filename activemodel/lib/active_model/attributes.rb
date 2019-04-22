@@ -116,22 +116,17 @@ module ActiveModel
     private
 
       def write_attribute(attr_name, value)
-        name = if self.class.attribute_alias?(attr_name)
-          self.class.attribute_alias(attr_name).to_s
-        else
-          attr_name.to_s
-        end
+        name = attr_name.to_s
+        name = self.class.attribute_aliases[name] || name
 
         @attributes.write_from_user(name, value)
         value
       end
 
       def attribute(attr_name)
-        name = if self.class.attribute_alias?(attr_name)
-          self.class.attribute_alias(attr_name).to_s
-        else
-          attr_name.to_s
-        end
+        name = attr_name.to_s
+        name = self.class.attribute_aliases[name] || name
+
         @attributes.fetch_value(name)
       end
 

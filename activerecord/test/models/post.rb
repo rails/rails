@@ -323,8 +323,8 @@ class FakeKlass
       "posts"
     end
 
-    def attribute_alias?(name)
-      false
+    def attribute_aliases
+      {}
     end
 
     def sanitize_sql(sql)

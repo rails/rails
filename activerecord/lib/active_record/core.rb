@@ -268,7 +268,8 @@ module ActiveRecord
       end
 
       def arel_attribute(name, table = arel_table) # :nodoc:
-        name = attribute_alias(name) if attribute_alias?(name)
+        name = name.to_s
+        name = attribute_aliases[name] || name
         table[name]
       end
 
