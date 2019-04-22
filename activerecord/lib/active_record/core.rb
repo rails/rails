@@ -101,7 +101,6 @@ module ActiveRecord
       # environment where dumping schema is rarely needed.
       mattr_accessor :dump_schema_after_migration, instance_writer: false, default: true
 
-      mattr_accessor :database_selector, instance_writer: false
       ##
       # :singleton-method:
       # Specifies which database schemas to dump when calling db:structure:dump.
