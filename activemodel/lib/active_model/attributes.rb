@@ -26,6 +26,21 @@ module ActiveModel
         define_attribute_method(name)
       end
 
+      # Returns an array of attribute names as strings
+      #
+      #   class Person
+      #     include ActiveModel::Attributes
+      #
+      #     attribute :name, :string
+      #     attribute :age, :integer
+      #   end
+      #
+      #   Person.attribute_names
+      #   # => ["name", "age"]
+      def attribute_names
+        attribute_types.keys
+      end
+
       private
 
         def define_method_attribute=(name)
@@ -65,8 +80,37 @@ module ActiveModel
       super
     end
 
+    # Returns a hash of all the attributes with their names as keys and the values of the attributes as values.
+    #
+    #   class Person
+    #     include ActiveModel::Model
+    #     include ActiveModel::Attributes
+    #
+    #     attribute :name, :string
+    #     attribute :age, :integer
+    #   end
+    #
+    #   person = Person.new(name: 'Francesco', age: 22)
+    #   person.attributes
+    #   # => {"name"=>"Francesco", "age"=>22}
     def attributes
       @attributes.to_hash
+    end
+
+    # Returns an array of attribute names as strings
+    #
+    #   class Person
+    #     include ActiveModel::Attributes
+    #
+    #     attribute :name, :string
+    #     attribute :age, :integer
+    #   end
+    #
+    #   person = Person.new
+    #   person.attribute_names
+    #   # => ["name", "age"]
+    def attribute_names
+      @attributes.keys
     end
 
     private
