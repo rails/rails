@@ -432,9 +432,8 @@ module ActiveRecord
             end
             @mutations_from_database = nil
             @mutations_before_last_save = nil
-            pk = self.class.primary_key
-            if pk && @attributes.fetch_value(pk) != restore_state[:id]
-              @attributes.write_from_user(pk, restore_state[:id])
+            if @attributes.fetch_value(@primary_key) != restore_state[:id]
+              @attributes.write_from_user(@primary_key, restore_state[:id])
             end
             freeze if restore_state[:frozen?]
           end

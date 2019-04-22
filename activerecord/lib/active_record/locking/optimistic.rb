@@ -87,7 +87,7 @@ module ActiveRecord
 
             affected_rows = self.class._update_record(
               attributes_with_values(attribute_names),
-              self.class.primary_key => id_in_database,
+              @primary_key => id_in_database,
               locking_column => previous_lock_value
             )
 
@@ -110,7 +110,7 @@ module ActiveRecord
           locking_column = self.class.locking_column
 
           affected_rows = self.class._delete_record(
-            self.class.primary_key => id_in_database,
+            @primary_key => id_in_database,
             locking_column => read_attribute_before_type_cast(locking_column)
           )
 

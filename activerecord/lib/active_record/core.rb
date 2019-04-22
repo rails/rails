@@ -174,8 +174,7 @@ module ActiveRecord
 
         record = statement.execute([id], connection)&.first
         unless record
-          raise RecordNotFound.new("Couldn't find #{name} with '#{primary_key}'=#{id}",
-                                   name, primary_key, id)
+          raise RecordNotFound.new("Couldn't find #{name} with '#{key}'=#{id}", name, key, id)
         end
         record
       end
@@ -398,7 +397,7 @@ module ActiveRecord
     ##
     def initialize_dup(other) # :nodoc:
       @attributes = @attributes.deep_dup
-      @attributes.reset(self.class.primary_key)
+      @attributes.reset(@primary_key)
 
       _run_initialize_callbacks
 
@@ -570,6 +569,7 @@ module ActiveRecord
       end
 
       def init_internals
+        @primary_key              = self.class.primary_key
         @readonly                 = false
         @destroyed                = false
         @marked_for_destruction   = false

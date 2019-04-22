@@ -31,8 +31,7 @@ module ActiveRecord
           name = self.class.attribute_alias(name)
         end
 
-        primary_key = self.class.primary_key
-        name = primary_key if name == "id" && primary_key
+        name = @primary_key if name == "id" && @primary_key
         _read_attribute(name, &block)
       end
 

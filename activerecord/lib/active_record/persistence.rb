@@ -353,6 +353,7 @@ module ActiveRecord
       end
 
       def _insert_record(values) # :nodoc:
+        primary_key = self.primary_key
         primary_key_value = nil
 
         if primary_key && Hash === values
@@ -674,7 +675,7 @@ module ActiveRecord
 
       affected_rows = self.class._update_record(
         attributes,
-        self.class.primary_key => id_in_database
+        @primary_key => id_in_database
       )
 
       affected_rows == 1
@@ -874,7 +875,7 @@ module ActiveRecord
     end
 
     def _delete_row
-      self.class._delete_record(self.class.primary_key => id_in_database)
+      self.class._delete_record(@primary_key => id_in_database)
     end
 
     def _touch_row(attribute_names, time)
@@ -890,7 +891,7 @@ module ActiveRecord
     def _update_row(attribute_names, attempted_action = "update")
       self.class._update_record(
         attributes_with_values(attribute_names),
-        self.class.primary_key => id_in_database
+        @primary_key => id_in_database
       )
     end
 
@@ -928,7 +929,7 @@ module ActiveRecord
         attributes_with_values(attribute_names)
       )
 
-      self.id ||= new_id if self.class.primary_key
+      self.id ||= new_id if @primary_key
 
       @new_record = false
 

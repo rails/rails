@@ -465,7 +465,7 @@ module ActiveRecord
       end
 
       def pk_attribute?(name)
-        name == self.class.primary_key
+        name == @primary_key
       end
   end
 end
