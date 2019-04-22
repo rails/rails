@@ -260,10 +260,8 @@ module ActiveRecord
       def aggregate_column(column_name)
         return column_name if Arel::Expressions === column_name
 
-        if @klass.has_attribute?(column_name) || @klass.attribute_alias?(column_name)
-          @klass.arel_attribute(column_name)
-        else
-          Arel.sql(column_name == :all ? "*" : column_name.to_s)
+        arel_column(column_name.to_s) do |name|
+          Arel.sql(column_name == :all ? "*" : name)
         end
       end
 
