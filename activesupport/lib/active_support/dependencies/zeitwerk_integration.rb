@@ -23,8 +23,13 @@ module ActiveSupport
           ActiveSupport::Inflector.safe_constantize(cpath)
         end
 
-        def to_unload?(cpath)
-          Rails.autoloaders.main.to_unload?(cpath)
+        def autoloaded_constants
+          Rails.autoloaders.main.unloadable_cpaths
+        end
+
+        def autoloaded?(object)
+          cpath = object.is_a?(Module) ? object.name : object.to_s
+          Rails.autoloaders.main.unloadable_cpath?(cpath)
         end
 
         def verbose=(verbose)
