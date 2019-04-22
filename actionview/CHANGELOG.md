@@ -1,3 +1,14 @@
+*   Fix partial caching skips same item issue
+
+    If we render cached collection partials with repeated items, those repeated items
+    will get skipped. For example, if you have 5 identical items in your collection, Rails
+    only renders the first one when `cached` is set to true. But it should render all
+    5 items instead.
+
+    This fixes #35114
+
+    *Stan Lo*
+
 *   Only clear ActionView cache in development on file changes
 
     To speed up development mode, view caches are only cleared when files in
