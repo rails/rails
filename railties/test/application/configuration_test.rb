@@ -2216,19 +2216,6 @@ module ApplicationTests
       assert_equal :default, Rails.configuration.debug_exception_response_format
     end
 
-    test "action_controller.cache_store works for api_only app as well" do
-      add_to_config <<-RUBY
-        config.api_only = true
-        config.action_controller.cache_store = :memory_store
-      RUBY
-
-      app "development"
-
-      api_controller = Class.new(ActionController::API)
-
-      assert_equal(api_controller.cache_store.class, ActiveSupport::Cache::MemoryStore)
-    end
-
     test "controller force_ssl declaration can be used even if session_store is disabled" do
       make_basic_app do |application|
         application.config.session_store :disabled
