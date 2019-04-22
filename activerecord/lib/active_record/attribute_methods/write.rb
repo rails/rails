@@ -35,8 +35,7 @@ module ActiveRecord
           name = self.class.attribute_alias(name)
         end
 
-        primary_key = self.class.primary_key
-        name = primary_key if name == "id" && primary_key
+        name = @primary_key if name == "id" && @primary_key
         _write_attribute(name, value)
       end
 
