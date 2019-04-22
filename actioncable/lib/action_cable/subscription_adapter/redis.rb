@@ -5,6 +5,8 @@ require "thread"
 gem "redis", ">= 3", "< 5"
 require "redis"
 
+require "active_support/core_ext/hash/except"
+
 module ActionCable
   module SubscriptionAdapter
     class Redis < Base # :nodoc:
