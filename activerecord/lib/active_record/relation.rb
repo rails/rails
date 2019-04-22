@@ -553,8 +553,8 @@ module ActiveRecord
     #   # => ActiveRecord::ActiveRecordError: delete_all doesn't support distinct
     def delete_all
       invalid_methods = INVALID_METHODS_FOR_DELETE_ALL.select do |method|
-        value = get_value(method)
-        SINGLE_VALUE_METHODS.include?(method) ? value : value.any?
+        value = @values[method]
+        method == :distinct ? value : value&.any?
       end
       if invalid_methods.any?
         raise ActiveRecordError.new("delete_all doesn't support #{invalid_methods.join(', ')}")
