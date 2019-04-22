@@ -179,6 +179,31 @@ class ExceptionsTest < ActiveSupport::TestCase
     assert_equal ["Raised ActiveJob::DeserializationError for the 5 time"], JobBuffer.values
   end
 
+  test "running a job enqueued by AJ 5.2" do
+    job = RetryJob.new("DefaultsError", 6)
+    job.exception_executions = nil # This is how jobs from Rails 5.2 will look
+
+    assert_raises DefaultsError do
+      job.enqueue
+    end
+
+    assert_equal 5, JobBuffer.values.count
+  end
+
+  test "running a job enqueued and attempted under AJ 5.2" do
+    job = RetryJob.new("DefaultsError", 6)
+
+    # Fake 4 previous executions under AJ 5.2
+    job.exception_executions = nil
+    job.executions = 4
+
+    assert_raises DefaultsError do
+      job.enqueue
+    end
+
+    assert_equal ["Raised DefaultsError for the 5th time"], JobBuffer.values
+  end
+
   private
     def adapter_skips_scheduling?(queue_adapter)
       [

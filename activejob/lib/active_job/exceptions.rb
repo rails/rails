@@ -49,12 +49,10 @@ module ActiveJob
       #  end
       def retry_on(*exceptions, wait: 3.seconds, attempts: 5, queue: nil, priority: nil)
         rescue_from(*exceptions) do |error|
-          # Guard against jobs that were persisted before we started having individual executions counters per retry_on
-          self.exception_executions ||= {}
-          self.exception_executions[exceptions.to_s] = (exception_executions[exceptions.to_s] || 0) + 1
+          executions = executions_for(exceptions)
 
-          if exception_executions[exceptions.to_s] < attempts
-            retry_job wait: determine_delay(seconds_or_duration_or_algorithm: wait, executions: exception_executions[exceptions.to_s]), queue: queue, priority: priority, error: error
+          if executions < attempts
+            retry_job wait: determine_delay(seconds_or_duration_or_algorithm: wait, executions: executions), queue: queue, priority: priority, error: error
           else
             if block_given?
               instrument :retry_stopped, error: error do
@@ -145,6 +143,15 @@ module ActiveJob
         payload = { job: self, adapter: self.class.queue_adapter, error: error, wait: wait }
 
         ActiveSupport::Notifications.instrument("#{name}.active_job", payload, &block)
+      end
+
+      def executions_for(exceptions)
+        if exception_executions
+          exception_executions[exceptions.to_s] = (exception_executions[exceptions.to_s] || 0) + 1
+        else
+          # Guard against jobs that were persisted before we started having individual executions counters per retry_on
+          executions
+        end
       end
   end
 end
