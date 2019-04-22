@@ -453,6 +453,8 @@ Please refer to the [Changelog][active-storage] for detailed changes.
 
 ### Notable changes
 
+*   Updating an attached model via `update` or `update!` ala `@user.update!(images: [ … ])` now replaces the existing images instead of merely adding to them.
+
 Active Model
 ------------
 
