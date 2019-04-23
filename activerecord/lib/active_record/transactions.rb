@@ -386,14 +386,15 @@ module ActiveRecord
 
       # Save the new record state and id of a record so it can be restored later if a transaction fails.
       def remember_transaction_record_state
-        @_start_transaction_state.reverse_merge!(
+        @_start_transaction_state ||= {
           id: id,
           new_record: @new_record,
           destroyed: @destroyed,
           attributes: @attributes,
           frozen?: frozen?,
-        )
-        @_start_transaction_state[:level] = (@_start_transaction_state[:level] || 0) + 1
+          level: 0
+        }
+        @_start_transaction_state[:level] += 1
         remember_new_record_before_last_commit
       end
 
@@ -407,19 +408,20 @@ module ActiveRecord
 
       # Clear the new record state and id of a record.
       def clear_transaction_record_state
-        @_start_transaction_state[:level] = (@_start_transaction_state[:level] || 0) - 1
+        return unless @_start_transaction_state
+        @_start_transaction_state[:level] -= 1
         force_clear_transaction_record_state if @_start_transaction_state[:level] < 1
       end
 
       # Force to clear the transaction record state.
       def force_clear_transaction_record_state
-        @_start_transaction_state.clear
+        @_start_transaction_state = nil
         @transaction_state = nil
       end
 
       # Restore the new record state and id of a record that was previously saved by a call to save_record_state.
       def restore_transaction_record_state(force_restore_state = false)
-        unless @_start_transaction_state.empty?
+        if @_start_transaction_state
           transaction_level = (@_start_transaction_state[:level] || 0) - 1
           if transaction_level < 1 || force_restore_state
             restore_state = @_start_transaction_state

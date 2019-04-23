@@ -403,7 +403,7 @@ module ActiveRecord
 
       @new_record               = true
       @destroyed                = false
-      @_start_transaction_state = {}
+      @_start_transaction_state = nil
       @transaction_state        = nil
 
       super
@@ -575,7 +575,7 @@ module ActiveRecord
         @marked_for_destruction   = false
         @destroyed_by_association = nil
         @new_record               = true
-        @_start_transaction_state = {}
+        @_start_transaction_state = nil
         @transaction_state        = nil
       end
 
