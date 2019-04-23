@@ -87,50 +87,6 @@ module Arel # :nodoc: all
           collector << " )"
         end
 
-        def visit_Arel_Nodes_In(o, collector)
-          if Array === o.right && !o.right.empty?
-            o.right.delete_if { |value| unboundable?(value) }
-          end
-
-          if Array === o.right && o.right.empty?
-            collector << "1=0"
-          else
-            first = true
-            o.right.each_slice(in_clause_length) do |sliced_o_right|
-              collector << " OR " unless first
-              first = false
-
-              collector = visit o.left, collector
-              collector << " IN ("
-              visit(sliced_o_right, collector)
-              collector << ")"
-            end
-          end
-          collector
-        end
-
-        def visit_Arel_Nodes_NotIn(o, collector)
-          if Array === o.right && !o.right.empty?
-            o.right.delete_if { |value| unboundable?(value) }
-          end
-
-          if Array === o.right && o.right.empty?
-            collector << "1=1"
-          else
-            first = true
-            o.right.each_slice(in_clause_length) do |sliced_o_right|
-              collector << " AND " unless first
-              first = false
-
-              collector = visit o.left, collector
-              collector << " NOT IN ("
-              visit(sliced_o_right, collector)
-              collector << ")"
-            end
-          end
-          collector
-        end
-
         def visit_Arel_Nodes_UpdateStatement(o, collector)
           # Oracle does not allow ORDER BY/LIMIT in UPDATEs.
           if o.orders.any? && o.limit.nil?
@@ -197,10 +153,6 @@ module Arel # :nodoc: all
           collector << "DECODE("
           collector = visit [o.left, o.right, 0, 1], collector
           collector << ")"
-        end
-
-        def in_clause_length
-          1000
         end
     end
   end
