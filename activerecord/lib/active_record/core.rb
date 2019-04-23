@@ -316,7 +316,7 @@ module ActiveRecord
     #   # Instantiates a single new object
     #   User.new(first_name: 'Jamie')
     def initialize(attributes = nil)
-      self.class.define_attribute_methods
+      @new_record = true
       @attributes = self.class._default_attributes.deep_dup
 
       init_internals
@@ -353,12 +353,10 @@ module ActiveRecord
     # +attributes+ should be an attributes object, and unlike the
     # `initialize` method, no assignment calls are made per attribute.
     def init_with_attributes(attributes, new_record = false) # :nodoc:
-      init_internals
-
       @new_record = new_record
       @attributes = attributes
 
-      self.class.define_attribute_methods
+      init_internals
 
       yield self if block_given?
 
@@ -574,9 +572,10 @@ module ActiveRecord
         @destroyed                = false
         @marked_for_destruction   = false
         @destroyed_by_association = nil
-        @new_record               = true
         @_start_transaction_state = nil
         @transaction_state        = nil
+
+        self.class.define_attribute_methods
       end
 
       def initialize_internals_callback
