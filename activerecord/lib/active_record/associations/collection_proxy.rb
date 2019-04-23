@@ -1002,7 +1002,7 @@ module ActiveRecord
       end
 
       # Adds one or more +records+ to the collection by setting their foreign keys
-      # to the association's primary key. Since +<<+ flattens its argument list and
+      # to the association's primary key. Since <tt><<</tt> flattens its argument list and
       # inserts each record, +push+ and +concat+ behave identically. Returns +self+
       # so several appends may be chained together.
       #
