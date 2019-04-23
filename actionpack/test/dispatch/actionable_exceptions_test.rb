@@ -77,4 +77,22 @@ class ActionableExceptionsTest < ActionDispatch::IntegrationTest
       }
     end
   end
+
+  test "can hook and dispatch actionable errors on specialized exceptions" do
+    @app = ActionDispatch::ActionableExceptions.new(-> env do
+      foo # This is a NameError. Let it happen!
+    end)
+
+    custom_error = Class.new(StandardError) do
+      include ActiveSupport::ActionableError
+
+      trigger on: NameError, if: -> error do
+        error.name == :foo
+      end
+    end
+
+    assert_raise custom_error do
+      get "/"
+    end
+  end
 end

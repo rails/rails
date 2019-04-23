@@ -21,6 +21,14 @@ class ActionableErrorTest < ActiveSupport::TestCase
     end
   end
 
+  class TriggerableError < StandardError
+    include ActiveSupport::ActionableError
+
+    trigger on: RuntimeError, if: -> error do
+      error.message.match?(/Trigger action/)
+    end
+  end
+
   test "returns all action of an actionable error" do
     assert_equal ["Flip 1", "Flip 2"], ActiveSupport::ActionableError.actions(DispatchableError).keys
     assert_equal ["Flip 1", "Flip 2"], ActiveSupport::ActionableError.actions(DispatchableError.new).keys
@@ -43,5 +51,36 @@ class ActionableErrorTest < ActiveSupport::TestCase
     end
 
     assert_equal 'Cannot find action "action"', err.to_s
+  end
+
+  test "triggers actionable error from existing one" do
+    error = RuntimeError.new("Trigger action!")
+
+    assert_raises TriggerableError do
+      ActiveSupport::ActionableError.raise_if_triggered_by(error)
+    end
+  end
+
+  test "triggers actionable error from existing even as a cause" do
+    error =
+      begin
+        begin
+          raise "Trigger action!"
+        rescue
+          raise "Another error!"
+        end
+      rescue => err
+        err
+      end
+
+    assert_raises TriggerableError do
+      ActiveSupport::ActionableError.raise_if_triggered_by(error)
+    end
+  end
+
+  test "does not triggers actionable errors if the condition fails" do
+    error = StandardError.new
+
+    ActiveSupport::ActionableError.raise_if_triggered_by(error)
   end
 end

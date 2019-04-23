@@ -1,5 +1,11 @@
 # frozen_string_literal: true
 
+<<<<<<< HEAD
+=======
+require "active_support/actionable_error"
+require "rails/command"
+
+>>>>>>> 7f8b18e8af... Introduce actionable errors triggers
 module ActiveStorage
   # Generic base class for all Active Storage exceptions.
   class Error < StandardError; end
@@ -23,4 +29,25 @@ module ActiveStorage
   # Raised when ActiveStorage::Blob#download is called on a blob where the
   # backing file is no longer present in its service.
   class FileNotFoundError < Error; end
+
+  # Raised when we detect that Active Storage has not been initialized.
+  class SetupError < Error
+    include ActiveSupport::ActionableError
+
+    def initialize(message = nil)
+      super(message || <<~MESSAGE)
+        Action Storage does not appear to be installed. Do you want to
+        install it now?
+      MESSAGE
+    end
+
+    trigger on: ActiveRecord::StatementInvalid, if: -> error do
+      [Blob, Attachment].any? { |model| error.message.match?(model.table_name) }
+    end
+
+    action "Install now" do
+      Rails::Command.invoke("active_storage:install")
+      Rails::Command.invoke("db:migrate")
+    end
+  end
 end

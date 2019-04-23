@@ -19,6 +19,9 @@ module ActionDispatch
       ActiveSupport::ActionableError.dispatch(request.params[:error].to_s.safe_constantize, request.params[:action])
 
       redirect_to request.params[:location]
+    rescue Exception => error
+      ActiveSupport::ActionableError.raise_if_triggered_by(error)
+      raise
     end
 
     private
