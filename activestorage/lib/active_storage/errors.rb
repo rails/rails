@@ -1,11 +1,8 @@
 # frozen_string_literal: true
 
-<<<<<<< HEAD
-=======
 require "active_support/actionable_error"
 require "rails/command"
 
->>>>>>> 7f8b18e8af... Introduce actionable errors triggers
 module ActiveStorage
   # Generic base class for all Active Storage exceptions.
   class Error < StandardError; end
@@ -31,7 +28,7 @@ module ActiveStorage
   class FileNotFoundError < Error; end
 
   # Raised when we detect that Active Storage has not been initialized.
-  class SetupError < Error
+  class InstallError < Error
     include ActiveSupport::ActionableError
 
     def initialize(message = nil)
