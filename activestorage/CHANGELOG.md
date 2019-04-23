@@ -1,3 +1,8 @@
+*   Don't raise when analyzing an unsupported image type by ImageMagick
+    Fixes: #36065
+
+    *Guilherme Mansur*
+
 *   Permit generating variants of BMP images.
 
     *Younes Serraj*
