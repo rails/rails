@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "action_mailbox/mail_ext"
+require "action_mailbox/errors"
 
 module ActionMailbox
   extend ActiveSupport::Autoload
