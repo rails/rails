@@ -143,5 +143,15 @@ module ActiveStorage
         ActiveRecord::Reflection.singleton_class.prepend(Reflection::ReflectionExtension)
       end
     end
+
+    initializer "active_storage.setup" do
+      affected_models = [Blob, Attachment]
+
+      ActionDispatch::ActionableExceptions.on ActiveRecord::StatementInvalid do |err|
+        affected_models.each do |model|
+          raise SetupError if err.to_s.match?(model.table_name)
+        end
+      end
+    end
   end
 end
