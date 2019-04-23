@@ -421,10 +421,8 @@ module ActiveRecord
 
       # Restore the new record state and id of a record that was previously saved by a call to save_record_state.
       def restore_transaction_record_state(force_restore_state = false)
-        if @_start_transaction_state
-          transaction_level = (@_start_transaction_state[:level] || 0) - 1
-          if transaction_level < 1 || force_restore_state
-            restore_state = @_start_transaction_state
+        if restore_state = @_start_transaction_state
+          if force_restore_state || restore_state[:level] <= 1
             @new_record = restore_state[:new_record]
             @destroyed  = restore_state[:destroyed]
             @attributes = restore_state[:attributes].map do |attr|
