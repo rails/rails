@@ -1,8 +1,5 @@
 # frozen_string_literal: true
 
-require "active_support/actionable_error"
-require "rails/command"
-
 module ActiveStorage
   # Generic base class for all Active Storage exceptions.
   class Error < StandardError; end
@@ -27,24 +24,29 @@ module ActiveStorage
   # backing file is no longer present in its service.
   class FileNotFoundError < Error; end
 
-  # Raised when we detect that Active Storage has not been initialized.
-  class InstallError < Error
-    include ActiveSupport::ActionableError
+  if defined?(Rails)
+    require "active_support/actionable_error"
+    require "rails/command"
 
-    def initialize(message = nil)
-      super(message || <<~MESSAGE)
-        Action Storage does not appear to be installed. Do you want to
-        install it now?
-      MESSAGE
-    end
+    # Raised when we detect that Active Storage has not been initialized.
+    class InstallError < Error
+      include ActiveSupport::ActionableError
 
-    trigger on: ActiveRecord::StatementInvalid, if: -> error do
-      [Blob, Attachment].any? { |model| error.message.match?(model.table_name) }
-    end
+      def initialize(message = nil)
+        super(message || <<~MESSAGE)
+          Action Storage does not appear to be installed. Do you want to
+          install it now?
+        MESSAGE
+      end
 
-    action "Install now" do
-      Rails::Command.invoke("active_storage:install")
-      Rails::Command.invoke("db:migrate")
+      trigger on: ActiveRecord::StatementInvalid, if: -> error do
+        [Blob, Attachment].any? { |model| error.message.match?(model.table_name) }
+      end
+
+      action "Install now" do
+        Rails::Command.invoke("active_storage:install")
+        Rails::Command.invoke("db:migrate")
+      end
     end
   end
 end

@@ -10,9 +10,6 @@
 <div id="container">
   <h2>
     <%= h @exception.message %>
-    <% if defined?(ActionMailbox) && @exception.message.match?(%r{#{ActionMailbox::InboundEmail.table_name}}) %>
-      <br />To resolve this issue run: rails action_mailbox:install
-    <% end %>
   </h2>
 
   <%= render "rescues/source", source_extracts: @source_extracts, show_source_idx: @show_source_idx %>
