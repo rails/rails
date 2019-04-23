@@ -106,7 +106,7 @@ class ActiveRecord::Relation
         Arel::Nodes::Not.new(random_object)
       ])
 
-      assert_equal expected, original.invert
+      assert_equal expected, original.invert(:nor)
     end
 
     test "except removes binary predicates referencing a given column" do

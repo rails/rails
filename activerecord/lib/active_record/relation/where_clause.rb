@@ -70,7 +70,15 @@ module ActiveRecord
           predicates == other.predicates
       end
 
-      def invert
+      def invert(as = :nand)
+        if predicates.size == 1
+          inverted_predicates = [ invert_predicate(predicates.first) ]
+        elsif as == :nor
+          inverted_predicates = predicates.map { |node| invert_predicate(node) }
+        else
+          inverted_predicates = [ Arel::Nodes::Not.new(ast) ]
+        end
+
         WhereClause.new(inverted_predicates)
       end
 
@@ -113,10 +121,6 @@ module ActiveRecord
 
         def equality_node?(node)
           node.respond_to?(:operator) && node.operator == :==
-        end
-
-        def inverted_predicates
-          predicates.map { |node| invert_predicate(node) }
         end
 
         def invert_predicate(node)

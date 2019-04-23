@@ -1,3 +1,44 @@
+*   Deprecate `where.not` working as NOR and will be changed to NAND in Rails 6.1.
+
+    ```ruby
+    all = [treasures(:diamond), treasures(:sapphire), cars(:honda), treasures(:sapphire)]
+    assert_equal all, PriceEstimate.all.map(&:estimate_of)
+    ```
+
+    In Rails 6.0:
+
+    ```ruby
+    sapphire = treasures(:sapphire)
+
+    nor = all.reject { |e|
+      e.estimate_of_type == sapphire.class.polymorphic_name
+    }.reject { |e|
+      e.estimate_of_id == sapphire.id
+    }
+    assert_equal [cars(:honda)], nor
+
+    without_sapphire = PriceEstimate.where.not(
+      estimate_of_type: sapphire.class.polymorphic_name, estimate_of_id: sapphire.id
+    )
+    assert_equal nor, without_sapphire.map(&:estimate_of)
+    ```
+
+    In Rails 6.1:
+
+    ```ruby
+    sapphire = treasures(:sapphire)
+
+    nand = all - [sapphire]
+    assert_equal [treasures(:diamond), cars(:honda)], nand
+
+    without_sapphire = PriceEstimate.where.not(
+      estimate_of_type: sapphire.class.polymorphic_name, estimate_of_id: sapphire.id
+    )
+    assert_equal nand, without_sapphire.map(&:estimate_of)
+    ```
+
+    *Ryuta Kamizono*
+
 *   Fix dirty tracking after rollback.
 
     Fixes #15018, #30167, #33868.
