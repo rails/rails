@@ -66,5 +66,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
         end
       CODE
     end
+
+    private_class_method :valid_options, :define_callback, :define_extensions, :define_readers, :define_writers
   end
 end

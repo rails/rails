@@ -26,5 +26,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
         model.validates_presence_of reflection.name, message: :required
       end
     end
+
+    private_class_method :macro, :valid_options, :valid_dependent_options, :add_destroy_callbacks, :define_validations
   end
 end

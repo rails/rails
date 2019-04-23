@@ -128,5 +128,9 @@ module ActiveRecord::Associations::Builder # :nodoc:
       name = reflection.name
       model.before_destroy lambda { |o| o.association(name).handle_dependency }
     end
+
+    private_class_method :build_scope, :macro, :valid_options, :validate_options, :define_extensions,
+      :define_callbacks, :define_accessors, :define_readers, :define_writers, :define_validations,
+      :valid_dependent_options, :check_dependent_options, :add_destroy_callbacks
   end
 end
