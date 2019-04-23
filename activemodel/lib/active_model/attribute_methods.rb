@@ -352,8 +352,9 @@ module ActiveModel
 
         def attribute_method_matchers_matching(method_name)
           attribute_method_matchers_cache.compute_if_absent(method_name) do
-            # Must try to match prefixes/suffixes first, or else the matcher with no prefix/suffix
-            # will match every time.
+            # Bump plain matcher to last place so that only methods that do not
+            # match any other pattern match the actual attribute name.
+            # This is currently only needed to support legacy usage.
             matchers = attribute_method_matchers.partition(&:plain?).reverse.flatten(1)
             matchers.map { |matcher| matcher.match(method_name) }.compact
           end
