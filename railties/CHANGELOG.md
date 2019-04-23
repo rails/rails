@@ -1,3 +1,14 @@
+*   Applications upgrading to Rails 6 can run the command
+
+    ```
+    bin/rails zeitwerk:check
+    ```
+
+    to check if the project structure they were using with the classic
+    autoloader is compatible with `:zeitwerk` mode.
+
+    *Matilda Smeds* & *Xavier Noria*
+
 *   Allow loading seeds without ActiveJob.
 
     Fixes #35782
