@@ -1,4 +1,4 @@
-*   Don't raise when analyzing an unsupported image type by ImageMagick
+*   Don't raise when analyzing an image whose type is unsupported by ImageMagick
     Fixes: #36065
 
     *Guilherme Mansur*
