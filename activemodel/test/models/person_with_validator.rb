@@ -5,7 +5,7 @@ class PersonWithValidator
 
   class PresenceValidator < ActiveModel::EachValidator
     def validate_each(record, attribute, value)
-      record.errors[attribute] << "Local validator#{options[:custom]}" if value.blank?
+      record.errors.add(attribute, message: "Local validator#{options[:custom]}") if value.blank?
     end
   end
 

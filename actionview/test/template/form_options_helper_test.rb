@@ -29,8 +29,18 @@ class FormOptionsHelperTest < ActionView::TestCase
                   end
     Continent   = Struct.new("Continent", :continent_name, :countries)
     Country     = Struct.new("Country", :country_id, :country_name)
-    Firm        = Struct.new("Firm", :time_zone)
     Album       = Struct.new("Album", :id, :title, :genre)
+  end
+
+  class Firm
+    include ActiveModel::Validations
+    extend ActiveModel::Naming
+
+    attr_accessor :time_zone
+
+    def initialize(time_zone = nil)
+      @time_zone = time_zone
+    end
   end
 
   module FakeZones
@@ -1294,7 +1304,7 @@ class FormOptionsHelperTest < ActionView::TestCase
   def test_time_zone_select_with_priority_zones_and_errors
     @firm = Firm.new("D")
     @firm.extend ActiveModel::Validations
-    @firm.errors[:time_zone] << "invalid"
+    assert_deprecated { @firm.errors[:time_zone] << "invalid" }
     zones = [ ActiveSupport::TimeZone.new("A"), ActiveSupport::TimeZone.new("D") ]
     html = time_zone_select("firm", "time_zone", zones)
     assert_dom_equal "<div class=\"field_with_errors\">" \
