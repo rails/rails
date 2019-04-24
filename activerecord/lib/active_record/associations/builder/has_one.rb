@@ -50,7 +50,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
       touch = reflection.options[:touch]
 
       callback = lambda { |record|
-        HasOne.touch_record(record, name, touch, has_one_touch_method)
+        HasOne.touch_record(record, name, touch, :touch)
       }
 
       model.after_create callback, if: :saved_changes?

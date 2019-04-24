@@ -955,10 +955,6 @@ module ActiveRecord
       :touch
     end
 
-    def has_one_touch_method
-      :touch
-    end
-
     def _raise_readonly_record_error
       raise ReadOnlyRecord, "#{self.class} is marked as readonly"
     end
