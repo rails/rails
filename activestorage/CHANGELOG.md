@@ -1,11 +1,13 @@
-*   Don't raise when analyzing an image whose type is unsupported by ImageMagick
-    Fixes: #36065
+*   Don't raise when analyzing an image whose type is unsupported by ImageMagick.
+
+    Fixes #36065.
 
     *Guilherme Mansur*
 
 *   Permit generating variants of BMP images.
 
     *Younes Serraj*
+
 
 ## Rails 6.0.0.beta3 (March 11, 2019) ##
 

@@ -5,7 +5,7 @@
     only renders the first one when `cached` is set to true. But it should render all
     5 items instead.
 
-    This fixes #35114
+    Fixes #35114.
 
     *Stan Lo*
 
