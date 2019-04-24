@@ -1,3 +1,7 @@
+*   Add `touch` option to `has_one` association.
+
+    *Abhay Nikam*
+
 *   Deprecate `where.not` working as NOR and will be changed to NAND in Rails 6.1.
 
     ```ruby

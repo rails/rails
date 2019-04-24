@@ -15,10 +15,13 @@ require "models/post"
 require "models/drink_designer"
 require "models/chef"
 require "models/department"
+require "models/club"
+require "models/membership"
 
 class HasOneAssociationsTest < ActiveRecord::TestCase
   self.use_transactional_tests = false unless supports_savepoints?
-  fixtures :accounts, :companies, :developers, :projects, :developers_projects, :ships, :pirates, :authors, :author_addresses
+  fixtures :accounts, :companies, :developers, :projects, :developers_projects,
+           :ships, :pirates, :authors, :author_addresses, :memberships, :clubs
 
   def setup
     Account.destroyed_account_ids.clear
@@ -704,6 +707,40 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
         end
       end
     end
+  end
+
+  def test_has_one_with_touch_option_on_create
+    assert_queries(3) {
+      Club.create(name: "1000 Oaks", membership_attributes: { favourite: true })
+    }
+  end
+
+  def test_has_one_with_touch_option_on_update
+    new_club = Club.create(name: "1000 Oaks")
+    new_club.create_membership
+
+    assert_queries(2) { new_club.update(name: "Effingut") }
+  end
+
+  def test_has_one_with_touch_option_on_touch
+    new_club = Club.create(name: "1000 Oaks")
+    new_club.create_membership
+
+    assert_queries(1) { new_club.touch }
+  end
+
+  def test_has_one_with_touch_option_on_destroy
+    new_club = Club.create(name: "1000 Oaks")
+    new_club.create_membership
+
+    assert_queries(2) { new_club.destroy }
+  end
+
+  def test_has_one_with_touch_option_on_empty_update
+    new_club = Club.create(name: "1000 Oaks")
+    new_club.create_membership
+
+    assert_no_queries { new_club.save }
   end
 
   class SpecialBook < ActiveRecord::Base
