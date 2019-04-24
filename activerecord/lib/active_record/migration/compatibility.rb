@@ -13,7 +13,10 @@ module ActiveRecord
         const_get(name)
       end
 
-      V6_0 = Current
+      V6_1 = Current
+
+      class V6_0 < V6_1
+      end
 
       class V5_2 < V6_0
         module TableDefinition

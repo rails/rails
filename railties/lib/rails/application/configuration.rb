@@ -146,6 +146,8 @@ module Rails
           if respond_to?(:active_record)
             active_record.collection_cache_versioning = true
           end
+        when "6.1"
+          load_defaults "6.0"
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end
