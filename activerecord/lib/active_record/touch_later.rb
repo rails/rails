@@ -60,9 +60,5 @@ module ActiveRecord
       def belongs_to_touch_method
         :touch_later
       end
-
-      def has_one_touch_method
-        :touch_later
-      end
   end
 end
