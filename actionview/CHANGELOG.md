@@ -1,3 +1,5 @@
+## Rails 6.0.0.rc1 (April 24, 2019) ##
+
 *   Fix partial caching skips same item issue
 
     If we render cached collection partials with repeated items, those repeated items

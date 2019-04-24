@@ -1,3 +1,5 @@
+## Rails 6.0.0.rc1 (April 24, 2019) ##
+
 *   Type cast falsy boolean symbols on boolean attribute as false.
 
     Fixes #35676.

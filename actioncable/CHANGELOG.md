@@ -1,3 +1,8 @@
+## Rails 6.0.0.rc1 (April 24, 2019) ##
+
+*   No changes.
+
+
 ## Rails 6.0.0.beta3 (March 11, 2019) ##
 
 *   No changes.

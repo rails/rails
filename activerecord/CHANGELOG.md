@@ -1,3 +1,5 @@
+## Rails 6.0.0.rc1 (April 24, 2019) ##
+
 *   Add `touch` option to `has_one` association.
 
     *Abhay Nikam*

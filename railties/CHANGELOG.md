@@ -1,3 +1,5 @@
+## Rails 6.0.0.rc1 (April 24, 2019) ##
+
 *   Applications upgrading to Rails 6 can run the command
 
     ```

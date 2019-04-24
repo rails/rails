@@ -1,3 +1,5 @@
+## Rails 6.0.0.rc1 (April 24, 2019) ##
+
 *   Make system tests take a failed screenshot in a `before_teardown` hook
     rather than an `after_teardown` hook.
 

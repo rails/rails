@@ -1,3 +1,5 @@
+## Rails 6.0.0.rc1 (April 24, 2019) ##
+
 *   Introduce `ActiveSupport::ActionableError`.
 
     Actionable errors let's you dispatch actions from Rails' error pages. This

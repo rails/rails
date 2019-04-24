@@ -1,3 +1,5 @@
+## Rails 6.0.0.rc1 (April 24, 2019) ##
+
 *   Use individual execution counters when calculating retry delay.
 
     *Patrik Bóna*

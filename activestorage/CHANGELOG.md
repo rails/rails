@@ -1,3 +1,5 @@
+## Rails 6.0.0.rc1 (April 24, 2019) ##
+
 *   Don't raise when analyzing an image whose type is unsupported by ImageMagick.
 
     Fixes #36065.

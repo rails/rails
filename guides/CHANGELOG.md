@@ -1,3 +1,5 @@
+## Rails 6.0.0.rc1 (April 24, 2019) ##
+
 *   Added documentation about the `variants` option to `render`
 
     *Edward Rudd*
