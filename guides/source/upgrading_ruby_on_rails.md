@@ -85,30 +85,30 @@ Rails 6.1. You are encouraged to enable `config.force_ssl` to enforce HTTPS
 connections throughout your application. If you need to exempt certain endpoints
 from redirection, you can use `config.ssl_options` to configure that behavior.
 
-### Purpose in signed or encrypted cookie is now embedded in the cookies values
+### Purpose in signed or encrypted cookie is now embedded within cookies
 
-To improve security, Rails now embeds the purpose information in encrypted or signed cookies value.
-Rails can now thwart attacks that attempt to copy signed/encrypted value
+To improve security, Rails embeds the purpose information in encrypted or signed cookies value.
+Rails can then thwart attacks that attempt to copy the signed/encrypted value
 of a cookie and use it as the value of another cookie.
 
 This new embed information make those cookies incompatible with versions of Rails older than 6.0.
 
-If you require your cookies to be read by 5.2 and older, or you are still validating your 6.0 deploy and want
-to allow you to rollback set
+If you require your cookies to be read by Rails 5.2 and older, or you are still validating your 6.0 deploy and want
+to be able to rollback set
 `Rails.application.config.action_dispatch.use_cookies_with_metadata` to `false`.
 
-### ActionCable javascript API Changes
+### Action Cable JavaScript API Changes
 
-The ActionCable javascript package has been converted from CoffeeScript
-to ES2015, and we now publish the source code in the npm distribution.
+The Action Cable JavaScript package has been converted from CoffeeScript
+to ES2015, and we now publish the source code in the NPM distribution.
 
-This change includes some breaking changes to optional parts of the
-ActionCable javascript API:
+This release includes some breaking changes to optional parts of the
+Action Cable JavaScript API:
 
 - Configuration of the WebSocket adapter and logger adapter have been moved
   from properties of `ActionCable` to properties of `ActionCable.adapters`.
-  If you are currently configuring these adapters you will need to make
-  these changes when upgrading:
+  If you are configuring these adapters you will need to make
+  these changes:
 
   ```diff
   -    ActionCable.WebSocket = MyWebSocket
@@ -121,8 +121,8 @@ ActionCable javascript API:
 
 - The `ActionCable.startDebugging()` and `ActionCable.stopDebugging()`
   methods have been removed and replaced with the property
-  `ActionCable.logger.enabled`. If you are currently using these methods you
-  will need to make these changes when upgrading:
+  `ActionCable.logger.enabled`. If you are using these methods you
+  will need to make these changes:
 
   ```diff
   -    ActionCable.startDebugging()
