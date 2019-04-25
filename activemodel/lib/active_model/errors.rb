@@ -614,7 +614,7 @@ module ActiveModel
       end
 
       def deprecation_removal_warning(method_name)
-        ActiveSupport::Deprecation.warn("ActiveModel::Errors##{method_name} is deprecated and will be removed in Rails 6.1")
+        ActiveSupport::Deprecation.warn("ActiveModel::Errors##{method_name} is deprecated and will be removed in Rails 6.2")
       end
 
       def deprecation_rename_warning(old_method_name, new_method_name)
