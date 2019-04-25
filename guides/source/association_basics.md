@@ -1231,6 +1231,7 @@ The `has_one` association supports these options:
 * `:source`
 * `:source_type`
 * `:through`
+* `:touch`
 * `:validate`
 
 ##### `:as`
@@ -1323,6 +1324,28 @@ class DustJacket < ApplicationRecord; end
 ##### `:through`
 
 The `:through` option specifies a join model through which to perform the query. `has_one :through` associations were discussed in detail [earlier in this guide](#the-has-one-through-association).
+
+##### `:touch`
+
+If you set the `:touch` option to `true`, then the `updated_at` or `updated_on` timestamp on the associated object will be set to the current time whenever this object is saved or destroyed:
+
+```ruby
+class Supplier < ApplicationRecord
+  has_one :account, touch: true
+end
+
+class Account < ApplicationRecord
+  belongs_to :supplier
+end
+```
+
+In this case, saving or destroying a supplier will update the timestamp on the associated account. You can also specify a particular timestamp attribute to update:
+
+```ruby
+class Supplier < ApplicationRecord
+  has_one :account, touch: :suppliers_updated_at
+end
+```
 
 ##### `:validate`
 
@@ -2383,11 +2406,11 @@ NOTE: These callbacks are called only when the associated objects are added or r
 
 ```ruby
 # Triggers `before_add` callback
-author.books << book    
+author.books << book
 author.books = [book, book2]
 
 # Does not trigger the `before_add` callback
-book.update(author_id: 1) 
+book.update(author_id: 1)
 ```
 
 ### Association Extensions
