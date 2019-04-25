@@ -36,13 +36,7 @@ module ActiveRecord
 
         def preloaded_records
           return @preloaded_records if defined?(@preloaded_records)
-          return [] if owner_keys.empty?
-          # Some databases impose a limit on the number of ids in a list (in Oracle it's 1000)
-          # Make several smaller queries if necessary or make one query if the adapter supports it
-          slices = owner_keys.each_slice(klass.connection.in_clause_length || owner_keys.size)
-          @preloaded_records = slices.flat_map do |slice|
-            records_for(slice)
-          end
+          @preloaded_records = owner_keys.empty? ? [] : records_for(owner_keys)
         end
 
         private

@@ -11,6 +11,10 @@ class Post < ActiveRecord::Base
     def author
       "lifo"
     end
+
+    def greeting
+      super + " :)"
+    end
   end
 
   module NamedExtension2
@@ -319,8 +323,8 @@ class FakeKlass
       "posts"
     end
 
-    def attribute_alias?(name)
-      false
+    def attribute_aliases
+      {}
     end
 
     def sanitize_sql(sql)

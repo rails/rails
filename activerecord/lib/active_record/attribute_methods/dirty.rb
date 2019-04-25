@@ -156,14 +156,44 @@ module ActiveRecord
       end
 
       private
+        def mutations_from_database
+          sync_with_transaction_state if @transaction_state&.finalized?
+          super
+        end
+
+        def mutations_before_last_save
+          sync_with_transaction_state if @transaction_state&.finalized?
+          super
+        end
+
         def write_attribute_without_type_cast(attr_name, value)
-          name = attr_name.to_s
-          if self.class.attribute_alias?(name)
-            name = self.class.attribute_alias(name)
-          end
-          result = super(name, value)
-          clear_attribute_change(name)
+          result = super
+          clear_attribute_change(attr_name)
           result
+        end
+
+        def _touch_row(attribute_names, time)
+          @_touch_attr_names = Set.new(attribute_names)
+
+          affected_rows = super
+
+          changes = {}
+          @attributes.keys.each do |attr_name|
+            next if @_touch_attr_names.include?(attr_name)
+
+            if attribute_changed?(attr_name)
+              changes[attr_name] = _read_attribute(attr_name)
+              _write_attribute(attr_name, attribute_was(attr_name))
+              clear_attribute_change(attr_name)
+            end
+          end
+
+          changes_applied
+          changes.each { |attr_name, value| _write_attribute(attr_name, value) }
+
+          affected_rows
+        ensure
+          @_touch_attr_names = nil
         end
 
         def _update_record(attribute_names = attribute_names_for_partial_writes)

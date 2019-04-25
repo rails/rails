@@ -330,21 +330,16 @@ module ActiveRecord
           if reflection.options[:autosave]
             indexed_attribute = !index.nil? && (reflection.options[:index_errors] || ActiveRecord::Base.index_nested_attribute_errors)
 
-            record.errors.each do |attribute, message|
+            record.errors.group_by_attribute.each { |attribute, errors|
               attribute = normalize_reflection_attribute(indexed_attribute, reflection, index, attribute)
-              errors[attribute] << message
-              errors[attribute].uniq!
-            end
 
-            record.errors.details.each_key do |attribute|
-              reflection_attribute =
-                normalize_reflection_attribute(indexed_attribute, reflection, index, attribute).to_sym
-
-              record.errors.details[attribute].each do |error|
-                errors.details[reflection_attribute] << error
-                errors.details[reflection_attribute].uniq!
-              end
-            end
+              errors.each { |error|
+                self.errors.import(
+                  error,
+                  attribute: attribute
+                )
+              }
+            }
           else
             errors.add(reflection.name)
           end
@@ -500,9 +495,7 @@ module ActiveRecord
       end
 
       def _ensure_no_duplicate_errors
-        errors.messages.each_key do |attribute|
-          errors[attribute].uniq!
-        end
+        errors.uniq!
       end
   end
 end

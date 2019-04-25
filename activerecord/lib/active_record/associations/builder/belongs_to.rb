@@ -74,11 +74,11 @@ module ActiveRecord::Associations::Builder # :nodoc:
 
     def self.add_touch_callbacks(model, reflection)
       foreign_key = reflection.foreign_key
-      n           = reflection.name
+      name        = reflection.name
       touch       = reflection.options[:touch]
 
       callback = lambda { |changes_method| lambda { |record|
-        BelongsTo.touch_record(record, record.send(changes_method), foreign_key, n, touch, belongs_to_touch_method)
+        BelongsTo.touch_record(record, record.send(changes_method), foreign_key, name, touch, belongs_to_touch_method)
       }}
 
       if reflection.counter_cache_column
@@ -123,5 +123,8 @@ module ActiveRecord::Associations::Builder # :nodoc:
         model.validates_presence_of reflection.name, message: :required
       end
     end
+
+    private_class_method :macro, :valid_options, :valid_dependent_options, :define_callbacks, :define_validations,
+      :add_counter_cache_callbacks, :add_touch_callbacks, :add_default_callbacks, :add_destroy_callbacks
   end
 end

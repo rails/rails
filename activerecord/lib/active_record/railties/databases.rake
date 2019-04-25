@@ -78,7 +78,7 @@ db_namespace = namespace :db do
 
   desc "Migrate the database (options: VERSION=x, VERBOSE=false, SCOPE=blog)."
   task migrate: :load_config do
-    ActiveRecord::Base.configurations.configs_for(env_name: Rails.env).each do |db_config|
+    ActiveRecord::Base.configurations.configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env).each do |db_config|
       ActiveRecord::Base.establish_connection(db_config.config)
       ActiveRecord::Tasks::DatabaseTasks.migrate
     end
@@ -128,6 +128,8 @@ db_namespace = namespace :db do
 
     # desc 'Runs the "up" for a given migration VERSION.'
     task up: :load_config do
+      ActiveRecord::Tasks::DatabaseTasks.raise_for_multi_db(command: "db:migrate:up")
+
       raise "VERSION is required" if !ENV["VERSION"] || ENV["VERSION"].empty?
 
       ActiveRecord::Tasks::DatabaseTasks.check_target_version
@@ -139,8 +141,29 @@ db_namespace = namespace :db do
       db_namespace["_dump"].invoke
     end
 
+    namespace :up do
+      ActiveRecord::Tasks::DatabaseTasks.for_each do |spec_name|
+        task spec_name => :load_config do
+          raise "VERSION is required" if !ENV["VERSION"] || ENV["VERSION"].empty?
+
+          db_config = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env, spec_name: spec_name)
+
+          ActiveRecord::Base.establish_connection(db_config.config)
+          ActiveRecord::Tasks::DatabaseTasks.check_target_version
+          ActiveRecord::Base.connection.migration_context.run(
+            :up,
+            ActiveRecord::Tasks::DatabaseTasks.target_version
+          )
+
+          db_namespace["_dump"].invoke
+        end
+      end
+    end
+
     # desc 'Runs the "down" for a given migration VERSION.'
     task down: :load_config do
+      ActiveRecord::Tasks::DatabaseTasks.raise_for_multi_db(command: "db:migrate:down")
+
       raise "VERSION is required - To go down one migration, use db:rollback" if !ENV["VERSION"] || ENV["VERSION"].empty?
 
       ActiveRecord::Tasks::DatabaseTasks.check_target_version
@@ -152,9 +175,28 @@ db_namespace = namespace :db do
       db_namespace["_dump"].invoke
     end
 
+    namespace :down do
+      ActiveRecord::Tasks::DatabaseTasks.for_each do |spec_name|
+        task spec_name => :load_config do
+          raise "VERSION is required" if !ENV["VERSION"] || ENV["VERSION"].empty?
+
+          db_config = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env, spec_name: spec_name)
+
+          ActiveRecord::Base.establish_connection(db_config.config)
+          ActiveRecord::Tasks::DatabaseTasks.check_target_version
+          ActiveRecord::Base.connection.migration_context.run(
+            :down,
+            ActiveRecord::Tasks::DatabaseTasks.target_version
+          )
+
+          db_namespace["_dump"].invoke
+        end
+      end
+    end
+
     desc "Display status of migrations"
     task status: :load_config do
-      ActiveRecord::Base.configurations.configs_for(env_name: Rails.env).each do |db_config|
+      ActiveRecord::Base.configurations.configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env).each do |db_config|
         ActiveRecord::Base.establish_connection(db_config.config)
         ActiveRecord::Tasks::DatabaseTasks.migrate_status
       end
@@ -224,7 +266,7 @@ db_namespace = namespace :db do
 
   desc "Runs setup if database does not exist, or runs migrations if it does"
   task prepare: :load_config do
-    ActiveRecord::Base.configurations.configs_for(env_name: Rails.env).each do |db_config|
+    ActiveRecord::Base.configurations.configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env).each do |db_config|
       ActiveRecord::Base.establish_connection(db_config.config)
       db_namespace["migrate"].invoke
     rescue ActiveRecord::NoDatabaseError
@@ -295,7 +337,7 @@ db_namespace = namespace :db do
     desc "Creates a db/schema.rb file that is portable against any DB supported by Active Record"
     task dump: :load_config do
       require "active_record/schema_dumper"
-      ActiveRecord::Base.configurations.configs_for(env_name: Rails.env).each do |db_config|
+      ActiveRecord::Base.configurations.configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env).each do |db_config|
         filename = ActiveRecord::Tasks::DatabaseTasks.dump_filename(db_config.spec_name, :ruby)
         File.open(filename, "w:utf-8") do |file|
           ActiveRecord::Base.establish_connection(db_config.config)
@@ -318,7 +360,7 @@ db_namespace = namespace :db do
     namespace :cache do
       desc "Creates a db/schema_cache.yml file."
       task dump: :load_config do
-        ActiveRecord::Base.configurations.configs_for(env_name: Rails.env).each do |db_config|
+        ActiveRecord::Base.configurations.configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env).each do |db_config|
           ActiveRecord::Base.establish_connection(db_config.config)
           filename = ActiveRecord::Tasks::DatabaseTasks.cache_dump_filename(db_config.spec_name)
           ActiveRecord::Tasks::DatabaseTasks.dump_schema_cache(
@@ -330,7 +372,7 @@ db_namespace = namespace :db do
 
       desc "Clears a db/schema_cache.yml file."
       task clear: :load_config do
-        ActiveRecord::Base.configurations.configs_for(env_name: Rails.env).each do |db_config|
+        ActiveRecord::Base.configurations.configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env).each do |db_config|
           filename = ActiveRecord::Tasks::DatabaseTasks.cache_dump_filename(db_config.spec_name)
           rm_f filename, verbose: false
         end
@@ -341,7 +383,7 @@ db_namespace = namespace :db do
   namespace :structure do
     desc "Dumps the database structure to db/structure.sql. Specify another file with SCHEMA=db/my_structure.sql"
     task dump: :load_config do
-      ActiveRecord::Base.configurations.configs_for(env_name: Rails.env).each do |db_config|
+      ActiveRecord::Base.configurations.configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env).each do |db_config|
         ActiveRecord::Base.establish_connection(db_config.config)
         filename = ActiveRecord::Tasks::DatabaseTasks.dump_filename(db_config.spec_name, :sql)
         ActiveRecord::Tasks::DatabaseTasks.structure_dump(db_config.config, filename)

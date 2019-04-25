@@ -409,7 +409,7 @@ The schema dumper adds two additional configuration options:
 
 * `config.action_controller.asset_host` sets the host for the assets. Useful when CDNs are used for hosting assets rather than the application server itself.
 
-* `config.action_controller.perform_caching` configures whether the application should perform the caching features provided by the Action Controller component or not. Set to `false` in development mode, `true` in production.
+* `config.action_controller.perform_caching` configures whether the application should perform the caching features provided by the Action Controller component or not. Set to `false` in development mode, `true` in production. If it's not specified, the default will be `true`.
 
 * `config.action_controller.default_static_extension` configures the extension used for cached pages. Defaults to `.html`.
 
@@ -592,7 +592,7 @@ Defaults to `'signed cookie'`.
 
 * `config.action_view.form_with_generates_remote_forms` determines whether `form_with` generates remote forms or not. This defaults to `true`.
 
-* `config.action_view.form_with_generates_ids` determines whether `form_with` generates ids on inputs. This defaults to `true`.
+* `config.action_view.form_with_generates_ids` determines whether `form_with` generates ids on inputs. This defaults to `false`.
 
 * `config.action_view.default_enforce_utf8` determines whether forms are generated with a hidden tag that forces older versions of Internet Explorer to submit forms encoded in UTF-8. This defaults to `false`.
 
@@ -696,7 +696,7 @@ There are a number of settings available on `config.action_mailer`:
 * `config.action_mailer.deliver_later_queue_name` specifies the queue name for
   mailers. By default this is `mailers`.
 
-* `config.action_mailer.perform_caching` specifies whether the mailer templates should perform fragment caching or not. By default this is `false` in all environments.
+* `config.action_mailer.perform_caching` specifies whether the mailer templates should perform fragment caching or not. If it's not specified, the default will be `true`.
 
 * `config.action_mailer.delivery_job` specifies delivery job for mail. Defaults to `ActionMailer::DeliveryJob`.
 

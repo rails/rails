@@ -770,6 +770,17 @@ module ActiveRecord
       #   CREATE FULLTEXT INDEX index_developers_on_name ON developers (name) -- MySQL
       #
       # Note: only supported by MySQL.
+      #
+      # ====== Creating an index with a specific algorithm
+      #
+      #  add_index(:developers, :name, algorithm: :concurrently)
+      #  # CREATE INDEX CONCURRENTLY developers_on_name on developers (name)
+      #
+      # Note: only supported by PostgreSQL.
+      #
+      # Concurrently adding an index is not supported in a transaction.
+      #
+      # For more information see the {"Transactional Migrations" section}[rdoc-ref:Migration].
       def add_index(table_name, column_name, options = {})
         index_name, index_type, index_columns, index_options = add_index_options(table_name, column_name, options)
         execute "CREATE #{index_type} INDEX #{quote_column_name(index_name)} ON #{quote_table_name(table_name)} (#{index_columns})#{index_options}"
@@ -793,6 +804,15 @@ module ActiveRecord
       #
       #   remove_index :accounts, name: :by_branch_party
       #
+      # Removes the index named +by_branch_party+ in the +accounts+ table +concurrently+.
+      #
+      #   remove_index :accounts, name: :by_branch_party, algorithm: :concurrently
+      #
+      # Note: only supported by PostgreSQL.
+      #
+      # Concurrently removing an index is not supported in a transaction.
+      #
+      # For more information see the {"Transactional Migrations" section}[rdoc-ref:Migration].
       def remove_index(table_name, options = {})
         index_name = index_name_for_remove(table_name, options)
         execute "DROP INDEX #{quote_column_name(index_name)} ON #{quote_table_name(table_name)}"
@@ -1185,12 +1205,22 @@ module ActiveRecord
       end
 
       # Changes the comment for a table or removes it if +nil+.
-      def change_table_comment(table_name, comment)
+      #
+      # Passing a hash containing +:from+ and +:to+ will make this change
+      # reversible in migration:
+      #
+      #   change_table_comment(:posts, from: "old_comment", to: "new_comment")
+      def change_table_comment(table_name, comment_or_changes)
         raise NotImplementedError, "#{self.class} does not support changing table comments"
       end
 
       # Changes the comment for a column or removes it if +nil+.
-      def change_column_comment(table_name, column_name, comment)
+      #
+      # Passing a hash containing +:from+ and +:to+ will make this change
+      # reversible in migration:
+      #
+      #   change_column_comment(:posts, :state, from: "old_comment", to: "new_comment")
+      def change_column_comment(table_name, column_name, comment_or_changes)
         raise NotImplementedError, "#{self.class} does not support changing column comments"
       end
 
@@ -1374,9 +1404,35 @@ module ActiveRecord
             default_or_changes
           end
         end
+        alias :extract_new_comment_value :extract_new_default_value
 
         def can_remove_index_by_name?(options)
           options.is_a?(Hash) && options.key?(:name) && options.except(:name, :algorithm).empty?
+        end
+
+        def bulk_change_table(table_name, operations)
+          sql_fragments = []
+          non_combinable_operations = []
+
+          operations.each do |command, args|
+            table, arguments = args.shift, args
+            method = :"#{command}_for_alter"
+
+            if respond_to?(method, true)
+              sqls, procs = Array(send(method, table, *arguments)).partition { |v| v.is_a?(String) }
+              sql_fragments << sqls
+              non_combinable_operations.concat(procs)
+            else
+              execute "ALTER TABLE #{quote_table_name(table_name)} #{sql_fragments.join(", ")}" unless sql_fragments.empty?
+              non_combinable_operations.each(&:call)
+              sql_fragments = []
+              non_combinable_operations = []
+              send(command, table, *arguments)
+            end
+          end
+
+          execute "ALTER TABLE #{quote_table_name(table_name)} #{sql_fragments.join(", ")}" unless sql_fragments.empty?
+          non_combinable_operations.each(&:call)
         end
 
         def add_column_for_alter(table_name, column_name, type, options = {})

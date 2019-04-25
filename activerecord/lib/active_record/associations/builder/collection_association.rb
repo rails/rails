@@ -67,16 +67,6 @@ module ActiveRecord::Associations::Builder # :nodoc:
       CODE
     end
 
-    def self.wrap_scope(scope, mod)
-      if scope
-        if scope.arity > 0
-          proc { |owner| instance_exec(owner, &scope).extending(mod) }
-        else
-          proc { instance_exec(&scope).extending(mod) }
-        end
-      else
-        proc { extending(mod) }
-      end
-    end
+    private_class_method :valid_options, :define_callback, :define_extensions, :define_readers, :define_writers
   end
 end

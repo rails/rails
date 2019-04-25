@@ -67,6 +67,16 @@ end
 class BasicsTest < ActiveRecord::TestCase
   fixtures :topics, :companies, :developers, :projects, :computers, :accounts, :minimalistics, "warehouse-things", :authors, :author_addresses, :categorizations, :categories, :posts
 
+  def test_generated_association_methods_module_name
+    mod = Post.send(:generated_association_methods)
+    assert_equal "Post::GeneratedAssociationMethods", mod.inspect
+  end
+
+  def test_generated_relation_methods_module_name
+    mod = Post.send(:generated_relation_methods)
+    assert_equal "Post::GeneratedRelationMethods", mod.inspect
+  end
+
   def test_column_names_are_escaped
     conn      = ActiveRecord::Base.connection
     classname = conn.class.name[/[^:]*$/]
@@ -1205,6 +1215,8 @@ class BasicsTest < ActiveRecord::TestCase
       wr.close
       assert Marshal.load rd.read
       rd.close
+    ensure
+      self.class.send(:remove_const, "Post") if self.class.const_defined?("Post", false)
     end
   end
 

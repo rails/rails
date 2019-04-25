@@ -453,6 +453,9 @@ Please refer to the [Changelog][active-storage] for detailed changes.
 
 ### Notable changes
 
+*   Updating an attached model via `update` or `update!` ala `@user.update!(images: [ … ])` now replaces the existing images instead of merely adding to them.
+    ([Pull Request](https://github.com/rails/rails/pull/33303))
+
 Active Model
 ------------
 
@@ -550,6 +553,15 @@ Ruby on Rails Guides
 Please refer to the [Changelog][guides] for detailed changes.
 
 ### Notable changes
+
+*   Add a section about troubleshooting of autoloading constants.
+    ([Commit](https://github.com/rails/rails/commit/c03bba4f1f03bad7dc034af555b7f2b329cf76f5))
+
+*   Add Action Mailbox Basics guide.
+    ([Pull Request](https://github.com/rails/rails/pull/34812))
+
+*   Add Action Text Overview guide.
+    ([Pull Request](https://github.com/rails/rails/pull/34878))
 
 Credits
 -------

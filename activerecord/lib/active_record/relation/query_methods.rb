@@ -41,18 +41,31 @@ module ActiveRecord
       #
       #    User.where.not(name: %w(Ko1 Nobu))
       #    # SELECT * FROM users WHERE name NOT IN ('Ko1', 'Nobu')
-      #
-      #    User.where.not(name: "Jon", role: "admin")
-      #    # SELECT * FROM users WHERE name != 'Jon' AND role != 'admin'
       def not(opts, *rest)
         opts = sanitize_forbidden_attributes(opts)
 
         where_clause = @scope.send(:where_clause_factory).build(opts, rest)
 
         @scope.references!(PredicateBuilder.references(opts)) if Hash === opts
-        @scope.where_clause += where_clause.invert
+
+        if not_behaves_as_nor?(opts)
+          ActiveSupport::Deprecation.warn(<<~MSG.squish)
+            NOT conditions will no longer behave as NOR in Rails 6.1.
+            To continue using NOR conditions, NOT each conditions manually
+            (`#{ opts.keys.map { |key| ".where.not(#{key.inspect} => ...)" }.join }`).
+          MSG
+          @scope.where_clause += where_clause.invert(:nor)
+        else
+          @scope.where_clause += where_clause.invert
+        end
+
         @scope
       end
+
+      private
+        def not_behaves_as_nor?(opts)
+          opts.is_a?(Hash) && opts.size > 1
+        end
     end
 
     FROZEN_EMPTY_ARRAY = [].freeze
@@ -67,11 +80,13 @@ module ActiveRecord
         end
       class_eval <<-CODE, __FILE__, __LINE__ + 1
         def #{method_name}                   # def includes_values
-          get_value(#{name.inspect})         #   get_value(:includes)
+          default = DEFAULT_VALUES[:#{name}] #   default = DEFAULT_VALUES[:includes]
+          @values.fetch(:#{name}, default)   #   @values.fetch(:includes, default)
         end                                  # end
 
         def #{method_name}=(value)           # def includes_values=(value)
-          set_value(#{name.inspect}, value)  #   set_value(:includes, value)
+          assert_mutability!                 #   assert_mutability!
+          @values[:#{name}] = value          #   @values[:includes] = value
         end                                  # end
       CODE
     end
@@ -417,7 +432,8 @@ module ActiveRecord
           if !VALID_UNSCOPING_VALUES.include?(scope)
             raise ArgumentError, "Called unscope() with invalid unscoping argument ':#{scope}'. Valid arguments are :#{VALID_UNSCOPING_VALUES.to_a.join(", :")}."
           end
-          set_value(scope, DEFAULT_VALUES[scope])
+          assert_mutability!
+          @values[scope] = DEFAULT_VALUES[scope]
         when Hash
           scope.each do |key, target_value|
             if key != :where
@@ -1005,17 +1021,6 @@ module ActiveRecord
       end
 
     private
-      # Returns a relation value with a given name
-      def get_value(name)
-        @values.fetch(name, DEFAULT_VALUES[name])
-      end
-
-      # Sets the relation value with the given name
-      def set_value(name, value)
-        assert_mutability!
-        @values[name] = value
-      end
-
       def assert_mutability!
         raise ImmutableRelation if @loaded
         raise ImmutableRelation if defined?(@arel) && @arel
@@ -1173,7 +1178,7 @@ module ActiveRecord
       end
 
       def arel_column(field)
-        field = klass.attribute_alias(field) if klass.attribute_alias?(field)
+        field = klass.attribute_aliases[field] || field
         from = from_clause.name || from_clause.value
 
         if klass.columns_hash.key?(field) && (!from || table_name_matches?(from))
@@ -1316,7 +1321,8 @@ module ActiveRecord
       def structurally_incompatible_values_for_or(other)
         values = other.values
         STRUCTURAL_OR_METHODS.reject do |method|
-          get_value(method) == values.fetch(method, DEFAULT_VALUES[method])
+          default = DEFAULT_VALUES[method]
+          @values.fetch(method, default) == values.fetch(method, default)
         end
       end
 

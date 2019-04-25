@@ -111,6 +111,32 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
     assert_equal [:after_commit], @first.history
   end
 
+  def test_dont_call_any_callbacks_after_transaction_commits_for_invalid_record
+    @first.after_commit_block { |r| r.history << :after_commit }
+    @first.after_rollback_block { |r| r.history << :after_rollback }
+
+    def @first.valid?(*)
+      false
+    end
+
+    assert_not @first.save
+    assert_equal [], @first.history
+  end
+
+  def test_dont_call_any_callbacks_after_explicit_transaction_commits_for_invalid_record
+    @first.after_commit_block { |r| r.history << :after_commit }
+    @first.after_rollback_block { |r| r.history << :after_rollback }
+
+    def @first.valid?(*)
+      false
+    end
+
+    @first.transaction do
+      assert_not @first.save
+    end
+    assert_equal [], @first.history
+  end
+
   def test_only_call_after_commit_on_save_after_transaction_commits_for_saving_record
     record = TopicWithCallbacks.new(title: "New topic", written_on: Date.today)
     record.after_commit_block(:save) { |r| r.history << :after_save }
@@ -598,7 +624,7 @@ class TransactionEnrollmentCallbacksTest < ActiveRecord::TestCase
         @topic.content = "foo"
         @topic.save!
       end
-      @topic.class.connection.add_transaction_record(@topic)
+      @topic.send(:add_to_transaction)
     end
     assert_equal [:before_commit, :after_commit], @topic.history
   end
@@ -608,7 +634,7 @@ class TransactionEnrollmentCallbacksTest < ActiveRecord::TestCase
       @topic.transaction(requires_new: true) do
         @topic.content = "foo"
         @topic.save!
-        @topic.class.connection.add_transaction_record(@topic)
+        @topic.send(:add_to_transaction)
       end
     end
     assert_equal [:before_commit, :after_commit], @topic.history
@@ -629,7 +655,7 @@ class TransactionEnrollmentCallbacksTest < ActiveRecord::TestCase
         @topic.content = "foo"
         @topic.save!
       end
-      @topic.class.connection.add_transaction_record(@topic)
+      @topic.send(:add_to_transaction)
       raise ActiveRecord::Rollback
     end
     assert_equal [:rollback], @topic.history

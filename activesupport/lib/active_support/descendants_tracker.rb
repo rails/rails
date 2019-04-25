@@ -22,18 +22,11 @@ module ActiveSupport
 
       def clear
         if defined? ActiveSupport::Dependencies
-          # to_unload? is only defined in Zeitwerk mode.
-          to_unload = if Dependencies.respond_to?(:to_unload?)
-            ->(klass) { Dependencies.to_unload?(klass.name) }
-          else
-            ->(klass) { Dependencies.autoloaded?(klass) }
-          end
-
           @@direct_descendants.each do |klass, descendants|
-            if to_unload[klass]
+            if Dependencies.autoloaded?(klass)
               @@direct_descendants.delete(klass)
             else
-              descendants.reject! { |v| to_unload[v] }
+              descendants.reject! { |v| Dependencies.autoloaded?(v) }
             end
           end
         else

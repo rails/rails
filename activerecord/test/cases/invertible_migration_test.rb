@@ -103,6 +103,32 @@ module ActiveRecord
       end
     end
 
+    class ChangeColumnComment1 < SilentMigration
+      def change
+        create_table("horses") do |t|
+          t.column :name, :string, comment: "Sekitoba"
+        end
+      end
+    end
+
+    class ChangeColumnComment2 < SilentMigration
+      def change
+        change_column_comment :horses, :name, from: "Sekitoba", to: "Diomed"
+      end
+    end
+
+    class ChangeTableComment1 < SilentMigration
+      def change
+        create_table("horses", comment: "Sekitoba")
+      end
+    end
+
+    class ChangeTableComment2 < SilentMigration
+      def change
+        change_table_comment :horses, from: "Sekitoba", to: "Diomed"
+      end
+    end
+
     class DisableExtension1 < SilentMigration
       def change
         enable_extension "hstore"
@@ -290,6 +316,7 @@ module ActiveRecord
     def test_migrate_revert_change_column_default
       migration1 = ChangeColumnDefault1.new
       migration1.migrate(:up)
+      Horse.reset_column_information
       assert_equal "Sekitoba", Horse.new.name
 
       migration2 = ChangeColumnDefault2.new
@@ -300,6 +327,38 @@ module ActiveRecord
       migration2.migrate(:down)
       Horse.reset_column_information
       assert_equal "Sekitoba", Horse.new.name
+    end
+
+    if ActiveRecord::Base.connection.supports_comments?
+      def test_migrate_revert_change_column_comment
+        migration1 = ChangeColumnComment1.new
+        migration1.migrate(:up)
+        Horse.reset_column_information
+        assert_equal "Sekitoba", Horse.columns_hash["name"].comment
+
+        migration2 = ChangeColumnComment2.new
+        migration2.migrate(:up)
+        Horse.reset_column_information
+        assert_equal "Diomed", Horse.columns_hash["name"].comment
+
+        migration2.migrate(:down)
+        Horse.reset_column_information
+        assert_equal "Sekitoba", Horse.columns_hash["name"].comment
+      end
+
+      def test_migrate_revert_change_table_comment
+        connection = ActiveRecord::Base.connection
+        migration1 = ChangeTableComment1.new
+        migration1.migrate(:up)
+        assert_equal "Sekitoba", connection.table_comment("horses")
+
+        migration2 = ChangeTableComment2.new
+        migration2.migrate(:up)
+        assert_equal "Diomed", connection.table_comment("horses")
+
+        migration2.migrate(:down)
+        assert_equal "Sekitoba", connection.table_comment("horses")
+      end
     end
 
     if current_adapter?(:PostgreSQLAdapter)

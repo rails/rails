@@ -355,18 +355,6 @@ module ActiveRecord
       clear_transaction_record_state
     end
 
-    # Add the record to the current transaction so that the #after_rollback and #after_commit callbacks
-    # can be called.
-    def add_to_transaction
-      if has_transactional_callbacks?
-        self.class.connection.add_transaction_record(self)
-      else
-        sync_with_transaction_state
-        set_transaction_state(self.class.connection.transaction_state)
-      end
-      remember_transaction_record_state
-    end
-
     # Executes +method+ within a transaction and captures its return value as a
     # status flag. If the status is true the transaction is committed, otherwise
     # a ROLLBACK is issued. In any case the status flag is returned.
@@ -376,9 +364,19 @@ module ActiveRecord
     def with_transaction_returning_status
       status = nil
       self.class.transaction do
-        add_to_transaction
+        unless has_transactional_callbacks?
+          sync_with_transaction_state if @transaction_state&.finalized?
+          @transaction_state = self.class.connection.transaction_state
+        end
+        remember_transaction_record_state
+
         status = yield
         raise ActiveRecord::Rollback unless status
+      ensure
+        if has_transactional_callbacks? &&
+            (@_new_record_before_last_commit && !new_record? || _trigger_update_callback || _trigger_destroy_callback)
+          add_to_transaction
+        end
       end
       status
     end
@@ -388,13 +386,15 @@ module ActiveRecord
 
       # Save the new record state and id of a record so it can be restored later if a transaction fails.
       def remember_transaction_record_state
-        @_start_transaction_state.reverse_merge!(
+        @_start_transaction_state ||= {
           id: id,
           new_record: @new_record,
           destroyed: @destroyed,
+          attributes: @attributes,
           frozen?: frozen?,
-        )
-        @_start_transaction_state[:level] = (@_start_transaction_state[:level] || 0) + 1
+          level: 0
+        }
+        @_start_transaction_state[:level] += 1
         remember_new_record_before_last_commit
       end
 
@@ -408,27 +408,32 @@ module ActiveRecord
 
       # Clear the new record state and id of a record.
       def clear_transaction_record_state
-        @_start_transaction_state[:level] = (@_start_transaction_state[:level] || 0) - 1
+        return unless @_start_transaction_state
+        @_start_transaction_state[:level] -= 1
         force_clear_transaction_record_state if @_start_transaction_state[:level] < 1
       end
 
       # Force to clear the transaction record state.
       def force_clear_transaction_record_state
-        @_start_transaction_state.clear
+        @_start_transaction_state = nil
+        @transaction_state = nil
       end
 
       # Restore the new record state and id of a record that was previously saved by a call to save_record_state.
-      def restore_transaction_record_state(force = false)
-        unless @_start_transaction_state.empty?
-          transaction_level = (@_start_transaction_state[:level] || 0) - 1
-          if transaction_level < 1 || force
-            restore_state = @_start_transaction_state
-            thaw
+      def restore_transaction_record_state(force_restore_state = false)
+        if restore_state = @_start_transaction_state
+          if force_restore_state || restore_state[:level] <= 1
             @new_record = restore_state[:new_record]
             @destroyed  = restore_state[:destroyed]
-            pk = self.class.primary_key
-            if pk && _read_attribute(pk) != restore_state[:id]
-              _write_attribute(pk, restore_state[:id])
+            @attributes = restore_state[:attributes].map do |attr|
+              value = @attributes.fetch_value(attr.name)
+              attr = attr.with_value_from_user(value) if attr.value != value
+              attr
+            end
+            @mutations_from_database = nil
+            @mutations_before_last_save = nil
+            if @attributes.fetch_value(@primary_key) != restore_state[:id]
+              @attributes.write_from_user(@primary_key, restore_state[:id])
             end
             freeze if restore_state[:frozen?]
           end
@@ -449,8 +454,10 @@ module ActiveRecord
         end
       end
 
-      def set_transaction_state(state)
-        @transaction_state = state
+      # Add the record to the current transaction so that the #after_rollback and #after_commit
+      # callbacks can be called.
+      def add_to_transaction
+        self.class.connection.add_transaction_record(self)
       end
 
       def has_transactional_callbacks?
@@ -470,19 +477,17 @@ module ActiveRecord
       # This method checks to see if the ActiveRecord object's state reflects
       # the TransactionState, and rolls back or commits the Active Record object
       # as appropriate.
-      #
-      # Since Active Record objects can be inside multiple transactions, this
-      # method recursively goes through the parent of the TransactionState and
-      # checks if the Active Record object reflects the state of the object.
       def sync_with_transaction_state
-        update_attributes_from_transaction_state(@transaction_state)
-      end
-
-      def update_attributes_from_transaction_state(transaction_state)
-        if transaction_state && transaction_state.finalized?
-          restore_transaction_record_state(transaction_state.fully_rolledback?) if transaction_state.rolledback?
-          force_clear_transaction_record_state if transaction_state.fully_committed?
-          clear_transaction_record_state if transaction_state.fully_completed?
+        if transaction_state = @transaction_state
+          if transaction_state.fully_committed?
+            force_clear_transaction_record_state
+          elsif transaction_state.committed?
+            clear_transaction_record_state
+          elsif transaction_state.rolledback?
+            force_restore_state = transaction_state.fully_rolledback?
+            restore_transaction_record_state(force_restore_state)
+            clear_transaction_record_state
+          end
         end
       end
   end

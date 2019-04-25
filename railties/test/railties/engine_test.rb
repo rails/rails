@@ -904,6 +904,32 @@ YAML
       assert_instance_of ActiveJob::QueueAdapters::DelayedJobAdapter, ActiveJob::Base.queue_adapter
     end
 
+    test "seed data can be loaded when ActiveJob is not present" do
+      @plugin.write "db/seeds.rb", <<-RUBY
+        Bukkits::Engine.config.bukkits_seeds_loaded = true
+      RUBY
+
+      app_file "db/seeds.rb", <<-RUBY
+        Rails.application.config.app_seeds_loaded = true
+      RUBY
+
+      boot_rails
+
+      # In a real app, config.active_job would be undefined when
+      # NOT requiring rails/all AND NOT requiring active_job/railtie
+      # that doesn't work as expected in this test environment, so:
+      undefine_config_option(:active_job)
+      assert_raise(NoMethodError) { Rails.application.config.active_job }
+
+      assert_raise(NoMethodError) { Rails.application.config.app_seeds_loaded }
+      assert_raise(NoMethodError) { Bukkits::Engine.config.bukkits_seeds_loaded }
+
+      Rails.application.load_seed
+      assert Rails.application.config.app_seeds_loaded
+      Bukkits::Engine.load_seed
+      assert Bukkits::Engine.config.bukkits_seeds_loaded
+    end
+
     test "skips nonexistent seed data" do
       FileUtils.rm "#{app_path}/db/seeds.rb"
       boot_rails
@@ -1521,6 +1547,10 @@ YAML
   private
     def app
       Rails.application
+    end
+
+    def undefine_config_option(name)
+      Rails.application.config.class.class_variable_get(:@@options).delete(name)
     end
 
     # Restrict frameworks to load in order to avoid engine frameworks affect tests.

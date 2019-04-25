@@ -21,9 +21,9 @@ module ActiveRecord
     end
 
     def execute
-      message = "#{model} "
-      message += "Bulk " if inserts.many?
-      message += (on_duplicate == :update ? "Upsert" : "Insert")
+      message = +"#{model} "
+      message << "Bulk " if inserts.many?
+      message << (on_duplicate == :update ? "Upsert" : "Insert")
       connection.exec_query to_sql, message
     end
 

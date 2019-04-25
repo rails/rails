@@ -368,31 +368,6 @@ module ActiveRecord
           SQL
         end
 
-        def bulk_change_table(table_name, operations)
-          sql_fragments = []
-          non_combinable_operations = []
-
-          operations.each do |command, args|
-            table, arguments = args.shift, args
-            method = :"#{command}_for_alter"
-
-            if respond_to?(method, true)
-              sqls, procs = Array(send(method, table, *arguments)).partition { |v| v.is_a?(String) }
-              sql_fragments << sqls
-              non_combinable_operations.concat(procs)
-            else
-              execute "ALTER TABLE #{quote_table_name(table_name)} #{sql_fragments.join(", ")}" unless sql_fragments.empty?
-              non_combinable_operations.each(&:call)
-              sql_fragments = []
-              non_combinable_operations = []
-              send(command, table, *arguments)
-            end
-          end
-
-          execute "ALTER TABLE #{quote_table_name(table_name)} #{sql_fragments.join(", ")}" unless sql_fragments.empty?
-          non_combinable_operations.each(&:call)
-        end
-
         # Renames a table.
         # Also renames a table's primary key sequence if the sequence name exists and
         # matches the Active Record default.
@@ -443,14 +418,16 @@ module ActiveRecord
         end
 
         # Adds comment for given table column or drops it if +comment+ is a +nil+
-        def change_column_comment(table_name, column_name, comment) # :nodoc:
+        def change_column_comment(table_name, column_name, comment_or_changes) # :nodoc:
           clear_cache!
+          comment = extract_new_comment_value(comment_or_changes)
           execute "COMMENT ON COLUMN #{quote_table_name(table_name)}.#{quote_column_name(column_name)} IS #{quote(comment)}"
         end
 
         # Adds comment for given table or drops it if +comment+ is a +nil+
-        def change_table_comment(table_name, comment) # :nodoc:
+        def change_table_comment(table_name, comment_or_changes) # :nodoc:
           clear_cache!
+          comment = extract_new_comment_value(comment_or_changes)
           execute "COMMENT ON TABLE #{quote_table_name(table_name)} IS #{quote(comment)}"
         end
 
@@ -675,7 +652,7 @@ module ActiveRecord
               precision: cast_type.precision,
               scale: cast_type.scale,
             )
-            PostgreSQLTypeMetadata.new(simple_type, oid: oid, fmod: fmod)
+            PostgreSQL::TypeMetadata.new(simple_type, oid: oid, fmod: fmod)
           end
 
           def sequence_name_from_parts(table_name, column_name, suffix)

@@ -7,10 +7,6 @@ module ActionMailbox
 
     before_action :ensure_configured
 
-    def self.prepare
-      # Override in concrete controllers to run code on load.
-    end
-
     private
       def ensure_configured
         unless ActionMailbox.ingress == ingress_name

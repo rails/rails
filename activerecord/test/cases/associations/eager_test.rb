@@ -240,7 +240,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_load_associated_records_in_one_query_when_adapter_has_no_limit
-    assert_called(Comment.connection, :in_clause_length, returns: nil) do
+    assert_not_called(Comment.connection, :in_clause_length) do
       post = posts(:welcome)
       assert_queries(2) do
         Post.includes(:comments).where(id: post.id).to_a
@@ -249,16 +249,16 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_load_associated_records_in_several_queries_when_many_ids_passed
-    assert_called(Comment.connection, :in_clause_length, returns: 1) do
+    assert_called(Comment.connection, :in_clause_length, times: 2, returns: 1) do
       post1, post2 = posts(:welcome), posts(:thinking)
-      assert_queries(3) do
+      assert_queries(2) do
         Post.includes(:comments).where(id: [post1.id, post2.id]).to_a
       end
     end
   end
 
   def test_load_associated_records_in_one_query_when_a_few_ids_passed
-    assert_called(Comment.connection, :in_clause_length, returns: 3) do
+    assert_not_called(Comment.connection, :in_clause_length) do
       post = posts(:welcome)
       assert_queries(2) do
         Post.includes(:comments).where(id: post.id).to_a

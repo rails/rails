@@ -56,14 +56,16 @@ module ActiveRecord
       end
 
       def get_database_version #:nodoc:
-        Version.new(version_string)
+        full_version_string = get_full_version
+        version_string = version_string(full_version_string)
+        Version.new(version_string, full_version_string)
       end
 
       def mariadb? # :nodoc:
         /mariadb/i.match?(full_version)
       end
 
-      def supports_bulk_alter? #:nodoc:
+      def supports_bulk_alter?
         true
       end
 
@@ -285,22 +287,8 @@ module ActiveRecord
         SQL
       end
 
-      def bulk_change_table(table_name, operations) #:nodoc:
-        sqls = operations.flat_map do |command, args|
-          table, arguments = args.shift, args
-          method = :"#{command}_for_alter"
-
-          if respond_to?(method, true)
-            send(method, table, *arguments)
-          else
-            raise "Unknown method called : #{method}(#{arguments.inspect})"
-          end
-        end.join(", ")
-
-        execute("ALTER TABLE #{quote_table_name(table_name)} #{sqls}")
-      end
-
-      def change_table_comment(table_name, comment) #:nodoc:
+      def change_table_comment(table_name, comment_or_changes) # :nodoc:
+        comment = extract_new_comment_value(comment_or_changes)
         comment = "" if comment.nil?
         execute("ALTER TABLE #{quote_table_name(table_name)} COMMENT #{quote(comment)}")
       end
@@ -356,7 +344,8 @@ module ActiveRecord
         change_column table_name, column_name, nil, null: null
       end
 
-      def change_column_comment(table_name, column_name, comment) #:nodoc:
+      def change_column_comment(table_name, column_name, comment_or_changes) # :nodoc:
+        comment = extract_new_comment_value(comment_or_changes)
         change_column table_name, column_name, nil, comment: comment
       end
 
@@ -801,8 +790,8 @@ module ActiveRecord
           MismatchedForeignKey.new(options)
         end
 
-        def version_string
-          full_version.match(/^(?:5\.5\.5-)?(\d+\.\d+\.\d+)/)[1]
+        def version_string(full_version_string)
+          full_version_string.match(/^(?:5\.5\.5-)?(\d+\.\d+\.\d+)/)[1]
         end
 
         class MysqlString < Type::String # :nodoc:

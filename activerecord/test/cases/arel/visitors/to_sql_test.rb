@@ -395,6 +395,11 @@ module Arel
           compile(node).must_be_like %{
             "users"."id" IN (1, 2, 3)
           }
+
+          node = @attr.in [1, 2, 3, 4, 5]
+          compile(node).must_be_like %{
+            ("users"."id" IN (1, 2, 3) OR "users"."id" IN (4, 5))
+          }
         end
 
         it "should return 1=0 when empty right which is always false" do
@@ -544,6 +549,11 @@ module Arel
           node = @attr.not_in [1, 2, 3]
           compile(node).must_be_like %{
             "users"."id" NOT IN (1, 2, 3)
+          }
+
+          node = @attr.not_in [1, 2, 3, 4, 5]
+          compile(node).must_be_like %{
+            "users"."id" NOT IN (1, 2, 3) AND "users"."id" NOT IN (4, 5)
           }
         end
 
