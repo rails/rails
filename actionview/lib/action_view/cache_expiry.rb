@@ -20,7 +20,7 @@ module ActionView
 
     def clear_cache_if_necessary
       watched_dirs = dirs_to_watch
-      if watched_dirs != @watched_dirs
+      if @watcher.nil? || watched_dirs != @watched_dirs
         @watched_dirs = watched_dirs
         @watcher = @watcher_class.new([], watched_dirs) do
           clear_cache
