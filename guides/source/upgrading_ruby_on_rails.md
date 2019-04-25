@@ -100,7 +100,7 @@ to be able to rollback set
 ### Action Cable JavaScript API Changes
 
 The Action Cable JavaScript package has been converted from CoffeeScript
-to ES2015, and we now publish the source code in the NPM distribution.
+to ES2015, and we now publish the source code in the npm distribution.
 
 This release includes some breaking changes to optional parts of the
 Action Cable JavaScript API:
