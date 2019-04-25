@@ -229,9 +229,9 @@ module ActiveModel
       if block.arity == 1
         @errors.each(&block)
       else
-        ActiveSupport::Deprecation.warn(<<-MSG.squish)
+        ActiveSupport::Deprecation.warn(<<~MSG)
           Enumerating ActiveModel::Errors as a hash has been deprecated.
-          In Rails 6, `errors` is an array of Error objects,
+          In Rails 6.1, `errors` is an array of Error objects,
           therefore it should be accessed by a block with a single block
           parameter like this:
 
@@ -239,9 +239,9 @@ module ActiveModel
             error.full_message
           end
 
-          You are passing a block expecting 2 parameters,
+          You are passing a block expecting two parameters,
           so the old hash behavior is simulated. As this is deprecated,
-          this will result in an ArgumentError in Rails 6.1.
+          this will result in an ArgumentError in Rails 6.2.
         MSG
         @errors.
           sort { |a, b| a.attribute <=> b.attribute }.
@@ -614,7 +614,7 @@ module ActiveModel
       end
 
       def deprecation_removal_warning(method_name)
-        ActiveSupport::Deprecation.warn("ActiveModel::Errors##{method_name} is deprecated and will be removed in Rails 6.1")
+        ActiveSupport::Deprecation.warn("ActiveModel::Errors##{method_name} is deprecated and will be removed in Rails 6.2")
       end
 
       def deprecation_rename_warning(old_method_name, new_method_name)
