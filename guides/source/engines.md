@@ -1124,6 +1124,8 @@ module Blorgh
   class Engine < ::Rails::Engine
     isolate_namespace Blorgh
 
+    Rails.autoloaders.main.ignore("#{Rails.root}/app/overrides")
+    
     config.to_prepare do
       Dir.glob(Rails.root + "app/overrides/**/*_override*.rb").each do |c|
         require_dependency(c)
