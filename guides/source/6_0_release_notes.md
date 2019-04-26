@@ -178,9 +178,77 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 
 ### Removals
 
+*   Remove deprecated `fragment_cache_key` helper in favor of `combined_fragment_cache_key`.
+    ([Commit](https://github.com/rails/rails/commit/e70d3df7c9b05c129b0fdcca57f66eca316c5cfc))
+
+*   Remove deprecated methods in `ActionDispatch::TestResponse`:
+    `#success?` in favor of `#successful?`, `#missing?` in favor of `#not_found?`,
+    `#error?` in favor of `#server_error?`
+    ([Commit](https://github.com/rails/rails/commit/13ddc92e079e59a0b894e31bf5bb4fdecbd235d1))
+
 ### Deprecations
 
+*   Deprecate `ActionDispatch::Http::ParameterFilter` in favor of `ActiveSupport::ParameterFilter`.
+    ([Pull Request](https://github.com/rails/rails/pull/34039))
+
+*   Deprecate controller level `force_ssl` in favor of `config.force_ssl`.
+    ([Pull Request](https://github.com/rails/rails/pull/32277))
+
 ### Notable changes
+
+*   Raise an `ArgumentError` if a resource param contains a colon.
+    ([Pull Request](https://github.com/rails/rails/pull/35236))
+
+*   Allow `ActionDispatch::SystemTestCase.driven_by` to be called with a block
+    to define specific browser capabilities.
+    ([Pull Request](https://github.com/rails/rails/pull/35081))
+
+*   Add `ActionDispatch::HostAuthorization` middleware that guards against DNS rebinding
+    attacks.
+    ([Pull Request](https://github.com/rails/rails/pull/33145))
+
+*   Allow the use of `parsed_body` in `ActionController::TestCase`.
+    ([Pull Request](https://github.com/rails/rails/pull/34717))
+
+*   Raise an `ArgumentError` when multiple root routes exists in the same context
+    without `as:` naming specifications.
+    ([Pull Request](https://github.com/rails/rails/pull/34494))
+
+*   Allow the use of `#rescue_from` for handling parameter parsing errors.
+    ([Pull Request](https://github.com/rails/rails/pull/34341))
+
+*   Add `ActionController::Parameters#each_value` for iterating through parameters.
+    ([Pull Request](https://github.com/rails/rails/pull/33979))
+
+*   Encode Content-Disposition filenames on `send_data` and `send_file`.
+    ([Pull Request](https://github.com/rails/rails/pull/33829))
+
+*   Expose `ActionController::Parameters#each_key`.
+    ([Pull Request](https://github.com/rails/rails/pull/33758))
+
+*   Add purpose metadata to signed/encrypted cookies to prevent copying the value of
+    cookies into one another.
+    ([Pull Request](https://github.com/rails/rails/pull/32937))
+
+*   Raise `ActionController::RespondToMismatchError` for conflicting `respond_to` invocations.
+    ([Pull Request](https://github.com/rails/rails/pull/33446))
+
+*   Add an explicit error page for when a template is missing for a request format.
+    ([Pull Request](https://github.com/rails/rails/pull/29286))
+
+*   Introduce `ActionDispatch::DebugExceptions.register_interceptor`, a way to hook into
+    DebugExceptions and process the exception, before being rendered.
+    ([Pull Request](https://github.com/rails/rails/pull/23868))
+
+*   Output only one Content-Security-Policy nonce header value per request.
+    ([Pull Request](https://github.com/rails/rails/pull/32602))
+
+*   Add a module specifically for the Rails default headers configuration
+    that can be explicitly included in controllers.
+    ([Pull Request](https://github.com/rails/rails/pull/32484))
+
+*   Add `#dig` to `ActionDispatch::Request::Session`.
+    ([Pull Request](https://github.com/rails/rails/pull/32446))
 
 Action View
 -----------
