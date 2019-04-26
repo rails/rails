@@ -133,6 +133,22 @@ Action Cable JavaScript API:
   +    ActionCable.logger.enabled = false
   ```
 
+### Using Webpacker
+
+[Webpacker](https://github.com/rails/webpacker)
+is the default JavaScript compiler for Rails 6. But if you
+are upgrading the app, it is not activated by default.
+If you want to use Webpacker, then include it in your Gemfile
+and install it:
+
+```ruby
+gem "webpacker", "~> 4.0"
+```
+
+```sh
+bin/rails webpacker:install
+```
+
 Upgrading from Rails 5.1 to Rails 5.2
 -------------------------------------
 
