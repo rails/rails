@@ -606,6 +606,20 @@ Action Cable
 | `:message`      | A hash of message    |
 | `:coder`        | The coder            |
 
+### connect.action_cable
+
+| Key                 | Value                        |
+| ------------------- | ---------------------------- |
+| `:connection_class` | Name of the connection class |
+| `:request`          | A connection request object  |
+
+### disconnect.action_cable
+
+| Key                 | Value                        |
+| ------------------- | ---------------------------- |
+| `:connection_class` | Name of the connection class |
+| `:request`          | A connection request object  |
+
 Active Storage
 --------------
 

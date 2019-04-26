@@ -71,6 +71,25 @@ class ActionCable::Connection::BaseTest < ActionCable::TestCase
     end
   end
 
+  test "notification for connect" do
+    events = []
+    ActiveSupport::Notifications.subscribe "connect.action_cable" do |*args|
+      events << ActiveSupport::Notifications::Event.new(*args)
+    end
+
+    run_in_eventmachine do
+      connection = open_connection
+      connection.process
+
+      assert_equal 1, events.length
+      assert_equal "connect.action_cable", events[0].name
+      assert_equal "ActionCable::Connection::BaseTest::Connection", events[0].payload[:connection_class]
+      assert_equal connection.env, events[0].payload[:request].env
+    end
+  ensure
+    ActiveSupport::Notifications.unsubscribe "perform_action.action_cable"
+  end
+
   test "on connection close" do
     run_in_eventmachine do
       connection = open_connection
@@ -87,6 +106,27 @@ class ActionCable::Connection::BaseTest < ActionCable::TestCase
       assert_not connection.connected
       assert_equal [], @server.connections
     end
+  end
+
+  test "notification for disconnect" do
+    events = []
+    ActiveSupport::Notifications.subscribe "disconnect.action_cable" do |*args|
+      events << ActiveSupport::Notifications::Event.new(*args)
+    end
+
+    run_in_eventmachine do
+      connection = open_connection
+      connection.process
+      connection.send :handle_open
+      connection.send :handle_close
+
+      assert_equal 1, events.length
+      assert_equal "disconnect.action_cable", events[0].name
+      assert_equal "ActionCable::Connection::BaseTest::Connection", events[0].payload[:connection_class]
+      assert_equal connection.env, events[0].payload[:request].env
+    end
+  ensure
+    ActiveSupport::Notifications.unsubscribe "perform_action.action_cable"
   end
 
   test "connection statistics" do

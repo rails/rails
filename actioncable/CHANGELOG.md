@@ -1,3 +1,9 @@
+*   Add notification hooks for connection events
+
+    `connect.action_cable` and `disconnect.action_cable` notifications are added.
+
+    *Sergey Ponomarev*
+
 *   Subscription confirmations and rejections are now logged at the `DEBUG` level instead of `INFO`.
 
     *DHH*
