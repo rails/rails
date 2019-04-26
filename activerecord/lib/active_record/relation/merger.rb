@@ -123,7 +123,9 @@ module ActiveRecord
               end
             end
 
-            join_dependency = other.construct_join_dependency(associations)
+            join_dependency = other.construct_join_dependency(
+              associations, Arel::Nodes::InnerJoin
+            )
             relation.joins!(join_dependency, *others)
           end
         end
@@ -135,7 +137,9 @@ module ActiveRecord
             relation.left_outer_joins!(*other.left_outer_joins_values)
           else
             associations = other.left_outer_joins_values
-            join_dependency = other.construct_join_dependency(associations)
+            join_dependency = other.construct_join_dependency(
+              associations, Arel::Nodes::OuterJoin
+            )
             relation.joins!(join_dependency)
           end
         end
