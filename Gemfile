@@ -45,7 +45,7 @@ gem "libxml-ruby", platforms: :ruby
 gem "connection_pool", require: false
 
 # for railties app_generator_test
-gem "bootsnap", ">= 1.4.2", require: false
+gem "bootsnap", ">= 1.4.4", require: false
 
 # Active Job
 group :job do
