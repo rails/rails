@@ -36,6 +36,11 @@ ActiveRecord::Schema.define do
     t.datetime :wheels_owned_at
   end
 
+  create_table :assembly_lots, force: true do |t|
+    t.references :day
+    t.references :expiration_day
+  end
+
   create_table :articles, force: true do |t|
   end
 
@@ -266,6 +271,10 @@ ActiveRecord::Schema.define do
     t.string :name
   end
 
+  create_table :days, force: true do |t|
+    t.integer :assembly_lots_count
+  end
+
   create_table :developers, force: true do |t|
     t.string   :name
     t.string   :first_name
@@ -335,6 +344,11 @@ ActiveRecord::Schema.define do
 
   create_table :events, force: true do |t|
     t.string :title, limit: 5
+  end
+
+  create_table :expiration_days, force: true do |t|
+    t.references :day
+    t.integer :assembly_lots_count
   end
 
   create_table :eyes, force: true do |t|

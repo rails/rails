@@ -25,6 +25,9 @@ require "models/admin/user"
 require "models/ship"
 require "models/treasure"
 require "models/parrot"
+require "models/day"
+require "models/expiration_day"
+require "models/assembly_lot"
 
 class BelongsToAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :topics,
@@ -849,6 +852,46 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     topic.reload
 
     assert_equal 1, topic.replies_count
+  end
+
+  def test_counter_cache_from_shovel
+    today = Day.create!
+    assembly_lot = today.assembly_lots.create!
+
+    tomorrow = Day.create!
+    expiration_day = tomorrow.build_expiration_day
+    expiration_day.save!
+
+    expiration_day.assembly_lots << assembly_lot
+
+    assert_equal 1, today.assembly_lots.size
+    assert_equal 1, today.reload[:assembly_lots_count]
+
+    assert_equal 0, tomorrow.assembly_lots.size
+    assert_nil tomorrow.reload[:assembly_lots_count]
+
+    assert_equal 1, expiration_day.assembly_lots.size
+    assert_equal 1, expiration_day.reload[:assembly_lots_count]
+  end
+
+  def test_counter_cache_from_update
+    today = Day.create!
+    assembly_lot = today.assembly_lots.create!
+
+    tomorrow = Day.create!
+    expiration_day = tomorrow.build_expiration_day
+    expiration_day.save!
+
+    assembly_lot.update!(expiration_day: expiration_day)
+
+    assert_equal 1, today.assembly_lots.size
+    assert_equal 1, today.reload[:assembly_lots_count]
+
+    assert_equal 0, tomorrow.assembly_lots.size
+    assert_nil tomorrow.reload[:assembly_lots_count]
+
+    assert_equal 1, expiration_day.assembly_lots.size
+    assert_equal 1, expiration_day.reload[:assembly_lots_count]
   end
 
   def test_association_assignment_sticks
