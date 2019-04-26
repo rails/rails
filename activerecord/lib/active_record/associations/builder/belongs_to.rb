@@ -34,29 +34,28 @@ module ActiveRecord::Associations::Builder # :nodoc:
           foreign_key  = reflection.foreign_key
           cache_column = reflection.counter_cache_column
 
-          if (@_after_replace_counter_called ||= false)
-            @_after_replace_counter_called = false
-          elsif association(reflection.name).target_changed?
-            if reflection.polymorphic?
-              model     = attribute_in_database(reflection.foreign_type).try(:constantize)
-              model_was = attribute_before_last_save(reflection.foreign_type).try(:constantize)
-            else
-              model     = reflection.klass
-              model_was = reflection.klass
-            end
+          return if (@_after_replace_counter_called ||= false)
+          return unless association(reflection.name).target_changed?
 
-            foreign_key_was = attribute_before_last_save foreign_key
-            foreign_key     = attribute_in_database foreign_key
+          if reflection.polymorphic?
+            model     = attribute_in_database(reflection.foreign_type).try(:constantize)
+            model_was = attribute_before_last_save(reflection.foreign_type).try(:constantize)
+          else
+            model     = reflection.klass
+            model_was = reflection.klass
+          end
 
-            if foreign_key && model.respond_to?(:increment_counter)
-              foreign_key = counter_cache_target(reflection, model, foreign_key)
-              model.increment_counter(cache_column, foreign_key)
-            end
+          foreign_key_was = attribute_before_last_save foreign_key
+          foreign_key     = attribute_in_database foreign_key
 
-            if foreign_key_was && model_was.respond_to?(:decrement_counter)
-              foreign_key_was = counter_cache_target(reflection, model_was, foreign_key_was)
-              model_was.decrement_counter(cache_column, foreign_key_was)
-            end
+          if foreign_key && model.respond_to?(:increment_counter)
+            foreign_key = counter_cache_target(reflection, model, foreign_key)
+            model.increment_counter(cache_column, foreign_key)
+          end
+
+          if foreign_key_was && model_was.respond_to?(:decrement_counter)
+            foreign_key_was = counter_cache_target(reflection, model_was, foreign_key_was)
+            model_was.decrement_counter(cache_column, foreign_key_was)
           end
         end
 
@@ -73,6 +72,9 @@ module ActiveRecord::Associations::Builder # :nodoc:
 
       model.after_update lambda { |record|
         record.belongs_to_counter_cache_after_update(reflection)
+      }
+      model.after_commit lambda { |record|
+        record.instance_variable_set :@_after_replace_counter_called, false
       }
 
       klass = reflection.class_name.safe_constantize
