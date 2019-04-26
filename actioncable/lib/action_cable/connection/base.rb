@@ -168,7 +168,12 @@ module ActionCable
 
         def handle_open
           @protocol = websocket.protocol
-          connect if respond_to?(:connect)
+
+          payload = { connection_class: self.class.name, request: request }
+          ActiveSupport::Notifications.instrument("connect.action_cable", payload) do
+            connect if respond_to?(:connect)
+          end
+
           subscribe_to_internal_channel
           send_welcome_message
 
@@ -186,7 +191,10 @@ module ActionCable
           subscriptions.unsubscribe_from_all
           unsubscribe_from_internal_channel
 
-          disconnect if respond_to?(:disconnect)
+          payload = { connection_class: self.class.name, request: request }
+          ActiveSupport::Notifications.instrument("disconnect.action_cable", payload) do
+            disconnect if respond_to?(:disconnect)
+          end
         end
 
         def send_welcome_message
