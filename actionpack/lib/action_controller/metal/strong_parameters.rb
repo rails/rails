@@ -630,6 +630,16 @@ module ActionController
       self
     end
 
+    # Removes the given keys from <tt>ActionController::Parameters</tt> and
+    # returns it.
+    #
+    #   params = ActionController::Parameters.new(a: 1, b: 2, c: 3)
+    #   params.except!(:a, :b) # => <ActionController::Parameters {"c"=>3} permitted: false>
+    #   params                 # => <ActionController::Parameters {"c"=>3} permitted: false>
+    def except!(*keys)
+      new_instance_with_inherited_permitted_status(@parameters.except!(*keys))
+    end
+
     # Returns a new <tt>ActionController::Parameters</tt> instance that
     # filters out the given +keys+.
     #

@@ -117,6 +117,20 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
     assert_not_predicate @params[:person].except(:name), :permitted?
   end
 
+  test "except! removes keys" do
+    assert_equal @params, @params.except!(:person)
+    assert_not @params.key?(:person)
+  end
+
+  test "except! retains permitted status" do
+    @params.permit!
+    assert_predicate @params.except!(:person), :permitted?
+  end
+
+  test "except! retains unpermitted status" do
+    assert_not_predicate @params.except!(:person), :permitted?
+  end
+
   test "fetch retains permitted status" do
     @params.permit!
     assert_predicate @params.fetch(:person), :permitted?
