@@ -95,9 +95,7 @@ namespace :test do
       ])
       puts fake_command
 
-      if defined?(JRUBY_VERSION)
-        Process.wait spawn(fake_command)
-      else
+      if Process.respond_to?(:fork)
         # We could run these in parallel, but pretty much all of the
         # railties tests already run in parallel, so ¯\_(⊙︿⊙)_/¯
         Process.waitpid fork {
@@ -106,6 +104,8 @@ namespace :test do
 
           load file
         }
+      else
+        Process.wait spawn(fake_command)
       end
 
       unless $?.success?
