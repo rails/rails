@@ -1,3 +1,25 @@
+*   `truncate` would return the original string if it was too short to be truncated
+    and a frozen string if it were long enough to be truncated. Now truncate will
+    consistently return an unfrozen string regardless. This behavior is consistent
+    with `gsub` and `strip`.
+
+    Before:
+
+      'foobar'.truncate(5).frozen?
+      => true
+      'foobar'.truncate(6).frozen?
+      => false
+
+    After:
+
+      'foobar'.truncate(5).frozen?
+      => false
+      'foobar'.truncate(6).frozen?
+      => false
+
+    *Jordan Thomas*
+
+
 ## Rails 6.0.0.rc1 (April 24, 2019) ##
 
 *   Introduce `ActiveSupport::ActionableError`.
