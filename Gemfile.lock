@@ -167,9 +167,9 @@ GEM
       childprocess
       faraday
       selenium-webdriver
-    bootsnap (1.4.2)
+    bootsnap (1.4.4)
       msgpack (~> 1.0)
-    bootsnap (1.4.2-java)
+    bootsnap (1.4.4-java)
       msgpack (~> 1.0)
     builder (3.2.3)
     bunny (2.13.0)
@@ -327,10 +327,10 @@ GEM
     minitest-server (1.0.5)
       minitest (~> 5.0)
     mono_logger (1.1.0)
-    msgpack (1.2.9)
-    msgpack (1.2.9-java)
-    msgpack (1.2.9-x64-mingw32)
-    msgpack (1.2.9-x86-mingw32)
+    msgpack (1.2.10)
+    msgpack (1.2.10-java)
+    msgpack (1.2.10-x64-mingw32)
+    msgpack (1.2.10-x86-mingw32)
     multi_json (1.13.1)
     multipart-post (2.0.0)
     mustache (1.1.0)
@@ -548,7 +548,7 @@ DEPENDENCIES
   benchmark-ips
   blade
   blade-sauce_labs_plugin
-  bootsnap (>= 1.4.2)
+  bootsnap (>= 1.4.4)
   byebug
   capybara (>= 2.15)
   connection_pool
