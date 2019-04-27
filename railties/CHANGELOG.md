@@ -1,3 +1,19 @@
+## (Unreleased)
+
+*   The new configuration point `config.add_autoload_paths_to_load_path` allows
+    users to opt-out from adding autoload paths to `$LOAD_PATH`. This flag is
+    `true` by default, but it is recommended to be set to `false` in `:zeitwerk`
+    mode early, in `config/application.rb`.
+
+    Zeitwerk uses only absolute paths internally, and applications running in
+    `:zeitwerk` mode do not need `require_relative`, so models, controllers,
+    jobs, etc. do not need to be in `$LOAD_PATH`. Setting this to `false` saves
+    Ruby from checking these directories when resolving `require` calls with
+    relative paths, and saves Bootsnap work and RAM, since it does not need to
+    build an index for them.
+
+    *Xavier Noria*
+
 ## Rails 6.0.0.rc1 (April 24, 2019) ##
 
 *   Applications upgrading to Rails 6 can run the command

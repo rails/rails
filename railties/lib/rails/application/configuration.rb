@@ -19,7 +19,7 @@ module Rails
                     :beginning_of_week, :filter_redirect, :x, :enable_dependency_loading,
                     :read_encrypted_secrets, :log_level, :content_security_policy_report_only,
                     :content_security_policy_nonce_generator, :require_master_key, :credentials,
-                    :disable_sandbox
+                    :disable_sandbox, :add_autoload_paths_to_load_path
 
       attr_reader :encoding, :api_only, :loaded_config_version, :autoloader
 
@@ -67,6 +67,7 @@ module Rails
         @credentials.key_path                    = default_credentials_key_path
         @autoloader                              = :classic
         @disable_sandbox                         = false
+        @add_autoload_paths_to_load_path         = true
       end
 
       def load_defaults(target_version)
