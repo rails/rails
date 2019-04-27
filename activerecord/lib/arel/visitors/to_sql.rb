@@ -513,32 +513,64 @@ module Arel # :nodoc: all
         end
 
         def visit_Arel_Nodes_In(o, collector)
-          if Array === o.right && !o.right.empty?
+          unless Array === o.right
+            return collect_in_clause(o.left, o.right, collector)
+          end
+
+          unless o.right.empty?
             o.right.delete_if { |value| unboundable?(value) }
           end
 
-          if Array === o.right && o.right.empty?
-            collector << "1=0"
+          return collector << "1=0" if o.right.empty?
+
+          in_clause_length = @connection.in_clause_length
+
+          if !in_clause_length || o.right.length <= in_clause_length
+            collect_in_clause(o.left, o.right, collector)
           else
-            collector = visit o.left, collector
-            collector << " IN ("
-            visit(o.right, collector) << ")"
+            collector << "("
+            o.right.each_slice(in_clause_length).each_with_index do |right, i|
+              collector << " OR " unless i == 0
+              collect_in_clause(o.left, right, collector)
+            end
+            collector << ")"
           end
         end
 
+        def collect_in_clause(left, right, collector)
+          collector = visit left, collector
+          collector << " IN ("
+          visit(right, collector) << ")"
+        end
+
         def visit_Arel_Nodes_NotIn(o, collector)
-          if Array === o.right && !o.right.empty?
+          unless Array === o.right
+            return collect_not_in_clause(o.left, o.right, collector)
+          end
+
+          unless o.right.empty?
             o.right.delete_if { |value| unboundable?(value) }
           end
 
-          if Array === o.right && o.right.empty?
-            collector << "1=1"
+          return collector << "1=1" if o.right.empty?
+
+          in_clause_length = @connection.in_clause_length
+
+          if !in_clause_length || o.right.length <= in_clause_length
+            collect_not_in_clause(o.left, o.right, collector)
           else
-            collector = visit o.left, collector
-            collector << " NOT IN ("
-            collector = visit o.right, collector
-            collector << ")"
+            o.right.each_slice(in_clause_length).each_with_index do |right, i|
+              collector << " AND " unless i == 0
+              collect_not_in_clause(o.left, right, collector)
+            end
+            collector
           end
+        end
+
+        def collect_not_in_clause(left, right, collector)
+          collector = visit left, collector
+          collector << " NOT IN ("
+          visit(right, collector) << ")"
         end
 
         def visit_Arel_Nodes_And(o, collector)

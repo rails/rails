@@ -121,6 +121,10 @@ module ActiveRecord
           sql
         end
 
+        def table_alias_length
+          256 # https://dev.mysql.com/doc/refman/8.0/en/identifiers.html
+        end
+
         private
           CHARSETS_OF_4BYTES_MAXLEN = ["utf8mb4", "utf16", "utf16le", "utf32"]
 
@@ -170,9 +174,8 @@ module ActiveRecord
               default,
               type_metadata,
               field[:Null] == "YES",
-              table_name,
               default_function,
-              field[:Collation],
+              collation: field[:Collation],
               comment: field[:Comment].presence
             )
           end
@@ -240,7 +243,7 @@ module ActiveRecord
               when nil, 0x100..0xffff;    nil
               when 0x10000..0xffffff;     "medium"
               when 0x1000000..0xffffffff; "long"
-              else raise ActiveRecordError, "No #{type} type has byte size #{limit}"
+              else raise ArgumentError, "No #{type} type has byte size #{limit}"
               end
             end
           end
@@ -252,7 +255,7 @@ module ActiveRecord
             when 3; "mediumint"
             when nil, 4; "int"
             when 5..8; "bigint"
-            else raise ActiveRecordError, "No integer type has byte size #{limit}. Use a decimal with scale 0 instead."
+            else raise ArgumentError, "No integer type has byte size #{limit}. Use a decimal with scale 0 instead."
             end
           end
       end

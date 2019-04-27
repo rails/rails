@@ -28,7 +28,7 @@ ruby <%= "'#{RUBY_VERSION}'" -%>
 
 <% if depend_on_bootsnap? -%>
 # Reduces boot times through caching; required in config/boot.rb
-gem 'bootsnap', '>= 1.4.2', require: false
+gem 'bootsnap', '>= 1.4.4', require: false
 
 <%- end -%>
 <%- if options.api? -%>

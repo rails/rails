@@ -292,6 +292,7 @@ module ActiveRecord
       klass.create!(description: "foo")
 
       assert_equal ["foo"], klass.select(:description).from(klass.all).map(&:desc)
+      assert_equal ["foo"], klass.reselect(:description).from(klass.all).map(&:desc)
     end
 
     def test_relation_merging_with_merged_joins_as_strings

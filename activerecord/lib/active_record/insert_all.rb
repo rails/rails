@@ -21,7 +21,10 @@ module ActiveRecord
     end
 
     def execute
-      connection.exec_query to_sql, "Bulk Insert"
+      message = +"#{model} "
+      message << "Bulk " if inserts.many?
+      message << (on_duplicate == :update ? "Upsert" : "Insert")
+      connection.exec_query to_sql, message
     end
 
     def updatable_columns
@@ -111,7 +114,7 @@ module ActiveRecord
       class Builder
         attr_reader :model
 
-        delegate :skip_duplicates?, :update_duplicates?, to: :insert_all
+        delegate :skip_duplicates?, :update_duplicates?, :keys, to: :insert_all
 
         def initialize(insert_all)
           @insert_all, @model, @connection = insert_all, insert_all.model, insert_all.connection
@@ -122,11 +125,10 @@ module ActiveRecord
         end
 
         def values_list
-          types = extract_types_from_columns_on(model.table_name, keys: insert_all.keys)
+          types = extract_types_from_columns_on(model.table_name, keys: keys)
 
           values_list = insert_all.map_key_with_value do |key, value|
-            bind = Relation::QueryAttribute.new(key, value, types[key])
-            connection.with_yaml_fallback(bind.value_for_database)
+            connection.with_yaml_fallback(types[key].serialize(value))
           end
 
           Arel::InsertManager.new.create_values_list(values_list).to_sql

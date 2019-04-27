@@ -1710,28 +1710,28 @@ class PerformedJobsTest < ActiveJob::TestCase
 
   def test_assert_performed_with_time
     now = Time.now
-    args = [{ argument1: { now: now } }]
+    args = [{ argument1: { now: now }, argument2: now }]
 
-    assert_enqueued_with(job: MultipleKwargsJob, args: args) do
-      MultipleKwargsJob.perform_later(argument1: { now: now })
+    assert_performed_with(job: MultipleKwargsJob, args: args) do
+      MultipleKwargsJob.perform_later(argument1: { now: now }, argument2: now)
     end
   end
 
   def test_assert_performed_with_date_time
     now = DateTime.now
-    args = [{ argument1: { now: now } }]
+    args = [{ argument1: { now: now }, argument2: now }]
 
-    assert_enqueued_with(job: MultipleKwargsJob, args: args) do
-      MultipleKwargsJob.perform_later(argument1: { now: now })
+    assert_performed_with(job: MultipleKwargsJob, args: args) do
+      MultipleKwargsJob.perform_later(argument1: { now: now }, argument2: now)
     end
   end
 
   def test_assert_performed_with_time_with_zone
     now = Time.now.in_time_zone("Tokyo")
-    args = [{ argument1: { now: now } }]
+    args = [{ argument1: { now: now }, argument2: now }]
 
-    assert_enqueued_with(job: MultipleKwargsJob, args: args) do
-      MultipleKwargsJob.perform_later(argument1: { now: now })
+    assert_performed_with(job: MultipleKwargsJob, args: args) do
+      MultipleKwargsJob.perform_later(argument1: { now: now }, argument2: now)
     end
   end
 

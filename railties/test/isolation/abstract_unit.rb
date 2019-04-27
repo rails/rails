@@ -18,7 +18,9 @@ require "active_support/testing/method_call_assertions"
 require "active_support/test_case"
 require "minitest/retry"
 
-Minitest::Retry.use!(verbose: false, retry_count: 1)
+if ENV["BUILDKITE"]
+  Minitest::Retry.use!(verbose: false, retry_count: 1)
+end
 
 RAILS_FRAMEWORK_ROOT = File.expand_path("../../..", __dir__)
 

@@ -140,6 +140,12 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       end
     end
 
+    def test_fetch_multi_without_names
+      assert_not_called(@cache.redis, :mget) do
+        @cache.fetch_multi() { }
+      end
+    end
+
     def test_increment_expires_in
       assert_called_with @cache.redis, :incrby, [ "#{@namespace}:foo", 1 ] do
         assert_called_with @cache.redis, :expire, [ "#{@namespace}:foo", 60 ] do

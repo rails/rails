@@ -10,25 +10,21 @@ module ActiveRecord
 
         def initialize(type_metadata, extra: "")
           super(type_metadata)
-          @type_metadata = type_metadata
           @extra = extra
         end
 
         def ==(other)
-          other.is_a?(MySQL::TypeMetadata) &&
-            attributes_for_hash == other.attributes_for_hash
+          other.is_a?(TypeMetadata) &&
+            __getobj__ == other.__getobj__ &&
+            extra == other.extra
         end
         alias eql? ==
 
         def hash
-          attributes_for_hash.hash
+          TypeMetadata.hash ^
+            __getobj__.hash ^
+            extra.hash
         end
-
-        protected
-
-          def attributes_for_hash
-            [self.class, @type_metadata, extra]
-          end
       end
     end
   end

@@ -68,9 +68,8 @@ module ActiveSupport
         @transaction_id = transaction_id
         @end            = ending
         @children       = []
-        @duration       = nil
-        @cpu_time_start = nil
-        @cpu_time_finish = nil
+        @cpu_time_start = 0
+        @cpu_time_finish = 0
         @allocation_count_start = 0
         @allocation_count_finish = 0
       end
@@ -125,7 +124,7 @@ module ActiveSupport
       #
       #   @event.duration # => 1000.138
       def duration
-        @duration ||= 1000.0 * (self.end - time)
+        1000.0 * (self.end - time)
       end
 
       def <<(event)

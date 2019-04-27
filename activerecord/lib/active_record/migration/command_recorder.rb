@@ -14,6 +14,8 @@ module ActiveRecord
     # * change_column
     # * change_column_default (must supply a :from and :to option)
     # * change_column_null
+    # * change_column_comment (must supply a :from and :to option)
+    # * change_table_comment (must supply a :from and :to option)
     # * create_join_table
     # * create_table
     # * disable_extension
@@ -35,7 +37,8 @@ module ActiveRecord
         :change_column_default, :add_reference, :remove_reference, :transaction,
         :drop_join_table, :drop_table, :execute_block, :enable_extension, :disable_extension,
         :change_column, :execute, :remove_columns, :change_column_null,
-        :add_foreign_key, :remove_foreign_key
+        :add_foreign_key, :remove_foreign_key,
+        :change_column_comment, :change_table_comment
       ]
       include JoinTable
 
@@ -242,6 +245,26 @@ module ActiveRecord
           reversed_args << options unless options.empty?
 
           [:add_foreign_key, reversed_args]
+        end
+
+        def invert_change_column_comment(args)
+          table, column, options = *args
+
+          unless options && options.is_a?(Hash) && options.has_key?(:from) && options.has_key?(:to)
+            raise ActiveRecord::IrreversibleMigration, "change_column_comment is only reversible if given a :from and :to option."
+          end
+
+          [:change_column_comment, [table, column, from: options[:to], to: options[:from]]]
+        end
+
+        def invert_change_table_comment(args)
+          table, options = *args
+
+          unless options && options.is_a?(Hash) && options.has_key?(:from) && options.has_key?(:to)
+            raise ActiveRecord::IrreversibleMigration, "change_table_comment is only reversible if given a :from and :to option."
+          end
+
+          [:change_table_comment, [table, from: options[:to], to: options[:from]]]
         end
 
         def respond_to_missing?(method, _)

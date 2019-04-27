@@ -13,7 +13,10 @@ module ActiveRecord
         const_get(name)
       end
 
-      V6_0 = Current
+      V6_1 = Current
+
+      class V6_0 < V6_1
+      end
 
       class V5_2 < V6_0
         module TableDefinition
@@ -26,6 +29,16 @@ module ActiveRecord
         module CommandRecorder
           def invert_transaction(args, &block)
             [:transaction, args, block]
+          end
+
+          def invert_change_column_comment(args)
+            table_name, column_name, comment = args
+            [:change_column_comment, [table_name, column_name, from: comment, to: comment]]
+          end
+
+          def invert_change_table_comment(args)
+            table_name, comment = args
+            [:change_table_comment, [table_name, from: comment, to: comment]]
           end
         end
 

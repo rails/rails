@@ -24,7 +24,7 @@ module ActiveRecord
 
     RESTRICTED_CLASS_METHODS = %w(private public protected allocate new name parent superclass)
 
-    class GeneratedAttributeMethodsBuilder < Module #:nodoc:
+    class GeneratedAttributeMethods < Module #:nodoc:
       include Mutex_m
     end
 
@@ -35,7 +35,7 @@ module ActiveRecord
       end
 
       def initialize_generated_modules # :nodoc:
-        @generated_attribute_methods = const_set(:GeneratedAttributeMethods, GeneratedAttributeMethodsBuilder.new)
+        @generated_attribute_methods = const_set(:GeneratedAttributeMethods, GeneratedAttributeMethods.new)
         private_constant :GeneratedAttributeMethods
         @attribute_methods_generated = false
         include @generated_attribute_methods
@@ -89,7 +89,7 @@ module ActiveRecord
           # If ThisClass < ... < SomeSuperClass < ... < Base and SomeSuperClass
           # defines its own attribute method, then we don't want to overwrite that.
           defined = method_defined_within?(method_name, superclass, Base) &&
-            ! superclass.instance_method(method_name).owner.is_a?(GeneratedAttributeMethodsBuilder)
+            ! superclass.instance_method(method_name).owner.is_a?(GeneratedAttributeMethods)
           defined || super
         end
       end
@@ -197,7 +197,7 @@ module ActiveRecord
             "Dangerous query method (method whose arguments are used as raw " \
             "SQL) called with non-attribute argument(s): " \
             "#{unexpected.map(&:inspect).join(", ")}. Non-attribute " \
-            "arguments will be disallowed in Rails 6.0. This method should " \
+            "arguments will be disallowed in Rails 6.1. This method should " \
             "not be called with user-provided values, such as request " \
             "parameters or model attributes. Known-safe values can be passed " \
             "by wrapping them in Arel.sql()."
@@ -465,7 +465,7 @@ module ActiveRecord
       end
 
       def pk_attribute?(name)
-        name == self.class.primary_key
+        name == @primary_key
       end
   end
 end

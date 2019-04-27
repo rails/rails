@@ -98,24 +98,47 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
     assert_nil deps.safe_constantize("Admin")
   end
 
-  test "autoloaded_constants returns autoloaded constant paths" do
-    app_file "app/models/admin/user.rb", "class Admin::User; end"
-    app_file "app/models/post.rb", "class Post; end"
-    boot
-
-    assert Admin::User
-    assert_equal ["Admin", "Admin::User"], deps.autoloaded_constants
-  end
-
-  test "autoloaded? says if a constant has been autoloaded" do
+  test "unloadable constants (main)" do
     app_file "app/models/user.rb", "class User; end"
     app_file "app/models/post.rb", "class Post; end"
     boot
 
     assert Post
+
     assert deps.autoloaded?("Post")
     assert deps.autoloaded?(Post)
     assert_not deps.autoloaded?("User")
+
+    assert_equal ["Post"], deps.autoloaded_constants
+  end
+
+  test "unloadable constants (once)" do
+    add_to_config 'config.autoload_once_paths << "#{Rails.root}/extras"'
+    app_file "extras/foo.rb", "class Foo; end"
+    app_file "extras/bar.rb", "class Bar; end"
+    boot
+
+    assert Foo
+
+    assert_not deps.autoloaded?("Foo")
+    assert_not deps.autoloaded?(Foo)
+    assert_not deps.autoloaded?("Bar")
+
+    assert_empty deps.autoloaded_constants
+  end
+
+  test "unloadable constants (reloading disabled)" do
+    app_file "app/models/user.rb", "class User; end"
+    app_file "app/models/post.rb", "class Post; end"
+    boot("production")
+
+    assert Post
+
+    assert_not deps.autoloaded?("Post")
+    assert_not deps.autoloaded?(Post)
+    assert_not deps.autoloaded?("User")
+
+    assert_empty deps.autoloaded_constants
   end
 
   test "eager loading loads the application code" do
@@ -143,6 +166,15 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
 
     assert_not Rails.autoloaders.main.reloading_enabled?
     assert_not Rails.autoloaders.once.reloading_enabled?
+  end
+
+  test "reloading raises if config.cache_classes is true" do
+    boot("production")
+
+    e = assert_raises(StandardError) do
+      deps.clear
+    end
+    assert_equal "reloading is disabled because config.cache_classes is true", e.message
   end
 
   test "eager loading loads code in engines" do

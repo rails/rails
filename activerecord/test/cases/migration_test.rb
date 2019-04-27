@@ -583,7 +583,7 @@ class MigrationTest < ActiveRecord::TestCase
 
   if current_adapter?(:Mysql2Adapter, :PostgreSQLAdapter)
     def test_out_of_range_integer_limit_should_raise
-      e = assert_raise(ActiveRecord::ActiveRecordError, "integer limit didn't raise") do
+      e = assert_raise(ArgumentError) do
         Person.connection.create_table :test_integer_limits, force: true do |t|
           t.column :bigone, :integer, limit: 10
         end
@@ -595,7 +595,7 @@ class MigrationTest < ActiveRecord::TestCase
     end
 
     def test_out_of_range_text_limit_should_raise
-      e = assert_raise(ActiveRecord::ActiveRecordError, "text limit didn't raise") do
+      e = assert_raise(ArgumentError) do
         Person.connection.create_table :test_text_limits, force: true do |t|
           t.text :bigtext, limit: 0xfffffffff
         end
@@ -607,15 +607,15 @@ class MigrationTest < ActiveRecord::TestCase
     end
 
     def test_out_of_range_binary_limit_should_raise
-      e = assert_raise(ActiveRecord::ActiveRecordError) do
-        Person.connection.create_table :test_text_limits, force: true do |t|
+      e = assert_raise(ArgumentError) do
+        Person.connection.create_table :test_binary_limits, force: true do |t|
           t.binary :bigbinary, limit: 0xfffffffff
         end
       end
 
       assert_includes e.message, "No binary type has byte size #{0xfffffffff}"
     ensure
-      Person.connection.drop_table :test_text_limits, if_exists: true
+      Person.connection.drop_table :test_binary_limits, if_exists: true
     end
   end
 

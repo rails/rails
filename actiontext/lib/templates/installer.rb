@@ -29,4 +29,17 @@ if APPLICATION_PACK_PATH.exist?
       append_to_file APPLICATION_PACK_PATH, "\n#{line}"
     end
   end
+else
+  warn <<~WARNING
+    WARNING: Action Text can't locate your JavaScript bundle to add its package dependencies.
+
+    Add these lines to any bundles:
+
+    require("trix")
+    require("@rails/actiontext")
+
+    Alternatively, install and setup the webpacker gem then rerun `bin/rails action_text:install`
+    to have these dependencies added automatically.
+
+  WARNING
 end

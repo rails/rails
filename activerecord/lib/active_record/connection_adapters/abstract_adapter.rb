@@ -170,8 +170,11 @@ module ActiveRecord
       class Version
         include Comparable
 
-        def initialize(version_string)
+        attr_reader :full_version_string
+
+        def initialize(version_string, full_version_string = nil)
           @version = version_string.split(".").map(&:to_i)
+          @full_version_string = full_version_string
         end
 
         def <=>(version_string)
