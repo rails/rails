@@ -559,9 +559,8 @@ module Rails
       end
     end
 
-    # Add configured load paths to Ruby's load path, and remove duplicate entries.
-    initializer :set_load_path, before: :bootstrap_hook do
-      _all_load_paths.reverse_each do |path|
+    initializer :set_load_path, before: :bootstrap_hook do |app|
+      _all_load_paths(app.config.add_autoload_paths_to_load_path).reverse_each do |path|
         $LOAD_PATH.unshift(path) if File.directory?(path)
       end
       $LOAD_PATH.uniq!
@@ -709,8 +708,12 @@ module Rails
         @_all_autoload_paths ||= (config.autoload_paths + config.eager_load_paths + config.autoload_once_paths).uniq
       end
 
-      def _all_load_paths
-        @_all_load_paths ||= (config.paths.load_paths + _all_autoload_paths).uniq
+      def _all_load_paths(add_autoload_paths_to_load_path)
+        @_all_load_paths ||= begin
+          load_paths  = config.paths.load_paths
+          load_paths += _all_autoload_paths if add_autoload_paths_to_load_path
+          load_paths.uniq
+        end
       end
 
       def build_request(env)
