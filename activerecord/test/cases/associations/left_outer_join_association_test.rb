@@ -32,6 +32,10 @@ class LeftOuterJoinAssociationTest < ActiveRecord::TestCase
     assert_equal 17, Post.left_outer_joins(:comments).count
   end
 
+  def test_merging_left_joins_should_be_left_joins
+    assert_equal 5, Author.left_joins(:posts).merge(Post.no_comments).count
+  end
+
   def test_left_joins_aliases_left_outer_joins
     assert_equal Post.left_outer_joins(:comments).to_sql, Post.left_joins(:comments).to_sql
   end

@@ -43,6 +43,7 @@ class Post < ActiveRecord::Base
   has_one :first_comment, -> { order("id ASC") }, class_name: "Comment"
   has_one :last_comment, -> { order("id desc") }, class_name: "Comment"
 
+  scope :no_comments, -> { left_joins(:comments).where(comments: { id: nil }) }
   scope :with_special_comments, -> { joins(:comments).where(comments: { type: "SpecialComment" }) }
   scope :with_very_special_comments, -> { joins(:comments).where(comments: { type: "VerySpecialComment" }) }
   scope :with_post, ->(post_id) { joins(:comments).where(comments: { post_id: post_id }) }
