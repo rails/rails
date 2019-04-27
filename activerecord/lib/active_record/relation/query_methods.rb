@@ -1005,9 +1005,9 @@ module ActiveRecord
       @arel ||= build_arel(aliases)
     end
 
-    def construct_join_dependency(associations) # :nodoc:
+    def construct_join_dependency(associations, join_type) # :nodoc:
       ActiveRecord::Associations::JoinDependency.new(
-        klass, table, associations
+        klass, table, associations, join_type
       )
     end
 
@@ -1102,7 +1102,7 @@ module ActiveRecord
       def build_joins(manager, joins, aliases)
         unless left_outer_joins_values.empty?
           left_joins = valid_association_list(left_outer_joins_values.flatten)
-          joins << construct_join_dependency(left_joins)
+          joins.unshift construct_join_dependency(left_joins, Arel::Nodes::OuterJoin)
         end
 
         buckets = joins.group_by do |join|
@@ -1134,9 +1134,9 @@ module ActiveRecord
         join_list = join_nodes + convert_join_strings_to_ast(string_joins)
         alias_tracker = alias_tracker(join_list, aliases)
 
-        join_dependency = construct_join_dependency(association_joins)
+        join_dependency = construct_join_dependency(association_joins, join_type)
 
-        joins = join_dependency.join_constraints(stashed_joins, join_type, alias_tracker)
+        joins = join_dependency.join_constraints(stashed_joins, alias_tracker)
         joins.each { |join| manager.from(join) }
 
         manager.join_sources.concat(join_list)
