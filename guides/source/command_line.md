@@ -238,14 +238,17 @@ Usage:
 
 ...
 
-Active Record options:
-      [--migration]            # Indicates when to generate migration
-                               # Default: true
+ActiveRecord options:
+      [--migration], [--no-migration]        # Indicates when to generate migration
+                                             # Default: true
 
 ...
 
 Description:
-    Create rails files for model generator.
+    Stubs out a new model. Pass the model name, either CamelCased or
+    under_scored, and an optional list of attribute pairs as arguments.
+
+...
 ```
 
 NOTE: For a list of available field types for the `type` parameter, refer to the [API documentation](https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-add_column) for the add_column method for the `SchemaStatements` module. The `index` parameter generates a corresponding index for the column.
