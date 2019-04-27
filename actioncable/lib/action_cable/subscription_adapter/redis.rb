@@ -5,6 +5,8 @@ require "thread"
 gem "redis", ">= 3", "< 5"
 require "redis"
 
+require "active_support/core_ext/hash/except"
+
 module ActionCable
   module SubscriptionAdapter
     class Redis < Base # :nodoc:
@@ -14,7 +16,7 @@ module ActionCable
       # This is needed, for example, when using Makara proxies for distributed Redis.
       cattr_accessor :redis_connector, default: ->(config) do
         config[:id] ||= "ActionCable-PID-#{$$}"
-        ::Redis.new(config.slice(:url, :host, :port, :db, :password, :id))
+        ::Redis.new(config.except(:adapter, :channel_prefix))
       end
 
       def initialize(*)

@@ -760,7 +760,7 @@ module ActiveRecord
     end
 
     class DatabaseTasksMigrateTest < DatabaseTasksMigrationTestCase
-      def test_migrate_set_and_unset_verbose_and_version_env_vars
+      def test_can_migrate_from_pending_migration_error_action_dispatch
         verbose, version = ENV["VERBOSE"], ENV["VERSION"]
         ENV["VERSION"] = "2"
         ENV["VERBOSE"] = "false"
@@ -772,7 +772,9 @@ module ActiveRecord
         ENV.delete("VERBOSE")
 
         # re-run up migration
-        assert_includes capture_migration_output, "migrating"
+        assert_includes(capture(:stdout) do
+          ActiveSupport::ActionableError.dispatch ActiveRecord::PendingMigrationError, "Run pending migrations"
+        end, "migrating")
       ensure
         ENV["VERBOSE"], ENV["VERSION"] = verbose, version
       end

@@ -22,7 +22,7 @@ module ActiveRecord
       @_touch_time = current_time_from_proper_timezone
 
       surreptitiously_touch @_defer_touch_attrs
-      self.class.connection.add_transaction_record self
+      add_to_transaction
 
       # touch the parents as we are not calling the after_save callbacks
       self.class.reflect_on_all_associations(:belongs_to).each do |r|

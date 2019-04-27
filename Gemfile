@@ -29,6 +29,7 @@ gem "uglifier", ">= 1.3.0", require: false
 gem "json", ">= 2.0.0"
 
 gem "rubocop", ">= 0.47", require: false
+gem "rubocop-performance", require: false
 
 group :doc do
   gem "sdoc", "~> 1.0"
@@ -44,7 +45,7 @@ gem "libxml-ruby", platforms: :ruby
 gem "connection_pool", require: false
 
 # for railties app_generator_test
-gem "bootsnap", ">= 1.4.2", require: false
+gem "bootsnap", ">= 1.4.4", require: false
 
 # Active Job
 group :job do

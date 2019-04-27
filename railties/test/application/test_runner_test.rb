@@ -794,6 +794,32 @@ module ApplicationTests
       assert_match "Capybara.reset_sessions! called", output
     end
 
+    def test_failed_system_test_screenshot_should_be_taken_before_other_teardown
+      app_file "test/system/failed_system_test_screenshot_should_be_taken_before_other_teardown_test.rb", <<~RUBY
+        require "application_system_test_case"
+        require "selenium/webdriver"
+
+        class FailedSystemTestScreenshotShouldBeTakenBeforeOtherTeardownTest < ApplicationSystemTestCase
+          ActionDispatch::SystemTestCase.class_eval do
+            def take_failed_screenshot
+              puts "take_failed_screenshot called"
+              super
+            end
+          end
+
+          def teardown
+            puts "test teardown called"
+            super
+          end
+
+          test "dummy" do
+          end
+        end
+      RUBY
+      output = run_test_command("test/system/failed_system_test_screenshot_should_be_taken_before_other_teardown_test.rb")
+      assert_match(/take_failed_screenshot called\n.*test teardown called/, output)
+    end
+
     def test_system_tests_are_not_run_with_the_default_test_command
       app_file "test/system/dummy_test.rb", <<-RUBY
         require "application_system_test_case"

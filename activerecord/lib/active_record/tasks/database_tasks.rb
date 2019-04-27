@@ -142,6 +142,8 @@ module ActiveRecord
       end
 
       def for_each
+        return {} unless defined?(Rails)
+
         databases = Rails.application.config.load_database_yaml
         database_configs = ActiveRecord::DatabaseConfigurations.new(databases).configs_for(env_name: Rails.env)
 
@@ -150,6 +152,20 @@ module ActiveRecord
 
         database_configs.each do |db_config|
           yield db_config.spec_name
+        end
+      end
+
+      def raise_for_multi_db(environment = env, command:)
+        db_configs = ActiveRecord::Base.configurations.configs_for(env_name: environment)
+
+        if db_configs.count > 1
+          dbs_list = []
+
+          db_configs.each do |db|
+            dbs_list << "#{command}:#{db.spec_name}"
+          end
+
+          raise "You're using a multiple database application. To use `#{command}` you must run the namespaced task with a VERSION. Available tasks are #{dbs_list.to_sentence}."
         end
       end
 

@@ -10,6 +10,14 @@ class ModelGeneratorTest < Rails::Generators::TestCase
   def setup
     super
     Rails::Generators::ModelHelpers.skip_warn = false
+    @old_belongs_to_required_by_default = Rails.application.config.active_record.belongs_to_required_by_default
+
+    Rails.application.config.active_record.belongs_to_required_by_default = true
+  end
+
+
+  def teardown
+    Rails.application.config.active_record.belongs_to_required_by_default = @old_belongs_to_required_by_default
   end
 
   def test_help_shows_invoked_generators_options
@@ -414,45 +422,57 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_required_belongs_to_adds_required_association
-    run_generator ["account", "supplier:references{required}"]
+  def test_polymorphic_belongs_to_generates_correct_model
+    run_generator ["account", "supplier:references{polymorphic}"]
 
     expected_file = <<~FILE
       class Account < ApplicationRecord
-        belongs_to :supplier, required: true
+        belongs_to :supplier, polymorphic: true
       end
     FILE
     assert_file "app/models/account.rb", expected_file
   end
 
-  def test_required_polymorphic_belongs_to_generages_correct_model
-    run_generator ["account", "supplier:references{required,polymorphic}"]
-
-    expected_file = <<~FILE
-      class Account < ApplicationRecord
-        belongs_to :supplier, polymorphic: true, required: true
-      end
-    FILE
-    assert_file "app/models/account.rb", expected_file
-  end
-
-  def test_required_and_polymorphic_are_order_independent
-    run_generator ["account", "supplier:references{polymorphic.required}"]
-
-    expected_file = <<~FILE
-      class Account < ApplicationRecord
-        belongs_to :supplier, polymorphic: true, required: true
-      end
-    FILE
-    assert_file "app/models/account.rb", expected_file
-  end
-
-  def test_required_adds_null_false_to_column
-    run_generator ["account", "supplier:references{required}"]
+  def test_passing_required_to_model_generator_is_deprecated
+    assert_deprecated do
+      run_generator ["account", "supplier:references{required}"]
+    end
 
     assert_migration "db/migrate/create_accounts.rb" do |m|
       assert_method :change, m do |up|
         assert_match(/t\.references :supplier,.*\snull: false/, up)
+      end
+    end
+  end
+
+  def test_null_false_is_added_for_references_by_default
+    run_generator ["account", "user:references"]
+
+    assert_migration "db/migrate/create_accounts.rb" do |m|
+      assert_method :change, m do |up|
+        assert_match(/t\.references :user,.*\snull: false/, up)
+      end
+    end
+  end
+
+  def test_null_false_is_added_for_belongs_to_by_default
+    run_generator ["account", "user:belongs_to"]
+
+    assert_migration "db/migrate/create_accounts.rb" do |m|
+      assert_method :change, m do |up|
+        assert_match(/t\.belongs_to :user,.*\snull: false/, up)
+      end
+    end
+  end
+
+  def test_null_false_is_not_added_when_belongs_to_required_by_default_global_config_is_false
+    Rails.application.config.active_record.belongs_to_required_by_default = false
+
+    run_generator ["account", "user:belongs_to"]
+
+    assert_migration "db/migrate/create_accounts.rb" do |m|
+      assert_method :change, m do |up|
+        assert_match(/t\.belongs_to :user/, up)
       end
     end
   end

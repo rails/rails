@@ -160,7 +160,7 @@ class ActiveRecordSchemaTest < ActiveRecord::TestCase
   end
 
   if subsecond_precision_supported?
-    def test_timestamps_sets_presicion_on_create_table
+    def test_timestamps_sets_precision_on_create_table
       ActiveRecord::Schema.define do
         create_table :has_timestamps do |t|
           t.timestamps
@@ -171,7 +171,7 @@ class ActiveRecordSchemaTest < ActiveRecord::TestCase
       assert @connection.column_exists?(:has_timestamps, :updated_at, precision: 6, null: false)
     end
 
-    def test_timestamps_sets_presicion_on_change_table
+    def test_timestamps_sets_precision_on_change_table
       ActiveRecord::Schema.define do
         create_table :has_timestamps
 
@@ -185,7 +185,7 @@ class ActiveRecordSchemaTest < ActiveRecord::TestCase
     end
 
     if ActiveRecord::Base.connection.supports_bulk_alter?
-      def test_timestamps_sets_presicion_on_change_table_with_bulk
+      def test_timestamps_sets_precision_on_change_table_with_bulk
         ActiveRecord::Schema.define do
           create_table :has_timestamps
 
@@ -199,7 +199,7 @@ class ActiveRecordSchemaTest < ActiveRecord::TestCase
       end
     end
 
-    def test_timestamps_sets_presicion_on_add_timestamps
+    def test_timestamps_sets_precision_on_add_timestamps
       ActiveRecord::Schema.define do
         create_table :has_timestamps
         add_timestamps :has_timestamps, default: Time.now

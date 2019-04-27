@@ -363,6 +363,17 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 60,  c[2]
   end
 
+  def test_should_calculate_grouped_with_longer_field
+    field = "a" * Account.connection.max_identifier_length
+
+    Account.update_all("#{field} = credit_limit")
+
+    c = Account.group(:firm_id).sum(field)
+    assert_equal 50,  c[1]
+    assert_equal 105, c[6]
+    assert_equal 60,  c[2]
+  end
+
   def test_should_calculate_with_invalid_field
     assert_equal 6, Account.calculate(:count, "*")
     assert_equal 6, Account.calculate(:count, :all)

@@ -23,10 +23,10 @@ module ActiveSupport
       def clear
         if defined? ActiveSupport::Dependencies
           @@direct_descendants.each do |klass, descendants|
-            if ActiveSupport::Dependencies.autoloaded?(klass)
+            if Dependencies.autoloaded?(klass)
               @@direct_descendants.delete(klass)
             else
-              descendants.reject! { |v| ActiveSupport::Dependencies.autoloaded?(v) }
+              descendants.reject! { |v| Dependencies.autoloaded?(v) }
             end
           end
         else

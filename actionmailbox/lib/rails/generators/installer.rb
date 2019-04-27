@@ -5,6 +5,6 @@ copy_file "#{__dir__}/mailbox/templates/application_mailbox.rb", "app/mailboxes/
 
 environment <<~end_of_config, env: "production"
   # Prepare the ingress controller used to receive mail
-  # config.action_mailbox.ingress = :amazon
+  # config.action_mailbox.ingress = :postfix
 
 end_of_config

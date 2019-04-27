@@ -9,7 +9,9 @@ module Rails
       extend ActiveSupport::Concern
 
       included do
-        class_attribute :environment_desc, default: "Specifies the environment to run this #{self.command_name} under (test/development/production)."
+        no_commands do
+          class_attribute :environment_desc, default: "Specifies the environment to run this #{self.command_name} under (test/development/production)."
+        end
         class_option :environment, aliases: "-e", type: :string, desc: environment_desc
       end
 

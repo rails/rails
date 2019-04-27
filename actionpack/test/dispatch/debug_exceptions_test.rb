@@ -5,6 +5,18 @@ require "abstract_unit"
 class DebugExceptionsTest < ActionDispatch::IntegrationTest
   InterceptedErrorInstance = StandardError.new
 
+  class CustomActionableError < StandardError
+    include ActiveSupport::ActionableError
+
+    action "Action 1" do
+      nil
+    end
+
+    action "Action 2" do
+      nil
+    end
+  end
+
   class Boomer
     attr_accessor :closed
 
@@ -92,6 +104,8 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
         method_that_raises
       when "/nested_exceptions"
         raise_nested_exceptions
+      when %r{/actionable_error}
+        raise CustomActionableError
       else
         raise "puke!"
       end
@@ -587,6 +601,23 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
       assert_select "#Application-Trace-2" do
         assert_select "code a:first", %r{in `raise_nested_exceptions'}
       end
+    end
+  end
+
+  test "shows a buttons for every action in an actionable error" do
+    @app = DevelopmentApp
+    Rails.stub :root, Pathname.new(".") do
+      cleaner = ActiveSupport::BacktraceCleaner.new.tap do |bc|
+        bc.add_silencer { |line| line !~ %r{test/dispatch/debug_exceptions_test.rb} }
+      end
+
+      get "/actionable_error", headers: { "action_dispatch.backtrace_cleaner" => cleaner }
+
+      # Assert correct error
+      assert_response 500
+
+      assert_select 'input[value="Action 1"]'
+      assert_select 'input[value="Action 2"]'
     end
   end
 end

@@ -1,3 +1,5 @@
+require: rubocop-performance
+
 AllCops:
   TargetRubyVersion: 2.5
   # RuboCop has a bunch of cops enabled by default. This setting tells RuboCop
@@ -10,7 +12,7 @@ AllCops:
     - 'railties/test/fixtures/tmp/**/*'
     - 'actionmailbox/test/dummy/**/*'
     - 'actiontext/test/dummy/**/*'
-    - 'node_modules/**/*'
+    - '**/node_modules/**/*'
 
 Performance:
   Exclude:
@@ -114,6 +116,9 @@ Layout/SpaceAroundOperators:
   Enabled: true
 
 Layout/SpaceBeforeComma:
+  Enabled: true
+
+Layout/SpaceBeforeComment:
   Enabled: true
 
 Layout/SpaceBeforeFirstArg:

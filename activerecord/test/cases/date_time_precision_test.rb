@@ -82,7 +82,7 @@ if subsecond_precision_supported?
     end
 
     def test_invalid_datetime_precision_raises_error
-      assert_raises ActiveRecord::ActiveRecordError do
+      assert_raises ArgumentError do
         @connection.create_table(:foos, force: true) do |t|
           t.timestamps precision: 7
         end

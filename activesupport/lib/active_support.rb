@@ -34,6 +34,7 @@ module ActiveSupport
   extend ActiveSupport::Autoload
 
   autoload :Concern
+  autoload :ActionableError
   autoload :CurrentAttributes
   autoload :Dependencies
   autoload :DescendantsTracker

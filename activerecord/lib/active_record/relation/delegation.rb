@@ -45,7 +45,10 @@ module ActiveRecord
 
       private
         def generated_relation_methods
-          @generated_relation_methods ||= GeneratedRelationMethods.new
+          @generated_relation_methods ||= GeneratedRelationMethods.new.tap do |mod|
+            const_set(:GeneratedRelationMethods, mod)
+            private_constant :GeneratedRelationMethods
+          end
         end
     end
 

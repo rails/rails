@@ -106,7 +106,7 @@ module ActionView
           end
 
           def tag_name(multiple = false, index = nil)
-            # a little duplication to construct less strings
+            # a little duplication to construct fewer strings
             case
             when @object_name.empty?
               "#{sanitized_method_name}#{multiple ? "[]" : ""}"
@@ -118,7 +118,7 @@ module ActionView
           end
 
           def tag_id(index = nil)
-            # a little duplication to construct less strings
+            # a little duplication to construct fewer strings
             case
             when @object_name.empty?
               sanitized_method_name.dup

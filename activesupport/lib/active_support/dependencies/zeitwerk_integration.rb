@@ -10,6 +10,8 @@ module ActiveSupport
         def clear
           Dependencies.unload_interlock do
             Rails.autoloaders.main.reload
+          rescue Zeitwerk::ReloadingDisabledError
+            raise "reloading is disabled because config.cache_classes is true"
           end
         end
 
@@ -22,16 +24,12 @@ module ActiveSupport
         end
 
         def autoloaded_constants
-          cpaths = []
-          Rails.autoloaders.each do |autoloader|
-            cpaths.concat(autoloader.loaded_cpaths.to_a)
-          end
-          cpaths
+          Rails.autoloaders.main.unloadable_cpaths
         end
 
         def autoloaded?(object)
           cpath = object.is_a?(Module) ? object.name : object.to_s
-          Rails.autoloaders.any? { |autoloader| autoloader.loaded?(cpath) }
+          Rails.autoloaders.main.unloadable_cpath?(cpath)
         end
 
         def verbose=(verbose)

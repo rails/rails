@@ -4,6 +4,8 @@ require "action_dispatch/http/request"
 require "action_dispatch/middleware/exception_wrapper"
 require "action_dispatch/routing/inspector"
 
+require "active_support/actionable_error"
+
 require "action_view"
 require "action_view/base"
 

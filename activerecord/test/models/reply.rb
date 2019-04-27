@@ -34,29 +34,29 @@ class WrongReply < Reply
   validate :check_author_name_is_secret, on: :special_case
 
   def check_empty_title
-    errors[:title] << "Empty" unless attribute_present?("title")
+    errors.add(:title, "Empty") unless attribute_present?("title")
   end
 
   def errors_on_empty_content
-    errors[:content] << "Empty" unless attribute_present?("content")
+    errors.add(:content, "Empty") unless attribute_present?("content")
   end
 
   def check_content_mismatch
     if attribute_present?("title") && attribute_present?("content") && content == "Mismatch"
-      errors[:title] << "is Content Mismatch"
+      errors.add(:title, "is Content Mismatch")
     end
   end
 
   def title_is_wrong_create
-    errors[:title] << "is Wrong Create" if attribute_present?("title") && title == "Wrong Create"
+    errors.add(:title, "is Wrong Create") if attribute_present?("title") && title == "Wrong Create"
   end
 
   def check_wrong_update
-    errors[:title] << "is Wrong Update" if attribute_present?("title") && title == "Wrong Update"
+    errors.add(:title, "is Wrong Update") if attribute_present?("title") && title == "Wrong Update"
   end
 
   def check_author_name_is_secret
-    errors[:author_name] << "Invalid" unless author_name == "secret"
+    errors.add(:author_name, "Invalid") unless author_name == "secret"
   end
 end
 

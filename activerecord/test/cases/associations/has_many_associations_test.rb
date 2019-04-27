@@ -2578,22 +2578,22 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   test "association with extend option" do
     post = posts(:welcome)
-    assert_equal "lifo",  post.comments_with_extend.author
-    assert_equal "hello", post.comments_with_extend.greeting
+    assert_equal "lifo", post.comments_with_extend.author
+    assert_equal "hello :)", post.comments_with_extend.greeting
   end
 
   test "association with extend option with multiple extensions" do
     post = posts(:welcome)
-    assert_equal "lifo",  post.comments_with_extend_2.author
-    assert_equal "hullo", post.comments_with_extend_2.greeting
+    assert_equal "lifo", post.comments_with_extend_2.author
+    assert_equal "hullo :)", post.comments_with_extend_2.greeting
   end
 
   test "extend option affects per association" do
     post = posts(:welcome)
-    assert_equal "lifo",  post.comments_with_extend.author
-    assert_equal "lifo",  post.comments_with_extend_2.author
-    assert_equal "hello", post.comments_with_extend.greeting
-    assert_equal "hullo", post.comments_with_extend_2.greeting
+    assert_equal "lifo", post.comments_with_extend.author
+    assert_equal "lifo", post.comments_with_extend_2.author
+    assert_equal "hello :)", post.comments_with_extend.greeting
+    assert_equal "hullo :)", post.comments_with_extend_2.greeting
   end
 
   test "delete record with complex joins" do

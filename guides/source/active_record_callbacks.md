@@ -495,11 +495,3 @@ end
 >> @user.save
 => User was saved to database
 ```
-
-To register callbacks for both create and destroy actions, use `after_commit` instead.
-
-```ruby
-class User < ApplicationRecord
-  after_commit :log_user_saved_to_db, on: [:create, :destroy]
-end
-```

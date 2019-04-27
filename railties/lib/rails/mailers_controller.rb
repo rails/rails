@@ -5,8 +5,9 @@ require "rails/application_controller"
 class Rails::MailersController < Rails::ApplicationController # :nodoc:
   prepend_view_path ActionDispatch::DebugView::RESCUES_TEMPLATE_PATH
 
+  around_action :set_locale, only: :preview
+  before_action :find_preview, only: :preview
   before_action :require_local!, unless: :show_previews?
-  before_action :find_preview, :set_locale, only: :preview
 
   helper_method :part_query, :locale_query
 
@@ -92,6 +93,8 @@ class Rails::MailersController < Rails::ApplicationController # :nodoc:
     end
 
     def set_locale
-      I18n.locale = params[:locale] || I18n.default_locale
+      I18n.with_locale(params[:locale] || I18n.default_locale) do
+        yield
+      end
     end
 end

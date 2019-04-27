@@ -61,7 +61,9 @@ module ActiveRecord
 
         def exec_delete(sql, name = nil, binds = [])
           if without_prepared_statement?(binds)
-            execute_and_free(sql, name) { @connection.affected_rows }
+            @lock.synchronize do
+              execute_and_free(sql, name) { @connection.affected_rows }
+            end
           else
             exec_stmt_and_free(sql, name, binds) { |stmt| stmt.affected_rows }
           end

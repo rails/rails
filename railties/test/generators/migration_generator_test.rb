@@ -6,6 +6,16 @@ require "rails/generators/rails/migration/migration_generator"
 class MigrationGeneratorTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
 
+  def setup
+    @old_belongs_to_required_by_default = Rails.application.config.active_record.belongs_to_required_by_default
+
+    Rails.application.config.active_record.belongs_to_required_by_default = true
+  end
+
+  def teardown
+    Rails.application.config.active_record.belongs_to_required_by_default = @old_belongs_to_required_by_default
+  end
+
   def test_migration
     migration = "change_title_body_from_posts"
     run_generator [migration]
@@ -196,14 +206,29 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_add_migration_with_required_references
+  def test_add_migration_with_references_adds_null_false_by_default
     migration = "add_references_to_books"
-    run_generator [migration, "author:belongs_to{required}", "distributor:references{polymorphic,required}"]
+    run_generator [migration, "author:belongs_to", "distributor:references{polymorphic}"]
 
     assert_migration "db/migrate/#{migration}.rb" do |content|
       assert_method :change, content do |change|
         assert_match(/add_reference :books, :author, null: false/, change)
         assert_match(/add_reference :books, :distributor, polymorphic: true, null: false/, change)
+      end
+    end
+  end
+
+  def test_add_migration_with_references_does_not_add_belongs_to_when_required_by_default_global_config_is_false
+    Rails.application.config.active_record.belongs_to_required_by_default = false
+
+    migration = "add_references_to_books"
+
+    run_generator [migration, "author:belongs_to", "distributor:references{polymorphic}"]
+
+    assert_migration "db/migrate/#{migration}.rb" do |content|
+      assert_method :change, content do |change|
+        assert_match(/add_reference :books, :author/, change)
+        assert_match(/add_reference :books, :distributor, polymorphic: true/, change)
       end
     end
   end
