@@ -19,5 +19,20 @@
 
     *DHH*
 
+*   Encapsulate each validation error as an Error object.
+
+    The `ActiveModel`’s `errors` collection is now an array of these Error 
+    objects, instead of messages/details hash.
+
+    For each of these `Error` object, its `message` and `full_message` methods 
+    are for generating error messages. Its `details` method would return error’s 
+    extra parameters, found in the original `details` hash.
+
+    The change tries its best at maintaining backward compatibility, however 
+    some edge cases won’t be covered, mainly related to manipulating 
+    `errors.messages` and `errors.details` hashes directly. Moving forward, 
+    please convert those direct manipulations to use provided API methods instead.
+
+    *lulalala*
 
 Please check [6-0-stable](https://github.com/rails/rails/blob/6-0-stable/activemodel/CHANGELOG.md) for previous changes.
