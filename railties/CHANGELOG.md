@@ -6,7 +6,7 @@
     mode early, in `config/application.rb`.
 
     Zeitwerk uses only absolute paths internally, and applications running in
-    `:zeitwerk` mode do not need `require_relative`, so models, controllers,
+    `:zeitwerk` mode do not need `require_dependency`, so models, controllers,
     jobs, etc. do not need to be in `$LOAD_PATH`. Setting this to `false` saves
     Ruby from checking these directories when resolving `require` calls with
     relative paths, and saves Bootsnap work and RAM, since it does not need to
