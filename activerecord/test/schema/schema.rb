@@ -36,11 +36,6 @@ ActiveRecord::Schema.define do
     t.datetime :wheels_owned_at
   end
 
-  create_table :assembly_lots, force: true do |t|
-    t.references :day
-    t.references :expiration_day
-  end
-
   create_table :articles, force: true do |t|
   end
 
@@ -271,10 +266,6 @@ ActiveRecord::Schema.define do
     t.string :name
   end
 
-  create_table :days, force: true do |t|
-    t.integer :assembly_lots_count
-  end
-
   create_table :developers, force: true do |t|
     t.string   :name
     t.string   :first_name
@@ -346,11 +337,6 @@ ActiveRecord::Schema.define do
     t.string :title, limit: 5
   end
 
-  create_table :expiration_days, force: true do |t|
-    t.references :day
-    t.integer :assembly_lots_count
-  end
-
   create_table :eyes, force: true do |t|
   end
 
@@ -383,6 +369,11 @@ ActiveRecord::Schema.define do
   create_table :goofy_string_id, force: true, id: false do |t|
     t.string :id, null: false
     t.string :info
+  end
+
+  create_table :hangars, force: true do |t|
+    t.references :pilot
+    t.integer :starfighters_count
   end
 
   create_table :having, force: true do |t|
@@ -707,6 +698,10 @@ ActiveRecord::Schema.define do
     t.column :rainbow_color, :string
   end
 
+  create_table :pilots, force: true do |t|
+    t.integer :starfighters_count
+  end
+
   create_table :posts, force: true do |t|
     t.references :author
     t.string :title, null: false
@@ -847,6 +842,11 @@ ActiveRecord::Schema.define do
     t.integer :club_id
     t.references :sponsorable, polymorphic: true, index: false
     t.references :sponsor, polymorphic: true, index: false
+  end
+
+  create_table :starfighters, force: true do |t|
+    t.references :pilot
+    t.references :hangar
   end
 
   create_table :string_key_objects, id: false, force: true do |t|

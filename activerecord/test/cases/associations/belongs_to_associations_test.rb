@@ -25,9 +25,9 @@ require "models/admin/user"
 require "models/ship"
 require "models/treasure"
 require "models/parrot"
-require "models/day"
-require "models/expiration_day"
-require "models/assembly_lot"
+require "models/pilot"
+require "models/hangar"
+require "models/starfighter"
 
 class BelongsToAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :topics,
@@ -854,44 +854,44 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal 1, topic.replies_count
   end
 
-  def test_counter_cache_from_shovel
-    today = Day.create!
-    assembly_lot = today.assembly_lots.create!
+  def test_counter_cache_after_concat
+    luke = Pilot.create!
+    xwing = luke.starfighters.create!
 
-    tomorrow = Day.create!
-    expiration_day = tomorrow.build_expiration_day
-    expiration_day.save!
+    lando = Pilot.create!
+    landos_hangar = lando.build_hangar
+    landos_hangar.save!
 
-    expiration_day.assembly_lots << assembly_lot
+    landos_hangar.starfighters << xwing
 
-    assert_equal 1, today.assembly_lots.size
-    assert_equal 1, today.reload[:assembly_lots_count]
+    assert_equal 1, luke.starfighters.size
+    assert_equal 1, luke.reload[:starfighters_count]
 
-    assert_equal 0, tomorrow.assembly_lots.size
-    assert_nil tomorrow.reload[:assembly_lots_count]
+    assert_equal 0, lando.starfighters.size
+    assert_nil lando.reload[:starfighters_count]
 
-    assert_equal 1, expiration_day.assembly_lots.size
-    assert_equal 1, expiration_day.reload[:assembly_lots_count]
+    assert_equal 1, landos_hangar.starfighters.size
+    assert_equal 1, landos_hangar.reload[:starfighters_count]
   end
 
   def test_counter_cache_from_update
-    today = Day.create!
-    assembly_lot = today.assembly_lots.create!
+    luke = Pilot.create!
+    xwing = luke.starfighters.create!
 
-    tomorrow = Day.create!
-    expiration_day = tomorrow.build_expiration_day
-    expiration_day.save!
+    lando = Pilot.create!
+    landos_hangar = lando.build_hangar
+    landos_hangar.save!
 
-    assembly_lot.update!(expiration_day: expiration_day)
+    xwing.update!(hangar: landos_hangar)
 
-    assert_equal 1, today.assembly_lots.size
-    assert_equal 1, today.reload[:assembly_lots_count]
+    assert_equal 1, luke.starfighters.size
+    assert_equal 1, luke.reload[:starfighters_count]
 
-    assert_equal 0, tomorrow.assembly_lots.size
-    assert_nil tomorrow.reload[:assembly_lots_count]
+    assert_equal 0, lando.starfighters.size
+    assert_nil lando.reload[:starfighters_count]
 
-    assert_equal 1, expiration_day.assembly_lots.size
-    assert_equal 1, expiration_day.reload[:assembly_lots_count]
+    assert_equal 1, landos_hangar.starfighters.size
+    assert_equal 1, landos_hangar.reload[:starfighters_count]
   end
 
   def test_association_assignment_sticks
