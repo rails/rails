@@ -387,6 +387,11 @@ ActiveRecord::Schema.define do
     t.string :info
   end
 
+  create_table :hangars, force: true do |t|
+    t.references :pilot
+    t.integer :starfighters_count
+  end
+
   create_table :having, force: true do |t|
     t.string :where
   end
@@ -637,6 +642,10 @@ ActiveRecord::Schema.define do
       end
     end
 
+    create_table :pilots, force: true do |t|
+      t.integer :starfighters_count
+    end
+
     create_table :pirates, force: :cascade do |t|
       t.string :catchphrase
       t.integer :parrot_id
@@ -865,6 +874,11 @@ ActiveRecord::Schema.define do
     t.integer :club_id
     t.references :sponsorable, polymorphic: true, index: false
     t.references :sponsor, polymorphic: true, index: false
+  end
+
+  create_table :starfighters, force: true do |t|
+    t.references :pilot
+    t.references :hangar
   end
 
   create_table :string_key_objects, id: false, force: true do |t|

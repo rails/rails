@@ -242,7 +242,7 @@ module ActiveRecord
         end
       end
 
-      # This shit is nasty. We need to avoid the following situation:
+      # This shit is a dumpster fire. We need to avoid situations like:
       #
       #   * An associated record is deleted via record.destroy
       #   * Hence the callbacks run, and they find a belongs_to on the record with a
@@ -251,11 +251,25 @@ module ActiveRecord
       #   * In which case, we must make sure to *not* update the counter cache, or else
       #     it will be decremented twice.
       #
-      # Hence this method.
-      def inverse_which_updates_counter_cache
-        return @inverse_which_updates_counter_cache if defined?(@inverse_which_updates_counter_cache)
-        @inverse_which_updates_counter_cache = klass.reflect_on_all_associations(:belongs_to).find do |inverse|
+      # As well as:
+      #
+      #   * An associated record User owns a Garage and a Car.
+      #   * The car belongs to both the User and to the Garage.
+      #   * Both user and garage have counter caches.
+      #   * Thus, in memory, there are MULTIPLE inverses which update the counter cache.
+      #
+      # If the inverse is among the possible relationships with the column, it should be used. Otherwise, use the first.
+      def counter_cache_inverse_relations
+        @counter_cache_inverse_relations ||= klass.reflect_on_all_associations(:belongs_to).select do |inverse|
           inverse.counter_cache_column == counter_cache_column
+        end
+      end
+
+      def inverse_which_updates_counter_cache
+        @inverse_which_updates_counter_cache ||= if inverse_of && counter_cache_inverse_relations.include?(inverse_of)
+          inverse_of
+        else
+          counter_cache_inverse_relations.first
         end
       end
       alias inverse_updates_counter_cache? inverse_which_updates_counter_cache
