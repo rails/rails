@@ -642,10 +642,6 @@ ActiveRecord::Schema.define do
       end
     end
 
-    create_table :pilots, force: true do |t|
-      t.integer :starfighters_count
-    end
-
     create_table :pirates, force: :cascade do |t|
       t.string :catchphrase
       t.integer :parrot_id
@@ -714,6 +710,10 @@ ActiveRecord::Schema.define do
     t.column :treasure_id, :integer
     t.column :pet_id, :integer
     t.column :rainbow_color, :string
+  end
+
+  create_table :pilots, force: true do |t|
+    t.integer :starfighters_count
   end
 
   create_table :posts, force: true do |t|
