@@ -259,17 +259,13 @@ module ActiveRecord
       #   * Thus, in memory, there are MULTIPLE inverses which update the counter cache.
       #
       # If the inverse is among the possible relationships with the column, it should be used. Otherwise, use the first.
-      def counter_cache_inverse_relations
-        @counter_cache_inverse_relations ||= klass.reflect_on_all_associations(:belongs_to).select do |inverse|
-          inverse.counter_cache_column == counter_cache_column
-        end
-      end
-
       def inverse_which_updates_counter_cache
-        @inverse_which_updates_counter_cache ||= if inverse_of && counter_cache_inverse_relations.include?(inverse_of)
+        @inverse_which_updates_counter_cache ||= if inverse_of.try(:counter_cache_column) == counter_cache_column
           inverse_of
         else
-          counter_cache_inverse_relations.first
+          klass.reflect_on_all_associations(:belongs_to).find do |inverse|
+            inverse.counter_cache_column == counter_cache_column
+          end
         end
       end
       alias inverse_updates_counter_cache? inverse_which_updates_counter_cache
