@@ -257,9 +257,62 @@ Please refer to the [Changelog][action-view] for detailed changes.
 
 ### Removals
 
+*   Remove deprecated `image_alt` helper.
+    ([Commit](https://github.com/rails/rails/commit/60c8a03c8d1e45e48fcb1055ba4c49ed3d5ff78f))
+
+*   Remove an empty `RecordTagHelper` module from which the functionality
+    was already moved to the `record_tag_helper` gem.
+    ([Commit](https://github.com/rails/rails/commit/5c5ddd69b1e06fb6b2bcbb021e9b8dae17e7cb31))
+
 ### Deprecations
 
+*   Deprecate `ActionView::Template.finalize_compiled_template_methods` with
+    no replacement.
+    ([Pull Request](https://github.com/rails/rails/pull/35036))
+
+*   Deprecate `config.action_view.finalize_compiled_template_methods` with
+    no replacement.
+    ([Pull Request](https://github.com/rails/rails/pull/35036))
+
+*   Deprecate calling private model methods from the `options_from_collection_for_select` view helper.
+    ([Pull Request](https://github.com/rails/rails/pull/33547))
+
 ### Notable changes
+
+*   Clear ActionView cache in development only on file changes, speeding up
+    development mode.
+    ([Pull Request](https://github.com/rails/rails/pull/35629))
+
+*   Move all of the Rails npm packages into a `@rails` scope.
+    ([Pull Request](https://github.com/rails/rails/pull/34905))
+
+*   Only accept formats from registered Mime types.
+    ([Pull Request](https://github.com/rails/rails/pull/35604), [Pull Request](https://github.com/rails/rails/pull/35753))
+
+*   Add allocations to the template and partial rendering server output.
+    ([Pull Request](https://github.com/rails/rails/pull/34136))
+
+*   Add a `year_format` option to `date_select` tag, making it possible to
+    customize year names.
+    ([Pull Request](https://github.com/rails/rails/pull/32190))
+
+*   Add a `nonce: true` option for `javascript_include_tag` helper to
+    support automatic nonce generation for a Content Security Policy.
+    ([Pull Request](https://github.com/rails/rails/pull/32607))
+
+*   Add a `action_view.finalize_compiled_template_methods` configuration to disable or
+    enable `ActionView::Template` finalizers.
+    ([Pull Request](https://github.com/rails/rails/pull/32418))
+
+*   Extract the JS `confirm` call to its own, overridable method in `rails_ujs`.
+    ([Pull Request](https://github.com/rails/rails/pull/32404))
+
+*   Add a `action_controller.default_enforce_utf8` configuration option to handle
+    enforcing UTF-8 encoding. This defaults to `false`.
+    ([Pull Request](https://github.com/rails/rails/pull/32125))
+
+*   Add I18n key style support for locale keys to submit tags.
+    ([Pull Request](https://github.com/rails/rails/pull/26799))
 
 Action Mailer
 -------------
