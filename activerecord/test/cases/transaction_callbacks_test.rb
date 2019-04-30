@@ -36,6 +36,8 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
 
     has_many :replies, class_name: "ReplyWithCallbacks", foreign_key: "parent_id"
 
+    before_destroy { self.class.find(id).touch if persisted? }
+
     before_commit { |record| record.do_before_commit(nil) }
     after_commit { |record| record.do_after_commit(nil) }
     after_save_commit { |record| record.do_after_commit(:save) }
