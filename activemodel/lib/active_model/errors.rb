@@ -64,7 +64,7 @@ module ActiveModel
     include Enumerable
 
     extend Forwardable
-    def_delegators :@errors, :size, :clear, :blank?, :empty?, :uniq!
+    def_delegators :@errors, :size, :clear, :blank?, :empty?, :uniq!, :any?
     # TODO: forward all enumerable methods after `each` deprecation is removed.
     def_delegators :@errors, :count
 

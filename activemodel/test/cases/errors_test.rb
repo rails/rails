@@ -44,6 +44,17 @@ class ErrorsTest < ActiveModel::TestCase
     assert_includes errors, "foo", "errors should include 'foo' as :foo"
   end
 
+  def test_any?
+    errors = ActiveModel::Errors.new(Person.new)
+    errors.add(:name)
+    assert_not_deprecated {
+      assert errors.any?, "any? should return true"
+    }
+    assert_not_deprecated {
+      assert errors.any? { |_| true }, "any? should return true"
+    }
+  end
+
   def test_dup
     errors = ActiveModel::Errors.new(Person.new)
     errors.add(:name)
