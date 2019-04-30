@@ -1212,7 +1212,7 @@ Let's start by adding this assertion to our `test_should_create_article` test:
 ```ruby
 test "should create article" do
   assert_difference('Article.count') do
-    post article_url, params: { article: { title: 'Some title' } }
+    post articles_url, params: { article: { title: 'Some title' } }
   end
 
   assert_redirected_to article_path(Article.last)
