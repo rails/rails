@@ -302,7 +302,7 @@ module Notifications
 
   class EventTest < TestCase
     def test_events_are_initialized_with_details
-      time = Concurrent.monotonic_time
+      time = Time.now
       event = event(:foo, time, time + 0.01, random_id, {})
 
       assert_equal :foo, event.name
@@ -310,12 +310,11 @@ module Notifications
       assert_in_delta 10.0, event.duration, 0.00001
     end
 
-    def test_event_cpu_time_and_idle_time_when_start_and_finish_is_not_called
-      time = Concurrent.monotonic_time
+    def test_event_cpu_time_does_not_raise_error_when_start_or_finished_not_called
+      time = Time.now
       event = event(:foo, time, time + 0.01, random_id, {})
 
       assert_equal 0, event.cpu_time
-      assert_in_delta 10.0, event.idle_time, 0.00001
     end
 
 
