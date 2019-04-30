@@ -605,10 +605,68 @@ Please refer to the [Changelog][active-storage] for detailed changes.
 
 ### Deprecations
 
+*   Deprecate  `config.active_storage.queue` in favor of `config.active_storage.queues.analysis`
+    and `config.active_storage.queues.purge`.
+    ([Pull Request](https://github.com/rails/rails/pull/34838))
+
+*   Deprecate `ActiveStorage::Downloading` in favor of `ActiveStorage::Blob#open`.
+    ([Commit](https://github.com/rails/rails/commit/ee21b7c2eb64def8f00887a9fafbd77b85f464f1))
+
+*   Deprecate using `mini_magick` directly for generating image variants in favor of
+    `image_processing`.
+    ([Commit](https://github.com/rails/rails/commit/697f4a93ad386f9fb7795f0ba68f815f16ebad0f))
+
+*   Deprecate `:combine_options` in Active Storage's ImageProcessing transformer
+    without replacement.
+    ([Commit](https://github.com/rails/rails/commit/697f4a93ad386f9fb7795f0ba68f815f16ebad0f))
+
 ### Notable changes
 
-*   Updating an attached model via `update` or `update!` with, say,
-    `@user.update!(images: [ … ])` now replaces the existing images instead of merely adding to them.
+*   Add support for generating BMP image variants.
+    ([Pull Request](https://github.com/rails/rails/pull/36051))
+
+*   Add support for generating TIFF image variants.
+    ([Pull Request](https://github.com/rails/rails/pull/34824))
+
+*   Add support for generating progressive JPEG image variants.
+    ([Pull Request](https://github.com/rails/rails/pull/34455))
+
+*   Add `ActiveStorage.routes_prefix` for configuring the Active Storage generated routes.
+    ([Pull Request](https://github.com/rails/rails/pull/33883))
+
+*   Generate a 404 Not Found response on `ActiveStorage::DiskController#show` when
+    the requested file is missing from the disk service.
+    ([Pull Request](https://github.com/rails/rails/pull/33666))
+
+*   Raise `ActiveStorage::FileNotFoundError` when the requested file is missing for
+    `ActiveStorage::Blob#download` and `ActiveStorage::Blob#open`.
+    ([Pull Request](https://github.com/rails/rails/pull/33666))
+
+*   Add a generic `ActiveStorage::Error` class that Active Storage exceptions inherit from.
+    ([Commit](https://github.com/rails/rails/commit/18425b837149bc0d50f8d5349e1091a623762d6b))
+
+*   Persist uploaded files assigned to a record to storage when the record
+    is saved instead of immediately.
+    ([Pull Request](https://github.com/rails/rails/pull/33303))
+
+*   Add the ability to reflect on defined attachments using the existing
+    Active Record reflection mechanism.
+    ([Pull Request](https://github.com/rails/rails/pull/33018))
+
+*   Add `ActiveStorage::Blob#open`, which downloads a blob to a tempfile on disk
+    and yields the tempfile.
+    ([Commit](https://github.com/rails/rails/commit/ee21b7c2eb64def8f00887a9fafbd77b85f464f1))
+
+*   Support streaming downloads from Google Cloud Storage. Require version 1.11+
+    of the `google-cloud-storage` gem.
+    ([Pull Request](https://github.com/rails/rails/pull/32788))
+
+*   Use the `image_processing` gem for Active Storage variants. This replaces using
+    `mini_magick` directly.
+    ([Pull Request](https://github.com/rails/rails/pull/32471)
+
+*   Replace existing images instead of adding to them when updating an
+    attached model via `update` or `update!` with, say, `@user.update!(images: [ … ])`.
     ([Pull Request](https://github.com/rails/rails/pull/33303))
 
 Active Model
