@@ -323,7 +323,40 @@ Please refer to the [Changelog][action-mailer] for detailed changes.
 
 ### Deprecations
 
+*   Deprecate `ActionMailer::Base.receive` in favor of Action Mailbox.
+    ([Commit](https://github.com/rails/rails/commit/e3f832a7433a291a51c5df397dc3dd654c1858cb))
+
+*   Deprecate `DeliveryJob` and `Parameterized::DeliveryJob` in favor of
+    `MailDeliveryJob`.
+    ([Pull Request](https://github.com/rails/rails/pull/34591))
+
 ### Notable changes
+
+*   Add `MailDeliveryJob` for delivering both regular and parameterized mail.
+    ([Pull Request](https://github.com/rails/rails/pull/34591))
+
+*   Allow custom email delivery jobs to work with the Action Mailer test assertions.
+    ([Pull Request](https://github.com/rails/rails/pull/34339))
+
+*   Allow specifying a template name for multipart emails with blocks instead of
+    using just the action name.
+    ([Pull Request](https://github.com/rails/rails/pull/22534))
+
+*   Add `perform_deliveries` to payload of `deliver.action_mailer` notification.
+    ([Pull Request](https://github.com/rails/rails/pull/33824))
+
+*   Improve the logging message when `perform_deliveries` is false to indicate
+    that sending of emails was skipped.
+    ([Pull Request](https://github.com/rails/rails/pull/33824))
+
+*   Allow calling `assert_enqueued_email_with` without block.
+    ([Pull Request](https://github.com/rails/rails/pull/33258))
+
+*   Perform the enqueued mail delivery jobs in the `assert_emails` block.
+    ([Pull Request](https://github.com/rails/rails/pull/32231))
+
+*   Allow `ActionMailer::Base` to unregister observers and interceptors.
+    ([Pull Request](https://github.com/rails/rails/pull/32207))
 
 Active Record
 -------------
