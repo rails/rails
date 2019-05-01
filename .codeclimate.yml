@@ -1,4 +1,4 @@
-version: "2"
+version: "1"
 
 checks:
   argument-count:
@@ -25,6 +25,6 @@ checks:
 plugins:
   rubocop:
     enabled: true
-    channel: rubocop-0-67
+    channel: rubocop-0-68
 
 exclude_patterns: []
