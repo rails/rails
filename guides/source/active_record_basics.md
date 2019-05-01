@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
 Active Record Basics
 ====================
@@ -13,7 +13,7 @@ After reading this guide, you will know:
 * How to use Active Record models to manipulate data stored in a relational
   database.
 * Active Record schema naming conventions.
-* The concepts of database migrations, validations and callbacks.
+* The concepts of database migrations, validations, and callbacks.
 
 --------------------------------------------------------------------------------
 
@@ -29,7 +29,7 @@ Object Relational Mapping system.
 
 ### The Active Record Pattern
 
-[Active Record was described by Martin Fowler](http://www.martinfowler.com/eaaCatalog/activeRecord.html)
+[Active Record was described by Martin Fowler](https://www.martinfowler.com/eaaCatalog/activeRecord.html)
 in his book _Patterns of Enterprise Application Architecture_. In
 Active Record, objects carry both persistent data and behavior which
 operates on that data. Active Record takes the opinion that ensuring
@@ -45,7 +45,7 @@ relationships of the objects in an application can be easily stored and
 retrieved from a database without writing SQL statements directly and with less
 overall database access code.
 
-NOTE: If you are not familiar enough with relational database management systems (RDBMS) or structured query language (SQL), please go through [this tutorial](https://www.w3schools.com/sql/default.asp) (or [this one](http://www.sqlcourse.com/)) or study them by other means. Understanding how relational databases work is crucial to understanding Active Records and Rails in general.
+NOTE: Basic knowledge of relational database management systems (RDBMS) and structured query language (SQL) is helpful in order to fully understand Active Record. Please refer to [this tutorial](https://www.w3schools.com/sql/default.asp) (or [this one](http://www.sqlcourse.com/)) or study them by other means if you would like to learn more.
 
 ### Active Record as an ORM Framework
 
@@ -82,9 +82,9 @@ of two or more words, the model class name should follow the Ruby conventions,
 using the CamelCase form, while the table name must contain the words separated
 by underscores. Examples:
 
-* Database Table - Plural with underscores separating words (e.g., `book_clubs`).
 * Model Class - Singular with the first letter of each word capitalized (e.g.,
 `BookClub`).
+* Database Table - Plural with underscores separating words (e.g., `book_clubs`).
 
 | Model / Class    | Table / Schema |
 | ---------------- | -------------- |
@@ -105,9 +105,9 @@ depending on the purpose of these columns.
   fields that Active Record will look for when you create associations between
   your models.
 * **Primary keys** - By default, Active Record will use an integer column named
-  `id` as the table's primary key. When using [Active Record
-  Migrations](active_record_migrations.html) to create your tables, this column will be
-  automatically created.
+  `id` as the table's primary key (`bigint` for PostgreSQL and MySQL, `integer`
+  for SQLite). When using [Active Record Migrations](active_record_migrations.html)
+  to create your tables, this column will be automatically created.
 
 There are also some optional column names that will add additional features
 to Active Record instances:
@@ -115,12 +115,12 @@ to Active Record instances:
 * `created_at` - Automatically gets set to the current date and time when the
   record is first created.
 * `updated_at` - Automatically gets set to the current date and time whenever
-  the record is updated.
+  the record is created or updated.
 * `lock_version` - Adds [optimistic
-  locking](http://api.rubyonrails.org/classes/ActiveRecord/Locking.html) to
+  locking](https://api.rubyonrails.org/classes/ActiveRecord/Locking.html) to
   a model.
 * `type` - Specifies that the model uses [Single Table
-  Inheritance](http://api.rubyonrails.org/classes/ActiveRecord/Base.html#class-ActiveRecord::Base-label-Single+table+inheritance).
+  Inheritance](https://api.rubyonrails.org/classes/ActiveRecord/Base.html#class-ActiveRecord::Base-label-Single+table+inheritance).
 * `(association_name)_type` - Stores the type for
   [polymorphic associations](association_basics.html#polymorphic-associations).
 * `(table_name)_count` - Used to cache the number of belonging objects on
@@ -202,6 +202,8 @@ class Product < ApplicationRecord
 end
 ```
 
+NOTE: Active Record does not support using non-primary key columns named `id`.
+
 CRUD: Reading and Writing Data
 ------------------------------
 
@@ -211,7 +213,7 @@ to allow an application to read and manipulate data stored within its tables.
 
 ### Create
 
-Active Record objects can be created from a hash, a block or have their
+Active Record objects can be created from a hash, a block, or have their
 attributes manually set after creation. The `new` method will return a new
 object while `create` will return the object and save it to the database.
 
@@ -307,12 +309,12 @@ user = User.find_by(name: 'David')
 user.destroy
 ```
 
-If you'd like to delete several records in bulk, you may use `destroy_all`
-method:
+If you'd like to delete several records in bulk, you may use `destroy_by`
+or `destroy_all` method:
 
 ```ruby
 # find and delete all users named David
-User.where(name: 'David').destroy_all
+User.destroy_by(name: 'David')
 
 # delete all users
 User.destroy_all
@@ -324,7 +326,7 @@ Validations
 Active Record allows you to validate the state of a model before it gets written
 into the database. There are several methods that you can use to check your
 models and validate that an attribute value is not empty, is unique and not
-already in the database, follows a specific format and many more.
+already in the database, follows a specific format, and many more.
 
 Validation is a very important issue to consider when persisting to the database, so
 the methods `save` and `update` take it into account when
@@ -353,7 +355,7 @@ Callbacks
 Active Record callbacks allow you to attach code to certain events in the
 life-cycle of your models. This enables you to add behavior to your models by
 transparently executing code when those events occur, like when you create a new
-record, update it, destroy it and so on. You can learn more about callbacks in
+record, update it, destroy it, and so on. You can learn more about callbacks in
 the [Active Record Callbacks guide](active_record_callbacks.html).
 
 Migrations
@@ -387,5 +389,5 @@ provides rollback features. To actually create the table, you'd run `rails db:mi
 and to roll it back, `rails db:rollback`.
 
 Note that the above code is database-agnostic: it will run in MySQL,
-PostgreSQL, Oracle and others. You can learn more about migrations in the
+PostgreSQL, Oracle, and others. You can learn more about migrations in the
 [Active Record Migrations guide](active_record_migrations.html).

@@ -13,6 +13,7 @@ module ActiveRecord
         @columns_hash = {}
         @primary_keys = {}
         @data_sources = {}
+        @indexes      = {}
       end
 
       def initialize_dup(other)
@@ -21,22 +22,27 @@ module ActiveRecord
         @columns_hash = @columns_hash.dup
         @primary_keys = @primary_keys.dup
         @data_sources = @data_sources.dup
+        @indexes      = @indexes.dup
       end
 
       def encode_with(coder)
-        coder["columns"] = @columns
-        coder["columns_hash"] = @columns_hash
-        coder["primary_keys"] = @primary_keys
-        coder["data_sources"] = @data_sources
-        coder["version"] = connection.migration_context.current_version
+        coder["columns"]          = @columns
+        coder["columns_hash"]     = @columns_hash
+        coder["primary_keys"]     = @primary_keys
+        coder["data_sources"]     = @data_sources
+        coder["indexes"]          = @indexes
+        coder["version"]          = connection.migration_context.current_version
+        coder["database_version"] = database_version
       end
 
       def init_with(coder)
-        @columns = coder["columns"]
-        @columns_hash = coder["columns_hash"]
-        @primary_keys = coder["primary_keys"]
-        @data_sources = coder["data_sources"]
-        @version = coder["version"]
+        @columns          = coder["columns"]
+        @columns_hash     = coder["columns_hash"]
+        @primary_keys     = coder["primary_keys"]
+        @data_sources     = coder["data_sources"]
+        @indexes          = coder["indexes"] || {}
+        @version          = coder["version"]
+        @database_version = coder["database_version"]
       end
 
       def primary_keys(table_name)
@@ -57,6 +63,7 @@ module ActiveRecord
           primary_keys(table_name)
           columns(table_name)
           columns_hash(table_name)
+          indexes(table_name)
         end
       end
 
@@ -77,17 +84,32 @@ module ActiveRecord
         }]
       end
 
+      # Checks whether the columns hash is already cached for a table.
+      def columns_hash?(table_name)
+        @columns_hash.key?(table_name)
+      end
+
+      def indexes(table_name)
+        @indexes[table_name] ||= connection.indexes(table_name)
+      end
+
+      def database_version # :nodoc:
+        @database_version ||= connection.get_database_version
+      end
+
       # Clears out internal caches
       def clear!
         @columns.clear
         @columns_hash.clear
         @primary_keys.clear
         @data_sources.clear
+        @indexes.clear
         @version = nil
+        @database_version = nil
       end
 
       def size
-        [@columns, @columns_hash, @primary_keys, @data_sources].map(&:size).inject :+
+        [@columns, @columns_hash, @primary_keys, @data_sources].sum(&:size)
       end
 
       # Clear out internal caches for the data source +name+.
@@ -96,20 +118,21 @@ module ActiveRecord
         @columns_hash.delete name
         @primary_keys.delete name
         @data_sources.delete name
+        @indexes.delete name
       end
 
       def marshal_dump
         # if we get current version during initialization, it happens stack over flow.
         @version = connection.migration_context.current_version
-        [@version, @columns, @columns_hash, @primary_keys, @data_sources]
+        [@version, @columns, @columns_hash, @primary_keys, @data_sources, @indexes, database_version]
       end
 
       def marshal_load(array)
-        @version, @columns, @columns_hash, @primary_keys, @data_sources = array
+        @version, @columns, @columns_hash, @primary_keys, @data_sources, @indexes, @database_version = array
+        @indexes = @indexes || {}
       end
 
       private
-
         def prepare_data_sources
           connection.data_sources.each { |source| @data_sources[source] = true }
         end

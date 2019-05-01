@@ -4,6 +4,40 @@ module Arel # :nodoc: all
   class TreeManager
     include Arel::FactoryMethods
 
+    module StatementMethods
+      def take(limit)
+        @ast.limit = Nodes::Limit.new(Nodes.build_quoted(limit)) if limit
+        self
+      end
+
+      def offset(offset)
+        @ast.offset = Nodes::Offset.new(Nodes.build_quoted(offset)) if offset
+        self
+      end
+
+      def order(*expr)
+        @ast.orders = expr
+        self
+      end
+
+      def key=(key)
+        @ast.key = Nodes.build_quoted(key)
+      end
+
+      def key
+        @ast.key
+      end
+
+      def wheres=(exprs)
+        @ast.wheres = exprs
+      end
+
+      def where(expr)
+        @ast.wheres << expr
+        self
+      end
+    end
+
     attr_reader :ast
 
     def initialize

@@ -32,7 +32,7 @@ class TimeZoneTest < ActiveSupport::TestCase
     end
   end
 
-  def test_period_for_local_with_ambigiuous_time
+  def test_period_for_local_with_ambiguous_time
     zone = ActiveSupport::TimeZone["Moscow"]
     period = zone.period_for_local(Time.utc(2015, 1, 1))
     assert_equal period, zone.period_for_local(Time.utc(2014, 10, 26, 1, 0, 0))
@@ -223,6 +223,16 @@ class TimeZoneTest < ActiveSupport::TestCase
     assert_equal [1850, 1, 1, 0], [twz.utc.year, twz.utc.mon, twz.utc.day, twz.utc.hour]
     assert_equal zone, twz.time_zone
     assert_equal secs, twz.to_f
+  end
+
+  def test_at_with_microseconds
+    zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
+    secs = 946684800.0
+    microsecs = 123456.789
+    twz = zone.at(secs, microsecs)
+    assert_equal zone, twz.time_zone
+    assert_equal secs, twz.to_i
+    assert_equal 123456789, twz.nsec
   end
 
   def test_iso8601

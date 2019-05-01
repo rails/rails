@@ -417,7 +417,7 @@ module ApplicationTests
           version = output =~ %r{[^/]+db/migrate/(\d+)_create_authors\.rb} && $1
 
           rails "db:migrate", "db:rollback", "db:forward", "db:migrate:up", "db:migrate:down", "VERSION=#{version}"
-          assert !File.exist?("db/schema.rb"), "should not dump schema when configured not to"
+          assert_not File.exist?("db/schema.rb"), "should not dump schema when configured not to"
         end
 
         add_to_config("config.active_record.dump_schema_after_migration = true")

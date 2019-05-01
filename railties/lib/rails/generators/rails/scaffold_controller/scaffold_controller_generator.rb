@@ -32,6 +32,14 @@ module Rails
       hook_for :helper, as: :scaffold do |invoked|
         invoke invoked, [ controller_name ]
       end
+
+      private
+
+        def permitted_params
+          params = attributes_names.map { |name| ":#{name}" }.join(", ")
+          params += attributes.select(&:attachments?).map { |a| ", #{a.name}: []" }.join
+          params
+        end
     end
   end
 end

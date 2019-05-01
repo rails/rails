@@ -33,9 +33,9 @@ class MemoryStorePruningTest < ActiveSupport::TestCase
     @cache.prune(@record_size * 3)
     assert @cache.exist?(5)
     assert @cache.exist?(4)
-    assert !@cache.exist?(3), "no entry"
+    assert_not @cache.exist?(3), "no entry"
     assert @cache.exist?(2)
-    assert !@cache.exist?(1), "no entry"
+    assert_not @cache.exist?(1), "no entry"
   end
 
   def test_prune_size_on_write
@@ -57,12 +57,12 @@ class MemoryStorePruningTest < ActiveSupport::TestCase
     assert @cache.exist?(9)
     assert @cache.exist?(8)
     assert @cache.exist?(7)
-    assert !@cache.exist?(6), "no entry"
-    assert !@cache.exist?(5), "no entry"
+    assert_not @cache.exist?(6), "no entry"
+    assert_not @cache.exist?(5), "no entry"
     assert @cache.exist?(4)
-    assert !@cache.exist?(3), "no entry"
+    assert_not @cache.exist?(3), "no entry"
     assert @cache.exist?(2)
-    assert !@cache.exist?(1), "no entry"
+    assert_not @cache.exist?(1), "no entry"
   end
 
   def test_prune_size_on_write_based_on_key_length
@@ -82,11 +82,11 @@ class MemoryStorePruningTest < ActiveSupport::TestCase
     assert @cache.exist?(8)
     assert @cache.exist?(7)
     assert @cache.exist?(6)
-    assert !@cache.exist?(5), "no entry"
-    assert !@cache.exist?(4), "no entry"
-    assert !@cache.exist?(3), "no entry"
-    assert !@cache.exist?(2), "no entry"
-    assert !@cache.exist?(1), "no entry"
+    assert_not @cache.exist?(5), "no entry"
+    assert_not @cache.exist?(4), "no entry"
+    assert_not @cache.exist?(3), "no entry"
+    assert_not @cache.exist?(2), "no entry"
+    assert_not @cache.exist?(1), "no entry"
   end
 
   def test_pruning_is_capped_at_a_max_time

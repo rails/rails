@@ -186,6 +186,18 @@ module FileUpdateCheckerSharedTests
     assert_equal 1, i
   end
 
+  test "should execute the block if files change in a watched directory any extensions" do
+    i = 0
+
+    checker = new_checker([], tmpdir => []) { i += 1 }
+
+    touch(tmpfile("foo.rb"))
+    wait
+
+    assert checker.execute_if_updated
+    assert_equal 1, i
+  end
+
   test "should execute the block if files change in a watched directory several extensions" do
     i = 0
 

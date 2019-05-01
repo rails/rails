@@ -41,7 +41,7 @@ module ActiveRecord
         column_24 = @connection.columns(:mysql_doubles).find { |c| c.name == "float_24" }
         column_25 = @connection.columns(:mysql_doubles).find { |c| c.name == "float_25" }
 
-        # Mysql floats are precision 0..24, Mysql doubles are precision 25..53
+        # MySQL floats are precision 0..24, MySQL doubles are precision 25..53
         assert_equal 24, column_no_limit.limit
         assert_equal 24, column_short.limit
         assert_equal 53, column_long.limit
@@ -67,7 +67,7 @@ module ActiveRecord
       end
 
       def test_data_source_exists_wrong_schema
-        assert(!@connection.data_source_exists?("#{@db_name}.zomg"), "data_source should not exist")
+        assert_not(@connection.data_source_exists?("#{@db_name}.zomg"), "data_source should not exist")
       end
 
       def test_dump_indexes

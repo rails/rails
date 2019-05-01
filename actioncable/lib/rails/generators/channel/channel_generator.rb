@@ -11,15 +11,18 @@ module Rails
 
       check_class_collision suffix: "Channel"
 
+      hook_for :test_framework
+
       def create_channel_file
         template "channel.rb", File.join("app/channels", class_path, "#{file_name}_channel.rb")
 
         if options[:assets]
           if behavior == :invoke
-            template "assets/cable.js", "app/assets/javascripts/cable.js"
+            template "javascript/index.js", "app/javascript/channels/index.js"
+            template "javascript/consumer.js", "app/javascript/channels/consumer.js"
           end
 
-          js_template "assets/channel", File.join("app/assets/javascripts/channels", class_path, "#{file_name}")
+          js_template "javascript/channel", File.join("app/javascript/channels", class_path, "#{file_name}_channel")
         end
 
         generate_application_cable_files

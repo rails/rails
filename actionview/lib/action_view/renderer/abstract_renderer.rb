@@ -17,7 +17,7 @@ module ActionView
   # that new object is called in turn. This abstracts the setup and rendering
   # into a separate classes for partials and templates.
   class AbstractRenderer #:nodoc:
-    delegate :find_template, :find_file, :template_exists?, :any_templates?, :with_fallbacks, :with_layout_format, :formats, to: :@lookup_context
+    delegate :template_exists?, :any_templates?, :formats, to: :@lookup_context
 
     def initialize(lookup_context)
       @lookup_context = lookup_context
@@ -25,6 +25,53 @@ module ActionView
 
     def render
       raise NotImplementedError
+    end
+
+    class RenderedCollection # :nodoc:
+      def self.empty(format)
+        EmptyCollection.new format
+      end
+
+      attr_reader :rendered_templates
+
+      def initialize(rendered_templates, spacer)
+        @rendered_templates = rendered_templates
+        @spacer = spacer
+      end
+
+      def body
+        @rendered_templates.map(&:body).join(@spacer.body).html_safe
+      end
+
+      def format
+        rendered_templates.first.format
+      end
+
+      class EmptyCollection
+        attr_reader :format
+
+        def initialize(format)
+          @format = format
+        end
+
+        def body; nil; end
+      end
+    end
+
+    class RenderedTemplate # :nodoc:
+      attr_reader :body, :layout, :template
+
+      def initialize(body, layout, template)
+        @body = body
+        @layout = layout
+        @template = template
+      end
+
+      def format
+        template.format
+      end
+
+      EMPTY_SPACER = Struct.new(:body).new
     end
 
     private
@@ -38,8 +85,6 @@ module ActionView
       end
 
       def instrument(name, **options) # :doc:
-        options[:identifier] ||= (@template && @template.identifier) || @path
-
         ActiveSupport::Notifications.instrument("render_#{name}.action_view", options) do |payload|
           yield payload
         end
@@ -50,6 +95,14 @@ module ActionView
         return if formats.empty? || @lookup_context.html_fallback_for_js
 
         @lookup_context.formats = formats | @lookup_context.formats
+      end
+
+      def build_rendered_template(content, template, layout = nil)
+        RenderedTemplate.new content, layout, template
+      end
+
+      def build_rendered_collection(templates, spacer)
+        RenderedCollection.new templates, spacer
       end
   end
 end

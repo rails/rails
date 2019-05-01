@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support/test_case"
+require "active_support"
 require "active_support/testing/autorun"
 require "active_support/testing/method_call_assertions"
 require "active_support/testing/stream"
@@ -31,6 +31,7 @@ module ActiveRecord
     end
 
     def capture_sql
+      ActiveRecord::Base.connection.materialize_transactions
       SQLCounter.clear_log
       yield
       SQLCounter.log_all.dup
@@ -48,6 +49,7 @@ module ActiveRecord
 
     def assert_queries(num = 1, options = {})
       ignore_none = options.fetch(:ignore_none) { num == :any }
+      ActiveRecord::Base.connection.materialize_transactions
       SQLCounter.clear_log
       x = yield
       the_log = ignore_none ? SQLCounter.log_all : SQLCounter.log
@@ -76,10 +78,6 @@ module ActiveRecord
     def has_column?(model, column_name)
       model.reset_column_information
       model.column_names.include?(column_name.to_s)
-    end
-
-    def frozen_error_class
-      Object.const_defined?(:FrozenError) ? FrozenError : RuntimeError
     end
   end
 

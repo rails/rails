@@ -2,6 +2,7 @@
 
 require "service/shared_service_tests"
 require "net/http"
+require "database/setup"
 
 if SERVICE_CONFIGURATIONS[:s3]
   class ActiveStorage::Service::S3ServiceTest < ActiveSupport::TestCase
@@ -10,29 +11,34 @@ if SERVICE_CONFIGURATIONS[:s3]
     include ActiveStorage::Service::SharedServiceTests
 
     test "direct upload" do
-      begin
-        key      = SecureRandom.base58(24)
-        data     = "Something else entirely!"
-        checksum = Digest::MD5.base64digest(data)
-        url      = @service.url_for_direct_upload(key, expires_in: 5.minutes, content_type: "text/plain", content_length: data.size, checksum: checksum)
+      key      = SecureRandom.base58(24)
+      data     = "Something else entirely!"
+      checksum = Digest::MD5.base64digest(data)
+      url      = @service.url_for_direct_upload(key, expires_in: 5.minutes, content_type: "text/plain", content_length: data.size, checksum: checksum)
 
-        uri = URI.parse url
-        request = Net::HTTP::Put.new uri.request_uri
-        request.body = data
-        request.add_field "Content-Type", "text/plain"
-        request.add_field "Content-MD5", checksum
-        Net::HTTP.start(uri.host, uri.port, use_ssl: true) do |http|
-          http.request request
-        end
-
-        assert_equal data, @service.download(key)
-      ensure
-        @service.delete key
+      uri = URI.parse url
+      request = Net::HTTP::Put.new uri.request_uri
+      request.body = data
+      request.add_field "Content-Type", "text/plain"
+      request.add_field "Content-MD5", checksum
+      Net::HTTP.start(uri.host, uri.port, use_ssl: true) do |http|
+        http.request request
       end
+
+      assert_equal data, @service.download(key)
+    ensure
+      @service.delete key
+    end
+
+    test "upload a zero byte file" do
+      blob = directly_upload_file_blob filename: "empty_file.txt", content_type: nil
+      user = User.create! name: "DHH", avatar: blob
+
+      assert_equal user.avatar.blob, blob
     end
 
     test "signed URL generation" do
-      url = @service.url(FIXTURE_KEY, expires_in: 5.minutes,
+      url = @service.url(@key, expires_in: 5.minutes,
         disposition: :inline, filename: ActiveStorage::Filename.new("avatar.png"), content_type: "image/png")
 
       assert_match(/s3(-[-a-z0-9]+)?\.(\S+)?amazonaws.com.*response-content-disposition=inline.*avatar\.png.*response-content-type=image%2Fpng/, url)
@@ -52,6 +58,24 @@ if SERVICE_CONFIGURATIONS[:s3]
       ensure
         service.delete key
       end
+    end
+
+    test "upload with content type" do
+      key          = SecureRandom.base58(24)
+      data         = "Something else entirely!"
+      content_type = "text/plain"
+
+      @service.upload(
+        key,
+        StringIO.new(data),
+        checksum: Digest::MD5.base64digest(data),
+        filename: "cool_data.txt",
+        content_type: content_type
+      )
+
+      assert_equal content_type, @service.bucket.object(key).content_type
+    ensure
+      @service.delete key
     end
   end
 else

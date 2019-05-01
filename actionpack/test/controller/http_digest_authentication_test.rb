@@ -44,7 +44,10 @@ class HttpDigestAuthenticationTest < ActionController::TestCase
   setup do
     # Used as secret in generating nonce to prevent tampering of timestamp
     @secret = "4fb45da9e4ab4ddeb7580d6a35503d99"
-    @request.env["action_dispatch.key_generator"] = ActiveSupport::LegacyKeyGenerator.new(@secret)
+    @request.env["action_dispatch.key_generator"] = ActiveSupport::CachingKeyGenerator.new(
+      ActiveSupport::KeyGenerator.new(@secret)
+    )
+    @request.env["action_dispatch.http_auth_salt"] = "http authentication"
   end
 
   teardown do
@@ -272,7 +275,7 @@ class HttpDigestAuthenticationTest < ActionController::TestCase
       credentials.merge!(options)
       path_info = @request.env["PATH_INFO"].to_s
       uri = options[:uri] || path_info
-      credentials.merge!(uri: uri)
+      credentials[:uri] = uri
       @request.env["ORIGINAL_FULLPATH"] = path_info
       ActionController::HttpAuthentication::Digest.encode_credentials(method, credentials, password, options[:password_is_ha1])
     end

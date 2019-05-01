@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 #--
-# Copyright (c) 2004-2018 David Heinemeier Hansson
+# Copyright (c) 2004-2019 David Heinemeier Hansson
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -49,11 +49,14 @@ module ActionDispatch
   end
 
   autoload_under "middleware" do
+    autoload :HostAuthorization
     autoload :RequestId
     autoload :Callbacks
     autoload :Cookies
+    autoload :ActionableExceptions
     autoload :DebugExceptions
     autoload :DebugLocks
+    autoload :DebugView
     autoload :ExceptionWrapper
     autoload :Executor
     autoload :Flash

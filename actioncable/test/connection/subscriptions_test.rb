@@ -1,11 +1,8 @@
 # frozen_string_literal: true
 
 require "test_helper"
-require "active_support/testing/method_call_assertions"
 
 class ActionCable::Connection::SubscriptionsTest < ActionCable::TestCase
-  include ActiveSupport::Testing::MethodCallAssertions
-
   class Connection < ActionCable::Connection::Base
     attr_reader :websocket
 

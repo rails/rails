@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
 Active Job Basics
 =================
@@ -50,7 +50,7 @@ Active Job provides a Rails generator to create jobs. The following will create 
 job in `app/jobs` (with an attached test case under `test/jobs`):
 
 ```bash
-$ bin/rails generate job guests_cleanup
+$ rails generate job guests_cleanup
 invoke  test_unit
 create    test/jobs/guests_cleanup_job_test.rb
 create  app/jobs/guests_cleanup_job.rb
@@ -59,7 +59,7 @@ create  app/jobs/guests_cleanup_job.rb
 You can also create a job that will run on a specific queue:
 
 ```bash
-$ bin/rails generate job guests_cleanup --queue urgent
+$ rails generate job guests_cleanup --queue urgent
 ```
 
 If you don't want to use a generator, you could create your own file inside of
@@ -120,8 +120,8 @@ production apps will need to pick a persistent backend.
 ### Backends
 
 Active Job has built-in adapters for multiple queuing backends (Sidekiq,
-Resque, Delayed Job and others). To get an up-to-date list of the adapters
-see the API Documentation for [ActiveJob::QueueAdapters](http://api.rubyonrails.org/classes/ActiveJob/QueueAdapters.html).
+Resque, Delayed Job, and others). To get an up-to-date list of the adapters
+see the API Documentation for [ActiveJob::QueueAdapters](https://api.rubyonrails.org/classes/ActiveJob/QueueAdapters.html).
 
 ### Setting the Backend
 
@@ -165,6 +165,7 @@ Here is a noncomprehensive list of documentation:
 - [Sneakers](https://github.com/jondot/sneakers/wiki/How-To:-Rails-Background-Jobs-with-ActiveJob)
 - [Sucker Punch](https://github.com/brandonhilkert/sucker_punch#active-job)
 - [Queue Classic](https://github.com/QueueClassic/queue_classic#active-job)
+- [Delayed Job](https://github.com/collectiveidea/delayed_job#active-job)
 
 Queues
 ------
@@ -289,7 +290,7 @@ style if the code inside your block is so short that it fits in a single line.
 For example, you could send metrics for every job enqueued:
 
 ```ruby
-class ApplicationJob
+class ApplicationJob < ActiveJob::Base
   before_enqueue { |job| $statsd.increment "#{job.class.name.underscore}.enqueue" }
 end
 ```
@@ -454,7 +455,7 @@ class RemoteServiceJob < ApplicationJob
 end
 ```
 
-To get more details see the API Documentation for [ActiveJob::Exceptions](http://api.rubyonrails.org/classes/ActiveJob/Exceptions/ClassMethods.html).
+To get more details see the API Documentation for [ActiveJob::Exceptions](https://api.rubyonrails.org/classes/ActiveJob/Exceptions/ClassMethods.html).
 
 ### Deserialization
 

@@ -22,23 +22,26 @@ class PostgresqlExtensionMigrationTest < ActiveRecord::PostgreSQLTestCase
 
     @connection = ActiveRecord::Base.connection
 
-    @old_schema_migration_table_name = ActiveRecord::SchemaMigration.table_name
     @old_table_name_prefix = ActiveRecord::Base.table_name_prefix
     @old_table_name_suffix = ActiveRecord::Base.table_name_suffix
 
     ActiveRecord::Base.table_name_prefix = "p_"
     ActiveRecord::Base.table_name_suffix = "_s"
+    ActiveRecord::SchemaMigration.reset_table_name
+    ActiveRecord::InternalMetadata.reset_table_name
+
     ActiveRecord::SchemaMigration.delete_all rescue nil
-    ActiveRecord::SchemaMigration.table_name = "p_schema_migrations_s"
     ActiveRecord::Migration.verbose = false
   end
 
   def teardown
-    ActiveRecord::Base.table_name_prefix = @old_table_name_prefix
-    ActiveRecord::Base.table_name_suffix = @old_table_name_suffix
     ActiveRecord::SchemaMigration.delete_all rescue nil
     ActiveRecord::Migration.verbose = true
-    ActiveRecord::SchemaMigration.table_name = @old_schema_migration_table_name
+
+    ActiveRecord::Base.table_name_prefix = @old_table_name_prefix
+    ActiveRecord::Base.table_name_suffix = @old_table_name_suffix
+    ActiveRecord::SchemaMigration.reset_table_name
+    ActiveRecord::InternalMetadata.reset_table_name
 
     super
   end

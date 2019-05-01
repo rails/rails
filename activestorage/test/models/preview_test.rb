@@ -22,8 +22,8 @@ class ActiveStorage::PreviewTest < ActiveSupport::TestCase
     preview = blob.preview(resize: "640x280").processed
 
     assert_predicate preview.image, :attached?
-    assert_equal "video.png", preview.image.filename.to_s
-    assert_equal "image/png", preview.image.content_type
+    assert_equal "video.jpg", preview.image.filename.to_s
+    assert_equal "image/jpeg", preview.image.content_type
 
     image = read_image(preview.image)
     assert_equal 640, image.width

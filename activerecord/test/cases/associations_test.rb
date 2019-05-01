@@ -21,6 +21,11 @@ require "models/molecule"
 require "models/electron"
 require "models/man"
 require "models/interest"
+require "models/pirate"
+require "models/parrot"
+require "models/bird"
+require "models/treasure"
+require "models/price_estimate"
 
 class AssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :developers_projects,
@@ -80,7 +85,7 @@ class AssociationsTest < ActiveRecord::TestCase
   def test_force_reload
     firm = Firm.new("name" => "A New Firm, Inc")
     firm.save
-    firm.clients.each {} # forcing to load all clients
+    firm.clients.each { } # forcing to load all clients
     assert firm.clients.empty?, "New firm shouldn't have client objects"
     assert_equal 0, firm.clients.size, "New firm should have 0 clients"
 
@@ -92,7 +97,7 @@ class AssociationsTest < ActiveRecord::TestCase
 
     firm.clients.reload
 
-    assert !firm.clients.empty?, "New firm should have reloaded client objects"
+    assert_not firm.clients.empty?, "New firm should have reloaded client objects"
     assert_equal 1, firm.clients.size, "New firm should have reloaded clients count"
   end
 
@@ -102,8 +107,8 @@ class AssociationsTest < ActiveRecord::TestCase
     has_many_reflections = [Tag.reflect_on_association(:taggings), Developer.reflect_on_association(:projects)]
     mixed_reflections = (belongs_to_reflections + has_many_reflections).uniq
     assert using_limitable_reflections.call(belongs_to_reflections), "Belong to associations are limitable"
-    assert !using_limitable_reflections.call(has_many_reflections), "All has many style associations are not limitable"
-    assert !using_limitable_reflections.call(mixed_reflections), "No collection associations (has many style) should pass"
+    assert_not using_limitable_reflections.call(has_many_reflections), "All has many style associations are not limitable"
+    assert_not using_limitable_reflections.call(mixed_reflections), "No collection associations (has many style) should pass"
   end
 
   def test_association_with_references
@@ -366,5 +371,99 @@ class GeneratedMethodsTest < ActiveRecord::TestCase
 
   def test_included_module_overwrites_association_methods
     assert_equal :none, MyArticle.new.comments
+  end
+end
+
+class WithAnnotationsTest < ActiveRecord::TestCase
+  fixtures :pirates, :parrots
+
+  def test_belongs_to_with_annotation_includes_a_query_comment
+    pirate = SpacePirate.where.not(parrot_id: nil).first
+    assert pirate, "should have a Pirate record"
+
+    log = capture_sql do
+      pirate.parrot
+    end
+    assert_not_predicate log, :empty?
+    assert_predicate log.select { |query| query.match?(%r{/\*}) }, :empty?
+
+    assert_sql(%r{/\* that tells jokes \*/}) do
+      pirate.parrot_with_annotation
+    end
+  end
+
+  def test_has_and_belongs_to_many_with_annotation_includes_a_query_comment
+    pirate = SpacePirate.first
+    assert pirate, "should have a Pirate record"
+
+    log = capture_sql do
+      pirate.parrots.first
+    end
+    assert_not_predicate log, :empty?
+    assert_predicate log.select { |query| query.match?(%r{/\*}) }, :empty?
+
+    assert_sql(%r{/\* that are very colorful \*/}) do
+      pirate.parrots_with_annotation.first
+    end
+  end
+
+  def test_has_one_with_annotation_includes_a_query_comment
+    pirate = SpacePirate.first
+    assert pirate, "should have a Pirate record"
+
+    log = capture_sql do
+      pirate.ship
+    end
+    assert_not_predicate log, :empty?
+    assert_predicate log.select { |query| query.match?(%r{/\*}) }, :empty?
+
+    assert_sql(%r{/\* that is a rocket \*/}) do
+      pirate.ship_with_annotation
+    end
+  end
+
+  def test_has_many_with_annotation_includes_a_query_comment
+    pirate = SpacePirate.first
+    assert pirate, "should have a Pirate record"
+
+    log = capture_sql do
+      pirate.birds.first
+    end
+    assert_not_predicate log, :empty?
+    assert_predicate log.select { |query| query.match?(%r{/\*}) }, :empty?
+
+    assert_sql(%r{/\* that are also parrots \*/}) do
+      pirate.birds_with_annotation.first
+    end
+  end
+
+  def test_has_many_through_with_annotation_includes_a_query_comment
+    pirate = SpacePirate.first
+    assert pirate, "should have a Pirate record"
+
+    log = capture_sql do
+      pirate.treasure_estimates.first
+    end
+    assert_not_predicate log, :empty?
+    assert_predicate log.select { |query| query.match?(%r{/\*}) }, :empty?
+
+    assert_sql(%r{/\* yarrr \*/}) do
+      pirate.treasure_estimates_with_annotation.first
+    end
+  end
+
+  def test_has_many_through_with_annotation_includes_a_query_comment_when_eager_loading
+    pirate = SpacePirate.first
+    assert pirate, "should have a Pirate record"
+
+    log = capture_sql do
+      pirate.treasure_estimates.first
+    end
+    assert_not_predicate log, :empty?
+    assert_predicate log.select { |query| query.match?(%r{/\*}) }, :empty?
+
+    assert_sql(%r{/\* yarrr \*/}) do
+      SpacePirate.includes(:treasure_estimates_with_annotation, :treasures).first
+    end
   end
 end

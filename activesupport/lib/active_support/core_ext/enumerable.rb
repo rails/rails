@@ -1,13 +1,20 @@
 # frozen_string_literal: true
 
 module Enumerable
+  INDEX_WITH_DEFAULT = Object.new
+  private_constant :INDEX_WITH_DEFAULT
+
   # Enumerable#sum was added in Ruby 2.4, but it only works with Numeric elements
   # when we omit an identity.
 
+  # :stopdoc:
+
   # We can't use Refinements here because Refinements with Module which will be prepended
   # doesn't work well https://bugs.ruby-lang.org/issues/13446
-  alias :_original_sum_with_required_identity :sum # :nodoc:
+  alias :_original_sum_with_required_identity :sum
   private :_original_sum_with_required_identity
+
+  # :startdoc:
 
   # Calculates a sum from the elements.
   #
@@ -37,10 +44,11 @@ module Enumerable
     end
   end
 
-  # Convert an enumerable to a hash.
+  # Convert an enumerable to a hash keying it by the block return value.
   #
   #   people.index_by(&:login)
   #   # => { "nextangle" => <Person ...>, "chade-" => <Person ...>, ...}
+  #
   #   people.index_by { |person| "#{person.first_name} #{person.last_name}" }
   #   # => { "Chade- Fowlersburg-e" => <Person ...>, "David Heinemeier Hansson" => <Person ...>, ...}
   def index_by
@@ -50,6 +58,26 @@ module Enumerable
       result
     else
       to_enum(:index_by) { size if respond_to?(:size) }
+    end
+  end
+
+  # Convert an enumerable to a hash keying it with the enumerable items and with the values returned in the block.
+  #
+  #   post = Post.new(title: "hey there", body: "what's up?")
+  #
+  #   %i( title body ).index_with { |attr_name| post.public_send(attr_name) }
+  #   # => { title: "hey there", body: "what's up?" }
+  def index_with(default = INDEX_WITH_DEFAULT)
+    if block_given?
+      result = {}
+      each { |elem| result[elem] = yield(elem) }
+      result
+    elsif default != INDEX_WITH_DEFAULT
+      result = {}
+      each { |elem| result[elem] = default }
+      result
+    else
+      to_enum(:index_with) { size if respond_to?(:size) }
     end
   end
 
@@ -69,21 +97,41 @@ module Enumerable
     end
   end
 
+  # Returns a new array that includes the passed elements.
+  #
+  #   [ 1, 2, 3 ].including(4, 5)
+  #   # => [ 1, 2, 3, 4, 5 ]
+  #
+  #   ["David", "Rafael"].including %w[ Aaron Todd ]
+  #   # => ["David", "Rafael", "Aaron", "Todd"]
+  def including(*elements)
+    to_a.including(*elements)
+  end
+
   # The negative of the <tt>Enumerable#include?</tt>. Returns +true+ if the
   # collection does not include the object.
   def exclude?(object)
     !include?(object)
   end
 
-  # Returns a copy of the enumerable without the specified elements.
+  # Returns a copy of the enumerable excluding the specified elements.
   #
-  #   ["David", "Rafael", "Aaron", "Todd"].without "Aaron", "Todd"
+  #   ["David", "Rafael", "Aaron", "Todd"].excluding "Aaron", "Todd"
   #   # => ["David", "Rafael"]
   #
-  #   {foo: 1, bar: 2, baz: 3}.without :bar
+  #   ["David", "Rafael", "Aaron", "Todd"].excluding %w[ Aaron Todd ]
+  #   # => ["David", "Rafael"]
+  #
+  #   {foo: 1, bar: 2, baz: 3}.excluding :bar
   #   # => {foo: 1, baz: 3}
-  def without(*elements)
+  def excluding(*elements)
+    elements.flatten!(1)
     reject { |element| elements.include?(element) }
+  end
+
+  # Alias for #excluding.
+  def without(*elements)
+    excluding(*elements)
   end
 
   # Convert an enumerable to an array based on the given key.

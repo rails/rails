@@ -75,22 +75,87 @@ class SafeBufferTest < ActiveSupport::TestCase
     assert_equal "my_test", str
   end
 
-  test "Should not return safe buffer from gsub" do
-    altered_buffer = @buffer.gsub("", "asdf")
-    assert_equal "asdf", altered_buffer
-    assert_not_predicate altered_buffer, :html_safe?
+  {
+    capitalize: nil,
+    chomp: nil,
+    chop: nil,
+    delete: "foo",
+    delete_prefix: "foo",
+    delete_suffix: "foo",
+    downcase: nil,
+    gsub: ["foo", "bar"],
+    lstrip: nil,
+    next: nil,
+    reverse: nil,
+    rstrip: nil,
+    slice: "foo",
+    squeeze: nil,
+    strip: nil,
+    sub: ["foo", "bar"],
+    succ: nil,
+    swapcase: nil,
+    tr: ["foo", "bar"],
+    tr_s: ["foo", "bar"],
+    unicode_normalize: nil,
+    upcase: nil,
+  }.each do |unsafe_method, dummy_args|
+    test "Should not return safe buffer from #{unsafe_method}" do
+      skip unless String.method_defined?(unsafe_method)
+      altered_buffer = @buffer.send(unsafe_method, *dummy_args)
+      assert_not_predicate altered_buffer, :html_safe?
+    end
+
+    test "Should not return safe buffer from #{unsafe_method}!" do
+      skip unless String.method_defined?("#{unsafe_method}!")
+      @buffer.send("#{unsafe_method}!", *dummy_args)
+      assert_not_predicate @buffer, :html_safe?
+    end
   end
 
-  test "Should not return safe buffer from gsub!" do
-    @buffer.gsub!("", "asdf")
-    assert_equal "asdf", @buffer
-    assert_not_predicate @buffer, :html_safe?
+  test "can assign value into zero-index" do
+    buffer = ActiveSupport::SafeBuffer.new("012345")
+
+    buffer[0] = "<"
+
+    assert_equal "&lt;12345", buffer
+  end
+
+  test "can assign value into non zero-index" do
+    buffer = ActiveSupport::SafeBuffer.new("012345")
+
+    buffer[2] = "<"
+
+    assert_equal "01&lt;345", buffer
+  end
+
+  test "can assign value into slice" do
+    buffer = ActiveSupport::SafeBuffer.new("012345")
+
+    buffer[0, 3] = "<"
+
+    assert_equal "&lt;345", buffer
+  end
+
+  test "can assign value into offset slice" do
+    buffer = ActiveSupport::SafeBuffer.new("012345")
+
+    buffer[1, 3] = "<"
+
+    assert_equal "0&lt;45", buffer
   end
 
   test "Should escape dirty buffers on add" do
     clean = "hello".html_safe
     @buffer.gsub!("", "<>")
     assert_equal "hello&lt;&gt;", clean + @buffer
+  end
+
+  test "Should preserve html_safe? status on multiplication" do
+    multiplied_safe_buffer = "<br />".html_safe * 2
+    assert_predicate multiplied_safe_buffer, :html_safe?
+
+    multiplied_unsafe_buffer = @buffer.gsub("", "<>") * 2
+    assert_not_predicate multiplied_unsafe_buffer, :html_safe?
   end
 
   test "Should concat as a normal string when safe" do
@@ -126,7 +191,7 @@ class SafeBufferTest < ActiveSupport::TestCase
     assert_equal "", ActiveSupport::SafeBuffer.new("foo").clone_empty
   end
 
-  test "clone_empty keeps the original dirtyness" do
+  test "clone_empty keeps the original dirtiness" do
     assert_predicate @buffer.clone_empty, :html_safe?
     assert_not_predicate @buffer.gsub!("", "").clone_empty, :html_safe?
   end
@@ -141,13 +206,25 @@ class SafeBufferTest < ActiveSupport::TestCase
     x = "foo".html_safe.gsub!("f", '<script>alert("lolpwnd");</script>')
 
     # calling gsub! makes the dirty flag true
-    assert !x.html_safe?, "should not be safe"
+    assert_not x.html_safe?, "should not be safe"
 
     # getting a slice of it
     y = x[0..-1]
 
     # should still be unsafe
-    assert !y.html_safe?, "should not be safe"
+    assert_not y.html_safe?, "should not be safe"
+  end
+
+  test "Should continue safe on slice" do
+    x = "<div>foo</div>".html_safe
+
+    assert_predicate x, :html_safe?
+
+    # getting a slice of it
+    y = x[0..-1]
+
+    # should still be safe
+    assert_predicate y, :html_safe?
   end
 
   test "Should work with interpolation (array argument)" do
@@ -178,5 +255,23 @@ class SafeBufferTest < ActiveSupport::TestCase
   test "Should not affect frozen objects when accessing characters" do
     x = "Hello".html_safe
     assert_nil x[/a/, 1]
+  end
+
+  test "Should set back references" do
+    a = "foo123".html_safe
+    a2 = a.sub(/([a-z]+)([0-9]+)/) { $2 + $1 }
+    assert_equal "123foo", a2
+    assert_not_predicate a2, :html_safe?
+    a.sub!(/([a-z]+)([0-9]+)/) { $2 + $1 }
+    assert_equal "123foo", a
+    assert_not_predicate a, :html_safe?
+
+    b = "foo123 bar456".html_safe
+    b2 = b.gsub(/([a-z]+)([0-9]+)/) { $2 + $1 }
+    assert_equal "123foo 456bar", b2
+    assert_not_predicate b2, :html_safe?
+    b.gsub!(/([a-z]+)([0-9]+)/) { $2 + $1 }
+    assert_equal "123foo 456bar", b
+    assert_not_predicate b, :html_safe?
   end
 end

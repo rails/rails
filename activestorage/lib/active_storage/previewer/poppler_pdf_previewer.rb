@@ -12,7 +12,7 @@ module ActiveStorage
       end
 
       def pdftoppm_exists?
-        return @pdftoppm_exists unless @pdftoppm_exists.nil?
+        return @pdftoppm_exists if defined?(@pdftoppm_exists)
 
         @pdftoppm_exists = system(pdftoppm_path, "-v", out: File::NULL, err: File::NULL)
       end
@@ -28,7 +28,7 @@ module ActiveStorage
 
     private
       def draw_first_page_from(file, &block)
-        # use 72 dpi to match thumbnail  dimesions of the PDF
+        # use 72 dpi to match thumbnail dimensions of the PDF
         draw self.class.pdftoppm_path, "-singlefile", "-r", "72", "-png", file.path, &block
       end
   end

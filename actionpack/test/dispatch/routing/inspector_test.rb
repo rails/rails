@@ -368,19 +368,19 @@ module ActionDispatch
 
         assert_equal [
           "No routes were found for this grep pattern.",
-          "For more information about routes, see the Rails guide: http://guides.rubyonrails.org/routing.html."
+          "For more information about routes, see the Rails guide: https://guides.rubyonrails.org/routing.html."
         ], output
       end
 
       def test_not_routes_when_expanded
-        output = draw(grep: "rails/dummy", formatter: ActionDispatch::Routing::ConsoleFormatter::Expanded.new) {}
+        output = draw(grep: "rails/dummy", formatter: ActionDispatch::Routing::ConsoleFormatter::Expanded.new) { }
 
         assert_equal [
           "You don't have any routes defined!",
           "",
           "Please add some routes in config/routes.rb.",
           "",
-          "For more information about routes, see the Rails guide: http://guides.rubyonrails.org/routing.html."
+          "For more information about routes, see the Rails guide: https://guides.rubyonrails.org/routing.html."
         ], output
       end
 
@@ -434,7 +434,7 @@ module ActionDispatch
 
         assert_equal [
           "No routes were found for this controller.",
-          "For more information about routes, see the Rails guide: http://guides.rubyonrails.org/routing.html."
+          "For more information about routes, see the Rails guide: https://guides.rubyonrails.org/routing.html."
         ], output
       end
 
@@ -445,19 +445,19 @@ module ActionDispatch
 
         assert_equal [
           "No routes were found for this grep pattern.",
-          "For more information about routes, see the Rails guide: http://guides.rubyonrails.org/routing.html."
+          "For more information about routes, see the Rails guide: https://guides.rubyonrails.org/routing.html."
         ], output
       end
 
       def test_no_routes_were_defined
-        output = draw(grep: "Rails::DummyController") {}
+        output = draw(grep: "Rails::DummyController") { }
 
         assert_equal [
           "You don't have any routes defined!",
           "",
           "Please add some routes in config/routes.rb.",
           "",
-          "For more information about routes, see the Rails guide: http://guides.rubyonrails.org/routing.html."
+          "For more information about routes, see the Rails guide: https://guides.rubyonrails.org/routing.html."
         ], output
       end
 

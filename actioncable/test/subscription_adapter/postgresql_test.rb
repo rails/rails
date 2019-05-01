@@ -2,11 +2,13 @@
 
 require "test_helper"
 require_relative "common"
+require_relative "channel_prefix"
 
 require "active_record"
 
 class PostgresqlAdapterTest < ActionCable::TestCase
   include CommonSubscriptionAdapterTest
+  include ChannelPrefixTest
 
   def setup
     database_config = { "adapter" => "postgresql", "database" => "activerecord_unittest" }
@@ -38,5 +40,28 @@ class PostgresqlAdapterTest < ActionCable::TestCase
 
   def cable_config
     { adapter: "postgresql" }
+  end
+
+  def test_clear_active_record_connections_adapter_still_works
+    server = ActionCable::Server::Base.new
+    server.config.cable = cable_config.with_indifferent_access
+    server.config.logger = Logger.new(StringIO.new).tap { |l| l.level = Logger::UNKNOWN }
+
+    adapter_klass = Class.new(server.config.pubsub_adapter) do
+      def active?
+        !@listener.nil?
+      end
+    end
+
+    adapter = adapter_klass.new(server)
+
+    subscribe_as_queue("channel", adapter) do |queue|
+      adapter.broadcast("channel", "hello world")
+      assert_equal "hello world", queue.pop
+    end
+
+    ActiveRecord::Base.clear_reloadable_connections!
+
+    assert adapter.active?
   end
 end

@@ -115,6 +115,21 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal 301, status
   end
 
+  def test_accepts_a_constraint_object_responding_to_call
+    constraint = Class.new do
+      def call(*); true; end
+      def matches?(*); false; end
+    end
+
+    draw do
+      get "/", to: "home#show", constraints: constraint.new
+    end
+
+    assert_nothing_raised do
+      get "/"
+    end
+  end
+
   def test_namespace_with_controller_segment
     assert_raise(ArgumentError) do
       draw do
@@ -1367,6 +1382,22 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal "projects#index", @response.body
   end
 
+  def test_optionally_scoped_root_unscoped_access
+    draw do
+      scope "(:locale)" do
+        scope "(:platform)" do
+          scope "(:browser)" do
+            root to: "projects#index"
+          end
+        end
+      end
+    end
+
+    assert_equal "/", root_path
+    get "/"
+    assert_equal "projects#index", @response.body
+  end
+
   def test_scope_with_format_option
     draw do
       get "direct/index", as: :no_format_direct, format: false
@@ -2167,6 +2198,37 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
     delete "/cards/1"
     assert_equal "cards#destroy", @response.body
+  end
+
+  def test_shallow_false_inside_nested_shallow_resource
+    draw do
+      resources :blogs, shallow: true do
+        resources :posts do
+          resources :comments, shallow: false
+          resources :tags
+        end
+      end
+    end
+
+    get "/posts/1/comments"
+    assert_equal "comments#index", @response.body
+    assert_equal "/posts/1/comments", post_comments_path("1")
+
+    get "/posts/1/comments/new"
+    assert_equal "comments#new", @response.body
+    assert_equal "/posts/1/comments/new", new_post_comment_path("1")
+
+    get "/posts/1/comments/2"
+    assert_equal "comments#show", @response.body
+    assert_equal "/posts/1/comments/2", post_comment_path("1", "2")
+
+    get "/posts/1/comments/2/edit"
+    assert_equal "comments#edit", @response.body
+    assert_equal "/posts/1/comments/2/edit", edit_post_comment_path("1", "2")
+
+    get "/tags/3"
+    assert_equal "tags#show", @response.body
+    assert_equal "/tags/3", tag_path("3")
   end
 
   def test_shallow_deeply_nested_resources
@@ -3153,7 +3215,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       after = has_named_route?(:hello)
     end
 
-    assert !before, "expected to not have named route :hello before route definition"
+    assert_not before, "expected to not have named route :hello before route definition"
     assert after, "expected to have named route :hello after route definition"
   end
 
@@ -3307,13 +3369,23 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal "0c0c0b68-d24b-11e1-a861-001ff3fffe6f", @request.params[:download]
   end
 
-  def test_action_from_path_is_not_frozen
+  def test_colon_containing_custom_param
+    ex = assert_raises(ArgumentError) {
+      draw do
+        resources :profiles, param: "username/:is_admin"
+      end
+    }
+
+    assert_match(/:param option can't contain colon/, ex.message)
+  end
+
+  def test_action_from_path_is_frozen
     draw do
       get "search" => "search"
     end
 
     get "/search"
-    assert_not_predicate @request.params[:action], :frozen?
+    assert_predicate @request.params[:action], :frozen?
   end
 
   def test_multiple_positional_args_with_the_same_name
@@ -3667,15 +3739,25 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
   end
 
-  def test_multiple_roots
-    draw do
-      namespace :foo do
+  def test_multiple_roots_raises_error
+    ex = assert_raises(ArgumentError) {
+      draw do
         root "pages#index", constraints: { host: "www.example.com" }
         root "admin/pages#index", constraints: { host: "admin.example.com" }
       end
+    }
+    assert_match(/Invalid route name, already in use: 'root'/, ex.message)
+  end
+
+  def test_multiple_named_roots
+    draw do
+      namespace :foo do
+        root "pages#index", constraints: { host: "www.example.com" }
+        root "admin/pages#index", constraints: { host: "admin.example.com" }, as: :admin_root
+      end
 
       root "pages#index", constraints: { host: "www.example.com" }
-      root "admin/pages#index", constraints: { host: "admin.example.com" }
+      root "admin/pages#index", constraints: { host: "admin.example.com" },  as: :admin_root
     end
 
     get "http://www.example.com/foo"
@@ -4341,7 +4423,7 @@ class TestNamedRouteUrlHelpers < ActionDispatch::IntegrationTest
 
   include Routes.url_helpers
 
-  test "url helpers do not ignore nil parameters when using non-optimized routes" do
+  test "URL helpers do not ignore nil parameters when using non-optimized routes" do
     Routes.stub :optimize_routes_generation?, false do
       get "/categories/1"
       assert_response :success
@@ -4713,7 +4795,7 @@ class TestUrlGenerationErrors < ActionDispatch::IntegrationTest
 
   include Routes.url_helpers
 
-  test "url helpers raise a 'missing keys' error for a nil param with optimized helpers" do
+  test "URL helpers raise a 'missing keys' error for a nil param with optimized helpers" do
     url, missing = { action: "show", controller: "products", id: nil }, [:id]
     message = "No route matches #{url.inspect}, missing required keys: #{missing.inspect}"
 
@@ -4721,7 +4803,7 @@ class TestUrlGenerationErrors < ActionDispatch::IntegrationTest
     assert_equal message, error.message
   end
 
-  test "url helpers raise a 'constraint failure' error for a nil param with non-optimized helpers" do
+  test "URL helpers raise a 'constraint failure' error for a nil param with non-optimized helpers" do
     url, missing = { action: "show", controller: "products", id: nil }, [:id]
     message = "No route matches #{url.inspect}, possible unmatched constraints: #{missing.inspect}"
 
@@ -4729,15 +4811,15 @@ class TestUrlGenerationErrors < ActionDispatch::IntegrationTest
     assert_equal message, error.message
   end
 
-  test "url helpers raise message with mixed parameters when generation fails" do
+  test "URL helpers raise message with mixed parameters when generation fails" do
     url, missing = { action: "show", controller: "products", id: nil, "id" => "url-tested" }, [:id]
     message = "No route matches #{url.inspect}, possible unmatched constraints: #{missing.inspect}"
 
-    # Optimized url helper
+    # Optimized URL helper
     error = assert_raises(ActionController::UrlGenerationError) { product_path(nil, "id" => "url-tested") }
     assert_equal message, error.message
 
-    # Non-optimized url helper
+    # Non-optimized URL helper
     error = assert_raises(ActionController::UrlGenerationError, message) { product_path(id: nil, "id" => "url-tested") }
     assert_equal message, error.message
   end
@@ -4950,8 +5032,12 @@ end
 
 class FlashRedirectTest < ActionDispatch::IntegrationTest
   SessionKey = "_myapp_session"
-  Generator  = ActiveSupport::LegacyKeyGenerator.new("b3c631c314c0bbca50c1b2843150fe33")
-  Rotations  = ActiveSupport::Messages::RotationConfiguration.new
+  Generator = ActiveSupport::CachingKeyGenerator.new(
+    ActiveSupport::KeyGenerator.new("b3c631c314c0bbca50c1b2843150fe33", iterations: 1000)
+  )
+  Rotations = ActiveSupport::Messages::RotationConfiguration.new
+  SIGNED_COOKIE_SALT = "signed cookie"
+  ENCRYPTED_SIGNED_COOKIE_SALT = "signed encrypted cookie"
 
   class KeyGeneratorMiddleware
     def initialize(app)
@@ -4961,6 +5047,8 @@ class FlashRedirectTest < ActionDispatch::IntegrationTest
     def call(env)
       env["action_dispatch.key_generator"] ||= Generator
       env["action_dispatch.cookies_rotations"] ||= Rotations
+      env["action_dispatch.signed_cookie_salt"] = SIGNED_COOKIE_SALT
+      env["action_dispatch.encrypted_signed_cookie_salt"] = ENCRYPTED_SIGNED_COOKIE_SALT
 
       @app.call(env)
     end

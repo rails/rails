@@ -111,6 +111,22 @@ module ActiveModel
     #   BlogPost.model_name.eql?('Blog Post') # => false
 
     ##
+    # :method: match?
+    #
+    # :call-seq:
+    #   match?(regexp)
+    #
+    # Equivalent to <tt>String#match?</tt>. Match the class name against the
+    # given regexp. Returns +true+ if there is a match, otherwise +false+.
+    #
+    #   class BlogPost
+    #     extend ActiveModel::Naming
+    #   end
+    #
+    #   BlogPost.model_name.match?(/Post/) # => true
+    #   BlogPost.model_name.match?(/\d/) # => false
+
+    ##
     # :method: to_s
     #
     # :call-seq:
@@ -131,7 +147,7 @@ module ActiveModel
     #   to_str()
     #
     # Equivalent to +to_s+.
-    delegate :==, :===, :<=>, :=~, :"!~", :eql?, :to_s,
+    delegate :==, :===, :<=>, :=~, :"!~", :eql?, :match?, :to_s,
              :to_str, :as_json, to: :name
 
     # Returns a new ActiveModel::Name instance. By default, the +namespace+
@@ -193,7 +209,7 @@ module ActiveModel
     private
 
       def _singularize(string)
-        ActiveSupport::Inflector.underscore(string).tr("/".freeze, "_".freeze)
+        ActiveSupport::Inflector.underscore(string).tr("/", "_")
       end
   end
 
@@ -236,7 +252,7 @@ module ActiveModel
     #   Person.model_name.plural   # => "people"
     def model_name
       @_model_name ||= begin
-        namespace = parents.detect do |n|
+        namespace = module_parents.detect do |n|
           n.respond_to?(:use_relative_model_naming?) && n.use_relative_model_naming?
         end
         ActiveModel::Name.new(self, namespace)

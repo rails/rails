@@ -3,11 +3,8 @@
 require "test_helper"
 require "stubs/test_server"
 require "active_support/core_ext/hash/indifferent_access"
-require "active_support/testing/method_call_assertions"
 
-class BaseTest < ActiveSupport::TestCase
-  include ActiveSupport::Testing::MethodCallAssertions
-
+class BaseTest < ActionCable::TestCase
   def setup
     @server = ActionCable::Server::Base.new
     @server.config.cable = { adapter: "async" }.with_indifferent_access

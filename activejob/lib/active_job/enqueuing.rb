@@ -9,10 +9,12 @@ module ActiveJob
 
     # Includes the +perform_later+ method for job initialization.
     module ClassMethods
-      # Push a job onto the queue. The arguments must be legal JSON types
-      # (+string+, +int+, +float+, +nil+, +true+, +false+, +hash+ or +array+) or
-      # GlobalID::Identification instances. Arbitrary Ruby objects
-      # are not supported.
+      # Push a job onto the queue. By default the arguments must be either String,
+      # Integer, Float, NilClass, TrueClass, FalseClass, BigDecimal, Symbol, Date,
+      # Time, DateTime, ActiveSupport::TimeWithZone, ActiveSupport::Duration,
+      # Hash, ActiveSupport::HashWithIndifferentAccess, Array or
+      # GlobalID::Identification instances, although this can be extended by adding
+      # custom serializers.
       #
       # Returns an instance of the job class queued with arguments available in
       # Job#arguments.
@@ -46,14 +48,33 @@ module ActiveJob
       self.scheduled_at = options[:wait_until].to_f if options[:wait_until]
       self.queue_name   = self.class.queue_name_from_part(options[:queue]) if options[:queue]
       self.priority     = options[:priority].to_i if options[:priority]
+      successfully_enqueued = false
+
       run_callbacks :enqueue do
         if scheduled_at
           self.class.queue_adapter.enqueue_at self, scheduled_at
         else
           self.class.queue_adapter.enqueue self
         end
+
+        successfully_enqueued = true
       end
-      self
+
+      if successfully_enqueued
+        self
+      else
+        if self.class.return_false_on_aborted_enqueue
+          false
+        else
+          ActiveSupport::Deprecation.warn(
+            "Rails 6.1 will return false when the enqueuing is aborted. Make sure your code doesn't depend on it" \
+            " returning the instance of the job and set `config.active_job.return_false_on_aborted_enqueue = true`" \
+            " to remove the deprecations."
+          )
+
+          self
+        end
+      end
     end
   end
 end

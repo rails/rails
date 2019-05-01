@@ -282,6 +282,32 @@ class DependenciesTest < ActiveSupport::TestCase
     remove_constants(:ModuleFolder)
   end
 
+  def test_module_with_nested_class_requiring_lib_class
+    with_autoloading_fixtures do
+      _ = ModuleFolder::NestedWithRequire # assignment to silence parse-time warning "possibly useless use of :: in void context"
+
+      assert defined?(ModuleFolder::LibClass)
+      assert_not ActiveSupport::Dependencies.autoloaded_constants.include?("ModuleFolder::LibClass")
+      assert_not ActiveSupport::Dependencies.autoloaded_constants.include?("ConstFromLib")
+    end
+  ensure
+    remove_constants(:ModuleFolder)
+    remove_constants(:ConstFromLib)
+  end
+
+  def test_module_with_nested_class_and_parent_requiring_lib_class
+    with_autoloading_fixtures do
+      _ = NestedWithRequireParent # assignment to silence parse-time warning "possibly useless use of a constant in void context"
+
+      assert defined?(ModuleFolder::LibClass)
+      assert_not ActiveSupport::Dependencies.autoloaded_constants.include?("ModuleFolder::LibClass")
+      assert_not ActiveSupport::Dependencies.autoloaded_constants.include?("ConstFromLib")
+    end
+  ensure
+    remove_constants(:ModuleFolder)
+    remove_constants(:ConstFromLib)
+  end
+
   def test_directories_may_manifest_as_nested_classes
     with_autoloading_fixtures do
       assert_kind_of Class, ClassFolder
@@ -755,7 +781,7 @@ class DependenciesTest < ActiveSupport::TestCase
     Object.const_set :EM, Class.new
     with_autoloading_fixtures do
       require_dependency "em"
-      assert ! ActiveSupport::Dependencies.autoloaded?(:EM), "EM shouldn't be marked autoloaded!"
+      assert_not ActiveSupport::Dependencies.autoloaded?(:EM), "EM shouldn't be marked autoloaded!"
       ActiveSupport::Dependencies.clear
     end
   ensure
@@ -782,7 +808,7 @@ class DependenciesTest < ActiveSupport::TestCase
 
       Object.const_set :M, Module.new
       ActiveSupport::Dependencies.clear
-      assert ! defined?(M), "Dependencies should unload unloadable constants each time"
+      assert_not defined?(M), "Dependencies should unload unloadable constants each time"
     end
   end
 
@@ -815,8 +841,8 @@ class DependenciesTest < ActiveSupport::TestCase
     remove_constants(:C)
   end
 
-  def test_new_contants_in_without_constants
-    assert_equal [], (ActiveSupport::Dependencies.new_constants_in(Object) {})
+  def test_new_constants_in_without_constants
+    assert_equal [], (ActiveSupport::Dependencies.new_constants_in(Object) { })
     assert ActiveSupport::Dependencies.constant_watch_stack.all? { |k, v| v.empty? }
   end
 
@@ -892,7 +918,7 @@ class DependenciesTest < ActiveSupport::TestCase
 
   def test_new_constants_in_with_illegal_module_name_raises_correct_error
     assert_raise(NameError) do
-      ActiveSupport::Dependencies.new_constants_in("Illegal-Name") {}
+      ActiveSupport::Dependencies.new_constants_in("Illegal-Name") { }
     end
   end
 
@@ -980,10 +1006,10 @@ class DependenciesTest < ActiveSupport::TestCase
 
   def test_autoload_doesnt_shadow_no_method_error_with_relative_constant
     with_autoloading_fixtures do
-      assert !defined?(::RaisesNoMethodError), "::RaisesNoMethodError is defined but it hasn't been referenced yet!"
+      assert_not defined?(::RaisesNoMethodError), "::RaisesNoMethodError is defined but it hasn't been referenced yet!"
       2.times do
         assert_raise(NoMethodError) { RaisesNoMethodError }
-        assert !defined?(::RaisesNoMethodError), "::RaisesNoMethodError is defined but it should have failed!"
+        assert_not defined?(::RaisesNoMethodError), "::RaisesNoMethodError is defined but it should have failed!"
       end
     end
   ensure
@@ -992,10 +1018,10 @@ class DependenciesTest < ActiveSupport::TestCase
 
   def test_autoload_doesnt_shadow_no_method_error_with_absolute_constant
     with_autoloading_fixtures do
-      assert !defined?(::RaisesNoMethodError), "::RaisesNoMethodError is defined but it hasn't been referenced yet!"
+      assert_not defined?(::RaisesNoMethodError), "::RaisesNoMethodError is defined but it hasn't been referenced yet!"
       2.times do
         assert_raise(NoMethodError) { ::RaisesNoMethodError }
-        assert !defined?(::RaisesNoMethodError), "::RaisesNoMethodError is defined but it should have failed!"
+        assert_not defined?(::RaisesNoMethodError), "::RaisesNoMethodError is defined but it should have failed!"
       end
     end
   ensure
@@ -1020,13 +1046,13 @@ class DependenciesTest < ActiveSupport::TestCase
           ::RaisesNameError::FooBarBaz.object_id
         end
         assert_equal "uninitialized constant RaisesNameError::FooBarBaz", e.message
-        assert !defined?(::RaisesNameError), "::RaisesNameError is defined but it should have failed!"
+        assert_not defined?(::RaisesNameError), "::RaisesNameError is defined but it should have failed!"
       end
 
       assert_not defined?(::RaisesNameError)
       2.times do
         assert_raise(NameError) { ::RaisesNameError }
-        assert !defined?(::RaisesNameError), "::RaisesNameError is defined but it should have failed!"
+        assert_not defined?(::RaisesNameError), "::RaisesNameError is defined but it should have failed!"
       end
     end
   ensure
@@ -1128,5 +1154,54 @@ class DependenciesTest < ActiveSupport::TestCase
     assert_includes Object.private_methods, :require
   ensure
     ActiveSupport::Dependencies.hook!
+  end
+end
+
+class DependenciesLogging < ActiveSupport::TestCase
+  MESSAGE = "message"
+
+  def with_settings(logger, verbose)
+    original_logger = ActiveSupport::Dependencies.logger
+    original_verbose = ActiveSupport::Dependencies.verbose
+
+    ActiveSupport::Dependencies.logger = logger
+    ActiveSupport::Dependencies.verbose = verbose
+
+    yield
+  ensure
+    ActiveSupport::Dependencies.logger = original_logger
+    ActiveSupport::Dependencies.verbose = original_verbose
+  end
+
+  def fake_logger
+    Class.new do
+      def self.debug(message)
+        message
+      end
+    end
+  end
+
+  test "does not log if the logger is nil and verbose is false" do
+    with_settings(nil, false) do
+      assert_nil ActiveSupport::Dependencies.log(MESSAGE)
+    end
+  end
+
+  test "does not log if the logger is nil and verbose is true" do
+    with_settings(nil, true) do
+      assert_nil ActiveSupport::Dependencies.log(MESSAGE)
+    end
+  end
+
+  test "does not log if the logger is set and verbose is false" do
+    with_settings(fake_logger, false) do
+      assert_nil ActiveSupport::Dependencies.log(MESSAGE)
+    end
+  end
+
+  test "logs if the logger is set and verbose is true" do
+    with_settings(fake_logger, true) do
+      assert_equal "autoloading: #{MESSAGE}", ActiveSupport::Dependencies.log(MESSAGE)
+    end
   end
 end

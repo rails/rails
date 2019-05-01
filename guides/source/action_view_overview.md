@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
 Action View Overview
 ====================
@@ -29,7 +29,7 @@ For each controller there is an associated directory in the `app/views` director
 Let's take a look at what Rails does by default when creating a new resource using the scaffold generator:
 
 ```bash
-$ bin/rails generate scaffold article
+$ rails generate scaffold article
       [...]
       invoke  scaffold_controller
       create    app/controllers/articles_controller.rb
@@ -48,7 +48,7 @@ For example, the index controller action of the `articles_controller.rb` will us
 The complete HTML returned to the client is composed of a combination of this ERB file, a layout template that wraps it, and all the partials that the view may reference. Within this guide you will find more detailed documentation about each of these three components.
 
 
-Templates, Partials and Layouts
+Templates, Partials, and Layouts
 -------------------------------
 
 As mentioned, the final HTML output is a composition of three Rails elements: `Templates`, `Partials` and `Layouts`.
@@ -62,7 +62,7 @@ Rails supports multiple template systems and uses a file extension to distinguis
 
 #### ERB
 
-Within an ERB template, Ruby code can be included using both `<% %>` and `<%= %>` tags. The `<% %>` tags are used to execute Ruby code that does not return anything, such as conditions, loops or blocks, and the `<%= %>` tags are used when you want output.
+Within an ERB template, Ruby code can be included using both `<% %>` and `<%= %>` tags. The `<% %>` tags are used to execute Ruby code that does not return anything, such as conditions, loops, or blocks, and the `<%= %>` tags are used when you want output.
 
 Consider the following loop for names:
 
@@ -91,7 +91,7 @@ Here are some basic examples:
 ```ruby
 xml.em("emphasized")
 xml.em { xml.b("emph & bold") }
-xml.a("A Link", "href" => "http://rubyonrails.org")
+xml.a("A Link", "href" => "https://rubyonrails.org")
 xml.target("name" => "compile", "option" => "fast")
 ```
 
@@ -100,7 +100,7 @@ which would produce:
 ```html
 <em>emphasized</em>
 <em><b>emph &amp; bold</b></em>
-<a href="http://rubyonrails.org">A link</a>
+<a href="https://rubyonrails.org">A link</a>
 <target option="fast" name="compile" />
 ```
 
@@ -402,9 +402,9 @@ This will add `app/views/direct` to the end of the lookup paths.
 Overview of helpers provided by Action View
 -------------------------------------------
 
-WIP: Not all the helpers are listed here. For a full list see the [API documentation](http://api.rubyonrails.org/classes/ActionView/Helpers.html)
+WIP: Not all the helpers are listed here. For a full list see the [API documentation](https://api.rubyonrails.org/classes/ActionView/Helpers.html)
 
-The following is only a brief overview summary of the helpers available in Action View. It's recommended that you review the [API Documentation](http://api.rubyonrails.org/classes/ActionView/Helpers.html), which covers all of the helpers in more detail, but this should serve as a good starting point.
+The following is only a brief overview summary of the helpers available in Action View. It's recommended that you review the [API Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers.html), which covers all of the helpers in more detail, but this should serve as a good starting point.
 
 ### AssetTagHelper
 
@@ -760,7 +760,7 @@ time_ago_in_words(3.minutes.from_now)  # => 3 minutes
 
 #### time_select
 
-Returns a set of select tags (one for hour, minute and optionally second) pre-selected for accessing a specified time-based attribute. The selects are prepared for multi-parameter assignment to an Active Record object.
+Returns a set of select tags (one for hour, minute, and optionally second) pre-selected for accessing a specified time-based attribute. The selects are prepared for multi-parameter assignment to an Active Record object.
 
 ```ruby
 # Creates a time select tag that, when POSTed, will be stored in the order variable in the submitted attribute
@@ -1446,7 +1446,7 @@ Sanitizes a block of CSS code.
 Strips all link tags from text leaving just the link text.
 
 ```ruby
-strip_links('<a href="http://rubyonrails.org">Ruby on Rails</a>')
+strip_links('<a href="https://rubyonrails.org">Ruby on Rails</a>')
 # => Ruby on Rails
 ```
 

@@ -113,9 +113,21 @@ module ActiveSupport
       #     post :create, params: { article: invalid_attributes }
       #   end
       #
+      # A lambda can be passed in and evaluated.
+      #
+      #   assert_no_difference -> { Article.count } do
+      #     post :create, params: { article: invalid_attributes }
+      #   end
+      #
       # An error message can be specified.
       #
       #   assert_no_difference 'Article.count', 'An Article should not be created' do
+      #     post :create, params: { article: invalid_attributes }
+      #   end
+      #
+      # An array of expressions can also be passed in and evaluated.
+      #
+      #   assert_no_difference [ 'Article.count', -> { Post.count } ] do
       #     post :create, params: { article: invalid_attributes }
       #   end
       def assert_no_difference(expression, message = nil, &block)
@@ -176,7 +188,9 @@ module ActiveSupport
         assert before != after, error
 
         unless to == UNTRACKED
-          error = "#{expression.inspect} didn't change to #{to}"
+          error = "#{expression.inspect} didn't change to as expected\n"
+          error = "#{error}Expected: #{to.inspect}\n"
+          error = "#{error}  Actual: #{after.inspect}"
           error = "#{message}.\n#{error}" if message
           assert to === after, error
         end

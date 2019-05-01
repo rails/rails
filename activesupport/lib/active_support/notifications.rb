@@ -34,7 +34,7 @@ module ActiveSupport
   #     name    # => String, name of the event (such as 'render' from above)
   #     start   # => Time, when the instrumented block started execution
   #     finish  # => Time, when the instrumented block ended execution
-  #     id      # => String, unique ID for this notification
+  #     id      # => String, unique ID for the instrumenter that fired the event
   #     payload # => Hash, the payload
   #   end
   #
@@ -59,7 +59,7 @@ module ActiveSupport
   #   event.payload   # => { extra: :information }
   #
   # The block in the <tt>subscribe</tt> call gets the name of the event, start
-  # timestamp, end timestamp, a string with a unique identifier for that event
+  # timestamp, end timestamp, a string with a unique identifier for that event's instrumenter
   # (something like "535801666f04d0298cd6"), and a hash with the payload, in
   # that order.
   #
@@ -67,9 +67,12 @@ module ActiveSupport
   # have a key <tt>:exception</tt> with an array of two elements as value: a string with
   # the name of the exception class, and the exception message.
   # The <tt>:exception_object</tt> key of the payload will have the exception
-  # itself as the value.
+  # itself as the value:
   #
-  # As the previous example depicts, the class <tt>ActiveSupport::Notifications::Event</tt>
+  #   event.payload[:exception]         # => ["ArgumentError", "Invalid value"]
+  #   event.payload[:exception_object]  # => #<ArgumentError: Invalid value>
+  #
+  # As the earlier example depicts, the class <tt>ActiveSupport::Notifications::Event</tt>
   # is able to take the arguments as they come and provide an object-oriented
   # interface to that data.
   #
@@ -150,6 +153,15 @@ module ActiveSupport
   #
   #   ActiveSupport::Notifications.unsubscribe("render")
   #
+  # Subscribers using a regexp or other pattern-matching object will remain subscribed
+  # to all events that match their original pattern, unless those events match a string
+  # passed to `unsubscribe`:
+  #
+  #   subscriber = ActiveSupport::Notifications.subscribe(/render/) { }
+  #   ActiveSupport::Notifications.unsubscribe('render_template.action_view')
+  #   subscriber.matches?('render_template.action_view') # => false
+  #   subscriber.matches?('render_partial.action_view') # => true
+  #
   # == Default Queue
   #
   # Notifications ships with a queue implementation that consumes and publishes events
@@ -171,6 +183,31 @@ module ActiveSupport
         end
       end
 
+      # Subscribe to a given event name with the passed +block+.
+      #
+      # You can subscribe to events by passing a String to match exact event
+      # names, or by passing a Regexp to match all events that match a pattern.
+      #
+      #   ActiveSupport::Notifications.subscribe(/render/) do |*args|
+      #     @event = ActiveSupport::Notifications::Event.new(*args)
+      #   end
+      #
+      # The +block+ will receive five parameters with information about the event:
+      #
+      #   ActiveSupport::Notifications.subscribe('render') do |name, start, finish, id, payload|
+      #     name    # => String, name of the event (such as 'render' from above)
+      #     start   # => Time, when the instrumented block started execution
+      #     finish  # => Time, when the instrumented block ended execution
+      #     id      # => String, unique ID for the instrumenter that fired the event
+      #     payload # => Hash, the payload
+      #   end
+      #
+      # If the block passed to the method only takes one parameter,
+      # it will yield an event object to the block:
+      #
+      #   ActiveSupport::Notifications.subscribe(/render/) do |event|
+      #     @event = event
+      #   end
       def subscribe(*args, &block)
         notifier.subscribe(*args, &block)
       end

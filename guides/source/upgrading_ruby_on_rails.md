@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
 Upgrading Ruby on Rails
 =======================
@@ -35,18 +35,18 @@ You can find a list of all released Rails versions [here](https://rubygems.org/g
 
 Rails generally stays close to the latest released Ruby version when it's released:
 
-* Rails 6 requires Ruby 2.4.1 or newer.
+* Rails 6 requires Ruby 2.5.0 or newer.
 * Rails 5 requires Ruby 2.2.2 or newer.
 * Rails 4 prefers Ruby 2.0 and requires 1.9.3 or newer.
 * Rails 3.2.x is the last branch to support Ruby 1.8.7.
 * Rails 3 and above require Ruby 1.8.7 or higher. Support for all of the previous Ruby versions has been dropped officially. You should upgrade as early as possible.
 
-TIP: Ruby 1.8.7 p248 and p249 have marshaling bugs that crash Rails. Ruby Enterprise Edition has these fixed since the release of 1.8.7-2010.02. On the 1.9 front, Ruby 1.9.1 is not usable because it outright segfaults, so if you want to use 1.9.x, jump straight to 1.9.3 for smooth sailing.
+TIP: Ruby 1.8.7 p248 and p249 have marshalling bugs that crash Rails. Ruby Enterprise Edition has these fixed since the release of 1.8.7-2010.02. On the 1.9 front, Ruby 1.9.1 is not usable because it outright segfaults, so if you want to use 1.9.x, jump straight to 1.9.3 for smooth sailing.
 
 ### The Update Task
 
-Rails provides the `app:update` task (`rake rails:update` on 4.2 and earlier). After updating the Rails version
-in the `Gemfile`, run this task.
+Rails provides the `app:update` command (`rake rails:update` on 4.2 and earlier). After updating the Rails version
+in the `Gemfile`, run this command.
 This will help you with the creation of new files and changes of old files in an
 interactive session.
 
@@ -66,8 +66,17 @@ Overwrite /myapp/config/application.rb? (enter "h" for help) [Ynaqdh]
 
 Don't forget to review the difference, to see if there were any unexpected changes.
 
+### Configure Framework Defaults
+
+The new Rails version might have different configuration defaults than the previous version. However, after following the steps described above, your application would still run with configuration defaults from the *previous* Rails version. That's because the value for `config.load_defaults` in `config/application.rb` has not been changed yet.
+
+To allow you to upgrade to new defaults one by one, the update task has created a file `config/initializers/new_framework_defaults.rb`. Once your application is ready to run with new defaults, you can remove this file and flip the `config.load_defaults` value.
+
+
 Upgrading from Rails 5.2 to Rails 6.0
 -------------------------------------
+
+For more information on changes made to Rails 6.0 please see the [release notes](6_0_release_notes.html).
 
 ### Force SSL
 
@@ -76,6 +85,53 @@ Rails 6.1. You are encouraged to enable `config.force_ssl` to enforce HTTPS
 connections throughout your application. If you need to exempt certain endpoints
 from redirection, you can use `config.ssl_options` to configure that behavior.
 
+### Purpose in signed or encrypted cookie is now embedded within cookies
+
+To improve security, Rails embeds the purpose information in encrypted or signed cookies value.
+Rails can then thwart attacks that attempt to copy the signed/encrypted value
+of a cookie and use it as the value of another cookie.
+
+This new embed information make those cookies incompatible with versions of Rails older than 6.0.
+
+If you require your cookies to be read by Rails 5.2 and older, or you are still validating your 6.0 deploy and want
+to be able to rollback set
+`Rails.application.config.action_dispatch.use_cookies_with_metadata` to `false`.
+
+### Action Cable JavaScript API Changes
+
+The Action Cable JavaScript package has been converted from CoffeeScript
+to ES2015, and we now publish the source code in the npm distribution.
+
+This release includes some breaking changes to optional parts of the
+Action Cable JavaScript API:
+
+- Configuration of the WebSocket adapter and logger adapter have been moved
+  from properties of `ActionCable` to properties of `ActionCable.adapters`.
+  If you are configuring these adapters you will need to make
+  these changes:
+
+  ```diff
+  -    ActionCable.WebSocket = MyWebSocket
+  +    ActionCable.adapters.WebSocket = MyWebSocket
+  ```
+  ```diff
+  -    ActionCable.logger = myLogger
+  +    ActionCable.adapters.logger = myLogger
+  ```
+
+- The `ActionCable.startDebugging()` and `ActionCable.stopDebugging()`
+  methods have been removed and replaced with the property
+  `ActionCable.logger.enabled`. If you are using these methods you
+  will need to make these changes:
+
+  ```diff
+  -    ActionCable.startDebugging()
+  +    ActionCable.logger.enabled = true
+  ```
+  ```diff
+  -    ActionCable.stopDebugging()
+  +    ActionCable.logger.enabled = false
+  ```
 
 Upgrading from Rails 5.1 to Rails 5.2
 -------------------------------------
@@ -85,7 +141,7 @@ For more information on changes made to Rails 5.2 please see the [release notes]
 ### Bootsnap
 
 Rails 5.2 adds bootsnap gem in the [newly generated app's Gemfile](https://github.com/rails/rails/pull/29313).
-The `app:update` task sets it up in `boot.rb`. If you want to use it, then add it in the Gemfile,
+The `app:update` command sets it up in `boot.rb`. If you want to use it, then add it in the Gemfile,
 otherwise change the `boot.rb` to not use bootsnap.
 
 ### Expiry in signed or encrypted cookie is now embedded in the cookies values
@@ -257,16 +313,18 @@ it.
 
 `debugger` is not supported by Ruby 2.2 which is required by Rails 5. Use `byebug` instead.
 
-### Use bin/rails for running tasks and tests
+### Use `rails` for running tasks and tests
 
 Rails 5 adds the ability to run tasks and tests through `bin/rails` instead of rake. Generally
-these changes are in parallel with rake, but some were ported over altogether.
+these changes are in parallel with rake, but some were ported over altogether. As the `rails`
+command already looks for and runs `bin/rails`, we recommend you to use the shorter `rails`
+over `bin/rails.
 
-To use the new test runner simply type `bin/rails test`.
+To use the new test runner simply type `rails test`.
 
 `rake dev:cache` is now `rails dev:cache`.
 
-Run `bin/rails` to see the list of commands available.
+Run `rails` inside your application's directory to see the list of commands available.
 
 ### `ActionController::Parameters` No Longer Inherits from `HashWithIndifferentAccess`
 
@@ -385,7 +443,7 @@ want to add this feature it will need to be turned on in an initializer.
 
 Rails 5 now supports per-form CSRF tokens to mitigate against code-injection attacks with forms
 created by JavaScript. With this option turned on, forms in your application will each have their
-own CSRF token that is specified to the action and method for that form.
+own CSRF token that is specific to the action and method for that form.
 
     config.action_controller.per_form_csrf_tokens = true
 
@@ -600,7 +658,7 @@ gem 'rails-deprecated_sanitizer'
 
 ### Rails DOM Testing
 
-The [`TagAssertions` module](http://api.rubyonrails.org/v4.1/classes/ActionDispatch/Assertions/TagAssertions.html) (containing methods such as `assert_tag`), [has been deprecated](https://github.com/rails/rails/blob/6061472b8c310158a2a2e8e9a6b81a1aef6b60fe/actionpack/lib/action_dispatch/testing/assertions/dom.rb) in favor of the `assert_select` methods from the `SelectorAssertions` module, which has been extracted into the [rails-dom-testing gem](https://github.com/rails/rails-dom-testing).
+The [`TagAssertions` module](https://api.rubyonrails.org/v4.1/classes/ActionDispatch/Assertions/TagAssertions.html) (containing methods such as `assert_tag`), [has been deprecated](https://github.com/rails/rails/blob/6061472b8c310158a2a2e8e9a6b81a1aef6b60fe/actionpack/lib/action_dispatch/testing/assertions/dom.rb) in favor of the `assert_select` methods from the `SelectorAssertions` module, which has been extracted into the [rails-dom-testing gem](https://github.com/rails/rails-dom-testing).
 
 
 ### Masked Authenticity Tokens
@@ -1132,7 +1190,7 @@ being used, you can update your form to use the `PUT` method instead:
 <%= form_for [ :update_name, @user ], method: :put do |f| %>
 ```
 
-For more on PATCH and why this change was made, see [this post](http://weblog.rubyonrails.org/2012/2/26/edge-rails-patch-is-the-new-primary-http-method-for-updates/)
+For more on PATCH and why this change was made, see [this post](https://weblog.rubyonrails.org/2012/2/26/edge-rails-patch-is-the-new-primary-http-method-for-updates/)
 on the Rails blog.
 
 #### A note about media types
@@ -1354,6 +1412,17 @@ config.middleware.insert_before(Rack::Lock, ActionDispatch::BestStandardsSupport
 
 Also check your environment settings for `config.action_dispatch.best_standards_support` and remove it if present.
 
+* Rails 4.0 allows configuration of HTTP headers by setting `config.action_dispatch.default_headers`. The defaults are as follows:
+
+```ruby
+  config.action_dispatch.default_headers = {
+    'X-Frame-Options' => 'SAMEORIGIN',
+    'X-XSS-Protection' => '1; mode=block'
+  }
+```
+
+Please note that if your application is dependent on loading certain pages in a `<frame>` or `<iframe>`, then you may need to explicitly set `X-Frame-Options` to `ALLOW-FROM ...` or `ALLOWALL`.
+
 * In Rails 4.0, precompiling assets no longer automatically copies non-JS/CSS assets from `vendor/assets` and `lib/assets`. Rails application and engine developers should put these assets in `app/assets` or configure `config.assets.precompile`.
 
 * In Rails 4.0, `ActionController::UnknownFormat` is raised when the action doesn't handle the request format. By default, the exception is handled by responding with 406 Not Acceptable, but you can override that now. In Rails 3, 406 Not Acceptable was always returned. No overrides.
@@ -1377,7 +1446,7 @@ Rails 4.0 removes the `j` alias for `ERB::Util#json_escape` since `j` is already
 
 #### Cache
 
-The caching method changed between Rails 3.x and 4.0. You should [change the cache namespace](http://guides.rubyonrails.org/caching_with_rails.html#activesupport-cache-store) and roll out with a cold cache.
+The caching method changed between Rails 3.x and 4.0. You should [change the cache namespace](https://guides.rubyonrails.org/caching_with_rails.html#activesupport-cache-store) and roll out with a cold cache.
 
 ### Helpers Loading Order
 

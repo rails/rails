@@ -5,6 +5,10 @@ require "models/book"
 
 module ActiveRecord
   class InstrumentationTest < ActiveRecord::TestCase
+    def setup
+      ActiveRecord::Base.connection.schema_cache.add(Book.table_name)
+    end
+
     def test_payload_name_on_load
       Book.create(name: "test book")
       subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |*args|
@@ -37,8 +41,8 @@ module ActiveRecord
           assert_equal "Book Update", event.payload[:name]
         end
       end
-      book = Book.create(name: "test book")
-      book.update_attribute(:name, "new name")
+      book = Book.create(name: "test book", format: "paperback")
+      book.update_attribute(:format, "ebook")
     ensure
       ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
     end
@@ -50,8 +54,8 @@ module ActiveRecord
           assert_equal "Book Update All", event.payload[:name]
         end
       end
-      Book.create(name: "test book")
-      Book.update_all(name: "new name")
+      Book.create(name: "test book", format: "paperback")
+      Book.update_all(format: "ebook")
     ensure
       ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
     end

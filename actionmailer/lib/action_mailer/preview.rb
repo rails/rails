@@ -31,22 +31,39 @@ module ActionMailer
         interceptors.flatten.compact.each { |interceptor| register_preview_interceptor(interceptor) }
       end
 
+      # Unregister one or more previously registered Interceptors.
+      def unregister_preview_interceptors(*interceptors)
+        interceptors.flatten.compact.each { |interceptor| unregister_preview_interceptor(interceptor) }
+      end
+
       # Register an Interceptor which will be called before mail is previewed.
       # Either a class or a string can be passed in as the Interceptor. If a
       # string is passed in it will be constantized.
       def register_preview_interceptor(interceptor)
-        preview_interceptor = \
+        preview_interceptor = interceptor_class_for(interceptor)
+
+        unless preview_interceptors.include?(preview_interceptor)
+          preview_interceptors << preview_interceptor
+        end
+      end
+
+      # Unregister a previously registered Interceptor.
+      # Either a class or a string can be passed in as the Interceptor. If a
+      # string is passed in it will be constantized.
+      def unregister_preview_interceptor(interceptor)
+        preview_interceptors.delete(interceptor_class_for(interceptor))
+      end
+
+      private
+
+        def interceptor_class_for(interceptor)
           case interceptor
           when String, Symbol
             interceptor.to_s.camelize.constantize
           else
             interceptor
           end
-
-        unless preview_interceptors.include?(preview_interceptor)
-          preview_interceptors << preview_interceptor
         end
-      end
     end
   end
 

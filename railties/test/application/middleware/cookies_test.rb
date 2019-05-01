@@ -110,14 +110,14 @@ module ApplicationTests
       assert_equal "signed cookie".inspect, last_response.body
 
       get "/foo/read_raw_cookie"
-      assert_equal "signed cookie", verifier_sha512.verify(last_response.body)
+      assert_equal "signed cookie", verifier_sha512.verify(last_response.body, purpose: "cookie.signed_cookie")
 
       get "/foo/write_raw_cookie_sha256"
       get "/foo/read_signed"
       assert_equal "signed cookie".inspect, last_response.body
 
       get "/foo/read_raw_cookie"
-      assert_equal "signed cookie", verifier_sha512.verify(last_response.body)
+      assert_equal "signed cookie", verifier_sha512.verify(last_response.body, purpose: "cookie.signed_cookie")
     end
 
     test "encrypted cookies rotating multiple encryption keys" do
@@ -180,14 +180,14 @@ module ApplicationTests
       assert_equal "encrypted cookie".inspect, last_response.body
 
       get "/foo/read_raw_cookie"
-      assert_equal "encrypted cookie", encryptor.decrypt_and_verify(last_response.body)
+      assert_equal "encrypted cookie", encryptor.decrypt_and_verify(last_response.body, purpose: "cookie.encrypted_cookie")
 
-      get "/foo/write_raw_cookie_sha256"
+      get "/foo/write_raw_cookie_two"
       get "/foo/read_encrypted"
       assert_equal "encrypted cookie".inspect, last_response.body
 
       get "/foo/read_raw_cookie"
-      assert_equal "encrypted cookie", encryptor.decrypt_and_verify(last_response.body)
+      assert_equal "encrypted cookie", encryptor.decrypt_and_verify(last_response.body, purpose: "cookie.encrypted_cookie")
     end
   end
 end

@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
 Layouts and Rendering in Rails
 ==============================
@@ -97,7 +97,7 @@ If we want to display the properties of all the books in our view, we can do so 
 <%= link_to "New book", new_book_path %>
 ```
 
-NOTE: The actual rendering is done by nested classes of the module [`ActionView::Template::Handlers`](http://api.rubyonrails.org/classes/ActionView/Template/Handlers.html). This guide does not dig into that process, but it's important to know that the file extension on your view controls the choice of template handler.
+NOTE: The actual rendering is done by nested classes of the module [`ActionView::Template::Handlers`](https://api.rubyonrails.org/classes/ActionView/Template/Handlers.html). This guide does not dig into that process, but it's important to know that the file extension on your view controls the choice of template handler.
 
 ### Using `render`
 
@@ -170,7 +170,7 @@ render a file, because Windows filenames do not have the same format as Unix fil
 
 #### Wrapping it up
 
-The above three ways of rendering (rendering another template within the controller, rendering a template within another controller and rendering an arbitrary file on the file system) are actually variants of the same action.
+The above three ways of rendering (rendering another template within the controller, rendering a template within another controller, and rendering an arbitrary file on the file system) are actually variants of the same action.
 
 In fact, in the BooksController class, inside of the update action where we want to render the edit template if the book does not update successfully, all of the following render calls would all render the `edit.html.erb` template in the `views/books` directory:
 
@@ -296,6 +296,7 @@ Calls to the `render` method generally accept five options:
 * `:location`
 * `:status`
 * `:formats`
+* `:variants`
 
 ##### The `:content_type` Option
 
@@ -403,7 +404,7 @@ Rails understands both numeric status codes and the corresponding symbols shown 
 |                     | 511              | :network_authentication_required |
 
 NOTE:  If you try to render content along with a non-content status code
-(100-199, 204, 205 or 304), it will be dropped from the response.
+(100-199, 204, 205, or 304), it will be dropped from the response.
 
 ##### The `:formats` Option
 
@@ -416,6 +417,44 @@ render formats: [:json, :xml]
 ```
 
 If a template with the specified format does not exist an `ActionView::MissingTemplate` error is raised.
+
+##### The `:variants` Option
+
+This tells Rails to look for template variations of the same format.
+You can specify a list of variants by passing the `:variants` option with a symbol or an array. 
+
+An example of use would be this.
+
+```ruby
+# called in HomeController#index
+render variants: [:mobile, :desktop]
+```
+
+With this set of variants Rails will look for the following set of templates and use the first that exists.
+
+- `app/views/home/index.html+mobile.erb`
+- `app/views/home/index.html+desktop.erb`
+- `app/views/home/index.html.erb`
+
+If a template with the specified format does not exist an `ActionView::MissingTemplate` error is raised.
+
+Instead of setting the variant on the render call you may also set it on the request object in your controller action.
+
+```ruby
+def index
+  request.variant = determine_variant
+end
+
+private
+
+def determine_variant
+  variant = nil 
+  # some code to determine the variant(s) to use
+  variant = :mobile if session[:use_mobile]
+  
+  variant    
+end
+```
 
 #### Finding Layouts
 
@@ -650,7 +689,7 @@ Just like the `:status` option for `render`, `:status` for `redirect_to` accepts
 
 #### The Difference Between `render` and `redirect_to`
 
-Sometimes inexperienced developers think of `redirect_to` as a sort of `goto` command, moving execution from one place to another in your Rails code. This is _not_ correct. Your code stops running and waits for a new request for the browser. It just happens that you've told the browser what request it should make next, by sending back an HTTP 302 status code.
+Sometimes inexperienced developers think of `redirect_to` as a sort of `goto` command, moving execution from one place to another in your Rails code. This is _not_ correct. Your code stops running and waits for a new request from the browser. It just happens that you've told the browser what request it should make next, by sending back an HTTP 302 status code.
 
 Consider these actions to see the difference:
 
@@ -1210,7 +1249,7 @@ Partials are very useful in rendering collections. When you pass a collection to
 
 When a partial is called with a pluralized collection, then the individual instances of the partial have access to the member of the collection being rendered via a variable named after the partial. In this case, the partial is `_product`, and within the `_product` partial, you can refer to `product` to get the instance that is being rendered.
 
-There is also a shorthand for this. Assuming `@products` is a collection of `product` instances, you can simply write this in the `index.html.erb` to produce the same result:
+There is also a shorthand for this. Assuming `@products` is a collection of `Product` instances, you can simply write this in the `index.html.erb` to produce the same result:
 
 ```html+erb
 <h1>Products</h1>
@@ -1266,7 +1305,7 @@ You can also pass in arbitrary local variables to any partial you are rendering 
 
 In this case, the partial will have access to a local variable `title` with the value "Products Page".
 
-TIP: Rails also makes a counter variable available within a partial called by the collection, named after the title of the partial followed by `_counter`. For example, when rendering a collection `@products` the partial `_product.html.erb` can access the variable `product_counter` which indexes the number of times it has been rendered within the enclosing view.
+TIP: Rails also makes a counter variable available within a partial called by the collection, named after the title of the partial followed by `_counter`. For example, when rendering a collection `@products` the partial `_product.html.erb` can access the variable `product_counter` which indexes the number of times it has been rendered within the enclosing view. Note that it also applies for when the partial name was changed by using the `as:` option. For example, the counter variable for the code above would be `item_counter`.
 
 You can also specify a second partial to be rendered between instances of the main partial by using the `:spacer_template` option:
 

@@ -185,14 +185,16 @@ module ActiveRecord
           def wait_poll(timeout)
             @num_waiting += 1
 
-            t0 = Time.now
+            t0 = Concurrent.monotonic_time
             elapsed = 0
             loop do
-              @cond.wait(timeout - elapsed)
+              ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
+                @cond.wait(timeout - elapsed)
+              end
 
               return remove if any?
 
-              elapsed = Time.now - t0
+              elapsed = Concurrent.monotonic_time - t0
               if elapsed >= timeout
                 msg = "could not obtain a connection from the pool within %0.3f seconds (waited %0.3f seconds); all pooled connections were in use" %
                   [timeout, elapsed]
@@ -684,13 +686,13 @@ module ActiveRecord
           end
 
           newly_checked_out = []
-          timeout_time      = Time.now + (@checkout_timeout * 2)
+          timeout_time      = Concurrent.monotonic_time + (@checkout_timeout * 2)
 
           @available.with_a_bias_for(Thread.current) do
             loop do
               synchronize do
                 return if collected_conns.size == @connections.size && @now_connecting == 0
-                remaining_timeout = timeout_time - Time.now
+                remaining_timeout = timeout_time - Concurrent.monotonic_time
                 remaining_timeout = 0 if remaining_timeout < 0
                 conn = checkout_for_exclusive_access(remaining_timeout)
                 collected_conns   << conn
@@ -729,7 +731,7 @@ module ActiveRecord
           # this block can't be easily moved into attempt_to_checkout_all_existing_connections's
           # rescue block, because doing so would put it outside of synchronize section, without
           # being in a critical section thread_report might become inaccurate
-          msg = "could not obtain ownership of all database connections in #{checkout_timeout} seconds".dup
+          msg = +"could not obtain ownership of all database connections in #{checkout_timeout} seconds"
 
           thread_report = []
           @connections.each do |conn|
@@ -808,6 +810,7 @@ module ActiveRecord
         def new_connection
           Base.send(spec.adapter_method, spec.config).tap do |conn|
             conn.schema_cache = schema_cache.dup if schema_cache
+            conn.check_version
           end
         end
 
@@ -913,6 +916,16 @@ module ActiveRecord
     # about the model. The model needs to pass a specification name to the handler,
     # in order to look up the correct connection pool.
     class ConnectionHandler
+      def self.create_owner_to_pool # :nodoc:
+        Concurrent::Map.new(initial_capacity: 2) do |h, k|
+          # Discard the parent's connection pools immediately; we have no need
+          # of them
+          discard_unowned_pools(h)
+
+          h[k] = Concurrent::Map.new(initial_capacity: 2)
+        end
+      end
+
       def self.unowned_pool_finalizer(pid_map) # :nodoc:
         lambda do |_|
           discard_unowned_pools(pid_map)
@@ -927,13 +940,7 @@ module ActiveRecord
 
       def initialize
         # These caches are keyed by spec.name (ConnectionSpecification#name).
-        @owner_to_pool = Concurrent::Map.new(initial_capacity: 2) do |h, k|
-          # Discard the parent's connection pools immediately; we have no need
-          # of them
-          ConnectionHandler.discard_unowned_pools(h)
-
-          h[k] = Concurrent::Map.new(initial_capacity: 2)
-        end
+        @owner_to_pool = ConnectionHandler.create_owner_to_pool
 
         # Backup finalizer: if the forked child never needed a pool, the above
         # early discard has not occurred
@@ -1004,15 +1011,24 @@ module ActiveRecord
       # for (not necessarily the current class).
       def retrieve_connection(spec_name) #:nodoc:
         pool = retrieve_connection_pool(spec_name)
-        raise ConnectionNotEstablished, "No connection pool with '#{spec_name}' found." unless pool
+
+        unless pool
+          # multiple database application
+          if ActiveRecord::Base.connection_handler != ActiveRecord::Base.default_connection_handler
+            raise ConnectionNotEstablished, "No connection pool with '#{spec_name}' found for the '#{ActiveRecord::Base.current_role}' role."
+          else
+            raise ConnectionNotEstablished, "No connection pool with '#{spec_name}' found."
+          end
+        end
+
         pool.connection
       end
 
       # Returns true if a connection that's accessible to this class has
       # already been opened.
       def connected?(spec_name)
-        conn = retrieve_connection_pool(spec_name)
-        conn && conn.connected?
+        pool = retrieve_connection_pool(spec_name)
+        pool && pool.connected?
       end
 
       # Remove the connection for this class. This will close the active

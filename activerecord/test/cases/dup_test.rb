@@ -17,7 +17,7 @@ module ActiveRecord
       topic = Topic.first
 
       duped = topic.dup
-      assert !duped.readonly?, "should not be readonly"
+      assert_not duped.readonly?, "should not be readonly"
     end
 
     def test_is_readonly
@@ -32,7 +32,7 @@ module ActiveRecord
       topic = Topic.first
       duped = topic.dup
 
-      assert !duped.persisted?, "topic not persisted"
+      assert_not duped.persisted?, "topic not persisted"
       assert duped.new_record?, "topic is new"
     end
 
@@ -140,7 +140,7 @@ module ActiveRecord
       prev_default_scopes = Topic.default_scopes
       Topic.default_scopes = [proc { Topic.where(approved: true) }]
       topic = Topic.new(approved: false)
-      assert !topic.dup.approved?, "should not be overridden by default scopes"
+      assert_not topic.dup.approved?, "should not be overridden by default scopes"
     ensure
       Topic.default_scopes = prev_default_scopes
     end

@@ -114,6 +114,22 @@ class PostgresqlUUIDTest < ActiveRecord::PostgreSQLTestCase
     assert_equal "foobar", uuid.guid_before_type_cast
   end
 
+  def test_invalid_uuid_dont_match_to_nil
+    UUIDType.create!
+    assert_empty UUIDType.where(guid: "")
+    assert_empty UUIDType.where(guid: "foobar")
+  end
+
+  class DuckUUID
+    def initialize(uuid)
+      @uuid = uuid
+    end
+
+    def to_s
+      @uuid
+    end
+  end
+
   def test_acceptable_uuid_regex
     # Valid uuids
     ["A0EEBC99-9C0B-4EF8-BB6D-6BB9BD380A11",
@@ -125,9 +141,11 @@ class PostgresqlUUIDTest < ActiveRecord::PostgreSQLTestCase
      # so we shouldn't block it either. (Pay attention to "fb6d" – the "f" here
      # is invalid – it must be one of 8, 9, A, B, a, b according to the spec.)
      "{a0eebc99-9c0b-4ef8-fb6d-6bb9bd380a11}",
+     # Support Object-Oriented UUIDs which respond to #to_s
+     DuckUUID.new("A0EEBC99-9C0B-4EF8-BB6D-6BB9BD380A11"),
     ].each do |valid_uuid|
       uuid = UUIDType.new guid: valid_uuid
-      assert_not_nil uuid.guid
+      assert_instance_of String, uuid.guid
     end
 
     # Invalid uuids
@@ -198,10 +216,10 @@ class PostgresqlUUIDGenerationTest < ActiveRecord::PostgreSQLTestCase
 
     # Create custom PostgreSQL function to generate UUIDs
     # to test dumping tables which columns have defaults with custom functions
-    connection.execute <<-SQL
-    CREATE OR REPLACE FUNCTION my_uuid_generator() RETURNS uuid
-    AS $$ SELECT * FROM #{uuid_function} $$
-    LANGUAGE SQL VOLATILE;
+    connection.execute <<~SQL
+      CREATE OR REPLACE FUNCTION my_uuid_generator() RETURNS uuid
+      AS $$ SELECT * FROM #{uuid_function} $$
+      LANGUAGE SQL VOLATILE;
     SQL
 
     # Create such a table with custom function as default value generator

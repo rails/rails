@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
 Active Storage Overview
 =======================
@@ -36,10 +36,10 @@ files.
 ## Setup
 
 Active Storage uses two tables in your application’s database named
-`active_storage_blobs` and `active_storage_attachments`. After upgrading your
-application to Rails 5.2, run `rails active_storage:install` to generate a
-migration that creates these tables. Use `rails db:migrate` to run the
-migration.
+`active_storage_blobs` and `active_storage_attachments`. After creating a new
+application (or upgrading your application to Rails 5.2), run
+`rails active_storage:install` to generate a migration that creates these
+tables. Use `rails db:migrate` to run the migration.
 
 Declare Active Storage services in `config/storage.yml`. For each service your
 application uses, provide a name and the requisite configuration. The example
@@ -58,6 +58,8 @@ amazon:
   service: S3
   access_key_id: ""
   secret_access_key: ""
+  bucket: ""
+  region: "" # e.g. 'us-east-1'
 ```
 
 Tell Active Storage which service to use by setting
@@ -78,6 +80,14 @@ To use the Amazon S3 service in production, you add the following to
 ```ruby
 # Store files on Amazon S3.
 config.active_storage.service = :amazon
+```
+
+To use the test service when testing, you add the following to
+`config/environments/test.rb`:
+
+```ruby
+# Store uploaded files on the local file system in a temporary directory.
+config.active_storage.service = :test
 ```
 
 Continue reading for more information on the built-in service adapters (e.g.
@@ -160,7 +170,7 @@ google:
     type: "service_account"
     project_id: ""
     private_key_id: <%= Rails.application.credentials.dig(:gcs, :private_key_id) %>
-    private_key: <%= Rails.application.credentials.dig(:gcs, :private_key) %>
+    private_key: <%= Rails.application.credentials.dig(:gcs, :private_key).dump %>
     client_email: ""
     client_id: ""
     auth_uri: "https://accounts.google.com/o/oauth2/auth"
@@ -174,7 +184,7 @@ google:
 Add the [`google-cloud-storage`](https://github.com/GoogleCloudPlatform/google-cloud-ruby/tree/master/google-cloud-storage) gem to your `Gemfile`:
 
 ```ruby
-gem "google-cloud-storage", "~> 1.8", require: false
+gem "google-cloud-storage", "~> 1.11", require: false
 ```
 
 ### Mirror Service
@@ -211,6 +221,8 @@ production:
 
 NOTE: Files are served from the primary service.
 
+NOTE: This is not compatible with the [direct uploads](#direct-uploads) feature.
+
 Attaching Files to Records
 --------------------------
 
@@ -230,6 +242,10 @@ end
 
 You can create a user with an avatar:
 
+```erb
+<%= form.file_field :avatar %>
+```
+
 ```ruby
 class SignupController < ApplicationController
   def create
@@ -248,13 +264,13 @@ end
 Call `avatar.attach` to attach an avatar to an existing user:
 
 ```ruby
-Current.user.avatar.attach(params[:avatar])
+user.avatar.attach(params[:avatar])
 ```
 
 Call `avatar.attached?` to determine whether a particular user has an avatar:
 
 ```ruby
-Current.user.avatar.attached?
+user.avatar.attached?
 ```
 
 ### `has_many_attached`
@@ -319,6 +335,18 @@ type you provide if it can’t do that.
 @message.image.attach(io: File.open('/path/to/file'), filename: 'file.pdf', content_type: 'application/pdf')
 ```
 
+You can bypass the content type inference from the data by passing in
+`identify: false` along with the `content_type`.
+
+```ruby
+@message.image.attach(
+  io: File.open('/path/to/file'),
+  filename: 'file.pdf',
+  content_type: 'application/pdf',
+  identify: false
+)
+```
+
 If you don’t provide a content type and Active Storage can’t determine the
 file’s content type automatically, it defaults to application/octet-stream.
 
@@ -368,65 +396,32 @@ Rails.application.routes.url_helpers.rails_blob_path(user.avatar, only_path: tru
 Downloading Files
 -----------------
 
-If you need to process the blobs on the server side, such as, when performing
-analysis or further conversions, you can download the blob and get a binary
-object:
+Sometimes you need to process a blob after it’s uploaded—for example, to convert
+it to a different format. Use `ActiveStorage::Blob#download` to read a blob’s
+binary data into memory:
 
 ```ruby
 binary = user.avatar.download
 ```
 
-In some cases you might want to convert that into an actual file on the disk to
-pass the file path to external programs (such as virus scanners, converters,
-optimizers, minifiers, etc.). In this case you can include the
-`ActiveStorage::Downloading` module into your class which provides helpers to
-download directly into files while avoiding to store the file into memory.
-`ActiveStorage::Downloading` expects a `blob` method to be defined.
+You might want to download a blob to a file on disk so an external program (e.g.
+a virus scanner or media transcoder) can operate on it. Use
+`ActiveStorage::Blob#open` to download a blob to a tempfile on disk:
 
 ```ruby
-class VirusScanner
-  include ActiveStorage::Downloading
-
-  attr_reader :blob
-
-  def initialize(blob)
-    @blob = blob
-  end
-
-  def scan
-    download_blob_to_tempfile do |file|
-      system 'scan_virus', file.path
-    end
-  end
-end
-```
-
-By default, `download_blob_to_tempfile` creates files in `Dir.tmpdir`. If you need to use another directory, override ActiveStorage::Downloading#tempdir in your class:
-
-```ruby
-class VirusScanner
-  include ActiveStorage::Downloading
+message.video.open do |file|
+  system '/path/to/virus/scanner', file.path
   # ...
-
-  private
-    def tempdir
-      '/path/to/tmp'
-    end
 end
 ```
-
-If the external program is run as a separate program, you might also want to
-chmod the file and it's directory, as it is unaccessible by other users because
-Tempfile will set the permissions to 0600.
-
 
 Transforming Images
 -------------------
 
-To create variation of the image, call `variant` on the Blob. You can pass
+To create a variation of the image, call `variant` on the `Blob`. You can pass
 any transformation to the method supported by the processor. The default
 processor is [MiniMagick](https://github.com/minimagick/minimagick), but you
-can also use [Vips](http://www.rubydoc.info/gems/ruby-vips/Vips/Image).
+can also use [Vips](https://www.rubydoc.info/gems/ruby-vips/Vips/Image).
 
 To enable variants, add the `image_processing` gem to your `Gemfile`:
 
@@ -434,12 +429,12 @@ To enable variants, add the `image_processing` gem to your `Gemfile`:
 gem 'image_processing', '~> 1.2'
 ```
 
-When the browser hits the variant URL, Active Storage will lazy transform the
-original blob into the format you specified and redirect to its new service
+When the browser hits the variant URL, Active Storage will lazily transform the
+original blob into the specified format and redirect to its new service
 location.
 
 ```erb
-<%= image_tag user.avatar.variant(resize_to_fit: [100, 100]) %>
+<%= image_tag user.avatar.variant(resize_to_limit: [100, 100]) %>
 ```
 
 To switch to the Vips processor, you would add the following to
@@ -467,11 +462,12 @@ the box, Active Storage supports previewing videos and PDF documents.
 </ul>
 ```
 
-WARNING: Extracting previews requires third-party applications, `ffmpeg` for
-video and `mutool` for PDFs. These libraries are not provided by Rails. You must
-install them yourself to use the built-in previewers. Before you install and use
-third-party software, make sure you understand the licensing implications of
-doing so.
+WARNING: Extracting previews requires third-party applications, FFmpeg for
+video and muPDF for PDFs, and on macOS also XQuartz and Poppler.
+These libraries are not provided by Rails. You must install them yourself to
+use the built-in previewers. Before you install and use third-party software,
+make sure you understand the licensing implications of doing so.
+
 
 Direct Uploads
 --------------
@@ -493,13 +489,12 @@ directly from the client to the cloud.
     Using the npm package:
 
     ```js
-    import * as ActiveStorage from "activestorage"
-    ActiveStorage.start()
+    require("@rails/activestorage").start()
     ```
 
 2. Annotate file inputs with the direct upload URL.
 
-    ```ruby
+    ```erb
     <%= form.file_field :attachments, multiple: true, direct_upload: true %>
     ```
 3. That's it! Uploads begin upon form submission.
@@ -620,7 +615,7 @@ of choice, instantiate a DirectUpload and call its create method. Create takes
 a callback to invoke when the upload completes.
 
 ```js
-import { DirectUpload } from "activestorage"
+import { DirectUpload } from "@rails/activestorage"
 
 const input = document.querySelector('input[type=file]')
 
@@ -639,7 +634,7 @@ input.addEventListener('change', (event) => {
   input.value = null
 })
 
-const uploadFile = (file) {
+const uploadFile = (file) => {
   // your form needs the file_field direct_upload: true, which
   //  provides data-direct-upload-url
   const url = input.dataset.directUploadUrl
@@ -668,7 +663,7 @@ will call the object's `directUploadWillStoreFileWithXHR` method. You can then
 bind your own progress handler on the XHR.
 
 ```js
-import { DirectUpload } from "activestorage"
+import { DirectUpload } from "@rails/activestorage"
 
 class Uploader {
   constructor(file, url) {
@@ -746,16 +741,22 @@ during the test are complete and you won't receive an error from Active Storage
 saying it can't find a file.
 
 ```ruby
+module RemoveUploadedFiles
+  def after_teardown
+    super
+    remove_uploaded_files
+  end
+
+  private
+
+  def remove_uploaded_files
+    FileUtils.rm_rf(Rails.root.join('tmp', 'storage'))
+  end
+end
+
 module ActionDispatch
   class IntegrationTest
-    def remove_uploaded_files
-      FileUtils.rm_rf(Rails.root.join('tmp', 'storage'))
-    end
-
-    def after_teardown
-      super
-      remove_uploaded_files
-    end
+    prepend RemoveUploadedFiles
   end
 end
 ```

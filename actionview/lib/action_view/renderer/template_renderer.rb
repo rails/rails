@@ -5,15 +5,12 @@ require "active_support/core_ext/object/try"
 module ActionView
   class TemplateRenderer < AbstractRenderer #:nodoc:
     def render(context, options)
-      @view    = context
       @details = extract_details(options)
       template = determine_template(options)
 
-      prepend_formats(template.formats)
+      prepend_formats(template.format)
 
-      @lookup_context.rendered_format ||= (template.formats.first || formats.first)
-
-      render_template(template, options[:layout], options[:locals])
+      render_template(context, template, options[:layout], options[:locals] || {})
     end
 
     private
@@ -29,15 +26,25 @@ module ActionView
         elsif options.key?(:html)
           Template::HTML.new(options[:html], formats.first)
         elsif options.key?(:file)
-          with_fallbacks { find_file(options[:file], nil, false, keys, @details) }
+          if File.exist?(options[:file])
+            Template::RawFile.new(options[:file])
+          else
+            ActiveSupport::Deprecation.warn "render file: should be given the absolute path to a file"
+            @lookup_context.with_fallbacks.find_template(options[:file], nil, false, keys, @details)
+          end
         elsif options.key?(:inline)
           handler = Template.handler_for_extension(options[:type] || "erb")
-          Template.new(options[:inline], "inline template", handler, locals: keys)
+          format = if handler.respond_to?(:default_format)
+            handler.default_format
+          else
+            @lookup_context.formats.first
+          end
+          Template::Inline.new(options[:inline], "inline template", handler, locals: keys, format: format)
         elsif options.key?(:template)
           if options[:template].respond_to?(:render)
             options[:template]
           else
-            find_template(options[:template], options[:prefixes], false, keys, @details)
+            @lookup_context.find_template(options[:template], options[:prefixes], false, keys, @details)
           end
         else
           raise ArgumentError, "You invoked render but did not give any of :partial, :template, :inline, :file, :plain, :html or :body option."
@@ -46,27 +53,25 @@ module ActionView
 
       # Renders the given template. A string representing the layout can be
       # supplied as well.
-      def render_template(template, layout_name = nil, locals = nil)
-        view, locals = @view, locals || {}
-
-        render_with_layout(layout_name, locals) do |layout|
+      def render_template(view, template, layout_name, locals)
+        render_with_layout(view, template, layout_name, locals) do |layout|
           instrument(:template, identifier: template.identifier, layout: layout.try(:virtual_path)) do
             template.render(view, locals) { |*name| view._layout_for(*name) }
           end
         end
       end
 
-      def render_with_layout(path, locals)
+      def render_with_layout(view, template, path, locals)
         layout  = path && find_layout(path, locals.keys, [formats.first])
         content = yield(layout)
 
-        if layout
-          view = @view
+        body = if layout
           view.view_flow.set(:layout, content)
           layout.render(view, locals) { |*name| view._layout_for(*name) }
         else
           content
         end
+        build_rendered_template(body, template, layout)
       end
 
       # This is the method which actually finds the layout using details in the lookup
@@ -84,16 +89,17 @@ module ActionView
         when String
           begin
             if layout.start_with?("/")
-              with_fallbacks { find_template(layout, nil, false, [], details) }
+              ActiveSupport::Deprecation.warn "Rendering layouts from an absolute path is deprecated."
+              @lookup_context.with_fallbacks.find_template(layout, nil, false, [], details)
             else
-              find_template(layout, nil, false, [], details)
+              @lookup_context.find_template(layout, nil, false, [], details)
             end
           rescue ActionView::MissingTemplate
             all_details = @details.merge(formats: @lookup_context.default_formats)
             raise unless template_exists?(layout, nil, false, [], all_details)
           end
         when Proc
-          resolve_layout(layout.call(formats), keys, formats)
+          resolve_layout(layout.call(@lookup_context, formats), keys, formats)
         else
           layout
         end

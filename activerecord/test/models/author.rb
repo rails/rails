@@ -81,7 +81,7 @@ class Author < ActiveRecord::Base
            after_add: [:log_after_adding,  Proc.new { |o, r| o.post_log << "after_adding_proc#{r.id || '<new>'}" }]
   has_many :unchangeable_posts, class_name: "Post", before_add: :raise_exception, after_add: :log_after_adding
 
-  has_many :categorizations, -> {}
+  has_many :categorizations, -> { }
   has_many :categories, through: :categorizations
   has_many :named_categories, through: :categorizations
 
@@ -217,6 +217,15 @@ class AuthorAddress < ActiveRecord::Base
 end
 
 class AuthorFavorite < ActiveRecord::Base
+  belongs_to :author
+  belongs_to :favorite_author, class_name: "Author"
+end
+
+class AuthorFavoriteWithScope < ActiveRecord::Base
+  self.table_name = "author_favorites"
+
+  default_scope { order(id: :asc) }
+
   belongs_to :author
   belongs_to :favorite_author, class_name: "Author"
 end

@@ -51,11 +51,19 @@ module FakeRecord
     end
 
     def quote_table_name(name)
-      "\"#{name.to_s}\""
+      "\"#{name}\""
     end
 
     def quote_column_name(name)
-      "\"#{name.to_s}\""
+      "\"#{name}\""
+    end
+
+    def sanitize_as_sql_comment(comment)
+      comment
+    end
+
+    def in_clause_length
+      3
     end
 
     def schema_cache

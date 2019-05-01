@@ -205,6 +205,7 @@ module ActionView
       # * <tt>:end_year</tt>          - Set the end year for the year select. Default is <tt>Date.today.year + 5</tt> if
       #   you are creating new record. While editing existing record, <tt>:end_year</tt> defaults to
       #   the current selected year plus 5.
+      # * <tt>:year_format</tt>       - Set format of years for year select. Lambda should be passed.
       # * <tt>:discard_day</tt>       - Set to true if you don't want to show a day select. This includes the day
       #   as a hidden field instead of showing a select field. Also note that this implicitly sets the day to be the
       #   first of the given month in order to not create invalid dates like 31 February.
@@ -274,6 +275,9 @@ module ActionView
       #
       #   # Generates a date select with custom prompts.
       #   date_select("article", "written_on", prompt: { day: 'Select day', month: 'Select month', year: 'Select year' })
+      #
+      #   # Generates a date select with custom year format.
+      #   date_select("article", "written_on", year_format: ->(year) { "Heisei #{year - 1988}" })
       #
       # The selects are prepared for multi-parameter assignment to an Active Record object.
       #
@@ -668,8 +672,6 @@ module ActionView
       #     <time datetime="2010-11-04T17:55:45+01:00">November 04, 2010 17:55</time>
       #   time_tag Date.yesterday, 'Yesterday'  # =>
       #     <time datetime="2010-11-03">Yesterday</time>
-      #   time_tag Date.today, pubdate: true  # =>
-      #     <time datetime="2010-11-04" pubdate="pubdate">November 04, 2010</time>
       #   time_tag Date.today, datetime: Date.today.strftime('%G-W%V') # =>
       #     <time datetime="2010-W44">November 04, 2010</time>
       #
@@ -682,7 +684,7 @@ module ActionView
         format   = options.delete(:format) || :long
         content  = args.first || I18n.l(date_or_time, format: format)
 
-        content_tag("time".freeze, content, options.reverse_merge(datetime: date_or_time.iso8601), &block)
+        content_tag("time", content, options.reverse_merge(datetime: date_or_time.iso8601), &block)
       end
 
       private
@@ -701,7 +703,7 @@ module ActionView
     class DateTimeSelector #:nodoc:
       include ActionView::Helpers::TagHelper
 
-      DEFAULT_PREFIX = "date".freeze
+      DEFAULT_PREFIX = "date"
       POSITION = {
         year: 1, month: 2, day: 3, hour: 4, minute: 5, second: 6
       }.freeze
@@ -822,7 +824,7 @@ module ActionView
           1.upto(12) do |month_number|
             options = { value: month_number }
             options[:selected] = "selected" if month == month_number
-            month_options << content_tag("option".freeze, month_name(month_number), options) + "\n"
+            month_options << content_tag("option", month_name(month_number), options) + "\n"
           end
           build_select(:month, month_options.join)
         end
@@ -850,7 +852,7 @@ module ActionView
             raise ArgumentError, "There are too many years options to be built. Are you sure you haven't mistyped something? You can provide the :max_years_allowed parameter."
           end
 
-          build_options_and_select(:year, val, options)
+          build_select(:year, build_year_options(val, options))
         end
       end
 
@@ -933,6 +935,21 @@ module ActionView
           end
         end
 
+        # Looks up year names by number.
+        #
+        #   year_name(1998) # => 1998
+        #
+        # If the <tt>:year_format</tt> option is passed:
+        #
+        #   year_name(1998) # => "Heisei 10"
+        def year_name(number)
+          if year_format_lambda = @options[:year_format]
+            year_format_lambda.call(number)
+          else
+            number
+          end
+        end
+
         def date_order
           @date_order ||= @options[:order] || translated_date_order
         end
@@ -989,7 +1006,35 @@ module ActionView
             tag_options[:selected] = "selected" if selected == i
             text = options[:use_two_digit_numbers] ? sprintf("%02d", i) : value
             text = options[:ampm] ? AMPM_TRANSLATION[i] : text
-            select_options << content_tag("option".freeze, text, tag_options)
+            select_options << content_tag("option", text, tag_options)
+          end
+
+          (select_options.join("\n") + "\n").html_safe
+        end
+
+        # Build select option HTML for year.
+        # If <tt>year_format</tt> option is not passed
+        #  build_year_options(1998, start: 1998, end: 2000)
+        #  => "<option value="1998" selected="selected">1998</option>
+        #      <option value="1999">1999</option>
+        #      <option value="2000">2000</option>"
+        #
+        # If <tt>year_format</tt> option is passed
+        #  build_year_options(1998, start: 1998, end: 2000, year_format: ->year { "Heisei #{ year - 1988 }" })
+        #  => "<option value="1998" selected="selected">Heisei 10</option>
+        #      <option value="1999">Heisei 11</option>
+        #      <option value="2000">Heisei 12</option>"
+        def build_year_options(selected, options = {})
+          start = options.delete(:start)
+          stop = options.delete(:end)
+          step = options.delete(:step)
+
+          select_options = []
+          start.step(stop, step) do |value|
+            tag_options = { value: value }
+            tag_options[:selected] = "selected" if selected == value
+            text = year_name(value)
+            select_options << content_tag("option", text, tag_options)
           end
 
           (select_options.join("\n") + "\n").html_safe
@@ -1008,12 +1053,12 @@ module ActionView
           select_options[:disabled] = "disabled" if @options[:disabled]
           select_options[:class] = css_class_attribute(type, select_options[:class], @options[:with_css_classes]) if @options[:with_css_classes]
 
-          select_html = "\n".dup
-          select_html << content_tag("option".freeze, "", value: "") + "\n" if @options[:include_blank]
+          select_html = +"\n"
+          select_html << content_tag("option", "", value: "") + "\n" if @options[:include_blank]
           select_html << prompt_option_tag(type, @options[:prompt]) + "\n" if @options[:prompt]
           select_html << select_options_as_html
 
-          (content_tag("select".freeze, select_html.html_safe, select_options) + "\n").html_safe
+          (content_tag("select", select_html.html_safe, select_options) + "\n").html_safe
         end
 
         # Builds the css class value for the select element
@@ -1046,7 +1091,7 @@ module ActionView
               I18n.translate(:"datetime.prompts.#{type}", locale: @options[:locale])
             end
 
-          prompt ? content_tag("option".freeze, prompt, value: "") : ""
+          prompt ? content_tag("option", prompt, value: "") : ""
         end
 
         # Builds hidden input tag for date part and value.
@@ -1090,7 +1135,7 @@ module ActionView
         # Given an ordering of datetime components, create the selection HTML
         # and join them with their appropriate separators.
         def build_selects_from_types(order)
-          select = "".dup
+          select = +""
           first_visible = order.find { |type| !@options[:"discard_#{type}"] }
           order.reverse_each do |type|
             separator = separator(type) unless type == first_visible # don't add before first visible field

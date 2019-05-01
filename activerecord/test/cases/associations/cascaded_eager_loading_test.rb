@@ -18,7 +18,7 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
            :categorizations, :people, :categories, :edges, :vertices
 
   def test_eager_association_loading_with_cascaded_two_levels
-    authors = Author.all.merge!(includes: { posts: :comments }, order: "authors.id").to_a
+    authors = Author.includes(posts: :comments).order(:id).to_a
     assert_equal 3, authors.size
     assert_equal 5, authors[0].posts.size
     assert_equal 3, authors[1].posts.size
@@ -26,7 +26,7 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
   end
 
   def test_eager_association_loading_with_cascaded_two_levels_and_one_level
-    authors = Author.all.merge!(includes: [{ posts: :comments }, :categorizations], order: "authors.id").to_a
+    authors = Author.includes({ posts: :comments }, :categorizations).order(:id).to_a
     assert_equal 3, authors.size
     assert_equal 5, authors[0].posts.size
     assert_equal 3, authors[1].posts.size
@@ -36,7 +36,7 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
   end
 
   def test_eager_association_loading_with_hmt_does_not_table_name_collide_when_joining_associations
-    authors = Author.joins(:posts).eager_load(:comments).where(posts: { tags_count: 1 }).to_a
+    authors = Author.joins(:posts).eager_load(:comments).where(posts: { tags_count: 1 }).order(:id).to_a
     assert_equal 3, assert_no_queries { authors.size }
     assert_equal 10, assert_no_queries { authors[0].comments.size }
   end
@@ -117,12 +117,11 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
   end
 
   def test_eager_association_loading_with_has_many_sti_and_subclasses
-    silly = SillyReply.new(title: "gaga", content: "boo-boo", parent_id: 1)
-    silly.parent_id = 1
-    assert silly.save
+    reply = Reply.new(title: "gaga", content: "boo-boo", parent_id: 1)
+    assert reply.save
 
     topics = Topic.all.merge!(includes: :replies, order: ["topics.id", "replies_topics.id"]).to_a
-    assert_no_queries do
+    assert_queries(0) do
       assert_equal 2, topics[0].replies.size
       assert_equal 0, topics[1].replies.size
     end
@@ -159,6 +158,16 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
     assert_no_queries do
       authors[2].post_about_thinking.comments.first
     end
+  end
+
+  def test_preload_through_missing_records
+    post = Post.where.not(author_id: Author.select(:id)).preload(author: { comments: :post }).first!
+    assert_no_queries { assert_nil post.author }
+  end
+
+  def test_eager_association_loading_with_missing_first_record
+    posts = Post.where(id: 3).preload(author: { comments: :post }).to_a
+    assert_equal posts.size, 1
   end
 
   def test_eager_association_loading_with_recursive_cascading_four_levels_has_many_through

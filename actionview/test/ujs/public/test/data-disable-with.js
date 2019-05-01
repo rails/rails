@@ -95,6 +95,27 @@ asyncTest('form button with "data-disable-with" attribute', 6, function() {
   App.checkDisabledState(button, 'submitting ...')
 })
 
+asyncTest('a[data-remote][data-disable-with] within a form disables and re-enables', 6, function() {
+  var form = $('form:not([data-remote])'),
+      link = $('<a data-remote="true" data-disable-with="clicking...">Click me</a>')
+  form.append(link)
+
+  App.checkEnabledState(link, 'Click me')
+
+  link
+    .bindNative('ajax:beforeSend', function() {
+      App.checkDisabledState(link, 'clicking...')
+    })
+    .bindNative('ajax:complete', function() {
+      setTimeout( function() {
+        App.checkEnabledState(link, 'Click me')
+        link.remove()
+        start()
+      }, 15)
+    })
+    .triggerNative('click')
+})
+
 asyncTest('form input[type=submit][data-disable-with] disables', 6, function() {
   var form = $('form:not([data-remote])'), input = form.find('input[type=submit]')
 
@@ -309,7 +330,7 @@ asyncTest('form[data-remote] input|button|textarea[data-disable-with] does not d
   start()
 })
 
-asyncTest('ctrl-clicking on a link does not disables the link', 6, function() {
+asyncTest('ctrl-clicking on a link does not disable the link', 6, function() {
   var link = $('a[data-disable-with]')
 
   App.checkEnabledState(link, 'Click me')
@@ -318,6 +339,25 @@ asyncTest('ctrl-clicking on a link does not disables the link', 6, function() {
   App.checkEnabledState(link, 'Click me')
 
   link.triggerNative('click', { metaKey: true })
+  App.checkEnabledState(link, 'Click me')
+  start()
+})
+
+asyncTest('right/mouse-wheel-clicking on a link does not disable the link', 10, function() {
+  var link = $('a[data-disable-with]')
+
+  App.checkEnabledState(link, 'Click me')
+
+  link.triggerNative('click', { button: 1 })
+  App.checkEnabledState(link, 'Click me')
+
+  link.triggerNative('click', { button: 1 })
+  App.checkEnabledState(link, 'Click me')
+
+  link.triggerNative('click', { button: 2 })
+  App.checkEnabledState(link, 'Click me')
+
+  link.triggerNative('click', { button: 2 })
   App.checkEnabledState(link, 'Click me')
   start()
 })

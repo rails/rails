@@ -51,20 +51,11 @@ module ActiveRecord
 
       if info[:version].present?
         ActiveRecord::SchemaMigration.create_table
-        connection.assume_migrated_upto_version(info[:version], migrations_paths)
+        connection.assume_migrated_upto_version(info[:version])
       end
 
       ActiveRecord::InternalMetadata.create_table
       ActiveRecord::InternalMetadata[:environment] = connection.migration_context.current_environment
     end
-
-    private
-      # Returns the migrations paths.
-      #
-      #   ActiveRecord::Schema.new.migrations_paths
-      #   # => ["db/migrate"] # Rails migration path by default.
-      def migrations_paths
-        ActiveRecord::Migrator.migrations_paths
-      end
   end
 end

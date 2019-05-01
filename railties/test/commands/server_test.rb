@@ -22,6 +22,12 @@ class Rails::Command::ServerCommandTest < ActiveSupport::TestCase
     assert_nil options[:server]
   end
 
+  def test_environment_option_is_properly_expanded
+    args = ["-e", "prod"]
+    options = parse_arguments(args)
+    assert_equal "production", options[:environment]
+  end
+
   def test_explicit_using_option
     args = ["-u", "thin"]
     options = parse_arguments(args)
@@ -30,6 +36,12 @@ class Rails::Command::ServerCommandTest < ActiveSupport::TestCase
 
   def test_using_server_mistype
     assert_match(/Could not find server "tin". Maybe you meant "thin"?/, run_command("--using", "tin"))
+  end
+
+  def test_using_server_mistype_without_suggestion
+    output = run_command("--using", "t")
+    assert_match(/Could not find server "t"/, output)
+    assert_no_match(/Maybe you meant/, output)
   end
 
   def test_using_positional_argument_deprecation
@@ -143,9 +155,21 @@ class Rails::Command::ServerCommandTest < ActiveSupport::TestCase
         options = parse_arguments(args)
         assert_equal true, options[:log_stdout]
 
+        args    = ["-e", "development", "-d"]
+        options = parse_arguments(args)
+        assert_equal false, options[:log_stdout]
+
         args    = ["-e", "production"]
         options = parse_arguments(args)
         assert_equal false, options[:log_stdout]
+
+        args    = ["-e", "development", "--no-log-to-stdout"]
+        options = parse_arguments(args)
+        assert_equal false, options[:log_stdout]
+
+        args    = ["-e", "production", "--log-to-stdout"]
+        options = parse_arguments(args)
+        assert_equal true, options[:log_stdout]
 
         with_rack_env "development" do
           args    = []
@@ -213,10 +237,10 @@ class Rails::Command::ServerCommandTest < ActiveSupport::TestCase
   end
 
   def test_records_user_supplied_options
-    server_options = parse_arguments(["-p", 3001])
+    server_options = parse_arguments(["-p", "3001"])
     assert_equal [:Port], server_options[:user_supplied_options]
 
-    server_options = parse_arguments(["--port", 3001])
+    server_options = parse_arguments(["--port", "3001"])
     assert_equal [:Port], server_options[:user_supplied_options]
 
     server_options = parse_arguments(["-p3001", "-C", "--binding", "127.0.0.1"])
@@ -245,10 +269,9 @@ class Rails::Command::ServerCommandTest < ActiveSupport::TestCase
     args = %w(-p 4567 -b 127.0.0.1 -c dummy_config.ru -d -e test -P tmp/server.pid -C)
     ARGV.replace args
 
-    options = parse_arguments(args)
-    expected = "bin/rails server  -p 4567 -b 127.0.0.1 -c dummy_config.ru -d -e test -P tmp/server.pid -C --restart"
+    expected = "bin/rails server -p 4567 -b 127.0.0.1 -c dummy_config.ru -d -e test -P tmp/server.pid -C --restart"
 
-    assert_equal expected, options[:restart_cmd]
+    assert_equal expected, parse_arguments(args)[:restart_cmd]
   ensure
     ARGV.replace original_args
   end
@@ -268,6 +291,8 @@ class Rails::Command::ServerCommandTest < ActiveSupport::TestCase
     end
 
     def parse_arguments(args = [])
-      Rails::Command::ServerCommand.new([], args).server_options
+      command = Rails::Command::ServerCommand.new([], args)
+      command.send(:extract_environment_option_from_argument)
+      command.server_options
     end
 end

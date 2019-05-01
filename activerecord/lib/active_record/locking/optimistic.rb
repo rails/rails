@@ -61,7 +61,7 @@ module ActiveRecord
       end
 
       private
-        def _create_record(attribute_names = self.attribute_names, *)
+        def _create_record(attribute_names = self.attribute_names)
           if locking_enabled?
             # We always want to persist the locking version, even if we don't detect
             # a change from the default, since the database might have no default
@@ -71,9 +71,8 @@ module ActiveRecord
         end
 
         def _touch_row(attribute_names, time)
+          @_touch_attr_names << self.class.locking_column if locking_enabled?
           super
-        ensure
-          clear_attribute_change(self.class.locking_column) if locking_enabled?
         end
 
         def _update_row(attribute_names, attempted_action = "update")
@@ -88,7 +87,7 @@ module ActiveRecord
 
             affected_rows = self.class._update_record(
               attributes_with_values(attribute_names),
-              self.class.primary_key => id_in_database,
+              @primary_key => id_in_database,
               locking_column => previous_lock_value
             )
 
@@ -111,7 +110,7 @@ module ActiveRecord
           locking_column = self.class.locking_column
 
           affected_rows = self.class._delete_record(
-            self.class.primary_key => id_in_database,
+            @primary_key => id_in_database,
             locking_column => read_attribute_before_type_cast(locking_column)
           )
 
@@ -165,7 +164,7 @@ module ActiveRecord
             def inherited(subclass)
               subclass.class_eval do
                 is_lock_column = ->(name, _) { lock_optimistically && name == locking_column }
-                decorate_matching_attribute_types(is_lock_column, :_optimistic_locking) do |type|
+                decorate_matching_attribute_types(is_lock_column, "_optimistic_locking") do |type|
                   LockingType.new(type)
                 end
               end

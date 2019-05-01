@@ -2,6 +2,7 @@
 
 require "cases/helper"
 require "support/schema_dumping_helper"
+require "support/stubs/strong_parameters"
 
 class PostgresqlHstoreTest < ActiveRecord::PostgreSQLTestCase
   include SchemaDumpingHelper
@@ -9,12 +10,6 @@ class PostgresqlHstoreTest < ActiveRecord::PostgreSQLTestCase
     self.table_name = "hstores"
 
     store_accessor :settings, :language, :timezone
-  end
-
-  class FakeParameters
-    def to_unsafe_h
-      { "hi" => "hi" }
-    end
   end
 
   def setup
@@ -156,6 +151,22 @@ class PostgresqlHstoreTest < ActiveRecord::PostgreSQLTestCase
     y = YAML.load(YAML.dump(x))
     assert_equal "fr", y.language
     assert_equal "GMT", y.timezone
+  end
+
+  def test_changes_with_store_accessors
+    x = Hstore.new(language: "de")
+    assert x.language_changed?
+    assert_nil x.language_was
+    assert_equal [nil, "de"], x.language_change
+    x.save!
+
+    assert_not x.language_changed?
+    x.reload
+
+    x.settings = nil
+    assert x.language_changed?
+    assert_equal "de", x.language_was
+    assert_equal ["de", nil], x.language_change
   end
 
   def test_changes_in_place
@@ -344,7 +355,7 @@ class PostgresqlHstoreTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_supports_to_unsafe_h_values
-    assert_equal("\"hi\"=>\"hi\"", @type.serialize(FakeParameters.new))
+    assert_equal "\"hi\"=>\"hi\"", @type.serialize(ProtectedParams.new("hi" => "hi"))
   end
 
   private

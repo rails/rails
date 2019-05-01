@@ -36,8 +36,11 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
 
     has_many :replies, class_name: "ReplyWithCallbacks", foreign_key: "parent_id"
 
+    before_destroy { self.class.find(id).touch if persisted? }
+
     before_commit { |record| record.do_before_commit(nil) }
     after_commit { |record| record.do_after_commit(nil) }
+    after_save_commit { |record| record.do_after_commit(:save) }
     after_create_commit { |record| record.do_after_commit(:create) }
     after_update_commit { |record| record.do_after_commit(:update) }
     after_destroy_commit { |record| record.do_after_commit(:destroy) }
@@ -110,6 +113,43 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
     assert_equal [:after_commit], @first.history
   end
 
+  def test_dont_call_any_callbacks_after_transaction_commits_for_invalid_record
+    @first.after_commit_block { |r| r.history << :after_commit }
+    @first.after_rollback_block { |r| r.history << :after_rollback }
+
+    def @first.valid?(*)
+      false
+    end
+
+    assert_not @first.save
+    assert_equal [], @first.history
+  end
+
+  def test_dont_call_any_callbacks_after_explicit_transaction_commits_for_invalid_record
+    @first.after_commit_block { |r| r.history << :after_commit }
+    @first.after_rollback_block { |r| r.history << :after_rollback }
+
+    def @first.valid?(*)
+      false
+    end
+
+    @first.transaction do
+      assert_not @first.save
+    end
+    assert_equal [], @first.history
+  end
+
+  def test_only_call_after_commit_on_save_after_transaction_commits_for_saving_record
+    record = TopicWithCallbacks.new(title: "New topic", written_on: Date.today)
+    record.after_commit_block(:save) { |r| r.history << :after_save }
+
+    record.save!
+    assert_equal [:after_save], record.history
+
+    record.update!(title: "Another topic")
+    assert_equal [:after_save, :after_save], record.history
+  end
+
   def test_only_call_after_commit_on_update_after_transaction_commits_for_existing_record
     add_transaction_execution_blocks @first
 
@@ -137,6 +177,23 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
     reply = topic.replies.create
 
     assert_equal [], reply.history
+  end
+
+  def test_only_call_after_commit_on_destroy_after_transaction_commits_for_destroyed_new_record
+    new_record = TopicWithCallbacks.new(title: "New topic", written_on: Date.today)
+    add_transaction_execution_blocks new_record
+
+    new_record.destroy
+    assert_equal [:commit_on_destroy], new_record.history
+  end
+
+  def test_save_in_after_create_commit_wont_invoke_extra_after_create_commit
+    new_record = TopicWithCallbacks.new(title: "New topic", written_on: Date.today)
+    add_transaction_execution_blocks new_record
+    new_record.after_commit_block(:create) { |r| r.save! }
+
+    new_record.save!
+    assert_equal [:commit_on_create, :commit_on_update], new_record.history
   end
 
   def test_only_call_after_commit_on_create_and_doesnt_leaky
@@ -367,6 +424,26 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
     assert_match(/:on conditions for after_commit and after_rollback callbacks have to be one of \[:create, :destroy, :update\]/, e.message)
   end
 
+  def test_after_commit_chain_not_called_on_errors
+    record_1 = TopicWithCallbacks.create!
+    record_2 = TopicWithCallbacks.create!
+    record_3 = TopicWithCallbacks.create!
+    callbacks = []
+    record_1.after_commit_block { raise }
+    record_2.after_commit_block { callbacks << record_2.id }
+    record_3.after_commit_block { callbacks << record_3.id }
+    begin
+      TopicWithCallbacks.transaction do
+        record_1.save!
+        record_2.save!
+        record_3.save!
+      end
+    rescue
+      # From record_1.after_commit
+    end
+    assert_equal [], callbacks
+  end
+
   def test_saving_a_record_with_a_belongs_to_that_specifies_touching_the_parent_should_call_callbacks_on_the_parent_object
     pet   = Pet.first
     owner = pet.owner
@@ -549,7 +626,18 @@ class TransactionEnrollmentCallbacksTest < ActiveRecord::TestCase
         @topic.content = "foo"
         @topic.save!
       end
-      @topic.class.connection.add_transaction_record(@topic)
+      @topic.send(:add_to_transaction)
+    end
+    assert_equal [:before_commit, :after_commit], @topic.history
+  end
+
+  def test_commit_run_transactions_callbacks_with_nested_transactions
+    @topic.transaction do
+      @topic.transaction(requires_new: true) do
+        @topic.content = "foo"
+        @topic.save!
+        @topic.send(:add_to_transaction)
+      end
     end
     assert_equal [:before_commit, :after_commit], @topic.history
   end
@@ -569,7 +657,7 @@ class TransactionEnrollmentCallbacksTest < ActiveRecord::TestCase
         @topic.content = "foo"
         @topic.save!
       end
-      @topic.class.connection.add_transaction_record(@topic)
+      @topic.send(:add_to_transaction)
       raise ActiveRecord::Rollback
     end
     assert_equal [:rollback], @topic.history

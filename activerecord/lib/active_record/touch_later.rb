@@ -2,7 +2,7 @@
 
 module ActiveRecord
   # = Active Record Touch Later
-  module TouchLater
+  module TouchLater # :nodoc:
     extend ActiveSupport::Concern
 
     included do
@@ -10,19 +10,14 @@ module ActiveRecord
     end
 
     def touch_later(*names) # :nodoc:
-      unless persisted?
-        raise ActiveRecordError, <<-MSG.squish
-          cannot touch on a new or destroyed record object. Consider using
-          persisted?, new_record?, or destroyed? before touching
-        MSG
-      end
+      _raise_record_not_touched_error unless persisted?
 
       @_defer_touch_attrs ||= timestamp_attributes_for_update_in_model
       @_defer_touch_attrs |= names
       @_touch_time = current_time_from_proper_timezone
 
       surreptitiously_touch @_defer_touch_attrs
-      self.class.connection.add_transaction_record self
+      add_to_transaction
 
       # touch the parents as we are not calling the after_save callbacks
       self.class.reflect_on_all_associations(:belongs_to).each do |r|

@@ -57,6 +57,13 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
     assert_equal @symbols, @mixed.with_indifferent_access.symbolize_keys
   end
 
+  def test_to_options_for_hash_with_indifferent_access
+    assert_instance_of Hash, @symbols.with_indifferent_access.to_options
+    assert_equal @symbols, @symbols.with_indifferent_access.to_options
+    assert_equal @symbols, @strings.with_indifferent_access.to_options
+    assert_equal @symbols, @mixed.with_indifferent_access.to_options
+  end
+
   def test_deep_symbolize_keys_for_hash_with_indifferent_access
     assert_instance_of Hash, @nested_symbols.with_indifferent_access.deep_symbolize_keys
     assert_equal @nested_symbols, @nested_symbols.with_indifferent_access.deep_symbolize_keys
@@ -440,6 +447,14 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
     assert_instance_of ActiveSupport::HashWithIndifferentAccess, indifferent_strings
   end
 
+  def test_indifferent_assoc
+    indifferent_strings = ActiveSupport::HashWithIndifferentAccess.new(@strings)
+    key, value = indifferent_strings.assoc(:a)
+
+    assert_equal("a", key)
+    assert_equal(1, value)
+  end
+
   def test_indifferent_compact
     hash_contain_nil_value = @strings.merge("z" => nil)
     hash = ActiveSupport::HashWithIndifferentAccess.new(hash_contain_nil_value)
@@ -471,7 +486,7 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
     assert_equal @strings, roundtrip
     assert_equal "1234", roundtrip.default
 
-    # Ensure nested hashes are not HashWithIndiffereneAccess
+    # Ensure nested hashes are not HashWithIndifferentAccess
     new_to_hash = @nested_mixed.with_indifferent_access.to_hash
     assert_not new_to_hash.instance_of?(HashWithIndifferentAccess)
     assert_not new_to_hash["a"].instance_of?(HashWithIndifferentAccess)
@@ -606,7 +621,7 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
   def test_assorted_keys_not_stringified
     original = { Object.new => 2, 1 => 2, [] => true }
     indiff = original.with_indifferent_access
-    assert(!indiff.keys.any? { |k| k.kind_of? String }, "A key was converted to a string!")
+    assert_not(indiff.keys.any? { |k| k.kind_of? String }, "A key was converted to a string!")
   end
 
   def test_deep_merge_on_indifferent_access
@@ -670,6 +685,17 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
 
     assert_equal "bender", slice[:login]
     assert_equal "bender", slice["login"]
+  end
+
+  def test_indifferent_without
+    original = { a: "x", b: "y", c: 10 }.with_indifferent_access
+    expected = { c: 10 }.with_indifferent_access
+
+    [["a", "b"], [:a, :b]].each do |keys|
+      # Should return a new hash without the given keys.
+      assert_equal expected, original.without(*keys), keys.inspect
+      assert_not_equal expected, original
+    end
   end
 
   def test_indifferent_extract

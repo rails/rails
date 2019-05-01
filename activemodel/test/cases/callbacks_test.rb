@@ -112,7 +112,7 @@ class CallbacksTest < ActiveModel::TestCase
     def callback1; history << "callback1"; end
     def callback2; history << "callback2"; end
     def create
-      run_callbacks(:create) {}
+      run_callbacks(:create) { }
       self
     end
   end

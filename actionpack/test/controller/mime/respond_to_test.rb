@@ -78,7 +78,7 @@ class RespondToController < ActionController::Base
   def missing_templates
     respond_to do |type|
       # This test requires a block that is empty
-      type.json {}
+      type.json { }
       type.xml
     end
   end
@@ -102,10 +102,30 @@ class RespondToController < ActionController::Base
     end
   end
 
+  def using_conflicting_nested_js_then_html
+    respond_to do |outer_type|
+      outer_type.js do
+        respond_to do |inner_type|
+          inner_type.html { render body: "HTML" }
+        end
+      end
+    end
+  end
+
+  def using_non_conflicting_nested_js_then_js
+    respond_to do |outer_type|
+      outer_type.js do
+        respond_to do |inner_type|
+          inner_type.js { render body: "JS" }
+        end
+      end
+    end
+  end
+
   def custom_type_handling
     respond_to do |type|
       type.html { render body: "HTML"    }
-      type.custom("application/crazy-xml")  { render body: "Crazy XML"  }
+      type.custom("application/fancy-xml")  { render body: "Fancy XML"  }
       type.all  { render body: "Nothing" }
     end
   end
@@ -135,6 +155,12 @@ class RespondToController < ActionController::Base
     respond_to do |type|
       type.html { render body: "HTML" }
       type.any { render body: "Whatever you ask for, I got it" }
+    end
+  end
+
+  def handle_any_with_template
+    respond_to do |type|
+      type.any { render "test/hello_world" }
     end
   end
 
@@ -294,12 +320,14 @@ class RespondToControllerTest < ActionController::TestCase
     @request.host = "www.example.com"
     Mime::Type.register_alias("text/html", :iphone)
     Mime::Type.register("text/x-mobile", :mobile)
+    Mime::Type.register("application/fancy-xml", :fancy_xml)
   end
 
   def teardown
     super
     Mime::Type.unregister(:iphone)
     Mime::Type.unregister(:mobile)
+    Mime::Type.unregister(:fancy_xml)
   end
 
   def test_html
@@ -430,6 +458,20 @@ class RespondToControllerTest < ActionController::TestCase
     assert_equal "<p>Hello world!</p>\n", @response.body
   end
 
+  def test_using_conflicting_nested_js_then_html
+    @request.accept = "*/*"
+    assert_raises(ActionController::RespondToMismatchError) do
+      get :using_conflicting_nested_js_then_html
+    end
+  end
+
+  def test_using_non_conflicting_nested_js_then_js
+    @request.accept = "*/*"
+    get :using_non_conflicting_nested_js_then_js
+    assert_equal "text/javascript", @response.content_type
+    assert_equal "JS", @response.body
+  end
+
   def test_with_atom_content_type
     @request.accept = ""
     @request.env["CONTENT_TYPE"] = "application/atom+xml"
@@ -455,10 +497,10 @@ class RespondToControllerTest < ActionController::TestCase
   end
 
   def test_custom_types
-    @request.accept = "application/crazy-xml"
+    @request.accept = "application/fancy-xml"
     get :custom_type_handling
-    assert_equal "application/crazy-xml", @response.content_type
-    assert_equal "Crazy XML", @response.body
+    assert_equal "application/fancy-xml", @response.content_type
+    assert_equal "Fancy XML", @response.body
 
     @request.accept = "text/html"
     get :custom_type_handling
@@ -534,6 +576,13 @@ class RespondToControllerTest < ActionController::TestCase
     @request.accept = "application/json, application/xml, */*"
     get :json_xml_or_html
     assert_equal "HTML", @response.body
+  end
+
+  def test_handle_any_with_template
+    @request.accept = "*/*"
+
+    get :handle_any_with_template
+    assert_equal "Hello world!", @response.body
   end
 
   def test_html_type_with_layout

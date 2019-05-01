@@ -91,7 +91,6 @@ class InheritanceTest < ActiveRecord::TestCase
     end
 
     ActiveSupport::Dependencies.stub(:safe_constantize, proc { raise e }) do
-
       exception = assert_raises NameError do
         Company.send :compute_type, "InvalidModel"
       end
@@ -163,7 +162,7 @@ class InheritanceTest < ActiveRecord::TestCase
     assert_not_predicate ActiveRecord::Base, :descends_from_active_record?
     assert AbstractCompany.descends_from_active_record?, "AbstractCompany should descend from ActiveRecord::Base"
     assert Company.descends_from_active_record?, "Company should descend from ActiveRecord::Base"
-    assert !Class.new(Company).descends_from_active_record?, "Company subclass should not descend from ActiveRecord::Base"
+    assert_not Class.new(Company).descends_from_active_record?, "Company subclass should not descend from ActiveRecord::Base"
   end
 
   def test_abstract_class
@@ -241,7 +240,7 @@ class InheritanceTest < ActiveRecord::TestCase
     cabbage = vegetable.becomes!(Cabbage)
     assert_equal "Cabbage", cabbage.custom_type
 
-    vegetable = cabbage.becomes!(Vegetable)
+    cabbage.becomes!(Vegetable)
     assert_nil cabbage.custom_type
   end
 
@@ -515,10 +514,12 @@ class InheritanceComputeTypeTest < ActiveRecord::TestCase
 
       # Should fail without FirmOnTheFly in the type condition.
       assert_raise(ActiveRecord::RecordNotFound) { Firm.find(foo.id) }
+      assert_raise(ActiveRecord::RecordNotFound) { Firm.find_by!(id: foo.id) }
 
       # Nest FirmOnTheFly in the test case where Dependencies won't see it.
       self.class.const_set :FirmOnTheFly, Class.new(Firm)
       assert_raise(ActiveRecord::SubclassNotFound) { Firm.find(foo.id) }
+      assert_raise(ActiveRecord::SubclassNotFound) { Firm.find_by!(id: foo.id) }
 
       # Nest FirmOnTheFly in Firm where Dependencies will see it.
       # This is analogous to nesting models in a migration.
@@ -527,6 +528,7 @@ class InheritanceComputeTypeTest < ActiveRecord::TestCase
       # And instantiate will find the existing constant rather than trying
       # to require firm_on_the_fly.
       assert_nothing_raised { assert_kind_of Firm::FirmOnTheFly, Firm.find(foo.id) }
+      assert_nothing_raised { assert_kind_of Firm::FirmOnTheFly, Firm.find_by!(id: foo.id) }
     end
   end
 
@@ -655,7 +657,7 @@ class InheritanceAttributeMappingTest < ActiveRecord::TestCase
 
     assert_equal ["omg_inheritance_attribute_mapping_test/company"], ActiveRecord::Base.connection.select_values("SELECT sponsorable_type FROM sponsors")
 
-    sponsor = Sponsor.first
+    sponsor = Sponsor.find(sponsor.id)
     assert_equal startup, sponsor.sponsorable
   end
 end

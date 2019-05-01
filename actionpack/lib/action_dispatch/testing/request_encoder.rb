@@ -34,12 +34,12 @@ module ActionDispatch
     end
 
     def encode_params(params)
-      @param_encoder.call(params)
+      @param_encoder.call(params) if params
     end
 
     def self.parser(content_type)
-      mime = Mime::Type.lookup(content_type)
-      encoder(mime ? mime.ref : nil).response_parser
+      type = Mime::Type.lookup(content_type).ref if content_type
+      encoder(type).response_parser
     end
 
     def self.encoder(name)

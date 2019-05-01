@@ -29,7 +29,10 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
 
   def test_construct_finder_sql_does_not_table_name_collide_on_duplicate_associations_with_left_outer_joins
     sql = Person.joins(agents: :agents).left_outer_joins(agents: :agents).to_sql
-    assert_match(/agents_people_4/i, sql)
+    assert_match(/agents_people_2/i, sql)
+    assert_match(/INNER JOIN/i, sql)
+    assert_no_match(/agents_people_4/i, sql)
+    assert_no_match(/LEFT OUTER JOIN/i, sql)
   end
 
   def test_construct_finder_sql_does_not_table_name_collide_with_string_joins
@@ -79,19 +82,19 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
 
   def test_find_with_implicit_inner_joins_honors_readonly_with_select
     authors = Author.joins(:posts).select("authors.*").to_a
-    assert !authors.empty?, "expected authors to be non-empty"
+    assert_not authors.empty?, "expected authors to be non-empty"
     assert authors.all? { |a| !a.readonly? }, "expected no authors to be readonly"
   end
 
   def test_find_with_implicit_inner_joins_honors_readonly_false
     authors = Author.joins(:posts).readonly(false).to_a
-    assert !authors.empty?, "expected authors to be non-empty"
+    assert_not authors.empty?, "expected authors to be non-empty"
     assert authors.all? { |a| !a.readonly? }, "expected no authors to be readonly"
   end
 
   def test_find_with_implicit_inner_joins_does_not_set_associations
     authors = Author.joins(:posts).select("authors.*").to_a
-    assert !authors.empty?, "expected authors to be non-empty"
+    assert_not authors.empty?, "expected authors to be non-empty"
     assert authors.all? { |a| !a.instance_variable_defined?(:@posts) }, "expected no authors to have the @posts association loaded"
   end
 

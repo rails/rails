@@ -2,6 +2,8 @@
 
 module Arel # :nodoc: all
   class DeleteManager < Arel::TreeManager
+    include TreeManager::StatementMethods
+
     def initialize
       super
       @ast = Nodes::DeleteStatement.new
@@ -11,15 +13,6 @@ module Arel # :nodoc: all
     def from(relation)
       @ast.relation = relation
       self
-    end
-
-    def take(limit)
-      @ast.limit = Nodes::Limit.new(Nodes.build_quoted(limit)) if limit
-      self
-    end
-
-    def wheres=(list)
-      @ast.wheres = list
     end
   end
 end

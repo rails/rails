@@ -100,7 +100,6 @@ class MigratorTest < ActiveRecord::TestCase
   def test_finds_migrations_in_subdirectories
     migrations = ActiveRecord::MigrationContext.new(MIGRATIONS_ROOT + "/valid_with_subdirectories").migrations
 
-
     [[1, "ValidPeopleHaveLastNames"], [2, "WeNeedReminders"], [3, "InnocentJointable"]].each_with_index do |pair, i|
       assert_equal migrations[i].version, pair.first
       assert_equal migrations[i].name, pair.last

@@ -5,7 +5,7 @@ require "active_support/core_ext/module/concerning"
 
 class ModuleConcerningTest < ActiveSupport::TestCase
   def test_concerning_declares_a_concern_and_includes_it_immediately
-    klass = Class.new { concerning(:Foo) {} }
+    klass = Class.new { concerning(:Foo) { } }
     assert_includes klass.ancestors, klass::Foo, klass.ancestors.inspect
   end
 end

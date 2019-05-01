@@ -9,7 +9,7 @@ module ActiveStorage
   class Service::MirrorService < Service
     attr_reader :primary, :mirrors
 
-    delegate :download, :download_chunk, :exist?, :url, to: :primary
+    delegate :download, :download_chunk, :exist?, :url, :path_for, to: :primary
 
     # Stitch together from named services.
     def self.build(primary:, mirrors:, configurator:, **options) #:nodoc:
@@ -24,9 +24,9 @@ module ActiveStorage
 
     # Upload the +io+ to the +key+ specified to all services. If a +checksum+ is provided, all services will
     # ensure a match when the upload has completed or raise an ActiveStorage::IntegrityError.
-    def upload(key, io, checksum: nil)
+    def upload(key, io, checksum: nil, **options)
       each_service.collect do |service|
-        service.upload key, io.tap(&:rewind), checksum: checksum
+        service.upload key, io.tap(&:rewind), checksum: checksum, **options
       end
     end
 

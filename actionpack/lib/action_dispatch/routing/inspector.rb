@@ -83,7 +83,7 @@ module ActionDispatch
       private
         def normalize_filter(filter)
           if filter[:controller]
-            { controller: /#{filter[:controller].downcase.sub(/_?controller\z/, '').sub('::', '/')}/ }
+            { controller: /#{filter[:controller].underscore.sub(/_?controller\z/, "")}/ }
           elsif filter[:grep]
             { controller: /#{filter[:grep]}/, action: /#{filter[:grep]}/,
               verb: /#{filter[:grep]}/, name: /#{filter[:grep]}/, path: /#{filter[:grep]}/ }
@@ -159,7 +159,7 @@ module ActionDispatch
               "No routes were found for this grep pattern."
             end
 
-          @buffer << "For more information about routes, see the Rails guide: http://guides.rubyonrails.org/routing.html."
+          @buffer << "For more information about routes, see the Rails guide: https://guides.rubyonrails.org/routing.html."
         end
       end
 
@@ -258,7 +258,7 @@ module ActionDispatch
             <li>Please add some routes in <tt>config/routes.rb</tt>.</li>
             <li>
               For more information about routes, please see the Rails guide
-              <a href="http://guides.rubyonrails.org/routing.html">Rails Routing from the Outside In</a>.
+              <a href="https://guides.rubyonrails.org/routing.html">Rails Routing from the Outside In</a>.
             </li>
           </ul>
         MESSAGE

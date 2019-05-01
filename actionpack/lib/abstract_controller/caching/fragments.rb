@@ -28,7 +28,6 @@ module AbstractController
         self.fragment_cache_keys = []
 
         if respond_to?(:helper_method)
-          helper_method :fragment_cache_key
           helper_method :combined_fragment_cache_key
         end
       end
@@ -61,34 +60,19 @@ module AbstractController
       end
 
       # Given a key (as described in +expire_fragment+), returns
-      # a key suitable for use in reading, writing, or expiring a
-      # cached fragment. All keys begin with <tt>views/</tt>,
-      # followed by any controller-wide key prefix values, ending
-      # with the specified +key+ value. The key is expanded using
-      # ActiveSupport::Cache.expand_cache_key.
-      def fragment_cache_key(key)
-        ActiveSupport::Deprecation.warn(<<-MSG.squish)
-          Calling fragment_cache_key directly is deprecated and will be removed in Rails 6.0.
-          All fragment accessors now use the combined_fragment_cache_key method that retains the key as an array,
-          such that the caching stores can interrogate the parts for cache versions used in
-          recyclable cache keys.
-        MSG
-
-        head = self.class.fragment_cache_keys.map { |k| instance_exec(&k) }
-        tail = key.is_a?(Hash) ? url_for(key).split("://").last : key
-        ActiveSupport::Cache.expand_cache_key([*head, *tail], :views)
-      end
-
-      # Given a key (as described in +expire_fragment+), returns
       # a key array suitable for use in reading, writing, or expiring a
       # cached fragment. All keys begin with <tt>:views</tt>,
-      # followed by ENV["RAILS_CACHE_ID"] or ENV["RAILS_APP_VERSION"] if set,
+      # followed by <tt>ENV["RAILS_CACHE_ID"]</tt> or <tt>ENV["RAILS_APP_VERSION"]</tt> if set,
       # followed by any controller-wide key prefix values, ending
       # with the specified +key+ value.
       def combined_fragment_cache_key(key)
         head = self.class.fragment_cache_keys.map { |k| instance_exec(&k) }
         tail = key.is_a?(Hash) ? url_for(key).split("://").last : key
-        [ :views, (ENV["RAILS_CACHE_ID"] || ENV["RAILS_APP_VERSION"]), *head, *tail ].compact
+
+        cache_key = [:views, ENV["RAILS_CACHE_ID"] || ENV["RAILS_APP_VERSION"], head, tail]
+        cache_key.flatten!(1)
+        cache_key.compact!
+        cache_key
       end
 
       # Writes +content+ to the location signified by

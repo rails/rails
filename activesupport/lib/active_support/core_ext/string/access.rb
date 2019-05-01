@@ -75,6 +75,10 @@ class String
   #   str.first(0) # => ""
   #   str.first(6) # => "hello"
   def first(limit = 1)
+    ActiveSupport::Deprecation.warn(
+      "Calling String#first with a negative integer limit " \
+      "will raise an ArgumentError in Rails 6.1."
+    ) if limit < 0
     if limit == 0
       ""
     elsif limit >= size
@@ -95,6 +99,10 @@ class String
   #   str.last(0) # => ""
   #   str.last(6) # => "hello"
   def last(limit = 1)
+    ActiveSupport::Deprecation.warn(
+      "Calling String#last with a negative integer limit " \
+      "will raise an ArgumentError in Rails 6.1."
+    ) if limit < 0
     if limit == 0
       ""
     elsif limit >= size

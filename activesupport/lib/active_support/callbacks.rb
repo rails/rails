@@ -23,6 +23,9 @@ module ActiveSupport
   # +ClassMethods.set_callback+), and run the installed callbacks at the
   # appropriate times (via +run_callbacks+).
   #
+  # By default callbacks are halted by throwing +:abort+.
+  # See +ClassMethods.define_callbacks+ for details.
+  #
   # Three kinds of callbacks are supported: before callbacks, run before a
   # certain event; after callbacks, run after the event; and around callbacks,
   # blocks that surround the event, triggering it when they yield. Callback code
@@ -497,9 +500,7 @@ module ActiveSupport
           arg.halted || !@user_conditions.all? { |c| c.call(arg.target, arg.value) }
         end
 
-        def nested
-          @nested
-        end
+        attr_reader :nested
 
         def final?
           !@call_template
@@ -578,7 +579,7 @@ module ActiveSupport
         end
 
         protected
-          def chain; @chain; end
+          attr_reader :chain
 
         private
 
@@ -659,9 +660,17 @@ module ActiveSupport
         # * <tt>:if</tt> - A symbol or an array of symbols, each naming an instance
         #   method or a proc; the callback will be called only when they all return
         #   a true value.
+        #
+        #   If a proc is given, its body is evaluated in the context of the
+        #   current object. It can also optionally accept the current object as
+        #   an argument.
         # * <tt>:unless</tt> - A symbol or an array of symbols, each naming an
         #   instance method or a proc; the callback will be called only when they
         #   all return a false value.
+        #
+        #   If a proc is given, its body is evaluated in the context of the
+        #   current object. It can also optionally accept the current object as
+        #   an argument.
         # * <tt>:prepend</tt> - If +true+, the callback will be prepended to the
         #   existing chain rather than appended.
         def set_callback(name, *filter_list, &block)

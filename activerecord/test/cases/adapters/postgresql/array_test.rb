@@ -17,7 +17,7 @@ class PostgresqlArrayTest < ActiveRecord::PostgreSQLTestCase
     enable_extension!("hstore", @connection)
 
     @connection.transaction do
-      @connection.create_table("pg_arrays") do |t|
+      @connection.create_table "pg_arrays", force: true do |t|
         t.string "tags", array: true, limit: 255
         t.integer "ratings", array: true
         t.datetime :datetimes, array: true
@@ -103,6 +103,18 @@ class PostgresqlArrayTest < ActiveRecord::PostgreSQLTestCase
   def test_change_column_with_array
     @connection.add_column :pg_arrays, :snippets, :string, array: true, default: []
     @connection.change_column :pg_arrays, :snippets, :text, array: true, default: []
+
+    PgArray.reset_column_information
+    column = PgArray.columns_hash["snippets"]
+
+    assert_equal :text, column.type
+    assert_equal [], PgArray.column_defaults["snippets"]
+    assert_predicate column, :array?
+  end
+
+  def test_change_column_from_non_array_to_array
+    @connection.add_column :pg_arrays, :snippets, :string
+    @connection.change_column :pg_arrays, :snippets, :text, array: true, default: [], using: "string_to_array(\"snippets\", ',')"
 
     PgArray.reset_column_information
     column = PgArray.columns_hash["snippets"]
@@ -226,14 +238,6 @@ class PostgresqlArrayTest < ActiveRecord::PostgreSQLTestCase
     assert_equal(PgArray.last.tags, tag_values)
   end
 
-  def test_insert_fixtures
-    tag_values = ["val1", "val2", "val3_with_'_multiple_quote_'_chars"]
-    assert_deprecated do
-      @connection.insert_fixtures([{ "tags" => tag_values }], "pg_arrays")
-    end
-    assert_equal(PgArray.last.tags, tag_values)
-  end
-
   def test_attribute_for_inspect_for_array_field
     record = PgArray.new { |a| a.ratings = (1..10).to_a }
     assert_equal("[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]", record.attribute_for_inspect(:ratings))
@@ -353,7 +357,7 @@ class PostgresqlArrayTest < ActiveRecord::PostgreSQLTestCase
     assert e1.persisted?, "Saving e1"
 
     e2 = klass.create("tags" => ["black", "blue"])
-    assert !e2.persisted?, "e2 shouldn't be valid"
+    assert_not e2.persisted?, "e2 shouldn't be valid"
     assert e2.errors[:tags].any?, "Should have errors for tags"
     assert_equal ["has already been taken"], e2.errors[:tags], "Should have uniqueness message for tags"
   end

@@ -3,6 +3,7 @@
 require "concurrent/map"
 require "active_support/core_ext/module/remove_method"
 require "active_support/core_ext/module/attribute_accessors"
+require "active_support/deprecation"
 require "action_view/template/resolver"
 
 module ActionView
@@ -15,6 +16,8 @@ module ActionView
   # only once during the request, it speeds up all cache accesses.
   class LookupContext #:nodoc:
     attr_accessor :prefixes, :rendered_format
+    deprecate :rendered_format
+    deprecate :rendered_format=
 
     mattr_accessor :fallbacks, default: FallbackFileSystemResolver.instances
 
@@ -24,7 +27,7 @@ module ActionView
       registered_details << name
       Accessors::DEFAULT_PROCS[name] = block
 
-      Accessors.send :define_method, :"default_#{name}", &block
+      Accessors.define_method(:"default_#{name}", &block)
       Accessors.module_eval <<-METHOD, __FILE__, __LINE__ + 1
         def #{name}
           @details.fetch(:#{name}, [])
@@ -57,21 +60,36 @@ module ActionView
       alias :eql? :equal?
 
       @details_keys = Concurrent::Map.new
+      @digest_cache = Concurrent::Map.new
 
-      def self.get(details)
+      def self.digest_cache(details)
+        @digest_cache[details_cache_key(details)] ||= Concurrent::Map.new
+      end
+
+      def self.details_cache_key(details)
         if details[:formats]
           details = details.dup
           details[:formats] &= Template::Types.symbols
         end
-        @details_keys[details] ||= Concurrent::Map.new
+        @details_keys[details] ||= Object.new
       end
 
       def self.clear
+        ActionView::ViewPaths.all_view_paths.each do |path_set|
+          path_set.each(&:clear_cache)
+        end
+        ActionView::LookupContext.fallbacks.each(&:clear_cache)
+        @view_context_class = nil
         @details_keys.clear
+        @digest_cache.clear
       end
 
       def self.digest_caches
-        @details_keys.values
+        @digest_cache.values
+      end
+
+      def self.view_context_class(klass)
+        @view_context_class ||= klass.with_empty_template_cache
       end
     end
 
@@ -82,7 +100,7 @@ module ActionView
       # Calculate the details key. Remove the handlers from calculation to improve performance
       # since the user cannot modify it explicitly.
       def details_key #:nodoc:
-        @details_key ||= DetailsKey.get(@details) if @cache
+        @details_key ||= DetailsKey.details_cache_key(@details) if @cache
       end
 
       # Temporary skip passing the details_key forward.
@@ -96,7 +114,8 @@ module ActionView
     private
 
       def _set_detail(key, value) # :doc:
-        @details = @details.dup if @details_key
+        @details = @details.dup if @digest_cache || @details_key
+        @digest_cache = nil
         @details_key = nil
         @details[key] = value
       end
@@ -106,20 +125,13 @@ module ActionView
     module ViewPaths
       attr_reader :view_paths, :html_fallback_for_js
 
-      # Whenever setting view paths, makes a copy so that we can manipulate them in
-      # instance objects as we wish.
-      def view_paths=(paths)
-        @view_paths = ActionView::PathSet.new(Array(paths))
-      end
-
       def find(name, prefixes = [], partial = false, keys = [], options = {})
         @view_paths.find(*args_for_lookup(name, prefixes, partial, keys, options))
       end
       alias :find_template :find
 
-      def find_file(name, prefixes = [], partial = false, keys = [], options = {})
-        @view_paths.find_file(*args_for_lookup(name, prefixes, partial, keys, options))
-      end
+      alias :find_file :find
+      deprecate :find_file
 
       def find_all(name, prefixes = [], partial = false, keys = [], options = {})
         @view_paths.find_all(*args_for_lookup(name, prefixes, partial, keys, options))
@@ -138,18 +150,33 @@ module ActionView
       # Adds fallbacks to the view paths. Useful in cases when you are rendering
       # a :file.
       def with_fallbacks
-        added_resolvers = 0
-        self.class.fallbacks.each do |resolver|
-          next if view_paths.include?(resolver)
-          view_paths.push(resolver)
-          added_resolvers += 1
+        view_paths = build_view_paths((@view_paths.paths + self.class.fallbacks).uniq)
+
+        if block_given?
+          ActiveSupport::Deprecation.warn <<~eowarn.squish
+          Calling `with_fallbacks` with a block is deprecated.  Call methods on
+          the lookup context returned by `with_fallbacks` instead.
+          eowarn
+
+          begin
+            _view_paths = @view_paths
+            @view_paths = view_paths
+            yield
+          ensure
+            @view_paths = _view_paths
+          end
+        else
+          ActionView::LookupContext.new(view_paths, @details, @prefixes)
         end
-        yield
-      ensure
-        added_resolvers.times { view_paths.pop }
       end
 
     private
+
+      # Whenever setting view paths, makes a copy so that we can manipulate them in
+      # instance objects as we wish.
+      def build_view_paths(paths)
+        ActionView::PathSet.new(Array(paths))
+      end
 
       def args_for_lookup(name, prefixes, partial, keys, details_options)
         name, prefixes = normalize_name(name, prefixes)
@@ -163,7 +190,7 @@ module ActionView
         user_details = @details.merge(options)
 
         if @cache
-          details_key = DetailsKey.get(user_details)
+          details_key = DetailsKey.details_cache_key(user_details)
         else
           details_key = nil
         end
@@ -190,7 +217,7 @@ module ActionView
           end
 
           if @cache
-            [details, DetailsKey.get(details)]
+            [details, DetailsKey.details_cache_key(details)]
           else
             [details, nil]
           end
@@ -202,13 +229,13 @@ module ActionView
       # name instead of the prefix.
       def normalize_name(name, prefixes)
         prefixes = prefixes.presence
-        parts    = name.to_s.split("/".freeze)
+        parts    = name.to_s.split("/")
         parts.shift if parts.first.empty?
         name = parts.pop
 
         return name, prefixes || [""] if parts.empty?
 
-        parts    = parts.join("/".freeze)
+        parts    = parts.join("/")
         prefixes = prefixes ? prefixes.map { |p| "#{p}/#{parts}" } : [parts]
 
         return name, prefixes
@@ -221,16 +248,23 @@ module ActionView
 
     def initialize(view_paths, details = {}, prefixes = [])
       @details_key = nil
+      @digest_cache = nil
       @cache = true
       @prefixes = prefixes
-      @rendered_format = nil
 
       @details = initialize_details({}, details)
-      self.view_paths = view_paths
+      @view_paths = build_view_paths(view_paths)
     end
 
     def digest_cache
-      details_key
+      @digest_cache ||= DetailsKey.digest_cache(@details)
+    end
+
+    def with_prepended_formats(formats)
+      details = @details.dup
+      details[:formats] = formats
+
+      self.class.new(@view_paths, details, @prefixes)
     end
 
     def initialize_details(target, details)
@@ -245,7 +279,15 @@ module ActionView
     # add :html as fallback to :js.
     def formats=(values)
       if values
-        values.concat(default_formats) if values.delete "*/*".freeze
+        values = values.dup
+        values.concat(default_formats) if values.delete "*/*"
+        values.uniq!
+
+        invalid_values = (values - Template::Types.symbols)
+        unless invalid_values.empty?
+          raise ArgumentError, "Invalid formats: #{invalid_values.map(&:inspect).join(", ")}"
+        end
+
         if values == [:js]
           values << :html
           @html_fallback_for_js = true

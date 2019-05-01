@@ -40,11 +40,11 @@ class I18nValidationTest < ActiveRecord::TestCase
   COMMON_CASES = [
     # [ case,                              validation_options,            generate_message_options]
     [ "given no options",                  {},                            {}],
-    [ "given custom message",              { message: "custom" },        { message: "custom" }],
-    [ "given if condition",                { if: lambda { true } },  {}],
-    [ "given unless condition",            { unless: lambda { false } }, {}],
-    [ "given option that is not reserved", { format: "jpg" },            { format: "jpg" }],
-    [ "given on condition",                { on: [:create, :update] },     {}]
+    [ "given custom message",              { message: "custom" },         { message: "custom" }],
+    [ "given if condition",                { if: lambda { true } },       {}],
+    [ "given unless condition",            { unless: lambda { false } },  {}],
+    [ "given option that is not reserved", { format: "jpg" },             { format: "jpg" }],
+    [ "given on condition",                { on: [:create, :update] },    {}]
   ]
 
   COMMON_CASES.each do |name, validation_options, generate_message_options|
@@ -53,6 +53,7 @@ class I18nValidationTest < ActiveRecord::TestCase
       @topic.title = unique_topic.title
       assert_called_with(@topic.errors, :generate_message, [:title, :taken, generate_message_options.merge(value: "unique!")]) do
         @topic.valid?
+        @topic.errors.messages
       end
     end
   end
@@ -62,6 +63,7 @@ class I18nValidationTest < ActiveRecord::TestCase
       Topic.validates_associated :replies, validation_options
       assert_called_with(replied_topic.errors, :generate_message, [:replies, :invalid, generate_message_options.merge(value: replied_topic.replies)]) do
         replied_topic.save
+        replied_topic.errors.messages
       end
     end
   end

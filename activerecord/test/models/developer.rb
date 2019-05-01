@@ -207,6 +207,7 @@ end
 class MultiplePoorDeveloperCalledJamis < ActiveRecord::Base
   self.table_name = "developers"
 
+  default_scope { }
   default_scope -> { where(name: "Jamis") }
   default_scope -> { where(salary: 50000) }
 end
@@ -278,4 +279,18 @@ class DeveloperWithIncorrectlyOrderedHasManyThrough < ActiveRecord::Base
   self.table_name = "developers"
   has_many :companies, through: :contracts
   has_many :contracts, foreign_key: :developer_id
+end
+
+class DeveloperName < ActiveRecord::Type::String
+  def deserialize(value)
+    "Developer: #{value}"
+  end
+end
+
+class AttributedDeveloper < ActiveRecord::Base
+  self.table_name = "developers"
+
+  attribute :name, DeveloperName.new
+
+  self.ignored_columns += ["name"]
 end

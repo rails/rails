@@ -13,33 +13,37 @@ module ActiveRecord
       class_attribute :aggregate_reflections, instance_writer: false, default: {}
     end
 
-    def self.create(macro, name, scope, options, ar)
-      klass = \
-        case macro
-        when :composed_of
-          AggregateReflection
-        when :has_many
-          HasManyReflection
-        when :has_one
-          HasOneReflection
-        when :belongs_to
-          BelongsToReflection
-        else
-          raise "Unsupported Macro: #{macro}"
+    class << self
+      def create(macro, name, scope, options, ar)
+        reflection = reflection_class_for(macro).new(name, scope, options, ar)
+        options[:through] ? ThroughReflection.new(reflection) : reflection
+      end
+
+      def add_reflection(ar, name, reflection)
+        ar.clear_reflections_cache
+        name = -name.to_s
+        ar._reflections = ar._reflections.except(name).merge!(name => reflection)
+      end
+
+      def add_aggregate_reflection(ar, name, reflection)
+        ar.aggregate_reflections = ar.aggregate_reflections.merge(-name.to_s => reflection)
+      end
+
+      private
+        def reflection_class_for(macro)
+          case macro
+          when :composed_of
+            AggregateReflection
+          when :has_many
+            HasManyReflection
+          when :has_one
+            HasOneReflection
+          when :belongs_to
+            BelongsToReflection
+          else
+            raise "Unsupported Macro: #{macro}"
+          end
         end
-
-      reflection = klass.new(name, scope, options, ar)
-      options[:through] ? ThroughReflection.new(reflection) : reflection
-    end
-
-    def self.add_reflection(ar, name, reflection)
-      ar.clear_reflections_cache
-      name = name.to_s
-      ar._reflections = ar._reflections.except(name).merge!(name => reflection)
-    end
-
-    def self.add_aggregate_reflection(ar, name, reflection)
-      ar.aggregate_reflections = ar.aggregate_reflections.merge(name.to_s => reflection)
     end
 
     # \Reflection enables the ability to examine the associations and aggregations of
@@ -174,26 +178,22 @@ module ActiveRecord
         scope ? [scope] : []
       end
 
-      def build_join_constraint(table, foreign_table)
-        key         = join_keys.key
-        foreign_key = join_keys.foreign_key
-
-        constraint = table[key].eq(foreign_table[foreign_key])
-
-        if klass.finder_needs_type_condition?
-          table.create_and([constraint, klass.send(:type_condition, table)])
-        else
-          constraint
-        end
-      end
-
-      def join_scope(table, foreign_klass)
+      def join_scope(table, foreign_table, foreign_klass)
         predicate_builder = predicate_builder(table)
         scope_chain_items = join_scopes(table, predicate_builder)
         klass_scope       = klass_join_scope(table, predicate_builder)
 
+        key         = join_keys.key
+        foreign_key = join_keys.foreign_key
+
+        klass_scope.where!(table[key].eq(foreign_table[foreign_key]))
+
         if type
           klass_scope.where!(type => foreign_klass.polymorphic_name)
+        end
+
+        if klass.finder_needs_type_condition?
+          klass_scope.where!(klass.send(:type_condition, table))
         end
 
         scope_chain_items.inject(klass_scope, &:merge!)
@@ -417,7 +417,7 @@ module ActiveRecord
     class AssociationReflection < MacroReflection #:nodoc:
       def compute_class(name)
         if polymorphic?
-          raise ArgumentError, "Polymorphic association does not support to compute class."
+          raise ArgumentError, "Polymorphic associations do not support computing the class."
         end
         active_record.send(:compute_type, name)
       end

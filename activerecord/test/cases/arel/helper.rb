@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "rubygems"
+require "active_support"
 require "minitest/autorun"
 require "arel"
 
@@ -13,7 +13,7 @@ class Object
 end
 
 module Arel
-  class Test < Minitest::Test
+  class Test < ActiveSupport::TestCase
     def setup
       super
       @arel_engine = Arel::Table.engine
@@ -23,11 +23,6 @@ module Arel
     def teardown
       Arel::Table.engine = @arel_engine if defined? @arel_engine
       super
-    end
-
-    def assert_like(expected, actual)
-      assert_equal expected.gsub(/\s+/, " ").strip,
-                   actual.gsub(/\s+/, " ").strip
     end
   end
 
@@ -40,5 +35,11 @@ module Arel
     after do
       Arel::Table.engine = @arel_engine if defined? @arel_engine
     end
+    include ActiveSupport::Testing::Assertions
+
+    # test/unit backwards compatibility methods
+    alias :assert_no_match :refute_match
+    alias :assert_not_equal :refute_equal
+    alias :assert_not_same :refute_same
   end
 end

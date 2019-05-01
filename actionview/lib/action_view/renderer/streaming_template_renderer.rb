@@ -33,8 +33,8 @@ module ActionView
           logger = ActionView::Base.logger
           return unless logger
 
-          message = "\n#{exception.class} (#{exception.message}):\n".dup
-          message << exception.annoted_source_code.to_s if exception.respond_to?(:annoted_source_code)
+          message = +"\n#{exception.class} (#{exception.message}):\n"
+          message << exception.annotated_source_code.to_s if exception.respond_to?(:annotated_source_code)
           message << "  " << exception.backtrace.join("\n  ")
           logger.fatal("#{message}\n\n")
         end
@@ -43,14 +43,14 @@ module ActionView
     # For streaming, instead of rendering a given a template, we return a Body
     # object that responds to each. This object is initialized with a block
     # that knows how to render the template.
-    def render_template(template, layout_name = nil, locals = {}) #:nodoc:
-      return [super] unless layout_name && template.supports_streaming?
+    def render_template(view, template, layout_name = nil, locals = {}) #:nodoc:
+      return [super.body] unless layout_name && template.supports_streaming?
 
       locals ||= {}
       layout   = layout_name && find_layout(layout_name, locals.keys, [formats.first])
 
       Body.new do |buffer|
-        delayed_render(buffer, template, layout, @view, locals)
+        delayed_render(buffer, template, layout, view, locals)
       end
     end
 

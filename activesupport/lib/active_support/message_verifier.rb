@@ -71,7 +71,7 @@ module ActiveSupport
   #   @verifier.generate(parcel, expires_in: 1.month)
   #   @verifier.generate(doowad, expires_at: Time.now.end_of_year)
   #
-  # Then the messages can be verified and returned upto the expire time.
+  # Then the messages can be verified and returned up to the expire time.
   # Thereafter, the +verified+ method returns +nil+ while +verify+ raises
   # <tt>ActiveSupport::MessageVerifier::InvalidSignature</tt>.
   #
@@ -122,7 +122,7 @@ module ActiveSupport
     def valid_message?(signed_message)
       return if signed_message.nil? || !signed_message.valid_encoding? || signed_message.blank?
 
-      data, digest = signed_message.split("--".freeze)
+      data, digest = signed_message.split("--")
       data.present? && digest.present? && ActiveSupport::SecurityUtils.secure_compare(digest, generate_digest(data))
     end
 
@@ -150,7 +150,7 @@ module ActiveSupport
     def verified(signed_message, purpose: nil, **)
       if valid_message?(signed_message)
         begin
-          data = signed_message.split("--".freeze)[0]
+          data = signed_message.split("--")[0]
           message = Messages::Metadata.verify(decode(data), purpose)
           @serializer.load(message) if message
         rescue ArgumentError => argument_error
