@@ -207,7 +207,7 @@ folder directly to the Ruby interpreter e.g. `ruby bin\rails server`.
 
 TIP: JavaScript asset compression requires you
 have a JavaScript runtime available on your system, in the absence
-of a runtime you will see an `execjs` error during asset compilation.
+of a runtime you will see an `execjs` error during asset compression.
 Usually macOS and Windows come with a JavaScript runtime installed.
 `therubyrhino` is the recommended runtime for JRuby users and is added by
 default to the `Gemfile` in apps generated under JRuby. You can investigate
