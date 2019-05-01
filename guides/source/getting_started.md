@@ -126,7 +126,7 @@ run the following:
 $ rails --version
 ```
 
-If it says something like "Rails 5.2.1", you are ready to continue.
+If it says something like "Rails 6.0.0", you are ready to continue.
 
 ### Creating the Blog Application
 
@@ -205,12 +205,10 @@ $ rails server
 TIP: If you are using Windows, you have to pass the scripts under the `bin`
 folder directly to the Ruby interpreter e.g. `ruby bin\rails server`.
 
-TIP: Compiling CoffeeScript and JavaScript asset compression requires you
+TIP: Compiling JavaScript asset compression requires you
 have a JavaScript runtime available on your system, in the absence
 of a runtime you will see an `execjs` error during asset compilation.
 Usually macOS and Windows come with a JavaScript runtime installed.
-Rails adds the `mini_racer` gem to the generated `Gemfile` in a
-commented line for new apps and you can uncomment if you need it.
 `therubyrhino` is the recommended runtime for JRuby users and is added by
 default to the `Gemfile` in apps generated under JRuby. You can investigate
 all the supported runtimes at [ExecJS](https://github.com/rails/execjs#readme).
@@ -1560,7 +1558,7 @@ class CreateComments < ActiveRecord::Migration[6.0]
     create_table :comments do |t|
       t.string :commenter
       t.text :body
-      t.references :article, foreign_key: true
+      t.references :article, null: false, foreign_key: true
 
       t.timestamps
     end
