@@ -477,7 +477,7 @@ module ActiveRecord
       def check_preloadable!
         return unless scope
 
-        if scope.arity > 0
+        unless scope.arity == 0
           raise ArgumentError, <<-MSG.squish
             The association scope '#{name}' is instance dependent (the scope
             block takes an argument). Preloading instance dependent scopes is
