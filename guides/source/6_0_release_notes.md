@@ -634,6 +634,30 @@ Please refer to the [Changelog][active-model] for detailed changes.
 *   Add `ActiveModel::Errors#of_kind?` to check presence of a specific error.
     ([Pull Request](https://github.com/rails/rails/pull/34866))
 
+*   Fix `ActiveModel::Serializers::JSON#as_json` method for timestamps.
+    ([Pull Request](https://github.com/rails/rails/pull/31503))
+
+*   Fix numericality validator to still use value before type cast except Active Record.
+    ([Pull Request](https://github.com/rails/rails/pull/33654))
+
+*   Fix numericality equality validation of `BigDecimal` and `Float`
+    by casting to `BigDecimal` on both ends of the validation.
+    ([Pull Request](https://github.com/rails/rails/pull/32852))
+
+*   Fix year value when casting a multiparameter time hash.
+    ([Pull Request](https://github.com/rails/rails/pull/34990))
+
+*   Type cast falsy boolean symbols on boolean attribute as false.
+    ([Pull Request](https://github.com/rails/rails/pull/35794))
+
+*   Return correct date while converting parameters in `value_from_multiparameter_assignment`
+    for `ActiveModel::Type::Date`.
+    ([Pull Request](https://github.com/rails/rails/pull/29651))
+
+*   Fall back to parent locale before falling back to the `:errors` namespace while fetching
+    error translations.
+    ([Pull Request](https://github.com/rails/rails/pull/35424))
+
 Active Support
 --------------
 
