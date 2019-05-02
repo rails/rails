@@ -781,7 +781,7 @@ Please refer to the [Changelog][active-support] for detailed changes.
     `Time`, and `TimeWithZone`.
     ([Pull Request](https://github.com/rails/rails/pull/32185))
 
-*   Fix bug where `URI.unscape` would fail with mixed Unicode/escaped character
+*   Fix bug where `URI.unescape` would fail with mixed Unicode/escaped character
     input.
     ([Pull Request](https://github.com/rails/rails/pull/32183))
 
