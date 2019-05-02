@@ -151,25 +151,44 @@ Please refer to the [Changelog][action-cable] for detailed changes.
 
 ### Removals
 
+*   Replace `ActionCable.startDebugging()` and `ActionCable.stopDebugging()`
+    with `ActionCable.logger.enabled`.
+    ([Pull Request](https://github.com/rails/rails/pull/34370))
+
 ### Deprecations
+
+*   There are no deprecations for Action Cable in Rails 6.0.
 
 ### Notable changes
 
-*   The ActionCable javascript package has been converted from CoffeeScript
-    to ES2015, and we now publish the source code in the npm distribution.
+*   Add support for the `channel_prefix` option for PostgreSQL subscription adapters
+    in `cable.yml`.
+    ([Pull Request](https://github.com/rails/rails/pull/35276))
 
-    This allows ActionCable users to depend on the javascript source code
-    rather than the compiled code, which can produce smaller javascript bundles.
+*   Allow passing a custom configuration to `ActionCable::Server::Base`.
+    ([Pull Request](https://github.com/rails/rails/pull/34714))
 
-    This change includes some breaking changes to optional parts of the
-    ActionCable javascript API:
+*   Add `:action_cable_connection` and `:action_cable_channel` load hooks.
+    ([Pull Request](https://github.com/rails/rails/pull/35094))
 
-    - Configuration of the WebSocket adapter and logger adapter have been moved
-      from properties of `ActionCable` to properties of `ActionCable.adapters`.
+*   Add `Channel::Base#broadcast_to` and `Channel::Base.broadcasting_for`.
+    ([Pull Request](https://github.com/rails/rails/pull/35021))
 
-    - The `ActionCable.startDebugging()` and `ActionCable.stopDebugging()`
-      methods have been removed and replaced with the property
-      `ActionCable.logger.enabled`.
+*   Close a connection when calling `reject_unauthorized_connection` from an
+    `ActionCable::Connection`.
+    ([Pull Request](https://github.com/rails/rails/pull/34194))
+
+*   Convert the Action Cable Javascript package from CoffeeScript to ES2015 and
+    publish the source code in the npm distribution.
+    ([Pull Request](https://github.com/rails/rails/pull/34370))
+
+*   Move the configuration of the WebSocket adapter and logger adapter
+    from properties of `ActionCable` to `ActionCable.adapters`.
+    ([Pull Request](https://github.com/rails/rails/pull/34370))
+
+*   Add an `id` option to the Redis adapter to distinguish Action Cable's Redis
+    connections.
+    ([Pull Request](https://github.com/rails/rails/pull/33798))
 
 Action Pack
 -----------
