@@ -1106,6 +1106,20 @@ ActiveRecord::Schema.define do
   create_table :non_primary_keys, force: true, id: false do |t|
     t.integer :id
   end
+
+  create_table :parties, force: true do |t|
+    t.string :name
+  end
+
+  create_table :participants, force: true do |t|
+    t.string :name
+    t.integer :party_id
+  end
+
+  create_table :performers, force: true do |t|
+    t.string :name
+    t.integer :party_id
+  end
 end
 
 Course.connection.create_table :courses, force: true do |t|

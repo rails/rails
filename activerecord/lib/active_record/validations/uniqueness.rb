@@ -46,12 +46,16 @@ module ActiveRecord
       # their subclasses, we have to build the hierarchy between self and
       # the record's class.
       def find_finder_class_for(record)
-        class_hierarchy = [record.class]
+        record_class = record.class
 
+        if @klass.table_name != record_class.table_name && !record_class.abstract_class? && !@klass.abstract_class?
+          return record_class
+        end
+
+        class_hierarchy = [record_class]
         while class_hierarchy.first != @klass
           class_hierarchy.unshift(class_hierarchy.first.superclass)
         end
-
         class_hierarchy.detect { |klass| !klass.abstract_class? }
       end
 

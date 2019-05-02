@@ -66,6 +66,18 @@ class TopicWithAfterCreate < Topic
   end
 end
 
+class Party < ActiveRecord::Base
+end
+
+class Participant < ActiveRecord::Base
+  belongs_to :party
+  validates_uniqueness_of :name, scope: :party
+end
+
+class Performer < Participant
+  self.table_name = "performers"
+end
+
 class UniquenessValidationTest < ActiveRecord::TestCase
   INT_MAX_VALUE = 2147483647
 
@@ -483,6 +495,11 @@ class UniquenessValidationTest < ActiveRecord::TestCase
     assert_not w6.valid?, "w6 shouldn't be valid"
     assert w6.errors[:city].any?, "Should have errors for city"
     assert_equal ["has already been taken"], w6.errors[:city], "Should have uniqueness message for city"
+
+    party = Party.create(name: "BD party")
+    Participant.create(name: "Jo", party: party)
+    performer = Performer.new(name: "Jo", party: party)
+    assert performer.valid?, "performer should be valid"
   end
 
   def test_validate_uniqueness_with_conditions
