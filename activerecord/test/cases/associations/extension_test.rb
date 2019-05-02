@@ -70,8 +70,8 @@ class AssociationsExtensionsTest < ActiveRecord::TestCase
     extend!(Developer)
     extend!(MyApplication::Business::Developer)
 
-    assert Object.const_get "DeveloperAssociationNameAssociationExtension"
-    assert MyApplication::Business.const_get "DeveloperAssociationNameAssociationExtension"
+    assert Developer.const_get "AssociationNameAssociationExtension"
+    assert MyApplication::Business::Developer.const_get "AssociationNameAssociationExtension"
   end
 
   def test_proxy_association_after_scoped
