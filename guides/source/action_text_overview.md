@@ -91,7 +91,7 @@ end
 
 By default, the Action Text editor and content is styled by the Trix defaults.
 If you want to change these defaults, you'll want to remove
-the `app/assets/stylesheets/actiontext.css` linker and base your stylings on
+the `app/assets/stylesheets/actiontext.scss` linker and base your stylings on
 the [contents of that file](https://raw.githubusercontent.com/basecamp/trix/master/dist/trix.css).
 
 You can also style the HTML used for embedded images and other attachments (known as blobs).
