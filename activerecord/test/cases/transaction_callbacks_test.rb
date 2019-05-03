@@ -551,6 +551,8 @@ class CallbacksOnMultipleActionsTest < ActiveRecord::TestCase
 end
 
 class CallbacksOnDestroyUpdateActionRaceTest < ActiveRecord::TestCase
+  self.use_transactional_tests = false
+
   class TopicWithHistory < ActiveRecord::Base
     self.table_name = :topics
 
@@ -564,11 +566,22 @@ class CallbacksOnDestroyUpdateActionRaceTest < ActiveRecord::TestCase
   end
 
   class TopicWithCallbacksOnDestroy < TopicWithHistory
-    after_commit(on: :destroy) { |record| record.class.history << :destroy }
+    after_commit(on: :destroy) { |record| record.class.history << :commit_on_destroy }
+    after_rollback(on: :destroy) { |record| record.class.history << :rollback_on_destroy }
+
+    before_destroy :before_destroy_for_transaction
+
+    private
+      def before_destroy_for_transaction; end
   end
 
   class TopicWithCallbacksOnUpdate < TopicWithHistory
-    after_commit(on: :update) { |record| record.class.history << :update }
+    after_commit(on: :update) { |record| record.class.history << :commit_on_update }
+
+    before_save :before_save_for_transaction
+
+    private
+      def before_save_for_transaction; end
   end
 
   def test_trigger_once_on_multiple_deletions
@@ -576,10 +589,39 @@ class CallbacksOnDestroyUpdateActionRaceTest < ActiveRecord::TestCase
     topic = TopicWithCallbacksOnDestroy.new
     topic.save
     topic_clone = TopicWithCallbacksOnDestroy.find(topic.id)
-    topic.destroy
-    topic_clone.destroy
 
-    assert_equal [:destroy], TopicWithCallbacksOnDestroy.history
+    topic.define_singleton_method(:before_destroy_for_transaction) do
+      topic_clone.destroy
+    end
+
+    topic.destroy
+
+    assert_equal [:commit_on_destroy], TopicWithCallbacksOnDestroy.history
+  end
+
+  def test_rollback_on_multiple_deletions
+    TopicWithCallbacksOnDestroy.clear_history
+    topic = TopicWithCallbacksOnDestroy.new
+    topic.save
+    topic_clone = TopicWithCallbacksOnDestroy.find(topic.id)
+
+    topic.define_singleton_method(:before_destroy_for_transaction) do
+      topic_clone.update!(author_name: "Test Author Clone")
+      topic_clone.destroy
+    end
+
+    TopicWithCallbacksOnDestroy.transaction do
+      topic.update!(author_name: "Test Author")
+      topic.destroy
+      raise ActiveRecord::Rollback
+    end
+
+    assert_not_predicate topic, :destroyed?
+    assert_not_predicate topic_clone, :destroyed?
+    assert_equal [nil, "Test Author"], topic.author_name_change_to_be_saved
+    assert_equal [nil, "Test Author Clone"], topic_clone.author_name_change_to_be_saved
+
+    assert_equal [:rollback_on_destroy], TopicWithCallbacksOnDestroy.history
   end
 
   def test_trigger_on_update_where_row_was_deleted
@@ -587,7 +629,11 @@ class CallbacksOnDestroyUpdateActionRaceTest < ActiveRecord::TestCase
     topic = TopicWithCallbacksOnUpdate.new
     topic.save
     topic_clone = TopicWithCallbacksOnUpdate.find(topic.id)
-    topic.destroy
+
+    topic_clone.define_singleton_method(:before_save_for_transaction) do
+      topic.destroy
+    end
+
     topic_clone.author_name = "Test Author"
     topic_clone.save
 
