@@ -44,5 +44,6 @@ end
 <% end -%>
 <% if RUBY_PLATFORM.match(/bccwin|cygwin|emx|mingw|mswin|wince|java/) -%>
 
+# Zoneinfo files not included, so bundle the tzinfo-data gem
 gem 'tzinfo-data', platforms: [:mingw, :mswin, :x64_mingw, :jruby]
 <% end -%>
