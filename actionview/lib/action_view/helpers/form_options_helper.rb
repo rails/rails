@@ -566,9 +566,10 @@ module ActionView
       # an ActiveSupport::TimeZone.
       #
       # By default, +model+ is the ActiveSupport::TimeZone constant (which can
-      # be obtained in Active Record as a value object). The only requirement
-      # is that the +model+ parameter be an object that responds to +all+, and
-      # returns an array of objects that represent time zones.
+      # be obtained in Active Record as a value object). The +model+ parameter
+      # must respond to +all+ and return an array of objects that represent time
+      # zones; each object must respond to +name+. If a Regexp is given it will
+      # attempt to match the zones using the <code>=~<code> operator.
       #
       # NOTE: Only the option tags are returned, you have to wrap this call in
       # a regular HTML select tag.
