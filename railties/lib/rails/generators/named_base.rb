@@ -187,7 +187,6 @@ module Rails
 
         def attributes_names # :doc:
           @attributes_names ||= attributes.each_with_object([]) do |a, names|
-            next if a.attachments?
             names << a.column_name
             names << "password_confirmation" if a.password_digest?
             names << "#{a.name}_type" if a.polymorphic?
