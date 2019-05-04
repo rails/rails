@@ -135,5 +135,19 @@ module ActionMailbox
         @router.add_route Array.new, to: :first
       end
     end
+
+    test "single string mailbox_for" do
+      @router.add_routes("first@example.com" => :first)
+
+      inbound_email = create_inbound_email_from_mail(to: "first@example.com", subject: "This is a reply")
+      assert_equal FirstMailbox, @router.mailbox_for(inbound_email)
+    end
+
+    test "mailbox_for with no matches" do
+      @router.add_routes("first@example.com" => :first)
+
+      inbound_email = create_inbound_email_from_mail(to: "second@example.com", subject: "This is a reply")
+      assert_nil @router.mailbox_for(inbound_email)
+    end
   end
 end
