@@ -151,25 +151,44 @@ Please refer to the [Changelog][action-cable] for detailed changes.
 
 ### Removals
 
+*   Replace `ActionCable.startDebugging()` and `ActionCable.stopDebugging()`
+    with `ActionCable.logger.enabled`.
+    ([Pull Request](https://github.com/rails/rails/pull/34370))
+
 ### Deprecations
+
+*   There are no deprecations for Action Cable in Rails 6.0.
 
 ### Notable changes
 
-*   The ActionCable javascript package has been converted from CoffeeScript
-    to ES2015, and we now publish the source code in the npm distribution.
+*   Add support for the `channel_prefix` option for PostgreSQL subscription adapters
+    in `cable.yml`.
+    ([Pull Request](https://github.com/rails/rails/pull/35276))
 
-    This allows ActionCable users to depend on the javascript source code
-    rather than the compiled code, which can produce smaller javascript bundles.
+*   Allow passing a custom configuration to `ActionCable::Server::Base`.
+    ([Pull Request](https://github.com/rails/rails/pull/34714))
 
-    This change includes some breaking changes to optional parts of the
-    ActionCable javascript API:
+*   Add `:action_cable_connection` and `:action_cable_channel` load hooks.
+    ([Pull Request](https://github.com/rails/rails/pull/35094))
 
-    - Configuration of the WebSocket adapter and logger adapter have been moved
-      from properties of `ActionCable` to properties of `ActionCable.adapters`.
+*   Add `Channel::Base#broadcast_to` and `Channel::Base.broadcasting_for`.
+    ([Pull Request](https://github.com/rails/rails/pull/35021))
 
-    - The `ActionCable.startDebugging()` and `ActionCable.stopDebugging()`
-      methods have been removed and replaced with the property
-      `ActionCable.logger.enabled`.
+*   Close a connection when calling `reject_unauthorized_connection` from an
+    `ActionCable::Connection`.
+    ([Pull Request](https://github.com/rails/rails/pull/34194))
+
+*   Convert the Action Cable Javascript package from CoffeeScript to ES2015 and
+    publish the source code in the npm distribution.
+    ([Pull Request](https://github.com/rails/rails/pull/34370))
+
+*   Move the configuration of the WebSocket adapter and logger adapter
+    from properties of `ActionCable` to `ActionCable.adapters`.
+    ([Pull Request](https://github.com/rails/rails/pull/34370))
+
+*   Add an `id` option to the Redis adapter to distinguish Action Cable's Redis
+    connections.
+    ([Pull Request](https://github.com/rails/rails/pull/33798))
 
 Action Pack
 -----------
@@ -605,9 +624,68 @@ Please refer to the [Changelog][active-storage] for detailed changes.
 
 ### Deprecations
 
+*   Deprecate  `config.active_storage.queue` in favor of `config.active_storage.queues.analysis`
+    and `config.active_storage.queues.purge`.
+    ([Pull Request](https://github.com/rails/rails/pull/34838))
+
+*   Deprecate `ActiveStorage::Downloading` in favor of `ActiveStorage::Blob#open`.
+    ([Commit](https://github.com/rails/rails/commit/ee21b7c2eb64def8f00887a9fafbd77b85f464f1))
+
+*   Deprecate using `mini_magick` directly for generating image variants in favor of
+    `image_processing`.
+    ([Commit](https://github.com/rails/rails/commit/697f4a93ad386f9fb7795f0ba68f815f16ebad0f))
+
+*   Deprecate `:combine_options` in Active Storage's ImageProcessing transformer
+    without replacement.
+    ([Commit](https://github.com/rails/rails/commit/697f4a93ad386f9fb7795f0ba68f815f16ebad0f))
+
 ### Notable changes
 
-*   Updating an attached model via `update` or `update!` ala `@user.update!(images: [ … ])` now replaces the existing images instead of merely adding to them.
+*   Add support for generating BMP image variants.
+    ([Pull Request](https://github.com/rails/rails/pull/36051))
+
+*   Add support for generating TIFF image variants.
+    ([Pull Request](https://github.com/rails/rails/pull/34824))
+
+*   Add support for generating progressive JPEG image variants.
+    ([Pull Request](https://github.com/rails/rails/pull/34455))
+
+*   Add `ActiveStorage.routes_prefix` for configuring the Active Storage generated routes.
+    ([Pull Request](https://github.com/rails/rails/pull/33883))
+
+*   Generate a 404 Not Found response on `ActiveStorage::DiskController#show` when
+    the requested file is missing from the disk service.
+    ([Pull Request](https://github.com/rails/rails/pull/33666))
+
+*   Raise `ActiveStorage::FileNotFoundError` when the requested file is missing for
+    `ActiveStorage::Blob#download` and `ActiveStorage::Blob#open`.
+    ([Pull Request](https://github.com/rails/rails/pull/33666))
+
+*   Add a generic `ActiveStorage::Error` class that Active Storage exceptions inherit from.
+    ([Commit](https://github.com/rails/rails/commit/18425b837149bc0d50f8d5349e1091a623762d6b))
+
+*   Persist uploaded files assigned to a record to storage when the record
+    is saved instead of immediately.
+    ([Pull Request](https://github.com/rails/rails/pull/33303))
+
+*   Add the ability to reflect on defined attachments using the existing
+    Active Record reflection mechanism.
+    ([Pull Request](https://github.com/rails/rails/pull/33018))
+
+*   Add `ActiveStorage::Blob#open`, which downloads a blob to a tempfile on disk
+    and yields the tempfile.
+    ([Commit](https://github.com/rails/rails/commit/ee21b7c2eb64def8f00887a9fafbd77b85f464f1))
+
+*   Support streaming downloads from Google Cloud Storage. Require version 1.11+
+    of the `google-cloud-storage` gem.
+    ([Pull Request](https://github.com/rails/rails/pull/32788))
+
+*   Use the `image_processing` gem for Active Storage variants. This replaces using
+    `mini_magick` directly.
+    ([Pull Request](https://github.com/rails/rails/pull/32471)
+
+*   Replace existing images instead of adding to them when updating an
+    attached model via `update` or `update!` with, say, `@user.update!(images: [ … ])`.
     ([Pull Request](https://github.com/rails/rails/pull/33303))
 
 Active Model
@@ -633,6 +711,30 @@ Please refer to the [Changelog][active-model] for detailed changes.
 *   Add `ActiveModel::Errors#of_kind?` to check presence of a specific error.
     ([Pull Request](https://github.com/rails/rails/pull/34866))
 
+*   Fix `ActiveModel::Serializers::JSON#as_json` method for timestamps.
+    ([Pull Request](https://github.com/rails/rails/pull/31503))
+
+*   Fix numericality validator to still use value before type cast except Active Record.
+    ([Pull Request](https://github.com/rails/rails/pull/33654))
+
+*   Fix numericality equality validation of `BigDecimal` and `Float`
+    by casting to `BigDecimal` on both ends of the validation.
+    ([Pull Request](https://github.com/rails/rails/pull/32852))
+
+*   Fix year value when casting a multiparameter time hash.
+    ([Pull Request](https://github.com/rails/rails/pull/34990))
+
+*   Type cast falsy boolean symbols on boolean attribute as false.
+    ([Pull Request](https://github.com/rails/rails/pull/35794))
+
+*   Return correct date while converting parameters in `value_from_multiparameter_assignment`
+    for `ActiveModel::Type::Date`.
+    ([Pull Request](https://github.com/rails/rails/pull/29651))
+
+*   Fall back to parent locale before falling back to the `:errors` namespace while fetching
+    error translations.
+    ([Pull Request](https://github.com/rails/rails/pull/35424))
+
 Active Support
 --------------
 
@@ -640,9 +742,195 @@ Please refer to the [Changelog][active-support] for detailed changes.
 
 ### Removals
 
+*   Remove deprecated `#acronym_regex` method from `Inflections`.
+    ([Commit](https://github.com/rails/rails/commit/0ce67d3cd6d1b7b9576b07fecae3dd5b422a5689))
+
+*   Remove deprecated `Module#reachable?` method.
+    ([Commit](https://github.com/rails/rails/commit/6eb1d56a333fd2015610d31793ed6281acd66551))
+
+*   Remove `` Kernel#` `` without any replacement.
+    ([Pull Request](https://github.com/rails/rails/pull/31253))
+
 ### Deprecations
 
+*   Deprecate using negative integer arguments for `String#first` and
+    `String#last`.
+    ([Pull Request](https://github.com/rails/rails/pull/33058))
+
+*   Deprecate `ActiveSupport::Multibyte::Unicode#downcase/upcase/swapcase`
+    in favor of `String#downcase/upcase/swapcase`.
+    ([Pull Request](https://github.com/rails/rails/pull/34123))
+
+*   Deprecate `ActiveSupport::Multibyte::Unicode#normalize`
+    and `ActiveSuppport::Multibyte::Chars#normalize` in favor of
+    `String#unicode_normalize`.
+    ([Pull Request](https://github.com/rails/rails/pull/34202))
+
+*   Deprecate `ActiveSupport::Multibyte::Chars.consumes?` in favor of
+    `String#is_utf8?`.
+    ([Pull Request](https://github.com/rails/rails/pull/34215))
+
+*   Deprecate `ActiveSupport::Multibyte::Unicode#pack_graphemes(array)`
+    and `ActiveSuppport::Multibyte::Unicode#unpack_graphemes(string)`
+    in favor of `array.flatten.pack("U*")` and `string.scan(/\X/).map(&:codepoints)`,
+    respectively.
+    ([Pull Request](https://github.com/rails/rails/pull/34254))
+
 ### Notable changes
+
+*   Add support for parallel testing.
+    ([Pull Request](https://github.com/rails/rails/pull/31900))
+
+*   Make sure that `String#strip_heredoc` preserves frozen-ness of strings.
+    ([Pull Request](https://github.com/rails/rails/pull/32037))
+
+*   Add `String#truncate_bytes` to truncate a string to a maximum bytesize
+    without breaking multibyte characters or grapheme clusters.
+    ([Pull Request](https://github.com/rails/rails/pull/27319))
+
+*   Add `private` option to `delegate` method in order to delegate to
+    private methods. This option accepts `true/false` as the value.
+    ([Pull Request](https://github.com/rails/rails/pull/31944))
+
+*   Add support for translations through I18n for `ActiveSupport::Inflector#ordinal`
+    and `ActiveSupport::Inflector#ordinalize`.
+    ([Pull Request](https://github.com/rails/rails/pull/32168))
+
+*   Add `before?` and `after?` methods to `Date`, `DateTime`,
+    `Time`, and `TimeWithZone`.
+    ([Pull Request](https://github.com/rails/rails/pull/32185))
+
+*   Fix bug where `URI.unescape` would fail with mixed Unicode/escaped character
+    input.
+    ([Pull Request](https://github.com/rails/rails/pull/32183))
+
+*   Fix bug where `ActiveSupport::Cache` would massively inflate the storage
+    size when compression was enabled.
+    ([Pull Request](https://github.com/rails/rails/pull/32539))
+
+*   Redis cache store: `delete_matched` no longer blocks the Redis server.
+    ([Pull Request](https://github.com/rails/rails/pull/32614))
+
+*   Fix bug where `ActiveSupport::TimeZone.all` would fail when tzinfo data for
+    any timezone defined in `ActiveSupport::TimeZone::MAPPING` was missing.
+    ([Pull Request](https://github.com/rails/rails/pull/32613))
+
+*   Add `Enumerable#index_with` which allows creating a hash from an enumerable
+    with the value from a passed block or a default argument.
+    ([Pull Request](https://github.com/rails/rails/pull/32523))
+
+*   Allow `Range#===` and `Range#cover?` methods to work with `Range` argument.
+    ([Pull Request](https://github.com/rails/rails/pull/32938))
+
+*   Support key expiry in `increment/decrement` operations of RedisCacheStore.
+    ([Pull Request](https://github.com/rails/rails/pull/33254))
+
+*   Add cpu time, idle time, and allocations features to log subscriber events.
+    ([Pull Request](https://github.com/rails/rails/pull/33449))
+
+*   Add support for event object to the Active Support notification system.
+    ([Pull Request](https://github.com/rails/rails/pull/33451))
+
+*   Add support for not caching `nil` entries by introducing new option `skip_nil`
+    for `ActiveSupport::Cache#fetch`.
+    ([Pull Request](https://github.com/rails/rails/pull/25437))
+
+*   Add `Array#extract!` method which removes and returns the elements for which
+    block returns a true value.
+    ([Pull Request](https://github.com/rails/rails/pull/33137))
+
+*   Keep an HTML-safe string HTML-safe after slicing.
+    ([Pull Request](https://github.com/rails/rails/pull/33808))
+
+*   Add support for tracing constant autoloads via logging.
+    ([Commit](https://github.com/rails/rails/commit/c03bba4f1f03bad7dc034af555b7f2b329cf76f5))
+
+*   Define `unfreeze_time` as an alias of `travel_back`.
+    ([Pull Request](https://github.com/rails/rails/pull/33813))
+
+*   Change `ActiveSupport::TaggedLogging.new` to return a new logger instance
+    instead of mutating the one received as argument.
+    ([Pull Request](https://github.com/rails/rails/pull/27792))
+
+*   Treat `#delete_prefix`, `#delete_suffix` and `#unicode_normalize` methods
+    as non HTML-safe methods.
+    ([Pull Request](https://github.com/rails/rails/pull/33990))
+
+*   Fix bug where `#without` for `ActiveSupport::HashWithIndifferentAccess`
+    would fail with symbol arguments.
+    ([Pull Request](https://github.com/rails/rails/pull/34012))
+
+*   Rename `Module#parent`, `Module#parents`, and `Module#parent_name` to
+    `module_parent`, `module_parents`, and `module_parent_name`.
+    ([Pull Request](https://github.com/rails/rails/pull/34051))
+
+*   Add `ActiveSupport::ParameterFilter`.
+    ([Pull Request](https://github.com/rails/rails/pull/34039))
+
+*   Fix issue where duration was being rounded to a full second when a float
+    was added to the duration.
+    ([Pull Request](https://github.com/rails/rails/pull/34135))
+
+*   Make `#to_options` an alias for `#symbolize_keys` in
+    `ActiveSupport::HashWithIndifferentAccess`.
+    ([Pull Request](https://github.com/rails/rails/pull/34360))
+
+*   Don't raise an exception anymore if the same block is included multiple times
+    for a Concern.
+    ([Pull Request](https://github.com/rails/rails/pull/34553))
+
+*   Preserve key order passed to `ActiveSupport::CacheStore#fetch_multi`.
+    ([Pull Request](https://github.com/rails/rails/pull/34700))
+
+*   Fix `String#safe_constantize` to not throw a `LoadError` for incorrectly
+    cased constant references.
+    ([Pull Request](https://github.com/rails/rails/pull/34892))
+
+*   Add `Hash#deep_transform_values` and `Hash#deep_transform_values!`.
+    ([Commit](https://github.com/rails/rails/commit/b8dc06b8fdc16874160f61dcf58743fcc10e57db))
+
+*   Add `ActiveSupport::HashWithIndifferentAccess#assoc`.
+    ([Pull Request](https://github.com/rails/rails/pull/35080))
+
+*   Add `before_reset` callback to `CurrentAttributes` and define
+    `after_reset` as an alias of `resets` for symmetry.
+    ([Pull Request](https://github.com/rails/rails/pull/35063))
+
+*   Revise `ActiveSupport::Notifications.unsubscribe` to correctly
+    handle Regex or other multiple-pattern subscribers.
+    ([Pull Request](https://github.com/rails/rails/pull/32861))
+
+*   Add new autoloading mechanism using Zeitwerk.
+    ([Commit](https://github.com/rails/rails/commit/e53430fa9af239e21e11548499d814f540d421e5))
+
+*   Add `Array#including` and `Enumerable#including` to conveniently enlarge
+    a collection.
+    ([Commit](https://github.com/rails/rails/commit/bfaa3091c3c32b5980a614ef0f7b39cbf83f6db3))
+
+*   Rename `Array#without` and `Enumerable#without` to `Array#excluding`
+    and `Enumerable#excluding`. Old method names are retained as aliases.
+    ([Commit](https://github.com/rails/rails/commit/bfaa3091c3c32b5980a614ef0f7b39cbf83f6db3))
+
+*   Add support for supplying `locale` to `transliterate` and `parameterize`.
+    ([Pull Request](https://github.com/rails/rails/pull/35571))
+
+*   Fix `Time#advance` to work with dates before 1001-03-07.
+    ([Pull Request](https://github.com/rails/rails/pull/35659))
+
+*   Update `ActiveSupport::Notifications::Instrumenter#instrument` to allow
+    not passing block.
+    ([Pull Request](https://github.com/rails/rails/pull/35705))
+
+*   Use weak references in descendants tracker to allow anonymous subclasses to
+    be garbage collected.
+    ([Pull Request](https://github.com/rails/rails/pull/31442))
+
+*   Calling test methods with `with_info_handler` method to allow minitest-hooks
+    plugin to work.
+    ([Commit](https://github.com/rails/rails/commit/758ba117a008b6ea2d3b92c53b6a7a8d7ccbca69))
+
+*   Preserve `html_safe?` status on `ActiveSupport::SafeBuffer#*`.
+    ([Pull Request](https://github.com/rails/rails/pull/36012))
 
 Active Job
 ----------
