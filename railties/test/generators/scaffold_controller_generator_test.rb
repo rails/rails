@@ -89,6 +89,15 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_controller_permit_attachments_attributes_only
+    run_generator ["Message", "photos:attachments"]
+
+    assert_file "app/controllers/messages_controller.rb" do |content|
+      assert_match(/def message_params/, content)
+      assert_match(/params\.require\(:message\)\.permit\(photos: \[\]\)/, content)
+    end
+  end
+
   def test_helper_are_invoked_with_a_pluralized_name
     run_generator
     assert_file "app/helpers/users_helper.rb", /module UsersHelper/
