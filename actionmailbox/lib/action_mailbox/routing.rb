@@ -19,7 +19,7 @@ module ActionMailbox
       end
 
       def mailbox_for(inbound_email)
-        router.route(inbound_email)
+        router.mailbox_for(inbound_email)
       end
     end
   end
