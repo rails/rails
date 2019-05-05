@@ -30,7 +30,7 @@ class ActionMailbox::Base::RoutingTest < ActiveSupport::TestCase
   end
 
   test "mailbox_for" do
-    mail = create_inbound_email_from_fixture "welcome.eml", status: :pending
-    assert_equal RepliesMailbox, ApplicationMailbox.mailbox_for(mail)
+    inbound_email = create_inbound_email_from_fixture "welcome.eml", status: :pending
+    assert_equal RepliesMailbox, ApplicationMailbox.mailbox_for(inbound_email)
   end
 end
