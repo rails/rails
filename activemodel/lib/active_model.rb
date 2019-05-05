@@ -42,6 +42,7 @@ module ActiveModel
   autoload :ForbiddenAttributesProtection
   autoload :Lint
   autoload :Model
+  autoload :MultiparameterAttributeAssignment
   autoload :Name, "active_model/naming"
   autoload :Naming
   autoload :SecurePassword
@@ -52,7 +53,9 @@ module ActiveModel
   autoload :Validator
 
   eager_autoload do
+    autoload :AttributeAssignmentError, "active_model/multiparameter_attribute_assignment"
     autoload :Errors
+    autoload :MultiparameterAssignmentErrors, "active_model/multiparameter_attribute_assignment"
     autoload :RangeError, "active_model/errors"
     autoload :StrictValidationFailed, "active_model/errors"
     autoload :UnknownAttributeError, "active_model/errors"
