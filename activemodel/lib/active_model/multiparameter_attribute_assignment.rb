@@ -38,11 +38,11 @@ module ActiveModel
           end
           send("#{name}=", values)
         rescue => ex
-          errors << AttributeAssignmentError.new("error on assignment #{values_with_empty_parameters.values.inspect} to #{name} (#{ex.message})", ex, name)
+          errors << attribute_assignment_error_class.new("error on assignment #{values_with_empty_parameters.values.inspect} to #{name} (#{ex.message})", ex, name)
         end
         unless errors.empty?
           error_descriptions = errors.map(&:message).join(",")
-          raise MultiparameterAssignmentErrors.new(errors), "#{errors.size} error(s) on assignment of multiparameter attributes [#{error_descriptions}]"
+          raise multiparameter_assignment_errors_class.new(errors), "#{errors.size} error(s) on assignment of multiparameter attributes [#{error_descriptions}]"
         end
       end
 
@@ -66,6 +66,14 @@ module ActiveModel
 
       def find_parameter_position(multiparameter_name)
         multiparameter_name.scan(/\(([0-9]*).*\)/).first.first.to_i
+      end
+
+      def attribute_assignment_error_class
+        ActiveModel::AttributeAssignmentError
+      end
+
+      def multiparameter_assignment_errors_class
+        ActiveModel::MultiparameterAssignmentErrors
       end
   end
 
