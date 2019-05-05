@@ -96,12 +96,12 @@ module ActiveRecord
 
         def exec_query(sql, name = "SQL", binds = [], prepare: false)
           execute_and_clear(sql, name, binds, prepare: prepare) do |result|
-            types = {}
+            types = []
             fields = result.fields
             fields.each_with_index do |fname, i|
               ftype = result.ftype i
               fmod  = result.fmod i
-              types[fname] = get_oid_type(ftype, fmod, fname)
+              types << get_oid_type(ftype, fmod, fname)
             end
             build_result(columns: fields, rows: result.values, column_types: types)
           end

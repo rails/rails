@@ -34,13 +34,13 @@ module ActiveRecord
   class Result
     include Enumerable
 
-    attr_reader :columns, :rows, :column_types
+    attr_reader :columns, :rows, :types
 
-    def initialize(columns, rows, column_types = {})
+    def initialize(columns, rows, types = [])
       @columns      = columns
       @rows         = rows
       @hash_rows    = nil
-      @column_types = column_types
+      @types        = types
     end
 
     # Returns true if this result set includes the column named +name+
@@ -110,13 +110,15 @@ module ActiveRecord
       if columns.one?
         # Separated to avoid allocating an array per row
 
-        type = column_type(columns.first, type_overrides)
+        type = column_type(columns.first, 0, type_overrides)
 
         rows.map do |(value)|
           type.deserialize(value)
         end
       else
-        types = columns.map { |name| column_type(name, type_overrides) }
+        types = columns.map.with_index do |name, i|
+          column_type(name, i, type_overrides)
+        end
 
         rows.map do |values|
           Array.new(values.size) { |i| types[i].deserialize(values[i]) }
@@ -127,14 +129,22 @@ module ActiveRecord
     def initialize_copy(other)
       @columns      = columns.dup
       @rows         = rows.dup
-      @column_types = column_types.dup
       @hash_rows    = nil
+      @types        = types.dup
+    end
+
+    def column_types
+      if @types.present?
+        Hash[@columns.zip(@types)]
+      else
+        {}
+      end
     end
 
     private
-      def column_type(name, type_overrides = {})
+      def column_type(name, index, type_overrides = {})
         type_overrides.fetch(name) do
-          column_types.fetch(name, Type.default_value)
+          types[index] || Type.default_value
         end
       end
 

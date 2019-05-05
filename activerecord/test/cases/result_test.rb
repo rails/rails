@@ -69,7 +69,7 @@ module ActiveRecord
     test "cast_values returns rows after type casting" do
       values = [["1.1", "2.2"], ["3.3", "4.4"]]
       columns = ["col1", "col2"]
-      types = { "col1" => Type::Integer.new, "col2" => Type::Float.new }
+      types = [Type::Integer.new, Type::Float.new]
       result = Result.new(columns, values, types)
 
       assert_equal [[1, 2.2], [3, 4.4]], result.cast_values
@@ -78,7 +78,7 @@ module ActiveRecord
     test "cast_values uses identity type for unknown types" do
       values = [["1.1", "2.2"], ["3.3", "4.4"]]
       columns = ["col1", "col2"]
-      types = { "col1" => Type::Integer.new }
+      types = [Type::Integer.new]
       result = Result.new(columns, values, types)
 
       assert_equal [[1, "2.2"], [3, "4.4"]], result.cast_values
@@ -87,7 +87,7 @@ module ActiveRecord
     test "cast_values returns single dimensional array if single column" do
       values = [["1.1"], ["3.3"]]
       columns = ["col1"]
-      types = { "col1" => Type::Integer.new }
+      types = [Type::Integer.new]
       result = Result.new(columns, values, types)
 
       assert_equal [1, 3], result.cast_values
@@ -96,7 +96,7 @@ module ActiveRecord
     test "cast_values can receive types to use instead" do
       values = [["1.1", "2.2"], ["3.3", "4.4"]]
       columns = ["col1", "col2"]
-      types = { "col1" => Type::Integer.new, "col2" => Type::Float.new }
+      types = [Type::Integer.new, Type::Float.new]
       result = Result.new(columns, values, types)
 
       assert_equal [[1.1, 2.2], [3.3, 4.4]], result.cast_values("col1" => Type::Float.new)

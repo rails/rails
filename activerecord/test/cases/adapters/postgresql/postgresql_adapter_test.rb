@@ -3,6 +3,8 @@
 require "cases/helper"
 require "support/ddl_helper"
 require "support/connection_helper"
+require "models/book"
+require "models/author"
 
 module ActiveRecord
   module ConnectionAdapters
@@ -340,6 +342,25 @@ module ActiveRecord
       ensure
         @connection.execute "DROP TYPE IF EXISTS feeling"
         reset_connection
+      end
+
+      def test_support_different_types_for_results_with_the_same_column_name
+        result = @connection.select_all "select COALESCE(NULL, 'four'), COALESCE(NULL, 4)"
+        assert_equal [["four", 4]], result.cast_values
+        assert_instance_of(ActiveRecord::Type::Text, result.types[0])
+        assert_instance_of(ActiveRecord::Type::Integer, result.types[1])
+      end
+
+      def test_support_different_types_for_columns_with_the_same_name_but_different_tables
+        author = Author.create!(name: "Jules Verne", status: "deceased")
+        Book.create!(author: author, name: "Around the World in Eighty Days", status: :published)
+        result = @connection.select_all <<~SQL
+          SELECT authors.status, books.status
+          FROM authors
+          INNER JOIN books ON books.author_id = authors.id
+          WHERE books.name = 'Around the World in Eighty Days'
+        SQL
+        assert_equal [["deceased", 2]], result.cast_values
       end
 
       def test_only_reload_type_map_once_for_every_unrecognized_type
