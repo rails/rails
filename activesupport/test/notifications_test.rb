@@ -62,6 +62,38 @@ module Notifications
     end
   end
 
+  class TimedAndMonotonicTimedSubscriberTest < TestCase
+    def test_subscribe
+      event_name = "foo"
+      class_of_started = nil
+      class_of_finished = nil
+
+      ActiveSupport::Notifications.subscribe(event_name) do |name, started, finished, unique_id, data|
+        class_of_started = started.class
+        class_of_finished = finished.class
+      end
+
+      ActiveSupport::Notifications.instrument(event_name)
+
+      assert_equal [Time, Time], [class_of_started, class_of_finished]
+    end
+
+    def test_monotonic_subscribe
+      event_name = "foo"
+      class_of_started = nil
+      class_of_finished = nil
+
+      ActiveSupport::Notifications.monotonic_subscribe(event_name) do |name, started, finished, unique_id, data|
+        class_of_started = started.class
+        class_of_finished = finished.class
+      end
+
+      ActiveSupport::Notifications.instrument(event_name)
+
+      assert_equal [Float, Float], [class_of_started, class_of_finished]
+    end
+  end
+
   class SubscribedTest < TestCase
     def test_subscribed
       name     = "foo"
@@ -94,6 +126,42 @@ module Notifications
       end
     ensure
       ActiveSupport::Notifications.notifier = old_notifier
+    end
+
+    def test_timed_subscribed
+      event_name = "foo"
+      class_of_started = nil
+      class_of_finished = nil
+      callback = lambda do |name, started, finished, unique_id, data|
+        class_of_started = started.class
+        class_of_finished = finished.class
+      end
+
+      ActiveSupport::Notifications.subscribed(callback, event_name) do
+        ActiveSupport::Notifications.instrument(event_name)
+      end
+
+      ActiveSupport::Notifications.instrument(event_name)
+
+      assert_equal [Time, Time], [class_of_started, class_of_finished]
+    end
+
+    def test_monotonic_timed_subscribed
+      event_name = "foo"
+      class_of_started = nil
+      class_of_finished = nil
+      callback = lambda do |name, started, finished, unique_id, data|
+        class_of_started = started.class
+        class_of_finished = finished.class
+      end
+
+      ActiveSupport::Notifications.subscribed(callback, event_name, monotonic: true) do
+        ActiveSupport::Notifications.instrument(event_name)
+      end
+
+      ActiveSupport::Notifications.instrument(event_name)
+
+      assert_equal [Float, Float], [class_of_started, class_of_finished]
     end
   end
 
@@ -316,7 +384,6 @@ module Notifications
 
       assert_equal 0, event.cpu_time
     end
-
 
     def test_events_consumes_information_given_as_payload
       event = event(:foo, Concurrent.monotonic_time, Concurrent.monotonic_time + 1, random_id, payload: :bar)

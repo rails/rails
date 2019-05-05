@@ -20,8 +20,8 @@ module ActiveSupport
         super
       end
 
-      def subscribe(pattern = nil, callable = nil, &block)
-        subscriber = Subscribers.new(pattern, callable || block)
+      def subscribe(pattern = nil, callable = nil, monotonic = false, &block)
+        subscriber = Subscribers.new(monotonic, pattern, callable || block)
         synchronize do
           if String === pattern
             @string_subscribers[pattern] << subscriber
@@ -84,8 +84,8 @@ module ActiveSupport
       end
 
       module Subscribers # :nodoc:
-        def self.new(pattern, listener)
-          subscriber_class = Timed
+        def self.new(monotonic, pattern, listener)
+          subscriber_class = monotonic ? MonotonicTimed : Timed
 
           if listener.respond_to?(:start) && listener.respond_to?(:finish)
             subscriber_class = Evented
@@ -187,6 +187,23 @@ module ActiveSupport
             timestack = Thread.current[:_timestack]
             started = timestack.pop
             @delegate.call(name, started, Time.now, id, payload)
+          end
+        end
+
+        class MonotonicTimed < Evented # :nodoc:
+          def publish(name, *args)
+            @delegate.call name, *args
+          end
+
+          def start(name, id, payload)
+            timestack = Thread.current[:_timestack_monotonic] ||= []
+            timestack.push Concurrent.monotonic_time
+          end
+
+          def finish(name, id, payload)
+            timestack = Thread.current[:_timestack_monotonic]
+            started = timestack.pop
+            @delegate.call(name, started, Concurrent.monotonic_time, id, payload)
           end
         end
 
