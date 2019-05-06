@@ -180,6 +180,6 @@ class ViewLoadPathsTest < ActionController::TestCase
   end
 
   def test_lookup_context_accessor
-    assert_equal ["test"], TestController.new.lookup_context.prefixes
+    assert_equal ["test"], TestController.new.lookup_context.partial_prefixes
   end
 end

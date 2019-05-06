@@ -291,7 +291,7 @@ module ActionView
 
     def initialize(*)
       super
-      @context_prefix = @lookup_context.prefixes.first
+      @context_prefix = @lookup_context.partial_prefixes.first
     end
 
     def render(context, options, block)
@@ -429,7 +429,7 @@ module ActionView
       end
 
       def find_template(path, locals)
-        prefixes = path.include?(?/) ? [] : @lookup_context.prefixes
+        prefixes = path.include?(?/) ? [] : @lookup_context.partial_prefixes
         @lookup_context.find_template(path, prefixes, true, locals, @details)
       end
 

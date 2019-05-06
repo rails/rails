@@ -236,10 +236,10 @@ class LookupContextTest < ActiveSupport::TestCase
     assert_not_equal template, old_template
   end
 
-  test "responds to #prefixes" do
-    assert_equal [], @lookup_context.prefixes
-    @lookup_context.prefixes = ["foo"]
-    assert_equal ["foo"], @lookup_context.prefixes
+  test "responds to #partial_prefixes" do
+    assert_equal [], @lookup_context.partial_prefixes
+    @lookup_context.partial_prefixes = ["foo"]
+    assert_equal ["foo"], @lookup_context.partial_prefixes
   end
 end
 

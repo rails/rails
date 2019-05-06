@@ -15,7 +15,7 @@ module ActionView
   # view paths, used in the resolver cache lookup. Since this key is generated
   # only once during the request, it speeds up all cache accesses.
   class LookupContext #:nodoc:
-    attr_accessor :prefixes, :rendered_format
+    attr_accessor :partial_prefixes, :rendered_format
     deprecate :rendered_format
     deprecate :rendered_format=
 
@@ -166,7 +166,7 @@ module ActionView
             @view_paths = _view_paths
           end
         else
-          ActionView::LookupContext.new(view_paths, @details, @prefixes)
+          ActionView::LookupContext.new(view_paths, @details, @partial_prefixes)
         end
       end
 
@@ -246,11 +246,11 @@ module ActionView
     include DetailsCache
     include ViewPaths
 
-    def initialize(view_paths, details = {}, prefixes = [])
+    def initialize(view_paths, details = {}, partial_prefixes = [])
       @details_key = nil
       @digest_cache = nil
       @cache = true
-      @prefixes = prefixes
+      @partial_prefixes = partial_prefixes
 
       @details = initialize_details({}, details)
       @view_paths = build_view_paths(view_paths)
@@ -264,7 +264,7 @@ module ActionView
       details = @details.dup
       details[:formats] = formats
 
-      self.class.new(@view_paths, details, @prefixes)
+      self.class.new(@view_paths, details, @partial_prefixes)
     end
 
     def initialize_details(target, details)
