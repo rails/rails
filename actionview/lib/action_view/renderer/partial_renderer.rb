@@ -305,7 +305,7 @@ module ActionView
         else
           @template_keys = @locals.keys
         end
-        template = find_partial(@path, @template_keys)
+        template = find_template(@path, @template_keys)
         @variable ||= template.variable
       else
         if options[:cached]
@@ -426,10 +426,6 @@ module ActionView
 
       def collection_from_object
         @object.to_ary if @object.respond_to?(:to_ary)
-      end
-
-      def find_partial(path, template_keys)
-        find_template(path, template_keys)
       end
 
       def find_template(path, locals)
