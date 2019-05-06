@@ -98,9 +98,13 @@ module ActiveRecord
       end
 
       def rollback_records
-        ite = records.uniq
+        ite = records.uniq(&:object_id)
+        already_run_callbacks = {}
         while record = ite.shift
-          record.rolledback!(force_restore_state: full_rollback?)
+          trigger_callbacks = record.trigger_transactional_callbacks?
+          should_run_callbacks = !already_run_callbacks[record] && trigger_callbacks
+          already_run_callbacks[record] ||= trigger_callbacks
+          record.rolledback!(force_restore_state: full_rollback?, should_run_callbacks: should_run_callbacks)
         end
       ensure
         ite.each do |i|
@@ -113,10 +117,14 @@ module ActiveRecord
       end
 
       def commit_records
-        ite = records.uniq
+        ite = records.uniq(&:object_id)
+        already_run_callbacks = {}
         while record = ite.shift
           if @run_commit_callbacks
-            record.committed!
+            trigger_callbacks = record.trigger_transactional_callbacks?
+            should_run_callbacks = !already_run_callbacks[record] && trigger_callbacks
+            already_run_callbacks[record] ||= trigger_callbacks
+            record.committed!(should_run_callbacks: should_run_callbacks)
           else
             # if not running callbacks, only adds the record to the parent transaction
             connection.add_transaction_record(record)
