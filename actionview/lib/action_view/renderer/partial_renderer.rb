@@ -374,8 +374,7 @@ module ActionView
       def setup(context, options, as, block)
         @options = options
         @block   = block
-
-        @current_directory = Pathname.new(context.virtual_path.to_s).dirname
+        @current_directory = Pathname.new(context.current_template&.virtual_path.to_s).dirname
 
         @locals  = options[:locals] || {}
         @details = extract_details(options)
@@ -436,9 +435,9 @@ module ActionView
         return path, @lookup_context.prefixes if !path.include?("/")
         return path, [] if !path.start_with?(".")
 
-        pathname = Pathname.new(path)
-        relative_path = @current_directory + pathname.dirname
-        [pathname.basename, [relative_path.to_s]]
+        dirname, basename = Pathname.new(path).split
+        relative_path = @current_directory + dirname
+        [basename, [relative_path.to_s]]
       end
 
       def collection_with_template(view, template)
