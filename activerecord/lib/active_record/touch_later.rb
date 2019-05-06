@@ -18,6 +18,7 @@ module ActiveRecord
 
       surreptitiously_touch @_defer_touch_attrs
       add_to_transaction
+      @_new_record_before_last_commit ||= false
 
       # touch the parents as we are not calling the after_save callbacks
       self.class.reflect_on_all_associations(:belongs_to).each do |r|

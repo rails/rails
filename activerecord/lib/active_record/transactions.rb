@@ -333,7 +333,7 @@ module ActiveRecord
     # Ensure that it is not called if the object was never persisted (failed create),
     # but call it after the commit of a destroyed object.
     def committed!(should_run_callbacks: true) #:nodoc:
-      if should_run_callbacks && trigger_transactional_callbacks?
+      if should_run_callbacks
         @_committed_already_called = true
         _run_commit_without_transaction_enrollment_callbacks
         _run_commit_callbacks
@@ -346,7 +346,7 @@ module ActiveRecord
     # Call the #after_rollback callbacks. The +force_restore_state+ argument indicates if the record
     # state should be rolled back to the beginning or just to the last savepoint.
     def rolledback!(force_restore_state: false, should_run_callbacks: true) #:nodoc:
-      if should_run_callbacks && trigger_transactional_callbacks?
+      if should_run_callbacks
         _run_rollback_callbacks
         _run_rollback_without_transaction_enrollment_callbacks
       end
@@ -378,6 +378,11 @@ module ActiveRecord
       status
     end
 
+    def trigger_transactional_callbacks? # :nodoc:
+      (@_new_record_before_last_commit || _trigger_update_callback) && persisted? ||
+        _trigger_destroy_callback && destroyed?
+    end
+
     private
       attr_reader :_committed_already_called, :_trigger_update_callback, :_trigger_destroy_callback
 
@@ -392,10 +397,7 @@ module ActiveRecord
           level: 0
         }
         @_start_transaction_state[:level] += 1
-        remember_new_record_before_last_commit
-      end
 
-      def remember_new_record_before_last_commit
         if _committed_already_called
           @_new_record_before_last_commit = false
         else
@@ -455,10 +457,6 @@ module ActiveRecord
       # callbacks can be called.
       def add_to_transaction
         self.class.connection.add_transaction_record(self)
-      end
-
-      def trigger_transactional_callbacks?
-        @_new_record_before_last_commit && !new_record? || _trigger_update_callback || _trigger_destroy_callback
       end
 
       def has_transactional_callbacks?
