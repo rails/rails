@@ -531,7 +531,7 @@ Please refer to the [Changelog][active-record] for detailed changes.
     and `rails db:schema:cache:clear`.
     ([Pull Request](https://github.com/rails/rails/pull/34181))
 
-*   Add support for hash and url configs in database hash of `ActiveRecord::Base.connected_to`.
+*   Add support for hash and url configs in database hash of `ActiveRecord::Base.connecting_to`.
     ([Pull Request](https://github.com/rails/rails/pull/34196))
 
 *   Add support for default expressions and expression indexes for MySQL.

@@ -35,7 +35,7 @@ module ActiveRecord
         MultiConnectionTestModel.connection.execute("CREATE TABLE `test_1` (connection_role VARCHAR (255))")
         MultiConnectionTestModel.connection.execute("INSERT INTO test_1 VALUES ('writing')")
 
-        ActiveRecord::Base.connected_to(role: :reading) do
+        ActiveRecord::Base.connecting_to(role: :reading) do
           MultiConnectionTestModel.connection.execute("CREATE TABLE `test_1` (connection_role VARCHAR (255))")
           MultiConnectionTestModel.connection.execute("INSERT INTO test_1 VALUES ('reading')")
         end
@@ -53,7 +53,7 @@ module ActiveRecord
           read_latch.count_down
         end
 
-        ActiveRecord::Base.connected_to(role: :reading) do
+        ActiveRecord::Base.connecting_to(role: :reading) do
           write_latch.count_down
           assert_equal "reading", MultiConnectionTestModel.connection.select_value("SELECT connection_role from test_1")
           read_latch.wait
@@ -105,20 +105,20 @@ module ActiveRecord
 
           ActiveRecord::Base.connects_to(database: { writing: :primary, reading: :readonly })
 
-          ActiveRecord::Base.connected_to(role: :reading) do
+          ActiveRecord::Base.connecting_to(role: :reading) do
             @ro_handler = ActiveRecord::Base.connection_handler
             assert_equal ActiveRecord::Base.connection_handler, ActiveRecord::Base.connection_handlers[:reading]
             assert_equal :reading, ActiveRecord::Base.current_role
-            assert ActiveRecord::Base.connected_to?(role: :reading)
-            assert_not ActiveRecord::Base.connected_to?(role: :writing)
+            assert ActiveRecord::Base.connecting_to?(role: :reading)
+            assert_not ActiveRecord::Base.connecting_to?(role: :writing)
           end
 
-          ActiveRecord::Base.connected_to(role: :writing) do
+          ActiveRecord::Base.connecting_to(role: :writing) do
             assert_equal ActiveRecord::Base.connection_handler, ActiveRecord::Base.connection_handlers[:writing]
             assert_not_equal @ro_handler, ActiveRecord::Base.connection_handler
             assert_equal :writing, ActiveRecord::Base.current_role
-            assert ActiveRecord::Base.connected_to?(role: :writing)
-            assert_not ActiveRecord::Base.connected_to?(role: :reading)
+            assert ActiveRecord::Base.connecting_to?(role: :writing)
+            assert_not ActiveRecord::Base.connecting_to?(role: :reading)
           end
         ensure
           ActiveRecord::Base.configurations = @prev_configs
@@ -154,9 +154,9 @@ module ActiveRecord
           previous_env, ENV["RAILS_ENV"] = ENV["RAILS_ENV"], "default_env"
           previous_url, ENV["DATABASE_URL"] = ENV["DATABASE_URL"], "postgres://localhost/foo"
 
-          ActiveRecord::Base.connected_to(database: { writing: "postgres://localhost/bar" }) do
+          ActiveRecord::Base.connecting_to(database: { writing: "postgres://localhost/bar" }) do
             assert_equal :writing, ActiveRecord::Base.current_role
-            assert ActiveRecord::Base.connected_to?(role: :writing)
+            assert ActiveRecord::Base.connecting_to?(role: :writing)
 
             handler = ActiveRecord::Base.connection_handler
             assert_equal handler, ActiveRecord::Base.connection_handlers[:writing]
@@ -174,9 +174,9 @@ module ActiveRecord
           previous_env, ENV["RAILS_ENV"] = ENV["RAILS_ENV"], "default_env"
           config = { adapter: "sqlite3", database: "db/readonly.sqlite3" }
 
-          ActiveRecord::Base.connected_to(database: { writing: config }) do
+          ActiveRecord::Base.connecting_to(database: { writing: config }) do
             assert_equal :writing, ActiveRecord::Base.current_role
-            assert ActiveRecord::Base.connected_to?(role: :writing)
+            assert ActiveRecord::Base.connecting_to?(role: :writing)
 
             handler = ActiveRecord::Base.connection_handler
             assert_equal handler, ActiveRecord::Base.connection_handlers[:writing]
@@ -191,14 +191,14 @@ module ActiveRecord
 
         def test_switching_connections_with_database_and_role_raises
           error = assert_raises(ArgumentError) do
-            ActiveRecord::Base.connected_to(database: :readonly, role: :writing) { }
+            ActiveRecord::Base.connecting_to(database: :readonly, role: :writing) { }
           end
-          assert_equal "connected_to can only accept a `database` or a `role` argument, but not both arguments.", error.message
+          assert_equal "connecting_to can only accept a `database` or a `role` argument, but not both arguments.", error.message
         end
 
         def test_switching_connections_without_database_and_role_raises
           error = assert_raises(ArgumentError) do
-            ActiveRecord::Base.connected_to { }
+            ActiveRecord::Base.connecting_to { }
           end
           assert_equal "must provide a `database` or a `role`.", error.message
         end
@@ -214,9 +214,9 @@ module ActiveRecord
           }
           @prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, config
 
-          ActiveRecord::Base.connected_to(database: :animals) do
+          ActiveRecord::Base.connecting_to(database: :animals) do
             assert_equal :writing, ActiveRecord::Base.current_role
-            assert ActiveRecord::Base.connected_to?(role: :writing)
+            assert ActiveRecord::Base.connecting_to?(role: :writing)
 
             handler = ActiveRecord::Base.connection_handler
             assert_equal handler, ActiveRecord::Base.connection_handlers[:writing]
@@ -241,9 +241,9 @@ module ActiveRecord
           }
           @prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, config
 
-          ActiveRecord::Base.connected_to(database: { writing: :primary }) do
+          ActiveRecord::Base.connecting_to(database: { writing: :primary }) do
             assert_equal :writing, ActiveRecord::Base.current_role
-            assert ActiveRecord::Base.connected_to?(role: :writing)
+            assert ActiveRecord::Base.connecting_to?(role: :writing)
 
             handler = ActiveRecord::Base.connection_handler
             assert_equal handler, ActiveRecord::Base.connection_handlers[:writing]
@@ -268,7 +268,7 @@ module ActiveRecord
           assert_equal 1, ActiveRecord::Base.connection_handlers.size
           assert_equal ActiveRecord::Base.connection_handler, ActiveRecord::Base.connection_handlers[:writing]
           assert_equal :writing, ActiveRecord::Base.current_role
-          assert ActiveRecord::Base.connected_to?(role: :writing)
+          assert ActiveRecord::Base.connecting_to?(role: :writing)
         ensure
           ActiveRecord::Base.configurations = @prev_configs
           ActiveRecord::Base.establish_connection(:arunit)
@@ -386,9 +386,9 @@ module ActiveRecord
         ActiveRecord::Base.connection_handlers = original_handlers
       end
 
-      def test_calling_connected_to_on_a_non_existent_handler_raises
+      def test_calling_connecting_to_on_a_non_existent_handler_raises
         error = assert_raises ActiveRecord::ConnectionNotEstablished do
-          ActiveRecord::Base.connected_to(role: :reading) do
+          ActiveRecord::Base.connecting_to(role: :reading) do
             Person.first
           end
         end

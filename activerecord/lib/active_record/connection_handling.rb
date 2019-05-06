@@ -84,23 +84,23 @@ module ActiveRecord
     # If a role is passed, Active Record will look up the connection
     # based on the requested role:
     #
-    #   ActiveRecord::Base.connected_to(role: :writing) do
+    #   ActiveRecord::Base.connecting_to(role: :writing) do
     #     Dog.create! # creates dog using dog writing connection
     #   end
     #
-    #   ActiveRecord::Base.connected_to(role: :reading) do
+    #   ActiveRecord::Base.connecting_to(role: :reading) do
     #     Dog.create! # throws exception because we're on a replica
     #   end
     #
-    #   ActiveRecord::Base.connected_to(role: :unknown_role) do
+    #   ActiveRecord::Base.connecting_to(role: :unknown_role) do
     #     # raises exception due to non-existent role
     #   end
     #
     # For cases where you may want to connect to a database outside of the model,
-    # you can use +connected_to+ with a +database+ argument. The +database+ argument
+    # you can use +connecting_to+ with a +database+ argument. The +database+ argument
     # expects a symbol that corresponds to the database key in your config.
     #
-    #   ActiveRecord::Base.connected_to(database: :animals_slow_replica) do
+    #   ActiveRecord::Base.connecting_to(database: :animals_slow_replica) do
     #     Dog.run_a_long_query # runs a long query while connected to the +animals_slow_replica+
     #   end
     #
@@ -108,15 +108,15 @@ module ActiveRecord
     # default the `:writing` role will be used since all connections must be assigned
     # a role. If you would like to use a different role you can pass a hash to database:
     #
-    #   ActiveRecord::Base.connected_to(database: { readonly_slow: :animals_slow_replica }) do
+    #   ActiveRecord::Base.connecting_to(database: { readonly_slow: :animals_slow_replica }) do
     #     # runs a long query while connected to the +animals_slow_replica+ using the readonly_slow role.
     #     Dog.run_a_long_query
     #   end
     #
     # When using the database key a new connection will be established every time.
-    def connected_to(database: nil, role: nil, &blk)
+    def connecting_to(database: nil, role: nil, &blk)
       if database && role
-        raise ArgumentError, "connected_to can only accept a `database` or a `role` argument, but not both arguments."
+        raise ArgumentError, "connecting_to can only accept a `database` or a `role` argument, but not both arguments."
       elsif database
         if database.is_a?(Hash)
           role, database = database.first
@@ -138,21 +138,21 @@ module ActiveRecord
 
     # Returns true if role is the current connected role.
     #
-    #   ActiveRecord::Base.connected_to(role: :writing) do
-    #     ActiveRecord::Base.connected_to?(role: :writing) #=> true
-    #     ActiveRecord::Base.connected_to?(role: :reading) #=> false
+    #   ActiveRecord::Base.connecting_to(role: :writing) do
+    #     ActiveRecord::Base.connecting_to?(role: :writing) #=> true
+    #     ActiveRecord::Base.connecting_to?(role: :reading) #=> false
     #   end
-    def connected_to?(role:)
+    def connecting_to?(role:)
       current_role == role.to_sym
     end
 
     # Returns the symbol representing the current connected role.
     #
-    #   ActiveRecord::Base.connected_to(role: :writing) do
+    #   ActiveRecord::Base.connecting_to(role: :writing) do
     #     ActiveRecord::Base.current_role #=> :writing
     #   end
     #
-    #   ActiveRecord::Base.connected_to(role: :reading) do
+    #   ActiveRecord::Base.connecting_to(role: :reading) do
     #     ActiveRecord::Base.current_role #=> :reading
     #   end
     def current_role

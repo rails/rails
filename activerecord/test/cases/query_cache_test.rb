@@ -61,7 +61,7 @@ class QueryCacheTest < ActiveRecord::TestCase
       reading: ActiveRecord::ConnectionAdapters::ConnectionHandler.new
     }
 
-    ActiveRecord::Base.connected_to(role: :reading) do
+    ActiveRecord::Base.connecting_to(role: :reading) do
       ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations["arunit"])
     end
 
@@ -510,25 +510,25 @@ class QueryCacheTest < ActiveRecord::TestCase
         reading: ActiveRecord::ConnectionAdapters::ConnectionHandler.new
       }
 
-      ActiveRecord::Base.connected_to(role: :reading) do
+      ActiveRecord::Base.connecting_to(role: :reading) do
         ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations["arunit"])
       end
 
       mw = middleware { |env|
-        ActiveRecord::Base.connected_to(role: :reading) do
+        ActiveRecord::Base.connecting_to(role: :reading) do
           @topic = Topic.first
         end
 
         assert @topic
 
-        ActiveRecord::Base.connected_to(role: :writing) do
+        ActiveRecord::Base.connecting_to(role: :writing) do
           @topic.title = "It doesn't have to be crazy at work"
           @topic.save!
         end
 
         assert_equal "It doesn't have to be crazy at work", @topic.title
 
-        ActiveRecord::Base.connected_to(role: :reading) do
+        ActiveRecord::Base.connecting_to(role: :reading) do
           @topic = Topic.first
           assert_equal "It doesn't have to be crazy at work", @topic.title
         end

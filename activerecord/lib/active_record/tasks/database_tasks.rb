@@ -199,7 +199,7 @@ module ActiveRecord
       end
 
       def truncate_tables(configuration)
-        ActiveRecord::Base.connected_to(database: { truncation: configuration }) do
+        ActiveRecord::Base.connecting_to(database: { truncation: configuration }) do
           table_names = ActiveRecord::Base.connection.tables
           table_names -= [
             SchemaMigration.table_name,

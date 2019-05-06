@@ -44,7 +44,7 @@ module ActiveRecord
       called = false
       resolver.read do
         called = true
-        assert ActiveRecord::Base.connected_to?(role: :reading)
+        assert ActiveRecord::Base.connecting_to?(role: :reading)
       end
       assert called
     end
@@ -57,7 +57,7 @@ module ActiveRecord
       called = false
       resolver.read do
         called = true
-        assert ActiveRecord::Base.connected_to?(role: :writing)
+        assert ActiveRecord::Base.connecting_to?(role: :writing)
       end
       assert called
     end
@@ -70,7 +70,7 @@ module ActiveRecord
 
       called = false
       resolver.write do
-        assert ActiveRecord::Base.connected_to?(role: :writing)
+        assert ActiveRecord::Base.connecting_to?(role: :writing)
         called = true
       end
       assert called
@@ -88,7 +88,7 @@ module ActiveRecord
       called = false
       assert_raises(ActiveRecord::RecordNotFound) do
         resolver.write do
-          assert ActiveRecord::Base.connected_to?(role: :writing)
+          assert ActiveRecord::Base.connecting_to?(role: :writing)
           called = true
           raise ActiveRecord::RecordNotFound
         end
@@ -107,7 +107,7 @@ module ActiveRecord
 
       called = false
       resolver.write do
-        assert ActiveRecord::Base.connected_to?(role: :writing)
+        assert ActiveRecord::Base.connecting_to?(role: :writing)
         called = true
       end
       assert called
@@ -117,7 +117,7 @@ module ActiveRecord
 
       read = false
       resolver.read do
-        assert ActiveRecord::Base.connected_to?(role: :writing)
+        assert ActiveRecord::Base.connecting_to?(role: :writing)
         read = true
       end
       assert read
@@ -131,7 +131,7 @@ module ActiveRecord
 
       called = false
       resolver.write do
-        assert ActiveRecord::Base.connected_to?(role: :writing)
+        assert ActiveRecord::Base.connecting_to?(role: :writing)
         called = true
       end
       assert called
@@ -141,7 +141,7 @@ module ActiveRecord
 
       read = false
       resolver.read do
-        assert ActiveRecord::Base.connected_to?(role: :reading)
+        assert ActiveRecord::Base.connecting_to?(role: :reading)
         read = true
       end
       assert read
@@ -149,7 +149,7 @@ module ActiveRecord
 
     def test_the_middleware_chooses_writing_role_with_POST_request
       middleware = ActiveRecord::Middleware::DatabaseSelector.new(lambda { |env|
-        assert ActiveRecord::Base.connected_to?(role: :writing)
+        assert ActiveRecord::Base.connecting_to?(role: :writing)
         [200, {}, ["body"]]
       })
       assert_equal [200, {}, ["body"]], middleware.call("REQUEST_METHOD" => "POST")
@@ -157,7 +157,7 @@ module ActiveRecord
 
     def test_the_middleware_chooses_reading_role_with_GET_request
       middleware = ActiveRecord::Middleware::DatabaseSelector.new(lambda { |env|
-        assert ActiveRecord::Base.connected_to?(role: :reading)
+        assert ActiveRecord::Base.connecting_to?(role: :reading)
         [200, {}, ["body"]]
       })
       assert_equal [200, {}, ["body"]], middleware.call("REQUEST_METHOD" => "GET")
