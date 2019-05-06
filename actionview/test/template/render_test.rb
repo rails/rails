@@ -682,11 +682,6 @@ class CachedViewRenderTest < ActiveSupport::TestCase
     assert_equal ActionView::OptimizedFileSystemResolver, view_paths.first.class
     setup_view(view_paths)
   end
-
-  def teardown
-    GC.start
-    super
-  end
 end
 
 class LazyViewRenderTest < ActiveSupport::TestCase
@@ -700,11 +695,6 @@ class LazyViewRenderTest < ActiveSupport::TestCase
     view_paths = ActionView::PathSet.new([path])
     assert_equal ActionView::FileSystemResolver.new(FIXTURE_LOAD_PATH), view_paths.first
     setup_view(view_paths)
-  end
-
-  def teardown
-    GC.start
-    super
   end
 
   def test_render_utf8_template_with_magic_comment
@@ -761,10 +751,6 @@ class CachedCollectionViewRenderTest < ActiveSupport::TestCase
     ActionView::PartialRenderer.collection_cache = ActiveSupport::Cache::MemoryStore.new
 
     setup_view(view_paths)
-  end
-
-  def teardown
-    super
   end
 
   test "template body written to cache" do
