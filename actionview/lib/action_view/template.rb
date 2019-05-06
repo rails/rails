@@ -248,6 +248,14 @@ module ActionView
       end
     end
 
+    # Build path relative to template location
+    def build_path(relative_path:)
+      return relative_path if !relative_path.start_with?(".")
+
+      current_dirname = Pathname.new(@virtual_path).dirname
+      Pathname.new(current_dirname + relative_path)
+    end
+
 
     # Exceptions are marshalled when using the parallel test runner with DRb, so we need
     # to ensure that references to the template object can be marshalled as well. This means forgoing
