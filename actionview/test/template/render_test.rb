@@ -33,6 +33,11 @@ module RenderTestCases
     assert_equal ORIGINAL_LOCALES, I18n.available_locales.map(&:to_s).sort
   end
 
+  def teardown
+    I18n.reload!
+    ActionController::Base.view_paths.map(&:clear_cache)
+  end
+
   def test_implicit_format_comes_from_parent_template
     rendered_templates = JSON.parse(@controller_view.render(template: "test/mixing_formats"))
     assert_equal({ "format" => "HTML",
@@ -680,7 +685,7 @@ class CachedViewRenderTest < ActiveSupport::TestCase
 
   def teardown
     GC.start
-    I18n.reload!
+    super
   end
 end
 
@@ -699,7 +704,7 @@ class LazyViewRenderTest < ActiveSupport::TestCase
 
   def teardown
     GC.start
-    I18n.reload!
+    super
   end
 
   def test_render_utf8_template_with_magic_comment
@@ -758,8 +763,8 @@ class CachedCollectionViewRenderTest < ActiveSupport::TestCase
     setup_view(view_paths)
   end
 
-  teardown do
-    I18n.reload!
+  def teardown
+    super
   end
 
   test "template body written to cache" do
