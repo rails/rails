@@ -52,6 +52,39 @@ class RangeTest < ActiveSupport::TestCase
     assert(range.include?(DateTime.now))
   end
 
+  def test_date_range_includes_time
+    range = Date.yesterday..Date.tomorrow
+
+    assert(range.include?(Time.now))
+  end
+
+  def test_date_range_includes_time_with_zone
+    time_with_zone = ActiveSupport::TimeWithZone.new(nil, ActiveSupport::TimeZone["UTC"], Time.now.utc)
+    range = Date.yesterday..Date.tomorrow
+
+    assert(range.include?(time_with_zone))
+  end
+
+  def test_date_time_range_includes_time
+    range = DateTime.yesterday..DateTime.tomorrow
+
+    assert(range.include?(Time.now))
+  end
+
+  def test_time_with_zone_range_includes_time_with_zone
+    yesterday = ActiveSupport::TimeWithZone.new(nil, ActiveSupport::TimeZone["UTC"], 1.day.ago)
+    time_with_zone = ActiveSupport::TimeWithZone.new(nil, ActiveSupport::TimeZone["UTC"], Time.now.utc)
+    range = (yesterday..1.minute.from_now)
+
+    assert(range.include?(time_with_zone))
+  end
+
+  def test_time_with_zone_range_includes_date
+    range = (1.week.ago..2.days.from_now)
+
+    assert(range.include?(Date.today))
+  end
+
   def test_overlaps_last_inclusive
     assert((1..5).overlaps?(5..10))
   end
