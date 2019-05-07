@@ -99,7 +99,7 @@ module ShowExceptions
   class ShowFailsafeExceptionsTest < ActionDispatch::IntegrationTest
     def test_render_failsafe_exception
       @app = ShowExceptionsOverriddenController.action(:boom)
-      middleware = @app.instance_variable_get(:@middleware)
+      middleware = @app
       @exceptions_app = middleware.instance_variable_get(:@exceptions_app)
       middleware.instance_variable_set(:@exceptions_app, nil)
       $stderr = StringIO.new
