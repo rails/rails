@@ -68,15 +68,15 @@ module ActiveRecord
         alias :exec_update :exec_delete
 
         def begin_db_transaction #:nodoc:
-          log("begin transaction", nil) { @connection.transaction }
+          log("begin transaction", "TRANSACTION") { @connection.transaction }
         end
 
         def commit_db_transaction #:nodoc:
-          log("commit transaction", nil) { @connection.commit }
+          log("commit transaction", "TRANSACTION") { @connection.commit }
         end
 
         def exec_rollback_db_transaction #:nodoc:
-          log("rollback transaction", nil) { @connection.rollback }
+          log("rollback transaction", "TRANSACTION") { @connection.rollback }
         end
 
 
