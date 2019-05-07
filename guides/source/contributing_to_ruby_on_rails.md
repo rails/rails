@@ -340,8 +340,8 @@ $ TEST_DIR=generators bundle exec rake test
 You can run the tests for a particular file by using:
 
 ```bash
-$ cd actionpack
-$ bundle exec ruby -w -Itest test/template/form_helper_test.rb
+$ cd actionview
+$ bin/test test/template/form_helper_test.rb
 ```
 
 #### Running a Single Test
@@ -350,7 +350,7 @@ You can run a single test through ruby. For instance:
 
 ```bash
 $ cd actionmailer
-$ bundle exec ruby -w -Itest test/mail_layout_test.rb -n test_explicit_class_layout
+$ bin/test test/mail_layout_test.rb -n test_explicit_class_layout
 ```
 
 The `-n` option allows you to run a single method instead of the whole file.
@@ -372,7 +372,7 @@ Running a single test file:
 
 ```bash
 $ cd actionmailer
-$ SEED=15002 bundle exec ruby -w -Itest test/mail_layout_test.rb
+$ SEED=15002 bin/test test/mail_layout_test.rb
 ```
 
 #### Testing Active Record
@@ -409,7 +409,7 @@ will now run the three of them in turn.
 You can also run any single test separately:
 
 ```bash
-$ ARCONN=sqlite3 bundle exec ruby -Itest test/cases/associations/has_many_associations_test.rb
+$ ARCONN=sqlite3 bin/test test/cases/associations/has_many_associations_test.rb
 ```
 
 To run a single test against all adapters, use:
