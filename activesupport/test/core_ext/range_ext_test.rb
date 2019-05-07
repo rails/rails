@@ -32,6 +32,26 @@ class RangeTest < ActiveSupport::TestCase
     assert_instance_of Range, DateTime.new..DateTime::Infinity.new
   end
 
+  def test_date_range_includes_date
+    range = Date.today.beginning_of_month..Date.today.end_of_month
+    assert(range.include?(Date.today))
+  end
+
+  def test_date_range_includes_date_time
+    range = Date.today.beginning_of_month..Date.today.end_of_month
+    assert(range.include?(DateTime.now))
+  end
+
+  def test_date_time_range_includes_date
+    range = DateTime.now.beginning_of_month..DateTime.now.end_of_month
+    assert(range.include?(Date.today))
+  end
+
+  def test_date_time_range_includes_date_time
+    range = DateTime.now.beginning_of_month..DateTime.now.end_of_month
+    assert(range.include?(DateTime.now))
+  end
+
   def test_overlaps_last_inclusive
     assert((1..5).overlaps?(5..10))
   end
