@@ -204,7 +204,7 @@ module ActiveRecord
       end
 
       def begin_db_transaction
-        execute "BEGIN"
+        execute("BEGIN", "TRANSACTION")
       end
 
       def begin_isolated_db_transaction(isolation)
@@ -213,11 +213,11 @@ module ActiveRecord
       end
 
       def commit_db_transaction #:nodoc:
-        execute "COMMIT"
+        execute("COMMIT", "TRANSACTION")
       end
 
       def exec_rollback_db_transaction #:nodoc:
-        execute "ROLLBACK"
+        execute("ROLLBACK", "TRANSACTION")
       end
 
       def empty_insert_statement_value(primary_key = nil)
