@@ -467,7 +467,7 @@ Please refer to the [Changelog][active-record] for detailed changes.
     ([Pull Request](https://github.com/rails/rails/pull/35631))
 
 *   Add `rails db:seed:replant` that truncates tables of each database
-    for ther current environment and loads the seeds.
+    for the current environment and loads the seeds.
     ([Pull Request](https://github.com/rails/rails/pull/34779))
 
 *   Add `reselect` method, which is a short-hand for `unscope(:select).select(fields)`.
