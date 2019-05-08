@@ -28,6 +28,7 @@ module AbstractController
       else
         _set_rendered_content_type rendered_format
       end
+      _set_vary_header
       self.response_body = rendered_body
     end
 
@@ -107,6 +108,9 @@ module AbstractController
     end
 
     def _set_html_content_type # :nodoc:
+    end
+
+    def _set_vary_header # :nodoc:
     end
 
     def _set_rendered_content_type(format) # :nodoc:

@@ -543,6 +543,32 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
     end
   end
 
+  def test_setting_vary_header_when_request_is_xhr_with_accept_header
+    with_test_route_set do
+      get "/get", headers: { "Accept" => "application/json" }, xhr: true
+      assert_equal "Accept", response.headers["Vary"]
+    end
+  end
+
+  def test_not_setting_vary_header_when_format_is_provided
+    with_test_route_set do
+      get "/get", params: { format: "json" }
+      assert_nil response.headers["Vary"]
+    end
+  end
+
+  def test_not_setting_vary_header_when_ignore_accept_header_is_set
+    original_ignore_accept_header = ActionDispatch::Request.ignore_accept_header
+    ActionDispatch::Request.ignore_accept_header = true
+
+    with_test_route_set do
+      get "/get", headers: { "Accept" => "application/json" }, xhr: true
+      assert_nil response.headers["Vary"]
+    end
+  ensure
+    ActionDispatch::Request.ignore_accept_header = original_ignore_accept_header
+  end
+
   private
     def with_default_headers(headers)
       original = ActionDispatch::Response.default_headers
