@@ -8,6 +8,13 @@ ActiveRecord::Schema.define do
   #                                                                     #
   # ------------------------------------------------------------------- #
 
+  case_sensitive_options =
+    if current_adapter?(:Mysql2Adapter)
+      { collation: "utf8mb4_bin" }
+    else
+      {}
+    end
+
   create_table :accounts, force: true do |t|
     t.references :firm, index: false
     t.string  :firm_name
@@ -103,6 +110,9 @@ ActiveRecord::Schema.define do
     t.column :font_size, :integer, default: 0
     t.column :difficulty, :integer, default: 0
     t.column :cover, :string, default: "hard"
+    t.column :published_on, :datetime
+    t.string :isbn, **case_sensitive_options
+    t.index :isbn, where: "published_on IS NOT NULL", unique: true
   end
 
   create_table :booleans, force: true do |t|
