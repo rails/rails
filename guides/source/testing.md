@@ -781,7 +781,7 @@ This can be helpful for viewing the browser at the point a test failed, or
 to view screenshots later for debugging.
 
 Two methods are provided: `take_screenshot` and `take_failed_screenshot`.
-`take_failed_screenshot` is automatically included in `after_teardown` inside
+`take_failed_screenshot` is automatically included in `before_teardown` inside
 Rails.
 
 The `take_screenshot` helper method can be included anywhere in your tests to
