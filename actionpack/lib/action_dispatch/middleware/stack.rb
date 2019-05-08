@@ -34,7 +34,11 @@ module ActionDispatch
       end
 
       def build(app)
-        InstrumentationProxy.new(klass.new(app, *args, &block), inspect)
+        klass.new(app, *args, &block)
+      end
+
+      def build_instrumented(app)
+        InstrumentationProxy.new(build(app), inspect)
       end
     end
 
@@ -119,7 +123,14 @@ module ActionDispatch
     end
 
     def build(app = nil, &block)
-      middlewares.freeze.reverse.inject(app || block) { |a, e| e.build(a) }
+      instrumenting = ActiveSupport::Notifications.notifier.listening?(InstrumentationProxy::EVENT_NAME)
+      middlewares.freeze.reverse.inject(app || block) do |a, e|
+        if instrumenting
+          e.build_instrumented(a)
+        else
+          e.build(a)
+        end
+      end
     end
 
     private
