@@ -247,6 +247,40 @@ In that case, `app/models/concerns` is assumed to be a root directory (because i
 
 The `Concerns::` namespace worked with the classic autoloader as a side-effect of the implementation, but it was not really an intended behavior. An application using `Concerns::` needs to rename those classes and modules to be able to run in `zeitwerk` mode.
 
+#### Autoloaded Constants and Explicit Namespaces
+
+If a namespace is defined in a file, as `Hotel` is here:
+
+```
+app/models/hotel.rb         # Defines Hotel.
+app/models/hotel/pricing.rb # Defines Hotel::Pricing.
+```
+
+the `Hotel` constant has to be set using the `class` or `module` keywords. For example:
+
+```ruby
+class Hotel
+end
+```
+
+is good.
+
+Alternatives like
+
+```ruby
+Hotel = Class.new
+```
+
+or
+
+```ruby
+Hotel = Struct.new
+```
+
+won't work, child objects like `Hotel::Pricing` won't be found.
+
+This restriction only applies to explicit namespaces. Classes and modules not defining a namespace can be defined using those idioms.
+
 #### Spring and the `test` Environment
 
 Spring reloads the application code if something changes. In the `test` environment you need to enable reloading for that to work:
