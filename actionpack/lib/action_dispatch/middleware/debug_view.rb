@@ -58,11 +58,9 @@ module ActionDispatch
     end
 
     def params_valid?
-      begin
-        @request.parameters
-      rescue ActionController::BadRequest
-        false
-      end
+      @request.parameters
+    rescue ActionController::BadRequest
+      false
     end
   end
 end
