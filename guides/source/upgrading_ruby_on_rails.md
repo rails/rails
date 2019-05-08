@@ -305,6 +305,17 @@ To fix this, just remove the wildcards:
 config.autoload_paths << "#{config.root}/lib"
 ```
 
+#### How to Use the Classic Autoloader in Rails 6
+
+Applications can load Rails 6 defaults and still use the classic autoloader by setting `config.autoloader` this way:
+
+```ruby
+# config/application.rb
+
+load_defaults "6.0"
+config.autoloader = :classic
+```
+
 Upgrading from Rails 5.1 to Rails 5.2
 -------------------------------------
 
