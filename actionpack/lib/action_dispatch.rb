@@ -66,6 +66,7 @@ module ActionDispatch
     autoload :ShowExceptions
     autoload :SSL
     autoload :Static
+    autoload :ServerTiming
   end
 
   autoload :Journey

@@ -58,5 +58,15 @@ module ActionDispatch
         include app.routes.url_helpers
       end
     end
+
+    initializer "action_dispatch.server_timing" do
+      if events = config.action_dispatch.delete(:server_timing)
+        if events == true
+          config.app_middleware.insert_after ActionDispatch::Executor, ActionDispatch::ServerTiming, all_events: true
+        else
+          config.app_middleware.insert_after ActionDispatch::Executor, ActionDispatch::ServerTiming, events: events
+        end
+      end
+    end
   end
 end
