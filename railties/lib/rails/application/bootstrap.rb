@@ -20,13 +20,13 @@ module Rails
       initializer :set_eager_load, group: :all do
         if config.eager_load.nil?
           warn <<-INFO
-config.eager_load is set to nil. Please update your config/environments/*.rb files accordingly:
+            config.eager_load is set to nil. Please update your config/environments/*.rb files accordingly:
 
-  * development - set it to false
-  * test - set it to false (unless you use a tool that preloads your test environment)
-  * production - set it to true
+              * development - set it to false
+              * test - set it to false (unless you use a tool that preloads your test environment)
+              * production - set it to true
 
-INFO
+          INFO
           config.eager_load = config.cache_classes
         end
       end
