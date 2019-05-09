@@ -19,7 +19,7 @@ module Rails
 
       initializer :set_eager_load, group: :all do
         if config.eager_load.nil?
-          warn <<-INFO
+          warn <<~INFO
             config.eager_load is set to nil. Please update your config/environments/*.rb files accordingly:
 
               * development - set it to false
