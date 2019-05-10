@@ -270,6 +270,21 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_create_table_migration_with_timestamps
+    run_generator ["create_books", "title:string", "content:text"]
+    assert_migration "db/migrate/create_books.rb", /t.timestamps/
+  end
+
+  def test_create_table_timestamps_are_skipped
+    run_generator ["create_books", "title:string", "content:text", "--no-timestamps"]
+
+    assert_migration "db/migrate/create_books.rb" do |m|
+      assert_method :change, m do |change|
+        assert_no_match(/t.timestamps/, change)
+      end
+    end
+  end
+
   def test_add_uuid_to_create_table_migration
     run_generator ["create_books", "--primary_key_type=uuid"]
     assert_migration "db/migrate/create_books.rb" do |content|
