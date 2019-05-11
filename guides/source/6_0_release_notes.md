@@ -445,7 +445,7 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 ### Notable changes
 
-*   Bump the minimum sqlite3 version to 1.4.
+*   Bump the minimum version of the `sqlite3` gem to 1.4.
     ([Pull Request](https://github.com/rails/rails/pull/35844))
 
 *   Add `rails db:prepare` to create a database if it doesn't exist, and run its migrations.
