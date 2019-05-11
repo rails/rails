@@ -55,17 +55,15 @@ module ActiveSupport
       dtw = directories_to_watch
       @dtw, @missing = dtw.partition(&:exist?)
 
-      if @dtw.any?
-        # Loading listen triggers warnings. These are originated by a legit
-        # usage of attr_* macros for private attributes, but adds a lot of noise
-        # to our test suite. Thus, we lazy load it and disable warnings locally.
-        silence_warnings do
-          require "listen"
-        rescue LoadError => e
-          raise LoadError, "Could not load the 'listen' gem. Add `gem 'listen'` to the development group of your Gemfile", e.backtrace
-        end
-        boot!
+      # Loading listen triggers warnings. These are originated by a legit
+      # usage of attr_* macros for private attributes, but adds a lot of noise
+      # to our test suite. Thus, we lazy load it and disable warnings locally.
+      silence_warnings do
+        require "listen"
+      rescue LoadError => e
+        raise LoadError, "Could not load the 'listen' gem. Add `gem 'listen'` to the development group of your Gemfile", e.backtrace
       end
+      boot! if @dtw
     end
 
     def updated?
