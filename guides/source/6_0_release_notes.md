@@ -298,7 +298,7 @@ Please refer to the [Changelog][action-view] for detailed changes.
 
 ### Notable changes
 
-*   Clear ActionView cache in development only on file changes, speeding up
+*   Clear Action View cache in development only on file changes, speeding up
     development mode.
     ([Pull Request](https://github.com/rails/rails/pull/35629))
 
