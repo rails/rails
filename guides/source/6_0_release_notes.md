@@ -364,7 +364,7 @@ Please refer to the [Changelog][action-mailer] for detailed changes.
 *   Add `perform_deliveries` to payload of `deliver.action_mailer` notification.
     ([Pull Request](https://github.com/rails/rails/pull/33824))
 
-*   Improve the logging message when `perform_deliveries` is false to indicate
+*   Improve the logging message when `perform_deliveries` is `false` to indicate
     that sending of emails was skipped.
     ([Pull Request](https://github.com/rails/rails/pull/33824))
 
@@ -457,7 +457,7 @@ Please refer to the [Changelog][active-record] for detailed changes.
 *   Add `ActiveRecord::Relation#extract_associated` for extracting associated records from a relation.
     ([Pull Request](https://github.com/rails/rails/pull/35784))
 
-*   Add `ActiveRecord::Relation#annotate` for adding SQL comments to ActiveRecord::Relation queries.
+*   Add `ActiveRecord::Relation#annotate` for adding SQL comments to `ActiveRecord::Relation` queries.
     ([Pull Request](https://github.com/rails/rails/pull/35617))
 
 *   Add support for setting Optimizer Hints on databases.
@@ -562,7 +562,7 @@ Please refer to the [Changelog][active-record] for detailed changes.
 *   Use the utf8mb4 character set by default in MySQL.
     ([Pull Request](https://github.com/rails/rails/pull/33608))
 
-*   Add the ability to filter out sensitive data in `#inspect`
+*   Add the ability to filter out sensitive data in `#inspect`.
     ([Pull Request](https://github.com/rails/rails/pull/33756), [Pull Request](https://github.com/rails/rails/pull/34208))
 
 *   Change `ActiveRecord::Base.configurations` to return an object instead of a hash.
@@ -583,7 +583,7 @@ Please refer to the [Changelog][active-record] for detailed changes.
 *   Fix the `touch` option to behave consistently with `Persistence#touch` method.
     ([Pull Request](https://github.com/rails/rails/pull/33107))
 
-*   Raise an exception for duplicate column definitions in Migrations.
+*   Raise an exception for duplicate column definitions in migrations.
     ([Pull Request](https://github.com/rails/rails/pull/33029))
 
 *   Bump the minimum SQLite version to 3.8.
@@ -724,7 +724,7 @@ Please refer to the [Changelog][active-model] for detailed changes.
 *   Fix year value when casting a multiparameter time hash.
     ([Pull Request](https://github.com/rails/rails/pull/34990))
 
-*   Type cast falsy boolean symbols on boolean attribute as false.
+*   Type cast falsy boolean symbols on boolean attribute as `false`.
     ([Pull Request](https://github.com/rails/rails/pull/35794))
 
 *   Return correct date while converting parameters in `value_from_multiparameter_assignment`
@@ -822,10 +822,10 @@ Please refer to the [Changelog][active-support] for detailed changes.
 *   Allow `Range#===` and `Range#cover?` methods to work with `Range` argument.
     ([Pull Request](https://github.com/rails/rails/pull/32938))
 
-*   Support key expiry in `increment/decrement` operations of RedisCacheStore.
+*   Support key expiry in `increment/decrement` operations of `ActiveSupport::Cache::RedisCacheStore`.
     ([Pull Request](https://github.com/rails/rails/pull/33254))
 
-*   Add cpu time, idle time, and allocations features to log subscriber events.
+*   Add CPU time, idle time, and allocations features to log subscriber events.
     ([Pull Request](https://github.com/rails/rails/pull/33449))
 
 *   Add support for event object to the Active Support notification system.
@@ -836,7 +836,7 @@ Please refer to the [Changelog][active-support] for detailed changes.
     ([Pull Request](https://github.com/rails/rails/pull/25437))
 
 *   Add `Array#extract!` method which removes and returns the elements for which
-    block returns a true value.
+    block returns `true`.
     ([Pull Request](https://github.com/rails/rails/pull/33137))
 
 *   Keep an HTML-safe string HTML-safe after slicing.
