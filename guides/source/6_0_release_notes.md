@@ -229,7 +229,7 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 *   Allow the use of `parsed_body` in `ActionController::TestCase`.
     ([Pull Request](https://github.com/rails/rails/pull/34717))
 
-*   Raise an `ArgumentError` when multiple root routes exists in the same context
+*   Raise an `ArgumentError` when multiple root routes exist in the same context
     without `as:` naming specifications.
     ([Pull Request](https://github.com/rails/rails/pull/34494))
 
