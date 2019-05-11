@@ -1774,7 +1774,7 @@ config.assets.enabled = true
 config.assets.version = '1.0'
 ```
 
-If your application is using an "/assets" route for a resource you may want change the prefix used for assets to avoid conflicts:
+If your application is using an "/assets" route for a resource you may want to change the prefix used for assets to avoid conflicts:
 
 ```ruby
 # Defaults to '/assets'
