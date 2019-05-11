@@ -24,6 +24,16 @@ module FileUpdateCheckerSharedTests
     end
   end
 
+  test "should not execute the block if no paths are given" do
+    silence_warnings { require "listen" }
+    i = 0
+
+    checker = new_checker { i += 1 }
+
+    assert_not checker.execute_if_updated
+    assert_equal 0, i
+  end
+
   test "should not execute the block if no files change" do
     i = 0
 
@@ -281,12 +291,6 @@ module FileUpdateCheckerSharedTests
   test "initialize raises an ArgumentError if no block given" do
     assert_raise ArgumentError do
       new_checker([])
-    end
-  end
-
-  test "initialize raises an ArgumentError if no paths are given" do
-    assert_raise ArgumentError do
-      new_checker([]) {}
     end
   end
 end

@@ -44,12 +44,9 @@ module ActiveSupport
         raise ArgumentError, "A block is required to initialize a FileUpdateChecker"
       end
 
-      raise ArgumentError, "There is no files to watch" if files.empty? && dirs.empty?
-
       @files = files.freeze
       @glob  = compile_glob(dirs)
       @block = block
-
 
       @watched    = nil
       @updated_at = nil
