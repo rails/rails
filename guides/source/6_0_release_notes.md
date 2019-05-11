@@ -402,7 +402,7 @@ Please refer to the [Changelog][active-record] for detailed changes.
 *   Remove support for passing the column name to `count` when a block is passed.
     ([Commit](https://github.com/rails/rails/commit/67356f2034ab41305af7218f7c8b2fee2d614129))
 
-*   Remove support for delegation of missing methods in a relation to arel.
+*   Remove support for delegation of missing methods in a relation to Arel.
     ([Commit](https://github.com/rails/rails/commit/d97980a16d76ad190042b4d8578109714e9c53d0))
 
 *   Remove support for delegating missing methods in a relation to private methods of the class.
