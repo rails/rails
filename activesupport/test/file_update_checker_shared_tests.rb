@@ -286,7 +286,7 @@ module FileUpdateCheckerSharedTests
 
   test "initialize raises an ArgumentError if no paths are given" do
     assert_raise ArgumentError do
-      new_checker([]) { }
+      new_checker([]) {}
     end
   end
 end
