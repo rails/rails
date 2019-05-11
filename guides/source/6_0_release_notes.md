@@ -577,7 +577,7 @@ Please refer to the [Changelog][active-record] for detailed changes.
 *   Allow the `:to_table` option of `remove_foreign_key` to be invertible.
     ([Pull Request](https://github.com/rails/rails/pull/33530))
 
-*   Fix default value for mysql time types with specified precision.
+*   Fix default value for MySQL time types with specified precision.
     ([Pull Request](https://github.com/rails/rails/pull/33280))
 
 *   Fix the `touch` option to behave consistently with `Persistence#touch` method.
