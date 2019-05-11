@@ -319,7 +319,7 @@ By opting-out you optimize `$LOAD_PATH` lookups (less directories to check), and
 
 #### Thread-safety
 
-In classic mode constant autoloading is not thread-safe, though Rails has locks in place for example to make web requests thread-safe when autoloading is enabled, as it is common in `development` mode.
+In classic mode, constant autoloading is not thread-safe, though Rails has locks in place for example to make web requests thread-safe when autoloading is enabled, as it is common in `development` mode.
 
 Constant autoloading is thread-safe in `zeitwerk` mode. For example, you can now autoload in multi-threaded scripts executed by the `runner` command.
 
