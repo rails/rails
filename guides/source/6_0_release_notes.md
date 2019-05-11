@@ -178,7 +178,7 @@ Please refer to the [Changelog][action-cable] for detailed changes.
     `ActionCable::Connection`.
     ([Pull Request](https://github.com/rails/rails/pull/34194))
 
-*   Convert the Action Cable Javascript package from CoffeeScript to ES2015 and
+*   Convert the Action Cable JavaScript package from CoffeeScript to ES2015 and
     publish the source code in the npm distribution.
     ([Pull Request](https://github.com/rails/rails/pull/34370))
 
