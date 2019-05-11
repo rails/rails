@@ -305,7 +305,7 @@ Please refer to the [Changelog][action-view] for detailed changes.
 *   Move all of the Rails npm packages into a `@rails` scope.
     ([Pull Request](https://github.com/rails/rails/pull/34905))
 
-*   Only accept formats from registered Mime types.
+*   Only accept formats from registered MIME types.
     ([Pull Request](https://github.com/rails/rails/pull/35604), [Pull Request](https://github.com/rails/rails/pull/35753))
 
 *   Add allocations to the template and partial rendering server output.
