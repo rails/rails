@@ -202,7 +202,7 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 
 *   Remove deprecated methods in `ActionDispatch::TestResponse`:
     `#success?` in favor of `#successful?`, `#missing?` in favor of `#not_found?`,
-    `#error?` in favor of `#server_error?`
+    `#error?` in favor of `#server_error?`.
     ([Commit](https://github.com/rails/rails/commit/13ddc92e079e59a0b894e31bf5bb4fdecbd235d1))
 
 ### Deprecations
@@ -762,7 +762,7 @@ Please refer to the [Changelog][active-support] for detailed changes.
     ([Pull Request](https://github.com/rails/rails/pull/34123))
 
 *   Deprecate `ActiveSupport::Multibyte::Unicode#normalize`
-    and `ActiveSuppport::Multibyte::Chars#normalize` in favor of
+    and `ActiveSupport::Multibyte::Chars#normalize` in favor of
     `String#unicode_normalize`.
     ([Pull Request](https://github.com/rails/rails/pull/34202))
 
@@ -771,7 +771,7 @@ Please refer to the [Changelog][active-support] for detailed changes.
     ([Pull Request](https://github.com/rails/rails/pull/34215))
 
 *   Deprecate `ActiveSupport::Multibyte::Unicode#pack_graphemes(array)`
-    and `ActiveSuppport::Multibyte::Unicode#unpack_graphemes(string)`
+    and `ActiveSupport::Multibyte::Unicode#unpack_graphemes(string)`
     in favor of `array.flatten.pack("U*")` and `string.scan(/\X/).map(&:codepoints)`,
     respectively.
     ([Pull Request](https://github.com/rails/rails/pull/34254))
