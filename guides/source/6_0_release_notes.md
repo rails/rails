@@ -323,7 +323,7 @@ Please refer to the [Changelog][action-view] for detailed changes.
     enable `ActionView::Template` finalizers.
     ([Pull Request](https://github.com/rails/rails/pull/32418))
 
-*   Extract the JS `confirm` call to its own, overridable method in `rails_ujs`.
+*   Extract the JavaScript `confirm` call to its own, overridable method in `rails_ujs`.
     ([Pull Request](https://github.com/rails/rails/pull/32404))
 
 *   Add a `action_controller.default_enforce_utf8` configuration option to handle
