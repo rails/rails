@@ -63,7 +63,7 @@ module ActiveSupport
       rescue LoadError => e
         raise LoadError, "Could not load the 'listen' gem. Add `gem 'listen'` to the development group of your Gemfile", e.backtrace
       end
-      boot! if @dtw
+      boot! if @dtw.any?
     end
 
     def updated?
