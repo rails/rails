@@ -281,6 +281,35 @@ won't work, child objects like `Hotel::Pricing` won't be found.
 
 This restriction only applies to explicit namespaces. Classes and modules not defining a namespace can be defined using those idioms.
 
+#### One file, one constant (at the same top-level)
+
+In `classic` mode you could technically define several constants at the same top-level and have them all reloaded. For example, given
+
+```ruby
+# app/models/foo.rb
+
+class Foo
+end
+
+class Bar
+end
+```
+
+while `Bar` could not be autoloaded, autoloading `Foo` would mark `Bar` as autoloaded too. This is not the case in `zeitwerk` mode, you need to move `Bar` to its own file `bar.rb`. One file, one constant.
+
+This affects only to constants at the same top-level as in the example above. Inner classes and modules are fine. For example, consider
+
+```ruby
+# app/models/foo.rb
+
+class Foo
+  class InnerClass
+  end
+end
+```
+
+If the application reloads `Foo`, it will reload `Foo::InnerClass` too.
+
 #### Spring and the `test` Environment
 
 Spring reloads the application code if something changes. In the `test` environment you need to enable reloading for that to work:
