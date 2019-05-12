@@ -156,6 +156,7 @@ def step_for(subdirectory, rake_task, ruby: nil, service: "default")
     "soft_fail" => SOFT_FAIL.include?(ruby),
     "agents" => { "queue" => QUEUE },
     "artifact_paths" => ["test-reports/*/*.xml"],
+    "retry" => { "automatic" => { "exit_status" => -1, "limit" => 2 } },
   }
 
   yield hash if block_given?
