@@ -48,8 +48,8 @@ module ActiveRecord
   end
 
   module ConnectionAdapters #:nodoc:
-    # The SQLite3 adapter works SQLite 3.6.16 or newer
-    # with the sqlite3-ruby drivers (available as gem from https://rubygems.org/gems/sqlite3).
+    # The SQLite3 adapter works with the sqlite3-ruby drivers
+    # (available as gem from https://rubygems.org/gems/sqlite3).
     #
     # Options:
     #
