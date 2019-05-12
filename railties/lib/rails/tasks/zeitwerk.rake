@@ -17,9 +17,12 @@ eager_load = ->() do
   Rails.configuration.eager_load_namespaces.each(&:eager_load!)
 end
 
+mailer_preview_path = -> () do
+  Rails.application.config.respond_to?(:action_mailer) ? Rails.application.config.action_mailer.preview_path : ""
+end
+
 mismatches = []
 check_directory = ->(directory, parent) do
-  # test/mailers/previews might not exist.
   return unless File.exist?(directory)
 
   Dir.foreach(directory) do |entry|
@@ -68,7 +71,8 @@ namespace :zeitwerk do
     eager_load[]
 
     $stdout.sync = true
-    ActiveSupport::Dependencies.autoload_paths.each do |autoload_path|
+    autoload_paths = ActiveSupport::Dependencies.autoload_paths - [mailer_preview_path[]]
+    autoload_paths.each do |autoload_path|
       check_directory[autoload_path, Object]
     end
     puts
