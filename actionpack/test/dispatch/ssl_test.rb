@@ -135,7 +135,7 @@ class StrictTransportSecurityTest < SSLTest
     assert_hsts "max-age=500; includeSubDomains", hsts: { expires: 500 }
   end
 
-  test ":expires supports AS::Duration arguments" do
+  test ":expires supports ActiveSupport::Duration arguments" do
     assert_hsts "max-age=31556952; includeSubDomains", hsts: { expires: 1.year }
   end
 

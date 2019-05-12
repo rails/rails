@@ -646,7 +646,7 @@ for detailed changes.
 ### Deprecations
 
 * Deprecated `Numeric#{ago,until,since,from_now}`, the user is expected to
-  explicitly convert the value into an AS::Duration, i.e. `5.ago` => `5.seconds.ago`
+  explicitly convert the value into an ActiveSupport::Duration, i.e. `5.ago` => `5.seconds.ago`
   ([Pull Request](https://github.com/rails/rails/pull/12389))
 
 * Deprecated the require path `active_support/core_ext/object/to_json`. Require

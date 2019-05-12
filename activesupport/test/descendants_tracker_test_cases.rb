@@ -59,7 +59,7 @@ module DescendantsTrackerTestCases
 
     def mark_as_autoloaded(*klasses)
       # If ActiveSupport::Dependencies is not loaded, forget about autoloading.
-      # This allows using AS::DescendantsTracker without AS::Dependencies.
+      # This allows using ActiveSupport::DescendantsTracker without ActiveSupport::Dependencies.
       if defined? ActiveSupport::Dependencies
         old_autoloaded = ActiveSupport::Dependencies.autoloaded_constants.dup
         ActiveSupport::Dependencies.autoloaded_constants = klasses.map(&:name)

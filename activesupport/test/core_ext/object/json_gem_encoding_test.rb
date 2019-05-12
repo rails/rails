@@ -10,7 +10,7 @@ require "json/encoding_test_cases"
 # correctly, because other test cases might have already loaded additional
 # dependencies.
 
-# The AS::JSON encoder requires the BigDecimal core_ext, which, unfortunately,
+# The ActiveSupport::JSON encoder requires the BigDecimal core_ext, which, unfortunately,
 # changes the BigDecimal#to_s output, and consequently the JSON gem output. So
 # we need to require this upfront to ensure we don't get a false failure, but
 # ideally we should just fix the BigDecimal core_ext to not change to_s without

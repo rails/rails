@@ -1708,7 +1708,7 @@ module ApplicationTests
     test "autoload paths are added to $LOAD_PATH by default" do
       app "development"
 
-      # Action Mailer modifies AS::Dependencies.autoload_paths in-place.
+      # Action Mailer modifies ActiveSupport::Dependencies.autoload_paths in-place.
       autoload_paths = ActiveSupport::Dependencies.autoload_paths
       autoload_paths_from_app_and_engines = autoload_paths.reject do |path|
         path.ends_with?("mailers/previews")
