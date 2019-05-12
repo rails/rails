@@ -383,6 +383,12 @@ All these configuration options are delegated to the `I18n` library.
   having to send a query to the database to get this information.
   Defaults to `true`.
 
+* `config.active_record.collection_cache_versioning` enables the same cache key
+  to be reused when the object being cached of type `ActiveRecord::Relation`
+  changes by moving the volatile information (max updated at and count) of
+  the relation's cache key into the cache version to support recycling cache key.
+  Defaults to `true`.
+
 The MySQL adapter adds one additional configuration option:
 
 * `ActiveRecord::ConnectionAdapters::Mysql2Adapter.emulate_booleans` controls whether Active Record will consider all `tinyint(1)` columns as booleans. Defaults to `true`.
