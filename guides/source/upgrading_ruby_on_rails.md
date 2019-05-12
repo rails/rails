@@ -100,7 +100,7 @@ to be able to rollback set
 ### Action Cable JavaScript API Changes
 
 The Action Cable JavaScript package has been converted from CoffeeScript
-to ES2015, and we now publish the source code in the NPM distribution.
+to ES2015, and we now publish the source code in the npm distribution.
 
 This release includes some breaking changes to optional parts of the
 Action Cable JavaScript API:
@@ -319,7 +319,7 @@ By opting-out you optimize `$LOAD_PATH` lookups (less directories to check), and
 
 #### Thread-safety
 
-In classic mode constant autoloading is not thread-safe, though Rails has locks in place for example to make web requests thread-safe when autoloading is enabled, as it is common in `development` mode.
+In classic mode, constant autoloading is not thread-safe, though Rails has locks in place for example to make web requests thread-safe when autoloading is enabled, as it is common in `development` mode.
 
 Constant autoloading is thread-safe in `zeitwerk` mode. For example, you can now autoload in multi-threaded scripts executed by the `runner` command.
 
@@ -1774,7 +1774,7 @@ config.assets.enabled = true
 config.assets.version = '1.0'
 ```
 
-If your application is using an "/assets" route for a resource you may want change the prefix used for assets to avoid conflicts:
+If your application is using an "/assets" route for a resource you may want to change the prefix used for assets to avoid conflicts:
 
 ```ruby
 # Defaults to '/assets'
