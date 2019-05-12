@@ -287,7 +287,7 @@ module Rails
         else
           [GemfileEntry.version("rails",
                             rails_version_specifier,
-                            "Bundle edge Rails instead: gem 'rails', github: 'rails/rails'")]
+                            "Bleeding edge Rails instead: gem 'rails', github: 'rails/rails'")]
         end
       end
 
