@@ -245,7 +245,7 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 *   Expose `ActionController::Parameters#each_key`.
     ([Pull Request](https://github.com/rails/rails/pull/33758))
 
-*   Add purpose metadata to signed/encrypted cookies to prevent copying the value of
+*   Add purpose and expiry metadata inside signed/encrypted cookies to prevent copying the value of
     cookies into one another.
     ([Pull Request](https://github.com/rails/rails/pull/32937))
 

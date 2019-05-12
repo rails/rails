@@ -85,13 +85,14 @@ Rails 6.1. You are encouraged to enable `config.force_ssl` to enforce HTTPS
 connections throughout your application. If you need to exempt certain endpoints
 from redirection, you can use `config.ssl_options` to configure that behavior.
 
-### Purpose in signed or encrypted cookie is now embedded within cookies
+### Purpose and expiry metadata is now embedded inside signed and encrypted cookies for increased security
 
-To improve security, Rails embeds the purpose information in encrypted or signed cookies value.
+To improve security, Rails embeds the purpose and expiry metadata inside encrypted or signed cookies value.
+
 Rails can then thwart attacks that attempt to copy the signed/encrypted value
 of a cookie and use it as the value of another cookie.
 
-This new embed information make those cookies incompatible with versions of Rails older than 6.0.
+This new embed metadata make those cookies incompatible with versions of Rails older than 6.0.
 
 If you require your cookies to be read by Rails 5.2 and older, or you are still validating your 6.0 deploy and want
 to be able to rollback set
