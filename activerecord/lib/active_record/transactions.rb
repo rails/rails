@@ -164,12 +164,12 @@ module ActiveRecord
     #     end
     #   end
     #
-    # only "Kotori" is created. This works on MySQL and PostgreSQL. SQLite3 version >= '3.6.8' also supports it.
+    # only "Kotori" is created.
     #
     # Most databases don't support true nested transactions. At the time of
     # writing, the only database that we're aware of that supports true nested
     # transactions, is MS-SQL. Because of this, Active Record emulates nested
-    # transactions by using savepoints on MySQL and PostgreSQL. See
+    # transactions by using savepoints. See
     # https://dev.mysql.com/doc/refman/5.7/en/savepoint.html
     # for more information about savepoints.
     #
