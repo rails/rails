@@ -1522,7 +1522,7 @@ it on the [official documentation](http://www.robotstxt.org/robotstxt.html).
 Evented File System Monitor
 ---------------------------
 
-If the [listen gem](https://github.com/guard/listen) is loaded Rails uses an
+If the [listen gem](https://github.com/guard/listen) is loaded, then Rails uses an
 evented file system monitor to detect changes when `config.cache_classes` is
 `false`:
 
