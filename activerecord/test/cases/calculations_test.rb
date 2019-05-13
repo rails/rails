@@ -770,6 +770,18 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal [], Topic.includes(:replies).order(:id).offset(5).pluck(:id)
   end
 
+  def test_pluck_with_includes_limit
+    c = Company.create!(name: "test", contracts: [Contract.new(developer_id: 7), Contract.new(developer_id: 8)])
+    assert_equal [c.id], Company.where(id: c.id).includes(:contracts).limit(1).pluck(:id)
+    assert_equal [7], Company.where(id: c.id).includes(:contracts).limit(1).pluck(:'contracts.developer_id')
+  end
+
+  def test_pluck_same_as_outer_join
+    c = Company.create!(name: "test", contracts: [Contract.new(developer_id: 7), Contract.new(developer_id: 8)])
+    assert_equal Company.where(id: c.id).includes(:contracts).limit(1).pluck(:'contracts.developer_id'),
+      Company.where(id: c.id).left_outer_joins(:contracts).limit(1).pluck(:'contracts.developer_id')
+  end
+
   def test_pluck_with_join
     assert_equal [[2, 2], [4, 4]], Reply.includes(:topic).pluck(:id, :"topics.id")
   end

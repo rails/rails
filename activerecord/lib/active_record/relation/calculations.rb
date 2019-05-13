@@ -184,7 +184,7 @@ module ActiveRecord
       end
 
       if has_include?(column_names.first)
-        relation = apply_join_dependency
+        relation = apply_join_dependency(eager_loading: false)
         relation.pluck(*column_names)
       else
         klass.disallow_raw_sql!(column_names)
