@@ -1,4 +1,4 @@
-*   Allow generated create_table migrations to include or skip timestamps
+*   Allow generated `create_table` migrations to include or skip timestamps.
 
      *Michael Duchemin*
 
