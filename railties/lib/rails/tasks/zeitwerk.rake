@@ -107,6 +107,7 @@ namespace :zeitwerk do
     not_checked = ActiveSupport::Dependencies.autoload_paths - eager_load_paths
     not_checked.select! { |dir| Dir.exist?(dir) }
     not_checked.reject! { |dir| Dir.empty?(dir) }
+
     report[mismatches, not_checked]
   end
 end
