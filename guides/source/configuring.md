@@ -387,7 +387,7 @@ All these configuration options are delegated to the `I18n` library.
   to be reused when the object being cached of type `ActiveRecord::Relation`
   changes by moving the volatile information (max updated at and count) of
   the relation's cache key into the cache version to support recycling cache key.
-  Defaults to `true`.
+  Defaults to `false`.
 
 The MySQL adapter adds one additional configuration option:
 
