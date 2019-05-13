@@ -80,6 +80,8 @@ module ActiveStorage
         ActiveStorage.delivery_method = app.config.active_storage.delivery_method || :redirect
         ActiveStorage.proxy_urls_expire_in = app.config.active_storage.proxy_urls_expire_in || 1.year
         ActiveStorage.proxy_urls_public = app.config.active_storage.proxy_urls_public || true
+        ActiveStorage.proxy_urls_host = app.config.active_storage.proxy_urls_host
+        ActiveStorage.proxy_urls_port = app.config.active_storage.proxy_urls_port
         ActiveStorage.content_types_allowed_inline = app.config.active_storage.content_types_allowed_inline || []
         ActiveStorage.binary_content_type = app.config.active_storage.binary_content_type || "application/octet-stream"
       end

@@ -24,21 +24,23 @@ Rails.application.routes.draw do
 
     case delivery_method
     when :redirect
-      route_for(:rails_blob_representation, signed_blob_id, variation_key, filename, options)
+      route_for(:rails_blob_representation, signed_blob_id, variation_key, filename, ActiveStorage.url_options(options))
     when :proxy
-      route_for(:rails_blob_representation_proxy, signed_blob_id, variation_key, filename, options)
+      route_for(:rails_blob_representation_proxy, signed_blob_id, variation_key, filename, ActiveStorage.url_options(options))
     end
   end
 
-  resolve("ActiveStorage::Variant") { |variant, options| route_for(:rails_representation, variant, options) }
-  resolve("ActiveStorage::Preview") { |preview, options| route_for(:rails_representation, preview, options) }
+  resolve("ActiveStorage::Variant") do |variant, options|
+    route_for(:rails_representation, variant, ActiveStorage.url_options(options))
+  end
+  resolve("ActiveStorage::Preview") { |preview, options| route_for(:rails_representation, preview, ActiveStorage.url_options(options)) }
 
   route_blob = -> (blob, delivery_method, options, instance) {
     case delivery_method
     when :redirect
-      instance.route_for(:rails_service_blob, blob.signed_id, blob.filename, options)
+      instance.route_for(:rails_service_blob, blob.signed_id, blob.filename, ActiveStorage.url_options(options))
     when :proxy
-      instance.route_for(:rails_blob_proxy, blob.signed_id, blob.filename, options)
+      instance.route_for(:rails_blob_proxy, blob.signed_id, blob.filename, ActiveStorage.url_options(options))
     end
   }
 
@@ -46,7 +48,7 @@ Rails.application.routes.draw do
     route_blob.(blob, ActiveStorage.delivery_method, options, self)
   end
 
-  resolve("ActiveStorage::Blob")       { |blob, options| route_for(:rails_blob, blob, options) }
+  resolve("ActiveStorage::Blob")       { |blob, options| route_for(:rails_blob, blob, ActiveStorage.url_options(options)) }
   resolve("ActiveStorage::Attachment") do |attachment, options|
     route_blob.(attachment.blob, resolve_delivery_method.(attachment), options, self)
   end
