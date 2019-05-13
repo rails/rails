@@ -2711,10 +2711,12 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     bulb = Bulb.create!
     tyre = Tyre.create!
 
-    car = Car.create! do |c|
+    car = Car.create!(name: "honda") do |c|
       c.bulbs << bulb
       c.tyres << tyre
     end
+
+    assert_equal [nil, "honda"], car.saved_change_to_name
 
     assert_equal 1, car.bulbs.count
     assert_equal 1, car.tyres.count
@@ -2722,7 +2724,9 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   test "associations replace in memory when records have the same id" do
     bulb = Bulb.create!
-    car = Car.create!(bulbs: [bulb])
+    car = Car.create!(name: "honda", bulbs: [bulb])
+
+    assert_equal [nil, "honda"], car.saved_change_to_name
 
     new_bulb = Bulb.find(bulb.id)
     new_bulb.name = "foo"
@@ -2733,7 +2737,9 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   test "in memory replacement executes no queries" do
     bulb = Bulb.create!
-    car = Car.create!(bulbs: [bulb])
+    car = Car.create!(name: "honda", bulbs: [bulb])
+
+    assert_equal [nil, "honda"], car.saved_change_to_name
 
     new_bulb = Bulb.find(bulb.id)
 
@@ -2765,7 +2771,9 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   test "in memory replacements sets inverse instance" do
     bulb = Bulb.create!
-    car = Car.create!(bulbs: [bulb])
+    car = Car.create!(name: "honda", bulbs: [bulb])
+
+    assert_equal [nil, "honda"], car.saved_change_to_name
 
     new_bulb = Bulb.find(bulb.id)
     car.bulbs = [new_bulb]
@@ -2785,7 +2793,9 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   test "in memory replacement maintains order" do
     first_bulb = Bulb.create!
     second_bulb = Bulb.create!
-    car = Car.create!(bulbs: [first_bulb, second_bulb])
+    car = Car.create!(name: "honda", bulbs: [first_bulb, second_bulb])
+
+    assert_equal [nil, "honda"], car.saved_change_to_name
 
     same_bulb = Bulb.find(first_bulb.id)
     car.bulbs = [second_bulb, same_bulb]
