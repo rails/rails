@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+indent = " " * 2
+
 ensure_classic_mode = ->() do
   if Rails.autoloaders.zeitwerk_enabled?
     abort <<~EOS
@@ -17,8 +19,7 @@ eager_load = ->() do
   Rails.configuration.eager_load_namespaces.each(&:eager_load!)
 end
 
-mismatches = []
-check_directory = ->(directory, parent) do
+check_directory = ->(directory, parent, mismatches) do
   # test/mailers/previews might not exist.
   return unless File.exist?(directory)
 
@@ -33,7 +34,7 @@ check_directory = ->(directory, parent) do
       cname = File.basename(abspath, ".rb").camelize.to_sym
       if parent.const_defined?(cname, false)
         if File.directory?(abspath)
-          check_directory[abspath, parent.const_get(cname)]
+          check_directory[abspath, parent.const_get(cname), mismatches]
         end
       else
         mismatches << [abspath, parent, cname]
@@ -42,22 +43,47 @@ check_directory = ->(directory, parent) do
   end
 end
 
-report = ->() do
+report_mismatches = ->(mismatches) do
   puts
-  if mismatches.empty?
+  rails_root_prefix_re = %r{\A#{Regexp.escape(Rails.root.to_path)}/}
+  mismatches.each do |abspath, parent, cname|
+    relpath = abspath.sub(rails_root_prefix_re, "")
+    cpath = parent == Object ? cname : "#{parent.name}::#{cname}"
+    puts indent + "Mismatch: Expected #{relpath} to define #{cpath}"
+  end
+  puts
+
+  puts <<~EOS
+    Please revise the reported mismatches. You can normally fix them by adding
+    acronyms to config/initializers/inflections.rb or renaming the constants.
+  EOS
+end
+
+report_not_checked = ->(not_checked) do
+  puts
+  puts <<~EOS
+    WARNING: The files in these directories cannot be checked because they
+    are not eager loaded:
+  EOS
+  puts
+
+  not_checked.each { |dir| puts indent + dir }
+  puts
+
+  puts <<~EOS
+    You may verify them manually, or add them to config.eager_load_paths
+    in config/application.rb and run zeitwerk:check again.
+  EOS
+end
+
+report = ->(mismatches, not_checked) do
+  puts
+  if mismatches.empty? && not_checked.empty?
     puts "All is good!"
     puts "Please, remember to delete `config.autoloader = :classic` from config/application.rb."
   else
-    mismatches.each do |abspath, parent, cname|
-      relpath = abspath.sub(%r{\A#{Regexp.escape(Rails.root.to_path)}/}, "")
-      cpath = parent == Object ? cname : "#{parent.name}::#{cname}"
-      puts "expected #{relpath} to define #{cpath}"
-    end
-    puts
-    puts <<~EOS
-      Please revise the reported mismatches. You can normally fix them by adding
-      acronyms to config/initializers/inflections.rb or renaming the constants.
-    EOS
+    report_mismatches[mismatches]   if mismatches.any?
+    report_not_checked[not_checked] if not_checked.any?
   end
 end
 
@@ -67,12 +93,20 @@ namespace :zeitwerk do
     ensure_classic_mode[]
     eager_load[]
 
-    $stdout.sync = true
-    ActiveSupport::Dependencies.autoload_paths.each do |autoload_path|
-      check_directory[autoload_path, Object]
-    end
-    puts
+    eager_load_paths = Rails.configuration.eager_load_namespaces.map do |eln|
+      eln.config.eager_load_paths if eln.respond_to?(:config)
+    end.compact.flatten
 
-    report[]
+    mismatches = []
+
+    $stdout.sync = true
+    eager_load_paths.each do |eager_load_path|
+      check_directory[eager_load_path, Object, mismatches]
+    end
+
+    not_checked = ActiveSupport::Dependencies.autoload_paths - eager_load_paths
+    not_checked.select! { |dir| Dir.exist?(dir) }
+    not_checked.reject! { |dir| Dir.empty?(dir) }
+    report[mismatches, not_checked]
   end
 end
