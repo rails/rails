@@ -340,7 +340,7 @@ $ TEST_DIR=generators bundle exec rake test
 You can run the tests for a particular file by using:
 
 ```bash
-$ cd actionpack
+$ cd actionview
 $ bundle exec ruby -w -Itest test/template/form_helper_test.rb
 ```
 

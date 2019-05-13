@@ -854,7 +854,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
 
       classname = ActiveRecord::Base.connection.class.name[/[^:]*$/]
       expected_query_count = {
-        "Mysql2Adapter"     => 3, # Adding an index fires a query every time to check if an index already exists or not
+        "Mysql2Adapter"     => 1, # mysql2 supports creating two indexes using one statement
         "PostgreSQLAdapter" => 2,
       }.fetch(classname) {
         raise "need an expected query count for #{classname}"
@@ -886,7 +886,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
 
       classname = ActiveRecord::Base.connection.class.name[/[^:]*$/]
       expected_query_count = {
-        "Mysql2Adapter"     => 3, # Adding an index fires a query every time to check if an index already exists or not
+        "Mysql2Adapter"     => 1, # mysql2 supports dropping and creating two indexes using one statement
         "PostgreSQLAdapter" => 2,
       }.fetch(classname) {
         raise "need an expected query count for #{classname}"

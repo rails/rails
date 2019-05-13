@@ -5,18 +5,19 @@
 
     Before:
 
-      'foobar'.truncate(5).frozen?
-      => true
-      'foobar'.truncate(6).frozen?
-      => false
+        'foobar'.truncate(5).frozen?
+        # => true
+        'foobar'.truncate(6).frozen?
+        # => false
 
     After:
 
-      'foobar'.truncate(5).frozen?
-      => false
-      'foobar'.truncate(6).frozen?
-      => false
+        'foobar'.truncate(5).frozen?
+        # => false
+        'foobar'.truncate(6).frozen?
+        # => false
 
     *Jordan Thomas*
+
 
 Please check [6-0-stable](https://github.com/rails/rails/blob/6-0-stable/activesupport/CHANGELOG.md) for previous changes.

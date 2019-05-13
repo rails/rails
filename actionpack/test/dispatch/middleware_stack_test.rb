@@ -121,9 +121,6 @@ class MiddlewareStackTest < ActiveSupport::TestCase
   end
 
   test "instruments the execution of middlewares" do
-    app = @stack.build(proc { |env| [200, {}, []] })
-    env = {}
-
     events = []
 
     subscriber = proc do |*args|
@@ -131,6 +128,9 @@ class MiddlewareStackTest < ActiveSupport::TestCase
     end
 
     ActiveSupport::Notifications.subscribed(subscriber, "process_middleware.action_dispatch") do
+      app = @stack.build(proc { |env| [200, {}, []] })
+
+      env = {}
       app.call(env)
     end
 

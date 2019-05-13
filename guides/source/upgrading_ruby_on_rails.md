@@ -85,13 +85,14 @@ Rails 6.1. You are encouraged to enable `config.force_ssl` to enforce HTTPS
 connections throughout your application. If you need to exempt certain endpoints
 from redirection, you can use `config.ssl_options` to configure that behavior.
 
-### Purpose in signed or encrypted cookie is now embedded within cookies
+### Purpose and expiry metadata is now embedded inside signed and encrypted cookies for increased security
 
-To improve security, Rails embeds the purpose information in encrypted or signed cookies value.
+To improve security, Rails embeds the purpose and expiry metadata inside encrypted or signed cookies value.
+
 Rails can then thwart attacks that attempt to copy the signed/encrypted value
 of a cookie and use it as the value of another cookie.
 
-This new embed information make those cookies incompatible with versions of Rails older than 6.0.
+This new embed metadata make those cookies incompatible with versions of Rails older than 6.0.
 
 If you require your cookies to be read by Rails 5.2 and older, or you are still validating your 6.0 deploy and want
 to be able to rollback set
@@ -132,6 +133,252 @@ Action Cable JavaScript API:
   -    ActionCable.stopDebugging()
   +    ActionCable.logger.enabled = false
   ```
+
+### Autoloading
+
+The default configuration for Rails 6
+
+```ruby
+# config/application.rb
+
+config.load_defaults "6.0"
+```
+
+enables `zeitwerk` autoloading mode on CRuby. In that mode, autoloading, reloading, and eager loading are managed by [Zeitwerk](https://github.com/fxn/zeitwerk).
+
+#### Public API
+
+In general, applications do not need to use the API of Zeitwerk directly. Rails sets things up according to the existing contract: `config.autoload_paths`, `config.cache_classes`, etc.
+
+While applications should stick to that interface, the actual Zeitwerk loader object can be accessed as
+
+```ruby
+Rails.autoloaders.main
+```
+
+That may be handy if you need to preload STIs or configure a custom inflector, for example.
+
+#### Project Structure
+
+If the application being upgraded autoloads correctly, the project structure should be already mostly compatible.
+
+However, `classic` mode infers file names from missing constant names (`underscore`), whereas `zeitwerk` mode infers constant names from file names (`camelize`). These helpers are not always inverse of each other, in particular if acronyms are involved. For instance, `"FOO".underscore` is `"foo"`, but `"foo".camelize` is `"Foo"`, not `"FOO"`. Compatibility can be checked by setting `classic` mode first temporarily:
+
+```ruby
+# config/application.rb
+
+config.load_defaults "6.0"
+config.autoloader = :classic
+```
+
+and then running
+
+```
+bin/rails zeitwerk:check
+```
+
+When all is good, you can delete `config.autoloader = :classic`.
+
+#### require_dependency
+
+All known use cases of `require_dependency` have been eliminated, you should grep the project and delete them.
+
+In the case of STIs with a hierarchy of more than two levels, you can preload the leaves of the hierarchy in an initializer:
+
+```ruby
+# config/initializers/preload_stis.rb
+
+# By preloading leaves, the entire hierarchy is loaded upwards following
+# the references to superclasses in the class definitions.
+sti_leaves = %w(
+  app/models/leaf1.rb
+  app/models/leaf2.rb
+  app/models/leaf3.rb
+)
+Rails.autoloaders.main.preload(sti_leaves)
+```
+
+#### Qualified names in class and module definitions
+
+You can now robustly use constant paths in class and module definitions:
+
+```ruby
+# Autoloading in this class' body matches Ruby semantics now.
+class Admin::UsersController < ApplicationController
+  # ...
+end
+```
+
+A gotcha to be aware of is that, depending on the order of execution, the classic autoloader could sometimes be able to autoload `Foo::Wadus` in
+
+```ruby
+class Foo::Bar
+  Wadus
+end
+```
+
+That does not match Ruby semantics because `Foo` is not in the nesting, and won't work at all in `zeitwerk` mode. If you find such corner case you can use the qualified name `Foo::Wadus`:
+
+```ruby
+class Foo::Bar
+  Foo::Wadus
+end
+```
+
+or add `Foo` to the nesting:
+
+```ruby
+module Foo
+  class Bar
+    Wadus
+  end
+end
+```
+
+#### Concerns
+
+You can autoload and eager load from a standard structure like
+
+```
+app/models
+app/models/concerns
+```
+
+In that case, `app/models/concerns` is assumed to be a root directory (because it belongs to the autoload paths), and it is ignored as namespace. So, `app/models/concerns/foo.rb` should define `Foo`, not `Concerns::Foo`.
+
+The `Concerns::` namespace worked with the classic autoloader as a side-effect of the implementation, but it was not really an intended behavior. An application using `Concerns::` needs to rename those classes and modules to be able to run in `zeitwerk` mode.
+
+#### Autoloaded Constants and Explicit Namespaces
+
+If a namespace is defined in a file, as `Hotel` is here:
+
+```
+app/models/hotel.rb         # Defines Hotel.
+app/models/hotel/pricing.rb # Defines Hotel::Pricing.
+```
+
+the `Hotel` constant has to be set using the `class` or `module` keywords. For example:
+
+```ruby
+class Hotel
+end
+```
+
+is good.
+
+Alternatives like
+
+```ruby
+Hotel = Class.new
+```
+
+or
+
+```ruby
+Hotel = Struct.new
+```
+
+won't work, child objects like `Hotel::Pricing` won't be found.
+
+This restriction only applies to explicit namespaces. Classes and modules not defining a namespace can be defined using those idioms.
+
+#### One file, one constant (at the same top-level)
+
+In `classic` mode you could technically define several constants at the same top-level and have them all reloaded. For example, given
+
+```ruby
+# app/models/foo.rb
+
+class Foo
+end
+
+class Bar
+end
+```
+
+while `Bar` could not be autoloaded, autoloading `Foo` would mark `Bar` as autoloaded too. This is not the case in `zeitwerk` mode, you need to move `Bar` to its own file `bar.rb`. One file, one constant.
+
+This affects only to constants at the same top-level as in the example above. Inner classes and modules are fine. For example, consider
+
+```ruby
+# app/models/foo.rb
+
+class Foo
+  class InnerClass
+  end
+end
+```
+
+If the application reloads `Foo`, it will reload `Foo::InnerClass` too.
+
+#### Spring and the `test` Environment
+
+Spring reloads the application code if something changes. In the `test` environment you need to enable reloading for that to work:
+
+```ruby
+# config/environments/test.rb
+
+config.cache_classes = false
+```
+
+Otherwise you'll get this error:
+
+```
+reloading is disabled because config.cache_classes is true
+```
+
+#### Bootsnap
+
+Bootsnap should be at least version 1.4.2.
+
+In addition to that, Bootsnap needs to disable the iseq cache due to a bug in the interpreter if running Ruby 2.5. Please make sure to depend on at least Bootsnap 1.4.4 in that case.
+
+#### `config.add_autoload_paths_to_load_path`
+
+The new configuration point
+
+```ruby
+config.add_autoload_paths_to_load_path
+```
+
+is `true` by default for backwards compatibility, but allows you to opt-out from adding the autoload paths to `$LOAD_PATH`.
+
+This makes sense in most applications, since you never should require a file in `app/models`, for example, and Zeitwerk only uses absolute file names internally.
+
+By opting-out you optimize `$LOAD_PATH` lookups (less directories to check), and save Bootsnap work and memory consumption, since it does not need to build an index for these directories.
+
+#### Thread-safety
+
+In classic mode, constant autoloading is not thread-safe, though Rails has locks in place for example to make web requests thread-safe when autoloading is enabled, as it is common in `development` mode.
+
+Constant autoloading is thread-safe in `zeitwerk` mode. For example, you can now autoload in multi-threaded scripts executed by the `runner` command.
+
+#### Globs in config.autoload_paths
+
+Beware of configurations like
+
+```ruby
+config.autoload_paths += Dir["#{config.root}/lib/**/"]
+```
+
+Every element of `config.autoload_paths` should represent the top-level namespace (`Object`) and they cannot be nested in consequence (with the exception of `concerns` directories explained above).
+
+To fix this, just remove the wildcards:
+
+```ruby
+config.autoload_paths << "#{config.root}/lib"
+```
+
+#### How to Use the Classic Autoloader in Rails 6
+
+Applications can load Rails 6 defaults and still use the classic autoloader by setting `config.autoloader` this way:
+
+```ruby
+# config/application.rb
+
+config.load_defaults "6.0"
+config.autoloader = :classic
+```
 
 Upgrading from Rails 5.1 to Rails 5.2
 -------------------------------------
@@ -1557,7 +1804,7 @@ config.assets.enabled = true
 config.assets.version = '1.0'
 ```
 
-If your application is using an "/assets" route for a resource you may want change the prefix used for assets to avoid conflicts:
+If your application is using an "/assets" route for a resource you may want to change the prefix used for assets to avoid conflicts:
 
 ```ruby
 # Defaults to '/assets'

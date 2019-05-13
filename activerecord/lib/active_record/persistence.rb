@@ -849,12 +849,7 @@ module ActiveRecord
     #   ball.touch(:updated_at)   # => raises ActiveRecordError
     #
     def touch(*names, time: nil)
-      unless persisted?
-        raise ActiveRecordError, <<-MSG.squish
-          cannot touch on a new or destroyed record object. Consider using
-          persisted?, new_record?, or destroyed? before touching
-        MSG
-      end
+      _raise_record_not_touched_error unless persisted?
 
       attribute_names = timestamp_attributes_for_update_in_model
       attribute_names |= names.map!(&:to_s).map! { |name|
@@ -954,14 +949,21 @@ module ActiveRecord
       @_association_destroy_exception = nil
     end
 
+    def _raise_readonly_record_error
+      raise ReadOnlyRecord, "#{self.class} is marked as readonly"
+    end
+
+    def _raise_record_not_touched_error
+      raise ActiveRecordError, <<~MSG.squish
+        Cannot touch on a new or destroyed record object. Consider using
+        persisted?, new_record?, or destroyed? before touching.
+      MSG
+    end
+
     # The name of the method used to touch a +belongs_to+ association when the
     # +:touch+ option is used.
     def belongs_to_touch_method
       :touch
-    end
-
-    def _raise_readonly_record_error
-      raise ReadOnlyRecord, "#{self.class} is marked as readonly"
     end
   end
 end
