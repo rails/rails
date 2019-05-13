@@ -20,7 +20,7 @@ end
 mismatches = []
 check_directory = ->(directory, parent) do
   # test/mailers/previews might not exist.
-  return unless File.exists?(directory)
+  return unless File.exist?(directory)
 
   Dir.foreach(directory) do |entry|
     next if entry.start_with?(".")

@@ -4,6 +4,7 @@ require "isolation/abstract_unit"
 require "rack/test"
 require "env_helpers"
 require "set"
+require "active_support/core_ext/string/starts_ends_with"
 
 class ::MyMailInterceptor
   def self.delivering_email(email); email; end
@@ -1702,6 +1703,33 @@ module ApplicationTests
         assert_not_operator path, :ends_with?, "app/assets"
         assert_not_operator path, :ends_with?, "app/javascript"
       end
+    end
+
+    test "autoload paths are added to $LOAD_PATH by default" do
+      app "development"
+
+      # Action Mailer modifies AS::Dependencies.autoload_paths in-place.
+      autoload_paths = ActiveSupport::Dependencies.autoload_paths
+      autoload_paths_from_app_and_engines = autoload_paths.reject do |path|
+        path.ends_with?("mailers/previews")
+      end
+      assert_equal true, Rails.configuration.add_autoload_paths_to_load_path
+      assert_empty autoload_paths_from_app_and_engines - $LOAD_PATH
+
+      # Precondition, ensure we are testing something next.
+      assert_not_empty Rails.configuration.paths.load_paths
+      assert_empty Rails.configuration.paths.load_paths - $LOAD_PATH
+    end
+
+    test "autoload paths are not added to $LOAD_PATH if opted-out" do
+      add_to_config "config.add_autoload_paths_to_load_path = false"
+      app "development"
+
+      assert_empty ActiveSupport::Dependencies.autoload_paths & $LOAD_PATH
+
+      # Precondition, ensure we are testing something next.
+      assert_not_empty Rails.configuration.paths.load_paths
+      assert_empty Rails.configuration.paths.load_paths - $LOAD_PATH
     end
 
     test "autoloading during initialization gets deprecation message and clearing if config.cache_classes is false" do

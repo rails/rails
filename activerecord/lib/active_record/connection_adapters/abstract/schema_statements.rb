@@ -735,7 +735,7 @@ module ActiveRecord
       #
       #   CREATE UNIQUE INDEX index_accounts_on_branch_id_and_party_id ON accounts(branch_id, party_id) WHERE active
       #
-      # Note: Partial indexes are only supported for PostgreSQL and SQLite 3.8.0+.
+      # Note: Partial indexes are only supported for PostgreSQL and SQLite.
       #
       # ====== Creating an index with a specific method
       #

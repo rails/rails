@@ -64,6 +64,8 @@ These configuration methods are to be called on a `Rails::Railtie` object, such 
 
 * `config.autoload_paths` accepts an array of paths from which Rails will autoload constants. Default is all directories under `app`. It is no longer recommended to adjust this. See [Autoloading and Reloading Constants](autoloading_and_reloading_constants.html#autoload-paths-and-eager-load-paths)
 
+* `config.add_autoload_paths_to_load_path` says whether autoload paths have to be added to `$LOAD_PATH`. This flag is `true` by default, but it is recommended to be set to `false` in `:zeitwerk` mode early, in `config/application.rb`. Zeitwerk uses absolute paths internally, and applications running in `:zeitwerk` mode do not need `require_dependency`, so models, controllers, jobs, etc. do not need to be in `$LOAD_PATH`. Setting this to `false` saves Ruby from checking these directories when resolving `require` calls with relative paths, and saves Bootsnap work and RAM, since it does not need to build an index for them.
+
 * `config.cache_classes` controls whether or not application classes and modules should be reloaded on each request. Defaults to `false` in development mode, and `true` in test and production modes.
 
 * `config.beginning_of_week` sets the default beginning of week for the
@@ -143,7 +145,7 @@ defaults to `:debug` for all environments. The available log levels are: `:debug
 
 * `secret_key_base` is used for specifying a key which allows sessions for the application to be verified against a known secure key to prevent tampering. Applications get a random generated key in test and development environments, other environments should set one in `config/credentials.yml.enc`.
 
-* `config.public_file_server.enabled` configures Rails to serve static files from the public directory. This option defaults to `true`, but in the production environment it is set to `false` because the server software (e.g. NGINX or Apache) used to run the application should serve static files instead. If you are running or testing your app in production mode using WEBrick (it is not recommended to use WEBrick in production) set the option to `true.` Otherwise, you won't be able to use page caching and request for files that exist under the public directory.
+* `config.public_file_server.enabled` configures Rails to serve static files from the public directory. This option defaults to `true`, but in the production environment it is set to `false` because the server software (e.g. NGINX or Apache) used to run the application should serve static files instead. If you are running or testing your app in production mode using WEBrick (it is not recommended to use WEBrick in production) set the option to `true`. Otherwise, you won't be able to use page caching and request for files that exist under the public directory.
 
 * `config.session_store` specifies what class to use to store the session. Possible values are `:cookie_store` which is the default, `:mem_cache_store`, and `:disabled`. The last one tells Rails not to deal with sessions. Defaults to a cookie store with application name as the session key. Custom session stores can also be specified:
 
@@ -884,12 +886,14 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 
 #### With '6.0':
 
+- `config.autoloader`: `:zeitwerk`
 - `config.action_view.default_enforce_utf8`: `false`
 - `config.action_dispatch.use_cookies_with_metadata`: `true`
 - `config.action_mailer.delivery_job`: `"ActionMailer::MailDeliveryJob"`
 - `config.active_job.return_false_on_aborted_enqueue`: `true`
 - `config.active_storage.queues.analysis`: `:active_storage_analysis`
 - `config.active_storage.queues.purge`: `:active_storage_purge`
+- `config.active_record.collection_cache_versioning`: `true`
 
 ### Configuring a Database
 
