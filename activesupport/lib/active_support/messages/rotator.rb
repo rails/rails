@@ -3,11 +3,12 @@
 module ActiveSupport
   module Messages
     module Rotator # :nodoc:
-      def initialize(*, **options)
+      def initialize(*, on_rotation: nil, **options)
         super
 
         @options   = options
         @rotations = []
+        @on_rotation = on_rotation
       end
 
       def rotate(*secrets, **options)
@@ -17,7 +18,7 @@ module ActiveSupport
       module Encryptor
         include Rotator
 
-        def decrypt_and_verify(*args, on_rotation: nil, **options)
+        def decrypt_and_verify(*args, on_rotation: @on_rotation, **options)
           super
         rescue MessageEncryptor::InvalidMessage, MessageVerifier::InvalidSignature
           run_rotations(on_rotation) { |encryptor| encryptor.decrypt_and_verify(*args, options) } || raise
@@ -32,7 +33,7 @@ module ActiveSupport
       module Verifier
         include Rotator
 
-        def verified(*args, on_rotation: nil, **options)
+        def verified(*args, on_rotation: @on_rotation, **options)
           super || run_rotations(on_rotation) { |verifier| verifier.verified(*args, options) }
         end
 
@@ -46,7 +47,7 @@ module ActiveSupport
         def run_rotations(on_rotation)
           @rotations.find do |rotation|
             if message = yield(rotation) rescue next
-              on_rotation.call if on_rotation
+              on_rotation&.call
               return message
             end
           end

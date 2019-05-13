@@ -1,3 +1,20 @@
+*   Allow the on_rotation proc used when decrypting/verifying a message to be
+    be passed at the constructor level.
+
+    Before:
+
+	crypt = ActiveSupport::MessageEncryptor.new('long_secret')
+	crypt.decrypt_and_verify(encrypted_message, on_rotation: proc { ... })
+	crypt.decrypt_and_verify(another_encrypted_message, on_rotation: proc { ... })
+
+    After:
+
+	crypt = ActiveSupport::MessageEncryptor.new('long_secret', on_rotation: proc { ... })
+	crypt.decrypt_and_verify(encrypted_message)
+	crypt.decrypt_and_verify(another_encrypted_message)
+
+    *Edouard Chin*
+
 *   `delegate_missing_to` would raise a `DelegationError` if the object
     delegated to was `nil`. Now the `allow_nil` option has been added to enable
     the user to specify they want `nil` returned in this case.
