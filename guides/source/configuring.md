@@ -157,9 +157,10 @@ defaults to `:debug` for all environments. The available log levels are: `:debug
 
 * `config.time_zone` sets the default time zone for the application and enables time zone awareness for Active Record.
 
-* `config.autoloader` sets the autoloading modes. This option defaults to `:zeitwerk` if `6.0` is specified in `config.load_defaults`. Can use the classic autoloader by specifying `:classic` after the line that loads` load_defaults `.
+* `config.autoloader` sets the autoloading mode. This option defaults to `:zeitwerk` if `6.0` is specified in `config.load_defaults`. Applications can still use the classic autoloader by setting this value to `:classic` after loading the framework defaults:
 
     ```ruby
+    config.load_defaults "6.0"
     config.autoloader = :classic
     ```
 
