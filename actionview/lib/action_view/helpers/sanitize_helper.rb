@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "rails-html-sanitizer"
+require "active_support/deprecation"
 
 module ActionView
   # = Action View Sanitize Helpers
@@ -16,7 +17,7 @@ module ActionView
       # ASCII, and hex character references to work around these protocol filters.
       # All special characters will be escaped.
       #
-      # The default sanitizer is Rails::Html::WhiteListSanitizer. See {Rails HTML
+      # The default sanitizer is Rails::Html::SafeListSanitizer. See {Rails HTML
       # Sanitizers}[https://github.com/rails/rails-html-sanitizer] for more information.
       #
       # Custom sanitization rules can also be provided.
@@ -79,12 +80,12 @@ module ActionView
       #   config.action_view.sanitized_allowed_tags = ['strong', 'em', 'a']
       #   config.action_view.sanitized_allowed_attributes = ['href', 'title']
       def sanitize(html, options = {})
-        self.class.white_list_sanitizer.sanitize(html, options)&.html_safe
+        self.class.safe_list_sanitizer.sanitize(html, options)&.html_safe
       end
 
       # Sanitizes a block of CSS code. Used by +sanitize+ when it comes across a style attribute.
       def sanitize_css(style)
-        self.class.white_list_sanitizer.sanitize_css(style)
+        self.class.safe_list_sanitizer.sanitize_css(style)
       end
 
       # Strips all HTML tags from +html+, including comments and special characters.
@@ -122,20 +123,14 @@ module ActionView
       end
 
       module ClassMethods #:nodoc:
-        attr_writer :full_sanitizer, :link_sanitizer, :white_list_sanitizer
-
-        # Vendors the full, link and white list sanitizers.
-        # Provided strictly for compatibility and can be removed in Rails 6.
-        def sanitizer_vendor
-          Rails::Html::Sanitizer
-        end
+        attr_writer :full_sanitizer, :link_sanitizer, :safe_list_sanitizer
 
         def sanitized_allowed_tags
-          sanitizer_vendor.white_list_sanitizer.allowed_tags
+          safe_list_sanitizer.allowed_tags
         end
 
         def sanitized_allowed_attributes
-          sanitizer_vendor.white_list_sanitizer.allowed_attributes
+          safe_list_sanitizer.allowed_attributes
         end
 
         # Gets the Rails::Html::FullSanitizer instance used by +strip_tags+. Replace with
@@ -144,9 +139,8 @@ module ActionView
         #   class Application < Rails::Application
         #     config.action_view.full_sanitizer = MySpecialSanitizer.new
         #   end
-        #
         def full_sanitizer
-          @full_sanitizer ||= sanitizer_vendor.full_sanitizer.new
+          @full_sanitizer ||= Rails::Html::Sanitizer.full_sanitizer.new
         end
 
         # Gets the Rails::Html::LinkSanitizer instance used by +strip_links+.
@@ -155,20 +149,18 @@ module ActionView
         #   class Application < Rails::Application
         #     config.action_view.link_sanitizer = MySpecialSanitizer.new
         #   end
-        #
         def link_sanitizer
-          @link_sanitizer ||= sanitizer_vendor.link_sanitizer.new
+          @link_sanitizer ||= Rails::Html::Sanitizer.link_sanitizer.new
         end
 
-        # Gets the Rails::Html::WhiteListSanitizer instance used by sanitize and +sanitize_css+.
+        # Gets the Rails::Html::SafeListSanitizer instance used by sanitize and +sanitize_css+.
         # Replace with any object that responds to +sanitize+.
         #
         #   class Application < Rails::Application
-        #     config.action_view.white_list_sanitizer = MySpecialSanitizer.new
+        #     config.action_view.safe_list_sanitizer = MySpecialSanitizer.new
         #   end
-        #
-        def white_list_sanitizer
-          @white_list_sanitizer ||= sanitizer_vendor.white_list_sanitizer.new
+        def safe_list_sanitizer
+          @safe_list_sanitizer ||= Rails::Html::Sanitizer.safe_list_sanitizer.new
         end
       end
     end
