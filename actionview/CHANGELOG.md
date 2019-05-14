@@ -1,3 +1,8 @@
+*   ActionView::Helpers::SanitizeHelper: support rails-html-sanitizer 1.1.0.
+
+    *Juanito Fatas*
+
+
 ## Rails 6.0.0.rc2 (July 22, 2019) ##
 
 *   Fix `select_tag` so that it doesn't change `options` when `include_blank` is present.
