@@ -122,6 +122,22 @@ module ApplicationTests
         db_create_and_drop("db/development.sqlite3", environment_loaded: false)
       end
 
+      test "db:create and db:drop dont raise errors when loading YAML with FIXME ERB" do
+        app_file "config/database.yml", <<-YAML
+          development:
+            <%= Rails.application.config.database ? 'database: db/development.sqlite3' : 'database: db/development.sqlite3' %>
+            adapter: sqlite3
+        YAML
+
+        app_file "config/environments/development.rb", <<-RUBY
+          Rails.application.configure do
+            config.database = "db/development.sqlite3"
+          end
+        RUBY
+
+        db_create_and_drop("db/development.sqlite3", environment_loaded: false)
+      end
+
       def with_database_existing
         Dir.chdir(app_path) do
           set_database_url
