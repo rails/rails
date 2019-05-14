@@ -482,6 +482,9 @@ module ActiveRecord
         end
 
         def load_schema!
+          unless table_name
+            raise ActiveRecord::TableNotSpecified, "#{self} has no table configured. Set one with #{self}.table_name="
+          end
           @columns_hash = connection.schema_cache.columns_hash(table_name).except(*ignored_columns)
           @columns_hash.each do |name, column|
             define_attribute(
