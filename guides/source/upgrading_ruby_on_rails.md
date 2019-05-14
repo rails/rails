@@ -188,7 +188,7 @@ In the case of STIs with a hierarchy of more than two levels, you can preload th
 ```ruby
 # config/initializers/preload_stis.rb
 
-# By preloading leaves, the entire hierarchy is loaded upwards following
+# By preloading leaves, the hierarchy is loaded upwards following
 # the references to superclasses in the class definitions.
 sti_leaves = %w(
   app/models/leaf1.rb
