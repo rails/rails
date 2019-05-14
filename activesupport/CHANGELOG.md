@@ -1,3 +1,33 @@
+*   Trigger `ActiveSupport::ActionableError` from existing errors.
+
+    Triggers let's you re raise an actionable error from an existing one, if it
+    matches a certain condition. Here is how Action Mailbox uses triggers to
+    raise an actionable error when the `action_mailbox_inbound_emails` table
+    does not exist.
+
+    ```ruby
+    class SetupError < Error
+      include ActiveSupport::ActionableError
+
+      def initialize(message = nil)
+        super(message || <<~MESSAGE)
+          Action Mailbox does not appear to be installed. Do you want to
+          install it now?
+        MESSAGE
+      end
+
+      trigger ActiveRecord::StatementInvalid do |error|
+        error.to_s.match?(InboundEmail.table_name)
+      end
+
+      action "Install now" do
+        system "./bin/rails active_storage:install action_mailbox:install db:migrate"
+      end
+    end
+    ```
+
+    *Genadi Samokovarov*
+
 *   Allow the on_rotation proc used when decrypting/verifying a message to be
     be passed at the constructor level.
 

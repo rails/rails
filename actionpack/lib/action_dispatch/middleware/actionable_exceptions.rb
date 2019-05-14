@@ -8,14 +8,6 @@ module ActionDispatch
   class ActionableExceptions # :nodoc:
     cattr_accessor :endpoint, default: "/rails/actions"
 
-    cattr_reader :hooks, default: []
-
-    def self.on(exception, &block)
-      raise ArgumentError if block.nil?
-
-      hooks << -> err { block.call(err) if exception === err }
-    end
-
     def initialize(app)
       @app = app
     end
@@ -27,8 +19,8 @@ module ActionDispatch
       ActiveSupport::ActionableError.dispatch(request.params[:error].to_s.safe_constantize, request.params[:action])
 
       redirect_to request.params[:location]
-    rescue Exception => err
-      hooks.each { |hook| hook.call(err) }
+    rescue Exception => error
+      ActiveSupport::ActionableError.trigger_by(error)
       raise
     end
 

@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "active_support/actionable_error"
-require "rails/command"
 
 module ActionMailbox
   # Generic base class for all Action Mailbox exceptions.
@@ -12,15 +11,18 @@ module ActionMailbox
     include ActiveSupport::ActionableError
 
     def initialize(message = nil)
-      return super if message
-
-      super("Action Mailbox uses a table in your application’s database named " \
-            "two and active_storage_attachments. To generate it run the following" \
-            "command:\n\n        rails action_mailbox:install")
+      super(message || <<~MESSAGE)
+        Action Mailbox does not appear to be installed. Do you want to
+        install it now?
+      MESSAGE
     end
 
-    action "Run action_mailbox:install" do
-      Rails::Command.invoke "action_mailbox:install"
+    trigger ActiveRecord::StatementInvalid do |error|
+      error.to_s.match?(InboundEmail.table_name)
+    end
+
+    action "Install now" do
+      system "./bin/rails active_storage:install action_mailbox:install db:migrate"
     end
   end
 end

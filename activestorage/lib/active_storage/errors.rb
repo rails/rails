@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "active_support/actionable_error"
-require "rails/command"
 
 module ActiveStorage
   # Generic base class for all Active Storage exceptions.
@@ -32,15 +31,18 @@ module ActiveStorage
     include ActiveSupport::ActionableError
 
     def initialize(message = nil)
-      return super if message
-
-      super("Active Storage uses two tables in your application’s database named " \
-            "active_storage_blobs and active_storage_attachments. To generate them " \
-            "run the following command:\n\n        rails active_storage:install")
+      super(message || <<~MESSAGE)
+        Action Storage does not appear to be installed. Do you want to
+        install it now?
+      MESSAGE
     end
 
-    action "Run active_storage:install" do
-      Rails::Command.invoke "active_storage:install"
+    trigger ActiveRecord::StatementInvalid do |error|
+      [Blob, Attachment].any? { |model| error.to_s.match?(model.table_name) }
+    end
+
+    action "Install now" do
+      system "./bin/rails active_storage:install db:migrate"
     end
   end
 end

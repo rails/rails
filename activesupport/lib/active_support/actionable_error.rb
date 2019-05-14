@@ -9,7 +9,15 @@ module ActiveSupport
   module ActionableError
     extend Concern
 
-    class NonActionable < StandardError; end
+    class NonActionable < StandardError; end # :nodoc:
+
+    Trigger = Struct.new(:actionable, :condition) do # :nodoc:
+      def act_on(error)
+        raise actionable if condition&.call(error)
+      end
+    end
+
+    mattr_accessor :triggers, default: Hash.new { |h, k| h[k] = [] } # :nodoc:
 
     included do
       class_attribute :_actions, default: {}
@@ -30,6 +38,10 @@ module ActiveSupport
       raise NonActionable, "Cannot find action \"#{name}\""
     end
 
+    def self.trigger_by(error) # :nodoc:
+      triggers[error.class].each { |trigger| trigger.act_on(error) }
+    end
+
     module ClassMethods
       # Defines an action that can resolve the error.
       #
@@ -42,6 +54,20 @@ module ActiveSupport
       #   end
       def action(name, &block)
         _actions[name] = block
+      end
+
+      # Trigger the current actionable error from a pre-existing if the
+      # condition, given as a block, returns a truthy value.
+      #
+      #   class SetupError < Error
+      #     include ActiveSupport::ActionableError
+      #
+      #     trigger ActiveRecord::RecordInvalid do |error|
+      #       error.to_s.match?(InboundEmail.table_name)
+      #     end
+      #   end
+      def trigger(error, &condition)
+        ActiveSupport::ActionableError.triggers[error] << Trigger.new(self, condition)
       end
     end
   end

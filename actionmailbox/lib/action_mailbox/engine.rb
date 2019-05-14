@@ -29,11 +29,5 @@ module ActionMailbox
         ActionMailbox.ingress = app.config.action_mailbox.ingress
       end
     end
-
-    initializer "action_mailbox.setup" do
-      ActionDispatch::ActionableExceptions.on ActiveRecord::StatementInvalid do |err|
-        raise SetupError if err.to_s.match?(InboundEmail.table_name)
-      end
-    end
   end
 end
