@@ -101,6 +101,17 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_equal [taggings(:normal_comment_rating)], rating.taggings_without_tag
   end
 
+  def test_loading_association_with_string_joins
+    rating = Rating.first
+    assert_equal [taggings(:normal_comment_rating)], rating.taggings_with_no_tag
+
+    rating = Rating.preload(:taggings_with_no_tag).first
+    assert_equal [taggings(:normal_comment_rating)], rating.taggings_with_no_tag
+
+    rating = Rating.eager_load(:taggings_with_no_tag).first
+    assert_equal [taggings(:normal_comment_rating)], rating.taggings_with_no_tag
+  end
+
   def test_loading_with_scope_including_joins
     member = Member.first
     assert_equal members(:groucho), member
