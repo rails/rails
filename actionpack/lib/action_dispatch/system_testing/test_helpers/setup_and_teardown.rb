@@ -7,7 +7,6 @@ module ActionDispatch
         DEFAULT_HOST = "http://127.0.0.1"
 
         def host!(host)
-          super
           Capybara.app_host = host
         end
 
