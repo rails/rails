@@ -1,5 +1,10 @@
 ## (Unreleased)
 
+*   Make generated application_system_test_case.rb files avoid
+    `ChildProcess::LaunchError` when parallel tests are enabled.
+
+    *Richard Macklin*
+
 *   The new configuration point `config.add_autoload_paths_to_load_path` allows
     users to opt-out from adding autoload paths to `$LOAD_PATH`. This flag is
     `true` by default, but it is recommended to be set to `false` in `:zeitwerk`
