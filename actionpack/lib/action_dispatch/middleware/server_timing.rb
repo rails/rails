@@ -12,11 +12,12 @@ module ActionDispatch
 
     def call(env)
       events = []
-      ActiveSupport::Notifications.subscribe(/.*/) do |*args|
+      subscriber = ActiveSupport::Notifications.subscribe(/.*/) do |*args|
         events << ActiveSupport::Notifications::Event.new(*args)
       end
 
       status, headers, body = @app.call(env)
+      ActiveSupport::Notifications.unsubscribe(subscriber)
 
       header_info = []
       events.group_by(&:name).each do |event_name, events_collection|
