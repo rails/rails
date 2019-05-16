@@ -10,7 +10,7 @@ class ServerTimingTest < ActionDispatch::IntegrationTest
 
     def show
       ActiveSupport::Notifications.instrument("custom.event") do
-        sleep 0.001
+        true
       end
       head :ok
     end
