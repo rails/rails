@@ -213,6 +213,15 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
     assert_kind_of ActionController::Parameters, @params.transform_keys!.each { |k| k }
   end
 
+  test "deep_transform_keys retains permitted status" do
+    @params.permit!
+    assert_predicate @params.deep_transform_keys { |k| k }, :permitted?
+  end
+
+  test "deep_transform_keys retains unpermitted status" do
+    assert_not_predicate @params.deep_transform_keys { |k| k }, :permitted?
+  end
+
   test "transform_values retains permitted status" do
     @params.permit!
     assert_predicate @params.transform_values { |v| v }, :permitted?
