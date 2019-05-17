@@ -15,7 +15,7 @@ module ActionText
     has_many_attached :embeds
 
     before_save do
-      self.embeds = body.attachables.grep(ActiveStorage::Blob) if body.present?
+      self.embeds = body.attachables.grep(ActiveStorage::Blob).uniq if body.present?
     end
 
     def to_plain_text
