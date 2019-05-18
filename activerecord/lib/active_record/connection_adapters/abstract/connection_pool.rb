@@ -294,15 +294,33 @@ module ActiveRecord
           @frequency = frequency
         end
 
+        @@mutex = Mutex.new
+        @@pools = {}
+
+        def self.register_pool(pool, frequency) # :nodoc:
+          @@mutex.synchronize do
+            if @@pools.key?(frequency)
+              @@pools[frequency] << pool
+            else
+              @@pools[frequency] = [pool]
+              Thread.new(frequency) do |t|
+                loop do
+                  sleep t
+                  @@mutex.synchronize do
+                    @@pools[frequency].each do |p|
+                      p.reap
+                      p.flush
+                    end
+                  end
+                end
+              end
+            end
+          end
+        end
+
         def run
           return unless frequency && frequency > 0
-          Thread.new(frequency, pool) { |t, p|
-            loop do
-              sleep t
-              p.reap
-              p.flush
-            end
-          }
+          self.class.register_pool(pool, frequency)
         end
       end
 
