@@ -7,6 +7,8 @@
     body {
       background-color: #FAFAFA;
       color: #333;
+      color-scheme: light dark;
+      supported-color-schemes: light dark;
       margin: 0px;
     }
 
@@ -119,6 +121,8 @@
 
     .button_to {
       display: inline-block;
+      margin-top: 0.5em;
+      margin-bottom: 0.5em;
     }
 
     .hidden {
@@ -130,6 +134,60 @@
     a.trace-frames { color: #666; }
     a:hover { color: #C52F24; }
     a.trace-frames.selected { color: #C52F24 }
+
+    @media (prefers-color-scheme: dark) {
+      body {
+        background-color: #222;
+        color: #ECECEC;
+      }
+
+      .details {
+        border-color: #666;
+      }
+
+      .summary {
+        border-color: #666;
+      }
+
+      .source {
+        border-color: #555;
+        background-color: #333;
+      }
+
+      .source .data {
+        background: #444;
+      }
+
+      .source .data .line_numbers {
+        background: #333;
+        border-color: #222;
+      }
+
+      .line:hover {
+        background: #666;
+      }
+
+      .line.active {
+        background-color: #977;
+      }
+
+      input[type="submit"] {
+        color: #EEE;
+        background-color: #535353;
+        border: none;
+        border-radius: 3px;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 1px 2px rgba(0,0,0,0.15), 0 1px 1px rgba(0,0,0,0.15);
+        padding: 2px 7px;
+      }
+      input[type="submit"]:active {
+        background-color: #777;
+      }
+
+      a { color: #C52F24; }
+      a.trace-frames { color: #999; }
+      a:hover { color: #E9382B; }
+      a.trace-frames.selected { color: #E9382B; }
+    }
 
     <%= yield :style %>
   </style>
