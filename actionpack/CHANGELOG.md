@@ -1,3 +1,8 @@
+*   Calling `ActionController::Parameters#transform_keys/!` without a block now returns
+    an enumerator for the parameters instead of the underlying hash.
+
+    *Eugene Kenny*
+
 * Fix strong parameters blocks all attributes even when only some keys are invalid (non-numerical). It should only block invalid key's values instead.
 
     *Stan Lo*
