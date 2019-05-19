@@ -58,6 +58,14 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal preloaded, Marshal.load(Marshal.dump(preloaded))
   end
 
+  def test_through_association_with_joins
+    assert_equal [comments(:eager_other_comment1)], authors(:mary).comments.merge(Post.joins(:comments))
+  end
+
+  def test_through_association_with_left_joins
+    assert_equal [comments(:eager_other_comment1)], authors(:mary).comments.merge(Post.left_joins(:comments))
+  end
+
   def test_preload_with_nested_association
     posts = Post.preload(:author, :author_favorites_with_scope).to_a
 
