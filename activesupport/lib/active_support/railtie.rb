@@ -20,8 +20,10 @@ module ActiveSupport
 
     initializer "active_support.reset_all_current_attributes_instances" do |app|
       app.reloader.before_class_unload { ActiveSupport::CurrentAttributes.clear_all }
-      app.executor.to_run              { ActiveSupport::CurrentAttributes.reset_all }
-      app.executor.to_complete         { ActiveSupport::CurrentAttributes.reset_all }
+      unless app.config.respond_to?(:active_job) && app.config.active_job.queue_adapter == :inline
+        app.executor.to_run              { ActiveSupport::CurrentAttributes.reset_all }
+        app.executor.to_complete         { ActiveSupport::CurrentAttributes.reset_all }
+      end
     end
 
     initializer "active_support.deprecation_behavior" do |app|
