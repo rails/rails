@@ -1128,27 +1128,21 @@ module ActiveRecord
 
         association_joins = buckets[:association_join]
         stashed_joins     = buckets[:stashed_join]
-        join_nodes        = buckets[:join_node].uniq
-        string_joins      = buckets[:string_join].map(&:strip).uniq
+        join_nodes        = buckets[:join_node].tap(&:uniq!)
+        string_joins      = buckets[:string_join].delete_if(&:blank?).map!(&:strip).tap(&:uniq!)
 
-        join_list = join_nodes + convert_join_strings_to_ast(string_joins)
-        alias_tracker = alias_tracker(join_list, aliases)
+        string_joins.map! { |join| table.create_string_join(Arel.sql(join)) }
 
-        join_dependency = construct_join_dependency(association_joins, join_type)
+        join_sources = manager.join_sources
+        join_sources.concat(join_nodes) unless join_nodes.empty?
 
-        joins = join_dependency.join_constraints(stashed_joins, alias_tracker)
-        joins.each { |join| manager.from(join) }
+        unless association_joins.empty? && stashed_joins.empty?
+          alias_tracker = alias_tracker(join_nodes + string_joins, aliases)
+          join_dependency = construct_join_dependency(association_joins, join_type)
+          join_sources.concat(join_dependency.join_constraints(stashed_joins, alias_tracker))
+        end
 
-        manager.join_sources.concat(join_list)
-
-        alias_tracker.aliases
-      end
-
-      def convert_join_strings_to_ast(joins)
-        joins
-          .flatten
-          .reject(&:blank?)
-          .map { |join| table.create_string_join(Arel.sql(join)) }
+        join_sources.concat(string_joins) unless string_joins.empty?
       end
 
       def build_select(arel)
