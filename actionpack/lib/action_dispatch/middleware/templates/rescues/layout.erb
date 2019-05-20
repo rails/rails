@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Action Controller: Exception caught</title>
   <style>
     body {
@@ -37,6 +38,7 @@
     }
 
     h1 {
+      overflow-wrap: break-word;
       margin: 0.2em 0;
       line-height: 1.1em;
       font-size: 2em;
@@ -52,7 +54,7 @@
       border-radius: 4px;
       margin: 1em 0px;
       display: block;
-      width: 978px;
+      max-width: 978px;
     }
 
     .summary {
@@ -80,7 +82,7 @@
     .source {
       border: 1px solid #D9D9D9;
       background: #ECECEC;
-      width: 978px;
+      max-width: 978px;
     }
 
     .source pre {
@@ -116,7 +118,7 @@
     }
 
     .line.active {
-      background-color: #FFCCCC;
+      background-color: #FCC;
     }
 
     .button_to {
@@ -131,7 +133,10 @@
 
     a { color: #980905; }
     a:visited { color: #666; }
-    a.trace-frames { color: #666; }
+    a.trace-frames {
+      color: #666;
+      overflow-wrap: break-word;
+    }
     a:hover { color: #C52F24; }
     a.trace-frames.selected { color: #C52F24 }
 
