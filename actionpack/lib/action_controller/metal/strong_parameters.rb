@@ -679,18 +679,16 @@ module ActionController
     # Returns a new <tt>ActionController::Parameters</tt> instance with the
     # results of running +block+ once for every key. The values are unchanged.
     def transform_keys(&block)
-      if block
-        new_instance_with_inherited_permitted_status(
-          @parameters.transform_keys(&block)
-        )
-      else
-        @parameters.transform_keys
-      end
+      return to_enum(:transform_keys) unless block_given?
+      new_instance_with_inherited_permitted_status(
+        @parameters.transform_keys(&block)
+      )
     end
 
     # Performs keys transformation and returns the altered
     # <tt>ActionController::Parameters</tt> instance.
     def transform_keys!(&block)
+      return to_enum(:transform_keys!) unless block_given?
       @parameters.transform_keys!(&block)
       self
     end
