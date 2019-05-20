@@ -1,6 +1,12 @@
+*   Calling `ActionController::Parameters#transform_keys/!` without a block now returns
+    an enumerator for the parameters instead of the underlying hash.
+
+    *Eugene Kenny*
+
 *   Fix a bug where DebugExceptions throws an error when malformed query parameters are provided
 
     *Yuki Nishijima*, *Stan Lo*
+
 
 ## Rails 6.0.0.rc1 (April 24, 2019) ##
 
