@@ -4,12 +4,17 @@ require "active_support/core_ext/module/delegation"
 
 module ActiveStorage
   # Wraps a set of mirror services and provides a single ActiveStorage::Service object that will all
-  # have the files uploaded to them. A +primary+ service is designated to answer calls to +download+, +exists?+,
-  # and +url+.
+  # have the files uploaded to them. A +primary+ service is designated to answer calls to:
+  # * +download+
+  # * +exists?+
+  # * +url+
+  # * +url_for_direct_upload+
+  # * +headers_for_direct_upload+
   class Service::MirrorService < Service
     attr_reader :primary, :mirrors
 
-    delegate :download, :download_chunk, :exist?, :url, :path_for, to: :primary
+    delegate :download, :download_chunk, :exist?, :url,
+      :url_for_direct_upload, :headers_for_direct_upload, :path_for, to: :primary
 
     # Stitch together from named services.
     def self.build(primary:, mirrors:, configurator:, **options) #:nodoc:
@@ -26,7 +31,8 @@ module ActiveStorage
     # ensure a match when the upload has completed or raise an ActiveStorage::IntegrityError.
     def upload(key, io, checksum: nil, **options)
       each_service.collect do |service|
-        service.upload key, io.tap(&:rewind), checksum: checksum, **options
+        io.rewind
+        service.upload key, io, checksum: checksum, **options
       end
     end
 
@@ -38,6 +44,21 @@ module ActiveStorage
     # Delete files at keys starting with the +prefix+ on all services.
     def delete_prefixed(prefix)
       perform_across_services :delete_prefixed, prefix
+    end
+
+
+    # Copy the file at the +key+ from the primary service to each of the mirrors where it doesn't already exist.
+    def mirror(key, checksum:)
+      instrument :mirror, key: key, checksum: checksum do
+        if (mirrors_in_need_of_mirroring = mirrors.select { |service| !service.exist?(key) }).any?
+          primary.open(key, checksum: checksum) do |io|
+            mirrors_in_need_of_mirroring.each do |service|
+              io.rewind
+              service.upload key, io, checksum: checksum
+            end
+          end
+        end
+      end
     end
 
     private

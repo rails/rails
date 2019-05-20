@@ -1,3 +1,14 @@
+*  The mirror service supports direct uploads.
+
+   New files are directly uploaded to the primary service. When a
+   directly-uploaded file is attached to a record, a background job is enqueued
+   to copy it to each secondary service.
+
+   Configure the queue used to process mirroring jobs by setting
+   `config.active_storage.queues.mirror`. The default is `:active_storage_mirror`.
+
+   *George Claghorn*
+
 *  The S3 service now permits uploading files larger than 5 gigabytes.
 
    When uploading a file greater than 100 megabytes in size, the service
