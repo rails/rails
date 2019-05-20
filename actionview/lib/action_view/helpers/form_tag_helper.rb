@@ -137,7 +137,7 @@ module ActionView
         html_name = (options[:multiple] == true && !name.to_s.ends_with?("[]")) ? "#{name}[]" : name
 
         if options.include?(:include_blank)
-          include_blank = options.delete(:include_blank)
+          include_blank = options.dig(:include_blank)
           options_for_blank_options_tag = { value: "" }
 
           if include_blank == true
@@ -150,11 +150,12 @@ module ActionView
           end
         end
 
-        if prompt = options.delete(:prompt)
+        if prompt = options.dig(:prompt)
           option_tags = content_tag("option", prompt, value: "").safe_concat(option_tags)
         end
 
-        content_tag "select", option_tags, { "name" => html_name, "id" => sanitize_to_id(name) }.update(options.stringify_keys)
+        sanitized_options = options.except(:include_blank, :prompt)
+        content_tag "select", option_tags, { "name" => html_name, "id" => sanitize_to_id(name) }.update(sanitized_options.stringify_keys)
       end
 
       # Creates a standard text field; use these text fields to input smaller chunks of text like a username
