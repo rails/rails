@@ -31,7 +31,7 @@ class ActionText::SystemTestHelperTest < ApplicationSystemTestCase
     assert_selector :field, "message[content]", with: /Hello world!/, type: "hidden"
   end
 
-  test "filling in the first rich-text area" do
+  test "filling in the only rich-text area" do
     visit new_message_url
     fill_in_rich_text_area with: "Hello world!"
     assert_selector :field, "message[content]", with: /Hello world!/, type: "hidden"
