@@ -432,7 +432,7 @@ module ActiveRecord
     # save, the object didn't exist in the database and new_record? would have
     # returned true.
     def previously_new_record?
-      sync_with_transaction_state
+      sync_with_transaction_state if @transaction_state&.finalized?
       @previously_new_record
     end
 
