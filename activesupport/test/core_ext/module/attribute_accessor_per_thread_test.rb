@@ -4,21 +4,37 @@ require "abstract_unit"
 require "active_support/core_ext/module/attribute_accessors_per_thread"
 
 class ModuleAttributeAccessorPerThreadTest < ActiveSupport::TestCase
+  class MyClass
+    thread_mattr_accessor :foo
+    thread_mattr_accessor :bar,  instance_writer: false
+    thread_mattr_reader   :shaq, instance_reader: false
+    thread_mattr_accessor :camp, instance_accessor: false
+  end
+
+  class SubMyClass < MyClass
+  end
+
   def setup
-    @class = Class.new do
-      thread_mattr_accessor :foo
-      thread_mattr_accessor :bar,  instance_writer: false
-      thread_mattr_reader   :shaq, instance_reader: false
-      thread_mattr_accessor :camp, instance_accessor: false
-
-      def self.name; "MyClass" end
-    end
-
-    @subclass = Class.new(@class) do
-      def self.name; "SubMyClass" end
-    end
-
+    @class = MyClass
+    @subclass = SubMyClass
     @object = @class.new
+  end
+
+  def test_can_initialize_with_default_value
+    Thread.new do
+      @class.thread_mattr_accessor :baz, default: "default_value"
+      assert_equal "default_value", @class.baz
+    end.join
+  end
+
+  def test_can_initialize_with_a_block_as_default_value
+    Thread.new do
+      @class.thread_mattr_accessor :baz do
+        "default_value"
+      end
+
+      assert_equal "default_value", @class.baz
+    end.join
   end
 
   def test_should_use_mattr_default

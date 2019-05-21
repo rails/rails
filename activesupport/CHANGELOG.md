@@ -1,3 +1,12 @@
+*   Add capability to initialize a `thread_mattr_*` method with a default
+    value through the `default:` keyword argument
+
+    class MyClass
+      thread_attr_reader :foo, default: :foo
+    end
+
+    *Guilherme Mansur*
+
 *   `delegate_missing_to` would raise a `DelegationError` if the object
     delegated to was `nil`. Now the `allow_nil` option has been added to enable
     the user to specify they want `nil` returned in this case.
