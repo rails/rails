@@ -33,7 +33,7 @@ class Module
   #   end
   #
   #   Current.new.user # => NoMethodError
-  def thread_mattr_reader(*syms, instance_reader: true, instance_accessor: true) # :nodoc:
+  def thread_mattr_reader(*syms, instance_reader: true, instance_accessor: true, default: nil) # :nodoc:
     syms.each do |sym|
       raise NameError.new("invalid attribute name: #{sym}") unless /^[_A-Za-z]\w*$/.match?(sym)
 
@@ -52,6 +52,9 @@ class Module
           end
         EOS
       end
+
+      default_val = (block_given? && default.nil?) ? yield : default
+      Thread.current["attr_" + name + "_#{sym}"] = default_val unless default_val.nil?
     end
   end
   alias :thread_cattr_reader :thread_mattr_reader
@@ -74,7 +77,7 @@ class Module
   #   end
   #
   #   Current.new.user = "DHH" # => NoMethodError
-  def thread_mattr_writer(*syms, instance_writer: true, instance_accessor: true) # :nodoc:
+  def thread_mattr_writer(*syms, instance_writer: true, instance_accessor: true, default: nil) # :nodoc:
     syms.each do |sym|
       raise NameError.new("invalid attribute name: #{sym}") unless /^[_A-Za-z]\w*$/.match?(sym)
 
@@ -93,6 +96,9 @@ class Module
           end
         EOS
       end
+
+      default_val = (block_given? && default.nil?) ? yield : default
+      Thread.current["attr_" + name + "_#{sym}"] = default_val unless default_val.nil?
     end
   end
   alias :thread_cattr_writer :thread_mattr_writer
@@ -136,9 +142,9 @@ class Module
   #
   #   Current.new.user = "DHH"  # => NoMethodError
   #   Current.new.user          # => NoMethodError
-  def thread_mattr_accessor(*syms, instance_reader: true, instance_writer: true, instance_accessor: true)
-    thread_mattr_reader(*syms, instance_reader: instance_reader, instance_accessor: instance_accessor)
-    thread_mattr_writer(*syms, instance_writer: instance_writer, instance_accessor: instance_accessor)
+  def thread_mattr_accessor(*syms, instance_reader: true, instance_writer: true, instance_accessor: true, default: nil, &blk)
+    thread_mattr_reader(*syms, instance_reader: instance_reader, instance_accessor: instance_accessor, default: default, &blk)
+    thread_mattr_writer(*syms, instance_writer: instance_writer, instance_accessor: instance_accessor, default: default)
   end
   alias :thread_cattr_accessor :thread_mattr_accessor
 end
