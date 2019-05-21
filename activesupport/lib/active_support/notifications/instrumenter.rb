@@ -53,7 +53,8 @@ module ActiveSupport
     end
 
     class Event
-      attr_reader :name, :time, :end, :transaction_id, :payload, :children
+      attr_reader :name, :time, :end, :transaction_id, :children
+      attr_accessor :payload
 
       def self.clock_gettime_supported? # :nodoc:
         defined?(Process::CLOCK_PROCESS_CPUTIME_ID) &&
