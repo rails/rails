@@ -860,28 +860,25 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_pluck_loaded_relation
-    Company.attribute_names # Load schema information so we don't query below
     companies = Company.order(:id).limit(3).load
 
-    assert_no_queries do
+    assert_queries(0) do
       assert_equal ["37signals", "Summit", "Microsoft"], companies.pluck(:name)
     end
   end
 
   def test_pluck_loaded_relation_multiple_columns
-    Company.attribute_names # Load schema information so we don't query below
     companies = Company.order(:id).limit(3).load
 
-    assert_no_queries do
+    assert_queries(0) do
       assert_equal [[1, "37signals"], [2, "Summit"], [3, "Microsoft"]], companies.pluck(:id, :name)
     end
   end
 
   def test_pluck_loaded_relation_sql_fragment
-    Company.attribute_names # Load schema information so we don't query below
     companies = Company.order(:name).limit(3).load
 
-    assert_queries 1 do
+    assert_queries(1) do
       assert_equal ["37signals", "Apex", "Ex Nihilo"], companies.pluck(Arel.sql("DISTINCT name"))
     end
   end

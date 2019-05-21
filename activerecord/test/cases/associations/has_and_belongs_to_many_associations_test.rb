@@ -313,10 +313,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   def test_build
     devel = Developer.find(1)
 
-    # Load schema information so we don't query below if running just this test.
-    Project.define_attribute_methods
-
-    proj = assert_no_queries { devel.projects.build("name" => "Projekt") }
+    proj = assert_queries(0) { devel.projects.build("name" => "Projekt") }
     assert_not_predicate devel.projects, :loaded?
 
     assert_equal devel.projects.last, proj
@@ -332,10 +329,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   def test_new_aliased_to_build
     devel = Developer.find(1)
 
-    # Load schema information so we don't query below if running just this test.
-    Project.define_attribute_methods
-
-    proj = assert_no_queries { devel.projects.new("name" => "Projekt") }
+    proj = assert_queries(0) { devel.projects.new("name" => "Projekt") }
     assert_not_predicate devel.projects, :loaded?
 
     assert_equal devel.projects.last, proj
