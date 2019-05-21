@@ -19,10 +19,6 @@ module ActiveRecord
           owner[reflection.foreign_type] = record ? record.class.polymorphic_name : nil
         end
 
-        def different_target?(record)
-          super || record.class != klass
-        end
-
         def inverse_reflection_for(record)
           reflection.polymorphic_inverse_of(record.class)
         end

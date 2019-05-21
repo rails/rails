@@ -80,6 +80,16 @@ module Arel
             assert_equal 2, array.uniq.size
           end
         end
+
+        describe "#as" do
+          it "allows aliasing" do
+            node = Case.new "foo"
+            as = node.as("bar")
+
+            assert_equal node, as.left
+            assert_kind_of Arel::Nodes::SqlLiteral, as.right
+          end
+        end
       end
     end
   end

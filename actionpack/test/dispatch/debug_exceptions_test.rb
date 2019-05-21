@@ -5,10 +5,22 @@ require "abstract_unit"
 class DebugExceptionsTest < ActionDispatch::IntegrationTest
   InterceptedErrorInstance = StandardError.new
 
+  class CustomActionableError < StandardError
+    include ActiveSupport::ActionableError
+
+    action "Action 1" do
+      nil
+    end
+
+    action "Action 2" do
+      nil
+    end
+  end
+
   class Boomer
     attr_accessor :closed
 
-    def initialize(detailed  = false)
+    def initialize(detailed = false)
       @detailed = detailed
       @closed = false
     end
@@ -27,67 +39,73 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     end
 
     def raise_nested_exceptions
+      raise "First error"
+    rescue
       begin
-        raise "First error"
+        raise "Second error"
       rescue
-        begin
-          raise "Second error"
-        rescue
-          raise "Third error"
-        end
+        raise "Third error"
       end
     end
 
     def call(env)
       env["action_dispatch.show_detailed_exceptions"] = @detailed
       req = ActionDispatch::Request.new(env)
+      template = ActionView::Template.new(File.read(__FILE__), __FILE__, ActionView::Template::Handlers::Raw.new, format: :html, locals: [])
+
       case req.path
-      when %r{/pass}
+      when "/pass"
         [404, { "X-Cascade" => "pass" }, self]
-      when %r{/not_found}
+      when "/not_found"
         raise AbstractController::ActionNotFound
-      when %r{/runtime_error}
+      when "/runtime_error"
         raise RuntimeError
-      when %r{/method_not_allowed}
+      when "/method_not_allowed"
         raise ActionController::MethodNotAllowed
-      when %r{/intercepted_error}
+      when "/intercepted_error"
         raise InterceptedErrorInstance
-      when %r{/unknown_http_method}
+      when "/unknown_http_method"
         raise ActionController::UnknownHttpMethod
-      when %r{/not_implemented}
+      when "/not_implemented"
         raise ActionController::NotImplemented
-      when %r{/unprocessable_entity}
+      when "/unprocessable_entity"
         raise ActionController::InvalidAuthenticityToken
-      when %r{/not_found_original_exception}
+      when "/invalid_mimetype"
+        raise Mime::Type::InvalidMimeType
+      when "/not_found_original_exception"
         begin
           raise AbstractController::ActionNotFound.new
         rescue
-          raise ActionView::Template::Error.new("template")
+          raise ActionView::Template::Error.new(template)
         end
-      when %r{/missing_template}
+      when "/cause_mapped_to_rescue_responses"
+        begin
+          raise ActionController::ParameterMissing, :missing_param_key
+        rescue
+          raise NameError.new("uninitialized constant Userr")
+        end
+      when "/missing_template"
         raise ActionView::MissingTemplate.new(%w(foo), "foo/index", %w(foo), false, "mailer")
-      when %r{/bad_request}
+      when "/bad_request"
         raise ActionController::BadRequest
-      when %r{/missing_keys}
+      when "/missing_keys"
         raise ActionController::UrlGenerationError, "No route matches"
-      when %r{/parameter_missing}
+      when "/parameter_missing"
         raise ActionController::ParameterMissing, :missing_param_key
-      when %r{/original_syntax_error}
+      when "/original_syntax_error"
         eval "broke_syntax =" # `eval` need for raise native SyntaxError at runtime
-      when %r{/syntax_error_into_view}
+      when "/syntax_error_into_view"
         begin
           eval "broke_syntax ="
         rescue Exception
-          template = ActionView::Template.new(File.read(__FILE__),
-                                              __FILE__,
-                                              ActionView::Template::Handlers::Raw.new,
-                                              {})
           raise ActionView::Template::Error.new(template)
         end
-      when %r{/framework_raises}
+      when "/framework_raises"
         method_that_raises
-      when %r{/nested_exceptions}
+      when "/nested_exceptions"
         raise_nested_exceptions
+      when %r{/actionable_error}
+        raise CustomActionableError
       else
         raise "puke!"
       end
@@ -176,6 +194,10 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     get "/parameter_missing", headers: { "action_dispatch.show_exceptions" => true }
     assert_response 400
     assert_match(/ActionController::ParameterMissing/, body)
+
+    get "/invalid_mimetype", headers: { "Accept" => "text/html,*", "action_dispatch.show_exceptions" => true }
+    assert_response 406
+    assert_match(/Mime::Type::InvalidMimeType/, body)
   end
 
   test "rescue with text error for xhr request" do
@@ -290,22 +312,20 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
   end
 
   test "rescue with JSON format as fallback if API request format is not supported" do
-    begin
-      Mime::Type.register "text/wibble", :wibble
+    Mime::Type.register "text/wibble", :wibble
 
-      ActionDispatch::IntegrationTest.register_encoder(:wibble,
-        param_encoder: -> params { params })
+    ActionDispatch::IntegrationTest.register_encoder(:wibble,
+      param_encoder: -> params { params })
 
-      @app = ActionDispatch::DebugExceptions.new(Boomer.new(true), RoutesApp, :api)
+    @app = ActionDispatch::DebugExceptions.new(Boomer.new(true), RoutesApp, :api)
 
-      get "/index", headers: { "action_dispatch.show_exceptions" => true }, as: :wibble
-      assert_response 500
-      assert_equal "application/json", response.content_type
-      assert_match(/RuntimeError: puke/, body)
+    get "/index", headers: { "action_dispatch.show_exceptions" => true }, as: :wibble
+    assert_response 500
+    assert_equal "application/json", response.content_type
+    assert_match(/RuntimeError: puke/, body)
 
-    ensure
-      Mime::Type.unregister :wibble
-    end
+  ensure
+    Mime::Type.unregister :wibble
   end
 
   test "does not show filtered parameters" do
@@ -317,15 +337,25 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     assert_match("&quot;foo&quot;=&gt;&quot;[FILTERED]&quot;", body)
   end
 
-  test "show registered original exception for wrapped exceptions" do
+  test "show registered original exception if the last exception is TemplateError" do
     @app = DevelopmentApp
 
     get "/not_found_original_exception", headers: { "action_dispatch.show_exceptions" => true }
     assert_response 404
-    assert_match(/AbstractController::ActionNotFound/, body)
+    assert_match %r{AbstractController::ActionNotFound}, body
+    assert_match %r{Showing <i>.*test/dispatch/debug_exceptions_test.rb</i>}, body
   end
 
-  test "named urls missing keys raise 500 level error" do
+  test "show the last exception and cause even when the cause is mapped to resque_responses" do
+    @app = DevelopmentApp
+
+    get "/cause_mapped_to_rescue_responses", headers: { "action_dispatch.show_exceptions" => true }
+    assert_response 500
+    assert_match %r{ActionController::ParameterMissing}, body
+    assert_match %r{NameError}, body
+  end
+
+  test "named URLs missing keys raise 500 level error" do
     @app = DevelopmentApp
 
     get "/missing_keys", headers: { "action_dispatch.show_exceptions" => true }
@@ -368,7 +398,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     })
     assert_response 500
 
-    assert_includes(body, CGI.escapeHTML(PP.pp(params, "".dup, 200)))
+    assert_includes(body, CGI.escapeHTML(PP.pp(params, +"", 200)))
   end
 
   test "sets the HTTP charset parameter" do
@@ -484,6 +514,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     assert_select "#Application-Trace-0" do
       assert_select "code", /syntax error, unexpected/
     end
+    assert_match %r{Showing <i>.*test/dispatch/debug_exceptions_test.rb</i>}, body
   end
 
   test "debug exceptions app shows user code that caused the error in source view" do
@@ -571,5 +602,41 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
         assert_select "code a:first", %r{in `raise_nested_exceptions'}
       end
     end
+  end
+
+  test "shows a buttons for every action in an actionable error" do
+    @app = DevelopmentApp
+    Rails.stub :root, Pathname.new(".") do
+      cleaner = ActiveSupport::BacktraceCleaner.new.tap do |bc|
+        bc.add_silencer { |line| line !~ %r{test/dispatch/debug_exceptions_test.rb} }
+      end
+
+      get "/actionable_error", headers: { "action_dispatch.backtrace_cleaner" => cleaner }
+
+      # Assert correct error
+      assert_response 500
+
+      assert_select 'input[value="Action 1"]'
+      assert_select 'input[value="Action 2"]'
+    end
+  end
+
+  test "debug exceptions app shows diagnostics when malformed query parameters are provided" do
+    @app = DevelopmentApp
+
+    get "/bad_request?x[y]=1&x[y][][w]=2"
+
+    assert_response 400
+    assert_match "ActionController::BadRequest", body
+  end
+
+  test "debug exceptions app shows diagnostics when malformed query parameters are provided by XHR" do
+    @app = DevelopmentApp
+    xhr_request_env = { "action_dispatch.show_exceptions" => true, "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest" }
+
+    get "/bad_request?x[y]=1&x[y][][w]=2", headers: xhr_request_env
+
+    assert_response 400
+    assert_match "ActionController::BadRequest", body
   end
 end

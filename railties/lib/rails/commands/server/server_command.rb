@@ -6,6 +6,7 @@ require "rails"
 require "active_support/deprecation"
 require "active_support/core_ext/string/filters"
 require "rails/dev_caching"
+require "rails/command/environment_argument"
 
 module Rails
   class Server < ::Rack::Server
@@ -19,19 +20,6 @@ module Rails
       @default_options = options || {}
       super(@default_options)
       set_environment
-    end
-
-    def app
-      @app ||= begin
-        app = super
-        if app.is_a?(Class)
-          ActiveSupport::Deprecation.warn(<<-MSG.squish)
-            Using `Rails::Application` subclass to start the server is deprecated and will be removed in Rails 6.0.
-            Please change `run #{app}` to `run Rails.application` in config.ru.
-          MSG
-        end
-        app.respond_to?(:to_app) ? app.to_app : app
-      end
     end
 
     def opt_parser
@@ -104,12 +92,14 @@ module Rails
 
   module Command
     class ServerCommand < Base # :nodoc:
+      include EnvironmentArgument
+
       # Hard-coding a bunch of handlers here as we don't have a public way of
       # querying them from the Rack::Handler registry.
       RACK_SERVERS = %w(cgi fastcgi webrick lsws scgi thin puma unicorn)
 
       DEFAULT_PORT = 3000
-      DEFAULT_PID_PATH = "tmp/pids/server.pid".freeze
+      DEFAULT_PID_PATH = "tmp/pids/server.pid"
 
       argument :using, optional: true
 
@@ -122,8 +112,6 @@ module Rails
         desc: "Uses a custom rackup configuration.", banner: :file
       class_option :daemon, aliases: "-d", type: :boolean, default: false,
         desc: "Runs server as a Daemon."
-      class_option :environment, aliases: "-e", type: :string,
-        desc: "Specifies the environment to run this server under (development/test/production).", banner: :name
       class_option :using, aliases: "-u", type: :string,
         desc: "Specifies the Rack server used to run the application (thin/puma/webrick).", banner: :name
       class_option :pid, aliases: "-P", type: :string, default: DEFAULT_PID_PATH,
@@ -143,6 +131,7 @@ module Rails
       end
 
       def perform
+        extract_environment_option_from_argument
         set_application_directory!
         prepare_restart
 
@@ -234,8 +223,8 @@ module Rails
 
             if ENV["HOST"] && !ENV["BINDING"]
               ActiveSupport::Deprecation.warn(<<-MSG.squish)
-                Using the `HOST` environment to specify the IP is deprecated and will be removed in Rails 6.1.
-                Please use `BINDING` environment instead.
+                Using the `HOST` environment variable to specify the IP is deprecated and will be removed in Rails 6.1.
+                Please use `BINDING` environment variable instead.
               MSG
 
               return ENV["HOST"]
@@ -268,7 +257,7 @@ module Rails
         end
 
         def self.banner(*)
-          "rails server [thin/puma/webrick] [options]"
+          "rails server -u [thin/puma/webrick] [options]"
         end
 
         def prepare_restart
@@ -277,7 +266,7 @@ module Rails
 
         def deprecate_positional_rack_server_and_rewrite_to_option(original_options)
           if using
-            ActiveSupport::Deprecation.warn(<<~MSG)
+            ActiveSupport::Deprecation.warn(<<~MSG.squish)
               Passing the Rack server name as a regular argument is deprecated
               and will be removed in the next Rails version. Please, use the -u
               option instead.
@@ -302,9 +291,10 @@ module Rails
             MSG
           else
             suggestion = Rails::Command::Spellchecker.suggest(server, from: RACK_SERVERS)
+            suggestion_msg = "Maybe you meant #{suggestion.inspect}?" if suggestion
 
             <<~MSG
-              Could not find server "#{server}". Maybe you meant #{suggestion.inspect}?
+              Could not find server "#{server}". #{suggestion_msg}
               Run `rails server --help` for more options.
             MSG
           end

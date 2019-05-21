@@ -194,7 +194,7 @@ module ActionDispatch
       #   Adds request headers characteristic of XMLHttpRequest e.g. HTTP_X_REQUESTED_WITH.
       #   The headers will be merged into the Rack env hash.
       # - +as+: Used for encoding the request with different content type.
-      #   Supports `:json` by default and will set the approriate request headers.
+      #   Supports `:json` by default and will set the appropriate request headers.
       #   The headers will be merged into the Rack env hash.
       #
       # This method is rarely used directly. Use +#get+, +#post+, or other standard
@@ -335,7 +335,7 @@ module ActionDispatch
         klass = APP_SESSIONS[app] ||= Class.new(Integration::Session) {
           # If the app is a Rails app, make url_helpers available on the session.
           # This makes app.url_for and app.foo_path available in the console.
-          if app.respond_to?(:routes)
+          if app.respond_to?(:routes) && app.routes.is_a?(ActionDispatch::Routing::RouteSet)
             include app.routes.url_helpers
             include app.routes.mounted_helpers
           end

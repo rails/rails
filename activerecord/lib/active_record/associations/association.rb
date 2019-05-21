@@ -17,6 +17,23 @@ module ActiveRecord
     #     CollectionAssociation
     #       HasManyAssociation + ForeignAssociation
     #         HasManyThroughAssociation + ThroughAssociation
+    #
+    # Associations in Active Record are middlemen between the object that
+    # holds the association, known as the <tt>owner</tt>, and the associated
+    # result set, known as the <tt>target</tt>. Association metadata is available in
+    # <tt>reflection</tt>, which is an instance of <tt>ActiveRecord::Reflection::AssociationReflection</tt>.
+    #
+    # For example, given
+    #
+    #   class Blog < ActiveRecord::Base
+    #     has_many :posts
+    #   end
+    #
+    #   blog = Blog.first
+    #
+    # The association of <tt>blog.posts</tt> has the object +blog+ as its
+    # <tt>owner</tt>, the collection of its posts as <tt>target</tt>, and
+    # the <tt>reflection</tt> object represents a <tt>:has_many</tt> macro.
     class Association #:nodoc:
       attr_reader :owner, :target, :reflection
 
@@ -40,7 +57,9 @@ module ActiveRecord
       end
 
       # Reloads the \target and returns +self+ on success.
-      def reload
+      # The QueryCache is cleared if +force+ is true.
+      def reload(force = false)
+        klass.connection.clear_query_cache if force && klass
         reset
         reset_scope
         load_target
@@ -79,18 +98,6 @@ module ActiveRecord
         target_scope.merge!(association_scope)
       end
 
-      # The scope for this association.
-      #
-      # Note that the association_scope is merged into the target_scope only when the
-      # scope method is called. This is because at that point the call may be surrounded
-      # by scope.scoping { ... } or with_scope { ... } etc, which affects the scope which
-      # actually gets built.
-      def association_scope
-        if klass
-          @association_scope ||= AssociationScope.scope(self)
-        end
-      end
-
       def reset_scope
         @association_scope = nil
       end
@@ -99,6 +106,13 @@ module ActiveRecord
       def set_inverse_instance(record)
         if inverse = inverse_association_for(record)
           inverse.inversed_from(owner)
+        end
+        record
+      end
+
+      def set_inverse_instance_from_queries(record)
+        if inverse = inverse_association_for(record)
+          inverse.inversed_from_queries(owner)
         end
         record
       end
@@ -114,17 +128,12 @@ module ActiveRecord
         self.target = record
         @inversed = !!record
       end
+      alias :inversed_from_queries :inversed_from
 
       # Returns the class of the target. belongs_to polymorphic overrides this to look at the
       # polymorphic_type field on the owner.
       def klass
         reflection.klass
-      end
-
-      # Can be overridden (i.e. in ThroughAssociation) to merge in other scopes (i.e. the
-      # through association's scope)
-      def target_scope
-        AssociationRelation.create(klass, self).merge!(klass.all)
       end
 
       def extensions
@@ -187,6 +196,38 @@ module ActiveRecord
       end
 
       private
+        def find_target
+          scope = self.scope
+          return scope.to_a if skip_statement_cache?(scope)
+
+          conn = klass.connection
+          sc = reflection.association_scope_cache(conn, owner) do |params|
+            as = AssociationScope.create { params.bind }
+            target_scope.merge!(as.scope(self))
+          end
+
+          binds = AssociationScope.get_bind_values(owner, reflection.chain)
+          sc.execute(binds, conn) { |record| set_inverse_instance(record) } || []
+        end
+
+        # The scope for this association.
+        #
+        # Note that the association_scope is merged into the target_scope only when the
+        # scope method is called. This is because at that point the call may be surrounded
+        # by scope.scoping { ... } or unscoped { ... } etc, which affects the scope which
+        # actually gets built.
+        def association_scope
+          if klass
+            @association_scope ||= AssociationScope.scope(self)
+          end
+        end
+
+        # Can be overridden (i.e. in ThroughAssociation) to merge in other scopes (i.e. the
+        # through association's scope)
+        def target_scope
+          AssociationRelation.create(klass, self).merge!(klass.scope_for_association)
+        end
+
         def scope_for_create
           scope.scope_for_create
         end

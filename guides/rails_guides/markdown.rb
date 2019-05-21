@@ -3,6 +3,7 @@
 require "redcarpet"
 require "nokogiri"
 require "rails_guides/markdown/renderer"
+require "rails-html-sanitizer"
 
 module RailsGuides
   class Markdown
@@ -20,6 +21,7 @@ module RailsGuides
       @raw_body = body
       extract_raw_header_and_body
       generate_header
+      generate_description
       generate_title
       generate_body
       generate_structure
@@ -82,6 +84,11 @@ module RailsGuides
         @header = engine.render(@raw_header).html_safe
       end
 
+      def generate_description
+        sanitizer = Rails::Html::FullSanitizer.new
+        @description = sanitizer.sanitize(@header).squish
+      end
+
       def generate_structure
         @headings_for_index = []
         if @body.present?
@@ -103,7 +110,7 @@ module RailsGuides
                   hierarchy = hierarchy[0, 3] + [node]
                 end
 
-                node[:id] = dom_id(hierarchy)
+                node[:id] = dom_id(hierarchy) unless node[:id]
                 node.inner_html = "#{node_index(hierarchy)} #{node.inner_html}"
               end
             end
@@ -165,6 +172,7 @@ module RailsGuides
 
       def render_page
         @view.content_for(:header_section) { @header }
+        @view.content_for(:description) { @description }
         @view.content_for(:page_title) { @title }
         @view.content_for(:index_section) { @index }
         @view.render(layout: @layout, html: @body.html_safe)

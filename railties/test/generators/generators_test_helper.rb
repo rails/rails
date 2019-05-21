@@ -30,6 +30,12 @@ module GeneratorsTestHelper
   include ActiveSupport::Testing::Stream
   include ActiveSupport::Testing::MethodCallAssertions
 
+  GemfileEntry = Struct.new(:name, :version, :comment, :options, :commented_out) do
+    def initialize(name, version, comment, options = {}, commented_out = false)
+      super
+    end
+  end
+
   def self.included(base)
     base.class_eval do
       destination File.join(Rails.root, "tmp")
@@ -42,10 +48,59 @@ module GeneratorsTestHelper
     end
   end
 
+  def with_secondary_database_configuration
+    original_configurations = ActiveRecord::Base.configurations
+    ActiveRecord::Base.configurations = {
+      test: {
+        secondary: {
+          database: "db/secondary.sqlite3",
+          migrations_paths: "db/secondary_migrate",
+        },
+      },
+    }
+    yield
+  ensure
+    ActiveRecord::Base.configurations = original_configurations
+  end
+
   def copy_routes
     routes = File.expand_path("../../lib/rails/generators/rails/app/templates/config/routes.rb.tt", __dir__)
     destination = File.join(destination_root, "config")
     FileUtils.mkdir_p(destination)
     FileUtils.cp routes, File.join(destination, "routes.rb")
   end
+
+  def copy_gemfile(*gemfile_entries)
+    locals = gemfile_locals.merge(gemfile_entries: gemfile_entries)
+    gemfile = File.expand_path("../../lib/rails/generators/rails/app/templates/Gemfile.tt", __dir__)
+    gemfile = evaluate_template(gemfile, locals)
+    destination = File.join(destination_root)
+    File.write File.join(destination, "Gemfile"), gemfile
+  end
+
+  def evaluate_template(file, locals = {})
+    erb = if ERB.instance_method(:initialize).parameters.assoc(:key) # Ruby 2.6+
+      ERB.new(File.read(file), trim_mode: "-", eoutvar: "@output_buffer")
+    else
+      ERB.new(File.read(file), nil, "-", "@output_buffer")
+    end
+    context = Class.new do
+      locals.each do |local, value|
+        class_attribute local, default: value
+      end
+    end
+    erb.result(context.new.instance_eval("binding"))
+  end
+
+  private
+    def gemfile_locals
+      {
+        skip_active_storage: true,
+        depend_on_bootsnap: false,
+        depend_on_listen: false,
+        spring_install: false,
+        depends_on_system_test: false,
+        options: ActiveSupport::OrderedOptions.new,
+      }
+    end
 end

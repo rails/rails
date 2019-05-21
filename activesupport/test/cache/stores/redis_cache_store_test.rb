@@ -140,6 +140,12 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       end
     end
 
+    def test_fetch_multi_without_names
+      assert_not_called(@cache.redis, :mget) do
+        @cache.fetch_multi() { }
+      end
+    end
+
     def test_increment_expires_in
       assert_called_with @cache.redis, :incrby, [ "#{@namespace}:foo", 1 ] do
         assert_called_with @cache.redis, :expire, [ "#{@namespace}:foo", 60 ] do
@@ -187,7 +193,7 @@ module ActiveSupport::Cache::RedisCacheStoreTests
     private
 
       def store
-        :redis_cache_store
+        [:redis_cache_store]
       end
 
       def emulating_latency
@@ -204,7 +210,7 @@ module ActiveSupport::Cache::RedisCacheStoreTests
   class RedisDistributedConnectionPoolBehaviourTest < ConnectionPoolBehaviourTest
     private
       def store_options
-        { url: %w[ redis://localhost:6379/0 redis://localhost:6379/0 ] }
+        { url: [ENV["REDIS_URL"] || "redis://localhost:6379/0"] * 2 }
       end
   end
 

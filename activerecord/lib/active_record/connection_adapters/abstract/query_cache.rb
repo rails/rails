@@ -7,7 +7,8 @@ module ActiveRecord
     module QueryCache
       class << self
         def included(base) #:nodoc:
-          dirties_query_cache base, :insert, :update, :delete, :rollback_to_savepoint, :rollback_db_transaction
+          dirties_query_cache base, :insert, :update, :delete, :truncate, :truncate_tables,
+            :rollback_to_savepoint, :rollback_db_transaction
 
           base.set_callback :checkout, :after, :configure_query_cache!
           base.set_callback :checkin, :after, :disable_query_cache!
@@ -17,7 +18,7 @@ module ActiveRecord
           method_names.each do |method_name|
             base.class_eval <<-end_code, __FILE__, __LINE__ + 1
               def #{method_name}(*)
-                clear_query_cache if @query_cache_enabled
+                ActiveRecord::Base.clear_query_caches_for_current_thread if @query_cache_enabled
                 super
               end
             end_code
@@ -96,6 +97,11 @@ module ActiveRecord
         if @query_cache_enabled && !locked?(arel)
           arel = arel_from_relation(arel)
           sql, binds = to_sql_and_binds(arel, binds)
+
+          if preparable.nil?
+            preparable = prepared_statements ? visitor.preparable : false
+          end
+
           cache_sql(sql, name, binds) { super(sql, name, binds, preparable: preparable) }
         else
           super

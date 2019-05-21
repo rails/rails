@@ -19,27 +19,21 @@ module Arel
         collect(node).value
       end
 
-      def ast_with_binds(bv)
+      def ast_with_binds
         table = Table.new(:users)
         manager = Arel::SelectManager.new table
-        manager.where(table[:age].eq(bv))
-        manager.where(table[:name].eq(bv))
+        manager.where(table[:age].eq(Nodes::BindParam.new("hello")))
+        manager.where(table[:name].eq(Nodes::BindParam.new("world")))
         manager.ast
       end
 
       def test_compile
-        bv = Nodes::BindParam.new(1)
-        collector = collect ast_with_binds bv
-
-        sql = collector.compile ["hello", "world"]
+        sql = compile(ast_with_binds)
         assert_equal 'SELECT FROM "users" WHERE "users"."age" = ? AND "users"."name" = ?', sql
       end
 
       def test_returned_sql_uses_utf8_encoding
-        bv = Nodes::BindParam.new(1)
-        collector = collect ast_with_binds bv
-
-        sql = collector.compile ["hello", "world"]
+        sql = compile(ast_with_binds)
         assert_equal sql.encoding, Encoding::UTF_8
       end
     end

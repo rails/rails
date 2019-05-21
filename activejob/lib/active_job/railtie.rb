@@ -30,6 +30,10 @@ module ActiveJob
           send(k, v) if respond_to? k
         end
       end
+
+      ActiveSupport.on_load(:action_dispatch_integration_test) do
+        include ActiveJob::TestHelper
+      end
     end
 
     initializer "active_job.set_reloader_hook" do |app|

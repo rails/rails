@@ -21,8 +21,7 @@ module Arel # :nodoc: all
         delegate.value
       end
 
-      protected
-
+      private
         attr_reader :quoter, :delegate
     end
   end

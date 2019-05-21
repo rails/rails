@@ -6,7 +6,7 @@
 # In case you do need to use this directly, it's instantiated using a hash of transformations where
 # the key is the command and the value is the arguments. Example:
 #
-#   ActiveStorage::Variation.new(resize_to_fit: [100, 100], monochrome: true, trim: true, rotate: "-90")
+#   ActiveStorage::Variation.new(resize_to_limit: [100, 100], monochrome: true, trim: true, rotate: "-90")
 #
 # The options map directly to {ImageProcessing}[https://github.com/janko-m/image_processing] commands.
 class ActiveStorage::Variation
@@ -40,20 +40,16 @@ class ActiveStorage::Variation
   end
 
   def initialize(transformations)
-    @transformations = transformations
+    @transformations = transformations.deep_symbolize_keys
   end
 
   # Accepts a File object, performs the +transformations+ against it, and
   # saves the transformed image into a temporary file. If +format+ is specified
   # it will be the format of the result image, otherwise the result image
   # retains the source format.
-  def transform(file, format: nil)
+  def transform(file, format: nil, &block)
     ActiveSupport::Notifications.instrument("transform.active_storage") do
-      if processor
-        image_processing_transform(file, format)
-      else
-        mini_magick_transform(file, format)
-      end
+      transformer.transform(file, format: format, &block)
     end
   end
 
@@ -63,63 +59,22 @@ class ActiveStorage::Variation
   end
 
   private
-    # Applies image transformations using the ImageProcessing gem.
-    def image_processing_transform(file, format)
-      operations = transformations.each_with_object([]) do |(name, argument), list|
-        if name.to_s == "combine_options"
-          ActiveSupport::Deprecation.warn("The ImageProcessing ActiveStorage variant backend doesn't need :combine_options, as it already generates a single MiniMagick command. In Rails 6.1 :combine_options will not be supported anymore.")
-          list.concat argument.keep_if { |key, value| value.present? }.to_a
-        elsif argument.present?
-          list << [name, argument]
+    def transformer
+      if ActiveStorage.variant_processor
+        begin
+          require "image_processing"
+        rescue LoadError
+          ActiveSupport::Deprecation.warn <<~WARNING.squish
+            Generating image variants will require the image_processing gem in Rails 6.1.
+            Please add `gem 'image_processing', '~> 1.2'` to your Gemfile.
+          WARNING
+
+          ActiveStorage::Transformers::MiniMagickTransformer.new(transformations)
+        else
+          ActiveStorage::Transformers::ImageProcessingTransformer.new(transformations)
         end
-      end
-
-      processor
-        .source(file)
-        .loader(page: 0)
-        .convert(format)
-        .apply(operations)
-        .call
-    end
-
-    # Applies image transformations using the MiniMagick gem.
-    def mini_magick_transform(file, format)
-      image = MiniMagick::Image.new(file.path, file)
-
-      transformations.each do |name, argument_or_subtransformations|
-        image.mogrify do |command|
-          if name.to_s == "combine_options"
-            argument_or_subtransformations.each do |subtransformation_name, subtransformation_argument|
-              pass_transform_argument(command, subtransformation_name, subtransformation_argument)
-            end
-          else
-            pass_transform_argument(command, name, argument_or_subtransformations)
-          end
-        end
-      end
-
-      image.format(format) if format
-
-      image.tempfile.tap(&:open)
-    end
-
-    # Returns the ImageProcessing processor class specified by `ActiveStorage.variant_processor`.
-    def processor
-      begin
-        require "image_processing"
-      rescue LoadError
-        ActiveSupport::Deprecation.warn("Using mini_magick gem directly is deprecated and will be removed in Rails 6.1. Please add `gem 'image_processing', '~> 1.2'` to your Gemfile.")
-        return nil
-      end
-
-      ImageProcessing.const_get(ActiveStorage.variant_processor.to_s.camelize) if ActiveStorage.variant_processor
-    end
-
-    def pass_transform_argument(command, method, argument)
-      if argument == true
-        command.public_send(method)
-      elsif argument.present?
-        command.public_send(method, argument)
+      else
+        ActiveStorage::Transformers::MiniMagickTransformer.new(transformations)
       end
     end
 end

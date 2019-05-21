@@ -35,7 +35,7 @@ class PostgresqlByteaTest < ActiveRecord::PostgreSQLTestCase
 
   def test_binary_columns_are_limitless_the_upper_limit_is_one_GB
     assert_equal "bytea", @connection.type_to_sql(:binary, limit: 100_000)
-    assert_raise ActiveRecord::ActiveRecordError do
+    assert_raise ArgumentError do
       @connection.type_to_sql(:binary, limit: 4294967295)
     end
   end
@@ -49,7 +49,7 @@ class PostgresqlByteaTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_type_cast_binary_value
-    data = "\u001F\x8B".dup.force_encoding("BINARY")
+    data = (+"\u001F\x8B").force_encoding("BINARY")
     assert_equal(data, @type.deserialize(data))
   end
 

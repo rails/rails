@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "support/connection_helper"
 require "models/book"
 require "models/post"
 require "models/author"
@@ -10,6 +11,7 @@ module ActiveRecord
   class AdapterTest < ActiveRecord::TestCase
     def setup
       @connection = ActiveRecord::Base.connection
+      @connection.materialize_transactions
     end
 
     ##
@@ -107,6 +109,11 @@ module ActiveRecord
       end
     end
 
+    def test_exec_query_returns_an_empty_result
+      result = @connection.exec_query "INSERT INTO subscribers(nick) VALUES('me')"
+      assert_instance_of(ActiveRecord::Result, result)
+    end
+
     if current_adapter?(:Mysql2Adapter)
       def test_charset
         assert_not_nil @connection.charset
@@ -125,19 +132,17 @@ module ActiveRecord
       end
 
       def test_not_specifying_database_name_for_cross_database_selects
-        begin
-          assert_nothing_raised do
-            ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations["arunit"].except(:database))
+        assert_nothing_raised do
+          ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations["arunit"].except(:database))
 
-            config = ARTest.connection_config
-            ActiveRecord::Base.connection.execute(
-              "SELECT #{config['arunit']['database']}.pirates.*, #{config['arunit2']['database']}.courses.* " \
-              "FROM #{config['arunit']['database']}.pirates, #{config['arunit2']['database']}.courses"
-            )
-          end
-        ensure
-          ActiveRecord::Base.establish_connection :arunit
+          config = ARTest.connection_config
+          ActiveRecord::Base.connection.execute(
+            "SELECT #{config['arunit']['database']}.pirates.*, #{config['arunit2']['database']}.courses.* " \
+            "FROM #{config['arunit']['database']}.pirates, #{config['arunit2']['database']}.courses"
+          )
         end
+      ensure
+        ActiveRecord::Base.establish_connection :arunit
       end
     end
 
@@ -155,6 +160,65 @@ module ActiveRecord
       class << @connection
         remove_method :table_alias_length
         alias_method :table_alias_length, :old_table_alias_length
+      end
+    end
+
+    def test_preventing_writes_predicate
+      assert_not_predicate @connection, :preventing_writes?
+
+      @connection.while_preventing_writes do
+        assert_predicate @connection, :preventing_writes?
+      end
+
+      assert_not_predicate @connection, :preventing_writes?
+    end
+
+    def test_errors_when_an_insert_query_is_called_while_preventing_writes
+      assert_no_queries do
+        assert_raises(ActiveRecord::ReadOnlyError) do
+          @connection.while_preventing_writes do
+            @connection.transaction do
+              @connection.insert("INSERT INTO subscribers(nick) VALUES ('138853948594')", nil, false)
+            end
+          end
+        end
+      end
+    end
+
+    def test_errors_when_an_update_query_is_called_while_preventing_writes
+      @connection.insert("INSERT INTO subscribers(nick) VALUES ('138853948594')")
+
+      assert_no_queries do
+        assert_raises(ActiveRecord::ReadOnlyError) do
+          @connection.while_preventing_writes do
+            @connection.transaction do
+              @connection.update("UPDATE subscribers SET nick = '9989' WHERE nick = '138853948594'")
+            end
+          end
+        end
+      end
+    end
+
+    def test_errors_when_a_delete_query_is_called_while_preventing_writes
+      @connection.insert("INSERT INTO subscribers(nick) VALUES ('138853948594')")
+
+      assert_no_queries do
+        assert_raises(ActiveRecord::ReadOnlyError) do
+          @connection.while_preventing_writes do
+            @connection.transaction do
+              @connection.delete("DELETE FROM subscribers WHERE nick = '138853948594'")
+            end
+          end
+        end
+      end
+    end
+
+    def test_doesnt_error_when_a_select_query_is_called_while_preventing_writes
+      @connection.insert("INSERT INTO subscribers(nick) VALUES ('138853948594')")
+
+      @connection.while_preventing_writes do
+        result = @connection.select_all("SELECT subscribers.* FROM subscribers WHERE nick = '138853948594'")
+        assert_equal 1, result.length
       end
     end
 
@@ -225,7 +289,7 @@ module ActiveRecord
         post = Post.create!(title: "foo", body: "bar")
         expected = @connection.select_all("SELECT * FROM posts WHERE id = #{post.id}")
         result = @connection.select_all("SELECT * FROM posts WHERE id = #{Arel::Nodes::BindParam.new(nil).to_sql}", nil, [[nil, post.id]])
-        assert_equal expected.to_hash, result.to_hash
+        assert_equal expected.to_a, result.to_a
       end
 
       def test_insert_update_delete_with_legacy_binds
@@ -284,20 +348,40 @@ module ActiveRecord
       assert_equal "special_db_type", @connection.type_to_sql(:special_db_type)
     end
 
-    unless current_adapter?(:PostgreSQLAdapter)
-      def test_log_invalid_encoding
-        error = assert_raises RuntimeError do
-          @connection.send :log, "SELECT 'ы' FROM DUAL" do
-            raise "ы".dup.force_encoding(Encoding::ASCII_8BIT)
-          end
-        end
-
-        assert_equal "ы", error.message
-      end
+    def test_supports_foreign_keys_in_create_is_deprecated
+      assert_deprecated { @connection.supports_foreign_keys_in_create? }
     end
 
     def test_supports_multi_insert_is_deprecated
       assert_deprecated { @connection.supports_multi_insert? }
+    end
+
+    def test_column_name_length_is_deprecated
+      assert_deprecated { @connection.column_name_length }
+    end
+
+    def test_table_name_length_is_deprecated
+      assert_deprecated { @connection.table_name_length }
+    end
+
+    def test_columns_per_table_is_deprecated
+      assert_deprecated { @connection.columns_per_table }
+    end
+
+    def test_indexes_per_table_is_deprecated
+      assert_deprecated { @connection.indexes_per_table }
+    end
+
+    def test_columns_per_multicolumn_index_is_deprecated
+      assert_deprecated { @connection.columns_per_multicolumn_index }
+    end
+
+    def test_sql_query_length_is_deprecated
+      assert_deprecated { @connection.sql_query_length }
+    end
+
+    def test_joins_per_query_is_deprecated
+      assert_deprecated { @connection.joins_per_query }
     end
   end
 
@@ -368,19 +452,21 @@ module ActiveRecord
   class AdapterTestWithoutTransaction < ActiveRecord::TestCase
     self.use_transactional_tests = false
 
-    class Klass < ActiveRecord::Base
-    end
+    fixtures :posts, :authors, :author_addresses
 
     def setup
-      Klass.establish_connection :arunit
-      @connection = Klass.connection
-    end
-
-    teardown do
-      Klass.remove_connection
+      @connection = ActiveRecord::Base.connection
     end
 
     unless in_memory_db?
+      test "reconnect after a disconnect" do
+        assert_predicate @connection, :active?
+        @connection.disconnect!
+        assert_not_predicate @connection, :active?
+        @connection.reconnect!
+        assert_predicate @connection, :active?
+      end
+
       test "transaction state is reset after a reconnect" do
         @connection.begin_transaction
         assert_predicate @connection, :transaction_open?
@@ -393,7 +479,63 @@ module ActiveRecord
         assert_predicate @connection, :transaction_open?
         @connection.disconnect!
         assert_not_predicate @connection, :transaction_open?
+      ensure
+        @connection.reconnect!
       end
+    end
+
+    def test_truncate
+      assert_operator Post.count, :>, 0
+
+      @connection.truncate("posts")
+
+      assert_equal 0, Post.count
+    ensure
+      reset_fixtures("posts")
+    end
+
+    def test_truncate_with_query_cache
+      @connection.enable_query_cache!
+
+      assert_operator Post.count, :>, 0
+
+      @connection.truncate("posts")
+
+      assert_equal 0, Post.count
+    ensure
+      reset_fixtures("posts")
+      @connection.disable_query_cache!
+    end
+
+    def test_truncate_tables
+      assert_operator Post.count, :>, 0
+      assert_operator Author.count, :>, 0
+      assert_operator AuthorAddress.count, :>, 0
+
+      @connection.truncate_tables("author_addresses", "authors", "posts")
+
+      assert_equal 0, Post.count
+      assert_equal 0, Author.count
+      assert_equal 0, AuthorAddress.count
+    ensure
+      reset_fixtures("posts", "authors", "author_addresses")
+    end
+
+    def test_truncate_tables_with_query_cache
+      @connection.enable_query_cache!
+
+      assert_operator Post.count, :>, 0
+      assert_operator Author.count, :>, 0
+      assert_operator AuthorAddress.count, :>, 0
+
+      @connection.truncate_tables("author_addresses", "authors", "posts")
+
+      assert_equal 0, Post.count
+      assert_equal 0, Author.count
+      assert_equal 0, AuthorAddress.count
+    ensure
+      reset_fixtures("posts", "authors", "author_addresses")
+      @connection.disable_query_cache!
     end
 
     # test resetting sequences in odd tables in PostgreSQL
@@ -413,6 +555,40 @@ module ActiveRecord
         sub = Subscriber.new(name: "robert drake")
         sub.id = "bob drake"
         assert_nothing_raised { sub.save! }
+      end
+    end
+
+    private
+
+      def reset_fixtures(*fixture_names)
+        ActiveRecord::FixtureSet.reset_cache
+
+        fixture_names.each do |fixture_name|
+          ActiveRecord::FixtureSet.create_fixtures(FIXTURES_ROOT, fixture_name)
+        end
+      end
+  end
+end
+
+if ActiveRecord::Base.connection.supports_advisory_locks?
+  class AdvisoryLocksEnabledTest < ActiveRecord::TestCase
+    include ConnectionHelper
+
+    def test_advisory_locks_enabled?
+      assert ActiveRecord::Base.connection.advisory_locks_enabled?
+
+      run_without_connection do |orig_connection|
+        ActiveRecord::Base.establish_connection(
+          orig_connection.merge(advisory_locks: false)
+        )
+
+        assert_not ActiveRecord::Base.connection.advisory_locks_enabled?
+
+        ActiveRecord::Base.establish_connection(
+          orig_connection.merge(advisory_locks: true)
+        )
+
+        assert ActiveRecord::Base.connection.advisory_locks_enabled?
       end
     end
   end

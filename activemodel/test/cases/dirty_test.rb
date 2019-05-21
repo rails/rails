@@ -94,7 +94,7 @@ class DirtyTest < ActiveModel::TestCase
   end
 
   test "attribute mutation" do
-    @model.instance_variable_set("@name", "Yam".dup)
+    @model.instance_variable_set("@name", +"Yam")
     assert_not_predicate @model, :name_changed?
     @model.name.replace("Hadad")
     assert_not_predicate @model, :name_changed?

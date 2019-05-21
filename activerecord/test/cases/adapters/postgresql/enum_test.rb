@@ -13,7 +13,7 @@ class PostgresqlEnumTest < ActiveRecord::PostgreSQLTestCase
   def setup
     @connection = ActiveRecord::Base.connection
     @connection.transaction do
-      @connection.execute <<-SQL
+      @connection.execute <<~SQL
         CREATE TYPE mood AS ENUM ('sad', 'ok', 'happy');
       SQL
       @connection.create_table("postgresql_enums") do |t|

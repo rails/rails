@@ -55,88 +55,97 @@ class QueryCacheTest < ActiveRecord::TestCase
     assert_cache :off
   end
 
-  private def with_temporary_connection_pool
-    old_pool = ActiveRecord::Base.connection_handler.retrieve_connection_pool(ActiveRecord::Base.connection_specification_name)
-    new_pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new ActiveRecord::Base.connection_pool.spec
-    ActiveRecord::Base.connection_handler.send(:owner_to_pool)["primary"] = new_pool
+  def test_query_cache_is_applied_to_connections_in_all_handlers
+    ActiveRecord::Base.connection_handlers = {
+      writing: ActiveRecord::Base.default_connection_handler,
+      reading: ActiveRecord::ConnectionAdapters::ConnectionHandler.new
+    }
 
-    yield
+    ActiveRecord::Base.connected_to(role: :reading) do
+      ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations["arunit"])
+    end
+
+    mw = middleware { |env|
+      ro_conn = ActiveRecord::Base.connection_handlers[:reading].connection_pool_list.first.connection
+      assert_predicate ActiveRecord::Base.connection, :query_cache_enabled
+      assert_predicate ro_conn, :query_cache_enabled
+    }
+
+    mw.call({})
   ensure
-    ActiveRecord::Base.connection_handler.send(:owner_to_pool)["primary"] = old_pool
+    ActiveRecord::Base.connection_handlers = { writing: ActiveRecord::Base.default_connection_handler }
   end
 
   def test_query_cache_across_threads
     with_temporary_connection_pool do
-      begin
-        if in_memory_db?
-          # Separate connections to an in-memory database create an entirely new database,
-          # with an empty schema etc, so we just stub out this schema on the fly.
-          ActiveRecord::Base.connection_pool.with_connection do |connection|
-            connection.create_table :tasks do |t|
-              t.datetime :starting
-              t.datetime :ending
-            end
+      if in_memory_db?
+        # Separate connections to an in-memory database create an entirely new database,
+        # with an empty schema etc, so we just stub out this schema on the fly.
+        ActiveRecord::Base.connection_pool.with_connection do |connection|
+          connection.create_table :tasks do |t|
+            t.datetime :starting
+            t.datetime :ending
           end
-          ActiveRecord::FixtureSet.create_fixtures(self.class.fixture_path, ["tasks"], {}, ActiveRecord::Base)
         end
-
-        ActiveRecord::Base.connection_pool.connections.each do |conn|
-          assert_cache :off, conn
-        end
-
-        assert_not_predicate ActiveRecord::Base.connection, :nil?
-        assert_cache :off
-
-        middleware {
-          assert_cache :clean
-
-          Task.find 1
-          assert_cache :dirty
-
-          thread_1_connection = ActiveRecord::Base.connection
-          ActiveRecord::Base.clear_active_connections!
-          assert_cache :off, thread_1_connection
-
-          started = Concurrent::Event.new
-          checked = Concurrent::Event.new
-
-          thread_2_connection = nil
-          thread = Thread.new {
-            thread_2_connection = ActiveRecord::Base.connection
-
-            assert_equal thread_2_connection, thread_1_connection
-            assert_cache :off
-
-            middleware {
-              assert_cache :clean
-
-              Task.find 1
-              assert_cache :dirty
-
-              started.set
-              checked.wait
-
-              ActiveRecord::Base.clear_active_connections!
-            }.call({})
-          }
-
-          started.wait
-
-          thread_1_connection = ActiveRecord::Base.connection
-          assert_not_equal thread_1_connection, thread_2_connection
-          assert_cache :dirty, thread_2_connection
-          checked.set
-          thread.join
-
-          assert_cache :off, thread_2_connection
-        }.call({})
-
-        ActiveRecord::Base.connection_pool.connections.each do |conn|
-          assert_cache :off, conn
-        end
-      ensure
-        ActiveRecord::Base.connection_pool.disconnect!
+        ActiveRecord::FixtureSet.create_fixtures(self.class.fixture_path, ["tasks"], {}, ActiveRecord::Base)
       end
+
+      ActiveRecord::Base.connection_pool.connections.each do |conn|
+        assert_cache :off, conn
+      end
+
+      assert_not_predicate ActiveRecord::Base.connection, :nil?
+      assert_cache :off
+
+      middleware {
+        assert_cache :clean
+
+        Task.find 1
+        assert_cache :dirty
+
+        thread_1_connection = ActiveRecord::Base.connection
+        ActiveRecord::Base.clear_active_connections!
+        assert_cache :off, thread_1_connection
+
+        started = Concurrent::Event.new
+        checked = Concurrent::Event.new
+
+        thread_2_connection = nil
+        thread = Thread.new {
+          thread_2_connection = ActiveRecord::Base.connection
+
+          assert_equal thread_2_connection, thread_1_connection
+          assert_cache :off
+
+          middleware {
+            assert_cache :clean
+
+            Task.find 1
+            assert_cache :dirty
+
+            started.set
+            checked.wait
+
+            ActiveRecord::Base.clear_active_connections!
+          }.call({})
+        }
+
+        started.wait
+
+        thread_1_connection = ActiveRecord::Base.connection
+        assert_not_equal thread_1_connection, thread_2_connection
+        assert_cache :dirty, thread_2_connection
+        checked.set
+        thread.join
+
+        assert_cache :off, thread_2_connection
+      }.call({})
+
+      ActiveRecord::Base.connection_pool.connections.each do |conn|
+        assert_cache :off, conn
+      end
+    ensure
+      ActiveRecord::Base.connection_pool.disconnect!
     end
   end
 
@@ -200,7 +209,7 @@ class QueryCacheTest < ActiveRecord::TestCase
       Task.cache do
         assert_queries(2) { Task.find(1); Task.find(2) }
       end
-      assert_queries(0) { Task.find(1); Task.find(1); Task.find(2) }
+      assert_no_queries { Task.find(1); Task.find(1); Task.find(2) }
     end
   end
 
@@ -305,7 +314,7 @@ class QueryCacheTest < ActiveRecord::TestCase
       payload[:sql].downcase!
     end
 
-    assert_raises frozen_error_class do
+    assert_raises FrozenError do
       ActiveRecord::Base.cache do
         assert_queries(1) { Task.find(1); Task.find(1) }
       end
@@ -363,12 +372,10 @@ class QueryCacheTest < ActiveRecord::TestCase
       assert_not_predicate Task, :connected?
 
       Task.cache do
-        begin
-          assert_queries(1) { Task.find(1); Task.find(1) }
-        ensure
-          ActiveRecord::Base.connection_handler.remove_connection(Task.connection_specification_name)
-          Task.connection_specification_name = spec_name
-        end
+        assert_queries(1) { Task.find(1); Task.find(1) }
+      ensure
+        ActiveRecord::Base.connection_handler.remove_connection(Task.connection_specification_name)
+        Task.connection_specification_name = spec_name
       end
     end
   end
@@ -382,7 +389,7 @@ class QueryCacheTest < ActiveRecord::TestCase
     end
 
     # Check that if the same query is run again, no queries are executed
-    assert_queries(0) do
+    assert_no_queries do
       assert_equal 0, Post.where(title: "test").to_a.count
     end
 
@@ -437,8 +444,9 @@ class QueryCacheTest < ActiveRecord::TestCase
       # Clear places where type information is cached
       Task.reset_column_information
       Task.initialize_find_by_cache
+      Task.define_attribute_methods
 
-      assert_queries(0) do
+      assert_no_queries do
         Task.find(1)
       end
     end
@@ -494,7 +502,56 @@ class QueryCacheTest < ActiveRecord::TestCase
     }.call({})
   end
 
+  def test_clear_query_cache_is_called_on_all_connections
+    skip "with in memory db, reading role won't be able to see database on writing role" if in_memory_db?
+    with_temporary_connection_pool do
+      ActiveRecord::Base.connection_handlers = {
+        writing: ActiveRecord::Base.default_connection_handler,
+        reading: ActiveRecord::ConnectionAdapters::ConnectionHandler.new
+      }
+
+      ActiveRecord::Base.connected_to(role: :reading) do
+        ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations["arunit"])
+      end
+
+      mw = middleware { |env|
+        ActiveRecord::Base.connected_to(role: :reading) do
+          @topic = Topic.first
+        end
+
+        assert @topic
+
+        ActiveRecord::Base.connected_to(role: :writing) do
+          @topic.title = "It doesn't have to be crazy at work"
+          @topic.save!
+        end
+
+        assert_equal "It doesn't have to be crazy at work", @topic.title
+
+        ActiveRecord::Base.connected_to(role: :reading) do
+          @topic = Topic.first
+          assert_equal "It doesn't have to be crazy at work", @topic.title
+        end
+      }
+
+      mw.call({})
+    end
+  ensure
+    ActiveRecord::Base.connection_handlers = { writing: ActiveRecord::Base.default_connection_handler }
+  end
+
   private
+
+    def with_temporary_connection_pool
+      old_pool = ActiveRecord::Base.connection_handler.retrieve_connection_pool(ActiveRecord::Base.connection_specification_name)
+      new_pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new ActiveRecord::Base.connection_pool.spec
+      ActiveRecord::Base.connection_handler.send(:owner_to_pool)["primary"] = new_pool
+
+      yield
+    ensure
+      ActiveRecord::Base.connection_handler.send(:owner_to_pool)["primary"] = old_pool
+    end
+
     def middleware(&app)
       executor = Class.new(ActiveSupport::Executor)
       ActiveRecord::QueryCache.install_executor_hooks executor

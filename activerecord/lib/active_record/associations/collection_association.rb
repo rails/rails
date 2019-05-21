@@ -109,9 +109,8 @@ module ActiveRecord
         end
       end
 
-      # Add +records+ to this association. Returns +self+ so method calls may
-      # be chained. Since << flattens its argument list and inserts each record,
-      # +push+ and +concat+ behave identically.
+      # Add +records+ to this association. Since +<<+ flattens its argument list
+      # and inserts each record, +push+ and +concat+ behave identically.
       def concat(*records)
         records = records.flatten
         if owner.new_record?
@@ -233,7 +232,7 @@ module ActiveRecord
       # loaded and you are going to fetch the records anyway it is better to
       # check <tt>collection.length.zero?</tt>.
       def empty?
-        if loaded? || @association_ids
+        if loaded? || @association_ids || reflection.has_cached_counter?
           size.zero?
         else
           target.empty? && !scope.exists?
@@ -303,23 +302,6 @@ module ActiveRecord
       end
 
       private
-
-        def find_target
-          scope = self.scope
-          return scope.to_a if skip_statement_cache?(scope)
-
-          conn = klass.connection
-          sc = reflection.association_scope_cache(conn, owner) do |params|
-            as = AssociationScope.create { params.bind }
-            target_scope.merge!(as.scope(self))
-          end
-
-          binds = AssociationScope.get_bind_values(owner, reflection.chain)
-          sc.execute(binds, conn) do |record|
-            set_inverse_instance(record)
-          end
-        end
-
         # We have some records loaded from the database (persisted) and some that are
         # in-memory (memory). The same record may be represented in the persisted array
         # and in the memory array.
@@ -364,7 +346,6 @@ module ActiveRecord
               add_to_target(record) do
                 result = insert_record(record, true, raise) {
                   @_was_loaded = loaded?
-                  @association_ids = nil
                 }
               end
               raise ActiveRecord::Rollback unless result
@@ -401,6 +382,7 @@ module ActiveRecord
 
           delete_records(existing_records, method) if existing_records.any?
           @target -= records
+          @association_ids = nil
 
           records.each { |record| callback(:after_remove, record) }
         end
@@ -413,9 +395,9 @@ module ActiveRecord
         end
 
         def replace_records(new_target, original_target)
-          delete(target - new_target)
+          delete(difference(target, new_target))
 
-          unless concat(new_target - target)
+          unless concat(difference(new_target, target))
             @target = original_target
             raise RecordNotSaved, "Failed to replace #{reflection.name} because one or more of the " \
                                   "new records could not be saved."
@@ -425,7 +407,7 @@ module ActiveRecord
         end
 
         def replace_common_records_in_memory(new_target, original_target)
-          common_records = new_target & original_target
+          common_records = intersection(new_target, original_target)
           common_records.each do |record|
             skip_callbacks = true
             replace_on_target(record, @target.index(record), skip_callbacks)
@@ -441,7 +423,6 @@ module ActiveRecord
               unless owner.new_record?
                 result &&= insert_record(record, true, raise) {
                   @_was_loaded = loaded?
-                  @association_ids = nil
                 }
               end
             end
@@ -464,6 +445,7 @@ module ActiveRecord
           if index
             target[index] = record
           elsif @_was_loaded || !loaded?
+            @association_ids = nil
             target << record
           end
 

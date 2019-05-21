@@ -149,7 +149,7 @@ module ActiveRecord
       private
 
         def define_non_cyclic_method(name, &block)
-          return if method_defined?(name)
+          return if instance_methods(false).include?(name)
           define_method(name) do |*args|
             result = true; @_already_called ||= {}
             # Loop prevention for validation of associations
@@ -328,21 +328,16 @@ module ActiveRecord
           if reflection.options[:autosave]
             indexed_attribute = !index.nil? && (reflection.options[:index_errors] || ActiveRecord::Base.index_nested_attribute_errors)
 
-            record.errors.each do |attribute, message|
+            record.errors.group_by_attribute.each { |attribute, errors|
               attribute = normalize_reflection_attribute(indexed_attribute, reflection, index, attribute)
-              errors[attribute] << message
-              errors[attribute].uniq!
-            end
 
-            record.errors.details.each_key do |attribute|
-              reflection_attribute =
-                normalize_reflection_attribute(indexed_attribute, reflection, index, attribute).to_sym
-
-              record.errors.details[attribute].each do |error|
-                errors.details[reflection_attribute] << error
-                errors.details[reflection_attribute].uniq!
-              end
-            end
+              errors.each { |error|
+                self.errors.import(
+                  error,
+                  attribute: attribute
+                )
+              }
+            }
           else
             errors.add(reflection.name)
           end
@@ -380,30 +375,34 @@ module ActiveRecord
         if association = association_instance_get(reflection.name)
           autosave = reflection.options[:autosave]
 
+          # By saving the instance variable in a local variable,
+          # we make the whole callback re-entrant.
+          new_record_before_save = @new_record_before_save
+
           # reconstruct the scope now that we know the owner's id
           association.reset_scope
 
-          if records = associated_records_to_validate_or_save(association, @new_record_before_save, autosave)
+          if records = associated_records_to_validate_or_save(association, new_record_before_save, autosave)
             if autosave
               records_to_destroy = records.select(&:marked_for_destruction?)
               records_to_destroy.each { |record| association.destroy(record) }
               records -= records_to_destroy
             end
 
-            records.each_with_index do |record, index|
+            records.each do |record|
               next if record.destroyed?
 
               saved = true
 
-              if autosave != false && (@new_record_before_save || record.new_record?)
+              if autosave != false && (new_record_before_save || record.new_record?)
                 if autosave
                   saved = association.insert_record(record, false)
                 elsif !reflection.nested?
+                  association_saved = association.insert_record(record)
+
                   if reflection.validate?
-                    valid = association_valid?(reflection, record, index)
-                    saved = valid ? association.insert_record(record, false) : false
-                  else
-                    association.insert_record(record)
+                    errors.add(reflection.name) unless association_saved
+                    saved = association_saved
                   end
                 end
               elsif autosave
@@ -455,8 +454,14 @@ module ActiveRecord
       # If the record is new or it has changed, returns true.
       def record_changed?(reflection, record, key)
         record.new_record? ||
-          (record.has_attribute?(reflection.foreign_key) && record[reflection.foreign_key] != key) ||
+          association_foreign_key_changed?(reflection, record, key) ||
           record.will_save_change_to_attribute?(reflection.foreign_key)
+      end
+
+      def association_foreign_key_changed?(reflection, record, key)
+        return false if reflection.through_reflection?
+
+        record.has_attribute?(reflection.foreign_key) && record[reflection.foreign_key] != key
       end
 
       # Saves the associated record if it's new or <tt>:autosave</tt> is enabled.
@@ -488,9 +493,7 @@ module ActiveRecord
       end
 
       def _ensure_no_duplicate_errors
-        errors.messages.each_key do |attribute|
-          errors[attribute].uniq!
-        end
+        errors.uniq!
       end
   end
 end

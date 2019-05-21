@@ -13,7 +13,7 @@ After reading this guide, you will know:
 
 --------------------------------------------------------------------------------
 
-WARNING: This guide assumes a working knowledge of Rack protocol and Rack concepts such as middlewares, url maps, and `Rack::Builder`.
+WARNING: This guide assumes a working knowledge of Rack protocol and Rack concepts such as middlewares, URL maps, and `Rack::Builder`.
 
 Introduction to Rack
 --------------------
@@ -35,7 +35,7 @@ application. Any Rack compliant web server should be using
 
 ### `rails server`
 
-`rails server` does the basic job of creating a `Rack::Server` object and starting the webserver.
+`rails server` does the basic job of creating a `Rack::Server` object and starting the web server.
 
 Here's how `rails server` creates an instance of `Rack::Server`
 

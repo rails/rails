@@ -15,4 +15,11 @@ class IntegrationTestGeneratorTest < Rails::Generators::TestCase
     run_generator %w(iguchi/integration)
     assert_file "test/integration/iguchi/integration_test.rb", /class Iguchi::IntegrationTest < ActionDispatch::IntegrationTest/
   end
+
+  def test_test_suffix_is_not_duplicated
+    run_generator %w(integration_test)
+
+    assert_no_file "test/integration/integration_test_test.rb"
+    assert_file "test/integration/integration_test.rb"
+  end
 end

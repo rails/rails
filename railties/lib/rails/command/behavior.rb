@@ -56,12 +56,10 @@ module Rails
           def lookup!
             $LOAD_PATH.each do |base|
               Dir[File.join(base, *file_lookup_paths)].each do |path|
-                begin
-                  path = path.sub("#{base}/", "")
-                  require path
-                rescue Exception
-                  # No problem
-                end
+                path = path.sub("#{base}/", "")
+                require path
+              rescue Exception
+                # No problem
               end
             end
           end
@@ -73,8 +71,9 @@ module Rails
             paths = []
             namespaces.each do |namespace|
               pieces = namespace.split(":")
-              paths << pieces.dup.push(pieces.last).join("/")
-              paths << pieces.join("/")
+              path = pieces.join("/")
+              paths << "#{path}/#{pieces.last}"
+              paths << path
             end
             paths.uniq!
             paths

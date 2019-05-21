@@ -98,7 +98,7 @@ module ActionView
           raise e if raise_error
 
           keys = I18n.normalize_keys(e.locale, e.key, e.options[:scope])
-          title = "translation missing: #{keys.join('.')}".dup
+          title = +"translation missing: #{keys.join('.')}"
 
           interpolations = options.except(:default, :scope)
           if interpolations.any?
@@ -114,7 +114,7 @@ module ActionView
 
       # Delegates to <tt>I18n.localize</tt> with no additional functionality.
       #
-      # See http://rubydoc.info/github/svenfuchs/i18n/master/I18n/Backend/Base:localize
+      # See https://www.rubydoc.info/github/svenfuchs/i18n/master/I18n/Backend/Base:localize
       # for more information.
       def localize(*args)
         I18n.localize(*args)
@@ -138,7 +138,7 @@ module ActionView
         end
 
         def html_safe_translation_key?(key)
-          /(\b|_|\.)html$/.match?(key.to_s)
+          /(?:_|\b)html\z/.match?(key.to_s)
         end
     end
   end

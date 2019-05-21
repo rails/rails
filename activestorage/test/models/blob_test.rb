@@ -47,6 +47,10 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     assert_equal "text/csv", blob.content_type
   end
 
+  test "create after upload generates a 28-character base36 key" do
+    assert_match(/^[a-z0-9]{28}$/, create_blob.key)
+  end
+
   test "image?" do
     blob = create_file_blob filename: "racecar.jpg"
     assert_predicate blob, :image?
@@ -100,19 +104,17 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     end
   end
 
-  test "open in a custom tempdir" do
-    tempdir = Dir.mktmpdir
-
-    create_file_blob(filename: "racecar.jpg").open(tempdir: tempdir) do |file|
+  test "open in a custom tmpdir" do
+    create_file_blob(filename: "racecar.jpg").open(tmpdir: tmpdir = Dir.mktmpdir) do |file|
       assert file.binmode?
       assert_equal 0, file.pos
       assert_match(/\.jpg\z/, file.path)
-      assert file.path.starts_with?(tempdir)
+      assert file.path.starts_with?(tmpdir)
       assert_equal file_fixture("racecar.jpg").binread, file.read, "Expected downloaded file to match fixture file"
     end
   end
 
-  test "urls expiring in 5 minutes" do
+  test "URLs expiring in 5 minutes" do
     blob = create_blob
 
     freeze_time do
@@ -121,16 +123,25 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     end
   end
 
-  test "urls force attachment as content disposition for content types served as binary" do
+  test "URLs force content_type to binary and attachment as content disposition for content types served as binary" do
     blob = create_blob(content_type: "text/html")
 
     freeze_time do
-      assert_equal expected_url_for(blob, disposition: :attachment), blob.service_url
-      assert_equal expected_url_for(blob, disposition: :attachment), blob.service_url(disposition: :inline)
+      assert_equal expected_url_for(blob, disposition: :attachment, content_type: "application/octet-stream"), blob.service_url
+      assert_equal expected_url_for(blob, disposition: :attachment, content_type: "application/octet-stream"), blob.service_url(disposition: :inline)
     end
   end
 
-  test "urls allow for custom filename" do
+  test "URLs force attachment as content disposition when the content type is not allowed inline" do
+    blob = create_blob(content_type: "application/zip")
+
+    freeze_time do
+      assert_equal expected_url_for(blob, disposition: :attachment, content_type: "application/zip"), blob.service_url
+      assert_equal expected_url_for(blob, disposition: :attachment, content_type: "application/zip"), blob.service_url(disposition: :inline)
+    end
+  end
+
+  test "URLs allow for custom filename" do
     blob = create_blob(filename: "original.txt")
     new_filename = ActiveStorage::Filename.new("new.txt")
 
@@ -142,13 +153,13 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     end
   end
 
-  test "urls allow for custom options" do
+  test "URLs allow for custom options" do
     blob = create_blob(filename: "original.txt")
 
     arguments = [
       blob.key,
       expires_in: ActiveStorage.service_urls_expire_in,
-      disposition: :inline,
+      disposition: :attachment,
       content_type: blob.content_type,
       filename: blob.filename,
       thumb_size: "300x300",
@@ -183,9 +194,13 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
   end
 
   private
-    def expected_url_for(blob, disposition: :inline, filename: nil)
+    def expected_url_for(blob, disposition: :attachment, filename: nil, content_type: nil)
       filename ||= blob.filename
-      query_string = { content_type: blob.content_type, disposition: "#{disposition}; #{filename.parameters}" }.to_param
-      "https://example.com/rails/active_storage/disk/#{ActiveStorage.verifier.generate(blob.key, expires_in: 5.minutes, purpose: :blob_key)}/#{filename}?#{query_string}"
+      content_type ||= blob.content_type
+
+      query = { disposition: ActionDispatch::Http::ContentDisposition.format(disposition: disposition, filename: filename.sanitized), content_type: content_type }
+      key_params = { key: blob.key }.merge(query)
+
+      "https://example.com/rails/active_storage/disk/#{ActiveStorage.verifier.generate(key_params, expires_in: 5.minutes, purpose: :blob_key)}/#{filename}?#{query.to_param}"
     end
 end

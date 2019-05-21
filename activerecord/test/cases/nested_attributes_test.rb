@@ -217,6 +217,18 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
     mean_pirate.parrot_attributes = { name: "James" }
     assert_equal "James", mean_pirate.parrot.name
   end
+
+  def test_should_not_create_duplicates_with_create_with
+    Man.accepts_nested_attributes_for(:interests)
+
+    assert_difference("Interest.count", 1) do
+      Man.create_with(
+        interests_attributes: [{ topic: "Pirate king" }]
+      ).find_or_create_by!(
+        name: "Monkey D. Luffy"
+      )
+    end
+  end
 end
 
 class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase

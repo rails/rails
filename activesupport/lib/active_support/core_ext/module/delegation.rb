@@ -19,7 +19,7 @@ class Module
   # public methods as your own.
   #
   # ==== Options
-  # * <tt>:to</tt> - Specifies the target object
+  # * <tt>:to</tt> - Specifies the target object name as a symbol or string
   # * <tt>:prefix</tt> - Prefixes the new method with the target name or a custom prefix
   # * <tt>:allow_nil</tt> - If set to true, prevents a +Module::DelegationError+
   #   from being raised
@@ -170,7 +170,7 @@ class Module
   # The target method must be public, otherwise it will raise +NoMethodError+.
   def delegate(*methods, to: nil, prefix: nil, allow_nil: nil, private: nil)
     unless to
-      raise ArgumentError, "Delegation needs a target. Supply an options hash with a :to key as the last argument (e.g. delegate :hello, to: :greeter)."
+      raise ArgumentError, "Delegation needs a target. Supply a keyword argument 'to' (e.g. delegate :hello, to: :greeter)."
     end
 
     if prefix == true && /^[^a-z_]/.match?(to)
@@ -243,7 +243,7 @@ class Module
   #     end
   #
   #     def person
-  #       @event.detail.person || @event.creator
+  #       detail.person || creator
   #     end
   #
   #     private
@@ -266,7 +266,7 @@ class Module
   #     end
   #
   #     def person
-  #       @event.detail.person || @event.creator
+  #       detail.person || creator
   #     end
   #   end
   #

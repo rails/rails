@@ -12,14 +12,17 @@ module ActionCable
       include ActionCable::Server::Broadcasting
       include ActionCable::Server::Connections
 
-      cattr_accessor :config, instance_accessor: true, default: ActionCable::Server::Configuration.new
+      cattr_accessor :config, instance_accessor: false, default: ActionCable::Server::Configuration.new
+
+      attr_reader :config
 
       def self.logger; config.logger; end
       delegate :logger, to: :config
 
       attr_reader :mutex
 
-      def initialize
+      def initialize(config: self.class.config)
+        @config = config
         @mutex = Monitor.new
         @remote_connections = @event_loop = @worker_pool = @pubsub = nil
       end
@@ -36,7 +39,9 @@ module ActionCable
       end
 
       def restart
-        connections.each(&:close)
+        connections.each do |connection|
+          connection.close(reason: ActionCable::INTERNAL[:disconnect_reasons][:server_restart])
+        end
 
         @mutex.synchronize do
           # Shutdown the worker pool

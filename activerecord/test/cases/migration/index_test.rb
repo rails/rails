@@ -158,14 +158,11 @@ module ActiveRecord
         connection.add_index("testings", ["last_name", "first_name"])
         connection.remove_index("testings", column: ["last_name", "first_name"])
 
-        # Oracle adapter cannot have specified index name larger than 30 characters
-        # Oracle adapter is shortening index name when just column list is given
-        unless current_adapter?(:OracleAdapter)
-          connection.add_index("testings", ["last_name", "first_name"])
-          connection.remove_index("testings", name: :index_testings_on_last_name_and_first_name)
-          connection.add_index("testings", ["last_name", "first_name"])
-          connection.remove_index("testings", "last_name_and_first_name")
-        end
+        connection.add_index("testings", ["last_name", "first_name"])
+        connection.remove_index("testings", name: :index_testings_on_last_name_and_first_name)
+        connection.add_index("testings", ["last_name", "first_name"])
+        connection.remove_index("testings", "last_name_and_first_name")
+
         connection.add_index("testings", ["last_name", "first_name"])
         connection.remove_index("testings", ["last_name", "first_name"])
 

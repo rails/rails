@@ -25,7 +25,7 @@ class ConsoleTest < ActiveSupport::TestCase
   end
 
   def test_app_method_should_return_integration_session
-    TestHelpers::Rack.send :remove_method, :app
+    TestHelpers::Rack.remove_method :app
     load_environment
     console_session = irb_context.app
     assert_instance_of ActionDispatch::Integration::Session, console_session
@@ -109,7 +109,7 @@ class FullStackConsoleTest < ActiveSupport::TestCase
     CODE
     system "#{app_path}/bin/rails runner 'Post.connection.create_table :posts'"
 
-    @master, @slave = PTY.open
+    @primary, @replica = PTY.open
   end
 
   def teardown
@@ -117,19 +117,23 @@ class FullStackConsoleTest < ActiveSupport::TestCase
   end
 
   def write_prompt(command, expected_output = nil)
-    @master.puts command
-    assert_output command, @master
-    assert_output expected_output, @master if expected_output
-    assert_output "> ", @master
+    @primary.puts command
+    assert_output command, @primary
+    assert_output expected_output, @primary if expected_output
+    assert_output "> ", @primary
   end
 
-  def spawn_console(options)
-    Process.spawn(
+  def spawn_console(options, wait_for_prompt: true)
+    pid = Process.spawn(
       "#{app_path}/bin/rails console #{options}",
-      in: @slave, out: @slave, err: @slave
+      in: @replica, out: @replica, err: @replica
     )
 
-    assert_output "> ", @master, 30
+    if wait_for_prompt
+      assert_output "> ", @primary, 30
+    end
+
+    pid
   end
 
   def test_sandbox
@@ -138,21 +142,32 @@ class FullStackConsoleTest < ActiveSupport::TestCase
     write_prompt "Post.count", "=> 0"
     write_prompt "Post.create"
     write_prompt "Post.count", "=> 1"
-    @master.puts "quit"
+    @primary.puts "quit"
 
     spawn_console("--sandbox")
 
     write_prompt "Post.count", "=> 0"
     write_prompt "Post.transaction { Post.create; raise }"
     write_prompt "Post.count", "=> 0"
-    @master.puts "quit"
+    @primary.puts "quit"
+  end
+
+  def test_sandbox_when_sandbox_is_disabled
+    add_to_config <<-RUBY
+      config.disable_sandbox = true
+    RUBY
+
+    output = `#{app_path}/bin/rails console --sandbox`
+
+    assert_includes output, "sandbox mode is disabled"
+    assert_equal 1, $?.exitstatus
   end
 
   def test_environment_option_and_irb_option
-    spawn_console("test -- --verbose")
+    spawn_console("-e test -- --verbose")
 
     write_prompt "a = 1", "a = 1"
     write_prompt "puts Rails.env", "puts Rails.env\r\ntest"
-    @master.puts "quit"
+    @primary.puts "quit"
   end
 end

@@ -411,8 +411,6 @@ module ActiveSupport
       # to the cache. If you do not want to write the cache when the cache is
       # not found, use #read_multi.
       #
-      # Options are passed to the underlying cache implementation.
-      #
       # Returns a hash with the data for each of the names. For example:
       #
       #   cache.write("bim", "bam")
@@ -422,6 +420,17 @@ module ActiveSupport
       #   # => { "bim" => "bam",
       #   #      "unknown_key" => "Fallback value for key: unknown_key" }
       #
+      # Options are passed to the underlying cache implementation. For example:
+      #
+      #   cache.fetch_multi("fizz", expires_in: 5.seconds) do |key|
+      #     "buzz"
+      #   end
+      #   # => {"fizz"=>"buzz"}
+      #   cache.read("fizz")
+      #   # => "buzz"
+      #   sleep(6)
+      #   cache.read("fizz")
+      #   # => nil
       def fetch_multi(*names)
         raise ArgumentError, "Missing block: `Cache#fetch_multi` requires a block." unless block_given?
 
@@ -429,18 +438,18 @@ module ActiveSupport
         options = merged_options(options)
 
         instrument :read_multi, names, options do |payload|
-          read_multi_entries(names, options).tap do |results|
-            payload[:hits] = results.keys
-            payload[:super_operation] = :fetch_multi
-
-            writes = {}
-
-            (names - results.keys).each do |name|
-              results[name] = writes[name] = yield(name)
-            end
-
-            write_multi writes, options
+          reads   = read_multi_entries(names, options)
+          writes  = {}
+          ordered = names.each_with_object({}) do |name, hash|
+            hash[name] = reads.fetch(name) { writes[name] = yield(name) }
           end
+
+          payload[:hits] = reads.keys
+          payload[:super_operation] = :fetch_multi
+
+          write_multi(writes, options)
+
+          ordered
         end
       end
 
@@ -483,7 +492,7 @@ module ActiveSupport
       #
       # Options are passed to the underlying cache implementation.
       #
-      # All implementations may not support this method.
+      # Some implementations may not support this method.
       def delete_matched(matcher, options = nil)
         raise NotImplementedError.new("#{self.class.name} does not support delete_matched")
       end
@@ -492,7 +501,7 @@ module ActiveSupport
       #
       # Options are passed to the underlying cache implementation.
       #
-      # All implementations may not support this method.
+      # Some implementations may not support this method.
       def increment(name, amount = 1, options = nil)
         raise NotImplementedError.new("#{self.class.name} does not support increment")
       end
@@ -501,7 +510,7 @@ module ActiveSupport
       #
       # Options are passed to the underlying cache implementation.
       #
-      # All implementations may not support this method.
+      # Some implementations may not support this method.
       def decrement(name, amount = 1, options = nil)
         raise NotImplementedError.new("#{self.class.name} does not support decrement")
       end
@@ -510,7 +519,7 @@ module ActiveSupport
       #
       # Options are passed to the underlying cache implementation.
       #
-      # All implementations may not support this method.
+      # Some implementations may not support this method.
       def cleanup(options = nil)
         raise NotImplementedError.new("#{self.class.name} does not support cleanup")
       end
@@ -520,7 +529,7 @@ module ActiveSupport
       #
       # The options hash is passed to the underlying cache implementation.
       #
-      # All implementations may not support this method.
+      # Some implementations may not support this method.
       def clear(options = nil)
         raise NotImplementedError.new("#{self.class.name} does not support clear")
       end
@@ -596,9 +605,13 @@ module ActiveSupport
         # Merges the default options with ones specific to a method call.
         def merged_options(call_options)
           if call_options
-            options.merge(call_options)
+            if options.empty?
+              call_options
+            else
+              options.merge(call_options)
+            end
           else
-            options.dup
+            options
           end
         end
 
@@ -643,7 +656,7 @@ module ActiveSupport
             if key.size > 1
               key = key.collect { |element| expanded_key(element) }
             else
-              key = key.first
+              key = expanded_key(key.first)
             end
           when Hash
             key = key.sort_by { |k, _| k.to_s }.collect { |k, v| "#{k}=#{v}" }
@@ -694,7 +707,7 @@ module ActiveSupport
         end
 
         def get_entry_value(entry, name, options)
-          instrument(:fetch_hit, name, options) {}
+          instrument(:fetch_hit, name, options) { }
           entry.value
         end
 

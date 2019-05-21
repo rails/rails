@@ -13,6 +13,7 @@ require "active_support/core_ext/object/blank"
 
 require "rails/application"
 require "rails/version"
+require "rails/autoloaders"
 
 require "active_support/railtie"
 require "action_dispatch/railtie"
@@ -109,6 +110,10 @@ module Rails
     #     # => #<Pathname:/Users/someuser/some/path/project/public>
     def public_path
       application && Pathname.new(application.paths["public"].first)
+    end
+
+    def autoloaders
+      Autoloaders
     end
   end
 end

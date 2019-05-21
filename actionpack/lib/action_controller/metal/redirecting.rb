@@ -55,11 +55,11 @@ module ActionController
     # Statements after +redirect_to+ in our controller get executed, so +redirect_to+ doesn't stop the execution of the function.
     # To terminate the execution of the function immediately after the +redirect_to+, use return.
     #   redirect_to post_url(@post) and return
-    def redirect_to(options = {}, response_status = {})
+    def redirect_to(options = {}, response_options = {})
       raise ActionControllerError.new("Cannot redirect to nil!") unless options
       raise AbstractController::DoubleRenderError if response_body
 
-      self.status        = _extract_redirect_to_status(options, response_status)
+      self.status        = _extract_redirect_to_status(options, response_options)
       self.location      = _compute_redirect_to_location(request, options)
       self.response_body = "<html><body>You are being <a href=\"#{ERB::Util.unwrapped_html_escape(response.location)}\">redirected</a>.</body></html>"
     end
@@ -105,7 +105,7 @@ module ActionController
       when String
         request.protocol + request.host_with_port + options
       when Proc
-        _compute_redirect_to_location request, options.call
+        _compute_redirect_to_location request, instance_eval(&options)
       else
         url_for(options)
       end.delete("\0\r\n")
@@ -114,11 +114,11 @@ module ActionController
     public :_compute_redirect_to_location
 
     private
-      def _extract_redirect_to_status(options, response_status)
+      def _extract_redirect_to_status(options, response_options)
         if options.is_a?(Hash) && options.key?(:status)
           Rack::Utils.status_code(options.delete(:status))
-        elsif response_status.key?(:status)
-          Rack::Utils.status_code(response_status[:status])
+        elsif response_options.key?(:status)
+          Rack::Utils.status_code(response_options[:status])
         else
           302
         end

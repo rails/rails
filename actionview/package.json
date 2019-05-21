@@ -1,6 +1,6 @@
 {
-  "name": "rails-ujs",
-  "version": "6.0.0-alpha",
+  "name": "@rails/ujs",
+  "version": "6.1.0-alpha",
   "description": "Ruby on Rails unobtrusive scripting adapter",
   "main": "lib/assets/compiled/rails-ujs.js",
   "files": [
@@ -30,7 +30,7 @@
   },
   "homepage": "http://rubyonrails.org/",
   "devDependencies": {
-    "coffeelint": "^1.15.7",
+    "coffeelint": "^2.1.0",
     "eslint": "^2.13.1"
   }
 }

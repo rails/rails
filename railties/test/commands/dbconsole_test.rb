@@ -99,25 +99,9 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
     ENV["RACK_ENV"] = nil
   end
 
-  def test_rails_env_is_development_when_argument_is_dev
-    assert_deprecated do
-      stub_available_environments([ "development", "test" ]) do
-        assert_match("development", parse_arguments([ "dev" ])[:environment])
-      end
-    end
-  end
-
   def test_rails_env_is_development_when_environment_option_is_dev
     stub_available_environments([ "development", "test" ]) do
       assert_match("development", parse_arguments([ "-e", "dev" ])[:environment])
-    end
-  end
-
-  def test_rails_env_is_dev_when_argument_is_dev_and_dev_env_is_present
-    assert_deprecated do
-      stub_available_environments([ "dev" ]) do
-        assert_match("dev", parse_arguments([ "dev" ])[:environment])
-      end
     end
   end
 
@@ -128,9 +112,9 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
   end
 
   def test_mysql_full
-    start(adapter: "mysql2", database: "db", host: "locahost", port: 1234, socket: "socket", username: "user", password: "qwerty", encoding: "UTF-8")
+    start(adapter: "mysql2", database: "db", host: "localhost", port: 1234, socket: "socket", username: "user", password: "qwerty", encoding: "UTF-8")
     assert_not aborted
-    assert_equal [%w[mysql mysql5], "--host=locahost", "--port=1234", "--socket=socket", "--user=user", "--default-character-set=UTF-8", "-p", "db"], dbconsole.find_cmd_and_exec_args
+    assert_equal [%w[mysql mysql5], "--host=localhost", "--port=1234", "--socket=socket", "--user=user", "--default-character-set=UTF-8", "-p", "db"], dbconsole.find_cmd_and_exec_args
   end
 
   def test_mysql_include_password
@@ -232,22 +216,22 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
     end
   end
 
-  def test_specifying_a_custom_connection_and_environment
+  def test_specifying_a_custom_database_and_environment
     stub_available_environments(["development"]) do
-      dbconsole = parse_arguments(["-c", "custom", "-e", "development"])
+      dbconsole = parse_arguments(["--db", "custom", "-e", "development"])
 
       assert_equal "development", dbconsole[:environment]
-      assert_equal "custom", dbconsole.connection
+      assert_equal "custom", dbconsole.database
     end
   end
 
-  def test_specifying_a_missing_connection
+  def test_specifying_a_missing_database
     app_db_config({}) do
       e = assert_raises(ActiveRecord::AdapterNotSpecified) do
-        Rails::Command.invoke(:dbconsole, ["-c", "i_do_not_exist"])
+        Rails::Command.invoke(:dbconsole, ["--db", "i_do_not_exist"])
       end
 
-      assert_includes e.message, "'i_do_not_exist' connection is not configured."
+      assert_includes e.message, "'i_do_not_exist' database is not configured."
     end
   end
 
@@ -261,18 +245,30 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
     end
   end
 
+  def test_connection_options_is_deprecate
+    command = Rails::Command::DbconsoleCommand.new([], ["-c", "custom"])
+    Rails::DBConsole.stub(:start, nil) do
+      assert_deprecated("`connection` option is deprecated") do
+        command.perform
+      end
+    end
+
+    assert_equal "custom", command.options["connection"]
+    assert_equal "custom", command.options["database"]
+  end
+
   def test_print_help_short
     stdout = capture(:stdout) do
       Rails::Command.invoke(:dbconsole, ["-h"])
     end
-    assert_match(/rails dbconsole \[environment\]/, stdout)
+    assert_match(/rails dbconsole \[options\]/, stdout)
   end
 
   def test_print_help_long
     stdout = capture(:stdout) do
       Rails::Command.invoke(:dbconsole, ["--help"])
     end
-    assert_match(/rails dbconsole \[environment\]/, stdout)
+    assert_match(/rails dbconsole \[options\]/, stdout)
   end
 
   attr_reader :aborted, :output
@@ -308,11 +304,9 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
     def capture_abort
       @aborted = false
       @output = capture(:stderr) do
-        begin
-          yield
-        rescue SystemExit
-          @aborted = true
-        end
+        yield
+      rescue SystemExit
+        @aborted = true
       end
     end
 

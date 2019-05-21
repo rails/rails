@@ -12,19 +12,11 @@ class Topic < ActiveRecord::Base
 
   scope :scope_with_lambda, lambda { all }
 
-  scope :by_private_lifo, -> { where(author_name: private_lifo) }
   scope :by_lifo, -> { where(author_name: "lifo") }
   scope :replied, -> { where "replies_count > 0" }
 
-  class << self
-    private
-      def private_lifo
-        "lifo"
-      end
-  end
-
   scope "approved_as_string", -> { where(approved: true) }
-  scope :anonymous_extension, -> {} do
+  scope :anonymous_extension, -> { } do
     def one
       1
     end
@@ -96,6 +88,10 @@ class Topic < ActiveRecord::Base
     write_attribute(:approved, val)
   end
 
+  def self.nested_scoping(scope)
+    scope.base
+  end
+
   private
 
     def default_written_on
@@ -103,7 +99,7 @@ class Topic < ActiveRecord::Base
     end
 
     def destroy_children
-      self.class.where("parent_id = #{id}").delete_all
+      self.class.delete_by(parent_id: id)
     end
 
     def set_email_address
@@ -123,10 +119,6 @@ class Topic < ActiveRecord::Base
     end
 end
 
-class ImportantTopic < Topic
-  serialize :important, Hash
-end
-
 class DefaultRejectedTopic < Topic
   default_scope -> { where(approved: false) }
 end
@@ -136,6 +128,10 @@ class BlankTopic < Topic
   def blank?
     true
   end
+end
+
+class TitlePrimaryKeyTopic < Topic
+  self.primary_key = :title
 end
 
 module Web

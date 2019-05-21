@@ -4,11 +4,13 @@ module BackburnerJobsManager
   def setup
     ActiveJob::Base.queue_adapter = :backburner
     Backburner.configure do |config|
+      config.beanstalk_url = ENV["BEANSTALK_URL"] if ENV["BEANSTALK_URL"]
       config.logger = Rails.logger
     end
     unless can_run?
       puts "Cannot run integration tests for backburner. To be able to run integration tests for backburner you need to install and start beanstalkd.\n"
-      exit
+      status = ENV["CI"] ? false : true
+      exit status
     end
   end
 

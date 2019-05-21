@@ -93,11 +93,11 @@ module ActiveRecord
               elsif value.hex?
                 "X'#{value}'"
               end
-            when Float
-              if value.infinite? || value.nan?
-                "'#{value}'"
-              else
+            when Numeric
+              if value.finite?
                 super
+              else
+                "'#{value}'"
               end
             when OID::Array::Data
               _quote(encode_array(value))
@@ -138,7 +138,7 @@ module ActiveRecord
           end
 
           def encode_range(range)
-            "[#{type_cast_range_value(range.first)},#{type_cast_range_value(range.last)}#{range.exclude_end? ? ')' : ']'}"
+            "[#{type_cast_range_value(range.begin)},#{type_cast_range_value(range.end)}#{range.exclude_end? ? ')' : ']'}"
           end
 
           def determine_encoding_of_strings_in_array(value)

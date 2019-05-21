@@ -2,7 +2,7 @@
 
 namespace :app do
   desc "Update configs and some other initially generated files (or use just update:configs or update:bin)"
-  task update: [ "update:configs", "update:bin", "update:upgrade_guide_info" ]
+  task update: [ "update:configs", "update:bin", "update:active_storage", "update:upgrade_guide_info" ]
 
   desc "Applies the template supplied by LOCATION=(/path/to/template) or URL"
   task template: :environment do
@@ -49,6 +49,10 @@ namespace :app do
     # desc "Adds new executables to the application bin/ directory"
     task :bin do
       Rails::AppUpdater.invoke_from_app_generator :update_bin_files
+    end
+
+    task :active_storage do
+      Rails::AppUpdater.invoke_from_app_generator :update_active_storage
     end
 
     task :upgrade_guide_info do

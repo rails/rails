@@ -13,7 +13,6 @@ require "arel/alias_predication"
 require "arel/order_predications"
 require "arel/table"
 require "arel/attributes"
-require "arel/compatibility/wheres"
 
 require "arel/visitors"
 require "arel/collectors/sql_string"
@@ -35,6 +34,18 @@ module Arel # :nodoc: all
   def self.star
     sql "*"
   end
+
+  def self.arel_node?(value)
+    value.is_a?(Arel::Node) || value.is_a?(Arel::Attribute) || value.is_a?(Arel::Nodes::SqlLiteral)
+  end
+
+  def self.fetch_attribute(value)
+    case value
+    when Arel::Nodes::Between, Arel::Nodes::In, Arel::Nodes::NotIn, Arel::Nodes::Equality, Arel::Nodes::NotEqual, Arel::Nodes::LessThan, Arel::Nodes::LessThanOrEqual, Arel::Nodes::GreaterThan, Arel::Nodes::GreaterThanOrEqual
+      yield value.left.is_a?(Arel::Attributes::Attribute) ? value.left : value.right
+    end
+  end
+
   ## Convenience Alias
   Node = Arel::Nodes::Node
 end

@@ -40,7 +40,7 @@ class RendererTest < ActiveSupport::TestCase
 
   test "rendering with an instance renderer" do
     renderer = ApplicationController.renderer.new
-    content  = renderer.render file: "test/hello_world"
+    content  = assert_deprecated { renderer.render file: "test/hello_world" }
 
     assert_equal "Hello world!", content
   end
@@ -115,14 +115,14 @@ class RendererTest < ActiveSupport::TestCase
     assert_equal "true", content
   end
 
-  test "return valid asset url with defaults" do
+  test "return valid asset URL with defaults" do
     renderer = ApplicationController.renderer
     content  = renderer.render inline: "<%= asset_url 'asset.jpg' %>"
 
     assert_equal "http://example.org/asset.jpg", content
   end
 
-  test "return valid asset url when https is true" do
+  test "return valid asset URL when https is true" do
     renderer = ApplicationController.renderer.new https: true
     content  = renderer.render inline: "<%= asset_url 'asset.jpg' %>"
 

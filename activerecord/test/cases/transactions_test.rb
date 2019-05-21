@@ -18,6 +18,65 @@ class TransactionTest < ActiveRecord::TestCase
     @first, @second = Topic.find(1, 2).sort_by(&:id)
   end
 
+  def test_rollback_dirty_changes
+    topic = topics(:fifth)
+
+    ActiveRecord::Base.transaction do
+      topic.update(title: "Ruby on Rails")
+      raise ActiveRecord::Rollback
+    end
+
+    title_change = ["The Fifth Topic of the day", "Ruby on Rails"]
+    assert_equal title_change, topic.changes["title"]
+  end
+
+  def test_rollback_dirty_changes_multiple_saves
+    topic = topics(:fifth)
+
+    ActiveRecord::Base.transaction do
+      topic.update(title: "Ruby on Rails")
+      topic.update(title: "Another Title")
+      raise ActiveRecord::Rollback
+    end
+
+    title_change = ["The Fifth Topic of the day", "Another Title"]
+    assert_equal title_change, topic.changes["title"]
+  end
+
+  def test_rollback_dirty_changes_then_retry_save
+    topic = topics(:fifth)
+
+    ActiveRecord::Base.transaction do
+      topic.update(title: "Ruby on Rails")
+      raise ActiveRecord::Rollback
+    end
+
+    title_change = ["The Fifth Topic of the day", "Ruby on Rails"]
+    assert_equal title_change, topic.changes["title"]
+
+    assert topic.save
+
+    assert_equal title_change, topic.saved_changes["title"]
+    assert_equal topic.title, topic.reload.title
+  end
+
+  def test_rollback_dirty_changes_then_retry_save_on_new_record
+    topic = Topic.new(title: "Ruby on Rails")
+
+    ActiveRecord::Base.transaction do
+      topic.save
+      raise ActiveRecord::Rollback
+    end
+
+    title_change = [nil, "Ruby on Rails"]
+    assert_equal title_change, topic.changes["title"]
+
+    assert topic.save
+
+    assert_equal title_change, topic.saved_changes["title"]
+    assert_equal topic.title, topic.reload.title
+  end
+
   def test_persisted_in_a_model_with_custom_primary_key_after_failed_save
     movie = Movie.create
     assert_not_predicate movie, :persisted?
@@ -26,28 +85,31 @@ class TransactionTest < ActiveRecord::TestCase
   def test_raise_after_destroy
     assert_not_predicate @first, :frozen?
 
-    assert_raises(RuntimeError) {
-      Topic.transaction do
-        @first.destroy
-        assert_predicate @first, :frozen?
-        raise
+    assert_not_called(@first, :rolledback!) do
+      assert_raises(RuntimeError) do
+        Topic.transaction do
+          @first.destroy
+          assert_predicate @first, :frozen?
+          raise
+        end
       end
-    }
+    end
 
-    assert @first.reload
     assert_not_predicate @first, :frozen?
   end
 
   def test_successful
-    Topic.transaction do
-      @first.approved  = true
-      @second.approved = false
-      @first.save
-      @second.save
+    assert_not_called(@first, :committed!) do
+      Topic.transaction do
+        @first.approved  = true
+        @second.approved = false
+        @first.save
+        @second.save
+      end
     end
 
-    assert Topic.find(1).approved?, "First should have been approved"
-    assert_not Topic.find(2).approved?, "Second should have been unapproved"
+    assert_predicate Topic.find(1), :approved?, "First should have been approved"
+    assert_not_predicate Topic.find(2), :approved?, "Second should have been unapproved"
   end
 
   def transaction_with_return
@@ -62,7 +124,7 @@ class TransactionTest < ActiveRecord::TestCase
 
   def test_add_to_null_transaction
     topic = Topic.new
-    topic.add_to_transaction
+    topic.send(:add_to_transaction)
   end
 
   def test_successful_with_return
@@ -76,11 +138,13 @@ class TransactionTest < ActiveRecord::TestCase
       end
     end
 
-    transaction_with_return
+    assert_not_called(@first, :committed!) do
+      transaction_with_return
+    end
     assert committed
 
-    assert Topic.find(1).approved?, "First should have been approved"
-    assert_not Topic.find(2).approved?, "Second should have been unapproved"
+    assert_predicate Topic.find(1), :approved?, "First should have been approved"
+    assert_not_predicate Topic.find(2), :approved?, "Second should have been unapproved"
   ensure
     Topic.connection.class_eval do
       remove_method :commit_db_transaction
@@ -99,9 +163,11 @@ class TransactionTest < ActiveRecord::TestCase
       end
     end
 
-    Topic.transaction do
-      @first.approved = true
-      @first.save!
+    assert_not_called(@first, :committed!) do
+      Topic.transaction do
+        @first.approved = true
+        @first.save!
+      end
     end
 
     assert_equal 0, num
@@ -113,19 +179,21 @@ class TransactionTest < ActiveRecord::TestCase
   end
 
   def test_successful_with_instance_method
-    @first.transaction do
-      @first.approved  = true
-      @second.approved = false
-      @first.save
-      @second.save
+    assert_not_called(@first, :committed!) do
+      @first.transaction do
+        @first.approved  = true
+        @second.approved = false
+        @first.save
+        @second.save
+      end
     end
 
-    assert Topic.find(1).approved?, "First should have been approved"
-    assert_not Topic.find(2).approved?, "Second should have been unapproved"
+    assert_predicate Topic.find(1), :approved?, "First should have been approved"
+    assert_not_predicate Topic.find(2), :approved?, "Second should have been unapproved"
   end
 
   def test_failing_on_exception
-    begin
+    assert_not_called(@first, :rolledback!) do
       Topic.transaction do
         @first.approved  = true
         @second.approved = false
@@ -137,11 +205,11 @@ class TransactionTest < ActiveRecord::TestCase
       # caught it
     end
 
-    assert @first.approved?, "First should still be changed in the objects"
-    assert_not @second.approved?, "Second should still be changed in the objects"
+    assert_predicate @first, :approved?, "First should still be changed in the objects"
+    assert_not_predicate @second, :approved?, "Second should still be changed in the objects"
 
-    assert_not Topic.find(1).approved?, "First shouldn't have been approved"
-    assert Topic.find(2).approved?, "Second should still be approved"
+    assert_not_predicate Topic.find(1), :approved?, "First shouldn't have been approved"
+    assert_predicate Topic.find(2), :approved?, "Second should still be approved"
   end
 
   def test_raising_exception_in_callback_rollbacks_in_save
@@ -150,8 +218,10 @@ class TransactionTest < ActiveRecord::TestCase
     end
 
     @first.approved = true
-    e = assert_raises(RuntimeError) { @first.save }
-    assert_equal "Make the transaction rollback", e.message
+    assert_not_called(@first, :rolledback!) do
+      e = assert_raises(RuntimeError) { @first.save }
+      assert_equal "Make the transaction rollback", e.message
+    end
     assert_not_predicate Topic.find(1), :approved?
   end
 
@@ -159,13 +229,15 @@ class TransactionTest < ActiveRecord::TestCase
     def @first.before_save_for_transaction
       raise ActiveRecord::Rollback
     end
-    assert_not @first.approved
+    assert_not_predicate @first, :approved?
 
-    Topic.transaction do
-      @first.approved = true
-      @first.save!
+    assert_not_called(@first, :rolledback!) do
+      Topic.transaction do
+        @first.approved = true
+        @first.save!
+      end
     end
-    assert_not Topic.find(@first.id).approved?, "Should not commit the approved flag"
+    assert_not_predicate Topic.find(@first.id), :approved?, "Should not commit the approved flag"
   end
 
   def test_raising_exception_in_nested_transaction_restore_state_in_save
@@ -175,11 +247,13 @@ class TransactionTest < ActiveRecord::TestCase
       raise "Make the transaction rollback"
     end
 
-    assert_raises(RuntimeError) do
-      Topic.transaction { topic.save }
+    assert_not_called(topic, :rolledback!) do
+      assert_raises(RuntimeError) do
+        Topic.transaction { topic.save }
+      end
     end
 
-    assert topic.new_record?, "#{topic.inspect} should be new record"
+    assert_predicate topic, :new_record?, "#{topic.inspect} should be new record"
   end
 
   def test_transaction_state_is_cleared_when_record_is_persisted
@@ -575,7 +649,7 @@ class TransactionTest < ActiveRecord::TestCase
         assert_called(Topic.connection, :rollback_db_transaction) do
           e = assert_raise RuntimeError do
             Topic.transaction do
-              # do nothing
+              Topic.connection.materialize_transactions
             end
           end
           assert_equal "OH NOES", e.message
@@ -587,7 +661,7 @@ class TransactionTest < ActiveRecord::TestCase
   def test_rollback_when_saving_a_frozen_record
     topic = Topic.new(title: "test")
     topic.freeze
-    e = assert_raise(frozen_error_class) { topic.save }
+    e = assert_raise(FrozenError) { topic.save }
     # Not good enough, but we can't do much
     # about it since there is no specific error
     # for frozen objects.
@@ -884,17 +958,6 @@ class TransactionTest < ActiveRecord::TestCase
     assert_predicate transaction.state, :committed?
   end
 
-  def test_set_state_method_is_deprecated
-    connection = Topic.connection
-    transaction = ActiveRecord::ConnectionAdapters::TransactionManager.new(connection).begin_transaction
-
-    transaction.commit
-
-    assert_deprecated do
-      transaction.state.set_state(:rolledback)
-    end
-  end
-
   def test_mark_transaction_state_as_committed
     connection = Topic.connection
     transaction = ActiveRecord::ConnectionAdapters::TransactionManager.new(connection).begin_transaction
@@ -930,7 +993,7 @@ class TransactionTest < ActiveRecord::TestCase
 
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = "transaction_without_primary_keys"
-      after_commit {} # necessary to trigger the has_transactional_callbacks branch
+      after_commit { } # necessary to trigger the has_transactional_callbacks branch
     end
 
     assert_no_difference(-> { klass.count }) do
@@ -941,6 +1004,76 @@ class TransactionTest < ActiveRecord::TestCase
     end
   ensure
     connection.drop_table "transaction_without_primary_keys", if_exists: true
+  end
+
+  def test_empty_transaction_is_not_materialized
+    assert_no_queries do
+      Topic.transaction { }
+    end
+  end
+
+  def test_unprepared_statement_materializes_transaction
+    assert_sql(/BEGIN/i, /COMMIT/i) do
+      Topic.transaction { Topic.where("1=1").first }
+    end
+  end
+
+  if ActiveRecord::Base.connection.prepared_statements
+    def test_prepared_statement_materializes_transaction
+      Topic.first
+
+      assert_sql(/BEGIN/i, /COMMIT/i) do
+        Topic.transaction { Topic.first }
+      end
+    end
+  end
+
+  def test_savepoint_does_not_materialize_transaction
+    assert_no_queries do
+      Topic.transaction do
+        Topic.transaction(requires_new: true) { }
+      end
+    end
+  end
+
+  def test_raising_does_not_materialize_transaction
+    assert_raise(RuntimeError) do
+      assert_no_queries do
+        Topic.transaction { raise }
+      end
+    end
+  end
+
+  def test_accessing_raw_connection_materializes_transaction
+    assert_sql(/BEGIN/i, /COMMIT/i) do
+      Topic.transaction { Topic.connection.raw_connection }
+    end
+  end
+
+  def test_accessing_raw_connection_disables_lazy_transactions
+    Topic.connection.raw_connection
+
+    assert_sql(/BEGIN/i, /COMMIT/i) do
+      Topic.transaction { }
+    end
+  end
+
+  def test_checking_in_connection_reenables_lazy_transactions
+    connection = Topic.connection_pool.checkout
+    connection.raw_connection
+    Topic.connection_pool.checkin connection
+
+    assert_no_queries do
+      connection.transaction { }
+    end
+  end
+
+  def test_transactions_can_be_manually_materialized
+    assert_sql(/BEGIN/i, /COMMIT/i) do
+      Topic.transaction do
+        Topic.connection.materialize_transactions
+      end
+    end
   end
 
   private

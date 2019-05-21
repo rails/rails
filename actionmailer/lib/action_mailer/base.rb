@@ -565,6 +565,11 @@ module ActionMailer
       #     end
       #   end
       def receive(raw_mail)
+        ActiveSupport::Deprecation.warn(<<~MESSAGE.squish)
+          ActionMailer::Base.receive is deprecated and will be removed in Rails 6.1.
+          Use Action Mailbox to process inbound email.
+        MESSAGE
+
         ActiveSupport::Notifications.instrument("receive.action_mailer") do |payload|
           mail = Mail.new(raw_mail)
           set_payload_for_mail(payload, mail)
@@ -588,15 +593,16 @@ module ActionMailer
     private
 
       def set_payload_for_mail(payload, mail)
-        payload[:mailer]     = name
-        payload[:message_id] = mail.message_id
-        payload[:subject]    = mail.subject
-        payload[:to]         = mail.to
-        payload[:from]       = mail.from
-        payload[:bcc]        = mail.bcc if mail.bcc.present?
-        payload[:cc]         = mail.cc  if mail.cc.present?
-        payload[:date]       = mail.date
-        payload[:mail]       = mail.encoded
+        payload[:mail]               = mail.encoded
+        payload[:mailer]             = name
+        payload[:message_id]         = mail.message_id
+        payload[:subject]            = mail.subject
+        payload[:to]                 = mail.to
+        payload[:from]               = mail.from
+        payload[:bcc]                = mail.bcc if mail.bcc.present?
+        payload[:cc]                 = mail.cc  if mail.cc.present?
+        payload[:date]               = mail.date
+        payload[:perform_deliveries] = mail.perform_deliveries
       end
 
       def method_missing(method_name, *args)
@@ -938,16 +944,21 @@ module ActionMailer
         assignable.each { |k, v| message[k] = v }
       end
 
-      def collect_responses(headers)
+      def collect_responses(headers, &block)
         if block_given?
-          collector = ActionMailer::Collector.new(lookup_context) { render(action_name) }
-          yield(collector)
-          collector.responses
+          collect_responses_from_block(headers, &block)
         elsif headers[:body]
           collect_responses_from_text(headers)
         else
           collect_responses_from_templates(headers)
         end
+      end
+
+      def collect_responses_from_block(headers)
+        templates_name = headers[:template_name] || action_name
+        collector = ActionMailer::Collector.new(lookup_context) { render(templates_name) }
+        yield(collector)
+        collector.responses
       end
 
       def collect_responses_from_text(headers)
@@ -962,10 +973,10 @@ module ActionMailer
         templates_name = headers[:template_name] || action_name
 
         each_template(Array(templates_path), templates_name).map do |template|
-          self.formats = template.formats
+          format = template.format || self.formats.first
           {
-            body: render(template: template),
-            content_type: template.type.to_s
+            body: render(template: template, formats: [format]),
+            content_type: Mime[format].to_s
           }
         end
       end
@@ -975,7 +986,7 @@ module ActionMailer
         if templates.empty?
           raise ActionView::MissingTemplate.new(paths, name, paths, false, "mailer")
         else
-          templates.uniq(&:formats).each(&block)
+          templates.uniq(&:format).each(&block)
         end
       end
 
@@ -1007,7 +1018,7 @@ module ActionMailer
       end
 
       def instrument_name
-        "action_mailer".freeze
+        "action_mailer"
       end
 
       ActiveSupport.run_load_hooks(:action_mailer, self)

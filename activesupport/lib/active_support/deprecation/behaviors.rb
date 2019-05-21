@@ -43,7 +43,7 @@ module ActiveSupport
                                                 deprecation_horizon: deprecation_horizon)
       },
 
-      silence: ->(message, callstack, deprecation_horizon, gem_name) {},
+      silence: ->(message, callstack, deprecation_horizon, gem_name) { },
     }
 
     # Behavior module allows to determine how to display deprecation messages.

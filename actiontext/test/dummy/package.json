@@ -1,0 +1,12 @@
+{
+  "name": "dummy",
+  "private": true,
+  "dependencies": {
+    "@rails/webpacker": "^4.0.2",
+    "actiontext": "file:../..",
+    "trix": "^1.1.1"
+  },
+  "devDependencies": {
+    "webpack-dev-server": "^3.3.1"
+  }
+}

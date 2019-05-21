@@ -853,6 +853,28 @@ class ResourcesTest < ActionController::TestCase
     end
   end
 
+  def test_resource_has_show_action_but_does_not_have_destroy_action
+    with_routing do |set|
+      set.draw do
+        resources :products, only: [:show, :destroy], except: :destroy
+      end
+
+      assert_resource_allowed_routes("products", {},                    { id: "1" }, :show, [:index, :new, :create, :edit, :update, :destroy])
+      assert_resource_allowed_routes("products", { format: "xml" },  { id: "1" }, :show, [:index, :new, :create, :edit, :update, :destroy])
+    end
+  end
+
+  def test_singleton_resource_has_show_action_but_does_not_have_destroy_action
+    with_routing do |set|
+      set.draw do
+        resource :account, only: [:show, :destroy], except: :destroy
+      end
+
+      assert_singleton_resource_allowed_routes("accounts", {},                    :show, [:new, :create, :edit, :update, :destroy])
+      assert_singleton_resource_allowed_routes("accounts", { format: "xml" },  :show, [:new, :create, :edit, :update, :destroy])
+    end
+  end
+
   def test_resource_has_only_create_action_and_named_route
     with_routing do |set|
       set.draw do

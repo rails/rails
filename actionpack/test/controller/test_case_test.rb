@@ -156,6 +156,10 @@ XML
       render html: '<body class="foo"></body>'.html_safe
     end
 
+    def render_json
+      render json: request.raw_post
+    end
+
     def boom
       raise "boom!"
     end
@@ -474,6 +478,18 @@ XML
     )
   end
 
+  def test_nil_params
+    get :test_params, params: nil
+    parsed_params = JSON.parse(@response.body)
+    assert_equal(
+      {
+        "action" => "test_params",
+        "controller" => "test_case_test/test"
+      },
+      parsed_params
+    )
+  end
+
   def test_query_param_named_action
     get :test_query_parameters, params: { action: "foobar" }
     parsed_params = JSON.parse(@response.body)
@@ -542,7 +558,7 @@ XML
   def test_params_passing_with_frozen_values
     assert_nothing_raised do
       get :test_params, params: {
-        frozen: "icy".freeze, frozens: ["icy".freeze].freeze, deepfreeze: { frozen: "icy".freeze }.freeze
+        frozen: -"icy", frozens: [-"icy"].freeze, deepfreeze: { frozen: -"icy" }.freeze
       }
     end
     parsed_params = ::JSON.parse(@response.body)
@@ -936,7 +952,7 @@ XML
     get :create
     assert_response :created
 
-    # Redirect url doesn't care that it wasn't a :redirect response.
+    # Redirect URL doesn't care that it wasn't a :redirect response.
     assert_equal "/resource", @response.redirect_url
     assert_equal @response.redirect_url, redirect_to_url
 
@@ -964,6 +980,16 @@ XML
       params: { q: "test2" }
 
     assert_equal "q=test2", @response.body
+  end
+
+  def test_parsed_body_without_as_option
+    post :render_json, body: { foo: "heyo" }
+    assert_equal({ "foo" => "heyo" }, response.parsed_body)
+  end
+
+  def test_parsed_body_with_as_option
+    post :render_json, body: { foo: "heyo" }.to_json, as: :json
+    assert_equal({ "foo" => "heyo" }, response.parsed_body)
   end
 end
 

@@ -59,8 +59,8 @@ module ActionView
 
     include ModelNaming
 
-    JOIN = "_".freeze
-    NEW = "new".freeze
+    JOIN = "_"
+    NEW = "new"
 
     # The DOM class convention is to use the singular form of an object or class.
     #

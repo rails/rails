@@ -183,6 +183,11 @@ class TestController < ActionController::Base
     render action: "hello_world"
   end
 
+  def conditional_hello_without_expires_and_public_header
+    response.headers["Cache-Control"] = "public, no-cache"
+    render action: "hello_world"
+  end
+
   def conditional_hello_with_bangs
     render action: "hello_world"
   end
@@ -318,11 +323,12 @@ class ExpiresInRenderTest < ActionController::TestCase
   end
 
   def test_dynamic_render_with_file
-    # This is extremely bad, but should be possible to do.
     assert File.exist?(File.expand_path("../../test/abstract_unit.rb", __dir__))
-    response = get :dynamic_render_with_file, params: { id: '../\\../test/abstract_unit.rb' }
-    assert_equal File.read(File.expand_path("../../test/abstract_unit.rb", __dir__)),
-      response.body
+    assert_deprecated do
+      assert_raises ActionView::MissingTemplate do
+        get :dynamic_render_with_file, params: { id: '../\\../test/abstract_unit.rb' }
+      end
+    end
   end
 
   def test_dynamic_render_with_absolute_path
@@ -346,9 +352,11 @@ class ExpiresInRenderTest < ActionController::TestCase
 
   def test_permitted_dynamic_render_file_hash
     assert File.exist?(File.expand_path("../../test/abstract_unit.rb", __dir__))
-    response = get :dynamic_render_permit, params: { id: { file: '../\\../test/abstract_unit.rb' } }
-    assert_equal File.read(File.expand_path("../../test/abstract_unit.rb", __dir__)),
-      response.body
+    assert_deprecated do
+      assert_raises ActionView::MissingTemplate do
+        get :dynamic_render_permit, params: { id: { file: '../\\../test/abstract_unit.rb' } }
+      end
+    end
   end
 
   def test_dynamic_render_file_hash
@@ -416,6 +424,11 @@ class ExpiresInRenderTest < ActionController::TestCase
   def test_no_expires_now_with_conflicting_cache_control_headers
     get :conditional_hello_without_expires_and_confliciting_cache_control_headers
     assert_equal "no-cache", @response.headers["Cache-Control"]
+  end
+
+  def test_no_expires_now_with_public
+    get :conditional_hello_without_expires_and_public_header
+    assert_equal "public, no-cache", @response.headers["Cache-Control"]
   end
 
   def test_date_header_when_expires_in

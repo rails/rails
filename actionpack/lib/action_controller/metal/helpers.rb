@@ -34,7 +34,7 @@ module ActionController
   #     end
   #   end
   #
-  # Then, in any view rendered by <tt>EventController</tt>, the <tt>format_time</tt> method can be called:
+  # Then, in any view rendered by <tt>EventsController</tt>, the <tt>format_time</tt> method can be called:
   #
   #   <% @events.each do |event| -%>
   #     <p>
@@ -75,7 +75,7 @@ module ActionController
       # Provides a proxy to access helper methods from outside the view.
       def helpers
         @helper_proxy ||= begin
-          proxy = ActionView::Base.new
+          proxy = ActionView::Base.empty
           proxy.config = config.inheritable_copy
           proxy.extend(_helpers)
         end
@@ -100,8 +100,7 @@ module ActionController
       #   # => ["application", "chart", "rubygems"]
       def all_helpers_from_path(path)
         helpers = Array(path).flat_map do |_path|
-          extract = /^#{Regexp.quote(_path.to_s)}\/?(.*)_helper.rb$/
-          names = Dir["#{_path}/**/*_helper.rb"].map { |file| file.sub(extract, '\1'.freeze) }
+          names = Dir["#{_path}/**/*_helper.rb"].map { |file| file[_path.to_s.size + 1..-"_helper.rb".size - 1] }
           names.sort!
         end
         helpers.uniq!

@@ -1,6 +1,6 @@
 # Welcome to Rails
 
-## What's Rails
+## What's Rails?
 
 Rails is a web-application framework that includes everything needed to
 create database-backed web applications according to the
@@ -44,11 +44,11 @@ or to generate the body of an email. In Rails, View generation is handled by [Ac
 
 [Active Record](activerecord/README.rdoc), [Active Model](activemodel/README.rdoc), [Action Pack](actionpack/README.rdoc), and [Action View](actionview/README.rdoc) can each be used independently outside Rails.
 In addition to that, Rails also comes with [Action Mailer](actionmailer/README.rdoc), a library
-to generate and send emails; [Active Job](activejob/README.md), a
-framework for declaring jobs and making them run on a variety of queueing
+to generate and send emails; [Action Mailbox](actionmailbox/README.md), a library to receive emails within a Rails application;
+[Active Job](activejob/README.md), a framework for declaring jobs and making them run on a variety of queuing
 backends; [Action Cable](actioncable/README.md), a framework to
 integrate WebSockets with a Rails application; [Active Storage](activestorage/README.md), a library to attach cloud
-and local files to Rails applications;
+and local files to Rails applications; [Action Text](actiontext/README.md), a library to handle rich text content;
 and [Active Support](activesupport/README.rdoc), a collection
 of utility classes and standard library extensions that are useful for Rails,
 and may also be used independently outside Rails.
@@ -97,7 +97,7 @@ Everyone interacting in Rails and its sub-projects' codebases, issue trackers, c
 
 ## Code Status
 
-[![Build Status](https://travis-ci.org/rails/rails.svg?branch=master)](https://travis-ci.org/rails/rails)
+[![Build Status](https://badge.buildkite.com/ab1152b6a1f6a61d3ea4ec5b3eece8d4c2b830998459c75352.svg?branch=master)](https://buildkite.com/rails/rails)
 
 ## License
 

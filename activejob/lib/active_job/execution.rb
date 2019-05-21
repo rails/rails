@@ -26,16 +26,16 @@ module ActiveJob
       end
     end
 
-    # Performs the job immediately. The job is not sent to the queueing adapter
+    # Performs the job immediately. The job is not sent to the queuing adapter
     # but directly executed by blocking the execution of others until it's finished.
     #
     #   MyJob.new(*args).perform_now
     def perform_now
+      # Guard against jobs that were persisted before we started counting executions by zeroing out nil counters
+      self.executions = (executions || 0) + 1
+
       deserialize_arguments_if_needed
       run_callbacks :perform do
-        # Guard against jobs that were persisted before we started counting executions by zeroing out nil counters
-        self.executions = (executions || 0) + 1
-
         perform(*arguments)
       end
     rescue => exception

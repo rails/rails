@@ -538,7 +538,8 @@ end
 
 If you want to be sure that an association is present, you'll need to test
 whether the associated object itself is present, and not the foreign key used
-to map the association.
+to map the association. This way, it is not only checked that the foreign key
+is not empty but also that the referenced object exists.
 
 ```ruby
 class LineItem < ApplicationRecord
@@ -638,7 +639,7 @@ class Holiday < ApplicationRecord
     message: "should happen once per year" }
 end
 ```
-Should you wish to create a database constraint to prevent possible violations of a uniqueness validation using the `:scope` option, you must create a unique index on both columns in your database. See [the MySQL manual](http://dev.mysql.com/doc/refman/5.7/en/multiple-column-indexes.html) for more details about multiple column indexes or [the PostgreSQL manual](https://www.postgresql.org/docs/current/static/ddl-constraints.html) for examples of unique constraints that refer to a group of columns.
+Should you wish to create a database constraint to prevent possible violations of a uniqueness validation using the `:scope` option, you must create a unique index on both columns in your database. See [the MySQL manual](https://dev.mysql.com/doc/refman/5.7/en/multiple-column-indexes.html) for more details about multiple column indexes or [the PostgreSQL manual](https://www.postgresql.org/docs/current/static/ddl-constraints.html) for examples of unique constraints that refer to a group of columns.
 
 There is also a `:case_sensitive` option that you can use to define whether the
 uniqueness constraint will be case sensitive or not. This option defaults to
@@ -663,7 +664,7 @@ This helper passes the record to a separate class for validation.
 class GoodnessValidator < ActiveModel::Validator
   def validate(record)
     if record.first_name == "Evil"
-      record.errors[:base] << "This person is evil"
+      record.errors.add :base, "This person is evil"
     end
   end
 end
@@ -691,7 +692,7 @@ validator class as `options`:
 class GoodnessValidator < ActiveModel::Validator
   def validate(record)
     if options[:fields].any?{|field| record.send(field) == "Evil" }
-      record.errors[:base] << "This person is evil"
+      record.errors.add :base, "This person is evil"
     end
   end
 end
@@ -722,7 +723,7 @@ class GoodnessValidator
 
   def validate
     if some_complex_condition_involving_ivars_and_private_methods?
-      @person.errors[:base] << "This person is evil"
+      @person.errors.add :base, "This person is evil"
     end
   end
 
@@ -844,9 +845,9 @@ class Person < ApplicationRecord
 end
 ```
 
-You can also use `on:` to define custom context.
-Custom contexts need to be triggered explicitly
-by passing name of the context to `valid?`, `invalid?` or `save`.
+You can also use `on:` to define custom contexts. Custom contexts need to be
+triggered explicitly by passing the name of the context to `valid?`,
+`invalid?`, or `save`.
 
 ```ruby
 class Person < ApplicationRecord
@@ -854,14 +855,32 @@ class Person < ApplicationRecord
   validates :age, numericality: true, on: :account_setup
 end
 
-person = Person.new
+person = Person.new(age: 'thirty-three')
+person.valid? # => true
+person.valid?(:account_setup) # => false
+person.errors.messages
+ # => {:email=>["has already been taken"], :age=>["is not a number"]}
 ```
 
-`person.valid?(:account_setup)` executes both the validations
-without saving the model. And `person.save(context: :account_setup)`
-validates `person` in `account_setup` context before saving.
-On explicit triggers, model is validated by
-validations of only that context and validations without context.
+`person.valid?(:account_setup)` executes both the validations without saving
+the model. `person.save(context: :account_setup)` validates `person` in the
+`account_setup` context before saving.
+
+When triggered by an explicit context, validations are run for that context,
+as well as any validations _without_ a context.
+
+```ruby
+class Person < ApplicationRecord
+  validates :email, uniqueness: true, on: :account_setup
+  validates :age, numericality: true, on: :account_setup
+  validates :name, presence: true
+end
+
+person = Person.new
+person.valid?(:account_setup) # => false
+person.errors.messages
+ # => {:email=>["has already been taken"], :age=>["is not a number"], :name=>["can't be blank"]}
+```
 
 Strict Validations
 ------------------
@@ -915,7 +934,7 @@ end
 
 ### Using a Proc with `:if` and `:unless`
 
-Finally, it's possible to associate `:if` and `:unless` with a `Proc` object
+It is possible to associate `:if` and `:unless` with a `Proc` object
 which will be called. Using a `Proc` object gives you the ability to write an
 inline condition instead of a separate method. This option is best suited for
 one-liners.
@@ -985,7 +1004,7 @@ and performs the validation on it. The custom validator is called using the
 class MyValidator < ActiveModel::Validator
   def validate(record)
     unless record.name.starts_with? 'X'
-      record.errors[:name] << 'Need a name starting with X please!'
+      record.errors.add :name, "Need a name starting with X please!"
     end
   end
 end
@@ -1007,7 +1026,7 @@ instance.
 class EmailValidator < ActiveModel::EachValidator
   def validate_each(record, attribute, value)
     unless value =~ /\A([^@\s]+)@((?:[-a-z0-9]+\.)+[a-z]{2,})\z/i
-      record.errors[attribute] << (options[:message] || "is not an email")
+      record.errors.add attribute, (options[:message] || "is not an email")
     end
   end
 end
@@ -1025,7 +1044,7 @@ own custom validators.
 You can also create methods that verify the state of your models and add
 messages to the `errors` collection when they are invalid. You must then
 register these methods by using the `validate`
-([API](http://api.rubyonrails.org/classes/ActiveModel/Validations/ClassMethods.html#method-i-validate))
+([API](https://api.rubyonrails.org/classes/ActiveModel/Validations/ClassMethods.html#method-i-validate))
 class method, passing in the symbols for the validation methods' names.
 
 You can pass more than one symbol for each class method and the respective
@@ -1184,7 +1203,7 @@ You can add error messages that are related to the object's state as a whole, in
 ```ruby
 class Person < ApplicationRecord
   def a_method_used_for_validation_purposes
-    errors[:base] << "This person is invalid because ..."
+    errors.add :base, "This person is invalid because ..."
   end
 end
 ```

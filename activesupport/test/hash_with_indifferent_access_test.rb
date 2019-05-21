@@ -57,6 +57,13 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
     assert_equal @symbols, @mixed.with_indifferent_access.symbolize_keys
   end
 
+  def test_to_options_for_hash_with_indifferent_access
+    assert_instance_of Hash, @symbols.with_indifferent_access.to_options
+    assert_equal @symbols, @symbols.with_indifferent_access.to_options
+    assert_equal @symbols, @strings.with_indifferent_access.to_options
+    assert_equal @symbols, @mixed.with_indifferent_access.to_options
+  end
+
   def test_deep_symbolize_keys_for_hash_with_indifferent_access
     assert_instance_of Hash, @nested_symbols.with_indifferent_access.deep_symbolize_keys
     assert_equal @nested_symbols, @nested_symbols.with_indifferent_access.deep_symbolize_keys
@@ -440,6 +447,14 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
     assert_instance_of ActiveSupport::HashWithIndifferentAccess, indifferent_strings
   end
 
+  def test_indifferent_assoc
+    indifferent_strings = ActiveSupport::HashWithIndifferentAccess.new(@strings)
+    key, value = indifferent_strings.assoc(:a)
+
+    assert_equal("a", key)
+    assert_equal(1, value)
+  end
+
   def test_indifferent_compact
     hash_contain_nil_value = @strings.merge("z" => nil)
     hash = ActiveSupport::HashWithIndifferentAccess.new(hash_contain_nil_value)
@@ -471,7 +486,7 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
     assert_equal @strings, roundtrip
     assert_equal "1234", roundtrip.default
 
-    # Ensure nested hashes are not HashWithIndiffereneAccess
+    # Ensure nested hashes are not HashWithIndifferentAccess
     new_to_hash = @nested_mixed.with_indifferent_access.to_hash
     assert_not new_to_hash.instance_of?(HashWithIndifferentAccess)
     assert_not new_to_hash["a"].instance_of?(HashWithIndifferentAccess)
@@ -672,6 +687,17 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
     assert_equal "bender", slice["login"]
   end
 
+  def test_indifferent_without
+    original = { a: "x", b: "y", c: 10 }.with_indifferent_access
+    expected = { c: 10 }.with_indifferent_access
+
+    [["a", "b"], [:a, :b]].each do |keys|
+      # Should return a new hash without the given keys.
+      assert_equal expected, original.without(*keys), keys.inspect
+      assert_not_equal expected, original
+    end
+  end
+
   def test_indifferent_extract
     original = { :a => 1, "b" => 2, :c => 3, "d" => 4 }.with_indifferent_access
     expected = { a: 1, b: 2 }.with_indifferent_access
@@ -809,5 +835,33 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
     hash_wia = hash.with_indifferent_access
     assert_equal 3, hash_wia[:foo]
     assert_equal 3, hash_wia[:bar]
+  end
+
+  def test_should_copy_the_default_when_converting_non_hash_to_hash_with_indifferent_access
+    non_hash = Object.new
+
+    def non_hash.to_hash
+      h = { foo: :bar }
+      h.default = :baz
+      h
+    end
+
+    hash_wia = HashWithIndifferentAccess.new(non_hash)
+    assert_equal :bar, hash_wia[:foo]
+    assert_equal :baz, hash_wia[:missing]
+  end
+
+  def test_should_copy_the_default_proc_when_converting_non_hash_to_hash_with_indifferent_access
+    non_hash = Object.new
+
+    def non_hash.to_hash
+      h = { foo: :bar }
+      h.default_proc = ->(hash, key) { hash[key] = :baz }
+      h
+    end
+
+    hash_wia = HashWithIndifferentAccess.new(non_hash)
+    assert_equal :bar, hash_wia[:foo]
+    assert_equal :baz, hash_wia[:missing]
   end
 end

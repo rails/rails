@@ -1,7 +1,8 @@
 # frozen_string_literal: true
 
 require "drb"
-require "drb/unix"
+require "drb/unix" unless Gem.win_platform?
+require "active_support/core_ext/module/attribute_accessors"
 
 module ActiveSupport
   module Testing
@@ -14,12 +15,15 @@ module ActiveSupport
         end
 
         def record(reporter, result)
+          raise DRb::DRbConnError if result.is_a?(DRb::DRbUnknown)
+
           reporter.synchronize do
             reporter.record(result)
           end
         end
 
         def <<(o)
+          o[2] = DRbObject.new(o[2]) if o
           @queue << o
         end
 
@@ -67,7 +71,9 @@ module ActiveSupport
           fork do
             DRb.stop_service
 
-            after_fork(worker)
+            begin
+              after_fork(worker)
+            rescue => setup_exception; end
 
             queue = DRbObject.new_with_uri(@url)
 
@@ -75,11 +81,22 @@ module ActiveSupport
               klass    = job[0]
               method   = job[1]
               reporter = job[2]
-              result   = Minitest.run_one_method(klass, method)
+              result = klass.with_info_handler reporter do
+                Minitest.run_one_method(klass, method)
+              end
 
-              queue.record(reporter, result)
+              add_setup_exception(result, setup_exception) if setup_exception
+
+              begin
+                queue.record(reporter, result)
+              rescue DRb::DRbConnError
+                result.failures.each do |failure|
+                  failure.exception = DRb::DRbRemoteError.new(failure.exception)
+                end
+                queue.record(reporter, result)
+              end
             end
-
+          ensure
             run_cleanup(worker)
           end
         end
@@ -93,6 +110,11 @@ module ActiveSupport
         @queue_size.times { @queue << nil }
         @pool.each { |pid| Process.waitpid pid }
       end
+
+      private
+        def add_setup_exception(result, setup_exception)
+          result.failures.prepend Minitest::UnexpectedError.new(setup_exception)
+        end
     end
   end
 end

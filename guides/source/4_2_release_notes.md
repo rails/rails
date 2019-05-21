@@ -44,7 +44,7 @@ to their respective adapters. Active Job comes pre-configured with an inline
 runner that executes jobs right away.
 
 Jobs often need to take Active Record objects as arguments. Active Job passes
-object references as URIs (uniform resource identifiers) instead of marshaling
+object references as URIs (uniform resource identifiers) instead of marshalling
 the object itself. The new [Global ID](https://github.com/rails/globalid)
 library builds URIs and looks up the objects they reference. Passing Active
 Record objects as job arguments just works by using Global ID internally.
@@ -154,9 +154,9 @@ remove_foreign_key :accounts, column: :owner_id
 ```
 
 See the API documentation on
-[add_foreign_key](http://api.rubyonrails.org/v4.2.0/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-add_foreign_key)
+[add_foreign_key](https://api.rubyonrails.org/v4.2.0/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-add_foreign_key)
 and
-[remove_foreign_key](http://api.rubyonrails.org/v4.2.0/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-remove_foreign_key)
+[remove_foreign_key](https://api.rubyonrails.org/v4.2.0/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-remove_foreign_key)
 for a full description.
 
 
@@ -877,7 +877,7 @@ Credits
 -------
 
 See the
-[full list of contributors to Rails](http://contributors.rubyonrails.org/) for
+[full list of contributors to Rails](https://contributors.rubyonrails.org/) for
 the many people who spent many hours making Rails the stable and robust
 framework it is today. Kudos to all of them.
 

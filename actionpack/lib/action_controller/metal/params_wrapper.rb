@@ -93,7 +93,7 @@ module ActionController
       end
 
       def model
-        super || synchronize { super || self.model = _default_wrap_model }
+        super || self.model = _default_wrap_model
       end
 
       def include
@@ -241,18 +241,7 @@ module ActionController
     # Performs parameters wrapping upon the request. Called automatically
     # by the metal call stack.
     def process_action(*args)
-      if _wrapper_enabled?
-        wrapped_hash = _wrap_parameters request.request_parameters
-        wrapped_keys = request.request_parameters.keys
-        wrapped_filtered_hash = _wrap_parameters request.filtered_parameters.slice(*wrapped_keys)
-
-        # This will make the wrapped hash accessible from controller and view.
-        request.parameters.merge! wrapped_hash
-        request.request_parameters.merge! wrapped_hash
-
-        # This will display the wrapped hash in the log file.
-        request.filtered_parameters.merge! wrapped_filtered_hash
-      end
+      _perform_parameter_wrapping if _wrapper_enabled?
       super
     end
 
@@ -288,6 +277,21 @@ module ActionController
 
         ref = request.content_mime_type.ref
         _wrapper_formats.include?(ref) && _wrapper_key && !request.parameters.key?(_wrapper_key)
+      end
+
+      def _perform_parameter_wrapping
+        wrapped_hash = _wrap_parameters request.request_parameters
+        wrapped_keys = request.request_parameters.keys
+        wrapped_filtered_hash = _wrap_parameters request.filtered_parameters.slice(*wrapped_keys)
+
+        # This will make the wrapped hash accessible from controller and view.
+        request.parameters.merge! wrapped_hash
+        request.request_parameters.merge! wrapped_hash
+
+        # This will display the wrapped hash in the log file.
+        request.filtered_parameters.merge! wrapped_filtered_hash
+      rescue ActionDispatch::Http::Parameters::ParseError
+        # swallow parse error exception
       end
   end
 end

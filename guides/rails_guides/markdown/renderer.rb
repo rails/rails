@@ -16,7 +16,7 @@ HTML
       end
 
       def link(url, title, content)
-        if url.start_with?("http://api.rubyonrails.org")
+        if %r{https?://api\.rubyonrails\.org}.match?(url)
           %(<a href="#{api_link(url)}">#{content}</a>)
         elsif title
           %(<a href="#{url}" title="#{title}">#{content}</a>)
@@ -29,7 +29,12 @@ HTML
         # Always increase the heading level by 1, so we can use h1, h2 heading in the document
         header_level += 1
 
-        %(<h#{header_level}>#{text}</h#{header_level}>)
+        header_with_id = text.scan(/(.*){#(.*)}/)
+        unless header_with_id.empty?
+          %(<h#{header_level} id="#{header_with_id[0][1].strip}">#{header_with_id[0][0].strip}</h#{header_level}>)
+        else
+          %(<h#{header_level}>#{text}</h#{header_level}>)
+        end
       end
 
       def paragraph(text)
@@ -110,7 +115,7 @@ HTML
         end
 
         def api_link(url)
-          if %r{http://api\.rubyonrails\.org/v\d+\.}.match?(url)
+          if %r{https?://api\.rubyonrails\.org/v\d+\.}.match?(url)
             url
           elsif edge
             url.sub("api", "edgeapi")

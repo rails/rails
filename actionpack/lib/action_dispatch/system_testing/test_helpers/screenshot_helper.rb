@@ -20,7 +20,7 @@ module ActionDispatch
         # * [+inline+]              Display the screenshot in the terminal using the
         #                           iTerm image protocol (https://iterm2.com/documentation-images.html).
         # * [+artifact+]            Display the screenshot in the terminal, using the terminal
-        #                           artifact format (https://buildkite.github.io/terminal/inline-images/).
+        #                           artifact format (https://buildkite.github.io/terminal-to-html/inline-images/).
         def take_screenshot
           save_image
           puts display_image
@@ -39,7 +39,8 @@ module ActionDispatch
 
         private
           def image_name
-            failed? ? "failures_#{method_name}" : method_name
+            name = method_name[0...225]
+            failed? ? "failures_#{name}" : name
           end
 
           def image_path
@@ -65,7 +66,7 @@ module ActionDispatch
           end
 
           def display_image
-            message = "[Screenshot]: #{image_path}\n".dup
+            message = +"[Screenshot]: #{image_path}\n"
 
             case output_type
             when "artifact"

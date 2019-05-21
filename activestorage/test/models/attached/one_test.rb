@@ -15,6 +15,9 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
   test "attaching an existing blob to an existing record" do
     @user.avatar.attach create_blob(filename: "funky.jpg")
     assert_equal "funky.jpg", @user.avatar.filename.to_s
+
+    assert_not_nil @user.avatar_attachment
+    assert_not_nil @user.avatar_blob
   end
 
   test "attaching an existing blob from a signed ID to an existing record" do
@@ -507,7 +510,7 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
 
       assert_equal "gpj.yknuf", @user.avatar
     ensure
-      User.send(:remove_method, :avatar)
+      User.remove_method :avatar
     end
   end
 end

@@ -7,6 +7,11 @@ module ActionDispatch
     module MimeNegotiation
       extend ActiveSupport::Concern
 
+      RESCUABLE_MIME_FORMAT_ERRORS = [
+        ActionController::BadRequest,
+        ActionDispatch::Http::Parameters::ParseError,
+      ]
+
       included do
         mattr_accessor :ignore_accept_header, default: false
       end
@@ -59,7 +64,7 @@ module ActionDispatch
         fetch_header("action_dispatch.request.formats") do |k|
           params_readable = begin
                               parameters[:format]
-                            rescue ActionController::BadRequest
+                            rescue *RESCUABLE_MIME_FORMAT_ERRORS
                               false
                             end
 
@@ -74,6 +79,11 @@ module ActionDispatch
           else
             [Mime[:html]]
           end
+
+          v = v.select do |format|
+            format.symbol || format.ref == "*/*"
+          end
+
           set_header k, v
         end
       end
@@ -85,10 +95,7 @@ module ActionDispatch
         if variant.all? { |v| v.is_a?(Symbol) }
           @variant = ActiveSupport::ArrayInquirer.new(variant)
         else
-          raise ArgumentError, "request.variant must be set to a Symbol or an Array of Symbols. " \
-            "For security reasons, never directly set the variant to a user-provided value, " \
-            "like params[:variant].to_sym. Check user-provided value against a whitelist first, " \
-            "then set the variant: request.variant = :tablet if params[:variant] == 'tablet'"
+          raise ArgumentError, "request.variant must be set to a Symbol or an Array of Symbols."
         end
       end
 
