@@ -77,6 +77,24 @@ class EventedFileUpdateCheckerTest < ActiveSupport::TestCase
     Process.wait(pid)
   end
 
+  test "should detect changes through symlink" do
+    actual_dir = File.join(tmpdir, "actual")
+    linked_dir = File.join(tmpdir, "linked")
+
+    Dir.mkdir(actual_dir)
+    FileUtils.ln_s(actual_dir, linked_dir)
+
+    checker = new_checker([], linked_dir => ".rb") { }
+
+    assert_not_predicate checker, :updated?
+
+    FileUtils.touch(File.join(actual_dir, "a.rb"))
+    wait
+
+    assert_predicate checker, :updated?
+    assert checker.execute_if_updated
+  end
+
   test "updated should become true when nonexistent directory is added later" do
     watched_dir = File.join(tmpdir, "app")
     unwatched_dir = File.join(tmpdir, "node_modules")
