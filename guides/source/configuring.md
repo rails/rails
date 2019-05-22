@@ -852,6 +852,12 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
   config.active_storage.queues.purge = :low_priority
   ```
 
+* `config.active_storage.queues.mirror` accepts a symbol indicating the Active Job queue to use for direct upload mirroring jobs. The default is `:active_storage_mirror`.
+
+  ```ruby
+  config.active_storage.queues.mirror = :low_priority
+  ```
+
 * `config.active_storage.logger` can be used to set the logger used by Active Storage. Accepts a logger conforming to the interface of Log4r or the default Ruby Logger class.
 
   ```ruby
