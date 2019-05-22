@@ -236,10 +236,10 @@ GEM
     faye-websocket (0.10.7)
       eventmachine (>= 0.12.0)
       websocket-driver (>= 0.5.1)
-    ffi (1.10.0)
-    ffi (1.10.0-java)
-    ffi (1.10.0-x64-mingw32)
-    ffi (1.10.0-x86-mingw32)
+    ffi (1.11.1)
+    ffi (1.11.1-java)
+    ffi (1.11.1-x64-mingw32)
+    ffi (1.11.1-x86-mingw32)
     fugit (1.2.1)
       et-orbi (~> 1.1, >= 1.1.8)
       raabro (~> 1.1)
@@ -429,17 +429,15 @@ GEM
     rufus-scheduler (3.6.0)
       fugit (~> 1.1, >= 1.1.6)
     safe_yaml (1.0.4)
-    sass (3.7.2)
-      sass-listen (~> 4.0.0)
-    sass-listen (4.0.0)
-      rb-fsevent (~> 0.9, >= 0.9.4)
-      rb-inotify (~> 0.9, >= 0.9.7)
-    sass-rails (5.0.7)
-      railties (>= 4.0.0, < 6)
-      sass (~> 3.1)
-      sprockets (>= 2.8, < 4.0)
-      sprockets-rails (>= 2.0, < 4.0)
-      tilt (>= 1.1, < 3)
+    sassc (2.0.1)
+      ffi (~> 1.9)
+      rake
+    sassc-rails (2.1.1)
+      railties (>= 4.0.0)
+      sassc (>= 2.0)
+      sprockets (> 3.0)
+      sprockets-rails
+      tilt
     sdoc (1.0.0)
       rdoc (>= 5.0)
     selenium-webdriver (3.12.0)
@@ -584,7 +582,7 @@ DEPENDENCIES
   resque-scheduler
   rubocop (>= 0.47)
   rubocop-performance
-  sass-rails
+  sassc-rails
   sdoc (~> 1.0)
   selenium-webdriver (>= 3.5.0, < 3.13.0)
   sequel
