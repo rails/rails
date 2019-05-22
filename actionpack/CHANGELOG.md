@@ -1,3 +1,7 @@
+*   Added `deep_transform_keys` and `deep_transform_keys!` methods to ActionController::Parameters.
+
+    *Gustavo Gutierrez*
+
 *   Calling `ActionController::Parameters#transform_keys/!` without a block now returns
     an enumerator for the parameters instead of the underlying hash.
 
