@@ -185,7 +185,7 @@ class CalculationsTest < ActiveRecord::TestCase
   def test_limit_is_kept
     return if current_adapter?(:OracleAdapter)
 
-    queries = assert_sql { Account.limit(1).count }
+    queries = capture_sql { Account.limit(1).count }
     assert_equal 1, queries.length
     assert_match(/LIMIT/, queries.first)
   end
@@ -193,7 +193,7 @@ class CalculationsTest < ActiveRecord::TestCase
   def test_offset_is_kept
     return if current_adapter?(:OracleAdapter)
 
-    queries = assert_sql { Account.offset(1).count }
+    queries = capture_sql { Account.offset(1).count }
     assert_equal 1, queries.length
     assert_match(/OFFSET/, queries.first)
   end
@@ -201,14 +201,14 @@ class CalculationsTest < ActiveRecord::TestCase
   def test_limit_with_offset_is_kept
     return if current_adapter?(:OracleAdapter)
 
-    queries = assert_sql { Account.limit(1).offset(1).count }
+    queries = capture_sql { Account.limit(1).offset(1).count }
     assert_equal 1, queries.length
     assert_match(/LIMIT/, queries.first)
     assert_match(/OFFSET/, queries.first)
   end
 
   def test_no_limit_no_offset
-    queries = assert_sql { Account.count }
+    queries = capture_sql { Account.count }
     assert_equal 1, queries.length
     assert_no_match(/LIMIT/, queries.first)
     assert_no_match(/OFFSET/, queries.first)
@@ -224,15 +224,12 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_apply_distinct_in_count
-    queries = assert_sql do
+    queries = capture_sql do
       Account.distinct.count
       Account.group(:firm_id).distinct.count
     end
 
     queries.each do |query|
-      # `table_alias_length` in `column_alias_for` would execute
-      # "SHOW max_identifier_length" statement in PostgreSQL adapter.
-      next if query == "SHOW max_identifier_length"
       assert_match %r{\ASELECT(?! DISTINCT) COUNT\(DISTINCT\b}, query
     end
   end
@@ -464,7 +461,7 @@ class CalculationsTest < ActiveRecord::TestCase
 
   def test_should_not_perform_joined_include_by_default
     assert_equal Account.count, Account.includes(:firm).count
-    queries = assert_sql { Account.includes(:firm).count }
+    queries = capture_sql { Account.includes(:firm).count }
     assert_no_match(/join/i, queries.last)
   end
 

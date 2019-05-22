@@ -706,7 +706,7 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_to_sql_on_eager_join
-    expected = assert_sql {
+    expected = capture_sql {
       Post.eager_load(:last_comment).order("comments.id DESC").to_a
     }.first
     actual = Post.eager_load(:last_comment).order("comments.id DESC").to_sql
