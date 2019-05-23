@@ -156,14 +156,6 @@ class EventedFileUpdateCheckerPathHelperTest < ActiveSupport::TestCase
     assert_nil @ph.longest_common_subpath([])
   end
 
-  test "#existing_parent returns the most specific existing ascendant" do
-    wd = Pathname.getwd
-
-    assert_equal wd, @ph.existing_parent(wd)
-    assert_equal wd, @ph.existing_parent(wd.join("non-existing/directory"))
-    assert_equal pn("/"), @ph.existing_parent(pn("/non-existing/directory"))
-  end
-
   test "#filter_out_descendants returns the same collection if there are no descendants (empty)" do
     assert_equal [], @ph.filter_out_descendants([])
   end

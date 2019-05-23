@@ -187,13 +187,6 @@ module ActiveSupport
           lcsp
         end
 
-        # Returns the deepest existing ascendant, which could be the argument itself.
-        def existing_parent(dir)
-          dir.ascend do |ascendant|
-            break ascendant if ascendant.directory?
-          end
-        end
-
         # Filters out directories which are descendants of others in the collection (stable).
         def filter_out_descendants(dirs)
           return dirs if dirs.length < 2
