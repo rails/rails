@@ -70,17 +70,21 @@ module ActionDispatch
         ANCHOR_CHARACTERS_REGEX = %r{\A(\\A|\^)|(\\Z|\\z|\$)\Z}
         OPTIONAL_FORMAT_REGEX = %r{(?:\(\.:format\)+|\.:format|/)\Z}
 
-        attr_reader :requirements, :defaults
-        attr_reader :to, :default_controller, :default_action
-        attr_reader :required_defaults, :ast
+        attr_reader :requirements, :defaults, :to, :default_controller,
+                    :default_action, :required_defaults, :ast, :scope_options
 
         def self.build(scope, set, ast, controller, default_action, to, via, formatted, options_constraints, anchor, options)
-          options = scope[:options].merge(options) if scope[:options]
+          scope_params = {
+            blocks: scope[:blocks] || [],
+            constraints: scope[:constraints] || {},
+            defaults: (scope[:defaults] || {}).dup,
+            module: scope[:module],
+            options: scope[:options] || {}
+          }
 
-          defaults = (scope[:defaults] || {}).dup
-          scope_constraints = scope[:constraints] || {}
-
-          new set, ast, defaults, controller, default_action, scope[:module], to, formatted, scope_constraints, scope[:blocks] || [], via, options_constraints, anchor, options
+          new set: set, ast: ast, controller: controller, default_action: default_action,
+              to: to, formatted: formatted, via: via, options_constraints: options_constraints,
+              anchor: anchor, scope_params: scope_params, options: scope_params[:options].merge(options)
         end
 
         def self.check_via(via)
@@ -111,10 +115,9 @@ module ActionDispatch
           format != false && path !~ OPTIONAL_FORMAT_REGEX
         end
 
-        def initialize(set, ast, defaults, controller, default_action, modyoule, to, formatted, scope_constraints, blocks, via, options_constraints, anchor, options)
-          @defaults = defaults
-          @set = set
-
+        def initialize(set:, ast:, controller:, default_action:, to:, formatted:, via:, options_constraints:, anchor:, scope_params:, options:)
+          @defaults           = scope_params[:defaults]
+          @set                = set
           @to                 = intern(to)
           @default_controller = intern(controller)
           @default_action     = intern(default_action)
@@ -122,22 +125,23 @@ module ActionDispatch
           @anchor             = anchor
           @via                = via
           @internal           = options.delete(:internal)
+          @scope_options      = scope_params[:options]
 
           path_params = ast.find_all(&:symbol?).map(&:to_sym)
 
           options = add_wildcard_options(options, formatted, ast)
 
-          options = normalize_options!(options, path_params, modyoule)
+          options = normalize_options!(options, path_params, scope_params[:module])
 
           split_options = constraints(options, path_params)
 
-          constraints = scope_constraints.merge Hash[split_options[:constraints] || []]
+          constraints = scope_params[:constraints].merge Hash[split_options[:constraints] || []]
 
           if options_constraints.is_a?(Hash)
             @defaults = Hash[options_constraints.find_all { |key, default|
               URL_OPTIONS.include?(key) && (String === default || Integer === default)
             }].merge @defaults
-            @blocks = blocks
+            @blocks = scope_params[:blocks]
             constraints.merge! options_constraints
           else
             @blocks = blocks(options_constraints)
@@ -160,8 +164,10 @@ module ActionDispatch
         end
 
         def make_route(name, precedence)
-          Journey::Route.new(name, application, path, conditions, required_defaults,
-                             defaults, request_method, precedence, @internal)
+          Journey::Route.new(name: name, app: application, path: path, constraints: conditions,
+                             required_defaults: required_defaults, defaults: defaults,
+                             request_method_match: request_method, precedence: precedence,
+                             scope_options: scope_options, internal: @internal)
         end
 
         def application

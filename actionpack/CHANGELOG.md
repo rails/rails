@@ -1,3 +1,14 @@
+*   Keep part when scope option has value
+
+    When a route was defined within an optional scope, if that route didn't
+    take parameters the scope was lost when using path helpers. This commit
+    ensures scope is kept both when the route takes parameters or when it
+    doesn't.
+
+    Fixes #33219
+
+    *Alberto Almagro*
+
 *   Added `deep_transform_keys` and `deep_transform_keys!` methods to ActionController::Parameters.
 
     *Gustavo Gutierrez*
