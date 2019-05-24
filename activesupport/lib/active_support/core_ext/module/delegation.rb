@@ -297,7 +297,7 @@ class Module
           rescue NoMethodError
             if #{target}.nil?
               if #{allow_nil == true}
-                return nil
+                nil
               else
                 raise DelegationError, "\#{method} delegated to #{target}, but #{target} is nil"
               end
