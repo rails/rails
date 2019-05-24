@@ -107,11 +107,18 @@ module ActiveSupport
 
     private
       def boot!
+        normalize_dirs!
         Listen.to(*@dtw, &method(:changed)).start
       end
 
       def shutdown!
         Listen.stop
+      end
+
+      def normalize_dirs!
+        @dirs.transform_keys! do |dir|
+          dir.exist? ? dir.realpath : dir
+        end
       end
 
       def changed(modified, added, removed)
