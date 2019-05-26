@@ -437,7 +437,7 @@ module ActiveRecord
       def attributes_for_update(attribute_names)
         attribute_names &= self.class.column_names
         attribute_names.delete_if do |name|
-          readonly_attribute?(name)
+          self.class.readonly_attribute?(name)
         end
       end
 
@@ -458,10 +458,6 @@ module ActiveRecord
         else
           value.inspect
         end
-      end
-
-      def readonly_attribute?(name)
-        self.class.readonly_attributes.include?(name)
       end
 
       def pk_attribute?(name)
