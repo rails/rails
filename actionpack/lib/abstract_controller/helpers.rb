@@ -7,7 +7,7 @@ module AbstractController
     extend ActiveSupport::Concern
 
     included do
-      class_attribute :_helpers, default: Module.new
+      class_attribute :_helpers, default: define_helpers_module(self)
       class_attribute :_helper_methods, default: Array.new
     end
 
@@ -31,7 +31,7 @@ module AbstractController
       # independently of the child class's.
       def inherited(klass)
         helpers = _helpers
-        klass._helpers = Module.new { include helpers }
+        klass._helpers = define_helpers_module(klass, helpers)
         klass.class_eval { default_helper_module! } unless klass.anonymous?
         super
       end
@@ -170,6 +170,17 @@ module AbstractController
       end
 
       private
+        def define_helpers_module(klass, helpers = nil)
+          # In some tests inherited is called explicitly. In that case, just
+          # return the module from the first time it was defined
+          return klass.const_get(:HelperMethods) if klass.const_defined?(:HelperMethods, false)
+
+          mod = Module.new
+          klass.const_set(:HelperMethods, mod)
+          mod.include(helpers) if helpers
+          mod
+        end
+
         # Makes all the (instance) methods in the helper module available to templates
         # rendered through this controller.
         #
