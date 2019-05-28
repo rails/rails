@@ -207,6 +207,9 @@ class ActiveStorage::Blob < ActiveRecord::Base
       name: [ "ActiveStorage-#{id}-", filename.extension_with_delimiter ], tmpdir: tmpdir, &block
   end
 
+  def mirror_later #:nodoc:
+    ActiveStorage::MirrorJob.perform_later(key, checksum: checksum) if service.respond_to?(:mirror)
+  end
 
   # Deletes the files on the service associated with the blob. This should only be done if the blob is going to be
   # deleted as well or you will essentially have a dead reference. It's recommended to use #purge and #purge_later

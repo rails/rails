@@ -3,6 +3,7 @@
 require "thread"
 require "concurrent/map"
 require "monitor"
+require "weakref"
 
 module ActiveRecord
   # Raised when a connection could not be obtained within the connection
@@ -294,28 +295,37 @@ module ActiveRecord
           @frequency = frequency
         end
 
-        @@mutex = Mutex.new
-        @@pools = {}
+        @mutex = Mutex.new
+        @pools = {}
 
-        def self.register_pool(pool, frequency) # :nodoc:
-          @@mutex.synchronize do
-            if @@pools.key?(frequency)
-              @@pools[frequency] << pool
-            else
-              @@pools[frequency] = [pool]
+        class << self
+          def register_pool(pool, frequency) # :nodoc:
+            @mutex.synchronize do
+              unless @pools.key?(frequency)
+                @pools[frequency] = []
+                spawn_thread(frequency)
+              end
+              @pools[frequency] << WeakRef.new(pool)
+            end
+          end
+
+          private
+
+            def spawn_thread(frequency)
               Thread.new(frequency) do |t|
                 loop do
                   sleep t
-                  @@mutex.synchronize do
-                    @@pools[frequency].each do |p|
+                  @mutex.synchronize do
+                    @pools[frequency].select!(&:weakref_alive?)
+                    @pools[frequency].each do |p|
                       p.reap
                       p.flush
+                    rescue WeakRef::RefError
                     end
                   end
                 end
               end
             end
-          end
         end
 
         def run

@@ -2633,14 +2633,12 @@ The method `stringify_keys` returns a hash that has a stringified version of the
 # => {"" => nil, "1" => 1, "a" => :a}
 ```
 
-In case of key collision, one of the values will be chosen. The chosen value may not always be the same given the same hash:
+In case of key collision, the value will be the one most recently inserted into the hash:
 
 ```ruby
 {"a" => 1, a: 2}.stringify_keys
-# The result could either be
+# The result will be
 # => {"a"=>2}
-# or
-# => {"a"=>1}
 ```
 
 This method may be useful for example to easily accept both symbols and strings as options. For instance `ActionView::Helpers::FormHelper` defines:
@@ -2677,14 +2675,12 @@ The method `symbolize_keys` returns a hash that has a symbolized version of the 
 
 WARNING. Note in the previous example only one key was symbolized.
 
-In case of key collision, one of the values will be chosen. The chosen value may not always be the same given the same hash:
+In case of key collision, the value will be the one most recently inserted into the hash:
 
 ```ruby
 {"a" => 1, a: 2}.symbolize_keys
-# The result could either be
+# The result will be
 # => {:a=>2}
-# or
-# => {:a=>1}
 ```
 
 This method may be useful for example to easily accept both symbols and strings as options. For instance `ActionController::UrlRewriter` defines
