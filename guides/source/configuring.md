@@ -69,7 +69,7 @@ These configuration methods are to be called on a `Rails::Railtie` object, such 
 * `config.cache_classes` controls whether or not application classes and modules should be reloaded on each request. Defaults to `false` in development mode, and `true` in test and production modes.
 
 * `config.beginning_of_week` sets the default beginning of week for the
-application. Accepts a valid week day symbol (e.g. `:monday`).
+application. Accepts a valid day of week as a symbol (e.g. `:monday`).
 
 * `config.cache_store` configures which cache store to use for Rails caching. Options include one of the symbols `:memory_store`, `:file_store`, `:mem_cache_store`, `:null_store`, `:redis_cache_store`, or an object that implements the cache API. Defaults to `:file_store`.
 
