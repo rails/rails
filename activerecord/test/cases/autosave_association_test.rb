@@ -233,6 +233,36 @@ class TestDefaultAutosaveAssociationOnABelongsToAssociation < ActiveRecord::Test
     assert_not_predicate client.firm, :persisted?
   end
 
+  def test_child_is_saved_only_once_if_child_is_inverse_of_parent
+    ship_reflection = Ship.reflect_on_association(:pirate)
+    pirate_reflection = Pirate.reflect_on_association(:ship)
+    assert_equal ship_reflection, pirate_reflection.inverse_of, "The pirate reflection's inverse should be the ship reflection"
+
+    ship = Ship.new(name: "Nights Dirty Lightning")
+    pirate = ship.build_pirate(catchphrase: "Aye")
+    ship.save!
+    assert_equal([nil, ship.id], ship.previous_changes["id"])
+    assert_equal([nil, pirate.id], ship.previous_changes["pirate_id"])
+  end
+
+  def test_children_are_saved_only_once_if_child_is_inverse_of_parent
+    prisoner = Prisoner.new
+    ship = prisoner.build_ship(name: "Nights Dirty Lightning")
+    prisoner.save!
+    assert_equal([nil, prisoner.id], prisoner.previous_changes["id"])
+    assert_equal([nil, ship.id], prisoner.previous_changes["ship_id"])
+  end
+
+  def test_children_are_saved_only_once_if_child_is_inverse_of_parent2
+    prisoner = Prisoner.new
+    ship = prisoner.build_ship(name: "Nights Dirty Lightning")
+    prisoner2 = ship.prisoners.new
+    prisoner.save!
+    assert prisoner2.persisted?
+    assert_equal([nil, prisoner2.id], prisoner2.previous_changes["id"])
+    assert_equal([nil, ship.id], prisoner2.previous_changes["ship_id"])
+  end
+
   def test_save_fails_for_invalid_belongs_to
     # Oracle saves empty string as NULL therefore :message changed to one space
     assert log = AuditLog.create(developer_id: 0, message: " ")

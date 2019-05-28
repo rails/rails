@@ -228,7 +228,16 @@ module ActiveRecord
     def reload(options = nil)
       @marked_for_destruction = false
       @destroyed_by_association = nil
+      @saving = false
       super
+    end
+
+    def save(*) # :nodoc
+      with_saving_state_tracking { super }
+    end
+
+    def save!(*) # :nodoc:
+      with_saving_state_tracking { super }
     end
 
     # Marks this record to be destroyed as part of the parent's save transaction.
@@ -266,7 +275,18 @@ module ActiveRecord
       new_record? || has_changes_to_save? || marked_for_destruction? || nested_records_changed_for_autosave?
     end
 
+    def skip_in_autosave?
+      @saving
+    end
+
     private
+
+      def with_saving_state_tracking
+        @saving = true
+        status = yield
+        @saving = false
+        status
+      end
 
       # Returns the record for an association collection that should be validated
       # or saved. If +autosave+ is +false+ only new records will be returned,
@@ -392,7 +412,7 @@ module ActiveRecord
             end
 
             records.each do |record|
-              next if record.destroyed?
+              next if record.destroyed? || record.skip_in_autosave?
 
               saved = true
 
@@ -429,7 +449,7 @@ module ActiveRecord
         association = association_instance_get(reflection.name)
         record      = association && association.load_target
 
-        if record && !record.destroyed?
+        if record && !(record.destroyed? || record.skip_in_autosave?)
           autosave = reflection.options[:autosave]
 
           if autosave && record.marked_for_destruction?
