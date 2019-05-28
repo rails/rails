@@ -189,7 +189,7 @@ module ActiveRecord
             after_create save_method
             after_update save_method
           elsif reflection.has_one?
-            define_method(save_method) { save_has_one_association(reflection) } unless method_defined?(save_method)
+            define_non_cyclic_method(save_method) { save_has_one_association(reflection) }
             # Configures two callbacks instead of a single after_save so that
             # the model may rely on their execution order relative to its
             # own callbacks.
@@ -481,7 +481,16 @@ module ActiveRecord
             self[reflection.foreign_key] = nil
             record.destroy
           elsif autosave != false
-            saved = record.save(validate: !autosave) if record.new_record? || (autosave && record.changed_for_autosave?)
+            if record.new_record? || (autosave && record.changed_for_autosave?)
+              inverse_reflection = reflection.inverse_of
+              if inverse_reflection && inverse_reflection.has_one?
+                # since this record is already being saved we can disable the
+                # autosave callback on the parent for this record
+                record.instance_eval("@_already_called ||= {}")
+                record.instance_variable_get("@_already_called")[:"autosave_associated_records_for_#{inverse_reflection.name}"] = true
+              end
+              saved = record.save(validate: !autosave)
+            end
 
             if association.updated?
               association_id = record.send(reflection.options[:primary_key] || :id)
