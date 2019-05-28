@@ -17,7 +17,7 @@ module ActionMailbox
       MESSAGE
     end
 
-    trigger ActiveRecord::StatementInvalid do |error|
+    trigger on: ActiveRecord::StatementInvalid, if: -> error do
       error.to_s.match?(InboundEmail.table_name)
     end
 

@@ -37,7 +37,7 @@ module ActiveStorage
       MESSAGE
     end
 
-    trigger ActiveRecord::StatementInvalid do |error|
+    trigger on: ActiveRecord::StatementInvalid, if: -> error do
       [Blob, Attachment].any? { |model| error.to_s.match?(model.table_name) }
     end
 

@@ -86,7 +86,7 @@ class ActionableExceptionsTest < ActionDispatch::IntegrationTest
     custom_error = Class.new(StandardError) do
       include ActiveSupport::ActionableError
 
-      trigger NameError do |error|
+      trigger on: NameError, if: -> error do
         error.name == :foo
       end
     end

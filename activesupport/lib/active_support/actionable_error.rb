@@ -62,11 +62,14 @@ module ActiveSupport
       #   class SetupError < Error
       #     include ActiveSupport::ActionableError
       #
-      #     trigger ActiveRecord::RecordInvalid do |error|
+      #     trigger on: ActiveRecord::RecordInvalid, if: -> error do
       #       error.to_s.match?(InboundEmail.table_name)
       #     end
       #   end
-      def trigger(error, &condition)
+      def trigger(options)
+        error = options.fetch(:on) { raise ArgumentError, "missing keyword: on" }
+        condition = options.fetch(:if) { raise ArgumentError, "missing keyword: if" }
+
         ActiveSupport::ActionableError.triggers[error] << Trigger.new(self, condition)
       end
     end
