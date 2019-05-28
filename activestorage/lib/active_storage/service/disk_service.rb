@@ -9,6 +9,8 @@ module ActiveStorage
   # Wraps a local disk path as an Active Storage service. See ActiveStorage::Service for the generic API
   # documentation that applies to all services.
   class Service::DiskService < Service
+    EXPIRY_FOR_PUBLIC_URL = 100.years
+
     attr_reader :root
 
     def initialize(root:)
@@ -69,6 +71,15 @@ module ActiveStorage
         payload[:exist] = answer
         answer
       end
+    end
+
+    def public_url(key, filename:, disposition:, content_type:)
+      url(key,
+        expires_in: EXPIRY_FOR_PUBLIC_URL,
+        filename: filename,
+        disposition: disposition,
+        content_type: content_type
+      )
     end
 
     def url(key, expires_in:, filename:, disposition:, content_type:)

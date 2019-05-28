@@ -31,6 +31,16 @@ if SERVICE_CONFIGURATIONS[:azure]
     ensure
       @service.delete(key)
     end
+
+    test "public URL generation" do
+      url = @service.public_url(@key)
+
+      assert_match(/.*\.blob\.core\.windows\.net\/.*\/#{@key}/,
+        url)
+
+      response = Net::HTTP.get_response(URI(url))
+      assert_equal "200", response.code
+    end
   end
 else
   puts "Skipping Azure Storage Service tests because no Azure configuration was supplied"

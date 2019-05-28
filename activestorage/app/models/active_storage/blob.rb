@@ -132,6 +132,15 @@ class ActiveStorage::Blob < ActiveRecord::Base
     content_type.start_with?("text")
   end
 
+  # Returns a public, permanent URL of the blob on the service. See the
+  # documentation of this method for the service you are using for
+  # additional instructions and comments.
+  def public_url(disposition: :inline, filename: nil)
+    filename = ActiveStorage::Filename.wrap(filename || self.filename)
+
+    service.public_url key, filename: filename, content_type: content_type_for_service_url,
+      disposition: forced_disposition_for_service_url || disposition
+  end
 
   # Returns the URL of the blob on the service. This URL is intended to be short-lived for security and not used directly
   # with users. Instead, the +service_url+ should only be exposed as a redirect from a stable, possibly authenticated URL.

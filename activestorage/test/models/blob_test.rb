@@ -114,6 +114,12 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     end
   end
 
+  test "public URL" do
+    blob = create_blob
+
+    assert_equal expected_url_for(blob, expires_in: ActiveStorage::Service::DiskService::EXPIRY_FOR_PUBLIC_URL), blob.public_url
+  end
+
   test "URLs expiring in 5 minutes" do
     blob = create_blob
 
@@ -194,13 +200,13 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
   end
 
   private
-    def expected_url_for(blob, disposition: :attachment, filename: nil, content_type: nil)
+    def expected_url_for(blob, expires_in: 5.minutes, disposition: :attachment, filename: nil, content_type: nil)
       filename ||= blob.filename
       content_type ||= blob.content_type
 
       query = { disposition: ActionDispatch::Http::ContentDisposition.format(disposition: disposition, filename: filename.sanitized), content_type: content_type }
       key_params = { key: blob.key }.merge(query)
 
-      "https://example.com/rails/active_storage/disk/#{ActiveStorage.verifier.generate(key_params, expires_in: 5.minutes, purpose: :blob_key)}/#{filename}?#{query.to_param}"
+      "https://example.com/rails/active_storage/disk/#{ActiveStorage.verifier.generate(key_params, expires_in: expires_in, purpose: :blob_key)}/#{filename}?#{query.to_param}"
     end
 end

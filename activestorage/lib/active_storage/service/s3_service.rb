@@ -72,6 +72,16 @@ module ActiveStorage
       end
     end
 
+    def public_url(key, *_args)
+      instrument :url, key: key do |payload|
+        generated_url = object_for(key).public_url
+
+        payload[:url] = generated_url
+
+        generated_url
+      end
+    end
+
     def url(key, expires_in:, filename:, disposition:, content_type:)
       instrument :url, key: key do |payload|
         generated_url = object_for(key).presigned_url :get, expires_in: expires_in.to_i,

@@ -81,6 +81,21 @@ module ActiveStorage
       end
     end
 
+    # This operation will have the side effect of making this file public.
+    def public_url(key)
+      instrument :url, key: key do |payload|
+        file = file_for(key)
+
+        # Make the file public
+        file.acl.public!
+        generated_url = file.public_url
+
+        payload[:url] = generated_url
+
+        generated_url
+      end
+    end
+
     def url(key, expires_in:, filename:, content_type:, disposition:)
       instrument :url, key: key do |payload|
         generated_url = file_for(key).signed_url expires: expires_in, query: {

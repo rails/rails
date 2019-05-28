@@ -101,6 +101,13 @@ module ActiveStorage
       raise NotImplementedError
     end
 
+    # Returns a public, permanent URL of the file at the +key+. See the
+    # documentation of this method for the service you are using for
+    # additional instructions and comments.
+    def public_url(key, *args)
+      raise NotImplementedError
+    end
+
     # Returns a signed, temporary URL for the file at the +key+. The URL will be valid for the amount
     # of seconds specified in +expires_in+. You must also provide the +disposition+ (+:inline+ or +:attachment+),
     # +filename+, and +content_type+ that you wish the file to be served with on request.

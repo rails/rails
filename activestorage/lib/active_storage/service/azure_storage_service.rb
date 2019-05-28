@@ -82,6 +82,19 @@ module ActiveStorage
       end
     end
 
+    # Container must allow public read access for blobs. See
+    # {https://docs.microsoft.com/en-us/azure/storage/blobs/storage-manage-access-to-resources#grant-anonymous-users-permissions-to-containers-and-blobs here}
+    # for details.
+    def public_url(key, *_args)
+      instrument :url, key: key do |payload|
+        generated_url = blobs.send(:blob_uri, container, key).to_s
+
+        payload[:url] = generated_url
+
+        generated_url
+      end
+    end
+
     def url(key, expires_in:, filename:, disposition:, content_type:)
       instrument :url, key: key do |payload|
         generated_url = signer.signed_uri(
