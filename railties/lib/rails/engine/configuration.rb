@@ -89,7 +89,7 @@ module Rails
 
       private
         def webpacker_path
-          YAML.load_file("#{Rails.root}/config/webpacker.yml")[Rails.env]["source_path"].gsub("app/", "") if File.file?("#{Rails.root}/config/webpacker.yml")
+          YAML.load_file("#{Rails.root}/config/webpacker.yml")[Rails.env]["source_path"]&.gsub("app/", "") if File.file?("#{Rails.root}/config/webpacker.yml")
         end
     end
   end
