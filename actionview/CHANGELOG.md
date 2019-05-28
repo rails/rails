@@ -1,3 +1,8 @@
+*   Fix `select_tag` so that it doesn't change `options` when `include_blank` is present.
+
+    *Younes SERRAJ*
+
+
 ## Rails 6.0.0.rc1 (April 24, 2019) ##
 
 *   Fix partial caching skips same item issue
