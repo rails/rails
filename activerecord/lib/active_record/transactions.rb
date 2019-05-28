@@ -404,6 +404,7 @@ module ActiveRecord
               attr = attr.with_value_from_user(value) if attr.value != value
               attr
             end
+            @saving = false
             @mutations_from_database = nil
             @mutations_before_last_save = nil
             if @attributes.fetch_value(@primary_key) != restore_state[:id]
