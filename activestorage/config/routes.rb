@@ -13,43 +13,26 @@ Rails.application.routes.draw do
     post "/direct_uploads" => "active_storage/direct_uploads#create", as: :rails_direct_uploads
   end
 
-  resolve_delivery_method = -> (attachment) { attachment&.delivery_method || ActiveStorage.delivery_method }
-
   direct :rails_representation do |representation, options|
-    signed_blob_id = representation.blob.signed_id
-    variation_key  = representation.variation.key
-    filename       = representation.blob.filename
-
-    delivery_method = resolve_delivery_method.(representation.attachment)
-
-    case delivery_method
-    when :redirect
-      route_for(:rails_blob_representation, signed_blob_id, variation_key, filename, ActiveStorage.url_options(options))
-    when :proxy
-      route_for(:rails_blob_representation_proxy, signed_blob_id, variation_key, filename, ActiveStorage.url_options(options))
-    end
+    ActiveStorage.route_representation(representation, url_options: options)
   end
 
   resolve("ActiveStorage::Variant") do |variant, options|
-    route_for(:rails_representation, variant, ActiveStorage.url_options(options))
+    route_for(:rails_representation, variant, options)
   end
-  resolve("ActiveStorage::Preview") { |preview, options| route_for(:rails_representation, preview, ActiveStorage.url_options(options)) }
-
-  route_blob = -> (blob, delivery_method, options, instance) {
-    case delivery_method
-    when :redirect
-      instance.route_for(:rails_service_blob, blob.signed_id, blob.filename, ActiveStorage.url_options(options))
-    when :proxy
-      instance.route_for(:rails_blob_proxy, blob.signed_id, blob.filename, ActiveStorage.url_options(options))
-    end
-  }
+  resolve("ActiveStorage::Preview") { |preview, options| route_for(:rails_representation, preview, options) }
 
   direct :rails_blob do |blob, options|
-    route_blob.(blob, ActiveStorage.delivery_method, options, self)
+    ActiveStorage.route_blob(blob.signed_id, blob.filename, options)
   end
 
-  resolve("ActiveStorage::Blob")       { |blob, options| route_for(:rails_blob, blob, ActiveStorage.url_options(options)) }
+  resolve("ActiveStorage::Blob")       { |blob, options| route_for(:rails_blob, blob, options) }
   resolve("ActiveStorage::Attachment") do |attachment, options|
-    route_blob.(attachment.blob, resolve_delivery_method.(attachment), options, self)
+    ActiveStorage.route_blob(
+      attachment.blob.signed_id,
+      attachment.blob.filename,
+      url_options: options,
+      delivery_method: attachment&.delivery_method
+    )
   end
 end

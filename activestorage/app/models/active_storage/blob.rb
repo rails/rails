@@ -106,12 +106,7 @@ class ActiveStorage::Blob < ActiveRecord::Base
   end
 
   def deliver(method)
-    case method
-    when :redirect
-      Rails.application.routes.url_helpers.route_for(:rails_service_blob, signed_id, filename, ActiveStorage.url_options)
-    when :proxy
-      Rails.application.routes.url_helpers.route_for(:rails_blob_proxy, signed_id, filename, ActiveStorage.url_options)
-    end
+    ActiveStorage.route_blob(signed_id, filename, delivery_method: method)
   end
 
   # Returns an ActiveStorage::Filename instance of the filename that can be
