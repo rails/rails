@@ -1,3 +1,7 @@
+*   `RenderingHelper` supports rendering objects that `respond_to?` `:render_in`
+
+    *Joel Hawksley*, *Natasha Umer*, *Aaron Patterson*, *Shawn Allen*, *Emily Plummer*, *Diana Mounter*, *John Hawthorn*, *Nathan Herald*, *Zaid Zawaideh*, *Zach Ahn*
+
 *   Fix `select_tag` so that it doesn't change `options` when `include_blank` is present.
 
     *Younes SERRAJ*
