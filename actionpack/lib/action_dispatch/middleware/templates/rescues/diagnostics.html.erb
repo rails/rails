@@ -10,8 +10,6 @@
 <div id="container">
   <h2>
     <%= h @exception.message %>
-
-    <%= render "rescues/actions", exception: @exception, request: @request %>
   </h2>
 
   <%= render "rescues/source", source_extracts: @source_extracts, show_source_idx: @show_source_idx, error_index: 0 %>

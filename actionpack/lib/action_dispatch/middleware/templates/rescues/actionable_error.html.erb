@@ -1,0 +1,65 @@
+<header>
+  <h1>
+    <%= @exception.class.to_s %>
+    <% if @request.parameters['controller'] %>
+      in <%= @request.parameters['controller'].camelize %>Controller<% if @request.parameters['action'] %>#<%= @request.parameters['action'] %><% end %>
+    <% end %>
+  </h1>
+</header>
+
+<div id="container">
+  <h2>
+    <%= h @exception.message %>
+  </h2>
+
+  <div class="actions">
+    <% actions = ActiveSupport::ActionableError.actions(@exception).each do |action, _| %>
+      <%= button_to action, ActionDispatch::ActionableExceptions.endpoint,
+        remote: true,
+        params: { error: @exception.class.name, action: action } %>
+    <% end %>
+  </div>
+
+  <pre id="output"><%= @output %></pre>
+</div>
+
+<script type="text/javascript">
+  document.addEventListener("submit", function(event) {
+    var element = event.target;
+    var url = element.getAttribute("action");
+    var formData = new FormData(element);
+
+    var button = element.querySelector('input[type=submit]');
+    button.disabled = true;
+
+    var internalError = false;
+
+    fetch(url, {method: "POST", body: formData})
+      .then(function(response) {
+        internalError = response.status !== 200;
+
+        return response.text();
+      })
+      .then(function(output) {
+        if (internalError) {
+          document.open("text/html", "replace");
+          document.write(output);
+          document.close();
+        } else {
+          var outputElement = document.querySelector("#output");
+          outputElement.innerHTML = removeEscapeSequences(output);
+
+          var actionsElement = document.querySelector(".actions");
+          actionsElement.style.display = "none";
+
+          button.disabled = false;
+        }
+      });
+
+    event.preventDefault();
+
+    function removeEscapeSequences(output) {
+      return output.replace(/(\x9B|\x1B\[)[0-?]*[ -/]*[@-~]/g, "");
+    }
+  });
+</script>

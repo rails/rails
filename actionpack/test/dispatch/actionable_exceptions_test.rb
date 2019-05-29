@@ -34,8 +34,7 @@ class ActionableExceptionsTest < ActionDispatch::IntegrationTest
 
     assert_equal ["Action!"], Actions
 
-    assert_equal 302, response.status
-    assert_equal "/", response.headers["Location"]
+    assert_equal 200, response.status
   end
 
   test "cannot dispatch errors if not allowed" do

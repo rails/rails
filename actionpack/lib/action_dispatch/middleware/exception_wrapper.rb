@@ -27,7 +27,7 @@ module ActionDispatch
       "ActionView::MissingTemplate"            => "missing_template",
       "ActionController::RoutingError"         => "routing_error",
       "AbstractController::ActionNotFound"     => "unknown_action",
-      "ActiveRecord::StatementInvalid"         => "invalid_statement",
+      "ActiveSupport::ActionableError"         => "actionable_error",
       "ActionView::Template::Error"            => "template_error",
       "ActionController::MissingExactTemplate" => "missing_exact_template",
     )
@@ -55,7 +55,11 @@ module ActionDispatch
     end
 
     def rescue_template
-      @@rescue_templates[@exception.class.name]
+      @@rescue_templates.each do |error_class, template|
+        return template if error_class.safe_constantize === @exception
+      end
+
+      @@rescue_templates.default
     end
 
     def status_code
