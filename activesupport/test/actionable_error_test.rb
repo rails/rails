@@ -24,7 +24,7 @@ class ActionableErrorTest < ActiveSupport::TestCase
   class TriggerableError < StandardError
     include ActiveSupport::ActionableError
 
-    trigger on: RuntimeError, if: error -> do
+    trigger on: RuntimeError, if: -> error do
       error.to_s.match?(/Trigger action/)
     end
   end

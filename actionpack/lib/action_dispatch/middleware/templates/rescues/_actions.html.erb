@@ -3,11 +3,45 @@
 <% if actions.any? %>
   <div class="actions">
     <% actions.each do |action, _| %>
-      <%= button_to action, ActionDispatch::ActionableExceptions.endpoint, params: {
-        error: exception.class.name,
-        action: action,
-        location: request.path
-      } %>
+      <%= button_to action, ActionDispatch::ActionableExceptions.endpoint,
+        remote: true,
+        params: { error: exception.class.name, action: action } %>
     <% end %>
   </div>
+
+  <script type="text/javascript">
+    document.addEventListener("submit", function(event) {
+      var element = event.target;
+      var url = element.getAttribute("action");
+      var formData = new FormData(element);
+
+      var button = element.querySelector('input[type=submit]');
+      if (button)
+        button.disabled = true;
+
+      fetch(url, {method: "POST", body: formData})
+        .then(function(response) {
+          return response.text();
+        })
+        .then(function(output) {
+          var outputElement = document.querySelector("#output");
+          if (outputElement)
+            outputElement.innerHTML = removeEscapeSequences(output);
+
+          var actionsElement = document.querySelector(".actions");
+          if (actionsElement)
+            actionsElement.style.display = "none";
+        })
+        .finally(function() {
+          if (button)
+            button.disabled = false;
+        });
+
+      event.preventDefault();
+
+      function removeEscapeSequences(output) {
+        return output.replace(/(\x9B|\x1B\[)[0-?]*[ -/]*[@-~]/g, "");
+      }
+    });
+  </script>
 <% end %>

@@ -16,9 +16,12 @@ module ActionDispatch
       request = ActionDispatch::Request.new(env)
       return @app.call(env) unless actionable_request?(request)
 
-      ActiveSupport::ActionableError.dispatch(request.params[:error].to_s.safe_constantize, request.params[:action])
+      actionable_error = request.params[:error].to_s.safe_constantize
+      action = request.params[:action]
 
-      redirect_to request.params[:location]
+      rendering_response(request, actionable_error) do
+        ActiveSupport::ActionableError.dispatch(actionable_error, action)
+      end
     rescue Exception => error
       ActiveSupport::ActionableError.trigger_by(error)
       raise
@@ -29,14 +32,38 @@ module ActionDispatch
         request.show_exceptions? && request.post? && request.path == endpoint
       end
 
-      def redirect_to(location)
-        body = "<html><body>You are being <a href=\"#{ERB::Util.unwrapped_html_escape(location)}\">redirected</a>.</body></html>"
+      def rendering_response(request, error)
+        body = capturing_standard_streams { yield }
 
-        [302, {
-          "Content-Type" => "text/html; charset=#{Response.default_charset}",
+        [200, {
+          "Content-Type" => "text/plain; charset=#{Response.default_charset}",
           "Content-Length" => body.bytesize.to_s,
-          "Location" => location,
         }, [body]]
+      end
+
+      def capturing_standard_streams
+        capture :stdout do
+          capture :stderr do
+            yield
+          end
+        end
+      end
+
+      def capture(stream)
+        stream = stream.to_s
+        captured_stream = Tempfile.new(stream)
+        stream_io = eval("$#{stream}")
+        origin_stream = stream_io.dup
+        stream_io.reopen(captured_stream)
+
+        yield
+
+        stream_io.rewind
+        captured_stream.read
+      ensure
+        captured_stream.close
+        captured_stream.unlink
+        stream_io.reopen(origin_stream)
       end
   end
 end
