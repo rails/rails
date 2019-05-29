@@ -2620,7 +2620,7 @@ If the receiver responds to `convert_key`, the method is called on each of the a
 {a: 1}.with_indifferent_access.except("a") # => {}
 ```
 
-There's also the bang variant `except!` that removes keys in the very receiver.
+There's also the bang variant `except!` that removes keys in the receiver.
 
 NOTE: Defined in `active_support/core_ext/hash/except.rb`.
 
@@ -2653,7 +2653,7 @@ end
 
 The second line can safely access the "type" key, and let the user to pass either `:type` or "type".
 
-There's also the bang variant `stringify_keys!` that stringifies keys in the very receiver.
+There's also the bang variant `stringify_keys!` that stringifies keys in the receiver.
 
 Besides that, one can use `deep_stringify_keys` and `deep_stringify_keys!` to stringify all the keys in the given hash and all the hashes nested into it. An example of the result is:
 
@@ -2695,7 +2695,7 @@ end
 
 The second line can safely access the `:params` key, and let the user to pass either `:params` or "params".
 
-There's also the bang variant `symbolize_keys!` that symbolizes keys in the very receiver.
+There's also the bang variant `symbolize_keys!` that symbolizes keys in the receiver.
 
 Besides that, one can use `deep_symbolize_keys` and `deep_symbolize_keys!` to symbolize all the keys in the given hash and all the hashes nested into it. An example of the result is:
 
