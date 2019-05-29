@@ -243,7 +243,10 @@ module Rails
     # can change in Ruby 1.8.7 when we FileUtils.cd.
     RAILS_DEV_PATH = File.expand_path("../../../../../..", __dir__)
 
-    class AppGenerator < AppBase # :nodoc:
+    class AppGenerator < AppBase
+
+      # :stopdoc:
+
       WEBPACKS = %w( react vue angular elm stimulus )
 
       add_shared_options_for "application"
@@ -491,6 +494,8 @@ module Rails
       def self.banner
         "rails new #{arguments.map(&:usage).join(' ')} [options]"
       end
+
+      # :startdoc:
 
     private
 
