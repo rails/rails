@@ -166,14 +166,24 @@ module ActiveRecord
     #
     # If this might be a problem for your application, please see #create_or_find_by.
     def find_or_create_by(attributes, &block)
-      find_by(attributes) || create(attributes, &block)
+      if attributes.is_a?(Array)
+        attributes.collect { |attr| find_by(attr) || create(attr, &block) }
+      else
+        block = _deprecated_scope_block("create", &block)
+        scoping { klass.find_by(attributes) || klass.create(attributes, &block) }
+      end
     end
 
     # Like #find_or_create_by, but calls
     # {create!}[rdoc-ref:Persistence::ClassMethods#create!] so an exception
     # is raised if the created record is invalid.
     def find_or_create_by!(attributes, &block)
-      find_by(attributes) || create!(attributes, &block)
+      if attributes.is_a?(Array)
+        attributes.collect { |attr| find_by(attr) || create!(attr, &block) }
+      else
+        block = _deprecated_scope_block("create!", &block)
+        scoping { klass.find_by(attributes) || klass.create!(attributes, &block) }
+      end
     end
 
     # Attempts to create a record with the given attributes in a table that has a unique constraint
