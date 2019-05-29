@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveStorage
   def self.route_representation(representation, url_options: nil, delivery_method: nil)
     deliver_via = delivery_method || representation.attachment&.delivery_method || ActiveStorage.delivery_method
