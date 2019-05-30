@@ -66,6 +66,10 @@ module ActiveSupport
       #       error.to_s.match?(InboundEmail.table_name)
       #     end
       #   end
+      #
+      # Note: For an actionable error to be triggered, its constant needs to be
+      # loaded. If it isn't autoloaded, the triggers won't be registered until
+      # it is. Keep that in mind, if the actionable error isn't triggered.
       def trigger(options)
         error = options.fetch(:on) { raise ArgumentError, "missing keyword: on" }
         condition = options.fetch(:if) { raise ArgumentError, "missing keyword: if" }
