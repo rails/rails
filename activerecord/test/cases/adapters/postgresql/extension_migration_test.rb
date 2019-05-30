@@ -50,7 +50,7 @@ class PostgresqlExtensionMigrationTest < ActiveRecord::PostgreSQLTestCase
     @connection.disable_extension("hstore")
 
     migrations = [EnableHstore.new(nil, 1)]
-    ActiveRecord::Migrator.new(:up, migrations).migrate
+    ActiveRecord::Migrator.new(:up, migrations, ActiveRecord::Base.connection.schema_migration).migrate
     assert @connection.extension_enabled?("hstore"), "extension hstore should be enabled"
   end
 
@@ -58,7 +58,7 @@ class PostgresqlExtensionMigrationTest < ActiveRecord::PostgreSQLTestCase
     @connection.enable_extension("hstore")
 
     migrations = [DisableHstore.new(nil, 1)]
-    ActiveRecord::Migrator.new(:up, migrations).migrate
+    ActiveRecord::Migrator.new(:up, migrations, ActiveRecord::Base.connection.schema_migration).migrate
     assert_not @connection.extension_enabled?("hstore"), "extension hstore should not be enabled"
   end
 end

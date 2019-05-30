@@ -163,7 +163,22 @@ module ActiveRecord
       end
 
       def migration_context # :nodoc:
-        MigrationContext.new(migrations_paths)
+        MigrationContext.new(migrations_paths, schema_migration)
+      end
+
+      def schema_migration # :nodoc:
+        @schema_migration ||= begin
+                                conn = self
+                                spec_name = conn.pool.spec.name
+                                name = "#{spec_name}::SchemaMigration"
+
+                                Class.new(ActiveRecord::SchemaMigration) do
+                                  define_singleton_method(:name) { name }
+                                  define_singleton_method(:to_s) { name }
+
+                                  self.connection_specification_name = spec_name
+                                end
+                              end
       end
 
       class Version
