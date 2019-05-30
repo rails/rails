@@ -70,7 +70,7 @@ module Rails
         class_option :skip_listen,         type: :boolean, default: false,
                                            desc: "Don't generate configuration that depends on the listen gem"
 
-        class_option :skip_javascript,     type: :boolean, aliases: "-J", default: name == "plugin",
+        class_option :skip_javascript,     type: :boolean, aliases: "-J", default: false,
                                            desc: "Skip JavaScript files"
 
         class_option :skip_turbolinks,     type: :boolean, default: false,

@@ -311,7 +311,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
       assert_match "<%= csrf_meta_tags %>", contents
       assert_match "<%= csp_meta_tag %>", contents
       assert_match(/stylesheet_link_tag\s+['"]bukkits\/application['"]/, contents)
-      assert_no_match(/javascript_include_tag\s+['"]bukkits\/application['"]/, contents)
+      assert_match(/javascript_include_tag\s+['"]bukkits\/application['"]/, contents)
       assert_match "<%= yield %>", contents
     end
     assert_file "test/test_helper.rb" do |content|
@@ -341,7 +341,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_file "hyphenated-name/app/views/layouts/hyphenated/name/application.html.erb" do |contents|
       assert_match "<title>Hyphenated name</title>", contents
       assert_match(/stylesheet_link_tag\s+['"]hyphenated\/name\/application['"]/, contents)
-      assert_no_match(/javascript_include_tag\s+['"]hyphenated\/name\/application['"]/, contents)
+      assert_match(/javascript_include_tag\s+['"]hyphenated\/name\/application['"]/, contents)
     end
   end
 
@@ -363,7 +363,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_file "my_hyphenated-name/app/views/layouts/my_hyphenated/name/application.html.erb" do |contents|
       assert_match "<title>My hyphenated name</title>", contents
       assert_match(/stylesheet_link_tag\s+['"]my_hyphenated\/name\/application['"]/, contents)
-      assert_no_match(/javascript_include_tag\s+['"]my_hyphenated\/name\/application['"]/, contents)
+      assert_match(/javascript_include_tag\s+['"]my_hyphenated\/name\/application['"]/, contents)
     end
   end
 
@@ -385,7 +385,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_file "deep-hyphenated-name/app/views/layouts/deep/hyphenated/name/application.html.erb" do |contents|
       assert_match "<title>Deep hyphenated name</title>", contents
       assert_match(/stylesheet_link_tag\s+['"]deep\/hyphenated\/name\/application['"]/, contents)
-      assert_no_match(/javascript_include_tag\s+['"]deep\/hyphenated\/name\/application['"]/, contents)
+      assert_match(/javascript_include_tag\s+['"]deep\/hyphenated\/name\/application['"]/, contents)
     end
   end
 
