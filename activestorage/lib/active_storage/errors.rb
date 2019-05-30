@@ -38,7 +38,7 @@ module ActiveStorage
     end
 
     trigger on: ActiveRecord::StatementInvalid, if: -> error do
-      [Blob, Attachment].any? { |model| error.to_s.match?(model.table_name) }
+      [Blob, Attachment].any? { |model| error.message.match?(model.table_name) }
     end
 
     action "Install now" do

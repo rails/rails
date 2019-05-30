@@ -18,7 +18,7 @@ module ActionMailbox
     end
 
     trigger on: ActiveRecord::StatementInvalid, if: -> error do
-      error.to_s.match?(InboundEmail.table_name)
+      error.message.match?(InboundEmail.table_name)
     end
 
     action "Install now" do

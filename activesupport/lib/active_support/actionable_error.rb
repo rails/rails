@@ -63,7 +63,7 @@ module ActiveSupport
       #     include ActiveSupport::ActionableError
       #
       #     trigger on: ActiveRecord::RecordInvalid, if: -> error do
-      #       error.to_s.match?(InboundEmail.table_name)
+      #       error.message.match?(InboundEmail.table_name)
       #     end
       #   end
       #
