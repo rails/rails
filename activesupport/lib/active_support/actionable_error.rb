@@ -38,7 +38,7 @@ module ActiveSupport
       raise NonActionable, "Cannot find action \"#{name}\""
     end
 
-    def self.trigger_by(error) # :nodoc:
+    def self.raise_if_triggered_by(error) # :nodoc:
       triggers[error.class].each { |trigger| trigger.act_on(error) }
     end
 

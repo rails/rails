@@ -57,13 +57,13 @@ class ActionableErrorTest < ActiveSupport::TestCase
     error = RuntimeError.new("Trigger action!")
 
     assert_raises TriggerableError do
-      ActiveSupport::ActionableError.trigger_by(error)
+      ActiveSupport::ActionableError.raise_if_triggered_by(error)
     end
   end
 
   test "does not triggers actionable errors if the condition fails" do
     error = StandardError.new
 
-    ActiveSupport::ActionableError.trigger_by(error)
+    ActiveSupport::ActionableError.raise_if_triggered_by(error)
   end
 end

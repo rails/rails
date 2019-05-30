@@ -23,7 +23,7 @@ module ActionDispatch
         ActiveSupport::ActionableError.dispatch(actionable_error, action)
       end
     rescue Exception => error
-      ActiveSupport::ActionableError.trigger_by(error)
+      ActiveSupport::ActionableError.raise_if_triggered_by(error)
       raise
     end
 
