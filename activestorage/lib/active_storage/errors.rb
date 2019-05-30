@@ -27,7 +27,7 @@ module ActiveStorage
   class FileNotFoundError < Error; end
 
   # Raised when we detect that Active Storage has not been initialized.
-  class SetupError < Error
+  class InstallError < Error
     include ActiveSupport::ActionableError
 
     def initialize(message = nil)
