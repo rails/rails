@@ -7,7 +7,7 @@ module ActionMailbox
   class Error < StandardError; end
 
   # Raised when we detect that Action Mailbox has not been initialized.
-  class SetupError < Error
+  class InstallError < Error
     include ActiveSupport::ActionableError
 
     def initialize(message = nil)
@@ -22,7 +22,7 @@ module ActionMailbox
     end
 
     action "Install now" do
-      system "./bin/rails active_storage:install action_mailbox:install db:migrate"
+      system "./bin/rails action_mailbox:install db:migrate"
     end
   end
 end
