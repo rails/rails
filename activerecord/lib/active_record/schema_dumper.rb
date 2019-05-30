@@ -143,7 +143,11 @@ HEADER
 
           # then dump all non-primary key columns
           columns.each do |column|
-            raise StandardError, "Unknown type '#{column.sql_type}' for column '#{column.name}'" unless @connection.valid_type?(column.type)
+            unless @connection.valid_type?(column.type)
+              raise "Unknown type #{column.sql_type} for column #{column.name}. " \
+                "To fix this set config.active_record.schema_format = :sql " \
+                "the schema will then be dumped to a structure.sql file instead of schema.rb"
+            end
             next if column.name == pk
             type, colspec = column_spec(column)
             tbl.print "    t.#{type} #{column.name.inspect}"
@@ -158,10 +162,6 @@ HEADER
 
           tbl.rewind
           stream.print tbl.read
-        rescue => e
-          stream.puts "# Could not dump table #{table.inspect} because of following #{e.class}"
-          stream.puts "#   #{e.message}"
-          stream.puts
         ensure
           self.table_name = nil
         end

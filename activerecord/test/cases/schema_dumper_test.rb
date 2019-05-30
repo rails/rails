@@ -401,6 +401,41 @@ class SchemaDumperTest < ActiveRecord::TestCase
     end
   end
 
+  unless current_adapter?(:Mysql2Adapter)
+    class UnknownColumnTypeMigration < ActiveRecord::Migration::Current
+      def up
+        create_table("forecasts") do |t|
+          if current_adapter?(:PostgreSQLAdapter)
+            execute "CREATE TYPE conditions AS ENUM ('sunny', 'rainy')"
+          end
+
+          t.column :weather, :conditions
+        end
+      end
+
+      def down
+        drop_table("forecasts")
+        execute "DROP TYPE conditions" if current_adapter?(:PostgreSQLAdapter)
+      end
+    end
+
+    def test_schema_dump_raises_an_error_if_the_a_column_has_an_invalid_type
+      expected_message = "Unknown type conditions for column weather. " \
+                         "To fix this set config.active_record.schema_format = :sql" \
+                         " the schema will then be dumped to a structure.sql file instead of schema.rb"
+      migration = UnknownColumnTypeMigration.new
+      migration.migrate(:up)
+
+      exception = assert_raises do
+        perform_schema_dump
+      end
+
+      assert_equal expected_message, exception.message
+    ensure
+      migration.migrate(:down)
+    end
+  end
+
   def test_schema_dump_with_table_name_prefix_and_suffix
     original, $stdout = $stdout, StringIO.new
     ActiveRecord::Base.table_name_prefix = "foo_"

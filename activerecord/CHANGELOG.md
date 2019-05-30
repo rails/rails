@@ -1,3 +1,10 @@
+*   When schema dumping encounters an error it raises an exception instead of
+    leaving a comment on the schema.rb file.
+
+     Fixes: #36359
+
+     *Guilherme Mansur*
+
 *   Loading the schema for a model that has no `table_name` raises a `TableNotSpecified` error.
 
     *Guilherme Mansur*, *Eugene Kenny*
