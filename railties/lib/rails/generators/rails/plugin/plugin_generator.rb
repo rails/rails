@@ -76,10 +76,10 @@ module Rails
     def test
       template "test/test_helper.rb"
       template "test/%namespaced_name%_test.rb"
-      append_file "Rakefile", <<-EOF
+      append_file "Rakefile", <<~EOF
 
-#{rakefile_test_tasks}
-task default: :test
+        #{rakefile_test_tasks}
+        task default: :test
       EOF
       if engine?
         template "test/integration/navigation_test.rb"
@@ -393,14 +393,14 @@ task default: :test
       end
 
       def rakefile_test_tasks
-        <<-RUBY
-require 'rake/testtask'
+        <<~RUBY
+          require 'rake/testtask'
 
-Rake::TestTask.new(:test) do |t|
-  t.libs << 'test'
-  t.pattern = 'test/**/*_test.rb'
-  t.verbose = false
-end
+          Rake::TestTask.new(:test) do |t|
+            t.libs << 'test'
+            t.pattern = 'test/**/*_test.rb'
+            t.verbose = false
+          end
         RUBY
       end
 
