@@ -44,6 +44,11 @@ if ActiveRecord::Base.connection.supports_comments?
       @connection.drop_table "blank_comments", if_exists: true
     end
 
+    def test_primary_key_comment
+      column = Commented.columns_hash["id"]
+      assert_nil column.comment
+    end
+
     def test_column_created_in_block
       column = Commented.columns_hash["name"]
       assert_equal :string, column.type
