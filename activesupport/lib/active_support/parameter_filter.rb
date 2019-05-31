@@ -113,9 +113,7 @@ module ActiveSupport
           # If we don't pop the current parent it will be duplicated as we
           # process each array value.
           parents.pop if deep_regexps
-          value = value.map do |v|
-            value_for_key(key, v, parents, original_params)
-          end
+          value = value.map { |v| value_for_key(key, v, parents, original_params) }
           # Restore the parent stack after processing the array.
           parents.push(key) if deep_regexps
         elsif blocks.any?
