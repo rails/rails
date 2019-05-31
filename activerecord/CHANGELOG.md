@@ -1,3 +1,7 @@
+*   Fix table comment also being applied to the primary key column.
+
+    *Guilherme Goettems Schneider*
+
 *   Fix merging left_joins to maintain its own `join_type` context.
 
     Fixes #36103.
