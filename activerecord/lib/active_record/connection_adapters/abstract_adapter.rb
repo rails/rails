@@ -78,7 +78,7 @@ module ActiveRecord
       SIMPLE_INT = /\A\d+\z/
 
       attr_accessor :pool
-      attr_reader :schema_cache, :visitor, :owner, :logger, :lock, :prepared_statements, :prevent_writes
+      attr_reader :visitor, :owner, :logger, :lock, :prepared_statements, :prevent_writes
       alias :in_use? :owner
 
       set_callback :checkin, :after, :enable_lazy_transactions!
@@ -114,9 +114,8 @@ module ActiveRecord
         @instrumenter        = ActiveSupport::Notifications.instrumenter
         @logger              = logger
         @config              = config
-        @pool                = nil
+        @pool                = ActiveRecord::ConnectionAdapters::NullPool.new
         @idle_since          = Concurrent.monotonic_time
-        @schema_cache        = SchemaCache.new self
         @quoted_column_names, @quoted_table_names = {}, {}
         @prevent_writes = false
         @visitor = arel_visitor
@@ -206,9 +205,13 @@ module ActiveRecord
         @owner = Thread.current
       end
 
+      def schema_cache
+        @pool.get_schema_cache(self)
+      end
+
       def schema_cache=(cache)
         cache.connection = self
-        @schema_cache = cache
+        @pool.set_schema_cache(cache)
       end
 
       # this method must only be called while holding connection pool's mutex
@@ -487,6 +490,9 @@ module ActiveRecord
         #
         # Prevent @connection's finalizer from touching the socket, or
         # otherwise communicating with its server, when it is collected.
+        if schema_cache.connection == self
+          schema_cache.connection = nil
+        end
       end
 
       # Reset the state of this connection, directing the DBMS to clear

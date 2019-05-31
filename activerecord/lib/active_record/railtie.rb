@@ -134,7 +134,6 @@ end_error
 
               cache = YAML.load(File.read(filename))
               if cache.version == current_version
-                connection.schema_cache = cache
                 connection_pool.schema_cache = cache.dup
               else
                 warn "Ignoring db/schema_cache.yml because it has expired. The current schema version is #{current_version}, but the one in the cache is #{cache.version}."
