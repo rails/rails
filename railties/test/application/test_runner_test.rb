@@ -564,6 +564,24 @@ module ApplicationTests
       assert_no_match "create_table(:users)", output
     end
 
+    def test_run_in_parallel_with_process_worker_crash
+      exercise_parallelization_regardless_of_machine_core_count(with: :processes)
+
+      file_name = app_file("test/models/parallel_test.rb", <<-RUBY)
+        require 'test_helper'
+
+        class ParallelTest < ActiveSupport::TestCase
+          def test_crash
+            Kernel.exit 1
+          end
+        end
+      RUBY
+
+      output = run_test_command(file_name)
+
+      assert_match %r{Queue not empty, but all workers have finished. This probably means that a worker crashed and 1 tests were missed.}, output
+    end
+
     def test_run_in_parallel_with_threads
       exercise_parallelization_regardless_of_machine_core_count(with: :threads)
 
