@@ -110,7 +110,7 @@ module ActiveSupport
         elsif value.is_a?(Hash)
           value = call(value, parents, original_params)
         elsif value.is_a?(Array)
-          # If we don't pop of the current parent it will be duplicated as we
+          # If we don't pop the current parent it will be duplicated as we
           # process each array value.
           parents.pop if deep_regexps
           value = value.map do |v|
