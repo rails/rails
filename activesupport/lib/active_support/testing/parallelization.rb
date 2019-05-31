@@ -27,6 +27,10 @@ module ActiveSupport
           @queue << o
         end
 
+        def length
+          @queue.length
+        end
+
         def pop; @queue.pop; end
       end
 
@@ -109,6 +113,10 @@ module ActiveSupport
       def shutdown
         @queue_size.times { @queue << nil }
         @pool.each { |pid| Process.waitpid pid }
+
+        if @queue.length > 0
+          raise "Queue not empty, but all workers have finished. This probably means that a worker crashed and #{@queue.length} tests were missed."
+        end
       end
 
       private
