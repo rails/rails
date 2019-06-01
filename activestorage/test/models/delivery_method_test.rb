@@ -3,7 +3,7 @@
 require "test_helper"
 require "database/setup"
 
-class ActiveStorage::ImageTagTest < ActionView::TestCase
+class ActiveStorage::DeliveryMethodTest < ActionView::TestCase
   tests ActionView::Helpers::AssetTagHelper
 
   test "model delivery methods" do

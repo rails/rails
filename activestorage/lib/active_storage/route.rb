@@ -11,7 +11,7 @@ module ActiveStorage
       representation.blob.signed_id,
       representation.variation.key,
       representation.blob.filename,
-      ActiveStorage.url_options(url_options)
+      ActiveStorage.url_options(url_options, deliver_via)
     )
   end
 
@@ -24,7 +24,7 @@ module ActiveStorage
       route,
       signed_id,
       filename,
-      ActiveStorage.url_options(url_options)
+      ActiveStorage.url_options(url_options, deliver_via)
     )
   end
 end
