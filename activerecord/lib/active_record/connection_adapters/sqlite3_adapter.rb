@@ -201,14 +201,6 @@ module ActiveRecord
         end
       end
 
-      #--
-      # DATABASE STATEMENTS ======================================
-      #++
-      def explain(arel, binds = [])
-        sql = "EXPLAIN QUERY PLAN #{to_sql(arel, binds)}"
-        SQLite3::ExplainPrettyPrinter.new.pp(exec_query(sql, "EXPLAIN", []))
-      end
-
       # SCHEMA STATEMENTS ========================================
 
       def primary_keys(table_name) # :nodoc:

@@ -185,12 +185,14 @@ module ActiveRecord
       /ix
 
       def disallow_raw_sql!(args, permit: COLUMN_NAME) # :nodoc:
-        unexpected = args.reject do |arg|
-          Arel.arel_node?(arg) ||
+        unexpected = nil
+        args.each do |arg|
+          next if arg.is_a?(Symbol) || Arel.arel_node?(arg) ||
             arg.to_s.split(/\s*,\s*/).all? { |part| permit.match?(part) }
+          (unexpected ||= []) << arg
         end
 
-        return if unexpected.none?
+        return unless unexpected
 
         if allow_unsafe_raw_sql == :deprecated
           ActiveSupport::Deprecation.warn(
@@ -437,7 +439,7 @@ module ActiveRecord
       def attributes_for_update(attribute_names)
         attribute_names &= self.class.column_names
         attribute_names.delete_if do |name|
-          readonly_attribute?(name)
+          self.class.readonly_attribute?(name)
         end
       end
 
@@ -458,10 +460,6 @@ module ActiveRecord
         else
           value.inspect
         end
-      end
-
-      def readonly_attribute?(name)
-        self.class.readonly_attributes.include?(name)
       end
 
       def pk_attribute?(name)

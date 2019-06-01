@@ -7,6 +7,7 @@ require "bundler/setup"
 require "active_support"
 require "active_support/test_case"
 require "active_support/testing/autorun"
+require "active_storage/service/mirror_service"
 require "image_processing/mini_magick"
 
 begin
@@ -67,7 +68,8 @@ class ActiveSupport::TestCase
       checksum = Digest::MD5.file(file).base64digest
 
       create_blob_before_direct_upload(filename: filename, byte_size: byte_size, checksum: checksum, content_type: content_type).tap do |blob|
-        ActiveStorage::Blob.service.upload(blob.key, file.open)
+        service = ActiveStorage::Blob.service.try(:primary) || ActiveStorage::Blob.service
+        service.upload(blob.key, file.open)
       end
     end
 

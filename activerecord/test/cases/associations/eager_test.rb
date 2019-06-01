@@ -101,6 +101,17 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_equal [taggings(:normal_comment_rating)], rating.taggings_without_tag
   end
 
+  def test_loading_association_with_string_joins
+    rating = Rating.first
+    assert_equal [taggings(:normal_comment_rating)], rating.taggings_with_no_tag
+
+    rating = Rating.preload(:taggings_with_no_tag).first
+    assert_equal [taggings(:normal_comment_rating)], rating.taggings_with_no_tag
+
+    rating = Rating.eager_load(:taggings_with_no_tag).first
+    assert_equal [taggings(:normal_comment_rating)], rating.taggings_with_no_tag
+  end
+
   def test_loading_with_scope_including_joins
     member = Member.first
     assert_equal members(:groucho), member
@@ -1234,7 +1245,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
       Post.all.merge!(select: "posts.*, authors.name as author_name", includes: :comments, joins: :author, order: "posts.id").to_a
     end
     assert_equal "David", posts[0].author_name
-    assert_equal posts(:welcome).comments, assert_no_queries { posts[0].comments }
+    assert_equal posts(:welcome).comments.sort_by(&:id), assert_no_queries { posts[0].comments.sort_by(&:id) }
   end
 
   def test_eager_loading_with_conditions_on_join_model_preloads
@@ -1246,8 +1257,8 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_preload_belongs_to_uses_exclusive_scope
-    people = Person.males.merge(includes: :primary_contact).to_a
-    assert_not_equal people.length, 0
+    people = Person.males.includes(:primary_contact).to_a
+    assert_equal 2, people.length
     people.each do |person|
       assert_no_queries { assert_not_nil person.primary_contact }
       assert_equal Person.find(person.id).primary_contact, person.primary_contact
@@ -1256,16 +1267,17 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
   def test_preload_has_many_uses_exclusive_scope
     people = Person.males.includes(:agents).to_a
+    assert_equal 2, people.length
     people.each do |person|
-      assert_equal Person.find(person.id).agents, person.agents
+      assert_equal Person.find(person.id).agents.sort_by(&:id), person.agents.sort_by(&:id)
     end
   end
 
   def test_preload_has_many_using_primary_key
-    expected = Firm.first.clients_using_primary_key.to_a
+    expected = Firm.first.clients_using_primary_key.sort_by(&:id)
     firm = Firm.includes(:clients_using_primary_key).first
     assert_no_queries do
-      assert_equal expected, firm.clients_using_primary_key
+      assert_equal expected, firm.clients_using_primary_key.sort_by(&:id)
     end
   end
 

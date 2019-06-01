@@ -10,7 +10,6 @@ require "action_dispatch/system_testing/browser"
 require "action_dispatch/system_testing/server"
 require "action_dispatch/system_testing/test_helpers/screenshot_helper"
 require "action_dispatch/system_testing/test_helpers/setup_and_teardown"
-require "action_dispatch/system_testing/test_helpers/undef_methods"
 
 module ActionDispatch
   # = System Testing
@@ -110,12 +109,11 @@ module ActionDispatch
   # Because <tt>ActionDispatch::SystemTestCase</tt> is a shim between Capybara
   # and Rails, any driver that is supported by Capybara is supported by system
   # tests as long as you include the required gems and files.
-  class SystemTestCase < IntegrationTest
+  class SystemTestCase < ActiveSupport::TestCase
     include Capybara::DSL
     include Capybara::Minitest::Assertions
     include SystemTesting::TestHelpers::SetupAndTeardown
     include SystemTesting::TestHelpers::ScreenshotHelper
-    include SystemTesting::TestHelpers::UndefMethods
 
     def initialize(*) # :nodoc:
       super
@@ -159,6 +157,10 @@ module ActionDispatch
     end
 
     driven_by :selenium
+
+    def url_options # :nodoc:
+      default_url_options.merge(host: Capybara.app_host)
+    end
 
     ActiveSupport.run_load_hooks(:action_dispatch_system_test_case, self)
   end

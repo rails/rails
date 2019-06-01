@@ -939,7 +939,7 @@ module ActiveRecord
     end
 
     def verify_readonly_attribute(name)
-      raise ActiveRecordError, "#{name} is marked as readonly" if self.class.readonly_attributes.include?(name)
+      raise ActiveRecordError, "#{name} is marked as readonly" if self.class.readonly_attribute?(name)
     end
 
     def _raise_record_not_destroyed

@@ -46,5 +46,12 @@ module ActionText
         before_action { ActionText::Content.renderer = ApplicationController.renderer.new(request.env) }
       end
     end
+
+    initializer "action_text.system_test_helper" do
+      ActiveSupport.on_load(:action_dispatch_system_test_case) do
+        require "action_text/system_test_helper"
+        include ActionText::SystemTestHelper
+      end
+    end
   end
 end

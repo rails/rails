@@ -52,5 +52,11 @@ module ActionDispatch
 
       ActionDispatch.test_app = app
     end
+
+    initializer "action_dispatch.system_tests" do |app|
+      ActiveSupport.on_load(:action_dispatch_system_test_case) do
+        include app.routes.url_helpers
+      end
+    end
   end
 end

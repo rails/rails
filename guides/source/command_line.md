@@ -92,6 +92,28 @@ $ rails new commandsapp
 
 Rails will set you up with what seems like a huge amount of stuff for such a tiny command! You've got the entire Rails directory structure now with all the code you need to run our simple application right out of the box.
 
+If you wish to skip some files or components from being generated, you can append the following arguments to your `rails new` command:
+
+| Argument                | Description                                                 |
+| ----------------------- | ----------------------------------------------------------- |
+| `--skip-gemfile`        | Don't create a Gemfile                                      |
+| `--skip-git`            | Skip .gitignore file                                        |
+| `--skip-keeps`          | Skip source control .keep files                             |
+| `--skip-action-mailer`  | Skip Action Mailer files                                    |
+| `--skip-action-text`    | Skip Action Text gem                                        |
+| `--skip-active-record`  | Skip Active Record files                                    |
+| `--skip-active-storage` | Skip Active Storage files                                   |
+| `--skip-puma`           | Skip Puma related files                                     |
+| `--skip-action-cable`   | Skip Action Cable files                                     |
+| `--skip-sprockets`      | Skip Sprockets files                                        |
+| `--skip-spring`         | Don't install Spring application preloader                  |
+| `--skip-listen`         | Don't generate configuration that depends on the listen gem |
+| `--skip-javascript`     | Skip JavaScript files                                       |
+| `--skip-turbolinks`     | Skip turbolinks gem                                         |
+| `--skip-test`           | Skip test files                                             |
+| `--skip-system-test`    | Skip system test files                                      |
+| `--skip-bootsnap`       | Skip bootsnap gem                                           |
+
 ### `rails server`
 
 The `rails server` command launches a web server named Puma which comes bundled with Rails. You'll use this any time you want to access your application through a web browser.

@@ -228,7 +228,7 @@ module ActiveSupport
     end
 
     # Formats the bytes in +number+ into a more understandable
-    # representation (e.g., giving it 1500 yields 1.5 KB). This
+    # representation (e.g., giving it 1500 yields 1.46 KB). This
     # method is useful for reporting file sizes to users. You can
     # customize the format in the +options+ hash.
     #
