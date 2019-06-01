@@ -1003,14 +1003,14 @@ class RenderTest < ActionController::TestCase
   def test_render_xml
     get :render_xml_hello
     assert_equal "<html>\n  <p>Hello David</p>\n<p>This is grand!</p>\n</html>\n", @response.body
-    assert_equal "application/xml", @response.content_type
+    assert_equal "application/xml", @response.media_type
   end
 
   # :ported:
   def test_render_xml_as_string_template
     get :render_xml_hello_as_string_template
     assert_equal "<html>\n  <p>Hello David</p>\n<p>This is grand!</p>\n</html>\n", @response.body
-    assert_equal "application/xml", @response.content_type
+    assert_equal "application/xml", @response.media_type
   end
 
   # :ported:
@@ -1039,7 +1039,7 @@ class RenderTest < ActionController::TestCase
   def test_rendered_format_without_format
     get :inline_rendered_format_without_format
     assert_equal "test", @response.body
-    assert_equal "text/html", @response.content_type
+    assert_equal "text/html", @response.media_type
   end
 
   def test_partials_list
@@ -1077,7 +1077,7 @@ class RenderTest < ActionController::TestCase
   def test_accessing_local_assigns_in_inline_template
     get :accessing_local_assigns_in_inline_template, params: { local_name: "Local David" }
     assert_equal "Goodbye, Local David", @response.body
-    assert_equal "text/html", @response.content_type
+    assert_equal "text/html", @response.media_type
   end
 
   def test_should_implicitly_render_html_template_from_xhr_request
@@ -1264,13 +1264,13 @@ class RenderTest < ActionController::TestCase
   def test_partial_only
     get :partial_only
     assert_equal "only partial", @response.body
-    assert_equal "text/html", @response.content_type
+    assert_equal "text/html", @response.media_type
   end
 
   def test_should_render_html_formatted_partial
     get :partial
     assert_equal "partial html", @response.body
-    assert_equal "text/html", @response.content_type
+    assert_equal "text/html", @response.media_type
   end
 
   def test_render_html_formatted_partial_even_with_other_mime_time_in_accept
@@ -1279,20 +1279,20 @@ class RenderTest < ActionController::TestCase
     get :partial_html_erb
 
     assert_equal "partial.html.erb", @response.body.strip
-    assert_equal "text/html", @response.content_type
+    assert_equal "text/html", @response.media_type
   end
 
   def test_should_render_html_partial_with_formats
     get :partial_formats_html
     assert_equal "partial html", @response.body
-    assert_equal "text/html", @response.content_type
+    assert_equal "text/html", @response.media_type
   end
 
   def test_render_to_string_partial
     get :render_to_string_with_partial
     assert_equal "only partial", @controller.instance_variable_get(:@partial_only)
     assert_equal "Hello: david", @controller.instance_variable_get(:@partial_with_locals)
-    assert_equal "text/html", @response.content_type
+    assert_equal "text/html", @response.media_type
   end
 
   def test_render_to_string_with_template_and_html_partial
@@ -1300,21 +1300,21 @@ class RenderTest < ActionController::TestCase
     assert_equal "**only partial**\n", @controller.instance_variable_get(:@text)
     assert_equal "<strong>only partial</strong>\n", @controller.instance_variable_get(:@html)
     assert_equal "<strong>only html partial</strong>\n", @response.body
-    assert_equal "text/html", @response.content_type
+    assert_equal "text/html", @response.media_type
   end
 
   def test_render_to_string_and_render_with_different_formats
     get :render_to_string_and_render_with_different_formats
     assert_equal "<strong>only partial</strong>\n", @controller.instance_variable_get(:@html)
     assert_equal "**only partial**\n", @response.body
-    assert_equal "text/plain", @response.content_type
+    assert_equal "text/plain", @response.media_type
   end
 
   def test_render_template_within_a_template_with_other_format
     get :render_template_within_a_template_with_other_format
     expected = "only html partial<p>This is grand!</p>"
     assert_equal expected, @response.body.strip
-    assert_equal "text/html", @response.content_type
+    assert_equal "text/html", @response.media_type
   end
 
   def test_partial_with_counter

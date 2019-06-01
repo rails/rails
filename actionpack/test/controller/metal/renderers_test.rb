@@ -38,13 +38,13 @@ class RenderersMetalTest < ActionController::TestCase
     get :one
     assert_response :success
     assert_equal({ a: "b" }.to_json, @response.body)
-    assert_equal "application/json", @response.content_type
+    assert_equal "application/json", @response.media_type
   end
 
   def test_render_xml
     get :two
     assert_response :success
     assert_equal(" ", @response.body)
-    assert_equal "text/plain", @response.content_type
+    assert_equal "text/plain", @response.media_type
   end
 end

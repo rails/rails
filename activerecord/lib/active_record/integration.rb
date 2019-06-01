@@ -93,7 +93,7 @@ module ActiveRecord
     # cache_version, but this method can be overwritten to return something else.
     #
     # Note, this method will return nil if ActiveRecord::Base.cache_versioning is set to
-    # +false+ (which it is by default until Rails 6.0).
+    # +false+.
     def cache_version
       return unless cache_versioning
 

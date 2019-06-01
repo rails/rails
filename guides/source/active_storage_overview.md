@@ -189,13 +189,20 @@ gem "google-cloud-storage", "~> 1.11", require: false
 
 ### Mirror Service
 
-You can keep multiple services in sync by defining a mirror service. When a file
-is uploaded or deleted, it's done across all the mirrored services. Mirrored
-services can be used to facilitate a migration between services in production.
-You can start mirroring to the new service, copy existing files from the old
-service to the new, then go all-in on the new service. Define each of the
-services you'd like to use as described above and reference them from a mirrored
+You can keep multiple services in sync by defining a mirror service. A mirror
+service replicates uploads and deletes across two or more subordinate services.
+
+A mirror service is intended to be used temporarily during a migration between
+services in production. You can start mirroring to a new service, copy
+pre-existing files from the old service to the new, then go all-in on the new
 service.
+
+NOTE: Mirroring is not atomic. It is possible for an upload to succeed on the
+primary service and fail on any of the subordinate services. Before going
+all-in on a new service, verify that all files have been copied.
+
+Define each of the services you'd like to mirror as described above. Reference
+them by name when defining a mirror service:
 
 ```yaml
 s3_west_coast:
@@ -219,9 +226,12 @@ production:
     - s3_west_coast
 ```
 
-NOTE: Files are served from the primary service.
+Although all secondary services receive uploads, downloads are always handled
+by the primary service.
 
-NOTE: This is not compatible with the [direct uploads](#direct-uploads) feature.
+Mirror services are compatible with direct uploads. New files are directly
+uploaded to the primary service. When a directly-uploaded file is attached to a
+record, a background job is enqueued to copy it to the secondary services.
 
 Attaching Files to Records
 --------------------------

@@ -208,7 +208,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     assert_response 500
     assert_no_match(/<header>/, body)
     assert_no_match(/<body>/, body)
-    assert_equal "text/plain", response.content_type
+    assert_equal "text/plain", response.media_type
     assert_match(/RuntimeError\npuke/, body)
 
     Rails.stub :root, Pathname.new(".") do
@@ -222,31 +222,31 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     get "/not_found", headers: xhr_request_env
     assert_response 404
     assert_no_match(/<body>/, body)
-    assert_equal "text/plain", response.content_type
+    assert_equal "text/plain", response.media_type
     assert_match(/#{AbstractController::ActionNotFound.name}/, body)
 
     get "/method_not_allowed", headers: xhr_request_env
     assert_response 405
     assert_no_match(/<body>/, body)
-    assert_equal "text/plain", response.content_type
+    assert_equal "text/plain", response.media_type
     assert_match(/ActionController::MethodNotAllowed/, body)
 
     get "/unknown_http_method", headers: xhr_request_env
     assert_response 405
     assert_no_match(/<body>/, body)
-    assert_equal "text/plain", response.content_type
+    assert_equal "text/plain", response.media_type
     assert_match(/ActionController::UnknownHttpMethod/, body)
 
     get "/bad_request", headers: xhr_request_env
     assert_response 400
     assert_no_match(/<body>/, body)
-    assert_equal "text/plain", response.content_type
+    assert_equal "text/plain", response.media_type
     assert_match(/ActionController::BadRequest/, body)
 
     get "/parameter_missing", headers: xhr_request_env
     assert_response 400
     assert_no_match(/<body>/, body)
-    assert_equal "text/plain", response.content_type
+    assert_equal "text/plain", response.media_type
     assert_match(/ActionController::ParameterMissing/, body)
   end
 
@@ -257,37 +257,37 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     assert_response 500
     assert_no_match(/<header>/, body)
     assert_no_match(/<body>/, body)
-    assert_equal "application/json", response.content_type
+    assert_equal "application/json", response.media_type
     assert_match(/RuntimeError: puke/, body)
 
     get "/not_found", headers: { "action_dispatch.show_exceptions" => true }, as: :json
     assert_response 404
     assert_no_match(/<body>/, body)
-    assert_equal "application/json", response.content_type
+    assert_equal "application/json", response.media_type
     assert_match(/#{AbstractController::ActionNotFound.name}/, body)
 
     get "/method_not_allowed", headers: { "action_dispatch.show_exceptions" => true }, as: :json
     assert_response 405
     assert_no_match(/<body>/, body)
-    assert_equal "application/json", response.content_type
+    assert_equal "application/json", response.media_type
     assert_match(/ActionController::MethodNotAllowed/, body)
 
     get "/unknown_http_method", headers: { "action_dispatch.show_exceptions" => true }, as: :json
     assert_response 405
     assert_no_match(/<body>/, body)
-    assert_equal "application/json", response.content_type
+    assert_equal "application/json", response.media_type
     assert_match(/ActionController::UnknownHttpMethod/, body)
 
     get "/bad_request", headers: { "action_dispatch.show_exceptions" => true }, as: :json
     assert_response 400
     assert_no_match(/<body>/, body)
-    assert_equal "application/json", response.content_type
+    assert_equal "application/json", response.media_type
     assert_match(/ActionController::BadRequest/, body)
 
     get "/parameter_missing", headers: { "action_dispatch.show_exceptions" => true }, as: :json
     assert_response 400
     assert_no_match(/<body>/, body)
-    assert_equal "application/json", response.content_type
+    assert_equal "application/json", response.media_type
     assert_match(/ActionController::ParameterMissing/, body)
   end
 
@@ -298,7 +298,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     assert_response 500
     assert_match(/<header>/, body)
     assert_match(/<body>/, body)
-    assert_equal "text/html", response.content_type
+    assert_equal "text/html", response.media_type
     assert_match(/puke/, body)
   end
 
@@ -307,7 +307,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
 
     get "/index.xml", headers: { "action_dispatch.show_exceptions" => true }
     assert_response 500
-    assert_equal "application/xml", response.content_type
+    assert_equal "application/xml", response.media_type
     assert_match(/RuntimeError: puke/, body)
   end
 
@@ -321,7 +321,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
 
     get "/index", headers: { "action_dispatch.show_exceptions" => true }, as: :wibble
     assert_response 500
-    assert_equal "application/json", response.content_type
+    assert_equal "application/json", response.media_type
     assert_match(/RuntimeError: puke/, body)
 
   ensure

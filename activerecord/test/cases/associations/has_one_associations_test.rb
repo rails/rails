@@ -256,11 +256,8 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_build_association_dont_create_transaction
-    # Load schema information so we don't query below if running just this test.
-    Account.define_attribute_methods
-
     firm = Firm.new
-    assert_no_queries do
+    assert_queries(0) do
       firm.build_account
     end
   end

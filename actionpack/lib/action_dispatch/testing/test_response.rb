@@ -19,7 +19,7 @@ module ActionDispatch
     end
 
     def response_parser
-      @response_parser ||= RequestEncoder.parser(content_type)
+      @response_parser ||= RequestEncoder.parser(media_type)
     end
   end
 end

@@ -205,7 +205,7 @@ module ActionController #:nodoc:
       yield collector if block_given?
 
       if format = collector.negotiate_format(request)
-        if content_type && content_type != format
+        if media_type && media_type != format
           raise ActionController::RespondToMismatchError
         end
         _process_format(format)

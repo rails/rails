@@ -508,7 +508,7 @@ end
 
 This will recognize `/photos/1/preview` with GET, and route to the `preview` action of `PhotosController`, with the resource id value passed in `params[:id]`. It will also create the `preview_photo_url` and `preview_photo_path` helpers.
 
-Within the block of member routes, each route name specifies the HTTP verb
+Within the block of member routes, each route name specifies the HTTP verb that
 will be recognized. You can use `get`, `patch`, `put`, `post`, or `delete` here
 . If you don't have multiple `member` routes, you can also pass `:on` to a
 route, eliminating the block:

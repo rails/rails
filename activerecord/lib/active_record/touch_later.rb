@@ -44,6 +44,7 @@ module ActiveRecord
 
       def touch_deferred_attributes
         if has_defer_touch_attrs? && persisted?
+          @_skip_dirty_tracking = true
           touch(*@_defer_touch_attrs, time: @_touch_time)
           @_defer_touch_attrs, @_touch_time = nil, nil
         end

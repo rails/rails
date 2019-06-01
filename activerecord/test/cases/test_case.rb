@@ -34,7 +34,7 @@ module ActiveRecord
       ActiveRecord::Base.connection.materialize_transactions
       SQLCounter.clear_log
       yield
-      SQLCounter.log_all.dup
+      SQLCounter.log.dup
     end
 
     def assert_sql(*patterns_to_match)

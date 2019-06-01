@@ -26,6 +26,15 @@ module ActiveRecord
           !READ_QUERY.match?(sql)
         end
 
+        def explain(arel, binds = [])
+          sql     = "EXPLAIN #{to_sql(arel, binds)}"
+          start   = Concurrent.monotonic_time
+          result  = exec_query(sql, "EXPLAIN", binds)
+          elapsed = Concurrent.monotonic_time - start
+
+          MySQL::ExplainPrettyPrinter.new.pp(result, elapsed)
+        end
+
         # Executes the SQL statement in the context of this connection.
         def execute(sql, name = nil)
           if preventing_writes? && write_query?(sql)
