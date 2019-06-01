@@ -134,6 +134,28 @@ Action Cable JavaScript API:
   +    ActionCable.logger.enabled = false
   ```
 
+### `ActionDispatch::Response#content_type` now returned Content-Type header as it is.
+
+Previously, `ActionDispatch::Response#content_type` returned value does NOT contain charset part.
+This behavior changed to returned Content-Type header containing charset part as it is.
+
+If you want just MIME type, please use `ActionDispatch::Response#media_type` instead.
+
+Before:
+
+```ruby
+resp = ActionDispatch::Response.new(200, "Content-Type" => "text/csv; header=present; charset=utf-16")
+resp.content_type #=> "text/csv; header=present"
+```
+
+After:
+
+```ruby
+resp = ActionDispatch::Response.new(200, "Content-Type" => "text/csv; header=present; charset=utf-16")
+resp.content_type #=> "text/csv; header=present; charset=utf-16"
+resp.media_type   #=> "text/csv"
+```
+
 ### Autoloading
 
 The default configuration for Rails 6

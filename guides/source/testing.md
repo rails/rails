@@ -1144,7 +1144,7 @@ test "ajax request" do
   get article_url(article), xhr: true
 
   assert_equal 'hello world', @response.body
-  assert_equal "text/javascript", @response.content_type
+  assert_equal "text/javascript", @response.media_type
 end
 ```
 
