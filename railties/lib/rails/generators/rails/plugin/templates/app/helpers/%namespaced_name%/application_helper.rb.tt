@@ -1,5 +1,18 @@
+<% if options[:skip_javascript] -%>
 <%= wrap_in_modules <<~rb
   module ApplicationHelper
   end
 rb
 %>
+<% else -%>
+<%= wrap_in_modules <<~rb
+  module ApplicationHelper
+    include ::Webpacker::Helper
+    \n
+    def current_webpacker_instance
+      #{camelized_modules}.webpacker
+    end
+  end
+rb
+%>
+<% end -%>

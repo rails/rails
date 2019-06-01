@@ -1,3 +1,4 @@
+<% if options[:skip_javascript] -%>
 <%= wrap_in_modules <<~rb
   class Engine < ::Rails::Engine
   #{mountable? ? '  isolate_namespace ' + camelized_modules : ' '}
@@ -5,3 +6,26 @@
   end
 rb
 %>
+<% else -%>
+<%= wrap_in_modules <<~rb
+  class Engine < ::Rails::Engine
+  #{mountable? ? '  isolate_namespace ' + camelized_modules : ' '}
+  #{api? ? "  config.generators.api_only = true" : ' '}
+    initializer "webpacker.proxy" do |app|
+      insert_middleware = begin
+                            #{camelized_modules}.webpacker.config.dev_server.present?
+                          rescue
+                            nil
+                          end
+      next unless insert_middleware
+      app.middleware.insert_before(
+        0,
+        Webpacker::DevServerProxy, # "Webpacker::DevServerProxy" if Rails version < 5
+        ssl_verify_none: true,
+        webpacker: #{camelized_modules}.webpacker
+      )
+    end
+  end
+rb
+%>
+<% end -%>

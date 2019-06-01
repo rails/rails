@@ -20,6 +20,8 @@ module Rails
       if mountable?
         if api?
           directory "app", exclude_pattern: %r{app/(views|helpers)}
+        elsif options[:skip_javascript]
+          directory "app", exclude_pattern: %r{app/(javascript)}
         else
           directory "app"
           empty_directory_with_keep_file "app/assets/images/#{namespaced_name}"
@@ -49,12 +51,25 @@ module Rails
       template "MIT-LICENSE"
     end
 
+    def package_json
+      template "package.json"
+    end
+
     def gemspec
       template "%name%.gemspec"
     end
 
     def gitignore
       template "gitignore", ".gitignore"
+    end
+
+    def webpacker_config
+      directory "config/webpack"
+      template "config/webpacker.yml"
+
+      template "bin/webpack"
+      template "bin/webpack-dev-server"
+      chmod "bin", 0755, verbose: false
     end
 
     def lib
@@ -203,6 +218,7 @@ task default: :test
         build(:license)
         build(:gitignore) unless options[:skip_git]
         build(:gemfile)   unless options[:skip_gemfile]
+        build(:package_json)
       end
 
       def create_app_files
@@ -236,6 +252,12 @@ task default: :test
       def create_test_dummy_files
         return unless with_dummy_app?
         create_dummy_app
+      end
+
+      def create_webpacker
+        if mountable? && !options[:skip_javascript]
+          build(:webpacker_config)
+        end
       end
 
       def update_gemfile
