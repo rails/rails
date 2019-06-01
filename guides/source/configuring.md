@@ -889,21 +889,29 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
     * `:redirect` - Redirect files to temporary service URL.
     * `:proxy` - Proxy assets from service so they can be delivered from your application.
   
-* `config.active_storage.proxy_urls_expire_in` sets the expiration time for proxied requests
+* `config.active_storage.proxy_urls_expire_in` sets the expiration time for proxied requests.
 
   ```ruby
   config.active_storage.proxy_urls_expire_in = 6.months
   ```
 
-  The default is `1.year`
+  The default is `1.year`.
 
-* `config.active_storage.proxy_urls_public` Determines whether proxied files are public
+* `config.active_storage.proxy_urls_public` Determines whether proxied files are public.
 
   ```ruby
   config.active_storage.proxy_urls_public = false
   ```
 
-  The default is `true`
+  The default is `true`.
+
+* `config.active_storage.proxy_urls_host` Sets the host for proxied assets, when left nil URLS will be relative.
+
+  ```ruby
+  config.active_storage.proxy_urls_host = "cdn.mydomain.com"
+  ```
+
+  The default is `nil`.
 ### Results of `load_defaults`
 
 #### With '5.0':

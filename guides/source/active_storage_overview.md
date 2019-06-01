@@ -440,6 +440,9 @@ The delivery method can be configured to meet the needs of your application. The
 
 ### Changing delivery method
 The delivery method can be changed globally by setting `config.active_storage.delivery_method = :proxy`. You can also change the delivery method in the model `has_one_attached :avatar, delivery_method: :proxy` and view `user.avatar.variant(resize: "100x100").deliver(:proxy)`.
+
+### Changing delivery host
+When delivering assets via proxy you can set `app.config.active_storage.proxy_urls_host = "cdn.mydomain.com"` to point your assets to your CDN's domain. When left nil URLS will be relative.
     
 
 Transforming Images

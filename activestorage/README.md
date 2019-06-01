@@ -129,6 +129,13 @@ view
 user.avatar.variant(resize: "100x100").deliver(:proxy)
 ```
 
+### Changing the host of proxied urls
+When using the proxy option to deliver assets you can use proxy_urls_host option. This is useful if your CDN is setup to operate on a different domain. When option is nil URLS will be relative.
+
+```ruby
+app.config.active_storage.proxy_urls_host = "cdn.mydomain.com"
+```
+
 ## Direct uploads
 
 Active Storage, with its included JavaScript library, supports uploading directly from the client to the cloud.
