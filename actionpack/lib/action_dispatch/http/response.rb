@@ -244,8 +244,7 @@ module ActionDispatch # :nodoc:
 
     # Content type of response.
     def content_type
-      type = super
-      type&.empty? ? nil : type
+      super.presence
     end
 
     # Media type of response.
