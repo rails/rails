@@ -73,7 +73,7 @@ module ActionController
       end
 
       def _set_rendered_content_type(format)
-        if format && !response.content_type
+        if format && !response.media_type
           self.content_type = format.to_s
         end
       end

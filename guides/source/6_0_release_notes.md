@@ -215,6 +215,10 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 
 ### Notable changes
 
+*   Change `ActionDispatch::Response#content_type` returning Content-Type
+    header as it is.
+    ([Pull Request](https://github.com/rails/rails/pull/36034))
+
 *   Raise an `ArgumentError` if a resource param contains a colon.
     ([Pull Request](https://github.com/rails/rails/pull/35236))
 

@@ -1,3 +1,14 @@
+*   Change `ActionDispatch::Response#content_type` to return Content-Type header as it is.
+
+    Previously, `ActionDispatch::Response#content_type` returned value does NOT
+    contain charset part. This behavior changed to returned Content-Type header
+    containing charset part as it is.
+
+    If you want just MIME type, please use `ActionDispatch::Response#media_type`
+    instead.
+
+    *Yuji Yaginuma*
+
 *   Calling `ActionController::Parameters#transform_keys/!` without a block now returns
     an enumerator for the parameters instead of the underlying hash.
 
