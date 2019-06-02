@@ -264,8 +264,7 @@ module ActiveRecord
         if_not_exists: false,
         options: nil,
         as: nil,
-        comment: nil,
-        **
+        comment: nil
       )
         @conn = conn
         @columns_hash = {}
