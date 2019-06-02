@@ -20,8 +20,8 @@ module ActiveSupport
         super
       end
 
-      def subscribe(pattern = nil, callable = nil, monotonic = false, &block)
-        subscriber = Subscribers.new(monotonic, pattern, callable || block)
+      def subscribe(pattern = nil, callable = nil, monotonic: false, &block)
+        subscriber = Subscribers.new(pattern, callable || block, monotonic)
         synchronize do
           if String === pattern
             @string_subscribers[pattern] << subscriber
@@ -84,7 +84,7 @@ module ActiveSupport
       end
 
       module Subscribers # :nodoc:
-        def self.new(monotonic, pattern, listener)
+        def self.new(pattern, listener, monotonic)
           subscriber_class = monotonic ? MonotonicTimed : Timed
 
           if listener.respond_to?(:start) && listener.respond_to?(:finish)

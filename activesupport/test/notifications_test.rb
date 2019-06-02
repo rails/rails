@@ -113,6 +113,24 @@ module Notifications
       assert_equal expected, events
     end
 
+    def test_subscribed_all_messages
+      name     = "foo"
+      name2    = name * 2
+      expected = [name, name2, name]
+
+      events   = []
+      callback = lambda { |*_| events << _.first }
+      ActiveSupport::Notifications.subscribed(callback) do
+        ActiveSupport::Notifications.instrument(name)
+        ActiveSupport::Notifications.instrument(name2)
+        ActiveSupport::Notifications.instrument(name)
+      end
+      assert_equal expected, events
+
+      ActiveSupport::Notifications.instrument(name)
+      assert_equal expected, events
+    end
+
     def test_subscribing_to_instrumentation_while_inside_it
       # the repro requires that there are no evented subscribers for the "foo" event,
       # so we have to duplicate some of the setup code

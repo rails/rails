@@ -231,18 +231,16 @@ module ActiveSupport
       #   ActiveSupport::Notifications.subscribe(/render/) do |event|
       #     @event = event
       #   end
-      def subscribe(*args, &block)
-        pattern, callback = *args
-        notifier.subscribe(pattern, callback, false, &block)
+      def subscribe(pattern = nil, callback = nil, &block)
+        notifier.subscribe(pattern, callback, monotonic: false, &block)
       end
 
-      def monotonic_subscribe(*args, &block)
-        pattern, callback = *args
-        notifier.subscribe(pattern, callback, true, &block)
+      def monotonic_subscribe(pattern = nil, callback = nil, &block)
+        notifier.subscribe(pattern, callback, monotonic: true, &block)
       end
 
-      def subscribed(callback, pattern, monotonic: false, &block)
-        subscriber = notifier.subscribe(pattern, callback, monotonic)
+      def subscribed(callback, pattern = nil, monotonic: false, &block)
+        subscriber = notifier.subscribe(pattern, callback, monotonic: monotonic)
         yield
       ensure
         unsubscribe(subscriber)
