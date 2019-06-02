@@ -1,3 +1,11 @@
+*   Add a warning for enum elements with 'not_' prefix.
+
+        class Foo
+          enum status: [:sent, :not_sent]
+        end
+
+    *Edu Depetris*
+
 *   Loading the schema for a model that has no `table_name` raises a `TableNotSpecified` error.
 
     *Guilherme Mansur*, *Eugene Kenny*

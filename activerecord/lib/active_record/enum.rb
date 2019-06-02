@@ -200,6 +200,8 @@ module ActiveRecord
             # scope :active, -> { where(status: 0) }
             # scope :not_active, -> { where.not(status: 0) }
             if enum_scopes != false
+              klass.send(:detect_negative_condition!, value_method_name)
+
               klass.send(:detect_enum_conflict!, name, value_method_name, true)
               klass.scope value_method_name, -> { where(attr => value) }
 
@@ -260,6 +262,13 @@ module ActiveRecord
           method: method_name,
           source: source
         }
+      end
+
+      def detect_negative_condition!(method_name)
+        if method_name.start_with?("not_") && logger
+          logger.warn "An enum element in #{self.name} uses the prefix 'not_'." \
+            " This will cause a conflict with auto generated negative scopes."
+        end
       end
   end
 end
