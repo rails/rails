@@ -266,12 +266,31 @@ db_namespace = namespace :db do
 
   desc "Runs setup if database does not exist, or runs migrations if it does"
   task prepare: :load_config do
+    seed = false
+
     ActiveRecord::Base.configurations.configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env).each do |db_config|
       ActiveRecord::Base.establish_connection(db_config.config)
-      db_namespace["migrate"].invoke
+
+      ActiveRecord::Tasks::DatabaseTasks.migrate
+
+      # Skipped when no database
+      ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config.config, ActiveRecord::Base.schema_format, db_config.spec_name)
+
     rescue ActiveRecord::NoDatabaseError
-      db_namespace["setup"].invoke
+      ActiveRecord::Tasks::DatabaseTasks.create_current(db_config.env_name, db_config.spec_name)
+      ActiveRecord::Tasks::DatabaseTasks.load_schema(
+        db_config.config,
+        ActiveRecord::Base.schema_format,
+        nil,
+        db_config.env_name,
+        db_config.spec_name
+      )
+
+      seed = true
     end
+
+    ActiveRecord::Base.establish_connection
+    ActiveRecord::Tasks::DatabaseTasks.load_seed if seed
   end
 
   desc "Loads the seed data from db/seeds.rb"
@@ -336,13 +355,9 @@ db_namespace = namespace :db do
   namespace :schema do
     desc "Creates a db/schema.rb file that is portable against any DB supported by Active Record"
     task dump: :load_config do
-      require "active_record/schema_dumper"
       ActiveRecord::Base.configurations.configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env).each do |db_config|
-        filename = ActiveRecord::Tasks::DatabaseTasks.dump_filename(db_config.spec_name, :ruby)
-        File.open(filename, "w:utf-8") do |file|
-          ActiveRecord::Base.establish_connection(db_config.config)
-          ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection, file)
-        end
+        ActiveRecord::Base.establish_connection(db_config.config)
+        ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config.config, :ruby, db_config.spec_name)
       end
 
       db_namespace["schema:dump"].reenable
@@ -385,14 +400,7 @@ db_namespace = namespace :db do
     task dump: :load_config do
       ActiveRecord::Base.configurations.configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env).each do |db_config|
         ActiveRecord::Base.establish_connection(db_config.config)
-        filename = ActiveRecord::Tasks::DatabaseTasks.dump_filename(db_config.spec_name, :sql)
-        ActiveRecord::Tasks::DatabaseTasks.structure_dump(db_config.config, filename)
-        if ActiveRecord::SchemaMigration.table_exists?
-          File.open(filename, "a") do |f|
-            f.puts ActiveRecord::Base.connection.dump_schema_information
-            f.print "\n"
-          end
-        end
+        ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config.config, :sql, db_config.spec_name)
       end
 
       db_namespace["structure:dump"].reenable
