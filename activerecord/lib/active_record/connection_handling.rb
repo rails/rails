@@ -173,7 +173,7 @@ module ActiveRecord
       raise "Anonymous class is not allowed." unless name
 
       config_or_env ||= DEFAULT_ENV.call.to_sym
-      pool_name = self == Base ? "primary" : name
+      pool_name = primary_class? ? "primary" : name
       self.connection_specification_name = pool_name
 
       resolver = ConnectionAdapters::ConnectionSpecification::Resolver.new(Base.configurations)
@@ -204,9 +204,13 @@ module ActiveRecord
     # Return the specification name from the current class or its parent.
     def connection_specification_name
       if !defined?(@connection_specification_name) || @connection_specification_name.nil?
-        return self == Base ? "primary" : superclass.connection_specification_name
+        return primary_class? ? "primary" : superclass.connection_specification_name
       end
       @connection_specification_name
+    end
+
+    def primary_class? # :nodoc:
+      self == Base || defined?(ApplicationRecord) && self == ApplicationRecord
     end
 
     # Returns the configuration of the associated connection as a hash:
