@@ -1,3 +1,7 @@
+*   Add support for primary key column comment with `primary_key_comment` option to `create_table`
+
+    *Guilherme Goettems Schneider*
+
 *   Fix invalid schema when primary key column has a comment
 
     Fixes #29966

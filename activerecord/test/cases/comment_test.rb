@@ -38,9 +38,7 @@ if ActiveRecord::Base.connection.supports_comments?
         t.index :absent_comment
       end
 
-      @connection.create_table("pk_commenteds", comment: "Table comment", id: false, force: true) do |t|
-        t.integer :id, comment: "Primary key comment", primary_key: true
-      end
+      @connection.create_table("pk_commenteds", comment: "Table comment", primary_key_comment: "Primary key comment", force: true)
 
       Commented.reset_column_information
       BlankComment.reset_column_information
@@ -187,7 +185,7 @@ if ActiveRecord::Base.connection.supports_comments?
     def test_schema_dump_with_primary_key_comment
       output = dump_table_schema "pk_commenteds"
       assert_match %r[create_table "pk_commenteds",.*\s+comment: "Table comment"], output
-      assert_no_match %r[create_table "pk_commenteds",.*\s+comment: "Primary key comment"], output
+      assert_match %r[create_table "pk_commenteds",.*\s+primary_key_comment: "Primary key comment"], output
     end
   end
 end

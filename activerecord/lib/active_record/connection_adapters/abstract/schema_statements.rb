@@ -291,7 +291,7 @@ module ActiveRecord
       #     SELECT * FROM orders INNER JOIN line_items ON order_id=orders.id
       #
       # See also TableDefinition#column for details on how to create columns.
-      def create_table(table_name, id: :primary_key, primary_key: nil, force: nil, **options)
+      def create_table(table_name, id: :primary_key, primary_key: nil, force: nil, primary_key_comment: nil, **options)
         td = create_table_definition(
           table_name, options.extract!(:temporary, :if_not_exists, :options, :as, :comment)
         )
@@ -302,6 +302,7 @@ module ActiveRecord
           if pk.is_a?(Array)
             td.primary_keys pk
           else
+            options[:comment] = primary_key_comment if primary_key_comment
             td.primary_key pk, id, options
           end
         end

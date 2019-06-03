@@ -13,9 +13,9 @@ module ActiveRecord
         end
 
         def column_spec_for_primary_key(column)
-          return {} if default_primary_key?(column)
-          spec = { id: schema_type(column).inspect }
-          spec.merge!(prepare_column_options(column).except!(:null, :comment))
+          spec = {}
+          spec[:id] = schema_type(column).inspect unless default_primary_key?(column)
+          spec.merge!(prepare_primary_key_options(column))
           spec[:default] ||= "nil" if explicit_primary_key_default?(column)
           spec
         end
@@ -31,6 +31,13 @@ module ActiveRecord
           spec[:comment] = column.comment.inspect if column.comment.present?
           spec.compact!
           spec
+        end
+
+        def prepare_primary_key_options(column)
+          options = prepare_column_options(column).except!(:null)
+          comment = options.delete(:comment)
+          options[:primary_key_comment] = comment if comment
+          options
         end
 
         def default_primary_key?(column)
