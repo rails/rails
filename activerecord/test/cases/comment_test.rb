@@ -14,6 +14,9 @@ if ActiveRecord::Base.connection.supports_comments?
     class BlankComment < ActiveRecord::Base
     end
 
+    class PkCommented < ActiveRecord::Base
+    end
+
     setup do
       @connection = ActiveRecord::Base.connection
 
@@ -35,8 +38,13 @@ if ActiveRecord::Base.connection.supports_comments?
         t.index :absent_comment
       end
 
+      @connection.create_table("pk_commenteds", comment: "Table comment", id: false, force: true) do |t|
+        t.integer :id, comment: "Primary key comment", primary_key: true
+      end
+
       Commented.reset_column_information
       BlankComment.reset_column_information
+      PkCommented.reset_column_information
     end
 
     teardown do
@@ -44,7 +52,7 @@ if ActiveRecord::Base.connection.supports_comments?
       @connection.drop_table "blank_comments", if_exists: true
     end
 
-    def test_primary_key_comment
+    def test_default_primary_key_comment
       column = Commented.columns_hash["id"]
       assert_nil column.comment
     end
@@ -168,6 +176,18 @@ if ActiveRecord::Base.connection.supports_comments?
       @connection.change_column_comment :commenteds, :name, nil
       column = Commented.columns_hash["name"]
       assert_nil column.comment
+    end
+
+    def test_comment_on_primary_key
+      column = PkCommented.columns_hash["id"]
+      assert_equal "Primary key comment", column.comment
+      assert_equal "Table comment", @connection.table_comment("pk_commenteds")
+    end
+
+    def test_schema_dump_with_primary_key_comment
+      output = dump_table_schema "pk_commenteds"
+      assert_match %r[create_table "pk_commenteds",.*\s+comment: "Table comment"], output
+      assert_no_match %r[create_table "pk_commenteds",.*\s+comment: "Primary key comment"], output
     end
   end
 end
