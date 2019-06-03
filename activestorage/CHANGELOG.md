@@ -1,6 +1,15 @@
+*  Image analysis is skipped if ImageMagick returns an error.
+
+   `ActiveStorage::Analyzer::ImageAnalyzer#metadata` would previously raise a
+   `MiniMagick::Error`, which caused persistent `ActiveStorage::AnalyzeJob`
+   failures. It now logs the error and returns `{}`, resulting in no metadata
+   being added to the offending image blob.
+
+   *George Claghorn*
+
 *  Method calls on singular attachments return `nil` when no file is attached.
 
-   Previously, assuming the following User model, `user.avatar.filename` would 
+   Previously, assuming the following User model, `user.avatar.filename` would
    raise a `Module::DelegationError` if no avatar was attached:
 
    ```ruby
@@ -8,7 +17,7 @@
      has_one_attached :avatar
    end
    ```
-   
+
    They now return `nil`.
 
    *Matthew Tanous*
