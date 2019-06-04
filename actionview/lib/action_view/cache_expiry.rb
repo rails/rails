@@ -22,6 +22,8 @@ module ActionView
     def clear_cache_if_necessary
       @mutex.synchronize do
         watched_dirs = dirs_to_watch
+        return if watched_dirs.empty?
+
         if watched_dirs != @watched_dirs
           @watched_dirs = watched_dirs
           @watcher = @watcher_class.new([], watched_dirs) do
