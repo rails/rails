@@ -134,12 +134,12 @@ Action Cable JavaScript API:
   +    ActionCable.logger.enabled = false
   ```
 
-### `ActionDispatch::Response#content_type` now returned Content-Type header as it is.
+### `ActionDispatch::Response#content_type` now returns the Content-Type header without modification
 
-Previously, `ActionDispatch::Response#content_type` returned value does NOT contain charset part.
-This behavior changed to returned Content-Type header containing charset part as it is.
+Previously, the return value of `ActionDispatch::Response#content_type` did NOT contain the charset part.
+This behavior has changed to include the previously omitted charset part as well.
 
-If you want just MIME type, please use `ActionDispatch::Response#media_type` instead.
+If you want just the MIME type, please use `ActionDispatch::Response#media_type` instead.
 
 Before:
 
