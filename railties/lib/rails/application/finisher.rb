@@ -39,8 +39,14 @@ module Rails
         example       = autoloaded.first
         example_klass = example.constantize.class
 
-        ActiveSupport::DescendantsTracker.clear
-        ActiveSupport::Dependencies.clear
+        if config.autoloader == :zeitwerk
+          ActiveSupport::DescendantsTracker.clear
+          ActiveSupport::Dependencies.clear
+
+          unload_message = "#{these} autoloaded #{constants} #{have} been unloaded."
+        else
+          unload_message = "`config.autoloader` is set to `#{config.autoloader}`. #{these} autoloaded #{constants} would have been unloaded if `config.autoloader` had been set to `:zeitwerk`."
+        end
 
         ActiveSupport::Deprecation.warn(<<~WARNING)
           Initialization autoloaded the #{constants} #{enum}.
@@ -52,7 +58,7 @@ module Rails
           initialization does not run again. So, if you reload #{example}, for example,
           the expected changes won't be reflected in that stale #{example_klass} object.
 
-          #{these} autoloaded #{constants} #{have} been unloaded.
+          #{unload_message}
 
           Please, check the "Autoloading and Reloading Constants" guide for solutions.
         WARNING
