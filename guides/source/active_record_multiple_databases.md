@@ -81,7 +81,7 @@ When using multiple databases there are a few important settings.
 
 First, the database name for the primary and replica should be the same because they contain
 the same data. Second, the username for the primary and replica should be different, and the
-replica user's permissions should be to to read and not write.
+replica user's permissions should be to read and not write.
 
 When using a replica database you need to add a `replica: true` entry to the replica in the
 `database.yml`. This is because Rails otherwise has no way of knowing which one is a replica
@@ -260,7 +260,7 @@ if you need sharding it may be advisable to continue using one of the many gems
 that supports this.
 
 Rails also doesn't support automatic load balancing of replicas. This is very
-depentent on your infrastructure. We may implement basic, primitive load balancing
+dependent on your infrastructure. We may implement basic, primitive load balancing
 in the future, but for an application at scale this should be something your application
 handles outside of Rails.
 
