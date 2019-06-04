@@ -1,3 +1,7 @@
+*   Fix sqlite3 collation parsing when using decimal columns.
+
+    *Martin R. Schuster*
+
 *   Fix invalid schema when primary key column has a comment
 
     Fixes #29966
