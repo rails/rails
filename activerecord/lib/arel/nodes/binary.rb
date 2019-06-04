@@ -3,6 +3,8 @@
 module Arel # :nodoc: all
   module Nodes
     class Binary < Arel::Nodes::NodeExpression
+      include Arel::AliasPredication
+
       attr_accessor :left, :right
 
       def initialize(left, right)

@@ -1,3 +1,7 @@
+*   Allow Arel::Nodes::Binary to be aliased
+
+    *Kevin Deisz*
+
 *   Fix sqlite3 collation parsing when using decimal columns.
 
     *Martin R. Schuster*

@@ -23,6 +23,16 @@ module Arel
             assert_not_equal eq.hash, neq.hash
           end
         end
+
+        describe "as" do
+          it "should alias the binary node" do
+            lefts = Arel::Table.new(:lefts).project(:name)
+            rights = Arel::Table.new(:rights).project(:name)
+
+            sql = Arel::Nodes::Union.new(lefts, rights).as("foo").to_sql
+            assert_match %r{(.+) AS foo}, sql
+          end
+        end
       end
     end
   end
