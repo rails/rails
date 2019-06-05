@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "active_support/actionable_error"
+require "rails/command"
 
 module ActiveStorage
   # Generic base class for all Active Storage exceptions.
@@ -42,7 +43,8 @@ module ActiveStorage
     end
 
     action "Install now" do
-      system "./bin/rails active_storage:install db:migrate"
+      Rails::Command.invoke("active_storage:install")
+      Rails::Command.invoke("db:migrate")
     end
   end
 end

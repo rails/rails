@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "active_support/actionable_error"
+require "rails/command"
 
 module ActionMailbox
   # Generic base class for all Action Mailbox exceptions.
@@ -22,7 +23,8 @@ module ActionMailbox
     end
 
     action "Install now" do
-      system "./bin/rails action_mailbox:install db:migrate"
+      Rails::Command.invoke("action_mailbox:install")
+      Rails::Command.invoke("db:migrate")
     end
   end
 end
