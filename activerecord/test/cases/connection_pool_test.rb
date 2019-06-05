@@ -507,7 +507,6 @@ module ActiveRecord
         pool.schema_cache = schema_cache
 
         pool.with_connection do |conn|
-          assert_not_same pool.schema_cache, conn.schema_cache
           assert_equal pool.schema_cache.size, conn.schema_cache.size
           assert_same pool.schema_cache.columns(:posts), conn.schema_cache.columns(:posts)
         end

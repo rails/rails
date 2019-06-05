@@ -302,6 +302,7 @@ module ActiveRecord
       end
 
       def discard! # :nodoc:
+        super
         @connection.socket_io.reopen(IO::NULL) rescue nil
         @connection = nil
       end

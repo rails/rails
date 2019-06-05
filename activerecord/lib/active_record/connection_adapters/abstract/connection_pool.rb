@@ -20,6 +20,26 @@ module ActiveRecord
   end
 
   module ConnectionAdapters
+    module AbstractPool # :nodoc:
+      def get_schema_cache(connection)
+        @schema_cache ||= SchemaCache.new(connection)
+        @schema_cache.connection = connection
+        @schema_cache
+      end
+
+      def set_schema_cache(cache)
+        @schema_cache = cache
+      end
+    end
+
+    class NullPool # :nodoc:
+      include ConnectionAdapters::AbstractPool
+
+      def initialize
+        @schema_cache = nil
+      end
+    end
+
     # Connection pool base class for managing Active Record database
     # connections.
     #
@@ -336,6 +356,7 @@ module ActiveRecord
 
       include MonitorMixin
       include QueryCache::ConnectionPoolConfiguration
+      include ConnectionAdapters::AbstractPool
 
       attr_accessor :automatic_reconnect, :checkout_timeout, :schema_cache
       attr_reader :spec, :connections, :size, :reaper
@@ -837,7 +858,6 @@ module ActiveRecord
 
         def new_connection
           Base.send(spec.adapter_method, spec.config).tap do |conn|
-            conn.schema_cache = schema_cache.dup if schema_cache
             conn.check_version
           end
         end
