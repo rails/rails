@@ -897,7 +897,7 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 #### With '5.2':
 
 - `config.active_record.cache_versioning`: `true`
-- `action_dispatch.use_authenticated_cookie_encryption`: `true`
+- `config.action_dispatch.use_authenticated_cookie_encryption`: `true`
 - `config.active_support.use_authenticated_message_encryption`: `true`
 - `config.active_support.use_sha1_digests`: `true`
 - `config.action_controller.default_protect_from_forgery`: `true`
