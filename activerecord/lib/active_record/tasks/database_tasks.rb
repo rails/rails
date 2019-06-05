@@ -97,7 +97,7 @@ module ActiveRecord
       end
 
       def root
-        @root ||= Rails.root if defined?(Rails.root)
+        @root ||= Rails.root
       end
 
       def env
