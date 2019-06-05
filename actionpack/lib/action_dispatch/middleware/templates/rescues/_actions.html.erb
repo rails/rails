@@ -19,22 +19,32 @@
       if (button)
         button.disabled = true;
 
+      var internalError = false;
+
       fetch(url, {method: "POST", body: formData})
         .then(function(response) {
+          if (response.status != 200)
+            internalError = true;
+
           return response.text();
         })
         .then(function(output) {
-          var outputElement = document.querySelector("#output");
-          if (outputElement)
-            outputElement.innerHTML = removeEscapeSequences(output);
+          if (internalError) {
+            document.open("text/html", "replace");
+            document.write(output);
+            document.close();
+          } else {
+            var outputElement = document.querySelector("#output");
+            if (outputElement)
+              outputElement.innerHTML = removeEscapeSequences(output);
 
-          var actionsElement = document.querySelector(".actions");
-          if (actionsElement)
-            actionsElement.style.display = "none";
-        })
-        .finally(function() {
-          if (button)
-            button.disabled = false;
+            var actionsElement = document.querySelector(".actions");
+            if (actionsElement)
+              actionsElement.style.display = "none";
+
+            if (button)
+              button.disabled = false;
+          }
         });
 
       event.preventDefault();
