@@ -1,3 +1,8 @@
+*   Add `compact_blank` for those times when you want to remove #blank? values from
+    an Enumerable (also `compact_blank!` on Hash, Array, ActionController::Parameters)
+
+    *Dana Sherson*
+
 *   `delegate_missing_to` would raise a `DelegationError` if the object
     delegated to was `nil`. Now the `allow_nil` option has been added to enable
     the user to specify they want `nil` returned in this case.

@@ -127,4 +127,22 @@ class ParametersMutatorsTest < ActiveSupport::TestCase
   test "deep_transform_keys! retains unpermitted status" do
     assert_not_predicate @params.deep_transform_keys! { |k| k }, :permitted?
   end
+
+  test "compact_blank retains permitted status" do
+    @params.permit!
+    assert_predicate @params.compact_blank, :permitted?
+  end
+
+  test "compact_blank retains unpermitted status" do
+    assert_not_predicate @params.compact_blank, :permitted?
+  end
+
+  test "compact_blank! retains permitted status" do
+    @params.permit!
+    assert_predicate @params.compact_blank!, :permitted?
+  end
+
+  test "compact_blank! retains unpermitted status" do
+    assert_not_predicate @params.compact_blank!, :permitted?
+  end
 end
