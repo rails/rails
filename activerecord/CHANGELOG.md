@@ -1,4 +1,4 @@
-*   Fix sqlite3 collation parsing when using decimal columns.
+*   Fix SQLite3 collation parsing when using decimal columns.
 
     *Martin R. Schuster*
 
