@@ -244,7 +244,6 @@ module Rails
     RAILS_DEV_PATH = File.expand_path("../../../../../..", __dir__)
 
     class AppGenerator < AppBase
-
       # :stopdoc:
 
       WEBPACKS = %w( react vue angular elm stimulus )
@@ -495,7 +494,7 @@ module Rails
         "rails new #{arguments.map(&:usage).join(' ')} [options]"
       end
 
-      # :startdoc:
+    # :startdoc:
 
     private
 
