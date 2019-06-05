@@ -367,11 +367,24 @@ module ActiveRecord
           assert_same klass2.connection, ActiveRecord::Base.connection
         end
 
+        class ApplicationRecord < ActiveRecord::Base
+          self.abstract_class = true
+        end
+
+        class MyClass < ApplicationRecord
+        end
+
         def test_connection_specification_name_should_fallback_to_parent
           klassA = Class.new(Base)
           klassB = Class.new(klassA)
+          klassC = Class.new(MyClass)
 
           assert_equal klassB.connection_specification_name, klassA.connection_specification_name
+          assert_equal klassC.connection_specification_name, klassA.connection_specification_name
+
+          assert_equal "primary", klassA.connection_specification_name
+          assert_equal "primary", klassC.connection_specification_name
+
           klassA.connection_specification_name = "readonly"
           assert_equal "readonly", klassB.connection_specification_name
         end

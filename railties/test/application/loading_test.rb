@@ -116,7 +116,7 @@ class LoadingTest < ActiveSupport::TestCase
     RUBY
 
     app_file "app/models/post.rb", <<-MODEL
-      class Post < ActiveRecord::Base
+      class Post < ApplicationRecord
       end
     MODEL
 
@@ -133,9 +133,9 @@ class LoadingTest < ActiveSupport::TestCase
     require "#{rails_root}/config/environment"
     setup_ar!
 
-    assert_equal [ActiveStorage::Blob, ActiveStorage::Attachment, ActiveRecord::SchemaMigration, ActiveRecord::InternalMetadata].collect(&:to_s).sort, ActiveRecord::Base.descendants.collect(&:to_s).sort
+    assert_equal [ActiveStorage::Blob, ActiveStorage::Attachment, ActiveRecord::SchemaMigration, ActiveRecord::InternalMetadata, ApplicationRecord].collect(&:to_s).sort, ActiveRecord::Base.descendants.collect(&:to_s).sort
     get "/load"
-    assert_equal [ActiveStorage::Blob, ActiveStorage::Attachment, ActiveRecord::SchemaMigration, ActiveRecord::InternalMetadata, Post].collect(&:to_s).sort, ActiveRecord::Base.descendants.collect(&:to_s).sort
+    assert_equal [ActiveStorage::Blob, ActiveStorage::Attachment, ActiveRecord::SchemaMigration, ActiveRecord::InternalMetadata, ApplicationRecord, Post].collect(&:to_s).sort, ActiveRecord::Base.descendants.collect(&:to_s).sort
     get "/unload"
     assert_equal [ActiveStorage::Blob, ActiveStorage::Attachment, ActiveRecord::SchemaMigration, ActiveRecord::InternalMetadata].collect(&:to_s).sort, ActiveRecord::Base.descendants.collect(&:to_s).sort
   end
