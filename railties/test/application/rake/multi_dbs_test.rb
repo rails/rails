@@ -303,6 +303,26 @@ module ApplicationTests
         require "#{app_path}/config/environment"
         db_prepare
       end
+
+      test "db:prepare setups missing database without clearing existing one" do
+        require "#{app_path}/config/environment"
+        Dir.chdir(app_path) do
+          # Bug not visible on SQLite3. Can be simplified when https://github.com/rails/rails/issues/36383 resolved
+          use_postgresql(multi_db: true)
+          generate_models_for_animals
+
+          rails "db:create:animals", "db:migrate:animals", "db:create:primary", "db:migrate:primary", "db:schema:dump"
+          rails "db:drop:primary"
+          Dog.create!
+          output = rails("db:prepare")
+
+          assert_match(/Created database/, output)
+          assert_equal 1, Dog.count
+        ensure
+          Dog.connection.disconnect!
+          rails "db:drop" rescue nil
+        end
+      end
     end
   end
 end
