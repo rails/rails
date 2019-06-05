@@ -394,24 +394,22 @@ module ActiveRecord
             records.each do |record|
               next if record.destroyed?
 
-              saved = true
-
               if autosave != false && (new_record_before_save || record.new_record?)
                 if autosave
                   saved = association.insert_record(record, false)
                 elsif !reflection.nested?
-                  association_saved = association.insert_record(record)
+                  saved = association.insert_record(record)
 
-                  if reflection.validate?
-                    errors.add(reflection.name) unless association_saved
-                    saved = association_saved
+                  if reflection.validate? && !saved
+                    errors.add(reflection.name)
+                    raise ActiveRecord::Rollback
                   end
                 end
               elsif autosave
                 saved = record.save(validate: false)
               end
 
-              raise ActiveRecord::Rollback unless saved
+              raise ActiveRecord::Rollback if !saved && autosave
             end
           end
         end
