@@ -13,7 +13,7 @@ After reading this guide, you will know:
 * How to contribute to the Ruby on Rails documentation.
 * How to contribute to the Ruby on Rails code.
 
-Ruby on Rails is not "someone else's framework." Over the years, thousands of people have contributed to Ruby on Rails ranging from a single character to massive architectural changes or significant documentation - all with the goal of making Ruby on Rails better for everyone. Even if you don't feel up to writing code or documentation yet, there are a variety of other ways that you can contribute, from reporting issues to testing patches.
+Ruby on Rails is not "someone else's framework". Over the years, thousands of people have contributed to Ruby on Rails ranging from a single character to massive architectural changes or significant documentation - all with the goal of making Ruby on Rails better for everyone. Even if you don't feel up to writing code or documentation yet, there are a variety of other ways that you can contribute, from reporting issues to testing patches.
 
 As mentioned in [Rails'
 README](https://github.com/rails/rails/blob/master/README.md), everyone interacting in Rails and its sub-projects' codebases, issue trackers, chat rooms, and mailing lists is expected to follow the Rails [code of conduct](https://rubyonrails.org/conduct/).
@@ -76,7 +76,7 @@ a patch, please send an email to the [rails-core mailing
 list](https://groups.google.com/forum/?fromgroups#!forum/rubyonrails-core). You
 might get no response, which means that everyone is indifferent. You might find
 someone who's also interested in building that feature. You might get a "This
-won't be accepted." But it's the proper place to discuss new ideas. GitHub
+won't be accepted". But it's the proper place to discuss new ideas. GitHub
 Issues are not a particularly good venue for the sometimes long and involved
 discussions new features require.
 
