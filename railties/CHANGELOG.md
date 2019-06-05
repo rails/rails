@@ -188,7 +188,7 @@
         Rails.application.config.hosts << "product.com"
 
     The host of a request is checked against the `hosts` entries with the case
-    operator (`#===`), which lets `hosts` support entries of type `RegExp`,
+    operator (`#===`), which lets `hosts` support entries of type `Regexp`,
     `Proc` and `IPAddr` to name a few. Here is an example with a regexp.
 
         # Allow requests from subdomains like `www.product.com` and
