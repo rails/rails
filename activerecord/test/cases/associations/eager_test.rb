@@ -789,7 +789,6 @@ class EagerAssociationTest < ActiveRecord::TestCase
       .where("comments.body like 'Normal%' OR comments.#{QUOTED_TYPE}= 'SpecialComment'")
       .references(:comments)
       .scoping do
-
       posts = authors(:david).posts.limit(2).to_a
       assert_equal 2, posts.size
     end
@@ -798,7 +797,6 @@ class EagerAssociationTest < ActiveRecord::TestCase
       .where("authors.name = 'David' AND (comments.body like 'Normal%' OR comments.#{QUOTED_TYPE}= 'SpecialComment')")
       .references(:authors, :comments)
       .scoping do
-
       count = Post.limit(2).count
       assert_equal count, posts.size
     end
