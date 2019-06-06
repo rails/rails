@@ -171,6 +171,34 @@ class MessageEncryptorTest < ActiveSupport::TestCase
     assert rotated
   end
 
+  def test_on_rotation_can_be_passed_at_the_constructor_level
+    older_message = ActiveSupport::MessageEncryptor.new(secrets[:older], "older sign").encrypt_and_sign(encoded: "message")
+
+    rotated = false
+    encryptor = ActiveSupport::MessageEncryptor.new(@secret, on_rotation: proc { rotated = true })
+    encryptor.rotate secrets[:older], "older sign"
+
+    assert_changes(:rotated, from: false, to: true) do
+      message = encryptor.decrypt_and_verify(older_message)
+
+      assert_equal({ encoded: "message" }, message)
+    end
+  end
+
+  def test_on_rotation_option_takes_precedence_over_the_one_given_in_constructor
+    older_message = ActiveSupport::MessageEncryptor.new(secrets[:older], "older sign").encrypt_and_sign(encoded: "message")
+
+    rotated = false
+    encryptor = ActiveSupport::MessageEncryptor.new(@secret, on_rotation: proc { rotated = true })
+    encryptor.rotate secrets[:older], "older sign"
+
+    assert_changes(:rotated, from: false, to: "Yes") do
+      message = encryptor.decrypt_and_verify(older_message, on_rotation: proc { rotated = "Yes" })
+
+      assert_equal({ encoded: "message" }, message)
+    end
+  end
+
   def test_with_rotated_metadata
     old_message = ActiveSupport::MessageEncryptor.new(secrets[:old], cipher: "aes-256-gcm").
       encrypt_and_sign("metadata", purpose: :rotation)
