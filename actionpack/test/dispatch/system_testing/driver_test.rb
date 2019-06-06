@@ -66,7 +66,7 @@ class DriverTest < ActiveSupport::TestCase
     end
     driver.use
 
-    expected = { args: ["start-maximized"], mobileEmulation: { deviceName: "iphone 6" }, prefs: { detach: true } }
+    expected = { "goog:chromeOptions" => { args: ["start-maximized"], mobileEmulation: { deviceName: "iphone 6" }, prefs: { detach: true } } }
     assert_equal expected, driver_option.as_json
   end
 
@@ -81,7 +81,7 @@ class DriverTest < ActiveSupport::TestCase
     end
     driver.use
 
-    expected = { args: ["start-maximized"], mobileEmulation: { deviceName: "iphone 6" }, prefs: { detach: true } }
+    expected = { "goog:chromeOptions" => { args: ["start-maximized"], mobileEmulation: { deviceName: "iphone 6" }, prefs: { detach: true } } }
     assert_equal expected, driver_option.as_json
   end
 
