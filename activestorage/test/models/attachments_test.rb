@@ -234,6 +234,16 @@ class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
     end
   end
 
+  test "purge attached blob now when the record is destroyed" do
+    @user.icon.attach create_blob(filename: "funky.jpg")
+    icon_key = @user.icon.key
+
+    @user.reload.destroy
+
+    assert_nil ActiveStorage::Blob.find_by(key: icon_key)
+    assert_not ActiveStorage::Blob.service.exist?(icon_key)
+  end
+
   test "delete attachment for independent blob when record is destroyed" do
     @user.cover_photo.attach create_blob(filename: "funky.jpg")
 
@@ -420,6 +430,19 @@ class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
       assert_nil ActiveStorage::Blob.find_by(key: highlight_keys.second)
       assert_not ActiveStorage::Blob.service.exist?(highlight_keys.second)
     end
+  end
+
+  test "purge attached blobs now when the record is destroyed" do
+    @user.favorites.attach create_blob(filename: "funky.jpg"), create_blob(filename: "wonky.jpg")
+    favorite_keys = @user.favorites.collect(&:key)
+
+    @user.reload.destroy
+
+    assert_nil ActiveStorage::Blob.find_by(key: favorite_keys.first)
+    assert_not ActiveStorage::Blob.service.exist?(favorite_keys.first)
+
+    assert_nil ActiveStorage::Blob.find_by(key: favorite_keys.second)
+    assert_not ActiveStorage::Blob.service.exist?(favorite_keys.second)
   end
 
   test "delete attachments for independent blobs when the record is destroyed" do

@@ -83,8 +83,10 @@ ActiveRecord::Base.send :include, GlobalID::Identification
 
 class User < ActiveRecord::Base
   has_one_attached :avatar
+  has_one_attached :icon, dependent: :purge
   has_one_attached :cover_photo, dependent: false
 
   has_many_attached :highlights
+  has_many_attached :favorites, dependent: :purge
   has_many_attached :vlogs, dependent: false
 end

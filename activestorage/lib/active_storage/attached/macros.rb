@@ -25,12 +25,16 @@ module ActiveStorage
     # The system has been designed to having you go through the ActiveStorage::Attached::One
     # proxy that provides the dynamic proxy to the associations and factory methods, like +attach+.
     #
-    # If the +:dependent+ option isn't set, the attachment will be purged
-    # (i.e. destroyed) whenever the record is destroyed.
+    # The +:dependent:+ option may be set to :purge, :purge_later, or :detach.
+    # If the +:dependent+ option isn't set, +:dependent:+ will default to :purge_later,
+    # meaning that the attachment will be purged (i.e. destroyed) in a background job
+    # whenever the record is destroyed.
+    DEPENDENT_OPERATIONS = [:purge, :purge_later]
+
     def has_one_attached(name, dependent: :purge_later)
       class_eval <<-CODE, __FILE__, __LINE__ + 1
         def #{name}
-          @active_storage_attached_#{name} ||= ActiveStorage::Attached::One.new("#{name}", self, dependent: #{dependent == :purge_later ? ":purge_later" : "false"})
+          @active_storage_attached_#{name} ||= ActiveStorage::Attached::One.new("#{name}", self, dependent: #{dependent.in?(DEPENDENT_OPERATIONS) ? ":#{dependent}" : "false"})
         end
 
         def #{name}=(attachable)
@@ -43,8 +47,8 @@ module ActiveStorage
 
       scope :"with_attached_#{name}", -> { includes("#{name}_attachment": :blob) }
 
-      if dependent == :purge_later
-        after_destroy_commit { public_send(name).purge_later }
+      if dependent.in?(DEPENDENT_OPERATIONS)
+        after_destroy_commit { public_send(name).public_send(dependent) }
       else
         before_destroy { public_send(name).detach }
       end
@@ -72,12 +76,14 @@ module ActiveStorage
     # The system has been designed to having you go through the ActiveStorage::Attached::Many
     # proxy that provides the dynamic proxy to the associations and factory methods, like +#attach+.
     #
-    # If the +:dependent+ option isn't set, all the attachments will be purged
-    # (i.e. destroyed) whenever the record is destroyed.
+    # The +:dependent:+ option may be set to :purge, :purge_later, or :detach.
+    # If the +:dependent+ option isn't set, +:dependent:+ will default to :purge_later,
+    # meaning that all the attachments will be purged (i.e. destroyed) in a background job
+    # whenever the record is destroyed.
     def has_many_attached(name, dependent: :purge_later)
       class_eval <<-CODE, __FILE__, __LINE__ + 1
         def #{name}
-          @active_storage_attached_#{name} ||= ActiveStorage::Attached::Many.new("#{name}", self, dependent: #{dependent == :purge_later ? ":purge_later" : "false"})
+          @active_storage_attached_#{name} ||= ActiveStorage::Attached::Many.new("#{name}", self, dependent: #{dependent.in?(DEPENDENT_OPERATIONS) ? ":#{dependent}" : "false"})
         end
 
         def #{name}=(attachables)
@@ -100,8 +106,8 @@ module ActiveStorage
 
       scope :"with_attached_#{name}", -> { includes("#{name}_attachments": :blob) }
 
-      if dependent == :purge_later
-        after_destroy_commit { public_send(name).purge_later }
+      if dependent.in?(DEPENDENT_OPERATIONS)
+        after_destroy_commit { public_send(name).public_send(dependent) }
       else
         before_destroy { public_send(name).detach }
       end
