@@ -1,3 +1,8 @@
+*   Correct unexpected behavior resulting from dependent: :purge when using
+    has_one_attached or has_many_attached. Fixes #36423. 
+    
+    *Mark Oveson*
+
 ## Rails 5.2.3 (March 27, 2019) ##
 
 *   No changes.
