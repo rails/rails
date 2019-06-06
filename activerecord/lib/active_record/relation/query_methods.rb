@@ -1254,7 +1254,7 @@ module ActiveRecord
 
         @klass.disallow_raw_sql!(
           order_args.flat_map { |a| a.is_a?(Hash) ? a.keys : a },
-          permit: AttributeMethods::ClassMethods::COLUMN_NAME_WITH_ORDER
+          permit: connection.column_name_with_order_matcher
         )
 
         validate_order_args(order_args)

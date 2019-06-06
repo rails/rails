@@ -32,12 +32,33 @@ module ActiveRecord
           "x'#{value.hex}'"
         end
 
-        def _type_cast(value)
-          case value
-          when Date, Time then value
-          else super
-          end
+        def column_name_matcher
+          COLUMN_NAME
         end
+
+        def column_name_with_order_matcher
+          COLUMN_NAME_WITH_ORDER
+        end
+
+        COLUMN_NAME = /\A(?:(`?)\w+\k<1>\.)?(`?)\w+\k<2>\z/i
+
+        COLUMN_NAME_WITH_ORDER = /
+          \A
+          (?:(`?)\w+\k<1>\.)?
+          (`?)\w+\k<2>
+          (?:\s+ASC|\s+DESC)?
+          \z
+        /ix
+
+        private_constant :COLUMN_NAME, :COLUMN_NAME_WITH_ORDER
+
+        private
+          def _type_cast(value)
+            case value
+            when Date, Time then value
+            else super
+            end
+          end
       end
     end
   end

@@ -523,7 +523,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   def test_eager_association_loading_with_belongs_to_and_order_string_with_quoted_table_name
     quoted_posts_id = Comment.connection.quote_table_name("posts") + "." + Comment.connection.quote_column_name("id")
     assert_nothing_raised do
-      Comment.includes(:post).references(:posts).order(Arel.sql(quoted_posts_id))
+      Comment.includes(:post).references(:posts).order(quoted_posts_id)
     end
   end
 
