@@ -1679,7 +1679,7 @@ class RelationTest < ActiveRecord::TestCase
     scope = Post.order("comments.body")
     assert_equal ["comments"], scope.references_values
 
-    scope = Post.order(Arel.sql("#{Comment.quoted_table_name}.#{Comment.quoted_primary_key}"))
+    scope = Post.order("#{Comment.quoted_table_name}.#{Comment.quoted_primary_key}")
     if current_adapter?(:OracleAdapter)
       assert_equal ["COMMENTS"], scope.references_values
     else
@@ -1704,7 +1704,7 @@ class RelationTest < ActiveRecord::TestCase
     scope = Post.reorder("comments.body")
     assert_equal %w(comments), scope.references_values
 
-    scope = Post.reorder(Arel.sql("#{Comment.quoted_table_name}.#{Comment.quoted_primary_key}"))
+    scope = Post.reorder("#{Comment.quoted_table_name}.#{Comment.quoted_primary_key}")
     if current_adapter?(:OracleAdapter)
       assert_equal ["COMMENTS"], scope.references_values
     else
