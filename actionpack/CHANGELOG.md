@@ -89,7 +89,7 @@
     This is a new middleware that guards against DNS rebinding attacks by
     explicitly permitting the hosts a request can be made to.
 
-    Each host is checked with the case operator (`#===`) to support `RegExp`,
+    Each host is checked with the case operator (`#===`) to support `Regexp`,
     `Proc`, `IPAddr` and custom objects as host allowances.
 
     *Genadi Samokovarov*
