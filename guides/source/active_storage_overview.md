@@ -41,6 +41,8 @@ application (or upgrading your application to Rails 5.2), run
 `rails active_storage:install` to generate a migration that creates these
 tables. Use `rails db:migrate` to run the migration.
 
+WARNING: `active_storage_attachments` is a polymorphic join table that stores your model's class name. If your model's class name changes, you will need to run a migration on this table to update the underlying `record_type` to your model's new class name.
+
 Declare Active Storage services in `config/storage.yml`. For each service your
 application uses, provide a name and the requisite configuration. The example
 below declares three services named `local`, `test`, and `amazon`:
