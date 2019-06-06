@@ -1,30 +1,32 @@
 # frozen_string_literal: true
 
-require "active_support/actionable_error"
-require "rails/command"
-
 module ActionMailbox
   # Generic base class for all Action Mailbox exceptions.
   class Error < StandardError; end
 
-  # Raised when we detect that Action Mailbox has not been initialized.
-  class InstallError < Error
-    include ActiveSupport::ActionableError
+  if defined?(Rails)
+    require "active_support/actionable_error"
+    require "rails/command"
 
-    def initialize(message = nil)
-      super(message || <<~MESSAGE)
-        Action Mailbox does not appear to be installed. Do you want to
-        install it now?
-      MESSAGE
-    end
+    # Raised when we detect that Action Mailbox has not been initialized.
+    class InstallError < Error
+      include ActiveSupport::ActionableError
 
-    trigger on: ActiveRecord::StatementInvalid, if: -> error do
-      error.message.match?(InboundEmail.table_name)
-    end
+      def initialize(message = nil)
+        super(message || <<~MESSAGE)
+          Action Mailbox does not appear to be installed. Do you want to
+          install it now?
+        MESSAGE
+      end
 
-    action "Install now" do
-      Rails::Command.invoke("action_mailbox:install")
-      Rails::Command.invoke("db:migrate")
+      trigger on: ActiveRecord::StatementInvalid, if: -> error do
+        error.message.match?(InboundEmail.table_name)
+      end
+
+      action "Install now" do
+        Rails::Command.invoke("action_mailbox:install")
+        Rails::Command.invoke("db:migrate")
+      end
     end
   end
 end
