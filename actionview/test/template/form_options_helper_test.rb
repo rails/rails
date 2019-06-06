@@ -730,11 +730,29 @@ class FormOptionsHelperTest < ActionView::TestCase
     )
   end
 
-  def test_select_with_include_blank_false_and_required
+  def test_select_from_empty_with_include_blank_false_and_required
     @post = Post.new
     @post.category = "<mus>"
-    e = assert_raises(ArgumentError) { select("post", "category", %w( abe <mus> hest), { include_blank: false }, { required: "required" }) }
-    assert_match(/include_blank cannot be false for a required field./, e.message)
+    e = assert_raises(ArgumentError) { select("post", "category", "", { include_blank: false }, { required: "required" }) }
+    assert_match(/include_blank cannot be false for a required field with empty options./, e.message)
+  end
+
+  def test_select_from_non_empty_with_include_blank_true_and_required
+    @post = Post.new
+    @post.category = "<mus>"
+    assert_dom_equal(
+      "<select required=\"required\" id=\"post_category\" name=\"post[category]\"><option value=\"\"></option>\n<option value=\"abe\">abe</option>\n<option value=\"&lt;mus&gt;\" selected=\"selected\">&lt;mus&gt;</option>\n<option value=\"hest\">hest</option></select>",
+      select("post", "category", %w( abe <mus> hest), { include_blank: true }, { required: "required" })
+    )
+  end
+
+  def test_select_from_non_empty_with_include_blank_false_and_required
+    @post = Post.new
+    @post.category = "<mus>"
+    assert_dom_equal(
+      "<select required=\"required\" id=\"post_category\" name=\"post[category]\"><option value=\"abe\">abe</option>\n<option value=\"&lt;mus&gt;\" selected=\"selected\">&lt;mus&gt;</option>\n<option value=\"hest\">hest</option></select>",
+      select("post", "category", %w( abe <mus> hest), { include_blank: false }, { required: "required" })
+    )
   end
 
   def test_select_with_blank_as_string
