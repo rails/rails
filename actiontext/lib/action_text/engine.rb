@@ -6,6 +6,7 @@ require "active_record/railtie"
 require "active_storage/engine"
 
 require "action_text"
+require "action_text/errors"
 
 module ActionText
   class Engine < Rails::Engine
