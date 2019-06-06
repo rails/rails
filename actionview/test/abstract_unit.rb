@@ -192,6 +192,8 @@ module ActionDispatch
 end
 
 class ActiveSupport::TestCase
+  parallelize
+
   include ActiveSupport::Testing::MethodCallAssertions
 
   private
