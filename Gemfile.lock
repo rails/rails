@@ -183,8 +183,8 @@ GEM
       rack-test (>= 0.6.3)
       regexp_parser (~> 1.2)
       xpath (~> 3.2)
-    childprocess (0.9.0)
-      ffi (~> 1.0, >= 1.0.11)
+    childprocess (1.0.1)
+      rake (< 13.0)
     coffee-script (2.4.1)
       coffee-script-source
       execjs
@@ -236,10 +236,10 @@ GEM
     faye-websocket (0.10.7)
       eventmachine (>= 0.12.0)
       websocket-driver (>= 0.5.1)
-    ffi (1.10.0)
-    ffi (1.10.0-java)
-    ffi (1.10.0-x64-mingw32)
-    ffi (1.10.0-x86-mingw32)
+    ffi (1.11.1)
+    ffi (1.11.1-java)
+    ffi (1.11.1-x64-mingw32)
+    ffi (1.11.1-x86-mingw32)
     fugit (1.2.1)
       et-orbi (~> 1.1, >= 1.1.8)
       raabro (~> 1.1)
@@ -425,7 +425,7 @@ GEM
     ruby-vips (2.0.13)
       ffi (~> 1.9)
     ruby_dep (1.5.0)
-    rubyzip (1.2.2)
+    rubyzip (1.2.3)
     rufus-scheduler (3.6.0)
       fugit (~> 1.1, >= 1.1.6)
     safe_yaml (1.0.4)
@@ -442,9 +442,9 @@ GEM
       tilt (>= 1.1, < 3)
     sdoc (1.0.0)
       rdoc (>= 5.0)
-    selenium-webdriver (3.12.0)
-      childprocess (~> 0.5)
-      rubyzip (~> 1.2)
+    selenium-webdriver (3.142.3)
+      childprocess (>= 0.5, < 2.0)
+      rubyzip (~> 1.2, >= 1.2.2)
     sequel (5.14.0)
     serverengine (2.0.7)
       sigdump (~> 0.2.2)
@@ -586,7 +586,7 @@ DEPENDENCIES
   rubocop-performance
   sass-rails
   sdoc (~> 1.0)
-  selenium-webdriver (>= 3.5.0, < 3.13.0)
+  selenium-webdriver (>= 3.5.0)
   sequel
   sidekiq
   sneakers
