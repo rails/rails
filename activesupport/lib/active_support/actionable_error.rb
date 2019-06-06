@@ -40,6 +40,7 @@ module ActiveSupport
 
     def self.raise_if_triggered_by(error) # :nodoc:
       triggers[error.class].each { |trigger| trigger.act_on(error) }
+      raise_if_triggered_by(error.cause) if error.cause
     end
 
     module ClassMethods

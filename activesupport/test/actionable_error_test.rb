@@ -61,6 +61,23 @@ class ActionableErrorTest < ActiveSupport::TestCase
     end
   end
 
+  test "triggers actionable error from existing even as a cause" do
+    error =
+      begin
+        begin
+          raise "Trigger action!"
+        rescue
+          raise "Another error!"
+        end
+      rescue => err
+        err
+      end
+
+    assert_raises TriggerableError do
+      ActiveSupport::ActionableError.raise_if_triggered_by(error)
+    end
+  end
+
   test "does not triggers actionable errors if the condition fails" do
     error = StandardError.new
 
