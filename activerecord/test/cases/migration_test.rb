@@ -587,7 +587,7 @@ class MigrationTest < ActiveRecord::TestCase
   end
 
   def test_internal_metadata_stores_environment
-    current_env     = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
+    current_env     = ActiveRecord::Base.current_environment
     migrations_path = MIGRATIONS_ROOT + "/valid"
     migrator = ActiveRecord::MigrationContext.new(migrations_path, @schema_migration)
 
@@ -597,7 +597,7 @@ class MigrationTest < ActiveRecord::TestCase
     original_rails_env  = ENV["RAILS_ENV"]
     original_rack_env   = ENV["RACK_ENV"]
     ENV["RAILS_ENV"]    = ENV["RACK_ENV"] = "foofoo"
-    new_env = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
+    new_env = ActiveRecord::Base.current_environment
 
     assert_not_equal current_env, new_env
 
@@ -614,7 +614,7 @@ class MigrationTest < ActiveRecord::TestCase
     ActiveRecord::InternalMetadata.delete_all
     ActiveRecord::InternalMetadata[:foo] = "bar"
 
-    current_env     = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
+    current_env     = ActiveRecord::Base.current_environment
     migrations_path = MIGRATIONS_ROOT + "/valid"
 
     migrator = ActiveRecord::MigrationContext.new(migrations_path, @schema_migration)

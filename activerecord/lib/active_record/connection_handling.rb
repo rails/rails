@@ -2,9 +2,6 @@
 
 module ActiveRecord
   module ConnectionHandling
-    RAILS_ENV   = -> { (Rails.env if defined?(Rails.env)) || ENV["RAILS_ENV"].presence || ENV["RACK_ENV"].presence }
-    DEFAULT_ENV = -> { RAILS_ENV.call || "default_env" }
-
     # Establishes the connection to the database. Accepts a hash as input where
     # the <tt>:adapter</tt> key must be specified with the name of a database adapter (in lower-case)
     # example for regular databases (MySQL, PostgreSQL, etc):
@@ -148,6 +145,10 @@ module ActiveRecord
       connection_handlers.key(connection_handler)
     end
 
+    def current_environment # :nodoc:
+      (Rails.env if defined?(Rails.env)) || ENV["RAILS_ENV"].presence || ENV["RACK_ENV"].presence || "default_env"
+    end
+
     def lookup_connection_handler(handler_key) # :nodoc:
       handler_key ||= ActiveRecord::Base.writing_role
       connection_handlers[handler_key] ||= ActiveRecord::ConnectionAdapters::ConnectionHandler.new
@@ -246,7 +247,7 @@ module ActiveRecord
       def resolve_config_for_connection(config_or_env)
         raise "Anonymous class is not allowed." unless name
 
-        config_or_env ||= DEFAULT_ENV.call.to_sym
+        config_or_env ||= ActiveRecord::Base.current_environment.to_sym
         pool_name = primary_class? ? Base.name : name
         self.connection_specification_name = pool_name
 

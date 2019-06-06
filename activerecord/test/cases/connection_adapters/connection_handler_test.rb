@@ -22,7 +22,7 @@ module ActiveRecord
         original_rack_env  = ENV["RACK_ENV"]
         ENV["RAILS_ENV"]   = ENV["RACK_ENV"] = ""
 
-        assert_equal "default_env", ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
+        assert_equal "default_env", ActiveRecord::Base.current_environment
       ensure
         ENV["RAILS_ENV"] = original_rails_env
         ENV["RACK_ENV"]  = original_rack_env

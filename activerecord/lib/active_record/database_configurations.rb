@@ -143,7 +143,7 @@ module ActiveRecord
 
     private
       def default_env
-        ActiveRecord::ConnectionHandling::DEFAULT_ENV.call.to_s
+        ActiveRecord::Base.current_environment
       end
 
       def env_with_configs(env = nil)

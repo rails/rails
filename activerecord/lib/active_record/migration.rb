@@ -1134,10 +1134,6 @@ module ActiveRecord
       (db_list + file_list).sort_by { |_, version, _| version }
     end
 
-    def current_environment
-      ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
-    end
-
     def protected_environment?
       ActiveRecord::Base.protected_environments.include?(last_stored_environment) if last_stored_environment
     end
@@ -1287,7 +1283,7 @@ module ActiveRecord
       # Stores the current environment in the database.
       def record_environment
         return if down?
-        ActiveRecord::InternalMetadata[:environment] = ActiveRecord::Base.connection.migration_context.current_environment
+        ActiveRecord::InternalMetadata[:environment] = ActiveRecord::Base.current_environment
       end
 
       def ran?(migration)

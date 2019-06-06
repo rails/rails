@@ -17,7 +17,7 @@ module ActiveRecord
         ENV["RAILS_ENV"] = @previous_rails_env
       end
 
-      def resolve_config(config, env_name = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call)
+      def resolve_config(config, env_name = ActiveRecord::Base.current_environment)
         configs = ActiveRecord::DatabaseConfigurations.new(config)
         configs.configs_for(env_name: env_name, spec_name: "primary")&.configuration_hash
       end

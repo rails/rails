@@ -55,7 +55,7 @@ module ActiveRecord
       end
 
       ActiveRecord::InternalMetadata.create_table
-      ActiveRecord::InternalMetadata[:environment] = connection.migration_context.current_environment
+      ActiveRecord::InternalMetadata[:environment] = ActiveRecord::Base.current_environment
     end
   end
 end

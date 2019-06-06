@@ -5,7 +5,7 @@ require "active_support/testing/parallelization"
 module ActiveRecord
   module TestDatabases # :nodoc:
     ActiveSupport::Testing::Parallelization.after_fork_hook do |i|
-      create_and_load_schema(i, env_name: ActiveRecord::ConnectionHandling::DEFAULT_ENV.call)
+      create_and_load_schema(i, env_name: ActiveRecord::Base.current_environment)
     end
 
     def self.create_and_load_schema(i, env_name:)

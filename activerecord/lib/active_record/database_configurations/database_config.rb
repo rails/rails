@@ -63,7 +63,7 @@ module ActiveRecord
       end
 
       def for_current_env?
-        env_name == ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
+        env_name == ActiveRecord::Base.current_environment
       end
 
       def schema_cache_path

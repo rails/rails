@@ -50,7 +50,7 @@ module ActiveRecord
   class DatabaseTasksUtilsTask < ActiveRecord::TestCase
     def test_raises_an_error_when_called_with_protected_environment
       protected_environments = ActiveRecord::Base.protected_environments
-      current_env            = ActiveRecord::Base.connection.migration_context.current_environment
+      current_env            = ActiveRecord::Base.current_environment
 
       InternalMetadata[:environment] = current_env
 
@@ -76,7 +76,7 @@ module ActiveRecord
 
     def test_raises_an_error_when_called_with_protected_environment_which_name_is_a_symbol
       protected_environments = ActiveRecord::Base.protected_environments
-      current_env            = ActiveRecord::Base.connection.migration_context.current_environment
+      current_env            = ActiveRecord::Base.current_environment
 
       InternalMetadata[:environment] = current_env
 

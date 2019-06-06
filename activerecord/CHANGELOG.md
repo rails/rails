@@ -1,3 +1,9 @@
+*   Remove `DEFAULT_ENV` and `RAILS_ENV` constant
+    ActiveRecord::ConnectionHandling. Introduce `current_env` method to get the
+    environment within active record.
+
+    *Guilherme Mansur*
+
 *   Add support for `strict_loading` mode on association declarations.
 
     Raise an error if attempting to load a record from an association that has been marked as `strict_loading` unless it was explicitly eager loaded.
