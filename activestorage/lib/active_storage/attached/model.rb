@@ -75,7 +75,7 @@ module ActiveStorage
       # The +:dependent+ option defaults to +:purge_later+. This means the attachment will be
       # purged (i.e. destroyed) in the background whenever the record is destroyed.
       # If an ActiveJob::Backend queue adapter is not set in the application set it to
-      # +purge+ instead.
+      # +:purge+ instead.
       #
       # If you need the attachment to use a service which differs from the globally configured one,
       # pass the +:service+ option. For example:
@@ -192,7 +192,7 @@ module ActiveStorage
       # The +:dependent+ option defaults to +:purge_later+. This means the attachments will be
       # purged (i.e. destroyed) in the background whenever the record is destroyed.
       # If an ActiveJob::Backend queue adapter is not set in the application set it to
-      # +purge+ instead.
+      # +:purge+ instead.
       #
       # If you need the attachment to use a service which differs from the globally configured one,
       # pass the +:service+ option. For example:
