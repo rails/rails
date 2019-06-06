@@ -191,7 +191,7 @@ should change this based on your database infrastructure. Rails doesn't guarante
 a recent write" for other users within the delay window and will send GET and HEAD requests
 to the replicas unless they wrote recently.
 
-The automatic connection switching in Rails is relatively primitive and deliberatly doesn't
+The automatic connection switching in Rails is relatively primitive and deliberately doesn't
 do a whole lot. The goal was a system that demonstrated how to do automatic connection
 switching that was flexible enough to be customizable by app developers.
 
@@ -210,7 +210,7 @@ And then pass it to the middleware:
 ```ruby
 config.active_record.database_selector = { delay: 2.seconds }
 config.active_record.database_resolver = ActiveRecord::Middleware::DatabaseSelector::Resolver
-config.active_record.database_resolver_context = MyCookieResovler
+config.active_record.database_resolver_context = MyCookieResolver
 ```
 
 ## Using manual connection switching
@@ -247,13 +247,13 @@ The `database` argument for `connected_to` will take a symbol or a config hash.
 
 Note that `connected_to` with a role will look up an existing connection and switch
 using the connection specification name. This means that if you pass an unknown role
-like `connected_to(role: :nonexistent)` you will get an error like that says
+like `connected_to(role: :nonexistent)` you will get an error that says
 `ActiveRecord::ConnectionNotEstablished (No connection pool with 'AnimalsBase' found
 for the 'nonexistent' role.)`
 
 ## Caveats
 
-As noted at the top Rails doesn't (yet) support sharding. We had to do a lot of work
+As noted at the top, Rails doesn't (yet) support sharding. We had to do a lot of work
 to support multiple databases for Rails 6.0. The lack of support for sharding isn't
 an oversight, but does require additional work that didn't make it in for 6.0. For now
 if you need sharding it may be advisable to continue using one of the many gems
