@@ -1,3 +1,7 @@
+*   Add support for multiple databases to `rails db:abort_if_pending_migrations`.
+
+    *Mark Lee*
+
 *   Fix sqlite3 collation parsing when using decimal columns.
 
     *Martin R. Schuster*
