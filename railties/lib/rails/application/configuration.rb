@@ -222,7 +222,9 @@ module Rails
         config = if yaml && yaml.exist?
           require "yaml"
           require "erb"
-          loaded_yaml = YAML.load(ERB.new(yaml.read).result) || {}
+          erb = ERB.new(yaml.read)
+          erb.filename = yaml.to_s
+          loaded_yaml = YAML.load(erb.result) || {}
           shared = loaded_yaml.delete("shared")
           if shared
             loaded_yaml.each do |_k, values|

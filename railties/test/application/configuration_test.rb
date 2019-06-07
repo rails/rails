@@ -1821,6 +1821,27 @@ module ApplicationTests
       assert_equal "dev_db",  ar_config["development"]["database"]
     end
 
+    test "database.yml can include other yaml files for configuration" do
+      app_file "config/remote_database.yml", <<~YAML
+        use_remote: 'true'
+      YAML
+
+      app_file "config/database.yml", <<~YAML
+        <% remote_config = YAML.load_file(File.join(File.dirname(__FILE__), "remote_database.yml")) %>
+        shared:
+          username: bobby
+          adapter: sqlite3
+          <%= remote_config['use_remote'] == 'true' ? 'host: devdbs.example.com' : '' %>
+          database: 'dev_db'
+      YAML
+
+      app "development"
+
+      ar_config = Rails.application.config.database_configuration
+      assert_equal "sqlite3", ar_config["development"]["adapter"]
+      assert_equal "devdbs.example.com",  ar_config["development"]["host"]
+    end
+
     test "loads database.yml using shared keys for undefined environments" do
       app_file "config/database.yml", <<-YAML
         shared:
