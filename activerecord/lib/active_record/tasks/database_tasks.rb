@@ -325,7 +325,7 @@ module ActiveRecord
         Migration.verbose = verbose_was
       end
 
-      def dump_schema(configuration, format = ActiveRecord::Base.schema_format, spec_name = "primary")
+      def dump_schema(configuration, format = ActiveRecord::Base.schema_format, spec_name = "primary") # :nodoc:
         require "active_record/schema_dumper"
         filename = dump_filename(spec_name, format)
 
