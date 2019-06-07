@@ -120,7 +120,7 @@ by this same current user, you're also ensuring that you can later retrieve all 
 connections by a given user (and potentially disconnect them all if the user is deleted
 or unauthorized).
 
-If you use Device for authenticaion, you can get `current_user` from warden:
+If you use Devise for authenticaion, you can get `current_user` from warden:
 
 ```ruby
   verified_user = env['warden'].user
