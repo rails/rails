@@ -337,21 +337,21 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_reverse_order_with_nulls_first_or_last
     assert_raises(ActiveRecord::IrreversibleOrderError) do
-      Topic.order(Arel.sql("title NULLS FIRST")).reverse_order
+      Topic.order("title NULLS FIRST").reverse_order
     end
     assert_raises(ActiveRecord::IrreversibleOrderError) do
-      Topic.order(Arel.sql("title  NULLS  FIRST")).reverse_order
+      Topic.order("title  NULLS  FIRST").reverse_order
     end
     assert_raises(ActiveRecord::IrreversibleOrderError) do
-      Topic.order(Arel.sql("title nulls last")).reverse_order
+      Topic.order("title nulls last").reverse_order
     end
     assert_raises(ActiveRecord::IrreversibleOrderError) do
-      Topic.order(Arel.sql("title NULLS FIRST, author_name")).reverse_order
+      Topic.order("title NULLS FIRST, author_name").reverse_order
     end
     assert_raises(ActiveRecord::IrreversibleOrderError) do
-      Topic.order(Arel.sql("author_name, title nulls last")).reverse_order
+      Topic.order("author_name, title nulls last").reverse_order
     end
-  end
+  end if current_adapter?(:PostgreSQLAdapter, :OracleAdapter)
 
   def test_default_reverse_order_on_table_without_primary_key
     assert_raises(ActiveRecord::IrreversibleOrderError) do
