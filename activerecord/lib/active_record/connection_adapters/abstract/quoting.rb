@@ -158,7 +158,10 @@ module ActiveRecord
       COLUMN_NAME = /
         \A
         (
-          (?:\w+\.)?\w+
+          (?:
+            # table_name.column_name | function(one or no argument)
+            ((?:\w+\.)?\w+) | \w+\((?:|\g<2>)\)
+          )
           (?:(?:\s+AS)?\s+\w+)?
         )
         (?:\s*,\s*\g<1>)*
@@ -179,7 +182,10 @@ module ActiveRecord
       COLUMN_NAME_WITH_ORDER = /
         \A
         (
-          (?:\w+\.)?\w+
+          (?:
+            # table_name.column_name | function(one or no argument)
+            ((?:\w+\.)?\w+) | \w+\((?:|\g<2>)\)
+          )
           (?:\s+ASC|\s+DESC)?
           (?:\s+NULLS\s+(?:FIRST|LAST))?
         )

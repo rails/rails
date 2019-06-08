@@ -968,14 +968,14 @@ class EagerAssociationTest < ActiveRecord::TestCase
       posts(:thinking, :sti_comments),
       Post.all.merge!(
         includes: [:author, :comments], where: { "authors.name" => "David" },
-        order: Arel.sql("UPPER(posts.title)"), limit: 2, offset: 1
+        order: "UPPER(posts.title)", limit: 2, offset: 1
       ).to_a
     )
     assert_equal(
       posts(:sti_post_and_comments, :sti_comments),
       Post.all.merge!(
         includes: [:author, :comments], where: { "authors.name" => "David" },
-        order: Arel.sql("UPPER(posts.title) DESC"), limit: 2, offset: 1
+        order: "UPPER(posts.title) DESC", limit: 2, offset: 1
       ).to_a
     )
   end
@@ -985,14 +985,14 @@ class EagerAssociationTest < ActiveRecord::TestCase
       posts(:thinking, :sti_comments),
       Post.all.merge!(
         includes: [:author, :comments], where: { "authors.name" => "David" },
-        order: [Arel.sql("UPPER(posts.title)"), "posts.id"], limit: 2, offset: 1
+        order: ["UPPER(posts.title)", "posts.id"], limit: 2, offset: 1
       ).to_a
     )
     assert_equal(
       posts(:sti_post_and_comments, :sti_comments),
       Post.all.merge!(
         includes: [:author, :comments], where: { "authors.name" => "David" },
-        order: [Arel.sql("UPPER(posts.title) DESC"), "posts.id"], limit: 2, offset: 1
+        order: ["UPPER(posts.title) DESC", "posts.id"], limit: 2, offset: 1
       ).to_a
     )
   end
