@@ -159,6 +159,7 @@ module ActiveRecord
         \A
         (
           (?:\w+\.)?\w+
+          (?:(?:\s+AS)?\s+\w+)?
         )
         (?:\s*,\s*\g<1>)*
         \z

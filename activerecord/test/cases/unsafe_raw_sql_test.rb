@@ -223,6 +223,16 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
     assert_equal titles_expected, titles_disabled
   end
 
+  test "pluck: allows string column name with alias" do
+    titles_expected = Post.pluck(Arel.sql("title"))
+
+    titles_depr     = with_unsafe_raw_sql_deprecated { Post.pluck("title AS posts_title") }
+    titles_disabled = with_unsafe_raw_sql_disabled   { Post.pluck("title AS posts_title") }
+
+    assert_equal titles_expected, titles_depr
+    assert_equal titles_expected, titles_disabled
+  end
+
   test "pluck: allows symbol column name" do
     titles_expected = Post.pluck(Arel.sql("title"))
 
