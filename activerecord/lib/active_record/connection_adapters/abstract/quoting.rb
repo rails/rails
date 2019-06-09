@@ -155,7 +155,14 @@ module ActiveRecord
       #
       #   "#{table_name}.#{column_name}"
       #   "#{column_name}"
-      COLUMN_NAME = /\A(?:\w+\.)?\w+\z/i
+      COLUMN_NAME = /
+        \A
+        (
+          (?:\w+\.)?\w+
+        )
+        (?:\s*,\s*\g<1>)*
+        \z
+      /ix
 
       # Regexp for column names with order (with or without a table name prefix,
       # with or without various order modifiers). Matches the following:
@@ -170,10 +177,12 @@ module ActiveRecord
       #   "#{column_name} NULLS LAST"
       COLUMN_NAME_WITH_ORDER = /
         \A
-        (?:\w+\.)?
-        \w+
-        (?:\s+ASC|\s+DESC)?
-        (?:\s+NULLS\s+(?:FIRST|LAST))?
+        (
+          (?:\w+\.)?\w+
+          (?:\s+ASC|\s+DESC)?
+          (?:\s+NULLS\s+(?:FIRST|LAST))?
+        )
+        (?:\s*,\s*\g<1>)*
         \z
       /ix
 

@@ -53,13 +53,22 @@ module ActiveRecord
           COLUMN_NAME_WITH_ORDER
         end
 
-        COLUMN_NAME = /\A(?:("?)\w+\k<1>\.)?("?)\w+\k<2>\z/i
+        COLUMN_NAME = /
+          \A
+          (
+            (?:\w+\.|"\w+"\.)?(?:\w+|"\w+")
+          )
+          (?:\s*,\s*\g<1>)*
+          \z
+        /ix
 
         COLUMN_NAME_WITH_ORDER = /
           \A
-          (?:("?)\w+\k<1>\.)?
-          ("?)\w+\k<2>
-          (?:\s+ASC|\s+DESC)?
+          (
+            (?:\w+\.|"\w+"\.)?(?:\w+|"\w+")
+            (?:\s+ASC|\s+DESC)?
+          )
+          (?:\s*,\s*\g<1>)*
           \z
         /ix
 

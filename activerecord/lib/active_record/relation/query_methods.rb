@@ -1247,6 +1247,7 @@ module ActiveRecord
       end
 
       def preprocess_order_args(order_args)
+        order_args.reject!(&:blank?)
         order_args.map! do |arg|
           klass.sanitize_sql_for_order(arg)
         end
