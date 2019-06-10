@@ -358,14 +358,16 @@ The same format can be used to set carbon copy (Cc:) and blind carbon copy
 #### Sending Email With Name
 
 Sometimes you wish to show the name of the person instead of just their email
-address when they receive the email. The trick to doing that is to format the
-email address in the format `"Full Name" <email>`.
+address when they receive the email. You can use `email_address_with_name` for
+that:
 
 ```ruby
 def welcome_email
   @user = params[:user]
-  email_with_name = %("#{@user.name}" <#{@user.email}>)
-  mail(to: email_with_name, subject: 'Welcome to My Awesome Site')
+  mail(
+    to: email_address_with_name(@user.email, @user.name),
+    subject: 'Welcome to My Awesome Site'
+  )
 end
 ```
 
