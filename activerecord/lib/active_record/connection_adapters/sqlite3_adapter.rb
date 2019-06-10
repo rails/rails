@@ -98,6 +98,16 @@ module ActiveRecord
         configure_connection
       end
 
+      def self.database_exists?(config)
+        config = config.symbolize_keys
+        if config[:database] == ":memory:"
+          return true
+        else
+          database_file = defined?(Rails.root) ? File.expand_path(config[:database], Rails.root) : config[:database]
+          File.exist?(database_file)
+        end
+      end
+
       def supports_ddl_transactions?
         true
       end

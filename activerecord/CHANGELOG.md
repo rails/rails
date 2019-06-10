@@ -1,3 +1,7 @@
+*   Add database_exists? method to connection adapters to check if a database exists.
+
+      *Guilherme Mansur*
+
 *   PostgreSQL: Fix GROUP BY with ORDER BY virtual count attribute.
 
     Fixes #36022.
