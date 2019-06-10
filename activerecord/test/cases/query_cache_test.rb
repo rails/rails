@@ -335,11 +335,7 @@ class QueryCacheTest < ActiveRecord::TestCase
 
   def test_cache_does_not_wrap_results_in_arrays
     Task.cache do
-      if current_adapter?(:SQLite3Adapter, :Mysql2Adapter, :PostgreSQLAdapter, :OracleAdapter)
-        assert_equal 2, Task.connection.select_value("SELECT count(*) AS count_all FROM tasks")
-      else
-        assert_instance_of String, Task.connection.select_value("SELECT count(*) AS count_all FROM tasks")
-      end
+      assert_equal 2, Task.connection.select_value("SELECT count(*) AS count_all FROM tasks")
     end
   end
 
