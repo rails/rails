@@ -160,8 +160,8 @@ namespace and executes the command if found.
 If Rails doesn't recognize the command, it hands the reins over to Rake
 to run a task of the same name.
 
-As shown, `Rails::Command` displays the help output automatically if the `args`
-are empty.
+As shown, `Rails::Command` displays the help output automatically if the `namespace`
+is empty.
 
 ```ruby
 module Rails::Command
