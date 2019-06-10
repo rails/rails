@@ -19,6 +19,20 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
     end
   end
 
+  def test_database_exists_returns_false_if_database_does_not_exist
+    config = ActiveRecord::Base.configurations["arunit"].dup
+    config[:database] = "non_extant_database"
+
+    assert_not ActiveRecord::ConnectionAdapters::Mysql2Adapter.database_exists?(config),
+      "expected database #{config[:database]} to not exist"
+  end
+
+  def test_database_exists_returns_true_when_the_database_exists
+    config = ActiveRecord::Base.configurations["arunit"]
+    assert ActiveRecord::ConnectionAdapters::Mysql2Adapter.database_exists?(config),
+     "expected database #{config[:database]} to exist"
+  end
+
   def test_columns_for_distinct_zero_orders
     assert_equal "posts.id",
       @conn.columns_for_distinct("posts.id", [])

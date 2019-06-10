@@ -175,13 +175,7 @@ if current_adapter?(:PostgreSQLAdapter)
               "schema_search_path" => "public"
             ]
           ) do
-            assert_called_on_instance_of(
-              ActiveRecord::Tasks::PostgreSQLDatabaseTasks,
-              :database_exists?,
-              returns: true
-            ) do
-              ActiveRecord::Tasks::DatabaseTasks.drop @configuration
-            end
+            ActiveRecord::Tasks::DatabaseTasks.drop @configuration
           end
         end
       end
@@ -256,13 +250,7 @@ if current_adapter?(:PostgreSQLAdapter)
               ]
             ]
           ) do
-            assert_called_on_instance_of(
-              ActiveRecord::Tasks::PostgreSQLDatabaseTasks,
-              :database_exists?,
-              returns: true
-            ) do
-              ActiveRecord::Tasks::DatabaseTasks.purge @configuration
-            end
+            ActiveRecord::Tasks::DatabaseTasks.purge @configuration
           end
         end
       end
@@ -307,13 +295,7 @@ if current_adapter?(:PostgreSQLAdapter)
               ]
             ]
           ) do
-            assert_called_on_instance_of(
-              ActiveRecord::Tasks::PostgreSQLDatabaseTasks,
-              :database_exists?,
-              returns: true
-            ) do
-              ActiveRecord::Tasks::DatabaseTasks.purge @configuration
-            end
+            ActiveRecord::Tasks::DatabaseTasks.purge @configuration
           end
         end
       end

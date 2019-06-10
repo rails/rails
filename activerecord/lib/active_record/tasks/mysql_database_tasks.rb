@@ -67,9 +67,7 @@ module ActiveRecord
       end
 
       def database_exists?
-        !!connection
-      rescue ActiveRecord::NoDatabaseError
-        false
+        ActiveRecord::ConnectionAdapters::Mysql2Adapter.database_exists?(configuration)
       end
 
       private
