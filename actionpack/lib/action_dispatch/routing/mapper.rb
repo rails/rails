@@ -1163,6 +1163,19 @@ module ActionDispatch
             @options    = options
             @shallow    = shallow
             @api_only   = api_only
+
+            if (Array(options[:only]).map(&:to_sym) - default_actions).present?
+              raise ArgumentError,
+                ":only option contain #{(Array(options[:only]).map(&:to_sym) - default_actions)}"\
+                " not available action, available actions: #{default_actions}"
+            end
+
+            if (Array(options[:except]).map(&:to_sym) - default_actions).present?
+              raise ArgumentError,
+                ":except option contain #{(Array(options[:except]).map(&:to_sym) - default_actions)} not "\
+                "available action, available actions: #{default_actions}"
+            end
+
             @only       = options.delete :only
             @except     = options.delete :except
           end

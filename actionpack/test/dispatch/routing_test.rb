@@ -2668,7 +2668,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         namespace :only do
           resources :clubs do
             resources :players
-            resource  :chairman
+            resource  :chairman, only: [:show]
           end
         end
       end
@@ -2795,12 +2795,10 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
   def test_except_option_should_not_inherit
     draw do
-      scope except: :index do
-        namespace :except do
-          resources :sectors, except: [:show, :update, :destroy] do
-            resources :companies
-            resource  :leader
-          end
+      namespace :except do
+        resources :sectors, except: [:show, :update, :destroy] do
+          resources :companies
+          resource  :leader
         end
       end
     end
