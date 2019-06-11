@@ -41,7 +41,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   fixtures :posts, :readers, :people, :comments, :authors, :categories, :taggings, :tags,
            :owners, :pets, :toys, :jobs, :references, :companies, :members, :author_addresses,
            :subscribers, :books, :subscriptions, :developers, :categorizations, :essays,
-           :categories_posts, :clubs, :memberships, :organizations
+           :categories_posts, :clubs, :memberships, :organizations, :author_favorites
 
   # Dummies to force column loads so query counts are clean.
   def setup
@@ -73,6 +73,20 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
       posts.each(&:author)
       posts.each(&:author_favorites_with_scope)
     end
+  end
+
+  def test_through_association_with_class_name_deprecation
+    assert_deprecated(/Through association will always use the class of the source association specified/) do
+      Post.has_many :deprecated_author_favorites_1, through: :author, class_name: "AuthorFavoriteWithScope", source: "author_favorites"
+    end
+    assert_deprecated(/Remove the :class_name option because it matches the source association class name/) do
+      Post.has_many :deprecated_author_favorites_2, through: :author, class_name: "AuthorFavoriteWithScope", source: "author_favorites_with_scope"
+    end
+  end
+
+  def test_through_association_preloading_maintains_custom_source_asssociation_class
+    posts = Post.preload(:author_favorites_with_scope).to_a
+    assert_equal AuthorFavoriteWithScope, posts.flat_map(&:author_favorites_with_scope).first.class
   end
 
   def test_preload_sti_rhs_class

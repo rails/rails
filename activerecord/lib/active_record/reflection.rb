@@ -759,6 +759,16 @@ module ActiveRecord
         @delegate_reflection = delegate_reflection
         @klass = delegate_reflection.options[:anonymous_class]
         @source_reflection_name = delegate_reflection.options[:source]
+        if class_option = delegate_reflection.options[:class_name]
+          custom_message = class_option == source_reflection.class_name ?
+            "Remove the :class_name option because it matches the source association class name and is not needed" :
+            "Through association will always use the class of the source association specified.
+            Use a custom association with :class_name option as a through association :source to achieve the same behavior."
+          ActiveSupport::Deprecation.warn(
+            "Using a :class_name option for :through association is deprecated and will be removed in Rails 6.1. " +
+            custom_message
+          )
+        end
       end
 
       def through_reflection?

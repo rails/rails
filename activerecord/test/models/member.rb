@@ -31,7 +31,7 @@ class Member < ActiveRecord::Base
   has_many :clubs, through: :favourite_memberships
 
   has_many :tenant_memberships
-  has_many :tenant_clubs, through: :tenant_memberships, class_name: "Club", source: :club
+  has_many :tenant_clubs, through: :tenant_memberships, source: :club
 
   has_one :club_through_many, through: :favourite_memberships, source: :club
 

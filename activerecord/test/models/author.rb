@@ -92,14 +92,15 @@ class Author < ActiveRecord::Base
   has_many :special_categories_with_conditions, -> { where(categorizations: { special: true }) }, through: :categorizations, source: :category
   has_many :nonspecial_categories_with_conditions, -> { where(categorizations: { special: false }) }, through: :categorizations, source: :category
 
-  has_many :categories_like_general, -> { where(name: "General") }, through: :categorizations, source: :category, class_name: "Category"
+  has_many :categories_like_general, -> { where(name: "General") }, through: :categorizations, source: :category
 
   has_many :categorized_posts, through: :categorizations, source: :post
   has_many :unique_categorized_posts, -> { distinct }, through: :categorizations, source: :post
 
-  has_many :nothings, through: :kateggorisatons, class_name: "Category"
+  has_many :nothings, through: :kateggorisatons
 
   has_many :author_favorites
+  has_many :author_favorites_with_scope, class_name: "AuthorFavoriteWithScope"
   has_many :favorite_authors, -> { order("name") }, through: :author_favorites
 
   has_many :taggings,        through: :posts, source: :taggings
