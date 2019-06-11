@@ -20,11 +20,13 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
   end
 
   def test_database_exists_returns_false_if_database_does_not_exist
-    config = ActiveRecord::Base.configurations["arunit"].dup
-    config[:database] = "non_extant_database"
+    error = ->(_) { raise Mysql2::Error.new("Unknown database")  }
+    config = ActiveRecord::Base.configurations["arunit"]
 
-    assert_not ActiveRecord::ConnectionAdapters::Mysql2Adapter.database_exists?(config),
-      "expected database #{config[:database]} to not exist"
+    Mysql2::Client.stub(:new, error) do
+      assert_not ActiveRecord::ConnectionAdapters::Mysql2Adapter.database_exists?(config),
+        "expected database to not exist"
+    end
   end
 
   def test_database_exists_returns_true_when_the_database_exists
