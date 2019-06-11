@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 *   Make ActiveRecord `ConnectionPool.connections` method thread-safe.
 
     Fixes #36465.

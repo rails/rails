@@ -299,6 +299,32 @@ module ApplicationTests
         db_migrate_and_schema_cache_dump_and_schema_cache_clear
       end
 
+      test "db:abort_if_pending_migrations works on all databases" do
+        require "#{app_path}/config/environment"
+
+        app_file "db/animals_migrate/02_two_migration.rb", <<-MIGRATION
+          class TwoMigration < ActiveRecord::Migration::Current
+          end
+        MIGRATION
+
+        output = rails("db:abort_if_pending_migrations", allow_failure: true)
+        assert_match(/You have 1 pending migration/, output)
+      end
+
+      test "db:abort_if_pending_migrations:namespace works" do
+        require "#{app_path}/config/environment"
+
+        app_file "db/animals_migrate/02_two_migration.rb", <<-MIGRATION
+          class TwoMigration < ActiveRecord::Migration::Current
+          end
+        MIGRATION
+
+        output = rails("db:abort_if_pending_migrations:primary")
+        assert_no_match(/You have \d+ pending migration/, output)
+        output = rails("db:abort_if_pending_migrations:animals", allow_failure: true)
+        assert_match(/You have 1 pending migration/, output)
+      end
+
       test "db:prepare works on all databases" do
         require "#{app_path}/config/environment"
         db_prepare
