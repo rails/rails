@@ -55,6 +55,7 @@ module ActiveRecord
         end
 
         def drop_table(table_name, options = {}) # :nodoc:
+          schema_cache.clear_data_source_cache!(table_name.to_s)
           execute "DROP TABLE#{' IF EXISTS' if options[:if_exists]} #{quote_table_name(table_name)}#{' CASCADE' if options[:force] == :cascade}"
         end
 
@@ -376,6 +377,8 @@ module ActiveRecord
         #   rename_table('octopuses', 'octopi')
         def rename_table(table_name, new_name)
           clear_cache!
+          schema_cache.clear_data_source_cache!(table_name.to_s)
+          schema_cache.clear_data_source_cache!(new_name.to_s)
           execute "ALTER TABLE #{quote_table_name(table_name)} RENAME TO #{quote_table_name(new_name)}"
           pk, seq = pk_and_sequence_for(new_name)
           if pk

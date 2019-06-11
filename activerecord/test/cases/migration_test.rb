@@ -190,6 +190,7 @@ class MigrationTest < ActiveRecord::TestCase
 
     assert_not_predicate BigNumber, :table_exists?
     GiveMeBigNumbers.up
+    assert_predicate BigNumber, :table_exists?
     BigNumber.reset_column_information
 
     assert BigNumber.create(
@@ -482,6 +483,7 @@ class MigrationTest < ActiveRecord::TestCase
     Thing.reset_table_name
     Thing.reset_sequence_name
     WeNeedThings.up
+    assert_predicate Thing, :table_exists?
     Thing.reset_column_information
 
     assert Thing.create("content" => "hello world")
@@ -502,8 +504,9 @@ class MigrationTest < ActiveRecord::TestCase
     ActiveRecord::Base.table_name_suffix = "_suffix"
     Reminder.reset_table_name
     Reminder.reset_sequence_name
-    Reminder.reset_column_information
     WeNeedReminders.up
+    assert_predicate Reminder, :table_exists?
+    Reminder.reset_column_information
     assert Reminder.create("content" => "hello world", "remind_at" => Time.now)
     assert_equal "hello world", Reminder.first.content
 

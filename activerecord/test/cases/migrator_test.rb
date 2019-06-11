@@ -429,10 +429,10 @@ class MigratorTest < ActiveRecord::TestCase
     _, migrator = migrator_class(3)
     migrator = migrator.new("valid")
 
-    ActiveRecord::Base.connection.drop_table "schema_migrations", if_exists: true
-    assert_not ActiveRecord::Base.connection.table_exists?("schema_migrations")
+    ActiveRecord::SchemaMigration.drop_table
+    assert_not_predicate ActiveRecord::SchemaMigration, :table_exists?
     migrator.migrate(1)
-    assert ActiveRecord::Base.connection.table_exists?("schema_migrations")
+    assert_predicate ActiveRecord::SchemaMigration, :table_exists?
   end
 
   def test_migrator_forward

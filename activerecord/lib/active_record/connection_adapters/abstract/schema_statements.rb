@@ -310,6 +310,8 @@ module ActiveRecord
 
         if force
           drop_table(table_name, force: force, if_exists: true)
+        else
+          schema_cache.clear_data_source_cache!(table_name.to_s)
         end
 
         result = execute schema_creation.accept td
@@ -499,6 +501,7 @@ module ActiveRecord
       # it can be helpful to provide these in a migration's +change+ method so it can be reverted.
       # In that case, +options+ and the block will be used by #create_table.
       def drop_table(table_name, options = {})
+        schema_cache.clear_data_source_cache!(table_name.to_s)
         execute "DROP TABLE#{' IF EXISTS' if options[:if_exists]} #{quote_table_name(table_name)}"
       end
 
