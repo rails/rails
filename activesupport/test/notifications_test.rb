@@ -20,7 +20,6 @@ module Notifications
     end
 
   private
-
     def event(*args)
       ActiveSupport::Notifications::Event.new(*args)
     end

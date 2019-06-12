@@ -100,7 +100,6 @@ if current_adapter?(:Mysql2Adapter)
       end
 
       private
-
         def with_stubbed_connection_establish_connection
           ActiveRecord::Base.stub(:establish_connection, nil) do
             ActiveRecord::Base.stub(:connection, @connection) do
@@ -180,7 +179,6 @@ if current_adapter?(:Mysql2Adapter)
       end
 
       private
-
         def with_stubbed_connection_establish_connection
           ActiveRecord::Base.stub(:establish_connection, nil) do
             ActiveRecord::Base.stub(:connection, @connection) do
@@ -233,7 +231,6 @@ if current_adapter?(:Mysql2Adapter)
       end
 
       private
-
         def with_stubbed_connection_establish_connection
           ActiveRecord::Base.stub(:establish_connection, nil) do
             ActiveRecord::Base.stub(:connection, @connection) do

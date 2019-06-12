@@ -309,7 +309,6 @@ module ApplicationTests
     end
 
     private
-
       def boot!
         require "#{app_path}/config/environment"
       end

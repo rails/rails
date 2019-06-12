@@ -38,7 +38,6 @@ module ActiveModel
     alias attributes= assign_attributes
 
     private
-
       def _assign_attributes(attributes)
         attributes.each do |k, v|
           _assign_attribute(k, v)

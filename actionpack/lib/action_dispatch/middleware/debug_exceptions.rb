@@ -42,7 +42,6 @@ module ActionDispatch
     end
 
     private
-
       def invoke_interceptors(request, exception)
         backtrace_cleaner = request.get_header("action_dispatch.backtrace_cleaner")
         wrapper = ExceptionWrapper.new(backtrace_cleaner, exception)

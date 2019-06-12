@@ -654,14 +654,12 @@ module Rails
     end
 
     protected
-
       def run_tasks_blocks(*) #:nodoc:
         super
         paths["lib/tasks"].existent.sort.each { |ext| load(ext) }
       end
 
     private
-
       def load_config_initializer(initializer) # :doc:
         ActiveSupport::Notifications.instrument("load_config_initializer.railties", initializer: initializer) do
           load(initializer)

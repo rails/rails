@@ -239,7 +239,6 @@ module ActiveRecord
     end
 
     private
-
       def with_warning_suppression
         log_level = @connection.client_min_messages
         @connection.client_min_messages = "error"

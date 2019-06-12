@@ -21,7 +21,6 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
     end
 
     private
-
       def authenticate
         authenticate_or_request_with_http_token do |token, _|
           token == "lifo"
@@ -190,7 +189,6 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
   end
 
   private
-
     def sample_request(token, options = { nonce: "def" })
       authorization = options.inject([%{Token token="#{token}"}]) do |arr, (k, v)|
         arr << "#{k}=\"#{v}\""

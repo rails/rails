@@ -9,7 +9,6 @@ module Arel # :nodoc: all
       end
 
       private
-
         def visit(o)
           super
           @block.call o

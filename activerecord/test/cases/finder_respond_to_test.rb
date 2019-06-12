@@ -54,7 +54,6 @@ class FinderRespondToTest < ActiveRecord::TestCase
   end
 
   private
-
     def ensure_topic_method_is_not_cached(method_id)
       Topic.singleton_class.remove_method method_id if Topic.public_methods.include? method_id
     end

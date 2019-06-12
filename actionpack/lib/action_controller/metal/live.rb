@@ -107,7 +107,6 @@ module ActionController
       end
 
       private
-
         def perform_write(json, options)
           current_options = @options.merge(options).stringify_keys
 
@@ -205,7 +204,6 @@ module ActionController
       end
 
       private
-
         def each_chunk(&block)
           loop do
             str = nil
@@ -220,7 +218,6 @@ module ActionController
 
     class Response < ActionDispatch::Response #:nodoc: all
       private
-
         def before_committed
           super
           jar = request.cookie_jar
@@ -286,7 +283,6 @@ module ActionController
     end
 
     private
-
       # Spawn a new thread to serve up the controller in. This is to get
       # around the fact that Rack isn't based around IOs and we need to use
       # a thread to stream data from the response bodies. Nobody should call

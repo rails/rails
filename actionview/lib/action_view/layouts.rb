@@ -224,7 +224,6 @@ module ActionView
       # that if no layout conditions are used, this method is not used
       module LayoutConditions # :nodoc:
         private
-
           # Determines whether the current action has a layout definition by
           # checking the action name against the :only and :except conditions
           # set by the <tt>layout</tt> method.
@@ -334,7 +333,6 @@ module ActionView
       end
 
       private
-
         # If no layout is supplied, look for a template named the return
         # value of this method.
         #
@@ -372,7 +370,6 @@ module ActionView
     end
 
   private
-
     def _conditional_layout?
       true
     end

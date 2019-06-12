@@ -636,7 +636,6 @@ module ActiveRecord
       end
 
       private
-
         def assert_logged(logs)
           subscriber = SQLSubscriber.new
           subscription = ActiveSupport::Notifications.subscribe("sql.active_record", subscriber)

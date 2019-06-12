@@ -290,7 +290,6 @@ module ActiveSupport #:nodoc:
       end
 
       private
-
         def load(file, wrap = false)
           result = false
           load_dependency(file) { result = super }

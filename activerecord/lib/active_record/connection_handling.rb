@@ -256,7 +256,6 @@ module ActiveRecord
       :clear_all_connections!, :flush_idle_connections!, to: :connection_handler
 
     private
-
       def swap_connection_handler(handler, &blk) # :nodoc:
         old_handler, ActiveRecord::Base.connection_handler = ActiveRecord::Base.connection_handler, handler
         yield

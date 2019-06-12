@@ -81,7 +81,6 @@ module ActionDispatch
       end
 
       private
-
         def partitioned_routes
           routes.partition { |r|
             r.path.anchored && r.ast.grep(Nodes::Symbol).all? { |n| n.default_regexp?  }

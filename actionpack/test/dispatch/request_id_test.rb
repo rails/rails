@@ -29,7 +29,6 @@ class RequestIdTest < ActiveSupport::TestCase
   end
 
   private
-
     def stub_request(env = {})
       ActionDispatch::RequestId.new(lambda { |environment| [ 200, environment, [] ] }).call(env)
       ActionDispatch::Request.new(env)
@@ -58,7 +57,6 @@ class RequestIdResponseTest < ActionDispatch::IntegrationTest
   end
 
   private
-
     def with_test_route_set
       with_routing do |set|
         set.draw do

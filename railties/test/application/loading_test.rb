@@ -454,7 +454,6 @@ class LoadingTest < ActiveSupport::TestCase
   end
 
   private
-
     def setup_ar!
       ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
       ActiveRecord::Migration.verbose = false

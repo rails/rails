@@ -177,7 +177,6 @@ module ActionDispatch
         end
 
         private
-
           def draw_section(routes)
             header_lengths = ["Prefix", "Verb", "URI Pattern"].map(&:length)
             name_width, verb_width, path_width = widths(routes).zip(header_lengths).map(&:max)
@@ -210,7 +209,6 @@ module ActionDispatch
         end
 
         private
-
           def draw_expanded_section(routes)
             routes.map.each_with_index do |r, i|
               <<~MESSAGE.chomp

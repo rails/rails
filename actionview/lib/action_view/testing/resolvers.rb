@@ -22,7 +22,6 @@ module ActionView #:nodoc:
     end
 
     private
-
       def query(path, exts, _, locals, cache:)
         query = +""
         EXTENSIONS.each do |ext, prefix|

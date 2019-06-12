@@ -69,7 +69,6 @@ module ActiveRecord
         end
 
         private
-
           def body
             "#{finder}(#{attributes_hash})"
           end

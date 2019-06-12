@@ -114,7 +114,6 @@ module ActiveSupport
       end
 
       private
-
         PER_ENTRY_OVERHEAD = 240
 
         def cached_size(key, entry)

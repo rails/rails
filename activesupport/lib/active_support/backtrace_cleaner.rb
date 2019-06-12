@@ -85,7 +85,6 @@ module ActiveSupport
     end
 
     private
-
       FORMATTED_GEMS_PATTERN = /\A[^\/]+ \([\w.]+\) /
 
       def add_gem_filter

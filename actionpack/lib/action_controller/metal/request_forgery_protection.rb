@@ -151,7 +151,6 @@ module ActionController #:nodoc:
       end
 
       private
-
         def protection_method_class(name)
           ActionController::RequestForgeryProtection::ProtectionMethods.const_get(name.to_s.classify)
         rescue NameError
@@ -175,7 +174,6 @@ module ActionController #:nodoc:
         end
 
         private
-
           class NullSessionHash < Rack::Session::Abstract::SessionHash #:nodoc:
             def initialize(req)
               super(nil, req)

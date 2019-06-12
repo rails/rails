@@ -286,7 +286,6 @@ module ActiveRecord
       end
 
       private
-
         def cached_find_by_statement(key, &block)
           cache = @find_by_statement_cache[connection.prepared_statements]
           cache.compute_if_absent(key) { StatementCache.create(connection, &block) }
@@ -554,7 +553,6 @@ module ActiveRecord
     end
 
     private
-
       # +Array#flatten+ will call +#to_ary+ (recursively) on each of the elements of
       # the array, and then rescues from the possible +NoMethodError+. If those elements are
       # +ActiveRecord::Base+'s, then this triggers the various +method_missing+'s that we have,

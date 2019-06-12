@@ -89,7 +89,6 @@ module ActiveRecord
       end
 
       private
-
         attr_reader :configuration
 
         def encoding

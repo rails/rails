@@ -307,7 +307,6 @@ class DefaultContentSecurityPolicyIntegrationTest < ActionDispatch::IntegrationT
   end
 
   private
-
     def assert_policy(expected, report_only: false)
       if report_only
         expected_header = "Content-Security-Policy-Report-Only"
@@ -470,7 +469,6 @@ class ContentSecurityPolicyIntegrationTest < ActionDispatch::IntegrationTest
   end
 
   private
-
     def assert_policy(expected, report_only: false)
       assert_response :success
 

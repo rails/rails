@@ -335,7 +335,6 @@ module RoutingTestHelpers
     end
 
     private
-
       def make_request(env)
         Request.new super, url_helpers, @block, strict
       end

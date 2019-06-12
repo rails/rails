@@ -233,7 +233,6 @@ class ActiveRecord::Relation
     end
 
     private
-
       def table
         Arel::Table.new("table")
       end

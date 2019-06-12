@@ -217,7 +217,6 @@ module ActiveSupport
         end
 
         private
-
           def ascendant_of?(base, other)
             base != other && other.ascend do |ascendant|
               break true if base == ascendant

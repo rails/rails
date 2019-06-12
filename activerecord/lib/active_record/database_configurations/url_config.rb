@@ -56,7 +56,6 @@ module ActiveRecord
       end
 
       private
-
         def build_url_hash(url)
           if url.nil? || /^jdbc:/.match?(url)
             { "url" => url }

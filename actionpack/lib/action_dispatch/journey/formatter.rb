@@ -62,7 +62,6 @@ module ActionDispatch
       end
 
       private
-
         def extract_parameterized_parts(route, options, recall, parameterize = nil)
           parameterized_parts = recall.merge(options)
 

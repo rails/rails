@@ -426,7 +426,6 @@ module ActionView
         end
 
         private
-
           def next_index
             step_index(1)
           end

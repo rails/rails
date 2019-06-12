@@ -12,7 +12,6 @@ module Arel # :nodoc: all
       end
 
       private
-
         attr_reader :dispatch
 
         def self.dispatch_cache

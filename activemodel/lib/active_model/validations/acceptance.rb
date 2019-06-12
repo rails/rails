@@ -15,7 +15,6 @@ module ActiveModel
       end
 
       private
-
         def setup!(klass)
           klass.include(LazilyDefineAttributes.new(AttributeDefinition.new(attributes)))
         end

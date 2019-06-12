@@ -55,7 +55,6 @@ module ActiveRecord
       end
 
       private
-
         def select_database(request, &blk)
           context = context_klass.call(request)
           resolver = resolver_klass.call(context, options)

@@ -167,7 +167,6 @@ module ActiveRecord
         end
 
         private
-
           def internal_poll(timeout)
             no_wait_poll || (timeout && wait_poll(timeout))
           end
@@ -330,7 +329,6 @@ module ActiveRecord
           end
 
           private
-
             def spawn_thread(frequency)
               Thread.new(frequency) do |t|
                 loop do
@@ -1112,7 +1110,6 @@ module ActiveRecord
       end
 
       private
-
         def owner_to_pool
           @owner_to_pool[Process.pid]
         end

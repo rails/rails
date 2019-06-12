@@ -252,7 +252,6 @@ module ActionDispatch
       end
 
       private
-
         def upgrade_legacy_hmac_aes_cbc_cookies?
           request.secret_key_base.present? &&
             request.encrypted_signed_cookie_salt.present? &&
@@ -428,7 +427,6 @@ module ActionDispatch
       mattr_accessor :always_write_cookie, default: false
 
       private
-
         def escape(string)
           ::Rack::Utils.escape(string)
         end

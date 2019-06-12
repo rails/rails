@@ -14,7 +14,6 @@ module ActionView
     end
 
     private
-
       # Determine the template to be rendered using the given options.
       def determine_template(options)
         keys = options.has_key?(:locals) ? options[:locals].keys : []

@@ -46,7 +46,6 @@ module ActiveRecord
       end
 
       private
-
         def load_schema!
           super
           attribute_types.each do |name, type|
@@ -75,7 +74,6 @@ module ActiveRecord
       end
 
       private
-
         def decorators_for(name, type)
           matching(name, type).map(&:last)
         end

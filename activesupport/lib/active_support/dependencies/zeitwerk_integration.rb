@@ -56,7 +56,6 @@ module ActiveSupport
         end
 
         private
-
           def setup_autoloaders(enable_reloading)
             Dependencies.autoload_paths.each do |autoload_path|
               # Zeitwerk only accepts existing directories in `push_dir` to

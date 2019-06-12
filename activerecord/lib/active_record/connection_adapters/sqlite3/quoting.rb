@@ -82,7 +82,6 @@ module ActiveRecord
         private_constant :COLUMN_NAME, :COLUMN_NAME_WITH_ORDER
 
         private
-
           def _type_cast(value)
             case value
             when BigDecimal

@@ -152,7 +152,6 @@ module ActionMailer
     end
 
     private
-
       def delivery_job_filter(job)
         job_class = job.is_a?(Hash) ? job.fetch(:job) : job.class
 

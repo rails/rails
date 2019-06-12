@@ -939,7 +939,6 @@ class BaseTest < ActiveSupport::TestCase
   end
 
   private
-
     # Execute the block setting the given values and restoring old values after
     # the block is executed.
     def swap(klass, new_values)

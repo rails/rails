@@ -39,7 +39,6 @@ class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
       def self.name; "Person"; end
 
       private
-
         def should_be_cool
           unless first_name == "cool"
             errors.add :first_name, "not cool"
@@ -82,7 +81,6 @@ class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
   end
 
   private
-
     def assert_no_difference_when_adding_callbacks_twice_for(model, association_name)
       reflection = model.reflect_on_association(association_name)
       assert_no_difference "callbacks_for_model(#{model.name}).length" do

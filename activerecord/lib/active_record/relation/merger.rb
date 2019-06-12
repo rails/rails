@@ -89,7 +89,6 @@ module ActiveRecord
       end
 
       private
-
         def merge_preloads
           return if other.preload_values.empty? && other.includes_values.empty?
 

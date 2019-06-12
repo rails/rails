@@ -156,7 +156,6 @@ module ActiveRecord
           end
 
           private
-
             # We need to apply this decorator here, rather than on module inclusion. The closure
             # created by the matcher would otherwise evaluate for `ActiveRecord::Base`, not the
             # sub class being decorated. As such, changes to `lock_optimistically`, or

@@ -466,7 +466,6 @@ EXPECTED
   end
 
   private
-
     def object_keys(json_object)
       json_object[1..-2].scan(/([^{}:,\s]+):/).flatten.sort
     end

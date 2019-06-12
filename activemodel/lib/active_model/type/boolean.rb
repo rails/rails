@@ -34,7 +34,6 @@ module ActiveModel
       end
 
       private
-
         def cast_value(value)
           if value == ""
             nil

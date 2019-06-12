@@ -453,7 +453,6 @@ module ActiveRecord
       end
 
       private
-
         # See https://www.postgresql.org/docs/current/static/errcodes-appendix.html
         VALUE_LIMIT_VIOLATION = "22001"
         NUMERIC_VALUE_OUT_OF_RANGE = "22003"

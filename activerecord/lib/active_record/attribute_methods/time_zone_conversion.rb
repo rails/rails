@@ -25,7 +25,6 @@ module ActiveRecord
         end
 
         private
-
           def convert_time_to_time_zone(value)
             return if value.nil?
 
@@ -64,7 +63,6 @@ module ActiveRecord
 
       module ClassMethods # :nodoc:
         private
-
           def inherited(subclass)
             super
             # We need to apply this decorator here, rather than on module inclusion. The closure

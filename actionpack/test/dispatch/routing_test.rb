@@ -3810,7 +3810,6 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
   end
 
 private
-
   def draw(&block)
     self.class.stub_controllers do |routes|
       routes.default_url_options = { host: "www.example.com" }
@@ -4953,7 +4952,6 @@ class TestPartialDynamicPathSegments < ActionDispatch::IntegrationTest
   end
 
   private
-
     def assert_params(params)
       assert_equal(params, request.path_parameters)
     end
@@ -5184,7 +5182,6 @@ class TestRecognizePath < ActionDispatch::IntegrationTest
   end
 
   private
-
     def recognize_path(*args)
       Routes.recognize_path(*args)
     end

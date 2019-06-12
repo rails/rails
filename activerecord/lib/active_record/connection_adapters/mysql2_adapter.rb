@@ -115,7 +115,6 @@ module ActiveRecord
       end
 
       private
-
         def connect
           @connection = Mysql2::Client.new(@config)
           configure_connection
