@@ -45,8 +45,8 @@ module ActiveRecord
 
         private
           def read_from_primary(&blk)
-            ActiveRecord::Base.connection.while_preventing_writes do
-              ActiveRecord::Base.connected_to(role: ActiveRecord::Base.writing_role) do
+            ActiveRecord::Base.connected_to(role: ActiveRecord::Base.writing_role) do
+              ActiveRecord::Base.connection_handler.while_preventing_writes do
                 instrumenter.instrument("database_selector.active_record.read_from_primary") do
                   yield
                 end

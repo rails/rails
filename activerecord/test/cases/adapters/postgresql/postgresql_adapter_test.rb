@@ -13,6 +13,7 @@ module ActiveRecord
 
       def setup
         @connection = ActiveRecord::Base.connection
+        @connection_handler = ActiveRecord::Base.connection_handler
       end
 
       def test_bad_connection
@@ -379,7 +380,7 @@ module ActiveRecord
       def test_errors_when_an_insert_query_is_called_while_preventing_writes
         with_example_table do
           assert_raises(ActiveRecord::ReadOnlyError) do
-            @connection.while_preventing_writes do
+            @connection_handler.while_preventing_writes do
               @connection.execute("INSERT INTO ex (data) VALUES ('138853948594')")
             end
           end
@@ -391,7 +392,7 @@ module ActiveRecord
           @connection.execute("INSERT INTO ex (data) VALUES ('138853948594')")
 
           assert_raises(ActiveRecord::ReadOnlyError) do
-            @connection.while_preventing_writes do
+            @connection_handler.while_preventing_writes do
               @connection.execute("UPDATE ex SET data = '9989' WHERE data = '138853948594'")
             end
           end
@@ -403,7 +404,7 @@ module ActiveRecord
           @connection.execute("INSERT INTO ex (data) VALUES ('138853948594')")
 
           assert_raises(ActiveRecord::ReadOnlyError) do
-            @connection.while_preventing_writes do
+            @connection_handler.while_preventing_writes do
               @connection.execute("DELETE FROM ex where data = '138853948594'")
             end
           end
@@ -414,20 +415,20 @@ module ActiveRecord
         with_example_table do
           @connection.execute("INSERT INTO ex (data) VALUES ('138853948594')")
 
-          @connection.while_preventing_writes do
+          @connection_handler.while_preventing_writes do
             assert_equal 1, @connection.execute("SELECT * FROM ex WHERE data = '138853948594'").entries.count
           end
         end
       end
 
       def test_doesnt_error_when_a_show_query_is_called_while_preventing_writes
-        @connection.while_preventing_writes do
+        @connection_handler.while_preventing_writes do
           assert_equal 1, @connection.execute("SHOW TIME ZONE").entries.count
         end
       end
 
       def test_doesnt_error_when_a_set_query_is_called_while_preventing_writes
-        @connection.while_preventing_writes do
+        @connection_handler.while_preventing_writes do
           assert_equal [], @connection.execute("SET standard_conforming_strings = on").entries
         end
       end
@@ -436,7 +437,7 @@ module ActiveRecord
         with_example_table do
           @connection.execute("INSERT INTO ex (data) VALUES ('138853948594')")
 
-          @connection.while_preventing_writes do
+          @connection_handler.while_preventing_writes do
             assert_equal 1, @connection.execute("(\n( SELECT * FROM ex WHERE data = '138853948594' ) )").entries.count
           end
         end

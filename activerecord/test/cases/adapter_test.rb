@@ -12,6 +12,7 @@ module ActiveRecord
     def setup
       @connection = ActiveRecord::Base.connection
       @connection.materialize_transactions
+      @connection_handler = ActiveRecord::Base.connection_handler
     end
 
     ##
@@ -166,7 +167,7 @@ module ActiveRecord
     def test_preventing_writes_predicate
       assert_not_predicate @connection, :preventing_writes?
 
-      @connection.while_preventing_writes do
+      @connection_handler.while_preventing_writes do
         assert_predicate @connection, :preventing_writes?
       end
 
@@ -176,7 +177,7 @@ module ActiveRecord
     def test_errors_when_an_insert_query_is_called_while_preventing_writes
       assert_no_queries do
         assert_raises(ActiveRecord::ReadOnlyError) do
-          @connection.while_preventing_writes do
+          @connection_handler.while_preventing_writes do
             @connection.transaction do
               @connection.insert("INSERT INTO subscribers(nick) VALUES ('138853948594')", nil, false)
             end
@@ -190,7 +191,7 @@ module ActiveRecord
 
       assert_no_queries do
         assert_raises(ActiveRecord::ReadOnlyError) do
-          @connection.while_preventing_writes do
+          @connection_handler.while_preventing_writes do
             @connection.transaction do
               @connection.update("UPDATE subscribers SET nick = '9989' WHERE nick = '138853948594'")
             end
@@ -204,7 +205,7 @@ module ActiveRecord
 
       assert_no_queries do
         assert_raises(ActiveRecord::ReadOnlyError) do
-          @connection.while_preventing_writes do
+          @connection_handler.while_preventing_writes do
             @connection.transaction do
               @connection.delete("DELETE FROM subscribers WHERE nick = '138853948594'")
             end
@@ -216,7 +217,7 @@ module ActiveRecord
     def test_doesnt_error_when_a_select_query_is_called_while_preventing_writes
       @connection.insert("INSERT INTO subscribers(nick) VALUES ('138853948594')")
 
-      @connection.while_preventing_writes do
+      @connection_handler.while_preventing_writes do
         result = @connection.select_all("SELECT subscribers.* FROM subscribers WHERE nick = '138853948594'")
         assert_equal 1, result.length
       end
