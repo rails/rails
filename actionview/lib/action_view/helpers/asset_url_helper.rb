@@ -133,6 +133,8 @@ module ActionView
       # which is implemented by sprockets-rails.
       #
       #   asset_path("application.js") # => "/assets/application-60aa4fdc5cea14baf5400fba1abf4f2a46a5166bad4772b1effe341570f07de9.js"
+      #   asset_path('application.js', host: 'example.com') # => "//example.com/assets/application.js"
+      #   asset_path("application.js", host: 'example.com', protocol: 'https') # => "https://example.com/assets/application.js"
       #
       # === Without the asset pipeline (<tt>skip_pipeline: true</tt>)
       #
