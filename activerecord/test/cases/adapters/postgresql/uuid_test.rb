@@ -285,7 +285,6 @@ class PostgresqlUUIDGenerationTest < ActiveRecord::PostgreSQLTestCase
 
   uses_transaction \
   def test_schema_dumper_for_uuid_primary_key_default_in_legacy_migration
-    ActiveRecord::SchemaMigration.delete_all
     @verbose_was = ActiveRecord::Migration.verbose
     ActiveRecord::Migration.verbose = false
 
@@ -302,6 +301,7 @@ class PostgresqlUUIDGenerationTest < ActiveRecord::PostgreSQLTestCase
   ensure
     drop_table "pg_uuids_4"
     ActiveRecord::Migration.verbose = @verbose_was
+    ActiveRecord::SchemaMigration.delete_all
   end
 end
 
@@ -335,7 +335,6 @@ class PostgresqlUUIDTestNilDefault < ActiveRecord::PostgreSQLTestCase
 
   uses_transaction \
   def test_schema_dumper_for_uuid_primary_key_with_default_nil_in_legacy_migration
-    ActiveRecord::SchemaMigration.delete_all
     @verbose_was = ActiveRecord::Migration.verbose
     ActiveRecord::Migration.verbose = false
 
@@ -352,6 +351,7 @@ class PostgresqlUUIDTestNilDefault < ActiveRecord::PostgreSQLTestCase
   ensure
     drop_table "pg_uuids_4"
     ActiveRecord::Migration.verbose = @verbose_was
+    ActiveRecord::SchemaMigration.delete_all
   end
 end
 
