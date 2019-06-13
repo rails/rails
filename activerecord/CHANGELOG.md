@@ -1,3 +1,9 @@
+*   Make ActiveRecord `ConnectionPool.connections` method thread-safe.
+
+    Fixes #36465.
+
+    *Jeff Doering*
+
 *   Fix sqlite3 collation parsing when using decimal columns.
 
     *Martin R. Schuster*

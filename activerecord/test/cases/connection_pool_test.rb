@@ -694,6 +694,28 @@ module ActiveRecord
         end
       end
 
+      def test_public_connections_access_threadsafe
+        _conn1 = @pool.checkout
+        conn2 = @pool.checkout
+
+        connections = @pool.connections
+        found_conn = nil
+
+        # Without assuming too much about implementation
+        # details make sure that a concurrent change to
+        # the pool is thread-safe.
+        connections.each_index do |idx|
+          if connections[idx] == conn2
+            Thread.new do
+              @pool.remove(conn2)
+            end.join
+          end
+          found_conn = connections[idx]
+        end
+
+        assert_not_nil found_conn
+      end
+
       private
         def with_single_connection_pool
           one_conn_spec = ActiveRecord::Base.connection_pool.spec.dup
