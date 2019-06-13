@@ -695,7 +695,7 @@ module ActiveRecord
       end
 
       def test_public_connections_access_threadsafe
-        conn1 = @pool.checkout
+        _conn1 = @pool.checkout
         conn2 = @pool.checkout
 
         connections = @pool.connections
