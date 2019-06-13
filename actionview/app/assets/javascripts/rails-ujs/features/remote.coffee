@@ -88,6 +88,6 @@ Rails.preventInsignificantClick = (e) ->
   data = link.getAttribute('data-params')
   metaClick = e.metaKey or e.ctrlKey
   insignificantMetaClick = metaClick and method is 'GET' and not data
-  primaryMouseKey = e.button is 0
-  e.stopImmediatePropagation() if not primaryMouseKey or insignificantMetaClick
+  nonPrimaryMouseClick = e.button? and e.button isnt 0
+  e.stopImmediatePropagation() if nonPrimaryMouseClick or insignificantMetaClick
 
