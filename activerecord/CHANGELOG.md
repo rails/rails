@@ -1,3 +1,9 @@
+*   Make ActiveRecord `ConnectionPool.connections` method thread-safe.
+
+    Fixes #36465.
+
+    *Jeff Doering*
+
 *   Assign all attributes before calling `build` to ensure the child record is visible in
     `before_add` and `after_add` callbacks for `has_many :through` associations.
 
