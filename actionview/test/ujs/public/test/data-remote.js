@@ -82,6 +82,20 @@ asyncTest('right/mouse-wheel-clicking on a link does not fire ajaxyness', 0, fun
   setTimeout(function() { start() }, 13)
 })
 
+asyncTest('clicking on a link via a non-mouse Event (such as from js) works', 1, function() {
+  var link = $('a[data-remote]')
+
+  link
+    .removeAttr('data-params')
+    .bindNative('ajax:beforeSend', function() {
+      ok(true, 'ajax should be triggered')
+    })
+
+  Rails.fire(link[0], 'click')
+
+  setTimeout(function() { start() }, 13)
+})
+
 asyncTest('ctrl-clicking on a link still fires ajax for non-GET links and for links with "data-params"', 2, function() {
   var link = $('a[data-remote]')
 
