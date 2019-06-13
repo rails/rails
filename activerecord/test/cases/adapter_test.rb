@@ -559,7 +559,6 @@ module ActiveRecord
     end
 
     private
-
       def reset_fixtures(*fixture_names)
         ActiveRecord::FixtureSet.reset_cache
 

@@ -174,7 +174,6 @@ module ActionDispatch
         end
 
         private
-
           def regexp_visitor
             @anchored ? AnchoredRegexp : UnanchoredRegexp
           end

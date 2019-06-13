@@ -79,7 +79,6 @@ module Rails
       end
 
       private
-
         def load_rack_cache
           rack_cache = config.action_dispatch.rack_cache
           return unless rack_cache

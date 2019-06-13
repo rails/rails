@@ -118,7 +118,6 @@ module ActiveRecord
       end
 
       private
-
         module StraightReversions # :nodoc:
           private
             {

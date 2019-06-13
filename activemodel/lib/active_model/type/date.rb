@@ -15,7 +15,6 @@ module ActiveModel
       end
 
       private
-
         def cast_value(value)
           if value.is_a?(::String)
             return if value.empty?

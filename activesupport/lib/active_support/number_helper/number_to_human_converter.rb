@@ -31,7 +31,6 @@ module ActiveSupport
       end
 
       private
-
         def format
           options[:format] || translate_in_locale("human.decimal_units.format")
         end

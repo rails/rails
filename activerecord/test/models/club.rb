@@ -15,7 +15,6 @@ class Club < ActiveRecord::Base
   accepts_nested_attributes_for :membership
 
   private
-
     def private_method
       "I'm sorry sir, this is a *private* club, not a *pirate* club"
     end

@@ -104,7 +104,6 @@ module ActionView
     end
 
     private
-
       # Find and render a template based on the options given.
       def _render_template(options)
         variant = options.delete(:variant)

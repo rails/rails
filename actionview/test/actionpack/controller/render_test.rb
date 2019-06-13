@@ -607,7 +607,6 @@ class TestController < ActionController::Base
   end
 
   private
-
     def set_variable_for_layout
       @variable_for_layout = nil
     end

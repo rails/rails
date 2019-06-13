@@ -44,7 +44,6 @@ module ActiveModel
         end
 
         private
-
           def new_time(year, mon, mday, hour, min, sec, microsec, offset = nil)
             # Treat 0000-00-00 00:00:00 as nil.
             return if year.nil? || (year == 0 && mon == 0 && mday == 0)

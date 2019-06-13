@@ -505,7 +505,6 @@ F
   end
 
   private
-
     def action(*args, &block)
       capture(:stdout) { generator.send(*args, &block) }
     end

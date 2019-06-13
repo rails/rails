@@ -73,7 +73,6 @@ module ActiveModel
     end
 
     protected
-
       def attributes_for_hash
         [@base, @attribute, @raw_type, @options]
       end

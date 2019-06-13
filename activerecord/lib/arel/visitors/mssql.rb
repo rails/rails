@@ -11,7 +11,6 @@ module Arel # :nodoc: all
       end
 
       private
-
         def visit_Arel_Nodes_IsNotDistinctFrom(o, collector)
           right = o.right
 

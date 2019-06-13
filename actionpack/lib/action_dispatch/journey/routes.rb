@@ -71,7 +71,6 @@ module ActionDispatch
       end
 
       private
-
         def clear_cache!
           @ast                = nil
           @simulator          = nil

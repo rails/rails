@@ -269,7 +269,6 @@ task default: :test
       end
 
     private
-
       def create_dummy_app(path = nil)
         dummy_path(path) if path
 

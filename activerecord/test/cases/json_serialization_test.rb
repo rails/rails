@@ -10,7 +10,6 @@ require "models/comment"
 
 module JsonSerializationHelpers
   private
-
     def set_include_root_in_json(value)
       original_root_in_json = ActiveRecord::Base.include_root_in_json
       ActiveRecord::Base.include_root_in_json = value

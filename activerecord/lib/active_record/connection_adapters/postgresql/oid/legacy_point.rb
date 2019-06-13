@@ -34,7 +34,6 @@ module ActiveRecord
           end
 
           private
-
             def number_for_point(number)
               number.to_s.gsub(/\.0$/, "")
             end

@@ -112,7 +112,6 @@ module ActiveSupport
     end
 
   private
-
     %w(info debug warn error fatal unknown).each do |level|
       class_eval <<-METHOD, __FILE__, __LINE__ + 1
         def #{level}(progname = nil, &block)

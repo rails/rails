@@ -33,7 +33,6 @@ class Rails::InfoController < Rails::ApplicationController # :nodoc:
   end
 
   private
-
     def match_route
       _routes.routes.select { |route|
         yield route.path

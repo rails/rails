@@ -865,7 +865,6 @@ module ActiveRecord
     end
 
   private
-
     # A hook to be overridden by association modules.
     def destroy_associations
     end

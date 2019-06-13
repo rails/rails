@@ -309,7 +309,6 @@ module ActiveRecord
       end
 
       private
-
         NULL_TRANSACTION = NullTransaction.new
 
         # Deallocate invalidated prepared statements outside of the transaction

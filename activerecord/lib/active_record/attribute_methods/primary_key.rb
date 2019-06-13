@@ -45,7 +45,6 @@ module ActiveRecord
       end
 
       private
-
         def attribute_method?(attr_name)
           attr_name == "id" || super
         end
@@ -120,7 +119,6 @@ module ActiveRecord
           end
 
           private
-
             def suppress_composite_primary_key(pk)
               return pk unless pk.is_a?(Array)
 

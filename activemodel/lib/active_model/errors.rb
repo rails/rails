@@ -594,7 +594,6 @@ module ActiveModel
     end
 
     private
-
       def normalize_arguments(attribute, type, **options)
         # Evaluate proc first
         if type.respond_to?(:call)
@@ -640,7 +639,6 @@ module ActiveModel
     end
 
     private
-
       def prepare_content
         content = @errors.to_hash
         content.each do |attribute, value|

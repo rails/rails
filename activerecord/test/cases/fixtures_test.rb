@@ -948,7 +948,6 @@ class TransactionalFixturesOnConnectionNotification < ActiveRecord::TestCase
   end
 
   private
-
     def fire_connection_notification(connection)
       assert_called_with(ActiveRecord::Base.connection_handler, :retrieve_connection, ["book"], returns: connection) do
         message_bus = ActiveSupport::Notifications.instrumenter
@@ -1367,7 +1366,6 @@ class MultipleDatabaseFixturesTest < ActiveRecord::TestCase
   end
 
   private
-
     def with_temporary_connection_pool
       old_pool = ActiveRecord::Base.connection_handler.retrieve_connection_pool(ActiveRecord::Base.connection_specification_name)
       new_pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new ActiveRecord::Base.connection_pool.spec

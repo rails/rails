@@ -132,7 +132,6 @@ module ActiveRecord
     end
 
     private
-
       def column_type(name, type_overrides = {})
         type_overrides.fetch(name) do
           column_types.fetch(name, Type.default_value)

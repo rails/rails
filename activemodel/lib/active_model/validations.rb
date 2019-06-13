@@ -402,7 +402,6 @@ module ActiveModel
     alias :read_attribute_for_validation :send
 
   private
-
     def run_validations!
       _run_validate_callbacks
       errors.empty?

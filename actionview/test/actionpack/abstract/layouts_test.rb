@@ -140,6 +140,7 @@ module AbstractControllerTests
       def index
         render template: ActionView::Template::Text.new("Hello symbol!")
       end
+
     private
       def hello
         "overwrite"

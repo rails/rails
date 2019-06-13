@@ -1673,7 +1673,6 @@ module ActionDispatch
         end
 
         private
-
           def parent_resource
             @scope[:scope_level_resource]
           end

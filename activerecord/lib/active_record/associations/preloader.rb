@@ -95,7 +95,6 @@ module ActiveRecord
       end
 
       private
-
         # Loads all the given data into +records+ for the +association+.
         def preloaders_on(association, records, scope, polymorphic_parent = false)
           case association

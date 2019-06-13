@@ -96,7 +96,6 @@ class DateTime
   end
 
   private
-
     def offset_in_seconds
       (offset * 86400).to_i
     end

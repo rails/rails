@@ -2938,7 +2938,6 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   private
-
     def force_signal37_to_load_all_clients_of_firm
       companies(:first_firm).clients_of_firm.load_target
     end

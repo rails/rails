@@ -115,7 +115,6 @@ class HotCompatibilityTest < ActiveRecord::TestCase
   end
 
   private
-
     def get_prepared_statement_cache(connection)
       connection.instance_variable_get(:@statements)
         .instance_variable_get(:@cache)[Process.pid]

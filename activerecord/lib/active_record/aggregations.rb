@@ -14,7 +14,6 @@ module ActiveRecord
     end
 
     private
-
       def clear_aggregation_cache
         @aggregation_cache.clear if persisted?
       end

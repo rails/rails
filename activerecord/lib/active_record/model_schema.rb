@@ -456,13 +456,11 @@ module ActiveRecord
       end
 
       protected
-
         def initialize_load_schema_monitor
           @load_schema_monitor = Monitor.new
         end
 
       private
-
         def inherited(child_class)
           super
           child_class.initialize_load_schema_monitor

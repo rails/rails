@@ -938,7 +938,6 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
     end
 
     private
-
       def with_bulk_change_table
         # Reset columns/indexes cache as we're changing the table
         @columns = @indexes = nil

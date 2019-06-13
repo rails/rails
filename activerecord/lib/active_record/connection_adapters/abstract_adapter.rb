@@ -593,7 +593,6 @@ module ActiveRecord
       end
 
       private
-
         def type_map
           @type_map ||= Type::TypeMap.new.tap do |mapping|
             initialize_type_map(mapping)

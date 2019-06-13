@@ -304,7 +304,6 @@ class RescueControllerTest < ActionController::TestCase
   end
 
   private
-
     def capture_log_output
       output = StringIO.new
       request.set_header "action_dispatch.logger", ActiveSupport::Logger.new(output)
@@ -351,7 +350,6 @@ class RescueTest < ActionDispatch::IntegrationTest
   end
 
   private
-
     def with_test_routing
       with_routing do |set|
         set.draw do

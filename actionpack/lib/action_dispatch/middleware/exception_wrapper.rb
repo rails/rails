@@ -130,7 +130,6 @@ module ActionDispatch
     end
 
     private
-
       def backtrace
         Array(@exception.backtrace)
       end

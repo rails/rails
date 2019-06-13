@@ -42,7 +42,6 @@ module ActiveModel
       end
 
       private
-
         def define_method_attribute=(name)
           ActiveModel::AttributeMethods::AttrNames.define_attribute_accessor_method(
             generated_attribute_methods, name, writer: true,
@@ -114,7 +113,6 @@ module ActiveModel
     end
 
     private
-
       def write_attribute(attr_name, value)
         name = attr_name.to_s
         name = self.class.attribute_aliases[name] || name

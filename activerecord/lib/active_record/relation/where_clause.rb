@@ -87,7 +87,6 @@ module ActiveRecord
       end
 
       protected
-
         attr_reader :predicates
 
         def referenced_columns

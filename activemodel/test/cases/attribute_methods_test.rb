@@ -40,7 +40,6 @@ private
   end
 
 protected
-
   def protected_method
     "O_o O_o"
   end

@@ -213,7 +213,6 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
   end
 
   private
-
     def with_example_table(definition = "id int auto_increment primary key, number int, data varchar(255)", &block)
       super(@conn, "ex", definition, &block)
     end

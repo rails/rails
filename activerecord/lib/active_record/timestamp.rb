@@ -96,7 +96,6 @@ module ActiveRecord
     end
 
   private
-
     def _create_record
       if record_timestamps
         current_time = current_time_from_proper_timezone

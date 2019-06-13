@@ -18,7 +18,6 @@ module RailsGuides
     end
 
     private
-
       def process(string, current_level = 3, counters = [1])
         s = StringScanner.new(string)
 

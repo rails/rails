@@ -503,7 +503,6 @@ module ActionDispatch
       end
 
       private
-
         def get(*args)
           ActiveSupport::Deprecation.silence do
             mapper.get(*args)

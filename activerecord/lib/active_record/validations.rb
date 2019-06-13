@@ -71,7 +71,6 @@ module ActiveRecord
     alias_method :validate, :valid?
 
   private
-
     def default_validation_context
       new_record? ? :create : :update
     end

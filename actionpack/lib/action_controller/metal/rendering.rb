@@ -53,7 +53,6 @@ module ActionController
     end
 
     private
-
       def _process_variant(options)
         if defined?(request) && !request.nil? && request.variant.present?
           options[:variant] = request.variant

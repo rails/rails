@@ -109,7 +109,6 @@ module ActiveRecord
       end
 
       private
-
         def cache_sql(sql, name, binds)
           @lock.synchronize do
             result =

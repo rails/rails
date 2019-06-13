@@ -15,7 +15,6 @@ class TimezoneDependentJob < ActiveJob::Base
   end
 
   private
-
     def localtime(*args)
       Time.zone ? Time.zone.local(*args) : Time.utc(*args)
     end

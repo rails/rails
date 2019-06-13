@@ -4,7 +4,6 @@ module Arel # :nodoc: all
   module Visitors
     class PostgreSQL < Arel::Visitors::ToSql
       private
-
         def visit_Arel_Nodes_Matches(o, collector)
           op = o.case_sensitive ? " LIKE " : " ILIKE "
           collector = infix_value o, collector, op

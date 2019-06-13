@@ -346,7 +346,6 @@ module ActiveRecord
     end
 
     private
-
       def offset_index
         offset_value || 0
       end

@@ -43,7 +43,6 @@ class PostController < AbstractPostController
   end
 
 private
-
   def with_iphone
     request.format = "iphone" if request.env["HTTP_ACCEPT"] == "text/iphone"
     yield
