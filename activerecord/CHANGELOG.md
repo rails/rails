@@ -1,3 +1,9 @@
+*   Make ActiveRecord `ConnectionPool.connections` method thread-safe.
+
+    Fixes #36465.
+
+    *Jeff Doering*
+
 *   Add support for multiple databases to `rails db:abort_if_pending_migrations`.
 
     *Mark Lee*
