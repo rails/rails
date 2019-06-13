@@ -253,7 +253,7 @@ module ActionView
       #   #      <input value="New" type="submit" />
       #   #    </form>"
       #
-      #   <%= button_to "New", new_articles_path %>
+      #   <%= button_to "New", new_article_path %>
       #   # => "<form method="post" action="/articles/new" class="button_to">
       #   #      <input value="New" type="submit" />
       #   #    </form>"
