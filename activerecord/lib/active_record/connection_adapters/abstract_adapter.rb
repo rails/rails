@@ -78,7 +78,7 @@ module ActiveRecord
       SIMPLE_INT = /\A\d+\z/
 
       attr_accessor :pool
-      attr_reader :visitor, :owner, :logger, :lock, :prepared_statements, :prevent_writes
+      attr_reader :visitor, :owner, :logger, :lock, :prepared_statements
       alias :in_use? :owner
 
       set_callback :checkin, :after, :enable_lazy_transactions!
@@ -117,7 +117,6 @@ module ActiveRecord
         @pool                = ActiveRecord::ConnectionAdapters::NullPool.new
         @idle_since          = Concurrent.monotonic_time
         @quoted_column_names, @quoted_table_names = {}, {}
-        @prevent_writes = false
         @visitor = arel_visitor
         @statements = build_statement_pool
         @lock = ActiveSupport::Concurrency::LoadInterlockAwareMonitor.new
@@ -143,19 +142,7 @@ module ActiveRecord
       # Returns true if the connection is a replica, or if +prevent_writes+
       # is set to true.
       def preventing_writes?
-        replica? || prevent_writes
-      end
-
-      # Prevent writing to the database regardless of role.
-      #
-      # In some cases you may want to prevent writes to the database
-      # even if you are on a database that can write. `while_preventing_writes`
-      # will prevent writes to the database for the duration of the block.
-      def while_preventing_writes
-        original, @prevent_writes = @prevent_writes, true
-        yield
-      ensure
-        @prevent_writes = original
+        replica? || ActiveRecord::Base.connection_handler.prevent_writes
       end
 
       def migrations_paths # :nodoc:
