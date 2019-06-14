@@ -11,22 +11,7 @@ require "models/uuid_item"
 require "models/author"
 require "models/person"
 require "models/essay"
-
-class Wizard < ActiveRecord::Base
-  self.abstract_class = true
-
-  validates_uniqueness_of :name
-end
-
-class IneptWizard < Wizard
-  validates_uniqueness_of :city
-end
-
-class Conjurer < IneptWizard
-end
-
-class Thaumaturgist < IneptWizard
-end
+require "models/inept_wizard"
 
 class ReplyTitle; end
 

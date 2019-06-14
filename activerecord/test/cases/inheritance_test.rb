@@ -11,6 +11,7 @@ require "models/subscriber"
 require "models/vegetables"
 require "models/shop"
 require "models/sponsor"
+require "models/inept_wizard"
 
 module InheritanceTestHelper
   def with_store_full_sti_class(&block)
@@ -32,7 +33,7 @@ end
 
 class InheritanceTest < ActiveRecord::TestCase
   include InheritanceTestHelper
-  fixtures :companies, :projects, :subscribers, :accounts, :vegetables, :memberships
+  fixtures :companies, :projects, :subscribers, :accounts, :vegetables, :memberships, :inept_wizards
 
   def test_class_with_store_full_sti_class_returns_full_name
     with_store_full_sti_class do
@@ -376,6 +377,18 @@ class InheritanceTest < ActiveRecord::TestCase
 
     firm = Company.new(type: "ExtraFirm")
     assert_equal ExtraFirm, firm.class
+  ensure
+    ActiveSupport::Dependencies.autoload_paths.reject! { |p| p == path }
+    ActiveSupport::Dependencies.clear
+  end
+
+  def test_retrieve_all_descendants
+    path = File.expand_path("../models/autoloadable", __dir__)
+    ActiveSupport::Dependencies.autoload_paths << path
+
+    assert_nil(defined?(Necromancer))
+    Thaumaturgist.find_by!(name: "Melisandre")
+    assert_equal("constant", defined?(Necromancer))
   ensure
     ActiveSupport::Dependencies.autoload_paths.reject! { |p| p == path }
     ActiveSupport::Dependencies.clear

@@ -1,0 +1,9 @@
+felicia:
+  name: 'Felicia'
+  city: 'Budapest'
+  type: 'Thaumaturgist'
+
+melisandre:
+  name: 'Melisandre'
+  city: 'Westeros'
+  type: 'Necromancer'

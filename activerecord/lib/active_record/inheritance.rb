@@ -245,7 +245,8 @@ module ActiveRecord
 
         def type_condition(table = arel_table)
           sti_column = arel_attribute(inheritance_column, table)
-          sti_names  = ([self] + descendants).map(&:sti_name)
+          base_class.pluck(inheritance_column).compact.uniq.map(&:safe_constantize)
+          sti_names = ([self] + descendants).map(&:sti_name)
 
           predicate_builder.build(sti_column, sti_names)
         end
