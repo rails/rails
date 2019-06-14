@@ -41,6 +41,5 @@ class TestComponent < ActionView::Base
   end
 
 private
-
   attr_reader :content, :title, :view_context
 end

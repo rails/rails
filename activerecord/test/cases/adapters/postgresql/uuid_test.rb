@@ -283,7 +283,6 @@ class PostgresqlUUIDGenerationTest < ActiveRecord::PostgreSQLTestCase
     end
   end
 
-  uses_transaction \
   def test_schema_dumper_for_uuid_primary_key_default_in_legacy_migration
     @verbose_was = ActiveRecord::Migration.verbose
     ActiveRecord::Migration.verbose = false
@@ -303,6 +302,7 @@ class PostgresqlUUIDGenerationTest < ActiveRecord::PostgreSQLTestCase
     ActiveRecord::Migration.verbose = @verbose_was
     ActiveRecord::SchemaMigration.delete_all
   end
+  uses_transaction :test_schema_dumper_for_uuid_primary_key_default_in_legacy_migration
 end
 
 class PostgresqlUUIDTestNilDefault < ActiveRecord::PostgreSQLTestCase
@@ -333,7 +333,6 @@ class PostgresqlUUIDTestNilDefault < ActiveRecord::PostgreSQLTestCase
     assert_match(/\bcreate_table "pg_uuids", id: :uuid, default: nil/, schema)
   end
 
-  uses_transaction \
   def test_schema_dumper_for_uuid_primary_key_with_default_nil_in_legacy_migration
     @verbose_was = ActiveRecord::Migration.verbose
     ActiveRecord::Migration.verbose = false
@@ -353,6 +352,7 @@ class PostgresqlUUIDTestNilDefault < ActiveRecord::PostgreSQLTestCase
     ActiveRecord::Migration.verbose = @verbose_was
     ActiveRecord::SchemaMigration.delete_all
   end
+  uses_transaction :test_schema_dumper_for_uuid_primary_key_with_default_nil_in_legacy_migration
 end
 
 class PostgresqlUUIDTestInverseOf < ActiveRecord::PostgreSQLTestCase
