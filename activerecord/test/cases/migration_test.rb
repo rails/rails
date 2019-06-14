@@ -38,6 +38,7 @@ class MigrationTest < ActiveRecord::TestCase
     end
     Reminder.reset_column_information
     @verbose_was, ActiveRecord::Migration.verbose = ActiveRecord::Migration.verbose, false
+    @schema_migration = ActiveRecord::Base.connection.schema_migration
     ActiveRecord::Base.connection.schema_cache.clear!
   end
 
@@ -84,7 +85,7 @@ class MigrationTest < ActiveRecord::TestCase
 
   def test_migrator_versions
     migrations_path = MIGRATIONS_ROOT + "/valid"
-    migrator = ActiveRecord::MigrationContext.new(migrations_path)
+    migrator = ActiveRecord::MigrationContext.new(migrations_path, @schema_migration)
 
     migrator.up
     assert_equal 3, migrator.current_version
@@ -102,23 +103,23 @@ class MigrationTest < ActiveRecord::TestCase
     ActiveRecord::Base.connection.drop_table "schema_migrations", if_exists: true
 
     migrations_path = MIGRATIONS_ROOT + "/valid"
-    migrator = ActiveRecord::MigrationContext.new(migrations_path)
+    migrator = ActiveRecord::MigrationContext.new(migrations_path, @schema_migration)
 
     assert_equal true, migrator.needs_migration?
   end
 
   def test_any_migrations
-    migrator = ActiveRecord::MigrationContext.new(MIGRATIONS_ROOT + "/valid")
+    migrator = ActiveRecord::MigrationContext.new(MIGRATIONS_ROOT + "/valid", @schema_migration)
 
     assert_predicate migrator, :any_migrations?
 
-    migrator_empty = ActiveRecord::MigrationContext.new(MIGRATIONS_ROOT + "/empty")
+    migrator_empty = ActiveRecord::MigrationContext.new(MIGRATIONS_ROOT + "/empty", @schema_migration)
 
     assert_not_predicate migrator_empty, :any_migrations?
   end
 
   def test_migration_version
-    migrator = ActiveRecord::MigrationContext.new(MIGRATIONS_ROOT + "/version_check")
+    migrator = ActiveRecord::MigrationContext.new(MIGRATIONS_ROOT + "/version_check", @schema_migration)
     assert_equal 0, migrator.current_version
     migrator.up(20131219224947)
     assert_equal 20131219224947, migrator.current_version
@@ -249,7 +250,7 @@ class MigrationTest < ActiveRecord::TestCase
     assert_not_predicate Reminder, :table_exists?
 
     name_filter = lambda { |migration| migration.name == "ValidPeopleHaveLastNames" }
-    migrator = ActiveRecord::MigrationContext.new(MIGRATIONS_ROOT + "/valid")
+    migrator = ActiveRecord::MigrationContext.new(MIGRATIONS_ROOT + "/valid", @schema_migration)
     migrator.up(&name_filter)
 
     assert_column Person, :last_name
@@ -311,7 +312,7 @@ class MigrationTest < ActiveRecord::TestCase
         end
       }.new
 
-      migrator = ActiveRecord::Migrator.new(:up, [migration], 100)
+      migrator = ActiveRecord::Migrator.new(:up, [migration], @schema_migration, 100)
 
       e = assert_raise(StandardError) { migrator.migrate }
 
@@ -332,7 +333,7 @@ class MigrationTest < ActiveRecord::TestCase
         end
       }.new
 
-      migrator = ActiveRecord::Migrator.new(:up, [migration], 100)
+      migrator = ActiveRecord::Migrator.new(:up, [migration], @schema_migration, 100)
 
       e = assert_raise(StandardError) { migrator.run }
 
@@ -355,7 +356,7 @@ class MigrationTest < ActiveRecord::TestCase
         end
       }.new
 
-      migrator = ActiveRecord::Migrator.new(:up, [migration], 101)
+      migrator = ActiveRecord::Migrator.new(:up, [migration], @schema_migration, 101)
       e = assert_raise(StandardError) { migrator.migrate }
       assert_equal "An error has occurred, all later migrations canceled:\n\nSomething broke", e.message
 
@@ -414,7 +415,7 @@ class MigrationTest < ActiveRecord::TestCase
   def test_internal_metadata_stores_environment
     current_env     = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
     migrations_path = MIGRATIONS_ROOT + "/valid"
-    migrator = ActiveRecord::MigrationContext.new(migrations_path)
+    migrator = ActiveRecord::MigrationContext.new(migrations_path, @schema_migration)
 
     migrator.up
     assert_equal current_env, ActiveRecord::InternalMetadata[:environment]
@@ -442,7 +443,7 @@ class MigrationTest < ActiveRecord::TestCase
     current_env     = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
     migrations_path = MIGRATIONS_ROOT + "/valid"
 
-    migrator = ActiveRecord::MigrationContext.new(migrations_path)
+    migrator = ActiveRecord::MigrationContext.new(migrations_path, @schema_migration)
     migrator.up
     assert_equal current_env, ActiveRecord::InternalMetadata[:environment]
     assert_equal "bar", ActiveRecord::InternalMetadata[:foo]
@@ -639,7 +640,7 @@ class MigrationTest < ActiveRecord::TestCase
   if ActiveRecord::Base.connection.supports_advisory_locks?
     def test_migrator_generates_valid_lock_id
       migration = Class.new(ActiveRecord::Migration::Current).new
-      migrator = ActiveRecord::Migrator.new(:up, [migration], 100)
+      migrator = ActiveRecord::Migrator.new(:up, [migration], @schema_migration, 100)
 
       lock_id = migrator.send(:generate_migrator_advisory_lock_id)
 
@@ -653,7 +654,7 @@ class MigrationTest < ActiveRecord::TestCase
       # It is important we are consistent with how we generate this so that
       # exclusive locking works across migrator versions
       migration = Class.new(ActiveRecord::Migration::Current).new
-      migrator = ActiveRecord::Migrator.new(:up, [migration], 100)
+      migrator = ActiveRecord::Migrator.new(:up, [migration], @schema_migration, 100)
 
       lock_id = migrator.send(:generate_migrator_advisory_lock_id)
 
@@ -675,7 +676,7 @@ class MigrationTest < ActiveRecord::TestCase
         end
       }.new
 
-      migrator = ActiveRecord::Migrator.new(:up, [migration], 100)
+      migrator = ActiveRecord::Migrator.new(:up, [migration], @schema_migration, 100)
       lock_id = migrator.send(:generate_migrator_advisory_lock_id)
 
       with_another_process_holding_lock(lock_id) do
@@ -696,7 +697,7 @@ class MigrationTest < ActiveRecord::TestCase
         end
       }.new
 
-      migrator = ActiveRecord::Migrator.new(:up, [migration], 100)
+      migrator = ActiveRecord::Migrator.new(:up, [migration], @schema_migration, 100)
       lock_id = migrator.send(:generate_migrator_advisory_lock_id)
 
       with_another_process_holding_lock(lock_id) do
@@ -709,7 +710,7 @@ class MigrationTest < ActiveRecord::TestCase
 
     def test_with_advisory_lock_raises_the_right_error_when_it_fails_to_release_lock
       migration = Class.new(ActiveRecord::Migration::Current).new
-      migrator = ActiveRecord::Migrator.new(:up, [migration], 100)
+      migrator = ActiveRecord::Migrator.new(:up, [migration], @schema_migration, 100)
       lock_id = migrator.send(:generate_migrator_advisory_lock_id)
 
       e = assert_raises(ActiveRecord::ConcurrentMigrationError) do

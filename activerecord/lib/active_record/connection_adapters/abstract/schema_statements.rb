@@ -1064,8 +1064,8 @@ module ActiveRecord
         options
       end
 
-      def dump_schema_information #:nodoc:
-        versions = ActiveRecord::SchemaMigration.all_versions
+      def dump_schema_information # :nodoc:
+        versions = schema_migration.all_versions
         insert_versions_sql(versions) if versions.any?
       end
 
@@ -1081,7 +1081,7 @@ module ActiveRecord
         end
 
         version = version.to_i
-        sm_table = quote_table_name(ActiveRecord::SchemaMigration.table_name)
+        sm_table = quote_table_name(schema_migration.table_name)
 
         migrated = migration_context.get_all_versions
         versions = migration_context.migrations.map(&:version)
@@ -1454,7 +1454,7 @@ module ActiveRecord
         end
 
         def insert_versions_sql(versions)
-          sm_table = quote_table_name(ActiveRecord::SchemaMigration.table_name)
+          sm_table = quote_table_name(schema_migration.table_name)
 
           if versions.is_a?(Array)
             sql = +"INSERT INTO #{sm_table} (version) VALUES\n"

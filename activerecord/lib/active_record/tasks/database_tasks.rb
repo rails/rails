@@ -200,9 +200,10 @@ module ActiveRecord
 
       def truncate_tables(configuration)
         ActiveRecord::Base.connected_to(database: { truncation: configuration }) do
-          table_names = ActiveRecord::Base.connection.tables
+          conn = ActiveRecord::Base.connection
+          table_names = conn.tables
           table_names -= [
-            SchemaMigration.table_name,
+            conn.schema_migration.table_name,
             InternalMetadata.table_name
           ]
 
@@ -233,7 +234,7 @@ module ActiveRecord
       end
 
       def migrate_status
-        unless ActiveRecord::SchemaMigration.table_exists?
+        unless ActiveRecord::Base.connection.schema_migration.table_exists?
           Kernel.abort "Schema migrations table does not exist yet."
         end
 
@@ -328,6 +329,7 @@ module ActiveRecord
       def dump_schema(configuration, format = ActiveRecord::Base.schema_format, spec_name = "primary") # :nodoc:
         require "active_record/schema_dumper"
         filename = dump_filename(spec_name, format)
+        connection = ActiveRecord::Base.connection
 
         case format
         when :ruby
@@ -336,9 +338,9 @@ module ActiveRecord
           end
         when :sql
           structure_dump(configuration, filename)
-          if ActiveRecord::SchemaMigration.table_exists?
+          if connection.schema_migration.table_exists?
             File.open(filename, "a") do |f|
-              f.puts ActiveRecord::Base.connection.dump_schema_information
+              f.puts connection.dump_schema_information
               f.print "\n"
             end
           end
