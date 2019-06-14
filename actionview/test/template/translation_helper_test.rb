@@ -121,6 +121,11 @@ class TranslationHelperTest < ActiveSupport::TestCase
     I18n.exception_handler = old_exception_handler
   end
 
+  def test_hash_default
+    default = { separator: ".", delimiter: "," }
+    assert_equal default, translate(:'special.number.format', default: default)
+  end
+
   def test_translation_returning_an_array
     expected = %w(foo bar)
     assert_equal expected, translate(:"translations.array")
