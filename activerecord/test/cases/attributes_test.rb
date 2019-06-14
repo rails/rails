@@ -241,7 +241,7 @@ module ActiveRecord
 
     test "attributes not backed by database columns are always initialized" do
       OverloadedType.create!
-      model = OverloadedType.first
+      model = OverloadedType.last
 
       assert_nil model.non_existent_decimal
       model.non_existent_decimal = "123"
@@ -253,7 +253,7 @@ module ActiveRecord
         attribute :non_existent_decimal, :decimal, default: 123
       end
       child.create!
-      model = child.first
+      model = child.last
 
       assert_equal 123, model.non_existent_decimal
     end
@@ -264,7 +264,7 @@ module ActiveRecord
         attribute :foo, :string, default: "lol"
       end
       child.create!
-      model = child.first
+      model = child.last
 
       assert_equal "lol", model.foo
 
