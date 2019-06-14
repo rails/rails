@@ -104,7 +104,11 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_schema_names
-    assert_equal ["public", "test_schema", "test_schema2"], @connection.schema_names
+    schema_names = @connection.schema_names
+    assert_includes schema_names, "public"
+    assert_includes schema_names, "test_schema"
+    assert_includes schema_names, "test_schema2"
+    assert_includes schema_names, "hint_plan" if @connection.supports_optimizer_hints?
   end
 
   def test_create_schema
