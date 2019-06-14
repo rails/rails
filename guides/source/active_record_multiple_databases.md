@@ -32,6 +32,7 @@ The following features are not (yet) supported:
 * Sharding
 * Joining across clusters
 * Load balancing replicas
+* Dumping schema caches for multiple databases
 
 ## Setting up your application
 
@@ -120,6 +121,12 @@ you don't want to change. In that case you can set a new role name in your appli
 config.active_record.writing_role = :default
 config.active_record.reading_role = :readonly
 ```
+
+It's important to connect to your database in a single model and then inherit from that model
+for the tables rather than connect multiple individual models to the same database. Database
+clients have a limit to the number of open connections there can be and if you do this it will
+multiply the number of connections you have since Rails uses the model class name for the
+connection specification name.
 
 Now that we have the database.yml and the new model set up it's time to create the databases.
 Rails 6.0 ships with all the rails tasks you need to use multiple databases in Rails.
@@ -253,17 +260,29 @@ for the 'nonexistent' role.)`
 
 ## Caveats
 
+### Sharding
+
 As noted at the top, Rails doesn't (yet) support sharding. We had to do a lot of work
 to support multiple databases for Rails 6.0. The lack of support for sharding isn't
 an oversight, but does require additional work that didn't make it in for 6.0. For now
 if you need sharding it may be advisable to continue using one of the many gems
 that supports this.
 
+### Load Balancing Replicas
+
 Rails also doesn't support automatic load balancing of replicas. This is very
 dependent on your infrastructure. We may implement basic, primitive load balancing
 in the future, but for an application at scale this should be something your application
 handles outside of Rails.
 
-Lastly, you cannot join across databases. Rails 6.1 will support using `has_many`
+### Joining Across Databases
+
+Applications cannot join across databases. Rails 6.1 will support using `has_many`
 relationships and creating 2 queries instead of joining, but Rails 6.0 will require
 you to split the joins into 2 selects manually.
+
+### Schema Cache
+
+If you use a schema cache and multiple database you'll need to write an initialzer
+that loads the schema cache from your app. This wasn't an issue we could resolve in
+time for Rails 6.0 but hope to have it in a future version soon.
