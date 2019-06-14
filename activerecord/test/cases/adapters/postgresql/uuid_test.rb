@@ -293,13 +293,14 @@ class PostgresqlUUIDGenerationTest < ActiveRecord::PostgreSQLTestCase
         create_table("pg_uuids_4", id: :uuid)
       end
     end.new
-    ActiveRecord::Migrator.new(:up, [migration]).migrate
+    ActiveRecord::Migrator.new(:up, [migration], ActiveRecord::Base.connection.schema_migration).migrate
 
     schema = dump_table_schema "pg_uuids_4"
     assert_match(/\bcreate_table "pg_uuids_4", id: :uuid, default: -> { "uuid_generate_v4\(\)" }/, schema)
   ensure
     drop_table "pg_uuids_4"
     ActiveRecord::Migration.verbose = @verbose_was
+    ActiveRecord::Base.connection.schema_migration.delete_all
   end
 end
 
@@ -341,13 +342,14 @@ class PostgresqlUUIDTestNilDefault < ActiveRecord::PostgreSQLTestCase
         create_table("pg_uuids_4", id: :uuid, default: nil)
       end
     end.new
-    ActiveRecord::Migrator.new(:up, [migration]).migrate
+    ActiveRecord::Migrator.new(:up, [migration], ActiveRecord::Base.connection.schema_migration).migrate
 
     schema = dump_table_schema "pg_uuids_4"
     assert_match(/\bcreate_table "pg_uuids_4", id: :uuid, default: nil/, schema)
   ensure
     drop_table "pg_uuids_4"
     ActiveRecord::Migration.verbose = @verbose_was
+    ActiveRecord::Base.connection.schema_migration.delete_all
   end
 end
 
