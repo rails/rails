@@ -2,6 +2,14 @@
 
 module ActiveRecord
   module ConnectionHandling
+    RAILS_ENV = ActiveSupport::Deprecation::DeprecatedObjectProxy.new(
+      -> { (Rails.env if defined?(Rails.env)) || ENV["RAILS_ENV"].presence || ENV["RACK_ENV"].presence },
+      "RAILS_ENV is deprecated, to find out the current environment please use ActiveRecord::Base.current_environment"
+    )
+    DEFAULT_ENV = ActiveSupport::Deprecation::DeprecatedObjectProxy.new(
+      -> { RAILS_ENV.call || "default_env" },
+      "DEFAULT_ENV is deprecated, to find out the current environemnt please use ActiveRecord::Base.current_environment"
+    )
     # Establishes the connection to the database. Accepts a hash as input where
     # the <tt>:adapter</tt> key must be specified with the name of a database adapter (in lower-case)
     # example for regular databases (MySQL, PostgreSQL, etc):
