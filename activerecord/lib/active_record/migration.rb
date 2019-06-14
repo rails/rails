@@ -494,9 +494,9 @@ module ActiveRecord
   # This migration will create the horses table for you on the way up, and
   # automatically figure out how to drop the table on the way down.
   #
-  # Some commands like +remove_column+ cannot be reversed.  If you care to
-  # define how to move up and down in these cases, you should define the +up+
-  # and +down+ methods as before.
+  # Some commands cannot be reversed. If you care to define how to move up
+  # and down in these cases, you should define the +up+ and +down+ methods
+  # as before.
   #
   # If a command cannot be reversed, an
   # <tt>ActiveRecord::IrreversibleMigration</tt> exception will be raised when
