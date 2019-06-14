@@ -8,6 +8,7 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
 
   def setup
     @conn = ActiveRecord::Base.connection
+    @connection_handler = ActiveRecord::Base.connection_handler
   end
 
   def test_exec_query_nothing_raises_with_no_result_queries
@@ -148,7 +149,7 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
 
   def test_errors_when_an_insert_query_is_called_while_preventing_writes
     assert_raises(ActiveRecord::ReadOnlyError) do
-      @conn.while_preventing_writes do
+      @connection_handler.while_preventing_writes do
         @conn.insert("INSERT INTO `engines` (`car_id`) VALUES ('138853948594')")
       end
     end
@@ -158,7 +159,7 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
     @conn.insert("INSERT INTO `engines` (`car_id`) VALUES ('138853948594')")
 
     assert_raises(ActiveRecord::ReadOnlyError) do
-      @conn.while_preventing_writes do
+      @connection_handler.while_preventing_writes do
         @conn.update("UPDATE `engines` SET `engines`.`car_id` = '9989' WHERE `engines`.`car_id` = '138853948594'")
       end
     end
@@ -168,7 +169,7 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
     @conn.execute("INSERT INTO `engines` (`car_id`) VALUES ('138853948594')")
 
     assert_raises(ActiveRecord::ReadOnlyError) do
-      @conn.while_preventing_writes do
+      @connection_handler.while_preventing_writes do
         @conn.execute("DELETE FROM `engines` where `engines`.`car_id` = '138853948594'")
       end
     end
@@ -178,7 +179,7 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
     @conn.execute("INSERT INTO `engines` (`car_id`) VALUES ('138853948594')")
 
     assert_raises(ActiveRecord::ReadOnlyError) do
-      @conn.while_preventing_writes do
+      @connection_handler.while_preventing_writes do
         @conn.execute("REPLACE INTO `engines` SET `engines`.`car_id` = '249823948'")
       end
     end
@@ -187,19 +188,19 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
   def test_doesnt_error_when_a_select_query_is_called_while_preventing_writes
     @conn.execute("INSERT INTO `engines` (`car_id`) VALUES ('138853948594')")
 
-    @conn.while_preventing_writes do
+    @connection_handler.while_preventing_writes do
       assert_equal 1, @conn.execute("SELECT `engines`.* FROM `engines` WHERE `engines`.`car_id` = '138853948594'").entries.count
     end
   end
 
   def test_doesnt_error_when_a_show_query_is_called_while_preventing_writes
-    @conn.while_preventing_writes do
+    @connection_handler.while_preventing_writes do
       assert_equal 2, @conn.execute("SHOW FULL FIELDS FROM `engines`").entries.count
     end
   end
 
   def test_doesnt_error_when_a_set_query_is_called_while_preventing_writes
-    @conn.while_preventing_writes do
+    @connection_handler.while_preventing_writes do
       assert_nil @conn.execute("SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci")
     end
   end
@@ -207,7 +208,7 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
   def test_doesnt_error_when_a_read_query_with_leading_chars_is_called_while_preventing_writes
     @conn.execute("INSERT INTO `engines` (`car_id`) VALUES ('138853948594')")
 
-    @conn.while_preventing_writes do
+    @connection_handler.while_preventing_writes do
       assert_equal 1, @conn.execute("(\n( SELECT `engines`.* FROM `engines` WHERE `engines`.`car_id` = '138853948594' ) )").entries.count
     end
   end

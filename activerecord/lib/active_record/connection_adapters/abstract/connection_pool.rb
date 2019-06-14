@@ -999,13 +999,28 @@ module ActiveRecord
         end
       end
 
+      attr_reader :prevent_writes
+
       def initialize
         # These caches are keyed by spec.name (ConnectionSpecification#name).
         @owner_to_pool = ConnectionHandler.create_owner_to_pool
+        @prevent_writes = false
 
         # Backup finalizer: if the forked child never needed a pool, the above
         # early discard has not occurred
         ObjectSpace.define_finalizer self, ConnectionHandler.unowned_pool_finalizer(@owner_to_pool)
+      end
+
+      # Prevent writing to the database regardless of role.
+      #
+      # In some cases you may want to prevent writes to the database
+      # even if you are on a database that can write. `while_preventing_writes`
+      # will prevent writes to the database for the duration of the block.
+      def while_preventing_writes
+        original, @prevent_writes = @prevent_writes, true
+        yield
+      ensure
+        @prevent_writes = original
       end
 
       def connection_pool_list
