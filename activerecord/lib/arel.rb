@@ -12,7 +12,7 @@ require "arel/math"
 require "arel/alias_predication"
 require "arel/order_predications"
 require "arel/table"
-require "arel/attributes"
+require "arel/attributes/attribute"
 
 require "arel/visitors"
 require "arel/collectors/sql_string"
