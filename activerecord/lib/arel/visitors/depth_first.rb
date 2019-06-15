@@ -10,7 +10,7 @@ module Arel # :nodoc: all
 
       private
 
-        def visit(o)
+        def visit(o, _ = nil)
           super
           @block.call o
         end
