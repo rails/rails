@@ -3416,7 +3416,7 @@ NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
 
 #### `prev_day`, `next_day`
 
-In Ruby 1.9 `prev_day` and `next_day` return the date in the last or next day:
+`prev_day` and `next_day` return the date in the last or next day:
 
 ```ruby
 d = Date.new(2010, 5, 8) # => Sat, 08 May 2010
@@ -3428,7 +3428,7 @@ NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
 
 #### `prev_month`, `next_month`
 
-In Ruby 1.9 `prev_month` and `next_month` return the date with the same day in the last or next month:
+`prev_month` and `next_month` return the date with the same day in the last or next month:
 
 ```ruby
 d = Date.new(2010, 5, 8) # => Sat, 08 May 2010
@@ -3449,7 +3449,7 @@ NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
 
 #### `prev_year`, `next_year`
 
-In Ruby 1.9 `prev_year` and `next_year` return a date with the same day/month in the last or next year:
+`prev_year` and `next_year` return a date with the same day/month in the last or next year:
 
 ```ruby
 d = Date.new(2010, 5, 8) # => Sat, 08 May 2010
