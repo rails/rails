@@ -689,12 +689,6 @@ module Arel # :nodoc: all
           join_name = o.relation.table_alias || o.relation.name
           collector << quote_table_name(join_name) << "." << quote_column_name(o.name)
         end
-        alias :visit_Arel_Attributes_Integer :visit_Arel_Attributes_Attribute
-        alias :visit_Arel_Attributes_Float :visit_Arel_Attributes_Attribute
-        alias :visit_Arel_Attributes_Decimal :visit_Arel_Attributes_Attribute
-        alias :visit_Arel_Attributes_String :visit_Arel_Attributes_Attribute
-        alias :visit_Arel_Attributes_Time :visit_Arel_Attributes_Attribute
-        alias :visit_Arel_Attributes_Boolean :visit_Arel_Attributes_Attribute
 
         def literal(o, collector); collector << o.to_s; end
 
