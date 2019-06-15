@@ -89,14 +89,12 @@ module ActiveSupport
 
           if listener.respond_to?(:start) && listener.respond_to?(:finish)
             subscriber_class = Evented
-          else
+          elsif listener.respond_to?(:parameters)
             # Doing all this to detect a block like `proc { |x| }` vs
             # `proc { |*x| }` or `proc { |**x| }`
-            if listener.respond_to?(:parameters)
-              params = listener.parameters
-              if params.length == 1 && params.first.first == :opt
-                subscriber_class = EventObject
-              end
+            params = listener.parameters
+            if params.length == 1 && params.first.first == :opt
+              subscriber_class = EventObject
             end
           end
 

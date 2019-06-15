@@ -42,12 +42,10 @@ module ActionController
         options = @_url_options.dup
         if original_script_name
           options[:original_script_name] = original_script_name
+        elsif same_origin
+          options[:script_name] = request.script_name.empty? ? "" : request.script_name.dup
         else
-          if same_origin
-            options[:script_name] = request.script_name.empty? ? "" : request.script_name.dup
-          else
-            options[:script_name] = script_name
-          end
+          options[:script_name] = script_name
         end
         options.freeze
       else

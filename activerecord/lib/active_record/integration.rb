@@ -72,18 +72,16 @@ module ActiveRecord
     def cache_key
       if new_record?
         "#{model_name.cache_key}/new"
+      elsif cache_version
+        "#{model_name.cache_key}/#{id}"
       else
-        if cache_version
-          "#{model_name.cache_key}/#{id}"
-        else
-          timestamp = max_updated_column_timestamp
+        timestamp = max_updated_column_timestamp
 
-          if timestamp
-            timestamp = timestamp.utc.to_s(cache_timestamp_format)
-            "#{model_name.cache_key}/#{id}-#{timestamp}"
-          else
-            "#{model_name.cache_key}/#{id}"
-          end
+        if timestamp
+          timestamp = timestamp.utc.to_s(cache_timestamp_format)
+          "#{model_name.cache_key}/#{id}-#{timestamp}"
+        else
+          "#{model_name.cache_key}/#{id}"
         end
       end
     end
@@ -104,10 +102,8 @@ module ActiveRecord
         elsif timestamp = updated_at
           timestamp.utc.to_s(cache_timestamp_format)
         end
-      else
-        if self.class.has_attribute?("updated_at")
-          raise ActiveModel::MissingAttributeError, "missing attribute: updated_at"
-        end
+      elsif self.class.has_attribute?("updated_at")
+        raise ActiveModel::MissingAttributeError, "missing attribute: updated_at"
       end
     end
 

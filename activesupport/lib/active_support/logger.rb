@@ -66,12 +66,10 @@ module ActiveSupport
                 block.call(self)
               end
             end
+          elsif defined?(super)
+            super(level, &block)
           else
-            if defined?(super)
-              super(level, &block)
-            else
-              block.call(self)
-            end
+            block.call(self)
           end
         end
       end

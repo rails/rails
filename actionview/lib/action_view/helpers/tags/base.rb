@@ -37,8 +37,8 @@ module ActionView
           def value
             if @allow_method_names_outside_object
               object.public_send @method_name if object && object.respond_to?(@method_name)
-            else
-              object.public_send @method_name if object
+            elsif object
+              object.public_send @method_name
             end
           end
 

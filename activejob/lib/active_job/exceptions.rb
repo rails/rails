@@ -53,15 +53,13 @@ module ActiveJob
 
           if executions < attempts
             retry_job wait: determine_delay(seconds_or_duration_or_algorithm: wait, executions: executions), queue: queue, priority: priority, error: error
-          else
-            if block_given?
-              instrument :retry_stopped, error: error do
-                yield self, error
-              end
-            else
-              instrument :retry_stopped, error: error
-              raise error
+          elsif block_given?
+            instrument :retry_stopped, error: error do
+              yield self, error
             end
+          else
+            instrument :retry_stopped, error: error
+            raise error
           end
         end
       end

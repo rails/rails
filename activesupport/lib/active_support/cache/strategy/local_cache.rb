@@ -143,8 +143,8 @@ module ActiveSupport
           def write_entry(key, entry, options)
             if options[:unless_exist]
               local_cache.delete_entry(key, options) if local_cache
-            else
-              local_cache.write_entry(key, entry, options) if local_cache
+            elsif local_cache
+              local_cache.write_entry(key, entry, options)
             end
 
             super

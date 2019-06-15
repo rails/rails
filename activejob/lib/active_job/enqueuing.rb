@@ -62,18 +62,16 @@ module ActiveJob
 
       if successfully_enqueued
         self
+      elsif self.class.return_false_on_aborted_enqueue
+        false
       else
-        if self.class.return_false_on_aborted_enqueue
-          false
-        else
-          ActiveSupport::Deprecation.warn(
-            "Rails 6.1 will return false when the enqueuing is aborted. Make sure your code doesn't depend on it" \
-            " returning the instance of the job and set `config.active_job.return_false_on_aborted_enqueue = true`" \
-            " to remove the deprecations."
-          )
+        ActiveSupport::Deprecation.warn(
+          "Rails 6.1 will return false when the enqueuing is aborted. Make sure your code doesn't depend on it" \
+          " returning the instance of the job and set `config.active_job.return_false_on_aborted_enqueue = true`" \
+          " to remove the deprecations."
+        )
 
-          self
-        end
+        self
       end
     end
   end

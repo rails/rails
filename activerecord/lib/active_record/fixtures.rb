@@ -662,8 +662,8 @@ module ActiveRecord
       def model_class=(class_name)
         if class_name.is_a?(Class) # TODO: Should be an AR::Base type class, or any?
           @model_class = class_name
-        else
-          @model_class = class_name.safe_constantize if class_name
+        elsif class_name
+          @model_class = class_name.safe_constantize
         end
       end
 

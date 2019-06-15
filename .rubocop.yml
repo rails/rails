@@ -84,6 +84,9 @@ Layout/EmptyLinesAroundModuleBody:
 Style/HashSyntax:
   Enabled: true
 
+Style/IfInsideElse:
+  Enabled: true
+
 Layout/IndentFirstArgument:
   Enabled: true
 

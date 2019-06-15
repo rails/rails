@@ -383,12 +383,10 @@ module ActionDispatch
             options.group_by do |key, option|
               if Regexp === option
                 :constraints
+              elsif path_params.include?(key)
+                :path_params
               else
-                if path_params.include?(key)
-                  :path_params
-                else
-                  :required_defaults
-                end
+                :required_defaults
               end
             end
           end

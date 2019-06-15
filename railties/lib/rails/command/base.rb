@@ -27,8 +27,8 @@ module Rails
         def desc(usage = nil, description = nil, options = {})
           if usage
             super
-          else
-            @desc ||= ERB.new(File.read(usage_path)).result(binding) if usage_path
+          elsif usage_path
+            @desc ||= ERB.new(File.read(usage_path)).result(binding)
           end
         end
 

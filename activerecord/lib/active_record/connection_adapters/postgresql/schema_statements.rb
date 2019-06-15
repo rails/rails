@@ -129,8 +129,8 @@ module ActiveRecord
                 opclasses[column] = opclass.to_sym if opclass
                 if nulls
                   orders[column] = [desc, nulls].compact.join(" ")
-                else
-                  orders[column] = :desc if desc
+                elsif desc
+                  orders[column] = :desc
                 end
               end
             end
@@ -265,8 +265,8 @@ module ActiveRecord
               quoted_sequence = quote_table_name(sequence)
 
               query_value("SELECT setval(#{quote(quoted_sequence)}, #{value})", "SCHEMA")
-            else
-              @logger.warn "#{table} has primary key #{pk} with no default sequence." if @logger
+            elsif @logger
+              @logger.warn "#{table} has primary key #{pk} with no default sequence."
             end
           end
         end
