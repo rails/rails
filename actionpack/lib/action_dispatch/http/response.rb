@@ -86,6 +86,7 @@ module ActionDispatch # :nodoc:
 
     cattr_accessor :default_charset, default: "utf-8"
     cattr_accessor :default_headers
+    cattr_accessor :return_only_media_type_on_content_type, default: false
 
     include Rack::Response::Helpers
     # Aliasing these off because AD::Http::Cache::Response defines them.
@@ -243,7 +244,17 @@ module ActionDispatch # :nodoc:
 
     # Content type of response.
     def content_type
-      super.presence
+      if self.class.return_only_media_type_on_content_type
+        ActiveSupport::Deprecation.warn(
+          "Rails 6.1 will return Content-Type header without modification." \
+          " If you want just the MIME type, please use `#media_type` instead."
+        )
+
+        content_type = super
+        content_type ? content_type.split(/;\s*charset=/)[0].presence : content_type
+      else
+        super.presence
+      end
     end
 
     # Media type of response.
