@@ -3416,56 +3416,56 @@ NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
 
 #### `prev_day`, `next_day`
 
-`prev_day` and `next_day` return the date in the last or next day:
+`prev_day` and `next_day` return the time in the last or next day:
 
 ```ruby
-d = Date.new(2010, 5, 8) # => Sat, 08 May 2010
-d.prev_day               # => Fri, 07 May 2010
-d.next_day               # => Sun, 09 May 2010
+t = Time.new(2010, 5, 8) # => 2010-05-08 00:00:00 +0900
+t.prev_day               # => 2010-05-07 00:00:00 +0900
+t.next_day               # => 2010-05-09 00:00:00 +0900
 ```
 
-NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
+NOTE: Defined in `active_support/core_ext/time/calculations.rb`.
 
 #### `prev_month`, `next_month`
 
-`prev_month` and `next_month` return the date with the same day in the last or next month:
+`prev_month` and `next_month` return the time with the same day in the last or next month:
 
 ```ruby
-d = Date.new(2010, 5, 8) # => Sat, 08 May 2010
-d.prev_month             # => Thu, 08 Apr 2010
-d.next_month             # => Tue, 08 Jun 2010
+t = Time.new(2010, 5, 8) # => 2010-05-08 00:00:00 +0900
+t.prev_month             # => 2010-04-08 00:00:00 +0900
+t.next_month             # => 2010-06-08 00:00:00 +0900
 ```
 
 If such a day does not exist, the last day of the corresponding month is returned:
 
 ```ruby
-Date.new(2000, 5, 31).prev_month # => Sun, 30 Apr 2000
-Date.new(2000, 3, 31).prev_month # => Tue, 29 Feb 2000
-Date.new(2000, 5, 31).next_month # => Fri, 30 Jun 2000
-Date.new(2000, 1, 31).next_month # => Tue, 29 Feb 2000
+Time.new(2000, 5, 31).prev_month # => 2000-04-30 00:00:00 +0900
+Time.new(2000, 3, 31).prev_month # => 2000-02-29 00:00:00 +0900
+Time.new(2000, 5, 31).next_month # => 2000-06-30 00:00:00 +0900
+Time.new(2000, 1, 31).next_month # => 2000-02-29 00:00:00 +0900
 ```
 
-NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
+NOTE: Defined in `active_support/core_ext/time/calculations.rb`.
 
 #### `prev_year`, `next_year`
 
-`prev_year` and `next_year` return a date with the same day/month in the last or next year:
+`prev_year` and `next_year` return a time with the same day/month in the last or next year:
 
 ```ruby
-d = Date.new(2010, 5, 8) # => Sat, 08 May 2010
-d.prev_year              # => Fri, 08 May 2009
-d.next_year              # => Sun, 08 May 2011
+t = Time.new(2010, 5, 8) # => 2010-05-08 00:00:00 +0900
+t.prev_year              # => 2009-05-08 00:00:00 +0900
+t.next_year              # => 2011-05-08 00:00:00 +0900
 ```
 
 If date is the 29th of February of a leap year, you obtain the 28th:
 
 ```ruby
-d = Date.new(2000, 2, 29) # => Tue, 29 Feb 2000
-d.prev_year               # => Sun, 28 Feb 1999
-d.next_year               # => Wed, 28 Feb 2001
+t = Time.new(2000, 2, 29) # => 2000-02-29 00:00:00 +0900
+t.prev_year               # => 1999-02-28 00:00:00 +0900
+t.next_year               # => 2001-02-28 00:00:00 +0900
 ```
 
-NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
+NOTE: Defined in `active_support/core_ext/time/calculations.rb`.
 
 #### `prev_quarter`, `next_quarter`
 
