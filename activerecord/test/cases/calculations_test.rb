@@ -767,6 +767,12 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal [[2, 2], [4, 4]], Reply.includes(:topic).pluck(:id, :"topics.id")
   end
 
+  def test_group_by_with_order_by_virtual_count_attribute
+    expected = { "SpecialPost" => 1, "StiPost" => 2 }
+    actual = Post.group(:type).order(:count).limit(2).maximum(:comments_count)
+    assert_equal expected, actual
+  end if current_adapter?(:PostgreSQLAdapter)
+
   def test_group_by_with_limit
     expected = { "Post" => 8, "SpecialPost" => 1 }
     actual = Post.includes(:comments).group(:type).order(:type).limit(2).count("comments.id")
