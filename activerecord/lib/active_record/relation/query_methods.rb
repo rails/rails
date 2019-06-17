@@ -1159,8 +1159,9 @@ module ActiveRecord
         columns.flat_map do |field|
           case field
           when Symbol
-            field = field.to_s
-            arel_column(field, &connection.method(:quote_table_name))
+            arel_column(field.to_s) do |attr_name|
+              connection.quote_table_name(attr_name)
+            end
           when String
             arel_column(field, &:itself)
           when Proc
@@ -1268,26 +1269,30 @@ module ActiveRecord
         order_args.map! do |arg|
           case arg
           when Symbol
-            arg = arg.to_s
-            arel_column(arg) {
-              Arel.sql(connection.quote_table_name(arg))
-            }.asc
+            order_column(arg.to_s).asc
           when Hash
             arg.map { |field, dir|
               case field
               when Arel::Nodes::SqlLiteral
                 field.send(dir.downcase)
               else
-                field = field.to_s
-                arel_column(field) {
-                  Arel.sql(connection.quote_table_name(field))
-                }.send(dir.downcase)
+                order_column(field.to_s).send(dir.downcase)
               end
             }
           else
             arg
           end
         end.flatten!
+      end
+
+      def order_column(field)
+        arel_column(field) do |attr_name|
+          if attr_name == "count" && !group_values.empty?
+            arel_attribute(attr_name)
+          else
+            Arel.sql(connection.quote_table_name(attr_name))
+          end
+        end
       end
 
       # Checks to make sure that the arguments are not blank. Note that if some

@@ -1,4 +1,9 @@
-<<<<<<< HEAD
+*   PostgreSQL: Fix GROUP BY with ORDER BY virtual count attribute.
+
+    Fixes #36022.
+
+    *Ryuta Kamizono*
+
 *   Make ActiveRecord `ConnectionPool.connections` method thread-safe.
 
     Fixes #36465.

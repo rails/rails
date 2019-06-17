@@ -261,6 +261,7 @@ ActiveRecord::Schema.define do
     t.references :developer, index: false
     t.references :company, index: false
     t.string :metadata
+    t.integer :count
   end
 
   create_table :customers, force: true do |t|
