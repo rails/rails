@@ -283,6 +283,6 @@ you to split the joins into 2 selects manually.
 
 ### Schema Cache
 
-If you use a schema cache and multiple database you'll need to write an initialzer
+If you use a schema cache and multiple databases you'll need to write an initializer
 that loads the schema cache from your app. This wasn't an issue we could resolve in
 time for Rails 6.0 but hope to have it in a future version soon.
