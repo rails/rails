@@ -1,3 +1,9 @@
+*   PostgreSQL: Fix GROUP BY with ORDER BY virtual count attribute.
+
+    Fixes #36022.
+
+    *Ryuta Kamizono*
+
 *   Fix sqlite3 collation parsing when using decimal columns.
 
     *Martin R. Schuster*
