@@ -8,6 +8,29 @@ class EnumTest < ActiveRecord::TestCase
   fixtures :books, :authors, :author_addresses
 
   setup do
+    I18n.backend.store_translations(:en, activerecord: {
+      enums: {
+        book: {
+          status: {
+            proposed: "Proposed",
+            written: "In writing",
+          },
+          status_color: {
+            written: "blue",
+            published: "green"
+          },
+          difficulty: {
+            easy: "Easy"
+          },
+          difficulty_color: {
+            easy: "green",
+            medium: "#555555",
+            hard: "red"
+          }
+        }
+      }
+    })
+
     @book = books(:awdr)
   end
 
@@ -31,6 +54,43 @@ class EnumTest < ActiveRecord::TestCase
     assert_equal "visible", @book.author_visibility
     assert_equal "visible", @book.illustrator_visibility
     assert_equal "medium", @book.difficulty
+  end
+
+  test "enum name, value and color" do
+    @book.status = :proposed
+    assert_equal "Proposed", @book.status_name
+    assert_equal "black", @book.status_color
+    assert_equal 0, @book.status_value
+
+    @book.status = :written
+    assert_equal "In writing", @book.status_name
+    assert_equal "blue", @book.status_color
+    assert_equal 1, @book.status_value
+
+    @book.status = :published
+    assert_equal "Published", @book.status_name
+    assert_equal "green", @book.status_color
+    assert_equal 2, @book.status_value
+
+    @book.difficulty = :easy
+    assert_equal "Easy", @book.difficulty_name
+    assert_equal "green", @book.difficulty_color
+    assert_equal 0, @book.difficulty_value
+
+    @book.difficulty = :medium
+    assert_equal "Medium", @book.difficulty_name
+    assert_equal "#555555", @book.difficulty_color
+    assert_equal 1, @book.difficulty_value
+
+    @book.difficulty = :hard
+    assert_equal "Hard", @book.difficulty_name
+    assert_equal "red", @book.difficulty_color
+    assert_equal 2, @book.difficulty_value
+  end
+
+  test "enum options" do
+    assert_equal [["Proposed", "proposed"], ["In writing", "written"], ["Published", "published"]], Book.status_options
+    assert_equal [["Easy", "easy"], ["Medium", "medium"], ["Hard", "hard"]], Book.difficulty_options
   end
 
   test "find via scope" do
@@ -122,6 +182,7 @@ class EnumTest < ActiveRecord::TestCase
     @book.status = "written"
     assert_predicate @book, :written?
   end
+
 
   test "enum changed attributes" do
     old_status = @book.status
