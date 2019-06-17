@@ -200,11 +200,10 @@ module ActiveRecord
           }
           where(wheres).limit(1)
         }
-        begin
-          statement.execute(hash.values, connection)&.first
-        rescue TypeError
-          raise ActiveRecord::StatementInvalid
-        end
+
+        statement.execute(hash.values, connection)&.first
+      rescue TypeError
+        raise ActiveRecord::StatementInvalid
       end
 
       def find_by!(*args) # :nodoc:
