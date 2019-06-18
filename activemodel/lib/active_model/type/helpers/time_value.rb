@@ -11,10 +11,10 @@ module ActiveModel
           value = apply_seconds_precision(value)
 
           if value.acts_like?(:time)
-            zone_conversion_method = is_utc? ? :getutc : :getlocal
-
-            if value.respond_to?(zone_conversion_method)
-              value = value.send(zone_conversion_method)
+            if is_utc?
+              value = value.getutc if value.respond_to?(:getutc) && !value.utc?
+            else
+              value = value.getlocal if value.respond_to?(:getlocal)
             end
           end
 
