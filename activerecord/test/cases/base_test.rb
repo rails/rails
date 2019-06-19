@@ -1415,6 +1415,14 @@ class BasicsTest < ActiveRecord::TestCase
     assert_not_includes SymbolIgnoredDeveloper.columns_hash.keys, "first_name"
   end
 
+  test ".columns_hash raises an error if the record has an empty table name" do
+    expected_message = "FirstAbstractClass has no table configured. Set one with FirstAbstractClass.table_name="
+    exception = assert_raises(ActiveRecord::TableNotSpecified) do
+      FirstAbstractClass.columns_hash
+    end
+    assert_equal expected_message, exception.message
+  end
+
   test "ignored columns have no attribute methods" do
     assert_not_respond_to Developer.new, :first_name
     assert_not_respond_to Developer.new, :first_name=
