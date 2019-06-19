@@ -4,6 +4,7 @@ require "rails"
 require "action_controller/railtie"
 require "active_job/railtie"
 require "active_record/railtie"
+require "active_support/actionable_error"
 
 require "active_storage"
 
@@ -141,6 +142,23 @@ module ActiveStorage
       ActiveSupport.on_load(:active_record) do
         include Reflection::ActiveRecordExtensions
         ActiveRecord::Reflection.singleton_class.prepend(Reflection::ReflectionExtension)
+      end
+    end
+
+    initializer "active_storage.actionable_errors" do
+      ActiveSupport::ActionableError.define :MissingInstallError, under: ActiveStorage do |actionable|
+        actionable.message <<~MESSAGE
+          Action Storage does not appear to be installed. Do you want to install it now?
+        MESSAGE
+
+        actionable.trigger on: ActiveRecord::StatementInvalid, if: -> error do
+          [Blob, Attachment].any? { |model| error.message.match?(model.table_name) }
+        end
+
+        actionable.action "Install now" do
+          Rails::Command.invoke("active_storage:install")
+          Rails::Command.invoke("db:migrate")
+        end
       end
     end
   end

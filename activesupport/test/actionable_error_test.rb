@@ -83,4 +83,64 @@ class ActionableErrorTest < ActiveSupport::TestCase
 
     ActiveSupport::ActionableError.raise_if_triggered_by(error)
   end
+
+  test "defines actionable errors with a DSL" do
+    action_invoked = false
+
+    ActiveSupport::ActionableError.define :DynamicError, under: self.class do |actionable|
+      actionable.message "Missing dynamic action"
+
+      actionable.trigger on: RuntimeError, if: -> error do
+        error.message.match?(/Dynamic action/)
+      end
+
+      actionable.action "Invoke action" do
+        action_invoked = true
+      end
+    end
+
+    error = RuntimeError.new("Dynamic action!")
+
+    actionable = assert_raises ActiveSupport::ActionableError do
+      ActiveSupport::ActionableError.raise_if_triggered_by(error)
+    end
+
+    assert_changes "action_invoked", from: false, to: true do
+      ActiveSupport::ActionableError.dispatch(actionable, "Invoke action")
+    end
+  end
+
+  test "defining actionable errors with a DSL requires message, action and trigger" do
+    assert_raises ArgumentError do
+      ActiveSupport::ActionableError.define :MissingAction, under: self.class do |actionable|
+        actionable.message "Missing dynamic action"
+
+        actionable.trigger on: RuntimeError, if: -> _ do
+          nil
+        end
+      end
+    end
+
+    assert_raises ArgumentError do
+      ActiveSupport::ActionableError.define :MissingTrigger, under: self.class do |actionable|
+        actionable.message "Missing dynamic action"
+
+        actionable.action "Invoke action" do
+          nil
+        end
+      end
+    end
+
+    assert_raises ArgumentError do
+      ActiveSupport::ActionableError.define :MissingMessage, under: self.class do |actionable|
+        actionable.action "Invoke action" do
+          nil
+        end
+
+        actionable.trigger on: RuntimeError, if: -> _ do
+          nil
+        end
+      end
+    end
+  end
 end

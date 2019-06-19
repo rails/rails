@@ -1,3 +1,35 @@
+*   Introduce `ActiveSupport::ActionableError.define`.
+
+    This can be useful if you're code does not depend strictly on Rails. In
+    this case, you may not want to define an error depending on Rails specific
+    code next to your regular error class hierarchy.
+
+    You can define it the actionable error straight in a Railtie, next to you
+    Rails dependent code:
+
+    ```ruby
+    class ActiveStorage::Railtie < Rails::Engine
+      initializer "active_storage.actionable_errors" do
+        ActiveSupport::ActionableError.define :MissingInstallError, under: ActiveStorage do |actionable|
+          actionable.message <<~END
+            Action Mailbox does not appear to be installed. Do you want to install it now?
+          END
+
+          actionable.trigger on: ActiveRecord::StatementInvalid, if: -> error do
+            error.message.match?(InboundEmail.table_name)
+          end
+
+          actionable.action "Install now" do
+            Rails::Command.invoke("active_storage:install")
+            Rails::Command.invoke("db:migrate")
+          end
+        end
+      end
+    end
+    ```
+
+    *Genadi Samokovarov*
+
 *   Trigger `ActiveSupport::ActionableError` from existing errors.
 
     Triggers let's you re-raise an actionable error from an existing one, if it

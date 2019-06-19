@@ -4,9 +4,9 @@ require "rails"
 require "action_controller/railtie"
 require "active_record/railtie"
 require "active_storage/engine"
+require "active_support/actionable_error"
 
 require "action_text"
-require "action_text/errors"
 
 module ActionText
   class Engine < Rails::Engine
@@ -52,6 +52,23 @@ module ActionText
       ActiveSupport.on_load(:action_dispatch_system_test_case) do
         require "action_text/system_test_helper"
         include ActionText::SystemTestHelper
+      end
+    end
+
+    initializer "action_text.actionable_errors" do
+      ActiveSupport::ActionableError.define :MissingInstallError, under: ActionText do |actionable|
+        actionable.message <<~MESSAGE
+          Action Text does not appear to be installed. Do you want to install it now?
+        MESSAGE
+
+        actionable.trigger on: ActiveRecord::StatementInvalid, if: -> error do
+          error.message.match?(RichText.table_name)
+        end
+
+        actionable.action "Install now" do
+          Rails::Command.invoke("action_text:install")
+          Rails::Command.invoke("db:migrate")
+        end
       end
     end
   end

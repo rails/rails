@@ -5,9 +5,9 @@ require "action_controller/railtie"
 require "active_job/railtie"
 require "active_record/railtie"
 require "active_storage/engine"
+require "active_support/actionable_error"
 
 require "action_mailbox"
-require "action_mailbox/errors"
 
 module ActionMailbox
   class Engine < Rails::Engine
@@ -28,6 +28,23 @@ module ActionMailbox
         ActionMailbox.incinerate_after = app.config.action_mailbox.incinerate_after || 30.days
         ActionMailbox.queues = app.config.action_mailbox.queues || {}
         ActionMailbox.ingress = app.config.action_mailbox.ingress
+      end
+    end
+
+    initializer "action_mailbox.actionable_errors" do
+      ActiveSupport::ActionableError.define :MissingInstallError, under: ActionMailbox do |actionable|
+        actionable.message <<~MESSAGE
+          Action Mailbox does not appear to be installed. Do you want to install it now?
+        MESSAGE
+
+        actionable.trigger on: ActiveRecord::StatementInvalid, if: -> error do
+          error.message.match?(InboundEmail.table_name)
+        end
+
+        actionable.action "Install now" do
+          Rails::Command.invoke("action_mailbox:install")
+          Rails::Command.invoke("db:migrate")
+        end
       end
     end
   end
