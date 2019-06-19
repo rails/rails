@@ -1,3 +1,8 @@
+*   Add autoload for SyntaxErrorInTemplate so syntax errors are correctly raised by DebugExceptions.
+
+    *Guilherme Mansur*, *Gannon McGibbon*
+
+
 ## Rails 6.0.2.1 (December 18, 2019) ##
 
 *   No changes.
