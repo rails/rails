@@ -27,7 +27,6 @@ module ActiveRecord
 
       def encode_with(coder)
         coder["columns"]          = @columns
-        coder["columns_hash"]     = @columns_hash
         coder["primary_keys"]     = @primary_keys
         coder["data_sources"]     = @data_sources
         coder["indexes"]          = @indexes
@@ -37,7 +36,7 @@ module ActiveRecord
 
       def init_with(coder)
         @columns          = coder["columns"]
-        @columns_hash     = coder["columns_hash"]
+        @columns_hash     = {}
         @primary_keys     = coder["primary_keys"]
         @data_sources     = coder["data_sources"]
         @indexes          = coder["indexes"] || {}
@@ -79,9 +78,7 @@ module ActiveRecord
       # Get the columns for a table as a hash, key is the column name
       # value is the column object.
       def columns_hash(table_name)
-        @columns_hash[table_name] ||= Hash[columns(table_name).map { |col|
-          [col.name, col]
-        }]
+        @columns_hash[table_name] ||= columns(table_name).index_by(&:name)
       end
 
       # Checks whether the columns hash is already cached for a table.
@@ -124,15 +121,15 @@ module ActiveRecord
       def marshal_dump
         # if we get current version during initialization, it happens stack over flow.
         @version = connection.migration_context.current_version
-        [@version, @columns, @columns_hash, @primary_keys, @data_sources, @indexes, database_version]
+        [@version, @columns, {}, @primary_keys, @data_sources, @indexes, database_version]
       end
 
       def marshal_load(array)
-        @version, @columns, @columns_hash, @primary_keys, @data_sources, @indexes, @database_version = array
+        @version, @columns, _columns_hash, @primary_keys, @data_sources, @indexes, @database_version = array
         @indexes ||= {}
+        @columns_hash = {}
 
         @columns = deep_deduplicate(@columns)
-        @columns_hash = deep_deduplicate(@columns_hash)
         @primary_keys = deep_deduplicate(@primary_keys)
         @data_sources = deep_deduplicate(@data_sources)
         @indexes = deep_deduplicate(@indexes)
