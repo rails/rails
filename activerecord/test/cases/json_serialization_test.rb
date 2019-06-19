@@ -23,7 +23,7 @@ class JsonSerializationTest < ActiveRecord::TestCase
   include JsonSerializationHelpers
 
   class NamespacedContact < Contact
-    column :name, :string
+    column :name, "string"
   end
 
   def setup

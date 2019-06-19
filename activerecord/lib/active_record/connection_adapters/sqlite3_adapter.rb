@@ -383,6 +383,7 @@ module ActiveRecord
             if from_primary_key.is_a?(Array)
               @definition.primary_keys from_primary_key
             end
+
             columns(from).each do |column|
               column_name = options[:rename] ?
                 (options[:rename][column.name] ||

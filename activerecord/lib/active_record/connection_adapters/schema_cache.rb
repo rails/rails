@@ -129,10 +129,29 @@ module ActiveRecord
 
       def marshal_load(array)
         @version, @columns, @columns_hash, @primary_keys, @data_sources, @indexes, @database_version = array
-        @indexes = @indexes || {}
+        @indexes ||= {}
+
+        @columns = deep_deduplicate(@columns)
+        @columns_hash = deep_deduplicate(@columns_hash)
+        @primary_keys = deep_deduplicate(@primary_keys)
+        @data_sources = deep_deduplicate(@data_sources)
+        @indexes = deep_deduplicate(@indexes)
       end
 
       private
+        def deep_deduplicate(value)
+          case value
+          when Hash
+            value.transform_keys { |k| deep_deduplicate(k) }.transform_values { |v| deep_deduplicate(v) }
+          when Array
+            value.map { |i| deep_deduplicate(i) }
+          when String, Deduplicable
+            -value
+          else
+            value
+          end
+        end
+
         def prepare_data_sources
           connection.data_sources.each { |source| @data_sources[source] = true }
         end

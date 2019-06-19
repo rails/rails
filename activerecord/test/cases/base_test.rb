@@ -1141,11 +1141,14 @@ class BasicsTest < ActiveRecord::TestCase
   def test_clear_cache!
     # preheat cache
     c1 = Post.connection.schema_cache.columns("posts")
+    assert_not_equal 0, Post.connection.schema_cache.size
+
     ActiveRecord::Base.clear_cache!
+    assert_equal 0, Post.connection.schema_cache.size
+
     c2 = Post.connection.schema_cache.columns("posts")
-    c1.each_with_index do |v, i|
-      assert_not_same v, c2[i]
-    end
+    assert_not_equal 0, Post.connection.schema_cache.size
+
     assert_equal c1, c2
   end
 
