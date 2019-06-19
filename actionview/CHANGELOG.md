@@ -1,3 +1,7 @@
+*   Add autoload for SyntaxErrorInTemplate so syntax errors are correctly raised by DebugExceptions.
+
+    *Guilherme Mansur*, *Gannon McGibbon*
+
 *   `RenderingHelper` supports rendering objects that `respond_to?` `:render_in`
 
     *Joel Hawksley*, *Natasha Umer*, *Aaron Patterson*, *Shawn Allen*, *Emily Plummer*, *Diana Mounter*, *John Hawthorn*, *Nathan Herald*, *Zaid Zawaideh*, *Zach Ahn*
