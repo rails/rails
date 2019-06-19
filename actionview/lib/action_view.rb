@@ -77,6 +77,7 @@ module ActionView
       autoload :ActionViewError
       autoload :EncodingError
       autoload :TemplateError
+      autoload :SyntaxErrorInTemplate
       autoload :WrongEncodingError
     end
   end
