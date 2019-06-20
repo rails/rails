@@ -517,6 +517,7 @@ class FinderTest < ActiveRecord::TestCase
     expected.touch # PostgreSQL changes the default order if no order clause is used
     assert_equal expected, Topic.first
     assert_equal expected, Topic.limit(5).first
+    assert_equal expected, Topic.order(nil).first
   end
 
   def test_model_class_responds_to_first_bang
@@ -540,6 +541,7 @@ class FinderTest < ActiveRecord::TestCase
     expected.touch # PostgreSQL changes the default order if no order clause is used
     assert_equal expected, Topic.second
     assert_equal expected, Topic.limit(5).second
+    assert_equal expected, Topic.order(nil).second
   end
 
   def test_model_class_responds_to_second_bang
@@ -563,6 +565,7 @@ class FinderTest < ActiveRecord::TestCase
     expected.touch # PostgreSQL changes the default order if no order clause is used
     assert_equal expected, Topic.third
     assert_equal expected, Topic.limit(5).third
+    assert_equal expected, Topic.order(nil).third
   end
 
   def test_model_class_responds_to_third_bang
@@ -586,6 +589,7 @@ class FinderTest < ActiveRecord::TestCase
     expected.touch # PostgreSQL changes the default order if no order clause is used
     assert_equal expected, Topic.fourth
     assert_equal expected, Topic.limit(5).fourth
+    assert_equal expected, Topic.order(nil).fourth
   end
 
   def test_model_class_responds_to_fourth_bang
@@ -609,6 +613,7 @@ class FinderTest < ActiveRecord::TestCase
     expected.touch # PostgreSQL changes the default order if no order clause is used
     assert_equal expected, Topic.fifth
     assert_equal expected, Topic.limit(5).fifth
+    assert_equal expected, Topic.order(nil).fifth
   end
 
   def test_model_class_responds_to_fifth_bang
@@ -777,6 +782,7 @@ class FinderTest < ActiveRecord::TestCase
 
     assert_equal expected, clients.first(2)
     assert_equal expected, clients.limit(5).first(2)
+    assert_equal expected, clients.order(nil).first(2)
   end
 
   def test_implicit_order_column_is_configurable
