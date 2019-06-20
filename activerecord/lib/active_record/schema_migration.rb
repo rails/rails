@@ -49,7 +49,7 @@ module ActiveRecord
       end
 
       def all_versions
-        order(:version).pluck(:version).map(&:to_i)
+        order(:version).pluck(:version)
       end
     end
 

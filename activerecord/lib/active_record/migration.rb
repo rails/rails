@@ -1073,7 +1073,7 @@ module ActiveRecord
 
     def get_all_versions
       if schema_migration.table_exists?
-        schema_migration.all_versions
+        schema_migration.all_versions.map(&:to_i)
       else
         []
       end
@@ -1249,7 +1249,7 @@ module ActiveRecord
     end
 
     def load_migrated
-      @migrated_versions = Set.new(@schema_migration.all_versions)
+      @migrated_versions = Set.new(@schema_migration.all_versions.map(&:to_i))
     end
 
     private
