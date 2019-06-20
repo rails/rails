@@ -289,7 +289,7 @@ def default_options
     environment:        (ENV["RAILS_ENV"] || ENV["RACK_ENV"] || "development").dup,
     daemonize:          false,
     caching:            nil,
-    pid:                Options::DEFAULT_PID_PATH,
+    pid:                ENV.fetch("PIDFILE", Options::DEFAULT_PIDFILE).dup,
     restart_cmd:        restart_command)
 end
 ```
