@@ -33,6 +33,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
     schema_info = ActiveRecord::Base.connection.dump_schema_information
     assert_match(/20100201010101.*20100301010101/m, schema_info)
+    assert_includes schema_info, "20100101010101"
   ensure
     ActiveRecord::SchemaMigration.delete_all
   end
