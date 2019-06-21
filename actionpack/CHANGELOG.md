@@ -18,6 +18,10 @@
     If you want just MIME type, please use `ActionDispatch::Response#media_type`
     instead.
 
+    Enable `action_dispatch.return_only_media_type_on_content_type` to use this change.
+    If not enabled, `ActionDispatch::Response#content_type` returns the same
+    value as before version, but its behavior is deprecate.
+
     *Yuji Yaginuma*
 
 *   Calling `ActionController::Parameters#transform_keys/!` without a block now returns
