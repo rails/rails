@@ -35,11 +35,11 @@ module ActiveRecord
       end
 
       def init_with(coder)
-        @columns          = coder["columns"]
-        @columns_hash     = {}
-        @primary_keys     = coder["primary_keys"]
-        @data_sources     = coder["data_sources"]
-        @indexes          = coder["indexes"] || {}
+        @columns          = deep_deduplicate(coder["columns"])
+        @columns_hash     = @columns.transform_values { |columns| columns.index_by(&:name) }
+        @primary_keys     = deep_deduplicate(coder["primary_keys"])
+        @data_sources     = deep_deduplicate(coder["data_sources"])
+        @indexes          = deep_deduplicate(coder["indexes"] || {})
         @version          = coder["version"]
         @database_version = coder["database_version"]
       end
@@ -127,9 +127,9 @@ module ActiveRecord
       def marshal_load(array)
         @version, @columns, _columns_hash, @primary_keys, @data_sources, @indexes, @database_version = array
         @indexes ||= {}
-        @columns_hash = {}
 
         @columns = deep_deduplicate(@columns)
+        @columns_hash = @columns.transform_values { |columns| columns.index_by(&:name) }
         @primary_keys = deep_deduplicate(@primary_keys)
         @data_sources = deep_deduplicate(@data_sources)
         @indexes = deep_deduplicate(@indexes)
