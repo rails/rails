@@ -35,13 +35,14 @@ module ActiveRecord
       end
 
       def init_with(coder)
-        @columns          = deep_deduplicate(coder["columns"])
-        @columns_hash     = @columns.transform_values { |columns| columns.index_by(&:name) }
-        @primary_keys     = deep_deduplicate(coder["primary_keys"])
-        @data_sources     = deep_deduplicate(coder["data_sources"])
-        @indexes          = deep_deduplicate(coder["indexes"] || {})
+        @columns          = coder["columns"]
+        @primary_keys     = coder["primary_keys"]
+        @data_sources     = coder["data_sources"]
+        @indexes          = coder["indexes"] || {}
         @version          = coder["version"]
         @database_version = coder["database_version"]
+
+        derive_columns_hash_and_deduplicate_values
       end
 
       def primary_keys(table_name)
@@ -128,14 +129,18 @@ module ActiveRecord
         @version, @columns, _columns_hash, @primary_keys, @data_sources, @indexes, @database_version = array
         @indexes ||= {}
 
-        @columns = deep_deduplicate(@columns)
-        @columns_hash = @columns.transform_values { |columns| columns.index_by(&:name) }
-        @primary_keys = deep_deduplicate(@primary_keys)
-        @data_sources = deep_deduplicate(@data_sources)
-        @indexes = deep_deduplicate(@indexes)
+        derive_columns_hash_and_deduplicate_values
       end
 
       private
+        def derive_columns_hash_and_deduplicate_values
+          @columns      = deep_deduplicate(@columns)
+          @columns_hash = @columns.transform_values { |columns| columns.index_by(&:name) }
+          @primary_keys = deep_deduplicate(@primary_keys)
+          @data_sources = deep_deduplicate(@data_sources)
+          @indexes      = deep_deduplicate(@indexes)
+        end
+
         def deep_deduplicate(value)
           case value
           when Hash
