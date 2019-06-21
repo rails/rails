@@ -1150,10 +1150,21 @@ module ActiveRecord
       def columns_for_distinct(columns, orders) # :nodoc:
         order_columns = orders.compact_blank.map { |s|
             # Convert Arel node to string
-            s = s.to_sql unless s.is_a?(String)
+            unless s.is_a?(String)
+              # if this is an order node, then just use the core contents without modification
+              if s.kind_of?(Arel::Nodes::Ordering)
+                s = s.expr
+                keep_order = true
+              end
+              s = s.respond_to?(:to_sql) ? s.to_sql : s.to_s
+            end
             # Remove any ASC/DESC modifiers
-            s.gsub(/\s+(?:ASC|DESC)\b/i, "")
-             .gsub(/\s+NULLS\s+(?:FIRST|LAST)\b/i, "")
+            if keep_order
+              s
+            else
+              s.gsub(/\s+(?:ASC|DESC)\b/i, "")
+               .gsub(/\s+NULLS\s+(?:FIRST|LAST)\b/i, "")
+            end
           }.compact_blank.map.with_index { |column, i| "#{column} AS alias_#{i}" }
 
         (order_columns << columns).join(", ")

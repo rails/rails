@@ -592,13 +592,39 @@ module ActiveRecord
         @connection.columns_for_distinct("posts.id", ["posts.created_at desc", "", "   "])
     end
 
-    def test_columns_for_distinct_with_arel_order
-      order = Object.new
-      def order.to_sql
-        "posts.created_at desc"
-      end
+    def test_columns_for_distinct_with_string_order
+      order = "posts.created_at desc"
       assert_equal "posts.created_at AS alias_0, posts.id",
         @connection.columns_for_distinct("posts.id", [order])
+    end
+
+    def test_columns_for_distinct_with_literal_order
+      order = Arel.sql("posts.created_at desc")
+      assert_equal "posts.created_at AS alias_0, posts.id",
+        @connection.columns_for_distinct("posts.id", [order])
+    end
+
+    def test_columns_for_distinct_with_descending_sql_order
+      order = Arel::Nodes::Descending.new(Arel.sql("posts.created_at"))
+      assert_equal "posts.created_at DESC", order.to_sql
+      assert_equal "posts.created_at AS alias_0, posts.id",
+        @connection.columns_for_distinct("posts.id", [order])
+    end
+
+    def test_columns_for_distinct_with_descending_attribute_order
+      order = Arel::Nodes::Descending.new(Post.arel_attribute(:created_at))
+      column = "#{@connection.quote_table_name("posts")}.#{@connection.quote_column_name("created_at")}"
+      assert_equal "#{column} DESC", order.to_sql
+      assert_equal "#{column} AS alias_0, posts.id",
+        @connection.columns_for_distinct("posts.id", [order])
+    end
+
+    def test_columns_for_distinct_with_subquery_order
+      column_subquery = "(select name from posts where posts.author_id = authors.id order id desc limit 1)"
+      order = Arel::Nodes::Descending.new(Arel.sql(column_subquery))
+      assert_equal "#{column_subquery} DESC", order.to_sql
+      assert_equal "#{column_subquery} AS alias_0, authors.id",
+        @connection.columns_for_distinct("authors.id", [order])
     end
 
     def test_columns_for_distinct_with_nulls
