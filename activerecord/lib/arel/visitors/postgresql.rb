@@ -3,13 +3,7 @@
 module Arel # :nodoc: all
   module Visitors
     class PostgreSQL < Arel::Visitors::ToSql
-      CUBE = "CUBE"
-      ROLLUP = "ROLLUP"
-      GROUPING_SETS = "GROUPING SETS"
-      LATERAL = "LATERAL"
-
       private
-
         def visit_Arel_Nodes_Matches(o, collector)
           op = o.case_sensitive ? " LIKE " : " ILIKE "
           collector = infix_value o, collector, op
@@ -57,23 +51,22 @@ module Arel # :nodoc: all
         end
 
         def visit_Arel_Nodes_Cube(o, collector)
-          collector << CUBE
+          collector << "CUBE"
           grouping_array_or_grouping_element o, collector
         end
 
         def visit_Arel_Nodes_RollUp(o, collector)
-          collector << ROLLUP
+          collector << "ROLLUP"
           grouping_array_or_grouping_element o, collector
         end
 
         def visit_Arel_Nodes_GroupingSet(o, collector)
-          collector << GROUPING_SETS
+          collector << "GROUPING SETS"
           grouping_array_or_grouping_element o, collector
         end
 
         def visit_Arel_Nodes_Lateral(o, collector)
-          collector << LATERAL
-          collector << SPACE
+          collector << "LATERAL "
           grouping_parentheses o, collector
         end
 

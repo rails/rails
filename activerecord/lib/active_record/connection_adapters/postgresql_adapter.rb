@@ -196,6 +196,17 @@ module ActiveRecord
         true
       end
 
+      def supports_insert_returning?
+        true
+      end
+
+      def supports_insert_on_conflict?
+        database_version >= 90500
+      end
+      alias supports_insert_on_duplicate_skip? supports_insert_on_conflict?
+      alias supports_insert_on_duplicate_update? supports_insert_on_conflict?
+      alias supports_insert_conflict_target? supports_insert_on_conflict?
+
       def index_algorithms
         { concurrently: "CONCURRENTLY" }
       end
@@ -236,32 +247,16 @@ module ActiveRecord
 
         # @local_tz is initialized as nil to avoid warnings when connect tries to use it
         @local_tz = nil
-        @default_timezone = nil
-        @timestamp_decoder = nil
         @max_identifier_length = nil
 
         configure_connection
         add_pg_encoders
-        @statements = StatementPool.new @connection,
-                                        self.class.type_cast_config_to_integer(config[:statement_limit])
-
         add_pg_decoders
 
         @type_map = Type::HashLookupTypeMap.new
         initialize_type_map
         @local_tz = execute("SHOW TIME ZONE", "SCHEMA").first["TimeZone"]
         @use_insert_returning = @config.key?(:insert_returning) ? self.class.type_cast_config_to_boolean(@config[:insert_returning]) : true
-      end
-
-      # Clears the prepared statements cache.
-      def clear_cache!
-        @lock.synchronize do
-          @statements.clear
-        end
-      end
-
-      def truncate(table_name, name = nil)
-        exec_query "TRUNCATE TABLE #{quote_table_name(table_name)}", name, []
       end
 
       # Is this connection alive and ready for queries?
@@ -280,6 +275,8 @@ module ActiveRecord
           super
           @connection.reset
           configure_connection
+        rescue PG::ConnectionBad
+          connect
         end
       end
 
@@ -305,6 +302,7 @@ module ActiveRecord
       end
 
       def discard! # :nodoc:
+        super
         @connection.socket_io.reopen(IO::NULL) rescue nil
         @connection = nil
       end
@@ -347,7 +345,14 @@ module ActiveRecord
       end
 
       def supports_pgcrypto_uuid?
-        postgresql_version >= 90400
+        database_version >= 90400
+      end
+
+      def supports_optimizer_hints?
+        unless defined?(@has_pg_hint_plan)
+          @has_pg_hint_plan = extension_available?("pg_hint_plan")
+        end
+        @has_pg_hint_plan
       end
 
       def supports_lazy_transactions?
@@ -380,9 +385,12 @@ module ActiveRecord
         }
       end
 
+      def extension_available?(name)
+        query_value("SELECT true FROM pg_available_extensions WHERE name = #{quote(name)}", "SCHEMA")
+      end
+
       def extension_enabled?(name)
-        res = exec_query("SELECT EXISTS(SELECT * FROM pg_available_extensions WHERE name = '#{name}' AND installed_version IS NOT NULL) as enabled", "SCHEMA")
-        res.cast_values.first
+        query_value("SELECT installed_version IS NOT NULL FROM pg_available_extensions WHERE name = #{quote(name)}", "SCHEMA")
       end
 
       def extensions
@@ -393,8 +401,6 @@ module ActiveRecord
       def max_identifier_length
         @max_identifier_length ||= query_value("SHOW max_identifier_length", "SCHEMA").to_i
       end
-      alias table_alias_length max_identifier_length
-      alias index_name_length max_identifier_length
 
       # Set the authorized user for this session
       def session_auth=(user)
@@ -417,21 +423,36 @@ module ActiveRecord
       }
 
       # Returns the version of the connected PostgreSQL server.
-      def postgresql_version
+      def get_database_version # :nodoc:
         @connection.server_version
       end
+      alias :postgresql_version :database_version
 
       def default_index_type?(index) # :nodoc:
         index.using == :btree || super
       end
 
-      private
-        def check_version
-          if postgresql_version < 90300
-            raise "Your version of PostgreSQL (#{postgresql_version}) is too old. Active Record supports PostgreSQL >= 9.3."
-          end
+      def build_insert_sql(insert) # :nodoc:
+        sql = +"INSERT #{insert.into} #{insert.values_list}"
+
+        if insert.skip_duplicates?
+          sql << " ON CONFLICT #{insert.conflict_target} DO NOTHING"
+        elsif insert.update_duplicates?
+          sql << " ON CONFLICT #{insert.conflict_target} DO UPDATE SET "
+          sql << insert.updatable_columns.map { |column| "#{column}=excluded.#{column}" }.join(",")
         end
 
+        sql << " RETURNING #{insert.returning}" if insert.returning
+        sql
+      end
+
+      def check_version # :nodoc:
+        if database_version < 90300
+          raise "Your version of PostgreSQL (#{database_version}) is too old. Active Record supports PostgreSQL >= 9.3."
+        end
+      end
+
+      private
         # See https://www.postgresql.org/docs/current/static/errcodes-appendix.html
         VALUE_LIMIT_VIOLATION = "22001"
         NUMERIC_VALUE_OUT_OF_RANGE = "22003"
@@ -723,6 +744,8 @@ module ActiveRecord
         def connect
           @connection = PG.connect(@connection_parameters)
           configure_connection
+          add_pg_encoders
+          add_pg_decoders
         end
 
         # Configures the encoding, verbosity, schema search path, and time zone of the connection.
@@ -803,6 +826,10 @@ module ActiveRecord
           Arel::Visitors::PostgreSQL.new(self)
         end
 
+        def build_statement_pool
+          StatementPool.new(@connection, self.class.type_cast_config_to_integer(@config[:statement_limit]))
+        end
+
         def can_perform_case_insensitive_comparison_for?(column)
           @case_insensitive_cache ||= {}
           @case_insensitive_cache[column.sql_type] ||= begin
@@ -846,6 +873,9 @@ module ActiveRecord
         end
 
         def add_pg_decoders
+          @default_timezone = nil
+          @timestamp_decoder = nil
+
           coders_by_name = {
             "int2" => PG::TextDecoder::Integer,
             "int4" => PG::TextDecoder::Integer,

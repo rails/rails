@@ -53,6 +53,7 @@ module ActionDispatch
     autoload :RequestId
     autoload :Callbacks
     autoload :Cookies
+    autoload :ActionableExceptions
     autoload :DebugExceptions
     autoload :DebugLocks
     autoload :DebugView

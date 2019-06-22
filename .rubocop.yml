@@ -1,3 +1,7 @@
+require:
+  - rubocop-performance
+  - rubocop-rails
+
 AllCops:
   TargetRubyVersion: 2.5
   # RuboCop has a bunch of cops enabled by default. This setting tells RuboCop
@@ -10,14 +14,11 @@ AllCops:
     - 'railties/test/fixtures/tmp/**/*'
     - 'actionmailbox/test/dummy/**/*'
     - 'actiontext/test/dummy/**/*'
-    - 'node_modules/**/*'
+    - '**/node_modules/**/*'
 
 Performance:
   Exclude:
     - '**/test/**/*'
-
-Rails:
-  Enabled: true
 
 # Prefer assert_not over assert !
 Rails/AssertNot:
@@ -60,6 +61,10 @@ Layout/EndAlignment:
 Layout/EmptyLineAfterMagicComment:
   Enabled: true
 
+Layout/EmptyLinesAroundAccessModifier:
+  Enabled: true
+  EnforcedStyle: only_before
+
 Layout/EmptyLinesAroundBlockBody:
   Enabled: true
 
@@ -75,11 +80,11 @@ Layout/EmptyLinesAroundMethodBody:
 Layout/EmptyLinesAroundModuleBody:
   Enabled: true
 
-Layout/FirstParameterIndentation:
-  Enabled: true
-
 # Use Ruby >= 1.9 syntax for hashes. Prefer { a: :b } over { :a => :b }.
 Style/HashSyntax:
+  Enabled: true
+
+Layout/IndentFirstArgument:
   Enabled: true
 
 # Method definitions after `private` or `protected` isolated calls need one
@@ -114,6 +119,9 @@ Layout/SpaceAroundOperators:
   Enabled: true
 
 Layout/SpaceBeforeComma:
+  Enabled: true
+
+Layout/SpaceBeforeComment:
   Enabled: true
 
 Layout/SpaceBeforeFirstArg:
@@ -179,6 +187,12 @@ Layout/TrailingWhitespace:
 Style/UnneededPercentQ:
   Enabled: true
 
+Lint/AmbiguousOperator:
+  Enabled: true
+
+Lint/AmbiguousRegexpLiteral:
+  Enabled: true
+
 Lint/ErbNewArguments:
   Enabled: true
 
@@ -235,6 +249,9 @@ Performance/EndWith:
   Enabled: true
 
 Performance/RegexpMatch:
+  Enabled: true
+
+Performance/ReverseEach:
   Enabled: true
 
 Performance/UnfreezeString:

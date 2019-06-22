@@ -13,10 +13,6 @@ module ActiveModel
         :time
       end
 
-      def serialize(value)
-        super || value
-      end
-
       def user_input_in_time_zone(value)
         return unless value.present?
 
@@ -33,7 +29,6 @@ module ActiveModel
       end
 
       private
-
         def cast_value(value)
           return apply_seconds_precision(value) unless value.is_a?(::String)
           return if value.empty?

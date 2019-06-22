@@ -288,7 +288,6 @@ module ActiveRecord #:nodoc:
     extend Explain
     extend Enum
     extend Delegation::DelegateCache
-    extend CollectionCacheKey
     extend Aggregations::ClassMethods
 
     include Core

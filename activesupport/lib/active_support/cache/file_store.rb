@@ -72,7 +72,6 @@ module ActiveSupport
       end
 
       private
-
         def read_entry(key, options)
           if File.exist?(key)
             File.open(key) { |f| Marshal.load(f) }

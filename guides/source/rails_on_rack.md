@@ -13,7 +13,7 @@ After reading this guide, you will know:
 
 --------------------------------------------------------------------------------
 
-WARNING: This guide assumes a working knowledge of Rack protocol and Rack concepts such as middlewares, url maps, and `Rack::Builder`.
+WARNING: This guide assumes a working knowledge of Rack protocol and Rack concepts such as middlewares, URL maps, and `Rack::Builder`.
 
 Introduction to Rack
 --------------------

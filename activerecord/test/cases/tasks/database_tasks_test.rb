@@ -2,6 +2,7 @@
 
 require "cases/helper"
 require "active_record/tasks/database_tasks"
+require "models/author"
 
 module ActiveRecord
   module DatabaseTasksSetupper
@@ -49,6 +50,8 @@ module ActiveRecord
       protected_environments = ActiveRecord::Base.protected_environments
       current_env            = ActiveRecord::Base.connection.migration_context.current_environment
 
+      InternalMetadata[:environment] = current_env
+
       assert_called_on_instance_of(
         ActiveRecord::MigrationContext,
         :current_version,
@@ -72,6 +75,9 @@ module ActiveRecord
     def test_raises_an_error_when_called_with_protected_environment_which_name_is_a_symbol
       protected_environments = ActiveRecord::Base.protected_environments
       current_env            = ActiveRecord::Base.connection.migration_context.current_environment
+
+      InternalMetadata[:environment] = current_env
+
       assert_called_on_instance_of(
         ActiveRecord::MigrationContext,
         :current_version,
@@ -754,7 +760,7 @@ module ActiveRecord
     end
 
     class DatabaseTasksMigrateTest < DatabaseTasksMigrationTestCase
-      def test_migrate_set_and_unset_verbose_and_version_env_vars
+      def test_can_migrate_from_pending_migration_error_action_dispatch
         verbose, version = ENV["VERBOSE"], ENV["VERSION"]
         ENV["VERSION"] = "2"
         ENV["VERBOSE"] = "false"
@@ -766,7 +772,9 @@ module ActiveRecord
         ENV.delete("VERBOSE")
 
         # re-run up migration
-        assert_includes capture_migration_output, "migrating"
+        assert_includes(capture(:stdout) do
+          ActiveSupport::ActionableError.dispatch ActiveRecord::PendingMigrationError, "Run pending migrations"
+        end, "migrating")
       ensure
         ENV["VERBOSE"], ENV["VERSION"] = verbose, version
       end
@@ -827,7 +835,6 @@ module ActiveRecord
       end
 
       private
-
         def capture_migration_status
           capture(:stdout) do
             ActiveRecord::Tasks::DatabaseTasks.migrate_status
@@ -942,6 +949,176 @@ module ActiveRecord
     ensure
       ActiveRecord::Base.configurations = old_configurations
     end
+  end
+
+  unless in_memory_db?
+    class DatabaseTasksTruncateAllTest < ActiveRecord::TestCase
+      self.use_transactional_tests = false
+
+      fixtures :authors, :author_addresses
+
+      def setup
+        SchemaMigration.create_table
+        SchemaMigration.create!(version: SchemaMigration.table_name)
+        InternalMetadata.create_table
+        InternalMetadata.create!(key: InternalMetadata.table_name)
+      end
+
+      def teardown
+        SchemaMigration.delete_all
+        InternalMetadata.delete_all
+        ActiveRecord::Base.connection_handlers = { writing: ActiveRecord::Base.default_connection_handler }
+      end
+
+      def test_truncate_tables
+        assert_operator SchemaMigration.count, :>, 0
+        assert_operator InternalMetadata.count, :>, 0
+        assert_operator Author.count, :>, 0
+        assert_operator AuthorAddress.count, :>, 0
+
+        old_configurations = ActiveRecord::Base.configurations
+        configurations = { development: ActiveRecord::Base.configurations["arunit"] }
+        ActiveRecord::Base.configurations = configurations
+
+        ActiveRecord::Tasks::DatabaseTasks.stub(:root, nil) do
+          ActiveRecord::Tasks::DatabaseTasks.truncate_all(
+            ActiveSupport::StringInquirer.new("development")
+          )
+        end
+
+        assert_operator SchemaMigration.count, :>, 0
+        assert_operator InternalMetadata.count, :>, 0
+        assert_equal 0, Author.count
+        assert_equal 0, AuthorAddress.count
+      ensure
+        ActiveRecord::Base.configurations = old_configurations
+      end
+    end
+
+    class DatabaseTasksTruncateAllWithPrefixTest < DatabaseTasksTruncateAllTest
+      setup do
+        ActiveRecord::Base.table_name_prefix = "p_"
+
+        SchemaMigration.reset_table_name
+        InternalMetadata.reset_table_name
+      end
+
+      teardown do
+        ActiveRecord::Base.table_name_prefix = nil
+
+        SchemaMigration.reset_table_name
+        InternalMetadata.reset_table_name
+      end
+    end
+
+    class DatabaseTasksTruncateAllWithSuffixTest < DatabaseTasksTruncateAllTest
+      setup do
+        ActiveRecord::Base.table_name_suffix = "_s"
+
+        SchemaMigration.reset_table_name
+        InternalMetadata.reset_table_name
+      end
+
+      teardown do
+        ActiveRecord::Base.table_name_suffix = nil
+
+        SchemaMigration.reset_table_name
+        InternalMetadata.reset_table_name
+      end
+    end
+  end
+
+  class DatabaseTasksTruncateAllWithMultipleDatabasesTest < ActiveRecord::TestCase
+    def setup
+      @configurations = {
+        "development" => { "primary" => { "database" => "dev-db" }, "secondary" => { "database" => "secondary-dev-db" } },
+        "test" => { "primary" => { "database" => "test-db" }, "secondary" => { "database" => "secondary-test-db" } },
+        "production" => { "primary" => { "url" => "abstract://prod-db-host/prod-db" }, "secondary" => { "url" => "abstract://secondary-prod-db-host/secondary-prod-db" } }
+      }
+    end
+
+    def test_truncate_all_databases_for_environment
+      with_stubbed_configurations do
+        assert_called_with(
+          ActiveRecord::Tasks::DatabaseTasks,
+          :truncate_tables,
+          [
+            ["database" => "test-db"],
+            ["database" => "secondary-test-db"]
+          ]
+        ) do
+          ActiveRecord::Tasks::DatabaseTasks.truncate_all(
+            ActiveSupport::StringInquirer.new("test")
+          )
+        end
+      end
+    end
+
+    def test_truncate_all_databases_with_url_for_environment
+      with_stubbed_configurations do
+        assert_called_with(
+          ActiveRecord::Tasks::DatabaseTasks,
+          :truncate_tables,
+          [
+            ["adapter" => "abstract", "database" => "prod-db", "host" => "prod-db-host"],
+            ["adapter" => "abstract", "database" => "secondary-prod-db", "host" => "secondary-prod-db-host"]
+          ]
+        ) do
+          ActiveRecord::Tasks::DatabaseTasks.truncate_all(
+            ActiveSupport::StringInquirer.new("production")
+          )
+        end
+      end
+    end
+
+    def test_truncate_all_development_databases_when_env_is_not_specified
+      with_stubbed_configurations do
+        assert_called_with(
+          ActiveRecord::Tasks::DatabaseTasks,
+          :truncate_tables,
+          [
+            ["database" => "dev-db"],
+            ["database" => "secondary-dev-db"]
+          ]
+        ) do
+          ActiveRecord::Tasks::DatabaseTasks.truncate_all(
+            ActiveSupport::StringInquirer.new("development")
+          )
+        end
+      end
+    end
+
+    def test_truncate_all_development_databases_when_env_is_development
+      old_env = ENV["RAILS_ENV"]
+      ENV["RAILS_ENV"] = "development"
+
+      with_stubbed_configurations do
+        assert_called_with(
+          ActiveRecord::Tasks::DatabaseTasks,
+          :truncate_tables,
+          [
+            ["database" => "dev-db"],
+            ["database" => "secondary-dev-db"]
+          ]
+        ) do
+          ActiveRecord::Tasks::DatabaseTasks.truncate_all(
+            ActiveSupport::StringInquirer.new("development")
+          )
+        end
+      end
+    ensure
+      ENV["RAILS_ENV"] = old_env
+    end
+
+    private
+      def with_stubbed_configurations
+        old_configurations = ActiveRecord::Base.configurations
+        ActiveRecord::Base.configurations = @configurations
+
+        yield
+      ensure
+        ActiveRecord::Base.configurations = old_configurations
+      end
   end
 
   class DatabaseTasksCharsetTest < ActiveRecord::TestCase

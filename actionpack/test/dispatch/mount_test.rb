@@ -27,6 +27,7 @@ class TestRoutingMount < ActionDispatch::IntegrationTest
     }
 
     mount SprocketsApp, at: "/sprockets"
+    mount SprocketsApp, at: "/star*"
     mount SprocketsApp => "/shorthand"
 
     mount SinatraLikeApp, at: "/fakeengine", as: :fake
@@ -58,6 +59,14 @@ class TestRoutingMount < ActionDispatch::IntegrationTest
   def test_mounting_at_root_path
     get "/omg"
     assert_equal " -- /omg", response.body
+
+    get "/~omg"
+    assert_equal " -- /~omg", response.body
+  end
+
+  def test_mounting_at_path_with_non_word_character
+    get "/star*/omg"
+    assert_equal "/star* -- /omg", response.body
   end
 
   def test_mounting_sets_script_name

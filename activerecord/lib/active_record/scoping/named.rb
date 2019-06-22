@@ -58,7 +58,7 @@ module ActiveRecord
         end
 
         def default_extensions # :nodoc:
-          if scope = current_scope || build_default_scope
+          if scope = scope_for_association || build_default_scope
             scope.extensions
           else
             []
@@ -204,7 +204,6 @@ module ActiveRecord
         end
 
         private
-
           def valid_scope_name?(name)
             if respond_to?(name, true) && logger
               logger.warn "Creating scope :#{name}. " \

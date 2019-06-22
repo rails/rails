@@ -15,7 +15,7 @@ Gem::Specification.new do |s|
 
   s.author   = "David Heinemeier Hansson"
   s.email    = "david@loudthinking.com"
-  s.homepage = "http://rubyonrails.org"
+  s.homepage = "https://rubyonrails.org"
 
   s.files        = Dir["CHANGELOG.md", "MIT-LICENSE", "README.rdoc", "lib/**/*"]
   s.require_path = "lib"
@@ -34,5 +34,5 @@ Gem::Specification.new do |s|
   s.add_dependency "tzinfo",          "~> 1.1"
   s.add_dependency "minitest",        "~> 5.1"
   s.add_dependency "concurrent-ruby", "~> 1.0", ">= 1.0.2"
-  s.add_dependency "zeitwerk",        "~> 1.2"
+  s.add_dependency "zeitwerk",        "~> 2.1", ">= 2.1.4"
 end

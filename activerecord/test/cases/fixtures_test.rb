@@ -209,7 +209,7 @@ class FixturesTest < ActiveRecord::TestCase
       conn = ActiveRecord::Base.connection
       mysql_margin = 2
       packet_size = 1024
-      bytes_needed_to_have_a_1024_bytes_fixture = 858
+      bytes_needed_to_have_a_1024_bytes_fixture = 906
       fixtures = {
         "traffic_lights" => [
           { "location" => "US", "state" => ["NY"], "long_state" => ["a" * bytes_needed_to_have_a_1024_bytes_fixture] },
@@ -496,11 +496,7 @@ class FixturesTest < ActiveRecord::TestCase
       ActiveRecord::FixtureSet.create_fixtures(FIXTURES_ROOT + "/naked/yml", "parrots")
     end
 
-    if current_adapter?(:SQLite3Adapter)
-      assert_equal(%(table "parrots" has no column named "arrr".), e.message)
-    else
-      assert_equal(%(table "parrots" has no columns named "arrr", "foobar".), e.message)
-    end
+    assert_equal(%(table "parrots" has no columns named "arrr", "foobar".), e.message)
   end
 
   def test_yaml_file_with_symbol_columns
@@ -952,7 +948,6 @@ class TransactionalFixturesOnConnectionNotification < ActiveRecord::TestCase
   end
 
   private
-
     def fire_connection_notification(connection)
       assert_called_with(ActiveRecord::Base.connection_handler, :retrieve_connection, ["book"], returns: connection) do
         message_bus = ActiveSupport::Notifications.instrumenter
@@ -1371,7 +1366,6 @@ class MultipleDatabaseFixturesTest < ActiveRecord::TestCase
   end
 
   private
-
     def with_temporary_connection_pool
       old_pool = ActiveRecord::Base.connection_handler.retrieve_connection_pool(ActiveRecord::Base.connection_specification_name)
       new_pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new ActiveRecord::Base.connection_pool.spec

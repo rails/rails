@@ -13,10 +13,10 @@ After reading this guide, you will know:
 * How to contribute to the Ruby on Rails documentation.
 * How to contribute to the Ruby on Rails code.
 
-Ruby on Rails is not "someone else's framework." Over the years, thousands of people have contributed to Ruby on Rails ranging from a single character to massive architectural changes or significant documentation - all with the goal of making Ruby on Rails better for everyone. Even if you don't feel up to writing code or documentation yet, there are a variety of other ways that you can contribute, from reporting issues to testing patches.
+Ruby on Rails is not "someone else's framework". Over the years, thousands of people have contributed to Ruby on Rails ranging from a single character to massive architectural changes or significant documentation - all with the goal of making Ruby on Rails better for everyone. Even if you don't feel up to writing code or documentation yet, there are a variety of other ways that you can contribute, from reporting issues to testing patches.
 
 As mentioned in [Rails'
-README](https://github.com/rails/rails/blob/master/README.md), everyone interacting in Rails and its sub-projects' codebases, issue trackers, chat rooms, and mailing lists is expected to follow the Rails [code of conduct](http://rubyonrails.org/conduct/).
+README](https://github.com/rails/rails/blob/master/README.md), everyone interacting in Rails and its sub-projects' codebases, issue trackers, chat rooms, and mailing lists is expected to follow the Rails [code of conduct](https://rubyonrails.org/conduct/).
 
 --------------------------------------------------------------------------------
 
@@ -53,7 +53,7 @@ You can then share your executable test case as a [gist](https://gist.github.com
 
 ### Special Treatment for Security Issues
 
-WARNING: Please do not report security vulnerabilities with public GitHub issue reports. The [Rails security policy page](http://rubyonrails.org/security) details the procedure to follow for security issues.
+WARNING: Please do not report security vulnerabilities with public GitHub issue reports. The [Rails security policy page](https://rubyonrails.org/security) details the procedure to follow for security issues.
 
 ### What about Feature Requests?
 
@@ -76,7 +76,7 @@ a patch, please send an email to the [rails-core mailing
 list](https://groups.google.com/forum/?fromgroups#!forum/rubyonrails-core). You
 might get no response, which means that everyone is indifferent. You might find
 someone who's also interested in building that feature. You might get a "This
-won't be accepted." But it's the proper place to discuss new ideas. GitHub
+won't be accepted". But it's the proper place to discuss new ideas. GitHub
 Issues are not a particularly good venue for the sometimes long and involved
 discussions new features require.
 
@@ -247,7 +247,7 @@ Rails follows a simple set of coding style conventions:
 
 * Two spaces, no tabs (for indentation).
 * No trailing whitespace. Blank lines should not have any spaces.
-* Indent after private/protected.
+* Indent and no blank line after private/protected.
 * Use Ruby >= 1.9 syntax for hashes. Prefer `{ a: :b }` over `{ :a => :b }`.
 * Prefer `&&`/`||` over `and`/`or`.
 * Prefer class << self over self.method for class methods.
@@ -302,7 +302,7 @@ the recommended workflow with the [rails-dev-box](https://github.com/rails/rails
 As a compromise, test what your code obviously affects, and if the change is
 not in railties, run the whole test suite of the affected component. If all
 tests are passing, that's enough to propose your contribution. We have
-[Travis CI](https://travis-ci.org/rails/rails) as a safety net for catching
+[Buildkite](https://buildkite.com/rails/rails) as a safety net for catching
 unexpected breakages elsewhere.
 
 #### Entire Rails:
@@ -340,7 +340,7 @@ $ TEST_DIR=generators bundle exec rake test
 You can run the tests for a particular file by using:
 
 ```bash
-$ cd actionpack
+$ cd actionview
 $ bundle exec ruby -w -Itest test/template/form_helper_test.rb
 ```
 
@@ -418,7 +418,7 @@ To run a single test against all adapters, use:
 $ bundle exec rake TEST=test/cases/associations/has_many_associations_test.rb
 ```
 
-You can invoke `test_jdbcmysql`, `test_jdbcsqlite3` or `test_jdbcpostgresql` also. See the file `activerecord/RUNNING_UNIT_TESTS.rdoc` for information on running more targeted database tests, or the file `ci/travis.rb` for the test suite run by the continuous integration server.
+You can invoke `test_jdbcmysql`, `test_jdbcsqlite3` or `test_jdbcpostgresql` also. See the file `activerecord/RUNNING_UNIT_TESTS.rdoc` for information on running more targeted database tests.
 
 ### Warnings
 
@@ -677,11 +677,11 @@ $ git apply ~/my_changes.patch
 
 This works well for simple changes. However, if your changes are complicated or if the code in master has deviated significantly from your target branch, it might require more work on your part. The difficulty of a backport varies greatly from case to case, and sometimes it is simply not worth the effort.
 
-Once you have resolved all conflicts and made sure all the tests are passing, push your changes and open a separate pull request for your backport. It is also worth noting that older branches might have a different set of build targets than master. When possible, it is best to first test your backport locally against the Ruby versions listed in `.travis.yml` before submitting your pull request.
+Once you have resolved all conflicts and made sure all the tests are passing, push your changes and open a separate pull request for your backport. It is also worth noting that older branches might have a different set of build targets than master. When possible, it is best to first test your backport locally against the oldest Ruby version permitted by the target branch's `rails.gemspec` before submitting your pull request.
 
 And then... think about your next contribution!
 
 Rails Contributors
 ------------------
 
-All contributions get credit in [Rails Contributors](http://contributors.rubyonrails.org).
+All contributions get credit in [Rails Contributors](https://contributors.rubyonrails.org).

@@ -22,7 +22,6 @@ module ActionMailer
       end
 
       private
-
         def clear_test_deliveries
           if ActionMailer::Base.delivery_method == :test
             ActionMailer::Base.deliveries.clear
@@ -76,7 +75,6 @@ module ActionMailer
       end
 
       private
-
         def initialize_test_deliveries
           set_delivery_method :test
           @old_perform_deliveries = ActionMailer::Base.perform_deliveries

@@ -2,6 +2,8 @@
 
 require "abstract_unit"
 require "controller/fake_models"
+require "test_component"
+require "active_model/validations"
 
 class TestController < ActionController::Base
 end
@@ -33,6 +35,11 @@ module RenderTestCases
     assert_equal ORIGINAL_LOCALES, I18n.available_locales.map(&:to_s).sort
   end
 
+  def teardown
+    I18n.reload!
+    ActionController::Base.view_paths.map(&:clear_cache)
+  end
+
   def test_implicit_format_comes_from_parent_template
     rendered_templates = JSON.parse(@controller_view.render(template: "test/mixing_formats"))
     assert_equal({ "format" => "HTML",
@@ -53,25 +60,26 @@ module RenderTestCases
     assert_match(/You invoked render but did not give any of (.+) option\./, e.message)
   end
 
+  def test_render_template
+    assert_equal "Hello world!", @view.render(template: "test/hello_world")
+  end
+
+
   def test_render_file
-    assert_equal "Hello world!", @view.render(file: "test/hello_world")
+    assert_equal "Hello world!", assert_deprecated { @view.render(file: "test/hello_world") }
   end
 
   # Test if :formats, :locale etc. options are passed correctly to the resolvers.
   def test_render_file_with_format
-    assert_match "<h1>No Comment</h1>", @view.render(file: "comments/empty", formats: [:html])
-    assert_match "<error>No Comment</error>", @view.render(file: "comments/empty", formats: [:xml])
-    assert_match "<error>No Comment</error>", @view.render(file: "comments/empty", formats: :xml)
+    assert_match "<h1>No Comment</h1>", assert_deprecated { @view.render(file: "comments/empty", formats: [:html]) }
+    assert_match "<error>No Comment</error>", assert_deprecated { @view.render(file: "comments/empty", formats: [:xml]) }
+    assert_match "<error>No Comment</error>", assert_deprecated { @view.render(file: "comments/empty", formats: :xml) }
   end
 
   def test_render_template_with_format
     assert_match "<h1>No Comment</h1>", @view.render(template: "comments/empty", formats: [:html])
     assert_match "<error>No Comment</error>", @view.render(template: "comments/empty", formats: [:xml])
-  end
-
-  def test_rendered_format_without_format
-    @view.render(inline: "test")
-    assert_equal :html, @view.lookup_context.rendered_format
+    assert_match "<error>No Comment</error>", @view.render(template: "comments/empty", formats: :xml)
   end
 
   def test_render_partial_implicitly_use_format_of_the_rendered_template
@@ -98,8 +106,8 @@ module RenderTestCases
   end
 
   def test_render_file_with_locale
-    assert_equal "<h1>Kein Kommentar</h1>", @view.render(file: "comments/empty", locale: [:de])
-    assert_equal "<h1>Kein Kommentar</h1>", @view.render(file: "comments/empty", locale: :de)
+    assert_equal "<h1>Kein Kommentar</h1>", assert_deprecated { @view.render(file: "comments/empty", locale: [:de]) }
+    assert_equal "<h1>Kein Kommentar</h1>", assert_deprecated { @view.render(file: "comments/empty", locale: :de) }
   end
 
   def test_render_template_with_locale
@@ -111,8 +119,8 @@ module RenderTestCases
   end
 
   def test_render_file_with_handlers
-    assert_equal "<h1>No Comment</h1>\n", @view.render(file: "comments/empty", handlers: [:builder])
-    assert_equal "<h1>No Comment</h1>\n", @view.render(file: "comments/empty", handlers: :builder)
+    assert_equal "<h1>No Comment</h1>\n", assert_deprecated { @view.render(file: "comments/empty", handlers: [:builder]) }
+    assert_equal "<h1>No Comment</h1>\n", assert_deprecated { @view.render(file: "comments/empty", handlers: :builder) }
   end
 
   def test_render_template_with_handlers
@@ -129,7 +137,7 @@ module RenderTestCases
 
   def test_render_raw_is_html_safe_and_does_not_escape_output
     buffer = ActiveSupport::SafeBuffer.new
-    buffer << @view.render(file: "plain_text")
+    buffer << @view.render(template: "plain_text")
     assert_equal true, buffer.html_safe?
     assert_equal buffer, "<%= hello_world %>\n"
   end
@@ -142,40 +150,45 @@ module RenderTestCases
     assert_equal "4", @view.render(inline: "(2**2).to_s", type: :ruby)
   end
 
-  def test_render_file_with_localization_on_context_level
+  def test_render_template_with_localization_on_context_level
     old_locale, @view.locale = @view.locale, :da
-    assert_equal "Hey verden", @view.render(file: "test/hello_world")
+    assert_equal "Hey verden", @view.render(template: "test/hello_world")
   ensure
     @view.locale = old_locale
   end
 
-  def test_render_file_with_dashed_locale
+  def test_render_template_with_dashed_locale
     old_locale, @view.locale = @view.locale, :"pt-BR"
-    assert_equal "Ola mundo", @view.render(file: "test/hello_world")
+    assert_equal "Ola mundo", @view.render(template: "test/hello_world")
   ensure
     @view.locale = old_locale
   end
 
-  def test_render_file_at_top_level
-    assert_equal "Elastica", @view.render(file: "/shared")
+  def test_render_template_at_top_level
+    assert_equal "Elastica", @view.render(template: "/shared")
+  end
+
+  def test_render_file_with_full_path_no_extension
+    template_path = File.expand_path("../fixtures/test/hello_world", __dir__)
+    assert_equal "Hello world!", assert_deprecated { @view.render(file: template_path) }
   end
 
   def test_render_file_with_full_path
-    template_path = File.expand_path("../fixtures/test/hello_world", __dir__)
+    template_path = File.expand_path("../fixtures/test/hello_world.erb", __dir__)
     assert_equal "Hello world!", @view.render(file: template_path)
   end
 
   def test_render_file_with_instance_variables
-    assert_equal "The secret is in the sauce\n", @view.render(file: "test/render_file_with_ivar")
+    assert_equal "The secret is in the sauce\n", assert_deprecated { @view.render(file: "test/render_file_with_ivar") }
   end
 
   def test_render_file_with_locals
     locals = { secret: "in the sauce" }
-    assert_equal "The secret is in the sauce\n", @view.render(file: "test/render_file_with_locals", locals: locals)
+    assert_equal "The secret is in the sauce\n", assert_deprecated { @view.render(file: "test/render_file_with_locals", locals: locals) }
   end
 
   def test_render_file_not_using_full_path_with_dot_in_path
-    assert_equal "The secret is in the sauce\n", @view.render(file: "test/dot.directory/render_file_with_ivar")
+    assert_equal "The secret is in the sauce\n", assert_deprecated { @view.render(file: "test/dot.directory/render_file_with_ivar") }
   end
 
   def test_render_partial_from_default
@@ -263,18 +276,24 @@ module RenderTestCases
       "and is followed by any combination of letters, numbers and underscores.", e.message
   end
 
+  def test_render_template_with_syntax_error
+    e = assert_raises(ActionView::Template::Error) { @view.render(template: "test/syntax_error") }
+    assert_match %r!syntax!, e.message
+    assert_equal "1:    <%= foo(", e.annotated_source_code[0].strip
+  end
+
   def test_render_partial_with_errors
     e = assert_raises(ActionView::Template::Error) { @view.render(partial: "test/raise") }
     assert_match %r!method.*doesnt_exist!, e.message
     assert_equal "", e.sub_template_message
     assert_equal "1", e.line_number
-    assert_equal "1: <%= doesnt_exist %>", e.annoted_source_code[0].strip
+    assert_equal "1: <%= doesnt_exist %>", e.annotated_source_code[0].strip
     assert_equal File.expand_path("#{FIXTURE_LOAD_PATH}/test/_raise.html.erb"), e.file_name
   end
 
   def test_render_error_indentation
     e = assert_raises(ActionView::Template::Error) { @view.render(partial: "test/raise_indentation") }
-    error_lines = e.annoted_source_code
+    error_lines = e.annotated_source_code
     assert_match %r!error\shere!, e.message
     assert_equal "11", e.line_number
     assert_equal "     9: <p>Ninth paragraph</p>", error_lines.second
@@ -290,11 +309,11 @@ module RenderTestCases
   end
 
   def test_render_file_with_errors
-    e = assert_raises(ActionView::Template::Error) { @view.render(file: File.expand_path("test/_raise", FIXTURE_LOAD_PATH)) }
+    e = assert_raises(ActionView::Template::Error) { assert_deprecated { @view.render(file: File.expand_path("test/_raise", FIXTURE_LOAD_PATH)) } }
     assert_match %r!method.*doesnt_exist!, e.message
     assert_equal "", e.sub_template_message
     assert_equal "1", e.line_number
-    assert_equal "1: <%= doesnt_exist %>", e.annoted_source_code[0].strip
+    assert_equal "1: <%= doesnt_exist %>", e.annotated_source_code[0].strip
     assert_equal File.expand_path("#{FIXTURE_LOAD_PATH}/test/_raise.html.erb"), e.file_name
   end
 
@@ -365,12 +384,16 @@ module RenderTestCases
     assert_deprecated do
       ActionView::Base.new ["/a"]
     end
+
+    assert_deprecated do
+      ActionView::Base.new ActionView::PathSet.new ["/a"]
+    end
   end
 
   def test_without_compiled_method_container_is_deprecated
     view = ActionView::Base.with_view_paths(ActionController::Base.view_paths)
     assert_deprecated("ActionView::Base instances must implement `compiled_method_container`") do
-      assert_equal "Hello world!", view.render(file: "test/hello_world")
+      assert_equal "Hello world!", view.render(template: "test/hello_world")
     end
   end
 
@@ -550,28 +573,28 @@ module RenderTestCases
   def test_render_ignores_templates_with_malformed_template_handlers
     %w(malformed malformed.erb malformed.html.erb malformed.en.html.erb).each do |name|
       assert File.exist?(File.expand_path("#{FIXTURE_LOAD_PATH}/test/malformed/#{name}~")), "Malformed file (#{name}~) which should be ignored does not exists"
-      assert_raises(ActionView::MissingTemplate) { @view.render(file: "test/malformed/#{name}") }
+      assert_raises(ActionView::MissingTemplate) { @view.render(template: "test/malformed/#{name}") }
     end
   end
 
   def test_render_with_layout
     assert_equal %(<title></title>\nHello world!\n),
-      @view.render(file: "test/hello_world", layout: "layouts/yield")
+      @view.render(template: "test/hello_world", layout: "layouts/yield")
   end
 
   def test_render_with_layout_which_has_render_inline
     assert_equal %(welcome\nHello world!\n),
-      @view.render(file: "test/hello_world", layout: "layouts/yield_with_render_inline_inside")
+      @view.render(template: "test/hello_world", layout: "layouts/yield_with_render_inline_inside")
   end
 
   def test_render_with_layout_which_renders_another_partial
     assert_equal %(partial html\nHello world!\n),
-      @view.render(file: "test/hello_world", layout: "layouts/yield_with_render_partial_inside")
+      @view.render(template: "test/hello_world", layout: "layouts/yield_with_render_partial_inside")
   end
 
   def test_render_partial_with_html_only_extension
     assert_equal %(<h1>partial html</h1>\nHello world!\n),
-      @view.render(file: "test/hello_world", layout: "layouts/render_partial_html")
+      @view.render(template: "test/hello_world", layout: "layouts/render_partial_html")
   end
 
   def test_render_layout_with_block_and_yield
@@ -626,17 +649,17 @@ module RenderTestCases
 
   def test_render_with_nested_layout
     assert_equal %(<title>title</title>\n\n<div id="column">column</div>\n<div id="content">content</div>\n),
-      @view.render(file: "test/nested_layout", layout: "layouts/yield")
+      @view.render(template: "test/nested_layout", layout: "layouts/yield")
   end
 
   def test_render_with_file_in_layout
     assert_equal %(\n<title>title</title>\n\n),
-      @view.render(file: "test/layout_render_file")
+      @view.render(template: "test/layout_render_file")
   end
 
   def test_render_layout_with_object
     assert_equal %(<title>David</title>),
-      @view.render(file: "test/layout_render_object")
+      @view.render(template: "test/layout_render_object")
   end
 
   def test_render_with_passing_couple_extensions_to_one_register_template_handler_function_call
@@ -649,6 +672,21 @@ module RenderTestCases
   def test_render_throws_exception_when_no_extensions_passed_to_register_template_handler_function_call
     assert_raises(ArgumentError) { ActionView::Template.register_template_handler CustomHandler }
   end
+
+  def test_render_component
+    assert_equal(
+      %(<span title="my title">Hello, World! (Inline render)</span>),
+      @view.render(TestComponent.new(title: "my title")) { "Hello, World!" }.strip
+    )
+  end
+
+  def test_render_component_with_validation_error
+    error = assert_raises(ActiveModel::ValidationError) do
+      @view.render(TestComponent.new(title: "my title")).strip
+    end
+
+    assert_match "Content can't be blank", error.message
+  end
 end
 
 class CachedViewRenderTest < ActiveSupport::TestCase
@@ -660,11 +698,6 @@ class CachedViewRenderTest < ActiveSupport::TestCase
     view_paths = ActionController::Base.view_paths
     assert_equal ActionView::OptimizedFileSystemResolver, view_paths.first.class
     setup_view(view_paths)
-  end
-
-  def teardown
-    GC.start
-    I18n.reload!
   end
 end
 
@@ -681,14 +714,9 @@ class LazyViewRenderTest < ActiveSupport::TestCase
     setup_view(view_paths)
   end
 
-  def teardown
-    GC.start
-    I18n.reload!
-  end
-
   def test_render_utf8_template_with_magic_comment
     with_external_encoding Encoding::ASCII_8BIT do
-      result = @view.render(file: "test/utf8_magic", formats: [:html], layouts: "layouts/yield")
+      result = @view.render(template: "test/utf8_magic", formats: [:html], layouts: "layouts/yield")
       assert_equal Encoding::UTF_8, result.encoding
       assert_equal "\nРусский \nтекст\n\nUTF-8\nUTF-8\nUTF-8\n", result
     end
@@ -696,7 +724,7 @@ class LazyViewRenderTest < ActiveSupport::TestCase
 
   def test_render_utf8_template_with_default_external_encoding
     with_external_encoding Encoding::UTF_8 do
-      result = @view.render(file: "test/utf8", formats: [:html], layouts: "layouts/yield")
+      result = @view.render(template: "test/utf8", formats: [:html], layouts: "layouts/yield")
       assert_equal Encoding::UTF_8, result.encoding
       assert_equal "Русский текст\n\nUTF-8\nUTF-8\nUTF-8\n", result
     end
@@ -704,14 +732,14 @@ class LazyViewRenderTest < ActiveSupport::TestCase
 
   def test_render_utf8_template_with_incompatible_external_encoding
     with_external_encoding Encoding::SHIFT_JIS do
-      e = assert_raises(ActionView::Template::Error) { @view.render(file: "test/utf8", formats: [:html], layouts: "layouts/yield") }
+      e = assert_raises(ActionView::Template::Error) { @view.render(template: "test/utf8", formats: [:html], layouts: "layouts/yield") }
       assert_match "Your template was not saved as valid Shift_JIS", e.cause.message
     end
   end
 
   def test_render_utf8_template_with_partial_with_incompatible_encoding
     with_external_encoding Encoding::SHIFT_JIS do
-      e = assert_raises(ActionView::Template::Error) { @view.render(file: "test/utf8_magic_with_bare_partial", formats: [:html], layouts: "layouts/yield") }
+      e = assert_raises(ActionView::Template::Error) { @view.render(template: "test/utf8_magic_with_bare_partial", formats: [:html], layouts: "layouts/yield") }
       assert_match "Your template was not saved as valid Shift_JIS", e.cause.message
     end
   end
@@ -742,9 +770,12 @@ class CachedCollectionViewRenderTest < ActiveSupport::TestCase
     setup_view(view_paths)
   end
 
-  teardown do
-    GC.start
-    I18n.reload!
+  test "template body written to cache" do
+    customer = Customer.new("david", 1)
+    key = cache_key(customer, "test/_customer")
+    assert_nil ActionView::PartialRenderer.collection_cache.read(key)
+    @view.render(partial: "test/customer", collection: [customer], cached: true)
+    assert_equal "Hello: david", ActionView::PartialRenderer.collection_cache.read(key)
   end
 
   test "collection caching does not cache by default" do
@@ -788,9 +819,31 @@ class CachedCollectionViewRenderTest < ActiveSupport::TestCase
     end
   end
 
+  test "collection caching with repeated collection" do
+    sets = [
+        [1, 2, 3, 4, 5],
+        [1, 2, 3, 4, 4],
+        [1, 2, 3, 4, 5],
+        [1, 2, 3, 4, 4],
+        [1, 2, 3, 4, 6]
+    ]
+
+    result = @view.render(partial: "test/cached_set", collection: sets, cached: true)
+
+    splited_result = result.split("\n")
+    assert_equal 5, splited_result.count
+    assert_equal [
+      "1 | 2 | 3 | 4 | 5",
+      "1 | 2 | 3 | 4 | 4",
+      "1 | 2 | 3 | 4 | 5",
+      "1 | 2 | 3 | 4 | 4",
+      "1 | 2 | 3 | 4 | 6"
+    ], splited_result
+  end
+
   private
     def cache_key(*names, virtual_path)
-      digest = ActionView::Digestor.digest name: virtual_path, finder: @view.lookup_context, dependencies: []
+      digest = ActionView::Digestor.digest name: virtual_path, format: :html, finder: @view.lookup_context, dependencies: []
       @view.combined_fragment_cache_key([ "#{virtual_path}:#{digest}", *names ])
     end
 end

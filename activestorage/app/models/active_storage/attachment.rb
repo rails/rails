@@ -13,7 +13,7 @@ class ActiveStorage::Attachment < ActiveRecord::Base
 
   delegate_missing_to :blob
 
-  after_create_commit :analyze_blob_later, :identify_blob
+  after_create_commit :mirror_blob_later, :analyze_blob_later, :identify_blob
   after_destroy_commit :purge_dependent_blob_later
 
   # Synchronously deletes the attachment and {purges the blob}[rdoc-ref:ActiveStorage::Blob#purge].
@@ -37,6 +37,10 @@ class ActiveStorage::Attachment < ActiveRecord::Base
       blob.analyze_later unless blob.analyzed?
     end
 
+    def mirror_blob_later
+      blob.mirror_later
+    end
+
     def purge_dependent_blob_later
       blob&.purge_later if dependent == :purge_later
     end
@@ -46,3 +50,5 @@ class ActiveStorage::Attachment < ActiveRecord::Base
       record.attachment_reflections[name]&.options[:dependent]
     end
 end
+
+ActiveSupport.run_load_hooks :active_storage_attachment, ActiveStorage::Attachment

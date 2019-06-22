@@ -54,3 +54,5 @@ class BounceMailer < ActionMailer::Base
     end
   end
 end
+
+require_relative "../../tools/test_common"

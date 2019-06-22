@@ -124,7 +124,7 @@ class FunctionalFragmentCachingTest < BaseCachingTest
 
     assert_match expected_body, email.body.encoded
     assert_match expected_body,
-      @store.read("views/caching_mailer/fragment_cache:#{template_digest("caching_mailer/fragment_cache")}/caching")
+      @store.read("views/caching_mailer/fragment_cache:#{template_digest("caching_mailer/fragment_cache", "html")}/caching")
   end
 
   def test_fragment_caching_in_partials
@@ -133,7 +133,7 @@ class FunctionalFragmentCachingTest < BaseCachingTest
     assert_match(expected_body, email.body.encoded)
 
     assert_match(expected_body,
-      @store.read("views/caching_mailer/_partial:#{template_digest("caching_mailer/_partial")}/caching"))
+      @store.read("views/caching_mailer/_partial:#{template_digest("caching_mailer/_partial", "html")}/caching"))
   end
 
   def test_skip_fragment_cache_digesting
@@ -183,15 +183,14 @@ class FunctionalFragmentCachingTest < BaseCachingTest
     end
 
     assert_equal "caching_mailer", payload[:mailer]
-    assert_equal [ :views, "caching_mailer/fragment_cache:#{template_digest("caching_mailer/fragment_cache")}", :caching ], payload[:key]
+    assert_equal [ :views, "caching_mailer/fragment_cache:#{template_digest("caching_mailer/fragment_cache", "html")}", :caching ], payload[:key]
   ensure
     @mailer.enable_fragment_cache_logging = true
   end
 
   private
-
-    def template_digest(name)
-      ActionView::Digestor.digest(name: name, finder: @mailer.lookup_context)
+    def template_digest(name, format)
+      ActionView::Digestor.digest(name: name, format: format, finder: @mailer.lookup_context)
     end
 end
 

@@ -72,7 +72,6 @@ module ActiveRecord
       attr_reader :aliases
 
       private
-
         def truncate(name)
           name.slice(0, @connection.table_alias_length - 2)
         end

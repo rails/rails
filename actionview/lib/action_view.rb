@@ -44,7 +44,7 @@ module ActionView
     autoload :Rendering
     autoload :RoutingUrlFor
     autoload :Template
-    autoload :FileTemplate
+    autoload :UnboundTemplate
     autoload :ViewPaths
 
     autoload_under "renderer" do
@@ -77,10 +77,12 @@ module ActionView
       autoload :ActionViewError
       autoload :EncodingError
       autoload :TemplateError
+      autoload :SyntaxErrorInTemplate
       autoload :WrongEncodingError
     end
   end
 
+  autoload :CacheExpiry
   autoload :TestCase
 
   def self.eager_load!

@@ -45,7 +45,6 @@ module ActiveRecord
 
       class StatementPool < ConnectionAdapters::StatementPool # :nodoc:
         private
-
           def dealloc(stmt)
             stmt.close
           end
@@ -53,28 +52,28 @@ module ActiveRecord
 
       def initialize(connection, logger, connection_options, config)
         super(connection, logger, config)
-
-        @statements = StatementPool.new(self.class.type_cast_config_to_integer(config[:statement_limit]))
       end
 
-      def version #:nodoc:
-        @version ||= Version.new(version_string)
+      def get_database_version #:nodoc:
+        full_version_string = get_full_version
+        version_string = version_string(full_version_string)
+        Version.new(version_string, full_version_string)
       end
 
       def mariadb? # :nodoc:
         /mariadb/i.match?(full_version)
       end
 
-      def supports_bulk_alter? #:nodoc:
+      def supports_bulk_alter?
         true
       end
 
       def supports_index_sort_order?
-        !mariadb? && version >= "8.0.1"
+        !mariadb? && database_version >= "8.0.1"
       end
 
       def supports_expression_index?
-        !mariadb? && version >= "8.0.13"
+        !mariadb? && database_version >= "8.0.13"
       end
 
       def supports_transaction_isolation?
@@ -98,14 +97,27 @@ module ActiveRecord
       end
 
       def supports_datetime_with_precision?
-        mariadb? || version >= "5.6.4"
+        mariadb? || database_version >= "5.6.4"
       end
 
       def supports_virtual_columns?
-        mariadb? || version >= "5.7.5"
+        mariadb? || database_version >= "5.7.5"
+      end
+
+      # See https://dev.mysql.com/doc/refman/8.0/en/optimizer-hints.html for more details.
+      def supports_optimizer_hints?
+        !mariadb? && database_version >= "5.7.7"
       end
 
       def supports_advisory_locks?
+        true
+      end
+
+      def supports_insert_on_duplicate_skip?
+        true
+      end
+
+      def supports_insert_on_duplicate_update?
         true
       end
 
@@ -154,24 +166,14 @@ module ActiveRecord
 
       # CONNECTION MANAGEMENT ====================================
 
-      # Clears the prepared statements cache.
-      def clear_cache!
+      def clear_cache! # :nodoc:
         reload_type_map
-        @statements.clear
+        super
       end
 
       #--
       # DATABASE STATEMENTS ======================================
       #++
-
-      def explain(arel, binds = [])
-        sql     = "EXPLAIN #{to_sql(arel, binds)}"
-        start   = Concurrent.monotonic_time
-        result  = exec_query(sql, "EXPLAIN", binds)
-        elapsed = Concurrent.monotonic_time - start
-
-        MySQL::ExplainPrettyPrinter.new.pp(result, elapsed)
-      end
 
       # Executes the SQL statement in the context of this connection.
       def execute(sql, name = nil)
@@ -192,7 +194,7 @@ module ActiveRecord
       end
 
       def begin_db_transaction
-        execute "BEGIN"
+        execute("BEGIN", "TRANSACTION")
       end
 
       def begin_isolated_db_transaction(isolation)
@@ -201,11 +203,11 @@ module ActiveRecord
       end
 
       def commit_db_transaction #:nodoc:
-        execute "COMMIT"
+        execute("COMMIT", "TRANSACTION")
       end
 
       def exec_rollback_db_transaction #:nodoc:
-        execute "ROLLBACK"
+        execute("ROLLBACK", "TRANSACTION")
       end
 
       def empty_insert_statement_value(primary_key = nil)
@@ -264,10 +266,6 @@ module ActiveRecord
         show_variable "collation_database"
       end
 
-      def truncate(table_name, name = nil)
-        execute "TRUNCATE TABLE #{quote_table_name(table_name)}", name
-      end
-
       def table_comment(table_name) # :nodoc:
         scope = quoted_scope(table_name)
 
@@ -279,22 +277,8 @@ module ActiveRecord
         SQL
       end
 
-      def bulk_change_table(table_name, operations) #:nodoc:
-        sqls = operations.flat_map do |command, args|
-          table, arguments = args.shift, args
-          method = :"#{command}_for_alter"
-
-          if respond_to?(method, true)
-            send(method, table, *arguments)
-          else
-            raise "Unknown method called : #{method}(#{arguments.inspect})"
-          end
-        end.join(", ")
-
-        execute("ALTER TABLE #{quote_table_name(table_name)} #{sqls}")
-      end
-
-      def change_table_comment(table_name, comment) #:nodoc:
+      def change_table_comment(table_name, comment_or_changes) # :nodoc:
+        comment = extract_new_comment_value(comment_or_changes)
         comment = "" if comment.nil?
         execute("ALTER TABLE #{quote_table_name(table_name)} COMMENT #{quote(comment)}")
       end
@@ -304,6 +288,8 @@ module ActiveRecord
       # Example:
       #   rename_table('octopuses', 'octopi')
       def rename_table(table_name, new_name)
+        schema_cache.clear_data_source_cache!(table_name.to_s)
+        schema_cache.clear_data_source_cache!(new_name.to_s)
         execute "RENAME TABLE #{quote_table_name(table_name)} TO #{quote_table_name(new_name)}"
         rename_table_indexes(table_name, new_name)
       end
@@ -324,6 +310,7 @@ module ActiveRecord
       # it can be helpful to provide these in a migration's +change+ method so it can be reverted.
       # In that case, +options+ and the block will be used by create_table.
       def drop_table(table_name, options = {})
+        schema_cache.clear_data_source_cache!(table_name.to_s)
         execute "DROP#{' TEMPORARY' if options[:temporary]} TABLE#{' IF EXISTS' if options[:if_exists]} #{quote_table_name(table_name)}#{' CASCADE' if options[:force] == :cascade}"
       end
 
@@ -350,7 +337,8 @@ module ActiveRecord
         change_column table_name, column_name, nil, null: null
       end
 
-      def change_column_comment(table_name, column_name, comment) #:nodoc:
+      def change_column_comment(table_name, column_name, comment_or_changes) # :nodoc:
+        comment = extract_new_comment_value(comment_or_changes)
         change_column table_name, column_name, nil, comment: comment
       end
 
@@ -431,30 +419,6 @@ module ActiveRecord
         table_options
       end
 
-      # Maps logical Rails types to MySQL-specific data types.
-      def type_to_sql(type, limit: nil, precision: nil, scale: nil, unsigned: nil, **) # :nodoc:
-        sql = \
-          case type.to_s
-          when "integer"
-            integer_to_sql(limit)
-          when "text"
-            text_to_sql(limit)
-          when "blob"
-            binary_to_sql(limit)
-          when "binary"
-            if (0..0xfff) === limit
-              "varbinary(#{limit})"
-            else
-              binary_to_sql(limit)
-            end
-          else
-            super
-          end
-
-        sql = "#{sql} unsigned" if unsigned && type != :primary_key
-        sql
-      end
-
       # SHOW VARIABLES LIKE 'name'
       def show_variable(name)
         query_value("SELECT @@#{name}", "SCHEMA")
@@ -475,6 +439,21 @@ module ActiveRecord
             AND table_name = #{scope[:name]}
           ORDER BY ordinal_position
         SQL
+      end
+
+      def default_uniqueness_comparison(attribute, value, klass) # :nodoc:
+        column = column_for_attribute(attribute)
+
+        if column.collation && !column.case_sensitive? && !value.nil?
+          ActiveSupport::Deprecation.warn(<<~MSG.squish)
+            Uniqueness validator will no longer enforce case sensitive comparison in Rails 6.1.
+            To continue case sensitive comparison on the :#{attribute.name} attribute in #{klass} model,
+            pass `case_sensitive: true` option explicitly to the uniqueness validator.
+          MSG
+          attribute.eq(Arel::Nodes::Bin.new(value))
+        else
+          super
+        end
       end
 
       def case_sensitive_comparison(attribute, value) # :nodoc:
@@ -515,46 +494,27 @@ module ActiveRecord
         index.using == :btree || super
       end
 
-      def insert_fixtures_set(fixture_set, tables_to_delete = [])
-        with_multi_statements do
-          super { discard_remaining_results }
+      def build_insert_sql(insert) # :nodoc:
+        sql = +"INSERT #{insert.into} #{insert.values_list}"
+
+        if insert.skip_duplicates?
+          no_op_column = quote_column_name(insert.keys.first)
+          sql << " ON DUPLICATE KEY UPDATE #{no_op_column}=#{no_op_column}"
+        elsif insert.update_duplicates?
+          sql << " ON DUPLICATE KEY UPDATE "
+          sql << insert.updatable_columns.map { |column| "#{column}=VALUES(#{column})" }.join(",")
+        end
+
+        sql
+      end
+
+      def check_version # :nodoc:
+        if database_version < "5.5.8"
+          raise "Your version of MySQL (#{database_version}) is too old. Active Record supports MySQL >= 5.5.8."
         end
       end
 
       private
-        def check_version
-          if version < "5.5.8"
-            raise "Your version of MySQL (#{version_string}) is too old. Active Record supports MySQL >= 5.5.8."
-          end
-        end
-
-        def combine_multi_statements(total_sql)
-          total_sql.each_with_object([]) do |sql, total_sql_chunks|
-            previous_packet = total_sql_chunks.last
-            sql << ";\n"
-            if max_allowed_packet_reached?(sql, previous_packet) || total_sql_chunks.empty?
-              total_sql_chunks << sql
-            else
-              previous_packet << sql
-            end
-          end
-        end
-
-        def max_allowed_packet_reached?(current_packet, previous_packet)
-          if current_packet.bytesize > max_allowed_packet
-            raise ActiveRecordError, "Fixtures set is too large #{current_packet.bytesize}. Consider increasing the max_allowed_packet variable."
-          elsif previous_packet.nil?
-            false
-          else
-            (current_packet.bytesize + previous_packet.bytesize) > max_allowed_packet
-          end
-        end
-
-        def max_allowed_packet
-          bytes_margin = 2
-          @max_allowed_packet ||= (show_variable("max_allowed_packet") - bytes_margin)
-        end
-
         def initialize_type_map(m = type_map)
           super
 
@@ -724,7 +684,7 @@ module ActiveRecord
         end
 
         def supports_rename_index?
-          mariadb? ? false : version >= "5.7.6"
+          mariadb? ? false : database_version >= "5.7.6"
         end
 
         def configure_connection
@@ -794,6 +754,10 @@ module ActiveRecord
           Arel::Visitors::MySQL.new(self)
         end
 
+        def build_statement_pool
+          StatementPool.new(self.class.type_cast_config_to_integer(@config[:statement_limit]))
+        end
+
         def mismatched_foreign_key(message, sql:, binds:)
           match = %r/
             (?:CREATE|ALTER)\s+TABLE\s*(?:`?\w+`?\.)?`?(?<table>\w+)`?.+?
@@ -818,39 +782,8 @@ module ActiveRecord
           MismatchedForeignKey.new(options)
         end
 
-        def integer_to_sql(limit) # :nodoc:
-          case limit
-          when 1; "tinyint"
-          when 2; "smallint"
-          when 3; "mediumint"
-          when nil, 4; "int"
-          when 5..8; "bigint"
-          else raise(ActiveRecordError, "No integer type has byte size #{limit}. Use a decimal with scale 0 instead.")
-          end
-        end
-
-        def text_to_sql(limit) # :nodoc:
-          case limit
-          when 0..0xff;               "tinytext"
-          when nil, 0x100..0xffff;    "text"
-          when 0x10000..0xffffff;     "mediumtext"
-          when 0x1000000..0xffffffff; "longtext"
-          else raise(ActiveRecordError, "No text type has byte length #{limit}")
-          end
-        end
-
-        def binary_to_sql(limit) # :nodoc:
-          case limit
-          when 0..0xff;               "tinyblob"
-          when nil, 0x100..0xffff;    "blob"
-          when 0x10000..0xffffff;     "mediumblob"
-          when 0x1000000..0xffffffff; "longblob"
-          else raise(ActiveRecordError, "No binary type has byte length #{limit}")
-          end
-        end
-
-        def version_string
-          full_version.match(/^(?:5\.5\.5-)?(\d+\.\d+\.\d+)/)[1]
+        def version_string(full_version_string)
+          full_version_string.match(/^(?:5\.5\.5-)?(\d+\.\d+\.\d+)/)[1]
         end
 
         class MysqlString < Type::String # :nodoc:
@@ -863,7 +796,6 @@ module ActiveRecord
           end
 
           private
-
             def cast_value(value)
               case value
               when true then "1"

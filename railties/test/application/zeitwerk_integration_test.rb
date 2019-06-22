@@ -47,6 +47,31 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
     assert_equal 0, Rails.autoloaders.count
   end
 
+  test "autoloaders inflect with Active Support" do
+    app_file "config/initializers/inflections.rb", <<-RUBY
+      ActiveSupport::Inflector.inflections(:en) do |inflect|
+        inflect.acronym 'RESTful'
+      end
+    RUBY
+
+    app_file "app/controllers/restful_controller.rb", <<-RUBY
+      class RESTfulController < ApplicationController
+      end
+    RUBY
+
+    boot
+
+    basename  = "restful_controller"
+    abspath   = "#{Rails.root}/app/controllers/#{basename}.rb"
+    camelized = "RESTfulController"
+
+    Rails.autoloaders.each do |autoloader|
+      assert_equal camelized, autoloader.inflector.camelize(basename, abspath)
+    end
+
+    assert RESTfulController
+  end
+
   test "constantize returns the value stored in the constant" do
     app_file "app/models/admin/user.rb", "class Admin::User; end"
     boot
@@ -73,24 +98,47 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
     assert_nil deps.safe_constantize("Admin")
   end
 
-  test "autoloaded_constants returns autoloaded constant paths" do
-    app_file "app/models/admin/user.rb", "class Admin::User; end"
-    app_file "app/models/post.rb", "class Post; end"
-    boot
-
-    assert Admin::User
-    assert_equal ["Admin", "Admin::User"], deps.autoloaded_constants
-  end
-
-  test "autoloaded? says if a constant has been autoloaded" do
+  test "unloadable constants (main)" do
     app_file "app/models/user.rb", "class User; end"
     app_file "app/models/post.rb", "class Post; end"
     boot
 
     assert Post
+
     assert deps.autoloaded?("Post")
     assert deps.autoloaded?(Post)
     assert_not deps.autoloaded?("User")
+
+    assert_equal ["Post"], deps.autoloaded_constants
+  end
+
+  test "unloadable constants (once)" do
+    add_to_config 'config.autoload_once_paths << "#{Rails.root}/extras"'
+    app_file "extras/foo.rb", "class Foo; end"
+    app_file "extras/bar.rb", "class Bar; end"
+    boot
+
+    assert Foo
+
+    assert_not deps.autoloaded?("Foo")
+    assert_not deps.autoloaded?(Foo)
+    assert_not deps.autoloaded?("Bar")
+
+    assert_empty deps.autoloaded_constants
+  end
+
+  test "unloadable constants (reloading disabled)" do
+    app_file "app/models/user.rb", "class User; end"
+    app_file "app/models/post.rb", "class Post; end"
+    boot("production")
+
+    assert Post
+
+    assert_not deps.autoloaded?("Post")
+    assert_not deps.autoloaded?(Post)
+    assert_not deps.autoloaded?("User")
+
+    assert_empty deps.autoloaded_constants
   end
 
   test "eager loading loads the application code" do
@@ -99,10 +147,47 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
 
     app_file "app/models/user.rb", "class User; end; $zeitwerk_integration_test_user = true"
     app_file "app/models/post.rb", "class Post; end; $zeitwerk_integration_test_post = true"
+
     boot("production")
 
     assert $zeitwerk_integration_test_user
     assert $zeitwerk_integration_test_post
+  end
+
+  test "reloading is enabled if config.cache_classes is false" do
+    boot
+
+    assert     Rails.autoloaders.main.reloading_enabled?
+    assert_not Rails.autoloaders.once.reloading_enabled?
+  end
+
+  test "reloading is disabled if config.cache_classes is true" do
+    boot("production")
+
+    assert_not Rails.autoloaders.main.reloading_enabled?
+    assert_not Rails.autoloaders.once.reloading_enabled?
+  end
+
+  test "reloading raises if config.cache_classes is true" do
+    boot("production")
+
+    e = assert_raises(StandardError) do
+      deps.clear
+    end
+    assert_equal "reloading is disabled because config.cache_classes is true", e.message
+  end
+
+  test "eager loading loads code in engines" do
+    $test_blog_engine_eager_loaded = false
+
+    engine("blog") do |bukkit|
+      bukkit.write("lib/blog.rb", "class BlogEngine < Rails::Engine; end")
+      bukkit.write("app/models/post.rb", "Post = $test_blog_engine_eager_loaded = true")
+    end
+
+    boot("production")
+
+    assert $test_blog_engine_eager_loaded
   end
 
   test "eager loading loads anything managed by Zeitwerk" do
@@ -124,22 +209,55 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
     assert $zeitwerk_integration_test_extras
   end
 
-  test "autoload paths that are below Gem.path go to the once autoloader" do
-    app_dir "extras"
-    add_to_config 'config.autoload_paths << "#{Rails.root}/extras"'
+  test "autoload directories not present in eager load paths are not eager loaded" do
+    $zeitwerk_integration_test_user = false
+    app_file "app/models/user.rb", "class User; end; $zeitwerk_integration_test_user = true"
 
-    # Mocks Gem.path to include the extras directory.
-    Gem.singleton_class.prepend(
-      Module.new do
-        def path
-          super + ["#{Rails.root}/extras"]
-        end
-      end
-    )
+    $zeitwerk_integration_test_lib = false
+    app_dir "lib"
+    app_file "lib/webhook_hacks.rb", "WebhookHacks = 1; $zeitwerk_integration_test_lib = true"
+
+    $zeitwerk_integration_test_extras = false
+    app_dir "extras"
+    app_file "extras/websocket_hacks.rb", "WebsocketHacks = 1; $zeitwerk_integration_test_extras = true"
+
+    add_to_config "config.autoload_paths      << '#{app_path}/lib'"
+    add_to_config "config.autoload_once_paths << '#{app_path}/extras'"
+
+    boot("production")
+
+    assert $zeitwerk_integration_test_user
+    assert_not $zeitwerk_integration_test_lib
+    assert_not $zeitwerk_integration_test_extras
+
+    assert WebhookHacks
+    assert WebsocketHacks
+
+    assert $zeitwerk_integration_test_lib
+    assert $zeitwerk_integration_test_extras
+  end
+
+  test "autoload_paths are set as root dirs of main, and in the same order" do
     boot
 
-    assert_not_includes Rails.autoloaders.main.dirs, "#{app_path}/extras"
-    assert_includes Rails.autoloaders.once.dirs, "#{app_path}/extras"
+    existing_autoload_paths = deps.autoload_paths.select { |dir| File.directory?(dir) }
+    assert_equal existing_autoload_paths, Rails.autoloaders.main.dirs
+  end
+
+  test "autoload_once_paths go to the once autoloader, and in the same order" do
+    extras = %w(e1 e2 e3)
+    extras.each do |extra|
+      app_dir extra
+      add_to_config %(config.autoload_once_paths << "\#{Rails.root}/#{extra}")
+    end
+
+    boot
+
+    extras = extras.map { |extra| "#{app_path}/#{extra}" }
+    extras.each do |extra|
+      assert_not_includes Rails.autoloaders.main.dirs, extra
+    end
+    assert_equal extras, Rails.autoloaders.once.dirs
   end
 
   test "clear reloads the main autoloader, and does not reload the once one" do
@@ -164,7 +282,7 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
     assert_equal %i(main_autoloader), $zeitwerk_integration_reload_test
   end
 
-  test "verbose = true sets the debug method of the dependencies logger if present" do
+  test "verbose = true sets the dependencies logger if present" do
     boot
 
     logger = Logger.new(File::NULL)
@@ -172,17 +290,17 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
     ActiveSupport::Dependencies.verbose = true
 
     Rails.autoloaders.each do |autoloader|
-      assert_equal logger.method(:debug), autoloader.logger
+      assert_same logger, autoloader.logger
     end
   end
 
-  test "verbose = true sets the debug method of the Rails logger as fallback" do
+  test "verbose = true sets the Rails logger as fallback" do
     boot
 
     ActiveSupport::Dependencies.verbose = true
 
     Rails.autoloaders.each do |autoloader|
-      assert_equal Rails.logger.method(:debug), autoloader.logger
+      assert_same Rails.logger, autoloader.logger
     end
   end
 
@@ -195,6 +313,36 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
     end
 
     ActiveSupport::Dependencies.verbose = false
+    Rails.autoloaders.each do |autoloader|
+      assert_nil autoloader.logger
+    end
+  end
+
+  test "unhooks" do
+    boot
+
+    assert_equal Module, Module.method(:const_missing).owner
+    assert_equal :no_op, deps.unhook!
+  end
+
+  test "autoloaders.logger=" do
+    boot
+
+    logger = ->(_msg) { }
+    Rails.autoloaders.logger = logger
+
+    Rails.autoloaders.each do |autoloader|
+      assert_same logger, autoloader.logger
+    end
+
+    Rails.autoloaders.logger = Rails.logger
+
+    Rails.autoloaders.each do |autoloader|
+      assert_same Rails.logger, autoloader.logger
+    end
+
+    Rails.autoloaders.logger = nil
+
     Rails.autoloaders.each do |autoloader|
       assert_nil autoloader.logger
     end

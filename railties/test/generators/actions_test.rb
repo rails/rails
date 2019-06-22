@@ -200,7 +200,7 @@ class ActionsTest < Rails::Generators::TestCase
     run_generator
 
     action :environment do
-      _ = "# This wont be added"# assignment to silence parse-time warning "unused literal ignored"
+      _ = "# This wont be added" # assignment to silence parse-time warning "unused literal ignored"
       "# This will be added"
     end
 
@@ -505,7 +505,6 @@ F
   end
 
   private
-
     def action(*args, &block)
       capture(:stdout) { generator.send(*args, &block) }
     end

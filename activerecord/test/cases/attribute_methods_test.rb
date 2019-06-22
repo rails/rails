@@ -433,6 +433,10 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     end
 
     assert_equal true, Topic.new(author_name: "Name").author_name?
+
+    ActiveModel::Type::Boolean::FALSE_VALUES.each do |value|
+      assert_predicate Topic.new(author_name: value), :author_name?
+    end
   end
 
   test "number attribute predicate" do
@@ -452,6 +456,69 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     [true, "true", "1", 1].each do |value|
       assert_equal true, Topic.new(approved: value).approved?
     end
+  end
+
+  test "user-defined text attribute predicate" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = Topic.table_name
+
+      attribute :user_defined_text, :text
+    end
+
+    topic = klass.new(user_defined_text: "text")
+    assert_predicate topic, :user_defined_text?
+
+    ActiveModel::Type::Boolean::FALSE_VALUES.each do |value|
+      topic = klass.new(user_defined_text: value)
+      assert_predicate topic, :user_defined_text?
+    end
+  end
+
+  test "user-defined date attribute predicate" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = Topic.table_name
+
+      attribute :user_defined_date, :date
+    end
+
+    topic = klass.new(user_defined_date: Date.current)
+    assert_predicate topic, :user_defined_date?
+  end
+
+  test "user-defined datetime attribute predicate" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = Topic.table_name
+
+      attribute :user_defined_datetime, :datetime
+    end
+
+    topic = klass.new(user_defined_datetime: Time.current)
+    assert_predicate topic, :user_defined_datetime?
+  end
+
+  test "user-defined time attribute predicate" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = Topic.table_name
+
+      attribute :user_defined_time, :time
+    end
+
+    topic = klass.new(user_defined_time: Time.current)
+    assert_predicate topic, :user_defined_time?
+  end
+
+  test "user-defined json attribute predicate" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = Topic.table_name
+
+      attribute :user_defined_json, :json
+    end
+
+    topic = klass.new(user_defined_json: { key: "value" })
+    assert_predicate topic, :user_defined_json?
+
+    topic = klass.new(user_defined_json: {})
+    assert_not_predicate topic, :user_defined_json?
   end
 
   test "custom field attribute predicate" do
@@ -711,6 +778,10 @@ class AttributeMethodsTest < ActiveRecord::TestCase
       record.written_on = "Jan 01 00:00:00 2014"
       assert_equal record, YAML.load(YAML.dump(record))
     end
+  ensure
+    # NOTE: Reset column info because global topics
+    # don't have tz-aware attributes by default.
+    Topic.reset_column_information
   end
 
   test "setting a time zone-aware time in the current time zone" do
@@ -1010,13 +1081,12 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_equal ["title"], model.accessed_fields
   end
 
-  test "generated attribute methods ancestors have correct class" do
+  test "generated attribute methods ancestors have correct module" do
     mod = Topic.send(:generated_attribute_methods)
-    assert_match %r(GeneratedAttributeMethods), mod.inspect
+    assert_equal "Topic::GeneratedAttributeMethods", mod.inspect
   end
 
   private
-
     def new_topic_like_ar_class(&block)
       klass = Class.new(ActiveRecord::Base) do
         self.table_name = "topics"

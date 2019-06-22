@@ -46,8 +46,7 @@ if SERVICE_CONFIGURATIONS[:s3]
     end
 
     test "uploading with server-side encryption" do
-      config  = SERVICE_CONFIGURATIONS.deep_merge(s3: { upload: { server_side_encryption: "AES256" } })
-      service = ActiveStorage::Service.configure(:s3, config)
+      service = build_service(upload: { server_side_encryption: "AES256" })
 
       begin
         key  = SecureRandom.base58(24)
@@ -77,6 +76,25 @@ if SERVICE_CONFIGURATIONS[:s3]
     ensure
       @service.delete key
     end
+
+    test "uploading a large object in multiple parts" do
+      service = build_service(upload: { multipart_threshold: 5.megabytes })
+
+      begin
+        key  = SecureRandom.base58(24)
+        data = SecureRandom.bytes(8.megabytes)
+
+        service.upload key, StringIO.new(data), checksum: Digest::MD5.base64digest(data)
+        assert data == service.download(key)
+      ensure
+        service.delete key
+      end
+    end
+
+    private
+      def build_service(configuration)
+        ActiveStorage::Service.configure :s3, SERVICE_CONFIGURATIONS.deep_merge(s3: configuration)
+      end
   end
 else
   puts "Skipping S3 Service tests because no S3 configuration was supplied"

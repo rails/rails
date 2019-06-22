@@ -35,6 +35,8 @@ module Rails
       rails: {
         actions: "-a",
         orm: "-o",
+        javascripts: "-j",
+        javascript_engine: "-je",
         resource_controller: "-c",
         scaffold_controller: "-c",
         stylesheets: "-y",
@@ -285,7 +287,6 @@ module Rails
       end
 
       private
-
         def print_list(base, namespaces) # :doc:
           namespaces = namespaces.reject { |n| hidden_namespaces.include?(n) }
           super

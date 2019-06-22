@@ -7,7 +7,6 @@ module ActiveRecord
     include ActiveModel::AttributeAssignment
 
     private
-
       def _assign_attributes(attributes)
         multi_parameter_attributes  = {}
         nested_parameter_attributes = {}

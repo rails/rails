@@ -105,13 +105,9 @@ module ActiveRecord
         !ActiveRecord::SchemaDumper.fk_ignore_pattern.match?(name) if name
       end
 
-      def defined_for?(to_table_ord = nil, to_table: nil, **options)
-        if to_table_ord
-          self.to_table == to_table_ord.to_s
-        else
-          (to_table.nil? || to_table.to_s == self.to_table) &&
-            options.all? { |k, v| self.options[k].to_s == v.to_s }
-        end
+      def defined_for?(to_table: nil, **options)
+        (to_table.nil? || to_table.to_s == self.to_table) &&
+          options.all? { |k, v| self.options[k].to_s == v.to_s }
       end
 
       private
@@ -208,7 +204,7 @@ module ActiveRecord
 
       ##
       # :method: column
-      # :call-seq: column(name, type, options = {})
+      # :call-seq: column(name, type, **options)
       #
       # Appends a column or columns of a specified type.
       #
@@ -268,8 +264,7 @@ module ActiveRecord
         if_not_exists: false,
         options: nil,
         as: nil,
-        comment: nil,
-        **
+        comment: nil
       )
         @conn = conn
         @columns_hash = {}
@@ -364,7 +359,7 @@ module ActiveRecord
       #     t.references :tagger, polymorphic: true
       #     t.references :taggable, polymorphic: { default: 'Photo' }, index: false
       #   end
-      def column(name, type, options = {})
+      def column(name, type, **options)
         name = name.to_s
         type = type.to_sym if type
         options = options.dup
@@ -420,6 +415,7 @@ module ActiveRecord
       #
       #  t.references(:user)
       #  t.belongs_to(:supplier, foreign_key: true)
+      #  t.belongs_to(:supplier, foreign_key: true, type: :integer)
       #
       # See {connection.add_reference}[rdoc-ref:SchemaStatements#add_reference] for details of the options you can use.
       def references(*args, **options)
@@ -541,7 +537,7 @@ module ActiveRecord
       #  t.column(:name, :string)
       #
       # See TableDefinition#column for details of the options you can use.
-      def column(column_name, type, options = {})
+      def column(column_name, type, **options)
         index_options = options.delete(:index)
         @base.add_column(name, column_name, type, options)
         index(column_name, index_options.is_a?(Hash) ? index_options : {}) if index_options

@@ -81,7 +81,6 @@ class ParameterizedTest < ActiveSupport::TestCase
   end
 
   private
-
     def with_delivery_job(job)
       old_delivery_job = ParamsMailer.delivery_job
       ParamsMailer.delivery_job = job

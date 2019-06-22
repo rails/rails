@@ -206,6 +206,12 @@ class StringInflectionsTest < ActiveSupport::TestCase
     end
   end
 
+  def test_parameterize_with_locale
+    word = "Fünf autos"
+    I18n.backend.store_translations(:de, i18n: { transliterate: { rule: { "ü" => "ue" } } })
+    assert_equal("fuenf-autos", word.parameterize(locale: :de))
+  end
+
   def test_humanize
     UnderscoreToHuman.each do |underscore, human|
       assert_equal(human, underscore.humanize)
@@ -283,6 +289,11 @@ class StringInflectionsTest < ActiveSupport::TestCase
     assert_equal "Hello[...]", "Hello Big World!".truncate(13, omission: "[...]", separator: /\s/)
     assert_equal "Hello Big[...]", "Hello Big World!".truncate(14, omission: "[...]", separator: /\s/)
     assert_equal "Hello Big[...]", "Hello Big World!".truncate(15, omission: "[...]", separator: /\s/)
+  end
+
+  def test_truncate_returns_frozen_string
+    assert_not "Hello World!".truncate(12).frozen?
+    assert_not "Hello World!!".truncate(12).frozen?
   end
 
   def test_truncate_bytes

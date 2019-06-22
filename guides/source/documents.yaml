@@ -155,6 +155,16 @@
       name: Using Rails for API-only Applications
       url: api_app.html
       description: This guide explains how to effectively use Rails to develop a JSON API application.
+    -
+      name: Active Record and PostgreSQL
+      work_in_progress: true
+      url: active_record_postgresql.html
+      description: This guide covers PostgreSQL specific usage of Active Record.
+    -
+      name: Multiple Databases with Active Record
+      work_in_progress: true
+      url: active_record_multiple_databases.html
+      description: This guide covers using multiple databases in your application.
 
 -
   name: Extending Rails
@@ -188,7 +198,7 @@
     -
       name: Contributing to Ruby on Rails
       url: contributing_to_ruby_on_rails.html
-      description: Rails is not 'somebody else's framework.' This guide covers a variety of ways that you can get involved in the ongoing development of Rails.
+      description: Rails is not "someone else's framework". This guide covers a variety of ways that you can get involved in the ongoing development of Rails.
     -
       name: API Documentation Guidelines
       url: api_documentation_guidelines.html

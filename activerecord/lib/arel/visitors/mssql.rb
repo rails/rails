@@ -11,7 +11,6 @@ module Arel # :nodoc: all
       end
 
       private
-
         def visit_Arel_Nodes_IsNotDistinctFrom(o, collector)
           right = o.right
 
@@ -76,6 +75,16 @@ module Arel # :nodoc: all
           end
         end
 
+        def visit_Arel_Nodes_SelectCore(o, collector)
+          collector = super
+          maybe_visit o.optimizer_hints, collector
+        end
+
+        def visit_Arel_Nodes_OptimizerHints(o, collector)
+          hints = o.expr.map { |v| sanitize_as_sql_comment(v) }.join(", ")
+          collector << "OPTION (#{hints})"
+        end
+
         def get_offset_limit_clause(o)
           first_row = o.offset ? o.offset.expr.to_i + 1 : 1
           last_row  = o.limit ? o.limit.expr.to_i - 1 + first_row : nil
@@ -97,10 +106,14 @@ module Arel # :nodoc: all
           collector = visit o.relation, collector
           if o.wheres.any?
             collector << " WHERE "
-            inject_join o.wheres, collector, AND
+            inject_join o.wheres, collector, " AND "
           else
             collector
           end
+        end
+
+        def collect_optimizer_hints(o, collector)
+          collector
         end
 
         def determine_order_by(orders, x)

@@ -30,6 +30,7 @@ module ActiveStorage
 
     def save
       record.public_send("#{name}_attachment=", attachment)
+      record.public_send("#{name}_blob=", blob)
     end
 
     private

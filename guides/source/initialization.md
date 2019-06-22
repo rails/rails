@@ -160,8 +160,8 @@ namespace and executes the command if found.
 If Rails doesn't recognize the command, it hands the reins over to Rake
 to run a task of the same name.
 
-As shown, `Rails::Command` displays the help output automatically if the `args`
-are empty.
+As shown, `Rails::Command` displays the help output automatically if the `namespace`
+is empty.
 
 ```ruby
 module Rails::Command
@@ -289,7 +289,7 @@ def default_options
     environment:        (ENV["RAILS_ENV"] || ENV["RACK_ENV"] || "development").dup,
     daemonize:          false,
     caching:            nil,
-    pid:                Options::DEFAULT_PID_PATH,
+    pid:                ENV.fetch("PIDFILE", Options::DEFAULT_PIDFILE).dup,
     restart_cmd:        restart_command)
 end
 ```

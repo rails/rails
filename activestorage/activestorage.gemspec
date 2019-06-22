@@ -15,7 +15,7 @@ Gem::Specification.new do |s|
 
   s.author   = "David Heinemeier Hansson"
   s.email    = "david@loudthinking.com"
-  s.homepage = "http://rubyonrails.org"
+  s.homepage = "https://rubyonrails.org"
 
   s.files        = Dir["CHANGELOG.md", "MIT-LICENSE", "README.md", "lib/**/*", "app/**/*", "config/**/*", "db/**/*"]
   s.require_path = "lib"
@@ -28,7 +28,8 @@ Gem::Specification.new do |s|
   # NOTE: Please read our dependency guidelines before updating versions:
   # https://edgeguides.rubyonrails.org/security.html#dependency-management-and-cves
 
-  s.add_dependency "actionpack", version
+  s.add_dependency "actionpack",   version
+  s.add_dependency "activejob",    version
   s.add_dependency "activerecord", version
 
   s.add_dependency "marcel", "~> 0.3.1"

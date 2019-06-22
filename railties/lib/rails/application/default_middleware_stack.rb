@@ -49,6 +49,7 @@ module Rails
           middleware.use ::Rails::Rack::Logger, config.log_tags
           middleware.use ::ActionDispatch::ShowExceptions, show_exceptions_app
           middleware.use ::ActionDispatch::DebugExceptions, app, config.debug_exception_response_format
+          middleware.use ::ActionDispatch::ActionableExceptions
 
           unless config.cache_classes
             middleware.use ::ActionDispatch::Reloader, app.reloader
@@ -78,7 +79,6 @@ module Rails
       end
 
       private
-
         def load_rack_cache
           rack_cache = config.action_dispatch.rack_cache
           return unless rack_cache

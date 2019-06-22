@@ -52,5 +52,15 @@ module ActionDispatch
         super
       end
     end
+
+    def protect_against_forgery?
+      false
+    end
+
+    def params_valid?
+      @request.parameters
+    rescue ActionController::BadRequest
+      false
+    end
   end
 end

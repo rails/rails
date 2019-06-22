@@ -74,7 +74,7 @@ module ActionController
     # * <tt>:partial</tt> - See <tt>ActionView::PartialRenderer</tt> for details.
     # * <tt>:file</tt> - Renders an explicit template file. Add <tt>:locals</tt> to pass in, if so desired.
     #   It shouldn’t be used directly with unsanitized user input due to lack of validation.
-    # * <tt>:inline</tt> - Renders a ERB template string.
+    # * <tt>:inline</tt> - Renders an ERB template string.
     # * <tt>:plain</tt> - Renders provided text and sets the content type as <tt>text/plain</tt>.
     # * <tt>:html</tt> - Renders the provided HTML safe string, otherwise
     #   performs HTML escape on the string first. Sets the content type as <tt>text/html</tt>.
@@ -116,7 +116,7 @@ module ActionController
 
       RACK_VALUE_TRANSLATION = {
         https: ->(v) { v ? "on" : "off" },
-        method: ->(v) { v.upcase },
+        method: ->(v) { -v.upcase },
       }
 
       def rack_key_for(key)

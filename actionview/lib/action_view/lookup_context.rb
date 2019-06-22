@@ -16,6 +16,8 @@ module ActionView
   # only once during the request, it speeds up all cache accesses.
   class LookupContext #:nodoc:
     attr_accessor :prefixes, :rendered_format
+    deprecate :rendered_format
+    deprecate :rendered_format=
 
     mattr_accessor :fallbacks, default: FallbackFileSystemResolver.instances
 
@@ -110,7 +112,6 @@ module ActionView
       end
 
     private
-
       def _set_detail(key, value) # :doc:
         @details = @details.dup if @digest_cache || @details_key
         @digest_cache = nil
@@ -128,9 +129,8 @@ module ActionView
       end
       alias :find_template :find
 
-      def find_file(name, prefixes = [], partial = false, keys = [], options = {})
-        @view_paths.find_file(*args_for_lookup(name, prefixes, partial, keys, options))
-      end
+      alias :find_file :find
+      deprecate :find_file
 
       def find_all(name, prefixes = [], partial = false, keys = [], options = {})
         @view_paths.find_all(*args_for_lookup(name, prefixes, partial, keys, options))
@@ -152,7 +152,7 @@ module ActionView
         view_paths = build_view_paths((@view_paths.paths + self.class.fallbacks).uniq)
 
         if block_given?
-          ActiveSupport::Deprecation.warn <<~eowarn
+          ActiveSupport::Deprecation.warn <<~eowarn.squish
           Calling `with_fallbacks` with a block is deprecated.  Call methods on
           the lookup context returned by `with_fallbacks` instead.
           eowarn
@@ -170,7 +170,6 @@ module ActionView
       end
 
     private
-
       # Whenever setting view paths, makes a copy so that we can manipulate them in
       # instance objects as we wish.
       def build_view_paths(paths)
@@ -250,7 +249,6 @@ module ActionView
       @digest_cache = nil
       @cache = true
       @prefixes = prefixes
-      @rendered_format = nil
 
       @details = initialize_details({}, details)
       @view_paths = build_view_paths(view_paths)
@@ -279,7 +277,15 @@ module ActionView
     # add :html as fallback to :js.
     def formats=(values)
       if values
+        values = values.dup
         values.concat(default_formats) if values.delete "*/*"
+        values.uniq!
+
+        invalid_values = (values - Template::Types.symbols)
+        unless invalid_values.empty?
+          raise ArgumentError, "Invalid formats: #{invalid_values.map(&:inspect).join(", ")}"
+        end
+
         if values == [:js]
           values << :html
           @html_fallback_for_js = true

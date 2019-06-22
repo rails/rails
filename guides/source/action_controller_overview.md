@@ -61,7 +61,7 @@ end
 
 The [Layouts & Rendering Guide](layouts_and_rendering.html) explains this in more detail.
 
-`ApplicationController` inherits from `ActionController::Base`, which defines a number of helpful methods. This guide will cover some of these, but if you're curious to see what's in there, you can see all of them in the [API documentation](http://api.rubyonrails.org/classes/ActionController.html) or in the source itself.
+`ApplicationController` inherits from `ActionController::Base`, which defines a number of helpful methods. This guide will cover some of these, but if you're curious to see what's in there, you can see all of them in the [API documentation](https://api.rubyonrails.org/classes/ActionController.html) or in the source itself.
 
 Only public methods are callable as actions. It is a best practice to lower the visibility of methods (with `private` or `protected`) which are not intended to be actions, like auxiliary methods or filters.
 
@@ -157,7 +157,7 @@ And, assuming that you're sending the data to `CompaniesController`, it would th
 { name: "acme", address: "123 Carrot Street", company: { name: "acme", address: "123 Carrot Street" } }
 ```
 
-You can customize the name of the key or specific parameters you want to wrap by consulting the [API documentation](http://api.rubyonrails.org/classes/ActionController/ParamsWrapper.html)
+You can customize the name of the key or specific parameters you want to wrap by consulting the [API documentation](https://api.rubyonrails.org/classes/ActionController/ParamsWrapper.html)
 
 NOTE: Support for parsing XML parameters has been extracted into a gem named `actionpack-xml_parser`.
 
@@ -469,7 +469,7 @@ To reset the entire session, use `reset_session`.
 
 The flash is a special part of the session which is cleared with each request. This means that values stored there will only be available in the next request, which is useful for passing error messages etc.
 
-It is accessed in much the same way as the session, as a hash (it's a [FlashHash](http://api.rubyonrails.org/classes/ActionDispatch/Flash/FlashHash.html) instance).
+It is accessed in much the same way as the session, as a hash (it's a [FlashHash](https://api.rubyonrails.org/classes/ActionDispatch/Flash/FlashHash.html) instance).
 
 Let's use the act of logging out as an example. The controller can send a message which will be displayed to the user on the next request:
 
@@ -591,7 +591,7 @@ Rails also provides a signed cookie jar and an encrypted cookie jar for storing
 sensitive data. The signed cookie jar appends a cryptographic signature on the
 cookie values to protect their integrity. The encrypted cookie jar encrypts the
 values in addition to signing them, so that they cannot be read by the end user.
-Refer to the [API documentation](http://api.rubyonrails.org/classes/ActionDispatch/Cookies.html)
+Refer to the [API documentation](https://api.rubyonrails.org/classes/ActionDispatch/Cookies.html)
 for more details.
 
 These special cookie jars use a serializer to serialize the assigned values into
@@ -814,7 +814,7 @@ In every controller there are two accessor methods pointing to the request and t
 
 ### The `request` Object
 
-The request object contains a lot of useful information about the request coming in from the client. To get a full list of the available methods, refer to the [Rails API documentation](http://api.rubyonrails.org/classes/ActionDispatch/Request.html) and [Rack Documentation](http://www.rubydoc.info/github/rack/rack/Rack/Request). Among the properties that you can access on this object are:
+The request object contains a lot of useful information about the request coming in from the client. To get a full list of the available methods, refer to the [Rails API documentation](https://api.rubyonrails.org/classes/ActionDispatch/Request.html) and [Rack Documentation](https://www.rubydoc.info/github/rack/rack/Rack/Request). Among the properties that you can access on this object are:
 
 | Property of `request`                     | Purpose                                                                          |
 | ----------------------------------------- | -------------------------------------------------------------------------------- |
@@ -836,7 +836,7 @@ Rails collects all of the parameters sent along with the request in the `params`
 
 ### The `response` Object
 
-The response object is not usually used directly, but is built up during the execution of the action and rendering of the data that is being sent back to the user, but sometimes - like in an after filter - it can be useful to access the response directly. Some of these accessor methods also have setters, allowing you to change their values. To get a full list of the available methods, refer to the [Rails API documentation](http://api.rubyonrails.org/classes/ActionDispatch/Response.html) and [Rack Documentation](http://www.rubydoc.info/github/rack/rack/Rack/Response).
+The response object is not usually used directly, but is built up during the execution of the action and rendering of the data that is being sent back to the user, but sometimes - like in an after filter - it can be useful to access the response directly. Some of these accessor methods also have setters, allowing you to change their values. To get a full list of the available methods, refer to the [Rails API documentation](https://api.rubyonrails.org/classes/ActionDispatch/Response.html) and [Rack Documentation](https://www.rubydoc.info/github/rack/rack/Rack/Response).
 
 | Property of `response` | Purpose                                                                                             |
 | ---------------------- | --------------------------------------------------------------------------------------------------- |

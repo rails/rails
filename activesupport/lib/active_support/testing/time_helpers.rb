@@ -40,7 +40,6 @@ module ActiveSupport
       end
 
       private
-
         def unstub_object(stub)
           singleton_class = stub.object.singleton_class
           singleton_class.silence_redefinition_of_method stub.method_name
@@ -191,7 +190,6 @@ module ActiveSupport
       end
 
       private
-
         def simple_stubs
           @simple_stubs ||= SimpleStubs.new
         end

@@ -19,6 +19,8 @@ module ActiveRecord
         @conn = Base.sqlite3_connection database: ":memory:",
                                         adapter: "sqlite3",
                                         timeout: 100
+
+        @connection_handler = ActiveRecord::Base.connection_handler
       end
 
       def test_bad_connection
@@ -572,7 +574,7 @@ module ActiveRecord
       def test_errors_when_an_insert_query_is_called_while_preventing_writes
         with_example_table "id int, data string" do
           assert_raises(ActiveRecord::ReadOnlyError) do
-            @conn.while_preventing_writes do
+            @connection_handler.while_preventing_writes do
               @conn.execute("INSERT INTO ex (data) VALUES ('138853948594')")
             end
           end
@@ -584,7 +586,7 @@ module ActiveRecord
           @conn.execute("INSERT INTO ex (data) VALUES ('138853948594')")
 
           assert_raises(ActiveRecord::ReadOnlyError) do
-            @conn.while_preventing_writes do
+            @connection_handler.while_preventing_writes do
               @conn.execute("UPDATE ex SET data = '9989' WHERE data = '138853948594'")
             end
           end
@@ -596,7 +598,7 @@ module ActiveRecord
           @conn.execute("INSERT INTO ex (data) VALUES ('138853948594')")
 
           assert_raises(ActiveRecord::ReadOnlyError) do
-            @conn.while_preventing_writes do
+            @connection_handler.while_preventing_writes do
               @conn.execute("DELETE FROM ex where data = '138853948594'")
             end
           end
@@ -608,7 +610,7 @@ module ActiveRecord
           @conn.execute("INSERT INTO ex (data) VALUES ('138853948594')")
 
           assert_raises(ActiveRecord::ReadOnlyError) do
-            @conn.while_preventing_writes do
+            @connection_handler.while_preventing_writes do
               @conn.execute("REPLACE INTO ex (data) VALUES ('249823948')")
             end
           end
@@ -619,14 +621,23 @@ module ActiveRecord
         with_example_table "id int, data string" do
           @conn.execute("INSERT INTO ex (data) VALUES ('138853948594')")
 
-          @conn.while_preventing_writes do
+          @connection_handler.while_preventing_writes do
             assert_equal 1, @conn.execute("SELECT data from ex WHERE data = '138853948594'").count
           end
         end
       end
 
-      private
+      def test_doesnt_error_when_a_read_query_with_leading_chars_is_called_while_preventing_writes
+        with_example_table "id int, data string" do
+          @conn.execute("INSERT INTO ex (data) VALUES ('138853948594')")
 
+          @connection_handler.while_preventing_writes do
+            assert_equal 1, @conn.execute("  SELECT data from ex WHERE data = '138853948594'").count
+          end
+        end
+      end
+
+      private
         def assert_logged(logs)
           subscriber = SQLSubscriber.new
           subscription = ActiveSupport::Notifications.subscribe("sql.active_record", subscriber)

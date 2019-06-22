@@ -4,9 +4,10 @@ require "benchmark"
 require "set"
 require "zlib"
 require "active_support/core_ext/module/attribute_accessors"
+require "active_support/actionable_error"
 
 module ActiveRecord
-  class MigrationError < ActiveRecordError#:nodoc:
+  class MigrationError < ActiveRecordError #:nodoc:
     def initialize(message = nil)
       message = "\n\n#{message}\n\n" if message
       super
@@ -87,7 +88,7 @@ module ActiveRecord
   class IrreversibleMigration < MigrationError
   end
 
-  class DuplicateMigrationVersionError < MigrationError#:nodoc:
+  class DuplicateMigrationVersionError < MigrationError #:nodoc:
     def initialize(version = nil)
       if version
         super("Multiple migrations have the version number #{version}.")
@@ -97,7 +98,7 @@ module ActiveRecord
     end
   end
 
-  class DuplicateMigrationNameError < MigrationError#:nodoc:
+  class DuplicateMigrationNameError < MigrationError #:nodoc:
     def initialize(name = nil)
       if name
         super("Multiple migrations have the name #{name}.")
@@ -117,7 +118,7 @@ module ActiveRecord
     end
   end
 
-  class IllegalMigrationNameError < MigrationError#:nodoc:
+  class IllegalMigrationNameError < MigrationError #:nodoc:
     def initialize(name = nil)
       if name
         super("Illegal name for migration file: #{name}\n\t(only lower case letters, numbers, and '_' allowed).")
@@ -127,7 +128,13 @@ module ActiveRecord
     end
   end
 
-  class PendingMigrationError < MigrationError#:nodoc:
+  class PendingMigrationError < MigrationError #:nodoc:
+    include ActiveSupport::ActionableError
+
+    action "Run pending migrations" do
+      ActiveRecord::Tasks::DatabaseTasks.migrate
+    end
+
     def initialize(message = nil)
       if !message && defined?(Rails.env)
         super("Migrations are pending. To resolve this issue, run:\n\n        rails db:migrate RAILS_ENV=#{::Rails.env}")
@@ -308,7 +315,7 @@ module ActiveRecord
   #   named +column_name+ from the table called +table_name+.
   # * <tt>remove_columns(table_name, *column_names)</tt>: Removes the given
   #   columns from the table definition.
-  # * <tt>remove_foreign_key(from_table, options_or_to_table)</tt>: Removes the
+  # * <tt>remove_foreign_key(from_table, to_table = nil, **options)</tt>: Removes the
   #   given foreign key from the table called +table_name+.
   # * <tt>remove_index(table_name, column: column_names)</tt>: Removes the index
   #   specified by +column_names+.
@@ -487,9 +494,9 @@ module ActiveRecord
   # This migration will create the horses table for you on the way up, and
   # automatically figure out how to drop the table on the way down.
   #
-  # Some commands like +remove_column+ cannot be reversed.  If you care to
-  # define how to move up and down in these cases, you should define the +up+
-  # and +down+ methods as before.
+  # Some commands cannot be reversed. If you care to define how to move up
+  # and down in these cases, you should define the +up+ and +down+ methods
+  # as before.
   #
   # If a command cannot be reversed, an
   # <tt>ActiveRecord::IrreversibleMigration</tt> exception will be raised when
@@ -520,10 +527,10 @@ module ActiveRecord
     autoload :Compatibility, "active_record/migration/compatibility"
 
     # This must be defined before the inherited hook, below
-    class Current < Migration # :nodoc:
+    class Current < Migration #:nodoc:
     end
 
-    def self.inherited(subclass) # :nodoc:
+    def self.inherited(subclass) #:nodoc:
       super
       if subclass.superclass == Migration
         raise StandardError, "Directly inheriting from ActiveRecord::Migration is not supported. " \
@@ -541,7 +548,7 @@ module ActiveRecord
       ActiveRecord::VERSION::STRING.to_f
     end
 
-    MigrationFilenameRegexp = /\A([0-9]+)_([_a-z0-9]*)\.?([_a-z0-9]*)?\.rb\z/ # :nodoc:
+    MigrationFilenameRegexp = /\A([0-9]+)_([_a-z0-9]*)\.?([_a-z0-9]*)?\.rb\z/ #:nodoc:
 
     # This class is used to verify that all migrations have been run before
     # loading a web page if <tt>config.active_record.migration_error</tt> is set to :page_load
@@ -561,17 +568,16 @@ module ActiveRecord
       end
 
       private
-
         def connection
           ActiveRecord::Base.connection
         end
     end
 
     class << self
-      attr_accessor :delegate # :nodoc:
-      attr_accessor :disable_ddl_transaction # :nodoc:
+      attr_accessor :delegate #:nodoc:
+      attr_accessor :disable_ddl_transaction #:nodoc:
 
-      def nearest_delegate # :nodoc:
+      def nearest_delegate #:nodoc:
         delegate || superclass.nearest_delegate
       end
 
@@ -595,13 +601,13 @@ module ActiveRecord
         end
       end
 
-      def maintain_test_schema! # :nodoc:
+      def maintain_test_schema! #:nodoc:
         if ActiveRecord::Base.maintain_test_schema
           suppress_messages { load_schema_if_pending! }
         end
       end
 
-      def method_missing(name, *args, &block) # :nodoc:
+      def method_missing(name, *args, &block) #:nodoc:
         nearest_delegate.send(name, *args, &block)
       end
 
@@ -618,7 +624,7 @@ module ActiveRecord
       end
     end
 
-    def disable_ddl_transaction # :nodoc:
+    def disable_ddl_transaction #:nodoc:
       self.class.disable_ddl_transaction
     end
 
@@ -693,7 +699,7 @@ module ActiveRecord
       connection.respond_to?(:reverting) && connection.reverting
     end
 
-    ReversibleBlockHelper = Struct.new(:reverting) do # :nodoc:
+    ReversibleBlockHelper = Struct.new(:reverting) do #:nodoc:
       def up
         yield unless reverting
       end
@@ -878,13 +884,14 @@ module ActiveRecord
 
     def copy(destination, sources, options = {})
       copied = []
+      schema_migration = options[:schema_migration] || ActiveRecord::SchemaMigration
 
       FileUtils.mkdir_p(destination) unless File.exist?(destination)
 
-      destination_migrations = ActiveRecord::MigrationContext.new(destination).migrations
+      destination_migrations = ActiveRecord::MigrationContext.new(destination, schema_migration).migrations
       last = destination_migrations.last
       sources.each do |scope, path|
-        source_migrations = ActiveRecord::MigrationContext.new(path).migrations
+        source_migrations = ActiveRecord::MigrationContext.new(path, schema_migration).migrations
 
         source_migrations.each do |migration|
           source = File.binread(migration.filename)
@@ -985,7 +992,6 @@ module ActiveRecord
     delegate :migrate, :announce, :write, :disable_ddl_transaction, to: :migration
 
     private
-
       def migration
         @migration ||= load_migration
       end
@@ -1006,11 +1012,12 @@ module ActiveRecord
     end
   end
 
-  class MigrationContext # :nodoc:
-    attr_reader :migrations_paths
+  class MigrationContext #:nodoc:
+    attr_reader :migrations_paths, :schema_migration
 
-    def initialize(migrations_paths)
+    def initialize(migrations_paths, schema_migration)
       @migrations_paths = migrations_paths
+      @schema_migration = schema_migration
     end
 
     def migrate(target_version = nil, &block)
@@ -1041,7 +1048,7 @@ module ActiveRecord
         migrations
       end
 
-      Migrator.new(:up, selected_migrations, target_version).migrate
+      Migrator.new(:up, selected_migrations, schema_migration, target_version).migrate
     end
 
     def down(target_version = nil)
@@ -1051,20 +1058,20 @@ module ActiveRecord
         migrations
       end
 
-      Migrator.new(:down, selected_migrations, target_version).migrate
+      Migrator.new(:down, selected_migrations, schema_migration, target_version).migrate
     end
 
     def run(direction, target_version)
-      Migrator.new(direction, migrations, target_version).run
+      Migrator.new(direction, migrations, schema_migration, target_version).run
     end
 
     def open
-      Migrator.new(:up, migrations, nil)
+      Migrator.new(:up, migrations, schema_migration)
     end
 
     def get_all_versions
-      if SchemaMigration.table_exists?
-        SchemaMigration.all_versions.map(&:to_i)
+      if schema_migration.table_exists?
+        schema_migration.all_versions.map(&:to_i)
       else
         []
       end
@@ -1101,12 +1108,12 @@ module ActiveRecord
     end
 
     def migrations_status
-      db_list = ActiveRecord::SchemaMigration.normalized_versions
+      db_list = schema_migration.normalized_versions
 
       file_list = migration_files.map do |file|
         version, name, scope = parse_migration_filename(file)
         raise IllegalMigrationNameError.new(file) unless version
-        version = ActiveRecord::SchemaMigration.normalize_migration_number(version)
+        version = schema_migration.normalize_migration_number(version)
         status = db_list.delete(version) ? "up" : "down"
         [status, version, (name + scope).humanize]
       end.compact
@@ -1146,7 +1153,7 @@ module ActiveRecord
       end
 
       def move(direction, steps)
-        migrator = Migrator.new(direction, migrations)
+        migrator = Migrator.new(direction, migrations, schema_migration)
 
         if current_version != 0 && !migrator.current_migration
           raise UnknownMigrationVersionError.new(current_version)
@@ -1171,21 +1178,22 @@ module ActiveRecord
 
       # For cases where a table doesn't exist like loading from schema cache
       def current_version
-        MigrationContext.new(migrations_paths).current_version
+        MigrationContext.new(migrations_paths, SchemaMigration).current_version
       end
     end
 
     self.migrations_paths = ["db/migrate"]
 
-    def initialize(direction, migrations, target_version = nil)
+    def initialize(direction, migrations, schema_migration, target_version = nil)
       @direction         = direction
       @target_version    = target_version
       @migrated_versions = nil
       @migrations        = migrations
+      @schema_migration  = schema_migration
 
       validate(@migrations)
 
-      ActiveRecord::SchemaMigration.create_table
+      @schema_migration.create_table
       ActiveRecord::InternalMetadata.create_table
     end
 
@@ -1239,11 +1247,10 @@ module ActiveRecord
     end
 
     def load_migrated
-      @migrated_versions = Set.new(Base.connection.migration_context.get_all_versions)
+      @migrated_versions = Set.new(@schema_migration.all_versions.map(&:to_i))
     end
 
     private
-
       # Used for running a specific migration.
       def run_without_lock
         migration = migrations.detect { |m| m.version == @target_version }
@@ -1323,10 +1330,10 @@ module ActiveRecord
       def record_version_state_after_migrating(version)
         if down?
           migrated.delete(version)
-          ActiveRecord::SchemaMigration.where(version: version.to_s).delete_all
+          @schema_migration.delete_by(version: version.to_s)
         else
           migrated << version
-          ActiveRecord::SchemaMigration.create!(version: version.to_s)
+          @schema_migration.create!(version: version.to_s)
         end
       end
 

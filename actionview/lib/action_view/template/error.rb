@@ -109,12 +109,11 @@ module ActionView
           end
       end
 
-      def annoted_source_code
+      def annotated_source_code
         source_extract(4)
       end
 
       private
-
         def source_location
           if line_number
             "on line ##{line_number} of "
@@ -138,4 +137,24 @@ module ActionView
   end
 
   TemplateError = Template::Error
+
+  class SyntaxErrorInTemplate < TemplateError #:nodoc
+    def initialize(template, offending_code_string)
+      @offending_code_string = offending_code_string
+      super(template)
+    end
+
+    def message
+      <<~MESSAGE
+        Encountered a syntax error while rendering template: check #{@offending_code_string}
+      MESSAGE
+    end
+
+    def annotated_source_code
+      @offending_code_string.split("\n").map.with_index(1) { |line, index|
+        indentation = " " * 4
+        "#{index}:#{indentation}#{line}"
+      }
+    end
+  end
 end

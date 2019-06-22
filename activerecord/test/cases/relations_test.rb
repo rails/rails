@@ -182,15 +182,64 @@ class RelationTest < ActiveRecord::TestCase
     end
   end
 
+  def test_select_with_from_includes_original_table_name
+    relation = Comment.joins(:post).select(:id).order(:id)
+    subquery = Comment.from("#{Comment.table_name} /*! USE INDEX (PRIMARY) */").joins(:post).select(:id).order(:id)
+    assert_equal relation.map(&:id), subquery.map(&:id)
+  end
+
+  def test_pluck_with_from_includes_original_table_name
+    relation = Comment.joins(:post).order(:id)
+    subquery = Comment.from("#{Comment.table_name} /*! USE INDEX (PRIMARY) */").joins(:post).order(:id)
+    assert_equal relation.pluck(:id), subquery.pluck(:id)
+  end
+
+  def test_select_with_from_includes_quoted_original_table_name
+    relation = Comment.joins(:post).select(:id).order(:id)
+    subquery = Comment.from("#{Comment.quoted_table_name} /*! USE INDEX (PRIMARY) */").joins(:post).select(:id).order(:id)
+    assert_equal relation.map(&:id), subquery.map(&:id)
+  end
+
+  def test_pluck_with_from_includes_quoted_original_table_name
+    relation = Comment.joins(:post).order(:id)
+    subquery = Comment.from("#{Comment.quoted_table_name} /*! USE INDEX (PRIMARY) */").joins(:post).order(:id)
+    assert_equal relation.pluck(:id), subquery.pluck(:id)
+  end
+
+  def test_select_with_subquery_in_from_uses_original_table_name
+    relation = Comment.joins(:post).select(:id).order(:id)
+    # Avoid subquery flattening by adding distinct to work with SQLite < 3.20.0.
+    subquery = Comment.from(Comment.all.distinct, Comment.quoted_table_name).joins(:post).select(:id).order(:id)
+    assert_equal relation.map(&:id), subquery.map(&:id)
+  end
+
+  def test_pluck_with_subquery_in_from_uses_original_table_name
+    relation = Comment.joins(:post).order(:id)
+    subquery = Comment.from(Comment.all, Comment.quoted_table_name).joins(:post).order(:id)
+    assert_equal relation.pluck(:id), subquery.pluck(:id)
+  end
+
   def test_select_with_subquery_in_from_does_not_use_original_table_name
     relation = Comment.group(:type).select("COUNT(post_id) AS post_count, type")
-    subquery = Comment.from(relation).select("type", "post_count")
+    subquery = Comment.from(relation, "grouped_#{Comment.table_name}").select("type", "post_count")
     assert_equal(relation.map(&:post_count).sort, subquery.map(&:post_count).sort)
   end
 
   def test_group_with_subquery_in_from_does_not_use_original_table_name
     relation = Comment.group(:type).select("COUNT(post_id) AS post_count,type")
-    subquery = Comment.from(relation).group("type").average("post_count")
+    subquery = Comment.from(relation, "grouped_#{Comment.table_name}").group("type").average("post_count")
+    assert_equal(relation.map(&:post_count).sort, subquery.values.sort)
+  end
+
+  def test_select_with_subquery_string_in_from_does_not_use_original_table_name
+    relation = Comment.group(:type).select("COUNT(post_id) AS post_count, type")
+    subquery = Comment.from("(#{relation.to_sql}) #{Comment.table_name}_grouped").select("type", "post_count")
+    assert_equal(relation.map(&:post_count).sort, subquery.map(&:post_count).sort)
+  end
+
+  def test_group_with_subquery_string_in_from_does_not_use_original_table_name
+    relation = Comment.group(:type).select("COUNT(post_id) AS post_count,type")
+    subquery = Comment.from("(#{relation.to_sql}) #{Comment.table_name}_grouped").group("type").average("post_count")
     assert_equal(relation.map(&:post_count).sort, subquery.values.sort)
   end
 
@@ -249,7 +298,7 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_reverse_order_with_function
-    topics = Topic.order(Arel.sql("length(title)")).reverse_order
+    topics = Topic.order("length(title)").reverse_order
     assert_equal topics(:second).title, topics.first.title
   end
 
@@ -288,21 +337,21 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_reverse_order_with_nulls_first_or_last
     assert_raises(ActiveRecord::IrreversibleOrderError) do
-      Topic.order(Arel.sql("title NULLS FIRST")).reverse_order
+      Topic.order("title NULLS FIRST").reverse_order
     end
     assert_raises(ActiveRecord::IrreversibleOrderError) do
-      Topic.order(Arel.sql("title  NULLS  FIRST")).reverse_order
+      Topic.order("title  NULLS  FIRST").reverse_order
     end
     assert_raises(ActiveRecord::IrreversibleOrderError) do
-      Topic.order(Arel.sql("title nulls last")).reverse_order
+      Topic.order("title nulls last").reverse_order
     end
     assert_raises(ActiveRecord::IrreversibleOrderError) do
-      Topic.order(Arel.sql("title NULLS FIRST, author_name")).reverse_order
+      Topic.order("title NULLS FIRST, author_name").reverse_order
     end
     assert_raises(ActiveRecord::IrreversibleOrderError) do
-      Topic.order(Arel.sql("author_name, title nulls last")).reverse_order
+      Topic.order("author_name, title nulls last").reverse_order
     end
-  end
+  end if current_adapter?(:PostgreSQLAdapter, :OracleAdapter)
 
   def test_default_reverse_order_on_table_without_primary_key
     assert_raises(ActiveRecord::IrreversibleOrderError) do
@@ -553,6 +602,13 @@ class RelationTest < ActiveRecord::TestCase
     end
   end
 
+  def test_extracted_association
+    relation_authors = assert_queries(2) { Post.all.extract_associated(:author) }
+    root_authors = assert_queries(2) { Post.extract_associated(:author) }
+    assert_equal relation_authors, root_authors
+    assert_equal Post.all.collect(&:author), relation_authors
+  end
+
   def test_find_with_included_associations
     assert_queries(2) do
       posts = Post.includes(:comments).order("posts.id")
@@ -650,7 +706,7 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_to_sql_on_eager_join
-    expected = assert_sql {
+    expected = capture_sql {
       Post.eager_load(:last_comment).order("comments.id DESC").to_a
     }.first
     actual = Post.eager_load(:last_comment).order("comments.id DESC").to_sql
@@ -929,10 +985,23 @@ class RelationTest < ActiveRecord::TestCase
     assert_queries(1) { assert_equal 11, posts.load.size }
   end
 
+  def test_size_with_eager_loading_and_custom_select_and_order
+    posts = Post.includes(:comments).order("comments.id").select(:type)
+    assert_queries(1) { assert_equal 11, posts.size }
+    assert_queries(1) { assert_equal 11, posts.load.size }
+  end
+
   def test_size_with_eager_loading_and_custom_order_and_distinct
     posts = Post.includes(:comments).order("comments.id").distinct
     assert_queries(1) { assert_equal 11, posts.size }
     assert_queries(1) { assert_equal 11, posts.load.size }
+  end
+
+  def test_size_with_eager_loading_and_manual_distinct_select_and_custom_order
+    accounts = Account.select("DISTINCT accounts.firm_id").order("accounts.firm_id")
+
+    assert_queries(1) { assert_equal 5, accounts.size }
+    assert_queries(1) { assert_equal 5, accounts.load.size }
   end
 
   def test_count_explicit_columns
@@ -1446,10 +1515,12 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal [posts(:welcome)], relation.to_a
 
     author_posts = relation.except(:order, :limit)
-    assert_equal Post.where(author_id: 1).to_a, author_posts.to_a
+    assert_equal Post.where(author_id: 1).sort_by(&:id), author_posts.sort_by(&:id)
+    assert_equal author_posts.sort_by(&:id), relation.scoping { Post.except(:order, :limit).sort_by(&:id) }
 
     all_posts = relation.except(:where, :order, :limit)
-    assert_equal Post.all, all_posts
+    assert_equal Post.all.sort_by(&:id), all_posts.sort_by(&:id)
+    assert_equal all_posts.sort_by(&:id), relation.scoping { Post.except(:where, :order, :limit).sort_by(&:id) }
   end
 
   def test_only
@@ -1457,10 +1528,12 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal [posts(:welcome)], relation.to_a
 
     author_posts = relation.only(:where)
-    assert_equal Post.where(author_id: 1).to_a, author_posts.to_a
+    assert_equal Post.where(author_id: 1).sort_by(&:id), author_posts.sort_by(&:id)
+    assert_equal author_posts.sort_by(&:id), relation.scoping { Post.only(:where).sort_by(&:id) }
 
-    all_posts = relation.only(:limit)
-    assert_equal Post.limit(1).to_a, all_posts.to_a
+    all_posts = relation.only(:order)
+    assert_equal Post.order("id ASC").to_a, all_posts.to_a
+    assert_equal all_posts.to_a, relation.scoping { Post.only(:order).to_a }
   end
 
   def test_anonymous_extension
@@ -1606,7 +1679,7 @@ class RelationTest < ActiveRecord::TestCase
     scope = Post.order("comments.body")
     assert_equal ["comments"], scope.references_values
 
-    scope = Post.order(Arel.sql("#{Comment.quoted_table_name}.#{Comment.quoted_primary_key}"))
+    scope = Post.order("#{Comment.quoted_table_name}.#{Comment.quoted_primary_key}")
     if current_adapter?(:OracleAdapter)
       assert_equal ["COMMENTS"], scope.references_values
     else
@@ -1623,7 +1696,7 @@ class RelationTest < ActiveRecord::TestCase
     scope = Post.order("comments.body asc")
     assert_equal ["comments"], scope.references_values
 
-    scope = Post.order(Arel.sql("foo(comments.body)"))
+    scope = Post.order("foo(comments.body)")
     assert_equal [], scope.references_values
   end
 
@@ -1631,7 +1704,7 @@ class RelationTest < ActiveRecord::TestCase
     scope = Post.reorder("comments.body")
     assert_equal %w(comments), scope.references_values
 
-    scope = Post.reorder(Arel.sql("#{Comment.quoted_table_name}.#{Comment.quoted_primary_key}"))
+    scope = Post.reorder("#{Comment.quoted_table_name}.#{Comment.quoted_primary_key}")
     if current_adapter?(:OracleAdapter)
       assert_equal ["COMMENTS"], scope.references_values
     else
@@ -1648,7 +1721,7 @@ class RelationTest < ActiveRecord::TestCase
     scope = Post.reorder("comments.body asc")
     assert_equal %w(comments), scope.references_values
 
-    scope = Post.reorder(Arel.sql("foo(comments.body)"))
+    scope = Post.reorder("foo(comments.body)")
     assert_equal [], scope.references_values
   end
 
@@ -1684,6 +1757,24 @@ class RelationTest < ActiveRecord::TestCase
     assert_queries(1) { topics.count }
 
     assert_predicate topics, :loaded?
+  end
+
+  def test_delete_by
+    david = authors(:david)
+
+    assert_difference("Post.count", -3) { david.posts.delete_by(body: "hello") }
+
+    deleted = Author.delete_by(id: david.id)
+    assert_equal 1, deleted
+  end
+
+  def test_destroy_by
+    david = authors(:david)
+
+    assert_difference("Post.count", -3) { david.posts.destroy_by(body: "hello") }
+
+    destroyed = Author.destroy_by(id: david.id)
+    assert_equal [david], destroyed
   end
 
   test "find_by with hash conditions returns the first matching record" do
@@ -1864,8 +1955,8 @@ class RelationTest < ActiveRecord::TestCase
   test "joins with order by custom attribute" do
     companies = Company.create!([{ name: "test1" }, { name: "test2" }])
     companies.each { |company| company.contracts.create! }
-    assert_equal companies, Company.joins(:contracts).order(:metadata)
-    assert_equal companies.reverse, Company.joins(:contracts).order(metadata: :desc)
+    assert_equal companies, Company.joins(:contracts).order(:metadata, :count)
+    assert_equal companies.reverse, Company.joins(:contracts).order(metadata: :desc, count: :desc)
   end
 
   test "delegations do not leak to other classes" do
@@ -1884,6 +1975,30 @@ class RelationTest < ActiveRecord::TestCase
 
     assert_not_equal p1.first.comments, comments
     assert_equal p2.first.comments, comments
+  end
+
+  def test_unscope_with_merge
+    p0 = Post.where(author_id: 0)
+    p1 = Post.where(author_id: 1, comments_count: 1)
+
+    assert_equal [posts(:authorless)], p0
+    assert_equal [posts(:thinking)], p1
+
+    comments = Comment.merge(p0).unscope(where: :author_id).where(post: p1)
+
+    assert_not_equal p0.first.comments, comments
+    assert_equal p1.first.comments, comments
+  end
+
+  def test_unscope_with_unknown_column
+    comment = comments(:greetings)
+    comment.update!(comments: 1)
+
+    comments = Comment.where(comments: 1).unscope(where: :unknown_column)
+    assert_equal [comment], comments
+
+    comments = Comment.where(comments: 1).unscope(where: { comments: :unknown_column })
+    assert_equal [comment], comments
   end
 
   def test_unscope_specific_where_value

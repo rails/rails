@@ -252,7 +252,6 @@ module ActionDispatch
       end
 
       private
-
         def upgrade_legacy_hmac_aes_cbc_cookies?
           request.secret_key_base.present? &&
             request.encrypted_signed_cookie_salt.present? &&
@@ -287,8 +286,8 @@ module ActionDispatch
       DOMAIN_REGEXP = /[^.]*\.([^.]*|..\...|...\...)$/
 
       def self.build(req, cookies)
-        new(req).tap do |hash|
-          hash.update(cookies)
+        new(req).tap do |jar|
+          jar.update(cookies)
         end
       end
 
@@ -338,7 +337,7 @@ module ActionDispatch
 
       def update_cookies_from_jar
         request_jar = @request.cookie_jar.instance_variable_get(:@cookies)
-        set_cookies = request_jar.reject { |k, _| @delete_cookies.key?(k) }
+        set_cookies = request_jar.reject { |k, _| @delete_cookies.key?(k) || @set_cookies.key?(k) }
 
         @cookies.update set_cookies if set_cookies
       end
@@ -428,7 +427,6 @@ module ActionDispatch
       mattr_accessor :always_write_cookie, default: false
 
       private
-
         def escape(string)
           ::Rack::Utils.escape(string)
         end

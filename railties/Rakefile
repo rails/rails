@@ -11,6 +11,33 @@ task test: "test:isolated"
 
 namespace :test do
   task :isolated do
+    estimated_duration = {
+      "test/application/test_runner_test.rb" => 201,
+      "test/application/assets_test.rb" => 131,
+      "test/application/rake/migrations_test.rb" => 65,
+      "test/generators/scaffold_generator_test.rb" => 57,
+      "test/generators/plugin_test_runner_test.rb" => 57,
+      "test/application/test_test.rb" => 52,
+      "test/application/configuration_test.rb" => 49,
+      "test/generators/app_generator_test.rb" => 43,
+      "test/application/rake/dbs_test.rb" => 43,
+      "test/application/rake_test.rb" => 33,
+      "test/generators/plugin_generator_test.rb" => 30,
+      "test/railties/engine_test.rb" => 27,
+      "test/generators/scaffold_controller_generator_test.rb" => 23,
+      "test/railties/generators_test.rb" => 19,
+      "test/application/console_test.rb" => 16,
+      "test/engine/commands_test.rb" => 15,
+      "test/application/routing_test.rb" => 15,
+      "test/application/mailer_previews_test.rb" => 15,
+      "test/application/rake/multi_dbs_test.rb" => 13,
+      "test/application/asset_debugging_test.rb" => 12,
+      "test/application/bin_setup_test.rb" => 11,
+      "test/engine/test_test.rb" => 10,
+      "test/application/runner_test.rb" => 10,
+    }
+    estimated_duration.default = 1
+
     dash_i = [
       "test",
       "lib",
@@ -39,13 +66,23 @@ namespace :test do
     test_patterns = dirs.map { |dir| "test/#{dir}/*_test.rb" }
     test_files = Dir[*test_patterns].select do |file|
       !file.start_with?("test/fixtures/") && !file.start_with?("test/isolation/assets/")
-    end.sort
+    end
 
     if ENV["BUILDKITE_PARALLEL_JOB_COUNT"]
       n = ENV["BUILDKITE_PARALLEL_JOB"].to_i
       m = ENV["BUILDKITE_PARALLEL_JOB_COUNT"].to_i
 
-      test_files = test_files.each_slice(m).map { |slice| slice[n] }.compact
+      buckets = Array.new(m) { [] }
+      allocations = Array.new(m) { 0 }
+      test_files.sort_by { |file| [-estimated_duration[file], file] }.each do |file|
+        idx = allocations.index(allocations.min)
+        buckets[idx] << file
+        allocations[idx] += estimated_duration[file]
+      end
+
+      puts "Running #{buckets[n].size} of #{test_files.size} test files, estimated duration #{allocations[n]}s"
+
+      test_files = buckets[n]
     end
 
     test_files.each do |file|
@@ -58,14 +95,18 @@ namespace :test do
       ])
       puts fake_command
 
-      # We could run these in parallel, but pretty much all of the
-      # railties tests already run in parallel, so ¯\_(⊙︿⊙)_/¯
-      Process.waitpid fork {
-        ARGV.clear.concat test_options
-        Rake.application = nil
+      if Process.respond_to?(:fork)
+        # We could run these in parallel, but pretty much all of the
+        # railties tests already run in parallel, so ¯\_(⊙︿⊙)_/¯
+        Process.waitpid fork {
+          ARGV.clear.concat test_options
+          Rake.application = nil
 
-        load file
-      }
+          load file
+        }
+      else
+        Process.wait spawn(fake_command)
+      end
 
       unless $?.success?
         failing_files << file

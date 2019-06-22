@@ -15,6 +15,16 @@ class FixtureResolverTest < ActiveSupport::TestCase
     assert_equal 1, templates.size, "expected one template"
     assert_equal "this text",      templates.first.source
     assert_equal "arbitrary/path", templates.first.virtual_path
-    assert_equal [:html],          templates.first.formats
+    assert_nil templates.first.format
+  end
+
+  def test_should_match_templates_with_variants
+    resolver = ActionView::FixtureResolver.new("arbitrary/path.html+variant.erb" => "this text")
+    templates = resolver.find_all("path", "arbitrary", false, locale: [], formats: [:html], variants: [:variant], handlers: [:erb])
+    assert_equal 1, templates.size, "expected one template"
+    assert_equal "this text",       templates.first.source
+    assert_equal "arbitrary/path",  templates.first.virtual_path
+    assert_equal :html,           templates.first.format
+    assert_equal "variant",       templates.first.variant
   end
 end

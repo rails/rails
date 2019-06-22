@@ -1221,5 +1221,28 @@ module Arel
         manager.distinct_on(false).must_equal manager
       end
     end
+
+    describe "comment" do
+      it "chains" do
+        manager = Arel::SelectManager.new
+        manager.comment("selecting").must_equal manager
+      end
+
+      it "appends a comment to the generated query" do
+        manager = Arel::SelectManager.new
+        table = Table.new :users
+        manager.from(table).project(table["id"])
+
+        manager.comment("selecting")
+        manager.to_sql.must_be_like %{
+          SELECT "users"."id" FROM "users" /* selecting */
+        }
+
+        manager.comment("selecting", "with", "comment")
+        manager.to_sql.must_be_like %{
+          SELECT "users"."id" FROM "users" /* selecting */ /* with */ /* comment */
+        }
+      end
+    end
   end
 end

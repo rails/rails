@@ -96,6 +96,7 @@ class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
     RoutedRackApp.new(routes || ActionDispatch::Routing::RouteSet.new) do |middleware|
       middleware.use ActionDispatch::ShowExceptions, ActionDispatch::PublicExceptions.new("#{FIXTURE_LOAD_PATH}/public")
       middleware.use ActionDispatch::DebugExceptions
+      middleware.use ActionDispatch::ActionableExceptions
       middleware.use ActionDispatch::Callbacks
       middleware.use ActionDispatch::Cookies
       middleware.use ActionDispatch::Flash
@@ -334,7 +335,6 @@ module RoutingTestHelpers
     end
 
     private
-
       def make_request(env)
         Request.new super, url_helpers, @block, strict
       end
@@ -382,3 +382,5 @@ end
 class DrivenBySeleniumWithHeadlessFirefox < ActionDispatch::SystemTestCase
   driven_by :selenium, using: :headless_firefox
 end
+
+require_relative "../../tools/test_common"

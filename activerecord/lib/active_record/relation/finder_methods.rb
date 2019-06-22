@@ -7,8 +7,8 @@ module ActiveRecord
     ONE_AS_ONE = "1 AS one"
 
     # Find by id - This can either be a specific id (1), a list of ids (1, 5, 6), or an array of ids ([5, 6, 10]).
-    # If one or more records can not be found for the requested ids, then RecordNotFound will be raised. If the primary key
-    # is an integer, find by id coerces its arguments using +to_i+.
+    # If one or more records cannot be found for the requested ids, then ActiveRecord::RecordNotFound will be raised.
+    # If the primary key is an integer, find by id coerces its arguments by using +to_i+.
     #
     #   Person.find(1)          # returns the object for ID = 1
     #   Person.find("1")        # returns the object for ID = 1
@@ -314,7 +314,7 @@ module ActiveRecord
 
       relation = construct_relation_for_exists(conditions)
 
-      skip_query_cache_if_necessary { connection.select_one(relation.arel, "#{name} Exists") } ? true : false
+      skip_query_cache_if_necessary { connection.select_one(relation.arel, "#{name} Exists?") } ? true : false
     end
 
     # This method is called whenever no records are found with either a single
@@ -346,7 +346,6 @@ module ActiveRecord
     end
 
     private
-
       def offset_index
         offset_value || 0
       end
@@ -370,14 +369,10 @@ module ActiveRecord
         relation
       end
 
-      def construct_join_dependency(associations)
-        ActiveRecord::Associations::JoinDependency.new(
-          klass, table, associations
-        )
-      end
-
       def apply_join_dependency(eager_loading: group_values.empty?)
-        join_dependency = construct_join_dependency(eager_load_values + includes_values)
+        join_dependency = construct_join_dependency(
+          eager_load_values + includes_values, Arel::Nodes::OuterJoin
+        )
         relation = except(:includes, :eager_load, :preload).joins!(join_dependency)
 
         if eager_loading && !using_limitable_reflections?(join_dependency.reflections)

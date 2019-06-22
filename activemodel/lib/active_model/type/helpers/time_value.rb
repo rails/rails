@@ -11,10 +11,10 @@ module ActiveModel
           value = apply_seconds_precision(value)
 
           if value.acts_like?(:time)
-            zone_conversion_method = is_utc? ? :getutc : :getlocal
-
-            if value.respond_to?(zone_conversion_method)
-              value = value.send(zone_conversion_method)
+            if is_utc?
+              value = value.getutc if value.respond_to?(:getutc) && !value.utc?
+            else
+              value = value.getlocal if value.respond_to?(:getlocal)
             end
           end
 
@@ -22,10 +22,17 @@ module ActiveModel
         end
 
         def apply_seconds_precision(value)
-          return value unless precision && value.respond_to?(:usec)
-          number_of_insignificant_digits = 6 - precision
+          return value unless precision && value.respond_to?(:nsec)
+
+          number_of_insignificant_digits = 9 - precision
           round_power = 10**number_of_insignificant_digits
-          value.change(usec: value.usec - value.usec % round_power)
+          rounded_off_nsec = value.nsec % round_power
+
+          if rounded_off_nsec > 0
+            value.change(nsec: value.nsec - rounded_off_nsec)
+          else
+            value
+          end
         end
 
         def type_cast_for_schema(value)
@@ -37,7 +44,6 @@ module ActiveModel
         end
 
         private
-
           def new_time(year, mon, mday, hour, min, sec, microsec, offset = nil)
             # Treat 0000-00-00 00:00:00 as nil.
             return if year.nil? || (year == 0 && mon == 0 && mday == 0)

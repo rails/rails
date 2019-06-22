@@ -34,7 +34,7 @@ module RailtiesTest
 
     def migrations
       migration_root = File.expand_path(ActiveRecord::Migrator.migrations_paths.first, app_path)
-      ActiveRecord::MigrationContext.new(migration_root).migrations
+      ActiveRecord::MigrationContext.new(migration_root, ActiveRecord::SchemaMigration).migrations
     end
 
     test "serving sprocket's assets" do
@@ -879,7 +879,7 @@ YAML
       assert Bukkits::Engine.config.bukkits_seeds_loaded
     end
 
-    test "jobs are ran inline while loading seeds" do
+    test "jobs are ran inline while loading seeds with async adapter configured" do
       app_file "db/seeds.rb", <<-RUBY
         Rails.application.config.seed_queue_adapter = ActiveJob::Base.queue_adapter
       RUBY
@@ -889,6 +889,45 @@ YAML
 
       assert_instance_of ActiveJob::QueueAdapters::InlineAdapter, Rails.application.config.seed_queue_adapter
       assert_instance_of ActiveJob::QueueAdapters::AsyncAdapter, ActiveJob::Base.queue_adapter
+    end
+
+    test "jobs are ran with original adapter while loading seeds with custom adapter configured" do
+      app_file "db/seeds.rb", <<-RUBY
+        Rails.application.config.seed_queue_adapter = ActiveJob::Base.queue_adapter
+      RUBY
+
+      boot_rails
+      Rails.application.config.active_job.queue_adapter = :delayed_job
+      Rails.application.load_seed
+
+      assert_instance_of ActiveJob::QueueAdapters::DelayedJobAdapter, Rails.application.config.seed_queue_adapter
+      assert_instance_of ActiveJob::QueueAdapters::DelayedJobAdapter, ActiveJob::Base.queue_adapter
+    end
+
+    test "seed data can be loaded when ActiveJob is not present" do
+      @plugin.write "db/seeds.rb", <<-RUBY
+        Bukkits::Engine.config.bukkits_seeds_loaded = true
+      RUBY
+
+      app_file "db/seeds.rb", <<-RUBY
+        Rails.application.config.app_seeds_loaded = true
+      RUBY
+
+      boot_rails
+
+      # In a real app, config.active_job would be undefined when
+      # NOT requiring rails/all AND NOT requiring active_job/railtie
+      # that doesn't work as expected in this test environment, so:
+      undefine_config_option(:active_job)
+      assert_raise(NoMethodError) { Rails.application.config.active_job }
+
+      assert_raise(NoMethodError) { Rails.application.config.app_seeds_loaded }
+      assert_raise(NoMethodError) { Bukkits::Engine.config.bukkits_seeds_loaded }
+
+      Rails.application.load_seed
+      assert Rails.application.config.app_seeds_loaded
+      Bukkits::Engine.load_seed
+      assert Bukkits::Engine.config.bukkits_seeds_loaded
     end
 
     test "skips nonexistent seed data" do
@@ -1508,6 +1547,10 @@ YAML
   private
     def app
       Rails.application
+    end
+
+    def undefine_config_option(name)
+      Rails.application.config.class.class_variable_get(:@@options).delete(name)
     end
 
     # Restrict frameworks to load in order to avoid engine frameworks affect tests.

@@ -12,6 +12,7 @@ module ActiveRecord
     def setup
       @connection = ActiveRecord::Base.connection
       @connection.materialize_transactions
+      @connection_handler = ActiveRecord::Base.connection_handler
     end
 
     ##
@@ -166,7 +167,7 @@ module ActiveRecord
     def test_preventing_writes_predicate
       assert_not_predicate @connection, :preventing_writes?
 
-      @connection.while_preventing_writes do
+      @connection_handler.while_preventing_writes do
         assert_predicate @connection, :preventing_writes?
       end
 
@@ -176,7 +177,7 @@ module ActiveRecord
     def test_errors_when_an_insert_query_is_called_while_preventing_writes
       assert_no_queries do
         assert_raises(ActiveRecord::ReadOnlyError) do
-          @connection.while_preventing_writes do
+          @connection_handler.while_preventing_writes do
             @connection.transaction do
               @connection.insert("INSERT INTO subscribers(nick) VALUES ('138853948594')", nil, false)
             end
@@ -190,7 +191,7 @@ module ActiveRecord
 
       assert_no_queries do
         assert_raises(ActiveRecord::ReadOnlyError) do
-          @connection.while_preventing_writes do
+          @connection_handler.while_preventing_writes do
             @connection.transaction do
               @connection.update("UPDATE subscribers SET nick = '9989' WHERE nick = '138853948594'")
             end
@@ -204,7 +205,7 @@ module ActiveRecord
 
       assert_no_queries do
         assert_raises(ActiveRecord::ReadOnlyError) do
-          @connection.while_preventing_writes do
+          @connection_handler.while_preventing_writes do
             @connection.transaction do
               @connection.delete("DELETE FROM subscribers WHERE nick = '138853948594'")
             end
@@ -216,7 +217,7 @@ module ActiveRecord
     def test_doesnt_error_when_a_select_query_is_called_while_preventing_writes
       @connection.insert("INSERT INTO subscribers(nick) VALUES ('138853948594')")
 
-      @connection.while_preventing_writes do
+      @connection_handler.while_preventing_writes do
         result = @connection.select_all("SELECT subscribers.* FROM subscribers WHERE nick = '138853948594'")
         assert_equal 1, result.length
       end
@@ -452,19 +453,21 @@ module ActiveRecord
   class AdapterTestWithoutTransaction < ActiveRecord::TestCase
     self.use_transactional_tests = false
 
-    class Klass < ActiveRecord::Base
-    end
+    fixtures :posts, :authors, :author_addresses
 
     def setup
-      Klass.establish_connection :arunit
-      @connection = Klass.connection
-    end
-
-    teardown do
-      Klass.remove_connection
+      @connection = ActiveRecord::Base.connection
     end
 
     unless in_memory_db?
+      test "reconnect after a disconnect" do
+        assert_predicate @connection, :active?
+        @connection.disconnect!
+        assert_not_predicate @connection, :active?
+        @connection.reconnect!
+        assert_predicate @connection, :active?
+      end
+
       test "transaction state is reset after a reconnect" do
         @connection.begin_transaction
         assert_predicate @connection, :transaction_open?
@@ -477,7 +480,63 @@ module ActiveRecord
         assert_predicate @connection, :transaction_open?
         @connection.disconnect!
         assert_not_predicate @connection, :transaction_open?
+      ensure
+        @connection.reconnect!
       end
+    end
+
+    def test_truncate
+      assert_operator Post.count, :>, 0
+
+      @connection.truncate("posts")
+
+      assert_equal 0, Post.count
+    ensure
+      reset_fixtures("posts")
+    end
+
+    def test_truncate_with_query_cache
+      @connection.enable_query_cache!
+
+      assert_operator Post.count, :>, 0
+
+      @connection.truncate("posts")
+
+      assert_equal 0, Post.count
+    ensure
+      reset_fixtures("posts")
+      @connection.disable_query_cache!
+    end
+
+    def test_truncate_tables
+      assert_operator Post.count, :>, 0
+      assert_operator Author.count, :>, 0
+      assert_operator AuthorAddress.count, :>, 0
+
+      @connection.truncate_tables("author_addresses", "authors", "posts")
+
+      assert_equal 0, Post.count
+      assert_equal 0, Author.count
+      assert_equal 0, AuthorAddress.count
+    ensure
+      reset_fixtures("posts", "authors", "author_addresses")
+    end
+
+    def test_truncate_tables_with_query_cache
+      @connection.enable_query_cache!
+
+      assert_operator Post.count, :>, 0
+      assert_operator Author.count, :>, 0
+      assert_operator AuthorAddress.count, :>, 0
+
+      @connection.truncate_tables("author_addresses", "authors", "posts")
+
+      assert_equal 0, Post.count
+      assert_equal 0, Author.count
+      assert_equal 0, AuthorAddress.count
+    ensure
+      reset_fixtures("posts", "authors", "author_addresses")
+      @connection.disable_query_cache!
     end
 
     # test resetting sequences in odd tables in PostgreSQL
@@ -499,6 +558,15 @@ module ActiveRecord
         assert_nothing_raised { sub.save! }
       end
     end
+
+    private
+      def reset_fixtures(*fixture_names)
+        ActiveRecord::FixtureSet.reset_cache
+
+        fixture_names.each do |fixture_name|
+          ActiveRecord::FixtureSet.create_fixtures(FIXTURES_ROOT, fixture_name)
+        end
+      end
   end
 end
 

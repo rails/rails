@@ -25,7 +25,6 @@ Someone = Struct.new(:name, :place) do
   delegate :bar, to: :place, allow_nil: true
 
   private
-
     def private_name
       "Private"
     end
@@ -90,6 +89,16 @@ DecoratedTester = Struct.new(:client) do
   include ExtraMissing
 
   delegate_missing_to :client
+end
+
+class DecoratedMissingAllowNil
+  delegate_missing_to :case, allow_nil: true
+
+  attr_reader :case
+
+  def initialize(kase)
+    @case = kase
+  end
 end
 
 class DecoratedReserved
@@ -380,6 +389,10 @@ class ModuleTest < ActiveSupport::TestCase
     end
 
     assert_equal "name delegated to client, but client is nil", e.message
+  end
+
+  def test_delegate_missing_to_returns_nil_if_allow_nil_and_nil_target
+    assert_nil DecoratedMissingAllowNil.new(nil).name
   end
 
   def test_delegate_missing_to_affects_respond_to

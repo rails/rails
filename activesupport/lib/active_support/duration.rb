@@ -4,7 +4,6 @@ require "active_support/core_ext/array/conversions"
 require "active_support/core_ext/module/delegation"
 require "active_support/core_ext/object/acts_like"
 require "active_support/core_ext/string/filters"
-require "active_support/deprecation"
 
 module ActiveSupport
   # Provides accurate date and time measurements using Date#advance and
@@ -199,7 +198,6 @@ module ActiveSupport
       end
 
       private
-
         def calculate_total_seconds(parts)
           parts.inject(0) do |total, (part, value)|
             total + value * PARTS_IN_SECONDS[part]
@@ -400,7 +398,6 @@ module ActiveSupport
     end
 
     private
-
       def sum(sign, time = ::Time.current)
         parts.inject(time) do |t, (type, number)|
           if t.acts_like?(:time) || t.acts_like?(:date)

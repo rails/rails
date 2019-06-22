@@ -639,7 +639,7 @@ class Holiday < ApplicationRecord
     message: "should happen once per year" }
 end
 ```
-Should you wish to create a database constraint to prevent possible violations of a uniqueness validation using the `:scope` option, you must create a unique index on both columns in your database. See [the MySQL manual](http://dev.mysql.com/doc/refman/5.7/en/multiple-column-indexes.html) for more details about multiple column indexes or [the PostgreSQL manual](https://www.postgresql.org/docs/current/static/ddl-constraints.html) for examples of unique constraints that refer to a group of columns.
+Should you wish to create a database constraint to prevent possible violations of a uniqueness validation using the `:scope` option, you must create a unique index on both columns in your database. See [the MySQL manual](https://dev.mysql.com/doc/refman/5.7/en/multiple-column-indexes.html) for more details about multiple column indexes or [the PostgreSQL manual](https://www.postgresql.org/docs/current/static/ddl-constraints.html) for examples of unique constraints that refer to a group of columns.
 
 There is also a `:case_sensitive` option that you can use to define whether the
 uniqueness constraint will be case sensitive or not. This option defaults to
@@ -664,7 +664,7 @@ This helper passes the record to a separate class for validation.
 class GoodnessValidator < ActiveModel::Validator
   def validate(record)
     if record.first_name == "Evil"
-      record.errors[:base] << "This person is evil"
+      record.errors.add :base, "This person is evil"
     end
   end
 end
@@ -692,7 +692,7 @@ validator class as `options`:
 class GoodnessValidator < ActiveModel::Validator
   def validate(record)
     if options[:fields].any?{|field| record.send(field) == "Evil" }
-      record.errors[:base] << "This person is evil"
+      record.errors.add :base, "This person is evil"
     end
   end
 end
@@ -723,7 +723,7 @@ class GoodnessValidator
 
   def validate
     if some_complex_condition_involving_ivars_and_private_methods?
-      @person.errors[:base] << "This person is evil"
+      @person.errors.add :base, "This person is evil"
     end
   end
 
@@ -934,7 +934,7 @@ end
 
 ### Using a Proc with `:if` and `:unless`
 
-Finally, it's possible to associate `:if` and `:unless` with a `Proc` object
+It is possible to associate `:if` and `:unless` with a `Proc` object
 which will be called. Using a `Proc` object gives you the ability to write an
 inline condition instead of a separate method. This option is best suited for
 one-liners.
@@ -1004,7 +1004,7 @@ and performs the validation on it. The custom validator is called using the
 class MyValidator < ActiveModel::Validator
   def validate(record)
     unless record.name.starts_with? 'X'
-      record.errors[:name] << 'Need a name starting with X please!'
+      record.errors.add :name, "Need a name starting with X please!"
     end
   end
 end
@@ -1026,7 +1026,7 @@ instance.
 class EmailValidator < ActiveModel::EachValidator
   def validate_each(record, attribute, value)
     unless value =~ /\A([^@\s]+)@((?:[-a-z0-9]+\.)+[a-z]{2,})\z/i
-      record.errors[attribute] << (options[:message] || "is not an email")
+      record.errors.add attribute, (options[:message] || "is not an email")
     end
   end
 end
@@ -1044,7 +1044,7 @@ own custom validators.
 You can also create methods that verify the state of your models and add
 messages to the `errors` collection when they are invalid. You must then
 register these methods by using the `validate`
-([API](http://api.rubyonrails.org/classes/ActiveModel/Validations/ClassMethods.html#method-i-validate))
+([API](https://api.rubyonrails.org/classes/ActiveModel/Validations/ClassMethods.html#method-i-validate))
 class method, passing in the symbols for the validation methods' names.
 
 You can pass more than one symbol for each class method and the respective
@@ -1203,7 +1203,7 @@ You can add error messages that are related to the object's state as a whole, in
 ```ruby
 class Person < ApplicationRecord
   def a_method_used_for_validation_purposes
-    errors[:base] << "This person is invalid because ..."
+    errors.add :base, "This person is invalid because ..."
   end
 end
 ```

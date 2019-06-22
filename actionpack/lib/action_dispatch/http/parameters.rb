@@ -85,7 +85,6 @@ module ActionDispatch
       end
 
       private
-
         def set_binary_encoding(params, controller, action)
           return params unless controller && controller.valid_encoding?
 

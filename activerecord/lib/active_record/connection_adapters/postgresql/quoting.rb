@@ -78,6 +78,43 @@ module ActiveRecord
           type_map.lookup(column.oid, column.fmod, column.sql_type)
         end
 
+        def column_name_matcher
+          COLUMN_NAME
+        end
+
+        def column_name_with_order_matcher
+          COLUMN_NAME_WITH_ORDER
+        end
+
+        COLUMN_NAME = /
+          \A
+          (
+            (?:
+              # "table_name"."column_name"::type_name | function(one or no argument)::type_name
+              ((?:\w+\.|"\w+"\.)?(?:\w+|"\w+")(?:::\w+)?) | \w+\((?:|\g<2>)\)(?:::\w+)?
+            )
+            (?:(?:\s+AS)?\s+(?:\w+|"\w+"))?
+          )
+          (?:\s*,\s*\g<1>)*
+          \z
+        /ix
+
+        COLUMN_NAME_WITH_ORDER = /
+          \A
+          (
+            (?:
+              # "table_name"."column_name"::type_name | function(one or no argument)::type_name
+              ((?:\w+\.|"\w+"\.)?(?:\w+|"\w+")(?:::\w+)?) | \w+\((?:|\g<2>)\)(?:::\w+)?
+            )
+            (?:\s+ASC|\s+DESC)?
+            (?:\s+NULLS\s+(?:FIRST|LAST))?
+          )
+          (?:\s*,\s*\g<1>)*
+          \z
+        /ix
+
+        private_constant :COLUMN_NAME, :COLUMN_NAME_WITH_ORDER
+
         private
           def lookup_cast_type(sql_type)
             super(query_value("SELECT #{quote(sql_type)}::regtype::oid", "SCHEMA").to_i)
@@ -138,7 +175,7 @@ module ActiveRecord
           end
 
           def encode_range(range)
-            "[#{type_cast_range_value(range.first)},#{type_cast_range_value(range.last)}#{range.exclude_end? ? ')' : ']'}"
+            "[#{type_cast_range_value(range.begin)},#{type_cast_range_value(range.end)}#{range.exclude_end? ? ')' : ']'}"
           end
 
           def determine_encoding_of_strings_in_array(value)

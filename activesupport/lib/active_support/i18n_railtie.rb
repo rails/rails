@@ -97,7 +97,8 @@ module I18n
           If you desire the default locale to be included in the defaults, please
           explicitly configure it with `config.i18n.fallbacks.defaults =
           [I18n.default_locale]` or `config.i18n.fallbacks = [I18n.default_locale,
-          {...}]`
+          {...}]`. If you want to opt-in to the new behavior, use
+          `config.i18n.fallbacks.defaults = [nil, {...}]`.
         MSG
         args.unshift I18n.default_locale
       end

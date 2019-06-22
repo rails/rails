@@ -82,6 +82,20 @@ asyncTest('right/mouse-wheel-clicking on a link does not fire ajaxyness', 0, fun
   setTimeout(function() { start() }, 13)
 })
 
+asyncTest('clicking on a link via a non-mouse Event (such as from js) works', 1, function() {
+  var link = $('a[data-remote]')
+
+  link
+    .removeAttr('data-params')
+    .bindNative('ajax:beforeSend', function() {
+      ok(true, 'ajax should be triggered')
+    })
+
+  Rails.fire(link[0], 'click')
+
+  setTimeout(function() { start() }, 13)
+})
+
 asyncTest('ctrl-clicking on a link still fires ajax for non-GET links and for links with "data-params"', 2, function() {
   var link = $('a[data-remote]')
 
@@ -121,7 +135,7 @@ asyncTest('clicking on a link with both query string in href and data-params', 4
       App.assertGetRequest(data)
       equal(data.params.data1, 'value1', 'ajax arguments should have key data1 with right value')
       equal(data.params.data2, 'value2', 'ajax arguments should have key data2 with right value')
-      equal(data.params.data3, 'value3', 'query string in url should be passed to server with right value')
+      equal(data.params.data3, 'value3', 'query string in URL should be passed to server with right value')
     })
     .bindNative('ajax:complete', function() { start() })
     .triggerNative('click')
@@ -135,7 +149,7 @@ asyncTest('clicking on a link with both query string in href and data-params wit
       App.assertPostRequest(data)
       equal(data.params.data1, 'value1', 'ajax arguments should have key data1 with right value')
       equal(data.params.data2, 'value2', 'ajax arguments should have key data2 with right value')
-      equal(data.params.data3, 'value3', 'query string in url should be passed to server with right value')
+      equal(data.params.data3, 'value3', 'query string in URL should be passed to server with right value')
     })
     .bindNative('ajax:complete', function() { start() })
     .triggerNative('click')

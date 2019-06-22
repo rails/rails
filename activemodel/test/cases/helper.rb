@@ -25,3 +25,5 @@ class ActiveModel::TestCase < ActiveSupport::TestCase
       skip message if defined?(JRUBY_VERSION)
     end
 end
+
+require_relative "../../../tools/test_common"

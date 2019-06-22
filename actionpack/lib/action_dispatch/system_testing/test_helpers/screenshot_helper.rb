@@ -39,7 +39,8 @@ module ActionDispatch
 
         private
           def image_name
-            failed? ? "failures_#{method_name}" : method_name
+            name = method_name[0...225]
+            failed? ? "failures_#{name}" : name
           end
 
           def image_path

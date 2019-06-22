@@ -353,7 +353,7 @@ module ActiveJob
     #
     #
     # The +args+ argument also accepts a proc which will get passed the actual
-    # job's arguments. Your proc needs to returns a boolean value determining if
+    # job's arguments. Your proc needs to return a boolean value determining if
     # the job's arguments matches your expectation. This is useful to check only
     # for a subset of arguments.
     #
@@ -426,7 +426,7 @@ module ActiveJob
     #   end
     #
     # The +args+ argument also accepts a proc which will get passed the actual
-    # job's arguments. Your proc needs to returns a boolean value determining if
+    # job's arguments. Your proc needs to return a boolean value determining if
     # the job's arguments matches your expectation. This is useful to check only
     # for a subset of arguments.
     #
@@ -631,6 +631,20 @@ module ActiveJob
       def prepare_args_for_assertion(args)
         args.dup.tap do |arguments|
           arguments[:at] = arguments[:at].to_f if arguments[:at]
+          arguments[:args] = round_time_arguments(arguments[:args]) if arguments[:args]
+        end
+      end
+
+      def round_time_arguments(argument)
+        case argument
+        when Time, ActiveSupport::TimeWithZone, DateTime
+          argument.change(usec: 0)
+        when Hash
+          argument.transform_values { |value| round_time_arguments(value) }
+        when Array
+          argument.map { |element| round_time_arguments(element) }
+        else
+          argument
         end
       end
 

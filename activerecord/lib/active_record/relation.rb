@@ -5,7 +5,7 @@ module ActiveRecord
   class Relation
     MULTI_VALUE_METHODS  = [:includes, :eager_load, :preload, :select, :group,
                             :order, :joins, :left_outer_joins, :references,
-                            :extending, :unscope]
+                            :extending, :unscope, :optimizer_hints, :annotate]
 
     SINGLE_VALUE_METHODS = [:limit, :offset, :lock, :readonly, :reordering,
                             :reverse_order, :distinct, :create_with, :skip_query_cache]
@@ -197,6 +197,10 @@ module ActiveRecord
     #   if a DELETE between those two statements is run by another client. But for most applications,
     #   that's a significantly less likely condition to hit.
     # * It relies on exception handling to handle control flow, which may be marginally slower.
+    # * The primary key may auto-increment on each create, even if it fails. This can accelerate
+    #   the problem of running out of integers, if the underlying table is still stuck on a primary
+    #   key of type int (note: All Rails apps since 5.1+ have defaulted to bigint, which is not liable
+    #   to this problem).
     #
     # This method will return a record if all given attributes are covered by unique constraints
     # (unless the INSERT -> DELETE -> SELECT race condition is triggered), but if creation was attempted
@@ -287,31 +291,99 @@ module ActiveRecord
       limit_value ? records.many? : size > 1
     end
 
-    # Returns a cache key that can be used to identify the records fetched by
-    # this query. The cache key is built with a fingerprint of the sql query,
-    # the number of records matched by the query and a timestamp of the last
-    # updated record. When a new record comes to match the query, or any of
-    # the existing records is updated or deleted, the cache key changes.
+    # Returns a stable cache key that can be used to identify this query.
+    # The cache key is built with a fingerprint of the SQL query.
     #
-    #   Product.where("name like ?", "%Cosmic Encounter%").cache_key
-    #   # => "products/query-1850ab3d302391b85b8693e941286659-1-20150714212553907087000"
+    #    Product.where("name like ?", "%Cosmic Encounter%").cache_key
+    #    # => "products/query-1850ab3d302391b85b8693e941286659"
     #
-    # If the collection is loaded, the method will iterate through the records
-    # to generate the timestamp, otherwise it will trigger one SQL query like:
+    # If ActiveRecord::Base.collection_cache_versioning is turned off, as it was
+    # in Rails 6.0 and earlier, the cache key will also include a version.
     #
-    #    SELECT COUNT(*), MAX("products"."updated_at") FROM "products" WHERE (name like '%Cosmic Encounter%')
+    #    ActiveRecord::Base.collection_cache_versioning = false
+    #    Product.where("name like ?", "%Cosmic Encounter%").cache_key
+    #    # => "products/query-1850ab3d302391b85b8693e941286659-1-20150714212553907087000"
     #
     # You can also pass a custom timestamp column to fetch the timestamp of the
     # last updated record.
     #
     #   Product.where("name like ?", "%Game%").cache_key(:last_reviewed_at)
-    #
-    # You can customize the strategy to generate the key on a per model basis
-    # overriding ActiveRecord::Base#collection_cache_key.
     def cache_key(timestamp_column = :updated_at)
       @cache_keys ||= {}
-      @cache_keys[timestamp_column] ||= @klass.collection_cache_key(self, timestamp_column)
+      @cache_keys[timestamp_column] ||= klass.collection_cache_key(self, timestamp_column)
     end
+
+    def compute_cache_key(timestamp_column = :updated_at) # :nodoc:
+      query_signature = ActiveSupport::Digest.hexdigest(to_sql)
+      key = "#{klass.model_name.cache_key}/query-#{query_signature}"
+
+      if cache_version(timestamp_column)
+        key
+      else
+        "#{key}-#{compute_cache_version(timestamp_column)}"
+      end
+    end
+    private :compute_cache_key
+
+    # Returns a cache version that can be used together with the cache key to form
+    # a recyclable caching scheme. The cache version is built with the number of records
+    # matching the query, and the timestamp of the last updated record. When a new record
+    # comes to match the query, or any of the existing records is updated or deleted,
+    # the cache version changes.
+    #
+    # If the collection is loaded, the method will iterate through the records
+    # to generate the timestamp, otherwise it will trigger one SQL query like:
+    #
+    #    SELECT COUNT(*), MAX("products"."updated_at") FROM "products" WHERE (name like '%Cosmic Encounter%')
+    def cache_version(timestamp_column = :updated_at)
+      if collection_cache_versioning
+        @cache_versions ||= {}
+        @cache_versions[timestamp_column] ||= compute_cache_version(timestamp_column)
+      end
+    end
+
+    def compute_cache_version(timestamp_column) # :nodoc:
+      if loaded? || distinct_value
+        size = records.size
+        if size > 0
+          timestamp = max_by(&timestamp_column)._read_attribute(timestamp_column)
+        end
+      else
+        collection = eager_loading? ? apply_join_dependency : self
+
+        column = connection.visitor.compile(arel_attribute(timestamp_column))
+        select_values = "COUNT(*) AS #{connection.quote_column_name("size")}, MAX(%s) AS timestamp"
+
+        if collection.has_limit_or_offset?
+          query = collection.select("#{column} AS collection_cache_key_timestamp")
+          subquery_alias = "subquery_for_cache_key"
+          subquery_column = "#{subquery_alias}.collection_cache_key_timestamp"
+          arel = query.build_subquery(subquery_alias, select_values % subquery_column)
+        else
+          query = collection.unscope(:order)
+          query.select_values = [select_values % column]
+          arel = query.arel
+        end
+
+        result = connection.select_one(arel, nil)
+
+        if result
+          column_type = klass.type_for_attribute(timestamp_column)
+          timestamp = column_type.deserialize(result["timestamp"])
+          size = result["size"]
+        else
+          timestamp = nil
+          size = 0
+        end
+      end
+
+      if timestamp
+        "#{size}-#{timestamp.utc.to_s(cache_timestamp_format)}"
+      else
+        "#{size}"
+      end
+    end
+    private :compute_cache_version
 
     # Scope all queries to the current scope.
     #
@@ -337,6 +409,8 @@ module ActiveRecord
     # statement and sends it straight to the database. It does not instantiate the involved models and it does not
     # trigger Active Record callbacks or validations. However, values passed to #update_all will still go through
     # Active Record's normal type casting and serialization.
+    #
+    # Note: As Active Record callbacks are not triggered, this method will not automatically update +updated_at+/+updated_on+ columns.
     #
     # ==== Parameters
     #
@@ -372,6 +446,12 @@ module ActiveRecord
       stmt.wheres = arel.constraints
 
       if updates.is_a?(Hash)
+        if klass.locking_enabled? &&
+            !updates.key?(klass.locking_column) &&
+            !updates.key?(klass.locking_column.to_sym)
+          attr = arel_attribute(klass.locking_column)
+          updates[attr.name] = _increment_attribute(attr)
+        end
         stmt.set _substitute_values(updates)
       else
         stmt.set Arel.sql(klass.sanitize_sql_for_assignment(updates, table.name))
@@ -388,16 +468,25 @@ module ActiveRecord
       end
     end
 
-    def update_counters(counters) # :nodoc:
+    # Updates the counters of the records in the current relation.
+    #
+    # === Parameters
+    #
+    # * +counter+ - A Hash containing the names of the fields to update as keys and the amount to update as values.
+    # * <tt>:touch</tt> option - Touch the timestamp columns when updating.
+    # * If attributes names are passed, they are updated along with update_at/on attributes.
+    #
+    # === Examples
+    #
+    #  # For Posts by a given author increment the comment_count by 1.
+    #  Post.where(author_id: author.id).update_counters(comment_count: 1)
+    def update_counters(counters)
       touch = counters.delete(:touch)
 
       updates = {}
       counters.each do |counter_name, value|
         attr = arel_attribute(counter_name)
-        bind = predicate_builder.build_bind_attribute(attr.name, value.abs)
-        expr = table.coalesce(Arel::Nodes::UnqualifiedColumn.new(attr), 0)
-        expr = value < 0 ? expr - bind : expr + bind
-        updates[counter_name] = expr.expr
+        updates[attr.name] = _increment_attribute(attr, value)
       end
 
       if touch
@@ -409,10 +498,10 @@ module ActiveRecord
       update_all updates
     end
 
-    # Touches all records in the current relation without instantiating records first with the updated_at/on attributes
+    # Touches all records in the current relation without instantiating records first with the +updated_at+/+updated_on+ attributes
     # set to the current time or the time specified.
     # This method can be passed attribute names and an optional time argument.
-    # If attribute names are passed, they are updated along with updated_at/on attributes.
+    # If attribute names are passed, they are updated along with +updated_at+/+updated_on+ attributes.
     # If no time argument is passed, the current time is used as default.
     #
     # === Examples
@@ -433,12 +522,7 @@ module ActiveRecord
     #   Person.where(name: 'David').touch_all
     #   # => "UPDATE \"people\" SET \"updated_at\" = '2018-01-04 22:55:23.132670' WHERE \"people\".\"name\" = 'David'"
     def touch_all(*names, time: nil)
-      if klass.locking_enabled?
-        names << { time: time }
-        update_counters(klass.locking_column => 1, touch: names)
-      else
-        update_all klass.touch_attributes_with_time(*names, time: time)
-      end
+      update_all klass.touch_attributes_with_time(*names, time: time)
     end
 
     # Destroys the records by instantiating each
@@ -481,8 +565,8 @@ module ActiveRecord
     #   # => ActiveRecord::ActiveRecordError: delete_all doesn't support distinct
     def delete_all
       invalid_methods = INVALID_METHODS_FOR_DELETE_ALL.select do |method|
-        value = get_value(method)
-        SINGLE_VALUE_METHODS.include?(method) ? value : value.any?
+        value = @values[method]
+        method == :distinct ? value : value&.any?
       end
       if invalid_methods.any?
         raise ActiveRecordError.new("delete_all doesn't support #{invalid_methods.join(', ')}")
@@ -505,6 +589,32 @@ module ActiveRecord
 
       reset
       affected
+    end
+
+    # Finds and destroys all records matching the specified conditions.
+    # This is short-hand for <tt>relation.where(condition).destroy_all</tt>.
+    # Returns the collection of objects that were destroyed.
+    #
+    # If no record is found, returns empty array.
+    #
+    #   Person.destroy_by(id: 13)
+    #   Person.destroy_by(name: 'Spartacus', rating: 4)
+    #   Person.destroy_by("published_at < ?", 2.weeks.ago)
+    def destroy_by(*args)
+      where(*args).destroy_all
+    end
+
+    # Finds and deletes all records matching the specified conditions.
+    # This is short-hand for <tt>relation.where(condition).delete_all</tt>.
+    # Returns the number of rows affected.
+    #
+    # If no record is found, returns <tt>0</tt> as zero rows were affected.
+    #
+    #   Person.delete_by(id: 13)
+    #   Person.delete_by(name: 'Spartacus', rating: 4)
+    #   Person.delete_by("published_at < ?", 2.weeks.ago)
+    def delete_by(*args)
+      where(*args).delete_all
     end
 
     # Causes the records to be loaded from the database if they have not
@@ -646,6 +756,10 @@ module ActiveRecord
         @loaded = true
       end
 
+      def null_relation? # :nodoc:
+        is_a?(NullRelation)
+      end
+
     private
       def already_in_scope?
         @delegate_to_klass && begin
@@ -683,12 +797,19 @@ module ActiveRecord
         end
       end
 
+      def _increment_attribute(attribute, value = 1)
+        bind = predicate_builder.build_bind_attribute(attribute.name, value.abs)
+        expr = table.coalesce(Arel::Nodes::UnqualifiedColumn.new(attribute), 0)
+        expr = value < 0 ? expr - bind : expr + bind
+        expr.expr
+      end
+
       def exec_queries(&block)
         skip_query_cache_if_necessary do
           @records =
             if eager_loading?
               apply_join_dependency do |relation, join_dependency|
-                if ActiveRecord::NullRelation === relation
+                if relation.null_relation?
                   []
                 else
                   relation = join_dependency.apply_column_aliases(relation)

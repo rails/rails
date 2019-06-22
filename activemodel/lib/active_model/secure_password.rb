@@ -69,6 +69,27 @@ module ActiveModel
           raise
         end
 
+        include InstanceMethodsOnActivation.new(attribute)
+
+        if validations
+          include ActiveModel::Validations
+
+          # This ensures the model has a password by checking whether the password_digest
+          # is present, so that this works with both new and existing records. However,
+          # when there is an error, the message is added to the password attribute instead
+          # so that the error message will make sense to the end-user.
+          validate do |record|
+            record.errors.add(attribute, :blank) unless record.send("#{attribute}_digest").present?
+          end
+
+          validates_length_of attribute, maximum: ActiveModel::SecurePassword::MAX_PASSWORD_LENGTH_ALLOWED
+          validates_confirmation_of attribute, allow_blank: true
+        end
+      end
+    end
+
+    class InstanceMethodsOnActivation < Module
+      def initialize(attribute)
         attr_reader attribute
 
         define_method("#{attribute}=") do |unencrypted_password|
@@ -101,21 +122,6 @@ module ActiveModel
         end
 
         alias_method :authenticate, :authenticate_password if attribute == :password
-
-        if validations
-          include ActiveModel::Validations
-
-          # This ensures the model has a password by checking whether the password_digest
-          # is present, so that this works with both new and existing records. However,
-          # when there is an error, the message is added to the password attribute instead
-          # so that the error message will make sense to the end-user.
-          validate do |record|
-            record.errors.add(attribute, :blank) unless record.send("#{attribute}_digest").present?
-          end
-
-          validates_length_of attribute, maximum: ActiveModel::SecurePassword::MAX_PASSWORD_LENGTH_ALLOWED
-          validates_confirmation_of attribute, allow_blank: true
-        end
       end
     end
   end

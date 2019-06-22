@@ -108,7 +108,6 @@ module Rails
       end
 
     private
-
       def gemfile_entry(name, *args) # :doc:
         options = args.extract_options!
         version = args.first
@@ -307,7 +306,7 @@ module Rails
       def assets_gemfile_entry
         return [] if options[:skip_sprockets]
 
-        GemfileEntry.version("sass-rails", "~> 5.0", "Use SCSS for stylesheets")
+        GemfileEntry.version("sass-rails", ">= 5", "Use SCSS for stylesheets")
       end
 
       def webpacker_gemfile_entry
@@ -316,13 +315,13 @@ module Rails
         if options.dev? || options.edge?
           GemfileEntry.github "webpacker", "rails/webpacker", nil, "Use development version of Webpacker"
         else
-          GemfileEntry.version "webpacker", ">= 4.0.0.rc.3", "Transpile app-like JavaScript. Read more: https://github.com/rails/webpacker"
+          GemfileEntry.version "webpacker", "~> 4.0", "Transpile app-like JavaScript. Read more: https://github.com/rails/webpacker"
         end
       end
 
       def jbuilder_gemfile_entry
         comment = "Build JSON APIs with ease. Read more: https://github.com/rails/jbuilder"
-        GemfileEntry.new "jbuilder", "~> 2.5", comment, {}, options[:api]
+        GemfileEntry.new "jbuilder", "~> 2.7", comment, {}, options[:api]
       end
 
       def javascript_gemfile_entry

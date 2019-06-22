@@ -12,7 +12,6 @@ module ARTest
     end
 
     private
-
       def config_file
         Pathname.new(ENV["ARCONFIG"] || TEST_ROOT + "/config.yml")
       end

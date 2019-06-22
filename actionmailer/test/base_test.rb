@@ -307,6 +307,16 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal("HTML Implicit Multipart", email.parts[1].body.encoded)
   end
 
+  test "implicit multipart formats" do
+    email = BaseMailer.implicit_multipart_formats
+    assert_equal(2, email.parts.size)
+    assert_equal("multipart/alternative", email.mime_type)
+    assert_equal("text/plain", email.parts[0].mime_type)
+    assert_equal("Implicit Multipart [:text]", email.parts[0].body.encoded)
+    assert_equal("text/html", email.parts[1].mime_type)
+    assert_equal("Implicit Multipart [:html]", email.parts[1].body.encoded)
+  end
+
   test "implicit multipart with sort order" do
     order = ["text/html", "text/plain"]
     with_default BaseMailer, parts_order: order do
@@ -929,7 +939,6 @@ class BaseTest < ActiveSupport::TestCase
   end
 
   private
-
     # Execute the block setting the given values and restoring old values after
     # the block is executed.
     def swap(klass, new_values)

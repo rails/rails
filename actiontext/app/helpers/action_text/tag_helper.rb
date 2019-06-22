@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "action_view/helpers/tags/placeholderable"
+
 module ActionText
   module TagHelper
     cattr_accessor(:id, instance_accessor: false) { 0 }
@@ -35,6 +37,8 @@ end
 
 module ActionView::Helpers
   class Tags::ActionText < Tags::Base
+    include Tags::Placeholderable
+
     delegate :dom_id, to: ActionView::RecordIdentifier
 
     def render

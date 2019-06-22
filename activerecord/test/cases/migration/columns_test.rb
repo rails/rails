@@ -109,18 +109,10 @@ module ActiveRecord
         add_index "test_models", ["hat_style", "hat_size"], unique: true
 
         rename_column "test_models", "hat_size", "size"
-        if current_adapter? :OracleAdapter
-          assert_equal ["i_test_models_hat_style_size"], connection.indexes("test_models").map(&:name)
-        else
-          assert_equal ["index_test_models_on_hat_style_and_size"], connection.indexes("test_models").map(&:name)
-        end
+        assert_equal ["index_test_models_on_hat_style_and_size"], connection.indexes("test_models").map(&:name)
 
         rename_column "test_models", "hat_style", "style"
-        if current_adapter? :OracleAdapter
-          assert_equal ["i_test_models_style_size"], connection.indexes("test_models").map(&:name)
-        else
-          assert_equal ["index_test_models_on_style_and_size"], connection.indexes("test_models").map(&:name)
-        end
+        assert_equal ["index_test_models_on_style_and_size"], connection.indexes("test_models").map(&:name)
       end
 
       def test_rename_column_does_not_rename_custom_named_index
@@ -144,7 +136,7 @@ module ActiveRecord
       def test_remove_column_with_multi_column_index
         # MariaDB starting with 10.2.8
         # Dropping a column that is part of a multi-column UNIQUE constraint is not permitted.
-        skip if current_adapter?(:Mysql2Adapter) && connection.mariadb? && connection.version >= "10.2.8"
+        skip if current_adapter?(:Mysql2Adapter) && connection.mariadb? && connection.database_version >= "10.2.8"
 
         add_column "test_models", :hat_size, :integer
         add_column "test_models", :hat_style, :string, limit: 100

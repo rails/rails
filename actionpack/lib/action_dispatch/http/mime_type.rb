@@ -170,6 +170,7 @@ module Mime
       def parse(accept_header)
         if !accept_header.include?(",")
           accept_header = accept_header.split(PARAMETER_SEPARATOR_REGEXP).first
+          return [] unless accept_header
           parse_trailing_star(accept_header) || [Mime::Type.lookup(accept_header)].compact
         else
           list, index = [], 0
@@ -221,7 +222,18 @@ module Mime
 
     attr_reader :hash
 
+    MIME_NAME = "[a-zA-Z0-9][a-zA-Z0-9#{Regexp.escape('!#$&-^_.+')}]{0,126}"
+    MIME_PARAMETER_KEY = "[a-zA-Z0-9][a-zA-Z0-9#{Regexp.escape('!#$&-^_.+')}]{0,126}"
+    MIME_PARAMETER_VALUE = "#{Regexp.escape('"')}?[a-zA-Z0-9][a-zA-Z0-9#{Regexp.escape('!#$&-^_.+')}]{0,126}#{Regexp.escape('"')}?"
+    MIME_PARAMETER = "\s*\;\s+#{MIME_PARAMETER_KEY}(?:\=#{MIME_PARAMETER_VALUE})?"
+    MIME_REGEXP = /\A(?:\*\/\*|#{MIME_NAME}\/(?:\*|#{MIME_NAME})(?:\s*#{MIME_PARAMETER}\s*)*)\z/
+
+    class InvalidMimeType < StandardError; end
+
     def initialize(string, symbol = nil, synonyms = [])
+      unless MIME_REGEXP.match?(string)
+        raise InvalidMimeType, "#{string.inspect} is not a valid MIME type"
+      end
       @symbol, @synonyms = symbol, synonyms
       @string = string
       @hash = [@string, @synonyms, @symbol].hash
@@ -278,11 +290,9 @@ module Mime
     def all?; false; end
 
     protected
-
       attr_reader :string, :synonyms
 
     private
-
       def to_ary; end
       def to_a; end
 
@@ -303,7 +313,7 @@ module Mime
     include Singleton
 
     def initialize
-      super "*/*", :all
+      super "*/*", nil
     end
 
     def all?; true; end

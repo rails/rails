@@ -58,7 +58,7 @@ Links to the API (`api.rubyonrails.org`) are processed by the guides generator i
 Links that include a release tag are left untouched. For example
 
 ```
-http://api.rubyonrails.org/v5.0.1/classes/ActiveRecord/Attributes/ClassMethods.html
+https://api.rubyonrails.org/v5.0.1/classes/ActiveRecord/Attributes/ClassMethods.html
 ```
 
 is not modified.
@@ -68,25 +68,25 @@ Please use these in release notes, since they should point to the corresponding 
 If the link does not include a release tag and edge guides are being generated, the domain is replaced by `edgeapi.rubyonrails.org`. For example,
 
 ```
-http://api.rubyonrails.org/classes/ActionDispatch/Response.html
+https://api.rubyonrails.org/classes/ActionDispatch/Response.html
 ```
 
 becomes
 
 ```
-http://edgeapi.rubyonrails.org/classes/ActionDispatch/Response.html
+https://edgeapi.rubyonrails.org/classes/ActionDispatch/Response.html
 ```
 
 If the link does not include a release tag and release guides are being generated, the Rails version is injected. For example, if we are generating the guides for v5.1.0 the link
 
 ```
-http://api.rubyonrails.org/classes/ActionDispatch/Response.html
+https://api.rubyonrails.org/classes/ActionDispatch/Response.html
 ```
 
 becomes
 
 ```
-http://api.rubyonrails.org/v5.1.0/classes/ActionDispatch/Response.html
+https://api.rubyonrails.org/v5.1.0/classes/ActionDispatch/Response.html
 ```
 
 Please don't link to `edgeapi.rubyonrails.org` manually.

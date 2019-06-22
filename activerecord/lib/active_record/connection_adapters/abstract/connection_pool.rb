@@ -3,6 +3,7 @@
 require "thread"
 require "concurrent/map"
 require "monitor"
+require "weakref"
 
 module ActiveRecord
   # Raised when a connection could not be obtained within the connection
@@ -19,6 +20,26 @@ module ActiveRecord
   end
 
   module ConnectionAdapters
+    module AbstractPool # :nodoc:
+      def get_schema_cache(connection)
+        @schema_cache ||= SchemaCache.new(connection)
+        @schema_cache.connection = connection
+        @schema_cache
+      end
+
+      def set_schema_cache(cache)
+        @schema_cache = cache
+      end
+    end
+
+    class NullPool # :nodoc:
+      include ConnectionAdapters::AbstractPool
+
+      def initialize
+        @schema_cache = nil
+      end
+    end
+
     # Connection pool base class for managing Active Record database
     # connections.
     #
@@ -146,7 +167,6 @@ module ActiveRecord
         end
 
         private
-
           def internal_poll(timeout)
             no_wait_poll || (timeout && wait_poll(timeout))
           end
@@ -294,23 +314,50 @@ module ActiveRecord
           @frequency = frequency
         end
 
+        @mutex = Mutex.new
+        @pools = {}
+
+        class << self
+          def register_pool(pool, frequency) # :nodoc:
+            @mutex.synchronize do
+              unless @pools.key?(frequency)
+                @pools[frequency] = []
+                spawn_thread(frequency)
+              end
+              @pools[frequency] << WeakRef.new(pool)
+            end
+          end
+
+          private
+            def spawn_thread(frequency)
+              Thread.new(frequency) do |t|
+                loop do
+                  sleep t
+                  @mutex.synchronize do
+                    @pools[frequency].select!(&:weakref_alive?)
+                    @pools[frequency].each do |p|
+                      p.reap
+                      p.flush
+                    rescue WeakRef::RefError
+                    end
+                  end
+                end
+              end
+            end
+        end
+
         def run
           return unless frequency && frequency > 0
-          Thread.new(frequency, pool) { |t, p|
-            loop do
-              sleep t
-              p.reap
-              p.flush
-            end
-          }
+          self.class.register_pool(pool, frequency)
         end
       end
 
       include MonitorMixin
       include QueryCache::ConnectionPoolConfiguration
+      include ConnectionAdapters::AbstractPool
 
       attr_accessor :automatic_reconnect, :checkout_timeout, :schema_cache
-      attr_reader :spec, :connections, :size, :reaper
+      attr_reader :spec, :size, :reaper
 
       # Creates a new ConnectionPool object. +spec+ is a ConnectionSpecification
       # object which describes database connection information (e.g. adapter,
@@ -421,6 +468,21 @@ module ActiveRecord
       # Returns true if a connection has already been opened.
       def connected?
         synchronize { @connections.any? }
+      end
+
+      # Returns an array containing the connections currently in the pool.
+      # Access to the array does not require synchronization on the pool because
+      # the array is newly created and not retained by the pool.
+      #
+      # However; this method bypasses the ConnectionPool's thread-safe connection
+      # access pattern. A returned connection may be owned by another thread,
+      # unowned, or by happen-stance owned by the calling thread.
+      #
+      # Calling methods on a connection without ownership is subject to the
+      # thread-safety guarantees of the underlying method. Many of the methods
+      # on connection adapter classes are inherently multi-thread unsafe.
+      def connections
+        synchronize { @connections.dup }
       end
 
       # Disconnects all connections in the pool, and clears the pool.
@@ -809,7 +871,7 @@ module ActiveRecord
 
         def new_connection
           Base.send(spec.adapter_method, spec.config).tap do |conn|
-            conn.schema_cache = schema_cache.dup if schema_cache
+            conn.check_version
           end
         end
 
@@ -937,13 +999,28 @@ module ActiveRecord
         end
       end
 
+      attr_reader :prevent_writes
+
       def initialize
         # These caches are keyed by spec.name (ConnectionSpecification#name).
         @owner_to_pool = ConnectionHandler.create_owner_to_pool
+        @prevent_writes = false
 
         # Backup finalizer: if the forked child never needed a pool, the above
         # early discard has not occurred
         ObjectSpace.define_finalizer self, ConnectionHandler.unowned_pool_finalizer(@owner_to_pool)
+      end
+
+      # Prevent writing to the database regardless of role.
+      #
+      # In some cases you may want to prevent writes to the database
+      # even if you are on a database that can write. `while_preventing_writes`
+      # will prevent writes to the database for the duration of the block.
+      def while_preventing_writes
+        original, @prevent_writes = @prevent_writes, true
+        yield
+      ensure
+        @prevent_writes = original
       end
 
       def connection_pool_list
@@ -1063,7 +1140,6 @@ module ActiveRecord
       end
 
       private
-
         def owner_to_pool
           @owner_to_pool[Process.pid]
         end

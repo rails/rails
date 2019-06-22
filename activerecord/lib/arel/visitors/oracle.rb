@@ -4,7 +4,6 @@ module Arel # :nodoc: all
   module Visitors
     class Oracle < Arel::Visitors::ToSql
       private
-
         def visit_Arel_Nodes_SelectStatement(o, collector)
           o = order_hacks(o)
 

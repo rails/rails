@@ -21,12 +21,12 @@ module ActiveRecord
 
       def add_reflection(ar, name, reflection)
         ar.clear_reflections_cache
-        name = name.to_s
+        name = -name.to_s
         ar._reflections = ar._reflections.except(name).merge!(name => reflection)
       end
 
       def add_aggregate_reflection(ar, name, reflection)
-        ar.aggregate_reflections = ar.aggregate_reflections.merge(name.to_s => reflection)
+        ar.aggregate_reflections = ar.aggregate_reflections.merge(-name.to_s => reflection)
       end
 
       private
@@ -477,7 +477,7 @@ module ActiveRecord
       def check_preloadable!
         return unless scope
 
-        if scope.arity > 0
+        unless scope.arity == 0
           raise ArgumentError, <<-MSG.squish
             The association scope '#{name}' is instance dependent (the scope
             block takes an argument). Preloading instance dependent scopes is
@@ -590,7 +590,6 @@ module ActiveRecord
       end
 
       private
-
         def calculate_constructable(macro, options)
           true
         end
@@ -704,7 +703,6 @@ module ActiveRecord
       end
 
       private
-
         def calculate_constructable(macro, options)
           !options[:through]
         end

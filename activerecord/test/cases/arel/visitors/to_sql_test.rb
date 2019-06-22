@@ -23,9 +23,9 @@ module Arel
         sql.must_be_like "?"
       end
 
-      it "does not quote BindParams used as part of a Values" do
+      it "does not quote BindParams used as part of a ValuesList" do
         bp = Nodes::BindParam.new(1)
-        values = Nodes::Values.new([bp])
+        values = Nodes::ValuesList.new([[bp]])
         sql = compile values
         sql.must_be_like "VALUES (?)"
       end
@@ -395,6 +395,11 @@ module Arel
           compile(node).must_be_like %{
             "users"."id" IN (1, 2, 3)
           }
+
+          node = @attr.in [1, 2, 3, 4, 5]
+          compile(node).must_be_like %{
+            ("users"."id" IN (1, 2, 3) OR "users"."id" IN (4, 5))
+          }
         end
 
         it "should return 1=0 when empty right which is always false" do
@@ -544,6 +549,11 @@ module Arel
           node = @attr.not_in [1, 2, 3]
           compile(node).must_be_like %{
             "users"."id" NOT IN (1, 2, 3)
+          }
+
+          node = @attr.not_in [1, 2, 3, 4, 5]
+          compile(node).must_be_like %{
+            "users"."id" NOT IN (1, 2, 3) AND "users"."id" NOT IN (4, 5)
           }
         end
 

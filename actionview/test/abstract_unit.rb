@@ -60,7 +60,7 @@ module RenderERBUtils
       string.strip,
       "test template",
       ActionView::Template.handler_for_extension(:erb),
-      {})
+      format: :html, locals: [])
 
     view = ActionView::Base.with_empty_template_cache
     template.render(view.empty, {}).strip
@@ -192,6 +192,8 @@ module ActionDispatch
 end
 
 class ActiveSupport::TestCase
+  parallelize
+
   include ActiveSupport::Testing::MethodCallAssertions
 
   private
@@ -205,3 +207,5 @@ class ActiveSupport::TestCase
       skip message if defined?(JRUBY_VERSION)
     end
 end
+
+require_relative "../../tools/test_common"

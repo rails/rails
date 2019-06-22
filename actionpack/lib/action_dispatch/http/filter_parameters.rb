@@ -56,7 +56,6 @@ module ActionDispatch
       end
 
     private
-
       def parameter_filter # :doc:
         parameter_filter_for fetch_header("action_dispatch.parameter_filter") {
           return NULL_PARAM_FILTER

@@ -213,6 +213,8 @@ module ActionView #:nodoc:
         context.lookup_context
       when Array
         ActionView::LookupContext.new(context)
+      when ActionView::PathSet
+        ActionView::LookupContext.new(context)
       when nil
         ActionView::LookupContext.new([])
       else
@@ -240,7 +242,7 @@ module ActionView #:nodoc:
       @_config = ActiveSupport::InheritableOptions.new
 
       unless formats == NULL
-        ActiveSupport::Deprecation.warn <<~eowarn
+        ActiveSupport::Deprecation.warn <<~eowarn.squish
         Passing formats to ActionView::Base.new is deprecated
         eowarn
       end
@@ -249,14 +251,15 @@ module ActionView #:nodoc:
       when ActionView::LookupContext
         @lookup_context = lookup_context
       else
-        ActiveSupport::Deprecation.warn <<~eowarn
+        ActiveSupport::Deprecation.warn <<~eowarn.squish
         ActionView::Base instances should be constructed with a lookup context,
-        assigments, and a controller.
+        assignments, and a controller.
         eowarn
         @lookup_context = self.class.build_lookup_context(lookup_context)
       end
 
       @view_renderer = ActionView::Renderer.new @lookup_context
+      @current_template = nil
 
       @cache_hit = {}
       assign(assigns)
@@ -264,17 +267,18 @@ module ActionView #:nodoc:
       _prepare_context
     end
 
-    def run(method, locals, buffer, &block)
-      _old_output_buffer, _old_virtual_path = @output_buffer, @virtual_path
+    def _run(method, template, locals, buffer, &block)
+      _old_output_buffer, _old_virtual_path, _old_template = @output_buffer, @virtual_path, @current_template
+      @current_template = template
       @output_buffer = buffer
       send(method, locals, buffer, &block)
     ensure
-      @output_buffer, @virtual_path = _old_output_buffer, _old_virtual_path
+      @output_buffer, @virtual_path, @current_template = _old_output_buffer, _old_virtual_path, _old_template
     end
 
     def compiled_method_container
       if self.class == ActionView::Base
-        ActiveSupport::Deprecation.warn <<~eowarn
+        ActiveSupport::Deprecation.warn <<~eowarn.squish
           ActionView::Base instances must implement `compiled_method_container`
           or use the class method `with_empty_template_cache` for constructing
           an ActionView::Base instances that has an empty cache.
@@ -284,7 +288,7 @@ module ActionView #:nodoc:
       self.class
     end
 
-    def in_context(options, locals)
+    def in_rendering_context(options)
       old_view_renderer  = @view_renderer
       old_lookup_context = @lookup_context
 

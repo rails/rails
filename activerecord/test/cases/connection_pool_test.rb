@@ -507,7 +507,6 @@ module ActiveRecord
         pool.schema_cache = schema_cache
 
         pool.with_connection do |conn|
-          assert_not_same pool.schema_cache, conn.schema_cache
           assert_equal pool.schema_cache.size, conn.schema_cache.size
           assert_same pool.schema_cache.columns(:posts), conn.schema_cache.columns(:posts)
         end
@@ -693,6 +692,28 @@ module ActiveRecord
           stats = pool.stat
           assert_equal({ size: 1, connections: 1, busy: 0, dead: 1, idle: 0, waiting: 0, checkout_timeout: 5 }, stats)
         end
+      end
+
+      def test_public_connections_access_threadsafe
+        _conn1 = @pool.checkout
+        conn2 = @pool.checkout
+
+        connections = @pool.connections
+        found_conn = nil
+
+        # Without assuming too much about implementation
+        # details make sure that a concurrent change to
+        # the pool is thread-safe.
+        connections.each_index do |idx|
+          if connections[idx] == conn2
+            Thread.new do
+              @pool.remove(conn2)
+            end.join
+          end
+          found_conn = connections[idx]
+        end
+
+        assert_not_nil found_conn
       end
 
       private

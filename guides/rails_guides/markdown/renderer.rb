@@ -16,7 +16,7 @@ HTML
       end
 
       def link(url, title, content)
-        if url.start_with?("http://api.rubyonrails.org")
+        if %r{https?://api\.rubyonrails\.org}.match?(url)
           %(<a href="#{api_link(url)}">#{content}</a>)
         elsif title
           %(<a href="#{url}" title="#{title}">#{content}</a>)
@@ -53,7 +53,6 @@ HTML
       end
 
       private
-
         def convert_footnotes(text)
           text.gsub(/\[<sup>(\d+)\]<\/sup>/i) do
             %(<sup class="footnote" id="footnote-#{$1}-ref">) +
@@ -115,7 +114,7 @@ HTML
         end
 
         def api_link(url)
-          if %r{http://api\.rubyonrails\.org/v\d+\.}.match?(url)
+          if %r{https?://api\.rubyonrails\.org/v\d+\.}.match?(url)
             url
           elsif edge
             url.sub("api", "edgeapi")
