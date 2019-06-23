@@ -30,6 +30,14 @@ class ClientTest < ActionCable::TestCase
   WAIT_WHEN_EXPECTING_EVENT = 2
   WAIT_WHEN_NOT_EXPECTING_EVENT = 0.5
 
+  class Connection < ActionCable::Connection::Base
+    identified_by :current_user
+
+    def connect
+      self.current_user = User.new "lifo"
+    end
+  end
+
   class EchoChannel < ActionCable::Channel::Base
     def subscribed
       stream_from "global"
@@ -288,6 +296,7 @@ class ClientTest < ActionCable::TestCase
 
       subscriptions = app.connections.first.subscriptions.send(:subscriptions)
       assert_not_equal 0, subscriptions.size, "Missing EchoChannel subscription"
+
       channel = subscriptions.first[1]
       assert_called(channel, :unsubscribed) do
         c.close
@@ -296,6 +305,28 @@ class ClientTest < ActionCable::TestCase
 
       # All data is removed: No more connection or subscription information!
       assert_equal(0, app.connections.count)
+    end
+  end
+
+  def test_forcibly_unsubscribe_client
+    with_puma_server do |port|
+      stub_connection do
+        app = ActionCable.server
+        identifier = JSON.generate(channel: "ClientTest::EchoChannel")
+
+        c = websocket_client(port)
+
+        assert_equal({ "type" => "welcome" }, c.read_message)
+        c.send_message command: "subscribe", identifier: identifier
+        assert_equal({ "identifier" => "{\"channel\":\"ClientTest::EchoChannel\"}", "type" => "confirm_subscription" }, c.read_message)
+
+        remote_connection = app.remote_connections.where(current_user: "User#lifo")
+        remote_connection.unsubscribe(identifier)
+
+        sleep(0.1)
+        connection = app.connections.first
+        assert_equal(0, connection.subscriptions.send(:subscriptions).size)
+      end
     end
   end
 
@@ -311,4 +342,12 @@ class ClientTest < ActionCable::TestCase
       assert_predicate c, :closed?
     end
   end
+
+  private
+    def stub_connection
+      connection_class = ActionCable.server.config.connection_class
+      ActionCable.server.config.connection_class = -> { Connection }
+      yield
+      ActionCable.server.config.connection_class = connection_class
+    end
 end
