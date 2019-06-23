@@ -8,10 +8,10 @@ class TestServer
 
   attr_reader :logger, :config, :mutex
 
-  def initialize(subscription_adapter: SuccessAdapter, connection_class: nil)
+  def initialize(subscription_adapter: SuccessAdapter)
     @logger = ActiveSupport::TaggedLogging.new ActiveSupport::Logger.new(StringIO.new)
 
-    @config = OpenStruct.new(log_tags: [], subscription_adapter: subscription_adapter, connection_class: connection_class)
+    @config = OpenStruct.new(log_tags: [], subscription_adapter: subscription_adapter)
 
     @mutex = Monitor.new
   end
@@ -28,9 +28,5 @@ class TestServer
 
   def worker_pool
     @worker_pool ||= ActionCable::Server::Worker.new(max_size: 5)
-  end
-
-  def connection_identifiers
-    config.connection_class.identifiers
   end
 end
