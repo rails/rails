@@ -54,7 +54,8 @@ class ActionCable::Connection::IdentifierTest < ActionCable::TestCase
     run_in_eventmachine do
       open_connection
 
-      assert_called(@connection.subscriptions, :remove, "subscription_identifier") do
+      remove_argument = { "identifier" => "subscription_identifier" }
+      assert_called_with(@connection.subscriptions, :remove, [remove_argument]) do
         @connection.process_internal_message "type" => "unsubscribe", "channel_identifier" => "subscription_identifier"
       end
     end
