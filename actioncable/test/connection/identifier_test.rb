@@ -50,6 +50,16 @@ class ActionCable::Connection::IdentifierTest < ActionCable::TestCase
     end
   end
 
+  test "processing unsubscribe message" do
+    run_in_eventmachine do
+      open_connection
+
+      assert_called(@connection.subscriptions, :remove, "subscription_identifier") do
+        @connection.process_internal_message "type" => "unsubscribe", "channel_identifier" => "subscription_identifier"
+      end
+    end
+  end
+
   test "processing invalid message" do
     run_in_eventmachine do
       open_connection
