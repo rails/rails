@@ -19,6 +19,12 @@ module ActionCable
   # This will disconnect all the connections established for
   # <tt>User.find(1)</tt>, across all servers running on all machines, because
   # it uses the internal channel that all of these servers are subscribed to.
+  #
+  # You can also use the remote connection to forcibly unsubscribe a connection
+  # from a specific stream. For example:
+  #
+  #   subscription_identifier = "{\"channel\":\"ChatChannel\", \"chat_id\":1}"
+  #   ActionCable.server.remote_connections.where(current_user: User.find(1)).unsubscribe(subscription_identifier)
   class RemoteConnections
     attr_reader :server
 
@@ -32,7 +38,7 @@ module ActionCable
 
     private
       # Represents a single remote connection found via <tt>ActionCable.server.remote_connections.where(*)</tt>.
-      # Exists solely for the purpose of calling #disconnect on that connection.
+      # Exists for the purpose of calling #disconnect or #unsubscribe on that connection.
       class RemoteConnection
         class InvalidIdentifiersError < StandardError; end
 

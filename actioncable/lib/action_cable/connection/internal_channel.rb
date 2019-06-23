@@ -2,7 +2,7 @@
 
 module ActionCable
   module Connection
-    # Makes it possible for the RemoteConnection to disconnect a specific connection.
+    # Makes it possible for the RemoteConnection to disconnect a specific connection or unsubscribe a connection from a channel.
     module InternalChannel
       extend ActiveSupport::Concern
 
