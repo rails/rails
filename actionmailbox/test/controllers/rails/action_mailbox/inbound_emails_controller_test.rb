@@ -10,6 +10,7 @@ class Rails::Conductor::ActionMailbox::InboundEmailsControllerTest < ActionDispa
           mail: {
             from: "Jason Fried <jason@37signals.com>",
             to: "Replies <replies@example.com>",
+            cc: "CC <cc@example.com>",
             bcc: "Bcc <bcc@example.com>",
             in_reply_to: "<4e6e35f5a38b4_479f13bb90078178@small-app-01.mail>",
             subject: "Hey there",
@@ -21,6 +22,7 @@ class Rails::Conductor::ActionMailbox::InboundEmailsControllerTest < ActionDispa
       mail = ActionMailbox::InboundEmail.last.mail
       assert_equal %w[ jason@37signals.com ], mail.from
       assert_equal %w[ replies@example.com ], mail.to
+      assert_equal %w[ cc@example.com ], mail.cc
       assert_equal %w[ bcc@example.com ], mail.bcc
       assert_equal "4e6e35f5a38b4_479f13bb90078178@small-app-01.mail", mail.in_reply_to
       assert_equal "Hey there", mail.subject
