@@ -409,7 +409,7 @@ module ActiveRecord
                 saved = record.save(validate: false)
               end
 
-              raise ActiveRecord::Rollback unless saved
+              raise(RecordInvalid.new(association.owner)) unless saved
             end
           end
         end
