@@ -120,13 +120,9 @@ by this same current user, you're also ensuring that you can later retrieve all 
 connections by a given user (and potentially disconnect them all if the user is deleted
 or unauthorized).
 
-If you use Devise for authenticaion, you can get `current_user` from warden:
-
-```ruby
-  verified_user = env['warden'].user
-```
-
-In any other authentication approach you can access the session cookie. If you use cookie store for the session, your session cookie is named "\_session" and the user ID key is "user_id" you can use this approach:
+If your authentication approach includes using a session, you use cookie store for the
+session, your session cookie is named `_session` and the user ID key is `user_id` you
+can use this approach:
 ```ruby
   verified_user = User.find_by(id: cookies.encrypted['_session']['user_id'])
 ```
