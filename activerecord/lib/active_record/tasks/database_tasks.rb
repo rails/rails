@@ -333,9 +333,7 @@ module ActiveRecord
 
         case format
         when :ruby
-          File.open(filename, "w:utf-8") do |file|
-            ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection, file)
-          end
+          dump_ruby_schema(filename)
         when :sql
           structure_dump(configuration, filename)
           if connection.schema_migration.table_exists?
@@ -456,6 +454,15 @@ module ActiveRecord
 
         def local_database?(configuration)
           configuration["host"].blank? || LOCAL_HOSTS.include?(configuration["host"])
+        end
+
+        def dump_ruby_schema(filename)
+          temp_file = Tempfile.new("temp_schema_dump.rb")
+          ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection, temp_file)
+          temp_file.rewind
+          File.open(filename, "w:utf-8") { |file| IO.copy_stream(temp_file, file) }
+        ensure
+          temp_file.close!
         end
     end
   end

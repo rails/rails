@@ -380,15 +380,8 @@ db_namespace = namespace :db do
     desc "Creates a db/schema.rb file that is portable against any DB supported by Active Record"
     task dump: :load_config do
       ActiveRecord::Base.configurations.configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env).each do |db_config|
-        temp_file = Tempfile.new("temp_schema_dump.rb")
         ActiveRecord::Base.establish_connection(db_config.config)
-        ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection, temp_file)
-
-        temp_file.rewind
-        filename = ActiveRecord::Tasks::DatabaseTasks.dump_filename(db_config.spec_name, :ruby)
-        File.open(filename, "w:utf-8") { |file| IO.copy_stream(temp_file, file) }
-      ensure
-        temp_file.close!
+        ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config.config, :ruby, db_config.spec_name)
       end
 
       db_namespace["schema:dump"].reenable
