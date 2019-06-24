@@ -96,11 +96,19 @@ module ActiveRecord
               values = values.map do |object|
                 object.respond_to?(aggr_attr) ? object.public_send(aggr_attr) : object
               end
-              build(table.arel_attribute(column_name), values)
+              if table.has_column?(column_name)
+                build(table.arel_attribute(column_name), values)
+              else
+                build_from_hash(column_name => values)
+              end
             else
               queries = values.map do |object|
-                mapping.map do |field_attr, aggregate_attr|
-                  build(table.arel_attribute(field_attr), object.try!(aggregate_attr))
+                mapping.flat_map do |field_attr, aggregate_attr|
+                  if table.has_column?(field_attr)
+                    build(table.arel_attribute(field_attr), object.try!(aggregate_attr))
+                  else
+                    build_from_hash(field_attr => object.try!(aggregate_attr))
+                  end
                 end.reduce(&:and)
               end
               queries.reduce(&:or)
