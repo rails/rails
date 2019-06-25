@@ -1541,7 +1541,7 @@ Disallow: /
 ```
 
 To block just specific pages, it's necessary to use a more complex syntax. Learn
-it on the [official documentation](http://www.robotstxt.org/robotstxt.html).
+it on the [official documentation](https://www.robotstxt.org/robotstxt.html).
 
 Evented File System Monitor
 ---------------------------
