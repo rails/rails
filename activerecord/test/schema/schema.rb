@@ -788,6 +788,11 @@ ActiveRecord::Schema.define do
     t.integer :first_post_id
   end
 
+  create_table :receipts, force: true do |t|
+    t.references :customer
+    t.string :title, null: false
+  end
+
   create_table :references, force: true do |t|
     t.integer :person_id
     t.integer :job_id

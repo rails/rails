@@ -10,6 +10,7 @@ require "models/company"
 require "models/tagging"
 require "models/topic"
 require "models/reply"
+require "models/receipt"
 require "models/rating"
 require "models/entrant"
 require "models/project"
@@ -25,7 +26,7 @@ require "models/subscriber"
 require "support/stubs/strong_parameters"
 
 class FinderTest < ActiveRecord::TestCase
-  fixtures :companies, :topics, :entrants, :developers, :developers_projects, :posts, :comments, :accounts, :authors, :author_addresses, :customers, :categories, :categorizations, :cars
+  fixtures :companies, :topics, :entrants, :developers, :developers_projects, :posts, :comments, :accounts, :authors, :author_addresses, :customers, :categories, :categorizations, :cars, :receipts
 
   def test_find_by_id_with_hash
     assert_nothing_raised do
@@ -1017,6 +1018,14 @@ class FinderTest < ActiveRecord::TestCase
     address = customers(:david).address
     assert_kind_of Address, address
     found_customer = Customer.where(address: address, name: customers(:david).name).first
+    assert_equal customers(:david), found_customer
+  end
+
+  def test_hash_condition_find_with_aggregate_attribution_having_association
+    customer_invoice = CustomerInvoice.new
+    customer_invoice.id = receipts(:receipt).id
+
+    found_customer = Customer.joins(:receipts).where(customer_invoice: customer_invoice).first
     assert_equal customers(:david), found_customer
   end
 
