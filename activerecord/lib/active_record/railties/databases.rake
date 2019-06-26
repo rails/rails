@@ -2,6 +2,8 @@
 
 require "active_record"
 
+databases = ActiveRecord::Tasks::DatabaseTasks.setup_initial_database_yaml
+
 db_namespace = namespace :db do
   desc "Set the environment value for the database"
   task "environment:set" => :load_config do
@@ -23,7 +25,7 @@ db_namespace = namespace :db do
       ActiveRecord::Tasks::DatabaseTasks.create_all
     end
 
-    ActiveRecord::Tasks::DatabaseTasks.for_each do |spec_name|
+    ActiveRecord::Tasks::DatabaseTasks.for_each(databases) do |spec_name|
       desc "Create #{spec_name} database for current environment"
       task spec_name => :load_config do
         db_config = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env, spec_name: spec_name)
@@ -42,7 +44,7 @@ db_namespace = namespace :db do
       ActiveRecord::Tasks::DatabaseTasks.drop_all
     end
 
-    ActiveRecord::Tasks::DatabaseTasks.for_each do |spec_name|
+    ActiveRecord::Tasks::DatabaseTasks.for_each(databases) do |spec_name|
       desc "Drop #{spec_name} database for current environment"
       task spec_name => [:load_config, :check_protected_environments] do
         db_config = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env, spec_name: spec_name)
@@ -101,7 +103,7 @@ db_namespace = namespace :db do
   end
 
   namespace :migrate do
-    ActiveRecord::Tasks::DatabaseTasks.for_each do |spec_name|
+    ActiveRecord::Tasks::DatabaseTasks.for_each(databases) do |spec_name|
       desc "Migrate #{spec_name} database for current environment"
       task spec_name => :load_config do
         db_config = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env, spec_name: spec_name)
@@ -142,7 +144,7 @@ db_namespace = namespace :db do
     end
 
     namespace :up do
-      ActiveRecord::Tasks::DatabaseTasks.for_each do |spec_name|
+      ActiveRecord::Tasks::DatabaseTasks.for_each(databases) do |spec_name|
         task spec_name => :load_config do
           raise "VERSION is required" if !ENV["VERSION"] || ENV["VERSION"].empty?
 
@@ -176,7 +178,7 @@ db_namespace = namespace :db do
     end
 
     namespace :down do
-      ActiveRecord::Tasks::DatabaseTasks.for_each do |spec_name|
+      ActiveRecord::Tasks::DatabaseTasks.for_each(databases) do |spec_name|
         task spec_name => :load_config do
           raise "VERSION is required" if !ENV["VERSION"] || ENV["VERSION"].empty?
 
@@ -203,7 +205,7 @@ db_namespace = namespace :db do
     end
 
     namespace :status do
-      ActiveRecord::Tasks::DatabaseTasks.for_each do |spec_name|
+      ActiveRecord::Tasks::DatabaseTasks.for_each(databases) do |spec_name|
         desc "Display status of migrations for #{spec_name} database"
         task spec_name => :load_config do
           db_config = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env, spec_name: spec_name)
@@ -266,7 +268,7 @@ db_namespace = namespace :db do
   end
 
   namespace :abort_if_pending_migrations do
-    ActiveRecord::Tasks::DatabaseTasks.for_each do |spec_name|
+    ActiveRecord::Tasks::DatabaseTasks.for_each(databases) do |spec_name|
       # desc "Raises an error if there are pending migrations for #{spec_name} database"
       task spec_name => :load_config do
         db_config = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env, spec_name: spec_name)
