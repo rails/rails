@@ -54,26 +54,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     run_generator [File.join(destination_root, "hyphenated-name")]
     assert_no_file "hyphenated-name/lib/hyphenated-name.rb"
     assert_no_file "hyphenated-name/lib/hyphenated_name.rb"
-
-    expected_file = <<~FILE
-      require "hyphenated/name/railtie"
-
-      module Hyphenated
-        module Name
-          ROOT_PATH = Pathname.new(File.join(__dir__, \"..\"))
-          class << self
-            def webpacker
-              @webpacker ||= ::Webpacker::Instance.new(
-                root_path: ROOT_PATH,
-                config_path: ROOT_PATH.join(\"config/webpacker.yml\")
-              )
-            end
-          end
-        end
-      end
-    FILE
-
-    assert_file "hyphenated-name/lib/hyphenated/name.rb", expected_file
+    assert_file "hyphenated-name/lib/hyphenated/name.rb", /module Hyphenated\n  module Name\n    # Your code goes here\.\.\.\n  end\nend/
   end
 
   def test_correct_file_in_lib_folder_of_camelcase_plugin_name
@@ -193,6 +174,14 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_dont_generate_dependency_for_webpacker
+    run_generator [destination_root, "--skip-javascript", "--mountable"]
+
+    assert_file "bukkits.gemspec" do |contents|
+      assert_no_match(/s\.add_dependency "webpacker"/, contents)
+    end
+  end
+
   def test_ensure_that_skip_active_record_option_is_passed_to_app_generator
     run_generator [destination_root, "--skip_active_record"]
     assert_file "test/test_helper.rb" do |contents|
@@ -228,6 +217,14 @@ class PluginGeneratorTest < Rails::Generators::TestCase
   def test_skip_javascript
     run_generator [destination_root, "--skip-javascript", "--mountable"]
     assert_no_directory "app/javascript"
+    assert_no_file "package.json"
+    assert_no_file "bin/webpack"
+    assert_no_file "bin/webpack-dev-server"
+    assert_no_file "config/webpacker.yml"
+    assert_no_directory "config/webpack"
+
+    assert_file "lib/bukkits/engine.rb", /module Bukkits\n  class Engine < ::Rails::Engine\n    isolate_namespace Bukkits\n  end\nend\n/
+    assert_file "app/helpers/bukkits/application_helper.rb", /module Bukkits\n  module ApplicationHelper\n  end\nend\n/
     assert_file "app/views/layouts/bukkits/application.html.erb" do |content|
       assert_no_match "javascript_pack_tag", content
     end
@@ -271,29 +268,13 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_file "app/mailers"
     assert_file "bin/rails", /\s+require\s+["']rails\/all["']/
     assert_file "config/routes.rb", /Rails.application.routes.draw do/
-
-    expected_file = <<~FILE
-      module Bukkits
-        class Engine < ::Rails::Engine
-          initializer \"webpacker.proxy\" do |app|
-            insert_middleware = begin
-                                  Bukkits.webpacker.config.dev_server.present?
-                                rescue
-                                  nil
-                                end
-            next unless insert_middleware
-            app.middleware.insert_before(
-              0,
-              Webpacker::DevServerProxy, # \"Webpacker::DevServerProxy\" if Rails version < 5
-              ssl_verify_none: true,
-              webpacker: Bukkits.webpacker
-            )
-          end
-        end
-      end
-    FILE
-
-    assert_file "lib/bukkits/engine.rb", expected_file
+    assert_no_directory "app/javascript"
+    assert_no_file "package.json"
+    assert_no_file "bin/webpack"
+    assert_no_file "bin/webpack-dev-server"
+    assert_no_file "config/webpacker.yml"
+    assert_no_directory "config/webpack"
+    assert_file "lib/bukkits/engine.rb", /module Bukkits\n  class Engine < ::Rails::Engine\n  end\nend/
     assert_file "lib/bukkits.rb", /require "bukkits\/engine"/
   end
 
@@ -308,32 +289,14 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_file "hyphenated-name/app/helpers"
     assert_file "hyphenated-name/app/mailers"
     assert_file "hyphenated-name/bin/rails"
+    assert_no_directory "app/javascript"
+    assert_no_file "package.json"
+    assert_no_file "bin/webpack"
+    assert_no_file "bin/webpack-dev-server"
+    assert_no_file "config/webpacker.yml"
+    assert_no_directory "config/webpack"
     assert_file "hyphenated-name/config/routes.rb",              /Rails.application.routes.draw do/
-
-    expected_file = <<~FILE
-      module Hyphenated
-        module Name
-          class Engine < ::Rails::Engine
-            initializer \"webpacker.proxy\" do |app|
-              insert_middleware = begin
-                                    Hyphenated::Name.webpacker.config.dev_server.present?
-                                  rescue
-                                    nil
-                                  end
-              next unless insert_middleware
-              app.middleware.insert_before(
-                0,
-                Webpacker::DevServerProxy, # \"Webpacker::DevServerProxy\" if Rails version < 5
-                ssl_verify_none: true,
-                webpacker: Hyphenated::Name.webpacker
-              )
-            end
-          end
-        end
-      end
-    FILE
-
-    assert_file "hyphenated-name/lib/hyphenated/name/engine.rb", expected_file
+    assert_file "hyphenated-name/lib/hyphenated/name/engine.rb", /module Hyphenated\n  module Name\n    class Engine < ::Rails::Engine\n    end\n  end\nend/
     assert_file "hyphenated-name/lib/hyphenated/name.rb",        /require "hyphenated\/name\/engine"/
     assert_file "hyphenated-name/bin/rails",                     /\.\.\/lib\/hyphenated\/name\/engine/
   end
@@ -349,32 +312,14 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_file "my_hyphenated-name/app/helpers"
     assert_file "my_hyphenated-name/app/mailers"
     assert_file "my_hyphenated-name/bin/rails"
+    assert_no_directory "app/javascript"
+    assert_no_file "package.json"
+    assert_no_file "bin/webpack"
+    assert_no_file "bin/webpack-dev-server"
+    assert_no_file "config/webpacker.yml"
+    assert_no_directory "config/webpack"
     assert_file "my_hyphenated-name/config/routes.rb",              /Rails\.application\.routes\.draw do/
-
-    expected_file = <<~FILE
-      module MyHyphenated
-        module Name
-          class Engine < ::Rails::Engine
-            initializer \"webpacker.proxy\" do |app|
-              insert_middleware = begin
-                                    MyHyphenated::Name.webpacker.config.dev_server.present?
-                                  rescue
-                                    nil
-                                  end
-              next unless insert_middleware
-              app.middleware.insert_before(
-                0,
-                Webpacker::DevServerProxy, # \"Webpacker::DevServerProxy\" if Rails version < 5
-                ssl_verify_none: true,
-                webpacker: MyHyphenated::Name.webpacker
-              )
-            end
-          end
-        end
-      end
-    FILE
-
-    assert_file "my_hyphenated-name/lib/my_hyphenated/name/engine.rb", expected_file
+    assert_file "my_hyphenated-name/lib/my_hyphenated/name/engine.rb", /module MyHyphenated\n  module Name\n    class Engine < ::Rails::Engine\n    end\n  end\nend/
     assert_file "my_hyphenated-name/lib/my_hyphenated/name.rb",        /require "my_hyphenated\/name\/engine"/
     assert_file "my_hyphenated-name/bin/rails",                     /\.\.\/lib\/my_hyphenated\/name\/engine/
   end

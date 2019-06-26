@@ -6,7 +6,7 @@
   <%%= csp_meta_tag %>
 
   <%%= stylesheet_link_tag "<%= namespaced_name %>/application", media: "all" %>
-  <%- unless options[:skip_javascript] -%>
+  <%- unless skip_webpack? -%>
   <%%= javascript_pack_tag "<%= namespaced_name %>/application" %>
   <%- end -%>
 </head>

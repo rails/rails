@@ -218,7 +218,7 @@ task default: :test
         build(:license)
         build(:gitignore) unless options[:skip_git]
         build(:gemfile)   unless options[:skip_gemfile]
-        build(:package_json)
+        build(:package_json) unless skip_webpack?
       end
 
       def create_app_files
@@ -255,9 +255,7 @@ task default: :test
       end
 
       def create_webpacker
-        if mountable? && !options[:skip_javascript]
-          build(:webpacker_config)
-        end
+        build(:webpacker_config) unless skip_webpack?
       end
 
       def update_gemfile
@@ -328,6 +326,10 @@ task default: :test
 
       def api?
         options[:api]
+      end
+
+      def skip_webpack?
+        !mountable? || options[:skip_javascript]
       end
 
       def self.banner

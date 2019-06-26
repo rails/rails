@@ -1,4 +1,4 @@
-<% if options[:skip_javascript] -%>
+<% if skip_webpack? -%>
 <%= wrap_in_modules <<~rb
   class Engine < ::Rails::Engine
   #{mountable? ? '  isolate_namespace ' + camelized_modules : ' '}

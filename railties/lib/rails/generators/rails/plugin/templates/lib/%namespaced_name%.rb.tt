@@ -4,7 +4,7 @@ require "<%= namespaced_name %>/engine"
 require "<%= namespaced_name %>/railtie"
 <% end -%>
 
-<% if options[:skip_javascript] -%>
+<% if skip_webpack? -%>
 <%= wrap_in_modules "# Your code goes here..." %>
 <% else -%>
 <%= wrap_in_modules <<~rb

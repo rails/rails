@@ -1,4 +1,4 @@
-<% if options[:skip_javascript] -%>
+<% if skip_webpack? -%>
 <%= wrap_in_modules <<~rb
   module ApplicationHelper
   end

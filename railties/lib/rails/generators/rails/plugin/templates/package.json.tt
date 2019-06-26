@@ -2,10 +2,10 @@
   "name": "<%= namespaced_name %>",
   "private": true,
   "dependencies": {
-    <% unless options[:skip_javascript] %>"@rails/webpacker": "^4.0"<% end -%>
+    "@rails/webpacker": "^4.0"
   },
   "version": "0.1.0",
   "devDependencies": {
-    <% unless options[:skip_javascript] %>"webpack-dev-server": "^3.4.1"<% end -%>
+    "webpack-dev-server": "^3.4.1"
   }
 }
