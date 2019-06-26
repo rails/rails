@@ -331,6 +331,12 @@ class PluginGeneratorTest < Rails::Generators::TestCase
   def test_create_mountable_application_with_mountable_option
     run_generator [destination_root, "--mountable"]
     assert_no_file "app/assets/javascripts/bukkits"
+    assert_directory "app/javascript"
+    assert_file "package.json"
+    assert_file "bin/webpack"
+    assert_file "bin/webpack-dev-server"
+    assert_file "config/webpacker.yml"
+    assert_directory "config/webpack"
     assert_file "app/assets/stylesheets/bukkits"
     assert_file "app/assets/images/bukkits"
     assert_file "config/routes.rb", /Bukkits::Engine\.routes\.draw do/
@@ -856,30 +862,5 @@ class PluginGeneratorTest < Rails::Generators::TestCase
       generator.stub :bundle_command, command_check do
         quietly { generator.invoke_all }
       end
-    end
-
-    def hyphenated_plugin_lib_engine_file_content_in_full_mode(plugin_name)
-      <<~HYPHENATED_PLUGIN_LIB
-        module #{plugin_name}
-          module Name
-            class Engine < ::Rails::Engine
-              initializer \"webpacker.proxy\" do |app|
-                insert_middleware = begin
-                                      #{plugin_name}::Name.webpacker.config.dev_server.present?
-                                    rescue
-                                      nil
-                                    end
-                next unless insert_middleware
-                app.middleware.insert_before(
-                  0,
-                  Webpacker::DevServerProxy, # \"Webpacker::DevServerProxy\" if Rails version < 5
-                  ssl_verify_none: true,
-                  webpacker: #{plugin_name}::Name.webpacker
-                )
-              end
-             end
-           end
-        end
-      HYPHENATED_PLUGIN_LIB
     end
 end
