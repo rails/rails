@@ -398,6 +398,10 @@ helper allows you to set the disposition.
 rails_blob_path(user.avatar, disposition: "attachment")
 ```
 
+WARNING: To prevent XSS attacks, ActiveStorage forces the Content-Disposition header
+to "attachment" for some kind of files. To change this behaviour see the
+available configuration opions in [Configuring Rails Applications](configuring.html#configuring-active-storage).
+
 If you need to create a link from outside of controller/view context (Background
 jobs, Cronjobs, etc.), you can access the rails_blob_path like this:
 
