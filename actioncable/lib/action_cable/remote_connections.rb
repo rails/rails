@@ -21,10 +21,9 @@ module ActionCable
   # it uses the internal channel that all of these servers are subscribed to.
   #
   # You can also use the remote connection to forcibly unsubscribe a connection
-  # from a specific stream. For example:
+  # from a specific stream. For example, given a subscription identified as "{\"channel\":\"ChatChannel\", \"chat_id\":1}":
   #
-  #   subscription_identifier = "{\"channel\":\"ChatChannel\", \"chat_id\":1}"
-  #   ActionCable.server.remote_connections.where(current_user: User.find(1)).unsubscribe(subscription_identifier)
+  #   ActionCable.server.remote_connections.where(current_user: User.find(1)).unsubscribe_from(ChatChannel, chat_id: 1)
   class RemoteConnections
     attr_reader :server
 
@@ -50,7 +49,8 @@ module ActionCable
         end
 
         # Uses the internal channel to unsubscribe a connection from a given channel
-        def unsubscribe(channel_identifier)
+        def unsubscribe_from(channel, **identifier_options)
+          channel_identifier = JSON.generate(channel: channel.to_s, **identifier_options)
           server.broadcast internal_channel, type: "unsubscribe", channel_identifier: channel_identifier
         end
 
