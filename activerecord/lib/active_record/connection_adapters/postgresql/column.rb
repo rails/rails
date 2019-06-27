@@ -24,6 +24,16 @@ module ActiveRecord
           super.sub(/\[\]\z/, "")
         end
 
+        def init_with(coder)
+          @serial = coder["serial"]
+          super
+        end
+
+        def encode_with(coder)
+          coder["serial"] = @serial
+          super
+        end
+
         def ==(other)
           other.is_a?(Column) &&
             super &&
