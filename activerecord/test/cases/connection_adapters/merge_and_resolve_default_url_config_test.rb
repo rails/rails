@@ -273,6 +273,37 @@ module ActiveRecord
                     }
         assert_equal expected, actual
       end
+
+      def test_merge_no_conflicts_with_database_url_and_adapter
+        ENV["DATABASE_URL"] = "postgres://localhost/foo"
+
+        config   = { "default_env" => { "adapter" => "postgresql", "pool" => "5" } }
+        actual   = resolve_config(config)
+        expected = { "default_env" =>
+                     { "adapter"  => "postgresql",
+                       "database" => "foo",
+                       "host"     => "localhost",
+                       "pool"     => "5"
+                     }
+        }
+        assert_equal expected, actual
+      end
+
+      def test_merge_no_conflicts_with_database_url_and_numeric_pool
+        ENV["DATABASE_URL"] = "postgres://localhost/foo"
+
+        config   = { "default_env" => { "pool" => 5 } }
+        actual   = resolve_config(config)
+        expected = { "default_env" =>
+                     { "adapter"  => "postgresql",
+                       "database" => "foo",
+                       "host"     => "localhost",
+                       "pool"     => 5
+                     }
+        }
+
+        assert_equal expected, actual
+      end
     end
   end
 end

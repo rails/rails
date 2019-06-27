@@ -29,7 +29,7 @@ module ActiveRecord
 
       def test_establish_connection_uses_spec_name
         old_config = ActiveRecord::Base.configurations
-        config = { "readonly" => { "adapter" => "sqlite3" } }
+        config = { "readonly" => { "adapter" => "sqlite3", "pool" => "5" } }
         ActiveRecord::Base.configurations = config
         resolver = ConnectionAdapters::ConnectionSpecification::Resolver.new(ActiveRecord::Base.configurations)
         spec =   resolver.spec(:readonly)
