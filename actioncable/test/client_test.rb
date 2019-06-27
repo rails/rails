@@ -68,8 +68,15 @@ class ClientTest < ActionCable::TestCase
 
     server.config.cable = ActiveSupport::HashWithIndifferentAccess.new(adapter: "async")
 
+    @default_connection_class = ActionCable.server.config.connection_class
+    ActionCable.server.config.connection_class = -> { Connection }
+
     # and now the "real" setup for our test:
     server.config.disable_request_forgery_protection = true
+  end
+
+  def teardown
+    ActionCable.server.config.connection_class = @default_connection_class
   end
 
   def with_puma_server(rack_app = ActionCable.server, port = 3099)
@@ -292,7 +299,7 @@ class ClientTest < ActionCable::TestCase
       c.send_message command: "subscribe", identifier: identifier
       assert_equal({ "identifier" => "{\"channel\":\"ClientTest::EchoChannel\"}", "type" => "confirm_subscription" }, c.read_message)
       assert_equal(1, app.connections.count)
-      assert(app.remote_connections.where(identifier: identifier))
+      assert(app.remote_connections.where(current_user: "User#lifo"))
 
       subscriptions = app.connections.first.subscriptions.send(:subscriptions)
       assert_not_equal 0, subscriptions.size, "Missing EchoChannel subscription"
@@ -310,23 +317,21 @@ class ClientTest < ActionCable::TestCase
 
   def test_forcibly_unsubscribe_client
     with_puma_server do |port|
-      stub_connection do
-        app = ActionCable.server
-        identifier = JSON.generate(channel: "ClientTest::EchoChannel")
+      app = ActionCable.server
+      identifier = JSON.generate(channel: "ClientTest::EchoChannel", chat_id: 1)
 
-        c = websocket_client(port)
+      c = websocket_client(port)
 
-        assert_equal({ "type" => "welcome" }, c.read_message)
-        c.send_message command: "subscribe", identifier: identifier
-        assert_equal({ "identifier" => "{\"channel\":\"ClientTest::EchoChannel\"}", "type" => "confirm_subscription" }, c.read_message)
+      assert_equal({ "type" => "welcome" }, c.read_message)
+      c.send_message command: "subscribe", identifier: identifier
+      assert_equal({ "identifier" => "{\"channel\":\"ClientTest::EchoChannel\",\"chat_id\":1}", "type" => "confirm_subscription" }, c.read_message)
 
-        remote_connection = app.remote_connections.where(current_user: "User#lifo")
-        remote_connection.unsubscribe(identifier)
+      remote_connection = app.remote_connections.where(current_user: "User#lifo")
+      remote_connection.unsubscribe_from(ClientTest::EchoChannel, chat_id: 1)
 
-        sleep(0.1)
-        connection = app.connections.first
-        assert_equal(0, connection.subscriptions.send(:subscriptions).size)
-      end
+      sleep(0.1)
+      connection = app.connections.first
+      assert_equal(0, connection.subscriptions.send(:subscriptions).size)
     end
   end
 
@@ -342,12 +347,4 @@ class ClientTest < ActionCable::TestCase
       assert_predicate c, :closed?
     end
   end
-
-  private
-    def stub_connection
-      connection_class = ActionCable.server.config.connection_class
-      ActionCable.server.config.connection_class = -> { Connection }
-      yield
-      ActionCable.server.config.connection_class = connection_class
-    end
 end
