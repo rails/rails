@@ -307,6 +307,20 @@ if current_adapter?(:Mysql2Adapter)
         end
       end
 
+      def test_structure_dump_command
+        filename = "awesome-file.sql"
+        assert_called_with(
+          Kernel,
+          :system,
+          ["docker-compose run db mysqldump", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "test-db"],
+          returns: true
+        ) do
+          with_structure_dump_command("docker-compose run db mysqldump") do
+            ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename)
+          end
+        end
+      end
+
       def test_structure_dump_with_extra_flags
         filename = "awesome-file.sql"
         expected_command = ["mysqldump", "--noop", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "test-db"]
@@ -376,6 +390,14 @@ if current_adapter?(:Mysql2Adapter)
       end
 
       private
+        def with_structure_dump_command(command)
+          old = ActiveRecord::Tasks::DatabaseTasks.structure_dump_command
+          ActiveRecord::Tasks::DatabaseTasks.structure_dump_command = command
+          yield
+        ensure
+          ActiveRecord::Tasks::DatabaseTasks.structure_dump_command = old
+        end
+
         def with_structure_dump_flags(flags)
           old = ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags
           ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags = flags
@@ -404,7 +426,26 @@ if current_adapter?(:Mysql2Adapter)
         end
       end
 
+      def test_structure_load_command
+        filename = "awesome-file.sql"
+        expected_command = ["docker-compose run db mysql", "--execute", %{SET FOREIGN_KEY_CHECKS = 0; SOURCE #{filename}; SET FOREIGN_KEY_CHECKS = 1}, "--database", "test-db"]
+
+        assert_called_with(Kernel, :system, expected_command, returns: true) do
+          with_structure_load_command("docker-compose run db mysql") do
+            ActiveRecord::Tasks::DatabaseTasks.structure_load(@configuration, filename)
+          end
+        end
+      end
+
       private
+        def with_structure_load_command(command)
+          old = ActiveRecord::Tasks::DatabaseTasks.structure_load_command
+          ActiveRecord::Tasks::DatabaseTasks.structure_load_command = command
+          yield
+        ensure
+          ActiveRecord::Tasks::DatabaseTasks.structure_load_command = old
+        end
+
         def with_structure_load_flags(flags)
           old = ActiveRecord::Tasks::DatabaseTasks.structure_load_flags
           ActiveRecord::Tasks::DatabaseTasks.structure_load_flags = flags

@@ -54,12 +54,16 @@ module ActiveRecord
         else
           args << ".schema"
         end
-        run_cmd("sqlite3", args, filename)
+
+        command = DatabaseTasks.structure_dump_command || "sqlite3"
+        run_cmd(command, args, filename)
       end
 
       def structure_load(filename, extra_flags)
         flags = extra_flags.join(" ") if extra_flags
-        `sqlite3 #{flags} #{db_config.database} < "#{filename}"`
+
+        command = DatabaseTasks.structure_load_command || "sqlite3"
+        `#{command} #{flags} #{db_config.database} < "#{filename}"`
       end
 
       private

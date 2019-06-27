@@ -46,6 +46,24 @@ module ActiveRecord
       # Extra flags passed to database CLI tool when calling db:structure:load
       mattr_accessor :structure_load_flags, instance_accessor: false
 
+      ##
+      # :singleton-method:
+      # The CLI tool (mysqldump/pg_dump) to invoke when calling db:structure:dump
+      #
+      # Override to run an alternative command, such as invoking the dump
+      # within a Docker container:
+      #   DatabaseTasks.structure_dump_command = "docker-compose run db mysqldump"
+      mattr_accessor :structure_dump_command, instance_accessor: false
+
+      ##
+      # :singleton-method:
+      # The CLI tool (mysql/psql) to invoke when calling db:structure:load
+      #
+      # Override to run an alternative command, such as invoking the load
+      # within a Docker container:
+      #   DatabaseTasks.structure_load_command = "docker-compose run db mysql"
+      mattr_accessor :structure_load_command, instance_accessor: false
+
       extend self
 
       attr_writer :current_config, :db_dir, :migrations_paths, :fixtures_path, :root, :env, :seed_loader

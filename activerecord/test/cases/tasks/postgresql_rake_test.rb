@@ -368,6 +368,19 @@ if current_adapter?(:PostgreSQLAdapter)
         end
       end
 
+      def test_structure_dump_command
+        assert_called_with(
+          Kernel,
+          :system,
+          ["docker-compose run db pg_dump", "-s", "-x", "-O", "-f", @filename, "my-app-db"],
+          returns: true
+        ) do
+          with_structure_dump_command("docker-compose run db pg_dump") do
+            ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
+          end
+        end
+      end
+
       def test_structure_dump_header_comments_removed
         Kernel.stub(:system, true) do
           File.write(@filename, "-- header comment\n\n-- more header comment\n statement \n-- lower comment\n")
@@ -469,6 +482,14 @@ if current_adapter?(:PostgreSQLAdapter)
           ActiveRecord::Base.dump_schemas = old_dump_schemas
         end
 
+        def with_structure_dump_command(command)
+          old = ActiveRecord::Tasks::DatabaseTasks.structure_dump_command
+          ActiveRecord::Tasks::DatabaseTasks.structure_dump_command = command
+          yield
+        ensure
+          ActiveRecord::Tasks::DatabaseTasks.structure_dump_command = old
+        end
+
         def with_structure_dump_flags(flags)
           old = ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags
           ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags = flags
@@ -498,6 +519,17 @@ if current_adapter?(:PostgreSQLAdapter)
         end
       end
 
+      def test_structure_load_command
+        filename = "awesome-file.sql"
+        expected_command = ["docker-compose run db psql", "-v", "ON_ERROR_STOP=1", "-q", "-X", "-f", filename, @configuration["database"]]
+
+        assert_called_with(Kernel, :system, expected_command, returns: true) do
+          with_structure_load_command("docker-compose run db psql") do
+            ActiveRecord::Tasks::DatabaseTasks.structure_load(@configuration, filename)
+          end
+        end
+      end
+
       def test_structure_load_with_extra_flags
         filename = "awesome-file.sql"
         expected_command = ["psql", "-v", "ON_ERROR_STOP=1", "-q", "-X", "-f", filename, "--noop", @configuration["database"]]
@@ -522,6 +554,14 @@ if current_adapter?(:PostgreSQLAdapter)
       end
 
       private
+        def with_structure_load_command(command)
+          old = ActiveRecord::Tasks::DatabaseTasks.structure_load_command
+          ActiveRecord::Tasks::DatabaseTasks.structure_load_command = command
+          yield
+        ensure
+          ActiveRecord::Tasks::DatabaseTasks.structure_load_command = old
+        end
+
         def with_structure_load_flags(flags)
           old = ActiveRecord::Tasks::DatabaseTasks.structure_load_flags
           ActiveRecord::Tasks::DatabaseTasks.structure_load_flags = flags

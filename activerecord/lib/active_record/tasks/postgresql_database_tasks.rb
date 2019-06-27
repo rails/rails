@@ -73,17 +73,23 @@ module ActiveRecord
         end
 
         args << db_config.database
-        run_cmd("pg_dump", args, "dumping")
+
+        command = DatabaseTasks.structure_dump_command || "pg_dump"
+        run_cmd(command, args, "dumping")
+
         remove_sql_header_comments(filename)
         File.open(filename, "a") { |f| f << "SET search_path TO #{connection.schema_search_path};\n\n" }
       end
 
       def structure_load(filename, extra_flags)
         set_psql_env
+
         args = ["-v", ON_ERROR_STOP_1, "-q", "-X", "-f", filename]
         args.concat(Array(extra_flags)) if extra_flags
         args << db_config.database
-        run_cmd("psql", args, "loading")
+
+        command = DatabaseTasks.structure_load_command || "psql"
+        run_cmd(command, args, "loading")
       end
 
       private

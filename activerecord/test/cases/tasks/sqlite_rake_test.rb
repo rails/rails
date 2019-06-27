@@ -196,6 +196,17 @@ if current_adapter?(:SQLite3Adapter)
         FileUtils.rm_f(dbfile)
       end
 
+      def test_structure_dump_command
+        filename = "awesome-file.sql"
+        expected_command = "docker-compose run db sqlite3 #{@database} < #{filename}"
+
+        assert_called_with(Kernel, :`, [expected_command], returns: true) do
+          with_structure_dump_command("docker-compose run db sqlite3") do
+            ActiveRecord::Tasks::DatabaseTasks.structure_load @configuration, filename, "/rails/root"
+          end
+        end
+      end
+
       def test_structure_dump_with_ignore_tables
         dbfile   = @database
         filename = "awesome-file.sql"
@@ -233,6 +244,14 @@ if current_adapter?(:SQLite3Adapter)
       end
 
       private
+        def with_structure_dump_command(command)
+          old = ActiveRecord::Tasks::DatabaseTasks.structure_dump_command
+          ActiveRecord::Tasks::DatabaseTasks.structure_dump_command = command
+          yield
+        ensure
+          ActiveRecord::Tasks::DatabaseTasks.structure_dump_command = old
+        end
+
         def with_structure_dump_flags(flags)
           old = ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags
           ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags = flags
@@ -262,6 +281,34 @@ if current_adapter?(:SQLite3Adapter)
         FileUtils.rm_f(filename)
         FileUtils.rm_f(dbfile)
       end
+
+      def test_structure_load_command
+        filename = "awesome-file.sql"
+        expected_command = "docker-compose run db sqlite3 #{@database} < #{filename}"
+
+        assert_called_with(Kernel, :`, [expected_command], returns: true) do
+          with_structure_load_command("docker-compose run db sqlite3") do
+            ActiveRecord::Tasks::DatabaseTasks.structure_load @configuration, filename, "/rails/root"
+          end
+        end
+      end
+
+      private
+        def with_structure_load_command(command)
+          old = ActiveRecord::Tasks::DatabaseTasks.structure_load_command
+          ActiveRecord::Tasks::DatabaseTasks.structure_load_command = command
+          yield
+        ensure
+          ActiveRecord::Tasks::DatabaseTasks.structure_load_command = old
+        end
+
+        def with_structure_load_flags(flags)
+          old = ActiveRecord::Tasks::DatabaseTasks.structure_load_flags
+          ActiveRecord::Tasks::DatabaseTasks.structure_load_flags = flags
+          yield
+        ensure
+          ActiveRecord::Tasks::DatabaseTasks.structure_load_flags = old
+        end
     end
   end
 end
