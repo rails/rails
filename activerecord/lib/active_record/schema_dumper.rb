@@ -232,6 +232,8 @@ HEADER
             parts << "on_update: #{foreign_key.on_update.inspect}" if foreign_key.on_update
             parts << "on_delete: #{foreign_key.on_delete.inspect}" if foreign_key.on_delete
 
+            parts << "comment: #{foreign_key.comment.inspect}" if foreign_key.comment
+
             "  #{parts.join(', ')}"
           end
 

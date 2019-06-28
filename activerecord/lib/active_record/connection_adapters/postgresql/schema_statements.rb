@@ -434,6 +434,23 @@ module ActiveRecord
           execute "COMMENT ON TABLE #{quote_table_name(table_name)} IS #{quote(comment)}"
         end
 
+        # Adds comment for given foreign key constraint or drops it if
+        # +comment+ is +nil+
+        def change_foreign_key_comment(table_name, options_or_to_table, comment_or_changes)
+          clear_cache!
+          comment = extract_new_comment_value(comment_or_changes)
+          options =
+            if options_or_to_table.is_a?(Hash)
+              options_or_to_table
+            else
+              { to_table: options_or_to_table }
+            end
+
+          fk_name = foreign_key_for!(table_name, options).name
+
+          execute "COMMENT ON CONSTRAINT #{quote_column_name(fk_name)} ON #{quote_table_name(table_name)} IS #{quote(comment)}"
+        end
+
         # Renames a column in a table.
         def rename_column(table_name, column_name, new_column_name) #:nodoc:
           clear_cache!
@@ -488,13 +505,14 @@ module ActiveRecord
         def foreign_keys(table_name)
           scope = quoted_scope(table_name)
           fk_info = exec_query(<<~SQL, "SCHEMA")
-            SELECT t2.oid::regclass::text AS to_table, a1.attname AS column, a2.attname AS primary_key, c.conname AS name, c.confupdtype AS on_update, c.confdeltype AS on_delete, c.convalidated AS valid
+            SELECT t2.oid::regclass::text AS to_table, a1.attname AS column, a2.attname AS primary_key, c.conname AS name, c.confupdtype AS on_update, c.confdeltype AS on_delete, c.convalidated AS valid, d.description AS comment
             FROM pg_constraint c
             JOIN pg_class t1 ON c.conrelid = t1.oid
             JOIN pg_class t2 ON c.confrelid = t2.oid
             JOIN pg_attribute a1 ON a1.attnum = c.conkey[1] AND a1.attrelid = t1.oid
             JOIN pg_attribute a2 ON a2.attnum = c.confkey[1] AND a2.attrelid = t2.oid
             JOIN pg_namespace t3 ON c.connamespace = t3.oid
+            LEFT JOIN pg_description d ON c.oid = d.objoid AND c.tableoid = d.classoid
             WHERE c.contype = 'f'
               AND t1.relname = #{scope[:name]}
               AND t3.nspname = #{scope[:schema]}
@@ -511,6 +529,7 @@ module ActiveRecord
             options[:on_delete] = extract_foreign_key_action(row["on_delete"])
             options[:on_update] = extract_foreign_key_action(row["on_update"])
             options[:validate] = row["valid"]
+            options[:comment] = row["comment"]
 
             ForeignKeyDefinition.new(table_name, row["to_table"], options)
           end

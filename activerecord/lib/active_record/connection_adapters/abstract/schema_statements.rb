@@ -329,6 +329,14 @@ module ActiveRecord
           td.columns.each do |column|
             change_column_comment(table_name, column.name, column.comment) if column.comment.present?
           end
+
+          if supports_comments_on_constraints?
+            td.foreign_keys.each do |(fk_table_name, fk_opts)|
+              next unless fk_opts.key?(:comment)
+
+              change_foreign_key_comment(table_name, fk_table_name, fk_opts[:comment])
+            end
+          end
         end
 
         result
@@ -1016,6 +1024,8 @@ module ActiveRecord
       #   Action that happens <tt>ON UPDATE</tt>. Valid values are +:nullify+, +:cascade+ and +:restrict+
       # [<tt>:validate</tt>]
       #   (PostgreSQL only) Specify whether or not the constraint should be validated. Defaults to +true+.
+      # [<tt>:comment</tt>]
+      #   (PostgreSQL only) Specifies the comment for the constraint.
       def add_foreign_key(from_table, to_table, **options)
         return unless supports_foreign_keys?
 
@@ -1024,6 +1034,10 @@ module ActiveRecord
         at.add_foreign_key to_table, options
 
         execute schema_creation.accept(at)
+
+        if supports_comments_on_constraints? && options.key?(:comment)
+          change_foreign_key_comment from_table, to_table, options[:comment]
+        end
       end
 
       # Removes the given foreign key from the table. Any option parameters provided
@@ -1248,6 +1262,17 @@ module ActiveRecord
       #   change_column_comment(:posts, :state, from: "old_comment", to: "new_comment")
       def change_column_comment(table_name, column_name, comment_or_changes)
         raise NotImplementedError, "#{self.class} does not support changing column comments"
+      end
+
+      # Changes the comment for a foreign key constraint or removes it if
+      # +nil+.
+      #
+      # Passing a hash containing +:from:+ and +:to+ will make this change
+      # reversible in migration:
+      #
+      #   change_foreign_key_comment(:posts, :authors, from: "old_comment", to: "new_comment")
+      def change_foreign_key_comment(table_name, options_or_to_table, comment_or_changes)
+        raise NotImplementedError, "#{self.class} does not support changing constraint comments"
       end
 
       def create_schema_dumper(options) # :nodoc:

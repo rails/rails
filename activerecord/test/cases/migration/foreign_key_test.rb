@@ -309,6 +309,33 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
           assert_equal :nullify, fk.on_update
         end
 
+        if ActiveRecord::Base.connection.supports_comments_on_constraints?
+          def test_add_foreign_key_with_comment
+            @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id", comment: "comment"
+
+            foreign_keys = @connection.foreign_keys("astronauts")
+            assert_equal 1, foreign_keys.size
+
+            fk = foreign_keys.first
+            assert_equal "comment", fk.comment
+          end
+
+          def test_create_table_with_foreign_key_comment
+            @connection.create_table "boosters", force: true do |t|
+              t.string :name
+              t.references :rocket, foreign_key: { comment: "comment" }
+            end
+
+            foreign_keys = @connection.foreign_keys("boosters")
+            assert_equal 1, foreign_keys.size
+
+            fk = foreign_keys.first
+            assert_equal "comment", fk.comment
+
+            @connection.drop_table "boosters"
+          end
+        end
+
         def test_foreign_key_exists
           @connection.add_foreign_key :astronauts, :rockets
 

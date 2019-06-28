@@ -370,6 +370,11 @@ module ActiveRecord
         false
       end
 
+      # Does this adapter support comments on constraints?
+      def supports_comments_on_constraints?
+        false
+      end
+
       # Does this adapter support multi-value insert?
       def supports_multi_insert?
         true

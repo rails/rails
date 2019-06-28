@@ -197,6 +197,10 @@ module ActiveRecord
         true
       end
 
+      def supports_comments_on_constraints?
+        true
+      end
+
       def supports_savepoints?
         true
       end

@@ -42,6 +42,12 @@ if ActiveRecord::Base.connection.supports_comments?
         t.integer :id, comment: "Primary key comment", primary_key: true
       end
 
+      if @connection.supports_comments_on_constraints?
+        @connection.create_table("fk_commenteds") do |t|
+          t.references :pk_commented, foreign_key: { comment: "FK comment" }
+        end
+      end
+
       Commented.reset_column_information
       BlankComment.reset_column_information
       PkCommented.reset_column_information
@@ -50,6 +56,7 @@ if ActiveRecord::Base.connection.supports_comments?
     teardown do
       @connection.drop_table "commenteds", if_exists: true
       @connection.drop_table "blank_comments", if_exists: true
+      @connection.drop_table "fk_commenteds", if_exists: true
     end
 
     def test_default_primary_key_comment
@@ -188,6 +195,36 @@ if ActiveRecord::Base.connection.supports_comments?
       output = dump_table_schema "pk_commenteds"
       assert_match %r[create_table "pk_commenteds",.*\s+comment: "Table comment"], output
       assert_no_match %r[create_table "pk_commenteds",.*\s+comment: "Primary key comment"], output
+    end
+
+    if ActiveRecord::Base.connection.supports_comments_on_constraints?
+      def test_change_foreign_key_comment
+        @connection.change_foreign_key_comment("fk_commenteds", "pk_commenteds", "Edited FK Comment")
+
+        foreign_keys = @connection.foreign_keys("fk_commenteds")
+        assert_equal 1, foreign_keys.size
+
+        fk = foreign_keys.first
+        assert_equal "Edited FK Comment", fk.comment
+      end
+
+      def test_remove_foreign_key_comment
+        @connection.change_foreign_key_comment("fk_commenteds", "pk_commenteds", nil)
+
+        foreign_keys = @connection.foreign_keys("fk_commenteds")
+        assert_equal 1, foreign_keys.size
+
+        fk = foreign_keys.first
+        assert_nil fk.comment
+
+        output = dump_table_schema "fk_commenteds"
+        assert_no_match %r[add_foreign_key "fk_commenteds", "pk_commenteds",.*\s+comment: "FK comment"], output
+      end
+
+      def test_schema_dump_with_foreign_key_comment
+        output = dump_table_schema "fk_commenteds"
+        assert_match %r[add_foreign_key "fk_commenteds", "pk_commenteds",.*\s+comment: "FK comment"], output
+      end
     end
   end
 end
