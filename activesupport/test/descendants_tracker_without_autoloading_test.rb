@@ -16,4 +16,10 @@ class DescendantsTrackerWithoutAutoloadingTest < ActiveSupport::TestCase
       assert_not ActiveSupport::DescendantsTracker.class_variable_get(:@@direct_descendants).key?(parent_instance.singleton_class)
     end
   end
+
+  def test_preload_descendants_is_not_called_if_autoloading_is_disabled
+    refute_predicate Parent, :preload_descendants_called
+    Parent.descendants
+    refute_predicate Parent, :preload_descendants_called
+  end
 end

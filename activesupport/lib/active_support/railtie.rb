@@ -9,6 +9,10 @@ module ActiveSupport
 
     config.eager_load_namespaces << ActiveSupport
 
+    initializer "active_support.descendants_tracker_preloading" do |app|
+      DescendantsTracker.preloading_required = !app.config.eager_load
+    end
+
     initializer "active_support.set_authenticated_message_encryption" do |app|
       config.after_initialize do
         unless app.config.active_support.use_authenticated_message_encryption.nil?

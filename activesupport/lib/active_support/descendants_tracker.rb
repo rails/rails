@@ -6,21 +6,82 @@ module ActiveSupport
   # This module provides an internal implementation to track descendants
   # which is faster than iterating through ObjectSpace.
   module DescendantsTracker
+    # DescendantsArray is an array that contains weak references to classes.
+    class DescendantsArray # :nodoc:
+      include Enumerable
+
+      def initialize
+        @refs = []
+      end
+
+      def initialize_copy(orig)
+        @refs = @refs.dup
+      end
+
+      def <<(klass)
+        cleanup!
+        @refs << WeakRef.new(klass)
+      end
+
+      def each
+        @refs.each do |ref|
+          yield ref.__getobj__
+        rescue WeakRef::RefError
+        end
+      end
+
+      def refs_size
+        @refs.size
+      end
+
+      def cleanup!
+        @refs.delete_if { |ref| !ref.weakref_alive? }
+      end
+
+      def reject!
+        @refs.reject! do |ref|
+          yield ref.__getobj__
+        rescue WeakRef::RefError
+          true
+        end
+      end
+    end
+
     @@direct_descendants = {}
+    @@descendants_preloaded = DescendantsArray.new
+
+    @preloading_required = false
 
     class << self
+      attr_accessor :preloading_required
+
       def direct_descendants(klass)
+        preload_descendants(klass) if preloading_required
+
         descendants = @@direct_descendants[klass]
         descendants ? descendants.to_a : []
       end
 
       def descendants(klass)
+        preload_descendants(klass) if preloading_required
+
         arr = []
         accumulate_descendants(klass, arr)
         arr
       end
 
+      def preload_descendants(klass)
+        if klass.respond_to?(:preload_descendants)
+          unless @@descendants_preloaded.include?(klass)
+            klass.preload_descendants
+            @@descendants_preloaded << klass
+          end
+        end
+      end
+
       def clear
+        @@descendants_preloaded = DescendantsArray.new
+
         if defined? ActiveSupport::Dependencies
           @@direct_descendants.each do |klass, descendants|
             if Dependencies.autoloaded?(klass)
@@ -62,47 +123,6 @@ module ActiveSupport
 
     def descendants
       DescendantsTracker.descendants(self)
-    end
-
-    # DescendantsArray is an array that contains weak references to classes.
-    class DescendantsArray # :nodoc:
-      include Enumerable
-
-      def initialize
-        @refs = []
-      end
-
-      def initialize_copy(orig)
-        @refs = @refs.dup
-      end
-
-      def <<(klass)
-        cleanup!
-        @refs << WeakRef.new(klass)
-      end
-
-      def each
-        @refs.each do |ref|
-          yield ref.__getobj__
-        rescue WeakRef::RefError
-        end
-      end
-
-      def refs_size
-        @refs.size
-      end
-
-      def cleanup!
-        @refs.delete_if { |ref| !ref.weakref_alive? }
-      end
-
-      def reject!
-        @refs.reject! do |ref|
-          yield ref.__getobj__
-        rescue WeakRef::RefError
-          true
-        end
-      end
     end
   end
 end

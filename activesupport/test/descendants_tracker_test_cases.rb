@@ -5,6 +5,15 @@ require "set"
 module DescendantsTrackerTestCases
   class Parent
     extend ActiveSupport::DescendantsTracker
+
+    @preload_descendants_called = false
+    class << self
+      attr_accessor :preload_descendants_called
+
+      def preload_descendants
+        self.preload_descendants_called = true
+      end
+    end
   end
 
   class Child1 < Parent
@@ -20,6 +29,14 @@ module DescendantsTrackerTestCases
   end
 
   ALL = [Parent, Child1, Child2, Grandchild1, Grandchild2]
+
+  def teardown
+    ALL.each { |k| k.preload_descendants_called = false }
+    ActiveSupport::DescendantsTracker.preloading_required = false
+    mark_as_autoloaded(*ALL) do
+      ActiveSupport::DescendantsTracker.clear
+    end
+  end
 
   def test_descendants
     assert_equal_sets [Child1, Grandchild1, Grandchild2, Child2], Parent.descendants
