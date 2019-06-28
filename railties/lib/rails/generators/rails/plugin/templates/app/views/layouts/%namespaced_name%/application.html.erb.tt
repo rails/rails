@@ -1,18 +1,16 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <title><%= humanized %></title>
-  <%%= csrf_meta_tags %>
-  <%%= csp_meta_tag %>
+  <head>
+    <title><%= humanized %></title>
+    <%%= csrf_meta_tags %>
+    <%%= csp_meta_tag %>
 
-  <%%= stylesheet_link_tag "<%= namespaced_name %>/application", media: "all" %>
-  <%- unless skip_webpack? -%>
-  <%%= javascript_pack_tag "<%= namespaced_name %>/application" %>
-  <%- end -%>
-</head>
-<body>
-
-<%%= yield %>
-
-</body>
+    <%%= stylesheet_link_tag "<%= namespaced_name %>/application", media: "all" %>
+    <%- unless skip_webpack? -%>
+    <%%= javascript_pack_tag "<%= namespaced_name %>/application" %>
+    <%- end -%>
+  </head>
+  <body>
+    <%%= yield %>
+  </body>
 </html>
