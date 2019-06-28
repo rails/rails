@@ -3,6 +3,7 @@
 require "erb"
 require "action_dispatch/http/request"
 require "active_support/actionable_error"
+require "active_support/core_ext/numeric/bytes"
 
 module ActionDispatch
   class ActionableExceptions # :nodoc:
@@ -33,7 +34,7 @@ module ActionDispatch
       end
 
       def rendering_response(request, error)
-        body = capturing_standard_streams { yield }
+        body = capture_output { yield }
 
         [200, {
           "Content-Type" => "text/plain; charset=#{Response.default_charset}",
@@ -41,29 +42,25 @@ module ActionDispatch
         }, [body]]
       end
 
-      def capturing_standard_streams
-        capture :stdout do
-          capture :stderr do
-            yield
-          end
+      OUTPUT_CHUNK = 1.megabyte
+
+      def capture_output
+        stdout, stderr = $stdout.dup, $stderr.dup
+
+        IO.pipe do |read_io, write_io|
+          $stdout.reopen(write_io)
+          $stderr.reopen(write_io)
+
+          yield
+
+          write_io.close
+          read_io.read_nonblock(OUTPUT_CHUNK)
         end
-      end
-
-      def capture(stream)
-        stream = stream.to_s
-        captured_stream = Tempfile.new(stream)
-        stream_io = eval("$#{stream}")
-        origin_stream = stream_io.dup
-        stream_io.reopen(captured_stream)
-
-        yield
-
-        stream_io.rewind
-        captured_stream.read
+      rescue IO::WaitReadable
+        ""
       ensure
-        captured_stream.close
-        captured_stream.unlink
-        stream_io.reopen(origin_stream)
+        $stdout.reopen(stdout)
+        $stderr.reopen(stderr)
       end
   end
 end
