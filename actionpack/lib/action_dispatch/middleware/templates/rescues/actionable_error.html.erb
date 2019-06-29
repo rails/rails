@@ -2,14 +2,14 @@
   <h1>
     <%= @exception.class.to_s %>
     <% if @request.parameters['controller'] %>
-      in <%= @request.parameters['controller'].camelize %>Controller<% if @request.parameters['action'] %>#<%= @request.parameters['action'] %><% end %>
+      in <%= [ "#{@request.parameters['controller'].camelize}Controller", @request.parameters['action'] ].compact.join("#") %>
     <% end %>
   </h1>
 </header>
 
 <div id="container">
   <h2>
-    <%= h @exception.message %>
+    <%= @exception.message %>
   </h2>
 
   <div class="actions">
@@ -25,6 +25,8 @@
 
 <script type="text/javascript">
   document.addEventListener("submit", function(event) {
+    event.preventDefault();
+
     var element = event.target;
     var url = element.getAttribute("action");
     var formData = new FormData(element);
@@ -55,8 +57,6 @@
           button.disabled = false;
         }
       });
-
-    event.preventDefault();
 
     function removeEscapeSequences(output) {
       return output.replace(/(\x9B|\x1B\[)[0-?]*[ -/]*[@-~]/g, "");
