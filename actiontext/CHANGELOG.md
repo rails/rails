@@ -1,3 +1,11 @@
+*   Adds `has_rich_text_field` method to use ActionText with a specific database column instead of the general table.
+    ```ruby
+    class Message < ActiveRecord::Base
+      has_rich_text_field :content
+    end
+    ```
+    *William Johnston*
+
 *   The `fill_in_rich_text_area` system test helper locates a Trix editor and fills it in with the given HTML:
 
     ```ruby
