@@ -43,6 +43,15 @@ class ActionText::AttributeTest < ActiveSupport::TestCase
     assert_equal [ActiveStorage::Attachment], post.custom_body_attachments.map(&:class)
   end
 
+  test "embed extraction deduplicates file attachments" do
+    blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpg")
+    content = ActionText::Content.new("Hello world").append_attachables([ blob, blob ])
+
+    assert_nothing_raised do
+      Post.create!(title: "Greetings", custom_body: content)
+    end
+  end
+
   test "saving custom_body" do
     post = Post.create(title: "Greetings", custom_body: "<h1>Hello world</h1>")
     assert_equal "Hello world", post.custom_body.to_plain_text
