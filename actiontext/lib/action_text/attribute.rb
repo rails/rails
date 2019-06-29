@@ -5,6 +5,39 @@ module ActionText
     extend ActiveSupport::Concern
 
     class_methods do
+      # Serializes the given field as a rich text field, and adds the associated attachments to the model.
+      # This dependent attribute is lazily instantiated and will be auto-saved when it's been changed. Example:
+      #
+      #   class Message < ActiveRecord::Base
+      #     has_rich_text_field :content
+      #   end
+      #
+      #   message = Message.create!(content: "<h1>Funny times!</h1>")
+      #   message.content.to_s # => "<h1>Funny times!</h1>"
+      #   message.content.to_plain_text # => "Funny times!"
+      #
+      # The model will also automatically process attachments links as sent via the Trix-powered editor.
+      # These attachments are associated with the current model using Active Storage.
+      #
+      # If you want to customize the field_name used for attachments, pass the :has_rich_text_field
+      # parameter to has_rich_text_field. Example:
+      #
+      #   class Message < ActiveRecord::Base
+      #     has_rich_text_field :content, has_rich_text_field: :custom_attachment_name
+      #   end
+      def has_rich_text_field(attribute_name, attachment_field_name: "#{attribute_name}_attachments")
+        serialize(attribute_name, ActionText::Content)
+
+        has_many_attached attachment_field_name
+
+        before_save do
+          if public_send(attribute_name).present?
+            blobs = public_send(attribute_name).attachables.grep(ActiveStorage::Blob).uniq
+            public_send("#{attachment_field_name}=", blobs)
+          end
+        end
+      end
+
       # Provides access to a dependent RichText model that holds the body and attachments for a single named rich text attribute.
       # This dependent attribute is lazily instantiated and will be auto-saved when it's been changed. Example:
       #

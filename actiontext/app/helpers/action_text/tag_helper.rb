@@ -49,6 +49,7 @@ module ActionView::Helpers
     end
 
     def editable_value
+      return value.to_trix_html if value.is_a?(ActionText::Content)
       value&.body.try(:to_trix_html)
     end
   end

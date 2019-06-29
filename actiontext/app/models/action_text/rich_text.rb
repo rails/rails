@@ -8,15 +8,10 @@ module ActionText
   class RichText < ActiveRecord::Base
     self.table_name = "action_text_rich_texts"
 
-    serialize :body, ActionText::Content
+    has_rich_text_field :body, attachment_field_name: :embeds
     delegate :to_s, :nil?, to: :body
 
     belongs_to :record, polymorphic: true, touch: true
-    has_many_attached :embeds
-
-    before_save do
-      self.embeds = body.attachables.grep(ActiveStorage::Blob).uniq if body.present?
-    end
 
     def to_plain_text
       body&.to_plain_text.to_s

@@ -39,6 +39,20 @@ class ActionText::FormHelperTest < ActionView::TestCase
       output_buffer
   end
 
+  test "form with rich text area field" do
+    form_with model: Post.new(custom_body: "hello"), scope: :post do |form|
+      form.rich_text_area :custom_body
+    end
+
+    assert_dom_equal \
+      '<form action="/posts" accept-charset="UTF-8" data-remote="true" method="post">' \
+        '<input type="hidden" name="post[custom_body]" id="post_custom_body_trix_input_post" value="hello" />' \
+        '<trix-editor id="post_custom_body" input="post_custom_body_trix_input_post" class="trix-content" data-direct-upload-url="http://test.host/rails/active_storage/direct_uploads" data-blob-url-template="http://test.host/rails/active_storage/blobs/:signed_id/:filename">' \
+        "</trix-editor>" \
+      "</form>",
+      output_buffer
+  end
+
   test "form with rich text area having class" do
     form_with model: Message.new, scope: :message do |form|
       form.rich_text_area :content, class: "custom-class"
