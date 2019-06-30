@@ -270,6 +270,16 @@ In that case, `app/models/concerns` is assumed to be a root directory (because i
 
 The `Concerns::` namespace worked with the classic autoloader as a side-effect of the implementation, but it was not really an intended behavior. An application using `Concerns::` needs to rename those classes and modules to be able to run in `zeitwerk` mode.
 
+#### Having `app` in the autoload paths
+
+Some projects want something like `app/api/base.rb` to define `API::Base`, and add `app` to the autoload paths to accomplish that in `classic` mode. Since Rails adds all subdirectories of `app` to the autoload paths automatically, we have another situation in which there are nested root directories, so that setup no longer works. Similar principle we explained above with `concerns`.
+
+If you want to keep that structure, you'll need to delete the subdirectory from the autoload paths in an initializer:
+
+```ruby
+ActiveSupport::Dependencies.autoload_paths.delete("#{Rails.root}/app/api")
+```
+
 #### Autoloaded Constants and Explicit Namespaces
 
 If a namespace is defined in a file, as `Hotel` is here:
@@ -390,6 +400,12 @@ To fix this, just remove the wildcards:
 ```ruby
 config.autoload_paths << "#{config.root}/lib"
 ```
+
+#### Eager loading and autoloading are consistent
+
+In `classic` mode, if `app/models/foo.rb` defines `Bar`, you won't be able to autoload that file, but eager loading will work because it loads files recursively blindly. This can be a source of errors if you test things first eager loading, execution may fail later autoloading.
+
+In `zeitwerk` mode both loading modes are consistent, they fail and err in the same files.
 
 #### How to Use the Classic Autoloader in Rails 6
 
