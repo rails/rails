@@ -178,6 +178,18 @@ module ActiveRecord
           super
         end
 
+        def invert_remove_columns(args)
+          unless args[-1].is_a?(Hash) && args[-1].has_key?(:type)
+            raise ActiveRecord::IrreversibleMigration, "remove_columns is only reversible if given a type."
+          end
+
+          column_options = args.extract_options!
+          type = column_options.delete(:type)
+          args[1..-1].map do |arg|
+            [:add_column, [args[0], arg, type, column_options]]
+          end
+        end
+
         def invert_rename_index(args)
           [:rename_index, [args.first] + args.last(2).reverse]
         end

@@ -22,6 +22,15 @@ module ActiveRecord
       end
     end
 
+    class InvertibleChangeTableMigration < SilentMigration
+      def change
+        change_table("horses") do |t|
+          t.column :name, :string
+          t.remove :remind_at, type: :datetime
+        end
+      end
+    end
+
     class InvertibleTransactionMigration < InvertibleMigration
       def change
         transaction do
@@ -262,6 +271,15 @@ module ActiveRecord
       assert migration.connection.table_exists?("horses")
       migration.migrate :down
       assert_not migration.connection.table_exists?("horses")
+    end
+
+    def test_migrate_revert_change_table
+      InvertibleMigration.new.migrate :up
+      migration = InvertibleChangeTableMigration.new
+      migration.migrate :up
+      assert_not migration.connection.column_exists?(:horses, :remind_at)
+      migration.migrate :down
+      assert migration.connection.column_exists?(:horses, :remind_at)
     end
 
     def test_migrate_revert_by_part
