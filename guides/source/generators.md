@@ -252,7 +252,7 @@ Add the method below, so our generator looks like the following:
 # lib/generators/rails/my_helper/my_helper_generator.rb
 class Rails::MyHelperGenerator < Rails::Generators::NamedBase
   def create_helper_file
-    create_file "app/helpers/#{file_name}_helper.rb", <<-FILE
+    template "app/helpers/#{file_name}_helper.rb", <<-FILE
 module #{class_name}Helper
   attr_reader :#{plural_name}, :#{plural_name.singularize}
 end
@@ -307,7 +307,7 @@ To do that, we can change the generator this way:
 # lib/generators/rails/my_helper/my_helper_generator.rb
 class Rails::MyHelperGenerator < Rails::Generators::NamedBase
   def create_helper_file
-    create_file "app/helpers/#{file_name}_helper.rb", <<-FILE
+    template "app/helpers/#{file_name}_helper.rb", <<-FILE
 module #{class_name}Helper
   attr_reader :#{plural_name}, :#{plural_name.singularize}
 end
