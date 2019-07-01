@@ -5,6 +5,11 @@ module ActiveStorage
   module Attached::Model
     extend ActiveSupport::Concern
 
+    included do
+      after_initialize { @attachment_changes ||= {} }
+      attr_reader :attachment_changes
+    end
+
     class_methods do
       # Specifies the relation between a single attachment and the model.
       #
@@ -129,12 +134,8 @@ module ActiveStorage
       end
     end
 
-    def attachment_changes #:nodoc:
-      @attachment_changes ||= {}
-    end
-
     def reload(*) #:nodoc:
-      super.tap { @attachment_changes = nil }
+      super.tap { @attachment_changes = {} }
     end
   end
 end
