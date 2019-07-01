@@ -133,10 +133,11 @@ class Date
     )
   end
 
-  # Allow Date to be compared with Time by converting to DateTime and relying on the <=> from there.
+  # Allow Date to be compared with Time by converting to either a Time object or a DateTime object and relying on
+  # the <=> from there. Using beginning_of_day converts the date respecting the process's current timezone.
   def compare_with_coercion(other)
     if other.is_a?(Time)
-      to_datetime <=> other
+      beginning_of_day <=> other
     else
       compare_without_coercion(other)
     end

@@ -72,6 +72,15 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
     assert Date.yesterday < Time.now
   end
 
+  def test_compare_date_to_time_with_positive_utc_offset
+    Time.use_zone("London") do
+      current_time = Time.zone.parse("Tue, 11 Jun 2019 00:30:00 BST +01:00")
+      assert_equal true, current_time.to_date < current_time
+      assert_equal false, current_time.to_date == current_time
+      assert_equal false, current_time.to_date > current_time
+    end
+  end
+
   def test_to_datetime
     assert_equal DateTime.civil(2005, 2, 21), Date.new(2005, 2, 21).to_datetime
     assert_equal 0, Date.new(2005, 2, 21).to_datetime.offset # use UTC offset

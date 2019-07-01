@@ -1,3 +1,33 @@
+*   Fix comparison of a Time object with a Date object when the Rails process is in a positive UTC offset.
+
+    Before, if the Rails process was running in a positive UTC offset and a date was compared
+    to a time where the time had a zone within the offset the comparison would be wrong, for
+    example:
+
+        $ TZ=Europe/London irb -r 'active_support/all'
+        > current_time = Time.parse('Tue, 11 Jun 2019 00:30:00 BST +01:00')
+        => 2019-06-11 00:30:00 +0100
+        > current_date = current_time.to_date
+        => Tue, 11 Jun 2019
+        > current_date <= current_time
+        => false
+
+    This happened because `date_obj <=> time_obj` would implicitly convert the date_obj to
+    the UTC timezone before comparison.
+
+    After this change, the date object is converted to a time object for the comparison,
+    but is given the timezone of the running process:
+
+        $ TZ=Europe/London irb -r 'active_support/all'
+        > current_time = Time.parse('Tue, 11 Jun 2019 00:30:00 BST +01:00')
+        => 2019-06-11 00:30:00 +0100
+        > current_date = current_time.to_date
+        => Tue, 11 Jun 2019
+        > current_date <= current_time
+        => true
+
+    *Will Jessop*
+
 *   When an instance of `ActiveSupport::Duration` is converted to an `iso8601` duration string, if `weeks` are mixed with `date` parts, the `week` part will be converted to days.
     This keeps the parser and serializer on the same page.
 
