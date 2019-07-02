@@ -1,4 +1,10 @@
-*   Keep part when scope option has value
+*   Add the ability to set the CSP nonce only to the specified directives.
+
+    Fixes #35137.
+
+    *Yuji Yaginuma*
+
+*   Keep part when scope option has value.
 
     When a route was defined within an optional scope, if that route didn't
     take parameters the scope was lost when using path helpers. This commit
