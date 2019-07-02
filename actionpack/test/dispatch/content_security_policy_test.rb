@@ -542,3 +542,57 @@ class DisabledContentSecurityPolicyIntegrationTest < ActionDispatch::Integration
     assert_equal "default-src https://example.com", response.headers["Content-Security-Policy"]
   end
 end
+
+class NonceDirectiveContentSecurityPolicyIntegrationTest < ActionDispatch::IntegrationTest
+  class PolicyController < ActionController::Base
+    def index
+      head :ok
+    end
+  end
+
+  ROUTES = ActionDispatch::Routing::RouteSet.new
+  ROUTES.draw do
+    scope module: "nonce_directive_content_security_policy_integration_test" do
+      get "/", to: "policy#index"
+    end
+  end
+
+  POLICY = ActionDispatch::ContentSecurityPolicy.new do |p|
+    p.default_src -> { :self  }
+    p.script_src -> { :https }
+    p.style_src -> { :https }
+  end
+
+  class PolicyConfigMiddleware
+    def initialize(app)
+      @app = app
+    end
+
+    def call(env)
+      env["action_dispatch.content_security_policy"] = POLICY
+      env["action_dispatch.content_security_policy_nonce_generator"] = proc { "iyhD0Yc0W+c=" }
+      env["action_dispatch.content_security_policy_report_only"] = false
+      env["action_dispatch.content_security_policy_nonce_directives"] = %w(script-src)
+      env["action_dispatch.show_exceptions"] = false
+
+      @app.call(env)
+    end
+  end
+
+  APP = build_app(ROUTES) do |middleware|
+    middleware.use PolicyConfigMiddleware
+    middleware.use ActionDispatch::ContentSecurityPolicy::Middleware
+  end
+
+  def app
+    APP
+  end
+
+  def test_generate_nonce_only_specified_in_nonce_directives
+    get "/"
+
+    assert_response :success
+    assert_match "script-src https: 'nonce-iyhD0Yc0W+c='", response.headers["Content-Security-Policy"]
+    assert_no_match "style-src https: 'nonce-iyhD0Yc0W+c='", response.headers["Content-Security-Policy"]
+  end
+end
