@@ -180,7 +180,7 @@ to primary based on the HTTP verb and whether there was a recent write.
 
 If the application is receiving a POST, PUT, DELETE, or PATCH request the application will
 automatically write to the primary. For the specified time after the write the application
-will read from the replica. For a GET or HEAD request the application will read from the
+will read from the primary. For a GET or HEAD request the application will read from the
 replica unless there was a recent write.
 
 To activate the automatic connection switching middleware, add or uncomment the following
