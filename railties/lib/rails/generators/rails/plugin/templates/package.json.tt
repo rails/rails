@@ -1,5 +1,5 @@
 {
-  "name": "<%= namespaced_name %>",
+  "name": "<%= underscored_name %>",
   "private": true,
   "dependencies": {
     "@rails/webpacker": "^4.0"

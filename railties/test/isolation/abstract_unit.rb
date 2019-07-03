@@ -215,6 +215,14 @@ module TestHelpers
       FileUtils.rm_rf(tmp_path)
     end
 
+    def build_node_modules(app_path)
+      assets_path = "#{RAILS_FRAMEWORK_ROOT}/railties/test/isolation/assets"
+      unless Dir.exist?("#{assets_path}/node_modules")
+        Dir.chdir(assets_path) { `yarn install` }
+      end
+      FileUtils.ln_s("#{assets_path}/node_modules", "#{app_path}/node_modules")
+    end
+
     # Make a very basic app, without creating the whole directory structure.
     # This is faster and simpler than the method above.
     def make_basic_app

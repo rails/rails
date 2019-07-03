@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "isolation/abstract_unit"
 require "generators/generators_test_helper"
 require "rails/generators/rails/scaffold/scaffold_generator"
 
@@ -585,6 +586,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     Dir.chdir(destination_root) { `bundle exec rails plugin new bukkits --mountable` }
 
     engine_path = File.join(destination_root, "bukkits")
+    build_node_modules(engine_path)
 
     Dir.chdir(engine_path) do
       quietly do
@@ -599,6 +601,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     Dir.chdir(destination_root) { `bundle exec rails plugin new bukkits-admin --mountable` }
 
     engine_path = File.join(destination_root, "bukkits-admin")
+    build_node_modules(engine_path)
 
     Dir.chdir(engine_path) do
       quietly do

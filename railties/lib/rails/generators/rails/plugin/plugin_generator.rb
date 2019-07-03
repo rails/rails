@@ -289,6 +289,10 @@ task default: :test
         @namespaced_name ||= name.tr("-", "/")
       end
 
+      def plugin_root_level_up_path
+        namespaced_name.gsub(/\w+/, "..")
+      end
+
     private
       def create_dummy_app(path = nil)
         dummy_path(path) if path

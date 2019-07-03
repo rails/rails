@@ -8,7 +8,7 @@ require "<%= namespaced_name %>/railtie"
 <%= wrap_in_modules "# Your code goes here..." %>
 <% else -%>
 <%= wrap_in_modules <<~rb
-  ROOT_PATH = Pathname.new(File.join(__dir__, ".."))
+  ROOT_PATH = Pathname.new(File.join(__dir__, "#{plugin_root_level_up_path}"))
   class << self
     def webpacker
       @webpacker ||= ::Webpacker::Instance.new(
