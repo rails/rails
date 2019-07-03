@@ -120,4 +120,17 @@ class DriverTest < ActiveSupport::TestCase
       driver.use
     end
   end
+
+  test "preloads browser's driver_path" do
+    called = false
+
+    original_driver_path = ::Selenium::WebDriver::Chrome::Service.driver_path
+    ::Selenium::WebDriver::Chrome::Service.driver_path = -> { called = true }
+
+    ActionDispatch::SystemTesting::Driver.new(:selenium, screen_size: [1400, 1400], using: :chrome)
+
+    assert called
+  ensure
+    ::Selenium::WebDriver::Chrome::Service.driver_path = original_driver_path
+  end
 end
