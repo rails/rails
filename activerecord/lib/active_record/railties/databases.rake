@@ -112,7 +112,7 @@ db_namespace = namespace :db do
       end
     end
 
-    # desc  'Rollbacks the database one migration and re migrate up (options: STEP=x, VERSION=x).'
+    desc "Rolls back the database one migration and re-migrates up (options: STEP=x, VERSION=x)."
     task redo: :load_config do
       raise "Empty VERSION provided" if ENV["VERSION"] && ENV["VERSION"].empty?
 
@@ -128,7 +128,7 @@ db_namespace = namespace :db do
     # desc 'Resets your database using your migrations for the current environment'
     task reset: ["db:drop", "db:create", "db:migrate"]
 
-    # desc 'Runs the "up" for a given migration VERSION.'
+    desc 'Runs the "up" for a given migration VERSION.'
     task up: :load_config do
       ActiveRecord::Tasks::DatabaseTasks.raise_for_multi_db(command: "db:migrate:up")
 
@@ -162,7 +162,7 @@ db_namespace = namespace :db do
       end
     end
 
-    # desc 'Runs the "down" for a given migration VERSION.'
+    desc 'Runs the "down" for a given migration VERSION.'
     task down: :load_config do
       ActiveRecord::Tasks::DatabaseTasks.raise_for_multi_db(command: "db:migrate:down")
 
