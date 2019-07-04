@@ -39,6 +39,19 @@ module ActionDispatch
           end
       end
 
+      # driver_path can be configured as a proc. The webdrivers gem uses this
+      # proc to update web drivers. Running this proc early allows us to only
+      # update the webdriver once and avoid race conditions when using
+      # parallel tests.
+      def preload
+        case type
+        when :chrome
+          ::Selenium::WebDriver::Chrome::Service.driver_path.try(:call)
+        when :firefox
+          ::Selenium::WebDriver::Firefox::Service.driver_path.try(:call)
+        end
+      end
+
       private
         def headless_chrome_browser_options
           capabilities.args << "--headless"
