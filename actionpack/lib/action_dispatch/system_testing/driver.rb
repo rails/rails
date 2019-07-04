@@ -9,8 +9,6 @@ module ActionDispatch
         @screen_size = options[:screen_size]
         @options = options[:options]
         @capabilities = capabilities
-
-        @browser.preload
       end
 
       def use

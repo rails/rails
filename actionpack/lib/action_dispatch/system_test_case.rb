@@ -4,7 +4,6 @@ gem "capybara", ">= 2.15"
 
 require "capybara/dsl"
 require "capybara/minitest"
-require "selenium/webdriver"
 require "action_controller"
 require "action_dispatch/system_testing/driver"
 require "action_dispatch/system_testing/browser"
