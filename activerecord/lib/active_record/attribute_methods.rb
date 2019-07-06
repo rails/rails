@@ -261,6 +261,21 @@ module ActiveRecord
       @attributes.to_hash
     end
 
+    # Returns a hash of all the alias names of the attributes as keys and the values of the attributes as values.
+    #
+    #   class Person < ActiveRecord::Base
+    #     alias_attribute :first_name, :FirstName
+    #     alias_attribute :last_name, :LastName
+    #   end
+    #
+    #   person = Person.create(FirstName: 'Francesco', LastName: 'Church')
+    #   person.alias_attributes
+    #   # => {"first_name"=>"Francesco", "last_name"=>"Church"}
+    def alias_attributes
+      attrs = attributes
+      attribute_aliases.transform_values { |v| attrs[v] }
+    end
+
     # Returns an <tt>#inspect</tt>-like string for the value of the
     # attribute +attr_name+. String attributes are truncated up to 50
     # characters, Date and Time attributes are returned in the

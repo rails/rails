@@ -110,6 +110,29 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_predicate Topic.find(2), :approved?
   end
 
+  test "alias_attributes" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = Topic.table_name
+
+      alias_attribute :heading, :title
+      alias_attribute :author, :author_name
+    end
+    topic = klass.new(title: "Ruby", author_name: "Jon")
+
+    assert_equal(topic.alias_attributes["heading"], "Ruby")
+    assert_equal(topic.alias_attributes["author"], "Jon")
+  end
+
+  test "alias_attributes with no alias defined for attributes" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = Topic.table_name
+    end
+    topic = klass.new(title: "Ruby", author_name: "Jon")
+
+    assert topic.alias_attributes.is_a?(Hash)
+    assert topic.alias_attributes.blank?
+  end
+
   test "set attributes" do
     topic = Topic.find(1)
     topic.attributes = { title: "Budget", author_name: "Jason" }
