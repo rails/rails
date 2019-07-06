@@ -62,10 +62,6 @@ ActiveRecord::Schema.define do
     t.binary :binary_column,    limit: 1
   end
 
-  create_table :enum_tests, id: false, force: true do |t|
-    t.column :enum_column, "ENUM('text','blob','tiny','medium','long','unsigned','bigint')"
-  end
-
   execute "DROP PROCEDURE IF EXISTS ten"
 
   execute <<~SQL
