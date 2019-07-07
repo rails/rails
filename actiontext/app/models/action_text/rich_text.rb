@@ -22,7 +22,15 @@ module ActionText
       body&.to_plain_text.to_s
     end
 
-    delegate :blank?, :empty?, :present?, to: :to_plain_text
+    def blank?
+      to_plain_text.blank? && embeds.none?
+    end
+
+    def present?
+      !blank?
+    end
+
+    delegate :empty?, to: :to_plain_text
   end
 end
 

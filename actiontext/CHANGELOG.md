@@ -1,3 +1,5 @@
+*   `ActionText::RichText#blank?` and `ActionText::RichText#present?` methods fixed to account for cases where the text is blank but embeds are present.
+
 *   The `fill_in_rich_text_area` system test helper locates a Trix editor and fills it in with the given HTML:
 
     ```ruby
