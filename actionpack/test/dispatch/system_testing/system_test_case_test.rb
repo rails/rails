@@ -36,12 +36,10 @@ class SetDriverToSeleniumHeadlessFirefoxTest < DrivenBySeleniumWithHeadlessFiref
 end
 
 class SetHostTest < DrivenByRackTest
-  test "sets default host" do
-    assert_equal "http://127.0.0.1", Capybara.app_host
-  end
-
   test "overrides host" do
-    host! "http://example.com"
+    assert_deprecated do
+      host! "http://example.com"
+    end
 
     assert_equal "http://example.com", Capybara.app_host
   end

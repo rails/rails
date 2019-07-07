@@ -9,7 +9,7 @@ gemspec
 # We need a newish Rake since Active Job sets its test tasks' descriptions.
 gem "rake", ">= 11.1"
 
-gem "capybara", ">= 2.15"
+gem "capybara", ">= 3.26"
 gem "selenium-webdriver", ">= 3.141.592"
 
 gem "rack-cache", "~> 1.2"

@@ -1,3 +1,7 @@
+*   System tests require Capybara 3.26 or newer.
+
+    *George Claghorn*
+
 *   Reduced log noise handling ActionController::RoutingErrors.
 
     *Alberto Fernández-Capel*
