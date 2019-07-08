@@ -24,8 +24,10 @@ export function createConsumer(url = getConfig("url") || INTERNAL.default_mount_
 }
 
 export function getConfig(name) {
-  const element = document.head.querySelector(`meta[name='action-cable-${name}']`)
-  if (element) {
-    return element.getAttribute("content")
+  if (document) {
+    const element = document.head.querySelector(`meta[name='action-cable-${name}']`)
+    if (element) {
+      return element.getAttribute("content")
+    }
   }
 }
