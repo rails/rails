@@ -139,6 +139,13 @@ class CalculationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_should_not_use_alias_for_grouped_field
+    assert_sql(/GROUP BY #{Regexp.escape(Account.connection.quote_table_name("accounts.firm_id"))}/i) do
+      c = Account.group(:firm_id).order("accounts_firm_id").sum(:credit_limit)
+      assert_equal [1, 2, 6, 9], c.keys.compact
+    end
+  end
+
   def test_should_order_by_grouped_field
     c = Account.group(:firm_id).order("firm_id").sum(:credit_limit)
     assert_equal [1, 2, 6, 9], c.keys.compact
