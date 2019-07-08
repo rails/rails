@@ -340,7 +340,7 @@ module ActiveRecord
         }
 
         relation = except(:group).distinct!(false)
-        relation.group_values  = group_aliases
+        relation.group_values  = group_fields
         relation.select_values = select_values
 
         calculated_data = skip_query_cache_if_necessary { @klass.connection.select_all(relation.arel, nil) }
