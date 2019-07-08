@@ -426,7 +426,7 @@ module ActiveRecord
       # #connection can be called any number of times; the connection is
       # held in a cache keyed by a thread.
       def connection
-        @thread_cached_conns[connection_cache_key(@lock_thread || Thread.current)] ||= checkout
+        @thread_cached_conns[connection_cache_key(current_thread)] ||= checkout
       end
 
       # Returns true if there is an open connection being used for the current thread.
@@ -435,7 +435,7 @@ module ActiveRecord
       # #connection or #with_connection methods. Connections obtained through
       # #checkout will not be detected by #active_connection?
       def active_connection?
-        @thread_cached_conns[connection_cache_key(Thread.current)]
+        @thread_cached_conns[connection_cache_key(current_thread)]
       end
 
       # Signal that the thread is finished with the current connection.
@@ -728,6 +728,10 @@ module ActiveRecord
         # JRuby users that use Fibers.
         def connection_cache_key(thread)
           thread
+        end
+
+        def current_thread
+          @lock_thread || Thread.current
         end
 
         # Take control of all existing connections so a "group" action such as

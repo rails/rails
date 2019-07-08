@@ -536,6 +536,23 @@ class QueryCacheTest < ActiveRecord::TestCase
     ActiveRecord::Base.connection_handlers = { writing: ActiveRecord::Base.default_connection_handler }
   end
 
+  test "query cache is enabled in threads with shared connection" do
+    ActiveRecord::Base.connection_pool.lock_thread = true
+
+    assert_cache :off
+
+    thread_a = Thread.new do
+      middleware { |env|
+        assert_cache :clean
+        [200, {}, nil]
+      }.call({})
+    end
+
+    thread_a.join
+
+    ActiveRecord::Base.connection_pool.lock_thread = false
+  end
+
   private
     def with_temporary_connection_pool
       old_pool = ActiveRecord::Base.connection_handler.retrieve_connection_pool(ActiveRecord::Base.connection_specification_name)
