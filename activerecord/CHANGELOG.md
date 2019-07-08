@@ -1,3 +1,9 @@
+*   Fix ActiveRecord PostgreSQL adapter method `index_name_exists?` to look into the correct schema given the table_name.
+
+    Fixes #36628.
+
+    *Vladut Alexandru Cimpeanu*
+
 *   Add database_exists? method to connection adapters to check if a database exists.
 
     *Guilherme Mansur*

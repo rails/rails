@@ -67,7 +67,6 @@ module ActiveRecord
         # Verifies existence of an index with a given name.
         def index_name_exists?(table_name, index_name)
           table = quoted_scope(table_name)
-          index = quoted_scope(index_name)
 
           query_value(<<~SQL, "SCHEMA").to_i > 0
             SELECT COUNT(*)
@@ -76,9 +75,9 @@ module ActiveRecord
             INNER JOIN pg_class i ON d.indexrelid = i.oid
             LEFT JOIN pg_namespace n ON n.oid = i.relnamespace
             WHERE i.relkind = 'i'
-              AND i.relname = #{index[:name]}
+              AND i.relname = #{quote(index_name)}
               AND t.relname = #{table[:name]}
-              AND n.nspname = #{index[:schema]}
+              AND n.nspname = #{table[:schema]}
           SQL
         end
 
