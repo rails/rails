@@ -244,6 +244,25 @@ module ActiveRecord
         assert_equal expected, actual
       end
 
+      def test_no_url_sub_key_with_database_url_doesnt_trample_other_envs
+        ENV["DATABASE_URL"] = "postgres://localhost/baz"
+
+        config   = { "default_env" => { "database" => "foo" }, "other_env" => { "url" => "postgres://foohost/bardb" } }
+        actual   = resolve_config(config)
+        expected = { "default_env" =>
+                     { "database" => "baz",
+                      "adapter" => "postgresql",
+                      "host" => "localhost"
+                     },
+                     "other_env" =>
+                      { "adapter" => "postgresql",
+                       "database" => "bardb",
+                       "host"     => "foohost"
+                      }
+                    }
+        assert_equal expected, actual
+      end
+
       def test_merge_no_conflicts_with_database_url
         ENV["DATABASE_URL"] = "postgres://localhost/foo"
 
