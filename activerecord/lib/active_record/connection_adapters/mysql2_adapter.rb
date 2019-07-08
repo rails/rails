@@ -42,6 +42,12 @@ module ActiveRecord
         configure_connection
       end
 
+      def self.database_exists?(config)
+        !!ActiveRecord::Base.mysql2_connection(config)
+      rescue ActiveRecord::NoDatabaseError
+        false
+      end
+
       def supports_json?
         !mariadb? && database_version >= "5.7.8"
       end

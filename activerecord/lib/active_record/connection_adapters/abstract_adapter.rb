@@ -264,6 +264,11 @@ module ActiveRecord
         self.class::ADAPTER_NAME
       end
 
+      # Does the database for this adapter exist?
+      def self.database_exists?(config)
+        raise NotImplementedError
+      end
+
       # Does this adapter support DDL rollbacks in transactions? That is, would
       # CREATE TABLE or ALTER TABLE get rolled back by a transaction?
       def supports_ddl_transactions?

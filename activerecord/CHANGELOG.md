@@ -1,3 +1,7 @@
+*   Add database_exists? method to connection adapters to check if a database exists.
+
+      *Guilherme Mansur*
+
 *   Loading the schema for a model that has no `table_name` raises a `TableNotSpecified` error.
 
     *Guilherme Mansur*, *Eugene Kenny*

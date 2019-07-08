@@ -30,6 +30,17 @@ module ActiveRecord
         end
       end
 
+      def test_database_exists_returns_false_when_the_database_does_not_exist
+        assert_not SQLite3Adapter.database_exists?(adapter: "sqlite3", database: "non_extant_db"),
+          "expected non_extant_db to not exist"
+      end
+
+      def test_database_exists_returns_true_when_databae_exists
+        config = ActiveRecord::Base.configurations["arunit"]
+        assert SQLite3Adapter.database_exists?(config),
+          "expected #{config[:database]} to exist"
+      end
+
       unless in_memory_db?
         def test_connect_with_url
           original_connection = ActiveRecord::Base.remove_connection
@@ -51,6 +62,11 @@ module ActiveRecord
         ensure
           ActiveRecord::Base.establish_connection(original_connection)
         end
+      end
+
+      def test_database_exists_returns_true_for_an_in_memory_db
+        assert SQLite3Adapter.database_exists?(database: ":memory:"),
+          "Expected in memory database to exist"
       end
 
       def test_column_types
