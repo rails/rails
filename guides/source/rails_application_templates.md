@@ -82,10 +82,10 @@ end
 
 Adds the given source to the generated application's `Gemfile`.
 
-For example, if you need to source a gem from `"http://code.whytheluckystiff.net"`:
+For example, if you need to source a gem from `"http://gems.github.com"`:
 
 ```ruby
-add_source "http://code.whytheluckystiff.net"
+add_source "http://gems.github.com"
 ```
 
 If block is given, gem entries in block are wrapped into the source group.
