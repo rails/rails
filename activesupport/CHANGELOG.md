@@ -1,3 +1,10 @@
+*   Do not delegate missing `marshal_dump` and `_dump` methods via the
+    `delegate_missing_to` extension. This avoids unintentionally adding instance
+    variables when calling `Marshal.dump(object)`, should the delegation target of
+    `object` be a method which would otherwise add them. Fixes #36522.
+
+    *Aaron Lipman*
+
 *   `truncate` would return the original string if it was too short to be truncated
     and a frozen string if it were long enough to be truncated. Now truncate will
     consistently return an unfrozen string regardless. This behavior is consistent
