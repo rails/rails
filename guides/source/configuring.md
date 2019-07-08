@@ -553,6 +553,10 @@ Defaults to `'signed cookie'`.
 
   Any exceptions that are not configured will be mapped to 500 Internal Server Error.
 
+* `config.action_dispatch.return_only_media_type_on_content_type` change the
+  return value of `ActionDispatch::Response#content_type` to the Content-Type
+  header without modification. Defaults to `false`.
+
 * `ActionDispatch::Callbacks.before` takes a block of code to run before the request.
 
 * `ActionDispatch::Callbacks.after` takes a block of code to run after the request.
@@ -908,6 +912,7 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 - `config.autoloader`: `:zeitwerk`
 - `config.action_view.default_enforce_utf8`: `false`
 - `config.action_dispatch.use_cookies_with_metadata`: `true`
+- `config.action_dispatch.return_only_media_type_on_content_type`: `false`
 - `config.action_mailer.delivery_job`: `"ActionMailer::MailDeliveryJob"`
 - `config.active_job.return_false_on_aborted_enqueue`: `true`
 - `config.active_storage.queues.analysis`: `:active_storage_analysis`
@@ -1536,7 +1541,7 @@ Disallow: /
 ```
 
 To block just specific pages, it's necessary to use a more complex syntax. Learn
-it on the [official documentation](http://www.robotstxt.org/robotstxt.html).
+it on the [official documentation](https://www.robotstxt.org/robotstxt.html).
 
 Evented File System Monitor
 ---------------------------

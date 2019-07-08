@@ -141,7 +141,7 @@ module ActiveRecord
           config_without_url.delete "url"
 
           ActiveRecord::DatabaseConfigurations::UrlConfig.new(env_name, spec_name, url, config_without_url)
-        elsif config["database"] || (config.size == 1 && config.values.all? { |v| v.is_a? String })
+        elsif config["database"] || config["adapter"] || ENV["DATABASE_URL"]
           ActiveRecord::DatabaseConfigurations::HashConfig.new(env_name, spec_name, config)
         else
           config.each_pair.map do |sub_spec_name, sub_config|
@@ -153,11 +153,11 @@ module ActiveRecord
       def build_url_config(url, configs)
         env = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call.to_s
 
-        if original_config = configs.find(&:for_current_env?)
-          if original_config.url_config?
-            configs
-          else
-            configs.map do |config|
+        if configs.find(&:for_current_env?)
+          configs.map do |config|
+            if config.url_config?
+              config
+            else
               ActiveRecord::DatabaseConfigurations::UrlConfig.new(config.env_name, config.spec_name, url, config.config)
             end
           end

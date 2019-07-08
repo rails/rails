@@ -110,7 +110,7 @@ module ActiveModel
         [self.class, precision, scale, limit].hash
       end
 
-      def assert_valid_value(*)
+      def assert_valid_value(_)
       end
 
       private

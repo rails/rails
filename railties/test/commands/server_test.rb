@@ -116,6 +116,13 @@ class Rails::Command::ServerCommandTest < ActiveSupport::TestCase
     end
   end
 
+  def test_environment_with_pidfile
+    switch_env "PIDFILE", "/tmp/rails.pid" do
+      options = parse_arguments
+      assert_equal "/tmp/rails.pid", options[:pid]
+    end
+  end
+
   def test_caching_without_option
     args = []
     options = parse_arguments(args)
@@ -234,6 +241,12 @@ class Rails::Command::ServerCommandTest < ActiveSupport::TestCase
       options = parse_arguments(args)
       assert_equal "127.0.0.1", options[:Host]
     end
+
+    switch_env "PIDFILE", "/tmp/rails.pid" do
+      args = ["-P", "/somewhere/else.pid"]
+      options = parse_arguments(args)
+      assert_equal "/somewhere/else.pid", options[:pid]
+    end
   end
 
   def test_records_user_supplied_options
@@ -252,6 +265,16 @@ class Rails::Command::ServerCommandTest < ActiveSupport::TestCase
     switch_env "BINDING", "1.2.3.4" do
       server_options = parse_arguments
       assert_equal [:Host], server_options[:user_supplied_options]
+    end
+
+    switch_env "PORT", "3001" do
+      server_options = parse_arguments
+      assert_equal [:Port], server_options[:user_supplied_options]
+    end
+
+    switch_env "PIDFILE", "/tmp/server.pid" do
+      server_options = parse_arguments
+      assert_equal [:pid], server_options[:user_supplied_options]
     end
   end
 

@@ -205,18 +205,18 @@ class Module
       if allow_nil
         method_def = [
           "def #{method_prefix}#{method}(#{definition})",
-          "_ = #{to}",
-          "if !_.nil? || nil.respond_to?(:#{method})",
-          "  _.#{method}(#{definition})",
-          "end",
-        "end"
+          "  _ = #{to}",
+          "  if !_.nil? || nil.respond_to?(:#{method})",
+          "    _.#{method}(#{definition})",
+          "  end",
+          "end"
         ].join ";"
       else
         exception = %(raise DelegationError, "#{self}##{method_prefix}#{method} delegated to #{to}.#{method}, but #{to} is nil: \#{self.inspect}")
 
         method_def = [
           "def #{method_prefix}#{method}(#{definition})",
-          " _ = #{to}",
+          "  _ = #{to}",
           "  _.#{method}(#{definition})",
           "rescue NoMethodError => e",
           "  if _.nil? && e.name == :#{method}",

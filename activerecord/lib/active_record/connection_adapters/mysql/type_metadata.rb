@@ -6,9 +6,11 @@ module ActiveRecord
       class TypeMetadata < DelegateClass(SqlTypeMetadata) # :nodoc:
         undef to_yaml if method_defined?(:to_yaml)
 
+        include Deduplicable
+
         attr_reader :extra
 
-        def initialize(type_metadata, extra: "")
+        def initialize(type_metadata, extra: nil)
           super(type_metadata)
           @extra = extra
         end
@@ -25,6 +27,13 @@ module ActiveRecord
             __getobj__.hash ^
             extra.hash
         end
+
+        private
+          def deduplicated
+            __setobj__(__getobj__.deduplicate)
+            @extra = -extra if extra
+            super
+          end
       end
     end
   end

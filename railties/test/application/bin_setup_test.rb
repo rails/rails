@@ -31,7 +31,7 @@ module ApplicationTests
       Dir.chdir(app_path) do
         # SQLite3 seems to auto-create the database on first checkout.
         rails "db:system:change", "--to=postgresql"
-        rails "db:drop"
+        rails "db:drop", allow_failure: true
 
         app_file "db/schema.rb", ""
 

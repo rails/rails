@@ -50,6 +50,11 @@ class ActionText::AttachmentTest < ActiveSupport::TestCase
     assert_not_nil trix_attachment.attributes["content"]
   end
 
+  test "converts to plain text" do
+    assert_equal "[Vroom vroom]", ActionText::Attachment.from_attachable(attachable, caption: "Vroom vroom").to_plain_text
+    assert_equal "[racecar.jpg]", ActionText::Attachment.from_attachable(attachable).to_plain_text
+  end
+
   test "defaults trix partial to model partial" do
     attachable = Page.create! title: "Homepage"
     assert_equal "pages/page", attachable.to_trix_content_attachment_partial_path

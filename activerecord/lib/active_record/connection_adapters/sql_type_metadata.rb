@@ -1,9 +1,13 @@
 # frozen_string_literal: true
 
+require "active_record/connection_adapters/deduplicable"
+
 module ActiveRecord
   # :stopdoc:
   module ConnectionAdapters
     class SqlTypeMetadata
+      include Deduplicable
+
       attr_reader :sql_type, :type, :limit, :precision, :scale
 
       def initialize(sql_type: nil, type: nil, limit: nil, precision: nil, scale: nil)
@@ -32,6 +36,12 @@ module ActiveRecord
           precision.hash >> 1 ^
           scale.hash >> 2
       end
+
+      private
+        def deduplicated
+          @sql_type = -sql_type
+          super
+        end
     end
   end
 end

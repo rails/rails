@@ -114,16 +114,16 @@ module ActiveRecord
       # if the value is a Time responding to usec.
       def quoted_date(value)
         if value.acts_like?(:time)
-          zone_conversion_method = ActiveRecord::Base.default_timezone == :utc ? :getutc : :getlocal
-
-          if value.respond_to?(zone_conversion_method)
-            value = value.send(zone_conversion_method)
+          if ActiveRecord::Base.default_timezone == :utc
+            value = value.getutc if value.respond_to?(:getutc) && !value.utc?
+          else
+            value = value.getlocal if value.respond_to?(:getlocal)
           end
         end
 
         result = value.to_s(:db)
         if value.respond_to?(:usec) && value.usec > 0
-          "#{result}.#{sprintf("%06d", value.usec)}"
+          result << "." << sprintf("%06d", value.usec)
         else
           result
         end

@@ -2,6 +2,7 @@
 
 require "cases/helper"
 require "models/author"
+require "models/book"
 require "models/bird"
 require "models/post"
 require "models/comment"
@@ -1671,6 +1672,10 @@ class TestAutosaveAssociationValidationsOnAHasManyAssociation < ActiveRecord::Te
     super
     @pirate = Pirate.create(catchphrase: "Don' botharrr talkin' like one, savvy?")
     @pirate.birds.create(name: "cookoo")
+
+    @author = Author.new(name: "DHH")
+    @author.published_books.build(name: "Rework", isbn: "1234")
+    @author.published_books.build(name: "Remote", isbn: "1234")
   end
 
   test "should automatically validate associations" do
@@ -1678,6 +1683,42 @@ class TestAutosaveAssociationValidationsOnAHasManyAssociation < ActiveRecord::Te
     @pirate.birds.each { |bird| bird.name = "" }
 
     assert_not_predicate @pirate, :valid?
+  end
+
+  test "rollbacks whole transaction and raises ActiveRecord::RecordInvalid when associations fail to #save! due to uniqueness validation failure" do
+    author_count_before_save = Author.count
+    book_count_before_save = Book.count
+
+    assert_no_difference "Author.count" do
+      assert_no_difference "Book.count" do
+        exception = assert_raises(ActiveRecord::RecordInvalid) do
+          @author.save!
+        end
+
+        assert_equal("Validation failed: Published books is invalid", exception.message)
+      end
+    end
+
+    assert_equal(author_count_before_save, Author.count)
+    assert_equal(book_count_before_save, Book.count)
+  end
+
+  test "rollbacks whole transaction when associations fail to #save due to uniqueness validation failure" do
+    author_count_before_save = Author.count
+    book_count_before_save = Book.count
+
+    assert_no_difference "Author.count" do
+      assert_no_difference "Book.count" do
+        assert_nothing_raised do
+          result = @author.save
+
+          assert_not(result)
+        end
+      end
+    end
+
+    assert_equal(author_count_before_save, Author.count)
+    assert_equal(book_count_before_save, Book.count)
   end
 end
 

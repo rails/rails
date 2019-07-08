@@ -141,10 +141,19 @@ module ActiveRecord
         end
       end
 
-      def for_each
+      def setup_initial_database_yaml
         return {} unless defined?(Rails)
 
-        databases = Rails.application.config.load_database_yaml
+        begin
+          Rails.application.config.load_database_yaml
+        rescue
+          $stderr.puts "Rails couldn't infer whether you are using multiple databases from your database.yml and can't generate the tasks for the non-primary databases. If you'd like to use this feature, please simplify your ERB."
+
+          {}
+        end
+      end
+
+      def for_each(databases)
         database_configs = ActiveRecord::DatabaseConfigurations.new(databases).configs_for(env_name: Rails.env)
 
         # if this is a single database application we don't want tasks for each primary database

@@ -244,6 +244,25 @@ module ActiveRecord
         assert_equal expected, actual
       end
 
+      def test_no_url_sub_key_with_database_url_doesnt_trample_other_envs
+        ENV["DATABASE_URL"] = "postgres://localhost/baz"
+
+        config   = { "default_env" => { "database" => "foo" }, "other_env" => { "url" => "postgres://foohost/bardb" } }
+        actual   = resolve_config(config)
+        expected = { "default_env" =>
+                     { "database" => "baz",
+                      "adapter" => "postgresql",
+                      "host" => "localhost"
+                     },
+                     "other_env" =>
+                      { "adapter" => "postgresql",
+                       "database" => "bardb",
+                       "host"     => "foohost"
+                      }
+                    }
+        assert_equal expected, actual
+      end
+
       def test_merge_no_conflicts_with_database_url
         ENV["DATABASE_URL"] = "postgres://localhost/foo"
 
@@ -271,6 +290,37 @@ module ActiveRecord
                        "pool"     => "5"
                       }
                     }
+        assert_equal expected, actual
+      end
+
+      def test_merge_no_conflicts_with_database_url_and_adapter
+        ENV["DATABASE_URL"] = "postgres://localhost/foo"
+
+        config   = { "default_env" => { "adapter" => "postgresql", "pool" => "5" } }
+        actual   = resolve_config(config)
+        expected = { "default_env" =>
+                     { "adapter"  => "postgresql",
+                       "database" => "foo",
+                       "host"     => "localhost",
+                       "pool"     => "5"
+                     }
+        }
+        assert_equal expected, actual
+      end
+
+      def test_merge_no_conflicts_with_database_url_and_numeric_pool
+        ENV["DATABASE_URL"] = "postgres://localhost/foo"
+
+        config   = { "default_env" => { "pool" => 5 } }
+        actual   = resolve_config(config)
+        expected = { "default_env" =>
+                     { "adapter"  => "postgresql",
+                       "database" => "foo",
+                       "host"     => "localhost",
+                       "pool"     => 5
+                     }
+        }
+
         assert_equal expected, actual
       end
     end
