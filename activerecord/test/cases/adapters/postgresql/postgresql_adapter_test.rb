@@ -24,6 +24,18 @@ module ActiveRecord
         end
       end
 
+      def test_database_exists_returns_false_when_the_database_does_not_exist
+        config = { database: "non_extant_database", adapter: "postgresql" }
+        assert_not ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.database_exists?(config),
+          "expected database #{config[:database]} to not exist"
+      end
+
+      def test_database_exists_returns_true_when_the_database_exists
+        config = ActiveRecord::Base.configurations["arunit"]
+        assert ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.database_exists?(config),
+          "expected database #{config[:database]} to exist"
+      end
+
       def test_primary_key
         with_example_table do
           assert_equal "id", @connection.primary_key("ex")
