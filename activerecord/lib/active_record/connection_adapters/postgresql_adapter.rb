@@ -46,7 +46,7 @@ module ActiveRecord
       conn = PG.connect(conn_params)
       ConnectionAdapters::PostgreSQLAdapter.new(conn, logger, conn_params, config)
     rescue ::PG::Error => error
-      if error.message.include?("does not exist")
+      if error.message.include?(conn_params[:dbname])
         raise ActiveRecord::NoDatabaseError
       else
         raise
