@@ -245,7 +245,8 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_exists_does_not_select_columns_without_alias
-    assert_sql(/SELECT\W+1 AS one FROM ["`]topics["`]/i) do
+    c = Topic.connection
+    assert_sql(/SELECT 1 AS one FROM #{Regexp.escape(c.quote_table_name("topics"))}/i) do
       Topic.exists?
     end
   end
