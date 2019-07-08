@@ -295,24 +295,24 @@ db_namespace = namespace :db do
     seed = false
 
     ActiveRecord::Base.configurations.configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env).each do |db_config|
-      ActiveRecord::Base.establish_connection(db_config.config)
+      if ActiveRecord::Base.database_exists?(db_config)
+        ActiveRecord::Tasks::DatabaseTasks.migrate
 
-      ActiveRecord::Tasks::DatabaseTasks.migrate
+        # Skipped when no database
+        ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config.config, ActiveRecord::Base.schema_format, db_config.spec_name)
 
-      # Skipped when no database
-      ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config.config, ActiveRecord::Base.schema_format, db_config.spec_name)
+      else
+        ActiveRecord::Tasks::DatabaseTasks.create_current(db_config.env_name, db_config.spec_name)
+        ActiveRecord::Tasks::DatabaseTasks.load_schema(
+          db_config.config,
+          ActiveRecord::Base.schema_format,
+          nil,
+          db_config.env_name,
+          db_config.spec_name
+        )
 
-    rescue ActiveRecord::NoDatabaseError
-      ActiveRecord::Tasks::DatabaseTasks.create_current(db_config.env_name, db_config.spec_name)
-      ActiveRecord::Tasks::DatabaseTasks.load_schema(
-        db_config.config,
-        ActiveRecord::Base.schema_format,
-        nil,
-        db_config.env_name,
-        db_config.spec_name
-      )
-
-      seed = true
+        seed = true
+      end
     end
 
     ActiveRecord::Base.establish_connection

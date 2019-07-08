@@ -619,6 +619,7 @@ module ApplicationTests
         Dir.chdir(app_path) do
           rails "generate", "model", "book", "title:string"
           output = rails("db:prepare")
+          assert_match(/Created database/, output)
           assert_match(/CreateBooks: migrated/, output)
 
           output = rails("db:drop")
