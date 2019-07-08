@@ -276,6 +276,11 @@ class Module
   # The delegated method must be public on the target, otherwise it will
   # raise +DelegationError+. If you wish to instead return +nil+,
   # use the <tt>:allow_nil</tt> option.
+  #
+  # The <tt>marshal_dump</tt> and <tt>_dump</tt> methods are exempt from
+  # delegation due to possible interference when calling
+  # <tt>Marshal.dump(object)</tt>, should the delegation target method
+  # of <tt>object</tt> add or remove instance variables.
   def delegate_missing_to(target, allow_nil: nil)
     target = target.to_s
     target = "self.#{target}" if DELEGATION_RESERVED_METHOD_NAMES.include?(target)
@@ -285,6 +290,7 @@ class Module
         # It may look like an oversight, but we deliberately do not pass
         # +include_private+, because they do not get delegated.
 
+        return false if name == :marshal_dump || name == :_dump
         #{target}.respond_to?(name) || super
       end
 
