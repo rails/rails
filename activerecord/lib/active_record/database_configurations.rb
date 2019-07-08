@@ -153,11 +153,11 @@ module ActiveRecord
       def build_url_config(url, configs)
         env = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call.to_s
 
-        if original_config = configs.find(&:for_current_env?)
-          if original_config.url_config?
-            configs
-          else
-            configs.map do |config|
+        if configs.find(&:for_current_env?)
+          configs.map do |config|
+            if config.url_config?
+              config
+            else
               ActiveRecord::DatabaseConfigurations::UrlConfig.new(config.env_name, config.spec_name, url, config.config)
             end
           end
