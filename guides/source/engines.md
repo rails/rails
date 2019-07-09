@@ -220,7 +220,7 @@ Inside the `app` directory are the standard `assets`, `controllers`, `helpers`,
 `jobs`, `mailers`, `models`, and `views` directories that you should be familiar with
 from an application. We'll look more into models in a future section, when we're writing the engine.
 
-Within the `app/assets` directory, there are the `images`, `javascripts` and
+Within the `app/assets` directory, there are the `images` and
 `stylesheets` directories which, again, you should be familiar with due to their
 similarity to an application. One difference here, however, is that each
 directory contains a sub-directory with the engine name. Because this engine is
