@@ -7,8 +7,8 @@ module ActiveRecord
     class ConnectionSpecification #:nodoc:
       attr_reader :name, :config, :adapter, :adapter_method
 
-      def initialize(name, config, adapter, adapter_method)
-        @name, @config, @adapter, @adapter_method = name, config, adapter, adapter_method
+      def initialize(name, config, adapter_method, adapter = nil)
+        @name, @config, @adapter_method, @adapter = name, config, adapter_method, adapter
       end
 
       def initialize_dup(original)
@@ -191,7 +191,7 @@ module ActiveRecord
             raise AdapterNotFound, "database configuration specifies nonexistent #{spec.config[:adapter]} adapter"
           end
 
-          ConnectionSpecification.new(spec.delete(:name) || "primary", spec, adapter, adapter_method)
+          ConnectionSpecification.new(spec.delete(:name) || "primary", spec, adapter_method, adapter)
         end
 
         private
