@@ -51,6 +51,11 @@ module ActiveRecord
       connection_handler.establish_connection(config_hash)
     end
 
+    def database_exists?(config_or_env = nil)
+      config_hash = resolve_config_for_connection(config_or_env)
+      connection_handler.database_exists?(config_hash)
+    end
+
     # Connects a model to the databases specified. The +database+ keyword
     # takes a hash consisting of a +role+ and a +database_key+.
     #

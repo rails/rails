@@ -295,7 +295,7 @@ db_namespace = namespace :db do
     seed = false
 
     ActiveRecord::Base.configurations.configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env).each do |db_config|
-      if ActiveRecord::Base.database_exists?(db_config)
+      if ActiveRecord::Base.database_exists?(db_config.config)
         ActiveRecord::Tasks::DatabaseTasks.migrate
 
         # Skipped when no database

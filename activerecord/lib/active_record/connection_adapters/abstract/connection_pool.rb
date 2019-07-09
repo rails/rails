@@ -1029,7 +1029,6 @@ module ActiveRecord
       alias :connection_pools :connection_pool_list
 
       def establish_connection(config)
-        resolver = ConnectionSpecification::Resolver.new(Base.configurations)
         spec = resolver.spec(config)
 
         remove_connection(spec.name)
@@ -1048,6 +1047,12 @@ module ActiveRecord
         end
 
         owner_to_pool[spec.name]
+      end
+
+      def database_exists?(config)
+        spec = resolver.spec(config)
+        adapter = Base.send(spec.adapter)
+        adapter.database_exists?(config)
       end
 
       # Returns true if there are any active connections among the connection
@@ -1147,6 +1152,10 @@ module ActiveRecord
         def pool_from_any_process_for(spec_name)
           owner_to_pool = @owner_to_pool.values.reverse.find { |v| v[spec_name] }
           owner_to_pool && owner_to_pool[spec_name]
+        end
+
+        def resolver
+          ConnectionSpecification::Resolver.new(Base.configurations)
         end
     end
   end
