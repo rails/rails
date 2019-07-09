@@ -74,7 +74,7 @@ module ActiveModel
 
     protected
       def attributes_for_hash
-        [@base, @attribute, @raw_type, @options]
+        [@base, @attribute, @raw_type, @options.except(*CALLBACKS_OPTIONS)]
       end
   end
 end
