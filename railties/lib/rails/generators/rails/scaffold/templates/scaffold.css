@@ -1,80 +1,150 @@
+* {
+  box-sizing: border-box;
+}
+
 body {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", "Roboto", "Helvetica Neue", Helvetica, sans-serif;
+  line-height: 1.5;
+  margin: 2rem;
+  color: #111;
   background-color: #fff;
-  color: #333;
-  margin: 33px;
 }
 
-body, p, ol, ul, td {
-  font-family: verdana, arial, helvetica, sans-serif;
-  font-size: 13px;
-  line-height: 18px;
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+  font-size: inherit;
+  margin: 0;
 }
 
-pre {
-  background-color: #eee;
-  padding: 10px;
-  font-size: 11px;
+img {
+  max-width: 100%;
+  height: auto;
 }
 
 a {
-  color: #000;
+  color: #07c;
 }
 
-a:visited {
-  color: #666;
+p,
+dl,
+ol,
+ul,
+pre,
+.actions {
+  margin-top: 1em;
+  margin-bottom: 1em;
 }
 
-a:hover {
-  color: #fff;
-  background-color: #000;
+code,
+pre,
+samp {
+  font-family: Menlo, Consolas, "Liberation Mono", monospace;
+  font-size: 87.5%;
 }
 
-th {
-  padding-bottom: 5px;
+code,
+samp {
+  padding: 0.125em;
 }
 
-td {
-  padding: 0 5px 7px;
-}
-
-div.field,
-div.actions {
-  margin-bottom: 10px;
-}
-
-#notice {
-  color: green;
-}
-
-.field_with_errors {
-  padding: 2px;
-  background-color: red;
-  display: table;
-}
-
-#error_explanation {
-  width: 450px;
-  border: 2px solid red;
-  padding: 7px 7px 0;
-  margin-bottom: 20px;
-  background-color: #f0f0f0;
-}
-
-#error_explanation h2 {
-  text-align: left;
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-weight: bold;
-  padding: 5px 5px 5px 15px;
-  font-size: 12px;
-  margin: -7px -7px 0;
-  background-color: #c00;
-  color: #fff;
+  line-height: 1.25;
+  margin-top: 1em;
+  margin-bottom: 0.5em;
+}
+h1 {
+  font-size: 2rem;
+}
+h2 {
+  font-size: 1.5rem;
+}
+h3 {
+  font-size: 1.25rem;
+}
+h4 {
+  font-size: 1rem;
+}
+h5 {
+  font-size: 0.875rem;
+}
+h6 {
+  font-size: 0.75rem;
 }
 
-#error_explanation ul li {
-  font-size: 12px;
-  list-style: square;
+ol,
+ul {
+  padding-left: 2rem;
 }
 
 label {
   display: block;
+}
+
+table,
+pre {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  overflow-x: auto;
+}
+
+table {
+  border-collapse: separate;
+  border-spacing: 0;
+  max-width: 100%;
+  width: 100%;
+}
+
+th {
+  text-align: left;
+  font-weight: bold;
+}
+
+th,
+td {
+  padding: 0.25rem 1rem 0.25rem 0;
+  line-height: inherit;
+}
+
+#notice {
+  color: #1c7;
+  font-weight: bold;
+}
+
+.field {
+  margin-bottom: 0.5rem;
+}
+
+.field_with_errors {
+  padding: 0.25rem;
+  background-color: #fdd;
+  display: table;
+}
+
+#error_explanation {
+  width: 100%;
+  max-width: 32rem;
+  border: 1px solid #f11;
+  background-color: #fdd;
+  padding: 0 1rem;
+  margin-bottom: 1rem;
+}
+
+.field_with_errors label,
+#error_explanation h2 {
+  font-size: 1rem;
+  color: #f11;
+}
+
+#error_explanation ul {
+  font-size: 0.875rem;
 }
