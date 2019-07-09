@@ -74,17 +74,15 @@ class JsonParamsParsingTest < ActionDispatch::IntegrationTest
 
   test "occurring a parse error if parsing unsuccessful" do
     with_test_routing do
-      begin
-        $stderr = StringIO.new # suppress the log
-        json = "[\"person]\": {\"name\": \"David\"}}"
-        exception = assert_raise(ActionDispatch::Http::Parameters::ParseError) do
-          post "/parse", params: json, headers: { "CONTENT_TYPE" => "application/json", "action_dispatch.show_exceptions" => false }
-        end
-        assert_equal JSON::ParserError, exception.cause.class
-        assert_equal exception.cause.message, exception.message
-      ensure
-        $stderr = STDERR
+      $stderr = StringIO.new # suppress the log
+      json = "[\"person]\": {\"name\": \"David\"}}"
+      exception = assert_raise(ActionDispatch::Http::Parameters::ParseError) do
+        post "/parse", params: json, headers: { "CONTENT_TYPE" => "application/json", "action_dispatch.show_exceptions" => false }
       end
+      assert_equal JSON::ParserError, exception.cause.class
+      assert_equal exception.cause.message, exception.message
+    ensure
+      $stderr = STDERR
     end
   end
 
@@ -157,31 +155,27 @@ class RootLessJSONParamsParsingTest < ActionDispatch::IntegrationTest
   end
 
   test "parses json params after custom json mime type registered" do
-    begin
-      Mime::Type.unregister :json
-      Mime::Type.register "application/json", :json, %w(application/vnd.rails+json)
-      assert_parses(
-        { "user" => { "username" => "meinac" }, "username" => "meinac" },
-        "{\"username\": \"meinac\"}", "CONTENT_TYPE" => "application/json"
-      )
-    ensure
-      Mime::Type.unregister :json
-      Mime::Type.register "application/json", :json, %w( text/x-json application/jsonrequest )
-    end
+    Mime::Type.unregister :json
+    Mime::Type.register "application/json", :json, %w(application/vnd.rails+json)
+    assert_parses(
+      { "user" => { "username" => "meinac" }, "username" => "meinac" },
+      "{\"username\": \"meinac\"}", "CONTENT_TYPE" => "application/json"
+    )
+  ensure
+    Mime::Type.unregister :json
+    Mime::Type.register "application/json", :json, %w( text/x-json application/jsonrequest )
   end
 
   test "parses json params after custom json mime type registered with synonym" do
-    begin
-      Mime::Type.unregister :json
-      Mime::Type.register "application/json", :json, %w(application/vnd.rails+json)
-      assert_parses(
-        { "user" => { "username" => "meinac" }, "username" => "meinac" },
-        "{\"username\": \"meinac\"}", "CONTENT_TYPE" => "application/vnd.rails+json"
-      )
-    ensure
-      Mime::Type.unregister :json
-      Mime::Type.register "application/json", :json, %w( text/x-json application/jsonrequest )
-    end
+    Mime::Type.unregister :json
+    Mime::Type.register "application/json", :json, %w(application/vnd.rails+json)
+    assert_parses(
+      { "user" => { "username" => "meinac" }, "username" => "meinac" },
+      "{\"username\": \"meinac\"}", "CONTENT_TYPE" => "application/vnd.rails+json"
+    )
+  ensure
+    Mime::Type.unregister :json
+    Mime::Type.register "application/json", :json, %w( text/x-json application/jsonrequest )
   end
 
   private

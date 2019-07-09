@@ -26,16 +26,17 @@ module ActionCable::StreamTests
       transmit_subscription_confirmation
     end
 
-    private def pick_coder(coder)
-      case coder
-      when nil, "json"
-        ActiveSupport::JSON
-      when "custom"
-        DummyEncoder
-      when "none"
-        nil
+    private
+      def pick_coder(coder)
+        case coder
+        when nil, "json"
+          ActiveSupport::JSON
+        when "custom"
+          DummyEncoder
+        when "none"
+          nil
+        end
       end
-    end
   end
 
   module DummyEncoder
@@ -192,7 +193,7 @@ module ActionCable::StreamTests
       end
     end
 
-    test "subscription confirmation should only be sent out once with muptiple stream_from" do
+    test "subscription confirmation should only be sent out once with multiple stream_from" do
       run_in_eventmachine do
         connection = open_connection
         expected = { "identifier" => { "channel" => MultiChatChannel.name }.to_json, "type" => "confirm_subscription" }

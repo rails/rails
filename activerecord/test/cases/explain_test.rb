@@ -72,7 +72,6 @@ if ActiveRecord::Base.connection.supports_explain?
     end
 
     private
-
       def stub_explain_for_query_plans(query_plans = ["query plan foo", "query plan bar"])
         explain_called = 0
 

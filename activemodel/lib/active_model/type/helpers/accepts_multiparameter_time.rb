@@ -5,6 +5,10 @@ module ActiveModel
     module Helpers # :nodoc: all
       class AcceptsMultiparameterTime < Module
         def initialize(defaults: {})
+          define_method(:serialize) do |value|
+            super(cast(value))
+          end
+
           define_method(:cast) do |value|
             if value.is_a?(Hash)
               value_from_multiparameter_assignment(value)

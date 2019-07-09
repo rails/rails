@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+gem "aws-sdk-s3", "~> 1.14"
+
 require "aws-sdk-s3"
 require "active_support/core_ext/numeric/bytes"
 
@@ -7,21 +9,23 @@ module ActiveStorage
   # Wraps the Amazon Simple Storage Service (S3) as an Active Storage service.
   # See ActiveStorage::Service for the generic API documentation that applies to all services.
   class Service::S3Service < Service
-    attr_reader :client, :bucket, :upload_options
+    attr_reader :client, :bucket
+    attr_reader :multipart_upload_threshold, :upload_options
 
     def initialize(bucket:, upload: {}, **options)
       @client = Aws::S3::Resource.new(**options)
       @bucket = @client.bucket(bucket)
 
+      @multipart_upload_threshold = upload.fetch(:multipart_threshold, 100.megabytes)
       @upload_options = upload
     end
 
-    def upload(key, io, checksum: nil)
+    def upload(key, io, checksum: nil, content_type: nil, **)
       instrument :upload, key: key, checksum: checksum do
-        begin
-          object_for(key).put(upload_options.merge(body: io, content_md5: checksum))
-        rescue Aws::S3::Errors::BadDigest
-          raise ActiveStorage::IntegrityError
+        if io.size < multipart_upload_threshold
+          upload_with_single_part key, io, checksum: checksum, content_type: content_type
+        else
+          upload_with_multipart key, io, content_type: content_type
         end
       end
     end
@@ -34,13 +38,17 @@ module ActiveStorage
       else
         instrument :download, key: key do
           object_for(key).get.body.string.force_encoding(Encoding::BINARY)
+        rescue Aws::S3::Errors::NoSuchKey
+          raise ActiveStorage::FileNotFoundError
         end
       end
     end
 
     def download_chunk(key, range)
       instrument :download_chunk, key: key, range: range do
-        object_for(key).get(range: "bytes=#{range.begin}-#{range.exclude_end? ? range.end - 1 : range.end}").body.read.force_encoding(Encoding::BINARY)
+        object_for(key).get(range: "bytes=#{range.begin}-#{range.exclude_end? ? range.end - 1 : range.end}").body.string.force_encoding(Encoding::BINARY)
+      rescue Aws::S3::Errors::NoSuchKey
+        raise ActiveStorage::FileNotFoundError
       end
     end
 
@@ -92,6 +100,24 @@ module ActiveStorage
     end
 
     private
+      MAXIMUM_UPLOAD_PARTS_COUNT = 10000
+      MINIMUM_UPLOAD_PART_SIZE   = 5.megabytes
+
+      def upload_with_single_part(key, io, checksum: nil, content_type: nil)
+        object_for(key).put(body: io, content_md5: checksum, content_type: content_type, **upload_options)
+      rescue Aws::S3::Errors::BadDigest
+        raise ActiveStorage::IntegrityError
+      end
+
+      def upload_with_multipart(key, io, content_type: nil)
+        part_size = [ io.size.fdiv(MAXIMUM_UPLOAD_PARTS_COUNT).ceil, MINIMUM_UPLOAD_PART_SIZE ].max
+
+        object_for(key).upload_stream(content_type: content_type, part_size: part_size, **upload_options) do |out|
+          IO.copy_stream(io, out)
+        end
+      end
+
+
       def object_for(key)
         bucket.object(key)
       end
@@ -103,8 +129,10 @@ module ActiveStorage
         chunk_size = 5.megabytes
         offset = 0
 
+        raise ActiveStorage::FileNotFoundError unless object.exists?
+
         while offset < object.content_length
-          yield object.get(range: "bytes=#{offset}-#{offset + chunk_size - 1}").body.read.force_encoding(Encoding::BINARY)
+          yield object.get(range: "bytes=#{offset}-#{offset + chunk_size - 1}").body.string.force_encoding(Encoding::BINARY)
           offset += chunk_size
         end
       end

@@ -11,12 +11,29 @@ module Arel # :nodoc: all
       end
 
       private
+        def visit_Arel_Nodes_IsNotDistinctFrom(o, collector)
+          right = o.right
 
-        # `top` wouldn't really work here. I.e. User.select("distinct first_name").limit(10) would generate
-        # "select top 10 distinct first_name from users", which is invalid query! it should be
-        # "select distinct top 10 first_name from users"
-        def visit_Arel_Nodes_Top(o)
-          ""
+          if right.nil?
+            collector = visit o.left, collector
+            collector << " IS NULL"
+          else
+            collector << "EXISTS (VALUES ("
+            collector = visit o.left, collector
+            collector << ") INTERSECT VALUES ("
+            collector = visit right, collector
+            collector << "))"
+          end
+        end
+
+        def visit_Arel_Nodes_IsDistinctFrom(o, collector)
+          if o.right.nil?
+            collector = visit o.left, collector
+            collector << " IS NOT NULL"
+          else
+            collector << "NOT "
+            visit_Arel_Nodes_IsNotDistinctFrom o, collector
+          end
         end
 
         def visit_Arel_Visitors_MSSQL_RowNumber(o, collector)
@@ -58,6 +75,16 @@ module Arel # :nodoc: all
           end
         end
 
+        def visit_Arel_Nodes_SelectCore(o, collector)
+          collector = super
+          maybe_visit o.optimizer_hints, collector
+        end
+
+        def visit_Arel_Nodes_OptimizerHints(o, collector)
+          hints = o.expr.map { |v| sanitize_as_sql_comment(v) }.join(", ")
+          collector << "OPTION (#{hints})"
+        end
+
         def get_offset_limit_clause(o)
           first_row = o.offset ? o.offset.expr.to_i + 1 : 1
           last_row  = o.limit ? o.limit.expr.to_i - 1 + first_row : nil
@@ -79,10 +106,14 @@ module Arel # :nodoc: all
           collector = visit o.relation, collector
           if o.wheres.any?
             collector << " WHERE "
-            inject_join o.wheres, collector, AND
+            inject_join o.wheres, collector, " AND "
           else
             collector
           end
+        end
+
+        def collect_optimizer_hints(o, collector)
+          collector
         end
 
         def determine_order_by(orders, x)

@@ -102,27 +102,7 @@ module ActiveRecord
       #   #    `updated_at` = '2016-10-13T09:59:23-05:00'
       #   #  WHERE id IN (10, 15)
       def update_counters(id, counters)
-        touch = counters.delete(:touch)
-
-        updates = counters.map do |counter_name, value|
-          operator = value < 0 ? "-" : "+"
-          quoted_column = connection.quote_column_name(counter_name)
-          "#{quoted_column} = COALESCE(#{quoted_column}, 0) #{operator} #{value.abs}"
-        end
-
-        if touch
-          names = touch if touch != true
-          touch_updates = touch_attributes_with_time(*names)
-          updates << sanitize_sql_for_assignment(touch_updates) unless touch_updates.empty?
-        end
-
-        if id.is_a?(Relation) && self == id.klass
-          relation = id
-        else
-          relation = unscoped.where!(primary_key => id)
-        end
-
-        relation.update_all updates.join(", ")
+        unscoped.where!(primary_key => id).update_counters(counters)
       end
 
       # Increment a numeric field by one, via a direct SQL update.
@@ -179,14 +159,11 @@ module ActiveRecord
     end
 
     private
-
-      def _create_record(*)
+      def _create_record(attribute_names = self.attribute_names)
         id = super
 
         each_counter_cached_associations do |association|
-          if send(association.reflection.name)
-            association.increment_counters
-          end
+          association.increment_counters
         end
 
         id
@@ -199,9 +176,7 @@ module ActiveRecord
           each_counter_cached_associations do |association|
             foreign_key = association.reflection.foreign_key.to_sym
             unless destroyed_by_association && destroyed_by_association.foreign_key.to_sym == foreign_key
-              if send(association.reflection.name)
-                association.decrement_counters
-              end
+              association.decrement_counters
             end
           end
         end

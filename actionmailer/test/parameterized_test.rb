@@ -7,6 +7,9 @@ require "mailers/params_mailer"
 class ParameterizedTest < ActiveSupport::TestCase
   include ActiveJob::TestHelper
 
+  class DummyDeliveryJob < ActionMailer::MailDeliveryJob
+  end
+
   setup do
     @previous_logger = ActiveJob::Base.logger
     ActiveJob::Base.logger = Logger.new(nil)
@@ -35,7 +38,14 @@ class ParameterizedTest < ActiveSupport::TestCase
   end
 
   test "enqueue the email with params" do
-    assert_performed_with(job: ActionMailer::Parameterized::DeliveryJob, args: ["ParamsMailer", "invitation", "deliver_now", { inviter: "david@basecamp.com", invitee: "jason@basecamp.com" } ]) do
+    args = [
+      "ParamsMailer",
+      "invitation",
+      "deliver_now",
+      params: { inviter: "david@basecamp.com", invitee: "jason@basecamp.com" },
+      args: [],
+    ]
+    assert_performed_with(job: ActionMailer::MailDeliveryJob, args: args) do
       @mail.deliver_later
     end
   end
@@ -53,4 +63,29 @@ class ParameterizedTest < ActiveSupport::TestCase
       invitation = mailer.method(:anything)
     end
   end
+
+  test "should enqueue a parameterized request with the correct delivery job" do
+    args = [
+      "ParamsMailer",
+      "invitation",
+      "deliver_now",
+      params: { inviter: "david@basecamp.com", invitee: "jason@basecamp.com" },
+      args: [],
+    ]
+
+    with_delivery_job DummyDeliveryJob do
+      assert_performed_with(job: DummyDeliveryJob, args: args) do
+        @mail.deliver_later
+      end
+    end
+  end
+
+  private
+    def with_delivery_job(job)
+      old_delivery_job = ParamsMailer.delivery_job
+      ParamsMailer.delivery_job = job
+      yield
+    ensure
+      ParamsMailer.delivery_job = old_delivery_job
+    end
 end

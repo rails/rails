@@ -1,85 +1,60 @@
-*   Uploaded files assigned to a record are persisted to storage when the record
-    is saved instead of immediately.
+*   Image analysis is skipped if ImageMagick returns an error.
 
-    In Rails 5.2, the following causes an uploaded file in `params[:avatar]` to
-    be stored:
-
-    ```ruby
-    @user.avatar = params[:avatar]
-    ```
-
-    In Rails 6, the uploaded file is stored when `@user` is successfully saved.
+    `ActiveStorage::Analyzer::ImageAnalyzer#metadata` would previously raise a
+    `MiniMagick::Error`, which caused persistent `ActiveStorage::AnalyzeJob`
+    failures. It now logs the error and returns `{}`, resulting in no metadata
+    being added to the offending image blob.
 
     *George Claghorn*
 
-*   Add the ability to reflect on defined attachments using the existing
-    ActiveRecord reflection mechanism.
+*   Method calls on singular attachments return `nil` when no file is attached.
 
-    *Kevin Deisz*
-
-*   Variant arguments of `false` or `nil` will no longer be passed to the
-    processor. For example, the following will not have the monochrome
-    variation applied:
+    Previously, assuming the following User model, `user.avatar.filename` would
+    raise a `Module::DelegationError` if no avatar was attached:
 
     ```ruby
-      avatar.variant(monochrome: false)
+    class User < ApplicationRecord
+      has_one_attached :avatar
+    end
     ```
 
-    *Jacob Smith*
+    They now return `nil`.
 
-*   Generated attachment getter and setter methods are created
-    within the model's `GeneratedAssociationMethods` module to
-    allow overriding and composition using `super`.
+    *Matthew Tanous*
 
-    *Josh Susser*, *Jamon Douglas*
+*   The mirror service supports direct uploads.
 
-*   Add `ActiveStorage::Blob#open`, which downloads a blob to a tempfile on disk
-    and yields the tempfile. Deprecate `ActiveStorage::Downloading`.
+    New files are directly uploaded to the primary service. When a
+    directly-uploaded file is attached to a record, a background job is enqueued
+    to copy it to each secondary service.
 
-    *David Robertson*, *George Claghorn*
-
-*   Pass in `identify: false` as an argument when providing a `content_type` for
-    `ActiveStorage::Attached::{One,Many}#attach` to bypass automatic content
-    type inference. For example:
-
-    ```ruby
-      @message.image.attach(
-        io: File.open('/path/to/file'),
-        filename: 'file.pdf',
-        content_type: 'application/pdf',
-        identify: false
-      )
-    ```
-
-    *Ryan Davidson*
-
-*   The Google Cloud Storage service properly supports streaming downloads.
-    It now requires version 1.11 or newer of the google-cloud-storage gem.
+    Configure the queue used to process mirroring jobs by setting
+    `config.active_storage.queues.mirror`. The default is `:active_storage_mirror`.
 
     *George Claghorn*
 
-*   Use the [ImageProcessing](https://github.com/janko-m/image_processing) gem
-    for Active Storage variants, and deprecate the MiniMagick backend.
+*   The S3 service now permits uploading files larger than 5 gigabytes.
 
-    This means that variants are now automatically oriented if the original
-    image was rotated. Also, in addition to the existing ImageMagick
-    operations, variants can now use `:resize_to_fit`, `:resize_to_fill`, and
-    other ImageProcessing macros. These are now recommended over raw `:resize`,
-    as they also sharpen the thumbnail after resizing.
+    When uploading a file greater than 100 megabytes in size, the service
+    transparently switches to [multipart uploads](https://docs.aws.amazon.com/AmazonS3/latest/dev/mpuoverview.html)
+    using a part size computed from the file's total size and S3's part count limit.
 
-    The ImageProcessing gem also comes with a backend implemented on
-    [libvips](http://jcupitt.github.io/libvips/), an alternative to
-    ImageMagick which has significantly better performance than
-    ImageMagick in most cases, both in terms of speed and memory usage. In
-    Active Storage it's now possible to switch to the libvips backend by
-    changing `Rails.application.config.active_storage.variant_processor` to
-    `:vips`.
+    No application changes are necessary to take advantage of this feature. You
+    can customize the default 100 MB multipart upload threshold in your S3
+    service's configuration:
 
-    *Janko Marohnić*
+    ```yaml
+    production:
+      service: s3
+      access_key_id: <%= Rails.application.credentials.dig(:aws, :access_key_id) %>
+      secret_access_key: <%= Rails.application.credentials.dig(:aws, :secret_access_key) %>
+      region: us-east-1
+      bucket: my-bucket
+      upload:
+        multipart_threshold: <%= 250.megabytes %>
+    ```
 
-*   Rails 6 requires Ruby 2.4.1 or newer.
-
-    *Jeremy Daer*
+    *George Claghorn*
 
 
-Please check [5-2-stable](https://github.com/rails/rails/blob/5-2-stable/activestorage/CHANGELOG.md) for previous changes.
+Please check [6-0-stable](https://github.com/rails/rails/blob/6-0-stable/activestorage/CHANGELOG.md) for previous changes.

@@ -31,7 +31,7 @@ module StaticTests
   end
 
   def test_handles_urls_with_ascii_8bit
-    assert_equal "Hello, World!", get("/doorkeeper%E3E4".dup.force_encoding("ASCII-8BIT")).body
+    assert_equal "Hello, World!", get((+"/doorkeeper%E3E4").force_encoding("ASCII-8BIT")).body
   end
 
   def test_handles_urls_with_ascii_8bit_on_win_31j
@@ -39,7 +39,7 @@ module StaticTests
       Encoding.default_internal = "Windows-31J"
       Encoding.default_external = "Windows-31J"
     end
-    assert_equal "Hello, World!", get("/doorkeeper%E3E4".dup.force_encoding("ASCII-8BIT")).body
+    assert_equal "Hello, World!", get((+"/doorkeeper%E3E4").force_encoding("ASCII-8BIT")).body
   end
 
   def test_handles_urls_with_null_byte
@@ -232,7 +232,6 @@ module StaticTests
   end
 
   private
-
     def assert_gzip(file_name, response)
       expected = File.read("#{FIXTURE_LOAD_PATH}/#{public_path}" + file_name)
       actual   = ActiveSupport::Gzip.decompress(response.body)

@@ -16,6 +16,9 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     @user.highlights.attach create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg")
     assert_equal "funky.jpg", @user.highlights.first.filename.to_s
     assert_equal "town.jpg", @user.highlights.second.filename.to_s
+
+    assert_not_empty @user.highlights_attachments
+    assert_equal @user.highlights_blobs.count, 2
   end
 
   test "attaching existing blobs from signed IDs to an existing record" do
@@ -266,46 +269,6 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     end
   end
 
-  test "analyzing a new blob from an uploaded file after attaching it to an existing record" do
-    perform_enqueued_jobs do
-      @user.highlights.attach fixture_file_upload("racecar.jpg")
-    end
-
-    assert @user.highlights.reload.first.analyzed?
-    assert_equal 4104, @user.highlights.first.metadata[:width]
-    assert_equal 2736, @user.highlights.first.metadata[:height]
-  end
-
-  test "analyzing a new blob from an uploaded file after attaching it to an existing record via update" do
-    perform_enqueued_jobs do
-      @user.update! highlights: [ fixture_file_upload("racecar.jpg") ]
-    end
-
-    assert @user.highlights.reload.first.analyzed?
-    assert_equal 4104, @user.highlights.first.metadata[:width]
-    assert_equal 2736, @user.highlights.first.metadata[:height]
-  end
-
-  test "analyzing a directly-uploaded blob after attaching it to an existing record" do
-    perform_enqueued_jobs do
-      @user.highlights.attach directly_upload_file_blob(filename: "racecar.jpg")
-    end
-
-    assert @user.highlights.reload.first.analyzed?
-    assert_equal 4104, @user.highlights.first.metadata[:width]
-    assert_equal 2736, @user.highlights.first.metadata[:height]
-  end
-
-  test "analyzing a directly-uploaded blob after attaching it to an existing record via update" do
-    perform_enqueued_jobs do
-      @user.update! highlights: [ directly_upload_file_blob(filename: "racecar.jpg") ]
-    end
-
-    assert @user.highlights.reload.first.analyzed?
-    assert_equal 4104, @user.highlights.first.metadata[:width]
-    assert_equal 2736, @user.highlights.first.metadata[:height]
-  end
-
   test "attaching existing blobs to a new record" do
     User.new(name: "Jason").tap do |user|
       user.highlights.attach create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg")
@@ -419,24 +382,6 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     assert_equal "Could not find or build blob: expected attachable, got :foo", error.message
   end
 
-  test "analyzing a new blob from an uploaded file after attaching it to a new record" do
-    perform_enqueued_jobs do
-      user = User.create!(name: "Jason", highlights: [ fixture_file_upload("racecar.jpg") ])
-      assert user.highlights.reload.first.analyzed?
-      assert_equal 4104, user.highlights.first.metadata[:width]
-      assert_equal 2736, user.highlights.first.metadata[:height]
-    end
-  end
-
-  test "analyzing a directly-uploaded blob after attaching it to a new record" do
-    perform_enqueued_jobs do
-      user = User.create!(name: "Jason", highlights: [ directly_upload_file_blob(filename: "racecar.jpg") ])
-      assert user.highlights.reload.first.analyzed?
-      assert_equal 4104, user.highlights.first.metadata[:width]
-      assert_equal 2736, user.highlights.first.metadata[:height]
-    end
-  end
-
   test "detaching" do
     [ create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg") ].tap do |blobs|
       @user.highlights.attach blobs
@@ -468,6 +413,33 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     end
   end
 
+  test "purging attachment with shared blobs" do
+    [
+      create_blob(filename: "funky.jpg"),
+      create_blob(filename: "town.jpg"),
+      create_blob(filename: "worm.jpg")
+    ].tap do |blobs|
+      @user.highlights.attach blobs
+      assert @user.highlights.attached?
+
+      another_user = User.create!(name: "John")
+      shared_blobs = [blobs.second, blobs.third]
+      another_user.highlights.attach shared_blobs
+      assert another_user.highlights.attached?
+
+      @user.highlights.purge
+      assert_not @user.highlights.attached?
+
+      assert_not ActiveStorage::Blob.exists?(blobs.first.id)
+      assert ActiveStorage::Blob.exists?(blobs.second.id)
+      assert ActiveStorage::Blob.exists?(blobs.third.id)
+
+      assert_not ActiveStorage::Blob.service.exist?(blobs.first.key)
+      assert ActiveStorage::Blob.service.exist?(blobs.second.key)
+      assert ActiveStorage::Blob.service.exist?(blobs.third.key)
+    end
+  end
+
   test "purging later" do
     [ create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg") ].tap do |blobs|
       @user.highlights.attach blobs
@@ -482,6 +454,35 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
       assert_not ActiveStorage::Blob.exists?(blobs.second.id)
       assert_not ActiveStorage::Blob.service.exist?(blobs.first.key)
       assert_not ActiveStorage::Blob.service.exist?(blobs.second.key)
+    end
+  end
+
+  test "purging attachment later with shared blobs" do
+    [
+      create_blob(filename: "funky.jpg"),
+      create_blob(filename: "town.jpg"),
+      create_blob(filename: "worm.jpg")
+    ].tap do |blobs|
+      @user.highlights.attach blobs
+      assert @user.highlights.attached?
+
+      another_user = User.create!(name: "John")
+      shared_blobs = [blobs.second, blobs.third]
+      another_user.highlights.attach shared_blobs
+      assert another_user.highlights.attached?
+
+      perform_enqueued_jobs do
+        @user.highlights.purge_later
+      end
+
+      assert_not @user.highlights.attached?
+      assert_not ActiveStorage::Blob.exists?(blobs.first.id)
+      assert ActiveStorage::Blob.exists?(blobs.second.id)
+      assert ActiveStorage::Blob.exists?(blobs.third.id)
+
+      assert_not ActiveStorage::Blob.service.exist?(blobs.first.key)
+      assert ActiveStorage::Blob.service.exist?(blobs.second.key)
+      assert ActiveStorage::Blob.service.exist?(blobs.third.key)
     end
   end
 
@@ -534,7 +535,7 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
       assert_equal "town.jpg", @user.highlights.first.filename.to_s
       assert_equal "funky.jpg", @user.highlights.second.filename.to_s
     ensure
-      User.send(:remove_method, :highlights)
+      User.remove_method :highlights
     end
   end
 end

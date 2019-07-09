@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "active_support/core_ext/array/extract_options"
+require "active_support/core_ext/hash/keys"
 
 module ActiveModel
   # == Active \Model \Callbacks
@@ -125,7 +126,6 @@ module ActiveModel
     end
 
     private
-
       def _define_before_model_callback(klass, callback)
         klass.define_singleton_method("before_#{callback}") do |*args, **options, &block|
           options.assert_valid_keys(:if, :unless, :prepend)

@@ -3,7 +3,7 @@
 module Arel # :nodoc: all
   module Nodes
     class BindParam < Node
-      attr_accessor :value
+      attr_reader :value
 
       def initialize(value)
         @value = value
@@ -22,6 +22,14 @@ module Arel # :nodoc: all
 
       def nil?
         value.nil?
+      end
+
+      def infinite?
+        value.respond_to?(:infinite?) && value.infinite?
+      end
+
+      def unboundable?
+        value.respond_to?(:unboundable?) && value.unboundable?
       end
     end
   end

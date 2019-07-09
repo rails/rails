@@ -2,6 +2,7 @@
 
 require "cases/helper"
 require "active_record/tasks/database_tasks"
+require "models/author"
 
 module ActiveRecord
   module DatabaseTasksSetupper
@@ -46,35 +47,51 @@ module ActiveRecord
 
   class DatabaseTasksUtilsTask < ActiveRecord::TestCase
     def test_raises_an_error_when_called_with_protected_environment
-      ActiveRecord::MigrationContext.any_instance.stubs(:current_version).returns(1)
-
       protected_environments = ActiveRecord::Base.protected_environments
       current_env            = ActiveRecord::Base.connection.migration_context.current_environment
-      assert_not_includes protected_environments, current_env
-      # Assert no error
-      ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!
 
-      ActiveRecord::Base.protected_environments = [current_env]
+      InternalMetadata[:environment] = current_env
 
-      assert_raise(ActiveRecord::ProtectedEnvironmentError) do
+      assert_called_on_instance_of(
+        ActiveRecord::MigrationContext,
+        :current_version,
+        times: 6,
+        returns: 1
+      ) do
+        assert_not_includes protected_environments, current_env
+        # Assert no error
         ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!
+
+        ActiveRecord::Base.protected_environments = [current_env]
+
+        assert_raise(ActiveRecord::ProtectedEnvironmentError) do
+          ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!
+        end
       end
     ensure
       ActiveRecord::Base.protected_environments = protected_environments
     end
 
     def test_raises_an_error_when_called_with_protected_environment_which_name_is_a_symbol
-      ActiveRecord::MigrationContext.any_instance.stubs(:current_version).returns(1)
-
       protected_environments = ActiveRecord::Base.protected_environments
       current_env            = ActiveRecord::Base.connection.migration_context.current_environment
-      assert_not_includes protected_environments, current_env
-      # Assert no error
-      ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!
 
-      ActiveRecord::Base.protected_environments = [current_env.to_sym]
-      assert_raise(ActiveRecord::ProtectedEnvironmentError) do
+      InternalMetadata[:environment] = current_env
+
+      assert_called_on_instance_of(
+        ActiveRecord::MigrationContext,
+        :current_version,
+        times: 6,
+        returns: 1
+      ) do
+        assert_not_includes protected_environments, current_env
+        # Assert no error
         ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!
+
+        ActiveRecord::Base.protected_environments = [current_env.to_sym]
+        assert_raise(ActiveRecord::ProtectedEnvironmentError) do
+          ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!
+        end
       end
     ensure
       ActiveRecord::Base.protected_environments = protected_environments
@@ -82,10 +99,14 @@ module ActiveRecord
 
     def test_raises_an_error_if_no_migrations_have_been_made
       ActiveRecord::InternalMetadata.stub(:table_exists?, false) do
-        ActiveRecord::MigrationContext.any_instance.stubs(:current_version).returns(1)
-
-        assert_raise(ActiveRecord::NoEnvironmentInSchemaError) do
-          ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!
+        assert_called_on_instance_of(
+          ActiveRecord::MigrationContext,
+          :current_version,
+          returns: 1
+        ) do
+          assert_raise(ActiveRecord::NoEnvironmentInSchemaError) do
+            ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!
+          end
         end
       end
     end
@@ -152,7 +173,7 @@ module ActiveRecord
     end
 
     def test_ignores_configurations_without_databases
-      @configurations["development"].merge!("database" => nil)
+      @configurations["development"]["database"] = nil
 
       with_stubbed_configurations_establish_connection do
         assert_not_called(ActiveRecord::Tasks::DatabaseTasks, :create) do
@@ -162,7 +183,7 @@ module ActiveRecord
     end
 
     def test_ignores_remote_databases
-      @configurations["development"].merge!("host" => "my.server.tld")
+      @configurations["development"]["host"] = "my.server.tld"
 
       with_stubbed_configurations_establish_connection do
         assert_not_called(ActiveRecord::Tasks::DatabaseTasks, :create) do
@@ -172,7 +193,7 @@ module ActiveRecord
     end
 
     def test_warning_for_remote_databases
-      @configurations["development"].merge!("host" => "my.server.tld")
+      @configurations["development"]["host"] = "my.server.tld"
 
       with_stubbed_configurations_establish_connection do
         ActiveRecord::Tasks::DatabaseTasks.create_all
@@ -183,7 +204,7 @@ module ActiveRecord
     end
 
     def test_creates_configurations_with_local_ip
-      @configurations["development"].merge!("host" => "127.0.0.1")
+      @configurations["development"]["host"] = "127.0.0.1"
 
       with_stubbed_configurations_establish_connection do
         assert_called(ActiveRecord::Tasks::DatabaseTasks, :create) do
@@ -193,7 +214,7 @@ module ActiveRecord
     end
 
     def test_creates_configurations_with_local_host
-      @configurations["development"].merge!("host" => "localhost")
+      @configurations["development"]["host"] = "localhost"
 
       with_stubbed_configurations_establish_connection do
         assert_called(ActiveRecord::Tasks::DatabaseTasks, :create) do
@@ -203,7 +224,7 @@ module ActiveRecord
     end
 
     def test_creates_configurations_with_blank_hosts
-      @configurations["development"].merge!("host" => nil)
+      @configurations["development"]["host"] = nil
 
       with_stubbed_configurations_establish_connection do
         assert_called(ActiveRecord::Tasks::DatabaseTasks, :create) do
@@ -213,18 +234,17 @@ module ActiveRecord
     end
 
     private
-
       def with_stubbed_configurations_establish_connection
-        ActiveRecord::Base.stub(:configurations, @configurations) do
-          # To refrain from connecting to a newly created empty DB in
-          # sqlite3_mem tests
-          ActiveRecord::Base.connection_handler.stub(
-            :establish_connection,
-            nil
-          ) do
-            yield
-          end
+        old_configurations = ActiveRecord::Base.configurations
+        ActiveRecord::Base.configurations = @configurations
+
+        # To refrain from connecting to a newly created empty DB in
+        # sqlite3_mem tests
+        ActiveRecord::Base.connection_handler.stub(:establish_connection, nil) do
+          yield
         end
+      ensure
+        ActiveRecord::Base.configurations = old_configurations
       end
   end
 
@@ -233,7 +253,7 @@ module ActiveRecord
       @configurations = {
         "development" => { "database" => "dev-db" },
         "test"        => { "database" => "test-db" },
-        "production"  => { "url" => "prod-db-url" }
+        "production"  => { "url" => "abstract://prod-db-host/prod-db" }
       }
     end
 
@@ -256,7 +276,7 @@ module ActiveRecord
         assert_called_with(
           ActiveRecord::Tasks::DatabaseTasks,
           :create,
-          ["url" => "prod-db-url"],
+          ["adapter" => "abstract", "database" => "prod-db", "host" => "prod-db-host"],
         ) do
           ActiveRecord::Tasks::DatabaseTasks.create_current(
             ActiveSupport::StringInquirer.new("production")
@@ -315,13 +335,15 @@ module ActiveRecord
     end
 
     private
-
       def with_stubbed_configurations_establish_connection
-        ActiveRecord::Base.stub(:configurations, @configurations) do
-          ActiveRecord::Base.stub(:establish_connection, nil) do
-            yield
-          end
+        old_configurations = ActiveRecord::Base.configurations
+        ActiveRecord::Base.configurations = @configurations
+
+        ActiveRecord::Base.connection_handler.stub(:establish_connection, nil) do
+          yield
         end
+      ensure
+        ActiveRecord::Base.configurations = old_configurations
       end
   end
 
@@ -330,7 +352,7 @@ module ActiveRecord
       @configurations = {
         "development" => { "primary" => { "database" => "dev-db" }, "secondary" => { "database" => "secondary-dev-db" } },
         "test" => { "primary" => { "database" => "test-db" }, "secondary" => { "database" => "secondary-test-db" } },
-        "production" => { "primary" => { "url" => "prod-db-url" }, "secondary" => { "url" => "secondary-prod-db-url" } }
+        "production" => { "primary" => { "url" => "abstract://prod-db-host/prod-db" }, "secondary" => { "url" => "abstract://secondary-prod-db-host/secondary-prod-db" } }
       }
     end
 
@@ -357,8 +379,8 @@ module ActiveRecord
           ActiveRecord::Tasks::DatabaseTasks,
           :create,
           [
-            ["url" => "prod-db-url"],
-            ["url" => "secondary-prod-db-url"]
+            ["adapter" => "abstract", "database" => "prod-db", "host" => "prod-db-host"],
+            ["adapter" => "abstract", "database" => "secondary-prod-db", "host" => "secondary-prod-db-host"]
           ]
         ) do
           ActiveRecord::Tasks::DatabaseTasks.create_current(
@@ -426,13 +448,15 @@ module ActiveRecord
     end
 
     private
-
       def with_stubbed_configurations_establish_connection
-        ActiveRecord::Base.stub(:configurations, @configurations) do
-          ActiveRecord::Base.stub(:establish_connection, nil) do
-            yield
-          end
+        old_configurations = ActiveRecord::Base.configurations
+        ActiveRecord::Base.configurations = @configurations
+
+        ActiveRecord::Base.connection_handler.stub(:establish_connection, nil) do
+          yield
         end
+      ensure
+        ActiveRecord::Base.configurations = old_configurations
       end
   end
 
@@ -463,9 +487,9 @@ module ActiveRecord
     end
 
     def test_ignores_configurations_without_databases
-      @configurations[:development].merge!("database" => nil)
+      @configurations[:development]["database"] = nil
 
-      ActiveRecord::Base.stub(:configurations, @configurations) do
+      with_stubbed_configurations do
         assert_not_called(ActiveRecord::Tasks::DatabaseTasks, :drop) do
           ActiveRecord::Tasks::DatabaseTasks.drop_all
         end
@@ -473,9 +497,9 @@ module ActiveRecord
     end
 
     def test_ignores_remote_databases
-      @configurations[:development].merge!("host" => "my.server.tld")
+      @configurations[:development]["host"] = "my.server.tld"
 
-      ActiveRecord::Base.stub(:configurations, @configurations) do
+      with_stubbed_configurations do
         assert_not_called(ActiveRecord::Tasks::DatabaseTasks, :drop) do
           ActiveRecord::Tasks::DatabaseTasks.drop_all
         end
@@ -483,9 +507,9 @@ module ActiveRecord
     end
 
     def test_warning_for_remote_databases
-      @configurations[:development].merge!("host" => "my.server.tld")
+      @configurations[:development]["host"] = "my.server.tld"
 
-      ActiveRecord::Base.stub(:configurations, @configurations) do
+      with_stubbed_configurations do
         ActiveRecord::Tasks::DatabaseTasks.drop_all
 
         assert_match "This task only modifies local databases. my-db is on a remote host.",
@@ -494,9 +518,9 @@ module ActiveRecord
     end
 
     def test_drops_configurations_with_local_ip
-      @configurations[:development].merge!("host" => "127.0.0.1")
+      @configurations[:development]["host"] = "127.0.0.1"
 
-      ActiveRecord::Base.stub(:configurations, @configurations) do
+      with_stubbed_configurations do
         assert_called(ActiveRecord::Tasks::DatabaseTasks, :drop) do
           ActiveRecord::Tasks::DatabaseTasks.drop_all
         end
@@ -504,9 +528,9 @@ module ActiveRecord
     end
 
     def test_drops_configurations_with_local_host
-      @configurations[:development].merge!("host" => "localhost")
+      @configurations[:development]["host"] = "localhost"
 
-      ActiveRecord::Base.stub(:configurations, @configurations) do
+      with_stubbed_configurations do
         assert_called(ActiveRecord::Tasks::DatabaseTasks, :drop) do
           ActiveRecord::Tasks::DatabaseTasks.drop_all
         end
@@ -514,14 +538,24 @@ module ActiveRecord
     end
 
     def test_drops_configurations_with_blank_hosts
-      @configurations[:development].merge!("host" => nil)
+      @configurations[:development]["host"] = nil
 
-      ActiveRecord::Base.stub(:configurations, @configurations) do
+      with_stubbed_configurations do
         assert_called(ActiveRecord::Tasks::DatabaseTasks, :drop) do
           ActiveRecord::Tasks::DatabaseTasks.drop_all
         end
       end
     end
+
+    private
+      def with_stubbed_configurations
+        old_configurations = ActiveRecord::Base.configurations
+        ActiveRecord::Base.configurations = @configurations
+
+        yield
+      ensure
+        ActiveRecord::Base.configurations = old_configurations
+      end
   end
 
   class DatabaseTasksDropCurrentTest < ActiveRecord::TestCase
@@ -529,12 +563,12 @@ module ActiveRecord
       @configurations = {
         "development" => { "database" => "dev-db" },
         "test"        => { "database" => "test-db" },
-        "production"  => { "url" => "prod-db-url" }
+        "production"  => { "url" => "abstract://prod-db-host/prod-db" }
       }
     end
 
     def test_drops_current_environment_database
-      ActiveRecord::Base.stub(:configurations, @configurations) do
+      with_stubbed_configurations do
         assert_called_with(ActiveRecord::Tasks::DatabaseTasks, :drop,
           ["database" => "test-db"]) do
           ActiveRecord::Tasks::DatabaseTasks.drop_current(
@@ -545,9 +579,9 @@ module ActiveRecord
     end
 
     def test_drops_current_environment_database_with_url
-      ActiveRecord::Base.stub(:configurations, @configurations) do
+      with_stubbed_configurations do
         assert_called_with(ActiveRecord::Tasks::DatabaseTasks, :drop,
-          ["url" => "prod-db-url"]) do
+          ["adapter" => "abstract", "database" => "prod-db", "host" => "prod-db-host"]) do
           ActiveRecord::Tasks::DatabaseTasks.drop_current(
             ActiveSupport::StringInquirer.new("production")
           )
@@ -556,7 +590,7 @@ module ActiveRecord
     end
 
     def test_drops_test_and_development_databases_when_env_was_not_specified
-      ActiveRecord::Base.stub(:configurations, @configurations) do
+      with_stubbed_configurations do
         assert_called_with(
           ActiveRecord::Tasks::DatabaseTasks,
           :drop,
@@ -576,7 +610,7 @@ module ActiveRecord
       old_env = ENV["RAILS_ENV"]
       ENV["RAILS_ENV"] = "development"
 
-      ActiveRecord::Base.stub(:configurations, @configurations) do
+      with_stubbed_configurations do
         assert_called_with(
           ActiveRecord::Tasks::DatabaseTasks,
           :drop,
@@ -593,6 +627,16 @@ module ActiveRecord
     ensure
       ENV["RAILS_ENV"] = old_env
     end
+
+    private
+      def with_stubbed_configurations
+        old_configurations = ActiveRecord::Base.configurations
+        ActiveRecord::Base.configurations = @configurations
+
+        yield
+      ensure
+        ActiveRecord::Base.configurations = old_configurations
+      end
   end
 
   class DatabaseTasksDropCurrentThreeTierTest < ActiveRecord::TestCase
@@ -600,12 +644,12 @@ module ActiveRecord
       @configurations = {
         "development" => { "primary" => { "database" => "dev-db" }, "secondary" => { "database" => "secondary-dev-db" } },
         "test" => { "primary" => { "database" => "test-db" }, "secondary" => { "database" => "secondary-test-db" } },
-        "production" => { "primary" => { "url" => "prod-db-url" }, "secondary" => { "url" => "secondary-prod-db-url" } }
+        "production" => { "primary" => { "url" => "abstract://prod-db-host/prod-db" }, "secondary" => { "url" => "abstract://secondary-prod-db-host/secondary-prod-db" } }
       }
     end
 
     def test_drops_current_environment_database
-      ActiveRecord::Base.stub(:configurations, @configurations) do
+      with_stubbed_configurations do
         assert_called_with(
           ActiveRecord::Tasks::DatabaseTasks,
           :drop,
@@ -622,13 +666,13 @@ module ActiveRecord
     end
 
     def test_drops_current_environment_database_with_url
-      ActiveRecord::Base.stub(:configurations, @configurations) do
+      with_stubbed_configurations do
         assert_called_with(
           ActiveRecord::Tasks::DatabaseTasks,
           :drop,
           [
-            ["url" => "prod-db-url"],
-            ["url" => "secondary-prod-db-url"]
+            ["adapter" => "abstract", "database" => "prod-db", "host" => "prod-db-host"],
+            ["adapter" => "abstract", "database" => "secondary-prod-db", "host" => "secondary-prod-db-host"]
           ]
         ) do
           ActiveRecord::Tasks::DatabaseTasks.drop_current(
@@ -639,7 +683,7 @@ module ActiveRecord
     end
 
     def test_drops_test_and_development_databases_when_env_was_not_specified
-      ActiveRecord::Base.stub(:configurations, @configurations) do
+      with_stubbed_configurations do
         assert_called_with(
           ActiveRecord::Tasks::DatabaseTasks,
           :drop,
@@ -661,7 +705,7 @@ module ActiveRecord
       old_env = ENV["RAILS_ENV"]
       ENV["RAILS_ENV"] = "development"
 
-      ActiveRecord::Base.stub(:configurations, @configurations) do
+      with_stubbed_configurations do
         assert_called_with(
           ActiveRecord::Tasks::DatabaseTasks,
           :drop,
@@ -680,10 +724,20 @@ module ActiveRecord
     ensure
       ENV["RAILS_ENV"] = old_env
     end
+
+    private
+      def with_stubbed_configurations
+        old_configurations = ActiveRecord::Base.configurations
+        ActiveRecord::Base.configurations = @configurations
+
+        yield
+      ensure
+        ActiveRecord::Base.configurations = old_configurations
+      end
   end
 
   if current_adapter?(:SQLite3Adapter) && !in_memory_db?
-    class DatabaseTasksMigrateTest < ActiveRecord::TestCase
+    class DatabaseTasksMigrationTestCase < ActiveRecord::TestCase
       self.use_transactional_tests = false
 
       # Use a memory db here to avoid having to rollback at the end
@@ -703,8 +757,10 @@ module ActiveRecord
         @conn.release_connection if @conn
         ActiveRecord::Base.establish_connection :arunit
       end
+    end
 
-      def test_migrate_set_and_unset_verbose_and_version_env_vars
+    class DatabaseTasksMigrateTest < DatabaseTasksMigrationTestCase
+      def test_can_migrate_from_pending_migration_error_action_dispatch
         verbose, version = ENV["VERBOSE"], ENV["VERSION"]
         ENV["VERSION"] = "2"
         ENV["VERBOSE"] = "false"
@@ -716,7 +772,9 @@ module ActiveRecord
         ENV.delete("VERBOSE")
 
         # re-run up migration
-        assert_includes capture_migration_output, "migrating"
+        assert_includes(capture(:stdout) do
+          ActiveSupport::ActionableError.dispatch ActiveRecord::PendingMigrationError, "Run pending migrations"
+        end, "migrating")
       ensure
         ENV["VERBOSE"], ENV["VERSION"] = verbose, version
       end
@@ -761,6 +819,25 @@ module ActiveRecord
         def capture_migration_output
           capture(:stdout) do
             ActiveRecord::Tasks::DatabaseTasks.migrate
+          end
+        end
+    end
+
+    class DatabaseTasksMigrateStatusTest < DatabaseTasksMigrationTestCase
+      def test_migrate_status_table
+        ActiveRecord::SchemaMigration.create_table
+        output = capture_migration_status
+        assert_match(/database: :memory:/, output)
+        assert_match(/down    001             Valid people have last names/, output)
+        assert_match(/down    002             We need reminders/, output)
+        assert_match(/down    003             Innocent jointable/, output)
+        ActiveRecord::SchemaMigration.drop_table
+      end
+
+      private
+        def capture_migration_status
+          capture(:stdout) do
+            ActiveRecord::Tasks::DatabaseTasks.migrate_status
           end
         end
     end
@@ -833,38 +910,215 @@ module ActiveRecord
 
   class DatabaseTasksPurgeCurrentTest < ActiveRecord::TestCase
     def test_purges_current_environment_database
+      old_configurations = ActiveRecord::Base.configurations
       configurations = {
         "development" => { "database" => "dev-db" },
         "test"        => { "database" => "test-db" },
         "production"  => { "database" => "prod-db" }
       }
-      ActiveRecord::Base.stub(:configurations, configurations) do
-        assert_called_with(
-          ActiveRecord::Tasks::DatabaseTasks,
-          :purge,
-          ["database" => "prod-db"]
-        ) do
-          assert_called_with(ActiveRecord::Base, :establish_connection, [:production]) do
-            ActiveRecord::Tasks::DatabaseTasks.purge_current("production")
-          end
+
+      ActiveRecord::Base.configurations = configurations
+
+      assert_called_with(
+        ActiveRecord::Tasks::DatabaseTasks,
+        :purge,
+        ["database" => "prod-db"]
+      ) do
+        assert_called_with(ActiveRecord::Base, :establish_connection, [:production]) do
+          ActiveRecord::Tasks::DatabaseTasks.purge_current("production")
         end
       end
+    ensure
+      ActiveRecord::Base.configurations = old_configurations
     end
   end
 
   class DatabaseTasksPurgeAllTest < ActiveRecord::TestCase
     def test_purge_all_local_configurations
+      old_configurations = ActiveRecord::Base.configurations
       configurations = { development: { "database" => "my-db" } }
-      ActiveRecord::Base.stub(:configurations, configurations) do
+      ActiveRecord::Base.configurations = configurations
+
+      assert_called_with(
+        ActiveRecord::Tasks::DatabaseTasks,
+        :purge,
+        ["database" => "my-db"]
+      ) do
+        ActiveRecord::Tasks::DatabaseTasks.purge_all
+      end
+    ensure
+      ActiveRecord::Base.configurations = old_configurations
+    end
+  end
+
+  unless in_memory_db?
+    class DatabaseTasksTruncateAllTest < ActiveRecord::TestCase
+      self.use_transactional_tests = false
+
+      fixtures :authors, :author_addresses
+
+      def setup
+        SchemaMigration.create_table
+        SchemaMigration.create!(version: SchemaMigration.table_name)
+        InternalMetadata.create_table
+        InternalMetadata.create!(key: InternalMetadata.table_name)
+      end
+
+      def teardown
+        SchemaMigration.delete_all
+        InternalMetadata.delete_all
+        ActiveRecord::Base.connection_handlers = { writing: ActiveRecord::Base.default_connection_handler }
+      end
+
+      def test_truncate_tables
+        assert_operator SchemaMigration.count, :>, 0
+        assert_operator InternalMetadata.count, :>, 0
+        assert_operator Author.count, :>, 0
+        assert_operator AuthorAddress.count, :>, 0
+
+        old_configurations = ActiveRecord::Base.configurations
+        configurations = { development: ActiveRecord::Base.configurations["arunit"] }
+        ActiveRecord::Base.configurations = configurations
+
+        ActiveRecord::Tasks::DatabaseTasks.stub(:root, nil) do
+          ActiveRecord::Tasks::DatabaseTasks.truncate_all(
+            ActiveSupport::StringInquirer.new("development")
+          )
+        end
+
+        assert_operator SchemaMigration.count, :>, 0
+        assert_operator InternalMetadata.count, :>, 0
+        assert_equal 0, Author.count
+        assert_equal 0, AuthorAddress.count
+      ensure
+        ActiveRecord::Base.configurations = old_configurations
+      end
+    end
+
+    class DatabaseTasksTruncateAllWithPrefixTest < DatabaseTasksTruncateAllTest
+      setup do
+        ActiveRecord::Base.table_name_prefix = "p_"
+
+        SchemaMigration.reset_table_name
+        InternalMetadata.reset_table_name
+      end
+
+      teardown do
+        ActiveRecord::Base.table_name_prefix = nil
+
+        SchemaMigration.reset_table_name
+        InternalMetadata.reset_table_name
+      end
+    end
+
+    class DatabaseTasksTruncateAllWithSuffixTest < DatabaseTasksTruncateAllTest
+      setup do
+        ActiveRecord::Base.table_name_suffix = "_s"
+
+        SchemaMigration.reset_table_name
+        InternalMetadata.reset_table_name
+      end
+
+      teardown do
+        ActiveRecord::Base.table_name_suffix = nil
+
+        SchemaMigration.reset_table_name
+        InternalMetadata.reset_table_name
+      end
+    end
+  end
+
+  class DatabaseTasksTruncateAllWithMultipleDatabasesTest < ActiveRecord::TestCase
+    def setup
+      @configurations = {
+        "development" => { "primary" => { "database" => "dev-db" }, "secondary" => { "database" => "secondary-dev-db" } },
+        "test" => { "primary" => { "database" => "test-db" }, "secondary" => { "database" => "secondary-test-db" } },
+        "production" => { "primary" => { "url" => "abstract://prod-db-host/prod-db" }, "secondary" => { "url" => "abstract://secondary-prod-db-host/secondary-prod-db" } }
+      }
+    end
+
+    def test_truncate_all_databases_for_environment
+      with_stubbed_configurations do
         assert_called_with(
           ActiveRecord::Tasks::DatabaseTasks,
-          :purge,
-          ["database" => "my-db"]
+          :truncate_tables,
+          [
+            ["database" => "test-db"],
+            ["database" => "secondary-test-db"]
+          ]
         ) do
-          ActiveRecord::Tasks::DatabaseTasks.purge_all
+          ActiveRecord::Tasks::DatabaseTasks.truncate_all(
+            ActiveSupport::StringInquirer.new("test")
+          )
         end
       end
     end
+
+    def test_truncate_all_databases_with_url_for_environment
+      with_stubbed_configurations do
+        assert_called_with(
+          ActiveRecord::Tasks::DatabaseTasks,
+          :truncate_tables,
+          [
+            ["adapter" => "abstract", "database" => "prod-db", "host" => "prod-db-host"],
+            ["adapter" => "abstract", "database" => "secondary-prod-db", "host" => "secondary-prod-db-host"]
+          ]
+        ) do
+          ActiveRecord::Tasks::DatabaseTasks.truncate_all(
+            ActiveSupport::StringInquirer.new("production")
+          )
+        end
+      end
+    end
+
+    def test_truncate_all_development_databases_when_env_is_not_specified
+      with_stubbed_configurations do
+        assert_called_with(
+          ActiveRecord::Tasks::DatabaseTasks,
+          :truncate_tables,
+          [
+            ["database" => "dev-db"],
+            ["database" => "secondary-dev-db"]
+          ]
+        ) do
+          ActiveRecord::Tasks::DatabaseTasks.truncate_all(
+            ActiveSupport::StringInquirer.new("development")
+          )
+        end
+      end
+    end
+
+    def test_truncate_all_development_databases_when_env_is_development
+      old_env = ENV["RAILS_ENV"]
+      ENV["RAILS_ENV"] = "development"
+
+      with_stubbed_configurations do
+        assert_called_with(
+          ActiveRecord::Tasks::DatabaseTasks,
+          :truncate_tables,
+          [
+            ["database" => "dev-db"],
+            ["database" => "secondary-dev-db"]
+          ]
+        ) do
+          ActiveRecord::Tasks::DatabaseTasks.truncate_all(
+            ActiveSupport::StringInquirer.new("development")
+          )
+        end
+      end
+    ensure
+      ENV["RAILS_ENV"] = old_env
+    end
+
+    private
+      def with_stubbed_configurations
+        old_configurations = ActiveRecord::Base.configurations
+        ActiveRecord::Base.configurations = @configurations
+
+        yield
+      ensure
+        ActiveRecord::Base.configurations = old_configurations
+      end
   end
 
   class DatabaseTasksCharsetTest < ActiveRecord::TestCase

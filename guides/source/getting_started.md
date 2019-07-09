@@ -28,7 +28,7 @@ curve diving straight into Rails. There are several curated lists of online reso
 for learning Ruby:
 
 * [Official Ruby Programming Language website](https://www.ruby-lang.org/en/documentation/)
-* [List of Free Programming Books](https://github.com/vhf/free-programming-books/blob/master/free-programming-books.md#ruby)
+* [List of Free Programming Books](https://github.com/EbookFoundation/free-programming-books/blob/master/free-programming-books.md#ruby)
 
 Be aware that some resources, while still excellent, cover versions of Ruby as old as
 1.6, and commonly 1.8, and will not include some syntax that you will see in day-to-day
@@ -55,7 +55,7 @@ The Rails philosophy includes two major guiding principles:
 
 * **Don't Repeat Yourself:** DRY is a principle of software development which
   states that "Every piece of knowledge must have a single, unambiguous, authoritative
-  representation within a system." By not writing the same information over and over
+  representation within a system". By not writing the same information over and over
   again, our code is more maintainable, more extensible, and less buggy.
 * **Convention Over Configuration:** Rails has opinions about the best way to do many
   things in a web application, and defaults to this set of conventions, rather than
@@ -90,7 +90,7 @@ $ ruby -v
 ruby 2.5.0
 ```
 
-Rails requires Ruby version 2.4.1 or later. If the version number returned is
+Rails requires Ruby version 2.5.0 or later. If the version number returned is
 less than that number, you'll need to install a fresh copy of Ruby.
 
 TIP: To quickly install Ruby and Ruby on Rails on your system in Windows, you can use
@@ -126,7 +126,7 @@ run the following:
 $ rails --version
 ```
 
-If it says something like "Rails 5.1.1", you are ready to continue.
+If it says something like "Rails 6.0.0", you are ready to continue.
 
 ### Creating the Blog Application
 
@@ -205,12 +205,10 @@ $ rails server
 TIP: If you are using Windows, you have to pass the scripts under the `bin`
 folder directly to the Ruby interpreter e.g. `ruby bin\rails server`.
 
-TIP: Compiling CoffeeScript and JavaScript asset compression requires you
+TIP: JavaScript asset compression requires you
 have a JavaScript runtime available on your system, in the absence
-of a runtime you will see an `execjs` error during asset compilation.
+of a runtime you will see an `execjs` error during asset compression.
 Usually macOS and Windows come with a JavaScript runtime installed.
-Rails adds the `mini_racer` gem to the generated `Gemfile` in a
-commented line for new apps and you can uncomment if you need it.
 `therubyrhino` is the recommended runtime for JRuby users and is added by
 default to the `Gemfile` in apps generated under JRuby. You can investigate
 all the supported runtimes at [ExecJS](https://github.com/rails/execjs#readme).
@@ -272,8 +270,6 @@ invoke  helper
 create    app/helpers/welcome_helper.rb
 invoke    test_unit
 invoke  assets
-invoke    coffee
-create      app/assets/javascripts/welcome.coffee
 invoke    scss
 create      app/assets/stylesheets/welcome.scss
 ```
@@ -463,22 +459,19 @@ available, Rails will raise an exception.
 
 Let's look at the full error message again:
 
->ArticlesController#new is missing a template for this request format and variant. request.formats: ["text/html"] request.variant: [] NOTE! For XHR/Ajax or API requests, this action would normally respond with 204 No Content: an empty white screen. Since you're loading it in a web browser, we assume that you expected to actually render a template, not… nothing, so we're showing an error to be extra-clear. If you expect 204 No Content, carry on. That's what you'll get from an XHR or API request. Give it a shot.
+>ArticlesController#new is missing a template for request formats: text/html
 
-That's quite a lot of text! Let's quickly go through and understand what each
-part of it means.
+>NOTE!
+>Unless told otherwise, Rails expects an action to render a template with the same name, contained in a folder named after its controller. If this controller is an API responding with 204 (No Content), which does not require a template, then this error will occur when trying to access it via browser, since we expect an HTML template to be rendered for such requests. If that's the case, carry on.
 
-The first part identifies which template is missing. In this case, it's the
+The message identifies which template is missing. In this case, it's the
 `articles/new` template. Rails will first look for this template. If not found,
-then it will attempt to load a template called `application/new`. It looks for
-one here because the `ArticlesController` inherits from `ApplicationController`.
+then it will attempt to load a template called `application/new`, because the
+`ArticlesController` inherits from `ApplicationController`.
 
-The next part of the message contains `request.formats` which specifies
-the format of template to be served in response. It is set to `text/html` as we
-requested this page via browser, so Rails is looking for an HTML template.
-`request.variant` specifies what kind of physical devices would be served by
-the response and helps Rails determine which template to use in the response.
-It is empty because no information has been provided.
+Next the message contains `request.formats` which specifies the format of
+template to be served in response. It is set to `text/html` as we requested
+this page via browser, so Rails is looking for an HTML template.
 
 The simplest template that would work in this case would be one located at
 `app/views/articles/new.html.erb`. The extension of this file name is important:
@@ -688,7 +681,7 @@ If you look in the `db/migrate/YYYYMMDDHHMMSS_create_articles.rb` file
 (remember, yours will have a slightly different name), here's what you'll find:
 
 ```ruby
-class CreateArticles < ActiveRecord::Migration[5.0]
+class CreateArticles < ActiveRecord::Migration[6.0]
   def change
     create_table :articles do |t|
       t.string :title
@@ -779,10 +772,11 @@ extra fields with values that violated your application's integrity? They would
 be 'mass assigned' into your model and then into the database along with the
 good stuff - potentially breaking your application or worse.
 
-We have to whitelist our controller parameters to prevent wrongful mass
+We have to define our permitted controller parameters to prevent wrongful mass
 assignment. In this case, we want to both allow and require the `title` and
 `text` parameters for valid use of `create`. The syntax for this introduces
-`require` and `permit`. The change will involve one line in the `create` action:
+`require` and `permit`. The change will involve one line in the `create`
+action:
 
 ```ruby
   @article = Article.new(params.require(:article).permit(:title, :text))
@@ -1213,7 +1207,7 @@ view above, will cause form helpers to fill in form fields with the correspondin
 values of the object.  Passing in a symbol scope such as `scope: :article`, as
 was done in the new view, only creates empty form fields.
 More details can be found in [form_with documentation]
-(http://api.rubyonrails.org/classes/ActionView/Helpers/FormHelper.html#method-i-form_with).
+(https://api.rubyonrails.org/classes/ActionView/Helpers/FormHelper.html#method-i-form_with).
 
 Next, we need to create the `update` action in
 `app/controllers/articles_controller.rb`.
@@ -1349,7 +1343,7 @@ to stand in for either of the other forms is that `@article` is a *resource*
 corresponding to a full set of RESTful routes, and Rails is able to infer
 which URI and method to use.
 For more information about this use of `form_with`, see [Resource-oriented style]
-(http://api.rubyonrails.org/classes/ActionView/Helpers/FormHelper.html#method-i-form_with-label-Resource-oriented+style).
+(https://api.rubyonrails.org/classes/ActionView/Helpers/FormHelper.html#method-i-form_with-label-Resource-oriented+style).
 
 Now, let's update the `app/views/articles/new.html.erb` view to use this new
 partial, rewriting it completely:
@@ -1559,12 +1553,12 @@ In addition to the model, Rails has also made a migration to create the
 corresponding database table:
 
 ```ruby
-class CreateComments < ActiveRecord::Migration[5.0]
+class CreateComments < ActiveRecord::Migration[6.0]
   def change
     create_table :comments do |t|
       t.string :commenter
       t.text :body
-      t.references :article, foreign_key: true
+      t.references :article, null: false, foreign_key: true
 
       t.timestamps
     end
@@ -1656,7 +1650,7 @@ controller. Again, we'll use the same generator we used before:
 $ rails generate controller Comments
 ```
 
-This creates five files and one empty directory:
+This creates four files and one empty directory:
 
 | File/Directory                               | Purpose                                  |
 | -------------------------------------------- | ---------------------------------------- |
@@ -1664,7 +1658,6 @@ This creates five files and one empty directory:
 | app/views/comments/                          | Views of the controller are stored here  |
 | test/controllers/comments_controller_test.rb | The test for the controller              |
 | app/helpers/comments_helper.rb               | A view helper file                       |
-| app/assets/javascripts/comments.coffee       | CoffeeScript for the controller          |
 | app/assets/stylesheets/comments.scss         | Cascading style sheet for the controller |
 
 Like with any blog, our readers will create their comments directly after

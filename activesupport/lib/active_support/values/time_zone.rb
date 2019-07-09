@@ -182,8 +182,9 @@ module ActiveSupport
       "Samoa"                        => "Pacific/Apia"
     }
 
-    UTC_OFFSET_WITH_COLON = "%s%02d:%02d"
-    UTC_OFFSET_WITHOUT_COLON = UTC_OFFSET_WITH_COLON.tr(":", "")
+    UTC_OFFSET_WITH_COLON = "%s%02d:%02d" # :nodoc:
+    UTC_OFFSET_WITHOUT_COLON = UTC_OFFSET_WITH_COLON.tr(":", "") # :nodoc:
+    private_constant :UTC_OFFSET_WITH_COLON, :UTC_OFFSET_WITHOUT_COLON
 
     @lazy_zones_map = Concurrent::Map.new
     @country_zones  = Concurrent::Map.new
@@ -265,7 +266,7 @@ module ActiveSupport
       private
         def load_country_zones(code)
           country = TZInfo::Country.get(code)
-          country.zone_identifiers.map do |tz_id|
+          country.zone_identifiers.flat_map do |tz_id|
             if MAPPING.value?(tz_id)
               MAPPING.inject([]) do |memo, (key, value)|
                 memo << self[key] if value == tz_id
@@ -274,7 +275,7 @@ module ActiveSupport
             else
               create(tz_id, nil, TZInfo::Timezone.new(tz_id))
             end
-          end.flatten(1).sort!
+          end.sort!
         end
 
         def zones_map

@@ -3,7 +3,6 @@
 require "securerandom"
 require "abstract_unit"
 require "active_support/core_ext/string/inflections"
-require "active_support/core_ext/regexp"
 require "active_support/json"
 require "active_support/time"
 require "time_zone_test_helpers"
@@ -22,20 +21,18 @@ class TestJSONEncoding < ActiveSupport::TestCase
 
   JSONTest::EncodingTestCases.constants.each do |class_tests|
     define_method("test_#{class_tests[0..-6].underscore}") do
-      begin
-        prev = ActiveSupport.use_standard_json_time_format
+      prev = ActiveSupport.use_standard_json_time_format
 
-        standard_class_tests = /Standard/.match?(class_tests)
+      standard_class_tests = /Standard/.match?(class_tests)
 
-        ActiveSupport.escape_html_entities_in_json  = !standard_class_tests
-        ActiveSupport.use_standard_json_time_format = standard_class_tests
-        JSONTest::EncodingTestCases.const_get(class_tests).each do |pair|
-          assert_equal pair.last, sorted_json(ActiveSupport::JSON.encode(pair.first))
-        end
-      ensure
-        ActiveSupport.escape_html_entities_in_json  = false
-        ActiveSupport.use_standard_json_time_format = prev
+      ActiveSupport.escape_html_entities_in_json  = !standard_class_tests
+      ActiveSupport.use_standard_json_time_format = standard_class_tests
+      JSONTest::EncodingTestCases.const_get(class_tests).each do |pair|
+        assert_equal pair.last, sorted_json(ActiveSupport::JSON.encode(pair.first))
       end
+    ensure
+      ActiveSupport.escape_html_entities_in_json  = false
+      ActiveSupport.use_standard_json_time_format = prev
     end
   end
 
@@ -157,6 +154,16 @@ class TestJSONEncoding < ActiveSupport::TestCase
 
     assert_equal({ "foo" => "hello" }, JSON.parse(json))
   end
+
+  def test_struct_to_json_with_options_nested
+    klass = Struct.new(:foo, :bar)
+    struct = klass.new "hello", "world"
+    parent_struct = klass.new struct, "world"
+    json = parent_struct.to_json only: [:foo]
+
+    assert_equal({ "foo" => { "foo" => "hello" } }, JSON.parse(json))
+  end
+
 
   def test_hash_should_pass_encoding_options_to_children_in_as_json
     person = {
@@ -459,7 +466,6 @@ EXPECTED
   end
 
   private
-
     def object_keys(json_object)
       json_object[1..-2].scan(/([^{}:,\s]+):/).flatten.sort
     end

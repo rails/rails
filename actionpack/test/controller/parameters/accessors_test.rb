@@ -75,6 +75,28 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
     end
   end
 
+  test "each_value carries permitted status" do
+    @params.permit!
+    @params.each_value do |value|
+      assert_predicate(value, :permitted?)
+    end
+  end
+
+  test "each_value carries unpermitted status" do
+    @params.each_value do |value|
+      assert_not_predicate(value, :permitted?)
+    end
+  end
+
+  test "each_key converts to hash for permitted" do
+    @params.permit!
+    @params.each_key { |key| assert_kind_of(String, key) if key == "person" }
+  end
+
+  test "each_key converts to hash for unpermitted" do
+    @params.each_key { |key| assert_kind_of(String, key) if key == "person" }
+  end
+
   test "empty? returns true when params contains no key/value pairs" do
     params = ActionController::Parameters.new
     assert_empty params
@@ -181,6 +203,25 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
     assert_not_predicate @params.transform_keys { |k| k }, :permitted?
   end
 
+  test "transform_keys without a block returns an enumerator" do
+    assert_kind_of Enumerator, @params.transform_keys
+    assert_kind_of ActionController::Parameters, @params.transform_keys.each { |k| k }
+  end
+
+  test "transform_keys! without a block returns an enumerator" do
+    assert_kind_of Enumerator, @params.transform_keys!
+    assert_kind_of ActionController::Parameters, @params.transform_keys!.each { |k| k }
+  end
+
+  test "deep_transform_keys retains permitted status" do
+    @params.permit!
+    assert_predicate @params.deep_transform_keys { |k| k }, :permitted?
+  end
+
+  test "deep_transform_keys retains unpermitted status" do
+    assert_not_predicate @params.deep_transform_keys { |k| k }, :permitted?
+  end
+
   test "transform_values retains permitted status" do
     @params.permit!
     assert_predicate @params.transform_values { |v| v }, :permitted?
@@ -197,8 +238,9 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
     end
   end
 
-  test "transform_values without block yieds an enumerator" do
+  test "transform_values without a block returns an enumerator" do
     assert_kind_of Enumerator, @params.transform_values
+    assert_kind_of ActionController::Parameters, @params.transform_values.each { |v| v }
   end
 
   test "transform_values! converts hashes to parameters" do
@@ -207,8 +249,9 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
     end
   end
 
-  test "transform_values! without block yields an enumerator" do
+  test "transform_values! without a block returns an enumerator" do
     assert_kind_of Enumerator, @params.transform_values!
+    assert_kind_of ActionController::Parameters, @params.transform_values!.each { |v| v }
   end
 
   test "value? returns true if the given value is present in the params" do

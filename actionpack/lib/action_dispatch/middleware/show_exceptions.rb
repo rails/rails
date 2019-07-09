@@ -40,12 +40,11 @@ module ActionDispatch
     end
 
     private
-
       def render_exception(request, exception)
         backtrace_cleaner = request.get_header "action_dispatch.backtrace_cleaner"
         wrapper = ExceptionWrapper.new(backtrace_cleaner, exception)
         status  = wrapper.status_code
-        request.set_header "action_dispatch.exception", wrapper.exception
+        request.set_header "action_dispatch.exception", wrapper.unwrapped_exception
         request.set_header "action_dispatch.original_path", request.path_info
         request.path_info = "/#{status}"
         response = @exceptions_app.call(request.env)

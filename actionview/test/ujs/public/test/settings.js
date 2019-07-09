@@ -1,4 +1,5 @@
 var App = App || {}
+var Turbolinks = Turbolinks || {}
 
 App.assertCallbackInvoked = function(callbackName) {
   ok(true, callbackName + ' callback should have been invoked')
@@ -17,7 +18,7 @@ App.assertPostRequest = function(requestEnv) {
 }
 
 App.assertRequestPath = function(requestEnv, path) {
-  equal(requestEnv['PATH_INFO'], path, 'request should be sent to right url')
+  equal(requestEnv['PATH_INFO'], path, 'request should be sent to right URL')
 }
 
 App.getVal = function(el) {
@@ -70,7 +71,7 @@ try {
 } catch (e) {
   _MouseEvent = function(type, options) {
     var evt = document.createEvent('MouseEvents')
-    evt.initMouseEvent(type, options.bubbles, options.cancelable, window, options.detail, 0, 0, 80, 20, options.ctrlKey, options.altKey, options.shiftKey, options.metaKey, 0, null)
+    evt.initMouseEvent(type, options.bubbles, options.cancelable, window, options.detail, 0, 0, 80, 20, options.ctrlKey, options.altKey, options.shiftKey, options.metaKey, options.button, null)
     return evt
   }
 }
@@ -116,3 +117,6 @@ $.fn.extend({
     return this
   }
 })
+
+Turbolinks.clearCache = function() {}
+Turbolinks.visit = function() {}

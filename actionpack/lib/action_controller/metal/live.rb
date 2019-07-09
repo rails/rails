@@ -86,7 +86,7 @@ module ActionController
     # Note: SSEs are not currently supported by IE. However, they are supported
     # by Chrome, Firefox, Opera, and Safari.
     class SSE
-      WHITELISTED_OPTIONS = %w( retry event id )
+      PERMITTED_OPTIONS = %w( retry event id )
 
       def initialize(stream, options = {})
         @stream = stream
@@ -107,17 +107,16 @@ module ActionController
       end
 
       private
-
         def perform_write(json, options)
           current_options = @options.merge(options).stringify_keys
 
-          WHITELISTED_OPTIONS.each do |option_name|
+          PERMITTED_OPTIONS.each do |option_name|
             if (option_value = current_options[option_name])
               @stream.write "#{option_name}: #{option_value}\n"
             end
           end
 
-          message = json.gsub("\n".freeze, "\ndata: ".freeze)
+          message = json.gsub("\n", "\ndata: ")
           @stream.write "data: #{message}\n\n"
         end
     end
@@ -146,7 +145,7 @@ module ActionController
 
       def write(string)
         unless @response.committed?
-          @response.set_header "Cache-Control", "no-cache"
+          @response.headers["Cache-Control"] ||= "no-cache"
           @response.delete_header "Content-Length"
         end
 
@@ -205,7 +204,6 @@ module ActionController
       end
 
       private
-
         def each_chunk(&block)
           loop do
             str = nil
@@ -220,7 +218,6 @@ module ActionController
 
     class Response < ActionDispatch::Response #:nodoc: all
       private
-
         def before_committed
           super
           jar = request.cookie_jar
@@ -280,33 +277,34 @@ module ActionController
       raise error if error
     end
 
-    # Spawn a new thread to serve up the controller in. This is to get
-    # around the fact that Rack isn't based around IOs and we need to use
-    # a thread to stream data from the response bodies. Nobody should call
-    # this method except in Rails internals. Seriously!
-    def new_controller_thread # :nodoc:
-      Thread.new {
-        t2 = Thread.current
-        t2.abort_on_exception = true
-        yield
-      }
-    end
-
-    def log_error(exception)
-      logger = ActionController::Base.logger
-      return unless logger
-
-      logger.fatal do
-        message = "\n#{exception.class} (#{exception.message}):\n".dup
-        message << exception.annoted_source_code.to_s if exception.respond_to?(:annoted_source_code)
-        message << "  " << exception.backtrace.join("\n  ")
-        "#{message}\n\n"
-      end
-    end
-
     def response_body=(body)
       super
       response.close if response
     end
+
+    private
+      # Spawn a new thread to serve up the controller in. This is to get
+      # around the fact that Rack isn't based around IOs and we need to use
+      # a thread to stream data from the response bodies. Nobody should call
+      # this method except in Rails internals. Seriously!
+      def new_controller_thread # :nodoc:
+        Thread.new {
+          t2 = Thread.current
+          t2.abort_on_exception = true
+          yield
+        }
+      end
+
+      def log_error(exception)
+        logger = ActionController::Base.logger
+        return unless logger
+
+        logger.fatal do
+          message = +"\n#{exception.class} (#{exception.message}):\n"
+          message << exception.annotated_source_code.to_s if exception.respond_to?(:annotated_source_code)
+          message << "  " << exception.backtrace.join("\n  ")
+          "#{message}\n\n"
+        end
+      end
   end
 end

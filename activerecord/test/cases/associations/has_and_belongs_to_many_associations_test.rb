@@ -25,6 +25,8 @@ require "models/user"
 require "models/member"
 require "models/membership"
 require "models/sponsor"
+require "models/lesson"
+require "models/student"
 require "models/country"
 require "models/treaty"
 require "models/vertex"
@@ -275,7 +277,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   def test_habtm_saving_multiple_relationships
     new_project = Project.new("name" => "Grimetime")
     amount_of_developers = 4
-    developers = (0...amount_of_developers).collect { |i| Developer.create(name: "JME #{i}") }.reverse
+    developers = (0...amount_of_developers).reverse_each.map { |i| Developer.create(name: "JME #{i}") }
 
     new_project.developer_ids = [developers[0].id, developers[1].id]
     new_project.developers_with_callback_ids = [developers[2].id, developers[3].id]
@@ -310,7 +312,8 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
 
   def test_build
     devel = Developer.find(1)
-    proj = assert_no_queries(ignore_none: false) { devel.projects.build("name" => "Projekt") }
+
+    proj = assert_queries(0) { devel.projects.build("name" => "Projekt") }
     assert_not_predicate devel.projects, :loaded?
 
     assert_equal devel.projects.last, proj
@@ -325,7 +328,8 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
 
   def test_new_aliased_to_build
     devel = Developer.find(1)
-    proj = assert_no_queries(ignore_none: false) { devel.projects.new("name" => "Projekt") }
+
+    proj = assert_queries(0) { devel.projects.new("name" => "Projekt") }
     assert_not_predicate devel.projects, :loaded?
 
     assert_equal devel.projects.last, proj
@@ -546,7 +550,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
 
     developer = project.developers.first
 
-    assert_no_queries(ignore_none: false) do
+    assert_queries(0) do
       assert_predicate project.developers, :loaded?
       assert_includes project.developers, developer
     end
@@ -772,6 +776,16 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_equal [projects(:active_record), projects(:action_controller)].map(&:id).sort, developer.project_ids.sort
   end
 
+  def test_singular_ids_are_reloaded_after_collection_concat
+    student = Student.create(name: "Alberto Almagro")
+    student.lesson_ids
+
+    lesson = Lesson.create(name: "DSI")
+    student.lessons << lesson
+
+    assert_includes student.lesson_ids, lesson.id
+  end
+
   def test_scoped_find_on_through_association_doesnt_return_read_only_records
     tag = Post.find(1).tags.find_by_name("General")
 
@@ -781,7 +795,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_many_through_polymorphic_has_manys_works
-    assert_equal [10, 20].to_set, pirates(:redbeard).treasure_estimates.map(&:price).to_set
+    assert_equal ["$10.00", "$20.00"].to_set, pirates(:redbeard).treasure_estimates.map(&:price).to_set
   end
 
   def test_symbols_as_keys
@@ -859,7 +873,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
 
   def test_has_and_belongs_to_many_associations_on_new_records_use_null_relations
     projects = Developer.new.projects
-    assert_no_queries(ignore_none: false) do
+    assert_queries(0) do
       assert_equal [], projects
       assert_equal [], projects.where(title: "omg")
       assert_equal [], projects.pluck(:title)
@@ -987,16 +1001,14 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_and_belongs_to_many_while_partial_writes_false
-    begin
-      original_partial_writes = ActiveRecord::Base.partial_writes
-      ActiveRecord::Base.partial_writes = false
-      developer = Developer.new(name: "Mehmet Emin İNAÇ")
-      developer.projects << Project.new(name: "Bounty")
+    original_partial_writes = ActiveRecord::Base.partial_writes
+    ActiveRecord::Base.partial_writes = false
+    developer = Developer.new(name: "Mehmet Emin İNAÇ")
+    developer.projects << Project.new(name: "Bounty")
 
-      assert developer.save
-    ensure
-      ActiveRecord::Base.partial_writes = original_partial_writes
-    end
+    assert developer.save
+  ensure
+    ActiveRecord::Base.partial_writes = original_partial_writes
   end
 
   def test_has_and_belongs_to_many_with_belongs_to

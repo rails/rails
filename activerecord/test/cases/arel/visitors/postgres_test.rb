@@ -215,7 +215,7 @@ module Arel
           }
         end
 
-        it "should know how to generate paranthesis when supplied with many Dimensions" do
+        it "should know how to generate parenthesis when supplied with many Dimensions" do
           dim1 = Arel::Nodes::GroupingElement.new(@table[:name])
           dim2 = Arel::Nodes::GroupingElement.new([@table[:bool], @table[:created_at]])
           node = Arel::Nodes::Cube.new([dim1, dim2])
@@ -241,7 +241,7 @@ module Arel
           }
         end
 
-        it "should know how to generate paranthesis when supplied with many Dimensions" do
+        it "should know how to generate parenthesis when supplied with many Dimensions" do
           group1 = Arel::Nodes::GroupingElement.new(@table[:name])
           group2 = Arel::Nodes::GroupingElement.new([@table[:bool], @table[:created_at]])
           node = Arel::Nodes::GroupingSet.new([group1, group2])
@@ -267,13 +267,52 @@ module Arel
           }
         end
 
-        it "should know how to generate paranthesis when supplied with many Dimensions" do
+        it "should know how to generate parenthesis when supplied with many Dimensions" do
           group1 = Arel::Nodes::GroupingElement.new(@table[:name])
           group2 = Arel::Nodes::GroupingElement.new([@table[:bool], @table[:created_at]])
           node = Arel::Nodes::RollUp.new([group1, group2])
           compile(node).must_be_like %{
             ROLLUP( ( "users"."name" ), ( "users"."bool", "users"."created_at" ) )
           }
+        end
+      end
+
+      describe "Nodes::IsNotDistinctFrom" do
+        it "should construct a valid generic SQL statement" do
+          test = Table.new(:users)[:name].is_not_distinct_from "Aaron Patterson"
+          compile(test).must_be_like %{
+            "users"."name" IS NOT DISTINCT FROM 'Aaron Patterson'
+          }
+        end
+
+        it "should handle column names on both sides" do
+          test = Table.new(:users)[:first_name].is_not_distinct_from Table.new(:users)[:last_name]
+          compile(test).must_be_like %{
+            "users"."first_name" IS NOT DISTINCT FROM "users"."last_name"
+          }
+        end
+
+        it "should handle nil" do
+          @table = Table.new(:users)
+          val = Nodes.build_quoted(nil, @table[:active])
+          sql = compile Nodes::IsNotDistinctFrom.new(@table[:name], val)
+          sql.must_be_like %{ "users"."name" IS NOT DISTINCT FROM NULL }
+        end
+      end
+
+      describe "Nodes::IsDistinctFrom" do
+        it "should handle column names on both sides" do
+          test = Table.new(:users)[:first_name].is_distinct_from Table.new(:users)[:last_name]
+          compile(test).must_be_like %{
+            "users"."first_name" IS DISTINCT FROM "users"."last_name"
+          }
+        end
+
+        it "should handle nil" do
+          @table = Table.new(:users)
+          val = Nodes.build_quoted(nil, @table[:active])
+          sql = compile Nodes::IsDistinctFrom.new(@table[:name], val)
+          sql.must_be_like %{ "users"."name" IS DISTINCT FROM NULL }
         end
       end
     end

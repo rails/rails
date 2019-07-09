@@ -119,6 +119,38 @@ module ApplicationTests
       assert_policy "default-src 'self' https:", report_only: true
     end
 
+    test "global content security policy nonce directives in an initializer" do
+      controller :pages, <<-RUBY
+        class PagesController < ApplicationController
+          def index
+            render html: "<h1>Welcome to Rails!</h1>"
+          end
+        end
+      RUBY
+
+      app_file "config/initializers/content_security_policy.rb", <<-RUBY
+        Rails.application.config.content_security_policy do |p|
+          p.default_src :self, :https
+          p.script_src  :self, :https
+          p.style_src   :self, :https
+        end
+
+        Rails.application.config.content_security_policy_nonce_generator = proc { "iyhD0Yc0W+c=" }
+        Rails.application.config.content_security_policy_nonce_directives = %w(script-src)
+      RUBY
+
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          root to: "pages#index"
+        end
+      RUBY
+
+      app("development")
+
+      get "/"
+      assert_policy "default-src 'self' https:; script-src 'self' https: 'nonce-iyhD0Yc0W+c='; style-src 'self' https:"
+    end
+
     test "override content security policy in a controller" do
       controller :pages, <<-RUBY
         class PagesController < ApplicationController
@@ -204,7 +236,6 @@ module ApplicationTests
     end
 
     private
-
       def assert_policy(expected, report_only: false)
         assert_equal 200, last_response.status
 

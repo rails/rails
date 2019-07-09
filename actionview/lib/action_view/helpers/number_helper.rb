@@ -100,6 +100,9 @@ module ActionView
       #   absolute value of the number.
       # * <tt>:raise</tt> - If true, raises +InvalidNumberError+ when
       #   the argument is invalid.
+      # * <tt>:strip_insignificant_zeros</tt> - If +true+ removes
+      #   insignificant zeros after the decimal separator (defaults to
+      #   +false+).
       #
       # ==== Examples
       #
@@ -117,6 +120,8 @@ module ActionView
       #   # => R$1234567890,50
       #   number_to_currency(1234567890.50, unit: "R$", separator: ",", delimiter: "", format: "%n %u")
       #   # => 1234567890,50 R$
+      #   number_to_currency(1234567890.50, strip_insignificant_zeros: true)
+      #   # => "$1,234,567,890.5"
       def number_to_currency(number, options = {})
         delegate_number_helper_method(:number_to_currency, number, options)
       end
@@ -246,7 +251,7 @@ module ActionView
       end
 
       # Formats the bytes in +number+ into a more understandable
-      # representation (e.g., giving it 1500 yields 1.5 KB). This
+      # representation (e.g., giving it 1500 yields 1.46 KB). This
       # method is useful for reporting file sizes to users. You can
       # customize the format in the +options+ hash.
       #
@@ -398,7 +403,6 @@ module ActionView
       end
 
       private
-
         def delegate_number_helper_method(method, number, options)
           return unless number
           options = escape_unsafe_options(options.symbolize_keys)

@@ -101,7 +101,7 @@ class FileStoreTest < ActiveSupport::TestCase
     end
     assert File.exist?(cache_dir), "Parent of top level cache dir was deleted!"
     assert File.exist?(sub_cache_dir), "Top level cache dir was deleted!"
-    assert_empty Dir.entries(sub_cache_dir).reject { |f| ActiveSupport::Cache::FileStore::EXCLUDED_DIRS.include?(f) }
+    assert_empty Dir.children(sub_cache_dir)
   end
 
   def test_log_exception_when_cache_read_fails

@@ -32,6 +32,19 @@ module Rails
       hook_for :helper, as: :scaffold do |invoked|
         invoke invoked, [ controller_name ]
       end
+
+      private
+        def permitted_params
+          attachments, others = attributes_names.partition { |name| attachments?(name) }
+          params = others.map { |name| ":#{name}" }
+          params += attachments.map { |name| "#{name}: []" }
+          params.join(", ")
+        end
+
+        def attachments?(name)
+          attribute = attributes.find { |attr| attr.name == name }
+          attribute&.attachments?
+        end
     end
   end
 end

@@ -514,6 +514,8 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal Time.local(1582, 10, 15, 15, 15, 10), Time.local(1582, 10, 14, 15, 15, 10).advance(days: 1)
     assert_equal Time.local(1582, 10, 5, 15, 15, 10), Time.local(1582, 10, 4, 15, 15, 10).advance(days: 1)
     assert_equal Time.local(1582, 10, 4, 15, 15, 10), Time.local(1582, 10, 5, 15, 15, 10).advance(days: -1)
+    assert_equal Time.local(999, 10, 4, 15, 15, 10), Time.local(1000, 10, 4, 15, 15, 10).advance(years: -1)
+    assert_equal Time.local(1000, 10, 4, 15, 15, 10), Time.local(999, 10, 4, 15, 15, 10).advance(years: 1)
   end
 
   def test_last_week
@@ -947,42 +949,102 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
 
     assert_equal "invalid date", exception.message
   end
+
+  def test_prev_day
+    assert_equal date_time_init(2005, 2, 24, 10, 10, 10), date_time_init(2005, 2, 22, 10, 10, 10).prev_day(-2)
+    assert_equal date_time_init(2005, 2, 23, 10, 10, 10), date_time_init(2005, 2, 22, 10, 10, 10).prev_day(-1)
+    assert_equal date_time_init(2005, 2, 22, 10, 10, 10), date_time_init(2005, 2, 22, 10, 10, 10).prev_day(0)
+    assert_equal date_time_init(2005, 2, 21, 10, 10, 10), date_time_init(2005, 2, 22, 10, 10, 10).prev_day(1)
+    assert_equal date_time_init(2005, 2, 20, 10, 10, 10), date_time_init(2005, 2, 22, 10, 10, 10).prev_day(2)
+    assert_equal date_time_init(2005, 2, 21, 10, 10, 10), date_time_init(2005, 2, 22, 10, 10, 10).prev_day
+    assert_equal date_time_init(2005, 2, 28, 10, 10, 10), date_time_init(2005, 3, 2, 10, 10, 10).prev_day.prev_day
+  end
+
+  def test_next_day
+    assert_equal date_time_init(2005, 2, 20, 10, 10, 10), date_time_init(2005, 2, 22, 10, 10, 10).next_day(-2)
+    assert_equal date_time_init(2005, 2, 21, 10, 10, 10), date_time_init(2005, 2, 22, 10, 10, 10).next_day(-1)
+    assert_equal date_time_init(2005, 2, 22, 10, 10, 10), date_time_init(2005, 2, 22, 10, 10, 10).next_day(0)
+    assert_equal date_time_init(2005, 2, 23, 10, 10, 10), date_time_init(2005, 2, 22, 10, 10, 10).next_day(1)
+    assert_equal date_time_init(2005, 2, 24, 10, 10, 10), date_time_init(2005, 2, 22, 10, 10, 10).next_day(2)
+    assert_equal date_time_init(2005, 2, 23, 10, 10, 10), date_time_init(2005, 2, 22, 10, 10, 10).next_day
+    assert_equal date_time_init(2005, 3, 2, 10, 10, 10),  date_time_init(2005, 2, 28, 10, 10, 10).next_day.next_day
+  end
+
+  def test_prev_month
+    assert_equal date_time_init(2005, 4, 22, 10, 10, 10), date_time_init(2005, 2, 22, 10, 10, 10).prev_month(-2)
+    assert_equal date_time_init(2005, 3, 22, 10, 10, 10), date_time_init(2005, 2, 22, 10, 10, 10).prev_month(-1)
+    assert_equal date_time_init(2005, 2, 22, 10, 10, 10), date_time_init(2005, 2, 22, 10, 10, 10).prev_month(0)
+    assert_equal date_time_init(2005, 1, 22, 10, 10, 10), date_time_init(2005, 2, 22, 10, 10, 10).prev_month(1)
+    assert_equal date_time_init(2004, 12, 22, 10, 10, 10), date_time_init(2005, 2, 22, 10, 10, 10).prev_month(2)
+    assert_equal date_time_init(2005, 1, 22, 10, 10, 10), date_time_init(2005, 2, 22, 10, 10, 10).prev_month
+    assert_equal date_time_init(2004, 12, 22, 10, 10, 10), date_time_init(2005, 2, 22, 10, 10, 10).prev_month.prev_month
+  end
+
+  def test_next_month
+    assert_equal date_time_init(2004, 12, 22, 10, 10, 10), date_time_init(2005, 2, 22, 10, 10, 10).next_month(-2)
+    assert_equal date_time_init(2005, 1, 22, 10, 10, 10), date_time_init(2005, 2, 22, 10, 10, 10).next_month(-1)
+    assert_equal date_time_init(2005, 2, 22, 10, 10, 10), date_time_init(2005, 2, 22, 10, 10, 10).next_month(0)
+    assert_equal date_time_init(2005, 3, 22, 10, 10, 10), date_time_init(2005, 2, 22, 10, 10, 10).next_month(1)
+    assert_equal date_time_init(2005, 4, 22, 10, 10, 10), date_time_init(2005, 2, 22, 10, 10, 10).next_month(2)
+    assert_equal date_time_init(2005, 3, 22, 10, 10, 10), date_time_init(2005, 2, 22, 10, 10, 10).next_month
+    assert_equal date_time_init(2005, 4, 22, 10, 10, 10), date_time_init(2005, 2, 22, 10, 10, 10).next_month.next_month
+  end
+
+  def test_prev_year
+    assert_equal date_time_init(2007, 6, 5, 10, 10, 10),  date_time_init(2005, 6, 5, 10, 10, 10).prev_year(-2)
+    assert_equal date_time_init(2006, 6, 5, 10, 10, 10),  date_time_init(2005, 6, 5, 10, 10, 10).prev_year(-1)
+    assert_equal date_time_init(2005, 6, 5, 10, 10, 10),  date_time_init(2005, 6, 5, 10, 10, 10).prev_year(0)
+    assert_equal date_time_init(2004, 6, 5, 10, 10, 10),  date_time_init(2005, 6, 5, 10, 10, 10).prev_year(1)
+    assert_equal date_time_init(2003, 6, 5, 10, 10, 10),  date_time_init(2005, 6, 5, 10, 10, 10).prev_year(2)
+    assert_equal date_time_init(2004, 6, 5, 10, 10, 10),  date_time_init(2005, 6, 5, 10, 10, 10).prev_year
+    assert_equal date_time_init(2003, 6, 5, 10, 10, 10),  date_time_init(2005, 6, 5, 10, 10, 10).prev_year.prev_year
+  end
+
+  def test_next_year
+    assert_equal date_time_init(2003, 6, 5, 10, 10, 10), date_time_init(2005, 6, 5, 10, 10, 10).next_year(-2)
+    assert_equal date_time_init(2004, 6, 5, 10, 10, 10), date_time_init(2005, 6, 5, 10, 10, 10).next_year(-1)
+    assert_equal date_time_init(2005, 6, 5, 10, 10, 10), date_time_init(2005, 6, 5, 10, 10, 10).next_year(0)
+    assert_equal date_time_init(2006, 6, 5, 10, 10, 10), date_time_init(2005, 6, 5, 10, 10, 10).next_year(1)
+    assert_equal date_time_init(2007, 6, 5, 10, 10, 10), date_time_init(2005, 6, 5, 10, 10, 10).next_year(2)
+    assert_equal date_time_init(2006, 6, 5, 10, 10, 10), date_time_init(2005, 6, 5, 10, 10, 10).next_year
+    assert_equal date_time_init(2007, 6, 5, 10, 10, 10), date_time_init(2005, 6, 5, 10, 10, 10).next_year.next_year
+  end
 end
 
 class TimeExtMarshalingTest < ActiveSupport::TestCase
-  def test_marshaling_with_utc_instance
+  def test_marshalling_with_utc_instance
     t = Time.utc(2000)
-    unmarshaled = Marshal.load(Marshal.dump(t))
-    assert_equal "UTC", unmarshaled.zone
-    assert_equal t, unmarshaled
+    unmarshalled = Marshal.load(Marshal.dump(t))
+    assert_equal "UTC", unmarshalled.zone
+    assert_equal t, unmarshalled
   end
 
-  def test_marshaling_with_local_instance
+  def test_marshalling_with_local_instance
     t = Time.local(2000)
-    unmarshaled = Marshal.load(Marshal.dump(t))
-    assert_equal t.zone, unmarshaled.zone
-    assert_equal t, unmarshaled
+    unmarshalled = Marshal.load(Marshal.dump(t))
+    assert_equal t.zone, unmarshalled.zone
+    assert_equal t, unmarshalled
   end
 
-  def test_marshaling_with_frozen_utc_instance
+  def test_marshalling_with_frozen_utc_instance
     t = Time.utc(2000).freeze
-    unmarshaled = Marshal.load(Marshal.dump(t))
-    assert_equal "UTC", unmarshaled.zone
-    assert_equal t, unmarshaled
+    unmarshalled = Marshal.load(Marshal.dump(t))
+    assert_equal "UTC", unmarshalled.zone
+    assert_equal t, unmarshalled
   end
 
-  def test_marshaling_with_frozen_local_instance
+  def test_marshalling_with_frozen_local_instance
     t = Time.local(2000).freeze
-    unmarshaled = Marshal.load(Marshal.dump(t))
-    assert_equal t.zone, unmarshaled.zone
-    assert_equal t, unmarshaled
+    unmarshalled = Marshal.load(Marshal.dump(t))
+    assert_equal t.zone, unmarshalled.zone
+    assert_equal t, unmarshalled
   end
 
   def test_marshalling_preserves_fractional_seconds
     t = Time.parse("00:00:00.500")
-    unmarshaled = Marshal.load(Marshal.dump(t))
-    assert_equal t.to_f, unmarshaled.to_f
-    assert_equal t, unmarshaled
+    unmarshalled = Marshal.load(Marshal.dump(t))
+    assert_equal t.to_f, unmarshalled.to_f
+    assert_equal t, unmarshalled
   end
 
   def test_last_quarter_on_31st

@@ -21,16 +21,32 @@ class FormOptionsHelperTest < ActionView::TestCase
   tests ActionView::Helpers::FormOptionsHelper
 
   silence_warnings do
-    Post        = Struct.new("Post", :title, :author_name, :body, :secret, :written_on, :category, :origin, :allow_comments)
+    Post        = Struct.new("Post", :title, :author_name, :body, :written_on, :category, :origin, :allow_comments) do
+                    private
+                      def secret
+                        "This is super secret: #{author_name} is not the real author of #{title}"
+                      end
+                  end
     Continent   = Struct.new("Continent", :continent_name, :countries)
     Country     = Struct.new("Country", :country_id, :country_name)
-    Firm        = Struct.new("Firm", :time_zone)
     Album       = Struct.new("Album", :id, :title, :genre)
+  end
+
+  class Firm
+    include ActiveModel::Validations
+    extend ActiveModel::Naming
+
+    attr_accessor :time_zone
+
+    def initialize(time_zone = nil)
+      @time_zone = time_zone
+    end
   end
 
   module FakeZones
     FakeZone = Struct.new(:name) do
       def to_s; name; end
+      def =~(_re); end
     end
 
     module ClassMethods
@@ -66,6 +82,14 @@ class FormOptionsHelperTest < ActionView::TestCase
       "<option value=\"&lt;Abe&gt;\">&lt;Abe&gt; went home</option>\n<option value=\"Babe\">Babe went home</option>\n<option value=\"Cabe\">Cabe went home</option>",
       options_from_collection_for_select(dummy_posts, "author_name", "title")
     )
+  end
+
+  def test_collection_options_with_private_value_method
+    assert_deprecated("Using private methods from view helpers is deprecated (calling private Struct::Post#secret)") {  options_from_collection_for_select(dummy_posts, "secret", "title") }
+  end
+
+  def test_collection_options_with_private_text_method
+    assert_deprecated("Using private methods from view helpers is deprecated (calling private Struct::Post#secret)") {  options_from_collection_for_select(dummy_posts, "author_name", "secret") }
   end
 
   def test_collection_options_with_preselected_value
@@ -655,7 +679,7 @@ class FormOptionsHelperTest < ActionView::TestCase
     @post = Post.new
 
     output_buffer = fields_for :post, @post do |f|
-      concat(f.select(:category) {})
+      concat(f.select(:category) { })
     end
 
     assert_dom_equal(
@@ -1280,7 +1304,7 @@ class FormOptionsHelperTest < ActionView::TestCase
   def test_time_zone_select_with_priority_zones_and_errors
     @firm = Firm.new("D")
     @firm.extend ActiveModel::Validations
-    @firm.errors[:time_zone] << "invalid"
+    assert_deprecated { @firm.errors[:time_zone] << "invalid" }
     zones = [ ActiveSupport::TimeZone.new("A"), ActiveSupport::TimeZone.new("D") ]
     html = time_zone_select("firm", "time_zone", zones)
     assert_dom_equal "<div class=\"field_with_errors\">" \
@@ -1448,7 +1472,6 @@ class FormOptionsHelperTest < ActionView::TestCase
   end
 
   private
-
     def dummy_posts
       [ Post.new("<Abe> went home", "<Abe>", "To a little house", "shh!"),
         Post.new("Babe went home", "Babe", "To a little house", "shh!"),

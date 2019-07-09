@@ -2,8 +2,8 @@
 
 module ActiveStorage
   # This is an abstract base class for previewers, which generate images from blobs. See
-  # ActiveStorage::Previewer::PDFPreviewer and ActiveStorage::Previewer::VideoPreviewer for examples of
-  # concrete subclasses.
+  # ActiveStorage::Previewer::MuPDFPreviewer and ActiveStorage::Previewer::VideoPreviewer for
+  # examples of concrete subclasses.
   class Previewer
     attr_reader :blob
 
@@ -26,7 +26,7 @@ module ActiveStorage
     private
       # Downloads the blob to a tempfile on disk. Yields the tempfile.
       def download_blob_to_tempfile(&block) #:doc:
-        blob.open tempdir: tempdir, &block
+        blob.open tmpdir: tmpdir, &block
       end
 
       # Executes a system command, capturing its binary output in a tempfile. Yields the tempfile.
@@ -42,7 +42,7 @@ module ActiveStorage
       #     end
       #   end
       #
-      # The output tempfile is opened in the directory returned by #tempdir.
+      # The output tempfile is opened in the directory returned by #tmpdir.
       def draw(*argv) #:doc:
         open_tempfile do |file|
           instrument :preview, key: blob.key do
@@ -54,7 +54,7 @@ module ActiveStorage
       end
 
       def open_tempfile
-        tempfile = Tempfile.open("ActiveStorage-", tempdir)
+        tempfile = Tempfile.open("ActiveStorage-", tmpdir)
 
         begin
           yield tempfile
@@ -77,7 +77,7 @@ module ActiveStorage
         ActiveStorage.logger
       end
 
-      def tempdir #:doc:
+      def tmpdir #:doc:
         Dir.tmpdir
       end
   end

@@ -98,7 +98,6 @@ module Rails
       end
 
     private
-
       def filter_by(&block)
         all_paths.find_all(&block).flat_map { |path|
           paths = path.existent
@@ -113,10 +112,11 @@ module Rails
       attr_accessor :glob
 
       def initialize(root, current, paths, options = {})
-        @paths    = paths
-        @current  = current
-        @root     = root
-        @glob     = options[:glob]
+        @paths   = paths
+        @current = current
+        @root    = root
+        @glob    = options[:glob]
+        @exclude = options[:exclude]
 
         options[:autoload_once] ? autoload_once! : skip_autoload_once!
         options[:eager_load]    ? eager_load!    : skip_eager_load!
@@ -189,13 +189,11 @@ module Rails
         raise "You need to set a path root" unless @root.path
         result = []
 
-        each do |p|
-          path = File.expand_path(p, @root.path)
+        each do |path|
+          path = File.expand_path(path, @root.path)
 
           if @glob && File.directory?(path)
-            Dir.chdir(path) do
-              result.concat(Dir.glob(@glob).map { |file| File.join path, file }.sort)
-            end
+            result.concat files_in(path)
           else
             result << path
           end
@@ -222,6 +220,16 @@ module Rails
       end
 
       alias to_a expanded
+
+      private
+        def files_in(path)
+          Dir.chdir(path) do
+            files = Dir.glob(@glob)
+            files -= @exclude if @exclude
+            files.map! { |file| File.join(path, file) }
+            files.sort
+          end
+        end
     end
   end
 end

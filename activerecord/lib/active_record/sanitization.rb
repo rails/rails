@@ -61,8 +61,9 @@ module ActiveRecord
       #   # => "id ASC"
       def sanitize_sql_for_order(condition)
         if condition.is_a?(Array) && condition.first.to_s.include?("?")
-          enforce_raw_sql_whitelist([condition.first],
-            whitelist: AttributeMethods::ClassMethods::COLUMN_NAME_ORDER_WHITELIST
+          disallow_raw_sql!(
+            [condition.first],
+            permit: connection.column_name_with_order_matcher
           )
 
           # Ensure we aren't dealing with a subclass of String that might
@@ -133,44 +134,34 @@ module ActiveRecord
         end
       end
 
-      private
-        # Accepts a hash of SQL conditions and replaces those attributes
-        # that correspond to a {#composed_of}[rdoc-ref:Aggregations::ClassMethods#composed_of]
-        # relationship with their expanded aggregate attribute values.
-        #
-        # Given:
-        #
-        #   class Person < ActiveRecord::Base
-        #     composed_of :address, class_name: "Address",
-        #       mapping: [%w(address_street street), %w(address_city city)]
-        #   end
-        #
-        # Then:
-        #
-        #   { address: Address.new("813 abc st.", "chicago") }
-        #   # => { address_street: "813 abc st.", address_city: "chicago" }
-        def expand_hash_conditions_for_aggregates(attrs) # :doc:
-          expanded_attrs = {}
-          attrs.each do |attr, value|
-            if aggregation = reflect_on_aggregation(attr.to_sym)
-              mapping = aggregation.mapping
-              mapping.each do |field_attr, aggregate_attr|
-                expanded_attrs[field_attr] = if value.is_a?(Array)
-                  value.map { |it| it.send(aggregate_attr) }
-                elsif mapping.size == 1 && !value.respond_to?(aggregate_attr)
-                  value
-                else
-                  value.send(aggregate_attr)
-                end
-              end
-            else
-              expanded_attrs[attr] = value
-            end
-          end
-          expanded_attrs
+      def disallow_raw_sql!(args, permit: connection.column_name_matcher) # :nodoc:
+        unexpected = nil
+        args.each do |arg|
+          next if arg.is_a?(Symbol) || Arel.arel_node?(arg) || permit.match?(arg.to_s)
+          (unexpected ||= []) << arg
         end
-        deprecate :expand_hash_conditions_for_aggregates
 
+        return unless unexpected
+
+        if allow_unsafe_raw_sql == :deprecated
+          ActiveSupport::Deprecation.warn(
+            "Dangerous query method (method whose arguments are used as raw " \
+            "SQL) called with non-attribute argument(s): " \
+            "#{unexpected.map(&:inspect).join(", ")}. Non-attribute " \
+            "arguments will be disallowed in Rails 6.1. This method should " \
+            "not be called with user-provided values, such as request " \
+            "parameters or model attributes. Known-safe values can be passed " \
+            "by wrapping them in Arel.sql()."
+          )
+        else
+          raise(ActiveRecord::UnknownAttributeReference,
+            "Query method called with non-attribute argument(s): " +
+            unexpected.map(&:inspect).join(", ")
+          )
+        end
+      end
+
+      private
         def replace_bind_variables(statement, values)
           raise_if_bind_arity_mismatch(statement, statement.count("?"), values.size)
           bound = values.dup
@@ -202,10 +193,11 @@ module ActiveRecord
 
         def quote_bound_value(value, c = connection)
           if value.respond_to?(:map) && !value.acts_like?(:string)
-            if value.respond_to?(:empty?) && value.empty?
+            quoted = value.map { |v| c.quote(v) }
+            if quoted.empty?
               c.quote(nil)
             else
-              value.map { |v| c.quote(v) }.join(",")
+              quoted.join(",")
             end
           else
             c.quote(value)

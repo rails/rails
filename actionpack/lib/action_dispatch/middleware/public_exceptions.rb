@@ -21,14 +21,17 @@ module ActionDispatch
     def call(env)
       request      = ActionDispatch::Request.new(env)
       status       = request.path_info[1..-1].to_i
-      content_type = request.formats.first
-      body         = { status: status, error: Rack::Utils::HTTP_STATUS_CODES.fetch(status, Rack::Utils::HTTP_STATUS_CODES[500]) }
+      begin
+        content_type = request.formats.first
+      rescue Mime::Type::InvalidMimeType
+        content_type = Mime[:text]
+      end
+      body = { status: status, error: Rack::Utils::HTTP_STATUS_CODES.fetch(status, Rack::Utils::HTTP_STATUS_CODES[500]) }
 
       render(status, content_type, body)
     end
 
     private
-
       def render(status, content_type, body)
         format = "to_#{content_type.to_sym}" if content_type
         if format && body.respond_to?(format)

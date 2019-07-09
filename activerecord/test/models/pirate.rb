@@ -17,7 +17,13 @@ class Pirate < ActiveRecord::Base
     after_remove: proc { |p, pa| p.ship_log << "after_removing_proc_parrot_#{pa.id}" }
   has_and_belongs_to_many :autosaved_parrots, class_name: "Parrot", autosave: true
 
-  has_many :treasures, as: :looter
+  module PostTreasuresExtension
+    def build(attributes = {})
+      super({ name: "from extension" }.merge(attributes))
+    end
+  end
+
+  has_many :treasures, as: :looter, extend: PostTreasuresExtension
   has_many :treasure_estimates, through: :treasures, source: :price_estimates
 
   has_one :ship
@@ -91,4 +97,20 @@ class FamousPirate < ActiveRecord::Base
   self.table_name = "pirates"
   has_many :famous_ships
   validates_presence_of :catchphrase, on: :conference
+end
+
+class SpacePirate < ActiveRecord::Base
+  self.table_name = "pirates"
+
+  belongs_to :parrot
+  belongs_to :parrot_with_annotation, -> { annotate("that tells jokes") }, class_name: :Parrot, foreign_key: :parrot_id
+  has_and_belongs_to_many :parrots, foreign_key: :pirate_id
+  has_and_belongs_to_many :parrots_with_annotation, -> { annotate("that are very colorful") }, class_name: :Parrot, foreign_key: :pirate_id
+  has_one :ship, foreign_key: :pirate_id
+  has_one :ship_with_annotation, -> { annotate("that is a rocket") }, class_name: :Ship, foreign_key: :pirate_id
+  has_many :birds, foreign_key: :pirate_id
+  has_many :birds_with_annotation, -> { annotate("that are also parrots") }, class_name: :Bird, foreign_key: :pirate_id
+  has_many :treasures, as: :looter
+  has_many :treasure_estimates, through: :treasures, source: :price_estimates
+  has_many :treasure_estimates_with_annotation, -> { annotate("yarrr") }, through: :treasures, source: :price_estimates
 end

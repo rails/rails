@@ -373,7 +373,7 @@ module ActionDispatch
       end
 
       def test_not_routes_when_expanded
-        output = draw(grep: "rails/dummy", formatter: ActionDispatch::Routing::ConsoleFormatter::Expanded.new) {}
+        output = draw(grep: "rails/dummy", formatter: ActionDispatch::Routing::ConsoleFormatter::Expanded.new) { }
 
         assert_equal [
           "You don't have any routes defined!",
@@ -450,7 +450,7 @@ module ActionDispatch
       end
 
       def test_no_routes_were_defined
-        output = draw(grep: "Rails::DummyController") {}
+        output = draw(grep: "Rails::DummyController") { }
 
         assert_equal [
           "You don't have any routes defined!",

@@ -203,8 +203,6 @@ $ rails generate scaffold User name:string
       create    test/application_system_test_case.rb
       create    test/system/users_test.rb
       invoke  assets
-      invoke    coffee
-      create      app/assets/javascripts/users.coffee
       invoke    scss
       create      app/assets/stylesheets/users.scss
       invoke  scss
@@ -221,7 +219,7 @@ If we want to avoid generating the default `app/assets/stylesheets/scaffolds.scs
   end
 ```
 
-The next customization on the workflow will be to stop generating stylesheet, JavaScript, and test fixture files for scaffolds altogether. We can achieve that by changing our configuration to the following:
+The next customization on the workflow will be to stop generating stylesheet and test fixture files for scaffolds altogether. We can achieve that by changing our configuration to the following:
 
 ```ruby
 config.generators do |g|
@@ -229,7 +227,6 @@ config.generators do |g|
   g.template_engine :erb
   g.test_framework  :test_unit, fixture: false
   g.stylesheets     false
-  g.javascripts     false
 end
 ```
 
@@ -287,7 +284,6 @@ config.generators do |g|
   g.template_engine :erb
   g.test_framework  :test_unit, fixture: false
   g.stylesheets     false
-  g.javascripts     false
   g.helper          :my_helper
 end
 ```
@@ -352,7 +348,6 @@ config.generators do |g|
   g.template_engine :erb
   g.test_framework  :test_unit, fixture: false
   g.stylesheets     false
-  g.javascripts     false
 end
 ```
 
@@ -387,7 +382,6 @@ config.generators do |g|
   g.template_engine :erb
   g.test_framework  :shoulda, fixture: false
   g.stylesheets     false
-  g.javascripts     false
 
   # Add a fallback!
   g.fallbacks[:shoulda] = :test_unit
@@ -426,9 +420,8 @@ $ rails generate scaffold Comment body:text
       create    test/application_system_test_case.rb
       create    test/system/comments_test.rb
       invoke  assets
-      invoke    coffee
-      create      app/assets/javascripts/comments.coffee
       invoke    scss
+      create    app/assets/stylesheets/scaffolds.scss
 ```
 
 Fallbacks allow your generators to have a single responsibility, increasing code reuse and reducing the amount of duplication.

@@ -22,7 +22,7 @@ module ActiveSupport
 
         @stubs[object.object_id][method_name] = Stub.new(object, method_name, new_name)
 
-        object.singleton_class.send :alias_method, new_name, method_name
+        object.singleton_class.alias_method new_name, method_name
         object.define_singleton_method(method_name, &block)
       end
 
@@ -40,12 +40,11 @@ module ActiveSupport
       end
 
       private
-
         def unstub_object(stub)
           singleton_class = stub.object.singleton_class
-          singleton_class.send :silence_redefinition_of_method, stub.method_name
-          singleton_class.send :alias_method, stub.method_name, stub.original_method
-          singleton_class.send :undef_method, stub.original_method
+          singleton_class.silence_redefinition_of_method stub.method_name
+          singleton_class.alias_method stub.method_name, stub.original_method
+          singleton_class.undef_method stub.original_method
         end
     end
 
@@ -158,7 +157,7 @@ module ActiveSupport
       end
 
       # Returns the current time back to its original state, by removing the stubs added by
-      # +travel+ and +travel_to+.
+      # +travel+, +travel_to+, and +freeze_time+.
       #
       #   Time.current # => Sat, 09 Nov 2013 15:34:49 EST -05:00
       #   travel_to Time.zone.local(2004, 11, 24, 01, 04, 44)
@@ -168,6 +167,7 @@ module ActiveSupport
       def travel_back
         simple_stubs.unstub_all!
       end
+      alias_method :unfreeze_time, :travel_back
 
       # Calls +travel_to+ with +Time.now+.
       #
@@ -190,7 +190,6 @@ module ActiveSupport
       end
 
       private
-
         def simple_stubs
           @simple_stubs ||= SimpleStubs.new
         end

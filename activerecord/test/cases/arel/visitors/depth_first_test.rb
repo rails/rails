@@ -33,7 +33,7 @@ module Arel
         Arel::Nodes::Ordering,
         Arel::Nodes::StringJoin,
         Arel::Nodes::UnqualifiedColumn,
-        Arel::Nodes::Top,
+        Arel::Nodes::ValuesList,
         Arel::Nodes::Limit,
         Arel::Nodes::Else,
       ].each do |klass|
@@ -101,6 +101,12 @@ module Arel
         assert_equal [:a, :b, join], @collector.calls
       end
 
+      def test_comment
+        comment = Nodes::Comment.new ["foo"]
+        @visitor.accept comment
+        assert_equal ["foo", ["foo"], comment], @collector.calls
+      end
+
       [
         Arel::Nodes::Assignment,
         Arel::Nodes::Between,
@@ -117,7 +123,6 @@ module Arel
         Arel::Nodes::NotIn,
         Arel::Nodes::Or,
         Arel::Nodes::TableAlias,
-        Arel::Nodes::Values,
         Arel::Nodes::As,
         Arel::Nodes::DeleteStatement,
         Arel::Nodes::JoinSource,

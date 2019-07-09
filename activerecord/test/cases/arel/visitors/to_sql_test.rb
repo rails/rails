@@ -23,9 +23,9 @@ module Arel
         sql.must_be_like "?"
       end
 
-      it "does not quote BindParams used as part of a Values" do
+      it "does not quote BindParams used as part of a ValuesList" do
         bp = Nodes::BindParam.new(1)
-        values = Nodes::Values.new([bp])
+        values = Nodes::ValuesList.new([[bp]])
         sql = compile values
         sql.must_be_like "VALUES (?)"
       end
@@ -155,6 +155,43 @@ module Arel
         end
       end
 
+      describe "Nodes::IsNotDistinctFrom" do
+        it "should construct a valid generic SQL statement" do
+          test = Table.new(:users)[:name].is_not_distinct_from "Aaron Patterson"
+          compile(test).must_be_like %{
+            CASE WHEN "users"."name" = 'Aaron Patterson' OR ("users"."name" IS NULL AND 'Aaron Patterson' IS NULL) THEN 0 ELSE 1 END = 0
+          }
+        end
+
+        it "should handle column names on both sides" do
+          test = Table.new(:users)[:first_name].is_not_distinct_from Table.new(:users)[:last_name]
+          compile(test).must_be_like %{
+            CASE WHEN "users"."first_name" = "users"."last_name" OR ("users"."first_name" IS NULL AND "users"."last_name" IS NULL) THEN 0 ELSE 1 END = 0
+          }
+        end
+
+        it "should handle nil" do
+          val = Nodes.build_quoted(nil, @table[:active])
+          sql = compile Nodes::IsNotDistinctFrom.new(@table[:name], val)
+          sql.must_be_like %{ "users"."name" IS NULL }
+        end
+      end
+
+      describe "Nodes::IsDistinctFrom" do
+        it "should handle column names on both sides" do
+          test = Table.new(:users)[:first_name].is_distinct_from Table.new(:users)[:last_name]
+          compile(test).must_be_like %{
+            CASE WHEN "users"."first_name" = "users"."last_name" OR ("users"."first_name" IS NULL AND "users"."last_name" IS NULL) THEN 0 ELSE 1 END = 1
+          }
+        end
+
+        it "should handle nil" do
+          val = Nodes.build_quoted(nil, @table[:active])
+          sql = compile Nodes::IsDistinctFrom.new(@table[:name], val)
+          sql.must_be_like %{ "users"."name" IS NOT NULL }
+        end
+      end
+
       it "should visit string subclass" do
         [
           Class.new(String).new(":'("),
@@ -221,7 +258,7 @@ module Arel
         sql.must_be_like "foo AS bar"
       end
 
-      it "should visit_Bignum" do
+      it "should visit_Integer" do
         compile 8787878092
       end
 
@@ -358,6 +395,11 @@ module Arel
           compile(node).must_be_like %{
             "users"."id" IN (1, 2, 3)
           }
+
+          node = @attr.in [1, 2, 3, 4, 5]
+          compile(node).must_be_like %{
+            ("users"."id" IN (1, 2, 3) OR "users"."id" IN (4, 5))
+          }
         end
 
         it "should return 1=0 when empty right which is always false" do
@@ -427,7 +469,7 @@ module Arel
           compile(node).must_equal %(("products"."price" - 7))
         end
 
-        it "should handle Concatination" do
+        it "should handle Concatenation" do
           table = Table.new(:users)
           node = table[:name].concat(table[:name])
           compile(node).must_equal %("users"."name" || "users"."name")
@@ -480,11 +522,38 @@ module Arel
         end
       end
 
+      describe "Nodes::Union" do
+        it "squashes parenthesis on multiple unions" do
+          subnode = Nodes::Union.new Arel.sql("left"), Arel.sql("right")
+          node = Nodes::Union.new subnode, Arel.sql("topright")
+          assert_equal("( left UNION right UNION topright )", compile(node))
+          subnode = Nodes::Union.new Arel.sql("left"), Arel.sql("right")
+          node = Nodes::Union.new Arel.sql("topleft"), subnode
+          assert_equal("( topleft UNION left UNION right )", compile(node))
+        end
+      end
+
+      describe "Nodes::UnionAll" do
+        it "squashes parenthesis on multiple union alls" do
+          subnode = Nodes::UnionAll.new Arel.sql("left"), Arel.sql("right")
+          node = Nodes::UnionAll.new subnode, Arel.sql("topright")
+          assert_equal("( left UNION ALL right UNION ALL topright )", compile(node))
+          subnode = Nodes::UnionAll.new Arel.sql("left"), Arel.sql("right")
+          node = Nodes::UnionAll.new Arel.sql("topleft"), subnode
+          assert_equal("( topleft UNION ALL left UNION ALL right )", compile(node))
+        end
+      end
+
       describe "Nodes::NotIn" do
         it "should know how to visit" do
           node = @attr.not_in [1, 2, 3]
           compile(node).must_be_like %{
             "users"."id" NOT IN (1, 2, 3)
+          }
+
+          node = @attr.not_in [1, 2, 3, 4, 5]
+          compile(node).must_be_like %{
+            "users"."id" NOT IN (1, 2, 3) AND "users"."id" NOT IN (4, 5)
           }
         end
 

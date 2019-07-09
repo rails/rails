@@ -8,7 +8,7 @@ module ActiveSupport
   module XmlMini_REXML #:nodoc:
     extend self
 
-    CONTENT_KEY = "__content__".freeze
+    CONTENT_KEY = "__content__"
 
     # Parse an XML Document string or IO into a simple hash.
     #
@@ -76,7 +76,7 @@ module ActiveSupport
           hash
         else
           # must use value to prevent double-escaping
-          texts = "".dup
+          texts = +""
           element.texts.each { |t| texts << t.value }
           merge!(hash, CONTENT_KEY, texts)
         end

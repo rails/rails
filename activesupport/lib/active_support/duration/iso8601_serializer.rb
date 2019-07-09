@@ -14,14 +14,14 @@ module ActiveSupport
       # Builds and returns output string.
       def serialize
         parts, sign = normalize
-        return "PT0S".freeze if parts.empty?
+        return "PT0S" if parts.empty?
 
-        output = "P".dup
+        output = +"P"
         output << "#{parts[:years]}Y"   if parts.key?(:years)
         output << "#{parts[:months]}M"  if parts.key?(:months)
         output << "#{parts[:weeks]}W"   if parts.key?(:weeks)
         output << "#{parts[:days]}D"    if parts.key?(:days)
-        time = "".dup
+        time = +""
         time << "#{parts[:hours]}H"     if parts.key?(:hours)
         time << "#{parts[:minutes]}M"   if parts.key?(:minutes)
         if parts.key?(:seconds)
@@ -32,7 +32,6 @@ module ActiveSupport
       end
 
       private
-
         # Return pair of duration's parts and whole duration sign.
         # Parts are summarized (as they can become repetitive due to addition, etc).
         # Zero parts are removed as not significant.

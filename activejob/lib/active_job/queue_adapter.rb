@@ -22,6 +22,8 @@ module ActiveJob
         _queue_adapter
       end
 
+      # Returns string denoting the name of the configured queue adapter.
+      # By default returns +"async"+.
       def queue_adapter_name
         _queue_adapter_name
       end

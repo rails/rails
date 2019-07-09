@@ -104,7 +104,7 @@ class AssertionsTest < ActiveSupport::TestCase
   def test_expression_is_evaluated_in_the_appropriate_scope
     silence_warnings do
       local_scope = "foo"
-      local_scope = local_scope  # to suppress unused variable warning
+      _ = local_scope  # to suppress unused variable warning
       assert_difference("local_scope; @object.num") { @object.increment }
     end
   end
@@ -315,7 +315,6 @@ class SetupAndTeardownTest < ActiveSupport::TestCase
   end
 
   private
-
     def reset_callback_record
       @called_back = []
     end

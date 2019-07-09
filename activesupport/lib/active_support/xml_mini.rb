@@ -3,6 +3,7 @@
 require "time"
 require "base64"
 require "bigdecimal"
+require "bigdecimal/util"
 require "active_support/core_ext/module/delegation"
 require "active_support/core_ext/string/inflections"
 require "active_support/core_ext/date_time/calculations"
@@ -68,11 +69,7 @@ module ActiveSupport
         "float"        => Proc.new { |float|   float.to_f },
         "decimal"      => Proc.new do |number|
           if String === number
-            begin
-              BigDecimal(number)
-            rescue ArgumentError
-              BigDecimal("0")
-            end
+            number.to_d
           else
             BigDecimal(number)
           end
@@ -158,7 +155,6 @@ module ActiveSupport
     end
 
     private
-
       def _dasherize(key)
         # $2 must be a non-greedy regex for this to work
         left, middle, right = /\A(_*)(.*?)(_*)\Z/.match(key.strip)[1, 3]

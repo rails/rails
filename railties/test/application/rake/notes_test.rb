@@ -10,6 +10,7 @@ module ApplicationTests
 
       def setup
         build_app
+        add_to_env_config("development", "config.active_support.deprecation = :stderr")
         require "rails/all"
         super
       end
@@ -158,7 +159,6 @@ module ApplicationTests
       end
 
       private
-
         def run_rake_notes(command = "bin/rake notes")
           Dir.chdir(app_path) do
             output = `#{command}`

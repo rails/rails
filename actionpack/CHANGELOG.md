@@ -1,64 +1,33 @@
-*   `ActionDispatch::Http::UploadedFile` now delegates `to_path` to its tempfile.
+*   Add the ability to set the CSP nonce only to the specified directives.
 
-    This allows uploaded file objects to be passed directly to `File.read`
-    without raising a `TypeError`:
+    Fixes #35137.
 
-        uploaded_file = ActionDispatch::Http::UploadedFile.new(tempfile: tmp_file)
-        File.read(uploaded_file)
+    *Yuji Yaginuma*
 
-    *Aaron Kromer*
+*   Keep part when scope option has value.
 
-*   Pass along arguments to underlying `get` method in `follow_redirect!`
+    When a route was defined within an optional scope, if that route didn't
+    take parameters the scope was lost when using path helpers. This commit
+    ensures scope is kept both when the route takes parameters or when it
+    doesn't.
 
-    Now all arguments passed to `follow_redirect!` are passed to the underlying
-    `get` method. This for example allows to set custom headers for the
-    redirection request to the server.
+    Fixes #33219.
 
-        follow_redirect!(params: { foo: :bar })
+    *Alberto Almagro*
 
-    *Remo Fritzsche*
+*   Added `deep_transform_keys` and `deep_transform_keys!` methods to ActionController::Parameters.
 
-*   Introduce a new error page to when the implicit render page is accessed in the browser.
+    *Gustavo Gutierrez*
 
-    Now instead of showing an error page that with exception and backtraces we now show only
-    one informative page.
+*   Calling `ActionController::Parameters#transform_keys/!` without a block now returns
+    an enumerator for the parameters instead of the underlying hash.
 
-    *Vinicius Stock*
+    *Eugene Kenny*
 
-*   Introduce ActionDispatch::DebugExceptions.register_interceptor
+*   Fix strong parameters blocks all attributes even when only some keys are invalid (non-numerical).
+    It should only block invalid key's values instead.
 
-    Exception aware plugin authors can use the newly introduced
-    `.register_interceptor` method to get the processed exception, instead of
-    monkey patching DebugExceptions.
-
-        ActionDispatch::DebugExceptions.register_interceptor do |request, exception|
-          HypoteticalPlugin.capture_exception(request, exception)
-        end
-
-    *Genadi Samokovarov*
-
-*   Output only one Content-Security-Policy nonce header value per request.
-
-    Fixes #32597.
-
-    *Andrey Novikov*, *Andrew White*
-
-*   Move default headers configuration into their own module that can be included in controllers.
-
-    *Kevin Deisz*
-
-*   Add method `dig` to `session`.
-
-    *claudiob*, *Takumi Shotoku*
-
-*   Controller level `force_ssl` has been deprecated in favor of
-    `config.force_ssl`.
-
-    *Derek Prior*
-
-*   Rails 6 requires Ruby 2.4.1 or newer.
-
-    *Jeremy Daer*
+    *Stan Lo*
 
 
-Please check [5-2-stable](https://github.com/rails/rails/blob/5-2-stable/actionpack/CHANGELOG.md) for previous changes.
+Please check [6-0-stable](https://github.com/rails/rails/blob/6-0-stable/actionpack/CHANGELOG.md) for previous changes.

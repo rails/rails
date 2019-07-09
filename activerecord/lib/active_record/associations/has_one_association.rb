@@ -33,7 +33,7 @@ module ActiveRecord
             target.destroy
             throw(:abort) unless target.destroyed?
           when :nullify
-            target.update_columns(reflection.foreign_key => nil) if target.persisted?
+            target.update_columns(nullified_owner_attributes) if target.persisted?
           end
         end
       end

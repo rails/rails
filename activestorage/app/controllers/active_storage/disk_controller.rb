@@ -3,16 +3,18 @@
 # Serves files stored with the disk service in the same way that the cloud services do.
 # This means using expiring, signed URLs that are meant for immediate access, not permanent linking.
 # Always go through the BlobsController, or your own authenticated controller, rather than directly
-# to the service url.
+# to the service URL.
 class ActiveStorage::DiskController < ActiveStorage::BaseController
   skip_forgery_protection
 
   def show
     if key = decode_verified_key
-      serve_file disk_service.path_for(key), content_type: params[:content_type], disposition: params[:disposition]
+      serve_file disk_service.path_for(key[:key]), content_type: key[:content_type], disposition: key[:disposition]
     else
       head :not_found
     end
+  rescue Errno::ENOENT
+    head :not_found
   end
 
   def update
@@ -59,6 +61,6 @@ class ActiveStorage::DiskController < ActiveStorage::BaseController
     end
 
     def acceptable_content?(token)
-      token[:content_type] == request.content_type && token[:content_length] == request.content_length
+      token[:content_type] == request.content_mime_type && token[:content_length] == request.content_length
     end
 end

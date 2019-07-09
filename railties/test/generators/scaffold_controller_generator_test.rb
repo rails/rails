@@ -80,6 +80,24 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_controller_permit_attachment_attributes
+    run_generator ["Message", "video:attachment", "photos:attachments"]
+
+    assert_file "app/controllers/messages_controller.rb" do |content|
+      assert_match(/def message_params/, content)
+      assert_match(/params\.require\(:message\)\.permit\(:video, photos: \[\]\)/, content)
+    end
+  end
+
+  def test_controller_permit_attachments_attributes_only
+    run_generator ["Message", "photos:attachments"]
+
+    assert_file "app/controllers/messages_controller.rb" do |content|
+      assert_match(/def message_params/, content)
+      assert_match(/params\.require\(:message\)\.permit\(photos: \[\]\)/, content)
+    end
+  end
+
   def test_helper_are_invoked_with_a_pluralized_name
     run_generator
     assert_file "app/helpers/users_helper.rb", /module UsersHelper/
@@ -274,6 +292,15 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
       assert_match(/post users_url, params: \{ user: \{ age: @user\.age, name: @user\.name, organization_id: @user\.organization_id, organization_type: @user\.organization_type \} \}, as: :json/, content)
       assert_match(/patch user_url\(@user\), params: \{ user: \{ age: @user\.age, name: @user\.name, organization_id: @user\.organization_id, organization_type: @user\.organization_type \} \}, as: :json/, content)
       assert_no_match(/assert_redirected_to/, content)
+    end
+  end
+
+  def test_api_only_generates_params_for_attachments
+    run_generator ["Message", "video:attachment", "photos:attachments", "--api"]
+
+    assert_file "app/controllers/messages_controller.rb" do |content|
+      assert_match(/def message_params/, content)
+      assert_match(/params\.require\(:message\)\.permit\(:video, photos: \[\]\)/, content)
     end
   end
 end

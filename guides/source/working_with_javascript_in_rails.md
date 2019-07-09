@@ -160,7 +160,7 @@ remote elements inside your application.
 
 #### form_with
 
-[`form_with`](http://api.rubyonrails.org/classes/ActionView/Helpers/FormHelper.html#method-i-form_with)
+[`form_with`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormHelper.html#method-i-form_with)
 is a helper that assists with writing forms. By default, `form_with` assumes that
 your form will be using Ajax. You can opt out of this behavior by
 passing the `:local` option `form_with`.
@@ -204,7 +204,7 @@ have been bundled into `event.detail`. For information about the previously used
 
 #### link_to
 
-[`link_to`](http://api.rubyonrails.org/classes/ActionView/Helpers/UrlHelper.html#method-i-link_to)
+[`link_to`](https://api.rubyonrails.org/classes/ActionView/Helpers/UrlHelper.html#method-i-link_to)
 is a helper that assists with generating links. It has a `:remote` option you
 can use like this:
 
@@ -236,7 +236,7 @@ $ ->
 
 #### button_to
 
-[`button_to`](http://api.rubyonrails.org/classes/ActionView/Helpers/UrlHelper.html#method-i-button_to) is a helper that helps you create buttons. It has a `:remote` option that you can call like this:
+[`button_to`](https://api.rubyonrails.org/classes/ActionView/Helpers/UrlHelper.html#method-i-button_to) is a helper that helps you create buttons. It has a `:remote` option that you can call like this:
 
 ```erb
 <%= button_to "An article", @article, remote: true %>
@@ -493,10 +493,6 @@ Turbolinks will make an Ajax request for the page, parse the response, and
 replace the entire `<body>` of the page with the `<body>` of the response. It
 will then use PushState to change the URL to the correct one, preserving
 refresh semantics and giving you pretty URLs.
-
-The only thing you have to do to enable Turbolinks is have it in your `Gemfile`,
-and put `//= require turbolinks` in your JavaScript manifest, which is usually
-`app/assets/javascripts/application.js`.
 
 If you want to disable Turbolinks for certain links, add a `data-turbolinks="false"`
 attribute to the tag:

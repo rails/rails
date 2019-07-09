@@ -4,13 +4,13 @@ gem "capybara", ">= 2.15"
 
 require "capybara/dsl"
 require "capybara/minitest"
+require "selenium/webdriver"
 require "action_controller"
 require "action_dispatch/system_testing/driver"
 require "action_dispatch/system_testing/browser"
 require "action_dispatch/system_testing/server"
 require "action_dispatch/system_testing/test_helpers/screenshot_helper"
 require "action_dispatch/system_testing/test_helpers/setup_and_teardown"
-require "action_dispatch/system_testing/test_helpers/undef_methods"
 
 module ActionDispatch
   # = System Testing
@@ -89,15 +89,32 @@ module ActionDispatch
   #       { js_errors: true }
   #   end
   #
+  # Some drivers require browser capabilities to be passed as a block instead
+  # of through the +options+ hash.
+  #
+  # As an example, if you want to add mobile emulation on chrome, you'll have to
+  # create an instance of selenium's +Chrome::Options+ object and add
+  # capabilities with a block.
+  #
+  # The block will be passed an instance of <tt><Driver>::Options</tt> where you can
+  # define the capabilities you want. Please refer to your driver documentation
+  # to learn about supported options.
+  #
+  #   class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
+  #     driven_by :selenium, using: :chrome, screen_size: [1024, 768] do |driver_option|
+  #       driver_option.add_emulation(device_name: 'iPhone 6')
+  #       driver_option.add_extension('path/to/chrome_extension.crx')
+  #     end
+  #   end
+  #
   # Because <tt>ActionDispatch::SystemTestCase</tt> is a shim between Capybara
   # and Rails, any driver that is supported by Capybara is supported by system
   # tests as long as you include the required gems and files.
-  class SystemTestCase < IntegrationTest
+  class SystemTestCase < ActiveSupport::TestCase
     include Capybara::DSL
     include Capybara::Minitest::Assertions
     include SystemTesting::TestHelpers::SetupAndTeardown
     include SystemTesting::TestHelpers::ScreenshotHelper
-    include SystemTesting::TestHelpers::UndefMethods
 
     def initialize(*) # :nodoc:
       super
@@ -134,11 +151,17 @@ module ActionDispatch
     #   driven_by :selenium, using: :firefox
     #
     #   driven_by :selenium, using: :headless_firefox
-    def self.driven_by(driver, using: :chrome, screen_size: [1400, 1400], options: {})
-      self.driver = SystemTesting::Driver.new(driver, using: using, screen_size: screen_size, options: options)
+    def self.driven_by(driver, using: :chrome, screen_size: [1400, 1400], options: {}, &capabilities)
+      driver_options = { using: using, screen_size: screen_size, options: options }
+
+      self.driver = SystemTesting::Driver.new(driver, driver_options, &capabilities)
     end
 
     driven_by :selenium
+
+    def url_options # :nodoc:
+      default_url_options.merge(host: Capybara.app_host)
+    end
 
     ActiveSupport.run_load_hooks(:action_dispatch_system_test_case, self)
   end

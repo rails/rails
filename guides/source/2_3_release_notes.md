@@ -52,7 +52,7 @@ After some versions without an upgrade, Rails 2.3 offers some new features for R
 Documentation
 -------------
 
-The [Ruby on Rails guides](https://guides.rubyonrails.org/) project has published several additional guides for Rails 2.3. In addition, a [separate site](http://edgeguides.rubyonrails.org/) maintains updated copies of the Guides for Edge Rails. Other documentation efforts include a relaunch of the [Rails wiki](http://newwiki.rubyonrails.org/) and early planning for a Rails Book.
+The [Ruby on Rails guides](https://guides.rubyonrails.org/) project has published several additional guides for Rails 2.3. In addition, a [separate site](https://edgeguides.rubyonrails.org/) maintains updated copies of the Guides for Edge Rails. Other documentation efforts include a relaunch of the [Rails wiki](http://newwiki.rubyonrails.org/) and early planning for a Rails Book.
 
 * More Information: [Rails Documentation Projects](https://weblog.rubyonrails.org/2009/1/15/rails-documentation-projects)
 
@@ -415,7 +415,7 @@ select_datetime(DateTime.now, :prompt =>
 
 ### AssetTag Timestamp Caching
 
-You're likely familiar with Rails' practice of adding timestamps to static asset paths as a "cache buster." This helps ensure that stale copies of things like images and stylesheets don't get served out of the user's browser cache when you change them on the server. You can now modify this behavior with the `cache_asset_timestamps` configuration option for Action View. If you enable the cache, then Rails will calculate the timestamp once when it first serves an asset, and save that value. This means fewer (expensive) file system calls to serve static assets - but it also means that you can't modify any of the assets while the server is running and expect the changes to get picked up by clients.
+You're likely familiar with Rails' practice of adding timestamps to static asset paths as a "cache buster". This helps ensure that stale copies of things like images and stylesheets don't get served out of the user's browser cache when you change them on the server. You can now modify this behavior with the `cache_asset_timestamps` configuration option for Action View. If you enable the cache, then Rails will calculate the timestamp once when it first serves an asset, and save that value. This means fewer (expensive) file system calls to serve static assets - but it also means that you can't modify any of the assets while the server is running and expect the changes to get picked up by clients.
 
 ### Asset Hosts as Objects
 

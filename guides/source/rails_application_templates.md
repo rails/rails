@@ -82,10 +82,10 @@ end
 
 Adds the given source to the generated application's `Gemfile`.
 
-For example, if you need to source a gem from `"http://code.whytheluckystiff.net"`:
+For example, if you need to source a gem from `"http://gems.github.com"`:
 
 ```ruby
-add_source "http://code.whytheluckystiff.net"
+add_source "http://gems.github.com"
 ```
 
 If block is given, gem entries in block are wrapped into the source group.
@@ -193,6 +193,12 @@ You can also run commands as a super-user:
 
 ```ruby
 rails_command "log:clear", sudo: true
+```
+
+You can also run commands that should abort application generation if they fail:
+
+```ruby
+rails_command "db:migrate", abort_on_failure: true
 ```
 
 ### route(routing_code)

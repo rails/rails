@@ -52,7 +52,6 @@ class LogOnUnpermittedParamsTest < ActiveSupport::TestCase
   end
 
   private
-
     def assert_logged(message)
       old_logger = ActionController::Base.logger
       log = StringIO.new

@@ -18,7 +18,7 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
            :categorizations, :people, :categories, :edges, :vertices
 
   def test_eager_association_loading_with_cascaded_two_levels
-    authors = Author.all.merge!(includes: { posts: :comments }, order: "authors.id").to_a
+    authors = Author.includes(posts: :comments).order(:id).to_a
     assert_equal 3, authors.size
     assert_equal 5, authors[0].posts.size
     assert_equal 3, authors[1].posts.size
@@ -26,7 +26,7 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
   end
 
   def test_eager_association_loading_with_cascaded_two_levels_and_one_level
-    authors = Author.all.merge!(includes: [{ posts: :comments }, :categorizations], order: "authors.id").to_a
+    authors = Author.includes({ posts: :comments }, :categorizations).order(:id).to_a
     assert_equal 3, authors.size
     assert_equal 5, authors[0].posts.size
     assert_equal 3, authors[1].posts.size
@@ -36,9 +36,9 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
   end
 
   def test_eager_association_loading_with_hmt_does_not_table_name_collide_when_joining_associations
-    authors = Author.joins(:posts).eager_load(:comments).where(posts: { tags_count: 1 }).to_a
-    assert_equal 3, assert_no_queries { authors.size }
-    assert_equal 10, assert_no_queries { authors[0].comments.size }
+    authors = Author.joins(:posts).eager_load(:comments).where(posts: { tags_count: 1 }).order(:id).to_a
+    assert_equal 3, assert_queries(0) { authors.size }
+    assert_equal 10, assert_queries(0) { authors[0].comments.size }
   end
 
   def test_eager_association_loading_grafts_stashed_associations_to_correct_parent
@@ -103,26 +103,25 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
     firms = Firm.all.merge!(includes: { account: { firm: :account } }, order: "companies.id").to_a
     assert_equal 2, firms.size
     assert_equal firms.first.account, firms.first.account.firm.account
-    assert_equal companies(:first_firm).account, assert_no_queries { firms.first.account.firm.account }
-    assert_equal companies(:first_firm).account.firm.account, assert_no_queries { firms.first.account.firm.account }
+    assert_equal companies(:first_firm).account, assert_queries(0) { firms.first.account.firm.account }
+    assert_equal companies(:first_firm).account.firm.account, assert_queries(0) { firms.first.account.firm.account }
   end
 
   def test_eager_association_loading_with_has_many_sti
     topics = Topic.all.merge!(includes: :replies, order: "topics.id").to_a
     first, second, = topics(:first).replies.size, topics(:second).replies.size
-    assert_no_queries do
+    assert_queries(0) do
       assert_equal first, topics[0].replies.size
       assert_equal second, topics[1].replies.size
     end
   end
 
   def test_eager_association_loading_with_has_many_sti_and_subclasses
-    silly = SillyReply.new(title: "gaga", content: "boo-boo", parent_id: 1)
-    silly.parent_id = 1
-    assert silly.save
+    reply = Reply.new(title: "gaga", content: "boo-boo", parent_id: 1)
+    assert reply.save
 
     topics = Topic.all.merge!(includes: :replies, order: ["topics.id", "replies_topics.id"]).to_a
-    assert_no_queries do
+    assert_queries(0) do
       assert_equal 2, topics[0].replies.size
       assert_equal 0, topics[1].replies.size
     end
@@ -132,13 +131,13 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
     replies = Reply.all.merge!(includes: :topic, order: "topics.id").to_a
     assert_includes replies, topics(:second)
     assert_not_includes replies, topics(:first)
-    assert_equal topics(:first), assert_no_queries { replies.first.topic }
+    assert_equal topics(:first), assert_queries(0) { replies.first.topic }
   end
 
   def test_eager_association_loading_with_multiple_stis_and_order
     author = Author.all.merge!(includes: { posts: [ :special_comments, :very_special_comment ] }, order: ["authors.name", "comments.body", "very_special_comments_posts.body"], where: "posts.id = 4").first
     assert_equal authors(:david), author
-    assert_no_queries do
+    assert_queries(0) do
       author.posts.first.special_comments
       author.posts.first.very_special_comment
     end
@@ -147,7 +146,7 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
   def test_eager_association_loading_of_stis_with_multiple_references
     authors = Author.all.merge!(includes: { posts: { special_comments: { post: [ :special_comments, :very_special_comment ] } } }, order: "comments.body, very_special_comments_posts.body", where: "posts.id = 4").to_a
     assert_equal [authors(:david)], authors
-    assert_no_queries do
+    assert_queries(0) do
       authors.first.posts.first.special_comments.first.post.special_comments
       authors.first.posts.first.special_comments.first.post.very_special_comment
     end
@@ -156,19 +155,29 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
   def test_eager_association_loading_where_first_level_returns_nil
     authors = Author.all.merge!(includes: { post_about_thinking: :comments }, order: "authors.id DESC").to_a
     assert_equal [authors(:bob), authors(:mary), authors(:david)], authors
-    assert_no_queries do
+    assert_queries(0) do
       authors[2].post_about_thinking.comments.first
     end
   end
 
+  def test_preload_through_missing_records
+    post = Post.where.not(author_id: Author.select(:id)).preload(author: { comments: :post }).first!
+    assert_queries(0) { assert_nil post.author }
+  end
+
+  def test_eager_association_loading_with_missing_first_record
+    posts = Post.where(id: 3).preload(author: { comments: :post }).to_a
+    assert_equal posts.size, 1
+  end
+
   def test_eager_association_loading_with_recursive_cascading_four_levels_has_many_through
     source = Vertex.all.merge!(includes: { sinks: { sinks: { sinks: :sinks } } }, order: "vertices.id").first
-    assert_equal vertices(:vertex_4), assert_no_queries { source.sinks.first.sinks.first.sinks.first }
+    assert_equal vertices(:vertex_4), assert_queries(0) { source.sinks.first.sinks.first.sinks.first }
   end
 
   def test_eager_association_loading_with_recursive_cascading_four_levels_has_and_belongs_to_many
     sink = Vertex.all.merge!(includes: { sources: { sources: { sources: :sources } } }, order: "vertices.id DESC").first
-    assert_equal vertices(:vertex_1), assert_no_queries { sink.sources.first.sources.first.sources.first.sources.first }
+    assert_equal vertices(:vertex_1), assert_queries(0) { sink.sources.first.sources.first.sources.first.sources.first }
   end
 
   def test_eager_association_loading_with_cascaded_interdependent_one_level_and_two_levels

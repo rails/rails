@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
 require "active_support/core_ext/array/extract_options"
-require "active_support/core_ext/hash/keys"
-require "active_support/core_ext/hash/except"
 
 module ActiveModel
   # == Active \Model \Validations
@@ -404,7 +402,6 @@ module ActiveModel
     alias :read_attribute_for_validation :send
 
   private
-
     def run_validations!
       _run_validate_callbacks
       errors.empty?

@@ -21,7 +21,7 @@ class CallbackDeveloper < ActiveRecord::Base
 
     def callback_object(callback_method)
       klass = Class.new
-      klass.send(:define_method, callback_method) do |model|
+      klass.define_method(callback_method) do |model|
         model.history << [callback_method, :object]
       end
       klass.new
@@ -458,10 +458,6 @@ class CallbacksTest < ActiveRecord::TestCase
       [ :before_validation, :object ],
       [ :before_validation, :block  ],
       [ :before_validation, :throwing_abort ],
-      [ :after_rollback,    :block  ],
-      [ :after_rollback,    :object ],
-      [ :after_rollback,    :proc   ],
-      [ :after_rollback,    :method ],
     ], david.history
   end
 
@@ -480,7 +476,7 @@ class CallbacksTest < ActiveRecord::TestCase
   def test_before_save_doesnt_allow_on_option
     exception = assert_raises ArgumentError do
       Class.new(ActiveRecord::Base) do
-        before_save(on: :create) {}
+        before_save(on: :create) { }
       end
     end
     assert_equal "Unknown key: :on. Valid keys are: :if, :unless, :prepend", exception.message
@@ -489,7 +485,7 @@ class CallbacksTest < ActiveRecord::TestCase
   def test_around_save_doesnt_allow_on_option
     exception = assert_raises ArgumentError do
       Class.new(ActiveRecord::Base) do
-        around_save(on: :create) {}
+        around_save(on: :create) { }
       end
     end
     assert_equal "Unknown key: :on. Valid keys are: :if, :unless, :prepend", exception.message
@@ -498,7 +494,7 @@ class CallbacksTest < ActiveRecord::TestCase
   def test_after_save_doesnt_allow_on_option
     exception = assert_raises ArgumentError do
       Class.new(ActiveRecord::Base) do
-        after_save(on: :create) {}
+        after_save(on: :create) { }
       end
     end
     assert_equal "Unknown key: :on. Valid keys are: :if, :unless, :prepend", exception.message

@@ -83,7 +83,7 @@ module ActionDispatch
       private
         def normalize_filter(filter)
           if filter[:controller]
-            { controller: /#{filter[:controller].downcase.sub(/_?controller\z/, '').sub('::', '/')}/ }
+            { controller: /#{filter[:controller].underscore.sub(/_?controller\z/, "")}/ }
           elsif filter[:grep]
             { controller: /#{filter[:grep]}/, action: /#{filter[:grep]}/,
               verb: /#{filter[:grep]}/, name: /#{filter[:grep]}/, path: /#{filter[:grep]}/ }
@@ -177,7 +177,6 @@ module ActionDispatch
         end
 
         private
-
           def draw_section(routes)
             header_lengths = ["Prefix", "Verb", "URI Pattern"].map(&:length)
             name_width, verb_width, path_width = widths(routes).zip(header_lengths).map(&:max)
@@ -210,7 +209,6 @@ module ActionDispatch
         end
 
         private
-
           def draw_expanded_section(routes)
             routes.map.each_with_index do |r, i|
               <<~MESSAGE.chomp

@@ -15,6 +15,9 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
   test "attaching an existing blob to an existing record" do
     @user.avatar.attach create_blob(filename: "funky.jpg")
     assert_equal "funky.jpg", @user.avatar.filename.to_s
+
+    assert_not_nil @user.avatar_attachment
+    assert_not_nil @user.avatar_blob
   end
 
   test "attaching an existing blob from a signed ID to an existing record" do
@@ -412,6 +415,22 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
     end
   end
 
+  test "purging an attachment with a shared blob" do
+    create_blob(filename: "funky.jpg").tap do |blob|
+      @user.avatar.attach blob
+      assert @user.avatar.attached?
+
+      another_user = User.create!(name: "John")
+      another_user.avatar.attach blob
+      assert another_user.avatar.attached?
+
+      @user.avatar.purge
+      assert_not @user.avatar.attached?
+      assert ActiveStorage::Blob.exists?(blob.id)
+      assert ActiveStorage::Blob.service.exist?(blob.key)
+    end
+  end
+
   test "purging later" do
     create_blob(filename: "funky.jpg").tap do |blob|
       @user.avatar.attach blob
@@ -424,6 +443,25 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
       assert_not @user.avatar.attached?
       assert_not ActiveStorage::Blob.exists?(blob.id)
       assert_not ActiveStorage::Blob.service.exist?(blob.key)
+    end
+  end
+
+  test "purging an attachment later with shared blob" do
+    create_blob(filename: "funky.jpg").tap do |blob|
+      @user.avatar.attach blob
+      assert @user.avatar.attached?
+
+      another_user = User.create!(name: "John")
+      another_user.avatar.attach blob
+      assert another_user.avatar.attached?
+
+      perform_enqueued_jobs do
+        @user.avatar.purge_later
+      end
+
+      assert_not @user.avatar.attached?
+      assert ActiveStorage::Blob.exists?(blob.id)
+      assert ActiveStorage::Blob.service.exist?(blob.key)
     end
   end
 
@@ -472,7 +510,7 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
 
       assert_equal "gpj.yknuf", @user.avatar
     ensure
-      User.send(:remove_method, :avatar)
+      User.remove_method :avatar
     end
   end
 end

@@ -152,7 +152,7 @@ class IntegrationTestTest < ActiveSupport::TestCase
       assert_equal "pass", @test.foo
     ensure
       # leave other tests as unaffected as possible
-      mixin.__send__(:remove_method, :method_missing)
+      mixin.remove_method :method_missing
     end
   end
 end
@@ -522,11 +522,11 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
     with_test_route_set do
       get "/get", headers: { "Accept" => "application/json" }, xhr: true
       assert_equal "application/json", request.accept
-      assert_equal "application/json", response.content_type
+      assert_equal "application/json", response.media_type
 
       get "/get", headers: { "HTTP_ACCEPT" => "application/json" }, xhr: true
       assert_equal "application/json", request.accept
-      assert_equal "application/json", response.content_type
+      assert_equal "application/json", response.media_type
     end
   end
 
@@ -808,17 +808,17 @@ class UrlOptionsIntegrationTest < ActionDispatch::IntegrationTest
     end
   end
 
-  test "session uses default url options from routes" do
+  test "session uses default URL options from routes" do
     assert_equal "http://foo.com/foo", foos_url
   end
 
-  test "current host overrides default url options from routes" do
+  test "current host overrides default URL options from routes" do
     get "/foo"
     assert_response :success
     assert_equal "http://www.example.com/foo", foos_url
   end
 
-  test "controller can override default url options from request" do
+  test "controller can override default URL options from request" do
     get "/bar"
     assert_response :success
     assert_equal "http://bar.com/foo", foos_url
@@ -986,7 +986,7 @@ class IntegrationRequestEncodersTest < ActionDispatch::IntegrationTest
   def test_encoding_as_json
     post_to_foos as: :json do
       assert_response :success
-      assert_equal "application/json", request.content_type
+      assert_equal "application/json", request.media_type
       assert_equal "application/json", request.accepts.first.to_s
       assert_equal :json, request.format.ref
       assert_equal({ "foo" => "fighters" }, request.request_parameters)
@@ -1025,7 +1025,7 @@ class IntegrationRequestEncodersTest < ActionDispatch::IntegrationTest
     post_to_foos as: :wibble do
       assert_response :success
       assert_equal "/foos_wibble", request.path
-      assert_equal "text/wibble", request.content_type
+      assert_equal "text/wibble", request.media_type
       assert_equal "text/wibble", request.accepts.first.to_s
       assert_equal :wibble, request.format.ref
       assert_equal Hash.new, request.request_parameters # Unregistered MIME Type can't be parsed.

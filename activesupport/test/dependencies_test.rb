@@ -282,6 +282,32 @@ class DependenciesTest < ActiveSupport::TestCase
     remove_constants(:ModuleFolder)
   end
 
+  def test_module_with_nested_class_requiring_lib_class
+    with_autoloading_fixtures do
+      _ = ModuleFolder::NestedWithRequire # assignment to silence parse-time warning "possibly useless use of :: in void context"
+
+      assert defined?(ModuleFolder::LibClass)
+      assert_not ActiveSupport::Dependencies.autoloaded_constants.include?("ModuleFolder::LibClass")
+      assert_not ActiveSupport::Dependencies.autoloaded_constants.include?("ConstFromLib")
+    end
+  ensure
+    remove_constants(:ModuleFolder)
+    remove_constants(:ConstFromLib)
+  end
+
+  def test_module_with_nested_class_and_parent_requiring_lib_class
+    with_autoloading_fixtures do
+      _ = NestedWithRequireParent # assignment to silence parse-time warning "possibly useless use of a constant in void context"
+
+      assert defined?(ModuleFolder::LibClass)
+      assert_not ActiveSupport::Dependencies.autoloaded_constants.include?("ModuleFolder::LibClass")
+      assert_not ActiveSupport::Dependencies.autoloaded_constants.include?("ConstFromLib")
+    end
+  ensure
+    remove_constants(:ModuleFolder)
+    remove_constants(:ConstFromLib)
+  end
+
   def test_directories_may_manifest_as_nested_classes
     with_autoloading_fixtures do
       assert_kind_of Class, ClassFolder
@@ -455,17 +481,14 @@ class DependenciesTest < ActiveSupport::TestCase
     end
   end
 
-  # This raises only on 2.5.. (warns on ..2.4)
-  if RUBY_VERSION > "2.5"
-    def test_access_thru_and_upwards_fails
-      with_autoloading_fixtures do
-        assert_not defined?(ModuleFolder)
-        assert_raise(NameError) { ModuleFolder::Object }
-        assert_raise(NameError) { ModuleFolder::NestedClass::Object }
-      end
-    ensure
-      remove_constants(:ModuleFolder)
+  def test_access_thru_and_upwards_fails
+    with_autoloading_fixtures do
+      assert_not defined?(ModuleFolder)
+      assert_raise(NameError) { ModuleFolder::Object }
+      assert_raise(NameError) { ModuleFolder::NestedClass::Object }
     end
+  ensure
+    remove_constants(:ModuleFolder)
   end
 
   def test_non_existing_const_raises_name_error_with_fully_qualified_name
@@ -815,8 +838,8 @@ class DependenciesTest < ActiveSupport::TestCase
     remove_constants(:C)
   end
 
-  def test_new_contants_in_without_constants
-    assert_equal [], (ActiveSupport::Dependencies.new_constants_in(Object) {})
+  def test_new_constants_in_without_constants
+    assert_equal [], (ActiveSupport::Dependencies.new_constants_in(Object) { })
     assert ActiveSupport::Dependencies.constant_watch_stack.all? { |k, v| v.empty? }
   end
 
@@ -892,7 +915,7 @@ class DependenciesTest < ActiveSupport::TestCase
 
   def test_new_constants_in_with_illegal_module_name_raises_correct_error
     assert_raise(NameError) do
-      ActiveSupport::Dependencies.new_constants_in("Illegal-Name") {}
+      ActiveSupport::Dependencies.new_constants_in("Illegal-Name") { }
     end
   end
 
@@ -1128,5 +1151,54 @@ class DependenciesTest < ActiveSupport::TestCase
     assert_includes Object.private_methods, :require
   ensure
     ActiveSupport::Dependencies.hook!
+  end
+end
+
+class DependenciesLogging < ActiveSupport::TestCase
+  MESSAGE = "message"
+
+  def with_settings(logger, verbose)
+    original_logger = ActiveSupport::Dependencies.logger
+    original_verbose = ActiveSupport::Dependencies.verbose
+
+    ActiveSupport::Dependencies.logger = logger
+    ActiveSupport::Dependencies.verbose = verbose
+
+    yield
+  ensure
+    ActiveSupport::Dependencies.logger = original_logger
+    ActiveSupport::Dependencies.verbose = original_verbose
+  end
+
+  def fake_logger
+    Class.new do
+      def self.debug(message)
+        message
+      end
+    end
+  end
+
+  test "does not log if the logger is nil and verbose is false" do
+    with_settings(nil, false) do
+      assert_nil ActiveSupport::Dependencies.log(MESSAGE)
+    end
+  end
+
+  test "does not log if the logger is nil and verbose is true" do
+    with_settings(nil, true) do
+      assert_nil ActiveSupport::Dependencies.log(MESSAGE)
+    end
+  end
+
+  test "does not log if the logger is set and verbose is false" do
+    with_settings(fake_logger, false) do
+      assert_nil ActiveSupport::Dependencies.log(MESSAGE)
+    end
+  end
+
+  test "logs if the logger is set and verbose is true" do
+    with_settings(fake_logger, true) do
+      assert_equal "autoloading: #{MESSAGE}", ActiveSupport::Dependencies.log(MESSAGE)
+    end
   end
 end

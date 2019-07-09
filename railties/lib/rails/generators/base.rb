@@ -245,7 +245,6 @@ module Rails
       end
 
       private
-
         # Check whether the given class names are already taken by user
         # application or Ruby on Rails.
         def class_collisions(*class_names)

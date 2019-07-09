@@ -250,6 +250,25 @@ asyncTest('ctrl-clicking on a link does not disables the link', 6, function() {
   start()
 })
 
+asyncTest('right/mouse-wheel-clicking on a link does not disable the link', 10, function() {
+  var link = $('a[data-disable]')
+
+  App.checkEnabledState(link, 'Click me')
+
+  link.triggerNative('click', { button: 1 })
+  App.checkEnabledState(link, 'Click me')
+
+  link.triggerNative('click', { button: 1 })
+  App.checkEnabledState(link, 'Click me')
+
+  link.triggerNative('click', { button: 2 })
+  App.checkEnabledState(link, 'Click me')
+
+  link.triggerNative('click', { button: 2 })
+  App.checkEnabledState(link, 'Click me')
+  start()
+})
+
 asyncTest('button[data-remote][data-disable] disables and re-enables', 6, function() {
   var button = $('button[data-remote][data-disable]')
 
@@ -317,6 +336,23 @@ asyncTest('button[data-remote][data-disable] re-enables when `ajax:error` event 
 
   setTimeout(function() {
     App.checkEnabledState(button, 'Click me')
+    start()
+  }, 30)
+})
+
+asyncTest('do not enable elements for XHR redirects', 6, function() {
+  var link = $('a[data-disable]').attr('data-remote', true).attr('href', '/echo?with_xhr_redirect=true')
+
+  App.checkEnabledState(link, 'Click me')
+
+  link
+    .bindNative('ajax:send', function() {
+      App.checkDisabledState(link, 'Click me')
+    })
+    .triggerNative('click')
+
+  setTimeout(function() {
+    App.checkDisabledState(link, 'Click me')
     start()
   }, 30)
 })

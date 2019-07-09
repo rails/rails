@@ -27,7 +27,7 @@ module ActiveRecord
           key
         else
           key = key.to_s
-          key.split(".".freeze).first if key.include?(".".freeze)
+          key.split(".").first if key.include?(".")
         end
       end.compact
     end
@@ -90,16 +90,21 @@ module ActiveRecord
             queries.reduce(&:or)
           elsif table.aggregated_with?(key)
             mapping = table.reflect_on_aggregation(key).mapping
-            queries = Array.wrap(value).map do |object|
-              mapping.map do |field_attr, aggregate_attr|
-                if mapping.size == 1 && !object.respond_to?(aggregate_attr)
-                  build(table.arel_attribute(field_attr), object)
-                else
-                  build(table.arel_attribute(field_attr), object.send(aggregate_attr))
-                end
-              end.reduce(&:and)
+            values = value.nil? ? [nil] : Array.wrap(value)
+            if mapping.length == 1 || values.empty?
+              column_name, aggr_attr = mapping.first
+              values = values.map do |object|
+                object.respond_to?(aggr_attr) ? object.public_send(aggr_attr) : object
+              end
+              build(table.arel_attribute(column_name), values)
+            else
+              queries = values.map do |object|
+                mapping.map do |field_attr, aggregate_attr|
+                  build(table.arel_attribute(field_attr), object.try!(aggregate_attr))
+                end.reduce(&:and)
+              end
+              queries.reduce(&:or)
             end
-            queries.reduce(&:or)
           else
             build(table.arel_attribute(key), value)
           end
@@ -115,11 +120,11 @@ module ActiveRecord
 
       def convert_dot_notation_to_hash(attributes)
         dot_notation = attributes.select do |k, v|
-          k.include?(".".freeze) && !v.is_a?(Hash)
+          k.include?(".") && !v.is_a?(Hash)
         end
 
         dot_notation.each_key do |key|
-          table_name, column_name = key.split(".".freeze)
+          table_name, column_name = key.split(".")
           value = attributes.delete(key)
           attributes[table_name] ||= {}
 

@@ -10,15 +10,20 @@ class MethodWrappersTest < ActiveSupport::TestCase
       alias_method :old_method, :new_method
 
       protected
-
         def new_protected_method; "abc" end
         alias_method :old_protected_method, :new_protected_method
 
       private
-
         def new_private_method; "abc" end
         alias_method :old_private_method, :new_private_method
     end
+  end
+
+  def test_deprecate_methods_without_alternate_method
+    warning = /old_method is deprecated and will be removed from Rails \d.\d./
+    ActiveSupport::Deprecation.deprecate_methods(@klass, :old_method)
+
+    assert_deprecated(warning) { assert_equal "abc", @klass.new.old_method }
   end
 
   def test_deprecate_methods_warning_default
@@ -54,5 +59,32 @@ class MethodWrappersTest < ActiveSupport::TestCase
     ActiveSupport::Deprecation.deprecate_methods(@klass, old_private_method: :new_private_method)
 
     assert(@klass.private_method_defined?(:old_private_method))
+  end
+
+  def test_deprecate_class_method
+    mod = Module.new do
+      extend self
+
+      def old_method
+        "abc"
+      end
+    end
+    ActiveSupport::Deprecation.deprecate_methods(mod, old_method: :new_method)
+
+    warning = /old_method is deprecated and will be removed from Rails \d.\d \(use new_method instead\)/
+    assert_deprecated(warning) { assert_equal "abc", mod.old_method }
+  end
+
+  def test_deprecate_method_when_class_extends_module
+    mod = Module.new do
+      def old_method
+        "abc"
+      end
+    end
+    @klass.extend mod
+    ActiveSupport::Deprecation.deprecate_methods(mod, old_method: :new_method)
+
+    warning = /old_method is deprecated and will be removed from Rails \d.\d \(use new_method instead\)/
+    assert_deprecated(warning) { assert_equal "abc", @klass.old_method }
   end
 end

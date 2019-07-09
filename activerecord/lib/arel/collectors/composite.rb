@@ -24,8 +24,7 @@ module Arel # :nodoc: all
         [left.value, right.value]
       end
 
-      protected
-
+      private
         attr_reader :left, :right
     end
   end

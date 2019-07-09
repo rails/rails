@@ -7,23 +7,21 @@ ActiveRecord::Schema.define do
   execute "drop table defaults" rescue nil
   execute "drop sequence defaults_seq" rescue nil
 
-  execute <<-SQL
-create table test_oracle_defaults (
-  id integer not null primary key,
-  test_char char(1) default 'X' not null,
-  test_string varchar2(20) default 'hello' not null,
-  test_int integer default 3 not null
-)
+  execute <<~SQL
+    create table test_oracle_defaults (
+      id integer not null primary key,
+      test_char char(1) default 'X' not null,
+      test_string varchar2(20) default 'hello' not null,
+      test_int integer default 3 not null
+    )
   SQL
 
-  execute <<-SQL
-create sequence test_oracle_defaults_seq minvalue 10000
-  SQL
+  execute "create sequence test_oracle_defaults_seq minvalue 10000"
 
   execute "create sequence companies_nonstd_seq minvalue 10000"
 
-  execute <<-SQL
-  CREATE TABLE defaults (
+  execute <<~SQL
+    CREATE TABLE defaults (
       id integer not null,
       modified_date date default sysdate,
       modified_date_function date default sysdate,
@@ -34,7 +32,7 @@ create sequence test_oracle_defaults_seq minvalue 10000
       char1 varchar2(1) default 'Y',
       char2 varchar2(50) default 'a varchar field',
       char3 clob default 'a text field'
-  )
+    )
   SQL
   execute "create sequence defaults_seq minvalue 10000"
 end

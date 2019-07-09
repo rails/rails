@@ -61,7 +61,7 @@ end
 
 The [Layouts & Rendering Guide](layouts_and_rendering.html) explains this in more detail.
 
-`ApplicationController` inherits from `ActionController::Base`, which defines a number of helpful methods. This guide will cover some of these, but if you're curious to see what's in there, you can see all of them in the [API documentation](http://api.rubyonrails.org/classes/ActionController.html) or in the source itself.
+`ApplicationController` inherits from `ActionController::Base`, which defines a number of helpful methods. This guide will cover some of these, but if you're curious to see what's in there, you can see all of them in the [API documentation](https://api.rubyonrails.org/classes/ActionController.html) or in the source itself.
 
 Only public methods are callable as actions. It is a best practice to lower the visibility of methods (with `private` or `protected`) which are not intended to be actions, like auxiliary methods or filters.
 
@@ -157,7 +157,7 @@ And, assuming that you're sending the data to `CompaniesController`, it would th
 { name: "acme", address: "123 Carrot Street", company: { name: "acme", address: "123 Carrot Street" } }
 ```
 
-You can customize the name of the key or specific parameters you want to wrap by consulting the [API documentation](http://api.rubyonrails.org/classes/ActionController/ParamsWrapper.html)
+You can customize the name of the key or specific parameters you want to wrap by consulting the [API documentation](https://api.rubyonrails.org/classes/ActionController/ParamsWrapper.html)
 
 NOTE: Support for parsing XML parameters has been extracted into a gem named `actionpack-xml_parser`.
 
@@ -166,7 +166,7 @@ NOTE: Support for parsing XML parameters has been extracted into a gem named `ac
 The `params` hash will always contain the `:controller` and `:action` keys, but you should use the methods `controller_name` and `action_name` instead to access these values. Any other parameters defined by the routing, such as `:id`, will also be available. As an example, consider a listing of clients where the list can show either active or inactive clients. We can add a route which captures the `:status` parameter in a "pretty" URL:
 
 ```ruby
-get '/clients/:status' => 'clients#index', foo: 'bar'
+get '/clients/:status', to: 'clients#index', foo: 'bar'
 ```
 
 In this case, when a user opens the URL `/clients/active`, `params[:status]` will be set to "active". When this route is used, `params[:foo]` will also be set to "bar", as if it were passed in the query string. Your controller will also receive `params[:action]` as "index" and `params[:controller]` as "clients".
@@ -193,8 +193,8 @@ In a given request, the method is not actually called for every single generated
 
 With strong parameters, Action Controller parameters are forbidden to
 be used in Active Model mass assignments until they have been
-whitelisted. This means that you'll have to make a conscious decision about
-which attributes to allow for mass update. This is a better security
+permitted. This means that you'll have to make a conscious decision about
+which attributes to permit for mass update. This is a better security
 practice to help prevent accidentally allowing users to update sensitive
 model attributes.
 
@@ -212,7 +212,7 @@ class PeopleController < ActionController::Base
   end
 
   # This will pass with flying colors as long as there's a person key
-  # in the parameters, otherwise it'll raise a
+  # in the parameters, otherwise it'll raise an
   # ActionController::ParameterMissing exception, which will get
   # caught by ActionController::Base and turned into a 400 Bad
   # Request error.
@@ -241,7 +241,7 @@ Given
 params.permit(:id)
 ```
 
-the key `:id` will pass the whitelisting if it appears in `params` and
+the key `:id` will be permitted for inclusion if it appears in `params` and
 it has a permitted scalar value associated. Otherwise, the key is going
 to be filtered out, so arrays, hashes, or any other objects cannot be
 injected.
@@ -269,7 +269,7 @@ but be careful because this opens the door to arbitrary input. In this
 case, `permit` ensures values in the returned structure are permitted
 scalars and filters out anything else.
 
-To whitelist an entire hash of parameters, the `permit!` method can be
+To permit an entire hash of parameters, the `permit!` method can be
 used:
 
 ```ruby
@@ -291,7 +291,7 @@ params.permit(:name, { emails: [] },
                          { family: [ :name ], hobbies: [] }])
 ```
 
-This declaration whitelists the `name`, `emails`, and `friends`
+This declaration permits the `name`, `emails`, and `friends`
 attributes. It is expected that `emails` will be an array of permitted
 scalar values, and that `friends` will be an array of resources with
 specific attributes: they should have a `name` attribute (any
@@ -326,7 +326,7 @@ parameters when you use `accepts_nested_attributes_for` in combination
 with a `has_many` association:
 
 ```ruby
-# To whitelist the following data:
+# To permit the following data:
 # {"book" => {"title" => "Some Book",
 #             "chapters_attributes" => { "1" => {"title" => "First Chapter"},
 #                                        "2" => {"title" => "Second Chapter"}}}}
@@ -336,7 +336,7 @@ params.require(:book).permit(:title, chapters_attributes: [:title])
 
 Imagine a scenario where you have parameters representing a product
 name and a hash of arbitrary data associated with that product, and
-you want to whitelist the product name attribute and also the whole
+you want to permit the product name attribute and also the whole
 data hash:
 
 ```ruby
@@ -349,7 +349,7 @@ end
 
 The strong parameter API was designed with the most common use cases
 in mind. It is not meant as a silver bullet to handle all of your
-whitelisting problems. However, you can easily mix the API with your
+parameter filtering problems. However, you can easily mix the API with your
 own code to adapt to your situation.
 
 Session
@@ -469,7 +469,7 @@ To reset the entire session, use `reset_session`.
 
 The flash is a special part of the session which is cleared with each request. This means that values stored there will only be available in the next request, which is useful for passing error messages etc.
 
-It is accessed in much the same way as the session, as a hash (it's a [FlashHash](http://api.rubyonrails.org/classes/ActionDispatch/Flash/FlashHash.html) instance).
+It is accessed in much the same way as the session, as a hash (it's a [FlashHash](https://api.rubyonrails.org/classes/ActionDispatch/Flash/FlashHash.html) instance).
 
 Let's use the act of logging out as an example. The controller can send a message which will be displayed to the user on the next request:
 
@@ -591,7 +591,7 @@ Rails also provides a signed cookie jar and an encrypted cookie jar for storing
 sensitive data. The signed cookie jar appends a cryptographic signature on the
 cookie values to protect their integrity. The encrypted cookie jar encrypts the
 values in addition to signing them, so that they cannot be read by the end user.
-Refer to the [API documentation](http://api.rubyonrails.org/classes/ActionDispatch/Cookies.html)
+Refer to the [API documentation](https://api.rubyonrails.org/classes/ActionDispatch/Cookies.html)
 for more details.
 
 These special cookie jars use a serializer to serialize the assigned values into
@@ -814,7 +814,7 @@ In every controller there are two accessor methods pointing to the request and t
 
 ### The `request` Object
 
-The request object contains a lot of useful information about the request coming in from the client. To get a full list of the available methods, refer to the [Rails API documentation](http://api.rubyonrails.org/classes/ActionDispatch/Request.html) and [Rack Documentation](http://www.rubydoc.info/github/rack/rack/Rack/Request). Among the properties that you can access on this object are:
+The request object contains a lot of useful information about the request coming in from the client. To get a full list of the available methods, refer to the [Rails API documentation](https://api.rubyonrails.org/classes/ActionDispatch/Request.html) and [Rack Documentation](https://www.rubydoc.info/github/rack/rack/Rack/Request). Among the properties that you can access on this object are:
 
 | Property of `request`                     | Purpose                                                                          |
 | ----------------------------------------- | -------------------------------------------------------------------------------- |
@@ -836,7 +836,7 @@ Rails collects all of the parameters sent along with the request in the `params`
 
 ### The `response` Object
 
-The response object is not usually used directly, but is built up during the execution of the action and rendering of the data that is being sent back to the user, but sometimes - like in an after filter - it can be useful to access the response directly. Some of these accessor methods also have setters, allowing you to change their values. To get a full list of the available methods, refer to the [Rails API documentation](http://api.rubyonrails.org/classes/ActionDispatch/Response.html) and [Rack Documentation](http://www.rubydoc.info/github/rack/rack/Rack/Response).
+The response object is not usually used directly, but is built up during the execution of the action and rendering of the data that is being sent back to the user, but sometimes - like in an after filter - it can be useful to access the response directly. Some of these accessor methods also have setters, allowing you to change their values. To get a full list of the available methods, refer to the [Rails API documentation](https://api.rubyonrails.org/classes/ActionDispatch/Response.html) and [Rack Documentation](https://www.rubydoc.info/github/rack/rack/Rack/Response).
 
 | Property of `response` | Purpose                                                                                             |
 | ---------------------- | --------------------------------------------------------------------------------------------------- |

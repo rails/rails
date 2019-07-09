@@ -103,9 +103,7 @@ module ActiveSupport::Cache::RedisCacheStoreTests
 
     private
       def build(**kwargs)
-        ActiveSupport::Cache::RedisCacheStore.new(driver: DRIVER, **kwargs).tap do |cache|
-          cache.redis
-        end
+        ActiveSupport::Cache::RedisCacheStore.new(driver: DRIVER, **kwargs).tap(&:redis)
       end
   end
 
@@ -139,6 +137,12 @@ module ActiveSupport::Cache::RedisCacheStoreTests
         @cache.fetch_multi("a", "b", "c") do |key|
           key * 2
         end
+      end
+    end
+
+    def test_fetch_multi_without_names
+      assert_not_called(@cache.redis, :mget) do
+        @cache.fetch_multi() { }
       end
     end
 
@@ -187,9 +191,8 @@ module ActiveSupport::Cache::RedisCacheStoreTests
     include ConnectionPoolBehavior
 
     private
-
       def store
-        :redis_cache_store
+        [:redis_cache_store]
       end
 
       def emulating_latency
@@ -206,7 +209,7 @@ module ActiveSupport::Cache::RedisCacheStoreTests
   class RedisDistributedConnectionPoolBehaviourTest < ConnectionPoolBehaviourTest
     private
       def store_options
-        { url: %w[ redis://localhost:6379/0 redis://localhost:6379/0 ] }
+        { url: [ENV["REDIS_URL"] || "redis://localhost:6379/0"] * 2 }
       end
   end
 
@@ -234,7 +237,6 @@ module ActiveSupport::Cache::RedisCacheStoreTests
     include FailureSafetyBehavior
 
     private
-
       def emulating_unavailability
         old_client = Redis.send(:remove_const, :Client)
         Redis.const_set(:Client, UnavailableRedisClient)

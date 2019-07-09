@@ -1,7 +1,9 @@
-require: './ci/custom_cops/lib/custom_cops'
+require:
+  - rubocop-performance
+  - rubocop-rails
 
 AllCops:
-  TargetRubyVersion: 2.4
+  TargetRubyVersion: 2.5
   # RuboCop has a bunch of cops enabled by default. This setting tells RuboCop
   # to ignore them, so only the ones explicitly set in this file are enabled.
   DisabledByDefault: true
@@ -10,14 +12,21 @@ AllCops:
     - '**/vendor/**/*'
     - 'actionpack/lib/action_dispatch/journey/parser.rb'
     - 'railties/test/fixtures/tmp/**/*'
+    - 'actionmailbox/test/dummy/**/*'
+    - 'actiontext/test/dummy/**/*'
+    - '**/node_modules/**/*'
 
-# Prefer assert_not_x over refute_x
-CustomCops/RefuteNot:
-  Include:
+Performance:
+  Exclude:
     - '**/test/**/*'
 
 # Prefer assert_not over assert !
-CustomCops/AssertNot:
+Rails/AssertNot:
+  Include:
+    - '**/test/**/*'
+
+# Prefer assert_not_x over refute_x
+Rails/RefuteMethods:
   Include:
     - '**/test/**/*'
 
@@ -52,6 +61,10 @@ Layout/EndAlignment:
 Layout/EmptyLineAfterMagicComment:
   Enabled: true
 
+Layout/EmptyLinesAroundAccessModifier:
+  Enabled: true
+  EnforcedStyle: only_before
+
 Layout/EmptyLinesAroundBlockBody:
   Enabled: true
 
@@ -67,11 +80,11 @@ Layout/EmptyLinesAroundMethodBody:
 Layout/EmptyLinesAroundModuleBody:
   Enabled: true
 
-Layout/FirstParameterIndentation:
-  Enabled: true
-
 # Use Ruby >= 1.9 syntax for hashes. Prefer { a: :b } over { :a => :b }.
 Style/HashSyntax:
+  Enabled: true
+
+Layout/IndentFirstArgument:
   Enabled: true
 
 # Method definitions after `private` or `protected` isolated calls need one
@@ -93,6 +106,9 @@ Layout/SpaceAfterColon:
 Layout/SpaceAfterComma:
   Enabled: true
 
+Layout/SpaceAfterSemicolon:
+  Enabled: true
+
 Layout/SpaceAroundEqualsInParameterDefault:
   Enabled: true
 
@@ -103,10 +119,13 @@ Layout/SpaceAroundOperators:
   Enabled: true
 
 Layout/SpaceBeforeComma:
-    Enabled: true
+  Enabled: true
+
+Layout/SpaceBeforeComment:
+  Enabled: true
 
 Layout/SpaceBeforeFirstArg:
-    Enabled: true
+  Enabled: true
 
 Style/DefWithParentheses:
   Enabled: true
@@ -124,6 +143,12 @@ Style/FrozenStringLiteralComment:
     - 'actionpack/test/**/*.builder'
     - 'actionpack/test/**/*.ruby'
     - 'activestorage/db/migrate/**/*.rb'
+    - 'activestorage/db/update_migrate/**/*.rb'
+    - 'actionmailbox/db/migrate/**/*.rb'
+    - 'actiontext/db/migrate/**/*.rb'
+
+Style/RedundantFreeze:
+  Enabled: true
 
 # Use `foo {}` not `foo{}`.
 Layout/SpaceBeforeBlockBraces:
@@ -132,6 +157,7 @@ Layout/SpaceBeforeBlockBraces:
 # Use `foo { bar }` not `foo {bar}`.
 Layout/SpaceInsideBlockBraces:
   Enabled: true
+  EnforcedStyleForEmptyBraces: space
 
 # Use `{ a: 1 }` not `{a:1}`.
 Layout/SpaceInsideHashLiteralBraces:
@@ -161,11 +187,38 @@ Layout/TrailingWhitespace:
 Style/UnneededPercentQ:
   Enabled: true
 
+Lint/AmbiguousOperator:
+  Enabled: true
+
+Lint/AmbiguousRegexpLiteral:
+  Enabled: true
+
+Lint/ErbNewArguments:
+  Enabled: true
+
 # Use my_method(my_arg) not my_method( my_arg ) or my_method my_arg.
 Lint/RequireParentheses:
   Enabled: true
 
+Lint/ShadowingOuterLocalVariable:
+  Enabled: true
+
 Lint/StringConversionInInterpolation:
+  Enabled: true
+
+Lint/UriEscapeUnescape:
+  Enabled: true
+
+Lint/UselessAssignment:
+  Enabled: true
+
+Lint/DeprecatedClassMethods:
+  Enabled: true
+
+Style/ParenthesesAroundCondition:
+  Enabled: true
+
+Style/RedundantBegin:
   Enabled: true
 
 Style/RedundantReturn:
@@ -178,4 +231,28 @@ Style/Semicolon:
 
 # Prefer Foo.method over Foo::method
 Style/ColonMethodCall:
+  Enabled: true
+
+Style/TrivialAccessors:
+  Enabled: true
+
+Performance/FlatMap:
+  Enabled: true
+
+Performance/RedundantMerge:
+  Enabled: true
+
+Performance/StartWith:
+  Enabled: true
+
+Performance/EndWith:
+  Enabled: true
+
+Performance/RegexpMatch:
+  Enabled: true
+
+Performance/ReverseEach:
+  Enabled: true
+
+Performance/UnfreezeString:
   Enabled: true

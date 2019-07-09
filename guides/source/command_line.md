@@ -36,35 +36,35 @@ $ rails --help
 Usage: rails COMMAND [ARGS]
 
 The most common rails commands are:
-generate    Generate new code (short-cut alias: "g")
-console     Start the Rails console (short-cut alias: "c")
-server      Start the Rails server (short-cut alias: "s")
-...
+ generate    Generate new code (short-cut alias: "g")
+ console     Start the Rails console (short-cut alias: "c")
+ server      Start the Rails server (short-cut alias: "s")
+ ...
 
 All commands can be run with -h (or --help) for more information.
 
 In addition to those commands, there are:
-about                               List versions of all Rails ...
-assets:clean[keep]                  Remove old compiled assets
-assets:clobber                      Remove compiled assets
-assets:environment                  Load asset compile environment
-assets:precompile                   Compile all the assets ...
-...
-db:fixtures:load                    Loads fixtures into the ...
-db:migrate                          Migrate the database ...
-db:migrate:status                   Display status of migrations
-db:rollback                         Rolls the schema back to ...
-db:schema:cache:clear               Clears a db/schema_cache.yml file
-db:schema:cache:dump                Creates a db/schema_cache.yml file
-db:schema:dump                      Creates a db/schema.rb file ...
-db:schema:load                      Loads a schema.rb file ...
-db:seed                             Loads the seed data ...
-db:structure:dump                   Dumps the database structure ...
-db:structure:load                   Recreates the databases ...
-db:version                          Retrieves the current schema ...
-...
-restart                             Restart app by touching ...
-tmp:create                          Creates tmp directories ...
+ about                               List versions of all Rails ...
+ assets:clean[keep]                  Remove old compiled assets
+ assets:clobber                      Remove compiled assets
+ assets:environment                  Load asset compile environment
+ assets:precompile                   Compile all the assets ...
+ ...
+ db:fixtures:load                    Loads fixtures into the ...
+ db:migrate                          Migrate the database ...
+ db:migrate:status                   Display status of migrations
+ db:rollback                         Rolls the schema back to ...
+ db:schema:cache:clear               Clears a db/schema_cache.yml file
+ db:schema:cache:dump                Creates a db/schema_cache.yml file
+ db:schema:dump                      Creates a db/schema.rb file ...
+ db:schema:load                      Loads a schema.rb file ...
+ db:seed                             Loads the seed data ...
+ db:structure:dump                   Dumps the database structure ...
+ db:structure:load                   Recreates the databases ...
+ db:version                          Retrieves the current schema ...
+ ...
+ restart                             Restart app by touching ...
+ tmp:create                          Creates tmp directories ...
 ```
 
 Let's create a simple Rails application to step through each of these commands in context.
@@ -91,6 +91,28 @@ $ rails new commandsapp
 ```
 
 Rails will set you up with what seems like a huge amount of stuff for such a tiny command! You've got the entire Rails directory structure now with all the code you need to run our simple application right out of the box.
+
+If you wish to skip some files or components from being generated, you can append the following arguments to your `rails new` command:
+
+| Argument                | Description                                                 |
+| ----------------------- | ----------------------------------------------------------- |
+| `--skip-gemfile`        | Don't create a Gemfile                                      |
+| `--skip-git`            | Skip .gitignore file                                        |
+| `--skip-keeps`          | Skip source control .keep files                             |
+| `--skip-action-mailer`  | Skip Action Mailer files                                    |
+| `--skip-action-text`    | Skip Action Text gem                                        |
+| `--skip-active-record`  | Skip Active Record files                                    |
+| `--skip-active-storage` | Skip Active Storage files                                   |
+| `--skip-puma`           | Skip Puma related files                                     |
+| `--skip-action-cable`   | Skip Action Cable files                                     |
+| `--skip-sprockets`      | Skip Sprockets files                                        |
+| `--skip-spring`         | Don't install Spring application preloader                  |
+| `--skip-listen`         | Don't generate configuration that depends on the listen gem |
+| `--skip-javascript`     | Skip JavaScript files                                       |
+| `--skip-turbolinks`     | Skip turbolinks gem                                         |
+| `--skip-test`           | Skip test files                                             |
+| `--skip-system-test`    | Skip system test files                                      |
+| `--skip-bootsnap`       | Skip bootsnap gem                                           |
 
 ### `rails server`
 
@@ -185,7 +207,7 @@ The controller generator is expecting parameters in the form of `generate contro
 ```bash
 $ rails generate controller Greetings hello
      create  app/controllers/greetings_controller.rb
-      route  get "greetings/hello"
+      route  get 'greetings/hello'
      invoke  erb
      create    app/views/greetings
      create    app/views/greetings/hello.html.erb
@@ -193,9 +215,8 @@ $ rails generate controller Greetings hello
      create    test/controllers/greetings_controller_test.rb
      invoke  helper
      create    app/helpers/greetings_helper.rb
+     invoke    test_unit
      invoke  assets
-     invoke    coffee
-     create      app/assets/javascripts/greetings.coffee
      invoke    scss
      create      app/assets/stylesheets/greetings.scss
 ```
@@ -239,17 +260,20 @@ Usage:
 
 ...
 
-Active Record options:
-      [--migration]            # Indicates when to generate migration
-                               # Default: true
+ActiveRecord options:
+      [--migration], [--no-migration]        # Indicates when to generate migration
+                                             # Default: true
 
 ...
 
 Description:
-    Create rails files for model generator.
+    Stubs out a new model. Pass the model name, either CamelCased or
+    under_scored, and an optional list of attribute pairs as arguments.
+
+...
 ```
 
-NOTE: For a list of available field types for the `type` parameter, refer to the [API documentation](http://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-add_column) for the add_column method for the `SchemaStatements` module. The `index` parameter generates a corresponding index for the column.
+NOTE: For a list of available field types for the `type` parameter, refer to the [API documentation](https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-add_column) for the add_column method for the `SchemaStatements` module. The `index` parameter generates a corresponding index for the column.
 
 But instead of generating a model directly (which we'll be doing later), let's set up a scaffold. A **scaffold** in Rails is a full set of model, database migration for that model, controller to manipulate it, views to view and manipulate the data, and a test suite for each of the above.
 
@@ -258,7 +282,7 @@ We will set up a simple resource called "HighScore" that will keep track of our 
 ```bash
 $ rails generate scaffold HighScore game:string score:integer
     invoke  active_record
-    create    db/migrate/20130717151933_create_high_scores.rb
+    create    db/migrate/20190416145729_create_high_scores.rb
     create    app/models/high_score.rb
     invoke    test_unit
     create      test/models/high_score_test.rb
@@ -276,20 +300,19 @@ $ rails generate scaffold HighScore game:string score:integer
     create      app/views/high_scores/_form.html.erb
     invoke    test_unit
     create      test/controllers/high_scores_controller_test.rb
+    create      test/system/high_scores_test.rb
     invoke    helper
     create      app/helpers/high_scores_helper.rb
+    invoke      test_unit
     invoke    jbuilder
     create      app/views/high_scores/index.json.jbuilder
     create      app/views/high_scores/show.json.jbuilder
-    invoke  test_unit
-    create    test/system/high_scores_test.rb
+    create      app/views/high_scores/_high_score.json.jbuilder
     invoke  assets
-    invoke    coffee
-    create      app/assets/javascripts/high_scores.coffee
     invoke    scss
     create      app/assets/stylesheets/high_scores.scss
     invoke  scss
-   identical    app/assets/stylesheets/scaffolds.scss
+    create    app/assets/stylesheets/scaffolds.scss
 ```
 
 The generator checks that there exist the directories for models, controllers, helpers, layouts, functional and unit tests, stylesheets, creates the views, controller, model and database migration for HighScore (creating the `high_scores` table and fields), takes care of the route for the **resource**, and new tests for everything.
@@ -345,7 +368,7 @@ irb(main):001:0>
 
 Inside the `rails console` you have access to the `app` and `helper` instances.
 
-With the `app` method you can access url and path helpers, as well as do requests.
+With the `app` method you can access URL and path helpers, as well as do requests.
 
 ```bash
 >> app.root_path
@@ -482,6 +505,22 @@ lib/school.rb:
   * [ 17] [FIXME]
 ```
 
+#### Tags
+
+You can add more default tags to search for by using `config.annotations.register_tags`. It receives a list of tags.
+
+```ruby
+config.annotations.register_tags("DEPRECATEME", "TESTME")
+```
+
+```bash
+$ rails notes
+app/controllers/admin/users_controller.rb:
+  * [ 20] [TODO] do A/B testing on this
+  * [ 42] [TESTME] this needs more functional tests
+  * [132] [DEPRECATEME] ensure this method is deprecated in next release
+```
+
 #### Directories
 
 You can add more default directories to search from by using `config.annotations.register_directories`. It receives a list of directory names.
@@ -546,7 +585,7 @@ vendor/tools.rb:
 
 INFO: A good description of unit testing in Rails is given in [A Guide to Testing Rails Applications](testing.html)
 
-Rails comes with a test suite called Minitest. Rails owes its stability to the use of tests. The commands available in the `test:` namespace helps in running the different tests you will hopefully write.
+Rails comes with a test framework called minitest. Rails owes its stability to the use of tests. The commands available in the `test:` namespace helps in running the different tests you will hopefully write.
 
 ### `rails tmp:`
 
@@ -607,7 +646,7 @@ $ rails "task_name[value 1]" # entire argument string should be quoted
 $ rails db:nothing
 ```
 
-NOTE: If your need to interact with your application models, perform database queries, and so on, your task should depend on the `environment` task, which will load your application code.
+NOTE: If you need to interact with your application models, perform database queries, and so on, your task should depend on the `environment` task, which will load your application code.
 
 The Rails Advanced Command Line
 -------------------------------

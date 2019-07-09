@@ -97,7 +97,7 @@ If we want to display the properties of all the books in our view, we can do so 
 <%= link_to "New book", new_book_path %>
 ```
 
-NOTE: The actual rendering is done by nested classes of the module [`ActionView::Template::Handlers`](http://api.rubyonrails.org/classes/ActionView/Template/Handlers.html). This guide does not dig into that process, but it's important to know that the file extension on your view controls the choice of template handler.
+NOTE: The actual rendering is done by nested classes of the module [`ActionView::Template::Handlers`](https://api.rubyonrails.org/classes/ActionView/Template/Handlers.html). This guide does not dig into that process, but it's important to know that the file extension on your view controls the choice of template handler.
 
 ### Using `render`
 
@@ -296,6 +296,7 @@ Calls to the `render` method generally accept five options:
 * `:location`
 * `:status`
 * `:formats`
+* `:variants`
 
 ##### The `:content_type` Option
 
@@ -416,6 +417,44 @@ render formats: [:json, :xml]
 ```
 
 If a template with the specified format does not exist an `ActionView::MissingTemplate` error is raised.
+
+##### The `:variants` Option
+
+This tells Rails to look for template variations of the same format.
+You can specify a list of variants by passing the `:variants` option with a symbol or an array. 
+
+An example of use would be this.
+
+```ruby
+# called in HomeController#index
+render variants: [:mobile, :desktop]
+```
+
+With this set of variants Rails will look for the following set of templates and use the first that exists.
+
+- `app/views/home/index.html+mobile.erb`
+- `app/views/home/index.html+desktop.erb`
+- `app/views/home/index.html.erb`
+
+If a template with the specified format does not exist an `ActionView::MissingTemplate` error is raised.
+
+Instead of setting the variant on the render call you may also set it on the request object in your controller action.
+
+```ruby
+def index
+  request.variant = determine_variant
+end
+
+private
+
+def determine_variant
+  variant = nil 
+  # some code to determine the variant(s) to use
+  variant = :mobile if session[:use_mobile]
+  
+  variant    
+end
+```
 
 #### Finding Layouts
 
@@ -650,7 +689,7 @@ Just like the `:status` option for `render`, `:status` for `redirect_to` accepts
 
 #### The Difference Between `render` and `redirect_to`
 
-Sometimes inexperienced developers think of `redirect_to` as a sort of `goto` command, moving execution from one place to another in your Rails code. This is _not_ correct. Your code stops running and waits for a new request for the browser. It just happens that you've told the browser what request it should make next, by sending back an HTTP 302 status code.
+Sometimes inexperienced developers think of `redirect_to` as a sort of `goto` command, moving execution from one place to another in your Rails code. This is _not_ correct. Your code stops running and waits for a new request from the browser. It just happens that you've told the browser what request it should make next, by sending back an HTTP 302 status code.
 
 Consider these actions to see the difference:
 
@@ -1266,7 +1305,7 @@ You can also pass in arbitrary local variables to any partial you are rendering 
 
 In this case, the partial will have access to a local variable `title` with the value "Products Page".
 
-TIP: Rails also makes a counter variable available within a partial called by the collection, named after the title of the partial followed by `_counter`. For example, when rendering a collection `@products` the partial `_product.html.erb` can access the variable `product_counter` which indexes the number of times it has been rendered within the enclosing view.
+TIP: Rails also makes a counter variable available within a partial called by the collection, named after the title of the partial followed by `_counter`. For example, when rendering a collection `@products` the partial `_product.html.erb` can access the variable `product_counter` which indexes the number of times it has been rendered within the enclosing view. Note that it also applies for when the partial name was changed by using the `as:` option. For example, the counter variable for the code above would be `item_counter`.
 
 You can also specify a second partial to be rendered between instances of the main partial by using the `:spacer_template` option:
 

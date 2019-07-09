@@ -67,10 +67,7 @@ module ActiveRecord
       end
 
       private
-
-        def configuration
-          @configuration
-        end
+        attr_reader :configuration
 
         def configuration_without_database
           configuration.merge("database" => nil)
@@ -106,7 +103,7 @@ module ActiveRecord
         end
 
         def run_cmd_error(cmd, args, action)
-          msg = "failed to execute: `#{cmd}`\n".dup
+          msg = +"failed to execute: `#{cmd}`\n"
           msg << "Please check the output above for any errors and make sure that `#{cmd}` is installed in your PATH and has proper permissions.\n\n"
           msg
         end

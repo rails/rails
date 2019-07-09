@@ -354,7 +354,6 @@ module ActiveRecord
       end
 
       private
-
         # Generates a writer method for this association. Serves as a point for
         # accessing the objects in the association. For example, this method
         # could generate the following:
@@ -386,7 +385,6 @@ module ActiveRecord
     end
 
     private
-
       # Attribute hash keys that should not be assigned as normal attributes.
       # These hash keys are nested attributes implementation details.
       UNASSIGNABLE_KEYS = %w( id _destroy )
@@ -426,7 +424,7 @@ module ActiveRecord
             existing_record.assign_attributes(assignable_attributes)
             association(association_name).initialize_attributes(existing_record)
           else
-            method = "build_#{association_name}"
+            method = :"build_#{association_name}"
             if respond_to?(method)
               send(method, assignable_attributes)
             else
@@ -501,7 +499,7 @@ module ActiveRecord
 
           if attributes["id"].blank?
             unless reject_new_record?(association_name, attributes)
-              association.build(attributes.except(*UNASSIGNABLE_KEYS))
+              association.reader.build(attributes.except(*UNASSIGNABLE_KEYS))
             end
           elsif existing_record = existing_records.detect { |record| record.id.to_s == attributes["id"].to_s }
             unless call_reject_if(association_name, attributes)

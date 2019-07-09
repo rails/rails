@@ -29,6 +29,16 @@ module Rails
         directories.push(*dirs)
       end
 
+      def self.tags
+        @@tags ||= %w(OPTIMIZE FIXME TODO)
+      end
+
+      # Registers additional tags
+      #   Rails::SourceAnnotationExtractor::Annotation.register_tags("TESTME", "DEPRECATEME")
+      def self.register_tags(*additional_tags)
+        tags.push(*additional_tags)
+      end
+
       def self.extensions
         @@extensions ||= {}
       end
@@ -50,7 +60,7 @@ module Rails
       # If +options+ has a flag <tt>:tag</tt> the tag is shown as in the example above.
       # Otherwise the string contains just line and text.
       def to_s(options = {})
-        s = "[#{line.to_s.rjust(options[:indent])}] ".dup
+        s = +"[#{line.to_s.rjust(options[:indent])}] "
         s << "[#{tag}] " if options[:tag]
         s << text
       end
@@ -66,6 +76,8 @@ module Rails
     # Prints all annotations with tag +tag+ under the root directories +app+,
     # +config+, +db+, +lib+, and +test+ (recursively).
     #
+    # If +tag+ is <tt>nil</tt>, annotations with either default or registered tags are printed.
+    #
     # Specific directories can be explicitly set using the <tt>:dirs</tt> key in +options+.
     #
     #   Rails::SourceAnnotationExtractor.enumerate 'TODO|FIXME', dirs: %w(app lib), tag: true
@@ -75,7 +87,8 @@ module Rails
     # See <tt>#find_in</tt> for a list of file extensions that will be taken into account.
     #
     # This class method is the single entry point for the `rails notes` command.
-    def self.enumerate(tag, options = {})
+    def self.enumerate(tag = nil, options = {})
+      tag ||= Annotation.tags.join("|")
       extractor = new(tag)
       dirs = options.delete(:dirs) || Annotation.directories
       extractor.display(extractor.find(dirs), options)

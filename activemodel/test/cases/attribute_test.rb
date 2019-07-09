@@ -78,7 +78,7 @@ module ActiveModel
     end
 
     test "duping dups the value" do
-      @type.expect(:deserialize, "type cast".dup, ["a value"])
+      @type.expect(:deserialize, +"type cast", ["a value"])
       attribute = Attribute.from_database(nil, "a value", @type)
 
       value_from_orig = attribute.value
@@ -204,7 +204,7 @@ module ActiveModel
       assert_not_predicate unchanged, :changed?
     end
 
-    test "an attribute can not be mutated if it has not been read,
+    test "an attribute cannot be mutated if it has not been read,
       and skips expensive calculations" do
       type_which_raises_from_all_methods = Object.new
       attribute = Attribute.from_database(:foo, "bar", type_which_raises_from_all_methods)
@@ -246,7 +246,7 @@ module ActiveModel
     end
 
     test "with_type preserves mutations" do
-      attribute = Attribute.from_database(:foo, "".dup, Type::Value.new)
+      attribute = Attribute.from_database(:foo, +"", Type::Value.new)
       attribute.value << "1"
 
       assert_equal 1, attribute.with_type(Type::Integer.new).value

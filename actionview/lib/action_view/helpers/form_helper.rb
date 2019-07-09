@@ -590,6 +590,9 @@ module ActionView
       #   Skipped if a <tt>:url</tt> is passed.
       # * <tt>:scope</tt> - The scope to prefix input field names with and
       #   thereby how the submitted parameters are grouped in controllers.
+      # * <tt>:namespace</tt> - A namespace for your form to ensure uniqueness of
+      #   id attributes on form elements. The namespace attribute will be prefixed
+      #   with underscore on the generated HTML id.
       # * <tt>:model</tt> - A model object to infer the <tt>:url</tt> and
       #   <tt>:scope</tt> by, plus fill out input field values.
       #   So if a +title+ attribute is set to "Ahoy!" then a +title+ input
@@ -736,7 +739,7 @@ module ActionView
       #   def labelled_form_with(**options, &block)
       #     form_with(**options.merge(builder: LabellingFormBuilder), &block)
       #   end
-      def form_with(model: nil, scope: nil, url: nil, format: nil, **options)
+      def form_with(model: nil, scope: nil, url: nil, format: nil, **options, &block)
         options[:allow_method_names_outside_object] = true
         options[:skip_default_ids] = !form_with_generates_ids
 
@@ -749,7 +752,7 @@ module ActionView
 
         if block_given?
           builder = instantiate_builder(scope, model, options)
-          output  = capture(builder, &Proc.new)
+          output  = capture(builder, &block)
           options[:multipart] ||= builder.multipart?
 
           html_options = html_options_for_form_with(url, model, options)
@@ -1126,6 +1129,9 @@ module ActionView
       #
       #   text_field(:post, :title, class: "create_input")
       #   # => <input type="text" id="post_title" name="post[title]" value="#{@post.title}" class="create_input" />
+      #
+      #   text_field(:post, :title,  maxlength: 30, class: "title_input")
+      #   # => <input type="text" id="post_title" name="post[title]" maxlength="30" size="30" value="#{@post.title}" class="title_input" />
       #
       #   text_field(:session, :user, onchange: "if ($('#session_user').val() === 'admin') { alert('Your login cannot be admin!'); }")
       #   # => <input type="text" id="session_user" name="session[user]" value="#{@session.user}" onchange="if ($('#session_user').val() === 'admin') { alert('Your login cannot be admin!'); }"/>
@@ -1673,6 +1679,227 @@ module ActionView
         @multipart = nil
         @index = options[:index] || options[:child_index]
       end
+
+      ##
+      # :method: text_field
+      #
+      # :call-seq: text_field(method, options = {})
+      #
+      # Wraps ActionView::Helpers::FormHelper#text_field for form builders:
+      #
+      #   <%= form_with model: @user do |f| %>
+      #     <%= f.text_field :name %>
+      #   <% end %>
+      #
+      # Please refer to the documentation of the base helper for details.
+
+      ##
+      # :method: password_field
+      #
+      # :call-seq: password_field(method, options = {})
+      #
+      # Wraps ActionView::Helpers::FormHelper#password_field for form builders:
+      #
+      #   <%= form_with model: @user do |f| %>
+      #     <%= f.password_field :password %>
+      #   <% end %>
+      #
+      # Please refer to the documentation of the base helper for details.
+
+      ##
+      # :method: text_area
+      #
+      # :call-seq: text_area(method, options = {})
+      #
+      # Wraps ActionView::Helpers::FormHelper#text_area for form builders:
+      #
+      #   <%= form_with model: @user do |f| %>
+      #     <%= f.text_area :detail %>
+      #   <% end %>
+      #
+      # Please refer to the documentation of the base helper for details.
+
+      ##
+      # :method: color_field
+      #
+      # :call-seq: color_field(method, options = {})
+      #
+      # Wraps ActionView::Helpers::FormHelper#color_field for form builders:
+      #
+      #   <%= form_with model: @user do |f| %>
+      #     <%= f.color_field :favorite_color %>
+      #   <% end %>
+      #
+      # Please refer to the documentation of the base helper for details.
+
+      ##
+      # :method: search_field
+      #
+      # :call-seq: search_field(method, options = {})
+      #
+      # Wraps ActionView::Helpers::FormHelper#search_field for form builders:
+      #
+      #   <%= form_with model: @user do |f| %>
+      #     <%= f.search_field :name %>
+      #   <% end %>
+      #
+      # Please refer to the documentation of the base helper for details.
+
+      ##
+      # :method: telephone_field
+      #
+      # :call-seq: telephone_field(method, options = {})
+      #
+      # Wraps ActionView::Helpers::FormHelper#telephone_field for form builders:
+      #
+      #   <%= form_with model: @user do |f| %>
+      #     <%= f.telephone_field :phone %>
+      #   <% end %>
+      #
+      # Please refer to the documentation of the base helper for details.
+
+      ##
+      # :method: phone_field
+      #
+      # :call-seq: phone_field(method, options = {})
+      #
+      # Wraps ActionView::Helpers::FormHelper#phone_field for form builders:
+      #
+      #   <%= form_with model: @user do |f| %>
+      #     <%= f.phone_field :phone %>
+      #   <% end %>
+      #
+      # Please refer to the documentation of the base helper for details.
+
+      ##
+      # :method: date_field
+      #
+      # :call-seq: date_field(method, options = {})
+      #
+      # Wraps ActionView::Helpers::FormHelper#date_field for form builders:
+      #
+      #   <%= form_with model: @user do |f| %>
+      #     <%= f.date_field :born_on %>
+      #   <% end %>
+      #
+      # Please refer to the documentation of the base helper for details.
+
+      ##
+      # :method: time_field
+      #
+      # :call-seq: time_field(method, options = {})
+      #
+      # Wraps ActionView::Helpers::FormHelper#time_field for form builders:
+      #
+      #   <%= form_with model: @user do |f| %>
+      #     <%= f.time_field :borned_at %>
+      #   <% end %>
+      #
+      # Please refer to the documentation of the base helper for details.
+
+      ##
+      # :method: datetime_field
+      #
+      # :call-seq: datetime_field(method, options = {})
+      #
+      # Wraps ActionView::Helpers::FormHelper#datetime_field for form builders:
+      #
+      #   <%= form_with model: @user do |f| %>
+      #     <%= f.datetime_field :graduation_day %>
+      #   <% end %>
+      #
+      # Please refer to the documentation of the base helper for details.
+
+      ##
+      # :method: datetime_local_field
+      #
+      # :call-seq: datetime_local_field(method, options = {})
+      #
+      # Wraps ActionView::Helpers::FormHelper#datetime_local_field for form builders:
+      #
+      #   <%= form_with model: @user do |f| %>
+      #     <%= f.datetime_local_field :graduation_day %>
+      #   <% end %>
+      #
+      # Please refer to the documentation of the base helper for details.
+
+      ##
+      # :method: month_field
+      #
+      # :call-seq: month_field(method, options = {})
+      #
+      # Wraps ActionView::Helpers::FormHelper#month_field for form builders:
+      #
+      #   <%= form_with model: @user do |f| %>
+      #     <%= f.month_field :birthday_month %>
+      #   <% end %>
+      #
+      # Please refer to the documentation of the base helper for details.
+
+      ##
+      # :method: week_field
+      #
+      # :call-seq: week_field(method, options = {})
+      #
+      # Wraps ActionView::Helpers::FormHelper#week_field for form builders:
+      #
+      #   <%= form_with model: @user do |f| %>
+      #     <%= f.week_field :birthday_week %>
+      #   <% end %>
+      #
+      # Please refer to the documentation of the base helper for details.
+
+      ##
+      # :method: url_field
+      #
+      # :call-seq: url_field(method, options = {})
+      #
+      # Wraps ActionView::Helpers::FormHelper#url_field for form builders:
+      #
+      #   <%= form_with model: @user do |f| %>
+      #     <%= f.url_field :homepage %>
+      #   <% end %>
+      #
+      # Please refer to the documentation of the base helper for details.
+
+      ##
+      # :method: email_field
+      #
+      # :call-seq: email_field(method, options = {})
+      #
+      # Wraps ActionView::Helpers::FormHelper#email_field for form builders:
+      #
+      #   <%= form_with model: @user do |f| %>
+      #     <%= f.email_field :address %>
+      #   <% end %>
+      #
+      # Please refer to the documentation of the base helper for details.
+
+      ##
+      # :method: number_field
+      #
+      # :call-seq: number_field(method, options = {})
+      #
+      # Wraps ActionView::Helpers::FormHelper#number_field for form builders:
+      #
+      #   <%= form_with model: @user do |f| %>
+      #     <%= f.number_field :age %>
+      #   <% end %>
+      #
+      # Please refer to the documentation of the base helper for details.
+
+      ##
+      # :method: range_field
+      #
+      # :call-seq: range_field(method, options = {})
+      #
+      # Wraps ActionView::Helpers::FormHelper#range_field for form builders:
+      #
+      #   <%= form_with model: @user do |f| %>
+      #     <%= f.range_field :age %>
+      #   <% end %>
+      #
+      # Please refer to the documentation of the base helper for details.
 
       (field_helpers - [:label, :check_box, :radio_button, :fields_for, :fields, :hidden_field, :file_field]).each do |selector|
         class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1

@@ -13,7 +13,6 @@ module Rails
         end
 
         private
-
           # This code is based directly on the Text gem implementation.
           # Copyright (c) 2006-2013 Paul Battley, Michael Neumann, Tim Fletcher.
           #
@@ -24,8 +23,8 @@ module Rails
             n = s.length
             m = t.length
 
-            return m if (0 == n)
-            return n if (0 == m)
+            return m if 0 == n
+            return n if 0 == m
 
             d = (0..m).to_a
             x = nil

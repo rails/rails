@@ -1,0 +1,11 @@
+require "test_helper"
+
+class <%= class_name %>MailboxTest < ActionMailbox::TestCase
+  # test "receive mail" do
+  #   receive_inbound_email_from_mail \
+  #     to: '"someone" <someone@example.com>',
+  #     from: '"else" <else@example.com>',
+  #     subject: "Hello world!",
+  #     body: "Hello?"
+  # end
+end

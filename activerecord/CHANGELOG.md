@@ -1,83 +1,44 @@
-*   Don't impose primary key order if limit() has already been supplied.
+*   Add database_exists? method to connection adapters to check if a database exists.
 
-    Fixes #23607
+    *Guilherme Mansur*
 
-    *Brian Christian*
+*   Loading the schema for a model that has no `table_name` raises a `TableNotSpecified` error.
 
-*   Add environment & load_config dependency to `bin/rake db:seed` to enable
-    seed load in environments without Rails and custom DB configuration
+    *Guilherme Mansur*, *Eugene Kenny*
 
-    *Tobias Bielohlawek*
+*   PostgreSQL: Fix GROUP BY with ORDER BY virtual count attribute.
 
-*   Fix default value for mysql time types with specified precision.
-
-    *Nikolay Kondratyev*
-
-*   Fix `touch` option to behave consistently with `Persistence#touch` method.
+    Fixes #36022.
 
     *Ryuta Kamizono*
 
-*   Migrations raise when duplicate column definition.
+*   Make ActiveRecord `ConnectionPool.connections` method thread-safe.
 
-    Fixes #33024.
+    Fixes #36465.
 
-    *Federico Martinez*
+    *Jeff Doering*
 
-*   Bump minimum SQLite version to 3.8
+*   Add support for multiple databases to `rails db:abort_if_pending_migrations`.
 
-    *Yasuo Honda*
+    *Mark Lee*
 
-*   Fix parent record should not get saved with duplicate children records.
+*   Fix sqlite3 collation parsing when using decimal columns.
 
-    Fixes #32940.
+    *Martin R. Schuster*
 
-    *Santosh Wadghule*
+*   Fix invalid schema when primary key column has a comment.
 
-*   Fix logic on disabling commit callbacks so they are not called unexpectedly when errors occur.
+    Fixes #29966.
 
-    *Brian Durand*
+    *Guilherme Goettems Schneider*
 
-*   Ensure `Associations::CollectionAssociation#size` and `Associations::CollectionAssociation#empty?`
-    use loaded association ids if present.
+*   Fix table comment also being applied to the primary key column.
 
-    *Graham Turner*
+    *Guilherme Goettems Schneider*
 
-*   Add support to preload associations of polymorphic associations when not all the records have the requested associations.
+*   Allow generated `create_table` migrations to include or skip timestamps.
 
-    *Dana Sherson*
-
-*   Add `touch_all` method to `ActiveRecord::Relation`.
-
-    Example:
-
-        Person.where(name: "David").touch_all(time: Time.new(2020, 5, 16, 0, 0, 0))
-
-    *fatkodima*, *duggiefresh*
-
-*   Add `ActiveRecord::Base.base_class?` predicate.
-
-    *Bogdan Gusiev*
-
-*   Add custom prefix/suffix options to `ActiveRecord::Store.store_accessor`.
-
-    *Tan Huynh*, *Yukio Mizuta*
-
-*   Rails 6 requires Ruby 2.4.1 or newer.
-
-    *Jeremy Daer*
-
-*   Deprecate `update_attributes`/`!` in favor of `update`/`!`.
-
-    *Eddie Lebow*
-
-*   Add ActiveRecord::Base.create_or_find_by/! to deal with the SELECT/INSERT race condition in
-    ActiveRecord::Base.find_or_create_by/! by leaning on unique constraints in the database.
-
-    *DHH*
-
-*   Add `Relation#pick` as short-hand for single-value plucks.
-
-    *DHH*
+    *Michael Duchemin*
 
 
-Please check [5-2-stable](https://github.com/rails/rails/blob/5-2-stable/activerecord/CHANGELOG.md) for previous changes.
+Please check [6-0-stable](https://github.com/rails/rails/blob/6-0-stable/activerecord/CHANGELOG.md) for previous changes.

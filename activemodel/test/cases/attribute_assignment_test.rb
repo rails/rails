@@ -100,9 +100,11 @@ class AttributeAssignmentTest < ActiveModel::TestCase
   end
 
   test "an ArgumentError is raised if a non-hash-like object is passed" do
-    assert_raises(ArgumentError) do
+    err = assert_raises(ArgumentError) do
       Model.new(1)
     end
+
+    assert_equal("When assigning attributes, you must pass a hash as an argument, Integer passed.", err.message)
   end
 
   test "forbidden attributes cannot be used for mass assignment" do

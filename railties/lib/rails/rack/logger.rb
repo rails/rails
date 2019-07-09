@@ -30,7 +30,6 @@ module Rails
       end
 
       private
-
         def call_app(request, env) # :doc:
           instrumenter = ActiveSupport::Notifications.instrumenter
           instrumenter.start "request.action_dispatch", request: request
@@ -50,7 +49,7 @@ module Rails
           'Started %s "%s" for %s at %s' % [
             request.request_method,
             request.filtered_path,
-            request.ip,
+            request.remote_ip,
             Time.now.to_default_s ]
         end
 

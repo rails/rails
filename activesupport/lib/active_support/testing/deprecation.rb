@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "active_support/deprecation"
-require "active_support/core_ext/regexp"
 
 module ActiveSupport
   module Testing

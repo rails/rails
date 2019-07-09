@@ -260,7 +260,7 @@ In each of these cases, the named routes remain the same as if you did not use `
 | PATCH/PUT | /admin/articles/:id      | articles#update      | article_path(:id)      |
 | DELETE    | /admin/articles/:id      | articles#destroy     | article_path(:id)      |
 
-TIP: _If you need to use a different controller namespace inside a `namespace` block you can specify an absolute controller path, e.g: `get '/foo' => '/foo#index'`._
+TIP: _If you need to use a different controller namespace inside a `namespace` block you can specify an absolute controller path, e.g: `get '/foo', to: '/foo#index'`._
 
 ### Nested Resources
 
@@ -506,9 +506,9 @@ resources :photos do
 end
 ```
 
-This will recognize `/photos/1/preview` with GET, and route to the `preview` action of `PhotosController`, with the resource id value passed in `params[:id]`. It will also create the `photo_preview_url` and `photo_preview_path` helpers.
+This will recognize `/photos/1/preview` with GET, and route to the `preview` action of `PhotosController`, with the resource id value passed in `params[:id]`. It will also create the `preview_photo_url` and `preview_photo_path` helpers.
 
-Within the block of member routes, each route name specifies the HTTP verb
+Within the block of member routes, each route name specifies the HTTP verb that
 will be recognized. You can use `get`, `patch`, `put`, `post`, or `delete` here
 . If you don't have multiple `member` routes, you can also pass `:on` to a
 route, eliminating the block:
@@ -519,7 +519,7 @@ resources :photos do
 end
 ```
 
-You can leave out the `:on` option, this will create the same member route except that the resource id value will be available in `params[:photo_id]` instead of `params[:id]`.
+You can leave out the `:on` option, this will create the same member route except that the resource id value will be available in `params[:photo_id]` instead of `params[:id]`. Route helpers will also be renamed from `preview_photo_url` and `preview_photo_path` to `photo_preview_url` and `photo_preview_path`.
 
 #### Adding Collection Routes
 
@@ -542,6 +542,8 @@ resources :photos do
   get 'search', on: :collection
 end
 ```
+
+NOTE: If you're defining additional resource routes with a symbol as the first positional argument, be mindful that it is not equivalent to using a string. Symbols infer controller actions while strings infer paths.
 
 #### Adding Routes for Additional New Actions
 
@@ -719,12 +721,12 @@ NOTE: There is an exception for the `format` constraint: while it's a method on 
 
 ### Advanced Constraints
 
-If you have a more advanced constraint, you can provide an object that responds to `matches?` that Rails should use. Let's say you wanted to route all users on a blacklist to the `BlacklistController`. You could do:
+If you have a more advanced constraint, you can provide an object that responds to `matches?` that Rails should use. Let's say you wanted to route all users on a restricted list to the `RestrictedListController`. You could do:
 
 ```ruby
-class BlacklistConstraint
+class RestrictedListConstraint
   def initialize
-    @ips = Blacklist.retrieve_ips
+    @ips = RestrictedList.retrieve_ips
   end
 
   def matches?(request)
@@ -733,8 +735,8 @@ class BlacklistConstraint
 end
 
 Rails.application.routes.draw do
-  get '*path', to: 'blacklist#index',
-    constraints: BlacklistConstraint.new
+  get '*path', to: 'restricted_list#index',
+    constraints: RestrictedListConstraint.new
 end
 ```
 
@@ -742,8 +744,8 @@ You can also specify constraints as a lambda:
 
 ```ruby
 Rails.application.routes.draw do
-  get '*path', to: 'blacklist#index',
-    constraints: lambda { |request| Blacklist.retrieve_ips.include?(request.remote_ip) }
+  get '*path', to: 'restricted_list#index',
+    constraints: lambda { |request| RestrictedList.retrieve_ips.include?(request.remote_ip) }
 end
 ```
 
@@ -1188,6 +1190,33 @@ For example, here's a small section of the `rails routes` output for a RESTful r
 edit_user GET    /users/:id/edit(.:format) users#edit
 ```
 
+You can also use the `--expanded` option to turn on the expanded table formatting mode.
+
+```
+$ rails routes --expanded
+
+--[ Route 1 ]----------------------------------------------------
+Prefix            | users
+Verb              | GET
+URI               | /users(.:format)
+Controller#Action | users#index
+--[ Route 2 ]----------------------------------------------------
+Prefix            |
+Verb              | POST
+URI               | /users(.:format)
+Controller#Action | users#create
+--[ Route 3 ]----------------------------------------------------
+Prefix            | new_user
+Verb              | GET
+URI               | /users/new(.:format)
+Controller#Action | users#new
+--[ Route 4 ]----------------------------------------------------
+Prefix            | edit_user
+Verb              | GET
+URI               | /users/:id/edit(.:format)
+Controller#Action | users#edit
+```
+
 You can search through your routes with the grep option: -g. This outputs any routes that partially match the URL helper method name, the HTTP verb, or the URL path.
 
 ```
@@ -1205,11 +1234,11 @@ $ rails routes -c Comments
 $ rails routes -c Articles::CommentsController
 ```
 
-TIP: You'll find that the output from `rails routes` is much more readable if you widen your terminal window until the output lines don't wrap. You can also use --expanded option to turn on the expanded table formatting mode.
+TIP: You'll find that the output from `rails routes` is much more readable if you widen your terminal window until the output lines don't wrap.
 
 ### Testing Routes
 
-Routes should be included in your testing strategy (just like the rest of your application). Rails offers three [built-in assertions](http://api.rubyonrails.org/classes/ActionDispatch/Assertions/RoutingAssertions.html) designed to make testing routes simpler:
+Routes should be included in your testing strategy (just like the rest of your application). Rails offers three [built-in assertions](https://api.rubyonrails.org/classes/ActionDispatch/Assertions/RoutingAssertions.html) designed to make testing routes simpler:
 
 * `assert_generates`
 * `assert_recognizes`

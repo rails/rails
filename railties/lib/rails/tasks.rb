@@ -12,8 +12,10 @@ require "rake"
   middleware
   misc
   restart
+  routes
   tmp
   yarn
+  zeitwerk
 ).tap { |arr|
   arr << "statistics" if Rake.application.current_scope.empty?
 }.each do |task|

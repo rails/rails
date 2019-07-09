@@ -18,6 +18,26 @@ module ActiveJob
       #       post.to_feed!
       #     end
       #   end
+      #
+      # Can be given a block that will evaluate in the context of the job
+      # allowing +self.arguments+ to be accessed so that a dynamic queue name
+      # can be applied:
+      #
+      #   class PublishToFeedJob < ApplicationJob
+      #     queue_as do
+      #       post = self.arguments.first
+      #
+      #       if post.paid?
+      #         :paid_feeds
+      #       else
+      #         :feeds
+      #       end
+      #     end
+      #
+      #     def perform(post)
+      #       post.to_feed!
+      #     end
+      #   end
       def queue_as(part_name = nil, &block)
         if block_given?
           self.queue_name = block
@@ -34,7 +54,7 @@ module ActiveJob
     end
 
     included do
-      class_attribute :queue_name, instance_accessor: false, default: default_queue_name
+      class_attribute :queue_name, instance_accessor: false, default: -> { self.class.default_queue_name }
       class_attribute :queue_name_delimiter, instance_accessor: false, default: "_"
     end
 

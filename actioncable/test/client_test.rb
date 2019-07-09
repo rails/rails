@@ -140,7 +140,7 @@ class ClientTest < ActionCable::TestCase
           end
         end
 
-        ws.on(:close) do |event|
+        ws.on(:close) do |_|
           closed.set
         end
       end

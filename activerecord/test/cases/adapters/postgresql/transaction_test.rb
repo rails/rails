@@ -94,7 +94,6 @@ module ActiveRecord
     end
 
     test "raises LockWaitTimeout when lock wait timeout exceeded" do
-      skip unless ActiveRecord::Base.connection.postgresql_version >= 90300
       assert_raises(ActiveRecord::LockWaitTimeout) do
         s = Sample.create!(value: 1)
         latch1 = Concurrent::CountDownLatch.new
@@ -178,7 +177,6 @@ module ActiveRecord
     end
 
     private
-
       def with_warning_suppression
         log_level = ActiveRecord::Base.connection.client_min_messages
         ActiveRecord::Base.connection.client_min_messages = "error"

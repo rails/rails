@@ -240,7 +240,7 @@ class InheritanceTest < ActiveRecord::TestCase
     cabbage = vegetable.becomes!(Cabbage)
     assert_equal "Cabbage", cabbage.custom_type
 
-    vegetable = cabbage.becomes!(Vegetable)
+    cabbage.becomes!(Vegetable)
     assert_nil cabbage.custom_type
   end
 
@@ -471,9 +471,9 @@ class InheritanceTest < ActiveRecord::TestCase
   end
 
   def test_eager_load_belongs_to_primary_key_quoting
-    con = Account.connection
+    c = Account.connection
     bind_param = Arel::Nodes::BindParam.new(nil)
-    assert_sql(/#{con.quote_table_name('companies')}\.#{con.quote_column_name('id')} = (?:#{Regexp.quote(bind_param.to_sql)}|1)/) do
+    assert_sql(/#{Regexp.escape(c.quote_table_name("companies.id"))} = (?:#{Regexp.escape(bind_param.to_sql)}|1)/i) do
       Account.all.merge!(includes: :firm).find(1)
     end
   end
@@ -514,10 +514,12 @@ class InheritanceComputeTypeTest < ActiveRecord::TestCase
 
       # Should fail without FirmOnTheFly in the type condition.
       assert_raise(ActiveRecord::RecordNotFound) { Firm.find(foo.id) }
+      assert_raise(ActiveRecord::RecordNotFound) { Firm.find_by!(id: foo.id) }
 
       # Nest FirmOnTheFly in the test case where Dependencies won't see it.
       self.class.const_set :FirmOnTheFly, Class.new(Firm)
       assert_raise(ActiveRecord::SubclassNotFound) { Firm.find(foo.id) }
+      assert_raise(ActiveRecord::SubclassNotFound) { Firm.find_by!(id: foo.id) }
 
       # Nest FirmOnTheFly in Firm where Dependencies will see it.
       # This is analogous to nesting models in a migration.
@@ -526,6 +528,7 @@ class InheritanceComputeTypeTest < ActiveRecord::TestCase
       # And instantiate will find the existing constant rather than trying
       # to require firm_on_the_fly.
       assert_nothing_raised { assert_kind_of Firm::FirmOnTheFly, Firm.find(foo.id) }
+      assert_nothing_raised { assert_kind_of Firm::FirmOnTheFly, Firm.find_by!(id: foo.id) }
     end
   end
 
@@ -654,7 +657,7 @@ class InheritanceAttributeMappingTest < ActiveRecord::TestCase
 
     assert_equal ["omg_inheritance_attribute_mapping_test/company"], ActiveRecord::Base.connection.select_values("SELECT sponsorable_type FROM sponsors")
 
-    sponsor = Sponsor.first
+    sponsor = Sponsor.find(sponsor.id)
     assert_equal startup, sponsor.sponsorable
   end
 end

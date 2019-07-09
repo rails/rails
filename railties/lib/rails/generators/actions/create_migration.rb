@@ -40,7 +40,6 @@ module Rails
         alias :exists? :existing_migration
 
         private
-
           def on_conflict_behavior # :doc:
             options = base.options.merge(config)
             if identical?

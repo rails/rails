@@ -41,5 +41,9 @@ module Arel # :nodoc: all
     def lower(column)
       Nodes::NamedFunction.new "LOWER", [Nodes.build_quoted(column)]
     end
+
+    def coalesce(*exprs)
+      Nodes::NamedFunction.new "COALESCE", exprs
+    end
   end
 end

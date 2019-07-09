@@ -14,9 +14,9 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
     super
 
     Kernel.silence_warnings do
-      Thor::Base.shell.send(:attr_accessor, :always_force)
+      Thor::Base.shell.attr_accessor :always_force
       @shell = Thor::Base.shell.new
-      @shell.send(:always_force=, true)
+      @shell.always_force = true
     end
   end
 
@@ -40,7 +40,6 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
     end
 
     assert_file "Gemfile" do |content|
-      assert_no_match(/gem 'coffee-rails'/, content)
       assert_no_match(/gem 'sass-rails'/, content)
       assert_no_match(/gem 'web-console'/, content)
       assert_no_match(/gem 'capybara'/, content)
@@ -51,6 +50,13 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
 
     assert_file "config/application.rb", /config\.api_only = true/
     assert_file "app/controllers/application_controller.rb", /ActionController::API/
+
+    assert_file "config/environments/development.rb" do |content|
+      assert_no_match(/action_controller\.perform_caching = true/, content)
+    end
+    assert_file "config/environments/production.rb" do |content|
+      assert_no_match(/action_controller\.perform_caching = true/, content)
+    end
   end
 
   def test_generator_if_skip_action_cable_is_given
@@ -103,7 +109,6 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
   end
 
   private
-
     def default_files
       %w(.gitignore
         .ruby-version
@@ -118,11 +123,9 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
         app/views/layouts
         app/views/layouts/mailer.html.erb
         app/views/layouts/mailer.text.erb
-        bin/bundle
         bin/rails
         bin/rake
         bin/setup
-        bin/update
         config/application.rb
         config/boot.rb
         config/cable.yml

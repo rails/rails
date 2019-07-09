@@ -88,7 +88,7 @@ class ToQueryTest < ActiveSupport::TestCase
     }
     expected = "foo[contents][][name]=gorby&foo[contents][][id]=123&foo[contents][][name]=puff&foo[contents][][d]=true"
 
-    assert_equal expected, URI.decode(params.to_query)
+    assert_equal expected, URI.decode_www_form_component(params.to_query)
   end
 
   private

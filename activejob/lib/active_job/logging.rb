@@ -70,7 +70,7 @@ module ActiveJob
         def perform_start(event)
           info do
             job = event.payload[:job]
-            "Performing #{job.class.name} (Job ID: #{job.job_id}) from #{queue_name(event)}" + args_info(job)
+            "Performing #{job.class.name} (Job ID: #{job.job_id}) from #{queue_name(event)} enqueued at #{job.enqueued_at}" + args_info(job)
           end
         end
 
@@ -85,6 +85,38 @@ module ActiveJob
             info do
               "Performed #{job.class.name} (Job ID: #{job.job_id}) from #{queue_name(event)} in #{event.duration.round(2)}ms"
             end
+          end
+        end
+
+        def enqueue_retry(event)
+          job = event.payload[:job]
+          ex = event.payload[:error]
+          wait = event.payload[:wait]
+
+          info do
+            if ex
+              "Retrying #{job.class} in #{wait.to_i} seconds, due to a #{ex.class}."
+            else
+              "Retrying #{job.class} in #{wait.to_i} seconds."
+            end
+          end
+        end
+
+        def retry_stopped(event)
+          job = event.payload[:job]
+          ex = event.payload[:error]
+
+          error do
+            "Stopped retrying #{job.class} due to a #{ex.class}, which reoccurred on #{job.executions} attempts."
+          end
+        end
+
+        def discard(event)
+          job = event.payload[:job]
+          ex = event.payload[:error]
+
+          error do
+            "Discarded #{job.class} due to a #{ex.class}."
           end
         end
 
