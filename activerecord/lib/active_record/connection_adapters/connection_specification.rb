@@ -5,10 +5,10 @@ require "uri"
 module ActiveRecord
   module ConnectionAdapters
     class ConnectionSpecification #:nodoc:
-      attr_reader :name, :config, :adapter_method
+      attr_reader :name, :config, :adapter, :adapter_method
 
-      def initialize(name, config, adapter_method)
-        @name, @config, @adapter_method = name, config, adapter_method
+      def initialize(name, config, adapter, adapter_method)
+        @name, @config, @adapter, @adapter_method = name, config, adapter, adapter_method
       end
 
       def initialize_dup(original)
@@ -149,6 +149,8 @@ module ActiveRecord
         #
         #   config = { "production" => { "host" => "localhost", "database" => "foo", "adapter" => "sqlite3" } }
         #   spec = Resolver.new(config).spec(:production)
+        #   spec.adapter
+        #   # => "sqlite3"
         #   spec.adapter_method
         #   # => "sqlite3_connection"
         #   spec.config
@@ -183,12 +185,13 @@ module ActiveRecord
           end
 
           adapter_method = "#{spec[:adapter]}_connection"
+          adapter = "#{spec[:adapter]}_adapter"
 
-          unless ActiveRecord::Base.respond_to?(adapter_method)
+          if !ActiveRecord::Base.respond_to?(adapter) || !ActiveRecord::Base.respond_to?(adapter_method)
             raise AdapterNotFound, "database configuration specifies nonexistent #{spec.config[:adapter]} adapter"
           end
 
-          ConnectionSpecification.new(spec.delete(:name) || "primary", spec, adapter_method)
+          ConnectionSpecification.new(spec.delete(:name) || "primary", spec, adapter, adapter_method)
         end
 
         private
