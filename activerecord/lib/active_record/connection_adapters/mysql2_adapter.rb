@@ -28,6 +28,10 @@ module ActiveRecord
         raise
       end
     end
+
+    def mysql2_adapter
+      ConnectionAdapters::Mysql2Adapter
+    end
   end
 
   module ConnectionAdapters

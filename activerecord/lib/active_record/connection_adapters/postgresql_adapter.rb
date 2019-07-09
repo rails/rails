@@ -52,6 +52,10 @@ module ActiveRecord
         raise
       end
     end
+
+    def postgresql_adapter
+      ConnectionAdapters::PostgreSQLAdapter
+    end
   end
 
   module ConnectionAdapters

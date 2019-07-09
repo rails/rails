@@ -45,6 +45,10 @@ module ActiveRecord
         raise
       end
     end
+
+    def sqlite3_adapter
+      ConnectionAdapters::SQLite3Adapter
+    end
   end
 
   module ConnectionAdapters #:nodoc:
