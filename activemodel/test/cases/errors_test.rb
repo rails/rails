@@ -482,6 +482,27 @@ class ErrorsTest < ActiveModel::TestCase
     assert_nil person.errors.as_json.default_proc
   end
 
+  test "full_messages doesn't require the base object to respond to `:errors" do
+    model = Class.new do
+      def initialize
+        @errors = ActiveModel::Errors.new(self)
+        @errors.add(:name, "bar")
+      end
+
+      def self.human_attribute_name(attr, options = {})
+        "foo"
+      end
+
+      def call
+        error_wrapper = Struct.new(:model_errors)
+
+        error_wrapper.new(@errors)
+      end
+    end
+
+    assert_equal(["foo bar"], model.new.call.model_errors.full_messages)
+  end
+
   test "full_messages creates a list of error messages with the attribute name included" do
     person = Person.new
     person.errors.add(:name, "cannot be blank")

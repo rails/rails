@@ -13,8 +13,8 @@ class I18nValidationTest < ActiveModel::TestCase
     I18n.backend = I18n::Backend::Simple.new
     I18n.backend.store_translations("en", errors: { messages: { custom: nil } })
 
-    @original_i18n_customize_full_message = ActiveModel::Errors.i18n_customize_full_message
-    ActiveModel::Errors.i18n_customize_full_message = true
+    @original_i18n_customize_full_message = ActiveModel::Error.i18n_customize_full_message
+    ActiveModel::Error.i18n_customize_full_message = true
   end
 
   def teardown
@@ -24,7 +24,7 @@ class I18nValidationTest < ActiveModel::TestCase
     I18n.load_path.replace @old_load_path
     I18n.backend = @old_backend
     I18n.backend.reload!
-    ActiveModel::Errors.i18n_customize_full_message = @original_i18n_customize_full_message
+    ActiveModel::Error.i18n_customize_full_message = @original_i18n_customize_full_message
   end
 
   def test_full_message_encoding
@@ -49,7 +49,7 @@ class I18nValidationTest < ActiveModel::TestCase
   end
 
   def test_errors_full_messages_doesnt_use_attribute_format_without_config
-    ActiveModel::Errors.i18n_customize_full_message = false
+    ActiveModel::Error.i18n_customize_full_message = false
 
     I18n.backend.store_translations("en", activemodel: {
       errors: { models: { person: { attributes: { name: { format: "%{message}" } } } } } })
@@ -60,7 +60,7 @@ class I18nValidationTest < ActiveModel::TestCase
   end
 
   def test_errors_full_messages_uses_attribute_format
-    ActiveModel::Errors.i18n_customize_full_message = true
+    ActiveModel::Error.i18n_customize_full_message = true
 
     I18n.backend.store_translations("en", activemodel: {
       errors: { models: { person: { attributes: { name: { format: "%{message}" } } } } } })
@@ -71,7 +71,7 @@ class I18nValidationTest < ActiveModel::TestCase
   end
 
   def test_errors_full_messages_uses_model_format
-    ActiveModel::Errors.i18n_customize_full_message = true
+    ActiveModel::Error.i18n_customize_full_message = true
 
     I18n.backend.store_translations("en", activemodel: {
       errors: { models: { person: { format: "%{message}" } } } })
@@ -82,7 +82,7 @@ class I18nValidationTest < ActiveModel::TestCase
   end
 
   def test_errors_full_messages_uses_deeply_nested_model_attributes_format
-    ActiveModel::Errors.i18n_customize_full_message = true
+    ActiveModel::Error.i18n_customize_full_message = true
 
     I18n.backend.store_translations("en", activemodel: {
       errors: { models: { 'person/contacts/addresses': { attributes: { street: { format: "%{message}" } } } } } })
@@ -93,7 +93,7 @@ class I18nValidationTest < ActiveModel::TestCase
   end
 
   def test_errors_full_messages_uses_deeply_nested_model_model_format
-    ActiveModel::Errors.i18n_customize_full_message = true
+    ActiveModel::Error.i18n_customize_full_message = true
 
     I18n.backend.store_translations("en", activemodel: {
       errors: { models: { 'person/contacts/addresses': { format: "%{message}" } } } })
@@ -104,7 +104,7 @@ class I18nValidationTest < ActiveModel::TestCase
   end
 
   def test_errors_full_messages_with_indexed_deeply_nested_attributes_and_attributes_format
-    ActiveModel::Errors.i18n_customize_full_message = true
+    ActiveModel::Error.i18n_customize_full_message = true
 
     I18n.backend.store_translations("en", activemodel: {
       errors: { models: { 'person/contacts/addresses': { attributes: { street: { format: "%{message}" } } } } } })
@@ -115,7 +115,7 @@ class I18nValidationTest < ActiveModel::TestCase
   end
 
   def test_errors_full_messages_with_indexed_deeply_nested_attributes_and_model_format
-    ActiveModel::Errors.i18n_customize_full_message = true
+    ActiveModel::Error.i18n_customize_full_message = true
 
     I18n.backend.store_translations("en", activemodel: {
       errors: { models: { 'person/contacts/addresses': { format: "%{message}" } } } })
@@ -126,7 +126,7 @@ class I18nValidationTest < ActiveModel::TestCase
   end
 
   def test_errors_full_messages_with_indexed_deeply_nested_attributes_and_i18n_attribute_name
-    ActiveModel::Errors.i18n_customize_full_message = true
+    ActiveModel::Error.i18n_customize_full_message = true
 
     I18n.backend.store_translations("en", activemodel: {
       attributes: { 'person/contacts/addresses': { country: "Country" } }
@@ -138,7 +138,7 @@ class I18nValidationTest < ActiveModel::TestCase
   end
 
   def test_errors_full_messages_with_indexed_deeply_nested_attributes_without_i18n_config
-    ActiveModel::Errors.i18n_customize_full_message = false
+    ActiveModel::Error.i18n_customize_full_message = false
 
     I18n.backend.store_translations("en", activemodel: {
       errors: { models: { 'person/contacts/addresses': { attributes: { street: { format: "%{message}" } } } } } })
@@ -149,7 +149,7 @@ class I18nValidationTest < ActiveModel::TestCase
   end
 
   def test_errors_full_messages_with_i18n_attribute_name_without_i18n_config
-    ActiveModel::Errors.i18n_customize_full_message = false
+    ActiveModel::Error.i18n_customize_full_message = false
 
     I18n.backend.store_translations("en", activemodel: {
       attributes: { 'person/contacts[0]/addresses[0]': { country: "Country" } }
@@ -178,8 +178,8 @@ class I18nValidationTest < ActiveModel::TestCase
     test "validates_confirmation_of on generated message #{name}" do
       person_class.validates_confirmation_of :title, validation_options
       @person.title_confirmation = "foo"
-      call = [:title_confirmation, :confirmation, generate_message_options.merge(attribute: "Title")]
-      assert_called_with(@person.errors, :generate_message, call) do
+      call = [:title_confirmation, :confirmation, @person, generate_message_options.merge(attribute: "Title")]
+      assert_called_with(ActiveModel::Error, :generate_message, call) do
         @person.valid?
         @person.errors.messages
       end
@@ -189,8 +189,8 @@ class I18nValidationTest < ActiveModel::TestCase
   COMMON_CASES.each do |name, validation_options, generate_message_options|
     test "validates_acceptance_of on generated message #{name}" do
       person_class.validates_acceptance_of :title, validation_options.merge(allow_nil: false)
-      call = [:title, :accepted, generate_message_options]
-      assert_called_with(@person.errors, :generate_message, call) do
+      call = [:title, :accepted, @person, generate_message_options]
+      assert_called_with(ActiveModel::Error, :generate_message, call) do
         @person.valid?
         @person.errors.messages
       end
@@ -200,8 +200,8 @@ class I18nValidationTest < ActiveModel::TestCase
   COMMON_CASES.each do |name, validation_options, generate_message_options|
     test "validates_presence_of on generated message #{name}" do
       person_class.validates_presence_of :title, validation_options
-      call = [:title, :blank, generate_message_options]
-      assert_called_with(@person.errors, :generate_message, call) do
+      call = [:title, :blank, @person, generate_message_options]
+      assert_called_with(ActiveModel::Error, :generate_message, call) do
         @person.valid?
         @person.errors.messages
       end
@@ -211,8 +211,8 @@ class I18nValidationTest < ActiveModel::TestCase
   COMMON_CASES.each do |name, validation_options, generate_message_options|
     test "validates_length_of for :within on generated message when too short #{name}" do
       person_class.validates_length_of :title, validation_options.merge(within: 3..5)
-      call = [:title, :too_short, generate_message_options.merge(count: 3)]
-      assert_called_with(@person.errors, :generate_message, call) do
+      call = [:title, :too_short, @person, generate_message_options.merge(count: 3)]
+      assert_called_with(ActiveModel::Error, :generate_message, call) do
         @person.valid?
         @person.errors.messages
       end
@@ -223,8 +223,8 @@ class I18nValidationTest < ActiveModel::TestCase
     test "validates_length_of for :too_long generated message #{name}" do
       person_class.validates_length_of :title, validation_options.merge(within: 3..5)
       @person.title = "this title is too long"
-      call = [:title, :too_long, generate_message_options.merge(count: 5)]
-      assert_called_with(@person.errors, :generate_message, call) do
+      call = [:title, :too_long, @person, generate_message_options.merge(count: 5)]
+      assert_called_with(ActiveModel::Error, :generate_message, call) do
         @person.valid?
         @person.errors.messages
       end
@@ -234,8 +234,8 @@ class I18nValidationTest < ActiveModel::TestCase
   COMMON_CASES.each do |name, validation_options, generate_message_options|
     test "validates_length_of for :is on generated message #{name}" do
       person_class.validates_length_of :title, validation_options.merge(is: 5)
-      call = [:title, :wrong_length, generate_message_options.merge(count: 5)]
-      assert_called_with(@person.errors, :generate_message, call) do
+      call = [:title, :wrong_length, @person, generate_message_options.merge(count: 5)]
+      assert_called_with(ActiveModel::Error, :generate_message, call) do
         @person.valid?
         @person.errors.messages
       end
@@ -246,8 +246,8 @@ class I18nValidationTest < ActiveModel::TestCase
     test "validates_format_of on generated message #{name}" do
       person_class.validates_format_of :title, validation_options.merge(with: /\A[1-9][0-9]*\z/)
       @person.title = "72x"
-      call = [:title, :invalid, generate_message_options.merge(value: "72x")]
-      assert_called_with(@person.errors, :generate_message, call) do
+      call = [:title, :invalid, @person, generate_message_options.merge(value: "72x")]
+      assert_called_with(ActiveModel::Error, :generate_message, call) do
         @person.valid?
         @person.errors.messages
       end
@@ -258,8 +258,8 @@ class I18nValidationTest < ActiveModel::TestCase
     test "validates_inclusion_of on generated message #{name}" do
       person_class.validates_inclusion_of :title, validation_options.merge(in: %w(a b c))
       @person.title = "z"
-      call = [:title, :inclusion, generate_message_options.merge(value: "z")]
-      assert_called_with(@person.errors, :generate_message, call) do
+      call = [:title, :inclusion, @person, generate_message_options.merge(value: "z")]
+      assert_called_with(ActiveModel::Error, :generate_message, call) do
         @person.valid?
         @person.errors.messages
       end
@@ -270,8 +270,8 @@ class I18nValidationTest < ActiveModel::TestCase
     test "validates_inclusion_of using :within on generated message #{name}" do
       person_class.validates_inclusion_of :title, validation_options.merge(within: %w(a b c))
       @person.title = "z"
-      call = [:title, :inclusion, generate_message_options.merge(value: "z")]
-      assert_called_with(@person.errors, :generate_message, call) do
+      call = [:title, :inclusion, @person, generate_message_options.merge(value: "z")]
+      assert_called_with(ActiveModel::Error, :generate_message, call) do
         @person.valid?
         @person.errors.messages
       end
@@ -282,8 +282,8 @@ class I18nValidationTest < ActiveModel::TestCase
     test "validates_exclusion_of generated message #{name}" do
       person_class.validates_exclusion_of :title, validation_options.merge(in: %w(a b c))
       @person.title = "a"
-      call = [:title, :exclusion, generate_message_options.merge(value: "a")]
-      assert_called_with(@person.errors, :generate_message, call) do
+      call = [:title, :exclusion, @person, generate_message_options.merge(value: "a")]
+      assert_called_with(ActiveModel::Error, :generate_message, call) do
         @person.valid?
         @person.errors.messages
       end
@@ -294,8 +294,8 @@ class I18nValidationTest < ActiveModel::TestCase
     test "validates_exclusion_of using :within generated message #{name}" do
       person_class.validates_exclusion_of :title, validation_options.merge(within: %w(a b c))
       @person.title = "a"
-      call = [:title, :exclusion, generate_message_options.merge(value: "a")]
-      assert_called_with(@person.errors, :generate_message, call) do
+      call = [:title, :exclusion, @person, generate_message_options.merge(value: "a")]
+      assert_called_with(ActiveModel::Error, :generate_message, call) do
         @person.valid?
         @person.errors.messages
       end
@@ -306,8 +306,8 @@ class I18nValidationTest < ActiveModel::TestCase
     test "validates_numericality_of generated message #{name}" do
       person_class.validates_numericality_of :title, validation_options
       @person.title = "a"
-      call = [:title, :not_a_number, generate_message_options.merge(value: "a")]
-      assert_called_with(@person.errors, :generate_message, call) do
+      call = [:title, :not_a_number, @person, generate_message_options.merge(value: "a")]
+      assert_called_with(ActiveModel::Error, :generate_message, call) do
         @person.valid?
         @person.errors.messages
       end
@@ -318,8 +318,8 @@ class I18nValidationTest < ActiveModel::TestCase
     test "validates_numericality_of for :only_integer on generated message #{name}" do
       person_class.validates_numericality_of :title, validation_options.merge(only_integer: true)
       @person.title = "0.0"
-      call = [:title, :not_an_integer, generate_message_options.merge(value: "0.0")]
-      assert_called_with(@person.errors, :generate_message, call) do
+      call = [:title, :not_an_integer, @person, generate_message_options.merge(value: "0.0")]
+      assert_called_with(ActiveModel::Error, :generate_message, call) do
         @person.valid?
         @person.errors.messages
       end
@@ -330,8 +330,8 @@ class I18nValidationTest < ActiveModel::TestCase
     test "validates_numericality_of for :odd on generated message #{name}" do
       person_class.validates_numericality_of :title, validation_options.merge(only_integer: true, odd: true)
       @person.title = 0
-      call = [:title, :odd, generate_message_options.merge(value: 0)]
-      assert_called_with(@person.errors, :generate_message, call) do
+      call = [:title, :odd, @person, generate_message_options.merge(value: 0)]
+      assert_called_with(ActiveModel::Error, :generate_message, call) do
         @person.valid?
         @person.errors.messages
       end
@@ -342,8 +342,8 @@ class I18nValidationTest < ActiveModel::TestCase
     test "validates_numericality_of for :less_than on generated message #{name}" do
       person_class.validates_numericality_of :title, validation_options.merge(only_integer: true, less_than: 0)
       @person.title = 1
-      call = [:title, :less_than, generate_message_options.merge(value: 1, count: 0)]
-      assert_called_with(@person.errors, :generate_message, call) do
+      call = [:title, :less_than, @person, generate_message_options.merge(value: 1, count: 0)]
+      assert_called_with(ActiveModel::Error, :generate_message, call) do
         @person.valid?
         @person.errors.messages
       end

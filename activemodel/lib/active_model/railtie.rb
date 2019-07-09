@@ -14,7 +14,7 @@ module ActiveModel
     end
 
     initializer "active_model.i18n_customize_full_message" do
-      ActiveModel::Errors.i18n_customize_full_message = config.active_model.delete(:i18n_customize_full_message) || false
+      ActiveModel::Error.i18n_customize_full_message = config.active_model.delete(:i18n_customize_full_message) || false
     end
   end
 end
