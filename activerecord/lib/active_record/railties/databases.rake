@@ -297,10 +297,7 @@ db_namespace = namespace :db do
     ActiveRecord::Base.configurations.configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env).each do |db_config|
       if ActiveRecord::Base.database_exists?(db_config.config)
         ActiveRecord::Tasks::DatabaseTasks.migrate
-
-        # Skipped when no database
         ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config.config, ActiveRecord::Base.schema_format, db_config.spec_name)
-
       else
         ActiveRecord::Tasks::DatabaseTasks.create_current(db_config.env_name, db_config.spec_name)
         ActiveRecord::Tasks::DatabaseTasks.load_schema(
