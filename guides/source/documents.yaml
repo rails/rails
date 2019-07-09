@@ -139,9 +139,13 @@
       url: initialization.html
       description: This guide explains the internals of the Rails initialization process.
     -
-      name: Autoloading and Reloading Constants
+      name: Autoloading and Reloading Constants (Zeitwerk Mode)
       url: autoloading_and_reloading_constants.html
-      description: This guide documents how autoloading and reloading constants work.
+      description: This guide documents how autoloading and reloading constants work (Zeitwerk mode).
+    -
+      name: Autoloading and Reloading Constants (Classic Mode)
+      url: autoloading_and_reloading_constants_classic_mode.html
+      description: This guide documents how autoloading and reloading constants work in (Classic mode).
     -
       name: "Caching with Rails: An Overview"
       url: caching_with_rails.html
