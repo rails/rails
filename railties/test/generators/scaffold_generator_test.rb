@@ -221,7 +221,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     assert_no_file "app/helpers/product_lines_helper.rb"
 
     # Assets
-    assert_file "app/assets/stylesheets/scaffold.css", /:visited/
+    assert_file "app/assets/stylesheets/scaffold.css", /color/
     assert_no_file "app/assets/stylesheets/product_lines.css"
   end
 
@@ -297,7 +297,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     assert_file "app/helpers/admin/roles_helper.rb"
 
     # Assets
-    assert_file "app/assets/stylesheets/scaffold.css", /:visited/
+    assert_file "app/assets/stylesheets/scaffold.css", /color/
     assert_file "app/assets/stylesheets/admin/roles.css"
   end
 
