@@ -274,6 +274,28 @@ class ErrorsTest < ActiveModel::TestCase
     assert_equal [msg], person.errors[:name]
   end
 
+  test "added? when attribute was added through a collection" do
+    person = Person.new
+    person.errors.add(:"family_members.name", :too_long, count: 25)
+    assert person.errors.added?(:"family_members.name", :too_long, count: 25)
+    assert_not person.errors.added?(:"family_members.name", :too_long)
+    assert_not person.errors.added?(:"family_members.name", :too_long, name: "hello")
+  end
+
+  test "added? ignores callback option" do
+    person = Person.new
+
+    person.errors.add(:name, :too_long, if: -> { true })
+    assert person.errors.added?(:name, :too_long)
+  end
+
+  test "added? ignores message option" do
+    person = Person.new
+
+    person.errors.add(:name, :too_long, message: proc { "foo" })
+    assert person.errors.added?(:name, :too_long)
+  end
+
   test "added? detects indifferent if a specific error was added to the object" do
     person = Person.new
     person.errors.add(:name, "cannot be blank")
