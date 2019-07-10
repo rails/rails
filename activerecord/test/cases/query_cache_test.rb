@@ -473,6 +473,23 @@ class QueryCacheTest < ActiveRecord::TestCase
     }.call({})
   end
 
+  def test_query_cache_is_enabled_in_threads_with_shared_connection
+    ActiveRecord::Base.connection_pool.lock_thread = true
+
+    assert_cache :off
+
+    thread_a = Thread.new do
+      middleware { |env|
+        assert_cache :clean
+        [200, {}, nil]
+      }.call({})
+    end
+
+    thread_a.join
+
+    ActiveRecord::Base.connection_pool.lock_thread = false
+  end
+
   private
     def middleware(&app)
       executor = Class.new(ActiveSupport::Executor)
