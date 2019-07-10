@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/class/attribute"
+
 module ActiveModel
   # == Active \Model \Error
   #
@@ -8,10 +10,7 @@ module ActiveModel
     CALLBACKS_OPTIONS = [:if, :unless, :on, :allow_nil, :allow_blank, :strict]
     MESSAGE_OPTIONS = [:message]
 
-    class << self
-      attr_accessor :i18n_customize_full_message # :nodoc:
-    end
-    self.i18n_customize_full_message = false
+    class_attribute :i18n_customize_full_message, default: false
 
     def self.full_message(attribute, message, base_class) # :nodoc:
       return message if attribute == :base

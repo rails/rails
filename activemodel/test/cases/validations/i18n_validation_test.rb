@@ -59,6 +59,19 @@ class I18nValidationTest < ActiveModel::TestCase
     assert_equal "Name test cannot be blank", person.errors.full_message(:name_test, "cannot be blank")
   end
 
+  def test_errors_full_messages_on_nested_error_uses_attribute_format
+    ActiveModel::Error.i18n_customize_full_message = true
+    I18n.backend.store_translations("en", activemodel: {
+      errors: { models: { person: { attributes: { gender: "Gender" } } } },
+      attributes: { "person/contacts": { gender: "Gender" } }
+    })
+
+    person = person_class.new
+    error = ActiveModel::Error.new(person, :gender, "can't be blank")
+    person.errors.import(error, attribute: "person[0].contacts.gender")
+    assert_equal ["Gender can't be blank"], person.errors.full_messages
+  end
+
   def test_errors_full_messages_uses_attribute_format
     ActiveModel::Error.i18n_customize_full_message = true
 
