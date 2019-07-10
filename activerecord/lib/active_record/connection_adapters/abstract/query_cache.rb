@@ -33,17 +33,17 @@ module ActiveRecord
         end
 
         def enable_query_cache!
-          @query_cache_enabled[connection_cache_key(Thread.current)] = true
+          @query_cache_enabled[connection_cache_key(current_thread)] = true
           connection.enable_query_cache! if active_connection?
         end
 
         def disable_query_cache!
-          @query_cache_enabled.delete connection_cache_key(Thread.current)
+          @query_cache_enabled.delete connection_cache_key(current_thread)
           connection.disable_query_cache! if active_connection?
         end
 
         def query_cache_enabled
-          @query_cache_enabled[connection_cache_key(Thread.current)]
+          @query_cache_enabled[connection_cache_key(current_thread)]
         end
       end
 
