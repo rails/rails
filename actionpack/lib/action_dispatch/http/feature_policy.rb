@@ -5,8 +5,8 @@ require "active_support/core_ext/object/deep_dup"
 module ActionDispatch #:nodoc:
   class FeaturePolicy
     class Middleware
-      CONTENT_TYPE = "Content-Type".freeze
-      POLICY = "Feature-Policy".freeze
+      CONTENT_TYPE = "Content-Type"
+      POLICY       = "Feature-Policy"
 
       def initialize(app)
         @app = app
@@ -31,7 +31,6 @@ module ActionDispatch #:nodoc:
       end
 
       private
-
         def html_response?(headers)
           if content_type = headers[CONTENT_TYPE]
             content_type =~ /html/
@@ -48,7 +47,7 @@ module ActionDispatch #:nodoc:
     end
 
     module Request
-      POLICY = "action_dispatch.feature_policy".freeze
+      POLICY = "action_dispatch.feature_policy"
 
       def feature_policy
         get_header(POLICY)
@@ -114,7 +113,6 @@ module ActionDispatch #:nodoc:
     end
 
     private
-
       def apply_mappings(sources)
         sources.map do |source|
           case source

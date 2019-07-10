@@ -183,7 +183,6 @@ module ApplicationTests
     end
 
     private
-
       def assert_policy(expected)
         assert_equal 200, last_response.status
         assert_equal expected, last_response.headers["Feature-Policy"]

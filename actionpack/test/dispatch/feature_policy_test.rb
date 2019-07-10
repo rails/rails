@@ -123,7 +123,6 @@ class FeaturePolicyIntegrationTest < ActionDispatch::IntegrationTest
   end
 
   private
-
     def env_config
       Rails.application.env_config
     end
