@@ -5,11 +5,11 @@ module ActiveRecord
     module MySQL
       module Quoting # :nodoc:
         def quote_column_name(name)
-          @quoted_column_names[name] ||= "`#{super.gsub('`', '``')}`"
+          self.class.quoted_column_names[name] ||= "`#{super.gsub('`', '``')}`"
         end
 
         def quote_table_name(name)
-          @quoted_table_names[name] ||= super.gsub(".", "`.`").freeze
+          self.class.quoted_table_names[name] ||= super.gsub(".", "`.`").freeze
         end
 
         def unquoted_true

@@ -106,6 +106,14 @@ module ActiveRecord
         Regexp.union(*parts)
       end
 
+      def self.quoted_column_names # :nodoc:
+        @quoted_column_names ||= {}
+      end
+
+      def self.quoted_table_names # :nodoc:
+        @quoted_table_names ||= {}
+      end
+
       def initialize(connection, logger = nil, config = {}) # :nodoc:
         super()
 
@@ -116,7 +124,6 @@ module ActiveRecord
         @config              = config
         @pool                = ActiveRecord::ConnectionAdapters::NullPool.new
         @idle_since          = Concurrent.monotonic_time
-        @quoted_column_names, @quoted_table_names = {}, {}
         @visitor = arel_visitor
         @statements = build_statement_pool
         @lock = ActiveSupport::Concurrency::LoadInterlockAwareMonitor.new
