@@ -21,7 +21,9 @@ class ConnectionMonitor {
       this.startedAt = now()
       delete this.stoppedAt
       this.startPolling()
-      addEventListener("visibilitychange", this.visibilityDidChange)
+      if(typeof addEventListener !== "undefined") {
+        addEventListener("visibilitychange", this.visibilityDidChange)
+      }
       logger.log(`ConnectionMonitor started. pollInterval = ${this.getPollInterval()} ms`)
     }
   }
@@ -30,7 +32,9 @@ class ConnectionMonitor {
     if (this.isRunning()) {
       this.stoppedAt = now()
       this.stopPolling()
-      removeEventListener("visibilitychange", this.visibilityDidChange)
+      if(typeof removeEventListener !== "undefined") {
+        removeEventListener("visibilitychange", this.visibilityDidChange)
+      }
       logger.log("ConnectionMonitor stopped")
     }
   }
@@ -102,7 +106,7 @@ class ConnectionMonitor {
   }
 
   visibilityDidChange() {
-    if (document.visibilityState === "visible") {
+    if (typeof document !== "undefined" && document.visibilityState === "visible") {
       setTimeout(() => {
         if (this.connectionIsStale() || !this.connection.isOpen()) {
           logger.log(`ConnectionMonitor reopening stale connection on visibilitychange. visbilityState = ${document.visibilityState}`)

@@ -3,8 +3,8 @@
 })(this, function(exports) {
   "use strict";
   var adapters = {
-    logger: self.console,
-    WebSocket: self.WebSocket
+    logger: typeof module === "undefined" ? self.console : console,
+    WebSocket: typeof module === "undefined" ? self.WebSocket : WebSocket
   };
   var logger = {
     log: function log() {
@@ -65,7 +65,9 @@
         this.startedAt = now();
         delete this.stoppedAt;
         this.startPolling();
-        addEventListener("visibilitychange", this.visibilityDidChange);
+        if (typeof addEventListener !== "undefined") {
+          addEventListener("visibilitychange", this.visibilityDidChange);
+        }
         logger.log("ConnectionMonitor started. pollInterval = " + this.getPollInterval() + " ms");
       }
     };
@@ -73,7 +75,9 @@
       if (this.isRunning()) {
         this.stoppedAt = now();
         this.stopPolling();
-        removeEventListener("visibilitychange", this.visibilityDidChange);
+        if (typeof removeEventListener !== "undefined") {
+          removeEventListener("visibilitychange", this.visibilityDidChange);
+        }
         logger.log("ConnectionMonitor stopped");
       }
     };
@@ -132,7 +136,7 @@
     };
     ConnectionMonitor.prototype.visibilityDidChange = function visibilityDidChange() {
       var _this2 = this;
-      if (document.visibilityState === "visible") {
+      if (typeof document !== "undefined" && document.visibilityState === "visible") {
         setTimeout(function() {
           if (_this2.connectionIsStale() || !_this2.connection.isOpen()) {
             logger.log("ConnectionMonitor reopening stale connection on visibilitychange. visbilityState = " + document.visibilityState);
@@ -480,7 +484,7 @@
     if (typeof url === "function") {
       url = url();
     }
-    if (url && !/^wss?:/i.test(url)) {
+    if (url && typeof document !== "undefined" && !/^wss?:/i.test(url)) {
       var a = document.createElement("a");
       a.href = url;
       a.href = a.href;
@@ -495,7 +499,7 @@
     return new Consumer(url);
   }
   function getConfig(name) {
-    var element = document.head.querySelector("meta[name='action-cable-" + name + "']");
+    var element = typeof document !== "undefined" && document.head.querySelector("meta[name='action-cable-" + name + "']");
     if (element) {
       return element.getAttribute("content");
     }

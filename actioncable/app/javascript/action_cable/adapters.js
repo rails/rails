@@ -1,4 +1,4 @@
 export default {
-  logger: self.console,
-  WebSocket: self.WebSocket
+  logger: typeof module === "undefined" ? self.console : console,
+  WebSocket: typeof module === "undefined" ? self.WebSocket : WebSocket
 }
