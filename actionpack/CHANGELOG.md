@@ -1,3 +1,36 @@
+*   Add DSL for configuring HTTP Feature Policy
+
+    This new DSL provides a way to configure a HTTP Feature Policy at a
+    global or per-controller level. Full details of HTTP Feature Policy
+    specification and guidelines can be found at MDN:
+
+    https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Feature-Policy
+
+    Example global policy
+
+    ```
+    Rails.application.config.feature_policy do |f|
+      f.camera      :none
+      f.gyroscope   :none
+      f.microphone  :none
+      f.usb         :none
+      f.fullscreen  :self
+      f.payment     :self, "https://secure-example.com"
+    end
+    ```
+
+    Example controller level policy
+
+    ```
+    class PagesController < ApplicationController
+      feature_policy do |p|
+        p.geolocation "https://example.com"
+      end
+    end
+    ```
+
+    *Jacob Bednarz*
+
 *   Add the ability to set the CSP nonce only to the specified directives.
 
     Fixes #35137.

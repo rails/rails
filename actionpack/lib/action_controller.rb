@@ -28,6 +28,7 @@ module ActionController
     autoload :DefaultHeaders
     autoload :EtagWithTemplateDigest
     autoload :EtagWithFlash
+    autoload :FeaturePolicy
     autoload :Flash
     autoload :ForceSSL
     autoload :Head

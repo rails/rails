@@ -69,6 +69,7 @@ module Rails
         @autoloader                              = :classic
         @disable_sandbox                         = false
         @add_autoload_paths_to_load_path         = true
+        @feature_policy                          = nil
       end
 
       def load_defaults(target_version)
@@ -298,6 +299,14 @@ module Rails
           @content_security_policy = ActionDispatch::ContentSecurityPolicy.new(&block)
         else
           @content_security_policy
+        end
+      end
+
+      def feature_policy(&block)
+        if block_given?
+          @feature_policy = ActionDispatch::FeaturePolicy.new(&block)
+        else
+          @feature_policy
         end
       end
 
