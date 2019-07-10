@@ -3,6 +3,8 @@
 module ActiveRecord
   module Tasks # :nodoc:
     class MySQLDatabaseTasks # :nodoc:
+      ER_DB_CREATE_EXISTS = 1007
+
       delegate :connection, :establish_connection, to: ActiveRecord::Base
 
       def initialize(configuration)
@@ -14,7 +16,7 @@ module ActiveRecord
         connection.create_database configuration["database"], creation_options
         establish_connection configuration
       rescue ActiveRecord::StatementInvalid => error
-        if error.message.include?("database exists")
+        if error.cause.error_number == ER_DB_CREATE_EXISTS
           raise DatabaseAlreadyExists
         else
           raise
