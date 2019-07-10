@@ -815,6 +815,18 @@ class DirtyTest < ActiveRecord::TestCase
     assert_not person.saved_change_to_first_name?(to: "Jim")
   end
 
+  test "saved_changes_to_any? returns whether the last call to save changed one of the attributes" do
+    person = Person.create!(first_name: "Sean")
+
+    assert_predicate person, :saved_changes_to_any?
+    assert person.saved_changes_to_any?(:first_name, :gender)
+
+    person.save
+
+    assert_not_predicate person, :saved_changes_to_any?
+    assert_not person.saved_changes_to_any?(:first_name, :gender)
+  end
+
   test "saved_change_to_attribute returns the change that occurred in the last save" do
     person = Person.create!(first_name: "Sean", gender: "M")
 

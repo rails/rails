@@ -84,6 +84,26 @@ module ActiveRecord
         mutations_before_last_save.changes
       end
 
+      # Did the last call to +save+ change any of these attributes?
+      #
+      # This method is useful in after callbacks to determine if any attribute
+      # of a set of attributes was changed during the save that triggered the
+      # callbacks to run.
+      #
+      #   class Person < ActiveRecord::Base
+      #   end
+      #
+      #   person = Person.create(first_name: 'Sean')
+      #   person.saved_changes_to_any?(:first_name, :gender)   # => true
+      #   person.saved_changes_to_any?('first_name', 'gender') # => true
+      #   person.saved_changes_to_any?(:last_name, :gender)    # => false
+      def saved_changes_to_any?(*attr_names)
+        return saved_changes? if attr_names.empty?
+
+        attr_names = attr_names.flatten.map(&:to_s)
+        (attr_names & saved_changes.keys).present?
+      end
+
       # Will this attribute change the next time we save?
       #
       # This method is useful in validations and before callbacks to determine
