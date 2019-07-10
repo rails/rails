@@ -20,7 +20,7 @@ After reading this guide, you will know:
 Introduction
 ------------
 
-INFO. This guide documents autoloading in `classic` mode, which is the traditional one. If you'd like to read about `zeiwerk` mode instead, the new one in Rails 6, please check [Autoloading and Reloading Constants (Zeitwerk Mode)][autoloading_and_reloading_constants.html].
+INFO. This guide documents autoloading in `classic` mode, which is the traditional one. If you'd like to read about `zeiwerk` mode instead, the new one in Rails 6, please check [Autoloading and Reloading Constants (Zeitwerk Mode)](autoloading_and_reloading_constants.html).
 
 Ruby on Rails allows applications to be written as if their code was preloaded.
 
