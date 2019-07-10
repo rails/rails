@@ -300,6 +300,7 @@ db_namespace = namespace :db do
         ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config.config, ActiveRecord::Base.schema_format, db_config.spec_name)
       else
         ActiveRecord::Tasks::DatabaseTasks.create_current(db_config.env_name, db_config.spec_name)
+        ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config.config, ActiveRecord::Base.schema_format, db_config.spec_name)
         ActiveRecord::Tasks::DatabaseTasks.load_schema(
           db_config.config,
           ActiveRecord::Base.schema_format,
@@ -307,6 +308,7 @@ db_namespace = namespace :db do
           db_config.env_name,
           db_config.spec_name
         )
+        ActiveRecord::Tasks::DatabaseTasks.migrate
 
         seed = true
       end
