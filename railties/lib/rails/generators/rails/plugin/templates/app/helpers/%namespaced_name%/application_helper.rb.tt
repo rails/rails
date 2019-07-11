@@ -8,7 +8,6 @@ rb
 <%= wrap_in_modules <<~rb
   module ApplicationHelper
     include ::Webpacker::Helper
-    \n
     def current_webpacker_instance
       #{camelized_modules}.webpacker
     end
