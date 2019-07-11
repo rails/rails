@@ -3,15 +3,15 @@
 
     Before:
 
-	crypt = ActiveSupport::MessageEncryptor.new('long_secret')
-	crypt.decrypt_and_verify(encrypted_message, on_rotation: proc { ... })
-	crypt.decrypt_and_verify(another_encrypted_message, on_rotation: proc { ... })
+        crypt = ActiveSupport::MessageEncryptor.new('long_secret')
+        crypt.decrypt_and_verify(encrypted_message, on_rotation: proc { ... })
+        crypt.decrypt_and_verify(another_encrypted_message, on_rotation: proc { ... })
 
     After:
 
-	crypt = ActiveSupport::MessageEncryptor.new('long_secret', on_rotation: proc { ... })
-	crypt.decrypt_and_verify(encrypted_message)
-	crypt.decrypt_and_verify(another_encrypted_message)
+        crypt = ActiveSupport::MessageEncryptor.new('long_secret', on_rotation: proc { ... })
+        crypt.decrypt_and_verify(encrypted_message)
+        crypt.decrypt_and_verify(another_encrypted_message)
 
     *Edouard Chin*
 
