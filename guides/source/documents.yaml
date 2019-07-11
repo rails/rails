@@ -145,7 +145,7 @@
     -
       name: Autoloading and Reloading Constants (Classic Mode)
       url: autoloading_and_reloading_constants_classic_mode.html
-      description: This guide documents how autoloading and reloading constants work in (Classic mode).
+      description: This guide documents how autoloading and reloading constants work (Classic mode).
     -
       name: "Caching with Rails: An Overview"
       url: caching_with_rails.html
