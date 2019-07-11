@@ -283,6 +283,11 @@ class FinderTest < ActiveRecord::TestCase
     assert_not Post.select(:body).distinct.offset(4).exists?
   end
 
+  def test_exists_with_distinct_and_offset_and_eagerload_and_order
+    assert Post.eager_load(:comments).distinct.offset(10).merge(Comment.order(post_id: :asc)).exists?
+    assert_not Post.eager_load(:comments).distinct.offset(11).merge(Comment.order(post_id: :asc)).exists?
+  end
+
   # Ensure +exists?+ runs without an error by excluding distinct value.
   # See https://github.com/rails/rails/pull/26981.
   def test_exists_with_order_and_distinct
