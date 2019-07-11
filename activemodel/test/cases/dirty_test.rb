@@ -57,6 +57,14 @@ class DirtyTest < ActiveModel::TestCase
     assert_predicate @model, :name_changed?
   end
 
+  test "changed_any? returns whether one of the attributes changed" do
+    assert_not_predicate @model, :changed_any?
+    assert_not @model.changed_any?(:name, :color)
+    @model.name = "Ringo"
+    assert_predicate @model, :changed_any?
+    assert @model.changed_any?(:name, :color)
+  end
+
   test "list of changed attribute keys" do
     assert_equal [], @model.changed
     @model.name = "Paul"

@@ -165,6 +165,19 @@ module ActiveModel
       mutations_from_database.changed_attribute_names
     end
 
+    # Returns +true+ if any of the given attributes has unsaved changes, +false+ otherwise.
+    #
+    #   person.changed_any?(:name, :gender)   # => false
+    #   person.name = 'bob'
+    #   person.changed_any?(:name, :gender)   # => true
+    #   person.changed_any?('name', 'gender') # => true
+    def changed_any?(*attr_names)
+      return changed? if attr_names.empty?
+
+      attr_names = attr_names.flatten.map(&:to_s)
+      (attr_names & changed).present?
+    end
+
     # Dispatch target for <tt>*_changed?</tt> attribute methods.
     def attribute_changed?(attr_name, **options) # :nodoc:
       mutations_from_database.changed?(attr_name.to_s, options)
