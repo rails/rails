@@ -1896,6 +1896,17 @@ Produce a string representation of a number in human-readable words:
 
 NOTE: Defined in `active_support/core_ext/numeric/conversions.rb`.
 
+### Comparison
+
+Enables the number comparison.
+
+```ruby
+2.less?(3) # => true
+5.less_or_equal?(5) # => true
+3.greater?(2) #=> true
+3.greater_or_equal?(3) # => true
+```
+
 Extensions to `Integer`
 -----------------------
 

@@ -1,3 +1,8 @@
+*   Allow to compare numbers with `less?`, `less_or_equal?`, `greater?` and
+    `greater_or_equal?`.
+    
+    *Alexander Spitsyn*
+
 *   Allow the `on_rotation` proc used when decrypting/verifying a message to be
     passed at the constructor level.
 

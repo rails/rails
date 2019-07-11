@@ -412,3 +412,28 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
     end
   end
 end
+
+class NumericExtComparisonTest < ActiveSupport::TestCase
+  def test_less
+    assert 2.less?(3)
+    assert_not 5.less?(4)
+    assert_not 5.less?(5)
+  end
+
+  def test_less_or_equal
+    assert 5.less_or_equal?(5)
+    assert 5.less_or_equal?(6)
+    assert_not 5.less_or_equal?(4)
+  end
+
+  def test_greater
+    assert 3.greater?(2)
+    assert_not 4.greater?(5)
+  end
+
+  def greater_or_equal?
+    assert 3.greater_or_equal?(3)
+    assert 3.greater_or_equal?(2)
+    assert_not 4.greater_or_equal?(5)
+  end
+end
