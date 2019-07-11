@@ -1,3 +1,7 @@
+*   Added ability to filter specific parameters in redirect URL logs
+    
+    *Mike Yue*
+
 *   Add DSL for configuring HTTP Feature Policy
 
     This new DSL provides a way to configure a HTTP Feature Policy at a

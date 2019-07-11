@@ -1,16 +1,14 @@
 # frozen_string_literal: true
 
+require "action_dispatch/http/parameter_filter"
+
 module ActionDispatch
   module Http
     module FilterRedirect
       FILTERED = "[FILTERED]" # :nodoc:
 
       def filtered_location # :nodoc:
-        if location_filter_match?
-          FILTERED
-        else
-          location
-        end
+        location_filter_match
       end
 
     private
@@ -22,13 +20,11 @@ module ActionDispatch
         end
       end
 
-      def location_filter_match?
-        location_filters.any? do |filter|
-          if String === filter
-            location.include?(filter)
-          elsif Regexp === filter
-            location =~ filter
-          end
+      KV_RE   = "[^&;=]+"
+      PAIR_RE = %r{(#{KV_RE})=(#{KV_RE})}
+      def location_filter_match
+        location.deep_dup.gsub(PAIR_RE) do |_|
+          ActionDispatch::Http::ParameterFilter.new(location_filters).filter($1 => $2).first.join("=")
         end
       end
     end

@@ -32,6 +32,10 @@ module Another
       redirect_to "http://secret.foo.bar/"
     end
 
+    def parameter_filterable_redirector
+      redirect_to "http://secret.foo.bar/?token=test"
+    end
+
     def data_sender
       send_data "cool data", filename: "file.txt"
     end
