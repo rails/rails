@@ -1,5 +1,5 @@
-*   Allow the on_rotation proc used when decrypting/verifying a message to be
-    be passed at the constructor level.
+*   Allow the `on_rotation` proc used when decrypting/verifying a message to be
+    passed at the constructor level.
 
     Before:
 
