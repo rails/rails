@@ -9,13 +9,10 @@ After reading this guide, you will know:
 
 * Autoloading modes
 * Related Rails configuration
-* File system conventions
-* Autoloading in `zeitwerk` mode
-* Reloading in `zeitwerk` mode
-* Eager loading in `zeitwerk` mode
+* Project structure
+* Autoloading, reloading, and eager loading
 * Single Table Inheritance
-* File path to constant path inflection
-
+* And more
 
 --------------------------------------------------------------------------------
 
@@ -67,6 +64,22 @@ In `zeitwerk` mode, Rails uses [Zeitwerk](https://github.com/fxn/zeitwerk) inter
 
 INFO. You do not configure Zeitwerk manually in a Rails application. Rather, you configure the application using the portable configuration points explained in this guide, and Rails translates that to Zeitwerk on your behalf.
 
+Project Structure
+-----------------
+
+In a Rails application file names have to match the constants they define, with directories acting as namespaces.
+
+For example, the file `app/helpers/users_helper.rb` should define `UsersHelper` and the file `app/controllers/admin/payments_controller.rb` should define `Admin::PaymentsController`.
+
+Rails configures Zeitwerk to inflect file names with `String#camelize`. For example, it expects that `app/controllers/users_controller.rb` defines the constant `UsersController` because
+
+```ruby
+"users_controller".camelize # => UsersController
+```
+
+If you need to customize any of these inflections, for example to add an acronym, please have a look at `config/initializers/inflections.rb`.
+
+Please, check the [Zeitwerk documentation](https://github.com/fxn/zeitwerk#file-structure) for further details.
 
 Autoload paths
 --------------
@@ -188,20 +201,71 @@ if the `Zeitwerk` constant is defined, Rails invokes `Zeitwerk::Loader.eager_loa
 Single Table Inheritance
 ------------------------
 
-TODO
+Single Table Inheritance is a feature that doesn't play well with lazy loading. Reason is, its API generally needs to be able to enumerate the STI hierarchy to work correctly, whereas lazy loading defers loading classes until they are referenced. You can't enumerate what you haven't referenced yet.
 
+In a sense, applications need to eager load STI hierarchies regardless of the loading mode.
 
-Inflector
----------
-
-Rails configures Zeitwerk to inflect file names with `String#camelize`. For example, it expects that `users_controller.rb` defines the constant `UsersController` because
+Of course, if the application eager loads on boot, that is already accomplished. When it does not, it is in practice enough to instantiate the existing types in the database, which in development or test modes is usually fine. One way to do that is to throw this module into the `lib` directory:
 
 ```ruby
-"users_controller".camelize # => UsersController
+module StiPreload
+  unless Rails.application.config.eager_load
+    extend ActiveSupport::Concern
+
+    included do
+      cattr_accessor :preloaded, instance_accessor: false
+    end
+
+    class_methods do
+      def descendants
+        preload_sti unless preloaded
+        super
+      end
+
+      # Constantizes all types present in the database. There might be more on
+      # disk, but that does not matter in practice as far as the STI API is
+      # concerned.
+      #
+      # Assumes store_full_sti_class is true, the default.
+      def preload_sti
+        types_in_db = \
+          base_class.
+            select(inheritance_column).
+            distinct.
+            pluck(inheritance_column).
+            compact.
+            each(&:constantize)
+
+        types_in_db.each do |type|
+          logger.debug("Preloading STI type #{type}")
+          type.constantize
+        end
+
+        self.preloaded = true
+      end
+    end
+  end
+end
 ```
 
-If you need to customize any of these inflections, for example to add an acronym, please have a look at `config/initializers/inflections.rb`.
+and then include it in the STI root classes of your project:
 
+```ruby
+# app/models/shape.rb
+require "sti_preload"
+
+class Shape < ApplicationRecord
+  include StiPreload # Only in the root class.
+end
+
+# app/models/polygon.rb
+class Polygon < Shape
+end
+
+# app/models/triangle.rb
+class Triangle < Polygon
+end
+```
 
 Rails.autoloaders
 -----------------
@@ -224,7 +288,7 @@ Rails.autoloaders.zeitwerk_enabled?
 Opting Out
 ----------
 
-You can load Rails 6 defaults and still use the classic autoloader this way:
+Applications can load Rails 6 defaults and still use the classic autoloader this way:
 
 ```ruby
 # config/application.rb
