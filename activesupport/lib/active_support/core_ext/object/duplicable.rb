@@ -1,4 +1,3 @@
-
 # frozen_string_literal: true
 
 #--
@@ -34,6 +33,16 @@ class Method
   #
   #  method(:puts).duplicable? # => false
   #  method(:puts).dup         # => TypeError: allocator undefined for Method
+  def duplicable?
+    false
+  end
+end
+
+class UnboundMethod
+  # Unbound methods are not duplicable:
+  #
+  #  method(:puts).unbind.duplicable? # => false
+  #  method(:puts).unbind.dup         # => TypeError: allocator undefined for UnboundMethod
   def duplicable?
     false
   end
