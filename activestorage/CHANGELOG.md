@@ -1,3 +1,7 @@
+*   Add `config.active_storage.draw_routes` to disable Active Storage routes.
+
+    *Gannon McGibbon*
+
 *   Image analysis is skipped if ImageMagick returns an error.
 
     `ActiveStorage::Analyzer::ImageAnalyzer#metadata` would previously raise a
