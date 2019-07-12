@@ -56,8 +56,14 @@ module ActiveSupport
     #
     #   transliterate('Jürgen', locale: :de)
     #   # => "Juergen"
+    #
+    # If the provided string's encoding is not UTF-8, the string will be converted
+    # to UTF-8. This means that this method will always return a UTF-8 string.
     def transliterate(string, replacement = "?", locale: nil)
       raise ArgumentError, "Can only transliterate strings. Received #{string.class.name}" unless string.is_a?(String)
+
+      # unicode_normalize expects a UTF-8 string. If a non-utf-8 string is given, we'll convert encodings
+      string = string.encode("utf-8", invalid: :replace, undef: :replace, replace: "") unless string.encoding == ::Encoding::UTF_8
 
       I18n.transliterate(
         ActiveSupport::Multibyte::Unicode.tidy_bytes(string).unicode_normalize(:nfc),
@@ -92,6 +98,8 @@ module ActiveSupport
     # the word will be parameterized as a word of that language.
     # By default, this parameter is set to <tt>nil</tt> and it will use
     # the configured <tt>I18n.locale<tt>.
+    #
+    # This method always returns a UTF-8 encoded string.
     def parameterize(string, separator: "-", preserve_case: false, locale: nil)
       # Replace accented chars with their ASCII equivalents.
       parameterized_string = transliterate(string, locale: locale)

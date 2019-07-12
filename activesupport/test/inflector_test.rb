@@ -310,6 +310,24 @@ class InflectorTest < ActiveSupport::TestCase
     assert_equal("fuenf-autos", ActiveSupport::Inflector.parameterize(word, locale: :de))
   end
 
+  def test_parameterize_with_non_unicode_string
+    StringToParameterizedNonUnicode.each do |some_string, parameterized_string|
+      assert_equal(parameterized_string, ActiveSupport::Inflector.parameterize(some_string))
+    end
+  end
+
+  def test_parameterize_with_non_unicode_string_and_locale
+    word = "\u{ff21}".encode(Encoding::Windows_31J)
+    I18n.backend.store_translations(:ja, i18n: { transliterate: { rule: { "Ａ" => "A" } } })
+    assert_equal("a", ActiveSupport::Inflector.parameterize(word, locale: :ja))
+  end
+
+  def test_parameterize_with_unidentified_characters_in_non_unicode_string
+    some_string = String.new("\xC3\xBC unidentified chars", encoding: Encoding::ASCII_8BIT)
+    parameterized_string = "unidentified-chars"
+    assert_equal(parameterized_string, ActiveSupport::Inflector.parameterize(some_string))
+  end
+
   def test_classify
     ClassNameToTableName.each do |class_name, table_name|
       assert_equal(class_name, ActiveSupport::Inflector.classify(table_name))

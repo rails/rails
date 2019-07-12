@@ -242,6 +242,11 @@ module InflectorTestCases
     "Japanese: 日本語" => "japanese"
   }
 
+  StringToParameterizedNonUnicode = {
+    String.new("an ASCII-8BIT string", encoding: Encoding::ASCII_8BIT)  => "an-ascii-8bit-string",
+    "\u{ff21}".encode(Encoding::Windows_31J)                            => ""
+  }
+
   UnderscoreToHuman = {
     "employee_salary" => "Employee salary",
     "employee_id"     => "Employee",

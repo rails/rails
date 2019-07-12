@@ -57,4 +57,20 @@ class TransliterateTest < ActiveSupport::TestCase
     end
     assert_equal "Can only transliterate strings. Received Object", exception.message
   end
+
+  def test_transliterate_handles_non_unicode_strings
+    ascii_8bit_string = String.new("A", encoding: Encoding::ASCII_8BIT)
+    assert_equal "A", ActiveSupport::Inflector.transliterate(ascii_8bit_string)
+  end
+
+  def test_transliterate_handles_non_unicode_strings_with_locale
+    I18n.backend.store_translations(:ja, i18n: { transliterate: { rule: { "Ａ" => "A" } } })
+    windows_31j_string = "\u{ff21}".encode(Encoding::Windows_31J)
+    assert_equal "A", ActiveSupport::Inflector.transliterate(windows_31j_string, locale: :ja)
+  end
+
+  def test_transliterate_handles_unidentified_characters_in_non_unicode_strings
+    ascii_8bit_string = String.new("\xC3\xBC", encoding: Encoding::ASCII_8BIT)
+    assert_equal "", ActiveSupport::Inflector.transliterate(ascii_8bit_string)
+  end
 end
