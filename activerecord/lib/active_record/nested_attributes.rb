@@ -2,7 +2,6 @@
 
 require "active_support/core_ext/hash/except"
 require "active_support/core_ext/module/redefine_method"
-require "active_support/core_ext/object/try"
 require "active_support/core_ext/hash/indifferent_access"
 
 module ActiveRecord
