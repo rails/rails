@@ -1793,6 +1793,11 @@ module ApplicationTests
       assert_equal [X, D], C.descendants
     end
 
+    test "load_database_yaml returns blank hash if configuration file is blank" do
+      app_file "config/database.yml", ""
+      app "development"
+      assert_equal({}, Rails.application.config.load_database_yaml)
+    end
 
     test "raises with proper error message if no database configuration found" do
       FileUtils.rm("#{app_path}/config/database.yml")
