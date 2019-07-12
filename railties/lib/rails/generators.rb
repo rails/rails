@@ -6,8 +6,6 @@ $:.unshift(activesupport_path) if File.directory?(activesupport_path) && !$:.inc
 require "thor/group"
 require "rails/command"
 
-require "active_support"
-require "active_support/core_ext/object/blank"
 require "active_support/core_ext/kernel/singleton_class"
 require "active_support/core_ext/array/extract_options"
 require "active_support/core_ext/hash/deep_merge"
