@@ -2,7 +2,6 @@
 
 require "concurrent/map"
 require "active_support/i18n"
-require "active_support/deprecation"
 
 module ActiveSupport
   module Inflector

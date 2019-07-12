@@ -7,7 +7,6 @@ require "active_support/core_ext/class/attribute"
 require "active_support/core_ext/kernel/reporting"
 require "active_support/core_ext/kernel/singleton_class"
 require "active_support/core_ext/string/filters"
-require "active_support/deprecation"
 require "thread"
 
 module ActiveSupport
