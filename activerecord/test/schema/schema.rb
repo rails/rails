@@ -582,6 +582,7 @@ ActiveRecord::Schema.define do
     t.decimal :big_bank_balance, precision: 15, scale: 2
     t.decimal :world_population, precision: 20, scale: 0
     t.decimal :my_house_population, precision: 2, scale: 0
+    t.decimal :decimal_number
     t.decimal :decimal_number_with_default, precision: 3, scale: 2, default: 2.78
     t.float   :temperature
     # Oracle/SQLServer supports precision up to 38

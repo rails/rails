@@ -1,3 +1,8 @@
+*   Add `ActiveRecord::Validations::NumericalityValidator` with
+    support for casting floats using a database columns' precision value.
+
+    *Gannon McGibbon*
+
 *   Enforce fresh ETag header after a collection's contents change by adding
     ActiveRecord::Relation#cache_key_with_version. This method will be used by
     ActionController::ConditionalGet to ensure that when collection cache versioning
