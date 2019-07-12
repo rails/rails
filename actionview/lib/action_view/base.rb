@@ -3,7 +3,6 @@
 require "active_support/core_ext/module/attr_internal"
 require "active_support/core_ext/module/attribute_accessors"
 require "active_support/ordered_options"
-require "active_support/deprecation"
 require "action_view/log_subscriber"
 require "action_view/helpers"
 require "action_view/context"

@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "active_support/deprecation"
-
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
     module DatabaseLimits

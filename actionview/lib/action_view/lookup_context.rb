@@ -3,7 +3,6 @@
 require "concurrent/map"
 require "active_support/core_ext/module/remove_method"
 require "active_support/core_ext/module/attribute_accessors"
-require "active_support/deprecation"
 require "action_view/template/resolver"
 
 module ActionView
