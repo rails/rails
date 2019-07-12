@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "abstract_unit"
-require "active_support/core_ext/object/try"
 require "active_support/core_ext/object/with_options"
 require "active_support/core_ext/array/extract_options"
 
@@ -1249,7 +1248,7 @@ class ResourcesTest < ActionController::TestCase
       shallow_path = "/#{options[:shallow] ? options[:namespace] : options[:path_prefix]}#{path}"
       full_path = "/#{options[:path_prefix]}#{path}"
       name_prefix = options[:name_prefix]
-      shallow_prefix = options[:shallow] ? options[:namespace].try(:gsub, /\//, "_") : options[:name_prefix]
+      shallow_prefix = options[:shallow] ? options[:namespace]&.gsub(/\//, "_") : options[:name_prefix]
 
       new_action  = "new"
       edit_action = "edit"
