@@ -20,9 +20,6 @@ eager_load = ->() do
 end
 
 check_directory = ->(directory, parent, mismatches) do
-  # test/mailers/previews might not exist.
-  return unless File.exist?(directory)
-
   Dir.foreach(directory) do |entry|
     next if entry.start_with?(".")
     next if parent == Object && entry == "concerns"
@@ -94,7 +91,11 @@ namespace :zeitwerk do
     eager_load[]
 
     eager_load_paths = Rails.configuration.eager_load_namespaces.map do |eln|
-      eln.config.eager_load_paths if eln.respond_to?(:config)
+      if eln.respond_to?(:config)
+        eln.config.eager_load_paths.select do |elp|
+          Dir.exist?(elp)
+        end
+      end
     end.compact.flatten
 
     mismatches = []
