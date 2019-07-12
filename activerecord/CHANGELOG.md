@@ -1,3 +1,7 @@
+*   Make currency symbols optional for money column type in PostgreSQL
+
+    *Joel Schneider*
+
 *   Add database_exists? method to connection adapters to check if a database exists.
 
     *Guilherme Mansur*
