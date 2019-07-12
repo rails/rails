@@ -198,20 +198,7 @@ All is good!
 
 All known use cases of `require_dependency` have been eliminated, you should grep the project and delete them.
 
-In the case of STIs with a hierarchy of more than two levels, you can preload the leaves of the hierarchy in an initializer:
-
-```ruby
-# config/initializers/preload_stis.rb
-
-# By preloading leaves, the hierarchy is loaded upwards following
-# the references to superclasses in the class definitions.
-sti_leaves = %w(
-  app/models/leaf1.rb
-  app/models/leaf2.rb
-  app/models/leaf3.rb
-)
-Rails.autoloaders.main.preload(sti_leaves)
-```
+If your application has STIs, please check their section in the guide [Autoloading and Reloading Constants (Zeitwerk Mode)](autoloading_and_reloading_constants.html#single-table-inheritance).
 
 #### Qualified names in class and module definitions
 
