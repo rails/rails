@@ -184,45 +184,15 @@ That may be handy if you need to preload STIs or configure a custom inflector, f
 
 If the application being upgraded autoloads correctly, the project structure should be already mostly compatible.
 
-However, `classic` mode infers file names from missing constant names (`underscore`), whereas `zeitwerk` mode infers constant names from file names (`camelize`). These helpers are not always inverse of each other, in particular if acronyms are involved. For instance, `"FOO".underscore` is `"foo"`, but `"foo".camelize` is `"Foo"`, not `"FOO"`. Compatibility can be checked by setting `classic` mode first temporarily:
+However, `classic` mode infers file names from missing constant names (`underscore`), whereas `zeitwerk` mode infers constant names from file names (`camelize`). These helpers are not always inverse of each other, in particular if acronyms are involved. For instance, `"FOO".underscore` is `"foo"`, but `"foo".camelize` is `"Foo"`, not `"FOO"`.
 
-```ruby
-# config/application.rb
-
-config.load_defaults "6.0"
-config.autoloader = :classic
-```
-
-and then running
+Compatibility can be checked with the `zeitwerk:check` task:
 
 ```
-bin/rails zeitwerk:check
+$ bin/rails zeitwerk:check
+Hold on, I am eager loading the application.
+All is good!
 ```
-
-When all is good, you can delete `config.autoloader = :classic`.
-
-That checker may technically be fooled in some rare cases, but it works well in practice for projects that are running correctly in a previous versions of Rails and are being upgraded. This task tries to print a helpful report.
-
-If that check is good, we recommend to do a second one, more strict: Eager load the application in `zeitwerk` mode. In order to do that, enable eager loading in `development` mode:
-
-```ruby
-# config/initializers/development.rb
-config.eager_load = true
-```
-
-and boot the application:
-
-```ruby
-bin/rails runner 1
-```
-
-If a file does not match the constant it defines, you'll get a raw `NameError` explaining the discrepancy:
-
-```
-expected file ... to define constant ..., but didn't (NameError)
-```
-
-Once all is good, you'll just get a prompt back. Remember to disable `config.eager_load`, it it was false before.
 
 #### require_dependency
 
