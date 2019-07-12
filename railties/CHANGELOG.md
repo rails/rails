@@ -1,11 +1,5 @@
 ## (Unreleased)
 
-*   Documented an additional, more strict way to check Zeitwerk compatibility
-    when upgrading, which is to eager load the application. This is possible
-    since Zeitwerk 2.1.8.
-
-    *Xavier Noria*
-
 *   The new configuration point `config.add_autoload_paths_to_load_path` allows
     users to opt-out from adding autoload paths to `$LOAD_PATH`. This flag is
     `true` by default, but it is recommended to be set to `false` in `:zeitwerk`
