@@ -201,6 +201,29 @@ bin/rails zeitwerk:check
 
 When all is good, you can delete `config.autoloader = :classic`.
 
+That checker may technically be fooled in some rare cases, but it works well in practice for projects that are running correctly in a previous versions of Rails and are being upgraded. This task tries to print a helpful report.
+
+If that check is good, we recommend to do a second one, more strict: Eager load the application in `zeitwerk` mode. In order to do that, enable eager loading in `development` mode:
+
+```ruby
+# config/initializers/development.rb
+config.eager_load = true
+```
+
+and boot the application:
+
+```ruby
+bin/rails runner 1
+```
+
+If a file does not match the constant it defines, you'll get a raw `NameError` explaining the discrepancy:
+
+```
+expected file ... to define constant ..., but didn't (NameError)
+```
+
+Once all is good, you'll just get a prompt back. Remember to disable `config.eager_load`, it it was false before.
+
 #### require_dependency
 
 All known use cases of `require_dependency` have been eliminated, you should grep the project and delete them.
