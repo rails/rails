@@ -302,7 +302,7 @@ module ActiveRecord
       def validate_single_association(reflection)
         association = association_instance_get(reflection.name)
         record      = association && association.reader
-        association_valid?(reflection, record) if record
+        association_valid?(reflection, record) if record && record.changed_for_autosave?
       end
 
       # Validate the associated records if <tt>:validate</tt> or
