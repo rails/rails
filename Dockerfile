@@ -85,7 +85,7 @@ RUN echo "--- :ruby: Updating RubyGems and Bundler" \
         ) \
     #  specific dependencies for the rails build
     && apt-get install -y --no-install-recommends \
-        postgresql-client mysql-client sqlite3 \
+        postgresql-client default-mysql-client sqlite3 \
         git nodejs yarn lsof \
         ffmpeg mupdf mupdf-tools poppler-utils \
     # await (for waiting on dependent services)
