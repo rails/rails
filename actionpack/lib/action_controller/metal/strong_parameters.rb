@@ -259,6 +259,11 @@ module ActionController
         @parameters == other
       end
     end
+    alias eql? ==
+
+    def hash
+      [@parameters.hash, @permitted].hash
+    end
 
     # Returns a safe <tt>ActiveSupport::HashWithIndifferentAccess</tt>
     # representation of the parameters with all unpermitted keys removed.
