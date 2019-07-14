@@ -283,6 +283,18 @@ module ActiveRecord
       assert_equal expected.to_sql, actual.to_sql
     end
 
+    def test_inequality_condition_with_alias_name
+      current_time = Time.current
+      expected = Topic.where("created_at > ?", current_time)
+      actual   = Topic.where(:published_at, " > ?", current_time)
+
+      assert_equal expected.to_sql, actual.to_sql
+    end
+
+    def test_inequality_condition_with_unsupported_arguments
+      assert_raises(ArgumentError) { Topic.where(:published_at) }
+    end
+
     def test_where_error
       assert_nothing_raised do
         Post.where(id: { "posts.author_id" => 10 }).first

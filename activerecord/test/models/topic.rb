@@ -55,6 +55,7 @@ class Topic < ActiveRecord::Base
   end
 
   alias_attribute :heading, :title
+  alias_attribute :published_at, :created_at
 
   before_validation :before_validation_for_transaction
   before_save :before_save_for_transaction

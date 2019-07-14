@@ -19,6 +19,15 @@ module ActiveRecord
           parts = predicate_builder.build_from_hash(attributes)
         when Arel::Nodes::Node
           parts = [opts]
+        when Symbol
+          raise ArgumentError, "Unsupported argument type: #{opts} (#{opts.class})" if other.blank?
+
+          if klass.attribute_alias?(opts)
+            original_column = klass.attribute_alias(opts)
+          else
+            original_column = opts.to_s
+          end
+          parts = [ original_column + klass.sanitize_sql(other.size == 1 ? other.first : ([other.first] + other.from(1))) ]
         else
           raise ArgumentError, "Unsupported argument type: #{opts} (#{opts.class})"
         end
