@@ -8,6 +8,7 @@ module ActiveRecord
           original_exception = nil
 
           begin
+            execute('reset role')
             transaction(requires_new: true) do
               execute(tables_with_schema_all.collect { |name| "ALTER TABLE #{name} DISABLE TRIGGER ALL" }.join(";"))
             end
@@ -33,6 +34,10 @@ Rails needs superuser privileges to disable referential integrity.
           begin
             transaction(requires_new: true) do
               execute(tables_with_schema_all.collect { |name| "ALTER TABLE #{name} ENABLE TRIGGER ALL" }.join(";"))
+            end
+            r = Rails.configuration.test_role
+            if r.present?
+              execute("set role #{r}")
             end
           rescue ActiveRecord::ActiveRecordError
           end

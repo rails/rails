@@ -299,7 +299,12 @@ module ActiveRecord
               end
             end
 
+            execute('reset role')
             query_value("SELECT setval(#{quote(quoted_sequence)}, #{max_pk ? max_pk : minvalue}, #{max_pk ? true : false})", "SCHEMA")
+            r = Rails.configuration.test_role
+            if r.present?
+              execute("set role #{r}")
+            end
           end
         end
 
