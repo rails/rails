@@ -20,7 +20,7 @@ module ActiveRecord
         when Arel::Nodes::Node
           parts = [opts]
         when Symbol
-          raise ArgumentError, "Unsupported argument type: #{opts} (#{opts.class})" if other.blank?
+          raise ArgumentError, "do not allow only symbol parameter" if other.blank?
 
           if klass.attribute_alias?(opts)
             original_column = klass.attribute_alias(opts)
