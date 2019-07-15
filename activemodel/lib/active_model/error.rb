@@ -58,9 +58,9 @@ module ActiveModel
     end
 
     def strict_match?(attribute, type, **options)
-      return false unless match?(attribute, type, **options)
+      return false unless match?(attribute, type)
 
-      full_message == Error.new(@base, attribute, type, **options).full_message
+      options == @options.except(*CALLBACKS_OPTIONS + MESSAGE_OPTIONS)
     end
 
     def ==(other)
