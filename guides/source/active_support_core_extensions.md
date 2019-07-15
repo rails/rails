@@ -155,15 +155,6 @@ Complex(1).duplicable?      # => true
 1.method(:+).duplicable?    # => false
 ```
 
-`duplicable?` matches the current Ruby version's `dup` behavior,
-so results will vary according the version of Ruby you're using.
-In Ruby 2.4, for example, Complex and Rational are not duplicable:
-
-```ruby
-Rational(1).duplicable?     # => false
-Complex(1).duplicable?      # => false
-```
-
 WARNING: Any class can disallow duplication by removing `dup` and `clone` or raising exceptions from them. Thus only `rescue` can tell whether a given arbitrary object is duplicable. `duplicable?` depends on the hard-coded list above, but it is much faster than `rescue`. Use it only if you know the hard-coded list is enough in your use case.
 
 NOTE: Defined in `active_support/core_ext/object/duplicable.rb`.
