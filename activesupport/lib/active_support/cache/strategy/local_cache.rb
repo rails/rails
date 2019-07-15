@@ -74,7 +74,10 @@ module ActiveSupport
           end
 
           def fetch_entry(key, options = nil) # :nodoc:
-            @data.fetch(key) { @data[key] = yield }
+            entry = @data.fetch(key) { @data[key] = yield }
+            dup_entry = entry.dup
+            dup_entry&.dup_value!
+            dup_entry
           end
         end
 

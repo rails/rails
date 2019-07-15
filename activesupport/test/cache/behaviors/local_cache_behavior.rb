@@ -46,6 +46,15 @@ module LocalCacheBehavior
     end
   end
 
+  def test_local_cache_of_read_returns_a_copy_of_the_entry
+    @cache.with_local_cache do
+      @cache.write(:foo, type: "bar")
+      value = @cache.read(:foo)
+      assert_equal("bar", value.delete(:type))
+      assert_equal({ type: "bar" }, @cache.read(:foo))
+    end
+  end
+
   def test_local_cache_of_read
     @cache.write("foo", "bar")
     @cache.with_local_cache do
