@@ -678,16 +678,13 @@ module ActiveSupport
         end
 
         def instrument(operation, key, options = nil)
-          log { "Cache #{operation}: #{normalize_key(key, options)}#{options.blank? ? "" : " (#{options.inspect})"}" }
+          if logger && logger.debug? && !silence?
+            logger.debug "Cache #{operation}: #{normalize_key(key, options)}#{options.blank? ? "" : " (#{options.inspect})"}"
+          end
 
           payload = { key: key }
           payload.merge!(options) if options.is_a?(Hash)
           ActiveSupport::Notifications.instrument("cache_#{operation}.active_support", payload) { yield(payload) }
-        end
-
-        def log
-          return unless logger && logger.debug? && !silence?
-          logger.debug(yield)
         end
 
         def handle_expired_entry(entry, key, options)
