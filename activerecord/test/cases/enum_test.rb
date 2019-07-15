@@ -557,6 +557,24 @@ class EnumTest < ActiveRecord::TestCase
     assert_equal :integer, Book.type_for_attribute("status").type
   end
 
+  test "predicate methods can be disabled" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+      enum status: [:proposed, :written], _predicate: false
+    end
+
+    assert_raises(NoMethodError) { klass.proposed? }
+  end
+
+  test "bang methods can be disabled" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+      enum status: [:proposed, :written], _bang: false
+    end
+
+    assert_raises(NoMethodError) { klass.proposed! }
+  end
+
   test "scopes can be disabled" do
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = "books"

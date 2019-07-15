@@ -151,6 +151,8 @@ module ActiveRecord
       klass = self
       enum_prefix = definitions.delete(:_prefix)
       enum_suffix = definitions.delete(:_suffix)
+      enum_predicate = definitions.delete(:_predicate)
+      enum_bang = definitions.delete(:_bang)
       enum_scopes = definitions.delete(:_scopes)
       definitions.each do |name, values|
         assert_valid_enum_definition_values(values)
@@ -189,13 +191,17 @@ module ActiveRecord
             enum_values[label] = value
             label = label.to_s
 
-            # def active?() status == "active" end
-            klass.send(:detect_enum_conflict!, name, "#{value_method_name}?")
-            define_method("#{value_method_name}?") { self[attr] == label }
+            if enum_predicate != false
+              # def active?() status == "active" end
+              klass.send(:detect_enum_conflict!, name, "#{value_method_name}?")
+              define_method("#{value_method_name}?") { self[attr] == label }
+            end
 
-            # def active!() update!(status: 0) end
-            klass.send(:detect_enum_conflict!, name, "#{value_method_name}!")
-            define_method("#{value_method_name}!") { update!(attr => value) }
+            if enum_bang != false
+              # def active!() update!(status: 0) end
+              klass.send(:detect_enum_conflict!, name, "#{value_method_name}!")
+              define_method("#{value_method_name}!") { update!(attr => value) }
+            end
 
             # scope :active, -> { where(status: 0) }
             # scope :not_active, -> { where.not(status: 0) }
