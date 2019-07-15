@@ -1,3 +1,8 @@
+*   annotated_source_code returns an empty array so TemplateErrors without a
+    template in the backtrace are surfaced properly by DebugExceptions.
+
+    *Guilherme Mansur*, *Kasper Timm Hansen*
+
 *   Add autoload for SyntaxErrorInTemplate so syntax errors are correctly raised by DebugExceptions.
 
     *Guilherme Mansur*, *Gannon McGibbon*
