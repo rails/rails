@@ -207,7 +207,7 @@ module Rails
           yaml = Pathname.new(path)
           erb = DummyERB.new(yaml.read)
 
-          YAML.load(erb.result)
+          YAML.load(erb.result) || {}
         else
           {}
         end
