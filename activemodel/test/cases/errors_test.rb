@@ -595,6 +595,12 @@ class ErrorsTest < ActiveModel::TestCase
     assert_not_equal errors_dup.details, errors.details
   end
 
+  test "delete returns nil when no errors were deleted" do
+    errors = ActiveModel::Errors.new(Person.new)
+
+    assert_nil(errors.delete(:name))
+  end
+
   test "delete removes details on given attribute" do
     errors = ActiveModel::Errors.new(Person.new)
     errors.add(:name, :invalid)

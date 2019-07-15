@@ -198,7 +198,7 @@ module ActiveModel
       matches.each do |error|
         @errors.delete(error)
       end
-      matches.map(&:message)
+      matches.map(&:message).presence
     end
 
     # When passed a symbol or a name of a method, returns an array of errors
