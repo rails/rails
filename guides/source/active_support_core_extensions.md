@@ -2358,10 +2358,6 @@ There's also a related idiom that uses the splat operator:
 [*object]
 ```
 
-which in Ruby 1.8 returns `[nil]` for `nil`, and calls to `Array(object)` otherwise. (Please if you know the exact behavior in 1.9 contact fxn.)
-
-Thus, in this case the behavior is different for `nil`, and the differences with `Kernel#Array` explained above apply to the rest of `object`s.
-
 NOTE: Defined in `active_support/core_ext/array/wrap.rb`.
 
 ### Duplicating
