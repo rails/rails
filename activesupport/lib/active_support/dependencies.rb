@@ -201,6 +201,11 @@ module ActiveSupport #:nodoc:
         end
       end
 
+      def self.include_into(base)
+        base.include(self)
+        append_features(base)
+      end
+
       def const_missing(const_name)
         from_mod = anonymous? ? guess_for_anonymous(const_name) : self
         Dependencies.load_missing_constant(from_mod, const_name)
@@ -230,6 +235,21 @@ module ActiveSupport #:nodoc:
         base.class_eval do
           define_method(:load, Kernel.instance_method(:load))
           private :load
+
+          define_method(:require, Kernel.instance_method(:require))
+          private :require
+        end
+      end
+
+      def self.include_into(base)
+        base.include(self)
+
+        if base.instance_method(:load).owner == base
+          base.remove_method(:load)
+        end
+
+        if base.instance_method(:require).owner == base
+          base.remove_method(:require)
         end
       end
 
@@ -325,9 +345,9 @@ module ActiveSupport #:nodoc:
     end
 
     def hook!
-      Object.class_eval { include Loadable }
-      Module.class_eval { include ModuleConstMissing }
-      Exception.class_eval { include Blamable }
+      Loadable.include_into(Object)
+      ModuleConstMissing.include_into(Module)
+      Exception.include(Blamable)
     end
 
     def unhook!
