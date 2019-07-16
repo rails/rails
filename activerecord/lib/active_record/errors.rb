@@ -353,20 +353,24 @@ module ActiveRecord
   class IrreversibleOrderError < ActiveRecordError
   end
 
+  # Superclass for errors that have been aborted (either by client or server).
+  class QueryAborted < StatementInvalid
+  end
+
   # LockWaitTimeout will be raised when lock wait timeout exceeded.
   class LockWaitTimeout < StatementInvalid
   end
 
   # StatementTimeout will be raised when statement timeout exceeded.
-  class StatementTimeout < StatementInvalid
+  class StatementTimeout < QueryAborted
   end
 
   # QueryCanceled will be raised when canceling statement due to user request.
-  class QueryCanceled < StatementInvalid
+  class QueryCanceled < QueryAborted
   end
 
   # AdapterTimeout will be raised when database clients times out while waiting from the server.
-  class AdapterTimeout < StatementInvalid
+  class AdapterTimeout < QueryAborted
   end
 
   # UnknownAttributeReference is raised when an unknown and potentially unsafe
