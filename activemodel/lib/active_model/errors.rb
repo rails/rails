@@ -69,11 +69,6 @@ module ActiveModel
 
     LEGACY_ATTRIBUTES = [:messages, :details].freeze
 
-    class << self
-      attr_accessor :i18n_customize_full_message # :nodoc:
-    end
-    self.i18n_customize_full_message = false
-
     attr_reader :errors
     alias :objects :errors
 
@@ -467,47 +462,7 @@ module ActiveModel
     #
     #   person.errors.full_message(:name, 'is invalid') # => "Name is invalid"
     def full_message(attribute, message)
-      return message if attribute == :base
-      attribute = attribute.to_s
-
-      if self.class.i18n_customize_full_message && @base.class.respond_to?(:i18n_scope)
-        attribute = attribute.remove(/\[\d\]/)
-        parts = attribute.split(".")
-        attribute_name = parts.pop
-        namespace = parts.join("/") unless parts.empty?
-        attributes_scope = "#{@base.class.i18n_scope}.errors.models"
-
-        if namespace
-          defaults = @base.class.lookup_ancestors.map do |klass|
-            [
-              :"#{attributes_scope}.#{klass.model_name.i18n_key}/#{namespace}.attributes.#{attribute_name}.format",
-              :"#{attributes_scope}.#{klass.model_name.i18n_key}/#{namespace}.format",
-            ]
-          end
-        else
-          defaults = @base.class.lookup_ancestors.map do |klass|
-            [
-              :"#{attributes_scope}.#{klass.model_name.i18n_key}.attributes.#{attribute_name}.format",
-              :"#{attributes_scope}.#{klass.model_name.i18n_key}.format",
-            ]
-          end
-        end
-
-        defaults.flatten!
-      else
-        defaults = []
-      end
-
-      defaults << :"errors.format"
-      defaults << "%{attribute} %{message}"
-
-      attr_name = attribute.tr(".", "_").humanize
-      attr_name = @base.class.human_attribute_name(attribute, default: attr_name)
-
-      I18n.t(defaults.shift,
-        default:  defaults,
-        attribute: attr_name,
-        message:   message)
+      Error.full_message(attribute, message, @base.class)
     end
 
     # Translates an error message in its default scope
@@ -535,40 +490,7 @@ module ActiveModel
     # * <tt>errors.attributes.title.blank</tt>
     # * <tt>errors.messages.blank</tt>
     def generate_message(attribute, type = :invalid, options = {})
-      type = options.delete(:message) if options[:message].is_a?(Symbol)
-      value = (attribute != :base ? @base.send(:read_attribute_for_validation, attribute) : nil)
-
-      options = {
-        model: @base.model_name.human,
-        attribute: @base.class.human_attribute_name(attribute),
-        value: value,
-        object: @base
-      }.merge!(options)
-
-      if @base.class.respond_to?(:i18n_scope)
-        i18n_scope = @base.class.i18n_scope.to_s
-        defaults = @base.class.lookup_ancestors.flat_map do |klass|
-          [ :"#{i18n_scope}.errors.models.#{klass.model_name.i18n_key}.attributes.#{attribute}.#{type}",
-            :"#{i18n_scope}.errors.models.#{klass.model_name.i18n_key}.#{type}" ]
-        end
-        defaults << :"#{i18n_scope}.errors.messages.#{type}"
-
-        catch(:exception) do
-          translation = I18n.translate(defaults.first, options.merge(default: defaults.drop(1), throw: true))
-          return translation unless translation.nil?
-        end unless options[:message]
-      else
-        defaults = []
-      end
-
-      defaults << :"errors.attributes.#{attribute}.#{type}"
-      defaults << :"errors.messages.#{type}"
-
-      key = defaults.shift
-      defaults = options.delete(:message) if options[:message]
-      options[:default] = defaults
-
-      I18n.translate(key, options)
+      Error.generate_message(attribute, type, @base, options)
     end
 
     def marshal_load(array) # :nodoc:
