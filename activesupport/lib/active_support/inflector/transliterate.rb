@@ -5,8 +5,9 @@ require "active_support/i18n"
 
 module ActiveSupport
   module Inflector
-    # Replaces non-ASCII characters with an ASCII approximation, or if none
-    # exists, a replacement character which defaults to "?".
+    # Replaces non-ASCII characters in a UTF-8 encoded string with an ASCII
+    # approximation, or if none exists, a replacement character which
+    # defaults to "?".
     #
     #    transliterate('Ærøskøbing')
     #    # => "AEroskobing"
@@ -56,8 +57,12 @@ module ActiveSupport
     #
     #   transliterate('Jürgen', locale: :de)
     #   # => "Juergen"
+    #
+    # This method requires that `string` be UTF-8 encoded. Passing an argument
+    # with a different string encoding will raise an ArgumentError.
     def transliterate(string, replacement = "?", locale: nil)
       raise ArgumentError, "Can only transliterate strings. Received #{string.class.name}" unless string.is_a?(String)
+      raise ArgumentError, "Can only transliterate UTF-8 strings. Received string with encoding #{string.encoding}" unless string.encoding == ::Encoding::UTF_8
 
       I18n.transliterate(
         ActiveSupport::Multibyte::Unicode.tidy_bytes(string).unicode_normalize(:nfc),
