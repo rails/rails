@@ -365,7 +365,7 @@ module ActiveRecord
   class QueryCanceled < StatementInvalid
   end
 
-  # AdapterTimeout will be raised when database clients times out while waiting from the server
+  # AdapterTimeout will be raised when database clients times out while waiting from the server.
   class AdapterTimeout < StatementInvalid
   end
 
