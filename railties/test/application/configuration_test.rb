@@ -2593,6 +2593,42 @@ module ApplicationTests
       MESSAGE
     end
 
+    test "ActiveStorage.blob_class is ActiveStorage::Blob by default" do
+      app "development"
+
+      assert_equal ActiveStorage::Blob, ActiveStorage.blob_class
+    end
+
+    test "ActiveStorage.blob_class can be changed" do
+      app_file "app/models/my_blob.rb", <<-RUBY
+        MyBlob = Class.new(ActiveStorage::Blob)
+      RUBY
+      app_file "config/initializers/active_storage.rb", <<-RUBY
+        Rails.application.config.active_storage.blob_class = "MyBlob"
+      RUBY
+      app "development"
+
+      assert_equal MyBlob, ActiveStorage.blob_class
+    end
+
+    test "ActiveStorage.attachment_class is ActiveStorage::Attachment by default" do
+      app "development"
+
+      assert_equal ActiveStorage::Attachment, ActiveStorage.attachment_class
+    end
+
+    test "ActiveStorage.attachment_class can be changed" do
+      app_file "app/models/my_attachment.rb", <<-RUBY
+        MyAttachment = Class.new(ActiveStorage::Attachment)
+      RUBY
+      app_file "config/initializers/active_storage.rb", <<-RUBY
+        Rails.application.config.active_storage.attachment_class = "MyAttachment"
+      RUBY
+      app "development"
+
+      assert_equal MyAttachment, ActiveStorage.attachment_class
+    end
+
     test "hosts include .localhost in development" do
       app "development"
       assert_includes Rails.application.config.hosts, ".localhost"

@@ -883,6 +883,22 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 
   The default is `/rails/active_storage`
 
+* `config.active_storage.blob_class` can be used to set the class for Active Storage blobs.
+
+  ```ruby
+  config.active_storage.blob_class = "MyBlobSubclass"
+  ```
+
+  The default is `"ActiveStorage::Blob"`.
+
+* `config.active_storage.attachment_class` can be used to set the class for Active Storage attachments.
+
+  ```ruby
+  config.active_storage.attachment_class = "MyAttachmentSubclass"
+  ```
+
+  The default is `"ActiveStorage::Attachment"`.
+
 ### Results of `load_defaults`
 
 #### With '5.0':

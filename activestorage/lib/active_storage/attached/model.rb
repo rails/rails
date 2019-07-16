@@ -20,8 +20,8 @@ module ActiveStorage
       #   User.with_attached_avatar
       #
       # Under the covers, this relationship is implemented as a +has_one+ association to a
-      # ActiveStorage::Attachment record and a +has_one-through+ association to a
-      # ActiveStorage::Blob record. These associations are available as +avatar_attachment+
+      # ActiveStorage.attachment_class record and a +has_one-through+ association to a
+      # ActiveStorage.blob_class record. These associations are available as +avatar_attachment+
       # and +avatar_blob+. But you shouldn't need to work with these associations directly in
       # most circumstances.
       #
@@ -46,8 +46,8 @@ module ActiveStorage
           end
         CODE
 
-        has_one :"#{name}_attachment", -> { where(name: name) }, class_name: "ActiveStorage::Attachment", as: :record, inverse_of: :record, dependent: :destroy
-        has_one :"#{name}_blob", through: :"#{name}_attachment", class_name: "ActiveStorage::Blob", source: :blob
+        has_one :"#{name}_attachment", -> { where(name: name) }, class_name: ActiveStorage.attachment_class_name, as: :record, inverse_of: :record, dependent: :destroy
+        has_one :"#{name}_blob", through: :"#{name}_attachment", class_name: ActiveStorage.blob_class_name, source: :blob
 
         scope :"with_attached_#{name}", -> { includes("#{name}_attachment": :blob) }
 
@@ -76,8 +76,8 @@ module ActiveStorage
       #   Gallery.where(user: Current.user).with_attached_photos
       #
       # Under the covers, this relationship is implemented as a +has_many+ association to a
-      # ActiveStorage::Attachment record and a +has_many-through+ association to a
-      # ActiveStorage::Blob record. These associations are available as +photos_attachments+
+      # ActiveStorage.attachment_class record and a +has_many-through+ association to a
+      # ActiveStorage.blob_class record. These associations are available as +photos_attachments+
       # and +photos_blobs+. But you shouldn't need to work with these associations directly in
       # most circumstances.
       #
@@ -102,7 +102,7 @@ module ActiveStorage
           end
         CODE
 
-        has_many :"#{name}_attachments", -> { where(name: name) }, as: :record, class_name: "ActiveStorage::Attachment", inverse_of: :record, dependent: :destroy do
+        has_many :"#{name}_attachments", -> { where(name: name) }, as: :record, class_name: ActiveStorage.attachment_class_name, inverse_of: :record, dependent: :destroy do
           def purge
             each(&:purge)
             reset
@@ -113,7 +113,7 @@ module ActiveStorage
             reset
           end
         end
-        has_many :"#{name}_blobs", through: :"#{name}_attachments", class_name: "ActiveStorage::Blob", source: :blob
+        has_many :"#{name}_blobs", through: :"#{name}_attachments", class_name: ActiveStorage.blob_class_name, source: :blob
 
         scope :"with_attached_#{name}", -> { includes("#{name}_attachments": :blob) }
 

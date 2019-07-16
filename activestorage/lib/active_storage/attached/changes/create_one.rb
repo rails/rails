@@ -45,22 +45,22 @@ module ActiveStorage
       end
 
       def build_attachment
-        ActiveStorage::Attachment.new(record: record, name: name, blob: blob)
+        ActiveStorage.attachment_class.new(record: record, name: name, blob: blob)
       end
 
       def find_or_build_blob
         case attachable
-        when ActiveStorage::Blob
+        when ActiveStorage.blob_class
           attachable
         when ActionDispatch::Http::UploadedFile, Rack::Test::UploadedFile
-          ActiveStorage::Blob.build_after_unfurling \
+          ActiveStorage.blob_class.build_after_unfurling \
             io: attachable.open,
             filename: attachable.original_filename,
             content_type: attachable.content_type
         when Hash
-          ActiveStorage::Blob.build_after_unfurling(attachable)
+          ActiveStorage.blob_class.build_after_unfurling(attachable)
         when String
-          ActiveStorage::Blob.find_signed(attachable)
+          ActiveStorage.blob_class.find_signed(attachable)
         else
           raise ArgumentError, "Could not find or build blob: expected attachable, got #{attachable.inspect}"
         end

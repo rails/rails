@@ -55,6 +55,26 @@ module ActiveStorage
   mattr_accessor :service_urls_expire_in, default: 5.minutes
   mattr_accessor :routes_prefix, default: "/rails/active_storage"
 
+  mattr_accessor :blob_class, default: "ActiveStorage::Blob"
+
+  class << self
+    alias_method :blob_class_name, :blob_class
+
+    def blob_class
+      @constantized_blob_class ||= blob_class_name.constantize
+    end
+  end
+
+  mattr_accessor :attachment_class, default: "ActiveStorage::Attachment"
+
+  class << self
+    alias_method :attachment_class_name, :attachment_class
+
+    def attachment_class
+      @constnatized_attachment_class ||= attachment_class_name.constantize
+    end
+  end
+
   module Transformers
     extend ActiveSupport::Autoload
 

@@ -9,7 +9,7 @@ class ActiveStorage::Attachment < ActiveRecord::Base
   self.table_name = "active_storage_attachments"
 
   belongs_to :record, polymorphic: true, touch: true
-  belongs_to :blob, class_name: "ActiveStorage::Blob"
+  belongs_to :blob, class_name: ActiveStorage.blob_class_name
 
   delegate_missing_to :blob
 

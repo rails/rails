@@ -27,6 +27,6 @@ Rails.application.routes.draw do
     route_for(:rails_service_blob, blob.signed_id, blob.filename, options)
   end
 
-  resolve("ActiveStorage::Blob")       { |blob, options| route_for(:rails_blob, blob, options) }
-  resolve("ActiveStorage::Attachment") { |attachment, options| route_for(:rails_blob, attachment.blob, options) }
+  resolve(ActiveStorage.blob_class_name)       { |blob, options| route_for(:rails_blob, blob, options) }
+  resolve(ActiveStorage.attachment_class_name) { |attachment, options| route_for(:rails_blob, attachment.blob, options) }
 end

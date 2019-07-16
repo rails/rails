@@ -33,7 +33,7 @@ class ActiveStorage::DiskController < ActiveStorage::BaseController
 
   private
     def disk_service
-      ActiveStorage::Blob.service
+      ActiveStorage.blob_class.service
     end
 
 

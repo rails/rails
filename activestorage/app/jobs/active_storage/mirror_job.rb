@@ -8,6 +8,6 @@ class ActiveStorage::MirrorJob < ActiveStorage::BaseJob
   retry_on ActiveStorage::IntegrityError, attempts: 10, wait: :exponentially_longer
 
   def perform(key, checksum:)
-    ActiveStorage::Blob.service.try(:mirror, key, checksum: checksum)
+    ActiveStorage.blob_class.service.try(:mirror, key, checksum: checksum)
   end
 end

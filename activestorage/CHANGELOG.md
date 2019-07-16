@@ -1,3 +1,7 @@
+*   Add `config.active_storage.blob_class` and `config.active_storage.attachment_class` to make Active Storage models configurable.
+
+    *Gannon McGibbon*
+
 *   Image analysis is skipped if ImageMagick returns an error.
 
     `ActiveStorage::Analyzer::ImageAnalyzer#metadata` would previously raise a

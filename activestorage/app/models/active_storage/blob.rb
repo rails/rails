@@ -33,7 +33,7 @@ class ActiveStorage::Blob < ActiveRecord::Base
 
   has_many :attachments
 
-  scope :unattached, -> { left_joins(:attachments).where(ActiveStorage::Attachment.table_name => { blob_id: nil }) }
+  scope :unattached, -> { left_joins(:attachments).where(ActiveStorage.attachment_class.table_name => { blob_id: nil }) }
 
   before_destroy(prepend: true) do
     raise ActiveRecord::InvalidForeignKey if attachments.exists?
