@@ -36,6 +36,10 @@ module ActionDispatch
       "ActionView::Template::Error"
     ]
 
+    cattr_accessor :silent_exceptions, default: [
+      "ActionController::RoutingError"
+    ]
+
     attr_reader :backtrace_cleaner, :exception, :wrapped_causes, :line_number, :file
 
     def initialize(backtrace_cleaner, exception)
@@ -64,7 +68,7 @@ module ActionDispatch
 
     def exception_trace
       trace = application_trace
-      trace = framework_trace if trace.empty? && !exception.is_a?(ActionController::RoutingError)
+      trace = framework_trace if trace.empty? && !silent_exceptions.include?(@exception.class.name)
       trace
     end
 
