@@ -233,6 +233,7 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
     error = assert_raises(ActiveRecord::AdapterTimeout) do
       ActiveRecord::Base.connection.execute("SELECT SLEEP(2)")
     end
+    assert_kind_of ActiveRecord::QueryAborted, error
 
     assert_equal Mysql2::Error::TimeoutError, error.cause.class
   ensure
