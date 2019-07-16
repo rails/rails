@@ -466,6 +466,8 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
   end
 
   test "logs exception backtrace when all lines silenced" do
+    @app = DevelopmentApp
+
     output = StringIO.new
     backtrace_cleaner = ActiveSupport::BacktraceCleaner.new
     backtrace_cleaner.add_silencer { true }
@@ -476,6 +478,27 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
 
     get "/", headers: env
     assert_operator((output.rewind && output.read).lines.count, :>, 10)
+  end
+
+  test "doesn't log the framework backtrace when error type is a routing error" do
+    @app = ProductionApp
+
+    output = StringIO.new
+    backtrace_cleaner = ActiveSupport::BacktraceCleaner.new
+    backtrace_cleaner.add_silencer { true }
+
+    env = { "action_dispatch.show_exceptions"   => true,
+            "action_dispatch.logger"            => Logger.new(output),
+            "action_dispatch.backtrace_cleaner" => backtrace_cleaner }
+
+    assert_raises ActionController::RoutingError do
+      get "/pass", headers: env
+    end
+
+    log = output.rewind && output.read
+
+    assert_includes log, "ActionController::RoutingError (No route matches [GET] \"/pass\")"
+    assert_equal 3, log.lines.count
   end
 
   test "display backtrace when error type is SyntaxError" do

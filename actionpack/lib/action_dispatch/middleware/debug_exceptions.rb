@@ -137,9 +137,7 @@ module ActionDispatch
         return unless logger
 
         exception = wrapper.exception
-
-        trace = wrapper.application_trace
-        trace = wrapper.framework_trace if trace.empty?
+        trace = wrapper.exception_trace
 
         ActiveSupport::Deprecation.silence do
           message = []

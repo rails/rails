@@ -1,3 +1,7 @@
+*   Reduced log noise handling ActionController::RoutingErrors.
+
+    *Alberto Fernández-Capel*
+
 *   Add DSL for configuring HTTP Feature Policy
 
     This new DSL provides a way to configure a HTTP Feature Policy at a
