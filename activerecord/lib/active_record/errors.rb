@@ -365,6 +365,10 @@ module ActiveRecord
   class QueryCanceled < StatementInvalid
   end
 
+  # AdapterTimeout will be raised when database clients times out while waiting from the server
+  class AdapterTimeout < StatementInvalid
+  end
+
   # UnknownAttributeReference is raised when an unknown and potentially unsafe
   # value is passed to a query method when allow_unsafe_raw_sql is set to
   # :disabled. For example, passing a non column name value to a relation's

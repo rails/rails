@@ -225,6 +225,20 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
     end
   end
 
+  def test_read_timeout_exception
+    ActiveRecord::Base.establish_connection(
+      ActiveRecord::Base.configurations[:arunit].merge("read_timeout" => 1)
+    )
+
+    error = assert_raises(ActiveRecord::AdapterTimeout) do
+      ActiveRecord::Base.connection.execute("SELECT SLEEP(2)")
+    end
+
+    assert_equal Mysql2::Error::TimeoutError, error.cause.class
+  ensure
+    ActiveRecord::Base.establish_connection :arunit
+  end
+
   private
     def with_example_table(definition = "id int auto_increment primary key, number int, data varchar(255)", &block)
       super(@conn, "ex", definition, &block)

@@ -619,7 +619,11 @@ module ActiveRecord
           when ER_QUERY_INTERRUPTED
             QueryCanceled.new(message, sql: sql, binds: binds)
           else
-            super
+            if exception.is_a?(Mysql2::Error::TimeoutError)
+              ActiveRecord::AdapterTimeout.new(message, sql: sql, binds: binds)
+            else
+              super
+            end
           end
         end
 
