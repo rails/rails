@@ -57,12 +57,4 @@ class TransliterateTest < ActiveSupport::TestCase
     end
     assert_equal "Can only transliterate strings. Received Object", exception.message
   end
-
-  def test_transliterate_handles_non_unicode_strings
-    ascii_8bit_string = "A".b
-    exception = assert_raises ArgumentError do
-      assert_equal "A", ActiveSupport::Inflector.transliterate(ascii_8bit_string)
-    end
-    assert_equal "Can only transliterate UTF-8 strings. Received string with encoding ASCII-8BIT", exception.message
-  end
 end
