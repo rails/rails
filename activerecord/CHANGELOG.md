@@ -1,3 +1,7 @@
+*   Add support for beginless ranges, introduced in Ruby 2.7.
+
+    *Josh Goodall*
+
 *   Fix insert_all with enum values
 
     Fixes #38716.
