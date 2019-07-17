@@ -13,7 +13,7 @@ class ActiveStorage::Analyzer::VideoAnalyzerTest < ActiveSupport::TestCase
     assert_equal 640, metadata[:width]
     assert_equal 480, metadata[:height]
     assert_equal [4, 3], metadata[:display_aspect_ratio]
-    assert_equal true, metadata[:duration].between?(4, 6)
+    assert_equal 5.166648, metadata[:duration]
     assert_not_includes metadata, :angle
   end
 
