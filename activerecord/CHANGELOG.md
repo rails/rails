@@ -1,3 +1,7 @@
+*   Add support for beginless ranges, introduced in Ruby 2.7.
+
+    *Josh Goodall*
+
 *   Add database_exists? method to connection adapters to check if a database exists.
 
     *Guilherme Mansur*
