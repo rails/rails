@@ -304,6 +304,12 @@ class InflectorTest < ActiveSupport::TestCase
     end
   end
 
+  def test_parameterize_with_locale
+    word = "Fünf autos"
+    I18n.backend.store_translations(:de, i18n: { transliterate: { rule: { "ü" => "ue" } } })
+    assert_equal("fuenf-autos", ActiveSupport::Inflector.parameterize(word, locale: :de))
+  end
+
   def test_classify
     ClassNameToTableName.each do |class_name, table_name|
       assert_equal(class_name, ActiveSupport::Inflector.classify(table_name))

@@ -1,5 +1,6 @@
-## Rails 6.0.0.beta1 (January 18, 2019) ##
+*   Add `ApplicationMailbox.mailbox_for` to expose mailbox routing.
 
-*   Added to Rails.
+    *James Dabbs*
 
-    *DHH*
+
+Please check [6-0-stable](https://github.com/rails/rails/blob/6-0-stable/actionmailbox/CHANGELOG.md) for previous changes.

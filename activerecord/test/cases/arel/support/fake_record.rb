@@ -58,6 +58,14 @@ module FakeRecord
       "\"#{name}\""
     end
 
+    def sanitize_as_sql_comment(comment)
+      comment
+    end
+
+    def in_clause_length
+      3
+    end
+
     def schema_cache
       self
     end

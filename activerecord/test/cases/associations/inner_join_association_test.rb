@@ -29,7 +29,10 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
 
   def test_construct_finder_sql_does_not_table_name_collide_on_duplicate_associations_with_left_outer_joins
     sql = Person.joins(agents: :agents).left_outer_joins(agents: :agents).to_sql
-    assert_match(/agents_people_4/i, sql)
+    assert_match(/agents_people_2/i, sql)
+    assert_match(/INNER JOIN/i, sql)
+    assert_no_match(/agents_people_4/i, sql)
+    assert_no_match(/LEFT OUTER JOIN/i, sql)
   end
 
   def test_construct_finder_sql_does_not_table_name_collide_with_string_joins

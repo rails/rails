@@ -226,6 +226,7 @@ module ActionController
       FormBuilder,
       RequestForgeryProtection,
       ContentSecurityPolicy,
+      FeaturePolicy,
       ForceSSL,
       Streaming,
       DataStreaming,

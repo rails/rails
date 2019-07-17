@@ -2,11 +2,8 @@
 
 module ActiveRecord
   module Associations
-    # Association proxies in Active Record are middlemen between the object that
-    # holds the association, known as the <tt>@owner</tt>, and the actual associated
-    # object, known as the <tt>@target</tt>. The kind of association any proxy is
-    # about is available in <tt>@reflection</tt>. That's an instance of the class
-    # ActiveRecord::Reflection::AssociationReflection.
+    # Collection proxies in Active Record are middlemen between an
+    # <tt>association</tt>, and its <tt>target</tt> result set.
     #
     # For example, given
     #
@@ -16,14 +13,14 @@ module ActiveRecord
     #
     #   blog = Blog.first
     #
-    # the association proxy in <tt>blog.posts</tt> has the object in +blog+ as
-    # <tt>@owner</tt>, the collection of its posts as <tt>@target</tt>, and
-    # the <tt>@reflection</tt> object represents a <tt>:has_many</tt> macro.
+    # The collection proxy returned by <tt>blog.posts</tt> is built from a
+    # <tt>:has_many</tt> <tt>association</tt>, and delegates to a collection
+    # of posts as the <tt>target</tt>.
     #
-    # This class delegates unknown methods to <tt>@target</tt> via
-    # <tt>method_missing</tt>.
+    # This class delegates unknown methods to the <tt>association</tt>'s
+    # relation class via a delegate cache.
     #
-    # The <tt>@target</tt> object is not \loaded until needed. For example,
+    # The <tt>target</tt> result set is not loaded until needed. For example,
     #
     #   blog.posts.count
     #
@@ -1005,7 +1002,7 @@ module ActiveRecord
       end
 
       # Adds one or more +records+ to the collection by setting their foreign keys
-      # to the association's primary key. Since +<<+ flattens its argument list and
+      # to the association's primary key. Since <tt><<</tt> flattens its argument list and
       # inserts each record, +push+ and +concat+ behave identically. Returns +self+
       # so several appends may be chained together.
       #
@@ -1032,7 +1029,7 @@ module ActiveRecord
       alias_method :append, :<<
       alias_method :concat, :<<
 
-      def prepend(*args)
+      def prepend(*args) # :nodoc:
         raise NoMethodError, "prepend on association is not defined. Please use <<, push or append"
       end
 
@@ -1104,7 +1101,6 @@ module ActiveRecord
       delegate(*delegate_methods, to: :scope)
 
       private
-
         def find_nth_with_limit(index, limit)
           load_target if find_from_target?
           super

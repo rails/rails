@@ -34,7 +34,6 @@ module ActionView
         end
 
         private
-
           def value
             if @allow_method_names_outside_object
               object.public_send @method_name if object && object.respond_to?(@method_name)
@@ -106,7 +105,7 @@ module ActionView
           end
 
           def tag_name(multiple = false, index = nil)
-            # a little duplication to construct less strings
+            # a little duplication to construct fewer strings
             case
             when @object_name.empty?
               "#{sanitized_method_name}#{multiple ? "[]" : ""}"
@@ -118,7 +117,7 @@ module ActionView
           end
 
           def tag_id(index = nil)
-            # a little duplication to construct less strings
+            # a little duplication to construct fewer strings
             case
             when @object_name.empty?
               sanitized_method_name.dup
@@ -138,7 +137,7 @@ module ActionView
           end
 
           def sanitized_value(value)
-            value.to_s.gsub(/[\s\.]/, "_").gsub(/[^-[[:word:]]]/, "").mb_chars.downcase.to_s
+            value.to_s.gsub(/[\s\.]/, "_").gsub(/[^-[[:word:]]]/, "").downcase
           end
 
           def select_content_tag(option_tags, options, html_options)

@@ -50,6 +50,13 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
 
     assert_file "config/application.rb", /config\.api_only = true/
     assert_file "app/controllers/application_controller.rb", /ActionController::API/
+
+    assert_file "config/environments/development.rb" do |content|
+      assert_no_match(/action_controller\.perform_caching = true/, content)
+    end
+    assert_file "config/environments/production.rb" do |content|
+      assert_no_match(/action_controller\.perform_caching = true/, content)
+    end
   end
 
   def test_generator_if_skip_action_cable_is_given
@@ -102,7 +109,6 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
   end
 
   private
-
     def default_files
       %w(.gitignore
         .ruby-version
@@ -120,7 +126,6 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
         bin/rails
         bin/rake
         bin/setup
-        bin/update
         config/application.rb
         config/boot.rb
         config/cable.yml

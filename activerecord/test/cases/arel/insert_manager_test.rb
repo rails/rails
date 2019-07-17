@@ -11,19 +11,18 @@ module Arel
     end
 
     describe "insert" do
-      it "can create a Values node" do
+      it "can create a ValuesList node" do
         manager = Arel::InsertManager.new
-        values  = manager.create_values %w{ a b }, %w{ c d }
+        values  = manager.create_values_list([%w{ a b }, %w{ c d }])
 
-        assert_kind_of Arel::Nodes::Values, values
-        assert_equal %w{ a b }, values.left
-        assert_equal %w{ c d }, values.right
+        assert_kind_of Arel::Nodes::ValuesList, values
+        assert_equal [%w{ a b }, %w{ c d }], values.rows
       end
 
       it "allows sql literals" do
         manager = Arel::InsertManager.new
         manager.into Table.new(:users)
-        manager.values = manager.create_values [Arel.sql("*")], %w{ a }
+        manager.values = manager.create_values([Arel.sql("*")])
         manager.to_sql.must_be_like %{
           INSERT INTO \"users\" VALUES (*)
         }
@@ -186,9 +185,9 @@ module Arel
         manager = Arel::InsertManager.new
         manager.into table
 
-        manager.values = Nodes::Values.new [1]
+        manager.values = Nodes::ValuesList.new([[1], [2]])
         manager.to_sql.must_be_like %{
-          INSERT INTO "users" VALUES (1)
+          INSERT INTO "users" VALUES (1), (2)
         }
       end
 
@@ -210,11 +209,11 @@ module Arel
         manager = Arel::InsertManager.new
         manager.into table
 
-        manager.values = Nodes::Values.new [1, "aaron"]
+        manager.values = Nodes::ValuesList.new([[1, "aaron"], [2, "david"]])
         manager.columns << table[:id]
         manager.columns << table[:name]
         manager.to_sql.must_be_like %{
-          INSERT INTO "users" ("id", "name") VALUES (1, 'aaron')
+          INSERT INTO "users" ("id", "name") VALUES (1, 'aaron'), (2, 'david')
         }
       end
     end

@@ -38,6 +38,7 @@ module ApplicationTests
         "Rails::Rack::Logger",
         "ActionDispatch::ShowExceptions",
         "ActionDispatch::DebugExceptions",
+        "ActionDispatch::ActionableExceptions",
         "ActionDispatch::Reloader",
         "ActionDispatch::Callbacks",
         "ActiveRecord::Migration::CheckPending",
@@ -45,6 +46,7 @@ module ApplicationTests
         "ActionDispatch::Session::CookieStore",
         "ActionDispatch::Flash",
         "ActionDispatch::ContentSecurityPolicy::Middleware",
+        "ActionDispatch::FeaturePolicy::Middleware",
         "Rack::Head",
         "Rack::ConditionalGet",
         "Rack::ETag",
@@ -70,6 +72,7 @@ module ApplicationTests
         "Rails::Rack::Logger",
         "ActionDispatch::ShowExceptions",
         "ActionDispatch::DebugExceptions",
+        "ActionDispatch::ActionableExceptions",
         "ActionDispatch::Reloader",
         "ActionDispatch::Callbacks",
         "Rack::Head",
@@ -307,7 +310,6 @@ module ApplicationTests
     end
 
     private
-
       def boot!
         require "#{app_path}/config/environment"
       end

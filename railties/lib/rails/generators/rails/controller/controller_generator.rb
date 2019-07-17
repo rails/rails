@@ -25,7 +25,6 @@ module Rails
       end
 
       private
-
         def file_name
           @_file_name ||= remove_possible_suffix(super)
         end

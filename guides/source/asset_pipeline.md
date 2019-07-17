@@ -33,13 +33,11 @@ passing the `--skip-sprockets` option.
 rails new appname --skip-sprockets
 ```
 
-Rails automatically adds the `sass-rails`, `coffee-rails` and `uglifier`
-gems to your `Gemfile`, which are used by Sprockets for asset compression:
+Rails automatically adds the `sass-rails` gem to your `Gemfile`, which is used
+by Sprockets for asset compression:
 
 ```ruby
 gem 'sass-rails'
-gem 'uglifier'
-gem 'coffee-rails'
 ```
 
 Using the `--skip-sprockets` option will prevent Rails from adding
@@ -126,7 +124,7 @@ The query string strategy has several disadvantages:
 1. **Not all caches will reliably cache content where the filename only differs by
 query parameters**
 
-    [Steve Souders recommends](http://www.stevesouders.com/blog/2008/08/23/revving-filenames-dont-use-querystring/),
+    [Steve Souders recommends](https://www.stevesouders.com/blog/2008/08/23/revving-filenames-dont-use-querystring/),
  "...avoiding a querystring for cacheable resources". He found that in this
 case 5-20% of requests will not be cached. Query strings in particular do not
 work at all with some CDNs for cache invalidation.
@@ -176,8 +174,7 @@ in `app/assets` are never served directly in production.
 
 ### Controller Specific Assets
 
-When you generate a scaffold or a controller, Rails also generates a JavaScript
-file (or CoffeeScript file if the `coffee-rails` gem is in the `Gemfile`) and a
+When you generate a scaffold or a controller, Rails also generates a
 Cascading Style Sheet file (or SCSS file if `sass-rails` is in the `Gemfile`)
 for that controller. Additionally, when generating a scaffold, Rails generates
 the file `scaffolds.css` (or `scaffolds.scss` if `sass-rails` is in the
@@ -434,9 +431,8 @@ one file rather than many, the load time of pages can be greatly reduced because
 the browser makes fewer requests. Compression also reduces file size, enabling
 the browser to download them faster.
 
-
-For example, a new Rails application includes a default
-`app/assets/javascripts/application.js` file containing the following lines:
+For example, with a `app/assets/javascripts/application.js` file containing the
+following lines:
 
 ```js
 // ...
@@ -476,8 +472,7 @@ which contains these lines:
 */
 ```
 
-Rails creates both `app/assets/javascripts/application.js` and
-`app/assets/stylesheets/application.css` regardless of whether the
+Rails create `app/assets/stylesheets/application.css` regardless of whether the
 --skip-sprockets option is used when creating a new Rails application. This is
 so you can easily add asset pipelining later if you like.
 
@@ -489,7 +484,7 @@ one, requiring all stylesheets from the current directory.
 In this example, `require_self` is used. This puts the CSS contained within the
 file (if any) at the precise location of the `require_self` call.
 
-NOTE. If you want to use multiple Sass files, you should generally use the [Sass `@import` rule](http://sass-lang.com/docs/yardoc/file.SASS_REFERENCE.html#import)
+NOTE. If you want to use multiple Sass files, you should generally use the [Sass `@import` rule](https://sass-lang.com/docs/yardoc/file.SASS_REFERENCE.html#import)
 instead of these Sprockets directives. When using Sprockets directives, Sass files exist within
 their own scope, making variables or mixins only available within the document they were defined in.
 
@@ -517,8 +512,7 @@ The file extensions used on an asset determine what preprocessing is applied.
 When a controller or a scaffold is generated with the default Rails gemset, a
 CoffeeScript file and a SCSS file are generated in place of a regular JavaScript
 and CSS file. The example used before was a controller called "projects", which
-generated an `app/assets/javascripts/projects.coffee` and an
-`app/assets/stylesheets/projects.scss` file.
+generated an `app/assets/stylesheets/projects.scss` file.
 
 In development mode, or if the asset pipeline is disabled, when these files are
 requested they are processed by the processors provided by the `coffee-script`
@@ -745,7 +739,7 @@ mapping requests back to Sprockets. A typical manifest file looks like:
 The default location for the manifest is the root of the location specified in
 `config.assets.prefix` ('/assets' by default).
 
-NOTE: If there are missing precompiled files in production you will get an
+NOTE: If there are missing precompiled files in production you will get a
 `Sprockets::Helpers::RailsHelper::AssetPaths::AssetNotPrecompiledError`
 exception indicating the name of the missing file(s).
 
@@ -961,7 +955,7 @@ is present.
 ##### CDN Header Debugging
 
 One way to check the headers are cached properly in your CDN is by using [curl](
-http://explainshell.com/explain?cmd=curl+-I+http%3A%2F%2Fwww.example.com). You
+https://explainshell.com/explain?cmd=curl+-I+http%3A%2F%2Fwww.example.com). You
 can request the headers from both your server and your CDN to verify they are
 the same:
 
@@ -1009,7 +1003,7 @@ such as `X-Cache` or for any additional headers they may add.
 ##### CDNs and the Cache-Control Header
 
 The [cache control
-header](http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.9) is a W3C
+header](https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.9) is a W3C
 specification that describes how a request can be cached. When no CDN is used, a
 browser will use this information to cache contents. This is very helpful for
 assets that are not modified so that a browser does not need to re-download a
@@ -1083,7 +1077,7 @@ Possible options for JavaScript compression are `:closure`, `:uglifier` and
 `:yui`. These require the use of the `closure-compiler`, `uglifier` or
 `yui-compressor` gems, respectively.
 
-The default `Gemfile` includes [uglifier](https://github.com/lautis/uglifier).
+Take the `uglifier` gem, for example.
 This gem wraps [UglifyJS](https://github.com/mishoo/UglifyJS) (written for
 NodeJS) in Ruby. It compresses your code by removing white space and comments,
 shortening local variable names, and performing other micro-optimizations such
@@ -1154,7 +1148,7 @@ The X-Sendfile header is a directive to the web server to ignore the response
 from the application, and instead serve a specified file from disk. This option
 is off by default, but can be enabled if your server supports it. When enabled,
 this passes responsibility for serving the file to the web server, which is
-faster. Have a look at [send_file](http://api.rubyonrails.org/classes/ActionController/DataStreaming.html#method-i-send_file)
+faster. Have a look at [send_file](https://api.rubyonrails.org/classes/ActionController/DataStreaming.html#method-i-send_file)
 on how to use this feature.
 
 Apache and NGINX support this option, which can be enabled in
@@ -1172,7 +1166,7 @@ and any other environments you define with production behavior (not
 
 TIP: For further details have a look at the docs of your production web server:
 - [Apache](https://tn123.org/mod_xsendfile/)
-- [NGINX](http://wiki.nginx.org/XSendfile)
+- [NGINX](https://www.nginx.com/resources/wiki/start/topics/examples/xsendfile/)
 
 Assets Cache Store
 ------------------
@@ -1230,4 +1224,3 @@ it as a preprocessor for your mime type.
 ```ruby
 Sprockets.register_preprocessor 'text/css', AddComment
 ```
-

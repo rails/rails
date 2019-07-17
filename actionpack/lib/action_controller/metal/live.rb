@@ -107,7 +107,6 @@ module ActionController
       end
 
       private
-
         def perform_write(json, options)
           current_options = @options.merge(options).stringify_keys
 
@@ -146,7 +145,7 @@ module ActionController
 
       def write(string)
         unless @response.committed?
-          @response.set_header "Cache-Control", "no-cache"
+          @response.headers["Cache-Control"] ||= "no-cache"
           @response.delete_header "Content-Length"
         end
 
@@ -205,7 +204,6 @@ module ActionController
       end
 
       private
-
         def each_chunk(&block)
           loop do
             str = nil
@@ -220,7 +218,6 @@ module ActionController
 
     class Response < ActionDispatch::Response #:nodoc: all
       private
-
         def before_committed
           super
           jar = request.cookie_jar
@@ -286,7 +283,6 @@ module ActionController
     end
 
     private
-
       # Spawn a new thread to serve up the controller in. This is to get
       # around the fact that Rack isn't based around IOs and we need to use
       # a thread to stream data from the response bodies. Nobody should call
@@ -305,7 +301,7 @@ module ActionController
 
         logger.fatal do
           message = +"\n#{exception.class} (#{exception.message}):\n"
-          message << exception.annoted_source_code.to_s if exception.respond_to?(:annoted_source_code)
+          message << exception.annotated_source_code.to_s if exception.respond_to?(:annotated_source_code)
           message << "  " << exception.backtrace.join("\n  ")
           "#{message}\n\n"
         end

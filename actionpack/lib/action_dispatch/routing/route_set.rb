@@ -40,7 +40,6 @@ module ActionDispatch
         end
 
       private
-
         def controller(req)
           req.controller_class
         rescue NameError => e
@@ -59,7 +58,6 @@ module ActionDispatch
         end
 
         private
-
           def controller(_); @controller_class; end
       end
 
@@ -215,7 +213,6 @@ module ActionDispatch
             end
 
             private
-
               def optimized_helper(args)
                 params = parameterize_args(args) do
                   raise_generation_error(args)
@@ -317,23 +314,21 @@ module ActionDispatch
           #
           def define_url_helper(mod, route, name, opts, route_key, url_strategy)
             helper = UrlHelper.create(route, opts, route_key, url_strategy)
-            mod.module_eval do
-              define_method(name) do |*args|
-                last = args.last
-                options = \
-                  case last
-                  when Hash
-                    args.pop
-                  when ActionController::Parameters
-                    args.pop.to_h
-                  end
-                helper.call self, args, options
-              end
+            mod.define_method(name) do |*args|
+              last = args.last
+              options = \
+                case last
+                when Hash
+                  args.pop
+                when ActionController::Parameters
+                  args.pop.to_h
+                end
+              helper.call self, args, options
             end
           end
       end
 
-      # strategy for building urls to send to the client
+      # strategy for building URLs to send to the client
       PATH    = ->(options) { ActionDispatch::Http::URL.path_for(options) }
       UNKNOWN = ->(options) { ActionDispatch::Http::URL.url_for(options) }
 
@@ -593,14 +588,14 @@ module ActionDispatch
         if route.segment_keys.include?(:controller)
           ActiveSupport::Deprecation.warn(<<-MSG.squish)
             Using a dynamic :controller segment in a route is deprecated and
-            will be removed in Rails 6.0.
+            will be removed in Rails 6.1.
           MSG
         end
 
         if route.segment_keys.include?(:action)
           ActiveSupport::Deprecation.warn(<<-MSG.squish)
             Using a dynamic :action segment in a route is deprecated and
-            will be removed in Rails 6.0.
+            will be removed in Rails 6.1.
           MSG
         end
 

@@ -10,7 +10,15 @@ class Mysql2ActiveSchemaTest < ActiveRecord::Mysql2TestCase
     ActiveRecord::Base.connection.send(:default_row_format)
     ActiveRecord::Base.connection.singleton_class.class_eval do
       alias_method :execute_without_stub, :execute
-      def execute(sql, name = nil) sql end
+      def execute(sql, name = nil)
+        ActiveSupport::Notifications.instrumenter.instrument(
+          "sql.active_record",
+          sql: sql,
+          name: name,
+          connection: self) do
+          sql
+        end
+      end
     end
   end
 
@@ -89,17 +97,19 @@ class Mysql2ActiveSchemaTest < ActiveRecord::Mysql2TestCase
 
     %w(SPATIAL FULLTEXT UNIQUE).each do |type|
       expected = "ALTER TABLE `people` ADD #{type} INDEX `index_people_on_last_name`  (`last_name`)"
-      actual = ActiveRecord::Base.connection.change_table(:people, bulk: true) do |t|
-        t.index :last_name, type: type
+      assert_sql(expected) do
+        ActiveRecord::Base.connection.change_table(:people, bulk: true) do |t|
+          t.index :last_name, type: type
+        end
       end
-      assert_equal expected, actual
     end
 
     expected = "ALTER TABLE `people` ADD  INDEX `index_people_on_last_name` USING btree (`last_name`(10)), ALGORITHM = COPY"
-    actual = ActiveRecord::Base.connection.change_table(:people, bulk: true) do |t|
-      t.index :last_name, length: 10, using: :btree, algorithm: :copy
+    assert_sql(expected) do
+      ActiveRecord::Base.connection.change_table(:people, bulk: true) do |t|
+        t.index :last_name, length: 10, using: :btree, algorithm: :copy
+      end
     end
-    assert_equal expected, actual
   end
 
   def test_drop_table

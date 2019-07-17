@@ -110,7 +110,7 @@ module ActiveRecord
       end
 
       def extract_query_source_location(locations)
-        backtrace_cleaner.clean(locations).first
+        backtrace_cleaner.clean(locations.lazy).first
       end
   end
 end

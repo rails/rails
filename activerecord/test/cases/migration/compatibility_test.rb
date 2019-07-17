@@ -12,6 +12,7 @@ module ActiveRecord
       def setup
         super
         @connection = ActiveRecord::Base.connection
+        @schema_migration = @connection.schema_migration
         @verbose_was = ActiveRecord::Migration.verbose
         ActiveRecord::Migration.verbose = false
 
@@ -38,7 +39,7 @@ module ActiveRecord
         }.new
 
         assert connection.index_exists?(:testings, :foo, name: "custom_index_name")
-        assert_raise(StandardError) { ActiveRecord::Migrator.new(:up, [migration]).migrate }
+        assert_raise(StandardError) { ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate }
         assert connection.index_exists?(:testings, :foo, name: "custom_index_name")
       end
 
@@ -53,7 +54,7 @@ module ActiveRecord
         }.new
 
         assert connection.index_exists?(:testings, :bar)
-        ActiveRecord::Migrator.new(:up, [migration]).migrate
+        ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
         assert_not connection.index_exists?(:testings, :bar)
       end
 
@@ -67,7 +68,7 @@ module ActiveRecord
           end
         }.new
 
-        ActiveRecord::Migrator.new(:up, [migration]).migrate
+        ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
 
         assert_not connection.index_exists?(:more_testings, :foo_id)
         assert_not connection.index_exists?(:more_testings, :bar_id)
@@ -84,7 +85,7 @@ module ActiveRecord
           end
         }.new
 
-        ActiveRecord::Migrator.new(:up, [migration]).migrate
+        ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
 
         assert connection.column_exists?(:more_testings, :created_at, null: true)
         assert connection.column_exists?(:more_testings, :updated_at, null: true)
@@ -101,7 +102,7 @@ module ActiveRecord
           end
         }.new
 
-        ActiveRecord::Migrator.new(:up, [migration]).migrate
+        ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
 
         assert connection.column_exists?(:testings, :created_at, null: true)
         assert connection.column_exists?(:testings, :updated_at, null: true)
@@ -117,7 +118,7 @@ module ActiveRecord
             end
           }.new
 
-          ActiveRecord::Migrator.new(:up, [migration]).migrate
+          ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
 
           assert connection.column_exists?(:testings, :created_at, null: true)
           assert connection.column_exists?(:testings, :updated_at, null: true)
@@ -131,7 +132,7 @@ module ActiveRecord
           end
         }.new
 
-        ActiveRecord::Migrator.new(:up, [migration]).migrate
+        ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
 
         assert connection.column_exists?(:testings, :created_at, null: true)
         assert connection.column_exists?(:testings, :updated_at, null: true)
@@ -146,7 +147,7 @@ module ActiveRecord
           end
         }.new
 
-        ActiveRecord::Migrator.new(:up, [migration]).migrate
+        ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
 
         assert connection.column_exists?(:more_testings, :created_at, null: false, **precision_implicit_default)
         assert connection.column_exists?(:more_testings, :updated_at, null: false, **precision_implicit_default)
@@ -163,7 +164,7 @@ module ActiveRecord
           end
         }.new
 
-        ActiveRecord::Migrator.new(:up, [migration]).migrate
+        ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
 
         assert connection.column_exists?(:testings, :created_at, null: false, **precision_implicit_default)
         assert connection.column_exists?(:testings, :updated_at, null: false, **precision_implicit_default)
@@ -179,7 +180,7 @@ module ActiveRecord
             end
           }.new
 
-          ActiveRecord::Migrator.new(:up, [migration]).migrate
+          ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
 
           assert connection.column_exists?(:testings, :created_at, null: false, **precision_implicit_default)
           assert connection.column_exists?(:testings, :updated_at, null: false, **precision_implicit_default)
@@ -193,7 +194,7 @@ module ActiveRecord
           end
         }.new
 
-        ActiveRecord::Migrator.new(:up, [migration]).migrate
+        ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
 
         assert connection.column_exists?(:testings, :created_at, null: false, **precision_implicit_default)
         assert connection.column_exists?(:testings, :updated_at, null: false, **precision_implicit_default)
@@ -220,6 +221,35 @@ module ActiveRecord
         end
       end
 
+      if ActiveRecord::Base.connection.supports_comments?
+        def test_change_column_comment_can_be_reverted
+          migration = Class.new(ActiveRecord::Migration[5.2]) {
+            def migrate(x)
+              revert do
+                change_column_comment(:testings, :foo, "comment")
+              end
+            end
+          }.new
+
+          ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+          assert connection.column_exists?(:testings, :foo, comment: "comment")
+        end
+
+        def test_change_table_comment_can_be_reverted
+          migration = Class.new(ActiveRecord::Migration[5.2]) {
+            def migrate(x)
+              revert do
+                change_table_comment(:testings, "comment")
+              end
+            end
+          }.new
+
+          ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+
+          assert_equal "comment", connection.table_comment("testings")
+        end
+      end
+
       if current_adapter?(:PostgreSQLAdapter)
         class Testing < ActiveRecord::Base
         end
@@ -232,7 +262,7 @@ module ActiveRecord
           }.new
 
           Testing.create!
-          ActiveRecord::Migrator.new(:up, [migration]).migrate
+          ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
           assert_equal ["foobar"], Testing.all.map(&:foo)
         ensure
           ActiveRecord::Base.clear_cache!
@@ -242,9 +272,9 @@ module ActiveRecord
       private
         def precision_implicit_default
           if current_adapter?(:Mysql2Adapter)
-            { presicion: 0 }
+            { precision: 0 }
           else
-            { presicion: nil }
+            { precision: nil }
           end
         end
     end

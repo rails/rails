@@ -34,6 +34,22 @@ class LoadingTest < ActiveSupport::TestCase
     assert_equal "omg", p.title
   end
 
+  test "constants without a matching file raise NameError" do
+    app_file "app/models/post.rb", <<-RUBY
+      class Post
+        NON_EXISTING_CONSTANT
+      end
+    RUBY
+
+    boot_app
+
+    e = assert_raise(NameError) { User }
+    assert_equal "uninitialized constant #{self.class}::User", e.message
+
+    e = assert_raise(NameError) { Post }
+    assert_equal "uninitialized constant Post::NON_EXISTING_CONSTANT", e.message
+  end
+
   test "concerns in app are autoloaded" do
     app_file "app/controllers/concerns/trackable.rb", <<-CONCERN
       module Trackable
@@ -100,7 +116,7 @@ class LoadingTest < ActiveSupport::TestCase
     RUBY
 
     app_file "app/models/post.rb", <<-MODEL
-      class Post < ActiveRecord::Base
+      class Post < ApplicationRecord
       end
     MODEL
 
@@ -117,11 +133,12 @@ class LoadingTest < ActiveSupport::TestCase
     require "#{rails_root}/config/environment"
     setup_ar!
 
-    assert_equal [ActiveStorage::Blob, ActiveStorage::Attachment, ActiveRecord::SchemaMigration, ActiveRecord::InternalMetadata].collect(&:to_s).sort, ActiveRecord::Base.descendants.collect(&:to_s).sort
+    initial = [ActiveStorage::Blob, ActiveStorage::Attachment, ActiveRecord::SchemaMigration, ActiveRecord::InternalMetadata, ApplicationRecord, "primary::SchemaMigration"].collect(&:to_s).sort
+    assert_equal initial, ActiveRecord::Base.descendants.collect(&:to_s).sort
     get "/load"
-    assert_equal [ActiveStorage::Blob, ActiveStorage::Attachment, ActiveRecord::SchemaMigration, ActiveRecord::InternalMetadata, Post].collect(&:to_s).sort, ActiveRecord::Base.descendants.collect(&:to_s).sort
+    assert_equal [Post].collect(&:to_s).sort, ActiveRecord::Base.descendants.collect(&:to_s).sort - initial
     get "/unload"
-    assert_equal [ActiveStorage::Blob, ActiveStorage::Attachment, ActiveRecord::SchemaMigration, ActiveRecord::InternalMetadata].collect(&:to_s).sort, ActiveRecord::Base.descendants.collect(&:to_s).sort
+    assert_equal ["ActiveRecord::InternalMetadata", "ActiveRecord::SchemaMigration", "primary::SchemaMigration"], ActiveRecord::Base.descendants.collect(&:to_s).sort.uniq
   end
 
   test "initialize cant be called twice" do
@@ -438,7 +455,6 @@ class LoadingTest < ActiveSupport::TestCase
   end
 
   private
-
     def setup_ar!
       ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
       ActiveRecord::Migration.verbose = false

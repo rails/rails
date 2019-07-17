@@ -50,7 +50,7 @@ class NamedScopingTest < ActiveRecord::TestCase
 
   def test_calling_merge_at_first_in_scope
     Topic.class_eval do
-      scope :calling_merge_at_first_in_scope, Proc.new { merge(Topic.replied) }
+      scope :calling_merge_at_first_in_scope, Proc.new { merge(Topic.unscoped.replied) }
     end
     assert_equal Topic.calling_merge_at_first_in_scope.to_a, Topic.replied.to_a
   end
@@ -447,9 +447,10 @@ class NamedScopingTest < ActiveRecord::TestCase
     assert_equal [posts(:sti_comments)], Post.with_special_comments.with_post(4).to_a.uniq
   end
 
-  def test_chaining_doesnt_leak_conditions_to_another_scopes
-    expected = Topic.where(approved: false).where(id: Topic.children.select(:parent_id))
-    assert_equal expected.to_a, Topic.rejected.has_children.to_a
+  def test_class_method_in_scope
+    assert_deprecated do
+      assert_equal [topics(:second)], topics(:first).approved_replies.ordered
+    end
   end
 
   def test_nested_scoping
@@ -600,5 +601,15 @@ class NamedScopingTest < ActiveRecord::TestCase
     assert_not_predicate Topic, :one?
     Topic.create!
     assert_predicate Topic, :one?
+  end
+
+  def test_scope_with_annotation
+    Topic.class_eval do
+      scope :including_annotate_in_scope, Proc.new { annotate("from-scope") }
+    end
+
+    assert_sql(%r{/\* from-scope \*/}) do
+      assert Topic.including_annotate_in_scope.to_a, Topic.all.to_a
+    end
   end
 end

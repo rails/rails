@@ -13,6 +13,8 @@ class Company < AbstractCompany
   has_many :contracts
   has_many :developers, through: :contracts
 
+  attribute :metadata, :json
+
   scope :of_first_firm, lambda {
     joins(account: :firm).
     where("firms.id" => 1)
@@ -23,7 +25,6 @@ class Company < AbstractCompany
   end
 
   private
-
     def private_method
       "I am Jack's innermost fears and aspirations"
     end

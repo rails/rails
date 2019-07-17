@@ -28,17 +28,6 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
     end
   end
 
-  def test_truncate
-    rows = ActiveRecord::Base.connection.exec_query("select count(*) from comments")
-    count = rows.first.values.first
-    assert_operator count, :>, 0
-
-    ActiveRecord::Base.connection.truncate("comments")
-    rows = ActiveRecord::Base.connection.exec_query("select count(*) from comments")
-    count = rows.first.values.first
-    assert_equal 0, count
-  end
-
   def test_no_automatic_reconnection_after_timeout
     assert_predicate @connection, :active?
     @connection.update("set @@wait_timeout=1")
@@ -208,7 +197,6 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
   end
 
   private
-
     def test_lock_free(lock_name)
       @connection.select_value("SELECT IS_FREE_LOCK(#{@connection.quote(lock_name)})") == 1
     end

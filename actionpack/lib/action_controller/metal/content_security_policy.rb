@@ -36,7 +36,6 @@ module ActionController #:nodoc:
     end
 
     private
-
       def content_security_policy?
         request.content_security_policy
       end

@@ -93,7 +93,7 @@ module ActionController
       end
 
       def model
-        super || synchronize { super || self.model = _default_wrap_model }
+        super || self.model = _default_wrap_model
       end
 
       def include
@@ -246,7 +246,6 @@ module ActionController
     end
 
     private
-
       # Returns the wrapper key which will be used to store wrapped parameters.
       def _wrapper_key
         _wrapper_options.name

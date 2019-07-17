@@ -3,7 +3,6 @@
 require "active_support/core_ext/array/extract_options"
 require "active_support/core_ext/hash/keys"
 require "active_support/core_ext/object/inclusion"
-require "active_support/core_ext/object/try"
 require "action_view/helpers/asset_url_helper"
 require "action_view/helpers/tag_helper"
 
@@ -268,7 +267,7 @@ module ActionView
       def preload_link_tag(source, options = {})
         href = asset_path(source, skip_pipeline: options.delete(:skip_pipeline))
         extname = File.extname(source).downcase.delete(".")
-        mime_type = options.delete(:type) || Template::Types[extname].try(:to_s)
+        mime_type = options.delete(:type) || Template::Types[extname]&.to_s
         as_type = options.delete(:as) || resolve_link_as(extname, mime_type)
         crossorigin = options.delete(:crossorigin)
         crossorigin = "anonymous" if crossorigin == true || (crossorigin.blank? && as_type == "font")

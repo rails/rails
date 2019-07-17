@@ -56,7 +56,6 @@ module ActiveRecord
         end
 
         private
-
           attr_reader :uri
 
           def uri_parser

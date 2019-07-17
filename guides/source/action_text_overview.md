@@ -46,6 +46,8 @@ happens after every keystroke, and avoids the need to use execCommand at all.
 ## Installation
 
 Run `rails action_text:install` to add the Yarn package and copy over the necessary migration.
+Also, you need to set up Active Storage for embedded images and other attachments.
+Please refer to the [Active Storage Overview](active_storage_overview.html) guide.
 
 ## Examples
 
@@ -91,7 +93,7 @@ end
 
 By default, the Action Text editor and content is styled by the Trix defaults.
 If you want to change these defaults, you'll want to remove
-the `app/assets/stylesheets/actiontext.css` linker and base your stylings on
+the `app/assets/stylesheets/actiontext.scss` linker and base your stylings on
 the [contents of that file](https://raw.githubusercontent.com/basecamp/trix/master/dist/trix.css).
 
 You can also style the HTML used for embedded images and other attachments (known as blobs).

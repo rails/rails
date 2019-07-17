@@ -150,7 +150,6 @@ module ActiveModel
       end
 
     private
-
       # When creating custom validators, it might be useful to be able to specify
       # additional default keys. This can be done by overwriting this method.
       def _validates_default_keys

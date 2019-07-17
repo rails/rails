@@ -193,19 +193,23 @@ class ActiveStorage::Blob < ActiveRecord::Base
   #
   # The tempfile's name is prefixed with +ActiveStorage-+ and the blob's ID. Its extension matches that of the blob.
   #
-  # By default, the tempfile is created in <tt>Dir.tmpdir</tt>. Pass +tempdir:+ to create it in a different directory:
+  # By default, the tempfile is created in <tt>Dir.tmpdir</tt>. Pass +tmpdir:+ to create it in a different directory:
   #
-  #   blob.open(tempdir: "/path/to/tmp") do |file|
+  #   blob.open(tmpdir: "/path/to/tmp") do |file|
   #     # ...
   #   end
   #
   # The tempfile is automatically closed and unlinked after the given block is executed.
   #
   # Raises ActiveStorage::IntegrityError if the downloaded data does not match the blob's checksum.
-  def open(tempdir: nil, &block)
-    ActiveStorage::Downloader.new(self, tempdir: tempdir).download_blob_to_tempfile(&block)
+  def open(tmpdir: nil, &block)
+    service.open key, checksum: checksum,
+      name: [ "ActiveStorage-#{id}-", filename.extension_with_delimiter ], tmpdir: tmpdir, &block
   end
 
+  def mirror_later #:nodoc:
+    ActiveStorage::MirrorJob.perform_later(key, checksum: checksum) if service.respond_to?(:mirror)
+  end
 
   # Deletes the files on the service associated with the blob. This should only be done if the blob is going to be
   # deleted as well or you will essentially have a dead reference. It's recommended to use #purge and #purge_later
@@ -272,6 +276,6 @@ class ActiveStorage::Blob < ActiveRecord::Base
         { content_type: content_type }
       end
     end
-
-    ActiveSupport.run_load_hooks(:active_storage_blob, self)
 end
+
+ActiveSupport.run_load_hooks :active_storage_blob, ActiveStorage::Blob

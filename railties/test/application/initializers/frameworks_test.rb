@@ -39,7 +39,7 @@ module ApplicationTests
       assert_equal expanded_path, ActionMailer::Base.view_paths[0].to_s
     end
 
-    test "allows me to configure default url options for ActionMailer" do
+    test "allows me to configure default URL options for ActionMailer" do
       app_file "config/environments/development.rb", <<-RUBY
         Rails.application.configure do
           config.action_mailer.default_url_options = { :host => "test.rails" }
@@ -61,7 +61,7 @@ module ApplicationTests
       assert_equal "https", ActionMailer::Base.default_url_options[:protocol]
     end
 
-    test "includes url helpers as action methods" do
+    test "includes URL helpers as action methods" do
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
           get "/foo", :to => lambda { |env| [200, {}, []] }, :as => :foo
@@ -218,8 +218,9 @@ module ApplicationTests
       rails %w(generate model post title:string)
       rails %w(db:migrate db:schema:cache:dump)
       require "#{app_path}/config/environment"
-      ActiveRecord::Base.connection.drop_table("posts") # force drop posts table for test.
       assert ActiveRecord::Base.connection.schema_cache.data_sources("posts")
+    ensure
+      ActiveRecord::Base.connection.drop_table("posts", if_exists: true) # force drop posts table for test.
     end
 
     test "expire schema cache dump" do

@@ -4,15 +4,13 @@ module Arel # :nodoc: all
   module Visitors
     class Oracle12 < Arel::Visitors::ToSql
       private
-
         def visit_Arel_Nodes_SelectStatement(o, collector)
           # Oracle does not allow LIMIT clause with select for update
           if o.limit && o.lock
-            raise ArgumentError, <<-MSG
-            'Combination of limit and lock is not supported.
-            because generated SQL statements
-            `SELECT FOR UPDATE and FETCH FIRST n ROWS` generates ORA-02014.`
-          MSG
+            raise ArgumentError, <<~MSG
+              Combination of limit and lock is not supported. Because generated SQL statements
+              `SELECT FOR UPDATE and FETCH FIRST n ROWS` generates ORA-02014.
+            MSG
           end
           super
         end

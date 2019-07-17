@@ -232,7 +232,6 @@ module StaticTests
   end
 
   private
-
     def assert_gzip(file_name, response)
       expected = File.read("#{FIXTURE_LOAD_PATH}/#{public_path}" + file_name)
       actual   = ActiveSupport::Gzip.decompress(response.body)

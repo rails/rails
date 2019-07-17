@@ -91,7 +91,7 @@ module ActiveRecord
     initializer "active_record.database_selector" do
       if options = config.active_record.delete(:database_selector)
         resolver = config.active_record.delete(:database_resolver)
-        operations = config.active_record.delete(:database_operations)
+        operations = config.active_record.delete(:database_resolver_context)
         config.app_middleware.use ActiveRecord::Middleware::DatabaseSelector, resolver, operations, options
       end
     end
@@ -134,7 +134,6 @@ end_error
 
               cache = YAML.load(File.read(filename))
               if cache.version == current_version
-                connection.schema_cache = cache
                 connection_pool.schema_cache = cache.dup
               else
                 warn "Ignoring db/schema_cache.yml because it has expired. The current schema version is #{current_version}, but the one in the cache is #{cache.version}."

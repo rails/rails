@@ -1,6 +1,10 @@
 # frozen_string_literal: true
 
 require "rails"
+require "action_controller/railtie"
+require "active_job/railtie"
+require "active_record/railtie"
+
 require "active_storage"
 
 require "active_storage/previewer/poppler_pdf_previewer"
@@ -20,7 +24,7 @@ module ActiveStorage
     config.active_storage.previewers = [ ActiveStorage::Previewer::PopplerPDFPreviewer, ActiveStorage::Previewer::MuPDFPreviewer, ActiveStorage::Previewer::VideoPreviewer ]
     config.active_storage.analyzers = [ ActiveStorage::Analyzer::ImageAnalyzer, ActiveStorage::Analyzer::VideoAnalyzer ]
     config.active_storage.paths = ActiveSupport::OrderedOptions.new
-    config.active_storage.queues = ActiveSupport::OrderedOptions.new
+    config.active_storage.queues = ActiveSupport::InheritableOptions.new(mirror: :active_storage_mirror)
 
     config.active_storage.variable_content_types = %w(
       image/png
@@ -29,6 +33,7 @@ module ActiveStorage
       image/jpeg
       image/pjpeg
       image/tiff
+      image/bmp
       image/vnd.adobe.photoshop
       image/vnd.microsoft.icon
     )
@@ -52,6 +57,7 @@ module ActiveStorage
       image/jpg
       image/jpeg
       image/tiff
+      image/bmp
       image/vnd.adobe.photoshop
       image/vnd.microsoft.icon
       application/pdf
@@ -124,7 +130,7 @@ module ActiveStorage
             "config.active_storage.queue is deprecated and will be removed in Rails 6.1. " \
             "Set config.active_storage.queues.purge and config.active_storage.queues.analysis instead."
 
-          ActiveStorage.queues = { purge: queue, analysis: queue }
+          ActiveStorage.queues = { purge: queue, analysis: queue, mirror: queue }
         else
           ActiveStorage.queues = app.config.active_storage.queues || {}
         end

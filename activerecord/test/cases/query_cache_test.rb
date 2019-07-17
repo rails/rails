@@ -335,11 +335,7 @@ class QueryCacheTest < ActiveRecord::TestCase
 
   def test_cache_does_not_wrap_results_in_arrays
     Task.cache do
-      if current_adapter?(:SQLite3Adapter, :Mysql2Adapter, :PostgreSQLAdapter, :OracleAdapter)
-        assert_equal 2, Task.connection.select_value("SELECT count(*) AS count_all FROM tasks")
-      else
-        assert_instance_of String, Task.connection.select_value("SELECT count(*) AS count_all FROM tasks")
-      end
+      assert_equal 2, Task.connection.select_value("SELECT count(*) AS count_all FROM tasks")
     end
   end
 
@@ -540,8 +536,24 @@ class QueryCacheTest < ActiveRecord::TestCase
     ActiveRecord::Base.connection_handlers = { writing: ActiveRecord::Base.default_connection_handler }
   end
 
-  private
+  test "query cache is enabled in threads with shared connection" do
+    ActiveRecord::Base.connection_pool.lock_thread = true
 
+    assert_cache :off
+
+    thread_a = Thread.new do
+      middleware { |env|
+        assert_cache :clean
+        [200, {}, nil]
+      }.call({})
+    end
+
+    thread_a.join
+
+    ActiveRecord::Base.connection_pool.lock_thread = false
+  end
+
+  private
     def with_temporary_connection_pool
       old_pool = ActiveRecord::Base.connection_handler.retrieve_connection_pool(ActiveRecord::Base.connection_specification_name)
       new_pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new ActiveRecord::Base.connection_pool.spec

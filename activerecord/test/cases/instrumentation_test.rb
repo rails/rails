@@ -41,8 +41,8 @@ module ActiveRecord
           assert_equal "Book Update", event.payload[:name]
         end
       end
-      book = Book.create(name: "test book")
-      book.update_attribute(:name, "new name")
+      book = Book.create(name: "test book", format: "paperback")
+      book.update_attribute(:format, "ebook")
     ensure
       ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
     end
@@ -54,8 +54,8 @@ module ActiveRecord
           assert_equal "Book Update All", event.payload[:name]
         end
       end
-      Book.create(name: "test book")
-      Book.update_all(name: "new name")
+      Book.create(name: "test book", format: "paperback")
+      Book.update_all(format: "ebook")
     ensure
       ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
     end

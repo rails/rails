@@ -72,6 +72,16 @@ module ActiveRecord
         assert_equal expected, actual
       end
 
+      def test_resolver_with_database_uri_and_multiple_envs
+        ENV["DATABASE_URL"] = "postgres://localhost"
+        ENV["RAILS_ENV"] = "test"
+
+        config   = { "production" => { "adapter" => "postgresql", "database" => "foo_prod" }, "test" => { "adapter" => "postgresql", "database" => "foo_test" } }
+        actual   = resolve_spec(:test, config)
+        expected = { "adapter" => "postgresql", "database" => "foo_test", "host" => "localhost", "name" => "test" }
+        assert_equal expected, actual
+      end
+
       def test_resolver_with_database_uri_and_unknown_symbol_key
         ENV["DATABASE_URL"] = "postgres://localhost/foo"
         config = { "not_production" => {  "adapter" => "not_postgres", "database" => "not_foo" } }
@@ -234,6 +244,25 @@ module ActiveRecord
         assert_equal expected, actual
       end
 
+      def test_no_url_sub_key_with_database_url_doesnt_trample_other_envs
+        ENV["DATABASE_URL"] = "postgres://localhost/baz"
+
+        config   = { "default_env" => { "database" => "foo" }, "other_env" => { "url" => "postgres://foohost/bardb" } }
+        actual   = resolve_config(config)
+        expected = { "default_env" =>
+                     { "database" => "baz",
+                      "adapter" => "postgresql",
+                      "host" => "localhost"
+                     },
+                     "other_env" =>
+                      { "adapter" => "postgresql",
+                       "database" => "bardb",
+                       "host"     => "foohost"
+                      }
+                    }
+        assert_equal expected, actual
+      end
+
       def test_merge_no_conflicts_with_database_url
         ENV["DATABASE_URL"] = "postgres://localhost/foo"
 
@@ -261,6 +290,37 @@ module ActiveRecord
                        "pool"     => "5"
                       }
                     }
+        assert_equal expected, actual
+      end
+
+      def test_merge_no_conflicts_with_database_url_and_adapter
+        ENV["DATABASE_URL"] = "postgres://localhost/foo"
+
+        config   = { "default_env" => { "adapter" => "postgresql", "pool" => "5" } }
+        actual   = resolve_config(config)
+        expected = { "default_env" =>
+                     { "adapter"  => "postgresql",
+                       "database" => "foo",
+                       "host"     => "localhost",
+                       "pool"     => "5"
+                     }
+        }
+        assert_equal expected, actual
+      end
+
+      def test_merge_no_conflicts_with_database_url_and_numeric_pool
+        ENV["DATABASE_URL"] = "postgres://localhost/foo"
+
+        config   = { "default_env" => { "pool" => 5 } }
+        actual   = resolve_config(config)
+        expected = { "default_env" =>
+                     { "adapter"  => "postgresql",
+                       "database" => "foo",
+                       "host"     => "localhost",
+                       "pool"     => 5
+                     }
+        }
+
         assert_equal expected, actual
       end
     end

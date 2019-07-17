@@ -15,10 +15,13 @@ require "models/post"
 require "models/drink_designer"
 require "models/chef"
 require "models/department"
+require "models/club"
+require "models/membership"
 
 class HasOneAssociationsTest < ActiveRecord::TestCase
   self.use_transactional_tests = false unless supports_savepoints?
-  fixtures :accounts, :companies, :developers, :projects, :developers_projects, :ships, :pirates, :authors, :author_addresses
+  fixtures :accounts, :companies, :developers, :projects, :developers_projects,
+           :ships, :pirates, :authors, :author_addresses, :memberships, :clubs
 
   def setup
     Account.destroyed_account_ids.clear
@@ -37,8 +40,8 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     ActiveRecord::SQLCounter.clear_log
     companies(:first_firm).account
   ensure
-    log_all = ActiveRecord::SQLCounter.log_all
-    assert log_all.all? { |sql| /order by/i !~ sql }, "ORDER BY was used in the query: #{log_all}"
+    sql_log = ActiveRecord::SQLCounter.log
+    assert sql_log.all? { |sql| /order by/i !~ sql }, "ORDER BY was used in the query: #{sql_log}"
   end
 
   def test_has_one_cache_nils
@@ -253,11 +256,8 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_build_association_dont_create_transaction
-    # Load schema information so we don't query below if running just this test.
-    Account.define_attribute_methods
-
     firm = Firm.new
-    assert_no_queries do
+    assert_queries(0) do
       firm.build_account
     end
   end
@@ -704,6 +704,40 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
         end
       end
     end
+  end
+
+  def test_has_one_with_touch_option_on_create
+    assert_queries(3) {
+      Club.create(name: "1000 Oaks", membership_attributes: { favourite: true })
+    }
+  end
+
+  def test_has_one_with_touch_option_on_update
+    new_club = Club.create(name: "1000 Oaks")
+    new_club.create_membership
+
+    assert_queries(2) { new_club.update(name: "Effingut") }
+  end
+
+  def test_has_one_with_touch_option_on_touch
+    new_club = Club.create(name: "1000 Oaks")
+    new_club.create_membership
+
+    assert_queries(1) { new_club.touch }
+  end
+
+  def test_has_one_with_touch_option_on_destroy
+    new_club = Club.create(name: "1000 Oaks")
+    new_club.create_membership
+
+    assert_queries(2) { new_club.destroy }
+  end
+
+  def test_has_one_with_touch_option_on_empty_update
+    new_club = Club.create(name: "1000 Oaks")
+    new_club.create_membership
+
+    assert_no_queries { new_club.save }
   end
 
   class SpecialBook < ActiveRecord::Base

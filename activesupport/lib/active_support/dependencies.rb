@@ -70,6 +70,11 @@ module ActiveSupport #:nodoc:
     # only once. All directories in this set must also be present in +autoload_paths+.
     mattr_accessor :autoload_once_paths, default: []
 
+    # This is a private set that collects all eager load paths during bootstrap.
+    # Useful for Zeitwerk integration. Its public interface is the config.* path
+    # accessors of each engine.
+    mattr_accessor :_eager_load_paths, default: Set.new
+
     # An array of qualified constant names that have been loaded. Adding a name
     # to this array will cause it to be unloaded the next time Dependencies are
     # cleared.
@@ -196,6 +201,11 @@ module ActiveSupport #:nodoc:
         end
       end
 
+      def self.include_into(base)
+        base.include(self)
+        append_features(base)
+      end
+
       def const_missing(const_name)
         from_mod = anonymous? ? guess_for_anonymous(const_name) : self
         Dependencies.load_missing_constant(from_mod, const_name)
@@ -225,6 +235,21 @@ module ActiveSupport #:nodoc:
         base.class_eval do
           define_method(:load, Kernel.instance_method(:load))
           private :load
+
+          define_method(:require, Kernel.instance_method(:require))
+          private :require
+        end
+      end
+
+      def self.include_into(base)
+        base.include(self)
+
+        if base.instance_method(:load).owner == base
+          base.remove_method(:load)
+        end
+
+        if base.instance_method(:require).owner == base
+          base.remove_method(:require)
         end
       end
 
@@ -285,7 +310,6 @@ module ActiveSupport #:nodoc:
       end
 
       private
-
         def load(file, wrap = false)
           result = false
           load_dependency(file) { result = super }
@@ -321,9 +345,9 @@ module ActiveSupport #:nodoc:
     end
 
     def hook!
-      Object.class_eval { include Loadable }
-      Module.class_eval { include ModuleConstMissing }
-      Exception.class_eval { include Blamable }
+      Loadable.include_into(Object)
+      ModuleConstMissing.include_into(Module)
+      Exception.include(Blamable)
     end
 
     def unhook!

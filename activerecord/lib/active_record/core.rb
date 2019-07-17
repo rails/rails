@@ -101,7 +101,6 @@ module ActiveRecord
       # environment where dumping schema is rarely needed.
       mattr_accessor :dump_schema_after_migration, instance_writer: false, default: true
 
-      mattr_accessor :database_selector, instance_writer: false
       ##
       # :singleton-method:
       # Specifies which database schemas to dump when calling db:structure:dump.
@@ -161,7 +160,7 @@ module ActiveRecord
         return super if block_given? ||
                         primary_key.nil? ||
                         scope_attributes? ||
-                        columns_hash.include?(inheritance_column)
+                        columns_hash.key?(inheritance_column) && !base_class?
 
         id = ids.first
 
@@ -175,14 +174,14 @@ module ActiveRecord
 
         record = statement.execute([id], connection)&.first
         unless record
-          raise RecordNotFound.new("Couldn't find #{name} with '#{primary_key}'=#{id}",
-                                   name, primary_key, id)
+          raise RecordNotFound.new("Couldn't find #{name} with '#{key}'=#{id}", name, key, id)
         end
         record
       end
 
       def find_by(*args) # :nodoc:
-        return super if scope_attributes? || reflect_on_all_aggregations.any?
+        return super if scope_attributes? || reflect_on_all_aggregations.any? ||
+                        columns_hash.key?(inheritance_column) && !base_class?
 
         hash = args.first
 
@@ -269,7 +268,8 @@ module ActiveRecord
       end
 
       def arel_attribute(name, table = arel_table) # :nodoc:
-        name = attribute_alias(name) if attribute_alias?(name)
+        name = name.to_s
+        name = attribute_aliases[name] || name
         table[name]
       end
 
@@ -286,7 +286,6 @@ module ActiveRecord
       end
 
       private
-
         def cached_find_by_statement(key, &block)
           cache = @find_by_statement_cache[connection.prepared_statements]
           cache.compute_if_absent(key) { StatementCache.create(connection, &block) }
@@ -317,7 +316,7 @@ module ActiveRecord
     #   # Instantiates a single new object
     #   User.new(first_name: 'Jamie')
     def initialize(attributes = nil)
-      self.class.define_attribute_methods
+      @new_record = true
       @attributes = self.class._default_attributes.deep_dup
 
       init_internals
@@ -354,12 +353,10 @@ module ActiveRecord
     # +attributes+ should be an attributes object, and unlike the
     # `initialize` method, no assignment calls are made per attribute.
     def init_with_attributes(attributes, new_record = false) # :nodoc:
-      init_internals
-
       @new_record = new_record
       @attributes = attributes
 
-      self.class.define_attribute_methods
+      init_internals
 
       yield self if block_given?
 
@@ -398,13 +395,13 @@ module ActiveRecord
     ##
     def initialize_dup(other) # :nodoc:
       @attributes = @attributes.deep_dup
-      @attributes.reset(self.class.primary_key)
+      @attributes.reset(@primary_key)
 
       _run_initialize_callbacks
 
       @new_record               = true
       @destroyed                = false
-      @_start_transaction_state = {}
+      @_start_transaction_state = nil
       @transaction_state        = nil
 
       super
@@ -465,6 +462,7 @@ module ActiveRecord
 
     # Returns +true+ if the attributes hash has been frozen.
     def frozen?
+      sync_with_transaction_state if @transaction_state&.finalized?
       @attributes.frozen?
     end
 
@@ -555,7 +553,6 @@ module ActiveRecord
     end
 
     private
-
       # +Array#flatten+ will call +#to_ary+ (recursively) on each of the elements of
       # the array, and then rescues from the possible +NoMethodError+. If those elements are
       # +ActiveRecord::Base+'s, then this triggers the various +method_missing+'s that we have,
@@ -569,22 +566,18 @@ module ActiveRecord
       end
 
       def init_internals
+        @primary_key              = self.class.primary_key
         @readonly                 = false
         @destroyed                = false
         @marked_for_destruction   = false
         @destroyed_by_association = nil
-        @new_record               = true
-        @_start_transaction_state = {}
+        @_start_transaction_state = nil
         @transaction_state        = nil
+
+        self.class.define_attribute_methods
       end
 
       def initialize_internals_callback
-      end
-
-      def thaw
-        if frozen?
-          @attributes = @attributes.dup
-        end
       end
 
       def custom_inspect_method_defined?

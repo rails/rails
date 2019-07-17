@@ -107,11 +107,21 @@ module ActiveSupport
 
     private
       def boot!
-        Listen.to(*@dtw, &method(:changed)).start
+        normalize_dirs!
+
+        unless @dtw.empty?
+          Listen.to(*@dtw, &method(:changed)).start
+        end
       end
 
       def shutdown!
         Listen.stop
+      end
+
+      def normalize_dirs!
+        @dirs.transform_keys! do |dir|
+          dir.exist? ? dir.realpath : dir
+        end
       end
 
       def changed(modified, added, removed)
@@ -131,7 +141,9 @@ module ActiveSupport
           ext = @ph.normalize_extension(file.extname)
 
           file.dirname.ascend do |dir|
-            if @dirs.fetch(dir, []).include?(ext)
+            matching = @dirs[dir]
+
+            if matching && (matching.empty? || matching.include?(ext))
               break true
             elsif dir == @lcsp || dir.root?
               break false
@@ -185,13 +197,6 @@ module ActiveSupport
           lcsp
         end
 
-        # Returns the deepest existing ascendant, which could be the argument itself.
-        def existing_parent(dir)
-          dir.ascend do |ascendant|
-            break ascendant if ascendant.directory?
-          end
-        end
-
         # Filters out directories which are descendants of others in the collection (stable).
         def filter_out_descendants(dirs)
           return dirs if dirs.length < 2
@@ -212,7 +217,6 @@ module ActiveSupport
         end
 
         private
-
           def ascendant_of?(base, other)
             base != other && other.ascend do |ascendant|
               break true if base == ascendant

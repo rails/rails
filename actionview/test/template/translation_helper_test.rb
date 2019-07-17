@@ -36,7 +36,10 @@ class TranslationHelperTest < ActiveSupport::TestCase
         }
       }
     )
-    @view = ::ActionView::Base.with_view_paths(ActionController::Base.view_paths, {})
+    view_paths = ActionController::Base.view_paths
+    view_paths.each(&:clear_cache)
+    ActionView::LookupContext.fallbacks.each(&:clear_cache)
+    @view = ::ActionView::Base.with_empty_template_cache.with_view_paths(view_paths, {})
   end
 
   teardown do
@@ -118,26 +121,31 @@ class TranslationHelperTest < ActiveSupport::TestCase
     I18n.exception_handler = old_exception_handler
   end
 
+  def test_hash_default
+    default = { separator: ".", delimiter: "," }
+    assert_equal default, translate(:'special.number.format', default: default)
+  end
+
   def test_translation_returning_an_array
     expected = %w(foo bar)
     assert_equal expected, translate(:"translations.array")
   end
 
   def test_finds_translation_scoped_by_partial
-    assert_equal "Foo", view.render(file: "translations/templates/found").strip
+    assert_equal "Foo", view.render(template: "translations/templates/found").strip
   end
 
   def test_finds_array_of_translations_scoped_by_partial
-    assert_equal "Foo Bar", @view.render(file: "translations/templates/array").strip
+    assert_equal "Foo Bar", @view.render(template: "translations/templates/array").strip
   end
 
   def test_default_lookup_scoped_by_partial
-    assert_equal "Foo", view.render(file: "translations/templates/default").strip
+    assert_equal "Foo", view.render(template: "translations/templates/default").strip
   end
 
   def test_missing_translation_scoped_by_partial
     expected = '<span class="translation_missing" title="translation missing: en.translations.templates.missing.missing">Missing</span>'
-    assert_equal expected, view.render(file: "translations/templates/missing").strip
+    assert_equal expected, view.render(template: "translations/templates/missing").strip
   end
 
   def test_translate_does_not_mark_plain_text_as_safe_html

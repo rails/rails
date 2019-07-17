@@ -60,7 +60,7 @@ module ActionView
       def translate(key, options = {})
         options = options.dup
         if options.has_key?(:default)
-          remaining_defaults = Array(options.delete(:default)).compact
+          remaining_defaults = Array.wrap(options.delete(:default)).compact
           options[:default] = remaining_defaults unless remaining_defaults.first.kind_of?(Symbol)
         end
 
@@ -114,7 +114,7 @@ module ActionView
 
       # Delegates to <tt>I18n.localize</tt> with no additional functionality.
       #
-      # See http://rubydoc.info/github/svenfuchs/i18n/master/I18n/Backend/Base:localize
+      # See https://www.rubydoc.info/github/svenfuchs/i18n/master/I18n/Backend/Base:localize
       # for more information.
       def localize(*args)
         I18n.localize(*args)
@@ -138,7 +138,7 @@ module ActionView
         end
 
         def html_safe_translation_key?(key)
-          /([_.]|\b)html\z/.match?(key.to_s)
+          /(?:_|\b)html\z/.match?(key.to_s)
         end
     end
   end

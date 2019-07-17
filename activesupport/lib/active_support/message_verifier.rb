@@ -71,7 +71,7 @@ module ActiveSupport
   #   @verifier.generate(parcel, expires_in: 1.month)
   #   @verifier.generate(doowad, expires_at: Time.now.end_of_year)
   #
-  # Then the messages can be verified and returned upto the expire time.
+  # Then the messages can be verified and returned up to the expire time.
   # Thereafter, the +verified+ method returns +nil+ while +verify+ raises
   # <tt>ActiveSupport::MessageVerifier::InvalidSignature</tt>.
   #
@@ -178,8 +178,8 @@ module ActiveSupport
 
     # Generates a signed message for the provided value.
     #
-    # The message is signed with the +MessageVerifier+'s secret. Without knowing
-    # the secret, the original value cannot be extracted from the message.
+    # The message is signed with the +MessageVerifier+'s secret.
+    # Returns Base64-encoded message joined with the generated signature.
     #
     #   verifier = ActiveSupport::MessageVerifier.new 's3Krit'
     #   verifier.generate 'a private message' # => "BAhJIhRwcml2YXRlLW1lc3NhZ2UGOgZFVA==--e2d724331ebdee96a10fb99b089508d1c72bd772"

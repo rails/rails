@@ -411,7 +411,7 @@ class RequestPath < BaseRequestTest
     assert_equal "/foo?bar", path
   end
 
-  test "original_url returns url built using ORIGINAL_FULLPATH" do
+  test "original_url returns URL built using ORIGINAL_FULLPATH" do
     request = stub_request("ORIGINAL_FULLPATH" => "/foo?bar",
                            "HTTP_HOST"         => "example.org",
                            "rack.url_scheme"   => "http")
@@ -681,7 +681,6 @@ end
 class RequestMethod < BaseRequestTest
   test "method returns environment's request method when it has not been
     overridden by middleware".squish do
-
     ActionDispatch::Request::HTTP_METHODS.each do |method|
       request = stub_request("REQUEST_METHOD" => method)
 

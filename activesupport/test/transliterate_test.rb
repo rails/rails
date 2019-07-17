@@ -30,6 +30,12 @@ class TransliterateTest < ActiveSupport::TestCase
     I18n.locale = default_locale
   end
 
+  def test_transliterate_respects_the_locale_argument
+    char = [117, 776].pack("U*") # "ü" as ASCII "u" plus COMBINING DIAERESIS
+    I18n.backend.store_translations(:de, i18n: { transliterate: { rule: { "ü" => "ue" } } })
+    assert_equal "ue", ActiveSupport::Inflector.transliterate(char, locale: :de)
+  end
+
   def test_transliterate_should_allow_a_custom_replacement_char
     assert_equal "a*b", ActiveSupport::Inflector.transliterate("a索b", "*")
   end

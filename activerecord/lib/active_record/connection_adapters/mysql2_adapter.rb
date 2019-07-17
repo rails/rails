@@ -8,6 +8,8 @@ require "mysql2"
 
 module ActiveRecord
   module ConnectionHandling # :nodoc:
+    ER_BAD_DB_ERROR = 1049
+
     # Establishes a connection to the database that's used by all Active Record objects.
     def mysql2_connection(config)
       config = config.symbolize_keys
@@ -22,7 +24,7 @@ module ActiveRecord
       client = Mysql2::Client.new(config)
       ConnectionAdapters::Mysql2Adapter.new(client, logger, nil, config)
     rescue Mysql2::Error => error
-      if error.message.include?("Unknown database")
+      if error.error_number == ER_BAD_DB_ERROR
         raise ActiveRecord::NoDatabaseError
       else
         raise
@@ -42,8 +44,14 @@ module ActiveRecord
         configure_connection
       end
 
+      def self.database_exists?(config)
+        !!ActiveRecord::Base.mysql2_connection(config)
+      rescue ActiveRecord::NoDatabaseError
+        false
+      end
+
       def supports_json?
-        !mariadb? && version >= "5.7.8"
+        !mariadb? && database_version >= "5.7.8"
       end
 
       def supports_comments?
@@ -109,12 +117,12 @@ module ActiveRecord
       end
 
       def discard! # :nodoc:
+        super
         @connection.automatic_close = false
         @connection = nil
       end
 
       private
-
         def connect
           @connection = Mysql2::Client.new(@config)
           configure_connection
@@ -126,7 +134,11 @@ module ActiveRecord
         end
 
         def full_version
-          @full_version ||= @connection.server_info[:version]
+          schema_cache.database_version.full_version_string
+        end
+
+        def get_full_version
+          @connection.server_info[:version]
         end
     end
   end

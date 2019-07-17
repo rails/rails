@@ -125,7 +125,7 @@ class NestedParametersPermitTest < ActiveSupport::TestCase
     assert_nil permitted[:book][:genre]
   end
 
-  test "fields_for-style nested params" do
+  test "nested params with numeric keys" do
     params = ActionController::Parameters.new(
       book: {
         authors_attributes: {
@@ -150,7 +150,33 @@ class NestedParametersPermitTest < ActiveSupport::TestCase
     assert_filtered_out permitted[:book][:authors_attributes]["0"], :age_of_death
   end
 
-  test "fields_for-style nested params with negative numbers" do
+  test "nested params with non_numeric keys" do
+    params = ActionController::Parameters.new(
+      book: {
+        authors_attributes: {
+          '0': { name: "William Shakespeare", age_of_death: "52" },
+          '1': { name: "Unattributed Assistant" },
+          '2': "Not a hash",
+          'new_record': { name: "Some name" }
+        }
+      })
+    permitted = params.permit book: { authors_attributes: [ :name ] }
+
+    assert_not_nil permitted[:book][:authors_attributes]["0"]
+    assert_not_nil permitted[:book][:authors_attributes]["1"]
+
+    assert_nil permitted[:book][:authors_attributes]["2"]
+    assert_nil permitted[:book][:authors_attributes]["new_record"]
+    assert_equal "William Shakespeare", permitted[:book][:authors_attributes]["0"][:name]
+    assert_equal "Unattributed Assistant", permitted[:book][:authors_attributes]["1"][:name]
+
+    assert_equal(
+      { "book" => { "authors_attributes" => { "0" => { "name" => "William Shakespeare" }, "1" => { "name" => "Unattributed Assistant" } } } },
+      permitted.to_h
+    )
+  end
+
+  test "nested params with negative numeric keys" do
     params = ActionController::Parameters.new(
       book: {
         authors_attributes: {

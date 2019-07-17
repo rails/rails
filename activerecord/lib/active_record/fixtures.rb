@@ -464,7 +464,6 @@ module ActiveRecord
       end
 
       private
-
         def insert_class(class_names, name, klass)
           # We only want to deal with AR objects.
           if klass && klass < ActiveRecord::Base
@@ -570,7 +569,6 @@ module ActiveRecord
       end
 
       private
-
         def read_and_insert(fixtures_directory, fixture_files, class_names, connection) # :nodoc:
           fixtures_map = {}
           fixture_sets = fixture_files.map do |fixture_set_name|
@@ -661,7 +659,6 @@ module ActiveRecord
     end
 
     private
-
       def model_class=(class_name)
         if class_name.is_a?(Class) # TODO: Should be an AR::Base type class, or any?
           @model_class = class_name

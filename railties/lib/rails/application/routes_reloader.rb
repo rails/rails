@@ -25,7 +25,6 @@ module Rails
       end
 
     private
-
       def updater
         @updater ||= ActiveSupport::FileUpdateChecker.new(paths) { reload! }
       end

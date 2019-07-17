@@ -55,6 +55,7 @@ module ActiveRecord
         end
 
         def drop_table(table_name, options = {}) # :nodoc:
+          schema_cache.clear_data_source_cache!(table_name.to_s)
           execute "DROP TABLE#{' IF EXISTS' if options[:if_exists]} #{quote_table_name(table_name)}#{' CASCADE' if options[:force] == :cascade}"
         end
 
@@ -287,7 +288,7 @@ module ActiveRecord
             quoted_sequence = quote_table_name(sequence)
             max_pk = query_value("SELECT MAX(#{quote_column_name pk}) FROM #{quote_table_name(table)}", "SCHEMA")
             if max_pk.nil?
-              if postgresql_version >= 100000
+              if database_version >= 100000
                 minvalue = query_value("SELECT seqmin FROM pg_sequence WHERE seqrelid = #{quote(quoted_sequence)}::regclass", "SCHEMA")
               else
                 minvalue = query_value("SELECT min_value FROM #{quoted_sequence}", "SCHEMA")
@@ -368,31 +369,6 @@ module ActiveRecord
           SQL
         end
 
-        def bulk_change_table(table_name, operations)
-          sql_fragments = []
-          non_combinable_operations = []
-
-          operations.each do |command, args|
-            table, arguments = args.shift, args
-            method = :"#{command}_for_alter"
-
-            if respond_to?(method, true)
-              sqls, procs = Array(send(method, table, *arguments)).partition { |v| v.is_a?(String) }
-              sql_fragments << sqls
-              non_combinable_operations.concat(procs)
-            else
-              execute "ALTER TABLE #{quote_table_name(table_name)} #{sql_fragments.join(", ")}" unless sql_fragments.empty?
-              non_combinable_operations.each(&:call)
-              sql_fragments = []
-              non_combinable_operations = []
-              send(command, table, *arguments)
-            end
-          end
-
-          execute "ALTER TABLE #{quote_table_name(table_name)} #{sql_fragments.join(", ")}" unless sql_fragments.empty?
-          non_combinable_operations.each(&:call)
-        end
-
         # Renames a table.
         # Also renames a table's primary key sequence if the sequence name exists and
         # matches the Active Record default.
@@ -401,6 +377,8 @@ module ActiveRecord
         #   rename_table('octopuses', 'octopi')
         def rename_table(table_name, new_name)
           clear_cache!
+          schema_cache.clear_data_source_cache!(table_name.to_s)
+          schema_cache.clear_data_source_cache!(new_name.to_s)
           execute "ALTER TABLE #{quote_table_name(table_name)} RENAME TO #{quote_table_name(new_name)}"
           pk, seq = pk_and_sequence_for(new_name)
           if pk
@@ -443,14 +421,16 @@ module ActiveRecord
         end
 
         # Adds comment for given table column or drops it if +comment+ is a +nil+
-        def change_column_comment(table_name, column_name, comment) # :nodoc:
+        def change_column_comment(table_name, column_name, comment_or_changes) # :nodoc:
           clear_cache!
+          comment = extract_new_comment_value(comment_or_changes)
           execute "COMMENT ON COLUMN #{quote_table_name(table_name)}.#{quote_column_name(column_name)} IS #{quote(comment)}"
         end
 
         # Adds comment for given table or drops it if +comment+ is a +nil+
-        def change_table_comment(table_name, comment) # :nodoc:
+        def change_table_comment(table_name, comment_or_changes) # :nodoc:
           clear_cache!
+          comment = extract_new_comment_value(comment_or_changes)
           execute "COMMENT ON TABLE #{quote_table_name(table_name)} IS #{quote(comment)}"
         end
 
@@ -548,21 +528,21 @@ module ActiveRecord
               # The hard limit is 1GB, because of a 32-bit size field, and TOAST.
               case limit
               when nil, 0..0x3fffffff; super(type)
-              else raise(ActiveRecordError, "No binary type has byte size #{limit}.")
+              else raise ArgumentError, "No binary type has byte size #{limit}. The limit on binary can be at most 1GB - 1byte."
               end
             when "text"
               # PostgreSQL doesn't support limits on text columns.
               # The hard limit is 1GB, according to section 8.3 in the manual.
               case limit
               when nil, 0..0x3fffffff; super(type)
-              else raise(ActiveRecordError, "The limit on text can be at most 1GB - 1byte.")
+              else raise ArgumentError, "No text type has byte size #{limit}. The limit on text can be at most 1GB - 1byte."
               end
             when "integer"
               case limit
               when 1, 2; "smallint"
               when nil, 3, 4; "integer"
               when 5..8; "bigint"
-              else raise(ActiveRecordError, "No integer type has byte size #{limit}. Use a numeric with scale 0 instead.")
+              else raise ArgumentError, "No integer type has byte size #{limit}. Use a numeric with scale 0 instead."
               end
             else
               super
@@ -623,10 +603,10 @@ module ActiveRecord
         #   validate_foreign_key :accounts, name: :special_fk_name
         #
         # The +options+ hash accepts the same keys as SchemaStatements#add_foreign_key.
-        def validate_foreign_key(from_table, options_or_to_table = {})
+        def validate_foreign_key(from_table, to_table = nil, **options)
           return unless supports_validate_constraints?
 
-          fk_name_to_validate = foreign_key_for!(from_table, options_or_to_table).name
+          fk_name_to_validate = foreign_key_for!(from_table, to_table: to_table, **options).name
 
           validate_constraint from_table, fk_name_to_validate
         end
@@ -650,16 +630,19 @@ module ActiveRecord
             default_value = extract_value_from_default(default)
             default_function = extract_default_function(default_value, default)
 
-            PostgreSQLColumn.new(
+            if match = default_function&.match(/\Anextval\('"?(?<sequence_name>.+_(?<suffix>seq\d*))"?'::regclass\)\z/)
+              serial = sequence_name_from_parts(table_name, column_name, match[:suffix]) == match[:sequence_name]
+            end
+
+            PostgreSQL::Column.new(
               column_name,
               default_value,
               type_metadata,
               !notnull,
-              table_name,
               default_function,
-              collation,
+              collation: collation,
               comment: comment.presence,
-              max_identifier_length: max_identifier_length
+              serial: serial
             )
           end
 
@@ -672,7 +655,23 @@ module ActiveRecord
               precision: cast_type.precision,
               scale: cast_type.scale,
             )
-            PostgreSQLTypeMetadata.new(simple_type, oid: oid, fmod: fmod)
+            PostgreSQL::TypeMetadata.new(simple_type, oid: oid, fmod: fmod)
+          end
+
+          def sequence_name_from_parts(table_name, column_name, suffix)
+            over_length = [table_name, column_name, suffix].sum(&:length) + 2 - max_identifier_length
+
+            if over_length > 0
+              column_name_length = [(max_identifier_length - suffix.length - 2) / 2, column_name.length].min
+              over_length -= column_name.length - column_name_length
+              column_name = column_name[0, column_name_length - [over_length, 0].min]
+            end
+
+            if over_length > 0
+              table_name = table_name[0, table_name.length - over_length]
+            end
+
+            "#{table_name}_#{column_name}_#{suffix}"
           end
 
           def extract_foreign_key_action(specifier)

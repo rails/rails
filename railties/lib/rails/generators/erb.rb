@@ -6,7 +6,6 @@ module Erb # :nodoc:
   module Generators # :nodoc:
     class Base < Rails::Generators::NamedBase #:nodoc:
       private
-
         def formats
           [format]
         end

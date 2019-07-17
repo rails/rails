@@ -156,7 +156,6 @@ module ActionDispatch
       end
 
     private
-
       def ips_from(header) # :doc:
         return [] unless header
         # Split the comma-separated list into an array of strings.

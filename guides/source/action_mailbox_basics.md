@@ -19,9 +19,9 @@ Introduction
 ------------
 
 Action Mailbox routes incoming emails to controller-like mailboxes for
-processing in Rails. It ships with ingresses for Amazon SES, Mailgun, Mandrill,
-Postmark, and SendGrid. You can also handle inbound mails directly via the
-built-in Exim, Postfix, and Qmail ingresses.
+processing in Rails. It ships with ingresses for Mailgun, Mandrill, Postmark,
+and SendGrid. You can also handle inbound mails directly via the built-in Exim,
+Postfix, and Qmail ingresses.
 
 The inbound emails are turned into `InboundEmail` records using Active Record
 and feature lifecycle tracking, storage of the original email on cloud storage
@@ -42,28 +42,6 @@ $ rails db:migrate
 ```
 
 ## Configuration
-
-### Amazon SES
-
-Install the [`aws-sdk-sns`](https://rubygems.org/gems/aws-sdk-sns) gem:
-
-```ruby
-# Gemfile
-gem "aws-sdk-sns", ">= 1.9.0", require: false
-```
-
-Tell Action Mailbox to accept emails from SES:
-
-```ruby
-# config/environments/production.rb
-config.action_mailbox.ingress = :amazon
-```
-
-[Configure SES](https://docs.aws.amazon.com/ses/latest/DeveloperGuide/receiving-email-notifications.html)
-to deliver emails to your application via POST requests to
-`/rails/action_mailbox/amazon/inbound_emails`. If your application lived at
-`https://example.com`, you would specify the fully-qualified URL
-`https://example.com/rails/action_mailbox/amazon/inbound_emails`.
 
 ### Exim
 

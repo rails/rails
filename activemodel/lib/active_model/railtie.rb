@@ -13,8 +13,8 @@ module ActiveModel
       ActiveModel::SecurePassword.min_cost = Rails.env.test?
     end
 
-    initializer "active_model.i18n_full_message" do
-      ActiveModel::Errors.i18n_full_message = config.active_model.delete(:i18n_full_message) || false
+    initializer "active_model.i18n_customize_full_message" do
+      ActiveModel::Error.i18n_customize_full_message = config.active_model.delete(:i18n_customize_full_message) || false
     end
   end
 end

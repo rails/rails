@@ -10,9 +10,6 @@ class Topic < ActiveRecord::Base
   scope :approved, -> { where(approved: true) }
   scope :rejected, -> { where(approved: false) }
 
-  scope :children, -> { where.not(parent_id: nil) }
-  scope :has_children, -> { where(id: Topic.children.select(:parent_id)) }
-
   scope :scope_with_lambda, lambda { all }
 
   scope :by_lifo, -> { where(author_name: "lifo") }
@@ -96,13 +93,12 @@ class Topic < ActiveRecord::Base
   end
 
   private
-
     def default_written_on
       self.written_on = Time.now unless attribute_present?("written_on")
     end
 
     def destroy_children
-      self.class.where("parent_id = #{id}").delete_all
+      self.class.delete_by(parent_id: id)
     end
 
     def set_email_address
@@ -120,10 +116,6 @@ class Topic < ActiveRecord::Base
     def change_approved_callback
       self.approved = change_approved_before_save unless change_approved_before_save.nil?
     end
-end
-
-class ImportantTopic < Topic
-  serialize :important, Hash
 end
 
 class DefaultRejectedTopic < Topic

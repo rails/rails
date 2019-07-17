@@ -88,7 +88,6 @@ module Rails
         end
 
         private
-
           def destination_root_is_set?
             raise "You need to configure your Rails::Generators::TestCase destination root." unless destination_root
           end

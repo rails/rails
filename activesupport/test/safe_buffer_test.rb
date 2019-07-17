@@ -112,10 +112,50 @@ class SafeBufferTest < ActiveSupport::TestCase
     end
   end
 
+  test "can assign value into zero-index" do
+    buffer = ActiveSupport::SafeBuffer.new("012345")
+
+    buffer[0] = "<"
+
+    assert_equal "&lt;12345", buffer
+  end
+
+  test "can assign value into non zero-index" do
+    buffer = ActiveSupport::SafeBuffer.new("012345")
+
+    buffer[2] = "<"
+
+    assert_equal "01&lt;345", buffer
+  end
+
+  test "can assign value into slice" do
+    buffer = ActiveSupport::SafeBuffer.new("012345")
+
+    buffer[0, 3] = "<"
+
+    assert_equal "&lt;345", buffer
+  end
+
+  test "can assign value into offset slice" do
+    buffer = ActiveSupport::SafeBuffer.new("012345")
+
+    buffer[1, 3] = "<"
+
+    assert_equal "0&lt;45", buffer
+  end
+
   test "Should escape dirty buffers on add" do
     clean = "hello".html_safe
     @buffer.gsub!("", "<>")
     assert_equal "hello&lt;&gt;", clean + @buffer
+  end
+
+  test "Should preserve html_safe? status on multiplication" do
+    multiplied_safe_buffer = "<br />".html_safe * 2
+    assert_predicate multiplied_safe_buffer, :html_safe?
+
+    multiplied_unsafe_buffer = @buffer.gsub("", "<>") * 2
+    assert_not_predicate multiplied_unsafe_buffer, :html_safe?
   end
 
   test "Should concat as a normal string when safe" do
@@ -215,5 +255,23 @@ class SafeBufferTest < ActiveSupport::TestCase
   test "Should not affect frozen objects when accessing characters" do
     x = "Hello".html_safe
     assert_nil x[/a/, 1]
+  end
+
+  test "Should set back references" do
+    a = "foo123".html_safe
+    a2 = a.sub(/([a-z]+)([0-9]+)/) { $2 + $1 }
+    assert_equal "123foo", a2
+    assert_not_predicate a2, :html_safe?
+    a.sub!(/([a-z]+)([0-9]+)/) { $2 + $1 }
+    assert_equal "123foo", a
+    assert_not_predicate a, :html_safe?
+
+    b = "foo123 bar456".html_safe
+    b2 = b.gsub(/([a-z]+)([0-9]+)/) { $2 + $1 }
+    assert_equal "123foo 456bar", b2
+    assert_not_predicate b2, :html_safe?
+    b.gsub!(/([a-z]+)([0-9]+)/) { $2 + $1 }
+    assert_equal "123foo 456bar", b
+    assert_not_predicate b, :html_safe?
   end
 end

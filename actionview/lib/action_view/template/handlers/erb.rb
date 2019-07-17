@@ -63,7 +63,6 @@ module ActionView
         end
 
       private
-
         def valid_encoding(string, encoding)
           # If a magic encoding comment was found, tag the
           # String with this encoding. This is for a case

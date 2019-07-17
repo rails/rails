@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/object/duplicable"
 require "active_support/core_ext/string/inflections"
 require "active_support/per_thread_registry"
 
@@ -75,7 +74,10 @@ module ActiveSupport
           end
 
           def fetch_entry(key, options = nil) # :nodoc:
-            @data.fetch(key) { @data[key] = yield }
+            entry = @data.fetch(key) { @data[key] = yield }
+            dup_entry = entry.dup
+            dup_entry&.dup_value!
+            dup_entry
           end
         end
 

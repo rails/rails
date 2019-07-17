@@ -176,7 +176,6 @@ module ActiveRecord
       end
 
       protected
-
         # Returns the class type of the record using the current module as a prefix. So descendants of
         # MyApp::Business::Account would appear as MyApp::Business::AccountSubclass.
         def compute_type(type_name)
@@ -208,7 +207,6 @@ module ActiveRecord
         end
 
       private
-
         # Called by +instantiate+ to decide which class to use for a new
         # record instance. For single-table inheritance, we check the record
         # for a +type+ column and return the corresponding class.
@@ -249,7 +247,7 @@ module ActiveRecord
           sti_column = arel_attribute(inheritance_column, table)
           sti_names  = ([self] + descendants).map(&:sti_name)
 
-          sti_column.in(sti_names)
+          predicate_builder.build(sti_column, sti_names)
         end
 
         # Detect the subclass from the inheritance column of attrs. If the inheritance column value
@@ -272,7 +270,6 @@ module ActiveRecord
     end
 
     private
-
       def initialize_internals_callback
         super
         ensure_proper_type

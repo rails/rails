@@ -46,10 +46,7 @@ class Mysql2DatetimePrecisionQuotingTest < ActiveRecord::Mysql2TestCase
 
     def stub_version(full_version_string)
       @connection.stub(:full_version, full_version_string) do
-        @connection.remove_instance_variable(:@version) if @connection.instance_variable_defined?(:@version)
         yield
       end
-    ensure
-      @connection.remove_instance_variable(:@version) if @connection.instance_variable_defined?(:@version)
     end
 end

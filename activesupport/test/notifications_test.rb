@@ -20,7 +20,6 @@ module Notifications
     end
 
   private
-
     def event(*args)
       ActiveSupport::Notifications::Event.new(*args)
     end
@@ -62,6 +61,38 @@ module Notifications
     end
   end
 
+  class TimedAndMonotonicTimedSubscriberTest < TestCase
+    def test_subscribe
+      event_name = "foo"
+      class_of_started = nil
+      class_of_finished = nil
+
+      ActiveSupport::Notifications.subscribe(event_name) do |name, started, finished, unique_id, data|
+        class_of_started = started.class
+        class_of_finished = finished.class
+      end
+
+      ActiveSupport::Notifications.instrument(event_name)
+
+      assert_equal [Time, Time], [class_of_started, class_of_finished]
+    end
+
+    def test_monotonic_subscribe
+      event_name = "foo"
+      class_of_started = nil
+      class_of_finished = nil
+
+      ActiveSupport::Notifications.monotonic_subscribe(event_name) do |name, started, finished, unique_id, data|
+        class_of_started = started.class
+        class_of_finished = finished.class
+      end
+
+      ActiveSupport::Notifications.instrument(event_name)
+
+      assert_equal [Float, Float], [class_of_started, class_of_finished]
+    end
+  end
+
   class SubscribedTest < TestCase
     def test_subscribed
       name     = "foo"
@@ -71,6 +102,24 @@ module Notifications
       events   = []
       callback = lambda { |*_| events << _.first }
       ActiveSupport::Notifications.subscribed(callback, name) do
+        ActiveSupport::Notifications.instrument(name)
+        ActiveSupport::Notifications.instrument(name2)
+        ActiveSupport::Notifications.instrument(name)
+      end
+      assert_equal expected, events
+
+      ActiveSupport::Notifications.instrument(name)
+      assert_equal expected, events
+    end
+
+    def test_subscribed_all_messages
+      name     = "foo"
+      name2    = name * 2
+      expected = [name, name2, name]
+
+      events   = []
+      callback = lambda { |*_| events << _.first }
+      ActiveSupport::Notifications.subscribed(callback) do
         ActiveSupport::Notifications.instrument(name)
         ActiveSupport::Notifications.instrument(name2)
         ActiveSupport::Notifications.instrument(name)
@@ -94,6 +143,42 @@ module Notifications
       end
     ensure
       ActiveSupport::Notifications.notifier = old_notifier
+    end
+
+    def test_timed_subscribed
+      event_name = "foo"
+      class_of_started = nil
+      class_of_finished = nil
+      callback = lambda do |name, started, finished, unique_id, data|
+        class_of_started = started.class
+        class_of_finished = finished.class
+      end
+
+      ActiveSupport::Notifications.subscribed(callback, event_name) do
+        ActiveSupport::Notifications.instrument(event_name)
+      end
+
+      ActiveSupport::Notifications.instrument(event_name)
+
+      assert_equal [Time, Time], [class_of_started, class_of_finished]
+    end
+
+    def test_monotonic_timed_subscribed
+      event_name = "foo"
+      class_of_started = nil
+      class_of_finished = nil
+      callback = lambda do |name, started, finished, unique_id, data|
+        class_of_started = started.class
+        class_of_finished = finished.class
+      end
+
+      ActiveSupport::Notifications.subscribed(callback, event_name, monotonic: true) do
+        ActiveSupport::Notifications.instrument(event_name)
+      end
+
+      ActiveSupport::Notifications.instrument(event_name)
+
+      assert_equal [Float, Float], [class_of_started, class_of_finished]
     end
   end
 
@@ -126,6 +211,25 @@ module Notifications
       @notifier.publish "named.subscription", :foo
       @notifier.wait
       assert_equal [["named.subscription", :foo], ["named.subscription", :foo]], @events
+    end
+
+    def test_unsubscribing_by_name_leaves_regexp_matched_subscriptions
+      @matched_events = []
+      @notifier.subscribe(/subscription/) { |*args| @matched_events << event(*args) }
+      @notifier.publish("named.subscription", :before)
+      @notifier.wait
+      [@events, @named_events, @matched_events].each do |collector|
+        assert_includes(collector, ["named.subscription", :before])
+      end
+      @notifier.unsubscribe("named.subscription")
+      @notifier.publish("named.subscription", :after)
+      @notifier.publish("other.subscription", :after)
+      @notifier.wait
+      assert_includes(@events, ["named.subscription", :after])
+      assert_includes(@events, ["other.subscription", :after])
+      assert_includes(@matched_events, ["other.subscription", :after])
+      assert_not_includes(@matched_events, ["named.subscription", :after])
+      assert_not_includes(@named_events, ["named.subscription", :after])
     end
 
   private
@@ -291,15 +395,22 @@ module Notifications
       assert_in_delta 10.0, event.duration, 0.00001
     end
 
+    def test_event_cpu_time_does_not_raise_error_when_start_or_finished_not_called
+      time = Time.now
+      event = event(:foo, time, time + 0.01, random_id, {})
+
+      assert_equal 0, event.cpu_time
+    end
+
     def test_events_consumes_information_given_as_payload
-      event = event(:foo, Time.now, Time.now + 1, random_id, payload: :bar)
+      event = event(:foo, Concurrent.monotonic_time, Concurrent.monotonic_time + 1, random_id, payload: :bar)
       assert_equal Hash[payload: :bar], event.payload
     end
 
     def test_event_is_parent_based_on_children
-      time = Time.utc(2009, 01, 01, 0, 0, 1)
+      time = Concurrent.monotonic_time
 
-      parent    = event(:foo, Time.utc(2009), Time.utc(2009) + 100, random_id, {})
+      parent    = event(:foo, Concurrent.monotonic_time, Concurrent.monotonic_time + 100, random_id, {})
       child     = event(:foo, time, time + 10, random_id, {})
       not_child = event(:foo, time, time + 100, random_id, {})
 

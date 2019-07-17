@@ -11,9 +11,9 @@ module ActiveRecord
     # behavior.
     #
     # The resolver class defines when the application should switch (i.e. read
-    # from the primary if a write occurred less than 2 seconds ago) and an
-    # operations class that sets a value that helps the resolver class decide
-    # when to switch.
+    # from the primary if a write occurred less than 2 seconds ago) and a
+    # resolver context class that sets a value that helps the resolver class
+    # decide when to switch.
     #
     # Rails default middleware uses the request's session to set a timestamp
     # that informs the application when to read from a primary or read from a
@@ -24,7 +24,7 @@ module ActiveRecord
     #
     #   config.active_record.database_selector = { delay: 2.seconds }
     #   config.active_record.database_resolver = ActiveRecord::Middleware::DatabaseSelector::Resolver
-    #   config.active_record.database_operations = ActiveRecord::Middleware::DatabaseSelector::Resolver::Session
+    #   config.active_record.database_resolver_context = ActiveRecord::Middleware::DatabaseSelector::Resolver::Session
     #
     # New applications will include these lines commented out in the production.rb.
     #
@@ -33,16 +33,16 @@ module ActiveRecord
     #
     #   config.active_record.database_selector = { delay: 2.seconds }
     #   config.active_record.database_resolver = MyResolver
-    #   config.active_record.database_operations = MyResolver::MySession
+    #   config.active_record.database_resolver_context = MyResolver::MySession
     class DatabaseSelector
-      def initialize(app, resolver_klass = Resolver, operations_klass = Resolver::Session, options = {})
+      def initialize(app, resolver_klass = nil, context_klass = nil, options = {})
         @app = app
-        @resolver_klass = resolver_klass
-        @operations_klass = operations_klass
+        @resolver_klass = resolver_klass || Resolver
+        @context_klass = context_klass || Resolver::Session
         @options = options
       end
 
-      attr_reader :resolver_klass, :operations_klass, :options
+      attr_reader :resolver_klass, :context_klass, :options
 
       # Middleware that determines which database connection to use in a multiple
       # database application.
@@ -55,15 +55,14 @@ module ActiveRecord
       end
 
       private
-
         def select_database(request, &blk)
-          operations = operations_klass.build(request)
-          database_resolver = resolver_klass.call(operations, options)
+          context = context_klass.call(request)
+          resolver = resolver_klass.call(context, options)
 
           if reading_request?(request)
-            database_resolver.read(&blk)
+            resolver.read(&blk)
           else
-            database_resolver.write(&blk)
+            resolver.write(&blk)
           end
         end
 

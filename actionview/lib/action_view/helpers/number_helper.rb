@@ -251,7 +251,7 @@ module ActionView
       end
 
       # Formats the bytes in +number+ into a more understandable
-      # representation (e.g., giving it 1500 yields 1.5 KB). This
+      # representation (e.g., giving it 1500 yields 1.46 KB). This
       # method is useful for reporting file sizes to users. You can
       # customize the format in the +options+ hash.
       #
@@ -403,7 +403,6 @@ module ActionView
       end
 
       private
-
         def delegate_number_helper_method(method, number, options)
           return unless number
           options = escape_unsafe_options(options.symbolize_keys)

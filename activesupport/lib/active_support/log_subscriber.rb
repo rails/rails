@@ -29,6 +29,9 @@ module ActiveSupport
   # subscriber, the line above should be called after your
   # <tt>ActiveRecord::LogSubscriber</tt> definition.
   #
+  # A logger also needs to be set with <tt>ActiveRecord::LogSubscriber.logger=</tt>.
+  # This is assigned automatically in a Rails environment.
+  #
   # After configured, whenever a <tt>"sql.active_record"</tt> notification is published,
   # it will properly dispatch the event
   # (<tt>ActiveSupport::Notifications::Event</tt>) to the sql method.
@@ -112,7 +115,6 @@ module ActiveSupport
     end
 
   private
-
     %w(info debug warn error fatal unknown).each do |level|
       class_eval <<-METHOD, __FILE__, __LINE__ + 1
         def #{level}(progname = nil, &block)

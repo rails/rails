@@ -152,12 +152,14 @@ module ActiveSupport
 
       # Creates a new Redis cache store.
       #
-      # Handles three options: block provided to instantiate, single URL
-      # provided, and multiple URLs provided.
+      # Handles four options: :redis block, :redis instance, single :url
+      # string, and multiple :url strings.
       #
-      #   :redis Proc   -> options[:redis].call
-      #   :url   String -> Redis.new(url: …)
-      #   :url   Array  -> Redis::Distributed.new([{ url: … }, { url: … }, …])
+      #   Option  Class       Result
+      #   :redis  Proc    ->  options[:redis].call
+      #   :redis  Object  ->  options[:redis]
+      #   :url    String  ->  Redis.new(url: …)
+      #   :url    Array   ->  Redis::Distributed.new([{ url: … }, { url: … }, …])
       #
       # No namespace is set by default. Provide one if the Redis cache
       # server is shared with other apps: <tt>namespace: 'myapp-cache'</tt>.
@@ -361,6 +363,7 @@ module ActiveSupport
         def read_multi_mget(*names)
           options = names.extract_options!
           options = merged_options(options)
+          return {} if names == []
 
           keys = names.map { |name| normalize_key(name, options) }
 

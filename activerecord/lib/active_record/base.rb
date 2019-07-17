@@ -12,7 +12,6 @@ require "active_support/core_ext/hash/slice"
 require "active_support/core_ext/string/behavior"
 require "active_support/core_ext/kernel/singleton_class"
 require "active_support/core_ext/module/introspection"
-require "active_support/core_ext/object/duplicable"
 require "active_support/core_ext/class/subclasses"
 require "active_record/attribute_decorators"
 require "active_record/define_callbacks"
@@ -288,7 +287,6 @@ module ActiveRecord #:nodoc:
     extend Explain
     extend Enum
     extend Delegation::DelegateCache
-    extend CollectionCacheKey
     extend Aggregations::ClassMethods
 
     include Core

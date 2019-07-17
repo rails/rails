@@ -95,7 +95,6 @@ module ActiveRecord
       end
 
       private
-
         # Loads all the given data into +records+ for the +association+.
         def preloaders_on(association, records, scope, polymorphic_parent = false)
           case association
@@ -143,16 +142,13 @@ module ActiveRecord
 
         def preloaders_for_reflection(reflection, records, scope)
           records.group_by { |record| record.association(reflection.name).klass }.map do |rhs_klass, rs|
-            loader = preloader_for(reflection, rs).new(rhs_klass, rs, reflection, scope)
-            loader.run self
-            loader
+            preloader_for(reflection, rs).new(rhs_klass, rs, reflection, scope).run
           end
         end
 
         def grouped_records(association, records, polymorphic_parent)
           h = {}
           records.each do |record|
-            next unless record
             reflection = record.class._reflect_on_association(association)
             next if polymorphic_parent && !reflection || !record.association(association).klass
             (h[reflection] ||= []) << record
@@ -166,10 +162,18 @@ module ActiveRecord
             @reflection = reflection
           end
 
-          def run(preloader); end
+          def run
+            self
+          end
 
           def preloaded_records
-            owners.flat_map { |owner| owner.association(reflection.name).target }
+            @preloaded_records ||= records_by_owner.flat_map(&:last)
+          end
+
+          def records_by_owner
+            @records_by_owner ||= owners.each_with_object({}) do |owner, result|
+              result[owner] = Array(owner.association(reflection.name).target)
+            end
           end
 
           private

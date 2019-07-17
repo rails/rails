@@ -71,8 +71,9 @@ module Rails
             paths = []
             namespaces.each do |namespace|
               pieces = namespace.split(":")
-              paths << pieces.dup.push(pieces.last).join("/")
-              paths << pieces.join("/")
+              path = pieces.join("/")
+              paths << "#{path}/#{pieces.last}"
+              paths << path
             end
             paths.uniq!
             paths

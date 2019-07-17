@@ -46,7 +46,6 @@ module ActiveRecord
           end
 
           private
-
             HstorePair = begin
               quoted_string = /"[^"\\]*(?:\\.[^"\\]*)*"/
               unquoted_string = /(?:\\.|[^\s,])[^\s=,\\]*(?:\\.[^\s=,\\]*|=[^,>])*/

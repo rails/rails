@@ -85,7 +85,6 @@ module ActiveSupport
     end
 
     private
-
       FORMATTED_GEMS_PATTERN = /\A[^\/]+ \([\w.]+\) /
 
       def add_gem_filter
@@ -122,7 +121,11 @@ module ActiveSupport
       end
 
       def noise(backtrace)
-        backtrace - silence(backtrace)
+        backtrace.select do |line|
+          @silencers.any? do |s|
+            s.call(line)
+          end
+        end
       end
   end
 end
