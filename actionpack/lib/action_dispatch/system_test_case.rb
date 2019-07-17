@@ -119,6 +119,11 @@ module ActionDispatch
     def initialize(*) # :nodoc:
       super
       self.class.driver.use
+      @proxy_route = if ActionDispatch.test_app
+        Class.new { include ActionDispatch.test_app.routes.url_helpers }.new
+      else
+        nil
+      end
     end
 
     def self.start_application # :nodoc:
@@ -161,6 +166,14 @@ module ActionDispatch
 
     def url_options # :nodoc:
       default_url_options.merge(host: Capybara.app_host)
+    end
+
+    def method_missing(method, *args, &block)
+      if @proxy_route.respond_to?(method)
+        @proxy_route.send(method, *args, &block)
+      else
+        super
+      end
     end
 
     ActiveSupport.run_load_hooks(:action_dispatch_system_test_case, self)
