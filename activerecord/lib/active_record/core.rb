@@ -491,6 +491,14 @@ module ActiveRecord
       @readonly
     end
 
+    def strict_loading?
+      @strict_loading
+    end
+
+    def strict_loading!
+      @strict_loading = true
+    end
+
     # Marks this record as read only.
     def readonly!
       @readonly = true
@@ -575,6 +583,7 @@ module ActiveRecord
         @destroyed_by_association = nil
         @_start_transaction_state = nil
         @transaction_state        = nil
+        @strict_loading           = false
 
         self.class.define_attribute_methods
       end

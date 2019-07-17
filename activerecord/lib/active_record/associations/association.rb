@@ -207,6 +207,10 @@ module ActiveRecord
 
       private
         def find_target
+          if owner.strict_loading?
+            raise StrictLoadingViolationError, "#{owner.class} is marked as strict_loading and #{klass} cannot be lazily loaded."
+          end
+
           scope = self.scope
           return scope.to_a if skip_statement_cache?(scope)
 

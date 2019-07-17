@@ -1,3 +1,17 @@
+*   Add support for `strict_loading` mode to prevent lazy loading of records.
+
+    Raise an error if a parent record is marked as `strict_loading` and attempts to lazily load its associations. This is useful for finding places you may want to preload an association and avoid additional queries.
+
+    Usage:
+
+    ```
+    >> Developer.strict_loading.first
+    >> dev.audit_logs.to_a
+    => ActiveRecord::StrictLoadingViolationError: Developer is marked as strict_loading and AuditLog cannot be lazily loaded.
+    ```
+
+    *Eileen M. Uchitelle*, *Aaron Patterson*
+
 *   Add support for PostgreSQL 11+ partitioned indexes when using `upsert_all`.
 
     *Sebastián Palma*

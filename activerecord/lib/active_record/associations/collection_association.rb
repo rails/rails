@@ -308,6 +308,7 @@ module ActiveRecord
 
       def find_from_target?
         loaded? ||
+          owner.strict_loading? ||
           owner.new_record? ||
           target.any? { |record| record.new_record? || record.changed? }
       end

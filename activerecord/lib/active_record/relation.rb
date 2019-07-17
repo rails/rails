@@ -7,7 +7,7 @@ module ActiveRecord
                             :order, :joins, :left_outer_joins, :references,
                             :extending, :unscope, :optimizer_hints, :annotate]
 
-    SINGLE_VALUE_METHODS = [:limit, :offset, :lock, :readonly, :reordering,
+    SINGLE_VALUE_METHODS = [:limit, :offset, :lock, :readonly, :reordering, :strict_loading,
                             :reverse_order, :distinct, :create_with, :skip_query_cache]
 
     CLAUSE_METHODS = [:where, :having, :from]
@@ -751,13 +751,24 @@ module ActiveRecord
       ActiveRecord::Associations::AliasTracker.create(connection, table.name, joins)
     end
 
+    class StrictLoadingScope
+      def self.empty_scope?
+        true
+      end
+
+      def self.strict_loading_value
+        true
+      end
+    end
+
     def preload_associations(records) # :nodoc:
       preload = preload_values
       preload += includes_values unless eager_loading?
       preloader = nil
+      scope = strict_loading_value ? StrictLoadingScope : nil
       preload.each do |associations|
         preloader ||= build_preloader
-        preloader.preload records, associations
+        preloader.preload records, associations, scope
       end
     end
 
@@ -831,7 +842,7 @@ module ActiveRecord
                 else
                   relation = join_dependency.apply_column_aliases(relation)
                   rows = connection.select_all(relation.arel, "SQL")
-                  join_dependency.instantiate(rows, &block)
+                  join_dependency.instantiate(rows, strict_loading_value, &block)
                 end.freeze
               end
             else
@@ -841,6 +852,7 @@ module ActiveRecord
           preload_associations(records) unless skip_preloading_value
 
           records.each(&:readonly!) if readonly_value
+          records.each(&:strict_loading!) if strict_loading_value
 
           records
         end
