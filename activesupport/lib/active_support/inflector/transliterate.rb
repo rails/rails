@@ -56,8 +56,12 @@ module ActiveSupport
     #
     #   transliterate('Jürgen', locale: :de)
     #   # => "Juergen"
+    #
+    # Transliteration of ASCII-8BIT / BINARY strings is not
+    # supported and will raise an ArgumentError.
     def transliterate(string, replacement = "?", locale: nil)
       raise ArgumentError, "Can only transliterate strings. Received #{string.class.name}" unless string.is_a?(String)
+      raise ArgumentError, "Can not transliterate strings with ASCII-8BIT encoding" if string.encoding == ::Encoding::ASCII_8BIT
 
       I18n.transliterate(
         ActiveSupport::Multibyte::Unicode.tidy_bytes(string).unicode_normalize(:nfc),
