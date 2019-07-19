@@ -4,9 +4,9 @@ require "concurrent/map"
 
 module ActionView
   class UnboundTemplate
-    def initialize(source, identifer, handler, options)
+    def initialize(source, identifier, handler, options)
       @source = source
-      @identifer = identifer
+      @identifier = identifier
       @handler = handler
       @options = options
 
@@ -22,7 +22,7 @@ module ActionView
         options = @options.merge(locals: locals)
         Template.new(
           @source,
-          @identifer,
+          @identifier,
           @handler,
           options
         )
