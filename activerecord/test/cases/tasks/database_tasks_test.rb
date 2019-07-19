@@ -764,6 +764,7 @@ module ActiveRecord
         verbose, version = ENV["VERBOSE"], ENV["VERSION"]
         ENV["VERSION"] = "2"
         ENV["VERBOSE"] = "false"
+        tmpdir = Dir.mktmpdir
 
         # run down migration because it was already run on copied db
         assert_empty capture_migration_output
@@ -772,11 +773,17 @@ module ActiveRecord
         ENV.delete("VERBOSE")
 
         # re-run up migration
-        assert_includes(capture(:stdout) do
-          ActiveSupport::ActionableError.dispatch ActiveRecord::PendingMigrationError, "Run pending migrations"
-        end, "migrating")
+        ActiveRecord::Tasks::DatabaseTasks.stub(:db_dir, tmpdir) do
+          ActiveRecord::Tasks::DatabaseTasks.stub(:env, "arunit") do
+            assert_includes(capture(:stdout) do
+              ActiveSupport::ActionableError.dispatch ActiveRecord::PendingMigrationError, "Run pending migrations"
+            end, "migrating")
+            assert File.exist?(ActiveRecord::Tasks::DatabaseTasks.schema_file)
+          end
+        end
       ensure
         ENV["VERBOSE"], ENV["VERSION"] = verbose, version
+        FileUtils.rm_rf(tmpdir)
       end
 
       def test_migrate_set_and_unset_empty_values_for_verbose_and_version_env_vars

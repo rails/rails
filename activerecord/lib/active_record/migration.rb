@@ -133,6 +133,9 @@ module ActiveRecord
 
     action "Run pending migrations" do
       ActiveRecord::Tasks::DatabaseTasks.migrate
+      if ActiveRecord::Base.dump_schema_after_migration
+        ActiveRecord::Tasks::DatabaseTasks.dump_schema(ActiveRecord::Tasks::DatabaseTasks.current_config)
+      end
     end
 
     def initialize(message = nil)
