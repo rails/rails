@@ -9,6 +9,20 @@ if SERVICE_CONFIGURATIONS[:azure]
 
     include ActiveStorage::Service::SharedServiceTests
 
+    test "upload with content_type" do
+      key      = SecureRandom.base58(24)
+      data     = "Foobar"
+
+      @service.upload(key, StringIO.new(data), checksum: Digest::MD5.base64digest(data), filename: ActiveStorage::Filename.new("test.txt"), content_type: "text/plain")
+
+      url = @service.url(key, expires_in: 2.minutes, disposition: :attachment, content_type: nil, filename: ActiveStorage::Filename.new("test.html"))
+      response = Net::HTTP.get_response(URI(url))
+      assert_equal "text/plain", response.content_type
+      assert_match(/attachment;.*test\.html/, response["Content-Disposition"])
+    ensure
+      @service.delete key
+    end
+
     test "signed URL generation" do
       url = @service.url(@key, expires_in: 5.minutes,
         disposition: :inline, filename: ActiveStorage::Filename.new("avatar.png"), content_type: "image/png")
