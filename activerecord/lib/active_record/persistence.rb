@@ -565,12 +565,13 @@ module ActiveRecord
     # If you want to change the sti column as well, use #becomes! instead.
     def becomes(klass)
       became = klass.allocate
-      became.send(:initialize)
-      became.instance_variable_set("@attributes", @attributes)
-      became.instance_variable_set("@mutations_from_database", @mutations_from_database ||= nil)
-      became.instance_variable_set("@new_record", new_record?)
-      became.instance_variable_set("@destroyed", destroyed?)
-      became.errors.copy!(errors)
+      became.send(:initialize) do |record|
+        record.instance_variable_set("@attributes", @attributes)
+        record.instance_variable_set("@mutations_from_database", @mutations_from_database ||= nil)
+        record.instance_variable_set("@new_record", new_record?)
+        record.instance_variable_set("@destroyed", destroyed?)
+        record.errors.copy!(errors)
+      end
       became
     end
 

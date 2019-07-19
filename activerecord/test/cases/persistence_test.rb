@@ -228,6 +228,14 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_equal %w{name}, client.changed
   end
 
+  def test_becomes_preserves_initialized_callback_values
+    model_with_defaults = Class.new(Company) do
+      after_initialize { |c| c.name ||= "aha" }
+    end
+    company = Company.new.becomes(model_with_defaults)
+    assert_equal "aha", company.name
+  end
+
   def test_delete_many
     original_count = Topic.count
     Topic.delete(deleting = [1, 2])
