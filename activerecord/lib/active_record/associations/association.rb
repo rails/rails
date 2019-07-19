@@ -56,6 +56,10 @@ module ActiveRecord
         @inversed = false
       end
 
+      def reset_negative_cache # :nodoc:
+        reset if loaded? && target.nil?
+      end
+
       # Reloads the \target and returns +self+ on success.
       # The QueryCache is cleared if +force+ is true.
       def reload(force = false)
