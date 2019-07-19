@@ -296,6 +296,13 @@ class ErrorsTest < ActiveModel::TestCase
     assert person.errors.added?(:name, :too_long)
   end
 
+  test "added? ignores value option" do
+    person = Person.new
+
+    person.errors.add(:name, :taken, value: "foo")
+    assert person.errors.added?(:name, :taken)
+  end
+
   test "added? detects indifferent if a specific error was added to the object" do
     person = Person.new
     person.errors.add(:name, "cannot be blank")
