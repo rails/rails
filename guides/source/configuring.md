@@ -881,7 +881,9 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
   config.active_storage.routes_prefix = '/files'
   ```
 
-  The default is `/rails/active_storage`
+  The default is `/rails/active_storage`.
+
+* `config.active_storage.replace_on_assign_to_many` determines whether assigning to a collection of attachments declared with `has_many_attached` replaces any existing attachments or appends to them. The default is `true`.
 
 ### Results of `load_defaults`
 
@@ -917,6 +919,7 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 - `config.active_job.return_false_on_aborted_enqueue`: `true`
 - `config.active_storage.queues.analysis`: `:active_storage_analysis`
 - `config.active_storage.queues.purge`: `:active_storage_purge`
+- `config.active_storage.replace_on_assign_to_many`: `true`
 - `config.active_record.collection_cache_versioning`: `true`
 
 ### Configuring a Database

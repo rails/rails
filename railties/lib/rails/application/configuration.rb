@@ -145,6 +145,8 @@ module Rails
           if respond_to?(:active_storage)
             active_storage.queues.analysis = :active_storage_analysis
             active_storage.queues.purge    = :active_storage_purge
+
+            active_storage.replace_on_assign_to_many = true
           end
 
           if respond_to?(:active_record)

@@ -672,6 +672,12 @@ Please refer to the [Changelog][active-storage] for detailed changes.
     is saved instead of immediately.
     ([Pull Request](https://github.com/rails/rails/pull/33303))
 
+*   Optionally replace existing files instead of adding to them when assigning to
+    a collection of attachments (as in `@user.update!(images: [ … ])`). Use
+    `config.active_storage.replace_on_assign_to_many` to control this behavior.
+    ([Pull Request](https://github.com/rails/rails/pull/33303),
+     [Pull Request](https://github.com/rails/rails/pull/36716))
+
 *   Add the ability to reflect on defined attachments using the existing
     Active Record reflection mechanism.
     ([Pull Request](https://github.com/rails/rails/pull/33018))
@@ -687,10 +693,6 @@ Please refer to the [Changelog][active-storage] for detailed changes.
 *   Use the `image_processing` gem for Active Storage variants. This replaces using
     `mini_magick` directly.
     ([Pull Request](https://github.com/rails/rails/pull/32471))
-
-*   Replace existing images instead of adding to them when updating an
-    attached model via `update` or `update!` with, say, `@user.update!(images: [ … ])`.
-    ([Pull Request](https://github.com/rails/rails/pull/33303))
 
 Active Model
 ------------
