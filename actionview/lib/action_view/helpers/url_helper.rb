@@ -571,6 +571,54 @@ module ActionView
         end
       end
 
+      # Creates an SMS anchor link tag to the specified +phone_number+, which is
+      # also used as the name of the link unless +name+ is specified. Additional
+      # HTML attributes for the link can be passed in +html_options+.
+      #
+      # When clicked, an SMS message is prepopulated with the passed phone number
+      #  and optional +body+ value.
+      #
+      # +sms_to+ has a +body+ option for customizing the SMS message itself by
+      # passing special keys to +html_options+.
+      #
+      # ==== Options
+      # * <tt>:body</tt> - Preset the body of the message.
+      #
+      # ==== Examples
+      #   sms_to "5155555785"
+      #   # => <a href="sms:5155555785;">5155555785</a>
+      #
+      #   sms_to "5155555785", "Text me"
+      #   # => <a href="sms:5155555785;">Text me</a>
+      #
+      #   sms_to "5155555785", "Text me",
+      #            subject: "Hello Jim I have a question about your product."
+      #   # => <a href="sms:5155555785;?body=Hello%20Jim%20I%20have%20a%20question%20about%20your%20product">Text me</a>
+      #
+      # You can use a block as well if your link target is hard to fit into the name parameter. ERB example:
+      #
+      #   <%= sms_to "5155555785" do %>
+      #     <strong>Text me:</strong>
+      #   <% end %>
+      #   # => <a href="sms:5155555785;">
+      #          <strong>Text me:</strong>
+      #        </a>
+      def sms_to(phone_number, name = nil, html_options = {}, &block)
+        html_options, name = name, nil if block_given?
+        html_options = (html_options || {}).stringify_keys
+
+        extras = %w{ body }.map! { |item|
+          option = html_options.delete(item).presence || next
+          "#{item.dasherize}=#{ERB::Util.url_encode(option)}"
+        }.compact
+        extras = extras.empty? ? "" : "?&" + extras.join("&")
+
+        encoded_phone_number = ERB::Util.url_encode(phone_number)
+        html_options["href"] = "sms:#{encoded_phone_number};#{extras}"
+
+        content_tag("a", name || phone_number, html_options, &block)
+      end
+
       private
         def convert_options_to_data_attributes(options, html_options)
           if html_options
