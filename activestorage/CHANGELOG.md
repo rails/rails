@@ -1,3 +1,8 @@
+*   Allow record to be optionally passed to blob finders to make sharding
+    easier.
+
+    *Gannon McGibbon*
+
 *   Switch from `azure-storage` gem to `azure-storage-blob` gem for Azure service.
 
     *Peter Zhu*
