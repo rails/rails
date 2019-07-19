@@ -592,7 +592,7 @@ module ActionView
       #   # => <a href="sms:5155555785;">Text me</a>
       #
       #   sms_to "5155555785", "Text me",
-      #            subject: "Hello Jim I have a question about your product."
+      #          body: "Hello Jim I have a question about your product."
       #   # => <a href="sms:5155555785;?body=Hello%20Jim%20I%20have%20a%20question%20about%20your%20product">Text me</a>
       #
       # You can use a block as well if your link target is hard to fit into the name parameter. ERB example:
