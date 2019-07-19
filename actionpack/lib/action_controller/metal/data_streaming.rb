@@ -53,7 +53,7 @@ module ActionController #:nodoc:
       #
       # Show a 404 page in the browser:
       #
-      #   send_file '/path/to/404.html', type: 'text/html; charset=utf-8', status: 404
+      #   send_file '/path/to/404.html', type: 'text/html; charset=utf-8', disposition: 'inline', status: 404
       #
       # Read about the other Content-* HTTP headers if you'd like to
       # provide the user with more information (such as Content-Description) in
