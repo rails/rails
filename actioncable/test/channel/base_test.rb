@@ -25,6 +25,7 @@ class ActionCable::Channel::BaseTest < ActionCable::TestCase
     attr_reader :room, :last_action
     after_subscribe :toggle_subscribed
     after_unsubscribe :toggle_subscribed
+    after_confirm :subscription_confirmed
 
     class SomeCustomError < StandardError; end
     rescue_from SomeCustomError, with: :error_handler
@@ -45,6 +46,10 @@ class ActionCable::Channel::BaseTest < ActionCable::TestCase
 
     def toggle_subscribed
       @subscribed = !@subscribed
+    end
+
+    def subscription_confirmed
+      @last_action = [ :subscription_confirmed ]
     end
 
     def leave
@@ -99,6 +104,11 @@ class ActionCable::Channel::BaseTest < ActionCable::TestCase
   test "on subscribe callbacks" do
     @channel.subscribe_to_channel
     assert @channel.subscribed
+  end
+
+  test "on confirm callbacks" do
+    @channel.subscribe_to_channel
+    assert_equal [ :subscription_confirmed ], @channel.last_action
   end
 
   test "channel params" do
@@ -179,7 +189,7 @@ class ActionCable::Channel::BaseTest < ActionCable::TestCase
   end
 
   test "actions available on Channel" do
-    available_actions = %w(room last_action subscribed unsubscribed toggle_subscribed leave speak subscribed? get_latest receive chatters topic error_action).to_set
+    available_actions = %w(room last_action subscribed unsubscribed toggle_subscribed leave speak subscribed? subscription_confirmed get_latest receive chatters topic error_action).to_set
     assert_equal available_actions, ChatChannel.action_methods
   end
 
