@@ -220,7 +220,7 @@ module ActiveModel
     #     # then yield :name and "must be specified"
     #   end
     def each(&block)
-      if block.arity == 1
+      if block.arity <= 1
         @errors.each(&block)
       else
         ActiveSupport::Deprecation.warn(<<~MSG)
