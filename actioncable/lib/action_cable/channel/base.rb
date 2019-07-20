@@ -181,8 +181,14 @@ module ActionCable
           subscribed
         end
 
-        reject_subscription if subscription_rejected?
-        ensure_confirmation_sent
+        if subscription_rejected?
+          reject_subscription
+          return
+        else
+          run_callbacks :confirm do
+            ensure_confirmation_sent
+          end
+        end
       end
 
       # Called by the cable connection when it's cut, so the channel has a chance to cleanup with callbacks.
@@ -220,7 +226,6 @@ module ActionCable
         end
 
         def ensure_confirmation_sent # :doc:
-          return if subscription_rejected?
           @defer_subscription_confirmation_counter.decrement
           transmit_subscription_confirmation unless defer_subscription_confirmation?
         end
