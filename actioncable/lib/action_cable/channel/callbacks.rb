@@ -11,6 +11,7 @@ module ActionCable
       included do
         define_callbacks :subscribe
         define_callbacks :unsubscribe
+        define_callbacks :confirm
       end
 
       module ClassMethods
@@ -31,6 +32,11 @@ module ActionCable
           set_callback(:unsubscribe, :after, *methods, &block)
         end
         alias_method :on_unsubscribe, :after_unsubscribe
+
+        def after_confirm(*methods, &block)
+          set_callback(:confirm, :after, *methods, &block)
+        end
+        alias_method :on_confirm, :after_confirm
       end
     end
   end
