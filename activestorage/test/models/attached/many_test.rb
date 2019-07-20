@@ -269,6 +269,24 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     end
   end
 
+  test "updating an existing record with attachments when appending on assign" do
+    append_on_assign do
+      @user.highlights.attach create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg")
+
+      assert_difference -> { @user.reload.highlights.count }, +2 do
+        @user.update! highlights: [ create_blob(filename: "whenever.jpg"), create_blob(filename: "wherever.jpg") ]
+      end
+
+      assert_no_difference -> { @user.reload.highlights.count } do
+        @user.update! highlights: [ ]
+      end
+
+      assert_no_difference -> { @user.reload.highlights.count } do
+        @user.update! highlights: nil
+      end
+    end
+  end
+
   test "attaching existing blobs to a new record" do
     User.new(name: "Jason").tap do |user|
       user.highlights.attach create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg")
@@ -538,4 +556,12 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
       User.remove_method :highlights
     end
   end
+
+  private
+    def append_on_assign
+      ActiveStorage.replace_on_assign_to_many, previous = false, ActiveStorage.replace_on_assign_to_many
+      yield
+    ensure
+      ActiveStorage.replace_on_assign_to_many = previous
+    end
 end
