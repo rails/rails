@@ -40,8 +40,7 @@ module Rails
         in_root do
           str = "gem #{parts.join(", ")}"
           str = indentation + str
-          str = "\n" + str
-          append_file "Gemfile", str, verbose: false
+          append_file_with_newline "Gemfile", str, verbose: false
         end
       end
 
@@ -58,9 +57,9 @@ module Rails
         log :gemfile, "group #{str}"
 
         in_root do
-          append_file "Gemfile", "\ngroup #{str} do", force: true
+          append_file_with_newline "Gemfile", "group #{str} do", force: true
           with_indentation(&block)
-          append_file "Gemfile", "\nend\n", force: true
+          append_file_with_newline "Gemfile", "end", force: true
         end
       end
 
@@ -71,9 +70,9 @@ module Rails
         log :github, "github #{str}"
 
         in_root do
-          append_file "Gemfile", "\n#{indentation}github #{str} do", force: true
+          append_file_with_newline "Gemfile", "#{indentation}github #{str} do", force: true
           with_indentation(&block)
-          append_file "Gemfile", "\n#{indentation}end", force: true
+          append_file_with_newline "Gemfile", "#{indentation}end", force: true
         end
       end
 
@@ -91,9 +90,9 @@ module Rails
 
         in_root do
           if block
-            append_file "Gemfile", "\nsource #{quote(source)} do", force: true
+            append_file_with_newline "Gemfile", "source #{quote(source)} do", force: true
             with_indentation(&block)
-            append_file "Gemfile", "\nend\n", force: true
+            append_file_with_newline "Gemfile", "end", force: true
           else
             prepend_file "Gemfile", "source #{quote(source)}\n", verbose: false
           end
@@ -343,6 +342,13 @@ module Rails
           instance_eval(&block)
         ensure
           @indentation -= 1
+        end
+
+        # Append string to a file with a newline if necessary
+        def append_file_with_newline(path, str, options = {})
+          gsub_file path, /\n?\z/, options do |match|
+            match.end_with?("\n") ? "" : "\n#{str}\n"
+          end
         end
     end
   end
