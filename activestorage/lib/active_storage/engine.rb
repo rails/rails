@@ -79,6 +79,8 @@ module ActiveStorage
         ActiveStorage.service_urls_expire_in = app.config.active_storage.service_urls_expire_in || 5.minutes
         ActiveStorage.content_types_allowed_inline = app.config.active_storage.content_types_allowed_inline || []
         ActiveStorage.binary_content_type = app.config.active_storage.binary_content_type || "application/octet-stream"
+
+        ActiveStorage.replace_on_assign_to_many = app.config.active_storage.replace_on_assign_to_many || false
       end
     end
 
