@@ -44,6 +44,14 @@ class ErrorsTest < ActiveModel::TestCase
     assert_includes errors, "foo", "errors should include 'foo' as :foo"
   end
 
+  def test_each_when_arity_is_negative
+    errors = ActiveModel::Errors.new(Person.new)
+    errors.add(:name, :blank)
+    errors.add(:gender, :blank)
+
+    assert_equal([:name, :gender], errors.map(&:attribute))
+  end
+
   def test_any?
     errors = ActiveModel::Errors.new(Person.new)
     errors.add(:name)
