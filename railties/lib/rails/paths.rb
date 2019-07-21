@@ -223,12 +223,10 @@ module Rails
 
       private
         def files_in(path)
-          Dir.chdir(path) do
-            files = Dir.glob(@glob)
-            files -= @exclude if @exclude
-            files.map! { |file| File.join(path, file) }
-            files.sort
-          end
+          files = Dir.glob(@glob, base: path)
+          files -= @exclude if @exclude
+          files.map! { |file| File.join(path, file) }
+          files.sort
         end
     end
   end
