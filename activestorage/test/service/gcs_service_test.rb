@@ -104,6 +104,16 @@ if SERVICE_CONFIGURATIONS[:gcs]
       assert_match(/storage\.googleapis\.com\/.*response-content-disposition=inline.*test\.txt.*response-content-type=text%2Fplain/,
         @service.url(@key, expires_in: 2.minutes, disposition: :inline, filename: ActiveStorage::Filename.new("test.txt"), content_type: "text/plain"))
     end
+
+    test "public URL generation" do
+      url = @service.public_url(@public_file_key, @public_file_name)
+
+      assert_match(/storage\.googleapis\.com\/.*\/#{@public_filepath}/,
+        url)
+
+      response = Net::HTTP.get_response(URI(url))
+      assert_equal "200", response.code
+    end
   end
 else
   puts "Skipping GCS Service tests because no GCS configuration was supplied"
