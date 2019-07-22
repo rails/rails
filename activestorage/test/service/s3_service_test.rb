@@ -133,6 +133,16 @@ if SERVICE_CONFIGURATIONS[:s3]
       end
     end
 
+    test "public URL generation" do
+      url = @service.public_url(@public_file_key, @public_file_name)
+
+      assert_match(/.*\.s3\.amazonaws\.com\/.*\/#{@public_filepath}/,
+        url)
+
+      response = Net::HTTP.get_response(URI(url))
+      assert_equal "200", response.code
+    end
+
     private
       def build_service(configuration)
         ActiveStorage::Service.configure :s3, SERVICE_CONFIGURATIONS.deep_merge(s3: configuration)
