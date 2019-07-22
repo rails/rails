@@ -2,11 +2,6 @@
 
 require "active_support/deprecation"
 
-# Remove this deprecated class in the next minor version
-#:nodoc:
-SourceAnnotationExtractor = ActiveSupport::Deprecation::DeprecatedConstantProxy.
-  new("SourceAnnotationExtractor", "Rails::SourceAnnotationExtractor")
-
 module Rails
   # Implements the logic behind <tt>Rails::Command::NotesCommand</tt>. See <tt>rails notes --help</tt> for usage information.
   #
@@ -160,3 +155,8 @@ module Rails
     end
   end
 end
+
+# Remove this deprecated class in the next minor version
+#:nodoc:
+SourceAnnotationExtractor = ActiveSupport::Deprecation::DeprecatedConstantProxy.
+  new("SourceAnnotationExtractor", "Rails::SourceAnnotationExtractor")
