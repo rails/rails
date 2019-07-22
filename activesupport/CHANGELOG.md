@@ -1,10 +1,3 @@
-*   Do not delegate missing `marshal_dump` and `_dump` methods via the
-    `delegate_missing_to` extension. This avoids unintentionally adding instance
-    variables when calling `Marshal.dump(object)`, should the delegation target of
-    `object` be a method which would otherwise add them. Fixes #36522.
-
-    *Aaron Lipman*
-
 *   Allow the on_rotation proc used when decrypting/verifying a message to be
     be passed at the constructor level.
 
