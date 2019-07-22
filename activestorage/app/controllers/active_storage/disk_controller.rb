@@ -9,7 +9,7 @@ class ActiveStorage::DiskController < ActiveStorage::BaseController
 
   def show
     if key = decode_verified_key
-      serve_file disk_service.path_for(key[:key]), content_type: key[:content_type], disposition: key[:disposition]
+      serve_file private_disk_service.path_for(key[:key]), content_type: key[:content_type], disposition: key[:disposition]
     else
       head :not_found
     end
@@ -17,10 +17,28 @@ class ActiveStorage::DiskController < ActiveStorage::BaseController
     head :not_found
   end
 
+  def show_public
+    key = params[:key]
+    filename = File.basename(request.path)
+    filepath = File.join(key, filename)
+
+    if blob = ActiveStorage::Blob.find_by(key: key)
+      if blob.public_file?
+        serve_file public_disk_service.path_for(filepath), content_type: blob.content_type, disposition: :inline
+      else
+        head :unauthorized
+      end
+    else
+      head :not_found
+    end
+  end
+
   def update
     if token = decode_verified_token
       if acceptable_content?(token)
-        disk_service.upload token[:key], request.body, checksum: token[:checksum]
+        blob = ActiveStorage::Blob.find_by(key: token[:key])
+
+        blob.service.upload token[:key], request.body, checksum: token[:checksum]
       else
         head :unprocessable_entity
       end
@@ -32,10 +50,13 @@ class ActiveStorage::DiskController < ActiveStorage::BaseController
   end
 
   private
-    def disk_service
-      ActiveStorage::Blob.service
+    def private_disk_service
+      ActiveStorage::Blob.private_service
     end
 
+    def public_disk_service
+      ActiveStorage::Blob.public_service
+    end
 
     def decode_verified_key
       ActiveStorage.verifier.verified(params[:encoded_key], purpose: :blob_key)

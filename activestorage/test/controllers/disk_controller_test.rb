@@ -44,6 +44,26 @@ class ActiveStorage::DiskControllerTest < ActionDispatch::IntegrationTest
     assert_response :not_found
   end
 
+  test "showing public blob" do
+    blob = create_blob(filename: "foobar.jpg", content_type: "image/jpg", public_file: true)
+
+    get blob.url
+    assert_response :ok
+    assert_equal "image/jpg", response.headers["Content-Type"]
+    assert_equal "Hello world!", response.body
+  end
+
+  test "showing private blob as a public blob" do
+    blob = create_blob(filename: "foobar.jpg", content_type: "image/jpg", public_file: false)
+
+    get rails_disk_service_public_url(key: blob.key, filename: blob.filename)
+    assert_response :unauthorized
+  end
+
+  test "showing public blob with invalid key" do
+    get rails_disk_service_public_url(key: "abc123", filename: "foo.jpg")
+    assert_response :not_found
+  end
 
   test "directly uploading blob with integrity" do
     data = "Something else entirely!"

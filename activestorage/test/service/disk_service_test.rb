@@ -23,6 +23,13 @@ class ActiveStorage::Service::DiskServiceTest < ActiveSupport::TestCase
     end
   end
 
+  test "public URL generation" do
+    url = @service.public_url(@public_file_key, @public_file_name)
+
+    assert_match(/^https:\/\/example.com\/rails\/active_storage\/disk\/public\/#{@public_filepath}/,
+      url)
+  end
+
   test "headers_for_direct_upload generation" do
     assert_equal({ "Content-Type" => "application/json" }, @service.headers_for_direct_upload(@key, content_type: "application/json"))
   end

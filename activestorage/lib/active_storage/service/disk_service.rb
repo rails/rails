@@ -100,6 +100,20 @@ module ActiveStorage
       end
     end
 
+    def public_url(key, filename, content_type: nil, disposition: :attachment, **_options)
+      instrument :url, key: key do |payload|
+        filename = ActiveStorage::Filename.wrap(filename)
+
+        generated_url = url_helpers.rails_disk_service_public_url(key, filename,
+          host: current_host
+        )
+
+        payload[:url] = generated_url
+
+        generated_url
+      end
+    end
+
     def url_for_direct_upload(key, expires_in:, content_type:, content_length:, checksum:)
       instrument :url, key: key do |payload|
         verified_token_with_expiration = ActiveStorage.verifier.generate(
