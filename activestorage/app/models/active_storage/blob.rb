@@ -235,7 +235,7 @@ class ActiveStorage::Blob < ActiveRecord::Base
   #
   # Raises ActiveStorage::IntegrityError if the downloaded data does not match the blob's checksum.
   def open(tmpdir: nil, &block)
-    service.open key, checksum: checksum,
+    service.open upload_path, checksum: checksum,
       name: [ "ActiveStorage-#{id}-", filename.extension_with_delimiter ], tmpdir: tmpdir, &block
   end
 
@@ -247,7 +247,7 @@ class ActiveStorage::Blob < ActiveRecord::Base
   # deleted as well or you will essentially have a dead reference. It's recommended to use #purge and #purge_later
   # methods in most circumstances.
   def delete
-    service.delete(key)
+    service.delete(upload_path)
     service.delete_prefixed("variants/#{key}/") if image?
   end
 
