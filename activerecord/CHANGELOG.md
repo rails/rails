@@ -1,3 +1,5 @@
+## Rails 6.0.0.rc2 (July 22, 2019) ##
+
 *   Add database_exists? method to connection adapters to check if a database exists.
 
     *Guilherme Mansur*

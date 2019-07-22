@@ -5,6 +5,8 @@
 
     *Aaron Lipman*
 
+## Rails 6.0.0.rc2 (July 22, 2019) ##
+
 *   `truncate` would return the original string if it was too short to be truncated
     and a frozen string if it were long enough to be truncated. Now truncate will
     consistently return an unfrozen string regardless. This behavior is consistent

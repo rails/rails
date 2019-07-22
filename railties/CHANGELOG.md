@@ -1,3 +1,8 @@
+## Rails 6.0.0.rc2 (July 22, 2019) ##
+
+*   No changes.
+
+
 ## (Unreleased)
 
 *   The new configuration point `config.add_autoload_paths_to_load_path` allows
