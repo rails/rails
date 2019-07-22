@@ -35,6 +35,9 @@ class ActiveStorage::Blob < ActiveRecord::Base
   class_attribute :private_service
   class_attribute :public_service
 
+  validate :file_access_level_cannot_be_changed
+  validate :public_filename_cannot_be_changed
+
   has_many :attachments
 
   scope :unattached, -> { left_joins(:attachments).where(ActiveStorage::Attachment.table_name => { blob_id: nil }) }
@@ -269,6 +272,19 @@ class ActiveStorage::Blob < ActiveRecord::Base
   end
 
   private
+    def file_access_level_cannot_be_changed
+      return if new_record?
+
+      errors.add(:public_file, "cannot be changed") if public_file_changed?
+    end
+
+    def public_filename_cannot_be_changed
+      return if new_record?
+      return unless public_file?
+
+      errors.add(:filename, "for public files cannot be changed") if filename_changed?
+    end
+
     def upload_path
       if public_file?
         File.join(key, filename.to_s)
