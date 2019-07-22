@@ -131,16 +131,16 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
   test "successfully updating an existing record to attach a new blob from an uploaded file" do
     @user.avatar = fixture_file_upload("racecar.jpg")
     assert_equal "racecar.jpg", @user.avatar.filename.to_s
-    assert_not ActiveStorage::Blob.service.exist?(@user.avatar.key)
+    assert_not ActiveStorage::Blob.private_service.exist?(@user.avatar.key)
 
     @user.save!
-    assert ActiveStorage::Blob.service.exist?(@user.avatar.key)
+    assert ActiveStorage::Blob.private_service.exist?(@user.avatar.key)
   end
 
   test "unsuccessfully updating an existing record to attach a new blob from an uploaded file" do
     assert_not @user.update(name: "", avatar: fixture_file_upload("racecar.jpg"))
     assert_equal "racecar.jpg", @user.avatar.filename.to_s
-    assert_not ActiveStorage::Blob.service.exist?(@user.avatar.key)
+    assert_not ActiveStorage::Blob.private_service.exist?(@user.avatar.key)
   end
 
   test "successfully replacing an existing, dependent attachment on an existing record" do
@@ -153,7 +153,7 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
 
       assert_equal "town.jpg", @user.avatar.filename.to_s
       assert_not ActiveStorage::Blob.exists?(old_blob.id)
-      assert_not ActiveStorage::Blob.service.exist?(old_blob.key)
+      assert_not ActiveStorage::Blob.private_service.exist?(old_blob.key)
     end
   end
 
@@ -178,7 +178,7 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
       end
 
       assert_equal "funky.jpg", @user.avatar.filename.to_s
-      assert ActiveStorage::Blob.service.exist?(@user.avatar.key)
+      assert ActiveStorage::Blob.private_service.exist?(@user.avatar.key)
     end
   end
 
@@ -192,7 +192,7 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
 
       assert_equal "town.jpg", @user.avatar.filename.to_s
       assert_not ActiveStorage::Blob.exists?(old_blob.id)
-      assert_not ActiveStorage::Blob.service.exist?(old_blob.key)
+      assert_not ActiveStorage::Blob.private_service.exist?(old_blob.key)
     end
   end
 
@@ -214,7 +214,7 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
     end
 
     assert_equal "racecar.jpg", @user.avatar.filename.to_s
-    assert_not ActiveStorage::Blob.service.exist?(@user.avatar.key)
+    assert_not ActiveStorage::Blob.private_service.exist?(@user.avatar.key)
   end
 
   test "updating an existing record to replace an attached blob with itself" do
@@ -346,13 +346,13 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
       assert user.avatar.attachment.new_record?
       assert user.avatar.blob.new_record?
       assert_equal "town.jpg", user.avatar.filename.to_s
-      assert_not ActiveStorage::Blob.service.exist?(user.avatar.key)
+      assert_not ActiveStorage::Blob.private_service.exist?(user.avatar.key)
 
       user.save!
       assert user.avatar.attachment.persisted?
       assert user.avatar.blob.persisted?
       assert_equal "town.jpg", user.reload.avatar.filename.to_s
-      assert ActiveStorage::Blob.service.exist?(user.avatar.key)
+      assert ActiveStorage::Blob.private_service.exist?(user.avatar.key)
     end
   end
 
@@ -363,13 +363,13 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
       assert user.avatar.attachment.new_record?
       assert user.avatar.blob.new_record?
       assert_equal "racecar.jpg", user.avatar.filename.to_s
-      assert_not ActiveStorage::Blob.service.exist?(user.avatar.key)
+      assert_not ActiveStorage::Blob.private_service.exist?(user.avatar.key)
 
       user.save!
       assert user.avatar.attachment.persisted?
       assert user.avatar.blob.persisted?
       assert_equal "racecar.jpg", user.reload.avatar.filename.to_s
-      assert ActiveStorage::Blob.service.exist?(user.avatar.key)
+      assert ActiveStorage::Blob.private_service.exist?(user.avatar.key)
     end
   end
 
@@ -389,7 +389,7 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
       assert user.avatar.attachment.new_record?
       assert user.avatar.blob.new_record?
       assert_equal "racecar.jpg", user.avatar.filename.to_s
-      assert_not ActiveStorage::Blob.service.exist?(user.avatar.key)
+      assert_not ActiveStorage::Blob.private_service.exist?(user.avatar.key)
 
       user.save!
       assert_equal "racecar.jpg", user.reload.avatar.filename.to_s
@@ -430,7 +430,7 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
 
       assert_not @user.avatar.attached?
       assert ActiveStorage::Blob.exists?(blob.id)
-      assert ActiveStorage::Blob.service.exist?(blob.key)
+      assert ActiveStorage::Blob.private_service.exist?(blob.key)
     end
   end
 
@@ -442,7 +442,7 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
       @user.avatar.purge
       assert_not @user.avatar.attached?
       assert_not ActiveStorage::Blob.exists?(blob.id)
-      assert_not ActiveStorage::Blob.service.exist?(blob.key)
+      assert_not ActiveStorage::Blob.private_service.exist?(blob.key)
     end
   end
 
@@ -458,7 +458,7 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
       @user.avatar.purge
       assert_not @user.avatar.attached?
       assert ActiveStorage::Blob.exists?(blob.id)
-      assert ActiveStorage::Blob.service.exist?(blob.key)
+      assert ActiveStorage::Blob.private_service.exist?(blob.key)
     end
   end
 
@@ -473,7 +473,7 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
 
       assert_not @user.avatar.attached?
       assert_not ActiveStorage::Blob.exists?(blob.id)
-      assert_not ActiveStorage::Blob.service.exist?(blob.key)
+      assert_not ActiveStorage::Blob.private_service.exist?(blob.key)
     end
   end
 
@@ -492,7 +492,7 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
 
       assert_not @user.avatar.attached?
       assert ActiveStorage::Blob.exists?(blob.id)
-      assert ActiveStorage::Blob.service.exist?(blob.key)
+      assert ActiveStorage::Blob.private_service.exist?(blob.key)
     end
   end
 
@@ -505,7 +505,7 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
       end
 
       assert_not ActiveStorage::Blob.exists?(blob.id)
-      assert_not ActiveStorage::Blob.service.exist?(blob.key)
+      assert_not ActiveStorage::Blob.private_service.exist?(blob.key)
     end
   end
 

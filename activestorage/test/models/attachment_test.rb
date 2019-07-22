@@ -36,5 +36,9 @@ class ActiveStorage::AttachmentTest < ActiveSupport::TestCase
 
       assert ActiveStorage::Blob.service.mirrors.second.exist?(blob.key)
     end
+
+    assert ActiveStorage::Blob.private_service.mirrors.second.exist?(blob.key)
+  ensure
+    ActiveStorage::Blob.private_service = previous_service
   end
 end
