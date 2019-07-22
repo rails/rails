@@ -12,10 +12,11 @@ module ActiveStorage
   class Service::AzureStorageService < Service
     attr_reader :client, :container, :signer
 
-    def initialize(storage_account_name:, storage_access_key:, container:, **options)
+    def initialize(storage_account_name:, storage_access_key:, container:, public: false, **options)
       @client = Azure::Storage::Blob::BlobService.create(storage_account_name: storage_account_name, storage_access_key: storage_access_key, **options)
       @signer = Azure::Storage::Common::Core::Auth::SharedAccessSignature.new(storage_account_name, storage_access_key)
       @container = container
+      @public = public
     end
 
     def upload(key, io, checksum: nil, filename: nil, content_type: nil, disposition: nil, **)
@@ -85,23 +86,6 @@ module ActiveStorage
       end
     end
 
-    def url(key, expires_in:, filename:, disposition:, content_type:)
-      instrument :url, key: key do |payload|
-        generated_url = signer.signed_uri(
-          uri_for(key), false,
-          service: "b",
-          permissions: "r",
-          expiry: format_expiry(expires_in),
-          content_disposition: content_disposition_with(type: disposition, filename: filename),
-          content_type: content_type
-        ).to_s
-
-        payload[:url] = generated_url
-
-        generated_url
-      end
-    end
-
     def url_for_direct_upload(key, expires_in:, content_type:, content_length:, checksum:)
       instrument :url, key: key do |payload|
         generated_url = signer.signed_uri(
@@ -124,6 +108,22 @@ module ActiveStorage
     end
 
     private
+      def private_url(key, expires_in:, filename:, disposition:, content_type:, **)
+        signer.signed_uri(
+          uri_for(key), false,
+          service: "b",
+          permissions: "r",
+          expiry: format_expiry(expires_in),
+          content_disposition: content_disposition_with(type: disposition, filename: filename),
+          content_type: content_type
+        ).to_s
+      end
+
+      def public_url(key, **)
+        uri_for(key).to_s
+      end
+
+
       def uri_for(key)
         client.generate_uri("#{container}/#{key}")
       end

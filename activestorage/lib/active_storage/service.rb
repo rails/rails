@@ -107,8 +107,19 @@ module ActiveStorage
     # Returns a signed, temporary URL for the file at the +key+. The URL will be valid for the amount
     # of seconds specified in +expires_in+. You must also provide the +disposition+ (+:inline+ or +:attachment+),
     # +filename+, and +content_type+ that you wish the file to be served with on request.
-    def url(key, expires_in:, disposition:, filename:, content_type:)
-      raise NotImplementedError
+    def url(key, **options)
+      instrument :url, key: key do |payload|
+        generated_url =
+          if public?
+            public_url(key, **options)
+          else
+            private_url(key, **options)
+          end
+
+        payload[:url] = generated_url
+
+        generated_url
+      end
     end
 
     # Returns a signed, temporary URL that a direct upload file can be PUT to on the +key+.
@@ -124,7 +135,20 @@ module ActiveStorage
       {}
     end
 
+    def public?
+      !!@public
+    end
+
     private
+      def private_url(key, expires_in:, filename:, disposition:, content_type:, **)
+        raise NotImplementedError
+      end
+
+      def public_url(key, **)
+        raise NotImplementedError
+      end
+
+
       def instrument(operation, payload = {}, &block)
         ActiveSupport::Notifications.instrument(
           "service_#{operation}.active_storage",
