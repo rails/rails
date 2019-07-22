@@ -1,3 +1,8 @@
+## Rails 6.0.0.rc2 (July 22, 2019) ##
+
+*   No changes.
+
+
 ## Rails 6.0.0.rc1 (April 24, 2019) ##
 
 *   Don't raise when analyzing an image whose type is unsupported by ImageMagick.

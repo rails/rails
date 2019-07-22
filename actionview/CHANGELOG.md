@@ -1,3 +1,5 @@
+## Rails 6.0.0.rc2 (July 22, 2019) ##
+
 *   Fix `select_tag` so that it doesn't change `options` when `include_blank` is present.
 
     *Younes SERRAJ*
