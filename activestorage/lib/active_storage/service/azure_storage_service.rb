@@ -102,6 +102,18 @@ module ActiveStorage
       end
     end
 
+    def public_url(key, filename, *_args)
+      instrument :url, key: key do |payload|
+        filepath = File.join(key, filename)
+
+        generated_url = blobs.send(:blob_uri, container, filepath).to_s
+
+        payload[:url] = generated_url
+
+        generated_url
+      end
+    end
+
     def url_for_direct_upload(key, expires_in:, content_type:, content_length:, checksum:)
       instrument :url, key: key do |payload|
         generated_url = signer.signed_uri(
