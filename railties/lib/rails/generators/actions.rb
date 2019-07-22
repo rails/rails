@@ -57,7 +57,7 @@ module Rails
         log :gemfile, "group #{str}"
 
         in_root do
-          append_file_with_newline "Gemfile", "group #{str} do", force: true
+          append_file_with_newline "Gemfile", "\ngroup #{str} do", force: true
           with_indentation(&block)
           append_file_with_newline "Gemfile", "end", force: true
         end
@@ -70,7 +70,11 @@ module Rails
         log :github, "github #{str}"
 
         in_root do
-          append_file_with_newline "Gemfile", "#{indentation}github #{str} do", force: true
+          if @indentation.zero?
+            append_file_with_newline "Gemfile", "\ngithub #{str} do", force: true
+          else
+            append_file_with_newline "Gemfile", "#{indentation}github #{str} do", force: true
+          end
           with_indentation(&block)
           append_file_with_newline "Gemfile", "#{indentation}end", force: true
         end
@@ -90,7 +94,7 @@ module Rails
 
         in_root do
           if block
-            append_file_with_newline "Gemfile", "source #{quote(source)} do", force: true
+            append_file_with_newline "Gemfile", "\nsource #{quote(source)} do", force: true
             with_indentation(&block)
             append_file_with_newline "Gemfile", "end", force: true
           else

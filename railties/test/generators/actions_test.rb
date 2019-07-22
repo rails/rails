@@ -51,7 +51,7 @@ class ActionsTest < Rails::Generators::TestCase
     action :add_source, "http://gems.github.com" do
       gem "rspec-rails"
     end
-    assert_file "Gemfile", /source 'http:\/\/gems\.github\.com' do\n  gem 'rspec-rails'\nend\n\z/
+    assert_file "Gemfile", /\n\nsource 'http:\/\/gems\.github\.com' do\n  gem 'rspec-rails'\nend\n\z/
   end
 
   def test_add_source_with_block_adds_source_to_gemfile_after_gem
@@ -60,7 +60,19 @@ class ActionsTest < Rails::Generators::TestCase
     action :add_source, "http://gems.github.com" do
       gem "rspec-rails"
     end
-    assert_file "Gemfile", /gem 'will-paginate'\nsource 'http:\/\/gems\.github\.com' do\n  gem 'rspec-rails'\nend\n\z/
+    assert_file "Gemfile", /\ngem 'will-paginate'\n\nsource 'http:\/\/gems\.github\.com' do\n  gem 'rspec-rails'\nend\n\z/
+  end
+
+  def test_add_source_should_create_newline_between_blocks
+    run_generator
+    action :add_source, "http://gems.github.com" do
+      gem "rspec-rails"
+    end
+
+    action :add_source, "http://gems2.github.com" do
+      gem "fakeweb"
+    end
+    assert_file "Gemfile", /\n\nsource 'http:\/\/gems\.github\.com' do\n  gem 'rspec-rails'\nend\n\nsource 'http:\/\/gems2\.github\.com' do\n  gem 'fakeweb'\nend\n\z/
   end
 
   def test_gem_should_put_gem_dependency_in_gemfile
@@ -141,7 +153,7 @@ class ActionsTest < Rails::Generators::TestCase
       gem "fakeweb"
     end
 
-    assert_file "Gemfile", /^group :development, :test do\n  gem 'rspec-rails'\nend\ngroup :test do\n  gem 'fakeweb'\nend\n\z/
+    assert_file "Gemfile", /\n\ngroup :development, :test do\n  gem 'rspec-rails'\nend\n\ngroup :test do\n  gem 'fakeweb'\nend\n\z/
   end
 
   def test_github_should_create_an_indented_block
@@ -153,7 +165,7 @@ class ActionsTest < Rails::Generators::TestCase
       gem "baz"
     end
 
-    assert_file "Gemfile", /^github 'user\/repo' do\n  gem 'foo'\n  gem 'bar'\n  gem 'baz'\nend\n\z/
+    assert_file "Gemfile", /\n\ngithub 'user\/repo' do\n  gem 'foo'\n  gem 'bar'\n  gem 'baz'\nend\n\z/
   end
 
   def test_github_should_create_an_indented_block_with_options
@@ -165,7 +177,7 @@ class ActionsTest < Rails::Generators::TestCase
       gem "baz"
     end
 
-    assert_file "Gemfile", /^github 'user\/repo', a: 'correct', other: true do\n  gem 'foo'\n  gem 'bar'\n  gem 'baz'\nend\n\z/
+    assert_file "Gemfile", /\n\ngithub 'user\/repo', a: 'correct', other: true do\n  gem 'foo'\n  gem 'bar'\n  gem 'baz'\nend\n\z/
   end
 
   def test_github_should_create_an_indented_block_within_a_group
@@ -177,9 +189,32 @@ class ActionsTest < Rails::Generators::TestCase
         gem "bar"
         gem "baz"
       end
+      github "user/repo2", a: "correct", other: true do
+        gem "foo"
+        gem "bar"
+        gem "baz"
+      end
     end
 
-    assert_file "Gemfile", /^group :magic do\n  github 'user\/repo', a: 'correct', other: true do\n    gem 'foo'\n    gem 'bar'\n    gem 'baz'\n  end\nend\n\z/
+    assert_file "Gemfile", /\n\ngroup :magic do\n  github 'user\/repo', a: 'correct', other: true do\n    gem 'foo'\n    gem 'bar'\n    gem 'baz'\n  end\n  github 'user\/repo2', a: 'correct', other: true do\n    gem 'foo'\n    gem 'bar'\n    gem 'baz'\n  end\nend\n\z/
+  end
+
+  def test_github_should_create_newline_between_blocks
+    run_generator
+
+    action :github, "user/repo", a: "correct", other: true do
+      gem "foo"
+      gem "bar"
+      gem "baz"
+    end
+
+    action :github, "user/repo2", a: "correct", other: true do
+      gem "foo"
+      gem "bar"
+      gem "baz"
+    end
+
+    assert_file "Gemfile", /\n\ngithub 'user\/repo', a: 'correct', other: true do\n  gem 'foo'\n  gem 'bar'\n  gem 'baz'\nend\n\ngithub 'user\/repo2', a: 'correct', other: true do\n  gem 'foo'\n  gem 'bar'\n  gem 'baz'\nend\n\z/
   end
 
   def test_gem_with_gemfile_without_newline_at_the_end
@@ -198,7 +233,7 @@ class ActionsTest < Rails::Generators::TestCase
       gem "fakeweb"
     end
 
-    assert_file "Gemfile", /gem 'rspec-rails'\ngroup :test do\n  gem 'fakeweb'\nend\n\z/
+    assert_file "Gemfile", /gem 'rspec-rails'\n\ngroup :test do\n  gem 'fakeweb'\nend\n\z/
   end
 
   def test_add_source_with_gemfile_without_newline_at_the_end
@@ -209,7 +244,7 @@ class ActionsTest < Rails::Generators::TestCase
       gem "fakeweb"
     end
 
-    assert_file "Gemfile", /gem 'rspec-rails'\nsource 'http:\/\/gems\.github\.com' do\n  gem 'fakeweb'\nend\n\z/
+    assert_file "Gemfile", /gem 'rspec-rails'\n\nsource 'http:\/\/gems\.github\.com' do\n  gem 'fakeweb'\nend\n\z/
   end
 
   def test_github_with_gemfile_without_newline_at_the_end
@@ -220,7 +255,7 @@ class ActionsTest < Rails::Generators::TestCase
       gem "fakeweb"
     end
 
-    assert_file "Gemfile", /gem 'rspec-rails'\ngithub 'user\/repo' do\n  gem 'fakeweb'\nend\n\z/
+    assert_file "Gemfile", /gem 'rspec-rails'\n\ngithub 'user\/repo' do\n  gem 'fakeweb'\nend\n\z/
   end
 
   def test_environment_should_include_data_in_environment_initializer_block
