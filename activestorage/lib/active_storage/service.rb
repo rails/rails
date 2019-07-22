@@ -111,6 +111,11 @@ module ActiveStorage
       raise NotImplementedError
     end
 
+    # Returns a public, permanent URL of the file at the +key+ from the public bucket configured.
+    def public_url(key, filename, *args)
+      raise NotImplementedError
+    end
+
     # Returns a signed, temporary URL that a direct upload file can be PUT to on the +key+.
     # The URL will be valid for the amount of seconds specified in +expires_in+.
     # You must also provide the +content_type+, +content_length+, and +checksum+ of the file
