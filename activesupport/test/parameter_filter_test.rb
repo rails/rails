@@ -28,7 +28,6 @@ class ParameterFilterTest < ActiveSupport::TestCase
         value.replace("world!") if original_params["barg"]["blah"] == "bar" && key == "hello"
       }
 
-
       filter_words << lambda { |key, value|
         value.upcase! if key == "array_elements"
       }
