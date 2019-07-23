@@ -353,7 +353,7 @@ All these configuration options are delegated to the `I18n` library.
 
 * `config.active_record.lock_optimistically` controls whether Active Record will use optimistic locking and is `true` by default.
 
-* `config.active_record.cache_timestamp_format` controls the format of the timestamp value in the cache key. Default is `:nsec`.
+* `config.active_record.cache_timestamp_format` controls the format of the timestamp value in the cache key. Default is `:usec`.
 
 * `config.active_record.record_timestamps` is a boolean value which controls whether or not timestamping of `create` and `update` operations on a model occur. The default value is `true`.
 
