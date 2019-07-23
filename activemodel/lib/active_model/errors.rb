@@ -304,9 +304,13 @@ module ActiveModel
     end
 
     def to_h
-      deprecation_rename_warning(:to_h, :to_hash)
+      ActiveSupport::Deprecation.warn(<<~EOM)
+        ActiveModel::Errors#to_h is deprecated and will be removed in Rails 6.2
+        Please use `ActiveModel::Errors.to_hash` instead. The values in the hash
+        returned by `ActiveModel::Erors.to_hash` is an array of error messages.
+      EOM
 
-      to_hash
+      to_hash.transform_values { |values| values.last }
     end
 
     def messages
