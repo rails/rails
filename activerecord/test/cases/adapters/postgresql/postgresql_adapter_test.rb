@@ -253,9 +253,11 @@ module ActiveRecord
 
       def test_expression_index
         with_example_table do
-          @connection.add_index "ex", "mod(id, 10), abs(number)", name: "expression"
+          expr = "mod(id, 10), abs(number)"
+          @connection.add_index "ex", expr, name: "expression"
           index = @connection.indexes("ex").find { |idx| idx.name == "expression" }
-          assert_equal "mod(id, 10), abs(number)", index.columns
+          assert_equal expr, index.columns
+          assert_equal true, @connection.index_exists?("ex", expr, name: "expression")
         end
       end
 
