@@ -120,7 +120,13 @@ module ActionDispatch
       super
       self.class.driver.use
       @proxy_route = if ActionDispatch.test_app
-        Class.new { include ActionDispatch.test_app.routes.url_helpers }.new
+        Class.new do
+          include ActionDispatch.test_app.routes.url_helpers
+
+          def url_options
+            default_url_options.merge(host: Capybara.app_host)
+          end
+        end.new
       else
         nil
       end
@@ -163,10 +169,6 @@ module ActionDispatch
     end
 
     driven_by :selenium
-
-    def url_options # :nodoc:
-      default_url_options.merge(host: Capybara.app_host)
-    end
 
     def method_missing(method, *args, &block)
       if @proxy_route.respond_to?(method)
