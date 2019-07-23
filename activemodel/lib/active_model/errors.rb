@@ -303,6 +303,12 @@ module ActiveModel
       hash
     end
 
+    def to_h
+      deprecation_rename_warning(:to_h, :to_hash)
+
+      to_hash
+    end
+
     def messages
       DeprecationHandlingMessageHash.new(self)
     end
