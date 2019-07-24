@@ -46,7 +46,11 @@ module ActiveRecord
       end
 
       def primary_keys(table_name)
-        @primary_keys[table_name] ||= data_source_exists?(table_name) ? connection.primary_key(table_name) : nil
+        @primary_keys.fetch(table_name) do
+          if data_source_exists?(table_name)
+            @primary_keys[deep_deduplicate(table_name)] = deep_deduplicate(connection.primary_key(table_name))
+          end
+        end
       end
 
       # A cached lookup for table existence.
@@ -54,7 +58,7 @@ module ActiveRecord
         prepare_data_sources if @data_sources.empty?
         return @data_sources[name] if @data_sources.key? name
 
-        @data_sources[name] = connection.data_source_exists?(name)
+        @data_sources[deep_deduplicate(name)] = connection.data_source_exists?(name)
       end
 
       # Add internal cache for table with +table_name+.
@@ -73,13 +77,17 @@ module ActiveRecord
 
       # Get the columns for a table
       def columns(table_name)
-        @columns[table_name] ||= connection.columns(table_name)
+        @columns.fetch(table_name) do
+          @columns[deep_deduplicate(table_name)] = deep_deduplicate(connection.columns(table_name))
+        end
       end
 
       # Get the columns for a table as a hash, key is the column name
       # value is the column object.
       def columns_hash(table_name)
-        @columns_hash[table_name] ||= columns(table_name).index_by(&:name)
+        @columns_hash.fetch(table_name) do
+          @columns_hash[deep_deduplicate(table_name)] = columns(table_name).index_by(&:name)
+        end
       end
 
       # Checks whether the columns hash is already cached for a table.
@@ -88,7 +96,9 @@ module ActiveRecord
       end
 
       def indexes(table_name)
-        @indexes[table_name] ||= connection.indexes(table_name)
+        @indexes.fetch(table_name) do
+          @indexes[deep_deduplicate(table_name)] = deep_deduplicate(connection.indexes(table_name))
+        end
       end
 
       def database_version # :nodoc:
