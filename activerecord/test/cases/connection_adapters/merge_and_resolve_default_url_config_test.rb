@@ -323,6 +323,30 @@ module ActiveRecord
 
         assert_equal expected, actual
       end
+
+      def test_tiered_configs_with_database_url
+        ENV["DATABASE_URL"] = "postgres://localhost/foo"
+
+        config = {
+          "default_env" => {
+            "primary" => { "pool" => 5 },
+            "animals" => { "pool" => 5 }
+          }
+        }
+
+        expected = {
+          "adapter"  => "postgresql",
+          "database" => "foo",
+          "host"     => "localhost",
+          "pool"     => 5
+        }
+
+        ["primary", "animals"].each do |spec_name|
+          configs = ActiveRecord::DatabaseConfigurations.new(config)
+          actual = configs.configs_for(env_name: "default_env", spec_name: spec_name).config
+          assert_equal expected, actual
+        end
+      end
     end
   end
 end
