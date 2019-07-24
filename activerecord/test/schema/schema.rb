@@ -563,6 +563,10 @@ ActiveRecord::Schema.define do
     t.string   :type
   end
 
+  create_table :mice, force: true do |t|
+    t.string   :name
+  end
+
   create_table :movies, force: true, id: false do |t|
     t.primary_key :movieid
     t.string      :name
@@ -841,6 +845,10 @@ ActiveRecord::Schema.define do
     else
       t.datetime :updated_at
     end
+  end
+
+  create_table :squeaks, force: true do |t|
+    t.integer :mouse_id
   end
 
   create_table :prisoners, force: true do |t|
