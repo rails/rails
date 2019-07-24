@@ -1,3 +1,35 @@
+*   Make ActiveSupport::Logger Fiber-safe. Fixes #36752.
+
+    Use `Fiber.current.__id__` in `ActiveSupport::Logger#local_level=` in order
+    to make log level local to Ruby Fibers in addition to Threads.
+
+    Example:
+
+        logger = ActiveSupport::Logger.new(STDOUT)
+        logger.level = 1
+        p "Main is debug? #{logger.debug?}"
+
+        Fiber.new {
+          logger.local_level = 0
+          p "Thread is debug? #{logger.debug?}"
+        }.resume
+
+        p "Main is debug? #{logger.debug?}"
+
+    Before:
+
+        Main is debug? false
+        Thread is debug? true
+        Main is debug? true
+
+    After:
+
+        Main is debug? false
+        Thread is debug? true
+        Main is debug? false
+
+    *Alexander Varnin*
+
 *   Do not delegate missing `marshal_dump` and `_dump` methods via the
     `delegate_missing_to` extension. This avoids unintentionally adding instance
     variables when calling `Marshal.dump(object)`, should the delegation target of
