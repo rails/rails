@@ -60,8 +60,8 @@ module ActionView
 
       # Creates an anchor element of the given +name+ using a URL created by the set of +options+.
       # See the valid options in the documentation for +url_for+. It's also possible to
-      # pass a String instead of an options hash, which generates an anchor element that uses the
-      # value of the String as the href for the link. Using a <tt>:back</tt> Symbol instead
+      # pass a \String instead of an options hash, which generates an anchor element that uses the
+      # value of the \String as the href for the link. Using a <tt>:back</tt> \Symbol instead
       # of an options hash will generate a link to the referrer (a JavaScript back link
       # will be used in place of a referrer if none exists). If +nil+ is passed as the name
       # the value of the link itself will become the name.
@@ -226,7 +226,7 @@ module ActionView
       # The +options+ hash accepts the same options as +url_for+.
       #
       # There are a few special +html_options+:
-      # * <tt>:method</tt> - Symbol of HTTP verb. Supported verbs are <tt>:post</tt>, <tt>:get</tt>,
+      # * <tt>:method</tt> - \Symbol of HTTP verb. Supported verbs are <tt>:post</tt>, <tt>:get</tt>,
       #   <tt>:delete</tt>, <tt>:patch</tt>, and <tt>:put</tt>. By default it will be <tt>:post</tt>.
       # * <tt>:disabled</tt> - If set to true, it will generate a disabled button.
       # * <tt>:data</tt> - This option can be used to add custom data attributes.
@@ -235,7 +235,7 @@ module ActionView
       # * <tt>:form</tt> - This hash will be form attributes
       # * <tt>:form_class</tt> - This controls the class of the form within which the submit button will
       #   be placed
-      # * <tt>:params</tt> - Hash of parameters to be rendered as hidden fields within the form.
+      # * <tt>:params</tt> - \Hash of parameters to be rendered as hidden fields within the form.
       #
       # ==== Data attributes
       #
@@ -576,7 +576,7 @@ module ActionView
       # HTML attributes for the link can be passed in +html_options+.
       #
       # When clicked, an SMS message is prepopulated with the passed phone number
-      #  and optional +body+ value.
+      # and optional +body+ value.
       #
       # +sms_to+ has a +body+ option for customizing the SMS message itself by
       # passing special keys to +html_options+.
@@ -595,7 +595,7 @@ module ActionView
       #          body: "Hello Jim I have a question about your product."
       #   # => <a href="sms:5155555785;?body=Hello%20Jim%20I%20have%20a%20question%20about%20your%20product">Text me</a>
       #
-      # You can use a block as well if your link target is hard to fit into the name parameter. ERB example:
+      # You can use a block as well if your link target is hard to fit into the name parameter. \ERB example:
       #
       #   <%= sms_to "5155555785" do %>
       #     <strong>Text me:</strong>
