@@ -3,6 +3,7 @@
 require "mutex_m"
 require "concurrent/map"
 require "set"
+require "active_support/hash_with_indifferent_access.rb"
 
 module ActiveSupport
   module Notifications
@@ -14,7 +15,7 @@ module ActiveSupport
       include Mutex_m
 
       def initialize
-        @string_subscribers = Hash.new { |h, k| h[k] = [] }
+        @string_subscribers = HashWithIndifferentAccess.new { |h, k| h[k] = [] }
         @other_subscribers = []
         @listeners_for = Concurrent::Map.new
         super
@@ -23,7 +24,7 @@ module ActiveSupport
       def subscribe(pattern = nil, callable = nil, monotonic: false, &block)
         subscriber = Subscribers.new(pattern, callable || block, monotonic)
         synchronize do
-          if String === pattern
+          if String === pattern || Symbol === pattern
             @string_subscribers[pattern] << subscriber
             @listeners_for.delete(pattern)
           else

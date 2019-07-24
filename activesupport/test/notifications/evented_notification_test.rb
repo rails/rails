@@ -102,6 +102,32 @@ module ActiveSupport
         ], listener.events
       end
 
+      def test_listen_to_symbol
+        notifier = Fanout.new
+        listener = Listener.new
+        notifier.subscribe(:hello, listener)
+        notifier.start("hello", 1, {})
+        notifier.finish("hello", 2, {})
+
+        assert_equal [
+          [:start, "hello", 1, {}],
+          [:finish, "hello", 2, {}]
+        ], listener.events
+      end
+
+      def test_subscribe_to_symbol
+        notifier = Fanout.new
+        listener = Listener.new
+        notifier.subscribe("hello", listener)
+        notifier.start(:hello, 1, {})
+        notifier.finish(:hello, 2, {})
+
+        assert_equal [
+          [:start, :hello, 1, {}],
+          [:finish, :hello, 2, {}],
+        ], listener.events
+      end
+
       def test_listen_to_regexp_with_exclusions
         notifier = Fanout.new
         listener = Listener.new
