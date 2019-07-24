@@ -38,12 +38,21 @@ module ActiveJob
           "#{job_data['job_class']} [#{job_data['job_id']}] from DelayedJob(#{job_data['queue_name']}) with arguments: #{job_data['arguments']}"
         end
 
+        def scan_backend(job_id_aj) #:nodoc:
+          case Delayed::Worker.backend
+          when :active_record
+            Delayed::Job.where("handler LIKE '%#{job_id_aj}%'")  # in lieu of Delayed::Job.all
+          else
+            []
+          end
+        end
+
         def find_provider_job_id #:nodoc:
           return nil if self.job_data.blank?
 
           begin
             job_id_aj = self.job_data["job_id"]
-            djs = Delayed::Job.where("handler LIKE '%#{job_id_aj}%'")  # in lieu of Delayed::Job.all
+            djs = scan_backend(job_id_aj)
             djs.map do |dj|
               obj = dj.payload_object
               next if obj.blank? || obj.job_data.blank?
