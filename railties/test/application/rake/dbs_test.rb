@@ -630,6 +630,22 @@ module ApplicationTests
           assert_match(/CreateRecipes: migrated/, output)
         end
       end
+
+      test "db:prepare does not touch schema when dumping is disabled" do
+        Dir.chdir(app_path) do
+          rails "generate", "model", "book", "title:string"
+          rails "db:create", "db:migrate"
+
+          app_file "db/schema.rb", "Not touched"
+          app_file "config/initializers/disable_dumping_schema.rb", <<-RUBY
+            Rails.application.config.active_record.dump_schema_after_migration = false
+          RUBY
+
+          rails "db:prepare"
+
+          assert_equal("Not touched", File.read("db/schema.rb").strip)
+        end
+      end
     end
   end
 end
