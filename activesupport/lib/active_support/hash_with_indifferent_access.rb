@@ -367,7 +367,9 @@ module ActiveSupport
         key.kind_of?(Symbol) ? key.to_s : key
       end
 
-      def convert_value(value, options = {}) # :doc:
+      EMPTY_HASH = {}.freeze
+
+      def convert_value(value, options = EMPTY_HASH) # :doc:
         if value.is_a? Hash
           if options[:for] == :to_hash
             value.to_hash
