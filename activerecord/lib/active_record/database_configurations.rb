@@ -104,18 +104,28 @@ module ActiveRecord
         return configs.configurations if configs.is_a?(DatabaseConfigurations)
         return configs if configs.is_a?(Array)
 
-        build_db_config = configs.each_pair.flat_map do |env_name, config|
-          walk_configs(env_name.to_s, "primary", config)
-        end.flatten.compact
+        db_configs = configs.flat_map do |env_name, config|
+          if config.is_a?(Hash) && config.all? { |k, v| v.is_a?(Hash) }
+            walk_configs(env_name.to_s, config)
+          else
+            build_db_config_from_raw_config(env_name.to_s, "primary", config)
+          end
+        end.compact
 
         if url = ENV["DATABASE_URL"]
-          build_url_config(url, build_db_config)
+          merge_url_with_configs(url, db_configs)
         else
-          build_db_config
+          db_configs
         end
       end
 
-      def walk_configs(env_name, spec_name, config)
+      def walk_configs(env_name, config)
+        config.map do |spec_name, sub_config|
+          build_db_config_from_raw_config(env_name, spec_name.to_s, sub_config)
+        end
+      end
+
+      def build_db_config_from_raw_config(env_name, spec_name, config)
         case config
         when String
           build_db_config_from_string(env_name, spec_name, config)
@@ -141,16 +151,12 @@ module ActiveRecord
           config_without_url.delete "url"
 
           ActiveRecord::DatabaseConfigurations::UrlConfig.new(env_name, spec_name, url, config_without_url)
-        elsif config["database"] || config["adapter"] || ENV["DATABASE_URL"]
-          ActiveRecord::DatabaseConfigurations::HashConfig.new(env_name, spec_name, config)
         else
-          config.each_pair.map do |sub_spec_name, sub_config|
-            walk_configs(env_name, sub_spec_name, sub_config)
-          end
+          ActiveRecord::DatabaseConfigurations::HashConfig.new(env_name, spec_name, config)
         end
       end
 
-      def build_url_config(url, configs)
+      def merge_url_with_configs(url, configs)
         env = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call.to_s
 
         if configs.find(&:for_current_env?)
