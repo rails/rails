@@ -3,6 +3,7 @@
 require "active_support/concern"
 require "active_support/core_ext/module/attribute_accessors"
 require "concurrent"
+require "fiber"
 
 module ActiveSupport
   module LoggerThreadSafeLevel # :nodoc:
@@ -28,7 +29,7 @@ module ActiveSupport
     end
 
     def local_log_id
-      Thread.current.__id__
+      Fiber.current.__id__
     end
 
     def local_level
