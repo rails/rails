@@ -60,8 +60,8 @@ module ActionView
 
       # Creates an anchor element of the given +name+ using a URL created by the set of +options+.
       # See the valid options in the documentation for +url_for+. It's also possible to
-      # pass a String instead of an options hash, which generates an anchor element that uses the
-      # value of the String as the href for the link. Using a <tt>:back</tt> Symbol instead
+      # pass a \String instead of an options hash, which generates an anchor element that uses the
+      # value of the \String as the href for the link. Using a <tt>:back</tt> \Symbol instead
       # of an options hash will generate a link to the referrer (a JavaScript back link
       # will be used in place of a referrer if none exists). If +nil+ is passed as the name
       # the value of the link itself will become the name.
@@ -226,7 +226,7 @@ module ActionView
       # The +options+ hash accepts the same options as +url_for+.
       #
       # There are a few special +html_options+:
-      # * <tt>:method</tt> - Symbol of HTTP verb. Supported verbs are <tt>:post</tt>, <tt>:get</tt>,
+      # * <tt>:method</tt> - \Symbol of HTTP verb. Supported verbs are <tt>:post</tt>, <tt>:get</tt>,
       #   <tt>:delete</tt>, <tt>:patch</tt>, and <tt>:put</tt>. By default it will be <tt>:post</tt>.
       # * <tt>:disabled</tt> - If set to true, it will generate a disabled button.
       # * <tt>:data</tt> - This option can be used to add custom data attributes.
@@ -235,7 +235,7 @@ module ActionView
       # * <tt>:form</tt> - This hash will be form attributes
       # * <tt>:form_class</tt> - This controls the class of the form within which the submit button will
       #   be placed
-      # * <tt>:params</tt> - Hash of parameters to be rendered as hidden fields within the form.
+      # * <tt>:params</tt> - \Hash of parameters to be rendered as hidden fields within the form.
       #
       # ==== Data attributes
       #
@@ -569,6 +569,54 @@ module ActionView
         else
           url_string == request_uri
         end
+      end
+
+      # Creates an SMS anchor link tag to the specified +phone_number+, which is
+      # also used as the name of the link unless +name+ is specified. Additional
+      # HTML attributes for the link can be passed in +html_options+.
+      #
+      # When clicked, an SMS message is prepopulated with the passed phone number
+      # and optional +body+ value.
+      #
+      # +sms_to+ has a +body+ option for customizing the SMS message itself by
+      # passing special keys to +html_options+.
+      #
+      # ==== Options
+      # * <tt>:body</tt> - Preset the body of the message.
+      #
+      # ==== Examples
+      #   sms_to "5155555785"
+      #   # => <a href="sms:5155555785;">5155555785</a>
+      #
+      #   sms_to "5155555785", "Text me"
+      #   # => <a href="sms:5155555785;">Text me</a>
+      #
+      #   sms_to "5155555785", "Text me",
+      #          body: "Hello Jim I have a question about your product."
+      #   # => <a href="sms:5155555785;?body=Hello%20Jim%20I%20have%20a%20question%20about%20your%20product">Text me</a>
+      #
+      # You can use a block as well if your link target is hard to fit into the name parameter. \ERB example:
+      #
+      #   <%= sms_to "5155555785" do %>
+      #     <strong>Text me:</strong>
+      #   <% end %>
+      #   # => <a href="sms:5155555785;">
+      #          <strong>Text me:</strong>
+      #        </a>
+      def sms_to(phone_number, name = nil, html_options = {}, &block)
+        html_options, name = name, nil if block_given?
+        html_options = (html_options || {}).stringify_keys
+
+        extras = %w{ body }.map! { |item|
+          option = html_options.delete(item).presence || next
+          "#{item.dasherize}=#{ERB::Util.url_encode(option)}"
+        }.compact
+        extras = extras.empty? ? "" : "?&" + extras.join("&")
+
+        encoded_phone_number = ERB::Util.url_encode(phone_number)
+        html_options["href"] = "sms:#{encoded_phone_number};#{extras}"
+
+        content_tag("a", name || phone_number, html_options, &block)
       end
 
       private

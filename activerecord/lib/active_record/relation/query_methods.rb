@@ -952,7 +952,7 @@ module ActiveRecord
     def optimizer_hints!(*args) # :nodoc:
       args.flatten!
 
-      self.optimizer_hints_values += args
+      self.optimizer_hints_values |= args
       self
     end
 

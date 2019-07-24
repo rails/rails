@@ -128,11 +128,35 @@ class ContentSecurityPolicyTest < ActiveSupport::TestCase
     @policy.script_src false
     assert_no_match %r{script-src}, @policy.build
 
+    @policy.script_src_attr :self
+    assert_match %r{script-src-attr 'self'}, @policy.build
+
+    @policy.script_src_attr false
+    assert_no_match %r{script-src-attr}, @policy.build
+
+    @policy.script_src_elem :self
+    assert_match %r{script-src-elem 'self'}, @policy.build
+
+    @policy.script_src_elem false
+    assert_no_match %r{script-src-elem}, @policy.build
+
     @policy.style_src :self
     assert_match %r{style-src 'self'}, @policy.build
 
     @policy.style_src false
     assert_no_match %r{style-src}, @policy.build
+
+    @policy.style_src_attr :self
+    assert_match %r{style-src-attr 'self'}, @policy.build
+
+    @policy.style_src_attr false
+    assert_no_match %r{style-src-attr}, @policy.build
+
+    @policy.style_src_elem :self
+    assert_match %r{style-src-elem 'self'}, @policy.build
+
+    @policy.style_src_elem false
+    assert_no_match %r{style-src-elem}, @policy.build
 
     @policy.worker_src :self
     assert_match %r{worker-src 'self'}, @policy.build

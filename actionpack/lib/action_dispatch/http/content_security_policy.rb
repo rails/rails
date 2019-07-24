@@ -137,7 +137,11 @@ module ActionDispatch #:nodoc:
       object_src:      "object-src",
       prefetch_src:    "prefetch-src",
       script_src:      "script-src",
+      script_src_attr: "script-src-attr",
+      script_src_elem: "script-src-elem",
       style_src:       "style-src",
+      style_src_attr:  "style-src-attr",
+      style_src_elem:  "style-src-elem",
       worker_src:      "worker-src"
     }.freeze
 

@@ -1,3 +1,7 @@
+*   Make currency symbols optional for money column type in PostgreSQL
+
+    *Joel Schneider*
+
 *   Add support for beginless ranges, introduced in Ruby 2.7.
 
     *Josh Goodall*

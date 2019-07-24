@@ -93,12 +93,19 @@ module ActiveStorage
           end
 
           def #{name}=(attachables)
-            attachment_changes["#{name}"] =
-              if attachables.nil? || Array(attachables).none?
-                ActiveStorage::Attached::Changes::DeleteMany.new("#{name}", self)
-              else
-                ActiveStorage::Attached::Changes::CreateMany.new("#{name}", self, attachables)
+            if ActiveStorage.replace_on_assign_to_many
+              attachment_changes["#{name}"] =
+                if attachables.nil? || Array(attachables).none?
+                  ActiveStorage::Attached::Changes::DeleteMany.new("#{name}", self)
+                else
+                  ActiveStorage::Attached::Changes::CreateMany.new("#{name}", self, attachables)
+                end
+            else
+              if !attachables.nil? || Array(attachables).any?
+                attachment_changes["#{name}"] =
+                  ActiveStorage::Attached::Changes::CreateMany.new("#{name}", self, #{name}.blobs + attachables)
               end
+            end
           end
         CODE
 

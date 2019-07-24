@@ -353,7 +353,7 @@ All these configuration options are delegated to the `I18n` library.
 
 * `config.active_record.lock_optimistically` controls whether Active Record will use optimistic locking and is `true` by default.
 
-* `config.active_record.cache_timestamp_format` controls the format of the timestamp value in the cache key. Default is `:nsec`.
+* `config.active_record.cache_timestamp_format` controls the format of the timestamp value in the cache key. Default is `:usec`.
 
 * `config.active_record.record_timestamps` is a boolean value which controls whether or not timestamping of `create` and `update` operations on a model occur. The default value is `true`.
 
@@ -881,7 +881,11 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
   config.active_storage.routes_prefix = '/files'
   ```
 
-  The default is `/rails/active_storage`
+  The default is `/rails/active_storage`.
+
+* `config.active_storage.replace_on_assign_to_many` determines whether assigning to a collection of attachments declared with `has_many_attached` replaces any existing attachments or appends to them. The default is `true`.
+
+* `config.active_storage.draw_routes` can be used to toggle Active Storage route generation. The default is `true`.
 
 ### Results of `load_defaults`
 
@@ -917,6 +921,7 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 - `config.active_job.return_false_on_aborted_enqueue`: `true`
 - `config.active_storage.queues.analysis`: `:active_storage_analysis`
 - `config.active_storage.queues.purge`: `:active_storage_purge`
+- `config.active_storage.replace_on_assign_to_many`: `true`
 - `config.active_record.collection_cache_versioning`: `true`
 
 ### Configuring a Database

@@ -398,6 +398,54 @@ config.load_defaults "6.0"
 config.autoloader = :classic
 ```
 
+### Active Storage assignment behavior change
+
+In Rails 5.2, assigning to a collection of attachments declared with `has_many_attached` appended new files:
+
+```ruby
+class User < ApplicationRecord
+  has_many_attached :highlights
+end
+
+user.highlights.attach(filename: "funky.jpg", ...)
+user.higlights.count # => 1
+
+blob = ActiveStorage::Blob.create_after_upload!(filename: "town.jpg", ...)
+user.update!(highlights: [ blob ])
+
+user.highlights.count # => 2
+user.highlights.first.filename # => "funky.jpg"
+user.highlights.second.filename # => "town.jpg"
+```
+
+With the default configuration for Rails 6.0, assigning to a collection of attachments replaces existing files
+instead of appending to them. This matches Active Record behavior when assigning to a collection association:
+
+```ruby
+user.highlights.attach(filename: "funky.jpg", ...)
+user.highlights.count # => 1
+
+blob = ActiveStorage::Blob.create_after_upload!(filename: "town.jpg", ...)
+user.update!(highlights: [ blob ])
+
+user.highlights.count # => 1
+user.highlights.first.filename # => "town.jpg"
+```
+
+`#attach` can be used to add new attachments without removing the existing ones:
+
+```ruby
+blob = ActiveStorage::Blob.create_after_upload!(filename: "town.jpg", ...)
+user.highlights.attach(blob)
+
+user.highlights.count # => 2
+user.highlights.first.filename # => "funky.jpg"
+user.highlights.second.filename # => "town.jpg"
+```
+
+Opt in to the new default behavior by setting `config.active_storage.replace_on_assign_to_many` to `true`.
+The old behavior will be deprecated in Rails 6.1 and removed in a subsequent release.
+
 Upgrading from Rails 5.1 to Rails 5.2
 -------------------------------------
 

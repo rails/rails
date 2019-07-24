@@ -326,7 +326,7 @@ Please refer to the [Changelog][action-view] for detailed changes.
     select divider `option`.
     ([Pull Request](https://github.com/rails/rails/pull/31088))
 
-*   Change `form_with` to generates ids by default.
+*   Change `form_with` to generate ids by default.
     ([Commit](https://github.com/rails/rails/commit/260d6f112a0ffdbe03e6f5051504cb441c1e94cd))
 
 *   Add `preload_link_tag` helper.
