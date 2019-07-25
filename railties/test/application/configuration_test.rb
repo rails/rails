@@ -1708,7 +1708,7 @@ module ApplicationTests
       app "development"
       ActiveSupport::Dependencies.autoload_paths.each do |path|
         assert_not_operator path, :ends_with?, "app/assets"
-        assert_not_operator path, :ends_with?, "app/javascript"
+        assert_not_operator path, :ends_with?, "app/#{Rails.configuration.webpacker_path}"
       end
     end
 
