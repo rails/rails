@@ -77,15 +77,17 @@ module ActiveSupport
       end
 
       def <<(klass)
-        cleanup!
         @refs << WeakRef.new(klass)
       end
 
       def each
-        @refs.each do |ref|
+        @refs.reject! do |ref|
           yield ref.__getobj__
+          false
         rescue WeakRef::RefError
+          true
         end
+        self
       end
 
       def refs_size
