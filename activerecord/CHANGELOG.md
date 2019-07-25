@@ -1,3 +1,11 @@
+*   Add a warning for enum elements with 'not_' prefix.
+
+        class Foo
+          enum status: [:sent, :not_sent]
+        end
+
+    *Edu Depetris*
+
 *   Make currency symbols optional for money column type in PostgreSQL
 
     *Joel Schneider*

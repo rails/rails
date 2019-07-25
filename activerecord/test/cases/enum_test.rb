@@ -3,6 +3,7 @@
 require "cases/helper"
 require "models/author"
 require "models/book"
+require "active_support/log_subscriber/test_helper"
 
 class EnumTest < ActiveRecord::TestCase
   fixtures :books, :authors, :author_addresses
@@ -564,5 +565,26 @@ class EnumTest < ActiveRecord::TestCase
     end
 
     assert_raises(NoMethodError) { klass.proposed }
+  end
+
+  test "enums with a negative condition log a warning" do
+    old_logger = ActiveRecord::Base.logger
+    logger = ActiveSupport::LogSubscriber::TestHelper::MockLogger.new
+
+    ActiveRecord::Base.logger = logger
+
+    expected_message = "An enum element in Book uses the prefix 'not_'."\
+      " This will cause a conflict with auto generated negative scopes."
+
+    Class.new(ActiveRecord::Base) do
+      def self.name
+        "Book"
+      end
+      enum status: [:sent, :not_sent]
+    end
+
+    assert_match(expected_message, logger.logged(:warn).first)
+  ensure
+    ActiveRecord::Base.logger = old_logger
   end
 end
