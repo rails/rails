@@ -67,7 +67,9 @@ class TransliterateTest < ActiveSupport::TestCase
   # Valid US-ASCII Works
   def test_transliterate_handles_strings_with_valid_us_ascii_encodings
     string = String.new("A", encoding: Encoding::US_ASCII)
-    assert_equal "A", ActiveSupport::Inflector.transliterate(string)
+    transcoded = ActiveSupport::Inflector.transliterate(string)
+    assert_equal "A", transcoded
+    assert_equal Encoding::US_ASCII, transcoded.encoding
   end
 
   # Valid GB18030 Works
@@ -76,20 +78,19 @@ class TransliterateTest < ActiveSupport::TestCase
     assert_equal "A", ActiveSupport::Inflector.transliterate(string)
   end
 
-  # All other encodings raise exceptions
+  # All other encodings raise argument errors
   def test_transliterate_handles_strings_with_incompatible_encodings
     incompatible_encodings = Encoding.list - [
       Encoding::UTF_8,
       Encoding::US_ASCII,
-      Encoding::GB18030,
+      Encoding::GB18030
     ]
-    # This Raises an argument error
-    incompatible_encodings -= [Encoding::ASCII_8BIT]
     incompatible_encodings.each do |encoding|
       string = String.new("", encoding: encoding)
-      exception = assert_raises Encoding::CompatibilityError do
+      exception = assert_raises ArgumentError do
         ActiveSupport::Inflector.transliterate(string)
       end
+      assert_equal "Can not transliterate strings with #{encoding} encoding", exception.message
     end
   end
 
@@ -102,9 +103,10 @@ class TransliterateTest < ActiveSupport::TestCase
   # Invalid raises exception
   def test_transliterate_handles_strings_with_invalid_us_ascii_bytes
     string = String.new("\255", encoding: Encoding::US_ASCII)
-    exception = assert_raises Encoding::CompatibilityError do
-      ActiveSupport::Inflector.transliterate(string)
-    end
+    # exception = assert_raises Encoding::CompatibilityError do
+    #   ActiveSupport::Inflector.transliterate(string)
+    # end
+    assert_equal "?", ActiveSupport::Inflector.transliterate(string)
   end
 
   # Invalid GB18030 raises exception
@@ -113,13 +115,5 @@ class TransliterateTest < ActiveSupport::TestCase
     exception = assert_raises Encoding::CompatibilityError do
       ActiveSupport::Inflector.transliterate(string)
     end
-  end
-
-  def test_transliterate_handles_ascci_8bit_strings
-    ascii_8bit_string = "A".b
-    exception = assert_raises ArgumentError do
-      ActiveSupport::Inflector.transliterate(ascii_8bit_string)
-    end
-    assert_equal "Can not transliterate strings with ASCII-8BIT encoding", exception.message
   end
 end

@@ -61,13 +61,26 @@ module ActiveSupport
     # supported and will raise an ArgumentError.
     def transliterate(string, replacement = "?", locale: nil)
       raise ArgumentError, "Can only transliterate strings. Received #{string.class.name}" unless string.is_a?(String)
-      raise ArgumentError, "Can not transliterate strings with ASCII-8BIT encoding" if string.encoding == ::Encoding::ASCII_8BIT
 
-      I18n.transliterate(
+      allowed_encodings = [Encoding::UTF_8, Encoding::US_ASCII, Encoding::GB18030]
+      raise ArgumentError, "Can not transliterate strings with #{string.encoding} encoding" unless allowed_encodings.include?(string.encoding)
+
+      input_encoding = string.encoding
+
+      # US-ASCII is a subset so we'll force encoding as UTF-8 if US-ASCII is given
+      # This way we can hancle invalid bytes in the same way as we do for UTF-8
+      string.force_encoding(Encoding::UTF_8) if string.encoding == Encoding::US_ASCII
+
+      transliterated = I18n.transliterate(
         ActiveSupport::Multibyte::Unicode.tidy_bytes(string).unicode_normalize(:nfc),
         replacement: replacement,
         locale: locale
       )
+
+      # If we were given US-ASCII we give back US-ASCII
+      transliterated.force_encoding(Encoding::US_ASCII) if input_encoding == Encoding::US_ASCII
+
+      transliterated
     end
 
     # Replaces special characters in a string so that it may be used as part of
