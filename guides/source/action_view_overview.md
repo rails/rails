@@ -1048,7 +1048,7 @@ To access the passed options programatically (e.g. adding a custom class if chec
 
 ```html+erb
 <%= collection_radio_buttons(:article, :author_id, Author.all, :id, :name_with_initial, {checked: Author.last, required: true} do |rb| %>
-      <%= rb.label(class: "#{'my-custom-class' if rb.instance_values['input_html_options'][:checked]}") { rb.radio_button + rb.text } %>
+      <%= rb.label(class: "#{'my-custom-class' if rb.value == Author.last.id}") { rb.radio_button + rb.text } %>
 <% end %>
 ```
 
