@@ -368,17 +368,19 @@ module ActiveSupport
       end
 
       def convert_value(value, for: nil) # :doc:
+        conversion = binding.local_variable_get(:for)
+
         if value.is_a? Hash
-          if binding.local_variable_get(:for) == :to_hash
+          if conversion == :to_hash
             value.to_hash
           else
             value.nested_under_indifferent_access
           end
         elsif value.is_a?(Array)
-          if binding.local_variable_get(:for) != :assignment || value.frozen?
+          if conversion != :assignment || value.frozen?
             value = value.dup
           end
-          value.map! { |e| convert_value(e, options) }
+          value.map! { |e| convert_value(e, for: conversion) }
         else
           value
         end
