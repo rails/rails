@@ -93,6 +93,22 @@ class MiddlewareStackTest < ActiveSupport::TestCase
     assert_equal FooMiddleware, @stack[0].klass
   end
 
+  test "move a middleware up the stack" do
+    @stack.use(BazMiddleware, "foo", "bar")
+    assert_equal(BazMiddleware, @stack.last.klass)
+    @stack.move(BazMiddleware, :insert_before, FooMiddleware)
+    assert_equal(BazMiddleware, @stack.first.klass)
+    assert_equal(["foo", "bar"], @stack.first.args)
+  end
+
+  test "move a middleware down the stack" do
+    @stack.insert_before(FooMiddleware, BazMiddleware, "foo", "bar")
+    assert_equal(BazMiddleware, @stack.first.klass)
+    @stack.move(BazMiddleware, :insert_after, BarMiddleware)
+    assert_equal(BazMiddleware, @stack.last.klass)
+    assert_equal(["foo", "bar"], @stack.last.args)
+  end
+
   test "unshift adds a new middleware at the beginning of the stack" do
     @stack.unshift MiddlewareStackTest::BazMiddleware
     assert_equal BazMiddleware, @stack.first.klass

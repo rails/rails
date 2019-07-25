@@ -122,6 +122,13 @@ module ActionDispatch
       middlewares.push(build_middleware(klass, args, block))
     end
 
+    def move(klass, where, index)
+      current_index = assert_index(klass, where)
+      desired_index = assert_index(index, where)
+      offset = where == :insert_after ? 1 : 0
+      middlewares.insert(desired_index + offset, middlewares.delete_at(current_index))
+    end
+
     def build(app = nil, &block)
       instrumenting = ActiveSupport::Notifications.notifier.listening?(InstrumentationProxy::EVENT_NAME)
       middlewares.freeze.reverse.inject(app || block) do |a, e|

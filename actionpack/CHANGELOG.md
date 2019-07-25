@@ -1,3 +1,15 @@
+*   Added a way to move a middleware up or down the stack
+
+    ```ruby
+      initializer :move_some_library_middleware do
+        config.middleware.move(LibraryMiddleware, :insert_before, SomeOtherMiddleware)
+        # or
+        config.middleware.move(LibraryMiddleware, :insert_after, SomeOtherMiddleware)
+      end
+    ```
+
+    *Edouard Chin*
+
 *   Fix IntegrationTest `follow_redirect!` to follow redirection using the same HTTP verb when following
     a 307 redirection.
 

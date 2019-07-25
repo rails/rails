@@ -33,6 +33,11 @@ module Rails
         assert_playback :use, :foo
       end
 
+      def test_playback_move
+        @stack.move :foo
+        assert_playback :move, :foo
+      end
+
       def test_playback_delete
         @stack.delete :foo
         assert_playback :delete, :foo

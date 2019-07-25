@@ -26,6 +26,11 @@ module Rails
     #
     #     config.middleware.insert_after Rack::Head, Magical::Unicorns
     #
+    # If you need to move a middleware up or down the stack, you can use the +move+ method.
+    # The second argument should be +:insert_before+ or +:insert_after+.
+    #
+    #     config.middleware.move Rack::HEAD, :insert_before, Magical::Unicorns
+    #
     # Middlewares can also be completely swapped out and replaced with others:
     #
     #     config.middleware.swap ActionDispatch::Flash, Magical::Unicorns
@@ -55,6 +60,10 @@ module Rails
       end
 
       def use(*args, &block)
+        @operations << [__method__, args, block]
+      end
+
+      def move(*args, &block)
         @operations << [__method__, args, block]
       end
 
