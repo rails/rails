@@ -749,6 +749,18 @@ module ActionController
     end
     alias_method :delete_if, :reject!
 
+    # Returns a new instance of <tt>ActionController::Parameters</tt> without the blank values.
+    # Uses Object#blank? for determining if a value is blank.
+    def compact_blank
+      reject { |_k, v| v.blank? }
+    end
+
+    # Removes all blank values in place and returns self.
+    # Uses Object#blank? for determining if a value is blank.
+    def compact_blank!
+      reject! { |_k, v| v.blank? }
+    end
+
     # Returns values that were assigned to the given +keys+. Note that all the
     # +Hash+ objects will be converted to <tt>ActionController::Parameters</tt>.
     def values_at(*keys)

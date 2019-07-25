@@ -56,7 +56,7 @@ module ActiveRecord
       def ids_writer(ids)
         primary_key = reflection.association_primary_key
         pk_type = klass.type_for_attribute(primary_key)
-        ids = Array(ids).reject(&:blank?)
+        ids = Array(ids).compact_blank
         ids.map! { |i| pk_type.cast(i) }
 
         records = klass.where(primary_key => ids).index_by do |r|

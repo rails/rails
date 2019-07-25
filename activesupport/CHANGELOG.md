@@ -1,3 +1,8 @@
+*   Add `compact_blank` for those times when you want to remove #blank? values from
+    an Enumerable (also `compact_blank!` on Hash, Array, ActionController::Parameters)
+
+    *Dana Sherson*
+
 *   Make ActiveSupport::Logger Fiber-safe. Fixes #36752.
 
     Use `Fiber.current.__id__` in `ActiveSupport::Logger#local_level=` in order

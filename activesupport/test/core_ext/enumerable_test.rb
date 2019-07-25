@@ -242,4 +242,28 @@ class EnumerableTests < ActiveSupport::TestCase
     ])
     assert_equal [[5, 99], [15, 0], [10, 50]], payments.pluck(:dollars, :cents)
   end
+
+  def test_compact_blank
+    values = GenericEnumerable.new([1, "", nil, 2, " ", [], {}, false, true])
+
+    assert_equal [1, 2, true], values.compact_blank
+  end
+
+  def test_array_compact_blank!
+    values = [1, "", nil, 2, " ", [], {}, false, true]
+    values.compact_blank!
+
+    assert_equal [1, 2, true], values
+  end
+
+  def test_hash_compact_blank
+    values = { a: "", b: 1, c: nil, d: [], e: false, f: true }
+    assert_equal({ b: 1, f: true }, values.compact_blank)
+  end
+
+  def test_hash_compact_blank!
+    values = { a: "", b: 1, c: nil, d: [], e: false, f: true }
+    values.compact_blank!
+    assert_equal({ b: 1, f: true }, values)
+  end
 end

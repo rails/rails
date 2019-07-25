@@ -138,7 +138,7 @@ module ActiveRecord
     end
 
     def includes!(*args) # :nodoc:
-      args.reject!(&:blank?)
+      args.compact_blank!
       args.flatten!
 
       self.includes_values |= args
@@ -265,7 +265,7 @@ module ActiveRecord
     end
 
     def _select!(*fields) # :nodoc:
-      fields.reject!(&:blank?)
+      fields.compact_blank!
       fields.flatten!
       self.select_values += fields
       self
@@ -965,7 +965,7 @@ module ActiveRecord
 
     def reverse_order! # :nodoc:
       orders = order_values.uniq
-      orders.reject!(&:blank?)
+      orders.compact_blank!
       self.order_values = reverse_sql_order(orders)
       self
     end
@@ -1053,7 +1053,7 @@ module ActiveRecord
           )
           arel.skip(Arel::Nodes::BindParam.new(offset_attribute))
         end
-        arel.group(*arel_columns(group_values.uniq.reject(&:blank?))) unless group_values.empty?
+        arel.group(*arel_columns(group_values.uniq.compact_blank)) unless group_values.empty?
 
         build_order(arel)
 
@@ -1129,7 +1129,7 @@ module ActiveRecord
         association_joins = buckets[:association_join]
         stashed_joins     = buckets[:stashed_join]
         join_nodes        = buckets[:join_node].tap(&:uniq!)
-        string_joins      = buckets[:string_join].delete_if(&:blank?).map!(&:strip).tap(&:uniq!)
+        string_joins      = buckets[:string_join].compact_blank!.map!(&:strip).tap(&:uniq!)
 
         string_joins.map! { |join| table.create_string_join(Arel.sql(join)) }
 
@@ -1227,7 +1227,7 @@ module ActiveRecord
 
       def build_order(arel)
         orders = order_values.uniq
-        orders.reject!(&:blank?)
+        orders.compact_blank!
 
         arel.order(*orders) unless orders.empty?
       end
