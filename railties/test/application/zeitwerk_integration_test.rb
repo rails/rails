@@ -98,6 +98,15 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
     assert_nil deps.safe_constantize("Admin")
   end
 
+  test "autoloaded? and overridden class names" do
+    invalid_constant_name = Module.new do
+      def self.name
+        "primary::SchemaMigration"
+      end
+    end
+    assert_not deps.autoloaded?(invalid_constant_name)
+  end
+
   test "unloadable constants (main)" do
     app_file "app/models/user.rb", "class User; end"
     app_file "app/models/post.rb", "class Post; end"
