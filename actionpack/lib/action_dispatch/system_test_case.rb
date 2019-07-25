@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-gem "capybara", ">= 2.15"
+gem "capybara", ">= 3.26"
 
 require "capybara/dsl"
 require "capybara/minitest"
@@ -119,17 +119,6 @@ module ActionDispatch
     def initialize(*) # :nodoc:
       super
       self.class.driver.use
-      @proxy_route = if ActionDispatch.test_app
-        Class.new do
-          include ActionDispatch.test_app.routes.url_helpers
-
-          def url_options
-            default_url_options.merge(host: Capybara.app_host)
-          end
-        end.new
-      else
-        nil
-      end
     end
 
     def self.start_application # :nodoc:
@@ -170,16 +159,33 @@ module ActionDispatch
 
     driven_by :selenium
 
-    def method_missing(method, *args, &block)
-      if @proxy_route.respond_to?(method)
-        @proxy_route.send(method, *args, &block)
-      else
-        super
+    private
+      def url_helpers
+        @url_helpers ||=
+          if ActionDispatch.test_app
+            Class.new do
+              include ActionDispatch.test_app.routes.url_helpers
+
+              def url_options
+                default_url_options.reverse_merge(host: Capybara.app_host || Capybara.current_session.server_url)
+              end
+            end.new
+          end
       end
-    end
 
-    ActiveSupport.run_load_hooks(:action_dispatch_system_test_case, self)
+      def method_missing(name, *args, &block)
+        if url_helpers.respond_to?(name)
+          url_helpers.public_send(name, *args, &block)
+        else
+          super
+        end
+      end
+
+      def respond_to_missing?(name, include_private = false)
+        url_helpers.respond_to?(name)
+      end
   end
-
-  SystemTestCase.start_application
 end
+
+ActiveSupport.run_load_hooks :action_dispatch_system_test_case, ActionDispatch::SystemTestCase
+ActionDispatch::SystemTestCase.start_application
