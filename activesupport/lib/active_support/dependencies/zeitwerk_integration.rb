@@ -28,7 +28,7 @@ module ActiveSupport
         end
 
         def autoloaded?(object)
-          cpath = object.is_a?(Module) ? object.name : object.to_s
+          cpath = object.is_a?(Module) ? real_mod_name(object) : object.to_s
           Rails.autoloaders.main.unloadable_cpath?(cpath)
         end
 
