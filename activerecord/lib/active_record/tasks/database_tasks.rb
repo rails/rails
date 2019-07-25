@@ -154,6 +154,8 @@ module ActiveRecord
       end
 
       def for_each(databases)
+        return {} unless defined?(Rails)
+
         database_configs = ActiveRecord::DatabaseConfigurations.new(databases).configs_for(env_name: Rails.env)
 
         # if this is a single database application we don't want tasks for each primary database
