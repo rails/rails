@@ -1,3 +1,8 @@
+*   Fix IntegrationTest `follow_redirect!` to follow redirection using the same HTTP verb when following
+    a 307 redirection.
+
+    *Edouard Chin*
+
 *   System tests require Capybara 3.26 or newer.
 
     *George Claghorn*
