@@ -1,4 +1,10 @@
-*   Add support for beginless ranges, introduced in Ruby 2.7.
+*   Add a warning for enum elements with 'not_' prefix.
+
+        class Foo
+          enum status: [:sent, :not_sent]
+        end
+
+    *Edu Depetris*
 
     *Josh Goodall*
 
