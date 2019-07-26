@@ -56,14 +56,39 @@ module ActiveSupport
     #
     #   transliterate('Jürgen', locale: :de)
     #   # => "Juergen"
+    #
+    # Transliteration is restricted to UTF-8, US-ASCII and GB18030 strings
+    # Other encodings will raise an ArgumentError.
     def transliterate(string, replacement = "?", locale: nil)
       raise ArgumentError, "Can only transliterate strings. Received #{string.class.name}" unless string.is_a?(String)
 
-      I18n.transliterate(
+      allowed_encodings = [Encoding::UTF_8, Encoding::US_ASCII, Encoding::GB18030]
+      raise ArgumentError, "Can not transliterate strings with #{string.encoding} encoding" unless allowed_encodings.include?(string.encoding)
+
+      input_encoding = string.encoding
+
+      # US-ASCII is a subset of UTF-8 so we'll force encoding as UTF-8 if
+      # US-ASCII is given. This way we can let tidy_bytes handle the string
+      # in the same way as we do for UTF-8
+      string.force_encoding(Encoding::UTF_8) if string.encoding == Encoding::US_ASCII
+
+      # GB18030 is Unicode compatible but is not a direct mapping so needs to be
+      # transcoded. Using invalid/undef :replace will result in loss of data in
+      # the event of invalid characters, but since tidy_bytes will replace
+      # invalid/undef with a "?" we're safe to do the same beforehand
+      string.encode!(Encoding::UTF_8, invalid: :replace, undef: :replace) if string.encoding == Encoding::GB18030
+
+      transliterated = I18n.transliterate(
         ActiveSupport::Multibyte::Unicode.tidy_bytes(string).unicode_normalize(:nfc),
         replacement: replacement,
         locale: locale
       )
+
+      # Restore the string encoding of the input if it was not UTF-8.
+      # Apply invalid/undef :replace as tidy_bytes does
+      transliterated.encode!(input_encoding, invalid: :replace, undef: :replace) if input_encoding != transliterated.encoding
+
+      transliterated
     end
 
     # Replaces special characters in a string so that it may be used as part of
