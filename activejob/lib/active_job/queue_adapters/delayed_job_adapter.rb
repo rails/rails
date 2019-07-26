@@ -3,6 +3,46 @@
 require "delayed_job"
 
 module ActiveJob
+  module Core
+
+    # Override attr_reader in order to defer backend access until it is needed
+    def provider_job_id #:nodoc:
+      find_provider_job_id
+    end
+
+    private
+
+      def scan_backend(job_id_aj) #:nodoc:
+        case Delayed::Worker.backend.name
+        when "Delayed::Backend::ActiveRecord::Job"
+          Delayed::Job.where("handler LIKE '%#{job_id_aj}%'")  # in lieu of Delayed::Job.all
+        else
+          []
+        end
+      end
+
+      def find_provider_job_id #:nodoc:
+        begin
+          job_id_aj = self.job_id
+          djs = scan_backend(job_id_aj)
+          djs.map do |dj|
+            obj = dj.payload_object
+            next if obj.blank? || obj.job_data.blank?
+
+            job_id_persisted = obj.job_data["job_id"]
+            return dj.id if job_id_persisted == job_id_aj
+          end
+        rescue
+          return nil
+        end
+
+        nil
+      end
+
+  end
+end
+
+module ActiveJob
   module QueueAdapters
     # == Delayed Job adapter for Active Job
     #
@@ -38,37 +78,8 @@ module ActiveJob
           "#{job_data['job_class']} [#{job_data['job_id']}] from DelayedJob(#{job_data['queue_name']}) with arguments: #{job_data['arguments']}"
         end
 
-        def scan_backend(job_id_aj) #:nodoc:
-          case Delayed::Worker.backend.name
-          when "Delayed::Backend::ActiveRecord::Job"
-            Delayed::Job.where("handler LIKE '%#{job_id_aj}%'")  # in lieu of Delayed::Job.all
-          else
-            []
-          end
-        end
-
-        def find_provider_job_id #:nodoc:
-          return nil if self.job_data.blank?
-
-          begin
-            job_id_aj = self.job_data["job_id"]
-            djs = scan_backend(job_id_aj)
-            djs.map do |dj|
-              obj = dj.payload_object
-              next if obj.blank? || obj.job_data.blank?
-
-              job_id_persisted = obj.job_data["job_id"]
-              return dj.id if job_id_persisted == job_id_aj
-            end
-          rescue
-            return nil
-          end
-
-          nil
-        end
-
         def perform
-          Base.execute job_data.merge("provider_job_id" => find_provider_job_id)
+          Base.execute(job_data)
         end
       end
     end

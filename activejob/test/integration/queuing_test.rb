@@ -56,6 +56,7 @@ class QueuingTest < ActiveSupport::TestCase
     skip unless adapter_is?(:delayed_job)
     job = ::ProviderJidJob.perform_later
     job_id = job.provider_job_id
+    assert_not_nil job_id
 
     dj = Delayed::Job.first
     obj = dj.payload_object
