@@ -1,4 +1,5 @@
 *   Added `phone_to` helper method to create a link from mobile numbers
+
     *Pietro Moro*
 
 *   annotated_source_code returns an empty array so TemplateErrors without a
