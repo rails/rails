@@ -23,7 +23,7 @@ module Rails
         Mail.new(params.require(:mail).permit(:from, :to, :cc, :bcc, :in_reply_to, :subject, :body).to_h).tap do |mail|
           mail[:bcc]&.include_in_headers = true
           params[:mail][:attachments].to_a.each do |attachment|
-            mail.add_file(filename: attachment.path, content: attachment.read)
+            mail.add_file(filename: attachment.original_filename, content: attachment.read)
           end
         end
       end
