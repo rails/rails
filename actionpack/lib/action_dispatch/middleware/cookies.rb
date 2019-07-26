@@ -346,28 +346,6 @@ module ActionDispatch
         @cookies.map { |k, v| "#{escape(k)}=#{escape(v)}" }.join "; "
       end
 
-      def handle_options(options) # :nodoc:
-        if options[:expires].respond_to?(:from_now)
-          options[:expires] = options[:expires].from_now
-        end
-
-        options[:path] ||= "/"
-
-        if options[:domain] == :all || options[:domain] == "all"
-          # If there is a provided tld length then we use it otherwise default domain regexp.
-          domain_regexp = options[:tld_length] ? /([^.]+\.?){#{options[:tld_length]}}$/ : DOMAIN_REGEXP
-
-          # If host is not ip and matches domain regexp.
-          # (ip confirms to domain regexp so we explicitly check for ip)
-          options[:domain] = if (request.host !~ /^[\d.]+$/) && (request.host =~ domain_regexp)
-            ".#{$&}"
-          end
-        elsif options[:domain].is_a? Array
-          # If host matches one of the supplied domains without a dot in front of it.
-          options[:domain] = options[:domain].find { |domain| request.host.include? domain.sub(/^\./, "") }
-        end
-      end
-
       # Sets the cookie named +name+. The second argument may be the cookie's
       # value or a hash of options as documented above.
       def []=(name, options)
@@ -446,6 +424,28 @@ module ActionDispatch
 
         def write_cookie?(cookie)
           request.ssl? || !cookie[:secure] || always_write_cookie
+        end
+
+        def handle_options(options)
+          if options[:expires].respond_to?(:from_now)
+            options[:expires] = options[:expires].from_now
+          end
+
+          options[:path] ||= "/"
+
+          if options[:domain] == :all || options[:domain] == "all"
+            # If there is a provided tld length then we use it otherwise default domain regexp.
+            domain_regexp = options[:tld_length] ? /([^.]+\.?){#{options[:tld_length]}}$/ : DOMAIN_REGEXP
+
+            # If host is not ip and matches domain regexp.
+            # (ip confirms to domain regexp so we explicitly check for ip)
+            options[:domain] = if (request.host !~ /^[\d.]+$/) && (request.host =~ domain_regexp)
+              ".#{$&}"
+            end
+          elsif options[:domain].is_a? Array
+            # If host matches one of the supplied domains without a dot in front of it.
+            options[:domain] = options[:domain].find { |domain| request.host.include? domain.sub(/^\./, "") }
+          end
         end
     end
 
