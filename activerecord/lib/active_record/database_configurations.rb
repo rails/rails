@@ -181,10 +181,17 @@ module ActiveRecord
       end
 
       def environment_url_config(env, spec_name, config)
-        url = ENV["DATABASE_URL"]
+        url = environment_value_for(spec_name)
         return unless url
 
         ActiveRecord::DatabaseConfigurations::UrlConfig.new(env, spec_name, url, config)
+      end
+
+      def environment_value_for(spec_name)
+        spec_env_key = "#{spec_name.upcase}_DATABASE_URL"
+        url = ENV[spec_env_key]
+        url ||= ENV["DATABASE_URL"] if spec_name == "primary"
+        url
       end
 
       def method_missing(method, *args, &blk)

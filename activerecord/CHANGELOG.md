@@ -1,3 +1,7 @@
+*   Make the DATABASE_URL env variable only affect the primary connection. Add new env variables for multiple databases.
+
+    *John Crepezzi*, *Eileen Uchitelle*
+
 *   Add a warning for enum elements with 'not_' prefix.
 
         class Foo

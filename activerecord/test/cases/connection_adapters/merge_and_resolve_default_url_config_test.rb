@@ -334,6 +334,8 @@ module ActiveRecord
           }
         }
 
+        configs = ActiveRecord::DatabaseConfigurations.new(config)
+        actual = configs.configs_for(env_name: "default_env", spec_name: "primary").config
         expected = {
           "adapter"  => "postgresql",
           "database" => "foo",
@@ -341,11 +343,37 @@ module ActiveRecord
           "pool"     => 5
         }
 
-        ["primary", "animals"].each do |spec_name|
-          configs = ActiveRecord::DatabaseConfigurations.new(config)
-          actual = configs.configs_for(env_name: "default_env", spec_name: spec_name).config
-          assert_equal expected, actual
-        end
+        assert_equal expected, actual
+
+        configs = ActiveRecord::DatabaseConfigurations.new(config)
+        actual = configs.configs_for(env_name: "default_env", spec_name: "animals").config
+        expected = { "pool" => 5 }
+
+        assert_equal expected, actual
+      end
+
+      def test_separate_database_env_vars
+        ENV["DATABASE_URL"] = "postgres://localhost/foo"
+        ENV["PRIMARY_DATABASE_URL"] = "postgres://localhost/primary"
+        ENV["ANIMALS_DATABASE_URL"] = "postgres://localhost/animals"
+
+        config = {
+          "default_env" => {
+            "primary" => { "pool" => 5 },
+            "animals" => { "pool" => 5 }
+          }
+        }
+
+        configs = ActiveRecord::DatabaseConfigurations.new(config)
+        actual = configs.configs_for(env_name: "default_env", spec_name: "primary").config
+        assert_equal "primary", actual["database"]
+
+        configs = ActiveRecord::DatabaseConfigurations.new(config)
+        actual = configs.configs_for(env_name: "default_env", spec_name: "animals").config
+        assert_equal "animals", actual["database"]
+      ensure
+        ENV.delete("PRIMARY_DATABASE_URL")
+        ENV.delete("ANIMALS_DATABASE_URL")
       end
 
       def test_does_not_change_other_environments
