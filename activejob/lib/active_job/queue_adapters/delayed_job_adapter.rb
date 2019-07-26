@@ -4,14 +4,12 @@ require "delayed_job"
 
 module ActiveJob
   module Core
-
     # Override attr_reader in order to defer backend access until it is needed
     def provider_job_id #:nodoc:
       find_provider_job_id
     end
 
     private
-
       def scan_backend(job_id_aj) #:nodoc:
         case Delayed::Worker.backend.name
         when "Delayed::Backend::ActiveRecord::Job"
@@ -38,7 +36,6 @@ module ActiveJob
 
         nil
       end
-
   end
 end
 
