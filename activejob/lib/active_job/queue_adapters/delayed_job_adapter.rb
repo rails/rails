@@ -39,8 +39,8 @@ module ActiveJob
         end
 
         def scan_backend(job_id_aj) #:nodoc:
-          case Delayed::Worker.backend
-          when :active_record
+          case Delayed::Worker.backend.name
+          when 'Delayed::Backend::ActiveRecord::Job'
             Delayed::Job.where("handler LIKE '%#{job_id_aj}%'")  # in lieu of Delayed::Job.all
           else
             []
