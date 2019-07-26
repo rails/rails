@@ -619,7 +619,7 @@ module ActionView
         content_tag("a", name || phone_number, html_options, &block)
       end
 
-      # Creates an TEL anchor link tag to the specified +phone_number+, which is
+      # Creates a TEL anchor link tag to the specified +phone_number+, which is
       # also used as the name of the link unless +name+ is specified. Additional
       # HTML attributes for the link can be passed in +html_options+.
       #
