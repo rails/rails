@@ -57,4 +57,53 @@ class TransliterateTest < ActiveSupport::TestCase
     end
     assert_equal "Can only transliterate strings. Received Object", exception.message
   end
+
+  def test_transliterate_handles_strings_with_valid_utf8_encodings
+    string = String.new("A", encoding: Encoding::UTF_8)
+    assert_equal "A", ActiveSupport::Inflector.transliterate(string)
+  end
+
+  def test_transliterate_handles_strings_with_valid_us_ascii_encodings
+    string = String.new("A", encoding: Encoding::US_ASCII)
+    transcoded = ActiveSupport::Inflector.transliterate(string)
+    assert_equal "A", transcoded
+    assert_equal Encoding::US_ASCII, transcoded.encoding
+  end
+
+  def test_transliterate_handles_strings_with_valid_gb18030_encodings
+    string = String.new("A", encoding: Encoding::GB18030)
+    transcoded = ActiveSupport::Inflector.transliterate(string)
+    assert_equal "A", transcoded
+    assert_equal Encoding::GB18030, transcoded.encoding
+  end
+
+  def test_transliterate_handles_strings_with_incompatible_encodings
+    incompatible_encodings = Encoding.list - [
+      Encoding::UTF_8,
+      Encoding::US_ASCII,
+      Encoding::GB18030
+    ]
+    incompatible_encodings.each do |encoding|
+      string = String.new("", encoding: encoding)
+      exception = assert_raises ArgumentError do
+        ActiveSupport::Inflector.transliterate(string)
+      end
+      assert_equal "Can not transliterate strings with #{encoding} encoding", exception.message
+    end
+  end
+
+  def test_transliterate_handles_strings_with_invalid_utf8_bytes
+    string = String.new("\255", encoding: Encoding::UTF_8)
+    assert_equal "?", ActiveSupport::Inflector.transliterate(string)
+  end
+
+  def test_transliterate_handles_strings_with_invalid_us_ascii_bytes
+    string = String.new("\255", encoding: Encoding::US_ASCII)
+    assert_equal "?", ActiveSupport::Inflector.transliterate(string)
+  end
+
+  def test_transliterate_handles_strings_with_invalid_gb18030_bytes
+    string = String.new("\255", encoding: Encoding::GB18030)
+    assert_equal "?", ActiveSupport::Inflector.transliterate(string)
+  end
 end
