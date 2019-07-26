@@ -61,8 +61,8 @@ class String
   #   str.from(0).to(-1) # => "hello"
   #   str.from(1).to(-2) # => "ell"
   def to(position)
-    position = [position + length, -1].max if position < 0
-    self[0, position + 1]
+    position += size if position < 0
+    self[0, position + 1].to_s
   end
 
   # Returns the first character. If a limit is supplied, returns a substring

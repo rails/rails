@@ -455,6 +455,8 @@ class StringAccessTest < ActiveSupport::TestCase
 
   test "#to with negative Integer, position is counted from the end" do
     assert_equal "hell", "hello".to(-2)
+    assert_equal "h", "hello".to(-5)
+    assert_equal "", "hello".to(-7)
   end
 
   test "#from and #to can be combined" do
