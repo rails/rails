@@ -1,3 +1,7 @@
+*   Make the DATABASE_URL env variable only affect the primary connection. Add new env variables for multiple databases.
+
+    *John Crepezzi*, *Eileen Uchitelle*
+
 *   Add a warning for enum elements with 'not_' prefix.
 
         class Foo
@@ -55,6 +59,5 @@
 *   Allow generated `create_table` migrations to include or skip timestamps.
 
     *Michael Duchemin*
-
 
 Please check [6-0-stable](https://github.com/rails/rails/blob/6-0-stable/activerecord/CHANGELOG.md) for previous changes.
