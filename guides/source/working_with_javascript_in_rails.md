@@ -14,6 +14,7 @@ After reading this guide, you will know:
 * How Rails' built-in helpers assist you.
 * How to handle Ajax on the server side.
 * The Turbolinks gem.
+* How to include your Cross-Site Request Forgery token in request headers
 
 -------------------------------------------------------------------------------
 
@@ -523,6 +524,23 @@ $(document).on "turbolinks:load", ->
 For more details, including other events you can bind to, check out [the
 Turbolinks
 README](https://github.com/turbolinks/turbolinks/blob/master/README.md).
+
+Cross-Site Request Forgery (CSRF) token in Ajax
+----
+
+When using another library to make Ajax calls, it is necessary to add
+the security token as a default header for Ajax calls in your library. To get
+the token:
+
+```javascript
+var token = document.getElementsByName('csrf-token')[0].content
+```
+
+You can then submit this token as a X-CSRF-Token in your header for your
+Ajax requst.  You do not need to add a CSRF for GET requests, only non-GET 
+requests.
+
+You can read more about about Cross-Site Request Forgery in [Security](https://guides.rubyonrails.org/security.html#cross-site-request-forgery-csrf)
 
 Other Resources
 ---------------
