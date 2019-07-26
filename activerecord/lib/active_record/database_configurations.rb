@@ -91,6 +91,19 @@ module ActiveRecord
     end
     alias :blank? :empty?
 
+    def each
+      throw_getter_deprecation(:each)
+      configurations.each { |config|
+        yield [config.env_name, config.config]
+      }
+    end
+
+    def first
+      throw_getter_deprecation(:first)
+      config = configurations.first
+      [config.env_name, config.config]
+    end
+
     private
       def env_with_configs(env = nil)
         if env
@@ -176,9 +189,6 @@ module ActiveRecord
 
       def method_missing(method, *args, &blk)
         case method
-        when :each, :first
-          throw_getter_deprecation(method)
-          configurations.send(method, *args, &blk)
         when :fetch
           throw_getter_deprecation(method)
           configs_for(env_name: args.first)
