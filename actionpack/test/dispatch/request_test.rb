@@ -865,10 +865,26 @@ class RequestFormat < BaseRequestTest
     assert_not_predicate request.format, :json?
   end
 
-  test "format does not throw exceptions when malformed parameters" do
+  test "format does not throw exceptions when malformed GET parameters" do
     request = stub_request("QUERY_STRING" => "x[y]=1&x[y][][w]=2")
     assert request.formats
     assert_predicate request.format, :html?
+  end
+
+  test "format does not throw exceptions when invalid POST parameters" do
+    body = "{record:{content:127.0.0.1}}"
+    request = stub_request(
+      "REQUEST_METHOD" => "POST",
+      "CONTENT_LENGTH" => body.length,
+      "CONTENT_TYPE" => "application/json",
+      "rack.input" => StringIO.new(body),
+      "action_dispatch.logger" => Logger.new(output = StringIO.new)
+    )
+    assert request.formats
+    assert request.format.html?
+
+    output.rewind && (err = output.read)
+    assert_match /Error occurred while parsing request parameters/, err
   end
 
   test "formats with xhr request" do
