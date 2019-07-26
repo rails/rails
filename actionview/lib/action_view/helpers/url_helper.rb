@@ -666,7 +666,6 @@ module ActionView
         content_tag("a", name || phone_number, html_options, &block)
       end
 
-
       private
         def convert_options_to_data_attributes(options, html_options)
           if html_options
