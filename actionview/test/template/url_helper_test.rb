@@ -770,6 +770,70 @@ class UrlHelperTest < ActiveSupport::TestCase
     assert_equal({ class: "special" }, options)
   end
 
+  def test_phone_to
+    assert_dom_equal %{<a href="tel:1234567890">1234567890</a>},
+      phone_to("1234567890")
+    assert_dom_equal %{<a href="tel:1234567890">Bob</a>},
+      phone_to("1234567890", "Bob")
+    assert_dom_equal(
+      %{<a class="phoner" href="tel:1234567890">Bob</a>},
+      phone_to("1234567890", "Bob", "class" => "phoner")
+    )
+    assert_equal phone_to("1234567890", "Bob", "class" => "admin"),
+                 phone_to("1234567890", "Bob", class: "admin")
+  end
+
+  def test_phone_to_with_options
+    assert_dom_equal(
+      %{<a class="example-class" href="tel:+011234567890">Phone</a>},
+      phone_to("1234567890", "Phone", class: "example-class", country_code: "01")
+    )
+
+    assert_dom_equal(
+      %{<a href="tel:+011234567890">Phone</a>},
+      phone_to("1234567890", "Phone", country_code: "01")
+    )
+  end
+
+  def test_phone_with_img
+    assert_dom_equal %{<a href="tel:1234567890"><img src="/feedback.png" /></a>},
+      phone_to("1234567890", raw('<img src="/feedback.png" />'))
+  end
+
+  def test_phone_with_html_safe_string
+    assert_dom_equal(
+      %{<a href="tel:1%2B234567890">1+234567890</a>},
+      phone_to(raw("1+234567890"))
+    )
+  end
+
+  def test_phone_with_nil
+    assert_dom_equal(
+      %{<a href="tel:"></a>},
+      phone_to(nil)
+    )
+  end
+
+  def test_phone_returns_html_safe_string
+    assert_predicate phone_to("1234567890"), :html_safe?
+  end
+
+  def test_phone_with_block
+    assert_dom_equal %{<a href="tel:1234567890"><span>Phone</span></a>},
+      phone_to("1234567890") { content_tag(:span, "Phone") }
+  end
+
+  def test_phone_with_block_and_options
+    assert_dom_equal %{<a class="special" href="tel:+011234567890"><span>Phone</span></a>},
+      phone_to("1234567890", country_code: "01", class: "special") { content_tag(:span, "Phone") }
+  end
+
+  def test_phone_does_not_modify_html_options_hash
+    options = { class: "special" }
+    phone_to "1234567890", "ME!", options
+    assert_equal({ class: "special" }, options)
+  end
+
   def protect_against_forgery?
     request_forgery
   end

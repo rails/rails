@@ -619,6 +619,53 @@ module ActionView
         content_tag("a", name || phone_number, html_options, &block)
       end
 
+      # Creates a TEL anchor link tag to the specified +phone_number+, which is
+      # also used as the name of the link unless +name+ is specified. Additional
+      # HTML attributes for the link can be passed in +html_options+.
+      #
+      # When clicked, the default app to make calls is opened, and it
+      # is prepopulated with the passed phone number and optional
+      # +country_code+ value.
+      #
+      # +phone_to+ has a optional +country_code+ option which automatically adds the country
+      # code as well as the + sign in the phone numer that gets prepopulated,
+      # for example if +country_code: "01"+  +\+01+ will be prepended to the
+      # phone numer, by passing special keys to +html_options+.
+      #
+      # ==== Options
+      # * <tt>:country_code</tt> - Prepends the country code to the number
+      #
+      # ==== Examples
+      #   phone_to "1234567890"
+      #   # => <a href="tel:1234567890">1234567890</a>
+      #
+      #   phone_to "1234567890", "Phone me"
+      #   # => <a href="tel:134567890">Phone me</a>
+      #
+      #   phone_to "1234567890", "Phone me", country_code: "01"
+      #   # => <a href="tel:+015155555785">Phone me</a>
+      #
+      # You can use a block as well if your link target is hard to fit into the name parameter. \ERB example:
+      #
+      #   <%= phone_to "1234567890" do %>
+      #     <strong>Phone me:</strong>
+      #   <% end %>
+      #   # => <a href="tel:1234567890">
+      #          <strong>Phone me:</strong>
+      #        </a>
+      def phone_to(phone_number, name = nil, html_options = {}, &block)
+        html_options, name = name, nil if block_given?
+        html_options = (html_options || {}).stringify_keys
+
+        country_code = html_options.delete("country_code").presence
+        country_code = country_code.nil? ? "" : "+#{ERB::Util.url_encode(country_code)}"
+
+        encoded_phone_number = ERB::Util.url_encode(phone_number)
+        html_options["href"] = "tel:#{country_code}#{encoded_phone_number}"
+
+        content_tag("a", name || phone_number, html_options, &block)
+      end
+
       private
         def convert_options_to_data_attributes(options, html_options)
           if html_options
