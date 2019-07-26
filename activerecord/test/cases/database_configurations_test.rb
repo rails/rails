@@ -80,17 +80,20 @@ class LegacyDatabaseConfigurationsTest < ActiveRecord::TestCase
 
   def test_each_is_deprecated
     assert_deprecated do
-      ActiveRecord::Base.configurations.each do |db_config|
-        assert_equal "primary", db_config.spec_name
+      all_configs = ActiveRecord::Base.configurations.values
+      ActiveRecord::Base.configurations.each do |env_name, config|
+        assert_includes ["arunit", "arunit2", "arunit_without_prepared_statements"], env_name
+        assert_includes all_configs, config
       end
     end
   end
 
   def test_first_is_deprecated
+    first_config = ActiveRecord::Base.configurations.values.first
     assert_deprecated do
-      db_config = ActiveRecord::Base.configurations.first
-      assert_equal "arunit", db_config.env_name
-      assert_equal "primary", db_config.spec_name
+      env_name, config = ActiveRecord::Base.configurations.first
+      assert_equal "arunit", env_name
+      assert_equal first_config, config
     end
   end
 
