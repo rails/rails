@@ -75,7 +75,9 @@ class TransliterateTest < ActiveSupport::TestCase
   # Valid GB18030 Works
   def test_transliterate_handles_strings_with_valid_gb18030_encodings
     string = String.new("A", encoding: Encoding::GB18030)
-    assert_equal "A", ActiveSupport::Inflector.transliterate(string)
+    transcoded = ActiveSupport::Inflector.transliterate(string)
+    assert_equal "A", transcoded
+    assert_equal Encoding::GB18030, transcoded.encoding
   end
 
   # All other encodings raise argument errors
@@ -103,17 +105,12 @@ class TransliterateTest < ActiveSupport::TestCase
   # Invalid raises exception
   def test_transliterate_handles_strings_with_invalid_us_ascii_bytes
     string = String.new("\255", encoding: Encoding::US_ASCII)
-    # exception = assert_raises Encoding::CompatibilityError do
-    #   ActiveSupport::Inflector.transliterate(string)
-    # end
     assert_equal "?", ActiveSupport::Inflector.transliterate(string)
   end
 
   # Invalid GB18030 raises exception
   def test_transliterate_handles_strings_with_invalid_gb18030_bytes
     string = String.new("\255", encoding: Encoding::GB18030)
-    exception = assert_raises Encoding::CompatibilityError do
-      ActiveSupport::Inflector.transliterate(string)
-    end
+    assert_equal "?", ActiveSupport::Inflector.transliterate(string)
   end
 end
