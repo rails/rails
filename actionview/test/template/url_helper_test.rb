@@ -834,7 +834,6 @@ class UrlHelperTest < ActiveSupport::TestCase
     assert_equal({ class: "special" }, options)
   end
 
-
   def protect_against_forgery?
     request_forgery
   end
