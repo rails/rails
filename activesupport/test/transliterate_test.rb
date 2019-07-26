@@ -58,13 +58,11 @@ class TransliterateTest < ActiveSupport::TestCase
     assert_equal "Can only transliterate strings. Received Object", exception.message
   end
 
-  # Valid UTF-8 Works
   def test_transliterate_handles_strings_with_valid_utf8_encodings
     string = String.new("A", encoding: Encoding::UTF_8)
     assert_equal "A", ActiveSupport::Inflector.transliterate(string)
   end
 
-  # Valid US-ASCII Works
   def test_transliterate_handles_strings_with_valid_us_ascii_encodings
     string = String.new("A", encoding: Encoding::US_ASCII)
     transcoded = ActiveSupport::Inflector.transliterate(string)
@@ -72,7 +70,6 @@ class TransliterateTest < ActiveSupport::TestCase
     assert_equal Encoding::US_ASCII, transcoded.encoding
   end
 
-  # Valid GB18030 Works
   def test_transliterate_handles_strings_with_valid_gb18030_encodings
     string = String.new("A", encoding: Encoding::GB18030)
     transcoded = ActiveSupport::Inflector.transliterate(string)
@@ -80,7 +77,6 @@ class TransliterateTest < ActiveSupport::TestCase
     assert_equal Encoding::GB18030, transcoded.encoding
   end
 
-  # All other encodings raise argument errors
   def test_transliterate_handles_strings_with_incompatible_encodings
     incompatible_encodings = Encoding.list - [
       Encoding::UTF_8,
@@ -96,19 +92,16 @@ class TransliterateTest < ActiveSupport::TestCase
     end
   end
 
-  # Invalid UTF-8 Works
   def test_transliterate_handles_strings_with_invalid_utf8_bytes
     string = String.new("\255", encoding: Encoding::UTF_8)
     assert_equal "?", ActiveSupport::Inflector.transliterate(string)
   end
 
-  # Invalid raises exception
   def test_transliterate_handles_strings_with_invalid_us_ascii_bytes
     string = String.new("\255", encoding: Encoding::US_ASCII)
     assert_equal "?", ActiveSupport::Inflector.transliterate(string)
   end
 
-  # Invalid GB18030 raises exception
   def test_transliterate_handles_strings_with_invalid_gb18030_bytes
     string = String.new("\255", encoding: Encoding::GB18030)
     assert_equal "?", ActiveSupport::Inflector.transliterate(string)
