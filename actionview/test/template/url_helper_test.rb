@@ -731,40 +731,40 @@ class UrlHelperTest < ActiveSupport::TestCase
     )
   end
 
-  def test_sms_with_img
+  def test_sms_to_with_img
     assert_dom_equal %{<a href="sms:15155555785;"><img src="/feedback.png" /></a>},
       sms_to("15155555785", raw('<img src="/feedback.png" />'))
   end
 
-  def test_sms_with_html_safe_string
+  def test_sms_to_with_html_safe_string
     assert_dom_equal(
       %{<a href="sms:1%2B5155555785;">1+5155555785</a>},
       sms_to(raw("1+5155555785"))
     )
   end
 
-  def test_sms_with_nil
+  def test_sms_to_with_nil
     assert_dom_equal(
       %{<a href="sms:;"></a>},
       sms_to(nil)
     )
   end
 
-  def test_sms_returns_html_safe_string
+  def test_sms_to_returns_html_safe_string
     assert_predicate sms_to("15155555785"), :html_safe?
   end
 
-  def test_sms_with_block
+  def test_sms_to_with_block
     assert_dom_equal %{<a href="sms:15155555785;"><span>Text me</span></a>},
       sms_to("15155555785") { content_tag(:span, "Text me") }
   end
 
-  def test_sms_with_block_and_options
+  def test_sms_to_with_block_and_options
     assert_dom_equal %{<a class="special" href="sms:15155555785;?&body=Hello%20from%20Jim"><span>Text me</span></a>},
       sms_to("15155555785", body: "Hello from Jim", class: "special") { content_tag(:span, "Text me") }
   end
 
-  def test_sms_does_not_modify_html_options_hash
+  def test_sms_to_does_not_modify_html_options_hash
     options = { class: "special" }
     sms_to "15155555785", "ME!", options
     assert_equal({ class: "special" }, options)
