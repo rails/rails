@@ -45,10 +45,9 @@ class Rails::Conductor::ActionMailbox::InboundEmailsControllerTest < ActionDispa
       end
 
       mail = ActionMailbox::InboundEmail.last.mail
-      attachment_filenames = mail.attachments.map(&:filename)
       assert_equal "Let's talk about these images:", mail.text_part.decoded
       assert_equal 2, mail.attachments.count
-      assert_equal attachment_filenames, ["avatar1.jpeg", "avatar2.jpeg"]
+      assert_equal %w[ avatar1.jpeg avatar2.jpeg ], mail.attachments.collect(&:filename)
     end
   end
 
