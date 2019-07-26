@@ -1,3 +1,18 @@
+*   Add `Vary: Accept` header when using `Accept` header for response
+
+    For some requests like `/users/1`, Rails uses requests' `Accept`
+    header to determine what to return. And if we don't add `Vary`
+    in the response header, browsers might accidentally cache different
+    types of content, which would cause issues: e.g. javascript got displayed
+    instead of html content. This PR fixes these issues by adding `Vary: Accept`
+    in these types of requests. For more detailed problem description, please read:
+
+    https://github.com/rails/rails/pull/36213
+
+    Fixes #25842
+
+    *Stan Lo*
+
 *   Fix IntegrationTest `follow_redirect!` to follow redirection using the same HTTP verb when following
     a 307 redirection.
 
