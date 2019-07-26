@@ -657,11 +657,11 @@ module ActionView
         html_options, name = name, nil if block_given?
         html_options = (html_options || {}).stringify_keys
 
-        country = html_options.delete("country_code").presence
-        country = country.nil? ? "" : "+#{ERB::Util.url_encode(country)}"
+        country_code = html_options.delete("country_code").presence
+        country_code = country_code.nil? ? "" : "+#{ERB::Util.url_encode(country_code)}"
 
         encoded_phone_number = ERB::Util.url_encode(phone_number)
-        html_options["href"] = "tel:#{country}#{encoded_phone_number}"
+        html_options["href"] = "tel:#{country_code}#{encoded_phone_number}"
 
         content_tag("a", name || phone_number, html_options, &block)
       end
