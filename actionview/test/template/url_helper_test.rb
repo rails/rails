@@ -657,7 +657,7 @@ class UrlHelperTest < ActiveSupport::TestCase
     )
   end
 
-  def test_mail_with_options
+  def test_mail_to_with_options
     assert_dom_equal(
       %{<a href="mailto:me@example.com?cc=ccaddress%40example.com&amp;bcc=bccaddress%40example.com&amp;body=This%20is%20the%20body%20of%20the%20message.&amp;subject=This%20is%20an%20example%20email&amp;reply-to=foo%40bar.com">My email</a>},
       mail_to("me@example.com", "My email", cc: "ccaddress@example.com", bcc: "bccaddress@example.com", subject: "This is an example email", body: "This is the body of the message.", reply_to: "foo@bar.com")
@@ -795,40 +795,40 @@ class UrlHelperTest < ActiveSupport::TestCase
     )
   end
 
-  def test_phone_with_img
+  def test_phone_to_with_img
     assert_dom_equal %{<a href="tel:1234567890"><img src="/feedback.png" /></a>},
       phone_to("1234567890", raw('<img src="/feedback.png" />'))
   end
 
-  def test_phone_with_html_safe_string
+  def test_phone_to_with_html_safe_string
     assert_dom_equal(
       %{<a href="tel:1%2B234567890">1+234567890</a>},
       phone_to(raw("1+234567890"))
     )
   end
 
-  def test_phone_with_nil
+  def test_phone_to_with_nil
     assert_dom_equal(
       %{<a href="tel:"></a>},
       phone_to(nil)
     )
   end
 
-  def test_phone_returns_html_safe_string
+  def test_phone_to_returns_html_safe_string
     assert_predicate phone_to("1234567890"), :html_safe?
   end
 
-  def test_phone_with_block
+  def test_phone_to_with_block
     assert_dom_equal %{<a href="tel:1234567890"><span>Phone</span></a>},
       phone_to("1234567890") { content_tag(:span, "Phone") }
   end
 
-  def test_phone_with_block_and_options
+  def test_phone_to_with_block_and_options
     assert_dom_equal %{<a class="special" href="tel:+011234567890"><span>Phone</span></a>},
       phone_to("1234567890", country_code: "01", class: "special") { content_tag(:span, "Phone") }
   end
 
-  def test_phone_does_not_modify_html_options_hash
+  def test_phone_to_does_not_modify_html_options_hash
     options = { class: "special" }
     phone_to "1234567890", "ME!", options
     assert_equal({ class: "special" }, options)
