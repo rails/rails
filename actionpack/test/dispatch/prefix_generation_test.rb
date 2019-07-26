@@ -304,7 +304,7 @@ module TestGenerationPrefix
       assert_equal "/omg/blog/posts/1", path
     end
 
-    test "[OBJECT] generating engine's route with named helpers" do
+    test "[OBJECT] generating engine's route with named route helpers" do
       path = engine_object.posts_path
       assert_equal "/awesome/blog/posts", path
 

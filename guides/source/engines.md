@@ -264,7 +264,7 @@ contains a file called `application_helper.rb`. This file will provide any
 common functionality for the helpers of the engine. The `blorgh` directory
 is where the other helpers for the engine will go. By placing them within
 this namespaced directory, you prevent them from possibly clashing with
-identically-named helpers within other engines or even within the
+identically-named route helpers within other engines or even within the
 application.
 
 Within the `app/jobs` directory there is a `blorgh` directory that
