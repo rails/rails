@@ -4,6 +4,7 @@ require "isolation/abstract_unit"
 require "env_helpers"
 require "rails/command"
 require "rails/commands/credentials/credentials_command"
+require "fileutils"
 
 class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
   include ActiveSupport::Testing::Isolation, EnvHelpers
@@ -88,8 +89,105 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
     assert_match(/secret_key_base/, output)
   end
 
+  test "edit ask the user to opt in to pretty credentials" do
+    assert_match(/Would you like to make the credentials diff from git/, run_edit_command)
+  end
+
+  test "edit doesn't ask the user to opt in to pretty credentials when alreasy asked" do
+    app_file("tmp/rails_pretty_credentials", "")
+
+    assert_no_match(/Would you like to make the credentials diff from git/, run_edit_command)
+  end
+
+  test "edit doesn't ask the user to opt in when user already opted in" do
+    content = <<~EOM
+      [diff "rails_credentials"]
+          textconv = bin/rails credentials:show
+    EOM
+    app_file(".git/config", content)
+
+    assert_no_match(/Would you like to make the credentials diff from git/, run_edit_command)
+  end
+
+  test "edit ask the user to opt in to pretty credentials, user accepts" do
+    file = File.open("foo", "w")
+    file.write("y")
+    file.rewind
+
+    run_edit_command(stdin: file.path)
+
+    git_attributes = app_path(".gitattributes")
+    expected = <<~EOM
+      config/credentials/*.yml.enc diff=rails_credentials
+      config/credentials.yml.enc diff=rails_credentials
+    EOM
+    assert(File.exist?(git_attributes))
+    assert_equal(expected, File.read(git_attributes))
+    Dir.chdir(app_path) do
+      assert_equal("bin/rails credentials:show\n", `git config --get 'diff.rails_credentials.textconv'`)
+    end
+  ensure
+    File.delete(file)
+  end
+
+  test "edit ask the user to opt in to pretty credentials, user refuses" do
+    file = File.open("foo", "w")
+    file.write("n")
+    file.rewind
+
+    run_edit_command(stdin: file.path)
+
+    git_attributes = app_path(".gitattributes")
+    assert_not(File.exist?(git_attributes))
+  ensure
+    File.delete(file)
+  end
+
   test "show credentials" do
     assert_match(/access_key_id: 123/, run_show_command)
+  end
+
+  test "show command when argument is provided (from git diff left file)" do
+    run_edit_command(environment: "development")
+
+    assert_match(/access_key_id: 123/, run_show_command("config/credentials/development.yml.enc"))
+  end
+
+  test "show command when argument is provided (from git diff right file)" do
+    run_edit_command(environment: "development")
+
+    dir = Dir.mktmpdir
+    file_path = File.join(dir, "KnAM4a_development.yml.enc")
+    file_content = File.read(app_path("config", "credentials", "development.yml.enc"))
+    File.write(file_path, file_content)
+
+    assert_match(/access_key_id: 123/, run_show_command(file_path))
+  ensure
+    FileUtils.rm_rf(dir)
+  end
+
+  test "show command when argument is provided (git diff) and filename is the master credentials" do
+    assert_match(/access_key_id: 123/, run_show_command("config/credentials.yml.enc"))
+  end
+
+  test "show command when argument is provided (git diff) and master key is not available" do
+    remove_file "config/master.key"
+
+    raw_content = File.read(app_path("config", "credentials.yml.enc"))
+    assert_match(raw_content, run_show_command("config/credentials.yml.enc"))
+  end
+
+  test "show command when argument is provided (git diff) return the raw encrypted content in an error occurs" do
+    run_edit_command(environment: "development")
+
+    dir = Dir.mktmpdir
+    file_path = File.join(dir, "20190807development.yml.enc")
+    file_content = File.read(app_path("config", "credentials", "development.yml.enc"))
+    File.write(file_path, file_content)
+
+    assert_match(file_content, run_show_command(file_path))
+  ensure
+    FileUtils.rm_rf(dir)
   end
 
   test "show command raises error when require_master_key is specified and key does not exist" do
@@ -128,8 +226,9 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
       end
     end
 
-    def run_show_command(environment: nil, **options)
+    def run_show_command(path = nil, environment: nil, **options)
       args = environment ? ["--environment", environment] : []
+      args.unshift(path)
       rails "credentials:show", args, **options
     end
 end

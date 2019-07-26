@@ -301,7 +301,7 @@ module TestHelpers
     # stderr:: true to pass STDERR output straight to the "real" STDERR.
     #   By default, the STDERR and STDOUT of the process will be
     #   combined in the returned string.
-    def rails(*args, allow_failure: false, stderr: false)
+    def rails(*args, allow_failure: false, stderr: false, stdin: File::NULL)
       args = args.flatten
       fork = true
 
@@ -328,7 +328,7 @@ module TestHelpers
           out_read.close
           err_read.close if err_read
 
-          $stdin.reopen(File::NULL, "r")
+          $stdin.reopen(stdin, "r")
           $stdout.reopen(out_write)
           $stderr.reopen(err_write)
 
