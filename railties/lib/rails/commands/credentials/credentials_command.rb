@@ -2,12 +2,15 @@
 
 require "active_support"
 require "rails/command/helpers/editor"
+require "rails/command/helpers/pretty_credentials"
 require "rails/command/environment_argument"
+require "pathname"
 
 module Rails
   module Command
     class CredentialsCommand < Rails::Command::Base # :nodoc:
       include Helpers::Editor
+      include Helpers::PrettyCredentials
       include EnvironmentArgument
 
       self.environment_desc = "Uses credentials from config/credentials/:environment.yml.enc encrypted by config/credentials/:environment.key key"
@@ -34,20 +37,29 @@ module Rails
         end
 
         say "File encrypted and saved."
+        opt_in_pretty_credentials
       rescue ActiveSupport::MessageEncryptor::InvalidMessage
         say "Couldn't decrypt #{content_path}. Perhaps you passed the wrong key?"
       end
 
-      def show
-        extract_environment_option_from_argument(default_environment: nil)
+      def show(git_textconv_path = nil)
+        if git_textconv_path
+          default_environment = extract_environment_from_path(git_textconv_path)
+          fallback_message = File.read(git_textconv_path)
+        end
+
+        extract_environment_option_from_argument(default_environment: default_environment)
         require_application!
 
-        say credentials.read.presence || missing_credentials_message
+        say credentials(git_textconv_path).read.presence || fallback_message || missing_credentials_message
+      rescue => e
+        raise(e) unless git_textconv_path
+        fallback_message
       end
 
       private
-        def credentials
-          Rails.application.encrypted(content_path, key_path: key_path)
+        def credentials(content = nil)
+          Rails.application.encrypted(content || content_path, key_path: key_path)
         end
 
         def ensure_encryption_key_has_been_added
@@ -77,7 +89,6 @@ module Rails
           end
         end
 
-
         def content_path
           options[:environment] ? "config/credentials/#{options[:environment]}.yml.enc" : "config/credentials.yml.enc"
         end
@@ -86,6 +97,17 @@ module Rails
           options[:environment] ? "config/credentials/#{options[:environment]}.key" : "config/master.key"
         end
 
+        def extract_environment_from_path(path)
+          regex = %r{
+            ([A-Za-z0-9]+)     # match the environment
+            (?<!credentials)   # don't match if file contains the word "credentials"
+                               # in such case, the environment should be the default one
+            \.yml\.enc         # look for `.yml.enc` file extension
+          }x
+          path.match(regex)
+
+          Regexp.last_match(1)
+        end
 
         def encryption_key_file_generator
           require "rails/generators"
