@@ -624,7 +624,7 @@ module ActionView
       # HTML attributes for the link can be passed in +html_options+.
       #
       # When clicked, the default app to make calls is opened, and it
-      # prepopulated with the passed phone number and optional
+      # is prepopulated with the passed phone number and optional
       # +country_code+ value.
       #
       # +phone_to+ has a optional +country_code+ option which automatically adds the country
