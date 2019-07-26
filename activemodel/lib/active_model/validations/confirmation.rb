@@ -9,7 +9,7 @@ module ActiveModel
       end
 
       def validate_each(record, attribute, value)
-        if (confirmed = record.send("#{attribute}_confirmation"))
+        unless (confirmed = record.send("#{attribute}_confirmation")).nil?
           unless confirmation_value_equal?(record, attribute, value, confirmed)
             human_attribute_name = record.class.human_attribute_name(attribute)
             record.errors.add(:"#{attribute}_confirmation", :confirmation, options.except(:case_sensitive).merge!(attribute: human_attribute_name))
@@ -19,11 +19,11 @@ module ActiveModel
 
       private
         def setup!(klass)
-          klass.send(:attr_reader, *attributes.map do |attribute|
+          klass.attr_reader(*attributes.map do |attribute|
             :"#{attribute}_confirmation" unless klass.method_defined?(:"#{attribute}_confirmation")
           end.compact)
 
-          klass.send(:attr_writer, *attributes.map do |attribute|
+          klass.attr_writer(*attributes.map do |attribute|
             :"#{attribute}_confirmation" unless klass.method_defined?(:"#{attribute}_confirmation=")
           end.compact)
         end

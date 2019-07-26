@@ -2,7 +2,7 @@
 
 module ActionView
   # = Action View Cache Helper
-  module Helpers
+  module Helpers #:nodoc:
     module CacheHelper
       # This helper exposes a method for caching fragments of a view
       # rather than an entire action or page. This technique is useful
@@ -111,9 +111,9 @@ module ActionView
       #   <%= render_categorizable_events @person.events %>
       #
       # This marks every template in the directory as a dependency. To find those
-      # templates, the wildcard path must be absolutely defined from app/views or paths
+      # templates, the wildcard path must be absolutely defined from <tt>app/views</tt> or paths
       # otherwise added with +prepend_view_path+ or +append_view_path+.
-      # This way the wildcard for `app/views/recordings/events` would be `recordings/events/*` etc.
+      # This way the wildcard for <tt>app/views/recordings/events</tt> would be <tt>recordings/events/*</tt> etc.
       #
       # The pattern used to match explicit dependencies is <tt>/# Template Dependency: (\S+)/</tt>,
       # so it's important that you type it out just so.
@@ -133,14 +133,14 @@ module ActionView
       #
       # === Collection Caching
       #
-      # When rendering a collection of objects that each use the same partial, a `cached`
+      # When rendering a collection of objects that each use the same partial, a <tt>:cached</tt>
       # option can be passed.
       #
       # For collections rendered such:
       #
       #   <%= render partial: 'projects/project', collection: @projects, cached: true %>
       #
-      # The `cached: true` will make Action View's rendering read several templates
+      # The <tt>cached: true</tt> will make Action View's rendering read several templates
       # from cache at once instead of one call per template.
       #
       # Templates in the collection not already cached are written to cache.
@@ -201,34 +201,41 @@ module ActionView
       end
 
       # This helper returns the name of a cache key for a given fragment cache
-      # call. By supplying +skip_digest:+ true to cache, the digestion of cache
+      # call. By supplying <tt>skip_digest: true</tt> to cache, the digestion of cache
       # fragments can be manually bypassed. This is useful when cache fragments
       # cannot be manually expired unless you know the exact key which is the
       # case when using memcached.
       #
       # The digest will be generated using +virtual_path:+ if it is provided.
       #
-      def cache_fragment_name(name = {}, skip_digest: nil, virtual_path: nil)
+      def cache_fragment_name(name = {}, skip_digest: nil, virtual_path: nil, digest_path: nil)
         if skip_digest
           name
         else
-          fragment_name_with_digest(name, virtual_path)
+          fragment_name_with_digest(name, virtual_path, digest_path)
+        end
+      end
+
+      def digest_path_from_template(template) # :nodoc:
+        digest = Digestor.digest(name: template.virtual_path, format: template.format, finder: lookup_context, dependencies: view_cache_dependencies)
+
+        if digest.present?
+          "#{template.virtual_path}:#{digest}"
+        else
+          template.virtual_path
         end
       end
 
     private
-
-      def fragment_name_with_digest(name, virtual_path)
+      def fragment_name_with_digest(name, virtual_path, digest_path)
         virtual_path ||= @virtual_path
 
-        if virtual_path
+        if virtual_path || digest_path
           name = controller.url_for(name).split("://").last if name.is_a?(Hash)
 
-          if digest = Digestor.digest(name: virtual_path, finder: lookup_context, dependencies: view_cache_dependencies).presence
-            [ "#{virtual_path}:#{digest}", name ]
-          else
-            [ virtual_path, name ]
-          end
+          digest_path ||= digest_path_from_template(@current_template)
+
+          [ digest_path, name ]
         else
           name
         end

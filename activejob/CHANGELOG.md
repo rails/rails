@@ -1,8 +1,6 @@
-*   Change logging instrumentation to log errors when a job raises an exception.
+*   `assert_enqueued_with` and `assert_performed_with` can now test jobs with relative delay.
 
-    Fixes #26848.
-
-    *Steven Bull*
+    *Vlado Cingel*
 
 
-Please check [5-1-stable](https://github.com/rails/rails/blob/5-1-stable/activejob/CHANGELOG.md) for previous changes.
+Please check [6-0-stable](https://github.com/rails/rails/blob/6-0-stable/activejob/CHANGELOG.md) for previous changes.

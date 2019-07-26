@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 module RenderTemplate
@@ -65,7 +67,6 @@ module RenderTemplate
     end
 
     private
-
       def show_detailed_exceptions?
         request.local?
       end

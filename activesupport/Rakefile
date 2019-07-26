@@ -14,10 +14,30 @@ Rake::TestTask.new do |t|
   t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
 end
 
+Rake::Task[:test].enhance do
+  Rake::Task["test:cache_stores:redis:ruby"].invoke
+end
+
 namespace :test do
   task :isolated do
     Dir.glob("test/**/*_test.rb").all? do |file|
       sh(Gem.ruby, "-w", "-Ilib:test", file)
     end || raise("Failures")
+  end
+
+  namespace :cache_stores do
+    namespace :redis do
+      %w[ ruby hiredis ].each do |driver|
+        task("env:#{driver}") { ENV["REDIS_DRIVER"] = driver }
+
+        Rake::TestTask.new(driver => "env:#{driver}") do |t|
+          t.libs << "test"
+          t.test_files = ["test/cache/stores/redis_cache_store_test.rb"]
+          t.warning = true
+          t.verbose = true
+          t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
+        end
+      end
+    end
   end
 end

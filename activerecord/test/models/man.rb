@@ -11,3 +11,6 @@ class Man < ActiveRecord::Base
   has_many :secret_interests, class_name: "Interest", inverse_of: :secret_man
   has_one :mixed_case_monkey
 end
+
+class Human < Man
+end

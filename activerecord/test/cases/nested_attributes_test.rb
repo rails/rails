@@ -36,7 +36,7 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
     pirate.birds_with_reject_all_blank_attributes = [{ name: "", color: "", _destroy: "0" }]
     pirate.save!
 
-    assert pirate.birds_with_reject_all_blank.empty?
+    assert_empty pirate.birds_with_reject_all_blank
   end
 
   def test_should_not_build_a_new_record_if_reject_all_blank_returns_false
@@ -44,7 +44,7 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
     pirate.birds_with_reject_all_blank_attributes = [{ name: "", color: "" }]
     pirate.save!
 
-    assert pirate.birds_with_reject_all_blank.empty?
+    assert_empty pirate.birds_with_reject_all_blank
   end
 
   def test_should_build_a_new_record_if_reject_all_blank_does_not_return_false
@@ -83,7 +83,7 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
 
   def test_a_model_should_respond_to_underscore_destroy_and_return_if_it_is_marked_for_destruction
     ship = Ship.create!(name: "Nights Dirty Lightning")
-    assert !ship._destroy
+    assert_not ship._destroy
     ship.mark_for_destruction
     assert ship._destroy
   end
@@ -152,7 +152,7 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
     man = Man.create(name: "Jon")
     interest = man.interests.create(topic: "the ladies")
     man.update(interests_attributes: { _destroy: "1", id: interest.id })
-    assert man.reload.interests.empty?
+    assert_empty man.reload.interests
   end
 
   def test_reject_if_is_not_short_circuited_if_allow_destroy_is_false
@@ -217,6 +217,18 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
     mean_pirate.parrot_attributes = { name: "James" }
     assert_equal "James", mean_pirate.parrot.name
   end
+
+  def test_should_not_create_duplicates_with_create_with
+    Man.accepts_nested_attributes_for(:interests)
+
+    assert_difference("Interest.count", 1) do
+      Man.create_with(
+        interests_attributes: [{ topic: "Pirate king" }]
+      ).find_or_create_by!(
+        name: "Monkey D. Luffy"
+      )
+    end
+  end
 end
 
 class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
@@ -240,7 +252,7 @@ class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
     @ship.destroy
     @pirate.reload.ship_attributes = { name: "Davy Jones Gold Dagger" }
 
-    assert !@pirate.ship.persisted?
+    assert_not_predicate @pirate.ship, :persisted?
     assert_equal "Davy Jones Gold Dagger", @pirate.ship.name
   end
 
@@ -261,7 +273,7 @@ class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
   def test_should_replace_an_existing_record_if_there_is_no_id
     @pirate.reload.ship_attributes = { name: "Davy Jones Gold Dagger" }
 
-    assert !@pirate.ship.persisted?
+    assert_not_predicate @pirate.ship, :persisted?
     assert_equal "Davy Jones Gold Dagger", @pirate.ship.name
     assert_equal "Nights Dirty Lightning", @ship.name
   end
@@ -335,7 +347,7 @@ class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
   def test_should_also_work_with_a_HashWithIndifferentAccess
     @pirate.ship_attributes = ActiveSupport::HashWithIndifferentAccess.new(id: @ship.id, name: "Davy Jones Gold Dagger")
 
-    assert @pirate.ship.persisted?
+    assert_predicate @pirate.ship, :persisted?
     assert_equal "Davy Jones Gold Dagger", @pirate.ship.name
   end
 
@@ -350,12 +362,12 @@ class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
   def test_should_not_destroy_the_associated_model_until_the_parent_is_saved
     @pirate.attributes = { ship_attributes: { id: @ship.id, _destroy: "1" } }
 
-    assert !@pirate.ship.destroyed?
-    assert @pirate.ship.marked_for_destruction?
+    assert_not_predicate @pirate.ship, :destroyed?
+    assert_predicate @pirate.ship, :marked_for_destruction?
 
     @pirate.save
 
-    assert @pirate.ship.destroyed?
+    assert_predicate @pirate.ship, :destroyed?
     assert_nil @pirate.reload.ship
   end
 
@@ -424,7 +436,7 @@ class TestNestedAttributesOnABelongsToAssociation < ActiveRecord::TestCase
     @pirate.destroy
     @ship.reload.pirate_attributes = { catchphrase: "Arr" }
 
-    assert !@ship.pirate.persisted?
+    assert_not_predicate @ship.pirate, :persisted?
     assert_equal "Arr", @ship.pirate.catchphrase
   end
 
@@ -445,7 +457,7 @@ class TestNestedAttributesOnABelongsToAssociation < ActiveRecord::TestCase
   def test_should_replace_an_existing_record_if_there_is_no_id
     @ship.reload.pirate_attributes = { catchphrase: "Arr" }
 
-    assert !@ship.pirate.persisted?
+    assert_not_predicate @ship.pirate, :persisted?
     assert_equal "Arr", @ship.pirate.catchphrase
     assert_equal "Aye", @pirate.catchphrase
   end
@@ -550,7 +562,7 @@ class TestNestedAttributesOnABelongsToAssociation < ActiveRecord::TestCase
     @pirate.delete
     @ship.reload.attributes = { update_only_pirate_attributes: { catchphrase: "Arr" } }
 
-    assert !@ship.update_only_pirate.persisted?
+    assert_not_predicate @ship.update_only_pirate, :persisted?
   end
 
   def test_should_update_existing_when_update_only_is_true_and_no_id_is_given
@@ -632,10 +644,10 @@ module NestedAttributesOnACollectionAssociationTests
   def test_should_not_load_association_when_updating_existing_records
     @pirate.reload
     @pirate.send(association_setter, [{ id: @child_1.id, name: "Grace OMalley" }])
-    assert ! @pirate.send(@association_name).loaded?
+    assert_not_predicate @pirate.send(@association_name), :loaded?
 
     @pirate.save
-    assert ! @pirate.send(@association_name).loaded?
+    assert_not_predicate @pirate.send(@association_name), :loaded?
     assert_equal "Grace OMalley", @child_1.reload.name
   end
 
@@ -663,13 +675,12 @@ module NestedAttributesOnACollectionAssociationTests
   def test_should_not_remove_scheduled_destroys_when_loading_association
     @pirate.reload
     @pirate.send(association_setter, [{ id: @child_1.id, _destroy: "1" }])
-    assert @pirate.send(@association_name).load_target.find { |r| r.id == @child_1.id }.marked_for_destruction?
+    assert_predicate @pirate.send(@association_name).load_target.find { |r| r.id == @child_1.id }, :marked_for_destruction?
   end
 
   def test_should_take_a_hash_with_composite_id_keys_and_assign_the_attributes_to_the_associated_models
     @child_1.stub(:id, "ABC1X") do
       @child_2.stub(:id, "ABC2X") do
-
         @pirate.attributes = {
           association_getter => [
             { id: @child_1.id, name: "Grace OMalley" },
@@ -705,10 +716,10 @@ module NestedAttributesOnACollectionAssociationTests
       association_getter => { "foo" => { name: "Grace OMalley" }, "bar" => { name: "Privateers Greed" } }
     }
 
-    assert !@pirate.send(@association_name).first.persisted?
+    assert_not_predicate @pirate.send(@association_name).first, :persisted?
     assert_equal "Grace OMalley", @pirate.send(@association_name).first.name
 
-    assert !@pirate.send(@association_name).last.persisted?
+    assert_not_predicate @pirate.send(@association_name).last, :persisted?
     assert_equal "Privateers Greed", @pirate.send(@association_name).last.name
   end
 
@@ -835,12 +846,11 @@ module NestedAttributesOnACollectionAssociationTests
       man = Man.create(name: "John")
       interest = man.interests.create(topic: "bar", zine_id: 0)
       assert interest.save
-      assert !man.update(interests_attributes: { id: interest.id, zine_id: "foo" })
+      assert_not man.update(interests_attributes: { id: interest.id, zine_id: "foo" })
     end
   end
 
   private
-
     def association_setter
       @association_setter ||= "#{@association_name}_attributes=".to_sym
     end
@@ -1091,7 +1101,19 @@ class TestHasManyAutosaveAssociationWhichItselfHasAutosaveAssociations < ActiveR
   test "nested singular associations are validated" do
     part = ShipPart.new(name: "Stern", ship_attributes: { name: nil })
 
-    assert_not part.valid?
+    assert_not_predicate part, :valid?
     assert_equal ["Ship name can't be blank"], part.errors.full_messages
+  end
+end
+
+class TestNestedAttributesWithExtend < ActiveRecord::TestCase
+  setup do
+    Pirate.accepts_nested_attributes_for :treasures
+  end
+
+  def test_extend_affects_nested_attributes
+    pirate = Pirate.create!(catchphrase: "Don' botharrr talkin' like one, savvy?")
+    pirate.treasures_attributes = [{ id: nil }]
+    assert_equal "from extension", pirate.treasures[0].name
   end
 end

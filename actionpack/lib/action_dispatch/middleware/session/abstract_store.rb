@@ -1,8 +1,10 @@
+# frozen_string_literal: true
+
 require "rack/utils"
 require "rack/request"
 require "rack/session/abstract/id"
-require_relative "../cookies"
-require_relative "../../request/session"
+require "action_dispatch/middleware/cookies"
+require "action_dispatch/request/session"
 
 module ActionDispatch
   module Session
@@ -28,7 +30,6 @@ module ActionDispatch
       end
 
     private
-
       def initialize_sid # :doc:
         @default_options.delete(:sidbits)
         @default_options.delete(:secure_random)
@@ -81,7 +82,6 @@ module ActionDispatch
       include SessionObject
 
       private
-
         def set_cookie(request, session_id, cookie)
           request.cookie_jar[key] = cookie
         end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support"
 require "active_support/testing/autorun"
 require "rails/configuration"
@@ -49,7 +51,6 @@ module Rails
       end
 
       private
-
         def assert_playback(msg_name, args)
           mock = Minitest::Mock.new
           mock.expect :send, nil, [msg_name, args]

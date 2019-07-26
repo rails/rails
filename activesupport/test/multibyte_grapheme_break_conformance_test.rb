@@ -3,10 +3,6 @@
 require "abstract_unit"
 require "multibyte_test_helpers"
 
-require "fileutils"
-require "open-uri"
-require "tmpdir"
-
 class MultibyteGraphemeBreakConformanceTest < ActiveSupport::TestCase
   include MultibyteTestHelpers
 
@@ -21,10 +17,12 @@ class MultibyteGraphemeBreakConformanceTest < ActiveSupport::TestCase
   end
 
   def test_breaks
-    each_line_of_break_tests do |*cols|
-      *clusters, comment = *cols
-      packed = ActiveSupport::Multibyte::Unicode.pack_graphemes(clusters)
-      assert_equal clusters, ActiveSupport::Multibyte::Unicode.unpack_graphemes(packed), comment
+    ActiveSupport::Deprecation.silence do
+      each_line_of_break_tests do |*cols|
+        *clusters, comment = *cols
+        packed = ActiveSupport::Multibyte::Unicode.pack_graphemes(clusters)
+        assert_equal clusters, ActiveSupport::Multibyte::Unicode.unpack_graphemes(packed), comment
+      end
     end
   end
 

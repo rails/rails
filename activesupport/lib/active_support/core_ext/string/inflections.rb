@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require_relative "../../inflector/methods"
-require_relative "../../inflector/transliterate"
+require "active_support/inflector/methods"
+require "active_support/inflector/transliterate"
 
 # String inflections define new methods on the String class to transform names for different purposes.
 # For instance, you can figure out the name of a table from the name of a class.
@@ -94,6 +94,8 @@ class String
       ActiveSupport::Inflector.camelize(self, true)
     when :lower
       ActiveSupport::Inflector.camelize(self, false)
+    else
+      raise ArgumentError, "Invalid option, use either :upper or :lower."
     end
   end
   alias_method :camelcase, :camelize
@@ -160,6 +162,11 @@ class String
 
   # Replaces special characters in a string so that it may be used as part of a 'pretty' URL.
   #
+  # If the optional parameter +locale+ is specified,
+  # the word will be parameterized as a word of that language.
+  # By default, this parameter is set to <tt>nil</tt> and it will use
+  # the configured <tt>I18n.locale</tt>.
+  #
   #   class Person
   #     def to_param
   #       "#{id}-#{name.parameterize}"
@@ -172,7 +179,7 @@ class String
   #   <%= link_to(@person.name, person_path) %>
   #   # => <a href="/person/1-donald-e-knuth">Donald E. Knuth</a>
   #
-  # To preserve the case of the characters in a string, use the `preserve_case` argument.
+  # To preserve the case of the characters in a string, use the +preserve_case+ argument.
   #
   #   class Person
   #     def to_param
@@ -185,8 +192,8 @@ class String
   #
   #   <%= link_to(@person.name, person_path) %>
   #   # => <a href="/person/1-Donald-E-Knuth">Donald E. Knuth</a>
-  def parameterize(separator: "-", preserve_case: false)
-    ActiveSupport::Inflector.parameterize(self, separator: separator, preserve_case: preserve_case)
+  def parameterize(separator: "-", preserve_case: false, locale: nil)
+    ActiveSupport::Inflector.parameterize(self, separator: separator, preserve_case: preserve_case, locale: locale)
   end
 
   # Creates the name of a table like Rails does for models to table names. This method

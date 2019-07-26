@@ -2,9 +2,9 @@
 
 require "action_cable"
 require "active_support/testing/autorun"
+require "active_support/testing/method_call_assertions"
 
 require "puma"
-require "mocha/setup"
 require "rack/mock"
 
 begin
@@ -15,7 +15,13 @@ end
 # Require all the stubs and models
 Dir[File.expand_path("stubs/*.rb", __dir__)].each { |file| require file }
 
+# Set test adapter and logger
+ActionCable.server.config.cable = { "adapter" => "test" }
+ActionCable.server.config.logger = Logger.new(nil)
+
 class ActionCable::TestCase < ActiveSupport::TestCase
+  include ActiveSupport::Testing::MethodCallAssertions
+
   def wait_for_async
     wait_for_executor Concurrent.global_io_executor
   end
@@ -35,3 +41,5 @@ class ActionCable::TestCase < ActiveSupport::TestCase
     end
   end
 end
+
+require_relative "../../tools/test_common"

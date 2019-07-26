@@ -30,7 +30,7 @@ module ActiveRecord
         # - "schema.name".table_name
         # - "schema.name"."table.name"
         def quote_table_name(name) # :nodoc:
-          @quoted_table_names[name] ||= Utils.extract_schema_qualified_name(name.to_s).quoted.freeze
+          self.class.quoted_table_names[name] ||= Utils.extract_schema_qualified_name(name.to_s).quoted.freeze
         end
 
         # Quotes schema names for use in SQL queries.
@@ -44,7 +44,7 @@ module ActiveRecord
 
         # Quotes column names for use in SQL queries.
         def quote_column_name(name) # :nodoc:
-          @quoted_column_names[name] ||= PG::Connection.quote_ident(super).freeze
+          self.class.quoted_column_names[name] ||= PG::Connection.quote_ident(super).freeze
         end
 
         # Quote date/time values for use in SQL input.
@@ -64,7 +64,7 @@ module ActiveRecord
         def quote_default_expression(value, column) # :nodoc:
           if value.is_a?(Proc)
             value.call
-          elsif column.type == :uuid && /\(\)/.match?(value)
+          elsif column.type == :uuid && value.is_a?(String) && /\(\)/.match?(value)
             value # Does not quote function default values for UUID columns
           elsif column.respond_to?(:array?)
             value = type_cast_from_column(column, value)
@@ -77,6 +77,43 @@ module ActiveRecord
         def lookup_cast_type_from_column(column) # :nodoc:
           type_map.lookup(column.oid, column.fmod, column.sql_type)
         end
+
+        def column_name_matcher
+          COLUMN_NAME
+        end
+
+        def column_name_with_order_matcher
+          COLUMN_NAME_WITH_ORDER
+        end
+
+        COLUMN_NAME = /
+          \A
+          (
+            (?:
+              # "table_name"."column_name"::type_name | function(one or no argument)::type_name
+              ((?:\w+\.|"\w+"\.)?(?:\w+|"\w+")(?:::\w+)?) | \w+\((?:|\g<2>)\)(?:::\w+)?
+            )
+            (?:(?:\s+AS)?\s+(?:\w+|"\w+"))?
+          )
+          (?:\s*,\s*\g<1>)*
+          \z
+        /ix
+
+        COLUMN_NAME_WITH_ORDER = /
+          \A
+          (
+            (?:
+              # "table_name"."column_name"::type_name | function(one or no argument)::type_name
+              ((?:\w+\.|"\w+"\.)?(?:\w+|"\w+")(?:::\w+)?) | \w+\((?:|\g<2>)\)(?:::\w+)?
+            )
+            (?:\s+ASC|\s+DESC)?
+            (?:\s+NULLS\s+(?:FIRST|LAST))?
+          )
+          (?:\s*,\s*\g<1>)*
+          \z
+        /ix
+
+        private_constant :COLUMN_NAME, :COLUMN_NAME_WITH_ORDER
 
         private
           def lookup_cast_type(sql_type)
@@ -93,14 +130,16 @@ module ActiveRecord
               elsif value.hex?
                 "X'#{value}'"
               end
-            when Float
-              if value.infinite? || value.nan?
-                "'#{value}'"
-              else
+            when Numeric
+              if value.finite?
                 super
+              else
+                "'#{value}'"
               end
             when OID::Array::Data
               _quote(encode_array(value))
+            when Range
+              _quote(encode_range(value))
             else
               super
             end
@@ -117,6 +156,8 @@ module ActiveRecord
               value.to_s
             when OID::Array::Data
               encode_array(value)
+            when Range
+              encode_range(value)
             else
               super
             end
@@ -133,6 +174,10 @@ module ActiveRecord
             result
           end
 
+          def encode_range(range)
+            "[#{type_cast_range_value(range.begin)},#{type_cast_range_value(range.end)}#{range.exclude_end? ? ')' : ']'}"
+          end
+
           def determine_encoding_of_strings_in_array(value)
             case value
             when ::Array then determine_encoding_of_strings_in_array(value.first)
@@ -145,6 +190,14 @@ module ActiveRecord
             when ::Array then values.map { |item| type_cast_array(item) }
             else _type_cast(values)
             end
+          end
+
+          def type_cast_range_value(value)
+            infinity?(value) ? "" : type_cast(value)
+          end
+
+          def infinity?(value)
+            value.respond_to?(:infinite?) && value.infinite?
           end
       end
     end

@@ -1,10 +1,9 @@
 # frozen_string_literal: true
 
-require_relative "core_ext/array/conversions"
-require_relative "core_ext/module/delegation"
-require_relative "core_ext/object/acts_like"
-require_relative "core_ext/string/filters"
-require_relative "deprecation"
+require "active_support/core_ext/array/conversions"
+require "active_support/core_ext/module/delegation"
+require "active_support/core_ext/object/acts_like"
+require "active_support/core_ext/string/filters"
 
 module ActiveSupport
   # Provides accurate date and time measurements using Date#advance and
@@ -133,7 +132,7 @@ module ActiveSupport
     class << self
       # Creates a new Duration from string formatted according to ISO 8601 Duration.
       #
-      # See {ISO 8601}[http://en.wikipedia.org/wiki/ISO_8601#Durations] for more information.
+      # See {ISO 8601}[https://en.wikipedia.org/wiki/ISO_8601#Durations] for more information.
       # This method allows negative parts to be present in pattern.
       # If invalid string is provided, it will raise +ActiveSupport::Duration::ISO8601Parser::ParsingError+.
       def parse(iso8601duration)
@@ -194,13 +193,11 @@ module ActiveSupport
         end
 
         parts[:seconds] = remainder
-        parts.reject! { |k, v| v.zero? }
 
         new(value, parts)
       end
 
       private
-
         def calculate_total_seconds(parts)
           parts.inject(0) do |total, (part, value)|
             total + value * PARTS_IN_SECONDS[part]
@@ -211,11 +208,15 @@ module ActiveSupport
     def initialize(value, parts) #:nodoc:
       @value, @parts = value, parts.to_h
       @parts.default = 0
+      @parts.reject! { |k, v| v.zero? }
     end
 
     def coerce(other) #:nodoc:
-      if Scalar === other
+      case other
+      when Scalar
         [other, self]
+      when Duration
+        [Scalar.new(other.value), self]
       else
         [Scalar.new(other), self]
       end
@@ -370,8 +371,9 @@ module ActiveSupport
     alias :before :ago
 
     def inspect #:nodoc:
+      return "0 seconds" if parts.empty?
+
       parts.
-        reduce(::Hash.new(0)) { |h, (l, r)| h[l] += r; h }.
         sort_by { |unit,  _ | PARTS.index(unit) }.
         map     { |unit, val| "#{val} #{val == 1 ? unit.to_s.chop : unit.to_s}" }.
         to_sentence(locale: ::I18n.default_locale)
@@ -381,6 +383,14 @@ module ActiveSupport
       to_i
     end
 
+    def init_with(coder) #:nodoc:
+      initialize(coder["value"], coder["parts"])
+    end
+
+    def encode_with(coder) #:nodoc:
+      coder.map = { "value" => @value, "parts" => @parts }
+    end
+
     # Build ISO 8601 Duration string for this duration.
     # The +precision+ parameter can be used to limit seconds' precision of duration.
     def iso8601(precision: nil)
@@ -388,7 +398,6 @@ module ActiveSupport
     end
 
     private
-
       def sum(sign, time = ::Time.current)
         parts.inject(time) do |t, (type, number)|
           if t.acts_like?(:time) || t.acts_like?(:date)

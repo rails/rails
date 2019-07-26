@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
 require "date"
-require_relative "../../duration"
-require_relative "../object/acts_like"
-require_relative "zones"
-require_relative "../time/zones"
-require_relative "../date_and_time/calculations"
+require "active_support/duration"
+require "active_support/core_ext/object/acts_like"
+require "active_support/core_ext/date/zones"
+require "active_support/core_ext/time/zones"
+require "active_support/core_ext/date_and_time/calculations"
 
 class Date
   include DateAndTime::Calculations
@@ -110,12 +110,13 @@ class Date
   # Provides precise Date calculations for years, months, and days. The +options+ parameter takes a hash with
   # any of these keys: <tt>:years</tt>, <tt>:months</tt>, <tt>:weeks</tt>, <tt>:days</tt>.
   def advance(options)
-    options = options.dup
     d = self
-    d = d >> options.delete(:years) * 12 if options[:years]
-    d = d >> options.delete(:months)     if options[:months]
-    d = d +  options.delete(:weeks) * 7  if options[:weeks]
-    d = d +  options.delete(:days)       if options[:days]
+
+    d = d >> options[:years] * 12 if options[:years]
+    d = d >> options[:months] if options[:months]
+    d = d + options[:weeks] * 7 if options[:weeks]
+    d = d + options[:days] if options[:days]
+
     d
   end
 

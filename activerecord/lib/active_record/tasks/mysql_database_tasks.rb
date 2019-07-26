@@ -3,7 +3,7 @@
 module ActiveRecord
   module Tasks # :nodoc:
     class MySQLDatabaseTasks # :nodoc:
-      ACCESS_DENIED_ERROR = 1045
+      ER_DB_CREATE_EXISTS = 1007
 
       delegate :connection, :establish_connection, to: ActiveRecord::Base
 
@@ -16,24 +16,10 @@ module ActiveRecord
         connection.create_database configuration["database"], creation_options
         establish_connection configuration
       rescue ActiveRecord::StatementInvalid => error
-        if error.message.include?("database exists")
+        if connection.error_number(error.cause) == ER_DB_CREATE_EXISTS
           raise DatabaseAlreadyExists
         else
           raise
-        end
-      rescue error_class => error
-        if error.respond_to?(:errno) && error.errno == ACCESS_DENIED_ERROR
-          $stdout.print error.message
-          establish_connection root_configuration_without_database
-          connection.create_database configuration["database"], creation_options
-          if configuration["username"] != "root"
-            connection.execute grant_statement.gsub(/\s+/, " ").strip
-          end
-          establish_connection configuration
-        else
-          $stderr.puts error.inspect
-          $stderr.puts "Couldn't create database for #{configuration.inspect}, #{creation_options.inspect}"
-          $stderr.puts "(If you set the charset manually, make sure you have a matching collation)" if configuration["encoding"]
         end
       end
 
@@ -83,10 +69,7 @@ module ActiveRecord
       end
 
       private
-
-        def configuration
-          @configuration
-        end
+        attr_reader :configuration
 
         def configuration_without_database
           configuration.merge("database" => nil)
@@ -97,37 +80,6 @@ module ActiveRecord
             options[:charset]     = configuration["encoding"]   if configuration.include? "encoding"
             options[:collation]   = configuration["collation"]  if configuration.include? "collation"
           end
-        end
-
-        def error_class
-          if configuration["adapter"].include?("jdbc")
-            require_relative "../railties/jdbcmysql_error"
-            ArJdbcMySQL::Error
-          elsif defined?(Mysql2)
-            Mysql2::Error
-          else
-            StandardError
-          end
-        end
-
-        def grant_statement
-          <<-SQL
-GRANT ALL PRIVILEGES ON `#{configuration['database']}`.*
-  TO '#{configuration['username']}'@'localhost'
-IDENTIFIED BY '#{configuration['password']}' WITH GRANT OPTION;
-          SQL
-        end
-
-        def root_configuration_without_database
-          configuration_without_database.merge(
-            "username" => "root",
-            "password" => root_password
-          )
-        end
-
-        def root_password
-          $stdout.print "Please provide the root password for your MySQL installation\n>"
-          $stdin.gets.strip
         end
 
         def prepare_command_options
@@ -153,7 +105,7 @@ IDENTIFIED BY '#{configuration['password']}' WITH GRANT OPTION;
         end
 
         def run_cmd_error(cmd, args, action)
-          msg = "failed to execute: `#{cmd}`\n".dup
+          msg = +"failed to execute: `#{cmd}`\n"
           msg << "Please check the output above for any errors and make sure that `#{cmd}` is installed in your PATH and has proper permissions.\n\n"
           msg
         end

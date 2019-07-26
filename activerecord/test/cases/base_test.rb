@@ -14,7 +14,6 @@ require "models/computer"
 require "models/project"
 require "models/default"
 require "models/auto_id"
-require "models/boolean"
 require "models/column_name"
 require "models/subscriber"
 require "models/comment"
@@ -68,6 +67,16 @@ end
 class BasicsTest < ActiveRecord::TestCase
   fixtures :topics, :companies, :developers, :projects, :computers, :accounts, :minimalistics, "warehouse-things", :authors, :author_addresses, :categorizations, :categories, :posts
 
+  def test_generated_association_methods_module_name
+    mod = Post.send(:generated_association_methods)
+    assert_equal "Post::GeneratedAssociationMethods", mod.inspect
+  end
+
+  def test_generated_relation_methods_module_name
+    mod = Post.send(:generated_relation_methods)
+    assert_equal "Post::GeneratedRelationMethods", mod.inspect
+  end
+
   def test_column_names_are_escaped
     conn      = ActiveRecord::Base.connection
     classname = conn.class.name[/[^:]*$/]
@@ -104,7 +113,7 @@ class BasicsTest < ActiveRecord::TestCase
     pk = Author.columns_hash["id"]
     ref = Post.columns_hash["author_id"]
 
-    assert_equal pk.bigint?, ref.bigint?
+    assert_equal pk.sql_type, ref.sql_type
   end
 
   def test_many_mutations
@@ -147,8 +156,8 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_table_exists
-    assert !NonExistentTable.table_exists?
-    assert Topic.table_exists?
+    assert_not_predicate NonExistentTable, :table_exists?
+    assert_predicate Topic, :table_exists?
   end
 
   def test_preserving_date_objects
@@ -283,11 +292,13 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_initialize_with_invalid_attribute
-    Topic.new("title" => "test",
-      "last_read(1i)" => "2005", "last_read(2i)" => "2", "last_read(3i)" => "31")
-  rescue ActiveRecord::MultiparameterAssignmentErrors => ex
+    ex = assert_raise(ActiveRecord::MultiparameterAssignmentErrors) do
+      Topic.new("title" => "test",
+        "written_on(4i)" => "16", "written_on(5i)" => "24", "written_on(6i)" => "00")
+    end
+
     assert_equal(1, ex.errors.size)
-    assert_equal("last_read", ex.errors[0].attribute)
+    assert_equal("written_on", ex.errors[0].attribute)
   end
 
   def test_create_after_initialize_without_block
@@ -307,7 +318,7 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal "Dude", cbs[0].name
     assert_equal "Bob", cbs[1].name
     assert cbs[0].frickinawesome
-    assert !cbs[1].frickinawesome
+    assert_not cbs[1].frickinawesome
   end
 
   def test_load
@@ -437,12 +448,6 @@ class BasicsTest < ActiveRecord::TestCase
     Post.reset_table_name
   end
 
-  if current_adapter?(:Mysql2Adapter)
-    def test_update_all_with_order_and_limit
-      assert_equal 1, Topic.limit(1).order("id DESC").update_all(content: "bulk updated!")
-    end
-  end
-
   def test_null_fields
     assert_nil Topic.find(1).parent_id
     assert_nil Topic.create("title" => "Hey you").parent_id
@@ -450,7 +455,7 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_default_values
     topic = Topic.new
-    assert topic.approved?
+    assert_predicate topic, :approved?
     assert_nil topic.written_on
     assert_nil topic.bonus_time
     assert_nil topic.last_read
@@ -458,7 +463,7 @@ class BasicsTest < ActiveRecord::TestCase
     topic.save
 
     topic = Topic.find(topic.id)
-    assert topic.approved?
+    assert_predicate topic, :approved?
     assert_nil topic.last_read
 
     # Oracle has some funky default handling, so it requires a bit of
@@ -629,7 +634,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_readonly_attributes
-    assert_equal Set.new([ "title" , "comments_count" ]), ReadonlyTitlePost.readonly_attributes
+    assert_equal Set.new([ "title", "comments_count" ]), ReadonlyTitlePost.readonly_attributes
 
     post = ReadonlyTitlePost.create(title: "cannot change this", body: "changeable")
     post.reload
@@ -690,6 +695,9 @@ class BasicsTest < ActiveRecord::TestCase
       topic = Topic.find(1)
       topic.attributes = attributes
       assert_equal Time.local(2000, 1, 1, 5, 42, 0), topic.bonus_time
+
+      topic.save!
+      assert_equal topic, Topic.find_by(attributes)
     end
   end
 
@@ -716,48 +724,6 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal expected_attributes, category.attributes
   end
 
-  def test_boolean
-    b_nil = Boolean.create("value" => nil)
-    nil_id = b_nil.id
-    b_false = Boolean.create("value" => false)
-    false_id = b_false.id
-    b_true = Boolean.create("value" => true)
-    true_id = b_true.id
-
-    b_nil = Boolean.find(nil_id)
-    assert_nil b_nil.value
-    b_false = Boolean.find(false_id)
-    assert !b_false.value?
-    b_true = Boolean.find(true_id)
-    assert b_true.value?
-  end
-
-  def test_boolean_without_questionmark
-    b_true = Boolean.create("value" => true)
-    true_id = b_true.id
-
-    subclass   = Class.new(Boolean).find true_id
-    superclass = Boolean.find true_id
-
-    assert_equal superclass.read_attribute(:has_fun), subclass.read_attribute(:has_fun)
-  end
-
-  def test_boolean_cast_from_string
-    b_blank = Boolean.create("value" => "")
-    blank_id = b_blank.id
-    b_false = Boolean.create("value" => "0")
-    false_id = b_false.id
-    b_true = Boolean.create("value" => "1")
-    true_id = b_true.id
-
-    b_blank = Boolean.find(blank_id)
-    assert_nil b_blank.value
-    b_false = Boolean.find(false_id)
-    assert !b_false.value?
-    b_true = Boolean.find(true_id)
-    assert b_true.value?
-  end
-
   def test_new_record_returns_boolean
     assert_equal false, Topic.new.persisted?
     assert_equal true, Topic.find(1).persisted?
@@ -768,7 +734,7 @@ class BasicsTest < ActiveRecord::TestCase
     duped_topic = nil
     assert_nothing_raised { duped_topic = topic.dup }
     assert_equal topic.title, duped_topic.title
-    assert !duped_topic.persisted?
+    assert_not_predicate duped_topic, :persisted?
 
     # test if the attributes have been duped
     topic.title = "a"
@@ -786,7 +752,7 @@ class BasicsTest < ActiveRecord::TestCase
 
     # test if saved clone object differs from original
     duped_topic.save
-    assert duped_topic.persisted?
+    assert_predicate duped_topic, :persisted?
     assert_not_equal duped_topic.id, topic.id
 
     duped_topic.reload
@@ -807,7 +773,7 @@ class BasicsTest < ActiveRecord::TestCase
     assert_nothing_raised { dup = dev.dup }
     assert_kind_of DeveloperSalary, dup.salary
     assert_equal dev.salary.amount, dup.salary.amount
-    assert !dup.persisted?
+    assert_not_predicate dup, :persisted?
 
     # test if the attributes have been duped
     original_amount = dup.salary.amount
@@ -815,7 +781,7 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal original_amount, dup.salary.amount
 
     assert dup.save
-    assert dup.persisted?
+    assert_predicate dup, :persisted?
     assert_not_equal dup.id, dev.id
   end
 
@@ -835,64 +801,68 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_clone_of_new_object_with_defaults
     developer = Developer.new
-    assert !developer.name_changed?
-    assert !developer.salary_changed?
+    assert_not_predicate developer, :name_changed?
+    assert_not_predicate developer, :salary_changed?
 
     cloned_developer = developer.clone
-    assert !cloned_developer.name_changed?
-    assert !cloned_developer.salary_changed?
+    assert_not_predicate cloned_developer, :name_changed?
+    assert_not_predicate cloned_developer, :salary_changed?
   end
 
   def test_clone_of_new_object_marks_attributes_as_dirty
     developer = Developer.new name: "Bjorn", salary: 100000
-    assert developer.name_changed?
-    assert developer.salary_changed?
+    assert_predicate developer, :name_changed?
+    assert_predicate developer, :salary_changed?
 
     cloned_developer = developer.clone
-    assert cloned_developer.name_changed?
-    assert cloned_developer.salary_changed?
+    assert_predicate cloned_developer, :name_changed?
+    assert_predicate cloned_developer, :salary_changed?
   end
 
   def test_clone_of_new_object_marks_as_dirty_only_changed_attributes
     developer = Developer.new name: "Bjorn"
     assert developer.name_changed?            # obviously
-    assert !developer.salary_changed?         # attribute has non-nil default value, so treated as not changed
+    assert_not developer.salary_changed?         # attribute has non-nil default value, so treated as not changed
 
     cloned_developer = developer.clone
-    assert cloned_developer.name_changed?
-    assert !cloned_developer.salary_changed?  # ... and cloned instance should behave same
+    assert_predicate cloned_developer, :name_changed?
+    assert_not cloned_developer.salary_changed?  # ... and cloned instance should behave same
   end
 
   def test_dup_of_saved_object_marks_attributes_as_dirty
     developer = Developer.create! name: "Bjorn", salary: 100000
-    assert !developer.name_changed?
-    assert !developer.salary_changed?
+    assert_not_predicate developer, :name_changed?
+    assert_not_predicate developer, :salary_changed?
 
     cloned_developer = developer.dup
     assert cloned_developer.name_changed?     # both attributes differ from defaults
-    assert cloned_developer.salary_changed?
+    assert_predicate cloned_developer, :salary_changed?
   end
 
   def test_dup_of_saved_object_marks_as_dirty_only_changed_attributes
     developer = Developer.create! name: "Bjorn"
-    assert !developer.name_changed?           # both attributes of saved object should be treated as not changed
-    assert !developer.salary_changed?
+    assert_not developer.name_changed?           # both attributes of saved object should be treated as not changed
+    assert_not_predicate developer, :salary_changed?
 
     cloned_developer = developer.dup
     assert cloned_developer.name_changed?     # ... but on cloned object should be
-    assert !cloned_developer.salary_changed?  # ... BUT salary has non-nil default which should be treated as not changed on cloned instance
+    assert_not cloned_developer.salary_changed?  # ... BUT salary has non-nil default which should be treated as not changed on cloned instance
   end
 
   def test_bignum
     company = Company.find(1)
-    company.rating = 2147483647
+    company.rating = 2147483648
     company.save
     company = Company.find(1)
-    assert_equal 2147483647, company.rating
+    assert_equal 2147483648, company.rating
   end
 
-  # TODO: extend defaults tests to other databases!
-  if current_adapter?(:PostgreSQLAdapter)
+  def test_bignum_pk
+    company = Company.create!(id: 2147483648, name: "foo")
+    assert_equal company, Company.find(company.id)
+  end
+
+  if current_adapter?(:PostgreSQLAdapter, :Mysql2Adapter, :SQLite3Adapter)
     def test_default
       with_timezone_config default: :local do
         default = Default.new
@@ -904,7 +874,10 @@ class BasicsTest < ActiveRecord::TestCase
         # char types
         assert_equal "Y", default.char1
         assert_equal "a varchar field", default.char2
-        assert_equal "a text field", default.char3
+        # Mysql text type can't have default value
+        unless current_adapter?(:Mysql2Adapter)
+          assert_equal "a text field", default.char3
+        end
       end
     end
   end
@@ -946,14 +919,14 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_toggle_attribute
-    assert !topics(:first).approved?
+    assert_not_predicate topics(:first), :approved?
     topics(:first).toggle!(:approved)
-    assert topics(:first).approved?
+    assert_predicate topics(:first), :approved?
     topic = topics(:first)
     topic.toggle(:approved)
-    assert !topic.approved?
+    assert_not_predicate topic, :approved?
     topic.reload
-    assert topic.approved?
+    assert_predicate topic, :approved?
   end
 
   def test_reload
@@ -977,7 +950,7 @@ class BasicsTest < ActiveRecord::TestCase
     end
   end
 
-  def test_clear_cash_when_setting_table_name
+  def test_clear_cache_when_setting_table_name
     original_table_name = Joke.table_name
 
     Joke.table_name = "funny_jokes"
@@ -1072,11 +1045,6 @@ class BasicsTest < ActiveRecord::TestCase
     end
   end
 
-  def test_find_last
-    last = Developer.last
-    assert_equal last, Developer.all.merge!(order: "id desc").first
-  end
-
   def test_last
     assert_equal Developer.all.merge!(order: "id desc").first, Developer.last
   end
@@ -1092,23 +1060,23 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_find_ordered_last
-    last = Developer.all.merge!(order: "developers.salary ASC").last
-    assert_equal last, Developer.all.merge!(order: "developers.salary ASC").to_a.last
+    last = Developer.order("developers.salary ASC").last
+    assert_equal last, Developer.order("developers.salary": "ASC").to_a.last
   end
 
   def test_find_reverse_ordered_last
-    last = Developer.all.merge!(order: "developers.salary DESC").last
-    assert_equal last, Developer.all.merge!(order: "developers.salary DESC").to_a.last
+    last = Developer.order("developers.salary DESC").last
+    assert_equal last, Developer.order("developers.salary": "DESC").to_a.last
   end
 
   def test_find_multiple_ordered_last
-    last = Developer.all.merge!(order: "developers.name, developers.salary DESC").last
-    assert_equal last, Developer.all.merge!(order: "developers.name, developers.salary DESC").to_a.last
+    last = Developer.order("developers.name, developers.salary DESC").last
+    assert_equal last, Developer.order(:"developers.name", "developers.salary": "DESC").to_a.last
   end
 
   def test_find_keeps_multiple_order_values
-    combined = Developer.all.merge!(order: "developers.name, developers.salary").to_a
-    assert_equal combined, Developer.all.merge!(order: ["developers.name", "developers.salary"]).to_a
+    combined = Developer.order("developers.name, developers.salary").to_a
+    assert_equal combined, Developer.order(:"developers.name", :"developers.salary").to_a
   end
 
   def test_find_keeps_multiple_group_values
@@ -1173,11 +1141,14 @@ class BasicsTest < ActiveRecord::TestCase
   def test_clear_cache!
     # preheat cache
     c1 = Post.connection.schema_cache.columns("posts")
+    assert_not_equal 0, Post.connection.schema_cache.size
+
     ActiveRecord::Base.clear_cache!
+    assert_equal 0, Post.connection.schema_cache.size
+
     c2 = Post.connection.schema_cache.columns("posts")
-    c1.each_with_index do |v, i|
-      assert_not_same v, c2[i]
-    end
+    assert_not_equal 0, Post.connection.schema_cache.size
+
     assert_equal c1, c2
   end
 
@@ -1247,6 +1218,8 @@ class BasicsTest < ActiveRecord::TestCase
       wr.close
       assert Marshal.load rd.read
       rd.close
+    ensure
+      self.class.send(:remove_const, "Post") if self.class.const_defined?("Post", false)
     end
   end
 
@@ -1260,14 +1233,15 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_attribute_names
-    assert_equal ["id", "type", "firm_id", "firm_name", "name", "client_of", "rating", "account_id", "description"],
-                 Company.attribute_names
+    expected = ["id", "type", "firm_id", "firm_name", "name", "client_of", "rating", "account_id", "description", "metadata"]
+    assert_equal expected, Company.attribute_names
   end
 
   def test_has_attribute
     assert Company.has_attribute?("id")
     assert Company.has_attribute?("type")
     assert Company.has_attribute?("name")
+    assert Company.has_attribute?("metadata")
     assert_not Company.has_attribute?("lastname")
     assert_not Company.has_attribute?("age")
   end
@@ -1426,28 +1400,223 @@ class BasicsTest < ActiveRecord::TestCase
   test "resetting column information doesn't remove attribute methods" do
     topic = topics(:first)
 
-    assert_not topic.id_changed?
+    assert_not_predicate topic, :id_changed?
 
     Topic.reset_column_information
 
-    assert_not topic.id_changed?
+    assert_not_predicate topic, :id_changed?
   end
 
   test "ignored columns are not present in columns_hash" do
     cache_columns = Developer.connection.schema_cache.columns_hash(Developer.table_name)
     assert_includes cache_columns.keys, "first_name"
     assert_not_includes Developer.columns_hash.keys, "first_name"
+    assert_not_includes SubDeveloper.columns_hash.keys, "first_name"
+    assert_not_includes SymbolIgnoredDeveloper.columns_hash.keys, "first_name"
+  end
+
+  test ".columns_hash raises an error if the record has an empty table name" do
+    expected_message = "FirstAbstractClass has no table configured. Set one with FirstAbstractClass.table_name="
+    exception = assert_raises(ActiveRecord::TableNotSpecified) do
+      FirstAbstractClass.columns_hash
+    end
+    assert_equal expected_message, exception.message
   end
 
   test "ignored columns have no attribute methods" do
-    refute Developer.new.respond_to?(:first_name)
-    refute Developer.new.respond_to?(:first_name=)
-    refute Developer.new.respond_to?(:first_name?)
+    assert_not_respond_to Developer.new, :first_name
+    assert_not_respond_to Developer.new, :first_name=
+    assert_not_respond_to Developer.new, :first_name?
+    assert_not_respond_to SubDeveloper.new, :first_name
+    assert_not_respond_to SubDeveloper.new, :first_name=
+    assert_not_respond_to SubDeveloper.new, :first_name?
+    assert_not_respond_to SymbolIgnoredDeveloper.new, :first_name
+    assert_not_respond_to SymbolIgnoredDeveloper.new, :first_name=
+    assert_not_respond_to SymbolIgnoredDeveloper.new, :first_name?
   end
 
   test "ignored columns don't prevent explicit declaration of attribute methods" do
-    assert Developer.new.respond_to?(:last_name)
-    assert Developer.new.respond_to?(:last_name=)
-    assert Developer.new.respond_to?(:last_name?)
+    assert_respond_to Developer.new, :last_name
+    assert_respond_to Developer.new, :last_name=
+    assert_respond_to Developer.new, :last_name?
+    assert_respond_to SubDeveloper.new, :last_name
+    assert_respond_to SubDeveloper.new, :last_name=
+    assert_respond_to SubDeveloper.new, :last_name?
+    assert_respond_to SymbolIgnoredDeveloper.new, :last_name
+    assert_respond_to SymbolIgnoredDeveloper.new, :last_name=
+    assert_respond_to SymbolIgnoredDeveloper.new, :last_name?
+  end
+
+  test "ignored columns are stored as an array of string" do
+    assert_equal(%w(first_name last_name), Developer.ignored_columns)
+    assert_equal(%w(first_name last_name), SymbolIgnoredDeveloper.ignored_columns)
+  end
+
+  test "when #reload called, ignored columns' attribute methods are not defined" do
+    developer = Developer.create!(name: "Developer")
+    assert_not_respond_to developer, :first_name
+    assert_not_respond_to developer, :first_name=
+
+    developer.reload
+
+    assert_not_respond_to developer, :first_name
+    assert_not_respond_to developer, :first_name=
+  end
+
+  test "when ignored attribute is loaded, cast type should be preferred over DB type" do
+    developer = AttributedDeveloper.create
+    developer.update_column :name, "name"
+
+    loaded_developer = AttributedDeveloper.where(id: developer.id).select("*").first
+    assert_equal "Developer: name", loaded_developer.name
+  end
+
+  test "ignored columns not included in SELECT" do
+    query = Developer.all.to_sql.downcase
+
+    # ignored column
+    assert_not query.include?("first_name")
+
+    # regular column
+    assert query.include?("name")
+  end
+
+  test "column names are quoted when using #from clause and model has ignored columns" do
+    assert_not_empty Developer.ignored_columns
+    query = Developer.from("developers").to_sql
+    quoted_id = "#{Developer.quoted_table_name}.#{Developer.quoted_primary_key}"
+
+    assert_match(/SELECT #{Regexp.escape(quoted_id)}.* FROM developers/, query)
+  end
+
+  test "using table name qualified column names unless having SELECT list explicitly" do
+    assert_equal developers(:david), Developer.from("developers").joins(:shared_computers).take
+  end
+
+  test "protected environments by default is an array with production" do
+    assert_equal ["production"], ActiveRecord::Base.protected_environments
+  end
+
+  def test_protected_environments_are_stored_as_an_array_of_string
+    previous_protected_environments = ActiveRecord::Base.protected_environments
+    ActiveRecord::Base.protected_environments = [:staging, "production"]
+    assert_equal ["staging", "production"], ActiveRecord::Base.protected_environments
+  ensure
+    ActiveRecord::Base.protected_environments = previous_protected_environments
+  end
+
+  test "creating a record raises if preventing writes" do
+    error = assert_raises ActiveRecord::ReadOnlyError do
+      ActiveRecord::Base.connection_handler.while_preventing_writes do
+        Bird.create! name: "Bluejay"
+      end
+    end
+
+    assert_match %r/\AWrite query attempted while in readonly mode: INSERT /, error.message
+  end
+
+  test "updating a record raises if preventing writes" do
+    bird = Bird.create! name: "Bluejay"
+
+    error = assert_raises ActiveRecord::ReadOnlyError do
+      ActiveRecord::Base.connection_handler.while_preventing_writes do
+        bird.update! name: "Robin"
+      end
+    end
+
+    assert_match %r/\AWrite query attempted while in readonly mode: UPDATE /, error.message
+  end
+
+  test "deleting a record raises if preventing writes" do
+    bird = Bird.create! name: "Bluejay"
+
+    error = assert_raises ActiveRecord::ReadOnlyError do
+      ActiveRecord::Base.connection_handler.while_preventing_writes do
+        bird.destroy!
+      end
+    end
+
+    assert_match %r/\AWrite query attempted while in readonly mode: DELETE /, error.message
+  end
+
+  test "selecting a record does not raise if preventing writes" do
+    bird = Bird.create! name: "Bluejay"
+
+    ActiveRecord::Base.connection_handler.while_preventing_writes do
+      assert_equal bird, Bird.where(name: "Bluejay").first
+    end
+  end
+
+  test "an explain query does not raise if preventing writes" do
+    Bird.create!(name: "Bluejay")
+
+    ActiveRecord::Base.connection_handler.while_preventing_writes do
+      assert_queries(2) { Bird.where(name: "Bluejay").explain }
+    end
+  end
+
+  test "an empty transaction does not raise if preventing writes" do
+    ActiveRecord::Base.connection_handler.while_preventing_writes do
+      assert_queries(2, ignore_none: true) do
+        Bird.transaction do
+          ActiveRecord::Base.connection.materialize_transactions
+        end
+      end
+    end
+  end
+
+  test "preventing writes applies to all connections on a handler" do
+    conn1_error = assert_raises ActiveRecord::ReadOnlyError do
+      ActiveRecord::Base.connection_handler.while_preventing_writes do
+        assert_equal ActiveRecord::Base.connection, Bird.connection
+        assert_not_equal ARUnit2Model.connection, Bird.connection
+        Bird.create!(name: "Bluejay")
+      end
+    end
+
+    assert_match %r/\AWrite query attempted while in readonly mode: INSERT /, conn1_error.message
+
+    conn2_error = assert_raises ActiveRecord::ReadOnlyError do
+      ActiveRecord::Base.connection_handler.while_preventing_writes do
+        assert_not_equal ActiveRecord::Base.connection, Professor.connection
+        assert_equal ARUnit2Model.connection, Professor.connection
+        Professor.create!(name: "Professor Bluejay")
+      end
+    end
+
+    assert_match %r/\AWrite query attempted while in readonly mode: INSERT /, conn2_error.message
+  end
+
+  unless in_memory_db?
+    test "preventing writes with multiple handlers" do
+      ActiveRecord::Base.connects_to(database: { writing: :arunit, reading: :arunit })
+
+      conn1_error = assert_raises ActiveRecord::ReadOnlyError do
+        ActiveRecord::Base.connected_to(role: :writing) do
+          assert_equal :writing, ActiveRecord::Base.current_role
+
+          ActiveRecord::Base.connection_handler.while_preventing_writes do
+            Bird.create!(name: "Bluejay")
+          end
+        end
+      end
+
+      assert_match %r/\AWrite query attempted while in readonly mode: INSERT /, conn1_error.message
+
+      conn2_error = assert_raises ActiveRecord::ReadOnlyError do
+        ActiveRecord::Base.connected_to(role: :reading) do
+          assert_equal :reading, ActiveRecord::Base.current_role
+
+          ActiveRecord::Base.connection_handler.while_preventing_writes do
+            Bird.create!(name: "Bluejay")
+          end
+        end
+      end
+
+      assert_match %r/\AWrite query attempted while in readonly mode: INSERT /, conn2_error.message
+    ensure
+      ActiveRecord::Base.connection_handlers = { writing: ActiveRecord::Base.default_connection_handler }
+      ActiveRecord::Base.establish_connection(:arunit)
+    end
   end
 end

@@ -8,11 +8,11 @@ class StringInquirerTest < ActiveSupport::TestCase
   end
 
   def test_match
-    assert @string_inquirer.production?
+    assert_predicate @string_inquirer, :production?
   end
 
   def test_miss
-    assert_not @string_inquirer.development?
+    assert_not_predicate @string_inquirer, :development?
   end
 
   def test_missing_question_mark

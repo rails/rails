@@ -13,13 +13,6 @@ silence_warnings do
   Encoding.default_external = Encoding::UTF_8
 end
 
-require "drb"
-begin
-  require "drb/unix"
-rescue LoadError
-  puts "'drb/unix' is not available"
-end
-
 if ENV["TRAVIS"]
   PROCESS_COUNT = 0
 else
@@ -44,7 +37,7 @@ module Rails
       @_env ||= ActiveSupport::StringInquirer.new(ENV["RAILS_ENV"] || ENV["RACK_ENV"] || "test")
     end
 
-    def root; end;
+    def root; end
   end
 end
 
@@ -80,7 +73,7 @@ end
 module ActiveSupport
   class TestCase
     if RUBY_ENGINE == "ruby" && PROCESS_COUNT > 0
-      parallelize_me!
+      parallelize(workers: PROCESS_COUNT)
     end
   end
 end
@@ -103,6 +96,7 @@ class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
     RoutedRackApp.new(routes || ActionDispatch::Routing::RouteSet.new) do |middleware|
       middleware.use ActionDispatch::ShowExceptions, ActionDispatch::PublicExceptions.new("#{FIXTURE_LOAD_PATH}/public")
       middleware.use ActionDispatch::DebugExceptions
+      middleware.use ActionDispatch::ActionableExceptions
       middleware.use ActionDispatch::Callbacks
       middleware.use ActionDispatch::Cookies
       middleware.use ActionDispatch::Flash
@@ -232,6 +226,7 @@ module ActionController
       routes = ActionDispatch::Routing::RouteSet.new
       routes.draw(&block)
       include routes.url_helpers
+      routes
     end
   end
 
@@ -340,7 +335,6 @@ module RoutingTestHelpers
     end
 
     private
-
       def make_request(env)
         Request.new super, url_helpers, @block, strict
       end
@@ -358,88 +352,19 @@ class ImagesController < ResourcesController; end
 
 require "active_support/testing/method_call_assertions"
 
-class ForkingExecutor
-  class Server
-    include DRb::DRbUndumped
-
-    def initialize
-      @queue = Queue.new
-    end
-
-    def record(reporter, result)
-      reporter.record result
-    end
-
-    def <<(o)
-      o[2] = DRbObject.new(o[2]) if o
-      @queue << o
-    end
-    def pop; @queue.pop; end
-  end
-
-  def initialize(size)
-    @size  = size
-    @queue = Server.new
-    file   = File.join Dir.tmpdir, Dir::Tmpname.make_tmpname("rails-tests", "fd")
-    @url   = "drbunix://#{file}"
-    @pool  = nil
-    DRb.start_service @url, @queue
-  end
-
-  def <<(work); @queue << work; end
-
-  def shutdown
-    pool = @size.times.map {
-      fork {
-        DRb.stop_service
-        queue = DRbObject.new_with_uri @url
-        while job = queue.pop
-          klass    = job[0]
-          method   = job[1]
-          reporter = job[2]
-          result = Minitest.run_one_method klass, method
-          if result.error?
-            translate_exceptions result
-          end
-          queue.record reporter, result
-        end
-      }
-    }
-    @size.times { @queue << nil }
-    pool.each { |pid| Process.waitpid pid }
-  end
-
-  private
-    def translate_exceptions(result)
-      result.failures.map! { |e|
-        begin
-          Marshal.dump e
-          e
-        rescue TypeError
-          ex = Exception.new e.message
-          ex.set_backtrace e.backtrace
-          Minitest::UnexpectedError.new ex
-        end
-      }
-    end
-end
-
-if RUBY_ENGINE == "ruby" && PROCESS_COUNT > 0
-  # Use N processes (N defaults to 4)
-  Minitest.parallel_executor = ForkingExecutor.new(PROCESS_COUNT)
-end
-
 class ActiveSupport::TestCase
   include ActiveSupport::Testing::MethodCallAssertions
 
-  # Skips the current run on Rubinius using Minitest::Assertions#skip
-  private def rubinius_skip(message = "")
-    skip message if RUBY_ENGINE == "rbx"
-  end
-  # Skips the current run on JRuby using Minitest::Assertions#skip
-  private def jruby_skip(message = "")
-    skip message if defined?(JRUBY_VERSION)
-  end
+  private
+    # Skips the current run on Rubinius using Minitest::Assertions#skip
+    def rubinius_skip(message = "")
+      skip message if RUBY_ENGINE == "rbx"
+    end
+
+    # Skips the current run on JRuby using Minitest::Assertions#skip
+    def jruby_skip(message = "")
+      skip message if defined?(JRUBY_VERSION)
+    end
 end
 
 class DrivenByRackTest < ActionDispatch::SystemTestCase
@@ -449,3 +374,13 @@ end
 class DrivenBySeleniumWithChrome < ActionDispatch::SystemTestCase
   driven_by :selenium, using: :chrome
 end
+
+class DrivenBySeleniumWithHeadlessChrome < ActionDispatch::SystemTestCase
+  driven_by :selenium, using: :headless_chrome
+end
+
+class DrivenBySeleniumWithHeadlessFirefox < ActionDispatch::SystemTestCase
+  driven_by :selenium, using: :headless_firefox
+end
+
+require_relative "../../tools/test_common"

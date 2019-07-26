@@ -1,4 +1,6 @@
-require_relative "dot"
+# frozen_string_literal: true
+
+require "action_dispatch/journey/nfa/dot"
 
 module ActionDispatch
   module Journey # :nodoc:
@@ -92,7 +94,6 @@ module ActionDispatch
         end
 
         private
-
           def inverted
             return @inverted if @inverted
 

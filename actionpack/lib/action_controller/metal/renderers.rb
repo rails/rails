@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "set"
 
 module ActionController
@@ -83,7 +85,7 @@ module ActionController
     def self.remove(key)
       RENDERERS.delete(key.to_sym)
       method_name = _render_with_renderer_method_name(key)
-      remove_method(method_name) if method_defined?(method_name)
+      remove_possible_method(method_name)
     end
 
     def self._render_with_renderer_method_name(key)
@@ -155,7 +157,7 @@ module ActionController
       json = json.to_json(options) unless json.kind_of?(String)
 
       if options[:callback].present?
-        if content_type.nil? || content_type == Mime[:json]
+        if media_type.nil? || media_type == Mime[:json]
           self.content_type = Mime[:js]
         end
 

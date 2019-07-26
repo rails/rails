@@ -1,6 +1,7 @@
-require "active_support/core_ext/module/introspection"
-require_relative "base"
-require_relative "generated_attribute"
+# frozen_string_literal: true
+
+require "rails/generators/base"
+require "rails/generators/generated_attribute"
 
 module Rails
   module Generators
@@ -30,12 +31,8 @@ module Rails
         end
       end
 
-      # TODO Change this to private once we've dropped Ruby 2.2 support.
-      # Workaround for Ruby 2.2 "private attribute?" warning.
-      protected
-        attr_reader :file_name
-
       private
+        attr_reader :file_name
 
         # FIXME: We are avoiding to use alias because a bug on thor that make
         # this method public and add it to the task list.
@@ -98,11 +95,11 @@ module Rails
         end
 
         def index_helper # :doc:
-          uncountable? ? "#{plural_table_name}_index" : plural_table_name
+          uncountable? ? "#{plural_route_name}_index" : plural_route_name
         end
 
         def show_helper # :doc:
-          "#{singular_table_name}_url(@#{singular_table_name})"
+          "#{singular_route_name}_url(@#{singular_table_name})"
         end
 
         def edit_helper # :doc:
@@ -110,11 +107,7 @@ module Rails
         end
 
         def new_helper # :doc:
-          "new_#{singular_table_name}_url"
-        end
-
-        def field_id(attribute_name)
-          [singular_table_name, attribute_name].join("_")
+          "new_#{singular_route_name}_url"
         end
 
         def singular_table_name # :doc:
@@ -147,6 +140,35 @@ module Rails
             Rails.application.class.name.split("::").first.underscore
           else
             "application"
+          end
+        end
+
+        def redirect_resource_name # :doc:
+          model_resource_name(prefix: "@")
+        end
+
+        def model_resource_name(prefix: "") # :doc:
+          resource_name = "#{prefix}#{singular_table_name}"
+          if options[:model_name]
+            "[#{controller_class_path.map { |name| ":" + name }.join(", ")}, #{resource_name}]"
+          else
+            resource_name
+          end
+        end
+
+        def singular_route_name # :doc:
+          if options[:model_name]
+            "#{controller_class_path.join('_')}_#{singular_table_name}"
+          else
+            singular_table_name
+          end
+        end
+
+        def plural_route_name # :doc:
+          if options[:model_name]
+            "#{controller_class_path.join('_')}_#{plural_table_name}"
+          else
+            plural_table_name
           end
         end
 
@@ -191,7 +213,7 @@ module Rails
         #
         def self.check_class_collision(options = {}) # :doc:
           define_method :check_class_collision do
-            name = if respond_to?(:controller_class_name) # for ScaffoldBase
+            name = if respond_to?(:controller_class_name) # for ResourceHelpers
               controller_class_name
             else
               class_name

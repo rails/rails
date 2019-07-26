@@ -1,4 +1,4 @@
-<%= wrap_in_modules <<-rb.strip_heredoc
+<%= wrap_in_modules <<~rb
   class ApplicationRecord < ActiveRecord::Base
     self.abstract_class = true
   end

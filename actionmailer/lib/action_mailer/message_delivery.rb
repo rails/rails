@@ -4,7 +4,7 @@ require "delegate"
 
 module ActionMailer
   # The <tt>ActionMailer::MessageDelivery</tt> class is used by
-  # <tt>ActionMailer::Base</tt> when creating a new mailer.
+  # ActionMailer::Base when creating a new mailer.
   # <tt>MessageDelivery</tt> is a wrapper (+Delegator+ subclass) around a lazy
   # created <tt>Mail::Message</tt>. You can get direct access to the
   # <tt>Mail::Message</tt>, deliver the email or schedule the email to be sent
@@ -29,7 +29,7 @@ module ActionMailer
       @mail_message ||= processed_mailer.message
     end
 
-    # Unused except for delegator internals (dup, marshaling).
+    # Unused except for delegator internals (dup, marshalling).
     def __setobj__(mail_message) #:nodoc:
       @mail_message = mail_message
     end
@@ -53,6 +53,12 @@ module ActionMailer
     #   Notifier.welcome(User.first).deliver_later!(wait: 1.hour)
     #   Notifier.welcome(User.first).deliver_later!(wait_until: 10.hours.from_now)
     #
+    # Options:
+    #
+    # * <tt>:wait</tt> - Enqueue the email to be delivered with a delay
+    # * <tt>:wait_until</tt> - Enqueue the email to be delivered at (after) a specific date / time
+    # * <tt>:queue</tt> - Enqueue the email on the specified queue
+    #
     # By default, the email will be enqueued using <tt>ActionMailer::DeliveryJob</tt>. Each
     # <tt>ActionMailer::Base</tt> class can specify the job to use by setting the class variable
     # +delivery_job+.
@@ -60,12 +66,6 @@ module ActionMailer
     #   class AccountRegistrationMailer < ApplicationMailer
     #     self.delivery_job = RegistrationDeliveryJob
     #   end
-    #
-    # Options:
-    #
-    # * <tt>:wait</tt> - Enqueue the email to be delivered with a delay
-    # * <tt>:wait_until</tt> - Enqueue the email to be delivered at (after) a specific date / time
-    # * <tt>:queue</tt> - Enqueue the email on the specified queue
     def deliver_later!(options = {})
       enqueue_delivery :deliver_now!, options
     end
@@ -77,6 +77,12 @@ module ActionMailer
     #   Notifier.welcome(User.first).deliver_later(wait: 1.hour)
     #   Notifier.welcome(User.first).deliver_later(wait_until: 10.hours.from_now)
     #
+    # Options:
+    #
+    # * <tt>:wait</tt> - Enqueue the email to be delivered with a delay.
+    # * <tt>:wait_until</tt> - Enqueue the email to be delivered at (after) a specific date / time.
+    # * <tt>:queue</tt> - Enqueue the email on the specified queue.
+    #
     # By default, the email will be enqueued using <tt>ActionMailer::DeliveryJob</tt>. Each
     # <tt>ActionMailer::Base</tt> class can specify the job to use by setting the class variable
     # +delivery_job+.
@@ -84,12 +90,6 @@ module ActionMailer
     #   class AccountRegistrationMailer < ApplicationMailer
     #     self.delivery_job = RegistrationDeliveryJob
     #   end
-    #
-    # Options:
-    #
-    # * <tt>:wait</tt> - Enqueue the email to be delivered with a delay.
-    # * <tt>:wait_until</tt> - Enqueue the email to be delivered at (after) a specific date / time.
-    # * <tt>:queue</tt> - Enqueue the email on the specified queue.
     def deliver_later(options = {})
       enqueue_delivery :deliver_now, options
     end
@@ -135,9 +135,17 @@ module ActionMailer
             "#deliver_later, 2. only touch the message *within your mailer " \
             "method*, or 3. use a custom Active Job instead of #deliver_later."
         else
-          args = @mailer_class.name, @action.to_s, delivery_method.to_s, *@args
           job = @mailer_class.delivery_job
+          args = arguments_for(job, delivery_method)
           job.set(options).perform_later(*args)
+        end
+      end
+
+      def arguments_for(delivery_job, delivery_method)
+        if delivery_job <= MailDeliveryJob
+          [@mailer_class.name, @action.to_s, delivery_method.to_s, args: @args]
+        else
+          [@mailer_class.name, @action.to_s, delivery_method.to_s, *@args]
         end
       end
   end

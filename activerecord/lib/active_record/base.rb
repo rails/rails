@@ -9,20 +9,19 @@ require "active_support/core_ext/module/attribute_accessors"
 require "active_support/core_ext/array/extract_options"
 require "active_support/core_ext/hash/deep_merge"
 require "active_support/core_ext/hash/slice"
-require "active_support/core_ext/hash/transform_values"
 require "active_support/core_ext/string/behavior"
 require "active_support/core_ext/kernel/singleton_class"
 require "active_support/core_ext/module/introspection"
-require "active_support/core_ext/object/duplicable"
 require "active_support/core_ext/class/subclasses"
-require_relative "attribute_decorators"
-require_relative "define_callbacks"
-require_relative "errors"
-require_relative "log_subscriber"
-require_relative "explain_subscriber"
-require_relative "relation/delegation"
-require_relative "attributes"
-require_relative "type_caster"
+require "active_record/attribute_decorators"
+require "active_record/define_callbacks"
+require "active_record/errors"
+require "active_record/log_subscriber"
+require "active_record/explain_subscriber"
+require "active_record/relation/delegation"
+require "active_record/attributes"
+require "active_record/type_caster"
+require "active_record/database_configurations"
 
 module ActiveRecord #:nodoc:
   # = Active Record
@@ -288,7 +287,7 @@ module ActiveRecord #:nodoc:
     extend Explain
     extend Enum
     extend Delegation::DelegateCache
-    extend CollectionCacheKey
+    extend Aggregations::ClassMethods
 
     include Core
     include Persistence
@@ -314,7 +313,6 @@ module ActiveRecord #:nodoc:
     include ActiveModel::SecurePassword
     include AutosaveAssociation
     include NestedAttributes
-    include Aggregations
     include Transactions
     include TouchLater
     include NoTouching

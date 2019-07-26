@@ -2,8 +2,8 @@
 
 module ActiveRecord
   class AssociationRelation < Relation
-    def initialize(klass, table, predicate_builder, association)
-      super(klass, table, predicate_builder)
+    def initialize(klass, association)
+      super(klass)
       @association = association
     end
 
@@ -29,11 +29,10 @@ module ActiveRecord
     end
 
     private
-
       def exec_queries
-        super do |r|
-          @association.set_inverse_instance r
-          yield r if block_given?
+        super do |record|
+          @association.set_inverse_instance_from_queries(record)
+          yield record if block_given?
         end
       end
   end

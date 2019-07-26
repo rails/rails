@@ -75,6 +75,22 @@ class SyncLogSubscriberTest < ActiveSupport::TestCase
     assert_kind_of ActiveSupport::Notifications::Event, @log_subscriber.event
   end
 
+  def test_event_attributes
+    ActiveSupport::LogSubscriber.attach_to :my_log_subscriber, @log_subscriber
+    instrument "some_event.my_log_subscriber"
+    wait
+    event = @log_subscriber.event
+    if defined?(JRUBY_VERSION)
+      assert_equal 0, event.cpu_time
+      assert_equal 0, event.allocations
+    else
+      assert_operator event.cpu_time, :>, 0
+      assert_operator event.allocations, :>, 0
+    end
+    assert_operator event.duration, :>, 0
+    assert_operator event.idle_time, :>, 0
+  end
+
   def test_does_not_send_the_event_if_it_doesnt_match_the_class
     ActiveSupport::LogSubscriber.attach_to :my_log_subscriber, @log_subscriber
     instrument "unknown_event.my_log_subscriber"

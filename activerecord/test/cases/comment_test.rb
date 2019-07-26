@@ -14,6 +14,9 @@ if ActiveRecord::Base.connection.supports_comments?
     class BlankComment < ActiveRecord::Base
     end
 
+    class PkCommented < ActiveRecord::Base
+    end
+
     setup do
       @connection = ActiveRecord::Base.connection
 
@@ -35,13 +38,23 @@ if ActiveRecord::Base.connection.supports_comments?
         t.index :absent_comment
       end
 
+      @connection.create_table("pk_commenteds", comment: "Table comment", id: false, force: true) do |t|
+        t.integer :id, comment: "Primary key comment", primary_key: true
+      end
+
       Commented.reset_column_information
       BlankComment.reset_column_information
+      PkCommented.reset_column_information
     end
 
     teardown do
       @connection.drop_table "commenteds", if_exists: true
       @connection.drop_table "blank_comments", if_exists: true
+    end
+
+    def test_default_primary_key_comment
+      column = Commented.columns_hash["id"]
+      assert_nil column.comment
     end
 
     def test_column_created_in_block
@@ -111,7 +124,7 @@ if ActiveRecord::Base.connection.supports_comments?
 
       # And check that these changes are reflected in dump
       output = dump_table_schema "commenteds"
-      assert_match %r[create_table "commenteds",.+\s+comment: "A table with comment"], output
+      assert_match %r[create_table "commenteds",.*\s+comment: "A table with comment"], output
       assert_match %r[t\.string\s+"name",\s+comment: "Comment should help clarify the column purpose"], output
       assert_match %r[t\.string\s+"obvious"\n], output
       assert_match %r[t\.string\s+"content",\s+comment: "Whoa, content describes itself!"], output
@@ -119,8 +132,6 @@ if ActiveRecord::Base.connection.supports_comments?
         assert_match %r[t\.integer\s+"rating",\s+precision: 38,\s+comment: "I am running out of imagination"], output
       else
         assert_match %r[t\.integer\s+"rating",\s+comment: "I am running out of imagination"], output
-      end
-      unless current_adapter?(:OracleAdapter)
         assert_match %r[t\.index\s+.+\s+comment: "\\\"Very important\\\" index that powers all the performance.\\nAnd it's fun!"], output
         assert_match %r[t\.index\s+.+\s+name: "idx_obvious",\s+comment: "We need to see obvious comments"], output
       end
@@ -143,6 +154,40 @@ if ActiveRecord::Base.connection.supports_comments?
 
       assert_match %r[t\.string\s+"absent_comment"\n], output
       assert_no_match %r[t\.string\s+"absent_comment", comment:\n], output
+    end
+
+    def test_change_table_comment
+      @connection.change_table_comment :commenteds, "Edited table comment"
+      assert_equal "Edited table comment", @connection.table_comment("commenteds")
+    end
+
+    def test_change_table_comment_to_nil
+      @connection.change_table_comment :commenteds, nil
+      assert_nil @connection.table_comment("commenteds")
+    end
+
+    def test_change_column_comment
+      @connection.change_column_comment :commenteds, :name, "Edited column comment"
+      column = Commented.columns_hash["name"]
+      assert_equal "Edited column comment", column.comment
+    end
+
+    def test_change_column_comment_to_nil
+      @connection.change_column_comment :commenteds, :name, nil
+      column = Commented.columns_hash["name"]
+      assert_nil column.comment
+    end
+
+    def test_comment_on_primary_key
+      column = PkCommented.columns_hash["id"]
+      assert_equal "Primary key comment", column.comment
+      assert_equal "Table comment", @connection.table_comment("pk_commenteds")
+    end
+
+    def test_schema_dump_with_primary_key_comment
+      output = dump_table_schema "pk_commenteds"
+      assert_match %r[create_table "pk_commenteds",.*\s+comment: "Table comment"], output
+      assert_no_match %r[create_table "pk_commenteds",.*\s+comment: "Primary key comment"], output
     end
   end
 end

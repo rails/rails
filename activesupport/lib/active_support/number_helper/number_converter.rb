@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require_relative "../core_ext/big_decimal/conversions"
-require_relative "../core_ext/object/blank"
-require_relative "../core_ext/hash/keys"
-require_relative "../i18n"
-require_relative "../core_ext/class/attribute"
+require "active_support/core_ext/big_decimal/conversions"
+require "active_support/core_ext/object/blank"
+require "active_support/core_ext/hash/keys"
+require "active_support/i18n"
+require "active_support/core_ext/class/attribute"
 
 module ActiveSupport
   module NumberHelper
@@ -136,7 +136,6 @@ module ActiveSupport
       end
 
       private
-
         def options
           @options ||= format_options.merge(opts)
         end

@@ -1,33 +1,28 @@
-require_relative "../../command"
-require_relative "../../test_unit/runner"
+# frozen_string_literal: true
+
+require "rails/command"
+require "rails/test_unit/runner"
+require "rails/test_unit/reporter"
 
 module Rails
   module Command
     class TestCommand < Base # :nodoc:
       no_commands do
         def help
-          require "optparse"
-          require "minitest/rails_plugin"
+          say "Usage: #{Rails::TestUnitReporter.executable} [options] [files or directories]"
+          say ""
+          say "You can run a single test by appending a line number to a filename:"
+          say ""
+          say "    #{Rails::TestUnitReporter.executable} test/models/user_test.rb:27"
+          say ""
+          say "You can run multiple files and directories at the same time:"
+          say ""
+          say "    #{Rails::TestUnitReporter.executable} test/controllers test/integration/login_test.rb"
+          say ""
+          say "By default test failures and errors are reported inline during a run."
+          say ""
 
-          opts = OptionParser.new
-          opts.banner = "Usage: #{Rails::TestUnitReporter.executable} [options] [files or directories]"
-          opts.separator ""
-          opts.separator "You can run a single test by appending a line number to a filename:"
-          opts.separator ""
-          opts.separator "    #{Rails::TestUnitReporter.executable} test/models/user_test.rb:27"
-          opts.separator ""
-          opts.separator "You can run multiple files and directories at the same time:"
-          opts.separator ""
-          opts.separator "    #{Rails::TestUnitReporter.executable} test/controllers test/integration/login_test.rb"
-          opts.separator ""
-          opts.separator "By default test failures and errors are reported inline during a run."
-          opts.separator ""
-
-          opts.separator "Rails options:"
-          Rails::TestUnit::Runner.options(opts)
-          Minitest.plugin_rails_options(opts, {})
-
-          say opts
+          Minitest.run(%w(--help))
         end
       end
 

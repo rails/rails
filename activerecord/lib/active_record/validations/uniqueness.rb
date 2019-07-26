@@ -8,7 +8,11 @@ module ActiveRecord
           raise ArgumentError, "#{options[:conditions]} was passed as :conditions but is not callable. " \
                                "Pass a callable instead: `conditions: -> { where(approved: true) }`"
         end
-        super({ case_sensitive: true }.merge!(options))
+        unless Array(options[:scope]).all? { |scope| scope.respond_to?(:to_sym) }
+          raise ArgumentError, "#{options[:scope]} is not supported format for :scope option. " \
+            "Pass a symbol or an array of symbols instead: `scope: :user_id`"
+        end
+        super
         @klass = options[:class]
       end
 
@@ -19,9 +23,9 @@ module ActiveRecord
         relation = build_relation(finder_class, attribute, value)
         if record.persisted?
           if finder_class.primary_key
-            relation = relation.where.not(finder_class.primary_key => record.id_in_database || record.id)
+            relation = relation.where.not(finder_class.primary_key => record.id_in_database)
           else
-            raise UnknownPrimaryKey.new(finder_class, "Can not validate uniqueness for persisted record without primary key.")
+            raise UnknownPrimaryKey.new(finder_class, "Cannot validate uniqueness for persisted record without primary key.")
           end
         end
         relation = scope_relation(record, relation)
@@ -52,37 +56,21 @@ module ActiveRecord
       end
 
       def build_relation(klass, attribute, value)
-        if reflection = klass._reflect_on_association(attribute)
-          attribute = reflection.foreign_key
-          value = value.attributes[reflection.klass.primary_key] unless value.nil?
+        relation = klass.unscoped
+        comparison = relation.bind_attribute(attribute, value) do |attr, bind|
+          return relation.none! if bind.unboundable?
+
+          if !options.key?(:case_sensitive) || bind.nil?
+            klass.connection.default_uniqueness_comparison(attr, bind, klass)
+          elsif options[:case_sensitive]
+            klass.connection.case_sensitive_comparison(attr, bind)
+          else
+            # will use SQL LOWER function before comparison, unless it detects a case insensitive collation
+            klass.connection.case_insensitive_comparison(attr, bind)
+          end
         end
 
-        if value.nil?
-          return klass.unscoped.where!(attribute => value)
-        end
-
-        # the attribute may be an aliased attribute
-        if klass.attribute_alias?(attribute)
-          attribute = klass.attribute_alias(attribute)
-        end
-
-        attribute_name = attribute.to_s
-
-        table = klass.arel_table
-        column = klass.columns_hash[attribute_name]
-        cast_type = klass.type_for_attribute(attribute_name)
-
-        value = Relation::QueryAttribute.new(attribute_name, value, cast_type)
-        comparison = if !options[:case_sensitive]
-          # will use SQL LOWER function before comparison, unless it detects a case insensitive collation
-          klass.connection.case_insensitive_comparison(table, attribute, column, value)
-        else
-          klass.connection.case_sensitive_comparison(table, attribute, column, value)
-        end
-        klass.unscoped.tap do |scope|
-          parts = [comparison]
-          scope.where_clause += Relation::WhereClause.new(parts)
-        end
+        relation.where!(comparison)
       end
 
       def scope_relation(record, relation)
@@ -205,9 +193,7 @@ module ActiveRecord
       #                                      | # Boom! We now have a duplicate
       #                                      | # title!
       #
-      # This could even happen if you use transactions with the 'serializable'
-      # isolation level. The best way to work around this problem is to add a unique
-      # index to the database table using
+      # The best way to work around this problem is to add a unique index to the database table using
       # {connection.add_index}[rdoc-ref:ConnectionAdapters::SchemaStatements#add_index].
       # In the rare case that a race condition occurs, the database will guarantee
       # the field's uniqueness.
@@ -219,7 +205,7 @@ module ActiveRecord
       # can catch it and restart the transaction (e.g. by telling the user
       # that the title already exists, and asking them to re-enter the title).
       # This technique is also known as
-      # {optimistic concurrency control}[http://en.wikipedia.org/wiki/Optimistic_concurrency_control].
+      # {optimistic concurrency control}[https://en.wikipedia.org/wiki/Optimistic_concurrency_control].
       #
       # The bundled ActiveRecord::ConnectionAdapters distinguish unique index
       # constraint errors from other types of database errors by throwing an

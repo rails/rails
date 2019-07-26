@@ -1,4 +1,6 @@
-require_relative "../../test_unit"
+# frozen_string_literal: true
+
+require "rails/generators/test_unit"
 
 module TestUnit # :nodoc:
   module Generators # :nodoc:
@@ -8,6 +10,11 @@ module TestUnit # :nodoc:
       def create_test_files
         template "integration_test.rb", File.join("test/integration", class_path, "#{file_name}_test.rb")
       end
+
+      private
+        def file_name
+          @_file_name ||= super.sub(/_test\z/i, "")
+        end
     end
   end
 end

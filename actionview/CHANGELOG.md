@@ -1,29 +1,19 @@
-*   Add `srcset` option to `image_tag` helper.
+*   annotated_source_code returns an empty array so TemplateErrors without a
+    template in the backtrace are surfaced properly by DebugExceptions.
 
-    *Roberto Miranda*
+    *Guilherme Mansur*, *Kasper Timm Hansen*
 
-*   Fix issues with scopes and engine on `current_page?` method.
+*   Add autoload for SyntaxErrorInTemplate so syntax errors are correctly raised by DebugExceptions.
 
-    Fixes #29401.
+    *Guilherme Mansur*, *Gannon McGibbon*
 
-    *Nikita Savrov*
+*   `RenderingHelper` supports rendering objects that `respond_to?` `:render_in`
 
-*   Generate field ids in `collection_check_boxes` and `collection_radio_buttons`.
+    *Joel Hawksley*, *Natasha Umer*, *Aaron Patterson*, *Shawn Allen*, *Emily Plummer*, *Diana Mounter*, *John Hawthorn*, *Nathan Herald*, *Zaid Zawaideh*, *Zach Ahn*
 
-    This makes sure that the labels are linked up with the fields.
+*   Fix `select_tag` so that it doesn't change `options` when `include_blank` is present.
 
-    Fixes #29014.
-
-    *Yuji Yaginuma*
-
-*   Add `:json` type to `auto_discovery_link_tag` to support [JSON Feeds](https://jsonfeed.org/version/1)
-
-    *Mike Gunderloy*
-
-*   Update `distance_of_time_in_words` helper to display better error messages
-    for bad input.
-
-    *Jay Hayes*
+    *Younes SERRAJ*
 
 
-Please check [5-1-stable](https://github.com/rails/rails/blob/5-1-stable/actionview/CHANGELOG.md) for previous changes.
+Please check [6-0-stable](https://github.com/rails/rails/blob/6-0-stable/actionview/CHANGELOG.md) for previous changes.

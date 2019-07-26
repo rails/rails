@@ -1,10 +1,15 @@
+# frozen_string_literal: true
+
 require "yaml"
 require "active_support/core_ext/hash/keys"
 require "active_support/core_ext/object/blank"
 require "active_support/key_generator"
 require "active_support/message_verifier"
-require_relative "engine"
-require_relative "secrets"
+require "active_support/encrypted_configuration"
+require "active_support/deprecation"
+require "active_support/hash_with_indifferent_access"
+require "rails/engine"
+require "rails/secrets"
 
 module Rails
   # An Engine with the responsibility of coordinating the whole boot process.
@@ -168,16 +173,9 @@ module Rails
     def key_generator
       # number of iterations selected based on consultation with the google security
       # team. Details at https://github.com/rails/rails/pull/6952#issuecomment-7661220
-      @caching_key_generator ||=
-        if secrets.secret_key_base
-          unless secrets.secret_key_base.kind_of?(String)
-            raise ArgumentError, "`secret_key_base` for #{Rails.env} environment must be a type of String, change this value in `config/secrets.yml`"
-          end
-          key_generator = ActiveSupport::KeyGenerator.new(secrets.secret_key_base, iterations: 1000)
-          ActiveSupport::CachingKeyGenerator.new(key_generator)
-        else
-          ActiveSupport::LegacyKeyGenerator.new(secrets.secret_token)
-        end
+      @caching_key_generator ||= ActiveSupport::CachingKeyGenerator.new(
+        ActiveSupport::KeyGenerator.new(secret_key_base, iterations: 1000)
+      )
     end
 
     # Returns a message verifier object.
@@ -230,7 +228,12 @@ module Rails
 
       if yaml.exist?
         require "erb"
-        (YAML.load(ERB.new(yaml.read).result) || {})[env] || {}
+        config = YAML.load(ERB.new(yaml.read).result) || {}
+        config = (config["shared"] || {}).merge(config[env] || {})
+
+        ActiveSupport::OrderedOptions.new.tap do |options|
+          options.update(NonSymbolAccessDeprecatedHash.new(config))
+        end
       else
         raise "Could not load configuration. No such file - #{yaml}"
       end
@@ -244,13 +247,10 @@ module Rails
     # will be used by middlewares and engines to configure themselves.
     def env_config
       @app_env_config ||= begin
-        validate_secret_key_config!
-
         super.merge(
           "action_dispatch.parameter_filter" => config.filter_parameters,
           "action_dispatch.redirect_filter" => config.filter_redirect,
-          "action_dispatch.secret_token" => secrets.secret_token,
-          "action_dispatch.secret_key_base" => secrets.secret_key_base,
+          "action_dispatch.secret_key_base" => secret_key_base,
           "action_dispatch.show_exceptions" => config.action_dispatch.show_exceptions,
           "action_dispatch.show_detailed_exceptions" => config.consider_all_requests_local,
           "action_dispatch.logger" => Rails.logger,
@@ -261,8 +261,18 @@ module Rails
           "action_dispatch.encrypted_cookie_salt" => config.action_dispatch.encrypted_cookie_salt,
           "action_dispatch.encrypted_signed_cookie_salt" => config.action_dispatch.encrypted_signed_cookie_salt,
           "action_dispatch.authenticated_encrypted_cookie_salt" => config.action_dispatch.authenticated_encrypted_cookie_salt,
+          "action_dispatch.use_authenticated_cookie_encryption" => config.action_dispatch.use_authenticated_cookie_encryption,
+          "action_dispatch.encrypted_cookie_cipher" => config.action_dispatch.encrypted_cookie_cipher,
+          "action_dispatch.signed_cookie_digest" => config.action_dispatch.signed_cookie_digest,
           "action_dispatch.cookies_serializer" => config.action_dispatch.cookies_serializer,
-          "action_dispatch.cookies_digest" => config.action_dispatch.cookies_digest
+          "action_dispatch.cookies_digest" => config.action_dispatch.cookies_digest,
+          "action_dispatch.cookies_rotations" => config.action_dispatch.cookies_rotations,
+          "action_dispatch.use_cookies_with_metadata" => config.action_dispatch.use_cookies_with_metadata,
+          "action_dispatch.content_security_policy" => config.content_security_policy,
+          "action_dispatch.content_security_policy_report_only" => config.content_security_policy_report_only,
+          "action_dispatch.content_security_policy_nonce_generator" => config.content_security_policy_nonce_generator,
+          "action_dispatch.content_security_policy_nonce_directives" => config.content_security_policy_nonce_directives,
+          "action_dispatch.feature_policy" => config.feature_policy,
         )
       end
     end
@@ -366,9 +376,7 @@ module Rails
       @config ||= Application::Configuration.new(self.class.find_root(self.class.called_from))
     end
 
-    def config=(configuration) #:nodoc:
-      @config = configuration
-    end
+    attr_writer :config
 
     # Returns secrets added to config/secrets.yml.
     #
@@ -393,15 +401,77 @@ module Rails
 
         # Fallback to config.secret_key_base if secrets.secret_key_base isn't set
         secrets.secret_key_base ||= config.secret_key_base
-        # Fallback to config.secret_token if secrets.secret_token isn't set
-        secrets.secret_token ||= config.secret_token
 
         secrets
       end
     end
 
-    def secrets=(secrets) #:nodoc:
-      @secrets = secrets
+    attr_writer :secrets
+
+    # The secret_key_base is used as the input secret to the application's key generator, which in turn
+    # is used to create all MessageVerifiers/MessageEncryptors, including the ones that sign and encrypt cookies.
+    #
+    # In development and test, this is randomly generated and stored in a
+    # temporary file in <tt>tmp/development_secret.txt</tt>.
+    #
+    # In all other environments, we look for it first in ENV["SECRET_KEY_BASE"],
+    # then credentials.secret_key_base, and finally secrets.secret_key_base. For most applications,
+    # the correct place to store it is in the encrypted credentials file.
+    def secret_key_base
+      if Rails.env.development? || Rails.env.test?
+        secrets.secret_key_base ||= generate_development_secret
+      else
+        validate_secret_key_base(
+          ENV["SECRET_KEY_BASE"] || credentials.secret_key_base || secrets.secret_key_base
+        )
+      end
+    end
+
+    # Decrypts the credentials hash as kept in +config/credentials.yml.enc+. This file is encrypted with
+    # the Rails master key, which is either taken from <tt>ENV["RAILS_MASTER_KEY"]</tt> or from loading
+    # +config/master.key+.
+    # If specific credentials file exists for current environment, it takes precedence, thus for +production+
+    # environment look first for +config/credentials/production.yml.enc+ with master key taken
+    # from <tt>ENV["RAILS_MASTER_KEY"]</tt> or from loading +config/credentials/production.key+.
+    # Default behavior can be overwritten by setting +config.credentials.content_path+ and +config.credentials.key_path+.
+    def credentials
+      @credentials ||= encrypted(config.credentials.content_path, key_path: config.credentials.key_path)
+    end
+
+    # Shorthand to decrypt any encrypted configurations or files.
+    #
+    # For any file added with <tt>rails encrypted:edit</tt> call +read+ to decrypt
+    # the file with the master key.
+    # The master key is either stored in +config/master.key+ or <tt>ENV["RAILS_MASTER_KEY"]</tt>.
+    #
+    #   Rails.application.encrypted("config/mystery_man.txt.enc").read
+    #   # => "We've met before, haven't we?"
+    #
+    # It's also possible to interpret encrypted YAML files with +config+.
+    #
+    #   Rails.application.encrypted("config/credentials.yml.enc").config
+    #   # => { next_guys_line: "I don't think so. Where was it you think we met?" }
+    #
+    # Any top-level configs are also accessible directly on the return value:
+    #
+    #   Rails.application.encrypted("config/credentials.yml.enc").next_guys_line
+    #   # => "I don't think so. Where was it you think we met?"
+    #
+    # The files or configs can also be encrypted with a custom key. To decrypt with
+    # a key in the +ENV+, use:
+    #
+    #   Rails.application.encrypted("config/special_tokens.yml.enc", env_key: "SPECIAL_TOKENS")
+    #
+    # Or to decrypt with a file, that should be version control ignored, relative to +Rails.root+:
+    #
+    #   Rails.application.encrypted("config/special_tokens.yml.enc", key_path: "config/special_tokens.key")
+    def encrypted(path, key_path: "config/master.key", env_key: "RAILS_MASTER_KEY")
+      ActiveSupport::EncryptedConfiguration.new(
+        config_path: Rails.root.join(path),
+        key_path: Rails.root.join(key_path),
+        env_key: env_key,
+        raise_if_missing_key: config.require_master_key
+      )
     end
 
     def to_app #:nodoc:
@@ -433,13 +503,12 @@ module Rails
     end
 
   protected
-
     alias :build_middleware_stack :app
 
     def run_tasks_blocks(app) #:nodoc:
       railties.each { |r| r.run_tasks_blocks(app) }
       super
-      require_relative "tasks"
+      require "rails/tasks"
       task :environment do
         ActiveSupport.on_load(:before_initialize) { config.eager_load = false }
 
@@ -502,18 +571,32 @@ module Rails
       default_stack.build_stack
     end
 
-    def validate_secret_key_config! #:nodoc:
-      if secrets.secret_key_base.blank?
-        ActiveSupport::Deprecation.warn "You didn't set `secret_key_base`. " \
-          "Read the upgrade documentation to learn more about this new config option."
-
-        if secrets.secret_token.blank?
-          raise "Missing `secret_key_base` for '#{Rails.env}' environment, set this value in `config/secrets.yml`"
-        end
+    def validate_secret_key_base(secret_key_base)
+      if secret_key_base.is_a?(String) && secret_key_base.present?
+        secret_key_base
+      elsif secret_key_base
+        raise ArgumentError, "`secret_key_base` for #{Rails.env} environment must be a type of String`"
+      else
+        raise ArgumentError, "Missing `secret_key_base` for '#{Rails.env}' environment, set this string with `rails credentials:edit`"
       end
     end
 
     private
+      def generate_development_secret
+        if secrets.secret_key_base.nil?
+          key_file = Rails.root.join("tmp/development_secret.txt")
+
+          if !File.exist?(key_file)
+            random_key = SecureRandom.hex(64)
+            FileUtils.mkdir_p(key_file.dirname)
+            File.binwrite(key_file, random_key)
+          end
+
+          secrets.secret_key_base = File.binread(key_file)
+        end
+
+        secrets.secret_key_base
+      end
 
       def build_request(env)
         req = super
@@ -524,6 +607,52 @@ module Rails
 
       def build_middleware
         config.app_middleware + super
+      end
+
+      class NonSymbolAccessDeprecatedHash < HashWithIndifferentAccess # :nodoc:
+        def initialize(value = nil)
+          if value.is_a?(Hash)
+            value.each_pair { |k, v| self[k] = v }
+          else
+            super
+          end
+        end
+
+        def []=(key, value)
+          regular_writer(key.to_sym, convert_value(value, for: :assignment))
+        end
+
+        private
+          def convert_key(key)
+            unless key.kind_of?(Symbol)
+              ActiveSupport::Deprecation.warn(<<~MESSAGE.squish)
+                Accessing hashes returned from config_for by non-symbol keys
+                is deprecated and will be removed in Rails 6.1.
+                Use symbols for access instead.
+              MESSAGE
+
+              key = key.to_sym
+            end
+
+            key
+          end
+
+          def convert_value(value, options = {}) # :doc:
+            if value.is_a? Hash
+              if options[:for] == :to_hash
+                value.to_hash
+              else
+                self.class.new(value)
+              end
+            elsif value.is_a?(Array)
+              if options[:for] != :assignment || value.frozen?
+                value = value.dup
+              end
+              value.map! { |e| convert_value(e, options) }
+            else
+              value
+            end
+          end
       end
   end
 end

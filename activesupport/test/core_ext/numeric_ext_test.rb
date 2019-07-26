@@ -302,7 +302,7 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
     assert_equal "40 KB",    41100.to_s(:human_size, precision: 2)
     assert_equal "1.0 KB",   kilobytes(1.0123).to_s(:human_size, precision: 2, strip_insignificant_zeros: false)
     assert_equal "1.012 KB", kilobytes(1.0123).to_s(:human_size, precision: 3, significant: false)
-    assert_equal "1 KB",     kilobytes(1.0123).to_s(:human_size, precision: 0, significant: true) #ignores significant it precision is 0
+    assert_equal "1 KB",     kilobytes(1.0123).to_s(:human_size, precision: 0, significant: true) # ignores significant it precision is 0
   end
 
   def test_to_s__human_size_with_custom_delimiter_and_separator
@@ -330,17 +330,17 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
     assert_equal "489.0 Thousand", 489000.to_s(:human, precision: 4, strip_insignificant_zeros: false)
     assert_equal "1.2346 Million", 1234567.to_s(:human, precision: 4, significant: false)
     assert_equal "1,2 Million", 1234567.to_s(:human, precision: 1, significant: false, separator: ",")
-    assert_equal "1 Million", 1234567.to_s(:human, precision: 0, significant: true, separator: ",") #significant forced to false
+    assert_equal "1 Million", 1234567.to_s(:human, precision: 0, significant: true, separator: ",") # significant forced to false
   end
 
   def test_number_to_human_with_custom_units
-    #Only integers
+    # Only integers
     volume = { unit: "ml", thousand: "lt", million: "m3" }
     assert_equal "123 lt", 123456.to_s(:human, units: volume)
     assert_equal "12 ml", 12.to_s(:human, units: volume)
     assert_equal "1.23 m3", 1234567.to_s(:human, units: volume)
 
-    #Including fractionals
+    # Including fractionals
     distance = { mili: "mm", centi: "cm", deci: "dm", unit: "m", ten: "dam", hundred: "hm", thousand: "km" }
     assert_equal "1.23 mm", 0.00123.to_s(:human, units: distance)
     assert_equal "1.23 cm", 0.0123.to_s(:human, units: distance)
@@ -353,14 +353,14 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
     assert_equal "1.23 km", 1230.to_s(:human, units: distance)
     assert_equal "12.3 km", 12300.to_s(:human, units: distance)
 
-    #The quantifiers don't need to be a continuous sequence
+    # The quantifiers don't need to be a continuous sequence
     gangster = { hundred: "hundred bucks", million: "thousand quids" }
     assert_equal "1 hundred bucks", 100.to_s(:human, units: gangster)
     assert_equal "25 hundred bucks", 2500.to_s(:human, units: gangster)
     assert_equal "25 thousand quids", 25000000.to_s(:human, units: gangster)
     assert_equal "12300 thousand quids", 12345000000.to_s(:human, units: gangster)
 
-    #Spaces are stripped from the resulting string
+    # Spaces are stripped from the resulting string
     assert_equal "4", 4.to_s(:human, units: { unit: "", ten: "tens " })
     assert_equal "4.5  tens", 45.to_s(:human, units: { unit: "", ten: " tens   " })
   end
@@ -406,86 +406,9 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
     assert_equal 10_000, 10.seconds.in_milliseconds
   end
 
-  # TODO: Remove positive and negative tests when we drop support to ruby < 2.3
-  b = 2**64
-
-  T_ZERO = b.coerce(0).first
-  T_ONE  = b.coerce(1).first
-  T_MONE = b.coerce(-1).first
-
-  def test_positive
-    assert_predicate(1, :positive?)
-    assert_not_predicate(0, :positive?)
-    assert_not_predicate(-1, :positive?)
-    assert_predicate(+1.0, :positive?)
-    assert_not_predicate(+0.0, :positive?)
-    assert_not_predicate(-0.0, :positive?)
-    assert_not_predicate(-1.0, :positive?)
-    assert_predicate(+(0.0.next_float), :positive?)
-    assert_not_predicate(-(0.0.next_float), :positive?)
-    assert_predicate(Float::INFINITY, :positive?)
-    assert_not_predicate(-Float::INFINITY, :positive?)
-    assert_not_predicate(Float::NAN, :positive?)
-
-    a = Class.new(Numeric) do
-      def >(x); true; end
-    end.new
-    assert_predicate(a, :positive?)
-
-    a = Class.new(Numeric) do
-      def >(x); false; end
-    end.new
-    assert_not_predicate(a, :positive?)
-
-    assert_predicate(1 / 2r, :positive?)
-    assert_not_predicate(-1 / 2r, :positive?)
-
-    assert_predicate(T_ONE, :positive?)
-    assert_not_predicate(T_MONE, :positive?)
-    assert_not_predicate(T_ZERO, :positive?)
-
-    e = assert_raises(NoMethodError) do
-      Complex(1).positive?
+  def test_requiring_inquiry_is_deprecated
+    assert_deprecated do
+      require "active_support/core_ext/numeric/inquiry"
     end
-
-    assert_match(/positive\?/, e.message)
-  end
-
-  def test_negative
-    assert_predicate(-1, :negative?)
-    assert_not_predicate(0, :negative?)
-    assert_not_predicate(1, :negative?)
-    assert_predicate(-1.0, :negative?)
-    assert_not_predicate(-0.0, :negative?)
-    assert_not_predicate(+0.0, :negative?)
-    assert_not_predicate(+1.0, :negative?)
-    assert_predicate(-(0.0.next_float), :negative?)
-    assert_not_predicate(+(0.0.next_float), :negative?)
-    assert_predicate(-Float::INFINITY, :negative?)
-    assert_not_predicate(Float::INFINITY, :negative?)
-    assert_not_predicate(Float::NAN, :negative?)
-
-    a = Class.new(Numeric) do
-      def <(x); true; end
-    end.new
-    assert_predicate(a, :negative?)
-
-    a = Class.new(Numeric) do
-      def <(x); false; end
-    end.new
-    assert_not_predicate(a, :negative?)
-
-    assert_predicate(-1 / 2r, :negative?)
-    assert_not_predicate(1 / 2r, :negative?)
-
-    assert_not_predicate(T_ONE, :negative?)
-    assert_predicate(T_MONE, :negative?)
-    assert_not_predicate(T_ZERO, :negative?)
-
-    e = assert_raises(NoMethodError) do
-      Complex(1).negative?
-    end
-
-    assert_match(/negative\?/, e.message)
   end
 end

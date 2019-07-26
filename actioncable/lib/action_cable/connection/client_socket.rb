@@ -21,7 +21,7 @@ module ActionCable
         return true if env["HTTP_X_FORWARDED_PROTO"] == "https"
         return true if env["rack.url_scheme"] == "https"
 
-        return false
+        false
       end
 
       CONNECTING = 0
@@ -83,7 +83,7 @@ module ActionCable
         when Numeric then @driver.text(message.to_s)
         when String  then @driver.text(message)
         when Array   then @driver.binary(message)
-          else false
+        else false
         end
       end
 

@@ -4,6 +4,8 @@ module ActiveRecord
   class LogSubscriber < ActiveSupport::LogSubscriber
     IGNORE_PAYLOAD_NAMES = ["SCHEMA", "EXPLAIN"]
 
+    class_attribute :backtrace_cleaner, default: ActiveSupport::BacktraceCleaner.new
+
     def self.runtime=(value)
       ActiveRecord::RuntimeRegistry.sql_runtime = value
     end
@@ -89,6 +91,26 @@ module ActiveRecord
 
       def logger
         ActiveRecord::Base.logger
+      end
+
+      def debug(progname = nil, &block)
+        return unless super
+
+        if ActiveRecord::Base.verbose_query_logs
+          log_query_source
+        end
+      end
+
+      def log_query_source
+        source = extract_query_source_location(caller)
+
+        if source
+          logger.debug("  ↳ #{source}")
+        end
+      end
+
+      def extract_query_source_location(locations)
+        backtrace_cleaner.clean(locations.lazy).first
       end
   end
 end

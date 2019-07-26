@@ -62,6 +62,11 @@ class PersonWithDependentNullifyJobs < ActiveRecord::Base
   has_many :jobs, source: :job, through: :references, dependent: :nullify
 end
 
+class PersonWithPolymorphicDependentNullifyComments < ActiveRecord::Base
+  self.table_name = "people"
+  has_many :comments, as: :author, dependent: :nullify
+end
+
 class LoosePerson < ActiveRecord::Base
   self.table_name = "people"
   self.abstract_class = true
@@ -96,7 +101,6 @@ class RichPerson < ActiveRecord::Base
   before_validation :run_before_validation
 
   private
-
     def run_before_create
       self.first_name = first_name.to_s + "run_before_create"
     end

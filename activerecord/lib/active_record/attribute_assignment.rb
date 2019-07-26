@@ -4,16 +4,9 @@ require "active_model/forbidden_attributes_protection"
 
 module ActiveRecord
   module AttributeAssignment
-    extend ActiveSupport::Concern
     include ActiveModel::AttributeAssignment
 
-    # Alias for ActiveModel::AttributeAssignment#assign_attributes. See ActiveModel::AttributeAssignment.
-    def attributes=(attributes)
-      assign_attributes(attributes)
-    end
-
     private
-
       def _assign_attributes(attributes)
         multi_parameter_attributes  = {}
         nested_parameter_attributes = {}
@@ -51,16 +44,14 @@ module ActiveRecord
       def execute_callstack_for_multiparameter_attributes(callstack)
         errors = []
         callstack.each do |name, values_with_empty_parameters|
-          begin
-            if values_with_empty_parameters.each_value.all?(&:nil?)
-              values = nil
-            else
-              values = values_with_empty_parameters
-            end
-            send("#{name}=", values)
-          rescue => ex
-            errors << AttributeAssignmentError.new("error on assignment #{values_with_empty_parameters.values.inspect} to #{name} (#{ex.message})", ex, name)
+          if values_with_empty_parameters.each_value.all?(&:nil?)
+            values = nil
+          else
+            values = values_with_empty_parameters
           end
+          send("#{name}=", values)
+        rescue => ex
+          errors << AttributeAssignmentError.new("error on assignment #{values_with_empty_parameters.values.inspect} to #{name} (#{ex.message})", ex, name)
         end
         unless errors.empty?
           error_descriptions = errors.map(&:message).join(",")

@@ -5,7 +5,7 @@ raise "JRuby is required to use the JDOM backend for XmlMini" unless RUBY_PLATFO
 require "jruby"
 include Java
 
-require_relative "../core_ext/object/blank"
+require "active_support/core_ext/object/blank"
 
 java_import javax.xml.parsers.DocumentBuilder unless defined? DocumentBuilder
 java_import javax.xml.parsers.DocumentBuilderFactory unless defined? DocumentBuilderFactory
@@ -18,7 +18,7 @@ module ActiveSupport
   module XmlMini_JDOM #:nodoc:
     extend self
 
-    CONTENT_KEY = "__content__".freeze
+    CONTENT_KEY = "__content__"
 
     NODE_TYPE_NAMES = %w{ATTRIBUTE_NODE CDATA_SECTION_NODE COMMENT_NODE DOCUMENT_FRAGMENT_NODE
     DOCUMENT_NODE DOCUMENT_TYPE_NODE ELEMENT_NODE ENTITY_NODE ENTITY_REFERENCE_NODE NOTATION_NODE
@@ -40,7 +40,7 @@ module ActiveSupport
       else
         @dbf = DocumentBuilderFactory.new_instance
         # secure processing of java xml
-        # http://www.ibm.com/developerworks/xml/library/x-tipcfsx/index.html
+        # https://archive.is/9xcQQ
         @dbf.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false)
         @dbf.setFeature("http://xml.org/sax/features/external-general-entities", false)
         @dbf.setFeature("http://xml.org/sax/features/external-parameter-entities", false)
@@ -53,7 +53,6 @@ module ActiveSupport
     end
 
     private
-
       # Convert an XML element and merge into the hash
       #
       # hash::
@@ -169,7 +168,7 @@ module ActiveSupport
       # element::
       #   XML element to be checked.
       def empty_content?(element)
-        text = ""
+        text = +""
         child_nodes = element.child_nodes
         (0...child_nodes.length).each do |i|
           item = child_nodes.item(i)

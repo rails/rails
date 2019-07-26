@@ -5,15 +5,16 @@ require "json"
 require "bigdecimal"
 require "uri/generic"
 require "pathname"
-require_relative "../big_decimal/conversions" # for #to_s
-require_relative "../hash/except"
-require_relative "../hash/slice"
-require_relative "instance_variables"
+require "active_support/core_ext/big_decimal/conversions" # for #to_s
+require "active_support/core_ext/hash/except"
+require "active_support/core_ext/hash/slice"
+require "active_support/core_ext/object/instance_variables"
 require "time"
-require_relative "../time/conversions"
-require_relative "../date_time/conversions"
-require_relative "../date/conversions"
+require "active_support/core_ext/time/conversions"
+require "active_support/core_ext/date_time/conversions"
+require "active_support/core_ext/date/conversions"
 
+#--
 # The JSON gem adds a few modules to Ruby core classes containing :to_json definition, overwriting
 # their default behavior. That said, we need to define the basic to_json method in all of them,
 # otherwise they will always use to_json gem implementation, which is backwards incompatible in
@@ -132,6 +133,12 @@ end
 module Enumerable
   def as_json(options = nil) #:nodoc:
     to_a.as_json(options)
+  end
+end
+
+class IO
+  def as_json(options = nil) #:nodoc:
+    to_s
   end
 end
 

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 class EngineTest < ActiveSupport::TestCase
@@ -9,7 +11,7 @@ class EngineTest < ActiveSupport::TestCase
       end
     end
 
-    assert !engine.routes?
+    assert_not_predicate engine, :routes?
   end
 
   def test_application_can_be_subclassed

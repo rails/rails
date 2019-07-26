@@ -31,10 +31,18 @@ class Deprecatee
   def f=(v); end
   deprecate :f=
 
+  deprecate :g
+  def g; end
+
   module B
     C = 1
   end
   A = ActiveSupport::Deprecation::DeprecatedConstantProxy.new("Deprecatee::A", "Deprecatee::B::C")
+
+  module New
+    class Descendant; end
+  end
+  Old = ActiveSupport::Deprecation::DeprecatedConstantProxy.new("Deprecatee::Old", "Deprecatee::New")
 end
 
 class DeprecateeWithAccessor
@@ -158,7 +166,7 @@ class DeprecationTest < ActiveSupport::TestCase
     stderr_output = capture(:stderr) {
       assert_nil behavior.call("Some error!", ["call stack!"], "horizon", "gem")
     }
-    assert stderr_output.empty?
+    assert_empty stderr_output
   end
 
   def test_default_notify_behavior
@@ -182,6 +190,14 @@ class DeprecationTest < ActiveSupport::TestCase
     end
   end
 
+  def test_default_invalid_behavior
+    e = assert_raises(ArgumentError) do
+      ActiveSupport::Deprecation.behavior = :invalid
+    end
+
+    assert_equal ":invalid is not a valid deprecation behavior.", e.message
+  end
+
   def test_deprecated_instance_variable_proxy
     assert_not_deprecated { @dtc.request.size }
 
@@ -197,6 +213,18 @@ class DeprecationTest < ActiveSupport::TestCase
     assert_not_deprecated { Deprecatee::B::C }
     assert_deprecated("Deprecatee::A") { assert_equal Deprecatee::B::C, Deprecatee::A }
     assert_not_deprecated { assert_equal Deprecatee::B::C.class, Deprecatee::A.class }
+  end
+
+  def test_deprecated_constant_descendant
+    assert_not_deprecated { Deprecatee::New::Descendant }
+
+    assert_deprecated("Deprecatee::Old") do
+      assert_equal Deprecatee::Old::Descendant, Deprecatee::New::Descendant
+    end
+
+    assert_raises(NameError) do
+      assert_deprecated("Deprecatee::Old") { Deprecatee::Old::NON_EXISTENCE }
+    end
   end
 
   def test_deprecated_constant_accessor
@@ -415,6 +443,10 @@ class DeprecationTest < ActiveSupport::TestCase
     deprecator.send(:deprecated_method_warning, :deprecated_method, "You are calling deprecated method").tap do |message|
       assert_match(/is deprecated and will be removed from Custom/, message)
     end
+  end
+
+  def test_deprecate_work_before_define_method
+    assert_deprecated { @dtc.g }
   end
 
   private

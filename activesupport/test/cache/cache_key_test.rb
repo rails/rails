@@ -47,7 +47,7 @@ class CacheKeyTest < ActiveSupport::TestCase
   end
 
   def test_expand_cache_key_respond_to_cache_key
-    key = "foo".dup
+    key = +"foo"
     def key.cache_key
       :foo_key
     end
@@ -55,7 +55,7 @@ class CacheKeyTest < ActiveSupport::TestCase
   end
 
   def test_expand_cache_key_array_with_something_that_responds_to_cache_key
-    key = "foo".dup
+    key = +"foo"
     def key.cache_key
       :foo_key
     end
@@ -79,7 +79,6 @@ class CacheKeyTest < ActiveSupport::TestCase
   end
 
   private
-
     def with_env(kv)
       old_values = {}
       kv.each { |key, value| old_values[key], ENV[key] = ENV[key], value }

@@ -91,7 +91,6 @@ class InheritanceTest < ActiveRecord::TestCase
     end
 
     ActiveSupport::Dependencies.stub(:safe_constantize, proc { raise e }) do
-
       exception = assert_raises NameError do
         Company.send :compute_type, "InvalidModel"
       end
@@ -130,56 +129,70 @@ class InheritanceTest < ActiveRecord::TestCase
   end
 
   def test_descends_from_active_record
-    assert !ActiveRecord::Base.descends_from_active_record?
+    assert_not_predicate ActiveRecord::Base, :descends_from_active_record?
 
     # Abstract subclass of AR::Base.
-    assert LoosePerson.descends_from_active_record?
+    assert_predicate LoosePerson, :descends_from_active_record?
 
     # Concrete subclass of an abstract class.
-    assert LooseDescendant.descends_from_active_record?
+    assert_predicate LooseDescendant, :descends_from_active_record?
 
     # Concrete subclass of AR::Base.
-    assert TightPerson.descends_from_active_record?
+    assert_predicate TightPerson, :descends_from_active_record?
 
     # Concrete subclass of a concrete class but has no type column.
-    assert TightDescendant.descends_from_active_record?
+    assert_predicate TightDescendant, :descends_from_active_record?
 
     # Concrete subclass of AR::Base.
-    assert Post.descends_from_active_record?
+    assert_predicate Post, :descends_from_active_record?
+
+    # Concrete subclasses of a concrete class which has a type column.
+    assert_not_predicate StiPost, :descends_from_active_record?
+    assert_not_predicate SubStiPost, :descends_from_active_record?
 
     # Abstract subclass of a concrete class which has a type column.
     # This is pathological, as you'll never have Sub < Abstract < Concrete.
-    assert !StiPost.descends_from_active_record?
+    assert_not_predicate AbstractStiPost, :descends_from_active_record?
 
-    # Concrete subclasses an abstract class which has a type column.
-    assert !SubStiPost.descends_from_active_record?
+    # Concrete subclass of an abstract class which has a type column.
+    assert_not_predicate SubAbstractStiPost, :descends_from_active_record?
   end
 
   def test_company_descends_from_active_record
-    assert !ActiveRecord::Base.descends_from_active_record?
+    assert_not_predicate ActiveRecord::Base, :descends_from_active_record?
     assert AbstractCompany.descends_from_active_record?, "AbstractCompany should descend from ActiveRecord::Base"
     assert Company.descends_from_active_record?, "Company should descend from ActiveRecord::Base"
-    assert !Class.new(Company).descends_from_active_record?, "Company subclass should not descend from ActiveRecord::Base"
+    assert_not Class.new(Company).descends_from_active_record?, "Company subclass should not descend from ActiveRecord::Base"
   end
 
   def test_abstract_class
-    assert !ActiveRecord::Base.abstract_class?
-    assert LoosePerson.abstract_class?
-    assert !LooseDescendant.abstract_class?
+    assert_not_predicate ActiveRecord::Base, :abstract_class?
+    assert_predicate LoosePerson, :abstract_class?
+    assert_not_predicate LooseDescendant, :abstract_class?
   end
 
   def test_inheritance_base_class
     assert_equal Post, Post.base_class
+    assert_predicate Post, :base_class?
     assert_equal Post, SpecialPost.base_class
+    assert_not_predicate SpecialPost, :base_class?
     assert_equal Post, StiPost.base_class
-    assert_equal SubStiPost, SubStiPost.base_class
+    assert_not_predicate StiPost, :base_class?
+    assert_equal Post, SubStiPost.base_class
+    assert_not_predicate SubStiPost, :base_class?
+    assert_equal SubAbstractStiPost, SubAbstractStiPost.base_class
+    assert_predicate SubAbstractStiPost, :base_class?
   end
 
   def test_abstract_inheritance_base_class
     assert_equal LoosePerson, LoosePerson.base_class
+    assert_predicate LoosePerson, :base_class?
     assert_equal LooseDescendant, LooseDescendant.base_class
+    assert_predicate LooseDescendant, :base_class?
     assert_equal TightPerson, TightPerson.base_class
+    assert_predicate TightPerson, :base_class?
     assert_equal TightPerson, TightDescendant.base_class
+    assert_not_predicate TightDescendant, :base_class?
   end
 
   def test_base_class_activerecord_error
@@ -227,7 +240,7 @@ class InheritanceTest < ActiveRecord::TestCase
     cabbage = vegetable.becomes!(Cabbage)
     assert_equal "Cabbage", cabbage.custom_type
 
-    vegetable = cabbage.becomes!(Vegetable)
+    cabbage.becomes!(Vegetable)
     assert_nil cabbage.custom_type
   end
 
@@ -275,6 +288,21 @@ class InheritanceTest < ActiveRecord::TestCase
     assert_equal Firm, firm.class
   end
 
+  def test_where_new_with_subclass
+    firm = Company.where(type: "Firm").new
+    assert_equal Firm, firm.class
+  end
+
+  def test_where_create_with_subclass
+    firm = Company.where(type: "Firm").create(name: "Basecamp")
+    assert_equal Firm, firm.class
+  end
+
+  def test_where_create_bang_with_subclass
+    firm = Company.where(type: "Firm").create!(name: "Basecamp")
+    assert_equal Firm, firm.class
+  end
+
   def test_new_with_abstract_class
     e = assert_raises(NotImplementedError) do
       AbstractCompany.new
@@ -295,6 +323,30 @@ class InheritanceTest < ActiveRecord::TestCase
 
   def test_new_with_unrelated_type
     assert_raise(ActiveRecord::SubclassNotFound) { Company.new(type: "Account") }
+  end
+
+  def test_where_new_with_invalid_type
+    assert_raise(ActiveRecord::SubclassNotFound) { Company.where(type: "InvalidType").new }
+  end
+
+  def test_where_new_with_unrelated_type
+    assert_raise(ActiveRecord::SubclassNotFound) { Company.where(type: "Account").new }
+  end
+
+  def test_where_create_with_invalid_type
+    assert_raise(ActiveRecord::SubclassNotFound) { Company.where(type: "InvalidType").create }
+  end
+
+  def test_where_create_with_unrelated_type
+    assert_raise(ActiveRecord::SubclassNotFound) { Company.where(type: "Account").create }
+  end
+
+  def test_where_create_bang_with_invalid_type
+    assert_raise(ActiveRecord::SubclassNotFound) { Company.where(type: "InvalidType").create! }
+  end
+
+  def test_where_create_bang_with_unrelated_type
+    assert_raise(ActiveRecord::SubclassNotFound) { Company.where(type: "Account").create! }
   end
 
   def test_new_with_unrelated_namespaced_type
@@ -419,9 +471,9 @@ class InheritanceTest < ActiveRecord::TestCase
   end
 
   def test_eager_load_belongs_to_primary_key_quoting
-    con = Account.connection
+    c = Account.connection
     bind_param = Arel::Nodes::BindParam.new(nil)
-    assert_sql(/#{con.quote_table_name('companies')}\.#{con.quote_column_name('id')} = (?:#{Regexp.quote(bind_param.to_sql)}|1)/) do
+    assert_sql(/#{Regexp.escape(c.quote_table_name("companies.id"))} = (?:#{Regexp.escape(bind_param.to_sql)}|1)/i) do
       Account.all.merge!(includes: :firm).find(1)
     end
   end
@@ -462,10 +514,12 @@ class InheritanceComputeTypeTest < ActiveRecord::TestCase
 
       # Should fail without FirmOnTheFly in the type condition.
       assert_raise(ActiveRecord::RecordNotFound) { Firm.find(foo.id) }
+      assert_raise(ActiveRecord::RecordNotFound) { Firm.find_by!(id: foo.id) }
 
       # Nest FirmOnTheFly in the test case where Dependencies won't see it.
       self.class.const_set :FirmOnTheFly, Class.new(Firm)
       assert_raise(ActiveRecord::SubclassNotFound) { Firm.find(foo.id) }
+      assert_raise(ActiveRecord::SubclassNotFound) { Firm.find_by!(id: foo.id) }
 
       # Nest FirmOnTheFly in Firm where Dependencies will see it.
       # This is analogous to nesting models in a migration.
@@ -474,6 +528,7 @@ class InheritanceComputeTypeTest < ActiveRecord::TestCase
       # And instantiate will find the existing constant rather than trying
       # to require firm_on_the_fly.
       assert_nothing_raised { assert_kind_of Firm::FirmOnTheFly, Firm.find(foo.id) }
+      assert_nothing_raised { assert_kind_of Firm::FirmOnTheFly, Firm.find_by!(id: foo.id) }
     end
   end
 
@@ -602,7 +657,7 @@ class InheritanceAttributeMappingTest < ActiveRecord::TestCase
 
     assert_equal ["omg_inheritance_attribute_mapping_test/company"], ActiveRecord::Base.connection.select_values("SELECT sponsorable_type FROM sponsors")
 
-    sponsor = Sponsor.first
+    sponsor = Sponsor.find(sponsor.id)
     assert_equal startup, sponsor.sponsorable
   end
 end

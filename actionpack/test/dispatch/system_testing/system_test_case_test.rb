@@ -1,4 +1,7 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
+require "selenium/webdriver"
 
 class SetDriverToRackTestTest < DrivenByRackTest
   test "uses rack_test" do
@@ -20,46 +23,24 @@ class SetDriverToSeleniumTest < DrivenBySeleniumWithChrome
   end
 end
 
-class SetHostTest < DrivenByRackTest
-  test "sets default host" do
-    assert_equal "http://127.0.0.1", Capybara.app_host
-  end
-
-  test "overrides host" do
-    host! "http://example.com"
-
-    assert_equal "http://example.com", Capybara.app_host
+class SetDriverToSeleniumHeadlessChromeTest < DrivenBySeleniumWithHeadlessChrome
+  test "uses selenium headless chrome" do
+    assert_equal :selenium, Capybara.current_driver
   end
 end
 
-class UndefMethodsTest < DrivenBySeleniumWithChrome
-  test "get" do
-    assert_raise NoMethodError do
-      get "http://example.com"
-    end
+class SetDriverToSeleniumHeadlessFirefoxTest < DrivenBySeleniumWithHeadlessFirefox
+  test "uses selenium headless firefox" do
+    assert_equal :selenium, Capybara.current_driver
   end
+end
 
-  test "post" do
-    assert_raise NoMethodError do
-      post "http://example.com"
+class SetHostTest < DrivenByRackTest
+  test "overrides host" do
+    assert_deprecated do
+      host! "http://example.com"
     end
-  end
 
-  test "put" do
-    assert_raise NoMethodError do
-      put "http://example.com"
-    end
-  end
-
-  test "patch" do
-    assert_raise NoMethodError do
-      patch "http://example.com"
-    end
-  end
-
-  test "delete" do
-    assert_raise NoMethodError do
-      delete "http://example.com"
-    end
+    assert_equal "http://example.com", Capybara.app_host
   end
 end

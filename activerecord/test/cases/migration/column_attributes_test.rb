@@ -45,11 +45,11 @@ module ActiveRecord
         assert_nil TestModel.columns_hash["description"].limit
       end
 
-      if current_adapter?(:Mysql2Adapter)
+      if current_adapter?(:Mysql2Adapter, :PostgreSQLAdapter)
         def test_unabstracted_database_dependent_types
-          add_column :test_models, :intelligence_quotient, :tinyint
+          add_column :test_models, :intelligence_quotient, :smallint
           TestModel.reset_column_information
-          assert_match(/tinyint/, TestModel.columns_hash["intelligence_quotient"].sql_type)
+          assert_match(/smallint/, TestModel.columns_hash["intelligence_quotient"].sql_type)
         end
       end
 
@@ -80,7 +80,7 @@ module ActiveRecord
           TestModel.delete_all
 
           # Now use the Rails insertion
-          TestModel.create wealth: BigDecimal.new("12345678901234567890.0123456789")
+          TestModel.create wealth: BigDecimal("12345678901234567890.0123456789")
 
           # SELECT
           row = TestModel.first
@@ -99,7 +99,21 @@ module ActiveRecord
         assert_equal 7, wealth_column.scale
       end
 
+      # Test SQLite3 adapter specifically for decimal types with precision and scale
+      # attributes, since these need to be maintained in schema but aren't actually
+      # used in SQLite3 itself
       if current_adapter?(:SQLite3Adapter)
+        def test_change_column_with_new_precision_and_scale
+          connection.add_column "test_models", "wealth", :decimal, precision: 9, scale: 7
+
+          connection.change_column "test_models", "wealth", :decimal, precision: 12, scale: 8
+          TestModel.reset_column_information
+
+          wealth_column = TestModel.columns_hash["wealth"]
+          assert_equal 12, wealth_column.precision
+          assert_equal 8, wealth_column.scale
+        end
+
         def test_change_column_preserve_other_column_precision_and_scale
           connection.add_column "test_models", "last_name", :string
           connection.add_column "test_models", "wealth", :decimal, precision: 9, scale: 7
@@ -132,7 +146,7 @@ module ActiveRecord
 
           TestModel.create first_name: "bob", last_name: "bobsen",
             bio: "I was born ....", age: 18, height: 1.78,
-            wealth: BigDecimal.new("12345678901234567890.0123456789"),
+            wealth: BigDecimal("12345678901234567890.0123456789"),
             birthday: 18.years.ago, favorite_day: 10.days.ago,
             moment_of_truth: "1782-10-10 21:40:18", male: true
 
@@ -145,7 +159,7 @@ module ActiveRecord
           # Test for 30 significant digits (beyond the 16 of float), 10 of them
           # after the decimal place.
 
-          assert_equal BigDecimal.new("0012345678901234567890.0123456789"), bob.wealth
+          assert_equal BigDecimal("0012345678901234567890.0123456789"), bob.wealth
 
           assert_equal true, bob.male?
 
@@ -162,11 +176,9 @@ module ActiveRecord
 
       if current_adapter?(:Mysql2Adapter, :PostgreSQLAdapter)
         def test_out_of_range_limit_should_raise
-          assert_raise(ActiveRecordError) { add_column :test_models, :integer_too_big, :integer, limit: 10 }
-
-          unless current_adapter?(:PostgreSQLAdapter)
-            assert_raise(ActiveRecordError) { add_column :test_models, :text_too_big, :text, limit: 0xfffffffff }
-          end
+          assert_raise(ArgumentError) { add_column :test_models, :integer_too_big, :integer, limit: 10 }
+          assert_raise(ArgumentError) { add_column :test_models, :text_too_big, :text, limit: 0xfffffffff }
+          assert_raise(ArgumentError) { add_column :test_models, :binary_too_big, :binary, limit: 0xfffffffff }
         end
       end
     end

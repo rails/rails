@@ -221,7 +221,7 @@ module InflectorTestCases
     "Test with malformed utf8 \251"       => "test_with_malformed_utf8"
   }
 
-  StringToParameterizePreserceCaseWithUnderscore = {
+  StringToParameterizePreserveCaseWithUnderscore = {
     "Donald E. Knuth"                     => "Donald_E_Knuth",
     "Random text with *(bad)* characters" => "Random_text_with_bad_characters",
     "With-some-dashes"                    => "With-some-dashes",

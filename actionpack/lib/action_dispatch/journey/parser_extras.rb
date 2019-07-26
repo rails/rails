@@ -1,5 +1,7 @@
-require_relative "scanner"
-require_relative "nodes/node"
+# frozen_string_literal: true
+
+require "action_dispatch/journey/scanner"
+require "action_dispatch/journey/nodes/node"
 
 module ActionDispatch
   # :stopdoc:

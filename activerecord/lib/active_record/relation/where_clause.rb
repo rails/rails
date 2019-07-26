@@ -15,6 +15,12 @@ module ActiveRecord
         )
       end
 
+      def -(other)
+        WhereClause.new(
+          predicates - other.predicates,
+        )
+      end
+
       def merge(other)
         WhereClause.new(
           predicates_unreferenced_by(other) + other.predicates,
@@ -26,19 +32,22 @@ module ActiveRecord
       end
 
       def or(other)
-        if empty?
-          self
-        elsif other.empty?
-          other
+        left = self - other
+        common = self - left
+        right = other - common
+
+        if left.empty? || right.empty?
+          common
         else
-          WhereClause.new(
-            [ast.or(other.ast)],
+          or_clause = WhereClause.new(
+            [left.ast.or(right.ast)],
           )
+          common + or_clause
         end
       end
 
       def to_h(table_name = nil)
-        equalities = predicates.grep(Arel::Nodes::Equality)
+        equalities = equalities(predicates)
         if table_name
           equalities = equalities.select do |node|
             node.left.relation.name == table_name
@@ -61,7 +70,15 @@ module ActiveRecord
           predicates == other.predicates
       end
 
-      def invert
+      def invert(as = :nand)
+        if predicates.size == 1
+          inverted_predicates = [ invert_predicate(predicates.first) ]
+        elsif as == :nor
+          inverted_predicates = predicates.map { |node| invert_predicate(node) }
+        else
+          inverted_predicates = [ Arel::Nodes::Not.new(ast) ]
+        end
+
         WhereClause.new(inverted_predicates)
       end
 
@@ -70,7 +87,6 @@ module ActiveRecord
       end
 
       protected
-
         attr_reader :predicates
 
         def referenced_columns
@@ -81,6 +97,20 @@ module ActiveRecord
         end
 
       private
+        def equalities(predicates)
+          equalities = []
+
+          predicates.each do |node|
+            case node
+            when Arel::Nodes::Equality
+              equalities << node
+            when Arel::Nodes::And
+              equalities.concat equalities(node.children)
+            end
+          end
+
+          equalities
+        end
 
         def predicates_unreferenced_by(other)
           predicates.reject do |n|
@@ -92,16 +122,16 @@ module ActiveRecord
           node.respond_to?(:operator) && node.operator == :==
         end
 
-        def inverted_predicates
-          predicates.map { |node| invert_predicate(node) }
-        end
-
         def invert_predicate(node)
           case node
           when NilClass
             raise ArgumentError, "Invalid argument for .where.not(), got nil."
           when Arel::Nodes::In
             Arel::Nodes::NotIn.new(node.left, node.right)
+          when Arel::Nodes::IsNotDistinctFrom
+            Arel::Nodes::IsDistinctFrom.new(node.left, node.right)
+          when Arel::Nodes::IsDistinctFrom
+            Arel::Nodes::IsNotDistinctFrom.new(node.left, node.right)
           when Arel::Nodes::Equality
             Arel::Nodes::NotEqual.new(node.left, node.right)
           when String
@@ -112,12 +142,8 @@ module ActiveRecord
         end
 
         def except_predicates(columns)
-          self.predicates.reject do |node|
-            case node
-            when Arel::Nodes::Between, Arel::Nodes::In, Arel::Nodes::NotIn, Arel::Nodes::Equality, Arel::Nodes::NotEqual, Arel::Nodes::LessThan, Arel::Nodes::LessThanOrEqual, Arel::Nodes::GreaterThan, Arel::Nodes::GreaterThanOrEqual
-              subrelation = (node.left.kind_of?(Arel::Attributes::Attribute) ? node.left : node.right)
-              columns.include?(subrelation.name.to_s)
-            end
+          predicates.reject do |node|
+            Arel.fetch_attribute(node) { |attr| columns.include?(attr.name.to_s) }
           end
         end
 

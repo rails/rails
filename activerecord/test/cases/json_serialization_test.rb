@@ -10,7 +10,6 @@ require "models/comment"
 
 module JsonSerializationHelpers
   private
-
     def set_include_root_in_json(value)
       original_root_in_json = ActiveRecord::Base.include_root_in_json
       ActiveRecord::Base.include_root_in_json = value
@@ -24,7 +23,7 @@ class JsonSerializationTest < ActiveRecord::TestCase
   include JsonSerializationHelpers
 
   class NamespacedContact < Contact
-    column :name, :string
+    column :name, "string"
   end
 
   def setup
@@ -252,7 +251,7 @@ class DatabaseConnectedJsonEncodingTest < ActiveRecord::TestCase
     def @david.favorite_quote; "Constraints are liberating"; end
     json = @david.to_json(include: :posts, methods: :favorite_quote)
 
-    assert !@david.posts.first.respond_to?(:favorite_quote)
+    assert_not_respond_to @david.posts.first, :favorite_quote
     assert_match %r{"favorite_quote":"Constraints are liberating"}, json
     assert_equal 1, %r{"favorite_quote":}.match(json).size
   end

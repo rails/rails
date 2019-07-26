@@ -32,7 +32,7 @@ module CommonSubscriptionAdapterTest
     subscribed = Concurrent::Event.new
     adapter.subscribe(channel, callback, Proc.new { subscribed.set })
     subscribed.wait(WAIT_WHEN_EXPECTING_EVENT)
-    assert subscribed.set?
+    assert_predicate subscribed, :set?
 
     yield queue
 

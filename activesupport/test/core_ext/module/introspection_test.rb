@@ -15,25 +15,43 @@ module ParentA
 end
 
 class IntrospectionTest < ActiveSupport::TestCase
-  def test_parent_name
-    assert_equal "ParentA", ParentA::B.parent_name
-    assert_equal "ParentA::B", ParentA::B::C.parent_name
-    assert_nil ParentA.parent_name
+  def test_module_parent_name
+    assert_equal "ParentA", ParentA::B.module_parent_name
+    assert_equal "ParentA::B", ParentA::B::C.module_parent_name
+    assert_nil ParentA.module_parent_name
   end
 
-  def test_parent_name_when_frozen
-    assert_equal "ParentA", ParentA::FrozenB.parent_name
-    assert_equal "ParentA::B", ParentA::B::FrozenC.parent_name
+  def test_module_parent_name_when_frozen
+    assert_equal "ParentA", ParentA::FrozenB.module_parent_name
+    assert_equal "ParentA::B", ParentA::B::FrozenC.module_parent_name
+  end
+
+  def test_parent_name
+    assert_deprecated do
+      assert_equal "ParentA", ParentA::B.parent_name
+    end
+  end
+
+  def test_module_parent
+    assert_equal ParentA::B, ParentA::B::C.module_parent
+    assert_equal ParentA, ParentA::B.module_parent
+    assert_equal Object, ParentA.module_parent
   end
 
   def test_parent
-    assert_equal ParentA::B, ParentA::B::C.parent
-    assert_equal ParentA, ParentA::B.parent
-    assert_equal Object, ParentA.parent
+    assert_deprecated do
+      assert_equal ParentA, ParentA::B.parent
+    end
+  end
+
+  def test_module_parents
+    assert_equal [ParentA::B, ParentA, Object], ParentA::B::C.module_parents
+    assert_equal [ParentA, Object], ParentA::B.module_parents
   end
 
   def test_parents
-    assert_equal [ParentA::B, ParentA, Object], ParentA::B::C.parents
-    assert_equal [ParentA, Object], ParentA::B.parents
+    assert_deprecated do
+      assert_equal [ParentA, Object], ParentA::B.parents
+    end
   end
 end

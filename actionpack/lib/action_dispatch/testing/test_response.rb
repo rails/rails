@@ -1,4 +1,6 @@
-require_relative "request_encoder"
+# frozen_string_literal: true
+
+require "action_dispatch/testing/request_encoder"
 
 module ActionDispatch
   # Integration test methods such as ActionDispatch::Integration::Session#get
@@ -12,22 +14,12 @@ module ActionDispatch
       new response.status, response.headers, response.body
     end
 
-    def initialize(*) # :nodoc:
-      super
-      @response_parser = RequestEncoder.parser(content_type)
+    def parsed_body
+      @parsed_body ||= response_parser.call(body)
     end
 
-    # Was the response successful?
-    alias_method :success?, :successful?
-
-    # Was the URL not found?
-    alias_method :missing?, :not_found?
-
-    # Was there a server-side error?
-    alias_method :error?, :server_error?
-
-    def parsed_body
-      @parsed_body ||= @response_parser.call(body)
+    def response_parser
+      @response_parser ||= RequestEncoder.parser(media_type)
     end
   end
 end

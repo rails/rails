@@ -86,9 +86,9 @@ module ActiveRecord
           rename_table :cats, :felines
 
           assert connection.table_exists? :felines
-          refute connection.table_exists? :cats
+          assert_not connection.table_exists? :cats
 
-          primary_key_name = connection.select_values(<<-SQL.strip_heredoc, "SCHEMA")[0]
+          primary_key_name = connection.select_values(<<~SQL, "SCHEMA")[0]
             SELECT c.relname
               FROM pg_class c
               JOIN pg_index i
@@ -107,7 +107,7 @@ module ActiveRecord
           connection.create_table :cats, id: :uuid, default: "uuid_generate_v4()"
           assert_nothing_raised { rename_table :cats, :felines }
           assert connection.table_exists? :felines
-          refute connection.table_exists? :cats
+          assert_not connection.table_exists? :cats
         ensure
           connection.drop_table :cats, if_exists: true
           connection.drop_table :felines, if_exists: true

@@ -248,7 +248,7 @@ class DateAndTimeCompatibilityTest < ActiveSupport::TestCase
   def test_string_to_time_frozen_preserves_timezone
     with_preserve_timezone(true) do
       with_env_tz "US/Eastern" do
-        source = "2016-04-23T15:11:12+01:00".freeze
+        source = "2016-04-23T15:11:12+01:00"
         time = source.to_time
 
         assert_instance_of Time, time
@@ -262,7 +262,7 @@ class DateAndTimeCompatibilityTest < ActiveSupport::TestCase
   def test_string_to_time_frozen_does_not_preserve_time_zone
     with_preserve_timezone(false) do
       with_env_tz "US/Eastern" do
-        source = "2016-04-23T15:11:12+01:00".freeze
+        source = "2016-04-23T15:11:12+01:00"
         time = source.to_time
 
         assert_instance_of Time, time

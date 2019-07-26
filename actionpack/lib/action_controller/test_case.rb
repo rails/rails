@@ -1,10 +1,13 @@
+# frozen_string_literal: true
+
 require "rack/session/abstract/id"
 require "active_support/core_ext/hash/conversions"
 require "active_support/core_ext/object/to_query"
 require "active_support/core_ext/module/anonymous"
+require "active_support/core_ext/module/redefine_method"
 require "active_support/core_ext/hash/keys"
 require "active_support/testing/constant_lookup"
-require_relative "template_assertions"
+require "action_controller/template_assertions"
 require "rails-dom-testing"
 
 module ActionController
@@ -17,13 +20,13 @@ module ActionController
     # the database on the main thread, so they could open a txn, then the
     # controller thread will open a new connection and try to access data
     # that's only visible to the main thread's txn. This is the problem in #23483.
-    remove_method :new_controller_thread
+    silence_redefinition_of_method :new_controller_thread
     def new_controller_thread # :nodoc:
       yield
     end
   end
 
-  # ActionController::TestCase will be deprecated and moved to a gem in Rails 5.1.
+  # ActionController::TestCase will be deprecated and moved to a gem in the future.
   # Please use ActionDispatch::IntegrationTest going forward.
   class TestRequest < ActionDispatch::TestRequest #:nodoc:
     DEFAULT_ENV = ActionDispatch::TestRequest::DEFAULT_ENV.dup
@@ -155,7 +158,6 @@ module ActionController
     end.new
 
     private
-
       def params_parsers
         super.merge @custom_param_parsers
       end
@@ -205,7 +207,6 @@ module ActionController
     end
 
     private
-
       def load!
         @id
       end
@@ -253,7 +254,7 @@ module ActionController
   #
   #   def test_create
   #     json = {book: { title: "Love Hina" }}.to_json
-  #     post :create, json
+  #     post :create, body: json
   #   end
   #
   # == Special instance variables
@@ -272,9 +273,6 @@ module ActionController
   #      of the last HTTP response. In the above example, <tt>@response</tt> becomes valid
   #      after calling +post+. If the various assert methods are not sufficient, then you
   #      may use this object to inspect the HTTP response in detail.
-  #
-  # (Earlier versions of \Rails required each functional test to subclass
-  # Test::Unit::TestCase and define @controller, @request, @response in +setup+.)
   #
   # == Controller is automatically inferred
   #
@@ -454,12 +452,8 @@ module ActionController
       # respectively which will make tests more expressive.
       #
       # Note that the request method is not verified.
-      def process(action, method: "GET", params: {}, session: nil, body: nil, flash: {}, format: nil, xhr: false, as: nil)
+      def process(action, method: "GET", params: nil, session: nil, body: nil, flash: {}, format: nil, xhr: false, as: nil)
         check_required_ivars
-
-        if body
-          @request.set_header "RAW_POST_DATA", body
-        end
 
         http_method = method.to_s.upcase
 
@@ -475,6 +469,10 @@ module ActionController
         @response.request = @request
         @controller.recycle!
 
+        if body
+          @request.set_header "RAW_POST_DATA", body
+        end
+
         @request.set_header "REQUEST_METHOD", http_method
 
         if as
@@ -482,7 +480,7 @@ module ActionController
           format ||= as
         end
 
-        parameters = params.symbolize_keys
+        parameters = (params || {}).symbolize_keys
 
         if format
           parameters[:format] = format
@@ -594,13 +592,14 @@ module ActionController
       end
 
       private
-
         def scrub_env!(env)
           env.delete_if { |k, v| k =~ /^(action_dispatch|rack)\.request/ }
           env.delete_if { |k, v| k =~ /^action_dispatch\.rescue/ }
           env.delete "action_dispatch.request.query_parameters"
           env.delete "action_dispatch.request.request_parameters"
           env["rack.input"] = StringIO.new
+          env.delete "CONTENT_LENGTH"
+          env.delete "RAW_POST_DATA"
           env
         end
 

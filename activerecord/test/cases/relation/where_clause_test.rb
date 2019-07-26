@@ -75,8 +75,8 @@ class ActiveRecord::Relation
     end
 
     test "a clause knows if it is empty" do
-      assert WhereClause.empty.empty?
-      assert_not WhereClause.new(["anything"]).empty?
+      assert_empty WhereClause.empty
+      assert_not_empty WhereClause.new(["anything"])
     end
 
     test "invert cannot handle nil" do
@@ -92,17 +92,21 @@ class ActiveRecord::Relation
       original = WhereClause.new([
         table["id"].in([1, 2, 3]),
         table["id"].eq(1),
+        table["id"].is_not_distinct_from(1),
+        table["id"].is_distinct_from(2),
         "sql literal",
         random_object
       ])
       expected = WhereClause.new([
         table["id"].not_in([1, 2, 3]),
         table["id"].not_eq(1),
+        table["id"].is_distinct_from(1),
+        table["id"].is_not_distinct_from(2),
         Arel::Nodes::Not.new(Arel::Nodes::SqlLiteral.new("sql literal")),
         Arel::Nodes::Not.new(random_object)
       ])
 
-      assert_equal expected, original.invert
+      assert_equal expected, original.invert(:nor)
     end
 
     test "except removes binary predicates referencing a given column" do
@@ -181,8 +185,54 @@ class ActiveRecord::Relation
       assert_equal WhereClause.empty, WhereClause.empty.or(where_clause)
     end
 
-    private
+    test "or places common conditions before the OR" do
+      a = WhereClause.new(
+        [table["id"].eq(bind_param(1)), table["name"].eq(bind_param("Sean"))],
+      )
+      b = WhereClause.new(
+        [table["id"].eq(bind_param(1)), table["hair_color"].eq(bind_param("black"))],
+      )
 
+      common = WhereClause.new(
+        [table["id"].eq(bind_param(1))],
+      )
+
+      or_clause = WhereClause.new([table["name"].eq(bind_param("Sean"))])
+        .or(WhereClause.new([table["hair_color"].eq(bind_param("black"))]))
+
+      assert_equal common + or_clause, a.or(b)
+    end
+
+    test "or can detect identical or as being a common condition" do
+      common_or = WhereClause.new([table["name"].eq(bind_param("Sean"))])
+        .or(WhereClause.new([table["hair_color"].eq(bind_param("black"))]))
+
+      a = common_or + WhereClause.new([table["id"].eq(bind_param(1))])
+      b = common_or + WhereClause.new([table["foo"].eq(bind_param("bar"))])
+
+      new_or = WhereClause.new([table["id"].eq(bind_param(1))])
+        .or(WhereClause.new([table["foo"].eq(bind_param("bar"))]))
+
+      assert_equal common_or + new_or, a.or(b)
+    end
+
+    test "or will use only common conditions if one side only has common conditions" do
+      only_common = WhereClause.new([
+        table["id"].eq(bind_param(1)),
+        "foo = bar",
+      ])
+
+      common_with_extra = WhereClause.new([
+        table["id"].eq(bind_param(1)),
+        "foo = bar",
+        table["extra"].eq(bind_param("pluto")),
+      ])
+
+      assert_equal only_common, only_common.or(common_with_extra)
+      assert_equal only_common, common_with_extra.or(only_common)
+    end
+
+    private
       def table
         Arel::Table.new("table")
       end

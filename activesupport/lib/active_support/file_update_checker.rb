@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "core_ext/time/calculations"
+require "active_support/core_ext/time/calculations"
 
 module ActiveSupport
   # FileUpdateChecker specifies the API used by Rails to watch files
@@ -98,7 +98,6 @@ module ActiveSupport
     end
 
     private
-
       def watched
         @watched || begin
           all = @files.select { |f| File.exist?(f) }

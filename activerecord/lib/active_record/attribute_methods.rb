@@ -22,18 +22,11 @@ module ActiveRecord
       delegate :column_for_attribute, to: :class
     end
 
-    AttrNames = Module.new {
-      def self.set_name_cache(name, value)
-        const_name = "ATTR_#{name}"
-        unless const_defined? const_name
-          const_set const_name, value.dup.freeze
-        end
-      end
-    }
+    RESTRICTED_CLASS_METHODS = %w(private public protected allocate new name parent superclass)
 
-    BLACKLISTED_CLASS_METHODS = %w(private public protected allocate new name parent superclass)
-
-    class GeneratedAttributeMethods < Module; end # :nodoc:
+    class GeneratedAttributeMethods < Module #:nodoc:
+      include Mutex_m
+    end
 
     module ClassMethods
       def inherited(child_class) #:nodoc:
@@ -42,7 +35,8 @@ module ActiveRecord
       end
 
       def initialize_generated_modules # :nodoc:
-        @generated_attribute_methods = GeneratedAttributeMethods.new { extend Mutex_m }
+        @generated_attribute_methods = const_set(:GeneratedAttributeMethods, GeneratedAttributeMethods.new)
+        private_constant :GeneratedAttributeMethods
         @attribute_methods_generated = false
         include @generated_attribute_methods
 
@@ -57,7 +51,7 @@ module ActiveRecord
         # attribute methods.
         generated_attribute_methods.synchronize do
           return false if @attribute_methods_generated
-          superclass.define_attribute_methods unless self == base_class
+          superclass.define_attribute_methods unless base_class?
           super(attribute_names)
           @attribute_methods_generated = true
         end
@@ -121,7 +115,7 @@ module ActiveRecord
       # A class method is 'dangerous' if it is already (re)defined by Active Record, but
       # not by any ancestors. (So 'puts' is not dangerous but 'new' is.)
       def dangerous_class_method?(method_name)
-        BLACKLISTED_CLASS_METHODS.include?(method_name.to_s) || class_method_defined_within?(method_name, Base)
+        RESTRICTED_CLASS_METHODS.include?(method_name.to_s) || class_method_defined_within?(method_name, Base)
       end
 
       def class_method_defined_within?(name, klass, superklass = klass.superclass) # :nodoc:
@@ -217,24 +211,17 @@ module ActiveRecord
     def respond_to?(name, include_private = false)
       return false unless super
 
-      case name
-      when :to_partial_path
-        name = "to_partial_path".freeze
-      when :to_model
-        name = "to_model".freeze
-      else
-        name = name.to_s
-      end
-
       # If the result is true then check for the select case.
       # For queries selecting a subset of columns, return false for unselected columns.
       # We check defined?(@attributes) not to issue warnings if called on objects that
       # have been allocated but not yet initialized.
-      if defined?(@attributes) && self.class.column_names.include?(name)
-        return has_attribute?(name)
+      if defined?(@attributes)
+        if name = self.class.symbol_column_to_string(name.to_sym)
+          return has_attribute?(name)
+        end
       end
 
-      return true
+      true
     end
 
     # Returns +true+ if the given attribute is in the attributes hash, otherwise +false+.
@@ -291,15 +278,8 @@ module ActiveRecord
     #   person.attribute_for_inspect(:tag_ids)
     #   # => "[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]"
     def attribute_for_inspect(attr_name)
-      value = read_attribute(attr_name)
-
-      if value.is_a?(String) && value.length > 50
-        "#{value[0, 50]}...".inspect
-      elsif value.is_a?(Date) || value.is_a?(Time)
-        %("#{value.to_s(:db)}")
-      else
-        value.inspect
-      end
+      value = _read_attribute(attr_name)
+      format_for_inspect(value)
     end
 
     # Returns +true+ if the specified +attribute+ has been set by the user or by a
@@ -390,60 +370,47 @@ module ActiveRecord
       @attributes.accessed
     end
 
-    protected
-
-      def attribute_method?(attr_name) # :nodoc:
+    private
+      def attribute_method?(attr_name)
         # We check defined? because Syck calls respond_to? before actually calling initialize.
         defined?(@attributes) && @attributes.key?(attr_name)
       end
 
-    private
-
-      def arel_attributes_with_values_for_create(attribute_names)
-        arel_attributes_with_values(attributes_for_create(attribute_names))
-      end
-
-      def arel_attributes_with_values_for_update(attribute_names)
-        arel_attributes_with_values(attributes_for_update(attribute_names))
-      end
-
-      # Returns a Hash of the Arel::Attributes and attribute values that have been
-      # typecasted for use in an Arel insert/update method.
-      def arel_attributes_with_values(attribute_names)
-        attrs = {}
-        arel_table = self.class.arel_table
-
-        attribute_names.each do |name|
-          attrs[arel_table[name]] = typecasted_attribute_value(name)
+      def attributes_with_values(attribute_names)
+        attribute_names.each_with_object({}) do |name, attrs|
+          attrs[name] = _read_attribute(name)
         end
-        attrs
       end
 
       # Filters the primary keys and readonly attributes from the attribute names.
       def attributes_for_update(attribute_names)
-        attribute_names.reject do |name|
-          readonly_attribute?(name)
+        attribute_names &= self.class.column_names
+        attribute_names.delete_if do |name|
+          self.class.readonly_attribute?(name)
         end
       end
 
       # Filters out the primary keys, from the attribute names, when the primary
       # key is to be generated (e.g. the id attribute has no value).
       def attributes_for_create(attribute_names)
-        attribute_names.reject do |name|
+        attribute_names &= self.class.column_names
+        attribute_names.delete_if do |name|
           pk_attribute?(name) && id.nil?
         end
       end
 
-      def readonly_attribute?(name)
-        self.class.readonly_attributes.include?(name)
+      def format_for_inspect(value)
+        if value.is_a?(String) && value.length > 50
+          "#{value[0, 50]}...".inspect
+        elsif value.is_a?(Date) || value.is_a?(Time)
+          %("#{value.to_s(:db)}")
+        else
+          value.inspect
+        end
       end
 
       def pk_attribute?(name)
-        name == self.class.primary_key
-      end
-
-      def typecasted_attribute_value(name)
-        _read_attribute(name)
+        name == @primary_key
       end
   end
 end

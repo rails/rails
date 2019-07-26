@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
-require_relative "callbacks"
+require "active_support/callbacks"
+require "concurrent/hash"
 
 module ActiveSupport
   class ExecutionWrapper

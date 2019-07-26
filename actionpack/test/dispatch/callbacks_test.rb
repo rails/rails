@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 class DispatcherTest < ActiveSupport::TestCase
@@ -36,7 +38,6 @@ class DispatcherTest < ActiveSupport::TestCase
   end
 
   private
-
     def dispatch(&block)
       ActionDispatch::Callbacks.new(block || DummyApp.new).call(
         "rack.input" => StringIO.new("")

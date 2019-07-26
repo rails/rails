@@ -19,6 +19,8 @@ module ActiveRecord
         @conn = Base.sqlite3_connection database: ":memory:",
                                         adapter: "sqlite3",
                                         timeout: 100
+
+        @connection_handler = ActiveRecord::Base.connection_handler
       end
 
       def test_bad_connection
@@ -26,6 +28,17 @@ module ActiveRecord
           connection = ActiveRecord::Base.sqlite3_connection(adapter: "sqlite3", database: "/tmp/should/_not/_exist/-cinco-dog.db")
           connection.drop_table "ex", if_exists: true
         end
+      end
+
+      def test_database_exists_returns_false_when_the_database_does_not_exist
+        assert_not SQLite3Adapter.database_exists?(adapter: "sqlite3", database: "non_extant_db"),
+          "expected non_extant_db to not exist"
+      end
+
+      def test_database_exists_returns_true_when_databae_exists
+        config = ActiveRecord::Base.configurations["arunit"]
+        assert SQLite3Adapter.database_exists?(config),
+          "expected #{config[:database]} to exist"
       end
 
       unless in_memory_db?
@@ -51,17 +64,22 @@ module ActiveRecord
         end
       end
 
+      def test_database_exists_returns_true_for_an_in_memory_db
+        assert SQLite3Adapter.database_exists?(database: ":memory:"),
+          "Expected in memory database to exist"
+      end
+
       def test_column_types
         owner = Owner.create!(name: "hello".encode("ascii-8bit"))
         owner.reload
         select = Owner.columns.map { |c| "typeof(#{c.name})" }.join ", "
-        result = Owner.connection.exec_query <<-esql
+        result = Owner.connection.exec_query <<~SQL
           SELECT #{select}
           FROM   #{Owner.table_name}
           WHERE  #{Owner.primary_key} = #{owner.id}
-        esql
+        SQL
 
-        assert(!result.rows.first.include?("blob"), "should not store blobs")
+        assert_not(result.rows.first.include?("blob"), "should not store blobs")
       ensure
         owner.delete
       end
@@ -87,7 +105,7 @@ module ActiveRecord
 
       def test_connection_no_db
         assert_raises(ArgumentError) do
-          Base.sqlite3_connection {}
+          Base.sqlite3_connection { }
         end
       end
 
@@ -160,14 +178,14 @@ module ActiveRecord
       end
 
       def test_quote_binary_column_escapes_it
-        DualEncoding.connection.execute(<<-eosql)
+        DualEncoding.connection.execute(<<~SQL)
           CREATE TABLE IF NOT EXISTS dual_encodings (
             id integer PRIMARY KEY AUTOINCREMENT,
             name varchar(255),
             data binary
           )
-        eosql
-        str = "\x80".dup.force_encoding("ASCII-8BIT")
+        SQL
+        str = (+"\x80").force_encoding("ASCII-8BIT")
         binary = DualEncoding.new name: "いただきます！", data: str
         binary.save!
         assert_equal str, binary.data
@@ -176,7 +194,7 @@ module ActiveRecord
       end
 
       def test_type_cast_should_not_mutate_encoding
-        name = "hello".dup.force_encoding(Encoding::ASCII_8BIT)
+        name = (+"hello").force_encoding(Encoding::ASCII_8BIT)
         Owner.create(name: name)
         assert_equal Encoding::ASCII_8BIT, name.encoding
       ensure
@@ -261,7 +279,7 @@ module ActiveRecord
       end
 
       def test_tables_logs_name
-        sql = <<-SQL
+        sql = <<~SQL
           SELECT name FROM sqlite_master WHERE name <> 'sqlite_sequence' AND type IN ('table')
         SQL
         assert_logged [[sql.squish, "SCHEMA", []]] do
@@ -269,17 +287,9 @@ module ActiveRecord
         end
       end
 
-      def test_indexes_logs_name
-        with_example_table do
-          assert_logged [["PRAGMA index_list(\"ex\")", "SCHEMA", []]] do
-            assert_deprecated { @conn.indexes("ex", "hello") }
-          end
-        end
-      end
-
       def test_table_exists_logs_name
         with_example_table do
-          sql = <<-SQL
+          sql = <<~SQL
             SELECT name FROM sqlite_master WHERE name <> 'sqlite_sequence' AND name = 'ex' AND type IN ('table')
           SQL
           assert_logged [[sql.squish, "SCHEMA", []]] do
@@ -353,6 +363,42 @@ module ActiveRecord
         end
       end
 
+      if ActiveRecord::Base.connection.supports_expression_index?
+        def test_expression_index
+          with_example_table do
+            @conn.add_index "ex", "max(id, number)", name: "expression"
+            index = @conn.indexes("ex").find { |idx| idx.name == "expression" }
+            assert_equal "max(id, number)", index.columns
+          end
+        end
+
+        def test_expression_index_with_where
+          with_example_table do
+            @conn.add_index "ex", "id % 10, max(id, number)", name: "expression", where: "id > 1000"
+            index = @conn.indexes("ex").find { |idx| idx.name == "expression" }
+            assert_equal "id % 10, max(id, number)", index.columns
+            assert_equal "id > 1000", index.where
+          end
+        end
+
+        def test_complicated_expression
+          with_example_table do
+            @conn.execute "CREATE INDEX expression ON ex (id % 10, (CASE WHEN number > 0 THEN max(id, number) END))WHERE(id > 1000)"
+            index = @conn.indexes("ex").find { |idx| idx.name == "expression" }
+            assert_equal "id % 10, (CASE WHEN number > 0 THEN max(id, number) END)", index.columns
+            assert_equal "(id > 1000)", index.where
+          end
+        end
+
+        def test_not_everything_an_expression
+          with_example_table do
+            @conn.add_index "ex", "id, max(id, number)", name: "expression"
+            index = @conn.indexes("ex").find { |idx| idx.name == "expression" }
+            assert_equal "id, max(id, number)", index.columns
+          end
+        end
+      end
+
       def test_primary_key
         with_example_table do
           assert_equal "id", @conn.primary_key("ex")
@@ -368,16 +414,126 @@ module ActiveRecord
         end
       end
 
+      class Barcode < ActiveRecord::Base
+        self.primary_key = "code"
+      end
+
+      def test_copy_table_with_existing_records_have_custom_primary_key
+        connection = Barcode.connection
+        connection.create_table(:barcodes, primary_key: "code", id: :string, limit: 42, force: true) do |t|
+          t.text :other_attr
+        end
+        code = "214fe0c2-dd47-46df-b53b-66090b3c1d40"
+        Barcode.create!(code: code, other_attr: "xxx")
+
+        connection.remove_column("barcodes", "other_attr")
+
+        assert_equal code, Barcode.first.id
+      ensure
+        Barcode.reset_column_information
+      end
+
+      def test_copy_table_with_composite_primary_keys
+        connection = Barcode.connection
+        connection.create_table(:barcodes, primary_key: ["region", "code"], force: true) do |t|
+          t.string :region
+          t.string :code
+          t.text :other_attr
+        end
+        region = "US"
+        code = "214fe0c2-dd47-46df-b53b-66090b3c1d40"
+        Barcode.create!(region: region, code: code, other_attr: "xxx")
+
+        connection.remove_column("barcodes", "other_attr")
+
+        assert_equal ["region", "code"], connection.primary_keys("barcodes")
+
+        barcode = Barcode.first
+        assert_equal region, barcode.region
+        assert_equal code, barcode.code
+      ensure
+        Barcode.reset_column_information
+      end
+
+      def test_custom_primary_key_in_create_table
+        connection = Barcode.connection
+        connection.create_table :barcodes, id: false, force: true do |t|
+          t.primary_key :id, :string
+        end
+
+        assert_equal "id", connection.primary_key("barcodes")
+
+        custom_pk = Barcode.columns_hash["id"]
+
+        assert_equal :string, custom_pk.type
+        assert_not custom_pk.null
+      ensure
+        Barcode.reset_column_information
+      end
+
+      def test_custom_primary_key_in_change_table
+        connection = Barcode.connection
+        connection.create_table :barcodes, id: false, force: true do |t|
+          t.integer :dummy
+        end
+        connection.change_table :barcodes do |t|
+          t.primary_key :id, :string
+        end
+
+        assert_equal "id", connection.primary_key("barcodes")
+
+        custom_pk = Barcode.columns_hash["id"]
+
+        assert_equal :string, custom_pk.type
+        assert_not custom_pk.null
+      ensure
+        Barcode.reset_column_information
+      end
+
+      def test_add_column_with_custom_primary_key
+        connection = Barcode.connection
+        connection.create_table :barcodes, id: false, force: true do |t|
+          t.integer :dummy
+        end
+        connection.add_column :barcodes, :id, :string, primary_key: true
+
+        assert_equal "id", connection.primary_key("barcodes")
+
+        custom_pk = Barcode.columns_hash["id"]
+
+        assert_equal :string, custom_pk.type
+        assert_not custom_pk.null
+      ensure
+        Barcode.reset_column_information
+      end
+
+      def test_remove_column_preserves_partial_indexes
+        connection = Barcode.connection
+        connection.create_table :barcodes, force: true do |t|
+          t.string :code
+          t.string :region
+          t.boolean :bool_attr
+
+          t.index :code, unique: true, where: :bool_attr, name: "partial"
+        end
+        connection.remove_column :barcodes, :region
+
+        index = connection.indexes("barcodes").find { |idx| idx.name == "partial" }
+        assert_equal "bool_attr", index.where
+      ensure
+        Barcode.reset_column_information
+      end
+
       def test_supports_extensions
         assert_not @conn.supports_extensions?, "does not support extensions"
       end
 
       def test_respond_to_enable_extension
-        assert @conn.respond_to?(:enable_extension)
+        assert_respond_to @conn, :enable_extension
       end
 
       def test_respond_to_disable_extension
-        assert @conn.respond_to?(:disable_extension)
+        assert_respond_to @conn, :disable_extension
       end
 
       def test_statement_closed
@@ -398,8 +554,106 @@ module ActiveRecord
         end
       end
 
-      private
+      def test_db_is_not_readonly_when_readonly_option_is_false
+        conn = Base.sqlite3_connection database: ":memory:",
+                                       adapter: "sqlite3",
+                                       readonly: false
 
+        assert_not_predicate conn.raw_connection, :readonly?
+      end
+
+      def test_db_is_not_readonly_when_readonly_option_is_unspecified
+        conn = Base.sqlite3_connection database: ":memory:",
+                                       adapter: "sqlite3"
+
+        assert_not_predicate conn.raw_connection, :readonly?
+      end
+
+      def test_db_is_readonly_when_readonly_option_is_true
+        conn = Base.sqlite3_connection database: ":memory:",
+                                       adapter: "sqlite3",
+                                       readonly: true
+
+        assert_predicate conn.raw_connection, :readonly?
+      end
+
+      def test_writes_are_not_permitted_to_readonly_databases
+        conn = Base.sqlite3_connection database: ":memory:",
+                                       adapter: "sqlite3",
+                                       readonly: true
+
+        assert_raises(ActiveRecord::StatementInvalid, /SQLite3::ReadOnlyException/) do
+          conn.execute("CREATE TABLE test(id integer)")
+        end
+      end
+
+      def test_errors_when_an_insert_query_is_called_while_preventing_writes
+        with_example_table "id int, data string" do
+          assert_raises(ActiveRecord::ReadOnlyError) do
+            @connection_handler.while_preventing_writes do
+              @conn.execute("INSERT INTO ex (data) VALUES ('138853948594')")
+            end
+          end
+        end
+      end
+
+      def test_errors_when_an_update_query_is_called_while_preventing_writes
+        with_example_table "id int, data string" do
+          @conn.execute("INSERT INTO ex (data) VALUES ('138853948594')")
+
+          assert_raises(ActiveRecord::ReadOnlyError) do
+            @connection_handler.while_preventing_writes do
+              @conn.execute("UPDATE ex SET data = '9989' WHERE data = '138853948594'")
+            end
+          end
+        end
+      end
+
+      def test_errors_when_a_delete_query_is_called_while_preventing_writes
+        with_example_table "id int, data string" do
+          @conn.execute("INSERT INTO ex (data) VALUES ('138853948594')")
+
+          assert_raises(ActiveRecord::ReadOnlyError) do
+            @connection_handler.while_preventing_writes do
+              @conn.execute("DELETE FROM ex where data = '138853948594'")
+            end
+          end
+        end
+      end
+
+      def test_errors_when_a_replace_query_is_called_while_preventing_writes
+        with_example_table "id int, data string" do
+          @conn.execute("INSERT INTO ex (data) VALUES ('138853948594')")
+
+          assert_raises(ActiveRecord::ReadOnlyError) do
+            @connection_handler.while_preventing_writes do
+              @conn.execute("REPLACE INTO ex (data) VALUES ('249823948')")
+            end
+          end
+        end
+      end
+
+      def test_doesnt_error_when_a_select_query_is_called_while_preventing_writes
+        with_example_table "id int, data string" do
+          @conn.execute("INSERT INTO ex (data) VALUES ('138853948594')")
+
+          @connection_handler.while_preventing_writes do
+            assert_equal 1, @conn.execute("SELECT data from ex WHERE data = '138853948594'").count
+          end
+        end
+      end
+
+      def test_doesnt_error_when_a_read_query_with_leading_chars_is_called_while_preventing_writes
+        with_example_table "id int, data string" do
+          @conn.execute("INSERT INTO ex (data) VALUES ('138853948594')")
+
+          @connection_handler.while_preventing_writes do
+            assert_equal 1, @conn.execute("  SELECT data from ex WHERE data = '138853948594'").count
+          end
+        end
+      end
+
+      private
         def assert_logged(logs)
           subscriber = SQLSubscriber.new
           subscription = ActiveSupport::Notifications.subscribe("sql.active_record", subscriber)
@@ -410,7 +664,7 @@ module ActiveRecord
         end
 
         def with_example_table(definition = nil, table_name = "ex", &block)
-          definition ||= <<-SQL
+          definition ||= <<~SQL
             id integer PRIMARY KEY AUTOINCREMENT,
             number integer
           SQL

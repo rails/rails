@@ -78,7 +78,7 @@ class XMLMiniEngineTest < ActiveSupport::TestCase
     end
 
     def test_parse_from_frozen_string
-      xml_string = "<root/>".freeze
+      xml_string = "<root/>"
       assert_equal({ "root" => {} }, ActiveSupport::XmlMini.parse(xml_string))
     end
 

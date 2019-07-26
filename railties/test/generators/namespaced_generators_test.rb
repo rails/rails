@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "generators/generators_test_helper"
 require "rails/generators/rails/controller/controller_generator"
 require "rails/generators/rails/model/model_generator"
@@ -150,7 +152,7 @@ class NamespacedMailerGeneratorTest < NamespacedGeneratorTestCase
     assert_file "app/mailers/test_app/notifier_mailer.rb" do |mailer|
       assert_match(/module TestApp/, mailer)
       assert_match(/class NotifierMailer < ApplicationMailer/, mailer)
-      assert_no_match(/default from: "from@example.com"/, mailer)
+      assert_no_match(/default from: "from@example\.com"/, mailer)
     end
   end
 

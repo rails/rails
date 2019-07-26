@@ -44,7 +44,7 @@ class String
   #   str.from(0).to(-1) # => "hello"
   #   str.from(1).to(-2) # => "ell"
   def from(position)
-    self[position..-1]
+    self[position, length]
   end
 
   # Returns a substring from the beginning of the string to the given position.
@@ -61,7 +61,8 @@ class String
   #   str.from(0).to(-1) # => "hello"
   #   str.from(1).to(-2) # => "ell"
   def to(position)
-    self[0..position]
+    position = [position + length, -1].max if position < 0
+    self[0, position + 1]
   end
 
   # Returns the first character. If a limit is supplied, returns a substring
@@ -75,6 +76,10 @@ class String
   #   str.first(0) # => ""
   #   str.first(6) # => "hello"
   def first(limit = 1)
+    ActiveSupport::Deprecation.warn(
+      "Calling String#first with a negative integer limit " \
+      "will raise an ArgumentError in Rails 6.1."
+    ) if limit < 0
     if limit == 0
       ""
     elsif limit >= size
@@ -95,6 +100,10 @@ class String
   #   str.last(0) # => ""
   #   str.last(6) # => "hello"
   def last(limit = 1)
+    ActiveSupport::Deprecation.warn(
+      "Calling String#last with a negative integer limit " \
+      "will raise an ArgumentError in Rails 6.1."
+    ) if limit < 0
     if limit == 0
       ""
     elsif limit >= size

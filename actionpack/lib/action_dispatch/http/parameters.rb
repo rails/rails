@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActionDispatch
   module Http
     module Parameters
@@ -55,7 +57,7 @@ module ActionDispatch
                    query_parameters.dup
                  end
         params.merge!(path_parameters)
-        params = set_binary_encoding(params)
+        params = set_binary_encoding(params, params[:controller], params[:action])
         set_header("action_dispatch.request.parameters", params)
         params
       end
@@ -64,6 +66,7 @@ module ActionDispatch
       def path_parameters=(parameters) #:nodoc:
         delete_header("action_dispatch.request.parameters")
 
+        parameters = set_binary_encoding(parameters, parameters[:controller], parameters[:action])
         # If any of the path parameters has an invalid encoding then
         # raise since it's likely to trigger errors further on.
         Request::Utils.check_param_encoding(parameters)
@@ -82,10 +85,10 @@ module ActionDispatch
       end
 
       private
+        def set_binary_encoding(params, controller, action)
+          return params unless controller && controller.valid_encoding?
 
-        def set_binary_encoding(params)
-          action = params[:action]
-          if binary_params_for?(action)
+          if binary_params_for?(controller, action)
             ActionDispatch::Request::Utils.each_param_value(params) do |param|
               param.force_encoding ::Encoding::ASCII_8BIT
             end
@@ -93,8 +96,8 @@ module ActionDispatch
           params
         end
 
-        def binary_params_for?(action)
-          controller_class.binary_params_for?(action)
+        def binary_params_for?(controller, action)
+          controller_class_for(controller).binary_params_for?(action)
         rescue NameError
           false
         end
@@ -107,10 +110,20 @@ module ActionDispatch
           begin
             strategy.call(raw_post)
           rescue # JSON or Ruby code block errors.
-            my_logger = logger || ActiveSupport::Logger.new($stderr)
-            my_logger.debug "Error occurred while parsing request parameters.\nContents:\n\n#{raw_post}"
-
+            log_parse_error_once
             raise ParseError
+          end
+        end
+
+        def log_parse_error_once
+          @parse_error_logged ||= begin
+            parse_logger = logger || ActiveSupport::Logger.new($stderr)
+            parse_logger.debug <<~MSG.chomp
+              Error occurred while parsing request parameters.
+              Contents:
+
+              #{raw_post}
+            MSG
           end
         end
 
@@ -118,10 +131,5 @@ module ActionDispatch
           ActionDispatch::Request.parameter_parsers
         end
     end
-  end
-
-  module ParamsParser
-    include ActiveSupport::Deprecation::DeprecatedConstantAccessor
-    deprecate_constant "ParseError", "ActionDispatch::Http::Parameters::ParseError"
   end
 end

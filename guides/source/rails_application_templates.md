@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
 Rails Application Templates
 ===========================
@@ -22,11 +22,11 @@ $ rails new blog -m ~/template.rb
 $ rails new blog -m http://example.com/template.rb
 ```
 
-You can use the `app:template` Rake task to apply templates to an existing Rails application. The location of the template needs to be passed in via the LOCATION environment variable. Again, this can either be path to a file or a URL.
+You can use the `app:template` rails command to apply templates to an existing Rails application. The location of the template needs to be passed in via the LOCATION environment variable. Again, this can either be path to a file or a URL.
 
 ```bash
-$ bin/rails app:template LOCATION=~/template.rb
-$ bin/rails app:template LOCATION=http://example.com/template.rb
+$ rails app:template LOCATION=~/template.rb
+$ rails app:template LOCATION=http://example.com/template.rb
 ```
 
 Template API
@@ -82,10 +82,10 @@ end
 
 Adds the given source to the generated application's `Gemfile`.
 
-For example, if you need to source a gem from `"http://code.whytheluckystiff.net"`:
+For example, if you need to source a gem from `"http://gems.github.com"`:
 
 ```ruby
-add_source "http://code.whytheluckystiff.net"
+add_source "http://gems.github.com"
 ```
 
 If block is given, gem entries in block are wrapped into the source group.
@@ -177,22 +177,28 @@ run "rm README.rdoc"
 
 ### rails_command(command, options = {})
 
-Runs the supplied task in the Rails application. Let's say you want to migrate the database:
+Runs the supplied command in the Rails application. Let's say you want to migrate the database:
 
 ```ruby
 rails_command "db:migrate"
 ```
 
-You can also run tasks with a different Rails environment:
+You can also run commands with a different Rails environment:
 
 ```ruby
 rails_command "db:migrate", env: 'production'
 ```
 
-You can also run tasks as a super-user:
+You can also run commands as a super-user:
 
 ```ruby
 rails_command "log:clear", sudo: true
+```
+
+You can also run commands that should abort application generation if they fail:
+
+```ruby
+rails_command "db:migrate", abort_on_failure: true
 ```
 
 ### route(routing_code)

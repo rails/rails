@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "placeholderable"
+require "action_view/helpers/tags/placeholderable"
 
 module ActionView
   module Helpers
@@ -12,7 +12,7 @@ module ActionView
           options = @options.stringify_keys
           options["size"] = options["maxlength"] unless options.key?("size")
           options["type"] ||= field_type
-          options["value"] = options.fetch("value") { value_before_type_cast(object) } unless field_type == "file"
+          options["value"] = options.fetch("value") { value_before_type_cast } unless field_type == "file"
           add_default_name_and_id(options)
           tag("input", options)
         end
@@ -24,7 +24,6 @@ module ActionView
         end
 
         private
-
           def field_type
             self.class.field_type
           end

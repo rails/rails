@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require_relative "rendering"
-require "active_support/core_ext/module/remove_method"
+require "action_view/rendering"
+require "active_support/core_ext/module/redefine_method"
 
 module ActionView
   # Layouts reverse the common pattern of including shared headers and footers in many templates to isolate changes in
@@ -224,7 +224,6 @@ module ActionView
       # that if no layout conditions are used, this method is not used
       module LayoutConditions # :nodoc:
         private
-
           # Determines whether the current action has a layout definition by
           # checking the action name against the :only and :except conditions
           # set by the <tt>layout</tt> method.
@@ -279,7 +278,7 @@ module ActionView
       # If a layout is not explicitly mentioned then look for a layout with the controller's name.
       # if nothing is found then try same procedure to find super class's layout.
       def _write_layout_method # :nodoc:
-        remove_possible_method(:_layout)
+        silence_redefinition_of_method(:_layout)
 
         prefixes = /\blayouts/.match?(_implied_layout_name) ? [] : ["layouts"]
         default_behavior = "lookup_context.find_all('#{_implied_layout_name}', #{prefixes.inspect}, false, [], { formats: formats }).first || super"
@@ -322,7 +321,7 @@ module ActionView
           end
 
         class_eval <<-RUBY, __FILE__, __LINE__ + 1
-          def _layout(formats)
+          def _layout(lookup_context, formats)
             if _conditional_layout?
               #{layout_definition}
             else
@@ -334,7 +333,6 @@ module ActionView
       end
 
       private
-
         # If no layout is supplied, look for a template named the return
         # value of this method.
         #
@@ -372,7 +370,6 @@ module ActionView
     end
 
   private
-
     def _conditional_layout?
       true
     end
@@ -388,8 +385,8 @@ module ActionView
       case name
       when String     then _normalize_layout(name)
       when Proc       then name
-      when true       then Proc.new { |formats| _default_layout(formats, true)  }
-      when :default   then Proc.new { |formats| _default_layout(formats, false) }
+      when true       then Proc.new { |lookup_context, formats| _default_layout(lookup_context, formats, true)  }
+      when :default   then Proc.new { |lookup_context, formats| _default_layout(lookup_context, formats, false) }
       when false, nil then nil
       else
         raise ArgumentError,
@@ -411,9 +408,9 @@ module ActionView
     #
     # ==== Returns
     # * <tt>template</tt> - The template object for the default layout (or +nil+)
-    def _default_layout(formats, require_layout = false)
+    def _default_layout(lookup_context, formats, require_layout = false)
       begin
-        value = _layout(formats) if action_has_layout?
+        value = _layout(lookup_context, formats) if action_has_layout?
       rescue NameError => e
         raise e, "Could not render layout: #{e.message}"
       end

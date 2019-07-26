@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "action_controller/metal/strong_parameters"
 require "active_support/core_ext/object/deep_dup"
@@ -21,7 +23,7 @@ class ParametersDupTest < ActiveSupport::TestCase
   test "a duplicate maintains the original's permitted status" do
     @params.permit!
     dupped_params = @params.dup
-    assert dupped_params.permitted?
+    assert_predicate dupped_params, :permitted?
   end
 
   test "a duplicate maintains the original's parameters" do
@@ -55,11 +57,11 @@ class ParametersDupTest < ActiveSupport::TestCase
     dupped_params = @params.deep_dup
     dupped_params.permit!
 
-    assert_not @params.permitted?
+    assert_not_predicate @params, :permitted?
   end
 
   test "deep_dup @permitted is being copied" do
     @params.permit!
-    assert @params.deep_dup.permitted?
+    assert_predicate @params.deep_dup, :permitted?
   end
 end

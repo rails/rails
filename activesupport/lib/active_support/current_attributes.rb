@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_support/callbacks"
+
 module ActiveSupport
   # Abstract super class that provides a thread-isolated attributes singleton, which resets automatically
   # before and after each request. This allows you to keep all the per-request attributes easily
@@ -33,7 +35,7 @@ module ActiveSupport
   #
   #     private
   #       def authenticate
-  #         if authenticated_user = User.find_by(id: cookies.signed[:user_id])
+  #         if authenticated_user = User.find_by(id: cookies.encrypted[:user_id])
   #           Current.user = authenticated_user
   #         else
   #           redirect_to new_session_url
@@ -117,10 +119,16 @@ module ActiveSupport
         end
       end
 
+      # Calls this block before #reset is called on the instance. Used for resetting external collaborators that depend on current values.
+      def before_reset(&block)
+        set_callback :reset, :before, &block
+      end
+
       # Calls this block after #reset is called on the instance. Used for resetting external collaborators, like Time.zone.
       def resets(&block)
         set_callback :reset, :after, &block
       end
+      alias_method :after_reset, :resets
 
       delegate :set, :reset, to: :instance
 

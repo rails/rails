@@ -47,4 +47,4 @@ end
 ---- header
 # :stopdoc:
 
-require_relative "parser_extras"
+require "action_dispatch/journey/parser_extras"

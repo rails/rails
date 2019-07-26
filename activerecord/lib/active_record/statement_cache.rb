@@ -11,7 +11,7 @@ module ActiveRecord
   # The cached statement is executed by using the
   # {connection.execute}[rdoc-ref:ConnectionAdapters::DatabaseStatements#execute] method:
   #
-  #   cache.execute([], Book, Book.connection)
+  #   cache.execute([], Book.connection)
   #
   # The relation returned by the block is cached, and for each
   # {execute}[rdoc-ref:ConnectionAdapters::DatabaseStatements#execute]
@@ -26,7 +26,7 @@ module ActiveRecord
   #
   # And pass the bind values as the first argument of +execute+ call.
   #
-  #   cache.execute(["my book"], Book, Book.connection)
+  #   cache.execute(["my book"], Book.connection)
   class StatementCache # :nodoc:
     class Substitute; end # :nodoc:
 
@@ -44,7 +44,7 @@ module ActiveRecord
       def initialize(values)
         @values = values
         @indexes = values.each_with_index.find_all { |thing, i|
-          Arel::Nodes::BindParam === thing
+          Substitute === thing
         }.map(&:last)
       end
 
@@ -56,12 +56,38 @@ module ActiveRecord
       end
     end
 
+    class PartialQueryCollector
+      def initialize
+        @parts = []
+        @binds = []
+      end
+
+      def <<(str)
+        @parts << str
+        self
+      end
+
+      def add_bind(obj)
+        @binds << obj
+        @parts << Substitute.new
+        self
+      end
+
+      def value
+        [@parts, @binds]
+      end
+    end
+
     def self.query(sql)
       Query.new(sql)
     end
 
     def self.partial_query(values)
       PartialQuery.new(values)
+    end
+
+    def self.partial_query_collector
+      PartialQueryCollector.new
     end
 
     class Params # :nodoc:
@@ -87,27 +113,36 @@ module ActiveRecord
       end
     end
 
-    attr_reader :bind_map, :query_builder
-
-    def self.create(connection, block = Proc.new)
-      relation = block.call Params.new
+    def self.create(connection, callable = nil, &block)
+      relation = (callable || block).call Params.new
       query_builder, binds = connection.cacheable_query(self, relation.arel)
       bind_map = BindMap.new(binds)
-      new query_builder, bind_map
+      new(query_builder, bind_map, relation.klass)
     end
 
-    def initialize(query_builder, bind_map)
+    def initialize(query_builder, bind_map, klass)
       @query_builder = query_builder
-      @bind_map      = bind_map
+      @bind_map = bind_map
+      @klass = klass
     end
 
-    def execute(params, klass, connection, &block)
+    def execute(params, connection, &block)
       bind_values = bind_map.bind params
 
       sql = query_builder.sql_for bind_values, connection
 
       klass.find_by_sql(sql, bind_values, preparable: true, &block)
+    rescue ::RangeError
+      nil
     end
-    alias :call :execute
+
+    def self.unsupported_value?(value)
+      case value
+      when NilClass, Array, Range, Hash, Relation, Base then true
+      end
+    end
+
+    private
+      attr_reader :query_builder, :bind_map, :klass
   end
 end

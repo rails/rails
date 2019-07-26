@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 module Render
@@ -35,7 +37,6 @@ module Render
     end
 
     private
-
       def secretz
         render plain: "FAIL WHALE!"
       end

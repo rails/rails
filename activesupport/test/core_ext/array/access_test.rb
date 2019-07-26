@@ -32,6 +32,18 @@ class AccessTest < ActiveSupport::TestCase
     assert_equal array[-2], array.second_to_last
   end
 
+  def test_including
+    assert_equal [1, 2, 3, 4, 5], [1, 2, 4].including(3, 5).sort
+    assert_equal [1, 2, 3, 4, 5], [1, 2, 4].including([3, 5]).sort
+    assert_equal [[0, 1], [1, 0]], [[0, 1]].including([[1, 0]])
+  end
+
+  def test_excluding
+    assert_equal [1, 2, 4], [1, 2, 3, 4, 5].excluding(3, 5)
+    assert_equal [1, 2, 4], [1, 2, 3, 4, 5].excluding([3, 5])
+    assert_equal [[0, 1]], [[0, 1], [1, 0]].excluding([[1, 0]])
+  end
+
   def test_without
     assert_equal [1, 2, 4], [1, 2, 3, 4, 5].without(3, 5)
   end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 module AbstractController
@@ -286,7 +288,7 @@ module AbstractController
           kls = Class.new { include set.url_helpers }
 
           controller = kls.new
-          assert controller.respond_to?(:home_url)
+          assert_respond_to controller, :home_url
           assert_equal "http://www.basecamphq.com/home/sweet/home/again",
             controller.send(:home_url, host: "www.basecamphq.com", user: "again")
 
@@ -350,6 +352,14 @@ module AbstractController
         params = extract_params(url)
         assert_equal({ p1: "X1" }.to_query, params[0])
         assert_equal({ p2: "Y2" }.to_query, params[1])
+      end
+
+      def test_params_option
+        url = W.new.url_for(only_path: true, controller: "c", action: "a", params: { domain: "foo", id: "1" })
+        params = extract_params(url)
+        assert_equal("/c/a?domain=foo&id=1", url)
+        assert_equal({ domain: "foo" }.to_query, params[0])
+        assert_equal({ id: "1" }.to_query, params[1])
       end
 
       def test_hash_parameter

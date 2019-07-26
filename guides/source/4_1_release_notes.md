@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
 Ruby on Rails 4.1 Release Notes
 ===============================
@@ -159,7 +159,7 @@ By default, these preview classes live in `test/mailers/previews`.
 This can be configured using the `preview_path` option.
 
 See its
-[documentation](http://api.rubyonrails.org/v4.1.0/classes/ActionMailer/Base.html#class-ActionMailer::Base-label-Previewing+emails)
+[documentation](https://api.rubyonrails.org/v4.1.0/classes/ActionMailer/Base.html#class-ActionMailer::Base-label-Previewing+emails)
 for a detailed write up.
 
 ### Active Record enums
@@ -231,7 +231,7 @@ extending it with `ActiveSupport::Concern`, then mixing it in to the
 `Todo` class.
 
 See its
-[documentation](http://api.rubyonrails.org/v4.1.0/classes/Module/Concerning.html)
+[documentation](https://api.rubyonrails.org/v4.1.0/classes/Module/Concerning.html)
 for a detailed write up and the intended use cases.
 
 ### CSRF protection from remote `<script>` tags
@@ -274,7 +274,7 @@ for detailed changes.
 * The [Spring application
   preloader](https://github.com/rails/spring) is now installed
   by default for new applications. It uses the development group of
-  the Gemfile, so will not be installed in
+  the `Gemfile`, so will not be installed in
   production. ([Pull Request](https://github.com/rails/rails/pull/12958))
 
 * `BACKTRACE` environment variable to show unfiltered backtraces for test
@@ -719,7 +719,7 @@ for detailed changes.
   responsibilities within a
   class. ([Commit](https://github.com/rails/rails/commit/1eee0ca6de975b42524105a59e0521d18b38ab81))
 
-* Added `Object#presence_in` to simplify value whitelisting.
+* Added `Object#presence_in` to simplify adding values to a permitted list.
   ([Commit](https://github.com/rails/rails/commit/4edca106daacc5a159289eae255207d160f22396))
 
 
@@ -727,6 +727,6 @@ Credits
 -------
 
 See the
-[full list of contributors to Rails](http://contributors.rubyonrails.org/) for
+[full list of contributors to Rails](https://contributors.rubyonrails.org/) for
 the many people who spent many hours making Rails, the stable and robust
 framework it is. Kudos to all of them.

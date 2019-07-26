@@ -18,10 +18,7 @@ module ActiveModel
         end
       end
 
-      alias serialize cast
-
       private
-
         def cast_value(value)
           case value
           when ::Float then value

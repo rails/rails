@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require_relative "scoping/default"
-require_relative "scoping/named"
+require "active_record/scoping/default"
+require "active_record/scoping/named"
 
 module ActiveRecord
   # This class is used to create a table that keeps track of which migrations
@@ -10,16 +10,16 @@ module ActiveRecord
   # to be executed the next time.
   class SchemaMigration < ActiveRecord::Base # :nodoc:
     class << self
+      def _internal?
+        true
+      end
+
       def primary_key
         "version"
       end
 
       def table_name
-        "#{table_name_prefix}#{ActiveRecord::Base.schema_migrations_table_name}#{table_name_suffix}"
-      end
-
-      def table_exists?
-        connection.table_exists?(table_name)
+        "#{table_name_prefix}#{schema_migrations_table_name}#{table_name_suffix}"
       end
 
       def create_table

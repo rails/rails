@@ -1,5 +1,7 @@
-require_relative "journey/router"
-require_relative "journey/gtg/builder"
-require_relative "journey/gtg/simulator"
-require_relative "journey/nfa/builder"
-require_relative "journey/nfa/simulator"
+# frozen_string_literal: true
+
+require "action_dispatch/journey/router"
+require "action_dispatch/journey/gtg/builder"
+require "action_dispatch/journey/gtg/simulator"
+require "action_dispatch/journey/nfa/builder"
+require "action_dispatch/journey/nfa/simulator"

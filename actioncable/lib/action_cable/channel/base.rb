@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "set"
+require "active_support/rescuable"
 
 module ActionCable
   module Channel
@@ -99,6 +100,7 @@ module ActionCable
       include Streams
       include Naming
       include Broadcasting
+      include ActiveSupport::Rescuable
 
       attr_reader :params, :connection, :identifier
       delegate :logger, to: :connection
@@ -267,10 +269,12 @@ module ActionCable
           else
             public_send action
           end
+        rescue Exception => exception
+          rescue_with_handler(exception) || raise
         end
 
         def action_signature(action, data)
-          "#{self.class.name}##{action}".dup.tap do |signature|
+          (+"#{self.class.name}##{action}").tap do |signature|
             if (arguments = data.except("action")).any?
               signature << "(#{arguments.inspect})"
             end
@@ -303,3 +307,5 @@ module ActionCable
     end
   end
 end
+
+ActiveSupport.run_load_hooks(:action_cable_channel, ActionCable::Channel::Base)

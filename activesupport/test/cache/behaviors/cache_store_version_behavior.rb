@@ -30,7 +30,7 @@ module CacheStoreVersionBehavior
 
   def test_exist_with_wrong_version_should_be_false
     @cache.write("foo", "bar", version: 1)
-    assert !@cache.exist?("foo", version: 2)
+    assert_not @cache.exist?("foo", version: 2)
   end
 
   def test_reading_and_writing_with_model_supporting_cache_version
@@ -65,7 +65,7 @@ module CacheStoreVersionBehavior
     m1v2 = ModelWithKeyAndVersion.new("model/1", 2)
 
     @cache.write(m1v1, "bar")
-    assert     @cache.exist?(m1v1)
+    assert @cache.exist?(m1v1)
     assert_not @cache.fetch(m1v2)
   end
 

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/object/blank"
 require "active_support/core_ext/string/inflections"
 
@@ -16,7 +18,6 @@ module RailsGuides
     end
 
     private
-
       def process(string, current_level = 3, counters = [1])
         s = StringScanner.new(string)
 

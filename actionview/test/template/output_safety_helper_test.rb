@@ -12,7 +12,7 @@ class OutputSafetyHelperTest < ActionView::TestCase
   test "raw returns the safe string" do
     result = raw(@string)
     assert_equal @string, result
-    assert result.html_safe?
+    assert_predicate result, :html_safe?
   end
 
   test "raw handles nil values correctly" do
@@ -53,11 +53,11 @@ class OutputSafetyHelperTest < ActionView::TestCase
 
   test "to_sentence should escape non-html_safe values" do
     actual = to_sentence(%w(< > & ' "))
-    assert actual.html_safe?
+    assert_predicate actual, :html_safe?
     assert_equal("&lt;, &gt;, &amp;, &#39;, and &quot;", actual)
 
     actual = to_sentence(%w(<script>))
-    assert actual.html_safe?
+    assert_predicate actual, :html_safe?
     assert_equal("&lt;script&gt;", actual)
   end
 
@@ -80,19 +80,19 @@ class OutputSafetyHelperTest < ActionView::TestCase
     url = "https://example.com"
     expected = %(<a href="#{url}">#{url}</a> and <p>&lt;marquee&gt;shady stuff&lt;/marquee&gt;<br /></p>)
     actual = to_sentence([link_to(url, url), ptag])
-    assert actual.html_safe?
+    assert_predicate actual, :html_safe?
     assert_equal(expected, actual)
   end
 
   test "to_sentence handles blank strings" do
     actual = to_sentence(["", "two", "three"])
-    assert actual.html_safe?
+    assert_predicate actual, :html_safe?
     assert_equal ", two, and three", actual
   end
 
   test "to_sentence handles nil values" do
     actual = to_sentence([nil, "two", "three"])
-    assert actual.html_safe?
+    assert_predicate actual, :html_safe?
     assert_equal ", two, and three", actual
   end
 

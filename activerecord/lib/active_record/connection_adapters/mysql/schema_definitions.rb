@@ -4,57 +4,56 @@ module ActiveRecord
   module ConnectionAdapters
     module MySQL
       module ColumnMethods
-        def primary_key(name, type = :primary_key, **options)
-          options[:auto_increment] = true if [:integer, :bigint].include?(type) && !options.key?(:default)
-          super
-        end
+        extend ActiveSupport::Concern
 
-        def blob(*args, **options)
-          args.each { |name| column(name, :blob, options) }
-        end
+        ##
+        # :method: blob
+        # :call-seq: blob(*names, **options)
 
-        def tinyblob(*args, **options)
-          args.each { |name| column(name, :tinyblob, options) }
-        end
+        ##
+        # :method: tinyblob
+        # :call-seq: tinyblob(*names, **options)
 
-        def mediumblob(*args, **options)
-          args.each { |name| column(name, :mediumblob, options) }
-        end
+        ##
+        # :method: mediumblob
+        # :call-seq: mediumblob(*names, **options)
 
-        def longblob(*args, **options)
-          args.each { |name| column(name, :longblob, options) }
-        end
+        ##
+        # :method: longblob
+        # :call-seq: longblob(*names, **options)
 
-        def tinytext(*args, **options)
-          args.each { |name| column(name, :tinytext, options) }
-        end
+        ##
+        # :method: tinytext
+        # :call-seq: tinytext(*names, **options)
 
-        def mediumtext(*args, **options)
-          args.each { |name| column(name, :mediumtext, options) }
-        end
+        ##
+        # :method: mediumtext
+        # :call-seq: mediumtext(*names, **options)
 
-        def longtext(*args, **options)
-          args.each { |name| column(name, :longtext, options) }
-        end
+        ##
+        # :method: longtext
+        # :call-seq: longtext(*names, **options)
 
-        def json(*args, **options)
-          args.each { |name| column(name, :json, options) }
-        end
+        ##
+        # :method: unsigned_integer
+        # :call-seq: unsigned_integer(*names, **options)
 
-        def unsigned_integer(*args, **options)
-          args.each { |name| column(name, :unsigned_integer, options) }
-        end
+        ##
+        # :method: unsigned_bigint
+        # :call-seq: unsigned_bigint(*names, **options)
 
-        def unsigned_bigint(*args, **options)
-          args.each { |name| column(name, :unsigned_bigint, options) }
-        end
+        ##
+        # :method: unsigned_float
+        # :call-seq: unsigned_float(*names, **options)
 
-        def unsigned_float(*args, **options)
-          args.each { |name| column(name, :unsigned_float, options) }
-        end
+        ##
+        # :method: unsigned_decimal
+        # :call-seq: unsigned_decimal(*names, **options)
 
-        def unsigned_decimal(*args, **options)
-          args.each { |name| column(name, :unsigned_decimal, options) }
+        included do
+          define_column_methods :blob, :tinyblob, :mediumblob, :longblob,
+            :tinytext, :mediumtext, :longtext, :unsigned_integer, :unsigned_bigint,
+            :unsigned_float, :unsigned_decimal
         end
       end
 
@@ -68,7 +67,6 @@ module ActiveRecord
           when :primary_key
             type = :integer
             options[:limit] ||= 8
-            options[:auto_increment] = true
             options[:primary_key] = true
           when /\Aunsigned_(?<type>.+)\z/
             type = $~[:type].to_sym
@@ -81,6 +79,11 @@ module ActiveRecord
         private
           def aliased_types(name, fallback)
             fallback
+          end
+
+          def integer_like_primary_key_type(type, options)
+            options[:auto_increment] = true
+            type
           end
       end
 

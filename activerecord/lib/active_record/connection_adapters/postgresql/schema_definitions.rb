@@ -4,6 +4,8 @@ module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
       module ColumnMethods
+        extend ActiveSupport::Concern
+
         # Defines the primary key field.
         # Use of the native PostgreSQL UUID type is supported, and can be used
         # by defining your tables as such:
@@ -13,10 +15,10 @@ module ActiveRecord
         #     t.timestamps
         #   end
         #
-        # By default, this will use the +gen_random_uuid()+ function from the
+        # By default, this will use the <tt>gen_random_uuid()</tt> function from the
         # +pgcrypto+ extension. As that extension is only available in
         # PostgreSQL 9.4+, for earlier versions an explicit default can be set
-        # to use +uuid_generate_v4()+ from the +uuid-ossp+ extension instead:
+        # to use <tt>uuid_generate_v4()</tt> from the +uuid-ossp+ extension instead:
         #
         #   create_table :stuffs, id: false do |t|
         #     t.primary_key :id, :uuid, default: "uuid_generate_v4()"
@@ -44,151 +46,176 @@ module ActiveRecord
         # a record (as primary keys cannot be +nil+). This might be done via the
         # +SecureRandom.uuid+ method and a +before_save+ callback, for instance.
         def primary_key(name, type = :primary_key, **options)
-          options[:auto_increment] = true if [:integer, :bigint].include?(type) && !options.key?(:default)
           if type == :uuid
             options[:default] = options.fetch(:default, "gen_random_uuid()")
-          elsif options.delete(:auto_increment) == true && %i(integer bigint).include?(type)
-            type = if type == :bigint || options[:limit] == 8
-              :bigserial
-            else
-              :serial
-            end
           end
 
           super
         end
 
-        def bigserial(*args, **options)
-          args.each { |name| column(name, :bigserial, options) }
-        end
+        ##
+        # :method: bigserial
+        # :call-seq: bigserial(*names, **options)
 
-        def bit(*args, **options)
-          args.each { |name| column(name, :bit, options) }
-        end
+        ##
+        # :method: bit
+        # :call-seq: bit(*names, **options)
 
-        def bit_varying(*args, **options)
-          args.each { |name| column(name, :bit_varying, options) }
-        end
+        ##
+        # :method: bit_varying
+        # :call-seq: bit_varying(*names, **options)
 
-        def cidr(*args, **options)
-          args.each { |name| column(name, :cidr, options) }
-        end
+        ##
+        # :method: cidr
+        # :call-seq: cidr(*names, **options)
 
-        def citext(*args, **options)
-          args.each { |name| column(name, :citext, options) }
-        end
+        ##
+        # :method: citext
+        # :call-seq: citext(*names, **options)
 
-        def daterange(*args, **options)
-          args.each { |name| column(name, :daterange, options) }
-        end
+        ##
+        # :method: daterange
+        # :call-seq: daterange(*names, **options)
 
-        def hstore(*args, **options)
-          args.each { |name| column(name, :hstore, options) }
-        end
+        ##
+        # :method: hstore
+        # :call-seq: hstore(*names, **options)
 
-        def inet(*args, **options)
-          args.each { |name| column(name, :inet, options) }
-        end
+        ##
+        # :method: inet
+        # :call-seq: inet(*names, **options)
 
-        def interval(*args, **options)
-          args.each { |name| column(name, :interval, options) }
-        end
+        ##
+        # :method: interval
+        # :call-seq: interval(*names, **options)
 
-        def int4range(*args, **options)
-          args.each { |name| column(name, :int4range, options) }
-        end
+        ##
+        # :method: int4range
+        # :call-seq: int4range(*names, **options)
 
-        def int8range(*args, **options)
-          args.each { |name| column(name, :int8range, options) }
-        end
+        ##
+        # :method: int8range
+        # :call-seq: int8range(*names, **options)
 
-        def json(*args, **options)
-          args.each { |name| column(name, :json, options) }
-        end
+        ##
+        # :method: jsonb
+        # :call-seq: jsonb(*names, **options)
 
-        def jsonb(*args, **options)
-          args.each { |name| column(name, :jsonb, options) }
-        end
+        ##
+        # :method: ltree
+        # :call-seq: ltree(*names, **options)
 
-        def ltree(*args, **options)
-          args.each { |name| column(name, :ltree, options) }
-        end
+        ##
+        # :method: macaddr
+        # :call-seq: macaddr(*names, **options)
 
-        def macaddr(*args, **options)
-          args.each { |name| column(name, :macaddr, options) }
-        end
+        ##
+        # :method: money
+        # :call-seq: money(*names, **options)
 
-        def money(*args, **options)
-          args.each { |name| column(name, :money, options) }
-        end
+        ##
+        # :method: numrange
+        # :call-seq: numrange(*names, **options)
 
-        def numrange(*args, **options)
-          args.each { |name| column(name, :numrange, options) }
-        end
+        ##
+        # :method: oid
+        # :call-seq: oid(*names, **options)
 
-        def oid(*args, **options)
-          args.each { |name| column(name, :oid, options) }
-        end
+        ##
+        # :method: point
+        # :call-seq: point(*names, **options)
 
-        def point(*args, **options)
-          args.each { |name| column(name, :point, options) }
-        end
+        ##
+        # :method: line
+        # :call-seq: line(*names, **options)
 
-        def line(*args, **options)
-          args.each { |name| column(name, :line, options) }
-        end
+        ##
+        # :method: lseg
+        # :call-seq: lseg(*names, **options)
 
-        def lseg(*args, **options)
-          args.each { |name| column(name, :lseg, options) }
-        end
+        ##
+        # :method: box
+        # :call-seq: box(*names, **options)
 
-        def box(*args, **options)
-          args.each { |name| column(name, :box, options) }
-        end
+        ##
+        # :method: path
+        # :call-seq: path(*names, **options)
 
-        def path(*args, **options)
-          args.each { |name| column(name, :path, options) }
-        end
+        ##
+        # :method: polygon
+        # :call-seq: polygon(*names, **options)
 
-        def polygon(*args, **options)
-          args.each { |name| column(name, :polygon, options) }
-        end
+        ##
+        # :method: circle
+        # :call-seq: circle(*names, **options)
 
-        def circle(*args, **options)
-          args.each { |name| column(name, :circle, options) }
-        end
+        ##
+        # :method: serial
+        # :call-seq: serial(*names, **options)
 
-        def serial(*args, **options)
-          args.each { |name| column(name, :serial, options) }
-        end
+        ##
+        # :method: tsrange
+        # :call-seq: tsrange(*names, **options)
 
-        def tsrange(*args, **options)
-          args.each { |name| column(name, :tsrange, options) }
-        end
+        ##
+        # :method: tstzrange
+        # :call-seq: tstzrange(*names, **options)
 
-        def tstzrange(*args, **options)
-          args.each { |name| column(name, :tstzrange, options) }
-        end
+        ##
+        # :method: tsvector
+        # :call-seq: tsvector(*names, **options)
 
-        def tsvector(*args, **options)
-          args.each { |name| column(name, :tsvector, options) }
-        end
+        ##
+        # :method: uuid
+        # :call-seq: uuid(*names, **options)
 
-        def uuid(*args, **options)
-          args.each { |name| column(name, :uuid, options) }
-        end
+        ##
+        # :method: xml
+        # :call-seq: xml(*names, **options)
 
-        def xml(*args, **options)
-          args.each { |name| column(name, :xml, options) }
+        included do
+          define_column_methods :bigserial, :bit, :bit_varying, :cidr, :citext, :daterange,
+            :hstore, :inet, :interval, :int4range, :int8range, :jsonb, :ltree, :macaddr,
+            :money, :numrange, :oid, :point, :line, :lseg, :box, :path, :polygon, :circle,
+            :serial, :tsrange, :tstzrange, :tsvector, :uuid, :xml
         end
       end
 
       class TableDefinition < ActiveRecord::ConnectionAdapters::TableDefinition
         include ColumnMethods
+
+        attr_reader :unlogged
+
+        def initialize(*)
+          super
+          @unlogged = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.create_unlogged_tables
+        end
+
+        private
+          def integer_like_primary_key_type(type, options)
+            if type == :bigint || options[:limit] == 8
+              :bigserial
+            else
+              :serial
+            end
+          end
       end
 
       class Table < ActiveRecord::ConnectionAdapters::Table
         include ColumnMethods
+      end
+
+      class AlterTable < ActiveRecord::ConnectionAdapters::AlterTable
+        attr_reader :constraint_validations
+
+        def initialize(td)
+          super
+          @constraint_validations = []
+        end
+
+        def validate_constraint(name)
+          @constraint_validations << name
+        end
       end
     end
   end

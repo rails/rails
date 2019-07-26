@@ -1,8 +1,7 @@
 # frozen_string_literal: true
 
-require_relative "../../core_ext/object/duplicable"
-require_relative "../../core_ext/string/inflections"
-require_relative "../../per_thread_registry"
+require "active_support/core_ext/string/inflections"
+require "active_support/per_thread_registry"
 
 module ActiveSupport
   module Cache
@@ -54,6 +53,17 @@ module ActiveSupport
             @data[key]
           end
 
+          def read_multi_entries(keys, options)
+            values = {}
+
+            keys.each do |name|
+              entry = read_entry(name, options)
+              values[name] = entry.value if entry
+            end
+
+            values
+          end
+
           def write_entry(key, value, options)
             @data[key] = value
             true
@@ -64,7 +74,10 @@ module ActiveSupport
           end
 
           def fetch_entry(key, options = nil) # :nodoc:
-            @data.fetch(key) { @data[key] = yield }
+            entry = @data.fetch(key) { @data[key] = yield }
+            dup_entry = entry.dup
+            dup_entry&.dup_value!
+            dup_entry
           end
         end
 
@@ -113,6 +126,19 @@ module ActiveSupport
               cache.fetch_entry(key) { super }
             else
               super
+            end
+          end
+
+          def read_multi_entries(keys, options)
+            return super unless local_cache
+
+            local_entries = local_cache.read_multi_entries(keys, options)
+            missed_keys = keys - local_entries.keys
+
+            if missed_keys.any?
+              local_entries.merge!(super(missed_keys, options))
+            else
+              local_entries
             end
           end
 

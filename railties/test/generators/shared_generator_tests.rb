@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 #
 # Tests, setup, and teardown common to the application and plugin generator suites.
 #
@@ -7,10 +9,10 @@ module SharedGeneratorTests
     super
     Rails::Generators::AppGenerator.instance_variable_set("@desc", nil)
 
-    Kernel::silence_warnings do
-      Thor::Base.shell.send(:attr_accessor, :always_force)
+    Kernel.silence_warnings do
+      Thor::Base.shell.attr_accessor :always_force
       @shell = Thor::Base.shell.new
-      @shell.send(:always_force=, true)
+      @shell.always_force = true
     end
   end
 
@@ -18,6 +20,10 @@ module SharedGeneratorTests
     super
     Rails::Generators::AppGenerator.instance_variable_set("@desc", nil)
     Rails.application = TestApp::Application.instance
+  end
+
+  def application_path
+    destination_root
   end
 
   def test_skeleton_is_created
@@ -77,7 +83,7 @@ module SharedGeneratorTests
 
   def test_template_is_executed_when_supplied_an_https_path
     path = "https://gist.github.com/josevalim/103208/raw/"
-    template = %{ say "It works!" }
+    template = +%{ say "It works!" }
     template.instance_eval "def read; self; end" # Make the string respond to read
 
     check_open = -> *args do
@@ -85,24 +91,17 @@ module SharedGeneratorTests
       template
     end
 
-    generator([destination_root], template: path).stub(:open, check_open, template) do
-      quietly { assert_match(/It works!/, capture(:stdout) { generator.invoke_all }) }
+    generator([destination_root], template: path, skip_webpack_install: true).stub(:open, check_open, template) do
+      generator.stub :bundle_command, nil do
+        quietly { assert_match(/It works!/, capture(:stdout) { generator.invoke_all }) }
+      end
     end
   end
 
   def test_skip_gemfile
-    assert_not_called(generator([destination_root], skip_gemfile: true), :bundle_command) do
+    assert_not_called(generator([destination_root], skip_gemfile: true, skip_webpack_install: true), :bundle_command) do
       quietly { generator.invoke_all }
       assert_no_file "Gemfile"
-    end
-  end
-
-  def test_skip_bundle
-    assert_not_called(generator([destination_root], skip_bundle: true), :bundle_command) do
-      quietly { generator.invoke_all }
-      # skip_bundle is only about running bundle install, ensure the Gemfile is still
-      # generated.
-      assert_file "Gemfile"
     end
   end
 
@@ -120,5 +119,240 @@ module SharedGeneratorTests
     end
 
     assert_no_file("app/models/concerns/.keep")
+  end
+
+  def test_default_frameworks_are_required_when_others_are_removed
+    run_generator [
+      destination_root,
+      "--skip-active-record",
+      "--skip-active-storage",
+      "--skip-action-mailer",
+      "--skip-action-mailbox",
+      "--skip-action-text",
+      "--skip-action-cable",
+      "--skip-sprockets"
+    ]
+
+    assert_file "#{application_path}/config/application.rb", /^require\s+["']rails["']/
+    assert_file "#{application_path}/config/application.rb", /^require\s+["']active_model\/railtie["']/
+    assert_file "#{application_path}/config/application.rb", /^require\s+["']active_job\/railtie["']/
+    assert_file "#{application_path}/config/application.rb", /^# require\s+["']active_record\/railtie["']/
+    assert_file "#{application_path}/config/application.rb", /^# require\s+["']active_storage\/engine["']/
+    assert_file "#{application_path}/config/application.rb", /^require\s+["']action_controller\/railtie["']/
+    assert_file "#{application_path}/config/application.rb", /^# require\s+["']action_mailer\/railtie["']/
+    unless generator_class.name == "Rails::Generators::PluginGenerator"
+      assert_file "#{application_path}/config/application.rb", /^# require\s+["']action_mailbox\/engine["']/
+      assert_file "#{application_path}/config/application.rb", /^# require\s+["']action_text\/engine["']/
+    end
+    assert_file "#{application_path}/config/application.rb", /^require\s+["']action_view\/railtie["']/
+    assert_file "#{application_path}/config/application.rb", /^# require\s+["']action_cable\/engine["']/
+    assert_file "#{application_path}/config/application.rb", /^# require\s+["']sprockets\/railtie["']/
+    assert_file "#{application_path}/config/application.rb", /^require\s+["']rails\/test_unit\/railtie["']/
+  end
+
+  def test_generator_without_skips
+    run_generator
+    assert_file "#{application_path}/config/application.rb", /\s+require\s+["']rails\/all["']/
+    assert_file "#{application_path}/config/environments/development.rb" do |content|
+      assert_match(/config\.action_mailer\.raise_delivery_errors = false/, content)
+    end
+    assert_file "#{application_path}/config/environments/test.rb" do |content|
+      assert_match(/config\.action_mailer\.delivery_method = :test/, content)
+    end
+    assert_file "#{application_path}/config/environments/production.rb" do |content|
+      assert_match(/# config\.action_mailer\.raise_delivery_errors = false/, content)
+      assert_match(/^  # config\.require_master_key = true/, content)
+    end
+  end
+
+  def test_gitignore_when_sqlite3
+    run_generator
+
+    assert_file ".gitignore" do |content|
+      assert_match(/sqlite3/, content)
+    end
+  end
+
+  def test_gitignore_when_non_sqlite3_db
+    run_generator([destination_root, "-d", "mysql"])
+
+    assert_file ".gitignore" do |content|
+      assert_no_match(/sqlite/i, content)
+    end
+  end
+
+  def test_generator_if_skip_active_record_is_given
+    run_generator [destination_root, "--skip-active-record"]
+    assert_no_directory "#{application_path}/db/"
+    assert_no_file "#{application_path}/config/database.yml"
+    assert_no_file "#{application_path}/app/models/application_record.rb"
+    assert_file "#{application_path}/config/application.rb", /#\s+require\s+["']active_record\/railtie["']/
+    assert_file "test/test_helper.rb" do |helper_content|
+      assert_no_match(/fixtures :all/, helper_content)
+    end
+    assert_file "#{application_path}/bin/setup" do |setup_content|
+      assert_no_match(/db:prepare/, setup_content)
+    end
+    assert_file ".gitignore" do |content|
+      assert_no_match(/sqlite/i, content)
+    end
+  end
+
+  def test_generator_for_active_storage
+    run_generator
+
+    unless generator_class.name == "Rails::Generators::PluginGenerator"
+      assert_file "#{application_path}/app/javascript/packs/application.js" do |content|
+        assert_match(/^require\("@rails\/activestorage"\)\.start\(\)/, content)
+      end
+    end
+
+    assert_file "#{application_path}/config/environments/development.rb" do |content|
+      assert_match(/config\.active_storage/, content)
+    end
+
+    assert_file "#{application_path}/config/environments/production.rb" do |content|
+      assert_match(/config\.active_storage/, content)
+    end
+
+    assert_file "#{application_path}/config/environments/test.rb" do |content|
+      assert_match(/config\.active_storage/, content)
+    end
+
+    assert_file "#{application_path}/config/storage.yml"
+    assert_directory "#{application_path}/storage"
+    assert_directory "#{application_path}/tmp/storage"
+
+    assert_file ".gitignore" do |content|
+      assert_match(/\/storage\//, content)
+    end
+  end
+
+  def test_generator_if_skip_active_storage_is_given
+    run_generator [destination_root, "--skip-active-storage"]
+
+    assert_file "#{application_path}/config/application.rb", /#\s+require\s+["']active_storage\/engine["']/
+
+    assert_file "#{application_path}/app/javascript/packs/application.js" do |content|
+      assert_no_match(/activestorage/, content)
+    end
+
+    assert_file "#{application_path}/config/environments/development.rb" do |content|
+      assert_no_match(/config\.active_storage/, content)
+    end
+
+    assert_file "#{application_path}/config/environments/production.rb" do |content|
+      assert_no_match(/config\.active_storage/, content)
+    end
+
+    assert_file "#{application_path}/config/environments/test.rb" do |content|
+      assert_no_match(/config\.active_storage/, content)
+    end
+
+    assert_no_file "#{application_path}/config/storage.yml"
+    assert_no_directory "#{application_path}/storage"
+    assert_no_directory "#{application_path}/tmp/storage"
+
+    assert_file ".gitignore" do |content|
+      assert_no_match(/\/storage\//, content)
+    end
+  end
+
+  def test_generator_does_not_generate_active_storage_contents_if_skip_active_record_is_given
+    run_generator [destination_root, "--skip-active-record"]
+
+    assert_file "#{application_path}/config/application.rb", /#\s+require\s+["']active_storage\/engine["']/
+
+    assert_file "#{application_path}/app/javascript/packs/application.js" do |content|
+      assert_no_match(/^require\("@rails\/activestorage"\)\.start\(\)/, content)
+    end
+
+    assert_file "#{application_path}/config/environments/development.rb" do |content|
+      assert_no_match(/config\.active_storage/, content)
+    end
+
+    assert_file "#{application_path}/config/environments/production.rb" do |content|
+      assert_no_match(/config\.active_storage/, content)
+    end
+
+    assert_file "#{application_path}/config/environments/test.rb" do |content|
+      assert_no_match(/config\.active_storage/, content)
+    end
+
+    assert_no_file "#{application_path}/config/storage.yml"
+    assert_no_directory "#{application_path}/storage"
+    assert_no_directory "#{application_path}/tmp/storage"
+
+    assert_file ".gitignore" do |content|
+      assert_no_match(/\/storage\//, content)
+    end
+  end
+
+  def test_generator_if_skip_action_mailer_is_given
+    run_generator [destination_root, "--skip-action-mailer"]
+    assert_file "#{application_path}/config/application.rb", /#\s+require\s+["']action_mailer\/railtie["']/
+    assert_file "#{application_path}/config/environments/development.rb" do |content|
+      assert_no_match(/config\.action_mailer/, content)
+    end
+    assert_file "#{application_path}/config/environments/test.rb" do |content|
+      assert_no_match(/config\.action_mailer/, content)
+    end
+    assert_file "#{application_path}/config/environments/production.rb" do |content|
+      assert_no_match(/config\.action_mailer/, content)
+    end
+    assert_no_directory "#{application_path}/app/mailers"
+    assert_no_directory "#{application_path}/test/mailers"
+  end
+
+  def test_generator_if_skip_action_cable_is_given
+    run_generator [destination_root, "--skip-action-cable"]
+    assert_file "#{application_path}/config/application.rb", /#\s+require\s+["']action_cable\/engine["']/
+    assert_no_file "#{application_path}/config/cable.yml"
+    assert_no_file "#{application_path}/app/javascript/consumer.js"
+    assert_no_directory "#{application_path}/app/javascript/channels"
+    assert_no_directory "#{application_path}/app/channels"
+    assert_file "Gemfile" do |content|
+      assert_no_match(/redis/, content)
+    end
+  end
+
+  def test_generator_if_skip_sprockets_is_given
+    run_generator [destination_root, "--skip-sprockets"]
+
+    assert_no_file "#{application_path}/config/initializers/assets.rb"
+
+    assert_file "#{application_path}/config/application.rb", /#\s+require\s+["']sprockets\/railtie["']/
+
+    assert_file "Gemfile" do |content|
+      assert_no_match(/sass-rails/, content)
+    end
+
+    assert_file "#{application_path}/config/environments/development.rb" do |content|
+      assert_no_match(/config\.assets\.debug/, content)
+    end
+
+    assert_file "#{application_path}/config/environments/production.rb" do |content|
+      assert_no_match(/config\.assets\.digest/, content)
+      assert_no_match(/config\.assets\.css_compressor/, content)
+      assert_no_match(/config\.assets\.compile/, content)
+    end
+  end
+
+  def test_generator_for_yarn
+    skip "#34009 disabled JS by default for plugins" if generator_class.name == "Rails::Generators::PluginGenerator"
+    run_generator
+    assert_file "#{application_path}/package.json", /dependencies/
+    assert_file "#{application_path}/bin/yarn"
+    assert_file "#{application_path}/config/initializers/assets.rb", /node_modules/
+  end
+
+  def test_generator_for_yarn_skipped
+    run_generator([destination_root, "--skip-javascript"])
+    assert_no_file "#{application_path}/package.json"
+    assert_no_file "#{application_path}/bin/yarn"
+
+    assert_file "#{application_path}/config/initializers/assets.rb" do |content|
+      assert_no_match(/node_modules/, content)
+    end
   end
 end

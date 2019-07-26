@@ -8,7 +8,7 @@ module ActiveRecord
       case coder["active_record_yaml_version"]
       when 1, 2 then coder
       else
-        if coder["attributes"].is_a?(AttributeSet)
+        if coder["attributes"].is_a?(ActiveModel::AttributeSet)
           Rails420.convert(klass, coder)
         else
           Rails41.convert(klass, coder)

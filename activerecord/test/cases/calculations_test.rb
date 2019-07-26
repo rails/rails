@@ -19,9 +19,10 @@ require "models/developer"
 require "models/post"
 require "models/comment"
 require "models/rating"
+require "support/stubs/strong_parameters"
 
 class CalculationsTest < ActiveRecord::TestCase
-  fixtures :companies, :accounts, :topics, :speedometers, :minivans, :books
+  fixtures :companies, :accounts, :topics, :speedometers, :minivans, :books, :posts, :comments
 
   def test_should_sum_field
     assert_equal 318, Account.sum(:credit_limit)
@@ -138,6 +139,13 @@ class CalculationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_should_not_use_alias_for_grouped_field
+    assert_sql(/GROUP BY #{Regexp.escape(Account.connection.quote_table_name("accounts.firm_id"))}/i) do
+      c = Account.group(:firm_id).order("accounts_firm_id").sum(:credit_limit)
+      assert_equal [1, 2, 6, 9], c.keys.compact
+    end
+  end
+
   def test_should_order_by_grouped_field
     c = Account.group(:firm_id).order("firm_id").sum(:credit_limit)
     assert_equal [1, 2, 6, 9], c.keys.compact
@@ -184,7 +192,7 @@ class CalculationsTest < ActiveRecord::TestCase
   def test_limit_is_kept
     return if current_adapter?(:OracleAdapter)
 
-    queries = assert_sql { Account.limit(1).count }
+    queries = capture_sql { Account.limit(1).count }
     assert_equal 1, queries.length
     assert_match(/LIMIT/, queries.first)
   end
@@ -192,7 +200,7 @@ class CalculationsTest < ActiveRecord::TestCase
   def test_offset_is_kept
     return if current_adapter?(:OracleAdapter)
 
-    queries = assert_sql { Account.offset(1).count }
+    queries = capture_sql { Account.offset(1).count }
     assert_equal 1, queries.length
     assert_match(/OFFSET/, queries.first)
   end
@@ -200,14 +208,14 @@ class CalculationsTest < ActiveRecord::TestCase
   def test_limit_with_offset_is_kept
     return if current_adapter?(:OracleAdapter)
 
-    queries = assert_sql { Account.limit(1).offset(1).count }
+    queries = capture_sql { Account.limit(1).offset(1).count }
     assert_equal 1, queries.length
     assert_match(/LIMIT/, queries.first)
     assert_match(/OFFSET/, queries.first)
   end
 
   def test_no_limit_no_offset
-    queries = assert_sql { Account.count }
+    queries = capture_sql { Account.count }
     assert_equal 1, queries.length
     assert_no_match(/LIMIT/, queries.first)
     assert_no_match(/OFFSET/, queries.first)
@@ -218,22 +226,43 @@ class CalculationsTest < ActiveRecord::TestCase
       Account.select("credit_limit, firm_name").count
     }
 
-    assert_match %r{accounts}i, e.message
-    assert_match "credit_limit, firm_name", e.message
+    assert_match %r{accounts}i, e.sql
+    assert_match "credit_limit, firm_name", e.sql
   end
 
   def test_apply_distinct_in_count
-    queries = assert_sql do
+    queries = capture_sql do
       Account.distinct.count
       Account.group(:firm_id).distinct.count
     end
 
     queries.each do |query|
-      # `table_alias_length` in `column_alias_for` would execute
-      # "SHOW max_identifier_length" statement in PostgreSQL adapter.
-      next if query == "SHOW max_identifier_length"
       assert_match %r{\ASELECT(?! DISTINCT) COUNT\(DISTINCT\b}, query
     end
+  end
+
+  def test_count_with_eager_loading_and_custom_order
+    posts = Post.includes(:comments).order("comments.id")
+    assert_queries(1) { assert_equal 11, posts.count }
+    assert_queries(1) { assert_equal 11, posts.count(:all) }
+  end
+
+  def test_count_with_eager_loading_and_custom_select_and_order
+    posts = Post.includes(:comments).order("comments.id").select(:type)
+    assert_queries(1) { assert_equal 11, posts.count }
+    assert_queries(1) { assert_equal 11, posts.count(:all) }
+  end
+
+  def test_count_with_eager_loading_and_custom_order_and_distinct
+    posts = Post.includes(:comments).order("comments.id").distinct
+    assert_queries(1) { assert_equal 11, posts.count }
+    assert_queries(1) { assert_equal 11, posts.count(:all) }
+  end
+
+  def test_distinct_count_all_with_custom_select_and_order
+    accounts = Account.distinct.select("credit_limit % 10").order(Arel.sql("credit_limit % 10"))
+    assert_queries(1) { assert_equal 3, accounts.count(:all) }
+    assert_queries(1) { assert_equal 3, accounts.load.size }
   end
 
   def test_distinct_count_with_order_and_limit
@@ -258,6 +287,22 @@ class CalculationsTest < ActiveRecord::TestCase
 
   def test_distinct_joins_count_with_order_and_limit_and_offset
     assert_equal 3, Account.joins(:firm).distinct.order(:firm_id).limit(3).offset(2).count
+  end
+
+  def test_distinct_joins_count_with_group_by
+    expected = { nil => 4, 1 => 1, 2 => 1, 4 => 1, 5 => 1, 7 => 1 }
+    assert_equal expected, Post.left_joins(:comments).group(:post_id).distinct.count(:author_id)
+    assert_equal expected, Post.left_joins(:comments).group(:post_id).distinct.select(:author_id).count
+    assert_equal expected, Post.left_joins(:comments).group(:post_id).count("DISTINCT posts.author_id")
+    assert_equal expected, Post.left_joins(:comments).group(:post_id).select("DISTINCT posts.author_id").count
+
+    expected = { nil => 6, 1 => 1, 2 => 1, 4 => 1, 5 => 1, 7 => 1 }
+    assert_equal expected, Post.left_joins(:comments).group(:post_id).distinct.count(:all)
+    assert_equal expected, Post.left_joins(:comments).group(:post_id).distinct.select(:author_id).count(:all)
+  end
+
+  def test_distinct_count_with_group_by_and_order_and_limit
+    assert_equal({ 6 => 2 }, Account.group(:firm_id).distinct.order("1 DESC").limit(1).count)
   end
 
   def test_should_group_by_summed_field_having_condition
@@ -317,6 +362,17 @@ class CalculationsTest < ActiveRecord::TestCase
 
   def test_should_group_by_fields_with_table_alias
     c = Account.group("accounts.firm_id").sum(:credit_limit)
+    assert_equal 50,  c[1]
+    assert_equal 105, c[6]
+    assert_equal 60,  c[2]
+  end
+
+  def test_should_calculate_grouped_with_longer_field
+    field = "a" * Account.connection.max_identifier_length
+
+    Account.update_all("#{field} = credit_limit")
+
+    c = Account.group(:firm_id).sum(field)
     assert_equal 50,  c[1]
     assert_equal 105, c[6]
     assert_equal 60,  c[2]
@@ -406,11 +462,13 @@ class CalculationsTest < ActiveRecord::TestCase
   def test_should_count_selected_field_with_include
     assert_equal 6, Account.includes(:firm).distinct.count
     assert_equal 4, Account.includes(:firm).distinct.select(:credit_limit).count
+    assert_equal 4, Account.includes(:firm).distinct.count("DISTINCT credit_limit")
+    assert_equal 4, Account.includes(:firm).distinct.count("DISTINCT(credit_limit)")
   end
 
   def test_should_not_perform_joined_include_by_default
     assert_equal Account.count, Account.includes(:firm).count
-    queries = assert_sql { Account.includes(:firm).count }
+    queries = capture_sql { Account.includes(:firm).count }
     assert_no_match(/join/i, queries.last)
   end
 
@@ -434,6 +492,24 @@ class CalculationsTest < ActiveRecord::TestCase
 
   def test_should_count_manual_select_with_include
     assert_equal 6, Account.select("DISTINCT accounts.id").includes(:firm).count
+  end
+
+  def test_should_count_manual_select_with_count_all
+    assert_equal 5, Account.select("DISTINCT accounts.firm_id").count(:all)
+  end
+
+  def test_should_count_with_manual_distinct_select_and_distinct
+    assert_equal 4, Account.select("DISTINCT accounts.firm_id").distinct(true).count
+  end
+
+  def test_should_count_manual_select_with_group_with_count_all
+    expected = { nil => 1, 1 => 1, 2 => 1, 6 => 2, 9 => 1 }
+    actual = Account.select("DISTINCT accounts.firm_id").group("accounts.firm_id").count(:all)
+    assert_equal expected, actual
+  end
+
+  def test_should_count_manual_with_count_all
+    assert_equal 6, Account.count(:all)
   end
 
   def test_count_selected_arel_attribute
@@ -487,8 +563,10 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_should_count_field_of_root_table_with_conflicting_group_by_column
-    assert_equal({ 1 => 1 }, Firm.joins(:accounts).group(:firm_id).count)
-    assert_equal({ 1 => 1 }, Firm.joins(:accounts).group("accounts.firm_id").count)
+    expected = { 1 => 2, 2 => 1, 4 => 5, 5 => 2, 7 => 1 }
+    assert_equal expected, Post.joins(:comments).group(:post_id).count
+    assert_equal expected, Post.joins(:comments).group("comments.post_id").count
+    assert_equal expected, Post.joins(:comments).group(:post_id).select("DISTINCT posts.author_id").count(:all)
   end
 
   def test_count_with_no_parameters_isnt_deprecated
@@ -518,12 +596,7 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_should_sum_expression
-    # Oracle adapter returns floating point value 636.0 after SUM
-    if current_adapter?(:OracleAdapter)
-      assert_equal 636, Account.sum("2 * credit_limit")
-    else
-      assert_equal 636, Account.sum("2 * credit_limit").to_i
-    end
+    assert_equal 636, Account.sum("2 * credit_limit")
   end
 
   def test_sum_expression_returns_zero_when_no_records_to_sum
@@ -621,6 +694,18 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal [ topic.written_on ], relation.pluck(:written_on)
   end
 
+  def test_pluck_with_type_cast_does_not_corrupt_the_query_cache
+    topic = topics(:first)
+    relation = Topic.where(id: topic.id)
+    assert_queries 1 do
+      Topic.cache do
+        kind = relation.select(:written_on).load.first.read_attribute_before_type_cast(:written_on).class
+        relation.pluck(:written_on)
+        assert_kind_of kind, relation.select(:written_on).load.first.read_attribute_before_type_cast(:written_on)
+      end
+    end
+  end
+
   def test_pluck_and_distinct
     assert_equal [50, 53, 55, 60], Account.order(:credit_limit).distinct.pluck(:credit_limit)
   end
@@ -655,19 +740,20 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_pluck_not_auto_table_name_prefix_if_column_joined
-    Company.create!(name: "test", contracts: [Contract.new(developer_id: 7)])
-    assert_equal [7], Company.joins(:contracts).pluck(:developer_id)
+    company = Company.create!(name: "test", contracts: [Contract.new(developer_id: 7)])
+    metadata = company.contracts.first.metadata
+    assert_equal [metadata], Company.joins(:contracts).pluck(:metadata)
   end
 
   def test_pluck_with_selection_clause
-    assert_equal [50, 53, 55, 60], Account.pluck("DISTINCT credit_limit").sort
-    assert_equal [50, 53, 55, 60], Account.pluck("DISTINCT accounts.credit_limit").sort
-    assert_equal [50, 53, 55, 60], Account.pluck("DISTINCT(credit_limit)").sort
+    assert_equal [50, 53, 55, 60], Account.pluck(Arel.sql("DISTINCT credit_limit")).sort
+    assert_equal [50, 53, 55, 60], Account.pluck(Arel.sql("DISTINCT accounts.credit_limit")).sort
+    assert_equal [50, 53, 55, 60], Account.pluck(Arel.sql("DISTINCT(credit_limit)")).sort
 
     # MySQL returns "SUM(DISTINCT(credit_limit))" as the column name unless
     # an alias is provided.  Without the alias, the column cannot be found
     # and properly typecast.
-    assert_equal [50 + 53 + 55 + 60], Account.pluck("SUM(DISTINCT(credit_limit)) as credit_limit")
+    assert_equal [50 + 53 + 55 + 60], Account.pluck(Arel.sql("SUM(DISTINCT(credit_limit)) as credit_limit"))
   end
 
   def test_plucks_with_ids
@@ -677,6 +763,39 @@ class CalculationsTest < ActiveRecord::TestCase
   def test_pluck_with_includes_limit_and_empty_result
     assert_equal [], Topic.includes(:replies).limit(0).pluck(:id)
     assert_equal [], Topic.includes(:replies).limit(1).where("0 = 1").pluck(:id)
+  end
+
+  def test_pluck_with_includes_offset
+    assert_equal [5], Topic.includes(:replies).order(:id).offset(4).pluck(:id)
+    assert_equal [], Topic.includes(:replies).order(:id).offset(5).pluck(:id)
+  end
+
+  def test_pluck_with_join
+    assert_equal [[2, 2], [4, 4]], Reply.includes(:topic).pluck(:id, :"topics.id")
+  end
+
+  def test_group_by_with_order_by_virtual_count_attribute
+    expected = { "SpecialPost" => 1, "StiPost" => 2 }
+    actual = Post.group(:type).order(:count).limit(2).maximum(:comments_count)
+    assert_equal expected, actual
+  end if current_adapter?(:PostgreSQLAdapter)
+
+  def test_group_by_with_limit
+    expected = { "Post" => 8, "SpecialPost" => 1 }
+    actual = Post.includes(:comments).group(:type).order(:type).limit(2).count("comments.id")
+    assert_equal expected, actual
+  end
+
+  def test_group_by_with_offset
+    expected = { "SpecialPost" => 1, "StiPost" => 2 }
+    actual = Post.includes(:comments).group(:type).order(:type).offset(1).count("comments.id")
+    assert_equal expected, actual
+  end
+
+  def test_group_by_with_limit_and_offset
+    expected = { "SpecialPost" => 1 }
+    actual = Post.includes(:comments).group(:type).order(:type).offset(1).limit(1).count("comments.id")
+    assert_equal expected, actual
   end
 
   def test_pluck_not_auto_table_name_prefix_if_column_included
@@ -727,7 +846,7 @@ class CalculationsTest < ActiveRecord::TestCase
 
   def test_pluck_columns_with_same_name
     expected = [["The First Topic", "The Second Topic of the day"], ["The Third Topic of the day", "The Fourth Topic of the day"]]
-    actual = Topic.joins(:replies)
+    actual = Topic.joins(:replies).order(:id)
       .pluck("topics.title", "replies_topics.title")
     assert_equal expected, actual
   end
@@ -748,23 +867,43 @@ class CalculationsTest < ActiveRecord::TestCase
 
   def test_pluck_loaded_relation
     companies = Company.order(:id).limit(3).load
-    assert_no_queries do
+
+    assert_queries(0) do
       assert_equal ["37signals", "Summit", "Microsoft"], companies.pluck(:name)
     end
   end
 
   def test_pluck_loaded_relation_multiple_columns
     companies = Company.order(:id).limit(3).load
-    assert_no_queries do
+
+    assert_queries(0) do
       assert_equal [[1, "37signals"], [2, "Summit"], [3, "Microsoft"]], companies.pluck(:id, :name)
     end
   end
 
   def test_pluck_loaded_relation_sql_fragment
     companies = Company.order(:name).limit(3).load
-    assert_queries 1 do
-      assert_equal ["37signals", "Apex", "Ex Nihilo"], companies.pluck("DISTINCT name")
+
+    assert_queries(1) do
+      assert_equal ["37signals", "Apex", "Ex Nihilo"], companies.pluck(Arel.sql("DISTINCT name"))
     end
+  end
+
+  def test_pick_one
+    assert_equal "The First Topic", Topic.order(:id).pick(:heading)
+    assert_nil Topic.none.pick(:heading)
+    assert_nil Topic.where(id: 9999999999999999999).pick(:heading)
+  end
+
+  def test_pick_two
+    assert_equal ["David", "david@loudthinking.com"], Topic.order(:id).pick(:author_name, :author_email_address)
+    assert_nil Topic.none.pick(:author_name, :author_email_address)
+    assert_nil Topic.where(id: 9999999999999999999).pick(:author_name, :author_email_address)
+  end
+
+  def test_pick_delegate_to_all
+    cool_first = minivans(:cool_first)
+    assert_equal cool_first.color, Minivan.pick(:color)
   end
 
   def test_grouped_calculation_with_polymorphic_relation
@@ -797,26 +936,7 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_having_with_strong_parameters
-    protected_params = Class.new do
-      attr_reader :permitted
-      alias :permitted? :permitted
-
-      def initialize(parameters)
-        @parameters = parameters
-        @permitted = false
-      end
-
-      def to_h
-        @parameters
-      end
-
-      def permit!
-        @permitted = true
-        self
-      end
-    end
-
-    params = protected_params.new(credit_limit: "50")
+    params = ProtectedParams.new(credit_limit: "50")
 
     assert_raises(ActiveModel::ForbiddenAttributesError) do
       Account.group(:id).having(params)
@@ -832,15 +952,15 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal({ "proposed" => 2, "published" => 2 }, Book.group(:status).count)
   end
 
-  def test_deprecate_count_with_block_and_column_name
-    assert_deprecated do
-      assert_equal 6, Account.count(:firm_id) { true }
+  def test_count_with_block_and_column_name_raises_an_error
+    assert_raises(ArgumentError) do
+      Account.count(:firm_id) { true }
     end
   end
 
-  def test_deprecate_sum_with_block_and_column_name
-    assert_deprecated do
-      assert_equal 6, Account.sum(:firm_id) { 1 }
+  def test_sum_with_block_and_column_name_raises_an_error
+    assert_raises(ArgumentError) do
+      Account.sum(:firm_id) { 1 }
     end
   end
 

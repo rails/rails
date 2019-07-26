@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "generators/generators_test_helper"
 require "rails/generators/rails/scaffold_controller/scaffold_controller_generator"
 
@@ -75,6 +77,24 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
     assert_file "app/controllers/line_items_controller.rb" do |content|
       assert_match(/def line_item_params/, content)
       assert_match(/params\.require\(:line_item\)\.permit\(:product_id, :product_type\)/, content)
+    end
+  end
+
+  def test_controller_permit_attachment_attributes
+    run_generator ["Message", "video:attachment", "photos:attachments"]
+
+    assert_file "app/controllers/messages_controller.rb" do |content|
+      assert_match(/def message_params/, content)
+      assert_match(/params\.require\(:message\)\.permit\(:video, photos: \[\]\)/, content)
+    end
+  end
+
+  def test_controller_permit_attachments_attributes_only
+    run_generator ["Message", "photos:attachments"]
+
+    assert_file "app/controllers/messages_controller.rb" do |content|
+      assert_match(/def message_params/, content)
+      assert_match(/params\.require\(:message\)\.permit\(photos: \[\]\)/, content)
     end
   end
 
@@ -172,6 +192,29 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
       assert_instance_method :index, content do |m|
         assert_match("@users = User.all", m)
       end
+
+      assert_instance_method :create, content do |m|
+        assert_match("redirect_to [:admin, @user]", m)
+      end
+
+      assert_instance_method :update, content do |m|
+        assert_match("redirect_to [:admin, @user]", m)
+      end
+    end
+
+    assert_file "app/views/admin/users/index.html.erb" do |content|
+      assert_match("'Show', [:admin, user]", content)
+      assert_match("'Edit', edit_admin_user_path(user)", content)
+      assert_match("'Destroy', [:admin, user]", content)
+      assert_match("'New User', new_admin_user_path", content)
+    end
+
+    assert_file "app/views/admin/users/new.html.erb" do |content|
+      assert_match("'Back', admin_users_path", content)
+    end
+
+    assert_file "app/views/admin/users/_form.html.erb" do |content|
+      assert_match("model: [:admin, user]", content)
     end
   end
 
@@ -182,6 +225,7 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
 
     Dir.chdir(engine_path) do
       quietly { `bin/rails g controller dashboard foo` }
+      quietly { `bin/rails db:migrate RAILS_ENV=test` }
       assert_match(/2 runs, 2 assertions, 0 failures, 0 errors/, `bin/rails test 2>&1`)
     end
   end
@@ -193,6 +237,7 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
 
     Dir.chdir(engine_path) do
       quietly { `bin/rails g controller dashboard foo` }
+      quietly { `bin/rails db:migrate RAILS_ENV=test` }
       assert_match(/2 runs, 2 assertions, 0 failures, 0 errors/, `bin/rails test 2>&1`)
     end
   end
@@ -247,6 +292,15 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
       assert_match(/post users_url, params: \{ user: \{ age: @user\.age, name: @user\.name, organization_id: @user\.organization_id, organization_type: @user\.organization_type \} \}, as: :json/, content)
       assert_match(/patch user_url\(@user\), params: \{ user: \{ age: @user\.age, name: @user\.name, organization_id: @user\.organization_id, organization_type: @user\.organization_type \} \}, as: :json/, content)
       assert_no_match(/assert_redirected_to/, content)
+    end
+  end
+
+  def test_api_only_generates_params_for_attachments
+    run_generator ["Message", "video:attachment", "photos:attachments", "--api"]
+
+    assert_file "app/controllers/messages_controller.rb" do |content|
+      assert_match(/def message_params/, content)
+      assert_match(/params\.require\(:message\)\.permit\(:video, photos: \[\]\)/, content)
     end
   end
 end

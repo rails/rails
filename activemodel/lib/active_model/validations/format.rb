@@ -23,7 +23,6 @@ module ActiveModel
       end
 
       private
-
         def option_call(record, name)
           option = options[name]
           option.respond_to?(:call) ? option.call(record) : option

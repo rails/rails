@@ -3,9 +3,10 @@
 require "time"
 require "base64"
 require "bigdecimal"
-require_relative "core_ext/module/delegation"
-require_relative "core_ext/string/inflections"
-require_relative "core_ext/date_time/calculations"
+require "bigdecimal/util"
+require "active_support/core_ext/module/delegation"
+require "active_support/core_ext/string/inflections"
+require "active_support/core_ext/date_time/calculations"
 
 module ActiveSupport
   # = XmlMini
@@ -48,10 +49,6 @@ module ActiveSupport
         "Array"      => "array",
         "Hash"       => "hash"
       }
-
-      # No need to map these on Ruby 2.4+
-      TYPE_NAMES["Fixnum"] = "integer" unless 0.class == Integer
-      TYPE_NAMES["Bignum"] = "integer" unless 0.class == Integer
     end
 
     FORMATTING = {
@@ -72,18 +69,14 @@ module ActiveSupport
         "float"        => Proc.new { |float|   float.to_f },
         "decimal"      => Proc.new do |number|
           if String === number
-            begin
-              BigDecimal(number)
-            rescue ArgumentError
-              BigDecimal("0")
-            end
+            number.to_d
           else
             BigDecimal(number)
           end
         end,
         "boolean"      => Proc.new { |boolean| %w(1 true).include?(boolean.to_s.strip) },
         "string"       => Proc.new { |string|  string.to_s },
-        "yaml"         => Proc.new { |yaml|    YAML::load(yaml) rescue yaml },
+        "yaml"         => Proc.new { |yaml|    YAML.load(yaml) rescue yaml },
         "base64Binary" => Proc.new { |bin|     ::Base64.decode64(bin) },
         "binary"       => Proc.new { |bin, entity| _parse_binary(bin, entity) },
         "file"         => Proc.new { |file, entity| _parse_file(file, entity) }
@@ -162,7 +155,6 @@ module ActiveSupport
     end
 
     private
-
       def _dasherize(key)
         # $2 must be a non-greedy regex for this to work
         left, middle, right = /\A(_*)(.*?)(_*)\Z/.match(key.strip)[1, 3]
@@ -199,7 +191,7 @@ module ActiveSupport
         if name.is_a?(Module)
           name
         else
-          require_relative "xml_mini/#{name.downcase}"
+          require "active_support/xml_mini/#{name.downcase}"
           ActiveSupport.const_get("XmlMini_#{name}")
         end
       end

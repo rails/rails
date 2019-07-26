@@ -62,7 +62,7 @@ Rails.handleRemote = (e) ->
         fire(element, 'ajax:send', [xhr])
       else
         fire(element, 'ajax:stopped')
-        xhr.abort()
+        return false
     success: (args...) -> fire(element, 'ajax:success', args)
     error: (args...) -> fire(element, 'ajax:error', args)
     complete: (args...) -> fire(element, 'ajax:complete', args)
@@ -82,9 +82,12 @@ Rails.formSubmitButtonClick = (e) ->
   setData(form, 'ujs:submit-button-formaction', button.getAttribute('formaction'))
   setData(form, 'ujs:submit-button-formmethod', button.getAttribute('formmethod'))
 
-Rails.handleMetaClick = (e) ->
+Rails.preventInsignificantClick = (e) ->
   link = this
   method = (link.getAttribute('data-method') or 'GET').toUpperCase()
   data = link.getAttribute('data-params')
   metaClick = e.metaKey or e.ctrlKey
-  e.stopImmediatePropagation() if metaClick and method is 'GET' and not data
+  insignificantMetaClick = metaClick and method is 'GET' and not data
+  nonPrimaryMouseClick = e.button? and e.button isnt 0
+  e.stopImmediatePropagation() if nonPrimaryMouseClick or insignificantMetaClick
+

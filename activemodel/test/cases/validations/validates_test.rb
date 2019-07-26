@@ -19,7 +19,7 @@ class ValidatesTest < ActiveModel::TestCase
   def test_validates_with_messages_empty
     Person.validates :title, presence: { message: "" }
     person = Person.new
-    assert !person.valid?, "person should not be valid."
+    assert_not person.valid?, "person should not be valid."
   end
 
   def test_validates_with_built_in_validation
@@ -37,7 +37,7 @@ class ValidatesTest < ActiveModel::TestCase
 
     person = Person.new
     person.title = 123
-    assert person.valid?
+    assert_predicate person, :valid?
   end
 
   def test_validates_with_built_in_validation_and_options
@@ -62,56 +62,62 @@ class ValidatesTest < ActiveModel::TestCase
   end
 
   def test_validates_with_if_as_local_conditions
-    Person.validates :karma, presence: true, email: { unless: :condition_is_true }
+    Person.validates :karma, presence: true, email: { if: :condition_is_false }
     person = Person.new
     person.valid?
     assert_equal ["can't be blank"], person.errors[:karma]
   end
 
   def test_validates_with_if_as_shared_conditions
-    Person.validates :karma, presence: true, email: true, if: :condition_is_true
+    Person.validates :karma, presence: true, email: true, if: :condition_is_false
+    person = Person.new
+    assert_predicate person, :valid?
+  end
+
+  def test_validates_with_unless_as_local_conditions
+    Person.validates :karma, presence: true, email: { unless: :condition_is_true }
     person = Person.new
     person.valid?
-    assert_equal ["can't be blank", "is not an email"], person.errors[:karma].sort
+    assert_equal ["can't be blank"], person.errors[:karma]
   end
 
   def test_validates_with_unless_shared_conditions
     Person.validates :karma, presence: true, email: true, unless: :condition_is_true
     person = Person.new
-    assert person.valid?
+    assert_predicate person, :valid?
   end
 
   def test_validates_with_allow_nil_shared_conditions
     Person.validates :karma, length: { minimum: 20 }, email: true, allow_nil: true
     person = Person.new
-    assert person.valid?
+    assert_predicate person, :valid?
   end
 
   def test_validates_with_regexp
     Person.validates :karma, format: /positive|negative/
     person = Person.new
-    assert person.invalid?
+    assert_predicate person, :invalid?
     assert_equal ["is invalid"], person.errors[:karma]
     person.karma = "positive"
-    assert person.valid?
+    assert_predicate person, :valid?
   end
 
   def test_validates_with_array
     Person.validates :gender, inclusion: %w(m f)
     person = Person.new
-    assert person.invalid?
+    assert_predicate person, :invalid?
     assert_equal ["is not included in the list"], person.errors[:gender]
     person.gender = "m"
-    assert person.valid?
+    assert_predicate person, :valid?
   end
 
   def test_validates_with_range
     Person.validates :karma, length: 6..20
     person = Person.new
-    assert person.invalid?
+    assert_predicate person, :invalid?
     assert_equal ["is too short (minimum is 6 characters)"], person.errors[:karma]
     person.karma = "something"
-    assert person.valid?
+    assert_predicate person, :valid?
   end
 
   def test_validates_with_validator_class_and_options
@@ -153,7 +159,7 @@ class ValidatesTest < ActiveModel::TestCase
     topic = Topic.new
     topic.title = "What's happening"
     topic.title_confirmation = "Not this"
-    assert !topic.valid?
+    assert_not_predicate topic, :valid?
     assert_equal ["Y U NO CONFIRM"], topic.errors[:title_confirmation]
   end
 end

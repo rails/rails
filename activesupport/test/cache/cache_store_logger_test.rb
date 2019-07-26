@@ -13,7 +13,7 @@ class CacheStoreLoggerTest < ActiveSupport::TestCase
 
   def test_logging
     @cache.fetch("foo") { "bar" }
-    assert @buffer.string.present?
+    assert_predicate @buffer.string, :present?
   end
 
   def test_log_with_string_namespace
@@ -31,6 +31,6 @@ class CacheStoreLoggerTest < ActiveSupport::TestCase
 
   def test_mute_logging
     @cache.mute { @cache.fetch("foo") { "bar" } }
-    assert @buffer.string.blank?
+    assert_predicate @buffer.string, :blank?
   end
 end

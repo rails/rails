@@ -164,6 +164,14 @@ module ActiveRecord
         end
       end
 
+      def test_column_creates_column_with_index
+        with_change_table do |t|
+          @connection.expect :add_column, nil, [:delete_me, :bar, :integer, {}]
+          @connection.expect :add_index, nil, [:delete_me, :bar, {}]
+          t.column :bar, :integer, index: true
+        end
+      end
+
       def test_index_creates_index
         with_change_table do |t|
           @connection.expect :add_index, nil, [:delete_me, :bar, {}]

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "rake/testtask"
 
 test_files = Dir.glob("test/**/*_test.rb")
@@ -26,7 +28,7 @@ namespace :test do
 end
 
 task :lines do
-  load File.expand_path("..", __dir__) + "/tools/line_statistics"
+  load File.expand_path("../tools/line_statistics", __dir__)
   files = FileList["lib/**/*.rb"]
   CodeTools::LineStatistics.new(files).print_loc
 end

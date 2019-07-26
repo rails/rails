@@ -164,15 +164,25 @@ end
 class DynamicInheritedCallbacks < ActiveSupport::TestCase
   def test_callbacks_looks_to_the_superclass_before_running
     child = EmptyChild.new.dispatch
-    assert !child.performed?
+    assert_not_predicate child, :performed?
     EmptyParent.set_callback :dispatch, :before, :perform!
     child = EmptyChild.new.dispatch
-    assert child.performed?
+    assert_predicate child, :performed?
   end
 
   def test_callbacks_should_be_performed_once_in_child_class
     CountingParent.set_callback(:dispatch, :before) { count! }
     child = CountingChild.new.dispatch
     assert_equal 1, child.count
+  end
+end
+
+class DynamicDefinedCallbacks < ActiveSupport::TestCase
+  def test_callbacks_should_be_performed_once_in_child_class_after_dynamic_define
+    GrandParent.define_callbacks(:foo)
+    GrandParent.set_callback(:foo, :before, :before1)
+    parent = Parent.new("foo")
+    parent.run_callbacks(:foo)
+    assert_equal %w(before1), parent.log
   end
 end

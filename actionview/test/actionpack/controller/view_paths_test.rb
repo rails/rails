@@ -24,11 +24,17 @@ class ViewLoadPathsTest < ActionController::TestCase
     end
   end
 
+  with_routes do
+    get :hello_world, to: "test#hello_world"
+    get :hello_world_at_request_time, to: "test#hello_world_at_request_time"
+  end
+
   def setup
     @controller = TestController.new
     @request  = ActionController::TestRequest.create(@controller.class)
     @response = ActionDispatch::TestResponse.new
     @paths = TestController.view_paths
+    super
   end
 
   def teardown
@@ -71,7 +77,7 @@ class ViewLoadPathsTest < ActionController::TestCase
   end
 
   def test_template_appends_view_path_correctly
-    @controller.instance_variable_set :@template, ActionView::Base.new(TestController.view_paths, {}, @controller)
+    @controller.instance_variable_set :@template, ActionView::Base.with_view_paths(TestController.view_paths, {}, @controller)
     class_view_paths = TestController.view_paths
 
     @controller.append_view_path "foo"
@@ -83,7 +89,7 @@ class ViewLoadPathsTest < ActionController::TestCase
   end
 
   def test_template_prepends_view_path_correctly
-    @controller.instance_variable_set :@template, ActionView::Base.new(TestController.view_paths, {}, @controller)
+    @controller.instance_variable_set :@template, ActionView::Base.with_view_paths(TestController.view_paths, {}, @controller)
     class_view_paths = TestController.view_paths
 
     @controller.prepend_view_path "baz"
@@ -109,6 +115,10 @@ class ViewLoadPathsTest < ActionController::TestCase
 
   def test_view_paths_override_for_layouts_in_controllers_with_a_module
     @controller = Test::SubController.new
+    with_routes do
+      get :hello_world, to: "view_load_paths_test/test/sub#hello_world"
+    end
+
     Test::SubController.view_paths = [ "#{FIXTURE_LOAD_PATH}/override", FIXTURE_LOAD_PATH, "#{FIXTURE_LOAD_PATH}/override2" ]
     get :hello_world
     assert_response :success
@@ -133,8 +143,9 @@ class ViewLoadPathsTest < ActionController::TestCase
             "Decorated body",
             template.identifier,
             template.handler,
-              virtual_path: template.virtual_path,
-              format: template.formats
+            virtual_path: template.virtual_path,
+            format: template.format,
+            locals: template.locals
           )
         end
       end

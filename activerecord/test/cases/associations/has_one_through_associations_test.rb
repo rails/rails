@@ -35,11 +35,30 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal clubs(:boring_club), @member.club
   end
 
+  def test_has_one_through_executes_limited_query
+    boring_club = clubs(:boring_club)
+    assert_sql(/LIMIT|ROWNUM <=|FETCH FIRST/) do
+      assert_equal boring_club, @member.general_club
+    end
+  end
+
   def test_creating_association_creates_through_record
     new_member = Member.create(name: "Chris")
     new_member.club = Club.create(name: "LRUG")
     assert_not_nil new_member.current_membership
     assert_not_nil new_member.club
+  end
+
+  def test_creating_association_builds_through_record
+    new_member = Member.create(name: "Chris")
+    new_club = new_member.association(:club).build
+    assert new_member.current_membership
+    assert_equal new_club, new_member.club
+    assert_predicate new_club, :new_record?
+    assert_predicate new_member.current_membership, :new_record?
+    assert new_member.save
+    assert_predicate new_club, :persisted?
+    assert_predicate new_member.current_membership, :persisted?
   end
 
   def test_creating_association_builds_through_record_for_new
@@ -50,6 +69,24 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal clubs(:moustache_club), new_member.club
     assert new_member.save
     assert_equal clubs(:moustache_club), new_member.club
+  end
+
+  def test_building_multiple_associations_builds_through_record
+    member_type = MemberType.create!
+    member = Member.create!
+    member_detail_with_one_association = MemberDetail.new(member_type: member_type)
+    assert_predicate member_detail_with_one_association.member, :new_record?
+    member_detail_with_two_associations = MemberDetail.new(member_type: member_type, admittable: member)
+    assert_predicate member_detail_with_two_associations.member, :new_record?
+  end
+
+  def test_creating_multiple_associations_creates_through_record
+    member_type = MemberType.create!
+    member = Member.create!
+    member_detail_with_one_association = MemberDetail.create!(member_type: member_type)
+    assert_not_predicate member_detail_with_one_association.member, :new_record?
+    member_detail_with_two_associations = MemberDetail.create!(member_type: member_type, admittable: member)
+    assert_not_predicate member_detail_with_two_associations.member, :new_record?
   end
 
   def test_creating_association_sets_both_parent_ids_for_new
@@ -100,7 +137,7 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_one_through_eager_loading
-    members = assert_queries(3) do #base table, through table, clubs table
+    members = assert_queries(3) do # base table, through table, clubs table
       Member.all.merge!(includes: :club, where: ["name = ?", "Groucho Marx"]).to_a
     end
     assert_equal 1, members.size
@@ -108,7 +145,7 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_one_through_eager_loading_through_polymorphic
-    members = assert_queries(3) do #base table, through table, clubs table
+    members = assert_queries(3) do # base table, through table, clubs table
       Member.all.merge!(includes: :sponsor_club, where: ["name = ?", "Groucho Marx"]).to_a
     end
     assert_equal 1, members.size
@@ -139,7 +176,7 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_has_one_through_nonpreload_eagerloading
     members = assert_queries(1) do
-      Member.all.merge!(includes: :club, where: ["members.name = ?", "Groucho Marx"], order: "clubs.name").to_a #force fallback
+      Member.all.merge!(includes: :club, where: ["members.name = ?", "Groucho Marx"], order: "clubs.name").to_a # force fallback
     end
     assert_equal 1, members.size
     assert_not_nil assert_no_queries { members[0].club }
@@ -147,7 +184,7 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_has_one_through_nonpreload_eager_loading_through_polymorphic
     members = assert_queries(1) do
-      Member.all.merge!(includes: :sponsor_club, where: ["members.name = ?", "Groucho Marx"], order: "clubs.name").to_a #force fallback
+      Member.all.merge!(includes: :sponsor_club, where: ["members.name = ?", "Groucho Marx"], order: "clubs.name").to_a # force fallback
     end
     assert_equal 1, members.size
     assert_not_nil assert_no_queries { members[0].sponsor_club }
@@ -156,7 +193,7 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
   def test_has_one_through_nonpreload_eager_loading_through_polymorphic_with_more_than_one_through_record
     Sponsor.new(sponsor_club: clubs(:crazy_club), sponsorable: members(:groucho)).save!
     members = assert_queries(1) do
-      Member.all.merge!(includes: :sponsor_club, where: ["members.name = ?", "Groucho Marx"], order: "clubs.name DESC").to_a #force fallback
+      Member.all.merge!(includes: :sponsor_club, where: ["members.name = ?", "Groucho Marx"], order: "clubs.name DESC").to_a # force fallback
     end
     assert_equal 1, members.size
     assert_not_nil assert_no_queries { members[0].sponsor_club }
@@ -229,7 +266,7 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
       MemberDetail.all.merge!(includes: :member_type).to_a
     end
     @new_detail = @member_details[0]
-    assert @new_detail.send(:association, :member_type).loaded?
+    assert_predicate @new_detail.send(:association, :member_type), :loaded?
     assert_no_queries { @new_detail.member_type }
   end
 
@@ -317,12 +354,12 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
     minivan.dashboard
     proxy = minivan.send(:association_instance_get, :dashboard)
 
-    assert !proxy.stale_target?
+    assert_not_predicate proxy, :stale_target?
     assert_equal dashboards(:cool_first), minivan.dashboard
 
     minivan.speedometer_id = speedometers(:second).id
 
-    assert proxy.stale_target?
+    assert_predicate proxy, :stale_target?
     assert_equal dashboards(:second), minivan.dashboard
   end
 
@@ -334,7 +371,7 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
 
     minivan.speedometer_id = speedometers(:second).id
 
-    assert proxy.stale_target?
+    assert_predicate proxy, :stale_target?
     assert_equal dashboards(:second), minivan.dashboard
   end
 

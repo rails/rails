@@ -2,7 +2,7 @@
 
 module ActionView
   # = Action View CSRF Helper
-  module Helpers
+  module Helpers #:nodoc:
     module CsrfHelper
       # Returns meta tags "csrf-param" and "csrf-token" with the name of the cross-site
       # request forgery protection parameter and token, respectively.
@@ -20,7 +20,7 @@ module ActionView
       # "X-CSRF-Token" HTTP header. If you are using rails-ujs this happens automatically.
       #
       def csrf_meta_tags
-        if protect_against_forgery?
+        if defined?(protect_against_forgery?) && protect_against_forgery?
           [
             tag("meta", name: "csrf-param", content: request_forgery_protection_token),
             tag("meta", name: "csrf-token", content: form_authenticity_token)

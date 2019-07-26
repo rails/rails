@@ -5,13 +5,21 @@ module ActionView
     extend ActiveSupport::Concern
 
     included do
-      class_attribute :_view_paths, default: ActionView::PathSet.new.freeze
+      ViewPaths.set_view_paths(self, ActionView::PathSet.new.freeze)
     end
 
     delegate :template_exists?, :any_templates?, :view_paths, :formats, :formats=,
              :locale, :locale=, to: :lookup_context
 
     module ClassMethods
+      def _view_paths
+        ViewPaths.get_view_paths(self)
+      end
+
+      def _view_paths=(paths)
+        ViewPaths.set_view_paths(self, paths)
+      end
+
       def _prefixes # :nodoc:
         @_prefixes ||= begin
           return local_prefixes if superclass.abstract?
@@ -21,13 +29,28 @@ module ActionView
       end
 
       private
-
         # Override this method in your controller if you want to change paths prefixes for finding views.
         # Prefixes defined here will still be added to parents' <tt>._prefixes</tt>.
         def local_prefixes
           [controller_path]
         end
     end
+
+    # :stopdoc:
+    @all_view_paths = {}
+
+    def self.get_view_paths(klass)
+      @all_view_paths[klass] || get_view_paths(klass.superclass)
+    end
+
+    def self.set_view_paths(klass, paths)
+      @all_view_paths[klass] = paths
+    end
+
+    def self.all_view_paths
+      @all_view_paths.values.uniq
+    end
+    # :startdoc:
 
     # The prefixes used in render "foo" shortcuts.
     def _prefixes # :nodoc:

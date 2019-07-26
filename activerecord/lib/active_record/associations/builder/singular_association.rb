@@ -38,5 +38,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
         end
       CODE
     end
+
+    private_class_method :valid_options, :define_accessors, :define_constructors
   end
 end

@@ -1,13 +1,20 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "support/connection_helper"
 
 if current_adapter?(:Mysql2Adapter)
   module ActiveRecord
     module ConnectionAdapters
       class MysqlTypeLookupTest < ActiveRecord::TestCase
+        include ConnectionHelper
+
         setup do
           @connection = ActiveRecord::Base.connection
+        end
+
+        def teardown
+          reset_connection
         end
 
         def test_boolean_types
@@ -20,8 +27,12 @@ if current_adapter?(:Mysql2Adapter)
         def test_string_types
           assert_lookup_type :string, "enum('one', 'two', 'three')"
           assert_lookup_type :string, "ENUM('one', 'two', 'three')"
+          assert_lookup_type :string, "enum ('one', 'two', 'three')"
+          assert_lookup_type :string, "ENUM ('one', 'two', 'three')"
           assert_lookup_type :string, "set('one', 'two', 'three')"
           assert_lookup_type :string, "SET('one', 'two', 'three')"
+          assert_lookup_type :string, "set ('one', 'two', 'three')"
+          assert_lookup_type :string, "SET ('one', 'two', 'three')"
         end
 
         def test_set_type_with_value_matching_other_type
@@ -29,7 +40,7 @@ if current_adapter?(:Mysql2Adapter)
         end
 
         def test_enum_type_with_value_matching_other_type
-          assert_lookup_type :string, "ENUM('unicode', '8bit', 'none')"
+          assert_lookup_type :string, "ENUM('unicode', '8bit', 'none', 'time')"
         end
 
         def test_binary_types
@@ -47,7 +58,6 @@ if current_adapter?(:Mysql2Adapter)
         end
 
         private
-
           def assert_lookup_type(type, lookup)
             cast_type = @connection.send(:type_map).lookup(lookup)
             assert_equal type, cast_type.type

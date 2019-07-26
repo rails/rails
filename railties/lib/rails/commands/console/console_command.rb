@@ -1,7 +1,9 @@
+# frozen_string_literal: true
+
 require "irb"
 require "irb/completion"
 
-require_relative "../../command/environment_argument"
+require "rails/command/environment_argument"
 
 module Rails
   class Console
@@ -24,6 +26,12 @@ module Rails
       @options = options
 
       app.sandbox = sandbox?
+
+      if sandbox? && app.config.disable_sandbox
+        puts "Error: Unable to start console in sandbox mode as sandbox mode is disabled (config.disable_sandbox is true)."
+        exit 1
+      end
+
       app.load_console
 
       @console = app.config.console || IRB

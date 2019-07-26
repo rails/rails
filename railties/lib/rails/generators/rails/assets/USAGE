@@ -5,16 +5,13 @@ Description:
     To create an asset within a folder, specify the asset's name as a
     path like 'parent/name'.
 
-    This generates a JavaScript stub in app/assets/javascripts and a stylesheet
-    stub in app/assets/stylesheets.
+    This generates a stylesheet stub in app/assets/stylesheets.
 
-    If CoffeeScript is available, JavaScripts will be generated with the .coffee extension.
     If Sass 3 is available, stylesheets will be generated with the .scss extension.
 
 Example:
     `rails generate assets posts`
 
     Posts assets.
-        JavaScript:     app/assets/javascripts/posts.js
         Stylesheet:     app/assets/stylesheets/posts.css
 

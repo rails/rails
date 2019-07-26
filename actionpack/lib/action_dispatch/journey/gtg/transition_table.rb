@@ -1,4 +1,6 @@
-require_relative "../nfa/dot"
+# frozen_string_literal: true
+
+require "action_dispatch/journey/nfa/dot"
 
 module ActionDispatch
   module Journey # :nodoc:
@@ -139,7 +141,6 @@ module ActionDispatch
         end
 
         private
-
           def states_hash_for(sym)
             case sym
             when String

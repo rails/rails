@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 #--
-# Copyright (c) 2004-2017 David Heinemeier Hansson
+# Copyright (c) 2004-2019 David Heinemeier Hansson
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -27,14 +27,14 @@ require "active_support"
 require "active_support/rails"
 require "active_model"
 require "arel"
+require "yaml"
 
-require_relative "active_record/version"
-require_relative "active_record/attribute_set"
+require "active_record/version"
+require "active_model/attribute_set"
 
 module ActiveRecord
   extend ActiveSupport::Autoload
 
-  autoload :Attribute
   autoload :Base
   autoload :Callbacks
   autoload :Core
@@ -55,7 +55,6 @@ module ActiveRecord
   autoload :Persistence
   autoload :QueryCache
   autoload :Querying
-  autoload :CollectionCacheKey
   autoload :ReadonlyAttributes
   autoload :RecordInvalid, "active_record/validations"
   autoload :Reflection
@@ -74,6 +73,7 @@ module ActiveRecord
   autoload :Translation
   autoload :Validations
   autoload :SecureToken
+  autoload :DatabaseSelector, "active_record/middleware/database_selector"
 
   eager_autoload do
     autoload :ActiveRecordError, "active_record/errors"
@@ -104,6 +104,7 @@ module ActiveRecord
 
     autoload :Result
     autoload :TableMetadata
+    autoload :Type
   end
 
   module Coders
@@ -152,6 +153,12 @@ module ActiveRecord
     end
   end
 
+  module Middleware
+    extend ActiveSupport::Autoload
+
+    autoload :DatabaseSelector, "active_record/middleware/database_selector"
+  end
+
   module Tasks
     extend ActiveSupport::Autoload
 
@@ -162,6 +169,7 @@ module ActiveRecord
       "active_record/tasks/postgresql_database_tasks"
   end
 
+  autoload :TestDatabases, "active_record/test_databases"
   autoload :TestFixtures, "active_record/fixtures"
 
   def self.eager_load!
@@ -181,3 +189,7 @@ end
 ActiveSupport.on_load(:i18n) do
   I18n.load_path << File.expand_path("active_record/locale/en.yml", __dir__)
 end
+
+YAML.load_tags["!ruby/object:ActiveRecord::AttributeSet"] = "ActiveModel::AttributeSet"
+YAML.load_tags["!ruby/object:ActiveRecord::Attribute::FromDatabase"] = "ActiveModel::Attribute::FromDatabase"
+YAML.load_tags["!ruby/object:ActiveRecord::LazyAttributeHash"] = "ActiveModel::LazyAttributeHash"

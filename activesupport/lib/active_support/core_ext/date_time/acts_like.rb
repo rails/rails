@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require "date"
-require_relative "../object/acts_like"
+require "active_support/core_ext/object/acts_like"
 
 class DateTime
   # Duck-types as a Date-like class. See Object#acts_like?.

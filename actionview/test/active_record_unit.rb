@@ -38,8 +38,14 @@ class ActiveRecordTestConnector
       end
     rescue Exception => e  # errors from ActiveRecord setup
       $stderr.puts "\nSkipping ActiveRecord assertion tests: #{e}"
-      #$stderr.puts "  #{e.backtrace.join("\n  ")}\n"
+      # $stderr.puts "  #{e.backtrace.join("\n  ")}\n"
       self.able_to_connect = false
+    end
+
+    def reconnect
+      return unless able_to_connect
+      ActiveRecord::Base.connection.reconnect!
+      load_schema
     end
 
     private
@@ -74,6 +80,18 @@ end
 class ActiveRecordTestCase < ActionController::TestCase
   include ActiveRecord::TestFixtures
 
+  def self.tests(controller)
+    super
+    if defined? controller::ROUTES
+      include Module.new {
+        define_method(:setup) do
+          super()
+          @routes = controller::ROUTES
+        end
+      }
+    end
+  end
+
   # Set our fixture path
   if ActiveRecordTestConnector.able_to_connect
     self.fixture_path = [FIXTURE_LOAD_PATH]
@@ -90,3 +108,7 @@ class ActiveRecordTestCase < ActionController::TestCase
 end
 
 ActiveRecordTestConnector.setup
+
+ActiveSupport::Testing::Parallelization.after_fork_hook do
+  ActiveRecordTestConnector.reconnect
+end

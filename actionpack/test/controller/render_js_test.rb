@@ -1,6 +1,7 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "controller/fake_models"
-require "pathname"
 
 class RenderJSTest < ActionController::TestCase
   class TestController < ActionController::Base
@@ -24,7 +25,7 @@ class RenderJSTest < ActionController::TestCase
   def test_render_vanilla_js
     get :render_vanilla_js_hello, xhr: true
     assert_equal "alert('hello')", @response.body
-    assert_equal "text/javascript", @response.content_type
+    assert_equal "text/javascript", @response.media_type
   end
 
   def test_should_render_js_partial

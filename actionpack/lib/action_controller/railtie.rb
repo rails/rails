@@ -1,8 +1,10 @@
+# frozen_string_literal: true
+
 require "rails"
 require "action_controller"
 require "action_dispatch/railtie"
 require "abstract_controller/railties/routes_helpers"
-require_relative "railties/helpers"
+require "action_controller/railties/helpers"
 require "action_view/railtie"
 
 module ActionController
@@ -22,7 +24,7 @@ module ActionController
     initializer "action_controller.parameters_config" do |app|
       options = app.config.action_controller
 
-      ActiveSupport.on_load(:action_controller) do
+      ActiveSupport.on_load(:action_controller, run_once: true) do
         ActionController::Parameters.permit_all_parameters = options.delete(:permit_all_parameters) { false }
         if app.config.action_controller[:always_permitted_parameters]
           ActionController::Parameters.always_permitted_parameters =
@@ -75,6 +77,12 @@ module ActionController
         if app.config.action_controller.default_protect_from_forgery
           protect_from_forgery with: :exception
         end
+      end
+    end
+
+    initializer "action_controller.eager_load_actions" do
+      ActiveSupport.on_load(:after_initialize) do
+        ActionController::Metal.descendants.each(&:action_methods) if config.eager_load
       end
     end
   end

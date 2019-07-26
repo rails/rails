@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "active_support/logger"
 require "controller/fake_models"
@@ -105,9 +107,9 @@ class ControllerInstanceTests < ActiveSupport::TestCase
   end
 
   def test_performed?
-    assert !@empty.performed?
+    assert_not_predicate @empty, :performed?
     @empty.response_body = ["sweet"]
-    assert @empty.performed?
+    assert_predicate @empty, :performed?
   end
 
   def test_action_methods
@@ -136,7 +138,7 @@ class ControllerInstanceTests < ActiveSupport::TestCase
 
     response_headers = SimpleController.action("hello").call(
       "REQUEST_METHOD" => "GET",
-      "rack.input" => -> {}
+      "rack.input" => -> { }
     )[1]
 
     assert response_headers.key?("X-Frame-Options")

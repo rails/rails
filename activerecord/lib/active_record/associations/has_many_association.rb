@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 module ActiveRecord
-  # = Active Record Has Many Association
   module Associations
+    # = Active Record Has Many Association
     # This is the proxy that handles a has many association.
     #
     # If the association has a <tt>:through</tt> option further specialization
@@ -36,16 +36,7 @@ module ActiveRecord
         super
       end
 
-      def empty?
-        if reflection.has_cached_counter?
-          size.zero?
-        else
-          super
-        end
-      end
-
       private
-
         # Returns the number of records in this collection.
         #
         # If the association has a counter cache it gets that value. Otherwise
@@ -63,13 +54,13 @@ module ActiveRecord
           count = if reflection.has_cached_counter?
             owner._read_attribute(reflection.counter_cache_column).to_i
           else
-            scope.count
+            scope.count(:all)
           end
 
           # If there's nothing in the database and @target has no new records
           # we are certain the current target is an empty array. This is a
           # documented side-effect of the method that may avoid an extra SELECT.
-          (@target ||= []) && loaded! if count == 0
+          loaded! if count == 0
 
           [association_scope.limit_value, count].compact.min
         end
@@ -92,13 +83,14 @@ module ActiveRecord
           if method == :delete_all
             scope.delete_all
           else
-            scope.update_all(reflection.foreign_key => nil)
+            scope.update_all(nullified_owner_attributes)
           end
         end
 
         def delete_or_nullify_all_records(method)
           count = delete_count(method, scope)
           update_counter(-count)
+          count
         end
 
         # Deletes the records according to the <tt>:dependent</tt> option.
@@ -129,6 +121,14 @@ module ActiveRecord
             update_counter_in_memory(difference)
           end
           saved_successfully
+        end
+
+        def difference(a, b)
+          a - b
+        end
+
+        def intersection(a, b)
+          a & b
         end
     end
   end

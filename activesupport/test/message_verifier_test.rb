@@ -20,16 +20,17 @@ class MessageVerifierTest < ActiveSupport::TestCase
   def setup
     @verifier = ActiveSupport::MessageVerifier.new("Hey, I'm a secret!")
     @data = { some: "data", now: Time.utc(2010) }
+    @secret = SecureRandom.random_bytes(32)
   end
 
   def test_valid_message
     data, hash = @verifier.generate(@data).split("--")
-    assert !@verifier.valid_message?(nil)
-    assert !@verifier.valid_message?("")
-    assert !@verifier.valid_message?("\xff") # invalid encoding
-    assert !@verifier.valid_message?("#{data.reverse}--#{hash}")
-    assert !@verifier.valid_message?("#{data}--#{hash.reverse}")
-    assert !@verifier.valid_message?("purejunk")
+    assert_not @verifier.valid_message?(nil)
+    assert_not @verifier.valid_message?("")
+    assert_not @verifier.valid_message?("\xff") # invalid encoding
+    assert_not @verifier.valid_message?("#{data.reverse}--#{hash}")
+    assert_not @verifier.valid_message?("#{data}--#{hash.reverse}")
+    assert_not @verifier.valid_message?("purejunk")
   end
 
   def test_simple_round_tripping
@@ -39,7 +40,7 @@ class MessageVerifierTest < ActiveSupport::TestCase
   end
 
   def test_verified_returns_false_on_invalid_message
-    assert !@verifier.verified("purejunk")
+    assert_not @verifier.verified("purejunk")
   end
 
   def test_verify_exception_on_invalid_message
@@ -90,6 +91,51 @@ class MessageVerifierTest < ActiveSupport::TestCase
     signed_message = "BAh7BzoJc29tZUkiCWRhdGEGOgZFVDoIbm93SXU6CVRpbWUNIIAbgAAAAAAHOgtvZmZzZXRpADoJem9uZUkiCFVUQwY7BkY=--d03c52c91dfe4ccc5159417c660461bcce005e96"
     assert_equal @data, @verifier.verify(signed_message)
   end
+
+  def test_rotating_secret
+    old_message = ActiveSupport::MessageVerifier.new("old", digest: "SHA1").generate("old")
+
+    verifier = ActiveSupport::MessageVerifier.new(@secret, digest: "SHA1")
+    verifier.rotate "old"
+
+    assert_equal "old", verifier.verified(old_message)
+  end
+
+  def test_multiple_rotations
+    old_message   = ActiveSupport::MessageVerifier.new("old", digest: "SHA256").generate("old")
+    older_message = ActiveSupport::MessageVerifier.new("older", digest: "SHA1").generate("older")
+
+    verifier = ActiveSupport::MessageVerifier.new(@secret, digest: "SHA512")
+    verifier.rotate "old",   digest: "SHA256"
+    verifier.rotate "older", digest: "SHA1"
+
+    assert_equal "new",   verifier.verified(verifier.generate("new"))
+    assert_equal "old",   verifier.verified(old_message)
+    assert_equal "older", verifier.verified(older_message)
+  end
+
+  def test_on_rotation_is_called_and_verified_returns_message
+    older_message = ActiveSupport::MessageVerifier.new("older", digest: "SHA1").generate(encoded: "message")
+
+    verifier = ActiveSupport::MessageVerifier.new(@secret, digest: "SHA512")
+    verifier.rotate "old",   digest: "SHA256"
+    verifier.rotate "older", digest: "SHA1"
+
+    rotated = false
+    message = verifier.verified(older_message, on_rotation: proc { rotated = true })
+
+    assert_equal({ encoded: "message" }, message)
+    assert rotated
+  end
+
+  def test_rotations_with_metadata
+    old_message = ActiveSupport::MessageVerifier.new("old").generate("old", purpose: :rotation)
+
+    verifier = ActiveSupport::MessageVerifier.new(@secret)
+    verifier.rotate "old"
+
+    assert_equal "old", verifier.verified(old_message, purpose: :rotation)
+  end
 end
 
 class MessageVerifierMetadataTest < ActiveSupport::TestCase
@@ -101,12 +147,12 @@ class MessageVerifierMetadataTest < ActiveSupport::TestCase
 
   def test_verify_raises_when_purpose_differs
     assert_raise(ActiveSupport::MessageVerifier::InvalidSignature) do
-      @verifier.verify(@verifier.generate(@message, purpose: "payment"), purpose: "shipping")
+      @verifier.verify(generate(data, purpose: "payment"), purpose: "shipping")
     end
   end
 
   def test_verify_raises_when_expired
-    signed_message = @verifier.generate(@message, expires_in: 1.month)
+    signed_message = generate(data, expires_in: 1.month)
 
     travel 2.months
     assert_raise(ActiveSupport::MessageVerifier::InvalidSignature) do
@@ -139,5 +185,20 @@ class MessageVerifierMetadataJSONTest < MessageVerifierMetadataTest
   private
     def verifier_options
       { serializer: MessageVerifierTest::JSONSerializer.new }
+    end
+end
+
+class MessageEncryptorMetadataNullSerializerTest < MessageVerifierMetadataTest
+  private
+    def data
+      "string message"
+    end
+
+    def null_serializing?
+      true
+    end
+
+    def verifier_options
+      { serializer: ActiveSupport::MessageEncryptor::NullSerializer }
     end
 end

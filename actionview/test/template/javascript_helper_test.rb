@@ -6,11 +6,15 @@ class JavaScriptHelperTest < ActionView::TestCase
   tests ActionView::Helpers::JavaScriptHelper
 
   attr_accessor :output_buffer
+  attr_reader :request
 
   setup do
     @old_escape_html_entities_in_json = ActiveSupport.escape_html_entities_in_json
     ActiveSupport.escape_html_entities_in_json = true
     @template = self
+    @request = Class.new do
+      def send_early_hints(links) end
+    end.new
   end
 
   def teardown
@@ -19,11 +23,15 @@ class JavaScriptHelperTest < ActionView::TestCase
 
   def test_escape_javascript
     assert_equal "", escape_javascript(nil)
+    assert_equal "123", escape_javascript(123)
+    assert_equal "en", escape_javascript(:en)
+    assert_equal "false", escape_javascript(false)
+    assert_equal "true", escape_javascript(true)
     assert_equal %(This \\"thing\\" is really\\n netos\\'), escape_javascript(%(This "thing" is really\n netos'))
     assert_equal %(backslash\\\\test), escape_javascript(%(backslash\\test))
     assert_equal %(dont <\\/close> tags), escape_javascript(%(dont </close> tags))
-    assert_equal %(unicode &#x2028; newline), escape_javascript(%(unicode \342\200\250 newline).dup.force_encoding(Encoding::UTF_8).encode!)
-    assert_equal %(unicode &#x2029; newline), escape_javascript(%(unicode \342\200\251 newline).dup.force_encoding(Encoding::UTF_8).encode!)
+    assert_equal %(unicode &#x2028; newline), escape_javascript((+%(unicode \342\200\250 newline)).force_encoding(Encoding::UTF_8).encode!)
+    assert_equal %(unicode &#x2029; newline), escape_javascript((+%(unicode \342\200\251 newline)).force_encoding(Encoding::UTF_8).encode!)
 
     assert_equal %(dont <\\/close> tags), j(%(dont </close> tags))
   end
@@ -46,7 +54,7 @@ class JavaScriptHelperTest < ActionView::TestCase
     assert_equal "foo", output_buffer, "javascript_tag without a block should not concat to output_buffer"
   end
 
-  # Setting the :extname option will control what extension (if any) is appended to the url for assets
+  # Setting the :extname option will control what extension (if any) is appended to the URL for assets
   def test_javascript_include_tag
     assert_dom_equal "<script src='/foo.js'></script>",  javascript_include_tag("/foo")
     assert_dom_equal "<script src='/foo'></script>",     javascript_include_tag("/foo", extname: false)

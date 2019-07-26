@@ -1,7 +1,9 @@
-require_relative "../generators"
-require_relative "testing/behaviour"
-require_relative "testing/setup_and_teardown"
-require_relative "testing/assertions"
+# frozen_string_literal: true
+
+require "rails/generators"
+require "rails/generators/testing/behaviour"
+require "rails/generators/testing/setup_and_teardown"
+require "rails/generators/testing/assertions"
 require "fileutils"
 
 module Rails

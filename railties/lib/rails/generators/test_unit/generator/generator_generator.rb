@@ -1,4 +1,6 @@
-require_relative "../../test_unit"
+# frozen_string_literal: true
+
+require "rails/generators/test_unit"
 
 module TestUnit # :nodoc:
   module Generators # :nodoc:
@@ -13,7 +15,6 @@ module TestUnit # :nodoc:
       end
 
     private
-
       def generator_path
         if options[:namespace]
           File.join("generators", regular_class_path, file_name, "#{file_name}_generator")

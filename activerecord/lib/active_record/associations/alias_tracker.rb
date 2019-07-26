@@ -6,46 +6,36 @@ module ActiveRecord
   module Associations
     # Keeps track of table aliases for ActiveRecord::Associations::JoinDependency
     class AliasTracker # :nodoc:
-      def self.create(connection, initial_table)
-        aliases = Hash.new(0)
-        aliases[initial_table] = 1
-        new(connection, aliases)
-      end
-
-      def self.create_with_joins(connection, initial_table, joins)
+      def self.create(connection, initial_table, joins)
         if joins.empty?
-          create(connection, initial_table)
+          aliases = Hash.new(0)
         else
           aliases = Hash.new { |h, k|
             h[k] = initial_count_for(connection, k, joins)
           }
-          aliases[initial_table] = 1
-          new(connection, aliases)
         end
+        aliases[initial_table] = 1
+        new(connection, aliases)
       end
 
       def self.initial_count_for(connection, name, table_joins)
-        # quoted_name should be downcased as some database adapters (Oracle) return quoted name in uppercase
-        quoted_name = connection.quote_table_name(name).downcase
+        quoted_name = nil
 
         counts = table_joins.map do |join|
           if join.is_a?(Arel::Nodes::StringJoin)
+            # quoted_name should be case ignored as some database adapters (Oracle) return quoted name in uppercase
+            quoted_name ||= connection.quote_table_name(name)
+
             # Table names + table aliases
-            join.left.downcase.scan(
-              /join(?:\s+\w+)?\s+(\S+\s+)?#{quoted_name}\son/
+            join.left.scan(
+              /JOIN(?:\s+\w+)?\s+(?:\S+\s+)?(?:#{quoted_name}|#{name})\sON/i
             ).size
-          elsif join.respond_to? :left
-            join.left.table_name == name ? 1 : 0
+          elsif join.is_a?(Arel::Nodes::Join)
+            join.left.name == name ? 1 : 0
+          elsif join.is_a?(Hash)
+            join[name]
           else
-            # this branch is reached by two tests:
-            #
-            # activerecord/test/cases/associations/cascaded_eager_loading_test.rb:37
-            #   with :posts
-            #
-            # activerecord/test/cases/associations/eager_test.rb:1133
-            #   with :comments
-            #
-            0
+            raise ArgumentError, "joins list should be initialized by list of Arel::Nodes::Join"
           end
         end
 
@@ -79,13 +69,9 @@ module ActiveRecord
         end
       end
 
-      # TODO Change this to private once we've dropped Ruby 2.2 support.
-      # Workaround for Ruby 2.2 "private attribute?" warning.
-      protected
-        attr_reader :aliases
+      attr_reader :aliases
 
       private
-
         def truncate(name)
           name.slice(0, @connection.table_alias_length - 2)
         end

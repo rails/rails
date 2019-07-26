@@ -1,6 +1,8 @@
+# frozen_string_literal: true
+
 gem "minitest"
 require "minitest"
-require_relative "runner"
+require "rails/test_unit/runner"
 
 task default: :test
 
@@ -26,7 +28,7 @@ namespace :test do
   desc "Run tests quickly, but also reset db"
   task db: %w[db:test:prepare test]
 
-  ["models", "helpers", "controllers", "mailers", "integration", "jobs"].each do |name|
+  ["models", "helpers", "channels", "controllers", "mailers", "integration", "jobs", "mailboxes"].each do |name|
     task name => "test:prepare" do
       $: << "test"
       Rails::TestUnit::Runner.rake_run(["test/#{name}"])
