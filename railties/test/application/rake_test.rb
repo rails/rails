@@ -162,7 +162,6 @@ module ApplicationTests
       rails "generate", "scaffold", "user", "username:string", "password:string"
       with_rails_env("test") do
         rails("db:migrate")
-        rails("webpacker:compile")
       end
       output = rails("test")
 
@@ -194,7 +193,6 @@ module ApplicationTests
       rails "generate", "scaffold", "LineItems", "product:references", "cart:belongs_to"
       with_rails_env("test") do
         rails("db:migrate")
-        rails("webpacker:compile")
       end
       output = rails("test")
 
