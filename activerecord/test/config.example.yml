@@ -57,12 +57,18 @@ connections:
 <% if ENV['MYSQL_HOST'] %>
       host: <%= ENV['MYSQL_HOST'] %>
 <% end %>
+<% if ENV['MYSQL_PORT'] %>
+      port: <%= ENV['MYSQL_PORT'] %>
+<% end %>
     arunit2:
       username: rails
       encoding: utf8mb4
       collation: utf8mb4_general_ci
 <% if ENV['MYSQL_HOST'] %>
       host: <%= ENV['MYSQL_HOST'] %>
+<% end %>
+<% if ENV['MYSQL_PORT'] %>
+      port: <%= ENV['MYSQL_PORT'] %>
 <% end %>
 
   oracle:

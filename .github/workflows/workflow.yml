@@ -1,0 +1,105 @@
+on: [push]
+
+name: Rails CI
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    services:
+      redis:
+        image: redis
+        ports:
+        - 6379:6379
+      memcached:
+        image: memcached
+        ports:
+        - 11211:11211
+      postgres:
+        image: postgres:10.8
+        ports:
+        - 5432:5432
+        env:
+          POSTGRES_PASSWORD: ""
+      mysql:
+        image: mysql:5.7
+        ports:
+        - 99:3306
+        env:
+          MYSQL_ROOT_PASSWORD: secret
+    strategy:
+      matrix:
+        ruby_version: [2.6.x]
+        gem:
+        - activesupport
+        - actionmailer
+        - activemodel
+        - actiontext
+        - actionmailbox
+        - actionview
+        - actionpack
+        - actioncable
+        - activejob
+        - activestorage
+        - activerecord:postgresql
+        - activerecord:sqlite3
+        - activerecord:sqlite3_mem
+        - activerecord:mysql2
+        - guides
+        - railties
+    name: ${{ matrix.gem }}
+    steps:
+    - name: Install libraries
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y default-mysql-client libmysqlclient-dev postgresql-client libpq-dev sqlite3 libsqlite3-dev redis-tools ffmpeg mupdf mupdf-tools poppler-utils
+    - name: Configure databases
+      run: |
+        echo "Redis"
+        redis-cli config set stop-writes-on-bgsave-error no
+        redis-cli config set save ""
+
+        echo "Postgres"
+        psql -h localhost -c "create database activerecord_unittest;" -U postgres
+        psql -h localhost -c "create database activerecord_unittest2;" -U postgres
+
+        echo "MySQL"
+        mysql --user=root --password=secret --host=127.0.0.1 --port=99 -e "create user rails;"
+        mysql --user=root --password=secret --host=127.0.0.1 --port=99 -e "grant all privileges on activerecord_unittest.* to rails;"
+        mysql --user=root --password=secret --host=127.0.0.1 --port=99 -e "grant all privileges on activerecord_unittest2.* to rails;"
+        mysql --user=root --password=secret --host=127.0.0.1 --port=99 -e "grant all privileges on inexistent_activerecord_unittest.* to rails;"
+        mysql --user=root --password=secret --host=127.0.0.1 --port=99 -e "create database activerecord_unittest default character set utf8mb4;"
+        mysql --user=root --password=secret --host=127.0.0.1 --port=99 -e "create database activerecord_unittest2 default character set utf8mb4;"
+    - name: Install Node
+      uses: actions/setup-node@v1
+      with:
+        version: 10.x
+    - name: Install NPM
+      run: |
+        npm install
+    - name: Checkout
+      uses: actions/checkout@master
+    - name: Update Ruby and Dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y bison ruby ruby-dev libffi-dev libgdbm-dev libgmp-dev libjemalloc-dev libncurses5-dev libncursesw5-dev libreadline6-dev libssl-dev libyaml-dev openssl zlib1g-dev libmysqlclient-dev libpq-dev sqlite3 libsqlite3-dev redis-tools curl libxml2-dev tzdata
+        curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -
+        sudo apt-get install -y nodejs
+        sudo gem install bundler -v '1.17.3'
+    - name: Install dependencies
+      run: |
+        sudo gem install bundler -v '1.17.3'
+        bundle install -j8
+    - name: Run tests
+      run: |
+        IFS=: read -a GEM <<<"${{ matrix.gem }}"
+        DATABASE="${GEM[1]}"
+        export PGHOST=localhost PGUSER=postgres
+        cd "${GEM[0]}"
+        if [ -z "$DATABASE" ]
+        then
+          bundle exec rake
+        else
+          bundle exec rake "test:${GEM[1]}"
+        fi
+      env:
+        MYSQL_HOST: 127.0.0.1
+        MYSQL_PORT: 99
