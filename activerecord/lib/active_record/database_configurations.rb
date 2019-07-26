@@ -105,18 +105,20 @@ module ActiveRecord
         return configs if configs.is_a?(Array)
 
         db_configs = configs.flat_map do |env_name, config|
-          if config.is_a?(Hash) && config.all? { |k, v| v.is_a?(Hash) }
+          if config.is_a?(Hash) && config.all? { |_, v| v.is_a?(Hash) }
             walk_configs(env_name.to_s, config)
           else
             build_db_config_from_raw_config(env_name.to_s, "primary", config)
           end
-        end.compact
-
-        if url = ENV["DATABASE_URL"]
-          merge_url_with_configs(url, db_configs)
-        else
-          db_configs
         end
+
+        current_env = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call.to_s
+
+        unless db_configs.find(&:for_current_env?)
+          db_configs << environment_url_config(current_env, "primary", {})
+        end
+
+        merge_db_environment_variables(current_env, db_configs.compact)
       end
 
       def walk_configs(env_name, config)
@@ -156,20 +158,20 @@ module ActiveRecord
         end
       end
 
-      def merge_url_with_configs(url, configs)
-        env = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call.to_s
+      def merge_db_environment_variables(current_env, configs)
+        configs.map do |config|
+          next config if config.url_config? || config.env_name != current_env
 
-        if configs.find(&:for_current_env?)
-          configs.map do |config|
-            if config.url_config?
-              config
-            else
-              ActiveRecord::DatabaseConfigurations::UrlConfig.new(config.env_name, config.spec_name, url, config.config)
-            end
-          end
-        else
-          configs + [ActiveRecord::DatabaseConfigurations::UrlConfig.new(env, "primary", url)]
+          url_config = environment_url_config(current_env, config.spec_name, config.config)
+          url_config || config
         end
+      end
+
+      def environment_url_config(env, spec_name, config)
+        url = ENV["DATABASE_URL"]
+        return unless url
+
+        ActiveRecord::DatabaseConfigurations::UrlConfig.new(env, spec_name, url, config)
       end
 
       def method_missing(method, *args, &blk)
