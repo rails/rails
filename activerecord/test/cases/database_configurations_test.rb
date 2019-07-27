@@ -89,7 +89,7 @@ class LegacyDatabaseConfigurationsTest < ActiveRecord::TestCase
   end
 
   def test_first_is_deprecated
-    first_config = ActiveRecord::Base.configurations.values.first
+    first_config = ActiveRecord::Base.configurations.configurations.map(&:config).first
     assert_deprecated do
       env_name, config = ActiveRecord::Base.configurations.first
       assert_equal "arunit", env_name
