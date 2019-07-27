@@ -30,8 +30,6 @@ require "active_support/core_ext/numeric/time"
 
 require "active_storage/version"
 require "active_storage/errors"
-require "active_storage/url_options"
-require "active_storage/route"
 
 require "marcel"
 
@@ -42,6 +40,7 @@ module ActiveStorage
   autoload :Service
   autoload :Previewer
   autoload :Analyzer
+  autoload :DeliveryMethod
 
   mattr_accessor :logger
   mattr_accessor :verifier
@@ -60,6 +59,7 @@ module ActiveStorage
   mattr_accessor :proxy_urls_public,      default: true
   mattr_accessor :proxy_urls_host
   mattr_accessor :routes_prefix,          default: "/rails/active_storage"
+  mattr_accessor :delivery_methods,       default: []
 
   mattr_accessor :logger
   mattr_accessor :verifier

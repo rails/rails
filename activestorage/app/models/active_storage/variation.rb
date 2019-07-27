@@ -39,8 +39,8 @@ class ActiveStorage::Variation
     end
   end
 
-  def deliver(method, representation)
-    ActiveStorage.route_representation(representation, delivery_method: method)
+  def url(method = ActiveStorage.delivery_method, representation)
+    ActiveStorage::DeliveryMethod.select(method).representation_url(representation)
   end
 
   def initialize(transformations)

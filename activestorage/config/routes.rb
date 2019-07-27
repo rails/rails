@@ -14,25 +14,21 @@ Rails.application.routes.draw do
   end
 
   direct :rails_representation do |representation, options|
-    ActiveStorage.route_representation(representation, url_options: options)
+    signed_blob_id = representation.blob.signed_id
+    variation_key  = representation.variation.key
+    filename       = representation.blob.filename
+
+    route_for(:rails_blob_representation, signed_blob_id, variation_key, filename, options)
   end
 
-  resolve("ActiveStorage::Variant") do |variant, options|
-    route_for(:rails_representation, variant, options)
-  end
+  resolve("ActiveStorage::Variant") { |variant, options| route_for(:rails_representation, variant, options) }
   resolve("ActiveStorage::Preview") { |preview, options| route_for(:rails_representation, preview, options) }
 
+
   direct :rails_blob do |blob, options|
-    ActiveStorage.route_blob(blob.signed_id, blob.filename, options)
+    route_for(:rails_service_blob, blob.signed_id, blob.filename, options)
   end
 
   resolve("ActiveStorage::Blob")       { |blob, options| route_for(:rails_blob, blob, options) }
-  resolve("ActiveStorage::Attachment") do |attachment, options|
-    ActiveStorage.route_blob(
-      attachment.blob.signed_id,
-      attachment.blob.filename,
-      url_options: options,
-      delivery_method: attachment&.delivery_method
-    )
-  end
+  resolve("ActiveStorage::Attachment") { |attachment, options| route_for(:rails_blob, attachment.blob, options) }
 end
