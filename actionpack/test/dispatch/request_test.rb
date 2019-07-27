@@ -884,7 +884,7 @@ class RequestFormat < BaseRequestTest
     assert request.format.html?
 
     output.rewind && (err = output.read)
-    assert_match /Error occurred while parsing request parameters/, err
+    assert_match(/Error occurred while parsing request parameters/, err)
   end
 
   test "formats with xhr request" do
