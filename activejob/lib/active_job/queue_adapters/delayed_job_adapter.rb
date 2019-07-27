@@ -38,22 +38,12 @@ module ActiveJob
             job_id_persisted = obj.job_data["job_id"]
             return dj.id if job_id_persisted == job_id_aj
           end
-        rescue => e
+        rescue
           return nil
         end
 
         nil
       end
-
-      private
-        def scan_backend(job_id_aj) #:nodoc:
-          case Delayed::Worker.backend.name
-          when "Delayed::Backend::ActiveRecord::Job"
-            Delayed::Job.where("handler LIKE '%#{job_id_aj}%'")  # in lieu of Delayed::Job.all
-          else
-            []
-          end
-        end
 
       class JobWrapper #:nodoc:
         attr_accessor :job_data
@@ -70,6 +60,16 @@ module ActiveJob
           Base.execute(job_data)
         end
       end
+
+      private
+        def scan_backend(job_id_aj) #:nodoc:
+          case Delayed::Worker.backend.name
+          when "Delayed::Backend::ActiveRecord::Job"
+            Delayed::Job.where("handler LIKE '%#{job_id_aj}%'")  # in lieu of Delayed::Job.all
+          else
+            []
+          end
+        end
     end
   end
 end
