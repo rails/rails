@@ -334,7 +334,7 @@ module ActiveRecord
   # See the following:
   #
   # * https://www.postgresql.org/docs/current/static/transaction-iso.html
-  # * https://dev.mysql.com/doc/refman/5.7/en/error-messages-server.html#error_er_lock_deadlock
+  # * https://dev.mysql.com/doc/refman/5.7/en/server-error-reference.html#error_er_lock_deadlock
   class TransactionRollbackError < StatementInvalid
   end
 
