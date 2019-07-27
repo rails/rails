@@ -162,7 +162,7 @@ module ActionDispatch
 
         def valid_accept_header # :doc:
           (xhr? && (accept.present? || content_mime_type)) ||
-            (accept.present? && accept !~ BROWSER_LIKE_ACCEPTS)
+            (accept.present? && !accept.match?(BROWSER_LIKE_ACCEPTS))
         end
 
         def use_accept_header # :doc:

@@ -439,7 +439,7 @@ module ActionDispatch
 
             # If host is not ip and matches domain regexp.
             # (ip confirms to domain regexp so we explicitly check for ip)
-            options[:domain] = if (request.host !~ /^[\d.]+$/) && (request.host =~ domain_regexp)
+            options[:domain] = if !request.host.match?(/^[\d.]+$/) && (request.host =~ domain_regexp)
               ".#{$&}"
             end
           elsif options[:domain].is_a? Array

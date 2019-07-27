@@ -52,7 +52,7 @@ module Rails
         def inherited(base) #:nodoc:
           super
 
-          if base.name && base.name !~ /Base$/
+          if base.name && !base.name.match?(/Base$/)
             Rails::Command.subclasses << base
           end
         end

@@ -5,7 +5,7 @@ require "active_support/core_ext/hash/deep_merge"
 module ActiveSupport
   class OptionMerger #:nodoc:
     instance_methods.each do |method|
-      undef_method(method) if method !~ /^(__|instance_eval|class|object_id)/
+      undef_method(method) unless method.match?(/^(__|instance_eval|class|object_id)/)
     end
 
     def initialize(context, options)

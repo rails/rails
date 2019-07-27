@@ -233,7 +233,7 @@ module Rails
         # Invoke source_root so the default_source_root is set.
         base.source_root
 
-        if base.name && base.name !~ /Base$/
+        if base.name && !base.name.match?(/Base$/)
           Rails::Generators.subclasses << base
 
           Rails::Generators.templates_path.each do |path|

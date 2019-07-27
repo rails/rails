@@ -544,8 +544,8 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     @app = DevelopmentApp
     Rails.stub :root, Pathname.new(".") do
       cleaner = ActiveSupport::BacktraceCleaner.new.tap do |bc|
-        bc.add_silencer { |line| line =~ /method_that_raises/ }
-        bc.add_silencer { |line| line !~ %r{test/dispatch/debug_exceptions_test.rb} }
+        bc.add_silencer { |line| line.match?(/method_that_raises/) }
+        bc.add_silencer { |line| !line.match?(%r{test/dispatch/debug_exceptions_test.rb}) }
       end
 
       get "/framework_raises", headers: { "action_dispatch.backtrace_cleaner" => cleaner }
@@ -596,7 +596,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     @app = DevelopmentApp
     Rails.stub :root, Pathname.new(".") do
       cleaner = ActiveSupport::BacktraceCleaner.new.tap do |bc|
-        bc.add_silencer { |line| line !~ %r{test/dispatch/debug_exceptions_test.rb} }
+        bc.add_silencer { |line| !line.match?(%r{test/dispatch/debug_exceptions_test.rb}) }
       end
 
       get "/nested_exceptions", headers: { "action_dispatch.backtrace_cleaner" => cleaner }
@@ -631,7 +631,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     @app = DevelopmentApp
     Rails.stub :root, Pathname.new(".") do
       cleaner = ActiveSupport::BacktraceCleaner.new.tap do |bc|
-        bc.add_silencer { |line| line !~ %r{test/dispatch/debug_exceptions_test.rb} }
+        bc.add_silencer { |line| !line.match?(%r{test/dispatch/debug_exceptions_test.rb}) }
       end
 
       get "/actionable_error", headers: { "action_dispatch.backtrace_cleaner" => cleaner }

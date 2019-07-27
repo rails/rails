@@ -395,7 +395,7 @@ module ActionView
     end
 
     def _normalize_layout(value)
-      value.is_a?(String) && value !~ /\blayouts/ ? "layouts/#{value}" : value
+      value.is_a?(String) && !value.match?(/\blayouts/) ? "layouts/#{value}" : value
     end
 
     # Returns the default layout for this controller.

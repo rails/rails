@@ -275,7 +275,7 @@ module ActiveRecord
           # hash and merges with the rest of the hash.
           # Connection details inside of the "url" key win any merge conflicts
           def resolve_hash_connection(spec)
-            if spec["url"] && spec["url"] !~ /^jdbc:/
+            if spec["url"] && !spec["url"].match?(/^jdbc:/)
               connection_hash = resolve_url_connection(spec.delete("url"))
               spec.merge!(connection_hash)
             end

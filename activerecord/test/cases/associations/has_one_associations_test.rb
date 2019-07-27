@@ -41,7 +41,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     companies(:first_firm).account
   ensure
     sql_log = ActiveRecord::SQLCounter.log
-    assert sql_log.all? { |sql| /order by/i !~ sql }, "ORDER BY was used in the query: #{sql_log}"
+    assert sql_log.all? { |sql| !/order by/i.match?(sql) }, "ORDER BY was used in the query: #{sql_log}"
   end
 
   def test_has_one_cache_nils

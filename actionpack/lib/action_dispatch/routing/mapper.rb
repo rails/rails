@@ -112,7 +112,7 @@ module ActionDispatch
         end
 
         def self.optional_format?(path, format)
-          format != false && path !~ OPTIONAL_FORMAT_REGEX
+          format != false && !path.match?(OPTIONAL_FORMAT_REGEX)
         end
 
         def initialize(set:, ast:, controller:, default_action:, to:, formatted:, via:, options_constraints:, anchor:, scope_params:, options:)
@@ -1833,7 +1833,7 @@ module ActionDispatch
               # and return nil in case it isn't. Otherwise, we pass the invalid name
               # forward so the underlying router engine treats it and raises an exception.
               if as.nil?
-                candidate unless candidate !~ /\A[_a-z]/i || has_named_route?(candidate)
+                candidate unless !candidate.match?(/\A[_a-z]/i) || has_named_route?(candidate)
               else
                 candidate
               end

@@ -133,7 +133,7 @@ module ActionDispatch
           end
 
           def named_host?(host)
-            IP_HOST_REGEXP !~ host
+            !IP_HOST_REGEXP.match?(host)
           end
 
           def normalize_protocol(protocol)
