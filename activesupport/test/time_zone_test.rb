@@ -712,9 +712,9 @@ class TimeZoneTest < ActiveSupport::TestCase
 
   def test_zone_match
     zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
-    assert zone =~ /Eastern/
-    assert zone =~ /New_York/
-    assert zone !~ /Nonexistent_Place/
+    assert_match zone, /Eastern/
+    assert_match zone, /New_York/
+    assert_no_match zone, /Nonexistent_Place/
   end
 
   def test_to_s
