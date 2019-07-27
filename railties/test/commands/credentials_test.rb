@@ -5,6 +5,7 @@ require "env_helpers"
 require "rails/command"
 require "rails/commands/credentials/credentials_command"
 require "fileutils"
+require "tempfile"
 
 class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
   include ActiveSupport::Testing::Isolation, EnvHelpers
@@ -110,7 +111,7 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
   end
 
   test "edit ask the user to opt in to pretty credentials, user accepts" do
-    file = File.open("foo", "w")
+    file = Tempfile.open("credentials_test")
     file.write("y")
     file.rewind
 
@@ -127,11 +128,11 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
       assert_equal("bin/rails credentials:show\n", `git config --get 'diff.rails_credentials.textconv'`)
     end
   ensure
-    File.delete(file)
+    file.close!
   end
 
   test "edit ask the user to opt in to pretty credentials, user refuses" do
-    file = File.open("foo", "w")
+    file = Tempfile.open("credentials_test")
     file.write("n")
     file.rewind
 
@@ -140,7 +141,7 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
     git_attributes = app_path(".gitattributes")
     assert_not(File.exist?(git_attributes))
   ensure
-    File.delete(file)
+    file.close!
   end
 
   test "show credentials" do
