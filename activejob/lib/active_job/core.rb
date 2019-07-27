@@ -23,7 +23,7 @@ module ActiveJob
     attr_writer :priority
 
     # ID optionally provided by adapter
-    attr_accessor :provider_job_id
+    attr_writer :provider_job_id
 
     # Number of times this job has been executed (which increments on every retry, like after an exception).
     attr_accessor :executions
@@ -83,6 +83,7 @@ module ActiveJob
       @job_id     = SecureRandom.uuid
       @queue_name = self.class.queue_name
       @priority   = self.class.priority
+      @provider_job_id = nil
       @executions = 0
       @exception_executions = {}
     end
@@ -142,6 +143,29 @@ module ActiveJob
       self.locale               = job_data["locale"] || I18n.locale.to_s
       self.timezone             = job_data["timezone"] || Time.zone.try(:name)
       self.enqueued_at          = job_data["enqueued_at"]
+    end
+
+    # Optionally returns the corresponding job ID known to the underlying queuing provider.
+    # Each queue adapter may or may not implement support for this method at enqueuing time:
+    #
+    #    class FooJob < ActiveJob::Base
+    #      after_enqueue do |job|
+    #        puts job.provider_job_id
+    #      end
+    #    end
+    #
+    # Each queue adapter may or may not implement support for this method at execution time:
+    #
+    #    class FooJob < ActiveJob::Base
+    #      before_perform do |job|
+    #        puts job.provider_job_id
+    #      end
+    #      def perform
+    #        put "Provider Job ID: #{provider_job_id}"
+    #      end
+    #    end
+    def provider_job_id
+      self.class.queue_adapter.respond_to?(:provider_job_id) ? self.class.queue_adapter.provider_job_id(self) : @provider_job_id
     end
 
     private

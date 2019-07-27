@@ -3,43 +3,6 @@
 require "delayed_job"
 
 module ActiveJob
-  module Core
-    # Override attr_reader in order to defer backend access until it is needed
-    def provider_job_id #:nodoc:
-      find_provider_job_id
-    end
-
-    private
-      def scan_backend(job_id_aj) #:nodoc:
-        case Delayed::Worker.backend.name
-        when "Delayed::Backend::ActiveRecord::Job"
-          Delayed::Job.where("handler LIKE '%#{job_id_aj}%'")  # in lieu of Delayed::Job.all
-        else
-          []
-        end
-      end
-
-      def find_provider_job_id #:nodoc:
-        begin
-          job_id_aj = self.job_id
-          djs = scan_backend(job_id_aj)
-          djs.map do |dj|
-            obj = dj.payload_object
-            next if obj.blank? || obj.job_data.blank?
-
-            job_id_persisted = obj.job_data["job_id"]
-            return dj.id if job_id_persisted == job_id_aj
-          end
-        rescue
-          return nil
-        end
-
-        nil
-      end
-  end
-end
-
-module ActiveJob
   module QueueAdapters
     # == Delayed Job adapter for Active Job
     #
@@ -63,6 +26,34 @@ module ActiveJob
         job.provider_job_id = delayed_job.id
         delayed_job
       end
+
+      def provider_job_id(job) #:nodoc:
+        begin
+          job_id_aj = job.job_id
+          djs = scan_backend(job_id_aj)
+          djs.map do |dj|
+            obj = dj.payload_object
+            next if obj.blank? || obj.job_data.blank?
+
+            job_id_persisted = obj.job_data["job_id"]
+            return dj.id if job_id_persisted == job_id_aj
+          end
+        rescue => e
+          return nil
+        end
+
+        nil
+      end
+
+      private
+        def scan_backend(job_id_aj) #:nodoc:
+          case Delayed::Worker.backend.name
+          when "Delayed::Backend::ActiveRecord::Job"
+            Delayed::Job.where("handler LIKE '%#{job_id_aj}%'")  # in lieu of Delayed::Job.all
+          else
+            []
+          end
+        end
 
       class JobWrapper #:nodoc:
         attr_accessor :job_data
