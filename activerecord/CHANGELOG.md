@@ -401,7 +401,7 @@
     `GET` and `HEAD` requests will read from the replica unless there was
     a write in the last 2 seconds, otherwise they will read from the primary.
     Non-get requests will always write to the primary. The middleware accepts
-    an argument for a Resolver class and a Operations class where you are able
+    an argument for a Resolver class and an Operations class where you are able
     to change how the auto-switcher works to be most beneficial for your
     application.
 
