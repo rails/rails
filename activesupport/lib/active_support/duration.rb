@@ -426,12 +426,23 @@ module ActiveSupport
         value.respond_to?(method)
       end
 
+      FULL_PARTS = PARTS + [:year, :month, :week, :day, :hour, :minute, :second]
+
       def method_missing(method, *args, &block)
-        value.public_send(method, *args, &block)
+        # Not allowed to chain part methods
+        if FULL_PARTS.include?(method)
+          raise_no_method_error_for_part(method)
+        else
+          value.public_send(method, *args, &block)
+        end
       end
 
       def raise_type_error(other)
         raise TypeError, "no implicit conversion of #{other.class} into #{self.class}"
+      end
+
+      def raise_no_method_error_for_part(method)
+        raise NoMethodError, "undefined method `#{method}' for #{self.inspect}:#{self.class}"
       end
   end
 end

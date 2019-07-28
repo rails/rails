@@ -1,3 +1,25 @@
+*   Add raises `NoMethodError` when you chain some duration part methods.
+
+    Example:
+
+        1.year.year
+        1.month.weeks
+        1.hour.minutes
+
+    Before:
+
+        # => NoMethodError: undefined method `year' for ...
+        # => 18144000 days
+        # => 216000 seconds
+
+    After:
+
+        # => undefined method `year' for 1 year:ActiveSupport::Duration
+        # => undefined method `weeks' for 1 month:ActiveSupport::Duration
+        # => undefined method `minutes' for 1 hour:ActiveSupport::Duration
+
+    *Edu Depetris*
+
 *   Calling `ActiveSupport::TaggedLogging#tagged` without a block now returns a tagged logger.
 
     ```ruby

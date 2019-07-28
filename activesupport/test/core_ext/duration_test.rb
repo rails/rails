@@ -693,6 +693,20 @@ class DurationTest < ActiveSupport::TestCase
     assert_equal "can't build an ActiveSupport::Duration from a NilClass", error.message
   end
 
+  def test_does_not_allow_chaining_duration_part_methods
+    parts = %w[years months weeks days hours minutes seconds year month week day hour minute second]
+
+    parts.combination(2).each do |combination|
+      p1, p2 = combination
+
+      e = assert_raise(NoMethodError) { 1.public_send(p1).public_send(p2) }
+
+      singular_p1 = p1.end_with?("s") ? p1.chop : p1
+
+      assert_equal("undefined method `#{p2}' for 1 #{singular_p1}:ActiveSupport::Duration", e.message)
+    end
+  end
+
   private
     def eastern_time_zone
       if Gem.win_platform?
