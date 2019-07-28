@@ -89,7 +89,7 @@
 
     *Gustavo Gutierrez*
 
-*   Calling `ActionController::Parameters#transform_keys!` without a block now returns
+*   Calling `ActionController::Parameters#transform_keys`/`!` without a block now returns
     an enumerator for the parameters instead of the underlying hash.
 
     *Eugene Kenny*
