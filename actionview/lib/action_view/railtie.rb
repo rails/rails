@@ -13,6 +13,7 @@ module ActionView
     config.action_view.debug_missing_translation = true
     config.action_view.default_enforce_utf8 = nil
     config.action_view.finalize_compiled_template_methods = NULL_OPTION
+    config.action_view.render_hints = nil
 
     config.eager_load_namespaces << ActionView
 
@@ -94,6 +95,12 @@ module ActionView
 
     initializer "action_view.collection_caching", after: "action_controller.set_configs" do |app|
       PartialRenderer.collection_cache = app.config.action_controller.cache_store
+    end
+
+    initializer "action_view.render_hints" do |app|
+      ActiveSupport.on_load(:action_view) do
+        PartialRenderer.render_hints = app.config.render_hints
+      end
     end
 
     rake_tasks do |app|

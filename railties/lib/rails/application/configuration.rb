@@ -19,7 +19,8 @@ module Rails
                     :beginning_of_week, :filter_redirect, :x, :enable_dependency_loading,
                     :read_encrypted_secrets, :log_level, :content_security_policy_report_only,
                     :content_security_policy_nonce_generator, :content_security_policy_nonce_directives,
-                    :require_master_key, :credentials, :disable_sandbox, :add_autoload_paths_to_load_path
+                    :require_master_key, :credentials, :disable_sandbox, :add_autoload_paths_to_load_path,
+                    :render_hints
 
       attr_reader :encoding, :api_only, :loaded_config_version, :autoloader
 
@@ -70,6 +71,7 @@ module Rails
         @disable_sandbox                         = false
         @add_autoload_paths_to_load_path         = true
         @feature_policy                          = nil
+        @render_hints                            = false
       end
 
       def load_defaults(target_version)

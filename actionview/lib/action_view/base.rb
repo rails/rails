@@ -162,6 +162,9 @@ module ActionView #:nodoc:
     # Specify whether submit_tag should automatically disable on click
     cattr_accessor :automatically_disable_submit_tag, default: true
 
+    # Specify whether the view rendering includes which partial produced the output
+    cattr_accessor :render_hints, default: true
+
     class_attribute :_routes
     class_attribute :logger
 

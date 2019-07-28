@@ -284,6 +284,7 @@ module ActionView
   #   <% end %>
   class PartialRenderer < AbstractRenderer
     include CollectionCaching
+    cattr_accessor :render_hints
 
     PREFIXED_PARTIAL_NAMES = Concurrent::Map.new do |h, k|
       h[k] = Concurrent::Map.new
@@ -361,10 +362,18 @@ module ActionView
             view._layout_for(*name, &block)
           end
 
+          partial_hints(template, content, locals) if render_hints
           content = layout.render(view, locals) { content } if layout
           payload[:cache_hit] = view.view_renderer.cache_hits[template.virtual_path]
           build_rendered_template(content, template)
         end
+      end
+
+      def partial_hints(template, content, locals)
+        uuid = SecureRandom.uuid
+        content.prepend("\n<!-- start render: #{template.virtual_path}, uuid: #{uuid}, locals: #{locals.inspect} -->\n".html_safe)
+        content.concat("\n<!-- end render: #{template.virtual_path}, uuid: #{uuid} -->\n".html_safe)
+        content
       end
 
       # Sets up instance variables needed for rendering a partial. This method
@@ -450,6 +459,8 @@ module ActionView
           content = template.render(view, locals)
           content = layout.render(view, locals) { content } if layout
           partial_iteration.iterate!
+
+          partial_hints(template, content, locals) if render_hints
           build_rendered_template(content, template)
         end
       end
@@ -472,6 +483,8 @@ module ActionView
           template = (cache[path] ||= find_template(path, keys + [as, counter, iteration]))
           content = template.render(view, locals)
           partial_iteration.iterate!
+
+          partial_hints(template, content, locals) if render_hints
           build_rendered_template(content, template)
         end
       end
