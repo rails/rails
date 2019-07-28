@@ -42,6 +42,17 @@ module ActiveSupport
         end
       end
 
+      module RequireDependency
+        def require_dependency(filename)
+          filename = filename.to_path if filename.respond_to?(:to_path)
+          if abspath = ActiveSupport::Dependencies.search_for_file(filename)
+            require abspath
+          else
+            require filename
+          end
+        end
+      end
+
       module Inflector
         def self.camelize(basename, _abspath)
           basename.camelize
@@ -90,7 +101,7 @@ module ActiveSupport
           def decorate_dependencies
             Dependencies.unhook!
             Dependencies.singleton_class.prepend(Decorations)
-            Object.class_eval { alias_method :require_dependency, :require }
+            Object.prepend(RequireDependency)
           end
       end
     end
