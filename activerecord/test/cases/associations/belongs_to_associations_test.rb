@@ -60,10 +60,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_belongs_to_does_not_use_order_by
-    ActiveRecord::SQLCounter.clear_log
-    Client.find(3).firm
-  ensure
-    sql_log = ActiveRecord::SQLCounter.log
+    sql_log = capture_sql { Client.find(3).firm }
     assert sql_log.all? { |sql| !/order by/i.match?(sql) }, "ORDER BY was used in the query: #{sql_log}"
   end
 
