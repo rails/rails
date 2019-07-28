@@ -1,3 +1,13 @@
+*   Let `require_dependency` in `zeitwerk` mode look the autoload paths up for
+    better backwards compatibility.
+
+    *Xavier Noria*
+
+*   Let `require_dependency` in `zeitwerk` mode support arguments that respond
+    to `to_path` for better backwards compatibility.
+
+    *Xavier Noria*
+
 *   Make ActiveSupport::Logger Fiber-safe. Fixes #36752.
 
     Use `Fiber.current.__id__` in `ActiveSupport::Logger#local_level=` in order
