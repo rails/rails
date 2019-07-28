@@ -601,6 +601,11 @@ module ActiveRecord
       Hash[methods.flatten.map! { |method| [method, public_send(method)] }].with_indifferent_access
     end
 
+    # Returns an array of the values returned by the given methods.
+    def values_at(*methods)
+      methods.flatten.map! { |method| public_send(method) }
+    end
+
     private
       # +Array#flatten+ will call +#to_ary+ (recursively) on each of the elements of
       # the array, and then rescues from the possible +NoMethodError+. If those elements are
