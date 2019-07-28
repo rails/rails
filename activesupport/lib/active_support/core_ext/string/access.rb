@@ -76,17 +76,7 @@ class String
   #   str.first(0) # => ""
   #   str.first(6) # => "hello"
   def first(limit = 1)
-    ActiveSupport::Deprecation.warn(
-      "Calling String#first with a negative integer limit " \
-      "will raise an ArgumentError in Rails 6.1."
-    ) if limit < 0
-    if limit == 0
-      ""
-    elsif limit >= size
-      dup
-    else
-      to(limit - 1)
-    end
+    self[0, limit] || (raise ArgumentError, "negative limit")
   end
 
   # Returns the last character of the string. If a limit is supplied, returns a substring
@@ -100,16 +90,6 @@ class String
   #   str.last(0) # => ""
   #   str.last(6) # => "hello"
   def last(limit = 1)
-    ActiveSupport::Deprecation.warn(
-      "Calling String#last with a negative integer limit " \
-      "will raise an ArgumentError in Rails 6.1."
-    ) if limit < 0
-    if limit == 0
-      ""
-    elsif limit >= size
-      dup
-    else
-      from(-limit)
-    end
+    self[[length - limit, 0].max, limit] || (raise ArgumentError, "negative limit")
   end
 end
