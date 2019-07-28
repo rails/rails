@@ -835,7 +835,7 @@
     *Darwin Wu*
 
 *   Configuration item `config.filter_parameters` could also filter out
-    sensitive values of database columns when call `#inspect`.
+    sensitive values of database columns when calling `#inspect`.
     We also added `ActiveRecord::Base::filter_attributes`/`=` in order to
     specify sensitive attributes to specific model.
 
