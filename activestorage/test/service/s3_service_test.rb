@@ -77,6 +77,23 @@ if SERVICE_CONFIGURATIONS[:s3]
       @service.delete key
     end
 
+    test "upload with content disposition" do
+      key  = SecureRandom.base58(24)
+      data = "Something else entirely!"
+
+      @service.upload(
+        key,
+        StringIO.new(data),
+        checksum: Digest::MD5.base64digest(data),
+        filename: ActiveStorage::Filename.new("cool_data.txt"),
+        disposition: :attachment
+      )
+
+      assert_equal("attachment; filename=\"cool_data.txt\"; filename*=UTF-8''cool_data.txt", @service.bucket.object(key).content_disposition)
+    ensure
+      @service.delete key
+    end
+
     test "uploading a large object in multiple parts" do
       service = build_service(upload: { multipart_threshold: 5.megabytes })
 
