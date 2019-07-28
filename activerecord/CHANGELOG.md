@@ -1,3 +1,8 @@
+*   Add a auto_configure key to database configuration of connections done by
+    active record optional.
+
+    *Guilherme Mansur*
+
 *   Allow specifying fixtures to be ignored by setting `ignore` in YAML file's '_fixture' section.
 
     *Tongfei Gao*

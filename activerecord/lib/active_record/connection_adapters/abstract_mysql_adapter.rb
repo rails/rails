@@ -692,6 +692,8 @@ module ActiveRecord
         end
 
         def configure_connection
+          return unless  @config.fetch(:auto_configure, true)
+
           variables = @config.fetch(:variables, {}).stringify_keys
 
           # By default, MySQL 'where id is null' selects the last inserted id; Turn this off.
