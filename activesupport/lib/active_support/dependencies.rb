@@ -793,7 +793,6 @@ module ActiveSupport #:nodoc:
     end
 
     private
-
       # Returns the original name of a class or module even if `name` has been
       # overridden.
       def real_mod_name(mod)

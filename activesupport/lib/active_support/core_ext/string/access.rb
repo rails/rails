@@ -62,7 +62,7 @@ class String
   #   str.from(1).to(-2) # => "ell"
   def to(position)
     position += size if position < 0
-    self[0, position + 1].to_s
+    self[0, position + 1] || +""
   end
 
   # Returns the first character. If a limit is supplied, returns a substring
