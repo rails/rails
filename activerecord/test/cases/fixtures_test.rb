@@ -1279,6 +1279,33 @@ class CustomNameForFixtureOrModelTest < ActiveRecord::TestCase
   end
 end
 
+class IgnoreFixturesTest < ActiveRecord::TestCase
+  fixtures :other_books, :parrots
+
+  test "ignores books fixtures" do
+    assert_raise(StandardError) { other_books(:published) }
+    assert_raise(StandardError) { other_books(:published_paperback) }
+    assert_raise(StandardError) { other_books(:published_ebook) }
+
+    assert_equal 2, Book.count
+    assert_equal "Agile Web Development with Rails", other_books(:awdr).name
+    assert_equal "published", other_books(:awdr).status
+    assert_equal "paperback", other_books(:awdr).format
+    assert_equal "english", other_books(:awdr).language
+
+    assert_equal "Ruby for Rails", other_books(:rfr).name
+    assert_equal "ebook", other_books(:rfr).format
+    assert_equal "published", other_books(:rfr).status
+  end
+
+  test "ignores parrots fixtures" do
+    assert_raise(StandardError) { parrots(:DEFAULT) }
+    assert_raise(StandardError) { parrots(:DEAD_PARROT) }
+
+    assert_equal "DeadParrot", parrots(:polly).parrot_sti_class
+  end
+end
+
 class FixturesWithDefaultScopeTest < ActiveRecord::TestCase
   fixtures :bulbs
 

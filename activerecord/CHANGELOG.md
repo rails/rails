@@ -1,3 +1,7 @@
+*   Allow specifying fixtures to be ignored by setting `ignore` in YAML file's '_fixture' section.
+
+    *Tongfei Gao*
+
 *   Make the DATABASE_URL env variable only affect the primary connection. Add new env variables for multiple databases.
 
     *John Crepezzi*, *Eileen Uchitelle*
