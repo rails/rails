@@ -92,8 +92,10 @@ module ActiveStorage
       end
     end
 
-    def headers_for_direct_upload(key, content_type:, checksum:, **)
-      { "Content-Type" => content_type, "Content-MD5" => checksum }
+    def headers_for_direct_upload(key, content_type:, checksum:, filename: nil, disposition: nil, **)
+      content_disposition = content_disposition_with(type: disposition, filename: filename) if filename
+
+      { "Content-Type" => content_type, "Content-MD5" => checksum, "Content-Disposition" => content_disposition }
     end
 
     private

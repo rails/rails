@@ -9,6 +9,49 @@ if SERVICE_CONFIGURATIONS[:azure]
 
     include ActiveStorage::Service::SharedServiceTests
 
+    test "direct upload with content type" do
+      key          = SecureRandom.base58(24)
+      data         = "Something else entirely!"
+      checksum     = Digest::MD5.base64digest(data)
+      content_type = "text/xml"
+      url          = @service.url_for_direct_upload(key, expires_in: 5.minutes, content_type: content_type, content_length: data.size, checksum: checksum)
+
+      uri = URI.parse url
+      request = Net::HTTP::Put.new uri.request_uri
+      request.body = data
+      @service.headers_for_direct_upload(key, checksum: checksum, content_type: content_type, filename: ActiveStorage::Filename.new("test.txt")).each do |k, v|
+        request.add_field k, v
+      end
+      Net::HTTP.start(uri.host, uri.port, use_ssl: true) do |http|
+        http.request request
+      end
+
+      assert_equal(content_type, @service.client.get_blob_properties(@service.container, key).properties[:content_type])
+    ensure
+      @service.delete key
+    end
+
+    test "direct upload with content disposition" do
+      key      = SecureRandom.base58(24)
+      data     = "Something else entirely!"
+      checksum = Digest::MD5.base64digest(data)
+      url      = @service.url_for_direct_upload(key, expires_in: 5.minutes, content_type: "text/plain", content_length: data.size, checksum: checksum)
+
+      uri = URI.parse url
+      request = Net::HTTP::Put.new uri.request_uri
+      request.body = data
+      @service.headers_for_direct_upload(key, checksum: checksum, content_type: "text/plain", filename: ActiveStorage::Filename.new("test.txt"), disposition: :attachment).each do |k, v|
+        request.add_field k, v
+      end
+      Net::HTTP.start(uri.host, uri.port, use_ssl: true) do |http|
+        http.request request
+      end
+
+      assert_equal("attachment; filename=\"test.txt\"; filename*=UTF-8''test.txt", @service.client.get_blob_properties(@service.container, key).properties[:content_disposition])
+    ensure
+      @service.delete key
+    end
+
     test "upload with content_type" do
       key      = SecureRandom.base58(24)
       data     = "Foobar"

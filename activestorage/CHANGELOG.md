@@ -1,3 +1,7 @@
+*   Set content disposition in direct upload using `filename` and `disposition` parameters to `ActiveStorage::Service#headers_for_direct_upload`.
+
+    *Peter Zhu*
+
 *   Switch from `azure-storage` gem to `azure-storage-blob` gem for Azure service.
 
     *Peter Zhu*
