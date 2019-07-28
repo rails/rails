@@ -1,3 +1,12 @@
+*   Allow system test screen shots to be taken more than once in
+    a test by prefixing the file name with an incrementing counter.
+
+    Add an environment variable `RAILS_SYSTEM_TESTING_SCREENSHOT_HTML` to
+    enable saving of HTML during a screenshot in addition to the image.
+    This uses the same image name, with the extension replaced with `.html`
+
+    *Tom Fakes*
+
 *   Add `Vary: Accept` header when using `Accept` header for response
 
     For some requests like `/users/1`, Rails uses requests' `Accept`
