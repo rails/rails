@@ -1,7 +1,7 @@
-*   Allow matches_regex on MySQL 
+*   Allow `matches_regex` and `does_not_match_regexp` on the MySQL Arel visitor.
 
     *James Pearson*
-    
+
 *   Allow specifying fixtures to be ignored by setting `ignore` in YAML file's '_fixture' section.
 
     *Tongfei Gao*
