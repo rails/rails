@@ -1,14 +1,13 @@
 # frozen_string_literal: true
 
 require "rails/railtie/configuration"
-require "yaml"
 
 module Rails
   class Engine
     class Configuration < ::Rails::Railtie::Configuration
       attr_reader :root
       attr_accessor :middleware
-      attr_writer :eager_load_paths, :autoload_once_paths, :autoload_paths
+      attr_writer :eager_load_paths, :autoload_once_paths, :autoload_paths, :webpacker_path
 
       def initialize(root = nil)
         super()
@@ -88,11 +87,7 @@ module Rails
       end
 
       def webpacker_path
-        if File.file?("#{Rails.root}/config/webpacker.yml")
-          YAML.load_file("#{Rails.root}/config/webpacker.yml")[Rails.env]["source_path"]&.gsub("app/", "")
-        else
-          "javascript"
-        end
+        @webpacker_path ||= "javascript"
       end
     end
   end

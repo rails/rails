@@ -1,4 +1,5 @@
 default: &default
+  source_path: app/javascript
   check_yarn_integrity: false
 development:
   <<: *default
