@@ -1,3 +1,7 @@
+*   Allow matches_regex on MySQL 
+
+    *James Pearson*
+    
 *   Allow specifying fixtures to be ignored by setting `ignore` in YAML file's '_fixture' section.
 
     *Tongfei Gao*
