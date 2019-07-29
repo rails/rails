@@ -204,6 +204,12 @@ class MultibyteCharsUTF8BehaviourTest < ActiveSupport::TestCase
     assert_equal 3, (@chars =~ /わ/u)
   end
 
+  def test_match_should_return_boolean_for_regexp_match
+    assert_not @chars.match?(/wrong/u)
+    assert @chars.match?(/こに/u)
+    assert @chars.match?(/ち/u)
+  end
+
   def test_should_use_character_offsets_for_insert_offsets
     assert_equal "", (+"").mb_chars.insert(0, "")
     assert_equal "こわにちわ", @chars.insert(1, "わ")
