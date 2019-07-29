@@ -10,6 +10,10 @@
 
     *Edu Depetris*
 
+*   Make currency symbols optional for money column type in PostgreSQL
+
+    *Joel Schneider*
+
 
 ## Rails 6.0.0.rc2 (July 22, 2019) ##
 
