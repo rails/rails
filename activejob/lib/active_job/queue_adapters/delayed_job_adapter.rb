@@ -59,16 +59,14 @@ module ActiveJob
 
       private
         def candidate_djs(job_id_aj) #:nodoc:
-          begin
-            case Delayed::Worker.backend.name
-            when "Delayed::Backend::ActiveRecord::Job"
-              Delayed::Job.where("handler LIKE '%#{job_id_aj}%'")  # in lieu of Delayed::Job.all
-            else
-              []
-            end
-          rescue
+          case Delayed::Worker.backend.name
+          when "Delayed::Backend::ActiveRecord::Job"
+            Delayed::Job.where("handler LIKE '%#{job_id_aj}%'")  # in lieu of Delayed::Job.all
+          else
             []
           end
+        rescue
+          []
         end
     end
   end
