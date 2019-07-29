@@ -580,7 +580,9 @@ class EnumTest < ActiveRecord::TestCase
       def self.name
         "Book"
       end
-      enum status: [:sent, :not_sent]
+      silence_warnings do
+        enum status: [:sent, :not_sent]
+      end
     end
 
     assert_match(expected_message, logger.logged(:warn).first)
