@@ -2795,10 +2795,12 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
   def test_except_option_should_not_inherit
     draw do
-      namespace :except do
-        resources :sectors, except: [:show, :update, :destroy] do
-          resources :companies
-          resource  :leader
+      scope except: :destroy do
+        namespace :except do
+          resources :sectors, except: [:show, :update, :destroy] do
+            resources :companies
+            resource  :leader
+          end
         end
       end
     end
