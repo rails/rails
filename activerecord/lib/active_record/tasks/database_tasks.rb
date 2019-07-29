@@ -4,7 +4,6 @@ require "active_record/database_configurations"
 
 module ActiveRecord
   module Tasks # :nodoc:
-    class DatabaseAlreadyExists < StandardError; end # :nodoc:
     class DatabaseNotSupported < StandardError; end # :nodoc:
 
     # ActiveRecord::Tasks::DatabaseTasks is a utility class, which encapsulates

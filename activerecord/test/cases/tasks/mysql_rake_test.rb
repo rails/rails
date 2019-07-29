@@ -93,11 +93,9 @@ if current_adapter?(:Mysql2Adapter)
         with_stubbed_connection_establish_connection do
           ActiveRecord::Base.connection.stub(
             :create_database,
-            proc { raise ActiveRecord::StatementInvalid }
+            proc { raise ActiveRecord::DatabaseAlreadyExists }
           ) do
-            ActiveRecord::Base.connection.stub(:error_number, 1007) do
-              ActiveRecord::Tasks::DatabaseTasks.create @configuration
-            end
+            ActiveRecord::Tasks::DatabaseTasks.create @configuration
 
             assert_equal "Database 'my-app-db' already exists\n", $stderr.string
           end
