@@ -536,9 +536,9 @@ the token:
 var token = document.getElementsByName('csrf-token')[0].content
 ```
 
-You can then submit this token as a X-CSRF-Token in your header for your
-Ajax requst.  You do not need to add a CSRF for GET requests, only non-GET 
-requests.
+You can then submit this token as a `X-CSRF-Token` header for your
+Ajax request. You do not need to add a CSRF token for GET requests,
+only non-GET ones.
 
 You can read more about about Cross-Site Request Forgery in [Security](https://guides.rubyonrails.org/security.html#cross-site-request-forgery-csrf)
 
