@@ -10,8 +10,6 @@
 
     *Edu Depetris*
 
-    *Josh Goodall*
-
 
 ## Rails 6.0.0.rc2 (July 22, 2019) ##
 
