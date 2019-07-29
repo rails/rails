@@ -110,7 +110,7 @@ module RailtiesTest
 
         assert_no_match(/\d+_create_users/, output.join("\n"))
 
-        bukkits_migration_order = output.index(output.detect { |o| /NOTE: Migration \d+_create_sessions\.rb from bukkits has been skipped/ =~ o })
+        bukkits_migration_order = output.index(output.detect { |o| /NOTE: Migration \d+_create_sessions\.rb from bukkits has been skipped/.match?(o) })
         assert_not_nil bukkits_migration_order, "Expected migration to be skipped"
       end
     end

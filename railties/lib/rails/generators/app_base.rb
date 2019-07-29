@@ -400,7 +400,7 @@ module Rails
       end
 
       def os_supports_listen_out_of_the_box?
-        RbConfig::CONFIG["host_os"] =~ /darwin|linux/
+        /darwin|linux/.match?(RbConfig::CONFIG["host_os"])
       end
 
       def run_bundle

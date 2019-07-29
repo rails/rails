@@ -23,7 +23,7 @@ module ActionText
         Fragment.wrap(content).find_all(SELECTOR).select do |node|
           node.children.all? do |child|
             if child.text?
-              child.text =~ /\A(\n|\ )*\z/
+              /\A(\n|\ )*\z/.match?(child.text)
             else
               child.matches? ATTACHMENT_SELECTOR
             end

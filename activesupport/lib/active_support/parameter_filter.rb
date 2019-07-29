@@ -22,7 +22,7 @@ module ActiveSupport
   #   change { file: { code: "xxxx"} }
   #
   #   ActiveSupport::ParameterFilter.new([-> (k, v) do
-  #     v.reverse! if k =~ /secret/i
+  #     v.reverse! if /secret/i.match?(k)
   #   end])
   #   => reverses the value to all keys matching /secret/i
   class ParameterFilter

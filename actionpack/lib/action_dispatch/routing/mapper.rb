@@ -367,7 +367,7 @@ module ActionDispatch
 
           def translate_controller(controller)
             return controller if Regexp === controller
-            return controller.to_s if controller =~ /\A[a-z_0-9][a-z_0-9\/]*\z/
+            return controller.to_s if /\A[a-z_0-9][a-z_0-9\/]*\z/.match?(controller)
 
             yield
           end
@@ -403,7 +403,7 @@ module ActionDispatch
       # for root cases, where the latter is the correct one.
       def self.normalize_path(path)
         path = Journey::Router::Utils.normalize_path(path)
-        path.gsub!(%r{/(\(+)/?}, '\1/') unless path =~ %r{^/(\(+[^)]+\)){1,}$}
+        path.gsub!(%r{/(\(+)/?}, '\1/') unless %r{^/(\(+[^)]+\)){1,}$}.match?(path)
         path
       end
 
@@ -996,7 +996,7 @@ module ActionDispatch
         #
         # Requests to routes can be constrained based on specific criteria:
         #
-        #    constraints(-> (req) { req.env["HTTP_USER_AGENT"] =~ /iPhone/ }) do
+        #    constraints(-> (req) { /iPhone/.match?(req.env["HTTP_USER_AGENT"]) }) do
         #      resources :iphones
         #    end
         #
@@ -1006,7 +1006,7 @@ module ActionDispatch
         #
         #    class Iphone
         #      def self.matches?(request)
-        #        request.env["HTTP_USER_AGENT"] =~ /iPhone/
+        #        /iPhone/.match?(request.env["HTTP_USER_AGENT"])
         #      end
         #    end
         #
@@ -1916,7 +1916,7 @@ module ActionDispatch
           end
 
           def using_match_shorthand?(path)
-            path =~ %r{^/?[-\w]+/[-\w/]+$}
+            %r{^/?[-\w]+/[-\w/]+$}.match?(path)
           end
 
           def decomposed_match(path, controller, options, _path, to, via, formatted, anchor, options_constraints)

@@ -94,7 +94,7 @@ module ActionDispatch
           if filter
             @routes.select do |route|
               route_wrapper = RouteWrapper.new(route)
-              filter.any? { |default, value| route_wrapper.send(default) =~ value }
+              filter.any? { |default, value| value.match?(route_wrapper.send(default)) }
             end
           else
             @routes

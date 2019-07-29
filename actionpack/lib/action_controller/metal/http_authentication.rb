@@ -482,7 +482,7 @@ module ActionController
       def raw_params(auth)
         _raw_params = auth.sub(TOKEN_REGEX, "").split(/\s*#{AUTHN_PAIR_DELIMITERS}\s*/)
 
-        if !(_raw_params.first =~ %r{\A#{TOKEN_KEY}})
+        if !(%r{\A#{TOKEN_KEY}}.match?(_raw_params.first))
           _raw_params[0] = "#{TOKEN_KEY}#{_raw_params.first}"
         end
 

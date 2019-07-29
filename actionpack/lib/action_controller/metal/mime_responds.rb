@@ -142,7 +142,7 @@ module ActionController #:nodoc:
     #
     # You can set the variant in a +before_action+:
     #
-    #   request.variant = :tablet if request.user_agent =~ /iPad/
+    #   request.variant = :tablet if /iPad/.match?(request.user_agent)
     #
     # Respond to variants in the action just like you respond to formats:
     #

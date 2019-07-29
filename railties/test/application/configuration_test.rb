@@ -456,7 +456,7 @@ module ApplicationTests
     test "filter_parameters should be able to set via config.filter_parameters" do
       add_to_config <<-RUBY
         config.filter_parameters += [ :foo, 'bar', lambda { |key, value|
-          value = value.reverse if key =~ /baz/
+          value = value.reverse if /baz/.match?(key)
         }]
       RUBY
 
@@ -790,7 +790,7 @@ module ApplicationTests
       end
 
       get "/"
-      assert last_response.body =~ /csrf\-param/
+      assert /csrf\-param/.match?(last_response.body)
     end
 
     test "default form builder specified as a string" do

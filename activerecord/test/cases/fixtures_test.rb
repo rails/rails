@@ -67,7 +67,7 @@ class FixturesTest < ActiveRecord::TestCase
     end
 
     def call(_, _, _, _, values)
-      @events << values[:sql] if values[:sql] =~ /INSERT/
+      @events << values[:sql] if /INSERT/.match?(values[:sql])
     end
   end
 

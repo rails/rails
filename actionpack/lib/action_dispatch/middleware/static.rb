@@ -83,11 +83,11 @@ module ActionDispatch
       end
 
       def gzip_encoding_accepted?(request)
-        request.accept_encoding.any? { |enc, quality| enc =~ /\bgzip\b/i }
+        request.accept_encoding.any? { |enc, quality| /\bgzip\b/i.match?(enc) }
       end
 
       def gzip_file_path(path)
-        can_gzip_mime = content_type(path) =~ /\A(?:text\/|application\/javascript)/
+        can_gzip_mime = /\A(?:text\/|application\/javascript)/.match?(content_type(path))
         gzip_path     = "#{path}.gz"
         if can_gzip_mime && File.exist?(File.join(@root, ::Rack::Utils.unescape_path(gzip_path)))
           gzip_path

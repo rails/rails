@@ -311,7 +311,7 @@ module ApplicationTests
 
       manifest = Dir["#{app_path}/public/assets/.sprockets-manifest-*.json"].first
       assets = ActiveSupport::JSON.decode(File.read(manifest))
-      assert asset_path = assets["assets"].find { |(k, _)| k && k =~ /.png/ }[1]
+      assert asset_path = assets["assets"].find { |(k, _)| /.png/.match?(k) }[1]
 
       # Load app env
       app "development"

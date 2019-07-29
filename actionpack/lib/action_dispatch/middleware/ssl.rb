@@ -13,7 +13,7 @@ module ActionDispatch
   #
   #    Requests can opt-out of redirection with +exclude+:
   #
-  #      config.ssl_options = { redirect: { exclude: -> request { request.path =~ /healthcheck/ } } }
+  #      config.ssl_options = { redirect: { exclude: -> request { /healthcheck/.match?(request.path) } } }
   #
   #    Cookies will not be flagged as secure for excluded requests.
   #

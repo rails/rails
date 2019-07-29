@@ -265,7 +265,7 @@ module ActionDispatch
     # (case-insensitive), which may need to be manually added depending on the
     # choice of JavaScript libraries and frameworks.
     def xml_http_request?
-      get_header("HTTP_X_REQUESTED_WITH") =~ /XMLHttpRequest/i
+      /XMLHttpRequest/i.match?(get_header("HTTP_X_REQUESTED_WITH"))
     end
     alias :xhr? :xml_http_request?
 
@@ -400,7 +400,7 @@ module ActionDispatch
 
     # True if the request came from localhost, 127.0.0.1, or ::1.
     def local?
-      LOCALHOST =~ remote_addr && LOCALHOST =~ remote_ip
+      LOCALHOST.match?(remote_addr) && LOCALHOST.match?(remote_ip)
     end
 
     def request_parameters=(params)
