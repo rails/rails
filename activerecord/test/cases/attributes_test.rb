@@ -292,5 +292,11 @@ module ActiveRecord
       assert_equal 1, klass.new(no_type: 1).no_type
       assert_equal "foo", klass.new(no_type: "foo").no_type
     end
+
+    test "to_sql returns quoted string" do
+      quoted_name = "#{OverloadedType.connection.quote_table_name("overloaded_types")}.#{OverloadedType.connection.quote_column_name("overloaded_float")}"
+      attribute = OverloadedType.arel_attribute("overloaded_float")
+      assert_equal quoted_name, attribute.to_sql
+    end
   end
 end

@@ -22,6 +22,12 @@ module Arel # :nodoc: all
       def able_to_type_cast?
         relation.able_to_type_cast?
       end
+
+      def to_sql(engine = Table.engine)
+        collector = Arel::Collectors::SQLString.new
+        collector = engine.connection.visitor.accept self, collector
+        collector.value
+      end
     end
 
     class String    < Attribute; end
