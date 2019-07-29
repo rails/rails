@@ -16,6 +16,7 @@ require "active_storage/analyzer/video_analyzer"
 
 require "active_storage/reflection"
 
+require "active_storage/delivery_method/redirect"
 require "active_storage/delivery_method/proxy"
 
 module ActiveStorage
@@ -25,7 +26,7 @@ module ActiveStorage
     config.active_storage = ActiveSupport::OrderedOptions.new
     config.active_storage.previewers = [ ActiveStorage::Previewer::PopplerPDFPreviewer, ActiveStorage::Previewer::MuPDFPreviewer, ActiveStorage::Previewer::VideoPreviewer ]
     config.active_storage.analyzers = [ ActiveStorage::Analyzer::ImageAnalyzer, ActiveStorage::Analyzer::VideoAnalyzer ]
-    config.active_storage.delivery_methods = [ ActiveStorage::DeliveryMethod::Proxy ]
+    config.active_storage.delivery_methods = [ ActiveStorage::DeliveryMethod::Redirect, ActiveStorage::DeliveryMethod::Proxy ]
     config.active_storage.paths = ActiveSupport::OrderedOptions.new
     config.active_storage.queues = ActiveSupport::InheritableOptions.new(mirror: :active_storage_mirror)
 
