@@ -30,8 +30,8 @@ module ActiveJob
       def provider_job_id(job) #:nodoc:
         begin
           job_id_aj = job.job_id
-          djs = scan_backend(job_id_aj)
-          djs.map do |dj|
+          djs = candidate_djs(job_id_aj)
+          djs.each do |dj|
             obj = dj.payload_object
             next if obj.blank? || obj.job_data.blank?
 
@@ -62,7 +62,7 @@ module ActiveJob
       end
 
       private
-        def scan_backend(job_id_aj) #:nodoc:
+        def candidate_djs(job_id_aj) #:nodoc:
           case Delayed::Worker.backend.name
           when "Delayed::Backend::ActiveRecord::Job"
             Delayed::Job.where("handler LIKE '%#{job_id_aj}%'")  # in lieu of Delayed::Job.all
