@@ -58,7 +58,6 @@ module ActiveRecord
           end
 
           private
-
             def type_cast_single(value)
               infinity?(value) ? value : @subtype.deserialize(value)
             end

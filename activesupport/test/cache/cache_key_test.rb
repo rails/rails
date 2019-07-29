@@ -79,7 +79,6 @@ class CacheKeyTest < ActiveSupport::TestCase
   end
 
   private
-
     def with_env(kv)
       old_values = {}
       kv.each { |key, value| old_values[key], ENV[key] = ENV[key], value }

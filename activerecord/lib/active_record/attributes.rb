@@ -255,7 +255,6 @@ module ActiveRecord
       end
 
       private
-
         NO_DEFAULT_PROVIDED = Object.new # :nodoc:
         private_constant :NO_DEFAULT_PROVIDED
 

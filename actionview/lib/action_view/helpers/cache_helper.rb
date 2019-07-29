@@ -227,7 +227,6 @@ module ActionView
       end
 
     private
-
       def fragment_name_with_digest(name, virtual_path, digest_path)
         virtual_path ||= @virtual_path
 

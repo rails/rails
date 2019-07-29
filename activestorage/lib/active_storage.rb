@@ -44,25 +44,33 @@ module ActiveStorage
 
   mattr_accessor :logger
   mattr_accessor :verifier
-  mattr_accessor :queues, default: {}
-  mattr_accessor :previewers, default: []
-  mattr_accessor :analyzers, default: []
   mattr_accessor :variant_processor, default: :mini_magick
+
+  mattr_accessor :queues, default: {}
+
+  mattr_accessor :previewers, default: []
+  mattr_accessor :analyzers,  default: []
+
   mattr_accessor :paths, default: {}
-  mattr_accessor :variable_content_types, default: []
+
+  mattr_accessor :variable_content_types,           default: []
+  mattr_accessor :binary_content_type,              default: "application/octet-stream"
   mattr_accessor :content_types_to_serve_as_binary, default: []
-  mattr_accessor :content_types_allowed_inline, default: []
-  mattr_accessor :binary_content_type, default: "application/octet-stream"
+  mattr_accessor :content_types_allowed_inline,     default: []
+
   mattr_accessor :service_urls_expire_in, default: 5.minutes
+
+  mattr_accessor :routes_prefix, default: "/rails/active_storage"
+  mattr_accessor :draw_routes, default: true
+
+  mattr_accessor :replace_on_assign_to_many, default: false
+
   mattr_accessor :delivery_method,        default: :redirect
   mattr_accessor :proxy_urls_expire_in,   default: 1.year
   mattr_accessor :proxy_urls_public,      default: true
   mattr_accessor :proxy_urls_host
   mattr_accessor :routes_prefix,          default: "/rails/active_storage"
   mattr_accessor :delivery_methods,       default: []
-
-  mattr_accessor :logger
-  mattr_accessor :verifier
 
   module Transformers
     extend ActiveSupport::Autoload

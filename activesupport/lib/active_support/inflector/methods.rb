@@ -359,7 +359,6 @@ module ActiveSupport
     end
 
     private
-
       # Mounts a regular expression, returned as a string to ease interpolation,
       # that will match part by part the given constant.
       #

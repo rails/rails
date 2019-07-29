@@ -46,7 +46,7 @@ module ActiveRecord
       conn = PG.connect(conn_params)
       ConnectionAdapters::PostgreSQLAdapter.new(conn, logger, conn_params, config)
     rescue ::PG::Error => error
-      if error.message.include?("does not exist")
+      if error.message.include?(conn_params[:dbname])
         raise ActiveRecord::NoDatabaseError
       else
         raise
@@ -259,6 +259,12 @@ module ActiveRecord
         @use_insert_returning = @config.key?(:insert_returning) ? self.class.type_cast_config_to_boolean(@config[:insert_returning]) : true
       end
 
+      def self.database_exists?(config)
+        !!ActiveRecord::Base.postgresql_connection(config)
+      rescue ActiveRecord::NoDatabaseError
+        false
+      end
+
       # Is this connection alive and ready for queries?
       def active?
         @lock.synchronize do
@@ -302,6 +308,7 @@ module ActiveRecord
       end
 
       def discard! # :nodoc:
+        super
         @connection.socket_io.reopen(IO::NULL) rescue nil
         @connection = nil
       end
@@ -452,7 +459,6 @@ module ActiveRecord
       end
 
       private
-
         # See https://www.postgresql.org/docs/current/static/errcodes-appendix.html
         VALUE_LIMIT_VIOLATION = "22001"
         NUMERIC_VALUE_OUT_OF_RANGE = "22003"

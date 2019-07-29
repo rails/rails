@@ -491,7 +491,6 @@ module ApplicationTests
     end
 
     private
-
       def app_with_assets_in_view
         app_file "app/assets/javascripts/application.js", "//= require_tree ."
         app_file "app/assets/javascripts/xmlhr.js", "function f1() { alert(); }"

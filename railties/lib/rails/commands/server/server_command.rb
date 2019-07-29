@@ -99,7 +99,7 @@ module Rails
       RACK_SERVERS = %w(cgi fastcgi webrick lsws scgi thin puma unicorn)
 
       DEFAULT_PORT = 3000
-      DEFAULT_PID_PATH = "tmp/pids/server.pid"
+      DEFAULT_PIDFILE = "tmp/pids/server.pid"
 
       argument :using, optional: true
 
@@ -114,8 +114,8 @@ module Rails
         desc: "Runs server as a Daemon."
       class_option :using, aliases: "-u", type: :string,
         desc: "Specifies the Rack server used to run the application (thin/puma/webrick).", banner: :name
-      class_option :pid, aliases: "-P", type: :string, default: DEFAULT_PID_PATH,
-        desc: "Specifies the PID file."
+      class_option :pid, aliases: "-P", type: :string,
+        desc: "Specifies the PID file - defaults to #{DEFAULT_PIDFILE}."
       class_option :dev_caching, aliases: "-C", type: :boolean, default: nil,
         desc: "Specifies whether to perform caching in development."
       class_option :restart, type: :boolean, default: nil, hide: true
@@ -207,6 +207,7 @@ module Rails
             end
             user_supplied_options << :Host if ENV["HOST"] || ENV["BINDING"]
             user_supplied_options << :Port if ENV["PORT"]
+            user_supplied_options << :pid if ENV["PIDFILE"]
             user_supplied_options.uniq
           end
         end
@@ -253,7 +254,7 @@ module Rails
         end
 
         def pid
-          File.expand_path(options[:pid])
+          File.expand_path(options[:pid] || ENV.fetch("PIDFILE", DEFAULT_PIDFILE))
         end
 
         def self.banner(*)
@@ -261,7 +262,7 @@ module Rails
         end
 
         def prepare_restart
-          FileUtils.rm_f(options[:pid]) if options[:restart]
+          FileUtils.rm_f(pid) if options[:restart]
         end
 
         def deprecate_positional_rack_server_and_rewrite_to_option(original_options)

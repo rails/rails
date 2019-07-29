@@ -40,7 +40,6 @@ module ActionDispatch
         end
 
       private
-
         def controller(req)
           req.controller_class
         rescue NameError => e
@@ -59,7 +58,6 @@ module ActionDispatch
         end
 
         private
-
           def controller(_); @controller_class; end
       end
 
@@ -215,7 +213,6 @@ module ActionDispatch
             end
 
             private
-
               def optimized_helper(args)
                 params = parameterize_args(args) do
                   raise_generation_error(args)

@@ -91,6 +91,19 @@ module ActiveRecord
     end
     alias :blank? :empty?
 
+    def each
+      throw_getter_deprecation(:each)
+      configurations.each { |config|
+        yield [config.env_name, config.config]
+      }
+    end
+
+    def first
+      throw_getter_deprecation(:first)
+      config = configurations.first
+      [config.env_name, config.config]
+    end
+
     private
       def env_with_configs(env = nil)
         if env
@@ -104,18 +117,30 @@ module ActiveRecord
         return configs.configurations if configs.is_a?(DatabaseConfigurations)
         return configs if configs.is_a?(Array)
 
-        build_db_config = configs.each_pair.flat_map do |env_name, config|
-          walk_configs(env_name.to_s, "primary", config)
-        end.flatten.compact
+        db_configs = configs.flat_map do |env_name, config|
+          if config.is_a?(Hash) && config.all? { |_, v| v.is_a?(Hash) }
+            walk_configs(env_name.to_s, config)
+          else
+            build_db_config_from_raw_config(env_name.to_s, "primary", config)
+          end
+        end
 
-        if url = ENV["DATABASE_URL"]
-          build_url_config(url, build_db_config)
-        else
-          build_db_config
+        current_env = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call.to_s
+
+        unless db_configs.find(&:for_current_env?)
+          db_configs << environment_url_config(current_env, "primary", {})
+        end
+
+        merge_db_environment_variables(current_env, db_configs.compact)
+      end
+
+      def walk_configs(env_name, config)
+        config.map do |spec_name, sub_config|
+          build_db_config_from_raw_config(env_name, spec_name.to_s, sub_config)
         end
       end
 
-      def walk_configs(env_name, spec_name, config)
+      def build_db_config_from_raw_config(env_name, spec_name, config)
         case config
         when String
           build_db_config_from_string(env_name, spec_name, config)
@@ -141,36 +166,36 @@ module ActiveRecord
           config_without_url.delete "url"
 
           ActiveRecord::DatabaseConfigurations::UrlConfig.new(env_name, spec_name, url, config_without_url)
-        elsif config["database"] || (config.size == 1 && config.values.all? { |v| v.is_a? String })
-          ActiveRecord::DatabaseConfigurations::HashConfig.new(env_name, spec_name, config)
         else
-          config.each_pair.map do |sub_spec_name, sub_config|
-            walk_configs(env_name, sub_spec_name, sub_config)
-          end
+          ActiveRecord::DatabaseConfigurations::HashConfig.new(env_name, spec_name, config)
         end
       end
 
-      def build_url_config(url, configs)
-        env = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call.to_s
+      def merge_db_environment_variables(current_env, configs)
+        configs.map do |config|
+          next config if config.url_config? || config.env_name != current_env
 
-        if original_config = configs.find(&:for_current_env?)
-          if original_config.url_config?
-            configs
-          else
-            configs.map do |config|
-              ActiveRecord::DatabaseConfigurations::UrlConfig.new(config.env_name, config.spec_name, url, config.config)
-            end
-          end
-        else
-          configs + [ActiveRecord::DatabaseConfigurations::UrlConfig.new(env, "primary", url)]
+          url_config = environment_url_config(current_env, config.spec_name, config.config)
+          url_config || config
         end
+      end
+
+      def environment_url_config(env, spec_name, config)
+        url = environment_value_for(spec_name)
+        return unless url
+
+        ActiveRecord::DatabaseConfigurations::UrlConfig.new(env, spec_name, url, config)
+      end
+
+      def environment_value_for(spec_name)
+        spec_env_key = "#{spec_name.upcase}_DATABASE_URL"
+        url = ENV[spec_env_key]
+        url ||= ENV["DATABASE_URL"] if spec_name == "primary"
+        url
       end
 
       def method_missing(method, *args, &blk)
         case method
-        when :each, :first
-          throw_getter_deprecation(method)
-          configurations.send(method, *args, &blk)
         when :fetch
           throw_getter_deprecation(method)
           configs_for(env_name: args.first)

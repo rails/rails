@@ -42,7 +42,6 @@ module ActionDispatch
     end
 
     private
-
       def invoke_interceptors(request, exception)
         backtrace_cleaner = request.get_header("action_dispatch.backtrace_cleaner")
         wrapper = ExceptionWrapper.new(backtrace_cleaner, exception)
@@ -138,9 +137,7 @@ module ActionDispatch
         return unless logger
 
         exception = wrapper.exception
-
-        trace = wrapper.application_trace
-        trace = wrapper.framework_trace if trace.empty?
+        trace = wrapper.exception_trace
 
         ActiveSupport::Deprecation.silence do
           message = []

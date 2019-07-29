@@ -109,7 +109,6 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
   end
 
   private
-
     def default_files
       %w(.gitignore
         .ruby-version

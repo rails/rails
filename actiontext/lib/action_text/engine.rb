@@ -25,6 +25,10 @@ module ActionText
         def previewable_attachable?
           representable?
         end
+
+        def attachable_plain_text_representation(caption = nil)
+          "[#{caption || filename}]"
+        end
       end
     end
 

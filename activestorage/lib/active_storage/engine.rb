@@ -77,6 +77,7 @@ module ActiveStorage
         ActiveStorage.analyzers         = app.config.active_storage.analyzers || []
         ActiveStorage.paths             = app.config.active_storage.paths || {}
         ActiveStorage.routes_prefix     = app.config.active_storage.routes_prefix || "/rails/active_storage"
+        ActiveStorage.draw_routes       = app.config.active_storage.draw_routes != false
 
         ActiveStorage.variable_content_types = app.config.active_storage.variable_content_types || []
         ActiveStorage.content_types_to_serve_as_binary = app.config.active_storage.content_types_to_serve_as_binary || []
@@ -88,6 +89,8 @@ module ActiveStorage
         ActiveStorage.proxy_urls_host = app.config.active_storage.proxy_urls_host
         ActiveStorage.content_types_allowed_inline = app.config.active_storage.content_types_allowed_inline || []
         ActiveStorage.binary_content_type = app.config.active_storage.binary_content_type || "application/octet-stream"
+
+        ActiveStorage.replace_on_assign_to_many = app.config.active_storage.replace_on_assign_to_many || false
       end
     end
 

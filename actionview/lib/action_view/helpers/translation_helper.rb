@@ -60,7 +60,7 @@ module ActionView
       def translate(key, options = {})
         options = options.dup
         if options.has_key?(:default)
-          remaining_defaults = Array(options.delete(:default)).compact
+          remaining_defaults = Array.wrap(options.delete(:default)).compact
           options[:default] = remaining_defaults unless remaining_defaults.first.kind_of?(Symbol)
         end
 

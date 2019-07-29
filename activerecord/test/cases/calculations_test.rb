@@ -139,6 +139,13 @@ class CalculationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_should_not_use_alias_for_grouped_field
+    assert_sql(/GROUP BY #{Regexp.escape(Account.connection.quote_table_name("accounts.firm_id"))}/i) do
+      c = Account.group(:firm_id).order("accounts_firm_id").sum(:credit_limit)
+      assert_equal [1, 2, 6, 9], c.keys.compact
+    end
+  end
+
   def test_should_order_by_grouped_field
     c = Account.group(:firm_id).order("firm_id").sum(:credit_limit)
     assert_equal [1, 2, 6, 9], c.keys.compact
@@ -589,11 +596,7 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_should_sum_expression
-    if current_adapter?(:SQLite3Adapter, :Mysql2Adapter, :PostgreSQLAdapter, :OracleAdapter)
-      assert_equal 636, Account.sum("2 * credit_limit")
-    else
-      assert_equal 636, Account.sum("2 * credit_limit").to_i
-    end
+    assert_equal 636, Account.sum("2 * credit_limit")
   end
 
   def test_sum_expression_returns_zero_when_no_records_to_sum
@@ -771,6 +774,12 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal [[2, 2], [4, 4]], Reply.includes(:topic).pluck(:id, :"topics.id")
   end
 
+  def test_group_by_with_order_by_virtual_count_attribute
+    expected = { "SpecialPost" => 1, "StiPost" => 2 }
+    actual = Post.group(:type).order(:count).limit(2).maximum(:comments_count)
+    assert_equal expected, actual
+  end if current_adapter?(:PostgreSQLAdapter)
+
   def test_group_by_with_limit
     expected = { "Post" => 8, "SpecialPost" => 1 }
     actual = Post.includes(:comments).group(:type).order(:type).limit(2).count("comments.id")
@@ -837,7 +846,7 @@ class CalculationsTest < ActiveRecord::TestCase
 
   def test_pluck_columns_with_same_name
     expected = [["The First Topic", "The Second Topic of the day"], ["The Third Topic of the day", "The Fourth Topic of the day"]]
-    actual = Topic.joins(:replies)
+    actual = Topic.joins(:replies).order(:id)
       .pluck("topics.title", "replies_topics.title")
     assert_equal expected, actual
   end

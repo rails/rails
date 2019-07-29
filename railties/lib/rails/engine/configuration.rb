@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "rails/railtie/configuration"
+require "yaml"
 
 module Rails
   class Engine
@@ -40,7 +41,7 @@ module Rails
 
           paths.add "app",                 eager_load: true,
                                            glob: "{*,*/concerns}",
-                                           exclude: %w(assets javascript)
+                                           exclude: ["assets", webpacker_path]
           paths.add "app/assets",          glob: "*"
           paths.add "app/controllers",     eager_load: true
           paths.add "app/channels",        eager_load: true, glob: "**/*_channel.rb"
@@ -84,6 +85,14 @@ module Rails
 
       def autoload_paths
         @autoload_paths ||= paths.autoload_paths
+      end
+
+      def webpacker_path
+        if File.file?("#{Rails.root}/config/webpacker.yml")
+          YAML.load_file("#{Rails.root}/config/webpacker.yml")[Rails.env]["source_path"]&.gsub("app/", "")
+        else
+          "javascript"
+        end
       end
     end
   end

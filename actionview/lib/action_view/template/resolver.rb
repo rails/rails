@@ -93,7 +93,6 @@ module ActionView
       end
 
       private
-
         def canonical_no_templates(templates)
           templates.empty? ? NO_TEMPLATES : templates
         end
@@ -130,7 +129,6 @@ module ActionView
     end
 
   private
-
     def _find_all(name, prefix, partial, details, key, locals)
       find_templates(name, prefix, partial, details, locals)
     end
@@ -183,7 +181,6 @@ module ActionView
     end
 
     private
-
       def _find_all(name, prefix, partial, details, key, locals)
         path = Path.build(name, prefix, partial)
         query(path, details, details[:formats], locals, cache: !!key)
@@ -282,12 +279,8 @@ module ActionView
         format, variant = pieces.last.split(EXTENSIONS[:variants], 2) if pieces.last
         format = if format
           Template::Types[format]&.ref
-        else
-          if handler.respond_to?(:default_format) # default_format can return nil
-            handler.default_format
-          else
-            nil
-          end
+        elsif handler.respond_to?(:default_format) # default_format can return nil
+          handler.default_format
         end
 
         # Template::Types[format] and handler.default_format can return nil
@@ -323,7 +316,6 @@ module ActionView
     end
 
     private
-
       def find_template_paths_from_details(path, details)
         # Instead of checking for every possible path, as our other globs would
         # do, scan the directory for files with the right prefix.

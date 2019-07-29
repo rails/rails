@@ -45,7 +45,6 @@ module ActiveJob
     end
 
     private
-
       # :nodoc:
       PERMITTED_TYPES = [ NilClass, String, Integer, Float, BigDecimal, TrueClass, FalseClass ]
       # :nodoc:

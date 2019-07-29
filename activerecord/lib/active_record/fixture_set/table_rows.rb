@@ -29,7 +29,6 @@ module ActiveRecord
       end
 
       private
-
         def build_table_rows_from(table_name, fixtures, config)
           now = config.default_timezone == :utc ? Time.now.utc : Time.now
 

@@ -301,7 +301,7 @@ module TestHelpers
     # stderr:: true to pass STDERR output straight to the "real" STDERR.
     #   By default, the STDERR and STDOUT of the process will be
     #   combined in the returned string.
-    def rails(*args, allow_failure: false, stderr: false)
+    def rails(*args, allow_failure: false, stderr: false, stdin: File::NULL)
       args = args.flatten
       fork = true
 
@@ -328,7 +328,7 @@ module TestHelpers
           out_read.close
           err_read.close if err_read
 
-          $stdin.reopen(File::NULL, "r")
+          $stdin.reopen(stdin, "r")
           $stdout.reopen(out_write)
           $stderr.reopen(err_write)
 
@@ -448,18 +448,36 @@ module TestHelpers
       $:.reject! { |path| path =~ %r'/(#{to_remove.join('|')})/' }
     end
 
-    def use_postgresql
-      File.open("#{app_path}/config/database.yml", "w") do |f|
-        f.puts <<-YAML
-        default: &default
-          adapter: postgresql
-          pool: 5
-          database: railties_test
-        development:
-          <<: *default
-        test:
-          <<: *default
-        YAML
+    def use_postgresql(multi_db: false)
+      if multi_db
+        File.open("#{app_path}/config/database.yml", "w") do |f|
+          f.puts <<-YAML
+          default: &default
+            adapter: postgresql
+            pool: 5
+          development:
+            primary:
+              <<: *default
+              database: railties_test
+            animals:
+              <<: *default
+              database: railties_animals_test
+              migrations_paths: db/animals_migrate
+          YAML
+        end
+      else
+        File.open("#{app_path}/config/database.yml", "w") do |f|
+          f.puts <<-YAML
+          default: &default
+            adapter: postgresql
+            pool: 5
+            database: railties_test
+          development:
+            <<: *default
+          test:
+            <<: *default
+          YAML
+        end
       end
     end
   end

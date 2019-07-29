@@ -368,7 +368,7 @@ irb(main):001:0>
 
 Inside the `rails console` you have access to the `app` and `helper` instances.
 
-With the `app` method you can access URL and path helpers, as well as do requests.
+With the `app` method you can access named route helpers, as well as do requests.
 
 ```bash
 >> app.root_path
@@ -601,6 +601,8 @@ The `tmp:` namespaced commands will help you clear and create the `Rails.root/tm
 
 ### Miscellaneous
 
+* `rails initializers` prints out all defined initializers in the order they are invoked by Rails.
+* `rails middleware` lists Rack middleware stack enabled for your app.
 * `rails stats` is great for looking at statistics on your code, displaying things like KLOCs (thousands of lines of code) and your code to test ratio.
 * `rails secret` will give you a pseudo-random key to use for your session secret.
 * `rails time:zones:all` lists all the timezones Rails knows about.

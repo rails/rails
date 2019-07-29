@@ -630,7 +630,7 @@ module ActiveJob
 
       def prepare_args_for_assertion(args)
         args.dup.tap do |arguments|
-          arguments[:at] = arguments[:at].to_f if arguments[:at]
+          arguments[:at] = round_time_arguments(arguments[:at]) if arguments[:at]
           arguments[:args] = round_time_arguments(arguments[:args]) if arguments[:args]
         end
       end
@@ -650,6 +650,7 @@ module ActiveJob
 
       def deserialize_args_for_assertion(job)
         job.dup.tap do |new_job|
+          new_job[:at] = round_time_arguments(Time.at(new_job[:at])) if new_job[:at]
           new_job[:args] = ActiveJob::Arguments.deserialize(new_job[:args]) if new_job[:args]
         end
       end

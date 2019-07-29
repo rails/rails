@@ -92,7 +92,6 @@ class AcceptanceValidationTest < ActiveModel::TestCase
   end
 
   private
-
     # Acceptance validator includes anonymous module into class, which cannot
     # be cleared, so to avoid multiple inclusions we use a named subclass which
     # we can remove in teardown.

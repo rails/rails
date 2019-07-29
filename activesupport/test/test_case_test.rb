@@ -315,7 +315,6 @@ class SetupAndTeardownTest < ActiveSupport::TestCase
   end
 
   private
-
     def reset_callback_record
       @called_back = []
     end

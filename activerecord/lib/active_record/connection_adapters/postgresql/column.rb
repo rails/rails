@@ -23,6 +23,29 @@ module ActiveRecord
         def sql_type
           super.sub(/\[\]\z/, "")
         end
+
+        def init_with(coder)
+          @serial = coder["serial"]
+          super
+        end
+
+        def encode_with(coder)
+          coder["serial"] = @serial
+          super
+        end
+
+        def ==(other)
+          other.is_a?(Column) &&
+            super &&
+            serial? == other.serial?
+        end
+        alias :eql? :==
+
+        def hash
+          Column.hash ^
+            super.hash ^
+            serial?.hash
+        end
       end
     end
     PostgreSQLColumn = PostgreSQL::Column # :nodoc:

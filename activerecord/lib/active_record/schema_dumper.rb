@@ -146,7 +146,11 @@ HEADER
             raise StandardError, "Unknown type '#{column.sql_type}' for column '#{column.name}'" unless @connection.valid_type?(column.type)
             next if column.name == pk
             type, colspec = column_spec(column)
-            tbl.print "    t.#{type} #{column.name.inspect}"
+            if type.is_a?(Symbol)
+              tbl.print "    t.#{type} #{column.name.inspect}"
+            else
+              tbl.print "    t.column #{column.name.inspect}, #{type.inspect}"
+            end
             tbl.print ", #{format_colspec(colspec)}" if colspec.present?
             tbl.puts
           end

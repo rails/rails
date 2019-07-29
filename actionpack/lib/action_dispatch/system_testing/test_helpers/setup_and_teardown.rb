@@ -4,15 +4,12 @@ module ActionDispatch
   module SystemTesting
     module TestHelpers
       module SetupAndTeardown # :nodoc:
-        DEFAULT_HOST = "http://127.0.0.1"
-
         def host!(host)
-          Capybara.app_host = host
-        end
+          ActiveSupport::Deprecation.warn \
+            "ActionDispatch::SystemTestCase#host! is deprecated with no replacement. " \
+            "Set Capybara.app_host directly or rely on Capybara's default host."
 
-        def before_setup
-          host! DEFAULT_HOST
-          super
+          Capybara.app_host = host
         end
 
         def before_teardown

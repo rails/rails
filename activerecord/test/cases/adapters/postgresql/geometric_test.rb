@@ -361,7 +361,6 @@ class PostgreSQLGeometricTypesTest < ActiveRecord::PostgreSQLTestCase
   end
 
   private
-
     def assert_column_exists(column_name)
       assert connection.column_exists?(table_name, column_name)
     end

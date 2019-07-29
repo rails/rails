@@ -48,7 +48,13 @@ module Arel
         node = Nodes::Union.new(Nodes::True.new, Nodes::False.new)
         assert_equal "( TRUE UNION FALSE )", node.to_sql
 
-        node.first # from Nodes::Node's Enumerable mixin
+        visitor = Class.new(Visitor) {
+          def visit_Arel_Nodes_Union(o); end
+          alias :visit_Arel_Nodes_True  :visit_Arel_Nodes_Union
+          alias :visit_Arel_Nodes_False :visit_Arel_Nodes_Union
+        }.new
+
+        visitor.accept(node)
 
         assert_equal "( TRUE UNION FALSE )", node.to_sql
       end

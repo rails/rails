@@ -244,7 +244,6 @@ module Rails
     RAILS_DEV_PATH = File.expand_path("../../../../../..", __dir__)
 
     class AppGenerator < AppBase
-
       # :stopdoc:
 
       WEBPACKS = %w( react vue angular elm stimulus )
@@ -495,10 +494,9 @@ module Rails
         "rails new #{arguments.map(&:usage).join(' ')} [options]"
       end
 
-      # :startdoc:
+    # :startdoc:
 
     private
-
       # Define file as an alias to create_file for backwards compatibility.
       def file(*args, &block)
         create_file(*args, &block)
@@ -543,7 +541,6 @@ module Rails
       end
 
       private
-
         def handle_version_request!(argument)
           if ["--version", "-v"].include?(argument)
             require "rails/version"

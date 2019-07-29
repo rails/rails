@@ -24,7 +24,6 @@ module ActiveModel
         end
 
         private
-
           def number_to_non_number?(old_value, new_value_before_type_cast)
             old_value != nil && non_numeric_string?(new_value_before_type_cast.to_s)
           end

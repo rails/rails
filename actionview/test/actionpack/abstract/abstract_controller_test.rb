@@ -230,6 +230,7 @@ module AbstractController
 
     class ActionMissingRespondToActionController < AbstractController::Base
       # No actions
+
       private
         def action_missing(action_name)
           self.response_body = "success"
@@ -242,7 +243,6 @@ module AbstractController
       def fail()  self.response_body = "fail"    end
 
     private
-
       def method_for_action(action_name)
         action_name.to_s != "fail" && action_name
       end

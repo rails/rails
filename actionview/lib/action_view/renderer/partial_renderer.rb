@@ -322,7 +322,6 @@ module ActionView
     end
 
     private
-
       def render_collection(view, template)
         identifier = (template && template.identifier) || @path
         instrument(:collection, identifier: identifier, count: @collection.size) do |payload|

@@ -367,18 +367,20 @@ module ActiveSupport
         key.kind_of?(Symbol) ? key.to_s : key
       end
 
-      def convert_value(value, options = {}) # :doc:
+      def convert_value(value, for: nil) # :doc:
+        conversion = binding.local_variable_get(:for)
+
         if value.is_a? Hash
-          if options[:for] == :to_hash
+          if conversion == :to_hash
             value.to_hash
           else
             value.nested_under_indifferent_access
           end
         elsif value.is_a?(Array)
-          if options[:for] != :assignment || value.frozen?
+          if conversion != :assignment || value.frozen?
             value = value.dup
           end
-          value.map! { |e| convert_value(e, options) }
+          value.map! { |e| convert_value(e, for: conversion) }
         else
           value
         end

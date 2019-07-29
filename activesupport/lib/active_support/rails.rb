@@ -13,9 +13,6 @@
 # Defines Object#blank? and Object#present?.
 require "active_support/core_ext/object/blank"
 
-# Rails own autoload, eager_load, etc.
-require "active_support/dependencies/autoload"
-
 # Support for ClassMethods and the included macro.
 require "active_support/concern"
 

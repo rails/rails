@@ -14,7 +14,11 @@ module ActionMailbox
     #
     #   create_inbound_email_from_mail(from: "david@loudthinking.com", subject: "Hello!")
     def create_inbound_email_from_mail(status: :processing, **mail_options)
-      create_inbound_email_from_source Mail.new(mail_options).to_s, status: status
+      mail = Mail.new(mail_options)
+      # Bcc header is not encoded by default
+      mail[:bcc].include_in_headers = true if mail[:bcc]
+
+      create_inbound_email_from_source mail.to_s, status: status
     end
 
     # Create an +InboundEmail+ using the raw rfc822 +source+ as text.

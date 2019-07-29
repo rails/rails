@@ -140,6 +140,7 @@ module AbstractControllerTests
       def index
         render template: ActionView::Template::Text.new("Hello symbol!")
       end
+
     private
       def hello
         "overwrite"
@@ -295,7 +296,7 @@ module AbstractControllerTests
         10.times do |x|
           controller = WithString.new
           controller.define_singleton_method :index do
-            render template: ActionView::Template::Text.new("Hello string!"), locals: { :"x#{x}" => :omg }
+            render template: ActionView::Template::Text.new("Hello string!"), locals: { "x#{x}": :omg }
           end
           controller.process(:index)
         end

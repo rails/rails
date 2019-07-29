@@ -17,7 +17,7 @@ module ActiveRecord
         when false, nil  then false
         else
           if !type_for_attribute(attr_name) { false }
-            if Numeric === value || value !~ /[^0-9]/
+            if Numeric === value || !value.match?(/[^0-9]/)
               !value.to_i.zero?
             else
               return false if ActiveModel::Type::Boolean::FALSE_VALUES.include?(value)

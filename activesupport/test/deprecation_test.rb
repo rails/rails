@@ -38,6 +38,11 @@ class Deprecatee
     C = 1
   end
   A = ActiveSupport::Deprecation::DeprecatedConstantProxy.new("Deprecatee::A", "Deprecatee::B::C")
+
+  module New
+    class Descendant; end
+  end
+  Old = ActiveSupport::Deprecation::DeprecatedConstantProxy.new("Deprecatee::Old", "Deprecatee::New")
 end
 
 class DeprecateeWithAccessor
@@ -208,6 +213,18 @@ class DeprecationTest < ActiveSupport::TestCase
     assert_not_deprecated { Deprecatee::B::C }
     assert_deprecated("Deprecatee::A") { assert_equal Deprecatee::B::C, Deprecatee::A }
     assert_not_deprecated { assert_equal Deprecatee::B::C.class, Deprecatee::A.class }
+  end
+
+  def test_deprecated_constant_descendant
+    assert_not_deprecated { Deprecatee::New::Descendant }
+
+    assert_deprecated("Deprecatee::Old") do
+      assert_equal Deprecatee::Old::Descendant, Deprecatee::New::Descendant
+    end
+
+    assert_raises(NameError) do
+      assert_deprecated("Deprecatee::Old") { Deprecatee::Old::NON_EXISTENCE }
+    end
   end
 
   def test_deprecated_constant_accessor

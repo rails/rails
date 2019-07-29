@@ -1101,7 +1101,6 @@ module ActiveRecord
       delegate(*delegate_methods, to: :scope)
 
       private
-
         def find_nth_with_limit(index, limit)
           load_target if find_from_target?
           super

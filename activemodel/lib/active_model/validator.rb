@@ -175,7 +175,6 @@ module ActiveModel
     end
 
     private
-
       def validate_each(record, attribute, value)
         @block.call(record, attribute, value)
       end

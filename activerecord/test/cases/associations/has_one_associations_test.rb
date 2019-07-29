@@ -37,11 +37,8 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_one_does_not_use_order_by
-    ActiveRecord::SQLCounter.clear_log
-    companies(:first_firm).account
-  ensure
-    sql_log = ActiveRecord::SQLCounter.log
-    assert sql_log.all? { |sql| /order by/i !~ sql }, "ORDER BY was used in the query: #{sql_log}"
+    sql_log = capture_sql { companies(:first_firm).account }
+    assert sql_log.all? { |sql| !/order by/i.match?(sql) }, "ORDER BY was used in the query: #{sql_log}"
   end
 
   def test_has_one_cache_nils

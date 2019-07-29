@@ -99,7 +99,6 @@ module ActiveRecord
       end
 
       private
-
         def method_missing(method, *args, &block)
           if @klass.respond_to?(method)
             @klass.generate_relation_method(method)
@@ -116,7 +115,6 @@ module ActiveRecord
       end
 
       private
-
         def relation_class_for(klass)
           klass.relation_delegate_class(self)
         end

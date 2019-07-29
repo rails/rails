@@ -156,7 +156,6 @@ module ActionDispatch
       end
 
       private
-
         def polymorphic_url_for_action(action, record_or_hash, options)
           polymorphic_url(record_or_hash, options.merge(action: action))
         end
@@ -323,7 +322,6 @@ module ActionDispatch
           end
 
           private
-
             def polymorphic_mapping(target, record)
               if record.respond_to?(:to_model)
                 target._routes.polymorphic_mappings[record.to_model.model_name.name]

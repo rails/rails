@@ -592,6 +592,13 @@ class DependenciesTest < ActiveSupport::TestCase
       nil_name = Module.new
       def nil_name.name() nil end
       assert_not ActiveSupport::Dependencies.autoloaded?(nil_name)
+
+      invalid_constant_name = Module.new do
+        def self.name
+          "primary::SchemaMigration"
+        end
+      end
+      assert_not ActiveSupport::Dependencies.autoloaded?(invalid_constant_name)
     end
   ensure
     remove_constants(:ModuleFolder)

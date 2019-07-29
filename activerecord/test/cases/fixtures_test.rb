@@ -948,7 +948,6 @@ class TransactionalFixturesOnConnectionNotification < ActiveRecord::TestCase
   end
 
   private
-
     def fire_connection_notification(connection)
       assert_called_with(ActiveRecord::Base.connection_handler, :retrieve_connection, ["book"], returns: connection) do
         message_bus = ActiveSupport::Notifications.instrumenter
@@ -1280,6 +1279,33 @@ class CustomNameForFixtureOrModelTest < ActiveRecord::TestCase
   end
 end
 
+class IgnoreFixturesTest < ActiveRecord::TestCase
+  fixtures :other_books, :parrots
+
+  test "ignores books fixtures" do
+    assert_raise(StandardError) { other_books(:published) }
+    assert_raise(StandardError) { other_books(:published_paperback) }
+    assert_raise(StandardError) { other_books(:published_ebook) }
+
+    assert_equal 2, Book.count
+    assert_equal "Agile Web Development with Rails", other_books(:awdr).name
+    assert_equal "published", other_books(:awdr).status
+    assert_equal "paperback", other_books(:awdr).format
+    assert_equal "english", other_books(:awdr).language
+
+    assert_equal "Ruby for Rails", other_books(:rfr).name
+    assert_equal "ebook", other_books(:rfr).format
+    assert_equal "published", other_books(:rfr).status
+  end
+
+  test "ignores parrots fixtures" do
+    assert_raise(StandardError) { parrots(:DEFAULT) }
+    assert_raise(StandardError) { parrots(:DEAD_PARROT) }
+
+    assert_equal "DeadParrot", parrots(:polly).parrot_sti_class
+  end
+end
+
 class FixturesWithDefaultScopeTest < ActiveRecord::TestCase
   fixtures :bulbs
 
@@ -1367,7 +1393,6 @@ class MultipleDatabaseFixturesTest < ActiveRecord::TestCase
   end
 
   private
-
     def with_temporary_connection_pool
       old_pool = ActiveRecord::Base.connection_handler.retrieve_connection_pool(ActiveRecord::Base.connection_specification_name)
       new_pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new ActiveRecord::Base.connection_pool.spec

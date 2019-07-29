@@ -353,7 +353,7 @@ All these configuration options are delegated to the `I18n` library.
 
 * `config.active_record.lock_optimistically` controls whether Active Record will use optimistic locking and is `true` by default.
 
-* `config.active_record.cache_timestamp_format` controls the format of the timestamp value in the cache key. Default is `:nsec`.
+* `config.active_record.cache_timestamp_format` controls the format of the timestamp value in the cache key. Default is `:usec`.
 
 * `config.active_record.record_timestamps` is a boolean value which controls whether or not timestamping of `create` and `update` operations on a model occur. The default value is `true`.
 
@@ -552,6 +552,10 @@ Defaults to `'signed cookie'`.
   ```
 
   Any exceptions that are not configured will be mapped to 500 Internal Server Error.
+
+* `config.action_dispatch.return_only_media_type_on_content_type` change the
+  return value of `ActionDispatch::Response#content_type` to the Content-Type
+  header without modification. Defaults to `false`.
 
 * `ActionDispatch::Callbacks.before` takes a block of code to run before the request.
 
@@ -835,10 +839,12 @@ You can find more detailed configuration options in the
    config.active_storage.paths[:ffprobe] = '/usr/local/bin/ffprobe'
    ```
 
-* `config.active_storage.variable_content_types` accepts an array of strings indicating the content types that Active Storage can transform through ImageMagick. The default is `%w(image/png image/gif image/jpg image/jpeg image/pjpeg image/tiff image/vnd.adobe.photoshop image/vnd.microsoft.icon)`.
+* `config.active_storage.variable_content_types` accepts an array of strings indicating the content types that Active Storage can transform through ImageMagick. The default is `%w(image/png image/gif image/jpg image/jpeg image/pjpeg image/tiff image/bmp image/vnd.adobe.photoshop image/vnd.microsoft.icon)`.
 
 * `config.active_storage.content_types_to_serve_as_binary` accepts an array of strings indicating the content types that Active Storage will always serve as an attachment, rather than inline. The default is `%w(text/html
-text/javascript image/svg+xml application/postscript application/x-shockwave-flash text/xml application/xml application/xhtml+xml)`.
+text/javascript image/svg+xml application/postscript application/x-shockwave-flash text/xml application/xml application/xhtml+xml application/mathml+xml text/cache-manifest)`.
+
+* `config.active_storage.content_types_allowed_inline` accepts an array of strings indicating the content types that Active Storage allows to serve as inline. The default is `%w(image/png image/gif image/jpg image/jpeg image/vnd.adobe.photoshop image/vnd.microsoft.icon application/pdf)`.
 
 * `config.active_storage.queues.analysis` accepts a symbol indicating the Active Job queue to use for analysis jobs. When this option is `nil`, analysis jobs are sent to the default Active Job queue (see `config.active_job.default_queue_name`).
 
@@ -877,7 +883,11 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
   config.active_storage.routes_prefix = '/files'
   ```
 
-  The default is `/rails/active_storage`
+  The default is `/rails/active_storage`.
+
+* `config.active_storage.replace_on_assign_to_many` determines whether assigning to a collection of attachments declared with `has_many_attached` replaces any existing attachments or appends to them. The default is `true`.
+
+* `config.active_storage.draw_routes` can be used to toggle Active Storage route generation. The default is `true`.
 
 * `config.active_storage.delivery_method` can be used to globally change how Active Storage files are delivered.
 
@@ -930,7 +940,7 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 #### With '5.2':
 
 - `config.active_record.cache_versioning`: `true`
-- `action_dispatch.use_authenticated_cookie_encryption`: `true`
+- `config.action_dispatch.use_authenticated_cookie_encryption`: `true`
 - `config.active_support.use_authenticated_message_encryption`: `true`
 - `config.active_support.use_sha1_digests`: `true`
 - `config.action_controller.default_protect_from_forgery`: `true`
@@ -941,10 +951,12 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 - `config.autoloader`: `:zeitwerk`
 - `config.action_view.default_enforce_utf8`: `false`
 - `config.action_dispatch.use_cookies_with_metadata`: `true`
+- `config.action_dispatch.return_only_media_type_on_content_type`: `false`
 - `config.action_mailer.delivery_job`: `"ActionMailer::MailDeliveryJob"`
 - `config.active_job.return_false_on_aborted_enqueue`: `true`
 - `config.active_storage.queues.analysis`: `:active_storage_analysis`
 - `config.active_storage.queues.purge`: `:active_storage_purge`
+- `config.active_storage.replace_on_assign_to_many`: `true`
 - `config.active_record.collection_cache_versioning`: `true`
 
 ### Configuring a Database
@@ -1569,7 +1581,7 @@ Disallow: /
 ```
 
 To block just specific pages, it's necessary to use a more complex syntax. Learn
-it on the [official documentation](http://www.robotstxt.org/robotstxt.html).
+it on the [official documentation](https://www.robotstxt.org/robotstxt.html).
 
 Evented File System Monitor
 ---------------------------
