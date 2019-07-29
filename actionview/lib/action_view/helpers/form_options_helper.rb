@@ -569,7 +569,7 @@ module ActionView
       # be obtained in Active Record as a value object). The +model+ parameter
       # must respond to +all+ and return an array of objects that represent time
       # zones; each object must respond to +name+. If a Regexp is given it will
-      # attempt to match the zones using the <code>=~<code> operator.
+      # attempt to match the zones using <code>match?</code> method.
       #
       # NOTE: Only the option tags are returned, you have to wrap this call in
       # a regular HTML select tag.
@@ -581,7 +581,7 @@ module ActionView
 
         if priority_zones
           if priority_zones.is_a?(Regexp)
-            priority_zones = zones.select { |z| z =~ priority_zones }
+            priority_zones = zones.select { |z| z.match?(priority_zones) }
           end
 
           zone_options.safe_concat options_for_select(convert_zones[priority_zones], selected)

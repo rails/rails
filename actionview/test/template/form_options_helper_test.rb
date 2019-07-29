@@ -47,6 +47,7 @@ class FormOptionsHelperTest < ActionView::TestCase
     FakeZone = Struct.new(:name) do
       def to_s; name; end
       def =~(_re); end
+      def match?(_re); end
     end
 
     module ClassMethods
@@ -1266,6 +1267,7 @@ class FormOptionsHelperTest < ActionView::TestCase
 
     @fake_timezones.each do |tz|
       def tz.=~(re); %(A D).include?(name) end
+      def tz.match?(re); %(A D).include?(name) end
     end
 
     html = time_zone_select("firm", "time_zone", /A|D/)
