@@ -13,7 +13,7 @@ require "models/tag"
 
 class InnerJoinAssociationTest < ActiveRecord::TestCase
   fixtures :authors, :author_addresses, :essays, :posts, :comments, :categories, :categories_posts, :categorizations,
-           :taggings, :tags
+           :taggings, :tags, :people
 
   def test_construct_finder_sql_applies_aliases_tables_on_association_conditions
     result = Author.joins(:thinking_posts, :welcome_posts).to_a
@@ -36,16 +36,37 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
   end
 
   def test_construct_finder_sql_does_not_table_name_collide_with_string_joins
-    sql = Person.joins(:agents).joins("JOIN people agents_people ON agents_people.primary_contact_id = people.id").to_sql
-    assert_match(/agents_people_2/i, sql)
+    string_join = <<~SQL
+      JOIN people agents_people ON agents_people.primary_contact_id = agents_people_2.id AND agents_people.id > agents_people_2.id
+    SQL
+
+    expected = people(:susan)
+    assert_sql(/agents_people_2/i) do
+      assert_equal [expected], Person.joins(:agents).joins(string_join)
+    end
   end
 
   def test_construct_finder_sql_does_not_table_name_collide_with_aliased_joins
-    people = Person.arel_table
-    agents = people.alias("agents_people")
-    constraint = agents[:primary_contact_id].eq(people[:id])
-    sql = Person.joins(:agents).joins(agents.create_join(agents, agents.create_on(constraint))).to_sql
-    assert_match(/agents_people_2/i, sql)
+    agents = Person.arel_table.alias("agents_people")
+    agents_2 = Person.arel_table.alias("agents_people_2")
+    constraint = agents[:primary_contact_id].eq(agents_2[:id]).and(agents[:id].gt(agents_2[:id]))
+
+    expected = people(:susan)
+    assert_sql(/agents_people_2/i) do
+      assert_equal [expected], Person.joins(:agents).joins(agents.create_join(agents, agents.create_on(constraint)))
+    end
+  end
+
+  def test_user_supplied_joins_order_should_be_preserved
+    string_join = <<~SQL
+      JOIN people agents_people_2 ON agents_people_2.primary_contact_id = people.id
+    SQL
+    agents = Person.arel_table.alias("agents_people")
+    agents_2 = Person.arel_table.alias("agents_people_2")
+    constraint = agents[:primary_contact_id].eq(agents_2[:id]).and(agents[:id].gt(agents_2[:id]))
+
+    expected = people(:susan)
+    assert_equal [expected], Person.joins(string_join).joins(agents.create_join(agents, agents.create_on(constraint)))
   end
 
   def test_construct_finder_sql_ignores_empty_joins_hash
