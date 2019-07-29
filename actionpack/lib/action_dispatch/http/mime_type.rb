@@ -202,7 +202,7 @@ module Mime
       # For an input of <tt>'application'</tt>, returns <tt>[Mime[:html], Mime[:js],
       # Mime[:xml], Mime[:yaml], Mime[:atom], Mime[:json], Mime[:rss], Mime[:url_encoded_form]</tt>.
       def parse_data_with_trailing_star(type)
-        Mime::SET.select { |m| m =~ type }
+        Mime::SET.select { |m| m.match?(type) }
       end
 
       # This method is opposite of register method.
@@ -281,6 +281,12 @@ module Mime
       return false unless mime_type
       regexp = Regexp.new(Regexp.quote(mime_type.to_s))
       @synonyms.any? { |synonym| synonym.to_s =~ regexp } || @string =~ regexp
+    end
+
+    def match?(mime_type)
+      return false unless mime_type
+      regexp = Regexp.new(Regexp.quote(mime_type.to_s))
+      @synonyms.any? { |synonym| synonym.to_s.match?(regexp) } || @string.match?(regexp)
     end
 
     def html?

@@ -175,6 +175,12 @@ class MimeTypeTest < ActiveSupport::TestCase
     assert_match Mime[:html], "application/xhtml+xml"
   end
 
+  test "match?" do
+    assert Mime[:js].match?("text/javascript")
+    assert Mime[:js].match?("application/javascript")
+    assert_not Mime[:js].match?("text/html")
+  end
+
   test "can be initialized with wildcards" do
     assert_equal "*/*", Mime::Type.new("*/*").to_s
     assert_equal "text/*", Mime::Type.new("text/*").to_s
