@@ -28,7 +28,7 @@ module ActiveSupport
         end
 
         def autoloaded?(object)
-          cpath = object.is_a?(Module) ? object.name : object.to_s
+          cpath = object.is_a?(Module) ? real_mod_name(object) : object.to_s
           Rails.autoloaders.main.unloadable_cpath?(cpath)
         end
 
@@ -39,6 +39,17 @@ module ActiveSupport
 
         def unhook!
           :no_op
+        end
+      end
+
+      module RequireDependency
+        def require_dependency(filename)
+          filename = filename.to_path if filename.respond_to?(:to_path)
+          if abspath = ActiveSupport::Dependencies.search_for_file(filename)
+            require abspath
+          else
+            require filename
+          end
         end
       end
 
@@ -56,7 +67,6 @@ module ActiveSupport
         end
 
         private
-
           def setup_autoloaders(enable_reloading)
             Dependencies.autoload_paths.each do |autoload_path|
               # Zeitwerk only accepts existing directories in `push_dir` to
@@ -91,7 +101,7 @@ module ActiveSupport
           def decorate_dependencies
             Dependencies.unhook!
             Dependencies.singleton_class.prepend(Decorations)
-            Object.class_eval { alias_method :require_dependency, :require }
+            Object.prepend(RequireDependency)
           end
       end
     end

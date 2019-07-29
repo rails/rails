@@ -98,6 +98,15 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
     assert_nil deps.safe_constantize("Admin")
   end
 
+  test "autoloaded? and overridden class names" do
+    invalid_constant_name = Module.new do
+      def self.name
+        "primary::SchemaMigration"
+      end
+    end
+    assert_not deps.autoloaded?(invalid_constant_name)
+  end
+
   test "unloadable constants (main)" do
     app_file "app/models/user.rb", "class User; end"
     app_file "app/models/post.rb", "class Post; end"
@@ -139,6 +148,35 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
     assert_not deps.autoloaded?("User")
 
     assert_empty deps.autoloaded_constants
+  end
+
+  [true, false].each do |add_aps_to_lp|
+    test "require_dependency looks autoload paths up (#{add_aps_to_lp})" do
+      add_to_config "config.add_autoload_paths_to_load_path = #{add_aps_to_lp}"
+      app_file "app/models/user.rb", "class User; end"
+      boot
+
+      assert require_dependency("user")
+    end
+
+    test "require_dependency handles absolute paths correctly (#{add_aps_to_lp})" do
+      add_to_config "config.add_autoload_paths_to_load_path = #{add_aps_to_lp}"
+      app_file "app/models/user.rb", "class User; end"
+      boot
+
+      assert require_dependency("#{app_path}/app/models/user.rb")
+    end
+
+    test "require_dependency supports arguments that repond to to_path (#{add_aps_to_lp})" do
+      add_to_config "config.add_autoload_paths_to_load_path = #{add_aps_to_lp}"
+      app_file "app/models/user.rb", "class User; end"
+      boot
+
+      user = Object.new
+      def user.to_path; "user"; end
+
+      assert require_dependency(user)
+    end
   end
 
   test "eager loading loads the application code" do

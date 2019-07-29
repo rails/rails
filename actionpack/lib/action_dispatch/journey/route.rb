@@ -148,7 +148,7 @@ module ActionDispatch
       end
 
       def glob?
-        !path.spec.grep(Nodes::Star).empty?
+        path.spec.any?(Nodes::Star)
       end
 
       def dispatcher?

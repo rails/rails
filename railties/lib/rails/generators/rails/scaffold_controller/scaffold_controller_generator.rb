@@ -34,7 +34,6 @@ module Rails
       end
 
       private
-
         def permitted_params
           attachments, others = attributes_names.partition { |name| attachments?(name) }
           params = others.map { |name| ":#{name}" }

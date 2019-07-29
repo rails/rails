@@ -167,12 +167,12 @@ class MimeTypeTest < ActiveSupport::TestCase
   end
 
   test "regexp matcher" do
-    assert Mime[:js] =~ "text/javascript"
-    assert Mime[:js] =~ "application/javascript"
-    assert Mime[:js] !~ "text/html"
-    assert_not (Mime[:js] !~ "text/javascript")
-    assert_not (Mime[:js] !~ "application/javascript")
-    assert Mime[:html] =~ "application/xhtml+xml"
+    assert_match Mime[:js], "text/javascript"
+    assert_match Mime[:js], "application/javascript"
+    assert_no_match Mime[:js], "text/html"
+    assert_match Mime[:js], "text/javascript"
+    assert_match Mime[:js], "application/javascript"
+    assert_match Mime[:html], "application/xhtml+xml"
   end
 
   test "can be initialized with wildcards" do

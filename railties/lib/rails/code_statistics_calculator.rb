@@ -71,7 +71,7 @@ class CodeStatisticsCalculator #:nodoc:
 
       @classes   += 1 if patterns[:class] && line =~ patterns[:class]
       @methods   += 1 if patterns[:method] && line =~ patterns[:method]
-      if line !~ /^\s*$/ && (patterns[:line_comment].nil? || line !~ patterns[:line_comment])
+      if !line.match?(/^\s*$/) && (patterns[:line_comment].nil? || !line.match?(patterns[:line_comment]))
         @code_lines += 1
       end
     end

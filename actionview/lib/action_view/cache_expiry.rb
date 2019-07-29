@@ -22,6 +22,8 @@ module ActionView
     def clear_cache_if_necessary
       @mutex.synchronize do
         watched_dirs = dirs_to_watch
+        return if watched_dirs.empty?
+
         if watched_dirs != @watched_dirs
           @watched_dirs = watched_dirs
           @watcher = @watcher_class.new([], watched_dirs) do
@@ -39,7 +41,6 @@ module ActionView
     end
 
     private
-
       def dirs_to_watch
         fs_paths = all_view_paths.grep(FileSystemResolver)
         fs_paths.map(&:path).sort.uniq

@@ -210,7 +210,7 @@ end
 
 This will create a number of routes for each of the `articles` and `comments` controller. For `Admin::ArticlesController`, Rails will create:
 
-| HTTP Verb | Path                     | Controller#Action      | Named Helper              |
+| HTTP Verb | Path                     | Controller#Action      | Named Route Helper           |
 | --------- | ------------------------ | ---------------------- | ---------------------------- |
 | GET       | /admin/articles          | admin/articles#index   | admin_articles_path          |
 | GET       | /admin/articles/new      | admin/articles#new     | new_admin_article_path       |
@@ -250,7 +250,7 @@ resources :articles, path: '/admin/articles'
 
 In each of these cases, the named routes remain the same as if you did not use `scope`. In the last case, the following paths map to `ArticlesController`:
 
-| HTTP Verb | Path                     | Controller#Action    | Named Helper           |
+| HTTP Verb | Path                     | Controller#Action    | Named Route Helper     |
 | --------- | ------------------------ | -------------------- | ---------------------- |
 | GET       | /admin/articles          | articles#index       | articles_path          |
 | GET       | /admin/articles/new      | articles#new         | new_article_path       |
@@ -373,7 +373,7 @@ end
 
 The comments resource here will have the following routes generated for it:
 
-| HTTP Verb | Path                                         | Controller#Action | Named Helper             |
+| HTTP Verb | Path                                         | Controller#Action | Named Route Helper       |
 | --------- | -------------------------------------------- | ----------------- | ------------------------ |
 | GET       | /articles/:article_id/comments(.:format)     | comments#index    | article_comments_path    |
 | POST      | /articles/:article_id/comments(.:format)     | comments#create   | article_comments_path    |
@@ -383,7 +383,7 @@ The comments resource here will have the following routes generated for it:
 | PATCH/PUT | /sekret/comments/:id(.:format)               | comments#update   | comment_path             |
 | DELETE    | /sekret/comments/:id(.:format)               | comments#destroy  | comment_path             |
 
-The `:shallow_prefix` option adds the specified parameter to the named helpers:
+The `:shallow_prefix` option adds the specified parameter to the named route helpers:
 
 ```ruby
 scope shallow_prefix: "sekret" do
@@ -395,7 +395,7 @@ end
 
 The comments resource here will have the following routes generated for it:
 
-| HTTP Verb | Path                                         | Controller#Action | Named Helper                |
+| HTTP Verb | Path                                         | Controller#Action | Named Route Helper          |
 | --------- | -------------------------------------------- | ----------------- | --------------------------- |
 | GET       | /articles/:article_id/comments(.:format)     | comments#index    | article_comments_path       |
 | POST      | /articles/:article_id/comments(.:format)     | comments#create   | article_comments_path       |
@@ -638,7 +638,7 @@ You can specify a name for any route using the `:as` option:
 get 'exit', to: 'sessions#destroy', as: :logout
 ```
 
-This will create `logout_path` and `logout_url` as named helpers in your application. Calling `logout_path` will return `/exit`
+This will create `logout_path` and `logout_url` as named route helpers in your application. Calling `logout_path` will return `/exit`
 
 You can also use this to override routing methods defined by resources, like this:
 
@@ -934,7 +934,7 @@ resources :photos, controller: 'images'
 
 will recognize incoming paths beginning with `/photos` but route to the `Images` controller:
 
-| HTTP Verb | Path             | Controller#Action | Named Helper         |
+| HTTP Verb | Path             | Controller#Action | Named Route Helper   |
 | --------- | ---------------- | ----------------- | -------------------- |
 | GET       | /photos          | images#index      | photos_path          |
 | GET       | /photos/new      | images#new        | new_photo_path       |
@@ -982,7 +982,7 @@ NOTE: Of course, you can use the more advanced constraints available in non-reso
 
 TIP: By default the `:id` parameter doesn't accept dots - this is because the dot is used as a separator for formatted routes. If you need to use a dot within an `:id` add a constraint which overrides this - for example `id: /[^\/]+/` allows anything except a slash.
 
-### Overriding the Named Helpers
+### Overriding the Named Route Helpers
 
 The `:as` option lets you override the normal naming for the named route helpers. For example:
 
@@ -992,7 +992,7 @@ resources :photos, as: 'images'
 
 will recognize incoming paths beginning with `/photos` and route the requests to `PhotosController`, but use the value of the `:as` option to name the helpers.
 
-| HTTP Verb | Path             | Controller#Action | Named Helper         |
+| HTTP Verb | Path             | Controller#Action | Named Route Helper   |
 | --------- | ---------------- | ----------------- | -------------------- |
 | GET       | /photos          | photos#index      | images_path          |
 | GET       | /photos/new      | photos#new        | new_image_path       |
@@ -1097,7 +1097,7 @@ end
 
 Rails now creates routes to the `CategoriesController`.
 
-| HTTP Verb | Path                       | Controller#Action  | Named Helper            |
+| HTTP Verb | Path                       | Controller#Action  | Named Route Helper      |
 | --------- | -------------------------- | ------------------ | ----------------------- |
 | GET       | /kategorien                | categories#index   | categories_path         |
 | GET       | /kategorien/neu            | categories#new     | new_category_path       |

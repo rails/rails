@@ -53,7 +53,6 @@ module ActionController
     end
 
     private
-
       def _process_variant(options)
         if defined?(request) && !request.nil? && request.variant.present?
           options[:variant] = request.variant
@@ -76,6 +75,10 @@ module ActionController
         if format && !response.media_type
           self.content_type = format.to_s
         end
+      end
+
+      def _set_vary_header
+        self.headers["Vary"] = "Accept" if request.should_apply_vary_header?
       end
 
       # Normalize arguments by catching blocks and setting them on :update.

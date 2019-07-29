@@ -69,7 +69,6 @@ class LegacyDeliveryJobTest < ActiveSupport::TestCase
   end
 
   private
-
     def with_delivery_job(job)
       old_params_delivery_job = ParamsMailer.delivery_job
       old_regular_delivery_job = DelayedMailer.delivery_job

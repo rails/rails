@@ -1025,6 +1025,34 @@ If `@article.author_id` is 1, this would return:
 <label for="article_author_id_3">M. Clark</label>
 ```
 
+Recovering some option passed (e.g. programatically checking an object from collection):
+
+```ruby
+collection_radio_buttons(:article, :author_id, Author.all, :id, :name_with_initial, {checked: Author.last})
+```
+
+In this case, the last object from the collection will be checked:
+
+```html
+<input id="article_author_id_1" name="article[author_id]" type="radio" value="1" />
+<label for="article_author_id_1">D. Heinemeier Hansson</label>
+<input id="article_author_id_2" name="article[author_id]" type="radio" value="2" />
+<label for="article_author_id_2">D. Thomas</label>
+<input id="article_author_id_3" name="article[author_id]" type="radio" value="3" checked="checked" />
+<label for="article_author_id_3">M. Clark</label>
+```
+
+To access the passed options programatically (e.g. adding a custom class if checked):
+
+**Sample html.erb**
+
+```html+erb
+<%= collection_radio_buttons(:article, :author_id, Author.all, :id, :name_with_initial, {checked: Author.last, required: true} do |rb| %>
+      <%= rb.label(class: "#{'my-custom-class' if rb.value == Author.last.id}") { rb.radio_button + rb.text } %>
+<% end %>
+```
+
+
 #### collection_check_boxes
 
 Returns `check_box` tags for the collection of existing return values of `method` for `object`'s class.

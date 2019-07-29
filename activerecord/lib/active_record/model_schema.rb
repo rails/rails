@@ -456,13 +456,11 @@ module ActiveRecord
       end
 
       protected
-
         def initialize_load_schema_monitor
           @load_schema_monitor = Monitor.new
         end
 
       private
-
         def inherited(child_class)
           super
           child_class.initialize_load_schema_monitor
@@ -484,6 +482,9 @@ module ActiveRecord
         end
 
         def load_schema!
+          unless table_name
+            raise ActiveRecord::TableNotSpecified, "#{self} has no table configured. Set one with #{self}.table_name="
+          end
           @columns_hash = connection.schema_cache.columns_hash(table_name).except(*ignored_columns)
           @columns_hash.each do |name, column|
             define_attribute(

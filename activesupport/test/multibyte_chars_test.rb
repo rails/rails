@@ -783,7 +783,6 @@ class MultibyteCharsExtrasTest < ActiveSupport::TestCase
   end
 
   private
-
     def string_from_classes(classes)
       # Characters from the character classes as described in UAX #29
       character_from_class = {

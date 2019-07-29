@@ -2,6 +2,8 @@
 
 require "abstract_unit"
 require "controller/fake_models"
+require "test_component"
+require "active_model/validations"
 
 class TestController < ActionController::Base
 end
@@ -669,6 +671,21 @@ module RenderTestCases
 
   def test_render_throws_exception_when_no_extensions_passed_to_register_template_handler_function_call
     assert_raises(ArgumentError) { ActionView::Template.register_template_handler CustomHandler }
+  end
+
+  def test_render_component
+    assert_equal(
+      %(<span title="my title">Hello, World! (Inline render)</span>),
+      @view.render(TestComponent.new(title: "my title")) { "Hello, World!" }.strip
+    )
+  end
+
+  def test_render_component_with_validation_error
+    error = assert_raises(ActiveModel::ValidationError) do
+      @view.render(TestComponent.new(title: "my title")).strip
+    end
+
+    assert_match "Content can't be blank", error.message
   end
 end
 

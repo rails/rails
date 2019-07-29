@@ -22,7 +22,6 @@ module ActionView
         end
 
         private
-
           def render_component(builder)
             builder.check_box + builder.label
           end

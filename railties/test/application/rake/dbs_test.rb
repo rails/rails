@@ -40,6 +40,15 @@ module ApplicationTests
         end
       end
 
+      def db_create_with_warning(expected_database)
+        Dir.chdir(app_path) do
+          output = rails("db:create")
+          assert_match(/Rails couldn't infer whether you are using multiple databases/, output)
+          assert_match(/Created database/, output)
+          assert File.exist?(expected_database)
+        end
+      end
+
       test "db:create and db:drop without database URL" do
         require "#{app_path}/config/environment"
         db_create_and_drop ActiveRecord::Base.configurations[Rails.env]["database"]
@@ -84,6 +93,25 @@ module ApplicationTests
         RUBY
 
         db_create_and_drop("db/development.sqlite3", environment_loaded: false)
+      end
+
+      test "db:create and db:drop show warning but doesn't raise errors when loading YAML with alias ERB" do
+        app_file "config/database.yml", <<-YAML
+          sqlite: &sqlite
+            adapter: sqlite3
+            database: db/development.sqlite3
+
+          development:
+            <<: *<%= ENV["DB"] || "sqlite" %>
+        YAML
+
+        app_file "config/environments/development.rb", <<-RUBY
+          Rails.application.configure do
+            config.database = "db/development.sqlite3"
+          end
+        RUBY
+
+        db_create_with_warning("db/development.sqlite3")
       end
 
       test "db:create and db:drop don't raise errors when loading YAML containing conditional statements in ERB" do
@@ -600,6 +628,22 @@ module ApplicationTests
           output = rails("db:prepare")
           assert_match(/CreateBooks: migrated/, output)
           assert_match(/CreateRecipes: migrated/, output)
+        end
+      end
+
+      test "db:prepare does not touch schema when dumping is disabled" do
+        Dir.chdir(app_path) do
+          rails "generate", "model", "book", "title:string"
+          rails "db:create", "db:migrate"
+
+          app_file "db/schema.rb", "Not touched"
+          app_file "config/initializers/disable_dumping_schema.rb", <<-RUBY
+            Rails.application.config.active_record.dump_schema_after_migration = false
+          RUBY
+
+          rails "db:prepare"
+
+          assert_equal("Not touched", File.read("db/schema.rb").strip)
         end
       end
     end

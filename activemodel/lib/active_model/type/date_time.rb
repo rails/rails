@@ -14,7 +14,6 @@ module ActiveModel
       end
 
       private
-
         def cast_value(value)
           return apply_seconds_precision(value) unless value.is_a?(::String)
           return if value.empty?

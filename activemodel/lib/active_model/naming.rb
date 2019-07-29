@@ -207,7 +207,6 @@ module ActiveModel
     end
 
     private
-
       def _singularize(string)
         ActiveSupport::Inflector.underscore(string).tr("/", "_")
       end

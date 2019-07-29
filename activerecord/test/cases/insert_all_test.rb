@@ -262,7 +262,6 @@ class InsertAllTest < ActiveRecord::TestCase
   end
 
   private
-
     def capture_log_output
       output = StringIO.new
       old_logger, ActiveRecord::Base.logger = ActiveRecord::Base.logger, ActiveSupport::Logger.new(output)

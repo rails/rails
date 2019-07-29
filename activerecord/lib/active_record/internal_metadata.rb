@@ -28,10 +28,6 @@ module ActiveRecord
         where(key: key).pluck(:value).first
       end
 
-      def table_exists?
-        connection.table_exists?(table_name)
-      end
-
       # Creates an internal metadata table with columns +key+ and +value+
       def create_table
         unless table_exists?

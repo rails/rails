@@ -40,7 +40,7 @@ if current_adapter?(:Mysql2Adapter)
         end
 
         def test_enum_type_with_value_matching_other_type
-          assert_lookup_type :string, "ENUM('unicode', '8bit', 'none')"
+          assert_lookup_type :string, "ENUM('unicode', '8bit', 'none', 'time')"
         end
 
         def test_binary_types
@@ -58,7 +58,6 @@ if current_adapter?(:Mysql2Adapter)
         end
 
         private
-
           def assert_lookup_type(type, lookup)
             cast_type = @connection.send(:type_map).lookup(lookup)
             assert_equal type, cast_type.type

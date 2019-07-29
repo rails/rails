@@ -123,7 +123,6 @@ module ActionDispatch
         end
 
       private
-
         DATE          = "Date"
         LAST_MODIFIED = "Last-Modified"
         SPECIAL_KEYS  = Set.new(%w[extras no-cache max-age public private must-revalidate])

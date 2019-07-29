@@ -1,0 +1,26 @@
+_fixture:
+  model_class: Book
+  ignore:
+    - PUBLISHED
+    - PUBLISHED_PAPERBACK
+    - PUBLISHED_EBOOK
+
+PUBLISHED: &PUBLISHED
+  status: :published
+
+PUBLISHED_PAPERBACK: &PUBLISHED_PAPERBACK
+  <<: *PUBLISHED
+  format: "paperback"
+  language: :english
+
+PUBLISHED_EBOOK: &PUBLISHED_EBOOK
+  <<: *PUBLISHED
+  format: "ebook"
+
+awdr:
+  <<: *PUBLISHED_PAPERBACK
+  name: "Agile Web Development with Rails"
+
+rfr:
+  <<: *PUBLISHED_EBOOK
+  name: "Ruby for Rails"

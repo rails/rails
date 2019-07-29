@@ -54,7 +54,6 @@ module ActiveSupport
     end
 
     private
-
       def with_execution_control(name, block, once)
         unless @run_once[name].include?(block)
           @run_once[name] << block if once

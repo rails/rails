@@ -590,7 +590,6 @@ module ActiveRecord
       end
 
       private
-
         def calculate_constructable(macro, options)
           true
         end
@@ -704,7 +703,6 @@ module ActiveRecord
       end
 
       private
-
         def calculate_constructable(macro, options)
           !options[:through]
         end

@@ -48,7 +48,6 @@ module ActiveRecord
       end
 
       private
-
         def cache
           @cache[Process.pid]
         end

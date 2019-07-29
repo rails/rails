@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "active_support/dependencies/autoload"
-
 module ActiveSupport
   module NumberHelper
     extend ActiveSupport::Autoload

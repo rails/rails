@@ -216,7 +216,6 @@ module ActionDispatch
       end
 
       private
-
         def load_for_read!
           load! if !loaded? && exists?
         end

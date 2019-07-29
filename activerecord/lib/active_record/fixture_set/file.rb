@@ -29,6 +29,10 @@ module ActiveRecord
         config_row["model_class"]
       end
 
+      def ignored_fixtures
+        config_row["ignore"]
+      end
+
       private
         def rows
           @rows ||= raw_rows.reject { |fixture_name, _| fixture_name == "_fixture" }
@@ -40,7 +44,7 @@ module ActiveRecord
             if row
               row.last
             else
-              { 'model_class': nil }
+              { 'model_class': nil, 'ignore': nil }
             end
           end
         end

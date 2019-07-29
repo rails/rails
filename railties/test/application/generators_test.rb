@@ -198,5 +198,15 @@ module ApplicationTests
         assert_no_match "active_record:migration", output
       end
     end
+
+    test "skip collision check" do
+      rails("generate", "model", "post", "title:string")
+
+      output = rails("generate", "model", "post", "title:string", "body:string")
+      assert_match(/The name 'Post' is either already used in your application or reserved/, output)
+
+      output = rails("generate", "model", "post", "title:string", "body:string", "--skip-collision-check")
+      assert_no_match(/The name 'Post' is either already used in your application or reserved/, output)
+    end
   end
 end

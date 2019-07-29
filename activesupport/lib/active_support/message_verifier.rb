@@ -178,8 +178,8 @@ module ActiveSupport
 
     # Generates a signed message for the provided value.
     #
-    # The message is signed with the +MessageVerifier+'s secret. Without knowing
-    # the secret, the original value cannot be extracted from the message.
+    # The message is signed with the +MessageVerifier+'s secret.
+    # Returns Base64-encoded message joined with the generated signature.
     #
     #   verifier = ActiveSupport::MessageVerifier.new 's3Krit'
     #   verifier.generate 'a private message' # => "BAhJIhRwcml2YXRlLW1lc3NhZ2UGOgZFVA==--e2d724331ebdee96a10fb99b089508d1c72bd772"

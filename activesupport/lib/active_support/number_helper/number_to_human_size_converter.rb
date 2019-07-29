@@ -28,7 +28,6 @@ module ActiveSupport
       end
 
       private
-
         def conversion_format
           translate_number_value_with_default("human.storage_units.format", locale: options[:locale], raise: true)
         end

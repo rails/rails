@@ -220,7 +220,7 @@ Inside the `app` directory are the standard `assets`, `controllers`, `helpers`,
 `jobs`, `mailers`, `models`, and `views` directories that you should be familiar with
 from an application. We'll look more into models in a future section, when we're writing the engine.
 
-Within the `app/assets` directory, there are the `images`, `javascripts` and
+Within the `app/assets` directory, there are the `images` and
 `stylesheets` directories which, again, you should be familiar with due to their
 similarity to an application. One difference here, however, is that each
 directory contains a sub-directory with the engine name. Because this engine is
@@ -264,7 +264,7 @@ contains a file called `application_helper.rb`. This file will provide any
 common functionality for the helpers of the engine. The `blorgh` directory
 is where the other helpers for the engine will go. By placing them within
 this namespaced directory, you prevent them from possibly clashing with
-identically-named helpers within other engines or even within the
+identically-named route helpers within other engines or even within the
 application.
 
 Within the `app/jobs` directory there is a `blorgh` directory that

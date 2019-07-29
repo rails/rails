@@ -7,7 +7,6 @@ require "active_support/core_ext/class/attribute"
 require "active_support/core_ext/kernel/reporting"
 require "active_support/core_ext/kernel/singleton_class"
 require "active_support/core_ext/string/filters"
-require "active_support/deprecation"
 require "thread"
 
 module ActiveSupport
@@ -142,7 +141,6 @@ module ActiveSupport
     end
 
     private
-
       # A hook invoked every time a before callback is halted.
       # This can be overridden in ActiveSupport::Callbacks implementors in order
       # to provide better debugging/logging.
@@ -582,7 +580,6 @@ module ActiveSupport
           attr_reader :chain
 
         private
-
           def append_one(callback)
             @callbacks = nil
             remove_duplicates(callback)
@@ -843,7 +840,6 @@ module ActiveSupport
         end
 
         protected
-
           def get_callbacks(name) # :nodoc:
             __callbacks[name.to_sym]
           end

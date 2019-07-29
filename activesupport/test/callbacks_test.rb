@@ -397,7 +397,6 @@ module CallbacksTest
     end
 
     private
-
       def record1
         @recorder << 1
       end
@@ -989,6 +988,7 @@ module CallbacksTest
         define_callbacks :foo, scope: [:name]
         set_callback :foo, :before, :foo, if: callback
         def run; run_callbacks :foo; end
+
         private
           def foo; end
       }

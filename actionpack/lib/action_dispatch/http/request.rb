@@ -23,6 +23,7 @@ module ActionDispatch
     include ActionDispatch::Http::FilterParameters
     include ActionDispatch::Http::URL
     include ActionDispatch::ContentSecurityPolicy::Request
+    include ActionDispatch::FeaturePolicy::Request
     include Rack::Request::Env
 
     autoload :Session, "action_dispatch/request/session"

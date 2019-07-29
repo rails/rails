@@ -30,7 +30,6 @@ module RailsGuides
     end
 
     private
-
       def dom_id(nodes)
         dom_id = dom_id_text(nodes.last.text)
 

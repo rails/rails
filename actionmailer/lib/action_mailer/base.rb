@@ -591,7 +591,6 @@ module ActionMailer
       end
 
     private
-
       def set_payload_for_mail(payload, mail)
         payload[:mail]               = mail.encoded
         payload[:mailer]             = name
@@ -738,7 +737,7 @@ module ActionMailer
     end
 
     class LateAttachmentsProxy < SimpleDelegator
-      def inline; _raise_error end
+      def inline; self end
       def []=(_name, _content); _raise_error end
 
       private
@@ -873,7 +872,6 @@ module ActionMailer
     end
 
     private
-
       # Used by #mail to set the content type of the message.
       #
       # It will use the given +user_content_type+, or multipart if the mail

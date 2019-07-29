@@ -5,6 +5,8 @@ module ActiveRecord
   module ConnectionAdapters
     # An abstract definition of a column in a table.
     class Column
+      include Deduplicable
+
       attr_reader :name, :default, :sql_type_metadata, :null, :default_function, :collation, :comment
 
       delegate :precision, :scale, :limit, :type, :sql_type, to: :sql_type_metadata, allow_nil: true
@@ -76,6 +78,7 @@ module ActiveRecord
       def hash
         Column.hash ^
           name.hash ^
+          name.encoding.hash ^
           default.hash ^
           sql_type_metadata.hash ^
           null.hash ^
@@ -83,6 +86,17 @@ module ActiveRecord
           collation.hash ^
           comment.hash
       end
+
+      private
+        def deduplicated
+          @name = -name
+          @sql_type_metadata = sql_type_metadata.deduplicate if sql_type_metadata
+          @default = -default if default
+          @default_function = -default_function if default_function
+          @collation = -collation if collation
+          @comment = -comment if comment
+          super
+        end
     end
 
     class NullColumn < Column

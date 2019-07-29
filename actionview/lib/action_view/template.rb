@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/object/try"
 require "active_support/core_ext/kernel/singleton_class"
-require "active_support/deprecation"
 require "thread"
 require "delegate"
 
@@ -264,7 +262,6 @@ module ActionView
     end
 
     private
-
       # Compile a template. This method ensures a template is compiled
       # just once and removes the source after it is compiled.
       def compile!(view)

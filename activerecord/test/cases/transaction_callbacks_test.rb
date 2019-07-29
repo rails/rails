@@ -460,7 +460,6 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
   end
 
   private
-
     def add_transaction_execution_blocks(record)
       record.after_commit_block(:create) { |r| r.history << :commit_on_create }
       record.after_commit_block(:update) { |r| r.history << :commit_on_update }

@@ -108,7 +108,10 @@ module ActiveSupport
     private
       def boot!
         normalize_dirs!
-        Listen.to(*@dtw, &method(:changed)).start
+
+        unless @dtw.empty?
+          Listen.to(*@dtw, &method(:changed)).start
+        end
       end
 
       def shutdown!
@@ -214,7 +217,6 @@ module ActiveSupport
         end
 
         private
-
           def ascendant_of?(base, other)
             base != other && other.ascend do |ascendant|
               break true if base == ascendant

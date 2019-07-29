@@ -311,4 +311,34 @@ class Time
   end
   alias_method :eql_without_coercion, :eql?
   alias_method :eql?, :eql_with_coercion
+
+  # Returns a new time the specified number of days ago.
+  def prev_day(days = 1)
+    advance(days: -days)
+  end
+
+  # Returns a new time the specified number of days in the future.
+  def next_day(days = 1)
+    advance(days: days)
+  end
+
+  # Returns a new time the specified number of months ago.
+  def prev_month(months = 1)
+    advance(months: -months)
+  end
+
+  # Returns a new time the specified number of months in the future.
+  def next_month(months = 1)
+    advance(months: months)
+  end
+
+  # Returns a new time the specified number of years ago.
+  def prev_year(years = 1)
+    advance(years: -years)
+  end
+
+  # Returns a new time the specified number of years in the future.
+  def next_year(years = 1)
+    advance(years: years)
+  end
 end

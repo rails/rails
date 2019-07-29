@@ -2932,8 +2932,12 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal [], reference.ideal_jobs
   end
 
-  private
+  def test_has_many_preloading_with_duplicate_records
+    posts = Post.joins(:comments).preload(:comments).to_a
+    assert_equal [1, 2], posts.first.comments.map(&:id)
+  end
 
+  private
     def force_signal37_to_load_all_clients_of_firm
       companies(:first_firm).clients_of_firm.load_target
     end

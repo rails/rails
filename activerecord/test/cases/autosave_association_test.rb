@@ -2,6 +2,7 @@
 
 require "cases/helper"
 require "models/author"
+require "models/book"
 require "models/bird"
 require "models/post"
 require "models/comment"
@@ -12,12 +13,14 @@ require "models/developer"
 require "models/computer"
 require "models/invoice"
 require "models/line_item"
+require "models/mouse"
 require "models/order"
 require "models/parrot"
 require "models/pirate"
 require "models/project"
 require "models/ship"
 require "models/ship_part"
+require "models/squeak"
 require "models/tag"
 require "models/tagging"
 require "models/treasure"
@@ -39,7 +42,6 @@ class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
       def self.name; "Person"; end
 
       private
-
         def should_be_cool
           unless first_name == "cool"
             errors.add :first_name, "not cool"
@@ -82,7 +84,6 @@ class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
   end
 
   private
-
     def assert_no_difference_when_adding_callbacks_twice_for(model, association_name)
       reflection = model.reflect_on_association(association_name)
       assert_no_difference "callbacks_for_model(#{model.name}).length" do
@@ -386,6 +387,20 @@ class TestDefaultAutosaveAssociationOnABelongsToAssociation < ActiveRecord::Test
     auditlog.developer_id = valid_developer.id
 
     assert_predicate auditlog, :valid?
+  end
+
+  def test_validation_does_not_validate_non_dirty_association_target
+    mouse = Mouse.create!(name: "Will")
+    Squeak.create!(mouse: mouse)
+
+    mouse.name = nil
+    mouse.save! validate: false
+
+    squeak = Squeak.last
+
+    assert_equal true, squeak.valid?
+    assert_equal true, squeak.mouse.present?
+    assert_equal true, squeak.valid?
   end
 end
 
@@ -1673,6 +1688,10 @@ class TestAutosaveAssociationValidationsOnAHasManyAssociation < ActiveRecord::Te
     super
     @pirate = Pirate.create(catchphrase: "Don' botharrr talkin' like one, savvy?")
     @pirate.birds.create(name: "cookoo")
+
+    @author = Author.new(name: "DHH")
+    @author.published_books.build(name: "Rework", isbn: "1234")
+    @author.published_books.build(name: "Remote", isbn: "1234")
   end
 
   test "should automatically validate associations" do
@@ -1680,6 +1699,42 @@ class TestAutosaveAssociationValidationsOnAHasManyAssociation < ActiveRecord::Te
     @pirate.birds.each { |bird| bird.name = "" }
 
     assert_not_predicate @pirate, :valid?
+  end
+
+  test "rollbacks whole transaction and raises ActiveRecord::RecordInvalid when associations fail to #save! due to uniqueness validation failure" do
+    author_count_before_save = Author.count
+    book_count_before_save = Book.count
+
+    assert_no_difference "Author.count" do
+      assert_no_difference "Book.count" do
+        exception = assert_raises(ActiveRecord::RecordInvalid) do
+          @author.save!
+        end
+
+        assert_equal("Validation failed: Published books is invalid", exception.message)
+      end
+    end
+
+    assert_equal(author_count_before_save, Author.count)
+    assert_equal(book_count_before_save, Book.count)
+  end
+
+  test "rollbacks whole transaction when associations fail to #save due to uniqueness validation failure" do
+    author_count_before_save = Author.count
+    book_count_before_save = Book.count
+
+    assert_no_difference "Author.count" do
+      assert_no_difference "Book.count" do
+        assert_nothing_raised do
+          result = @author.save
+
+          assert_not(result)
+        end
+      end
+    end
+
+    assert_equal(author_count_before_save, Author.count)
+    assert_equal(book_count_before_save, Book.count)
   end
 end
 

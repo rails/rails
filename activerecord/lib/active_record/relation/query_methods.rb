@@ -138,7 +138,7 @@ module ActiveRecord
     end
 
     def includes!(*args) # :nodoc:
-      args.reject!(&:blank?)
+      args.compact_blank!
       args.flatten!
 
       self.includes_values |= args
@@ -265,7 +265,7 @@ module ActiveRecord
     end
 
     def _select!(*fields) # :nodoc:
-      fields.reject!(&:blank?)
+      fields.compact_blank!
       fields.flatten!
       self.select_values += fields
       self
@@ -952,7 +952,7 @@ module ActiveRecord
     def optimizer_hints!(*args) # :nodoc:
       args.flatten!
 
-      self.optimizer_hints_values += args
+      self.optimizer_hints_values |= args
       self
     end
 
@@ -965,7 +965,7 @@ module ActiveRecord
 
     def reverse_order! # :nodoc:
       orders = order_values.uniq
-      orders.reject!(&:blank?)
+      orders.compact_blank!
       self.order_values = reverse_sql_order(orders)
       self
     end
@@ -1053,7 +1053,7 @@ module ActiveRecord
           )
           arel.skip(Arel::Nodes::BindParam.new(offset_attribute))
         end
-        arel.group(*arel_columns(group_values.uniq.reject(&:blank?))) unless group_values.empty?
+        arel.group(*arel_columns(group_values.uniq.compact_blank)) unless group_values.empty?
 
         build_order(arel)
 
@@ -1129,7 +1129,7 @@ module ActiveRecord
         association_joins = buckets[:association_join]
         stashed_joins     = buckets[:stashed_join]
         join_nodes        = buckets[:join_node].tap(&:uniq!)
-        string_joins      = buckets[:string_join].delete_if(&:blank?).map!(&:strip).tap(&:uniq!)
+        string_joins      = buckets[:string_join].compact_blank!.map!(&:strip).tap(&:uniq!)
 
         string_joins.map! { |join| table.create_string_join(Arel.sql(join)) }
 
@@ -1159,8 +1159,9 @@ module ActiveRecord
         columns.flat_map do |field|
           case field
           when Symbol
-            field = field.to_s
-            arel_column(field, &connection.method(:quote_table_name))
+            arel_column(field.to_s) do |attr_name|
+              connection.quote_table_name(attr_name)
+            end
           when String
             arel_column(field, &:itself)
           when Proc
@@ -1226,7 +1227,7 @@ module ActiveRecord
 
       def build_order(arel)
         orders = order_values.uniq
-        orders.reject!(&:blank?)
+        orders.compact_blank!
 
         arel.order(*orders) unless orders.empty?
       end
@@ -1247,6 +1248,7 @@ module ActiveRecord
       end
 
       def preprocess_order_args(order_args)
+        order_args.reject!(&:blank?)
         order_args.map! do |arg|
           klass.sanitize_sql_for_order(arg)
         end
@@ -1254,7 +1256,7 @@ module ActiveRecord
 
         @klass.disallow_raw_sql!(
           order_args.flat_map { |a| a.is_a?(Hash) ? a.keys : a },
-          permit: AttributeMethods::ClassMethods::COLUMN_NAME_WITH_ORDER
+          permit: connection.column_name_with_order_matcher
         )
 
         validate_order_args(order_args)
@@ -1267,26 +1269,30 @@ module ActiveRecord
         order_args.map! do |arg|
           case arg
           when Symbol
-            arg = arg.to_s
-            arel_column(arg) {
-              Arel.sql(connection.quote_table_name(arg))
-            }.asc
+            order_column(arg.to_s).asc
           when Hash
             arg.map { |field, dir|
               case field
               when Arel::Nodes::SqlLiteral
                 field.send(dir.downcase)
               else
-                field = field.to_s
-                arel_column(field) {
-                  Arel.sql(connection.quote_table_name(field))
-                }.send(dir.downcase)
+                order_column(field.to_s).send(dir.downcase)
               end
             }
           else
             arg
           end
         end.flatten!
+      end
+
+      def order_column(field)
+        arel_column(field) do |attr_name|
+          if attr_name == "count" && !group_values.empty?
+            arel_attribute(attr_name)
+          else
+            Arel.sql(connection.quote_table_name(attr_name))
+          end
+        end
       end
 
       # Checks to make sure that the arguments are not blank. Note that if some

@@ -116,7 +116,6 @@ module ActionDispatch
       def env; @req.env.dup; end
 
       private
-
         # Converts an HTTP header name to an environment variable name if it is
         # not contained within the headers hash.
         def env_name(key)

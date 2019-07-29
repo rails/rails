@@ -1607,6 +1607,13 @@ module ApplicationTests
       assert_not_nil Rails::SourceAnnotationExtractor::Annotation.extensions[/\.(coffee)$/]
     end
 
+    test "config.default_log_file returns a File instance" do
+      app "development"
+
+      assert_instance_of File, app.config.default_log_file
+      assert_equal Rails.application.config.paths["log"].first, app.config.default_log_file.path
+    end
+
     test "rake_tasks block works at instance level" do
       app_file "config/environments/development.rb", <<-RUBY
         Rails.application.configure do
@@ -1701,7 +1708,7 @@ module ApplicationTests
       app "development"
       ActiveSupport::Dependencies.autoload_paths.each do |path|
         assert_not_operator path, :ends_with?, "app/assets"
-        assert_not_operator path, :ends_with?, "app/javascript"
+        assert_not_operator path, :ends_with?, "app/#{Rails.configuration.webpacker_path}"
       end
     end
 
@@ -1786,6 +1793,11 @@ module ApplicationTests
       assert_equal [X, D], C.descendants
     end
 
+    test "load_database_yaml returns blank hash if configuration file is blank" do
+      app_file "config/database.yml", ""
+      app "development"
+      assert_equal({}, Rails.application.config.load_database_yaml)
+    end
 
     test "raises with proper error message if no database configuration found" do
       FileUtils.rm("#{app_path}/config/database.yml")
@@ -2429,6 +2441,33 @@ module ApplicationTests
       assert_nil ActiveStorage.queues[:purge]
     end
 
+    test "ActionDispatch::Response.return_only_media_type_on_content_type is false by default" do
+      app "development"
+
+      assert_equal false, ActionDispatch::Response.return_only_media_type_on_content_type
+    end
+
+    test "ActionDispatch::Response.return_only_media_type_on_content_type is true in the 5.x defaults" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "5.2"'
+
+      app "development"
+
+      assert_equal true, ActionDispatch::Response.return_only_media_type_on_content_type
+    end
+
+    test "ActionDispatch::Response.return_only_media_type_on_content_type can be configured in the new framework defaults" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app_file "config/initializers/new_framework_defaults_6_0.rb", <<-RUBY
+        Rails.application.config.action_dispatch.return_only_media_type_on_content_type = true
+      RUBY
+
+      app "development"
+
+      assert_equal true, ActionDispatch::Response.return_only_media_type_on_content_type
+    end
+
     test "ActionMailbox.logger is Rails.logger by default" do
       app "development"
 
@@ -2552,6 +2591,21 @@ module ApplicationTests
         update_rails_disk_service PUT  /files/disk/:encoded_token(.:format)                                      active_storage/disk#update
              rails_direct_uploads POST /files/direct_uploads(.:format)                                           active_storage/direct_uploads#create
       MESSAGE
+    end
+
+    test "ActiveStorage.draw_routes can be configured via config.active_storage.draw_routes" do
+      app_file "config/environments/development.rb", <<-RUBY
+        Rails.application.configure do
+          config.active_storage.draw_routes = false
+        end
+      RUBY
+
+      output = rails("routes")
+      assert_not_includes(output, "rails_service_blob")
+      assert_not_includes(output, "rails_blob_representation")
+      assert_not_includes(output, "rails_disk_service")
+      assert_not_includes(output, "update_rails_disk_service")
+      assert_not_includes(output, "rails_direct_uploads")
     end
 
     test "hosts include .localhost in development" do

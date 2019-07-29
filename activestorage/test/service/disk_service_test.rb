@@ -8,8 +8,14 @@ class ActiveStorage::Service::DiskServiceTest < ActiveSupport::TestCase
   include ActiveStorage::Service::SharedServiceTests
 
   test "URL generation" do
-    assert_match(/^https:\/\/example.com\/rails\/active_storage\/disk\/.*\/avatar\.png\?content_type=image%2Fpng&disposition=inline/,
-      @service.url(@key, expires_in: 5.minutes, disposition: :inline, filename: ActiveStorage::Filename.new("avatar.png"), content_type: "image/png"))
+    original_url_options = Rails.application.routes.default_url_options.dup
+    Rails.application.routes.default_url_options.merge!(protocol: "http", host: "test.example.com", port: 3001)
+    begin
+      assert_match(/^https:\/\/example.com\/rails\/active_storage\/disk\/.*\/avatar\.png\?content_type=image%2Fpng&disposition=inline/,
+        @service.url(@key, expires_in: 5.minutes, disposition: :inline, filename: ActiveStorage::Filename.new("avatar.png"), content_type: "image/png"))
+    ensure
+      Rails.application.routes.default_url_options = original_url_options
+    end
   end
 
   test "headers_for_direct_upload generation" do

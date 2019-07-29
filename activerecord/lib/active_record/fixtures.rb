@@ -420,6 +420,29 @@ module ActiveRecord
   #
   # Any fixture labeled "DEFAULTS" is safely ignored.
   #
+  # Besides using "DEFAULTS", you can also specify what fixtures will
+  # be ignored by setting "ignore" in "_fixture" section.
+  #
+  #   # users.yml
+  #   _fixture:
+  #     ignore:
+  #       - base
+  #     # or use "ignore: base" when there is only one fixture needs to be ignored.
+  #
+  #   base: &base
+  #     admin: false
+  #     introduction: "This is a default description"
+  #
+  #   admin:
+  #     <<: *base
+  #     admin: true
+  #
+  #   visitor:
+  #     <<: *base
+  #
+  # In the above example, 'base' will be ignored when creating fixtures.
+  # This can be used for common attributes inheriting.
+  #
   # == Configure the fixture model class
   #
   # It's possible to set the fixture's model class directly in the YAML file.
@@ -464,7 +487,6 @@ module ActiveRecord
       end
 
       private
-
         def insert_class(class_names, name, klass)
           # We only want to deal with AR objects.
           if klass && klass < ActiveRecord::Base
@@ -570,7 +592,6 @@ module ActiveRecord
       end
 
       private
-
         def read_and_insert(fixtures_directory, fixture_files, class_names, connection) # :nodoc:
           fixtures_map = {}
           fixture_sets = fixture_files.map do |fixture_set_name|
@@ -616,7 +637,7 @@ module ActiveRecord
         end
     end
 
-    attr_reader :table_name, :name, :fixtures, :model_class, :config
+    attr_reader :table_name, :name, :fixtures, :model_class, :ignored_fixtures, :config
 
     def initialize(_, name, class_name, path, config = ActiveRecord::Base)
       @name     = name
@@ -649,8 +670,8 @@ module ActiveRecord
     # Returns a hash of rows to be inserted. The key is the table, the value is
     # a list of rows to insert to that table.
     def table_rows
-      # allow a standard key to be used for doing defaults in YAML
-      fixtures.delete("DEFAULTS")
+      # allow specifying fixtures to be ignored by setting `ignore` in `_fixture` section
+      fixtures.except!(*ignored_fixtures)
 
       TableRows.new(
         table_name,
@@ -661,13 +682,27 @@ module ActiveRecord
     end
 
     private
-
       def model_class=(class_name)
         if class_name.is_a?(Class) # TODO: Should be an AR::Base type class, or any?
           @model_class = class_name
         else
           @model_class = class_name.safe_constantize if class_name
         end
+      end
+
+      def ignored_fixtures=(base)
+        @ignored_fixtures =
+            case base
+            when Array
+              base
+            when String
+              [base]
+            else
+              []
+            end
+
+        @ignored_fixtures << "DEFAULTS" unless @ignored_fixtures.include?("DEFAULTS")
+        @ignored_fixtures.compact
       end
 
       # Loads the fixtures from the YAML file at +path+.
@@ -681,6 +716,7 @@ module ActiveRecord
         yaml_files.each_with_object({}) do |file, fixtures|
           FixtureSet::File.open(file) do |fh|
             self.model_class ||= fh.model_class if fh.model_class
+            self.ignored_fixtures ||= fh.ignored_fixtures
             fh.each do |fixture_name, row|
               fixtures[fixture_name] = ActiveRecord::Fixture.new(row, model_class)
             end
