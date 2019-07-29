@@ -1148,7 +1148,15 @@ module ActiveRecord
       #   columns_for_distinct("posts.id", ["posts.created_at desc"])
       #
       def columns_for_distinct(columns, orders) # :nodoc:
-        columns
+        order_columns = orders.compact_blank.map { |s|
+            # Convert Arel node to string
+            s = s.to_sql unless s.is_a?(String)
+            # Remove any ASC/DESC modifiers
+            s.gsub(/\s+(?:ASC|DESC)\b/i, "")
+             .gsub(/\s+NULLS\s+(?:FIRST|LAST)\b/i, "")
+          }.compact_blank.map.with_index { |column, i| "#{column} AS alias_#{i}" }
+
+        (order_columns << columns).join(", ")
       end
 
       # Adds timestamps (+created_at+ and +updated_at+) columns to +table_name+.

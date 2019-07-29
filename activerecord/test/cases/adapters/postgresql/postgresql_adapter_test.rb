@@ -272,59 +272,6 @@ module ActiveRecord
         end
       end
 
-      def test_columns_for_distinct_zero_orders
-        assert_equal "posts.id",
-          @connection.columns_for_distinct("posts.id", [])
-      end
-
-      def test_columns_for_distinct_one_order
-        assert_equal "posts.created_at AS alias_0, posts.id",
-          @connection.columns_for_distinct("posts.id", ["posts.created_at desc"])
-      end
-
-      def test_columns_for_distinct_few_orders
-        assert_equal "posts.created_at AS alias_0, posts.position AS alias_1, posts.id",
-          @connection.columns_for_distinct("posts.id", ["posts.created_at desc", "posts.position asc"])
-      end
-
-      def test_columns_for_distinct_with_case
-        assert_equal(
-          "CASE WHEN author.is_active THEN UPPER(author.name) ELSE UPPER(author.email) END AS alias_0, posts.id",
-          @connection.columns_for_distinct("posts.id",
-            ["CASE WHEN author.is_active THEN UPPER(author.name) ELSE UPPER(author.email) END"])
-        )
-      end
-
-      def test_columns_for_distinct_blank_not_nil_orders
-        assert_equal "posts.created_at AS alias_0, posts.id",
-          @connection.columns_for_distinct("posts.id", ["posts.created_at desc", "", "   "])
-      end
-
-      def test_columns_for_distinct_with_arel_order
-        order = Object.new
-        def order.to_sql
-          "posts.created_at desc"
-        end
-        assert_equal "posts.created_at AS alias_0, posts.id",
-          @connection.columns_for_distinct("posts.id", [order])
-      end
-
-      def test_columns_for_distinct_with_nulls
-        assert_equal "posts.updater_id AS alias_0, posts.title", @connection.columns_for_distinct("posts.title", ["posts.updater_id desc nulls first"])
-        assert_equal "posts.updater_id AS alias_0, posts.title", @connection.columns_for_distinct("posts.title", ["posts.updater_id desc nulls last"])
-      end
-
-      def test_columns_for_distinct_without_order_specifiers
-        assert_equal "posts.updater_id AS alias_0, posts.title",
-          @connection.columns_for_distinct("posts.title", ["posts.updater_id"])
-
-        assert_equal "posts.updater_id AS alias_0, posts.title",
-          @connection.columns_for_distinct("posts.title", ["posts.updater_id nulls last"])
-
-        assert_equal "posts.updater_id AS alias_0, posts.title",
-          @connection.columns_for_distinct("posts.title", ["posts.updater_id nulls first"])
-      end
-
       def test_raise_error_when_cannot_translate_exception
         assert_raise TypeError do
           @connection.send(:log, nil) { @connection.execute(nil) }

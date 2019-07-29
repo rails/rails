@@ -479,21 +479,6 @@ module ActiveRecord
       end
       private :can_perform_case_insensitive_comparison_for?
 
-      # In MySQL 5.7.5 and up, ONLY_FULL_GROUP_BY affects handling of queries that use
-      # DISTINCT and ORDER BY. It requires the ORDER BY columns in the select list for
-      # distinct queries, and requires that the ORDER BY include the distinct column.
-      # See https://dev.mysql.com/doc/refman/en/group-by-handling.html
-      def columns_for_distinct(columns, orders) # :nodoc:
-        order_columns = orders.compact_blank.map { |s|
-          # Convert Arel node to string
-          s = s.to_sql unless s.is_a?(String)
-          # Remove any ASC/DESC modifiers
-          s.gsub(/\s+(?:ASC|DESC)\b/i, "")
-        }.compact_blank.map.with_index { |column, i| "#{column} AS alias_#{i}" }
-
-        (order_columns << super).join(", ")
-      end
-
       def strict_mode?
         self.class.type_cast_config_to_boolean(@config.fetch(:strict, true))
       end
