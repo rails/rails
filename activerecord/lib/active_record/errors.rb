@@ -187,6 +187,10 @@ module ActiveRecord
   class NoDatabaseError < StatementInvalid
   end
 
+  # Raised when creating a database if it exists.
+  class DatabaseAlreadyExists < StatementInvalid
+  end
+
   # Raised when PostgreSQL returns 'cached plan must not change result type' and
   # we cannot retry gracefully (e.g. inside a transaction)
   class PreparedStatementCacheExpired < StatementInvalid
