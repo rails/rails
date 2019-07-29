@@ -138,6 +138,17 @@ module ActiveRecord
       end
     end
 
+    def test_force_prepare_statement
+      @connection.unprepared_statement do
+        @connection.exec_query("SELECT 1::integer", "SQL", [], prepare: true)
+        name = @subscriber.payloads.last[:statement_name]
+        assert name
+        res = @connection.exec_query("EXPLAIN (FORMAT JSON) EXECUTE #{name}(1)")
+        plan = res.column_types["QUERY PLAN"].deserialize res.rows.first.first
+        assert_operator plan.length, :>, 0
+      end
+    end
+
     def test_reconnection_after_actual_disconnection_with_verify
       original_connection_pid = @connection.query("select pg_backend_pid()")
 
