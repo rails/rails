@@ -322,8 +322,6 @@ module ActiveRecord
         check_schema_file(file)
         ActiveRecord::Base.establish_connection(configuration)
 
-        schema_sha1 = Digest::SHA1.hexdigest(File.read(file))
-
         case format
         when :ruby
           load(file)
@@ -334,9 +332,26 @@ module ActiveRecord
         end
         ActiveRecord::InternalMetadata.create_table
         ActiveRecord::InternalMetadata[:environment] = environment
-        ActiveRecord::InternalMetadata[:schema_sha1] = schema_sha1
+        ActiveRecord::InternalMetadata[:schema_sha1] = schema_sha1(file)
       ensure
         Migration.verbose = verbose_was
+      end
+
+      def reset_to_schema(configuration, format = ActiveRecord::Base.schema_format, file = nil, environment = env, spec_name = "primary") # :nodoc:
+        file ||= dump_filename(spec_name, format)
+
+        check_schema_file(file)
+
+        ActiveRecord::Base.establish_connection(configuration)
+
+        if ActiveRecord::InternalMetadata.table_exists? &&
+            ActiveRecord::InternalMetadata[:schema_sha1] == schema_sha1(file)
+          truncate_tables(configuration)
+        else
+          drop(configuration)
+          create(configuration)
+          load_schema(configuration, format, file, environment, spec_name)
+        end
       end
 
       def dump_schema(configuration, format = ActiveRecord::Base.schema_format, spec_name = "primary") # :nodoc:
@@ -469,6 +484,10 @@ module ActiveRecord
 
         def local_database?(configuration)
           configuration["host"].blank? || LOCAL_HOSTS.include?(configuration["host"])
+        end
+
+        def schema_sha1(file)
+          Digest::SHA1.hexdigest(File.read(file))
         end
     end
   end
