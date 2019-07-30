@@ -1,3 +1,9 @@
+*   Preserve user supplied joins order as much as possible.
+
+    Fixes #36761, #34328, #24281, #12953.
+
+    *Ryuta Kamizono*
+
 *   Make the DATABASE_URL env variable only affect the primary connection. Add new env variables for multiple databases.
 
     *John Crepezzi*, *Eileen Uchitelle*
