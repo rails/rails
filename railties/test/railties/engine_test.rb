@@ -1208,6 +1208,7 @@ YAML
 
       add_to_config("config.railties_order = [:all, :main_app, Blog::Engine]")
       add_to_env_config "development", "config.assets.digest = false"
+      add_to_env_config "development", "config.action_view.render_hints = false"
 
       boot_rails
 
@@ -1259,6 +1260,7 @@ YAML
       RUBY
 
       add_to_config("config.railties_order = [Bukkits::Engine]")
+      add_to_env_config "development", "config.action_view.render_hints = false"
 
       boot_rails
 
