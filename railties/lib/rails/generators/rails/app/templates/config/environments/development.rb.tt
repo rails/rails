@@ -70,7 +70,6 @@ Rails.application.configure do
   # routes, locales, etc. This feature depends on the listen gem.
   <%= '# ' unless depend_on_listen? %>config.file_watcher = ActiveSupport::EventedFileUpdateChecker
 
-  # Display inline html comments marking the begining/end rendering
-  #  of a partial.
-  config.render_hints = true
+  # Display inline html comments marking the begining/end rendering of a partial.
+  config.action_view.render_hints = true
 end

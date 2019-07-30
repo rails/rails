@@ -99,7 +99,7 @@ module ActionView
 
     initializer "action_view.render_hints" do |app|
       ActiveSupport.on_load(:action_view) do
-        PartialRenderer.render_hints = app.config.render_hints
+        PartialRenderer.render_hints = app.config.action_view.render_hints
       end
     end
 

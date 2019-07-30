@@ -460,7 +460,7 @@ module ActionView
           content = layout.render(view, locals) { content } if layout
           partial_iteration.iterate!
 
-          partial_hints(template, content, locals) if render_hints
+          partial_hints(template, content, locals.except(counter, iteration)) if render_hints
           build_rendered_template(content, template)
         end
       end
@@ -484,7 +484,7 @@ module ActionView
           content = template.render(view, locals)
           partial_iteration.iterate!
 
-          partial_hints(template, content, locals) if render_hints
+          partial_hints(template, content, locals.except(counter, iteration)) if render_hints
           build_rendered_template(content, template)
         end
       end
