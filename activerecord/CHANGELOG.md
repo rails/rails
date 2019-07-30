@@ -1,3 +1,9 @@
+*   Preserve user supplied joins order as much as possible.
+
+    Fixes #36761, #34328, #24281, #12953.
+
+    *Ryuta Kamizono*
+
 *   Allow `matches_regex` and `does_not_match_regexp` on the MySQL Arel visitor.
 
     *James Pearson*

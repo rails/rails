@@ -1095,26 +1095,44 @@ module ActiveRecord
       end
 
       def build_left_outer_joins(manager, outer_joins, aliases)
-        buckets = { association_join: valid_association_list(outer_joins) }
+        buckets = Hash.new { |h, k| h[k] = [] }
+        buckets[:association_join] = valid_association_list(outer_joins)
         build_join_query(manager, buckets, Arel::Nodes::OuterJoin, aliases)
       end
 
       def build_joins(manager, joins, aliases)
+        buckets = Hash.new { |h, k| h[k] = [] }
+
         unless left_outer_joins_values.empty?
           left_joins = valid_association_list(left_outer_joins_values.flatten)
-          joins.unshift construct_join_dependency(left_joins, Arel::Nodes::OuterJoin)
+          buckets[:stashed_join] << construct_join_dependency(left_joins, Arel::Nodes::OuterJoin)
         end
 
-        buckets = joins.group_by do |join|
+        joins.map! do |join|
+          if join.is_a?(String)
+            table.create_string_join(Arel.sql(join.strip)) unless join.blank?
+          else
+            join
+          end
+        end.compact_blank!
+
+        while joins.first.is_a?(Arel::Nodes::Join)
+          join_node = joins.shift
+          if join_node.is_a?(Arel::Nodes::StringJoin) && !buckets[:stashed_join].empty?
+            buckets[:join_node] << join_node
+          else
+            buckets[:leading_join] << join_node
+          end
+        end
+
+        joins.each do |join|
           case join
-          when String
-            :string_join
           when Hash, Symbol, Array
-            :association_join
+            buckets[:association_join] << join
           when ActiveRecord::Associations::JoinDependency
-            :stashed_join
+            buckets[:stashed_join] << join
           when Arel::Nodes::Join
-            :join_node
+            buckets[:join_node] << join
           else
             raise "unknown class: %s" % join.class.name
           end
@@ -1124,25 +1142,21 @@ module ActiveRecord
       end
 
       def build_join_query(manager, buckets, join_type, aliases)
-        buckets.default = []
-
         association_joins = buckets[:association_join]
         stashed_joins     = buckets[:stashed_join]
+        leading_joins     = buckets[:leading_join].tap(&:uniq!)
         join_nodes        = buckets[:join_node].tap(&:uniq!)
-        string_joins      = buckets[:string_join].compact_blank!.map!(&:strip).tap(&:uniq!)
-
-        string_joins.map! { |join| table.create_string_join(Arel.sql(join)) }
 
         join_sources = manager.join_sources
-        join_sources.concat(join_nodes) unless join_nodes.empty?
+        join_sources.concat(leading_joins) unless leading_joins.empty?
 
         unless association_joins.empty? && stashed_joins.empty?
-          alias_tracker = alias_tracker(join_nodes + string_joins, aliases)
+          alias_tracker = alias_tracker(leading_joins + join_nodes, aliases)
           join_dependency = construct_join_dependency(association_joins, join_type)
           join_sources.concat(join_dependency.join_constraints(stashed_joins, alias_tracker))
         end
 
-        join_sources.concat(string_joins) unless string_joins.empty?
+        join_sources.concat(join_nodes) unless join_nodes.empty?
       end
 
       def build_select(arel)
