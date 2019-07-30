@@ -70,12 +70,18 @@ class Hash
   #   {name: 'David', nationality: 'Danish'}.to_query('user')
   #   # => "user%5Bname%5D=David&user%5Bnationality%5D=Danish"
   #
+  # There's an option to exclude pairs with nil value.
+  #   {a: nil, b: "foo"}.to_query(exclude_nil: true)
+  #   # => "b=foo"
+  #
   # The string pairs "key=value" that conform the query string
   # are sorted lexicographically in ascending order.
   #
   # This method is also aliased as +to_param+.
-  def to_query(namespace = nil)
+  def to_query(namespace = nil, exclude_nil: false)
     query = collect do |key, value|
+      next if exclude_nil && value.nil?
+
       unless (value.is_a?(Hash) || value.is_a?(Array)) && value.empty?
         value.to_query(namespace ? "#{namespace}[#{key}]" : key)
       end

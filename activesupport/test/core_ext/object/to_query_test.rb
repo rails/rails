@@ -67,6 +67,13 @@ class ToQueryTest < ActiveSupport::TestCase
       a: [], b: 3
   end
 
+  def test_hash_with_nil_value_with_exclude_option
+    assert_equal "", { a: nil, b: nil }.to_query(exclude_nil: true)
+    assert_equal "b=foo", { a: nil, b: "foo" }.to_query(exclude_nil: true)
+    assert_equal "a=&b=", { a: nil, b: nil }.to_query(exclude_nil: false)
+    assert_equal "a=&b=", { a: nil, b: nil }.to_query
+  end
+
   def test_hash_with_namespace
     hash = { name: "Nakshay", nationality: "Indian" }
     assert_equal "user%5Bname%5D=Nakshay&user%5Bnationality%5D=Indian", hash.to_query("user")
