@@ -375,7 +375,7 @@ module ActiveSupport
 
         last = parts.pop
 
-        parts.reverse.inject(last) do |acc, part|
+        parts.reverse!.inject(last) do |acc, part|
           part.empty? ? acc : "#{part}(::#{acc})?"
         end
       end
