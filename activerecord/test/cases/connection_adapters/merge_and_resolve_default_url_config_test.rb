@@ -28,6 +28,22 @@ module ActiveRecord
         resolver.resolve(spec, spec)
       end
 
+      def test_invalid_string_config
+        config = { "foo" => "bar" }
+
+        assert_raises ActiveRecord::DatabaseConfigurations::InvalidConfigurationError do
+          resolve_config(config)
+        end
+      end
+
+      def test_invalid_symbol_config
+        config = { "foo" => :bar }
+
+        assert_raises ActiveRecord::DatabaseConfigurations::InvalidConfigurationError do
+          resolve_config(config)
+        end
+      end
+
       def test_resolver_with_database_uri_and_current_env_symbol_key
         ENV["DATABASE_URL"] = "postgres://localhost/foo"
         config   = { "not_production" => {  "adapter" => "not_postgres", "database" => "not_foo" } }
