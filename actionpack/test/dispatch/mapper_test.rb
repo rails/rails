@@ -206,23 +206,31 @@ module ActionDispatch
         end
       end
 
-      def test_raising_error_when_only_option_contains_not_available_action
-        assert_raises ArgumentError do
-          Mapper::Resources::Resource.new(:test_route, false, false, only: [:wrong_action])
+      def test_raising_error_when_only_option_contains_not_valid_action
+        fakeset = FakeSet.new
+        mapper = Mapper.new fakeset
+        assert_raise(ArgumentError) do
+          mapper.resources(:test_route, only: [:wrong_action]) do
+          end
         end
 
-        assert_raises ArgumentError do
-          Mapper::Resources::SingletonResource.new(:test_route, false, false, only: [:index])
+        assert_raise(ArgumentError) do
+          mapper.resource(:test_route, only: [:index]) do
+          end
         end
       end
 
-      def test_raising_error_when_except_option_contains_not_available_action
-        assert_raises ArgumentError do
-          Mapper::Resources::Resource.new(:test_route, false, false, except: [:wrong_action])
+      def test_raising_error_when_except_option_contains_not_valid_action
+        fakeset = FakeSet.new
+        mapper = Mapper.new fakeset
+        assert_raise(ArgumentError) do
+          mapper.resources(:test_route, except: [:wrong_action]) do
+          end
         end
 
-        assert_raises ArgumentError do
-          Mapper::Resources::SingletonResource.new(:test_route, false, false, except: [:index])
+        assert_raise(ArgumentError) do
+          mapper.resource(:test_route, except: [:index]) do
+          end
         end
       end
     end

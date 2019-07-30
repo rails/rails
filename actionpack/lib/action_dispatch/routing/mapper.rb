@@ -1166,14 +1166,14 @@ module ActionDispatch
 
             if (Array(options[:only]).map(&:to_sym) - default_actions).present?
               raise ArgumentError,
-                ":only option contain #{(Array(options[:only]).map(&:to_sym) - default_actions)}"\
-                " not available action, available actions: #{default_actions}"
+                ":only option contains #{(Array(options[:only]).map(&:to_sym) - default_actions)} "\
+                "that are not valid. The available valid are: #{default_actions}"
             end
 
             if (Array(options[:except]).map(&:to_sym) - default_actions).present?
               raise ArgumentError,
-                ":except option contain #{(Array(options[:except]).map(&:to_sym) - default_actions)} not "\
-                "available action, available actions: #{default_actions}"
+                ":except option contains #{(Array(options[:except]).map(&:to_sym) - default_actions)} "\
+                "that are not valid. The available valid are: #{default_actions}"
             end
 
             @only       = options.delete :only

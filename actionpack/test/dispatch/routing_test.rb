@@ -2664,39 +2664,39 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
   def test_only_should_be_read_from_scope
     draw do
-      scope only: [:index, :show] do
+      scope only: [:edit, :show] do
         namespace :only do
           resources :clubs do
             resources :players
-            resource  :chairman, only: [:show]
+            resource  :chairman
           end
         end
       end
     end
 
     get "/only/clubs"
-    assert_equal "only/clubs#index", @response.body
-    assert_equal "/only/clubs", only_clubs_path
+    assert_equal "Not Found", @response.body
+    assert_raise(NoMethodError) { only_clubs_path }
 
     get "/only/clubs/1/edit"
-    assert_equal "Not Found", @response.body
-    assert_raise(NoMethodError) { edit_only_club_path(id: "1") }
+    assert_equal "only/clubs#edit", @response.body
+    assert_equal "/only/clubs/1/edit", edit_only_club_path(id: "1")
 
     get "/only/clubs/1/players"
-    assert_equal "only/players#index", @response.body
-    assert_equal "/only/clubs/1/players", only_club_players_path(club_id: "1")
+    assert_equal "Not Found", @response.body
+    assert_raise(NoMethodError) { only_club_players_path(club_id: "1") }
 
     get "/only/clubs/1/players/2/edit"
-    assert_equal "Not Found", @response.body
-    assert_raise(NoMethodError) { edit_only_club_player_path(club_id: "1", id: "2") }
+    assert_equal "only/players#edit", @response.body
+    assert_equal "/only/clubs/1/players/2/edit", edit_only_club_player_path(club_id: "1", id: "2")
 
     get "/only/clubs/1/chairman"
     assert_equal "only/chairmen#show", @response.body
     assert_equal "/only/clubs/1/chairman", only_club_chairman_path(club_id: "1")
 
     get "/only/clubs/1/chairman/edit"
-    assert_equal "Not Found", @response.body
-    assert_raise(NoMethodError) { edit_only_club_chairman_path(club_id: "1") }
+    assert_equal "only/chairmen#edit", @response.body
+    assert_equal "/only/clubs/1/chairman/edit", edit_only_club_chairman_path(club_id: "1")
   end
 
   def test_except_should_be_read_from_scope
