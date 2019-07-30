@@ -322,6 +322,8 @@ module ActiveRecord
         check_schema_file(file)
         ActiveRecord::Base.establish_connection(configuration)
 
+        schema_sha1 = Digest::SHA1.hexdigest(File.read(file))
+
         case format
         when :ruby
           load(file)
@@ -332,6 +334,7 @@ module ActiveRecord
         end
         ActiveRecord::InternalMetadata.create_table
         ActiveRecord::InternalMetadata[:environment] = environment
+        ActiveRecord::InternalMetadata[:schema_sha1] = schema_sha1
       ensure
         Migration.verbose = verbose_was
       end
