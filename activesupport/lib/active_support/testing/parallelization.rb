@@ -70,6 +70,15 @@ module ActiveSupport
         end
       end
 
+      def run_after_fork_once(worker)
+        return if @after_fork_has_run
+        begin
+          after_fork(worker)
+        ensure
+          @after_fork_has_run = true
+        end
+      end
+
       def start
         @pool = @queue_size.times.map do |worker|
           title = "Rails test worker #{worker}"
@@ -79,13 +88,13 @@ module ActiveSupport
 
             DRb.stop_service
 
-            begin
-              after_fork(worker)
-            rescue => setup_exception; end
-
             queue = DRbObject.new_with_uri(@url)
 
             while job = queue.pop
+              begin
+                run_after_fork_once(worker)
+              rescue => setup_exception; end
+
               klass    = job[0]
               method   = job[1]
               reporter = job[2]
