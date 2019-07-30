@@ -627,7 +627,7 @@ module ActionView
       # is prepopulated with the passed phone number and optional
       # +country_code+ value.
       #
-      # +phone_to+ has a optional +country_code+ option which automatically adds the country
+      # +phone_to+ has an optional +country_code+ option which automatically adds the country
       # code as well as the + sign in the phone numer that gets prepopulated,
       # for example if +country_code: "01"+  +\+01+ will be prepended to the
       # phone numer, by passing special keys to +html_options+.
