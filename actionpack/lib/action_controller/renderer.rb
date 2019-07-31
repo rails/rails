@@ -65,7 +65,7 @@ module ActionController
     def initialize(controller, env, defaults)
       @controller = controller
       @defaults = defaults
-      @env = normalize_keys defaults.merge(env)
+      @env = normalize_keys defaults, env
     end
 
     # Render templates with any options from ActionController::Base#render_to_string.
@@ -97,8 +97,9 @@ module ActionController
     end
 
     private
-      def normalize_keys(env)
+      def normalize_keys(defaults, env)
         new_env = {}
+        defaults.each_pair { |k, v| new_env[rack_key_for(k)] = rack_value_for(k, v) }
         env.each_pair { |k, v| new_env[rack_key_for(k)] = rack_value_for(k, v) }
         new_env["rack.url_scheme"] = new_env["HTTPS"] == "on" ? "https" : "http"
         new_env
