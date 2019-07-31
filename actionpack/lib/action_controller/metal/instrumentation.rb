@@ -30,9 +30,9 @@ module ActionController
       ActiveSupport::Notifications.instrument("start_processing.action_controller", raw_payload)
 
       ActiveSupport::Notifications.instrument("process_action.action_controller", raw_payload) do |payload|
-        super.tap do
-          payload[:status] = response.status
-        end
+        result = super
+        payload[:status] = response.status
+        result
       ensure
         append_info_to_payload(payload)
       end
