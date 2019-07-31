@@ -22,8 +22,7 @@ module ActionController
         additions = ActionController::Base.log_process_action(payload)
         status = payload[:status]
 
-        if status.nil? && payload[:exception].present?
-          exception_class_name = payload[:exception].first
+        if status.nil? && (exception_class_name = payload[:exception].first)
           status = ActionDispatch::ExceptionWrapper.status_code_for_exception(exception_class_name)
         end
 
