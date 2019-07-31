@@ -265,6 +265,8 @@ db_namespace = namespace :db do
       end
       abort %{Run `rails db:migrate` to update your database then try again.}
     end
+  ensure
+    ActiveRecord::Base.establish_connection(ActiveRecord::Tasks::DatabaseTasks.env.to_sym)
   end
 
   namespace :abort_if_pending_migrations do
