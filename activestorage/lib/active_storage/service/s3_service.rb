@@ -20,12 +20,14 @@ module ActiveStorage
       @upload_options = upload
     end
 
-    def upload(key, io, checksum: nil, content_type: nil, **)
+    def upload(key, io, checksum: nil, filename: nil, content_type: nil, disposition: nil, **)
       instrument :upload, key: key, checksum: checksum do
+        content_disposition = content_disposition_with(filename: filename, type: disposition) if disposition && filename
+
         if io.size < multipart_upload_threshold
-          upload_with_single_part key, io, checksum: checksum, content_type: content_type
+          upload_with_single_part key, io, checksum: checksum, content_type: content_type, content_disposition: content_disposition
         else
-          upload_with_multipart key, io, content_type: content_type
+          upload_with_multipart key, io, content_type: content_type, content_disposition: content_disposition
         end
       end
     end
@@ -103,16 +105,16 @@ module ActiveStorage
       MAXIMUM_UPLOAD_PARTS_COUNT = 10000
       MINIMUM_UPLOAD_PART_SIZE   = 5.megabytes
 
-      def upload_with_single_part(key, io, checksum: nil, content_type: nil)
-        object_for(key).put(body: io, content_md5: checksum, content_type: content_type, **upload_options)
+      def upload_with_single_part(key, io, checksum: nil, content_type: nil, content_disposition: nil)
+        object_for(key).put(body: io, content_md5: checksum, content_type: content_type, content_disposition: content_disposition, **upload_options)
       rescue Aws::S3::Errors::BadDigest
         raise ActiveStorage::IntegrityError
       end
 
-      def upload_with_multipart(key, io, content_type: nil)
+      def upload_with_multipart(key, io, content_type: nil, content_disposition: nil)
         part_size = [ io.size.fdiv(MAXIMUM_UPLOAD_PARTS_COUNT).ceil, MINIMUM_UPLOAD_PART_SIZE ].max
 
-        object_for(key).upload_stream(content_type: content_type, part_size: part_size, **upload_options) do |out|
+        object_for(key).upload_stream(content_type: content_type, content_disposition: content_disposition, part_size: part_size, **upload_options) do |out|
           IO.copy_stream(io, out)
         end
       end
