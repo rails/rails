@@ -514,7 +514,7 @@ module Arel
       assert_equal "bar", join.right
     end
 
-    it "should create join nodes with a outer join klass" do
+    it "should create join nodes with an outer join klass" do
       relation = Arel::SelectManager.new
       join = relation.create_join "foo", "bar", Arel::Nodes::OuterJoin
       assert_kind_of Arel::Nodes::OuterJoin, join
