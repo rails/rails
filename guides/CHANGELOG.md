@@ -1,6 +1,8 @@
 ## Rails 6.0.0.rc2 (July 22, 2019) ##
 
-*   No changes.
+*   Add "Multiple Databases with Active Record" Guide.
+
+    *Eileen M. Uchitelle*
 
 
 ## Rails 6.0.0.rc1 (April 24, 2019) ##
