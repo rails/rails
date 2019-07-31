@@ -32,18 +32,13 @@ module ActionDispatch
       return false unless ::Rack::Utils.valid_path? path
       path = ::Rack::Utils.clean_path_info path
 
-      paths = [path, "#{path}#{ext}", "#{path}/#{@index}#{ext}"]
+      return ::Rack::Utils.escape_path(path).b if file_readable?(path)
 
-      if match = paths.detect { |p|
-        path = File.join(@root, p.b)
-        begin
-          File.file?(path) && File.readable?(path)
-        rescue SystemCallError
-          false
-        end
-      }
-        return ::Rack::Utils.escape_path(match).b
-      end
+      path_with_ext = path + ext
+      return ::Rack::Utils.escape_path(path_with_ext).b if file_readable?(path_with_ext)
+
+      path << "/" << @index << ext
+      return ::Rack::Utils.escape_path(path).b if file_readable?(path)
     end
 
     def call(env)
@@ -94,6 +89,12 @@ module ActionDispatch
         else
           false
         end
+      end
+
+      def file_readable?(path)
+        file_path = File.join(@root, path.b)
+        File.file?(file_path) && File.readable?(file_path)
+      rescue SystemCallError
       end
   end
 
