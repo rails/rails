@@ -337,6 +337,16 @@ module ActiveRecord
         Migration.verbose = verbose_was
       end
 
+      def schema_up_to_date?(configuration, format = ActiveRecord::Base.schema_format, file = nil, environment = env, spec_name = "primary")
+        file ||= dump_filename(spec_name, format)
+
+        return true unless File.exist?(file)
+
+        ActiveRecord::Base.establish_connection(configuration)
+        return false unless ActiveRecord::InternalMetadata.table_exists?
+        ActiveRecord::InternalMetadata[:schema_sha1] == schema_sha1(file)
+      end
+
       def reset_to_schema(configuration, format = ActiveRecord::Base.schema_format, file = nil, environment = env, spec_name = "primary") # :nodoc:
         file ||= dump_filename(spec_name, format)
 
@@ -344,8 +354,7 @@ module ActiveRecord
 
         ActiveRecord::Base.establish_connection(configuration)
 
-        if ActiveRecord::InternalMetadata.table_exists? &&
-            ActiveRecord::InternalMetadata[:schema_sha1] == schema_sha1(file)
+        if schema_up_to_date?(configuration, format, file, environment, spec_name)
           truncate_tables(configuration)
         else
           purge(configuration)

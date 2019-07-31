@@ -587,8 +587,10 @@ module ActiveRecord
       end
 
       def load_schema_if_pending!
-        if Base.connection.migration_context.needs_migration? || !Base.connection.migration_context.any_migrations?
-          # Roundtrip to Rake to allow plugins to hook into database initialization.
+        all_configs = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env)
+
+        unless all_configs.all? { |config| Tasks::DatabaseTasks.schema_up_to_date?(config.config) }
+          # Roundrip to Rake to allow plugins to hook into database initialization.
           root = defined?(ENGINE_ROOT) ? ENGINE_ROOT : Rails.root
           FileUtils.cd(root) do
             current_config = Base.connection_config
@@ -597,8 +599,9 @@ module ActiveRecord
             # Establish a new connection, the old database may be gone (db:test:prepare uses purge)
             Base.establish_connection(current_config)
           end
-          check_pending!
         end
+
+        check_pending!
       end
 
       def maintain_test_schema! #:nodoc:
