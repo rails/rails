@@ -16,7 +16,7 @@ module ActionController
 
     attr_internal :view_runtime
 
-    def process_action(*args)
+    def process_action(*)
       raw_payload = {
         controller: self.class.name,
         action: action_name,
@@ -38,7 +38,7 @@ module ActionController
       end
     end
 
-    def render(*args)
+    def render(*)
       render_output = nil
       self.view_runtime = cleanup_view_runtime do
         Benchmark.ms { render_output = super }
@@ -59,7 +59,7 @@ module ActionController
       end
     end
 
-    def redirect_to(*args)
+    def redirect_to(*)
       ActiveSupport::Notifications.instrument("redirect_to.action_controller") do |payload|
         result = super
         payload[:status]   = response.status
