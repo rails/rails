@@ -348,8 +348,7 @@ module ActiveRecord
             ActiveRecord::InternalMetadata[:schema_sha1] == schema_sha1(file)
           truncate_tables(configuration)
         else
-          drop(configuration)
-          create(configuration)
+          purge(configuration)
           load_schema(configuration, format, file, environment, spec_name)
         end
       end
