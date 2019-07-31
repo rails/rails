@@ -269,7 +269,7 @@ module ActiveSupport
     # NameError is raised when the name is not in CamelCase or the constant is
     # unknown.
     def constantize(camel_cased_word)
-      if camel_cased_word.blank? || !camel_cased_word.include?('::')
+      if camel_cased_word.blank? || !camel_cased_word.include?("::")
         Object.const_get(camel_cased_word)
       else
         names = camel_cased_word.split("::")

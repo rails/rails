@@ -790,7 +790,7 @@ module ApplicationTests
       end
 
       get "/"
-      assert /csrf\-param/.match?(last_response.body)
+      assert_match(/csrf\-param/, last_response.body)
     end
 
     test "default form builder specified as a string" do
