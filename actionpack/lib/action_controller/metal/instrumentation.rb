@@ -27,7 +27,7 @@ module ActionController
         path: request.fullpath
       }
 
-      ActiveSupport::Notifications.instrument("start_processing.action_controller", raw_payload.dup)
+      ActiveSupport::Notifications.instrument("start_processing.action_controller", raw_payload)
 
       ActiveSupport::Notifications.instrument("process_action.action_controller", raw_payload) do |payload|
         super.tap do
