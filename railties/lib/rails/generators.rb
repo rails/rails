@@ -128,11 +128,6 @@ module Rails
         end
       end
 
-      # Remove the color from output.
-      def no_color!
-        Thor::Base.shell = Thor::Shell::Basic
-      end
-
       # Returns an array of generator namespaces that are hidden.
       # Generator namespaces may be hidden for a variety of reasons.
       # Some are aliased such as "rails:migration" and can be
