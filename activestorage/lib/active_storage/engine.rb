@@ -101,7 +101,7 @@ module ActiveStorage
 
     initializer "active_storage.services" do
       ActiveSupport.on_load(:active_storage_blob) do
-        if config_choice = Rails.configuration.active_storage.service
+        if config_services = Rails.configuration.active_storage.services
           configs = Rails.configuration.active_storage.service_configurations ||= begin
             config_file = Pathname.new(Rails.root.join("config/storage.yml"))
             raise("Couldn't find Active Storage configuration in #{config_file}") unless config_file.exist?
@@ -116,12 +116,16 @@ module ActiveStorage
                   "Error: #{e.message}"
           end
 
-          ActiveStorage::Blob.service =
+          ActiveStorage::Blob.services =
             begin
-              ActiveStorage::Service.configure config_choice, configs
+              config_services.map do |service|
+                [service.to_s, ActiveStorage::Service.configure(service, configs)]
+              end.to_h
             rescue => e
               raise e, "Cannot load `Rails.config.active_storage.service`:\n#{e.message}", e.backtrace
             end
+
+          ActiveStorage::Blob.default_service_name = Rails.configuration.active_storage.default_service_name
         end
       end
     end
