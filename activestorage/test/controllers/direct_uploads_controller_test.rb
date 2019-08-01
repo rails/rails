@@ -6,12 +6,12 @@ require "database/setup"
 if SERVICE_CONFIGURATIONS[:s3] && SERVICE_CONFIGURATIONS[:s3][:access_key_id].present?
   class ActiveStorage::S3DirectUploadsControllerTest < ActionDispatch::IntegrationTest
     setup do
-      @old_service = ActiveStorage::Blob.service
-      ActiveStorage::Blob.service = ActiveStorage::Service.configure(:s3, SERVICE_CONFIGURATIONS)
+      @old_services = ActiveStorage::Blob.services
+      ActiveStorage::Blob.services = { "s3" => ActiveStorage::Service.configure(:s3, SERVICE_CONFIGURATIONS) }
     end
 
     teardown do
-      ActiveStorage::Blob.service = @old_service
+      ActiveStorage::Blob.services = @old_services
     end
 
     test "creating new direct upload" do
@@ -41,12 +41,12 @@ if SERVICE_CONFIGURATIONS[:gcs]
     setup do
       @config = SERVICE_CONFIGURATIONS[:gcs]
 
-      @old_service = ActiveStorage::Blob.service
-      ActiveStorage::Blob.service = ActiveStorage::Service.configure(:gcs, SERVICE_CONFIGURATIONS)
+      @old_services = ActiveStorage::Blob.services
+      ActiveStorage::Blob.services = { "gcs" => ActiveStorage::Service.configure(:gcs, SERVICE_CONFIGURATIONS) }
     end
 
     teardown do
-      ActiveStorage::Blob.service = @old_service
+      ActiveStorage::Blob.services = @old_services
     end
 
     test "creating new direct upload" do
@@ -75,12 +75,12 @@ if SERVICE_CONFIGURATIONS[:azure]
     setup do
       @config = SERVICE_CONFIGURATIONS[:azure]
 
-      @old_service = ActiveStorage::Blob.service
-      ActiveStorage::Blob.service = ActiveStorage::Service.configure(:azure, SERVICE_CONFIGURATIONS)
+      @old_services = ActiveStorage::Blob.services
+      ActiveStorage::Blob.services = { "azure" => ActiveStorage::Service.configure(:azure, SERVICE_CONFIGURATIONS) }
     end
 
     teardown do
-      ActiveStorage::Blob.service = @old_service
+      ActiveStorage::Blob.services = @old_services
     end
 
     test "creating new direct upload" do

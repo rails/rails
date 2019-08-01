@@ -26,7 +26,7 @@ class ActiveStorage::AttachmentTest < ActiveSupport::TestCase
   end
 
   test "mirroring a directly-uploaded blob after attaching it" do
-    previous_service, ActiveStorage::Blob.service = ActiveStorage::Blob.service, build_mirror_service
+    previous_services, ActiveStorage::Blob.services = ActiveStorage::Blob.services, build_mirror_service
 
     blob = directly_upload_file_blob
     assert_not ActiveStorage::Blob.service.mirrors.second.exist?(blob.key)
@@ -37,14 +37,18 @@ class ActiveStorage::AttachmentTest < ActiveSupport::TestCase
 
     assert ActiveStorage::Blob.service.mirrors.second.exist?(blob.key)
   ensure
-    ActiveStorage::Blob.service = previous_service
+    ActiveStorage::Blob.services = previous_services
   end
 
   private
     def build_mirror_service
-      ActiveStorage::Service::MirrorService.new \
-        primary: build_disk_service("primary"),
-        mirrors: 3.times.collect { |i| build_disk_service("mirror_#{i + 1}") }
+      {
+        "mirror" =>
+          ActiveStorage::Service::MirrorService.new(
+            primary: build_disk_service("primary"),
+            mirrors: 3.times.collect { |i| build_disk_service("mirror_#{i + 1}") }
+          )
+      }
     end
 
     def build_disk_service(purpose)

@@ -9,6 +9,7 @@ require "active_support/test_case"
 require "active_support/core_ext/object/try"
 require "active_support/testing/autorun"
 require "active_storage/service/mirror_service"
+require "active_storage/service/disk_service"
 require "image_processing/mini_magick"
 
 begin
@@ -34,7 +35,8 @@ rescue Errno::ENOENT
 end
 
 require "tmpdir"
-ActiveStorage::Blob.service = ActiveStorage::Service::DiskService.new(root: Dir.mktmpdir("active_storage_tests"))
+ActiveStorage::Blob.services = { "disk" => ActiveStorage::Service::DiskService.new(root: Dir.mktmpdir("active_storage_tests")) }
+ActiveStorage::Blob.default_service_name = "disk"
 
 ActiveStorage.logger = ActiveSupport::Logger.new(nil)
 ActiveStorage.verifier = ActiveSupport::MessageVerifier.new("Testing")
@@ -51,25 +53,25 @@ class ActiveSupport::TestCase
   end
 
   private
-    def create_blob(data: "Hello world!", filename: "hello.txt", content_type: "text/plain", identify: true, record: nil)
-      ActiveStorage::Blob.create_after_upload! io: StringIO.new(data), filename: filename, content_type: content_type, identify: identify, record: record
+    def create_blob(data: "Hello world!", filename: "hello.txt", content_type: "text/plain", identify: true, service_name: nil, record: nil)
+      ActiveStorage::Blob.create_after_upload! io: StringIO.new(data), filename: filename, content_type: content_type, identify: identify, service_name: service_name, record: record
     end
 
-    def create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg", metadata: nil, record: nil)
-      ActiveStorage::Blob.create_after_upload! io: file_fixture(filename).open, filename: filename, content_type: content_type, metadata: metadata, record: record
+    def create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg", metadata: nil, service_name: nil, record: nil)
+      ActiveStorage::Blob.create_after_upload! io: file_fixture(filename).open, filename: filename, content_type: content_type, metadata: metadata, service_name: service_name, record: record
     end
 
-    def create_blob_before_direct_upload(filename: "hello.txt", byte_size:, checksum:, content_type: "text/plain", record: nil)
-      ActiveStorage::Blob.create_before_direct_upload! filename: filename, byte_size: byte_size, checksum: checksum, content_type: content_type, record: record
+    def create_blob_before_direct_upload(filename: "hello.txt", byte_size:, checksum:, content_type: "text/plain", service_name: nil, record: nil)
+      ActiveStorage::Blob.create_before_direct_upload! filename: filename, byte_size: byte_size, checksum: checksum, content_type: content_type, service_name: service_name, record: record
     end
 
-    def directly_upload_file_blob(filename: "racecar.jpg", content_type: "image/jpeg", record: nil)
+    def directly_upload_file_blob(filename: "racecar.jpg", content_type: "image/jpeg", service_name: ActiveStorage::Blob.default_service_name, record: nil)
       file = file_fixture(filename)
       byte_size = file.size
       checksum = Digest::MD5.file(file).base64digest
 
-      create_blob_before_direct_upload(filename: filename, byte_size: byte_size, checksum: checksum, content_type: content_type, record: record).tap do |blob|
-        service = ActiveStorage::Blob.service.try(:primary) || ActiveStorage::Blob.service
+      create_blob_before_direct_upload(filename: filename, byte_size: byte_size, checksum: checksum, content_type: content_type, service_name: service_name, record: record).tap do |blob|
+        service = ActiveStorage::Blob.services[service_name].try(:primary) || ActiveStorage::Blob.services[service_name]
         service.upload(blob.key, file.open)
       end
     end
