@@ -44,6 +44,34 @@ class ActiveStorage::DiskControllerTest < ActionDispatch::IntegrationTest
     assert_response :not_found
   end
 
+  test "showing blob from default service when multiple services" do
+    previous_services, ActiveStorage::Blob.services = ActiveStorage::Blob.services, build_multiple_disk_services
+    previous_default_service, ActiveStorage::Blob.default_service_name = ActiveStorage::Blob.default_service_name, "disk_one"
+
+    blob = create_blob
+
+    get blob.service_url
+    assert_response :ok
+    assert_equal "Hello world!", response.body
+  ensure
+    ActiveStorage::Blob.default_service_name = previous_default_service
+    ActiveStorage::Blob.services = previous_services
+  end
+
+  test "showing blob from another service when multiple services" do
+    previous_services, ActiveStorage::Blob.services = ActiveStorage::Blob.services, build_multiple_disk_services
+    previous_default_service, ActiveStorage::Blob.default_service_name = ActiveStorage::Blob.default_service_name, "disk_one"
+
+    blob = create_blob(service_name: "disk_two")
+
+    get blob.service_url
+    assert_response :ok
+    assert_equal "Hello world!", response.body
+  ensure
+    ActiveStorage::Blob.default_service_name = previous_default_service
+    ActiveStorage::Blob.services = previous_services
+  end
+
 
   test "directly uploading blob with integrity" do
     data = "Something else entirely!"
@@ -96,4 +124,48 @@ class ActiveStorage::DiskControllerTest < ActionDispatch::IntegrationTest
       params: "Something else entirely!", headers: { "Content-Type" => "text/plain" }
     assert_response :not_found
   end
+
+  test "directly uploading blob to default service when multiple services" do
+    previous_services, ActiveStorage::Blob.services = ActiveStorage::Blob.services, build_multiple_disk_services
+    previous_default_service, ActiveStorage::Blob.default_service_name = ActiveStorage::Blob.default_service_name, "disk_one"
+
+    data = "Something else entirely!"
+    blob = create_blob_before_direct_upload byte_size: data.size, checksum: Digest::MD5.base64digest(data)
+
+    put blob.service_url_for_direct_upload, params: data, headers: { "Content-Type" => "text/plain" }
+    assert_response :no_content
+    assert_equal data, blob.download
+    assert ActiveStorage::Blob.services["disk_one"].exist?(blob.key)
+    assert_not ActiveStorage::Blob.services["disk_two"].exist?(blob.key)
+  ensure
+    ActiveStorage::Blob.default_service_name = previous_default_service
+    ActiveStorage::Blob.services = previous_services
+  end
+
+  test "directly uploading blob to another service when multiple services" do
+    previous_services, ActiveStorage::Blob.services = ActiveStorage::Blob.services, build_multiple_disk_services
+    previous_default_service, ActiveStorage::Blob.default_service_name = ActiveStorage::Blob.default_service_name, "disk_one"
+
+    data = "Something else entirely!"
+    blob = create_blob_before_direct_upload byte_size: data.size, checksum: Digest::MD5.base64digest(data), service_name: "disk_two"
+
+    put blob.service_url_for_direct_upload, params: data, headers: { "Content-Type" => "text/plain" }
+    assert_response :no_content
+    assert_equal data, blob.download
+    assert_not ActiveStorage::Blob.services["disk_one"].exist?(blob.key)
+    assert ActiveStorage::Blob.services["disk_two"].exist?(blob.key)
+  ensure
+    ActiveStorage::Blob.default_service_name = previous_default_service
+    ActiveStorage::Blob.services = previous_services
+  end
+
+  private
+    def build_multiple_disk_services
+      {
+        "disk_one" =>
+          ActiveStorage::Service::DiskService.new(root: Dir.mktmpdir("active_storage_tests_one")),
+        "disk_two" =>
+          ActiveStorage::Service::DiskService.new(root: Dir.mktmpdir("active_storage_tests_two"))
+      }
+    end
 end
