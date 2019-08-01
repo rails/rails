@@ -4,7 +4,7 @@ require "cases/helper"
 
 module ActiveModel
   module Type
-    class ValueTest < ActiveModel::TestCase
+    class ValueTest < ActiveSupport::TestCase
       def test_type_equality
         assert_equal Type::Value.new, Type::Value.new
         assert_not_equal Type::Value.new, Type::Integer.new

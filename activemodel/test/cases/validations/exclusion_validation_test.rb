@@ -6,7 +6,7 @@ require "active_support/core_ext/numeric/time"
 require "models/topic"
 require "models/person"
 
-class ExclusionValidationTest < ActiveModel::TestCase
+class ExclusionValidationTest < ActiveSupport::TestCase
   def teardown
     Topic.clear_validators!
   end

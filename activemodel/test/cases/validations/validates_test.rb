@@ -6,7 +6,7 @@ require "models/topic"
 require "models/person_with_validator"
 require "validators/namespace/email_validator"
 
-class ValidatesTest < ActiveModel::TestCase
+class ValidatesTest < ActiveSupport::TestCase
   setup :reset_callbacks
   teardown :reset_callbacks
 

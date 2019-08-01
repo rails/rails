@@ -4,7 +4,7 @@ require "cases/helper"
 
 module ActiveModel
   module Type
-    class DateTest < ActiveModel::TestCase
+    class DateTest < ActiveSupport::TestCase
       def test_type_cast_date
         type = Type::Date.new
         assert_nil type.cast(nil)

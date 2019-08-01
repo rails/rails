@@ -3,7 +3,7 @@
 require "cases/helper"
 
 module ActiveModel
-  class AttributeTest < ActiveModel::TestCase
+  class AttributeTest < ActiveSupport::TestCase
     setup do
       @type = Minitest::Mock.new
     end

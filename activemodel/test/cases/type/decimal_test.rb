@@ -4,7 +4,7 @@ require "cases/helper"
 
 module ActiveModel
   module Type
-    class DecimalTest < ActiveModel::TestCase
+    class DecimalTest < ActiveSupport::TestCase
       def test_type_cast_decimal
         type = Decimal.new
         assert_equal BigDecimal("0"), type.cast(BigDecimal("0"))

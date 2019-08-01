@@ -4,7 +4,7 @@ require "cases/helper"
 
 module ActiveModel
   module Type
-    class RegistryTest < ActiveModel::TestCase
+    class RegistryTest < ActiveSupport::TestCase
       test "a class can be registered for a symbol" do
         registry = Type::Registry.new
         registry.register(:foo, ::String)

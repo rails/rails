@@ -4,7 +4,7 @@ require "cases/helper"
 require "models/contact"
 require "active_support/core_ext/object/instance_variables"
 
-class JsonSerializationTest < ActiveModel::TestCase
+class JsonSerializationTest < ActiveSupport::TestCase
   def setup
     @contact = Contact.new
     @contact.name = "Konata Izumi"
