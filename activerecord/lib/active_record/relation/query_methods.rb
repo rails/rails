@@ -1114,7 +1114,7 @@ module ActiveRecord
           else
             join
           end
-        end.delete_if(&:blank?)
+        end.delete_if(&:blank?).uniq!
 
         while joins.first.is_a?(Arel::Nodes::Join)
           join_node = joins.shift
@@ -1144,8 +1144,8 @@ module ActiveRecord
       def build_join_query(manager, buckets, join_type, aliases)
         association_joins = buckets[:association_join]
         stashed_joins     = buckets[:stashed_join]
-        leading_joins     = buckets[:leading_join].tap(&:uniq!)
-        join_nodes        = buckets[:join_node].tap(&:uniq!)
+        leading_joins     = buckets[:leading_join]
+        join_nodes        = buckets[:join_node]
 
         join_sources = manager.join_sources
         join_sources.concat(leading_joins) unless leading_joins.empty?
