@@ -306,12 +306,12 @@ module ActionView
             RUBY
           when Proc
             define_method :_layout_from_proc, &_layout
+            private :_layout_from_proc
             <<-RUBY
               result = _layout_from_proc(#{_layout.arity == 0 ? '' : 'self'})
               return #{default_behavior} if result.nil?
               result
             RUBY
-            private :_layout_from_proc
           when false
             nil
           when true
