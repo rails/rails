@@ -1221,6 +1221,14 @@ class TestAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCase
     assert_predicate @pirate.errors[:"ship.name"], :any?
   end
 
+  def test_should_automatically_validate_the_associated_non_dirty_model
+    Ship.web_request_result = true
+    assert_predicate @pirate, :invalid?
+    assert_predicate @pirate.errors[:"ship.base"], :any?
+  ensure
+    Ship.web_request_result = false
+  end
+
   def test_should_merge_errors_on_the_associated_models_onto_the_parent_even_if_it_is_not_valid
     @pirate.ship.name   = nil
     @pirate.catchphrase = nil

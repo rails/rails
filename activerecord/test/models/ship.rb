@@ -15,6 +15,9 @@ class Ship < ActiveRecord::Base
 
   validates_presence_of :name
 
+  cattr_accessor :web_request_result
+  validate { errors.add(:base, 'External service deemed us invalid') if Ship.web_request_result }
+
   attr_accessor :cancel_save_from_callback
   before_save :cancel_save_callback_method, if: :cancel_save_from_callback
   def cancel_save_callback_method
