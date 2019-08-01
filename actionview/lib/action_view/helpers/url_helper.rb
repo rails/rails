@@ -42,12 +42,11 @@ module ActionView
         end
       end
 
-      def _back_url # :nodoc:
+      private def _back_url # :nodoc:
         _filtered_referrer || "javascript:history.back()"
       end
-      protected :_back_url
 
-      def _filtered_referrer # :nodoc:
+      private def _filtered_referrer # :nodoc:
         if controller.respond_to?(:request)
           referrer = controller.request.env["HTTP_REFERER"]
           if referrer && URI(referrer).scheme != "javascript"
@@ -56,7 +55,6 @@ module ActionView
         end
       rescue URI::InvalidURIError
       end
-      protected :_filtered_referrer
 
       # Creates an anchor element of the given +name+ using a URL created by the set of +options+.
       # See the valid options in the documentation for +url_for+. It's also possible to
