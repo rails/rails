@@ -350,11 +350,7 @@ class CommentsController < ResourcesController; end
 class AccountsController < ResourcesController; end
 class ImagesController < ResourcesController; end
 
-require "active_support/testing/method_call_assertions"
-
 class ActiveSupport::TestCase
-  include ActiveSupport::Testing::MethodCallAssertions
-
   private
     # Skips the current run on Rubinius using Minitest::Assertions#skip
     def rubinius_skip(message = "")

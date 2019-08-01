@@ -2,11 +2,8 @@
 
 require "test_helper"
 require "database/setup"
-require "active_support/testing/method_call_assertions"
 
 class ActiveStorage::BlobTest < ActiveSupport::TestCase
-  include ActiveSupport::Testing::MethodCallAssertions
-
   test "unattached scope" do
     [ create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg") ].tap do |blobs|
       User.create! name: "DHH", avatar: blobs.first

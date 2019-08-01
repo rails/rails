@@ -10,7 +10,6 @@ silence_warnings do
 end
 
 require "active_support/testing/autorun"
-require "active_support/testing/method_call_assertions"
 
 ENV["NO_RELOAD"] = "1"
 require "active_support"
@@ -27,8 +26,6 @@ ActiveSupport.to_time_preserves_timezone = ENV["PRESERVE_TIMEZONES"] == "1"
 I18n.enforce_available_locales = false
 
 class ActiveSupport::TestCase
-  include ActiveSupport::Testing::MethodCallAssertions
-
   private
     # Skips the current run on Rubinius using Minitest::Assertions#skip
     def rubinius_skip(message = "")

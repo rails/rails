@@ -14,7 +14,6 @@ require "bundler/setup" unless defined?(Bundler)
 require "active_support"
 require "active_support/testing/autorun"
 require "active_support/testing/stream"
-require "active_support/testing/method_call_assertions"
 require "active_support/test_case"
 require "minitest/retry"
 
@@ -495,7 +494,6 @@ class ActiveSupport::TestCase
   include TestHelpers::Generation
   include TestHelpers::Reload
   include ActiveSupport::Testing::Stream
-  include ActiveSupport::Testing::MethodCallAssertions
 end
 
 # Create a scope and build a fixture rails app
