@@ -199,6 +199,32 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     end
   end
 
+  test "creating a blob with the default service when multiple services" do
+    previous_services, ActiveStorage::Blob.services = ActiveStorage::Blob.services, build_multiple_disk_services
+    previous_default_service, ActiveStorage::Blob.default_service_name = ActiveStorage::Blob.default_service_name, "disk_one"
+
+    blob = create_blob
+
+    assert(ActiveStorage::Blob.services["disk_one"].exist? blob.key)
+    assert_not(ActiveStorage::Blob.services["disk_two"].exist? blob.key)
+  ensure
+    ActiveStorage::Blob.default_service_name = previous_default_service
+    ActiveStorage::Blob.services = previous_services
+  end
+
+  test "creating a blob with another service with there are multiple services" do
+    previous_services, ActiveStorage::Blob.services = ActiveStorage::Blob.services, build_multiple_disk_services
+    previous_default_service, ActiveStorage::Blob.default_service_name = ActiveStorage::Blob.default_service_name, "disk_one"
+
+    blob = create_blob(service_name: "disk_two")
+
+    assert_not(ActiveStorage::Blob.services["disk_one"].exist? blob.key)
+    assert(ActiveStorage::Blob.services["disk_two"].exist? blob.key)
+  ensure
+    ActiveStorage::Blob.default_service_name = previous_default_service
+    ActiveStorage::Blob.services = previous_services
+  end
+
   private
     def expected_url_for(blob, disposition: :attachment, filename: nil, content_type: nil)
       filename ||= blob.filename
@@ -208,5 +234,14 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
       key_params = { key: blob.key }.merge(query)
 
       "https://example.com/rails/active_storage/disk/#{ActiveStorage.verifier.generate(key_params, expires_in: 5.minutes, purpose: :blob_key)}/#{filename}?#{query.to_param}"
+    end
+
+    def build_multiple_disk_services
+      {
+        "disk_one" =>
+          ActiveStorage::Service::DiskService.new(root: Dir.mktmpdir("active_storage_tests_one")),
+        "disk_two" =>
+          ActiveStorage::Service::DiskService.new(root: Dir.mktmpdir("active_storage_tests_two"))
+      }
     end
 end
