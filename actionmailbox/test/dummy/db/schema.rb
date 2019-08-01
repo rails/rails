@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2018_02_12_164506) do
+ActiveRecord::Schema.define(version: 2019_08_12_103321) do
 
   create_table "action_mailbox_inbound_emails", force: :cascade do |t|
     t.integer "status", default: 0, null: false
@@ -34,6 +34,7 @@ ActiveRecord::Schema.define(version: 2018_02_12_164506) do
   create_table "active_storage_blobs", force: :cascade do |t|
     t.string "key", null: false
     t.string "filename", null: false
+    t.string "service_name"
     t.string "content_type"
     t.text "metadata"
     t.bigint "byte_size", null: false
