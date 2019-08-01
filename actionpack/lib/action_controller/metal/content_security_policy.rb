@@ -45,7 +45,7 @@ module ActionController #:nodoc:
       end
 
       def current_content_security_policy
-        request.content_security_policy.try(:clone) || ActionDispatch::ContentSecurityPolicy.new
+        request.content_security_policy&.clone || ActionDispatch::ContentSecurityPolicy.new
       end
   end
 end

@@ -42,7 +42,7 @@ module ActionDispatch #:nodoc:
         end
 
         def policy_empty?(policy)
-          policy.try(:directives) && policy.directives.empty?
+          policy&.directives&.empty?
         end
     end
 

@@ -152,7 +152,7 @@ module ActiveRecord
       def build_db_config_from_string(env_name, spec_name, config)
         url = config
         uri = URI.parse(url)
-        if uri.try(:scheme)
+        if uri&.scheme
           ActiveRecord::DatabaseConfigurations::UrlConfig.new(env_name, spec_name, url)
         end
       rescue URI::InvalidURIError

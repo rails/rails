@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/object/try"
 require "rails-html-sanitizer"
 
 module ActionView
@@ -80,7 +79,7 @@ module ActionView
       #   config.action_view.sanitized_allowed_tags = ['strong', 'em', 'a']
       #   config.action_view.sanitized_allowed_attributes = ['href', 'title']
       def sanitize(html, options = {})
-        self.class.white_list_sanitizer.sanitize(html, options).try(:html_safe)
+        self.class.white_list_sanitizer.sanitize(html, options)&.html_safe
       end
 
       # Sanitizes a block of CSS code. Used by +sanitize+ when it comes across a style attribute.
