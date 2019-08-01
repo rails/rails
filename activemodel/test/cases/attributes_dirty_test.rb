@@ -2,7 +2,7 @@
 
 require "cases/helper"
 
-class AttributesDirtyTest < ActiveModel::TestCase
+class AttributesDirtyTest < ActiveSupport::TestCase
   class DirtyModel
     include ActiveModel::Model
     include ActiveModel::Attributes

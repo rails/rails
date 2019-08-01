@@ -3,7 +3,7 @@
 require "cases/helper"
 require "active_model/error"
 
-class ErrorTest < ActiveModel::TestCase
+class ErrorTest < ActiveSupport::TestCase
   class Person
     extend ActiveModel::Naming
     def initialize

@@ -4,7 +4,7 @@ require "cases/helper"
 require "models/user"
 require "models/visitor"
 
-class SecurePasswordTest < ActiveModel::TestCase
+class SecurePasswordTest < ActiveSupport::TestCase
   setup do
     # Used only to speed up tests
     @original_min_cost = ActiveModel::SecurePassword.min_cost

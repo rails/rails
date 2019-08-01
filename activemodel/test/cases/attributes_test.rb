@@ -3,7 +3,7 @@
 require "cases/helper"
 
 module ActiveModel
-  class AttributesTest < ActiveModel::TestCase
+  class AttributesTest < ActiveSupport::TestCase
     class ModelForAttributesTest
       include ActiveModel::Model
       include ActiveModel::Attributes

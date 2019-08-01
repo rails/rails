@@ -94,7 +94,7 @@ class ModelWithoutAttributesMethod
   include ActiveModel::AttributeMethods
 end
 
-class AttributeMethodsTest < ActiveModel::TestCase
+class AttributeMethodsTest < ActiveSupport::TestCase
   test "method missing works correctly even if attributes method is not defined" do
     assert_raises(NoMethodError) { ModelWithoutAttributesMethod.new.foo }
   end
