@@ -223,6 +223,10 @@ class TestController < ActionController::Base
     head :ok, content_type: "image/png"
   end
 
+  def head_ok_with_string_key_content_type
+    head :ok, "Content-Type" => "application/pdf"
+  end
+
   def head_with_location_header
     head :ok, location: "/foo"
   end
@@ -755,6 +759,11 @@ class HeadRenderTest < ActionController::TestCase
     assert_predicate @response.body, :blank?
     assert_equal "image/png", @response.header["Content-Type"]
     assert_response :ok
+  end
+
+  def test_head_respect_string_content_type
+    get :head_ok_with_string_key_content_type
+    assert_equal "application/pdf", @response.header["Content-Type"]
   end
 
   def test_head_with_location_header
