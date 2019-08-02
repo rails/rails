@@ -2,7 +2,7 @@
 
 require "cases/helper"
 
-class CallbacksTest < ActiveSupport::TestCase
+class CallbacksTest < ActiveModel::TestCase
   class CallbackValidator
     def around_create(model)
       model.callbacks << :before_around_create

@@ -2,7 +2,7 @@
 
 require "cases/helper"
 
-class LintTest < ActiveSupport::TestCase
+class LintTest < ActiveModel::TestCase
   include ActiveModel::Lint::Tests
 
   class CompliantModel

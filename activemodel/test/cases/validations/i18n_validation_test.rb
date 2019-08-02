@@ -3,7 +3,7 @@
 require "cases/helper"
 require "models/person"
 
-class I18nValidationTest < ActiveSupport::TestCase
+class I18nValidationTest < ActiveModel::TestCase
   def setup
     Person.clear_validators!
     @person = person_class.new

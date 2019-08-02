@@ -6,7 +6,7 @@ require "models/sheep"
 require "models/track_back"
 require "models/blog_post"
 
-class NamingTest < ActiveSupport::TestCase
+class NamingTest < ActiveModel::TestCase
   def setup
     @model_name = ActiveModel::Name.new(Post::TrackBack)
   end
@@ -44,7 +44,7 @@ class NamingTest < ActiveSupport::TestCase
   end
 end
 
-class NamingWithNamespacedModelInIsolatedNamespaceTest < ActiveSupport::TestCase
+class NamingWithNamespacedModelInIsolatedNamespaceTest < ActiveModel::TestCase
   def setup
     @model_name = ActiveModel::Name.new(Blog::Post, Blog)
   end
@@ -82,7 +82,7 @@ class NamingWithNamespacedModelInIsolatedNamespaceTest < ActiveSupport::TestCase
   end
 end
 
-class NamingWithNamespacedModelInSharedNamespaceTest < ActiveSupport::TestCase
+class NamingWithNamespacedModelInSharedNamespaceTest < ActiveModel::TestCase
   def setup
     @model_name = ActiveModel::Name.new(Blog::Post)
   end
@@ -120,7 +120,7 @@ class NamingWithNamespacedModelInSharedNamespaceTest < ActiveSupport::TestCase
   end
 end
 
-class NamingWithSuppliedModelNameTest < ActiveSupport::TestCase
+class NamingWithSuppliedModelNameTest < ActiveModel::TestCase
   def setup
     @model_name = ActiveModel::Name.new(Blog::Post, nil, "Article")
   end
@@ -158,7 +158,7 @@ class NamingWithSuppliedModelNameTest < ActiveSupport::TestCase
   end
 end
 
-class NamingUsingRelativeModelNameTest < ActiveSupport::TestCase
+class NamingUsingRelativeModelNameTest < ActiveModel::TestCase
   def setup
     @model_name = Blog::Post.model_name
   end
@@ -196,7 +196,7 @@ class NamingUsingRelativeModelNameTest < ActiveSupport::TestCase
   end
 end
 
-class NamingHelpersTest < ActiveSupport::TestCase
+class NamingHelpersTest < ActiveModel::TestCase
   def setup
     @klass  = Contact
     @record = @klass.new
@@ -262,7 +262,7 @@ class NamingHelpersTest < ActiveSupport::TestCase
     end
 end
 
-class NameWithAnonymousClassTest < ActiveSupport::TestCase
+class NameWithAnonymousClassTest < ActiveModel::TestCase
   def test_anonymous_class_without_name_argument
     assert_raises(ArgumentError) do
       ActiveModel::Name.new(Class.new)
@@ -275,7 +275,7 @@ class NameWithAnonymousClassTest < ActiveSupport::TestCase
   end
 end
 
-class NamingMethodDelegationTest < ActiveSupport::TestCase
+class NamingMethodDelegationTest < ActiveModel::TestCase
   def test_model_name
     assert_equal Blog::Post.model_name, Blog::Post.new.model_name
   end

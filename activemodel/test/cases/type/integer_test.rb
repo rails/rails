@@ -5,7 +5,7 @@ require "active_support/core_ext/numeric/time"
 
 module ActiveModel
   module Type
-    class IntegerTest < ActiveSupport::TestCase
+    class IntegerTest < ActiveModel::TestCase
       test "simple values" do
         type = Type::Integer.new
         assert_nil type.cast("")

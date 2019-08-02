@@ -9,7 +9,7 @@ require "models/custom_reader"
 require "active_support/json"
 require "active_support/xml_mini"
 
-class ValidationsTest < ActiveSupport::TestCase
+class ValidationsTest < ActiveModel::TestCase
   class CustomStrictValidationException < StandardError; end
 
   def teardown

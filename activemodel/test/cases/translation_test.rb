@@ -3,7 +3,7 @@
 require "cases/helper"
 require "models/person"
 
-class ActiveModelI18nTests < ActiveSupport::TestCase
+class ActiveModelI18nTests < ActiveModel::TestCase
   def setup
     I18n.backend = I18n::Backend::Simple.new
   end

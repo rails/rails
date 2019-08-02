@@ -8,7 +8,7 @@ require "models/person"
 require "bigdecimal"
 require "active_support/core_ext/big_decimal"
 
-class NumericalityValidationTest < ActiveSupport::TestCase
+class NumericalityValidationTest < ActiveModel::TestCase
   def teardown
     Topic.clear_validators!
   end

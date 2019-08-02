@@ -3,7 +3,7 @@
 require "cases/helper"
 require "yaml"
 
-class ErrorsTest < ActiveSupport::TestCase
+class ErrorsTest < ActiveModel::TestCase
   class Person
     extend ActiveModel::Naming
     def initialize

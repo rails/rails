@@ -4,7 +4,7 @@ require "cases/helper"
 require "models/contact"
 require "models/helicopter"
 
-class ConversionTest < ActiveSupport::TestCase
+class ConversionTest < ActiveModel::TestCase
   test "to_model default implementation returns self" do
     contact = Contact.new
     assert_equal contact, contact.to_model

@@ -4,7 +4,7 @@ require "cases/helper"
 
 module ActiveModel
   module Type
-    class BigIntegerTest < ActiveSupport::TestCase
+    class BigIntegerTest < ActiveModel::TestCase
       def test_type_cast_big_integer
         type = Type::BigInteger.new
         assert_equal 1, type.cast(1)

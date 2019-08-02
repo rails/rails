@@ -4,7 +4,7 @@ require "cases/helper"
 
 module ActiveModel
   module Type
-    class FloatTest < ActiveSupport::TestCase
+    class FloatTest < ActiveModel::TestCase
       def test_type_cast_float
         type = Type::Float.new
         assert_equal 1.0, type.cast("1")

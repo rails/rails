@@ -4,7 +4,7 @@ require "cases/helper"
 
 require "models/topic"
 
-class ValidationsContextTest < ActiveSupport::TestCase
+class ValidationsContextTest < ActiveModel::TestCase
   def teardown
     Topic.clear_validators!
   end

@@ -5,7 +5,7 @@ require "cases/helper"
 require "models/topic"
 require "models/person"
 
-class InclusionValidationTest < ActiveSupport::TestCase
+class InclusionValidationTest < ActiveModel::TestCase
   def teardown
     Topic.clear_validators!
   end

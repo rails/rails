@@ -3,7 +3,7 @@
 require "cases/helper"
 require "active_support/testing/isolation"
 
-class RailtieTest < ActiveSupport::TestCase
+class RailtieTest < ActiveModel::TestCase
   include ActiveSupport::Testing::Isolation
 
   def setup

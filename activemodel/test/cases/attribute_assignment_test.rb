@@ -4,7 +4,7 @@ require "cases/helper"
 require "active_support/core_ext/hash/indifferent_access"
 require "active_support/hash_with_indifferent_access"
 
-class AttributeAssignmentTest < ActiveSupport::TestCase
+class AttributeAssignmentTest < ActiveModel::TestCase
   class Model
     include ActiveModel::AttributeAssignment
 

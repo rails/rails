@@ -4,7 +4,7 @@ require "cases/helper"
 
 module ActiveModel
   module Type
-    class StringTest < ActiveSupport::TestCase
+    class StringTest < ActiveModel::TestCase
       test "type casting" do
         type = Type::String.new
         assert_equal "t", type.cast(true)

@@ -2,7 +2,7 @@
 
 require "cases/helper"
 
-class ModelTest < ActiveSupport::TestCase
+class ModelTest < ActiveModel::TestCase
   include ActiveModel::Lint::Tests
 
   module DefaultValue

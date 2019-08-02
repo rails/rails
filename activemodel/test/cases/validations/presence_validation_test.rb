@@ -6,7 +6,7 @@ require "models/topic"
 require "models/person"
 require "models/custom_reader"
 
-class PresenceValidationTest < ActiveSupport::TestCase
+class PresenceValidationTest < ActiveModel::TestCase
   teardown do
     Topic.clear_validators!
     Person.clear_validators!

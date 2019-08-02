@@ -4,7 +4,7 @@ require "cases/helper"
 
 module ActiveModel
   module Type
-    class BinaryTest < ActiveSupport::TestCase
+    class BinaryTest < ActiveModel::TestCase
       def test_type_cast_binary
         type = Type::Binary.new
         assert_nil type.cast(nil)

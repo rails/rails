@@ -2,7 +2,7 @@
 
 require "cases/helper"
 
-class DirtyTest < ActiveSupport::TestCase
+class DirtyTest < ActiveModel::TestCase
   class DirtyModel
     include ActiveModel::Dirty
     define_attribute_methods :name, :color, :size, :status

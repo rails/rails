@@ -4,7 +4,7 @@ require "cases/helper"
 
 module ActiveModel
   module Type
-    class BooleanTest < ActiveSupport::TestCase
+    class BooleanTest < ActiveModel::TestCase
       def test_type_cast_boolean
         type = Type::Boolean.new
         assert_predicate type.cast(""), :nil?

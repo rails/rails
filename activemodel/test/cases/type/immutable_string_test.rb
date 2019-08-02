@@ -4,7 +4,7 @@ require "cases/helper"
 
 module ActiveModel
   module Type
-    class ImmutableStringTest < ActiveSupport::TestCase
+    class ImmutableStringTest < ActiveModel::TestCase
       test "cast strings are frozen" do
         s = "foo"
         type = Type::ImmutableString.new

@@ -6,7 +6,7 @@ require "models/topic"
 require "models/reply"
 require "models/person"
 
-class AcceptanceValidationTest < ActiveSupport::TestCase
+class AcceptanceValidationTest < ActiveModel::TestCase
   teardown do
     self.class.send(:remove_const, :TestClass)
   end

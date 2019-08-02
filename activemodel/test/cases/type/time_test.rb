@@ -4,7 +4,7 @@ require "cases/helper"
 
 module ActiveModel
   module Type
-    class TimeTest < ActiveSupport::TestCase
+    class TimeTest < ActiveModel::TestCase
       def test_type_cast_time
         type = Type::Time.new
         assert_nil type.cast(nil)
