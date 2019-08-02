@@ -123,6 +123,40 @@ module ActiveRecord
       assert read
     end
 
+    def test_preventing_writes_turns_off_for_primary_write
+      resolver = ActiveRecord::Middleware::DatabaseSelector::Resolver.new(@session, delay: 5.seconds)
+
+      # Session should start empty
+      assert_nil @session_store[:last_write]
+
+      called = false
+      resolver.write do
+        assert ActiveRecord::Base.connected_to?(role: :writing)
+        called = true
+      end
+      assert called
+
+      # and be populated by the last write time
+      assert @session_store[:last_write]
+
+      read = false
+      write = false
+      resolver.read do
+        assert ActiveRecord::Base.connected_to?(role: :writing)
+        assert ActiveRecord::Base.connection_handler.prevent_writes
+        read = true
+
+        resolver.write do
+          assert ActiveRecord::Base.connected_to?(role: :writing)
+          assert_not ActiveRecord::Base.connection_handler.prevent_writes
+          write = true
+        end
+      end
+
+      assert write
+      assert read
+    end
+
     def test_read_from_replica_with_no_delay
       resolver = ActiveRecord::Middleware::DatabaseSelector::Resolver.new(@session, delay: 0.seconds)
 

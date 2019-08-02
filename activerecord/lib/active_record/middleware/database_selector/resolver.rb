@@ -46,7 +46,7 @@ module ActiveRecord
         private
           def read_from_primary(&blk)
             ActiveRecord::Base.connected_to(role: ActiveRecord::Base.writing_role) do
-              ActiveRecord::Base.connection_handler.while_preventing_writes do
+              ActiveRecord::Base.connection_handler.while_preventing_writes(true) do
                 instrumenter.instrument("database_selector.active_record.read_from_primary") do
                   yield
                 end
@@ -64,10 +64,12 @@ module ActiveRecord
 
           def write_to_primary(&blk)
             ActiveRecord::Base.connected_to(role: ActiveRecord::Base.writing_role) do
-              instrumenter.instrument("database_selector.active_record.wrote_to_primary") do
-                yield
-              ensure
-                context.update_last_write_timestamp
+              ActiveRecord::Base.connection_handler.while_preventing_writes(false) do
+                instrumenter.instrument("database_selector.active_record.wrote_to_primary") do
+                  yield
+                ensure
+                  context.update_last_write_timestamp
+                end
               end
             end
           end
