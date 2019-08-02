@@ -1022,8 +1022,8 @@ module ActiveRecord
       # In some cases you may want to prevent writes to the database
       # even if you are on a database that can write. `while_preventing_writes`
       # will prevent writes to the database for the duration of the block.
-      def while_preventing_writes
-        original, @prevent_writes = @prevent_writes, true
+      def while_preventing_writes(enabled = true)
+        original, @prevent_writes = @prevent_writes, enabled
         yield
       ensure
         @prevent_writes = original
