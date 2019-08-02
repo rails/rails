@@ -5,7 +5,6 @@ require "minitest"
 require "active_support/testing/tagged_logging"
 require "active_support/testing/setup_and_teardown"
 require "active_support/testing/assertions"
-require "active_support/testing/method_call_assertions"
 require "active_support/testing/deprecation"
 require "active_support/testing/declarative"
 require "active_support/testing/isolation"
@@ -138,12 +137,10 @@ module ActiveSupport
     include ActiveSupport::Testing::TaggedLogging
     prepend ActiveSupport::Testing::SetupAndTeardown
     include ActiveSupport::Testing::Assertions
-    include ActiveSupport::Testing::MethodCallAssertions
     include ActiveSupport::Testing::Deprecation
     include ActiveSupport::Testing::TimeHelpers
     include ActiveSupport::Testing::FileFixtures
     extend ActiveSupport::Testing::Declarative
-
 
     # test/unit backwards compatibility methods
     alias :assert_raise :assert_raises

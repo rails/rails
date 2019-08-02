@@ -3,6 +3,7 @@
 require "abstract_unit"
 require "active_support/core_ext/module/remove_method"
 require "active_support/testing/stream"
+require "active_support/testing/method_call_assertions"
 require "rails/generators"
 require "rails/generators/test_case"
 
@@ -27,6 +28,7 @@ require "action_view"
 
 module GeneratorsTestHelper
   include ActiveSupport::Testing::Stream
+  include ActiveSupport::Testing::MethodCallAssertions
 
   GemfileEntry = Struct.new(:name, :version, :comment, :options, :commented_out) do
     def initialize(name, version, comment, options = {}, commented_out = false)
