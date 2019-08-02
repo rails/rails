@@ -13,7 +13,6 @@ require "active_support/testing/constant_lookup"
 require "active_support/testing/time_helpers"
 require "active_support/testing/file_fixtures"
 require "active_support/testing/parallelization"
-require "active_support/testing/alternative_runtime_skipper"
 require "concurrent/utility/processor_counter"
 
 module ActiveSupport
@@ -144,7 +143,6 @@ module ActiveSupport
     include ActiveSupport::Testing::TimeHelpers
     include ActiveSupport::Testing::FileFixtures
     extend ActiveSupport::Testing::Declarative
-    include ActiveSupport::Testing::AlternativeRuntimeSkipper
 
 
     # test/unit backwards compatibility methods
