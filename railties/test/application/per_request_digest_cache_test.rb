@@ -34,7 +34,7 @@ class PerRequestDigestCacheTest < ActiveSupport::TestCase
     app_file "app/controllers/customers_controller.rb", <<-RUBY
       class CustomersController < ApplicationController
         self.perform_caching = true
-        Rails.application.config.action_view.render_hints = true            
+        Rails.application.config.action_view.render_hints = true
 
         def index
           render [ Customer.new('david', 1), Customer.new('dingus', 2) ]
@@ -54,7 +54,7 @@ class PerRequestDigestCacheTest < ActiveSupport::TestCase
   teardown :teardown_app
 
   test "digests are reused when rendering the same template twice" do
-    SecureRandom.stub(:uuid, 'xyz-123') do
+    SecureRandom.stub(:uuid, "xyz-123") do
       get "/customers"
       assert_equal 200, last_response.status
 
