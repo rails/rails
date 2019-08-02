@@ -256,6 +256,14 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_kind_of ThroughReflection, Subscriber.reflect_on_association(:books)
   end
 
+  def test_uncastable_has_many_through_reflection
+    error = assert_raises(NotImplementedError) { Subscriber.new.published_books }
+    assert_equal <<~MSG.squish, error.message
+      In order to correctly type cast Subscriber.nick,
+      PublishedBook needs to define a :subscriptions association.
+    MSG
+  end
+
   def test_chain
     expected = [
       Organization.reflect_on_association(:author_essay_categories),
