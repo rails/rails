@@ -1290,6 +1290,18 @@ class TestAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCase
     end
   end
 
+  def test_should_not_save_and_raise_an_exception_if_a_callback_cancelled_saving
+    pirate = Pirate.new(catchphrase: "Arr")
+    ship = pirate.build_ship(name: "The Vile Insanity")
+    ship.cancel_save_from_callback = true
+
+    assert_no_difference "Pirate.count" do
+      assert_no_difference "Ship.count" do
+        assert_raises(ActiveRecord::RecordInvalid) { pirate.save! }
+      end
+    end
+  end
+
   def test_should_rollback_any_changes_if_an_exception_occurred_while_saving
     before = [@pirate.catchphrase, @pirate.ship.name]
 
