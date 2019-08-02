@@ -9,6 +9,8 @@ module ActiveRecord
   # objects (either a HashConfig or UrlConfig) that are constructed from the
   # application's database configuration hash or URL string.
   class DatabaseConfigurations
+    class InvalidConfigurationError < StandardError; end
+
     attr_reader :configurations
     delegate :any?, to: :configurations
 
@@ -146,17 +148,19 @@ module ActiveRecord
           build_db_config_from_string(env_name, spec_name, config)
         when Hash
           build_db_config_from_hash(env_name, spec_name, config.stringify_keys)
+        else
+          raise InvalidConfigurationError, "'{ #{env_name} => #{config} }' is not a valid configuration. Expected '#{config}' to be a URL string or a Hash."
         end
       end
 
       def build_db_config_from_string(env_name, spec_name, config)
         url = config
         uri = URI.parse(url)
-        if uri&.scheme
+        if uri.scheme
           ActiveRecord::DatabaseConfigurations::UrlConfig.new(env_name, spec_name, url)
+        else
+          raise InvalidConfigurationError, "'{ #{env_name} => #{config} }' is not a valid configuration. Expected '#{config}' to be a URL string or a Hash."
         end
-      rescue URI::InvalidURIError
-        ActiveRecord::DatabaseConfigurations::HashConfig.new(env_name, spec_name, config)
       end
 
       def build_db_config_from_hash(env_name, spec_name, config)
