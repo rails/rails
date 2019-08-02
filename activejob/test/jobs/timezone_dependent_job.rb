@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative "../support/job_buffer"
+require "active_support/time"
 
 class TimezoneDependentJob < ActiveJob::Base
   def perform(now)
