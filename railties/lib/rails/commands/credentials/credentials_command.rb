@@ -1,17 +1,18 @@
 # frozen_string_literal: true
 
+require "pathname"
 require "active_support"
 require "rails/command/helpers/editor"
-require "rails/command/helpers/pretty_credentials"
 require "rails/command/environment_argument"
-require "pathname"
 
 module Rails
   module Command
     class CredentialsCommand < Rails::Command::Base # :nodoc:
       include Helpers::Editor
-      include Helpers::PrettyCredentials
       include EnvironmentArgument
+
+      require_relative "credentials_command/diffing"
+      include Diffing
 
       self.environment_desc = "Uses credentials from config/credentials/:environment.yml.enc encrypted by config/credentials/:environment.key key"
 
@@ -37,7 +38,7 @@ module Rails
         end
 
         say "File encrypted and saved."
-        opt_in_pretty_credentials
+        enable_credentials_diffing
       rescue ActiveSupport::MessageEncryptor::InvalidMessage
         say "Couldn't decrypt #{content_path}. Perhaps you passed the wrong key?"
       end
