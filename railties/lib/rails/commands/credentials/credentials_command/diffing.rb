@@ -3,45 +3,28 @@
 module Rails::Command::CredentialsCommand::Diffing # :nodoc:
   class Error < StandardError; end
 
-  def enable_credentials_diffing
-    unless already_answered? || enabled?
-      answer = yes?("Would you like to make the credentials diff from git more readable in the future? [Y/n]")
+  def enable_diffing
+    if enabled?
+      say "Already enabled!"
+    else
+      enable
+      say "Diffing enabled! Editing a credentials file will display a diff of what actually changed."
     end
-
-    enable if answer
-    FileUtils.touch(tracker) unless answer.nil?
   rescue Error
-    say "Couldn't setup git to enable credentials diffing"
+    say "Couldn't setup Git to enable credentials diffing."
   end
 
   private
-    def already_answered?
-      tracker.exist?
-    end
-
     def enabled?
-      system_call("git config --get 'diff.rails_credentials.textconv'", accepted_codes: [0, 1])
+      system "git config --get diff.rails_credentials.textconv", out: File::NULL
     end
 
     def enable
-      system_call("git config diff.rails_credentials.textconv 'bin/rails credentials:diff'", accepted_codes: [0])
+      raise Error unless system("git config diff.rails_credentials.textconv 'bin/rails credentials:diff'")
 
-      git_attributes = Rails.root.join(".gitattributes")
-      File.open(git_attributes, "a+") do |file|
-        file.write(<<~EOM)
-          config/credentials/*.yml.enc diff=rails_credentials
-          config/credentials.yml.enc diff=rails_credentials
-        EOM
-      end
-    end
-
-    def tracker
-      Rails.root.join("tmp", "rails_pretty_credentials")
-    end
-
-    def system_call(command_line, accepted_codes:)
-      result = system(command_line)
-      raise(Error) if accepted_codes.exclude?($?.exitstatus)
-      result
+      Rails.root.join(".gitattributes").write(<<~end_of_template, mode: "a")
+        config/credentials/*.yml.enc diff=rails_credentials
+        config/credentials.yml.enc diff=rails_credentials
+      end_of_template
     end
 end

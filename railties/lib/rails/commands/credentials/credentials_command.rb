@@ -38,7 +38,6 @@ module Rails
         end
 
         say "File encrypted and saved."
-        enable_credentials_diffing
       rescue ActiveSupport::MessageEncryptor::InvalidMessage
         say "Couldn't decrypt #{content_path}. Perhaps you passed the wrong key?"
       end
@@ -50,14 +49,20 @@ module Rails
         say credentials.read.presence || missing_credentials_message
       end
 
-      def diff(content_path)
-        @content_path = content_path
+      option :enable, type: :boolean, default: false,
+        desc: "Pass `--enable` to make credential files diffable with `git diff`"
 
-        extract_environment_option_from_argument(default_environment: extract_environment_from_path(content_path))
-        require_application!
+      def diff(content_path = nil)
+        if @content_path = content_path
+          extract_environment_option_from_argument(default_environment: extract_environment_from_path(content_path))
+          require_application!
 
-        say credentials.read.presence || credentials.content_path.read
-      rescue
+          say credentials.read.presence || credentials.content_path.read
+        else
+          require_application!
+          enable_diffing if options[:enable]
+        end
+      rescue ActiveSupport::MessageEncryptor::InvalidMessage
         say credentials.content_path.read
       end
 

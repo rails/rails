@@ -89,62 +89,60 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
     assert_match(/secret_key_base/, output)
   end
 
-  test "edit ask the user to opt in to pretty credentials" do
-    assert_match(/Would you like to make the credentials diff from git/, run_edit_command)
-  end
-
-  test "edit doesn't ask the user to opt in to pretty credentials when alreasy asked" do
-    app_file("tmp/rails_pretty_credentials", "")
-
-    assert_no_match(/Would you like to make the credentials diff from git/, run_edit_command)
-  end
-
-  test "edit doesn't ask the user to opt in when user already opted in" do
-    content = <<~EOM
-      [diff "rails_credentials"]
-          textconv = bin/rails credentials:show
-    EOM
-    app_file(".git/config", content)
-
-    assert_no_match(/Would you like to make the credentials diff from git/, run_edit_command)
-  end
-
-  test "edit ask the user to opt in to pretty credentials, user accepts" do
-    file = Tempfile.open("credentials_test")
-    file.write("y")
-    file.rewind
-
-    run_edit_command(stdin: file.path)
-
-    git_attributes = app_path(".gitattributes")
-    expected = <<~EOM
-      config/credentials/*.yml.enc diff=rails_credentials
-      config/credentials.yml.enc diff=rails_credentials
-    EOM
-    assert(File.exist?(git_attributes))
-    assert_equal(expected, File.read(git_attributes))
-    Dir.chdir(app_path) do
-      assert_equal "bin/rails credentials:diff", `git config --get 'diff.rails_credentials.textconv'`.strip
-    end
-  ensure
-    file.close!
-  end
-
-  test "edit ask the user to opt in to pretty credentials, user refuses" do
-    file = Tempfile.open("credentials_test")
-    file.write("n")
-    file.rewind
-
-    run_edit_command(stdin: file.path)
-
-    git_attributes = app_path(".gitattributes")
-    assert_not(File.exist?(git_attributes))
-  ensure
-    file.close!
-  end
 
   test "show credentials" do
     assert_match(/access_key_id: 123/, run_show_command)
+  end
+
+  test "show command raises error when require_master_key is specified and key does not exist" do
+    remove_file "config/master.key"
+    add_to_config "config.require_master_key = true"
+
+    assert_match(/Missing encryption key to decrypt file with/, run_show_command(allow_failure: true))
+  end
+
+  test "show command does not raise error when require_master_key is false and master key does not exist" do
+    remove_file "config/master.key"
+    add_to_config "config.require_master_key = false"
+
+    assert_match(/Missing 'config\/master\.key' to decrypt credentials/, run_show_command)
+  end
+
+  test "show command displays content specified by environment option" do
+    run_edit_command(environment: "production")
+
+    assert_match(/access_key_id: 123/, run_show_command(environment: "production"))
+  end
+
+  test "show command properly expands environment option" do
+    run_edit_command(environment: "production")
+
+    output = run_show_command(environment: "prod")
+    assert_match(/access_key_id: 123/, output)
+    assert_no_match(/secret_key_base/, output)
+  end
+
+
+  test "diff enable diffing" do
+    run_diff_command(enable: true)
+
+    assert_equal <<~EOM, File.read(app_path(".gitattributes"))
+      config/credentials/*.yml.enc diff=rails_credentials
+      config/credentials.yml.enc diff=rails_credentials
+    EOM
+
+    Dir.chdir(app_path) do
+      assert_equal "bin/rails credentials:diff", `git config --get 'diff.rails_credentials.textconv'`.strip
+    end
+  end
+
+  test "diff won't enable again if already enabled" do
+    app_file(".git/config", <<~EOM)
+      [diff "rails_credentials"]
+          textconv = bin/rails credentials:diff
+    EOM
+
+    assert_no_match(/Diffing enabled/, run_diff_command(enable: true))
   end
 
   test "diff from git diff left file" do
@@ -184,33 +182,6 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
     assert_match(encrypted_content, run_diff_command(content_path))
   end
 
-  test "show command raises error when require_master_key is specified and key does not exist" do
-    remove_file "config/master.key"
-    add_to_config "config.require_master_key = true"
-
-    assert_match(/Missing encryption key to decrypt file with/, run_show_command(allow_failure: true))
-  end
-
-  test "show command does not raise error when require_master_key is false and master key does not exist" do
-    remove_file "config/master.key"
-    add_to_config "config.require_master_key = false"
-
-    assert_match(/Missing 'config\/master\.key' to decrypt credentials/, run_show_command)
-  end
-
-  test "show command displays content specified by environment option" do
-    run_edit_command(environment: "production")
-
-    assert_match(/access_key_id: 123/, run_show_command(environment: "production"))
-  end
-
-  test "show command properly expands environment option" do
-    run_edit_command(environment: "production")
-
-    output = run_show_command(environment: "prod")
-    assert_match(/access_key_id: 123/, output)
-    assert_no_match(/secret_key_base/, output)
-  end
 
   private
     def run_edit_command(editor: "cat", environment: nil, **options)
@@ -225,7 +196,8 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
       rails "credentials:show", args, **options
     end
 
-    def run_diff_command(path, **options)
-      rails "credentials:diff", path, **options
+    def run_diff_command(path = nil, enable: nil, **options)
+      args = enable ? ["--enable"] : [path]
+      rails "credentials:diff", args, **options
     end
 end
