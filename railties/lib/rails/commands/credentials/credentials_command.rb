@@ -43,24 +43,27 @@ module Rails
         say "Couldn't decrypt #{content_path}. Perhaps you passed the wrong key?"
       end
 
-      def show(git_textconv_path = nil)
-        if git_textconv_path
-          default_environment = extract_environment_from_path(git_textconv_path)
-          fallback_message = File.read(git_textconv_path)
-        end
-
-        extract_environment_option_from_argument(default_environment: default_environment)
+      def show
+        extract_environment_option_from_argument(default_environment: nil)
         require_application!
 
-        say credentials(git_textconv_path).read.presence || fallback_message || missing_credentials_message
-      rescue => e
-        raise(e) unless git_textconv_path
-        fallback_message
+        say credentials.read.presence || missing_credentials_message
+      end
+
+      def diff(content_path)
+        @content_path = content_path
+
+        extract_environment_option_from_argument(default_environment: extract_environment_from_path(content_path))
+        require_application!
+
+        say credentials.read.presence || credentials.content_path.read
+      rescue
+        say credentials.content_path.read
       end
 
       private
-        def credentials(content = nil)
-          Rails.application.encrypted(content || content_path, key_path: key_path)
+        def credentials
+          Rails.application.encrypted(content_path, key_path: key_path)
         end
 
         def ensure_encryption_key_has_been_added
@@ -90,8 +93,9 @@ module Rails
           end
         end
 
+
         def content_path
-          options[:environment] ? "config/credentials/#{options[:environment]}.yml.enc" : "config/credentials.yml.enc"
+          @content_path ||= options[:environment] ? "config/credentials/#{options[:environment]}.yml.enc" : "config/credentials.yml.enc"
         end
 
         def key_path
@@ -99,15 +103,7 @@ module Rails
         end
 
         def extract_environment_from_path(path)
-          regex = %r{
-            ([A-Za-z0-9]+)     # match the environment
-            (?<!credentials)   # don't match if file contains the word "credentials"
-                               # in such case, the environment should be the default one
-            \.yml\.enc         # look for `.yml.enc` file extension
-          }x
-          path.match(regex)
-
-          Regexp.last_match(1)
+          available_environments.find { |env| path.include? env } if path.match?(/\.yml\.enc$/)
         end
 
         def encryption_key_file_generator

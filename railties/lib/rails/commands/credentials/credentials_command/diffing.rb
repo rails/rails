@@ -24,7 +24,7 @@ module Rails::Command::CredentialsCommand::Diffing # :nodoc:
     end
 
     def enable
-      system_call("git config diff.rails_credentials.textconv 'bin/rails credentials:show'", accepted_codes: [0])
+      system_call("git config diff.rails_credentials.textconv 'bin/rails credentials:diff'", accepted_codes: [0])
 
       git_attributes = Rails.root.join(".gitattributes")
       File.open(git_attributes, "a+") do |file|
