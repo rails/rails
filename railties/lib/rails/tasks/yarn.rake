@@ -9,6 +9,7 @@ namespace :yarn do
       valid_node_envs.include?(Rails.env) ? Rails.env : "production"
     end
     system({ "NODE_ENV" => node_env }, "#{Rails.root}/bin/yarn install --no-progress --frozen-lockfile")
+    exit(1) unless $?.success?
   end
 end
 
