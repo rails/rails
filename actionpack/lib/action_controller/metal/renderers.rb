@@ -163,18 +163,18 @@ module ActionController
 
         "/**/#{options[:callback]}(#{json})"
       else
-        self.content_type ||= Mime[:json]
+        self.content_type = Mime[:json] if media_type.nil?
         json
       end
     end
 
     add :js do |js, options|
-      self.content_type ||= Mime[:js]
+      self.content_type = Mime[:js] if media_type.nil?
       js.respond_to?(:to_js) ? js.to_js(options) : js
     end
 
     add :xml do |xml, options|
-      self.content_type ||= Mime[:xml]
+      self.content_type = Mime[:xml] if media_type.nil?
       xml.respond_to?(:to_xml) ? xml.to_xml(options) : xml
     end
   end
