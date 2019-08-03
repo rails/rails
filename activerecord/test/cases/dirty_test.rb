@@ -491,7 +491,7 @@ class DirtyTest < ActiveRecord::TestCase
 
     assert_equal 4, pirate.previous_changes.size
     assert_equal [nil, "arrr"], pirate.previous_changes["catchphrase"]
-    assert_equal nil, pirate.catchphrase_previously_was
+    assert_nil pirate.catchphrase_previously_was
     assert_equal [nil, pirate.id], pirate.previous_changes["id"]
     assert_nil pirate.previous_changes["updated_on"][0]
     assert_not_nil pirate.previous_changes["updated_on"][1]
@@ -508,7 +508,7 @@ class DirtyTest < ActiveRecord::TestCase
 
     assert_equal 4, pirate.previous_changes.size
     assert_equal [nil, "arrr"], pirate.previous_changes["catchphrase"]
-    assert_equal nil, pirate.catchphrase_previously_was
+    assert_nil pirate.catchphrase_previously_was
     assert_equal [nil, pirate.id], pirate.previous_changes["id"]
     assert_includes pirate.previous_changes, "updated_on"
     assert_includes pirate.previous_changes, "created_on"
