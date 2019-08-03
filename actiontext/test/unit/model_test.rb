@@ -84,4 +84,36 @@ class ActionText::ModelTest < ActiveSupport::TestCase
       assert_kind_of ActionText::RichText, message.content
     end
   end
+
+  test "loading content with attachments" do
+    5.times do |i|
+      blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpg")
+      Message.create!(subject: "Greetings #{i}", content: ActionText::Content.new("Hello world").append_attachables(blob))
+    end
+
+    messages = Message.with_rich_text_content_and_embeds
+
+    assert_queries(4) do
+      messages.each do |message|
+        message.content.to_s
+      end
+    end
+  end
+
+  def assert_queries(num)
+    ActiveRecord::Base.connection.materialize_transactions
+    count = 0
+    sqls = []
+
+    ActiveSupport::Notifications.subscribe("sql.active_record") do |_name, _start, _finish, _id, payload|
+      unless ["SCHEMA", "TRANSACTION"].include? payload[:name]
+        sqls << payload[:sql]
+        count += 1
+      end
+    end
+
+    result = yield
+    assert_equal num, count, "#{count} instead of #{num} queries were executed.\n#{sqls.join("\n")}"
+    result
+  end
 end

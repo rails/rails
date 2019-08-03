@@ -9,7 +9,7 @@ module ActionText
     self.table_name = "action_text_rich_texts"
 
     serialize :body, ActionText::Content
-    delegate :to_s, :nil?, to: :body
+    delegate :nil?, to: :body
 
     belongs_to :record, polymorphic: true, touch: true
     has_many_attached :embeds
@@ -20,6 +20,16 @@ module ActionText
 
     def to_plain_text
       body&.to_plain_text.to_s
+    end
+
+    def to_s
+      body.to_rendered_html_with_layout(attachment_blobs: embeds_blobs_table)
+    end
+
+    def embeds_blobs_table
+      embeds_blobs.to_a.inject({}) do |table, blob|
+        table[blob.id] = blob
+      end
     end
 
     delegate :blank?, :empty?, :present?, to: :to_plain_text

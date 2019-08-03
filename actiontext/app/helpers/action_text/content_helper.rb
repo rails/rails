@@ -9,16 +9,16 @@ module ActionText
     mattr_accessor(:allowed_attributes) { sanitizer.class.allowed_attributes + ActionText::Attachment::ATTRIBUTES }
     mattr_accessor(:scrubber)
 
-    def render_action_text_content(content)
-      sanitize_action_text_content(render_action_text_attachments(content))
+    def render_action_text_content(content, attachment_blobs)
+      sanitize_action_text_content(render_action_text_attachments(content, attachment_blobs))
     end
 
     def sanitize_action_text_content(content)
       sanitizer.sanitize(content.to_html, tags: allowed_tags, attributes: allowed_attributes, scrubber: scrubber).html_safe
     end
 
-    def render_action_text_attachments(content)
-      content.render_attachments do |attachment|
+    def render_action_text_attachments(content, attachment_blobs)
+      content.render_attachments(attachment_blobs) do |attachment|
         unless attachment.in?(content.gallery_attachments)
           attachment.node.tap do |node|
             node.inner_html = render(attachment, in_gallery: false).chomp

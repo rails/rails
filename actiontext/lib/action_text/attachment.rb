@@ -15,8 +15,8 @@ module ActionText
         fragment_by_minifying_attachments(fragment_by_converting_trix_attachments(content))
       end
 
-      def from_node(node, attachable = nil)
-        new(node, attachable || ActionText::Attachable.from_node(node))
+      def from_node(node, attachment_blobs = {}, attachable = nil)
+        new(node, attachable || ActionText::Attachable.from_node(node, attachment_blobs))
       end
 
       def from_attachables(attachables)
@@ -31,7 +31,7 @@ module ActionText
 
       def from_attributes(attributes, attachable = nil)
         if node = node_from_attributes(attributes)
-          from_node(node, attachable)
+          from_node(node, {}, attachable)
         end
       end
 

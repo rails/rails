@@ -36,7 +36,7 @@ module ActionText
 
     def attachments
       @attachments ||= attachment_nodes.map do |node|
-        attachment_for_node(node)
+        attachment_for_node(node, {})
       end
     end
 
@@ -52,7 +52,7 @@ module ActionText
 
     def attachables
       @attachables ||= attachment_nodes.map do |node|
-        ActionText::Attachable.from_node(node)
+        ActionText::Attachable.from_node(node, {})
       end
     end
 
@@ -61,9 +61,9 @@ module ActionText
       self.class.new([self.to_s.presence, *attachments].compact.join("\n"))
     end
 
-    def render_attachments(**options, &block)
+    def render_attachments(attachment_blobs, **options, &block)
       content = fragment.replace(ActionText::Attachment::SELECTOR) do |node|
-        block.call(attachment_for_node(node, **options))
+        block.call(attachment_for_node(node, attachment_blobs, **options))
       end
       self.class.new(content, canonicalize: false)
     end
@@ -76,7 +76,7 @@ module ActionText
     end
 
     def to_plain_text
-      render_attachments(with_full_attributes: false, &:to_plain_text).fragment.to_plain_text
+      render_attachments({}, with_full_attributes: false, &:to_plain_text).fragment.to_plain_text
     end
 
     def to_trix_html
@@ -87,8 +87,8 @@ module ActionText
       fragment.to_html
     end
 
-    def to_rendered_html_with_layout
-      renderer.render(partial: "action_text/content/layout", locals: { content: self })
+    def to_rendered_html_with_layout(attachment_blobs: {})
+      renderer.render(partial: "action_text/content/layout", locals: { content: self, attachment_blobs: attachment_blobs })
     end
 
     def to_s
@@ -118,8 +118,8 @@ module ActionText
         @attachment_gallery_nodes ||= ActionText::AttachmentGallery.find_attachment_gallery_nodes(fragment)
       end
 
-      def attachment_for_node(node, with_full_attributes: true)
-        attachment = ActionText::Attachment.from_node(node)
+      def attachment_for_node(node, attachment_blobs, with_full_attributes: true)
+        attachment = ActionText::Attachment.from_node(node, attachment_blobs)
         with_full_attributes ? attachment.with_full_attributes : attachment
       end
 

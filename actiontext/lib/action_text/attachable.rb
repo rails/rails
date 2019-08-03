@@ -7,8 +7,8 @@ module ActionText
     LOCATOR_NAME = "attachable"
 
     class << self
-      def from_node(node)
-        if attachable = attachable_from_sgid(node["sgid"])
+      def from_node(node, attachment_blobs)
+        if attachable = attachable_from_sgid(node["sgid"], attachment_blobs)
           attachable
         elsif attachable = ActionText::Attachables::ContentAttachment.from_node(node)
           attachable
@@ -19,15 +19,31 @@ module ActionText
         end
       end
 
-      def from_attachable_sgid(sgid, options = {})
-        method = sgid.is_a?(Array) ? :locate_many_signed : :locate_signed
-        record = GlobalID::Locator.public_send(method, sgid, options.merge(for: LOCATOR_NAME))
+      def from_attachable_sgid(sgid, attachment_blobs, options = {})
+        options = options.merge(for: LOCATOR_NAME)
+
+        record =
+          if attachment_blobs.present?
+            if sgid.is_a?(Array)
+              sgids.collect do |id|
+                id = SignedGlobalID.parse(id, options).model_id
+                attachment_blobs[id]
+              end.compact
+            else
+              id = SignedGlobalID.parse(sgid, options).model_id
+              attachment_blobs[id]
+            end
+          else
+            method = sgid.is_a?(Array) ? :locate_many_signed : :locate_signed
+            GlobalID::Locator.public_send(method, sgid, options)
+          end
+
         record || raise(ActiveRecord::RecordNotFound)
       end
 
       private
-        def attachable_from_sgid(sgid)
-          from_attachable_sgid(sgid)
+        def attachable_from_sgid(sgid, attachment_blobs)
+          from_attachable_sgid(sgid, attachment_blobs)
         rescue ActiveRecord::RecordNotFound
           nil
         end

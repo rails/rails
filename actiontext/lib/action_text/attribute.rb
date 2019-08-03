@@ -38,7 +38,7 @@ module ActionText
           class_name: "ActionText::RichText", as: :record, inverse_of: :record, autosave: true, dependent: :destroy
 
         scope :"with_rich_text_#{name}", -> { includes("rich_text_#{name}") }
-        scope :"with_rich_text_#{name}_and_embeds", -> { includes("rich_text_#{name}": { embeds_attachments: :blob }) }
+        scope :"with_rich_text_#{name}_and_embeds", -> { includes("rich_text_#{name}": :embeds_blobs) }
       end
     end
   end
