@@ -14,7 +14,7 @@ module Arel
       }.grep(Class).each do |klass|
         next if Nodes::SqlLiteral == klass
         next if Nodes::BindParam == klass
-        next if klass.name =~ /^Arel::Nodes::(?:Test|.*Test$)/
+        next if /^Arel::Nodes::(?:Test|.*Test$)/.match?(klass.name)
         assert klass.ancestors.include?(Nodes::Node), klass.name
       end
     end

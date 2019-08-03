@@ -1070,6 +1070,7 @@ ActiveRecord::Schema.define do
   create_table :cake_designers, force: true do |t|
   end
   create_table :drink_designers, force: true do |t|
+    t.string :name
   end
   create_table :chefs, force: true do |t|
     t.integer :employable_id
@@ -1077,6 +1078,7 @@ ActiveRecord::Schema.define do
     t.integer :department_id
     t.string :employable_list_type
     t.integer :employable_list_id
+    t.timestamps
   end
   create_table :recipes, force: true do |t|
     t.integer :chef_id

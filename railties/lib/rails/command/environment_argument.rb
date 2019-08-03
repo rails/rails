@@ -28,7 +28,7 @@ module Rails
           if available_environments.include? env
             env
           else
-            %w( production development test ).detect { |e| e =~ /^#{env}/ } || env
+            %w( production development test ).detect { |e| /^#{env}/.match?(e) } || env
           end
         end
 

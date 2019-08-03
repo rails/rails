@@ -62,7 +62,7 @@ module ActionView
         output  = ActionView::StreamingBuffer.new(buffer)
         yielder = lambda { |*name| view._layout_for(*name) }
 
-        instrument(:template, identifier: template.identifier, layout: layout.try(:virtual_path)) do
+        instrument(:template, identifier: template.identifier, layout: (layout && layout.virtual_path)) do
           outer_config = I18n.config
           fiber = Fiber.new do
             I18n.config = outer_config

@@ -90,7 +90,7 @@ INFO. Autoload paths are called _root directories_ in Zeitwerk documentation, bu
 
 Within an autoload path, file names must match the constants they define as documented [here](https://github.com/fxn/zeitwerk#file-structure).
 
-By default, the autoload paths of an application consist of all the subdirectories of `app` that exist when the application boots ---except for `aasets`, `javascripts`, `views`,--- plus the autoload paths of engines it might depend on.
+By default, the autoload paths of an application consist of all the subdirectories of `app` that exist when the application boots ---except for `assets`, `javascripts`, `views`,--- plus the autoload paths of engines it might depend on.
 
 For example, if `UsersHelper` is implemented in `app/helpers/users_helper.rb`, the module is autoloadable, you do not need (and should not write) a `require` call for it:
 
@@ -277,7 +277,7 @@ Rails.autoloaders.main
 Rails.autoloaders.once
 ```
 
-The former is the main one. The latter is there mostly for backwards compatibily reasons, in case the application has something in `config.autoload_once_paths` (this is discouraged nowadays).
+The former is the main one. The latter is there mostly for backwards compatibility reasons, in case the application has something in `config.autoload_once_paths` (this is discouraged nowadays).
 
 You can check if `zeitwerk` mode is enabled with
 

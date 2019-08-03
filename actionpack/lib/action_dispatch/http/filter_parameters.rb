@@ -23,7 +23,7 @@ module ActionDispatch
     #   change { file: { code: "xxxx"} }
     #
     #   env["action_dispatch.parameter_filter"] = -> (k, v) do
-    #     v.reverse! if k =~ /secret/i
+    #     v.reverse! if k.match?(/secret/i)
     #   end
     #   => reverses the value to all keys matching /secret/i
     module FilterParameters

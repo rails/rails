@@ -836,7 +836,7 @@ module ActionDispatch
 
       def recognize_path(path, environment = {})
         method = (environment[:method] || "GET").to_s.upcase
-        path = Journey::Router::Utils.normalize_path(path) unless path =~ %r{://}
+        path = Journey::Router::Utils.normalize_path(path) unless %r{://}.match?(path)
         extras = environment[:extras] || {}
 
         begin

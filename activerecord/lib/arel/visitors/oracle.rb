@@ -122,7 +122,7 @@ module Arel # :nodoc: all
           o.orders = []
           orders.each_with_index do |order, i|
             o.orders <<
-              Nodes::SqlLiteral.new("alias_#{i}__#{' DESC' if /\bdesc$/i === order}")
+              Nodes::SqlLiteral.new("alias_#{i}__#{' DESC' if /\bdesc$/i.match?(order)}")
           end
           o
         end

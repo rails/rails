@@ -15,7 +15,7 @@ Redis::Connection.drivers.append(driver)
 # connection pool testing.
 class SlowRedis < Redis
   def get(key, options = {})
-    if key =~ /latency/
+    if /latency/.match?(key)
       sleep 3
     else
       super

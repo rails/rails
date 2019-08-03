@@ -12,7 +12,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
   class IpRestrictor
     def self.matches?(request)
-      request.ip =~ /192\.168\.1\.1\d\d/
+      /192\.168\.1\.1\d\d/.match?(request.ip)
     end
   end
 
@@ -3823,7 +3823,7 @@ private
   end
 
   def method_missing(method, *args, &block)
-    if method.to_s =~ /_(path|url)$/
+    if method.to_s.match?(/_(path|url)$/)
       @app.routes.url_helpers.send(method, *args, &block)
     else
       super
@@ -5137,7 +5137,7 @@ class TestRecognizePath < ActionDispatch::IntegrationTest
     end
 
     def matches?(request)
-      request.path_parameters[key] =~ pattern
+      pattern.match?(request.path_parameters[key])
     end
   end
 
@@ -5147,8 +5147,8 @@ class TestRecognizePath < ActionDispatch::IntegrationTest
       get "/hash/:foo", to: "pages#show", constraints: { foo: /foo/ }
       get "/hash/:bar", to: "pages#show", constraints: { bar: /bar/ }
 
-      get "/proc/:foo", to: "pages#show", constraints: proc { |r| r.path_parameters[:foo] =~ /foo/ }
-      get "/proc/:bar", to: "pages#show", constraints: proc { |r| r.path_parameters[:bar] =~ /bar/ }
+      get "/proc/:foo", to: "pages#show", constraints: proc { |r| /foo/.match?(r.path_parameters[:foo]) }
+      get "/proc/:bar", to: "pages#show", constraints: proc { |r| /bar/.match?(r.path_parameters[:bar]) }
 
       get "/class/:foo", to: "pages#show", constraints: PageConstraint.new(:foo, /foo/)
       get "/class/:bar", to: "pages#show", constraints: PageConstraint.new(:bar, /bar/)

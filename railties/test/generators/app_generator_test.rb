@@ -678,7 +678,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_inclusion_of_listen_related_configuration_by_default
     run_generator
-    if RbConfig::CONFIG["host_os"] =~ /darwin|linux/
+    if /darwin|linux/.match?(RbConfig::CONFIG["host_os"])
       assert_listen_related_configuration
     else
       assert_no_listen_related_configuration
@@ -690,7 +690,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     Object.const_set(:RUBY_ENGINE, "MyRuby")
 
     run_generator
-    if RbConfig::CONFIG["host_os"] =~ /darwin|linux/
+    if /darwin|linux/.match?(RbConfig::CONFIG["host_os"])
       assert_listen_related_configuration
     else
       assert_no_listen_related_configuration
@@ -708,7 +708,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_evented_file_update_checker_config
     run_generator
     assert_file "config/environments/development.rb" do |content|
-      if RbConfig::CONFIG["host_os"] =~ /darwin|linux/
+      if /darwin|linux/.match?(RbConfig::CONFIG["host_os"])
         assert_match(/^\s*config\.file_watcher = ActiveSupport::EventedFileUpdateChecker/, content)
       else
         assert_match(/^\s*# config\.file_watcher = ActiveSupport::EventedFileUpdateChecker/, content)

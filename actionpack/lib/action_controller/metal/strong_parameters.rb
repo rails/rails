@@ -225,7 +225,7 @@ module ActionController
 
     class << self
       def nested_attribute?(key, value) # :nodoc:
-        key =~ /\A-?\d+\z/ && (value.is_a?(Hash) || value.is_a?(Parameters))
+        /\A-?\d+\z/.match?(key) && (value.is_a?(Hash) || value.is_a?(Parameters))
       end
     end
 

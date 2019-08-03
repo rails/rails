@@ -33,7 +33,7 @@ module ActionDispatch #:nodoc:
       private
         def html_response?(headers)
           if content_type = headers[CONTENT_TYPE]
-            content_type =~ /html/
+            /html/.match?(content_type)
           end
         end
 
@@ -42,7 +42,7 @@ module ActionDispatch #:nodoc:
         end
 
         def policy_empty?(policy)
-          policy.try(:directives) && policy.directives.empty?
+          policy&.directives&.empty?
         end
     end
 

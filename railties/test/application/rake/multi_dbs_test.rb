@@ -349,6 +349,25 @@ module ApplicationTests
           rails "db:drop" rescue nil
         end
       end
+
+      test "db:seed uses primary database connection" do
+        @old_rails_env = ENV["RAILS_ENV"]
+        @old_rack_env = ENV["RACK_ENV"]
+        ENV.delete "RAILS_ENV"
+        ENV.delete "RACK_ENV"
+
+        db_migrate_and_schema_dump_and_load "schema"
+
+        app_file "db/seeds.rb", <<-RUBY
+          print Book.connection.pool.spec.config[:database]
+        RUBY
+
+        output = rails("db:seed")
+        assert_equal output, "db/development.sqlite3"
+      ensure
+        ENV["RAILS_ENV"] = @old_rails_env
+        ENV["RACK_ENV"] = @old_rack_env
+      end
     end
   end
 end

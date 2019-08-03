@@ -22,7 +22,7 @@ class ParameterFilterTest < ActiveSupport::TestCase
 
       filter_words << "blah"
       filter_words << lambda { |key, value|
-        value.reverse! if key =~ /bargain/
+        value.reverse! if /bargain/.match?(key)
       }
       filter_words << lambda { |key, value, original_params|
         value.replace("world!") if original_params["barg"]["blah"] == "bar" && key == "hello"
@@ -61,7 +61,7 @@ class ParameterFilterTest < ActiveSupport::TestCase
 
       filter_words << "blah"
       filter_words << lambda { |key, value|
-        value.reverse! if key =~ /bargain/
+        value.reverse! if /bargain/.match?(key)
       }
       filter_words << lambda { |key, value, original_params|
         value.replace("world!") if original_params["barg"]["blah"] == "bar" && key == "hello"

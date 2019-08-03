@@ -952,6 +952,90 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal({ "proposed" => 2, "published" => 2 }, Book.group(:status).count)
   end
 
+  def test_select_avg_with_group_by_as_virtual_attribute_with_sql
+    rails_core = companies(:rails_core)
+
+    sql = <<~SQL
+      SELECT firm_id, AVG(credit_limit) AS avg_credit_limit
+      FROM accounts
+      WHERE firm_id = ?
+      GROUP BY firm_id
+      LIMIT 1
+    SQL
+
+    account = Account.find_by_sql([sql, rails_core]).first
+
+    # id was not selected, so it should be nil
+    # (cannot select id because it wasn't used in the GROUP BY clause)
+    assert_nil account.id
+
+    # firm_id was explicitly selected, so it should be present
+    assert_equal(rails_core, account.firm)
+
+    # avg_credit_limit should be present as a virtual attribute
+    assert_equal(52.5, account.avg_credit_limit)
+  end
+
+  def test_select_avg_with_group_by_as_virtual_attribute_with_ar
+    rails_core = companies(:rails_core)
+
+    account = Account
+      .select(:firm_id, "AVG(credit_limit) AS avg_credit_limit")
+      .where(firm: rails_core)
+      .group(:firm_id)
+      .take!
+
+    # id was not selected, so it should be nil
+    # (cannot select id because it wasn't used in the GROUP BY clause)
+    assert_nil account.id
+
+    # firm_id was explicitly selected, so it should be present
+    assert_equal(rails_core, account.firm)
+
+    # avg_credit_limit should be present as a virtual attribute
+    assert_equal(52.5, account.avg_credit_limit)
+  end
+
+  def test_select_avg_with_joins_and_group_by_as_virtual_attribute_with_sql
+    rails_core = companies(:rails_core)
+
+    sql = <<~SQL
+      SELECT companies.*, AVG(accounts.credit_limit) AS avg_credit_limit
+      FROM companies
+      INNER JOIN accounts ON companies.id = accounts.firm_id
+      WHERE companies.id = ?
+      GROUP BY companies.id
+      LIMIT 1
+    SQL
+
+    firm = DependentFirm.find_by_sql([sql, rails_core]).first
+
+    # all the DependentFirm attributes should be present
+    assert_equal rails_core, firm
+    assert_equal rails_core.name, firm.name
+
+    # avg_credit_limit should be present as a virtual attribute
+    assert_equal(52.5, firm.avg_credit_limit)
+  end
+
+  def test_select_avg_with_joins_and_group_by_as_virtual_attribute_with_ar
+    rails_core = companies(:rails_core)
+
+    firm = DependentFirm
+      .select("companies.*", "AVG(accounts.credit_limit) AS avg_credit_limit")
+      .where(id: rails_core)
+      .joins(:account)
+      .group(:id)
+      .take!
+
+    # all the DependentFirm attributes should be present
+    assert_equal rails_core, firm
+    assert_equal rails_core.name, firm.name
+
+    # avg_credit_limit should be present as a virtual attribute
+    assert_equal(52.5, firm.avg_credit_limit)
+  end
+
   def test_count_with_block_and_column_name_raises_an_error
     assert_raises(ArgumentError) do
       Account.count(:firm_id) { true }

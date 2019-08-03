@@ -60,6 +60,7 @@ module ActiveSupport
     # Transliteration is restricted to UTF-8, US-ASCII and GB18030 strings
     # Other encodings will raise an ArgumentError.
     def transliterate(string, replacement = "?", locale: nil)
+      string = string.dup if string.frozen?
       raise ArgumentError, "Can only transliterate strings. Received #{string.class.name}" unless string.is_a?(String)
 
       allowed_encodings = [Encoding::UTF_8, Encoding::US_ASCII, Encoding::GB18030]
@@ -116,7 +117,7 @@ module ActiveSupport
     # If the optional parameter +locale+ is specified,
     # the word will be parameterized as a word of that language.
     # By default, this parameter is set to <tt>nil</tt> and it will use
-    # the configured <tt>I18n.locale<tt>.
+    # the configured <tt>I18n.locale</tt>.
     def parameterize(string, separator: "-", preserve_case: false, locale: nil)
       # Replace accented chars with their ASCII equivalents.
       parameterized_string = transliterate(string, locale: locale)

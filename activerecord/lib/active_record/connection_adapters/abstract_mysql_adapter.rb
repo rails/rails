@@ -573,6 +573,7 @@ module ActiveRecord
         end
 
         # See https://dev.mysql.com/doc/refman/5.7/en/server-error-reference.html
+        ER_DB_CREATE_EXISTS     = 1007
         ER_DUP_ENTRY            = 1062
         ER_NOT_NULL_VIOLATION   = 1048
         ER_NO_REFERENCED_ROW    = 1216
@@ -592,6 +593,8 @@ module ActiveRecord
 
         def translate_exception(exception, message:, sql:, binds:)
           case error_number(exception)
+          when ER_DB_CREATE_EXISTS
+            DatabaseAlreadyExists.new(message, sql: sql, binds: binds)
           when ER_DUP_ENTRY
             RecordNotUnique.new(message, sql: sql, binds: binds)
           when ER_NO_REFERENCED_ROW, ER_ROW_IS_REFERENCED, ER_ROW_IS_REFERENCED_2, ER_NO_REFERENCED_ROW_2

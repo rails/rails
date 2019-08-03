@@ -9,7 +9,7 @@ require "dalli"
 # connection pool testing.
 class SlowDalliClient < Dalli::Client
   def get(key, options = {})
-    if key =~ /latency/
+    if /latency/.match?(key)
       sleep 3
     else
       super

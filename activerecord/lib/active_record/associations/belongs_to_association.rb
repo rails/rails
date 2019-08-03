@@ -44,7 +44,7 @@ module ActiveRecord
 
       def decrement_counters_before_last_save
         if reflection.polymorphic?
-          model_was = owner.attribute_before_last_save(reflection.foreign_type).try(:constantize)
+          model_was = owner.attribute_before_last_save(reflection.foreign_type)&.constantize
         else
           model_was = klass
         end

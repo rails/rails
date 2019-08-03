@@ -45,7 +45,7 @@ module ActionView
       def _back_url # :nodoc:
         _filtered_referrer || "javascript:history.back()"
       end
-      protected :_back_url
+      private :_back_url
 
       def _filtered_referrer # :nodoc:
         if controller.respond_to?(:request)
@@ -56,7 +56,7 @@ module ActionView
         end
       rescue URI::InvalidURIError
       end
-      protected :_filtered_referrer
+      private :_filtered_referrer
 
       # Creates an anchor element of the given +name+ using a URL created by the set of +options+.
       # See the valid options in the documentation for +url_for+. It's also possible to
@@ -627,7 +627,7 @@ module ActionView
       # is prepopulated with the passed phone number and optional
       # +country_code+ value.
       #
-      # +phone_to+ has a optional +country_code+ option which automatically adds the country
+      # +phone_to+ has an optional +country_code+ option which automatically adds the country
       # code as well as the + sign in the phone numer that gets prepopulated,
       # for example if +country_code: "01"+  +\+01+ will be prepended to the
       # phone numer, by passing special keys to +html_options+.

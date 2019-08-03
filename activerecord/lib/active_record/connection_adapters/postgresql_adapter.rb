@@ -12,6 +12,7 @@ class ::PG::Connection # :nodoc:
   end
 end
 
+require "active_support/core_ext/object/try"
 require "active_record/connection_adapters/abstract_adapter"
 require "active_record/connection_adapters/statement_pool"
 require "active_record/connection_adapters/postgresql/column"
@@ -467,6 +468,7 @@ module ActiveRecord
         UNIQUE_VIOLATION      = "23505"
         SERIALIZATION_FAILURE = "40001"
         DEADLOCK_DETECTED     = "40P01"
+        DUPLICATE_DATABASE    = "42P04"
         LOCK_NOT_AVAILABLE    = "55P03"
         QUERY_CANCELED        = "57014"
 
@@ -488,6 +490,8 @@ module ActiveRecord
             SerializationFailure.new(message, sql: sql, binds: binds)
           when DEADLOCK_DETECTED
             Deadlocked.new(message, sql: sql, binds: binds)
+          when DUPLICATE_DATABASE
+            DatabaseAlreadyExists.new(message, sql: sql, binds: binds)
           when LOCK_NOT_AVAILABLE
             LockWaitTimeout.new(message, sql: sql, binds: binds)
           when QUERY_CANCELED

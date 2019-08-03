@@ -36,7 +36,7 @@ module Kindle
     frontmatter = []
     html_pages.delete_if { |x|
       if /(toc|welcome|copyright).html/.match?(x)
-        frontmatter << x unless x =~ /toc/
+        frontmatter << x unless /toc/.match?(x)
         true
       end
     }

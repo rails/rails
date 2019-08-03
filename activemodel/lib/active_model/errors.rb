@@ -100,7 +100,7 @@ module ActiveModel
     def copy!(other) # :nodoc:
       @errors = other.errors.deep_dup
       @errors.each { |error|
-        error.instance_variable_set("@base", @base)
+        error.instance_variable_set(:@base, @base)
       }
     end
 

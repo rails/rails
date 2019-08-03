@@ -490,7 +490,7 @@ asyncTest('changing a select option without "data-url" attribute still fires aja
   setTimeout(function() { start() }, 20)
 })
 
-asyncTest('inputs inside disabled fieldset are not submited on remote forms', 3, function() {
+asyncTest('inputs inside disabled fieldset are not submitted on remote forms', 3, function() {
   $('form')
     .append('<fieldset>\
       <input name="description" value="A wise man" />\
