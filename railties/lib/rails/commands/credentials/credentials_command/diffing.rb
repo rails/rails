@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "fileutils"
-
 module Rails::Command::CredentialsCommand::Diffing # :nodoc:
   class Error < StandardError; end
 
