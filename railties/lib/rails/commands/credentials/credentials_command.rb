@@ -32,6 +32,7 @@ module Rails
 
         ensure_encryption_key_has_been_added if credentials.key.nil?
         ensure_credentials_have_been_added
+        ensure_rails_credentials_driver_is_set
 
         catch_editing_exceptions do
           change_credentials_in_system_editor
@@ -49,8 +50,8 @@ module Rails
         say credentials.read.presence || missing_credentials_message
       end
 
-      option :enable, type: :boolean, default: false,
-        desc: "Pass `--enable` to make credential files diffable with `git diff`"
+      option :enroll, type: :boolean, default: false,
+        desc: "Enrolls project in credential file diffing with `git diff`"
 
       def diff(content_path = nil)
         if @content_path = content_path
@@ -60,7 +61,7 @@ module Rails
           say credentials.read.presence || credentials.content_path.read
         else
           require_application!
-          enable_diffing if options[:enable]
+          enroll_project_in_credentials_diffing if options[:enroll]
         end
       rescue ActiveSupport::MessageEncryptor::InvalidMessage
         say credentials.content_path.read

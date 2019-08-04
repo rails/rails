@@ -123,26 +123,22 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
   end
 
 
-  test "diff enable diffing" do
-    run_diff_command(enable: true)
+  test "diff enroll diffing" do
+    assert_match("successfully enrolled", run_diff_command(enroll: true))
 
     assert_equal <<~EOM, File.read(app_path(".gitattributes"))
       config/credentials/*.yml.enc diff=rails_credentials
       config/credentials.yml.enc diff=rails_credentials
     EOM
+  end
+
+  test "running edit after enrolling in diffing sets diff driver" do
+    run_diff_command(enroll: true)
+    run_edit_command
 
     Dir.chdir(app_path) do
       assert_equal "bin/rails credentials:diff", `git config --get 'diff.rails_credentials.textconv'`.strip
     end
-  end
-
-  test "diff won't enable again if already enabled" do
-    app_file(".git/config", <<~EOM)
-      [diff "rails_credentials"]
-          textconv = bin/rails credentials:diff
-    EOM
-
-    assert_no_match(/Diffing enabled/, run_diff_command(enable: true))
   end
 
   test "diff from git diff left file" do
@@ -196,8 +192,8 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
       rails "credentials:show", args, **options
     end
 
-    def run_diff_command(path = nil, enable: nil, **options)
-      args = enable ? ["--enable"] : [path]
+    def run_diff_command(path = nil, enroll: nil, **options)
+      args = enroll ? ["--enroll"] : [path]
       rails "credentials:diff", args, **options
     end
 end
