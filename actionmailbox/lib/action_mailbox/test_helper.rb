@@ -10,11 +10,58 @@ module ActionMailbox
       create_inbound_email_from_source file_fixture(fixture_name).read, status: status
     end
 
-    # Create an +InboundEmail+ by specifying it using +Mail.new+ options. Example:
+    # Creates an +InboundEmail+ by specifying through options or a block.
+    #
+    # ==== Options
+    #
+    # * <tt>:status</tt> - The +status+ to set for the created +InboundEmail+.
+    #   For possible statuses, see {its documentation}[rdoc-ref:ActionMailbox::InboundEmail].
+    #
+    # ==== Creating a simple email
+    #
+    # When you only need to set basic fields like +from+, +to+, +subject+, and
+    # +body+, you can pass them directly as options.
     #
     #   create_inbound_email_from_mail(from: "david@loudthinking.com", subject: "Hello!")
-    def create_inbound_email_from_mail(status: :processing, **mail_options)
-      mail = Mail.new(mail_options)
+    #
+    # ==== Creating a multi-part email
+    #
+    # When you need to create a more intricate email, like a multi-part email
+    # that contains both a plaintext version and an HTML version, you can pass a
+    # block.
+    #
+    #   create_inbound_email_from_mail do
+    #     to "David Heinemeier Hansson <david@loudthinking.com>"
+    #     from "Bilbo Baggins <bilbo@bagend.com>"
+    #     subject "Come down to the Shire!"
+    #
+    #     text_part do
+    #       body "Please join us for a party at Bag End"
+    #     end
+    #
+    #     html_part do
+    #       body "<h1>Please join us for a party at Bag End</h1>"
+    #     end
+    #   end
+    #
+    # As with +Mail.new+, you can also use a block parameter to define the parts
+    # of the message:
+    #
+    #   create_inbound_email_from_mail do |mail|
+    #     mail.to "David Heinemeier Hansson <david@loudthinking.com>"
+    #     mail.from "Bilbo Baggins <bilbo@bagend.com>"
+    #     mail.subject "Come down to the Shire!"
+    #
+    #     mail.text_part do |part|
+    #       part.body "Please join us for a party at Bag End"
+    #     end
+    #
+    #     mail.html_part do |part|
+    #       part.body "<h1>Please join us for a party at Bag End</h1>"
+    #     end
+    #   end
+    def create_inbound_email_from_mail(status: :processing, **mail_options, &block)
+      mail = Mail.new(mail_options, &block)
       # Bcc header is not encoded by default
       mail[:bcc].include_in_headers = true if mail[:bcc]
 
