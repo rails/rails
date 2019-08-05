@@ -80,10 +80,11 @@ module ActionMailbox
       create_inbound_email_from_fixture(*args).tap(&:route)
     end
 
-    # Create an +InboundEmail+ using the same arguments as +create_inbound_email_from_mail+ and immediately route it to
-    # processing.
-    def receive_inbound_email_from_mail(**kwargs)
-      create_inbound_email_from_mail(**kwargs).tap(&:route)
+    # Create an +InboundEmail+ using the same options or block as
+    # {create_inbound_email_from_mail}[rdoc-ref:#create_inbound_email_from_mail],
+    # then immediately route it for processing.
+    def receive_inbound_email_from_mail(**kwargs, &block)
+      create_inbound_email_from_mail(**kwargs, &block).tap(&:route)
     end
 
     # Create an +InboundEmail+ using the same arguments as +create_inbound_email_from_source+ and immediately route it
