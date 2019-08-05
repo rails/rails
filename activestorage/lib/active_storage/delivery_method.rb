@@ -16,14 +16,6 @@ module ActiveStorage
           dm.name.sub("ActiveStorage::DeliveryMethod::", "").downcase == delivery_method.to_s
         end
       end
-
-      def url_options(override_options)
-        if ActiveStorage.proxy_urls_host
-          { host: ActiveStorage.proxy_urls_host }.merge(override_options || {})
-        else
-          { only_path: true }.merge(override_options || {})
-        end
-      end
     end
   end
 end

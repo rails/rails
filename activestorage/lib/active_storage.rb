@@ -66,7 +66,7 @@ module ActiveStorage
   mattr_accessor :replace_on_assign_to_many, default: false
 
   mattr_accessor :delivery_method,        default: :redirect
-  mattr_accessor :proxy_urls_expire_in,   default: 1.year
+  mattr_accessor :proxy_urls_expire_in
   mattr_accessor :proxy_urls_public,      default: true
   mattr_accessor :proxy_urls_host
   mattr_accessor :routes_prefix,          default: "/rails/active_storage"

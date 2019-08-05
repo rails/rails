@@ -9,7 +9,7 @@ module ActiveStorage
           representation.blob.signed_id,
           representation.variation.key,
           representation.blob.filename,
-          ActiveStorage::DeliveryMethod.url_options(url_options)
+          self.url_options(url_options)
         )
       end
 
@@ -18,8 +18,16 @@ module ActiveStorage
           :rails_blob_proxy,
           signed_id,
           filename,
-          ActiveStorage::DeliveryMethod.url_options(url_options)
+          self.url_options(url_options)
         )
+      end
+
+      def url_options(override_options)
+        if ActiveStorage.proxy_urls_host
+          { host: ActiveStorage.proxy_urls_host }.merge(override_options || {})
+        else
+          { only_path: true }.merge(override_options || {})
+        end
       end
     end
   end
