@@ -12,7 +12,7 @@ class PerRequestDigestCacheTest < ActiveSupport::TestCase
 
   setup do
     build_app
-    add_to_config "config.consider_all_requests_local = true"
+    add_to_env_config "development", "config.action_view.render_hints = false"
 
     app_file "app/models/customer.rb", <<-RUBY
       class Customer < Struct.new(:name, :id)
@@ -34,7 +34,6 @@ class PerRequestDigestCacheTest < ActiveSupport::TestCase
     app_file "app/controllers/customers_controller.rb", <<-RUBY
       class CustomersController < ApplicationController
         self.perform_caching = true
-        Rails.application.config.action_view.render_hints = true
 
         def index
           render [ Customer.new('david', 1), Customer.new('dingus', 2) ]
@@ -49,26 +48,18 @@ class PerRequestDigestCacheTest < ActiveSupport::TestCase
     RUBY
 
     require "#{app_path}/config/environment"
+    add_to_config "config.action_view.render_hints = false"
   end
 
   teardown :teardown_app
 
   test "digests are reused when rendering the same template twice" do
-    SecureRandom.stub(:uuid, "xyz-123") do
-      get "/customers"
-      assert_equal 200, last_response.status
+    get "/customers"
+    assert_equal 200, last_response.status
 
-      values = ActionView::LookupContext::DetailsKey.digest_caches.first.values
-      assert_equal [ "effc8928d0b33535c8a21d24ec617161" ], values
-      assert_equal ["<!--", "start", "render:", "customers/_customer,",
-                    "uuid:", "xyz-123,", "locals:",
-                    "{:customer=>#<struct", "Customer", "name=\"david\",", "id=1>}", "-->",
-                    "david",
-                    "<!--", "end", "render:", "customers/_customer,", "uuid:", "xyz-123", "-->",
-                    "<!--", "start", "render:", "customers/_customer,", "uuid:", "xyz-123,", "locals:", "{:customer=>#<struct", "Customer", "name=\"dingus\",", "id=2>}", "-->",
-                    "dingus",
-                    "<!--", "end", "render:", "customers/_customer,", "uuid:", "xyz-123", "-->"], last_response.body.split.map(&:strip)
-    end
+    values = ActionView::LookupContext::DetailsKey.digest_caches.first.values
+    assert_equal [ "effc8928d0b33535c8a21d24ec617161" ], values
+    assert_equal ["david", "dingus"], last_response.body.split.map(&:strip)
   end
 
   test "template digests are cleared before a request" do

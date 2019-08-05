@@ -687,6 +687,43 @@ module RenderTestCases
 
     assert_match "Content can't be blank", error.message
   end
+
+  def test_render_template_with_partial_hints
+    old_config = ActionView::PartialRenderer.render_hints
+    ActionView::PartialRenderer.render_hints = true
+
+    SecureRandom.stub(:uuid, "xyz-123") do
+      content = @view.render template: "test/template_with_partial_locals"
+
+      assert_match "start render:", content
+      assert_match "end render:", content
+      assert_match "{:first_name=>\"Jim\", :last_name=>\"Jones\"}", content
+      assert_match "uuid: xyz-123", content
+    end
+  ensure
+    ActionView::PartialRenderer.render_hints = old_config
+  end
+
+  def test_render_template_with_partial_hints_excludes_local_internals
+    old_config = ActionView::PartialRenderer.render_hints
+    ActionView::PartialRenderer.render_hints = true
+
+    content = @view.render template: "test/template_with_partial_collection"
+
+    SecureRandom.stub(:uuid, "xyz-123") do
+      content = @view.render template: "test/template_with_partial_locals"
+
+      assert_no_match "iteration", content
+      assert_no_match "counter", content
+
+      assert_match "start render:", content
+      assert_match "end render:", content
+      assert_match "{:first_name=>\"Jim\", :last_name=>\"Jones\"}", content
+      assert_match "uuid: xyz-123", content
+    end
+  ensure
+    ActionView::PartialRenderer.render_hints = old_config
+  end
 end
 
 class CachedViewRenderTest < ActiveSupport::TestCase
