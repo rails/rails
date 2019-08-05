@@ -1,3 +1,9 @@
+*   Add `:primary_key` option to `accepts_nested_attributes_for` to support
+    scenarios where public-facing identifiers (e.g. UUID) can be used in place
+    of database primary keys.
+
+    *Nick Rivadeneira*
+
 *   Preserve user supplied joins order as much as possible.
 
     Fixes #36761, #34328, #24281, #12953.

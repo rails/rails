@@ -321,6 +321,11 @@ module ActiveRecord
       #   are used to update the record's attributes always, regardless of
       #   whether the <tt>:id</tt> is present. The option is ignored for collection
       #   associations.
+      # [:primary_key]
+      #   Allows you to specify the attribute that will be used to find existing
+      #   records. If the attribute provided is not unique, the first matching
+      #   record will be updated. +:primary_key+ defaults to the primary key of
+      #   the associated model. This option accepts a Symbol or String.
       #
       # Examples:
       #   # creates avatar_attributes=
@@ -332,7 +337,7 @@ module ActiveRecord
       def accepts_nested_attributes_for(*attr_names)
         options = { allow_destroy: false, update_only: false }
         options.update(attr_names.extract_options!)
-        options.assert_valid_keys(:allow_destroy, :reject_if, :limit, :update_only)
+        options.assert_valid_keys(:allow_destroy, :reject_if, :limit, :update_only, :primary_key)
         options[:reject_if] = REJECT_ALL_BLANK_PROC if options[:reject_if] == :all_blank
 
         attr_names.each do |association_name|
@@ -408,9 +413,11 @@ module ActiveRecord
         end
         attributes = attributes.with_indifferent_access
         existing_record = send(association_name)
+        association = association(association_name)
+        primary_key = options[:primary_key] || association.klass&.primary_key || :id
 
         if (options[:update_only] || !attributes["id"].blank?) && existing_record &&
-            (options[:update_only] || existing_record.id.to_s == attributes["id"].to_s)
+            (options[:update_only] || existing_record.public_send(primary_key).to_s == attributes["id"].to_s)
           assign_to_or_mark_for_destruction(existing_record, attributes, options[:allow_destroy]) unless call_reject_if(association_name, attributes)
 
         elsif attributes["id"].present?
@@ -421,7 +428,7 @@ module ActiveRecord
 
           if existing_record && existing_record.new_record?
             existing_record.assign_attributes(assignable_attributes)
-            association(association_name).initialize_attributes(existing_record)
+            association.initialize_attributes(existing_record)
           else
             method = :"build_#{association_name}"
             if respond_to?(method)
@@ -482,12 +489,13 @@ module ActiveRecord
         end
 
         association = association(association_name)
+        primary_key = options[:primary_key] || association.klass&.primary_key || :id
 
         existing_records = if association.loaded?
           association.target
         else
           attribute_ids = attributes_collection.map { |a| a["id"] || a[:id] }.compact
-          attribute_ids.empty? ? [] : association.scope.where(association.klass.primary_key => attribute_ids)
+          attribute_ids.empty? ? [] : association.scope.where(primary_key => attribute_ids)
         end
 
         attributes_collection.each do |attributes|
@@ -500,12 +508,12 @@ module ActiveRecord
             unless reject_new_record?(association_name, attributes)
               association.reader.build(attributes.except(*UNASSIGNABLE_KEYS))
             end
-          elsif existing_record = existing_records.detect { |record| record.id.to_s == attributes["id"].to_s }
+          elsif existing_record = existing_records.detect { |record| record.public_send(primary_key).to_s == attributes["id"].to_s }
             unless call_reject_if(association_name, attributes)
               # Make sure we are operating on the actual object which is in the association's
               # proxy_target array (either by finding it, or adding it if not found)
               # Take into account that the proxy_target may have changed due to callbacks
-              target_record = association.target.detect { |record| record.id.to_s == attributes["id"].to_s }
+              target_record = association.target.detect { |record| record.public_send(primary_key).to_s == attributes["id"].to_s }
               if target_record
                 existing_record = target_record
               else

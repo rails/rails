@@ -11,6 +11,8 @@ require "models/man"
 require "models/interest"
 require "models/owner"
 require "models/pet"
+require "models/author"
+require "models/book"
 require "active_support/hash_with_indifferent_access"
 
 class TestNestedAttributesInGeneral < ActiveRecord::TestCase
@@ -1115,5 +1117,102 @@ class TestNestedAttributesWithExtend < ActiveRecord::TestCase
     pirate = Pirate.create!(catchphrase: "Don' botharrr talkin' like one, savvy?")
     pirate.treasures_attributes = [{ id: nil }]
     assert_equal "from extension", pirate.treasures[0].name
+  end
+end
+
+class TestHasManyNestedAttributesWithPrimaryKey < ActiveRecord::TestCase
+  setup do
+    @author = Author.create!(name: "Blackbeard")
+    @book = @author.books.create!(name: "Midsummer Night's Pillage", isbn: "12345")
+  end
+
+  test "when no :primary_key is provided, defaults to association's primary key" do
+    Author.accepts_nested_attributes_for :books
+
+    @author.update(books_attributes: [{ id: @book.id, name: "Pillaging for Dummies" }])
+
+    assert_equal "Pillaging for Dummies", @book.reload.name
+  end
+
+  test "when :primary_key is provided for an existing record, the record is updated" do
+    Author.accepts_nested_attributes_for :books, primary_key: :isbn
+
+    @author.update(books_attributes: [{ id: "12345", name: "Pillaging for Dummies" }])
+
+    assert_equal "Pillaging for Dummies", @book.reload.name
+    assert_equal 1, @author.books.size
+  end
+
+  test "when :primary_key is provided for a non-existent record, it raises RecordNotFound" do
+    Author.accepts_nested_attributes_for :books, primary_key: :isbn
+
+    exception = assert_raise ActiveRecord::RecordNotFound do
+      @author.update(books_attributes: [{ id: "23456", name: "Pillaging for Dummies" }])
+    end
+    assert_equal "Couldn't find Book with ID=23456 for Author with ID=#{@author.id}", exception.message
+  end
+end
+
+class TestHasOneNestedAttributesWithPrimaryKey < ActiveRecord::TestCase
+  setup do
+    @pirate = Pirate.create!(catchphrase: "Don' botharrr talkin' like one, savvy?")
+    @ship = @pirate.create_ship!(name: "Nights Dirty Lightning", developer_id: 54321)
+  end
+
+  test "when no :primary_key is provided, defaults to association's primary key" do
+    Pirate.accepts_nested_attributes_for :ship
+
+    @pirate.update(ship_attributes: { id: @ship.id, name: "Black Pearl" })
+
+    assert_equal "Black Pearl", @ship.reload.name
+  end
+
+  test "when :primary_key is provided, it is used for finding existing records" do
+    Pirate.accepts_nested_attributes_for :ship, primary_key: :developer_id
+
+    @pirate.update(ship_attributes: { id: 54321, name: "Black Pearl" })
+
+    assert_equal "Black Pearl", @ship.reload.name
+  end
+
+  test "when :primary_key is provided for a non-existent record, it raises RecordNotFound" do
+    Pirate.accepts_nested_attributes_for :ship, primary_key: :developer_id
+
+    exception = assert_raise ActiveRecord::RecordNotFound do
+      @pirate.update(ship_attributes: { id: 43210, name: "Black Pearl" })
+    end
+    assert_equal "Couldn't find Ship with ID=43210 for Pirate with ID=#{@pirate.id}", exception.message
+  end
+end
+
+class TestBelongsToNestedAttributesWithPrimaryKey < ActiveRecord::TestCase
+  setup do
+    @pirate = Pirate.create!(catchphrase: "Don' botharrr talkin' like one, savvy?", parrot_id: 34567)
+    @ship = @pirate.create_ship!(name: "Nights Dirty Lightning")
+  end
+
+  test "when no :primary_key is provided, defaults to association's primary key" do
+    Ship.accepts_nested_attributes_for :pirate
+
+    @ship.update(pirate_attributes: { id: @pirate.id, catchphrase: "Stop wastin' me time" })
+
+    assert_equal "Stop wastin' me time", @pirate.reload.catchphrase
+  end
+
+  test "when :primary_key is provided, it is used for finding existing records" do
+    Ship.accepts_nested_attributes_for :pirate, primary_key: :parrot_id
+
+    @ship.update(pirate_attributes: { id: 34567, catchphrase: "Stop wastin' me time" })
+
+    assert_equal "Stop wastin' me time", @pirate.reload.catchphrase
+  end
+
+  test "when :primary_key is provided for a non-existent record, it raises RecordNotFound" do
+    Ship.accepts_nested_attributes_for :pirate, primary_key: :parrot_id
+
+    exception = assert_raise ActiveRecord::RecordNotFound do
+      @ship.update(pirate_attributes: { id: 23456, catchphrase: "Stop wastin' me time" })
+    end
+    assert_equal "Couldn't find Pirate with ID=23456 for Ship with ID=#{@ship.id}", exception.message
   end
 end
