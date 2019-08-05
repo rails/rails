@@ -357,7 +357,7 @@ module ActiveRecord
       include ConnectionAdapters::AbstractPool
 
       attr_accessor :automatic_reconnect, :checkout_timeout, :schema_cache
-      attr_reader :spec, :size, :reaper
+      attr_reader :spec, :size, :reaper, :lock_thread
 
       # Creates a new ConnectionPool object. +spec+ is a ConnectionSpecification
       # object which describes database connection information (e.g. adapter,
@@ -706,6 +706,10 @@ module ActiveRecord
             checkout_timeout: checkout_timeout
           }
         end
+      end
+
+      def using_lock_thread? # :nodoc:
+        current_thread == @lock_thread
       end
 
       private

@@ -257,11 +257,23 @@ module ActiveRecord
         Concurrent.monotonic_time - @idle_since
       end
 
+      # Execute a block. If we're sharing this connection across
+      # threads (as in system tests), run it atomically.
+      def synchronized_in_lock_thread  # :nodoc:
+        if pool.using_lock_thread?
+          lock.synchronize { yield }
+        else
+          yield
+        end
+      end
+
       def unprepared_statement
-        old_prepared_statements, @prepared_statements = @prepared_statements, false
-        yield
-      ensure
-        @prepared_statements = old_prepared_statements
+        synchronized_in_lock_thread do
+          old_prepared_statements, @prepared_statements = @prepared_statements, false
+          yield
+        ensure
+          @prepared_statements = old_prepared_statements
+        end
       end
 
       # Returns the human-readable name of the adapter. Use mixed case - one

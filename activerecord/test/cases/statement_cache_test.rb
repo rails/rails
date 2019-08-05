@@ -111,6 +111,28 @@ module ActiveRecord
       assert_not_equal book, other_book
     end
 
+    def test_unprepared_statements_are_atomic_when_sharing_a_connection
+      old_lock_thread = ActiveRecord::Base.connection_pool.lock_thread
+      ActiveRecord::Base.connection_pool.lock_thread = true
+
+      Book.connection.unprepared_statement do
+        assert Book.connection.lock.mon_locked?
+      end
+    ensure
+      ActiveRecord::Base.connection_pool.lock_thread = old_lock_thread
+    end
+
+    def test_unprepared_statements_are_not_atomic_when_not_sharing_a_connection
+      old_lock_thread = ActiveRecord::Base.connection_pool.lock_thread
+      ActiveRecord::Base.connection_pool.lock_thread = false
+
+      Book.connection.unprepared_statement do
+        assert_not Book.connection.lock.mon_locked?
+      end
+    ensure
+      ActiveRecord::Base.connection_pool.lock_thread = old_lock_thread
+    end
+
     def test_find_by_does_not_use_statement_cache_if_table_name_is_changed
       book = Book.create(name: "my book")
 
