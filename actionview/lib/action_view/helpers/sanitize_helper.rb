@@ -2,7 +2,6 @@
 
 require "active_support/core_ext/object/try"
 require "rails-html-sanitizer"
-require "active_support/deprecation"
 
 module ActionView
   # = Action View Sanitize Helpers
