@@ -430,7 +430,7 @@ Please refer to the [Changelog][active-record] for detailed changes.
 *   Deprecate using class level querying methods if the receiver scope has leaked.
     ([Pull Request](https://github.com/rails/rails/pull/35280))
 
-*   Deprecate `config.activerecord.sqlite3.represent_boolean_as_integer`.
+*   Deprecate `config.active_record.sqlite3.represent_boolean_as_integer`.
     ([Commit](https://github.com/rails/rails/commit/f59b08119bc0c01a00561d38279b124abc82561b))
 
 *   Deprecate passing `migrations_paths` to `connection.assume_migrated_upto_version`.
