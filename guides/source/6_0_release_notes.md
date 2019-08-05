@@ -1002,6 +1002,9 @@ Please refer to the [Changelog][guides] for detailed changes.
 
 ### Notable changes
 
+*   Add Multiple Databases with Active Record guide.
+    ([Pull Request](https://github.com/rails/rails/pull/36389))
+
 *   Add a section about troubleshooting of autoloading constants.
     ([Commit](https://github.com/rails/rails/commit/c03bba4f1f03bad7dc034af555b7f2b329cf76f5))
 
