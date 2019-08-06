@@ -277,7 +277,7 @@ Rails.autoloaders.main
 Rails.autoloaders.once
 ```
 
-The former is the main one. The latter is there mostly for backwards compatibily reasons, in case the application has something in `config.autoload_once_paths` (this is discouraged nowadays).
+The former is the main one. The latter is there mostly for backwards compatibility reasons, in case the application has something in `config.autoload_once_paths` (this is discouraged nowadays).
 
 You can check if `zeitwerk` mode is enabled with
 

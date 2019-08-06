@@ -12,6 +12,7 @@ class ::PG::Connection # :nodoc:
   end
 end
 
+require "active_support/core_ext/object/try"
 require "active_record/connection_adapters/abstract_adapter"
 require "active_record/connection_adapters/statement_pool"
 require "active_record/connection_adapters/postgresql/column"

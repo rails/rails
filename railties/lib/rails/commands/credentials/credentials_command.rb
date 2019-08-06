@@ -1,17 +1,18 @@
 # frozen_string_literal: true
 
+require "pathname"
 require "active_support"
 require "rails/command/helpers/editor"
-require "rails/command/helpers/pretty_credentials"
 require "rails/command/environment_argument"
-require "pathname"
 
 module Rails
   module Command
     class CredentialsCommand < Rails::Command::Base # :nodoc:
       include Helpers::Editor
-      include Helpers::PrettyCredentials
       include EnvironmentArgument
+
+      require_relative "credentials_command/diffing"
+      include Diffing
 
       self.environment_desc = "Uses credentials from config/credentials/:environment.yml.enc encrypted by config/credentials/:environment.key key"
 
@@ -31,35 +32,44 @@ module Rails
 
         ensure_encryption_key_has_been_added if credentials.key.nil?
         ensure_credentials_have_been_added
+        ensure_rails_credentials_driver_is_set
 
         catch_editing_exceptions do
           change_credentials_in_system_editor
         end
 
         say "File encrypted and saved."
-        opt_in_pretty_credentials
       rescue ActiveSupport::MessageEncryptor::InvalidMessage
         say "Couldn't decrypt #{content_path}. Perhaps you passed the wrong key?"
       end
 
-      def show(git_textconv_path = nil)
-        if git_textconv_path
-          default_environment = extract_environment_from_path(git_textconv_path)
-          fallback_message = File.read(git_textconv_path)
-        end
-
-        extract_environment_option_from_argument(default_environment: default_environment)
+      def show
+        extract_environment_option_from_argument(default_environment: nil)
         require_application!
 
-        say credentials(git_textconv_path).read.presence || fallback_message || missing_credentials_message
-      rescue => e
-        raise(e) unless git_textconv_path
-        fallback_message
+        say credentials.read.presence || missing_credentials_message
+      end
+
+      option :enroll, type: :boolean, default: false,
+        desc: "Enrolls project in credential file diffing with `git diff`"
+
+      def diff(content_path = nil)
+        if @content_path = content_path
+          extract_environment_option_from_argument(default_environment: extract_environment_from_path(content_path))
+          require_application!
+
+          say credentials.read.presence || credentials.content_path.read
+        else
+          require_application!
+          enroll_project_in_credentials_diffing if options[:enroll]
+        end
+      rescue ActiveSupport::MessageEncryptor::InvalidMessage
+        say credentials.content_path.read
       end
 
       private
-        def credentials(content = nil)
-          Rails.application.encrypted(content || content_path, key_path: key_path)
+        def credentials
+          Rails.application.encrypted(content_path, key_path: key_path)
         end
 
         def ensure_encryption_key_has_been_added
@@ -89,8 +99,9 @@ module Rails
           end
         end
 
+
         def content_path
-          options[:environment] ? "config/credentials/#{options[:environment]}.yml.enc" : "config/credentials.yml.enc"
+          @content_path ||= options[:environment] ? "config/credentials/#{options[:environment]}.yml.enc" : "config/credentials.yml.enc"
         end
 
         def key_path
@@ -98,15 +109,7 @@ module Rails
         end
 
         def extract_environment_from_path(path)
-          regex = %r{
-            ([A-Za-z0-9]+)     # match the environment
-            (?<!credentials)   # don't match if file contains the word "credentials"
-                               # in such case, the environment should be the default one
-            \.yml\.enc         # look for `.yml.enc` file extension
-          }x
-          path.match(regex)
-
-          Regexp.last_match(1)
+          available_environments.find { |env| path.include? env } if path.match?(/\.yml\.enc$/)
         end
 
         def encryption_key_file_generator

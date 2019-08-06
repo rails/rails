@@ -10,6 +10,7 @@ I18n.enforce_available_locales = false
 
 require "active_support/testing/autorun"
 require "active_support/testing/method_call_assertions"
+require "active_support/core_ext/integer/time"
 
 class ActiveModel::TestCase < ActiveSupport::TestCase
   include ActiveSupport::Testing::MethodCallAssertions

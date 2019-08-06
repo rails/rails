@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/object/try"
+
 module ActiveStorage
   # Provides the class-level DSL for declaring an Active Record model's attachments.
   module Attached::Model

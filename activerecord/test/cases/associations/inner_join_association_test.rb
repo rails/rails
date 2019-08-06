@@ -69,6 +69,16 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
     assert_equal [expected], Person.joins(string_join).joins(agents.create_join(agents, agents.create_on(constraint)))
   end
 
+  def test_deduplicate_joins
+    posts = Post.arel_table
+    constraint = posts[:author_id].eq(Author.arel_attribute(:id))
+
+    authors = Author.joins(posts.create_join(posts, posts.create_on(constraint)))
+    authors = authors.joins(:author_address).merge(authors.where("posts.type": "SpecialPost"))
+
+    assert_equal [authors(:david)], authors
+  end
+
   def test_construct_finder_sql_ignores_empty_joins_hash
     sql = Author.joins({}).to_sql
     assert_no_match(/JOIN/i, sql)

@@ -268,14 +268,14 @@ class BaseTest < ActiveSupport::TestCase
   end
 
   test "accessing inline attachments after mail was called works" do
-    class LateInlineAttachmentMailer < ActionMailer::Base
+    class LateInlineAttachmentAccessorMailer < ActionMailer::Base
       def welcome
         mail body: "yay", from: "welcome@example.com", to: "to@example.com"
         attachments.inline["invoice.pdf"]
       end
     end
 
-    assert_nothing_raised { LateInlineAttachmentMailer.welcome.message }
+    assert_nothing_raised { LateInlineAttachmentAccessorMailer.welcome.message }
   end
 
   test "adding inline attachments while rendering mail works" do

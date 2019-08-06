@@ -106,7 +106,7 @@ module ActiveRecord
   # Wraps the underlying database error as +cause+.
   class StatementInvalid < ActiveRecordError
     def initialize(message = nil, sql: nil, binds: nil)
-      super(message || $!.try(:message))
+      super(message || $!&.message)
       @sql = sql
       @binds = binds
     end

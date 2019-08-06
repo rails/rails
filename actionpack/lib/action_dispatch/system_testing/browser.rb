@@ -47,14 +47,14 @@ module ActionDispatch
         case type
         when :chrome
           if ::Selenium::WebDriver::Service.respond_to? :driver_path=
-            ::Selenium::WebDriver::Chrome::Service.driver_path.try(:call)
+            ::Selenium::WebDriver::Chrome::Service.driver_path&.call
           else
             # Selenium <= v3.141.0
             ::Selenium::WebDriver::Chrome.driver_path
           end
         when :firefox
           if ::Selenium::WebDriver::Service.respond_to? :driver_path=
-            ::Selenium::WebDriver::Firefox::Service.driver_path.try(:call)
+            ::Selenium::WebDriver::Firefox::Service.driver_path&.call
           else
             # Selenium <= v3.141.0
             ::Selenium::WebDriver::Firefox.driver_path

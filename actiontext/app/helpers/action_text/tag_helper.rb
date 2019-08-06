@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/object/try"
 require "action_view/helpers/tags/placeholderable"
 
 module ActionText

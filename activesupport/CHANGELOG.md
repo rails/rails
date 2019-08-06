@@ -1,3 +1,11 @@
+*   Allow initializing `thread_mattr_*` attributes via `:default` option
+
+        class Scraper
+          thread_mattr_reader :client, default: Api::Client.new
+        end
+
+    *Guilherme Mansur*
+
 *   Add `compact_blank` for those times when you want to remove #blank? values from
     an Enumerable (also `compact_blank!` on Hash, Array, ActionController::Parameters)
 

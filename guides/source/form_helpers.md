@@ -307,7 +307,7 @@ When dealing with RESTful resources, calls to `form_with` can get significantly 
 ## Creating a new article
 # long-style:
 form_with(model: @article, url: articles_path)
-short-style:
+# short-style:
 form_with(model: @article)
 
 ## Editing an existing article
