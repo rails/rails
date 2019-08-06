@@ -1,3 +1,7 @@
+*   Switch from `azure-storage` gem to `azure-storage-blob` gem for Azure service.
+
+    *Peter Zhu*
+
 *   Add `config.active_storage.draw_routes` to disable Active Storage routes.
 
     *Gannon McGibbon*
