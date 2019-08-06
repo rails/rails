@@ -102,7 +102,7 @@ module ActiveStorage
     initializer "active_storage.services" do
       ActiveSupport.on_load(:active_storage_blob) do
         config_file = Pathname.new(Rails.root.join("config/storage.yml"))
-        configs = begin
+        configs = Rails.configuration.active_storage.service_configurations ||= begin
           if config_file.exist?
             require "yaml"
             require "erb"
@@ -122,25 +122,25 @@ module ActiveStorage
             raise("Couldn't find Active Storage configuration in #{config_file}") unless configs
 
             [[config_choice], configs]
-          elsif configs # New format for Active Sotrage config file
-            [configs[Rails.env].keys, configs[Rails.env]]
+          elsif env_configs = configs[Rails.env] # New format for Active Storage config file
+            [env_configs.keys, env_configs]
           end
 
-        raise "No Active Storage configuration found for environment #{Rails.env}" unless env_services && env_configs
+        if env_configs && env_services
+          ActiveStorage::Blob.services = begin
+            env_services.map do |service|
+              [service.to_s, ActiveStorage::Service.configure(service, env_configs)]
+            end.to_h
+          rescue => e
+            raise e, "Cannot load Active Storage service `#{service}`: #{e.message}", e.backtrace
+          end
 
-        ActiveStorage::Blob.services = begin
-          env_services.map do |service|
-            [service.to_s, ActiveStorage::Service.configure(service, env_configs)]
-          end.to_h
-        rescue => e
-          raise e, "Cannot load Active Storage service `#{service}`: #{e.message}", e.backtrace
+          default_service_name = Rails.configuration.active_storage.default_service_name
+
+          raise "Default service name must be provided when using multiple services" unless env_services.length == 1 || default_service_name
+
+          ActiveStorage::Blob.default_service_name = default_service_name
         end
-
-        default_service_name = Rails.configuration.active_storage.default_service_name
-
-        raise "Default service name must be provided when using multiple services" unless env_services.length == 1 || default_service_name
-
-        ActiveStorage::Blob.default_service_name = default_service_name
       end
     end
 
