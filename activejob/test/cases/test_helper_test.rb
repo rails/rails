@@ -859,6 +859,54 @@ class PerformedJobsTest < ActiveJob::TestCase
     assert_performed_jobs 1, only: LoggingJob, queue: :other_queue
   end
 
+  def test_perform_enqueued_jobs_with_at_with_job_performed_now
+    HelloJob.perform_later("kevin")
+
+    perform_enqueued_jobs(at: Time.now)
+
+    assert_performed_jobs 1
+  end
+
+  def test_perform_enqueued_jobs_with_at_with_job_wait_in_past
+    HelloJob.set(wait_until: Time.now - 100).perform_later("kevin")
+
+    perform_enqueued_jobs(at: Time.now)
+
+    assert_performed_jobs 1
+  end
+
+  def test_perform_enqueued_jobs_with_at_with_job_wait_in_future
+    HelloJob.set(wait_until: Time.now + 100).perform_later("kevin")
+
+    perform_enqueued_jobs(at: Time.now)
+
+    assert_performed_jobs 0
+  end
+
+  def test_perform_enqueued_jobs_block_with_at_with_job_performed_now
+    perform_enqueued_jobs(at: Time.now) do
+      HelloJob.perform_later("kevin")
+    end
+
+    assert_performed_jobs 1
+  end
+
+  def test_perform_enqueued_jobs_block_with_at_with_job_wait_in_past
+    perform_enqueued_jobs(at: Time.now) do
+      HelloJob.set(wait_until: Time.now - 100).perform_later("kevin")
+    end
+
+    assert_performed_jobs 1
+  end
+
+  def test_perform_enqueued_jobs_block_with_at_with_job_wait_in_future
+    perform_enqueued_jobs(at: Time.now) do
+      HelloJob.set(wait_until: Time.now + 100).perform_later("kevin")
+    end
+
+    assert_performed_jobs 0
+  end
+
   def test_assert_performed_jobs
     assert_nothing_raised do
       assert_performed_jobs 1 do
