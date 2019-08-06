@@ -6,10 +6,12 @@ module ActiveRecord
       module DatabaseStatements
         # Returns an ActiveRecord::Result instance.
         def select_all(*) # :nodoc:
-          result = if ExplainRegistry.collect? && prepared_statements
-            unprepared_statement { super }
-          else
-            super
+          result = @lock.synchronize do
+            if ExplainRegistry.collect? && prepared_statements
+              unprepared_statement { super }
+            else
+              super
+            end
           end
           @connection.abandon_results!
           result

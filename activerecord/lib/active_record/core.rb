@@ -168,11 +168,14 @@ module ActiveRecord
 
         key = primary_key
 
-        statement = cached_find_by_statement(key) { |params|
-          where(key => params.bind).limit(1)
-        }
+        record = connection.lock.synchronize do
+          statement = cached_find_by_statement(key) { |params|
+            where(key => params.bind).limit(1)
+          }
 
-        record = statement.execute([id], connection)&.first
+          statement.execute([id], connection)&.first
+        end
+
         unless record
           raise RecordNotFound.new("Couldn't find #{name} with '#{key}'=#{id}", name, key, id)
         end
@@ -194,16 +197,18 @@ module ActiveRecord
 
         keys = hash.keys
 
-        statement = cached_find_by_statement(keys) { |params|
-          wheres = keys.each_with_object({}) { |param, o|
-            o[param] = params.bind
+        connection.lock.synchronize do
+          statement = cached_find_by_statement(keys) { |params|
+            wheres = keys.each_with_object({}) { |param, o|
+              o[param] = params.bind
+            }
+            where(wheres).limit(1)
           }
-          where(wheres).limit(1)
-        }
-        begin
-          statement.execute(hash.values, connection)&.first
-        rescue TypeError
-          raise ActiveRecord::StatementInvalid
+          begin
+            statement.execute(hash.values, connection)&.first
+          rescue TypeError
+            raise ActiveRecord::StatementInvalid
+          end
         end
       end
 

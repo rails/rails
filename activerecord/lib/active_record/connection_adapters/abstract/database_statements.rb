@@ -15,28 +15,30 @@ module ActiveRecord
       end
 
       def to_sql_and_binds(arel_or_sql_string, binds = []) # :nodoc:
-        if arel_or_sql_string.respond_to?(:ast)
-          unless binds.empty?
-            raise "Passing bind parameters with an arel AST is forbidden. " \
-              "The values must be stored on the AST directly"
-          end
-
-          if prepared_statements
-            sql, binds = visitor.compile(arel_or_sql_string.ast, collector)
-
-            if binds.length > bind_params_length
-              unprepared_statement do
-                sql, binds = to_sql_and_binds(arel_or_sql_string)
-                visitor.preparable = false
-              end
+        @lock.synchronize do
+          if arel_or_sql_string.respond_to?(:ast)
+            unless binds.empty?
+              raise "Passing bind parameters with an arel AST is forbidden. " \
+                "The values must be stored on the AST directly"
             end
+
+            if prepared_statements
+              sql, binds = visitor.compile(arel_or_sql_string.ast, collector)
+
+              if binds.length > bind_params_length
+                unprepared_statement do
+                  sql, binds = to_sql_and_binds(arel_or_sql_string)
+                  visitor.preparable = false
+                end
+              end
+            else
+              sql = visitor.compile(arel_or_sql_string.ast, collector)
+            end
+            [sql.freeze, binds]
           else
-            sql = visitor.compile(arel_or_sql_string.ast, collector)
+            visitor.preparable = false if prepared_statements
+            [arel_or_sql_string.dup.freeze, binds]
           end
-          [sql.freeze, binds]
-        else
-          visitor.preparable = false if prepared_statements
-          [arel_or_sql_string.dup.freeze, binds]
         end
       end
       private :to_sql_and_binds
@@ -57,17 +59,19 @@ module ActiveRecord
 
       # Returns an ActiveRecord::Result instance.
       def select_all(arel, name = nil, binds = [], preparable: nil)
-        arel = arel_from_relation(arel)
-        sql, binds = to_sql_and_binds(arel, binds)
+        @lock.synchronize do
+          arel = arel_from_relation(arel)
+          sql, binds = to_sql_and_binds(arel, binds)
 
-        if preparable.nil?
-          preparable = prepared_statements ? visitor.preparable : false
-        end
+          if preparable.nil?
+            preparable = prepared_statements ? visitor.preparable : false
+          end
 
-        if prepared_statements && preparable
-          select_prepared(sql, name, binds)
-        else
-          select(sql, name, binds)
+          if prepared_statements && preparable
+            select_prepared(sql, name, binds)
+          else
+            select(sql, name, binds)
+          end
         end
       end
 

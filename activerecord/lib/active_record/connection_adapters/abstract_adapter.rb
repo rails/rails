@@ -258,10 +258,12 @@ module ActiveRecord
       end
 
       def unprepared_statement
-        old_prepared_statements, @prepared_statements = @prepared_statements, false
-        yield
-      ensure
-        @prepared_statements = old_prepared_statements
+        @lock.synchronize do
+          old_prepared_statements, @prepared_statements = @prepared_statements, false
+          yield
+        ensure
+          @prepared_statements = old_prepared_statements
+        end
       end
 
       # Returns the human-readable name of the adapter. Use mixed case - one
