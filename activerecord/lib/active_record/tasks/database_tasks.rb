@@ -332,8 +332,19 @@ module ActiveRecord
         end
         ActiveRecord::InternalMetadata.create_table
         ActiveRecord::InternalMetadata[:environment] = environment
+        ActiveRecord::InternalMetadata[:schema_sha1] = schema_sha1(file)
       ensure
         Migration.verbose = verbose_was
+      end
+
+      def schema_up_to_date?(configuration, format = ActiveRecord::Base.schema_format, file = nil, environment = env, spec_name = "primary")
+        file ||= dump_filename(spec_name, format)
+
+        return true unless File.exist?(file)
+
+        ActiveRecord::Base.establish_connection(configuration)
+        return false unless ActiveRecord::InternalMetadata.table_exists?
+        ActiveRecord::InternalMetadata[:schema_sha1] == schema_sha1(file)
       end
 
       def dump_schema(configuration, format = ActiveRecord::Base.schema_format, spec_name = "primary") # :nodoc:
@@ -466,6 +477,10 @@ module ActiveRecord
 
         def local_database?(configuration)
           configuration["host"].blank? || LOCAL_HOSTS.include?(configuration["host"])
+        end
+
+        def schema_sha1(file)
+          Digest::SHA1.hexdigest(File.read(file))
         end
     end
   end
