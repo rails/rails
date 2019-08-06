@@ -1,19 +1,20 @@
 # frozen_string_literal: true
 
+gem "azure-storage-blob", "~> 1.1"
+
 require "active_support/core_ext/numeric/bytes"
-require "azure/storage"
-require "azure/storage/core/auth/shared_access_signature"
+require "azure/storage/blob"
+require "azure/storage/common/core/auth/shared_access_signature"
 
 module ActiveStorage
   # Wraps the Microsoft Azure Storage Blob Service as an Active Storage service.
   # See ActiveStorage::Service for the generic API documentation that applies to all services.
   class Service::AzureStorageService < Service
-    attr_reader :client, :blobs, :container, :signer
+    attr_reader :client, :container, :signer
 
     def initialize(storage_account_name:, storage_access_key:, container:, **options)
-      @client = Azure::Storage::Client.create(storage_account_name: storage_account_name, storage_access_key: storage_access_key, **options)
-      @signer = Azure::Storage::Core::Auth::SharedAccessSignature.new(storage_account_name, storage_access_key)
-      @blobs = client.blob_client
+      @client = Azure::Storage::Blob::BlobService.create(storage_account_name: storage_account_name, storage_access_key: storage_access_key, **options)
+      @signer = Azure::Storage::Common::Core::Auth::SharedAccessSignature.new(storage_account_name, storage_access_key)
       @container = container
     end
 
@@ -22,7 +23,7 @@ module ActiveStorage
         handle_errors do
           content_disposition = content_disposition_with(filename: filename, type: disposition) if disposition && filename
 
-          blobs.create_block_blob(container, key, IO.try_convert(io) || io, content_md5: checksum, content_type: content_type, content_disposition: content_disposition)
+          client.create_block_blob(container, key, IO.try_convert(io) || io, content_md5: checksum, content_type: content_type, content_disposition: content_disposition)
         end
       end
     end
@@ -35,7 +36,7 @@ module ActiveStorage
       else
         instrument :download, key: key do
           handle_errors do
-            _, io = blobs.get_blob(container, key)
+            _, io = client.get_blob(container, key)
             io.force_encoding(Encoding::BINARY)
           end
         end
@@ -45,7 +46,7 @@ module ActiveStorage
     def download_chunk(key, range)
       instrument :download_chunk, key: key, range: range do
         handle_errors do
-          _, io = blobs.get_blob(container, key, start_range: range.begin, end_range: range.exclude_end? ? range.end - 1 : range.end)
+          _, io = client.get_blob(container, key, start_range: range.begin, end_range: range.exclude_end? ? range.end - 1 : range.end)
           io.force_encoding(Encoding::BINARY)
         end
       end
@@ -53,7 +54,7 @@ module ActiveStorage
 
     def delete(key)
       instrument :delete, key: key do
-        blobs.delete_blob(container, key)
+        client.delete_blob(container, key)
       rescue Azure::Core::Http::HTTPError => e
         raise unless e.type == "BlobNotFound"
         # Ignore files already deleted
@@ -65,10 +66,10 @@ module ActiveStorage
         marker = nil
 
         loop do
-          results = blobs.list_blobs(container, prefix: prefix, marker: marker)
+          results = client.list_blobs(container, prefix: prefix, marker: marker)
 
           results.each do |blob|
-            blobs.delete_blob(container, blob.name)
+            client.delete_blob(container, blob.name)
           end
 
           break unless marker = results.continuation_token.presence
@@ -122,11 +123,11 @@ module ActiveStorage
 
     private
       def uri_for(key)
-        blobs.generate_uri("#{container}/#{key}")
+        client.generate_uri("#{container}/#{key}")
       end
 
       def blob_for(key)
-        blobs.get_blob_properties(container, key)
+        client.get_blob_properties(container, key)
       rescue Azure::Core::Http::HTTPError
         false
       end
@@ -145,7 +146,7 @@ module ActiveStorage
         raise ActiveStorage::FileNotFoundError unless blob.present?
 
         while offset < blob.properties[:content_length]
-          _, chunk = blobs.get_blob(container, key, start_range: offset, end_range: offset + chunk_size - 1)
+          _, chunk = client.get_blob(container, key, start_range: offset, end_range: offset + chunk_size - 1)
           yield chunk.force_encoding(Encoding::BINARY)
           offset += chunk_size
         end

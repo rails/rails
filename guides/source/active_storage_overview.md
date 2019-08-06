@@ -155,10 +155,10 @@ azure:
   container: ""
 ```
 
-Add the [`azure-storage`](https://github.com/Azure/azure-storage-ruby) gem to your `Gemfile`:
+Add the [`azure-storage-blob`](https://github.com/Azure/azure-storage-ruby) gem to your `Gemfile`:
 
 ```ruby
-gem "azure-storage", require: false
+gem "azure-storage-blob", require: false
 ```
 
 ### Google Cloud Storage Service

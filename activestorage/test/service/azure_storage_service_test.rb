@@ -29,7 +29,7 @@ if SERVICE_CONFIGURATIONS[:azure]
 
       @service.upload(key, StringIO.new(data), checksum: Digest::MD5.base64digest(data), filename: ActiveStorage::Filename.new("test.txt"), disposition: :inline)
 
-      assert_equal("inline; filename=\"test.txt\"; filename*=UTF-8''test.txt", @service.blobs.get_blob_properties(@service.container, key).properties[:content_disposition])
+      assert_equal("inline; filename=\"test.txt\"; filename*=UTF-8''test.txt", @service.client.get_blob_properties(@service.container, key).properties[:content_disposition])
 
       url = @service.url(key, expires_in: 2.minutes, disposition: :attachment, content_type: nil, filename: ActiveStorage::Filename.new("test.html"))
       response = Net::HTTP.get_response(URI(url))

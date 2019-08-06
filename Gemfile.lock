@@ -136,10 +136,12 @@ GEM
       faraday (~> 0.9)
       faraday_middleware (~> 0.10)
       nokogiri (~> 1.6)
-    azure-storage (0.15.0.preview)
-      azure-core (~> 0.1)
-      faraday (~> 0.9)
-      faraday_middleware (~> 0.10)
+    azure-storage-blob (1.1.0)
+      azure-core (~> 0.1.13)
+      azure-storage-common (~> 1.0)
+      nokogiri (~> 1.6, >= 1.6.8)
+    azure-storage-common (1.1.0)
+      azure-core (~> 0.1.13)
       nokogiri (~> 1.6, >= 1.6.8)
     backburner (1.5.0)
       beaneater (~> 1.0)
@@ -221,7 +223,7 @@ GEM
     execjs (2.7.0)
     faraday (0.17.1)
       multipart-post (>= 1.2, < 3)
-    faraday_middleware (0.13.1)
+    faraday_middleware (0.14.0)
       faraday (>= 0.7.4, < 1.0)
     faye (1.2.4)
       cookiejar (>= 0.3.0)
@@ -539,7 +541,7 @@ DEPENDENCIES
   activerecord-jdbcsqlite3-adapter (>= 1.3.0)
   aws-sdk-s3
   aws-sdk-sns
-  azure-storage
+  azure-storage-blob
   backburner
   bcrypt (~> 3.1.11)
   benchmark-ips
