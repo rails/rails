@@ -222,7 +222,7 @@ module ActiveRecord
             when Hash
               resolve_hash_connection config_or_env
             else
-              resolve_connection config_or_env
+              raise TypeError, "Invalid type for configuration. Expected Symbol, String, or Hash. Got #{config_or_env.inspect}"
             end
           end
 
