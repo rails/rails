@@ -425,7 +425,7 @@ Some common modules you might want to add:
   ```ruby
   class ApplicationController < ActionController::API
     include ::ActionController::Caching
-    self.cache_store = :mem_cached_store
+    self.cache_store = :mem_cache_store
   end
   ```
   Rails does *not* pass this configuration automatically.
