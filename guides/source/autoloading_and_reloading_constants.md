@@ -270,7 +270,7 @@ end
 Rails.autoloaders
 -----------------
 
-The Zeitwerk instances managing your application are availabe at
+The Zeitwerk instances managing your application are available at
 
 ```ruby
 Rails.autoloaders.main
