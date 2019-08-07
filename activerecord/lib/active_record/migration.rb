@@ -591,7 +591,11 @@ module ActiveRecord
         current_config = Base.connection_config
         all_configs = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env)
 
-        unless all_configs.all? { |config| Tasks::DatabaseTasks.schema_up_to_date?(config.config) }
+        needs_update = !all_configs.all? do |db_config|
+          Tasks::DatabaseTasks.schema_up_to_date?(db_config.config, ActiveRecord::Base.schema_format, nil, Rails.env, db_config.spec_name)
+        end
+
+        if needs_update
           # Roundtrip to Rake to allow plugins to hook into database initialization.
           root = defined?(ENGINE_ROOT) ? ENGINE_ROOT : Rails.root
           FileUtils.cd(root) do
