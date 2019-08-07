@@ -117,7 +117,7 @@ module ActiveJob
     #       HelloJob.perform_later('elfassy')
     #     end
     #   end
-    def assert_enqueued_jobs(number, only: nil, except: nil, queue: nil, at: at)
+    def assert_enqueued_jobs(number, only: nil, except: nil, queue: nil)
       if block_given?
         original_count = enqueued_jobs_with(only: only, except: except, queue: queue)
 
