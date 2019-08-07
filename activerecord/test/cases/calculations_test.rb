@@ -798,6 +798,13 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal expected, actual
   end
 
+  def test_group_by_with_qouted_count_and_order_by_alias
+    quoted_posts_id = Post.connection.quote_table_name("posts.id")
+    expected = { "SpecialPost" => 1, "StiPost" => 1, "Post" => 9 }
+    actual = Post.group(:type).order("count_posts_id").count(quoted_posts_id)
+    assert_equal expected, actual
+  end
+
   def test_pluck_not_auto_table_name_prefix_if_column_included
     Company.create!(name: "test", contracts: [Contract.new(developer_id: 7)])
     ids = Company.includes(:contracts).pluck(:developer_id)
