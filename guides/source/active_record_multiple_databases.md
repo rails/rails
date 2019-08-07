@@ -71,7 +71,6 @@ production:
     database: my_animals_database
     user: animals_root
     adapter: mysql
-    migrations_paths: db/animals_migrate
   animals_replica:
     database: my_animals_database
     user: animals_readonly
@@ -88,10 +87,6 @@ replica user's permissions should be to read and not write.
 When using a replica database you need to add a `replica: true` entry to the replica in the
 `database.yml`. This is because Rails otherwise has no way of knowing which one is a replica
 and which one is the primary.
-
-Lastly, for new primary databases you need to set the `migrations_paths` to the directory
-where you will store migrations for that database. We'll look more at `migrations_paths`
-later on in this guide.
 
 Now that we have a new database, let's set up the model. In order to use the new database we
 need to create a new abstract class and connect to the animals databases.
@@ -176,8 +171,9 @@ database you can run `bin/rails db:create:animals`.
 Migrations for multiple databases should live in their own folders prefixed with the
 name of the database key in the configuration.
 
-You also need to set the `migrations_paths` in the database configurations to tell Rails
-where to find the migrations.
+You may also choose to set the `migrations_paths` in the database configurations
+to tell Rails where to find the migrations. If you don't, the path will be inferred
+for you.
 
 For example the `animals` database would look for migrations in the `db/animals_migrate` directory and
 `primary` would look in `db/migrate`. Rails generators now take a `--database` option

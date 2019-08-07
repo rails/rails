@@ -75,6 +75,10 @@ module ActiveRecord
       def schema_cache_path
         raise NotImplementedError
       end
+
+      def default_migrations_paths
+        [name == "primary" ? "db/migrate" : "db/#{name}_migrate"]
+      end
     end
   end
 end

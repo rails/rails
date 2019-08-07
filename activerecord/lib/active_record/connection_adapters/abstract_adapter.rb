@@ -120,7 +120,7 @@ module ActiveRecord
       end
 
       def migrations_paths # :nodoc:
-        @config[:migrations_paths] || Migrator.migrations_paths
+        pool.db_config.migrations_paths
       end
 
       def migration_context # :nodoc:

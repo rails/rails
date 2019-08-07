@@ -19,7 +19,6 @@ db_namespace = namespace :db do
 
   task load_config: :environment do
     ActiveRecord::Base.configurations       = ActiveRecord::Tasks::DatabaseTasks.database_configuration || {}
-    ActiveRecord::Migrator.migrations_paths = ActiveRecord::Tasks::DatabaseTasks.migrations_paths
   end
 
   namespace :create do
