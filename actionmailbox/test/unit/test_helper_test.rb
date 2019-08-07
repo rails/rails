@@ -20,21 +20,25 @@ module ActionMailbox
 
       mail = inbound_email.mail
 
-      assert_equal 2, mail.parts.count
-      assert_equal mail.text_part.to_s, <<~TEXT.chomp
+      expected_mail_text_part = <<~TEXT.chomp
         Content-Type: text/plain;\r
          charset=UTF-8\r
         Content-Transfer-Encoding: 7bit\r
         \r
         Hello, world
       TEXT
-      assert_equal mail.html_part.to_s, <<~HTML.chomp
+
+      expected_mail_html_part = <<~HTML.chomp
         Content-Type: text/html;\r
          charset=UTF-8\r
         Content-Transfer-Encoding: 7bit\r
         \r
         <h1>Hello, world</h1>
       HTML
+
+      assert_equal 2, mail.parts.count
+      assert_equal expected_mail_text_part, mail.text_part.to_s
+      assert_equal expected_mail_html_part, mail.html_part.to_s
     end
   end
 end
