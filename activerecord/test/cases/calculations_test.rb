@@ -798,7 +798,7 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal expected, actual
   end
 
-  def test_group_by_with_qouted_count_and_order_by_alias
+  def test_group_by_with_quoted_count_and_order_by_alias
     quoted_posts_id = Post.connection.quote_table_name("posts.id")
     expected = { "SpecialPost" => 1, "StiPost" => 1, "Post" => 9 }
     actual = Post.group(:type).order("count_posts_id").count(quoted_posts_id)
