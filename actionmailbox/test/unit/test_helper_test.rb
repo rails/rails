@@ -20,7 +20,7 @@ module ActionMailbox
 
       mail = inbound_email.mail
 
-      assert_equal mail.parts.length, 2
+      assert_equal 2, mail.parts.count
       assert_equal mail.text_part.to_s, <<~TEXT.chomp
         Content-Type: text/plain;\r
          charset=UTF-8\r
