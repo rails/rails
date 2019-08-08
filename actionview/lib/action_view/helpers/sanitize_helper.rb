@@ -124,6 +124,10 @@ module ActionView
       module ClassMethods #:nodoc:
         attr_writer :full_sanitizer, :link_sanitizer, :safe_list_sanitizer
 
+        def sanitizer_vendor
+          Rails::Html::Sanitizer
+        end
+
         def sanitized_allowed_tags
           safe_list_sanitizer.allowed_tags
         end
@@ -139,7 +143,7 @@ module ActionView
         #     config.action_view.full_sanitizer = MySpecialSanitizer.new
         #   end
         def full_sanitizer
-          @full_sanitizer ||= Rails::Html::Sanitizer.full_sanitizer.new
+          @full_sanitizer ||= sanitizer_vendor.full_sanitizer.new
         end
 
         # Gets the Rails::Html::LinkSanitizer instance used by +strip_links+.
@@ -149,7 +153,7 @@ module ActionView
         #     config.action_view.link_sanitizer = MySpecialSanitizer.new
         #   end
         def link_sanitizer
-          @link_sanitizer ||= Rails::Html::Sanitizer.link_sanitizer.new
+          @link_sanitizer ||= sanitizer_vendor.link_sanitizer.new
         end
 
         # Gets the Rails::Html::SafeListSanitizer instance used by sanitize and +sanitize_css+.
@@ -159,7 +163,7 @@ module ActionView
         #     config.action_view.safe_list_sanitizer = MySpecialSanitizer.new
         #   end
         def safe_list_sanitizer
-          @safe_list_sanitizer ||= Rails::Html::Sanitizer.safe_list_sanitizer.new
+          @safe_list_sanitizer ||= sanitizer_vendor.safe_list_sanitizer.new
         end
       end
     end
