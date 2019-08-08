@@ -1737,6 +1737,20 @@ class RelationTest < ActiveRecord::TestCase
     assert_nil relation.order_values.first
   end
 
+  def test_reorder_with_first
+    sql_log = capture_sql do
+      assert Post.order(:title).reorder(nil).first
+    end
+    assert sql_log.all? { |sql| !/order by/i.match?(sql) }, "ORDER BY was used in the query: #{sql_log}"
+  end
+
+  def test_reorder_with_take
+    sql_log = capture_sql do
+      assert Post.order(:title).reorder(nil).take
+    end
+    assert sql_log.all? { |sql| !/order by/i.match?(sql) }, "ORDER BY was used in the query: #{sql_log}"
+  end
+
   def test_presence
     topics = Topic.all
 
