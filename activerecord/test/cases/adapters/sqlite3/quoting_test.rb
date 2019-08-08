@@ -37,6 +37,14 @@ class SQLite3QuotingTest < ActiveRecord::SQLite3TestCase
     assert_equal "'hello'", @conn.quote(type.serialize(value))
   end
 
+  def test_quoted_array
+    array = [["target_project1", "target_package1"], ["target_project2", "target_package2"]]
+
+    assert_raises TypeError do
+      @conn.quote(array)
+    end
+  end
+
   def test_quoted_time_returns_date_qualified_time
     value = ::Time.utc(2000, 1, 1, 12, 30, 0, 999999)
     type = ActiveRecord::Type::Time.new

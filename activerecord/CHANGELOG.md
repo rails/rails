@@ -1,4 +1,4 @@
-*   Postgresql: Support array of pairs in WHERE IN queries
+*   PostgreSQL/MySQL: Support array of pairs in WHERE IN queries
 
     ```ruby
     Article.where('(title, text) IN (?)', [['title1', 'text1'], ['title2','text2']])

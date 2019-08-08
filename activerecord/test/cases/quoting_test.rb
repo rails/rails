@@ -185,6 +185,13 @@ module ActiveRecord
         assert_equal "'Object'", @quoter.quote(Object)
       end
 
+      def test_quoted_array
+        expected = "(('target_project1','target_package1'),('target_project2','target_package2'))"
+        array = [["target_project1", "target_package1"], ["target_project2", "target_package2"]]
+
+        assert_equal expected, @quoter.quote(array)
+      end
+
       def test_crazy_object
         crazy = Object.new
         e = assert_raises(TypeError) do

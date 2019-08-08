@@ -94,6 +94,10 @@ module ActiveRecord
         end
       end
 
+      def quote_array(a)
+        "(#{a.map { |entry| _quote(entry) }.join(',')})"
+      end
+
       def quoted_true
         "TRUE"
       end
@@ -175,6 +179,7 @@ module ActiveRecord
           when Type::Time::Value then "'#{quoted_time(value)}'"
           when Date, Time then "'#{quoted_date(value)}'"
           when Class      then "'#{value}'"
+          when Array      then quote_array(value)
           else raise TypeError, "can't quote #{value.class.name}"
           end
         end
