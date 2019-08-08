@@ -1739,7 +1739,14 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_reorder_with_first
     sql_log = capture_sql do
-      assert Post.order(:title).reorder(nil).first
+      message = <<~MSG.squish
+        `.reorder(nil)` with `.first` / `.first!` no longer
+        takes non-deterministic result in Rails 6.2.
+        To continue taking non-deterministic result, use `.take` / `.take!` instead.
+      MSG
+      assert_deprecated(message) do
+        assert Post.order(:title).reorder(nil).first
+      end
     end
     assert sql_log.all? { |sql| !/order by/i.match?(sql) }, "ORDER BY was used in the query: #{sql_log}"
   end
