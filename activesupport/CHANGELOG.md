@@ -1,3 +1,8 @@
+*   Support multiple arguments in `HashWithIndifferentAccess` for `merge` and `update` methods, to
+    follow Ruby 2.6 addition.
+
+    *Wojciech Wnętrzak*
+
 *   Allow initializing `thread_mattr_*` attributes via `:default` option
 
         class Scraper
