@@ -45,7 +45,7 @@ prepareOptions = (options) ->
 
 createXHR = (options, done) ->
   xhr = new XMLHttpRequest()
-  # Open and setup xhr
+  # Open and set up xhr
   xhr.open(options.type, options.url, true)
   xhr.setRequestHeader('Accept', options.accept)
   # Set Content-Type only when sending a string

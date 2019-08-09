@@ -19,7 +19,7 @@ installed. Older versions are not supported.
 
 To get started with PostgreSQL have a look at the
 [configuring Rails guide](configuring.html#configuring-a-postgresql-database).
-It describes how to properly setup Active Record for PostgreSQL.
+It describes how to properly set up Active Record for PostgreSQL.
 
 Datatypes
 ---------

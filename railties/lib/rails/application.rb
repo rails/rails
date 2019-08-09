@@ -45,7 +45,7 @@ module Rails
   # process. From the moment you require "config/application.rb" in your app,
   # the booting process goes like this:
   #
-  #   1)  require "config/boot.rb" to setup load paths
+  #   1)  require "config/boot.rb" to set up load paths
   #   2)  require railties and engines
   #   3)  Define Rails.application as "class MyApp::Application < Rails::Application"
   #   4)  Run config.before_configuration callbacks

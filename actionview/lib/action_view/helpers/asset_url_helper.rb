@@ -52,7 +52,7 @@ module ActionView
     # solution being slower. You should be sure to measure your actual
     # performance across targeted browsers both before and after this change.
     #
-    # To implement the corresponding hosts you can either setup four actual
+    # To implement the corresponding hosts you can either set up four actual
     # hosts or use wildcard DNS to CNAME the wildcard to a single asset host.
     # You can read more about setting up your DNS CNAME records from your ISP.
     #

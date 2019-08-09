@@ -20,7 +20,7 @@ module ActionMailer
   #
   # The generated model inherits from <tt>ApplicationMailer</tt> which in turn
   # inherits from <tt>ActionMailer::Base</tt>. A mailer model defines methods
-  # used to generate an email message. In these methods, you can setup variables to be used in
+  # used to generate an email message. In these methods, you can set up variables to be used in
   # the mailer views, options on the mail itself such as the <tt>:from</tt> address, and attachments.
   #
   #   class ApplicationMailer < ActionMailer::Base
@@ -859,7 +859,7 @@ module ActionMailer
 
       create_parts_from_responses(message, responses)
 
-      # Setup content type, reapply charset and handle parts order
+      # Set up content type, reapply charset and handle parts order
       message.content_type = set_content_type(message, content_type, headers[:content_type])
       message.charset      = charset
 

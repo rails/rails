@@ -183,7 +183,7 @@ Contributing to the Rails Code
 
 ### Setting Up a Development Environment
 
-To move on from submitting bugs to helping resolve existing issues or contributing your own code to Ruby on Rails, you _must_ be able to run its test suite. In this section of the guide, you'll learn how to setup the tests on your own computer.
+To move on from submitting bugs to helping resolve existing issues or contributing your own code to Ruby on Rails, you _must_ be able to run its test suite. In this section of the guide, you'll learn how to set up the tests on your own computer.
 
 #### The Easy Way
 
@@ -287,7 +287,7 @@ scenarios. Ideally, they should be based on real-world scenarios extracted
 from production applications.
 
 You can use the [benchmark template](https://github.com/rails/rails/blob/master/guides/bug_report_templates/benchmark.rb)
-as a starting point. It includes the boilerplate code to setup a benchmark
+as a starting point. It includes the boilerplate code to set up a benchmark
 using the [benchmark-ips](https://github.com/evanphx/benchmark-ips) gem. The
 template is designed for testing relatively self-contained changes that can be
 inlined into the script.

@@ -149,7 +149,7 @@ rotation.
 Once users with SHA1 digested signed cookies should no longer have a chance to
 have their cookies rewritten, remove the rotation.
 
-While you can setup as many rotations as you'd like it's not common to have many
+While you can set up as many rotations as you'd like it's not common to have many
 rotations going at any one time.
 
 For more details on key rotation with encrypted and signed messages as
