@@ -142,7 +142,7 @@ module ActiveStorage
       end
 
       def apply_host_alias(url)
-        return if host_alias.nil?
+        return url if host_alias.nil?
 
         parsed_url = URI.parse(url)
         parsed_url.host = host_alias
