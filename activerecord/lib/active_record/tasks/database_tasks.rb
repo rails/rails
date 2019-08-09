@@ -348,6 +348,24 @@ module ActiveRecord
         ActiveRecord::InternalMetadata[:schema_sha1] == schema_sha1(file)
       end
 
+      def reconstruct_from_schema(configuration, format = ActiveRecord::Base.schema_format, file = nil, environment = env, spec_name = "primary") # :nodoc:
+        file ||= dump_filename(spec_name, format)
+
+        check_schema_file(file)
+
+        ActiveRecord::Base.establish_connection(configuration)
+
+        if schema_up_to_date?(configuration, format, file, environment, spec_name)
+          truncate_tables(configuration)
+        else
+          purge(configuration)
+          load_schema(configuration, format, file, environment, spec_name)
+        end
+      rescue ActiveRecord::NoDatabaseError
+        create(configuration)
+        load_schema(configuration, format, file, environment, spec_name)
+      end
+
       def dump_schema(configuration, format = ActiveRecord::Base.schema_format, spec_name = "primary") # :nodoc:
         require "active_record/schema_dumper"
         filename = dump_filename(spec_name, format)
