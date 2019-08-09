@@ -7,7 +7,7 @@ This guide covers using multiple databases with your Rails application.
 
 After reading this guide you will know:
 
-* How to setup your application for multiple databases.
+* How to set up your application for multiple databases.
 * How automatic connection switching works.
 * What features are supported and what's still a work in progress.
 

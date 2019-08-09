@@ -85,7 +85,7 @@ module ActiveModel
   #
   # It can be useful to access the class that is using that validator when there are prerequisites such
   # as an +attr_accessor+ being present. This class is accessible via <tt>options[:class]</tt> in the constructor.
-  # To setup your validator override the constructor.
+  # To set up your validator override the constructor.
   #
   #   class MyValidator < ActiveModel::Validator
   #     def initialize(options={})

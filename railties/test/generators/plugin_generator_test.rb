@@ -30,7 +30,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     "#{destination_root}/test/dummy"
   end
 
-  # brings setup, teardown, and some tests
+  # brings set up, teardown, and some tests
   include SharedGeneratorTests
 
   def test_invalid_plugin_name_raises_an_error

@@ -192,7 +192,7 @@ module ActiveRecord
   # When *not* to use transactional tests:
   #
   # 1. You're testing whether a transaction works correctly. Nested transactions don't commit until
-  #    all parent transactions commit, particularly, the fixtures transaction which is begun in setup
+  #    all parent transactions commit, particularly, the fixtures transaction which is begun in set up
   #    and rolled back in teardown. Thus, you won't be able to verify
   #    the results of your transaction until Active Record supports nested transactions or savepoints (in progress).
   # 2. Your database does not support transactions. Every Active Record database supports transactions except MySQL MyISAM.
