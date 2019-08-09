@@ -21,7 +21,7 @@ module ActiveRecord
         end
 
         def quote_array(a)
-          raise TypeError, "can't quote Array"
+          raise TypeError, "Array values not supported by SQLite3 adapter"
         end
 
         def quoted_time(value)
