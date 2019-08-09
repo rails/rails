@@ -70,7 +70,7 @@ end
 
 # pre-compute the insert statements and fake data compilation,
 # so the benchmarks below show the actual runtime for the execute
-# method, minus the set up steps
+# method, minus the setup steps
 
 # Using the same paragraph for all exhibits because it is very slow
 # to generate unique paragraphs for all exhibits.
