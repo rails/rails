@@ -98,7 +98,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
   arguments [destination_root]
 
-  # brings set up, teardown, and some tests
+  # brings setup, teardown, and some tests
   include SharedGeneratorTests
 
   def default_files
