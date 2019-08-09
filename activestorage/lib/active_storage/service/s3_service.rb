@@ -10,11 +10,12 @@ module ActiveStorage
   # See ActiveStorage::Service for the generic API documentation that applies to all services.
   class Service::S3Service < Service
     attr_reader :client, :bucket
-    attr_reader :multipart_upload_threshold, :upload_options
+    attr_reader :multipart_upload_threshold, :upload_options, :host_alias
 
-    def initialize(bucket:, upload: {}, **options)
+    def initialize(bucket:, upload: {}, host_alias: nil, **options)
       @client = Aws::S3::Resource.new(**options)
       @bucket = @client.bucket(bucket)
+      @host_alias = host_alias
 
       @multipart_upload_threshold = upload.fetch(:multipart_threshold, 100.megabytes)
       @upload_options = upload
@@ -80,6 +81,7 @@ module ActiveStorage
           response_content_disposition: content_disposition_with(type: disposition, filename: filename),
           response_content_type: content_type
 
+        generated_url = apply_host_alias(generated_url)
         payload[:url] = generated_url
 
         generated_url
@@ -137,6 +139,14 @@ module ActiveStorage
           yield object.get(range: "bytes=#{offset}-#{offset + chunk_size - 1}").body.string.force_encoding(Encoding::BINARY)
           offset += chunk_size
         end
+      end
+
+      def apply_host_alias(url)
+        return if host_alias.nil?
+
+        parsed_url = URI.parse(url)
+        parsed_url.host = host_alias
+        parsed_url.to_s
       end
   end
 end

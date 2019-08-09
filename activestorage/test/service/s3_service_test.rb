@@ -45,6 +45,16 @@ if SERVICE_CONFIGURATIONS[:s3]
       assert_match SERVICE_CONFIGURATIONS[:s3][:bucket], url
     end
 
+    test "signed URL generation with host alias" do
+      host_alias = 'example-alias.com'
+      service = build_service(host_alias: 'example-alias.com')
+      url = service.url(@key, expires_in: 5.minutes,
+                         disposition: :inline, filename: ActiveStorage::Filename.new("avatar.png"), content_type: "image/png")
+
+      assert_match(/response-content-disposition=inline.*avatar\.png.*response-content-type=image%2Fpng/, url)
+      assert_match host_alias, url
+    end
+
     test "uploading with server-side encryption" do
       service = build_service(upload: { server_side_encryption: "AES256" })
 
