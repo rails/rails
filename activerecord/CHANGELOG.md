@@ -1,3 +1,7 @@
+*   Stop trying to read yaml file fixtures when loading Active Record fixtures.
+
+    *Gannon McGibbon*
+
 *   Deprecate `.reorder(nil)` with `.first` / `.first!` taking non-deterministic result.
 
     To continue taking non-deterministic result, use `.take` / `.take!` instead.
