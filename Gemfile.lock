@@ -40,7 +40,7 @@ PATH
       rack (~> 2.0)
       rack-test (>= 0.6.3)
       rails-dom-testing (~> 2.0)
-      rails-html-sanitizer (~> 1.0, >= 1.0.2)
+      rails-html-sanitizer (~> 1.0, >= 1.2.0)
     actiontext (6.0.0.rc2)
       actionpack (= 6.0.0.rc2)
       activerecord (= 6.0.0.rc2)
