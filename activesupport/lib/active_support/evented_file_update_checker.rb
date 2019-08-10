@@ -104,7 +104,7 @@ module ActiveSupport
       end
 
       def shutdown!
-        ::Listen.stop
+        Listen.stop
       end
 
       def normalize_dirs!
