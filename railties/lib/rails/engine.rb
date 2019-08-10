@@ -3,6 +3,7 @@
 require "rails/railtie"
 require "rails/engine/railties"
 require "active_support/core_ext/module/delegation"
+require "active_support/core_ext/object/try"
 require "pathname"
 require "thread"
 
@@ -362,7 +363,7 @@ module Rails
           base.called_from = begin
             call_stack = caller_locations.map { |l| l.absolute_path || l.path }
 
-            File.dirname(call_stack.detect { |p| p !~ %r[railties[\w.-]*/lib/rails|rack[\w.-]*/lib/rack] })
+            File.dirname(call_stack.detect { |p| !p.match?(%r[railties[\w.-]*/lib/rails|rack[\w.-]*/lib/rack]) })
           end
         end
 
@@ -654,14 +655,12 @@ module Rails
     end
 
     protected
-
       def run_tasks_blocks(*) #:nodoc:
         super
         paths["lib/tasks"].existent.sort.each { |ext| load(ext) }
       end
 
     private
-
       def load_config_initializer(initializer) # :doc:
         ActiveSupport::Notifications.instrument("load_config_initializer.railties", initializer: initializer) do
           load(initializer)

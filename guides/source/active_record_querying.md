@@ -1821,6 +1821,21 @@ Client.limit(1).pluck(:name)
 # => ["David"]
 ```
 
+NOTE: You should also know that using `pluck` will trigger eager loading if the relation object contains include values, even if the eager loading is not necessary for the query. For example:
+
+```ruby
+# store association for reusing it
+assoc = Company.includes(:account)
+assoc.pluck(:id)
+# SELECT "companies"."id" FROM "companies" LEFT OUTER JOIN "accounts" ON "accounts"."id" = "companies"."account_id"
+```
+
+One way to avoid this is to `unscope` the includes:
+
+```ruby
+assoc.unscope(:includes).pluck(:id)
+```
+
 ### `ids`
 
 `ids` can be used to pluck all the IDs for the relation using the table's primary key.

@@ -100,7 +100,7 @@ module ActiveRecord
       # converting them into an array and iterating through them using
       # Array#select.
       #
-      #   person.pets.select { |pet| pet.name =~ /oo/ }
+      #   person.pets.select { |pet| /oo/.match?(pet.name) }
       #   # => [
       #   #      #<Pet id: 2, name: "Spook", person_id: 1>,
       #   #      #<Pet id: 3, name: "Choo-Choo", person_id: 1>
@@ -1029,7 +1029,7 @@ module ActiveRecord
       alias_method :append, :<<
       alias_method :concat, :<<
 
-      def prepend(*args)
+      def prepend(*args) # :nodoc:
         raise NoMethodError, "prepend on association is not defined. Please use <<, push or append"
       end
 
@@ -1101,7 +1101,6 @@ module ActiveRecord
       delegate(*delegate_methods, to: :scope)
 
       private
-
         def find_nth_with_limit(index, limit)
           load_target if find_from_target?
           super

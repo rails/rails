@@ -11,6 +11,11 @@ module ActiveRecord
           !READ_QUERY.match?(sql)
         end
 
+        def explain(arel, binds = [])
+          sql = "EXPLAIN QUERY PLAN #{to_sql(arel, binds)}"
+          SQLite3::ExplainPrettyPrinter.new.pp(exec_query(sql, "EXPLAIN", []))
+        end
+
         def execute(sql, name = nil) #:nodoc:
           if preventing_writes? && write_query?(sql)
             raise ActiveRecord::ReadOnlyError, "Write query attempted while in readonly mode: #{sql}"
@@ -68,17 +73,16 @@ module ActiveRecord
         alias :exec_update :exec_delete
 
         def begin_db_transaction #:nodoc:
-          log("begin transaction", nil) { @connection.transaction }
+          log("begin transaction", "TRANSACTION") { @connection.transaction }
         end
 
         def commit_db_transaction #:nodoc:
-          log("commit transaction", nil) { @connection.commit }
+          log("commit transaction", "TRANSACTION") { @connection.commit }
         end
 
         def exec_rollback_db_transaction #:nodoc:
-          log("rollback transaction", nil) { @connection.rollback }
+          log("rollback transaction", "TRANSACTION") { @connection.rollback }
         end
-
 
         private
           def execute_batch(sql, name = nil)

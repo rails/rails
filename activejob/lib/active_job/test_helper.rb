@@ -539,8 +539,10 @@ module ActiveJob
     #     assert_performed_jobs 1
     #   end
     #
-    def perform_enqueued_jobs(only: nil, except: nil, queue: nil)
-      return flush_enqueued_jobs(only: only, except: except, queue: queue) unless block_given?
+    # If the +:at+ option is specified, then only run jobs enqueued to run
+    # immediately or before the given time
+    def perform_enqueued_jobs(only: nil, except: nil, queue: nil, at: nil)
+      return flush_enqueued_jobs(only: only, except: except, queue: queue, at: at) unless block_given?
 
       validate_option(only: only, except: except)
 
@@ -549,6 +551,7 @@ module ActiveJob
       old_filter = queue_adapter.filter
       old_reject = queue_adapter.reject
       old_queue = queue_adapter.queue
+      old_at = queue_adapter.at
 
       begin
         queue_adapter.perform_enqueued_jobs = true
@@ -556,6 +559,7 @@ module ActiveJob
         queue_adapter.filter = only
         queue_adapter.reject = except
         queue_adapter.queue = queue
+        queue_adapter.at = at
 
         yield
       ensure
@@ -564,6 +568,7 @@ module ActiveJob
         queue_adapter.filter = old_filter
         queue_adapter.reject = old_reject
         queue_adapter.queue = old_queue
+        queue_adapter.at = old_at
       end
     end
 
@@ -585,7 +590,7 @@ module ActiveJob
         performed_jobs.clear
       end
 
-      def jobs_with(jobs, only: nil, except: nil, queue: nil)
+      def jobs_with(jobs, only: nil, except: nil, queue: nil, at: nil)
         validate_option(only: only, except: except)
 
         jobs.count do |job|
@@ -601,6 +606,10 @@ module ActiveJob
             next false unless queue.to_s == job.fetch(:queue, job_class.queue_name)
           end
 
+          if at && job[:at]
+            next false if job[:at] > at.to_f
+          end
+
           yield job if block_given?
 
           true
@@ -613,16 +622,16 @@ module ActiveJob
         ->(job) { Array(filter).include?(job.fetch(:job)) }
       end
 
-      def enqueued_jobs_with(only: nil, except: nil, queue: nil, &block)
-        jobs_with(enqueued_jobs, only: only, except: except, queue: queue, &block)
+      def enqueued_jobs_with(only: nil, except: nil, queue: nil, at: nil, &block)
+        jobs_with(enqueued_jobs, only: only, except: except, queue: queue, at: at, &block)
       end
 
       def performed_jobs_with(only: nil, except: nil, queue: nil, &block)
         jobs_with(performed_jobs, only: only, except: except, queue: queue, &block)
       end
 
-      def flush_enqueued_jobs(only: nil, except: nil, queue: nil)
-        enqueued_jobs_with(only: only, except: except, queue: queue) do |payload|
+      def flush_enqueued_jobs(only: nil, except: nil, queue: nil, at: nil)
+        enqueued_jobs_with(only: only, except: except, queue: queue, at: at) do |payload|
           instantiate_job(payload).perform_now
           queue_adapter.performed_jobs << payload
         end
@@ -630,7 +639,7 @@ module ActiveJob
 
       def prepare_args_for_assertion(args)
         args.dup.tap do |arguments|
-          arguments[:at] = arguments[:at].to_f if arguments[:at]
+          arguments[:at] = round_time_arguments(arguments[:at]) if arguments[:at]
           arguments[:args] = round_time_arguments(arguments[:args]) if arguments[:args]
         end
       end
@@ -650,6 +659,7 @@ module ActiveJob
 
       def deserialize_args_for_assertion(job)
         job.dup.tap do |new_job|
+          new_job[:at] = round_time_arguments(Time.at(new_job[:at])) if new_job[:at]
           new_job[:args] = ActiveJob::Arguments.deserialize(new_job[:args]) if new_job[:args]
         end
       end

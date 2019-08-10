@@ -2,6 +2,8 @@
 
 require "abstract_unit"
 require "controller/fake_models"
+require "test_component"
+require "active_model/validations"
 
 class TestController < ActionController::Base
 end
@@ -31,6 +33,11 @@ module RenderTestCases
 
     # Ensure original are still the same since we are reindexing view paths
     assert_equal ORIGINAL_LOCALES, I18n.available_locales.map(&:to_s).sort
+  end
+
+  def teardown
+    I18n.reload!
+    ActionController::Base.view_paths.map(&:clear_cache)
   end
 
   def test_implicit_format_comes_from_parent_template
@@ -665,6 +672,21 @@ module RenderTestCases
   def test_render_throws_exception_when_no_extensions_passed_to_register_template_handler_function_call
     assert_raises(ArgumentError) { ActionView::Template.register_template_handler CustomHandler }
   end
+
+  def test_render_component
+    assert_equal(
+      %(<span title="my title">Hello, World! (Inline render)</span>),
+      @view.render(TestComponent.new(title: "my title")) { "Hello, World!" }.strip
+    )
+  end
+
+  def test_render_component_with_validation_error
+    error = assert_raises(ActiveModel::ValidationError) do
+      @view.render(TestComponent.new(title: "my title")).strip
+    end
+
+    assert_match "Content can't be blank", error.message
+  end
 end
 
 class CachedViewRenderTest < ActiveSupport::TestCase
@@ -676,11 +698,6 @@ class CachedViewRenderTest < ActiveSupport::TestCase
     view_paths = ActionController::Base.view_paths
     assert_equal ActionView::OptimizedFileSystemResolver, view_paths.first.class
     setup_view(view_paths)
-  end
-
-  def teardown
-    GC.start
-    I18n.reload!
   end
 end
 
@@ -695,11 +712,6 @@ class LazyViewRenderTest < ActiveSupport::TestCase
     view_paths = ActionView::PathSet.new([path])
     assert_equal ActionView::FileSystemResolver.new(FIXTURE_LOAD_PATH), view_paths.first
     setup_view(view_paths)
-  end
-
-  def teardown
-    GC.start
-    I18n.reload!
   end
 
   def test_render_utf8_template_with_magic_comment
@@ -756,10 +768,6 @@ class CachedCollectionViewRenderTest < ActiveSupport::TestCase
     ActionView::PartialRenderer.collection_cache = ActiveSupport::Cache::MemoryStore.new
 
     setup_view(view_paths)
-  end
-
-  teardown do
-    I18n.reload!
   end
 
   test "template body written to cache" do

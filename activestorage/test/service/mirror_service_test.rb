@@ -53,6 +53,20 @@ class ActiveStorage::Service::MirrorServiceTest < ActiveSupport::TestCase
     end
   end
 
+  test "mirroring a file from the primary service to secondary services where it doesn't exist" do
+    key      = SecureRandom.base58(24)
+    data     = "Something else entirely!"
+    checksum = Digest::MD5.base64digest(data)
+
+    @service.primary.upload key, StringIO.new(data), checksum: checksum
+    @service.mirrors.third.upload key, StringIO.new("Surprise!")
+
+    @service.mirror key, checksum: checksum
+    assert_equal data, @service.mirrors.first.download(key)
+    assert_equal data, @service.mirrors.second.download(key)
+    assert_equal "Surprise!", @service.mirrors.third.download(key)
+  end
+
   test "URL generation in primary service" do
     filename = ActiveStorage::Filename.new("test.txt")
 

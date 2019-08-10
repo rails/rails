@@ -177,6 +177,11 @@ module ActiveRecord
 
           affected_rows = super
 
+          if @_skip_dirty_tracking ||= false
+            clear_attribute_changes(@_touch_attr_names)
+            return affected_rows
+          end
+
           changes = {}
           @attributes.keys.each do |attr_name|
             next if @_touch_attr_names.include?(attr_name)
@@ -193,7 +198,7 @@ module ActiveRecord
 
           affected_rows
         ensure
-          @_touch_attr_names = nil
+          @_touch_attr_names, @_skip_dirty_tracking = nil, nil
         end
 
         def _update_record(attribute_names = attribute_names_for_partial_writes)

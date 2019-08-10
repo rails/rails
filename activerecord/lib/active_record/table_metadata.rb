@@ -4,8 +4,9 @@ module ActiveRecord
   class TableMetadata # :nodoc:
     delegate :foreign_type, :foreign_key, :join_primary_key, :join_foreign_key, to: :association, prefix: true
 
-    def initialize(klass, arel_table, association = nil)
+    def initialize(klass, arel_table, association = nil, types = klass)
       @klass = klass
+      @types = types
       @arel_table = arel_table
       @association = association
     end
@@ -29,11 +30,7 @@ module ActiveRecord
     end
 
     def type(column_name)
-      if klass
-        klass.type_for_attribute(column_name)
-      else
-        Type.default_value
-      end
+      types.type_for_attribute(column_name)
     end
 
     def has_column?(column_name)
@@ -52,13 +49,12 @@ module ActiveRecord
       elsif association && !association.polymorphic?
         association_klass = association.klass
         arel_table = association_klass.arel_table.alias(table_name)
+        TableMetadata.new(association_klass, arel_table, association)
       else
         type_caster = TypeCaster::Connection.new(klass, table_name)
-        association_klass = nil
         arel_table = Arel::Table.new(table_name, type_caster: type_caster)
+        TableMetadata.new(nil, arel_table, association, type_caster)
       end
-
-      TableMetadata.new(association_klass, arel_table, association)
     end
 
     def polymorphic_association?
@@ -74,6 +70,6 @@ module ActiveRecord
     end
 
     private
-      attr_reader :klass, :arel_table, :association
+      attr_reader :klass, :types, :arel_table, :association
   end
 end

@@ -220,7 +220,7 @@ Inside the `app` directory are the standard `assets`, `controllers`, `helpers`,
 `jobs`, `mailers`, `models`, and `views` directories that you should be familiar with
 from an application. We'll look more into models in a future section, when we're writing the engine.
 
-Within the `app/assets` directory, there are the `images`, `javascripts` and
+Within the `app/assets` directory, there are the `images` and
 `stylesheets` directories which, again, you should be familiar with due to their
 similarity to an application. One difference here, however, is that each
 directory contains a sub-directory with the engine name. Because this engine is
@@ -264,7 +264,7 @@ contains a file called `application_helper.rb`. This file will provide any
 common functionality for the helpers of the engine. The `blorgh` directory
 is where the other helpers for the engine will go. By placing them within
 this namespaced directory, you prevent them from possibly clashing with
-identically-named helpers within other engines or even within the
+identically-named route helpers within other engines or even within the
 application.
 
 Within the `app/jobs` directory there is a `blorgh` directory that
@@ -1511,34 +1511,35 @@ These are the hooks you can use in your own code.
 
 To hook into the initialization process of one of the following classes use the available hook.
 
-| Class                             | Available Hooks                      |
-| --------------------------------- | ------------------------------------ |
-| `ActionCable`                     | `action_cable`                       |
-| `ActionCable::Channel::Base`      | `action_cable_channel`               |
-| `ActionCable::Connection::Base`   | `action_cable_connection`            |
-| `ActionController::API`           | `action_controller_api`              |
-| `ActionController::API`           | `action_controller`                  |
-| `ActionController::Base`          | `action_controller_base`             |
-| `ActionController::Base`          | `action_controller`                  |
-| `ActionController::TestCase`      | `action_controller_test_case`        |
-| `ActionDispatch::IntegrationTest` | `action_dispatch_integration_test`   |
-| `ActionDispatch::SystemTestCase`  | `action_dispatch_system_test_case`   |
-| `ActionMailbox::Base`             | `action_mailbox`                     |
-| `ActionMailbox::InboundEmail`     | `action_mailbox_inbound_email`       |
-| `ActionMailbox::TestCase`         | `action_mailbox_test_case`           |
-| `ActionMailer::Base`              | `action_mailer`                      |
-| `ActionMailer::TestCase`          | `action_mailer_test_case`            |
-| `ActionText::Content`             | `action_text_content`                |
-| `ActionText::RichText`            | `action_text_rich_text`              |
-| `ActionView::Base`                | `action_view`                        |
-| `ActionView::TestCase`            | `action_view_test_case`              |
-| `ActiveJob::Base`                 | `active_job`                         |
-| `ActiveJob::TestCase`             | `active_job_test_case`               |
-| `ActiveRecord::Base`              | `active_record`                      |
-| `ActiveStorage::Attachment`       | `active_storage_attachment`          |
-| `ActiveStorage::Blob`             | `active_storage_blob`                |
-| `ActiveSupport::TestCase`         | `active_support_test_case`           |
-| `i18n`                            | `i18n`                               |
+| Class                                | Available Hooks                      |
+| -------------------------------------| ------------------------------------ |
+| `ActionCable`                        | `action_cable`                       |
+| `ActionCable::Channel::Base`         | `action_cable_channel`               |
+| `ActionCable::Connection::Base`      | `action_cable_connection`            |
+| `ActionCable::Connection::TestCase`  | `action_cable_connection_test_case`  |
+| `ActionController::API`              | `action_controller_api`              |
+| `ActionController::API`              | `action_controller`                  |
+| `ActionController::Base`             | `action_controller_base`             |
+| `ActionController::Base`             | `action_controller`                  |
+| `ActionController::TestCase`         | `action_controller_test_case`        |
+| `ActionDispatch::IntegrationTest`    | `action_dispatch_integration_test`   |
+| `ActionDispatch::SystemTestCase`     | `action_dispatch_system_test_case`   |
+| `ActionMailbox::Base`                | `action_mailbox`                     |
+| `ActionMailbox::InboundEmail`        | `action_mailbox_inbound_email`       |
+| `ActionMailbox::TestCase`            | `action_mailbox_test_case`           |
+| `ActionMailer::Base`                 | `action_mailer`                      |
+| `ActionMailer::TestCase`             | `action_mailer_test_case`            |
+| `ActionText::Content`                | `action_text_content`                |
+| `ActionText::RichText`               | `action_text_rich_text`              |
+| `ActionView::Base`                   | `action_view`                        |
+| `ActionView::TestCase`               | `action_view_test_case`              |
+| `ActiveJob::Base`                    | `active_job`                         |
+| `ActiveJob::TestCase`                | `active_job_test_case`               |
+| `ActiveRecord::Base`                 | `active_record`                      |
+| `ActiveStorage::Attachment`          | `active_storage_attachment`          |
+| `ActiveStorage::Blob`                | `active_storage_blob`                |
+| `ActiveSupport::TestCase`            | `active_support_test_case`           |
+| `i18n`                               | `i18n`                               |
 
 ## Configuration hooks
 

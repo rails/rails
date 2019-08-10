@@ -21,12 +21,6 @@ module ActiveRecord
         connection.create_database configuration["database"],
           configuration.merge("encoding" => encoding)
         establish_connection configuration
-      rescue ActiveRecord::StatementInvalid => error
-        if error.cause.is_a?(PG::DuplicateDatabase)
-          raise DatabaseAlreadyExists
-        else
-          raise
-        end
       end
 
       def drop
@@ -89,7 +83,6 @@ module ActiveRecord
       end
 
       private
-
         attr_reader :configuration
 
         def encoding

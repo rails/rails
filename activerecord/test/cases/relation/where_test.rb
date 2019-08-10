@@ -18,13 +18,18 @@ require "support/stubs/strong_parameters"
 
 module ActiveRecord
   class WhereTest < ActiveRecord::TestCase
-    fixtures :posts, :edges, :authors, :author_addresses, :binaries, :essays, :cars, :treasures, :price_estimates, :topics
+    fixtures :posts, :comments, :edges, :authors, :author_addresses, :binaries, :essays, :cars, :treasures, :price_estimates, :topics
 
     def test_in_clause_is_correctly_sliced
       assert_called(Author.connection, :in_clause_length, returns: 1) do
         david = authors(:david)
         assert_equal [david], Author.where(name: "David", id: [1, 2])
       end
+    end
+
+    def test_type_casting_nested_joins
+      comment = comments(:eager_other_comment1)
+      assert_equal [comment], Comment.joins(post: :author).where(authors: { id: "2-foo" })
     end
 
     def test_where_copies_bind_params

@@ -148,6 +148,41 @@ module Enumerable
       map { |element| element[keys.first] }
     end
   end
+
+  # Returns a new +Array+ without the blank items.
+  # Uses Object#blank? for determining if an item is blank.
+  #
+  #    [1, "", nil, 2, " ", [], {}, false, true].compact_blank
+  #    # =>  [1, 2, true]
+  #
+  #    Set.new([nil, "", 1, 2])
+  #    # => [2, 1] (or [1, 2])
+  #
+  # When called on a +Hash+, returns a new +Hash+ without the blank values.
+  #
+  #    { a: "", b: 1, c: nil, d: [], e: false, f: true }.compact_blank
+  #    #=> { b: 1, f: true }
+  def compact_blank
+    reject(&:blank?)
+  end
+end
+
+class Hash
+  # Hash#reject has its own definition, so this needs one too.
+  def compact_blank #:nodoc:
+    reject { |_k, v| v.blank? }
+  end
+
+  # Removes all blank values from the +Hash+ in place and returns self.
+  # Uses Object#blank? for determining if a value is blank.
+  #
+  #    h = { a: "", b: 1, c: nil, d: [], e: false, f: true }
+  #    h.compact_blank!
+  #    # => { b: 1, f: true }
+  def compact_blank!
+    # use delete_if rather than reject! because it always returns self even if nothing changed
+    delete_if { |_k, v| v.blank? }
+  end
 end
 
 class Range #:nodoc:
@@ -184,5 +219,16 @@ class Array #:nodoc:
     else
       super
     end
+  end
+
+  # Removes all blank elements from the +Array+ in place and returns self.
+  # Uses Object#blank? for determining if an item is blank.
+  #
+  #    a = [1, "", nil, 2, " ", [], {}, false, true]
+  #    a.compact_blank!
+  #    # =>  [1, 2, true]
+  def compact_blank!
+    # use delete_if rather than reject! because it always returns self even if nothing changed
+    delete_if(&:blank?)
   end
 end

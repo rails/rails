@@ -18,6 +18,11 @@ module ActiveModel
         :integer
       end
 
+      def deserialize(value)
+        return if value.blank?
+        value.to_i
+      end
+
       def serialize(value)
         return if value.is_a?(::String) && non_numeric_string?(value)
         ensure_in_range(super)

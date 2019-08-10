@@ -98,7 +98,6 @@ module Rails
       end
 
     private
-
       def filter_by(&block)
         all_paths.find_all(&block).flat_map { |path|
           paths = path.existent
@@ -223,14 +222,11 @@ module Rails
       alias to_a expanded
 
       private
-
         def files_in(path)
-          Dir.chdir(path) do
-            files = Dir.glob(@glob)
-            files -= @exclude if @exclude
-            files.map! { |file| File.join(path, file) }
-            files.sort
-          end
+          files = Dir.glob(@glob, base: path)
+          files -= @exclude if @exclude
+          files.map! { |file| File.join(path, file) }
+          files.sort
         end
     end
   end

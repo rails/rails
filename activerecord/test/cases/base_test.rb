@@ -1141,11 +1141,14 @@ class BasicsTest < ActiveRecord::TestCase
   def test_clear_cache!
     # preheat cache
     c1 = Post.connection.schema_cache.columns("posts")
+    assert_not_equal 0, Post.connection.schema_cache.size
+
     ActiveRecord::Base.clear_cache!
+    assert_equal 0, Post.connection.schema_cache.size
+
     c2 = Post.connection.schema_cache.columns("posts")
-    c1.each_with_index do |v, i|
-      assert_not_same v, c2[i]
-    end
+    assert_not_equal 0, Post.connection.schema_cache.size
+
     assert_equal c1, c2
   end
 
@@ -1412,6 +1415,14 @@ class BasicsTest < ActiveRecord::TestCase
     assert_not_includes SymbolIgnoredDeveloper.columns_hash.keys, "first_name"
   end
 
+  test ".columns_hash raises an error if the record has an empty table name" do
+    expected_message = "FirstAbstractClass has no table configured. Set one with FirstAbstractClass.table_name="
+    exception = assert_raises(ActiveRecord::TableNotSpecified) do
+      FirstAbstractClass.columns_hash
+    end
+    assert_equal expected_message, exception.message
+  end
+
   test "ignored columns have no attribute methods" do
     assert_not_respond_to Developer.new, :first_name
     assert_not_respond_to Developer.new, :first_name=
@@ -1496,7 +1507,7 @@ class BasicsTest < ActiveRecord::TestCase
 
   test "creating a record raises if preventing writes" do
     error = assert_raises ActiveRecord::ReadOnlyError do
-      ActiveRecord::Base.connection.while_preventing_writes do
+      ActiveRecord::Base.connection_handler.while_preventing_writes do
         Bird.create! name: "Bluejay"
       end
     end
@@ -1508,7 +1519,7 @@ class BasicsTest < ActiveRecord::TestCase
     bird = Bird.create! name: "Bluejay"
 
     error = assert_raises ActiveRecord::ReadOnlyError do
-      ActiveRecord::Base.connection.while_preventing_writes do
+      ActiveRecord::Base.connection_handler.while_preventing_writes do
         bird.update! name: "Robin"
       end
     end
@@ -1520,7 +1531,7 @@ class BasicsTest < ActiveRecord::TestCase
     bird = Bird.create! name: "Bluejay"
 
     error = assert_raises ActiveRecord::ReadOnlyError do
-      ActiveRecord::Base.connection.while_preventing_writes do
+      ActiveRecord::Base.connection_handler.while_preventing_writes do
         bird.destroy!
       end
     end
@@ -1531,7 +1542,7 @@ class BasicsTest < ActiveRecord::TestCase
   test "selecting a record does not raise if preventing writes" do
     bird = Bird.create! name: "Bluejay"
 
-    ActiveRecord::Base.connection.while_preventing_writes do
+    ActiveRecord::Base.connection_handler.while_preventing_writes do
       assert_equal bird, Bird.where(name: "Bluejay").first
     end
   end
@@ -1539,18 +1550,73 @@ class BasicsTest < ActiveRecord::TestCase
   test "an explain query does not raise if preventing writes" do
     Bird.create!(name: "Bluejay")
 
-    ActiveRecord::Base.connection.while_preventing_writes do
+    ActiveRecord::Base.connection_handler.while_preventing_writes do
       assert_queries(2) { Bird.where(name: "Bluejay").explain }
     end
   end
 
   test "an empty transaction does not raise if preventing writes" do
-    ActiveRecord::Base.connection.while_preventing_writes do
+    ActiveRecord::Base.connection_handler.while_preventing_writes do
       assert_queries(2, ignore_none: true) do
         Bird.transaction do
           ActiveRecord::Base.connection.materialize_transactions
         end
       end
+    end
+  end
+
+  test "preventing writes applies to all connections on a handler" do
+    conn1_error = assert_raises ActiveRecord::ReadOnlyError do
+      ActiveRecord::Base.connection_handler.while_preventing_writes do
+        assert_equal ActiveRecord::Base.connection, Bird.connection
+        assert_not_equal ARUnit2Model.connection, Bird.connection
+        Bird.create!(name: "Bluejay")
+      end
+    end
+
+    assert_match %r/\AWrite query attempted while in readonly mode: INSERT /, conn1_error.message
+
+    conn2_error = assert_raises ActiveRecord::ReadOnlyError do
+      ActiveRecord::Base.connection_handler.while_preventing_writes do
+        assert_not_equal ActiveRecord::Base.connection, Professor.connection
+        assert_equal ARUnit2Model.connection, Professor.connection
+        Professor.create!(name: "Professor Bluejay")
+      end
+    end
+
+    assert_match %r/\AWrite query attempted while in readonly mode: INSERT /, conn2_error.message
+  end
+
+  unless in_memory_db?
+    test "preventing writes with multiple handlers" do
+      ActiveRecord::Base.connects_to(database: { writing: :arunit, reading: :arunit })
+
+      conn1_error = assert_raises ActiveRecord::ReadOnlyError do
+        ActiveRecord::Base.connected_to(role: :writing) do
+          assert_equal :writing, ActiveRecord::Base.current_role
+
+          ActiveRecord::Base.connection_handler.while_preventing_writes do
+            Bird.create!(name: "Bluejay")
+          end
+        end
+      end
+
+      assert_match %r/\AWrite query attempted while in readonly mode: INSERT /, conn1_error.message
+
+      conn2_error = assert_raises ActiveRecord::ReadOnlyError do
+        ActiveRecord::Base.connected_to(role: :reading) do
+          assert_equal :reading, ActiveRecord::Base.current_role
+
+          ActiveRecord::Base.connection_handler.while_preventing_writes do
+            Bird.create!(name: "Bluejay")
+          end
+        end
+      end
+
+      assert_match %r/\AWrite query attempted while in readonly mode: INSERT /, conn2_error.message
+    ensure
+      ActiveRecord::Base.connection_handlers = { writing: ActiveRecord::Base.default_connection_handler }
+      ActiveRecord::Base.establish_connection(:arunit)
     end
   end
 end

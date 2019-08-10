@@ -135,6 +135,12 @@ module ActiveRecord
           spec = spec("adapter" => "sqlite3")
           assert_equal "primary", spec.name, "should default to primary id"
         end
+
+        def test_spec_with_invalid_type
+          assert_raises TypeError do
+            spec(Object.new)
+          end
+        end
       end
     end
   end

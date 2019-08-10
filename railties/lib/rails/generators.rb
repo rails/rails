@@ -6,8 +6,6 @@ $:.unshift(activesupport_path) if File.directory?(activesupport_path) && !$:.inc
 require "thor/group"
 require "rails/command"
 
-require "active_support"
-require "active_support/core_ext/object/blank"
 require "active_support/core_ext/kernel/singleton_class"
 require "active_support/core_ext/array/extract_options"
 require "active_support/core_ext/hash/deep_merge"
@@ -128,11 +126,6 @@ module Rails
         if ARGV.first == "mailer"
           options[:rails][:template_engine] = :erb
         end
-      end
-
-      # Remove the color from output.
-      def no_color!
-        Thor::Base.shell = Thor::Shell::Basic
       end
 
       # Returns an array of generator namespaces that are hidden.
@@ -287,7 +280,6 @@ module Rails
       end
 
       private
-
         def print_list(base, namespaces) # :doc:
           namespaces = namespaces.reject { |n| hidden_namespaces.include?(n) }
           super

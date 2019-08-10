@@ -204,7 +204,6 @@ module ActiveRecord
         end
 
         private
-
           def valid_scope_name?(name)
             if respond_to?(name, true) && logger
               logger.warn "Creating scope :#{name}. " \

@@ -158,7 +158,6 @@ module ActionController
     end.new
 
     private
-
       def params_parsers
         super.merge @custom_param_parsers
       end
@@ -208,7 +207,6 @@ module ActionController
     end
 
     private
-
       def load!
         @id
       end
@@ -594,10 +592,9 @@ module ActionController
       end
 
       private
-
         def scrub_env!(env)
-          env.delete_if { |k, v| k =~ /^(action_dispatch|rack)\.request/ }
-          env.delete_if { |k, v| k =~ /^action_dispatch\.rescue/ }
+          env.delete_if { |k, v| k.match?(/^(action_dispatch|rack)\.request/) }
+          env.delete_if { |k, v| k.match?(/^action_dispatch\.rescue/) }
           env.delete "action_dispatch.request.query_parameters"
           env.delete "action_dispatch.request.request_parameters"
           env["rack.input"] = StringIO.new

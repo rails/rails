@@ -507,7 +507,6 @@ module CacheStoreBehavior
   end
 
   private
-
     def assert_compressed(value, **options)
       assert_compression(true, value, **options)
     end

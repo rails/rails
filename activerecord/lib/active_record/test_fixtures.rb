@@ -41,8 +41,9 @@ module ActiveRecord
       def fixtures(*fixture_set_names)
         if fixture_set_names.first == :all
           raise StandardError, "No fixture path found. Please set `#{self}.fixture_path`." if fixture_path.blank?
-          fixture_set_names = Dir["#{fixture_path}/{**,*}/*.{yml}"].uniq
-          fixture_set_names.map! { |f| f[(fixture_path.to_s.size + 1)..-5] }
+          fixture_set_names = Dir[::File.join(fixture_path, "{**,*}/*.{yml}")].uniq
+          fixture_set_names.reject! { |f| f.starts_with?(file_fixture_path.to_s) } if file_fixture_path
+          fixture_set_names.map! { |f| f[fixture_path.to_s.size..-5].delete_prefix("/") }
         else
           fixture_set_names = fixture_set_names.flatten.map(&:to_s)
         end
@@ -179,7 +180,6 @@ module ActiveRecord
     end
 
     private
-
       # Shares the writing connection pool with connections on
       # other handlers.
       #

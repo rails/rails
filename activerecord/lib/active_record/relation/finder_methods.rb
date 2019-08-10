@@ -114,6 +114,15 @@ module ActiveRecord
     #   Person.first(3) # returns the first three objects fetched by SELECT * FROM people ORDER BY people.id LIMIT 3
     #
     def first(limit = nil)
+      if !order_values.empty? && order_values.all?(&:blank?)
+        blank_value = order_values.first
+        ActiveSupport::Deprecation.warn(<<~MSG.squish)
+          `.reorder(#{blank_value.inspect})` with `.first` / `.first!` no longer
+          takes non-deterministic result in Rails 6.2.
+          To continue taking non-deterministic result, use `.take` / `.take!` instead.
+        MSG
+      end
+
       if limit
         find_nth_with_limit(0, limit)
       else
@@ -346,7 +355,6 @@ module ActiveRecord
     end
 
     private
-
       def offset_index
         offset_value || 0
       end
@@ -355,7 +363,7 @@ module ActiveRecord
         conditions = sanitize_forbidden_attributes(conditions)
 
         if distinct_value && offset_value
-          relation = limit(1)
+          relation = except(:order).limit!(1)
         else
           relation = except(:select, :distinct, :order)._select!(ONE_AS_ONE).limit!(1)
         end

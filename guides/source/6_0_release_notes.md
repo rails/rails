@@ -151,25 +151,44 @@ Please refer to the [Changelog][action-cable] for detailed changes.
 
 ### Removals
 
+*   Replace `ActionCable.startDebugging()` and `ActionCable.stopDebugging()`
+    with `ActionCable.logger.enabled`.
+    ([Pull Request](https://github.com/rails/rails/pull/34370))
+
 ### Deprecations
+
+*   There are no deprecations for Action Cable in Rails 6.0.
 
 ### Notable changes
 
-*   The ActionCable javascript package has been converted from CoffeeScript
-    to ES2015, and we now publish the source code in the npm distribution.
+*   Add support for the `channel_prefix` option for PostgreSQL subscription adapters
+    in `cable.yml`.
+    ([Pull Request](https://github.com/rails/rails/pull/35276))
 
-    This allows ActionCable users to depend on the javascript source code
-    rather than the compiled code, which can produce smaller javascript bundles.
+*   Allow passing a custom configuration to `ActionCable::Server::Base`.
+    ([Pull Request](https://github.com/rails/rails/pull/34714))
 
-    This change includes some breaking changes to optional parts of the
-    ActionCable javascript API:
+*   Add `:action_cable_connection` and `:action_cable_channel` load hooks.
+    ([Pull Request](https://github.com/rails/rails/pull/35094))
 
-    - Configuration of the WebSocket adapter and logger adapter have been moved
-      from properties of `ActionCable` to properties of `ActionCable.adapters`.
+*   Add `Channel::Base#broadcast_to` and `Channel::Base.broadcasting_for`.
+    ([Pull Request](https://github.com/rails/rails/pull/35021))
 
-    - The `ActionCable.startDebugging()` and `ActionCable.stopDebugging()`
-      methods have been removed and replaced with the property
-      `ActionCable.logger.enabled`.
+*   Close a connection when calling `reject_unauthorized_connection` from an
+    `ActionCable::Connection`.
+    ([Pull Request](https://github.com/rails/rails/pull/34194))
+
+*   Convert the Action Cable JavaScript package from CoffeeScript to ES2015 and
+    publish the source code in the npm distribution.
+    ([Pull Request](https://github.com/rails/rails/pull/34370))
+
+*   Move the configuration of the WebSocket adapter and logger adapter
+    from properties of `ActionCable` to `ActionCable.adapters`.
+    ([Pull Request](https://github.com/rails/rails/pull/34370))
+
+*   Add an `id` option to the Redis adapter to distinguish Action Cable's Redis
+    connections.
+    ([Pull Request](https://github.com/rails/rails/pull/33798))
 
 Action Pack
 -----------
@@ -183,7 +202,7 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 
 *   Remove deprecated methods in `ActionDispatch::TestResponse`:
     `#success?` in favor of `#successful?`, `#missing?` in favor of `#not_found?`,
-    `#error?` in favor of `#server_error?`
+    `#error?` in favor of `#server_error?`.
     ([Commit](https://github.com/rails/rails/commit/13ddc92e079e59a0b894e31bf5bb4fdecbd235d1))
 
 ### Deprecations
@@ -195,6 +214,10 @@ Please refer to the [Changelog][action-pack] for detailed changes.
     ([Pull Request](https://github.com/rails/rails/pull/32277))
 
 ### Notable changes
+
+*   Change `ActionDispatch::Response#content_type` returning Content-Type
+    header as it is.
+    ([Pull Request](https://github.com/rails/rails/pull/36034))
 
 *   Raise an `ArgumentError` if a resource param contains a colon.
     ([Pull Request](https://github.com/rails/rails/pull/35236))
@@ -210,7 +233,7 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 *   Allow the use of `parsed_body` in `ActionController::TestCase`.
     ([Pull Request](https://github.com/rails/rails/pull/34717))
 
-*   Raise an `ArgumentError` when multiple root routes exists in the same context
+*   Raise an `ArgumentError` when multiple root routes exist in the same context
     without `as:` naming specifications.
     ([Pull Request](https://github.com/rails/rails/pull/34494))
 
@@ -226,7 +249,7 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 *   Expose `ActionController::Parameters#each_key`.
     ([Pull Request](https://github.com/rails/rails/pull/33758))
 
-*   Add purpose metadata to signed/encrypted cookies to prevent copying the value of
+*   Add purpose and expiry metadata inside signed/encrypted cookies to prevent copying the value of
     cookies into one another.
     ([Pull Request](https://github.com/rails/rails/pull/32937))
 
@@ -279,14 +302,14 @@ Please refer to the [Changelog][action-view] for detailed changes.
 
 ### Notable changes
 
-*   Clear ActionView cache in development only on file changes, speeding up
+*   Clear Action View cache in development only on file changes, speeding up
     development mode.
     ([Pull Request](https://github.com/rails/rails/pull/35629))
 
 *   Move all of the Rails npm packages into a `@rails` scope.
     ([Pull Request](https://github.com/rails/rails/pull/34905))
 
-*   Only accept formats from registered Mime types.
+*   Only accept formats from registered MIME types.
     ([Pull Request](https://github.com/rails/rails/pull/35604), [Pull Request](https://github.com/rails/rails/pull/35753))
 
 *   Add allocations to the template and partial rendering server output.
@@ -304,7 +327,7 @@ Please refer to the [Changelog][action-view] for detailed changes.
     enable `ActionView::Template` finalizers.
     ([Pull Request](https://github.com/rails/rails/pull/32418))
 
-*   Extract the JS `confirm` call to its own, overridable method in `rails_ujs`.
+*   Extract the JavaScript `confirm` call to its own, overridable method in `rails_ujs`.
     ([Pull Request](https://github.com/rails/rails/pull/32404))
 
 *   Add a `action_controller.default_enforce_utf8` configuration option to handle
@@ -383,7 +406,7 @@ Please refer to the [Changelog][active-record] for detailed changes.
 *   Remove support for passing the column name to `count` when a block is passed.
     ([Commit](https://github.com/rails/rails/commit/67356f2034ab41305af7218f7c8b2fee2d614129))
 
-*   Remove support for delegation of missing methods in a relation to arel.
+*   Remove support for delegation of missing methods in a relation to Arel.
     ([Commit](https://github.com/rails/rails/commit/d97980a16d76ad190042b4d8578109714e9c53d0))
 
 *   Remove support for delegating missing methods in a relation to private methods of the class.
@@ -407,7 +430,7 @@ Please refer to the [Changelog][active-record] for detailed changes.
 *   Deprecate using class level querying methods if the receiver scope has leaked.
     ([Pull Request](https://github.com/rails/rails/pull/35280))
 
-*   Deprecate `config.activerecord.sqlite3.represent_boolean_as_integer`.
+*   Deprecate `config.active_record.sqlite3.represent_boolean_as_integer`.
     ([Commit](https://github.com/rails/rails/commit/f59b08119bc0c01a00561d38279b124abc82561b))
 
 *   Deprecate passing `migrations_paths` to `connection.assume_migrated_upto_version`.
@@ -426,7 +449,7 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 ### Notable changes
 
-*   Bump the minimum sqlite3 version to 1.4.
+*   Bump the minimum version of the `sqlite3` gem to 1.4.
     ([Pull Request](https://github.com/rails/rails/pull/35844))
 
 *   Add `rails db:prepare` to create a database if it doesn't exist, and run its migrations.
@@ -448,7 +471,7 @@ Please refer to the [Changelog][active-record] for detailed changes.
     ([Pull Request](https://github.com/rails/rails/pull/35631))
 
 *   Add `rails db:seed:replant` that truncates tables of each database
-    for ther current environment and loads the seeds.
+    for the current environment and loads the seeds.
     ([Pull Request](https://github.com/rails/rails/pull/34779))
 
 *   Add `reselect` method, which is a short-hand for `unscope(:select).select(fields)`.
@@ -490,7 +513,7 @@ Please refer to the [Changelog][active-record] for detailed changes.
     ([Pull Request](https://github.com/rails/rails/pull/34742))
 
 *   Add the ability to disable scopes generated by `ActiveRecord.enum`.
-    ([Pull Request](https://github.com/rails/rails/pull/34605/files))
+    ([Pull Request](https://github.com/rails/rails/pull/34605))
 
 *   Make implicit ordering configurable for a column.
     ([Pull Request](https://github.com/rails/rails/pull/34480))
@@ -558,7 +581,7 @@ Please refer to the [Changelog][active-record] for detailed changes.
 *   Allow the `:to_table` option of `remove_foreign_key` to be invertible.
     ([Pull Request](https://github.com/rails/rails/pull/33530))
 
-*   Fix default value for mysql time types with specified precision.
+*   Fix default value for MySQL time types with specified precision.
     ([Pull Request](https://github.com/rails/rails/pull/33280))
 
 *   Fix the `touch` option to behave consistently with `Persistence#touch` method.
@@ -649,6 +672,12 @@ Please refer to the [Changelog][active-storage] for detailed changes.
     is saved instead of immediately.
     ([Pull Request](https://github.com/rails/rails/pull/33303))
 
+*   Optionally replace existing files instead of adding to them when assigning to
+    a collection of attachments (as in `@user.update!(images: [ … ])`). Use
+    `config.active_storage.replace_on_assign_to_many` to control this behavior.
+    ([Pull Request](https://github.com/rails/rails/pull/33303),
+     [Pull Request](https://github.com/rails/rails/pull/36716))
+
 *   Add the ability to reflect on defined attachments using the existing
     Active Record reflection mechanism.
     ([Pull Request](https://github.com/rails/rails/pull/33018))
@@ -663,11 +692,7 @@ Please refer to the [Changelog][active-storage] for detailed changes.
 
 *   Use the `image_processing` gem for Active Storage variants. This replaces using
     `mini_magick` directly.
-    ([Pull Request](https://github.com/rails/rails/pull/32471)
-
-*   Replace existing images instead of adding to them when updating an
-    attached model via `update` or `update!` with, say, `@user.update!(images: [ … ])`.
-    ([Pull Request](https://github.com/rails/rails/pull/33303))
+    ([Pull Request](https://github.com/rails/rails/pull/32471))
 
 Active Model
 ------------
@@ -743,7 +768,7 @@ Please refer to the [Changelog][active-support] for detailed changes.
     ([Pull Request](https://github.com/rails/rails/pull/34123))
 
 *   Deprecate `ActiveSupport::Multibyte::Unicode#normalize`
-    and `ActiveSuppport::Multibyte::Chars#normalize` in favor of
+    and `ActiveSupport::Multibyte::Chars#normalize` in favor of
     `String#unicode_normalize`.
     ([Pull Request](https://github.com/rails/rails/pull/34202))
 
@@ -752,7 +777,7 @@ Please refer to the [Changelog][active-support] for detailed changes.
     ([Pull Request](https://github.com/rails/rails/pull/34215))
 
 *   Deprecate `ActiveSupport::Multibyte::Unicode#pack_graphemes(array)`
-    and `ActiveSuppport::Multibyte::Unicode#unpack_graphemes(string)`
+    and `ActiveSupport::Multibyte::Unicode#unpack_graphemes(string)`
     in favor of `array.flatten.pack("U*")` and `string.scan(/\X/).map(&:codepoints)`,
     respectively.
     ([Pull Request](https://github.com/rails/rails/pull/34254))
@@ -976,6 +1001,9 @@ Ruby on Rails Guides
 Please refer to the [Changelog][guides] for detailed changes.
 
 ### Notable changes
+
+*   Add Multiple Databases with Active Record guide.
+    ([Pull Request](https://github.com/rails/rails/pull/36389))
 
 *   Add a section about troubleshooting of autoloading constants.
     ([Commit](https://github.com/rails/rails/commit/c03bba4f1f03bad7dc034af555b7f2b329cf76f5))

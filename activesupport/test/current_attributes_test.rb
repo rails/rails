@@ -9,7 +9,7 @@ class CurrentAttributesTest < ActiveSupport::TestCase
     attribute :world, :account, :person, :request
     delegate :time_zone, to: :person
 
-    before_reset { Session.previous = person.try(:id) }
+    before_reset { Session.previous = person&.id }
 
     resets do
       Time.zone = "UTC"
@@ -18,13 +18,13 @@ class CurrentAttributesTest < ActiveSupport::TestCase
 
     def account=(account)
       super
-      self.person = "#{account}'s person"
+      self.person = Person.new(1, "#{account}'s person")
     end
 
     def person=(person)
       super
-      Time.zone = person.try(:time_zone)
-      Session.current = person.try(:id)
+      Time.zone = person&.time_zone
+      Session.current = person&.id
     end
 
     def request
@@ -63,7 +63,7 @@ class CurrentAttributesTest < ActiveSupport::TestCase
   test "set attribute via overwritten method" do
     Current.account = "account/1"
     assert_equal "account/1", Current.account
-    assert_equal "account/1's person", Current.person
+    assert_equal "account/1's person", Current.person.name
   end
 
   test "set auxiliary class via overwritten method" do

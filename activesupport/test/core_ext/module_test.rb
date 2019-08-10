@@ -25,7 +25,6 @@ Someone = Struct.new(:name, :place) do
   delegate :bar, to: :place, allow_nil: true
 
   private
-
     def private_name
       "Private"
     end
@@ -92,6 +91,16 @@ DecoratedTester = Struct.new(:client) do
   delegate_missing_to :client
 end
 
+class DecoratedMissingAllowNil
+  delegate_missing_to :case, allow_nil: true
+
+  attr_reader :case
+
+  def initialize(kase)
+    @case = kase
+  end
+end
+
 class DecoratedReserved
   delegate_missing_to :case
 
@@ -99,6 +108,24 @@ class DecoratedReserved
 
   def initialize(kase)
     @case = kase
+  end
+end
+
+class Maze
+  attr_accessor :cavern, :passages
+end
+
+class Cavern
+  delegate_missing_to :target
+
+  attr_reader :maze
+
+  def initialize(maze)
+    @maze = maze
+  end
+
+  def target
+    @maze.passages = :twisty
   end
 end
 
@@ -382,6 +409,10 @@ class ModuleTest < ActiveSupport::TestCase
     assert_equal "name delegated to client, but client is nil", e.message
   end
 
+  def test_delegate_missing_to_returns_nil_if_allow_nil_and_nil_target
+    assert_nil DecoratedMissingAllowNil.new(nil).name
+  end
+
   def test_delegate_missing_to_affects_respond_to
     assert_respond_to DecoratedTester.new(@david), :name
     assert_not_respond_to DecoratedTester.new(@david), :private_name
@@ -396,6 +427,17 @@ class ModuleTest < ActiveSupport::TestCase
     assert_equal 42, DecoratedTester.new(@david).extra_missing
 
     assert_respond_to DecoratedTester.new(@david), :extra_missing
+  end
+
+  def test_delegate_missing_to_does_not_interfere_with_marshallization
+    maze = Maze.new
+    maze.cavern = Cavern.new(maze)
+
+    array = [maze, nil]
+    serialized_array = Marshal.dump(array)
+    deserialized_array = Marshal.load(serialized_array)
+
+    assert_nil deserialized_array[1]
   end
 
   def test_delegate_with_case

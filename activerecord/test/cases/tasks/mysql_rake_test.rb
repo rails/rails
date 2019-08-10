@@ -7,7 +7,10 @@ if current_adapter?(:Mysql2Adapter)
   module ActiveRecord
     class MysqlDBCreateTest < ActiveRecord::TestCase
       def setup
-        @connection    = Class.new { def create_database(*); end }.new
+        @connection = Class.new do
+          def create_database(*); end
+          def error_number(_); end
+        end.new
         @configuration = {
           "adapter"  => "mysql2",
           "database" => "my-app-db"
@@ -90,7 +93,7 @@ if current_adapter?(:Mysql2Adapter)
         with_stubbed_connection_establish_connection do
           ActiveRecord::Base.connection.stub(
             :create_database,
-            proc { raise ActiveRecord::Tasks::DatabaseAlreadyExists }
+            proc { raise ActiveRecord::DatabaseAlreadyExists }
           ) do
             ActiveRecord::Tasks::DatabaseTasks.create @configuration
 
@@ -100,7 +103,6 @@ if current_adapter?(:Mysql2Adapter)
       end
 
       private
-
         def with_stubbed_connection_establish_connection
           ActiveRecord::Base.stub(:establish_connection, nil) do
             ActiveRecord::Base.stub(:connection, @connection) do
@@ -180,7 +182,6 @@ if current_adapter?(:Mysql2Adapter)
       end
 
       private
-
         def with_stubbed_connection_establish_connection
           ActiveRecord::Base.stub(:establish_connection, nil) do
             ActiveRecord::Base.stub(:connection, @connection) do
@@ -233,7 +234,6 @@ if current_adapter?(:Mysql2Adapter)
       end
 
       private
-
         def with_stubbed_connection_establish_connection
           ActiveRecord::Base.stub(:establish_connection, nil) do
             ActiveRecord::Base.stub(:connection, @connection) do

@@ -69,7 +69,6 @@ module ActionView #:nodoc:
     end
 
     private
-
       def _find_all(path, prefixes, args)
         prefixes = [prefixes] if String === prefixes
         prefixes.each do |prefix|

@@ -11,7 +11,6 @@ module ActiveRecord
       end
 
       private
-
         def registration_klass
           Registration
         end
@@ -53,7 +52,6 @@ module ActiveRecord
       end
 
       protected
-
         attr_reader :name, :block, :adapter, :override
 
         def priority
@@ -72,7 +70,6 @@ module ActiveRecord
         end
 
       private
-
         def matches_adapter?(adapter: nil, **)
           (self.adapter.nil? || adapter == self.adapter)
         end

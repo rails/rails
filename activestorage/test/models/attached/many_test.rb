@@ -269,44 +269,22 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     end
   end
 
-  test "analyzing a new blob from an uploaded file after attaching it to an existing record" do
-    perform_enqueued_jobs do
-      @user.highlights.attach fixture_file_upload("racecar.jpg")
+  test "updating an existing record with attachments when appending on assign" do
+    append_on_assign do
+      @user.highlights.attach create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg")
+
+      assert_difference -> { @user.reload.highlights.count }, +2 do
+        @user.update! highlights: [ create_blob(filename: "whenever.jpg"), create_blob(filename: "wherever.jpg") ]
+      end
+
+      assert_no_difference -> { @user.reload.highlights.count } do
+        @user.update! highlights: [ ]
+      end
+
+      assert_no_difference -> { @user.reload.highlights.count } do
+        @user.update! highlights: nil
+      end
     end
-
-    assert @user.highlights.reload.first.analyzed?
-    assert_equal 4104, @user.highlights.first.metadata[:width]
-    assert_equal 2736, @user.highlights.first.metadata[:height]
-  end
-
-  test "analyzing a new blob from an uploaded file after attaching it to an existing record via update" do
-    perform_enqueued_jobs do
-      @user.update! highlights: [ fixture_file_upload("racecar.jpg") ]
-    end
-
-    assert @user.highlights.reload.first.analyzed?
-    assert_equal 4104, @user.highlights.first.metadata[:width]
-    assert_equal 2736, @user.highlights.first.metadata[:height]
-  end
-
-  test "analyzing a directly-uploaded blob after attaching it to an existing record" do
-    perform_enqueued_jobs do
-      @user.highlights.attach directly_upload_file_blob(filename: "racecar.jpg")
-    end
-
-    assert @user.highlights.reload.first.analyzed?
-    assert_equal 4104, @user.highlights.first.metadata[:width]
-    assert_equal 2736, @user.highlights.first.metadata[:height]
-  end
-
-  test "analyzing a directly-uploaded blob after attaching it to an existing record via update" do
-    perform_enqueued_jobs do
-      @user.update! highlights: [ directly_upload_file_blob(filename: "racecar.jpg") ]
-    end
-
-    assert @user.highlights.reload.first.analyzed?
-    assert_equal 4104, @user.highlights.first.metadata[:width]
-    assert_equal 2736, @user.highlights.first.metadata[:height]
   end
 
   test "attaching existing blobs to a new record" do
@@ -420,24 +398,6 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
   test "creating a record with an unexpected object attached" do
     error = assert_raises(ArgumentError) { User.create!(name: "Jason", highlights: :foo) }
     assert_equal "Could not find or build blob: expected attachable, got :foo", error.message
-  end
-
-  test "analyzing a new blob from an uploaded file after attaching it to a new record" do
-    perform_enqueued_jobs do
-      user = User.create!(name: "Jason", highlights: [ fixture_file_upload("racecar.jpg") ])
-      assert user.highlights.reload.first.analyzed?
-      assert_equal 4104, user.highlights.first.metadata[:width]
-      assert_equal 2736, user.highlights.first.metadata[:height]
-    end
-  end
-
-  test "analyzing a directly-uploaded blob after attaching it to a new record" do
-    perform_enqueued_jobs do
-      user = User.create!(name: "Jason", highlights: [ directly_upload_file_blob(filename: "racecar.jpg") ])
-      assert user.highlights.reload.first.analyzed?
-      assert_equal 4104, user.highlights.first.metadata[:width]
-      assert_equal 2736, user.highlights.first.metadata[:height]
-    end
   end
 
   test "detaching" do
@@ -596,4 +556,12 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
       User.remove_method :highlights
     end
   end
+
+  private
+    def append_on_assign
+      ActiveStorage.replace_on_assign_to_many, previous = false, ActiveStorage.replace_on_assign_to_many
+      yield
+    ensure
+      ActiveStorage.replace_on_assign_to_many = previous
+    end
 end

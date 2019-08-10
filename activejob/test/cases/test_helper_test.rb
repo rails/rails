@@ -621,6 +621,12 @@ class EnqueuedJobsTest < ActiveJob::TestCase
     end
   end
 
+  def test_assert_enqueued_with_with_relative_at_option
+    assert_enqueued_with(job: HelloJob, at: 5.minutes.from_now) do
+      HelloJob.set(wait: 5.minutes).perform_later
+    end
+  end
+
   def test_assert_enqueued_with_with_no_block_with_at_option
     HelloJob.set(wait_until: Date.tomorrow.noon).perform_later
     assert_enqueued_with(job: HelloJob, at: Date.tomorrow.noon)
@@ -851,6 +857,54 @@ class PerformedJobsTest < ActiveJob::TestCase
 
     assert_performed_jobs 1
     assert_performed_jobs 1, only: LoggingJob, queue: :other_queue
+  end
+
+  def test_perform_enqueued_jobs_with_at_with_job_performed_now
+    HelloJob.perform_later("kevin")
+
+    perform_enqueued_jobs(at: Time.now)
+
+    assert_performed_jobs 1
+  end
+
+  def test_perform_enqueued_jobs_with_at_with_job_wait_in_past
+    HelloJob.set(wait_until: Time.now - 100).perform_later("kevin")
+
+    perform_enqueued_jobs(at: Time.now)
+
+    assert_performed_jobs 1
+  end
+
+  def test_perform_enqueued_jobs_with_at_with_job_wait_in_future
+    HelloJob.set(wait_until: Time.now + 100).perform_later("kevin")
+
+    perform_enqueued_jobs(at: Time.now)
+
+    assert_performed_jobs 0
+  end
+
+  def test_perform_enqueued_jobs_block_with_at_with_job_performed_now
+    perform_enqueued_jobs(at: Time.now) do
+      HelloJob.perform_later("kevin")
+    end
+
+    assert_performed_jobs 1
+  end
+
+  def test_perform_enqueued_jobs_block_with_at_with_job_wait_in_past
+    perform_enqueued_jobs(at: Time.now) do
+      HelloJob.set(wait_until: Time.now - 100).perform_later("kevin")
+    end
+
+    assert_performed_jobs 1
+  end
+
+  def test_perform_enqueued_jobs_block_with_at_with_job_wait_in_future
+    perform_enqueued_jobs(at: Time.now) do
+      HelloJob.set(wait_until: Time.now + 100).perform_later("kevin")
+    end
+
+    assert_performed_jobs 0
   end
 
   def test_assert_performed_jobs
@@ -1659,6 +1713,18 @@ class PerformedJobsTest < ActiveJob::TestCase
     assert_raise ActiveSupport::TestCase::Assertion do
       assert_performed_with(job: HelloJob, at: Date.today.noon) do
         HelloJob.set(wait_until: Date.tomorrow.noon).perform_later
+      end
+    end
+  end
+
+  def test_assert_performed_with_with_relative_at_option
+    assert_performed_with(job: HelloJob, at: 5.minutes.from_now) do
+      HelloJob.set(wait: 5.minutes).perform_later
+    end
+
+    assert_raise ActiveSupport::TestCase::Assertion do
+      assert_performed_with(job: HelloJob, at: 2.minutes.from_now) do
+        HelloJob.set(wait: 1.minute).perform_later
       end
     end
   end

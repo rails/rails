@@ -3,6 +3,8 @@
 module ActiveRecord
   module Tasks # :nodoc:
     class MySQLDatabaseTasks # :nodoc:
+      ER_DB_CREATE_EXISTS = 1007
+
       delegate :connection, :establish_connection, to: ActiveRecord::Base
 
       def initialize(configuration)
@@ -13,12 +15,6 @@ module ActiveRecord
         establish_connection configuration_without_database
         connection.create_database configuration["database"], creation_options
         establish_connection configuration
-      rescue ActiveRecord::StatementInvalid => error
-        if error.message.include?("database exists")
-          raise DatabaseAlreadyExists
-        else
-          raise
-        end
       end
 
       def drop
@@ -67,7 +63,6 @@ module ActiveRecord
       end
 
       private
-
         attr_reader :configuration
 
         def configuration_without_database

@@ -22,9 +22,9 @@ module ActiveRecord::Associations::Builder # :nodoc:
 
     def self.define_extensions(model, name, &block)
       if block_given?
-        extension_module_name = "#{model.name.demodulize}#{name.to_s.camelize}AssociationExtension"
+        extension_module_name = "#{name.to_s.camelize}AssociationExtension"
         extension = Module.new(&block)
-        model.module_parent.const_set(extension_module_name, extension)
+        model.const_set(extension_module_name, extension)
       end
     end
 

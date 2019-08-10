@@ -105,9 +105,6 @@ module ActionView
   #
   #   <%= render(partial: "ad", collection: @advertisements) || "There's no ad to be displayed" %>
   #
-  # NOTE: Due to backwards compatibility concerns, the collection can't be one of hashes. Normally you'd also
-  # just keep domain objects, like Active Records, in there.
-  #
   # == \Rendering shared partials
   #
   # Two controllers can share a set of partials and render them like this:
@@ -305,7 +302,7 @@ module ActionView
         else
           @template_keys = @locals.keys
         end
-        template = find_partial(@path, @template_keys)
+        template = find_template(@path, @template_keys)
         @variable ||= template.variable
       else
         if options[:cached]
@@ -322,7 +319,6 @@ module ActionView
     end
 
     private
-
       def render_collection(view, template)
         identifier = (template && template.identifier) || @path
         instrument(:collection, identifier: identifier, count: @collection.size) do |payload|
@@ -426,10 +422,6 @@ module ActionView
 
       def collection_from_object
         @object.to_ary if @object.respond_to?(:to_ary)
-      end
-
-      def find_partial(path, template_keys)
-        find_template(path, template_keys)
       end
 
       def find_template(path, locals)

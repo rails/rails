@@ -2,13 +2,13 @@
 
 require "ostruct"
 
-module DeveloperProjectsAssociationExtension2
-  def find_least_recent
-    order("id ASC").first
-  end
-end
-
 class Developer < ActiveRecord::Base
+  module ProjectsAssociationExtension2
+    def find_least_recent
+      order("id ASC").first
+    end
+  end
+
   self.ignored_columns = %w(first_name last_name)
 
   has_and_belongs_to_many :projects do
@@ -24,19 +24,19 @@ class Developer < ActiveRecord::Base
   has_and_belongs_to_many :shared_computers, class_name: "Computer"
 
   has_and_belongs_to_many :projects_extended_by_name,
-      -> { extending(DeveloperProjectsAssociationExtension) },
+      -> { extending(ProjectsAssociationExtension) },
       class_name: "Project",
       join_table: "developers_projects",
       association_foreign_key: "project_id"
 
   has_and_belongs_to_many :projects_extended_by_name_twice,
-      -> { extending(DeveloperProjectsAssociationExtension, DeveloperProjectsAssociationExtension2) },
+      -> { extending(ProjectsAssociationExtension, ProjectsAssociationExtension2) },
       class_name: "Project",
       join_table: "developers_projects",
       association_foreign_key: "project_id"
 
   has_and_belongs_to_many :projects_extended_by_name_and_block,
-      -> { extending(DeveloperProjectsAssociationExtension) },
+      -> { extending(ProjectsAssociationExtension) },
       class_name: "Project",
       join_table: "developers_projects",
       association_foreign_key: "project_id" do

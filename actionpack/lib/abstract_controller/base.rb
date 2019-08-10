@@ -176,7 +176,6 @@ module AbstractController
     end
 
     private
-
       # Returns true if the name can be considered an action because
       # it has a method defined in the controller.
       #

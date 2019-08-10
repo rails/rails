@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require "abstract_unit"
-require "active_support/core_ext/object"
+require "active_support/core_ext/object/try"
 
 class ObjectTryTest < ActiveSupport::TestCase
   def setup

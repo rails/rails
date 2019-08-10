@@ -12,7 +12,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
   class IpRestrictor
     def self.matches?(request)
-      request.ip =~ /192\.168\.1\.1\d\d/
+      /192\.168\.1\.1\d\d/.match?(request.ip)
     end
   end
 
@@ -3810,7 +3810,6 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
   end
 
 private
-
   def draw(&block)
     self.class.stub_controllers do |routes|
       routes.default_url_options = { host: "www.example.com" }
@@ -3824,7 +3823,7 @@ private
   end
 
   def method_missing(method, *args, &block)
-    if method.to_s =~ /_(path|url)$/
+    if method.to_s.match?(/_(path|url)$/)
       @app.routes.url_helpers.send(method, *args, &block)
     else
       super
@@ -4953,10 +4952,50 @@ class TestPartialDynamicPathSegments < ActionDispatch::IntegrationTest
   end
 
   private
-
     def assert_params(params)
       assert_equal(params, request.path_parameters)
     end
+end
+
+class TestOptionalScopesWithOrWithoutParams < ActionDispatch::IntegrationTest
+  Routes = ActionDispatch::Routing::RouteSet.new.tap do |app|
+    app.draw do
+      scope module: "test_optional_scopes_with_or_without_params" do
+        scope "(:locale)", locale: /en|es/ do
+          get "home", to: "home#index"
+          get "with_param/:foo", to: "home#with_param", as: "with_param"
+          get "without_param", to: "home#without_param"
+        end
+      end
+    end
+  end
+
+  class HomeController < ActionController::Base
+    include Routes.url_helpers
+
+    def index
+      render inline: "<%= with_param_path(foo: 'bar') %> | <%= without_param_path %>"
+    end
+
+    def with_param; end
+    def without_param; end
+  end
+
+  APP = build_app Routes
+
+  def app
+    APP
+  end
+
+  def test_stays_unscoped_with_or_without_params
+    get "/home"
+    assert_equal "/with_param/bar | /without_param", response.body
+  end
+
+  def test_preserves_scope_with_or_without_params
+    get "/es/home"
+    assert_equal "/es/with_param/bar | /es/without_param", response.body
+  end
 end
 
 class TestPathParameters < ActionDispatch::IntegrationTest
@@ -5098,7 +5137,7 @@ class TestRecognizePath < ActionDispatch::IntegrationTest
     end
 
     def matches?(request)
-      request.path_parameters[key] =~ pattern
+      pattern.match?(request.path_parameters[key])
     end
   end
 
@@ -5108,8 +5147,8 @@ class TestRecognizePath < ActionDispatch::IntegrationTest
       get "/hash/:foo", to: "pages#show", constraints: { foo: /foo/ }
       get "/hash/:bar", to: "pages#show", constraints: { bar: /bar/ }
 
-      get "/proc/:foo", to: "pages#show", constraints: proc { |r| r.path_parameters[:foo] =~ /foo/ }
-      get "/proc/:bar", to: "pages#show", constraints: proc { |r| r.path_parameters[:bar] =~ /bar/ }
+      get "/proc/:foo", to: "pages#show", constraints: proc { |r| /foo/.match?(r.path_parameters[:foo]) }
+      get "/proc/:bar", to: "pages#show", constraints: proc { |r| /bar/.match?(r.path_parameters[:bar]) }
 
       get "/class/:foo", to: "pages#show", constraints: PageConstraint.new(:foo, /foo/)
       get "/class/:bar", to: "pages#show", constraints: PageConstraint.new(:bar, /bar/)
@@ -5143,7 +5182,6 @@ class TestRecognizePath < ActionDispatch::IntegrationTest
   end
 
   private
-
     def recognize_path(*args)
       Routes.recognize_path(*args)
     end

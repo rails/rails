@@ -21,7 +21,6 @@ module ActiveSupport
       end
 
       private
-
         def absolute_value(number)
           number.respond_to?(:abs) ? number.abs : number.sub(/\A-/, "")
         end

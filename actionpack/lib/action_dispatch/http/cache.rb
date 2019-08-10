@@ -123,7 +123,6 @@ module ActionDispatch
         end
 
       private
-
         DATE          = "Date"
         LAST_MODIFIED = "Last-Modified"
         SPECIAL_KEYS  = Set.new(%w[extras no-cache max-age public private must-revalidate])
@@ -151,8 +150,8 @@ module ActionDispatch
             directive, argument = segment.split("=", 2)
 
             if SPECIAL_KEYS.include? directive
-              key = directive.tr("-", "_")
-              cache_control[key.to_sym] = argument || true
+              directive.tr!("-", "_")
+              cache_control[directive.to_sym] = argument || true
             else
               cache_control[:extras] ||= []
               cache_control[:extras] << segment

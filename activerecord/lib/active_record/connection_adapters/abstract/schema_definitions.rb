@@ -221,7 +221,7 @@ module ActiveRecord
       end
 
       class_methods do
-        private def define_column_methods(*column_types) # :nodoc:
+        def define_column_methods(*column_types) # :nodoc:
           column_types.each do |column_type|
             module_eval <<-RUBY, __FILE__, __LINE__ + 1
               def #{column_type}(*names, **options)
@@ -231,6 +231,7 @@ module ActiveRecord
             RUBY
           end
         end
+        private :define_column_methods
       end
     end
 
@@ -264,8 +265,7 @@ module ActiveRecord
         if_not_exists: false,
         options: nil,
         as: nil,
-        comment: nil,
-        **
+        comment: nil
       )
         @conn = conn
         @columns_hash = {}

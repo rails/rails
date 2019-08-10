@@ -66,7 +66,7 @@ class DriverTest < ActiveSupport::TestCase
     end
     driver.use
 
-    expected = { args: ["start-maximized"], mobileEmulation: { deviceName: "iphone 6" }, prefs: { detach: true } }
+    expected = { "goog:chromeOptions" => { args: ["start-maximized"], mobileEmulation: { deviceName: "iphone 6" }, prefs: { detach: true } } }
     assert_equal expected, driver_option.as_json
   end
 
@@ -81,7 +81,7 @@ class DriverTest < ActiveSupport::TestCase
     end
     driver.use
 
-    expected = { args: ["start-maximized"], mobileEmulation: { deviceName: "iphone 6" }, prefs: { detach: true } }
+    expected = { "goog:chromeOptions" => { args: ["start-maximized"], mobileEmulation: { deviceName: "iphone 6" }, prefs: { detach: true } } }
     assert_equal expected, driver_option.as_json
   end
 
@@ -119,5 +119,18 @@ class DriverTest < ActiveSupport::TestCase
     assert_nothing_raised do
       driver.use
     end
+  end
+
+  test "preloads browser's driver_path" do
+    called = false
+
+    original_driver_path = ::Selenium::WebDriver::Chrome::Service.driver_path
+    ::Selenium::WebDriver::Chrome::Service.driver_path = -> { called = true }
+
+    ActionDispatch::SystemTesting::Driver.new(:selenium, screen_size: [1400, 1400], using: :chrome)
+
+    assert called
+  ensure
+    ::Selenium::WebDriver::Chrome::Service.driver_path = original_driver_path
   end
 end

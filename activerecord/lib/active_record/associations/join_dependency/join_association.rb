@@ -44,8 +44,7 @@ module ActiveRecord
 
             unless others.empty?
               joins.concat arel.join_sources
-              right = joins.last.right
-              right.expr.children.concat(others)
+              append_constraints(joins.last, others)
             end
 
             # The current table in this iteration becomes the foreign table in the next
@@ -65,6 +64,16 @@ module ActiveRecord
 
           @readonly = reflection.scope && reflection.scope_for(base_klass.unscoped).readonly_value
         end
+
+        private
+          def append_constraints(join, constraints)
+            if join.is_a?(Arel::Nodes::StringJoin)
+              join_string = table.create_and(constraints.unshift(join.left))
+              join.left = Arel.sql(base_klass.connection.visitor.compile(join_string))
+            else
+              join.right.expr.children.concat(constraints)
+            end
+          end
       end
     end
   end

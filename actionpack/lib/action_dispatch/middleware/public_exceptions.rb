@@ -32,7 +32,6 @@ module ActionDispatch
     end
 
     private
-
       def render(status, content_type, body)
         format = "to_#{content_type.to_sym}" if content_type
         if format && body.respond_to?(format)

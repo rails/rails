@@ -363,6 +363,13 @@ module ActiveRecord
       assert_match %r{/\*\+ BADHINT \*/}, post_with_hint.to_sql
     end
 
+    def test_does_not_duplicate_optimizer_hints_on_merge
+      escaped_table = Post.connection.quote_table_name("posts")
+      expected = "SELECT /*+ OMGHINT */ #{escaped_table}.* FROM #{escaped_table}"
+      query = Post.optimizer_hints("OMGHINT").merge(Post.optimizer_hints("OMGHINT")).to_sql
+      assert_equal expected, query
+    end
+
     class EnsureRoundTripTypeCasting < ActiveRecord::Type::Value
       def type
         :string
@@ -405,7 +412,6 @@ module ActiveRecord
     end
 
     private
-
       def skip_if_sqlite3_version_includes_quoting_bug
         if sqlite3_version_includes_quoting_bug?
           skip <<-ERROR.squish

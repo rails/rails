@@ -15,7 +15,7 @@ class NameError
     # We should use original_message message instead.
     message = respond_to?(:original_message) ? original_message : self.message
 
-    if /undefined local variable or method/ !~ message
+    unless /undefined local variable or method/.match?(message)
       $1 if /((::)?([A-Z]\w*)(::[A-Z]\w*)*)$/ =~ message
     end
   end

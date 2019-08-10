@@ -638,6 +638,18 @@ module Arel
           )
         end
 
+        if Gem::Version.new("2.7.0") <= Gem::Version.new(RUBY_VERSION)
+          it "can be constructed with a range implicitly starting at Infinity" do
+            attribute = Attribute.new nil, nil
+            node = attribute.between(eval("..0")) # eval for backwards compatibility
+
+            node.must_equal Nodes::LessThanOrEqual.new(
+              attribute,
+              Nodes::Casted.new(0, attribute)
+            )
+          end
+        end
+
         if Gem::Version.new("2.6.0") <= Gem::Version.new(RUBY_VERSION)
           it "can be constructed with a range implicitly ending at Infinity" do
             attribute = Attribute.new nil, nil
@@ -837,6 +849,18 @@ module Arel
             attribute,
             Nodes::Casted.new(0, attribute)
           )
+        end
+
+        if Gem::Version.new("2.7.0") <= Gem::Version.new(RUBY_VERSION)
+          it "can be constructed with a range implicitly starting at Infinity" do
+            attribute = Attribute.new nil, nil
+            node = attribute.not_between(eval("..0")) # eval for backwards compatibility
+
+            node.must_equal Nodes::GreaterThan.new(
+              attribute,
+              Nodes::Casted.new(0, attribute)
+            )
+          end
         end
 
         if Gem::Version.new("2.6.0") <= Gem::Version.new(RUBY_VERSION)

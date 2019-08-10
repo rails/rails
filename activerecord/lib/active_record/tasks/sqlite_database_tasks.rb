@@ -59,7 +59,6 @@ module ActiveRecord
       end
 
       private
-
         attr_reader :configuration, :root
 
         def run_cmd(cmd, args, out)

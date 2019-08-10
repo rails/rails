@@ -59,7 +59,6 @@ module ActionDispatch
         end
 
         private
-
           def visit(node)
             send(DISPATCH_CACHE[node.type], node)
           end
@@ -168,7 +167,6 @@ module ActionDispatch
 
       class String < FunctionalVisitor # :nodoc:
         private
-
           def binary(node, seed)
             visit(node.right, visit(node.left, seed))
           end
@@ -214,7 +212,6 @@ module ActionDispatch
         end
 
         private
-
           def binary(node, seed)
             seed.last.concat node.children.map { |c|
               "#{node.object_id} -> #{c.object_id};"

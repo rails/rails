@@ -129,7 +129,7 @@ if current_adapter?(:PostgreSQLAdapter)
         with_stubbed_connection_establish_connection do
           ActiveRecord::Base.connection.stub(
             :create_database,
-            proc { raise ActiveRecord::Tasks::DatabaseAlreadyExists }
+            proc { raise ActiveRecord::DatabaseAlreadyExists }
           ) do
             ActiveRecord::Tasks::DatabaseTasks.create @configuration
 
@@ -139,7 +139,6 @@ if current_adapter?(:PostgreSQLAdapter)
       end
 
       private
-
         def with_stubbed_connection_establish_connection
           ActiveRecord::Base.stub(:connection, @connection) do
             ActiveRecord::Base.stub(:establish_connection, nil) do
@@ -201,7 +200,6 @@ if current_adapter?(:PostgreSQLAdapter)
       end
 
       private
-
         def with_stubbed_connection_establish_connection
           ActiveRecord::Base.stub(:connection, @connection) do
             ActiveRecord::Base.stub(:establish_connection, nil) do
@@ -301,7 +299,6 @@ if current_adapter?(:PostgreSQLAdapter)
       end
 
       private
-
         def with_stubbed_connection
           ActiveRecord::Base.stub(:connection, @connection) do
             yield

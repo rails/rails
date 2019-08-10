@@ -566,10 +566,10 @@ module ActiveRecord
     def becomes(klass)
       became = klass.allocate
       became.send(:initialize)
-      became.instance_variable_set("@attributes", @attributes)
-      became.instance_variable_set("@mutations_from_database", @mutations_from_database ||= nil)
-      became.instance_variable_set("@new_record", new_record?)
-      became.instance_variable_set("@destroyed", destroyed?)
+      became.instance_variable_set(:@attributes, @attributes)
+      became.instance_variable_set(:@mutations_from_database, @mutations_from_database ||= nil)
+      became.instance_variable_set(:@new_record, new_record?)
+      became.instance_variable_set(:@destroyed, destroyed?)
       became.errors.copy!(errors)
       became
     end
@@ -809,7 +809,7 @@ module ActiveRecord
           self.class.unscoped { self.class.find(id) }
         end
 
-      @attributes = fresh_object.instance_variable_get("@attributes")
+      @attributes = fresh_object.instance_variable_get(:@attributes)
       @new_record = false
       self
     end
@@ -865,7 +865,6 @@ module ActiveRecord
     end
 
   private
-
     # A hook to be overridden by association modules.
     def destroy_associations
     end
@@ -939,7 +938,7 @@ module ActiveRecord
     end
 
     def verify_readonly_attribute(name)
-      raise ActiveRecordError, "#{name} is marked as readonly" if self.class.readonly_attributes.include?(name)
+      raise ActiveRecordError, "#{name} is marked as readonly" if self.class.readonly_attribute?(name)
     end
 
     def _raise_record_not_destroyed

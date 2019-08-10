@@ -115,7 +115,7 @@ ActiveRecord::Schema.define do
     t.column :font_size, :integer, **default_zero
     t.column :difficulty, :integer, **default_zero
     t.column :cover, :string, default: "hard"
-    t.string :isbn
+    t.string :isbn, **case_sensitive_options
     t.datetime :published_on
     t.index [:author_id, :name], unique: true
     t.index :isbn, where: "published_on IS NOT NULL", unique: true
@@ -261,6 +261,7 @@ ActiveRecord::Schema.define do
     t.references :developer, index: false
     t.references :company, index: false
     t.string :metadata
+    t.integer :count
   end
 
   create_table :customers, force: true do |t|
@@ -562,6 +563,10 @@ ActiveRecord::Schema.define do
     t.string   :type
   end
 
+  create_table :mice, force: true do |t|
+    t.string   :name
+  end
+
   create_table :movies, force: true, id: false do |t|
     t.primary_key :movieid
     t.string      :name
@@ -842,6 +847,10 @@ ActiveRecord::Schema.define do
     end
   end
 
+  create_table :squeaks, force: true do |t|
+    t.integer :mouse_id
+  end
+
   create_table :prisoners, force: true do |t|
     t.belongs_to :ship
   end
@@ -1061,6 +1070,7 @@ ActiveRecord::Schema.define do
   create_table :cake_designers, force: true do |t|
   end
   create_table :drink_designers, force: true do |t|
+    t.string :name
   end
   create_table :chefs, force: true do |t|
     t.integer :employable_id
@@ -1068,6 +1078,7 @@ ActiveRecord::Schema.define do
     t.integer :department_id
     t.string :employable_list_type
     t.integer :employable_list_id
+    t.timestamps
   end
   create_table :recipes, force: true do |t|
     t.integer :chef_id

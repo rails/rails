@@ -50,13 +50,12 @@ module ActiveRecord
 
         # Converts the given URL to a full connection hash.
         def to_hash
-          config = raw_config.reject { |_, value| value.blank? }
+          config = raw_config.compact_blank
           config.map { |key, value| config[key] = uri_parser.unescape(value) if value.is_a? String }
           config
         end
 
         private
-
           attr_reader :uri
 
           def uri_parser
@@ -222,7 +221,7 @@ module ActiveRecord
             when Hash
               resolve_hash_connection config_or_env
             else
-              resolve_connection config_or_env
+              raise TypeError, "Invalid type for configuration. Expected Symbol, String, or Hash. Got #{config_or_env.inspect}"
             end
           end
 
@@ -276,7 +275,7 @@ module ActiveRecord
           # hash and merges with the rest of the hash.
           # Connection details inside of the "url" key win any merge conflicts
           def resolve_hash_connection(spec)
-            if spec["url"] && spec["url"] !~ /^jdbc:/
+            if spec["url"] && !spec["url"].match?(/^jdbc:/)
               connection_hash = resolve_url_connection(spec.delete("url"))
               spec.merge!(connection_hash)
             end

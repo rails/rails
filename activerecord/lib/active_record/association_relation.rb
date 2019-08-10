@@ -29,7 +29,6 @@ module ActiveRecord
     end
 
     private
-
       def exec_queries
         super do |record|
           @association.set_inverse_instance_from_queries(record)

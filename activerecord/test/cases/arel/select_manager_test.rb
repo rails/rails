@@ -369,16 +369,6 @@ module Arel
         mgr = table.from
         assert mgr.ast
       end
-
-      it "should allow orders to work when the ast is grepped" do
-        table = Table.new :users
-        mgr = table.from
-        mgr.project Arel.sql "*"
-        mgr.from table
-        mgr.orders << Arel::Nodes::Ascending.new(Arel.sql("foo"))
-        mgr.ast.grep(Arel::Nodes::OuterJoin)
-        mgr.to_sql.must_be_like %{ SELECT * FROM "users" ORDER BY foo ASC }
-      end
     end
 
     describe "taken" do
@@ -524,7 +514,7 @@ module Arel
       assert_equal "bar", join.right
     end
 
-    it "should create join nodes with a outer join klass" do
+    it "should create join nodes with an outer join klass" do
       relation = Arel::SelectManager.new
       join = relation.create_join "foo", "bar", Arel::Nodes::OuterJoin
       assert_kind_of Arel::Nodes::OuterJoin, join

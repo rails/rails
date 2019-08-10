@@ -7,6 +7,7 @@ require "active_support/core_ext/module/attribute_accessors"
 require "active_support/core_ext/numeric/bytes"
 require "active_support/core_ext/numeric/time"
 require "active_support/core_ext/object/to_param"
+require "active_support/core_ext/object/try"
 require "active_support/core_ext/string/inflections"
 
 module ActiveSupport
@@ -678,16 +679,13 @@ module ActiveSupport
         end
 
         def instrument(operation, key, options = nil)
-          log { "Cache #{operation}: #{normalize_key(key, options)}#{options.blank? ? "" : " (#{options.inspect})"}" }
+          if logger && logger.debug? && !silence?
+            logger.debug "Cache #{operation}: #{normalize_key(key, options)}#{options.blank? ? "" : " (#{options.inspect})"}"
+          end
 
           payload = { key: key }
           payload.merge!(options) if options.is_a?(Hash)
           ActiveSupport::Notifications.instrument("cache_#{operation}.active_support", payload) { yield(payload) }
-        end
-
-        def log
-          return unless logger && logger.debug? && !silence?
-          logger.debug(yield)
         end
 
         def handle_expired_entry(entry, key, options)

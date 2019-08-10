@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 class Hash
-  # Returns a new hash with all keys converted by the block operation.
-  # This includes the keys from the root hash and from all
+  # Returns a new hash with all values converted by the block operation.
+  # This includes the values from the root hash and from all
   # nested hashes and arrays.
   #
   #  hash = { person: { name: 'Rob', age: '28' } }

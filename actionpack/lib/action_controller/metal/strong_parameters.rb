@@ -223,6 +223,12 @@ module ActionController
     #    config.always_permitted_parameters = %w( controller action format )
     cattr_accessor :always_permitted_parameters, default: %w( controller action )
 
+    class << self
+      def nested_attribute?(key, value) # :nodoc:
+        /\A-?\d+\z/.match?(key) && (value.is_a?(Hash) || value.is_a?(Parameters))
+      end
+    end
+
     # Returns a new instance of <tt>ActionController::Parameters</tt>.
     # Also, sets the +permitted+ attribute to the default value of
     # <tt>ActionController::Parameters.permit_all_parameters</tt>.
@@ -252,6 +258,11 @@ module ActionController
       else
         @parameters == other
       end
+    end
+    alias eql? ==
+
+    def hash
+      [@parameters.hash, @permitted].hash
     end
 
     # Returns a safe <tt>ActiveSupport::HashWithIndifferentAccess</tt>
@@ -673,19 +684,34 @@ module ActionController
     # Returns a new <tt>ActionController::Parameters</tt> instance with the
     # results of running +block+ once for every key. The values are unchanged.
     def transform_keys(&block)
-      if block
-        new_instance_with_inherited_permitted_status(
-          @parameters.transform_keys(&block)
-        )
-      else
-        @parameters.transform_keys
-      end
+      return to_enum(:transform_keys) unless block_given?
+      new_instance_with_inherited_permitted_status(
+        @parameters.transform_keys(&block)
+      )
     end
 
     # Performs keys transformation and returns the altered
     # <tt>ActionController::Parameters</tt> instance.
     def transform_keys!(&block)
+      return to_enum(:transform_keys!) unless block_given?
       @parameters.transform_keys!(&block)
+      self
+    end
+
+    # Returns a new <tt>ActionController::Parameters</tt> instance with the
+    # results of running +block+ once for every key. This includes the keys
+    # from the root hash and from all nested hashes and arrays. The values are unchanged.
+    def deep_transform_keys(&block)
+      new_instance_with_inherited_permitted_status(
+        @parameters.deep_transform_keys(&block)
+      )
+    end
+
+    # Returns the <tt>ActionController::Parameters</tt> instance changing its keys.
+    # This includes the keys from the root hash and from all nested hashes and arrays.
+    # The values are unchanged.
+    def deep_transform_keys!(&block)
+      @parameters.deep_transform_keys!(&block)
       self
     end
 
@@ -722,6 +748,18 @@ module ActionController
       self
     end
     alias_method :delete_if, :reject!
+
+    # Returns a new instance of <tt>ActionController::Parameters</tt> without the blank values.
+    # Uses Object#blank? for determining if a value is blank.
+    def compact_blank
+      reject { |_k, v| v.blank? }
+    end
+
+    # Removes all blank values in place and returns self.
+    # Uses Object#blank? for determining if a value is blank.
+    def compact_blank!
+      reject! { |_k, v| v.blank? }
+    end
 
     # Returns values that were assigned to the given +keys+. Note that all the
     # +Hash+ objects will be converted to <tt>ActionController::Parameters</tt>.
@@ -811,8 +849,14 @@ module ActionController
 
       attr_writer :permitted
 
-      def fields_for_style?
-        @parameters.all? { |k, v| k =~ /\A-?\d+\z/ && (v.is_a?(Hash) || v.is_a?(Parameters)) }
+      def nested_attributes?
+        @parameters.any? { |k, v| Parameters.nested_attribute?(k, v) }
+      end
+
+      def each_nested_attribute
+        hash = self.class.new
+        self.each { |k, v| hash[k] = yield v if Parameters.nested_attribute?(k, v) }
+        hash
       end
 
     private
@@ -857,15 +901,13 @@ module ActionController
         end
       end
 
-      def each_element(object)
+      def each_element(object, &block)
         case object
         when Array
           object.grep(Parameters).map { |el| yield el }.compact
         when Parameters
-          if object.fields_for_style?
-            hash = object.class.new
-            object.each { |k, v| hash[k] = yield v }
-            hash
+          if object.nested_attributes?
+            object.each_nested_attribute(&block)
           else
             yield object
           end

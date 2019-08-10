@@ -108,7 +108,6 @@ module Rails
       end
 
     private
-
       def gemfile_entry(name, *args) # :doc:
         options = args.extract_options!
         version = args.first
@@ -307,7 +306,7 @@ module Rails
       def assets_gemfile_entry
         return [] if options[:skip_sprockets]
 
-        GemfileEntry.version("sass-rails", "~> 5", "Use SCSS for stylesheets")
+        GemfileEntry.version("sass-rails", ">= 5", "Use SCSS for stylesheets")
       end
 
       def webpacker_gemfile_entry
@@ -322,7 +321,7 @@ module Rails
 
       def jbuilder_gemfile_entry
         comment = "Build JSON APIs with ease. Read more: https://github.com/rails/jbuilder"
-        GemfileEntry.new "jbuilder", "~> 2.5", comment, {}, options[:api]
+        GemfileEntry.new "jbuilder", "~> 2.7", comment, {}, options[:api]
       end
 
       def javascript_gemfile_entry
@@ -401,7 +400,7 @@ module Rails
       end
 
       def os_supports_listen_out_of_the_box?
-        RbConfig::CONFIG["host_os"] =~ /darwin|linux/
+        /darwin|linux/.match?(RbConfig::CONFIG["host_os"])
       end
 
       def run_bundle

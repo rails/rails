@@ -125,7 +125,7 @@ guide. You can generate keys with the GPG suite from here: https://gpgtools.org.
 Run `rake changelog:header` to put a header with the new version in every
 CHANGELOG. Don't commit this, the release task handles it.
 
-Run `rake release`. This will populate the gemspecs and NPM package.json with
+Run `rake release`. This will populate the gemspecs and npm package.json with
 the current RAILS_VERSION, commit the changes, tag it, and push the gems to
 rubygems.org.
 

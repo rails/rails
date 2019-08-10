@@ -27,7 +27,6 @@ module ActionView
       end
 
       private
-
         # This is the same logging logic as in ShowExceptions middleware.
         def log_error(exception)
           logger = ActionView::Base.logger
@@ -55,7 +54,6 @@ module ActionView
     end
 
     private
-
       def delayed_render(buffer, template, layout, view, locals)
         # Wrap the given buffer in the StreamingBuffer and pass it to the
         # underlying template handler. Now, every time something is concatenated
@@ -64,7 +62,7 @@ module ActionView
         output  = ActionView::StreamingBuffer.new(buffer)
         yielder = lambda { |*name| view._layout_for(*name) }
 
-        instrument(:template, identifier: template.identifier, layout: layout.try(:virtual_path)) do
+        instrument(:template, identifier: template.identifier, layout: (layout && layout.virtual_path)) do
           outer_config = I18n.config
           fiber = Fiber.new do
             I18n.config = outer_config

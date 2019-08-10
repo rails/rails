@@ -22,15 +22,22 @@ class ParameterFilterTest < ActiveSupport::TestCase
 
       filter_words << "blah"
       filter_words << lambda { |key, value|
-        value.reverse! if key =~ /bargain/
+        value.reverse! if /bargain/.match?(key)
       }
       filter_words << lambda { |key, value, original_params|
         value.replace("world!") if original_params["barg"]["blah"] == "bar" && key == "hello"
       }
 
+      filter_words << lambda { |key, value|
+        value.upcase! if key == "array_elements"
+      }
+
       parameter_filter = ActiveSupport::ParameterFilter.new(filter_words)
       before_filter["barg"] = { :bargain => "gain", "blah" => "bar", "bar" => { "bargain" => { "blah" => "foo", "hello" => "world" } } }
       after_filter["barg"]  = { :bargain => "niag", "blah" => "[FILTERED]", "bar" => { "bargain" => { "blah" => "[FILTERED]", "hello" => "world!" } } }
+
+      before_filter["array_elements"] = %w(element1 element2)
+      after_filter["array_elements"] = %w(ELEMENT1 ELEMENT2)
 
       assert_equal after_filter, parameter_filter.filter(before_filter)
     end
@@ -54,7 +61,7 @@ class ParameterFilterTest < ActiveSupport::TestCase
 
       filter_words << "blah"
       filter_words << lambda { |key, value|
-        value.reverse! if key =~ /bargain/
+        value.reverse! if /bargain/.match?(key)
       }
       filter_words << lambda { |key, value, original_params|
         value.replace("world!") if original_params["barg"]["blah"] == "bar" && key == "hello"

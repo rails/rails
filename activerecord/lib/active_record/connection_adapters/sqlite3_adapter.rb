@@ -48,8 +48,8 @@ module ActiveRecord
   end
 
   module ConnectionAdapters #:nodoc:
-    # The SQLite3 adapter works SQLite 3.6.16 or newer
-    # with the sqlite3-ruby drivers (available as gem from https://rubygems.org/gems/sqlite3).
+    # The SQLite3 adapter works with the sqlite3-ruby drivers
+    # (available as gem from https://rubygems.org/gems/sqlite3).
     #
     # Options:
     #
@@ -96,6 +96,16 @@ module ActiveRecord
       def initialize(connection, logger, connection_options, config)
         super(connection, logger, config)
         configure_connection
+      end
+
+      def self.database_exists?(config)
+        config = config.symbolize_keys
+        if config[:database] == ":memory:"
+          return true
+        else
+          database_file = defined?(Rails.root) ? File.expand_path(config[:database], Rails.root) : config[:database]
+          File.exist?(database_file)
+        end
       end
 
       def supports_ddl_transactions?
@@ -201,14 +211,6 @@ module ActiveRecord
         end
       end
 
-      #--
-      # DATABASE STATEMENTS ======================================
-      #++
-      def explain(arel, binds = [])
-        sql = "EXPLAIN QUERY PLAN #{to_sql(arel, binds)}"
-        SQLite3::ExplainPrettyPrinter.new.pp(exec_query(sql, "EXPLAIN", []))
-      end
-
       # SCHEMA STATEMENTS ========================================
 
       def primary_keys(table_name) # :nodoc:
@@ -226,6 +228,8 @@ module ActiveRecord
       # Example:
       #   rename_table('octopuses', 'octopi')
       def rename_table(table_name, new_name)
+        schema_cache.clear_data_source_cache!(table_name.to_s)
+        schema_cache.clear_data_source_cache!(new_name.to_s)
         exec_query "ALTER TABLE #{quote_table_name(table_name)} RENAME TO #{quote_table_name(new_name)}"
         rename_table_indexes(table_name, new_name)
       end
@@ -389,6 +393,7 @@ module ActiveRecord
             if from_primary_key.is_a?(Array)
               @definition.primary_keys from_primary_key
             end
+
             columns(from).each do |column|
               column_name = options[:rename] ?
                 (options[:rename][column.name] ||
@@ -485,9 +490,9 @@ module ActiveRecord
           result = exec_query(sql, "SCHEMA").first
 
           if result
-            # Splitting with left parentheses and picking up last will return all
+            # Splitting with left parentheses and discarding the first part will return all
             # columns separated with comma(,).
-            columns_string = result["sql"].split("(").last
+            columns_string = result["sql"].split("(", 2).last
 
             columns_string.split(",").each do |column_string|
               # This regex will match the column name and collation type and will save

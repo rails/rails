@@ -258,7 +258,6 @@ module ActiveRecord
     end
 
     private
-
       def apply_limits(relation, start, finish)
         relation = apply_start_limit(relation, start) if start
         relation = apply_finish_limit(relation, finish) if finish

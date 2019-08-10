@@ -4,7 +4,6 @@ require "active_record/database_configurations"
 
 module ActiveRecord
   module Tasks # :nodoc:
-    class DatabaseAlreadyExists < StandardError; end # :nodoc:
     class DatabaseNotSupported < StandardError; end # :nodoc:
 
     # ActiveRecord::Tasks::DatabaseTasks is a utility class, which encapsulates
@@ -141,10 +140,21 @@ module ActiveRecord
         end
       end
 
-      def for_each
+      def setup_initial_database_yaml
         return {} unless defined?(Rails)
 
-        databases = Rails.application.config.load_database_yaml
+        begin
+          Rails.application.config.load_database_yaml
+        rescue
+          $stderr.puts "Rails couldn't infer whether you are using multiple databases from your database.yml and can't generate the tasks for the non-primary databases. If you'd like to use this feature, please simplify your ERB."
+
+          {}
+        end
+      end
+
+      def for_each(databases)
+        return {} unless defined?(Rails)
+
         database_configs = ActiveRecord::DatabaseConfigurations.new(databases).configs_for(env_name: Rails.env)
 
         # if this is a single database application we don't want tasks for each primary database
@@ -169,8 +179,8 @@ module ActiveRecord
         end
       end
 
-      def create_current(environment = env)
-        each_current_configuration(environment) { |configuration|
+      def create_current(environment = env, spec_name = nil)
+        each_current_configuration(environment, spec_name) { |configuration|
           create configuration
         }
         ActiveRecord::Base.establish_connection(environment.to_sym)
@@ -200,9 +210,10 @@ module ActiveRecord
 
       def truncate_tables(configuration)
         ActiveRecord::Base.connected_to(database: { truncation: configuration }) do
-          table_names = ActiveRecord::Base.connection.tables
+          conn = ActiveRecord::Base.connection
+          table_names = conn.tables
           table_names -= [
-            SchemaMigration.table_name,
+            conn.schema_migration.table_name,
             InternalMetadata.table_name
           ]
 
@@ -233,7 +244,7 @@ module ActiveRecord
       end
 
       def migrate_status
-        unless ActiveRecord::SchemaMigration.table_exists?
+        unless ActiveRecord::Base.connection.schema_migration.table_exists?
           Kernel.abort "Schema migrations table does not exist yet."
         end
 
@@ -321,8 +332,58 @@ module ActiveRecord
         end
         ActiveRecord::InternalMetadata.create_table
         ActiveRecord::InternalMetadata[:environment] = environment
+        ActiveRecord::InternalMetadata[:schema_sha1] = schema_sha1(file)
       ensure
         Migration.verbose = verbose_was
+      end
+
+      def schema_up_to_date?(configuration, format = ActiveRecord::Base.schema_format, file = nil, environment = env, spec_name = "primary")
+        file ||= dump_filename(spec_name, format)
+
+        return true unless File.exist?(file)
+
+        ActiveRecord::Base.establish_connection(configuration)
+        return false unless ActiveRecord::InternalMetadata.table_exists?
+        ActiveRecord::InternalMetadata[:schema_sha1] == schema_sha1(file)
+      end
+
+      def reconstruct_from_schema(configuration, format = ActiveRecord::Base.schema_format, file = nil, environment = env, spec_name = "primary") # :nodoc:
+        file ||= dump_filename(spec_name, format)
+
+        check_schema_file(file)
+
+        ActiveRecord::Base.establish_connection(configuration)
+
+        if schema_up_to_date?(configuration, format, file, environment, spec_name)
+          truncate_tables(configuration)
+        else
+          purge(configuration)
+          load_schema(configuration, format, file, environment, spec_name)
+        end
+      rescue ActiveRecord::NoDatabaseError
+        create(configuration)
+        load_schema(configuration, format, file, environment, spec_name)
+      end
+
+      def dump_schema(configuration, format = ActiveRecord::Base.schema_format, spec_name = "primary") # :nodoc:
+        require "active_record/schema_dumper"
+        filename = dump_filename(spec_name, format)
+        connection = ActiveRecord::Base.connection
+
+        case format
+        when :ruby
+          File.open(filename, "w:utf-8") do |file|
+            ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection, file)
+          end
+        when :sql
+          structure_dump(configuration, filename)
+          if connection.schema_migration.table_exists?
+            File.open(filename, "a") do |f|
+              f.puts connection.dump_schema_information
+              f.print "\n"
+            end
+          end
+        end
       end
 
       def schema_file(format = ActiveRecord::Base.schema_format)
@@ -406,12 +467,14 @@ module ActiveRecord
           task.is_a?(String) ? task.constantize : task
         end
 
-        def each_current_configuration(environment)
+        def each_current_configuration(environment, spec_name = nil)
           environments = [environment]
           environments << "test" if environment == "development"
 
           environments.each do |env|
             ActiveRecord::Base.configurations.configs_for(env_name: env).each do |db_config|
+              next if spec_name && spec_name != db_config.spec_name
+
               yield db_config.config, db_config.spec_name, env
             end
           end
@@ -432,6 +495,10 @@ module ActiveRecord
 
         def local_database?(configuration)
           configuration["host"].blank? || LOCAL_HOSTS.include?(configuration["host"])
+        end
+
+        def schema_sha1(file)
+          Digest::SHA1.hexdigest(File.read(file))
         end
     end
   end

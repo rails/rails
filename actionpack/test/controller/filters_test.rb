@@ -310,7 +310,6 @@ class FilterTest < ActionController::TestCase
     after_action  :conditional_in_parent_after, only: [:show, :another_action]
 
     private
-
       def conditional_in_parent_before
         @ran_filter ||= []
         @ran_filter << "conditional_in_parent_before"
@@ -508,7 +507,6 @@ class FilterTest < ActionController::TestCase
     end
 
     private
-
       def filter_one
         @filters ||= []
         @filters << "filter_one"
@@ -532,7 +530,6 @@ class FilterTest < ActionController::TestCase
     before_action :find_except, except: :edit
 
     private
-
       def find_only
         @only = "Only"
       end

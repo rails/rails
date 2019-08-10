@@ -1087,7 +1087,6 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   end
 
   private
-
     def new_topic_like_ar_class(&block)
       klass = Class.new(ActiveRecord::Base) do
         self.table_name = "topics"

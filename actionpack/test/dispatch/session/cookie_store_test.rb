@@ -379,7 +379,6 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
   end
 
   private
-
     # Overwrite get to send SessionSecret in env hash
     def get(path, *args)
       args[0] ||= {}

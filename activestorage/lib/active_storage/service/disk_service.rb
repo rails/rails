@@ -84,8 +84,12 @@ module ActiveStorage
           purpose: :blob_key }
         )
 
+        current_uri = URI.parse(current_host)
+
         generated_url = url_helpers.rails_disk_service_url(verified_key_with_expiration,
-          host: current_host,
+          protocol: current_uri.scheme,
+          host: current_uri.host,
+          port: current_uri.port,
           disposition: content_disposition,
           content_type: content_type,
           filename: filename

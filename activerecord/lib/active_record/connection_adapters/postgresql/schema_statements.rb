@@ -55,6 +55,7 @@ module ActiveRecord
         end
 
         def drop_table(table_name, options = {}) # :nodoc:
+          schema_cache.clear_data_source_cache!(table_name.to_s)
           execute "DROP TABLE#{' IF EXISTS' if options[:if_exists]} #{quote_table_name(table_name)}#{' CASCADE' if options[:force] == :cascade}"
         end
 
@@ -376,6 +377,8 @@ module ActiveRecord
         #   rename_table('octopuses', 'octopi')
         def rename_table(table_name, new_name)
           clear_cache!
+          schema_cache.clear_data_source_cache!(table_name.to_s)
+          schema_cache.clear_data_source_cache!(new_name.to_s)
           execute "ALTER TABLE #{quote_table_name(table_name)} RENAME TO #{quote_table_name(new_name)}"
           pk, seq = pk_and_sequence_for(new_name)
           if pk
@@ -552,13 +555,13 @@ module ActiveRecord
         # PostgreSQL requires the ORDER BY columns in the select list for distinct queries, and
         # requires that the ORDER BY include the distinct column.
         def columns_for_distinct(columns, orders) #:nodoc:
-          order_columns = orders.reject(&:blank?).map { |s|
+          order_columns = orders.compact_blank.map { |s|
               # Convert Arel node to string
               s = s.to_sql unless s.is_a?(String)
               # Remove any ASC/DESC modifiers
               s.gsub(/\s+(?:ASC|DESC)\b/i, "")
                .gsub(/\s+NULLS\s+(?:FIRST|LAST)\b/i, "")
-            }.reject(&:blank?).map.with_index { |column, i| "#{column} AS alias_#{i}" }
+            }.compact_blank.map.with_index { |column, i| "#{column} AS alias_#{i}" }
 
           (order_columns << super).join(", ")
         end

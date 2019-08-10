@@ -3,9 +3,10 @@
   "private": true,
   "dependencies": {
     "@rails/webpacker": "^4.0.2",
-    "actiontext": "file:../.."
+    "actiontext": "file:../..",
+    "trix": "^1.1.1"
   },
   "devDependencies": {
-    "webpack-dev-server": "^3.2.1"
+    "webpack-dev-server": "^3.3.1"
   }
 }

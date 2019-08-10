@@ -34,11 +34,16 @@ module Rails
       end
 
       private
-
         def permitted_params
-          params = attributes_names.map { |name| ":#{name}" }.join(", ")
-          params += attributes.select(&:attachments?).map { |a| ", #{a.name}: []" }.join
-          params
+          attachments, others = attributes_names.partition { |name| attachments?(name) }
+          params = others.map { |name| ":#{name}" }
+          params += attachments.map { |name| "#{name}: []" }
+          params.join(", ")
+        end
+
+        def attachments?(name)
+          attribute = attributes.find { |attr| attr.name == name }
+          attribute&.attachments?
         end
     end
   end

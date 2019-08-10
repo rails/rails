@@ -29,4 +29,4 @@ Rails.application.routes.draw do
 
   resolve("ActiveStorage::Blob")       { |blob, options| route_for(:rails_blob, blob, options) }
   resolve("ActiveStorage::Attachment") { |attachment, options| route_for(:rails_blob, attachment.blob, options) }
-end
+end if ActiveStorage.draw_routes

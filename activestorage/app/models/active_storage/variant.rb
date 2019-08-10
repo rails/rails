@@ -96,17 +96,11 @@ class ActiveStorage::Variant
     end
 
     def process
-      blob.open do |image|
-        transform(image) { |output| upload(output) }
+      blob.open do |input|
+        variation.transform(input, format: format) do |output|
+          service.upload(key, output)
+        end
       end
-    end
-
-    def transform(image, &block)
-      variation.transform(image, format: format, &block)
-    end
-
-    def upload(file)
-      service.upload(key, file)
     end
 
 

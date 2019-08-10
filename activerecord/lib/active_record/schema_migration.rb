@@ -22,10 +22,6 @@ module ActiveRecord
         "#{table_name_prefix}#{schema_migrations_table_name}#{table_name_suffix}"
       end
 
-      def table_exists?
-        connection.table_exists?(table_name)
-      end
-
       def create_table
         unless table_exists?
           version_options = connection.internal_string_options_for_primary_key

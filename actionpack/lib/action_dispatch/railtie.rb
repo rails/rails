@@ -23,6 +23,7 @@ module ActionDispatch
     config.action_dispatch.use_authenticated_cookie_encryption = false
     config.action_dispatch.use_cookies_with_metadata = false
     config.action_dispatch.perform_deep_munge = true
+    config.action_dispatch.return_only_media_type_on_content_type = true
 
     config.action_dispatch.default_headers = {
       "X-Frame-Options" => "SAMEORIGIN",
@@ -43,6 +44,7 @@ module ActionDispatch
       ActionDispatch::Request::Utils.perform_deep_munge = app.config.action_dispatch.perform_deep_munge
       ActionDispatch::Response.default_charset = app.config.action_dispatch.default_charset || app.config.encoding
       ActionDispatch::Response.default_headers = app.config.action_dispatch.default_headers
+      ActionDispatch::Response.return_only_media_type_on_content_type = app.config.action_dispatch.return_only_media_type_on_content_type
 
       ActionDispatch::ExceptionWrapper.rescue_responses.merge!(config.action_dispatch.rescue_responses)
       ActionDispatch::ExceptionWrapper.rescue_templates.merge!(config.action_dispatch.rescue_templates)

@@ -34,7 +34,7 @@ module ActiveRecord
       ActiveRecord::Base.connection.materialize_transactions
       SQLCounter.clear_log
       yield
-      SQLCounter.log_all.dup
+      SQLCounter.log.dup
     end
 
     def assert_sql(*patterns_to_match)
@@ -107,20 +107,12 @@ module ActiveRecord
 
     clear_log
 
-    self.ignored_sql = [/^SAVEPOINT/, /^ROLLBACK TO SAVEPOINT/, /^RELEASE SAVEPOINT/]
-
-    attr_reader :ignore
-
-    def initialize(ignore = Regexp.union(self.class.ignored_sql))
-      @ignore = ignore
-    end
-
     def call(name, start, finish, message_id, values)
       return if values[:cached]
 
       sql = values[:sql]
       self.class.log_all << sql
-      self.class.log << sql unless values[:name] == "SCHEMA" || ignore.match?(sql)
+      self.class.log << sql unless ["SCHEMA", "TRANSACTION"].include? values[:name]
     end
   end
 

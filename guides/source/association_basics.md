@@ -2451,8 +2451,8 @@ Extensions can refer to the internals of the association proxy using these three
 * `proxy_association.reflection` returns the reflection object that describes the association.
 * `proxy_association.target` returns the associated object for `belongs_to` or `has_one`, or the collection of associated objects for `has_many` or `has_and_belongs_to_many`.
 
-Single Table Inheritance
-------------------------
+Single Table Inheritance (STI)
+------------------------------
 
 Sometimes, you may want to share fields and behavior between different models.
 Let's say we have Car, Motorcycle, and Bicycle models. We will want to share

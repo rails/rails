@@ -41,6 +41,10 @@ application (or upgrading your application to Rails 5.2), run
 `rails active_storage:install` to generate a migration that creates these
 tables. Use `rails db:migrate` to run the migration.
 
+WARNING: `active_storage_attachments` is a polymorphic join table that stores your model's class name. If your model's class name changes, you will need to run a migration on this table to update the underlying `record_type` to your model's new class name.
+
+WARNING: If you are using UUIDs instead of integers as the primary key on your models you will need to change the column type of `record_id` for the `active_storage_attachments` table in the generated migration accordingly.
+
 Declare Active Storage services in `config/storage.yml`. For each service your
 application uses, provide a name and the requisite configuration. The example
 below declares three services named `local`, `test`, and `amazon`:
@@ -143,10 +147,10 @@ azure:
   container: ""
 ```
 
-Add the [`azure-storage`](https://github.com/Azure/azure-storage-ruby) gem to your `Gemfile`:
+Add the [`azure-storage-blob`](https://github.com/Azure/azure-storage-ruby) gem to your `Gemfile`:
 
 ```ruby
-gem "azure-storage", require: false
+gem "azure-storage-blob", require: false
 ```
 
 ### Google Cloud Storage Service
@@ -189,13 +193,20 @@ gem "google-cloud-storage", "~> 1.11", require: false
 
 ### Mirror Service
 
-You can keep multiple services in sync by defining a mirror service. When a file
-is uploaded or deleted, it's done across all the mirrored services. Mirrored
-services can be used to facilitate a migration between services in production.
-You can start mirroring to the new service, copy existing files from the old
-service to the new, then go all-in on the new service. Define each of the
-services you'd like to use as described above and reference them from a mirrored
+You can keep multiple services in sync by defining a mirror service. A mirror
+service replicates uploads and deletes across two or more subordinate services.
+
+A mirror service is intended to be used temporarily during a migration between
+services in production. You can start mirroring to a new service, copy
+pre-existing files from the old service to the new, then go all-in on the new
 service.
+
+NOTE: Mirroring is not atomic. It is possible for an upload to succeed on the
+primary service and fail on any of the subordinate services. Before going
+all-in on a new service, verify that all files have been copied.
+
+Define each of the services you'd like to mirror as described above. Reference
+them by name when defining a mirror service:
 
 ```yaml
 s3_west_coast:
@@ -219,9 +230,12 @@ production:
     - s3_west_coast
 ```
 
-NOTE: Files are served from the primary service.
+Although all secondary services receive uploads, downloads are always handled
+by the primary service.
 
-NOTE: This is not compatible with the [direct uploads](#direct-uploads) feature.
+Mirror services are compatible with direct uploads. New files are directly
+uploaded to the primary service. When a directly-uploaded file is attached to a
+record, a background job is enqueued to copy it to the secondary services.
 
 Attaching Files to Records
 --------------------------
@@ -385,6 +399,10 @@ helper allows you to set the disposition.
 ```ruby
 rails_blob_path(user.avatar, disposition: "attachment")
 ```
+
+WARNING: To prevent XSS attacks, ActiveStorage forces the Content-Disposition header
+to "attachment" for some kind of files. To change this behaviour see the
+available configuration opions in [Configuring Rails Applications](configuring.html#configuring-active-storage).
 
 If you need to create a link from outside of controller/view context (Background
 jobs, Cronjobs, etc.), you can access the rails_blob_path like this:

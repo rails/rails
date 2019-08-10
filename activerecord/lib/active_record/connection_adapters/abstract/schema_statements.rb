@@ -2,7 +2,6 @@
 
 require "active_record/migration/join_table"
 require "active_support/core_ext/string/access"
-require "active_support/deprecation"
 require "digest/sha2"
 
 module ActiveRecord
@@ -101,7 +100,7 @@ module ActiveRecord
       def index_exists?(table_name, column_name, options = {})
         column_names = Array(column_name).map(&:to_s)
         checks = []
-        checks << lambda { |i| i.columns == column_names }
+        checks << lambda { |i| Array(i.columns) == column_names }
         checks << lambda { |i| i.unique } if options[:unique]
         checks << lambda { |i| i.name == options[:name].to_s } if options[:name]
 
@@ -291,25 +290,27 @@ module ActiveRecord
       #     SELECT * FROM orders INNER JOIN line_items ON order_id=orders.id
       #
       # See also TableDefinition#column for details on how to create columns.
-      def create_table(table_name, **options)
-        td = create_table_definition(table_name, options)
+      def create_table(table_name, id: :primary_key, primary_key: nil, force: nil, **options)
+        td = create_table_definition(
+          table_name, options.extract!(:temporary, :if_not_exists, :options, :as, :comment)
+        )
 
-        if options[:id] != false && !options[:as]
-          pk = options.fetch(:primary_key) do
-            Base.get_primary_key table_name.to_s.singularize
-          end
+        if id && !td.as
+          pk = primary_key || Base.get_primary_key(table_name.to_s.singularize)
 
           if pk.is_a?(Array)
             td.primary_keys pk
           else
-            td.primary_key pk, options.fetch(:id, :primary_key), options
+            td.primary_key pk, id, options
           end
         end
 
         yield td if block_given?
 
-        if options[:force]
-          drop_table(table_name, options.merge(if_exists: true))
+        if force
+          drop_table(table_name, force: force, if_exists: true)
+        else
+          schema_cache.clear_data_source_cache!(table_name.to_s)
         end
 
         result = execute schema_creation.accept td
@@ -321,7 +322,7 @@ module ActiveRecord
         end
 
         if supports_comments? && !supports_comments_in_create?
-          if table_comment = options[:comment].presence
+          if table_comment = td.comment.presence
             change_table_comment(table_name, table_comment)
           end
 
@@ -499,6 +500,7 @@ module ActiveRecord
       # it can be helpful to provide these in a migration's +change+ method so it can be reverted.
       # In that case, +options+ and the block will be used by #create_table.
       def drop_table(table_name, options = {})
+        schema_cache.clear_data_source_cache!(table_name.to_s)
         execute "DROP TABLE#{' IF EXISTS' if options[:if_exists]} #{quote_table_name(table_name)}"
       end
 
@@ -518,14 +520,15 @@ module ActiveRecord
       # Available options are (none of these exists by default):
       # * <tt>:limit</tt> -
       #   Requests a maximum column length. This is the number of characters for a <tt>:string</tt> column
-      #   and number of bytes for <tt>:text</tt>, <tt>:binary</tt> and <tt>:integer</tt> columns.
+      #   and number of bytes for <tt>:text</tt>, <tt>:binary</tt>, and <tt>:integer</tt> columns.
       #   This option is ignored by some backends.
       # * <tt>:default</tt> -
       #   The column's default value. Use +nil+ for +NULL+.
       # * <tt>:null</tt> -
       #   Allows or disallows +NULL+ values in the column.
       # * <tt>:precision</tt> -
-      #   Specifies the precision for the <tt>:decimal</tt> and <tt>:numeric</tt> columns.
+      #   Specifies the precision for the <tt>:decimal</tt>, <tt>:numeric</tt>,
+      #   <tt>:datetime</tt>, and <tt>:time</tt> columns.
       # * <tt>:scale</tt> -
       #   Specifies the scale for the <tt>:decimal</tt> and <tt>:numeric</tt> columns.
       # * <tt>:collation</tt> -
@@ -735,7 +738,7 @@ module ActiveRecord
       #
       #   CREATE UNIQUE INDEX index_accounts_on_branch_id_and_party_id ON accounts(branch_id, party_id) WHERE active
       #
-      # Note: Partial indexes are only supported for PostgreSQL and SQLite 3.8.0+.
+      # Note: Partial indexes are only supported for PostgreSQL and SQLite.
       #
       # ====== Creating an index with a specific method
       #
@@ -1060,8 +1063,8 @@ module ActiveRecord
         options
       end
 
-      def dump_schema_information #:nodoc:
-        versions = ActiveRecord::SchemaMigration.all_versions
+      def dump_schema_information # :nodoc:
+        versions = schema_migration.all_versions
         insert_versions_sql(versions) if versions.any?
       end
 
@@ -1077,7 +1080,7 @@ module ActiveRecord
         end
 
         version = version.to_i
-        sm_table = quote_table_name(ActiveRecord::SchemaMigration.table_name)
+        sm_table = quote_table_name(schema_migration.table_name)
 
         migrated = migration_context.get_all_versions
         versions = migration_context.migrations.map(&:version)
@@ -1450,7 +1453,7 @@ module ActiveRecord
         end
 
         def insert_versions_sql(versions)
-          sm_table = quote_table_name(ActiveRecord::SchemaMigration.table_name)
+          sm_table = quote_table_name(schema_migration.table_name)
 
           if versions.is_a?(Array)
             sql = +"INSERT INTO #{sm_table} (version) VALUES\n"

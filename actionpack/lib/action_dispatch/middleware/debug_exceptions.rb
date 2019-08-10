@@ -4,8 +4,6 @@ require "action_dispatch/http/request"
 require "action_dispatch/middleware/exception_wrapper"
 require "action_dispatch/routing/inspector"
 
-require "active_support/actionable_error"
-
 require "action_view"
 require "action_view/base"
 
@@ -44,7 +42,6 @@ module ActionDispatch
     end
 
     private
-
       def invoke_interceptors(request, exception)
         backtrace_cleaner = request.get_header("action_dispatch.backtrace_cleaner")
         wrapper = ExceptionWrapper.new(backtrace_cleaner, exception)
@@ -140,9 +137,7 @@ module ActionDispatch
         return unless logger
 
         exception = wrapper.exception
-
-        trace = wrapper.application_trace
-        trace = wrapper.framework_trace if trace.empty?
+        trace = wrapper.exception_trace
 
         ActiveSupport::Deprecation.silence do
           message = []

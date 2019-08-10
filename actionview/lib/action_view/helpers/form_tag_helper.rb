@@ -137,7 +137,8 @@ module ActionView
         html_name = (options[:multiple] == true && !name.to_s.ends_with?("[]")) ? "#{name}[]" : name
 
         if options.include?(:include_blank)
-          include_blank = options.delete(:include_blank)
+          include_blank = options[:include_blank]
+          options = options.except(:include_blank)
           options_for_blank_options_tag = { value: "" }
 
           if include_blank == true

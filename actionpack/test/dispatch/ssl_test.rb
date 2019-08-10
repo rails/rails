@@ -42,7 +42,7 @@ class RedirectSSLTest < SSLTest
   end
 
   test "exclude can avoid redirect" do
-    excluding = { exclude: -> request { request.path =~ /healthcheck/ } }
+    excluding = { exclude: -> request { request.path.match?(/healthcheck/) } }
 
     assert_not_redirected "http://example.org/healthcheck", redirect: excluding
     assert_redirected from: "http://example.org/", redirect: excluding
@@ -209,7 +209,7 @@ class SecureCookiesTest < SSLTest
   end
 
   def test_cookies_as_not_secure_with_exclude
-    excluding = { exclude: -> request { request.domain =~ /example/ } }
+    excluding = { exclude: -> request { /example/.match?(request.domain) } }
     get headers: { "Set-Cookie" => DEFAULT }, ssl_options: { redirect: excluding }
 
     assert_cookies(*DEFAULT.split("\n"))

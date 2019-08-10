@@ -5,7 +5,7 @@ require "active_model/nested_error"
 require "models/topic"
 require "models/reply"
 
-class ErrorTest < ActiveModel::TestCase
+class NestedErrorTest < ActiveModel::TestCase
   def test_initialize
     topic = Topic.new
     inner_error = ActiveModel::Error.new(topic, :title, :not_enough, count: 2)

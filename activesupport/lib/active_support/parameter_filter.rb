@@ -22,7 +22,7 @@ module ActiveSupport
   #   change { file: { code: "xxxx"} }
   #
   #   ActiveSupport::ParameterFilter.new([-> (k, v) do
-  #     v.reverse! if k =~ /secret/i
+  #     v.reverse! if /secret/i.match?(k)
   #   end])
   #   => reverses the value to all keys matching /secret/i
   class ParameterFilter
@@ -51,7 +51,6 @@ module ActiveSupport
     end
 
   private
-
     def compiled_filter
       @compiled_filter ||= CompiledFilter.compile(@filters, mask: @mask)
     end
@@ -110,7 +109,12 @@ module ActiveSupport
         elsif value.is_a?(Hash)
           value = call(value, parents, original_params)
         elsif value.is_a?(Array)
-          value = value.map { |v| v.is_a?(Hash) ? call(v, parents, original_params) : v }
+          # If we don't pop the current parent it will be duplicated as we
+          # process each array value.
+          parents.pop if deep_regexps
+          value = value.map { |v| value_for_key(key, v, parents, original_params) }
+          # Restore the parent stack after processing the array.
+          parents.push(key) if deep_regexps
         elsif blocks.any?
           key = key.dup if key.duplicable?
           value = value.dup if value.duplicable?

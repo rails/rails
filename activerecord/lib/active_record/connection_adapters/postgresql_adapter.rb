@@ -12,6 +12,7 @@ class ::PG::Connection # :nodoc:
   end
 end
 
+require "active_support/core_ext/object/try"
 require "active_record/connection_adapters/abstract_adapter"
 require "active_record/connection_adapters/statement_pool"
 require "active_record/connection_adapters/postgresql/column"
@@ -46,7 +47,7 @@ module ActiveRecord
       conn = PG.connect(conn_params)
       ConnectionAdapters::PostgreSQLAdapter.new(conn, logger, conn_params, config)
     rescue ::PG::Error => error
-      if error.message.include?("does not exist")
+      if error.message.include?(conn_params[:dbname])
         raise ActiveRecord::NoDatabaseError
       else
         raise
@@ -259,6 +260,12 @@ module ActiveRecord
         @use_insert_returning = @config.key?(:insert_returning) ? self.class.type_cast_config_to_boolean(@config[:insert_returning]) : true
       end
 
+      def self.database_exists?(config)
+        !!ActiveRecord::Base.postgresql_connection(config)
+      rescue ActiveRecord::NoDatabaseError
+        false
+      end
+
       # Is this connection alive and ready for queries?
       def active?
         @lock.synchronize do
@@ -302,6 +309,7 @@ module ActiveRecord
       end
 
       def discard! # :nodoc:
+        super
         @connection.socket_io.reopen(IO::NULL) rescue nil
         @connection = nil
       end
@@ -452,7 +460,6 @@ module ActiveRecord
       end
 
       private
-
         # See https://www.postgresql.org/docs/current/static/errcodes-appendix.html
         VALUE_LIMIT_VIOLATION = "22001"
         NUMERIC_VALUE_OUT_OF_RANGE = "22003"
@@ -461,6 +468,7 @@ module ActiveRecord
         UNIQUE_VIOLATION      = "23505"
         SERIALIZATION_FAILURE = "40001"
         DEADLOCK_DETECTED     = "40P01"
+        DUPLICATE_DATABASE    = "42P04"
         LOCK_NOT_AVAILABLE    = "55P03"
         QUERY_CANCELED        = "57014"
 
@@ -482,6 +490,8 @@ module ActiveRecord
             SerializationFailure.new(message, sql: sql, binds: binds)
           when DEADLOCK_DETECTED
             Deadlocked.new(message, sql: sql, binds: binds)
+          when DUPLICATE_DATABASE
+            DatabaseAlreadyExists.new(message, sql: sql, binds: binds)
           when LOCK_NOT_AVAILABLE
             LockWaitTimeout.new(message, sql: sql, binds: binds)
           when QUERY_CANCELED

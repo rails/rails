@@ -41,8 +41,8 @@ Major Features
 [Pull Request](https://github.com/rails/rails/pull/26836)
 
 Rails 5.1 allows managing JavaScript dependencies
-from NPM via Yarn. This will make it easy to use libraries like React, VueJS
-or any other library from NPM world. The Yarn support is integrated with
+from npm via Yarn. This will make it easy to use libraries like React, VueJS
+or any other library from npm world. The Yarn support is integrated with
 the asset pipeline so that all dependencies will work seamlessly with the
 Rails 5.1 app.
 

@@ -44,6 +44,15 @@ class ActionText::ModelTest < ActiveSupport::TestCase
     assert_equal [ActiveStorage::Attachment], message.content.embeds.map(&:class)
   end
 
+  test "embed extraction deduplicates file attachments" do
+    blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpg")
+    content = ActionText::Content.new("Hello world").append_attachables([ blob, blob ])
+
+    assert_nothing_raised do
+      Message.create!(subject: "Greetings", content: content)
+    end
+  end
+
   test "saving content" do
     message = Message.create!(subject: "Greetings", content: "<h1>Hello world</h1>")
     assert_equal "Hello world", message.content.to_plain_text

@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "active_support/deprecation"
-
 module ActionView #:nodoc:
   # = Action View HTML Template
   class Template #:nodoc:

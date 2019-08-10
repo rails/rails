@@ -2,9 +2,11 @@
 
 require "test_helper"
 require "database/setup"
+require "active_support/testing/method_call_assertions"
 
 class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
   include ActiveJob::TestHelper
+  include ActiveSupport::Testing::MethodCallAssertions
 
   setup do
     @user = User.create!(name: "Josh")
@@ -25,14 +27,43 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
     assert_equal "funky.jpg", @user.avatar.filename.to_s
   end
 
+  test "attaching an existing blob from a signed ID passes record" do
+    blob = create_blob(filename: "funky.jpg")
+    arguments = [blob.signed_id, record: @user]
+    assert_called_with(ActiveStorage::Blob, :find_signed, arguments, returns: blob) do
+      @user.avatar.attach blob.signed_id
+    end
+  end
+
   test "attaching a new blob from a Hash to an existing record" do
     @user.avatar.attach io: StringIO.new("STUFF"), filename: "town.jpg", content_type: "image/jpg"
     assert_equal "town.jpg", @user.avatar.filename.to_s
   end
 
+  test "attaching a new blob from a Hash to an existing record passes record" do
+    hash = { io: StringIO.new("STUFF"), filename: "town.jpg", content_type: "image/jpg" }
+    blob = ActiveStorage::Blob.build_after_unfurling(hash)
+    arguments = [hash.merge(record: @user)]
+    assert_called_with(ActiveStorage::Blob, :build_after_unfurling, arguments, returns: blob) do
+      @user.avatar.attach hash
+    end
+  end
+
   test "attaching a new blob from an uploaded file to an existing record" do
     @user.avatar.attach fixture_file_upload("racecar.jpg")
     assert_equal "racecar.jpg", @user.avatar.filename.to_s
+  end
+
+  test "attaching a new blob from an uploaded file to an existing record passes record" do
+    upload = fixture_file_upload("racecar.jpg")
+    def upload.open
+      @io ||= StringIO.new("")
+    end
+    arguments = [io: upload.open, filename: upload.original_filename, content_type: upload.content_type, record: @user]
+    blob = ActiveStorage::Blob.build_after_unfurling(*arguments)
+    assert_called_with(ActiveStorage::Blob, :build_after_unfurling, arguments, returns: blob) do
+      @user.avatar.attach upload
+    end
   end
 
   test "attaching an existing blob to an existing, changed record" do

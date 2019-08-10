@@ -352,11 +352,7 @@ module ActiveModel
 
         def attribute_method_matchers_matching(method_name)
           attribute_method_matchers_cache.compute_if_absent(method_name) do
-            # Bump plain matcher to last place so that only methods that do not
-            # match any other pattern match the actual attribute name.
-            # This is currently only needed to support legacy usage.
-            matchers = attribute_method_matchers.partition(&:plain?).reverse.flatten(1)
-            matchers.map { |matcher| matcher.match(method_name) }.compact
+            attribute_method_matchers.map { |matcher| matcher.match(method_name) }.compact
           end
         end
 
@@ -405,10 +401,6 @@ module ActiveModel
 
           def method_name(attr_name)
             @method_name % attr_name
-          end
-
-          def plain?
-            prefix.empty? && suffix.empty?
           end
         end
     end

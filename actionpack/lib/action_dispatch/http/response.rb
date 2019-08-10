@@ -86,6 +86,7 @@ module ActionDispatch # :nodoc:
 
     cattr_accessor :default_charset, default: "utf-8"
     cattr_accessor :default_headers
+    cattr_accessor :return_only_media_type_on_content_type, default: false
 
     include Rack::Response::Helpers
     # Aliasing these off because AD::Http::Cache::Response defines them.
@@ -143,7 +144,6 @@ module ActionDispatch # :nodoc:
       end
 
       private
-
         def each_chunk(&block)
           @buf.each(&block)
         end
@@ -243,8 +243,22 @@ module ActionDispatch # :nodoc:
     end
 
     # Content type of response.
-    # It returns just MIME type and does NOT contain charset part.
     def content_type
+      if self.class.return_only_media_type_on_content_type
+        ActiveSupport::Deprecation.warn(
+          "Rails 6.1 will return Content-Type header without modification." \
+          " If you want just the MIME type, please use `#media_type` instead."
+        )
+
+        content_type = super
+        content_type ? content_type.split(/;\s*charset=/)[0].presence : content_type
+      else
+        super.presence
+      end
+    end
+
+    # Media type of response.
+    def media_type
       parsed_content_type_header.mime_type
     end
 
@@ -405,7 +419,6 @@ module ActionDispatch # :nodoc:
     end
 
   private
-
     ContentTypeHeader = Struct.new :mime_type, :charset
     NullContentTypeHeader = ContentTypeHeader.new nil, nil
 
@@ -458,7 +471,7 @@ module ActionDispatch # :nodoc:
     end
 
     def assign_default_content_type_and_charset!
-      return if content_type
+      return if media_type
 
       ct = parsed_content_type_header
       set_content_type(ct.mime_type || Mime[:html].to_s,

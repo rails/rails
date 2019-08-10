@@ -35,7 +35,6 @@ module ActionController
     end
 
     private
-
       INCLUDE = ->(list, action) { list.include? action }
       EXCLUDE = ->(list, action) { !list.include? action }
       NULL    = ->(list, action) { true }
@@ -148,7 +147,7 @@ module ActionController
     attr_internal :response, :request
     delegate :session, to: "@_request"
     delegate :headers, :status=, :location=, :content_type=,
-             :status, :location, :content_type, to: "@_response"
+             :status, :location, :content_type, :media_type, to: "@_response"
 
     def initialize
       @_request = nil
