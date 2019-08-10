@@ -56,7 +56,7 @@ module ActiveSupport
       dtw = directories_to_watch
       @dtw, @missing = dtw.partition(&:exist?)
 
-      boot! if @dtw.any?
+      boot!
     end
 
     def updated?
@@ -100,9 +100,7 @@ module ActiveSupport
       def boot!
         normalize_dirs!
 
-        unless @dtw.empty?
-          Listen.to(*@dtw, &method(:changed)).start
-        end
+        Listen.to(*@dtw, &method(:changed)).start if @dtw.any?
       end
 
       def shutdown!
