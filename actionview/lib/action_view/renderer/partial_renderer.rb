@@ -105,9 +105,6 @@ module ActionView
   #
   #   <%= render(partial: "ad", collection: @advertisements) || "There's no ad to be displayed" %>
   #
-  # NOTE: Due to backwards compatibility concerns, the collection can't be one of hashes. Normally you'd also
-  # just keep domain objects, like Active Records, in there.
-  #
   # == \Rendering shared partials
   #
   # Two controllers can share a set of partials and render them like this:
