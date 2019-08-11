@@ -1371,6 +1371,19 @@ class NilFixturePathTest < ActiveRecord::TestCase
   end
 end
 
+class FileFixtureConflictTest < ActiveRecord::TestCase
+  def self.file_fixture_path
+    FIXTURES_ROOT + "/all/admin"
+  end
+
+  test "ignores file fixtures" do
+    self.class.fixture_path = FIXTURES_ROOT + "/all"
+    self.class.fixtures :all
+
+    assert_equal %w(developers namespaced/accounts people tasks), fixture_table_names.sort
+  end
+end
+
 class MultipleDatabaseFixturesTest < ActiveRecord::TestCase
   test "enlist_fixture_connections ensures multiple databases share a connection pool" do
     with_temporary_connection_pool do

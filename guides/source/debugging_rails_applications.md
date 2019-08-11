@@ -939,7 +939,7 @@ Debugging Memory Leaks
 A Ruby application (on Rails or not), can leak memory — either in the Ruby code
 or at the C code level.
 
-In this section, you will learn how to find and fix such leaks by using tool
+In this section, you will learn how to find and fix such leaks by using tools
 such as Valgrind.
 
 ### Valgrind
@@ -955,6 +955,10 @@ extension in the interpreter calls `malloc()` but doesn't properly call
 For further information on how to install Valgrind and use with Ruby, refer to
 [Valgrind and Ruby](http://blog.evanweaver.com/articles/2008/02/05/valgrind-and-ruby/)
 by Evan Weaver.
+
+### Find a memory leak
+There is an excellent article about detecting and fixing memory leaks at Derailed, [which you can read here](https://github.com/schneems/derailed_benchmarks#is-my-app-leaking-memory).
+
 
 Plugins for Debugging
 ---------------------

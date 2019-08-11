@@ -1,3 +1,7 @@
+*   Add `at` argument to the `perform_enqueued_jobs` test helper.
+
+    *John Crepezzi*, *Eileen Uchitelle*
+
 *   `assert_enqueued_with` and `assert_performed_with` can now test jobs with relative delay.
 
     *Vlado Cingel*

@@ -532,9 +532,13 @@ module ActionDispatch
           if value
             case
             when needs_migration?(value)
-              self[name] = Marshal.load(value)
+              Marshal.load(value).tap do |v|
+                self[name] = { value: v }
+              end
             when rotate
-              self[name] = serializer.load(value)
+              serializer.load(value).tap do |v|
+                self[name] = { value: v }
+              end
             else
               serializer.load(value)
             end

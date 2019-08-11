@@ -1,3 +1,17 @@
+*   Stop trying to read yaml file fixtures when loading Active Record fixtures.
+
+    *Gannon McGibbon*
+
+*   Deprecate `.reorder(nil)` with `.first` / `.first!` taking non-deterministic result.
+
+    To continue taking non-deterministic result, use `.take` / `.take!` instead.
+
+    *Ryuta Kamizono*
+
+*   Ensure custom PK types are casted in through reflection queries.
+
+    *Gannon McGibbon*
+
 *   Preserve user supplied joins order as much as possible.
 
     Fixes #36761, #34328, #24281, #12953.
@@ -73,5 +87,6 @@
 *   Allow generated `create_table` migrations to include or skip timestamps.
 
     *Michael Duchemin*
+
 
 Please check [6-0-stable](https://github.com/rails/rails/blob/6-0-stable/activerecord/CHANGELOG.md) for previous changes.

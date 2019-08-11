@@ -51,6 +51,12 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     assert_match(/^[a-z0-9]{28}$/, create_blob.key)
   end
 
+  test "create after upload accepts a record for overrides" do
+    assert_nothing_raised do
+      create_blob(record: User.new)
+    end
+  end
+
   test "image?" do
     blob = create_file_blob filename: "racecar.jpg"
     assert_predicate blob, :image?
