@@ -33,6 +33,18 @@ module ActiveRecord
       mattr_accessor :queues, instance_accessor: false, default: {}
 
       ##
+      # :singleton-method
+      #
+      # Specifies the job used to destroy associations in the background
+      mattr_accessor :destroy_association_later_job, instance_accessor: false, default: false
+      #
+      ##
+      # :singleton-method
+      #
+      # Specifies the job used to destroy a record in the background
+      mattr_accessor :destroy_later_job, instance_accessor: false, default: false
+
+      ##
       # Contains the database configuration - as is typically stored in config/database.yml -
       # as an ActiveRecord::DatabaseConfigurations object.
       #

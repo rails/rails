@@ -7,6 +7,11 @@ module ActiveRecord
   class ActiveRecordError < StandardError
   end
 
+  # Raised when trying to use a feature in active record which
+  # requires activejob but the gem is not present
+  class ActiveJobRequiredError < ActiveRecordError
+  end
+
   # Raised when the single-table inheritance mechanism fails to locate the subclass
   # (for example due to improper usage of column that
   # {ActiveRecord::Base.inheritance_column}[rdoc-ref:ModelSchema::ClassMethods#inheritance_column]

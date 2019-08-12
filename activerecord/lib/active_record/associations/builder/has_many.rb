@@ -7,14 +7,15 @@ module ActiveRecord::Associations::Builder # :nodoc:
     end
 
     def self.valid_options(options)
-      valid = super + [:counter_cache, :join_table, :index_errors]
+      valid = super + [:counter_cache, :join_table, :index_errors, :owner_ensuring_destroy]
       valid += [:as, :foreign_type] if options[:as]
       valid += [:through, :source, :source_type] if options[:through]
+      valid += [:owner_ensuring_destroy] if options[:dependent] == :destroy_later
       valid
     end
 
     def self.valid_dependent_options
-      [:destroy, :delete_all, :nullify, :restrict_with_error, :restrict_with_exception]
+      [:destroy, :delete_all, :nullify, :restrict_with_error, :restrict_with_exception, :destroy_later]
     end
 
     private_class_method :macro, :valid_options, :valid_dependent_options

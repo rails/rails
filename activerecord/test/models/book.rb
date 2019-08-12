@@ -8,6 +8,10 @@ class Book < ActiveRecord::Base
 
   has_many :subscriptions
   has_many :subscribers, through: :subscriptions
+  #  has_many :taggings, as: :taggable, class_name: "Tagging"
+  #  has_many :tags, through: :taggings, dependent: :destroy_later
+  #  has_many :essays, dependent: :destroy_later
+  #  has_one :content, dependent: :destroy_later
 
   enum status: [:proposed, :written, :published]
   enum read_status: { unread: 0, reading: 2, read: 3, forgotten: nil }
@@ -20,7 +24,7 @@ class Book < ActiveRecord::Base
   enum cover: { hard: "hard", soft: "soft" }
   enum boolean_status: { enabled: true, disabled: false }
 
-  destroy_later after: 30.days, if: -> { status_previously_changed? && published? }, ensuring: :published?
+  # destroy_later after: 30.days, if: -> { status_previously_changed? && published? }, ensuring: :published?
 
   def published!
     super

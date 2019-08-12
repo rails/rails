@@ -9,11 +9,12 @@ module ActiveRecord::Associations::Builder # :nodoc:
     def self.valid_options(options)
       valid = super + [:counter_cache, :optional, :default]
       valid += [:polymorphic, :foreign_type] if options[:polymorphic]
+      valid += [:owner_ensuring_destroy] if options[:dependent] == :destroy_later
       valid
     end
 
     def self.valid_dependent_options
-      [:destroy, :delete]
+      [:destroy, :delete, :destroy_later]
     end
 
     def self.define_callbacks(model, reflection)

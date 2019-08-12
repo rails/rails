@@ -26,6 +26,23 @@ module ActiveRecord
           # No point in executing the counter update since we're going to destroy the parent anyway
           load_target.each { |t| t.destroyed_by_association = reflection }
           destroy_all
+        when :destroy_later
+          load_target.each do |t|
+            t.destroyed_by_association = reflection
+          end
+          unless target.empty?
+            assoc_class = target.first.class
+            primary_key_column = assoc_class.primary_key.to_sym
+            ids = target.collect do |assoc|
+              assoc.send(primary_key_column)
+            end
+            enqueue_destroy_association(owner_model_name: owner.class.to_s,
+                            owner_id: owner.id,
+                            assoc_class: assoc_class.to_s,
+                            assoc_ids: ids,
+                            assoc_primary_key_column: primary_key_column,
+                            owner_ensuring_destroy_method: options.fetch(:owner_ensuring_destroy, nil))
+          end
         else
           delete_all
         end

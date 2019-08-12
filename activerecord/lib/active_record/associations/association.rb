@@ -341,6 +341,12 @@ module ActiveRecord
             klass.scope_attributes? ||
             reflection.source_reflection.active_record.default_scopes.any?
         end
+
+
+        def enqueue_destroy_association(options)
+          ActiveRecord::Base.destroy_association_later_job.
+            perform_later(options) if ActiveRecord::Base.destroy_association_later_job
+        end
     end
   end
 end
