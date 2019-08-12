@@ -21,10 +21,10 @@ module ActiveModel
 
       def test_type_cast_with_precision
         type_0 = Type::Time.new(precision: 0)
-        assert_equal '16:45:54.000000000', type_0.cast(::Time.utc(2000,  1,  1, 16, 45, 54, 123)).strftime('%H:%M:%S.%N')
+        assert_equal "16:45:54.000000000", type_0.cast(::Time.utc(2000,  1,  1, 16, 45, 54, 123)).strftime("%H:%M:%S.%N")
 
         type_6 = Type::Time.new(precision: 6)
-        assert_equal '16:45:54.000123000', type_6.cast(::Time.utc(2000,  1,  1, 16, 45, 54, 123)).strftime('%H:%M:%S.%N')
+        assert_equal "16:45:54.000123000", type_6.cast(::Time.utc(2000,  1,  1, 16, 45, 54, 123)).strftime("%H:%M:%S.%N")
       end
 
       def test_type_case_with_delegated_value
