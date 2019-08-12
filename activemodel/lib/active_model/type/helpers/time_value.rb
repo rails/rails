@@ -31,7 +31,7 @@ module ActiveModel
           if rounded_off_nsec > 0
             value.change(nsec: value.nsec - rounded_off_nsec)
           else
-            value
+            value.to_time
           end
         end
 
