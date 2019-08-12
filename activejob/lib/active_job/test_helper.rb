@@ -382,6 +382,7 @@ module ActiveJob
     def assert_enqueued_with(job: nil, args: nil, at: nil, queue: nil)
       expected = { job: job, args: args, at: at, queue: queue }.compact
       expected_args = prepare_args_for_assertion(expected)
+      potential_matches = []
 
       if block_given?
         original_enqueued_jobs_count = enqueued_jobs.count
@@ -395,6 +396,7 @@ module ActiveJob
 
       matching_job = jobs.find do |enqueued_job|
         deserialized_job = deserialize_args_for_assertion(enqueued_job)
+        potential_matches << deserialized_job
 
         expected_args.all? do |key, value|
           if value.respond_to?(:call)
@@ -405,7 +407,9 @@ module ActiveJob
         end
       end
 
-      assert matching_job, "No enqueued job found with #{expected}"
+      message = +"No enqueued job found with #{expected}"
+      message << "\n\nPotential matches: #{potential_matches.join("\n")}" if potential_matches.present?
+      assert matching_job, message
       instantiate_job(matching_job)
     end
 
@@ -457,6 +461,7 @@ module ActiveJob
     def assert_performed_with(job: nil, args: nil, at: nil, queue: nil, &block)
       expected = { job: job, args: args, at: at, queue: queue }.compact
       expected_args = prepare_args_for_assertion(expected)
+      potential_matches = []
 
       if block_given?
         original_performed_jobs_count = performed_jobs.count
@@ -470,6 +475,7 @@ module ActiveJob
 
       matching_job = jobs.find do |enqueued_job|
         deserialized_job = deserialize_args_for_assertion(enqueued_job)
+        potential_matches << deserialized_job
 
         expected_args.all? do |key, value|
           if value.respond_to?(:call)
@@ -480,7 +486,10 @@ module ActiveJob
         end
       end
 
-      assert matching_job, "No performed job found with #{expected}"
+      message = +"No performed job found with #{expected}"
+      message << "\n\nPotential matches: #{potential_matches.join("\n")}" if potential_matches.present?
+      assert matching_job, message
+
       instantiate_job(matching_job)
     end
 
