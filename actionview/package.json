@@ -2,9 +2,9 @@
   "name": "@rails/ujs",
   "version": "6.1.0-alpha",
   "description": "Ruby on Rails unobtrusive scripting adapter",
-  "main": "lib/assets/compiled/rails-ujs.js",
+  "main": "lib/compiled/rails-ujs.js",
   "files": [
-    "lib/assets/compiled/*.js"
+    "lib/compiled/*.js"
   ],
   "directories": {
     "test": "test"

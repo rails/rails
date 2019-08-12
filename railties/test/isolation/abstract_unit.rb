@@ -511,7 +511,7 @@ Module.new do
     f.puts "require 'rails/all'"
   end
 
-  unless File.exist?("#{RAILS_FRAMEWORK_ROOT}/actionview/lib/assets/compiled/rails-ujs.js")
+  unless File.exist?("#{RAILS_FRAMEWORK_ROOT}/actionview/lib/compiled/rails-ujs.js")
     Dir.chdir("#{RAILS_FRAMEWORK_ROOT}/actionview") { `yarn build` }
   end
 

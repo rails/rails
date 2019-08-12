@@ -116,7 +116,7 @@ namespace :assets do
 
   desc "Verify compiled Action View assets"
   task :verify do
-    file = "lib/assets/compiled/rails-ujs.js"
+    file = "lib/compiled/rails-ujs.js"
     pathname = Pathname.new("#{__dir__}/#{file}")
 
     print "[verify] #{file} exists "

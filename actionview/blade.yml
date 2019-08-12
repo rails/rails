@@ -7,5 +7,5 @@ logical_paths:
 build:
   logical_paths:
     - rails-ujs.js
-  path: lib/assets/compiled
+  path: lib/compiled
   clean: true
