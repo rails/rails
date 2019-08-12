@@ -112,8 +112,7 @@ module ActiveRecord
         end
       end
 
-
-      class Builder
+      class Builder # :nodoc:
         attr_reader :model
 
         delegate :skip_duplicates?, :update_duplicates?, :keys, to: :insert_all
