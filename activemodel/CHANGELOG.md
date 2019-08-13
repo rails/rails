@@ -89,6 +89,16 @@
 
 ## Rails 6.0.0.beta1 (January 18, 2019) ##
 
+*   Internal calls to `human_attribute_name` on an `Active Model` now pass attributes as strings instead of symbols
+    in some cases.
+
+    This is in line with examples in Rails docs and puts the code in line with the intention -
+    the potential use of strings or symbols.
+
+    It is recommended to cast the attribute input to your desired type as if you you are overriding that methid.
+
+    *Martin Larochelle*
+
 *   Add `ActiveModel::Errors#of_kind?`.
 
     *bogdanvlviv*, *Rafael Mendonça França*
