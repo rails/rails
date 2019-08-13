@@ -1,9 +1,11 @@
-## Rails 6.0.0.rc2 (July 22, 2019) ##
-
-*   No changes.
-
-
 ## (Unreleased)
+
+*   `Rails.autoloaders.log!` is a logging shortcut to get the activity of the
+    loaders printed to standard output. May be handy for troubleshooting.
+
+    *Xavier Noria*
+
+## Rails 6.0.0.rc2 (July 22, 2019) ##
 
 *   The new configuration point `config.add_autoload_paths_to_load_path` allows
     users to opt-out from adding autoload paths to `$LOAD_PATH`. This flag is
