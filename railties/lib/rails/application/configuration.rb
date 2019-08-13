@@ -154,6 +154,10 @@ module Rails
           end
         when "6.1"
           load_defaults "6.0"
+
+          if respond_to?(:active_record)
+            active_record.check_schema_cache_dump_version = false
+          end
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end

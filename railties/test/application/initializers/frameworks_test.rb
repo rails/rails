@@ -223,11 +223,21 @@ module ApplicationTests
       ActiveRecord::Base.connection.drop_table("posts", if_exists: true) # force drop posts table for test.
     end
 
-    test "expire schema cache dump" do
+    test "expire schema cache dump if option is enabled" do
+      app_file "config/initializers/active_record.rb", <<-RUBY
+        Rails.application.config.active_record.check_schema_cache_dump_version = true
+      RUBY
       rails %w(generate model post title:string)
       rails %w(db:migrate db:schema:cache:dump db:rollback)
       require "#{app_path}/config/environment"
       assert_not ActiveRecord::Base.connection.schema_cache.data_sources("posts")
+    end
+
+    test "does not expire schema cache dump by default" do
+      rails %w(generate model post title:string)
+      rails %w(db:migrate db:schema:cache:dump db:rollback)
+      require "#{app_path}/config/environment"
+      assert ActiveRecord::Base.connection.schema_cache.data_sources("posts")
     end
 
     test "active record establish_connection uses Rails.env if DATABASE_URL is not set" do

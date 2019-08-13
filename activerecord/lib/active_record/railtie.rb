@@ -27,6 +27,7 @@ module ActiveRecord
     )
 
     config.active_record.use_schema_cache_dump = true
+    config.active_record.check_schema_cache_dump_version = true
     config.active_record.maintain_test_schema = true
 
     config.active_record.sqlite3 = ActiveSupport::OrderedOptions.new
@@ -129,15 +130,23 @@ end_error
             filename = File.join(app.config.paths["db"].first, "schema_cache.yml")
 
             if File.file?(filename)
-              current_version = ActiveRecord::Migrator.current_version
+              if app.config.active_record.check_schema_cache_dump_version
+                ActiveSupport::Deprecation.warn(<<-MSG.squish)
+                  Schema cache expiration is deprecated and will be removed from Rails 6.2.
+                  Please disable `config.active_record.check_schema_cache_dump_version` in your environment.
+                MSG
+                current_version = ActiveRecord::Migrator.current_version
 
-              next if current_version.nil?
+                next if current_version.nil?
 
-              cache = YAML.load(File.read(filename))
-              if cache.version == current_version
-                connection_pool.schema_cache = cache.dup
+                cache = YAML.load_file(filename)
+                if cache.version == current_version
+                  connection_pool.schema_cache = cache
+                else
+                  warn "Ignoring db/schema_cache.yml because it has expired. The current schema version is #{current_version}, but the one in the cache is #{cache.version}."
+                end
               else
-                warn "Ignoring db/schema_cache.yml because it has expired. The current schema version is #{current_version}, but the one in the cache is #{cache.version}."
+                connection_pool.schema_cache = YAML.load_file(filename)
               end
             end
           end

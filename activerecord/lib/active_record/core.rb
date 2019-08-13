@@ -128,6 +128,8 @@ module ActiveRecord
 
       mattr_accessor :reading_role, instance_accessor: false, default: :reading
 
+      mattr_accessor :check_schema_cache_dump_version, instance_accessor: false
+
       class_attribute :default_connection_handler, instance_writer: false
 
       self.filter_attributes = []
