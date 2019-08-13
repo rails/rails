@@ -267,6 +267,32 @@ class Triangle < Polygon
 end
 ```
 
+Troubleshooting
+---------------
+
+The best way to follow what the loaders are doing is to inspect their activity.
+
+The easiest way to do that is to throw
+
+```ruby
+Rails.autoloaders.log!
+```
+
+to `config/application.rb` after loading the framework defaults. That will print traces to standard output.
+
+If you prefer logging to a file, configure this instead:
+
+```ruby
+Rails.autoloaders.logger = Logger.new("#{Rails.root}/log/autoloading.log")
+```
+
+The Rails logger is still not ready in `config/application.rb`, but it is in initializers:
+
+```ruby
+# config/initializers/log_autoloaders.rb
+Rails.autoloaders.logger = Rails.logger
+```
+
 Rails.autoloaders
 -----------------
 
