@@ -1712,6 +1712,27 @@ module ApplicationTests
       end
     end
 
+    test "autoload paths will exclude changed path" do
+      app_file "config/webpacker.yml", <<-YAML
+        default: &default
+          source_path: app/webpack
+          check_yarn_integrity: false
+        development:
+          <<: *default
+        test:
+          <<: *default
+        production:
+          <<: *default
+      YAML
+
+      app "development"
+
+      ActiveSupport::Dependencies.autoload_paths.each do |path|
+        assert_not_operator path, :ends_with?, "app/assets"
+        assert_not_operator path, :ends_with?, "app/webpack"
+      end
+    end
+
     test "autoload paths are added to $LOAD_PATH by default" do
       app "development"
 
