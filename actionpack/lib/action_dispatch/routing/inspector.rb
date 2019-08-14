@@ -200,6 +200,11 @@ module ActionDispatch
       end
 
       class Expanded < Base
+        def initialize(width: IO.console_size.second)
+          @width = width
+          super()
+        end
+
         def section_title(title)
           @buffer << "\n#{"[ #{title} ]"}"
         end
@@ -222,11 +227,7 @@ module ActionDispatch
           end
 
           def route_header(index:)
-            console_width = IO.console_size.second
-            header_prefix = "--[ Route #{index} ]"
-            dash_remainder = [console_width - header_prefix.size, 0].max
-
-            "#{header_prefix}#{'-' * dash_remainder}"
+            "--[ Route #{index} ]".ljust(@width, "-")
           end
       end
     end
