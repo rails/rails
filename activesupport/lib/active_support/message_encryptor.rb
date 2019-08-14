@@ -181,6 +181,7 @@ module ActiveSupport
       end
 
       def _decrypt(encrypted_message, purpose)
+        raise InvalidMessage if encrypted_message.nil?
         cipher = new_cipher
         encrypted_data, iv, auth_tag = encrypted_message.split("--").map { |v| ::Base64.strict_decode64(v) }
 
