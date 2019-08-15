@@ -1,3 +1,8 @@
+*   Improve detection of ActiveRecord::StatementTimeout with mysql2 adapter in the edge case when the query is terminated during filesort.
+
+    *Kir Shatrov*
+
+
 ## Rails 6.0.0 (August 16, 2019) ##
 
 *   Preserve user supplied joins order as much as possible.
