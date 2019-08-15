@@ -1,3 +1,7 @@
+*   Improve detection of ActiveRecord::StatementTimeout with mysql2 adapter in the edge case when the query is terminated during filesort.
+
+    *Kir Shatrov*
+
 *   Stop trying to read yaml file fixtures when loading Active Record fixtures.
 
     *Gannon McGibbon*
