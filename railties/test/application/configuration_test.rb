@@ -1712,18 +1712,9 @@ module ApplicationTests
       end
     end
 
-    test "autoload paths will exclude changed path" do
-      app_file "config/webpacker.yml", <<-YAML
-        default: &default
-          source_path: app/webpack
-          check_yarn_integrity: false
-        development:
-          <<: *default
-        test:
-          <<: *default
-        production:
-          <<: *default
-      YAML
+    test "autoload paths will exclude the configured javascript_path" do
+      add_to_config "config.javascript_path = 'webpack'"
+      app_dir("app/webpack")
 
       app "development"
 
