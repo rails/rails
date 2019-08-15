@@ -31,7 +31,7 @@ module ActiveStorage
       if record.persisted? && !record.changed?
         record.update(name => blobs + attachables.flatten)
       else
-        record.public_send("#{name}=", blobs + attachables.flatten)
+        record.public_send("#{name}=", (change&.attachables || blobs) + attachables.flatten)
       end
     end
 
