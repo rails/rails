@@ -36,7 +36,7 @@ module ActiveSupport
       def clear(options = nil)
         root_dirs = (Dir.children(cache_path) - GITKEEP_FILES)
         FileUtils.rm_r(root_dirs.collect { |f| File.join(cache_path, f) })
-      rescue Errno::ENOENT
+      rescue Errno::ENOENT, Errno::ENOTEMPTY
       end
 
       # Preemptively iterates through all stored keys and removes the ones which have expired.
