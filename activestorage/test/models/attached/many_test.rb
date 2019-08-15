@@ -109,6 +109,27 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     assert_equal "video.mp4", @user.highlights.second.filename.to_s
   end
 
+  test "attaching new blobs from uploaded files to an existing, changed record one at a time" do
+    @user.name = "Tina"
+    assert @user.changed?
+
+    @user.highlights.attach fixture_file_upload("racecar.jpg")
+    @user.highlights.attach fixture_file_upload("video.mp4")
+    assert_equal "racecar.jpg", @user.highlights.first.filename.to_s
+    assert_equal "video.mp4", @user.highlights.second.filename.to_s
+    assert_not @user.highlights.first.persisted?
+    assert_not @user.highlights.second.persisted?
+    assert @user.will_save_change_to_name?
+    assert_not ActiveStorage::Blob.service.exist?(@user.highlights.first.key)
+    assert_not ActiveStorage::Blob.service.exist?(@user.highlights.second.key)
+
+    @user.save!
+    assert_equal "racecar.jpg", @user.highlights.reload.first.filename.to_s
+    assert_equal "video.mp4", @user.highlights.second.filename.to_s
+    assert ActiveStorage::Blob.service.exist?(@user.highlights.first.key)
+    assert ActiveStorage::Blob.service.exist?(@user.highlights.second.key)
+  end
+
   test "attaching existing blobs to an existing record one at a time" do
     @user.highlights.attach create_blob(filename: "funky.jpg")
     @user.highlights.attach create_blob(filename: "town.jpg")
