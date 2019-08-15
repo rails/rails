@@ -692,14 +692,11 @@ module RenderTestCases
     old_config = ActionView::PartialRenderer.render_hints
     ActionView::PartialRenderer.render_hints = true
 
-    SecureRandom.stub(:uuid, "xyz-123") do
-      content = @view.render template: "test/template_with_partial_locals"
+    content = @view.render template: "test/template_with_partial_locals"
 
-      assert_match "start render:", content
-      assert_match "end render:", content
-      assert_match "{:first_name=>\"Jim\", :last_name=>\"Jones\"}", content
-      assert_match "uuid: xyz-123", content
-    end
+    assert_match "begin", content
+    assert_match "end", content
+    assert_match "{:first_name=>\"Jim\", :last_name=>\"Jones\"}", content
   ensure
     ActionView::PartialRenderer.render_hints = old_config
   end
@@ -708,19 +705,14 @@ module RenderTestCases
     old_config = ActionView::PartialRenderer.render_hints
     ActionView::PartialRenderer.render_hints = true
 
-    content = @view.render template: "test/template_with_partial_collection"
+    content = @view.render template: "test/template_with_partial_locals"
 
-    SecureRandom.stub(:uuid, "xyz-123") do
-      content = @view.render template: "test/template_with_partial_locals"
+    assert_no_match "iteration", content
+    assert_no_match "counter", content
 
-      assert_no_match "iteration", content
-      assert_no_match "counter", content
-
-      assert_match "start render:", content
-      assert_match "end render:", content
-      assert_match "{:first_name=>\"Jim\", :last_name=>\"Jones\"}", content
-      assert_match "uuid: xyz-123", content
-    end
+    assert_match "begin", content
+    assert_match "end", content
+    assert_match "{:first_name=>\"Jim\", :last_name=>\"Jones\"}", content
   ensure
     ActionView::PartialRenderer.render_hints = old_config
   end

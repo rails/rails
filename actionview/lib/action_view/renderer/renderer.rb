@@ -12,6 +12,9 @@ module ActionView
   # each time +render+ is called.
   class Renderer
     attr_accessor :lookup_context
+    cattr_accessor :nested_level
+
+    @@nested_level = -1
 
     def initialize(lookup_context)
       @lookup_context = lookup_context
@@ -62,7 +65,14 @@ module ActionView
     end
 
     def render_partial_to_object(context, options, &block) #:nodoc:
-      PartialRenderer.new(@lookup_context).render(context, options, block)
+      @@nested_level += 1
+
+      renderer = PartialRenderer.new(@lookup_context)
+      renderer.nested_level = nested_level
+
+      renderer.render(context, options, block)
+    ensure
+      @@nested_level -= 1
     end
   end
 end

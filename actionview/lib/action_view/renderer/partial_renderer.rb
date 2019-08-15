@@ -284,11 +284,17 @@ module ActionView
   #   <% end %>
   class PartialRenderer < AbstractRenderer
     include CollectionCaching
+    attr_accessor :nested_level
+    cattr_accessor :render_count
     cattr_accessor :render_hints
+
+    INDENT = "...."
 
     PREFIXED_PARTIAL_NAMES = Concurrent::Map.new do |h, k|
       h[k] = Concurrent::Map.new
     end
+
+    @@render_count = 0
 
     def initialize(*)
       super
@@ -370,10 +376,14 @@ module ActionView
       end
 
       def partial_hints(template, content, locals)
-        uuid = SecureRandom.uuid
-        content.prepend("\n<!-- start render: #{template.virtual_path}, uuid: #{uuid}, locals: #{locals.inspect} -->\n".html_safe)
-        content.concat("\n<!-- end render: #{template.virtual_path}, uuid: #{uuid} -->\n".html_safe)
+        @@render_count += 1
+        content.prepend("\n<!-- #{render_count}#{indentation} begin #{template.virtual_path}, locals: #{locals.inspect} -->\n".html_safe)
+        content.concat("<!-- #{render_count}#{indentation} end #{template.virtual_path} -->\n".html_safe)
         content
+      end
+
+      def indentation
+        INDENT * nested_level
       end
 
       # Sets up instance variables needed for rendering a partial. This method
