@@ -1,3 +1,7 @@
+*   Add `ActiveSupport::Cache::Store#delete_multi` method to delete multiple keys from the cache store.
+
+    *Peter Zhu*
+
 *   Support multiple arguments in `HashWithIndifferentAccess` for `merge` and `update` methods, to
     follow Ruby 2.6 addition.
 
