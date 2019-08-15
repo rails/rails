@@ -375,6 +375,16 @@ module CacheStoreBehavior
     assert_not @cache.exist?("foo")
   end
 
+  def test_delete_multi
+    @cache.write("foo", "bar")
+    assert @cache.exist?("foo")
+    @cache.write("hello", "world")
+    assert @cache.exist?("foo")
+    assert_equal 2, @cache.delete_multi(["foo", "does_not_exist", "hello"])
+    assert_not @cache.exist?("foo")
+    assert_not @cache.exist?("hello")
+  end
+
   def test_original_store_objects_should_not_be_immutable
     bar = +"bar"
     @cache.write("foo", bar)
