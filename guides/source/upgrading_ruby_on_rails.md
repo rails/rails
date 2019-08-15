@@ -412,6 +412,8 @@ config.load_defaults "6.0"
 config.autoloader = :classic
 ```
 
+When using the Classic Autoloader in Rails 6 application it is recommended to set concurrency level to 1 in development environment, for the web servers and background processors, due to the thread-safety concerns.
+
 ### Active Storage assignment behavior change
 
 In Rails 5.2, assigning to a collection of attachments declared with `has_many_attached` appended new files:
