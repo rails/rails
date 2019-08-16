@@ -793,6 +793,54 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_get_id
+    firm = companies(:rails_core)
+    assert_equal Account.find_by_firm_id(firm.id).id, firm.account_id
+  end
+
+  def test_get_id_for_loaded_association
+    company = companies(:rails_core)
+    company.account.reload
+    assert_no_queries do
+      company.account_id
+      company.account_id
+    end
+  end
+
+  def test_get_id_for_unloaded_association_does_not_load_it
+    company = companies(:rails_core)
+    assert_not_predicate company.association(:account), :loaded?
+    assert_equal accounts(:rails_core_account).id, company.account_id
+    assert_not_predicate company.association(:account), :loaded?
+  end
+
+  def test_get_id_for_association_on_new_record_does_not_try_to_find_record
+    company = Company.new
+    assert_queries(0) do
+      company.account_id
+    end
+
+    assert_nil company.account_id
+  end
+
+  def test_set_id_for_association_on_new_record_applies_association_correctly
+    account = Account.create!(credit_limit: 10)
+    company = Firm.new(name: "GitHub")
+
+    company.account_id = account.id
+    assert_equal account.id, company.account_id
+    assert_equal account, company.account
+
+    company.save!
+    assert_equal company, account.reload.firm
+  end
+
+  def test_assign_id_for_non_existing_record_raises_error
+    firm = Firm.create!(name: "GitHub")
+
+    assert_raise(ActiveRecord::RecordNotFound) { firm.account_id = 1234456789 }
+  end
+
   class DestroyByParentBook < ActiveRecord::Base
     self.table_name = "books"
     belongs_to :author, class_name: "DestroyByParentAuthor"

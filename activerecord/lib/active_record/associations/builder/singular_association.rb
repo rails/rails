@@ -39,6 +39,26 @@ module ActiveRecord::Associations::Builder # :nodoc:
       CODE
     end
 
-    private_class_method :valid_options, :define_accessors, :define_constructors
+    def self.define_readers(mixin, name)
+      super
+
+      mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
+        def #{name.to_s.singularize}_id
+          association(:#{name}).id_reader
+        end
+      CODE
+    end
+
+    def self.define_writers(mixin, name)
+      super
+
+      mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
+        def #{name.to_s.singularize}_id=(id)
+          association(:#{name}).id_writer(id)
+        end
+      CODE
+    end
+
+    private_class_method :valid_options, :define_accessors, :define_constructors, :define_readers, :define_writers
   end
 end
