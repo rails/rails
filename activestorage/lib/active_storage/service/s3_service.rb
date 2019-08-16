@@ -95,6 +95,24 @@ module ActiveStorage
       { "Content-Type" => content_type, "Content-MD5" => checksum, "Content-Disposition" => content_disposition, **custom_metadata_headers(custom_metadata) }
     end
 
+    def compose(*source_keys, destination_key, filename: nil, content_type: nil, disposition: nil, custom_metadata: {})
+      content_disposition = content_disposition_with(type: disposition, filename: filename) if disposition && filename
+
+      object_for(destination_key).upload_stream(
+        content_type: content_type,
+        content_disposition: content_disposition,
+        part_size: MINIMUM_UPLOAD_PART_SIZE,
+        metadata: custom_metadata,
+        **upload_options
+      ) do |out|
+        source_keys.each do |source_key|
+          stream(source_key) do |chunk|
+            IO.copy_stream(StringIO.new(chunk), out)
+          end
+        end
+      end
+    end
+
     private
       def private_url(key, expires_in:, filename:, disposition:, content_type:, **client_opts)
         object_for(key).presigned_url :get, expires_in: expires_in.to_i,

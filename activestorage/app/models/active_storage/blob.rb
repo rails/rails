@@ -39,7 +39,7 @@ class ActiveStorage::Blob < ActiveStorage::Record
   MINIMUM_TOKEN_LENGTH = 28
 
   has_secure_token :key, length: MINIMUM_TOKEN_LENGTH
-  store :metadata, accessors: [ :analyzed, :identified ], coder: ActiveRecord::Coders::JSON
+  store :metadata, accessors: [ :analyzed, :identified, :composed ], coder: ActiveRecord::Coders::JSON
 
   class_attribute :services, default: {}
   class_attribute :service, instance_accessor: false
@@ -59,6 +59,7 @@ class ActiveStorage::Blob < ActiveStorage::Record
   end
 
   validates :service_name, presence: true
+  validates :checksum, presence: true, unless: :composed
 
   validate do
     if service_name_changed? && service_name.present?
@@ -143,6 +144,20 @@ class ActiveStorage::Blob < ActiveStorage::Record
         includes(variant_records: { image_attachment: :blob }, preview_image_attachment: :blob)
       else
         all
+      end
+    end
+
+    # Concatenate multiple blobs into a single "composed" blob.
+    def compose(filename:, blobs:, content_type: nil, metadata: nil)
+      unless blobs.all?(&:persisted?)
+        raise(ActiveRecord::RecordNotSaved, "All blobs must be persisted.")
+      end
+
+      content_type ||= blobs.pluck(:content_type).compact.first
+
+      new(filename: filename, content_type: content_type, metadata: metadata, byte_size: blobs.sum(&:byte_size)).tap do |combined_blob|
+        combined_blob.compose(*blobs.pluck(:key))
+        combined_blob.save!
       end
     end
   end
@@ -255,6 +270,11 @@ class ActiveStorage::Blob < ActiveStorage::Record
     service.upload key, io, checksum: checksum, **service_metadata
   end
 
+  def compose(*keys) # :nodoc:
+    self.composed = true
+    service.compose(*keys, key, **service_metadata)
+  end
+
   # Downloads the file associated with this blob. If no block is given, the entire file is read into memory and returned.
   # That'll use a lot of RAM for very large files. If a block is given, then the download is streamed and yielded in chunks.
   def download(&block)
@@ -280,8 +300,14 @@ class ActiveStorage::Blob < ActiveStorage::Record
   #
   # Raises ActiveStorage::IntegrityError if the downloaded data does not match the blob's checksum.
   def open(tmpdir: nil, &block)
-    service.open key, checksum: checksum,
-      name: [ "ActiveStorage-#{id}-", filename.extension_with_delimiter ], tmpdir: tmpdir, &block
+    service.open(
+      key,
+      checksum: checksum,
+      verify: !composed,
+      name: [ "ActiveStorage-#{id}-", filename.extension_with_delimiter ],
+      tmpdir: tmpdir,
+      &block
+    )
   end
 
   def mirror_later # :nodoc:

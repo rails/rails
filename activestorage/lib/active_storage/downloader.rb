@@ -8,10 +8,10 @@ module ActiveStorage
       @service = service
     end
 
-    def open(key, checksum:, name: "ActiveStorage-", tmpdir: nil)
+    def open(key, checksum: nil, verify: true, name: "ActiveStorage-", tmpdir: nil)
       open_tempfile(name, tmpdir) do |file|
         download key, file
-        verify_integrity_of file, checksum: checksum
+        verify_integrity_of(file, checksum: checksum) if verify
         yield file
       end
     end

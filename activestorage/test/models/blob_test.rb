@@ -84,6 +84,26 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     assert_match(/^[a-z0-9]{28}$/, build_blob_after_unfurling.key)
   end
 
+  test "compose" do
+    blobs = 3.times.map { create_blob(data: "123", filename: "numbers.txt", content_type: "text/plain", identify: false) }
+    blob = ActiveStorage::Blob.compose(filename: "all_numbers.txt", blobs: blobs)
+
+    assert_equal "123123123", blob.download
+    assert_equal "text/plain", blob.content_type
+    assert_equal blobs.first.byte_size * blobs.count, blob.byte_size
+    assert_predicate(blob, :composed)
+    assert_nil blob.checksum
+  end
+
+  test "compose with unpersisted blobs" do
+    blobs = 3.times.map { create_blob(data: "123", filename: "numbers.txt", content_type: "text/plain", identify: false).dup }
+
+    error = assert_raises(ActiveRecord::RecordNotSaved) do
+      ActiveStorage::Blob.compose(filename: "all_numbers.txt", blobs: blobs)
+    end
+    assert_equal "All blobs must be persisted.", error.message
+  end
+
   test "image?" do
     blob = create_file_blob filename: "racecar.jpg"
     assert_predicate blob, :image?
