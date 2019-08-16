@@ -39,8 +39,8 @@ module ActiveRecord
       include MySQL::DatabaseStatements
 
       def initialize(connection, logger, connection_options, config)
-        super
-        @prepared_statements = false unless config.key?(:prepared_statements)
+        superclass_config = config.reverse_merge(prepared_statements: false)
+        super(connection, logger, connection_options, superclass_config)
         configure_connection
       end
 
