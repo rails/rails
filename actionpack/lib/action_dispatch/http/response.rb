@@ -498,7 +498,7 @@ module ActionDispatch # :nodoc:
       end
 
       def respond_to?(method, include_private = false)
-        if method.to_s == "to_path"
+        if method.to_sym == :to_path
           @response.stream.respond_to?(method)
         else
           super
