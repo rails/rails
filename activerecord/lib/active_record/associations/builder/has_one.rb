@@ -56,9 +56,22 @@ module ActiveRecord::Associations::Builder # :nodoc:
     def self.define_readers(mixin, name)
       super
 
+      model_class = mixin.module_parent
+      association_name = name.to_s.singularize
+      association_id_reader_name = "#{association_name}_id"
+      is_association_id_column_absent = !!model_class.try(:table_exists?) && model_class.column_names.exclude?(association_id_reader_name)
+      belongs_to_associations = model_class.respond_to?(:reflect_on_all_associations) ?  model_class.reflect_on_all_associations(:belongs_to).map(&:name) : []
+      is_a_belongs_to_association = belongs_to_associations.include?(association_name.to_sym)
+
       mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
-        def #{name.to_s.singularize}_id
-          association(:#{name}).id_reader
+        def #{association_id_reader_name}
+          is_custom_attribute = #{is_association_id_column_absent} && has_attribute?(:#{association_id_reader_name})
+
+          if #{is_a_belongs_to_association} || is_custom_attribute
+            attributes["#{association_id_reader_name}"]
+          else
+            association(:#{name}).id_reader
+          end
         end
       CODE
     end
