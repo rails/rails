@@ -38,6 +38,21 @@ module ActiveRecord
         end
       end
 
+      # Implements the id reader method, e.g. foo.item_id for Foo.has_one :item
+      def id_reader
+        primary_key = reflection.association_primary_key
+        record = !loaded? || stale_target? ? find_target : target
+
+        record.public_send(primary_key)
+      end
+
+      # Implements the id writer method, e.g. foo.item_id= for Foo.has_one :item
+      def id_writer(id)
+        record = klass.find(id)
+
+        writer(record)
+      end
+
       private
         def replace(record, save = true)
           raise_on_type_mismatch!(record) if record

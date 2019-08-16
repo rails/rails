@@ -53,7 +53,27 @@ module ActiveRecord::Associations::Builder # :nodoc:
       model.after_touch callback
     end
 
+    def self.define_readers(mixin, name)
+      super
+
+      mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
+        def #{name.to_s.singularize}_id
+          association(:#{name}).id_reader
+        end
+      CODE
+    end
+
+    def self.define_writers(mixin, name)
+      super
+
+      mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
+        def #{name.to_s.singularize}_id=(id)
+          association(:#{name}).id_writer(id)
+        end
+      CODE
+    end
+
     private_class_method :macro, :valid_options, :valid_dependent_options, :add_destroy_callbacks,
-      :define_callbacks, :define_validations, :add_touch_callbacks
+      :define_callbacks, :define_validations, :add_touch_callbacks, :define_readers, :define_writers
   end
 end
