@@ -59,7 +59,7 @@ be built from 1.2.2, and then added to the end of 1-2-stable. This means that
 security releases are easy to upgrade to if you're running the latest version
 of Rails.
 
-**Currently included series:** `6.0.Z`, 5.2.Z`.
+**Currently included series:** `6.0.Z`, `5.2.Z`.
 
 Severe Security Issues
 ----------------------
