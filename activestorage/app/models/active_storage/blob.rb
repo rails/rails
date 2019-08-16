@@ -88,6 +88,20 @@ class ActiveStorage::Blob < ActiveRecord::Base
     def generate_unique_secure_token
       SecureRandom.base36(28)
     end
+
+    # Concatenate multiple blobs into one big blob.
+    def concat(filename:, blobs:, metadata: nil, content_type: nil, record: nil)
+      unless blobs.all?(&:persisted?)
+        raise(ActiveRecord::RecordNotSaved, "All blobs must be persisted.")
+      end
+      new(filename: filename, content_type: content_type, metadata: metadata).tap do |blob|
+        service.concat(*blobs.pluck(:key), blob.key)
+        blob.open do |file|
+          blob.unfurl(file, identify: true)
+          blob.save!
+        end
+      end
+    end
   end
 
   # Returns a signed ID for this blob that's suitable for reference on the client-side without fear of tampering.
@@ -201,7 +215,8 @@ class ActiveStorage::Blob < ActiveRecord::Base
   #
   # The tempfile is automatically closed and unlinked after the given block is executed.
   #
-  # Raises ActiveStorage::IntegrityError if the downloaded data does not match the blob's checksum.
+  # Raises ActiveStorage::IntegrityError if blob has a checksum and the downloaded data
+  # does not match the blob's checksum.
   def open(tmpdir: nil, &block)
     service.open key, checksum: checksum,
       name: [ "ActiveStorage-#{id}-", filename.extension_with_delimiter ], tmpdir: tmpdir, &block

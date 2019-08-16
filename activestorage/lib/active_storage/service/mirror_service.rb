@@ -46,6 +46,10 @@ module ActiveStorage
       perform_across_services :delete_prefixed, prefix
     end
 
+    def concat(*source_keys, destination_key)
+      perform_across_services :concat, *source_keys, destination_key
+    end
+
 
     # Copy the file at the +key+ from the primary service to each of the mirrors where it doesn't already exist.
     def mirror(key, checksum:)

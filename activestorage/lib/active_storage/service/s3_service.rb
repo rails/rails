@@ -101,6 +101,14 @@ module ActiveStorage
       { "Content-Type" => content_type, "Content-MD5" => checksum }
     end
 
+    def concat(*source_keys, destination_key)
+      object = object_for(destination_key).multipart_upload
+      source_keys.each do |source_key|
+        object.copy_part(source_key)
+      end
+      object.complete
+    end
+
     private
       MAXIMUM_UPLOAD_PARTS_COUNT = 10000
       MINIMUM_UPLOAD_PART_SIZE   = 5.megabytes

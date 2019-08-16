@@ -57,6 +57,21 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     end
   end
 
+  test "concat" do
+    blobs = 3.times.map { create_blob(data: "123", filename: "numbers.txt", content_type: "text/plain", identify: false) }
+    blob = ActiveStorage::Blob.concat(filename: "all_numbers.txt", blobs: blobs)
+    assert_equal "123123123", blob.download
+  end
+
+  test "concat with unpersisted blobs" do
+    blobs = 3.times.map { create_blob(data: "123", filename: "numbers.txt", content_type: "text/plain", identify: false).dup }
+
+    error = assert_raises(ActiveRecord::RecordNotSaved) do
+      ActiveStorage::Blob.concat(filename: "all_numbers.txt", blobs: blobs)
+    end
+    assert_equal "All blobs must be persisted.", error.message
+  end
+
   test "image?" do
     blob = create_file_blob filename: "racecar.jpg"
     assert_predicate blob, :image?

@@ -129,6 +129,16 @@ module ActiveStorage
       File.join root, folder_for(key), key
     end
 
+    def concat(*source_keys, destination_key)
+      File.open(make_path_for(destination_key), "w") do |file|
+        source_keys.each do |source_key|
+          download(source_key) do |chunk|
+            file << chunk
+          end
+        end
+      end
+    end
+
     private
       def stream(key)
         File.open(path_for(key), "rb") do |file|

@@ -108,6 +108,10 @@ module ActiveStorage
       { "Content-MD5" => checksum }
     end
 
+    def concat(*source_keys, destination_key)
+      bucket.compose(source_keys, key)
+    end
+
     private
       attr_reader :config
 

@@ -121,6 +121,16 @@ module ActiveStorage
       { "Content-Type" => content_type, "Content-MD5" => checksum, "x-ms-blob-type" => "BlockBlob" }
     end
 
+    def concat(*source_keys, destination_key)
+      client.create_append_blob(container, destination_key).tap do |blob|
+        source_keys.each do |source_key|
+          download(source_key) do |chunk|
+            client.append_blob_block(container, destination_key, chunk)
+          end
+        end
+      end
+    end
+
     private
       def uri_for(key)
         client.generate_uri("#{container}/#{key}")
