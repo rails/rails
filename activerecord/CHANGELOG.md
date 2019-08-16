@@ -1,3 +1,5 @@
+## Rails 6.0.0 (August 16, 2019) ##
+
 *   Preserve user supplied joins order as much as possible.
 
     Fixes #36761, #34328, #24281, #12953.

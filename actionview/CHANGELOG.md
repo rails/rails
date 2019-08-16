@@ -1,3 +1,5 @@
+## Rails 6.0.0 (August 16, 2019) ##
+
 *   ActionView::Helpers::SanitizeHelper: support rails-html-sanitizer 1.1.0.
 
     *Juanito Fatas*

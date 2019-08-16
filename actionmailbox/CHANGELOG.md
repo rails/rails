@@ -1,3 +1,5 @@
+## Rails 6.0.0 (August 16, 2019) ##
+
 *   Fix Bcc header not being included with emails from `create_inbound_email_from` test helpers.
 
     *jduff*

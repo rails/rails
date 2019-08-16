@@ -1,3 +1,5 @@
+## Rails 6.0.0 (August 16, 2019) ##
+
 *   Let `require_dependency` in `zeitwerk` mode look the autoload paths up for
     better backwards compatibility.
 

@@ -1,3 +1,8 @@
+## Rails 6.0.0 (August 16, 2019) ##
+
+*   No changes.
+
+
 ## Rails 6.0.0.rc2 (July 22, 2019) ##
 
 *   Add the ability to set the CSP nonce only to the specified directives.

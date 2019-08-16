@@ -1,9 +1,10 @@
-## (Unreleased)
+## Rails 6.0.0 (August 16, 2019) ##
 
 *   `Rails.autoloaders.log!` is a logging shortcut to get the activity of the
     loaders printed to standard output. May be handy for troubleshooting.
 
     *Xavier Noria*
+
 
 ## Rails 6.0.0.rc2 (July 22, 2019) ##
 
