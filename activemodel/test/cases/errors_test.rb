@@ -10,7 +10,7 @@ class ErrorsTest < ActiveModel::TestCase
       @errors = ActiveModel::Errors.new(self)
     end
 
-    attr_accessor :name, :age, :gender, :city
+    attr_accessor :id, :name, :age, :gender, :city
     attr_reader   :errors
 
     def validate!
@@ -379,6 +379,13 @@ class ErrorsTest < ActiveModel::TestCase
     person.errors.add(:name, :wrong)
     assert_not person.errors.added?(:name, :used)
     assert person.errors.added?(:name, :wrong)
+  end
+
+  test "added? returns true with symbol error type and value option" do
+    person = Person.new
+    person.errors.add(:id, :too_long, value: 'unimaginably long id')
+
+    assert person.errors.added?(:id, :too_long)
   end
 
   test "of_kind? returns false when checking for an error, but not providing message argument" do

@@ -145,7 +145,7 @@ module ActiveModel
     def strict_match?(attribute, type, **options)
       return false unless match?(attribute, type)
 
-      options == @options.except(*CALLBACKS_OPTIONS + MESSAGE_OPTIONS)
+      options == @options.except(*CALLBACKS_OPTIONS + MESSAGE_OPTIONS + [:value])
     end
 
     def ==(other)
