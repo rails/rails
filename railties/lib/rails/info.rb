@@ -68,7 +68,7 @@ module Rails
 
     # The RubyGems version, if it's installed.
     property "RubyGems version" do
-      Gem::RubyGemsVersion
+      Gem::VERSION
     end
 
     property "Rack version" do
