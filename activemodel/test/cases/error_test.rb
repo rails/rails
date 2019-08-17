@@ -78,7 +78,7 @@ class ErrorTest < ActiveModel::TestCase
   # strict_match?
 
   test "strict_match? with type as a symbol" do
-    subject = ActiveModel::Error.new(Person.new, :name, :too_long, value: 'unimaginably_long_value')
+    subject = ActiveModel::Error.new(Person.new, :name, :too_long, value: "unimaginably_long_value")
     assert_not subject.strict_match?(:name, :blank)
     assert subject.strict_match?(:name, :too_long)
   end

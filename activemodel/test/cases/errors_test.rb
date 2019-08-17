@@ -383,7 +383,7 @@ class ErrorsTest < ActiveModel::TestCase
 
   test "added? returns true with symbol error type and value option" do
     person = Person.new
-    person.errors.add(:id, :too_long, value: 'unimaginably long id')
+    person.errors.add(:id, :too_long, value: "unimaginably long id")
 
     assert person.errors.added?(:id, :too_long)
   end
