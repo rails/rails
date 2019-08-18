@@ -249,7 +249,7 @@ module ActionView
         query.gsub!(/:prefix(\/)?/, prefix)
 
         partial = escape_entry(path.partial? ? "_#{path.name}" : path.name)
-        query.gsub!(/:action/, partial)
+        query.gsub!(":action", partial)
 
         details.each do |ext, candidates|
           if ext == :variants && candidates == :any
