@@ -227,7 +227,6 @@
       description: This guide helps in upgrading applications to latest Ruby on Rails versions.
     -
       name: 6.0 Release Notes
-      work_in_progress: true
       url: 6_0_release_notes.html
       description: Release notes for Rails 6.0.
     -
