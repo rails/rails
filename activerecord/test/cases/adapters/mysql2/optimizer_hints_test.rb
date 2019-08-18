@@ -44,5 +44,21 @@ if supports_optimizer_hints?
         posts.unscope(:optimizer_hints).load
       end
     end
+
+    def test_optimizer_hints_preserved_in_subquery
+      assert_sql(%r{\ASELECT /\*\+ NO_RANGE_OPTIMIZATION\(posts index_posts_on_author_id\) \*/ .+ WHERE `posts`.`id` IN \(SELECT /\*\+ NO_RANGE_OPTIMIZATION\(posts index_posts_on_author_id\)}) do
+        posts = Post.optimizer_hints("NO_RANGE_OPTIMIZATION(posts index_posts_on_author_id)")
+        subposts = posts.where("id > 999")
+        posts.select(:id).where(id: subposts).load
+      end
+    end
+
+    def test_non_subquery_supported_optimizer_hints_removed_in_subquery
+      assert_sql(%r{\ASELECT /\*\+ MAX_EXECUTION_TIME\(1000\) \*/ .+ WHERE `posts`.`id` IN \(SELECT `posts`.`id` FROM}) do
+        posts = Post.optimizer_hints("MAX_EXECUTION_TIME(1000)")
+        subposts = posts.where("id > 999")
+        posts.select(:id).where(id: subposts).load
+      end
+    end
   end
 end

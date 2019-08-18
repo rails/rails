@@ -109,6 +109,10 @@ module ActiveRecord
         !mariadb? && database_version >= "5.7.7"
       end
 
+      def optimizer_hint_allowed_in_subquery?(hint)
+        !hint.include?("MAX_EXECUTION_TIME")
+      end
+
       def supports_advisory_locks?
         true
       end

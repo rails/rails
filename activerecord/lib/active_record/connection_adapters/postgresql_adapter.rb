@@ -362,6 +362,10 @@ module ActiveRecord
         @has_pg_hint_plan
       end
 
+      def optimizer_hint_allowed_in_subquery?(hint)
+        true
+      end
+
       def supports_lazy_transactions?
         true
       end

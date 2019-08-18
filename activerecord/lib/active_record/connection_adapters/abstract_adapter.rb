@@ -408,6 +408,10 @@ module ActiveRecord
         false
       end
 
+      def optimizer_hint_allowed_in_subquery?(hint)
+        false
+      end
+
       def supports_lazy_transactions?
         false
       end
