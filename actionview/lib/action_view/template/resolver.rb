@@ -356,7 +356,10 @@ module ActionView
             if ext == :variants && details[ext] == :any
               ".*?"
             else
-              details[ext].compact.uniq.map { |e| Regexp.escape(e) }.join("|")
+              arr = details[ext].compact
+              arr.uniq!
+              arr.map! { |e| Regexp.escape(e) }
+              arr.join("|")
             end
           prefix = Regexp.escape(prefix)
           "(#{prefix}(?<#{ext}>#{match}))?"
