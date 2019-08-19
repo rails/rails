@@ -105,8 +105,8 @@ class ActiveStorage::Blob < ActiveRecord::Base
     self[:key] ||= self.class.generate_unique_secure_token
   end
 
-  def url(method = ActiveStorage.delivery_method)
-    ActiveStorage::DeliveryMethod.select(method).blob_url(signed_id, filename)
+  def url(method = ActiveStorage.default_delivery_method)
+    ActiveStorage.delivery_methods.fetch(method).blob_url(signed_id, filename)
   end
 
   # Returns an ActiveStorage::Filename instance of the filename that can be

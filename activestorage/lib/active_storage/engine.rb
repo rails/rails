@@ -26,7 +26,6 @@ module ActiveStorage
     config.active_storage = ActiveSupport::OrderedOptions.new
     config.active_storage.previewers = [ ActiveStorage::Previewer::PopplerPDFPreviewer, ActiveStorage::Previewer::MuPDFPreviewer, ActiveStorage::Previewer::VideoPreviewer ]
     config.active_storage.analyzers = [ ActiveStorage::Analyzer::ImageAnalyzer, ActiveStorage::Analyzer::VideoAnalyzer ]
-    config.active_storage.delivery_methods = [ ActiveStorage::DeliveryMethod::Redirect, ActiveStorage::DeliveryMethod::Proxy ]
     config.active_storage.paths = ActiveSupport::OrderedOptions.new
     config.active_storage.queues = ActiveSupport::InheritableOptions.new(mirror: :active_storage_mirror)
 
@@ -82,15 +81,17 @@ module ActiveStorage
         ActiveStorage.variable_content_types = app.config.active_storage.variable_content_types || []
         ActiveStorage.content_types_to_serve_as_binary = app.config.active_storage.content_types_to_serve_as_binary || []
         ActiveStorage.service_urls_expire_in = app.config.active_storage.service_urls_expire_in || 5.minutes
-        ActiveStorage.delivery_method = app.config.active_storage.delivery_method || :redirect
-        ActiveStorage.delivery_methods = app.config.active_storage.delivery_methods
-        ActiveStorage.proxy_urls_expire_in = app.config.active_storage.proxy_urls_expire_in || 1.year
-        ActiveStorage.proxy_urls_public = app.config.active_storage.proxy_urls_public || true
-        ActiveStorage.proxy_urls_host = app.config.active_storage.proxy_urls_host
+
         ActiveStorage.content_types_allowed_inline = app.config.active_storage.content_types_allowed_inline || []
         ActiveStorage.binary_content_type = app.config.active_storage.binary_content_type || "application/octet-stream"
 
         ActiveStorage.replace_on_assign_to_many = app.config.active_storage.replace_on_assign_to_many || false
+
+        ActiveStorage.delivery_methods = app.config.active_storage.delivery_methods || {
+          redirect: ActiveStorage::DeliveryMethod::Redirect.new,
+          proxy: ActiveStorage::DeliveryMethod::Proxy.new
+        }
+        ActiveStorage.default_delivery_method = app.config.active_storage.default_delivery_method || :redirect
       end
     end
 
