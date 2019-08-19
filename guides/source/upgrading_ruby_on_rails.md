@@ -170,6 +170,38 @@ resp.content_type #=> "text/csv; header=present; charset=utf-16"
 resp.media_type   #=> "text/csv"
 ```
 
+### [ActionDispatch::HostAuthorization](https://api.rubyonrails.org/v6.0/classes/ActionDispatch/HostAuthorization.html) needs config.hosts if not using `0.0.0.0`, `::`, or `localhost`
+
+If you’re upgrading to Rails 6 you may find the following error in your browser: `Blocked host`
+
+To allow requests to hostname, add the following to your environment configuration:
+
+`config.hosts << "hostname"`
+
+You ran into Host Authorization, new middleware included in Rails to prevent against DNS rebinding attacks.
+
+By default this feature allows requests from `0.0.0.0`, `::`, and `localhost`. 
+
+##There are basically two ways to work around this.
+
+The first option is to whitelist the development hostname in `config/environments/development.rb`.
+
+`Rails.application.configure do
+  #Whitelist one hostname
+  config.hosts << "hostname"
+  #Whitelist a test domain
+  config.hosts << /application\.local\Z/
+ end`
+
+The second option is to clear the entire whitelist, which lets through requests for all hostnames.
+
+`Rails.application.configure do
+  config.hosts.clear
+end`
+
+Never whitelist everything in production as it essentially turns off the feature.
+
+
 ### Autoloading
 
 The default configuration for Rails 6
