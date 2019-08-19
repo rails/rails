@@ -793,6 +793,28 @@ module ActiveSupport
         end
       end
 
+      # Sets @value to the marshalled version of the value; as an optimization, if the object is a string,
+      # simply store the string in its dup'd form
+      def encode_value!
+        if @value && !compressed? && !@value.kind_of?(String) && !(@value.is_a?(Numeric) || @value == true || @value == false)
+          @value = Marshal.dump(@value)
+        elsif @value.kind_of?(String)
+          @value = @value.dup
+        end
+      end
+
+      # Sets @value to the unmarshalled version of the value, and dup it if it is a string to avoid
+      # returning the same object back to the caller
+      def decode_value!
+        if @value.kind_of?(String) && !compressed?
+          @value = Marshal.load(@value) rescue @value
+        end
+
+        if @value.kind_of?(String)
+          @value = @value.dup
+        end
+      end
+
       private
         def compress!(compress_threshold)
           case @value
