@@ -229,7 +229,7 @@ module Rails
   #     resources :articles
   #   end
   #
-  # If +MyEngine+ is isolated, The routes above will point to
+  # If +MyEngine+ is isolated, the routes above will point to
   # <tt>MyEngine::ArticlesController</tt>. You also don't need to use longer
   # URL helpers like +my_engine_articles_path+. Instead, you should simply use
   # +articles_path+, like you would do with your main application.
