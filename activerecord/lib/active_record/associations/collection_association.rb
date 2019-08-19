@@ -57,11 +57,16 @@ module ActiveRecord
         primary_key = reflection.association_primary_key
         pk_type = klass.type_for_attribute(primary_key)
         ids = Array(ids).compact_blank
-        ids.map! { |i| pk_type.cast(i) }
 
-        records = klass.where(primary_key => ids).index_by do |r|
-          r.public_send(primary_key)
-        end.values_at(*ids).compact
+        records = if ids.empty?
+          ids
+        else
+          ids.map! { |i| pk_type.cast(i) }
+
+          klass.where(primary_key => ids).index_by do |r|
+            r.public_send(primary_key)
+          end.values_at(*ids).compact
+        end
 
         if records.size != ids.size
           found_ids = records.map { |record| record.public_send(primary_key) }

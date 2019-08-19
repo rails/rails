@@ -101,6 +101,14 @@ class HasManyAssociationsTestPrimaryKeys < ActiveRecord::TestCase
     assert_equal ["Remote Work"], david.essays.map(&:name)
   end
 
+  def test_empty_ids_assignment_should_not_try_to_fetch_records
+    susan = people(:susan)
+
+    assert_queries 1 do
+      susan.essay_ids = []
+    end
+  end
+
   def test_blank_custom_primary_key_on_new_record_should_not_run_queries
     author = Author.new
     assert_not_predicate author.essays, :loaded?
