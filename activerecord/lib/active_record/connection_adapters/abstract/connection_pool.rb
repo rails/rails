@@ -3,7 +3,6 @@
 require "thread"
 require "concurrent/map"
 require "monitor"
-require "weakref"
 
 module ActiveRecord
   # Raised when a connection could not be obtained within the connection
@@ -315,40 +314,58 @@ module ActiveRecord
         end
 
         @mutex = Mutex.new
-        @pools = {}
+        @reapers = {}
 
         class << self
+          attr_reader :reapers
+
           def register_pool(pool, frequency) # :nodoc:
             @mutex.synchronize do
-              unless @pools.key?(frequency)
-                @pools[frequency] = []
-                spawn_thread(frequency)
+              @reapers[frequency] ||= {}
+
+              if !@reapers.dig(frequency, :thread)&.alive?
+                @reapers[frequency][:pools] ||= []
+                @reapers[frequency][:thread] = spawn_thread(frequency)
               end
-              @pools[frequency] << WeakRef.new(pool)
+
+              @reapers[frequency][:pools] << pool
+            end
+          end
+
+          def deregister_pool(pool, frequency) # :nodoc:
+            @mutex.synchronize do
+              if @reapers[frequency][:pools]
+                @reapers[frequency][:pools].delete(pool)
+              end
             end
           end
 
           private
             def spawn_thread(frequency)
-              Thread.new(frequency) do |t|
+              thread = Thread.new(frequency) do |t|
                 loop do
                   sleep t
                   @mutex.synchronize do
-                    @pools[frequency].select!(&:weakref_alive?)
-                    @pools[frequency].each do |p|
+                    @reapers[frequency][:pools].each do |p|
                       p.reap
                       p.flush
-                    rescue WeakRef::RefError
                     end
                   end
                 end
               end
+
+              thread.abort_on_exception = true
+              thread
             end
         end
 
         def run
           return unless frequency && frequency > 0
           self.class.register_pool(pool, frequency)
+        end
+
+        def stop # :nodoc:
+          self.class.deregister_pool(pool, frequency)
         end
       end
 
@@ -525,6 +542,8 @@ module ActiveRecord
       def discard! # :nodoc:
         synchronize do
           return if @connections.nil? # already discarded
+          @reaper.stop
+
           @connections.each do |conn|
             conn.discard!
           end
@@ -1124,6 +1143,7 @@ module ActiveRecord
         if pool = owner_to_pool.delete(spec_name)
           pool.automatic_reconnect = false
           pool.disconnect!
+          pool.reaper.stop
           pool.spec.config
         end
       end

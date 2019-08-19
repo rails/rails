@@ -13,7 +13,8 @@ module ActiveRecord
       def setup
         @handler = ConnectionHandler.new
         @spec_name = "primary"
-        @pool = @handler.establish_connection(ActiveRecord::Base.configurations["arunit"])
+        @config = ActiveRecord::Base.configurations["arunit"]
+        @pool = @handler.establish_connection(@config)
       end
 
       def test_default_env_fall_back_to_default_env_when_rails_env_or_rack_env_is_empty_string
@@ -39,6 +40,29 @@ module ActiveRecord
       ensure
         ActiveRecord::Base.configurations = old_config
         @handler.remove_connection("readonly")
+      end
+
+      def test_establish_connection_releases_reference_to_old_connection_pool
+        reaping_frequency = 0.123
+        @handler.establish_connection(@config.merge(reaping_frequency: reaping_frequency))
+
+        assert_equal(
+          1,
+          ObjectSpace.each_object(ActiveRecord::ConnectionAdapters::ConnectionPool).select do |pool|
+            pool.spec.config[:reaping_frequency] == 0.123
+          end.count
+        )
+
+        2.times { @handler.establish_connection(@config.merge(reaping_frequency: reaping_frequency)) }
+
+        GC.start
+
+        assert_equal(
+          1,
+          ObjectSpace.each_object(ActiveRecord::ConnectionAdapters::ConnectionPool).select do |pool|
+            pool.spec.config[:reaping_frequency] == 0.123
+          end.count
+        )
       end
 
       def test_establish_connection_using_3_levels_config
@@ -251,6 +275,46 @@ module ActiveRecord
           rd.close
 
           assert_equal 3, ActiveRecord::Base.connection.select_value("SELECT COUNT(*) FROM people")
+        end
+
+        def test_reaper_starts_in_forked_child
+          @handler.establish_connection(@config.merge(reaping_frequency: 1))
+
+          reaper = ActiveRecord::ConnectionAdapters::ConnectionPool::Reaper.reapers[1.0]
+          assert reaper[:thread].alive?
+          pools = reaper[:pools]
+          assert_equal 1, pools.size
+
+          rd, wr = IO.pipe
+          rd.binmode
+          wr.binmode
+
+          pid = fork do
+            rd.close
+
+            @handler.establish_connection(@config.merge(reaping_frequency: 1))
+            forked_reaper = ActiveRecord::ConnectionAdapters::ConnectionPool::Reaper.reapers[1.0]
+
+            wr.write(
+              Marshal.dump(
+                thread_alive: forked_reaper[:thread].alive?,
+                pools: forked_reaper[:pools].map(&:object_id)
+              )
+            )
+
+            wr.close
+            exit
+          end
+
+          wr.close
+          Process.waitpid(pid)
+
+          payload = Marshal.load(rd.read)
+          rd.close
+
+          assert payload[:thread_alive]
+          assert_equal 1, payload[:pools].size
+          assert_not_equal pools.map(&:object_id), payload[:pools]
         end
 
         unless in_memory_db?
