@@ -39,7 +39,7 @@ class MemoryStorePruningTest < ActiveSupport::TestCase
   end
 
   def test_cache_not_mutated
-    item = {"foo" => "bar"}
+    item = { "foo" => "bar" }
     key = "test_key"
     @cache.write(key, item)
 
@@ -49,7 +49,7 @@ class MemoryStorePruningTest < ActiveSupport::TestCase
   end
 
   def test_cache_different_object_ids_hash
-    item = {"foo" => "bar"}
+    item = { "foo" => "bar" }
     key = "test_key"
     @cache.write(key, item)
 
