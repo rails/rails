@@ -225,6 +225,7 @@ module Rails
 
     def tmp
       empty_directory_with_keep_file "tmp"
+      empty_directory_with_keep_file "tmp/pids"
       empty_directory "tmp/cache"
       empty_directory "tmp/cache/assets"
     end
