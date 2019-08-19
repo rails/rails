@@ -25,7 +25,7 @@ module Rails
           railsrc = File.expand_path(options[:rc])
 
           if File.exist?(railsrc)
-            extra_args = File.read(railsrc).split(/\n+/).flat_map(&:split)
+            extra_args = File.read(railsrc).gsub(/#.*\n/, "\n").split(/\n+/).flat_map(&:split)
             say "Using #{extra_args.join(" ")} from #{railsrc}"
             plugin_args.insert(1, *extra_args)
           end
