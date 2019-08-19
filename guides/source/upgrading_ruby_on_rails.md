@@ -182,7 +182,7 @@ You ran into Host Authorization, new middleware included in Rails to prevent aga
 
 By default this feature allows requests from `0.0.0.0`, `::`, and `localhost`. 
 
-##There are basically two ways to work around this.
+#### There are basically two ways to work around this.
 
 The first option is to whitelist the development hostname in `config/environments/development.rb`.
 
