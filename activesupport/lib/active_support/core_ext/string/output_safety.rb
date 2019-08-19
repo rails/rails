@@ -202,7 +202,7 @@ module ActiveSupport #:nodoc:
     end
 
     def []=(*args)
-      if args.count == 3
+      if args.length == 3
         super(args[0], args[1], html_escape_interpolated_argument(args[2]))
       else
         super(args[0], html_escape_interpolated_argument(args[1]))
