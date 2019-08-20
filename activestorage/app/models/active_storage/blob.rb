@@ -105,8 +105,7 @@ class ActiveStorage::Blob < ActiveRecord::Base
     self[:key] ||= self.class.generate_unique_secure_token
   end
 
-  def url(method = nil)
-    method ||= ActiveStorage.default_delivery_method
+  def url(method = ActiveStorage.default_delivery_method)
     ActiveStorage.delivery_methods.fetch(method).blob_url(signed_id, filename)
   end
 
