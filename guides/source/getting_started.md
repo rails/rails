@@ -492,7 +492,7 @@ Go ahead now and create a new file at `app/views/articles/new.html.erb` and
 write this content in it:
 
 ```html
-<h1>New Article</h1>
+<h1>New article</h1>
 ```
 
 When you refresh <http://localhost:3000/articles/new> you'll now see that the
