@@ -629,6 +629,7 @@ module ActiveRecord
       @to_sql = @arel = @loaded = @should_eager_load = nil
       @records = [].freeze
       @offsets = {}
+      @take = nil
       self
     end
 

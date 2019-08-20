@@ -2043,6 +2043,32 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal [accounts(:signals37)], sub_accounts.available
   end
 
+  def test_where_with_take_memoization
+    5.times do |idx|
+      Post.create!(title: idx.to_s, body: idx.to_s)
+    end
+
+    posts = Post.all
+    first_post = posts.take
+    third_post = posts.where(title: "3").take
+
+    assert_equal "3", third_post.title
+    assert_not_equal first_post.object_id, third_post.object_id
+  end
+
+  def test_find_by_with_take_memoization
+    5.times do |idx|
+      Post.create!(title: idx.to_s, body: idx.to_s)
+    end
+
+    posts = Post.all
+    first_post = posts.take
+    third_post = posts.find_by(title: "3")
+
+    assert_equal "3", third_post.title
+    assert_not_equal first_post.object_id, third_post.object_id
+  end
+
   test "#skip_query_cache!" do
     Post.cache do
       assert_queries(1) do
