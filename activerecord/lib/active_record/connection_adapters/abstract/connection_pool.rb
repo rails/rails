@@ -331,7 +331,8 @@ module ActiveRecord
           private
             def spawn_thread(frequency)
               Thread.new(frequency) do |t|
-                loop do
+                running = true
+                while running do
                   sleep t
                   @mutex.synchronize do
                     @pools[frequency].select!(&:weakref_alive?)
@@ -339,6 +340,11 @@ module ActiveRecord
                       p.reap
                       p.flush
                     rescue WeakRef::RefError
+                    end
+
+                    if @pools[frequency].empty?
+                      @pools.delete(frequency)
+                      running = false
                     end
                   end
                 end
