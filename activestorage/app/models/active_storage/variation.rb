@@ -39,7 +39,8 @@ class ActiveStorage::Variation
     end
   end
 
-  def url(method = ActiveStorage.default_delivery_method, representation)
+  def url(method = nil, representation)
+    method ||= ActiveStorage.default_delivery_method
     ActiveStorage.delivery_methods.fetch(method).representation_url(representation)
   end
 

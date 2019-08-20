@@ -4,6 +4,7 @@ module ActiveStorage
   # Representation of a single attachment to a model.
   class Attached::One < Attached
     delegate_missing_to :attachment, allow_nil: true
+    attr_accessor :delivery_method
 
     # Returns the associated attachment record.
     #
@@ -15,6 +16,18 @@ module ActiveStorage
 
     def blank?
       !attached?
+    end
+
+    def url(override_delivery_method = delivery_method)
+      attachment.url(override_delivery_method)
+    end
+
+    def variant(transformations)
+      attachment.variant(transformations, delivery_method)
+    end
+
+    def preview(transformations)
+      attachment.preview(transformations, delivery_method)
     end
 
     # Attaches an +attachable+ to the record.

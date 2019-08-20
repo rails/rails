@@ -25,9 +25,9 @@ module ActiveStorage::Blob::Representable
   #
   # Raises ActiveStorage::InvariableError if ImageMagick cannot transform the blob. To determine whether a blob is
   # variable, call ActiveStorage::Blob#variable?.
-  def variant(transformations, attachment = nil)
+  def variant(transformations, delivery_method = nil)
     if variable?
-      ActiveStorage::Variant.new(self, transformations, attachment)
+      ActiveStorage::Variant.new(self, transformations, delivery_method)
     else
       raise ActiveStorage::InvariableError
     end
@@ -53,9 +53,9 @@ module ActiveStorage::Blob::Representable
   #
   # This method raises ActiveStorage::UnpreviewableError if no previewer accepts the receiving blob. To determine
   # whether a blob is accepted by any previewer, call ActiveStorage::Blob#previewable?.
-  def preview(transformations, attachment = nil)
+  def preview(transformations, delivery_method = nil)
     if previewable?
-      ActiveStorage::Preview.new(self, transformations, attachment)
+      ActiveStorage::Preview.new(self, transformations, delivery_method)
     else
       raise ActiveStorage::UnpreviewableError
     end

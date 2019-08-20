@@ -13,8 +13,6 @@ class ActiveStorage::Attachment < ActiveRecord::Base
 
   delegate_missing_to :blob
 
-  attr_accessor :delivery_method
-
   after_create_commit :mirror_blob_later, :analyze_blob_later, :identify_blob
   after_destroy_commit :purge_dependent_blob_later
 
@@ -28,16 +26,6 @@ class ActiveStorage::Attachment < ActiveRecord::Base
   def purge_later
     delete
     blob&.purge_later
-  end
-
-  # When creating a variant or preview the attachment is passed in so the router can use the attachment's
-  # delivery_method to determine how to route the representation.
-  def variant(transformations)
-    blob.variant(transformations, self)
-  end
-
-  def preview(transformations)
-    blob.preview(transformations, self)
   end
 
   private
