@@ -72,21 +72,60 @@ module ActiveRecord
 
         pool = ConnectionPool.new spec
 
-        conn = nil
-        child = Thread.new do
-          conn = pool.checkout
-          Thread.stop
-        end
-        Thread.pass while conn.nil?
+        conn, child = new_conn_in_thread(pool)
 
         assert_predicate conn, :in_use?
 
         child.terminate
 
-        while conn.in_use?
+        wait_for_conn_idle(conn)
+        assert_not_predicate conn, :in_use?
+      end
+
+      def test_connection_pool_starts_reaper_in_fork
+        spec = ActiveRecord::Base.connection_pool.spec.dup
+        spec.config[:reaping_frequency] = "0.0001"
+
+        pool = ConnectionPool.new spec
+        pool.checkout
+
+        pid = fork do
+          pool = ConnectionPool.new spec
+
+          conn, child = new_conn_in_thread(pool)
+          child.terminate
+
+          wait_for_conn_idle(conn)
+          if conn.in_use?
+            exit!(1)
+          else
+            exit!(0)
+          end
+        end
+
+        Process.waitpid(pid)
+        assert $?.success?
+      end
+
+      def new_conn_in_thread(pool)
+        event = Concurrent::Event.new
+        conn = nil
+
+        child = Thread.new do
+          conn = pool.checkout
+          event.set
+          Thread.stop
+        end
+
+        event.wait
+        [conn, child]
+      end
+
+      def wait_for_conn_idle(conn, timeout = 5)
+        start = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+        while conn.in_use? && Process.clock_gettime(Process::CLOCK_MONOTONIC) - start < timeout
           Thread.pass
         end
-        assert_not_predicate conn, :in_use?
       end
     end
   end
