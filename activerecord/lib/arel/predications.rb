@@ -167,6 +167,7 @@ Passing a range to `#not_in` is deprecated. Call `#not_between`, instead.
     def gteq(right)
       Nodes::GreaterThanOrEqual.new self, quoted_node(right)
     end
+    alias >= gteq
 
     def gteq_any(others)
       grouping_any :gteq, others
@@ -179,6 +180,7 @@ Passing a range to `#not_in` is deprecated. Call `#not_between`, instead.
     def gt(right)
       Nodes::GreaterThan.new self, quoted_node(right)
     end
+    alias > gt
 
     def gt_any(others)
       grouping_any :gt, others
@@ -191,6 +193,7 @@ Passing a range to `#not_in` is deprecated. Call `#not_between`, instead.
     def lt(right)
       Nodes::LessThan.new self, quoted_node(right)
     end
+    alias < lt
 
     def lt_any(others)
       grouping_any :lt, others
@@ -203,6 +206,7 @@ Passing a range to `#not_in` is deprecated. Call `#not_between`, instead.
     def lteq(right)
       Nodes::LessThanOrEqual.new self, quoted_node(right)
     end
+    alias <= lteq
 
     def lteq_any(others)
       grouping_any :lteq, others

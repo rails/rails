@@ -69,6 +69,11 @@ module Arel
           relation[:id].gt(10).must_be_kind_of Nodes::GreaterThan
         end
 
+        it "should alias the > operator" do
+          relation = Table.new(:users)
+          (relation[:id] > 10).must_be_kind_of Nodes::GreaterThan
+        end
+
         it "should generate > in sql" do
           relation = Table.new(:users)
           mgr = relation.project relation[:id]
@@ -139,6 +144,11 @@ module Arel
           relation[:id].gteq(10).must_be_kind_of Nodes::GreaterThanOrEqual
         end
 
+        it "should alias the >= operator" do
+          relation = Table.new(:users)
+          (relation[:id] >= 10).must_be_kind_of Nodes::GreaterThanOrEqual
+        end
+
         it "should generate >= in sql" do
           relation = Table.new(:users)
           mgr = relation.project relation[:id]
@@ -198,6 +208,11 @@ module Arel
           relation[:id].lt(10).must_be_kind_of Nodes::LessThan
         end
 
+        it "should alias the < operator" do
+          relation = Table.new(:users)
+          (relation[:id] < 10).must_be_kind_of Nodes::LessThan
+        end
+
         it "should generate < in sql" do
           relation = Table.new(:users)
           mgr = relation.project relation[:id]
@@ -255,6 +270,11 @@ module Arel
         it "should create a LessThanOrEqual node" do
           relation = Table.new(:users)
           relation[:id].lteq(10).must_be_kind_of Nodes::LessThanOrEqual
+        end
+
+        it "should alias the <= operator" do
+          relation = Table.new(:users)
+          (relation[:id] <= 10).must_be_kind_of Nodes::LessThanOrEqual
         end
 
         it "should generate <= in sql" do

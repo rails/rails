@@ -1,3 +1,7 @@
+*   Allow using `:<`, `:>`, `:<=`, and `:>=` operators on `Arel` `NodeExpression` objects and `Attribute` objects.
+
+    *Kevin Deisz*
+
 *   Allow bulk `ALTER` statements to drop and recreate indexes with the same name.
 
     *Eugene Kenny*
