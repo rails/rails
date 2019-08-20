@@ -13,6 +13,12 @@ class RespondToController < ActionController::Base
     end
   }
 
+  def my_html_fragment
+    respond_to do |type|
+      type.html_fragment { render body: "neat" }
+    end
+  end
+
   def html_xml_or_rss
     respond_to do |type|
       type.html { render body: "HTML"    }
@@ -321,6 +327,7 @@ class RespondToControllerTest < ActionController::TestCase
     Mime::Type.register_alias("text/html", :iphone)
     Mime::Type.register("text/x-mobile", :mobile)
     Mime::Type.register("application/fancy-xml", :fancy_xml)
+    Mime::Type.register("text/html; fragment", :html_fragment)
   end
 
   def teardown
@@ -328,6 +335,14 @@ class RespondToControllerTest < ActionController::TestCase
     Mime::Type.unregister(:iphone)
     Mime::Type.unregister(:mobile)
     Mime::Type.unregister(:fancy_xml)
+    Mime::Type.unregister(:html_fragment)
+  end
+
+  def test_html_fragment
+    @request.accept = "text/html; fragment"
+    get :my_html_fragment
+    assert_equal "text/html; fragment; charset=utf-8", @response.headers["Content-Type"]
+    assert_equal "neat", @response.body
   end
 
   def test_html
