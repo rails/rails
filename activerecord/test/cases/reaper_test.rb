@@ -82,6 +82,37 @@ module ActiveRecord
         assert_not_predicate conn, :in_use?
       end
 
+      def test_reaper_works_after_pool_discard
+        spec = ActiveRecord::Base.connection_pool.spec.dup
+        spec.config[:reaping_frequency] = "0.0001"
+
+        2.times do
+          pool = ConnectionPool.new spec
+
+          conn, child = new_conn_in_thread(pool)
+
+          assert_predicate conn, :in_use?
+
+          child.terminate
+
+          wait_for_conn_idle(conn)
+          assert_not_predicate conn, :in_use?
+
+          pool.discard!
+        end
+      end
+
+      # This doesn't test the reaper directly, but we want to test the action
+      # it would take on a discarded pool
+      def test_reap_flush_on_discarded_pool
+        spec = ActiveRecord::Base.connection_pool.spec.dup
+        pool = ConnectionPool.new spec
+
+        pool.discard!
+        pool.reap
+        pool.flush
+      end
+
       def test_connection_pool_starts_reaper_in_fork
         spec = ActiveRecord::Base.connection_pool.spec.dup
         spec.config[:reaping_frequency] = "0.0001"

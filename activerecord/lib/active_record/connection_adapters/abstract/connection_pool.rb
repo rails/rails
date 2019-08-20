@@ -648,6 +648,7 @@ module ActiveRecord
       # or a thread dies unexpectedly.
       def reap
         stale_connections = synchronize do
+          return unless @connections
           @connections.select do |conn|
             conn.in_use? && !conn.owner.alive?
           end.each do |conn|
@@ -672,6 +673,7 @@ module ActiveRecord
         return if minimum_idle.nil?
 
         idle_connections = synchronize do
+          return unless @connections
           @connections.select do |conn|
             !conn.in_use? && conn.seconds_idle >= minimum_idle
           end.each do |conn|
