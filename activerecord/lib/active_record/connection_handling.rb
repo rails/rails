@@ -204,7 +204,7 @@ module ActiveRecord
     # Return the specification name from the current class or its parent.
     def connection_specification_name
       if !defined?(@connection_specification_name) || @connection_specification_name.nil?
-        return primary_class? ? "primary" : superclass.connection_specification_name
+        return self == Base ? "primary" : superclass.connection_specification_name
       end
       @connection_specification_name
     end
