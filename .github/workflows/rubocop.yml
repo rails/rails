@@ -1,0 +1,21 @@
+name: RuboCop
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Set up Ruby 2.6
+      uses: actions/setup-ruby@v1
+      with:
+        ruby-version: 2.6.x
+    - name: Install required package
+      run: |
+        sudo apt-get install libmysqlclient-dev libpq-dev libsqlite3-dev libncurses5-dev
+    - name: Build and run RuboCop
+      run: |
+        bundle install --jobs 4 --retry 3
+        bundle exec rubocop --parallel
