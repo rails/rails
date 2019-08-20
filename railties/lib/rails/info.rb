@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cgi"
 
 module Rails
@@ -5,8 +7,9 @@ module Rails
   # Rails::InfoController responses. These include the active Rails version,
   # Ruby version, Rack version, and so on.
   module Info
-    mattr_accessor :properties
-    class << (@@properties = [])
+    mattr_accessor :properties, default: []
+
+    class << @@properties
       def names
         map(&:first)
       end
@@ -38,7 +41,7 @@ module Rails
       alias inspect to_s
 
       def to_html
-        "<table>".tap do |table|
+        (+"<table>").tap do |table|
           properties.each do |(name, value)|
             table << %(<tr><td class="name">#{CGI.escapeHTML(name.to_s)}</td>)
             formatted_value = if value.kind_of?(Array)
@@ -60,12 +63,12 @@ module Rails
 
     # The Ruby version and platform, e.g. "2.0.0-p247 (x86_64-darwin12.4.0)".
     property "Ruby version" do
-      "#{RUBY_VERSION}-p#{RUBY_PATCHLEVEL} (#{RUBY_PLATFORM})"
+      RUBY_DESCRIPTION
     end
 
     # The RubyGems version, if it's installed.
     property "RubyGems version" do
-      Gem::RubyGemsVersion
+      Gem::VERSION
     end
 
     property "Rack version" do
@@ -96,7 +99,7 @@ module Rails
     end
 
     property "Database schema version" do
-      ActiveRecord::Migrator.current_version rescue nil
+      ActiveRecord::Base.connection.migration_context.current_version rescue nil
     end
   end
 end

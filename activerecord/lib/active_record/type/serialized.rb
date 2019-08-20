@@ -1,6 +1,10 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module Type
     class Serialized < DelegateClass(ActiveModel::Type::Value) # :nodoc:
+      undef to_yaml if method_defined?(:to_yaml)
+
       include ActiveModel::Type::Helpers::Mutable
 
       attr_reader :subtype, :coder
@@ -47,8 +51,11 @@ module ActiveRecord
         end
       end
 
-      private
+      def force_equality?(value)
+        coder.respond_to?(:object_class) && value.is_a?(coder.object_class)
+      end
 
+      private
         def default_value?(value)
           value == coder.load(nil)
         end

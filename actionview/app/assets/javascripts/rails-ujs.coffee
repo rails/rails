@@ -1,75 +1,39 @@
-#
-# Unobtrusive JavaScript
-# https://github.com/rails/rails-ujs
-#
-# Released under the MIT license
-#
-#= require ./config
-#= require_tree ./utils
-#= require_tree ./features
+#= require ./rails-ujs/BANNER
+#= export Rails
+#= require_self
+#= require_tree ./rails-ujs/utils
+#= require_tree ./rails-ujs/features
+#= require ./rails-ujs/start
 
-{
-  fire, delegate
-  getData, $
-  refreshCSRFTokens, CSRFProtection
-  enableElement, disableElement
-  handleConfirm
-  handleRemote, formSubmitButtonClick, handleMetaClick
-  handleMethod
-} = Rails
+@Rails =
+  # Link elements bound by rails-ujs
+  linkClickSelector: 'a[data-confirm], a[data-method], a[data-remote]:not([disabled]), a[data-disable-with], a[data-disable]'
 
-# For backward compatibility
-if jQuery? and not jQuery.rails
-  jQuery.rails = Rails
-  jQuery.ajaxPrefilter (options, originalOptions, xhr) ->
-    CSRFProtection(xhr) unless options.crossDomain
+  # Button elements bound by rails-ujs
+  buttonClickSelector:
+    selector: 'button[data-remote]:not([form]), button[data-confirm]:not([form])'
+    exclude: 'form button'
 
-Rails.start = ->
-  # Cut down on the number of issues from people inadvertently including
-  # rails-ujs twice by detecting and raising an error when it happens.
-  throw new Error('rails-ujs has already been loaded!') if window._rails_loaded
+  # Select elements bound by rails-ujs
+  inputChangeSelector: 'select[data-remote], input[data-remote], textarea[data-remote]'
 
-  # This event works the same as the load event, except that it fires every
-  # time the page is loaded.
-  # See https://github.com/rails/jquery-ujs/issues/357
-  # See https://developer.mozilla.org/en-US/docs/Using_Firefox_1.5_caching
-  window.addEventListener 'pageshow', ->
-    $(Rails.formEnableSelector).forEach (el) ->
-      enableElement(el) if getData(el, 'ujs:disabled')
-    $(Rails.linkDisableSelector).forEach (el) ->
-      enableElement(el) if getData(el, 'ujs:disabled')
+  # Form elements bound by rails-ujs
+  formSubmitSelector: 'form'
 
-  delegate document, Rails.linkDisableSelector, 'ajax:complete', enableElement
-  delegate document, Rails.linkDisableSelector, 'ajax:stopped', enableElement
-  delegate document, Rails.buttonDisableSelector, 'ajax:complete', enableElement
-  delegate document, Rails.buttonDisableSelector, 'ajax:stopped', enableElement
+  # Form input elements bound by rails-ujs
+  formInputClickSelector: 'form input[type=submit], form input[type=image], form button[type=submit], form button:not([type]), input[type=submit][form], input[type=image][form], button[type=submit][form], button[form]:not([type])'
 
-  delegate document, Rails.linkClickSelector, 'click', handleConfirm
-  delegate document, Rails.linkClickSelector, 'click', handleMetaClick
-  delegate document, Rails.linkClickSelector, 'click', disableElement
-  delegate document, Rails.linkClickSelector, 'click', handleRemote
-  delegate document, Rails.linkClickSelector, 'click', handleMethod
+  # Form input elements disabled during form submission
+  formDisableSelector: 'input[data-disable-with]:enabled, button[data-disable-with]:enabled, textarea[data-disable-with]:enabled, input[data-disable]:enabled, button[data-disable]:enabled, textarea[data-disable]:enabled'
 
-  delegate document, Rails.buttonClickSelector, 'click', handleConfirm
-  delegate document, Rails.buttonClickSelector, 'click', disableElement
-  delegate document, Rails.buttonClickSelector, 'click', handleRemote
+  # Form input elements re-enabled after form submission
+  formEnableSelector: 'input[data-disable-with]:disabled, button[data-disable-with]:disabled, textarea[data-disable-with]:disabled, input[data-disable]:disabled, button[data-disable]:disabled, textarea[data-disable]:disabled'
 
-  delegate document, Rails.inputChangeSelector, 'change', handleConfirm
-  delegate document, Rails.inputChangeSelector, 'change', handleRemote
+  # Form file input elements
+  fileInputSelector: 'input[name][type=file]:not([disabled])'
 
-  delegate document, Rails.formSubmitSelector, 'submit', handleConfirm
-  delegate document, Rails.formSubmitSelector, 'submit', handleRemote
-  # Normal mode submit
-  # Slight timeout so that the submit button gets properly serialized
-  delegate document, Rails.formSubmitSelector, 'submit', (e) -> setTimeout((-> disableElement(e)), 13)
-  delegate document, Rails.formSubmitSelector, 'ajax:send', disableElement
-  delegate document, Rails.formSubmitSelector, 'ajax:complete', enableElement
+  # Link onClick disable selector with possible reenable after remote submission
+  linkDisableSelector: 'a[data-disable-with], a[data-disable]'
 
-  delegate document, Rails.formInputClickSelector, 'click', handleConfirm
-  delegate document, Rails.formInputClickSelector, 'click', formSubmitButtonClick
-
-  document.addEventListener('DOMContentLoaded', refreshCSRFTokens)
-  window._rails_loaded = true
-
-if window.Rails is Rails and fire(document, 'rails:attachBindings')
-  Rails.start()
+  # Button onClick disable selector with possible reenable after remote submission
+  buttonDisableSelector: 'button[data-remote][data-disable-with], button[data-remote][data-disable]'

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 module AbstractController
@@ -24,7 +26,7 @@ module AbstractController
       end
 
       def file
-        render file: "some/file"
+        ActiveSupport::Deprecation.silence { render file: "some/file" }
       end
 
       def inline

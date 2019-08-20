@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "active_support/core_ext/integer/time"
 require "active_support/core_ext/numeric/time"
@@ -16,7 +18,6 @@ class ConditionalGetApiController < ActionController::API
   end
 
   private
-
     def handle_last_modified_and_etags
       fresh_when(last_modified: Time.now.utc.beginning_of_day, etag: [ :foo, 123 ])
     end
@@ -51,7 +52,7 @@ class ConditionalGetApiTest < ActionController::TestCase
     @request.if_modified_since = @last_modified
     get :one
     assert_equal 304, @response.status.to_i
-    assert @response.body.blank?
+    assert_predicate @response.body, :blank?
     assert_equal @last_modified, @response.headers["Last-Modified"]
   end
 end

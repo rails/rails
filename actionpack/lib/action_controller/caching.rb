@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActionController
   # \Caching is a cheap way of speeding up slow applications by keeping the result of
   # calculations, renderings, and database calls around for subsequent requests.
@@ -28,7 +30,6 @@ module ActionController
     end
 
     private
-
       def instrument_payload(key)
         {
           controller: controller_name,
@@ -38,7 +39,7 @@ module ActionController
       end
 
       def instrument_name
-        "action_controller".freeze
+        "action_controller"
       end
   end
 end

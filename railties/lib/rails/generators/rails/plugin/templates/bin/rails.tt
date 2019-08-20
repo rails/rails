@@ -1,13 +1,30 @@
 # This command will automatically be run when you run "rails" with Rails gems
 # installed from the root of your application.
 
-ENGINE_ROOT = File.expand_path('../..', __FILE__)
-ENGINE_PATH = File.expand_path('../../lib/<%= namespaced_name -%>/engine', __FILE__)
-APP_PATH = File.expand_path('../../<%= dummy_path -%>/config/application', __FILE__)
+ENGINE_ROOT = File.expand_path('..', __dir__)
+ENGINE_PATH = File.expand_path('../lib/<%= namespaced_name -%>/engine', __dir__)
+<% if with_dummy_app? -%>
+APP_PATH = File.expand_path('../<%= dummy_path -%>/config/application', __dir__)
+<% end -%>
 
 # Set up gems listed in the Gemfile.
-ENV['BUNDLE_GEMFILE'] ||= File.expand_path('../../Gemfile', __FILE__)
+ENV['BUNDLE_GEMFILE'] ||= File.expand_path('../Gemfile', __dir__)
 require 'bundler/setup' if File.exist?(ENV['BUNDLE_GEMFILE'])
 
+<% if include_all_railties? -%>
 require 'rails/all'
+<% else -%>
+require "rails"
+# Pick the frameworks you want:
+require "active_model/railtie"
+require "active_job/railtie"
+<%= comment_if :skip_active_record %>require "active_record/railtie"
+<%= comment_if :skip_active_storage %>require "active_storage/engine"
+require "action_controller/railtie"
+<%= comment_if :skip_action_mailer %>require "action_mailer/railtie"
+require "action_view/railtie"
+<%= comment_if :skip_action_cable %>require "action_cable/engine"
+<%= comment_if :skip_sprockets %>require "sprockets/railtie"
+<%= comment_if :skip_test %>require "rails/test_unit/railtie"
+<% end -%>
 require 'rails/engine/commands'

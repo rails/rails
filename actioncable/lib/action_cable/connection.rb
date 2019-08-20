@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActionCable
   module Connection
     extend ActiveSupport::Autoload
@@ -13,6 +15,7 @@ module ActionCable
       autoload :StreamEventLoop
       autoload :Subscriptions
       autoload :TaggedLoggerProxy
+      autoload :TestCase
       autoload :WebSocket
     end
   end

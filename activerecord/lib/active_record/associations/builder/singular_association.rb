@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # This class is inherited by the has_one and belongs_to association classes
 
 module ActiveRecord::Associations::Builder # :nodoc:
@@ -36,5 +38,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
         end
       CODE
     end
+
+    private_class_method :valid_options, :define_accessors, :define_constructors
   end
 end

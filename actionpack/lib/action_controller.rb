@@ -1,4 +1,5 @@
-require "active_support/rails"
+# frozen_string_literal: true
+
 require "abstract_controller"
 require "action_dispatch"
 require "action_controller/metal/live"
@@ -20,10 +21,13 @@ module ActionController
 
   autoload_under "metal" do
     autoload :ConditionalGet
+    autoload :ContentSecurityPolicy
     autoload :Cookies
     autoload :DataStreaming
+    autoload :DefaultHeaders
     autoload :EtagWithTemplateDigest
     autoload :EtagWithFlash
+    autoload :FeaturePolicy
     autoload :Flash
     autoload :ForceSSL
     autoload :Head

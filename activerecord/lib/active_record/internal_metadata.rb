@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_record/scoping/default"
 require "active_record/scoping/named"
 
@@ -6,24 +8,24 @@ module ActiveRecord
   # as which environment migrations were run in.
   class InternalMetadata < ActiveRecord::Base # :nodoc:
     class << self
+      def _internal?
+        true
+      end
+
       def primary_key
         "key"
       end
 
       def table_name
-        "#{table_name_prefix}#{ActiveRecord::Base.internal_metadata_table_name}#{table_name_suffix}"
+        "#{table_name_prefix}#{internal_metadata_table_name}#{table_name_suffix}"
       end
 
       def []=(key, value)
-        find_or_initialize_by(key: key).update_attributes!(value: value)
+        find_or_initialize_by(key: key).update!(value: value)
       end
 
       def [](key)
         where(key: key).pluck(:value).first
-      end
-
-      def table_exists?
-        connection.table_exists?(table_name)
       end
 
       # Creates an internal metadata table with columns +key+ and +value+
@@ -37,6 +39,10 @@ module ActiveRecord
             t.timestamps
           end
         end
+      end
+
+      def drop_table
+        connection.drop_table table_name, if_exists: true
       end
     end
   end

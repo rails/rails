@@ -1,4 +1,4 @@
-require "active_support/core_ext/string/filters"
+# frozen_string_literal: true
 
 module ActionController
   module Rendering
@@ -36,11 +36,11 @@ module ActionController
       super
     end
 
-    # Overwrite render_to_string because body can now be set to a rack body.
+    # Overwrite render_to_string because body can now be set to a Rack body.
     def render_to_string(*)
       result = super
       if result.respond_to?(:each)
-        string = ""
+        string = +""
         result.each { |r| string << r }
         string
       else
@@ -53,7 +53,6 @@ module ActionController
     end
 
     private
-
       def _process_variant(options)
         if defined?(request) && !request.nil? && request.variant.present?
           options[:variant] = request.variant
@@ -73,9 +72,13 @@ module ActionController
       end
 
       def _set_rendered_content_type(format)
-        if format && !response.content_type
+        if format && !response.media_type
           self.content_type = format.to_s
         end
+      end
+
+      def _set_vary_header
+        self.headers["Vary"] = "Accept" if request.should_apply_vary_header?
       end
 
       # Normalize arguments by catching blocks and setting them on :update.

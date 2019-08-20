@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   # = Active Record \RecordInvalid
   #
@@ -38,6 +40,7 @@ module ActiveRecord
     include ActiveModel::Validations
 
     # The validation process on save can be skipped by passing <tt>validate: false</tt>.
+    # The validation context can be changed by passing <tt>context: context</tt>.
     # The regular {ActiveRecord::Base#save}[rdoc-ref:Persistence#save] method is replaced
     # with this when the validations module is mixed in, which it is by default.
     def save(options = {})
@@ -69,7 +72,6 @@ module ActiveRecord
     alias_method :validate, :valid?
 
   private
-
     def default_validation_context
       new_record? ? :create : :update
     end

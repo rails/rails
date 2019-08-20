@@ -1,2 +1,0 @@
-class MocktailDesigner < DrinkDesigner
-end

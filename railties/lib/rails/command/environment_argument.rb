@@ -1,4 +1,7 @@
+# frozen_string_literal: true
+
 require "active_support"
+require "active_support/core_ext/class/attribute"
 
 module Rails
   module Command
@@ -6,15 +9,18 @@ module Rails
       extend ActiveSupport::Concern
 
       included do
-        argument :environment, optional: true, banner: "environment"
+        no_commands do
+          class_attribute :environment_desc, default: "Specifies the environment to run this #{self.command_name} under (test/development/production)."
+        end
+        class_option :environment, aliases: "-e", type: :string, desc: environment_desc
       end
 
       private
-        def extract_environment_option_from_argument
-          if environment
-            self.options = options.merge(environment: acceptable_environment(environment))
-          elsif !options[:environment]
-            self.options = options.merge(environment: Rails::Command.environment)
+        def extract_environment_option_from_argument(default_environment: Rails::Command.environment)
+          if options[:environment]
+            self.options = options.merge(environment: acceptable_environment(options[:environment]))
+          else
+            self.options = options.merge(environment: default_environment)
           end
         end
 
@@ -22,7 +28,7 @@ module Rails
           if available_environments.include? env
             env
           else
-            %w( production development test ).detect { |e| e =~ /^#{env}/ } || env
+            %w( production development test ).detect { |e| /^#{env}/.match?(e) } || env
           end
         end
 

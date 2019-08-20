@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 
 module ActiveRecord
@@ -43,11 +45,11 @@ module ActiveRecord
 
         # Make sure the pool marks the connection in use
         assert_equal @adapter, pool.connection
-        assert @adapter.in_use?
+        assert_predicate @adapter, :in_use?
 
         # Close should put the adapter back in the pool
         @adapter.close
-        assert_not @adapter.in_use?
+        assert_not_predicate @adapter, :in_use?
 
         assert_equal @adapter, pool.connection
       end

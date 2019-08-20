@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_job"
 require "support/job_buffer"
 
@@ -14,3 +16,5 @@ else
 end
 
 require "active_support/testing/autorun"
+
+require_relative "../../tools/test_common"

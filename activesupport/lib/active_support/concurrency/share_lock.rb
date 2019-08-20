@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "thread"
 require "monitor"
 
@@ -198,7 +200,6 @@ module ActiveSupport
       end
 
       private
-
         # Must be called within synchronize
         def busy_for_exclusive?(purpose)
           busy_for_sharing?(purpose) ||

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "action_view/dependency_tracker"
 
@@ -15,8 +17,8 @@ class FakeTemplate
   end
 end
 
-Neckbeard = lambda { |template| template.source }
-Bowtie = lambda { |template| template.source }
+Neckbeard = lambda { |template, source| source }
+Bowtie = lambda { |template, source| source }
 
 class DependencyTrackerTest < ActionView::TestCase
   def tracker

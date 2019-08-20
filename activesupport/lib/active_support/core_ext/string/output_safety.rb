@@ -1,5 +1,8 @@
+# frozen_string_literal: true
+
 require "erb"
 require "active_support/core_ext/kernel/singleton_class"
+require "active_support/core_ext/module/redefine_method"
 require "active_support/multibyte/unicode"
 
 class ERB
@@ -12,22 +15,18 @@ class ERB
     # A utility method for escaping HTML tag characters.
     # This method is also aliased as <tt>h</tt>.
     #
-    # In your ERB templates, use this method to escape any unsafe content. For example:
-    #   <%= h @person.name %>
-    #
     #   puts html_escape('is a > 0 & a < 10?')
     #   # => is a &gt; 0 &amp; a &lt; 10?
     def html_escape(s)
       unwrapped_html_escape(s).html_safe
     end
 
-    # Aliasing twice issues a warning "discarding old...". Remove first to avoid it.
-    remove_method(:h)
+    silence_redefinition_of_method :h
     alias h html_escape
 
     module_function :h
 
-    singleton_class.send(:remove_method, :html_escape)
+    singleton_class.silence_redefinition_of_method :html_escape
     module_function :html_escape
 
     # HTML escapes strings but doesn't wrap them with an ActiveSupport::SafeBuffer.
@@ -135,9 +134,12 @@ end
 module ActiveSupport #:nodoc:
   class SafeBuffer < String
     UNSAFE_STRING_METHODS = %w(
-      capitalize chomp chop delete downcase gsub lstrip next reverse rstrip
-      slice squeeze strip sub succ swapcase tr tr_s upcase
+      capitalize chomp chop delete delete_prefix delete_suffix
+      downcase lstrip next reverse rstrip slice squeeze strip
+      succ swapcase tr tr_s unicode_normalize upcase
     )
+
+    UNSAFE_STRING_METHODS_WITH_BACKREF = %w(gsub sub)
 
     alias_method :original_concat, :concat
     private :original_concat
@@ -150,9 +152,7 @@ module ActiveSupport #:nodoc:
     end
 
     def [](*args)
-      if args.size < 2
-        super
-      elsif html_safe?
+      if html_safe?
         new_safe_buffer = super
 
         if new_safe_buffer
@@ -189,12 +189,34 @@ module ActiveSupport #:nodoc:
     end
     alias << concat
 
+    def insert(index, value)
+      super(index, html_escape_interpolated_argument(value))
+    end
+
     def prepend(value)
       super(html_escape_interpolated_argument(value))
     end
 
+    def replace(value)
+      super(html_escape_interpolated_argument(value))
+    end
+
+    def []=(*args)
+      if args.count == 3
+        super(args[0], args[1], html_escape_interpolated_argument(args[2]))
+      else
+        super(args[0], html_escape_interpolated_argument(args[1]))
+      end
+    end
+
     def +(other)
       dup.concat(other)
+    end
+
+    def *(*)
+      new_safe_buffer = super
+      new_safe_buffer.instance_variable_set(:@html_safe, @html_safe)
+      new_safe_buffer
     end
 
     def %(args)
@@ -239,10 +261,42 @@ module ActiveSupport #:nodoc:
       end
     end
 
-    private
+    UNSAFE_STRING_METHODS_WITH_BACKREF.each do |unsafe_method|
+      if unsafe_method.respond_to?(unsafe_method)
+        class_eval <<-EOT, __FILE__, __LINE__ + 1
+          def #{unsafe_method}(*args, &block)             # def gsub(*args, &block)
+            if block                                      #   if block
+              to_str.#{unsafe_method}(*args) { |*params|  #     to_str.gsub(*args) { |*params|
+                set_block_back_references(block, $~)      #       set_block_back_references(block, $~)
+                block.call(*params)                       #       block.call(*params)
+              }                                           #     }
+            else                                          #   else
+              to_str.#{unsafe_method}(*args)              #     to_str.gsub(*args)
+            end                                           #   end
+          end                                             # end
 
+          def #{unsafe_method}!(*args, &block)            # def gsub!(*args, &block)
+            @html_safe = false                            #   @html_safe = false
+            if block                                      #   if block
+              super(*args) { |*params|                    #     super(*args) { |*params|
+                set_block_back_references(block, $~)      #       set_block_back_references(block, $~)
+                block.call(*params)                       #       block.call(*params)
+              }                                           #     }
+            else                                          #   else
+              super                                       #     super
+            end                                           #   end
+          end                                             # end
+        EOT
+      end
+    end
+
+    private
       def html_escape_interpolated_argument(arg)
         (!html_safe? || arg.html_safe?) ? arg : CGI.escapeHTML(arg.to_s)
+      end
+
+      def set_block_back_references(block, match_data)
+        block.binding.eval("proc { |m| $~ = m }").call(match_data)
       end
   end
 end
@@ -251,7 +305,7 @@ class String
   # Marks a string as trusted safe. It will be inserted into HTML with no
   # additional escaping performed. It is your responsibility to ensure that the
   # string contains no malicious content. This method is equivalent to the
-  # `raw` helper in views. It is recommended that you use `sanitize` instead of
+  # +raw+ helper in views. It is recommended that you use +sanitize+ instead of
   # this method. It should never be called on user input.
   def html_safe
     ActiveSupport::SafeBuffer.new(self)

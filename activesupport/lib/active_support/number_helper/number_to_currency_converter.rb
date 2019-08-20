@@ -1,4 +1,6 @@
-require "active_support/core_ext/numeric/inquiry"
+# frozen_string_literal: true
+
+require "active_support/number_helper/number_converter"
 
 module ActiveSupport
   module NumberHelper
@@ -15,11 +17,10 @@ module ActiveSupport
         end
 
         rounded_number = NumberToRoundedConverter.convert(number, options)
-        format.gsub("%n".freeze, rounded_number).gsub("%u".freeze, options[:unit])
+        format.gsub("%n", rounded_number).gsub("%u", options[:unit])
       end
 
       private
-
         def absolute_value(number)
           number.respond_to?(:abs) ? number.abs : number.sub(/\A-/, "")
         end

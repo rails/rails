@@ -1,0 +1,29 @@
+# s3:
+#   service: S3
+#   access_key_id: ""
+#   secret_access_key: ""
+#   region: ""
+#   bucket: ""
+#
+# gcs:
+#   service: GCS
+#   credentials: {
+#     type: "service_account",
+#     project_id: "",
+#     private_key_id: "",
+#     private_key: "",
+#     client_email: "",
+#     client_id: "",
+#     auth_uri: "https://accounts.google.com/o/oauth2/auth",
+#     token_uri: "https://accounts.google.com/o/oauth2/token",
+#     auth_provider_x509_cert_url: "https://www.googleapis.com/oauth2/v1/certs",
+#     client_x509_cert_url: ""
+#   }
+#   project:
+#   bucket:
+#
+# azure:
+#   service: AzureStorage
+#   storage_account_name: ""
+#   storage_access_key: ""
+#   container: ""

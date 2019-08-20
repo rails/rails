@@ -1,14 +1,16 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 require "pathname"
 
 class FileFixturesTest < ActiveSupport::TestCase
-  self.file_fixture_path = File.expand_path("../../file_fixtures", __FILE__)
+  self.file_fixture_path = File.expand_path("../file_fixtures", __dir__)
 
   test "#file_fixture returns Pathname to file fixture" do
     path = file_fixture("sample.txt")
     assert_kind_of Pathname, path
-    assert_match %r{.*/test/file_fixtures/sample.txt$}, path.to_s
+    assert_match %r{.*/test/file_fixtures/sample\.txt$}, path.to_s
   end
 
   test "raises an exception when the fixture file does not exist" do
@@ -20,11 +22,11 @@ class FileFixturesTest < ActiveSupport::TestCase
 end
 
 class FileFixturesPathnameDirectoryTest < ActiveSupport::TestCase
-  self.file_fixture_path = Pathname.new(File.expand_path("../../file_fixtures", __FILE__))
+  self.file_fixture_path = Pathname.new(File.expand_path("../file_fixtures", __dir__))
 
   test "#file_fixture_path returns Pathname to file fixture" do
     path = file_fixture("sample.txt")
     assert_kind_of Pathname, path
-    assert_match %r{.*/test/file_fixtures/sample.txt$}, path.to_s
+    assert_match %r{.*/test/file_fixtures/sample\.txt$}, path.to_s
   end
 end

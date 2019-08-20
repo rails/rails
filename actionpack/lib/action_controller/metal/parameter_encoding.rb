@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActionController
   # Specify binary encoding for parameters for a given action.
   module ParameterEncoding
@@ -39,7 +41,7 @@ module ActionController
       #   end
       #
       # The show action in the above controller would have all parameter values
-      # encoded as ASCII-8BIT.  This is useful in the case where an application
+      # encoded as ASCII-8BIT. This is useful in the case where an application
       # must handle data but encoding of the data is unknown, like file system data.
       def skip_parameter_encoding(action)
         @_parameter_encodings[action.to_s] = true

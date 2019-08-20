@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "securerandom"
 
 module Digest
@@ -12,7 +14,7 @@ module Digest
     # Using Digest::MD5 generates version 3 UUIDs; Digest::SHA1 generates version 5 UUIDs.
     # uuid_from_hash always generates the same UUID for a given name and namespace combination.
     #
-    # See RFC 4122 for details of UUID at: http://www.ietf.org/rfc/rfc4122.txt
+    # See RFC 4122 for details of UUID at: https://www.ietf.org/rfc/rfc4122.txt
     def self.uuid_from_hash(hash_class, uuid_namespace, name)
       if hash_class == Digest::MD5
         version = 3

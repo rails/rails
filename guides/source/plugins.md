@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
 The Basics of Creating Rails Plugins
 ====================================
@@ -74,7 +74,7 @@ In this example you will add a method to String named `to_squawk`. To begin, cre
 ```ruby
 # yaffle/test/core_ext_test.rb
 
-require 'test_helper'
+require "test_helper"
 
 class CoreExtTest < ActiveSupport::TestCase
   def test_to_squawk_prepends_the_word_squawk
@@ -104,14 +104,16 @@ Finished in 0.003358s, 595.6483 runs/s, 297.8242 assertions/s.
 
 Great - now you are ready to start development.
 
-In `lib/yaffle.rb`, add `require 'yaffle/core_ext'`:
+In `lib/yaffle.rb`, add `require "yaffle/core_ext"`:
 
 ```ruby
 # yaffle/lib/yaffle.rb
 
-require 'yaffle/core_ext'
+require "yaffle/railtie"
+require "yaffle/core_ext"
 
 module Yaffle
+  # Your code goes here...
 end
 ```
 
@@ -120,7 +122,7 @@ Finally, create the `core_ext.rb` file and add the `to_squawk` method:
 ```ruby
 # yaffle/lib/yaffle/core_ext.rb
 
-String.class_eval do
+class String
   def to_squawk
     "squawk! #{self}".strip
   end
@@ -133,10 +135,10 @@ To test that your method does what it says it does, run the unit tests with `bin
   2 runs, 2 assertions, 0 failures, 0 errors, 0 skips
 ```
 
-To see this in action, change to the test/dummy directory, fire up a console and start squawking:
+To see this in action, change to the `test/dummy` directory, fire up a console, and start squawking:
 
 ```bash
-$ bin/rails console
+$ rails console
 >> "Hello World".to_squawk
 => "squawk! Hello World"
 ```
@@ -152,7 +154,7 @@ To begin, set up your files so that you have:
 ```ruby
 # yaffle/test/acts_as_yaffle_test.rb
 
-require 'test_helper'
+require "test_helper"
 
 class ActsAsYaffleTest < ActiveSupport::TestCase
 end
@@ -161,10 +163,12 @@ end
 ```ruby
 # yaffle/lib/yaffle.rb
 
-require 'yaffle/core_ext'
-require 'yaffle/acts_as_yaffle'
+require "yaffle/railtie"
+require "yaffle/core_ext"
+require "yaffle/acts_as_yaffle"
 
 module Yaffle
+  # Your code goes here...
 end
 ```
 
@@ -173,7 +177,6 @@ end
 
 module Yaffle
   module ActsAsYaffle
-    # your code will go here
   end
 end
 ```
@@ -189,7 +192,7 @@ To start out, write a failing test that shows the behavior you'd like:
 ```ruby
 # yaffle/test/acts_as_yaffle_test.rb
 
-require 'test_helper'
+require "test_helper"
 
 class ActsAsYaffleTest < ActiveSupport::TestCase
   def test_a_hickwalls_yaffle_text_field_should_be_last_squawk
@@ -234,12 +237,12 @@ Finished in 0.004812s, 831.2949 runs/s, 415.6475 assertions/s.
 
 This tells us that we don't have the necessary models (Hickwall and Wickwall) that we are trying to test.
 We can easily generate these models in our "dummy" Rails application by running the following commands from the
-test/dummy directory:
+`test/dummy` directory:
 
 ```bash
 $ cd test/dummy
-$ bin/rails generate model Hickwall last_squawk:string
-$ bin/rails generate model Wickwall last_squawk:string last_tweet:string
+$ rails generate model Hickwall last_squawk:string
+$ rails generate model Wickwall last_squawk:string last_tweet:string
 ```
 
 Now you can create the necessary database tables in your testing database by navigating to your dummy app
@@ -247,7 +250,7 @@ and migrating the database. First, run:
 
 ```bash
 $ cd test/dummy
-$ bin/rails db:migrate
+$ rails db:migrate
 ```
 
 While you are here, change the Hickwall and Wickwall models so that they know that they are supposed to act
@@ -276,12 +279,8 @@ module Yaffle
   module ActsAsYaffle
     extend ActiveSupport::Concern
 
-    included do
-    end
-
-    module ClassMethods
+    class_methods do
       def acts_as_yaffle(options = {})
-        # your code will go here
       end
     end
   end
@@ -335,13 +334,9 @@ module Yaffle
   module ActsAsYaffle
     extend ActiveSupport::Concern
 
-    included do
-    end
-
-    module ClassMethods
+    class_methods do
       def acts_as_yaffle(options = {})
-        cattr_accessor :yaffle_text_field
-        self.yaffle_text_field = (options[:yaffle_text_field] || :last_squawk).to_s
+        cattr_accessor :yaffle_text_field, default: (options[:yaffle_text_field] || :last_squawk).to_s
       end
     end
   end
@@ -364,14 +359,14 @@ When you run `bin/test`, you should see the tests all pass:
 
 ### Add an Instance Method
 
-This plugin will add a method named 'squawk' to any Active Record object that calls 'acts_as_yaffle'. The 'squawk'
+This plugin will add a method named 'squawk' to any Active Record object that calls `acts_as_yaffle`. The 'squawk'
 method will simply set the value of one of the fields in the database.
 
 To start out, write a failing test that shows the behavior you'd like:
 
 ```ruby
 # yaffle/test/acts_as_yaffle_test.rb
-require 'test_helper'
+require "test_helper"
 
 class ActsAsYaffleTest < ActiveSupport::TestCase
   def test_a_hickwalls_yaffle_text_field_should_be_last_squawk
@@ -397,7 +392,7 @@ end
 ```
 
 Run the test to make sure the last two tests fail with an error that contains "NoMethodError: undefined method `squawk'",
-then update 'acts_as_yaffle.rb' to look like this:
+then update `acts_as_yaffle.rb` to look like this:
 
 ```ruby
 # yaffle/lib/yaffle/acts_as_yaffle.rb
@@ -407,20 +402,14 @@ module Yaffle
     extend ActiveSupport::Concern
 
     included do
-    end
-
-    module ClassMethods
-      def acts_as_yaffle(options = {})
-        cattr_accessor :yaffle_text_field
-        self.yaffle_text_field = (options[:yaffle_text_field] || :last_squawk).to_s
-
-        include Yaffle::ActsAsYaffle::LocalInstanceMethods
+      def squawk(string)
+        write_attribute(self.class.yaffle_text_field, string.to_squawk)
       end
     end
 
-    module LocalInstanceMethods
-      def squawk(string)
-        write_attribute(self.class.yaffle_text_field, string.to_squawk)
+    class_methods do
+      def acts_as_yaffle(options = {})
+        cattr_accessor :yaffle_text_field, default: (options[:yaffle_text_field] || :last_squawk).to_s
       end
     end
   end
@@ -450,23 +439,23 @@ send("#{self.class.yaffle_text_field}=", string.to_squawk)
 Generators
 ----------
 
-Generators can be included in your gem simply by creating them in a lib/generators directory of your plugin. More information about
-the creation of generators can be found in the [Generators Guide](generators.html)
+Generators can be included in your gem simply by creating them in a `lib/generators` directory of your plugin. More information about
+the creation of generators can be found in the [Generators Guide](generators.html).
 
 Publishing Your Gem
 -------------------
 
 Gem plugins currently in development can easily be shared from any Git repository. To share the Yaffle gem with others, simply
-commit the code to a Git repository (like GitHub) and add a line to the Gemfile of the application in question:
+commit the code to a Git repository (like GitHub) and add a line to the `Gemfile` of the application in question:
 
 ```ruby
-gem 'yaffle', git: 'git://github.com/yaffle_watcher/yaffle.git'
+gem "yaffle", git: "https://github.com/rails/yaffle.git"
 ```
 
 After running `bundle install`, your gem functionality will be available to the application.
 
-When the gem is ready to be shared as a formal release, it can be published to [RubyGems](http://www.rubygems.org).
-For more information about publishing gems to RubyGems, see: [Creating and Publishing Your First Ruby Gem](http://blog.thepete.net/2010/11/creating-and-publishing-your-first-ruby.html).
+When the gem is ready to be shared as a formal release, it can be published to [RubyGems](https://rubygems.org).
+For more information about publishing gems to RubyGems, see: [Publishing your gem](https://guides.rubygems.org/publishing).
 
 RDoc Documentation
 ------------------
@@ -480,7 +469,7 @@ The first step is to update the README file with detailed information about how 
 * How to add the functionality to the app (several examples of common use cases)
 * Warnings, gotchas or tips that might help users and save them time
 
-Once your README is solid, go through and add rdoc comments to all of the methods that developers will use. It's also customary to add '#:nodoc:' comments to those parts of the code that are not included in the public API.
+Once your README is solid, go through and add rdoc comments to all of the methods that developers will use. It's also customary to add `#:nodoc:` comments to those parts of the code that are not included in the public API.
 
 Once your comments are good to go, navigate to your plugin directory and run:
 
@@ -492,4 +481,4 @@ $ bundle exec rake rdoc
 
 * [Developing a RubyGem using Bundler](https://github.com/radar/guides/blob/master/gem-development.md)
 * [Using .gemspecs as Intended](http://yehudakatz.com/2010/04/02/using-gemspecs-as-intended/)
-* [Gemspec Reference](http://guides.rubygems.org/specification-reference/)
+* [Gemspec Reference](https://guides.rubygems.org/specification-reference/)

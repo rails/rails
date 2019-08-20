@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module RailsGuides
   module Levenshtein
     # This code is based directly on the Text gem implementation.
@@ -10,8 +12,8 @@ module RailsGuides
       n = s.length
       m = t.length
 
-      return m if (0 == n)
-      return n if (0 == m)
+      return m if 0 == n
+      return n if 0 == m
 
       d = (0..m).to_a
       x = nil
@@ -36,7 +38,7 @@ module RailsGuides
         d[m] = x
       end
 
-      return x
+      x
     end
   end
 end

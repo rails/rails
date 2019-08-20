@@ -1,7 +1,11 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 
 class PostgresqlActiveSchemaTest < ActiveRecord::PostgreSQLTestCase
   def setup
+    ActiveRecord::Base.connection.materialize_transactions
+
     ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.class_eval do
       def execute(sql, name = nil) sql end
     end
@@ -25,7 +29,7 @@ class PostgresqlActiveSchemaTest < ActiveRecord::PostgreSQLTestCase
 
   def test_add_index
     # add_index calls index_name_exists? which can't work since execute is stubbed
-    ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.send(:define_method, :index_name_exists?) { |*| false }
+    ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.define_method(:index_name_exists?) { |*| false }
 
     expected = %(CREATE UNIQUE INDEX  "index_people_on_last_name" ON "people"  ("last_name") WHERE state = 'active')
     assert_equal expected, add_index(:people, :last_name, unique: true, where: "state = 'active'")
@@ -57,16 +61,25 @@ class PostgresqlActiveSchemaTest < ActiveRecord::PostgreSQLTestCase
       assert_equal expected, add_index(:people, "lower(last_name)", using: type, unique: true)
     end
 
+    expected = %(CREATE  INDEX  "index_people_on_last_name" ON "people" USING gist ("last_name" bpchar_pattern_ops))
+    assert_equal expected, add_index(:people, :last_name, using: :gist, opclass: { last_name: :bpchar_pattern_ops })
+
+    expected = %(CREATE  INDEX  "index_people_on_last_name_and_first_name" ON "people"  ("last_name" DESC NULLS LAST, "first_name" ASC))
+    assert_equal expected, add_index(:people, [:last_name, :first_name], order: { last_name: "DESC NULLS LAST", first_name: :asc })
+
+    expected = %(CREATE  INDEX  "index_people_on_last_name" ON "people"  ("last_name" NULLS FIRST))
+    assert_equal expected, add_index(:people, :last_name, order: "NULLS FIRST")
+
     assert_raise ArgumentError do
       add_index(:people, :last_name, algorithm: :copy)
     end
 
-    ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.send :remove_method, :index_name_exists?
+    ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.remove_method :index_name_exists?
   end
 
   def test_remove_index
     # remove_index calls index_name_for_remove which can't work since execute is stubbed
-    ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.send(:define_method, :index_name_for_remove) do |*|
+    ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.define_method(:index_name_for_remove) do |*|
       "index_people_on_last_name"
     end
 
@@ -77,7 +90,7 @@ class PostgresqlActiveSchemaTest < ActiveRecord::PostgreSQLTestCase
       add_index(:people, :last_name, algorithm: :copy)
     end
 
-    ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.send :remove_method, :index_name_for_remove
+    ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.remove_method :index_name_for_remove
   end
 
   def test_remove_index_when_name_is_specified

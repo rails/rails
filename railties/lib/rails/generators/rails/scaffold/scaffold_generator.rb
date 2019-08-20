@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "rails/generators/rails/resource/resource_generator"
 
 module Rails
@@ -16,12 +18,9 @@ module Rails
       def handle_skip
         @options = @options.merge(stylesheets: false) unless options[:assets]
         @options = @options.merge(stylesheet_engine: false) unless options[:stylesheets] && options[:scaffold_stylesheet]
-        @options = @options.merge(system_tests: false) if options[:api]
       end
 
       hook_for :scaffold_controller, required: true
-
-      hook_for :system_tests, as: :system
 
       hook_for :assets do |assets|
         invoke assets, [controller_name]

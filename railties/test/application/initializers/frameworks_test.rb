@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "isolation/abstract_unit"
 
 module ApplicationTests
@@ -37,7 +39,7 @@ module ApplicationTests
       assert_equal expanded_path, ActionMailer::Base.view_paths[0].to_s
     end
 
-    test "allows me to configure default url options for ActionMailer" do
+    test "allows me to configure default URL options for ActionMailer" do
       app_file "config/environments/development.rb", <<-RUBY
         Rails.application.configure do
           config.action_mailer.default_url_options = { :host => "test.rails" }
@@ -59,7 +61,7 @@ module ApplicationTests
       assert_equal "https", ActionMailer::Base.default_url_options[:protocol]
     end
 
-    test "includes url helpers as action methods" do
+    test "includes URL helpers as action methods" do
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
           get "/foo", :to => lambda { |env| [200, {}, []] }, :as => :foo
@@ -209,58 +211,59 @@ module ApplicationTests
     test "database middleware doesn't initialize when activerecord is not in frameworks" do
       use_frameworks []
       require "#{app_path}/config/environment"
-      assert_nil defined?(ActiveRecord::Base)
+      assert !defined?(ActiveRecord::Base) || ActiveRecord.autoload?(:Base)
     end
 
     test "use schema cache dump" do
-      Dir.chdir(app_path) do
-        `rails generate model post title:string;
-         bin/rails db:migrate db:schema:cache:dump`
-      end
+      rails %w(generate model post title:string)
+      rails %w(db:migrate db:schema:cache:dump)
       require "#{app_path}/config/environment"
-      ActiveRecord::Base.connection.drop_table("posts") # force drop posts table for test.
       assert ActiveRecord::Base.connection.schema_cache.data_sources("posts")
+    ensure
+      ActiveRecord::Base.connection.drop_table("posts", if_exists: true) # force drop posts table for test.
     end
 
     test "expire schema cache dump" do
-      Dir.chdir(app_path) do
-        `rails generate model post title:string;
-         bin/rails db:migrate db:schema:cache:dump db:rollback`
-      end
+      rails %w(generate model post title:string)
+      rails %w(db:migrate db:schema:cache:dump db:rollback)
       require "#{app_path}/config/environment"
-      assert !ActiveRecord::Base.connection.schema_cache.data_sources("posts")
+      assert_not ActiveRecord::Base.connection.schema_cache.data_sources("posts")
     end
 
     test "active record establish_connection uses Rails.env if DATABASE_URL is not set" do
-      begin
-        require "#{app_path}/config/environment"
-        orig_database_url = ENV.delete("DATABASE_URL")
-        orig_rails_env, Rails.env = Rails.env, "development"
-        ActiveRecord::Base.establish_connection
-        assert ActiveRecord::Base.connection
-        assert_match(/#{ActiveRecord::Base.configurations[Rails.env]['database']}/, ActiveRecord::Base.connection_config[:database])
-      ensure
-        ActiveRecord::Base.remove_connection
-        ENV["DATABASE_URL"] = orig_database_url if orig_database_url
-        Rails.env = orig_rails_env if orig_rails_env
-      end
+      require "#{app_path}/config/environment"
+      orig_database_url = ENV.delete("DATABASE_URL")
+      orig_rails_env, Rails.env = Rails.env, "development"
+      ActiveRecord::Base.establish_connection
+      assert ActiveRecord::Base.connection
+      assert_match(/#{ActiveRecord::Base.configurations[Rails.env]['database']}/, ActiveRecord::Base.connection_config[:database])
+    ensure
+      ActiveRecord::Base.remove_connection
+      ENV["DATABASE_URL"] = orig_database_url if orig_database_url
+      Rails.env = orig_rails_env if orig_rails_env
     end
 
     test "active record establish_connection uses DATABASE_URL even if Rails.env is set" do
-      begin
-        require "#{app_path}/config/environment"
-        orig_database_url = ENV.delete("DATABASE_URL")
-        orig_rails_env, Rails.env = Rails.env, "development"
-        database_url_db_name = "db/database_url_db.sqlite3"
-        ENV["DATABASE_URL"] = "sqlite3:#{database_url_db_name}"
-        ActiveRecord::Base.establish_connection
-        assert ActiveRecord::Base.connection
-        assert_match(/#{database_url_db_name}/, ActiveRecord::Base.connection_config[:database])
-      ensure
-        ActiveRecord::Base.remove_connection
-        ENV["DATABASE_URL"] = orig_database_url if orig_database_url
-        Rails.env = orig_rails_env if orig_rails_env
-      end
+      require "#{app_path}/config/environment"
+      orig_database_url = ENV.delete("DATABASE_URL")
+      orig_rails_env, Rails.env = Rails.env, "development"
+      database_url_db_name = "db/database_url_db.sqlite3"
+      ENV["DATABASE_URL"] = "sqlite3:#{database_url_db_name}"
+      ActiveRecord::Base.establish_connection
+      assert ActiveRecord::Base.connection
+      assert_match(/#{database_url_db_name}/, ActiveRecord::Base.connection_config[:database])
+    ensure
+      ActiveRecord::Base.remove_connection
+      ENV["DATABASE_URL"] = orig_database_url if orig_database_url
+      Rails.env = orig_rails_env if orig_rails_env
+    end
+
+    test "connections checked out during initialization are returned to the pool" do
+      app_file "config/initializers/active_record.rb", <<-RUBY
+        ActiveRecord::Base.connection
+      RUBY
+      require "#{app_path}/config/environment"
+      assert_not_predicate ActiveRecord::Base.connection_pool, :active_connection?
     end
   end
 end

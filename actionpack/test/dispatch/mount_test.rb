@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "rails/engine"
 
@@ -25,6 +27,7 @@ class TestRoutingMount < ActionDispatch::IntegrationTest
     }
 
     mount SprocketsApp, at: "/sprockets"
+    mount SprocketsApp, at: "/star*"
     mount SprocketsApp => "/shorthand"
 
     mount SinatraLikeApp, at: "/fakeengine", as: :fake
@@ -56,6 +59,14 @@ class TestRoutingMount < ActionDispatch::IntegrationTest
   def test_mounting_at_root_path
     get "/omg"
     assert_equal " -- /omg", response.body
+
+    get "/~omg"
+    assert_equal " -- /~omg", response.body
+  end
+
+  def test_mounting_at_path_with_non_word_character
+    get "/star*/omg"
+    assert_equal "/star* -- /omg", response.body
   end
 
   def test_mounting_sets_script_name
@@ -76,6 +87,12 @@ class TestRoutingMount < ActionDispatch::IntegrationTest
   def test_mounting_with_shorthand
     get "/shorthand/omg"
     assert_equal "/shorthand -- /omg", response.body
+  end
+
+  def test_mounting_does_not_match_similar_paths
+    get "/shorthandomg"
+    assert_not_equal "/shorthand -- /omg", response.body
+    assert_equal " -- /shorthandomg", response.body
   end
 
   def test_mounting_works_with_via

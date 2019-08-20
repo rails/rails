@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "support/connection_helper"
 
@@ -28,10 +30,10 @@ class PostgresqlDomainTest < ActiveRecord::PostgreSQLTestCase
     column = PostgresqlDomain.columns_hash["price"]
     assert_equal :decimal, column.type
     assert_equal "custom_money", column.sql_type
-    assert_not column.array?
+    assert_not_predicate column, :array?
 
     type = PostgresqlDomain.type_for_attribute("price")
-    assert_not type.binary?
+    assert_not_predicate type, :binary?
   end
 
   def test_domain_acts_like_basetype
@@ -42,6 +44,6 @@ class PostgresqlDomainTest < ActiveRecord::PostgreSQLTestCase
     record.price = "34.15"
     record.save!
 
-    assert_equal BigDecimal.new("34.15"), record.reload.price
+    assert_equal BigDecimal("34.15"), record.reload.price
   end
 end

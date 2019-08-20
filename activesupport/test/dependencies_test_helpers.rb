@@ -1,7 +1,9 @@
+# frozen_string_literal: true
+
 module DependenciesTestHelpers
   def with_loading(*from)
     old_mechanism, ActiveSupport::Dependencies.mechanism = ActiveSupport::Dependencies.mechanism, :load
-    this_dir = File.dirname(__FILE__)
+    this_dir = __dir__
     parent_dir = File.dirname(this_dir)
     path_copy = $LOAD_PATH.dup
     $LOAD_PATH.unshift(parent_dir) unless $LOAD_PATH.include?(parent_dir)

@@ -1,4 +1,5 @@
-require "active_support/core_ext/object/duplicable"
+# frozen_string_literal: true
+
 require "active_support/core_ext/string/inflections"
 require "active_support/per_thread_registry"
 
@@ -44,12 +45,23 @@ module ActiveSupport
             yield
           end
 
-          def clear
+          def clear(options = nil)
             @data.clear
           end
 
           def read_entry(key, options)
             @data[key]
+          end
+
+          def read_multi_entries(keys, options)
+            values = {}
+
+            keys.each do |name|
+              entry = read_entry(name, options)
+              values[name] = entry.value if entry
+            end
+
+            values
           end
 
           def write_entry(key, value, options)
@@ -62,7 +74,10 @@ module ActiveSupport
           end
 
           def fetch_entry(key, options = nil) # :nodoc:
-            @data.fetch(key) { @data[key] = yield }
+            entry = @data.fetch(key) { @data[key] = yield }
+            dup_entry = entry.dup
+            dup_entry&.dup_value!
+            dup_entry
           end
         end
 
@@ -79,15 +94,15 @@ module ActiveSupport
             local_cache_key)
         end
 
-        def clear # :nodoc:
+        def clear(options = nil) # :nodoc:
           return super unless cache = local_cache
-          cache.clear
+          cache.clear(options)
           super
         end
 
         def cleanup(options = nil) # :nodoc:
           return super unless cache = local_cache
-          cache.clear(options)
+          cache.clear
           super
         end
 
@@ -114,8 +129,26 @@ module ActiveSupport
             end
           end
 
+          def read_multi_entries(keys, options)
+            return super unless local_cache
+
+            local_entries = local_cache.read_multi_entries(keys, options)
+            missed_keys = keys - local_entries.keys
+
+            if missed_keys.any?
+              local_entries.merge!(super(missed_keys, options))
+            else
+              local_entries
+            end
+          end
+
           def write_entry(key, entry, options)
-            local_cache.write_entry(key, entry, options) if local_cache
+            if options[:unless_exist]
+              local_cache.delete_entry(key, options) if local_cache
+            else
+              local_cache.write_entry(key, entry, options) if local_cache
+            end
+
             super
           end
 

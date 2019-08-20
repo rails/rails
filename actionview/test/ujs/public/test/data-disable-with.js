@@ -95,6 +95,27 @@ asyncTest('form button with "data-disable-with" attribute', 6, function() {
   App.checkDisabledState(button, 'submitting ...')
 })
 
+asyncTest('a[data-remote][data-disable-with] within a form disables and re-enables', 6, function() {
+  var form = $('form:not([data-remote])'),
+      link = $('<a data-remote="true" data-disable-with="clicking...">Click me</a>')
+  form.append(link)
+
+  App.checkEnabledState(link, 'Click me')
+
+  link
+    .bindNative('ajax:beforeSend', function() {
+      App.checkDisabledState(link, 'clicking...')
+    })
+    .bindNative('ajax:complete', function() {
+      setTimeout( function() {
+        App.checkEnabledState(link, 'Click me')
+        link.remove()
+        start()
+      }, 15)
+    })
+    .triggerNative('click')
+})
+
 asyncTest('form input[type=submit][data-disable-with] disables', 6, function() {
   var form = $('form:not([data-remote])'), input = form.find('input[type=submit]')
 
@@ -132,7 +153,8 @@ test('form input[type=submit][data-disable-with] re-enables when `pageshow` even
 })
 
 asyncTest('form[data-remote] input[type=submit][data-disable-with] is replaced in ajax callback', 2, function() {
-  var form = $('form:not([data-remote])').attr('data-remote', 'true'), origFormContents = form.html()
+  var form = $('#qunit-fixture form:not([data-remote])').attr('data-remote', 'true'),
+      origFormContents = form.html()
 
   form.bindNative('ajax:success', function() {
     form.html(origFormContents)
@@ -146,7 +168,8 @@ asyncTest('form[data-remote] input[type=submit][data-disable-with] is replaced i
 })
 
 asyncTest('form[data-remote] input[data-disable-with] is replaced with disabled field in ajax callback', 2, function() {
-  var form = $('form:not([data-remote])').attr('data-remote', 'true'), input = form.find('input[type=submit]'),
+  var form = $('#qunit-fixture form:not([data-remote])').attr('data-remote', 'true'),
+      input = form.find('input[type=submit]'),
       newDisabledInput = input.clone().attr('disabled', 'disabled')
 
   form.bindNative('ajax:success', function() {
@@ -238,9 +261,9 @@ asyncTest('a[data-remote][data-disable-with] re-enables when `ajax:before` event
   App.checkEnabledState(link, 'Click me')
 
   link
-    .bindNative('ajax:before', function() {
+    .bindNative('ajax:before', function(e) {
       App.checkDisabledState(link, 'clicking...')
-      return false
+      e.preventDefault()
     })
     .triggerNative('click')
 
@@ -256,9 +279,9 @@ asyncTest('a[data-remote][data-disable-with] re-enables when `ajax:beforeSend` e
   App.checkEnabledState(link, 'Click me')
 
   link
-    .bindNative('ajax:beforeSend', function() {
+    .bindNative('ajax:beforeSend', function(e) {
       App.checkDisabledState(link, 'clicking...')
-      return false
+      e.preventDefault()
     })
     .triggerNative('click')
 
@@ -293,8 +316,9 @@ asyncTest('form[data-remote] input|button|textarea[data-disable-with] does not d
       submit = $('<input type="submit" data-disable-with="submitting ..." name="submit2" value="Submit" />').appendTo(form)
 
   form
-    .bindNative('ajax:beforeSend', function() {
-      return false
+    .bindNative('ajax:beforeSend', function(e) {
+      e.preventDefault()
+      e.stopPropagation()
     })
     .triggerNative('submit')
 
@@ -306,7 +330,7 @@ asyncTest('form[data-remote] input|button|textarea[data-disable-with] does not d
   start()
 })
 
-asyncTest('ctrl-clicking on a link does not disables the link', 6, function() {
+asyncTest('ctrl-clicking on a link does not disable the link', 6, function() {
   var link = $('a[data-disable-with]')
 
   App.checkEnabledState(link, 'Click me')
@@ -315,6 +339,25 @@ asyncTest('ctrl-clicking on a link does not disables the link', 6, function() {
   App.checkEnabledState(link, 'Click me')
 
   link.triggerNative('click', { metaKey: true })
+  App.checkEnabledState(link, 'Click me')
+  start()
+})
+
+asyncTest('right/mouse-wheel-clicking on a link does not disable the link', 10, function() {
+  var link = $('a[data-disable-with]')
+
+  App.checkEnabledState(link, 'Click me')
+
+  link.triggerNative('click', { button: 1 })
+  App.checkEnabledState(link, 'Click me')
+
+  link.triggerNative('click', { button: 1 })
+  App.checkEnabledState(link, 'Click me')
+
+  link.triggerNative('click', { button: 2 })
+  App.checkEnabledState(link, 'Click me')
+
+  link.triggerNative('click', { button: 2 })
   App.checkEnabledState(link, 'Click me')
   start()
 })
@@ -343,9 +386,9 @@ asyncTest('button[data-remote][data-disable-with] re-enables when `ajax:before` 
   App.checkEnabledState(button, 'Click me')
 
   button
-    .bindNative('ajax:before', function() {
+    .bindNative('ajax:before', function(e) {
       App.checkDisabledState(button, 'clicking...')
-      return false
+      e.preventDefault()
     })
     .triggerNative('click')
 
@@ -361,9 +404,9 @@ asyncTest('button[data-remote][data-disable-with] re-enables when `ajax:beforeSe
   App.checkEnabledState(button, 'Click me')
 
   button
-    .bindNative('ajax:beforeSend', function() {
+    .bindNative('ajax:beforeSend', function(e) {
       App.checkDisabledState(button, 'clicking...')
-      return false
+      e.preventDefault()
     })
     .triggerNative('click')
 

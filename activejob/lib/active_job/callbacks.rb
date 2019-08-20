@@ -1,10 +1,12 @@
+# frozen_string_literal: true
+
 require "active_support/callbacks"
 
 module ActiveJob
   # = Active Job Callbacks
   #
   # Active Job provides hooks during the life cycle of a job. Callbacks allow you
-  # to trigger logic during the life cycle of a job. Available callbacks are:
+  # to trigger logic during this cycle. Available callbacks are:
   #
   # * <tt>before_enqueue</tt>
   # * <tt>around_enqueue</tt>
@@ -12,6 +14,8 @@ module ActiveJob
   # * <tt>before_perform</tt>
   # * <tt>around_perform</tt>
   # * <tt>after_perform</tt>
+  #
+  # NOTE: Calling the same callback multiple times will overwrite previous callback definitions.
   #
   module Callbacks
     extend  ActiveSupport::Concern
@@ -25,6 +29,9 @@ module ActiveJob
     included do
       define_callbacks :perform
       define_callbacks :enqueue
+
+      class_attribute :return_false_on_aborted_enqueue, instance_accessor: false, instance_predicate: false
+      self.return_false_on_aborted_enqueue = false
     end
 
     # These methods will be included into any Active Job object, adding
@@ -126,7 +133,7 @@ module ActiveJob
         set_callback(:enqueue, :after, *filters, &blk)
       end
 
-      # Defines a callback that will get called around the enqueueing
+      # Defines a callback that will get called around the enqueuing
       # of the job.
       #
       #   class VideoProcessJob < ActiveJob::Base

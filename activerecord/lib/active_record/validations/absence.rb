@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module Validations
     class AbsenceValidator < ActiveModel::Validations::AbsenceValidator # :nodoc:

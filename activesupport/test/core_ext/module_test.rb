@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "active_support/core_ext/module"
 
@@ -23,7 +25,6 @@ Someone = Struct.new(:name, :place) do
   delegate :bar, to: :place, allow_nil: true
 
   private
-
     def private_name
       "Private"
     end
@@ -70,8 +71,34 @@ Product = Struct.new(:name) do
   end
 end
 
+module ExtraMissing
+  def method_missing(sym, *args)
+    if sym == :extra_missing
+      42
+    else
+      super
+    end
+  end
+
+  def respond_to_missing?(sym, priv = false)
+    sym == :extra_missing || super
+  end
+end
+
 DecoratedTester = Struct.new(:client) do
+  include ExtraMissing
+
   delegate_missing_to :client
+end
+
+class DecoratedMissingAllowNil
+  delegate_missing_to :case, allow_nil: true
+
+  attr_reader :case
+
+  def initialize(kase)
+    @case = kase
+  end
 end
 
 class DecoratedReserved
@@ -81,6 +108,24 @@ class DecoratedReserved
 
   def initialize(kase)
     @case = kase
+  end
+end
+
+class Maze
+  attr_accessor :cavern, :passages
+end
+
+class Cavern
+  delegate_missing_to :target
+
+  attr_reader :maze
+
+  def initialize(maze)
+    @maze = maze
+  end
+
+  def target
+    @maze.passages = :twisty
   end
 end
 
@@ -329,18 +374,18 @@ class ModuleTest < ActiveSupport::TestCase
 
   def test_delegation_with_method_arguments
     has_block = HasBlock.new(Block.new)
-    assert has_block.hello?
+    assert_predicate has_block, :hello?
   end
 
-  def test_delegate_to_missing_with_method
+  def test_delegate_missing_to_with_method
     assert_equal "David", DecoratedTester.new(@david).name
   end
 
-  def test_delegate_to_missing_with_reserved_methods
+  def test_delegate_missing_to_with_reserved_methods
     assert_equal "David", DecoratedReserved.new(@david).name
   end
 
-  def test_delegate_to_missing_does_not_delegate_to_private_methods
+  def test_delegate_missing_to_does_not_delegate_to_private_methods
     e = assert_raises(NoMethodError) do
       DecoratedReserved.new(@david).private_name
     end
@@ -348,7 +393,7 @@ class ModuleTest < ActiveSupport::TestCase
     assert_match(/undefined method `private_name' for/, e.message)
   end
 
-  def test_delegate_to_missing_does_not_delegate_to_fake_methods
+  def test_delegate_missing_to_does_not_delegate_to_fake_methods
     e = assert_raises(NoMethodError) do
       DecoratedReserved.new(@david).my_fake_method
     end
@@ -356,8 +401,152 @@ class ModuleTest < ActiveSupport::TestCase
     assert_match(/undefined method `my_fake_method' for/, e.message)
   end
 
+  def test_delegate_missing_to_raises_delegation_error_if_target_nil
+    e = assert_raises(Module::DelegationError) do
+      DecoratedTester.new(nil).name
+    end
+
+    assert_equal "name delegated to client, but client is nil", e.message
+  end
+
+  def test_delegate_missing_to_returns_nil_if_allow_nil_and_nil_target
+    assert_nil DecoratedMissingAllowNil.new(nil).name
+  end
+
+  def test_delegate_missing_to_affects_respond_to
+    assert_respond_to DecoratedTester.new(@david), :name
+    assert_not_respond_to DecoratedTester.new(@david), :private_name
+    assert_not_respond_to DecoratedTester.new(@david), :my_fake_method
+
+    assert DecoratedTester.new(@david).respond_to?(:name, true)
+    assert_not DecoratedTester.new(@david).respond_to?(:private_name, true)
+    assert_not DecoratedTester.new(@david).respond_to?(:my_fake_method, true)
+  end
+
+  def test_delegate_missing_to_respects_superclass_missing
+    assert_equal 42, DecoratedTester.new(@david).extra_missing
+
+    assert_respond_to DecoratedTester.new(@david), :extra_missing
+  end
+
+  def test_delegate_missing_to_does_not_interfere_with_marshallization
+    maze = Maze.new
+    maze.cavern = Cavern.new(maze)
+
+    array = [maze, nil]
+    serialized_array = Marshal.dump(array)
+    deserialized_array = Marshal.load(serialized_array)
+
+    assert_nil deserialized_array[1]
+  end
+
   def test_delegate_with_case
     event = Event.new(Tester.new)
     assert_equal 1, event.foo
+  end
+
+  def test_private_delegate
+    location = Class.new do
+      def initialize(place)
+        @place = place
+      end
+
+      private(*delegate(:street, :city, to: :@place))
+    end
+
+    place = location.new(Somewhere.new("Such street", "Sad city"))
+
+    assert_not_respond_to place, :street
+    assert_not_respond_to place, :city
+
+    assert place.respond_to?(:street, true) # Asking for private method
+    assert place.respond_to?(:city, true)
+  end
+
+  def test_private_delegate_prefixed
+    location = Class.new do
+      def initialize(place)
+        @place = place
+      end
+
+      private(*delegate(:street, :city, to: :@place, prefix: :the))
+    end
+
+    place = location.new(Somewhere.new("Such street", "Sad city"))
+
+    assert_not_respond_to place, :street
+    assert_not_respond_to place, :city
+
+    assert_not_respond_to place, :the_street
+    assert place.respond_to?(:the_street, true)
+    assert_not_respond_to place, :the_city
+    assert place.respond_to?(:the_city, true)
+  end
+
+  def test_private_delegate_with_private_option
+    location = Class.new do
+      def initialize(place)
+        @place = place
+      end
+
+      delegate(:street, :city, to: :@place, private: true)
+    end
+
+    place = location.new(Somewhere.new("Such street", "Sad city"))
+
+    assert_not_respond_to place, :street
+    assert_not_respond_to place, :city
+
+    assert place.respond_to?(:street, true) # Asking for private method
+    assert place.respond_to?(:city, true)
+  end
+
+  def test_some_public_some_private_delegate_with_private_option
+    location = Class.new do
+      def initialize(place)
+        @place = place
+      end
+
+      delegate(:street, to: :@place)
+      delegate(:city, to: :@place, private: true)
+    end
+
+    place = location.new(Somewhere.new("Such street", "Sad city"))
+
+    assert_respond_to place, :street
+    assert_not_respond_to place, :city
+
+    assert place.respond_to?(:city, true) # Asking for private method
+  end
+
+  def test_private_delegate_prefixed_with_private_option
+    location = Class.new do
+      def initialize(place)
+        @place = place
+      end
+
+      delegate(:street, :city, to: :@place, prefix: :the, private: true)
+    end
+
+    place = location.new(Somewhere.new("Such street", "Sad city"))
+
+    assert_not_respond_to place, :the_street
+    assert place.respond_to?(:the_street, true)
+    assert_not_respond_to place, :the_city
+    assert place.respond_to?(:the_city, true)
+  end
+
+  def test_delegate_with_private_option_returns_names_of_delegate_methods
+    location = Class.new do
+      def initialize(place)
+        @place = place
+      end
+    end
+
+    assert_equal [:street, :city],
+      location.delegate(:street, :city, to: :@place, private: true)
+
+    assert_equal [:the_street, :the_city],
+      location.delegate(:street, :city, to: :@place, prefix: :the, private: true)
   end
 end

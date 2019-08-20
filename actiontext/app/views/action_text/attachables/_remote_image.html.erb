@@ -1,0 +1,8 @@
+<figure class="attachment attachment--preview">
+  <%= image_tag(remote_image.url, width: remote_image.width, height: remote_image.height) %>
+  <% if caption = remote_image.try(:caption) %>
+    <figcaption class="attachment__caption">
+      <%= caption %>
+    </figcaption>
+  <% end %>
+</figure>

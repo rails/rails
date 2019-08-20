@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 #--
-# Copyright (c) 2004-2017 David Heinemeier Hansson
+# Copyright (c) 2004-2019 David Heinemeier Hansson
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -33,7 +35,6 @@ module ActionView
   eager_autoload do
     autoload :Base
     autoload :Context
-    autoload :CompiledTemplates, "action_view/context"
     autoload :Digestor
     autoload :Helpers
     autoload :LookupContext
@@ -43,6 +44,7 @@ module ActionView
     autoload :Rendering
     autoload :RoutingUrlFor
     autoload :Template
+    autoload :UnboundTemplate
     autoload :ViewPaths
 
     autoload_under "renderer" do
@@ -74,12 +76,13 @@ module ActionView
       autoload :MissingTemplate
       autoload :ActionViewError
       autoload :EncodingError
-      autoload :MissingRequestError
       autoload :TemplateError
+      autoload :SyntaxErrorInTemplate
       autoload :WrongEncodingError
     end
   end
 
+  autoload :CacheExpiry
   autoload :TestCase
 
   def self.eager_load!
@@ -92,5 +95,5 @@ end
 require "active_support/core_ext/string/output_safety"
 
 ActiveSupport.on_load(:i18n) do
-  I18n.load_path << "#{File.dirname(__FILE__)}/action_view/locale/en.yml"
+  I18n.load_path << File.expand_path("action_view/locale/en.yml", __dir__)
 end

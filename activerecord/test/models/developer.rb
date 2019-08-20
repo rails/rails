@@ -1,12 +1,14 @@
+# frozen_string_literal: true
+
 require "ostruct"
 
-module DeveloperProjectsAssociationExtension2
-  def find_least_recent
-    order("id ASC").first
-  end
-end
-
 class Developer < ActiveRecord::Base
+  module ProjectsAssociationExtension2
+    def find_least_recent
+      order("id ASC").first
+    end
+  end
+
   self.ignored_columns = %w(first_name last_name)
 
   has_and_belongs_to_many :projects do
@@ -22,19 +24,19 @@ class Developer < ActiveRecord::Base
   has_and_belongs_to_many :shared_computers, class_name: "Computer"
 
   has_and_belongs_to_many :projects_extended_by_name,
-      -> { extending(DeveloperProjectsAssociationExtension) },
+      -> { extending(ProjectsAssociationExtension) },
       class_name: "Project",
       join_table: "developers_projects",
       association_foreign_key: "project_id"
 
   has_and_belongs_to_many :projects_extended_by_name_twice,
-      -> { extending(DeveloperProjectsAssociationExtension, DeveloperProjectsAssociationExtension2) },
+      -> { extending(ProjectsAssociationExtension, ProjectsAssociationExtension2) },
       class_name: "Project",
       join_table: "developers_projects",
       association_foreign_key: "project_id"
 
   has_and_belongs_to_many :projects_extended_by_name_and_block,
-      -> { extending(DeveloperProjectsAssociationExtension) },
+      -> { extending(ProjectsAssociationExtension) },
       class_name: "Project",
       join_table: "developers_projects",
       association_foreign_key: "project_id" do
@@ -83,6 +85,17 @@ class Developer < ActiveRecord::Base
     self.class.instance_count += 1
   end
   private :track_instance_count
+end
+
+class SubDeveloper < Developer
+end
+
+class SymbolIgnoredDeveloper < ActiveRecord::Base
+  self.table_name = "developers"
+  self.ignored_columns = [:first_name, :last_name]
+
+  attr_accessor :last_name
+  define_attribute_method "last_name"
 end
 
 class AuditLog < ActiveRecord::Base
@@ -194,6 +207,7 @@ end
 class MultiplePoorDeveloperCalledJamis < ActiveRecord::Base
   self.table_name = "developers"
 
+  default_scope { }
   default_scope -> { where(name: "Jamis") }
   default_scope -> { where(salary: 50000) }
 end
@@ -265,4 +279,18 @@ class DeveloperWithIncorrectlyOrderedHasManyThrough < ActiveRecord::Base
   self.table_name = "developers"
   has_many :companies, through: :contracts
   has_many :contracts, foreign_key: :developer_id
+end
+
+class DeveloperName < ActiveRecord::Type::String
+  def deserialize(value)
+    "Developer: #{value}"
+  end
+end
+
+class AttributedDeveloper < ActiveRecord::Base
+  self.table_name = "developers"
+
+  attribute :name, DeveloperName.new
+
+  self.ignored_columns += ["name"]
 end

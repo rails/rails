@@ -1,106 +1,114 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module Associations
     class Preloader
-      module ThroughAssociation #:nodoc:
-        def through_reflection
-          reflection.through_reflection
+      class ThroughAssociation < Association # :nodoc:
+        PRELOADER = ActiveRecord::Associations::Preloader.new
+
+        def initialize(*)
+          super
+          @already_loaded = owners.first.association(through_reflection.name).loaded?
         end
 
-        def source_reflection
-          reflection.source_reflection
+        def preloaded_records
+          @preloaded_records ||= source_preloaders.flat_map(&:preloaded_records)
         end
 
-        def associated_records_by_owner(preloader)
-          preloader.preload(owners,
-                            through_reflection.name,
-                            through_scope)
+        def records_by_owner
+          return @records_by_owner if defined?(@records_by_owner)
+          source_records_by_owner = source_preloaders.map(&:records_by_owner).reduce(:merge)
+          through_records_by_owner = through_preloaders.map(&:records_by_owner).reduce(:merge)
 
-          through_records = owners.map do |owner|
-            association = owner.association through_reflection.name
+          @records_by_owner = owners.each_with_object({}) do |owner, result|
+            through_records = through_records_by_owner[owner] || []
 
-            center = target_records_from_association(association)
-            [owner, Array(center)]
-          end
-
-          reset_association owners, through_reflection.name
-
-          middle_records = through_records.flat_map { |(_, rec)| rec }
-
-          preloaders = preloader.preload(middle_records,
-                                         source_reflection.name,
-                                         reflection_scope)
-
-          @preloaded_records = preloaders.flat_map(&:preloaded_records)
-
-          middle_to_pl = preloaders.each_with_object({}) do |pl, h|
-            pl.owners.each { |middle|
-              h[middle] = pl
-            }
-          end
-
-          through_records.each_with_object({}) do |(lhs, center), records_by_owner|
-            pl_to_middle = center.group_by { |record| middle_to_pl[record] }
-
-            records_by_owner[lhs] = pl_to_middle.flat_map do |pl, middles|
-              rhs_records = middles.flat_map { |r|
-                association = r.association source_reflection.name
-
-                target_records_from_association(association)
-              }.compact
-
-              # Respect the order on `reflection_scope` if it exists, else use the natural order.
-              if reflection_scope.values[:order].present?
-                @id_map ||= id_to_index_map @preloaded_records
-                rhs_records.sort_by { |rhs| @id_map[rhs] }
-              else
-                rhs_records
+            if @already_loaded
+              if source_type = reflection.options[:source_type]
+                through_records = through_records.select do |record|
+                  record[reflection.foreign_type] == source_type
+                end
               end
             end
+
+            records = through_records.flat_map do |record|
+              source_records_by_owner[record]
+            end
+
+            records.compact!
+            records.sort_by! { |rhs| preload_index[rhs] } if scope.order_values.any?
+            records.uniq! if scope.distinct_value
+            result[owner] = records
           end
         end
 
         private
-
-          def id_to_index_map(ids)
-            id_map = {}
-            ids.each_with_index { |id, index| id_map[id] = index }
-            id_map
+          def source_preloaders
+            @source_preloaders ||= PRELOADER.preload(middle_records, source_reflection.name, scope)
           end
 
-          def reset_association(owners, association_name)
-            should_reset = (through_scope != through_reflection.klass.unscoped) ||
-               (reflection.options[:source_type] && through_reflection.collection?)
+          def middle_records
+            through_preloaders.flat_map(&:preloaded_records)
+          end
 
-            # Don't cache the association - we would only be caching a subset
-            if should_reset
-              owners.each { |owner|
-                owner.association(association_name).reset
-              }
+          def through_preloaders
+            @through_preloaders ||= PRELOADER.preload(owners, through_reflection.name, through_scope)
+          end
+
+          def through_reflection
+            reflection.through_reflection
+          end
+
+          def source_reflection
+            reflection.source_reflection
+          end
+
+          def preload_index
+            @preload_index ||= preloaded_records.each_with_object({}).with_index do |(record, result), index|
+              result[record] = index
             end
           end
 
           def through_scope
             scope = through_reflection.klass.unscoped
+            options = reflection.options
+
+            values = reflection_scope.values
+            if annotations = values[:annotate]
+              scope.annotate!(*annotations)
+            end
 
             if options[:source_type]
               scope.where! reflection.foreign_type => options[:source_type]
-            else
-              unless reflection_scope.where_clause.empty?
-                scope.includes_values = Array(reflection_scope.values[:includes] || options[:source])
-                scope.where_clause = reflection_scope.where_clause
+            elsif !reflection_scope.where_clause.empty?
+              scope.where_clause = reflection_scope.where_clause
+
+              if includes = values[:includes]
+                scope.includes!(source_reflection.name => includes)
+              else
+                scope.includes!(source_reflection.name)
               end
 
-              scope.references! reflection_scope.values[:references]
-              if scope.eager_loading? && order_values = reflection_scope.values[:order]
+              if values[:references] && !values[:references].empty?
+                scope.references!(values[:references])
+              else
+                scope.references!(source_reflection.table_name)
+              end
+
+              if joins = values[:joins]
+                scope.joins!(source_reflection.name => joins)
+              end
+
+              if left_outer_joins = values[:left_outer_joins]
+                scope.left_outer_joins!(source_reflection.name => left_outer_joins)
+              end
+
+              if scope.eager_loading? && order_values = values[:order]
                 scope = scope.order(order_values)
               end
             end
 
             scope
-          end
-
-          def target_records_from_association(association)
-            association.loaded? ? association.target : association.reader
           end
       end
     end

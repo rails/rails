@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Parrot < ActiveRecord::Base
   self.inheritance_column = :parrot_sti_class
 
@@ -8,7 +10,7 @@ class Parrot < ActiveRecord::Base
 
   validates_presence_of :name
 
-  attr_accessor :cancel_save_from_callback
+  attribute :cancel_save_from_callback
   before_save :cancel_save_callback_method, if: :cancel_save_from_callback
   def cancel_save_callback_method
     throw(:abort)
@@ -17,6 +19,12 @@ class Parrot < ActiveRecord::Base
   before_update :increment_updated_count
   def increment_updated_count
     self.updated_count += 1
+  end
+
+  def self.delete_all(*)
+    connection.delete("DELETE FROM parrots_pirates")
+    connection.delete("DELETE FROM parrots_treasures")
+    super
   end
 end
 

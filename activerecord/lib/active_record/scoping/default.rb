@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module Scoping
     module Default
@@ -5,11 +7,8 @@ module ActiveRecord
 
       included do
         # Stores the default scope for the class.
-        class_attribute :default_scopes, instance_writer: false, instance_predicate: false
-        class_attribute :default_scope_override, instance_writer: false, instance_predicate: false
-
-        self.default_scopes = []
-        self.default_scope_override = nil
+        class_attribute :default_scopes, instance_writer: false, instance_predicate: false, default: []
+        class_attribute :default_scope_override, instance_writer: false, instance_predicate: false, default: nil
       end
 
       module ClassMethods
@@ -45,7 +44,6 @@ module ActiveRecord
         end
 
         private
-
           # Use this macro in your model to set a default scope for all operations on
           # the model.
           #
@@ -87,8 +85,8 @@ module ActiveRecord
           #       # Should return a scope, you can call 'super' here etc.
           #     end
           #   end
-          def default_scope(scope = nil) # :doc:
-            scope = Proc.new if block_given?
+          def default_scope(scope = nil, &block) # :doc:
+            scope = block if block_given?
 
             if scope.is_a?(Relation) || !scope.respond_to?(:call)
               raise ArgumentError,
@@ -101,7 +99,7 @@ module ActiveRecord
             self.default_scopes += [scope]
           end
 
-          def build_default_scope(base_rel = nil)
+          def build_default_scope(relation = relation())
             return if abstract_class?
 
             if default_scope_override.nil?
@@ -110,13 +108,16 @@ module ActiveRecord
 
             if default_scope_override
               # The user has defined their own default scope method, so call that
-              evaluate_default_scope { default_scope }
-            elsif default_scopes.any?
-              base_rel ||= relation
               evaluate_default_scope do
-                default_scopes.inject(base_rel) do |default_scope, scope|
+                if scope = default_scope
+                  relation.merge!(scope)
+                end
+              end
+            elsif default_scopes.any?
+              evaluate_default_scope do
+                default_scopes.inject(relation) do |default_scope, scope|
                   scope = scope.respond_to?(:to_proc) ? scope : scope.method(:call)
-                  default_scope.merge(base_rel.instance_exec(&scope))
+                  default_scope.instance_exec(&scope) || default_scope
                 end
               end
             end

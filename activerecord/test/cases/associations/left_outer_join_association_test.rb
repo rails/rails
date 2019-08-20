@@ -1,13 +1,16 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/post"
 require "models/comment"
 require "models/author"
 require "models/essay"
+require "models/category"
 require "models/categorization"
 require "models/person"
 
 class LeftOuterJoinAssociationTest < ActiveRecord::TestCase
-  fixtures :authors, :essays, :posts, :comments, :categorizations, :people
+  fixtures :authors, :author_addresses, :essays, :posts, :comments, :categorizations, :people
 
   def test_construct_finder_sql_applies_aliases_tables_on_association_conditions
     result = Author.left_outer_joins(:thinking_posts, :welcome_posts).to_a
@@ -29,6 +32,10 @@ class LeftOuterJoinAssociationTest < ActiveRecord::TestCase
     assert_equal 17, Post.left_outer_joins(:comments).count
   end
 
+  def test_merging_left_joins_should_be_left_joins
+    assert_equal 5, Author.left_joins(:posts).merge(Post.no_comments).count
+  end
+
   def test_left_joins_aliases_left_outer_joins
     assert_equal Post.left_outer_joins(:comments).to_sql, Post.left_joins(:comments).to_sql
   end
@@ -41,6 +48,12 @@ class LeftOuterJoinAssociationTest < ActiveRecord::TestCase
   def test_left_outer_joins_actually_does_a_left_outer_join
     queries = capture_sql { Author.left_outer_joins(:posts).to_a }
     assert queries.any? { |sql| /LEFT OUTER JOIN/i.match?(sql) }
+  end
+
+  def test_left_outer_joins_is_deduped_when_same_association_is_joined
+    queries = capture_sql { Author.joins(:posts).left_outer_joins(:posts).to_a }
+    assert queries.any? { |sql| /INNER JOIN/i.match?(sql) }
+    assert queries.none? { |sql| /LEFT OUTER JOIN/i.match?(sql) }
   end
 
   def test_construct_finder_sql_ignores_empty_left_outer_joins_hash
@@ -57,6 +70,10 @@ class LeftOuterJoinAssociationTest < ActiveRecord::TestCase
     assert_raise(ArgumentError) { Author.left_outer_joins('LEFT OUTER JOIN "posts" ON "posts"."user_id" = "users"."id"').to_a }
   end
 
+  def test_left_outer_joins_with_string_join
+    assert_equal 16, Author.left_outer_joins(:posts).joins("LEFT OUTER JOIN comments ON comments.post_id = posts.id").count
+  end
+
   def test_join_conditions_added_to_join_clause
     queries = capture_sql { Author.left_outer_joins(:essays).to_a }
     assert queries.any? { |sql| /writer_type.*?=.*?(Author|\?|\$1|\:a1)/i.match?(sql) }
@@ -67,15 +84,15 @@ class LeftOuterJoinAssociationTest < ActiveRecord::TestCase
     scope = Post.left_outer_joins(:special_comments).where(id: posts(:sti_comments).id)
 
     # The join should match SpecialComment and its subclasses only
-    assert scope.where("comments.type" => "Comment").empty?
-    assert !scope.where("comments.type" => "SpecialComment").empty?
-    assert !scope.where("comments.type" => "SubSpecialComment").empty?
+    assert_empty scope.where("comments.type" => "Comment")
+    assert_not_empty scope.where("comments.type" => "SpecialComment")
+    assert_not_empty scope.where("comments.type" => "SubSpecialComment")
   end
 
   def test_does_not_override_select
     authors = Author.select("authors.name, #{%{(authors.author_address_id || ' ' || authors.author_address_extra_id) as addr_id}}").left_outer_joins(:posts)
-    assert authors.any?
-    assert authors.first.respond_to?(:addr_id)
+    assert_predicate authors, :any?
+    assert_respond_to authors.first, :addr_id
   end
 
   test "the default scope of the target is applied when joining associations" do

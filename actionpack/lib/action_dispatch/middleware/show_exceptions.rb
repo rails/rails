@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "action_dispatch/http/request"
 require "action_dispatch/middleware/exception_wrapper"
 
@@ -8,7 +10,7 @@ module ActionDispatch
   # The exceptions app should be passed as parameter on initialization
   # of ShowExceptions. Every time there is an exception, ShowExceptions will
   # store the exception in env["action_dispatch.exception"], rewrite the
-  # PATH_INFO to the exception status code and call the rack app.
+  # PATH_INFO to the exception status code and call the Rack app.
   #
   # If the application returns a "X-Cascade" pass response, this middleware
   # will send an empty response as result with the correct status code.
@@ -38,12 +40,11 @@ module ActionDispatch
     end
 
     private
-
       def render_exception(request, exception)
         backtrace_cleaner = request.get_header "action_dispatch.backtrace_cleaner"
         wrapper = ExceptionWrapper.new(backtrace_cleaner, exception)
         status  = wrapper.status_code
-        request.set_header "action_dispatch.exception", wrapper.exception
+        request.set_header "action_dispatch.exception", wrapper.unwrapped_exception
         request.set_header "action_dispatch.original_path", request.path_info
         request.path_info = "/#{status}"
         response = @exceptions_app.call(request.env)

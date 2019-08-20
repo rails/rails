@@ -1,7 +1,8 @@
+# frozen_string_literal: true
+
 require "stringio"
 require "uri"
 require "active_support/core_ext/kernel/singleton_class"
-require "active_support/core_ext/object/try"
 require "rack/test"
 require "minitest"
 
@@ -10,48 +11,54 @@ require "action_dispatch/testing/request_encoder"
 module ActionDispatch
   module Integration #:nodoc:
     module RequestHelpers
-      # Performs a GET request with the given parameters. See +#process+ for more
-      # details.
+      # Performs a GET request with the given parameters. See ActionDispatch::Integration::Session#process
+      # for more details.
       def get(path, **args)
         process(:get, path, **args)
       end
 
-      # Performs a POST request with the given parameters. See +#process+ for more
-      # details.
+      # Performs a POST request with the given parameters. See ActionDispatch::Integration::Session#process
+      # for more details.
       def post(path, **args)
         process(:post, path, **args)
       end
 
-      # Performs a PATCH request with the given parameters. See +#process+ for more
-      # details.
+      # Performs a PATCH request with the given parameters. See ActionDispatch::Integration::Session#process
+      # for more details.
       def patch(path, **args)
         process(:patch, path, **args)
       end
 
-      # Performs a PUT request with the given parameters. See +#process+ for more
-      # details.
+      # Performs a PUT request with the given parameters. See ActionDispatch::Integration::Session#process
+      # for more details.
       def put(path, **args)
         process(:put, path, **args)
       end
 
-      # Performs a DELETE request with the given parameters. See +#process+ for
-      # more details.
+      # Performs a DELETE request with the given parameters. See ActionDispatch::Integration::Session#process
+      # for more details.
       def delete(path, **args)
         process(:delete, path, **args)
       end
 
-      # Performs a HEAD request with the given parameters. See +#process+ for more
-      # details.
+      # Performs a HEAD request with the given parameters. See ActionDispatch::Integration::Session#process
+      # for more details.
       def head(path, *args)
         process(:head, path, *args)
       end
 
       # Follow a single redirect response. If the last response was not a
       # redirect, an exception will be raised. Otherwise, the redirect is
-      # performed on the location header.
-      def follow_redirect!
+      # performed on the location header. If the redirection is a 307 redirect,
+      # the same HTTP verb will be used when redirecting, otherwise a GET request
+      # will be performed. Any arguments are passed to the
+      # underlying request.
+      def follow_redirect!(**args)
         raise "not a redirect! #{status} #{status_message}" unless redirect?
-        get(response.location)
+
+        method = response.status == 307 ? request.method.downcase : :get
+        public_send(method, response.location, **args)
+
         status
       end
     end
@@ -187,16 +194,21 @@ module ActionDispatch
       #   merged into the Rack env hash.
       # - +env+: Additional env to pass, as a Hash. The headers will be
       #   merged into the Rack env hash.
+      # - +xhr+: Set to `true` if you want to make and Ajax request.
+      #   Adds request headers characteristic of XMLHttpRequest e.g. HTTP_X_REQUESTED_WITH.
+      #   The headers will be merged into the Rack env hash.
+      # - +as+: Used for encoding the request with different content type.
+      #   Supports `:json` by default and will set the appropriate request headers.
+      #   The headers will be merged into the Rack env hash.
       #
       # This method is rarely used directly. Use +#get+, +#post+, or other standard
       # HTTP methods in integration tests. +#process+ is only required when using a
       # request method that doesn't have a method defined in the integration tests.
       #
-      # This method returns a Response object, which one can use to
-      # inspect the details of the response. Furthermore, if this method was
-      # called from an ActionDispatch::IntegrationTest object, then that
-      # object's <tt>@response</tt> instance variable will point to the same
-      # response object.
+      # This method returns the response status, after performing the request.
+      # Furthermore, if this method was called from an ActionDispatch::IntegrationTest object,
+      # then that object's <tt>@response</tt> instance variable will point to a Response object
+      # which one can use to inspect the details of the response.
       #
       # Example:
       #   process :get, '/author', params: { since: 201501011400 }
@@ -209,7 +221,7 @@ module ActionDispatch
           method = :post
         end
 
-        if path =~ %r{://}
+        if %r{://}.match?(path)
           path = build_expanded_path(path) do |location|
             https! URI::HTTPS === location if location.scheme
 
@@ -247,7 +259,7 @@ module ActionDispatch
           wrapped_headers["HTTP_ACCEPT"] ||= [Mime[:js], Mime[:html], Mime[:xml], "text/xml", "*/*"].join(", ")
         end
 
-        # this modifies the passed request_env directly
+        # This modifies the passed request_env directly.
         if wrapped_headers.present?
           Http::Headers.from_hash(request_env).merge!(wrapped_headers)
         end
@@ -258,7 +270,7 @@ module ActionDispatch
         session = Rack::Test::Session.new(_mock_session)
 
         # NOTE: rack-test v0.5 doesn't build a default uri correctly
-        # Make sure requested path is always a full uri
+        # Make sure requested path is always a full URI.
         session.request(build_full_uri(path, request_env), request_env)
 
         @request_count += 1
@@ -325,9 +337,9 @@ module ActionDispatch
 
       def create_session(app)
         klass = APP_SESSIONS[app] ||= Class.new(Integration::Session) {
-          # If the app is a Rails app, make url_helpers available on the session
-          # This makes app.url_for and app.foo_path available in the console
-          if app.respond_to?(:routes)
+          # If the app is a Rails app, make url_helpers available on the session.
+          # This makes app.url_for and app.foo_path available in the console.
+          if app.respond_to?(:routes) && app.routes.is_a?(ActionDispatch::Routing::RouteSet)
             include app.routes.url_helpers
             include app.routes.mounted_helpers
           end
@@ -339,8 +351,7 @@ module ActionDispatch
         @integration_session = nil
       end
 
-      %w(get post patch put head delete cookies assigns
-         xml_http_request xhr get_via_redirect post_via_redirect).each do |method|
+      %w(get post patch put head delete cookies assigns follow_redirect!).each do |method|
         define_method(method) do |*args|
           # reset the html_document variable, except for cookies/assigns calls
           unless method == "cookies" || method == "assigns"
@@ -386,14 +397,15 @@ module ActionDispatch
         integration_session.default_url_options = options
       end
 
-      def respond_to_missing?(method, include_private = false)
-        integration_session.respond_to?(method, include_private) || super
+    private
+      def respond_to_missing?(method, _)
+        integration_session.respond_to?(method) || super
       end
 
       # Delegate unhandled messages to the current session instance.
-      def method_missing(sym, *args, &block)
-        if integration_session.respond_to?(sym)
-          integration_session.__send__(sym, *args, &block).tap do
+      def method_missing(method, *args, &block)
+        if integration_session.respond_to?(method)
+          integration_session.public_send(method, *args, &block).tap do
             copy_session_variables!
           end
         else
@@ -572,7 +584,7 @@ module ActionDispatch
   #       end
   #
   #       assert_response :success
-  #       assert_equal({ id: Arcticle.last.id, title: "Ahoy!" }, response.parsed_body)
+  #       assert_equal({ id: Article.last.id, title: "Ahoy!" }, response.parsed_body)
   #     end
   #   end
   #

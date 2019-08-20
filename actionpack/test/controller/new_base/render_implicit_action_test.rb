@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 module RenderImplicitAction
@@ -6,7 +8,7 @@ module RenderImplicitAction
       "render_implicit_action/simple/hello_world.html.erb"     => "Hello world!",
       "render_implicit_action/simple/hyphen-ated.html.erb"     => "Hello hyphen-ated!",
       "render_implicit_action/simple/not_implemented.html.erb" => "Not Implemented"
-    ), ActionView::FileSystemResolver.new(File.expand_path("../../../controller", __FILE__))]
+    ), ActionView::FileSystemResolver.new(File.expand_path("../../controller", __dir__))]
 
     def hello_world() end
   end

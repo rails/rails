@@ -1,3 +1,7 @@
+# frozen_string_literal: true
+
+require "active_support/number_helper/number_converter"
+
 module ActiveSupport
   module NumberHelper
     class NumberToHumanConverter < NumberConverter # :nodoc:
@@ -9,6 +13,7 @@ module ActiveSupport
       self.validate_float = true
 
       def convert # :nodoc:
+        @number = RoundingHelper.new(options).round(number)
         @number = Float(number)
 
         # for backwards compatibility with those that didn't add strip_insignificant_zeros to their locale files
@@ -20,16 +25,12 @@ module ActiveSupport
         exponent = calculate_exponent(units)
         @number = number / (10**exponent)
 
-        until (rounded_number = NumberToRoundedConverter.convert(number, options)) != NumberToRoundedConverter.convert(1000, options)
-          @number = number / 1000.0
-          exponent += 3
-        end
+        rounded_number = NumberToRoundedConverter.convert(number, options)
         unit = determine_unit(units, exponent)
-        format.gsub("%n".freeze, rounded_number).gsub("%u".freeze, unit).strip
+        format.gsub("%n", rounded_number).gsub("%u", unit).strip
       end
 
       private
-
         def format
           options[:format] || translate_in_locale("human.decimal_units.format")
         end

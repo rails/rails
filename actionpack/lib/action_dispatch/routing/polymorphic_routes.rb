@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActionDispatch
   module Routing
     # Polymorphic URL helpers are methods for smart resolution to a named route call when
@@ -40,7 +42,7 @@ module ActionDispatch
     #
     # Example usage:
     #
-    #   edit_polymorphic_path(@post)              # => "/posts/1/edit"
+    #   edit_polymorphic_path(@post)           # => "/posts/1/edit"
     #   polymorphic_path(@post, format: :pdf)  # => "/posts/1.pdf"
     #
     # == Usage with mounted engines
@@ -104,7 +106,7 @@ module ActionDispatch
         end
 
         if mapping = polymorphic_mapping(record_or_hash_or_array)
-          return mapping.call(self, [record_or_hash_or_array, options])
+          return mapping.call(self, [record_or_hash_or_array, options], false)
         end
 
         opts   = options.dup
@@ -118,8 +120,7 @@ module ActionDispatch
                                                opts
       end
 
-      # Returns the path component of a URL for the given record. It uses
-      # <tt>polymorphic_url</tt> with <tt>routing_type: :path</tt>.
+      # Returns the path component of a URL for the given record.
       def polymorphic_path(record_or_hash_or_array, options = {})
         if Hash === record_or_hash_or_array
           options = record_or_hash_or_array.merge(options)
@@ -128,7 +129,7 @@ module ActionDispatch
         end
 
         if mapping = polymorphic_mapping(record_or_hash_or_array)
-          return mapping.call(self, [record_or_hash_or_array, options], only_path: true)
+          return mapping.call(self, [record_or_hash_or_array, options], true)
         end
 
         opts   = options.dup
@@ -155,7 +156,6 @@ module ActionDispatch
       end
 
       private
-
         def polymorphic_url_for_action(action, record_or_hash, options)
           polymorphic_url(record_or_hash, options.merge(action: action))
         end
@@ -173,15 +173,15 @@ module ActionDispatch
         end
 
         class HelperMethodBuilder # :nodoc:
-          CACHE = { "path" => {}, "url" => {} }
+          CACHE = { path: {}, url: {} }
 
           def self.get(action, type)
-            type = type.to_s
+            type = type.to_sym
             CACHE[type].fetch(action) { build action, type }
           end
 
-          def self.url;  CACHE["url".freeze][nil]; end
-          def self.path; CACHE["path".freeze][nil]; end
+          def self.url;  CACHE[:url][nil]; end
+          def self.path; CACHE[:path][nil]; end
 
           def self.build(action, type)
             prefix = action ? "#{action}_" : ""
@@ -273,7 +273,7 @@ module ActionDispatch
 
           def handle_model_call(target, record)
             if mapping = polymorphic_mapping(target, record)
-              mapping.call(target, [record], only_path: suffix == "path")
+              mapping.call(target, [record], suffix == "path")
             else
               method, args = handle_model(record)
               target.send(method, *args)
@@ -322,7 +322,6 @@ module ActionDispatch
           end
 
           private
-
             def polymorphic_mapping(target, record)
               if record.respond_to?(:to_model)
                 target._routes.polymorphic_mappings[record.to_model.model_name.name]
@@ -341,8 +340,8 @@ module ActionDispatch
             end
 
             [nil, "new", "edit"].each do |action|
-              CACHE["url"][action]  = build action, "url"
-              CACHE["path"][action] = build action, "path"
+              CACHE[:url][action]  = build action, "url"
+              CACHE[:path][action] = build action, "path"
             end
         end
     end

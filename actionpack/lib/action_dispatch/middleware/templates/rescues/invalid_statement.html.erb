@@ -1,0 +1,24 @@
+<header>
+  <h1>
+    <%= @exception.class.to_s %>
+    <% if @request.parameters['controller'] %>
+      in <%= @request.parameters['controller'].camelize %>Controller<% if @request.parameters['action'] %>#<%= @request.parameters['action'] %><% end %>
+    <% end %>
+  </h1>
+</header>
+
+<div id="container">
+  <h2>
+    <%= h @exception.message %>
+    <% if defined?(ActiveStorage) && @exception.message.match?(%r{#{ActiveStorage::Blob.table_name}|#{ActiveStorage::Attachment.table_name}}) %>
+      <br />To resolve this issue run: rails active_storage:install
+    <% end %>
+    <% if defined?(ActionMailbox) && @exception.message.match?(%r{#{ActionMailbox::InboundEmail.table_name}}) %>
+      <br />To resolve this issue run: rails action_mailbox:install
+    <% end %>
+  </h2>
+
+  <%= render "rescues/source", source_extracts: @source_extracts, show_source_idx: @show_source_idx %>
+  <%= render "rescues/trace", traces: @traces, trace_to_show: @trace_to_show %>
+  <%= render template: "rescues/_request_and_response" %>
+</div>

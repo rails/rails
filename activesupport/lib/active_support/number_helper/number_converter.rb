@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/big_decimal/conversions"
 require "active_support/core_ext/object/blank"
 require "active_support/core_ext/hash/keys"
@@ -134,7 +136,6 @@ module ActiveSupport
       end
 
       private
-
         def options
           @options ||= format_options.merge(opts)
         end

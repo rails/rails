@@ -1,16 +1,9 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "active_support/core_ext/array"
 
 class GroupingTest < ActiveSupport::TestCase
-  def setup
-    # In Ruby < 2.4, test we avoid Integer#/ (redefined by mathn)
-    Fixnum.send :private, :/ unless 0.class == Integer
-  end
-
-  def teardown
-    Fixnum.send :public, :/ unless 0.class == Integer
-  end
-
   def test_in_groups_of_with_perfect_fit
     groups = []
     ("a".."i").to_a.in_groups_of(3) do |group|
@@ -114,7 +107,7 @@ class SplitTest < ActiveSupport::TestCase
   def test_split_with_block
     a = (1..10).to_a
     assert_equal [[1, 2], [4, 5], [7, 8], [10]], a.split { |i| i % 3 == 0 }
-    assert_equal [1, 2, 3, 4, 5, 6, 7, 8, 9 , 10], a
+    assert_equal [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], a
   end
 
   def test_split_with_edge_values

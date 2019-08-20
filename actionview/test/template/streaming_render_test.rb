@@ -1,13 +1,18 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 class TestController < ActionController::Base
 end
 
-class FiberedTest < ActiveSupport::TestCase
+class SetupFiberedBase < ActiveSupport::TestCase
   def setup
+    ActionView::LookupContext::DetailsKey.clear
+
     view_paths = ActionController::Base.view_paths
+
     @assigns = { secret: "in the sauce", name: nil }
-    @view = ActionView::Base.new(view_paths, @assigns)
+    @view = ActionView::Base.with_empty_template_cache.with_view_paths(view_paths, @assigns)
     @controller_view = TestController.new.view_context
   end
 
@@ -17,13 +22,15 @@ class FiberedTest < ActiveSupport::TestCase
 
   def buffered_render(options)
     body = render_body(options)
-    string = ""
+    string = +""
     body.each do |piece|
       string << piece
     end
     string
   end
+end
 
+class FiberedTest < SetupFiberedBase
   def test_streaming_works
     content = []
     body = render_body(template: "test/hello_world", layout: "layouts/yield")
@@ -40,12 +47,12 @@ class FiberedTest < ActiveSupport::TestCase
   end
 
   def test_render_file
-    assert_equal "Hello world!", buffered_render(file: "test/hello_world")
+    assert_equal "Hello world!", assert_deprecated { buffered_render(file: "test/hello_world") }
   end
 
   def test_render_file_with_locals
     locals = { secret: "in the sauce" }
-    assert_equal "The secret is in the sauce\n", buffered_render(file: "test/render_file_with_locals", locals: locals)
+    assert_equal "The secret is in the sauce\n", assert_deprecated { buffered_render(file: "test/render_file_with_locals", locals: locals) }
   end
 
   def test_render_partial
@@ -107,5 +114,22 @@ class FiberedTest < ActiveSupport::TestCase
   def test_render_with_streaming_and_capture
     assert_equal "Yes, \n this works\n like a charm.",
       buffered_render(template: "test/streaming", layout: "layouts/streaming_with_capture")
+  end
+end
+
+class FiberedWithLocaleTest < SetupFiberedBase
+  def setup
+    @old_locale = I18n.locale
+    I18n.locale = "da"
+    super
+  end
+
+  def teardown
+    I18n.locale = @old_locale
+  end
+
+  def test_render_with_streaming_and_locale
+    assert_equal "layout.locale: da\nview.locale: da\n\n",
+      buffered_render(template: "test/streaming_with_locale", layout: "layouts/streaming_with_locale")
   end
 end

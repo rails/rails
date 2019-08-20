@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 class Club < ActiveRecord::Base
-  has_one :membership
+  has_one :membership, touch: true
   has_many :memberships, inverse_of: false
   has_many :members, through: :memberships
   has_one :sponsor
@@ -8,8 +10,11 @@ class Club < ActiveRecord::Base
 
   has_many :favourites, -> { where(memberships: { favourite: true }) }, through: :memberships, source: :member
 
-  private
+  scope :general, -> { left_joins(:category).where(categories: { name: "General" }).unscope(:limit) }
 
+  accepts_nested_attributes_for :membership
+
+  private
     def private_method
       "I'm sorry sir, this is a *private* club, not a *pirate* club"
     end

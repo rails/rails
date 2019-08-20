@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 class ControllerHelperTest < ActionView::TestCase
@@ -17,5 +19,16 @@ class ControllerHelperTest < ActionView::TestCase
     assign_controller(@controller)
 
     assert_nil default_form_builder
+  end
+
+  def test_respond_to
+    @controller = OpenStruct.new
+    assign_controller(@controller)
+    assert_not respond_to?(:params)
+    assert respond_to?(:assign_controller)
+
+    @controller.params = {}
+    assert respond_to?(:params)
+    assert respond_to?(:assign_controller)
   end
 end

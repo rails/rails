@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   Point = Struct.new(:x, :y)
 
@@ -5,7 +7,7 @@ module ActiveRecord
     module PostgreSQL
       module OID # :nodoc:
         class Point < Type::Value # :nodoc:
-          include Type::Helpers::Mutable
+          include ActiveModel::Type::Helpers::Mutable
 
           def type
             :point
@@ -48,7 +50,6 @@ module ActiveRecord
           end
 
           private
-
             def number_for_point(number)
               number.to_s.gsub(/\.0$/, "")
             end

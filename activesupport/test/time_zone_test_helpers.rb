@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module TimeZoneTestHelpers
   def with_tz_default(tz = nil)
     old_tz = Time.zone
@@ -20,5 +22,18 @@ module TimeZoneTestHelpers
     yield
   ensure
     ActiveSupport.to_time_preserves_timezone = old_preserve_tz
+  end
+
+  def with_tz_mappings(mappings)
+    old_mappings = ActiveSupport::TimeZone::MAPPING.dup
+    ActiveSupport::TimeZone.clear
+    ActiveSupport::TimeZone::MAPPING.clear
+    ActiveSupport::TimeZone::MAPPING.merge!(mappings)
+
+    yield
+  ensure
+    ActiveSupport::TimeZone.clear
+    ActiveSupport::TimeZone::MAPPING.clear
+    ActiveSupport::TimeZone::MAPPING.merge!(old_mappings)
   end
 end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 module CallbacksTest
@@ -29,7 +31,7 @@ module CallbacksTest
 
       def callback_object(callback_method)
         klass = Class.new
-        klass.send(:define_method, callback_method) do |model|
+        klass.define_method(callback_method) do |model|
           model.history << [:"#{callback_method}_save", :object]
         end
         klass.new
@@ -75,7 +77,7 @@ module CallbacksTest
     skip_callback :save, :after,  :after_save_method, unless: :yes
     skip_callback :save, :after,  :after_save_method, if: :no
     skip_callback :save, :before, :before_save_method, unless: :no
-    skip_callback :save, :before, CallbackClass , if: :yes
+    skip_callback :save, :before, CallbackClass, if: :yes
     def yes; true; end
     def no; false; end
   end
@@ -191,13 +193,6 @@ module CallbacksTest
     before_save Proc.new { |r| r.history << "b00m" }, if: :no
     before_save Proc.new { |r| r.history << [:before_save, :symbol] }, unless: :no
     before_save Proc.new { |r| r.history << "b00m" }, unless: :yes
-    # string
-    ActiveSupport::Deprecation.silence do
-      before_save Proc.new { |r| r.history << [:before_save, :string] }, if: "yes"
-      before_save Proc.new { |r| r.history << "b00m" }, if: "no"
-      before_save Proc.new { |r| r.history << [:before_save, :string] }, unless: "no"
-      before_save Proc.new { |r| r.history << "b00m" }, unless: "yes"
-    end
     # Combined if and unless
     before_save Proc.new { |r| r.history << [:before_save, :combined_symbol] }, if: :yes, unless: :no
     before_save Proc.new { |r| r.history << "b00m" }, if: :yes, unless: :yes
@@ -261,7 +256,7 @@ module CallbacksTest
     end
 
     def respond_to_missing?(sym)
-      sym =~ /^(log|wrap)_/ || super
+      sym.match?(/^(log|wrap)_/) || super
     end
   end
 
@@ -402,7 +397,6 @@ module CallbacksTest
     end
 
     private
-
       def record1
         @recorder << 1
       end
@@ -487,10 +481,9 @@ module CallbacksTest
         "block in run_callbacks",
         "tweedle_dum",
         "block in run_callbacks",
-        ("call" if RUBY_VERSION < "2.3"),
         "run_callbacks",
         "save"
-      ].compact, call_stack.map(&:label)
+      ], call_stack.map(&:label)
     end
 
     def test_short_call_stack
@@ -590,8 +583,6 @@ module CallbacksTest
         [:before_save, :proc],
         [:before_save, :symbol],
         [:before_save, :symbol],
-        [:before_save, :string],
-        [:before_save, :string],
         [:before_save, :combined_symbol],
       ], person.history
     end
@@ -837,7 +828,7 @@ module CallbacksTest
     def test_block_never_called_if_terminated
       obj = CallbackTerminator.new
       obj.save
-      assert !obj.saved
+      assert_not obj.saved
     end
   end
 
@@ -865,7 +856,7 @@ module CallbacksTest
     def test_block_never_called_if_abort_is_thrown
       obj = CallbackDefaultTerminator.new
       obj.save
-      assert !obj.saved
+      assert_not obj.saved
     end
   end
 
@@ -961,7 +952,7 @@ module CallbacksTest
 
     def test_proc_arity_2
       assert_raises(ArgumentError) do
-        klass = build_class(->(x, y) {})
+        klass = build_class(->(x, y) { })
         klass.new.run
       end
     end
@@ -997,6 +988,7 @@ module CallbacksTest
         define_callbacks :foo, scope: [:name]
         set_callback :foo, :before, :foo, if: callback
         def run; run_callbacks :foo; end
+
         private
           def foo; end
       }
@@ -1040,7 +1032,7 @@ module CallbacksTest
 
     def test_proc_arity2
       assert_raises(ArgumentError) do
-        object = build_class(->(a, b) {}).new
+        object = build_class(->(a, b) { }).new
         object.run
       end
     end
@@ -1180,14 +1172,15 @@ module CallbacksTest
     end
   end
 
-  class DeprecatedWarningTest < ActiveSupport::TestCase
-    def test_deprecate_string_conditional_options
+  class NotSupportedStringConditionalTest < ActiveSupport::TestCase
+    def test_string_conditional_options
       klass = Class.new(Record)
 
-      assert_deprecated { klass.before_save :tweedle, if: "true" }
-      assert_deprecated { klass.after_save :tweedle, unless: "false" }
-      assert_deprecated { klass.skip_callback :save, :before, :tweedle, if: "true" }
-      assert_deprecated { klass.skip_callback :save, :after, :tweedle, unless: "false" }
+      assert_raises(ArgumentError) { klass.before_save :tweedle, if: ["true"] }
+      assert_raises(ArgumentError) { klass.before_save :tweedle, if: "true" }
+      assert_raises(ArgumentError) { klass.after_save :tweedle, unless: "false" }
+      assert_raises(ArgumentError) { klass.skip_callback :save, :before, :tweedle, if: "true" }
+      assert_raises(ArgumentError) { klass.skip_callback :save, :after, :tweedle, unless: "false" }
     end
   end
 

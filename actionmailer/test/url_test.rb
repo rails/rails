@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "action_controller"
 
@@ -6,11 +8,16 @@ end
 
 AppRoutes = ActionDispatch::Routing::RouteSet.new
 
-class ActionMailer::Base
-  include AppRoutes.url_helpers
+AppRoutes.draw do
+  get "/welcome" => "foo#bar", as: "welcome"
+  get "/dummy_model" => "foo#baz", as: "dummy_model"
+  get "/welcome/greeting", to: "welcome#greeting"
+  get "/a/b(/:id)", to: "a#b"
 end
 
 class UrlTestMailer < ActionMailer::Base
+  include AppRoutes.url_helpers
+
   default_url_options[:host] = "www.basecamphq.com"
 
   configure do |c|
@@ -78,14 +85,6 @@ class ActionMailerUrlTest < ActionMailer::TestCase
   def test_url_for
     UrlTestMailer.delivery_method = :test
 
-    AppRoutes.draw do
-      ActiveSupport::Deprecation.silence do
-        get ":controller(/:action(/:id))"
-        get "/welcome" => "foo#bar", as: "welcome"
-        get "/dummy_model" => "foo#baz", as: "dummy_model"
-      end
-    end
-
     # string
     assert_url_for "http://foo/", "http://foo/"
 
@@ -103,23 +102,16 @@ class ActionMailerUrlTest < ActionMailer::TestCase
     assert_url_for "/dummy_model", DummyModel
 
     # array
-    assert_url_for "/dummy_model" , [DummyModel]
+    assert_url_for "/dummy_model", [DummyModel]
   end
 
   def test_signed_up_with_url
     UrlTestMailer.delivery_method = :test
 
-    AppRoutes.draw do
-      ActiveSupport::Deprecation.silence do
-        get ":controller(/:action(/:id))"
-        get "/welcome" => "foo#bar", as: "welcome"
-      end
-    end
-
     expected = new_mail
     expected.to      = @recipient
     expected.subject = "[Signed up] Welcome #{@recipient}"
-    expected.body    = "Hello there,\n\nMr. #{@recipient}. Please see our greeting at http://example.com/welcome/greeting http://www.basecamphq.com/welcome\n\n<img alt=\"Somelogo\" src=\"/images/somelogo.png\" />"
+    expected.body    = "Hello there,\n\nMr. #{@recipient}. Please see our greeting at http://example.com/welcome/greeting http://www.basecamphq.com/welcome\n\n<img src=\"/images/somelogo.png\" />"
     expected.from    = "system@loudthinking.com"
     expected.date    = Time.local(2004, 12, 12)
     expected.content_type = "text/html"

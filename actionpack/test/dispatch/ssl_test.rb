@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 class SSLTest < ActionDispatch::IntegrationTest
@@ -40,7 +42,7 @@ class RedirectSSLTest < SSLTest
   end
 
   test "exclude can avoid redirect" do
-    excluding = { exclude: -> request { request.path =~ /healthcheck/ } }
+    excluding = { exclude: -> request { request.path.match?(/healthcheck/) } }
 
     assert_not_redirected "http://example.org/healthcheck", redirect: excluding
     assert_redirected from: "http://example.org/", redirect: excluding
@@ -96,8 +98,8 @@ class RedirectSSLTest < SSLTest
 end
 
 class StrictTransportSecurityTest < SSLTest
-  EXPECTED = "max-age=15552000"
-  EXPECTED_WITH_SUBDOMAINS = "max-age=15552000; includeSubDomains"
+  EXPECTED = "max-age=31536000"
+  EXPECTED_WITH_SUBDOMAINS = "max-age=31536000; includeSubDomains"
 
   def assert_hsts(expected, url: "https://example.org", hsts: { subdomains: true }, headers: {})
     self.app = build_app ssl_options: { hsts: hsts }, headers: headers
@@ -204,6 +206,14 @@ class SecureCookiesTest < SSLTest
   def test_cookies_as_not_secure_with_secure_cookies_disabled
     get headers: { "Set-Cookie" => DEFAULT }, ssl_options: { secure_cookies: false }
     assert_cookies(*DEFAULT.split("\n"))
+  end
+
+  def test_cookies_as_not_secure_with_exclude
+    excluding = { exclude: -> request { /example/.match?(request.domain) } }
+    get headers: { "Set-Cookie" => DEFAULT }, ssl_options: { redirect: excluding }
+
+    assert_cookies(*DEFAULT.split("\n"))
+    assert_response :ok
   end
 
   def test_no_cookies

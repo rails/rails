@@ -1,11 +1,13 @@
+# frozen_string_literal: true
+
 module ActionDispatch
   # When called, this middleware renders an error page. By default if an HTML
-  # response is expected it will render static error pages from the `/public`
+  # response is expected it will render static error pages from the <tt>/public</tt>
   # directory. For example when this middleware receives a 500 response it will
-  # render the template found in `/public/500.html`.
+  # render the template found in <tt>/public/500.html</tt>.
   # If an internationalized locale is set, this middleware will attempt to render
-  # the template in `/public/500.<locale>.html`. If an internationalized template
-  # is not found it will fall back on `/public/500.html`.
+  # the template in <tt>/public/500.<locale>.html</tt>. If an internationalized template
+  # is not found it will fall back on <tt>/public/500.html</tt>.
   #
   # When a request with a content type other than HTML is made, this middleware
   # will attempt to convert error information into the appropriate response type.
@@ -19,14 +21,17 @@ module ActionDispatch
     def call(env)
       request      = ActionDispatch::Request.new(env)
       status       = request.path_info[1..-1].to_i
-      content_type = request.formats.first
-      body         = { status: status, error: Rack::Utils::HTTP_STATUS_CODES.fetch(status, Rack::Utils::HTTP_STATUS_CODES[500]) }
+      begin
+        content_type = request.formats.first
+      rescue Mime::Type::InvalidMimeType
+        content_type = Mime[:text]
+      end
+      body = { status: status, error: Rack::Utils::HTTP_STATUS_CODES.fetch(status, Rack::Utils::HTTP_STATUS_CODES[500]) }
 
       render(status, content_type, body)
     end
 
     private
-
       def render(status, content_type, body)
         format = "to_#{content_type.to_sym}" if content_type
         if format && body.respond_to?(format)

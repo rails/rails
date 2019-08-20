@@ -1,6 +1,8 @@
-$:.unshift(File.dirname(__FILE__) + "/lib")
-$:.unshift(File.dirname(__FILE__) + "/fixtures/helpers")
-$:.unshift(File.dirname(__FILE__) + "/fixtures/alternate_helpers")
+# frozen_string_literal: true
+
+$:.unshift File.expand_path("lib", __dir__)
+$:.unshift File.expand_path("fixtures/helpers", __dir__)
+$:.unshift File.expand_path("fixtures/alternate_helpers", __dir__)
 
 require "active_support/core_ext/kernel/reporting"
 
@@ -9,13 +11,6 @@ require "active_support/core_ext/kernel/reporting"
 silence_warnings do
   Encoding.default_internal = Encoding::UTF_8
   Encoding.default_external = Encoding::UTF_8
-end
-
-require "drb"
-begin
-  require "drb/unix"
-rescue LoadError
-  puts "'drb/unix' is not available"
 end
 
 if ENV["TRAVIS"]
@@ -42,7 +37,7 @@ module Rails
       @_env ||= ActiveSupport::StringInquirer.new(ENV["RAILS_ENV"] || ENV["RACK_ENV"] || "test")
     end
 
-    def root; end;
+    def root; end
   end
 end
 
@@ -56,7 +51,7 @@ ActiveSupport::Deprecation.debug = true
 # Disable available locale checks to avoid warnings running the test suite.
 I18n.enforce_available_locales = false
 
-FIXTURE_LOAD_PATH = File.join(File.dirname(__FILE__), "fixtures")
+FIXTURE_LOAD_PATH = File.join(__dir__, "fixtures")
 
 SharedTestRoutes = ActionDispatch::Routing::RouteSet.new
 
@@ -78,7 +73,7 @@ end
 module ActiveSupport
   class TestCase
     if RUBY_ENGINE == "ruby" && PROCESS_COUNT > 0
-      parallelize_me!
+      parallelize(workers: PROCESS_COUNT)
     end
   end
 end
@@ -101,6 +96,7 @@ class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
     RoutedRackApp.new(routes || ActionDispatch::Routing::RouteSet.new) do |middleware|
       middleware.use ActionDispatch::ShowExceptions, ActionDispatch::PublicExceptions.new("#{FIXTURE_LOAD_PATH}/public")
       middleware.use ActionDispatch::DebugExceptions
+      middleware.use ActionDispatch::ActionableExceptions
       middleware.use ActionDispatch::Callbacks
       middleware.use ActionDispatch::Cookies
       middleware.use ActionDispatch::Flash
@@ -156,7 +152,7 @@ class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
   end
 
   def with_autoload_path(path)
-    path = File.join(File.dirname(__FILE__), "fixtures", path)
+    path = File.join(__dir__, "fixtures", path)
     if ActiveSupport::Dependencies.autoload_paths.include?(path)
       yield
     else
@@ -175,7 +171,7 @@ end
 class Rack::TestCase < ActionDispatch::IntegrationTest
   def self.testing(klass = nil)
     if klass
-      @testing = "/#{klass.name.underscore}".sub!(/_controller$/, "")
+      @testing = "/#{klass.name.underscore}".sub(/_controller$/, "")
     else
       @testing
     end
@@ -230,6 +226,7 @@ module ActionController
       routes = ActionDispatch::Routing::RouteSet.new
       routes.draw(&block)
       include routes.url_helpers
+      routes
     end
   end
 
@@ -338,7 +335,6 @@ module RoutingTestHelpers
     end
 
     private
-
       def make_request(env)
         Request.new super, url_helpers, @block, strict
       end
@@ -356,88 +352,19 @@ class ImagesController < ResourcesController; end
 
 require "active_support/testing/method_call_assertions"
 
-class ForkingExecutor
-  class Server
-    include DRb::DRbUndumped
-
-    def initialize
-      @queue = Queue.new
-    end
-
-    def record(reporter, result)
-      reporter.record result
-    end
-
-    def <<(o)
-      o[2] = DRbObject.new(o[2]) if o
-      @queue << o
-    end
-    def pop; @queue.pop; end
-  end
-
-  def initialize(size)
-    @size  = size
-    @queue = Server.new
-    file   = File.join Dir.tmpdir, Dir::Tmpname.make_tmpname("rails-tests", "fd")
-    @url   = "drbunix://#{file}"
-    @pool  = nil
-    DRb.start_service @url, @queue
-  end
-
-  def <<(work); @queue << work; end
-
-  def shutdown
-    pool = @size.times.map {
-      fork {
-        DRb.stop_service
-        queue = DRbObject.new_with_uri @url
-        while job = queue.pop
-          klass    = job[0]
-          method   = job[1]
-          reporter = job[2]
-          result = Minitest.run_one_method klass, method
-          if result.error?
-            translate_exceptions result
-          end
-          queue.record reporter, result
-        end
-      }
-    }
-    @size.times { @queue << nil }
-    pool.each { |pid| Process.waitpid pid }
-  end
-
-  private
-    def translate_exceptions(result)
-      result.failures.map! { |e|
-        begin
-          Marshal.dump e
-          e
-        rescue TypeError
-          ex = Exception.new e.message
-          ex.set_backtrace e.backtrace
-          Minitest::UnexpectedError.new ex
-        end
-      }
-    end
-end
-
-if RUBY_ENGINE == "ruby" && PROCESS_COUNT > 0
-  # Use N processes (N defaults to 4)
-  Minitest.parallel_executor = ForkingExecutor.new(PROCESS_COUNT)
-end
-
 class ActiveSupport::TestCase
   include ActiveSupport::Testing::MethodCallAssertions
 
-  # Skips the current run on Rubinius using Minitest::Assertions#skip
-  private def rubinius_skip(message = "")
-    skip message if RUBY_ENGINE == "rbx"
-  end
-  # Skips the current run on JRuby using Minitest::Assertions#skip
-  private def jruby_skip(message = "")
-    skip message if defined?(JRUBY_VERSION)
-  end
+  private
+    # Skips the current run on Rubinius using Minitest::Assertions#skip
+    def rubinius_skip(message = "")
+      skip message if RUBY_ENGINE == "rbx"
+    end
+
+    # Skips the current run on JRuby using Minitest::Assertions#skip
+    def jruby_skip(message = "")
+      skip message if defined?(JRUBY_VERSION)
+    end
 end
 
 class DrivenByRackTest < ActionDispatch::SystemTestCase
@@ -447,3 +374,13 @@ end
 class DrivenBySeleniumWithChrome < ActionDispatch::SystemTestCase
   driven_by :selenium, using: :chrome
 end
+
+class DrivenBySeleniumWithHeadlessChrome < ActionDispatch::SystemTestCase
+  driven_by :selenium, using: :headless_chrome
+end
+
+class DrivenBySeleniumWithHeadlessFirefox < ActionDispatch::SystemTestCase
+  driven_by :selenium, using: :headless_firefox
+end
+
+require_relative "../../tools/test_common"

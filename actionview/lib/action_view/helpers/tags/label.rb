@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActionView
   module Helpers
     module Tags # :nodoc:
@@ -69,13 +71,8 @@ module ActionView
         end
 
         private
-
           def render_component(builder)
             builder.translation
-          end
-
-          def skip_default_ids?
-            false # The id is used as the `for` attribute.
           end
       end
     end

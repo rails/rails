@@ -1,10 +1,12 @@
+# frozen_string_literal: true
+
 require "rails/railtie/configuration"
 
 module Rails
   class Engine
     class Configuration < ::Rails::Railtie::Configuration
       attr_reader :root
-      attr_accessor :middleware
+      attr_accessor :middleware, :javascript_path
       attr_writer :eager_load_paths, :autoload_once_paths, :autoload_paths
 
       def initialize(root = nil)
@@ -12,6 +14,7 @@ module Rails
         @root = root
         @generators = app_generators.dup
         @middleware = Rails::Configuration::MiddlewareStackProxy.new
+        @javascript_path = "javascript"
       end
 
       # Holds generators configuration:
@@ -36,7 +39,9 @@ module Rails
         @paths ||= begin
           paths = Rails::Paths::Root.new(@root)
 
-          paths.add "app",                 eager_load: true, glob: "{*,*/concerns}"
+          paths.add "app",                 eager_load: true,
+                                           glob: "{*,*/concerns}",
+                                           exclude: ["assets", javascript_path]
           paths.add "app/assets",          glob: "*"
           paths.add "app/controllers",     eager_load: true
           paths.add "app/channels",        eager_load: true, glob: "**/*_channel.rb"

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module JobBuffer
   class << self
     def clear

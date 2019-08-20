@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/object/deep_dup"
 
 module ActiveRecord
@@ -29,7 +31,9 @@ module ActiveRecord
   # as well. With the above example:
   #
   #   Conversation.active
+  #   Conversation.not_active
   #   Conversation.archived
+  #   Conversation.not_archived
   #
   # Of course, you can also query them directly if the scopes don't fit your
   # needs:
@@ -95,8 +99,7 @@ module ActiveRecord
 
   module Enum
     def self.extended(base) # :nodoc:
-      base.class_attribute(:defined_enums, instance_writer: false)
-      base.defined_enums = {}
+      base.class_attribute(:defined_enums, instance_writer: false, default: {})
     end
 
     def inherited(base) # :nodoc:
@@ -140,10 +143,7 @@ module ActiveRecord
         end
       end
 
-      # TODO Change this to private once we've dropped Ruby 2.2 support.
-      # Workaround for Ruby 2.2 "private attribute?" warning.
-      protected
-
+      private
         attr_reader :name, :mapping, :subtype
     end
 
@@ -151,14 +151,17 @@ module ActiveRecord
       klass = self
       enum_prefix = definitions.delete(:_prefix)
       enum_suffix = definitions.delete(:_suffix)
+      enum_scopes = definitions.delete(:_scopes)
       definitions.each do |name, values|
+        assert_valid_enum_definition_values(values)
         # statuses = { }
         enum_values = ActiveSupport::HashWithIndifferentAccess.new
-        name        = name.to_sym
+        name = name.to_s
 
         # def self.statuses() statuses end
-        detect_enum_conflict!(name, name.to_s.pluralize, true)
-        klass.singleton_class.send(:define_method, name.to_s.pluralize) { enum_values }
+        detect_enum_conflict!(name, name.pluralize, true)
+        singleton_class.define_method(name.pluralize) { enum_values }
+        defined_enums[name] = enum_values
 
         detect_enum_conflict!(name, name)
         detect_enum_conflict!(name, "#{name}=")
@@ -170,7 +173,7 @@ module ActiveRecord
 
         _enum_methods_module.module_eval do
           pairs = values.respond_to?(:each_pair) ? values.each_pair : values.each_with_index
-          pairs.each do |value, i|
+          pairs.each do |label, value|
             if enum_prefix == true
               prefix = "#{name}_"
             elsif enum_prefix
@@ -182,23 +185,32 @@ module ActiveRecord
               suffix = "_#{enum_suffix}"
             end
 
-            value_method_name = "#{prefix}#{value}#{suffix}"
-            enum_values[value] = i
+            value_method_name = "#{prefix}#{label}#{suffix}"
+            enum_values[label] = value
+            label = label.to_s
 
-            # def active?() status == 0 end
+            # def active?() status == "active" end
             klass.send(:detect_enum_conflict!, name, "#{value_method_name}?")
-            define_method("#{value_method_name}?") { self[attr] == value.to_s }
+            define_method("#{value_method_name}?") { self[attr] == label }
 
-            # def active!() update! status: :active end
+            # def active!() update!(status: 0) end
             klass.send(:detect_enum_conflict!, name, "#{value_method_name}!")
             define_method("#{value_method_name}!") { update!(attr => value) }
 
-            # scope :active, -> { where status: 0 }
-            klass.send(:detect_enum_conflict!, name, value_method_name, true)
-            klass.scope value_method_name, -> { where(attr => value) }
+            # scope :active, -> { where(status: 0) }
+            # scope :not_active, -> { where.not(status: 0) }
+            if enum_scopes != false
+              klass.send(:detect_negative_condition!, value_method_name)
+
+              klass.send(:detect_enum_conflict!, name, value_method_name, true)
+              klass.scope value_method_name, -> { where(attr => value) }
+
+              klass.send(:detect_enum_conflict!, name, "not_#{value_method_name}", true)
+              klass.scope "not_#{value_method_name}", -> { where.not(attr => value) }
+            end
           end
         end
-        defined_enums[name.to_s] = enum_values
+        enum_values.freeze
       end
     end
 
@@ -211,14 +223,30 @@ module ActiveRecord
         end
       end
 
+      def assert_valid_enum_definition_values(values)
+        unless values.is_a?(Hash) || values.all? { |v| v.is_a?(Symbol) } || values.all? { |v| v.is_a?(String) }
+          error_message = <<~MSG
+            Enum values #{values} must be either a hash, an array of symbols, or an array of strings.
+          MSG
+          raise ArgumentError, error_message
+        end
+
+        if values.is_a?(Hash) && values.keys.any?(&:blank?) || values.is_a?(Array) && values.any?(&:blank?)
+          raise ArgumentError, "Enum label name must not be blank."
+        end
+      end
+
       ENUM_CONFLICT_MESSAGE = \
         "You tried to define an enum named \"%{enum}\" on the model \"%{klass}\", but " \
         "this will generate a %{type} method \"%{method}\", which is already defined " \
         "by %{source}."
+      private_constant :ENUM_CONFLICT_MESSAGE
 
       def detect_enum_conflict!(enum_name, method_name, klass_method = false)
         if klass_method && dangerous_class_method?(method_name)
           raise_conflict_error(enum_name, method_name, type: "class")
+        elsif klass_method && method_defined_within?(method_name, Relation)
+          raise_conflict_error(enum_name, method_name, type: "class", source: Relation.name)
         elsif !klass_method && dangerous_attribute_method?(method_name)
           raise_conflict_error(enum_name, method_name)
         elsif !klass_method && method_defined_within?(method_name, _enum_methods_module, Module)
@@ -234,6 +262,13 @@ module ActiveRecord
           method: method_name,
           source: source
         }
+      end
+
+      def detect_negative_condition!(method_name)
+        if method_name.start_with?("not_") && logger
+          logger.warn "An enum element in #{self.name} uses the prefix 'not_'." \
+            " This will cause a conflict with auto generated negative scopes."
+        end
       end
   end
 end

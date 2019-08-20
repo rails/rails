@@ -1,25 +1,27 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "active_support/core_ext/module/remove_method"
 
 module RemoveMethodTests
   class A
     def do_something
-      return 1
+      1
     end
 
     def do_something_protected
-      return 1
+      1
     end
     protected :do_something_protected
 
     def do_something_private
-      return 1
+      1
     end
     private :do_something_private
 
     class << self
       def do_something_else
-        return 2
+        2
       end
     end
   end
@@ -30,14 +32,14 @@ class RemoveMethodTest < ActiveSupport::TestCase
     RemoveMethodTests::A.class_eval {
       remove_possible_method(:do_something)
     }
-    assert !RemoveMethodTests::A.new.respond_to?(:do_something)
+    assert_not_respond_to RemoveMethodTests::A.new, :do_something
   end
 
   def test_remove_singleton_method_from_an_object
     RemoveMethodTests::A.class_eval {
       remove_possible_singleton_method(:do_something_else)
     }
-    assert !RemoveMethodTests::A.respond_to?(:do_something_else)
+    assert_not_respond_to RemoveMethodTests::A, :do_something_else
   end
 
   def test_redefine_method_in_an_object

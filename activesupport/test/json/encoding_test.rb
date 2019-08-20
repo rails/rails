@@ -1,7 +1,8 @@
+# frozen_string_literal: true
+
 require "securerandom"
 require "abstract_unit"
 require "active_support/core_ext/string/inflections"
-require "active_support/core_ext/regexp"
 require "active_support/json"
 require "active_support/time"
 require "time_zone_test_helpers"
@@ -20,20 +21,18 @@ class TestJSONEncoding < ActiveSupport::TestCase
 
   JSONTest::EncodingTestCases.constants.each do |class_tests|
     define_method("test_#{class_tests[0..-6].underscore}") do
-      begin
-        prev = ActiveSupport.use_standard_json_time_format
+      prev = ActiveSupport.use_standard_json_time_format
 
-        standard_class_tests = /Standard/.match?(class_tests)
+      standard_class_tests = /Standard/.match?(class_tests)
 
-        ActiveSupport.escape_html_entities_in_json  = !standard_class_tests
-        ActiveSupport.use_standard_json_time_format = standard_class_tests
-        JSONTest::EncodingTestCases.const_get(class_tests).each do |pair|
-          assert_equal pair.last, sorted_json(ActiveSupport::JSON.encode(pair.first))
-        end
-      ensure
-        ActiveSupport.escape_html_entities_in_json  = false
-        ActiveSupport.use_standard_json_time_format = prev
+      ActiveSupport.escape_html_entities_in_json  = !standard_class_tests
+      ActiveSupport.use_standard_json_time_format = standard_class_tests
+      JSONTest::EncodingTestCases.const_get(class_tests).each do |pair|
+        assert_equal pair.last, sorted_json(ActiveSupport::JSON.encode(pair.first))
       end
+    ensure
+      ActiveSupport.escape_html_entities_in_json  = false
+      ActiveSupport.use_standard_json_time_format = prev
     end
   end
 
@@ -98,11 +97,11 @@ class TestJSONEncoding < ActiveSupport::TestCase
   end
 
   def test_hash_should_allow_key_filtering_with_only
-    assert_equal %({"a":1}), ActiveSupport::JSON.encode({ "a" => 1, :b => 2, :c => 3 }, only: "a")
+    assert_equal %({"a":1}), ActiveSupport::JSON.encode({ "a" => 1, :b => 2, :c => 3 }, { only: "a" })
   end
 
   def test_hash_should_allow_key_filtering_with_except
-    assert_equal %({"b":2}), ActiveSupport::JSON.encode({ "foo" => "bar", :b => 2, :c => 3 }, except: ["foo", :c])
+    assert_equal %({"b":2}), ActiveSupport::JSON.encode({ "foo" => "bar", :b => 2, :c => 3 }, { except: ["foo", :c] })
   end
 
   def test_time_to_json_includes_local_offset
@@ -156,6 +155,16 @@ class TestJSONEncoding < ActiveSupport::TestCase
     assert_equal({ "foo" => "hello" }, JSON.parse(json))
   end
 
+  def test_struct_to_json_with_options_nested
+    klass = Struct.new(:foo, :bar)
+    struct = klass.new "hello", "world"
+    parent_struct = klass.new struct, "world"
+    json = parent_struct.to_json only: [:foo]
+
+    assert_equal({ "foo" => { "foo" => "hello" } }, JSON.parse(json))
+  end
+
+
   def test_hash_should_pass_encoding_options_to_children_in_as_json
     person = {
       name: "John",
@@ -185,7 +194,7 @@ class TestJSONEncoding < ActiveSupport::TestCase
   def test_array_should_pass_encoding_options_to_children_in_as_json
     people = [
       { name: "John", address: { city: "London", country: "UK" } },
-      { name: "Jean", address: { city: "Paris" , country: "France" } }
+      { name: "Jean", address: { city: "Paris", country: "France" } }
     ]
     json = people.as_json only: [:address, :city]
     expected = [
@@ -199,7 +208,7 @@ class TestJSONEncoding < ActiveSupport::TestCase
   def test_array_should_pass_encoding_options_to_children_in_to_json
     people = [
       { name: "John", address: { city: "London", country: "UK" } },
-      { name: "Jean", address: { city: "Paris" , country: "France" } }
+      { name: "Jean", address: { city: "Paris", country: "France" } }
     ]
     json = people.to_json only: [:address, :city]
 
@@ -208,10 +217,10 @@ class TestJSONEncoding < ActiveSupport::TestCase
 
   People = Class.new(BasicObject) do
     include Enumerable
-    def initialize()
+    def initialize
       @people = [
         { name: "John", address: { city: "London", country: "UK" } },
-        { name: "Jean", address: { city: "Paris" , country: "France" } }
+        { name: "Jean", address: { city: "Paris", country: "France" } }
       ]
     end
     def each(*, &blk)
@@ -452,8 +461,11 @@ EXPECTED
     assert_equal '{"number":null}', NaNNumber.new.to_json
   end
 
-  private
+  def test_to_json_works_on_io_objects
+    assert_equal STDOUT.to_s.to_json, STDOUT.to_json
+  end
 
+  private
     def object_keys(json_object)
       json_object[1..-2].scan(/([^{}:,\s]+):/).flatten.sort
     end

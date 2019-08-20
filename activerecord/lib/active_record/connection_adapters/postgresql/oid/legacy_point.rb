@@ -1,9 +1,11 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
       module OID # :nodoc:
         class LegacyPoint < Type::Value # :nodoc:
-          include Type::Helpers::Mutable
+          include ActiveModel::Type::Helpers::Mutable
 
           def type
             :point
@@ -32,7 +34,6 @@ module ActiveRecord
           end
 
           private
-
             def number_for_point(number)
               number.to_s.gsub(/\.0$/, "")
             end

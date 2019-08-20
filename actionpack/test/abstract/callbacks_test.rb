@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 module AbstractController
@@ -42,7 +44,7 @@ module AbstractController
       def aroundz
         @aroundz = "FIRST"
         yield
-        @aroundz << "SECOND"
+        @aroundz += "SECOND"
       end
 
       def index
@@ -152,7 +154,7 @@ module AbstractController
 
       test "when :except is specified, an after action is not triggered on that action" do
         @controller.process(:index)
-        assert !@controller.instance_variable_defined?("@authenticated")
+        assert_not @controller.instance_variable_defined?("@authenticated")
       end
     end
 
@@ -196,7 +198,7 @@ module AbstractController
 
       test "when :except is specified with an array, an after action is not triggered on that action" do
         @controller.process(:index)
-        assert !@controller.instance_variable_defined?("@authenticated")
+        assert_not @controller.instance_variable_defined?("@authenticated")
       end
     end
 

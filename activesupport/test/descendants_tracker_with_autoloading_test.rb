@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "active_support/descendants_tracker"
 require "active_support/dependencies"
@@ -10,7 +12,7 @@ class DescendantsTrackerWithAutoloadingTest < ActiveSupport::TestCase
     mark_as_autoloaded(*ALL) do
       ActiveSupport::DescendantsTracker.clear
       ALL.each do |k|
-        assert ActiveSupport::DescendantsTracker.descendants(k).empty?
+        assert_empty ActiveSupport::DescendantsTracker.descendants(k)
       end
     end
   end

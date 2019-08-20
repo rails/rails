@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "isolation/abstract_unit"
 require "rack/test"
 require "active_support/json"
@@ -45,7 +47,7 @@ module ApplicationTests
     end
 
     def assert_no_file_exists(filename)
-      assert !File.exist?(filename), "#{filename} does exist"
+      assert_not File.exist?(filename), "#{filename} does exist"
     end
 
     test "assets routes have higher priority" do
@@ -60,27 +62,10 @@ module ApplicationTests
 
       add_to_env_config "development", "config.assets.digest = false"
 
-      # FIXME: shush Sass warning spam, not relevant to testing Railties
-      Kernel.silence_warnings do
-        require "#{app_path}/config/environment"
-      end
+      require "#{app_path}/config/environment"
 
       get "/assets/demo.js"
       assert_equal 'a = "/assets/rails.png";', last_response.body.strip
-    end
-
-    test "assets do not require compressors until it is used" do
-      app_file "app/assets/javascripts/demo.js.erb", "<%= :alert %>();"
-      add_to_env_config "production", "config.assets.compile = true"
-      add_to_env_config "production", "config.assets.precompile = []"
-
-      # Load app env
-      app "production"
-
-      assert !defined?(Uglifier)
-      get "/assets/demo.js"
-      assert_match "alert()", last_response.body
-      assert defined?(Uglifier)
     end
 
     test "precompile creates the file, gives it the original asset's content and run in production as default" do
@@ -271,10 +256,10 @@ module ApplicationTests
       app "production"
 
       # Checking if Uglifier is defined we can know if Sprockets was reached or not
-      assert !defined?(Uglifier)
+      assert_not defined?(Uglifier)
       get "/assets/#{asset_path}"
       assert_match "alert()", last_response.body
-      assert !defined?(Uglifier)
+      assert_not defined?(Uglifier)
     end
 
     test "precompile properly refers files referenced with asset_path" do
@@ -326,7 +311,7 @@ module ApplicationTests
 
       manifest = Dir["#{app_path}/public/assets/.sprockets-manifest-*.json"].first
       assets = ActiveSupport::JSON.decode(File.read(manifest))
-      assert asset_path = assets["assets"].find { |(k, _)| k && k =~ /.png/ }[1]
+      assert asset_path = assets["assets"].find { |(k, _)| /.png/.match?(k) }[1]
 
       # Load app env
       app "development"
@@ -444,13 +429,13 @@ module ApplicationTests
     end
 
     test "digested assets are not mistakenly removed" do
-      app_file "app/assets/application.js", "alert();"
+      app_file "app/assets/application.css", "div { font-weight: bold }"
       add_to_config "config.assets.compile = true"
 
       precompile!
 
-      files = Dir["#{app_path}/public/assets/application-*.js"]
-      assert_equal 1, files.length, "Expected digested application.js asset to be generated, but none found"
+      files = Dir["#{app_path}/public/assets/application-*.css"]
+      assert_equal 1, files.length, "Expected digested application.css asset to be generated, but none found"
     end
 
     test "digested assets are removed from configured path" do
@@ -465,7 +450,7 @@ module ApplicationTests
       assert_equal 0, files.length, "Expected application.js asset to be removed, but still exists"
     end
 
-    test "asset urls should use the request's protocol by default" do
+    test "asset URLs should use the request's protocol by default" do
       app_with_assets_in_view
       add_to_config "config.asset_host = 'example.com'"
       add_to_env_config "development", "config.assets.digest = false"
@@ -475,13 +460,13 @@ module ApplicationTests
 
       class ::PostsController < ActionController::Base; end
 
-      get "/posts", {}, "HTTPS" => "off"
+      get "/posts", {}, { "HTTPS" => "off" }
       assert_match('src="http://example.com/assets/application.self.js', last_response.body)
-      get "/posts", {}, "HTTPS" => "on"
+      get "/posts", {}, { "HTTPS" => "on" }
       assert_match('src="https://example.com/assets/application.self.js', last_response.body)
     end
 
-    test "asset urls should be protocol-relative if no request is in scope" do
+    test "asset URLs should be protocol-relative if no request is in scope" do
       app_file "app/assets/images/rails.png", "notreallyapng"
       app_file "app/assets/javascripts/image_loader.js.erb", "var src='<%= image_path('rails.png') %>';"
       add_to_config "config.assets.precompile = %w{rails.png image_loader.js}"
@@ -506,7 +491,6 @@ module ApplicationTests
     end
 
     private
-
       def app_with_assets_in_view
         app_file "app/assets/javascripts/application.js", "//= require_tree ."
         app_file "app/assets/javascripts/xmlhr.js", "function f1() { alert(); }"

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveModel
   module Validations
     class AcceptanceValidator < EachValidator # :nodoc:
@@ -13,7 +15,6 @@ module ActiveModel
       end
 
       private
-
         def setup!(klass)
           klass.include(LazilyDefineAttributes.new(AttributeDefinition.new(attributes)))
         end
@@ -52,17 +53,13 @@ module ActiveModel
           def define_on(klass)
             attr_readers = attributes.reject { |name| klass.attribute_method?(name) }
             attr_writers = attributes.reject { |name| klass.attribute_method?("#{name}=") }
-            klass.send(:attr_reader, *attr_readers)
-            klass.send(:attr_writer, *attr_writers)
+            klass.define_attribute_methods
+            klass.attr_reader(*attr_readers)
+            klass.attr_writer(*attr_writers)
           end
 
-          # TODO Change this to private once we've dropped Ruby 2.2 support.
-          # Workaround for Ruby 2.2 "private attribute?" warning.
-          protected
-
-            attr_reader :attributes
-
           private
+            attr_reader :attributes
 
             def convert_to_reader_name(method_name)
               method_name.to_s.chomp("=")

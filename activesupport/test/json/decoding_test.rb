@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "active_support/json"
 require "active_support/time"
@@ -111,7 +113,6 @@ class TestJSONDecoding < ActiveSupport::TestCase
   end
 
   private
-
     def with_parse_json_times(value)
       old_value = ActiveSupport.parse_json_times
       ActiveSupport.parse_json_times = value

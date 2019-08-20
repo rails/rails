@@ -1,11 +1,13 @@
+# frozen_string_literal: true
+
 require "active_model/type"
 
-require "active_record/type/internal/abstract_json"
 require "active_record/type/internal/timezone"
 
 require "active_record/type/date"
 require "active_record/type/date_time"
 require "active_record/type/decimal_without_scale"
+require "active_record/type/json"
 require "active_record/type/time"
 require "active_record/type/text"
 require "active_record/type/unsigned_integer"
@@ -45,13 +47,11 @@ module ActiveRecord
       end
 
       private
-
-      def current_adapter_name
-        ActiveRecord::Base.connection.adapter_name.downcase.to_sym
-      end
+        def current_adapter_name
+          ActiveRecord::Base.connection.adapter_name.downcase.to_sym
+        end
     end
 
-    Helpers = ActiveModel::Type::Helpers
     BigInteger = ActiveModel::Type::BigInteger
     Binary = ActiveModel::Type::Binary
     Boolean = ActiveModel::Type::Boolean
@@ -69,6 +69,7 @@ module ActiveRecord
     register(:decimal, Type::Decimal, override: false)
     register(:float, Type::Float, override: false)
     register(:integer, Type::Integer, override: false)
+    register(:json, Type::Json, override: false)
     register(:string, Type::String, override: false)
     register(:text, Type::Text, override: false)
     register(:time, Type::Time, override: false)

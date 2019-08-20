@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 
 module ActiveRecord
@@ -49,6 +51,16 @@ module ActiveRecord
 
           conn.change_column :testings, :second, :integer, after: :third
           assert_equal %w(first third second), conn.columns(:testings).map(&:name)
+        end
+
+        def test_add_reference_with_positioning_first
+          conn.add_reference :testings, :new, polymorphic: true, first: true
+          assert_equal %w(new_id new_type first second third), conn.columns(:testings).map(&:name)
+        end
+
+        def test_add_reference_with_positioning_after
+          conn.add_reference :testings, :new, polymorphic: true, after: :first
+          assert_equal %w(first new_id new_type second third), conn.columns(:testings).map(&:name)
         end
       end
     end

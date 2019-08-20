@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/array/extract_options"
 require "action_dispatch/middleware/stack"
 require "action_dispatch/http/request"
@@ -24,16 +26,15 @@ module ActionController
       end
     end
 
-    def build(action, app = Proc.new)
+    def build(action, app = nil, &block)
       action = action.to_s
 
-      middlewares.reverse.inject(app) do |a, middleware|
+      middlewares.reverse.inject(app || block) do |a, middleware|
         middleware.valid?(action) ? middleware.build(a) : a
       end
     end
 
     private
-
       INCLUDE = ->(list, action) { list.include? action }
       EXCLUDE = ->(list, action) { !list.include? action }
       NULL    = ->(list, action) { true }
@@ -129,7 +130,7 @@ module ActionController
     end
 
     def self.make_response!(request)
-      ActionDispatch::Response.create.tap do |res|
+      ActionDispatch::Response.new.tap do |res|
         res.request = request
       end
     end
@@ -138,7 +139,7 @@ module ActionController
       false
     end
 
-    # Delegates to the class' <tt>controller_name</tt>
+    # Delegates to the class' <tt>controller_name</tt>.
     def controller_name
       self.class.controller_name
     end
@@ -146,7 +147,7 @@ module ActionController
     attr_internal :response, :request
     delegate :session, to: "@_request"
     delegate :headers, :status=, :location=, :content_type=,
-             :status, :location, :content_type, to: "@_response"
+             :status, :location, :content_type, :media_type, to: "@_response"
 
     def initialize
       @_request = nil
@@ -208,8 +209,7 @@ module ActionController
       @_request.reset_session
     end
 
-    class_attribute :middleware_stack
-    self.middleware_stack = ActionController::MiddlewareStack.new
+    class_attribute :middleware_stack, default: ActionController::MiddlewareStack.new
 
     def self.inherited(base) # :nodoc:
       base.middleware_stack = middleware_stack.dup
@@ -229,22 +229,20 @@ module ActionController
 
     # Returns a Rack endpoint for the given action name.
     def self.action(name)
+      app = lambda { |env|
+        req = ActionDispatch::Request.new(env)
+        res = make_response! req
+        new.dispatch(name, req, res)
+      }
+
       if middleware_stack.any?
-        middleware_stack.build(name) do |env|
-          req = ActionDispatch::Request.new(env)
-          res = make_response! req
-          new.dispatch(name, req, res)
-        end
+        middleware_stack.build(name, app)
       else
-        lambda { |env|
-          req = ActionDispatch::Request.new(env)
-          res = make_response! req
-          new.dispatch(name, req, res)
-        }
+        app
       end
     end
 
-    # Direct dispatch to the controller.  Instantiates the controller, then
+    # Direct dispatch to the controller. Instantiates the controller, then
     # executes the action named +name+.
     def self.dispatch(name, req, res)
       if middleware_stack.any?

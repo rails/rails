@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 class StarStarMimeController < ActionController::Base
@@ -29,7 +31,7 @@ class StarStarMimeControllerTest < ActionController::TestCase
 end
 
 class AbstractPostController < ActionController::Base
-  self.view_paths = File.dirname(__FILE__) + "/../../fixtures/post_test/"
+  self.view_paths = File.expand_path("../../fixtures/post_test", __dir__)
 end
 
 # For testing layouts which are set automatically
@@ -41,7 +43,6 @@ class PostController < AbstractPostController
   end
 
 private
-
   def with_iphone
     request.format = "iphone" if request.env["HTTP_ACCEPT"] == "text/iphone"
     yield

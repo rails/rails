@@ -2,13 +2,13 @@
 
 The easiest way to run the unit tests is through Rake. The default task runs
 the entire test suite for all classes. For more information, checkout the
-full array of rake tasks with "rake -T"
+full array of rake tasks with <tt>rake -T</tt>
 
-Rake can be found at http://docs.seattlerb.org/rake/.
+Rake can be found at https://ruby.github.io/rake/.
 
 == Running by hand
 
-To run a single test suite
+Run a single test suite:
 
    rake test TEST=path/to/test.rb
 
@@ -18,10 +18,9 @@ which can be further narrowed down to one test:
 
 == Dependency on Active Record and database setup
 
-Test cases in the test/activerecord/ directory depend on having
-activerecord and sqlite3 installed. If Active Record is not in
-actionview/../activerecord directory, or the sqlite3 rubygem is not installed,
-these tests are skipped.
-
+Test cases in the +test/activerecord/+ directory depend on having
+activerecord+ and +sqlite3+ installed. If Active Record is not in
+actionview/../activerecord+ directory, or the +sqlite3+ Ruby gem is not installed,
+  these tests are skipped.
 Other tests are runnable from a fresh copy of actionview without any configuration.
 

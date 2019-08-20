@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/module/attr_internal"
 require "active_support/core_ext/module/attribute_accessors"
 require "active_support/ordered_options"
@@ -140,30 +142,25 @@ module ActionView #:nodoc:
     include Helpers, ::ERB::Util, Context
 
     # Specify the proc used to decorate input tags that refer to attributes with errors.
-    cattr_accessor :field_error_proc
-    @@field_error_proc = Proc.new { |html_tag, instance| "<div class=\"field_with_errors\">#{html_tag}</div>".html_safe }
+    cattr_accessor :field_error_proc, default: Proc.new { |html_tag, instance| "<div class=\"field_with_errors\">#{html_tag}</div>".html_safe }
 
     # How to complete the streaming when an exception occurs.
     # This is our best guess: first try to close the attribute, then the tag.
-    cattr_accessor :streaming_completion_on_exception
-    @@streaming_completion_on_exception = %("><script>window.location = "/500.html"</script></html>)
+    cattr_accessor :streaming_completion_on_exception, default: %("><script>window.location = "/500.html"</script></html>)
 
     # Specify whether rendering within namespaced controllers should prefix
     # the partial paths for ActiveModel objects with the namespace.
     # (e.g., an Admin::PostsController would render @post using /admin/posts/_post.erb)
-    cattr_accessor :prefix_partial_path_with_controller_namespace
-    @@prefix_partial_path_with_controller_namespace = true
+    cattr_accessor :prefix_partial_path_with_controller_namespace, default: true
 
     # Specify default_formats that can be rendered.
     cattr_accessor :default_formats
 
     # Specify whether an error should be raised for missing translations
-    cattr_accessor :raise_on_missing_translations
-    @@raise_on_missing_translations = false
+    cattr_accessor :raise_on_missing_translations, default: false
 
     # Specify whether submit_tag should automatically disable on click
-    cattr_accessor :automatically_disable_submit_tag
-    @@automatically_disable_submit_tag = true
+    cattr_accessor :automatically_disable_submit_tag, default: true
 
     class_attribute :_routes
     class_attribute :logger
@@ -182,34 +179,131 @@ module ActionView #:nodoc:
       def xss_safe? #:nodoc:
         true
       end
+
+      def with_empty_template_cache # :nodoc:
+        subclass = Class.new(self) {
+          # We can't implement these as self.class because subclasses will
+          # share the same template cache as superclasses, so "changed?" won't work
+          # correctly.
+          define_method(:compiled_method_container)           { subclass }
+          define_singleton_method(:compiled_method_container) { subclass }
+        }
+      end
+
+      def changed?(other) # :nodoc:
+        compiled_method_container != other.compiled_method_container
+      end
     end
 
-    attr_accessor :view_renderer
+    attr_reader :view_renderer, :lookup_context
     attr_internal :config, :assigns
 
-    delegate :lookup_context, to: :view_renderer
     delegate :formats, :formats=, :locale, :locale=, :view_paths, :view_paths=, to: :lookup_context
 
     def assign(new_assigns) # :nodoc:
       @_assigns = new_assigns.each { |key, value| instance_variable_set("@#{key}", value) }
     end
 
-    def initialize(context = nil, assigns = {}, controller = nil, formats = nil) #:nodoc:
+    # :stopdoc:
+
+    def self.build_lookup_context(context)
+      case context
+      when ActionView::Renderer
+        context.lookup_context
+      when Array
+        ActionView::LookupContext.new(context)
+      when ActionView::PathSet
+        ActionView::LookupContext.new(context)
+      when nil
+        ActionView::LookupContext.new([])
+      else
+        raise NotImplementedError, context.class.name
+      end
+    end
+
+    def self.empty
+      with_view_paths([])
+    end
+
+    def self.with_view_paths(view_paths, assigns = {}, controller = nil)
+      with_context ActionView::LookupContext.new(view_paths), assigns, controller
+    end
+
+    def self.with_context(context, assigns = {}, controller = nil)
+      new context, assigns, controller
+    end
+
+    NULL = Object.new
+
+    # :startdoc:
+
+    def initialize(lookup_context = nil, assigns = {}, controller = nil, formats = NULL) #:nodoc:
       @_config = ActiveSupport::InheritableOptions.new
 
-      if context.is_a?(ActionView::Renderer)
-        @view_renderer = context
-      else
-        lookup_context = context.is_a?(ActionView::LookupContext) ?
-          context : ActionView::LookupContext.new(context)
-        lookup_context.formats  = formats if formats
-        lookup_context.prefixes = controller._prefixes if controller
-        @view_renderer = ActionView::Renderer.new(lookup_context)
+      unless formats == NULL
+        ActiveSupport::Deprecation.warn <<~eowarn.squish
+        Passing formats to ActionView::Base.new is deprecated
+        eowarn
       end
 
+      case lookup_context
+      when ActionView::LookupContext
+        @lookup_context = lookup_context
+      else
+        ActiveSupport::Deprecation.warn <<~eowarn.squish
+        ActionView::Base instances should be constructed with a lookup context,
+        assignments, and a controller.
+        eowarn
+        @lookup_context = self.class.build_lookup_context(lookup_context)
+      end
+
+      @view_renderer = ActionView::Renderer.new @lookup_context
+      @current_template = nil
+
+      @cache_hit = {}
       assign(assigns)
       assign_controller(controller)
       _prepare_context
+    end
+
+    def _run(method, template, locals, buffer, &block)
+      _old_output_buffer, _old_virtual_path, _old_template = @output_buffer, @virtual_path, @current_template
+      @current_template = template
+      @output_buffer = buffer
+      send(method, locals, buffer, &block)
+    ensure
+      @output_buffer, @virtual_path, @current_template = _old_output_buffer, _old_virtual_path, _old_template
+    end
+
+    def compiled_method_container
+      if self.class == ActionView::Base
+        ActiveSupport::Deprecation.warn <<~eowarn.squish
+          ActionView::Base instances must implement `compiled_method_container`
+          or use the class method `with_empty_template_cache` for constructing
+          an ActionView::Base instances that has an empty cache.
+        eowarn
+      end
+
+      self.class
+    end
+
+    def in_rendering_context(options)
+      old_view_renderer  = @view_renderer
+      old_lookup_context = @lookup_context
+
+      if !lookup_context.html_fallback_for_js && options[:formats]
+        formats = Array(options[:formats])
+        if formats == [:js]
+          formats << :html
+        end
+        @lookup_context = lookup_context.with_prepended_formats(formats)
+        @view_renderer = ActionView::Renderer.new @lookup_context
+      end
+
+      yield @view_renderer
+    ensure
+      @view_renderer = old_view_renderer
+      @lookup_context = old_lookup_context
     end
 
     ActiveSupport.run_load_hooks(:action_view, self)

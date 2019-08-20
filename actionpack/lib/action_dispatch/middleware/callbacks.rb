@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActionDispatch
   # Provides callbacks to be executed before and after dispatching the request.
   class Callbacks
@@ -22,10 +24,8 @@ module ActionDispatch
     def call(env)
       error = nil
       result = run_callbacks :call do
-        begin
-          @app.call(env)
-        rescue => error
-        end
+        @app.call(env)
+      rescue => error
       end
       raise error if error
       result

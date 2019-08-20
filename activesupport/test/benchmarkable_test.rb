@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 class BenchmarkableTest < ActiveSupport::TestCase
@@ -24,7 +26,7 @@ class BenchmarkableTest < ActiveSupport::TestCase
 
   def test_without_block
     assert_raise(LocalJumpError) { benchmark }
-    assert buffer.empty?
+    assert_empty buffer
   end
 
   def test_defaults
@@ -57,13 +59,13 @@ class BenchmarkableTest < ActiveSupport::TestCase
 
   def test_within_level
     logger.level = ActiveSupport::Logger::DEBUG
-    benchmark("included_debug_run", level: :debug) {}
+    benchmark("included_debug_run", level: :debug) { }
     assert_last_logged "included_debug_run"
   end
 
   def test_outside_level
     logger.level = ActiveSupport::Logger::ERROR
-    benchmark("skipped_debug_run", level: :debug) {}
+    benchmark("skipped_debug_run", level: :debug) { }
     assert_no_match(/skipped_debug_run/, buffer.last)
   ensure
     logger.level = ActiveSupport::Logger::DEBUG

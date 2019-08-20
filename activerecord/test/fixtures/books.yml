@@ -25,6 +25,7 @@ ddd:
   name: "Domain-Driven Design"
   format: "hardcover"
   status: 2
+  read_status: "forgotten"
 
 tlg:
   author_id: 1

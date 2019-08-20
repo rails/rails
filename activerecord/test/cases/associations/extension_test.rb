@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/post"
 require "models/comment"
@@ -36,6 +38,11 @@ class AssociationsExtensionsTest < ActiveRecord::TestCase
     assert_equal comments(:greetings), posts(:welcome).comments.not_again.find_most_recent
   end
 
+  def test_extension_with_dirty_target
+    comment = posts(:welcome).comments.build(body: "New comment")
+    assert_equal comment, posts(:welcome).comments.with_content("New comment")
+  end
+
   def test_marshalling_extensions
     david = developers(:david)
     assert_equal projects(:action_controller), david.projects.find_most_recent
@@ -63,8 +70,8 @@ class AssociationsExtensionsTest < ActiveRecord::TestCase
     extend!(Developer)
     extend!(MyApplication::Business::Developer)
 
-    assert Object.const_get "DeveloperAssociationNameAssociationExtension"
-    assert MyApplication::Business.const_get "DeveloperAssociationNameAssociationExtension"
+    assert Developer.const_get "AssociationNameAssociationExtension"
+    assert MyApplication::Business::Developer.const_get "AssociationNameAssociationExtension"
   end
 
   def test_proxy_association_after_scoped
@@ -73,9 +80,14 @@ class AssociationsExtensionsTest < ActiveRecord::TestCase
     assert_equal post.association(:comments), post.comments.where("1=1").the_association
   end
 
-  private
+  def test_association_with_default_scope
+    assert_raises OopsError do
+      posts(:welcome).comments.destroy_all
+    end
+  end
 
+  private
     def extend!(model)
-      ActiveRecord::Associations::Builder::HasMany.define_extensions(model, :association_name) {}
+      ActiveRecord::Associations::Builder::HasMany.send(:define_extensions, model, :association_name) { }
     end
 end

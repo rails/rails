@@ -1,21 +1,28 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 class TestCustomUrlHelpers < ActionDispatch::IntegrationTest
   class Linkable
     attr_reader :id
 
+    def self.name
+      super.demodulize
+    end
+
     def initialize(id)
       @id = id
     end
 
     def linkable_type
-      self.class.name.demodulize.underscore
+      self.class.name.underscore
     end
   end
 
   class Category < Linkable; end
   class Collection < Linkable; end
   class Product < Linkable; end
+  class Manufacturer < Linkable; end
 
   class Model
     extend ActiveModel::Naming
@@ -79,7 +86,7 @@ class TestCustomUrlHelpers < ActionDispatch::IntegrationTest
     get "/media/:id", to: "media#show", as: :media
     get "/pages/:id", to: "pages#show", as: :page
 
-    resources :categories, :collections, :products
+    resources :categories, :collections, :products, :manufacturers
 
     namespace :admin do
       get "/dashboard", to: "dashboard#index"
@@ -89,6 +96,7 @@ class TestCustomUrlHelpers < ActionDispatch::IntegrationTest
     direct("string")  { "http://www.rubyonrails.org" }
     direct(:helper)   { basket_url }
     direct(:linkable) { |linkable| [:"#{linkable.linkable_type}", { id: linkable.id }] }
+    direct(:nested)   { |linkable| route_for(:linkable, linkable) }
     direct(:params)   { |params| params }
     direct(:symbol)   { :basket }
     direct(:hash)     { { controller: "basket", action: "show" } }
@@ -102,6 +110,7 @@ class TestCustomUrlHelpers < ActionDispatch::IntegrationTest
 
     resolve("Article") { |article| [:post, { id: article.id }] }
     resolve("Basket") { |basket| [:basket] }
+    resolve("Manufacturer") { |manufacturer| route_for(:linkable, manufacturer) }
     resolve("User", anchor: "details") { |user, options| [:profile, options] }
     resolve("Video") { |video| [:media, { id: video.id }] }
     resolve(%w[Page CategoryPage ProductPage]) { |page| [:page, { id: page.id }] }
@@ -119,6 +128,7 @@ class TestCustomUrlHelpers < ActionDispatch::IntegrationTest
     @category = Category.new("1")
     @collection = Collection.new("2")
     @product = Product.new("3")
+    @manufacturer = Manufacturer.new("apple")
     @basket = Basket.new
     @user = User.new
     @video = Video.new("4")
@@ -136,14 +146,14 @@ class TestCustomUrlHelpers < ActionDispatch::IntegrationTest
   end
 
   def test_direct_paths
-    assert_equal "http://www.rubyonrails.org", website_path
-    assert_equal "http://www.rubyonrails.org", Routes.url_helpers.website_path
+    assert_equal "/", website_path
+    assert_equal "/", Routes.url_helpers.website_path
 
-    assert_equal "http://www.rubyonrails.org", string_path
-    assert_equal "http://www.rubyonrails.org", Routes.url_helpers.string_path
+    assert_equal "/", string_path
+    assert_equal "/", Routes.url_helpers.string_path
 
-    assert_equal "http://www.example.com/basket", helper_url
-    assert_equal "http://www.example.com/basket", Routes.url_helpers.helper_url
+    assert_equal "/basket", helper_path
+    assert_equal "/basket", Routes.url_helpers.helper_path
 
     assert_equal "/categories/1", linkable_path(@category)
     assert_equal "/categories/1", Routes.url_helpers.linkable_path(@category)
@@ -152,10 +162,13 @@ class TestCustomUrlHelpers < ActionDispatch::IntegrationTest
     assert_equal "/products/3", linkable_path(@product)
     assert_equal "/products/3", Routes.url_helpers.linkable_path(@product)
 
+    assert_equal "/categories/1", nested_path(@category)
+    assert_equal "/categories/1", Routes.url_helpers.nested_path(@category)
+
     assert_equal "/", params_path(@safe_params)
     assert_equal "/", Routes.url_helpers.params_path(@safe_params)
-    assert_raises(ArgumentError) { params_path(@unsafe_params) }
-    assert_raises(ArgumentError) { Routes.url_helpers.params_path(@unsafe_params) }
+    assert_raises(ActionController::UnfilteredParameters) { params_path(@unsafe_params) }
+    assert_raises(ActionController::UnfilteredParameters) { Routes.url_helpers.params_path(@unsafe_params) }
 
     assert_equal "/basket", symbol_path
     assert_equal "/basket", Routes.url_helpers.symbol_path
@@ -192,10 +205,13 @@ class TestCustomUrlHelpers < ActionDispatch::IntegrationTest
     assert_equal "http://www.example.com/products/3", linkable_url(@product)
     assert_equal "http://www.example.com/products/3", Routes.url_helpers.linkable_url(@product)
 
+    assert_equal "http://www.example.com/categories/1", nested_url(@category)
+    assert_equal "http://www.example.com/categories/1", Routes.url_helpers.nested_url(@category)
+
     assert_equal "http://www.example.com/", params_url(@safe_params)
     assert_equal "http://www.example.com/", Routes.url_helpers.params_url(@safe_params)
-    assert_raises(ArgumentError) { params_url(@unsafe_params) }
-    assert_raises(ArgumentError) { Routes.url_helpers.params_url(@unsafe_params) }
+    assert_raises(ActionController::UnfilteredParameters) { params_url(@unsafe_params) }
+    assert_raises(ActionController::UnfilteredParameters) { Routes.url_helpers.params_url(@unsafe_params) }
 
     assert_equal "http://www.example.com/basket", symbol_url
     assert_equal "http://www.example.com/basket", Routes.url_helpers.symbol_url
@@ -244,6 +260,9 @@ class TestCustomUrlHelpers < ActionDispatch::IntegrationTest
     assert_equal "/pages/8", polymorphic_path(@product_page)
     assert_equal "/pages/8", Routes.url_helpers.polymorphic_path(@product_page)
     assert_equal "/pages/8", ActionDispatch::Routing::PolymorphicRoutes::HelperMethodBuilder.path.handle_model_call(self, @product_page)
+
+    assert_equal "/manufacturers/apple", polymorphic_path(@manufacturer)
+    assert_equal "/manufacturers/apple", Routes.url_helpers.polymorphic_path(@manufacturer)
   end
 
   def test_resolve_urls
@@ -277,6 +296,9 @@ class TestCustomUrlHelpers < ActionDispatch::IntegrationTest
     assert_equal "http://www.example.com/pages/8", polymorphic_url(@product_page)
     assert_equal "http://www.example.com/pages/8", Routes.url_helpers.polymorphic_url(@product_page)
     assert_equal "http://www.example.com/pages/8", ActionDispatch::Routing::PolymorphicRoutes::HelperMethodBuilder.url.handle_model_call(self, @product_page)
+
+    assert_equal "http://www.example.com/manufacturers/apple", polymorphic_url(@manufacturer)
+    assert_equal "http://www.example.com/manufacturers/apple", Routes.url_helpers.polymorphic_url(@manufacturer)
   end
 
   def test_defining_direct_inside_a_scope_raises_runtime_error
@@ -301,5 +323,11 @@ class TestCustomUrlHelpers < ActionDispatch::IntegrationTest
         end
       end
     end
+  end
+
+  def test_defining_direct_url_registers_helper_method
+    assert_equal "http://www.example.com/basket", Routes.url_helpers.symbol_url
+    assert_equal true, Routes.named_routes.route_defined?(:symbol_url), "'symbol_url' named helper not found"
+    assert_equal true, Routes.named_routes.route_defined?(:symbol_path), "'symbol_path' named helper not found"
   end
 end

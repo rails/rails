@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/migration/helper"
 
 module ActiveRecord
@@ -159,6 +161,14 @@ module ActiveRecord
         with_change_table do |t|
           @connection.expect :add_column, nil, [:delete_me, :bar, :integer, { null: false }]
           t.column :bar, :integer, null: false
+        end
+      end
+
+      def test_column_creates_column_with_index
+        with_change_table do |t|
+          @connection.expect :add_column, nil, [:delete_me, :bar, :integer, {}]
+          @connection.expect :add_index, nil, [:delete_me, :bar, {}]
+          t.column :bar, :integer, index: true
         end
       end
 

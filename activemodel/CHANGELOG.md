@@ -1,32 +1,9 @@
-## Rails 5.1.0.beta1 (February 23, 2017) ##
+*   Add *_previously_was attribute methods when dirty tracking. Example:
 
-*   Remove deprecated behavior that halts callbacks when the return is false.
+        pirate.update(catchphrase: "Ahoy!")
+        pirate.previous_changes["catchphrase"] # => ["Thar She Blows!", "Ahoy!"]
+        pirate.catchphrase_previously_was # => "Thar She Blows!"
 
-    *Rafael Mendonça França*
+    *DHH*
 
-*   Remove unused `ActiveModel::TestCase` class.
-
-    *Yuji Yaginuma*
-
-*   Moved DecimalWithoutScale, Text, and UnsignedInteger from Active Model to Active Record
-
-    *Iain Beeston*
-
-*   Allow indifferent access in `ActiveModel::Errors`.
-
-    `#include?`, `#has_key?`, `#key?`, `#delete` and `#full_messages_for`.
-
-    *Kenichi Kamiya*
-
-*   Removed deprecated `:tokenizer` in the length validator.
-
-    *Rafael Mendonça França*
-
-*   Removed deprecated methods in `ActiveModel::Errors`.
-
-    `#get`, `#set`, `[]=`, `add_on_empty` and `add_on_blank`.
-
-    *Rafael Mendonça França*
-
-
-Please check [5-0-stable](https://github.com/rails/rails/blob/5-0-stable/activemodel/CHANGELOG.md) for previous changes.
+Please check [6-0-stable](https://github.com/rails/rails/blob/6-0-stable/activemodel/CHANGELOG.md) for previous changes.

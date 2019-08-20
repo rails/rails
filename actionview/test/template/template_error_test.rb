@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 class TemplateErrorTest < ActiveSupport::TestCase
@@ -31,5 +33,21 @@ class TemplateErrorTest < ActiveSupport::TestCase
     end
 
     assert_equal "#<ActionView::Template::Error: original>", error.inspect
+  end
+
+  def test_annotated_source_code_returns_empty_array_if_source_cant_be_found
+    template = Class.new do
+      def identifier
+        "something"
+      end
+    end.new
+
+    error = begin
+      raise
+    rescue
+      raise ActionView::Template::Error.new(template) rescue $!
+    end
+
+    assert_equal [], error.annotated_source_code
   end
 end

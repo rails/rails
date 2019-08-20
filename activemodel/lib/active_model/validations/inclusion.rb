@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_model/validations/clusivity"
 
 module ActiveModel
@@ -17,7 +19,7 @@ module ActiveModel
       # particular enumerable object.
       #
       #   class Person < ActiveRecord::Base
-      #     validates_inclusion_of :gender, in: %w( m f )
+      #     validates_inclusion_of :role, in: %w( admin contributor )
       #     validates_inclusion_of :age, in: 0..99
       #     validates_inclusion_of :format, in: %w( jpg gif png ), message: "extension %{value} is not included in the list"
       #     validates_inclusion_of :states, in: ->(person) { STATES[person.country] }

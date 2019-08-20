@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "monitor"
 
 module ActiveSupport
@@ -28,6 +30,12 @@ module ActiveSupport
         @pruning = false
       end
 
+      # Advertise cache versioning support.
+      def self.supports_cache_versioning?
+        true
+      end
+
+      # Delete all data stored in a given cache store.
       def clear(options = nil)
         synchronize do
           @data.clear
@@ -54,13 +62,13 @@ module ActiveSupport
         return if pruning?
         @pruning = true
         begin
-          start_time = Time.now
+          start_time = Concurrent.monotonic_time
           cleanup
           instrument(:prune, target_size, from: @cache_size) do
             keys = synchronize { @key_access.keys.sort { |a, b| @key_access[a].to_f <=> @key_access[b].to_f } }
             keys.each do |key|
               delete_entry(key, options)
-              return if @cache_size <= target_size || (max_time && Time.now - start_time > max_time)
+              return if @cache_size <= target_size || (max_time && Concurrent.monotonic_time - start_time > max_time)
             end
           end
         ensure
@@ -83,6 +91,7 @@ module ActiveSupport
         modify_value(name, -amount, options)
       end
 
+      # Deletes cache entries if the cache key matches a given pattern.
       def delete_matched(matcher, options = nil)
         options = merged_options(options)
         instrument(:delete_matched, matcher.inspect) do
@@ -105,7 +114,6 @@ module ActiveSupport
       end
 
       private
-
         PER_ENTRY_OVERHEAD = 240
 
         def cached_size(key, entry)

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "rack/utils"
 require "rack/request"
 require "rack/session/abstract/id"
@@ -28,7 +30,6 @@ module ActionDispatch
       end
 
     private
-
       def initialize_sid # :doc:
         @default_options.delete(:sidbits)
         @default_options.delete(:secure_random)
@@ -53,7 +54,7 @@ module ActionDispatch
       rescue ArgumentError => argument_error
         if argument_error.message =~ %r{undefined class/module ([\w:]*\w)}
           begin
-            # Note that the regexp does not allow $1 to end with a ':'
+            # Note that the regexp does not allow $1 to end with a ':'.
             $1.constantize
           rescue LoadError, NameError
             raise ActionDispatch::Session::SessionRestoreError
@@ -81,7 +82,6 @@ module ActionDispatch
       include SessionObject
 
       private
-
         def set_cookie(request, session_id, cookie)
           request.cookie_jar[key] = cookie
         end

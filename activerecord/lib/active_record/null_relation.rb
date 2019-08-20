@@ -1,10 +1,12 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module NullRelation # :nodoc:
     def pluck(*column_names)
       []
     end
 
-    def delete_all(_conditions = nil)
+    def delete_all
       0
     end
 
@@ -58,7 +60,6 @@ module ActiveRecord
     end
 
     private
-
       def exec_queries
         @records = [].freeze
       end

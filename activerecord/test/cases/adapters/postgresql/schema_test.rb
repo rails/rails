@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/default"
 require "support/schema_dumping_helper"
@@ -91,6 +93,7 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
     @connection.execute "CREATE INDEX #{INDEX_E_NAME} ON #{SCHEMA_NAME}.#{TABLE_NAME}  USING gin (#{INDEX_E_COLUMN});"
     @connection.execute "CREATE INDEX #{INDEX_E_NAME} ON #{SCHEMA2_NAME}.#{TABLE_NAME}  USING gin (#{INDEX_E_COLUMN});"
     @connection.execute "CREATE TABLE #{SCHEMA_NAME}.#{PK_TABLE_NAME} (id serial primary key)"
+    @connection.execute "CREATE TABLE #{SCHEMA2_NAME}.#{PK_TABLE_NAME} (id serial primary key)"
     @connection.execute "CREATE SEQUENCE #{SCHEMA_NAME}.#{UNMATCHED_SEQUENCE_NAME}"
     @connection.execute "CREATE TABLE #{SCHEMA_NAME}.#{UNMATCHED_PK_TABLE_NAME} (id integer NOT NULL DEFAULT nextval('#{SCHEMA_NAME}.#{UNMATCHED_SEQUENCE_NAME}'::regclass), CONSTRAINT unmatched_pkey PRIMARY KEY (id))"
   end
@@ -101,27 +104,27 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_schema_names
-    assert_equal ["public", "test_schema", "test_schema2"], @connection.schema_names
+    schema_names = @connection.schema_names
+    assert_includes schema_names, "public"
+    assert_includes schema_names, "test_schema"
+    assert_includes schema_names, "test_schema2"
+    assert_includes schema_names, "hint_plan" if @connection.supports_optimizer_hints?
   end
 
   def test_create_schema
-    begin
-      @connection.create_schema "test_schema3"
-      assert @connection.schema_names.include? "test_schema3"
-    ensure
-      @connection.drop_schema "test_schema3"
-    end
+    @connection.create_schema "test_schema3"
+    assert @connection.schema_names.include? "test_schema3"
+  ensure
+    @connection.drop_schema "test_schema3"
   end
 
   def test_raise_create_schema_with_existing_schema
-    begin
+    @connection.create_schema "test_schema3"
+    assert_raises(ActiveRecord::StatementInvalid) do
       @connection.create_schema "test_schema3"
-      assert_raises(ActiveRecord::StatementInvalid) do
-        @connection.create_schema "test_schema3"
-      end
-    ensure
-      @connection.drop_schema "test_schema3"
     end
+  ensure
+    @connection.drop_schema "test_schema3"
   end
 
   def test_drop_schema
@@ -143,7 +146,7 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
   def test_habtm_table_name_with_schema
     ActiveRecord::Base.connection.drop_schema "music", if_exists: true
     ActiveRecord::Base.connection.create_schema "music"
-    ActiveRecord::Base.connection.execute <<-SQL
+    ActiveRecord::Base.connection.execute <<~SQL
       CREATE TABLE music.albums (id serial primary key);
       CREATE TABLE music.songs (id serial primary key);
       CREATE TABLE music.albums_songs (album_id integer, song_id integer);
@@ -201,12 +204,12 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
 
   def test_data_source_exists_when_not_on_schema_search_path
     with_schema_search_path("PUBLIC") do
-      assert(!@connection.data_source_exists?(TABLE_NAME), "data_source exists but should not be found")
+      assert_not(@connection.data_source_exists?(TABLE_NAME), "data_source exists but should not be found")
     end
   end
 
   def test_data_source_exists_wrong_schema
-    assert(!@connection.data_source_exists?("foo.things"), "data_source should not exist")
+    assert_not(@connection.data_source_exists?("foo.things"), "data_source should not exist")
   end
 
   def test_data_source_exists_quoted_names
@@ -361,7 +364,7 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_primary_key_assuming_schema_search_path
-    with_schema_search_path(SCHEMA_NAME) do
+    with_schema_search_path("#{SCHEMA_NAME}, #{SCHEMA2_NAME}") do
       assert_equal "id", @connection.primary_key(PK_TABLE_NAME), "primary key should be found"
     end
   end
@@ -456,7 +459,7 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
         assert_equal :btree, index_d.using
         assert_equal :gin,   index_e.using
 
-        assert_equal :desc,  index_d.orders[INDEX_D_COLUMN]
+        assert_equal :desc,  index_d.orders
       end
     end
 
@@ -497,6 +500,78 @@ class SchemaForeignKeyTest < ActiveRecord::PostgreSQLTestCase
   end
 end
 
+class SchemaIndexOpclassTest < ActiveRecord::PostgreSQLTestCase
+  include SchemaDumpingHelper
+
+  setup do
+    @connection = ActiveRecord::Base.connection
+    @connection.create_table "trains" do |t|
+      t.string :name
+      t.string :position
+      t.text :description
+    end
+  end
+
+  teardown do
+    @connection.drop_table "trains", if_exists: true
+  end
+
+  def test_string_opclass_is_dumped
+    @connection.execute "CREATE INDEX trains_name_and_description ON trains USING btree(name text_pattern_ops, description text_pattern_ops)"
+
+    output = dump_table_schema "trains"
+
+    assert_match(/opclass: :text_pattern_ops/, output)
+  end
+
+  def test_non_default_opclass_is_dumped
+    @connection.execute "CREATE INDEX trains_name_and_description ON trains USING btree(name, description text_pattern_ops)"
+
+    output = dump_table_schema "trains"
+
+    assert_match(/opclass: \{ description: :text_pattern_ops \}/, output)
+  end
+
+  def test_opclass_class_parsing_on_non_reserved_and_cannot_be_function_or_type_keyword
+    @connection.enable_extension("pg_trgm")
+    @connection.execute "CREATE INDEX trains_position ON trains USING gin(position gin_trgm_ops)"
+    @connection.execute "CREATE INDEX trains_name_and_position ON trains USING btree(name, position text_pattern_ops)"
+
+    output = dump_table_schema "trains"
+
+    assert_match(/opclass: :gin_trgm_ops/, output)
+    assert_match(/opclass: \{ position: :text_pattern_ops \}/, output)
+  end
+end
+
+class SchemaIndexNullsOrderTest < ActiveRecord::PostgreSQLTestCase
+  include SchemaDumpingHelper
+
+  setup do
+    @connection = ActiveRecord::Base.connection
+    @connection.create_table "trains" do |t|
+      t.string :name
+      t.text :description
+    end
+  end
+
+  teardown do
+    @connection.drop_table "trains", if_exists: true
+  end
+
+  def test_nulls_order_is_dumped
+    @connection.execute "CREATE INDEX trains_name_and_description ON trains USING btree(name NULLS FIRST, description)"
+    output = dump_table_schema "trains"
+    assert_match(/order: \{ name: "NULLS FIRST" \}/, output)
+  end
+
+  def test_non_default_order_with_nulls_is_dumped
+    @connection.execute "CREATE INDEX trains_name_and_desc ON trains USING btree(name DESC NULLS LAST, description)"
+    output = dump_table_schema "trains"
+    assert_match(/order: \{ name: "DESC NULLS LAST" \}/, output)
+  end
+end
+
 class DefaultsUsingMultipleSchemasAndDomainTest < ActiveRecord::PostgreSQLTestCase
   setup do
     @connection = ActiveRecord::Base.connection
@@ -531,7 +606,7 @@ class DefaultsUsingMultipleSchemasAndDomainTest < ActiveRecord::PostgreSQLTestCa
   end
 
   def test_decimal_defaults_in_new_schema_when_overriding_domain
-    assert_equal BigDecimal.new("3.14159265358979323846"), Default.new.decimal_col, "Default of decimal column was not correctly parsed"
+    assert_equal BigDecimal("3.14159265358979323846"), Default.new.decimal_col, "Default of decimal column was not correctly parsed"
   end
 
   def test_bpchar_defaults_in_new_schema_when_overriding_domain

@@ -1,15 +1,53 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module ConnectionAdapters
-    # PostgreSQL-specific extensions to column definitions in a table.
-    class PostgreSQLColumn < Column #:nodoc:
-      delegate :array, :oid, :fmod, to: :sql_type_metadata
-      alias :array? :array
+    module PostgreSQL
+      class Column < ConnectionAdapters::Column # :nodoc:
+        delegate :oid, :fmod, to: :sql_type_metadata
 
-      def serial?
-        return unless default_function
+        def initialize(*, serial: nil, **)
+          super
+          @serial = serial
+        end
 
-        %r{\Anextval\('"?#{table_name}_#{name}_seq"?'::regclass\)\z} === default_function
+        def serial?
+          @serial
+        end
+
+        def array
+          sql_type_metadata.sql_type.end_with?("[]")
+        end
+        alias :array? :array
+
+        def sql_type
+          super.sub(/\[\]\z/, "")
+        end
+
+        def init_with(coder)
+          @serial = coder["serial"]
+          super
+        end
+
+        def encode_with(coder)
+          coder["serial"] = @serial
+          super
+        end
+
+        def ==(other)
+          other.is_a?(Column) &&
+            super &&
+            serial? == other.serial?
+        end
+        alias :eql? :==
+
+        def hash
+          Column.hash ^
+            super.hash ^
+            serial?.hash
+        end
       end
     end
+    PostgreSQLColumn = PostgreSQL::Column # :nodoc:
   end
 end

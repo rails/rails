@@ -1,3 +1,5 @@
-(Dir["#{File.dirname(__FILE__)}/core_ext/*.rb"]).each do |path|
+# frozen_string_literal: true
+
+Dir.glob(File.expand_path("core_ext/*.rb", __dir__)).each do |path|
   require path
 end

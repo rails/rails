@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActionCable
   module Channel
     # Streams allow channels to route broadcastings to the subscriber. A broadcasting is, as discussed elsewhere, a pubsub queue where any data
@@ -97,7 +99,7 @@ module ActionCable
       # Pass <tt>coder: ActiveSupport::JSON</tt> to decode messages as JSON before passing to the callback.
       # Defaults to <tt>coder: nil</tt> which does no decoding, passes raw messages.
       def stream_for(model, callback = nil, coder: nil, &block)
-        stream_from(broadcasting_for([ channel_name, model ]), callback || block, coder: coder)
+        stream_from(broadcasting_for(model), callback || block, coder: coder)
       end
 
       # Unsubscribes all streams associated with this channel from the pubsub queue.

@@ -1,19 +1,21 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   class TableMetadata # :nodoc:
-    delegate :foreign_type, :foreign_key, to: :association, prefix: true
-    delegate :association_primary_key, to: :association
+    delegate :foreign_type, :foreign_key, :join_primary_key, :join_foreign_key, to: :association, prefix: true
 
-    def initialize(klass, arel_table, association = nil)
+    def initialize(klass, arel_table, association = nil, types = klass)
       @klass = klass
+      @types = types
       @arel_table = arel_table
       @association = association
     end
 
     def resolve_column_aliases(hash)
       new_hash = hash.dup
-      hash.each do |key, _|
-        if (key.is_a?(Symbol)) && klass.attribute_alias?(key)
-          new_hash[klass.attribute_alias(key)] = new_hash.delete(key)
+      hash.each_key do |key|
+        if key.is_a?(Symbol) && new_key = klass.attribute_aliases[key.to_s]
+          new_hash[new_key] = new_hash.delete(key)
         end
       end
       new_hash
@@ -28,11 +30,7 @@ module ActiveRecord
     end
 
     def type(column_name)
-      if klass
-        klass.type_for_attribute(column_name.to_s)
-      else
-        Type.default_value
-      end
+      types.type_for_attribute(column_name)
     end
 
     def has_column?(column_name)
@@ -51,23 +49,27 @@ module ActiveRecord
       elsif association && !association.polymorphic?
         association_klass = association.klass
         arel_table = association_klass.arel_table.alias(table_name)
+        TableMetadata.new(association_klass, arel_table, association)
       else
         type_caster = TypeCaster::Connection.new(klass, table_name)
-        association_klass = nil
         arel_table = Arel::Table.new(table_name, type_caster: type_caster)
+        TableMetadata.new(nil, arel_table, association, type_caster)
       end
-
-      TableMetadata.new(association_klass, arel_table, association)
     end
 
     def polymorphic_association?
       association && association.polymorphic?
     end
 
-    # TODO Change this to private once we've dropped Ruby 2.2 support.
-    # Workaround for Ruby 2.2 "private attribute?" warning.
-    protected
+    def aggregated_with?(aggregation_name)
+      klass && reflect_on_aggregation(aggregation_name)
+    end
 
-      attr_reader :klass, :arel_table, :association
+    def reflect_on_aggregation(aggregation_name)
+      klass.reflect_on_aggregation(aggregation_name)
+    end
+
+    private
+      attr_reader :klass, :types, :arel_table, :association
   end
 end

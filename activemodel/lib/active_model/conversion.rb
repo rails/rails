@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveModel
   # == Active \Model \Conversion
   #
@@ -101,7 +103,7 @@ module ActiveModel
         @_to_partial_path ||= begin
           element = ActiveSupport::Inflector.underscore(ActiveSupport::Inflector.demodulize(name))
           collection = ActiveSupport::Inflector.tableize(name)
-          "#{collection}/#{element}".freeze
+          "#{collection}/#{element}"
         end
       end
     end

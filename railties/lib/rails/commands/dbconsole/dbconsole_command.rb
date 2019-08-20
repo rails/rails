@@ -1,3 +1,7 @@
+# frozen_string_literal: true
+
+require "active_support/deprecation"
+require "active_support/core_ext/string/filters"
 require "rails/command/environment_argument"
 
 module Rails
@@ -11,7 +15,7 @@ module Rails
     end
 
     def start
-      ENV["RAILS_ENV"] = @options[:environment] || environment
+      ENV["RAILS_ENV"] ||= @options[:environment] || environment
 
       case config["adapter"]
       when /^(jdbc)?mysql/
@@ -58,7 +62,7 @@ module Rails
         logon = ""
 
         if config["username"]
-          logon = config["username"]
+          logon = config["username"].dup
           logon << "/#{config['password']}" if config["password"] && @options["include_password"]
           logon << "@#{config['database']}" if config["database"]
         end
@@ -73,7 +77,7 @@ module Rails
         args += ["-P", "#{config['password']}"] if config["password"]
 
         if config["host"]
-          host_arg = "#{config['host']}"
+          host_arg = +"#{config['host']}"
           host_arg << ":#{config['port']}" if config["port"]
           args += ["-S", host_arg]
         end
@@ -87,16 +91,25 @@ module Rails
 
     def config
       @config ||= begin
-        if configurations[environment].blank?
+        # We need to check whether the user passed the database the
+        # first time around to show a consistent error message to people
+        # relying on 2-level database configuration.
+        if @options["database"] && configurations[database].blank?
+          raise ActiveRecord::AdapterNotSpecified, "'#{database}' database is not configured. Available configuration: #{configurations.inspect}"
+        elsif configurations[environment].blank? && configurations[database].blank?
           raise ActiveRecord::AdapterNotSpecified, "'#{environment}' database is not configured. Available configuration: #{configurations.inspect}"
         else
-          configurations[environment]
+          configurations[database] || configurations[environment].presence
         end
       end
     end
 
     def environment
       Rails.respond_to?(:env) ? Rails.env : Rails::Command.environment
+    end
+
+    def database
+      @options.fetch(:database, "primary")
     end
 
     private
@@ -140,14 +153,28 @@ module Rails
       class_option :mode, enum: %w( html list line column ), type: :string,
         desc: "Automatically put the sqlite3 database in the specified mode (html, list, line, column)."
 
-      class_option :header, type: :string
+      class_option :header, type: :boolean
 
-      class_option :environment, aliases: "-e", type: :string,
-        desc: "Specifies the environment to run this console under (test/development/production)."
+      class_option :connection, aliases: "-c", type: :string,
+        desc: "Specifies the connection to use."
+
+      class_option :database, aliases: "--db", type: :string,
+        desc: "Specifies the database to use."
 
       def perform
         extract_environment_option_from_argument
 
+        # RAILS_ENV needs to be set before config/application is required.
+        ENV["RAILS_ENV"] = options[:environment]
+
+        if options["connection"]
+          ActiveSupport::Deprecation.warn(<<-MSG.squish)
+            `connection` option is deprecated and will be removed in Rails 6.1. Please use `database` option instead.
+          MSG
+          options["database"] = options["connection"]
+        end
+
+        require_application_and_environment!
         Rails::DBConsole.start(options)
       end
     end

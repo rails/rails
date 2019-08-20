@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "sidekiq/api"
 
 require "sidekiq/testing"
@@ -8,7 +10,8 @@ module SidekiqJobsManager
     ActiveJob::Base.queue_adapter = :sidekiq
     unless can_run?
       puts "Cannot run integration tests for sidekiq. To be able to run integration tests for sidekiq you need to install and start redis.\n"
-      exit
+      status = ENV["CI"] ? false : true
+      exit status
     end
   end
 
@@ -28,7 +31,7 @@ module SidekiqJobsManager
       # Sidekiq is not warning-clean :(
       $VERBOSE = false
 
-      $stdin.reopen("/dev/null")
+      $stdin.reopen(File::NULL)
       $stdout.sync = true
       $stderr.sync = true
 
@@ -48,6 +51,7 @@ module SidekiqJobsManager
         self_write.puts("TERM")
       end
 
+      require "sidekiq/cli"
       require "sidekiq/launcher"
       sidekiq = Sidekiq::Launcher.new(queues: ["integration_tests"],
                                        environment: "test",

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/concern"
 
 module Rails
@@ -25,7 +27,6 @@ module Rails
         end
 
         private
-
           def method_missing(*args, &block)
             instance.send(*args, &block)
           end

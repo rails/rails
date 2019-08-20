@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module Type
     class HashLookupTypeMap < TypeMap # :nodoc:
@@ -14,7 +16,6 @@ module ActiveRecord
       end
 
       private
-
         def perform_fetch(type, *args, &block)
           @mapping.fetch(type, block).call(type, *args)
         end

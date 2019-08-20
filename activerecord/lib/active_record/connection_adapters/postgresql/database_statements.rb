@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
@@ -5,30 +7,6 @@ module ActiveRecord
         def explain(arel, binds = [])
           sql = "EXPLAIN #{to_sql(arel, binds)}"
           PostgreSQL::ExplainPrettyPrinter.new.pp(exec_query(sql, "EXPLAIN", binds))
-        end
-
-        def select_value(arel, name = nil, binds = []) # :nodoc:
-          select_result(arel, name, binds) do |result|
-            result.getvalue(0, 0) if result.ntuples > 0 && result.nfields > 0
-          end
-        end
-
-        def select_values(arel, name = nil, binds = []) # :nodoc:
-          select_result(arel, name, binds) do |result|
-            if result.nfields > 0
-              result.column_values(0)
-            else
-              []
-            end
-          end
-        end
-
-        # Executes a SELECT query and returns an array of rows. Each row is an
-        # array of field values.
-        def select_rows(arel, name = nil, binds = []) # :nodoc:
-          select_result(arel, name, binds) do |result|
-            result.values
-          end
         end
 
         # The internal PostgreSQL identifier of the money data type.
@@ -80,6 +58,8 @@ module ActiveRecord
 
         # Queries the database and returns the results in an Array-like object
         def query(sql, name = nil) #:nodoc:
+          materialize_transactions
+
           log(sql, name) do
             ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
               result_as_array @connection.async_exec(sql)
@@ -87,11 +67,24 @@ module ActiveRecord
           end
         end
 
+        READ_QUERY = ActiveRecord::ConnectionAdapters::AbstractAdapter.build_read_query_regexp(:begin, :commit, :explain, :select, :set, :show, :release, :savepoint, :rollback) # :nodoc:
+        private_constant :READ_QUERY
+
+        def write_query?(sql) # :nodoc:
+          !READ_QUERY.match?(sql)
+        end
+
         # Executes an SQL statement, returning a PG::Result object on success
         # or raising a PG::Error exception otherwise.
         # Note: the PG::Result object is manually memory managed; if you don't
         # need it specifically, you may want consider the <tt>exec_query</tt> wrapper.
         def execute(sql, name = nil)
+          if preventing_writes? && write_query?(sql)
+            raise ActiveRecord::ReadOnlyError, "Write query attempted while in readonly mode: #{sql}"
+          end
+
+          materialize_transactions
+
           log(sql, name) do
             ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
               @connection.async_exec(sql)
@@ -117,7 +110,7 @@ module ActiveRecord
         end
         alias :exec_update :exec_delete
 
-        def sql_for_insert(sql, pk, id_value, sequence_name, binds) # :nodoc:
+        def sql_for_insert(sql, pk, binds) # :nodoc:
           if pk.nil?
             # Extract the table from the insert sql. Yuck.
             table_ref = extract_table_ref_from_insert_sql(sql)
@@ -152,7 +145,7 @@ module ActiveRecord
 
         # Begins a transaction.
         def begin_db_transaction
-          execute "BEGIN"
+          execute("BEGIN", "TRANSACTION")
         end
 
         def begin_isolated_db_transaction(isolation)
@@ -162,26 +155,26 @@ module ActiveRecord
 
         # Commits a transaction.
         def commit_db_transaction
-          execute "COMMIT"
+          execute("COMMIT", "TRANSACTION")
         end
 
         # Aborts a transaction.
         def exec_rollback_db_transaction
-          execute "ROLLBACK"
+          execute("ROLLBACK", "TRANSACTION")
         end
 
         private
+          def build_truncate_statements(*table_names)
+            "TRUNCATE TABLE #{table_names.map(&method(:quote_table_name)).join(", ")}"
+          end
+
+          # Returns the current ID of a table's sequence.
+          def last_insert_id_result(sequence_name)
+            exec_query("SELECT currval(#{quote(sequence_name)})", "SQL")
+          end
 
           def suppress_composite_primary_key(pk)
             pk unless pk.is_a?(Array)
-          end
-
-          def select_result(arel, name, binds)
-            arel, binds = binds_from_relation(arel, binds)
-            sql = to_sql(arel, binds)
-            execute_and_clear(sql, name, binds) do |result|
-              yield result
-            end
           end
       end
     end

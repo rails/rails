@@ -1,8 +1,10 @@
+# frozen_string_literal: true
+
 require_relative "xml_mini_engine_test"
 
 XMLMiniEngineTest.run_with_platform("java") do
   class JDOMEngineTest < XMLMiniEngineTest
-    FILES_DIR = File.dirname(__FILE__) + "/../fixtures/xml"
+    FILES_DIR = File.expand_path("../fixtures/xml", __dir__)
 
     def test_not_allowed_to_expand_entities_to_files
       attack_xml = <<-EOT

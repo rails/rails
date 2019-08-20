@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveModel
   module Type
     class ImmutableString < Value # :nodoc:
@@ -15,7 +17,6 @@ module ActiveModel
       end
 
       private
-
         def cast_value(value)
           result = \
             case value

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "isolation/abstract_unit"
 
 module ApplicationTests
@@ -54,7 +56,7 @@ module ApplicationTests
       simple_controller
       expected = "Wed, 30 May 1984 19:43:31 GMT"
 
-      get "/expires/keeps_if_modified_since", {}, "HTTP_IF_MODIFIED_SINCE" => expected
+      get "/expires/keeps_if_modified_since", {}, { "HTTP_IF_MODIFIED_SINCE" => expected }
 
       assert_equal 200, last_response.status
       assert_equal expected, last_response.body, "cache should have kept If-Modified-Since"
@@ -117,12 +119,12 @@ module ApplicationTests
       assert_equal "miss, store", last_response.headers["X-Rack-Cache"]
       assert_equal "public", last_response.headers["Cache-Control"]
 
-      body = last_response.body
       etag = last_response.headers["ETag"]
 
-      get "/expires/expires_etag", {}, "If-None-Match" => etag
+      get "/expires/expires_etag", {}, { "HTTP_IF_NONE_MATCH" => etag }
       assert_equal "stale, valid, store", last_response.headers["X-Rack-Cache"]
-      assert_equal body,                  last_response.body
+      assert_equal 304, last_response.status
+      assert_equal "", last_response.body
     end
 
     def test_cache_works_with_etags_private
@@ -137,8 +139,8 @@ module ApplicationTests
       body = last_response.body
       etag = last_response.headers["ETag"]
 
-      get "/expires/expires_etag", { private: true }, "If-None-Match" => etag
-      assert_equal     "miss", last_response.headers["X-Rack-Cache"]
+      get "/expires/expires_etag", { private: true }, { "HTTP_IF_NONE_MATCH" => etag }
+      assert_equal "miss", last_response.headers["X-Rack-Cache"]
       assert_not_equal body,   last_response.body
     end
 
@@ -151,12 +153,12 @@ module ApplicationTests
       assert_equal "miss, store", last_response.headers["X-Rack-Cache"]
       assert_equal "public", last_response.headers["Cache-Control"]
 
-      body = last_response.body
       last = last_response.headers["Last-Modified"]
 
-      get "/expires/expires_last_modified", {}, "If-Modified-Since" => last
+      get "/expires/expires_last_modified", {}, { "HTTP_IF_MODIFIED_SINCE" => last }
       assert_equal "stale, valid, store", last_response.headers["X-Rack-Cache"]
-      assert_equal body,                  last_response.body
+      assert_equal 304, last_response.status
+      assert_equal "", last_response.body
     end
 
     def test_cache_works_with_last_modified_private
@@ -171,8 +173,8 @@ module ApplicationTests
       body = last_response.body
       last = last_response.headers["Last-Modified"]
 
-      get "/expires/expires_last_modified", { private: true }, "If-Modified-Since" => last
-      assert_equal     "miss", last_response.headers["X-Rack-Cache"]
+      get "/expires/expires_last_modified", { private: true }, { "HTTP_IF_MODIFIED_SINCE" => last }
+      assert_equal "miss", last_response.headers["X-Rack-Cache"]
       assert_not_equal body,   last_response.body
     end
   end

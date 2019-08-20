@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActionView
   # This is the main entry point for rendering. It basically delegates
   # to other objects like TemplateRenderer and PartialRenderer which
@@ -17,10 +19,14 @@ module ActionView
 
     # Main render entry point shared by Action View and Action Controller.
     def render(context, options)
+      render_to_object(context, options).body
+    end
+
+    def render_to_object(context, options) # :nodoc:
       if options.key?(:partial)
-        render_partial(context, options)
+        render_partial_to_object(context, options)
       else
-        render_template(context, options)
+        render_template_to_object(context, options)
       end
     end
 
@@ -39,11 +45,23 @@ module ActionView
 
     # Direct access to template rendering.
     def render_template(context, options) #:nodoc:
-      TemplateRenderer.new(@lookup_context).render(context, options)
+      render_template_to_object(context, options).body
     end
 
     # Direct access to partial rendering.
     def render_partial(context, options, &block) #:nodoc:
+      render_partial_to_object(context, options, &block).body
+    end
+
+    def cache_hits # :nodoc:
+      @cache_hits ||= {}
+    end
+
+    def render_template_to_object(context, options) #:nodoc:
+      TemplateRenderer.new(@lookup_context).render(context, options)
+    end
+
+    def render_partial_to_object(context, options, &block) #:nodoc:
       PartialRenderer.new(@lookup_context).render(context, options, block)
     end
   end

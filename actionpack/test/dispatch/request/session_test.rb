@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "action_dispatch/middleware/session/abstract_store"
 
@@ -20,6 +22,7 @@ module ActionDispatch
         s["foo"] = "bar"
         assert_equal "bar", s["foo"]
         assert_equal({ "foo" => "bar" }, s.to_hash)
+        assert_equal({ "foo" => "bar" }, s.to_h)
       end
 
       def test_create_merges_old
@@ -54,11 +57,21 @@ module ActionDispatch
         assert_equal %w[rails adequate], s.keys
       end
 
+      def test_keys_with_deferred_loading
+        s = Session.create(store_with_data, req, {})
+        assert_equal %w[sample_key], s.keys
+      end
+
       def test_values
         s = Session.create(store, req, {})
         s["rails"] = "ftw"
         s["adequate"] = "awesome"
         assert_equal %w[ftw awesome], s.values
+      end
+
+      def test_values_with_deferred_loading
+        s = Session.create(store_with_data, req, {})
+        assert_equal %w[sample_value], s.values
       end
 
       def test_clear
@@ -105,10 +118,30 @@ module ActionDispatch
         end
       end
 
+      def test_dig
+        session = Session.create(store, req, {})
+        session["one"] = { "two" => "3" }
+
+        assert_equal "3", session.dig("one", "two")
+        assert_equal "3", session.dig(:one, "two")
+
+        assert_nil session.dig("three", "two")
+        assert_nil session.dig("one", "three")
+        assert_nil session.dig("one", :two)
+      end
+
       private
         def store
           Class.new {
             def load_session(env); [1, {}]; end
+            def session_exists?(env); true; end
+            def delete_session(env, id, options); 123; end
+          }.new
+        end
+
+        def store_with_data
+          Class.new {
+            def load_session(env); [1, { "sample_key" => "sample_value" }]; end
             def session_exists?(env); true; end
             def delete_session(env, id, options); 123; end
           }.new

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 
 class Mixin < ActiveRecord::Base
@@ -8,10 +10,6 @@ class TouchTest < ActiveRecord::TestCase
 
   setup do
     travel_to Time.now
-  end
-
-  teardown do
-    travel_back
   end
 
   def test_update

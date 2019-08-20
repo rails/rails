@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 class HttpTokenAuthenticationTest < ActionController::TestCase
@@ -19,7 +21,6 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
     end
 
     private
-
       def authenticate
         authenticate_or_request_with_http_token do |token, _|
           token == "lifo"
@@ -148,7 +149,7 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
   end
 
   test "token_and_options returns empty string with empty token" do
-    token = ""
+    token = +""
     actual = ActionController::HttpAuthentication::Token.token_and_options(sample_request(token)).first
     expected = token
     assert_equal(expected, actual)
@@ -188,7 +189,6 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
   end
 
   private
-
     def sample_request(token, options = { nonce: "def" })
       authorization = options.inject([%{Token token="#{token}"}]) do |arr, (k, v)|
         arr << "#{k}=\"#{v}\""

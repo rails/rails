@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 class MimeTypeTest < ActiveSupport::TestCase
@@ -28,21 +30,21 @@ class MimeTypeTest < ActiveSupport::TestCase
 
   test "parse text with trailing star at the beginning" do
     accept = "text/*, text/html, application/json, multipart/form-data"
-    expect = [Mime[:html], Mime[:text], Mime[:js], Mime[:css], Mime[:ics], Mime[:csv], Mime[:vcf], Mime[:xml], Mime[:yaml], Mime[:json], Mime[:multipart_form]]
+    expect = [Mime[:html], Mime[:text], Mime[:js], Mime[:css], Mime[:ics], Mime[:csv], Mime[:vcf], Mime[:vtt], Mime[:xml], Mime[:yaml], Mime[:json], Mime[:multipart_form]]
     parsed = Mime::Type.parse(accept)
-    assert_equal expect, parsed
+    assert_equal expect.map(&:to_s), parsed.map(&:to_s)
   end
 
   test "parse text with trailing star in the end" do
     accept = "text/html, application/json, multipart/form-data, text/*"
-    expect = [Mime[:html], Mime[:json], Mime[:multipart_form], Mime[:text], Mime[:js], Mime[:css], Mime[:ics], Mime[:csv], Mime[:vcf], Mime[:xml], Mime[:yaml]]
+    expect = [Mime[:html], Mime[:json], Mime[:multipart_form], Mime[:text], Mime[:js], Mime[:css], Mime[:ics], Mime[:csv], Mime[:vcf], Mime[:vtt], Mime[:xml], Mime[:yaml]]
     parsed = Mime::Type.parse(accept)
-    assert_equal expect, parsed
+    assert_equal expect.map(&:to_s), parsed.map(&:to_s)
   end
 
   test "parse text with trailing star" do
     accept = "text/*"
-    expect = [Mime[:html], Mime[:text], Mime[:js], Mime[:css], Mime[:ics], Mime[:csv], Mime[:vcf], Mime[:xml], Mime[:yaml], Mime[:json]]
+    expect = [Mime[:html], Mime[:text], Mime[:js], Mime[:css], Mime[:ics], Mime[:csv], Mime[:vcf], Mime[:vtt], Mime[:xml], Mime[:yaml], Mime[:json]]
     parsed = Mime::Type.parse(accept)
     assert_equal expect.map(&:to_s).sort!, parsed.map(&:to_s).sort!
   end
@@ -94,57 +96,47 @@ class MimeTypeTest < ActiveSupport::TestCase
   end
 
   test "custom type" do
-    begin
-      type = Mime::Type.register("image/foo", :foo)
-      assert_equal type, Mime[:foo]
-    ensure
-      Mime::Type.unregister(:foo)
-    end
+    type = Mime::Type.register("image/foo", :foo)
+    assert_equal type, Mime[:foo]
+  ensure
+    Mime::Type.unregister(:foo)
   end
 
   test "custom type with type aliases" do
-    begin
-      Mime::Type.register "text/foobar", :foobar, ["text/foo", "text/bar"]
-      %w[text/foobar text/foo text/bar].each do |type|
-        assert_equal Mime[:foobar], type
-      end
-    ensure
-      Mime::Type.unregister(:foobar)
+    Mime::Type.register "text/foobar", :foobar, ["text/foo", "text/bar"]
+    %w[text/foobar text/foo text/bar].each do |type|
+      assert_equal Mime[:foobar], type
     end
+  ensure
+    Mime::Type.unregister(:foobar)
   end
 
   test "register callbacks" do
-    begin
-      registered_mimes = []
-      Mime::Type.register_callback do |mime|
-        registered_mimes << mime
-      end
-
-      mime = Mime::Type.register("text/foo", :foo)
-      assert_equal [mime], registered_mimes
-    ensure
-      Mime::Type.unregister(:foo)
+    registered_mimes = []
+    Mime::Type.register_callback do |mime|
+      registered_mimes << mime
     end
+
+    mime = Mime::Type.register("text/foo", :foo)
+    assert_equal [mime], registered_mimes
+  ensure
+    Mime::Type.unregister(:foo)
   end
 
   test "custom type with extension aliases" do
-    begin
-      Mime::Type.register "text/foobar", :foobar, [], [:foo, "bar"]
-      %w[foobar foo bar].each do |extension|
-        assert_equal Mime[:foobar], Mime::EXTENSION_LOOKUP[extension]
-      end
-    ensure
-      Mime::Type.unregister(:foobar)
+    Mime::Type.register "text/foobar", :foobar, [], [:foo, "bar"]
+    %w[foobar foo bar].each do |extension|
+      assert_equal Mime[:foobar], Mime::EXTENSION_LOOKUP[extension]
     end
+  ensure
+    Mime::Type.unregister(:foobar)
   end
 
   test "register alias" do
-    begin
-      Mime::Type.register_alias "application/xhtml+xml", :foobar
-      assert_equal Mime[:html], Mime::EXTENSION_LOOKUP["foobar"]
-    ensure
-      Mime::Type.unregister(:foobar)
-    end
+    Mime::Type.register_alias "application/xhtml+xml", :foobar
+    assert_equal Mime[:html], Mime::EXTENSION_LOOKUP["foobar"]
+  ensure
+    Mime::Type.unregister(:foobar)
   end
 
   test "type should be equal to symbol" do
@@ -157,7 +149,7 @@ class MimeTypeTest < ActiveSupport::TestCase
 
     types.each do |type|
       mime = Mime[type]
-      assert mime.respond_to?("#{type}?"), "#{mime.inspect} does not respond to #{type}?"
+      assert_respond_to mime, "#{type}?"
       assert_equal type, mime.symbol, "#{mime.inspect} is not #{type}?"
       invalid_types = types - [type]
       invalid_types.delete(:html)
@@ -178,8 +170,61 @@ class MimeTypeTest < ActiveSupport::TestCase
     assert Mime[:js] =~ "text/javascript"
     assert Mime[:js] =~ "application/javascript"
     assert Mime[:js] !~ "text/html"
-    assert !(Mime[:js] !~ "text/javascript")
-    assert !(Mime[:js] !~ "application/javascript")
+    assert_not (Mime[:js] !~ "text/javascript")
+    assert_not (Mime[:js] !~ "application/javascript")
     assert Mime[:html] =~ "application/xhtml+xml"
+  end
+
+  test "match?" do
+    assert Mime[:js].match?("text/javascript")
+    assert Mime[:js].match?("application/javascript")
+    assert_not Mime[:js].match?("text/html")
+  end
+
+  test "can be initialized with wildcards" do
+    assert_equal "*/*", Mime::Type.new("*/*").to_s
+    assert_equal "text/*", Mime::Type.new("text/*").to_s
+    assert_equal "video/*", Mime::Type.new("video/*").to_s
+  end
+
+  test "can be initialized with parameters" do
+    assert_equal "text/html; parameter", Mime::Type.new("text/html; parameter").to_s
+    assert_equal "text/html; parameter=abc", Mime::Type.new("text/html; parameter=abc").to_s
+    assert_equal 'text/html; parameter="abc"', Mime::Type.new('text/html; parameter="abc"').to_s
+    assert_equal 'text/html; parameter=abc; parameter2="xyz"', Mime::Type.new('text/html; parameter=abc; parameter2="xyz"').to_s
+  end
+
+  test "invalid mime types raise error" do
+    assert_raises Mime::Type::InvalidMimeType do
+      Mime::Type.new("too/many/slash")
+    end
+
+    assert_raises Mime::Type::InvalidMimeType do
+      Mime::Type.new("missingslash")
+    end
+
+    assert_raises Mime::Type::InvalidMimeType do
+      Mime::Type.new("improper/semicolon;")
+    end
+
+    assert_raises Mime::Type::InvalidMimeType do
+      Mime::Type.new('improper/semicolon; parameter=abc; parameter2="xyz";')
+    end
+
+    assert_raises Mime::Type::InvalidMimeType do
+      Mime::Type.new("text/html, text/plain")
+    end
+
+    assert_raises Mime::Type::InvalidMimeType do
+      Mime::Type.new("*/html")
+    end
+
+    assert_raises Mime::Type::InvalidMimeType do
+      Mime::Type.new("")
+    end
+
+    assert_raises Mime::Type::InvalidMimeType do
+      Mime::Type.new(nil)
+    end
   end
 end

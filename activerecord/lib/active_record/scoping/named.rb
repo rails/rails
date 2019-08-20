@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/array"
 require "active_support/core_ext/hash/except"
 require "active_support/core_ext/kernel/singleton_class"
@@ -22,20 +24,44 @@ module ActiveRecord
         # You can define a scope that applies to all finders using
         # {default_scope}[rdoc-ref:Scoping::Default::ClassMethods#default_scope].
         def all
-          if current_scope
-            current_scope.clone
+          scope = current_scope
+
+          if scope
+            if scope._deprecated_scope_source
+              ActiveSupport::Deprecation.warn(<<~MSG.squish)
+                Class level methods will no longer inherit scoping from `#{scope._deprecated_scope_source}`
+                in Rails 6.1. To continue using the scoped relation, pass it into the block directly.
+                To instead access the full set of models, as Rails 6.1 will, use `#{name}.unscoped`.
+              MSG
+            end
+
+            if self == scope.klass
+              scope.clone
+            else
+              relation.merge!(scope)
+            end
           else
             default_scoped
           end
         end
 
-        def default_scoped # :nodoc:
-          scope = build_default_scope
-
-          if scope
-            relation.spawn.merge!(scope)
+        def scope_for_association(scope = relation) # :nodoc:
+          if current_scope&.empty_scope?
+            scope
           else
-            relation
+            default_scoped(scope)
+          end
+        end
+
+        def default_scoped(scope = relation) # :nodoc:
+          build_default_scope(scope) || scope
+        end
+
+        def default_extensions # :nodoc:
+          if scope = scope_for_association || build_default_scope
+            scope.extensions
+          else
+            []
           end
         end
 
@@ -151,28 +177,33 @@ module ActiveRecord
               "a class method with the same name."
           end
 
+          if method_defined_within?(name, Relation)
+            raise ArgumentError, "You tried to define a scope named \"#{name}\" " \
+              "on the model \"#{self.name}\", but ActiveRecord::Relation already defined " \
+              "an instance method with the same name."
+          end
+
           valid_scope_name?(name)
           extension = Module.new(&block) if block
 
           if body.respond_to?(:to_proc)
-            singleton_class.send(:define_method, name) do |*args|
-              scope = all.scoping { instance_exec(*args, &body) }
+            singleton_class.define_method(name) do |*args|
+              scope = all._exec_scope(name, *args, &body)
               scope = scope.extending(extension) if extension
-
-              scope || all
+              scope
             end
           else
-            singleton_class.send(:define_method, name) do |*args|
-              scope = all.scoping { body.call(*args) }
+            singleton_class.define_method(name) do |*args|
+              scope = body.call(*args) || all
               scope = scope.extending(extension) if extension
-
-              scope || all
+              scope
             end
           end
+
+          generate_relation_method(name)
         end
 
         private
-
           def valid_scope_name?(name)
             if respond_to?(name, true) && logger
               logger.warn "Creating scope :#{name}. " \

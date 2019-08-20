@@ -1,10 +1,12 @@
+# frozen_string_literal: true
+
 require "active_support/inflector"
 
 class Module
   # Returns the name of the module containing this one.
   #
-  #   M::N.parent_name # => "M"
-  def parent_name
+  #   M::N.module_parent_name # => "M"
+  def module_parent_name
     if defined?(@parent_name)
       @parent_name
     else
@@ -12,6 +14,14 @@ class Module
       @parent_name = parent_name unless frozen?
       parent_name
     end
+  end
+
+  def parent_name
+    ActiveSupport::Deprecation.warn(<<-MSG.squish)
+      `Module#parent_name` has been renamed to `module_parent_name`.
+      `parent_name` is deprecated and will be removed in Rails 6.1.
+    MSG
+    module_parent_name
   end
 
   # Returns the module which contains this one according to its name.
@@ -22,15 +32,23 @@ class Module
   #   end
   #   X = M::N
   #
-  #   M::N.parent # => M
-  #   X.parent    # => M
+  #   M::N.module_parent # => M
+  #   X.module_parent    # => M
   #
   # The parent of top-level and anonymous modules is Object.
   #
-  #   M.parent          # => Object
-  #   Module.new.parent # => Object
+  #   M.module_parent          # => Object
+  #   Module.new.module_parent # => Object
+  def module_parent
+    module_parent_name ? ActiveSupport::Inflector.constantize(module_parent_name) : Object
+  end
+
   def parent
-    parent_name ? ActiveSupport::Inflector.constantize(parent_name) : Object
+    ActiveSupport::Deprecation.warn(<<-MSG.squish)
+      `Module#parent` has been renamed to `module_parent`.
+      `parent` is deprecated and will be removed in Rails 6.1.
+    MSG
+    module_parent
   end
 
   # Returns all the parents of this module according to its name, ordered from
@@ -42,13 +60,13 @@ class Module
   #   end
   #   X = M::N
   #
-  #   M.parents    # => [Object]
-  #   M::N.parents # => [M, Object]
-  #   X.parents    # => [M, Object]
-  def parents
+  #   M.module_parents    # => [Object]
+  #   M::N.module_parents # => [M, Object]
+  #   X.module_parents    # => [M, Object]
+  def module_parents
     parents = []
-    if parent_name
-      parts = parent_name.split("::")
+    if module_parent_name
+      parts = module_parent_name.split("::")
       until parts.empty?
         parents << ActiveSupport::Inflector.constantize(parts * "::")
         parts.pop
@@ -56,5 +74,13 @@ class Module
     end
     parents << Object unless parents.include? Object
     parents
+  end
+
+  def parents
+    ActiveSupport::Deprecation.warn(<<-MSG.squish)
+      `Module#parents` has been renamed to `module_parents`.
+      `parents` is deprecated and will be removed in Rails 6.1.
+    MSG
+    module_parents
   end
 end
