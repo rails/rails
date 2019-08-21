@@ -433,6 +433,19 @@ message.video.open do |file|
 end
 ```
 
+Accessing Files Before Save
+---------------------------
+
+The attachment will only be saved to storage when the record is saved. Accessing the `ActiveStorage::Blob#download` or `ActiveStorage::Blob#open` before saving will result in a `ActiveStorage::FileNotFoundError`.
+
+Use `ActiveRecord::Base#attachment_changes[]` to access the attachment before it is saved, for example to do custom validations or to extract information needed in a before_save method.
+
+```ruby
+avatar_file = message.attachment_changes['avatar'].attachable
+```
+
+In case of a has_many_attached use `attachables` array instead of `attachable`.
+
 Transforming Images
 -------------------
 
