@@ -3,6 +3,8 @@ git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
 ruby <%= "'#{RUBY_VERSION}'" -%>
 
+<%- if options[:database] == 'oracle' %>
+gem 'ruby-oci8', platforms: :ruby  # only for CRuby users<%- end -%>
 <% unless gemfile_entries.first.comment -%>
 
 <% end -%>
