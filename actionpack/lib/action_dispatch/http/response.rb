@@ -420,7 +420,6 @@ module ActionDispatch # :nodoc:
 
   private
     ContentTypeHeader = Struct.new :mime_type, :extra, :charset
-    NullContentTypeHeader = ContentTypeHeader.new nil, nil, nil
 
     def parse_content_type(content_type)
       if content_type && match = CONTENT_TYPE_PARSER.match(content_type)
