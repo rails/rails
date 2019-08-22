@@ -181,6 +181,10 @@ module ActiveSupport
       #   ActiveSupport::Duration.build(2716146).parts  # => {:months=>1, :days=>1}
       #
       def build(value)
+        unless value.is_a?(::Numeric)
+          raise TypeError, "can't build an #{self.name} from a #{value.class.name}"
+        end
+
         parts = {}
         remainder = value.to_f
 

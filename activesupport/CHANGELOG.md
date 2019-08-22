@@ -1,3 +1,36 @@
+*   Prevent `ActiveSupport::Duration.build(value)` from creating instances of
+    `ActiveSupport::Duration` unless `value` is of type `Numeric`.
+
+    Addresses the errant set of behaviours described in #37012 where
+    `ActiveSupport::Duration` comparisons would fail confusingly
+    or return unexpected results when comparing durations built from instances of `String`.
+
+    Before:
+
+        small_duration_from_string = ActiveSupport::Duration.build('9')
+        large_duration_from_string = ActiveSupport::Duration.build('100000000000000')
+        small_duration_from_int = ActiveSupport::Duration.build(9)
+
+        large_duration_from_string > small_duration_from_string
+            => false
+
+        small_duration_from_string == small_duration_from_int
+            => false
+
+        small_duration_from_int < large_duration_from_string
+            => ArgumentError (comparison of ActiveSupport::Duration::Scalar
+                    with ActiveSupport::Duration failed)
+
+        large_duration_from_string > small_duration_from_int
+            => ArgumentError (comparison of String with ActiveSupport::Duration failed)
+
+    After:
+
+        small_duration_from_string = ActiveSupport::Duration.build('9')
+            => TypeError (can't build an ActiveSupport::Duration from a String)
+
+    *Alexei Emam*
+
 *   Add `ActiveSupport::Cache::Store#delete_multi` method to delete multiple keys from the cache store.
 
     *Peter Zhu*

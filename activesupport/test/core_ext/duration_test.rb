@@ -661,6 +661,22 @@ class DurationTest < ActiveSupport::TestCase
     assert_equal 660, (d1 + 60).to_i
   end
 
+  def test_string_build_raises_error
+    error = assert_raises(TypeError) do
+      ActiveSupport::Duration.build("9")
+    end
+
+    assert_equal "can't build an ActiveSupport::Duration from a String", error.message
+  end
+
+  def test_non_numeric_build_raises_error
+    error = assert_raises(TypeError) do
+      ActiveSupport::Duration.build(nil)
+    end
+
+    assert_equal "can't build an ActiveSupport::Duration from a NilClass", error.message
+  end
+
   private
     def eastern_time_zone
       if Gem.win_platform?
