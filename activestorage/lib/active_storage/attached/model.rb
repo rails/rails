@@ -36,8 +36,10 @@ module ActiveStorage
         generated_association_methods.class_eval <<-CODE, __FILE__, __LINE__ + 1
           def #{name}
             @active_storage_attached_#{name} ||= ActiveStorage::Attached::One.new("#{name}", self)
-            @active_storage_attached_#{name}.delivery_method = :#{delivery_method}
-            @active_storage_attached_#{name}
+          end
+
+          def #{name}_delivery_method
+            :#{delivery_method}
           end
 
           def #{name}=(attachable)
@@ -94,10 +96,10 @@ module ActiveStorage
         generated_association_methods.class_eval <<-CODE, __FILE__, __LINE__ + 1
           def #{name}
             @active_storage_attached_#{name} ||= ActiveStorage::Attached::Many.new("#{name}", self)
-            @active_storage_attached_#{name}.attachments.each do |attachment|
-              attachment.delivery_method = :#{delivery_method}
-            end
-            @active_storage_attached_#{name}
+          end
+
+          def #{name}_delivery_method
+            :#{delivery_method}
           end
 
           def #{name}=(attachables)

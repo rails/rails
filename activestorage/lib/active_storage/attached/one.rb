@@ -18,18 +18,6 @@ module ActiveStorage
       !attached?
     end
 
-    def url(override_delivery_method = delivery_method)
-      attachment.url(override_delivery_method)
-    end
-
-    def variant(transformations)
-      attachment.variant(transformations, delivery_method)
-    end
-
-    def preview(transformations)
-      attachment.preview(transformations, delivery_method)
-    end
-
     # Attaches an +attachable+ to the record.
     #
     # If the record is persisted and unchanged, the attachment is saved to

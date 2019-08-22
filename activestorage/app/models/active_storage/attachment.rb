@@ -28,6 +28,18 @@ class ActiveStorage::Attachment < ActiveRecord::Base
     blob&.purge_later
   end
 
+  def url(override_delivery_method = record.public_send("#{name}_delivery_method"))
+    blob.url(override_delivery_method)
+  end
+
+  def variant(transformations)
+    blob.variant(transformations, record.public_send("#{name}_delivery_method"))
+  end
+
+  def preview(transformations)
+    blob.preview(transformations, record.public_send("#{name}_delivery_method"))
+  end
+
   private
     def identify_blob
       blob.identify
