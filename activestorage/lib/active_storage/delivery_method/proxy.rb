@@ -2,14 +2,11 @@
 
 module ActiveStorage
   class DeliveryMethod::Proxy < DeliveryMethod
+    # * :host - Specifies the host the link should be targeted at.
     def initialize(options = {})
-      @options = {
-        proxy_urls_expire_in: 1.year,
-        proxy_urls_public: true,
-        proxy_urls_host: nil
-      }.merge(options)
+      @options = options
 
-      @options[:only_path] = true unless options[:proxy_urls_host]
+      @options[:only_path] = true unless options[:host]
     end
 
     def representation_url(representation, url_options: {})
