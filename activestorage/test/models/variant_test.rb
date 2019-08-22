@@ -202,7 +202,7 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
     blob = create_file_blob filename: "racecar.jpg"
     variant = blob.variant(resize: "100x100").processed
 
-    assert_equal variant.deliver(:redirect), Rails.application.routes.url_helpers.route_for(:rails_blob_representation, blob.signed_id, variant.variation.key, blob.filename, only_path: true)
-    assert_equal variant.deliver(:proxy), Rails.application.routes.url_helpers.route_for(:rails_blob_representation_proxy, blob.signed_id, variant.variation.key, blob.filename, only_path: true)
+    assert_equal variant.url(:redirect), Rails.application.routes.url_helpers.route_for(:rails_blob_representation, blob.signed_id, variant.variation.key, blob.filename, only_path: true)
+    assert_equal variant.url(:proxy), Rails.application.routes.url_helpers.route_for(:rails_blob_representation_proxy, blob.signed_id, variant.variation.key, blob.filename, only_path: true)
   end
 end

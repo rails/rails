@@ -21,18 +21,6 @@ class ActiveStorage::RepresentationsControllerWithVariantsTest < ActionDispatch:
     assert_equal 67, image.height
   end
 
-  test "proxying varition should default to long public cache time" do
-    ActiveStorage.delivery_method = :proxy
-    get rails_blob_representation_proxy_url(
-      filename: @blob.filename,
-      signed_blob_id: @blob.signed_id,
-      variation_key: ActiveStorage::Variation.encode(resize: "100x100"))
-    ActiveStorage.delivery_method = :redirect
-
-    assert_response(:success)
-    assert_equal "max-age=31556952, public", @response.headers["Cache-Control"]
-  end
-
   test "showing variant with invalid signed blob ID" do
     get rails_blob_representation_url(
       filename: @blob.filename,

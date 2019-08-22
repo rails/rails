@@ -42,7 +42,7 @@ class ActiveStorage::PreviewTest < ActiveSupport::TestCase
     blob = create_file_blob(filename: "report.pdf", content_type: "application/pdf")
     preview = blob.preview(resize: "640x280").processed
 
-    assert_equal preview.deliver(:redirect), Rails.application.routes.url_helpers.route_for(:rails_blob_representation, blob.signed_id, preview.variation.key, blob.filename, only_path: true)
-    assert_equal preview.deliver(:proxy), Rails.application.routes.url_helpers.route_for(:rails_blob_representation_proxy, blob.signed_id, preview.variation.key, blob.filename, only_path: true)
+    assert_equal preview.url(:redirect), Rails.application.routes.url_helpers.route_for(:rails_blob_representation, blob.signed_id, preview.variation.key, blob.filename, only_path: true)
+    assert_equal preview.url(:proxy), Rails.application.routes.url_helpers.route_for(:rails_blob_representation_proxy, blob.signed_id, preview.variation.key, blob.filename, only_path: true)
   end
 end

@@ -196,8 +196,8 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
   test "change delivery on instance" do
     blob = create_file_blob filename: "racecar.jpg"
 
-    assert_equal blob.deliver(:redirect), Rails.application.routes.url_helpers.route_for(:rails_service_blob, blob.signed_id, blob.filename, only_path: true)
-    assert_equal blob.deliver(:proxy), Rails.application.routes.url_helpers.route_for(:rails_blob_proxy, blob.signed_id, blob.filename, only_path: true)
+    assert_equal blob.url(:redirect), Rails.application.routes.url_helpers.route_for(:rails_service_blob, blob.signed_id, blob.filename, only_path: true)
+    assert_equal blob.url(:proxy), Rails.application.routes.url_helpers.route_for(:rails_blob_proxy, blob.signed_id, blob.filename, only_path: true)
   end
 
   private
