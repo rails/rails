@@ -26,11 +26,15 @@ module ActionText
       def has_rich_text(name)
         class_eval <<-CODE, __FILE__, __LINE__ + 1
           def #{name}
-            rich_text_#{name} || build_rich_text_#{name}
+            rich_text_#{name}
+          end
+
+          def find_or_build_#{name}
+            self.#{name} || build_rich_text_#{name}
           end
 
           def #{name}=(body)
-            self.#{name}.body = body
+            find_or_build_#{name}.body = body
           end
         CODE
 

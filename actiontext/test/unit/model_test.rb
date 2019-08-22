@@ -17,7 +17,6 @@ class ActionText::ModelTest < ActiveSupport::TestCase
     message = Message.create!(subject: "Greetings")
     assert message.content.nil?
     assert message.content.blank?
-    assert message.content.empty?
     assert_not message.content.present?
   end
 
@@ -27,6 +26,13 @@ class ActionText::ModelTest < ActiveSupport::TestCase
     assert message.content.blank?
     assert message.content.empty?
     assert_not message.content.present?
+  end
+
+  test "abbreviated assignment" do
+    message = Message.create!(subject: "Greetings")
+    assert message.content.blank?
+    message.content ||= "Hello world"
+    assert_equal "Hello world", message.content.to_plain_text
   end
 
   test "embed extraction" do
@@ -81,7 +87,7 @@ class ActionText::ModelTest < ActiveSupport::TestCase
     message = Message.create!(subject: "Greetings")
 
     assert_no_difference -> { ActionText::RichText.count } do
-      assert_kind_of ActionText::RichText, message.content
+      assert message.content.nil?
     end
   end
 end
