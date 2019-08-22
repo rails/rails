@@ -426,7 +426,7 @@ module ActionDispatch # :nodoc:
       if content_type && match = CONTENT_TYPE_PARSER.match(content_type)
         ContentTypeHeader.new(match[:type], match[:extra], match[:charset])
       else
-        ContentTypeHeader.new(content_type, nil)
+        NullContentTypeHeader
       end
     end
 
