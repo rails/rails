@@ -198,7 +198,6 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
   end
 
   test "change delivery on instance" do
-    ActiveStorage.proxy_urls_host = nil
     blob = create_file_blob filename: "racecar.jpg"
     variant = blob.variant(resize: "100x100").processed
 

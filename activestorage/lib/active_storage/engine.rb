@@ -92,6 +92,8 @@ module ActiveStorage
           proxy: ActiveStorage::DeliveryMethod::Proxy.new
         }
         ActiveStorage.default_delivery_method = app.config.active_storage.default_delivery_method || :redirect
+
+        ActiveStorage.proxy_urls_expire_in = app.config.active_storage.proxy_urls_expire_in || 525600.minutes
       end
     end
 
