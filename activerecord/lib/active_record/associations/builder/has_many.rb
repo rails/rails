@@ -11,7 +11,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
     end
 
     def self.valid_dependent_options
-      [:destroy, :delete_all, :nullify, :restrict_with_error, :restrict_with_exception]
+      [:destroy, :delete_all, :background_delete, :nullify, :restrict_with_error, :restrict_with_exception]
     end
   end
 end

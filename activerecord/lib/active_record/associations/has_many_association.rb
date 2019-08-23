@@ -26,6 +26,12 @@ module ActiveRecord
           # No point in executing the counter update since we're going to destroy the parent anyway
           load_target.each { |t| t.destroyed_by_association = reflection }
           destroy_all
+
+        when :background_delete
+          # No point in executing the counter update since we're going to destroy the parent anyway
+          load_target.each { |t| t.destroyed_by_association = reflection }
+
+          ActiveRecord::DeleteAssociationLaterJob.perform_later(load_target)
         else
           delete_all
         end

@@ -28,6 +28,8 @@ module ActiveRecord
           case method
           when :delete
             target.delete
+          when :background_delete
+            ActiveRecord::DeleteAssociationLaterJob.perform_later([target])
           when :destroy
             target.destroyed_by_association = reflection
             target.destroy

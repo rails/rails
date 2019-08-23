@@ -282,6 +282,29 @@ ActiveRecord::Schema.define do
     t.string :name
   end
 
+  create_table :da_belongs_tos, force: true do |t|
+    t.references :delete_association_parent
+  end
+
+  create_table :da_has_ones, force: true do |t|
+    t.references :delete_association_parent
+  end
+
+  create_table :da_has_manies, force: true do |t|
+    t.references :delete_association_parent
+  end
+
+  create_table :da_has_many_throughs, force: true do |t|
+  end
+
+  create_table :da_joins, force: true do |t|
+    t.references :delete_association_parent
+    t.references :da_has_many_through
+  end
+
+  create_table :delete_association_parents, force: true do |t|
+  end
+
   create_table :developers, force: true do |t|
     t.string   :name
     t.string   :first_name

@@ -11,6 +11,8 @@ module ActiveRecord
         when :destroy
           target.destroy
           raise ActiveRecord::Rollback unless target.destroyed?
+        when :background_delete
+          ActiveRecord::DeleteAssociationLaterJob.perform_later([target])
         else
           target.send(options[:dependent])
         end
