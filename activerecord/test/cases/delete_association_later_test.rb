@@ -9,24 +9,24 @@ require "models/da_join"
 require "models/da_has_many"
 require "models/da_has_many_through"
 
- class DeleteAssociationLaterTest < ActiveRecord::TestCase
+class DeleteAssociationLaterTest < ActiveRecord::TestCase
   include ActiveJob::TestHelper
 
-   test "enqueues the has_many through to be deleted" do
-    da_has_many = DaHasManyThrough.create!
-    da_has_many2 = DaHasManyThrough.create!
-    parent = DeleteAssociationParent.create!
-    parent.da_has_many_through << [da_has_many2, da_has_many]
-    parent.save!
-    parent.destroy
-    assert_enqueued_with job: ActiveRecord::DeleteAssociationLaterJob
+  test "enqueues the has_many through to be deleted" do
+   da_has_many = DaHasManyThrough.create!
+   da_has_many2 = DaHasManyThrough.create!
+   parent = DeleteAssociationParent.create!
+   parent.da_has_many_through << [da_has_many2, da_has_many]
+   parent.save!
+   parent.destroy
+   assert_enqueued_with job: ActiveRecord::DeleteAssociationLaterJob
 
-     assert_difference -> { DaJoin.count }, -2 do
-       assert_difference -> { DaHasManyThrough.count }, -2 do
-        perform_enqueued_jobs only: ActiveRecord::DeleteAssociationLaterJob
-      end
+   assert_difference -> { DaJoin.count }, -2 do
+    assert_difference -> { DaHasManyThrough.count }, -2 do
+      perform_enqueued_jobs only: ActiveRecord::DeleteAssociationLaterJob
     end
   end
+ end
 
   test "belongs to" do
     parent = DeleteAssociationParent.create!
@@ -37,9 +37,9 @@ require "models/da_has_many_through"
 
     assert_enqueued_with job: ActiveRecord::DeleteAssociationLaterJob
 
-     assert_difference -> { DeleteAssociationParent.count }, -1 do
-      perform_enqueued_jobs only: ActiveRecord::DeleteAssociationLaterJob
-    end
+    assert_difference -> { DeleteAssociationParent.count }, -1 do
+     perform_enqueued_jobs only: ActiveRecord::DeleteAssociationLaterJob
+   end
   end
 
   test "has_one" do
@@ -50,9 +50,9 @@ require "models/da_has_many_through"
     parent.destroy
     assert_enqueued_with job: ActiveRecord::DeleteAssociationLaterJob
 
-     assert_difference -> { DaHasOne.count }, -1 do
-      perform_enqueued_jobs only: ActiveRecord::DeleteAssociationLaterJob
-    end
+    assert_difference -> { DaHasOne.count }, -1 do
+     perform_enqueued_jobs only: ActiveRecord::DeleteAssociationLaterJob
+   end
   end
 
   test "has_many" do
@@ -64,8 +64,8 @@ require "models/da_has_many_through"
     parent.destroy
     assert_enqueued_with job: ActiveRecord::DeleteAssociationLaterJob
 
-     assert_difference -> { DaHasMany.count }, -2 do
-      perform_enqueued_jobs only: ActiveRecord::DeleteAssociationLaterJob
-    end
+    assert_difference -> { DaHasMany.count }, -2 do
+     perform_enqueued_jobs only: ActiveRecord::DeleteAssociationLaterJob
+   end
   end
 end
