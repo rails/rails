@@ -139,6 +139,24 @@ module ActionView
         end
       end
 
+      def distance_of_dates_in_words_simple_example(from:, to:)
+        distance = DateDistance.new(from, to)
+
+        duration = if distance.in_days < 1.0
+          { key: :x_hours, count: [distance.in_hours.round, 1].min }
+        elsif distance.in_days < 30.0
+          { key: :x_days, count: distance.in_days.round }
+        elsif distance.in_years < 1.0
+          { key: :x_months, count: distance.in_months.round }
+        else
+          { key: :x_years, count: distance.in_years.round }
+        end
+
+        I18n.with_options scope: :'datetime.distance_in_words' do |locale|
+          locale.t(duration[:key], count: duration[:count])
+        end
+      end
+
       class DateDistance
         attr_reader :from_time, :to_time, :in_minutes, :in_seconds
 
