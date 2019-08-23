@@ -572,7 +572,7 @@ class ResponseIntegrationTest < ActionDispatch::IntegrationTest
 
     assert_equal("text/csv; header=present; charset=utf-16", @response.headers["Content-Type"])
     assert_equal("text/csv; header=present; charset=utf-16", @response.content_type)
-    assert_equal("text/csv", @response.media_type)
+    assert_equal("text/csv; header=present", @response.media_type)
     assert_equal("utf-16", @response.charset)
   end
 
@@ -590,7 +590,7 @@ class ResponseIntegrationTest < ActionDispatch::IntegrationTest
 
     assert_equal('text/csv; header=present; charset="utf-16"', @response.headers["Content-Type"])
     assert_equal('text/csv; header=present; charset="utf-16"', @response.content_type)
-    assert_equal("text/csv", @response.media_type)
+    assert_equal("text/csv; header=present", @response.media_type)
     assert_equal("utf-16", @response.charset)
   end
 
