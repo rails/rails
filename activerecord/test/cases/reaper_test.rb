@@ -5,23 +5,13 @@ require "cases/helper"
 module ActiveRecord
   module ConnectionAdapters
     class ReaperTest < ActiveRecord::TestCase
-      attr_reader :pool
-
-      def setup
-        super
-        @pool = ConnectionPool.new ActiveRecord::Base.connection_pool.spec
-      end
-
-      teardown do
-        @pool.connections.each(&:close)
-      end
-
       class FakePool
         attr_reader :reaped
         attr_reader :flushed
 
-        def initialize
+        def initialize(discarded: false)
           @reaped = false
+          @discarded = discarded
         end
 
         def reap
@@ -30,6 +20,14 @@ module ActiveRecord
 
         def flush
           @flushed = true
+        end
+
+        def discard!
+          @discarded = true
+        end
+
+        def discarded?
+          @discarded
         end
       end
 
@@ -40,6 +38,8 @@ module ActiveRecord
         reaper = ConnectionPool::Reaper.new(fp, nil)
         reaper.run
         assert_not fp.reaped
+      ensure
+        fp.discard!
       end
 
       def test_some_time
@@ -53,10 +53,17 @@ module ActiveRecord
         end
         assert fp.reaped
         assert fp.flushed
+      ensure
+        fp.discard!
       end
 
       def test_pool_has_reaper
+        spec = ActiveRecord::Base.connection_pool.spec.dup
+        pool = ConnectionPool.new spec
+
         assert pool.reaper
+      ensure
+        pool.discard!
       end
 
       def test_reaping_frequency_configuration
@@ -64,6 +71,8 @@ module ActiveRecord
         spec.config[:reaping_frequency] = "10.01"
         pool = ConnectionPool.new spec
         assert_equal 10.01, pool.reaper.frequency
+      ensure
+        pool.discard!
       end
 
       def test_connection_pool_starts_reaper
@@ -80,6 +89,8 @@ module ActiveRecord
 
         wait_for_conn_idle(conn)
         assert_not_predicate conn, :in_use?
+      ensure
+        pool.discard!
       end
 
       def test_reaper_works_after_pool_discard
@@ -136,6 +147,26 @@ module ActiveRecord
 
         Process.waitpid(pid)
         assert $?.success?
+      ensure
+        pool.discard!
+      end
+
+      def test_reaper_does_not_reap_discarded_connection_pools
+        discarded_pool = FakePool.new(discarded: true)
+        pool = FakePool.new
+        frequency = 0.001
+
+        ConnectionPool::Reaper.new(discarded_pool, frequency).run
+        ConnectionPool::Reaper.new(pool, frequency).run
+
+        until pool.flushed
+          Thread.pass
+        end
+
+        assert_not discarded_pool.reaped
+        assert pool.reaped
+      ensure
+        pool.discard!
       end
 
       def new_conn_in_thread(pool)

@@ -336,7 +336,10 @@ module ActiveRecord
                 while running
                   sleep t
                   @mutex.synchronize do
-                    @pools[frequency].select!(&:weakref_alive?)
+                    @pools[frequency].select! do |pool|
+                      pool.weakref_alive? && !pool.discarded?
+                    end
+
                     @pools[frequency].each do |p|
                       p.reap
                       p.flush
@@ -532,12 +535,16 @@ module ActiveRecord
       # See AbstractAdapter#discard!
       def discard! # :nodoc:
         synchronize do
-          return if @connections.nil? # already discarded
+          return if self.discarded?
           @connections.each do |conn|
             conn.discard!
           end
           @connections = @available = @thread_cached_conns = nil
         end
+      end
+
+      def discarded? # :nodoc:
+        @connections.nil?
       end
 
       # Clears the cache which maps classes and re-connects connections that
@@ -648,7 +655,7 @@ module ActiveRecord
       # or a thread dies unexpectedly.
       def reap
         stale_connections = synchronize do
-          return unless @connections
+          return if self.discarded?
           @connections.select do |conn|
             conn.in_use? && !conn.owner.alive?
           end.each do |conn|
@@ -673,7 +680,7 @@ module ActiveRecord
         return if minimum_idle.nil?
 
         idle_connections = synchronize do
-          return unless @connections
+          return if self.discarded?
           @connections.select do |conn|
             !conn.in_use? && conn.seconds_idle >= minimum_idle
           end.each do |conn|
