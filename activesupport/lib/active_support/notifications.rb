@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "concurrent/utility/monotonic_time"
 require "active_support/notifications/instrumenter"
 require "active_support/notifications/fanout"
 require "active_support/per_thread_registry"
