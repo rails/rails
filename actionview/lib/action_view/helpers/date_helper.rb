@@ -231,7 +231,11 @@ module ActionView
       # Note that you cannot pass a <tt>Numeric</tt> value to <tt>time_ago_in_words</tt>.
       #
       def time_ago_in_words(from_time, options = {})
-        distance_of_time_in_words(from_time, Time.now, options)
+        if options[:real_days] && (from_time - Time.now).abs >= 1.day
+          distance_of_time_in_words(from_time.midday, Time.now.midday, options)
+        else
+          distance_of_time_in_words(from_time, Time.now, options)
+        end
       end
 
       alias_method :distance_of_time_in_words_to_now, :time_ago_in_words
