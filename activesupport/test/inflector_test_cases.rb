@@ -291,6 +291,7 @@ module InflectorTestCases
     "this was 'fake news'"  => "This Was 'Fake News'",
     "new name(s)"           => "New Name(s)",
     "new (names)"           => "New (Names)",
+    "their (mis)deeds"      => "Their (Mis)deeds",
     ActiveSupport::SafeBuffer.new("confirmation num") => "Confirmation Num"
   }
 
