@@ -112,7 +112,6 @@ module ActiveModel
         defaults[:attributes] = attributes
 
         validations.each do |key, options|
-          next unless options
           key = "#{key.to_s.camelize}Validator"
 
           begin
@@ -120,6 +119,8 @@ module ActiveModel
           rescue NameError
             raise ArgumentError, "Unknown validator: '#{key}'"
           end
+
+          next unless options
 
           validates_with(validator, defaults.merge(_parse_validates_options(options)))
         end
