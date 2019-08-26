@@ -41,7 +41,7 @@ module ActiveRecord
   # separated by a blank line for your viewing pleasure.
   #
   # Note: Fixtures are unordered. If you want ordered fixtures, use the omap YAML type.
-  # See http://yaml.org/type/omap.html
+  # See https://yaml.org/type/omap.html
   # for the specification. You will need ordered fixtures when you have foreign key constraints
   # on keys in the same table. This is commonly needed for tree structures. Example:
   #
