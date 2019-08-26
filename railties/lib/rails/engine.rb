@@ -471,8 +471,7 @@ module Rails
     end
 
     def eager_load!
-      # Already done by Zeitwerk::Loader.eager_load_all in the finisher.
-      return if Rails.autoloaders.zeitwerk_enabled?
+      return Zeitwerk::Loader.eager_load_all if Rails.autoloaders.zeitwerk_enabled?
 
       config.eager_load_paths.each do |load_path|
         # Starts after load_path plus a slash, ends before ".rb".
