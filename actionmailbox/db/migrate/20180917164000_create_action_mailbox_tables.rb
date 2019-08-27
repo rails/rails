@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class CreateActionMailboxTables < ActiveRecord::Migration[6.0]
   def change
     create_table :action_mailbox_inbound_emails do |t|
