@@ -373,7 +373,7 @@ module ActiveRecord
       #   person.pets
       #   # => [#<Pet id: 1, name: "Gorby", group: "cats", person_id: 1>]
       #
-      #   other_pets = [Pet.new(name: 'Puff', group: 'celebrities']
+      #   other_pets = [Pet.new(name: 'Puff', group: 'celebrities')]
       #
       #   person.pets.replace(other_pets)
       #
