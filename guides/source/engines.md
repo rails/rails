@@ -805,7 +805,7 @@ added above the `title` field with this code:
 </div>
 ```
 
-Next, we need to update our `Blorgh::ArticleController#article_params` method to
+Next, we need to update our `Blorgh::ArticlesController#article_params` method to
 permit the new form parameter:
 
 ```ruby
