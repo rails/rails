@@ -379,7 +379,7 @@ module CacheStoreBehavior
     @cache.write("foo", "bar")
     assert @cache.exist?("foo")
     @cache.write("hello", "world")
-    assert @cache.exist?("foo")
+    assert @cache.exist?("hello")
     assert_equal 2, @cache.delete_multi(["foo", "does_not_exist", "hello"])
     assert_not @cache.exist?("foo")
     assert_not @cache.exist?("hello")
