@@ -412,7 +412,9 @@ module ActionDispatch
         path.gsub!(%r{/(\(+)/?}, '\1/')
         # if a path is all optional segments, change the leading "(/" back to
         # "/(" so it evaluates to "/" when interpreted with no options.
-        path.sub!(%r{^(\(+)/}, '/\1') if %r{^(\(+[^)]+\)){1,}$}.match?(path)
+        # Unless, however, at least one secondary segment consists of a static
+        # part, ex. "(/:locale)(/pages/:page)"
+        path.sub!(%r{^(\(+)/}, '/\1') if %r{^(\(+[^)]+\))(\(+/:[^)]+\))*$}.match?(path)
         path
       end
 
