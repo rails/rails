@@ -140,6 +140,14 @@ module ActiveRecord
         def get_full_version
           @connection.server_info[:version]
         end
+
+        def translate_exception(exception, message:, sql:, binds:)
+          if !exception.error_number && exception.is_a?(Mysql2::Error::TimeoutError)
+            ActiveRecord::AdapterTimeout.new(message, sql: sql, binds: binds)
+          else
+            super
+          end
+        end
     end
   end
 end
