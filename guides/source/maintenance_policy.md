@@ -68,7 +68,7 @@ For severe security issues all releases in the current major series, and also th
 last major release series will receive patches and new versions. The
 classification of the security issue is judged by the core team.
 
-**Currently included series:** `6.0.Z`, `5.2.Z`.
+**Currently included series:** `6.0.Z`, `5.2.Z`, `5.1.Z`, `5.0.Z`.
 
 Unsupported Release Series
 --------------------------
