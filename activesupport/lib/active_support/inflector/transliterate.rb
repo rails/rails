@@ -5,6 +5,8 @@ require "active_support/i18n"
 
 module ActiveSupport
   module Inflector
+    ALLOWED_ENCODINGS_FOR_TRANSLITERATE = [Encoding::UTF_8, Encoding::US_ASCII, Encoding::GB18030].freeze
+
     # Replaces non-ASCII characters with an ASCII approximation, or if none
     # exists, a replacement character which defaults to "?".
     #
@@ -62,9 +64,7 @@ module ActiveSupport
     def transliterate(string, replacement = "?", locale: nil)
       string = string.dup if string.frozen?
       raise ArgumentError, "Can only transliterate strings. Received #{string.class.name}" unless string.is_a?(String)
-
-      allowed_encodings = [Encoding::UTF_8, Encoding::US_ASCII, Encoding::GB18030]
-      raise ArgumentError, "Can not transliterate strings with #{string.encoding} encoding" unless allowed_encodings.include?(string.encoding)
+      raise ArgumentError, "Can not transliterate strings with #{string.encoding} encoding" unless ALLOWED_ENCODINGS_FOR_TRANSLITERATE.include?(string.encoding)
 
       input_encoding = string.encoding
 
