@@ -1382,7 +1382,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal "projects#index", @response.body
   end
 
-  def test_optionally_scoped_root_unscoped_access
+  def test_optional_scoped_root_hierarchy
     draw do
       scope "(:locale)" do
         scope "(:platform)" do
@@ -1394,7 +1394,21 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
 
     assert_equal "/", root_path
+    assert_equal "/en", root_path(locale: "en")
+    assert_equal "/en/osx", root_path(locale: "en", platform: "osx")
+    assert_equal "/en/osx/chrome",
+      root_path(locale: "en", platform: "osx", browser: "chrome")
+
     get "/"
+    assert_equal "projects#index", @response.body
+
+    get "/en"
+    assert_equal "projects#index", @response.body
+
+    get "/en/osx"
+    assert_equal "projects#index", @response.body
+
+    get "/en/osx/chrome"
     assert_equal "projects#index", @response.body
   end
 
