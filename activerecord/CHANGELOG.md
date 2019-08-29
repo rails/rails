@@ -1,6 +1,6 @@
-*   Call `while_preventing_writes` directly from `connected_to`
+*   Call `while_preventing_writes` directly from `connected_to`.
 
-    In some cases application authors want to use the database switching middleware and make explicit calls with `connected_to. It's possible for an app to turn off writes and not turn them back on by the time we call `connected_to(role: :writing)`.
+    In some cases application authors want to use the database switching middleware and make explicit calls with `connected_to`. It's possible for an app to turn off writes and not turn them back on by the time we call `connected_to(role: :writing)`.
 
     This change allows apps to fix this by assuming if a role is writing we want to allow writes, except in the case it's explicitly turned off.
 
