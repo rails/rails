@@ -28,6 +28,8 @@ module ActiveRecord
             else
               value
             end
+          rescue
+            nil
           end
 
           def serialize(value)
