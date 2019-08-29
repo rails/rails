@@ -1,3 +1,11 @@
+*   Call `while_preventing_writes` directly from `connected_to`
+
+    In some cases application authors want to use the database switching middleware and make explicit calls with `connected_to. It's possible for an app to turn off writes and not turn them back on by the time we call `connected_to(role: :writing)`.
+
+    This change allows apps to fix this by assuming if a role is writing we want to allow writes, except in the case it's explicitly turned off.
+
+    *Eileen M. Uchitelle*
+
 *   Improve detection of ActiveRecord::StatementTimeout with mysql2 adapter in the edge case when the query is terminated during filesort.
 
     *Kir Shatrov*
