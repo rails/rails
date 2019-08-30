@@ -118,10 +118,16 @@ module ActiveRecord
           end
         end
 
-        # Returns the number of threads currently waiting on this
-        # queue.
-        def num_waiting
-          synchronize do
+        if defined?(JRUBY_VERSION)
+          # Returns the number of threads currently waiting on this queue.
+          def num_waiting
+            synchronize do
+              @num_waiting
+            end
+          end
+        else
+          # Returns the number of threads currently waiting on this queue.
+          def num_waiting
             @num_waiting
           end
         end
