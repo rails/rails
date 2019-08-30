@@ -835,7 +835,11 @@ module ActiveRecord
         end
 
         def with_new_connections_blocked
-          synchronize do
+          if defined?(JRUBY_VERSION)
+            synchronize do
+              @threads_blocking_new_connections += 1
+            end
+          else
             @threads_blocking_new_connections += 1
           end
 
