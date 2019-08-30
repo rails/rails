@@ -32,11 +32,15 @@ module ActiveRecord
       sql   = payload[:sql]
       binds = nil
 
-      unless (payload[:binds] || []).empty?
+      if payload[:binds]&.any?
         casted_params = type_casted_binds(payload[:type_casted_binds])
-        binds = "  " + payload[:binds].zip(casted_params).map { |attr, value|
-          render_bind(attr, value)
-        }.inspect
+
+        binds = []
+        payload[:binds].each_with_index do |attr, i|
+          binds << render_bind(attr, casted_params[i])
+        end
+        binds = binds.inspect
+        binds.prepend("  ")
       end
 
       name = colorize_payload_name(name, payload[:name])

@@ -43,7 +43,7 @@ Let's say we have an application with a single primary database and we need to a
 new database for some new tables we're adding. The name of the new database will be
 "animals".
 
-The database.yml looks like this:
+The `database.yml` looks like this:
 
 ```yaml
 production:
@@ -53,7 +53,7 @@ production:
 ```
 
 Let's add a replica for the primary, a new writer called animals and a replica for that
-as well. To do this we need to change our database.yml from a 2-tier to a 3-tier config.
+as well. To do this we need to change our `database.yml` from a 2-tier to a 3-tier config.
 
 ```yaml
 production:
@@ -128,7 +128,7 @@ clients have a limit to the number of open connections there can be and if you d
 multiply the number of connections you have since Rails uses the model class name for the
 connection specification name.
 
-Now that we have the database.yml and the new model set up it's time to create the databases.
+Now that we have the `database.yml` and the new model set up it's time to create the databases.
 Rails 6.0 ships with all the rails tasks you need to use multiple databases in Rails.
 
 You can run `rails -T` to see all the commands you're able to run. You should see the following:
@@ -242,7 +242,7 @@ that were connected via `connects_to` with the role name of `reading`.
 
 There also may be a case where you have a database that you don't always want to connect to
 on application boot but may need for a slow query or analytics. After defining that database
-in the database.yml you can connect by passing a database argument to `connected_to`
+in the `database.yml` you can connect by passing a database argument to `connected_to`
 
 ```ruby
 ActiveRecord::Base.connected_to(database: { reading_slow: :animals_slow_replica }) do

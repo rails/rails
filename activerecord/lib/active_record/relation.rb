@@ -470,16 +470,16 @@ module ActiveRecord
 
     # Updates the counters of the records in the current relation.
     #
-    # === Parameters
+    # ==== Parameters
     #
     # * +counter+ - A Hash containing the names of the fields to update as keys and the amount to update as values.
     # * <tt>:touch</tt> option - Touch the timestamp columns when updating.
     # * If attributes names are passed, they are updated along with update_at/on attributes.
     #
-    # === Examples
+    # ==== Examples
     #
-    #  # For Posts by a given author increment the comment_count by 1.
-    #  Post.where(author_id: author.id).update_counters(comment_count: 1)
+    #   # For Posts by a given author increment the comment_count by 1.
+    #   Post.where(author_id: author.id).update_counters(comment_count: 1)
     def update_counters(counters)
       touch = counters.delete(:touch)
 
@@ -641,6 +641,7 @@ module ActiveRecord
       @to_sql = @arel = @loaded = @should_eager_load = nil
       @records = [].freeze
       @offsets = {}
+      @take = nil
       self
     end
 

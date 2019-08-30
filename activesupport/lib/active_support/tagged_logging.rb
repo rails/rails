@@ -31,10 +31,11 @@ module ActiveSupport
       end
 
       def push_tags(*tags)
-        tags.flatten.reject(&:blank?).tap do |new_tags|
-          @tags_text = nil
-          current_tags.concat new_tags
-        end
+        @tags_text = nil
+        tags.flatten!
+        tags.reject!(&:blank?)
+        current_tags.concat tags
+        tags
       end
 
       def pop_tags(size = 1)

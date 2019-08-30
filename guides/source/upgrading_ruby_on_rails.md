@@ -78,6 +78,20 @@ Upgrading from Rails 5.2 to Rails 6.0
 
 For more information on changes made to Rails 6.0 please see the [release notes](6_0_release_notes.html).
 
+### Using Webpacker
+
+[Webpacker](https://github.com/rails/webpacker)
+is the default JavaScript compiler for Rails 6. But if you are upgrading the app, it is not activated by default.
+If you want to use Webpacker, then include it in your Gemfile and install it:
+
+```ruby
+gem "webpacker"
+```
+
+```sh
+bin/rails webpacker:install
+```
+
 ### Force SSL
 
 The `force_ssl` method on controllers has been deprecated and will be removed in
@@ -397,6 +411,8 @@ Applications can load Rails 6 defaults and still use the classic autoloader by s
 config.load_defaults "6.0"
 config.autoloader = :classic
 ```
+
+When using the Classic Autoloader in Rails 6 application it is recommended to set concurrency level to 1 in development environment, for the web servers and background processors, due to the thread-safety concerns.
 
 ### Active Storage assignment behavior change
 

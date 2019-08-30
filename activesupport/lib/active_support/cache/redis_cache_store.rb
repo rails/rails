@@ -420,6 +420,11 @@ module ActiveSupport
           end
         end
 
+        # Deletes multiple entries in the cache. Returns the number of entries deleted.
+        def delete_multi_entries(entries, options)
+          redis.with { |c| c.del(entries) }
+        end
+
         # Nonstandard store provider API to write multiple values at once.
         def write_multi_entries(entries, expires_in: nil, **options)
           if entries.any?

@@ -1708,7 +1708,19 @@ module ApplicationTests
       app "development"
       ActiveSupport::Dependencies.autoload_paths.each do |path|
         assert_not_operator path, :ends_with?, "app/assets"
-        assert_not_operator path, :ends_with?, "app/#{Rails.configuration.webpacker_path}"
+        assert_not_operator path, :ends_with?, "app/javascript"
+      end
+    end
+
+    test "autoload paths will exclude the configured javascript_path" do
+      add_to_config "config.javascript_path = 'webpack'"
+      app_dir("app/webpack")
+
+      app "development"
+
+      ActiveSupport::Dependencies.autoload_paths.each do |path|
+        assert_not_operator path, :ends_with?, "app/assets"
+        assert_not_operator path, :ends_with?, "app/webpack"
       end
     end
 

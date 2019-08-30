@@ -36,6 +36,7 @@ class BaseTest < ActiveSupport::TestCase
     email = BaseMailer.welcome
     assert_equal(["system@test.lindsaar.net"],    email.to)
     assert_equal(["jose@test.plataformatec.com"], email.from)
+    assert_equal(["mikel@test.lindsaar.net"],     email.reply_to)
     assert_equal("The first email on new API!",   email.subject)
   end
 
@@ -80,6 +81,12 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal("text/html", mail.mime_type)
     mail = BaseMailer.plain_text_only
     assert_equal("text/plain", mail.mime_type)
+  end
+
+  test "mail() using email_address_with_name" do
+    email = BaseMailer.with_name
+    assert_equal("Sunny <sunny@example.com>", email["To"].value)
+    assert_equal("Mikel <mikel@test.lindsaar.net>", email["Reply-To"].value)
   end
 
   # Custom headers
@@ -881,6 +888,11 @@ class BaseTest < ActiveSupport::TestCase
 
     assert_equal "Welcome", mailer.welcome.subject
     assert_equal "Anonymous mailer body", mailer.welcome.body.encoded.strip
+  end
+
+  test "email_address_with_name escapes" do
+    address = BaseMailer.email_address_with_name("test@example.org", 'I "<3" email')
+    assert_equal '"I \"<3\" email" <test@example.org>', address
   end
 
   test "default_from can be set" do

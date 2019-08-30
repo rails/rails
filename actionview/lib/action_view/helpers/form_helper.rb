@@ -2480,7 +2480,9 @@ module ActionView
 
       private
         def objectify_options(options)
-          @default_options.merge(options.merge(object: @object))
+          result = @default_options.merge(options)
+          result[:object] = @object
+          result
         end
 
         def submit_default_value

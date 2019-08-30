@@ -190,17 +190,18 @@ class Rails::Command::RoutesTest < ActiveSupport::TestCase
   end
 
   test "rails routes with expanded option" do
-    previous_console_winsize = IO.console.winsize
-    IO.console.winsize = [0, 27]
-
     app_file "config/routes.rb", <<-RUBY
       Rails.application.routes.draw do
         get '/cart', to: 'cart#show'
       end
     RUBY
 
+    output = IO.stub(:console_size, [0, 27]) do
+      run_routes_command([ "--expanded" ])
+    end
+
     # rubocop:disable Layout/TrailingWhitespace
-    assert_equal <<~MESSAGE, run_routes_command([ "--expanded" ])
+    assert_equal <<~MESSAGE, output
       --[ Route 1 ]--------------
       Prefix            | cart
       Verb              | GET
@@ -313,8 +314,6 @@ class Rails::Command::RoutesTest < ActiveSupport::TestCase
       Controller#Action | active_storage/direct_uploads#create
     MESSAGE
     # rubocop:enable Layout/TrailingWhitespace
-  ensure
-    IO.console.winsize = previous_console_winsize
   end
 
   private

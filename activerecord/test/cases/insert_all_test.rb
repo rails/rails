@@ -2,6 +2,7 @@
 
 require "cases/helper"
 require "models/book"
+require "models/speedometer"
 
 class ReadonlyNameBook < Book
   attr_readonly :name
@@ -223,6 +224,23 @@ class InsertAllTest < ActiveRecord::TestCase
     new_name = "Agile Web Development with Rails, 4th Edition"
     Book.upsert_all [{ id: 1, name: new_name }]
     assert_equal new_name, Book.find(1).name
+  end
+
+  def test_upsert_all_updates_existing_record_by_primary_key
+    skip unless supports_insert_on_duplicate_update?
+
+    Book.upsert_all [{ id: 1, name: "New edition" }], unique_by: :id
+
+    assert_equal "New edition", Book.find(1).name
+  end
+
+  def test_upsert_all_updates_existing_record_by_configured_primary_key
+    skip unless supports_insert_on_duplicate_update?
+
+    error = assert_raises ArgumentError do
+      Speedometer.upsert_all [{ speedometer_id: "s1", name: "New Speedometer" }]
+    end
+    assert_match "No unique index found for speedometer_id", error.message
   end
 
   def test_upsert_all_does_not_update_readonly_attributes

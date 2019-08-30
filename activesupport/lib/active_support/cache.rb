@@ -477,6 +477,18 @@ module ActiveSupport
         end
       end
 
+      # Deletes multiple entries in the cache.
+      #
+      # Options are passed to the underlying cache implementation.
+      def delete_multi(names, options = nil)
+        options = merged_options(options)
+        names.map! { |key| normalize_key(key, options) }
+
+        instrument :delete_multi, names do
+          delete_multi_entries(names, options)
+        end
+      end
+
       # Returns +true+ if the cache contains an entry for the given key.
       #
       # Options are passed to the underlying cache implementation.
@@ -601,6 +613,18 @@ module ActiveSupport
         # implement this method.
         def delete_entry(key, options)
           raise NotImplementedError.new
+        end
+
+        # Deletes multiples entries in the cache implementation. Subclasses MAY
+        # implement this method.
+        def delete_multi_entries(entries, options)
+          entries.inject(0) do |sum, key|
+            if delete_entry(key, options)
+              sum + 1
+            else
+              sum
+            end
+          end
         end
 
         # Merges the default options with ones specific to a method call.

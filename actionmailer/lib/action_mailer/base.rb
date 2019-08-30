@@ -590,6 +590,14 @@ module ActionMailer
         end
       end
 
+      # Returns an email in the format "Name <email@example.com>".
+      def email_address_with_name(address, name)
+        Mail::Address.new.tap do |builder|
+          builder.address = address
+          builder.display_name = name
+        end.to_s
+      end
+
     private
       def set_payload_for_mail(payload, mail)
         payload[:mail]               = mail.encoded
@@ -654,6 +662,11 @@ module ActionMailer
     # Returns the name of the mailer object.
     def mailer_name
       self.class.mailer_name
+    end
+
+    # Returns an email in the format "Name <email@example.com>".
+    def email_address_with_name(address, name)
+      self.class.email_address_with_name(address, name)
     end
 
     # Allows you to pass random and unusual headers to the new <tt>Mail::Message</tt>

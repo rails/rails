@@ -41,7 +41,7 @@ module ActiveRecord
   # separated by a blank line for your viewing pleasure.
   #
   # Note: Fixtures are unordered. If you want ordered fixtures, use the omap YAML type.
-  # See http://yaml.org/type/omap.html
+  # See https://yaml.org/type/omap.html
   # for the specification. You will need ordered fixtures when you have foreign key constraints
   # on keys in the same table. This is commonly needed for tree structures. Example:
   #
@@ -553,15 +553,15 @@ module ActiveRecord
         end
       end
 
-      def create_fixtures(fixtures_directory, fixture_set_names, class_names = {}, config = ActiveRecord::Base)
+      def create_fixtures(fixtures_directory, fixture_set_names, class_names = {}, config = ActiveRecord::Base, &block)
         fixture_set_names = Array(fixture_set_names).map(&:to_s)
         class_names = ClassCache.new class_names, config
 
         # FIXME: Apparently JK uses this.
-        connection = block_given? ? yield : ActiveRecord::Base.connection
+        connection = block_given? ? block : lambda { ActiveRecord::Base.connection }
 
         fixture_files_to_read = fixture_set_names.reject do |fs_name|
-          fixture_is_cached?(connection, fs_name)
+          fixture_is_cached?(connection.call, fs_name)
         end
 
         if fixture_files_to_read.any?
@@ -571,9 +571,9 @@ module ActiveRecord
             class_names,
             connection,
           )
-          cache_fixtures(connection, fixtures_map)
+          cache_fixtures(connection.call, fixtures_map)
         end
-        cached_fixtures(connection, fixture_set_names)
+        cached_fixtures(connection.call, fixture_set_names)
       end
 
       # Returns a consistent, platform-independent identifier for +label+.
@@ -612,7 +612,11 @@ module ActiveRecord
 
         def insert(fixture_sets, connection) # :nodoc:
           fixture_sets_by_connection = fixture_sets.group_by do |fixture_set|
-            fixture_set.model_class&.connection || connection
+            if fixture_set.model_class
+              fixture_set.model_class.connection
+            else
+              connection.call
+            end
           end
 
           fixture_sets_by_connection.each do |conn, set|
@@ -623,6 +627,7 @@ module ActiveRecord
                 table_rows_for_connection[table].unshift(*rows)
               end
             end
+
             conn.insert_fixtures_set(table_rows_for_connection, table_rows_for_connection.keys)
 
             # Cap primary key sequences to max(pk).

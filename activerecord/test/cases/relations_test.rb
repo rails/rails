@@ -1737,6 +1737,27 @@ class RelationTest < ActiveRecord::TestCase
     assert_nil relation.order_values.first
   end
 
+  def test_reorder_with_first
+    sql_log = capture_sql do
+      message = <<~MSG.squish
+        `.reorder(nil)` with `.first` / `.first!` no longer
+        takes non-deterministic result in Rails 6.2.
+        To continue taking non-deterministic result, use `.take` / `.take!` instead.
+      MSG
+      assert_deprecated(message) do
+        assert Post.order(:title).reorder(nil).first
+      end
+    end
+    assert sql_log.all? { |sql| !/order by/i.match?(sql) }, "ORDER BY was used in the query: #{sql_log}"
+  end
+
+  def test_reorder_with_take
+    sql_log = capture_sql do
+      assert Post.order(:title).reorder(nil).take
+    end
+    assert sql_log.all? { |sql| !/order by/i.match?(sql) }, "ORDER BY was used in the query: #{sql_log}"
+  end
+
   def test_presence
     topics = Topic.all
 
@@ -2027,6 +2048,32 @@ class RelationTest < ActiveRecord::TestCase
     sub_accounts = SubAccount.all
     assert_equal [accounts(:signals37)], sub_accounts.open
     assert_equal [accounts(:signals37)], sub_accounts.available
+  end
+
+  def test_where_with_take_memoization
+    5.times do |idx|
+      Post.create!(title: idx.to_s, body: idx.to_s)
+    end
+
+    posts = Post.all
+    first_post = posts.take
+    third_post = posts.where(title: "3").take
+
+    assert_equal "3", third_post.title
+    assert_not_equal first_post.object_id, third_post.object_id
+  end
+
+  def test_find_by_with_take_memoization
+    5.times do |idx|
+      Post.create!(title: idx.to_s, body: idx.to_s)
+    end
+
+    posts = Post.all
+    first_post = posts.take
+    third_post = posts.find_by(title: "3")
+
+    assert_equal "3", third_post.title
+    assert_not_equal first_post.object_id, third_post.object_id
   end
 
   test "#skip_query_cache!" do

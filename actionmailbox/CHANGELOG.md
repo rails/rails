@@ -1,3 +1,7 @@
+*   Allow easier creation of multi-part emails from the `create_inbound_email_from_mail` and `receive_inbound_email_from_mail` test helpers.
+
+    *Michael Herold*
+
 *   Fix Bcc header not being included with emails from `create_inbound_email_from` test helpers.
 
     *jduff*

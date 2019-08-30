@@ -36,7 +36,9 @@ module ActiveRecord
           [sql.freeze, binds]
         else
           visitor.preparable = false if prepared_statements
-          [arel_or_sql_string.dup.freeze, binds]
+
+          arel_or_sql_string = arel_or_sql_string.dup.freeze unless arel_or_sql_string.frozen?
+          [arel_or_sql_string, binds]
         end
       end
       private :to_sql_and_binds

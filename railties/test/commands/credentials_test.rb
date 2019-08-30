@@ -10,9 +10,8 @@ require "tempfile"
 class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
   include ActiveSupport::Testing::Isolation, EnvHelpers
 
-  setup { build_app }
-
-  teardown { teardown_app }
+  setup :build_app
+  teardown :teardown_app
 
   test "edit without editor gives hint" do
     run_edit_command(editor: "").tap do |output|
@@ -90,105 +89,9 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
     assert_match(/secret_key_base/, output)
   end
 
-  test "edit ask the user to opt in to pretty credentials" do
-    assert_match(/Would you like to make the credentials diff from git/, run_edit_command)
-  end
-
-  test "edit doesn't ask the user to opt in to pretty credentials when alreasy asked" do
-    app_file("tmp/rails_pretty_credentials", "")
-
-    assert_no_match(/Would you like to make the credentials diff from git/, run_edit_command)
-  end
-
-  test "edit doesn't ask the user to opt in when user already opted in" do
-    content = <<~EOM
-      [diff "rails_credentials"]
-          textconv = bin/rails credentials:show
-    EOM
-    app_file(".git/config", content)
-
-    assert_no_match(/Would you like to make the credentials diff from git/, run_edit_command)
-  end
-
-  test "edit ask the user to opt in to pretty credentials, user accepts" do
-    file = Tempfile.open("credentials_test")
-    file.write("y")
-    file.rewind
-
-    run_edit_command(stdin: file.path)
-
-    git_attributes = app_path(".gitattributes")
-    expected = <<~EOM
-      config/credentials/*.yml.enc diff=rails_credentials
-      config/credentials.yml.enc diff=rails_credentials
-    EOM
-    assert(File.exist?(git_attributes))
-    assert_equal(expected, File.read(git_attributes))
-    Dir.chdir(app_path) do
-      assert_equal("bin/rails credentials:show\n", `git config --get 'diff.rails_credentials.textconv'`)
-    end
-  ensure
-    file.close!
-  end
-
-  test "edit ask the user to opt in to pretty credentials, user refuses" do
-    file = Tempfile.open("credentials_test")
-    file.write("n")
-    file.rewind
-
-    run_edit_command(stdin: file.path)
-
-    git_attributes = app_path(".gitattributes")
-    assert_not(File.exist?(git_attributes))
-  ensure
-    file.close!
-  end
 
   test "show credentials" do
     assert_match(/access_key_id: 123/, run_show_command)
-  end
-
-  test "show command when argument is provided (from git diff left file)" do
-    run_edit_command(environment: "development")
-
-    assert_match(/access_key_id: 123/, run_show_command("config/credentials/development.yml.enc"))
-  end
-
-  test "show command when argument is provided (from git diff right file)" do
-    run_edit_command(environment: "development")
-
-    dir = Dir.mktmpdir
-    file_path = File.join(dir, "KnAM4a_development.yml.enc")
-    file_content = File.read(app_path("config", "credentials", "development.yml.enc"))
-    File.write(file_path, file_content)
-
-    assert_match(/access_key_id: 123/, run_show_command(file_path))
-  ensure
-    FileUtils.rm_rf(dir)
-  end
-
-  test "show command when argument is provided (git diff) and filename is the master credentials" do
-    assert_match(/access_key_id: 123/, run_show_command("config/credentials.yml.enc"))
-  end
-
-  test "show command when argument is provided (git diff) and master key is not available" do
-    remove_file "config/master.key"
-
-    raw_content = File.read(app_path("config", "credentials.yml.enc"))
-    assert_match(raw_content, run_show_command("config/credentials.yml.enc"))
-  end
-
-  test "show command when argument is provided (git diff) return the raw encrypted content in an error occurs" do
-    run_edit_command(environment: "development")
-
-    dir = Dir.mktmpdir
-    file_path = File.join(dir, "20190807development.yml.enc")
-    file_content = File.read(app_path("config", "credentials", "development.yml.enc"))
-    File.write(file_path, file_content)
-
-    assert_match(file_content, run_show_command(file_path))
-  ensure
-    FileUtils.rm_rf(dir)
   end
 
   test "show command raises error when require_master_key is specified and key does not exist" do
@@ -219,6 +122,63 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
     assert_no_match(/secret_key_base/, output)
   end
 
+
+  test "diff enroll diffing" do
+    assert_match("successfully enrolled", run_diff_command(enroll: true))
+
+    assert_equal <<~EOM, File.read(app_path(".gitattributes"))
+      config/credentials/*.yml.enc diff=rails_credentials
+      config/credentials.yml.enc diff=rails_credentials
+    EOM
+  end
+
+  test "running edit after enrolling in diffing sets diff driver" do
+    run_diff_command(enroll: true)
+    run_edit_command
+
+    Dir.chdir(app_path) do
+      assert_equal "bin/rails credentials:diff", `git config --get 'diff.rails_credentials.textconv'`.strip
+    end
+  end
+
+  test "diff from git diff left file" do
+    run_edit_command(environment: "development")
+
+    assert_match(/access_key_id: 123/, run_diff_command("config/credentials/development.yml.enc"))
+  end
+
+  test "diff from git diff right file" do
+    run_edit_command(environment: "development")
+
+    content_path = app_path("config", "credentials", "KnAM4a_development.yml.enc")
+    File.write(content_path,
+      File.read(app_path("config", "credentials", "development.yml.enc")))
+
+    assert_match(/access_key_id: 123/, run_diff_command(content_path))
+  end
+
+  test "diff for main credentials" do
+    assert_match(/access_key_id: 123/, run_diff_command("config/credentials.yml.enc"))
+  end
+
+  test "diff when master key is not available" do
+    remove_file "config/master.key"
+
+    raw_content = File.read(app_path("config", "credentials.yml.enc"))
+    assert_match(raw_content, run_diff_command("config/credentials.yml.enc"))
+  end
+
+  test "diff returns raw encrypted content when errors occur" do
+    run_edit_command(environment: "development")
+
+    content_path = app_path("20190807development.yml.enc")
+    encrypted_content = File.read(app_path("config", "credentials", "development.yml.enc"))
+    File.write(content_path, encrypted_content + "ruin decryption")
+
+    assert_match(encrypted_content, run_diff_command(content_path))
+  end
+
+
   private
     def run_edit_command(editor: "cat", environment: nil, **options)
       switch_env("EDITOR", editor) do
@@ -227,9 +187,13 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
       end
     end
 
-    def run_show_command(path = nil, environment: nil, **options)
+    def run_show_command(environment: nil, **options)
       args = environment ? ["--environment", environment] : []
-      args.unshift(path)
       rails "credentials:show", args, **options
+    end
+
+    def run_diff_command(path = nil, enroll: nil, **options)
+      args = enroll ? ["--enroll"] : [path]
+      rails "credentials:diff", args, **options
     end
 end

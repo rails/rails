@@ -10,6 +10,7 @@ require "arel/collectors/bind"
 require "arel/collectors/composite"
 require "arel/collectors/sql_string"
 require "arel/collectors/substitute_binds"
+require "concurrent/atomic/thread_local_var"
 
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
@@ -77,7 +78,7 @@ module ActiveRecord
       SIMPLE_INT = /\A\d+\z/
 
       attr_accessor :pool
-      attr_reader :visitor, :owner, :logger, :lock, :prepared_statements
+      attr_reader :visitor, :owner, :logger, :lock
       alias :in_use? :owner
 
       set_callback :checkin, :after, :enable_lazy_transactions!
@@ -128,10 +129,10 @@ module ActiveRecord
         @lock = ActiveSupport::Concurrency::LoadInterlockAwareMonitor.new
 
         if self.class.type_cast_config_to_boolean(config.fetch(:prepared_statements) { true })
-          @prepared_statements = true
+          @prepared_statement_status = Concurrent::ThreadLocalVar.new(true)
           @visitor.extend(DetermineIfPreparableVisitor)
         else
-          @prepared_statements = false
+          @prepared_statement_status = Concurrent::ThreadLocalVar.new(false)
         end
 
         @advisory_locks_enabled = self.class.type_cast_config_to_boolean(
@@ -172,6 +173,10 @@ module ActiveRecord
                                   self.connection_specification_name = spec_name
                                 end
                               end
+      end
+
+      def prepared_statements
+        @prepared_statement_status.value
       end
 
       class Version
@@ -258,10 +263,7 @@ module ActiveRecord
       end
 
       def unprepared_statement
-        old_prepared_statements, @prepared_statements = @prepared_statements, false
-        yield
-      ensure
-        @prepared_statements = old_prepared_statements
+        @prepared_statement_status.bind(false) { yield }
       end
 
       # Returns the human-readable name of the adapter. Use mixed case - one

@@ -316,14 +316,15 @@ module ActiveRecord
 
         @mutex = Mutex.new
         @pools = {}
+        @threads = {}
 
         class << self
           def register_pool(pool, frequency) # :nodoc:
             @mutex.synchronize do
-              unless @pools.key?(frequency)
-                @pools[frequency] = []
-                spawn_thread(frequency)
+              unless @threads[frequency]&.alive?
+                @threads[frequency] = spawn_thread(frequency)
               end
+              @pools[frequency] ||= []
               @pools[frequency] << WeakRef.new(pool)
             end
           end
@@ -331,14 +332,24 @@ module ActiveRecord
           private
             def spawn_thread(frequency)
               Thread.new(frequency) do |t|
-                loop do
+                running = true
+                while running
                   sleep t
                   @mutex.synchronize do
-                    @pools[frequency].select!(&:weakref_alive?)
+                    @pools[frequency].select! do |pool|
+                      pool.weakref_alive? && !pool.discarded?
+                    end
+
                     @pools[frequency].each do |p|
                       p.reap
                       p.flush
                     rescue WeakRef::RefError
+                    end
+
+                    if @pools[frequency].empty?
+                      @pools.delete(frequency)
+                      @threads.delete(frequency)
+                      running = false
                     end
                   end
                 end
@@ -524,12 +535,16 @@ module ActiveRecord
       # See AbstractAdapter#discard!
       def discard! # :nodoc:
         synchronize do
-          return if @connections.nil? # already discarded
+          return if self.discarded?
           @connections.each do |conn|
             conn.discard!
           end
           @connections = @available = @thread_cached_conns = nil
         end
+      end
+
+      def discarded? # :nodoc:
+        @connections.nil?
       end
 
       # Clears the cache which maps classes and re-connects connections that
@@ -640,6 +655,7 @@ module ActiveRecord
       # or a thread dies unexpectedly.
       def reap
         stale_connections = synchronize do
+          return if self.discarded?
           @connections.select do |conn|
             conn.in_use? && !conn.owner.alive?
           end.each do |conn|
@@ -664,6 +680,7 @@ module ActiveRecord
         return if minimum_idle.nil?
 
         idle_connections = synchronize do
+          return if self.discarded?
           @connections.select do |conn|
             !conn.in_use? && conn.seconds_idle >= minimum_idle
           end.each do |conn|
@@ -1003,16 +1020,21 @@ module ActiveRecord
         end
       end
 
-      attr_reader :prevent_writes
-
       def initialize
         # These caches are keyed by spec.name (ConnectionSpecification#name).
         @owner_to_pool = ConnectionHandler.create_owner_to_pool
-        @prevent_writes = false
 
         # Backup finalizer: if the forked child never needed a pool, the above
         # early discard has not occurred
         ObjectSpace.define_finalizer self, ConnectionHandler.unowned_pool_finalizer(@owner_to_pool)
+      end
+
+      def prevent_writes # :nodoc:
+        Thread.current[:prevent_writes]
+      end
+
+      def prevent_writes=(prevent_writes) # :nodoc:
+        Thread.current[:prevent_writes] = prevent_writes
       end
 
       # Prevent writing to the database regardless of role.
@@ -1021,10 +1043,10 @@ module ActiveRecord
       # even if you are on a database that can write. `while_preventing_writes`
       # will prevent writes to the database for the duration of the block.
       def while_preventing_writes(enabled = true)
-        original, @prevent_writes = @prevent_writes, enabled
+        original, self.prevent_writes = self.prevent_writes, enabled
         yield
       ensure
-        @prevent_writes = original
+        self.prevent_writes = original
       end
 
       def connection_pool_list

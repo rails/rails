@@ -1,3 +1,29 @@
+*   Call `while_preventing_writes` directly from `connected_to`.
+
+    In some cases application authors want to use the database switching middleware and make explicit calls with `connected_to`. It's possible for an app to turn off writes and not turn them back on by the time we call `connected_to(role: :writing)`.
+
+    This change allows apps to fix this by assuming if a role is writing we want to allow writes, except in the case it's explicitly turned off.
+
+    *Eileen M. Uchitelle*
+
+*   Improve detection of ActiveRecord::StatementTimeout with mysql2 adapter in the edge case when the query is terminated during filesort.
+
+    *Kir Shatrov*
+
+*   Stop trying to read yaml file fixtures when loading Active Record fixtures.
+
+    *Gannon McGibbon*
+
+*   Deprecate `.reorder(nil)` with `.first` / `.first!` taking non-deterministic result.
+
+    To continue taking non-deterministic result, use `.take` / `.take!` instead.
+
+    *Ryuta Kamizono*
+
+*   Ensure custom PK types are casted in through reflection queries.
+
+    *Gannon McGibbon*
+
 *   Preserve user supplied joins order as much as possible.
 
     Fixes #36761, #34328, #24281, #12953.
@@ -73,5 +99,6 @@
 *   Allow generated `create_table` migrations to include or skip timestamps.
 
     *Michael Duchemin*
+
 
 Please check [6-0-stable](https://github.com/rails/rails/blob/6-0-stable/activerecord/CHANGELOG.md) for previous changes.

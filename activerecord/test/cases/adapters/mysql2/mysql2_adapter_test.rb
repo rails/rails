@@ -240,6 +240,21 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
     ActiveRecord::Base.establish_connection :arunit
   end
 
+  def test_statement_timeout_error_codes
+    raw_conn = @conn.raw_connection
+    assert_raises(ActiveRecord::StatementTimeout) do
+      raw_conn.stub(:query, ->(_sql) { raise Mysql2::Error.new("fail", 50700, ActiveRecord::ConnectionAdapters::AbstractMysqlAdapter::ER_FILSORT_ABORT) }) {
+        @conn.execute("SELECT 1")
+      }
+    end
+
+    assert_raises(ActiveRecord::StatementTimeout) do
+      raw_conn.stub(:query, ->(_sql) { raise Mysql2::Error.new("fail", 50700, ActiveRecord::ConnectionAdapters::AbstractMysqlAdapter::ER_QUERY_TIMEOUT) }) {
+        @conn.execute("SELECT 1")
+      }
+    end
+  end
+
   private
     def with_example_table(definition = "id int auto_increment primary key, number int, data varchar(255)", &block)
       super(@conn, "ex", definition, &block)

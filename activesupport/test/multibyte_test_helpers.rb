@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "fileutils"
-require "open-uri"
 require "tmpdir"
 
 module MultibyteTestHelpers
@@ -11,7 +10,7 @@ module MultibyteTestHelpers
         unless File.exist?(File.dirname(to))
           system "mkdir -p #{File.dirname(to)}"
         end
-        open(from) do |source|
+        URI.open(from) do |source|
           File.open(to, "w") do |target|
             source.each_line do |l|
               target.write l

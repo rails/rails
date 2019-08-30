@@ -57,7 +57,7 @@ The autoloading `zeitwerk` mode is enabled by default in Rails 6 applications ru
 
 ```ruby
 # config/application.rb
-config.load_defaults "6.x" # enables zeitwerk mode in CRuby
+config.load_defaults "6.0" # enables zeitwerk mode in CRuby
 ```
 
 In `zeitwerk` mode, Rails uses [Zeitwerk](https://github.com/fxn/zeitwerk) internally to autoload, reload, and eager load. Rails instantiates and configures a dedicated Zeitwerk instance that manages the project.
@@ -267,10 +267,36 @@ class Triangle < Polygon
 end
 ```
 
+Troubleshooting
+---------------
+
+The best way to follow what the loaders are doing is to inspect their activity.
+
+The easiest way to do that is to throw
+
+```ruby
+Rails.autoloaders.log!
+```
+
+to `config/application.rb` after loading the framework defaults. That will print traces to standard output.
+
+If you prefer logging to a file, configure this instead:
+
+```ruby
+Rails.autoloaders.logger = Logger.new("#{Rails.root}/log/autoloading.log")
+```
+
+The Rails logger is still not ready in `config/application.rb`, but it is in initializers:
+
+```ruby
+# config/initializers/log_autoloaders.rb
+Rails.autoloaders.logger = Rails.logger
+```
+
 Rails.autoloaders
 -----------------
 
-The Zeitwerk instances managing your application are availabe at
+The Zeitwerk instances managing your application are available at
 
 ```ruby
 Rails.autoloaders.main
@@ -292,7 +318,7 @@ Applications can load Rails 6 defaults and still use the classic autoloader this
 
 ```ruby
 # config/application.rb
-config.load_defaults "6.x"
+config.load_defaults "6.0"
 config.autoloader = :classic
 ```
 
