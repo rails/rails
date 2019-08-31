@@ -113,7 +113,7 @@ $ git remote add JohnSmith https://github.com/JohnSmith/rails.git
 $ git pull JohnSmith orange
 ```
 
-After applying their branch, test it out! Here are some things to think about:
+After applying their branch's change, test it out! Here are some things to think about:
 
 * Does the change actually work?
 * Are you happy with the tests? Can you follow what they're testing? Are there any tests missing?
