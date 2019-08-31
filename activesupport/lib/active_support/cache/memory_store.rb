@@ -159,8 +159,8 @@ module ActiveSupport
         end
 
         def modify_value(name, amount, options)
+          options = merged_options(options)
           synchronize do
-            options = merged_options(options)
             if num = read(name, options)
               num = num.to_i + amount
               write(name, num, options)
