@@ -279,8 +279,9 @@ module ActiveRecord
         end
       end
 
-      # go through nested autosave associations that are loaded in memory (without loading
-      # any new ones), and return true if is changed for autosave
+      # Go through nested autosave associations that are loaded in memory (without loading
+      # any new ones), and return true if any are changed for autosave.
+      # Returns false if already called to prevent an infinite loop.
       def nested_records_changed_for_autosave?
         @_nested_records_changed_for_autosave_already_called ||= false
         return false if @_nested_records_changed_for_autosave_already_called
