@@ -53,7 +53,7 @@ class MessageVerifierTest < ActiveSupport::TestCase
     prev = ActiveSupport.use_standard_json_time_format
     ActiveSupport.use_standard_json_time_format = true
     verifier = ActiveSupport::MessageVerifier.new("Hey, I'm a secret!", serializer: JSONSerializer.new)
-    message = verifier.generate(:foo => 123, "bar" => Time.utc(2010))
+    message = verifier.generate({:foo => 123, "bar" => Time.utc(2010)})
     exp = { "foo" => 123, "bar" => "2010-01-01T00:00:00.000Z" }
     assert_equal exp, verifier.verified(message)
     assert_equal exp, verifier.verify(message)
@@ -115,7 +115,7 @@ class MessageVerifierTest < ActiveSupport::TestCase
   end
 
   def test_on_rotation_is_called_and_verified_returns_message
-    older_message = ActiveSupport::MessageVerifier.new("older", digest: "SHA1").generate(encoded: "message")
+    older_message = ActiveSupport::MessageVerifier.new("older", digest: "SHA1").generate({encoded: "message"})
 
     verifier = ActiveSupport::MessageVerifier.new(@secret, digest: "SHA512")
     verifier.rotate "old",   digest: "SHA256"
