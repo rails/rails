@@ -529,6 +529,14 @@ class RelationTest < ActiveRecord::TestCase
     assert_raises(ArgumentError) { Topic.preload() }
     assert_raises(ArgumentError) { Topic.group() }
     assert_raises(ArgumentError) { Topic.reorder() }
+    assert_raises(ArgumentError) { Topic.order() }
+    assert_raises(ArgumentError) { Topic.eager_load() }
+    assert_raises(ArgumentError) { Topic.reselect() }
+    assert_raises(ArgumentError) { Topic.unscope() }
+    assert_raises(ArgumentError) { Topic.joins() }
+    assert_raises(ArgumentError) { Topic.left_joins() }
+    assert_raises(ArgumentError) { Topic.optimizer_hints() }
+    assert_raises(ArgumentError) { Topic.annotate() }
   end
 
   def test_blank_like_arguments_to_query_methods_dont_raise_errors
@@ -537,6 +545,14 @@ class RelationTest < ActiveRecord::TestCase
     assert_nothing_raised { Topic.preload([]) }
     assert_nothing_raised { Topic.group([]) }
     assert_nothing_raised { Topic.reorder([]) }
+    assert_nothing_raised { Topic.order([]) }
+    assert_nothing_raised { Topic.eager_load([]) }
+    assert_nothing_raised { Topic.reselect([]) }
+    assert_nothing_raised { Topic.unscope([]) }
+    assert_nothing_raised { Topic.joins([]) }
+    assert_nothing_raised { Topic.left_joins([]) }
+    assert_nothing_raised { Topic.optimizer_hints([]) }
+    assert_nothing_raised { Topic.annotate([]) }
   end
 
   def test_respond_to_dynamic_finders
