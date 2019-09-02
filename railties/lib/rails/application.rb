@@ -350,7 +350,7 @@ module Rails
       files, dirs = config.watchable_files.dup, config.watchable_dirs.dup
 
       ActiveSupport::Dependencies.autoload_paths.each do |path|
-        dirs[path.to_s] = [:rb]
+        File.file?(path) ? files << path.to_s : dirs[path.to_s] = [:rb]
       end
 
       [files, dirs]
