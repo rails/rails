@@ -26,6 +26,7 @@ class Rails::MailersController < Rails::ApplicationController # :nodoc:
       @email_action = File.basename(params[:path])
 
       if @preview.email_exists?(@email_action)
+        @page_title = "Mailer Preview for #{@preview.preview_name}##{@email_action}"
         @email = @preview.call(@email_action, params)
 
         if params[:part]
