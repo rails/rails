@@ -263,7 +263,7 @@ module ActionView
       end
 
       def escape_entry(entry)
-        entry.gsub(/[*?{}\[\]]/, '\\\\\\&')
+        entry.gsub(/[.*?{}()\[\]]/, '\\\\\\&')
       end
 
       # Extract handler, formats and variant from path. If a format cannot be found neither
