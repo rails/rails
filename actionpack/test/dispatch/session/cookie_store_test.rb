@@ -123,7 +123,7 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
     with_test_route_set do
       encryptor = ActiveSupport::MessageEncryptor.new("A" * 32, cipher: "aes-256-gcm", serializer: Marshal)
 
-      cookies[SessionKey] = encryptor.encrypt_and_sign({"foo" => "bar", "session_id" => "abc"})
+      cookies[SessionKey] = encryptor.encrypt_and_sign({ "foo" => "bar", "session_id" => "abc" })
 
       get "/get_session_value"
 
