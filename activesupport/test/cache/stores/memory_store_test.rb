@@ -90,7 +90,7 @@ class MemoryStorePruningTest < ActiveSupport::TestCase
   end
 
   def test_pruning_is_capped_at_a_max_time
-    def @cache.delete_entry(*args)
+    def @cache.delete_entry(*args, **options)
       sleep(0.01)
       super
     end
