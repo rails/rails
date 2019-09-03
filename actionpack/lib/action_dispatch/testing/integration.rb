@@ -644,8 +644,8 @@ module ActionDispatch
           @@app = app
         end
 
-        def register_encoder(*args)
-          RequestEncoder.register_encoder(*args)
+        def register_encoder(*args, **options)
+          RequestEncoder.register_encoder(*args, **options)
         end
       end
 
