@@ -78,7 +78,9 @@ module ActionController
       end
 
       def _set_vary_header
-        self.headers["Vary"] = "Accept" if request.should_apply_vary_header?
+        if self.headers["Vary"].blank? && request.should_apply_vary_header?
+          self.headers["Vary"] = "Accept"
+        end
       end
 
       # Normalize arguments by catching blocks and setting them on :update.

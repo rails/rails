@@ -182,6 +182,15 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
       end
     end
 
+    def get_with_vary_set_x_requested_with
+      respond_to do |format|
+        format.json do
+          response.headers["Vary"] = "X-Requested-With"
+          render json: "JSON OK", status: 200
+        end
+      end
+    end
+
     def get_with_params
       render plain: "foo: #{params[:foo]}", status: 200
     end
@@ -554,6 +563,13 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
     with_test_route_set do
       get "/get", params: { format: "json" }
       assert_nil response.headers["Vary"]
+    end
+  end
+
+  def test_not_setting_vary_header_when_it_has_already_been_set
+    with_test_route_set do
+      get "/get_with_vary_set_x_requested_with", headers: { "Accept" => "application/json" }, xhr: true
+      assert_equal "X-Requested-With", response.headers["Vary"]
     end
   end
 
