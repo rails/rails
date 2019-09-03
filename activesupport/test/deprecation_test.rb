@@ -175,8 +175,8 @@ class DeprecationTest < ActiveSupport::TestCase
 
     begin
       events = []
-      ActiveSupport::Notifications.subscribe("deprecation.my_gem_custom") { |_, **args|
-        events << args
+      ActiveSupport::Notifications.subscribe("deprecation.my_gem_custom") { |*args|
+        events << args.extract_options!
       }
 
       assert_nil behavior.call("Some error!", ["call stack!"], "horizon", "MyGem::Custom")
