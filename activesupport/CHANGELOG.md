@@ -1,3 +1,7 @@
+*   Don't use `Process#clock_gettime(CLOCK_PROCESS_CPUTIME_ID)` on Solaris
+
+    *Iain Beeston*
+
 *   Prevent `ActiveSupport::Duration.build(value)` from creating instances of
     `ActiveSupport::Duration` unless `value` is of type `Numeric`.
 
