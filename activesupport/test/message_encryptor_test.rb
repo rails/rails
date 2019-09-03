@@ -249,11 +249,11 @@ class MessageEncryptorMetadataTest < ActiveSupport::TestCase
 
   private
     def generate(message, **options)
-      @encryptor.encrypt_and_sign(message, options)
+      @encryptor.encrypt_and_sign(message, **options)
     end
 
     def parse(data, **options)
-      @encryptor.decrypt_and_verify(data, options)
+      @encryptor.decrypt_and_verify(data, **options)
     end
 
     def encryptor_options; end

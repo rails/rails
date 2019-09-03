@@ -162,11 +162,11 @@ class MessageVerifierMetadataTest < ActiveSupport::TestCase
 
   private
     def generate(message, **options)
-      @verifier.generate(message, options)
+      @verifier.generate(message, **options)
     end
 
     def parse(message, **options)
-      @verifier.verified(message, options)
+      @verifier.verified(message, **options)
     end
 
     def verifier_options
