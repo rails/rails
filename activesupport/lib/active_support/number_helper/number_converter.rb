@@ -161,12 +161,12 @@ module ActiveSupport
           options
         end
 
-        def translate_number_value_with_default(key, i18n_options = {})
-          I18n.translate(key, { default: default_value(key), scope: :number }.merge!(i18n_options))
+        def translate_number_value_with_default(key, **i18n_options)
+          I18n.translate(key, **{default: default_value(key), scope: :number}.merge!(i18n_options))
         end
 
-        def translate_in_locale(key, i18n_options = {})
-          translate_number_value_with_default(key, { locale: options[:locale] }.merge(i18n_options))
+        def translate_in_locale(key, **i18n_options)
+          translate_number_value_with_default(key, **{locale: options[:locale]}.merge(i18n_options))
         end
 
         def default_value(key)
