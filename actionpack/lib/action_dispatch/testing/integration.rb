@@ -352,13 +352,13 @@ module ActionDispatch
       end
 
       %w(get post patch put head delete cookies assigns follow_redirect!).each do |method|
-        define_method(method) do |*args|
+        define_method(method) do |*args, **options|
           # reset the html_document variable, except for cookies/assigns calls
           unless method == "cookies" || method == "assigns"
             @html_document = nil
           end
 
-          integration_session.__send__(method, *args).tap do
+          integration_session.__send__(method, *args, **options).tap do
             copy_session_variables!
           end
         end
