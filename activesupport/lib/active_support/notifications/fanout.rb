@@ -18,8 +18,8 @@ module ActiveSupport
         super
       end
 
-      def subscribe(pattern = nil, block = Proc.new)
-        subscriber = Subscribers.new pattern, block
+      def subscribe(pattern = nil, callable = nil, &block)
+        subscriber = Subscribers.new(pattern, callable || block)
         synchronize do
           @subscribers << subscriber
           @listeners_for.clear

@@ -253,5 +253,21 @@ module ActiveRecord
         assert_equal expected, actual
       end
     end
+
+    def test_does_not_change_other_environments
+      ENV["DATABASE_URL"] = "postgres://localhost/foo"
+      config = { "production" => { "adapter" => "not_postgres", "database" => "not_foo", "host" => "localhost" }, "default_env" => {} }
+
+      actual = resolve_spec(:production, config)
+      assert_equal config["production"].merge("name" => "production"), actual
+
+      actual = resolve_spec(:default_env, config)
+      assert_equal({
+        "host" => "localhost",
+        "database" => "foo",
+        "adapter" => "postgresql",
+        "name" => "default_env"
+      }, actual)
+    end
   end
 end

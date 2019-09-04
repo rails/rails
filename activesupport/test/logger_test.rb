@@ -257,6 +257,50 @@ class LoggerTest < ActiveSupport::TestCase
     assert_level(Logger::INFO)
   end
 
+  def test_logger_level_main_fiber_safety
+    @logger.level = Logger::INFO
+    assert_level(Logger::INFO)
+
+    fiber = Fiber.new do
+      assert_level(Logger::INFO)
+    end
+
+    @logger.silence(Logger::ERROR) do
+      assert_level(Logger::ERROR)
+      fiber.resume
+    end
+  end
+
+  def test_logger_level_local_fiber_safety
+    @logger.level = Logger::INFO
+    assert_level(Logger::INFO)
+
+    another_fiber = Fiber.new do
+      @logger.silence(Logger::ERROR) do
+        assert_level(Logger::ERROR)
+        @logger.silence(Logger::DEBUG) do
+          assert_level(Logger::DEBUG)
+        end
+      end
+
+      assert_level(Logger::INFO)
+    end
+
+    Fiber.new do
+      @logger.silence(Logger::ERROR) do
+        assert_level(Logger::ERROR)
+        @logger.silence(Logger::DEBUG) do
+          another_fiber.resume
+          assert_level(Logger::DEBUG)
+        end
+      end
+
+      assert_level(Logger::INFO)
+    end.resume
+
+    assert_level(Logger::INFO)
+  end
+
   private
     def level_name(level)
       ::Logger::Severity.constants.find do |severity|

@@ -1,3 +1,17 @@
+*   Fix circular `autosave: true` causes invalid records to be saved.
+
+    Prior to the fix, when there was a circular series of `autosave: true`
+    associations, the callback for a `has_many` association was run while
+    another instance of the same callback on the same association hadn't
+    finished running. When control returned to the first instance of the
+    callback, the instance variable had changed, and subsequent associated
+    records weren't saved correctly. Specifically, the ID field for the
+    `belongs_to` corresponding to the `has_many` was `nil`.
+
+    Fixes #28080.
+
+    *Larry Reid*
+
 *   PostgreSQL: Fix GROUP BY with ORDER BY virtual count attribute.
 
     Fixes #36022.

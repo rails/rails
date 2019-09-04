@@ -100,7 +100,7 @@ module ActiveRecord
       def index_exists?(table_name, column_name, options = {})
         column_names = Array(column_name).map(&:to_s)
         checks = []
-        checks << lambda { |i| i.columns == column_names }
+        checks << lambda { |i| Array(i.columns) == column_names }
         checks << lambda { |i| i.unique } if options[:unique]
         checks << lambda { |i| i.name == options[:name].to_s } if options[:name]
 

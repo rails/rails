@@ -97,8 +97,8 @@ module ActionDispatch
       middlewares.push(build_middleware(klass, args, block))
     end
 
-    def build(app = Proc.new)
-      middlewares.freeze.reverse.inject(app) { |a, e| e.build(a) }
+    def build(app = nil, &block)
+      middlewares.freeze.reverse.inject(app || block) { |a, e| e.build(a) }
     end
 
     private

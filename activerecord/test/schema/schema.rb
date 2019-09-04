@@ -545,6 +545,10 @@ ActiveRecord::Schema.define do
     t.string   :type
   end
 
+  create_table :mice, force: true do |t|
+    t.string   :name
+  end
+
   create_table :movies, force: true, id: false do |t|
     t.primary_key :movieid
     t.string      :name
@@ -781,6 +785,24 @@ ActiveRecord::Schema.define do
     t.integer :lock_version, default: 0
   end
 
+  disable_referential_integrity do
+    create_table :seminars, force: :cascade do |t|
+      t.string :name
+    end
+
+    create_table :sessions, force: :cascade do |t|
+      t.date :start_date
+      t.date :end_date
+      t.string :name
+    end
+
+    create_table :sections, force: :cascade do |t|
+      t.string :short_name
+      t.belongs_to :session, foreign_key: true
+      t.belongs_to :seminar, foreign_key: true
+    end
+  end
+
   create_table :shape_expressions, force: true do |t|
     t.string  :paint_type
     t.integer :paint_id
@@ -809,6 +831,10 @@ ActiveRecord::Schema.define do
     else
       t.datetime :updated_at
     end
+  end
+
+  create_table :squeaks, force: true do |t|
+    t.integer :mouse_id
   end
 
   create_table :prisoners, force: true do |t|

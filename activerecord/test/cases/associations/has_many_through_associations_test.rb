@@ -33,6 +33,9 @@ require "models/organization"
 require "models/user"
 require "models/family"
 require "models/family_tree"
+require "models/section"
+require "models/seminar"
+require "models/session"
 
 class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   fixtures :posts, :readers, :people, :comments, :authors, :categories, :taggings, :tags,
@@ -1463,6 +1466,19 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
       treasure = sentient_treasure.new
       assert_nothing_raised { treasure.pets << pets(:mochi) }
     end
+  end
+
+  def test_circular_autosave_association_correctly_saves_multiple_records
+    cs180 = Seminar.new(name: "CS180")
+    fall = Session.new(name: "Fall")
+    sections = [
+      cs180.sections.build(short_name: "A"),
+      cs180.sections.build(short_name: "B"),
+    ]
+    fall.sections << sections
+    fall.save!
+    fall.reload
+    assert_equal sections, fall.sections.sort_by(&:id)
   end
 
   private

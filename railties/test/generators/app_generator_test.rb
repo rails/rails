@@ -950,6 +950,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       test/helpers
       test/integration
       tmp
+      tmp/pids
     )
     folders_with_keep.each do |folder|
       assert_file("#{folder}/.keep")

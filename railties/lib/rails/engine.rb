@@ -531,9 +531,9 @@ module Rails
 
     # Defines the routes for this engine. If a block is given to
     # routes, it is appended to the engine.
-    def routes
+    def routes(&block)
       @routes ||= ActionDispatch::Routing::RouteSet.new_with_config(config)
-      @routes.append(&Proc.new) if block_given?
+      @routes.append(&block) if block_given?
       @routes
     end
 
