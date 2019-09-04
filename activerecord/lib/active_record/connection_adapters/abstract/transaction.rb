@@ -146,7 +146,7 @@ module ActiveRecord
 
     class SavepointTransaction < Transaction
       def initialize(connection, savepoint_name, parent_transaction, **options)
-        super(connection, options)
+        super(connection, **options)
 
         parent_transaction.state.add_child(@state)
 

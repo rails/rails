@@ -301,7 +301,7 @@ module ActiveRecord
           if pk.is_a?(Array)
             td.primary_keys pk
           else
-            td.primary_key pk, id, options
+            td.primary_key pk, id, **options
           end
         end
 
@@ -785,7 +785,7 @@ module ActiveRecord
       #
       # For more information see the {"Transactional Migrations" section}[rdoc-ref:Migration].
       def add_index(table_name, column_name, options = {})
-        index_name, index_type, index_columns, index_options = add_index_options(table_name, column_name, options)
+        index_name, index_type, index_columns, index_options = add_index_options(table_name, column_name, **options)
         execute "CREATE #{index_type} INDEX #{quote_column_name(index_name)} ON #{quote_table_name(table_name)} (#{index_columns})#{index_options}"
       end
 
@@ -1255,7 +1255,7 @@ module ActiveRecord
         # the PostgreSQL adapter for supporting operator classes.
         def add_options_for_index_columns(quoted_columns, **options)
           if supports_index_sort_order?
-            quoted_columns = add_index_sort_order(quoted_columns, options)
+            quoted_columns = add_index_sort_order(quoted_columns, **options)
           end
 
           quoted_columns
@@ -1265,7 +1265,7 @@ module ActiveRecord
           return [column_names] if column_names.is_a?(String)
 
           quoted_columns = Hash[column_names.map { |name| [name.to_sym, quote_column_name(name).dup] }]
-          add_options_for_index_columns(quoted_columns, options).values
+          add_options_for_index_columns(quoted_columns, **options).values
         end
 
         def index_name_for_remove(table_name, options = {})
