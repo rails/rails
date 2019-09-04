@@ -111,6 +111,17 @@ If you require your cookies to be read by Rails 5.2 and older, or you are still 
 to be able to rollback set
 `Rails.application.config.action_dispatch.use_cookies_with_metadata` to `false`.
 
+### All npm packages have been moved to the `@rails` scope
+
+If you were previously loading any of the `actioncable`, `activestorage`,
+or `rails-ujs` packages through npm/yarn, you must update the names of these
+dependencies before you can upgrade them to `6.0.0`:
+```
+actioncable   → @rails/actioncable
+activestorage → @rails/activestorage
+rails-ujs     → @rails/ujs
+```
+
 ### Action Cable JavaScript API Changes
 
 The Action Cable JavaScript package has been converted from CoffeeScript
