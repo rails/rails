@@ -304,6 +304,28 @@ class Rails::Command::RoutesTest < ActiveSupport::TestCase
     # rubocop:enable Layout/TrailingWhitespace
   end
 
+  test "rails routes with json format" do
+    app_file "config/routes.rb", <<-RUBY
+      Rails.application.routes.draw do
+        resources :users
+      end
+    RUBY
+
+    output = JSON.dump(
+      { routes: [
+        { path: "/users(.:format)",          verb: "GET",    prefix: "users",     controller_and_action: "users#index" },
+        { path: "/users(.:format)",          verb: "POST",   prefix: "",          controller_and_action: "users#create" },
+        { path: "/users/new(.:format)",      verb: "GET",    prefix: "new_user",  controller_and_action: "users#new" },
+        { path: "/users/:id/edit(.:format)", verb: "GET",    prefix: "edit_user", controller_and_action: "users#edit" },
+        { path: "/users/:id(.:format)",      verb: "GET",    prefix: "user",      controller_and_action: "users#show" },
+        { path: "/users/:id(.:format)",      verb: "PATCH",  prefix: "",          controller_and_action: "users#update" },
+        { path: "/users/:id(.:format)",      verb: "PUT",    prefix: "",          controller_and_action: "users#update" },
+        { path: "/users/:id(.:format)",      verb: "DELETE", prefix: "",          controller_and_action: "users#destroy" },
+      ] }
+    )
+    assert_equal output, run_routes_command([ "--format", "json", "-c", "UsersController"]).chomp
+  end
+
   private
     def run_routes_command(args = [])
       rails "routes", args

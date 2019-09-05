@@ -2,6 +2,7 @@
 
 require "delegate"
 require "io/console/size"
+require "json"
 
 module ActionDispatch
   module Routing
@@ -229,6 +230,31 @@ module ActionDispatch
           def route_header(index:)
             "--[ Route #{index} ]".ljust(@width, "-")
           end
+      end
+    end
+
+    class JSONFormatter
+      def initialize
+        @buffer = { routes: [] }
+      end
+
+      def section_title(title)
+      end
+
+      def section(routes)
+        routes.each do |r|
+          @buffer[:routes] << { path: r[:path], verb: r[:verb], prefix: r[:name], controller_and_action: r[:reqs] }
+        end
+      end
+
+      def header(routes)
+      end
+
+      def no_routes(*)
+      end
+
+      def result
+        JSON.dump @buffer
       end
     end
 

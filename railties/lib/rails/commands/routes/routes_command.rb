@@ -8,6 +8,7 @@ module Rails
       class_option :controller, aliases: "-c", desc: "Filter by a specific controller, e.g. PostsController or Admin::PostsController."
       class_option :grep, aliases: "-g", desc: "Grep routes by a specific pattern."
       class_option :expanded, type: :boolean, aliases: "-E", desc: "Print routes expanded vertically with parts explained."
+      class_option :format, aliases: "-o", desc: "Print routes with specified format (currentry, json only)."
 
       def perform(*)
         require_application_and_environment!
@@ -22,6 +23,8 @@ module Rails
         end
 
         def formatter
+          return ActionDispatch::Routing::JSONFormatter.new if options.dig("format") == "json"
+
           if options.key?("expanded")
             ActionDispatch::Routing::ConsoleFormatter::Expanded.new
           else
