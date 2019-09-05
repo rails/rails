@@ -1,3 +1,7 @@
+*   Don't use `Process#clock_gettime(CLOCK_PROCESS_CPUTIME_ID)` on Solaris
+
+    *Iain Beeston*
+
 ## Rails 6.0.0 (August 16, 2019) ##
 
 *   Let `require_dependency` in `zeitwerk` mode look the autoload paths up for
