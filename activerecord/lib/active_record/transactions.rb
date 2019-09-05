@@ -318,7 +318,7 @@ module ActiveRecord
       with_transaction_returning_status { super }
     end
 
-    def touch(*) #:nodoc:
+    def touch(*, **) #:nodoc:
       with_transaction_returning_status { super }
     end
 
