@@ -127,9 +127,7 @@ module ActiveRecord
           end
         else
           # Returns the number of threads currently waiting on this queue.
-          def num_waiting
-            @num_waiting
-          end
+          attr_reader :num_waiting
         end
 
         # Add +element+ to the queue.  Never blocks.
