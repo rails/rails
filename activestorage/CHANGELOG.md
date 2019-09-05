@@ -1,3 +1,7 @@
+*   Set content disposition in direct upload using `filename` and `disposition` parameters to `ActiveStorage::Service#headers_for_direct_upload`.
+
+    *Peter Zhu*
+
 *   Allow record to be optionally passed to blob finders to make sharding
     easier.
 
