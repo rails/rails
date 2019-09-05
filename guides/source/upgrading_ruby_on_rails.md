@@ -117,6 +117,7 @@ to be able to rollback set
 If you were previously loading any of the `actioncable`, `activestorage`,
 or `rails-ujs` packages through npm/yarn, you must update the names of these
 dependencies before you can upgrade them to `6.0.0`:
+
 ```
 actioncable   → @rails/actioncable
 activestorage → @rails/activestorage
