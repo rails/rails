@@ -327,7 +327,7 @@ module ActiveSupport
           end
 
           if entry
-            get_entry_value(entry, name, **options)
+            get_entry_value(entry, name, options)
           else
             save_block_result_to_cache(name, **options) { |_name| yield _name }
           end
@@ -448,7 +448,7 @@ module ActiveSupport
           payload[:hits] = reads.keys
           payload[:super_operation] = :fetch_multi
 
-          write_multi(writes, **options)
+          write_multi(writes, options)
 
           ordered
         end

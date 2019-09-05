@@ -160,7 +160,7 @@ module ActiveSupport
             cache = local_cache
             cache.mute do
               if value
-                cache.write(name, value, **options)
+                cache.write(name, value, options)
               else
                 cache.delete(name, **options)
               end
