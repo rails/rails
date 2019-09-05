@@ -178,7 +178,7 @@ module ActionDispatch
           end
 
           def self.optimize_helper?(route)
-            !route.glob? && route.path.requirements.empty?
+            route.path.requirements.empty? && !route.glob?
           end
 
           attr_reader :url_strategy, :route_name
