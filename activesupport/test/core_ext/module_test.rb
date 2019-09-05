@@ -33,6 +33,11 @@ end
 Invoice = Struct.new(:client) do
   delegate :street, :city, :name, to: :client, prefix: true
   delegate :street, :city, :name, to: :client, prefix: :customer
+  delegate :supplier_street, :supplier_city, :supplier_name, to: :client, prefixed: :supplier
+end
+
+Item = Struct.new(:client) do
+  delegate :client_street, :client_city, :client_name, to: :client, prefixed: true
 end
 
 Project = Struct.new(:description, :person) do
@@ -241,11 +246,25 @@ class ModuleTest < ActiveSupport::TestCase
     assert_equal "Chicago", invoice.client_city
   end
 
+  def test_delegation_prefix
+    item = Item.new(@david)
+    assert_equal "David", item.client_name
+    assert_equal "Paulina", item.client_street
+    assert_equal "Chicago", item.client_city
+  end
+
   def test_delegation_custom_prefix
     invoice = Invoice.new(@david)
     assert_equal "David", invoice.customer_name
     assert_equal "Paulina", invoice.customer_street
     assert_equal "Chicago", invoice.customer_city
+  end
+
+  def test_delegation_custom_prefixed_method
+    invoice = Invoice.new(@david)
+    assert_equal "David", invoice.supplier_name
+    assert_equal "Paulina", invoice.supplier_street
+    assert_equal "Chicago", invoice.supplier_city
   end
 
   def test_delegation_prefix_with_nil_or_false
@@ -260,6 +279,42 @@ class ModuleTest < ActiveSupport::TestCase
           @client = client
         end
         delegate :name, :address, to: :@client, prefix: true
+      end
+    end
+  end
+
+  def test_delegation_prefix_and_prefixed_method
+    assert_raise ArgumentError do
+      Class.new do
+        def initialize(client)
+          @client = client
+        end
+        attr_reader :client
+        delegate :name, :address, to: :client, prefix: true, prefixed: true
+      end
+    end
+  end
+
+  def test_delegation_prefixed_method_with_incorrect_prefix
+    assert_raise ArgumentError do
+      Class.new do
+        def initialize(client)
+          @client = client
+        end
+        attr_reader :client
+        delegate :supplier_name, :address, to: :client, prefixed: true
+      end
+    end
+  end
+
+  def test_delegation_name_prefixed_method_with_incorrect_prefix
+    assert_raise ArgumentError do
+      Class.new do
+        def initialize(client)
+          @client = client
+        end
+        attr_reader :client
+        delegate :supplier_name, :address, to: :client, prefixed: :customer
       end
     end
   end

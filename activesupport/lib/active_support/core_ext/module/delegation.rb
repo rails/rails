@@ -168,9 +168,13 @@ class Module
   #   Foo.new("Bar").name # raises NoMethodError: undefined method `name'
   #
   # The target method must be public, otherwise it will raise +NoMethodError+.
-  def delegate(*methods, to: nil, prefix: nil, allow_nil: nil, private: nil)
+  def delegate(*methods, to: nil, prefix: nil, prefixed: nil, allow_nil: nil, private: nil)
     unless to
       raise ArgumentError, "Delegation needs a target. Supply a keyword argument 'to' (e.g. delegate :hello, to: :greeter)."
+    end
+
+    if prefix && prefixed
+      raise ArgumentError, "delegate can only accept a `prefix` or `prefixed` keyword argument, but not both arguments."
     end
 
     if prefix == true && /^[^a-z_]/.match?(to)
@@ -180,6 +184,8 @@ class Module
     method_prefix = \
       if prefix
         "#{prefix == true ? to : prefix}_"
+      elsif prefixed
+        "#{prefixed == true ? to : prefixed}_"
       else
         ""
       end
@@ -189,6 +195,16 @@ class Module
 
     to = to.to_s
     to = "self.#{to}" if DELEGATION_RESERVED_METHOD_NAMES.include?(to)
+
+    if prefixed
+      methods = methods.map do |method|
+        method.to_s.delete_prefix!(method_prefix)&.to_sym
+      end
+
+      if methods.any?(&:nil?)
+        raise ArgumentError, "All methods need to begin with prefix when delegating with 'prefixed' keyword argument"
+      end
+    end
 
     method_names = methods.map do |method|
       # Attribute writer methods only accept one argument. Makes sure []=
