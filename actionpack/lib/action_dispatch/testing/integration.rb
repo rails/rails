@@ -358,13 +358,9 @@ module ActionDispatch
             @html_document = nil
           end
 
-          result = if options.any?
-            integration_session.__send__(method, *args, **options)
-          else
-            integration_session.__send__(method, *args)
+          integration_session.__send__(method, *args, **options).tap do
+            copy_session_variables!
           end
-          copy_session_variables!
-          result
         end
       end
 
