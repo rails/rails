@@ -361,12 +361,12 @@ module ActiveModel
         # and `send` if the given names cannot be compiled.
         def define_proxy_call(include_private, mod, name, target, *extra)
           defn = if NAME_COMPILABLE_REGEXP.match?(name)
-            "def #{name}(*args)"
+            "def #{name}(*args, **options)"
           else
-            "define_method(:'#{name}') do |*args|"
+            "define_method(:'#{name}') do |*args, **options|"
           end
 
-          extra = (extra.map!(&:inspect) << "*args").join(", ")
+          extra = (extra.map!(&:inspect) << "*args, **options").join(", ")
 
           body = if CALL_COMPILABLE_REGEXP.match?(target)
             "#{"self." unless include_private}#{target}(#{extra})"
