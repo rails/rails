@@ -175,7 +175,7 @@ module ActionCable::StreamTests
         subscribe_to connection, identifiers: { id: 1 }
 
         assert_called(connection.websocket, :transmit) do
-          @server.broadcast "test_room_1", { foo: "bar" }, { coder: DummyEncoder }
+          @server.broadcast "test_room_1", { foo: "bar" }, coder: DummyEncoder
           wait_for_async
           wait_for_executor connection.server.worker_pool.executor
         end
