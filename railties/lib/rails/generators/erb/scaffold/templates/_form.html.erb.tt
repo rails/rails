@@ -26,7 +26,7 @@
     <%%= form.<%= attribute.field_type %> :<%= attribute.column_name %>, multiple: true %>
 <% elsif attribute.reference? -%>
     <%%= form.label :<%= attribute.column_name %>, '<%= attribute.name.capitalize %>' %>
-    <%%= form.<%= attribute.field_type %> :<%= attribute.column_name %>,  <%= attribute.name.camelize %>.pluck(:id) %>
+    <%%= form.<%= attribute.field_type %> :<%= attribute.column_name %>, <%= attribute.name.camelize %>.pluck(:id) %>
 <% else -%>
     <%%= form.label :<%= attribute.column_name %> %>
     <%%= form.<%= attribute.field_type %> :<%= attribute.column_name %> %>

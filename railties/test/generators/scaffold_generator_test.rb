@@ -457,7 +457,8 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
     assert_file "app/views/accounts/_form.html.erb" do |content|
       assert_match(/^\W{4}<%= form\.text_field :name %>/, content)
-      assert_match(/^\W{4}<%= form\.text_field :currency_id %>/, content)
+      assert_match(/^\W{4}<%= form\.label :currency_id, 'Currency' %>/, content)
+      assert_match(/^\W{4}<%= form\.select :currency_id, Currency\.pluck\(:id\) %>/, content)
     end
 
     assert_file "app/views/accounts/index.html.erb" do |content|
