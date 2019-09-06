@@ -185,7 +185,7 @@ module ActionCable
 
           connection = self.class.connection_class.allocate
           connection.singleton_class.include(TestConnection)
-          connection.send(:initialize, build_test_request(path, request_params))
+          connection.send(:initialize, build_test_request(path, **request_params))
           connection.connect if connection.respond_to?(:connect)
 
           # Only set instance variable if connected successfully
