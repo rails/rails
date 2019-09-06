@@ -59,7 +59,7 @@ class ActiveStorage::Preview
   # a stable URL that redirects to the short-lived URL returned by this method.
   def service_url(**options)
     if processed?
-      variant.service_url(options)
+      variant.service_url(**options)
     else
       raise UnprocessedError
     end
