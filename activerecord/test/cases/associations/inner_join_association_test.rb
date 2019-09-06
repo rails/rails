@@ -79,6 +79,14 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
     assert_equal [authors(:david)], authors
   end
 
+  def test_eager_load_with_string_joins
+    string_join = <<~SQL
+      LEFT JOIN people agents_people ON agents_people.primary_contact_id = agents_people_2.id AND agents_people.id > agents_people_2.id
+    SQL
+
+    assert_equal 3, Person.eager_load(:agents).joins(string_join).count
+  end
+
   def test_construct_finder_sql_ignores_empty_joins_hash
     sql = Author.joins({}).to_sql
     assert_no_match(/JOIN/i, sql)

@@ -70,6 +70,10 @@ module ActiveRecord
         @join_type = join_type
       end
 
+      def base_klass
+        join_root.base_klass
+      end
+
       def reflections
         join_root.drop(1).map!(&:reflection)
       end
