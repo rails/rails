@@ -17,8 +17,10 @@ module ActiveSupport
         if arguments.first.is_a?(Proc)
           proc = arguments.pop
           arguments << lambda { |*args| @options.deep_merge(proc.call(*args)) }
+        elsif arguments.last.respond_to?(:to_hash)
+          arguments << @options.deep_merge(arguments.pop)
         else
-          arguments << (arguments.last.respond_to?(:to_hash) ? @options.deep_merge(arguments.pop) : @options.dup)
+          arguments << @options.dup
         end
 
         @context.__send__(method, *arguments, &block)
