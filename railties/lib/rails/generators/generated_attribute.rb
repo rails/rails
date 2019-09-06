@@ -83,6 +83,7 @@ module Rails
                         when :rich_text                then :rich_text_area
                         when :boolean                  then :check_box
                         when :attachment, :attachments then :file_field
+                        when :references, :belongs_to  then :select
                         else
                           :text_field
         end
