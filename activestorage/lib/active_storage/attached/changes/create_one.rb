@@ -60,7 +60,7 @@ module ActiveStorage
             record: record,
           )
         when Hash
-          ActiveStorage::Blob.build_after_unfurling(attachable.merge(record: record))
+          ActiveStorage::Blob.build_after_unfurling(**attachable.merge(record: record))
         when String
           ActiveStorage::Blob.find_signed(attachable, record: record)
         else
