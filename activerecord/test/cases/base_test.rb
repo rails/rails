@@ -1173,6 +1173,16 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal expected.attributes, actual.attributes
   end
 
+  def test_marshal_inspected_round_trip
+    expected = posts(:welcome)
+    expected.inspect
+
+    marshalled = Marshal.dump(expected)
+    actual = Marshal.load(marshalled)
+
+    assert_equal expected.attributes, actual.attributes
+  end
+
   def test_marshal_new_record_round_trip
     marshalled = Marshal.dump(Post.new)
     post       = Marshal.load(marshalled)
