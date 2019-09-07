@@ -26,7 +26,7 @@ module ActiveSupport
 
         private
           def build_rotation(secret = @secret, sign_secret = @sign_secret, options)
-            self.class.new(secret, sign_secret, options)
+            self.class.new(secret, sign_secret, **options)
           end
       end
 
@@ -39,7 +39,7 @@ module ActiveSupport
 
         private
           def build_rotation(secret = @secret, options)
-            self.class.new(secret, options)
+            self.class.new(secret, **options)
           end
       end
 
