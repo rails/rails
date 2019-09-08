@@ -586,12 +586,16 @@ module ActiveRecord
         self.class.instance_method(:inspect).owner != ActiveRecord::Base.instance_method(:inspect).owner
       end
 
+      class InspectionMask < DelegateClass(::String)
+        def pretty_print(pp)
+          pp.text __getobj__
+        end
+      end
+      private_constant :InspectionMask
+
       def inspection_filter
         @inspection_filter ||= begin
-          mask = DelegateClass(::String).new(ActiveSupport::ParameterFilter::FILTERED)
-          def mask.pretty_print(pp)
-            pp.text __getobj__
-          end
+          mask = InspectionMask.new(ActiveSupport::ParameterFilter::FILTERED)
           ActiveSupport::ParameterFilter.new(self.class.filter_attributes, mask: mask)
         end
       end
