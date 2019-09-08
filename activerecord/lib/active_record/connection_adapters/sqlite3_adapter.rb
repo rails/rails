@@ -234,7 +234,7 @@ module ActiveRecord
         rename_table_indexes(table_name, new_name)
       end
 
-      def add_column(table_name, column_name, type, options = {}) #:nodoc:
+      def add_column(table_name, column_name, type, **options) #:nodoc:
         if invalid_alter_table_type?(type, options)
           alter_table(table_name) do |definition|
             definition.column(column_name, type, options)

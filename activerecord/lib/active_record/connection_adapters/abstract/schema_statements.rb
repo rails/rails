@@ -1198,7 +1198,7 @@ module ActiveRecord
         if data_source_exists?(table_name) && index_name_exists?(table_name, index_name)
           raise ArgumentError, "Index name '#{index_name}' on table '#{table_name}' already exists"
         end
-        index_columns = quoted_columns_for_index(column_names, options).join(", ")
+        index_columns = quoted_columns_for_index(column_names, **options).join(", ")
 
         [index_name, index_type, index_columns, index_options, algorithm, using, comment]
       end
@@ -1376,7 +1376,7 @@ module ActiveRecord
 
         def foreign_key_for(from_table, **options)
           return unless supports_foreign_keys?
-          foreign_keys(from_table).detect { |fk| fk.defined_for?(options) }
+          foreign_keys(from_table).detect { |fk| fk.defined_for?(**options) }
         end
 
         def foreign_key_for!(from_table, to_table: nil, **options)
@@ -1440,7 +1440,7 @@ module ActiveRecord
 
         def add_column_for_alter(table_name, column_name, type, options = {})
           td = create_table_definition(table_name)
-          cd = td.new_column_definition(column_name, type, options)
+          cd = td.new_column_definition(column_name, type, **options)
           schema_creation.accept(AddColumnDefinition.new(cd))
         end
 
