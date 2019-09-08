@@ -360,7 +360,7 @@ module ActiveModel
         # using the given `extra` args. This falls back on `define_method`
         # and `send` if the given names cannot be compiled.
         def define_proxy_call(include_private, mod, name, target, *extra)
-          kw = RUBY_VERSION >= '2.7' ? ", **options" : nil
+          kw = RUBY_VERSION >= "2.7" ? ", **options" : nil
           defn = if NAME_COMPILABLE_REGEXP.match?(name)
             "def #{name}(*args#{kw})"
           else
