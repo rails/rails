@@ -121,7 +121,7 @@ module ActiveSupport
     #        (Backtrace information…)
     #        ["Mercury", "Venus", "Earth", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune"]
     class DeprecatedConstantProxy < Module
-      def self.new(*args, **options, &block)
+      def self.new(*args, &block)
         object = args.first
 
         return object unless object

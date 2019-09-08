@@ -142,7 +142,7 @@ class MessageVerifierMetadataTest < ActiveSupport::TestCase
   include SharedMessageMetadataTests
 
   setup do
-    @verifier = ActiveSupport::MessageVerifier.new("Hey, I'm a secret!", **verifier_options)
+    @verifier = ActiveSupport::MessageVerifier.new("Hey, I'm a secret!", verifier_options)
   end
 
   def test_verify_raises_when_purpose_differs

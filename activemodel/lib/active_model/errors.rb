@@ -371,8 +371,10 @@ module ActiveModel
     #   person.errors.details
     #   # => {:base=>[{error: :name_or_email_blank}]}
     def add(attribute, type = :invalid, **options)
-      attribute, type, options = normalize_arguments(attribute, type, **options)
-      error = Error.new(@base, attribute, type, **options)
+      error = Error.new(
+        @base,
+        *normalize_arguments(attribute, type, **options)
+      )
 
       if exception = options[:strict]
         exception = ActiveModel::StrictValidationFailed if exception == true

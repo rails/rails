@@ -244,7 +244,7 @@ class MessageEncryptorMetadataTest < ActiveSupport::TestCase
 
   setup do
     @secret    = SecureRandom.random_bytes(32)
-    @encryptor = ActiveSupport::MessageEncryptor.new(@secret, **encryptor_options)
+    @encryptor = ActiveSupport::MessageEncryptor.new(@secret, encryptor_options)
   end
 
   private
@@ -256,7 +256,7 @@ class MessageEncryptorMetadataTest < ActiveSupport::TestCase
       @encryptor.decrypt_and_verify(data, **options)
     end
 
-    def encryptor_options; {} end
+    def encryptor_options; end
 end
 
 class MessageEncryptorMetadataMarshalTest < MessageEncryptorMetadataTest
