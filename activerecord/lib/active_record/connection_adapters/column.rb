@@ -100,7 +100,7 @@ module ActiveRecord
     end
 
     class NullColumn < Column
-      def initialize(name)
+      def initialize(name, **)
         super(name, nil)
       end
     end
