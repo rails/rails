@@ -19,7 +19,7 @@ module AbstractController
         options[:default] = defaults.flatten
         key = "#{path}.#{action_name}#{key}"
       end
-      I18n.translate(key, options)
+      I18n.translate(key, **options)
     end
     alias :t :translate
 
