@@ -554,12 +554,12 @@ module ActiveRecord
           end
         end
 
-        def register_integer_type(mapping, key, options)
+        def register_integer_type(mapping, key, **options)
           mapping.register_type(key) do |sql_type|
             if /\bunsigned\b/.match?(sql_type)
-              Type::UnsignedInteger.new(options)
+              Type::UnsignedInteger.new(**options)
             else
-              Type::Integer.new(options)
+              Type::Integer.new(**options)
             end
           end
         end
