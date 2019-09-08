@@ -292,7 +292,7 @@ module ActiveRecord
       # See also TableDefinition#column for details on how to create columns.
       def create_table(table_name, id: :primary_key, primary_key: nil, force: nil, **options)
         td = create_table_definition(
-          table_name, options.extract!(:temporary, :if_not_exists, :options, :as, :comment)
+          table_name, **options.extract!(:temporary, :if_not_exists, :options, :as, :comment)
         )
 
         if id && !td.as
