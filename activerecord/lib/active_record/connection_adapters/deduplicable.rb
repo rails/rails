@@ -10,7 +10,7 @@ module ActiveRecord
           @registry ||= {}
         end
 
-        def new(*)
+        def new(*, **)
           super.deduplicate
         end
       end

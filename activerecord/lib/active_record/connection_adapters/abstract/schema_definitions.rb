@@ -422,7 +422,7 @@ module ActiveRecord
       # See {connection.add_reference}[rdoc-ref:SchemaStatements#add_reference] for details of the options you can use.
       def references(*args, **options)
         args.each do |ref_name|
-          ReferenceDefinition.new(ref_name, options).add_to(self)
+          ReferenceDefinition.new(ref_name, **options).add_to(self)
         end
       end
       alias :belongs_to :references
