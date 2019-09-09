@@ -1207,7 +1207,7 @@ If your application currently depends on MultiJSON directly, you have a few opti
 
 WARNING: Do not simply replace `MultiJson.dump` and `MultiJson.load` with
 `JSON.dump` and `JSON.load`. These JSON gem APIs are meant for serializing and
-deserializing arbitrary Ruby objects and are generally [unsafe](http://www.ruby-doc.org/stdlib-2.2.2/libdoc/json/rdoc/JSON.html#method-i-load).
+deserializing arbitrary Ruby objects and are generally [unsafe](https://ruby-doc.org/stdlib-2.2.2/libdoc/json/rdoc/JSON.html#method-i-load).
 
 #### JSON gem compatibility
 

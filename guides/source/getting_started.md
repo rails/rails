@@ -424,7 +424,7 @@ within our system.
 
 NOTE: There are `public`, `private` and `protected` methods in Ruby,
 but only `public` methods can be actions for controllers.
-For more details check out [Programming Ruby](http://www.ruby-doc.org/docs/ProgrammingRuby/).
+For more details check out [Programming Ruby](https://ruby-doc.org/docs/ProgrammingRuby/).
 
 If you refresh <http://localhost:3000/articles/new> now, you'll get a new error:
 
