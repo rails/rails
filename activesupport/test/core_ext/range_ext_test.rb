@@ -60,6 +60,18 @@ class RangeTest < ActiveSupport::TestCase
     assert((1..10).include?(1...11))
   end
 
+  if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("2.6.0")
+    def test_include_with_endless_range
+      assert(eval("1..").include?(2))
+    end
+  end
+
+  if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("2.7.0")
+    def test_include_with_beginless_range
+      assert(eval("..2").include?(1))
+    end
+  end
+
   def test_should_compare_identical_inclusive
     assert((1..10) === (1..10))
   end

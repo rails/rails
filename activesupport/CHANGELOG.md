@@ -1,3 +1,7 @@
+*   Fix `Range#include?` to work with beginless and endless ranges.
+
+    *Allen Hsu*
+
 *   Don't use `Process#clock_gettime(CLOCK_PROCESS_CPUTIME_ID)` on Solaris
 
     *Iain Beeston*
