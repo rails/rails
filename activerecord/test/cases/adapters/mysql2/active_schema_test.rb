@@ -27,10 +27,6 @@ class Mysql2ActiveSchemaTest < ActiveRecord::Mysql2TestCase
   end
 
   def test_add_index
-    # add_index calls data_source_exists? and index_name_exists? which can't work since execute is stubbed
-    def (ActiveRecord::Base.connection).data_source_exists?(*); true; end
-    def (ActiveRecord::Base.connection).index_name_exists?(*); false; end
-
     expected = "CREATE  INDEX `index_people_on_last_name`  ON `people` (`last_name`) "
     assert_equal expected, add_index(:people, :last_name, length: nil)
 
@@ -74,8 +70,6 @@ class Mysql2ActiveSchemaTest < ActiveRecord::Mysql2TestCase
   end
 
   def test_index_in_create
-    def (ActiveRecord::Base.connection).data_source_exists?(*); false; end
-
     %w(SPATIAL FULLTEXT UNIQUE).each do |type|
       expected = /\ACREATE TABLE `people` \(#{type} INDEX `index_people_on_last_name`  \(`last_name`\)\)/
       actual = ActiveRecord::Base.connection.create_table(:people, id: false) do |t|
@@ -92,9 +86,6 @@ class Mysql2ActiveSchemaTest < ActiveRecord::Mysql2TestCase
   end
 
   def test_index_in_bulk_change
-    def (ActiveRecord::Base.connection).data_source_exists?(*); true; end
-    def (ActiveRecord::Base.connection).index_name_exists?(*); false; end
-
     %w(SPATIAL FULLTEXT UNIQUE).each do |type|
       expected = "ALTER TABLE `people` ADD #{type} INDEX `index_people_on_last_name`  (`last_name`)"
       assert_sql(expected) do
@@ -170,19 +161,12 @@ class Mysql2ActiveSchemaTest < ActiveRecord::Mysql2TestCase
   end
 
   def test_indexes_in_create
-    assert_called_with(
-      ActiveRecord::Base.connection,
-      :data_source_exists?,
-      [:temp],
-      returns: false
-    ) do
-      expected = /\ACREATE TEMPORARY TABLE `temp` \( INDEX `index_temp_on_zip`  \(`zip`\)\)(?: ROW_FORMAT=DYNAMIC)? AS SELECT id, name, zip FROM a_really_complicated_query/
-      actual = ActiveRecord::Base.connection.create_table(:temp, temporary: true, as: "SELECT id, name, zip FROM a_really_complicated_query") do |t|
-        t.index :zip
-      end
-
-      assert_match expected, actual
+    expected = /\ACREATE TEMPORARY TABLE `temp` \( INDEX `index_temp_on_zip`  \(`zip`\)\)(?: ROW_FORMAT=DYNAMIC)? AS SELECT id, name, zip FROM a_really_complicated_query/
+    actual = ActiveRecord::Base.connection.create_table(:temp, temporary: true, as: "SELECT id, name, zip FROM a_really_complicated_query") do |t|
+      t.index :zip
     end
+
+    assert_match expected, actual
   end
 
   private

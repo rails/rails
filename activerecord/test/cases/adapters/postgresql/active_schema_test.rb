@@ -28,9 +28,6 @@ class PostgresqlActiveSchemaTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_add_index
-    # add_index calls index_name_exists? which can't work since execute is stubbed
-    ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.define_method(:index_name_exists?) { |*| false }
-
     expected = %(CREATE UNIQUE INDEX  "index_people_on_last_name" ON "people"  ("last_name") WHERE state = 'active')
     assert_equal expected, add_index(:people, :last_name, unique: true, where: "state = 'active'")
 
@@ -73,8 +70,6 @@ class PostgresqlActiveSchemaTest < ActiveRecord::PostgreSQLTestCase
     assert_raise ArgumentError do
       add_index(:people, :last_name, algorithm: :copy)
     end
-
-    ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.remove_method :index_name_exists?
   end
 
   def test_remove_index

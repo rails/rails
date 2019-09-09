@@ -1195,9 +1195,6 @@ module ActiveRecord
 
         validate_index_length!(table_name, index_name, options.fetch(:internal, false))
 
-        if data_source_exists?(table_name) && index_name_exists?(table_name, index_name)
-          raise ArgumentError, "Index name '#{index_name}' on table '#{table_name}' already exists"
-        end
         index_columns = quoted_columns_for_index(column_names, **options).join(", ")
 
         [index_name, index_type, index_columns, index_options, algorithm, using, comment]
