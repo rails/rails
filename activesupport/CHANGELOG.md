@@ -1,3 +1,8 @@
+*   Add `Array#even?` and `Array#odd?` methods to check whether an array
+    has an even or odd number of elements.
+
+    *Sinan Mujan*
+
 *   Fix `Range#include?` to work with beginless and endless ranges.
 
     *Allen Hsu*
