@@ -91,8 +91,9 @@ module ActiveRecord
   #   post.save # => saves both post and comment
   #
   #   post = Post.create(title: 'ruby rocks')
-  #   post.comments.create(body: 'hello world')
-  #   post.save # => saves both post and comment
+  #   comment = post.comments.create(body: 'hello world')
+  #   comment.body = 'hi everyone'
+  #   post.save # => saves post, but not comment
   #
   # When <tt>:autosave</tt> is true all children are saved, no matter whether they
   # are new records or not:
@@ -102,11 +103,10 @@ module ActiveRecord
   #   end
   #
   #   post = Post.create(title: 'ruby rocks')
-  #   post.comments.create(body: 'hello world')
-  #   post.comments[0].body = 'hi everyone'
+  #   comment = post.comments.create(body: 'hello world')
+  #   comment.body = 'hi everyone'
   #   post.comments.build(body: "good morning.")
-  #   post.title += "!"
-  #   post.save # => saves both post and comments.
+  #   post.save # => saves post and both comments.
   #
   # Destroying one of the associated models as part of the parent's save action
   # is as simple as marking it for destruction:
