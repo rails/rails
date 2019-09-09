@@ -24,7 +24,7 @@ module ActiveRecord
       message = +"#{model} "
       message << "Bulk " if inserts.many?
       message << (on_duplicate == :update ? "Upsert" : "Insert")
-      connection.exec_query to_sql, message
+      connection.exec_insert_all to_sql, message
     end
 
     def updatable_columns

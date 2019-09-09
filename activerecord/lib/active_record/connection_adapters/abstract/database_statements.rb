@@ -149,6 +149,10 @@ module ActiveRecord
         exec_query(sql, name, binds)
       end
 
+      def exec_insert_all(sql, name) # :nodoc:
+        exec_query(sql, name)
+      end
+
       # Executes an INSERT query and returns the new record's ID
       #
       # +id_value+ will be returned unless the value is +nil+, in

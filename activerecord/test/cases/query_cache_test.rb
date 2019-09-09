@@ -655,6 +655,32 @@ class QueryCacheExpiryTest < ActiveRecord::TestCase
     end
   end
 
+  def test_insert_all
+    assert_called(ActiveRecord::Base.connection, :clear_query_cache, times: 2) do
+      Task.cache { Task.insert({ starting: Time.now }) }
+    end
+
+    assert_called(ActiveRecord::Base.connection, :clear_query_cache, times: 2) do
+      Task.cache { Task.insert_all([{ starting: Time.now }]) }
+    end
+
+    assert_called(ActiveRecord::Base.connection, :clear_query_cache, times: 2) do
+      Task.cache { Task.insert!({ starting: Time.now }) }
+    end
+
+    assert_called(ActiveRecord::Base.connection, :clear_query_cache, times: 2) do
+      Task.cache { Task.insert_all!([{ starting: Time.now }]) }
+    end
+
+    assert_called(ActiveRecord::Base.connection, :clear_query_cache, times: 2) do
+      Task.cache { Task.upsert({ starting: Time.now }) }
+    end
+
+    assert_called(ActiveRecord::Base.connection, :clear_query_cache, times: 2) do
+      Task.cache { Task.upsert_all([{ starting: Time.now }]) }
+    end
+  end
+
   def test_cache_is_expired_by_habtm_update
     assert_called(ActiveRecord::Base.connection, :clear_query_cache, times: 2) do
       ActiveRecord::Base.cache do
