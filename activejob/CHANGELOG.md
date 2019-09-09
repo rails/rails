@@ -1,3 +1,7 @@
+*   Allow `Class` and `Module` instances to be serialized.
+
+    *Kevin Deisz*
+
 *   Log potential matches in `assert_enqueued_with` and `assert_performed_with`
 
     *Gareth du Plooy*

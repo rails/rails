@@ -355,6 +355,8 @@ ActiveJob supports the following types of arguments by default:
   - `Hash` (Keys should be of `String` or `Symbol` type)
   - `ActiveSupport::HashWithIndifferentAccess`
   - `Array`
+  - `Module`
+  - `Class`
 
 ### GlobalID
 
