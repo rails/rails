@@ -1,3 +1,7 @@
+*   Allow bulk `ALTER` statements to drop and recreate indexes with the same name.
+
+    *Eugene Kenny*
+
 *   `insert`, `insert_all`, `upsert`, and `upsert_all` now clear the query cache.
 
     *Eugene Kenny*
