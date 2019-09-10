@@ -244,8 +244,8 @@ module ActiveRecord
 
       def test_remove_index_removes_index_with_options
         with_change_table do |t|
-          @connection.expect :remove_index, nil, [:delete_me, { unique: true }]
-          t.remove_index unique: true
+          @connection.expect :remove_index, nil, [:delete_me, :bar, { unique: true }]
+          t.remove_index :bar, unique: true
         end
       end
 

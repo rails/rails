@@ -807,6 +807,10 @@ module ActiveRecord
       #
       #   remove_index :accounts, name: :by_branch_party
       #
+      # Removes the index on +branch_id+ named +by_branch_party+ in the +accounts+ table.
+      #
+      #   remove_index :accounts, :branch_id, name: :by_branch_party
+      #
       # Removes the index named +by_branch_party+ in the +accounts+ table +concurrently+.
       #
       #   remove_index :accounts, name: :by_branch_party, algorithm: :concurrently
@@ -816,8 +820,8 @@ module ActiveRecord
       # Concurrently removing an index is not supported in a transaction.
       #
       # For more information see the {"Transactional Migrations" section}[rdoc-ref:Migration].
-      def remove_index(table_name, options = {})
-        index_name = index_name_for_remove(table_name, options)
+      def remove_index(table_name, column_name = nil, options = {})
+        index_name = index_name_for_remove(table_name, column_name, options)
         execute "DROP INDEX #{quote_column_name(index_name)} ON #{quote_table_name(table_name)}"
       end
 
@@ -1265,17 +1269,18 @@ module ActiveRecord
           add_options_for_index_columns(quoted_columns, **options).values
         end
 
-        def index_name_for_remove(table_name, options = {})
-          return options[:name] if can_remove_index_by_name?(options)
+        def index_name_for_remove(table_name, column_name, options)
+          if column_name.is_a?(Hash)
+            options = column_name.dup
+            column_name = options.delete(:column)
+          end
+
+          return options[:name] if can_remove_index_by_name?(column_name, options)
 
           checks = []
 
-          if options.is_a?(Hash)
-            checks << lambda { |i| i.name == options[:name].to_s } if options.key?(:name)
-            column_names = index_column_names(options[:column])
-          else
-            column_names = index_column_names(options)
-          end
+          checks << lambda { |i| i.name == options[:name].to_s } if options.key?(:name)
+          column_names = index_column_names(column_name)
 
           if column_names.present?
             checks << lambda { |i| index_name(table_name, i.columns) == index_name(table_name, column_names) }
@@ -1406,8 +1411,8 @@ module ActiveRecord
         end
         alias :extract_new_comment_value :extract_new_default_value
 
-        def can_remove_index_by_name?(options)
-          options.is_a?(Hash) && options.key?(:name) && options.except(:name, :algorithm).empty?
+        def can_remove_index_by_name?(column_name, options)
+          column_name.nil? && options.key?(:name) && options.except(:name, :algorithm).empty?
         end
 
         def bulk_change_table(table_name, operations)

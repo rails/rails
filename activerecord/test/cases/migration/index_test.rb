@@ -171,6 +171,9 @@ module ActiveRecord
         connection.add_index("testings", ["last_name", "first_name"], length: { last_name: 10, first_name: 20 })
         connection.remove_index("testings", ["last_name", "first_name"])
 
+        connection.add_index("testings", "key", unique: true)
+        connection.remove_index("testings", "key", unique: true)
+
         connection.add_index("testings", ["key"], name: "key_idx", unique: true)
         connection.remove_index("testings", name: "key_idx", unique: true)
 

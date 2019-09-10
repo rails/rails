@@ -631,10 +631,11 @@ module ActiveRecord
       #   t.remove_index(:branch_id)
       #   t.remove_index(column: [:branch_id, :party_id])
       #   t.remove_index(name: :by_branch_party)
+      #   t.remove_index(:branch_id, name: :by_branch_party)
       #
       # See {connection.remove_index}[rdoc-ref:SchemaStatements#remove_index]
-      def remove_index(options = {})
-        @base.remove_index(name, options)
+      def remove_index(column_name = nil, options = {})
+        @base.remove_index(name, column_name, options)
       end
 
       # Removes the timestamp columns (+created_at+ and +updated_at+) from the table.

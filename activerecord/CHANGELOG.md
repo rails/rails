@@ -1,3 +1,20 @@
+*   Allow column names to be passed to `remove_index` positionally along with other options.
+
+    Passing other options can be necessary to make `remove_index` correctly reversible.
+
+    Before:
+
+        add_index    :reports, :report_id               # => works
+        add_index    :reports, :report_id, unique: true # => works
+        remove_index :reports, :report_id               # => works
+        remove_index :reports, :report_id, unique: true # => ArgumentError
+
+    After:
+
+        remove_index :reports, :report_id, unique: true # => works
+
+    *Eugene Kenny*
+
 *   Allow bulk `ALTER` statements to drop and recreate indexes with the same name.
 
     *Eugene Kenny*
