@@ -477,7 +477,7 @@ module ActiveRecord
         @foreign_key_drops << name
       end
 
-      def add_column(name, type, options)
+      def add_column(name, type, **options)
         name = name.to_s
         type = type.to_sym
         @adds << AddColumnDefinition.new(@td.new_column_definition(name, type, **options))

@@ -150,7 +150,7 @@ module ActiveRecord
           super
         end
 
-        def add_column(table_name, column_name, type, options = {})
+        def add_column(table_name, column_name, type, **options)
           if type == :primary_key
             type = :integer
             options[:primary_key] = true
