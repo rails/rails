@@ -783,7 +783,7 @@ module ActiveRecord
             options[:primary_key_column] = column_for(match[:target_table], match[:primary_key])
           end
 
-          MismatchedForeignKey.new(options)
+          MismatchedForeignKey.new(**options)
         end
 
         def version_string(full_version_string)

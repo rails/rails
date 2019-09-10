@@ -1298,7 +1298,7 @@ class TestAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCase
 
     # Stub the save method of the @pirate.ship instance to raise an exception
     class << @pirate.ship
-      def save(*args)
+      def save(*, **)
         super
         raise "Oh noes!"
       end
