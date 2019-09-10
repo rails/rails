@@ -101,4 +101,16 @@ class Array
   def second_to_last
     self[-2]
   end
+
+  # Returns the middle element of an array.
+  #
+  #   %w( a b c d e ).middle # => "c"
+  #
+  # If the array has an even number of elements,
+  # the greater of the two middle elements is returned.
+  #
+  #   %w( a b c d ).middle # => "c"
+  def middle
+    self[self.size / 2]
+  end
 end

@@ -1,3 +1,7 @@
+*   Add `Array#middle` to return the middle element of an array.
+
+    *Sinan Mujan*
+
 *   Fix `Range#include?` to work with beginless and endless ranges.
 
     *Allen Hsu*

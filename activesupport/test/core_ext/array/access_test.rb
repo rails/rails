@@ -47,4 +47,9 @@ class AccessTest < ActiveSupport::TestCase
   def test_without
     assert_equal [1, 2, 4], [1, 2, 3, 4, 5].without(3, 5)
   end
+
+  def test_middle
+    assert_equal "b", %w( a b c ).middle
+    assert_equal "c", %w( a b c d ).middle
+  end
 end
