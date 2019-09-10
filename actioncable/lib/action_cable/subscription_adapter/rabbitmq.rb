@@ -11,7 +11,6 @@ module ActionCable
 
       def initialize(*)
         super
-        @bunny_config = @server.config.cable
         @listener = nil
       end
 
