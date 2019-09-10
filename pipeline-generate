@@ -70,9 +70,9 @@ end
 
 ONE_RUBY = (RUBIES - SOFT_FAIL).last || RUBIES.last
 
-TRUNK_RUBY = "rubylang/ruby:trunk-nightly-bionic"
-RUBIES << TRUNK_RUBY
-SOFT_FAIL << TRUNK_RUBY
+MASTER_RUBY = "rubylang/ruby:master-nightly-bionic"
+RUBIES << MASTER_RUBY
+SOFT_FAIL << MASTER_RUBY
 
 
 STEPS = []
@@ -97,7 +97,7 @@ def step_for(subdirectory, rake_task, ruby: nil, service: "default")
   label = +"#{subdirectory} #{rake_task.sub(/[:_]test|test:/, "")}"
   label.sub!(/ test/, "")
   if ruby
-    short_ruby = ruby == TRUNK_RUBY ? "trunk" : ruby.sub(/^ruby:|:latest$/, "")
+    short_ruby = ruby == MASTER_RUBY ? "master" : ruby.sub(/^ruby:|:latest$/, "")
     label << " (#{short_ruby})"
   end
 
