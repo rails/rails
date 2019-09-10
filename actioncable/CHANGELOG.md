@@ -1,3 +1,7 @@
+*   Add `RabbitMQ` as pubsub adapter.
+
+    *Zhang Kang*
+
 *   Subscription confirmations and rejections are now logged at the `DEBUG` level instead of `INFO`.
 
     *DHH*

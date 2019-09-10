@@ -72,6 +72,8 @@ group :cable do
 
   gem "redis-namespace"
 
+  gem "bunny", ">= 2.0", require: false
+
   gem "websocket-client-simple", github: "matthewd/websocket-client-simple", branch: "close-race", require: false
 
   gem "blade", require: false, platforms: [:ruby]

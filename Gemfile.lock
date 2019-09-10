@@ -549,6 +549,7 @@ DEPENDENCIES
   blade
   blade-sauce_labs_plugin
   bootsnap (>= 1.4.4)
+  bunny (>= 2.0)
   byebug
   capybara (>= 3.26)
   connection_pool

@@ -48,7 +48,11 @@ module ActionCable
         end
 
         adapter = adapter.camelize
-        adapter = "PostgreSQL" if adapter == "Postgresql"
+        if adapter == "Postgresql"
+          adapter = "PostgreSQL"
+        elsif adapter == "Rabbitmq"
+          adapter = "RabbitMQ"
+        end
         "ActionCable::SubscriptionAdapter::#{adapter}".constantize
       end
     end
