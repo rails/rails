@@ -218,8 +218,8 @@ module ActiveRecord
         pks.sort_by { |f| f["pk"] }.map { |f| f["name"] }
       end
 
-      def remove_index(table_name, options = {}) #:nodoc:
-        index_name = index_name_for_remove(table_name, options)
+      def remove_index(table_name, column_name, options = {}) #:nodoc:
+        index_name = index_name_for_remove(table_name, column_name, options)
         exec_query "DROP INDEX #{quote_column_name(index_name)}"
       end
 

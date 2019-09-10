@@ -448,10 +448,15 @@ module ActiveRecord
           end
         end
 
-        def remove_index(table_name, options = {}) #:nodoc:
+        def remove_index(table_name, column_name = nil, options = {}) #:nodoc:
           table = Utils.extract_schema_qualified_name(table_name.to_s)
 
-          if options.is_a?(Hash) && options.key?(:name)
+          if column_name.is_a?(Hash)
+            options = column_name.dup
+            column_name = options.delete(:column)
+          end
+
+          if options.key?(:name)
             provided_index = Utils.extract_schema_qualified_name(options[:name].to_s)
 
             options[:name] = provided_index.identifier
@@ -462,9 +467,9 @@ module ActiveRecord
             end
           end
 
-          index_to_remove = PostgreSQL::Name.new(table.schema, index_name_for_remove(table.to_s, options))
+          index_to_remove = PostgreSQL::Name.new(table.schema, index_name_for_remove(table.to_s, column_name, options))
           algorithm =
-            if options.is_a?(Hash) && options.key?(:algorithm)
+            if options.key?(:algorithm)
               index_algorithms.fetch(options[:algorithm]) do
                 raise ArgumentError.new("Algorithm must be one of the following: #{index_algorithms.keys.map(&:inspect).join(', ')}")
               end

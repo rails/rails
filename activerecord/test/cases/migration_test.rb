@@ -770,7 +770,7 @@ class ReservedWordsMigrationTest < ActiveRecord::TestCase
 
     assert_nothing_raised do
       connection.add_index :values, :value
-      connection.remove_index :values, column: :value
+      connection.remove_index :values, :value
     end
   ensure
     connection.drop_table :values rescue nil
@@ -786,7 +786,7 @@ class ExplicitlyNamedIndexMigrationTest < ActiveRecord::TestCase
 
     assert_nothing_raised do
       connection.add_index :values, :value, name: "a_different_name"
-      connection.remove_index :values, column: :value, name: "a_different_name"
+      connection.remove_index :values, :value, name: "a_different_name"
     end
   ensure
     connection.drop_table :values rescue nil
