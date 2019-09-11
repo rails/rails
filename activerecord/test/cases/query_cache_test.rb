@@ -655,6 +655,8 @@ class QueryCacheExpiryTest < ActiveRecord::TestCase
   end
 
   def test_insert_all
+    skip unless supports_insert_on_duplicate_skip?
+
     assert_called(ActiveRecord::Base.connection, :clear_query_cache, times: 2) do
       Task.cache { Task.insert({ starting: Time.now }) }
     end
@@ -662,7 +664,9 @@ class QueryCacheExpiryTest < ActiveRecord::TestCase
     assert_called(ActiveRecord::Base.connection, :clear_query_cache, times: 2) do
       Task.cache { Task.insert_all([{ starting: Time.now }]) }
     end
+  end
 
+  def test_insert_all_bang
     assert_called(ActiveRecord::Base.connection, :clear_query_cache, times: 2) do
       Task.cache { Task.insert!({ starting: Time.now }) }
     end
@@ -670,6 +674,10 @@ class QueryCacheExpiryTest < ActiveRecord::TestCase
     assert_called(ActiveRecord::Base.connection, :clear_query_cache, times: 2) do
       Task.cache { Task.insert_all!([{ starting: Time.now }]) }
     end
+  end
+
+  def test_upsert_all
+    skip unless supports_insert_on_duplicate_update?
 
     assert_called(ActiveRecord::Base.connection, :clear_query_cache, times: 2) do
       Task.cache { Task.upsert({ starting: Time.now }) }
