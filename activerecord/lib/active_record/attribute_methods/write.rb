@@ -12,11 +12,12 @@ module ActiveRecord
       module ClassMethods # :nodoc:
         private
           def define_method_attribute=(name)
+            kw = RUBY_VERSION >= "2.7" ? ", **options" : nil
             ActiveModel::AttributeMethods::AttrNames.define_attribute_accessor_method(
               generated_attribute_methods, name, writer: true,
             ) do |temp_method_name, attr_name_expr|
               generated_attribute_methods.module_eval <<-RUBY, __FILE__, __LINE__ + 1
-                def #{temp_method_name}(value)
+                def #{temp_method_name}(value#{kw})
                   name = #{attr_name_expr}
                   _write_attribute(name, value)
                 end

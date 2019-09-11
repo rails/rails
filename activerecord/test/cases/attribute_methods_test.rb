@@ -573,7 +573,8 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
   test "declared suffixed attribute method affects respond_to? and method_missing" do
     %w(_default _title_default _it! _candidate= able?).each do |suffix|
-      @target.class_eval "def attribute#{suffix}(*args) args end"
+      kw = RUBY_VERSION >= "2.7" ? ", **options" : nil
+      @target.class_eval "def attribute#{suffix}(*args#{kw}) args end"
       @target.attribute_method_suffix suffix
       topic = @target.new(title: "Budget")
 
@@ -587,7 +588,8 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
   test "declared affixed attribute method affects respond_to? and method_missing" do
     [["mark_", "_for_update"], ["reset_", "!"], ["default_", "_value?"]].each do |prefix, suffix|
-      @target.class_eval "def #{prefix}attribute#{suffix}(*args) args end"
+      kw = RUBY_VERSION >= "2.7" ? ", **options" : nil
+      @target.class_eval "def #{prefix}attribute#{suffix}(*args#{kw}) args end"
       @target.attribute_method_affix(prefix: prefix, suffix: suffix)
       topic = @target.new(title: "Budget")
 
