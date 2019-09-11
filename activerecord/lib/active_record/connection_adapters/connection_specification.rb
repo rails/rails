@@ -7,8 +7,39 @@ module ActiveRecord
     class ConnectionSpecification #:nodoc:
       attr_reader :name, :config, :adapter_method
 
-      def initialize(name, config, adapter_method)
-        @name, @config, @adapter_method = name, config, adapter_method
+      def initialize(name, config)
+        @name, @config = name, config
+
+        raise(AdapterNotSpecified, "database configuration does not specify adapter") unless config.key?(:adapter)
+
+        # Require the adapter itself and give useful feedback about
+        #   1. Missing adapter gems and
+        #   2. Adapter gems' missing dependencies.
+        path_to_adapter = "active_record/connection_adapters/#{config[:adapter]}_adapter"
+        begin
+          require path_to_adapter
+        rescue LoadError => e
+          # We couldn't require the adapter itself. Raise an exception that
+          # points out config typos and missing gems.
+          if e.path == path_to_adapter
+            # We can assume that a non-builtin adapter was specified, so it's
+            # either misspelled or missing from Gemfile.
+            raise LoadError, "Could not load the '#{config[:adapter]}' Active Record adapter. Ensure that the adapter is spelled correctly in config/database.yml and that you've added the necessary adapter gem to your Gemfile.", e.backtrace
+
+          # Bubbled up from the adapter require. Prefix the exception message
+          # with some guidance about how to address it and reraise.
+          else
+            raise LoadError, "Error loading the '#{config[:adapter]}' Active Record adapter. Missing a gem it depends on? #{e.message}", e.backtrace
+          end
+        end
+
+        adapter_method = "#{config[:adapter]}_connection"
+
+        unless ActiveRecord::Base.respond_to?(adapter_method)
+          raise AdapterNotFound, "database configuration specifies nonexistent #{config[:adapter]} adapter"
+        end
+
+        @adapter_method = adapter_method
       end
 
       def initialize_dup(original)
@@ -156,39 +187,7 @@ module ActiveRecord
         #
         def spec(config)
           pool_name = config if config.is_a?(Symbol)
-
-          spec = resolve(config, pool_name).symbolize_keys
-
-          raise(AdapterNotSpecified, "database configuration does not specify adapter") unless spec.key?(:adapter)
-
-          # Require the adapter itself and give useful feedback about
-          #   1. Missing adapter gems and
-          #   2. Adapter gems' missing dependencies.
-          path_to_adapter = "active_record/connection_adapters/#{spec[:adapter]}_adapter"
-          begin
-            require path_to_adapter
-          rescue LoadError => e
-            # We couldn't require the adapter itself. Raise an exception that
-            # points out config typos and missing gems.
-            if e.path == path_to_adapter
-              # We can assume that a non-builtin adapter was specified, so it's
-              # either misspelled or missing from Gemfile.
-              raise LoadError, "Could not load the '#{spec[:adapter]}' Active Record adapter. Ensure that the adapter is spelled correctly in config/database.yml and that you've added the necessary adapter gem to your Gemfile.", e.backtrace
-
-            # Bubbled up from the adapter require. Prefix the exception message
-            # with some guidance about how to address it and reraise.
-            else
-              raise LoadError, "Error loading the '#{spec[:adapter]}' Active Record adapter. Missing a gem it depends on? #{e.message}", e.backtrace
-            end
-          end
-
-          adapter_method = "#{spec[:adapter]}_connection"
-
-          unless ActiveRecord::Base.respond_to?(adapter_method)
-            raise AdapterNotFound, "database configuration specifies nonexistent #{spec[:adapter]} adapter"
-          end
-
-          ConnectionSpecification.new(spec.delete(:name) || "primary", spec, adapter_method)
+          resolve(config, pool_name)
         end
 
         private
@@ -213,7 +212,7 @@ module ActiveRecord
           #   # => { "host" => "localhost", "database" => "foo", "adapter" => "postgresql" }
           #
           def resolve_connection(config_or_env, pool_name = nil)
-            case config_or_env
+            config = case config_or_env
             when Symbol
               resolve_symbol_connection config_or_env, pool_name
             when String
@@ -223,6 +222,9 @@ module ActiveRecord
             else
               raise TypeError, "Invalid type for configuration. Expected Symbol, String, or Hash. Got #{config_or_env.inspect}"
             end
+
+            config = config.symbolize_keys
+            ConnectionSpecification.new((pool_name || config[:name] || 'primary').to_s, config)
           end
 
           # Takes the environment such as +:production+ or +:development+ and a
@@ -245,7 +247,7 @@ module ActiveRecord
             db_config = configurations.find_db_config(env_name)
 
             if db_config
-              resolve_connection(db_config.config).merge("name" => pool_name.to_s)
+              db_config.config.merge("name" => pool_name.to_s)
             else
               raise AdapterNotSpecified, <<~MSG
                 The `#{env_name}` database is not configured for the `#{ActiveRecord::ConnectionHandling::DEFAULT_ENV.call}` environment.

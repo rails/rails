@@ -136,7 +136,7 @@ module ActiveRecord
         old_pool = ActiveRecord::Base.connection_handler.retrieve_connection_pool(ActiveRecord::Base.connection_specification_name)
         each_local_configuration { |configuration| create configuration }
         if old_pool
-          ActiveRecord::Base.connection_handler.establish_connection(old_pool.spec.to_hash)
+          ActiveRecord::Base.connection_handler.establish_connection(old_pool.spec)
         end
       end
 

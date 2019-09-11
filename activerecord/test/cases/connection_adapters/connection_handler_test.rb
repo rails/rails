@@ -13,7 +13,11 @@ module ActiveRecord
       def setup
         @handler = ConnectionHandler.new
         @spec_name = "primary"
-        @pool = @handler.establish_connection(ActiveRecord::Base.configurations["arunit"])
+        @spec = ConnectionAdapters::ConnectionSpecification.new(
+          @spec_name,
+          ActiveRecord::Base.configurations["arunit"].symbolize_keys,
+        )
+        @pool = @handler.establish_connection(@spec)
       end
 
       def test_default_env_fall_back_to_default_env_when_rails_env_or_rack_env_is_empty_string
@@ -32,8 +36,8 @@ module ActiveRecord
         config = { "readonly" => { "adapter" => "sqlite3", "pool" => "5" } }
         ActiveRecord::Base.configurations = config
         resolver = ConnectionAdapters::ConnectionSpecification::Resolver.new(ActiveRecord::Base.configurations)
-        spec =   resolver.spec(:readonly)
-        @handler.establish_connection(spec.to_hash)
+        spec = resolver.spec(:readonly)
+        @handler.establish_connection(spec)
 
         assert_not_nil @handler.retrieve_connection_pool("readonly")
       ensure
@@ -57,9 +61,10 @@ module ActiveRecord
         }
         @prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, config
 
-        @handler.establish_connection(:common)
-        @handler.establish_connection(:primary)
-        @handler.establish_connection(:readonly)
+        resolver = ConnectionAdapters::ConnectionSpecification::Resolver.new(ActiveRecord::Base.configurations)
+        @handler.establish_connection(resolver.spec(:common))
+        @handler.establish_connection(resolver.spec(:primary))
+        @handler.establish_connection(resolver.spec(:readonly))
 
         assert_not_nil pool = @handler.retrieve_connection_pool("readonly")
         assert_equal "db/readonly.sqlite3", pool.spec.config[:database]
@@ -128,7 +133,10 @@ module ActiveRecord
         config = { "development" => { "adapter" => "sqlite3", "database" => "db/primary.sqlite3" } }
         @prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, config
 
-        @handler.establish_connection(:development)
+        resolver = ConnectionAdapters::ConnectionSpecification::Resolver.new(ActiveRecord::Base.configurations)
+        spec = resolver.resolve(:development, :development)
+        assert_equal "development", spec.name
+        @handler.establish_connection(spec)
 
         assert_not_nil pool = @handler.retrieve_connection_pool("development")
         assert_equal "db/primary.sqlite3", pool.spec.config[:database]
@@ -143,7 +151,8 @@ module ActiveRecord
         }
         @prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, config
 
-        @handler.establish_connection(:development_readonly)
+        resolver = ConnectionAdapters::ConnectionSpecification::Resolver.new(ActiveRecord::Base.configurations)
+        @handler.establish_connection(resolver.spec(:development_readonly))
 
         assert_not_nil pool = @handler.retrieve_connection_pool("development_readonly")
         assert_equal "db/readonly.sqlite3", pool.spec.config[:database]

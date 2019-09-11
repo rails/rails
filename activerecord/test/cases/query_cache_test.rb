@@ -362,8 +362,9 @@ class QueryCacheTest < ActiveRecord::TestCase
     skip "In-Memory DB can't test for using a not connected connection" if in_memory_db?
     with_temporary_connection_pool do
       spec_name = Task.connection_specification_name
-      conf = ActiveRecord::Base.configurations["arunit"].merge("name" => "test2")
-      ActiveRecord::Base.connection_handler.establish_connection(conf)
+      conf = ActiveRecord::Base.configurations["arunit"].symbolize_keys
+      spec = ActiveRecord::ConnectionAdapters::ConnectionSpecification.new("test2", conf)
+      ActiveRecord::Base.connection_handler.establish_connection(spec)
       Task.connection_specification_name = "test2"
       assert_not_predicate Task, :connected?
 

@@ -20,7 +20,7 @@ module ActiveRecord
 
         def test_url_invalid_adapter
           error = assert_raises(LoadError) do
-            spec "ridiculous://foo?encoding=utf8"
+            spec("ridiculous://foo?encoding=utf8").adapter_method
           end
 
           assert_match "Could not load the 'ridiculous' Active Record adapter. Ensure that the adapter is spelled correctly in config/database.yml and that you've added the necessary adapter gem to your Gemfile.", error.message
@@ -31,99 +31,108 @@ module ActiveRecord
 
         def test_url_from_environment
           spec = resolve :production, "production" => "abstract://foo?encoding=utf8"
+          assert_equal "production", spec.name
           assert_equal({
-            "adapter"  =>  "abstract",
-            "host"     =>  "foo",
-            "encoding" => "utf8",
-            "name"     => "production" }, spec)
+            adapter: "abstract",
+            host: "foo",
+            encoding: "utf8",
+            name: "production" }, spec.config)
         end
 
         def test_url_sub_key
           spec = resolve :production, "production" => { "url" => "abstract://foo?encoding=utf8" }
+          assert_equal "production", spec.name
           assert_equal({
-            "adapter"  => "abstract",
-            "host"     => "foo",
-            "encoding" => "utf8",
-            "name"     => "production" }, spec)
+            adapter: "abstract",
+            host: "foo",
+            encoding: "utf8",
+            name: "production" }, spec.config)
         end
 
         def test_url_sub_key_merges_correctly
           hash = { "url" => "abstract://foo?encoding=utf8&", "adapter" => "sqlite3", "host" => "bar", "pool" => "3" }
           spec = resolve :production, "production" => hash
+          assert_equal "production", spec.name
           assert_equal({
-            "adapter"  => "abstract",
-            "host"     => "foo",
-            "encoding" => "utf8",
-            "pool"     => "3",
-            "name"     => "production" }, spec)
+            adapter: "abstract",
+            host: "foo",
+            encoding: "utf8",
+            pool: "3",
+            name: "production" }, spec.config)
         end
 
         def test_url_host_no_db
           spec = resolve "abstract://foo?encoding=utf8"
           assert_equal({
-            "adapter"  => "abstract",
-            "host"     => "foo",
-            "encoding" => "utf8" }, spec)
+            adapter: "abstract",
+            host: "foo",
+            encoding: "utf8" }, spec.config)
         end
 
         def test_url_missing_scheme
           spec = resolve "foo"
           assert_equal({
-            "database" => "foo" }, spec)
+            database: "foo" }, spec.config)
         end
 
         def test_url_host_db
-          spec = resolve "abstract://foo/bar?encoding=utf8"
+          url = "abstract://foo/bar?encoding=utf8"
+          spec = resolve url
+          assert_equal url, spec.name
+
           assert_equal({
-            "adapter"  => "abstract",
-            "database" => "bar",
-            "host"     => "foo",
-            "encoding" => "utf8" }, spec)
+            adapter: "abstract",
+            database: "bar",
+            host: "foo",
+            encoding: "utf8" }, spec.config)
         end
 
         def test_url_port
-          spec = resolve "abstract://foo:123?encoding=utf8"
+          url = "abstract://foo:123?encoding=utf8"
+          spec = resolve url
+          assert_equal url, spec.name
           assert_equal({
-            "adapter"  => "abstract",
-            "port"     => 123,
-            "host"     => "foo",
-            "encoding" => "utf8" }, spec)
+            adapter: "abstract",
+            port: 123,
+            host: "foo",
+            encoding: "utf8" }, spec.config)
         end
 
         def test_encoded_password
           password = "am@z1ng_p@ssw0rd#!"
           encoded_password = URI.encode_www_form_component(password)
           spec = resolve "abstract://foo:#{encoded_password}@localhost/bar"
-          assert_equal password, spec["password"]
+          assert_equal password, spec.config[:password]
         end
 
         def test_url_with_authority_for_sqlite3
           spec = resolve "sqlite3:///foo_test"
-          assert_equal("/foo_test", spec["database"])
+          assert_equal("/foo_test", spec.config[:database])
         end
 
         def test_url_absolute_path_for_sqlite3
           spec = resolve "sqlite3:/foo_test"
-          assert_equal("/foo_test", spec["database"])
+          assert_equal("/foo_test", spec.config[:database])
         end
 
         def test_url_relative_path_for_sqlite3
           spec = resolve "sqlite3:foo_test"
-          assert_equal("foo_test", spec["database"])
+          assert_equal("foo_test", spec.config[:database])
         end
 
         def test_url_memory_db_for_sqlite3
           spec = resolve "sqlite3::memory:"
-          assert_equal(":memory:", spec["database"])
+          assert_equal(":memory:", spec.config[:database])
         end
 
         def test_url_sub_key_for_sqlite3
           spec = resolve :production, "production" => { "url" => "sqlite3:foo?encoding=utf8" }
+          assert_equal "production", spec.name
           assert_equal({
-            "adapter"  => "sqlite3",
-            "database" => "foo",
-            "encoding" => "utf8",
-            "name"     => "production" }, spec)
+            adapter: "sqlite3",
+            database: "foo",
+            encoding: "utf8",
+            name: "production" }, spec.config)
         end
 
         def test_spec_name_on_key_lookup

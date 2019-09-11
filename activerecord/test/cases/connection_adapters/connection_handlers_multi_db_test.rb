@@ -15,8 +15,12 @@ module ActiveRecord
         @rw_handler = @handlers[:writing]
         @ro_handler = @handlers[:reading]
         @spec_name = "primary"
-        @rw_pool = @handlers[:writing].establish_connection(ActiveRecord::Base.configurations["arunit"])
-        @ro_pool = @handlers[:reading].establish_connection(ActiveRecord::Base.configurations["arunit"])
+        spec = ActiveRecord::ConnectionAdapters::ConnectionSpecification.new(
+          @spec_name,
+          ActiveRecord::Base.configurations["arunit"].symbolize_keys.merge(name: @spec_name),
+        )
+        @rw_pool = @handlers[:writing].establish_connection(spec)
+        @ro_pool = @handlers[:reading].establish_connection(spec)
       end
 
       def teardown
@@ -222,7 +226,7 @@ module ActiveRecord
             assert_equal handler, ActiveRecord::Base.connection_handlers[:writing]
 
             assert_not_nil pool = handler.retrieve_connection_pool("primary")
-            assert_equal(config["default_env"]["animals"], pool.spec.config)
+            assert_equal(config["default_env"]["animals"].merge(name: "primary"), pool.spec.config)
           end
         ensure
           ActiveRecord::Base.configurations = @prev_configs
@@ -249,7 +253,7 @@ module ActiveRecord
             assert_equal handler, ActiveRecord::Base.connection_handlers[:writing]
 
             assert_not_nil pool = handler.retrieve_connection_pool("primary")
-            assert_equal(config["default_env"]["primary"], pool.spec.config)
+            assert_equal(config["default_env"]["primary"].merge(name: "primary"), pool.spec.config)
           end
         ensure
           ActiveRecord::Base.configurations = @prev_configs

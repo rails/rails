@@ -47,8 +47,8 @@ module ActiveRecord
     # The exceptions AdapterNotSpecified, AdapterNotFound and +ArgumentError+
     # may be returned on an error.
     def establish_connection(config_or_env = nil)
-      config_hash = resolve_config_for_connection(config_or_env)
-      connection_handler.establish_connection(config_hash)
+      spec = resolve_spec_for_connection(config_or_env)
+      connection_handler.establish_connection(spec)
     end
 
     # Connects a model to the databases specified. The +database+ keyword
@@ -69,10 +69,10 @@ module ActiveRecord
       connections = []
 
       database.each do |role, database_key|
-        config_hash = resolve_config_for_connection(database_key)
+        spec = resolve_spec_for_connection(database_key)
         handler = lookup_connection_handler(role.to_sym)
 
-        connections << handler.establish_connection(config_hash)
+        connections << handler.establish_connection(spec)
       end
 
       connections
@@ -124,10 +124,10 @@ module ActiveRecord
           role = role.to_sym
         end
 
-        config_hash = resolve_config_for_connection(database)
+        spec = resolve_spec_for_connection(database)
         handler = lookup_connection_handler(role)
 
-        handler.establish_connection(config_hash)
+        handler.establish_connection(spec)
 
         with_handler(role, &blk)
       elsif role
@@ -176,7 +176,7 @@ module ActiveRecord
       swap_connection_handler(handler, &blk)
     end
 
-    def resolve_config_for_connection(config_or_env) # :nodoc:
+    def resolve_spec_for_connection(config_or_env) # :nodoc:
       raise "Anonymous class is not allowed." unless name
 
       config_or_env ||= DEFAULT_ENV.call.to_sym
@@ -184,10 +184,7 @@ module ActiveRecord
       self.connection_specification_name = pool_name
 
       resolver = ConnectionAdapters::ConnectionSpecification::Resolver.new(Base.configurations)
-      config_hash = resolver.resolve(config_or_env, pool_name).symbolize_keys
-      config_hash[:name] = pool_name
-
-      config_hash
+      resolver.resolve(config_or_env, pool_name)
     end
 
     # Clears the query cache for all connections associated with the current thread.
