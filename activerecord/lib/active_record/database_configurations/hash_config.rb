@@ -28,6 +28,8 @@ module ActiveRecord
       def initialize(env_name, spec_name, config)
         super(env_name, spec_name)
         @config = config.symbolize_keys
+
+        resolve_url_key
       end
 
       def configuration_hash
@@ -47,6 +49,14 @@ module ActiveRecord
       def migrations_paths
         configuration_hash[:migrations_paths]
       end
+
+      private
+        def resolve_url_key
+          if configuration_hash[:url] && !configuration_hash[:url].match?(/^jdbc:/)
+            connection_hash = ActiveRecord::ConnectionAdapters::ConnectionSpecification::ConnectionUrlResolver.new(configuration_hash[:url]).to_hash
+            configuration_hash.merge!(connection_hash)
+          end
+        end
     end
   end
 end

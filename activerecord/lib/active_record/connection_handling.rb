@@ -184,7 +184,7 @@ module ActiveRecord
       self.connection_specification_name = pool_name
 
       resolver = ConnectionAdapters::ConnectionSpecification::Resolver.new(Base.configurations)
-      config_hash = resolver.resolve(config_or_env, pool_name).symbolize_keys
+      config_hash = resolver.resolve(config_or_env, pool_name).configuration_hash
       config_hash[:name] = pool_name
 
       config_hash

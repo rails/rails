@@ -5,22 +5,22 @@ require "uri"
 module ActiveRecord
   module ConnectionAdapters
     class ConnectionSpecification #:nodoc:
-      attr_reader :name, :adapter_method
+      attr_reader :name, :adapter_method, :db_config
 
-      def initialize(name, config, adapter_method)
-        @name, @config, @adapter_method = name, config, adapter_method
+      def initialize(name, db_config, adapter_method)
+        @name, @db_config, @adapter_method = name, db_config, adapter_method
       end
 
       def underlying_configuration_hash
-        @config
+        @db_config.configuration_hash
       end
 
       def initialize_dup(original)
-        @config = original.underlying_configuration_hash.dup
+        @db_config = original.db_config.dup
       end
 
       def to_hash
-        @config.merge(name: @name)
+        underlying_configuration_hash.dup.merge(name: @name)
       end
 
       # Expands a connection string into a hash.
@@ -124,30 +124,6 @@ module ActiveRecord
           @configurations = configurations
         end
 
-        # Returns a hash with database connection information.
-        #
-        # == Examples
-        #
-        # Full hash Configuration.
-        #
-        #   configurations = { "production" => { "host" => "localhost", "database" => "foo", "adapter" => "sqlite3" } }
-        #   Resolver.new(configurations).resolve(:production)
-        #   # => { host: "localhost", database: "foo", adapter: "sqlite3"}
-        #
-        # Initialized with URL configuration strings.
-        #
-        #   configurations = { "production" => "postgresql://localhost/foo" }
-        #   Resolver.new(configurations).resolve(:production)
-        #   # => { host: "localhost", database: "foo", adapter: "postgresql" }
-        #
-        def resolve(config_or_env, pool_name = nil)
-          if config_or_env
-            resolve_connection config_or_env, pool_name
-          else
-            raise AdapterNotSpecified
-          end
-        end
-
         # Returns an instance of ConnectionSpecification for a given adapter.
         # Accepts a hash one layer deep that contains all connection information.
         #
@@ -163,7 +139,8 @@ module ActiveRecord
         def spec(config)
           pool_name = config if config.is_a?(Symbol)
 
-          spec = resolve(config, pool_name).symbolize_keys
+          db_config = resolve(config, pool_name)
+          spec = db_config.configuration_hash
 
           raise(AdapterNotSpecified, "database configuration does not specify adapter") unless spec.key?(:adapter)
 
@@ -194,43 +171,47 @@ module ActiveRecord
             raise AdapterNotFound, "database configuration specifies nonexistent #{spec[:adapter]} adapter"
           end
 
-          ConnectionSpecification.new(spec.delete(:name) || "primary", spec, adapter_method)
+          ConnectionSpecification.new(spec.delete(:name) || "primary", db_config, adapter_method)
+        end
+
+        # Returns fully resolved connection, accepts hash, string or symbol.
+        # Always returns a DatabaseConfiguration::DatabaseConfig
+        #
+        # == Examples
+        #
+        # Symbol representing current environment.
+        #
+        #   Resolver.new("production" => {}).resolve(:production)
+        #   # => DatabaseConfigurations::HashConfig.new(env_name: "production", config: {})
+        #
+        # One layer deep hash of connection values.
+        #
+        #   Resolver.new({}).resolve("adapter" => "sqlite3")
+        #   # => DatabaseConfigurations::HashConfig.new(config: {"adapter" => "sqlite3"})
+        #
+        # Connection URL.
+        #
+        #   Resolver.new({}).resolve("postgresql://localhost/foo")
+        #   # => DatabaseConfigurations::UrlConfig.new(config: {"adapter" => "postgresql", "host" => "localhost", "database" => "foo"})
+        #
+        def resolve(config_or_env, pool_name = nil)
+          env = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call.to_s
+
+          case config_or_env
+          when Symbol
+            resolve_symbol_connection(config_or_env, pool_name)
+          when String
+            DatabaseConfigurations::UrlConfig.new(env, "primary", config_or_env)
+          when Hash
+            DatabaseConfigurations::HashConfig.new(env, "primary", config_or_env)
+          when DatabaseConfigurations::DatabaseConfig
+            config_or_env
+          else
+            raise TypeError, "Invalid type for configuration. Expected Symbol, String, or Hash. Got #{config_or_env.inspect}"
+          end
         end
 
         private
-          # Returns fully resolved connection, accepts hash, string or symbol.
-          # Always returns a hash.
-          #
-          # == Examples
-          #
-          # Symbol representing current environment.
-          #
-          #   Resolver.new("production" => {}).resolve_connection(:production)
-          #   # => {}
-          #
-          # One layer deep hash of connection values.
-          #
-          #   Resolver.new({}).resolve_connection("adapter" => "sqlite3")
-          #   # => { adapter: "sqlite3" }
-          #
-          # Connection URL.
-          #
-          #   Resolver.new({}).resolve_connection("postgresql://localhost/foo")
-          #   # => { host: "localhost", database: "foo", adapter: "postgresql" }
-          #
-          def resolve_connection(config_or_env, pool_name = nil)
-            case config_or_env
-            when Symbol
-              resolve_symbol_connection config_or_env, pool_name
-            when String
-              resolve_url_connection config_or_env
-            when Hash
-              resolve_hash_connection config_or_env
-            else
-              raise TypeError, "Invalid type for configuration. Expected Symbol, String, or Hash. Got #{config_or_env.inspect}"
-            end
-          end
-
           # Takes the environment such as +:production+ or +:development+ and a
           # pool name the corresponds to the name given by the connection pool
           # to the connection. That pool name is merged into the hash with the
@@ -246,12 +227,13 @@ module ActiveRecord
           #       ]>
           #
           #   Resolver.new(configurations).resolve_symbol_connection(:production, "primary")
-          #   # => { database: "my_db" }
+          #   # => DatabaseConfigurations::HashConfig(config: database: "my_db", env_name: "production", spec_name: "primary")
           def resolve_symbol_connection(env_name, pool_name)
             db_config = configurations.find_db_config(env_name)
 
             if db_config
-              resolve_connection(db_config.configuration_hash).merge(name: pool_name.to_s)
+              config = db_config.configuration_hash.merge(name: pool_name.to_s)
+              DatabaseConfigurations::HashConfig.new(db_config.env_name, db_config.spec_name, config)
             else
               raise AdapterNotSpecified, <<~MSG
                 The `#{env_name}` database is not configured for the `#{ActiveRecord::ConnectionHandling::DEFAULT_ENV.call}` environment.
@@ -274,27 +256,6 @@ module ActiveRecord
                 env
               end
             end.join("\n")
-          end
-
-          # Accepts a hash. Expands the "url" key that contains a
-          # URL database connection to a full connection
-          # hash and merges with the rest of the hash.
-          # Connection details inside of the "url" key win any merge conflicts
-          def resolve_hash_connection(spec)
-            if spec[:url] && !spec[:url].match?(/^jdbc:/)
-              connection_hash = resolve_url_connection(spec.delete(:url))
-              spec.merge!(connection_hash)
-            end
-            spec
-          end
-
-          # Takes a connection URL.
-          #
-          #   Resolver.new({}).resolve_url_connection("postgresql://localhost/foo")
-          #   # => { host: "localhost", database: "foo", adapter: "postgresql" }
-          #
-          def resolve_url_connection(url)
-            ConnectionUrlResolver.new(url).to_hash
           end
       end
     end
