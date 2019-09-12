@@ -149,7 +149,7 @@ module ActionCable::StreamTests
       run_in_eventmachine do
         connection = TestConnection.new
 
-        channel = ChatChannel.new connection, "{id: 2}"
+        channel = ChatChannel.new connection, "{id: 3}"
         channel.subscribe_to_channel
 
         assert_equal 0, subscribers_of(connection).size
@@ -160,7 +160,7 @@ module ActionCable::StreamTests
         wait_for_async
         assert_equal 2, subscribers_of(connection).size
 
-        channel2 = ChatChannel.new connection, "{id: 2}"
+        channel2 = ChatChannel.new connection, "{id: 3}"
         channel2.subscribe_to_channel
 
         channel2.stream_from "room_one"
@@ -184,13 +184,13 @@ module ActionCable::StreamTests
       run_in_eventmachine do
         connection = TestConnection.new
 
-        channel = ChatChannel.new connection, "{id: 2}"
+        channel = ChatChannel.new connection, "{id: 3}"
         channel.subscribe_to_channel
 
         channel.stream_from "room_one"
         channel.stream_from "room_two"
 
-        channel2 = ChatChannel.new connection, "{id: 2}"
+        channel2 = ChatChannel.new connection, "{id: 3}"
         channel2.subscribe_to_channel
 
         channel2.stream_from "room_one"
@@ -217,13 +217,13 @@ module ActionCable::StreamTests
       run_in_eventmachine do
         connection = TestConnection.new
 
-        channel = ChatChannel.new connection, "{id: 2}"
+        channel = ChatChannel.new connection, "{id: 3}"
         channel.subscribe_to_channel
 
         channel.stream_for Room.new(1)
         channel.stream_for Room.new(2)
 
-        channel2 = ChatChannel.new connection, "{id: 2}"
+        channel2 = ChatChannel.new connection, "{id: 3}"
         channel2.subscribe_to_channel
 
         channel2.stream_for Room.new(1)
