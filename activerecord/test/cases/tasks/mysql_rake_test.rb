@@ -29,8 +29,8 @@ if current_adapter?(:Mysql2Adapter)
             ActiveRecord::Base,
             :establish_connection,
             [
-              [ "adapter" => "mysql2", "database" => nil ],
-              [ "adapter" => "mysql2", "database" => "my-app-db" ],
+              [ adapter: "mysql2", database: nil ],
+              [ adapter: "mysql2", database: "my-app-db" ],
             ]
           ) do
             ActiveRecord::Tasks::DatabaseTasks.create @configuration
@@ -72,8 +72,8 @@ if current_adapter?(:Mysql2Adapter)
             ActiveRecord::Base,
             :establish_connection,
             [
-              ["adapter" => "mysql2", "database" => nil],
-              [@configuration]
+              [adapter: "mysql2", database: nil],
+              [@configuration.symbolize_keys]
             ]
           ) do
             ActiveRecord::Tasks::DatabaseTasks.create @configuration
@@ -158,7 +158,7 @@ if current_adapter?(:Mysql2Adapter)
           assert_called_with(
             ActiveRecord::Base,
             :establish_connection,
-            [@configuration]
+            [@configuration.symbolize_keys]
           ) do
             ActiveRecord::Tasks::DatabaseTasks.drop @configuration
           end
@@ -205,7 +205,7 @@ if current_adapter?(:Mysql2Adapter)
           assert_called_with(
             ActiveRecord::Base,
             :establish_connection,
-            [@configuration]
+            [@configuration.symbolize_keys]
           ) do
             ActiveRecord::Tasks::DatabaseTasks.purge @configuration
           end

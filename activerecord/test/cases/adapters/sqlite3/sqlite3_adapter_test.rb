@@ -537,8 +537,7 @@ module ActiveRecord
       end
 
       def test_statement_closed
-        db = ::SQLite3::Database.new(ActiveRecord::Base.
-                                   configurations["arunit"]["database"])
+        db = ::SQLite3::Database.new(ActiveRecord::Base.configurations["arunit"][:database])
         statement = ::SQLite3::Statement.new(db,
                                            "CREATE TABLE statement_test (number integer not null)")
         statement.stub(:step, -> { raise ::SQLite3::BusyException.new("busy") }) do

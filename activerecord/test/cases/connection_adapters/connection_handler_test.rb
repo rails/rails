@@ -62,13 +62,13 @@ module ActiveRecord
         @handler.establish_connection(:readonly)
 
         assert_not_nil pool = @handler.retrieve_connection_pool("readonly")
-        assert_equal "db/readonly.sqlite3", pool.spec.config[:database]
+        assert_equal "db/readonly.sqlite3", pool.spec.underlying_configuration_hash[:database]
 
         assert_not_nil pool = @handler.retrieve_connection_pool("primary")
-        assert_equal "db/primary.sqlite3", pool.spec.config[:database]
+        assert_equal "db/primary.sqlite3", pool.spec.underlying_configuration_hash[:database]
 
         assert_not_nil pool = @handler.retrieve_connection_pool("common")
-        assert_equal "db/common.sqlite3", pool.spec.config[:database]
+        assert_equal "db/common.sqlite3", pool.spec.underlying_configuration_hash[:database]
       ensure
         ActiveRecord::Base.configurations = @prev_configs
         ENV["RAILS_ENV"] = previous_env
@@ -92,7 +92,7 @@ module ActiveRecord
 
           ActiveRecord::Base.establish_connection
 
-          assert_match "db/primary.sqlite3", ActiveRecord::Base.connection.pool.spec.config[:database]
+          assert_match "db/primary.sqlite3", ActiveRecord::Base.connection.pool.spec.underlying_configuration_hash[:database]
         ensure
           ActiveRecord::Base.configurations = @prev_configs
           ENV["RAILS_ENV"] = previous_env
@@ -115,7 +115,7 @@ module ActiveRecord
 
           ActiveRecord::Base.establish_connection
 
-          assert_match "db/primary.sqlite3", ActiveRecord::Base.connection.pool.spec.config[:database]
+          assert_match "db/primary.sqlite3", ActiveRecord::Base.connection.pool.spec.underlying_configuration_hash[:database]
         ensure
           ActiveRecord::Base.configurations = @prev_configs
           ENV["RAILS_ENV"] = previous_env
@@ -131,7 +131,7 @@ module ActiveRecord
         @handler.establish_connection(:development)
 
         assert_not_nil pool = @handler.retrieve_connection_pool("development")
-        assert_equal "db/primary.sqlite3", pool.spec.config[:database]
+        assert_equal "db/primary.sqlite3", pool.spec.underlying_configuration_hash[:database]
       ensure
         ActiveRecord::Base.configurations = @prev_configs
       end
@@ -146,7 +146,7 @@ module ActiveRecord
         @handler.establish_connection(:development_readonly)
 
         assert_not_nil pool = @handler.retrieve_connection_pool("development_readonly")
-        assert_equal "db/readonly.sqlite3", pool.spec.config[:database]
+        assert_equal "db/readonly.sqlite3", pool.spec.underlying_configuration_hash[:database]
       ensure
         ActiveRecord::Base.configurations = @prev_configs
       end
@@ -172,8 +172,9 @@ module ActiveRecord
           assert_instance_of ActiveRecord::DatabaseConfigurations::HashConfig, db_config
           assert_instance_of String, db_config.env_name
           assert_instance_of String, db_config.spec_name
-          db_config.config.keys.each do |key|
-            assert_instance_of String, key
+
+          db_config.configuration_hash.keys.each do |key|
+            assert_instance_of Symbol, key
           end
         end
       ensure
@@ -209,7 +210,7 @@ module ActiveRecord
 
         assert_same klass2.connection, ActiveRecord::Base.connection
 
-        pool = klass2.establish_connection(ActiveRecord::Base.connection_pool.spec.config)
+        pool = klass2.establish_connection(ActiveRecord::Base.connection_pool.spec.underlying_configuration_hash)
         assert_same klass2.connection, pool.connection
         assert_not_same klass2.connection, ActiveRecord::Base.connection
 

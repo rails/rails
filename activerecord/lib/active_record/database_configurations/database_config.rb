@@ -13,6 +13,11 @@ module ActiveRecord
         @spec_name = spec_name
       end
 
+      def config
+        ActiveSupport::Deprecation.warn("DatabaseConfig#config will be removed in 6.2.0 in favor of DatabaseConfigurations#configuration_hash which returns a hash with symbol keys")
+        configuration_hash.stringify_keys
+      end
+
       def replica?
         raise NotImplementedError
       end
@@ -26,7 +31,7 @@ module ActiveRecord
       end
 
       def to_legacy_hash
-        { env_name => config }
+        { env_name => configuration_hash.stringify_keys }
       end
 
       def for_current_env?

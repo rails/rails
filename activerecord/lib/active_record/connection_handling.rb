@@ -227,7 +227,7 @@ module ActiveRecord
     #
     # Please use only for reading.
     def connection_config
-      connection_pool.spec.config
+      connection_pool.spec.underlying_configuration_hash
     end
 
     def connection_pool
