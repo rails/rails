@@ -1,3 +1,7 @@
+*   Changes in `queue_name_prefix` of a job no longer affects all other jobs. Fixes #37084.
+
+    *Lucas Mansur*
+
 *   Allow `Class` and `Module` instances to be serialized.
 
     *Kevin Deisz*
