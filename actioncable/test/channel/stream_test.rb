@@ -252,7 +252,6 @@ module ActionCable::StreamTests
         connection
           .pubsub
           .subscriber_map
-          .instance_variable_get(:@subscribers)
       end
   end
 
