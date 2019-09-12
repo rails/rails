@@ -3,7 +3,7 @@
 module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
-      class SchemaCreation < AbstractAdapter::SchemaCreation # :nodoc:
+      class SchemaCreation < SchemaCreation # :nodoc:
         private
           def visit_AlterTable(o)
             super << o.constraint_validations.map { |fk| visit_ValidateConstraint fk }.join(" ")

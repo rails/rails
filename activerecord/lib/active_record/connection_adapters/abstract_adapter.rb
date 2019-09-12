@@ -14,44 +14,6 @@ require "concurrent/atomic/thread_local_var"
 
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
-    extend ActiveSupport::Autoload
-
-    autoload :Column
-    autoload :ConnectionSpecification
-
-    autoload_at "active_record/connection_adapters/abstract/schema_definitions" do
-      autoload :IndexDefinition
-      autoload :ColumnDefinition
-      autoload :ChangeColumnDefinition
-      autoload :ForeignKeyDefinition
-      autoload :TableDefinition
-      autoload :Table
-      autoload :AlterTable
-      autoload :ReferenceDefinition
-    end
-
-    autoload_at "active_record/connection_adapters/abstract/connection_pool" do
-      autoload :ConnectionHandler
-    end
-
-    autoload_under "abstract" do
-      autoload :SchemaStatements
-      autoload :DatabaseStatements
-      autoload :DatabaseLimits
-      autoload :Quoting
-      autoload :ConnectionPool
-      autoload :QueryCache
-      autoload :Savepoints
-    end
-
-    autoload_at "active_record/connection_adapters/abstract/transaction" do
-      autoload :TransactionManager
-      autoload :NullTransaction
-      autoload :RealTransaction
-      autoload :SavepointTransaction
-      autoload :TransactionState
-    end
-
     # Active Record supports multiple database systems. AbstractAdapter and
     # related classes form the abstraction layer which makes this possible.
     # An AbstractAdapter represents a connection to a database, and provides an
