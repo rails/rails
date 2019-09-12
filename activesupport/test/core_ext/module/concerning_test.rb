@@ -8,6 +8,18 @@ class ModuleConcerningTest < ActiveSupport::TestCase
     klass = Class.new { concerning(:Foo) { } }
     assert_includes klass.ancestors, klass::Foo, klass.ancestors.inspect
   end
+
+  def test_concerning_can_prepend_concern
+    klass = Class.new do
+      def hi; "self"; end
+
+      concerning(:Foo, prepend: true) do
+        def hi; "hello, #{super}"; end
+      end
+    end
+
+    assert_equal "hello, self", klass.new.hi
+  end
 end
 
 class ModuleConcernTest < ActiveSupport::TestCase

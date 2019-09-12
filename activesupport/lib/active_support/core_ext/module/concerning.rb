@@ -106,8 +106,9 @@ class Module
   # * stop leaning on protected/private for crude "this is internal stuff" modularity.
   module Concerning
     # Define a new concern and mix it in.
-    def concerning(topic, &block)
-      include concern(topic, &block)
+    def concerning(topic, prepend: false, &block)
+      method = prepend ? :prepend : :include
+      __send__(method, concern(topic, &block))
     end
 
     # A low-cruft shortcut to define a concern.
