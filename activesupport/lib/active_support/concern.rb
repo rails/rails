@@ -106,6 +106,12 @@ module ActiveSupport
       end
     end
 
+    class MultiplePrependBlocks < StandardError #:nodoc:
+      def initialize
+        super "Cannot define multiple 'prepended' blocks for a Concern"
+      end
+    end
+
     def self.extended(base) #:nodoc:
       base.instance_variable_set(:@_dependencies, [])
     end
@@ -123,6 +129,19 @@ module ActiveSupport
       end
     end
 
+    def prepend_features(base) #:nodoc:
+      if base.instance_variable_defined?(:@_dependencies)
+        base.instance_variable_get(:@_dependencies).unshift self
+        false
+      else
+        return false if base < self
+        @_dependencies.each { |dep| base.prepend(dep) }
+        super
+        base.extend const_get(:ClassMethods) if const_defined?(:ClassMethods)
+        base.class_eval(&@_prepended_block) if instance_variable_defined?(:@_prepended_block)
+      end
+    end
+
     # Evaluate given block in context of base class,
     # so that you can write class macros here.
     # When you define more than one +included+ block, it raises an exception.
@@ -134,6 +153,23 @@ module ActiveSupport
           end
         else
           @_included_block = block
+        end
+      else
+        super
+      end
+    end
+
+    # Evaluate given block in context of base class,
+    # so that you can write class macros here.
+    # When you define more than one +prepended+ block, it raises an exception.
+    def prepended(base = nil, &block)
+      if base.nil?
+        if instance_variable_defined?(:@_prepended_block)
+          if @_prepended_block.source_location != block.source_location
+            raise MultiplePrependBlocks
+          end
+        else
+          @_prepended_block = block
         end
       else
         super
