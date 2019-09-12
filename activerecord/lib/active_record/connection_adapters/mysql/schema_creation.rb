@@ -21,7 +21,8 @@ module ActiveRecord
           end
 
           def add_table_options!(create_sql, options)
-            add_sql_comment!(super, options[:comment])
+            add_sql_comment!(create_sql, options[:comment])
+            super
           end
 
           def add_column_options!(sql, options)

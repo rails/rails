@@ -62,6 +62,14 @@ ActiveRecord::Schema.define do
     t.binary :binary_column,    limit: 1
   end
 
+  create_table :with_partitioning_tests, primary_key: %w(id date), options: "ENGINE=InnoDB DEFAULT CHARSET=utf8\n/*!50500 PARTITION BY RANGE  COLUMNS(`date`)\n(PARTITION p201901 VALUES LESS THAN ('2019-01-01') ENGINE = InnoDB,\n PARTITION p201902 VALUES LESS THAN ('2019-02-01') ENGINE = InnoDB,\n PARTITION p999999 VALUES LESS THAN (MAXVALUE) ENGINE = InnoDB) */", comment: "with_partitioning_tests", force: :cascade do |t|
+    t.bigint "id", null: false, auto_increment: true
+    t.string "name", comment: "name"
+    t.date "date", null: false, comment: "use partitioning column"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
   execute "DROP PROCEDURE IF EXISTS ten"
 
   execute <<~SQL
