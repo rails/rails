@@ -13,11 +13,11 @@ class ConcernTest < ActiveSupport::TestCase
       end
 
       def included_ran=(value)
-        @@included_ran = value
+        @included_ran = value
       end
 
       def included_ran
-        @@included_ran
+        @included_ran
       end
     end
 
