@@ -99,6 +99,14 @@ module ActiveSupport
   #   class Host
   #     include Bar # It works, now Bar takes care of its dependencies
   #   end
+  #
+  # === Prepending concerns
+  #
+  # Just like `include`, concerns also support `prepend` with a corresponding
+  # `prepended do` callback. `module ClassMethods` or `class_methods do` are
+  # still extended.
+  #
+  # `prepend` is also used for any dependencies.
   module Concern
     class MultipleIncludedBlocks < StandardError #:nodoc:
       def initialize

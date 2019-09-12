@@ -1,3 +1,23 @@
+*   Support `prepend` with `ActiveSupport::Concern`.
+
+    Allows a module with `extend ActiveSupport::Concern` to be prepended.
+
+        module Imposter
+          extend ActiveSupport::Concern
+
+          # Same as `included`, except only run when prepended.
+          prepended do
+          end
+        end
+
+        class Person
+          prepend Imposter
+        end
+
+    Concerning is also updated: `concerning :Imposter, prepend: true do`
+
+    *Jason Karns*
+
 *   Deprecate using `Range#include?` method to check the inclusion of a value
     in a date time range. It is recommended to use `Range#cover?` method
     instead of `Range#include?` to check the inclusion of a value
