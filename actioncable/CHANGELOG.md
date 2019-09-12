@@ -1,4 +1,4 @@
-*   Add method `ActionCable::Channel#stop_stream_from`, `ActionCable::Channel#stop_stream_for` to allow user unsubscibe specify steam.
+*   Add `ActionCable::Channel#stop_stream_from` and `#stop_stream_for` to unsubscribe from a specific stream.
 
     *Zhang Kang*
 

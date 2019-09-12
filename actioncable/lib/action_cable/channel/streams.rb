@@ -82,7 +82,7 @@ module ActionCable
         # Build a stream handler by wrapping the user-provided callback with
         # a decoder or defaulting to a JSON-decoding retransmitter.
         handler = worker_pool_stream_handler(broadcasting, callback || block, coder: coder)
-        streams[broadcasting] = [ broadcasting, handler ]
+        streams[broadcasting] = handler
 
         connection.server.event_loop.post do
           pubsub.subscribe(broadcasting, handler, lambda do
@@ -104,8 +104,8 @@ module ActionCable
 
       # Unsubscribes streams from the named <tt>broadcasting</tt>.
       def stop_stream_from(broadcasting)
-        broadcasting, callback = *streams.delete(broadcasting)
-        if broadcasting
+        callback = streams.delete(broadcasting)
+        if callback
           pubsub.unsubscribe(broadcasting, callback)
           logger.info "#{self.class.name} stopped streaming from #{broadcasting}"
         end
@@ -118,7 +118,7 @@ module ActionCable
 
       # Unsubscribes all streams associated with this channel from the pubsub queue.
       def stop_all_streams
-        streams.values.each do |broadcasting, callback|
+        streams.each do |broadcasting, callback|
           pubsub.unsubscribe broadcasting, callback
           logger.info "#{self.class.name} stopped streaming from #{broadcasting}"
         end.clear
@@ -128,7 +128,7 @@ module ActionCable
         delegate :pubsub, to: :connection
 
         def streams
-          @_streams_hash ||= {}
+          @_streams ||= {}
         end
 
         # Always wrap the outermost handler to invoke the user handler on the
