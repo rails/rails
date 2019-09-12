@@ -237,7 +237,7 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
     @conn.execute("INSERT INTO `engines` (`car_id`) VALUES ('138853948594')")
 
     @connection_handler.while_preventing_writes do
-      assert_equal 1, @conn.execute("(\n( SELECT `engines`.* FROM `engines` WHERE `engines`.`car_id` = '138853948594' ) )").entries.count
+      assert_equal 1, @conn.execute("/*action:index*/(\n( SELECT `engines`.* FROM `engines` WHERE `engines`.`car_id` = '138853948594' ) )").entries.count
     end
   end
 
