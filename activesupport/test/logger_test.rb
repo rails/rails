@@ -76,7 +76,7 @@ class LoggerTest < ActiveSupport::TestCase
   def test_should_not_log_debug_messages_when_log_level_is_info
     @logger.level = Logger::INFO
     @logger.add(Logger::DEBUG, @message)
-    assert_not @output.string.include?(@message)
+    assert_not_includes @output.string, @message
   end
 
   def test_should_add_message_passed_as_block_when_using_add
@@ -140,7 +140,7 @@ class LoggerTest < ActiveSupport::TestCase
       @logger.error "THIS IS HERE"
     end
 
-    assert_not @output.string.include?("NOT THERE")
+    assert_not_includes @output.string, "NOT THERE"
     assert_includes @output.string, "THIS IS HERE"
   end
 
@@ -153,7 +153,7 @@ class LoggerTest < ActiveSupport::TestCase
       @logger.debug "THIS IS HERE"
     end
 
-    assert_not @output.string.include?("NOT THERE")
+    assert_not_includes @output.string, "NOT THERE"
     assert_includes @output.string, "THIS IS HERE"
   end
 
@@ -172,7 +172,7 @@ class LoggerTest < ActiveSupport::TestCase
 
     assert_includes @output.string, "CORRECT DEBUG"
     assert_includes @output.string, "CORRECT ERROR"
-    assert_not @output.string.include?("FAILURE")
+    assert_not_includes @output.string, "FAILURE"
 
     assert_includes another_output.string, "CORRECT DEBUG"
     assert_includes another_output.string, "CORRECT ERROR"
@@ -194,7 +194,7 @@ class LoggerTest < ActiveSupport::TestCase
 
     assert_includes @output.string, "CORRECT DEBUG"
     assert_includes @output.string, "CORRECT ERROR"
-    assert_not @output.string.include?("FAILURE")
+    assert_not_includes @output.string, "FAILURE"
 
     assert_includes another_output.string, "CORRECT DEBUG"
     assert_includes another_output.string, "CORRECT ERROR"
