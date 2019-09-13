@@ -966,7 +966,7 @@ module ApplicationTests
 
           class EnvironmentTest < ActiveSupport::TestCase
             def test_environment
-              test_db = ActiveRecord::Base.configurations[#{env.dump}]["database"]
+              test_db = ActiveRecord::Base.configurations[#{env.dump}][:database]
               db_file = ActiveRecord::Base.connection_config[:database]
               assert_match(test_db, db_file)
               assert_equal #{env.dump}, ENV["RAILS_ENV"]

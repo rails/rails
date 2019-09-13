@@ -48,7 +48,7 @@ module ActiveRecord
         ENV["DATABASE_URL"] = "postgres://localhost/foo"
         config   = { "not_production" => {  "adapter" => "not_postgres", "database" => "not_foo" } }
         actual   = resolve_spec(:default_env, config)
-        expected = { "adapter" => "postgresql", "database" => "foo", "host" => "localhost", "name" => "default_env" }
+        expected = { adapter: "postgresql", database: "foo", host: "localhost", name: "default_env" }
         assert_equal expected, actual
       end
 
@@ -58,7 +58,7 @@ module ActiveRecord
 
         config   = { "not_production" => { "adapter" => "not_postgres", "database" => "not_foo" } }
         actual   = resolve_spec(:foo, config)
-        expected = { "adapter" => "postgresql", "database" => "foo", "host" => "localhost", "name" => "foo" }
+        expected = { adapter: "postgresql", database: "foo", host: "localhost", name: "foo" }
         assert_equal expected, actual
       end
 
@@ -66,7 +66,7 @@ module ActiveRecord
         ENV["RAILS_ENV"] = "foo"
         config = { "foo" => { "adapter" => "postgres", "url" => ENV["DATABASE_URL"] } }
         actual   = resolve_spec(:foo, config)
-        expected = { "adapter" => "postgres", "url" => nil, "name" => "foo" }
+        expected = { adapter: "postgres", url: nil, name: "foo" }
         assert_equal expected, actual
       end
 
@@ -76,7 +76,7 @@ module ActiveRecord
 
         config   = { "not_production" => { "adapter" => "not_postgres", "database" => "not_foo" } }
         actual   = resolve_spec(:foo, config)
-        expected = { "adapter" => "postgresql", "database" => "foo", "host" => "localhost", "name" => "foo" }
+        expected = { adapter: "postgresql", database: "foo", host: "localhost", name: "foo" }
         assert_equal expected, actual
       end
 
@@ -84,7 +84,7 @@ module ActiveRecord
         ENV["DATABASE_URL"] = "postgres://localhost/foo"
         config   = { "production" => { "adapter" => "not_postgres", "database" => "not_foo", "host" => "localhost" } }
         actual   = resolve_spec(:production, config)
-        expected = { "adapter" => "not_postgres", "database" => "not_foo", "host" => "localhost", "name" => "production" }
+        expected = { adapter: "not_postgres", database: "not_foo", host: "localhost", name: "production" }
         assert_equal expected, actual
       end
 
@@ -94,7 +94,7 @@ module ActiveRecord
 
         config   = { "production" => { "adapter" => "postgresql", "database" => "foo_prod" }, "test" => { "adapter" => "postgresql", "database" => "foo_test" } }
         actual   = resolve_spec(:test, config)
-        expected = { "adapter" => "postgresql", "database" => "foo_test", "host" => "localhost", "name" => "test" }
+        expected = { adapter: "postgresql", database: "foo_test", host: "localhost", name: "test" }
         assert_equal expected, actual
       end
 
@@ -110,7 +110,7 @@ module ActiveRecord
         ENV["DATABASE_URL"] = "not-postgres://not-localhost/not_foo"
         config   = { "production" => {  "adapter" => "also_not_postgres", "database" => "also_not_foo" } }
         actual   = resolve_spec("postgres://localhost/foo", config)
-        expected = { "adapter" => "postgresql", "database" => "foo", "host" => "localhost" }
+        expected = { adapter: "postgresql", database: "foo", host: "localhost" }
         assert_equal expected, actual
       end
 
@@ -132,7 +132,7 @@ module ActiveRecord
         ENV["DATABASE_URL"] = "ibm-db://localhost/foo"
         config   = { "default_env" => { "adapter" => "not_postgres", "database" => "not_foo", "host" => "localhost" } }
         actual   = resolve_spec(:default_env, config)
-        expected = { "adapter" => "ibm_db", "database" => "foo", "host" => "localhost", "name" => "default_env" }
+        expected = { adapter: "ibm_db", database: "foo", host: "localhost", name: "default_env" }
         assert_equal expected, actual
       end
 
@@ -351,19 +351,19 @@ module ActiveRecord
         }
 
         configs = ActiveRecord::DatabaseConfigurations.new(config)
-        actual = configs.configs_for(env_name: "default_env", spec_name: "primary").config
+        actual = configs.configs_for(env_name: "default_env", spec_name: "primary").configuration_hash
         expected = {
-          "adapter"  => "postgresql",
-          "database" => "foo",
-          "host"     => "localhost",
-          "pool"     => 5
+          adapter:  "postgresql",
+          database: "foo",
+          host:     "localhost",
+          pool:     5
         }
 
         assert_equal expected, actual
 
         configs = ActiveRecord::DatabaseConfigurations.new(config)
-        actual = configs.configs_for(env_name: "default_env", spec_name: "animals").config
-        expected = { "pool" => 5 }
+        actual = configs.configs_for(env_name: "default_env", spec_name: "animals").configuration_hash
+        expected = { pool: 5 }
 
         assert_equal expected, actual
       end
@@ -381,12 +381,12 @@ module ActiveRecord
         }
 
         configs = ActiveRecord::DatabaseConfigurations.new(config)
-        actual = configs.configs_for(env_name: "default_env", spec_name: "primary").config
-        assert_equal "primary", actual["database"]
+        actual = configs.configs_for(env_name: "default_env", spec_name: "primary").configuration_hash
+        assert_equal "primary", actual[:database]
 
         configs = ActiveRecord::DatabaseConfigurations.new(config)
-        actual = configs.configs_for(env_name: "default_env", spec_name: "animals").config
-        assert_equal "animals", actual["database"]
+        actual = configs.configs_for(env_name: "default_env", spec_name: "animals").configuration_hash
+        assert_equal "animals", actual[:database]
       ensure
         ENV.delete("PRIMARY_DATABASE_URL")
         ENV.delete("ANIMALS_DATABASE_URL")
@@ -397,14 +397,14 @@ module ActiveRecord
         config = { "production" => { "adapter" => "not_postgres", "database" => "not_foo", "host" => "localhost" }, "default_env" => {} }
 
         actual = resolve_spec(:production, config)
-        assert_equal config["production"].merge("name" => "production"), actual
+        assert_equal config["production"].symbolize_keys.merge(name: "production"), actual
 
         actual = resolve_spec(:default_env, config)
         assert_equal({
-          "host" => "localhost",
-          "database" => "foo",
-          "adapter" => "postgresql",
-          "name" => "default_env"
+          host: "localhost",
+          database: "foo",
+          adapter: "postgresql",
+          name: "default_env"
         }, actual)
       end
     end

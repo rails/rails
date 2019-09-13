@@ -5,14 +5,18 @@ require "uri"
 module ActiveRecord
   module ConnectionAdapters
     class ConnectionSpecification #:nodoc:
-      attr_reader :name, :config, :adapter_method
+      attr_reader :name, :adapter_method
 
       def initialize(name, config, adapter_method)
         @name, @config, @adapter_method = name, config, adapter_method
       end
 
+      def underlying_configuration_hash
+        @config
+      end
+
       def initialize_dup(original)
-        @config = original.config.dup
+        @config = original.underlying_configuration_hash.dup
       end
 
       def to_hash
@@ -26,14 +30,14 @@ module ActiveRecord
         #   url = "postgresql://foo:bar@localhost:9000/foo_test?pool=5&timeout=3000"
         #   ConnectionUrlResolver.new(url).to_hash
         #   # => {
-        #     "adapter"  => "postgresql",
-        #     "host"     => "localhost",
-        #     "port"     => 9000,
-        #     "database" => "foo_test",
-        #     "username" => "foo",
-        #     "password" => "bar",
-        #     "pool"     => "5",
-        #     "timeout"  => "3000"
+        #     adapter:  "postgresql",
+        #     host:     "localhost",
+        #     port:     9000,
+        #     database: "foo_test",
+        #     username: "foo",
+        #     password: "bar",
+        #     pool:     "5",
+        #     timeout:  "3000"
         #   }
         def initialize(url)
           raise "Database URL cannot be empty" if url.blank?
@@ -65,29 +69,31 @@ module ActiveRecord
           # Converts the query parameters of the URI into a hash.
           #
           #   "localhost?pool=5&reaping_frequency=2"
-          #   # => { "pool" => "5", "reaping_frequency" => "2" }
+          #   # => { pool: "5", reaping_frequency: "2" }
           #
           # returns empty hash if no query present.
           #
           #   "localhost"
           #   # => {}
           def query_hash
-            Hash[(@query || "").split("&").map { |pair| pair.split("=") }]
+            Hash[(@query || "").split("&").map { |pair| pair.split("=") }].symbolize_keys
           end
 
           def raw_config
             if uri.opaque
               query_hash.merge(
-                "adapter"  => @adapter,
-                "database" => uri.opaque)
+                adapter: @adapter,
+                database: uri.opaque
+              )
             else
               query_hash.merge(
-                "adapter"  => @adapter,
-                "username" => uri.user,
-                "password" => uri.password,
-                "port"     => uri.port,
-                "database" => database_from_path,
-                "host"     => uri.hostname)
+                adapter: @adapter,
+                username: uri.user,
+                password: uri.password,
+                port: uri.port,
+                database: database_from_path,
+                host: uri.hostname
+              )
             end
           end
 
@@ -126,13 +132,13 @@ module ActiveRecord
         #
         #   configurations = { "production" => { "host" => "localhost", "database" => "foo", "adapter" => "sqlite3" } }
         #   Resolver.new(configurations).resolve(:production)
-        #   # => { "host" => "localhost", "database" => "foo", "adapter" => "sqlite3"}
+        #   # => { host: "localhost", database: "foo", adapter: "sqlite3"}
         #
         # Initialized with URL configuration strings.
         #
         #   configurations = { "production" => "postgresql://localhost/foo" }
         #   Resolver.new(configurations).resolve(:production)
-        #   # => { "host" => "localhost", "database" => "foo", "adapter" => "postgresql" }
+        #   # => { host: "localhost", database: "foo", adapter: "postgresql" }
         #
         def resolve(config_or_env, pool_name = nil)
           if config_or_env
@@ -151,8 +157,8 @@ module ActiveRecord
         #   spec = Resolver.new(config).spec(:production)
         #   spec.adapter_method
         #   # => "sqlite3_connection"
-        #   spec.config
-        #   # => { "host" => "localhost", "database" => "foo", "adapter" => "sqlite3" }
+        #   spec.underlying_configuration_hash
+        #   # => { host: "localhost", database: "foo", adapter: "sqlite3" }
         #
         def spec(config)
           pool_name = config if config.is_a?(Symbol)
@@ -205,12 +211,12 @@ module ActiveRecord
           # One layer deep hash of connection values.
           #
           #   Resolver.new({}).resolve_connection("adapter" => "sqlite3")
-          #   # => { "adapter" => "sqlite3" }
+          #   # => { adapter: "sqlite3" }
           #
           # Connection URL.
           #
           #   Resolver.new({}).resolve_connection("postgresql://localhost/foo")
-          #   # => { "host" => "localhost", "database" => "foo", "adapter" => "postgresql" }
+          #   # => { host: "localhost", database: "foo", adapter: "postgresql" }
           #
           def resolve_connection(config_or_env, pool_name = nil)
             case config_or_env
@@ -236,16 +242,16 @@ module ActiveRecord
           #   configurations = #<ActiveRecord::DatabaseConfigurations:0x00007fd9fdace3e0
           #     @configurations=[
           #       #<ActiveRecord::DatabaseConfigurations::HashConfig:0x00007fd9fdace250
-          #         @env_name="production", @spec_name="primary", @config={"database"=>"my_db"}>
+          #         @env_name="production", @spec_name="primary", @config={database: "my_db"}>
           #       ]>
           #
           #   Resolver.new(configurations).resolve_symbol_connection(:production, "primary")
-          #   # => { "database" => "my_db" }
+          #   # => { database: "my_db" }
           def resolve_symbol_connection(env_name, pool_name)
             db_config = configurations.find_db_config(env_name)
 
             if db_config
-              resolve_connection(db_config.config).merge("name" => pool_name.to_s)
+              resolve_connection(db_config.configuration_hash).merge(name: pool_name.to_s)
             else
               raise AdapterNotSpecified, <<~MSG
                 The `#{env_name}` database is not configured for the `#{ActiveRecord::ConnectionHandling::DEFAULT_ENV.call}` environment.
@@ -275,8 +281,8 @@ module ActiveRecord
           # hash and merges with the rest of the hash.
           # Connection details inside of the "url" key win any merge conflicts
           def resolve_hash_connection(spec)
-            if spec["url"] && !spec["url"].match?(/^jdbc:/)
-              connection_hash = resolve_url_connection(spec.delete("url"))
+            if spec[:url] && !spec[:url].match?(/^jdbc:/)
+              connection_hash = resolve_url_connection(spec.delete(:url))
               spec.merge!(connection_hash)
             end
             spec
@@ -285,7 +291,7 @@ module ActiveRecord
           # Takes a connection URL.
           #
           #   Resolver.new({}).resolve_url_connection("postgresql://localhost/foo")
-          #   # => { "host" => "localhost", "database" => "foo", "adapter" => "postgresql" }
+          #   # => { host: "localhost", database: "foo", adapter: "postgresql" }
           #
           def resolve_url_connection(url)
             ConnectionUrlResolver.new(url).to_hash

@@ -385,14 +385,14 @@ module ActiveRecord
 
         @spec = spec
 
-        @checkout_timeout = (spec.config[:checkout_timeout] && spec.config[:checkout_timeout].to_f) || 5
-        if @idle_timeout = spec.config.fetch(:idle_timeout, 300)
+        @checkout_timeout = (spec.underlying_configuration_hash[:checkout_timeout] && spec.underlying_configuration_hash[:checkout_timeout].to_f) || 5
+        if @idle_timeout = spec.underlying_configuration_hash.fetch(:idle_timeout, 300)
           @idle_timeout = @idle_timeout.to_f
           @idle_timeout = nil if @idle_timeout <= 0
         end
 
         # default max pool size to 5
-        @size = (spec.config[:pool] && spec.config[:pool].to_i) || 5
+        @size = (spec.underlying_configuration_hash[:pool] && spec.underlying_configuration_hash[:pool].to_i) || 5
 
         # This variable tracks the cache of threads mapped to reserved connections, with the
         # sole purpose of speeding up the +connection+ method. It is not the authoritative
@@ -422,7 +422,7 @@ module ActiveRecord
 
         # +reaping_frequency+ is configurable mostly for historical reasons, but it could
         # also be useful if someone wants a very low +idle_timeout+.
-        reaping_frequency = spec.config.fetch(:reaping_frequency, 60)
+        reaping_frequency = spec.underlying_configuration_hash.fetch(:reaping_frequency, 60)
         @reaper = Reaper.new(self, reaping_frequency && reaping_frequency.to_f)
         @reaper.run
       end
@@ -505,7 +505,7 @@ module ActiveRecord
       # Raises:
       # - ActiveRecord::ExclusiveConnectionTimeoutError if unable to gain ownership of all
       #   connections in the pool within a timeout interval (default duration is
-      #   <tt>spec.config[:checkout_timeout] * 2</tt> seconds).
+      #   <tt>spec.underlying_configuration_hash[:checkout_timeout] * 2</tt> seconds).
       def disconnect(raise_on_acquisition_timeout = true)
         with_exclusively_acquired_all_connections(raise_on_acquisition_timeout) do
           synchronize do
@@ -526,7 +526,7 @@ module ActiveRecord
       #
       # The pool first tries to gain ownership of all connections. If unable to
       # do so within a timeout interval (default duration is
-      # <tt>spec.config[:checkout_timeout] * 2</tt> seconds), then the pool is forcefully
+      # <tt>spec.underlying_configuration_hash[:checkout_timeout] * 2</tt> seconds), then the pool is forcefully
       # disconnected without any regard for other connection owning threads.
       def disconnect!
         disconnect(false)
@@ -557,7 +557,7 @@ module ActiveRecord
       # Raises:
       # - ActiveRecord::ExclusiveConnectionTimeoutError if unable to gain ownership of all
       #   connections in the pool within a timeout interval (default duration is
-      #   <tt>spec.config[:checkout_timeout] * 2</tt> seconds).
+      #   <tt>spec.underlying_configuration_hash[:checkout_timeout] * 2</tt> seconds).
       def clear_reloadable_connections(raise_on_acquisition_timeout = true)
         with_exclusively_acquired_all_connections(raise_on_acquisition_timeout) do
           synchronize do
@@ -579,7 +579,7 @@ module ActiveRecord
       #
       # The pool first tries to gain ownership of all connections. If unable to
       # do so within a timeout interval (default duration is
-      # <tt>spec.config[:checkout_timeout] * 2</tt> seconds), then the pool forcefully
+      # <tt>spec.underlying_configuration_hash[:checkout_timeout] * 2</tt> seconds), then the pool forcefully
       # clears the cache and reloads connections without any regard for other
       # connection owning threads.
       def clear_reloadable_connections!
@@ -899,7 +899,7 @@ module ActiveRecord
         alias_method :release, :remove_connection_from_thread_cache
 
         def new_connection
-          Base.send(spec.adapter_method, spec.config).tap do |conn|
+          Base.send(spec.adapter_method, spec.underlying_configuration_hash).tap do |conn|
             conn.check_version
           end
         end
@@ -1074,7 +1074,7 @@ module ActiveRecord
         }
         if spec
           payload[:spec_name] = spec.name
-          payload[:config] = spec.config
+          payload[:config] = spec.underlying_configuration_hash
         end
 
         message_bus.instrument("!connection.active_record", payload) do
@@ -1149,7 +1149,7 @@ module ActiveRecord
         if pool = owner_to_pool.delete(spec_name)
           pool.automatic_reconnect = false
           pool.disconnect!
-          pool.spec.config
+          pool.spec.underlying_configuration_hash
         end
       end
 

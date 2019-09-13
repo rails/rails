@@ -262,7 +262,7 @@ module ActiveRecord
         assert_called_with(
           ActiveRecord::Tasks::DatabaseTasks,
           :create,
-          ["database" => "test-db"],
+          [database: "test-db"],
         ) do
           ActiveRecord::Tasks::DatabaseTasks.create_current(
             ActiveSupport::StringInquirer.new("test")
@@ -276,7 +276,7 @@ module ActiveRecord
         assert_called_with(
           ActiveRecord::Tasks::DatabaseTasks,
           :create,
-          ["adapter" => "abstract", "database" => "prod-db", "host" => "prod-db-host"],
+          [adapter: "abstract", database: "prod-db", host: "prod-db-host"],
         ) do
           ActiveRecord::Tasks::DatabaseTasks.create_current(
             ActiveSupport::StringInquirer.new("production")
@@ -291,8 +291,8 @@ module ActiveRecord
           ActiveRecord::Tasks::DatabaseTasks,
           :create,
           [
-            ["database" => "dev-db"],
-            ["database" => "test-db"]
+            [database: "dev-db"],
+            [database: "test-db"]
           ],
         ) do
           ActiveRecord::Tasks::DatabaseTasks.create_current(
@@ -311,8 +311,8 @@ module ActiveRecord
           ActiveRecord::Tasks::DatabaseTasks,
           :create,
           [
-            ["database" => "dev-db"],
-            ["database" => "test-db"]
+            [database: "dev-db"],
+            [database: "test-db"]
           ],
         ) do
           ActiveRecord::Tasks::DatabaseTasks.create_current(
@@ -362,8 +362,8 @@ module ActiveRecord
           ActiveRecord::Tasks::DatabaseTasks,
           :create,
           [
-            ["database" => "test-db"],
-            ["database" => "secondary-test-db"]
+            [database: "test-db"],
+            [database: "secondary-test-db"]
           ]
         ) do
           ActiveRecord::Tasks::DatabaseTasks.create_current(
@@ -379,8 +379,8 @@ module ActiveRecord
           ActiveRecord::Tasks::DatabaseTasks,
           :create,
           [
-            ["adapter" => "abstract", "database" => "prod-db", "host" => "prod-db-host"],
-            ["adapter" => "abstract", "database" => "secondary-prod-db", "host" => "secondary-prod-db-host"]
+            [adapter: "abstract", database: "prod-db", host: "prod-db-host"],
+            [adapter: "abstract", database: "secondary-prod-db", host: "secondary-prod-db-host"]
           ]
         ) do
           ActiveRecord::Tasks::DatabaseTasks.create_current(
@@ -396,10 +396,10 @@ module ActiveRecord
           ActiveRecord::Tasks::DatabaseTasks,
           :create,
           [
-            ["database" => "dev-db"],
-            ["database" => "secondary-dev-db"],
-            ["database" => "test-db"],
-            ["database" => "secondary-test-db"]
+            [database: "dev-db"],
+            [database: "secondary-dev-db"],
+            [database: "test-db"],
+            [database: "secondary-test-db"]
           ]
         ) do
           ActiveRecord::Tasks::DatabaseTasks.create_current(
@@ -418,10 +418,10 @@ module ActiveRecord
           ActiveRecord::Tasks::DatabaseTasks,
           :create,
           [
-            ["database" => "dev-db"],
-            ["database" => "secondary-dev-db"],
-            ["database" => "test-db"],
-            ["database" => "secondary-test-db"]
+            [database: "dev-db"],
+            [database: "secondary-dev-db"],
+            [database: "test-db"],
+            [database: "secondary-test-db"]
           ]
         ) do
           ActiveRecord::Tasks::DatabaseTasks.create_current(
@@ -570,7 +570,7 @@ module ActiveRecord
     def test_drops_current_environment_database
       with_stubbed_configurations do
         assert_called_with(ActiveRecord::Tasks::DatabaseTasks, :drop,
-          ["database" => "test-db"]) do
+          [database: "test-db"]) do
           ActiveRecord::Tasks::DatabaseTasks.drop_current(
             ActiveSupport::StringInquirer.new("test")
           )
@@ -581,7 +581,7 @@ module ActiveRecord
     def test_drops_current_environment_database_with_url
       with_stubbed_configurations do
         assert_called_with(ActiveRecord::Tasks::DatabaseTasks, :drop,
-          ["adapter" => "abstract", "database" => "prod-db", "host" => "prod-db-host"]) do
+          [adapter: "abstract", database: "prod-db", host: "prod-db-host"]) do
           ActiveRecord::Tasks::DatabaseTasks.drop_current(
             ActiveSupport::StringInquirer.new("production")
           )
@@ -595,8 +595,8 @@ module ActiveRecord
           ActiveRecord::Tasks::DatabaseTasks,
           :drop,
           [
-            ["database" => "dev-db"],
-            ["database" => "test-db"]
+            [database: "dev-db"],
+            [database: "test-db"]
           ]
         ) do
           ActiveRecord::Tasks::DatabaseTasks.drop_current(
@@ -615,8 +615,8 @@ module ActiveRecord
           ActiveRecord::Tasks::DatabaseTasks,
           :drop,
           [
-            ["database" => "dev-db"],
-            ["database" => "test-db"]
+            [database: "dev-db"],
+            [database: "test-db"]
           ]
         ) do
           ActiveRecord::Tasks::DatabaseTasks.drop_current(
@@ -654,8 +654,8 @@ module ActiveRecord
           ActiveRecord::Tasks::DatabaseTasks,
           :drop,
           [
-            ["database" => "test-db"],
-            ["database" => "secondary-test-db"]
+            [database: "test-db"],
+            [database: "secondary-test-db"]
           ]
         ) do
           ActiveRecord::Tasks::DatabaseTasks.drop_current(
@@ -671,8 +671,8 @@ module ActiveRecord
           ActiveRecord::Tasks::DatabaseTasks,
           :drop,
           [
-            ["adapter" => "abstract", "database" => "prod-db", "host" => "prod-db-host"],
-            ["adapter" => "abstract", "database" => "secondary-prod-db", "host" => "secondary-prod-db-host"]
+            [adapter: "abstract", database: "prod-db", host: "prod-db-host"],
+            [adapter: "abstract", database: "secondary-prod-db", host: "secondary-prod-db-host"]
           ]
         ) do
           ActiveRecord::Tasks::DatabaseTasks.drop_current(
@@ -688,10 +688,10 @@ module ActiveRecord
           ActiveRecord::Tasks::DatabaseTasks,
           :drop,
           [
-            ["database" => "dev-db"],
-            ["database" => "secondary-dev-db"],
-            ["database" => "test-db"],
-            ["database" => "secondary-test-db"]
+            [database: "dev-db"],
+            [database: "secondary-dev-db"],
+            [database: "test-db"],
+            [database: "secondary-test-db"]
           ]
         ) do
           ActiveRecord::Tasks::DatabaseTasks.drop_current(
@@ -710,10 +710,10 @@ module ActiveRecord
           ActiveRecord::Tasks::DatabaseTasks,
           :drop,
           [
-            ["database" => "dev-db"],
-            ["database" => "secondary-dev-db"],
-            ["database" => "test-db"],
-            ["database" => "secondary-test-db"]
+            [database: "dev-db"],
+            [database: "secondary-dev-db"],
+            [database: "test-db"],
+            [database: "secondary-test-db"]
           ]
         ) do
           ActiveRecord::Tasks::DatabaseTasks.drop_current(
@@ -922,7 +922,7 @@ module ActiveRecord
       assert_called_with(
         ActiveRecord::Tasks::DatabaseTasks,
         :purge,
-        ["database" => "prod-db"]
+        [database: "prod-db"]
       ) do
         assert_called_with(ActiveRecord::Base, :establish_connection, [:production]) do
           ActiveRecord::Tasks::DatabaseTasks.purge_current("production")
@@ -942,7 +942,7 @@ module ActiveRecord
       assert_called_with(
         ActiveRecord::Tasks::DatabaseTasks,
         :purge,
-        ["database" => "my-db"]
+        [database: "my-db"]
       ) do
         ActiveRecord::Tasks::DatabaseTasks.purge_all
       end
@@ -1043,8 +1043,8 @@ module ActiveRecord
           ActiveRecord::Tasks::DatabaseTasks,
           :truncate_tables,
           [
-            ["database" => "test-db"],
-            ["database" => "secondary-test-db"]
+            [database: "test-db"],
+            [database: "secondary-test-db"]
           ]
         ) do
           ActiveRecord::Tasks::DatabaseTasks.truncate_all(
@@ -1060,8 +1060,8 @@ module ActiveRecord
           ActiveRecord::Tasks::DatabaseTasks,
           :truncate_tables,
           [
-            ["adapter" => "abstract", "database" => "prod-db", "host" => "prod-db-host"],
-            ["adapter" => "abstract", "database" => "secondary-prod-db", "host" => "secondary-prod-db-host"]
+            [adapter: "abstract", database: "prod-db", host: "prod-db-host"],
+            [adapter: "abstract", database: "secondary-prod-db", host: "secondary-prod-db-host"]
           ]
         ) do
           ActiveRecord::Tasks::DatabaseTasks.truncate_all(
@@ -1077,8 +1077,8 @@ module ActiveRecord
           ActiveRecord::Tasks::DatabaseTasks,
           :truncate_tables,
           [
-            ["database" => "dev-db"],
-            ["database" => "secondary-dev-db"]
+            [database: "dev-db"],
+            [database: "secondary-dev-db"]
           ]
         ) do
           ActiveRecord::Tasks::DatabaseTasks.truncate_all(
@@ -1097,8 +1097,8 @@ module ActiveRecord
           ActiveRecord::Tasks::DatabaseTasks,
           :truncate_tables,
           [
-            ["database" => "dev-db"],
-            ["database" => "secondary-dev-db"]
+            [database: "dev-db"],
+            [database: "secondary-dev-db"]
           ]
         ) do
           ActiveRecord::Tasks::DatabaseTasks.truncate_all(

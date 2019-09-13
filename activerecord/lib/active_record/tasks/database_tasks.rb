@@ -116,19 +116,19 @@ module ActiveRecord
         if options.has_key?(:config)
           @current_config = options[:config]
         else
-          @current_config ||= ActiveRecord::Base.configurations.configs_for(env_name: options[:env], spec_name: options[:spec]).config
+          @current_config ||= ActiveRecord::Base.configurations.configs_for(env_name: options[:env], spec_name: options[:spec]).underlying_configuration_hash
         end
       end
 
       def create(*arguments)
-        configuration = arguments.first
-        class_for_adapter(configuration["adapter"]).new(*arguments).create
-        $stdout.puts "Created database '#{configuration['database']}'" if verbose?
+        configuration = arguments.first.symbolize_keys
+        class_for_adapter(configuration[:adapter]).new(*arguments).create
+        $stdout.puts "Created database '#{configuration[:database]}'" if verbose?
       rescue DatabaseAlreadyExists
-        $stderr.puts "Database '#{configuration['database']}' already exists" if verbose?
+        $stderr.puts "Database '#{configuration[:database]}' already exists" if verbose?
       rescue Exception => error
         $stderr.puts error
-        $stderr.puts "Couldn't create '#{configuration['database']}' database. Please check your configuration."
+        $stderr.puts "Couldn't create '#{configuration[:database]}' database. Please check your configuration."
         raise
       end
 
@@ -187,14 +187,14 @@ module ActiveRecord
       end
 
       def drop(*arguments)
-        configuration = arguments.first
-        class_for_adapter(configuration["adapter"]).new(*arguments).drop
-        $stdout.puts "Dropped database '#{configuration['database']}'" if verbose?
+        configuration = arguments.first.symbolize_keys
+        class_for_adapter(configuration[:adapter]).new(*arguments).drop
+        $stdout.puts "Dropped database '#{configuration[:database]}'" if verbose?
       rescue ActiveRecord::NoDatabaseError
-        $stderr.puts "Database '#{configuration['database']}' does not exist"
+        $stderr.puts "Database '#{configuration[:database]}' does not exist"
       rescue Exception => error
         $stderr.puts error
-        $stderr.puts "Couldn't drop database '#{configuration['database']}'"
+        $stderr.puts "Couldn't drop database '#{configuration[:database]}'"
         raise
       end
 
@@ -224,7 +224,7 @@ module ActiveRecord
 
       def truncate_all(environment = env)
         ActiveRecord::Base.configurations.configs_for(env_name: environment).each do |db_config|
-          truncate_tables db_config.config
+          truncate_tables db_config.configuration_hash
         end
       end
 
@@ -269,25 +269,26 @@ module ActiveRecord
       end
 
       def charset_current(environment = env, specification_name = spec)
-        charset ActiveRecord::Base.configurations.configs_for(env_name: environment, spec_name: specification_name).config
+        charset ActiveRecord::Base.configurations.configs_for(env_name: environment, spec_name: specification_name).configuration_hash
       end
 
       def charset(*arguments)
-        configuration = arguments.first
-        class_for_adapter(configuration["adapter"]).new(*arguments).charset
+        configuration = arguments.first.symbolize_keys
+        class_for_adapter(configuration[:adapter]).new(*arguments).charset
       end
 
       def collation_current(environment = env, specification_name = spec)
-        collation ActiveRecord::Base.configurations.configs_for(env_name: environment, spec_name: specification_name).config
+        collation ActiveRecord::Base.configurations.configs_for(env_name: environment, spec_name: specification_name).configuration_hash
       end
 
       def collation(*arguments)
-        configuration = arguments.first
-        class_for_adapter(configuration["adapter"]).new(*arguments).collation
+        configuration = arguments.first.symbolize_keys
+        class_for_adapter(configuration[:adapter]).new(*arguments).collation
       end
 
       def purge(configuration)
-        class_for_adapter(configuration["adapter"]).new(configuration).purge
+        configuration = configuration.symbolize_keys
+        class_for_adapter(configuration[:adapter]).new(configuration).purge
       end
 
       def purge_all
@@ -304,15 +305,15 @@ module ActiveRecord
       end
 
       def structure_dump(*arguments)
-        configuration = arguments.first
+        configuration = arguments.first.symbolize_keys
         filename = arguments.delete_at 1
-        class_for_adapter(configuration["adapter"]).new(*arguments).structure_dump(filename, structure_dump_flags)
+        class_for_adapter(configuration[:adapter]).new(*arguments).structure_dump(filename, structure_dump_flags)
       end
 
       def structure_load(*arguments)
-        configuration = arguments.first
+        configuration = arguments.first.symbolize_keys
         filename = arguments.delete_at 1
-        class_for_adapter(configuration["adapter"]).new(*arguments).structure_load(filename, structure_load_flags)
+        class_for_adapter(configuration[:adapter]).new(*arguments).structure_load(filename, structure_load_flags)
       end
 
       def load_schema(configuration, format = ActiveRecord::Base.schema_format, file = nil, environment = env, spec_name = "primary") # :nodoc:
@@ -475,26 +476,26 @@ module ActiveRecord
             ActiveRecord::Base.configurations.configs_for(env_name: env).each do |db_config|
               next if spec_name && spec_name != db_config.spec_name
 
-              yield db_config.config, db_config.spec_name, env
+              yield db_config.configuration_hash, db_config.spec_name, env
             end
           end
         end
 
         def each_local_configuration
           ActiveRecord::Base.configurations.configs_for.each do |db_config|
-            configuration = db_config.config
-            next unless configuration["database"]
+            configuration = db_config.configuration_hash
+            next unless configuration[:database]
 
             if local_database?(configuration)
               yield configuration
             else
-              $stderr.puts "This task only modifies local databases. #{configuration['database']} is on a remote host."
+              $stderr.puts "This task only modifies local databases. #{configuration[:database]} is on a remote host."
             end
           end
         end
 
         def local_database?(configuration)
-          configuration["host"].blank? || LOCAL_HOSTS.include?(configuration["host"])
+          configuration[:host].blank? || LOCAL_HOSTS.include?(configuration[:host])
         end
 
         def schema_sha1(file)

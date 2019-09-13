@@ -1,3 +1,7 @@
+*   Add `DatabaseConfig#configuration_hash` to return database configuration hashes with symbol keys, and use all symbol-key configuration hashes internally. Deprecate `DatabaseConfig#config` which returns a String-keyed `Hash` with the same values.
+
+    *John Crepezzi*, *Eileen Uchitelle*
+
 *   Allow column names to be passed to `remove_index` positionally along with other options.
 
     Passing other options can be necessary to make `remove_index` correctly reversible.
