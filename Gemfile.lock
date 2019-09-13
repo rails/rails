@@ -337,8 +337,6 @@ GEM
     mustache (1.1.0)
     mustermann (1.0.3)
     mysql2 (0.5.2)
-    mysql2 (0.5.2-x64-mingw32)
-    mysql2 (0.5.2-x86-mingw32)
     nio4r (2.4.0)
     nio4r (2.4.0-java)
     nokogiri (1.10.4)
@@ -565,7 +563,7 @@ DEPENDENCIES
   minitest-bisect
   minitest-reporters
   minitest-retry
-  mysql2 (>= 0.4.10)
+  mysql2 (~> 0.5)
   nokogiri (>= 1.8.1)
   pg (>= 0.18.0)
   psych (~> 3.0)
