@@ -18,6 +18,10 @@ module ActiveRecord
         configuration_hash.stringify_keys
       end
 
+      def initialize_dup(original)
+        @config = original.configuration_hash.dup
+      end
+
       def replica?
         raise NotImplementedError
       end
