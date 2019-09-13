@@ -681,7 +681,11 @@ Capistrano (v2.15.1 and above) includes a recipe to handle this in deployment.
 Add the following line to `Capfile`:
 
 ```ruby
+# Capistrano version 2
 load 'deploy/assets'
+
+# Capistrano version 3
+require "capistrano/rails/assets"
 ```
 
 This links the folder specified in `config.assets.prefix` to `shared/assets`.
