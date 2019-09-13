@@ -144,6 +144,19 @@ class LoggerTest < ActiveSupport::TestCase
     assert_includes @output.string, "THIS IS HERE"
   end
 
+  def test_unsilencing
+    @logger.level = Logger::INFO
+
+    @logger.debug "NOT THERE"
+
+    @logger.silence Logger::DEBUG do
+      @logger.debug "THIS IS HERE"
+    end
+
+    assert_not @output.string.include?("NOT THERE")
+    assert_includes @output.string, "THIS IS HERE"
+  end
+
   def test_logger_silencing_works_for_broadcast
     another_output  = StringIO.new
     another_logger  = ActiveSupport::Logger.new(another_output)
