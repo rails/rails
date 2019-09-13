@@ -258,6 +258,13 @@ scalar values, map the key to an empty array:
 params.permit(id: [])
 ```
 
+To declare that a value in `params` must be of a specific scalar type,
+specify the type by passing it in to the method call as a symbol:
+
+```ruby
+params.permit(start_date: :datetime)
+```
+
 Sometimes it is not possible or convenient to declare the valid keys of
 a hash parameter or its internal structure. Just map to an empty hash:
 
