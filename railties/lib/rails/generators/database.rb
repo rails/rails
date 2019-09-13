@@ -13,7 +13,7 @@ module Rails
 
       def gem_for_database(database = options[:database])
         case database
-        when "mysql"          then ["mysql2", [">= 0.4.4"]]
+        when "mysql"          then ["mysql2", ["~> 0.5"]]
         when "postgresql"     then ["pg", [">= 0.18", "< 2.0"]]
         when "sqlite3"        then ["sqlite3", ["~> 1.4"]]
         when "oracle"         then ["activerecord-oracle_enhanced-adapter", nil]

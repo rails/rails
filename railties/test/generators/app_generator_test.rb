@@ -543,7 +543,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     if defined?(JRUBY_VERSION)
       assert_gem "activerecord-jdbcmysql-adapter"
     else
-      assert_gem "mysql2", "'>= 0.4.4'"
+      assert_gem "mysql2", "'~> 0.5'"
     end
   end
 
