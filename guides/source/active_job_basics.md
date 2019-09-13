@@ -202,6 +202,19 @@ end
 # on your staging environment
 ```
 
+You can also configure the prefix on a per job basis.
+
+```ruby
+class GuestsCleanupJob < ApplicationJob
+  queue_as :low_priority
+  self.queue_name_prefix = nil
+  #....
+end
+
+# Now your job's queue won't be prefixed, overriding what
+# was configured in `config.active_job.queue_name_prefix`.
+```
+
 The default queue name prefix delimiter is '\_'.  This can be changed by setting
 `config.active_job.queue_name_delimiter` in `application.rb`:
 
