@@ -286,9 +286,9 @@ module ActionDispatch
       DOMAIN_REGEXP = /[^.]*\.([^.]*|..\...|...\...)$/
 
       def self.build(req, cookies)
-        new(req).tap do |jar|
-          jar.update(cookies)
-        end
+        jar = new(req)
+        jar.update(cookies)
+        jar
       end
 
       attr_reader :request
