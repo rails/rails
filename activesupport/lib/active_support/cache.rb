@@ -58,7 +58,8 @@ module ActiveSupport
 
         case store
         when Symbol
-          retrieve_store_class(store).new(*parameters)
+          options = parameters.extract_options!
+          retrieve_store_class(store).new(*parameters, **options)
         when nil
           ActiveSupport::Cache::MemoryStore.new
         else
