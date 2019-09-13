@@ -24,7 +24,7 @@ module ActiveRecord
 
       def resolve_spec(spec, config)
         configs = ActiveRecord::DatabaseConfigurations.new(config)
-        resolver = ConnectionAdapters::ConnectionSpecification::Resolver.new(configs)
+        resolver = ConnectionAdapters::Resolver.new(configs)
         resolver.resolve(spec, spec).configuration_hash
       end
 

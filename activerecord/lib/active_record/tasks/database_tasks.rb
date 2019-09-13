@@ -116,7 +116,7 @@ module ActiveRecord
         if options.has_key?(:config)
           @current_config = options[:config]
         else
-          @current_config ||= ActiveRecord::Base.configurations.configs_for(env_name: options[:env], spec_name: options[:spec]).underlying_configuration_hash
+          @current_config ||= ActiveRecord::Base.configurations.configs_for(env_name: options[:env], spec_name: options[:spec]).db_config.configuration_hash
         end
       end
 
@@ -136,7 +136,7 @@ module ActiveRecord
         old_pool = ActiveRecord::Base.connection_handler.retrieve_connection_pool(ActiveRecord::Base.connection_specification_name)
         each_local_configuration { |configuration| create configuration }
         if old_pool
-          ActiveRecord::Base.connection_handler.establish_connection(old_pool.spec.to_hash)
+          ActiveRecord::Base.connection_handler.establish_connection(old_pool.spec.db_config.configuration_hash)
         end
       end
 

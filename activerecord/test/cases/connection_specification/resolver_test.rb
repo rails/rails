@@ -8,13 +8,13 @@ module ActiveRecord
       class ResolverTest < ActiveRecord::TestCase
         def resolve(spec, config = {})
           configs = ActiveRecord::DatabaseConfigurations.new(config)
-          resolver = ConnectionAdapters::ConnectionSpecification::Resolver.new(configs)
+          resolver = ConnectionAdapters::Resolver.new(configs)
           resolver.resolve(spec, spec).configuration_hash
         end
 
         def spec(spec, config = {})
           configs = ActiveRecord::DatabaseConfigurations.new(config)
-          resolver = ConnectionAdapters::ConnectionSpecification::Resolver.new(configs)
+          resolver = ConnectionAdapters::Resolver.new(configs)
           resolver.spec(spec)
         end
 
