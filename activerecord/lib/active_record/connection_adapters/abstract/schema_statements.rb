@@ -380,8 +380,8 @@ module ActiveRecord
         t1_ref, t2_ref = [table_1, table_2].map { |t| t.to_s.singularize }
 
         create_table(join_table_name, options.merge!(id: false)) do |td|
-          td.references t1_ref, column_options
-          td.references t2_ref, column_options
+          td.references t1_ref, **column_options
+          td.references t2_ref, **column_options
           yield td if block_given?
         end
       end
@@ -589,7 +589,7 @@ module ActiveRecord
       #  # ALTER TABLE "shapes" ADD "triangle" polygon
       def add_column(table_name, column_name, type, **options)
         at = create_alter_table table_name
-        at.add_column(column_name, type, options)
+        at.add_column(column_name, type, **options)
         execute schema_creation.accept at
       end
 
@@ -936,7 +936,7 @@ module ActiveRecord
             foreign_key_options = { to_table: reference_name }
           end
           foreign_key_options[:column] ||= "#{ref_name}_id"
-          remove_foreign_key(table_name, foreign_key_options)
+          remove_foreign_key(table_name, **foreign_key_options)
         end
 
         remove_column(table_name, "#{ref_name}_id")
@@ -1158,8 +1158,8 @@ module ActiveRecord
           options[:precision] = 6
         end
 
-        add_column table_name, :created_at, :datetime, options
-        add_column table_name, :updated_at, :datetime, options
+        add_column table_name, :created_at, :datetime, **options
+        add_column table_name, :updated_at, :datetime, **options
       end
 
       # Removes the timestamp columns (+created_at+ and +updated_at+) from the table definition.
