@@ -43,7 +43,7 @@ class ErrorTest < ActiveModel::TestCase
 
   test "initialize without type but with options" do
     options = { message: "bar" }
-    error = ActiveModel::Error.new(Person.new, :name, options)
+    error = ActiveModel::Error.new(Person.new, :name, **options)
     assert_equal(options, error.options)
   end
 
