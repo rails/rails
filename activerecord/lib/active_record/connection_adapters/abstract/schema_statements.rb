@@ -379,7 +379,7 @@ module ActiveRecord
 
         t1_ref, t2_ref = [table_1, table_2].map { |t| t.to_s.singularize }
 
-        create_table(join_table_name, options.merge!(id: false)) do |td|
+        create_table(join_table_name, **options.merge!(id: false)) do |td|
           td.references t1_ref, **column_options
           td.references t2_ref, **column_options
           yield td if block_given?
