@@ -66,7 +66,7 @@ These configuration methods are to be called on a `Rails::Railtie` object, such 
 
 * `config.add_autoload_paths_to_load_path` says whether autoload paths have to be added to `$LOAD_PATH`. This flag is `true` by default, but it is recommended to be set to `false` in `:zeitwerk` mode early, in `config/application.rb`. Zeitwerk uses absolute paths internally, and applications running in `:zeitwerk` mode do not need `require_dependency`, so models, controllers, jobs, etc. do not need to be in `$LOAD_PATH`. Setting this to `false` saves Ruby from checking these directories when resolving `require` calls with relative paths, and saves Bootsnap work and RAM, since it does not need to build an index for them.
 
-* `config.cache_classes` controls whether or not application classes and modules should be reloaded on each request. Defaults to `false` in development mode, and `true` in production mode. In test mode, the default is `false` if Spring is installed, `true` otherwise.
+* `config.cache_classes` controls whether or not application classes and modules should be reloaded if they change. Defaults to `false` in development mode, and `true` in production mode. In `test` mode, the default is `false` if Spring is installed, `true` otherwise.
 
 * `config.beginning_of_week` sets the default beginning of week for the
 application. Accepts a valid week day symbol (e.g. `:monday`).
