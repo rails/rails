@@ -551,7 +551,7 @@ module ActiveRecord
       #
       # See {connection.column_exists?}[rdoc-ref:SchemaStatements#column_exists?]
       def column_exists?(column_name, type = nil, options = {})
-        @base.column_exists?(name, column_name, type, options)
+        @base.column_exists?(name, column_name, type, **options)
       end
 
       # Adds a new index to the table. +column_name+ can be a single Symbol, or
@@ -698,8 +698,8 @@ module ActiveRecord
       #  t.remove_foreign_key(column: :author_id)
       #
       # See {connection.remove_foreign_key}[rdoc-ref:SchemaStatements#remove_foreign_key]
-      def remove_foreign_key(*args)
-        @base.remove_foreign_key(name, *args)
+      def remove_foreign_key(*args, **options)
+        @base.remove_foreign_key(name, *args, **options)
       end
 
       # Checks to see if a foreign key exists.
