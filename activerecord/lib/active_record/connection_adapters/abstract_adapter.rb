@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "set"
 require "active_record/connection_adapters/determine_if_preparable_visitor"
 require "active_record/connection_adapters/schema_cache"
 require "active_record/connection_adapters/sql_type_metadata"
@@ -11,7 +12,6 @@ require "arel/collectors/bind"
 require "arel/collectors/composite"
 require "arel/collectors/sql_string"
 require "arel/collectors/substitute_binds"
-require "concurrent/atomic/thread_local_var"
 
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
@@ -130,10 +130,10 @@ module ActiveRecord
         @lock = ActiveSupport::Concurrency::LoadInterlockAwareMonitor.new
 
         if self.class.type_cast_config_to_boolean(config.fetch(:prepared_statements) { true })
-          @prepared_statement_status = Concurrent::ThreadLocalVar.new(true)
+          @prepared_statements = true
           @visitor.extend(DetermineIfPreparableVisitor)
         else
-          @prepared_statement_status = Concurrent::ThreadLocalVar.new(false)
+          @prepared_statements = false
         end
 
         @advisory_locks_enabled = self.class.type_cast_config_to_boolean(
@@ -177,7 +177,11 @@ module ActiveRecord
       end
 
       def prepared_statements
-        @prepared_statement_status.value
+        @prepared_statements && !prepared_statements_disabled_cache.include?(object_id)
+      end
+
+      def prepared_statements_disabled_cache # :nodoc:
+        Thread.current[:ar_prepared_statements_disabled_cache] ||= Set.new
       end
 
       class Version
@@ -264,7 +268,10 @@ module ActiveRecord
       end
 
       def unprepared_statement
-        @prepared_statement_status.bind(false) { yield }
+        cache = prepared_statements_disabled_cache.add(object_id) if @prepared_statements
+        yield
+      ensure
+        cache&.delete(object_id)
       end
 
       # Returns the human-readable name of the adapter. Use mixed case - one
