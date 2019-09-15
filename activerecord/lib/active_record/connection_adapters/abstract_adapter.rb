@@ -10,7 +10,6 @@ require "arel/collectors/bind"
 require "arel/collectors/composite"
 require "arel/collectors/sql_string"
 require "arel/collectors/substitute_binds"
-require "concurrent/atomic/thread_local_var"
 
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
@@ -92,10 +91,10 @@ module ActiveRecord
         @lock = ActiveSupport::Concurrency::LoadInterlockAwareMonitor.new
 
         if self.class.type_cast_config_to_boolean(config.fetch(:prepared_statements) { true })
-          @prepared_statement_status = Concurrent::ThreadLocalVar.new(true)
+          @prepared_statements_default = true
           @visitor.extend(DetermineIfPreparableVisitor)
         else
-          @prepared_statement_status = Concurrent::ThreadLocalVar.new(false)
+          @prepared_statements_default = false
         end
 
         @advisory_locks_enabled = self.class.type_cast_config_to_boolean(
@@ -139,7 +138,10 @@ module ActiveRecord
       end
 
       def prepared_statements
-        @prepared_statement_status.value
+        if @prepared_statements_default
+          hash = Thread.current[:ar_prepared_statements]
+          !(hash && hash[self.object_id] == false)
+        end
       end
 
       class Version
@@ -226,7 +228,14 @@ module ActiveRecord
       end
 
       def unprepared_statement
-        @prepared_statement_status.bind(false) { yield }
+        if @prepared_statements_default
+          hash = Thread.current[:ar_prepared_statements] ||= {}
+          hash[self.object_id] = false
+        end
+
+        yield
+      ensure
+        hash.delete(self.object_id) if hash
       end
 
       # Returns the human-readable name of the adapter. Use mixed case - one
