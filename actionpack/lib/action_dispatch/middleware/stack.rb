@@ -34,8 +34,7 @@ module ActionDispatch
       end
 
       def build(app)
-        options = args.extract_options!
-        klass.new(app, *args, **options, &block)
+        klass.new(app, *args, &block)
       end
 
       def build_instrumented(app)
