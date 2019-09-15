@@ -733,8 +733,17 @@ end
 Using Action Mailer Helpers
 ---------------------------
 
-Action Mailer now just inherits from `AbstractController`, so you have access to
-the same generic helpers as you do in Action Controller.
+Action Mailer inherits from `AbstractController`, so you have access to most
+of the same helpers as you do in Action Controller.
+
+There are also some Action Mailer-specific helper methods available in
+`ActionMailer::MailHelper`. For example, these allow accessing the mailer
+instance from your view with `mailer`, and accessing the message as `message`:
+
+```erb
+<%= stylesheet_link_tag mailer.name.underscore %>
+<h1><%= message.subject %></h1>
+```
 
 Action Mailer Configuration
 ---------------------------
