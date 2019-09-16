@@ -287,7 +287,7 @@ Doing so affects how Active Support inflects globally. That may be fine in some 
 ```ruby
 # config/initializers/zeitwerk.rb
 inflector = Object.new
-def inflector.camelize(basename, _absname)
+def inflector.camelize(basename, _abspath)
   basename == "html_parser" ? "HTMLParser" : basename.camelize
 end
 
