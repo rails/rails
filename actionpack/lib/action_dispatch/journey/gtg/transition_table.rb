@@ -48,7 +48,7 @@ module ActionDispatch
 
           t.map { |s|
             if states = @regexp_states[s]
-              regexps.concat states.map { |re, v| re === a ? v : nil }
+              regexps.concat states.map { |re, v| re.match?(a) ? v : nil }
             end
 
             if states = @string_states[s]

@@ -146,12 +146,12 @@ module ActionDispatch
                 missing_keys << key
               end
             when RegexCaseComparator
-              unless RegexCaseComparator::DEFAULT_REGEX === parts[key]
+              unless RegexCaseComparator::DEFAULT_REGEX.match?(parts[key])
                 missing_keys ||= []
                 missing_keys << key
               end
             else
-              unless /\A#{tests[key]}\Z/ === parts[key]
+              unless /\A#{tests[key]}\Z/.match?(parts[key])
                 missing_keys ||= []
                 missing_keys << key
               end
