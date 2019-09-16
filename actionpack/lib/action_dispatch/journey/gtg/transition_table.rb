@@ -45,16 +45,18 @@ module ActionDispatch
           return [] if t.empty?
 
           regexps = []
+          strings = []
 
-          t.map { |s|
+          t.each { |s|
             if states = @regexp_states[s]
-              regexps.concat states.map { |re, v| re.match?(a) ? v : nil }
+              states.each { |re, v| regexps << v if re.match?(a) && !v.nil? }
             end
 
             if states = @string_states[s]
-              states[a]
+              strings << states[a] unless states[a].nil?
             end
-          }.compact.concat regexps
+          }
+          strings.concat regexps
         end
 
         def as_json(options = nil)
