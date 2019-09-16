@@ -71,13 +71,13 @@ In a Rails application file names have to match the constants they define, with 
 
 For example, the file `app/helpers/users_helper.rb` should define `UsersHelper` and the file `app/controllers/admin/payments_controller.rb` should define `Admin::PaymentsController`.
 
-Rails configures Zeitwerk to inflect file names with `String#camelize`. For example, it expects that `app/controllers/users_controller.rb` defines the constant `UsersController` because
+By default, Rails configures Zeitwerk to inflect file names with `String#camelize`. For example, it expects that `app/controllers/users_controller.rb` defines the constant `UsersController` because
 
 ```ruby
 "users_controller".camelize # => UsersController
 ```
 
-If you need to customize any of these inflections, for example to add an acronym, please have a look at `config/initializers/inflections.rb`.
+The section _Customizing Inflections_ below documents ways to override this default.
 
 Please, check the [Zeitwerk documentation](https://github.com/fxn/zeitwerk#file-structure) for further details.
 
@@ -266,6 +266,52 @@ end
 class Triangle < Polygon
 end
 ```
+
+Customizing Inflections
+-----------------------
+
+By default, Rails uses `String#camelize` to know which constant should a given file or directory name define. For example, `posts_controller.rb` should define `PostsController` because that is what `"posts_controller".camelize` returns.
+
+It could be the case that some particular file or directory name does not get inflected as you want. For instance, `html_parser.rb` is expected to define `HtmlParser` by default. What if you prefer the class to be `HTMLParser`? There are a few ways to customize this.
+
+The easiest way is to define an acronym in `config/initializers/inflections.rb`:
+
+```ruby
+ActiveSupport::Inflector.inflections(:en) do |inflect|
+  inflect.acronym 'HTML'
+end
+```
+
+Doing so affects how Active Support inflects globally. That may be fine in some applications, but perhaps you prefer a more controlled technique that does not have a global effect. In such case, you can override the actual inflector in an initializer:
+
+```ruby
+# config/initializers/zeitwerk.rb
+inflector = Object.new
+def inflector.camelize(basename, _absname)
+  basename == "html_parser" ? "HTMLParser" : basename.camelize
+end
+
+Rails.autoloaders.each do |autoloader|
+  autoloader.inflector = inflector
+end
+```
+
+As you see, that still uses `String#camelize` as fallback. If you instead prefer not to depend on Active Support inflections at all and have absolute control over inflections, do this instead:
+
+```ruby
+# config/initializers/zeitwerk.rb
+inflector = Class.new(Zeitwerk::Inflector) do
+  def camelize(basename, _abspath)
+    basename == "html_parser" ? "HTMLParser" : super
+  end
+end.new
+
+Rails.autoloaders.each do |autoloader|
+  autoloader.inflector = inflector
+end
+```
+
+Please, check the [Zeitwerk documentation](https://github.com/fxn/zeitwerk#custom-inflector) for further details.
 
 Troubleshooting
 ---------------
