@@ -107,6 +107,36 @@ class MemoryStorePruningTest < ActiveSupport::TestCase
     assert_not @cache.exist?(1)
   end
 
+  def test_cache_not_mutated
+    item = { "foo" => "bar" }
+    key = "test_key"
+    @cache.write(key, item)
+
+    read_item = @cache.read(key)
+    read_item["foo"] = "xyz"
+    assert_equal item, @cache.read(key)
+  end
+
+  def test_cache_different_object_ids_hash
+    item = { "foo" => "bar" }
+    key = "test_key"
+    @cache.write(key, item)
+
+    read_item = @cache.read(key)
+    assert_not_equal item.object_id, read_item.object_id
+    assert_not_equal read_item.object_id, @cache.read(key).object_id
+  end
+
+  def test_cache_different_object_ids_string
+    item = "my_string"
+    key = "test_key"
+    @cache.write(key, item)
+
+    read_item = @cache.read(key)
+    assert_not_equal item.object_id, read_item.object_id
+    assert_not_equal read_item.object_id, @cache.read(key).object_id
+  end
+
   def test_write_with_unless_exist
     assert_equal true, @cache.write(1, "aaaaaaaaaa")
     assert_equal false, @cache.write(1, "aaaaaaaaaa", unless_exist: true)
