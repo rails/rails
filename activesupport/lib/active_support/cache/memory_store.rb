@@ -125,6 +125,8 @@ module ActiveSupport
           entry = @data[key]
           synchronize do
             if entry
+              entry = entry.dup
+              entry.dup_value!
               @key_access[key] = Time.now.to_f
             else
               @key_access.delete(key)
