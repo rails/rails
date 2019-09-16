@@ -1,3 +1,14 @@
+*   Raise FrozenError when trying to write attributes that aren't backed by the database on an object that is frozen:
+
+        class Animal
+          include ActiveModel::Attributes  
+          attribute :age 
+        end
+        
+        animal = Animal.new
+        animal.freeze 
+        animal.age = 25 # => FrozenError, "can't modify a frozen Animal"
+          
 *   Add *_previously_was attribute methods when dirty tracking. Example:
 
         pirate.update(catchphrase: "Ahoy!")
