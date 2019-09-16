@@ -121,7 +121,8 @@ module ActionDispatch
           routes.map! { |r|
             match_data = r.path.match(req.path_info)
             path_parameters = {}
-            match_data.names.zip(match_data.captures) { |name, val|
+            match_data.names.each_with_index { |name, i|
+              val = match_data[i + 1]
               path_parameters[name.to_sym] = Utils.unescape_uri(val) if val
             }
             [match_data, path_parameters, r]
