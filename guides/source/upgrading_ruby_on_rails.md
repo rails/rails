@@ -529,6 +529,16 @@ To:
 Rails.application.secrets[:smtp_settings][:address]
 ```
 
+### Removed deprecated support to `:text` and `:nothing` in `render`
+
+If your views are using `render :text`, they will no longer work. The new method
+of rendering text with MIME type of `text/plain` is to use `render :plain`.
+
+Similarly, `render :nothing` is also removed and you should use the `head` method
+to send responses that contain only headers. For example, `head :ok` sends a
+200 response with no body to render.
+
+
 Upgrading from Rails 4.2 to Rails 5.0
 -------------------------------------
 
