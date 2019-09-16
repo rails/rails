@@ -106,7 +106,7 @@ module ActionDispatch
 
         def find_routes(req)
           routes = filter_routes(req.path_info).concat custom_routes.find_all { |r|
-            r.path.match(req.path_info)
+            r.path.match?(req.path_info)
           }
 
           routes =
