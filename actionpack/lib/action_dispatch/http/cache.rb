@@ -182,7 +182,6 @@ module ActionDispatch
         end
 
         def merge_and_normalize_cache_control!(cache_control)
-          control = {}
           cc_headers = cache_control_headers
           if extras = cc_headers.delete(:extras)
             cache_control[:extras] ||= []
@@ -190,7 +189,7 @@ module ActionDispatch
             cache_control[:extras].uniq!
           end
 
-          control.merge! cc_headers
+          control = cc_headers
           control.merge! cache_control
 
           if control.empty?
