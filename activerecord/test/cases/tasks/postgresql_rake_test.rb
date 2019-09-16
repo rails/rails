@@ -27,13 +27,13 @@ if current_adapter?(:PostgreSQLAdapter)
             :establish_connection,
             [
               [
-                "adapter"            => "postgresql",
-                "database"           => "postgres",
-                "schema_search_path" => "public"
+                adapter: "postgresql",
+                database: "postgres",
+                schema_search_path: "public"
               ],
               [
-                "adapter"            => "postgresql",
-                "database"           => "my-app-db"
+                adapter: "postgresql",
+                database: "my-app-db"
               ]
             ]
           ) do
@@ -47,7 +47,7 @@ if current_adapter?(:PostgreSQLAdapter)
           assert_called_with(
             @connection,
             :create_database,
-            ["my-app-db", @configuration.merge("encoding" => "utf8")]
+            ["my-app-db", @configuration.symbolize_keys.merge(encoding: "utf8")]
           ) do
             ActiveRecord::Tasks::DatabaseTasks.create @configuration
           end
@@ -59,7 +59,7 @@ if current_adapter?(:PostgreSQLAdapter)
           assert_called_with(
             @connection,
             :create_database,
-            ["my-app-db", @configuration.merge("encoding" => "latin")]
+            ["my-app-db", @configuration.symbolize_keys.merge(encoding: "latin")]
           ) do
             ActiveRecord::Tasks::DatabaseTasks.create @configuration.
               merge("encoding" => "latin")
@@ -74,10 +74,10 @@ if current_adapter?(:PostgreSQLAdapter)
             :create_database,
             [
               "my-app-db",
-              @configuration.merge(
-                "encoding" => "utf8",
-                "collation" => "ja_JP.UTF8",
-                "ctype" => "ja_JP.UTF8"
+              @configuration.symbolize_keys.merge(
+                encoding: "utf8",
+                collation: "ja_JP.UTF8",
+                ctype: "ja_JP.UTF8"
               )
             ]
           ) do
@@ -94,12 +94,12 @@ if current_adapter?(:PostgreSQLAdapter)
             :establish_connection,
             [
               [
-                "adapter"            => "postgresql",
-                "database"           => "postgres",
-                "schema_search_path" => "public"
+                adapter: "postgresql",
+                database: "postgres",
+                schema_search_path: "public"
               ],
               [
-                @configuration
+                @configuration.symbolize_keys
               ]
             ]
           ) do
@@ -169,9 +169,9 @@ if current_adapter?(:PostgreSQLAdapter)
             ActiveRecord::Base,
             :establish_connection,
             [
-              "adapter"            => "postgresql",
-              "database"           => "postgres",
-              "schema_search_path" => "public"
+              adapter: "postgresql",
+              database: "postgres",
+              schema_search_path: "public"
             ]
           ) do
             ActiveRecord::Tasks::DatabaseTasks.drop @configuration
@@ -238,13 +238,13 @@ if current_adapter?(:PostgreSQLAdapter)
             :establish_connection,
             [
               [
-                "adapter"            => "postgresql",
-                "database"           => "postgres",
-                "schema_search_path" => "public"
+                adapter: "postgresql",
+                database: "postgres",
+                schema_search_path: "public"
               ],
               [
-                "adapter"            => "postgresql",
-                "database"           => "my-app-db"
+                adapter: "postgresql",
+                database: "my-app-db"
               ]
             ]
           ) do
@@ -269,7 +269,7 @@ if current_adapter?(:PostgreSQLAdapter)
             assert_called_with(
               @connection,
               :create_database,
-              ["my-app-db", @configuration.merge("encoding" => "utf8")]
+              ["my-app-db", @configuration.symbolize_keys.merge(encoding: "utf8")]
             ) do
               ActiveRecord::Tasks::DatabaseTasks.purge @configuration
             end
@@ -284,12 +284,12 @@ if current_adapter?(:PostgreSQLAdapter)
             :establish_connection,
             [
               [
-                "adapter"            => "postgresql",
-                "database"           => "postgres",
-                "schema_search_path" => "public"
+                adapter: "postgresql",
+                database: "postgres",
+                schema_search_path: "public"
               ],
               [
-                @configuration
+                @configuration.symbolize_keys
               ]
             ]
           ) do

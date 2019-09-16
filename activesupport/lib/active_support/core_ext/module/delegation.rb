@@ -190,7 +190,13 @@ class Module
     to = to.to_s
     to = "self.#{to}" if DELEGATION_RESERVED_METHOD_NAMES.include?(to)
 
-    method_names = methods.map do |method|
+    method_def = []
+    method_names = []
+
+    methods.map do |method|
+      method_name = prefix ? "#{method_prefix}#{method}" : method
+      method_names << method_name.to_sym
+
       # Attribute writer methods only accept one argument. Makes sure []=
       # methods still accept two arguments.
       definition = /[^\]]=$/.match?(method) ? "arg" : "*args, &block"
@@ -203,34 +209,33 @@ class Module
       # whereas conceptually, from the user point of view, the delegator should
       # be doing one call.
       if allow_nil
-        method_def = [
-          "def #{method_prefix}#{method}(#{definition})",
-          "  _ = #{to}",
-          "  if !_.nil? || nil.respond_to?(:#{method})",
-          "    _.#{method}(#{definition})",
-          "  end",
+        method = method.to_s
+
+        method_def <<
+          "def #{method_name}(#{definition})" <<
+          "  _ = #{to}" <<
+          "  if !_.nil? || nil.respond_to?(:#{method})" <<
+          "    _.#{method}(#{definition})" <<
+          "  end" <<
           "end"
-        ].join ";"
       else
-        exception = %(raise DelegationError, "#{self}##{method_prefix}#{method} delegated to #{to}.#{method}, but #{to} is nil: \#{self.inspect}")
+        method = method.to_s
+        method_name = method_name.to_s
 
-        method_def = [
-          "def #{method_prefix}#{method}(#{definition})",
-          "  _ = #{to}",
-          "  _.#{method}(#{definition})",
-          "rescue NoMethodError => e",
-          "  if _.nil? && e.name == :#{method}",
-          "    #{exception}",
-          "  else",
-          "    raise",
-          "  end",
+        method_def <<
+          "def #{method_name}(#{definition})" <<
+          "  _ = #{to}" <<
+          "  _.#{method}(#{definition})" <<
+          "rescue NoMethodError => e" <<
+          "  if _.nil? && e.name == :#{method}" <<
+          %(   raise DelegationError, "#{self}##{method_name} delegated to #{to}.#{method}, but #{to} is nil: \#{self.inspect}") <<
+          "  else" <<
+          "    raise" <<
+          "  end" <<
           "end"
-        ].join ";"
       end
-
-      module_eval(method_def, file, line)
     end
-
+    module_eval(method_def.join(";"), file, line)
     private(*method_names) if private
     method_names
   end

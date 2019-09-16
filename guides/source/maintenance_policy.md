@@ -65,7 +65,7 @@ Severe Security Issues
 ----------------------
 
 For severe security issues all releases in the current major series, and also the
-last major release series will receive patches and new versions. The
+last release in the previous major series will receive patches and new versions. The
 classification of the security issue is judged by the core team.
 
 **Currently included series:** `6.0.Z`, `5.2.Z`.

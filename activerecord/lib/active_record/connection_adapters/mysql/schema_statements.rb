@@ -154,8 +154,8 @@ module ActiveRecord
             MySQL::SchemaCreation.new(self)
           end
 
-          def create_table_definition(*args)
-            MySQL::TableDefinition.new(self, *args)
+          def create_table_definition(*args, **options)
+            MySQL::TableDefinition.new(self, *args, **options)
           end
 
           def new_column_from_field(table_name, field)
@@ -196,7 +196,7 @@ module ActiveRecord
           end
 
           def add_options_for_index_columns(quoted_columns, **options)
-            quoted_columns = add_index_length(quoted_columns, options)
+            quoted_columns = add_index_length(quoted_columns, **options)
             super
           end
 

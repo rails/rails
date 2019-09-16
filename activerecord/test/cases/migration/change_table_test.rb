@@ -110,24 +110,39 @@ module ActiveRecord
 
       def test_integer_creates_integer_column
         with_change_table do |t|
-          @connection.expect :add_column, nil, [:delete_me, :foo, :integer, {}]
-          @connection.expect :add_column, nil, [:delete_me, :bar, :integer, {}]
+          if RUBY_VERSION < "2.7"
+            @connection.expect :add_column, nil, [:delete_me, :foo, :integer, {}]
+            @connection.expect :add_column, nil, [:delete_me, :bar, :integer, {}]
+          else
+            @connection.expect :add_column, nil, [:delete_me, :foo, :integer]
+            @connection.expect :add_column, nil, [:delete_me, :bar, :integer]
+          end
           t.integer :foo, :bar
         end
       end
 
       def test_bigint_creates_bigint_column
         with_change_table do |t|
-          @connection.expect :add_column, nil, [:delete_me, :foo, :bigint, {}]
-          @connection.expect :add_column, nil, [:delete_me, :bar, :bigint, {}]
+          if RUBY_VERSION < "2.7"
+            @connection.expect :add_column, nil, [:delete_me, :foo, :bigint, {}]
+            @connection.expect :add_column, nil, [:delete_me, :bar, :bigint, {}]
+          else
+            @connection.expect :add_column, nil, [:delete_me, :foo, :bigint]
+            @connection.expect :add_column, nil, [:delete_me, :bar, :bigint]
+          end
           t.bigint :foo, :bar
         end
       end
 
       def test_string_creates_string_column
         with_change_table do |t|
-          @connection.expect :add_column, nil, [:delete_me, :foo, :string, {}]
-          @connection.expect :add_column, nil, [:delete_me, :bar, :string, {}]
+          if RUBY_VERSION < "2.7"
+            @connection.expect :add_column, nil, [:delete_me, :foo, :string, {}]
+            @connection.expect :add_column, nil, [:delete_me, :bar, :string, {}]
+          else
+            @connection.expect :add_column, nil, [:delete_me, :foo, :string]
+            @connection.expect :add_column, nil, [:delete_me, :bar, :string]
+          end
           t.string :foo, :bar
         end
       end
@@ -135,16 +150,26 @@ module ActiveRecord
       if current_adapter?(:PostgreSQLAdapter)
         def test_json_creates_json_column
           with_change_table do |t|
-            @connection.expect :add_column, nil, [:delete_me, :foo, :json, {}]
-            @connection.expect :add_column, nil, [:delete_me, :bar, :json, {}]
+            if RUBY_VERSION < "2.7"
+              @connection.expect :add_column, nil, [:delete_me, :foo, :json, {}]
+              @connection.expect :add_column, nil, [:delete_me, :bar, :json, {}]
+            else
+              @connection.expect :add_column, nil, [:delete_me, :foo, :json]
+              @connection.expect :add_column, nil, [:delete_me, :bar, :json]
+            end
             t.json :foo, :bar
           end
         end
 
         def test_xml_creates_xml_column
           with_change_table do |t|
-            @connection.expect :add_column, nil, [:delete_me, :foo, :xml, {}]
-            @connection.expect :add_column, nil, [:delete_me, :bar, :xml, {}]
+            if RUBY_VERSION < "2.7"
+              @connection.expect :add_column, nil, [:delete_me, :foo, :xml, {}]
+              @connection.expect :add_column, nil, [:delete_me, :bar, :xml, {}]
+            else
+              @connection.expect :add_column, nil, [:delete_me, :foo, :xml]
+              @connection.expect :add_column, nil, [:delete_me, :bar, :xml]
+            end
             t.xml :foo, :bar
           end
         end
@@ -152,21 +177,33 @@ module ActiveRecord
 
       def test_column_creates_column
         with_change_table do |t|
-          @connection.expect :add_column, nil, [:delete_me, :bar, :integer, {}]
+          if RUBY_VERSION < "2.7"
+            @connection.expect :add_column, nil, [:delete_me, :bar, :integer, {}]
+          else
+            @connection.expect :add_column, nil, [:delete_me, :bar, :integer]
+          end
           t.column :bar, :integer
         end
       end
 
       def test_column_creates_column_with_options
         with_change_table do |t|
-          @connection.expect :add_column, nil, [:delete_me, :bar, :integer, { null: false }]
+          if RUBY_VERSION < "2.7"
+            @connection.expect :add_column, nil, [:delete_me, :bar, :integer, { null: false }]
+          else
+            @connection.expect :add_column, nil, [:delete_me, :bar, :integer, { null: false }]
+          end
           t.column :bar, :integer, null: false
         end
       end
 
       def test_column_creates_column_with_index
         with_change_table do |t|
-          @connection.expect :add_column, nil, [:delete_me, :bar, :integer, {}]
+          if RUBY_VERSION < "2.7"
+            @connection.expect :add_column, nil, [:delete_me, :bar, :integer, {}]
+          else
+            @connection.expect :add_column, nil, [:delete_me, :bar, :integer]
+          end
           @connection.expect :add_index, nil, [:delete_me, :bar, {}]
           t.column :bar, :integer, index: true
         end
@@ -244,8 +281,8 @@ module ActiveRecord
 
       def test_remove_index_removes_index_with_options
         with_change_table do |t|
-          @connection.expect :remove_index, nil, [:delete_me, { unique: true }]
-          t.remove_index unique: true
+          @connection.expect :remove_index, nil, [:delete_me, :bar, { unique: true }]
+          t.remove_index :bar, unique: true
         end
       end
 

@@ -1,3 +1,40 @@
+*   Add `DatabaseConfig#configuration_hash` to return database configuration hashes with symbol keys, and use all symbol-key configuration hashes internally. Deprecate `DatabaseConfig#config` which returns a String-keyed `Hash` with the same values.
+
+    *John Crepezzi*, *Eileen Uchitelle*
+
+*   Allow column names to be passed to `remove_index` positionally along with other options.
+
+    Passing other options can be necessary to make `remove_index` correctly reversible.
+
+    Before:
+
+        add_index    :reports, :report_id               # => works
+        add_index    :reports, :report_id, unique: true # => works
+        remove_index :reports, :report_id               # => works
+        remove_index :reports, :report_id, unique: true # => ArgumentError
+
+    After:
+
+        remove_index :reports, :report_id, unique: true # => works
+
+    *Eugene Kenny*
+
+*   Allow bulk `ALTER` statements to drop and recreate indexes with the same name.
+
+    *Eugene Kenny*
+
+*   `insert`, `insert_all`, `upsert`, and `upsert_all` now clear the query cache.
+
+    *Eugene Kenny*
+
+*   Call `while_preventing_writes` directly from `connected_to`.
+
+    In some cases application authors want to use the database switching middleware and make explicit calls with `connected_to`. It's possible for an app to turn off writes and not turn them back on by the time we call `connected_to(role: :writing)`.
+
+    This change allows apps to fix this by assuming if a role is writing we want to allow writes, except in the case it's explicitly turned off.
+
+    *Eileen M. Uchitelle*
+
 *   Improve detection of ActiveRecord::StatementTimeout with mysql2 adapter in the edge case when the query is terminated during filesort.
 
     *Kir Shatrov*

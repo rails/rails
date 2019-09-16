@@ -34,12 +34,12 @@ class LoggingTest < ActiveSupport::TestCase
     @old_logger = ActiveJob::Base.logger
     @logger = ActiveSupport::TaggedLogging.new(TestLogger.new)
     set_logger @logger
-    ActiveJob::Logging::LogSubscriber.attach_to :active_job
+    ActiveJob::LogSubscriber.attach_to :active_job
   end
 
   def teardown
     super
-    ActiveJob::Logging::LogSubscriber.log_subscribers.pop
+    ActiveJob::LogSubscriber.log_subscribers.pop
     set_logger @old_logger
   end
 

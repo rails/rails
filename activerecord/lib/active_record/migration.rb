@@ -591,7 +591,7 @@ module ActiveRecord
         all_configs = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env)
 
         needs_update = !all_configs.all? do |db_config|
-          Tasks::DatabaseTasks.schema_up_to_date?(db_config.config, ActiveRecord::Base.schema_format, nil, Rails.env, db_config.spec_name)
+          Tasks::DatabaseTasks.schema_up_to_date?(db_config.configuration_hash, ActiveRecord::Base.schema_format, nil, Rails.env, db_config.spec_name)
         end
 
         if needs_update

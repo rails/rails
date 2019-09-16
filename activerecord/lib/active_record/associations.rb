@@ -3,7 +3,6 @@
 require "active_support/core_ext/enumerable"
 require "active_support/core_ext/string/conversions"
 require "active_support/core_ext/module/remove_method"
-require "active_record/errors"
 
 module ActiveRecord
   class AssociationNotFoundError < ConfigurationError #:nodoc:
@@ -92,7 +91,7 @@ module ActiveRecord
         through_reflection      = reflection.through_reflection
         source_reflection_names = reflection.source_reflection_names
         source_associations     = reflection.through_reflection.klass._reflections.keys
-        super("Could not find the source association(s) #{source_reflection_names.collect(&:inspect).to_sentence(two_words_connector: ' or ', last_word_connector: ', or ', locale: :en)} in model #{through_reflection.klass}. Try 'has_many #{reflection.name.inspect}, :through => #{through_reflection.name.inspect}, :source => <name>'. Is it one of #{source_associations.to_sentence(two_words_connector: ' or ', last_word_connector: ', or ', locale: :en)}?")
+        super("Could not find the source association(s) #{source_reflection_names.collect(&:inspect).to_sentence(two_words_connector: ' or ', last_word_connector: ', or ')} in model #{through_reflection.klass}. Try 'has_many #{reflection.name.inspect}, :through => #{through_reflection.name.inspect}, :source => <name>'. Is it one of #{source_associations.to_sentence(two_words_connector: ' or ', last_word_connector: ', or ')}?")
       else
         super("Could not find the source association(s).")
       end
@@ -1857,7 +1856,7 @@ module ActiveRecord
             hm_options[k] = options[k] if options.key? k
           end
 
-          has_many name, scope, hm_options, &extension
+          has_many name, scope, **hm_options, &extension
           _reflections[name.to_s].parent_reflection = habtm_reflection
         end
       end

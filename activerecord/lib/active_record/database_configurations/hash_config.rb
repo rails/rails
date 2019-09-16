@@ -12,7 +12,7 @@ module ActiveRecord
     # Becomes:
     #
     #   #<ActiveRecord::DatabaseConfigurations::HashConfig:0x00007fd1acbded10
-    #     @env_name="development", @spec_name="primary", @config={"database"=>"db_name"}>
+    #     @env_name="development", @spec_name="primary", @config={database: "db_name"}>
     #
     # ==== Options
     #
@@ -25,26 +25,38 @@ module ActiveRecord
     #   database adapter, name, and other important information for database
     #   connections.
     class HashConfig < DatabaseConfig
-      attr_reader :config
-
       def initialize(env_name, spec_name, config)
         super(env_name, spec_name)
-        @config = config
+        @config = config.symbolize_keys
+
+        resolve_url_key
+      end
+
+      def configuration_hash
+        @config
       end
 
       # Determines whether a database configuration is for a replica / readonly
       # connection. If the +replica+ key is present in the config, +replica?+ will
       # return +true+.
       def replica?
-        config["replica"]
+        configuration_hash[:replica]
       end
 
       # The migrations paths for a database configuration. If the
       # +migrations_paths+ key is present in the config, +migrations_paths+
       # will return its value.
       def migrations_paths
-        config["migrations_paths"]
+        configuration_hash[:migrations_paths]
       end
+
+      private
+        def resolve_url_key
+          if configuration_hash[:url] && !configuration_hash[:url].match?(/^jdbc:/)
+            connection_hash = ActiveRecord::ConnectionAdapters::ConnectionSpecification::ConnectionUrlResolver.new(configuration_hash[:url]).to_hash
+            configuration_hash.merge!(connection_hash)
+          end
+        end
     end
   end
 end

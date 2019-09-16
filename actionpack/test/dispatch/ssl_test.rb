@@ -9,7 +9,7 @@ class SSLTest < ActionDispatch::IntegrationTest
 
   def build_app(headers: {}, ssl_options: {})
     headers = HEADERS.merge(headers)
-    ActionDispatch::SSL.new lambda { |env| [200, headers, []] }, ssl_options.reverse_merge(hsts: { subdomains: true })
+    ActionDispatch::SSL.new lambda { |env| [200, headers, []] }, **ssl_options.reverse_merge(hsts: { subdomains: true })
   end
 end
 

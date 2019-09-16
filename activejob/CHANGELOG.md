@@ -1,3 +1,11 @@
+*   Changes in `queue_name_prefix` of a job no longer affects all other jobs. Fixes #37084.
+
+    *Lucas Mansur*
+
+*   Allow `Class` and `Module` instances to be serialized.
+
+    *Kevin Deisz*
+
 *   Log potential matches in `assert_enqueued_with` and `assert_performed_with`
 
     *Gareth du Plooy*

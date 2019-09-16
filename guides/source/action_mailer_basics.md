@@ -358,14 +358,16 @@ The same format can be used to set carbon copy (Cc:) and blind carbon copy
 #### Sending Email With Name
 
 Sometimes you wish to show the name of the person instead of just their email
-address when they receive the email. The trick to doing that is to format the
-email address in the format `"Full Name" <email>`.
+address when they receive the email. You can use `email_address_with_name` for
+that:
 
 ```ruby
 def welcome_email
   @user = params[:user]
-  email_with_name = %("#{@user.name}" <#{@user.email}>)
-  mail(to: email_with_name, subject: 'Welcome to My Awesome Site')
+  mail(
+    to: email_address_with_name(@user.email, @user.name),
+    subject: 'Welcome to My Awesome Site'
+  )
 end
 ```
 
@@ -731,8 +733,17 @@ end
 Using Action Mailer Helpers
 ---------------------------
 
-Action Mailer now just inherits from `AbstractController`, so you have access to
-the same generic helpers as you do in Action Controller.
+Action Mailer inherits from `AbstractController`, so you have access to most
+of the same helpers as you do in Action Controller.
+
+There are also some Action Mailer-specific helper methods available in
+`ActionMailer::MailHelper`. For example, these allow accessing the mailer
+instance from your view with `mailer`, and accessing the message as `message`:
+
+```erb
+<%= stylesheet_link_tag mailer.name.underscore %>
+<h1><%= message.subject %></h1>
+```
 
 Action Mailer Configuration
 ---------------------------

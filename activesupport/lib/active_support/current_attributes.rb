@@ -91,7 +91,7 @@ module ActiveSupport
     class << self
       # Returns singleton instance for this class in this thread. If none exists, one is created.
       def instance
-        current_instances[name] ||= new
+        current_instances[current_instances_key] ||= new
       end
 
       # Declares one or more attributes that will be given both class and instance accessor methods.
@@ -148,6 +148,10 @@ module ActiveSupport
 
         def current_instances
           Thread.current[:current_attributes_instances] ||= {}
+        end
+
+        def current_instances_key
+          @current_instances_key ||= name.to_sym
         end
 
         def method_missing(name, *args, &block)

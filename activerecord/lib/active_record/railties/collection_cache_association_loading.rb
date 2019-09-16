@@ -4,7 +4,7 @@ module ActiveRecord
   module Railties # :nodoc:
     module CollectionCacheAssociationLoading #:nodoc:
       def setup(context, options, as, block)
-        @relation = relation_from_options(options)
+        @relation = relation_from_options(**options)
 
         super
       end

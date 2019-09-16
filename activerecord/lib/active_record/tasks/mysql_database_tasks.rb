@@ -8,23 +8,23 @@ module ActiveRecord
       delegate :connection, :establish_connection, to: ActiveRecord::Base
 
       def initialize(configuration)
-        @configuration = configuration
+        @configuration = configuration.symbolize_keys
       end
 
       def create
         establish_connection configuration_without_database
-        connection.create_database configuration["database"], creation_options
+        connection.create_database configuration[:database], creation_options
         establish_connection configuration
       end
 
       def drop
         establish_connection configuration
-        connection.drop_database configuration["database"]
+        connection.drop_database configuration[:database]
       end
 
       def purge
         establish_connection configuration
-        connection.recreate_database configuration["database"], creation_options
+        connection.recreate_database configuration[:database], creation_options
       end
 
       def charset
@@ -44,10 +44,10 @@ module ActiveRecord
 
         ignore_tables = ActiveRecord::SchemaDumper.ignore_tables
         if ignore_tables.any?
-          args += ignore_tables.map { |table| "--ignore-table=#{configuration['database']}.#{table}" }
+          args += ignore_tables.map { |table| "--ignore-table=#{configuration[:database]}.#{table}" }
         end
 
-        args.concat(["#{configuration['database']}"])
+        args.concat(["#{configuration[:database]}"])
         args.unshift(*extra_flags) if extra_flags
 
         run_cmd("mysqldump", args, "dumping")
@@ -56,7 +56,7 @@ module ActiveRecord
       def structure_load(filename, extra_flags)
         args = prepare_command_options
         args.concat(["--execute", %{SET FOREIGN_KEY_CHECKS = 0; SOURCE #{filename}; SET FOREIGN_KEY_CHECKS = 1}])
-        args.concat(["--database", "#{configuration['database']}"])
+        args.concat(["--database", "#{configuration[:database]}"])
         args.unshift(*extra_flags) if extra_flags
 
         run_cmd("mysql", args, "loading")
@@ -66,29 +66,29 @@ module ActiveRecord
         attr_reader :configuration
 
         def configuration_without_database
-          configuration.merge("database" => nil)
+          configuration.merge(database: nil)
         end
 
         def creation_options
           Hash.new.tap do |options|
-            options[:charset]     = configuration["encoding"]   if configuration.include? "encoding"
-            options[:collation]   = configuration["collation"]  if configuration.include? "collation"
+            options[:charset]     = configuration[:encoding]   if configuration.include? :encoding
+            options[:collation]   = configuration[:collation]  if configuration.include? :collation
           end
         end
 
         def prepare_command_options
           args = {
-            "host"      => "--host",
-            "port"      => "--port",
-            "socket"    => "--socket",
-            "username"  => "--user",
-            "password"  => "--password",
-            "encoding"  => "--default-character-set",
-            "sslca"     => "--ssl-ca",
-            "sslcert"   => "--ssl-cert",
-            "sslcapath" => "--ssl-capath",
-            "sslcipher" => "--ssl-cipher",
-            "sslkey"    => "--ssl-key"
+            host:      "--host",
+            port:      "--port",
+            socket:    "--socket",
+            username:  "--user",
+            password:  "--password",
+            encoding:  "--default-character-set",
+            sslca:     "--ssl-ca",
+            sslcert:   "--ssl-cert",
+            sslcapath: "--ssl-capath",
+            sslcipher: "--ssl-cipher",
+            sslkey:    "--ssl-key"
           }.map { |opt, arg| "#{arg}=#{configuration[opt]}" if configuration[opt] }.compact
 
           args

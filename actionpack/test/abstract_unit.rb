@@ -177,9 +177,9 @@ class Rack::TestCase < ActionDispatch::IntegrationTest
     end
   end
 
-  def get(thing, *args)
+  def get(thing, *args, **options)
     if thing.is_a?(Symbol)
-      super("#{self.class.testing}/#{thing}", *args)
+      super("#{self.class.testing}/#{thing}", *args, **options)
     else
       super
     end

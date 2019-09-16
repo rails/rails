@@ -13,19 +13,19 @@ module ActiveRecord
         to: ActiveRecord::Base
 
       def initialize(configuration)
-        @configuration = configuration
+        @configuration = configuration.symbolize_keys
       end
 
       def create(master_established = false)
         establish_master_connection unless master_established
-        connection.create_database configuration["database"],
-          configuration.merge("encoding" => encoding)
+        connection.create_database configuration[:database],
+          configuration.merge(encoding: encoding)
         establish_connection configuration
       end
 
       def drop
         establish_master_connection
-        connection.drop_database configuration["database"]
+        connection.drop_database configuration[:database]
       end
 
       def charset
@@ -48,7 +48,7 @@ module ActiveRecord
         search_path = \
           case ActiveRecord::Base.dump_schemas
           when :schema_search_path
-            configuration["schema_search_path"]
+            configuration[:schema_search_path]
           when :all
             nil
           when String
@@ -68,7 +68,7 @@ module ActiveRecord
           args += ignore_tables.flat_map { |table| ["-T", table] }
         end
 
-        args << configuration["database"]
+        args << configuration[:database]
         run_cmd("pg_dump", args, "dumping")
         remove_sql_header_comments(filename)
         File.open(filename, "a") { |f| f << "SET search_path TO #{connection.schema_search_path};\n\n" }
@@ -78,7 +78,7 @@ module ActiveRecord
         set_psql_env
         args = ["-v", ON_ERROR_STOP_1, "-q", "-X", "-f", filename]
         args.concat(Array(extra_flags)) if extra_flags
-        args << configuration["database"]
+        args << configuration[:database]
         run_cmd("psql", args, "loading")
       end
 
@@ -86,21 +86,21 @@ module ActiveRecord
         attr_reader :configuration
 
         def encoding
-          configuration["encoding"] || DEFAULT_ENCODING
+          configuration[:encoding] || DEFAULT_ENCODING
         end
 
         def establish_master_connection
           establish_connection configuration.merge(
-            "database"           => "postgres",
-            "schema_search_path" => "public"
+            database: "postgres",
+            schema_search_path: "public"
           )
         end
 
         def set_psql_env
-          ENV["PGHOST"]     = configuration["host"]          if configuration["host"]
-          ENV["PGPORT"]     = configuration["port"].to_s     if configuration["port"]
-          ENV["PGPASSWORD"] = configuration["password"].to_s if configuration["password"]
-          ENV["PGUSER"]     = configuration["username"].to_s if configuration["username"]
+          ENV["PGHOST"]     = configuration[:host]          if configuration[:host]
+          ENV["PGPORT"]     = configuration[:port].to_s     if configuration[:port]
+          ENV["PGPASSWORD"] = configuration[:password].to_s if configuration[:password]
+          ENV["PGUSER"]     = configuration[:username].to_s if configuration[:username]
         end
 
         def run_cmd(cmd, args, action)

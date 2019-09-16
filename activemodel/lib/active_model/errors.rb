@@ -162,9 +162,9 @@ module ActiveModel
     #   person.errors.where(:name, :too_short) # => all name errors being too short
     #   person.errors.where(:name, :too_short, minimum: 2) # => all name errors being too short and minimum is 2
     def where(attribute, type = nil, **options)
-      attribute, type, options = normalize_arguments(attribute, type, options)
+      attribute, type, options = normalize_arguments(attribute, type, **options)
       @errors.select { |error|
-        error.match?(attribute, type, options)
+        error.match?(attribute, type, **options)
       }
     end
 
@@ -188,8 +188,8 @@ module ActiveModel
     #   person.errors.delete(:name) # => ["cannot be nil"]
     #   person.errors[:name]        # => []
     def delete(attribute, type = nil, **options)
-      attribute, type, options = normalize_arguments(attribute, type, options)
-      matches = where(attribute, type, options)
+      attribute, type, options = normalize_arguments(attribute, type, **options)
+      matches = where(attribute, type, **options)
       matches.each do |error|
         @errors.delete(error)
       end
@@ -371,10 +371,8 @@ module ActiveModel
     #   person.errors.details
     #   # => {:base=>[{error: :name_or_email_blank}]}
     def add(attribute, type = :invalid, **options)
-      error = Error.new(
-        @base,
-        *normalize_arguments(attribute, type, options)
-      )
+      attribute, type, options = normalize_arguments(attribute, type, **options)
+      error = Error.new(@base, attribute, type, **options)
 
       if exception = options[:strict]
         exception = ActiveModel::StrictValidationFailed if exception == true
@@ -403,11 +401,11 @@ module ActiveModel
     #   person.errors.added? :name, :too_long                                # => false
     #   person.errors.added? :name, "is too long"                            # => false
     def added?(attribute, type = :invalid, options = {})
-      attribute, type, options = normalize_arguments(attribute, type, options)
+      attribute, type, options = normalize_arguments(attribute, type, **options)
 
       if type.is_a? Symbol
         @errors.any? { |error|
-          error.strict_match?(attribute, type, options)
+          error.strict_match?(attribute, type, **options)
         }
       else
         messages_for(attribute).include?(type)
@@ -538,7 +536,7 @@ module ActiveModel
         details.each { |attribute, errors|
           errors.each { |error|
             type = error.delete(:error)
-            add(attribute, type, error)
+            add(attribute, type, **error)
           }
         }
       end

@@ -118,12 +118,16 @@ module ActiveRecord
           end
         end
 
-        # Returns the number of threads currently waiting on this
-        # queue.
-        def num_waiting
-          synchronize do
-            @num_waiting
+        if defined?(JRUBY_VERSION)
+          # Returns the number of threads currently waiting on this queue.
+          def num_waiting
+            synchronize do
+              @num_waiting
+            end
           end
+        else
+          # Returns the number of threads currently waiting on this queue.
+          attr_reader :num_waiting
         end
 
         # Add +element+ to the queue.  Never blocks.
@@ -316,14 +320,15 @@ module ActiveRecord
 
         @mutex = Mutex.new
         @pools = {}
+        @threads = {}
 
         class << self
           def register_pool(pool, frequency) # :nodoc:
             @mutex.synchronize do
-              unless @pools.key?(frequency)
-                @pools[frequency] = []
-                spawn_thread(frequency)
+              unless @threads[frequency]&.alive?
+                @threads[frequency] = spawn_thread(frequency)
               end
+              @pools[frequency] ||= []
               @pools[frequency] << WeakRef.new(pool)
             end
           end
@@ -331,14 +336,24 @@ module ActiveRecord
           private
             def spawn_thread(frequency)
               Thread.new(frequency) do |t|
-                loop do
+                running = true
+                while running
                   sleep t
                   @mutex.synchronize do
-                    @pools[frequency].select!(&:weakref_alive?)
+                    @pools[frequency].select! do |pool|
+                      pool.weakref_alive? && !pool.discarded?
+                    end
+
                     @pools[frequency].each do |p|
                       p.reap
                       p.flush
                     rescue WeakRef::RefError
+                    end
+
+                    if @pools[frequency].empty?
+                      @pools.delete(frequency)
+                      @threads.delete(frequency)
+                      running = false
                     end
                   end
                 end
@@ -370,14 +385,14 @@ module ActiveRecord
 
         @spec = spec
 
-        @checkout_timeout = (spec.config[:checkout_timeout] && spec.config[:checkout_timeout].to_f) || 5
-        if @idle_timeout = spec.config.fetch(:idle_timeout, 300)
+        @checkout_timeout = (spec.underlying_configuration_hash[:checkout_timeout] && spec.underlying_configuration_hash[:checkout_timeout].to_f) || 5
+        if @idle_timeout = spec.underlying_configuration_hash.fetch(:idle_timeout, 300)
           @idle_timeout = @idle_timeout.to_f
           @idle_timeout = nil if @idle_timeout <= 0
         end
 
         # default max pool size to 5
-        @size = (spec.config[:pool] && spec.config[:pool].to_i) || 5
+        @size = (spec.underlying_configuration_hash[:pool] && spec.underlying_configuration_hash[:pool].to_i) || 5
 
         # This variable tracks the cache of threads mapped to reserved connections, with the
         # sole purpose of speeding up the +connection+ method. It is not the authoritative
@@ -407,7 +422,7 @@ module ActiveRecord
 
         # +reaping_frequency+ is configurable mostly for historical reasons, but it could
         # also be useful if someone wants a very low +idle_timeout+.
-        reaping_frequency = spec.config.fetch(:reaping_frequency, 60)
+        reaping_frequency = spec.underlying_configuration_hash.fetch(:reaping_frequency, 60)
         @reaper = Reaper.new(self, reaping_frequency && reaping_frequency.to_f)
         @reaper.run
       end
@@ -490,7 +505,7 @@ module ActiveRecord
       # Raises:
       # - ActiveRecord::ExclusiveConnectionTimeoutError if unable to gain ownership of all
       #   connections in the pool within a timeout interval (default duration is
-      #   <tt>spec.config[:checkout_timeout] * 2</tt> seconds).
+      #   <tt>spec.underlying_configuration_hash[:checkout_timeout] * 2</tt> seconds).
       def disconnect(raise_on_acquisition_timeout = true)
         with_exclusively_acquired_all_connections(raise_on_acquisition_timeout) do
           synchronize do
@@ -511,7 +526,7 @@ module ActiveRecord
       #
       # The pool first tries to gain ownership of all connections. If unable to
       # do so within a timeout interval (default duration is
-      # <tt>spec.config[:checkout_timeout] * 2</tt> seconds), then the pool is forcefully
+      # <tt>spec.underlying_configuration_hash[:checkout_timeout] * 2</tt> seconds), then the pool is forcefully
       # disconnected without any regard for other connection owning threads.
       def disconnect!
         disconnect(false)
@@ -524,12 +539,16 @@ module ActiveRecord
       # See AbstractAdapter#discard!
       def discard! # :nodoc:
         synchronize do
-          return if @connections.nil? # already discarded
+          return if self.discarded?
           @connections.each do |conn|
             conn.discard!
           end
           @connections = @available = @thread_cached_conns = nil
         end
+      end
+
+      def discarded? # :nodoc:
+        @connections.nil?
       end
 
       # Clears the cache which maps classes and re-connects connections that
@@ -538,7 +557,7 @@ module ActiveRecord
       # Raises:
       # - ActiveRecord::ExclusiveConnectionTimeoutError if unable to gain ownership of all
       #   connections in the pool within a timeout interval (default duration is
-      #   <tt>spec.config[:checkout_timeout] * 2</tt> seconds).
+      #   <tt>spec.underlying_configuration_hash[:checkout_timeout] * 2</tt> seconds).
       def clear_reloadable_connections(raise_on_acquisition_timeout = true)
         with_exclusively_acquired_all_connections(raise_on_acquisition_timeout) do
           synchronize do
@@ -560,7 +579,7 @@ module ActiveRecord
       #
       # The pool first tries to gain ownership of all connections. If unable to
       # do so within a timeout interval (default duration is
-      # <tt>spec.config[:checkout_timeout] * 2</tt> seconds), then the pool forcefully
+      # <tt>spec.underlying_configuration_hash[:checkout_timeout] * 2</tt> seconds), then the pool forcefully
       # clears the cache and reloads connections without any regard for other
       # connection owning threads.
       def clear_reloadable_connections!
@@ -640,6 +659,7 @@ module ActiveRecord
       # or a thread dies unexpectedly.
       def reap
         stale_connections = synchronize do
+          return if self.discarded?
           @connections.select do |conn|
             conn.in_use? && !conn.owner.alive?
           end.each do |conn|
@@ -664,6 +684,7 @@ module ActiveRecord
         return if minimum_idle.nil?
 
         idle_connections = synchronize do
+          return if self.discarded?
           @connections.select do |conn|
             !conn.in_use? && conn.seconds_idle >= minimum_idle
           end.each do |conn|
@@ -812,7 +833,11 @@ module ActiveRecord
         end
 
         def with_new_connections_blocked
-          synchronize do
+          if defined?(JRUBY_VERSION)
+            synchronize do
+              @threads_blocking_new_connections += 1
+            end
+          else
             @threads_blocking_new_connections += 1
           end
 
@@ -874,7 +899,7 @@ module ActiveRecord
         alias_method :release, :remove_connection_from_thread_cache
 
         def new_connection
-          Base.send(spec.adapter_method, spec.config).tap do |conn|
+          Base.send(spec.adapter_method, spec.underlying_configuration_hash).tap do |conn|
             conn.check_version
           end
         end
@@ -1049,7 +1074,7 @@ module ActiveRecord
         }
         if spec
           payload[:spec_name] = spec.name
-          payload[:config] = spec.config
+          payload[:config] = spec.underlying_configuration_hash
         end
 
         message_bus.instrument("!connection.active_record", payload) do
@@ -1124,7 +1149,7 @@ module ActiveRecord
         if pool = owner_to_pool.delete(spec_name)
           pool.automatic_reconnect = false
           pool.disconnect!
-          pool.spec.config
+          pool.spec.underlying_configuration_hash
         end
       end
 

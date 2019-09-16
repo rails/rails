@@ -36,7 +36,9 @@ module ActiveRecord
           [sql.freeze, binds]
         else
           visitor.preparable = false if prepared_statements
-          [arel_or_sql_string.dup.freeze, binds]
+
+          arel_or_sql_string = arel_or_sql_string.dup.freeze unless arel_or_sql_string.frozen?
+          [arel_or_sql_string, binds]
         end
       end
       private :to_sql_and_binds
@@ -147,6 +149,10 @@ module ActiveRecord
       # the executed +sql+ statement.
       def exec_update(sql, name = nil, binds = [])
         exec_query(sql, name, binds)
+      end
+
+      def exec_insert_all(sql, name) # :nodoc:
+        exec_query(sql, name)
       end
 
       # Executes an INSERT query and returns the new record's ID

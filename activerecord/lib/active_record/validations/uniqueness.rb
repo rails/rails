@@ -35,7 +35,7 @@ module ActiveRecord
           error_options = options.except(:case_sensitive, :scope, :conditions)
           error_options[:value] = value
 
-          record.errors.add(attribute, :taken, error_options)
+          record.errors.add(attribute, :taken, **error_options)
         end
       end
 

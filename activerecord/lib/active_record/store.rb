@@ -103,7 +103,7 @@ module ActiveRecord
     module ClassMethods
       def store(store_attribute, options = {})
         serialize store_attribute, IndifferentCoder.new(store_attribute, options[:coder])
-        store_accessor(store_attribute, options[:accessors], options.slice(:prefix, :suffix)) if options.has_key? :accessors
+        store_accessor(store_attribute, options[:accessors], **options.slice(:prefix, :suffix)) if options.has_key? :accessors
       end
 
       def store_accessor(store_attribute, *keys, prefix: nil, suffix: nil)

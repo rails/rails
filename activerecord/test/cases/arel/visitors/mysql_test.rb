@@ -15,7 +15,7 @@ module Arel
 
       ###
       # :'(
-      # http://dev.mysql.com/doc/refman/5.0/en/select.html#id3482214
+      # https://dev.mysql.com/doc/refman/8.0/en/select.html#id3482214
       it "defaults limit to 18446744073709551615" do
         stmt = Nodes::SelectStatement.new
         stmt.offset = Nodes::Offset.new(1)

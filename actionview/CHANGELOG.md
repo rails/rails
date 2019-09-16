@@ -1,3 +1,10 @@
+*   Log lines for partial renders and started template renders are now
+    emitted at the `DEBUG` level instead of `INFO`.
+
+    Completed template renders are still logged at the `INFO` level.
+
+    *DHH*
+
 *   ActionView::Helpers::SanitizeHelper: support rails-html-sanitizer 1.1.0.
 
     *Juanito Fatas*

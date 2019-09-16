@@ -292,7 +292,7 @@ module ActiveRecord
       # See also TableDefinition#column for details on how to create columns.
       def create_table(table_name, id: :primary_key, primary_key: nil, force: nil, **options)
         td = create_table_definition(
-          table_name, options.extract!(:temporary, :if_not_exists, :options, :as, :comment)
+          table_name, **options.extract!(:temporary, :if_not_exists, :options, :as, :comment)
         )
 
         if id && !td.as
@@ -301,7 +301,7 @@ module ActiveRecord
           if pk.is_a?(Array)
             td.primary_keys pk
           else
-            td.primary_key pk, id, options
+            td.primary_key pk, id, **options
           end
         end
 
@@ -379,9 +379,9 @@ module ActiveRecord
 
         t1_ref, t2_ref = [table_1, table_2].map { |t| t.to_s.singularize }
 
-        create_table(join_table_name, options.merge!(id: false)) do |td|
-          td.references t1_ref, column_options
-          td.references t2_ref, column_options
+        create_table(join_table_name, **options.merge!(id: false)) do |td|
+          td.references t1_ref, **column_options
+          td.references t2_ref, **column_options
           yield td if block_given?
         end
       end
@@ -589,7 +589,7 @@ module ActiveRecord
       #  # ALTER TABLE "shapes" ADD "triangle" polygon
       def add_column(table_name, column_name, type, **options)
         at = create_alter_table table_name
-        at.add_column(column_name, type, options)
+        at.add_column(column_name, type, **options)
         execute schema_creation.accept at
       end
 
@@ -785,7 +785,7 @@ module ActiveRecord
       #
       # For more information see the {"Transactional Migrations" section}[rdoc-ref:Migration].
       def add_index(table_name, column_name, options = {})
-        index_name, index_type, index_columns, index_options = add_index_options(table_name, column_name, options)
+        index_name, index_type, index_columns, index_options = add_index_options(table_name, column_name, **options)
         execute "CREATE #{index_type} INDEX #{quote_column_name(index_name)} ON #{quote_table_name(table_name)} (#{index_columns})#{index_options}"
       end
 
@@ -807,6 +807,10 @@ module ActiveRecord
       #
       #   remove_index :accounts, name: :by_branch_party
       #
+      # Removes the index on +branch_id+ named +by_branch_party+ in the +accounts+ table.
+      #
+      #   remove_index :accounts, :branch_id, name: :by_branch_party
+      #
       # Removes the index named +by_branch_party+ in the +accounts+ table +concurrently+.
       #
       #   remove_index :accounts, name: :by_branch_party, algorithm: :concurrently
@@ -816,8 +820,8 @@ module ActiveRecord
       # Concurrently removing an index is not supported in a transaction.
       #
       # For more information see the {"Transactional Migrations" section}[rdoc-ref:Migration].
-      def remove_index(table_name, options = {})
-        index_name = index_name_for_remove(table_name, options)
+      def remove_index(table_name, column_name = nil, options = {})
+        index_name = index_name_for_remove(table_name, column_name, options)
         execute "DROP INDEX #{quote_column_name(index_name)} ON #{quote_table_name(table_name)}"
       end
 
@@ -904,7 +908,7 @@ module ActiveRecord
       #   add_reference(:products, :supplier, foreign_key: {to_table: :firms})
       #
       def add_reference(table_name, ref_name, **options)
-        ReferenceDefinition.new(ref_name, options).add_to(update_table_definition(table_name, self))
+        ReferenceDefinition.new(ref_name, **options).add_to(update_table_definition(table_name, self))
       end
       alias :add_belongs_to :add_reference
 
@@ -932,7 +936,7 @@ module ActiveRecord
             foreign_key_options = { to_table: reference_name }
           end
           foreign_key_options[:column] ||= "#{ref_name}_id"
-          remove_foreign_key(table_name, foreign_key_options)
+          remove_foreign_key(table_name, **foreign_key_options)
         end
 
         remove_column(table_name, "#{ref_name}_id")
@@ -1154,8 +1158,8 @@ module ActiveRecord
           options[:precision] = 6
         end
 
-        add_column table_name, :created_at, :datetime, options
-        add_column table_name, :updated_at, :datetime, options
+        add_column table_name, :created_at, :datetime, **options
+        add_column table_name, :updated_at, :datetime, **options
       end
 
       # Removes the timestamp columns (+created_at+ and +updated_at+) from the table definition.
@@ -1195,10 +1199,7 @@ module ActiveRecord
 
         validate_index_length!(table_name, index_name, options.fetch(:internal, false))
 
-        if data_source_exists?(table_name) && index_name_exists?(table_name, index_name)
-          raise ArgumentError, "Index name '#{index_name}' on table '#{table_name}' already exists"
-        end
-        index_columns = quoted_columns_for_index(column_names, options).join(", ")
+        index_columns = quoted_columns_for_index(column_names, **options).join(", ")
 
         [index_name, index_type, index_columns, index_options, algorithm, using, comment]
       end
@@ -1255,7 +1256,7 @@ module ActiveRecord
         # the PostgreSQL adapter for supporting operator classes.
         def add_options_for_index_columns(quoted_columns, **options)
           if supports_index_sort_order?
-            quoted_columns = add_index_sort_order(quoted_columns, options)
+            quoted_columns = add_index_sort_order(quoted_columns, **options)
           end
 
           quoted_columns
@@ -1265,20 +1266,21 @@ module ActiveRecord
           return [column_names] if column_names.is_a?(String)
 
           quoted_columns = Hash[column_names.map { |name| [name.to_sym, quote_column_name(name).dup] }]
-          add_options_for_index_columns(quoted_columns, options).values
+          add_options_for_index_columns(quoted_columns, **options).values
         end
 
-        def index_name_for_remove(table_name, options = {})
-          return options[:name] if can_remove_index_by_name?(options)
+        def index_name_for_remove(table_name, column_name, options)
+          if column_name.is_a?(Hash)
+            options = column_name.dup
+            column_name = options.delete(:column)
+          end
+
+          return options[:name] if can_remove_index_by_name?(column_name, options)
 
           checks = []
 
-          if options.is_a?(Hash)
-            checks << lambda { |i| i.name == options[:name].to_s } if options.key?(:name)
-            column_names = index_column_names(options[:column])
-          else
-            column_names = index_column_names(options)
-          end
+          checks << lambda { |i| i.name == options[:name].to_s } if options.key?(:name)
+          column_names = index_column_names(column_name)
 
           if column_names.present?
             checks << lambda { |i| index_name(table_name, i.columns) == index_name(table_name, column_names) }
@@ -1376,7 +1378,7 @@ module ActiveRecord
 
         def foreign_key_for(from_table, **options)
           return unless supports_foreign_keys?
-          foreign_keys(from_table).detect { |fk| fk.defined_for?(options) }
+          foreign_keys(from_table).detect { |fk| fk.defined_for?(**options) }
         end
 
         def foreign_key_for!(from_table, to_table: nil, **options)
@@ -1409,8 +1411,8 @@ module ActiveRecord
         end
         alias :extract_new_comment_value :extract_new_default_value
 
-        def can_remove_index_by_name?(options)
-          options.is_a?(Hash) && options.key?(:name) && options.except(:name, :algorithm).empty?
+        def can_remove_index_by_name?(column_name, options)
+          column_name.nil? && options.key?(:name) && options.except(:name, :algorithm).empty?
         end
 
         def bulk_change_table(table_name, operations)
@@ -1440,7 +1442,7 @@ module ActiveRecord
 
         def add_column_for_alter(table_name, column_name, type, options = {})
           td = create_table_definition(table_name)
-          cd = td.new_column_definition(column_name, type, options)
+          cd = td.new_column_definition(column_name, type, **options)
           schema_creation.accept(AddColumnDefinition.new(cd))
         end
 

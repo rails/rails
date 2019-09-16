@@ -286,9 +286,9 @@ module ActionDispatch
       DOMAIN_REGEXP = /[^.]*\.([^.]*|..\...|...\...)$/
 
       def self.build(req, cookies)
-        new(req).tap do |jar|
-          jar.update(cookies)
-        end
+        jar = new(req)
+        jar.update(cookies)
+        jar
       end
 
       attr_reader :request
@@ -584,7 +584,7 @@ module ActionDispatch
         end
 
         def commit(name, options)
-          options[:value] = @verifier.generate(serialize(options[:value]), cookie_metadata(name, options))
+          options[:value] = @verifier.generate(serialize(options[:value]), **cookie_metadata(name, options))
 
           raise CookieOverflow if options[:value].bytesize > MAX_COOKIE_SIZE
         end
@@ -630,7 +630,7 @@ module ActionDispatch
         end
 
         def commit(name, options)
-          options[:value] = @encryptor.encrypt_and_sign(serialize(options[:value]), cookie_metadata(name, options))
+          options[:value] = @encryptor.encrypt_and_sign(serialize(options[:value]), **cookie_metadata(name, options))
 
           raise CookieOverflow if options[:value].bytesize > MAX_COOKIE_SIZE
         end

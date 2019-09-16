@@ -10,7 +10,7 @@ module ActiveModel
 
       def validate_each(record, attribute, value)
         unless acceptable_option?(value)
-          record.errors.add(attribute, :accepted, options.except(:accept, :allow_nil))
+          record.errors.add(attribute, :accepted, **options.except(:accept, :allow_nil))
         end
       end
 

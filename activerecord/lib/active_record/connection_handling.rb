@@ -113,8 +113,9 @@ module ActiveRecord
     #     Dog.run_a_long_query
     #   end
     #
-    # When using the database key a new connection will be established every time.
-    def connected_to(database: nil, role: nil, &blk)
+    # When using the database key a new connection will be established every time. It is not
+    # recommended to use this outside of one-off scripts.
+    def connected_to(database: nil, role: nil, prevent_writes: false, &blk)
       if database && role
         raise ArgumentError, "connected_to can only accept a `database` or a `role` argument, but not both arguments."
       elsif database
@@ -130,7 +131,13 @@ module ActiveRecord
 
         with_handler(role, &blk)
       elsif role
-        with_handler(role.to_sym, &blk)
+        if role == writing_role
+          with_handler(role.to_sym) do
+            connection_handler.while_preventing_writes(prevent_writes, &blk)
+          end
+        else
+          with_handler(role.to_sym, &blk)
+        end
       else
         raise ArgumentError, "must provide a `database` or a `role`."
       end
@@ -177,7 +184,7 @@ module ActiveRecord
       self.connection_specification_name = pool_name
 
       resolver = ConnectionAdapters::ConnectionSpecification::Resolver.new(Base.configurations)
-      config_hash = resolver.resolve(config_or_env, pool_name).symbolize_keys
+      config_hash = resolver.resolve(config_or_env, pool_name).configuration_hash
       config_hash[:name] = pool_name
 
       config_hash
@@ -204,7 +211,7 @@ module ActiveRecord
     # Return the specification name from the current class or its parent.
     def connection_specification_name
       if !defined?(@connection_specification_name) || @connection_specification_name.nil?
-        return primary_class? ? "primary" : superclass.connection_specification_name
+        return self == Base ? "primary" : superclass.connection_specification_name
       end
       @connection_specification_name
     end
@@ -220,7 +227,7 @@ module ActiveRecord
     #
     # Please use only for reading.
     def connection_config
-      connection_pool.spec.config
+      connection_pool.spec.underlying_configuration_hash
     end
 
     def connection_pool

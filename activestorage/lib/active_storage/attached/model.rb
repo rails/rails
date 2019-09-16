@@ -10,7 +10,7 @@ module ActiveStorage
     class_methods do
       # Specifies the relation between a single attachment and the model.
       #
-      #   class User < ActiveRecord::Base
+      #   class User < ApplicationRecord
       #     has_one_attached :avatar
       #   end
       #
@@ -66,7 +66,7 @@ module ActiveStorage
 
       # Specifies the relation between multiple attachments and the model.
       #
-      #   class Gallery < ActiveRecord::Base
+      #   class Gallery < ApplicationRecord
       #     has_many_attached :photos
       #   end
       #
@@ -97,13 +97,13 @@ module ActiveStorage
           def #{name}=(attachables)
             if ActiveStorage.replace_on_assign_to_many
               attachment_changes["#{name}"] =
-                if attachables.nil? || Array(attachables).none?
+                if Array(attachables).none?
                   ActiveStorage::Attached::Changes::DeleteMany.new("#{name}", self)
                 else
                   ActiveStorage::Attached::Changes::CreateMany.new("#{name}", self, attachables)
                 end
             else
-              if !attachables.nil? || Array(attachables).any?
+              if Array(attachables).any?
                 attachment_changes["#{name}"] =
                   ActiveStorage::Attached::Changes::CreateMany.new("#{name}", self, #{name}.blobs + attachables)
               end

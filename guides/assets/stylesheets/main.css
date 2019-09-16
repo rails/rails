@@ -34,7 +34,7 @@ pre, code {
   color: #222;
 }
 
-p code {
+p code, ul code {
   background: #eee;
   border-radius: 2px;
   padding: 1px 3px;

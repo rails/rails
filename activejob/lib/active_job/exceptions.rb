@@ -115,7 +115,7 @@ module ActiveJob
     #    end
     #  end
     def retry_job(options = {})
-      instrument :enqueue_retry, options.slice(:error, :wait) do
+      instrument :enqueue_retry, **options.slice(:error, :wait) do
         enqueue options
       end
     end

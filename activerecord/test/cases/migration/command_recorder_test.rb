@@ -94,10 +94,17 @@ module ActiveRecord
             t.rename :kind, :cultivar
           end
         end
-        assert_equal [
-          [:rename_column, [:fruits, :cultivar, :kind]],
-          [:remove_column, [:fruits, :name, :string, {}], nil],
-        ], @recorder.commands
+        if RUBY_VERSION < "2.7"
+          assert_equal [
+            [:rename_column, [:fruits, :cultivar, :kind]],
+            [:remove_column, [:fruits, :name, :string, {}], nil],
+          ], @recorder.commands
+        else
+          assert_equal [
+            [:rename_column, [:fruits, :cultivar, :kind]],
+            [:remove_column, [:fruits, :name, :string], nil],
+          ], @recorder.commands
+        end
 
         assert_raises(ActiveRecord::IrreversibleMigration) do
           @recorder.revert do
@@ -254,7 +261,12 @@ module ActiveRecord
 
       def test_invert_remove_index
         add = @recorder.inverse_of :remove_index, [:table, :one]
-        assert_equal [:add_index, [:table, :one]], add
+        assert_equal [:add_index, [:table, :one, {}]], add
+      end
+
+      def test_invert_remove_index_with_positional_column
+        add = @recorder.inverse_of :remove_index, [:table, [:one, :two], { options: true }]
+        assert_equal [:add_index, [:table, [:one, :two], options: true]], add
       end
 
       def test_invert_remove_index_with_column

@@ -1561,8 +1561,6 @@ To use a custom separator, override the `separator` argument.
 "Kurt Gödel".parameterize(separator: "_") # => "kurt\_godel"
 ```
 
-In fact, the result string is wrapped in an instance of `ActiveSupport::Multibyte::Chars`.
-
 NOTE: Defined in `active_support/core_ext/string/inflections.rb`.
 
 #### `tableize`

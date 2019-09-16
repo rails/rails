@@ -208,8 +208,8 @@ module ActiveRecord
     # Note that "TRUNCATE" is also a MySQL DDL statement!
     module ClassMethods
       # See the ConnectionAdapters::DatabaseStatements#transaction API docs.
-      def transaction(options = {}, &block)
-        connection.transaction(options, &block)
+      def transaction(**options, &block)
+        connection.transaction(**options, &block)
       end
 
       def before_commit(*args, &block) # :nodoc:
@@ -302,23 +302,23 @@ module ActiveRecord
     end
 
     # See ActiveRecord::Transactions::ClassMethods for detailed documentation.
-    def transaction(options = {}, &block)
-      self.class.transaction(options, &block)
+    def transaction(**options, &block)
+      self.class.transaction(**options, &block)
     end
 
     def destroy #:nodoc:
       with_transaction_returning_status { super }
     end
 
-    def save(*) #:nodoc:
+    def save(*, **) #:nodoc:
       with_transaction_returning_status { super }
     end
 
-    def save!(*) #:nodoc:
+    def save!(*, **) #:nodoc:
       with_transaction_returning_status { super }
     end
 
-    def touch(*) #:nodoc:
+    def touch(*, **) #:nodoc:
       with_transaction_returning_status { super }
     end
 

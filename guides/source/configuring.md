@@ -66,7 +66,7 @@ These configuration methods are to be called on a `Rails::Railtie` object, such 
 
 * `config.add_autoload_paths_to_load_path` says whether autoload paths have to be added to `$LOAD_PATH`. This flag is `true` by default, but it is recommended to be set to `false` in `:zeitwerk` mode early, in `config/application.rb`. Zeitwerk uses absolute paths internally, and applications running in `:zeitwerk` mode do not need `require_dependency`, so models, controllers, jobs, etc. do not need to be in `$LOAD_PATH`. Setting this to `false` saves Ruby from checking these directories when resolving `require` calls with relative paths, and saves Bootsnap work and RAM, since it does not need to build an index for them.
 
-* `config.cache_classes` controls whether or not application classes and modules should be reloaded on each request. Defaults to `false` in development mode, and `true` in test and production modes.
+* `config.cache_classes` controls whether or not application classes and modules should be reloaded if they change. Defaults to `false` in development mode, and `true` in production mode. In `test` mode, the default is `false` if Spring is installed, `true` otherwise.
 
 * `config.beginning_of_week` sets the default beginning of week for the
 application. Accepts a valid day of week as a symbol (e.g. `:monday`).
@@ -75,7 +75,7 @@ application. Accepts a valid day of week as a symbol (e.g. `:monday`).
 
 * `config.colorize_logging` specifies whether or not to use ANSI color codes when logging information. Defaults to `true`.
 
-* `config.consider_all_requests_local` is a flag. If `true` then any error will cause detailed debugging information to be dumped in the HTTP response, and the `Rails::Info` controller will show the application runtime context in `/rails/info/properties`. `true` by default in development and test environments, and `false` in production mode. For finer-grained control, set this to `false` and implement `local_request?` in controllers to specify which requests should provide debugging information on errors.
+* `config.consider_all_requests_local` is a flag. If `true` then any error will cause detailed debugging information to be dumped in the HTTP response, and the `Rails::Info` controller will show the application runtime context in `/rails/info/properties`. `true` by default in development and test environments, and `false` in production mode. For finer-grained control, set this to `false` and implement `show_detailed_exceptions?` in controllers to specify which requests should provide debugging information on errors.
 
 * `config.console` allows you to set class that will be used as console you run `rails console`. It's best to run it in `console` block:
 

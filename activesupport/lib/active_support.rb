@@ -45,6 +45,7 @@ module ActiveSupport
   autoload :LogSubscriber
   autoload :Notifications
   autoload :Reloader
+  autoload :SecureCompareRotator
 
   eager_autoload do
     autoload :BacktraceCleaner
