@@ -185,6 +185,11 @@ module ActiveRecord
 
   # Raised when a given database does not exist.
   class NoDatabaseError < StatementInvalid
+    include ActiveSupport::ActionableError
+
+    action "Create database" do
+      ActiveRecord::Tasks::DatabaseTasks.create_current
+    end
   end
 
   # Raised when creating a database if it exists.
