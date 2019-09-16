@@ -41,7 +41,7 @@ module ActionDispatch
           end
 
           parameters = route.defaults.merge parameters.transform_values { |val|
-            val.dup.force_encoding(::Encoding::UTF_8)
+            val.force_encoding(::Encoding::UTF_8)
           }
 
           req.path_parameters = set_params.merge parameters
