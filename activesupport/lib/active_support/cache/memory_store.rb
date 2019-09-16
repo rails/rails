@@ -126,7 +126,7 @@ module ActiveSupport
             if entry
               @key_access[key] = Time.now.to_f
               entry = entry.dup
-              entry.decode_value!
+              entry.dup_value!
             else
               @key_access.delete(key)
             end
@@ -135,7 +135,7 @@ module ActiveSupport
         end
 
         def write_entry(key, entry, options)
-          entry.encode_value!
+          entry.dup_value!
           synchronize do
             old_entry = @data[key]
             return false if @data.key?(key) && options[:unless_exist]
