@@ -10,6 +10,7 @@ module ActiveRecord
 
     autoload :Column
     autoload :ConnectionSpecification
+    autoload :Resolver
 
     autoload_at "active_record/connection_adapters/abstract/schema_definitions" do
       autoload :IndexDefinition

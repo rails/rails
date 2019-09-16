@@ -18,8 +18,12 @@ module ActiveRecord
         configuration_hash.stringify_keys
       end
 
-      def initialize_dup(original)
-        @config = original.configuration_hash.dup
+      def adapter_method
+        "#{adapter}_connection"
+      end
+
+      def adapter
+        configuration_hash[:adapter]
       end
 
       def replica?

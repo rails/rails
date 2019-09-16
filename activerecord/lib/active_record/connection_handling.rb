@@ -183,7 +183,7 @@ module ActiveRecord
       pool_name = primary_class? ? "primary" : name
       self.connection_specification_name = pool_name
 
-      resolver = ConnectionAdapters::ConnectionSpecification::Resolver.new(Base.configurations)
+      resolver = ConnectionAdapters::Resolver.new(Base.configurations)
       config_hash = resolver.resolve(config_or_env, pool_name).configuration_hash
       config_hash[:name] = pool_name
 
@@ -227,7 +227,7 @@ module ActiveRecord
     #
     # Please use only for reading.
     def connection_config
-      connection_pool.spec.underlying_configuration_hash
+      connection_pool.spec.db_config.configuration_hash
     end
 
     def connection_pool

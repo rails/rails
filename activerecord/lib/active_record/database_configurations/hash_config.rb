@@ -53,7 +53,7 @@ module ActiveRecord
       private
         def resolve_url_key
           if configuration_hash[:url] && !configuration_hash[:url].match?(/^jdbc:/)
-            connection_hash = ActiveRecord::ConnectionAdapters::ConnectionSpecification::ConnectionUrlResolver.new(configuration_hash[:url]).to_hash
+            connection_hash = ConnectionUrlResolver.new(configuration_hash[:url]).to_hash
             configuration_hash.merge!(connection_hash)
           end
         end

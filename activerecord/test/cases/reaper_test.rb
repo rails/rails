@@ -58,7 +58,8 @@ module ActiveRecord
       end
 
       def test_pool_has_reaper
-        spec = ActiveRecord::Base.connection_pool.spec.dup
+        config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", spec_name: "primary")
+        spec = ConnectionSpecification.new("primary", config)
         pool = ConnectionPool.new spec
 
         assert pool.reaper
@@ -67,17 +68,19 @@ module ActiveRecord
       end
 
       def test_reaping_frequency_configuration
-        spec = ActiveRecord::Base.connection_pool.spec.dup
-        spec.underlying_configuration_hash[:reaping_frequency] = "10.01"
+        spec = duplicated_spec
+        spec.db_config.configuration_hash[:reaping_frequency] = "10.01"
+
         pool = ConnectionPool.new spec
+
         assert_equal 10.01, pool.reaper.frequency
       ensure
         pool.discard!
       end
 
       def test_connection_pool_starts_reaper
-        spec = ActiveRecord::Base.connection_pool.spec.dup
-        spec.underlying_configuration_hash[:reaping_frequency] = "0.0001"
+        spec = duplicated_spec
+        spec.db_config.configuration_hash[:reaping_frequency] = "0.0001"
 
         pool = ConnectionPool.new spec
 
@@ -94,8 +97,8 @@ module ActiveRecord
       end
 
       def test_reaper_works_after_pool_discard
-        spec = ActiveRecord::Base.connection_pool.spec.dup
-        spec.underlying_configuration_hash[:reaping_frequency] = "0.0001"
+        spec = duplicated_spec
+        spec.db_config.configuration_hash[:reaping_frequency] = "0.0001"
 
         2.times do
           pool = ConnectionPool.new spec
@@ -116,7 +119,7 @@ module ActiveRecord
       # This doesn't test the reaper directly, but we want to test the action
       # it would take on a discarded pool
       def test_reap_flush_on_discarded_pool
-        spec = ActiveRecord::Base.connection_pool.spec.dup
+        spec = duplicated_spec
         pool = ConnectionPool.new spec
 
         pool.discard!
@@ -125,8 +128,8 @@ module ActiveRecord
       end
 
       def test_connection_pool_starts_reaper_in_fork
-        spec = ActiveRecord::Base.connection_pool.spec.dup
-        spec.underlying_configuration_hash[:reaping_frequency] = "0.0001"
+        spec = duplicated_spec
+        spec.db_config.configuration_hash[:reaping_frequency] = "0.0001"
 
         pool = ConnectionPool.new spec
         pool.checkout
@@ -169,26 +172,33 @@ module ActiveRecord
         pool.discard!
       end
 
-      def new_conn_in_thread(pool)
-        event = Concurrent::Event.new
-        conn = nil
-
-        child = Thread.new do
-          conn = pool.checkout
-          event.set
-          Thread.stop
+      private
+        def duplicated_spec
+          old_config = ActiveRecord::Base.connection_pool.spec.db_config.configuration_hash
+          db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new("arunit", "primary", old_config.dup)
+          ConnectionSpecification.new("primary", db_config)
         end
 
-        event.wait
-        [conn, child]
-      end
+        def new_conn_in_thread(pool)
+          event = Concurrent::Event.new
+          conn = nil
 
-      def wait_for_conn_idle(conn, timeout = 5)
-        start = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-        while conn.in_use? && Process.clock_gettime(Process::CLOCK_MONOTONIC) - start < timeout
-          Thread.pass
+          child = Thread.new do
+            conn = pool.checkout
+            event.set
+            Thread.stop
+          end
+
+          event.wait
+          [conn, child]
         end
-      end
+
+        def wait_for_conn_idle(conn, timeout = 5)
+          start = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+          while conn.in_use? && Process.clock_gettime(Process::CLOCK_MONOTONIC) - start < timeout
+            Thread.pass
+          end
+        end
     end
   end
 end

@@ -64,7 +64,7 @@ module ActiveRecord
           if url.nil? || /^jdbc:/.match?(url)
             { url: url }
           else
-            ActiveRecord::ConnectionAdapters::ConnectionSpecification::ConnectionUrlResolver.new(url).to_hash
+            ConnectionUrlResolver.new(url).to_hash
           end
         end
 
