@@ -38,10 +38,6 @@ module ActiveRecord
         false
       end
 
-      def to_legacy_hash
-        { env_name => configuration_hash.stringify_keys }
-      end
-
       def for_current_env?
         env_name == ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
       end
