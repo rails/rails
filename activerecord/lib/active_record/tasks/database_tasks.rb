@@ -49,6 +49,7 @@ module ActiveRecord
       extend self
 
       attr_writer :current_config, :db_dir, :migrations_paths, :fixtures_path, :root, :env, :seed_loader
+      deprecate :current_config=
       attr_accessor :database_configuration
 
       LOCAL_HOSTS = ["127.0.0.1", "localhost"]
@@ -120,6 +121,7 @@ module ActiveRecord
           @current_config ||= ActiveRecord::Base.configurations.configs_for(env_name: env_name, spec_name: spec_name)&.configuration_hash
         end
       end
+      deprecate :current_config
 
       def create(*arguments)
         configuration = arguments.first.symbolize_keys
