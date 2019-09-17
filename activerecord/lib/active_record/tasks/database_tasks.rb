@@ -111,12 +111,13 @@ module ActiveRecord
       end
 
       def current_config(options = {})
-        options.reverse_merge! env: env
-        options[:spec] ||= "primary"
         if options.has_key?(:config)
           @current_config = options[:config]
         else
-          @current_config ||= ActiveRecord::Base.configurations.configs_for(env_name: options[:env], spec_name: options[:spec]).db_config.configuration_hash
+          env_name = options[:env] || env
+          spec_name = options[:spec] || "primary"
+
+          @current_config ||= ActiveRecord::Base.configurations.configs_for(env_name: env_name, spec_name: spec_name)&.configuration_hash
         end
       end
 

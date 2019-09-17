@@ -112,6 +112,57 @@ module ActiveRecord
     end
   end
 
+  class DatabaseTasksCurrentConfigTask < ActiveRecord::TestCase
+    def test_current_config_set
+      hash = {}
+
+      with_stubbed_configurations do
+        ActiveRecord::Tasks::DatabaseTasks.current_config(config: hash, env: "production")
+
+        assert_equal hash, ActiveRecord::Tasks::DatabaseTasks.current_config(env: "production")
+      end
+    end
+
+    def test_current_config_read_none_found
+      with_stubbed_configurations do
+        config = ActiveRecord::Tasks::DatabaseTasks.current_config(env: "production", spec: "empty")
+
+        assert_nil config
+      end
+    end
+
+    def test_current_config_read_found
+      with_stubbed_configurations do
+        config = ActiveRecord::Tasks::DatabaseTasks.current_config(env: "production", spec: "exists")
+
+        assert_equal({ database: "my-db" }, config)
+      end
+    end
+
+    def test_current_config_read_after_set
+      hash = {}
+
+      with_stubbed_configurations do
+        ActiveRecord::Tasks::DatabaseTasks.current_config(config: hash, env: "production")
+
+        config = ActiveRecord::Tasks::DatabaseTasks.current_config(env: "production", spec: "exists")
+
+        assert_equal hash, config
+      end
+    end
+
+    private
+      def with_stubbed_configurations
+        old_configurations = ActiveRecord::Base.configurations
+        ActiveRecord::Base.configurations = { "production" => { "exists" => { "database" => "my-db" } } }
+
+        yield
+      ensure
+        ActiveRecord::Base.configurations = old_configurations
+        ActiveRecord::Tasks::DatabaseTasks.current_config = nil
+      end
+  end
+
   class DatabaseTasksRegisterTask < ActiveRecord::TestCase
     def test_register_task
       klazz = Class.new do
