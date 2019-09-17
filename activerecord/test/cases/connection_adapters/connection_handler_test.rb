@@ -353,6 +353,28 @@ module ActiveRecord
           end
         end
 
+        def test_retrieve_connection_pool_preserves_connection_specification_name
+          rd, wr = IO.pipe
+          rd.binmode
+          wr.binmode
+
+          @handler.establish_connection ActiveRecord::Base.configurations["arunit"].merge(name: "foo")
+
+          pid = fork {
+            rd.close
+            pool = @handler.retrieve_connection_pool("foo")
+            wr.write pool.spec.name
+            wr.close
+            exit!
+          }
+
+          wr.close
+
+          Process.waitpid pid
+          assert_equal "foo", rd.read
+          rd.close
+        end
+
         def test_retrieve_connection_pool_copies_schema_cache_from_ancestor_pool
           @pool.schema_cache = @pool.connection.schema_cache
           @pool.schema_cache.add("posts")
