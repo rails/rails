@@ -40,11 +40,12 @@ module ActionDispatch
             req.path_info = "/" + req.path_info unless req.path_info.start_with? "/"
           end
 
-          parameters = route.defaults.merge parameters.each_value { |val|
-            val.force_encoding(::Encoding::UTF_8)
+          tmp_params = set_params.merge route.defaults
+          parameters.each_pair { |key, val|
+            tmp_params[key] = val.force_encoding(::Encoding::UTF_8)
           }
 
-          req.path_parameters = set_params.merge parameters
+          req.path_parameters = tmp_params
 
           status, headers, body = route.app.serve(req)
 
