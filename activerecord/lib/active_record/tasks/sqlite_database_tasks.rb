@@ -6,7 +6,7 @@ module ActiveRecord
       delegate :connection, :establish_connection, to: ActiveRecord::Base
 
       def initialize(configuration, root = ActiveRecord::Tasks::DatabaseTasks.root)
-        @configuration, @root = configuration.symbolize_keys, root
+        @configuration, @root = configuration, root
       end
 
       def create

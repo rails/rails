@@ -8,7 +8,7 @@ module ActiveRecord
       delegate :connection, :establish_connection, to: ActiveRecord::Base
 
       def initialize(configuration)
-        @configuration = configuration.symbolize_keys
+        @configuration = configuration
       end
 
       def create

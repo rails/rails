@@ -13,7 +13,7 @@ module ActiveRecord
 
       ActiveRecord::Base.configurations.configs_for(env_name: env_name).each do |db_config|
         db_config.configuration_hash[:database] += "-#{i}"
-        ActiveRecord::Tasks::DatabaseTasks.reconstruct_from_schema(db_config.configuration_hash, ActiveRecord::Base.schema_format, nil, env_name, db_config.spec_name)
+        ActiveRecord::Tasks::DatabaseTasks.reconstruct_from_schema(db_config, ActiveRecord::Base.schema_format, nil)
       end
     ensure
       ActiveRecord::Base.establish_connection(Rails.env.to_sym)

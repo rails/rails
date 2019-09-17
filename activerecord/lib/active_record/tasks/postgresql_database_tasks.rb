@@ -13,7 +13,7 @@ module ActiveRecord
         to: ActiveRecord::Base
 
       def initialize(configuration)
-        @configuration = configuration.symbolize_keys
+        @configuration = configuration
       end
 
       def create(master_established = false)
