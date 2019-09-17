@@ -40,7 +40,7 @@ module ActionDispatch
             req.path_info = "/" + req.path_info unless req.path_info.start_with? "/"
           end
 
-          parameters = route.defaults.merge parameters.transform_values { |val|
+          parameters = route.defaults.merge parameters.each_value { |val|
             val.force_encoding(::Encoding::UTF_8)
           }
 
