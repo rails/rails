@@ -10,7 +10,7 @@ module ActionMailbox::InboundEmail::MessageId
   extend ActiveSupport::Concern
 
   class_methods do
-    # Create a new +InboundEmail+ from the raw +source+ of the email, which be uploaded as a Active Storage
+    # Create a new +InboundEmail+ from the raw +source+ of the email, which is uploaded as an Active Storage
     # attachment called +raw_email+. Before the upload, extract the Message-ID from the +source+ and set
     # it as an attribute on the new +InboundEmail+.
     def create_and_extract_message_id!(source, **options)
