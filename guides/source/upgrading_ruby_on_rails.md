@@ -436,7 +436,7 @@ class User < ApplicationRecord
 end
 
 user.highlights.attach(filename: "funky.jpg", ...)
-user.higlights.count # => 1
+user.highlights.count # => 1
 
 blob = ActiveStorage::Blob.create_after_upload!(filename: "town.jpg", ...)
 user.update!(highlights: [ blob ])
