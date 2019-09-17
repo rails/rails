@@ -1,3 +1,7 @@
+*   The `Content-Type` header is set on image variants when they're uploaded to third-party storage services.
+
+    *Kyle Ribordy*
+
 *   Allow storage services to be configured per attachment
 
     ```ruby
