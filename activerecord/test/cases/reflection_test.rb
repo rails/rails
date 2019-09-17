@@ -541,8 +541,10 @@ class UncastableReflectionTest < ActiveRecord::TestCase
   teardown do
     Book._reflections.clear
     Book.clear_reflections_cache
-    Subscriber.has_many :books, through: :subscriptions
-    Subscriber.has_one :book, through: :subscription
+    silence_warnings do
+      Subscriber.has_many :books, through: :subscriptions
+      Subscriber.has_one :book, through: :subscription
+    end
   end
 
   test "uncastable has_many through: reflection" do
@@ -551,11 +553,6 @@ class UncastableReflectionTest < ActiveRecord::TestCase
       In order to correctly type cast UncastableReflectionTest::Subscriber.nick,
       UncastableReflectionTest::Book needs to define a :subscriptions association.
     MSG
-  end
-
-  test "fixing uncastable has_many through: reflection with has_many" do
-    Book.has_many :subscriptions
-    @subscriber.books
   end
 
   test "uncastable has_one through: reflection" do
@@ -567,8 +564,17 @@ class UncastableReflectionTest < ActiveRecord::TestCase
     MSG
   end
 
+  test "fixing uncastable has_many through: reflection with has_many" do
+    silence_warnings do
+      Book.has_many :subscriptions
+    end
+    @subscriber.books
+  end
+
   test "fixing uncastable has_one through: reflection with has_many" do
-    Book.has_many :subscriptions
+    silence_warnings do
+      Book.has_many :subscriptions
+    end
     @subscriber.book
   end
 
