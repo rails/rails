@@ -1,3 +1,7 @@
+*   Deprecate `DatabaseConfigurations#to_h`. These connection hashes are still available via `ActiveRecord::Base.configurations.configs_for`.
+
+    *Eileen Uchitelle*, *John Crepezzi*
+
 *   Add `DatabaseConfig#configuration_hash` to return database configuration hashes with symbol keys, and use all symbol-key configuration hashes internally. Deprecate `DatabaseConfig#config` which returns a String-keyed `Hash` with the same values.
 
     *John Crepezzi*, *Eileen Uchitelle*
