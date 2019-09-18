@@ -165,6 +165,13 @@ module ActiveRecord
         assert_equal expected, actual
       end
 
+      def test_url_removed_from_hash
+        config   = { "default_env" => { "url" => "postgres://localhost/foo" } }
+        actual   = resolve_spec(:default_env, config)
+
+        assert_not_includes actual, :url
+      end
+
       def test_hash
         config = { "production" => { "adapter" => "postgres", "database" => "foo" } }
         actual = resolve_config(config, "production")

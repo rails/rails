@@ -14,8 +14,7 @@ module ActiveRecord
       end
 
       def config
-        ActiveSupport::Deprecation.warn("DatabaseConfig#config will be removed in 6.2.0 in favor of DatabaseConfigurations#configuration_hash which returns a hash with symbol keys")
-        configuration_hash.stringify_keys
+        raise NotImplementedError
       end
 
       def adapter_method
@@ -23,7 +22,7 @@ module ActiveRecord
       end
 
       def adapter
-        configuration_hash[:adapter]
+        raise NotImplementedError
       end
 
       def replica?
