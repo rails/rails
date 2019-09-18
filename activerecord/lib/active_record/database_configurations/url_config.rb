@@ -41,10 +41,6 @@ module ActiveRecord
         @config
       end
 
-      def url_config? # :nodoc:
-        true
-      end
-
       # Determines whether a database configuration is for a replica / readonly
       # connection. If the +replica+ key is present in the config, +replica?+ will
       # return +true+.

@@ -34,10 +34,6 @@ module ActiveRecord
         raise NotImplementedError
       end
 
-      def url_config?
-        false
-      end
-
       def for_current_env?
         env_name == ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
       end
