@@ -1412,7 +1412,7 @@ class MultipleDatabaseFixturesTest < ActiveRecord::TestCase
   private
     def with_temporary_connection_pool
       old_pool = ActiveRecord::Base.connection_handler.retrieve_connection_pool(ActiveRecord::Base.connection_specification_name)
-      new_pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new ActiveRecord::Base.connection_pool.spec
+      new_pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new(ActiveRecord::Base.connection_pool.db_config)
       ActiveRecord::Base.connection_handler.send(:owner_to_pool)["primary"] = new_pool
 
       yield

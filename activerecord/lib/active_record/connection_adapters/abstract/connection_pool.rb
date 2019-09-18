@@ -372,7 +372,7 @@ module ActiveRecord
       include ConnectionAdapters::AbstractPool
 
       attr_accessor :automatic_reconnect, :checkout_timeout, :schema_cache
-      attr_reader :spec, :size, :reaper
+      attr_reader :db_config, :size, :reaper
 
       # Creates a new ConnectionPool object. +spec+ is a ConnectionSpecification
       # object which describes database connection information (e.g. adapter,
@@ -380,14 +380,14 @@ module ActiveRecord
       # this ConnectionPool.
       #
       # The default ConnectionPool maximum size is 5.
-      def initialize(spec)
+      def initialize(db_config)
         super()
 
-        @spec = spec
+        @db_config = db_config
 
-        @checkout_timeout = spec.db_config.checkout_timeout
-        @idle_timeout = spec.db_config.idle_timeout
-        @size = spec.db_config.pool
+        @checkout_timeout = db_config.checkout_timeout
+        @idle_timeout = db_config.idle_timeout
+        @size = db_config.pool
 
         # This variable tracks the cache of threads mapped to reserved connections, with the
         # sole purpose of speeding up the +connection+ method. It is not the authoritative
@@ -415,7 +415,7 @@ module ActiveRecord
 
         @lock_thread = false
 
-        @reaper = Reaper.new(self, spec.db_config.reaping_frequency)
+        @reaper = Reaper.new(self, db_config.reaping_frequency)
         @reaper.run
       end
 
@@ -891,7 +891,7 @@ module ActiveRecord
         alias_method :release, :remove_connection_from_thread_cache
 
         def new_connection
-          Base.send(spec.db_config.adapter_method, spec.db_config.configuration_hash).tap do |conn|
+          Base.send(db_config.adapter_method, db_config.configuration_hash).tap do |conn|
             conn.check_version
           end
         end
@@ -1049,6 +1049,10 @@ module ActiveRecord
         self.prevent_writes = original
       end
 
+      def connection_pool_names # :nodoc:
+        owner_to_pool.keys
+      end
+
       def connection_pool_list
         owner_to_pool.values.compact
       end
@@ -1057,6 +1061,7 @@ module ActiveRecord
       def establish_connection(config)
         resolver = Resolver.new(Base.configurations)
         spec = resolver.spec(config)
+        db_config = spec.db_config
 
         remove_connection(spec.name)
 
@@ -1066,11 +1071,11 @@ module ActiveRecord
         }
         if spec
           payload[:spec_name] = spec.name
-          payload[:config] = spec.db_config.configuration_hash
+          payload[:config] = db_config.configuration_hash
         end
 
         message_bus.instrument("!connection.active_record", payload) do
-          owner_to_pool[spec.name] = ConnectionAdapters::ConnectionPool.new(spec)
+          owner_to_pool[spec.name] = ConnectionAdapters::ConnectionPool.new(db_config)
         end
 
         owner_to_pool[spec.name]
@@ -1141,7 +1146,7 @@ module ActiveRecord
         if pool = owner_to_pool.delete(spec_name)
           pool.automatic_reconnect = false
           pool.disconnect!
-          pool.spec.db_config.configuration_hash
+          pool.db_config.configuration_hash
         end
       end
 
@@ -1156,7 +1161,7 @@ module ActiveRecord
             # A connection was established in an ancestor process that must have
             # subsequently forked. We can't reuse the connection, but we can copy
             # the specification and establish a new connection with it.
-            establish_connection(ancestor_pool.spec.db_config.configuration_hash.merge(name: spec_name)).tap do |pool|
+            establish_connection(ancestor_pool.db_config.configuration_hash.merge(name: spec_name)).tap do |pool|
               pool.schema_cache = ancestor_pool.schema_cache if ancestor_pool.schema_cache
             end
           else

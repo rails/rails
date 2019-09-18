@@ -359,7 +359,7 @@ module ApplicationTests
         db_migrate_and_schema_dump_and_load "schema"
 
         app_file "db/seeds.rb", <<-RUBY
-          print Book.connection.pool.spec.db_config.database
+          print Book.connection.pool.db_config.database
         RUBY
 
         output = rails("db:seed")
