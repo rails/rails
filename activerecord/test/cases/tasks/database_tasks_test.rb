@@ -156,10 +156,14 @@ module ActiveRecord
         old_configurations = ActiveRecord::Base.configurations
         ActiveRecord::Base.configurations = { "production" => { "exists" => { "database" => "my-db" } } }
 
-        yield
+        assert_deprecated do
+          yield
+        end
       ensure
         ActiveRecord::Base.configurations = old_configurations
-        ActiveRecord::Tasks::DatabaseTasks.current_config = nil
+        assert_deprecated do
+          ActiveRecord::Tasks::DatabaseTasks.current_config = nil
+        end
       end
   end
 
