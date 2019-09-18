@@ -55,7 +55,7 @@ url_for(user.avatar)
 
 class AvatarsController < ApplicationController
   def update
-    # params[:avatar] contains a ActionDispatch::Http::UploadedFile object
+    # params[:avatar] contains an ActionDispatch::Http::UploadedFile object
     Current.user.avatar.attach(params.require(:avatar))
     redirect_to Current.user
   end
