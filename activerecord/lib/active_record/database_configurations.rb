@@ -79,12 +79,11 @@ module ActiveRecord
 
     # Returns the DatabaseConfigurations object as a Hash.
     def to_h
-      configs = configurations.reverse.inject({}) do |memo, db_config|
-        memo.merge(db_config.to_legacy_hash)
+      configurations.inject({}) do |memo, db_config|
+        memo.merge(db_config.env_name => db_config.configuration_hash.stringify_keys)
       end
-
-      Hash[configs.to_a.reverse]
     end
+    deprecate to_h: "You can use `ActiveRecord::Base.configurations.configs_for(env_name: 'env', spec_name: 'primary').configuration_hash` to get the configuration hashes."
 
     # Checks if the application's configurations are empty.
     #
