@@ -44,6 +44,18 @@ class RedirectController < ActionController::Base
     redirect_to({ action: "hello_world" }, { status: 301 })
   end
 
+  def redirect_with_response_body
+    redirect_to action: "hello_world", response_body: "302 Found"
+  end
+
+  def redirect_without_response_body
+    redirect_to action: "hello_world"
+  end
+
+  def redirect_with_response_body_hash
+    redirect_to({ action: "hello_world" }, { response_body: "302 Found" })
+  end
+
   def redirect_with_protocol
     redirect_to action: "hello_world", protocol: "https"
   end
@@ -189,6 +201,27 @@ class RedirectTest < ActionController::TestCase
   def test_redirect_with_status_hash
     get :redirect_with_status_hash
     assert_response 301
+    assert_equal "http://test.host/redirect/hello_world", redirect_to_url
+  end
+
+  def test_redirect_with_response_body
+    get :redirect_with_response_body
+    assert_response 302
+    assert_equal @response.body, "302 Found"
+    assert_equal "http://test.host/redirect/hello_world", redirect_to_url
+  end
+
+  def test_redirect_without_response_body
+    get :redirect_without_response_body
+    assert_response 302
+    assert_equal @response.body, '<html><body>You are being <a href="http://test.host/redirect/hello_world">redirected</a>.</body></html>'
+    assert_equal "http://test.host/redirect/hello_world", redirect_to_url
+  end
+
+  def test_redirect_with_response_body_hash
+    get :redirect_with_response_body_hash
+    assert_response 302
+    assert_equal @response.body, "302 Found"
     assert_equal "http://test.host/redirect/hello_world", redirect_to_url
   end
 

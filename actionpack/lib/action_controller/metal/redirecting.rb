@@ -44,6 +44,10 @@ module ActionController
     #   redirect_to posts_url, status: :see_other
     #   redirect_to action: 'index', status: 303
     #
+    # If you want to set response_body as json or so, <tt>:response_body</tt> option is available.
+    #
+    #   redirect_to posts_url, response_body: { code: 302, location: posts_url }.to_json
+    #
     # It is also possible to assign a flash message as part of the redirection. There are two special accessors for the commonly used flash names
     # +alert+ and +notice+ as well as a general purpose +flash+ bucket.
     #
@@ -60,8 +64,9 @@ module ActionController
       raise AbstractController::DoubleRenderError if response_body
 
       self.status        = _extract_redirect_to_status(options, response_options)
+      response_body      = _extract_redirect_to_response_body(options, response_options)
       self.location      = _compute_redirect_to_location(request, options)
-      self.response_body = "<html><body>You are being <a href=\"#{ERB::Util.unwrapped_html_escape(response.location)}\">redirected</a>.</body></html>"
+      self.response_body = response_body || _default_redirect_to_response_body
     end
 
     # Redirects the browser to the page that issued the request (the referrer)
@@ -122,6 +127,20 @@ module ActionController
         else
           302
         end
+      end
+
+      def _extract_redirect_to_response_body(options, response_options)
+        if options.is_a?(Hash) && options.key?(:response_body)
+          options.delete(:response_body)
+        elsif response_options.key?(:response_body)
+          response_options[:response_body]
+        else
+          nil
+        end
+      end
+
+      def _default_redirect_to_response_body
+        "<html><body>You are being <a href=\"#{ERB::Util.unwrapped_html_escape(response.location)}\">redirected</a>.</body></html>"
       end
 
       def _url_host_allowed?(url)
