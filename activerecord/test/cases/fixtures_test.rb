@@ -1282,6 +1282,10 @@ end
 class IgnoreFixturesTest < ActiveRecord::TestCase
   fixtures :other_books, :parrots
 
+  # Set to false to blow away fixtures cache and ensure our fixtures are loaded
+  # without interfering with other tests that use the same `model_class`.
+  self.use_transactional_tests = false
+
   test "ignores books fixtures" do
     assert_raise(StandardError) { other_books(:published) }
     assert_raise(StandardError) { other_books(:published_paperback) }
