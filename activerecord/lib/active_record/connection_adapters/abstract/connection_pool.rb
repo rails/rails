@@ -1164,7 +1164,7 @@ module ActiveRecord
             # A connection was established in an ancestor process that must have
             # subsequently forked. We can't reuse the connection, but we can copy
             # the specification and establish a new connection with it.
-            establish_connection(ancestor_pool.spec.db_config.configuration_hash).tap do |pool|
+            establish_connection(ancestor_pool.spec.db_config.configuration_hash.merge(name: spec_name)).tap do |pool|
               pool.schema_cache = ancestor_pool.schema_cache if ancestor_pool.schema_cache
             end
           else
