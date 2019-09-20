@@ -394,6 +394,7 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
     klass = Class.new(TopicWithCallbacks) do
       self.inheritance_column = nil
       validates :title, presence: true
+      def self.name; "TopicWithCallbacks"; end
     end
 
     first = klass.new(title: "foo")
