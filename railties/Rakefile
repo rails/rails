@@ -90,6 +90,7 @@ namespace :test do
       fake_command = Shellwords.join([
         FileUtils::RUBY,
         "-w",
+        "-rbundler/setup",
         *dash_i.map { |dir| "-I#{Pathname.new(dir).relative_path_from(Pathname.pwd)}" },
         file,
       ])
