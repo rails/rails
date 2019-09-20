@@ -1,11 +1,7 @@
-*   Fix `Range#===`, `Range#include?`, and `Range#cover?` to work with beginless (startless)
-    and endless range targets. Builds on work by Allen Hsu.
+*   Improve `Range#===`, `Range#include?`, and `Range#cover?` to work with beginless (startless)
+    and endless range targets.
 
-    *Andrew Hodgkinson*
-
-*   Fix `Range#include?` to work with beginless and endless ranges.
-
-    *Allen Hsu*
+    *Allen Hsu*, *Andrew Hodgkinson*
 
 *   Don't use `Process#clock_gettime(CLOCK_PROCESS_CPUTIME_ID)` on Solaris
 
