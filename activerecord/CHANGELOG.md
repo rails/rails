@@ -495,7 +495,7 @@
 
     *Rafael Mendonça França*
 
-*   Deprecate `config.activerecord.sqlite3.represent_boolean_as_integer`.
+*   Deprecate `config.active_record.sqlite3.represent_boolean_as_integer`.
 
     *Rafael Mendonça França*
 
