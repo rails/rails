@@ -1,3 +1,8 @@
+*   Fix `Range#===`, `Range#include?`, and `Range#cover?` to work with beginless (startless)
+    and endless range targets. Builds on work by Allen Hsu.
+
+    *Andrew Hodgkinson*
+
 *   Fix `Range#include?` to work with beginless and endless ranges.
 
     *Allen Hsu*
