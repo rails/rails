@@ -934,6 +934,13 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
 
     assert_gem "webpacker"
+    assert_no_file "config/webpacker.yml"
+
+    output = Dir.chdir(destination_root) do
+      `rails --help`
+    end
+    assert_match(/The most common rails commands are:/, output)
+    assert_equal true, $?.success?
   end
 
   def test_generator_if_skip_turbolinks_is_given
