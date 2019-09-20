@@ -91,7 +91,7 @@ module ActiveJob
     # queuing adapter.
     def serialize
       {
-        "job_class"  => self.class.name,
+        "job_class"  => self.class,
         "job_id"     => job_id,
         "provider_job_id" => provider_job_id,
         "queue_name" => queue_name,
