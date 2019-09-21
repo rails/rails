@@ -3,7 +3,7 @@ import { DirectUpload } from "./direct_upload"
 export { start, DirectUpload }
 
 function autostart() {
-  if (window.ActiveStorage) {
+  if (typeof(window) !== "undefined" && window.ActiveStorage) {
     start()
   }
 }

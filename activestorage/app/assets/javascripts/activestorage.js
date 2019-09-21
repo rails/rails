@@ -435,7 +435,6 @@
       return Constructor;
     };
   }();
-  var fileSlice = File.prototype.slice || File.prototype.mozSlice || File.prototype.webkitSlice;
   var FileChecksum = function() {
     createClass(FileChecksum, null, [ {
       key: "create",
@@ -484,6 +483,7 @@
     }, {
       key: "readNextChunk",
       value: function readNextChunk() {
+        var fileSlice = File.prototype.slice || File.prototype.mozSlice || File.prototype.webkitSlice;
         if (this.chunkIndex < this.chunkCount || this.chunkIndex == 0 && this.chunkCount == 0) {
           var start = this.chunkIndex * this.chunkSize;
           var end = Math.min(start + this.chunkSize, this.file.size);
@@ -929,7 +929,7 @@
     input.disabled = false;
   }
   function autostart() {
-    if (window.ActiveStorage) {
+    if (typeof window !== "undefined" && window.ActiveStorage) {
       start();
     }
   }
