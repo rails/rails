@@ -411,6 +411,21 @@ module ActiveRecord
       end
     end
 
+    test "no queries on empty IN" do
+      Post.send(:load_schema)
+      assert_no_queries do
+        Post.where(id: []).load
+      end
+    end
+
+    test "can unscope empty IN" do
+      Post.send(:load_schema)
+      queries = capture_sql do
+        Post.where(id: []).unscope(where: :id).load
+      end
+      assert_equal 1, queries.count
+    end
+
     private
       def skip_if_sqlite3_version_includes_quoting_bug
         if sqlite3_version_includes_quoting_bug?
