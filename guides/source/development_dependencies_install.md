@@ -111,7 +111,7 @@ $ sudo apt-get install yarn
 To install all run:
 
 ```bash
-$ sudo dnf install sqlite-devel sqlite-libs mysql-server mysql-devel postgresql-server postgresql-devel redis memcached imagemagick ffmpeg mupdf
+$ sudo dnf install sqlite-devel sqlite-libs mysql-server mysql-devel postgresql-server postgresql-devel redis memcached imagemagick ffmpeg mupdf libxml2-devel
 
 # Install Yarn
 # Use this command if you do not have Node.js installed
@@ -126,7 +126,7 @@ $ sudo dnf install yarn
 To install all run:
 
 ```bash
-$ sudo pacman -S sqlite mariadb libmariadbclient mariadb-clients postgresql postgresql-libs redis memcached imagemagick ffmpeg mupdf mupdf-tools poppler yarn
+$ sudo pacman -S sqlite mariadb libmariadbclient mariadb-clients postgresql postgresql-libs redis memcached imagemagick ffmpeg mupdf mupdf-tools poppler yarn libxml2
 $ sudo systemctl start redis
 ```
 
@@ -138,7 +138,7 @@ use MariaDB instead (see [this announcement](https://www.archlinux.org/news/mari
 To install all run:
 
 ```bash
-$ pkg install sqlite3 mysql80-client mysql80-server postgresql11-client postgresql11-server memcached imagemagick ffmpeg mupdf yarn
+$ pkg install sqlite3 mysql80-client mysql80-server postgresql11-client postgresql11-server memcached imagemagick ffmpeg mupdf yarn libxml2
 # portmaster databases/redis
 ```
 
