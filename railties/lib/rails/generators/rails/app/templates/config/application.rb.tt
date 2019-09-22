@@ -25,8 +25,12 @@ Bundler.require(*Rails.groups)
 
 module <%= app_const_base %>
   class Application < Rails::Application
+<%- if !options.dummy_app? -%>
     # Initialize configuration defaults for originally generated Rails version.
     config.load_defaults <%= build(:config_target_version) %>
+<%- else -%>
+    config.load_defaults Rails::VERSION::STRING.to_f
+<%- end -%>
 
     # Settings in config/environments/* take precedence over those specified here.
     # Application configuration can go into files in config/initializers
