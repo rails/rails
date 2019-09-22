@@ -131,7 +131,12 @@ module Rails
         found = commands.detect do |cmd|
           dirs_on_path.detect do |path|
             full_path_command = File.join(path, cmd)
-            File.file?(full_path_command) && File.executable?(full_path_command)
+            begin
+              stat = File.stat(full_path_command)
+            rescue SystemCallError
+            else
+              stat.file? && stat.executable?
+            end
           end
         end
 
