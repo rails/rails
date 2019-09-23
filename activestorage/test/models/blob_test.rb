@@ -39,6 +39,14 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     assert_equal "Some other, even more funky file", readback
   end
 
+  test "build_after_upload uploads to service but does not save the Blob" do
+    data = "A potentially overwriting file"
+    blob = ActiveStorage::Blob.build_after_upload(io: StringIO.new(data), filename: 'funky.bin')
+    refute blob.persisted?
+    readback = blob.download
+    assert_equal "A potentially overwriting file", readback
+  end
+
   test "create_and_upload sets byte size and checksum" do
     data = "Hello world!"
     blob = create_blob data: data
