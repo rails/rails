@@ -52,9 +52,9 @@ module ActiveJob
 
       run_callbacks :enqueue do
         if scheduled_at
-          self.class.queue_adapter.enqueue_at self, scheduled_at
+          queue_adapter.enqueue_at self, scheduled_at
         else
-          self.class.queue_adapter.enqueue self
+          queue_adapter.enqueue self
         end
 
         successfully_enqueued = true

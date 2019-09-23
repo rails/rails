@@ -18,7 +18,7 @@ module ActiveJob
     private
       def instrument(operation, payload = {}, &block)
         ActiveSupport::Notifications.instrument \
-          "#{operation}.active_job", payload.merge(adapter: self.class.queue_adapter, job: self), &block
+          "#{operation}.active_job", payload.merge(adapter: queue_adapter, job: self), &block
       end
   end
 end
