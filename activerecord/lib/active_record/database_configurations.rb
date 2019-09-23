@@ -157,7 +157,7 @@ module ActiveRecord
         url = config
         uri = URI.parse(url)
         if uri.scheme
-          ActiveRecord::DatabaseConfigurations::UrlConfig.new(env_name, spec_name, url)
+          UrlConfig.new(env_name, spec_name, url)
         else
           raise InvalidConfigurationError, "'{ #{env_name} => #{config} }' is not a valid configuration. Expected '#{config}' to be a URL string or a Hash."
         end
@@ -169,15 +169,15 @@ module ActiveRecord
           config_without_url = config.dup
           config_without_url.delete :url
 
-          ActiveRecord::DatabaseConfigurations::UrlConfig.new(env_name, spec_name, url, config_without_url)
+          UrlConfig.new(env_name, spec_name, url, config_without_url)
         else
-          ActiveRecord::DatabaseConfigurations::HashConfig.new(env_name, spec_name, config)
+          HashConfig.new(env_name, spec_name, config)
         end
       end
 
       def merge_db_environment_variables(current_env, configs)
         configs.map do |config|
-          next config if config.url_config? || config.env_name != current_env
+          next config if config.is_a?(UrlConfig) || config.env_name != current_env
 
           url_config = environment_url_config(current_env, config.spec_name, config.configuration_hash)
           url_config || config
@@ -188,7 +188,7 @@ module ActiveRecord
         url = environment_value_for(spec_name)
         return unless url
 
-        ActiveRecord::DatabaseConfigurations::UrlConfig.new(env, spec_name, url, config)
+        UrlConfig.new(env, spec_name, url, config)
       end
 
       def environment_value_for(spec_name)
