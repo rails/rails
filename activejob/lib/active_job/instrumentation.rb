@@ -5,23 +5,20 @@ module ActiveJob
     extend ActiveSupport::Concern
 
     included do
-      around_enqueue do |job, block|
-        if job.scheduled_at
-          ActiveSupport::Notifications.instrument("enqueue_at.active_job",
-            adapter: job.class.queue_adapter, job: job, &block)
-        else
-          ActiveSupport::Notifications.instrument("enqueue.active_job",
-            adapter: job.class.queue_adapter, job: job, &block)
-        end
+      around_enqueue do |_, block|
+        scheduled_at ? instrument(:enqueue_at, &block) : instrument(:enqueue, &block)
       end
 
-      around_perform do |job, block|
-        payload = { adapter: job.class.queue_adapter, job: job }
-        ActiveSupport::Notifications.instrument("perform_start.active_job", payload.dup)
-        ActiveSupport::Notifications.instrument("perform.active_job", payload) do
-          block.call
-        end
+      around_perform do |_, block|
+        instrument :perform_start
+        instrument :perform, &block
       end
     end
+
+    private
+      def instrument(operation, payload = {}, &block)
+        ActiveSupport::Notifications.instrument \
+          "#{operation}.active_job", payload.merge(adapter: self.class.queue_adapter, job: self), &block
+      end
   end
 end

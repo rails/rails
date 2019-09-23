@@ -139,12 +139,6 @@ module ActiveJob
         end
       end
 
-      def instrument(name, error: nil, wait: nil, &block)
-        payload = { job: self, adapter: self.class.queue_adapter, error: error, wait: wait }
-
-        ActiveSupport::Notifications.instrument("#{name}.active_job", payload, &block)
-      end
-
       def executions_for(exceptions)
         if exception_executions
           exception_executions[exceptions.to_s] = (exception_executions[exceptions.to_s] || 0) + 1
