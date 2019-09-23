@@ -159,7 +159,7 @@ module ActionCable
     #  def test_speak
     #    subscribe room_id: rooms(:chat).id
     #
-    #    assert_broadcasts_on(rooms(:chat), text: "Hello, Rails!") do
+    #    assert_broadcast_on(rooms(:chat), text: "Hello, Rails!") do
     #      perform :speak, message: "Hello, Rails!"
     #    end
     #  end
