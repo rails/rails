@@ -86,7 +86,7 @@ module ActiveRecord
         when String
           DatabaseConfigurations::UrlConfig.new(env, "primary", config_or_env)
         when Hash
-          DatabaseConfigurations::HashConfig.new(env, "primary", config_or_env)
+          resolve_hash_configuration(env, config_or_env.symbolize_keys)
         when DatabaseConfigurations::DatabaseConfig
           config_or_env
         else
@@ -95,6 +95,20 @@ module ActiveRecord
       end
 
       private
+        # Resolve a hash to a valid configuration object. This method will
+        # either return a HashConfig, or a UrlConfig if the passed Hash
+        # contains a `:url` key.
+        def resolve_hash_configuration(env, config)
+          if config.has_key?(:url)
+            url = config[:url]
+            config_without_url = config.dup
+            config_without_url.delete :url
+            DatabaseConfigurations::UrlConfig.new(env, "primary", url, config)
+          else
+            DatabaseConfigurations::HashConfig.new(env, "primary", config)
+          end
+        end
+
         # Takes the environment such as +:production+ or +:development+ and a
         # pool name the corresponds to the name given by the connection pool
         # to the connection. That pool name is merged into the hash with the
