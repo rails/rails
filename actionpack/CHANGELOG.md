@@ -37,7 +37,7 @@
 
 *   Add DSL for configuring HTTP Feature Policy
 
-    This new DSL provides a way to configure a HTTP Feature Policy at a
+    This new DSL provides a way to configure an HTTP Feature Policy at a
     global or per-controller level. Full details of HTTP Feature Policy
     specification and guidelines can be found at MDN:
 
