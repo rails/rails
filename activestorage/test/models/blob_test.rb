@@ -33,7 +33,7 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
 
   test "create_after_upload! has the same effect as create_and_upload!" do
     data = "Some other, even more funky file"
-    blob = ActiveStorage::Blob.create_after_upload!(io: StringIO.new(data), filename: 'funky.bin')
+    blob = ActiveStorage::Blob.create_after_upload!(io: StringIO.new(data), filename: "funky.bin")
     assert blob.persisted?
     readback = blob.download
     assert_equal "Some other, even more funky file", readback
@@ -41,8 +41,8 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
 
   test "build_after_upload uploads to service but does not save the Blob" do
     data = "A potentially overwriting file"
-    blob = ActiveStorage::Blob.build_after_upload(io: StringIO.new(data), filename: 'funky.bin')
-    refute blob.persisted?
+    blob = ActiveStorage::Blob.build_after_upload(io: StringIO.new(data), filename: "funky.bin")
+    assert_not blob.persisted?
     readback = blob.download
     assert_equal "A potentially overwriting file", readback
   end
