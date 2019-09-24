@@ -27,19 +27,8 @@ module ActiveSupport
     end
 
     # Silences the logger for the duration of the block.
-    def silence(temporary_level = Logger::ERROR)
-      if silencer
-        begin
-          old_local_level            = local_level
-          self.local_level           = temporary_level
-
-          yield self
-        ensure
-          self.local_level = old_local_level
-        end
-      else
-        yield self
-      end
+    def silence(severity = Logger::ERROR)
+      silencer ? log_at(severity) { yield self } : yield(self)
     end
   end
 end

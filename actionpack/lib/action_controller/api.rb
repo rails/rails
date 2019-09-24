@@ -123,6 +123,7 @@ module ActionController
       ForceSSL,
       DataStreaming,
       DefaultHeaders,
+      Logging,
 
       # Before callbacks should also be executed as early as possible, so
       # also include them at the bottom.

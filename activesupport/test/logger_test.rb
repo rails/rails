@@ -315,6 +315,41 @@ class LoggerTest < ActiveSupport::TestCase
     assert_level(Logger::INFO)
   end
 
+  def test_temporarily_logging_at_a_noisier_level
+    @logger.level = Logger::INFO
+
+    @logger.debug "NOT THERE"
+
+    @logger.log_at Logger::DEBUG do
+      @logger.debug "THIS IS HERE"
+    end
+
+    @logger.debug "NOT THERE"
+
+    assert_not_includes @output.string, "NOT THERE"
+    assert_includes @output.string, "THIS IS HERE"
+  end
+
+  def test_temporarily_logging_at_a_quieter_level
+    @logger.log_at Logger::ERROR do
+      @logger.debug "NOT THERE"
+      @logger.error "THIS IS HERE"
+    end
+
+    assert_not_includes @output.string, "NOT THERE"
+    assert_includes @output.string, "THIS IS HERE"
+  end
+
+  def test_temporarily_logging_at_a_symbolic_level
+    @logger.log_at :error do
+      @logger.debug "NOT THERE"
+      @logger.error "THIS IS HERE"
+    end
+
+    assert_not_includes @output.string, "NOT THERE"
+    assert_includes @output.string, "THIS IS HERE"
+  end
+
   private
     def level_name(level)
       ::Logger::Severity.constants.find do |severity|
