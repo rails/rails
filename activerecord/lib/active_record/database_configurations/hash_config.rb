@@ -53,29 +53,6 @@ module ActiveRecord
         configuration_hash[:migrations_paths]
       end
 
-      def database
-        configuration_hash[:database]
-      end
-
-      def pool
-        configuration_hash.fetch(:pool, 5).to_i
-      end
-
-      def checkout_timeout
-        configuration_hash.fetch(:checkout_timeout, 5).to_f
-      end
-
-      # +reaping_frequency+ is configurable mostly for historical reasons, but it could
-      # also be useful if someone wants a very low +idle_timeout+.
-      def reaping_frequency
-        configuration_hash.fetch(:reaping_frequency, 60).to_f
-      end
-
-      def idle_timeout
-        timeout = configuration_hash.fetch(:idle_timeout, 300).to_f
-        timeout if timeout > 0
-      end
-
       def adapter
         configuration_hash[:adapter]
       end

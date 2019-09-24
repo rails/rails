@@ -385,9 +385,14 @@ module ActiveRecord
 
         @db_config = db_config
 
-        @checkout_timeout = db_config.checkout_timeout
-        @idle_timeout = db_config.idle_timeout
-        @size = db_config.pool
+        @checkout_timeout = (db_config.configuration_hash[:checkout_timeout] && db_config.configuration_hash[:checkout_timeout].to_f) || 5
+        if @idle_timeout = db_config.configuration_hash.fetch(:idle_timeout, 300)
+          @idle_timeout = @idle_timeout.to_f
+          @idle_timeout = nil if @idle_timeout <= 0
+        end
+
+        # default max pool size to 5
+        @size = (db_config.configuration_hash[:pool] && db_config.configuration_hash[:pool].to_i) || 5
 
         # This variable tracks the cache of threads mapped to reserved connections, with the
         # sole purpose of speeding up the +connection+ method. It is not the authoritative
@@ -415,7 +420,10 @@ module ActiveRecord
 
         @lock_thread = false
 
-        @reaper = Reaper.new(self, db_config.reaping_frequency)
+        # +reaping_frequency+ is configurable mostly for historical reasons, but it could
+        # also be useful if someone wants a very low +idle_timeout+.
+        reaping_frequency = db_config.configuration_hash.fetch(:reaping_frequency, 60)
+        @reaper = Reaper.new(self, reaping_frequency && reaping_frequency.to_f)
         @reaper.run
       end
 
@@ -497,7 +505,7 @@ module ActiveRecord
       # Raises:
       # - ActiveRecord::ExclusiveConnectionTimeoutError if unable to gain ownership of all
       #   connections in the pool within a timeout interval (default duration is
-      #   <tt>spec.db_config.checkout_timeout * 2</tt> seconds).
+      #   <tt>spec.db_config.configuration_hash[:checkout_timeout] * 2</tt> seconds).
       def disconnect(raise_on_acquisition_timeout = true)
         with_exclusively_acquired_all_connections(raise_on_acquisition_timeout) do
           synchronize do
@@ -518,7 +526,7 @@ module ActiveRecord
       #
       # The pool first tries to gain ownership of all connections. If unable to
       # do so within a timeout interval (default duration is
-      # <tt>spec.db_config.checkout_timeout * 2</tt> seconds), then the pool is forcefully
+      # <tt>spec.db_config.configuration_hash[:checkout_timeout] * 2</tt> seconds), then the pool is forcefully
       # disconnected without any regard for other connection owning threads.
       def disconnect!
         disconnect(false)
@@ -549,7 +557,7 @@ module ActiveRecord
       # Raises:
       # - ActiveRecord::ExclusiveConnectionTimeoutError if unable to gain ownership of all
       #   connections in the pool within a timeout interval (default duration is
-      #   <tt>spec.db_config.checkout_timeout * 2</tt> seconds).
+      #   <tt>spec.db_config.configuration_hash[:checkout_timeout] * 2</tt> seconds).
       def clear_reloadable_connections(raise_on_acquisition_timeout = true)
         with_exclusively_acquired_all_connections(raise_on_acquisition_timeout) do
           synchronize do
@@ -571,7 +579,7 @@ module ActiveRecord
       #
       # The pool first tries to gain ownership of all connections. If unable to
       # do so within a timeout interval (default duration is
-      # <tt>spec.db_config.checkout_timeout * 2</tt> seconds), then the pool forcefully
+      # <tt>spec.db_config.configuration_hash[:checkout_timeout] * 2</tt> seconds), then the pool forcefully
       # clears the cache and reloads connections without any regard for other
       # connection owning threads.
       def clear_reloadable_connections!

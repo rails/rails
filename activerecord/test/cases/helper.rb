@@ -37,7 +37,7 @@ end
 
 def in_memory_db?
   current_adapter?(:SQLite3Adapter) &&
-  ActiveRecord::Base.connection_pool.db_config.database == ":memory:"
+  ActiveRecord::Base.connection_pool.db_config.configuration_hash[:database] == ":memory:"
 end
 
 def subsecond_precision_supported?

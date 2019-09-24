@@ -125,13 +125,13 @@ module ActiveRecord
 
       def create(configuration, *arguments)
         db_config = resolve_configuration(configuration)
-        class_for_adapter(db_config.adapter).new(db_config.configuration_hash, *arguments).create
-        $stdout.puts "Created database '#{db_config.database}'" if verbose?
+        class_for_adapter(db_config.configuration_hash[:adapter]).new(db_config.configuration_hash, *arguments).create
+        $stdout.puts "Created database '#{db_config.configuration_hash[:database]}'" if verbose?
       rescue DatabaseAlreadyExists
-        $stderr.puts "Database '#{db_config.database}' already exists" if verbose?
+        $stderr.puts "Database '#{db_config.configuration_hash[:database]}' already exists" if verbose?
       rescue Exception => error
         $stderr.puts error
-        $stderr.puts "Couldn't create '#{db_config.database}' database. Please check your configuration."
+        $stderr.puts "Couldn't create '#{db_config.configuration_hash[:database]}' database. Please check your configuration."
         raise
       end
 
@@ -189,13 +189,13 @@ module ActiveRecord
 
       def drop(configuration, *arguments)
         db_config = resolve_configuration(configuration)
-        class_for_adapter(db_config.adapter).new(db_config.configuration_hash, *arguments).drop
-        $stdout.puts "Dropped database '#{db_config.database}'" if verbose?
+        class_for_adapter(db_config.configuration_hash[:adapter]).new(db_config.configuration_hash, *arguments).drop
+        $stdout.puts "Dropped database '#{db_config.configuration_hash[:database]}'" if verbose?
       rescue ActiveRecord::NoDatabaseError
-        $stderr.puts "Database '#{db_config.database}' does not exist"
+        $stderr.puts "Database '#{db_config.configuration_hash[:database]}' does not exist"
       rescue Exception => error
         $stderr.puts error
-        $stderr.puts "Couldn't drop database '#{db_config.database}'"
+        $stderr.puts "Couldn't drop database '#{db_config.configuration_hash[:database]}'"
         raise
       end
 
@@ -274,7 +274,7 @@ module ActiveRecord
 
       def charset(configuration, *arguments)
         db_config = resolve_configuration(configuration)
-        class_for_adapter(db_config.adapter).new(db_config.configuration_hash, *arguments).charset
+        class_for_adapter(db_config.configuration_hash[:adapter]).new(db_config.configuration_hash, *arguments).charset
       end
 
       def collation_current(env_name = env, spec_name = spec)
@@ -284,12 +284,12 @@ module ActiveRecord
 
       def collation(configuration, *arguments)
         db_config = resolve_configuration(configuration)
-        class_for_adapter(db_config.adapter).new(db_config.configuration_hash, *arguments).collation
+        class_for_adapter(db_config.configuration_hash[:adapter]).new(db_config.configuration_hash, *arguments).collation
       end
 
       def purge(configuration)
         db_config = resolve_configuration(configuration)
-        class_for_adapter(db_config.adapter).new(db_config.configuration_hash).purge
+        class_for_adapter(db_config.configuration_hash[:adapter]).new(db_config.configuration_hash).purge
       end
 
       def purge_all
@@ -304,13 +304,13 @@ module ActiveRecord
       def structure_dump(configuration, *arguments)
         db_config = resolve_configuration(configuration)
         filename = arguments.delete_at(0)
-        class_for_adapter(db_config.adapter).new(db_config.configuration_hash, *arguments).structure_dump(filename, structure_dump_flags)
+        class_for_adapter(db_config.configuration_hash[:adapter]).new(db_config.configuration_hash, *arguments).structure_dump(filename, structure_dump_flags)
       end
 
       def structure_load(configuration, *arguments)
         db_config = resolve_configuration(configuration)
         filename = arguments.delete_at(0)
-        class_for_adapter(db_config.adapter).new(db_config.configuration_hash, *arguments).structure_load(filename, structure_load_flags)
+        class_for_adapter(db_config.configuration_hash[:adapter]).new(db_config.configuration_hash, *arguments).structure_load(filename, structure_load_flags)
       end
 
       def load_schema(db_config, format = ActiveRecord::Base.schema_format, file = nil) # :nodoc:
@@ -493,12 +493,12 @@ module ActiveRecord
 
         def each_local_configuration
           ActiveRecord::Base.configurations.configs_for.each do |db_config|
-            next unless db_config.database
+            next unless db_config.configuration_hash[:database]
 
             if local_database?(db_config)
               yield db_config
             else
-              $stderr.puts "This task only modifies local databases. #{db_config.database} is on a remote host."
+              $stderr.puts "This task only modifies local databases. #{db_config.configuration_hash[:database]} is on a remote host."
             end
           end
         end

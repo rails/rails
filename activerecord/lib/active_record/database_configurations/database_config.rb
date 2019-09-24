@@ -21,27 +21,7 @@ module ActiveRecord
         "#{adapter}_connection"
       end
 
-      def database
-        raise NotImplementedError
-      end
-
       def adapter
-        raise NotImplementedError
-      end
-
-      def pool
-        raise NotImplementedError
-      end
-
-      def checkout_timeout
-        raise NotImplementedError
-      end
-
-      def reaping_frequency
-        raise NotImplementedError
-      end
-
-      def idle_timeout
         raise NotImplementedError
       end
 
