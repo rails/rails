@@ -20,31 +20,35 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
 
   test "create_and_upload does not permit a conflicting blob key to overwrite an existing object" do
     data = "First file"
-    first_blob = create_blob data: data
-    assert_raise ActiveRecord::RecordNotUnique do
-      ActiveStorage::Blob.stub :generate_unique_secure_token, first_blob.key do
-        data = "This would overwrite"
-        create_blob data: data
+    blob = create_blob data: data
+
+    assert_raises ActiveRecord::RecordNotUnique do
+      ActiveStorage::Blob.stub :generate_unique_secure_token, blob.key do
+        create_blob data: "This would overwrite"
       end
     end
-    readback = first_blob.download
-    assert_equal "First file", readback
+
+    assert_equal data, blob.download
   end
 
   test "create_after_upload! has the same effect as create_and_upload!" do
     data = "Some other, even more funky file"
-    blob = ActiveStorage::Blob.create_after_upload!(io: StringIO.new(data), filename: "funky.bin")
+    blob = assert_deprecated do
+      ActiveStorage::Blob.create_after_upload!(io: StringIO.new(data), filename: "funky.bin")
+    end
+
     assert blob.persisted?
-    readback = blob.download
-    assert_equal "Some other, even more funky file", readback
+    assert_equal data, blob.download
   end
 
   test "build_after_upload uploads to service but does not save the Blob" do
     data = "A potentially overwriting file"
-    blob = ActiveStorage::Blob.build_after_upload(io: StringIO.new(data), filename: "funky.bin")
+    blob = assert_deprecated do
+      ActiveStorage::Blob.build_after_upload(io: StringIO.new(data), filename: "funky.bin")
+    end
+
     assert_not blob.persisted?
-    readback = blob.download
-    assert_equal "A potentially overwriting file", readback
+    assert_equal data, blob.download
   end
 
   test "create_and_upload sets byte size and checksum" do
