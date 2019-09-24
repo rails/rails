@@ -177,10 +177,9 @@ class ActiveStorage::Blob < ActiveRecord::Base
   # and store that in +byte_size+ on the blob record. The content type is automatically extracted from the +io+ unless
   # you specify a +content_type+ and pass +identify+ as false.
   #
-  # Normally, you do not have to call this method directly at all.
-  # Use the +create_and_upload!+ class method instead. If you do use
-  # this method directly, make sure you are using it on a persisted Blob as otherwise
-  # another blob's data might get overwrittein on the service.
+  # Normally, you do not have to call this method directly at all. Use the +create_and_upload!+ class method instead.
+  # If you do use this method directly, make sure you are using it on a persisted Blob as otherwise another blob's
+  # data might get overwritten on the service.
   def upload(io, identify: true)
     unfurl io, identify: identify
     upload_without_unfurling io
