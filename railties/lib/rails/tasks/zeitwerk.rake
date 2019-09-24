@@ -46,7 +46,7 @@ namespace :zeitwerk do
     begin
       eager_load[]
     rescue NameError => e
-      if e.message =~ /expected file .*? to define constant \S+/
+      if e.message =~ /expected file .*? to define constant [\w:]+/
         abort $&.sub(/expected file #{Regexp.escape(Rails.root.to_s)}./, "expected file ")
       else
         raise
