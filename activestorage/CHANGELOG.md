@@ -1,7 +1,7 @@
 *   Replace `Blob.create_after_upload!` with `Blob.create_and_upload!` and deprecate the former.
 
     `create_after_upload!` has been removed since it could lead to data
-    curruption by uploading to a key on the storage service which happened to
+    corruption by uploading to a key on the storage service which happened to
     be already taken. Creating the record would then correctly raise a
     database uniqueness exception but the stored object would already have
     overwritten another. `create_and_upload!` swaps the order of operations
