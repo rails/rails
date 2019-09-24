@@ -165,7 +165,7 @@ module ActionDispatch
             value.include?(request.send(method))
           when TrueClass
             request.send(method).present?
-          when FalseClass
+          when FalseClass, NilClass
             request.send(method).blank?
           else
             value === request.send(method)

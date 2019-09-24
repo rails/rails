@@ -4448,6 +4448,8 @@ class TestUrlConstraints < ActionDispatch::IntegrationTest
 
       get "/search" => ok, :constraints => { subdomain: false }
 
+      get "/config" => ok, :constraints => { subdomain: nil }
+
       get "/logs" => ok, :constraints => { subdomain: true }
     end
   end
@@ -4483,6 +4485,15 @@ class TestUrlConstraints < ActionDispatch::IntegrationTest
     assert_equal "http://example.com/search", search_url
 
     get "http://api.example.com/search"
+    assert_response :not_found
+  end
+
+  test "nil constraint expression check for absence of values" do
+    get "http://example.com/config"
+    assert_response :success
+    assert_equal "http://example.com/config", config_url
+
+    get "http://api.example.com/config"
     assert_response :not_found
   end
 
