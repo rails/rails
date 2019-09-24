@@ -1,3 +1,15 @@
+*   Replace `Blob.create_after_upload!` with `Blob.create_and_upload!` and deprecate the former.
+
+    `create_after_upload!` has been removed since it could lead to data
+    curruption by uploading to a key on the storage service which happened to
+    be already taken. Creating the record would then correctly raise a
+    database uniqueness exception but the stored object would already have
+    overwritten another. `create_and_upload!` swaps the order of operations
+    so that the key gets reserved up-front or the uniqueness error gets raised,
+    before the upload to a key takes place.
+
+    *Julik Tarkhanov*
+
 *   Set content disposition in direct upload using `filename` and `disposition` parameters to `ActiveStorage::Service#headers_for_direct_upload`.
 
     *Peter Zhu*
