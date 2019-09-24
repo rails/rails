@@ -994,7 +994,7 @@ module ActiveRecord
       #   Action that happens <tt>ON UPDATE</tt>. Valid values are +:nullify+, +:cascade+ and +:restrict+
       # [<tt>:validate</tt>]
       #   (PostgreSQL only) Specify whether or not the constraint should be validated. Defaults to +true+.
-      def add_foreign_key(from_table, to_table, options = {})
+      def add_foreign_key(from_table, to_table, **options)
         return unless supports_foreign_keys?
 
         options = foreign_key_options(from_table, to_table, options)

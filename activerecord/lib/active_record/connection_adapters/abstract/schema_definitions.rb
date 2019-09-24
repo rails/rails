@@ -688,8 +688,8 @@ module ActiveRecord
       #  t.foreign_key(:authors, column: :author_id, primary_key: "id")
       #
       # See {connection.add_foreign_key}[rdoc-ref:SchemaStatements#add_foreign_key]
-      def foreign_key(*args)
-        @base.add_foreign_key(name, *args)
+      def foreign_key(*args, **options)
+        @base.add_foreign_key(name, *args, **options)
       end
 
       # Removes the given foreign key from the table.
