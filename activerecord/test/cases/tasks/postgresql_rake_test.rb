@@ -21,6 +21,8 @@ if current_adapter?(:PostgreSQLAdapter)
       end
 
       def test_establishes_connection_to_postgresql_database
+        db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new("default_env", "primary", @configuration)
+
         ActiveRecord::Base.stub(:connection, @connection) do
           assert_called_with(
             ActiveRecord::Base,
@@ -31,13 +33,10 @@ if current_adapter?(:PostgreSQLAdapter)
                 database: "postgres",
                 schema_search_path: "public"
               ],
-              [
-                adapter: "postgresql",
-                database: "my-app-db"
-              ]
+              [db_config]
             ]
           ) do
-            ActiveRecord::Tasks::DatabaseTasks.create @configuration
+            ActiveRecord::Tasks::DatabaseTasks.create(db_config)
           end
         end
       end
@@ -88,6 +87,8 @@ if current_adapter?(:PostgreSQLAdapter)
       end
 
       def test_establishes_connection_to_new_database
+        db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new("default_env", "primary", @configuration)
+
         ActiveRecord::Base.stub(:connection, @connection) do
           assert_called_with(
             ActiveRecord::Base,
@@ -98,12 +99,10 @@ if current_adapter?(:PostgreSQLAdapter)
                 database: "postgres",
                 schema_search_path: "public"
               ],
-              [
-                @configuration.symbolize_keys
-              ]
+              [db_config]
             ]
           ) do
-            ActiveRecord::Tasks::DatabaseTasks.create @configuration
+            ActiveRecord::Tasks::DatabaseTasks.create(db_config)
           end
         end
       end
@@ -232,6 +231,8 @@ if current_adapter?(:PostgreSQLAdapter)
       end
 
       def test_establishes_connection_to_postgresql_database
+        db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new("default_env", "primary", @configuration)
+
         with_stubbed_connection do
           assert_called_with(
             ActiveRecord::Base,
@@ -242,13 +243,10 @@ if current_adapter?(:PostgreSQLAdapter)
                 database: "postgres",
                 schema_search_path: "public"
               ],
-              [
-                adapter: "postgresql",
-                database: "my-app-db"
-              ]
+              [db_config]
             ]
           ) do
-            ActiveRecord::Tasks::DatabaseTasks.purge @configuration
+            ActiveRecord::Tasks::DatabaseTasks.purge(db_config)
           end
         end
       end
@@ -278,6 +276,8 @@ if current_adapter?(:PostgreSQLAdapter)
       end
 
       def test_establishes_connection
+        db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new("default_env", "primary", @configuration)
+
         with_stubbed_connection do
           assert_called_with(
             ActiveRecord::Base,
@@ -288,12 +288,10 @@ if current_adapter?(:PostgreSQLAdapter)
                 database: "postgres",
                 schema_search_path: "public"
               ],
-              [
-                @configuration.symbolize_keys
-              ]
+              [db_config]
             ]
           ) do
-            ActiveRecord::Tasks::DatabaseTasks.purge @configuration
+            ActiveRecord::Tasks::DatabaseTasks.purge(db_config)
           end
         end
       end
