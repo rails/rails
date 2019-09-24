@@ -148,7 +148,7 @@ module ActiveRecord
         end
 
         if foreign_key
-          table.foreign_key(foreign_table_name, foreign_key_options)
+          table.foreign_key(foreign_table_name, **foreign_key_options)
         end
       end
 
@@ -394,7 +394,7 @@ module ActiveRecord
         indexes << [column_name, options]
       end
 
-      def foreign_key(table_name, options = {}) # :nodoc:
+      def foreign_key(table_name, **options) # :nodoc:
         foreign_keys << [table_name, options]
       end
 
