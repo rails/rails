@@ -478,6 +478,9 @@ module ActiveRecord
             load_schema!
 
             @schema_loaded = true
+          rescue
+            reload_schema_from_cache # If the schema loading failed half way through, we must reset the state.
+            raise
           end
         end
 
