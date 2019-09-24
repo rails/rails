@@ -191,8 +191,7 @@ module ActiveRecord
 
         ActiveRecord::Base.connection_handlers.values.each do |handler|
           if handler != writing_handler
-            handler.connection_pool_list.each do |pool|
-              name = pool.spec.name
+            handler.connection_pool_names.each do |name|
               writing_connection = writing_handler.retrieve_connection_pool(name)
               handler.send(:owner_to_pool)[name] = writing_connection
             end
