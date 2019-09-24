@@ -889,6 +889,8 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 
 * `config.active_storage.draw_routes` can be used to toggle Active Storage route generation. The default is `true`.
 
+* `config.active_storage.enable_identification_in_direct_upload` can be used to disable identification in direct upload. The default is `true`.
+
 ### Results of `load_defaults`
 
 #### With '5.0':

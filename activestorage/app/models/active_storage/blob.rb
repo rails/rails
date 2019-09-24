@@ -104,7 +104,10 @@ class ActiveStorage::Blob < ActiveRecord::Base
     # Once the form using the direct upload is submitted, the blob can be associated with the right record using
     # the signed ID.
     def create_before_direct_upload!(key: nil, filename:, byte_size:, checksum:, content_type: nil, metadata: nil, service_name: nil, record: nil)
-      create! key: key, filename: filename, byte_size: byte_size, checksum: checksum, content_type: content_type, metadata: metadata, service_name: service_name
+      blob_attributes = { key: key, filename: filename, byte_size: byte_size, checksum: checksum, content_type: content_type, metadata: metadata, service_name: service_name }
+      blob_attributes[:identified] = true unless ActiveStorage.enable_identification_in_direct_upload
+
+      create! blob_attributes
     end
 
     # To prevent problems with case-insensitive filesystems, especially in combination

@@ -51,6 +51,29 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     assert_equal data, blob.download
   end
 
+  test "create before direct upload sets identified to true without performing actual identification when disabled" do
+    disable_identification_in_direct_upload do
+      data = "Hello world!"
+      blob = create_blob_before_direct_upload(
+        byte_size: data.size, checksum: Digest::MD5.base64digest(data), content_type: "application/x-gzip"
+      )
+
+      expected_metadata = { "identified" => true }
+
+      assert_equal expected_metadata, blob.metadata
+    end
+  end
+
+  test "create before direct upload does not set identified to true when enabled" do
+    data = "Hello world!"
+    blob = create_blob_before_direct_upload(
+      byte_size: data.size, checksum: Digest::MD5.base64digest(data), content_type: "application/x-gzip"
+    )
+
+    expected_metadata = {}
+    assert_equal expected_metadata, blob.metadata
+  end
+
   test "create_and_upload sets byte size and checksum" do
     data = "Hello world!"
     blob = create_blob data: data
@@ -269,5 +292,12 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
       key_params = { key: blob.key }.merge(query)
 
       "https://example.com/rails/active_storage/disk/#{ActiveStorage.verifier.generate(key_params, expires_in: 5.minutes, purpose: :blob_key)}/#{filename}?#{query.to_param}"
+    end
+
+    def disable_identification_in_direct_upload
+      ActiveStorage.enable_identification_in_direct_upload, previous = false, ActiveStorage.enable_identification_in_direct_upload
+      yield
+    ensure
+      ActiveStorage.enable_identification_in_direct_upload = previous
     end
 end

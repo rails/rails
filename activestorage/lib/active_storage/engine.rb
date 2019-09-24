@@ -82,6 +82,8 @@ module ActiveStorage
         ActiveStorage.binary_content_type = app.config.active_storage.binary_content_type || "application/octet-stream"
 
         ActiveStorage.replace_on_assign_to_many = app.config.active_storage.replace_on_assign_to_many || false
+
+        ActiveStorage.enable_identification_in_direct_upload = app.config.active_storage.enable_identification_in_direct_upload != false
       end
     end
 

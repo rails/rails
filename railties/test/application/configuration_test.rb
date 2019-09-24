@@ -2641,6 +2641,12 @@ module ApplicationTests
       assert Rails.configuration.disable_sandbox
     end
 
+    test "ActiveStorage.enable_identification_in_direct_upload is true by default" do
+      app "development"
+
+      assert ActiveStorage.enable_identification_in_direct_upload
+    end
+
     private
       def force_lazy_load_hooks
         yield # Tasty clarifying sugar, homie! We only need to reference a constant to load it.

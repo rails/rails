@@ -65,6 +65,8 @@ module ActiveStorage
 
   mattr_accessor :replace_on_assign_to_many, default: false
 
+  mattr_accessor :enable_identification_in_direct_upload, default: true
+
   module Transformers
     extend ActiveSupport::Autoload
 

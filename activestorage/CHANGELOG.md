@@ -114,5 +114,8 @@
 
     *George Claghorn*
 
+*   Add `config.active_storage.enable_identification_in_direct_upload` to disable identification in direct upload. The default is `true`.
+
+    *Sushant Mittal*
 
 Please check [6-0-stable](https://github.com/rails/rails/blob/6-0-stable/activestorage/CHANGELOG.md) for previous changes.
