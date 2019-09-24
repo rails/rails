@@ -39,6 +39,7 @@ module ActionController
     autoload :BasicImplicitRender
     autoload :ImplicitRender
     autoload :Instrumentation
+    autoload :Logging
     autoload :MimeResponds
     autoload :ParamsWrapper
     autoload :Redirecting

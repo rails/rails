@@ -1,3 +1,14 @@
+*   `ActionController::Base.log_at` allows setting a different log level per request.
+
+    ```ruby
+    # Use the debug level if a particular cookie is set.
+    class ApplicationController < ActionController::Base
+      log_at :debug, if: -> { cookies[:debug] }
+    end
+    ```
+
+    *George Claghorn*
+
 *   Allow system test screen shots to be taken more than once in
     a test by prefixing the file name with an incrementing counter.
 
