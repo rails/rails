@@ -12,7 +12,7 @@ module ActiveJob
       class_attribute :_queue_adapter_name, instance_accessor: false, instance_predicate: false
       class_attribute :_queue_adapter, default: :async, instance_accessor: false, instance_predicate: false
 
-      delegate :queue_adapter, to: self
+      delegate :queue_adapter, to: :class
 
       self.queue_adapter = :async
     end
