@@ -18,7 +18,36 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     end
   end
 
-  test "create after upload sets byte size and checksum" do
+  test "create_and_upload does not permit a conflicting blob key to overwrite an existing object" do
+    data = "First file"
+    blob = create_blob data: data
+
+    assert_raise ActiveRecord::RecordNotUnique do
+      ActiveStorage::Blob.stub :generate_unique_secure_token, blob.key do
+        create_blob data: "This would overwrite"
+      end
+    end
+
+    assert_equal data, blob.download
+  end
+
+  test "create_after_upload! has the same effect as create_and_upload!" do
+    data = "Some other, even more funky file"
+    blob = ActiveStorage::Blob.create_after_upload!(io: StringIO.new(data), filename: "funky.bin")
+
+    assert blob.persisted?
+    assert_equal data, blob.download
+  end
+
+  test "build_after_upload uploads to service but does not save the Blob" do
+    data = "A potentially overwriting file"
+    blob = ActiveStorage::Blob.build_after_upload(io: StringIO.new(data), filename: "funky.bin")
+
+    assert_not blob.persisted?
+    assert_equal "A potentially overwriting file", blob.download
+  end
+
+  test "create_and_upload sets byte size and checksum" do
     data = "Hello world!"
     blob = create_blob data: data
 
@@ -27,28 +56,34 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     assert_equal Digest::MD5.base64digest(data), blob.checksum
   end
 
-  test "create after upload extracts content type from data" do
+  test "create_and_upload extracts content type from data" do
     blob = create_file_blob content_type: "application/octet-stream"
     assert_equal "image/jpeg", blob.content_type
   end
 
-  test "create after upload extracts content type from filename" do
+  test "create_and_upload extracts content type from filename" do
     blob = create_blob content_type: "application/octet-stream"
     assert_equal "text/plain", blob.content_type
   end
 
-  test "create after upload extracts content_type from io when no content_type given and identify: false" do
+  test "create_and_upload extracts content_type from io when no content_type given and identify: false" do
     blob = create_blob content_type: nil, identify: false
     assert_equal "text/plain", blob.content_type
   end
 
-  test "create after upload uses content_type when identify: false" do
+  test "create_and_upload uses content_type when identify: false" do
     blob = create_blob data: "Article,dates,analysis\n1, 2, 3", filename: "table.csv", content_type: "text/csv", identify: false
     assert_equal "text/csv", blob.content_type
   end
 
-  test "create after upload generates a 28-character base36 key" do
+  test "create_and_upload generates a 28-character base36 key" do
     assert_match(/^[a-z0-9]{28}$/, create_blob.key)
+  end
+
+  test "create_and_upload accepts a record for overrides" do
+    assert_nothing_raised do
+      create_blob(record: User.new)
+    end
   end
 
   test "image?" do

@@ -5,8 +5,9 @@ require "active_storage/downloader"
 # A blob is a record that contains the metadata about a file and a key for where that file resides on the service.
 # Blobs can be created in two ways:
 #
-# 1. Subsequent to the file being uploaded server-side to the service via <tt>create_after_upload!</tt>.
-# 2. Ahead of the file being directly uploaded client-side to the service via <tt>create_before_direct_upload!</tt>.
+# 1. Ahead of the file being uploaded server-side to the service, via <tt>create_and_upload!</tt>. A rewindable
+#    <tt>io</tt> with the file contents must be available at the server for this operation.
+# 2. Ahead of the file being directly uploaded client-side to the service, via <tt>create_before_direct_upload!</tt>.
 #
 # The first option doesn't require any client-side JavaScript integration, and can be used by any other back-end
 # service that deals with files. The second option is faster, since you're not using your own server as a staging
@@ -63,13 +64,22 @@ class ActiveStorage::Blob < ActiveRecord::Base
       end
     end
 
-    # Returns a saved blob instance after the +io+ has been uploaded to the service. Note, the blob is first built,
-    # then the +io+ is uploaded, then the blob is saved. This is done this way to avoid uploading (which may take
-    # time), while having an open database transaction.
-    # When providing a content type, pass <tt>identify: false</tt> to bypass automatic content type inference.
-    def create_after_upload!(io:, filename:, content_type: nil, metadata: nil, identify: true)
-      build_after_upload(io: io, filename: filename, content_type: content_type, metadata: metadata, identify: identify).tap(&:save!)
+    def create_after_unfurling!(io:, filename:, content_type: nil, metadata: nil, identify: true, record: nil) #:nodoc:
+      build_after_unfurling(io: io, filename: filename, content_type: content_type, metadata: metadata, identify: identify).tap(&:save!)
     end
+
+    # Creates a new blob instance and then uploads the contents of the given <tt>io</tt> to the
+    # service. The blob instance is saved before the upload begins to avoid clobbering another due
+    # to key collisions.
+    #
+    # When providing a content type, pass <tt>identify: false</tt> to bypass automatic content type inference.
+    def create_and_upload!(io:, filename:, content_type: nil, metadata: nil, identify: true, record: nil)
+      create_after_unfurling!(io: io, filename: filename, content_type: content_type, metadata: metadata, identify: identify).tap do |blob|
+        blob.upload_without_unfurling(io)
+      end
+    end
+
+    alias_method :create_after_upload!, :create_and_upload!
 
     # Returns a saved blob _without_ uploading a file to the service. This blob will point to a key where there is
     # no file yet. It's intended to be used together with a client-side upload, which will first create the blob
@@ -165,8 +175,9 @@ class ActiveStorage::Blob < ActiveRecord::Base
   # and store that in +byte_size+ on the blob record. The content type is automatically extracted from the +io+ unless
   # you specify a +content_type+ and pass +identify+ as false.
   #
-  # Normally, you do not have to call this method directly at all. Use the factory class methods of +build_after_upload+
-  # and +create_after_upload!+.
+  # Normally, you do not have to call this method directly at all. Use the +create_and_upload!+ class method instead.
+  # If you do use this method directly, make sure you are using it on a persisted Blob as otherwise another blob's
+  # data might get overwritten on the service.
   def upload(io, identify: true)
     unfurl io, identify: identify
     upload_without_unfurling io
