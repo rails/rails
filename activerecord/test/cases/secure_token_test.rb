@@ -31,4 +31,12 @@ class SecureTokenTest < ActiveRecord::TestCase
 
     assert_equal "custom-secure-token", @user.token
   end
+
+  def test_token_prefix
+    User.const_set(:TOKEN_PREFIX, "user_")
+
+    @user.save
+
+    assert_match %r{^user_.+}, @user.token
+  end
 end

@@ -33,7 +33,8 @@ module ActiveRecord
       end
 
       def generate_unique_secure_token
-        SecureRandom.base58(24)
+        prefix = self.const_get(:TOKEN_PREFIX) if self.constants.include? :TOKEN_PREFIX
+        "#{prefix}#{SecureRandom.base58(24)}"
       end
     end
   end
