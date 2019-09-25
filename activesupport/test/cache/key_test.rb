@@ -79,7 +79,7 @@ class KeyTest < ActiveSupport::TestCase
     assert_equal "//", key.cache_key
 
     key = ActiveSupport::Cache::Key.new([ :foo, [], [], :bar ])
-    assert_equal "foo/bar", key.cache_key
+    assert_equal "foo///bar", key.cache_key
   end
 
   def test_nested_to_a_cache_versions
@@ -90,16 +90,11 @@ class KeyTest < ActiveSupport::TestCase
 
   def test_call_returns_original_if_key
     k1 = ActiveSupport::Cache::Key.new("foo")
-    k2 = ActiveSupport::Cache::Key(k1)
-    assert_equal k1, k2
+    k2 = ActiveSupport::Cache::Key.new(k1)
+    assert_equal k1.cache_key, k2.cache_key
 
-    key = ActiveSupport::Cache::Key("foo")
+    key = ActiveSupport::Cache::Key.new("foo")
     assert_equal ActiveSupport::Cache::Key, key.class
     assert_equal "foo", key.cache_key
-  end
-
-  def test_enum
-    k1 = ActiveSupport::Cache::Key.new([1, 2, 3].to_enum)
-    assert_equal "1/2/3", k1.cache_key
   end
 end
