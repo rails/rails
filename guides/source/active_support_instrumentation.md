@@ -116,6 +116,7 @@ Action Controller
 | `:format`     | html/js/json/xml etc                                      |
 | `:method`     | HTTP request verb                                         |
 | `:path`       | Request path                                              |
+| `:request_id` | Request id                                                |
 
 ```ruby
 {

@@ -24,7 +24,8 @@ module ActionController
         headers: request.headers,
         format: request.format.ref,
         method: request.request_method,
-        path: request.fullpath
+        path: request.fullpath,
+        request_id: request.request_id
       }
 
       ActiveSupport::Notifications.instrument("start_processing.action_controller", raw_payload)
