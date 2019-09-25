@@ -51,7 +51,7 @@ module ApplicationTests
           rails("restart")
 
           assert_output("Restarting", master)
-          assert_output("tcp://localhost:3000", master)
+          assert_output("Listening", primary)
         ensure
           kill(pid) if pid
         end
