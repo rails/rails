@@ -1858,7 +1858,7 @@ class ProductTest < ActionCable::TestCase
 end
 ```
 
-If you want to test the broadcasting made with `Channel.broadcast_to`, you shoud use
+If you want to test the broadcasting made with `Channel.broadcast_to`, you should use
 `Channel.broadcasting_for` to generate an underlying stream name:
 
 ```ruby
