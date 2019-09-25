@@ -125,7 +125,7 @@ module ActiveRecord
 
       def create(configuration, *arguments)
         db_config = resolve_configuration(configuration)
-        class_for_adapter(db_config.adapter).new(db_config.configuration_hash, *arguments).create
+        database_adapter_for(db_config, *arguments).create
         $stdout.puts "Created database '#{db_config.database}'" if verbose?
       rescue DatabaseAlreadyExists
         $stderr.puts "Database '#{db_config.database}' already exists" if verbose?
@@ -189,7 +189,7 @@ module ActiveRecord
 
       def drop(configuration, *arguments)
         db_config = resolve_configuration(configuration)
-        class_for_adapter(db_config.adapter).new(db_config.configuration_hash, *arguments).drop
+        database_adapter_for(db_config, *arguments).drop
         $stdout.puts "Dropped database '#{db_config.database}'" if verbose?
       rescue ActiveRecord::NoDatabaseError
         $stderr.puts "Database '#{db_config.database}' does not exist"
@@ -274,7 +274,7 @@ module ActiveRecord
 
       def charset(configuration, *arguments)
         db_config = resolve_configuration(configuration)
-        class_for_adapter(db_config.adapter).new(db_config.configuration_hash, *arguments).charset
+        database_adapter_for(db_config, *arguments).charset
       end
 
       def collation_current(env_name = env, spec_name = spec)
@@ -284,12 +284,12 @@ module ActiveRecord
 
       def collation(configuration, *arguments)
         db_config = resolve_configuration(configuration)
-        class_for_adapter(db_config.adapter).new(db_config.configuration_hash, *arguments).collation
+        database_adapter_for(db_config, *arguments).collation
       end
 
       def purge(configuration)
         db_config = resolve_configuration(configuration)
-        class_for_adapter(db_config.adapter).new(db_config.configuration_hash).purge
+        database_adapter_for(db_config).purge
       end
 
       def purge_all
@@ -304,13 +304,13 @@ module ActiveRecord
       def structure_dump(configuration, *arguments)
         db_config = resolve_configuration(configuration)
         filename = arguments.delete_at(0)
-        class_for_adapter(db_config.adapter).new(db_config.configuration_hash, *arguments).structure_dump(filename, structure_dump_flags)
+        database_adapter_for(db_config, *arguments).structure_dump(filename, structure_dump_flags)
       end
 
       def structure_load(configuration, *arguments)
         db_config = resolve_configuration(configuration)
         filename = arguments.delete_at(0)
-        class_for_adapter(db_config.adapter).new(db_config.configuration_hash, *arguments).structure_load(filename, structure_load_flags)
+        database_adapter_for(db_config, *arguments).structure_load(filename, structure_load_flags)
       end
 
       def load_schema(db_config, format = ActiveRecord::Base.schema_format, file = nil) # :nodoc:
@@ -468,6 +468,17 @@ module ActiveRecord
 
         def verbose?
           ENV["VERBOSE"] ? ENV["VERBOSE"] != "false" : true
+        end
+
+        # Create a new instance for the specified db configuration object
+        # For classes that have been converted to use db_config objects, pass a
+        # `DatabaseConfig`, otherwise pass a `Hash`
+        def database_adapter_for(db_config, *arguments)
+          klass = class_for_adapter(db_config.adapter)
+          converted = klass.respond_to?(:using_database_configurations?) && klass.using_database_configurations?
+
+          config = converted ? db_config : db_config.configuration_hash
+          klass.new(config, *arguments)
         end
 
         def class_for_adapter(adapter)
