@@ -95,7 +95,7 @@ end
 
 class FamousPirate < ActiveRecord::Base
   self.table_name = "pirates"
-  has_many :famous_ships
+  has_many :famous_ships, inverse_of: :famous_pirate, foreign_key: :pirate_id
   validates_presence_of :catchphrase, on: :conference
 end
 
