@@ -95,29 +95,33 @@ module ActiveSupport
     class Key # :nodoc:
       DEFAULT_KEY = Object.new
       CACHE_METHOD_OBJ = ActiveSupport::Cache::Store.new
+      @@has_rails_cache = :unknown
 
       def initialize(key = DEFAULT_KEY)
         @cache_key = nil
         @cache_version = nil
         @key_parts = []
+        @cache_method_obj = cache_method_obj
+
         self << key unless key == DEFAULT_KEY
       end
 
       def cache_key
-        @cache_key ||= begin
-          cache_method_obj.send(:expanded_key, @key_parts)
-        end
+        @cache_key ||= @cache_method_obj.send(:expanded_key, @key_parts)
       end
 
       def cache_version
-        @cache_version ||= begin
-          cache_method_obj.send(:expanded_version, @key_parts)
+        @cache_version ||= @cache_method_obj.send(:expanded_version, @key_parts)
+
+        if @cache_version == "/"
+          nil
+        else
+          @cache_version
         end
-        return nil if @cache_version == "/"
       end
 
       def cache_key_with_version
-        cache_method_obj.send(:retrieve_cache_key, @key_parts)
+        @cache_method_obj.send(:retrieve_cache_key, @key_parts)
       end
 
       def update(key)
@@ -134,7 +138,15 @@ module ActiveSupport
 
       private
         def cache_method_obj
-          defined?(Rails) && Rails.respond_to?(:cache) ? Rails.cache : CACHE_METHOD_OBJ
+          if @@has_rails_cache == :unknown
+            @@has_rails_cache = defined?(Rails) && Rails.respond_to?(:cache)
+          end
+
+          if @@has_rails_cache
+            Rails.cache
+          else
+            CACHE_METHOD_OBJ
+          end
         end
     end
   end
