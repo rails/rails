@@ -115,7 +115,7 @@ module ActiveRecord
     #
     # When using the database key a new connection will be established every time. It is not
     # recommended to use this outside of one-off scripts.
-    def connected_to(database: nil, role: nil, prevent_writes: false, &blk)
+    def connected_to(database: nil, role: nil, prevent_writes: false, config_hash: nil, &blk)
       if database && role
         raise ArgumentError, "connected_to can only accept a `database` or a `role` argument, but not both arguments."
       elsif database
@@ -138,6 +138,11 @@ module ActiveRecord
         else
           with_handler(role.to_sym, &blk)
         end
+      elsif config_hash
+        handler = lookup_connection_handler(nil)
+        handler.establish_connection(config_hash)
+
+        with_handler(nil, &blk)
       else
         raise ArgumentError, "must provide a `database` or a `role`."
       end
