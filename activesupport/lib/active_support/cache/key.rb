@@ -113,6 +113,7 @@ module ActiveSupport
         @cache_version ||= begin
           cache_method_obj.send(:expanded_version, @key_parts)
         end
+        return nil if @cache_version == "/"
       end
 
       def cache_key_with_version
