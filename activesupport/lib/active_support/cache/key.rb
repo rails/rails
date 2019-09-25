@@ -96,7 +96,6 @@ module ActiveSupport
       DEFAULT_KEY = Object.new
       CACHE_METHOD_OBJ = ActiveSupport::Cache::Store.new
 
-
       def initialize(key = DEFAULT_KEY)
         @cache_key = nil
         @cache_version = nil
@@ -106,22 +105,18 @@ module ActiveSupport
 
       def cache_key
         @cache_key ||= begin
-          CACHE_METHOD_OBJ.send(:expanded_key, @key_parts)
+          cache_method_obj.send(:expanded_key, @key_parts)
         end
       end
 
       def cache_version
         @cache_version ||= begin
-          CACHE_METHOD_OBJ.send(:expanded_version, @key_parts)
+          cache_method_obj.send(:expanded_version, @key_parts)
         end
       end
 
-      def length
-        cache_key.length
-      end
-
       def cache_key_with_version
-        CACHE_METHOD_OBJ.send(:retrieve_cache_key, @key_parts)
+        cache_method_obj.send(:retrieve_cache_key, @key_parts)
       end
 
       def update(key)
@@ -131,6 +126,15 @@ module ActiveSupport
         self
       end
       alias :<< :update
+
+      def length
+        cache_key.length
+      end
+
+      private
+        def cache_method_obj
+          defined?(Rails) && Rails.respond_to?(:cache) ? Rails.cache : CACHE_METHOD_OBJ
+        end
     end
   end
 end
