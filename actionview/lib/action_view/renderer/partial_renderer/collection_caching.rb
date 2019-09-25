@@ -59,19 +59,15 @@ module ActionView
         seed = callable_cache_key? ? @options[:cached] : ->(i) { i }
 
         digest_path = view.digest_path_from_template(template)
-        view_key = ActiveSupport::Cache::Key.new(view.combined_fragment_cache_key(nil))
+        base_key = ActiveSupport::Cache::Key.new(view.combined_fragment_cache_key(nil))
 
         @collection.each_with_object([{}, []]) do |item, (hash, ordered_keys)|
-          key = expanded_cache_key(seed.call(item), view_key, view, template, digest_path)
+          key = ActiveSupport::Cache::Key.new(base_key)
+          key << cache_fragment_name(seed.call(item), view, template, digest_path)
+
           ordered_keys << key
           hash[key] = item
         end
-      end
-
-      def expanded_cache_key(item, view_key, view, template, digest_path)
-        key = ActiveSupport::Cache::Key.new(view_key)
-        key << cache_fragment_name(item, view, template, digest_path)
-        key
       end
 
       def cache_fragment_name(key, view, template, digest_path)
