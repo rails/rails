@@ -20,7 +20,7 @@ module ActiveRecord
 
       class V5_2 < V6_0
         module TableDefinition
-          def timestamps(**options)
+          def timestamps(*column_names, **options)
             options[:precision] ||= nil
             super
           end
@@ -66,7 +66,7 @@ module ActiveRecord
           end
         end
 
-        def add_timestamps(table_name, **options)
+        def add_timestamps(table_name, *column_names, **options)
           options[:precision] ||= nil
           super
         end
@@ -180,7 +180,7 @@ module ActiveRecord
           end
           alias :belongs_to :references
 
-          def timestamps(**options)
+          def timestamps(*column_names, **options)
             options[:null] = true if options[:null].nil?
             super
           end
@@ -192,7 +192,7 @@ module ActiveRecord
         end
         alias :add_belongs_to :add_reference
 
-        def add_timestamps(table_name, **options)
+        def add_timestamps(table_name, *column_names, **options)
           options[:null] = true if options[:null].nil?
           super
         end

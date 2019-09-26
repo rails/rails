@@ -209,5 +209,49 @@ class ActiveRecordSchemaTest < ActiveRecord::TestCase
       assert @connection.column_exists?(:has_timestamps, :created_at, precision: 6, null: false)
       assert @connection.column_exists?(:has_timestamps, :updated_at, precision: 6, null: false)
     end
+
+    def test_timestamps_with_only_created_at_creates_one_column_on_add_timestamps
+      ActiveRecord::Schema.define do
+        create_table :has_timestamps
+        add_timestamps :has_timestamps, :created_at, default: Time.now
+      end
+
+      assert @connection.column_exists?(:has_timestamps, :created_at, precision: 6, null: false)
+      assert_not @connection.column_exists?(:has_timestamps, :updated_at, precision: 6, null: false)
+    end
+
+    def test_timestamps_with_only_updated_at_creates_one_column_on_add_timestamps
+      ActiveRecord::Schema.define do
+        create_table :has_timestamps
+        add_timestamps :has_timestamps, :updated_at, default: Time.now
+      end
+
+      assert_not @connection.column_exists?(:has_timestamps, :created_at, precision: 6, null: false)
+      assert @connection.column_exists?(:has_timestamps, :updated_at, precision: 6, null: false)
+    end
+
+    def test_timestamps_with_only_updated_at_creates_one_column_on_create_table
+      ActiveRecord::Schema.define do
+        create_table :has_timestamps do |t|
+          t.timestamps :updated_at
+        end
+      end
+
+      assert_not @connection.column_exists?(:has_timestamps, :created_at, null: false)
+      assert @connection.column_exists?(:has_timestamps, :updated_at, null: false)
+    end
+
+    def test_timestamps_with_only_updated_at_creates_one_column_on_change_table
+      ActiveRecord::Schema.define do
+        create_table :has_timestamps
+
+        change_table :has_timestamps do |t|
+          t.timestamps :updated_at, default: Time.now
+        end
+      end
+
+      assert_not @connection.column_exists?(:has_timestamps, :created_at, null: false)
+      assert @connection.column_exists?(:has_timestamps, :updated_at, null: false)
+    end
   end
 end

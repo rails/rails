@@ -200,6 +200,34 @@ module ActiveRecord
         assert connection.column_exists?(:testings, :updated_at, null: false, **precision_implicit_default)
       end
 
+      def test_timestamps_create_only_one_field_on_add_timestamps
+        migration = Class.new(ActiveRecord::Migration[5.2]) {
+          def migrate(x)
+            add_timestamps :testings, :updated_at, default: Time.now
+          end
+        }.new
+
+        ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+
+        assert_not connection.column_exists?(:testings, :created_at, null: false, **precision_implicit_default)
+        assert connection.column_exists?(:testings, :updated_at, null: false, **precision_implicit_default)
+      end
+
+      def test_timestamps_create_only_one_field_on_change_table
+        migration = Class.new(ActiveRecord::Migration[5.2]) {
+          def migrate(x)
+            change_table :testings do |t|
+              t.timestamps :updated_at, default: Time.now
+            end
+          end
+        }.new
+
+        ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+
+        assert_not connection.column_exists?(:testings, :created_at, null: false, **precision_implicit_default)
+        assert connection.column_exists?(:testings, :updated_at, null: false, **precision_implicit_default)
+      end
+
       def test_legacy_migrations_raises_exception_when_inherited
         e = assert_raises(StandardError) do
           class_eval("class LegacyMigration < ActiveRecord::Migration; end")

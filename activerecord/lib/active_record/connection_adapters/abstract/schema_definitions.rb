@@ -402,15 +402,18 @@ module ActiveRecord
       # <tt>:updated_at</tt> to the table. See {connection.add_timestamps}[rdoc-ref:SchemaStatements#add_timestamps]
       #
       #   t.timestamps null: false
-      def timestamps(**options)
+      def timestamps(*column_names, **options)
         options[:null] = false if options[:null].nil?
 
         if !options.key?(:precision) && @conn.supports_datetime_with_precision?
           options[:precision] = 6
         end
 
-        column(:created_at, :datetime, **options)
-        column(:updated_at, :datetime, **options)
+        column_names = %i[ created_at updated_at ] if column_names.empty?
+
+        column_names.map do |column_name|
+          column(column_name, :datetime, **options)
+        end
       end
 
       # Adds a reference.
@@ -589,10 +592,11 @@ module ActiveRecord
       # Adds timestamps (+created_at+ and +updated_at+) columns to the table.
       #
       #  t.timestamps(null: false)
+      #  t.timestamps(:last_accessed_at, null: false)
       #
       # See {connection.add_timestamps}[rdoc-ref:SchemaStatements#add_timestamps]
-      def timestamps(options = {})
-        @base.add_timestamps(name, options)
+      def timestamps(*column_names, **options)
+        @base.add_timestamps(name, *column_names, **options)
       end
 
       # Changes the column's definition according to the new options.
@@ -643,8 +647,8 @@ module ActiveRecord
       #  t.remove_timestamps
       #
       # See {connection.remove_timestamps}[rdoc-ref:SchemaStatements#remove_timestamps]
-      def remove_timestamps(options = {})
-        @base.remove_timestamps(name, options)
+      def remove_timestamps(*column_names, **options)
+        @base.remove_timestamps(name, *column_names, **options)
       end
 
       # Renames a column.

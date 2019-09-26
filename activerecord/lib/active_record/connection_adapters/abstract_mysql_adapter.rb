@@ -673,18 +673,26 @@ module ActiveRecord
           "DROP INDEX #{quote_column_name(index_name)}"
         end
 
-        def add_timestamps_for_alter(table_name, options = {})
+        def add_timestamps_for_alter(table_name, *column_names, **options)
           options[:null] = false if options[:null].nil?
 
           if !options.key?(:precision) && supports_datetime_with_precision?
             options[:precision] = 6
           end
 
-          [add_column_for_alter(table_name, :created_at, :datetime, options), add_column_for_alter(table_name, :updated_at, :datetime, options)]
+          column_names = %i[ created_at updated_at ] if column_names.empty?
+
+          column_names.map do |column_name|
+            add_column_for_alter(table_name, column_name, :datetime, options)
+          end
         end
 
-        def remove_timestamps_for_alter(table_name, options = {})
-          [remove_column_for_alter(table_name, :updated_at), remove_column_for_alter(table_name, :created_at)]
+        def remove_timestamps_for_alter(table_name, *column_names, **options)
+          column_names = %i[ created_at updated_at ] if column_names.empty?
+
+          column_names.map do |column_name|
+            remove_column_for_alter(table_name, column_name)
+          end
         end
 
         def supports_rename_index?

@@ -94,10 +94,24 @@ module ActiveRecord
         end
       end
 
-      def test_remove_timestamps_creates_updated_at_and_created_at
+      def test_timestamps_creates_only_created_at
+        with_change_table do |t|
+          @connection.expect :add_timestamps, nil, [:delete_me, :created_at, null: true]
+          t.timestamps :created_at, null: true
+        end
+      end
+
+      def test_remove_timestamps_removes_updated_at_and_created_at
         with_change_table do |t|
           @connection.expect :remove_timestamps, nil, [:delete_me, { null: true }]
-          t.remove_timestamps(null: true)
+          t.remove_timestamps null: true
+        end
+      end
+
+      def test_remove_timestamps_removes_only_created_at
+        with_change_table do |t|
+          @connection.expect :remove_timestamps, nil, [:delete_me, :created_at, { null: true }]
+          t.remove_timestamps :created_at, null: true
         end
       end
 

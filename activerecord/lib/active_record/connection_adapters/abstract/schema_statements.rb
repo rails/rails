@@ -1148,27 +1148,49 @@ module ActiveRecord
 
       # Adds timestamps (+created_at+ and +updated_at+) columns to +table_name+.
       # Additional options (like +:null+) are forwarded to #add_column.
+      # You may provide column names to specify what column should be created.
+      #
+      # Add +created_at+ and +updated_at+ columns to +suppliers+ table.
       #
       #   add_timestamps(:suppliers, null: true)
       #
-      def add_timestamps(table_name, options = {})
+      # Add specific (optional) column names to +suppliers+ table.
+      #
+      #   add_timestamps(:suppliers, :created_at, null: true)
+      #
+      def add_timestamps(table_name, *column_names, **options)
         options[:null] = false if options[:null].nil?
 
         if !options.key?(:precision) && supports_datetime_with_precision?
           options[:precision] = 6
         end
 
-        add_column table_name, :created_at, :datetime, **options
-        add_column table_name, :updated_at, :datetime, **options
+        column_names = %i[ created_at updated_at ] if column_names.empty?
+
+        column_names.map do |column_name|
+          add_column table_name, column_name, :datetime, **options
+        end
       end
 
       # Removes the timestamp columns (+created_at+ and +updated_at+) from the table definition.
+      # You may provide column names to specify what column should be removed.
       #
-      #  remove_timestamps(:suppliers)
+      # Remove +created_at+ and +updated_at+ columns from +suppliers+ table.
       #
-      def remove_timestamps(table_name, options = {})
-        remove_column table_name, :updated_at
-        remove_column table_name, :created_at
+      #   remove_timestamps(:suppliers)
+      #
+      # Remove +updated_at+ column from +suppliers+ table.
+      #
+      #   remove_timestamps(:suppliers, :updated_at)
+      #
+      # The specific optional may equal to +created_at+ or +updated_at+
+      #
+      def remove_timestamps(table_name, *column_names, **options)
+        column_names = %i[ created_at updated_at ] if column_names.empty?
+
+        column_names.map do |column_name|
+          remove_column table_name, column_name
+        end
       end
 
       def update_table_definition(table_name, base) #:nodoc:

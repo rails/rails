@@ -300,9 +300,19 @@ module ActiveRecord
         assert_equal [:remove_timestamps, [:table], nil], remove
       end
 
+      def test_invert_add_timestamps_with_only_option
+        remove = @recorder.inverse_of :add_timestamps, [:table, :created_at]
+        assert_equal [:remove_timestamps, [:table, :created_at], nil], remove
+      end
+
       def test_invert_remove_timestamps
         add = @recorder.inverse_of :remove_timestamps, [:table, { null: true }]
         assert_equal [:add_timestamps, [:table, { null: true }], nil], add
+      end
+
+      def test_invert_remove_timestamps_with_only_option
+        add = @recorder.inverse_of :remove_timestamps, [:table, :created_at, { null: true }]
+        assert_equal [:add_timestamps, [:table, :created_at, { null: true }], nil], add
       end
 
       def test_invert_add_reference
