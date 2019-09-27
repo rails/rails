@@ -313,9 +313,19 @@ module ActiveRecord
       @cache_keys[timestamp_column] ||= klass.collection_cache_key(self, timestamp_column)
     end
 
-    def compute_cache_key(timestamp_column = :updated_at) # :nodoc:
+    def cache_key_with_version(timestamp_column = :updated_at)
+      @cache_key_with_version ||= {}
+      @cache_key_with_version[timestamp_column] ||= "#{stable_cache_key}-#{compute_cache_version(timestamp_column)}"
+    end
+
+    def stable_cache_key
       query_signature = ActiveSupport::Digest.hexdigest(to_sql)
       key = "#{klass.model_name.cache_key}/query-#{query_signature}"
+    end
+    private :stable_cache_key
+
+    def compute_cache_key(timestamp_column = :updated_at) # :nodoc:
+      key = stable_cache_key
 
       if cache_version(timestamp_column)
         key
