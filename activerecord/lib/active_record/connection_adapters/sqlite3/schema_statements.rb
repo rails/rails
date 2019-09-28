@@ -55,7 +55,7 @@ module ActiveRecord
         def add_foreign_key(from_table, to_table, **options)
           alter_table(from_table) do |definition|
             to_table = strip_table_name_prefix_and_suffix(to_table)
-            definition.foreign_key(to_table, options)
+            definition.foreign_key(to_table, **options)
           end
         end
 
