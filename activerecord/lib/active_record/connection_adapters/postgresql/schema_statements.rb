@@ -621,8 +621,8 @@ module ActiveRecord
             PostgreSQL::SchemaCreation.new(self)
           end
 
-          def create_table_definition(*args)
-            PostgreSQL::TableDefinition.new(self, *args)
+          def create_table_definition(*args, **options)
+            PostgreSQL::TableDefinition.new(self, *args, **options)
           end
 
           def create_alter_table(name)

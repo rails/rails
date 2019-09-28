@@ -1326,8 +1326,8 @@ module ActiveRecord
           SchemaCreation.new(self)
         end
 
-        def create_table_definition(*args)
-          TableDefinition.new(self, *args)
+        def create_table_definition(*args, **options)
+          TableDefinition.new(self, *args, **options)
         end
 
         def create_alter_table(name)
