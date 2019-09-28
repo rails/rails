@@ -3,7 +3,7 @@
 require "test_helper"
 require "database/setup"
 
-class ActiveStorage::PurgeJobTest < ActiveJob::TestCase
+class ActiveStorage::AnalyzeJobTest < ActiveJob::TestCase
   setup { @blob = create_blob }
 
   test "ignores missing blob" do
