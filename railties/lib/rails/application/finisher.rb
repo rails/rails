@@ -190,10 +190,10 @@ module Rails
       # Set routes reload after the finisher hook to ensure routes added in
       # the hook are taken into account.
       initializer :set_routes_reloader_hook do |app|
-        reloader = routes_reloader
-        reloader.eager_load = app.config.eager_load
-        reloader.execute
-        reloaders << reloader
+        routes_reloader.eager_load = app.config.eager_load
+        routes_reloader.reload!
+        app.reloader.register(:routes) { routes_reloader }
+
         app.reloader.to_run do
           # We configure #execute rather than #execute_if_updated because if
           # autoloaded constants are cleared we need to reload routes also in
@@ -205,7 +205,7 @@ module Rails
           # might not be necessary, but in order to be more precise we need
           # some sort of reloaders dependency support, to be added.
           require_unload_lock!
-          reloader.execute
+          app.reloader.fetch(:routes).execute
         end
       end
 
@@ -218,20 +218,15 @@ module Rails
         end
 
         if config.cache_classes
+          # No reloader
           app.reloader.check = lambda { false }
         elsif config.reload_classes_only_on_change
-          app.reloader.check = lambda do
-            app.reloaders.map(&:updated?).any?
+          app.reloader.register(:watchable) do
+            app.config.file_watcher.new(*watchable_args, &callback)
           end
-        else
-          app.reloader.check = lambda { true }
-        end
 
-        if config.cache_classes
-          # No reloader
-        elsif config.reload_classes_only_on_change
-          reloader = config.file_watcher.new(*watchable_args, &callback)
-          reloaders << reloader
+          app.reloader.check = lambda { app.reloader.should_reload? }
+          app.reloader.check!
 
           # Prepend this callback to have autoloaded constants cleared before
           # any other possible reloading, in case they need to autoload fresh
@@ -242,10 +237,13 @@ module Rails
             # that's why we run #execute rather than #execute_if_updated, this
             # callback has to clear autoloaded constants after any update.
             class_unload! do
-              reloader.execute
+              app.reloader.fetch(:watchable).execute
             end
           end
         else
+          app.reloader.check = lambda { true }
+          app.reloader.check!
+
           app.reloader.to_complete do
             class_unload!(&callback)
           end

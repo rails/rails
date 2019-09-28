@@ -60,18 +60,20 @@ module I18n
       # Restore available locales check so it will take place from now on.
       I18n.enforce_available_locales = enforce_available_locales
 
-      directories = watched_dirs_with_extensions(reloadable_paths)
-      reloader = app.config.file_watcher.new(I18n.load_path.dup, directories) do
-        I18n.load_path.keep_if { |p| File.exist?(p) }
-        I18n.load_path |= reloadable_paths.flat_map(&:existent)
+      app.reloader.register(:i18n) do
+        directories = watched_dirs_with_extensions(reloadable_paths)
+
+        app.config.file_watcher.new(I18n.load_path.dup, directories) do
+          I18n.load_path.keep_if { |p| File.exist?(p) }
+          I18n.load_path |= reloadable_paths.flat_map(&:existent)
+        end
       end
 
-      app.reloaders << reloader
       app.reloader.to_run do
-        reloader.execute_if_updated { require_unload_lock! }
+        app.reloader.fetch(:i18n).execute_if_updated { require_unload_lock! }
       end
-      reloader.execute
 
+      I18n.reload!
       @i18n_inited = true
     end
 

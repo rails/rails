@@ -88,6 +88,7 @@ module Rails
     autoload :Finisher,               "rails/application/finisher"
     autoload :Railties,               "rails/engine/railties"
     autoload :RoutesReloader,         "rails/application/routes_reloader"
+    autoload :Reloader,               "rails/application/reloader"
 
     class << self
       def inherited(base)
@@ -119,27 +120,24 @@ module Rails
 
     attr_accessor :assets, :sandbox
     alias_method :sandbox?, :sandbox
-    attr_reader :reloaders, :reloader, :executor
+    attr_reader :reloader, :executor
 
     delegate :default_url_options, :default_url_options=, to: :routes
 
-    INITIAL_VARIABLES = [:config, :railties, :routes_reloader, :reloaders,
+    INITIAL_VARIABLES = [:config, :railties, :routes_reloader, :reloader,
                          :routes, :helpers, :app_env_config, :secrets] # :nodoc:
 
     def initialize(initial_variable_values = {}, &block)
       super()
       @initialized       = false
-      @reloaders         = []
       @routes_reloader   = nil
       @app_env_config    = nil
       @ordered_railties  = nil
       @railties          = nil
       @message_verifiers = {}
       @ran_load_hooks    = false
-
-      @executor          = Class.new(ActiveSupport::Executor)
-      @reloader          = Class.new(ActiveSupport::Reloader)
-      @reloader.executor = @executor
+      @reloader          = Reloader
+      @executor          = @reloader.executor
 
       # are these actually used?
       @initial_variable_values = initial_variable_values
@@ -353,6 +351,17 @@ module Rails
     def require_environment! #:nodoc:
       environment = paths["config/environment"].existent.first
       require environment if environment
+    end
+
+    def reloaders
+      ActiveSupport::Deprecation.warn(<<-MESSAGE.squish)
+      Accessing `Rails.application.reloaders` directly is deprecated
+      and will be removed in Rails 6.2. Use
+      `Rails.application.reloader.register(name, &block)` to register a reloader
+      and `Rails.application.reloader.fetch(name)` to fetch a reloader.
+      MESSAGE
+
+      @reloader.send(:reloaders)
     end
 
     def routes_reloader #:nodoc:
