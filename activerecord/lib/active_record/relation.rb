@@ -708,11 +708,6 @@ module ActiveRecord
       q.pp(records)
     end
 
-    # Returns true if relation is blank.
-    def blank?
-      records.blank?
-    end
-
     def values
       @values.dup
     end

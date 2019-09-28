@@ -1786,18 +1786,13 @@ class RelationTest < ActiveRecord::TestCase
 
     # checking if there are topics is used before you actually display them,
     # thus it shouldn't invoke an extra count query.
-    assert_no_queries { assert topics.present? }
-    assert_no_queries { assert_not topics.blank? }
-
-    # shows count of topics and loops after loading the query should not trigger extra queries either.
-    assert_no_queries { topics.size }
-    assert_no_queries { topics.length }
-    assert_no_queries { topics.each }
+    assert_sql(/(?!count)/i) { assert topics.present? }
+    assert_sql(/(?!count)/i) { assert_not topics.blank? }
 
     # count always trigger the COUNT query.
     assert_queries(1) { topics.count }
 
-    assert_predicate topics, :loaded?
+    assert_not_predicate topics, :loaded?
   end
 
   def test_delete_by
@@ -1902,6 +1897,21 @@ class RelationTest < ActiveRecord::TestCase
     assert_raises(ActiveRecord::ImmutableRelation) do
       relation.extending! Module.new
     end
+  end
+
+  test "loaded relations cannot trigger count query for #present?, #blank?, #empty, #size, #length and #each" do
+    relation = Post.all
+    relation.to_a
+
+    assert_no_queries { relation.present? }
+    assert_no_queries { relation.blank? }
+    assert_no_queries { relation.empty? }
+    assert_no_queries { relation.size }
+    assert_no_queries { relation.length }
+    assert_no_queries { relation.each }
+
+    # count always trigger the COUNT query.
+    assert_queries(1) { relation.count }
   end
 
   test "relations with cached arel can't be mutated [internal API]" do
