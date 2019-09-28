@@ -1358,7 +1358,7 @@ class Article < ApplicationRecord
 end
 ```
 
-Using a class method is the preferred way to accept arguments for scopes. These methods will still be accessible on the association objects:
+These methods will still be accessible on the association objects:
 
 ```ruby
 category.articles.created_before(time)
