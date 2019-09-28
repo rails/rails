@@ -326,6 +326,13 @@ class DirtyTest < ActiveRecord::TestCase
     assert_not_predicate topic, :approved_changed?
   end
 
+  def test_string_attribute_should_compare_with_typecast_symbol_after_update
+    pirate = Pirate.create!(catchphrase: :foo)
+    pirate.update_column :catchphrase, :foo
+    pirate.catchphrase
+    assert_not_predicate pirate, :catchphrase_changed?
+  end
+
   def test_partial_update
     pirate = Pirate.new(catchphrase: "foo")
     old_updated_on = 1.hour.ago.beginning_of_day
