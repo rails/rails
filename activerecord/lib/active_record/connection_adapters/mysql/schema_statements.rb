@@ -57,11 +57,11 @@ module ActiveRecord
               orders = options.delete(:orders)
               lengths = options.delete(:lengths)
 
-              columns = index[-2].map { |name|
+              columns = index[-1].map { |name|
                 [ name.to_sym, expressions[name] || +quote_column_name(name) ]
               }.to_h
 
-              index[-2] = add_options_for_index_columns(
+              index[-1] = add_options_for_index_columns(
                 columns, order: orders, length: lengths
               ).values.join(", ")
             end
