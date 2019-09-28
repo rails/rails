@@ -19,28 +19,44 @@ module ActiveRecord
 
       def test_references_column_type_adds_id
         with_change_table do |t|
-          @connection.expect :add_reference, nil, [:delete_me, :customer, {}]
+          if RUBY_VERSION < "2.7"
+            @connection.expect :add_reference, nil, [:delete_me, :customer, {}]
+          else
+            @connection.expect :add_reference, nil, [:delete_me, :customer]
+          end
           t.references :customer
         end
       end
 
       def test_remove_references_column_type_removes_id
         with_change_table do |t|
-          @connection.expect :remove_reference, nil, [:delete_me, :customer, {}]
+          if RUBY_VERSION < "2.7"
+            @connection.expect :remove_reference, nil, [:delete_me, :customer, {}]
+          else
+            @connection.expect :remove_reference, nil, [:delete_me, :customer]
+          end
           t.remove_references :customer
         end
       end
 
       def test_add_belongs_to_works_like_add_references
         with_change_table do |t|
-          @connection.expect :add_reference, nil, [:delete_me, :customer, {}]
+          if RUBY_VERSION < "2.7"
+            @connection.expect :add_reference, nil, [:delete_me, :customer, {}]
+          else
+            @connection.expect :add_reference, nil, [:delete_me, :customer]
+          end
           t.belongs_to :customer
         end
       end
 
       def test_remove_belongs_to_works_like_remove_references
         with_change_table do |t|
-          @connection.expect :remove_reference, nil, [:delete_me, :customer, {}]
+          if RUBY_VERSION < "2.7"
+            @connection.expect :remove_reference, nil, [:delete_me, :customer, {}]
+          else
+            @connection.expect :remove_reference, nil, [:delete_me, :customer]
+          end
           t.remove_belongs_to :customer
         end
       end

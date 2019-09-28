@@ -664,7 +664,7 @@ module ActiveRecord
       # See {connection.add_reference}[rdoc-ref:SchemaStatements#add_reference] for details of the options you can use.
       def references(*args, **options)
         args.each do |ref_name|
-          @base.add_reference(name, ref_name, options)
+          @base.add_reference(name, ref_name, **options)
         end
       end
       alias :belongs_to :references
@@ -677,7 +677,7 @@ module ActiveRecord
       # See {connection.remove_reference}[rdoc-ref:SchemaStatements#remove_reference]
       def remove_references(*args, **options)
         args.each do |ref_name|
-          @base.remove_reference(name, ref_name, options)
+          @base.remove_reference(name, ref_name, **options)
         end
       end
       alias :remove_belongs_to :remove_references
