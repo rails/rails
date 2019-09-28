@@ -51,7 +51,7 @@ module ActiveRecord
           end
 
           indexes.map do |index|
-            options = index.last
+            options = index.pop
 
             if expressions = options.delete(:expressions)
               orders = options.delete(:orders)
@@ -66,7 +66,7 @@ module ActiveRecord
               ).values.join(", ")
             end
 
-            IndexDefinition.new(*index)
+            IndexDefinition.new(*index, **options)
           end
         end
 

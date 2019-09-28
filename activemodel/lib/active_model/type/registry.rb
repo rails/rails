@@ -9,7 +9,7 @@ module ActiveModel
       end
 
       def register(type_name, klass = nil, **options, &block)
-        block ||= proc { |_, *args| klass.new(*args) }
+        block ||= proc { |_, *args, **kwargs| klass.new(*args, **kwargs) }
         registrations << registration_klass.new(type_name, block, **options)
       end
 

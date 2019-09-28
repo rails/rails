@@ -741,7 +741,7 @@ module ActiveRecord
           end
 
           def add_options_for_index_columns(quoted_columns, **options)
-            quoted_columns = add_index_opclass(quoted_columns, options)
+            quoted_columns = add_index_opclass(quoted_columns, **options)
             super
           end
 
