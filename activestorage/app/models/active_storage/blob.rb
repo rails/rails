@@ -51,11 +51,12 @@ class ActiveStorage::Blob < ActiveRecord::Base
     end
 
     def build_after_upload(io:, filename:, content_type: nil, metadata: nil, identify: true, record: nil) #:nodoc:
-      ActiveSupport::Deprecation.warn("ActiveStorage::Blob.build_after_upload is deprecated and will be removed in Rails 6.2")
       new(filename: filename, content_type: content_type, metadata: metadata).tap do |blob|
         blob.upload(io, identify: identify)
       end
     end
+
+    deprecate :build_after_upload
 
     def build_after_unfurling(io:, filename:, content_type: nil, metadata: nil, identify: true, record: nil) #:nodoc:
       new(filename: filename, content_type: content_type, metadata: metadata).tap do |blob|
@@ -78,10 +79,8 @@ class ActiveStorage::Blob < ActiveRecord::Base
       end
     end
 
-    def create_after_upload!(**arguments_for_create_and_upload) #:nodoc:
-      ActiveSupport::Deprecation.warn("ActiveStorage::Blob.create_after_upload! has been renamed to create_and_upload!. The old name will be removed in Rails 6.2")
-      create_and_upload!(**arguments_for_create_and_upload)
-    end
+    alias_method :create_after_upload!, :create_and_upload!
+    deprecate create_after_upload!: :create_and_upload!
 
     # Returns a saved blob _without_ uploading a file to the service. This blob will point to a key where there is
     # no file yet. It's intended to be used together with a client-side upload, which will first create the blob
