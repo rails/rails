@@ -474,6 +474,17 @@ user.highlights.second.filename # => "town.jpg"
 Opt in to the new default behavior by setting `config.active_storage.replace_on_assign_to_many` to `true`.
 The old behavior will be deprecated in Rails 6.1 and removed in a subsequent release.
 
+### Coffee-Rails
+
+Coffee-Rails should be at least version 5.0.0.
+
+To update coffee-rails, go to your Gemfile and change the existing gem to:
+```
+gem 'coffee-rails', '~> 5.0.0'
+```
+
+Then run `bundle`
+
 Upgrading from Rails 5.1 to Rails 5.2
 -------------------------------------
 
