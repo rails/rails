@@ -12,6 +12,7 @@ class ForkTrackerTest < ActiveSupport::TestCase
       write.write "forked"
     end
 
+    assert_not respond_to?(:fork)
     pid = fork do
       read.close
       write.close
@@ -168,6 +169,41 @@ class ForkTrackerTest < ActiveSupport::TestCase
     assert_difference -> { count }, +1 do
       3.times { ActiveSupport::ForkTracker.check! }
     end
+  ensure
+    ActiveSupport::ForkTracker.unregister(handler)
+  end
+
+  def test_basic_object_with_kernel_fork
+    read, write = IO.pipe
+    called = false
+
+    handler = ActiveSupport::ForkTracker.after_fork do
+      called = true
+      write.write "forked"
+    end
+
+    klass = Class.new(BasicObject) do
+      include ::Kernel
+      def fark(&block)
+        fork(&block)
+      end
+    end
+
+    object = klass.new
+    assert_not object.respond_to?(:fork)
+    pid = object.fark do
+      read.close
+      write.close
+      exit!
+    end
+
+    write.close
+
+    Process.waitpid(pid)
+    assert_equal "forked", read.read
+    read.close
+
+    assert_not called
   ensure
     ActiveSupport::ForkTracker.unregister(handler)
   end

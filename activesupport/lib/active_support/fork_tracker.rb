@@ -18,6 +18,11 @@ module ActiveSupport
       end
     end
 
+    module CoreExtPrivate
+      include CoreExt
+      private :fork
+    end
+
     @pid = Process.pid
     @callbacks = []
 
@@ -30,7 +35,8 @@ module ActiveSupport
       end
 
       def hook!
-        ::Object.prepend(CoreExt)
+        ::Object.prepend(CoreExtPrivate)
+        ::Kernel.prepend(CoreExtPrivate)
         ::Kernel.singleton_class.prepend(CoreExt)
         ::Process.singleton_class.prepend(CoreExt)
       end
