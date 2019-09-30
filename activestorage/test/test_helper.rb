@@ -63,6 +63,10 @@ class ActiveSupport::TestCase
       ActiveStorage::Blob.create_before_direct_upload! key: key, filename: filename, byte_size: byte_size, checksum: checksum, content_type: content_type, record: record
     end
 
+    def build_blob_after_unfurling(key: nil, data: "Hello world!", filename: "hello.txt", content_type: "text/plain", identify: true, record: nil)
+      ActiveStorage::Blob.build_after_unfurling key: key, io: StringIO.new(data), filename: filename, content_type: content_type, identify: identify, record: record
+    end
+
     def directly_upload_file_blob(filename: "racecar.jpg", content_type: "image/jpeg", record: nil)
       file = file_fixture(filename)
       byte_size = file.size
