@@ -1,3 +1,22 @@
+*   Allow length configuration for `has_secure_token` method. The minimum length
+    is set at 24 characters.
+
+    Before:
+
+    ```ruby
+    has_secure_token :auth_token
+    ```
+
+    After:
+
+    ```ruby
+    has_secure_token :default_token             # 24 characters
+    has_secure_token :auth_token, length: 36    # 36 characters
+    has_secure_token :invalid_token, length: 12 # => ActiveRecord::SecureToken::MinimumLengthError
+    ```
+
+    *Bernardo de Araujo*
+
 *   Deprecate `DatabaseConfigurations#to_h`. These connection hashes are still available via `ActiveRecord::Base.configurations.configs_for`.
 
     *Eileen Uchitelle*, *John Crepezzi*
