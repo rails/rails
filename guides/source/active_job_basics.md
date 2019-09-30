@@ -453,7 +453,11 @@ class GuestsCleanupJob < ApplicationJob
 end
 ```
 
+If the exception is not rescued within the job, eg. as shown above, then the job is referred to as "failed".
+
 ### Retrying or Discarding failed jobs
+
+A failed job will not be retried, unless configured otherwise.
 
 It's also possible to retry or discard a job if an exception is raised during execution.
 For example:
