@@ -810,7 +810,9 @@ module ActiveRecord
       def exec_queries(&block)
         skip_query_cache_if_necessary do
           @records =
-            if eager_loading?
+            if where_clause.contradiction?
+              []
+            elsif eager_loading?
               apply_join_dependency do |relation, join_dependency|
                 if relation.null_relation?
                   []
