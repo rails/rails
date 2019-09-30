@@ -962,6 +962,8 @@ ActiveRecord::Schema.define do
 
   create_table :tuning_pegs, force: true do |t|
     t.integer :guitar_id
+    t.integer :violin_id
+    t.integer :string_number
     t.float :pitch
   end
 
@@ -976,6 +978,10 @@ ActiveRecord::Schema.define do
 
   create_table :vertices, force: true do |t|
     t.column :label, :string
+  end
+
+  create_table :violins, force: true do |t|
+    t.string :color
   end
 
   create_table "warehouse-things", force: true do |t|

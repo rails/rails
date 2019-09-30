@@ -31,6 +31,7 @@ require "models/member"
 require "models/member_detail"
 require "models/organization"
 require "models/guitar"
+require "models/violin"
 require "models/tuning_peg"
 require "models/reply"
 
@@ -452,6 +453,21 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociationWithAcceptsNestedAttrib
     ActiveRecord::Base.index_nested_attribute_errors = old_attribute_config
   end
 
+  def test_errors_should_be_indexed_by_attribute_value_when_passed_as_array
+    violin = Violin.new
+    tuning_peg_valid = TuningPeg.new(pitch: 440.0, string_number: 2)
+    tuning_peg_invalid = TuningPeg.new(string_number: 4)
+
+    violin.tuning_pegs = [tuning_peg_valid, tuning_peg_invalid]
+
+    assert_not_predicate tuning_peg_invalid, :valid?
+    assert_predicate tuning_peg_valid, :valid?
+    assert_not_predicate violin, :valid?
+    assert_equal ["is not a number"], violin.errors["tuning_pegs[4].pitch"]
+    assert_not_equal ["is not a number"], violin.errors["tuning_pegs[0].pitch"]
+    assert_not_equal ["is not a number"], violin.errors["tuning_pegs.pitch"]
+  end
+
   def test_errors_details_should_be_set
     molecule = Molecule.new
     valid_electron = Electron.new(name: "electron")
@@ -478,6 +494,21 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociationWithAcceptsNestedAttrib
     assert_not_predicate guitar, :valid?
     assert_equal [{ error: :not_a_number, value: nil }], guitar.errors.details[:"tuning_pegs[1].pitch"]
     assert_equal [], guitar.errors.details[:"tuning_pegs.pitch"]
+  end
+
+  def test_errors_details_should_be_indexed_by_attribute_value_when_passed_as_array
+    violin = Violin.new
+    tuning_peg_valid = TuningPeg.new(pitch: 440.0, string_number: 2)
+    tuning_peg_invalid = TuningPeg.new(string_number: 4)
+
+    violin.tuning_pegs = [tuning_peg_valid, tuning_peg_invalid]
+
+    assert_not_predicate tuning_peg_invalid, :valid?
+    assert_predicate tuning_peg_valid, :valid?
+    assert_not_predicate violin, :valid?
+    assert_equal [{ error: :not_a_number, value: nil }], violin.errors.details[:"tuning_pegs[4].pitch"]
+    assert_equal [], violin.errors.details[:"tuning_pegs.pitch"]
+    assert_not_equal [{ error: :not_a_number, value: nil }], violin.errors.details[:"tuning_pegs[1].pitch"]
   end
 
   def test_errors_details_should_be_indexed_when_global_flag_is_set
