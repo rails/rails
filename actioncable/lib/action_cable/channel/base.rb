@@ -162,15 +162,15 @@ module ActionCable
       # that the action requested is a public method on the channel declared by the user (so not one of the callbacks
       # like #subscribed).
       def perform_action(data)
-        action = extract_action(data)
+        instrument :perform_action, data: data do |payload|
+          payload[:action] = action = extract_action(data)
 
-        if processable_action?(action)
-          payload = { channel_class: self.class.name, action: action, data: data }
-          ActiveSupport::Notifications.instrument("perform_action.action_cable", payload) do
+          if processable_action?(action)
             dispatch_action(action, data)
+            payload[:succeeded] = true
+          else
+            payload[:succeeded] = false
           end
-        else
-          logger.error "Unable to process #{action_signature(action, data)}"
         end
       end
 
@@ -209,12 +209,7 @@ module ActionCable
         # Transmit a hash of data to the subscriber. The hash will automatically be wrapped in a JSON envelope with
         # the proper channel identifier marked as the recipient.
         def transmit(data, via: nil) # :doc:
-          status = "#{self.class.name} transmitting #{data.inspect.truncate(300)}"
-          status += " (via #{via})" if via
-          logger.debug(status)
-
-          payload = { channel_class: self.class.name, data: data, via: via }
-          ActiveSupport::Notifications.instrument("transmit.action_cable", payload) do
+          instrument :transmit, data: data, via: via do
             connection.transmit identifier: @identifier, message: data
           end
         end
@@ -262,8 +257,6 @@ module ActionCable
         end
 
         def dispatch_action(action, data)
-          logger.info action_signature(action, data)
-
           if method(action).arity == 1
             public_send action, data
           else
@@ -273,19 +266,9 @@ module ActionCable
           rescue_with_handler(exception) || raise
         end
 
-        def action_signature(action, data)
-          (+"#{self.class.name}##{action}").tap do |signature|
-            if (arguments = data.except("action")).any?
-              signature << "(#{arguments.inspect})"
-            end
-          end
-        end
-
         def transmit_subscription_confirmation
           unless subscription_confirmation_sent?
-            logger.debug "#{self.class.name} is transmitting the subscription confirmation"
-
-            ActiveSupport::Notifications.instrument("transmit_subscription_confirmation.action_cable", channel_class: self.class.name) do
+            instrument :transmit_subscription_confirmation do
               connection.transmit identifier: @identifier, type: ActionCable::INTERNAL[:message_types][:confirmation]
               @subscription_confirmation_sent = true
             end
@@ -298,11 +281,14 @@ module ActionCable
         end
 
         def transmit_subscription_rejection
-          logger.debug "#{self.class.name} is transmitting the subscription rejection"
-
-          ActiveSupport::Notifications.instrument("transmit_subscription_rejection.action_cable", channel_class: self.class.name) do
+          instrument :transmit_subscription_rejection do
             connection.transmit identifier: @identifier, type: ActionCable::INTERNAL[:message_types][:rejection]
           end
+        end
+
+        def instrument(operation, payload = {}, &block)
+          ActiveSupport::Notifications.instrument "#{operation}.action_cable",
+            payload.merge(connection: connection, channel_class: self.class.name), &block
         end
     end
   end

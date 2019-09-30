@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "action_dispatch"
+require "action_cable/log_subscriber"
 
 module ActionCable
   module Connection
@@ -67,12 +68,15 @@ module ActionCable
       # Called by the server when a new WebSocket connection is established. This configures the callbacks intended for overwriting by the user.
       # This method should not be called directly -- instead rely upon on the #connect (and #disconnect) callbacks.
       def process #:nodoc:
-        logger.info started_request_message
+        instrument :start_request
 
-        if websocket.possible? && allow_request_origin?
-          respond_to_successful_request
-        else
-          respond_to_invalid_request
+        instrument :upgrade_request do |payload|
+          if payload[:succeeded] = websocket.possible? && allow_request_origin?
+            respond_to_successful_request
+          else
+            close reason: ActionCable::INTERNAL[:disconnect_reasons][:invalid_request] if websocket.alive?
+            respond_to_invalid_request
+          end
         end
       end
 
@@ -83,11 +87,7 @@ module ActionCable
       end
 
       def dispatch_websocket_message(websocket_message) #:nodoc:
-        if websocket.alive?
-          subscriptions.execute_command decode(websocket_message)
-        else
-          logger.error "Ignoring message processed after the WebSocket was closed: #{websocket_message.inspect})"
-        end
+        subscriptions.execute_command decode(websocket_message) if websocket.alive?
       end
 
       def transmit(cable_message) # :nodoc:
@@ -133,8 +133,7 @@ module ActionCable
       end
 
       def on_error(message) # :nodoc:
-        # log errors to make diagnosing socket errors easier
-        logger.error "WebSocket error occurred: #{message}"
+        instrument :websocket_error, message: message
       end
 
       def on_close(reason, code) # :nodoc:
@@ -179,7 +178,7 @@ module ActionCable
         end
 
         def handle_close
-          logger.info finished_request_message
+          instrument :finish_request
 
           server.remove_connection(self)
 
@@ -205,21 +204,15 @@ module ActionCable
           elsif Array(server.config.allowed_request_origins).any? { |allowed_origin|  allowed_origin === env["HTTP_ORIGIN"] }
             true
           else
-            logger.error("Request origin not allowed: #{env['HTTP_ORIGIN']}")
             false
           end
         end
 
         def respond_to_successful_request
-          logger.info successful_request_message
           websocket.rack_response
         end
 
         def respond_to_invalid_request
-          close(reason: ActionCable::INTERNAL[:disconnect_reasons][:invalid_request]) if websocket.alive?
-
-          logger.error invalid_request_message
-          logger.info finished_request_message
           [ 404, { "Content-Type" => "text/plain" }, [ "Page not found" ] ]
         end
 
@@ -229,33 +222,9 @@ module ActionCable
             tags: server.config.log_tags.map { |tag| tag.respond_to?(:call) ? tag.call(request) : tag.to_s.camelize }
         end
 
-        def started_request_message
-          'Started %s "%s"%s for %s at %s' % [
-            request.request_method,
-            request.filtered_path,
-            websocket.possible? ? " [WebSocket]" : "[non-WebSocket]",
-            request.ip,
-            Time.now.to_s ]
-        end
-
-        def finished_request_message
-          'Finished "%s"%s for %s at %s' % [
-            request.filtered_path,
-            websocket.possible? ? " [WebSocket]" : "[non-WebSocket]",
-            request.ip,
-            Time.now.to_s ]
-        end
-
-        def invalid_request_message
-          "Failed to upgrade to WebSocket (REQUEST_METHOD: %s, HTTP_CONNECTION: %s, HTTP_UPGRADE: %s)" % [
-            env["REQUEST_METHOD"], env["HTTP_CONNECTION"], env["HTTP_UPGRADE"]
-          ]
-        end
-
-        def successful_request_message
-          "Successfully upgraded to WebSocket (REQUEST_METHOD: %s, HTTP_CONNECTION: %s, HTTP_UPGRADE: %s)" % [
-            env["REQUEST_METHOD"], env["HTTP_CONNECTION"], env["HTTP_UPGRADE"]
-          ]
+        def instrument(operation, payload = {}, &block)
+          ActiveSupport::Notifications.instrument "#{operation}.action_cable",
+            payload.merge(connection: self, request: request, websocket: websocket), &block
         end
     end
   end
