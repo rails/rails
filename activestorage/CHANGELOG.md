@@ -1,3 +1,14 @@
+*   You can optionally provide a custom blob key when attaching a new file:
+
+    ```ruby
+    user.avatar.attach key: "avatars/#{user.id}.jpg",
+      io: io, content_type: "image/jpeg", filename: "avatar.jpg"
+    ```
+
+    Active Storage will store the blob's data on the configured service at the provided key.
+
+    *George Claghorn*
+
 *   Replace `Blob.create_after_upload!` with `Blob.create_and_upload!` and deprecate the former.
 
     `create_after_upload!` has been removed since it could lead to data

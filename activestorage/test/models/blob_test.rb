@@ -84,6 +84,15 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     assert_match(/^[a-z0-9]{28}$/, create_blob.key)
   end
 
+  test "create_and_upload accepts a custom key" do
+    key  = SecureRandom.base36(28)
+    data = "Hello world!"
+    blob = create_blob key: key, data: data
+
+    assert_equal key, blob.key
+    assert_equal data, blob.download
+  end
+
   test "create_and_upload accepts a record for overrides" do
     assert_nothing_raised do
       create_blob(record: User.new)
