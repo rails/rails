@@ -36,6 +36,7 @@ module ActiveSupport
 
       def hook!
         ::Object.prepend(CoreExtPrivate)
+        ::Kernel.prepend(CoreExtPrivate)
         ::Kernel.singleton_class.prepend(CoreExt)
         ::Process.singleton_class.prepend(CoreExt)
       end
