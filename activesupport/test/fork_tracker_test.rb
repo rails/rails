@@ -12,6 +12,7 @@ class ForkTrackerTest < ActiveSupport::TestCase
       write.write "forked"
     end
 
+    assert_not respond_to?(:fork)
     pid = fork do
       read.close
       write.close
