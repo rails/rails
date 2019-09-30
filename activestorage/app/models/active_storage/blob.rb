@@ -29,7 +29,7 @@ class ActiveStorage::Blob < ActiveRecord::Base
 
   MINIMUM_TOKEN_LENGTH = 28
 
-  has_secure_token :key
+  has_secure_token :key, length: MINIMUM_TOKEN_LENGTH
   store :metadata, accessors: [ :analyzed, :identified ], coder: ActiveRecord::Coders::JSON
 
   class_attribute :service
@@ -115,7 +115,7 @@ class ActiveStorage::Blob < ActiveRecord::Base
   # Always refer to blobs using the signed_id or a verified form of the key.
   def key
     # We can't wait until the record is first saved to have a key for it
-    self[:key] ||= self.class.generate_unique_secure_token
+    self[:key] ||= self.class.generate_unique_secure_token(length: MINIMUM_TOKEN_LENGTH)
   end
 
   # Returns an ActiveStorage::Filename instance of the filename that can be

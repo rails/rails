@@ -99,6 +99,10 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     end
   end
 
+  test "build_after_unfurling generates a 28-character base36 key" do
+    assert_match(/^[a-z0-9]{28}$/, build_blob_after_unfurling.key)
+  end
+
   test "image?" do
     blob = create_file_blob filename: "racecar.jpg"
     assert_predicate blob, :image?
