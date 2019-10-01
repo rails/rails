@@ -1,3 +1,17 @@
+*   Allow storage services to be configured per attachment
+
+    ```ruby
+    class User < ActiveRecord::Base
+      has_one_attached :avatar, service: :s3
+    end
+
+    class Gallery < ActiveRecord::Base
+      has_many_attached :photos, service: :s3
+    end
+    ```
+
+    *Dmitry Tsepelev*
+
 *   You can optionally provide a custom blob key when attaching a new file:
 
     ```ruby
