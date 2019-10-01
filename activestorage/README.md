@@ -118,7 +118,7 @@ Files are proxied through the application server so they appear as though they'r
 ### Changing delivery method
 globally
 ```ruby
-app.config.active_storage.delivery_method = :proxy
+app.config.active_storage.default_delivery_method = :proxy
 ```
 model
 ```ruby
@@ -130,10 +130,10 @@ user.avatar.variant(resize: "100x100").deliver(:proxy)
 ```
 
 ### Changing the host of proxied urls
-When using the proxy option to deliver assets you can use proxy_urls_host option. This is useful if your CDN is setup to operate on a different domain. When option is nil URLS will be relative.
+When using the proxy option to deliver assets you can use host option. This is useful if your CDN is setup to operate on a different domain. When option is nil URLS will be relative.
 
 ```ruby
-app.config.active_storage.proxy_urls_host = "cdn.mydomain.com"
+config.active_storage.proxy_delivery_method = ActiveStorage::DeliveryMethod::Proxy.new(host: 'https://cdn.domain.com')
 ```
 
 ## Direct uploads
