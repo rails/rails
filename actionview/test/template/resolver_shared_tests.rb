@@ -204,8 +204,6 @@ module ResolverSharedTests
   end
 
   def test_templates_no_format_with_variant
-    return skip
-
     with_file "test/hello_world+mobile.erb", "Hello HTML!"
 
     templates = resolver.find_all("hello_world", "test", false, locale: [], formats: [:html, :json], variants: :any, handlers: [:erb, :builder])
@@ -218,8 +216,6 @@ module ResolverSharedTests
   end
 
   def test_templates_no_format_or_handler_with_variant
-    return skip
-
     with_file "test/hello_world+mobile", "Hello HTML!"
 
     templates = resolver.find_all("hello_world", "test", false, locale: [], formats: [:html, :json], variants: :any, handlers: [:erb, :builder])
