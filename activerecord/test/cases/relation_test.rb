@@ -420,10 +420,9 @@ module ActiveRecord
 
     test "can unscope empty IN" do
       Post.send(:load_schema)
-      queries = capture_sql do
+      assert_queries 1 do
         Post.where(id: []).unscope(where: :id).load
       end
-      assert_equal 1, queries.count
     end
 
     private
