@@ -2472,12 +2472,12 @@ module ApplicationTests
       remove_from_config '.*config\.load_defaults.*\n'
 
       app_file "config/initializers/new_framework_defaults_6_0.rb", <<-RUBY
-        Rails.application.config.action_dispatch.return_only_media_type_on_content_type = true
+        Rails.application.config.action_dispatch.return_only_media_type_on_content_type = false
       RUBY
 
       app "development"
 
-      assert_equal true, ActionDispatch::Response.return_only_media_type_on_content_type
+      assert_equal false, ActionDispatch::Response.return_only_media_type_on_content_type
     end
 
     test "ActionMailbox.logger is Rails.logger by default" do
