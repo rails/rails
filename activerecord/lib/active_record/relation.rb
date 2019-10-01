@@ -491,7 +491,9 @@ module ActiveRecord
 
       if touch
         names = touch if touch != true
-        touch_updates = klass.touch_attributes_with_time(*names)
+        names = Array(names)
+        options = names.extract_options!
+        touch_updates = klass.touch_attributes_with_time(*names, **options)
         updates.merge!(touch_updates) unless touch_updates.empty?
       end
 
@@ -808,7 +810,9 @@ module ActiveRecord
       def exec_queries(&block)
         skip_query_cache_if_necessary do
           @records =
-            if eager_loading?
+            if where_clause.contradiction?
+              []
+            elsif eager_loading?
               apply_join_dependency do |relation, join_dependency|
                 if relation.null_relation?
                   []

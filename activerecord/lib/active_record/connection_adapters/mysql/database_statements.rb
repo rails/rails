@@ -5,7 +5,7 @@ module ActiveRecord
     module MySQL
       module DatabaseStatements
         # Returns an ActiveRecord::Result instance.
-        def select_all(*) # :nodoc:
+        def select_all(*, **) # :nodoc:
           result = if ExplainRegistry.collect? && prepared_statements
             unprepared_statement { super }
           else
@@ -19,7 +19,9 @@ module ActiveRecord
           execute(sql, name).to_a
         end
 
-        READ_QUERY = ActiveRecord::ConnectionAdapters::AbstractAdapter.build_read_query_regexp(:begin, :commit, :explain, :select, :set, :show, :release, :savepoint, :rollback) # :nodoc:
+        READ_QUERY = ActiveRecord::ConnectionAdapters::AbstractAdapter.build_read_query_regexp(
+          :begin, :commit, :explain, :select, :set, :show, :release, :savepoint, :rollback, :describe, :desc
+        ) # :nodoc:
         private_constant :READ_QUERY
 
         def write_query?(sql) # :nodoc:

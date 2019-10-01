@@ -29,7 +29,7 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
       }
     }
     app_db_config(config_sample) do
-      assert_equal config_sample["test"], Rails::DBConsole.new.config
+      assert_equal config_sample["test"].symbolize_keys, Rails::DBConsole.new.config
     end
   end
 
@@ -44,14 +44,14 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
   def test_config_with_database_url_only
     ENV["DATABASE_URL"] = "postgresql://foo:bar@localhost:9000/foo_test?pool=5&timeout=3000"
     expected = {
-      "adapter"  => "postgresql",
-      "host"     => "localhost",
-      "port"     => 9000,
-      "database" => "foo_test",
-      "username" => "foo",
-      "password" => "bar",
-      "pool"     => "5",
-      "timeout"  => "3000"
+      adapter:  "postgresql",
+      host:     "localhost",
+      port:     9000,
+      database: "foo_test",
+      username: "foo",
+      password: "bar",
+      pool:     "5",
+      timeout:  "3000"
     }.sort
 
     app_db_config(nil) do
@@ -75,7 +75,7 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
       }
     }
     app_db_config(sample_config) do
-      assert_equal host, Rails::DBConsole.new.config["host"]
+      assert_equal host, Rails::DBConsole.new.config[:host]
     end
   end
 
@@ -212,7 +212,7 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
     }
 
     app_db_config(sample_config) do
-      assert_equal "postgresql", Rails::DBConsole.new.config["adapter"]
+      assert_equal "postgresql", Rails::DBConsole.new.config[:adapter]
     end
   end
 
@@ -295,7 +295,7 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
 
     def start(config = {}, argv = [])
       @dbconsole = make_dbconsole.new(parse_arguments(argv))
-      @dbconsole.stub(:config, config.stringify_keys) do
+      @dbconsole.stub(:config, config) do
         capture_abort { @dbconsole.start }
       end
     end

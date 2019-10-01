@@ -216,7 +216,9 @@ module Rails
           app.reloader.check = lambda { true }
         end
 
-        if config.reload_classes_only_on_change
+        if config.cache_classes
+          # No reloader
+        elsif config.reload_classes_only_on_change
           reloader = config.file_watcher.new(*watchable_args, &callback)
           reloaders << reloader
 

@@ -1108,6 +1108,10 @@ module ActiveRecord
           buckets[:stashed_join] << construct_join_dependency(left_joins, Arel::Nodes::OuterJoin)
         end
 
+        if joins.last.is_a?(ActiveRecord::Associations::JoinDependency)
+          buckets[:stashed_join] << joins.pop if joins.last.base_klass == klass
+        end
+
         joins.map! do |join|
           if join.is_a?(String)
             table.create_string_join(Arel.sql(join.strip)) unless join.blank?

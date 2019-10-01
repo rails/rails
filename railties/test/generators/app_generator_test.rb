@@ -543,7 +543,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     if defined?(JRUBY_VERSION)
       assert_gem "activerecord-jdbcmysql-adapter"
     else
-      assert_gem "mysql2", "'>= 0.4.4'"
+      assert_gem "mysql2", "'~> 0.5'"
     end
   end
 
@@ -934,6 +934,13 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
 
     assert_gem "webpacker"
+    assert_no_file "config/webpacker.yml"
+
+    output = Dir.chdir(destination_root) do
+      `rails --help`
+    end
+    assert_match(/The most common rails commands are:/, output)
+    assert_equal true, $?.success?
   end
 
   def test_generator_if_skip_turbolinks_is_given

@@ -677,13 +677,6 @@ The command is:
 $ RAILS_ENV=production rails assets:precompile
 ```
 
-Capistrano (v2.15.1 and above) includes a recipe to handle this in deployment.
-Add the following line to `Capfile`:
-
-```ruby
-load 'deploy/assets'
-```
-
 This links the folder specified in `config.assets.prefix` to `shared/assets`.
 If you already use this shared folder you'll need to write your own deployment
 command.
@@ -789,9 +782,8 @@ duplication of work.
 Local compilation allows you to commit the compiled files into source control,
 and deploy as normal.
 
-There are three caveats:
+There are two caveats:
 
-* You must not run the Capistrano deployment task that precompiles assets.
 * You must ensure any necessary compressors or minifiers are
 available on your development system.
 * You must change the following application configuration setting:

@@ -290,7 +290,7 @@ module ActionView
       #
       #
       #   <%= button_to('Destroy', 'http://www.example.com',
-      #             method: "delete", remote: true, data: { confirm: 'Are you sure?', disable_with: 'loading...' }) %>
+      #             method: :delete, remote: true, data: { confirm: 'Are you sure?', disable_with: 'loading...' }) %>
       #   # => "<form class='button_to' method='post' action='http://www.example.com' data-remote='true'>
       #   #       <input name='_method' value='delete' type='hidden' />
       #   #       <input value='Destroy' type='submit' data-disable-with='loading...' data-confirm='Are you sure?' />

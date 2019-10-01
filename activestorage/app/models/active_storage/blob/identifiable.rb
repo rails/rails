@@ -26,6 +26,6 @@ module ActiveStorage::Blob::Identifiable
     end
 
     def update_service_metadata
-      service.update_metadata key, service_metadata if service_metadata.any?
+      service.update_metadata key, **service_metadata if service_metadata.any?
     end
 end

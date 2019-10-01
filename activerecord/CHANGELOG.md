@@ -1,3 +1,55 @@
+*   Allow length configuration for `has_secure_token` method. The minimum length
+    is set at 24 characters.
+
+    Before:
+
+    ```ruby
+    has_secure_token :auth_token
+    ```
+
+    After:
+
+    ```ruby
+    has_secure_token :default_token             # 24 characters
+    has_secure_token :auth_token, length: 36    # 36 characters
+    has_secure_token :invalid_token, length: 12 # => ActiveRecord::SecureToken::MinimumLengthError
+    ```
+
+    *Bernardo de Araujo*
+
+*   Deprecate `DatabaseConfigurations#to_h`. These connection hashes are still available via `ActiveRecord::Base.configurations.configs_for`.
+
+    *Eileen Uchitelle*, *John Crepezzi*
+
+*   Add `DatabaseConfig#configuration_hash` to return database configuration hashes with symbol keys, and use all symbol-key configuration hashes internally. Deprecate `DatabaseConfig#config` which returns a String-keyed `Hash` with the same values.
+
+    *John Crepezzi*, *Eileen Uchitelle*
+
+*   Allow column names to be passed to `remove_index` positionally along with other options.
+
+    Passing other options can be necessary to make `remove_index` correctly reversible.
+
+    Before:
+
+        add_index    :reports, :report_id               # => works
+        add_index    :reports, :report_id, unique: true # => works
+        remove_index :reports, :report_id               # => works
+        remove_index :reports, :report_id, unique: true # => ArgumentError
+
+    After:
+
+        remove_index :reports, :report_id, unique: true # => works
+
+    *Eugene Kenny*
+
+*   Allow bulk `ALTER` statements to drop and recreate indexes with the same name.
+
+    *Eugene Kenny*
+
+*   `insert`, `insert_all`, `upsert`, and `upsert_all` now clear the query cache.
+
+    *Eugene Kenny*
+
 *   Call `while_preventing_writes` directly from `connected_to`.
 
     In some cases application authors want to use the database switching middleware and make explicit calls with `connected_to`. It's possible for an app to turn off writes and not turn them back on by the time we call `connected_to(role: :writing)`.

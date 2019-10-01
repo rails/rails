@@ -10,7 +10,6 @@ require "active_record/fixture_set/file"
 require "active_record/fixture_set/render_context"
 require "active_record/fixture_set/table_rows"
 require "active_record/test_fixtures"
-require "active_record/errors"
 
 module ActiveRecord
   class FixtureClassNotFound < ActiveRecord::ActiveRecordError #:nodoc:

@@ -60,6 +60,34 @@ class RangeTest < ActiveSupport::TestCase
     assert((1..10).include?(1...11))
   end
 
+  if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("2.6.0")
+    def test_include_with_endless_range
+      assert(eval("1..").include?(2))
+    end
+
+    def test_should_include_range_with_endless_range
+      assert(eval("1..").include?(2..4))
+    end
+
+    def test_should_not_include_range_with_endless_range
+      assert_not(eval("1..").include?(0..4))
+    end
+  end
+
+  if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("2.7.0")
+    def test_include_with_beginless_range
+      assert(eval("..2").include?(1))
+    end
+
+    def test_should_include_range_with_beginless_range
+      assert(eval("..2").include?(-1..1))
+    end
+
+    def test_should_not_include_range_with_beginless_range
+      assert_not(eval("..2").include?(-1..3))
+    end
+  end
+
   def test_should_compare_identical_inclusive
     assert((1..10) === (1..10))
   end
@@ -70,6 +98,26 @@ class RangeTest < ActiveSupport::TestCase
 
   def test_should_compare_other_with_exclusive_end
     assert((1..10) === (1...11))
+  end
+
+  if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("2.6.0")
+    def test_should_compare_range_with_endless_range
+      assert(eval("1..") === (2..4))
+    end
+
+    def test_should_not_compare_range_with_endless_range
+      assert_not(eval("1..") === (0..4))
+    end
+  end
+
+  if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("2.7.0")
+    def test_should_compare_range_with_beginless_range
+      assert(eval("..2") === (-1..1))
+    end
+
+    def test_should_not_compare_range_with_beginless_range
+      assert_not(eval("..2") === (-1..3))
+    end
   end
 
   def test_exclusive_end_should_not_include_identical_with_inclusive_end
@@ -95,6 +143,26 @@ class RangeTest < ActiveSupport::TestCase
 
   def test_should_cover_other_with_exclusive_end
     assert((1..10).cover?(1...11))
+  end
+
+  if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("2.6.0")
+    def test_should_cover_range_with_endless_range
+      assert(eval("1..").cover?(2..4))
+    end
+
+    def test_should_not_cover_range_with_endless_range
+      assert_not(eval("1..").cover?(0..4))
+    end
+  end
+
+  if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("2.7.0")
+    def test_should_cover_range_with_beginless_range
+      assert(eval("..2").cover?(-1..1))
+    end
+
+    def test_should_not_cover_range_with_beginless_range
+      assert_not(eval("..2").cover?(-1..3))
+    end
   end
 
   def test_overlaps_on_time

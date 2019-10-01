@@ -115,7 +115,7 @@ module ActiveJob
     #    end
     #  end
     def retry_job(options = {})
-      instrument :enqueue_retry, options.slice(:error, :wait) do
+      instrument :enqueue_retry, **options.slice(:error, :wait) do
         enqueue options
       end
     end
@@ -137,12 +137,6 @@ module ActiveJob
         else
           raise "Couldn't determine a delay based on #{seconds_or_duration_or_algorithm.inspect}"
         end
-      end
-
-      def instrument(name, error: nil, wait: nil, &block)
-        payload = { job: self, adapter: self.class.queue_adapter, error: error, wait: wait }
-
-        ActiveSupport::Notifications.instrument("#{name}.active_job", payload, &block)
       end
 
       def executions_for(exceptions)

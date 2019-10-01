@@ -62,7 +62,7 @@ class FormWithActsLikeFormTagTest < FormWithTest
   end
 
   def whole_form(action = "http://www.example.com", options = {})
-    out = form_text(action, options) + hidden_fields(options)
+    out = form_text(action, **options) + hidden_fields(options)
 
     if block_given?
       out << yield << "</form>"
@@ -168,7 +168,7 @@ class FormWithActsLikeFormTagTest < FormWithTest
 end
 
 class FormWithActsLikeFormForTest < FormWithTest
-  def form_with(*)
+  def form_with(*, **)
     @output_buffer = super
   end
 

@@ -12,7 +12,7 @@ module ActiveRecord
         super
 
         # Keep a duplicate pool so we do not bother others
-        @pool = ConnectionPool.new ActiveRecord::Base.connection_pool.spec
+        @pool = ConnectionPool.new(ActiveRecord::Base.connection_pool.db_config)
 
         if in_memory_db?
           # Separate connections to an in-memory database create an entirely new database,
@@ -198,9 +198,9 @@ module ActiveRecord
 
       def test_idle_timeout_configuration
         @pool.disconnect!
-        spec = ActiveRecord::Base.connection_pool.spec
-        spec.config.merge!(idle_timeout: "0.02")
-        @pool = ConnectionPool.new(spec)
+        db_config = ActiveRecord::Base.connection_pool.db_config
+        db_config.configuration_hash.merge!(idle_timeout: "0.02")
+        @pool = ConnectionPool.new(db_config)
         idle_conn = @pool.checkout
         @pool.checkin(idle_conn)
 
@@ -223,9 +223,9 @@ module ActiveRecord
 
       def test_disable_flush
         @pool.disconnect!
-        spec = ActiveRecord::Base.connection_pool.spec
-        spec.config.merge!(idle_timeout: -5)
-        @pool = ConnectionPool.new(spec)
+        db_config = ActiveRecord::Base.connection_pool.db_config
+        db_config.configuration_hash.merge!(idle_timeout: -5)
+        @pool = ConnectionPool.new(db_config)
         idle_conn = @pool.checkout
         @pool.checkin(idle_conn)
 
@@ -315,7 +315,7 @@ module ActiveRecord
       end
 
       def test_checkout_behaviour
-        pool = ConnectionPool.new ActiveRecord::Base.connection_pool.spec
+        pool = ConnectionPool.new(ActiveRecord::Base.connection_pool.db_config)
         main_connection = pool.connection
         assert_not_nil main_connection
         threads = []
@@ -448,7 +448,7 @@ module ActiveRecord
       end
 
       def test_automatic_reconnect_restores_after_disconnect
-        pool = ConnectionPool.new ActiveRecord::Base.connection_pool.spec
+        pool = ConnectionPool.new(ActiveRecord::Base.connection_pool.db_config)
         assert pool.automatic_reconnect
         assert pool.connection
 
@@ -457,7 +457,7 @@ module ActiveRecord
       end
 
       def test_automatic_reconnect_can_be_disabled
-        pool = ConnectionPool.new ActiveRecord::Base.connection_pool.spec
+        pool = ConnectionPool.new(ActiveRecord::Base.connection_pool.db_config)
         pool.disconnect!
         pool.automatic_reconnect = false
 
@@ -718,9 +718,12 @@ module ActiveRecord
 
       private
         def with_single_connection_pool
-          one_conn_spec = ActiveRecord::Base.connection_pool.spec.dup
-          one_conn_spec.config[:pool] = 1 # this is safe to do, because .dupped ConnectionSpecification also auto-dups its config
-          yield(pool = ConnectionPool.new(one_conn_spec))
+          old_config = ActiveRecord::Base.connection_pool.db_config.configuration_hash
+          db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new("arunit", "primary", old_config.dup)
+
+          db_config.configuration_hash[:pool] = 1 # this is safe to do, because .dupped ConnectionSpecification also auto-dups its config
+
+          yield(pool = ConnectionPool.new(db_config))
         ensure
           pool.disconnect! if pool
         end

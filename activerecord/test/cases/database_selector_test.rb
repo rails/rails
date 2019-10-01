@@ -62,7 +62,11 @@ module ActiveRecord
 
         ActiveRecord::Base.connected_to(role: :writing, prevent_writes: false) do
           assert ActiveRecord::Base.connected_to?(role: :writing)
+          assert_not_predicate ActiveRecord::Base.connection, :preventing_writes?
         end
+
+        assert ActiveRecord::Base.connected_to?(role: :writing)
+        assert_predicate ActiveRecord::Base.connection, :preventing_writes?
       end
       assert called
     end

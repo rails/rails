@@ -220,14 +220,14 @@ module ApplicationTests
       test "db:create and db:drop works on all databases for env" do
         require "#{app_path}/config/environment"
         ActiveRecord::Base.configurations.configs_for(env_name: Rails.env).each do |db_config|
-          db_create_and_drop db_config.spec_name, db_config.config["database"]
+          db_create_and_drop db_config.spec_name, db_config.database
         end
       end
 
       test "db:create:namespace and db:drop:namespace works on specified databases" do
         require "#{app_path}/config/environment"
         ActiveRecord::Base.configurations.configs_for(env_name: Rails.env).each do |db_config|
-          db_create_and_drop_namespace db_config.spec_name, db_config.config["database"]
+          db_create_and_drop_namespace db_config.spec_name, db_config.database
         end
       end
 
@@ -359,7 +359,7 @@ module ApplicationTests
         db_migrate_and_schema_dump_and_load "schema"
 
         app_file "db/seeds.rb", <<-RUBY
-          print Book.connection.pool.spec.config[:database]
+          print Book.connection.pool.db_config.database
         RUBY
 
         output = rails("db:seed")

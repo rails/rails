@@ -805,7 +805,7 @@ class FixtureWithSetModelClassTest < ActiveRecord::TestCase
   fixtures :other_posts, :other_comments
 
   # Set to false to blow away fixtures cache and ensure our fixtures are loaded
-  # and thus takes into account the +set_model_class+.
+  # and thus takes into account the `model_class` set in the fixture.
   self.use_transactional_tests = false
 
   def test_uses_fixture_class_defined_in_yaml
@@ -825,7 +825,7 @@ class SetFixtureClassPrevailsTest < ActiveRecord::TestCase
   fixtures :bad_posts
 
   # Set to false to blow away fixtures cache and ensure our fixtures are loaded
-  # and thus takes into account the +set_model_class+.
+  # and thus takes into account our `set_fixture_class`.
   self.use_transactional_tests = false
 
   def test_uses_set_fixture_class
@@ -837,7 +837,7 @@ class CheckSetTableNameFixturesTest < ActiveRecord::TestCase
   set_fixture_class funny_jokes: Joke
   fixtures :funny_jokes
   # Set to false to blow away fixtures cache and ensure our fixtures are loaded
-  # and thus takes into account our set_fixture_class
+  # and thus takes into account our `set_fixture_class`.
   self.use_transactional_tests = false
 
   def test_table_method
@@ -849,7 +849,7 @@ class FixtureNameIsNotTableNameFixturesTest < ActiveRecord::TestCase
   set_fixture_class items: Book
   fixtures :items
   # Set to false to blow away fixtures cache and ensure our fixtures are loaded
-  # and thus takes into account our set_fixture_class
+  # and thus takes into account our `set_fixture_class`.
   self.use_transactional_tests = false
 
   def test_named_accessor
@@ -861,7 +861,7 @@ class FixtureNameIsNotTableNameMultipleFixturesTest < ActiveRecord::TestCase
   set_fixture_class items: Book, funny_jokes: Joke
   fixtures :items, :funny_jokes
   # Set to false to blow away fixtures cache and ensure our fixtures are loaded
-  # and thus takes into account our set_fixture_class
+  # and thus takes into account our `set_fixture_class`.
   self.use_transactional_tests = false
 
   def test_named_accessor_of_differently_named_fixture
@@ -979,7 +979,7 @@ class CheckEscapedYamlFixturesTest < ActiveRecord::TestCase
   set_fixture_class funny_jokes: Joke
   fixtures :funny_jokes
   # Set to false to blow away fixtures cache and ensure our fixtures are loaded
-  # and thus takes into account our set_fixture_class
+  # and thus takes into account our `set_fixture_class`.
   self.use_transactional_tests = false
 
   def test_proper_escaped_fixture
@@ -1282,6 +1282,10 @@ end
 class IgnoreFixturesTest < ActiveRecord::TestCase
   fixtures :other_books, :parrots
 
+  # Set to false to blow away fixtures cache and ensure our fixtures are loaded
+  # without interfering with other tests that use the same `model_class`.
+  self.use_transactional_tests = false
+
   test "ignores books fixtures" do
     assert_raise(StandardError) { other_books(:published) }
     assert_raise(StandardError) { other_books(:published_paperback) }
@@ -1408,7 +1412,7 @@ class MultipleDatabaseFixturesTest < ActiveRecord::TestCase
   private
     def with_temporary_connection_pool
       old_pool = ActiveRecord::Base.connection_handler.retrieve_connection_pool(ActiveRecord::Base.connection_specification_name)
-      new_pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new ActiveRecord::Base.connection_pool.spec
+      new_pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new(ActiveRecord::Base.connection_pool.db_config)
       ActiveRecord::Base.connection_handler.send(:owner_to_pool)["primary"] = new_pool
 
       yield

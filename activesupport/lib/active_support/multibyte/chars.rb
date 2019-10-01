@@ -122,7 +122,7 @@ module ActiveSupport #:nodoc:
       #
       #   'こんにちは'.mb_chars.limit(7).to_s # => "こん"
       def limit(limit)
-        truncate_bytes(limit, omission: nil)
+        chars(@wrapped_string.truncate_bytes(limit, omission: nil))
       end
 
       # Capitalizes the first letter of every word, when possible.

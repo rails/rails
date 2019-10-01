@@ -15,9 +15,9 @@ module ActiveRecord
           Registration
         end
 
-        def find_registration(symbol, *args)
+        def find_registration(symbol, *args, **kwargs)
           registrations
-            .select { |registration| registration.matches?(symbol, *args) }
+            .select { |registration| registration.matches?(symbol, *args, **kwargs) }
             .max
         end
     end

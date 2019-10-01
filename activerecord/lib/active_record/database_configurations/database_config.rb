@@ -13,20 +13,44 @@ module ActiveRecord
         @spec_name = spec_name
       end
 
+      def config
+        raise NotImplementedError
+      end
+
+      def adapter_method
+        "#{adapter}_connection"
+      end
+
+      def database
+        raise NotImplementedError
+      end
+
+      def adapter
+        raise NotImplementedError
+      end
+
+      def pool
+        raise NotImplementedError
+      end
+
+      def checkout_timeout
+        raise NotImplementedError
+      end
+
+      def reaping_frequency
+        raise NotImplementedError
+      end
+
+      def idle_timeout
+        raise NotImplementedError
+      end
+
       def replica?
         raise NotImplementedError
       end
 
       def migrations_paths
         raise NotImplementedError
-      end
-
-      def url_config?
-        false
-      end
-
-      def to_legacy_hash
-        { env_name => config }
       end
 
       def for_current_env?

@@ -172,8 +172,8 @@ module ActiveSupport
     #
     #   other_verifier = ActiveSupport::MessageVerifier.new 'd1ff3r3nt-s3Krit'
     #   other_verifier.verify(signed_message) # => ActiveSupport::MessageVerifier::InvalidSignature
-    def verify(*args)
-      verified(*args) || raise(InvalidSignature)
+    def verify(*args, **options)
+      verified(*args, **options) || raise(InvalidSignature)
     end
 
     # Generates a signed message for the provided value.

@@ -3,7 +3,6 @@
 require "active_support/core_ext/enumerable"
 require "active_support/core_ext/string/conversions"
 require "active_support/core_ext/module/remove_method"
-require "active_record/errors"
 
 module ActiveRecord
   class AssociationNotFoundError < ConfigurationError #:nodoc:
@@ -1857,7 +1856,7 @@ module ActiveRecord
             hm_options[k] = options[k] if options.key? k
           end
 
-          has_many name, scope, hm_options, &extension
+          has_many name, scope, **hm_options, &extension
           _reflections[name.to_s].parent_reflection = habtm_reflection
         end
       end

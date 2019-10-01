@@ -770,7 +770,7 @@ class ReservedWordsMigrationTest < ActiveRecord::TestCase
 
     assert_nothing_raised do
       connection.add_index :values, :value
-      connection.remove_index :values, column: :value
+      connection.remove_index :values, :value
     end
   ensure
     connection.drop_table :values rescue nil
@@ -786,7 +786,7 @@ class ExplicitlyNamedIndexMigrationTest < ActiveRecord::TestCase
 
     assert_nothing_raised do
       connection.add_index :values, :value, name: "a_different_name"
-      connection.remove_index :values, column: :value, name: "a_different_name"
+      connection.remove_index :values, :value, name: "a_different_name"
     end
   ensure
     connection.drop_table :values rescue nil
@@ -936,6 +936,34 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
       assert_equal "NONAME", column(:name).default
       assert_equal :datetime, column(:birthdate).type
       assert_equal "This is a comment", column(:birthdate).comment
+    end
+
+    def test_changing_index
+      with_bulk_change_table do |t|
+        t.string :username
+        t.index :username, name: :username_index
+      end
+
+      assert index(:username_index)
+      assert_not index(:username_index).unique
+
+      classname = ActiveRecord::Base.connection.class.name[/[^:]*$/]
+      expected_query_count = {
+        "Mysql2Adapter"     => 1, # mysql2 supports dropping and creating two indexes using one statement
+        "PostgreSQLAdapter" => 2,
+      }.fetch(classname) {
+        raise "need an expected query count for #{classname}"
+      }
+
+      assert_queries(expected_query_count) do
+        with_bulk_change_table do |t|
+          t.remove_index name: :username_index
+          t.index :username, name: :username_index, unique: true
+        end
+      end
+
+      assert index(:username_index)
+      assert index(:username_index).unique
     end
 
     private

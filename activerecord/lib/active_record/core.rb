@@ -43,9 +43,9 @@ module ActiveRecord
       #
       #   #<ActiveRecord::DatabaseConfigurations:0x00007fd1acbdf800 @configurations=[
       #     #<ActiveRecord::DatabaseConfigurations::HashConfig:0x00007fd1acbded10 @env_name="development",
-      #       @spec_name="primary", @config={"adapter"=>"sqlite3", "database"=>"db/development.sqlite3"}>,
+      #       @spec_name="primary", @config={adapter: "sqlite3", database: "db/development.sqlite3"}>,
       #     #<ActiveRecord::DatabaseConfigurations::HashConfig:0x00007fd1acbdea90 @env_name="production",
-      #       @spec_name="primary", @config={"adapter"=>"sqlite3", "database"=>"db/production.sqlite3"}>
+      #       @spec_name="primary", @config={adapter: "sqlite3", database: "db/production.sqlite3"}>
       #   ]>
       def self.configurations=(config)
         @@configurations = ActiveRecord::DatabaseConfigurations.new(config)
@@ -584,12 +584,16 @@ module ActiveRecord
         self.class.instance_method(:inspect).owner != ActiveRecord::Base.instance_method(:inspect).owner
       end
 
+      class InspectionMask < DelegateClass(::String)
+        def pretty_print(pp)
+          pp.text __getobj__
+        end
+      end
+      private_constant :InspectionMask
+
       def inspection_filter
         @inspection_filter ||= begin
-          mask = DelegateClass(::String).new(ActiveSupport::ParameterFilter::FILTERED)
-          def mask.pretty_print(pp)
-            pp.text __getobj__
-          end
+          mask = InspectionMask.new(ActiveSupport::ParameterFilter::FILTERED)
           ActiveSupport::ParameterFilter.new(self.class.filter_attributes, mask: mask)
         end
       end

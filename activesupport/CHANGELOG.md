@@ -1,3 +1,12 @@
+*   Improve `Range#===`, `Range#include?`, and `Range#cover?` to work with beginless (startless)
+    and endless range targets.
+
+    *Allen Hsu*, *Andrew Hodgkinson*
+
+*   Don't use `Process#clock_gettime(CLOCK_PROCESS_CPUTIME_ID)` on Solaris
+
+    *Iain Beeston*
+
 *   Prevent `ActiveSupport::Duration.build(value)` from creating instances of
     `ActiveSupport::Duration` unless `value` is of type `Numeric`.
 

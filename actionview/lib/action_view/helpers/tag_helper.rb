@@ -107,8 +107,8 @@ module ActionView
             true
           end
 
-          def method_missing(called, *args, &block)
-            tag_string(called, *args, &block)
+          def method_missing(called, *args, **options, &block)
+            tag_string(called, *args, **options, &block)
           end
       end
 

@@ -42,7 +42,7 @@ module Rails
   #   end
   #
   #   # lib/my_gem.rb
-  #   require 'my_gem/railtie' if defined?(Rails)
+  #   require 'my_gem/railtie' if defined?(Rails::Railtie)
   #
   # == Initializers
   #

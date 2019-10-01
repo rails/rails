@@ -166,7 +166,7 @@ module ActionView
       def cache(name = {}, options = {}, &block)
         if controller.respond_to?(:perform_caching) && controller.perform_caching
           name_options = options.slice(:skip_digest, :virtual_path)
-          safe_concat(fragment_for(cache_fragment_name(name, name_options), options, &block))
+          safe_concat(fragment_for(cache_fragment_name(name, **name_options), options, &block))
         else
           yield
         end

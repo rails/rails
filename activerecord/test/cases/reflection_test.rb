@@ -256,14 +256,6 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_kind_of ThroughReflection, Subscriber.reflect_on_association(:books)
   end
 
-  def test_uncastable_has_many_through_reflection
-    error = assert_raises(NotImplementedError) { Subscriber.new.published_books }
-    assert_equal <<~MSG.squish, error.message
-      In order to correctly type cast Subscriber.nick,
-      PublishedBook needs to define a :subscriptions association.
-    MSG
-  end
-
   def test_chain
     expected = [
       Organization.reflect_on_association(:author_essay_categories),
@@ -523,4 +515,71 @@ class ReflectionTest < ActiveRecord::TestCase
         assert_equal(value, reflection.send(method))
       end
     end
+end
+
+class UncastableReflectionTest < ActiveRecord::TestCase
+  class Book < ActiveRecord::Base
+  end
+
+  class Subscription < ActiveRecord::Base
+    belongs_to :subscriber
+    belongs_to :book
+  end
+
+  class Subscriber < ActiveRecord::Base
+    self.primary_key = "nick"
+    has_many :subscriptions
+    has_one :subscription
+    has_many :books, through: :subscriptions
+    has_one :book, through: :subscription
+  end
+
+  setup do
+    @subscriber = Subscriber.create!(nick: "unique")
+  end
+
+  teardown do
+    Book._reflections.clear
+    Book.clear_reflections_cache
+    silence_warnings do
+      Subscriber.has_many :books, through: :subscriptions
+      Subscriber.has_one :book, through: :subscription
+    end
+  end
+
+  test "uncastable has_many through: reflection" do
+    error = assert_raises(NotImplementedError) { @subscriber.books }
+    assert_equal <<~MSG.squish, error.message
+      In order to correctly type cast UncastableReflectionTest::Subscriber.nick,
+      UncastableReflectionTest::Book needs to define a :subscriptions association.
+    MSG
+  end
+
+  test "uncastable has_one through: reflection" do
+    error = assert_raises(NotImplementedError) { @subscriber.book }
+
+    assert_equal <<~MSG.squish, error.message
+      In order to correctly type cast UncastableReflectionTest::Subscriber.nick,
+      UncastableReflectionTest::Book needs to define a :subscription association.
+    MSG
+  end
+
+  test "fixing uncastable has_many through: reflection with has_many" do
+    silence_warnings do
+      Book.has_many :subscriptions
+    end
+    @subscriber.books
+  end
+
+  test "fixing uncastable has_one through: reflection with has_many" do
+    silence_warnings do
+      Book.has_many :subscriptions
+    end
+    @subscriber.book
+  end
+
+  test "fixing uncastable has_one through: reflection with has_one" do
+    Book.has_one :subscription
+    @subscriber.book
+  end
 end
