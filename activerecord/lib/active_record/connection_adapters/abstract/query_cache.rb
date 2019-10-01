@@ -135,6 +135,7 @@ module ActiveRecord
             type_casted_binds: -> { type_casted_binds(binds) },
             name: name,
             connection_id: object_id,
+            connection: self,
             cached: true
           }
         end
