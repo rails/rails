@@ -130,7 +130,7 @@ user.avatar.variant(resize: "100x100").deliver(:proxy)
 ```
 
 ### Changing the host of proxied urls
-When using the proxy option to deliver assets you can use host option. This is useful if your CDN is setup to operate on a different domain. When option is nil URLS will be relative.
+When using the proxy option to deliver assets you can set the host. This is useful if your CDN is setup to operate on a different domain.
 
 ```ruby
 config.active_storage.proxy_delivery_method = ActiveStorage::DeliveryMethod::Proxy.new(host: 'https://cdn.domain.com')
