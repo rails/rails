@@ -889,10 +889,10 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 
 * `config.active_storage.draw_routes` can be used to toggle Active Storage route generation. The default is `true`.
 
-* `config.active_storage.delivery_method` can be used to globally change how Active Storage files are delivered.
+* `config.active_storage.default_delivery_method` can be used to globally change how Active Storage files are delivered.
 
   ```ruby
-  config.active_storage.delivery_method = :proxy
+  config.active_storage.default_delivery_method = :proxy
   ```
 
   The default is `:redirect` Can include any of these options:
@@ -907,18 +907,10 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 
   The default is `1.year`.
 
-* `config.active_storage.proxy_urls_public` Determines whether proxied files are public.
+* `config.active_storage.proxy_delivery_method` Sets the proxy delivery method.
 
   ```ruby
-  config.active_storage.proxy_urls_public = false
-  ```
-
-  The default is `true`.
-
-* `config.active_storage.proxy_urls_host` Sets the host for proxied assets, when left nil URLS will be relative.
-
-  ```ruby
-  config.active_storage.proxy_urls_host = "cdn.mydomain.com"
+  config.active_storage.proxy_delivery_method = ActiveStorage::DeliveryMethod::Proxy.new(host: 'https://cdn.domain.com')
   ```
 
   The default is `nil`.
