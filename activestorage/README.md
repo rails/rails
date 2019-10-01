@@ -113,7 +113,7 @@ You can change the delivery method to best suit the needs of your application.
 Requests for files will redirect to a temporary service URL.
 
 ### Proxy
-Files are proxied through the application server so they appear as though they're being served from your server. Useful for CDNs such as Cloudflare.
+Files are proxied through the application server so they appear as though they're being served from your server. Useful for serving images from a CDN.
 
 ### Changing delivery method
 globally
