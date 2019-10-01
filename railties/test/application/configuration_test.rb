@@ -1213,6 +1213,25 @@ module ApplicationTests
       assert_raises(ArgumentError) { config.autoloader = :unknown }
     end
 
+    test "loading paths can be set by environment config file" do
+      build_app(directories: ["autoload_path", "eager_load_path", "autoload_once_path"])
+      add_to_env_config "development", <<-RUBY
+        config.autoload_paths << Rails.root.join("autoload_path").to_s
+        config.autoload_once_paths << Rails.root.join("autoload_once_path").to_s
+        config.eager_load_paths << Rails.root.join("eager_load_path").to_s
+      RUBY
+
+      app "development"
+
+      assert_equal ["#{app_path}/autoload_path"], Rails.application.config.autoload_paths
+      assert_equal ["#{app_path}/autoload_once_path"], Rails.application.config.autoload_once_paths
+      assert Rails.application.config.eager_load_paths.include?("#{app_path}/eager_load_path")
+      assert $LOAD_PATH.include? "#{app_path}/autoload_path"
+      assert $LOAD_PATH.include? "#{app_path}/eager_load_path"
+      assert $LOAD_PATH.include? "#{app_path}/autoload_once_path"
+    end
+
+
     test "config.action_view.cache_template_loading with cache_classes default" do
       add_to_config "config.cache_classes = true"
 
