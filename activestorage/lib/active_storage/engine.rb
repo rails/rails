@@ -88,8 +88,8 @@ module ActiveStorage
         ActiveStorage.replace_on_assign_to_many = app.config.active_storage.replace_on_assign_to_many || false
 
         ActiveStorage.delivery_methods = app.config.active_storage.delivery_methods || {
-          redirect: ActiveStorage::DeliveryMethod::Redirect.new,
-          proxy: ActiveStorage::DeliveryMethod::Proxy.new
+          redirect: app.config.active_storage.redirect_delivery_method || ActiveStorage::DeliveryMethod::Redirect.new,
+          proxy: app.config.active_storage.proxy_delivery_method || ActiveStorage::DeliveryMethod::Proxy.new
         }
         ActiveStorage.default_delivery_method = app.config.active_storage.default_delivery_method || :redirect
 
