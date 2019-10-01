@@ -1505,6 +1505,64 @@ strip_tags("<b>Bold</b> no more!  <a href='more.html'>See more</a>")
 
 NB: The output may still contain unescaped '<', '>', '&' characters and confuse browsers.
 
+### UrlHelper
+Provides a set of methods for making links and getting URLs that
+depend on the routing subsystem.
+
+#### url_for
+Returns the URL for the set of `options` provided.
+
+##### Examples
+```ruby
+url_for([@hotel, @booking, page: 2, line: 3])
+# => /hotels/1/bookings/1?line=3&page=2
+
+url_for(:back)
+# if request.env["HTTP_REFERER"] is set to "http://www.example.com"
+# => http://www.example.com
+```
+#### link_to
+ Creates an anchor element of the given `name` using a URL created by the set of `options`.
+ See the valid options in the documentation for `url_for`. 
+ 
+**Examples**
+
+Because it relies on `url_for`, `link_to` supports both older-style `controller/action/id` arguments
+and newer RESTful routes. Current Rails style favors RESTful routes whenever possible, so base
+your application on resources and use
+
+```ruby
+link_to "Profile", profile_path(@profile)
+# => <a href="/profiles/1">Profile</a>
+```
+
+You can use a block as well if your link target is hard to fit into the name parameter. ERB example:
+
+```html+erb
+<%= link_to(@profile) do %>
+    <strong><%= @profile.name %></strong> -- <span>Check it out!</span>
+<% end %>
+# => <a href="/profiles/1">
+        <strong>David</strong> -- <span>Check it out!</span>
+     </a>
+```
+See [API Doc for more info](https://api.rubyonrails.org/v6.0/classes/ActionView/Helpers/UrlHelper.html#method-i-link_to)
+
+#### button_to
+Generates a form containing a single button that submits to the URL created
+by the set of `options`.
+
+##### Examples
+
+```html+erb
+<%= button_to "New", action: "new" %>
+# => "<form method="post" action="/controller/new" class="button_to">
+#      <input value="New" type="submit" />
+#    </form>"
+```
+
+See [API Doc for more info](https://api.rubyonrails.org/v6.0/classes/ActionView/Helpers/UrlHelper.html#method-i-button_to)
+
 ### CsrfHelper
 
 Returns meta tags "csrf-param" and "csrf-token" with the name of the cross-site
