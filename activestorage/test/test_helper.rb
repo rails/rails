@@ -35,13 +35,13 @@ end
 
 require "tmpdir"
 
-Rails.configuration.active_storage.service_configurations = {
+Rails.configuration.active_storage.service_configurations = SERVICE_CONFIGURATIONS.deep_stringify_keys.merge(
   "local" => { "service" => "Disk", "root" => Dir.mktmpdir("active_storage_tests") },
   "disk_mirror_1" => { "service" => "Disk", "root" => Dir.mktmpdir("active_storage_tests_1") },
   "disk_mirror_2" => { "service" => "Disk", "root" => Dir.mktmpdir("active_storage_tests_2") },
   "disk_mirror_3" => { "service" => "Disk", "root" => Dir.mktmpdir("active_storage_tests_3") },
   "mirror" => { "service" => "Mirror", "primary" => "local", "mirrors" => ["disk_mirror_1", "disk_mirror_2", "disk_mirror_3"] }
-}
+)
 
 Rails.configuration.active_storage.service = "local"
 

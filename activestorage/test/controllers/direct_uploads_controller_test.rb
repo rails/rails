@@ -6,12 +6,14 @@ require "database/setup"
 if SERVICE_CONFIGURATIONS[:s3] && SERVICE_CONFIGURATIONS[:s3][:access_key_id].present?
   class ActiveStorage::S3DirectUploadsControllerTest < ActionDispatch::IntegrationTest
     setup do
+      Rails.configuration.active_storage.service = "s3"
       @old_service = ActiveStorage::Blob.service
       ActiveStorage::Blob.service = ActiveStorage::Service.configure(:s3, SERVICE_CONFIGURATIONS)
     end
 
     teardown do
       ActiveStorage::Blob.service = @old_service
+      Rails.configuration.active_storage.service = "local"
     end
 
     test "creating new direct upload" do
