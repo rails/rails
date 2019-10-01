@@ -113,12 +113,12 @@ You can change the delivery method to best suit the needs of your application.
 Requests for files will redirect to a temporary service URL.
 
 ### Proxy
-Files are proxied through the application server so they appear as though they're being served from your server. Useful for serving images from a CDN.
+Files are proxied through the application server so they appear as though they're being served from your server. Useful for serving images from a CDN or HTML caching.
 
 ### Changing delivery method
 globally
 ```ruby
-app.config.active_storage.default_delivery_method = :proxy
+config.active_storage.default_delivery_method = :proxy
 ```
 model
 ```ruby
