@@ -338,7 +338,7 @@ Call `images.attached?` to determine whether a particular message has any images
 @message.images.attached?
 ```
 
-Overriding the default service is done done the same way as `has_one_attached`, by using the `service` option:
+Overriding the default service is done the same way as `has_one_attached`, by using the `service` option:
 
 ```ruby
 class Message < ApplicationRecord
