@@ -128,11 +128,14 @@ module ActiveStorage
       end
 
       def public_url(key, filename:, content_type: nil, disposition: :attachment, **)
-        content_disposition = content_disposition_with(type: disposition, filename: filename)
-
         current_uri = URI.parse(current_host)
 
-        url_helpers.rails_disk_service_public_url(key, filename: filename, host: current_host)
+        url_helpers.rails_disk_service_public_url(key,
+          protocol: current_uri.scheme,
+          host: current_uri.host,
+          port: current_uri.port,
+          filename: filename
+        )
       end
 
     private

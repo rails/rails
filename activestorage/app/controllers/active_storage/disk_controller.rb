@@ -50,6 +50,7 @@ class ActiveStorage::DiskController < ActiveStorage::BaseController
       ActiveStorage::Blob.service
     end
 
+
     def decode_verified_key
       ActiveStorage.verifier.verified(params[:encoded_key], purpose: :blob_key)
     end
