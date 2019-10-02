@@ -202,7 +202,7 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
     blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
 
     mock_upload = lambda do |_, _, options = {}|
-      assert_equal options[:content_type], "image/jpeg"
+      assert_equal "image/jpeg", options[:content_type]
     end
 
     blob.service.stub(:upload, mock_upload) do
