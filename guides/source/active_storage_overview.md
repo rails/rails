@@ -97,6 +97,12 @@ config.active_storage.service = :test
 Continue reading for more information on the built-in service adapters (e.g.
 `Disk` and `S3`) and the configuration they require.
 
+#### Troubleshooting with direct uploads
+
+When using S3 in conjunction with direct uploads it is vitally important to ensure CORS is setup to allow `PUT` access and all headers using `*` (wildcard).
+
+When specifying domains in S3 configuration setting allowed origins to `*` (wildcard) can overcome some issues with frontend uploading CORS errors in Google Chrome and Firefox, which should appear in the browser console, not be intermittent and fail on an OPTIONS request, visible under `xhr` of the `network` tab of the browser developer tools.
+
 ### Disk Service
 
 Declare a Disk service in `config/storage.yml`:
