@@ -12,10 +12,12 @@ module ActiveStorage
   class Service::AzureStorageService < Service
     attr_reader :client, :container, :signer
 
-    def initialize(storage_account_name:, storage_access_key:, container:, **options)
+    def initialize(storage_account_name:, storage_access_key:, container:, public_service: false, **options)
       @client = Azure::Storage::Blob::BlobService.create(storage_account_name: storage_account_name, storage_access_key: storage_access_key, **options)
       @signer = Azure::Storage::Common::Core::Auth::SharedAccessSignature.new(storage_account_name, storage_access_key)
       @container = container
+
+      @public_service = public_service
     end
 
     def upload(key, io, checksum: nil, filename: nil, content_type: nil, disposition: nil, **)
@@ -85,35 +87,6 @@ module ActiveStorage
       end
     end
 
-    def url(key, expires_in:, filename:, disposition:, content_type:)
-      instrument :url, key: key do |payload|
-        generated_url = signer.signed_uri(
-          uri_for(key), false,
-          service: "b",
-          permissions: "r",
-          expiry: format_expiry(expires_in),
-          content_disposition: content_disposition_with(type: disposition, filename: filename),
-          content_type: content_type
-        ).to_s
-
-        payload[:url] = generated_url
-
-        generated_url
-      end
-    end
-
-    def public_url(key, filename, *_args)
-      instrument :url, key: key do |payload|
-        filepath = File.join(key, filename)
-
-        generated_url = blobs.send(:blob_uri, container, filepath).to_s
-
-        payload[:url] = generated_url
-
-        generated_url
-      end
-    end
-
     def url_for_direct_upload(key, expires_in:, content_type:, content_length:, checksum:)
       instrument :url, key: key do |payload|
         generated_url = signer.signed_uri(
@@ -134,6 +107,22 @@ module ActiveStorage
 
       { "Content-Type" => content_type, "Content-MD5" => checksum, "x-ms-blob-content-disposition" => content_disposition, "x-ms-blob-type" => "BlockBlob" }
     end
+
+    protected
+      def private_url(key, expires_in:, filename:, disposition:, content_type:, **)
+        signer.signed_uri(
+          uri_for(key), false,
+          service: "b",
+          permissions: "r",
+          expiry: format_expiry(expires_in),
+          content_disposition: content_disposition_with(type: disposition, filename: filename),
+          content_type: content_type
+        ).to_s
+      end
+
+      def public_url(key, **)
+        blobs.send(:blob_uri, container, key).to_s
+      end
 
     private
       def uri_for(key)

@@ -32,11 +32,7 @@ class ActiveStorage::Blob < ActiveRecord::Base
   has_secure_token :key, length: MINIMUM_TOKEN_LENGTH
   store :metadata, accessors: [ :analyzed, :identified ], coder: ActiveRecord::Coders::JSON
 
-  class_attribute :private_service
-  class_attribute :public_service
-
-  validate :file_access_level_cannot_be_changed
-  validate :public_filename_cannot_be_changed
+  class_attribute :service
 
   has_many :attachments
 
@@ -61,10 +57,6 @@ class ActiveStorage::Blob < ActiveRecord::Base
   end
 
   class << self
-    def service_for(key)
-      find_by(key: key).service
-    end
-
     # You can use the signed ID of a blob to refer to it on the client side without fear of tampering.
     # This is particularly helpful for direct uploads where the client-side needs to refer to the blob
     # that was created ahead of the upload itself on form submission.
@@ -167,23 +159,29 @@ class ActiveStorage::Blob < ActiveRecord::Base
     content_type.start_with?("text")
   end
 
-  def url(**options)
-    if public_file?
-      public_url(**options)
-    else
-      service_url(**options)
-    end
+  # Returns the URL of the blob on the service. This returns a permanent URL for public files, and returns a
+  # short-lived URL for private files. Private files are for security and not used directly with users, instead,
+  # the URL should only be exposed as a redirect from a stable, possibly authenticated URL. Hiding the
+  # URL behind a redirect also gives you the power to change services without updating all URLs.
+  def url(expires_in: ActiveStorage.service_urls_expire_in, disposition: :inline, filename: nil, **options)
+    filename = ActiveStorage::Filename.wrap(filename || self.filename)
+
+    service.url key, expires_in: expires_in, filename: filename, content_type: content_type_for_service_url,
+      disposition: forced_disposition_for_service_url || disposition, **options
   end
+
+  alias_method :service_url, :url
+  deprecate :service_url
 
   # Returns a URL that can be used to directly upload a file for this blob on the service. This URL is intended to be
   # short-lived for security and only generated on-demand by the client-side JavaScript responsible for doing the uploading.
   def service_url_for_direct_upload(expires_in: ActiveStorage.service_urls_expire_in)
-    service.url_for_direct_upload upload_path, expires_in: expires_in, content_type: content_type, content_length: byte_size, checksum: checksum
+    service.url_for_direct_upload key, expires_in: expires_in, content_type: content_type, content_length: byte_size, checksum: checksum
   end
 
   # Returns a Hash of headers for +service_url_for_direct_upload+ requests.
   def service_headers_for_direct_upload
-    service.headers_for_direct_upload upload_path, filename: filename, content_type: content_type, content_length: byte_size, checksum: checksum
+    service.headers_for_direct_upload key, filename: filename, content_type: content_type, content_length: byte_size, checksum: checksum
   end
 
 
@@ -212,13 +210,13 @@ class ActiveStorage::Blob < ActiveRecord::Base
   end
 
   def upload_without_unfurling(io) #:nodoc:
-    service.upload upload_path, io, checksum: checksum, **service_metadata
+    service.upload key, io, checksum: checksum, **service_metadata
   end
 
   # Downloads the file associated with this blob. If no block is given, the entire file is read into memory and returned.
   # That'll use a lot of RAM for very large files. If a block is given, then the download is streamed and yielded in chunks.
   def download(&block)
-    service.download upload_path, &block
+    service.download key, &block
   end
 
   # Downloads the blob to a tempfile on disk. Yields the tempfile.
@@ -235,7 +233,7 @@ class ActiveStorage::Blob < ActiveRecord::Base
   #
   # Raises ActiveStorage::IntegrityError if the downloaded data does not match the blob's checksum.
   def open(tmpdir: nil, &block)
-    service.open upload_path, checksum: checksum,
+    service.open key, checksum: checksum,
       name: [ "ActiveStorage-#{id}-", filename.extension_with_delimiter ], tmpdir: tmpdir, &block
   end
 
@@ -247,7 +245,7 @@ class ActiveStorage::Blob < ActiveRecord::Base
   # deleted as well or you will essentially have a dead reference. It's recommended to use #purge and #purge_later
   # methods in most circumstances.
   def delete
-    service.delete(upload_path)
+    service.delete(key)
     service.delete_prefixed("variants/#{key}/") if image?
   end
 
@@ -272,42 +270,6 @@ class ActiveStorage::Blob < ActiveRecord::Base
   end
 
   private
-    def file_access_level_cannot_be_changed
-      return if new_record?
-
-      errors.add(:public_file, "cannot be changed") if public_file_changed?
-    end
-
-    def public_filename_cannot_be_changed
-      return if new_record?
-      return unless public_file?
-
-      errors.add(:filename, "for public files cannot be changed") if filename_changed?
-    end
-
-    def upload_path
-      if public_file?
-        File.join(key, filename.to_s)
-      else
-        key
-      end
-    end
-
-    def public_url(**options)
-      service.public_url key, filename.to_s, content_type: content_type, **options
-    end
-
-    # Returns the URL of the blob on the service. This URL is intended to be short-lived for security and not used directly
-    # with users. Instead, the +service_url+ should only be exposed as a redirect from a stable, possibly authenticated URL.
-    # Hiding the +service_url+ behind a redirect also gives you the power to change services without updating all URLs. And
-    # it allows permanent URLs that redirect to the +service_url+ to be cached in the view.
-    def service_url(expires_in: ActiveStorage.service_urls_expire_in, disposition: :inline, filename: nil, **options)
-      filename = ActiveStorage::Filename.wrap(filename || self.filename)
-
-      service.url upload_path, expires_in: expires_in, filename: filename, content_type: content_type_for_service_url,
-        disposition: forced_disposition_for_service_url || disposition, **options
-    end
-
     def compute_checksum_in_chunks(io)
       Digest::MD5.new.tap do |checksum|
         while chunk = io.read(5.megabytes)

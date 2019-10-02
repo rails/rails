@@ -7,8 +7,10 @@ module ActiveStorage
   # Wraps the Google Cloud Storage as an Active Storage service. See ActiveStorage::Service for the generic API
   # documentation that applies to all services.
   class Service::GCSService < Service
-    def initialize(**config)
+    def initialize(public_service: false, **config)
       @config = config
+
+      @public_service = public_service
     end
 
     def upload(key, io, checksum: nil, content_type: nil, disposition: nil, filename: nil)
@@ -81,31 +83,6 @@ module ActiveStorage
       end
     end
 
-    def url(key, expires_in:, filename:, content_type:, disposition:)
-      instrument :url, key: key do |payload|
-        generated_url = file_for(key).signed_url expires: expires_in, query: {
-          "response-content-disposition" => content_disposition_with(type: disposition, filename: filename),
-          "response-content-type" => content_type
-        }
-
-        payload[:url] = generated_url
-
-        generated_url
-      end
-    end
-
-    def public_url(key, filename)
-      instrument :url, key: key do |payload|
-        filepath = File.join(key, filename)
-
-        generated_url = file_for(filepath).public_url
-
-        payload[:url] = generated_url
-
-        generated_url
-      end
-    end
-
     def url_for_direct_upload(key, expires_in:, checksum:, **)
       instrument :url, key: key do |payload|
         generated_url = bucket.signed_url key, method: "PUT", expires: expires_in, content_md5: checksum
@@ -121,6 +98,18 @@ module ActiveStorage
 
       { "Content-MD5" => checksum, "Content-Disposition" => content_disposition }
     end
+
+    protected
+      def private_url(key, expires_in:, filename:, content_type:, disposition:, **)
+        file_for(key).signed_url expires: expires_in, query: {
+          "response-content-disposition" => content_disposition_with(type: disposition, filename: filename),
+          "response-content-type" => content_type
+        }
+      end
+
+      def public_url(key, **)
+        file_for(key).public_url
+      end
 
     private
       attr_reader :config
