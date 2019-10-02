@@ -7,6 +7,7 @@ require "database/setup"
 if SERVICE_CONFIGURATIONS[:s3]
   class ActiveStorage::Service::S3ServiceTest < ActiveSupport::TestCase
     SERVICE = ActiveStorage::Service.configure(:s3, SERVICE_CONFIGURATIONS)
+    PUBLIC_SERVICE = ActiveStorage::Service.configure(:s3_public, SERVICE_CONFIGURATIONS)
 
     include ActiveStorage::Service::SharedServiceTests
 
@@ -134,10 +135,9 @@ if SERVICE_CONFIGURATIONS[:s3]
     end
 
     test "public URL generation" do
-      url = @service.public_url(@public_file_key, @public_file_name)
+      url = @public_service.url(@public_file_key, filename: ActiveStorage::Filename.new("avatar.png"))
 
-      assert_match(/.*\.s3\.amazonaws\.com\/.*\/#{@public_filepath}/,
-        url)
+      assert_match(/.*\.s3\.amazonaws\.com\/.*\/#{@public_file_key}/, url)
 
       response = Net::HTTP.get_response(URI(url))
       assert_equal "200", response.code

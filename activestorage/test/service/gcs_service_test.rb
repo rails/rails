@@ -6,6 +6,7 @@ require "net/http"
 if SERVICE_CONFIGURATIONS[:gcs]
   class ActiveStorage::Service::GCSServiceTest < ActiveSupport::TestCase
     SERVICE = ActiveStorage::Service.configure(:gcs, SERVICE_CONFIGURATIONS)
+    PUBLIC_SERVICE = ActiveStorage::Service.configure(:gcs_public, SERVICE_CONFIGURATIONS)
 
     include ActiveStorage::Service::SharedServiceTests
 
@@ -106,10 +107,9 @@ if SERVICE_CONFIGURATIONS[:gcs]
     end
 
     test "public URL generation" do
-      url = @service.public_url(@public_file_key, @public_file_name)
+      url = @public_service.url(@public_file_key, filename: ActiveStorage::Filename.new("avatar.png"))
 
-      assert_match(/storage\.googleapis\.com\/.*\/#{@public_filepath}/,
-        url)
+      assert_match(/storage\.googleapis\.com\/.*\/#{@public_file_key}/, url)
 
       response = Net::HTTP.get_response(URI(url))
       assert_equal "200", response.code

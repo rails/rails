@@ -12,7 +12,7 @@ class ActiveStorage::PurgeJobTest < ActiveJob::TestCase
     end
 
     assert_not ActiveStorage::Blob.exists?(@blob.id)
-    assert_not ActiveStorage::Blob.private_service.exist?(@blob.key)
+    assert_not ActiveStorage::Blob.service.exist?(@blob.key)
   end
 
   test "ignores missing blob" do

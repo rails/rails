@@ -157,20 +157,20 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     @user.highlights = [ fixture_file_upload("racecar.jpg"), fixture_file_upload("video.mp4") ]
     assert_equal "racecar.jpg", @user.highlights.first.filename.to_s
     assert_equal "video.mp4", @user.highlights.second.filename.to_s
-    assert_not ActiveStorage::Blob.private_service.exist?(@user.highlights.first.key)
-    assert_not ActiveStorage::Blob.private_service.exist?(@user.highlights.second.key)
+    assert_not ActiveStorage::Blob.service.exist?(@user.highlights.first.key)
+    assert_not ActiveStorage::Blob.service.exist?(@user.highlights.second.key)
 
     @user.save!
-    assert ActiveStorage::Blob.private_service.exist?(@user.highlights.first.key)
-    assert ActiveStorage::Blob.private_service.exist?(@user.highlights.second.key)
+    assert ActiveStorage::Blob.service.exist?(@user.highlights.first.key)
+    assert ActiveStorage::Blob.service.exist?(@user.highlights.second.key)
   end
 
   test "unsuccessfully updating an existing record to attach new blobs from uploaded files" do
     assert_not @user.update(name: "", highlights: [ fixture_file_upload("racecar.jpg"), fixture_file_upload("video.mp4") ])
     assert_equal "racecar.jpg", @user.highlights.first.filename.to_s
     assert_equal "video.mp4", @user.highlights.second.filename.to_s
-    assert_not ActiveStorage::Blob.private_service.exist?(@user.highlights.first.key)
-    assert_not ActiveStorage::Blob.private_service.exist?(@user.highlights.second.key)
+    assert_not ActiveStorage::Blob.service.exist?(@user.highlights.first.key)
+    assert_not ActiveStorage::Blob.service.exist?(@user.highlights.second.key)
   end
 
   test "replacing existing, dependent attachments on an existing record via assign and attach" do
@@ -188,8 +188,8 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
       assert_equal "wherever.jpg", @user.highlights.second.filename.to_s
       assert_not ActiveStorage::Blob.exists?(old_blobs.first.id)
       assert_not ActiveStorage::Blob.exists?(old_blobs.second.id)
-      assert_not ActiveStorage::Blob.private_service.exist?(old_blobs.first.key)
-      assert_not ActiveStorage::Blob.private_service.exist?(old_blobs.second.key)
+      assert_not ActiveStorage::Blob.service.exist?(old_blobs.first.key)
+      assert_not ActiveStorage::Blob.service.exist?(old_blobs.second.key)
     end
   end
 
@@ -219,8 +219,8 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
       assert_equal "wherever.jpg", @user.highlights.second.filename.to_s
       assert_not ActiveStorage::Blob.exists?(old_blobs.first.id)
       assert_not ActiveStorage::Blob.exists?(old_blobs.second.id)
-      assert_not ActiveStorage::Blob.private_service.exist?(old_blobs.first.key)
-      assert_not ActiveStorage::Blob.private_service.exist?(old_blobs.second.key)
+      assert_not ActiveStorage::Blob.service.exist?(old_blobs.first.key)
+      assert_not ActiveStorage::Blob.service.exist?(old_blobs.second.key)
     end
   end
 
@@ -244,8 +244,8 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
 
     assert_equal "racecar.jpg", @user.highlights.first.filename.to_s
     assert_equal "video.mp4", @user.highlights.second.filename.to_s
-    assert_not ActiveStorage::Blob.private_service.exist?(@user.highlights.first.key)
-    assert_not ActiveStorage::Blob.private_service.exist?(@user.highlights.second.key)
+    assert_not ActiveStorage::Blob.service.exist?(@user.highlights.first.key)
+    assert_not ActiveStorage::Blob.service.exist?(@user.highlights.second.key)
   end
 
   test "updating an existing record to attach one new blob and one previously-attached blob" do
@@ -260,7 +260,7 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
 
       assert_equal "funky.jpg", @user.highlights.first.filename.to_s
       assert_equal "town.jpg", @user.highlights.second.filename.to_s
-      assert ActiveStorage::Blob.private_service.exist?(@user.highlights.first.key)
+      assert ActiveStorage::Blob.service.exist?(@user.highlights.first.key)
     end
   end
 
@@ -345,8 +345,8 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
       assert user.highlights.second.blob.new_record?
       assert_equal "funky.jpg", user.highlights.first.filename.to_s
       assert_equal "town.jpg", user.highlights.second.filename.to_s
-      assert_not ActiveStorage::Blob.private_service.exist?(user.highlights.first.key)
-      assert_not ActiveStorage::Blob.private_service.exist?(user.highlights.second.key)
+      assert_not ActiveStorage::Blob.service.exist?(user.highlights.first.key)
+      assert_not ActiveStorage::Blob.service.exist?(user.highlights.second.key)
 
       user.save!
       assert user.highlights.first.persisted?
@@ -355,8 +355,8 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
       assert user.highlights.second.blob.persisted?
       assert_equal "funky.jpg", user.reload.highlights.first.filename.to_s
       assert_equal "town.jpg", user.highlights.second.filename.to_s
-      assert ActiveStorage::Blob.private_service.exist?(user.highlights.first.key)
-      assert ActiveStorage::Blob.private_service.exist?(user.highlights.second.key)
+      assert ActiveStorage::Blob.service.exist?(user.highlights.first.key)
+      assert ActiveStorage::Blob.service.exist?(user.highlights.second.key)
     end
   end
 
@@ -370,8 +370,8 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
       assert user.highlights.second.blob.new_record?
       assert_equal "racecar.jpg", user.highlights.first.filename.to_s
       assert_equal "video.mp4", user.highlights.second.filename.to_s
-      assert_not ActiveStorage::Blob.private_service.exist?(user.highlights.first.key)
-      assert_not ActiveStorage::Blob.private_service.exist?(user.highlights.second.key)
+      assert_not ActiveStorage::Blob.service.exist?(user.highlights.first.key)
+      assert_not ActiveStorage::Blob.service.exist?(user.highlights.second.key)
 
       user.save!
       assert user.highlights.first.persisted?
@@ -380,8 +380,8 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
       assert user.highlights.second.blob.persisted?
       assert_equal "racecar.jpg", user.reload.highlights.first.filename.to_s
       assert_equal "video.mp4", user.highlights.second.filename.to_s
-      assert ActiveStorage::Blob.private_service.exist?(user.highlights.first.key)
-      assert ActiveStorage::Blob.private_service.exist?(user.highlights.second.key)
+      assert ActiveStorage::Blob.service.exist?(user.highlights.first.key)
+      assert ActiveStorage::Blob.service.exist?(user.highlights.second.key)
     end
   end
 
@@ -407,8 +407,8 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
       assert user.highlights.second.blob.new_record?
       assert_equal "racecar.jpg", user.highlights.first.filename.to_s
       assert_equal "video.mp4", user.highlights.second.filename.to_s
-      assert_not ActiveStorage::Blob.private_service.exist?(user.highlights.first.key)
-      assert_not ActiveStorage::Blob.private_service.exist?(user.highlights.second.key)
+      assert_not ActiveStorage::Blob.service.exist?(user.highlights.first.key)
+      assert_not ActiveStorage::Blob.service.exist?(user.highlights.second.key)
 
       user.save!
       assert_equal "racecar.jpg", user.highlights.first.filename.to_s
@@ -433,8 +433,8 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
       assert_not @user.highlights.attached?
       assert ActiveStorage::Blob.exists?(blobs.first.id)
       assert ActiveStorage::Blob.exists?(blobs.second.id)
-      assert ActiveStorage::Blob.private_service.exist?(blobs.first.key)
-      assert ActiveStorage::Blob.private_service.exist?(blobs.second.key)
+      assert ActiveStorage::Blob.service.exist?(blobs.first.key)
+      assert ActiveStorage::Blob.service.exist?(blobs.second.key)
     end
   end
 
@@ -447,8 +447,8 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
       assert_not @user.highlights.attached?
       assert_not ActiveStorage::Blob.exists?(blobs.first.id)
       assert_not ActiveStorage::Blob.exists?(blobs.second.id)
-      assert_not ActiveStorage::Blob.private_service.exist?(blobs.first.key)
-      assert_not ActiveStorage::Blob.private_service.exist?(blobs.second.key)
+      assert_not ActiveStorage::Blob.service.exist?(blobs.first.key)
+      assert_not ActiveStorage::Blob.service.exist?(blobs.second.key)
     end
   end
 
@@ -473,9 +473,9 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
       assert ActiveStorage::Blob.exists?(blobs.second.id)
       assert ActiveStorage::Blob.exists?(blobs.third.id)
 
-      assert_not ActiveStorage::Blob.private_service.exist?(blobs.first.key)
-      assert ActiveStorage::Blob.private_service.exist?(blobs.second.key)
-      assert ActiveStorage::Blob.private_service.exist?(blobs.third.key)
+      assert_not ActiveStorage::Blob.service.exist?(blobs.first.key)
+      assert ActiveStorage::Blob.service.exist?(blobs.second.key)
+      assert ActiveStorage::Blob.service.exist?(blobs.third.key)
     end
   end
 
@@ -491,8 +491,8 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
       assert_not @user.highlights.attached?
       assert_not ActiveStorage::Blob.exists?(blobs.first.id)
       assert_not ActiveStorage::Blob.exists?(blobs.second.id)
-      assert_not ActiveStorage::Blob.private_service.exist?(blobs.first.key)
-      assert_not ActiveStorage::Blob.private_service.exist?(blobs.second.key)
+      assert_not ActiveStorage::Blob.service.exist?(blobs.first.key)
+      assert_not ActiveStorage::Blob.service.exist?(blobs.second.key)
     end
   end
 
@@ -519,9 +519,9 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
       assert ActiveStorage::Blob.exists?(blobs.second.id)
       assert ActiveStorage::Blob.exists?(blobs.third.id)
 
-      assert_not ActiveStorage::Blob.private_service.exist?(blobs.first.key)
-      assert ActiveStorage::Blob.private_service.exist?(blobs.second.key)
-      assert ActiveStorage::Blob.private_service.exist?(blobs.third.key)
+      assert_not ActiveStorage::Blob.service.exist?(blobs.first.key)
+      assert ActiveStorage::Blob.service.exist?(blobs.second.key)
+      assert ActiveStorage::Blob.service.exist?(blobs.third.key)
     end
   end
 
@@ -535,8 +535,8 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
 
       assert_not ActiveStorage::Blob.exists?(blobs.first.id)
       assert_not ActiveStorage::Blob.exists?(blobs.second.id)
-      assert_not ActiveStorage::Blob.private_service.exist?(blobs.first.key)
-      assert_not ActiveStorage::Blob.private_service.exist?(blobs.second.key)
+      assert_not ActiveStorage::Blob.service.exist?(blobs.first.key)
+      assert_not ActiveStorage::Blob.service.exist?(blobs.second.key)
     end
   end
 

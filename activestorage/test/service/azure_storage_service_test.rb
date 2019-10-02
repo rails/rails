@@ -6,6 +6,7 @@ require "uri"
 if SERVICE_CONFIGURATIONS[:azure]
   class ActiveStorage::Service::AzureStorageServiceTest < ActiveSupport::TestCase
     SERVICE = ActiveStorage::Service.configure(:azure, SERVICE_CONFIGURATIONS)
+    PUBLIC_SERVICE = ActiveStorage::Service.configure(:azure_PUBLIC, SERVICE_CONFIGURATIONS)
 
     include ActiveStorage::Service::SharedServiceTests
 
@@ -105,10 +106,9 @@ if SERVICE_CONFIGURATIONS[:azure]
     end
 
     test "public URL generation" do
-      url = @service.public_url(@public_file_key, @public_file_name)
+      url = @public_service.url(@public_file_key, filename: ActiveStorage::Filename.new("avatar.png"))
 
-      assert_match(/.*\.blob\.core\.windows\.net\/.*\/#{@public_filepath}/,
-        url)
+      assert_match(/.*\.blob\.core\.windows\.net\/.*\/#{@public_file_key}/, url)
 
       response = Net::HTTP.get_response(URI(url))
       assert_equal "200", response.code

@@ -14,15 +14,16 @@ module ActiveStorage::Service::SharedServiceTests
       @service = self.class.const_get(:SERVICE)
       @service.upload @key, StringIO.new(FIXTURE_DATA)
 
-      @public_file_key = SecureRandom.base58(24)
-      @public_file_name = "test.png"
-      @public_filepath = File.join(@public_file_key, @public_file_name)
-      @service.upload @public_filepath, StringIO.new(FIXTURE_DATA), content_type: "image/png"
+      if self.class.const_defined?(:PUBLIC_SERVICE)
+        @public_service = self.class.const_get(:PUBLIC_SERVICE)
+        @public_file_key = SecureRandom.base58(24)
+        @public_service.upload @public_file_key, StringIO.new(FIXTURE_DATA), content_type: "image/png"
+      end
     end
 
     teardown do
       @service.delete @key
-      @service.delete @public_filepath
+      @public_service.delete @public_file_key if @public_service
     end
 
     test "uploading with integrity" do

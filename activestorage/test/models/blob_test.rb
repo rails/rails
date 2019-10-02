@@ -226,7 +226,7 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     blob = create_blob
 
     blob.purge
-    assert_not ActiveStorage::Blob.private_service.exist?(blob.key)
+    assert_not ActiveStorage::Blob.service.exist?(blob.key)
   end
 
   test "purge deletes variants from external service" do
@@ -234,14 +234,14 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     variant = blob.variant(resize: "100>").processed
 
     blob.purge
-    assert_not ActiveStorage::Blob.private_service.exist?(variant.key)
+    assert_not ActiveStorage::Blob.service.exist?(variant.key)
   end
 
   test "purge does nothing when attachments exist" do
     create_blob.tap do |blob|
       User.create! name: "DHH", avatar: blob
       assert_no_difference(-> { ActiveStorage::Blob.count }) { blob.purge }
-      assert ActiveStorage::Blob.private_service.exist?(blob.key)
+      assert ActiveStorage::Blob.service.exist?(blob.key)
     end
   end
 
@@ -261,13 +261,13 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
   end
 
   private
-    def expected_url_for(blob, expires_in: 5.minutes, disposition: :attachment, filename: nil, content_type: nil)
+    def expected_url_for(blob, disposition: :attachment, filename: nil, content_type: nil)
       filename ||= blob.filename
       content_type ||= blob.content_type
 
       query = { disposition: ActionDispatch::Http::ContentDisposition.format(disposition: disposition, filename: filename.sanitized), content_type: content_type }
       key_params = { key: blob.key }.merge(query)
 
-      "https://example.com/rails/active_storage/disk/#{ActiveStorage.verifier.generate(key_params, expires_in: expires_in, purpose: :blob_key)}/#{filename}?#{query.to_param}"
+      "https://example.com/rails/active_storage/disk/#{ActiveStorage.verifier.generate(key_params, expires_in: 5.minutes, purpose: :blob_key)}/#{filename}?#{query.to_param}"
     end
 end

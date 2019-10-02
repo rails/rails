@@ -41,8 +41,8 @@ if SERVICE_CONFIGURATIONS[:gcs]
     setup do
       @config = SERVICE_CONFIGURATIONS[:gcs]
 
-      @old_service = ActiveStorage::Blob.private_service
-      ActiveStorage::Blob.private_service = ActiveStorage::Service.configure(:gcs, SERVICE_CONFIGURATIONS)
+      @old_service = ActiveStorage::Blob.service
+      ActiveStorage::Blob.service = ActiveStorage::Service.configure(:gcs, SERVICE_CONFIGURATIONS)
     end
 
     teardown do
@@ -75,8 +75,8 @@ if SERVICE_CONFIGURATIONS[:azure]
     setup do
       @config = SERVICE_CONFIGURATIONS[:azure]
 
-      @old_service = ActiveStorage::Blob.private_service
-      ActiveStorage::Blob.private_service = ActiveStorage::Service.configure(:azure, SERVICE_CONFIGURATIONS)
+      @old_service = ActiveStorage::Blob.service
+      ActiveStorage::Blob.service = ActiveStorage::Service.configure(:azure, SERVICE_CONFIGURATIONS)
     end
 
     teardown do
