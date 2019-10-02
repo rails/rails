@@ -1,7 +1,7 @@
 *   Permanent URLs for blobs.
 
     Services can be configured in `configurations.yml` with a new key
-    `public_service: true | false` to indicate whether a service holds public
+    `public: true | false` to indicate whether a service holds public
     blobs or private blobs. Public services will always return a permanent URL.
 
     Deprecates `Blob#service_url` in favor of `Blob#url`.

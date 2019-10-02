@@ -7,10 +7,10 @@ module ActiveStorage
   # Wraps the Google Cloud Storage as an Active Storage service. See ActiveStorage::Service for the generic API
   # documentation that applies to all services.
   class Service::GCSService < Service
-    def initialize(public_service: false, **config)
+    def initialize(**config)
       @config = config
 
-      @public_service = public_service
+      @public = config[:public]
     end
 
     def upload(key, io, checksum: nil, content_type: nil, disposition: nil, filename: nil)
@@ -99,7 +99,7 @@ module ActiveStorage
       { "Content-MD5" => checksum, "Content-Disposition" => content_disposition }
     end
 
-    protected
+    private
       def private_url(key, expires_in:, filename:, content_type:, disposition:, **)
         file_for(key).signed_url expires: expires_in, query: {
           "response-content-disposition" => content_disposition_with(type: disposition, filename: filename),
@@ -111,7 +111,7 @@ module ActiveStorage
         file_for(key).public_url
       end
 
-    private
+
       attr_reader :config
 
       def file_for(key, skip_lookup: true)

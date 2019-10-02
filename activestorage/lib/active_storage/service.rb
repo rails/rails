@@ -110,7 +110,7 @@ module ActiveStorage
     def url(key, **options)
       instrument :url, key: key do |payload|
         generated_url =
-          if public_service?
+          if public?
             public_url(key, **options)
           else
             private_url(key, **options)
@@ -135,11 +135,11 @@ module ActiveStorage
       {}
     end
 
-    def public_service?
-      !!@public_service
+    def public?
+      !!@public
     end
 
-    protected
+    private
       def private_url(key, expires_in:, filename:, disposition:, content_type:, **)
         raise NotImplementedError
       end
@@ -148,7 +148,7 @@ module ActiveStorage
         raise NotImplementedError
       end
 
-    private
+
       def instrument(operation, payload = {}, &block)
         ActiveSupport::Notifications.instrument(
           "service_#{operation}.active_storage",

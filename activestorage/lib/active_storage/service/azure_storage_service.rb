@@ -12,12 +12,13 @@ module ActiveStorage
   class Service::AzureStorageService < Service
     attr_reader :client, :container, :signer
 
-    def initialize(storage_account_name:, storage_access_key:, container:, public_service: false, **options)
+    def initialize(storage_account_name:, storage_access_key:, container:, **options)
+      @public = options[:public]
+      options.delete(:public)
+
       @client = Azure::Storage::Blob::BlobService.create(storage_account_name: storage_account_name, storage_access_key: storage_access_key, **options)
       @signer = Azure::Storage::Common::Core::Auth::SharedAccessSignature.new(storage_account_name, storage_access_key)
       @container = container
-
-      @public_service = public_service
     end
 
     def upload(key, io, checksum: nil, filename: nil, content_type: nil, disposition: nil, **)
@@ -108,7 +109,7 @@ module ActiveStorage
       { "Content-Type" => content_type, "Content-MD5" => checksum, "x-ms-blob-content-disposition" => content_disposition, "x-ms-blob-type" => "BlockBlob" }
     end
 
-    protected
+    private
       def private_url(key, expires_in:, filename:, disposition:, content_type:, **)
         signer.signed_uri(
           uri_for(key), false,
@@ -121,10 +122,10 @@ module ActiveStorage
       end
 
       def public_url(key, **)
-        blobs.send(:blob_uri, container, key).to_s
+        uri_for(key).to_s
       end
 
-    private
+
       def uri_for(key)
         client.generate_uri("#{container}/#{key}")
       end

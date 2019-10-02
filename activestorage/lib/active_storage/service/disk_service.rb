@@ -11,10 +11,10 @@ module ActiveStorage
   class Service::DiskService < Service
     attr_reader :root
 
-    def initialize(root:, public_service: false, **)
+    def initialize(root:, **options)
       @root = root
 
-      @public_service = public_service
+      @public = options[:public]
     end
 
     def upload(key, io, checksum: nil, **)
@@ -102,7 +102,7 @@ module ActiveStorage
       File.join root, folder_for(key), key
     end
 
-    protected
+    private
       def private_url(key, expires_in:, filename:, content_type:, disposition:, **)
         content_disposition = content_disposition_with(type: disposition, filename: filename)
         verified_key_with_expiration = ActiveStorage.verifier.generate(
@@ -138,7 +138,7 @@ module ActiveStorage
         )
       end
 
-    private
+
       def stream(key)
         File.open(path_for(key), "rb") do |file|
           while data = file.read(5.megabytes)
