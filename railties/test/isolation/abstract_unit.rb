@@ -104,6 +104,12 @@ module TestHelpers
       FileUtils.rm_rf(app_path)
       FileUtils.cp_r(app_template_path, app_path)
 
+      if options[:directories]
+        options[:directories].each do |directory|
+          FileUtils.mkdir_p("#{app_path}/#{directory}")
+        end
+      end
+
       # Delete the initializers unless requested
       unless options[:initializers]
         Dir["#{app_path}/config/initializers/**/*.rb"].each do |initializer|
