@@ -2,6 +2,7 @@
 
 require "test_helper"
 require "database/setup"
+require "minitest/mock"
 
 class ActiveStorage::VariantTest < ActiveSupport::TestCase
   test "variations have the same key for different types of the same transformation" do
