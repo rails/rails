@@ -197,6 +197,18 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
     ActiveStorage.variant_processor = :mini_magick
   end
 
+  test "passes content_type on upload" do
+    blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
+
+    mock_upload = lambda do |_, _, options = {}|
+      assert_equal options[:content_type], "image/jpeg"
+    end
+
+    blob.service.stub(:upload, mock_upload) do
+      blob.variant(resize: "100x100").processed
+    end
+  end
+
   test "change delivery on instance" do
     blob = create_file_blob filename: "racecar.jpg"
     variant = blob.variant(resize: "100x100").processed

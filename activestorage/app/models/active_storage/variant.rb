@@ -102,7 +102,7 @@ class ActiveStorage::Variant
     def process
       blob.open do |input|
         variation.transform(input, format: format) do |output|
-          service.upload(key, output)
+          service.upload(key, output, content_type: content_type)
         end
       end
     end

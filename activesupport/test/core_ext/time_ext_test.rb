@@ -114,13 +114,15 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal Rational(1, 1_000_000_000), time.sec_fraction
 
     time = Time.utc(2016, 4, 23, 0, 0, 0.000_000_001)
-    assert_equal 0.000_000_001.to_r, time.sec_fraction
+    assert_kind_of Rational, time.sec_fraction
+    assert_equal 0.000_000_001, time.sec_fraction.to_f
 
     time = Time.utc(2016, 4, 23, 0, 0, 0, Rational(1, 1_000))
     assert_equal Rational(1, 1_000_000_000), time.sec_fraction
 
     time = Time.utc(2016, 4, 23, 0, 0, 0, 0.001)
-    assert_equal 0.001.to_r / 1000000, time.sec_fraction
+    assert_kind_of Rational, time.sec_fraction
+    assert_equal 0.001.to_r / 1000000, time.sec_fraction.to_f
   end
 
   def test_beginning_of_day
