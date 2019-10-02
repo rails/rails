@@ -1,3 +1,7 @@
+*   Add support for `belongs_to` to `has_many` inversing.
+
+    *Gannon McGibbon*
+
 *   Allow length configuration for `has_secure_token` method. The minimum length
     is set at 24 characters.
 

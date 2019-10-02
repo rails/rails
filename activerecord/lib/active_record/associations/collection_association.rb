@@ -285,6 +285,15 @@ module ActiveRecord
         replace_on_target(record, index, skip_callbacks, &block)
       end
 
+      def target=(record)
+        case record
+        when Array
+          super
+        else
+          add_to_target(record)
+        end
+      end
+
       def scope
         scope = super
         scope.none! if null_scope?
