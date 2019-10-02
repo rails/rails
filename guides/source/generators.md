@@ -50,7 +50,7 @@ class InitializerGenerator < Rails::Generators::Base
 end
 ```
 
-NOTE: `create_file` is a method provided by `Thor::Actions`. Documentation for `create_file` and other Thor methods can be found in [Thor's documentation](http://rdoc.info/github/erikhuda/thor/master/Thor/Actions.html)
+NOTE: `create_file` is a method provided by `Thor::Actions`. Documentation for `create_file` and other Thor methods can be found in [Thor's documentation](https://rdoc.info/github/erikhuda/thor/master/Thor/Actions.html)
 
 Our new generator is quite simple: it inherits from `Rails::Generators::Base` and has one method definition. When a generator is invoked, each public method in the generator is executed sequentially in the order that it is defined. Finally, we invoke the `create_file` method that will create a file at the given destination with the given content. If you are familiar with the Rails Application Templates API, you'll feel right at home with the new generators API.
 
@@ -464,7 +464,7 @@ Whilst the final section of this guide doesn't cover how to generate the most aw
 
 Adding Command Line Arguments
 -----------------------------
-Rails generators can be easily modified to accept custom command line arguments. This functionality comes from [Thor](http://www.rubydoc.info/github/erikhuda/thor/master/Thor/Base/ClassMethods#class_option-instance_method):
+Rails generators can be easily modified to accept custom command line arguments. This functionality comes from [Thor](https://www.rubydoc.info/github/erikhuda/thor/master/Thor/Base/ClassMethods#class_option-instance_method):
 
 ```
 class_option :scope, type: :string, default: 'read_products'
@@ -487,7 +487,7 @@ Generator methods
 
 The following are methods available for both generators and templates for Rails.
 
-NOTE: Methods provided by Thor are not covered this guide and can be found in [Thor's documentation](http://rdoc.info/github/erikhuda/thor/master/Thor/Actions.html)
+NOTE: Methods provided by Thor are not covered this guide and can be found in [Thor's documentation](https://rdoc.info/github/erikhuda/thor/master/Thor/Actions.html)
 
 ### `gem`
 

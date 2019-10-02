@@ -2074,7 +2074,7 @@ module ActionDispatch
         # of routing helpers, e.g:
         #
         #   direct :homepage do
-        #     "http://www.rubyonrails.org"
+        #     "https://rubyonrails.org"
         #   end
         #
         #   direct :commentable do |model|

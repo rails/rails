@@ -338,8 +338,8 @@ module ActiveSupport
     #   1.year.to_i     # => 31556952
     #
     # In such cases, Ruby's core
-    # Date[http://ruby-doc.org/stdlib/libdoc/date/rdoc/Date.html] and
-    # Time[http://ruby-doc.org/stdlib/libdoc/time/rdoc/Time.html] should be used for precision
+    # Date[https://ruby-doc.org/stdlib/libdoc/date/rdoc/Date.html] and
+    # Time[https://ruby-doc.org/stdlib/libdoc/time/rdoc/Time.html] should be used for precision
     # date and time arithmetic.
     def to_i
       @value.to_i

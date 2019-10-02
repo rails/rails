@@ -9,7 +9,7 @@ follows, all versions in `X.Y.Z` format.
 
 --------------------------------------------------------------------------------
 
-Rails follows a shifted version of [semver](http://semver.org/):
+Rails follows a shifted version of [semver](https://semver.org/):
 
 **Patch `Z`**
 
