@@ -19,6 +19,7 @@ PATH
   specs:
     actioncable (6.1.0.alpha)
       actionpack (= 6.1.0.alpha)
+      activesupport (= 6.1.0.alpha)
       nio4r (~> 2.0)
       websocket-driver (>= 0.6.1)
     actionmailbox (6.1.0.alpha)
@@ -32,6 +33,7 @@ PATH
       actionpack (= 6.1.0.alpha)
       actionview (= 6.1.0.alpha)
       activejob (= 6.1.0.alpha)
+      activesupport (= 6.1.0.alpha)
       mail (~> 2.5, >= 2.5.4)
       rails-dom-testing (~> 2.0)
     actionpack (6.1.0.alpha)
@@ -65,6 +67,7 @@ PATH
       actionpack (= 6.1.0.alpha)
       activejob (= 6.1.0.alpha)
       activerecord (= 6.1.0.alpha)
+      activesupport (= 6.1.0.alpha)
       marcel (~> 0.3.1)
     activesupport (6.1.0.alpha)
       concurrent-ruby (~> 1.0, >= 1.0.2)
