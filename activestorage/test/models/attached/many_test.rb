@@ -588,7 +588,7 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     end
   end
 
-  test "attaching a new blob from an uploaded file with a custom_ ervice" do
+  test "attaching a new blob from an uploaded file with a custom service" do
     with_service("mirror") do
       @user.highlights.attach fixture_file_upload("racecar.jpg")
       @user.vlogs.attach fixture_file_upload("racecar.jpg")
