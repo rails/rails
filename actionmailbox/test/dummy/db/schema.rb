@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2019_07_22_033524) do
+ActiveRecord::Schema.define(version: 2018_02_12_164506) do
 
   create_table "action_mailbox_inbound_emails", force: :cascade do |t|
     t.integer "status", default: 0, null: false
@@ -40,7 +40,6 @@ ActiveRecord::Schema.define(version: 2019_07_22_033524) do
     t.bigint "byte_size", null: false
     t.string "checksum", null: false
     t.datetime "created_at", null: false
-    t.boolean "public_file", default: false
     t.index ["key"], name: "index_active_storage_blobs_on_key", unique: true
   end
 
