@@ -10,6 +10,10 @@ if SERVICE_CONFIGURATIONS[:s3]
 
     include ActiveStorage::Service::SharedServiceTests
 
+    test "name" do
+      assert_equal :s3, @service.name
+    end
+
     test "direct upload" do
       key      = SecureRandom.base58(24)
       data     = "Something else entirely!"

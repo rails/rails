@@ -1,3 +1,7 @@
+*   Make services aware of configuration names.
+
+    *Gannon McGibbon*
+
 *   The `Content-Type` header is set on image variants when they're uploaded to third-party storage services.
 
     *Kyle Ribordy*

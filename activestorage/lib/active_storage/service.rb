@@ -40,6 +40,7 @@ module ActiveStorage
   class Service
     extend ActiveSupport::Autoload
     autoload :Configurator
+    attr_accessor :name
 
     class << self
       # Configure an Active Storage service by name from a set of configurations,
@@ -55,8 +56,10 @@ module ActiveStorage
       # Passes the configurator and all of the service's config as keyword args.
       #
       # See MirrorService for an example.
-      def build(configurator:, service: nil, **service_config) #:nodoc:
-        new(**service_config)
+      def build(configurator:, name:, service: nil, **service_config) #:nodoc:
+        new(**service_config).tap do |service_instance|
+          service_instance.name = name
+        end
       end
     end
 

@@ -17,6 +17,10 @@ class ActiveStorage::Service::MirrorServiceTest < ActiveSupport::TestCase
 
   include ActiveStorage::Service::SharedServiceTests
 
+  test "name" do
+    assert_equal :mirror, @service.name
+  end
+
   test "uploading to all services" do
     key      = SecureRandom.base58(24)
     data     = "Something else entirely!"
