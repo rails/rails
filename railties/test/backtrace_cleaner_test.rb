@@ -17,6 +17,15 @@ class BacktraceCleanerTest < ActiveSupport::TestCase
     assert_equal 1, result.length
   end
 
+  test "should show relative paths" do
+    backtrace = [ "./test/backtrace_cleaner_test.rb:123",
+                  "/Path/to/rails/activesupport/some_testing_file.rb:42:in `test'",
+                  "bin/rails:4:in `<main>'" ]
+    result = @cleaner.clean(backtrace)
+    assert_equal "./test/backtrace_cleaner_test.rb:123", result[0]
+    assert_equal 1, result.length
+  end
+
   test "can filter for noise" do
     backtrace = [ "(irb):1",
                   "/Path/to/rails/railties/lib/rails/commands/console.rb:77:in `start'",
