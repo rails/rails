@@ -11,10 +11,9 @@ module ActiveStorage
   class Service::DiskService < Service
     attr_reader :root
 
-    def initialize(root:, **options)
+    def initialize(root:, public: false, **options)
       @root = root
-
-      @public = options[:public]
+      @public = public
     end
 
     def upload(key, io, checksum: nil, **)

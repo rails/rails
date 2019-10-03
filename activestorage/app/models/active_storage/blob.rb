@@ -171,7 +171,7 @@ class ActiveStorage::Blob < ActiveRecord::Base
   end
 
   alias_method :service_url, :url
-  deprecate :service_url
+  deprecate service_url: :url
 
   # Returns a URL that can be used to directly upload a file for this blob on the service. This URL is intended to be
   # short-lived for security and only generated on-demand by the client-side JavaScript responsible for doing the uploading.

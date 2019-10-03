@@ -12,13 +12,11 @@ module ActiveStorage
   class Service::AzureStorageService < Service
     attr_reader :client, :container, :signer
 
-    def initialize(storage_account_name:, storage_access_key:, container:, **options)
-      @public = options[:public]
-      options.delete(:public)
-
+    def initialize(storage_account_name:, storage_access_key:, container:, public: false, **options)
       @client = Azure::Storage::Blob::BlobService.create(storage_account_name: storage_account_name, storage_access_key: storage_access_key, **options)
       @signer = Azure::Storage::Common::Core::Auth::SharedAccessSignature.new(storage_account_name, storage_access_key)
       @container = container
+      @public = public
     end
 
     def upload(key, io, checksum: nil, filename: nil, content_type: nil, disposition: nil, **)

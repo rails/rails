@@ -12,15 +12,13 @@ module ActiveStorage
     attr_reader :client, :bucket
     attr_reader :multipart_upload_threshold, :upload_options
 
-    def initialize(bucket:, upload: {}, **options)
-      @public = options[:public]
-      options.delete(:public)
-
+    def initialize(bucket:, upload: {}, public: false, **options)
       @client = Aws::S3::Resource.new(**options)
       @bucket = @client.bucket(bucket)
 
       @multipart_upload_threshold = upload.fetch(:multipart_threshold, 100.megabytes)
       @upload_options = upload
+      @public = public
     end
 
     def upload(key, io, checksum: nil, filename: nil, content_type: nil, disposition: nil, **)
@@ -95,13 +93,13 @@ module ActiveStorage
     end
 
     private
-      def private_url(key, expires_in:, filename:, disposition:, content_type:)
+      def private_url(key, expires_in:, filename:, disposition:, content_type:, **)
         object_for(key).presigned_url :get, expires_in: expires_in.to_i,
           response_content_disposition: content_disposition_with(type: disposition, filename: filename),
           response_content_type: content_type
       end
 
-      def public_url(key, filename, *_args)
+      def public_url(key, **)
         object_for(key).public_url
       end
 

@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
 module ActiveStorage::FileServer # :nodoc:
-  extend ActiveSupport::Concern
-
   private
     def serve_file(path, content_type:, disposition:)
       Rack::File.new(nil).serving(request, path).tap do |(status, headers, body)|

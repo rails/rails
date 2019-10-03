@@ -7,10 +7,9 @@ module ActiveStorage
   # Wraps the Google Cloud Storage as an Active Storage service. See ActiveStorage::Service for the generic API
   # documentation that applies to all services.
   class Service::GCSService < Service
-    def initialize(**config)
+    def initialize(public: false, **config)
       @config = config
-
-      @public = config[:public]
+      @public = public
     end
 
     def upload(key, io, checksum: nil, content_type: nil, disposition: nil, filename: nil)

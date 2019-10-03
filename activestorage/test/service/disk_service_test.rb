@@ -5,7 +5,7 @@ require "service/shared_service_tests"
 class ActiveStorage::Service::DiskServiceTest < ActiveSupport::TestCase
   tmp_config = {
     tmp: { service: "Disk", root: File.join(Dir.tmpdir, "active_storage") },
-    tmp_public: { service: "Disk", root: File.join(Dir.tmpdir, "active_storage_public"), public: true } 
+    tmp_public: { service: "Disk", root: File.join(Dir.tmpdir, "active_storage_public"), public: true }
   }
   SERVICE = ActiveStorage::Service.configure(:tmp, tmp_config)
   PUBLIC_SERVICE = ActiveStorage::Service.configure(:tmp_public, tmp_config)
