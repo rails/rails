@@ -1,3 +1,8 @@
+*   Skip test database when running `db:create` or `db:drop` in development
+    with `DATABASE_URL` set.
+
+    *Brian Buchalter*
+
 *   Don't allow mutations on the datbase configurations hash.
 
     Freeze the configurations hash to disallow directly changing the configurations hash. If applications need to change the hash, for example to create adatabases for parallelization, they should use the `DatabaseConfig` object directly.

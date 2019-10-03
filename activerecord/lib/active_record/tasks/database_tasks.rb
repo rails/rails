@@ -484,7 +484,7 @@ module ActiveRecord
 
         def each_current_configuration(environment, spec_name = nil)
           environments = [environment]
-          environments << "test" if environment == "development"
+          environments << "test" if environment == "development" && !ENV["DATABASE_URL"]
 
           environments.each do |env|
             ActiveRecord::Base.configurations.configs_for(env_name: env).each do |db_config|
