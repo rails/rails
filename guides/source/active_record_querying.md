@@ -2088,7 +2088,7 @@ following pointers may be helpful:
 
 * SQLite3: [EXPLAIN QUERY PLAN](https://www.sqlite.org/eqp.html)
 
-* MySQL: [EXPLAIN Output Format](https://dev.mysql.com/doc/refman/5.7/en/explain-output.html)
+* MySQL: [EXPLAIN Output Format](https://dev.mysql.com/doc/refman/en/explain-output.html)
 
 * MariaDB: [EXPLAIN](https://mariadb.com/kb/en/mariadb/explain/)
 

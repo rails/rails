@@ -173,7 +173,7 @@ if current_adapter?(:Mysql2Adapter)
     # invalid or missing values and produces warnings. In strict mode,
     # you can produce this behavior by using INSERT IGNORE or UPDATE IGNORE.
     #
-    # https://dev.mysql.com/doc/refman/5.7/en/sql-mode.html#sql-mode-strict
+    # https://dev.mysql.com/doc/refman/en/sql-mode.html#sql-mode-strict
     def test_mysql_not_null_defaults_non_strict
       using_strict(false) do
         with_mysql_not_null_table do |klass|

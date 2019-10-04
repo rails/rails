@@ -210,7 +210,7 @@ module ActiveRecord
       #
       # In order to get around this problem, #transaction will emulate the effect
       # of nested transactions, by using savepoints:
-      # https://dev.mysql.com/doc/refman/5.7/en/savepoint.html
+      # https://dev.mysql.com/doc/refman/en/savepoint.html
       #
       # It is safe to call this method if a database transaction is already open,
       # i.e. if #transaction is called within another #transaction block. In case
@@ -261,7 +261,7 @@ module ActiveRecord
       # semantics of these different levels:
       #
       # * https://www.postgresql.org/docs/current/static/transaction-iso.html
-      # * https://dev.mysql.com/doc/refman/5.7/en/set-transaction.html
+      # * https://dev.mysql.com/doc/refman/en/set-transaction.html
       #
       # An ActiveRecord::TransactionIsolationError will be raised if:
       #

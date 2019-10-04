@@ -104,7 +104,7 @@ module ActiveRecord
         mariadb? || database_version >= "5.7.5"
       end
 
-      # See https://dev.mysql.com/doc/refman/8.0/en/optimizer-hints.html for more details.
+      # See https://dev.mysql.com/doc/refman/en/optimizer-hints.html for more details.
       def supports_optimizer_hints?
         !mariadb? && database_version >= "5.7.7"
       end
@@ -474,7 +474,7 @@ module ActiveRecord
       # In MySQL 5.7.5 and up, ONLY_FULL_GROUP_BY affects handling of queries that use
       # DISTINCT and ORDER BY. It requires the ORDER BY columns in the select list for
       # distinct queries, and requires that the ORDER BY include the distinct column.
-      # See https://dev.mysql.com/doc/refman/5.7/en/group-by-handling.html
+      # See https://dev.mysql.com/doc/refman/en/group-by-handling.html
       def columns_for_distinct(columns, orders) # :nodoc:
         order_columns = orders.compact_blank.map { |s|
           # Convert Arel node to string
@@ -572,7 +572,7 @@ module ActiveRecord
           end
         end
 
-        # See https://dev.mysql.com/doc/refman/5.7/en/server-error-reference.html
+        # See https://dev.mysql.com/doc/refman/en/server-error-reference.html
         ER_DB_CREATE_EXISTS     = 1007
         ER_FILSORT_ABORT        = 1028
         ER_DUP_ENTRY            = 1062
@@ -705,7 +705,7 @@ module ActiveRecord
           defaults = [":default", :default].to_set
 
           # Make MySQL reject illegal values rather than truncating or blanking them, see
-          # https://dev.mysql.com/doc/refman/5.7/en/sql-mode.html#sqlmode_strict_all_tables
+          # https://dev.mysql.com/doc/refman/en/sql-mode.html#sqlmode_strict_all_tables
           # If the user has provided another value for sql_mode, don't replace it.
           if sql_mode = variables.delete("sql_mode")
             sql_mode = quote(sql_mode)
@@ -722,7 +722,7 @@ module ActiveRecord
           sql_mode_assignment = "@@SESSION.sql_mode = #{sql_mode}, " if sql_mode
 
           # NAMES does not have an equals sign, see
-          # https://dev.mysql.com/doc/refman/5.7/en/set-names.html
+          # https://dev.mysql.com/doc/refman/en/set-names.html
           # (trailing comma because variable_assignments will always have content)
           if @config[:encoding]
             encoding = +"NAMES #{@config[:encoding]}"

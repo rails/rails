@@ -15,7 +15,9 @@ module Arel
 
       ###
       # :'(
-      # https://dev.mysql.com/doc/refman/8.0/en/select.html#id3482214
+      # To retrieve all rows from a certain offset up to the end of the result set,
+      # you can use some large number for the second parameter.
+      # https://dev.mysql.com/doc/refman/en/select.html
       it "defaults limit to 18446744073709551615" do
         stmt = Nodes::SelectStatement.new
         stmt.offset = Nodes::Offset.new(1)

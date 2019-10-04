@@ -122,7 +122,7 @@ module ActiveRecord
         end
 
         def table_alias_length
-          256 # https://dev.mysql.com/doc/refman/8.0/en/identifiers.html
+          256 # https://dev.mysql.com/doc/refman/en/identifiers.html
         end
 
         private
