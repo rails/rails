@@ -36,6 +36,6 @@ end
 
 class FamousShip < ActiveRecord::Base
   self.table_name = "ships"
-  belongs_to :famous_pirate
+  belongs_to :famous_pirate, foreign_key: :pirate_id
   validates_presence_of :name, on: :conference
 end
