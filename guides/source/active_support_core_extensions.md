@@ -2948,6 +2948,24 @@ d.end_of_quarter         # => Wed, 30 Jun 2010
 
 NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
 
+##### `beginning_of_half_year`, `end_of_half_year`
+
+The methods `beginning_of_half_year` and `end_of_half_year` return the dates for the beginning and end of the half-year:
+
+```ruby
+d = Date.new(2010, 5, 8) # => Sat, 08 May 2010
+d.beginning_of_half_year # => Fri, 01 Jen 2010
+d.end_of_half_year       # => Wed, 30 Jun 2010
+
+d = Date.new(2010, 10, 4) # => Mon, 04 Oct 2010
+d.beginning_of_half_year  # => Thu, 01 Jul 2010
+d.end_of_half_year        # => Fri, 31 Dec 2010
+```
+
+`beginning_of_half_year` is aliased to `at_beginning_of_half_year`, and `end_of_half_year` is aliased to `at_end_of_half_year`.
+
+NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
+
 ##### `beginning_of_year`, `end_of_year`
 
 The methods `beginning_of_year` and `end_of_year` return the dates for the beginning and end of the year:

@@ -92,6 +92,11 @@ module DateAndTimeBehavior
     assert_equal date_time_init(2008, 6, 30, 23, 59, 59, Rational(999999999, 1000)), date_time_init(2008, 5, 31, 0, 0, 0).end_of_quarter
   end
 
+  def test_beginning_of_half_year
+    assert_equal date_time_init(2005, 1, 1, 0, 0, 0), date_time_init(2005, 5, 8, 10, 10, 10).beginning_of_half_year
+    assert_equal date_time_init(2005, 7, 1, 0, 0, 0), date_time_init(2005, 10, 4, 10, 10, 10).beginning_of_half_year
+  end
+
   def test_beginning_of_year
     assert_equal date_time_init(2005, 1, 1, 0, 0, 0), date_time_init(2005, 2, 22, 10, 10, 10).beginning_of_year
   end
@@ -261,6 +266,11 @@ module DateAndTimeBehavior
     assert_equal date_time_init(2005, 3, 31, 23, 59, 59, Rational(999999999, 1000)), date_time_init(2005, 3, 20, 10, 10, 10).end_of_month
     assert_equal date_time_init(2005, 2, 28, 23, 59, 59, Rational(999999999, 1000)), date_time_init(2005, 2, 20, 10, 10, 10).end_of_month
     assert_equal date_time_init(2005, 4, 30, 23, 59, 59, Rational(999999999, 1000)), date_time_init(2005, 4, 20, 10, 10, 10).end_of_month
+  end
+
+  def test_end_of_half_year
+    assert_equal date_time_init(2007, 6, 30, 23, 59, 59, Rational(999999999, 1000)), date_time_init(2007, 5, 8, 10, 10, 10).end_of_half_year
+    assert_equal date_time_init(2007, 12, 31, 23, 59, 59, Rational(999999999, 1000)), date_time_init(2007, 10, 4, 10, 10, 10).end_of_half_year
   end
 
   def test_end_of_year

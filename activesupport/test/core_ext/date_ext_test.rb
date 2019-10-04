@@ -101,7 +101,12 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
   def test_end_of_week_in_calendar_reform
     assert_equal Date.new(1582, 10, 17), Date.new(1582, 10, 4).end_of_week # thursday
   end
-
+  
+  def test_end_of_half_year
+    assert_equal Date.new(2008, 6, 30).to_s, Date.new(2008, 5, 8).end_of_half_year.to_s
+    assert_equal Date.new(2008, 12, 31).to_s, Date.new(2008, 10, 4).end_of_half_year.to_s
+  end
+  
   def test_end_of_year
     assert_equal Date.new(2008, 12, 31).to_s, Date.new(2008, 2, 22).end_of_year.to_s
   end
@@ -301,6 +306,11 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
 
   def test_all_quarter
     assert_equal Date.new(2011, 4, 1)..Date.new(2011, 6, 30), Date.new(2011, 6, 7).all_quarter
+  end
+
+  def test_all_half_year
+    assert_equal Date.new(2011, 1, 1)..Date.new(2011, 6, 30), Date.new(2011, 5, 8).all_half_year
+    assert_equal Date.new(2011, 7, 1)..Date.new(2011, 12, 31), Date.new(2011, 10, 4).all_half_year
   end
 
   def test_all_year

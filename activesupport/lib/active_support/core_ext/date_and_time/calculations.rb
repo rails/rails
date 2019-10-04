@@ -145,6 +145,24 @@ module DateAndTime
     end
     alias :at_end_of_quarter :end_of_quarter
 
+    # Returns a new date/time at the beginning of the half-year.
+    #
+    #   today = Date.today # => Fri, 8 May 2015
+    #   today.beginning_of_half_year # => Thu, 01 Jan 2015
+    #
+    #   today = Date.today # => Sun, 4 Oct 2015
+    #   today.beginning_of_half_year # => Wed, 01 Jul 2015
+    #
+    # +DateTime+ objects will have a time set to 0:00.
+    #
+    #   now = DateTime.current # => Sat, 12 Dec 2015 18:41:29 +0000
+    #   now.beginning_of_half_year # => Wed, 01 Jul 2015 00:00:00 +0000
+    def beginning_of_half_year
+      first_half_year_month = month < 7 ? 1 : 7
+      change(month: first_half_year_month).beginning_of_month
+    end
+    alias :at_beginning_of_half_year :beginning_of_half_year
+
     # Returns a new date/time at the beginning of the year.
     #
     #   today = Date.today # => Fri, 10 Jul 2015
@@ -277,6 +295,14 @@ module DateAndTime
     end
     alias :at_end_of_month :end_of_month
 
+    # Returns a new date/time representing the end of the half-year.
+    # DateTime objects will have a time set to 23:59:59.
+    def end_of_half_year
+      last_half_year_month = month < 7 ? 6 : 12
+      change(month: last_half_year_month).end_of_month
+    end
+    alias :at_end_of_half_year :end_of_half_year
+
     # Returns a new date/time representing the end of the year.
     # DateTime objects will have a time set to 23:59:59.
     def end_of_year
@@ -303,6 +329,11 @@ module DateAndTime
     # Returns a Range representing the whole quarter of the current date/time.
     def all_quarter
       beginning_of_quarter..end_of_quarter
+    end
+    
+    # Returns a Range representing the whole half-year of the current date/time.
+    def all_half_year
+      beginning_of_half_year..end_of_half_year
     end
 
     # Returns a Range representing the whole year of the current date/time.

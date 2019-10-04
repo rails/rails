@@ -1,3 +1,8 @@
+*   Add `Date#beginning_of_half_year` and `Date#end_of_half_year` to return the dates for the beginning and end of the half-year.
+    Add `Date#all_half_year` to returns a range representing the whole half-year of the current date/time.
+
+    *Dmitry Voronov*
+
 *   Improve `Range#===`, `Range#include?`, and `Range#cover?` to work with beginless (startless)
     and endless range targets.
 
