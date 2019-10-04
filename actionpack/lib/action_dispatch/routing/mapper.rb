@@ -749,6 +749,14 @@ module ActionDispatch
           map_method(:delete, args, &block)
         end
 
+        # Define a route that only recognizes HTTP OPTIONS.
+        # For supported arguments, see match[rdoc-ref:Base#match]
+        #
+        #   options 'carrots', to: 'food#carrots'
+        def options(*args, &block)
+          map_method(:get, args, &block)
+        end
+
         private
           def map_method(method, args, &block)
             options = args.extract_options!
