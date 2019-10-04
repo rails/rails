@@ -20,31 +20,23 @@ module ActiveSupport
     class Key # :nodoc:
       @cache_object = nil
 
-      def self.cache_object
-        return @cache_object if @cache_object
-        if defined?(Rails) && Rails.respond_to?(:cache)
-          @cache_object = Rails.cache
-        else
-          @cache_object = ActiveSupport::Cache::Store.new
-        end
-      end
-
-      def initialize(key)
+      def initialize(key, cache_object = self.class.default_cache_object)
         @key_parts = [key]
         @cache_key = nil
         @cache_version = nil
+        @cache_object = cache_object
       end
 
       def cache_key
-        @cache_key ||= self.class.cache_object.send(:expanded_key, @key_parts)
+        @cache_key ||= @cache_object.send(:expanded_key, @key_parts)
       end
 
       def cache_version
-        @cache_version ||= self.class.cache_object.send(:expanded_version, @key_parts)
+        @cache_version ||= @cache_object.send(:expanded_version, @key_parts)
       end
 
       def cache_key_with_version
-        self.class.cache_object.send(:retrieve_cache_key, @key_parts)
+        @cache_object.send(:retrieve_cache_key, @key_parts)
       end
 
       def update(key)
@@ -54,6 +46,15 @@ module ActiveSupport
         self
       end
       alias :<< :update
+
+      def self.default_cache_object
+        return @cache_object if @cache_object
+        if defined?(Rails) && Rails.respond_to?(:cache)
+          @cache_object = Rails.cache
+        else
+          @cache_object = ActiveSupport::Cache::Store.new
+        end
+      end
     end
   end
 end
