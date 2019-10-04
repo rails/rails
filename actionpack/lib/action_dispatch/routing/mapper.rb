@@ -754,7 +754,7 @@ module ActionDispatch
         #
         #   options 'carrots', to: 'food#carrots'
         def options(*args, &block)
-          map_method(:get, args, &block)
+          map_method(:options, args, &block)
         end
 
         private
