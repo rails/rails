@@ -48,7 +48,7 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
 
   def set_view_cache_dependencies
     def @view.view_cache_dependencies; []; end
-    def @view.combined_fragment_cache_key(*); "ahoy `controller` dependency"; end
+    def @view.combined_fragment_cache_key(*); ["ahoy `controller` dependency"]; end
   end
 
   def test_render_template_template
