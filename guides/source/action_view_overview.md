@@ -1025,7 +1025,7 @@ If `@article.author_id` is 1, this would return:
 <label for="article_author_id_3">M. Clark</label>
 ```
 
-Recovering some option passed (e.g. programatically checking an object from collection):
+Recovering some option passed (e.g. programmatically checking an object from collection):
 
 ```ruby
 collection_radio_buttons(:article, :author_id, Author.all, :id, :name_with_initial, {checked: Author.last})
@@ -1042,7 +1042,7 @@ In this case, the last object from the collection will be checked:
 <label for="article_author_id_3">M. Clark</label>
 ```
 
-To access the passed options programatically (e.g. adding a custom class if checked):
+To access the passed options programmatically (e.g. adding a custom class if checked):
 
 **Sample html.erb**
 
