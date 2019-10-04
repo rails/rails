@@ -24,13 +24,13 @@ module Arel
         table = Table.new(:users)
         dm = Arel::DeleteManager.new
         dm.from table
-        dm.to_sql.must_be_like %{ DELETE FROM "users" }
+        _(dm.to_sql).must_be_like %{ DELETE FROM "users" }
       end
 
       it "chains" do
         table = Table.new(:users)
         dm = Arel::DeleteManager.new
-        dm.from(table).must_equal dm
+        _(dm.from(table)).must_equal dm
       end
     end
 
@@ -40,13 +40,13 @@ module Arel
         dm = Arel::DeleteManager.new
         dm.from table
         dm.where table[:id].eq(10)
-        dm.to_sql.must_be_like %{ DELETE FROM "users" WHERE "users"."id" = 10}
+        _(dm.to_sql).must_be_like %{ DELETE FROM "users" WHERE "users"."id" = 10}
       end
 
       it "chains" do
         table = Table.new(:users)
         dm = Arel::DeleteManager.new
-        dm.where(table[:id].eq(10)).must_equal dm
+        _(dm.where(table[:id].eq(10))).must_equal dm
       end
     end
   end
