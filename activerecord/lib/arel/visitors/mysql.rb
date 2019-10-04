@@ -13,9 +13,10 @@ module Arel # :nodoc: all
           visit o.expr, collector
         end
 
-        ###
         # :'(
-        # https://dev.mysql.com/doc/refman/8.0/en/select.html#id3482214
+        # To retrieve all rows from a certain offset up to the end of the result set,
+        # you can use some large number for the second parameter
+        # https://dev.mysql.com/doc/refman/en/select.html
         def visit_Arel_Nodes_SelectStatement(o, collector)
           if o.offset && !o.limit
             o.limit = Arel::Nodes::Limit.new(18446744073709551615)

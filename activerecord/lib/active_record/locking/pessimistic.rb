@@ -53,7 +53,7 @@ module ActiveRecord
     #   end
     #
     # Database-specific information on row locking:
-    #   MySQL: https://dev.mysql.com/doc/refman/5.7/en/innodb-locking-reads.html
+    #   MySQL: https://dev.mysql.com/doc/refman/en/innodb-locking-reads.html
     #   PostgreSQL: https://www.postgresql.org/docs/current/interactive/sql-select.html#SQL-FOR-UPDATE-SHARE
     module Pessimistic
       # Obtain a row lock on this record. Reloads the record to obtain the requested
