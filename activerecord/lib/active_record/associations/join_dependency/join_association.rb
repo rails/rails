@@ -36,7 +36,7 @@ module ActiveRecord
             nodes = arel.constraints.first
 
             others, children = nodes.children.partition do |node|
-              fetch_arel_attribute(node) { |attr| attr.relation.name != table.name }
+              !fetch_arel_attribute(node) { |attr| attr.relation.name == table.name }
             end
             nodes = table.create_and(children)
 
