@@ -2499,14 +2499,34 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   test "first_or_initialize adds the record to the association" do
     firm = Firm.create! name: "omg"
-    client = firm.clients_of_firm.first_or_initialize
+    client = firm.clients_of_firm.where(name: "lol").first_or_initialize do |cli|
+      assert_deprecated do
+        assert_equal 0, Client.count
+      end
+    end
     assert_equal [client], firm.clients_of_firm
   end
 
   test "first_or_create adds the record to the association" do
     firm = Firm.create! name: "omg"
     firm.clients_of_firm.load_target
-    client = firm.clients_of_firm.first_or_create name: "lol"
+    client = firm.clients_of_firm.where(name: "lol").first_or_create do |cli|
+      assert_deprecated do
+        assert_equal 0, Client.count
+      end
+    end
+    assert_equal [client], firm.clients_of_firm
+    assert_equal [client], firm.reload.clients_of_firm
+  end
+
+  test "first_or_create! adds the record to the association" do
+    firm = Firm.create! name: "omg"
+    firm.clients_of_firm.load_target
+    client = firm.clients_of_firm.where(name: "lol").first_or_create! do |cli|
+      assert_deprecated do
+        assert_equal 0, Client.count
+      end
+    end
     assert_equal [client], firm.clients_of_firm
     assert_equal [client], firm.reload.clients_of_firm
   end
