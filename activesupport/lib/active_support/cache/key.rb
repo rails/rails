@@ -60,10 +60,6 @@ module ActiveSupport
         self
       end
       alias :<< :update
-
-      def length
-        cache_key.length
-      end
     end
   end
 end
