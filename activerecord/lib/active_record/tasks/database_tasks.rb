@@ -208,16 +208,10 @@ module ActiveRecord
       end
 
       def truncate_tables(db_config)
-        ActiveRecord::Base.connected_to(database: { truncation: db_config.configuration_hash }) do
-          conn = ActiveRecord::Base.connection
-          table_names = conn.tables
-          table_names -= [
-            conn.schema_migration.table_name,
-            InternalMetadata.table_name
-          ]
+        ActiveRecord::Base.establish_connection(db_config)
 
-          ActiveRecord::Base.connection.truncate_tables(*table_names)
-        end
+        connection = ActiveRecord::Base.connection
+        connection.truncate_tables(*connection.tables)
       end
       private :truncate_tables
 
