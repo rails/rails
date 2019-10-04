@@ -1,3 +1,7 @@
+    Add blank line after magic comment in migrations copied from engines.
+
+    *Zach Meyer*
+
 *   Add support for `belongs_to` to `has_many` inversing.
 
     *Gannon McGibbon*

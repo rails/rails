@@ -910,7 +910,7 @@ module ActiveRecord
             # insert our comment after the first newline(end of the magic comment line)
             # so the magic keep working.
             # Note that magic comments must be at the first line(except sh-bang).
-            source.sub!(/\A(?:#.*\b(?:en)?coding:\s*\S+|#\s*frozen_string_literal:\s*(?:true|false)).*\n/) do |magic_comment|
+            source.sub!(/\A(?:#.*\b(?:en)?coding:\s*\S+|#\s*frozen_string_literal:\s*(?:true|false)).*\n(\n?)/) do |magic_comment|
               magic_comments << magic_comment; ""
             end || break
           end
