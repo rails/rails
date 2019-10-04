@@ -41,12 +41,6 @@ module ActiveSupport
 
       def cache_version
         @cache_version ||= self.class.cache_object.send(:expanded_version, @key_parts)
-
-        if @cache_version == "/"
-          nil
-        else
-          @cache_version
-        end
       end
 
       def cache_key_with_version

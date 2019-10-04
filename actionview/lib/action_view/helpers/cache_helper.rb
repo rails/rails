@@ -208,11 +208,12 @@ module ActionView
       #
       # The digest will be generated using +virtual_path:+ if it is provided.
       #
-      def cache_fragment_name(name = {}, skip_digest: nil, virtual_path: nil, digest_path: nil)
+      def cache_fragment_name(name = {}, skip_digest: nil, virtual_path: nil, digest_path: nil, container: nil)
         if skip_digest
+          container << name if container
           name
         else
-          fragment_name_with_digest(name, virtual_path, digest_path)
+          fragment_name_with_digest(name, virtual_path, digest_path, container: container)
         end
       end
 
@@ -227,7 +228,7 @@ module ActionView
       end
 
     private
-      def fragment_name_with_digest(name, virtual_path, digest_path)
+      def fragment_name_with_digest(name, virtual_path, digest_path, container: nil)
         virtual_path ||= @virtual_path
 
         if virtual_path || digest_path
@@ -235,8 +236,14 @@ module ActionView
 
           digest_path ||= digest_path_from_template(@current_template)
 
-          [ digest_path, name ]
+          if container
+            container << digest_path
+            container << name
+          else
+            [ digest_path, name ]
+          end
         else
+          container << name if container
           name
         end
       end
