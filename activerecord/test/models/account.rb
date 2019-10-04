@@ -21,10 +21,15 @@ class Account < ActiveRecord::Base
   end
 
   validate :check_empty_credit_limit
+  validate :ensure_good_credit, on: :bank_loan
 
   private
     def check_empty_credit_limit
       errors.add("credit_limit", :blank) if credit_limit.blank?
+    end
+
+    def ensure_good_credit
+      errors.add(:credit_limit, "too low") unless credit_limit > 10_000
     end
 
     def private_method
