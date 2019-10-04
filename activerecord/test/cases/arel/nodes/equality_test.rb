@@ -11,7 +11,7 @@ module Arel
           it "returns :==" do
             attr = Table.new(:users)[:id]
             left = attr.eq(10)
-            left.operator.must_equal :==
+            _(left.operator).must_equal :==
           end
         end
 
@@ -19,7 +19,7 @@ module Arel
           it "should equal left" do
             attr = Table.new(:users)[:id]
             left = attr.eq(10)
-            left.left.must_equal left.operand1
+            _(left.left).must_equal left.operand1
           end
         end
 
@@ -27,7 +27,7 @@ module Arel
           it "should equal right" do
             attr = Table.new(:users)[:id]
             left = attr.eq(10)
-            left.right.must_equal left.operand2
+            _(left.right).must_equal left.operand2
           end
         end
 
@@ -45,7 +45,7 @@ module Arel
             attr = Table.new(:users)[:id]
             test = attr.eq(10)
             test.to_sql engine
-            engine.connection.quote_count.must_equal 3
+            _(engine.connection.quote_count).must_equal 3
           end
         end
       end
@@ -56,8 +56,8 @@ module Arel
           left  = attr.eq(10)
           right = attr.eq(11)
           node  = left.or right
-          node.expr.left.must_equal left
-          node.expr.right.must_equal right
+          _(node.expr.left).must_equal left
+          _(node.expr.right).must_equal right
         end
       end
 
@@ -67,8 +67,8 @@ module Arel
           left  = attr.eq(10)
           right = attr.eq(11)
           node  = left.and right
-          node.left.must_equal left
-          node.right.must_equal right
+          _(node.left).must_equal left
+          _(node.right).must_equal right
         end
       end
 

@@ -21,7 +21,7 @@ module Arel
         stmt.cores.first.projections << Nodes::SqlLiteral.new(select)
         stmt.orders << Nodes::SqlLiteral.new("foo")
         sql = compile(stmt)
-        sql.must_be_like %{
+        _(sql).must_be_like %{
           SELECT #{select} ORDER BY alias_0__
         }
       end
@@ -35,7 +35,7 @@ module Arel
 
         sql = compile(stmt)
         sql2 = compile(stmt)
-        sql.must_equal sql2
+        _(sql).must_equal sql2
       end
 
       it "splits orders with commas" do
@@ -45,7 +45,7 @@ module Arel
         stmt.cores.first.projections << Nodes::SqlLiteral.new(select)
         stmt.orders << Nodes::SqlLiteral.new("foo, bar")
         sql = compile(stmt)
-        sql.must_be_like %{
+        _(sql).must_be_like %{
           SELECT #{select} ORDER BY alias_0__, alias_1__
         }
       end
@@ -57,7 +57,7 @@ module Arel
         stmt.cores.first.projections << Nodes::SqlLiteral.new(select)
         stmt.orders << Nodes::SqlLiteral.new("NVL(LOWER(bar, foo), foo) DESC, UPPER(baz)")
         sql = compile(stmt)
-        sql.must_be_like %{
+        _(sql).must_be_like %{
           SELECT #{select} ORDER BY alias_0__ DESC, alias_1__
         }
       end
@@ -68,7 +68,7 @@ module Arel
             stmt = Nodes::SelectStatement.new
             stmt.limit = Nodes::Limit.new(10)
             sql = compile stmt
-            sql.must_be_like %{ SELECT WHERE ROWNUM <= 10 }
+            _(sql).must_be_like %{ SELECT WHERE ROWNUM <= 10 }
           end
 
           it "is idempotent" do
@@ -77,7 +77,7 @@ module Arel
             stmt.limit = Nodes::Limit.new(10)
             sql = compile stmt
             sql2 = compile stmt
-            sql.must_equal sql2
+            _(sql).must_equal sql2
           end
 
           it "creates a subquery when there is order_by" do
@@ -85,7 +85,7 @@ module Arel
             stmt.orders << Nodes::SqlLiteral.new("foo")
             stmt.limit = Nodes::Limit.new(10)
             sql = compile stmt
-            sql.must_be_like %{
+            _(sql).must_be_like %{
               SELECT * FROM (SELECT ORDER BY foo ) WHERE ROWNUM <= 10
             }
           end
@@ -95,7 +95,7 @@ module Arel
             stmt.cores.first.groups << Nodes::SqlLiteral.new("foo")
             stmt.limit = Nodes::Limit.new(10)
             sql = compile stmt
-            sql.must_be_like %{
+            _(sql).must_be_like %{
               SELECT * FROM (SELECT GROUP BY foo ) WHERE ROWNUM <= 10
             }
           end
@@ -106,7 +106,7 @@ module Arel
             stmt.cores.first.projections << Nodes::SqlLiteral.new("id")
             stmt.limit = Arel::Nodes::Limit.new(10)
             sql = compile stmt
-            sql.must_be_like %{
+            _(sql).must_be_like %{
               SELECT * FROM (SELECT DISTINCT id ) WHERE ROWNUM <= 10
             }
           end
@@ -116,7 +116,7 @@ module Arel
             stmt.limit = Nodes::Limit.new(10)
             stmt.offset = Nodes::Offset.new(10)
             sql = compile stmt
-            sql.must_be_like %{
+            _(sql).must_be_like %{
               SELECT * FROM (
                 SELECT raw_sql_.*, rownum raw_rnum_
                 FROM (SELECT ) raw_sql_
@@ -131,7 +131,7 @@ module Arel
             stmt.limit = Nodes::Limit.new(Nodes::BindParam.new(1))
             stmt.offset = Nodes::Offset.new(Nodes::BindParam.new(1))
             sql = compile stmt
-            sql.must_be_like %{
+            _(sql).must_be_like %{
               SELECT * FROM (
                 SELECT raw_sql_.*, rownum raw_rnum_
                 FROM (SELECT ) raw_sql_
@@ -147,7 +147,7 @@ module Arel
             stmt.offset = Nodes::Offset.new(10)
             sql = compile stmt
             sql2 = compile stmt
-            sql.must_equal sql2
+            _(sql).must_equal sql2
           end
         end
 
@@ -156,7 +156,7 @@ module Arel
             stmt = Nodes::SelectStatement.new
             stmt.offset = Nodes::Offset.new(10)
             sql = compile stmt
-            sql.must_be_like %{
+            _(sql).must_be_like %{
               SELECT * FROM (
                 SELECT raw_sql_.*, rownum raw_rnum_
                 FROM (SELECT) raw_sql_
@@ -171,7 +171,7 @@ module Arel
         left = Nodes::SqlLiteral.new("SELECT * FROM users WHERE age > 10")
         right = Nodes::SqlLiteral.new("SELECT * FROM users WHERE age > 20")
         sql = compile Nodes::Except.new(left, right)
-        sql.must_be_like %{
+        _(sql).must_be_like %{
           ( SELECT * FROM users WHERE age > 10 MINUS SELECT * FROM users WHERE age > 20 )
         }
       end
@@ -179,7 +179,7 @@ module Arel
       describe "locking" do
         it "defaults to FOR UPDATE when locking" do
           node = Nodes::Lock.new(Arel.sql("FOR UPDATE"))
-          compile(node).must_be_like "FOR UPDATE"
+          _(compile(node)).must_be_like "FOR UPDATE"
         end
       end
 
@@ -187,7 +187,7 @@ module Arel
         it "increments each bind param" do
           query = @table[:name].eq(Arel::Nodes::BindParam.new(1))
             .and(@table[:id].eq(Arel::Nodes::BindParam.new(1)))
-          compile(query).must_be_like %{
+          _(compile(query)).must_be_like %{
             "users"."name" = :a1 AND "users"."id" = :a2
           }
         end
@@ -196,14 +196,14 @@ module Arel
       describe "Nodes::IsNotDistinctFrom" do
         it "should construct a valid generic SQL statement" do
           test = Table.new(:users)[:name].is_not_distinct_from "Aaron Patterson"
-          compile(test).must_be_like %{
+          _(compile(test)).must_be_like %{
             DECODE("users"."name", 'Aaron Patterson', 0, 1) = 0
           }
         end
 
         it "should handle column names on both sides" do
           test = Table.new(:users)[:first_name].is_not_distinct_from Table.new(:users)[:last_name]
-          compile(test).must_be_like %{
+          _(compile(test)).must_be_like %{
             DECODE("users"."first_name", "users"."last_name", 0, 1) = 0
           }
         end
@@ -212,14 +212,14 @@ module Arel
           @table = Table.new(:users)
           val = Nodes.build_quoted(nil, @table[:active])
           sql = compile Nodes::IsNotDistinctFrom.new(@table[:name], val)
-          sql.must_be_like %{ "users"."name" IS NULL }
+          _(sql).must_be_like %{ "users"."name" IS NULL }
         end
       end
 
       describe "Nodes::IsDistinctFrom" do
         it "should handle column names on both sides" do
           test = Table.new(:users)[:first_name].is_distinct_from Table.new(:users)[:last_name]
-          compile(test).must_be_like %{
+          _(compile(test)).must_be_like %{
             DECODE("users"."first_name", "users"."last_name", 0, 1) = 1
           }
         end
@@ -228,7 +228,7 @@ module Arel
           @table = Table.new(:users)
           val = Nodes.build_quoted(nil, @table[:active])
           sql = compile Nodes::IsDistinctFrom.new(@table[:name], val)
-          sql.must_be_like %{ "users"."name" IS NOT NULL }
+          _(sql).must_be_like %{ "users"."name" IS NOT NULL }
         end
       end
     end
