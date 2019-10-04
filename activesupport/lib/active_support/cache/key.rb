@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "active_support/cache"
-
 module ActiveSupport
   module Cache
     # This class is responsible for coercing input into a valid
@@ -52,7 +50,7 @@ module ActiveSupport
       end
 
       def cache_key_with_version
-        @cache_method_obj.send(:retrieve_cache_key, @key_parts)
+        self.class.cache_object.send(:retrieve_cache_key, @key_parts)
       end
 
       def update(key)
@@ -66,19 +64,6 @@ module ActiveSupport
       def length
         cache_key.length
       end
-
-      private
-        def cache_method_obj
-          if @@has_rails_cache == :unknown
-            @@has_rails_cache = defined?(Rails) && Rails.respond_to?(:cache)
-          end
-
-          if @@has_rails_cache
-            Rails.cache
-          else
-            CACHE_METHOD_OBJ
-          end
-        end
     end
   end
 end

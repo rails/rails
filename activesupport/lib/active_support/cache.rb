@@ -9,6 +9,7 @@ require "active_support/core_ext/numeric/time"
 require "active_support/core_ext/object/to_param"
 require "active_support/core_ext/object/try"
 require "active_support/core_ext/string/inflections"
+require "active_support/cache/key"
 
 module ActiveSupport
   # See ActiveSupport::Cache::Store for documentation.
@@ -851,4 +852,3 @@ module ActiveSupport
     end
   end
 end
-require "active_support/cache/key"
