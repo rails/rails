@@ -73,9 +73,7 @@ module ActionView
             
             src_002 = '@output_buffer.safe_append = (\'</div>\'.freeze)'
             
-            (src_001 + ';' + src_000 + ';' + src_002 + ';' + '@output_buffer').tap do |o|
-              byebug
-            end
+            (src_001 + ';' + src_000 + ';' + src_002 + ';' + '@output_buffer')
         end
 
       private
