@@ -74,15 +74,14 @@ module Rails
 
       def field_type
         @field_type ||= case type
-                        when :integer                  then :number_field
-                        when :float, :decimal          then :text_field
-                        when :time                     then :time_select
-                        when :datetime, :timestamp     then :datetime_select
-                        when :date                     then :date_select
-                        when :text                     then :text_area
-                        when :rich_text                then :rich_text_area
-                        when :boolean                  then :check_box
-                        when :attachment, :attachments then :file_field
+                        when :integer, :float, :decimal then :number_field
+                        when :time                      then :time_select
+                        when :datetime, :timestamp      then :datetime_select
+                        when :date                      then :date_select
+                        when :text                      then :text_area
+                        when :rich_text                 then :rich_text_area
+                        when :boolean                   then :check_box
+                        when :attachment, :attachments  then :file_field
                         else
                           :text_field
         end
@@ -176,6 +175,10 @@ module Rails
 
       def virtual?
         rich_text? || attachment? || attachments?
+      end
+
+      def decimal?
+        %i(float decimal).include?(type)
       end
 
       def inject_options
