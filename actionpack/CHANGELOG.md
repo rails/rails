@@ -1,3 +1,11 @@
+*   Updated `ActionDispatch::Request.remote_ip` setter to clear set the instance
+    `remote_ip` to `nil` before setting the header that the value is derived
+    from.
+
+    Fixes https://github.com/rails/rails/issues/37383
+
+    *Norm Provost*
+
 *   `ActionController::Base.log_at` allows setting a different log level per request.
 
     ```ruby
