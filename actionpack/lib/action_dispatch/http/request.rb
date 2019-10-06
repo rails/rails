@@ -281,6 +281,7 @@ module ActionDispatch
     end
 
     def remote_ip=(remote_ip)
+      @remote_ip = nil
       set_header "action_dispatch.remote_ip", remote_ip
     end
 

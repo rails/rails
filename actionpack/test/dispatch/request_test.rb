@@ -103,6 +103,11 @@ class RequestIP < BaseRequestTest
 
     request = stub_request "HTTP_X_FORWARDED_FOR" => "not_ip_address"
     assert_nil request.remote_ip
+
+    request = stub_request "REMOTE_ADDR" => "1.2.3.4"
+    assert_equal "1.2.3.4", request.remote_ip
+    request.remote_ip = "2.3.4.5"
+    assert_equal "2.3.4.5", request.remote_ip
   end
 
   test "remote ip spoof detection" do
