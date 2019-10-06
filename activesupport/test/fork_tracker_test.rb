@@ -207,4 +207,4 @@ class ForkTrackerTest < ActiveSupport::TestCase
   ensure
     ActiveSupport::ForkTracker.unregister(handler)
   end
-end
+end if Process.respond_to?(:fork)
