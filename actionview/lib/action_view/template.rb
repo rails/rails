@@ -390,7 +390,7 @@ module ActionView
                       end
                       
                       htmt = (string) => {
-                        banal_source_inspect.push("@output_buffer.append")
+                        banal_source_inspect.push("@output_buffer.append = " + string.inspect) # string.to_string_for_ruby_code_string
                       }
                       
                       yield($eval, htmt)
