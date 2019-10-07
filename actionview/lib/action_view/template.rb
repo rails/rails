@@ -356,7 +356,7 @@ module ActionView
 
 
         # start_appending = false
-        banal_source_inspect = []
+        def banal_source_inspect; @source_drop ||= []; end
         
         §(
           ESSENTIAL_LOCAL_VARIABLE_DEFAULT_INITIALIZATION,
