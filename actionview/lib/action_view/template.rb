@@ -380,7 +380,7 @@ module ActionView
                   §(USING_APPEND_OVER_SAFE_APPEND) do # ∆
                     def rails_ehtml                      
                       html = lambda { |string|
-                        banal_source_inspect.push("@output_buffer.append = " + string.inspect) # string.to_string_for_ruby_code_string
+                        banal_source_inspect.push("@output_buffer.safe_append = " + string.inspect) # string.to_string_for_ruby_code_string
                       }
                       
                       yield(html) # htm typescript ruby, htm typescript
