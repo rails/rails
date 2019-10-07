@@ -360,7 +360,7 @@ module ActionView
         # start_appending = false
         banal_source_inspect = []
         
-        $(
+        §(
           ESSENTIAL_LOCAL_VARIABLE_DEFAULT_INITIALIZATION,
           default_assignment: Stick('started_appending'),
           reassignment: Stick('started_appending||='),
