@@ -5,6 +5,21 @@ require "thread"
 require "delegate"
 
 
+class Object
+  require 'debug_inspector'
+  
+  def debug_inspect
+    RubyVM::DebugInspector.open { |dc|
+      locs = dc.backtrace_locations
+      locs.size.times.map do |i|
+        dc.frame_binding(i)
+
+
+      end
+    }
+  end
+end
+
 EZII_INTROSPECT_LINE = [] # => ladder call, ladder("DEBUG c ARCHIVE MAGIC LINES")
 module ActionView
   # = Action View Template
@@ -420,19 +435,7 @@ module ActionView
       
         EZII_INTROSPECT_LINE << [magic_archive_debug_inspect_line_start, (s), magic_archive_debug_inspect_line_end].join
       end
-      
-      require 'debug_inspector'
-      
-      def debug_inspect
-        RubyVM::DebugInspector.open { |dc|
-          locs = dc.backtrace_locations
-          locs.size.times do |i|
-            dc.frame_binding(i)
-
-
-          end
-        }
-      end
+  
 
       def handle_render_error(view, e)
         if e.is_a?(Template::Error)
