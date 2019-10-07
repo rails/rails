@@ -369,7 +369,7 @@ module ActionView
           source.split(';').each.with_index do |source_line|
           
             Stick('2') do
-              started_appending += 1 and stopped_appending -=1 source_line =~ /@output_buffer/
+              started_appending += 1 and stopped_appending -=1 if source_line =~ /@output_buffer/
               stopped_appending +=1 and started_appending -= 1 unless source_line =~ /@output_buffer/
             end
 
