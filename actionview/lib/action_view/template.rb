@@ -363,14 +363,14 @@ module ActionView
         source.split(';').each.with_index do |source_line| # => map
           banal_source_inspect.push(source_line)
           
-          # start_appending ||= true if source_lin  e =~ /@output_buffer\..*append/ # or equals, oonly sets it once when start_appending is stil lfalse and right hand condition evaluates to true
+          started_appending ||= true if source_line  e =~ /@output_buffer/ # or equals, oonly sets it once when start_appending is stil lfalse and right hand condition evaluates to true
           # require 'byebug'
           # byebug
           
           
           # ezii_inspect
           
-          banal_source_inspect.push("@output_buffer.safe_append = '<div>' + debug_inspect.to_s + '</div>'")
+          banal_source_inspect.push("@output_buffer.safe_append = '<div>' + debug_inspect.to_s + '</div>'") if started_appending
         end# flatten.join(';') # mid?
         
         # byebug
