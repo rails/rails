@@ -361,47 +361,46 @@ module ActionView
         §(
           ESSENTIAL_LOCAL_VARIABLE_DEFAULT_INITIALIZATION,
             default_assignment: Stick('1: @output_buffer is initialilzed a few lines after the first in `$source`'),
-            reassignment: Stick('2: once a line of source is matched against /@output_buffer/, startt appending'),
+            reassignment: Stick('2: once a line of source is matched against /@output_buffer/, start appending'),
             would_not_be_working_without_default_assignment: Stick('3: actually start appending')
         ) do  
-          Stick('1', started_appending = 0, stopped_appending = 0)
+          Stick('1', stopping_threshold = 5)
           
           source.split(';').each.with_index do |source_line|
           
             Stick('2') do
-              (started_appending += 1) and (stopped_appending -=1) if source_line =~ /@output_buffer/
-              (stopped_appending += 1) and (started_appending -= 1) unless source_line =~ /@output_buffer/
+              source_line =~ /@output_buffer/ ? stopping_threshold +=1 ; stopping_threshold -= 1
             end
 
           
             Stick('3') do
               
               # finished_if_statement_on_construction_site do 🚧 # ∆ syntax highlilghting should put the whole code blocks background to yelllow
-                if (started_appending > 4 && started_appending < 6) && (stopped_appending < 2)
-                  §(USING_APPEND_OVER_SAFE_APPEND) do # ∆
-                    def rails_ehtml                      
-                      html = lambda { |string|
-                        banal_source_inspect.push("@output_buffer.safe_append = " + '"' + string + '"' ) # string.to_string_for_ruby_code_string
-                      }
-                                          
-                      yield(html) # htm typescript ruby, htm typescript
-                    end
-                    
-                    rails_ehtml do |html|
-                      html.call(%Q{<div class='tweezer-docking'>})
-                        html.call(%Q{<div class='tweezer-digestable'>})
-                          html.call('<div>')
+                if stopping_threshold < 10
+                  def rails_ehtml                      
+                    html = lambda { |string|
+                      banal_source_inspect.push("@output_buffer.safe_append = " + '"' + string + '"' ) # string.to_string_for_ruby_code_string
+                    }
+                                        
+                    yield(html) # htm typescript ruby, htm typescript
+                  end
+                  
+                  rails_ehtml do |html|
+                    html.call(%Q{<div class='tweezer-docking'>})
+                      html.call(%Q{<div class='tweezer-digestable'>})
+                        html.call('<div>')
+                          §(USING_APPEND_OVER_SAFE_APPEND) do # ∆
                             banal_source_inspect.push("@output_buffer.append  = debug_inspect.compact.map(&:receiver).map(&:class).map(&:inspect).inspect")
-                          html.call('</div>')
-                        html.call(%Q{</div>})
-                    
-                        html.call(%Q{<div>})
-                          html.call('<div>')
-                            banal_source_inspect.push(source_line)
-                          html.call('</div>')
-                        html.call(%Q{</div>})
+                          end
+                        html.call('</div>')
                       html.call(%Q{</div>})
-                    end
+                  
+                      html.call(%Q{<div>})
+                        html.call('<div>')
+                          banal_source_inspect.push(source_line)
+                        html.call('</div>')
+                      html.call(%Q{</div>})
+                    html.call(%Q{</div>})
                   end
                 else
                   banal_source_inspect.push(source_line)
