@@ -364,13 +364,13 @@ module ActionView
             reassignment: Stick('2: once a line of source is matched against /@output_buffer/, startt appending'),
             would_not_be_working_without_default_assignment: Stick('3: actually start appending')
         ) do  
-          Stick('1', started_appending = 0 and stopped_appending = 0)
+          Stick('1', (started_appending = 0) and (stopped_appending = 0))
           
           source.split(';').each.with_index do |source_line|
           
             Stick('2') do
-              started_appending += 1 and stopped_appending -=1 if source_line =~ /@output_buffer/
-              stopped_appending +=1 and started_appending -= 1 unless source_line =~ /@output_buffer/
+              (started_appending += 1) and (stopped_appending -=1) if source_line =~ /@output_buffer/
+              (stopped_appending += 1) and (started_appending -= 1) unless source_line =~ /@output_buffer/
             end
 
           
