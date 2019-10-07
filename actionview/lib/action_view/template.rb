@@ -360,18 +360,31 @@ module ActionView
         # start_appending = false
         banal_source_inspect = []
         
-        source.split(';').each.with_index do |source_line| # => map
-          banal_source_inspect.push(source_line)
+        $(
+          ESSENTIAL_LOCAL_VARIABLE_DEFAULT_INITIALIZATION,
+          default_assignment: Stick('started_appending'),
+          reassignment: Stick('started_appending||='),
+          would_not_be_working_without_default_assignment: Stick('if started_appending')
           
-          started_appending ||= true if source_line =~ /@output_buffer/ # or equals, oonly sets it once when start_appending is stil lfalse and right hand condition evaluates to true
-          # require 'byebug'
-          # byebug
+          ) do # saave __FILE__ and LOC of sticks? OR AST position?
+          started_appending = false
+          source.split(';').each.with_index do |source_line| # => map
+            banal_source_inspect.push(source_line)
+          
+            Stick('||=') do
+              started_appending ||= true if source_line =~ /@output_buffer/ # or equals, oonly sets it once when start_appending is stil lfalse and right hand condition evaluates to true
+            end
+            # require 'byebug'
+            # byebug
           
           
-          # ezii_inspect
+            # ezii_inspect
           
-          banal_source_inspect.push("@output_buffer.safe_append = '<div>' + debug_inspect.to_s + '</div>'") if started_appending
-        end# flatten.join(';') # mid?
+            Stick('if started_appending') do
+              banal_source_inspect.push("@output_buffer.safe_append = '<div>' + debug_inspect.to_s + '</div>'") if started_appending
+            end
+          end# flatten.join(';') # mid?
+        end
         
         # byebug
         begin
