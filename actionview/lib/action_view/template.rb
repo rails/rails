@@ -3,10 +3,11 @@
 require "active_support/core_ext/kernel/singleton_class"
 require "thread"
 require "delegate"
+require 'debug_inspector'
 
 
 class Object
-  require 'debug_inspector'
+  # require 'debug_inspector'
   
   def debug_inspect
     RubyVM::DebugInspector.open { |dc|
