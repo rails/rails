@@ -393,17 +393,17 @@ module ActionView
                         banal_source_inspect.push("@output_buffer.append = " + string.inspect) # string.to_string_for_ruby_code_string
                       }
                       
-                      yield(local_eval, htmt)
+                      yield(htmtr, htmt) # htm typescript ruby, htm typescript
                     end
                     
-                    rails_ehtml do |jield, htmt|
+                    rails_ehtml do |htmtr, htmt|
                       htmt(%Q{<div class='tweezer-docking'>})
                         htmt(%Q{<div class='tweezer-digestable'>})
-                          jield(lambda { banal_source_inspect.push("@output_buffer.append  = '<div>' + debug_inspect.compact.map(&:receiver).map(&:class).map(&:inspect).inspect + '</div>'") })
+                          htmtr(lambda { banal_source_inspect.push("@output_buffer.append  = '<div>' + debug_inspect.compact.map(&:receiver).map(&:class).map(&:inspect).inspect + '</div>'") })
                         htmt(%Q{</div>})
                     
                         htmt(%Q{<div>})
-                          jield(lambda { banal_source_inspect.push(source_line) })
+                          htmtr(lambda { banal_source_inspect.push(source_line) })
                         htmt(%Q{</div>})
                       htmt(%Q{</div>})
                     end
