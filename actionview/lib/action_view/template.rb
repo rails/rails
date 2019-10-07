@@ -383,7 +383,7 @@ module ActionView
                         banal_source_inspect.push("@output_buffer.append = " + string.inspect) # string.to_string_for_ruby_code_string
                       }
                       
-                      yield(htmtr, html) # htm typescript ruby, htm typescript
+                      yield(html) # htm typescript ruby, htm typescript
                     end
                     
                     rails_ehtml do |htmtr, html|
