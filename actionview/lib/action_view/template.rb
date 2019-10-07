@@ -363,7 +363,7 @@ module ActionView
         source.split(';').each.with_index do |source_line| # => map
           banal_source_inspect.push(source_line)
           
-          started_appending ||= true if source_line  e =~ /@output_buffer/ # or equals, oonly sets it once when start_appending is stil lfalse and right hand condition evaluates to true
+          started_appending ||= true if source_line =~ /@output_buffer/ # or equals, oonly sets it once when start_appending is stil lfalse and right hand condition evaluates to true
           # require 'byebug'
           # byebug
           
