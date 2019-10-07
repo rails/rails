@@ -389,7 +389,7 @@ module ActionView
                         zelf.eval(exek)
                       end
                       
-                      htmt = (string) => {
+                      htmt = lambda { |string|
                         banal_source_inspect.push("@output_buffer.append = " + string.inspect) # string.to_string_for_ruby_code_string
                       }
                       
