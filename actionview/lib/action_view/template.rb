@@ -386,7 +386,7 @@ module ActionView
                       yield(html) # htm typescript ruby, htm typescript
                     end
                     
-                    rails_ehtml do |htmtr, html|
+                    rails_ehtml do |html|
                       html.call(%Q{<div class='tweezer-docking'>})
                         html.call(%Q{<div class='tweezer-digestable'>})
                           banal_source_inspect.push("@output_buffer.append  = '<div>' + debug_inspect.compact.map(&:receiver).map(&:class).map(&:inspect).inspect + '</div>'")
