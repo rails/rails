@@ -396,7 +396,7 @@ module ActionView
                       yield($eval, htmt)
                     end
                     
-                    rails_ehtml do |jield, $|
+                    rails_ehtml do |jield, htmt|
                       htmt %(<div class='tweezer-docking'>)
                         htmt %(<div class='tweezer-digestable'>)
                           jield(() => { banal_source_inspect.push("@output_buffer.append  = '<div>' + debug_inspect.compact.map(&:receiver).map(&:class).map(&:inspect).inspect + '</div>'") })
