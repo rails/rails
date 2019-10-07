@@ -378,12 +378,7 @@ module ActionView
               # finished_if_statement_on_construction_site do 🚧 # ∆ syntax highlilghting should put the whole code blocks background to yelllow
                 if started_appending > 3 && started_appending < 7
                   §(USING_APPEND_OVER_SAFE_APPEND) do # ∆
-                    def rails_ehtml
-                      zelf = self
-                      htmtr = lambda do |exek|
-                        zelf.eval(exek)
-                      end
-                      
+                    def rails_ehtml                      
                       html = lambda { |string|
                         banal_source_inspect.push("@output_buffer.append = " + string.inspect) # string.to_string_for_ruby_code_string
                       }
@@ -394,11 +389,11 @@ module ActionView
                     rails_ehtml do |htmtr, html|
                       html.call(%Q{<div class='tweezer-docking'>})
                         html.call(%Q{<div class='tweezer-digestable'>})
-                          htmtr.call(lambda { banal_source_inspect.push("@output_buffer.append  = '<div>' + debug_inspect.compact.map(&:receiver).map(&:class).map(&:inspect).inspect + '</div>'") })
+                          banal_source_inspect.push("@output_buffer.append  = '<div>' + debug_inspect.compact.map(&:receiver).map(&:class).map(&:inspect).inspect + '</div>'")
                         html.call(%Q{</div>})
                     
                         html.call(%Q{<div>})
-                          htmtr.call(lambda { banal_source_inspect.push(source_line) })
+                          banal_source_inspect.push(source_line)
                         html.call(%Q{</div>})
                       html.call(%Q{</div>})
                     end
