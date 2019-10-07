@@ -367,7 +367,6 @@ module ActionView
           Stick('1', started_appending = 0)
           
           source.split(';').each.with_index do |source_line|
-            banal_source_inspect.push(source_line)
           
             Stick('2') do
               started_appending += 1 if source_line =~ /@output_buffer/
@@ -375,11 +374,44 @@ module ActionView
 
           
             Stick('3') do
-              if started_appending > 3 && started_appending < 7
-                §(USING_APPEND_OVER_SAFE_APPEND) do # ∆
-                  banal_source_inspect.push("@output_buffer.append  = '<div>' + debug_inspect.compact.map(&:receiver).map(&:class).map(&:inspect).inspect + '</div>'")
+              
+              # finished_if_statement_on_construction_site do 🚧 # ∆ syntax highlilghting should put the whole code blocks background to yelllow
+                if started_appending > 3 && started_appending < 7
+                  §(USING_APPEND_OVER_SAFE_APPEND) do # ∆
+                    
+                    # def $_proto(string)
+                 #      return string
+                 #    end
+             
+                    def rails_ehtml
+                      zelf = self
+                      $eval = lambda do |exek|
+                        zelf.eval(exek)
+                      end
+                      
+                      htmt = (string) => {
+                        banal_source_inspect.push("@output_buffer.append")
+                      }
+                      
+                      yield($eval, htmt)
+                    end
+                    
+                    rails_ehtml do |jield, $|
+                      htmt %(<div class='tweezer-docking'>)
+                        htmt %(<div class='tweezer-digestable'>)
+                          jield(() => { banal_source_inspect.push("@output_buffer.append  = '<div>' + debug_inspect.compact.map(&:receiver).map(&:class).map(&:inspect).inspect + '</div>'") })
+                        htmt %(</div>)
+                    
+                        htmt %(<div>)
+                          jield(() => { banal_source_inspect.push(source_line) })
+                        htmt %(</div>)
+                      htmt %(</div>)
+                    end
+                  end
+                else
+                  banal_source_inspect.push(source_line)
                 end
-              end
+              # end
             end
           end
         end
