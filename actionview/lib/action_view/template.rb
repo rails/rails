@@ -385,7 +385,7 @@ module ActionView
              
                     def rails_ehtml
                       zelf = self
-                      $eval = lambda do |exek|
+                      local_eval = lambda do |exek|
                         zelf.eval(exek)
                       end
                       
@@ -393,7 +393,7 @@ module ActionView
                         banal_source_inspect.push("@output_buffer.append = " + string.inspect) # string.to_string_for_ruby_code_string
                       }
                       
-                      yield($eval, htmt)
+                      yield(local_eval, htmt)
                     end
                     
                     rails_ehtml do |jield, htmt|
