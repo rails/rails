@@ -378,7 +378,7 @@ module ActionView
             Stick('3') do
               
               # finished_if_statement_on_construction_site do 🚧 # ∆ syntax highlilghting should put the whole code blocks background to yelllow
-                if stopping_threshold < 10
+                if stopping_threshold < 9 && stopping_threshold > 7
                   def rails_ehtml                      
                     html = lambda { |string|
                       banal_source_inspect.push("@output_buffer.safe_append = " + '"' + string + '"' ) # string.to_string_for_ruby_code_string
