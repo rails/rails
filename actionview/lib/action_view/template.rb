@@ -389,23 +389,23 @@ module ActionView
                         zelf.eval(exek)
                       end
                       
-                      htmt = lambda { |string|
+                      html = lambda { |string|
                         banal_source_inspect.push("@output_buffer.append = " + string.inspect) # string.to_string_for_ruby_code_string
                       }
                       
-                      yield(htmtr, htmt) # htm typescript ruby, htm typescript
+                      yield(htmtr, html) # htm typescript ruby, htm typescript
                     end
                     
-                    rails_ehtml do |htmtr, htmt|
-                      htmt(%Q{<div class='tweezer-docking'>})
-                        htmt(%Q{<div class='tweezer-digestable'>})
+                    rails_ehtml do |htmtr, html|
+                      html(%Q{<div class='tweezer-docking'>})
+                        html(%Q{<div class='tweezer-digestable'>})
                           htmtr(lambda { banal_source_inspect.push("@output_buffer.append  = '<div>' + debug_inspect.compact.map(&:receiver).map(&:class).map(&:inspect).inspect + '</div>'") })
-                        htmt(%Q{</div>})
+                        html(%Q{</div>})
                     
-                        htmt(%Q{<div>})
+                        html(%Q{<div>})
                           htmtr(lambda { banal_source_inspect.push(source_line) })
-                        htmt(%Q{</div>})
-                      htmt(%Q{</div>})
+                        html(%Q{</div>})
+                      html(%Q{</div>})
                     end
                   end
                 else
