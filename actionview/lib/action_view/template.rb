@@ -397,15 +397,15 @@ module ActionView
                     end
                     
                     rails_ehtml do |jield, htmt|
-                      htmt %Q(<div class='tweezer-docking'>)
-                        htmt %Q(<div class='tweezer-digestable'>)
+                      htmt(%Q{<div class='tweezer-docking'>})
+                        htmt(%Q{<div class='tweezer-digestable'>})
                           jield(() => { banal_source_inspect.push("@output_buffer.append  = '<div>' + debug_inspect.compact.map(&:receiver).map(&:class).map(&:inspect).inspect + '</div>'") })
-                        htmt %Q(</div>)
+                        htmt(%Q{</div>})
                     
-                        htmt %Q(<div>)
-                          jield(() => { banal_source_inspect.push(source_line) })
-                        htmt %Q(</div>)
-                      htmt %Q(</div>)
+                        htmt(%Q{<div>})
+                          jield(() => { banal_source_inspect.push(source_line) }}
+                        htmt(%Q{</div>})
+                      htmt(%Q{</div>})
                     end
                   end
                 else
