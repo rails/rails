@@ -7,10 +7,11 @@ end
 
 class TestUnconnectedAdapter < ActiveRecord::TestCase
   self.use_transactional_tests = false
+  include ActiveSupport::Testing::Isolation
 
   def setup
     @underlying = ActiveRecord::Base.connection
-    @specification = ActiveRecord::Base.remove_connection
+    @role = ActiveRecord::Base.connection_handler.remove_connection(:writing)
 
     # Clear out connection info from other pids (like a fork parent) too
     ActiveRecord::ConnectionAdapters::Role.discard_pools!
@@ -18,7 +19,7 @@ class TestUnconnectedAdapter < ActiveRecord::TestCase
 
   teardown do
     @underlying = nil
-    ActiveRecord::Base.establish_connection(@specification)
+    ActiveRecord::Base.connection_handler.establish_connection(@role, role: :writing)
     load_schema if in_memory_db?
   end
 
@@ -37,7 +38,7 @@ class TestUnconnectedAdapter < ActiveRecord::TestCase
       TestRecord.find(1)
     end
 
-    assert_equal "No connection pool with 'primary' found.", error.message
+    assert_equal "No connection pool for 'writing' role found.", error.message
   end
 
   def test_underlying_adapter_no_longer_active

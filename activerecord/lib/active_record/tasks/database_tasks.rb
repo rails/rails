@@ -136,7 +136,7 @@ module ActiveRecord
       end
 
       def create_all
-        old_pool = ActiveRecord::Base.connection_handler.retrieve_connection_pool(ActiveRecord::Base.connection_specification_name)
+        old_pool = ActiveRecord::Base.connection_handler.retrieve_connection_pool(ActiveRecord::Base.writing_role)
         each_local_configuration { |db_config| create(db_config) }
         if old_pool
           ActiveRecord::Base.connection_handler.establish_connection(old_pool.db_config)

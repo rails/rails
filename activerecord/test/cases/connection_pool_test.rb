@@ -495,9 +495,10 @@ module ActiveRecord
           payloads << payload
         end
         ConnectionTestModel.establish_connection :arunit
+        database_name = ActiveRecord::Base.connection_config[:database]
 
-        assert_equal [:config, :connection_id, :spec_name], payloads[0].keys.sort
-        assert_equal "ActiveRecord::ConnectionAdapters::ConnectionPoolTest::ConnectionTestModel", payloads[0][:spec_name]
+        assert_equal [:config, :connection_id], payloads[0].keys.sort
+        assert_equal database_name, payloads[0][:config][:database]
       ensure
         ActiveSupport::Notifications.unsubscribe(subscription) if subscription
       end

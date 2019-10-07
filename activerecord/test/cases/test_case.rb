@@ -30,6 +30,25 @@ module ActiveRecord
       SQLCounter.clear_log
     end
 
+    def before_setup
+      @original_ar_connection_handlers = ActiveRecord::Base.connection_handlers.each_with_object({}) do |(name, handler), h|
+        h[name] = handler.dup
+        h[name].instance_variable_set(:@roles, handler.instance_variable_get(:@roles).dup)
+      end
+      super
+    end
+
+    def after_teardown
+      super
+      ActiveRecord::Base.connection_handlers = @original_ar_connection_handlers
+      if in_memory_db?
+        ActiveRecord::Base.connection_handler = ActiveRecord::Base.connection_handlers["ActiveRecord::Base"]
+      else
+        ActiveRecord::Base.establish_connection(:arunit) rescue nil
+      end
+      ActiveRecord::Base.default_connection_handler = ActiveRecord::Base.connection_handler
+    end
+
     def capture_sql
       ActiveRecord::Base.connection.materialize_transactions
       SQLCounter.clear_log

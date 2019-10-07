@@ -1003,11 +1003,22 @@ module ActiveRecord
       private_constant :FINALIZER
 
       def initialize
-        # These caches are keyed by role.connection_specification_name (Role#connection_specification_name).
-        @owner_to_role = Concurrent::Map.new(initial_capacity: 2)
+        # These caches are keyed by spec.name (ConnectionSpecification#name).
+        @roles = Concurrent::Map.new(initial_capacity: 2)
 
         # Backup finalizer: if the forked child skipped Kernel#fork the early discard has not occurred
         ObjectSpace.define_finalizer self, FINALIZER
+      end
+
+      def current_role
+        current_roles[object_id]
+      end
+
+      def with_role(role)
+        old_role, current_roles[object_id] = current_role, role
+        yield
+      ensure
+        current_roles[object_id] = old_role
       end
 
       def prevent_writes # :nodoc:
@@ -1031,31 +1042,26 @@ module ActiveRecord
       end
 
       def connection_pool_names # :nodoc:
-        owner_to_role.keys
+        roles.keys
       end
 
       def connection_pool_list
-        owner_to_role.values.compact.map(&:pool)
+        roles.values.compact.map(&:pool)
       end
       alias :connection_pools :connection_pool_list
 
-      def establish_connection(config)
+      def establish_connection(config, role: nil)
         resolver = Resolver.new(Base.configurations)
-        role = resolver.resolve_role(config)
-        db_config = role.db_config
+        role = resolver.resolve_role(config, role: role)
 
-        remove_connection(role.connection_specification_name)
+        remove_connection(role.name)
 
         message_bus = ActiveSupport::Notifications.instrumenter
         payload = {
-          connection_id: object_id
+          connection_id: object_id,
+          config: role.db_config.configuration_hash,
         }
-        if role
-          payload[:spec_name] = role.connection_specification_name
-          payload[:config] = db_config.configuration_hash
-        end
-
-        owner_to_role[role.connection_specification_name] = role
+        roles[role.name] = role
 
         message_bus.instrument("!connection.active_record", payload) do
           role.pool
@@ -1097,15 +1103,16 @@ module ActiveRecord
       # active or defined connection: if it is the latter, it will be
       # opened and set as the active connection for the class it was defined
       # for (not necessarily the current class).
-      def retrieve_connection(spec_name) #:nodoc:
-        pool = retrieve_connection_pool(spec_name)
+      def retrieve_connection(role) #:nodoc:
+        pool = retrieve_connection_pool(role)
 
         unless pool
           # multiple database application
-          if ActiveRecord::Base.connection_handler != ActiveRecord::Base.default_connection_handler
-            raise ConnectionNotEstablished, "No connection pool with '#{spec_name}' found for the '#{ActiveRecord::Base.current_role}' role."
+          if connection_pool_list.any?
+            database_name = connection_pool_list.first.db_config.database
+            raise ConnectionNotEstablished, "No connection pool for '#{role}' role found for the '#{database_name}' database."
           else
-            raise ConnectionNotEstablished, "No connection pool with '#{spec_name}' found."
+            raise ConnectionNotEstablished, "No connection pool for '#{role}' role found."
           end
         end
 
@@ -1114,31 +1121,39 @@ module ActiveRecord
 
       # Returns true if a connection that's accessible to this class has
       # already been opened.
-      def connected?(spec_name)
-        pool = retrieve_connection_pool(spec_name)
-        pool && pool.connected?
+      def connected?(role)
+        retrieve_connection_pool(role)&.connected?
       end
 
       # Remove the connection for this class. This will close the active
       # connection and the defined connection (if they exist). The result
       # can be used as an argument for #establish_connection, for easily
       # re-establishing the connection.
-      def remove_connection(spec_name)
-        if role = owner_to_role.delete(spec_name)
-          role.disconnect!
-          role.db_config.configuration_hash
+      def remove_connection(role)
+        if role_object = roles.delete(role)
+          role_object.disconnect!
+          role_object.db_config.configuration_hash
         end
       end
 
-      # Retrieving the connection pool happens a lot, so we cache it in @owner_to_role.
+      # Retrieving the connection pool happens a lot, so we cache it in @roles.
       # This makes retrieving the connection pool O(1) once the process is warm.
       # When a connection is established or removed, we invalidate the cache.
-      def retrieve_connection_pool(spec_name)
-        owner_to_role[spec_name]&.pool
+      def retrieve_connection_pool(role)
+        roles[role]&.pool
       end
 
       private
-        attr_reader :owner_to_role
+        attr_reader :roles
+
+        def current_roles
+          roles = Thread.current.thread_variable_get(:ar_current_roles)
+          roles || Thread.current.thread_variable_set(:ar_current_roles, {})
+        end
+
+        def current_role=(role)
+          current_roles[object_id] = role
+        end
     end
   end
 end

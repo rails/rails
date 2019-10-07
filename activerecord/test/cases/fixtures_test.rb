@@ -539,7 +539,7 @@ class FixturesTest < ActiveRecord::TestCase
   def test_fixtures_are_set_up_with_database_env_variable
     db_url_tmp = ENV["DATABASE_URL"]
     ENV["DATABASE_URL"] = "sqlite3::memory:"
-    ActiveRecord::Base.stub(:configurations, {}) do
+    ActiveRecord::Base.stub(:configurations, ActiveRecord::DatabaseConfigurations.new) do
       test_case = Class.new(ActiveRecord::TestCase) do
         fixtures :accounts
 
@@ -1390,35 +1390,24 @@ end
 
 class MultipleDatabaseFixturesTest < ActiveRecord::TestCase
   test "enlist_fixture_connections ensures multiple databases share a connection pool" do
-    old_handlers = ActiveRecord::Base.connection_handlers
-    ActiveRecord::Base.connection_handlers = {}
-
-    with_temporary_connection_pool do
-      ActiveRecord::Base.connects_to database: { writing: :arunit, reading: :arunit2 }
-
-      rw_conn = ActiveRecord::Base.connection
-      ro_conn = ActiveRecord::Base.connection_handlers[:reading].connection_pool_list.first.connection
-
-      assert_not_equal rw_conn, ro_conn
-
-      enlist_fixture_connections
-
-      rw_conn = ActiveRecord::Base.connection
-      ro_conn = ActiveRecord::Base.connection_handlers[:reading].connection_pool_list.first.connection
-
-      assert_equal rw_conn, ro_conn
-    end
-  ensure
-    ActiveRecord::Base.connection_handlers = old_handlers
-  end
-
-  private
-    def with_temporary_connection_pool
-      role = ActiveRecord::Base.connection_handler.send(:owner_to_role).fetch("primary")
-      new_pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new(role)
-
-      role.stub(:pool, new_pool) do
-        yield
+    klassA = Class.new(ActiveRecord::Base) do
+      def self.name
+        "KlassA"
       end
     end
+
+    klassA.connects_to database: { writing: :arunit, reading: :arunit }
+
+    rw_conn = klassA.connection
+    ro_conn = ActiveRecord::Base.connection_handlers["KlassA"].retrieve_connection(:reading)
+
+    assert_not_equal rw_conn, ro_conn
+
+    enlist_fixture_connections
+
+    rw_conn = klassA.connection
+    ro_conn = ActiveRecord::Base.connection_handlers["KlassA"].retrieve_connection(:reading)
+
+    assert_equal rw_conn, ro_conn
+  end
 end

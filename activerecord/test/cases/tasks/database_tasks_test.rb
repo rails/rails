@@ -295,10 +295,10 @@ module ActiveRecord
         old_configurations = ActiveRecord::Base.configurations
         ActiveRecord::Base.configurations = @configurations
 
-        # To refrain from connecting to a newly created empty DB in
-        # sqlite3_mem tests
-        ActiveRecord::Base.connection_handler.stub(:establish_connection, nil) do
-          yield
+        stub_any_instance(ActiveRecord::ConnectionAdapters::ConnectionHandler, instance: ActiveRecord::Base.connection_handler) do |instance|
+          instance.stub(:establish_connection, nil) do
+            yield
+          end
         end
       ensure
         ActiveRecord::Base.configurations = old_configurations
@@ -400,8 +400,10 @@ module ActiveRecord
         old_configurations = ActiveRecord::Base.configurations
         ActiveRecord::Base.configurations = @configurations
 
-        ActiveRecord::Base.connection_handler.stub(:establish_connection, nil) do
-          yield
+        stub_any_instance(ActiveRecord::ConnectionAdapters::ConnectionHandler, instance: ActiveRecord::Base.connection_handler) do |instance|
+          instance.stub(:establish_connection, nil) do
+            yield
+          end
         end
       ensure
         ActiveRecord::Base.configurations = old_configurations
@@ -517,8 +519,10 @@ module ActiveRecord
         old_configurations = ActiveRecord::Base.configurations
         ActiveRecord::Base.configurations = @configurations
 
-        ActiveRecord::Base.connection_handler.stub(:establish_connection, nil) do
-          yield
+        stub_any_instance(ActiveRecord::ConnectionAdapters::ConnectionHandler, instance: ActiveRecord::Base.connection_handler) do |instance|
+          instance.stub(:establish_connection, nil) do
+            yield
+          end
         end
       ensure
         ActiveRecord::Base.configurations = old_configurations
@@ -1046,7 +1050,7 @@ module ActiveRecord
       def teardown
         SchemaMigration.delete_all
         InternalMetadata.delete_all
-        ActiveRecord::Base.connection_handlers = { writing: ActiveRecord::Base.default_connection_handler }
+        ActiveRecord::Base.connection_handlers = { "ActiveRecord::Base" => ActiveRecord::Base.default_connection_handler }
       end
 
       def test_truncate_tables

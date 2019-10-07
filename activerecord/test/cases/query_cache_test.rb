@@ -56,24 +56,20 @@ class QueryCacheTest < ActiveRecord::TestCase
   end
 
   def test_query_cache_is_applied_to_connections_in_all_handlers
-    ActiveRecord::Base.connection_handlers = {
-      writing: ActiveRecord::Base.default_connection_handler,
-      reading: ActiveRecord::ConnectionAdapters::ConnectionHandler.new
-    }
-
-    ActiveRecord::Base.connected_to(role: :reading) do
-      ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations["arunit"])
-    end
+    ActiveRecord::Base.connection_handler.establish_connection(
+      ActiveRecord::Base.configurations["arunit"],
+      role: :reading
+    )
 
     mw = middleware { |env|
-      ro_conn = ActiveRecord::Base.connection_handlers[:reading].connection_pool_list.first.connection
+      ro_conn = ActiveRecord::Base.connection_handlers["ActiveRecord::Base"].connection_pool_list.first.connection
       assert_predicate ActiveRecord::Base.connection, :query_cache_enabled
       assert_predicate ro_conn, :query_cache_enabled
     }
 
     mw.call({})
   ensure
-    ActiveRecord::Base.connection_handlers = { writing: ActiveRecord::Base.default_connection_handler }
+    ActiveRecord::Base.connection_handler.remove_connection(:reading)
   end
 
   def test_query_cache_across_threads
@@ -361,19 +357,18 @@ class QueryCacheTest < ActiveRecord::TestCase
   def test_cache_is_available_when_using_a_not_connected_connection
     skip "In-Memory DB can't test for using a not connected connection" if in_memory_db?
     with_temporary_connection_pool do
-      spec_name = Task.connection_specification_name
-      conf = ActiveRecord::Base.configurations["arunit"].merge("name" => "test2")
-      ActiveRecord::Base.connection_handler.establish_connection(conf)
-      Task.connection_specification_name = "test2"
-      assert_not_predicate Task, :connected?
+      conf = ActiveRecord::Base.configurations["arunit"]
+      ActiveRecord::Base.connection_handler.establish_connection(conf, role: :testing_query_cache)
+      ActiveRecord::Base.connected_to(role: :testing_query_cache) do
+        assert_not_predicate Task, :connected?
 
-      Task.cache do
-        assert_queries(1) { Task.find(1); Task.find(1) }
-      ensure
-        ActiveRecord::Base.connection_handler.remove_connection(Task.connection_specification_name)
-        Task.connection_specification_name = spec_name
+        Task.cache do
+          assert_queries(1) { Task.find(1); Task.find(1) }
+        end
       end
     end
+  ensure
+    ActiveRecord::Base.connection_handler.remove_connection(:testing_query_cache)
   end
 
   def test_query_cache_executes_new_queries_within_block
@@ -501,14 +496,7 @@ class QueryCacheTest < ActiveRecord::TestCase
   def test_clear_query_cache_is_called_on_all_connections
     skip "with in memory db, reading role won't be able to see database on writing role" if in_memory_db?
     with_temporary_connection_pool do
-      ActiveRecord::Base.connection_handlers = {
-        writing: ActiveRecord::Base.default_connection_handler,
-        reading: ActiveRecord::ConnectionAdapters::ConnectionHandler.new
-      }
-
-      ActiveRecord::Base.connected_to(role: :reading) do
-        ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations["arunit"])
-      end
+      ActiveRecord::Base.connection_handler.establish_connection(ActiveRecord::Base.configurations["arunit"], role: :reading)
 
       mw = middleware { |env|
         ActiveRecord::Base.connected_to(role: :reading) do
@@ -533,7 +521,7 @@ class QueryCacheTest < ActiveRecord::TestCase
       mw.call({})
     end
   ensure
-    ActiveRecord::Base.connection_handlers = { writing: ActiveRecord::Base.default_connection_handler }
+    ActiveRecord::Base.connection_handler.remove_connection(:reading)
   end
 
   test "query cache is enabled in threads with shared connection" do
@@ -555,10 +543,10 @@ class QueryCacheTest < ActiveRecord::TestCase
 
   private
     def with_temporary_connection_pool
-      role = ActiveRecord::Base.connection_handler.send(:owner_to_role).fetch("primary")
-      new_pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new(role)
+      role_object = ActiveRecord::Base.connection_handler.send(:roles).fetch(:writing)
+      new_pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new(role_object)
 
-      role.stub(:pool, new_pool) do
+      role_object.stub(:pool, new_pool) do
         yield
       end
     end

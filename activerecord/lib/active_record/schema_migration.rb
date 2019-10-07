@@ -9,48 +9,54 @@ module ActiveRecord
   # number is inserted in to the `SchemaMigration.table_name` so it doesn't need
   # to be executed the next time.
   class SchemaMigration < ActiveRecord::Base # :nodoc:
-    class << self
-      def _internal?
-        true
-      end
+    module Concern
+      extend ActiveSupport::Concern
 
-      def primary_key
-        "version"
-      end
+      module ClassMethods
+        def _internal?
+          true
+        end
 
-      def table_name
-        "#{table_name_prefix}#{schema_migrations_table_name}#{table_name_suffix}"
-      end
+        def primary_key
+          "version"
+        end
 
-      def create_table
-        unless table_exists?
-          version_options = connection.internal_string_options_for_primary_key
+        def table_name
+          "#{table_name_prefix}#{schema_migrations_table_name}#{table_name_suffix}"
+        end
 
-          connection.create_table(table_name, id: false) do |t|
-            t.string :version, **version_options
+        def create_table
+          unless table_exists?
+            version_options = connection.internal_string_options_for_primary_key
+
+            connection.create_table(table_name, id: false) do |t|
+              t.string :version, **version_options
+            end
           end
+        end
+
+        def drop_table
+          connection.drop_table table_name, if_exists: true
+        end
+
+        def normalize_migration_number(number)
+          "%.3d" % number.to_i
+        end
+
+        def normalized_versions
+          all_versions.map { |v| normalize_migration_number v }
+        end
+
+        def all_versions
+          order(:version).pluck(:version)
         end
       end
 
-      def drop_table
-        connection.drop_table table_name, if_exists: true
-      end
-
-      def normalize_migration_number(number)
-        "%.3d" % number.to_i
-      end
-
-      def normalized_versions
-        all_versions.map { |v| normalize_migration_number v }
-      end
-
-      def all_versions
-        order(:version).pluck(:version)
+      def version
+        super.to_i
       end
     end
 
-    def version
-      super.to_i
-    end
+    include Concern
   end
 end

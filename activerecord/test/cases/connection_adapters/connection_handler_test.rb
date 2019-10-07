@@ -12,7 +12,6 @@ module ActiveRecord
 
       def setup
         @handler = ConnectionHandler.new
-        @spec_name = "primary"
         @pool = @handler.establish_connection(ActiveRecord::Base.configurations["arunit"])
       end
 
@@ -32,11 +31,11 @@ module ActiveRecord
         config = { "readonly" => { "adapter" => "sqlite3", "pool" => "5" } }
         ActiveRecord::Base.configurations = config
         resolver = ConnectionAdapters::Resolver.new(ActiveRecord::Base.configurations)
-        config_hash = resolver.resolve(config["readonly"], "readonly").configuration_hash
+        config_hash = resolver.resolve(config["readonly"]).configuration_hash
         config_hash[:name] = "readonly"
         @handler.establish_connection(config_hash)
 
-        assert_not_nil @handler.retrieve_connection_pool("readonly")
+        assert_not_nil @handler.retrieve_connection_pool(ActiveRecord::Base.writing_role)
       ensure
         ActiveRecord::Base.configurations = old_config
         @handler.remove_connection("readonly")
@@ -58,17 +57,35 @@ module ActiveRecord
         }
         @prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, config
 
-        @handler.establish_connection(:common)
-        @handler.establish_connection(:primary)
-        @handler.establish_connection(:readonly)
+        klassA = Class.new(ActiveRecord::Base) do
+          def self.name
+            "KlassA"
+          end
+        end
 
-        assert_not_nil pool = @handler.retrieve_connection_pool("readonly")
+        klassB = Class.new(ActiveRecord::Base) do
+          def self.name
+            "KlassB"
+          end
+        end
+
+        klassC = Class.new(ActiveRecord::Base) do
+          def self.name
+            "KlassC"
+          end
+        end
+
+        klassA.establish_connection(:common)
+        klassB.establish_connection(:primary)
+        klassC.establish_connection(:readonly)
+
+        assert_not_nil pool = ActiveRecord::Base.connection_handlers["KlassC"].retrieve_connection_pool(ActiveRecord::Base.writing_role)
         assert_equal "db/readonly.sqlite3", pool.db_config.database
 
-        assert_not_nil pool = @handler.retrieve_connection_pool("primary")
+        assert_not_nil pool = ActiveRecord::Base.connection_handlers["KlassB"].retrieve_connection_pool(ActiveRecord::Base.writing_role)
         assert_equal "db/primary.sqlite3", pool.db_config.database
 
-        assert_not_nil pool = @handler.retrieve_connection_pool("common")
+        assert_not_nil pool = ActiveRecord::Base.connection_handlers["KlassA"].retrieve_connection_pool(ActiveRecord::Base.writing_role)
         assert_equal "db/common.sqlite3", pool.db_config.database
       ensure
         ActiveRecord::Base.configurations = @prev_configs
@@ -131,7 +148,7 @@ module ActiveRecord
 
         @handler.establish_connection(:development)
 
-        assert_not_nil pool = @handler.retrieve_connection_pool("development")
+        assert_not_nil pool = @handler.retrieve_connection_pool(ActiveRecord::Base.writing_role)
         assert_equal "db/primary.sqlite3", pool.db_config.database
       ensure
         ActiveRecord::Base.configurations = @prev_configs
@@ -146,7 +163,7 @@ module ActiveRecord
 
         @handler.establish_connection(:development_readonly)
 
-        assert_not_nil pool = @handler.retrieve_connection_pool("development_readonly")
+        assert_not_nil pool = @handler.retrieve_connection_pool(ActiveRecord::Base.writing_role)
         assert_equal "db/readonly.sqlite3", pool.db_config.database
       ensure
         ActiveRecord::Base.configurations = @prev_configs
@@ -183,19 +200,19 @@ module ActiveRecord
       end
 
       def test_retrieve_connection
-        assert @handler.retrieve_connection(@spec_name)
+        assert @handler.retrieve_connection(ActiveRecord::Base.writing_role)
       end
 
       def test_active_connections?
         assert_not_predicate @handler, :active_connections?
-        assert @handler.retrieve_connection(@spec_name)
+        assert @handler.retrieve_connection(ActiveRecord::Base.writing_role)
         assert_predicate @handler, :active_connections?
         @handler.clear_active_connections!
         assert_not_predicate @handler, :active_connections?
       end
 
       def test_retrieve_connection_pool
-        assert_not_nil @handler.retrieve_connection_pool(@spec_name)
+        assert_not_nil @handler.retrieve_connection_pool(ActiveRecord::Base.writing_role)
       end
 
       def test_retrieve_connection_pool_with_invalid_id
@@ -211,7 +228,7 @@ module ActiveRecord
 
         assert_same klass2.connection, ActiveRecord::Base.connection
 
-        pool = klass2.establish_connection(ActiveRecord::Base.connection_pool.db_config.configuration_hash)
+        pool = klass2.establish_connection(ActiveRecord::Base.connection_config)
         assert_same klass2.connection, pool.connection
         assert_not_same klass2.connection, ActiveRecord::Base.connection
 
@@ -227,27 +244,28 @@ module ActiveRecord
       class MyClass < ApplicationRecord
       end
 
-      def test_connection_specification_name_should_fallback_to_parent
+      def test_connection_handler_should_fallback_to_parent
         Object.send :const_set, :ApplicationRecord, ApplicationRecord
 
         klassA = Class.new(Base)
         klassB = Class.new(klassA)
         klassC = Class.new(MyClass)
 
-        assert_equal klassB.connection_specification_name, klassA.connection_specification_name
-        assert_equal klassC.connection_specification_name, klassA.connection_specification_name
+        assert_equal klassB.connection_handler, klassA.connection_handler
+        assert_equal klassC.connection_handler, klassA.connection_handler
 
-        assert_equal "primary", klassA.connection_specification_name
-        assert_equal "primary", klassC.connection_specification_name
+        assert_equal ActiveRecord::Base.connection_handler, klassA.connection_handler
+        assert_equal ActiveRecord::Base.connection_handler, klassC.connection_handler
 
-        klassA.connection_specification_name = "readonly"
-        assert_equal "readonly", klassB.connection_specification_name
+        new_handler = ActiveRecord::ConnectionAdapters::ConnectionHandler.new
+        klassA.connection_handler = new_handler
+        assert_equal new_handler, klassB.connection_handler
 
-        ActiveRecord::Base.connection_specification_name = "readonly"
-        assert_equal "readonly", klassC.connection_specification_name
+        ActiveRecord::Base.connection_handler = new_handler
+        assert_equal new_handler, klassC.connection_handler
       ensure
         Object.send :remove_const, :ApplicationRecord
-        ActiveRecord::Base.connection_specification_name = "primary"
+        ActiveRecord::Base.connection_handler = ActiveRecord::Base.default_connection_handler
       end
 
       def test_remove_connection_should_not_remove_parent
@@ -363,7 +381,7 @@ module ActiveRecord
 
           pid = fork {
             rd.close
-            pool = @handler.retrieve_connection_pool(@spec_name)
+            pool = @handler.retrieve_connection_pool(ActiveRecord::Base.writing_role)
             wr.write Marshal.dump pool.schema_cache.size
             wr.close
             exit!

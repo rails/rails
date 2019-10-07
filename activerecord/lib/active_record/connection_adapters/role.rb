@@ -5,7 +5,7 @@ module ActiveRecord
     class Role # :nodoc:
       include Mutex_m
 
-      attr_reader :db_config, :connection_specification_name
+      attr_reader :db_config, :name
       attr_accessor :schema_cache
 
       INSTANCES = ObjectSpace::WeakMap.new
@@ -17,9 +17,9 @@ module ActiveRecord
         end
       end
 
-      def initialize(connection_specification_name, db_config)
+      def initialize(name, db_config)
         super()
-        @connection_specification_name = connection_specification_name
+        @name = name
         @db_config = db_config
         @pool = nil
         INSTANCES[self] = self

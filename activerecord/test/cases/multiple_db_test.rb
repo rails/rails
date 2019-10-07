@@ -27,10 +27,10 @@ class MultipleDbTest < ActiveRecord::TestCase
   end
 
   def test_swapping_the_connection
-    old_spec_name, Course.connection_specification_name = Course.connection_specification_name, "primary"
+    old_handler, Course.connection_handler = Course.connection_handler, Entrant.connection_handler
     assert_equal(Entrant.connection, Course.connection)
   ensure
-    Course.connection_specification_name = old_spec_name
+    Course.connection_handler = old_handler
   end
 
   def test_find

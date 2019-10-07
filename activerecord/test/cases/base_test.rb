@@ -1360,16 +1360,9 @@ class BasicsTest < ActiveRecord::TestCase
     klass = Class.new(ActiveRecord::Base)
     orig_handler = klass.connection_handler
     new_handler = ActiveRecord::ConnectionAdapters::ConnectionHandler.new
-    thread_connection_handler = nil
+    klass.connection_handler = new_handler
 
-    t = Thread.new do
-      klass.connection_handler = new_handler
-      thread_connection_handler = klass.connection_handler
-    end
-    t.join
-
-    assert_equal klass.connection_handler, orig_handler
-    assert_equal thread_connection_handler, new_handler
+    assert_not_equal orig_handler, klass.connection_handler
   end
 
   test "new threads get default the default connection handler" do
@@ -1387,29 +1380,30 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal klass.default_connection_handler, orig_handler
   end
 
-  test "changing a connection handler in a main thread does not poison the other threads" do
+  test "changing role in a main thread does not poison the other threads" do
     klass = Class.new(ActiveRecord::Base)
-    orig_handler = klass.connection_handler
-    new_handler = ActiveRecord::ConnectionAdapters::ConnectionHandler.new
-    after_handler = nil
+    after_role = nil
+    orig_role = klass.current_role
     latch1 = Concurrent::CountDownLatch.new
     latch2 = Concurrent::CountDownLatch.new
 
     t = Thread.new do
-      klass.connection_handler = new_handler
-      latch1.count_down
-      latch2.wait
-      after_handler = klass.connection_handler
+      klass.connected_to(role: :some_role) do
+        latch1.count_down
+        latch2.wait
+        after_role = klass.current_role
+      end
     end
 
     latch1.wait
 
-    klass.connection_handler = orig_handler
-    latch2.count_down
+    klass.connected_to(role: :another_role) do
+      latch2.count_down
+    end
     t.join
 
-    assert_equal after_handler, new_handler
-    assert_equal orig_handler, klass.connection_handler
+    assert_equal :some_role, after_role
+    assert_equal orig_role, klass.current_role
   end
 
   # Note: This is a performance optimization for Array#uniq and Hash#[] with
@@ -1641,7 +1635,7 @@ class BasicsTest < ActiveRecord::TestCase
 
       assert_match %r/\AWrite query attempted while in readonly mode: INSERT /, conn2_error.message
     ensure
-      ActiveRecord::Base.connection_handlers = { writing: ActiveRecord::Base.default_connection_handler }
+      ActiveRecord::Base.connection_handlers = { "ActiveRecord::Base" => ActiveRecord::Base.default_connection_handler }
       ActiveRecord::Base.establish_connection(:arunit)
     end
   end

@@ -9,7 +9,7 @@ module ActiveRecord
         def resolve(role, config = {})
           configs = ActiveRecord::DatabaseConfigurations.new(config)
           resolver = ConnectionAdapters::Resolver.new(configs)
-          resolver.resolve(role, role).configuration_hash
+          resolver.resolve(role).configuration_hash
         end
 
         def resolve_role(role, config = {})
@@ -43,7 +43,6 @@ module ActiveRecord
             adapter:  "abstract",
             host:     "foo",
             encoding: "utf8",
-            name:     "production"
           }, role)
         end
 
@@ -53,7 +52,6 @@ module ActiveRecord
             adapter:  "abstract",
             host:     "foo",
             encoding: "utf8",
-            name:     "production"
           }, role)
         end
 
@@ -65,7 +63,6 @@ module ActiveRecord
             host:     "foo",
             encoding: "utf8",
             pool:     "3",
-            name:     "production"
           }, role)
         end
 
@@ -136,18 +133,7 @@ module ActiveRecord
             adapter:  "sqlite3",
             database: "foo",
             encoding: "utf8",
-            name:     "production"
           }, role)
-        end
-
-        def test_role_connection_specification_name_on_key_lookup
-          role = resolve_role(:readonly, "readonly" => { "adapter" => "sqlite3" })
-          assert_equal "readonly", role.connection_specification_name
-        end
-
-        def test_role_connection_specification_name_with_inline_config
-          role = resolve_role("adapter" => "sqlite3")
-          assert_equal "primary", role.connection_specification_name, "should default to primary id"
         end
 
         def test_role_with_invalid_type

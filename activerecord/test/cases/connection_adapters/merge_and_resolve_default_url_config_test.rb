@@ -25,7 +25,7 @@ module ActiveRecord
       def resolve_spec(spec, config)
         configs = ActiveRecord::DatabaseConfigurations.new(config)
         resolver = ConnectionAdapters::Resolver.new(configs)
-        resolver.resolve(spec, spec).configuration_hash
+        resolver.resolve(spec).configuration_hash
       end
 
       def test_invalid_string_config
@@ -48,7 +48,7 @@ module ActiveRecord
         ENV["DATABASE_URL"] = "postgres://localhost/foo"
         config   = { "not_production" => {  "adapter" => "not_postgres", "database" => "not_foo" } }
         actual   = resolve_spec(:default_env, config)
-        expected = { adapter: "postgresql", database: "foo", host: "localhost", name: "default_env" }
+        expected = { adapter: "postgresql", database: "foo", host: "localhost" }
         assert_equal expected, actual
       end
 
@@ -58,7 +58,7 @@ module ActiveRecord
 
         config   = { "not_production" => { "adapter" => "not_postgres", "database" => "not_foo" } }
         actual   = resolve_spec(:foo, config)
-        expected = { adapter: "postgresql", database: "foo", host: "localhost", name: "foo" }
+        expected = { adapter: "postgresql", database: "foo", host: "localhost" }
         assert_equal expected, actual
       end
 
@@ -66,7 +66,7 @@ module ActiveRecord
         ENV["RAILS_ENV"] = "foo"
         config = { "foo" => { "adapter" => "postgres", "url" => ENV["DATABASE_URL"] } }
         actual   = resolve_spec(:foo, config)
-        expected = { adapter: "postgres", url: nil, name: "foo" }
+        expected = { adapter: "postgres", url: nil }
         assert_equal expected, actual
       end
 
@@ -76,7 +76,7 @@ module ActiveRecord
 
         config   = { "not_production" => { "adapter" => "not_postgres", "database" => "not_foo" } }
         actual   = resolve_spec(:foo, config)
-        expected = { adapter: "postgresql", database: "foo", host: "localhost", name: "foo" }
+        expected = { adapter: "postgresql", database: "foo", host: "localhost" }
         assert_equal expected, actual
       end
 
@@ -84,7 +84,7 @@ module ActiveRecord
         ENV["DATABASE_URL"] = "postgres://localhost/foo"
         config   = { "production" => { "adapter" => "not_postgres", "database" => "not_foo", "host" => "localhost" } }
         actual   = resolve_spec(:production, config)
-        expected = { adapter: "not_postgres", database: "not_foo", host: "localhost", name: "production" }
+        expected = { adapter: "not_postgres", database: "not_foo", host: "localhost" }
         assert_equal expected, actual
       end
 
@@ -94,7 +94,7 @@ module ActiveRecord
 
         config   = { "production" => { "adapter" => "postgresql", "database" => "foo_prod" }, "test" => { "adapter" => "postgresql", "database" => "foo_test" } }
         actual   = resolve_spec(:test, config)
-        expected = { adapter: "postgresql", database: "foo_test", host: "localhost", name: "test" }
+        expected = { adapter: "postgresql", database: "foo_test", host: "localhost" }
         assert_equal expected, actual
       end
 
@@ -137,7 +137,7 @@ module ActiveRecord
         ENV["DATABASE_URL"] = "ibm-db://localhost/foo"
         config   = { "default_env" => { "adapter" => "not_postgres", "database" => "not_foo", "host" => "localhost" } }
         actual   = resolve_spec(:default_env, config)
-        expected = { adapter: "ibm_db", database: "foo", host: "localhost", name: "default_env" }
+        expected = { adapter: "ibm_db", database: "foo", host: "localhost" }
         assert_equal expected, actual
       end
 
@@ -395,14 +395,13 @@ module ActiveRecord
         config = { "production" => { "adapter" => "not_postgres", "database" => "not_foo", "host" => "localhost" }, "default_env" => {} }
 
         actual = resolve_spec(:production, config)
-        assert_equal config["production"].symbolize_keys.merge(name: "production"), actual
+        assert_equal config["production"].symbolize_keys, actual
 
         actual = resolve_spec(:default_env, config)
         assert_equal({
           host: "localhost",
           database: "foo",
           adapter: "postgresql",
-          name: "default_env"
         }, actual)
       end
     end

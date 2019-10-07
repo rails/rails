@@ -48,6 +48,8 @@ module ActiveRecord
     # may be returned on an error.
     def establish_connection(config_or_env = nil)
       db_config = resolve_config_for_connection(config_or_env)
+
+      assign_connection_handler
       connection_handler.establish_connection(db_config)
     end
 
@@ -70,9 +72,8 @@ module ActiveRecord
 
       database.each do |role, database_key|
         db_config = resolve_config_for_connection(database_key)
-        handler = lookup_connection_handler(role.to_sym)
-
-        connections << handler.establish_connection(db_config)
+        assign_connection_handler
+        connections << connection_handler.establish_connection(db_config, role: role)
       end
 
       connections
@@ -125,18 +126,16 @@ module ActiveRecord
         end
 
         db_config = resolve_config_for_connection(database)
-        handler = lookup_connection_handler(role)
-
-        handler.establish_connection(db_config)
-
-        with_handler(role, &blk)
+        assign_connection_handler
+        connection_handler.establish_connection(db_config, role: role)
+        with_role(role, &blk)
       elsif role
         if role == writing_role
-          with_handler(role.to_sym) do
+          with_role(role.to_sym) do
             connection_handler.while_preventing_writes(prevent_writes, &blk)
           end
         else
-          with_handler(role.to_sym, &blk)
+          with_role(role.to_sym, &blk)
         end
       else
         raise ArgumentError, "must provide a `database` or a `role`."
@@ -163,17 +162,11 @@ module ActiveRecord
     #     ActiveRecord::Base.current_role #=> :reading
     #   end
     def current_role
-      connection_handlers.key(connection_handler)
-    end
-
-    def lookup_connection_handler(handler_key) # :nodoc:
-      handler_key ||= ActiveRecord::Base.writing_role
-      connection_handlers[handler_key] ||= ActiveRecord::ConnectionAdapters::ConnectionHandler.new
-    end
-
-    def with_handler(handler_key, &blk) # :nodoc:
-      handler = lookup_connection_handler(handler_key)
-      swap_connection_handler(handler, &blk)
+      if self == Base
+        Thread.current.thread_variable_get(:ar_current_role) || writing_role
+      else
+        connection_handler.current_role || Base.current_role
+      end
     end
 
     # Clears the query cache for all connections associated with the current thread.
@@ -192,14 +185,13 @@ module ActiveRecord
       retrieve_connection
     end
 
-    attr_writer :connection_specification_name
+    attr_writer :connection_handler
 
-    # Return the specification name from the current class or its parent.
-    def connection_specification_name
-      if !defined?(@connection_specification_name) || @connection_specification_name.nil?
-        return self == Base ? "primary" : superclass.connection_specification_name
+    def connection_handler
+      if !defined?(@connection_handler) || @connection_handler.nil?
+        return self == Base ? @connection_handler ||= default_connection_handler : superclass.connection_handler
       end
-      @connection_specification_name
+      @connection_handler
     end
 
     def primary_class? # :nodoc:
@@ -217,28 +209,24 @@ module ActiveRecord
     end
 
     def connection_pool
-      connection_handler.retrieve_connection_pool(connection_specification_name) || raise(ConnectionNotEstablished)
+      connection_handler.retrieve_connection_pool(current_role) || raise(ConnectionNotEstablished)
     end
 
     def retrieve_connection
-      connection_handler.retrieve_connection(connection_specification_name)
+      connection_handler.retrieve_connection(current_role)
     end
 
     # Returns +true+ if Active Record is connected.
     def connected?
-      connection_handler.connected?(connection_specification_name)
+      connection_handler.connected?(current_role)
     end
 
-    def remove_connection(name = nil)
-      name ||= @connection_specification_name if defined?(@connection_specification_name)
-      # if removing a connection that has a pool, we reset the
-      # connection_specification_name so it will use the parent
-      # pool.
-      if connection_handler.retrieve_connection_pool(name)
-        self.connection_specification_name = nil
+    def remove_connection(role = current_role)
+      if defined?(@connection_handler) && @connection_handler
+        configuration_hash = connection_handler.remove_connection(role)
+        self.connection_handler = nil
+        configuration_hash
       end
-
-      connection_handler.remove_connection(name)
     end
 
     def clear_cache! # :nodoc:
@@ -249,25 +237,31 @@ module ActiveRecord
       :clear_all_connections!, :flush_idle_connections!, to: :connection_handler
 
     private
+      def assign_connection_handler
+        @connection_handler = (connection_handlers[name] ||= ConnectionAdapters::ConnectionHandler.new)
+      end
+
       def resolve_config_for_connection(config_or_env)
         raise "Anonymous class is not allowed." unless name
 
         config_or_env ||= DEFAULT_ENV.call.to_sym
-        pool_name = primary_class? ? "primary" : name
-        self.connection_specification_name = pool_name
 
         resolver = ConnectionAdapters::Resolver.new(Base.configurations)
-
-        db_config = resolver.resolve(config_or_env, pool_name)
-        db_config.configuration_hash[:name] = pool_name
-        db_config
+        resolver.resolve(config_or_env)
       end
 
-      def swap_connection_handler(handler, &blk) # :nodoc:
-        old_handler, ActiveRecord::Base.connection_handler = ActiveRecord::Base.connection_handler, handler
-        yield
-      ensure
-        ActiveRecord::Base.connection_handler = old_handler
+      def with_role(role, &block)
+        if self == Base
+          begin
+            previous_role = Thread.current.thread_variable_get(:ar_current_role)
+            Thread.current.thread_variable_set(:ar_current_role, role)
+            yield
+          ensure
+            Thread.current.thread_variable_set(:ar_current_role, previous_role)
+          end
+        else
+          connection_handler.with_role(role, &block)
+        end
       end
   end
 end
