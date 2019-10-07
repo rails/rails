@@ -4,7 +4,9 @@ require "active_support/core_ext/kernel/singleton_class"
 require "thread"
 require "delegate"
 require 'debug_inspector'
+# require 'brainz'
 
+# BRAINZ_OUTPUT_BUFFER_INDEX_RANGE_RAILS_AV = Brainz::Brainz.new
 
 class Object
   # require 'debug_inspector'
@@ -519,3 +521,11 @@ module ActionView
       end
   end
 end
+
+
+# BRAINZ_OUTPUT_BUFFER_INDEX_RANGE_RAILS_AV.teach do |iteration, error|
+#   THAT = that
+#   def ______statistics_BRAINZ_OUTPUT_BUFFER_INDEX_RANGE_RAILS_AV(count_of_lines, count_of_bytes)
+#
+#   end
+# end
