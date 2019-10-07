@@ -1,3 +1,17 @@
+*   Add `#has_attachment_on?` method to check whether there is an attachment for a given attribute or not.
+
+    ```ruby
+    class User < ApplicationRecord
+      has_one_attached :avatar
+    end
+
+    user = User.new
+    user.has_attachment_on?(:avatar) # true
+    user.has_attachment_on?(:photo) # false
+    ```
+
+    *Leonardo Tegon*
+
 *   Make services aware of configuration names.
 
     *Gannon McGibbon*

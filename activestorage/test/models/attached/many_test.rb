@@ -608,6 +608,12 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     assert_match(/Cannot configure service :unknown for User#featured_photos/, error.message)
   end
 
+  test "#has_attachment_on? returns whether there is an attachment for a given attribute or not" do
+    assert @user.has_attachment_on?(:highlights)
+    assert @user.has_attachment_on?(:vlogs)
+    assert_not @user.has_attachment_on?(:pictures)
+  end
+
   private
     def append_on_assign
       ActiveStorage.replace_on_assign_to_many, previous = false, ActiveStorage.replace_on_assign_to_many

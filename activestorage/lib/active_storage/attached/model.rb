@@ -173,6 +173,20 @@ module ActiveStorage
         end
     end
 
+    # Returns whether there is an attachment for a given +attribute+ or not.
+    #
+    #   class User < ApplicationRecord
+    #     has_one_attached :avatar
+    #   end
+    #
+    #   user = User.new
+    #   user.has_attachment_on?(:avatar) # true
+    #   user.has_attachment_on?(:photo) # false
+    #
+    def has_attachment_on?(attribute)
+      self.class.reflect_on_attachment(attribute).present?
+    end
+
     def attachment_changes #:nodoc:
       @attachment_changes ||= {}
     end

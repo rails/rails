@@ -574,4 +574,10 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
 
     assert_match(/Cannot configure service :unknown for User#featured_photo/, error.message)
   end
+
+  test "#has_attachment_on? returns whether there is an attachment for a given attribute or not" do
+    assert @user.has_attachment_on?(:avatar)
+    assert @user.has_attachment_on?(:cover_photo)
+    assert_not @user.has_attachment_on?(:picture)
+  end
 end
